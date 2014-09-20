@@ -119,7 +119,7 @@ sgssv(superlu_options_t *options, SuperMatrix *A, int *perm_c, int *perm_r,
  *         On exit, the solution matrix if info = 0;
  *
  * stat   (output) SuperLUStat_t*
- *        Record the statistics on runtime and floating-point operation count.
+ *        Record the statistics on runtime and doubleing-point operation count.
  *        See util.h for the definition of 'SuperLUStat_t'.
  *
  * info    (output) int*

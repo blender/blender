@@ -29,8 +29,8 @@
 /* 
  * Function prototypes 
  */
-void slsolve(int, int, float *, float *);
-void smatvec(int, int, int, float *, float *, float *);
+void slsolve(int, int, double *, double *);
+void smatvec(int, int, int, double *, double *, double *);
 extern void scheck_tempv();
 
 void
@@ -39,8 +39,8 @@ spanel_bmod (
 	    const int  w,          /* in */
 	    const int  jcol,       /* in */
 	    const int  nseg,       /* in */
-	    float     *dense,     /* out, of size n by w */
-	    float     *tempv,     /* working array */
+	    double     *dense,     /* out, of size n by w */
+	    double     *tempv,     /* working array */
 	    int        *segrep,    /* in */
 	    int        *repfnz,    /* in, of size n by w */
 	    GlobalLU_t *Glu,       /* modified */
@@ -71,13 +71,13 @@ spanel_bmod (
          ftcs3 = _cptofcd("U", strlen("U"));
 #endif
     int          incx = 1, incy = 1;
-    float       alpha, beta;
+    double       alpha, beta;
 #endif
 
     register int k, ksub;
     int          fsupc, nsupc, nsupr, nrow;
     int          krep, krep_ind;
-    float       ukj, ukj1, ukj2;
+    double       ukj, ukj1, ukj2;
     int          luptr, luptr1, luptr2;
     int          segsze;
     int          block_nrow;  /* no of rows in a block row */
@@ -87,13 +87,13 @@ spanel_bmod (
     register int jj;	      /* Index through each column in the panel */
     int          *xsup, *supno;
     int          *lsub, *xlsub;
-    float       *lusup;
+    double       *lusup;
     int          *xlusup;
     int          *repfnz_col; /* repfnz[] for a column in the panel */
-    float       *dense_col;  /* dense[] for a column in the panel */
-    float       *tempv1;             /* Used in 1-D update */
-    float       *TriTmp, *MatvecTmp; /* used in 2-D update */
-    float      zero = 0.0;
+    double       *dense_col;  /* dense[] for a column in the panel */
+    double       *tempv1;             /* Used in 1-D update */
+    double       *TriTmp, *MatvecTmp; /* used in 2-D update */
+    double      zero = 0.0;
     register int ldaTmp;
     register int r_ind, r_hi;
     static   int first = 1, maxsuper, rowblk, colblk;

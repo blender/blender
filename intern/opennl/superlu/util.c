@@ -28,8 +28,8 @@
 /* prototypes */
 flops_t LUFactFlops(SuperLUStat_t *stat);
 flops_t LUSolveFlops(SuperLUStat_t *stat);
-float SpaSize(int n, int np, float sum_npw);
-float DenseSize(int n, float sum_nw);
+double SpaSize(int n, int np, double sum_npw);
+double DenseSize(int n, double sum_nw);
 
 /* 
  * Global statistics variale
@@ -332,27 +332,27 @@ void super_stats(int nsuper, int *xsup)
 
     for (i = 0; i <= nsuper; i++) {
         isize = xsup[i+1] - xsup[i];
-        whichb = (float) isize / max_sup_size * NBUCKS;
+        whichb = (double) isize / max_sup_size * NBUCKS;
         if (whichb >= NBUCKS) whichb = NBUCKS - 1;
         bucket[whichb]++;
     }
     
     printf("\tHistogram of supernode sizes:\n");
     for (i = 0; i < NBUCKS; i++) {
-        bl = (float) i * max_sup_size / NBUCKS;
-        bh = (float) (i+1) * max_sup_size / NBUCKS;
+        bl = (double) i * max_sup_size / NBUCKS;
+        bh = (double) (i+1) * max_sup_size / NBUCKS;
         printf("\tsnode: %d-%d\t\t%d\n", bl+1, bh, bucket[i]);
     }
 
 }
 
 
-float SpaSize(int n, int np, float sum_npw)
+double SpaSize(int n, int np, double sum_npw)
 {
     return (sum_npw*8 + np*8 + n*4)/1024.;
 }
 
-float DenseSize(int n, float sum_nw)
+double DenseSize(int n, double sum_nw)
 {
     return (sum_nw*8 + n*8)/1024.;;
 }

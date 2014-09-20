@@ -1,17 +1,17 @@
 /** \file opennl/superlu/strsv.c
  *  \ingroup opennl
  */
-int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
+int strsv_(char *, char *, char *, int *, double *, int *, double *, int *);
 
 
 /* Subroutine */ int strsv_(char *uplo, char *trans, char *diag, int *n, 
-	float *a, int *lda, float *x, int *incx)
+	double *a, int *lda, double *x, int *incx)
 {
 
 
     /* Local variables */
     static int info;
-    static float temp;
+    static double temp;
     static int i, j;
     extern int lsame_(char *, char *);
     static int ix, jx, kx;

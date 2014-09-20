@@ -31,7 +31,7 @@
 int
 spivotL(
         const int  jcol,     /* in */
-        const float u,      /* in - diagonal pivoting threshold */
+        const double u,      /* in - diagonal pivoting threshold */
         int        *usepr,   /* re-use the pivot sequence given by perm_r/iperm_r */
         int        *perm_r,  /* may be modified */
         int        *iperm_r, /* in - inverse of perm_r */
@@ -67,14 +67,14 @@ spivotL(
     int          nsupr;     /* no of rows in the supernode */
     int          lptr;	    /* points to the starting subscript of the supernode */
     int          pivptr, old_pivptr, diag, diagind;
-    float       pivmax, rtemp, thresh;
-    float       temp;
-    float       *lu_sup_ptr; 
-    float       *lu_col_ptr;
+    double       pivmax, rtemp, thresh;
+    double       temp;
+    double       *lu_sup_ptr; 
+    double       *lu_col_ptr;
     int          *lsub_ptr;
     int          isub, icol, k, itemp;
     int          *lsub, *xlsub;
-    float       *lusup;
+    double       *lusup;
     int          *xlusup;
     flops_t      *ops = stat->ops;
 

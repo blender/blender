@@ -33,7 +33,7 @@ scopy_to_ucol(
 	      int        *segrep,  /* in */
 	      int        *repfnz,  /* in */
 	      int        *perm_r,  /* in */
-	      float     *dense,   /* modified - reset to zero on return */
+	      double     *dense,   /* modified - reset to zero on return */
 	      GlobalLU_t *Glu      /* modified */
 	      )
 {
@@ -47,11 +47,11 @@ scopy_to_ucol(
     int new_next, mem_error;
     int       *xsup, *supno;
     int       *lsub, *xlsub;
-    float    *ucol;
+    double    *ucol;
     int       *usub, *xusub;
     int       nzumax;
 
-    float zero = 0.0;
+    double zero = 0.0;
 
     xsup    = Glu->xsup;
     supno   = Glu->supno;

@@ -100,11 +100,11 @@ NLContext nlGetCurrent(void);
 
 /* State get/set */
 
-void nlSolverParameterf(NLenum pname, NLfloat param);
+void nlSolverParameterf(NLenum pname, NLdouble param);
 void nlSolverParameteri(NLenum pname, NLint param);
 
 void nlGetBooleanv(NLenum pname, NLboolean* params);
-void nlGetFloatv(NLenum pname, NLfloat* params);
+void nlGetFloatv(NLenum pname, NLdouble* params);
 void nlGetIntergerv(NLenum pname, NLint* params);
 
 void nlEnable(NLenum pname);
@@ -113,8 +113,8 @@ NLboolean nlIsEnabled(NLenum pname);
 
 /* Variables */
 
-void nlSetVariable(NLuint rhsindex, NLuint index, NLfloat value);
-NLfloat nlGetVariable(NLuint rhsindex, NLuint index);
+void nlSetVariable(NLuint rhsindex, NLuint index, NLdouble value);
+NLdouble nlGetVariable(NLuint rhsindex, NLuint index);
 void nlLockVariable(NLuint index);
 void nlUnlockVariable(NLuint index);
 NLboolean nlVariableIsLocked(NLuint index);
@@ -126,13 +126,9 @@ void nlEnd(NLenum primitive);
 
 /* Setting elements in matrix/vector */
 
-void nlMatrixAdd(NLuint row, NLuint col, NLfloat value);
-void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLfloat value);
-void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLfloat value);
-
-/* Multiply */
-
-void nlMatrixMultiply(NLfloat *x, NLfloat *y);
+void nlMatrixAdd(NLuint row, NLuint col, NLdouble value);
+void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLdouble value);
+void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLdouble value);
 
 /* Solve */
 

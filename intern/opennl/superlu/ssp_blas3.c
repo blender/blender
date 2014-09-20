@@ -20,8 +20,8 @@
 
 int
 sp_sgemm(char *transa, int n, 
-         float alpha, SuperMatrix *A, float *b, int ldb, 
-         float beta, float *c, int ldc)
+         double alpha, SuperMatrix *A, double *b, int ldb, 
+         double beta, double *c, int ldc)
 {
 /*  Purpose   
     =======   
@@ -74,7 +74,7 @@ sp_sgemm(char *transa, int n,
 	     be at least  zero.   
              Unchanged on exit.
 	     
-    ALPHA  - (input) float
+    ALPHA  - (input) double
              On entry, ALPHA specifies the scalar alpha.   
 
     A      - (input) SuperMatrix*
@@ -96,7 +96,7 @@ sp_sgemm(char *transa, int n,
              in the calling (sub) program. LDB must be at least max( 1, n ).  
              Unchanged on exit.   
 
-    BETA   - (input) float
+    BETA   - (input) double
              On entry, BETA specifies the scalar beta. When BETA is   
              supplied as zero then C need not be set on input.   
 
