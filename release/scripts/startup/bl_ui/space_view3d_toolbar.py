@@ -1082,7 +1082,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
     bl_context = "imagepaint"
-    bl_label = "Stencil"
+    bl_label = "Mask"
     bl_category = "Slots"
 
     @classmethod
