@@ -154,6 +154,7 @@ class IMAGE_MT_brush(Menu):
         ups = context.tool_settings.unified_paint_settings
         layout.prop(ups, "use_unified_size", text="Unified Size")
         layout.prop(ups, "use_unified_strength", text="Unified Strength")
+        layout.prop(ups, "use_unified_color", text="Unified Color")
         layout.separator()
 
         # brush tool
