@@ -29,9 +29,9 @@
 /* 
  * Function prototypes 
  */
-void susolve(int, int, float*, float*);
-void slsolve(int, int, float*, float*);
-void smatvec(int, int, int, float*, float*, float*);
+void susolve(int, int, double*, double*);
+void slsolve(int, int, double*, double*);
+void smatvec(int, int, int, double*, double*, double*);
 
 
 
@@ -42,8 +42,8 @@ int
 scolumn_bmod (
 	     const int  jcol,	  /* in */
 	     const int  nseg,	  /* in */
-	     float     *dense,	  /* in */
-	     float     *tempv,	  /* working array */
+	     double     *dense,	  /* in */
+	     double     *tempv,	  /* working array */
 	     int        *segrep,  /* in */
 	     int        *repfnz,  /* in */
 	     int        fpanelc,  /* in -- first column in the current panel */
@@ -67,7 +67,7 @@ scolumn_bmod (
 
 #ifdef USE_VENDOR_BLAS
     int         incx = 1, incy = 1;
-    float      alpha, beta;
+    double      alpha, beta;
 #endif
     
     /* krep = representative of current k-th supernode
@@ -78,7 +78,7 @@ scolumn_bmod (
      * kfnz = first nonz in the k-th supernodal segment
      * no_zeros = no of leading zeros in a supernodal U-segment
      */
-    float       ukj, ukj1, ukj2;
+    double       ukj, ukj1, ukj2;
     int          luptr, luptr1, luptr2;
     int          fsupc, nsupc, nsupr, segsze;
     int          nrow;	  /* No of rows in the matrix of matrix-vector */
@@ -91,14 +91,14 @@ scolumn_bmod (
 			     panel and the first column of the current snode. */
     int          *xsup, *supno;
     int          *lsub, *xlsub;
-    float       *lusup;
+    double       *lusup;
     int          *xlusup;
     int          nzlumax;
-    float       *tempv1;
-    float      zero = 0.0;
+    double       *tempv1;
+    double      zero = 0.0;
 #ifdef USE_VENDOR_BLAS
-    float      one = 1.0;
-    float      none = -1.0;
+    double      one = 1.0;
+    double      none = -1.0;
 #endif
     int          mem_error;
     flops_t      *ops = stat->ops;

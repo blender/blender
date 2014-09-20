@@ -24,8 +24,8 @@
 
 #include "ssp_defs.h"
 
-void slsolve(int, int, float*, float*);
-void smatvec(int, int, int, float*, float*, float*);
+void slsolve(int, int, double*, double*);
+void smatvec(int, int, int, double*, double*, double*);
 
 /*
  * Performs numeric block updates within the relaxed snode. 
@@ -34,8 +34,8 @@ int
 ssnode_bmod (
 	    const int  jcol,	  /* in */
 	    const int  fsupc,     /* in */
-	    float     *dense,    /* in */
-	    float     *tempv,    /* working array */
+	    double     *dense,    /* in */
+	    double     *tempv,    /* working array */
 	    GlobalLU_t *Glu,      /* modified */
 	    SuperLUStat_t *stat   /* output */
 	    )
@@ -47,14 +47,14 @@ ssnode_bmod (
 	 ftcs3 = _cptofcd("U", strlen("U"));
 #endif
     int            incx = 1, incy = 1;
-    float         alpha = -1.0, beta = 1.0;
+    double         alpha = -1.0, beta = 1.0;
 #endif
 
     int            luptr, nsupc, nsupr, nrow;
     int            isub, irow, i, iptr; 
     register int   ufirst, nextlu;
     int            *lsub, *xlsub;
-    float         *lusup;
+    double         *lusup;
     int            *xlusup;
     flops_t *ops = stat->ops;
 

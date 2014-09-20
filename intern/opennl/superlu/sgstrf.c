@@ -56,7 +56,7 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
  *          (A->nrow, A->ncol). The type of A can be:
  *          Stype = SLU_NCP; Dtype = SLU_S; Mtype = SLU_GE.
  *
- * drop_tol (input) float (NOT IMPLEMENTED)
+ * drop_tol (input) double (NOT IMPLEMENTED)
  *	    Drop tolerance parameter. At step j of the Gaussian elimination,
  *          if abs(A_ij)/(max_i abs(A_ij)) < drop_tol, drop entry A_ij.
  *          0 <= drop_tol <= 1. The default value of drop_tol is 0.
@@ -119,7 +119,7 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
  *          Dtype = SLU_S, Mtype = SLU_TRU.
  *
  * stat     (output) SuperLUStat_t*
- *          Record the statistics on runtime and floating-point operation count.
+ *          Record the statistics on runtime and doubleing-point operation count.
  *          See util.h for the definition of 'SuperLUStat_t'.
  *
  * info     (output) int*
@@ -189,14 +189,14 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
 			   used when options->Fact == SamePattern_SameRowPerm */
     int       *iperm_c; /* inverse of perm_c */
     int       *iwork;
-    float    *swork;
+    double    *swork;
     int	      *segrep, *repfnz, *parent, *xplore;
     int	      *panel_lsub; /* dense[]/panel_lsub[] pair forms a w-wide SPA */
     int	      *xprune;
     int	      *marker;
-    float    *dense, *tempv;
+    double    *dense, *tempv;
     int       *relax_end;
-    float    *a;
+    double    *a;
     int       *asub;
     int       *xa_begin, *xa_end;
     int       *xsup, *supno;

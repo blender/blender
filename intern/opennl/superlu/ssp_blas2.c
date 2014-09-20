@@ -19,14 +19,14 @@
 /* 
  * Function prototypes 
  */
-void susolve(int, int, float*, float*);
-void slsolve(int, int, float*, float*);
-void smatvec(int, int, int, float*, float*, float*);
-int strsv_(char*, char*, char*, int*, float*, int*, float*, int*);
+void susolve(int, int, double*, double*);
+void slsolve(int, int, double*, double*);
+void smatvec(int, int, int, double*, double*, double*);
+int strsv_(char*, char*, char*, int*, double*, int*, double*, int*);
 
 int
 sp_strsv(char *uplo, char *trans, char *diag, SuperMatrix *L, 
-         SuperMatrix *U, float *x, SuperLUStat_t *stat, int *info)
+         SuperMatrix *U, double *x, SuperLUStat_t *stat, int *info)
 {
 /*
  *   Purpose
@@ -71,7 +71,7 @@ sp_strsv(char *uplo, char *trans, char *diag, SuperMatrix *L,
  *	        The factor U from the factorization Pr*A*Pc=L*U.
  *	        U has types: Stype = NC, Dtype = SLU_S, Mtype = TRU.
  *    
- *   x       - (input/output) float*
+ *   x       - (input/output) double*
  *             Before entry, the incremented array X must contain the n   
  *             element right-hand side vector b. On exit, X is overwritten 
  *             with the solution vector x.
@@ -87,12 +87,12 @@ sp_strsv(char *uplo, char *trans, char *diag, SuperMatrix *L,
 #endif
     SCformat *Lstore;
     NCformat *Ustore;
-    float   *Lval, *Uval;
+    double   *Lval, *Uval;
     int incx = 1;
     int nrow;
     int fsupc, nsupr, nsupc, luptr, istart, irow;
     int i, k, iptr, jcol;
-    float *work;
+    double *work;
     flops_t solve_ops;
 
     /* Test the input parameters */
@@ -115,7 +115,7 @@ sp_strsv(char *uplo, char *trans, char *diag, SuperMatrix *L,
     Uval = Ustore->nzval;
     solve_ops = 0;
 
-    if ( !(work = floatCalloc(L->nrow)) )
+    if ( !(work = doubleCalloc(L->nrow)) )
 	ABORT("Malloc fails for work in sp_strsv().");
     
     if ( lsame_(trans, "N") ) {	/* Form x := inv(A)*x. */
@@ -306,8 +306,8 @@ sp_strsv(char *uplo, char *trans, char *diag, SuperMatrix *L,
 
 
 int
-sp_sgemv(char *trans, float alpha, SuperMatrix *A, float *x, 
-	 int incx, float beta, float *y, int incy)
+sp_sgemv(char *trans, double alpha, SuperMatrix *A, double *x, 
+	 int incx, double beta, double *y, int incy)
 {
 /*  Purpose   
     =======   
@@ -327,7 +327,7 @@ sp_sgemv(char *trans, float alpha, SuperMatrix *A, float *x,
                 TRANS = 'T' or 't'   y := alpha*A'*x + beta*y.   
                 TRANS = 'C' or 'c'   y := alpha*A'*x + beta*y.   
 
-    ALPHA  - (input) float
+    ALPHA  - (input) double
              On entry, ALPHA specifies the scalar alpha.   
 
     A      - (input) SuperMatrix*
@@ -336,7 +336,7 @@ sp_sgemv(char *trans, float alpha, SuperMatrix *A, float *x,
                  Stype = NC or NCP; Dtype = SLU_S; Mtype = GE. 
              In the future, more general A can be handled.
 
-    X      - (input) float*, array of DIMENSION at least   
+    X      - (input) double*, array of DIMENSION at least   
              ( 1 + ( n - 1 )*abs( INCX ) ) when TRANS = 'N' or 'n'   
              and at least   
              ( 1 + ( m - 1 )*abs( INCX ) ) otherwise.   
@@ -347,11 +347,11 @@ sp_sgemv(char *trans, float alpha, SuperMatrix *A, float *x,
              On entry, INCX specifies the increment for the elements of   
              X. INCX must not be zero.   
 
-    BETA   - (input) float
+    BETA   - (input) double
              On entry, BETA specifies the scalar beta. When BETA is   
              supplied as zero then Y need not be set on input.   
 
-    Y      - (output) float*,  array of DIMENSION at least   
+    Y      - (output) double*,  array of DIMENSION at least   
              ( 1 + ( m - 1 )*abs( INCY ) ) when TRANS = 'N' or 'n'   
              and at least   
              ( 1 + ( n - 1 )*abs( INCY ) ) otherwise.   
@@ -368,9 +368,9 @@ sp_sgemv(char *trans, float alpha, SuperMatrix *A, float *x,
 
     /* Local variables */
     NCformat *Astore;
-    float   *Aval;
+    double   *Aval;
     int info;
-    float temp;
+    double temp;
     int lenx, leny, i, j, irow;
     int iy, jx, jy, kx, ky;
     int notran;

@@ -45,13 +45,13 @@ spruneL(
  *   contains the current pivot row "pivrow"
  *
  */
-    float     utemp;
+    double     utemp;
     int        jsupno, irep, irep1, kmin, kmax, krow, movnum;
     int        i, ktemp, minloc, maxloc;
     int        do_prune; /* logical variable */
     int        *xsup, *supno;
     int        *lsub, *xlsub;
-    float     *lusup;
+    double     *lusup;
     int        *xlusup;
 
     xsup       = Glu->xsup;

@@ -28,10 +28,10 @@
 /* 
  * Function prototypes 
  */
-void susolve(int, int, float*, float*);
-void slsolve(int, int, float*, float*);
-void smatvec(int, int, int, float*, float*, float*);
-void sprint_soln(int , float *);
+void susolve(int, int, double*, double*);
+void slsolve(int, int, double*, double*);
+void smatvec(int, int, int, double*, double*, double*);
+void sprint_soln(int , double *);
 
 void
 sgstrs (trans_t trans, SuperMatrix *L, SuperMatrix *U,
@@ -82,7 +82,7 @@ sgstrs (trans_t trans, SuperMatrix *L, SuperMatrix *U,
  *         On exit, the solution matrix if info = 0;
  *
  * stat     (output) SuperLUStat_t*
- *          Record the statistics on runtime and floating-point operation count.
+ *          Record the statistics on runtime and doubleing-point operation count.
  *          See util.h for the definition of 'SuperLUStat_t'.
  *
  * info    (output) int*
@@ -94,17 +94,17 @@ sgstrs (trans_t trans, SuperMatrix *L, SuperMatrix *U,
     _fcd ftcs1, ftcs2, ftcs3, ftcs4;
 #endif
 #ifdef USE_VENDOR_BLAS
-    float   alpha = 1.0, beta = 1.0;
-    float   *work_col;
+    double   alpha = 1.0, beta = 1.0;
+    double   *work_col;
 #endif
     DNformat *Bstore;
-    float   *Bmat;
+    double   *Bmat;
     SCformat *Lstore;
     NCformat *Ustore;
-    float   *Lval, *Uval;
+    double   *Lval, *Uval;
     int      fsupc, nrow, nsupr, nsupc, luptr, istart, irow;
     int      i, j, k, iptr, jcol, n, ldb, nrhs;
-    float   *work, *rhs_work, *soln;
+    double   *work, *rhs_work, *soln;
     flops_t  solve_ops;
     void sprint_soln();
 
@@ -130,9 +130,9 @@ sgstrs (trans_t trans, SuperMatrix *L, SuperMatrix *U,
     }
 
     n = L->nrow;
-    work = floatCalloc(n * nrhs);
+    work = doubleCalloc(n * nrhs);
     if ( !work ) ABORT("Malloc fails for local work[].");
-    soln = floatMalloc(n);
+    soln = doubleMalloc(n);
     if ( !soln ) ABORT("Malloc fails for local soln[].");
 
     Bmat = Bstore->nzval;
@@ -325,7 +325,7 @@ sgstrs (trans_t trans, SuperMatrix *L, SuperMatrix *U,
  * Diagnostic print of the solution vector 
  */
 void
-sprint_soln(int n, float *soln)
+sprint_soln(int n, double *soln)
 {
     int i;
 

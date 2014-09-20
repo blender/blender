@@ -25,17 +25,17 @@
  */
 
 /* local prototypes*/
-void slsolve ( int, int, float *, float *);
-void susolve ( int, int, float *, float *);
-void smatvec ( int, int, int, float *, float *, float *);
+void slsolve ( int, int, double *, double *);
+void susolve ( int, int, double *, double *);
+void smatvec ( int, int, int, double *, double *, double *);
 
 
-void slsolve ( int ldm, int ncol, float *M, float *rhs )
+void slsolve ( int ldm, int ncol, double *M, double *rhs )
 {
     int k;
-    float x0, x1, x2, x3, x4, x5, x6, x7;
-    float *M0;
-    register float *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
+    double x0, x1, x2, x3, x4, x5, x6, x7;
+    double *M0;
+    register double *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
     register int firstcol = 0;
 
     M0 = &M[0];
@@ -131,10 +131,10 @@ void
 susolve ( ldm, ncol, M, rhs )
 int ldm;	/* in */
 int ncol;	/* in */
-float *M;	/* in */
-float *rhs;	/* modified */
+double *M;	/* in */
+double *rhs;	/* modified */
 {
-    float xj;
+    double xj;
     int jcol, j, irow;
 
     jcol = ncol - 1;
@@ -162,14 +162,14 @@ void smatvec ( ldm, nrow, ncol, M, vec, Mxvec )
 int ldm;	/* in -- leading dimension of M */
 int nrow;	/* in */ 
 int ncol;	/* in */
-float *M;	/* in */
-float *vec;	/* in */
-float *Mxvec;	/* in/out */
+double *M;	/* in */
+double *vec;	/* in */
+double *Mxvec;	/* in/out */
 
 {
-    float vi0, vi1, vi2, vi3, vi4, vi5, vi6, vi7;
-    float *M0;
-    register float *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
+    double vi0, vi1, vi2, vi3, vi4, vi5, vi6, vi7;
+    double *M0;
+    register double *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
     register int firstcol = 0;
     int k;
 

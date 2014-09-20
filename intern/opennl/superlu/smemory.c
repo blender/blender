@@ -24,8 +24,8 @@
 
 /* Internal prototypes */
 void  *sexpand (int *, MemType,int, int, GlobalLU_t *);
-int   sLUWorkInit (int, int, int, int **, float **, LU_space_t);
-void  copy_mem_float (int, void *, void *);
+int   sLUWorkInit (int, int, int, int **, double **, LU_space_t);
+void  copy_mem_double (int, void *, void *);
 void  sStackCompress (GlobalLU_t *);
 void  sSetupSpace (void *, int, LU_space_t *);
 void  *suser_malloc (int, int);
@@ -59,7 +59,7 @@ static int no_expand;
 #define NotDoubleAlign(addr) ( (intptr_t)addr & 7 )
 #define DoubleAlign(addr)    ( ((intptr_t)addr + 7) & ~7L )
 #define TempSpace(m, w)      ( (2*w + 4 + NO_MARKER) * m * sizeof(int) + \
-			      (w + 1) * m * sizeof(float) )
+			      (w + 1) * m * sizeof(double) )
 #define Reduce(alpha)        ((alpha + 1) / 2)  /* i.e. (alpha-1)/2 + 1 */
 
 
@@ -119,9 +119,9 @@ void suser_free(int bytes, int which_end)
 
 /*
  * mem_usage consists of the following fields:
- *    - for_lu (float)
+ *    - for_lu (double)
  *      The amount of space used in bytes for the L\U data structures.
- *    - total_needed (float)
+ *    - total_needed (double)
  *      The amount of space needed in bytes to perform factorization.
  *    - expansions (int)
  *      Number of memory expansions during the LU factorization.
@@ -136,17 +136,17 @@ int sQuerySpace(SuperMatrix *L, SuperMatrix *U, mem_usage_t *mem_usage)
     Ustore = U->Store;
     n = L->ncol;
     iword = sizeof(int);
-    dword = sizeof(float);
+    dword = sizeof(double);
 
     /* For LU factors */
-    mem_usage->for_lu = (float)( (4*n + 3) * iword + Lstore->nzval_colptr[n] *
+    mem_usage->for_lu = (double)( (4*n + 3) * iword + Lstore->nzval_colptr[n] *
 				 dword + Lstore->rowind_colptr[n] * iword );
-    mem_usage->for_lu += (float)( (n + 1) * iword +
+    mem_usage->for_lu += (double)( (n + 1) * iword +
 				 Ustore->colptr[n] * (dword + iword) );
 
     /* Working storage to support factorization */
     mem_usage->total_needed = mem_usage->for_lu +
-	(float)( (2 * panel_size + 4 + NO_MARKER) * n * iword +
+	(double)( (2 * panel_size + 4 + NO_MARKER) * n * iword +
 		(panel_size + 1) * n * dword );
 
     mem_usage->expansions = --no_expand;
@@ -165,16 +165,16 @@ int sQuerySpace(SuperMatrix *L, SuperMatrix *U, mem_usage_t *mem_usage)
 int
 sLUMemInit(fact_t fact, void *work, int lwork, int m, int n, int annz,
 	  int panel_size, SuperMatrix *L, SuperMatrix *U, GlobalLU_t *Glu,
-	  int **iwork, float **dwork)
+	  int **iwork, double **dwork)
 {
     int      info, iword, dword;
     SCformat *Lstore;
     NCformat *Ustore;
     int      *xsup, *supno;
     int      *lsub, *xlsub;
-    float   *lusup;
+    double   *lusup;
     int      *xlusup;
-    float   *ucol;
+    double   *ucol;
     int      *usub, *xusub;
     int      nzlmax, nzumax, nzlumax;
     int      FILL = sp_ienv(6);
@@ -182,7 +182,7 @@ sLUMemInit(fact_t fact, void *work, int lwork, int m, int n, int annz,
     Glu->n    = n;
     no_expand = 0;
     iword     = sizeof(int);
-    dword     = sizeof(float);
+    dword     = sizeof(double);
 
     if ( !expanders )	
         expanders = (ExpHeader*)SUPERLU_MALLOC(NO_MEMTYPE * sizeof(ExpHeader));
@@ -220,8 +220,8 @@ sLUMemInit(fact_t fact, void *work, int lwork, int m, int n, int annz,
 	    xusub  = (int *)suser_malloc((n+1) * iword, HEAD);
 	}
 
-	lusup = (float *) sexpand( &nzlumax, LUSUP, 0, 0, Glu );
-	ucol  = (float *) sexpand( &nzumax, UCOL, 0, 0, Glu );
+	lusup = (double *) sexpand( &nzlumax, LUSUP, 0, 0, Glu );
+	ucol  = (double *) sexpand( &nzumax, UCOL, 0, 0, Glu );
 	lsub  = (int *)    sexpand( &nzlmax, LSUB, 0, 0, Glu );
 	usub  = (int *)    sexpand( &nzumax, USUB, 0, 1, Glu );
 
@@ -241,8 +241,8 @@ sLUMemInit(fact_t fact, void *work, int lwork, int m, int n, int annz,
 		printf("Not enough memory to perform factorization.\n");
 		return (smemory_usage(nzlmax, nzumax, nzlumax, n) + n);
 	    }
-	    lusup = (float *) sexpand( &nzlumax, LUSUP, 0, 0, Glu );
-	    ucol  = (float *) sexpand( &nzumax, UCOL, 0, 0, Glu );
+	    lusup = (double *) sexpand( &nzlumax, LUSUP, 0, 0, Glu );
+	    ucol  = (double *) sexpand( &nzumax, UCOL, 0, 0, Glu );
 	    lsub  = (int *)    sexpand( &nzlmax, LSUB, 0, 0, Glu );
 	    usub  = (int *)    sexpand( &nzumax, USUB, 0, 1, Glu );
 	}
@@ -307,16 +307,16 @@ sLUMemInit(fact_t fact, void *work, int lwork, int m, int n, int annz,
    returns the number of bytes allocated so far when failure occurred. */
 int
 sLUWorkInit(int m, int n, int panel_size, int **iworkptr, 
-            float **dworkptr, LU_space_t MemModel)
+            double **dworkptr, LU_space_t MemModel)
 {
     int    isize, dsize, extra;
-    float *old_ptr;
+    double *old_ptr;
     int    maxsuper = sp_ienv(3),
            rowblk   = sp_ienv(4);
 
     isize = ( (2 * panel_size + 3 + NO_MARKER ) * m + n ) * sizeof(int);
     dsize = (m * panel_size +
-	     NUM_TEMPV(m,panel_size,maxsuper,rowblk)) * sizeof(float);
+	     NUM_TEMPV(m,panel_size,maxsuper,rowblk)) * sizeof(double);
     
     if ( MemModel == SYSTEM ) 
 	*iworkptr = (int *) intCalloc(isize/sizeof(int));
@@ -328,13 +328,13 @@ sLUWorkInit(int m, int n, int panel_size, int **iworkptr,
     }
 
     if ( MemModel == SYSTEM )
-	*dworkptr = (float *) SUPERLU_MALLOC(dsize);
+	*dworkptr = (double *) SUPERLU_MALLOC(dsize);
     else {
-	*dworkptr = (float *) suser_malloc(dsize, TAIL);
+	*dworkptr = (double *) suser_malloc(dsize, TAIL);
 	if ( NotDoubleAlign(*dworkptr) ) {
 	    old_ptr = *dworkptr;
-	    *dworkptr = (float*) DoubleAlign(*dworkptr);
-	    *dworkptr = (float*) ((double*)*dworkptr - 1);
+	    *dworkptr = (double*) DoubleAlign(*dworkptr);
+	    *dworkptr = (double*) ((double*)*dworkptr - 1);
 	    extra = (char*)old_ptr - (char*)*dworkptr;
 #ifdef DEBUG	    
 	    printf("sLUWorkInit: not aligned, extra %d\n", extra);
@@ -356,10 +356,10 @@ sLUWorkInit(int m, int n, int panel_size, int **iworkptr,
  * Set up pointers for real working arrays.
  */
 void
-sSetRWork(int m, int panel_size, float *dworkptr,
-	 float **dense, float **tempv)
+sSetRWork(int m, int panel_size, double *dworkptr,
+	 double **dense, double **tempv)
 {
-    float zero = 0.0;
+    double zero = 0.0;
 
     int maxsuper = sp_ienv(3),
         rowblk   = sp_ienv(4);
@@ -372,7 +372,7 @@ sSetRWork(int m, int panel_size, float *dworkptr,
 /*
  * Free the working storage used by factor routines.
  */
-void sLUWorkFree(int *iwork, float *dwork, GlobalLU_t *Glu)
+void sLUWorkFree(int *iwork, double *dwork, GlobalLU_t *Glu)
 {
     if ( Glu->MemModel == SYSTEM ) {
 	SUPERLU_FREE (iwork);
@@ -421,11 +421,11 @@ sLUMemXpand(int jcol,
 
     switch ( mem_type ) {
       case LUSUP:
-	Glu->lusup   = (float *) new_mem;
+	Glu->lusup   = (double *) new_mem;
 	Glu->nzlumax = *maxlen;
 	break;
       case UCOL:
-	Glu->ucol   = (float *) new_mem;
+	Glu->ucol   = (double *) new_mem;
 	Glu->nzumax = *maxlen;
 	break;
       case LSUB:
@@ -445,11 +445,11 @@ sLUMemXpand(int jcol,
 
 
 void
-copy_mem_float(int howmany, void *old, void *new)
+copy_mem_double(int howmany, void *old, void *new)
 {
     register int i;
-    float *dold = old;
-    float *dnew = new;
+    double *dold = old;
+    double *dnew = new;
     for (i = 0; i < howmany; i++) dnew[i] = dold[i];
 }
 
@@ -466,8 +466,8 @@ void
 	 GlobalLU_t *Glu  /* modified - global LU data structures */
 	)
 {
-    float    EXPAND = 1.5;
-    float    alpha;
+    double    EXPAND = 1.5;
+    double    alpha;
     void     *new_mem, *old_mem;
     int      new_len, tries, lword, extra, bytes_to_copy;
 
@@ -480,7 +480,7 @@ void
     }
     
     if ( type == LSUB || type == USUB ) lword = sizeof(int);
-    else lword = sizeof(float);
+    else lword = sizeof(double);
 
     if ( Glu->MemModel == SYSTEM ) {
 	new_mem = (void *) SUPERLU_MALLOC(new_len * lword);
@@ -501,7 +501,7 @@ void
 	    if ( type == LSUB || type == USUB ) {
 		copy_mem_int(len_to_copy, expanders[type].mem, new_mem);
 	    } else {
-		copy_mem_float(len_to_copy, expanders[type].mem, new_mem);
+		copy_mem_double(len_to_copy, expanders[type].mem, new_mem);
 	    }
 	    SUPERLU_FREE (expanders[type].mem);
 	}
@@ -585,12 +585,12 @@ sStackCompress(GlobalLU_t *Glu)
     register int iword, dword, ndim;
     char    *last, *fragment;
     int      *ifrom, *ito;
-    float   *dfrom, *dto;
+    double   *dfrom, *dto;
     int      *xlsub, *lsub, *xusub, *usub, *xlusup;
-    float   *ucol, *lusup;
+    double   *ucol, *lusup;
     
     iword = sizeof(int);
-    dword = sizeof(float);
+    dword = sizeof(double);
     ndim = Glu->n;
 
     xlsub  = Glu->xlsub;
@@ -602,8 +602,8 @@ sStackCompress(GlobalLU_t *Glu)
     lusup  = Glu->lusup;
     
     dfrom = ucol;
-    dto = (float *)((char*)lusup + xlusup[ndim] * dword);
-    copy_mem_float(xusub[ndim], dfrom, dto);
+    dto = (double *)((char*)lusup + xlusup[ndim] * dword);
+    copy_mem_double(xusub[ndim], dfrom, dto);
     ucol = dto;
 
     ifrom = lsub;
@@ -637,32 +637,32 @@ sStackCompress(GlobalLU_t *Glu)
  * Allocate storage for original matrix A
  */
 void
-sallocateA(int n, int nnz, float **a, int **asub, int **xa)
+sallocateA(int n, int nnz, double **a, int **asub, int **xa)
 {
-    *a    = (float *) floatMalloc(nnz);
+    *a    = (double *) doubleMalloc(nnz);
     *asub = (int *) intMalloc(nnz);
     *xa   = (int *) intMalloc(n+1);
 }
 
 
-float *floatMalloc(int n)
+double *doubleMalloc(int n)
 {
-    float *buf;
-    buf = (float *) SUPERLU_MALLOC(n * sizeof(float)); 
+    double *buf;
+    buf = (double *) SUPERLU_MALLOC(n * sizeof(double)); 
     if ( !buf ) {
-	ABORT("SUPERLU_MALLOC failed for buf in floatMalloc()\n");
+	ABORT("SUPERLU_MALLOC failed for buf in doubleMalloc()\n");
     }
     return (buf);
 }
 
-float *floatCalloc(int n)
+double *doubleCalloc(int n)
 {
-    float *buf;
+    double *buf;
     register int i;
-    float zero = 0.0;
-    buf = (float *) SUPERLU_MALLOC(n * sizeof(float));
+    double zero = 0.0;
+    buf = (double *) SUPERLU_MALLOC(n * sizeof(double));
     if ( !buf ) {
-	ABORT("SUPERLU_MALLOC failed for buf in floatCalloc()\n");
+	ABORT("SUPERLU_MALLOC failed for buf in doubleCalloc()\n");
     }
     for (i = 0; i < n; ++i) buf[i] = zero;
     return (buf);
@@ -675,7 +675,7 @@ int smemory_usage(const int nzlmax, const int nzumax,
     register int iword, dword;
 
     iword   = sizeof(int);
-    dword   = sizeof(float);
+    dword   = sizeof(double);
     
     return (10 * n * iword +
 	    nzlmax * iword + nzumax * (iword + dword) + nzlumax * dword);
