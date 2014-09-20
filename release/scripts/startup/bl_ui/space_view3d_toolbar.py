@@ -1005,6 +1005,17 @@ class TEXTURE_UL_texpaintslots(UIList):
             layout.alignment = 'CENTER'
             layout.label(text="")
 
+class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
+    bl_label = "Clone Layer"
+
+    def draw(self, context):
+        layout = self.layout
+
+        for i, tex in enumerate(context.active_object.data.uv_textures):
+            props = layout.operator("wm.context_set_int", text=tex.name, translate=False)
+            props.data_path = "active_object.data.uv_textures.active_index"
+            props.value = i
+
 
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
     bl_context = "imagepaint"
@@ -1058,7 +1069,12 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                         col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
 
         elif settings.mode == 'IMAGE':
+            mesh = ob.data
+            uv_text = mesh.uv_textures.active.name if mesh.uv_textures.active else ""
+            col.label("Image")
             col.template_ID(settings, "canvas")
+            col.label("UV Map")
+            col.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
 
         col.separator()
         col.operator("image.save_dirty", text="Save All Images")
