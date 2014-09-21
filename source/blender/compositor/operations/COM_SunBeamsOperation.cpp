@@ -139,6 +139,11 @@ struct BufferLineAccumulator {
 		float v, dv;
 		float falloff_factor;
 
+		if ((int)pt_ofs[0] == 0 && (int)pt_ofs[1] == 0) {
+			copy_v4_v4(output, input->getBuffer() + COM_NUMBER_OF_CHANNELS * ((int)source[0] + input->getWidth() * (int)source[1]));
+			return;
+		}
+
 		/* initialise the iteration variables */
 		float *buffer = init_buffer_iterator(input, source, pt_ofs, dist_min, dist_max, x, y, num, v, dv, falloff_factor);
 
