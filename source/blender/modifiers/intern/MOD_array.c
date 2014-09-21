@@ -404,6 +404,9 @@ static DerivedMesh *arrayModifier_doArray(
 	int *full_doubles_map = NULL;
 	int tot_doubles;
 
+	const bool use_merge = amd->flags & MOD_ARR_MERGE;
+	const bool use_recalc_normals = (dm->dirty & DM_DIRTY_NORMALS) || use_merge;
+
 	int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
 	int end_cap_nverts = 0, end_cap_nedges = 0, end_cap_npolys = 0, end_cap_nloops = 0;
 	int result_nverts = 0, result_nedges = 0, result_npolys = 0, result_nloops = 0;
@@ -514,7 +517,7 @@ static DerivedMesh *arrayModifier_doArray(
 	result = CDDM_from_template(dm, result_nverts, result_nedges, 0, result_nloops, result_npolys);
 	result_dm_verts = CDDM_get_verts(result);
 
-	if (amd->flags & MOD_ARR_MERGE) {
+	if (use_merge) {
 		/* Will need full_doubles_map for handling merge */
 		full_doubles_map = MEM_mallocN(sizeof(int) * result_nverts, "mod array doubles map");
 		fill_vn_i(full_doubles_map, result_nverts, -1);
@@ -561,6 +564,15 @@ static DerivedMesh *arrayModifier_doArray(
 		/* apply offset to all new verts */
 		for (i = 0; i < chunk_nverts; i++, mv++, mv_prev++) {
 			mul_m4_v3(current_offset, mv->co);
+
+			/* We have to correct normals too, if we do not tag them as dirty! */
+			if (!use_recalc_normals) {
+				float no[3];
+				normal_short_to_float_v3(no, mv->no);
+				mul_mat3_m4_v3(current_offset, no);
+				normalize_v3(no);
+				normal_float_to_short_v3(mv->no, no);
+			}
 		}
 
 		/* adjust edge vertex indices */
@@ -583,7 +595,7 @@ static DerivedMesh *arrayModifier_doArray(
 		}
 
 		/* Handle merge between chunk n and n-1 */
-		if ((amd->flags & MOD_ARR_MERGE) && (c >= 1)) {
+		if (use_merge && (c >= 1)) {
 			if (!offset_has_scale && (c >= 2)) {
 				/* Mapping chunk 3 to chunk 2 is a translation of mapping 2 to 1
 				 * ... that is except if scaling makes the distance grow */
@@ -622,10 +634,7 @@ static DerivedMesh *arrayModifier_doArray(
 
 	copy_m4_m4(final_offset, current_offset);
 
-	if ((amd->flags & MOD_ARR_MERGE) &&
-	    (amd->flags & MOD_ARR_MERGEFINAL) &&
-	    (count > 1))
-	{
+	if (use_merge && (amd->flags & MOD_ARR_MERGEFINAL) && (count > 1)) {
 		/* Merge first and last copies */
 		dm_mvert_map_doubles(
 		        full_doubles_map,
@@ -651,7 +660,7 @@ static DerivedMesh *arrayModifier_doArray(
 		        result_npolys - start_cap_npolys - end_cap_npolys,
 		        start_cap_nverts, start_cap_nedges, start_cap_nloops, start_cap_npolys);
 		/* Identify doubles with first chunk */
-		if (amd->flags & MOD_ARR_MERGE) {
+		if (use_merge) {
 			dm_mvert_map_doubles(
 			        full_doubles_map,
 			        result_dm_verts,
@@ -676,7 +685,7 @@ static DerivedMesh *arrayModifier_doArray(
 		        result_npolys - end_cap_npolys,
 		        end_cap_nverts, end_cap_nedges, end_cap_nloops, end_cap_npolys);
 		/* Identify doubles with last chunk */
-		if (amd->flags & MOD_ARR_MERGE) {
+		if (use_merge) {
 			dm_mvert_map_doubles(
 			        full_doubles_map,
 			        result_dm_verts,
@@ -693,13 +702,13 @@ static DerivedMesh *arrayModifier_doArray(
 	/* In case org dm has dirty normals, or we made some merging, mark normals as dirty in new dm!
 	 * TODO: we may need to set other dirty flags as well?
 	 */
-	if ((dm->dirty & DM_DIRTY_NORMALS) || full_doubles_map) {
+	if (use_recalc_normals) {
 		result->dirty |= DM_DIRTY_NORMALS;
 	}
 
 	/* Handle merging */
 	tot_doubles = 0;
-	if (full_doubles_map) {
+	if (use_merge) {
 		for (i = 0; i < result_nverts; i++) {
 			if (full_doubles_map[i] != -1) {
 				tot_doubles++;
