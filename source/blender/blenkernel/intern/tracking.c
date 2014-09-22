@@ -2185,10 +2185,10 @@ void BKE_tracking_disable_channels(ImBuf *ibuf, bool disable_red, bool disable_g
 
 /* ** Channels sort comparators ** */
 
-static int channels_alpha_sort(void *a, void *b)
+static int channels_alpha_sort(const void *a, const void *b)
 {
-	MovieTrackingDopesheetChannel *channel_a = a;
-	MovieTrackingDopesheetChannel *channel_b = b;
+	const MovieTrackingDopesheetChannel *channel_a = a;
+	const MovieTrackingDopesheetChannel *channel_b = b;
 
 	if (BLI_strcasecmp(channel_a->track->name, channel_b->track->name) > 0)
 		return 1;
@@ -2196,10 +2196,10 @@ static int channels_alpha_sort(void *a, void *b)
 		return 0;
 }
 
-static int channels_total_track_sort(void *a, void *b)
+static int channels_total_track_sort(const void *a, const void *b)
 {
-	MovieTrackingDopesheetChannel *channel_a = a;
-	MovieTrackingDopesheetChannel *channel_b = b;
+	const MovieTrackingDopesheetChannel *channel_a = a;
+	const MovieTrackingDopesheetChannel *channel_b = b;
 
 	if (channel_a->total_frames > channel_b->total_frames)
 		return 1;
@@ -2207,10 +2207,10 @@ static int channels_total_track_sort(void *a, void *b)
 		return 0;
 }
 
-static int channels_longest_segment_sort(void *a, void *b)
+static int channels_longest_segment_sort(const void *a, const void *b)
 {
-	MovieTrackingDopesheetChannel *channel_a = a;
-	MovieTrackingDopesheetChannel *channel_b = b;
+	const MovieTrackingDopesheetChannel *channel_a = a;
+	const MovieTrackingDopesheetChannel *channel_b = b;
 
 	if (channel_a->max_segment > channel_b->max_segment)
 		return 1;
@@ -2218,10 +2218,10 @@ static int channels_longest_segment_sort(void *a, void *b)
 		return 0;
 }
 
-static int channels_average_error_sort(void *a, void *b)
+static int channels_average_error_sort(const void *a, const void *b)
 {
-	MovieTrackingDopesheetChannel *channel_a = a;
-	MovieTrackingDopesheetChannel *channel_b = b;
+	const MovieTrackingDopesheetChannel *channel_a = a;
+	const MovieTrackingDopesheetChannel *channel_b = b;
 
 	if (channel_a->track->error > channel_b->track->error)
 		return 1;
@@ -2229,7 +2229,7 @@ static int channels_average_error_sort(void *a, void *b)
 		return 0;
 }
 
-static int channels_alpha_inverse_sort(void *a, void *b)
+static int channels_alpha_inverse_sort(const void *a, const void *b)
 {
 	if (channels_alpha_sort(a, b))
 		return 0;
@@ -2237,7 +2237,7 @@ static int channels_alpha_inverse_sort(void *a, void *b)
 		return 1;
 }
 
-static int channels_total_track_inverse_sort(void *a, void *b)
+static int channels_total_track_inverse_sort(const void *a, const void *b)
 {
 	if (channels_total_track_sort(a, b))
 		return 0;
@@ -2245,7 +2245,7 @@ static int channels_total_track_inverse_sort(void *a, void *b)
 		return 1;
 }
 
-static int channels_longest_segment_inverse_sort(void *a, void *b)
+static int channels_longest_segment_inverse_sort(const void *a, const void *b)
 {
 	if (channels_longest_segment_sort(a, b))
 		return 0;
@@ -2253,10 +2253,10 @@ static int channels_longest_segment_inverse_sort(void *a, void *b)
 		return 1;
 }
 
-static int channels_average_error_inverse_sort(void *a, void *b)
+static int channels_average_error_inverse_sort(const void *a, const void *b)
 {
-	MovieTrackingDopesheetChannel *channel_a = a;
-	MovieTrackingDopesheetChannel *channel_b = b;
+	const MovieTrackingDopesheetChannel *channel_a = a;
+	const MovieTrackingDopesheetChannel *channel_b = b;
 
 	if (channel_a->track->error < channel_b->track->error)
 		return 1;

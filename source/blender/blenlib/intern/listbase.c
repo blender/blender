@@ -173,7 +173,7 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
  * (which should return 1 iff its first arg should come after its second arg).
  * This uses insertion sort, so NOT ok for large list.
  */
-void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
+void BLI_sortlist(ListBase *listbase, int (*cmp)(const void *, const void *))
 {
 	Link *current = NULL;
 	Link *previous = NULL;
@@ -195,7 +195,7 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 	}
 }
 
-void BLI_sortlist_r(ListBase *listbase, void *thunk, int (*cmp)(void *, void *, void *))
+void BLI_sortlist_r(ListBase *listbase, void *thunk, int (*cmp)(void *, const void *, const void *))
 {
 	Link *current = NULL;
 	Link *previous = NULL;

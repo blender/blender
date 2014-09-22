@@ -132,12 +132,12 @@ static ListBase *edge_isect_ls_add(GHash *isect_hash, ScanFillEdge *eed, ScanFil
 	return e_ls;
 }
 
-static int edge_isect_ls_sort_cb(void *thunk, void *def_a_ptr, void *def_b_ptr)
+static int edge_isect_ls_sort_cb(void *thunk, const void *def_a_ptr, const void *def_b_ptr)
 {
 	const float *co = thunk;
 
-	ScanFillIsect *i_a = (ScanFillIsect *)(((LinkData *)def_a_ptr)->data);
-	ScanFillIsect *i_b = (ScanFillIsect *)(((LinkData *)def_b_ptr)->data);
+	const ScanFillIsect *i_a = ((LinkData *)def_a_ptr)->data;
+	const ScanFillIsect *i_b = ((LinkData *)def_b_ptr)->data;
 	const float a = len_squared_v2v2(co, i_a->co);
 	const float b = len_squared_v2v2(co, i_b->co);
 

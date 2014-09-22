@@ -3242,9 +3242,9 @@ bool BKE_boundbox_ray_hit_check(
 	return result;
 }
 
-static int pc_cmp(void *a, void *b)
+static int pc_cmp(const void *a, const void *b)
 {
-	LinkData *ad = a, *bd = b;
+	const LinkData *ad = a, *bd = b;
 	if (GET_INT_FROM_POINTER(ad->data) > GET_INT_FROM_POINTER(bd->data))
 		return 1;
 	else return 0;

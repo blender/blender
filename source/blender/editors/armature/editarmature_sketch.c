@@ -1492,9 +1492,9 @@ static int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gestu
 	return added;
 }
 
-static int cmpIntersections(void *i1, void *i2)
+static int cmpIntersections(const void *i1, const void *i2)
 {
-	SK_Intersection *isect1 = i1, *isect2 = i2;
+	const SK_Intersection *isect1 = i1, *isect2 = i2;
 
 	if (isect1->stroke == isect2->stroke) {
 		if (isect1->before < isect2->before) {

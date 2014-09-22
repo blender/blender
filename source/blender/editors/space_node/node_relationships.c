@@ -67,12 +67,12 @@ typedef struct bNodeListItem {
 	struct bNode *node;
 } bNodeListItem;
 
-static int sort_nodes_locx(void *a, void *b)
+static int sort_nodes_locx(const void *a, const void *b)
 {
-	bNodeListItem *nli1 = (bNodeListItem *)a;
-	bNodeListItem *nli2 = (bNodeListItem *)b;
-	bNode *node1 = nli1->node;
-	bNode *node2 = nli2->node;
+	const bNodeListItem *nli1 = a;
+	const bNodeListItem *nli2 = b;
+	const bNode *node1 = nli1->node;
+	const bNode *node2 = nli2->node;
 
 	if (node1->locx > node2->locx)
 		return 1;

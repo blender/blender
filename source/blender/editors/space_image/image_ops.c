@@ -1001,10 +1001,10 @@ static void image_sequence_get_frames(PointerRNA *ptr, ListBase *frames, char *p
 	RNA_END
 }
 
-static int image_cmp_frame(void *a, void *b)
+static int image_cmp_frame(const void *a, const void *b)
 {
-	ImageFrame *frame_a = (ImageFrame *)a;
-	ImageFrame *frame_b = (ImageFrame *)b;
+	const ImageFrame *frame_a = a;
+	const ImageFrame *frame_b = b;
 
 	if (frame_a->framenr < frame_b->framenr) return -1;
 	if (frame_a->framenr > frame_b->framenr) return 1;

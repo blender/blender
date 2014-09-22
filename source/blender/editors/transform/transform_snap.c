@@ -2036,10 +2036,10 @@ bool snapObjectsRayEx(Scene *scene, Base *base_act, View3D *v3d, ARegion *ar, Ob
 /******************** PEELING *********************************/
 
 
-static int cmpPeel(void *arg1, void *arg2)
+static int cmpPeel(const void *arg1, const void *arg2)
 {
-	DepthPeel *p1 = arg1;
-	DepthPeel *p2 = arg2;
+	const DepthPeel *p1 = arg1;
+	const DepthPeel *p2 = arg2;
 	int val = 0;
 	
 	if (p1->depth < p2->depth) {

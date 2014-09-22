@@ -1821,10 +1821,10 @@ void BKE_mask_layer_shape_unlink(MaskLayer *masklay, MaskLayerShape *masklay_sha
 	BKE_mask_layer_shape_free(masklay_shape);
 }
 
-static int mask_layer_shape_sort_cb(void *masklay_shape_a_ptr, void *masklay_shape_b_ptr)
+static int mask_layer_shape_sort_cb(const void *masklay_shape_a_ptr, const void *masklay_shape_b_ptr)
 {
-	MaskLayerShape *masklay_shape_a = (MaskLayerShape *)masklay_shape_a_ptr;
-	MaskLayerShape *masklay_shape_b = (MaskLayerShape *)masklay_shape_b_ptr;
+	const MaskLayerShape *masklay_shape_a = masklay_shape_a_ptr;
+	const MaskLayerShape *masklay_shape_b = masklay_shape_b_ptr;
 
 	if      (masklay_shape_a->frame < masklay_shape_b->frame)  return -1;
 	else if (masklay_shape_a->frame > masklay_shape_b->frame)  return  1;

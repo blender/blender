@@ -1442,7 +1442,7 @@ typedef struct CollItemSearch {
 	int iconid;
 } CollItemSearch;
 
-static int sort_search_items_list(void *a, void *b)
+static int sort_search_items_list(const void *a, const void *b)
 {
 	CollItemSearch *cis1 = (CollItemSearch *)a;
 	CollItemSearch *cis2 = (CollItemSearch *)b;

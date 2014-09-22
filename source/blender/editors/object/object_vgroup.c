@@ -4324,10 +4324,10 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int vgroup_sort_name(void *def_a_ptr, void *def_b_ptr)
+static int vgroup_sort_name(const void *def_a_ptr, const void *def_b_ptr)
 {
-	bDeformGroup *def_a = (bDeformGroup *)def_a_ptr;
-	bDeformGroup *def_b = (bDeformGroup *)def_b_ptr;
+	const bDeformGroup *def_a = def_a_ptr;
+	const bDeformGroup *def_b = def_b_ptr;
 
 	return BLI_natstrcmp(def_a->name, def_b->name);
 }
