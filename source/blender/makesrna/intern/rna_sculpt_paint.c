@@ -324,7 +324,9 @@ static void rna_ImaPaint_canvas_update(Main *bmain, Scene *scene, PointerRNA *UN
 			for (sl = sa->spacedata.first; sl; sl = sl->next) {
 				if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *)sl;
-					ED_space_image_set(sima, scene, scene->obedit, ima);
+					
+					if (!sima->pin)
+						ED_space_image_set(sima, scene, scene->obedit, ima);
 				}
 			}
 		}

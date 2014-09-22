@@ -4910,7 +4910,8 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 											if (sl->spacetype == SPACE_IMAGE) {
 												SpaceImage *sima = (SpaceImage *)sl;
 												
-												ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[0].ima);
+												if (!sima->pin)
+													ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[0].ima);
 											}
 										}
 									}
@@ -4950,7 +4951,8 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 						if (sl->spacetype == SPACE_IMAGE) {
 							SpaceImage *sima = (SpaceImage *)sl;
 							
-							ED_space_image_set(sima, scene, scene->obedit, imapaint->canvas);
+							if (!sima->pin)
+								ED_space_image_set(sima, scene, scene->obedit, imapaint->canvas);
 						}
 					}
 				}

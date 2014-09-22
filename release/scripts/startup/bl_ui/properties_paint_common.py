@@ -170,7 +170,7 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
 
                     mat = ob.active_material
                     if mat:
-                        col.label("Clone Slot")
+                        col.label("Source Clone Slot")
                         col.template_list("TEXTURE_UL_texpaintslots", "",
                                           mat, "texture_paint_images",
                                           mat, "paint_clone_slot", rows=2)
@@ -179,9 +179,9 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
                     mesh = ob.data
 
                     clone_text = mesh.uv_texture_clone.name if mesh.uv_texture_clone else ""
-                    col.label("Image")
+                    col.label("Source Clone Image")
                     col.template_ID(settings, "clone_image")
-                    col.label("UV Map")
+                    col.label("Source Clone UV Map")
                     col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
         else:
             col.prop(brush, "clone_image", text="Image")
