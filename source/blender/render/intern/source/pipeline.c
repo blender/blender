@@ -2660,7 +2660,16 @@ bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *
 		}
 #endif
 	}
-	
+
+#ifdef WITH_FREESTYLE
+	if (scene->r.mode & R_EDGE_FRS) {
+		if (scene->r.mode & R_FIELDS) {
+			BKE_report(reports, RPT_ERROR, "Fields not supported in Freestyle");
+			return false;
+		}
+	}
+#endif
+
 	/* layer flag tests */
 	if (!render_scene_has_layers_to_render(scene)) {
 		BKE_report(reports, RPT_ERROR, "All render layers are disabled");
