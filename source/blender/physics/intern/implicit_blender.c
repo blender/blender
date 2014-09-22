@@ -517,6 +517,32 @@ BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
 	r[0][1] = -v[2];	r[1][1] = 0.0f;		r[2][1] = v[0];
 	r[0][2] = v[1];		r[1][2] = -v[0];	r[2][2] = 0.0f;
 }
+
+BLI_INLINE void madd_m3_m3fl(float r[3][3], float m[3][3], float f)
+{
+	r[0][0] += m[0][0] * f;
+	r[0][1] += m[0][1] * f;
+	r[0][2] += m[0][2] * f;
+	r[1][0] += m[1][0] * f;
+	r[1][1] += m[1][1] * f;
+	r[1][2] += m[1][2] * f;
+	r[2][0] += m[2][0] * f;
+	r[2][1] += m[2][1] * f;
+	r[2][2] += m[2][2] * f;
+}
+
+BLI_INLINE void madd_m3_m3m3fl(float r[3][3], float a[3][3], float b[3][3], float f)
+{
+	r[0][0] = a[0][0] + b[0][0] * f;
+	r[0][1] = a[0][1] + b[0][1] * f;
+	r[0][2] = a[0][2] + b[0][2] * f;
+	r[1][0] = a[1][0] + b[1][0] * f;
+	r[1][1] = a[1][1] + b[1][1] * f;
+	r[1][2] = a[1][2] + b[1][2] * f;
+	r[2][0] = a[2][0] + b[2][0] * f;
+	r[2][1] = a[2][1] + b[2][1] * f;
+	r[2][2] = a[2][2] + b[2][2] * f;
+}
 /////////////////////////////////////////////////////////////////
 
 ///////////////////////////
@@ -1620,47 +1646,304 @@ bool BPH_mass_spring_force_spring_bending(Implicit_Data *data, int i, int j, int
 	}
 }
 
+/* Jacobian of a direction vector.
+ * Basically the part of the differential orthogonal to the direction,
+ * inversely proportional to the length of the edge.
+ * 
+ * dD_ij/dx_i = -dD_ij/dx_j = (D_ij * D_ij^T - I) / len_ij
+ */
+BLI_INLINE void spring_grad_dir(Implicit_Data *data, int i, int j, float edge[3], float dir[3], float grad_dir[3][3])
+{
+	float length;
+	
+	sub_v3_v3v3(edge, data->X[j], data->X[i]);
+	length = normalize_v3_v3(dir, edge);
+	
+	if (length > ALMOST_ZERO) {
+		outerproduct(grad_dir, dir, dir);
+		sub_m3_m3m3(grad_dir, I, grad_dir);
+		mul_m3_fl(grad_dir, 1.0f / length);
+	}
+	else {
+		zero_m3(grad_dir);
+	}
+}
+
+BLI_INLINE void spring_angbend_forces(Implicit_Data *data, int i, int j, int k,
+                                      float restlen_ij, float restlen_jk, float stiffness, float damping,
+                                      int p, int q, const float dx[3], const float dv[3],
+                                      float r_f[3])
+{
+	float edge_ij[3], dir_ij[3];
+	float edge_jk[3], dir_jk[3];
+	float vel_ij[3], vel_jk[3], vel_ortho[3];
+	float f_bend[3], f_damp[3];
+	float fi[3], fj[3], fk[3];
+	float target[3], dist[3];
+	
+	zero_v3(fi);
+	zero_v3(fj);
+	zero_v3(fk);
+	
+	sub_v3_v3v3(edge_ij, data->X[j], data->X[i]);
+	if (q == i) sub_v3_v3(edge_ij, dx);
+	if (q == j) add_v3_v3(edge_ij, dx);
+	normalize_v3_v3(dir_ij, edge_ij);
+	
+	sub_v3_v3v3(edge_jk, data->X[k], data->X[j]);
+	if (q == j) sub_v3_v3(edge_jk, dx);
+	if (q == k) add_v3_v3(edge_jk, dx);
+	normalize_v3_v3(dir_jk, edge_jk);
+	
+	sub_v3_v3v3(vel_ij, data->V[j], data->V[i]);
+	if (q == i) sub_v3_v3(vel_ij, dv);
+	if (q == j) add_v3_v3(vel_ij, dv);
+	
+	sub_v3_v3v3(vel_jk, data->V[k], data->V[j]);
+	if (q == j) sub_v3_v3(vel_jk, dv);
+	if (q == k) add_v3_v3(vel_jk, dv);
+	
+	/* XXX fi(x) == fk(x) only holds true as long as we assume straight rest shape!
+	 * eventually will become a bit more involved since the opposite segment
+	 * gets its own target, under condition of having equal torque on both sides.
+	 */
+	
+	/* bending force */
+	mul_v3_v3fl(target, dir_jk, restlen_ij);
+	sub_v3_v3v3(dist, target, edge_ij);
+	mul_v3_v3fl(f_bend, dist, stiffness);
+	
+	sub_v3_v3(fi, f_bend);
+	add_v3_v3(fj, f_bend);
+	
+	mul_v3_v3fl(target, dir_ij, restlen_jk);
+	sub_v3_v3v3(dist, target, edge_jk);
+	mul_v3_v3fl(f_bend, dist, stiffness);
+	
+	sub_v3_v3(fj, f_bend);
+	add_v3_v3(fk, f_bend);
+	
+	/* damping force */
+	madd_v3_v3v3fl(vel_ortho, vel_ij, dir_ij, -dot_v3v3(vel_ij, dir_ij));
+	mul_v3_v3fl(f_damp, vel_ortho, damping);
+	
+	add_v3_v3(fi, f_damp);
+	sub_v3_v3(fj, f_damp);
+	
+	madd_v3_v3v3fl(vel_ortho, vel_jk, dir_jk, -dot_v3v3(vel_jk, dir_jk));
+	mul_v3_v3fl(f_damp, vel_ortho, damping);
+	
+	add_v3_v3(fj, f_damp);
+	sub_v3_v3(fk, f_damp);
+	
+	if (p == i)
+		copy_v3_v3(r_f, fi);
+	else if (p == j)
+		copy_v3_v3(r_f, fj);
+	else if (p == k)
+		copy_v3_v3(r_f, fk);
+}
+
+/* Finite Differences method for estimating the jacobian of the force */
+BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data, int i, int j, int k,
+                                             float restlen_ij, float restlen_jk, float stiffness, float damping,
+                                             int q, int p, float dfdx[3][3])
+{
+	const float delta = 0.00001f; // TODO find a good heuristic for this
+	float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
+	float f[3];
+	int a, b;
+	
+	zero_m3(dvec_null);
+	unit_m3(dvec_pos);
+	mul_m3_fl(dvec_pos, delta * 0.5f);
+	copy_m3_m3(dvec_neg, dvec_pos);
+	negate_m3(dvec_neg);
+	
+	for (a = 0; a < 3; ++a) {
+		spring_angbend_forces(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping,
+		                      q, p, dvec_pos[a], dvec_null[a], f);
+		copy_v3_v3(dfdx[a], f);
+		
+		spring_angbend_forces(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping,
+		                      q, p, dvec_neg[a], dvec_null[a], f);
+		sub_v3_v3(dfdx[a], f);
+		
+		for (b = 0; b < 3; ++b) {
+			dfdx[a][b] /= delta;
+		}
+	}
+}
+
+/* Finite Differences method for estimating the jacobian of the force */
+BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data, int i, int j, int k,
+                                             float restlen_ij, float restlen_jk, float stiffness, float damping,
+                                             int q, int p, float dfdv[3][3])
+{
+	const float delta = 0.00001f; // TODO find a good heuristic for this
+	float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
+	float f[3];
+	int a, b;
+	
+	zero_m3(dvec_null);
+	unit_m3(dvec_pos);
+	mul_m3_fl(dvec_pos, delta * 0.5f);
+	copy_m3_m3(dvec_neg, dvec_pos);
+	negate_m3(dvec_neg);
+	
+	for (a = 0; a < 3; ++a) {
+		spring_angbend_forces(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping,
+		                      q, p, dvec_null[a], dvec_pos[a], f);
+		copy_v3_v3(dfdv[a], f);
+		
+		spring_angbend_forces(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping,
+		                      q, p, dvec_null[a], dvec_neg[a], f);
+		sub_v3_v3(dfdv[a], f);
+		
+		for (b = 0; b < 3; ++b) {
+			dfdv[a][b] /= delta;
+		}
+	}
+}
+
 /* Angular spring that pulls the vertex toward the local target
  * See "Artistic Simulation of Curly Hair" (Pixar technical memo #12-03a)
  */
-bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, int j, int k, int spring_index, float restlen,
-                                                  float stiffness, float damping,
-                                                  float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3])
+bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, int j, int k, int block_ij, int block_jk, int block_ik,
+                                                  float restlen_ij, float restlen_jk, float stiffness, float damping)
 {
-	float target[3], targetdir[3];
-	float extent[3], dir[3];
-	float dist[3], vel[3];
-	float f[3], dfdx[3][3], dfdv[3][3];
+	float fi[3], fj[3], fk[3];
+	float dfi_dxi[3][3], dfj_dxi[3][3], dfj_dxj[3][3], dfk_dxi[3][3], dfk_dxj[3][3], dfk_dxk[3][3];
+	float dfi_dvi[3][3], dfj_dvi[3][3], dfj_dvj[3][3], dfk_dvi[3][3], dfk_dvj[3][3], dfk_dvk[3][3];
 	
-	sub_v3_v3v3(targetdir, data->X[j], data->X[i]);
-	normalize_v3(targetdir);
-	mul_v3_v3fl(target, targetdir, restlen);
-	{
-		float x[3], d[3];
-		root_to_world_v3(data, j, x, data->X[j]);
-		root_to_world_v3(data, j, d, target);
-		BKE_sim_debug_data_add_vector(data->debug_data, x, d, 1, 0, 0, "spoint", hash_vertex(935, j));
-	}
+	const float vecnull[3] = {0.0f, 0.0f, 0.0f};
 	
-	// calculate elonglation
-	sub_v3_v3v3(extent, data->X[k], data->X[j]);
-	sub_v3_v3v3(vel, data->V[k], data->V[j]);
-	normalize_v3_v3(dir, extent);
+	spring_angbend_forces(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, i, -1, vecnull, vecnull, fi);
+	spring_angbend_forces(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, j, -1, vecnull, vecnull, fj);
+	spring_angbend_forces(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, k, -1, vecnull, vecnull, fk);
 	
-	sub_v3_v3v3(dist, target, extent);
-	mul_v3_v3fl(f, dist, -stiffness);
+	spring_angbend_estimate_dfdx(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, i, i, dfi_dxi);
+	spring_angbend_estimate_dfdx(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, j, i, dfj_dxi);
+	spring_angbend_estimate_dfdx(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, j, j, dfj_dxj);
+	spring_angbend_estimate_dfdx(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, k, i, dfk_dxi);
+	spring_angbend_estimate_dfdx(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, k, j, dfk_dxj);
+	spring_angbend_estimate_dfdx(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, k, k, dfk_dxk);
 	
-	madd_v3_v3fl(vel, dir, -dot_v3v3(vel, dir));
-	madd_v3_v3fl(f, vel, damping);
+	spring_angbend_estimate_dfdv(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, i, i, dfi_dvi);
+	spring_angbend_estimate_dfdv(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, j, i, dfj_dvi);
+	spring_angbend_estimate_dfdv(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, j, j, dfj_dvj);
+	spring_angbend_estimate_dfdv(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, k, i, dfk_dvi);
+	spring_angbend_estimate_dfdv(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, k, j, dfk_dvj);
+	spring_angbend_estimate_dfdv(data, i, j, k, restlen_ij, restlen_jk, stiffness, damping, k, k, dfk_dvk);
 	
-	zero_m3(dfdx);
-	zero_m3(dfdv);
+	/* add forces and jacobians to the solver data */
+	add_v3_v3(data->F[i], fi);
+	add_v3_v3(data->F[j], fj);
+	add_v3_v3(data->F[k], fk);
 	
-	apply_spring(data, j, k, spring_index, f, dfdx, dfdv);
+	add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, dfi_dxi);
+	add_m3_m3m3(data->dFdX[j].m, data->dFdX[j].m, dfj_dxj);
+	add_m3_m3m3(data->dFdX[k].m, data->dFdX[k].m, dfk_dxk);
 	
-	if (r_f) copy_v3_v3(r_f, f);
-	if (r_dfdx) copy_m3_m3(r_dfdx, dfdx);
-	if (r_dfdv) copy_m3_m3(r_dfdv, dfdv);
+	add_m3_m3m3(data->dFdX[block_ij].m, data->dFdX[block_ij].m, dfj_dxi);
+	add_m3_m3m3(data->dFdX[block_jk].m, data->dFdX[block_jk].m, dfk_dxj);
+	add_m3_m3m3(data->dFdX[block_ik].m, data->dFdX[block_ik].m, dfk_dxi);
+	
+	add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, dfi_dvi);
+	add_m3_m3m3(data->dFdV[j].m, data->dFdV[j].m, dfj_dvj);
+	add_m3_m3m3(data->dFdV[k].m, data->dFdV[k].m, dfk_dvk);
+	
+	add_m3_m3m3(data->dFdV[block_ij].m, data->dFdV[block_ij].m, dfj_dvi);
+	add_m3_m3m3(data->dFdV[block_jk].m, data->dFdV[block_jk].m, dfk_dvj);
+	add_m3_m3m3(data->dFdV[block_ik].m, data->dFdV[block_ik].m, dfk_dvi);
+
+
+	/* XXX analytical calculation of derivatives below is incorrect.
+	 * This proved to be difficult, but for now just using the finite difference method for
+	 * estimating the jacobians should be sufficient.
+	 */
+#if 0
+	float edge_ij[3], dir_ij[3], grad_dir_ij[3][3];
+	float edge_jk[3], dir_jk[3], grad_dir_jk[3][3];
+	float dist[3], vel_jk[3], vel_jk_ortho[3], projvel[3];
+	float target[3];
+	float tmp[3][3];
+	float fi[3], fj[3], fk[3];
+	float dfi_dxi[3][3], dfj_dxi[3][3], dfj_dxj[3][3], dfk_dxi[3][3], dfk_dxj[3][3], dfk_dxk[3][3];
+	float dfdvi[3][3];
+	
+	// TESTING
+	damping = 0.0f;
+	
+	zero_v3(fi);
+	zero_v3(fj);
+	zero_v3(fk);
+	zero_m3(dfi_dxi);
+	zero_m3(dfj_dxi);
+	zero_m3(dfk_dxi);
+	zero_m3(dfk_dxj);
+	zero_m3(dfk_dxk);
+	
+	/* jacobian of direction vectors */
+	spring_grad_dir(data, i, j, edge_ij, dir_ij, grad_dir_ij);
+	spring_grad_dir(data, j, k, edge_jk, dir_jk, grad_dir_jk);
+	
+	sub_v3_v3v3(vel_jk, data->V[k], data->V[j]);
+	
+	/* bending force */
+	mul_v3_v3fl(target, dir_ij, restlen);
+	sub_v3_v3v3(dist, target, edge_jk);
+	mul_v3_v3fl(fk, dist, stiffness);
+	
+	/* damping force */
+	madd_v3_v3v3fl(vel_jk_ortho, vel_jk, dir_jk, -dot_v3v3(vel_jk, dir_jk));
+	madd_v3_v3fl(fk, vel_jk_ortho, damping);
+	
+	/* XXX this only holds true as long as we assume straight rest shape!
+	 * eventually will become a bit more involved since the opposite segment
+	 * gets its own target, under condition of having equal torque on both sides.
+	 */
+	copy_v3_v3(fi, fk);
+	
+	/* counterforce on the middle point */
+	sub_v3_v3(fj, fi);
+	sub_v3_v3(fj, fk);
+	
+	/* === derivatives === */
+	
+	madd_m3_m3fl(dfk_dxi, grad_dir_ij, stiffness * restlen);
+	
+	madd_m3_m3fl(dfk_dxj, grad_dir_ij, -stiffness * restlen);
+	madd_m3_m3fl(dfk_dxj, I, stiffness);
+	
+	madd_m3_m3fl(dfk_dxk, I, -stiffness);
+	
+	copy_m3_m3(dfi_dxi, dfk_dxk);
+	negate_m3(dfi_dxi);
+	
+	/* dfj_dfi == dfi_dfj due to symmetry,
+	 * dfi_dfj == dfk_dfj due to fi == fk
+	 * XXX see comment above on future bent rest shapes
+	 */
+	copy_m3_m3(dfj_dxi, dfk_dxj);
+	
+	/* dfj_dxj == -(dfi_dxj + dfk_dxj) due to fj == -(fi + fk) */
+	sub_m3_m3m3(dfj_dxj, dfj_dxj, dfj_dxi);
+	sub_m3_m3m3(dfj_dxj, dfj_dxj, dfk_dxj);
+	
+	/* add forces and jacobians to the solver data */
+	add_v3_v3(data->F[i], fi);
+	add_v3_v3(data->F[j], fj);
+	add_v3_v3(data->F[k], fk);
+	
+	add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, dfi_dxi);
+	add_m3_m3m3(data->dFdX[j].m, data->dFdX[j].m, dfj_dxj);
+	add_m3_m3m3(data->dFdX[k].m, data->dFdX[k].m, dfk_dxk);
+	
+	add_m3_m3m3(data->dFdX[block_ij].m, data->dFdX[block_ij].m, dfj_dxi);
+	add_m3_m3m3(data->dFdX[block_jk].m, data->dFdX[block_jk].m, dfk_dxj);
+	add_m3_m3m3(data->dFdX[block_ik].m, data->dFdX[block_ik].m, dfk_dxi);
+#endif
 	
 	return true;
 }

@@ -51,26 +51,58 @@ extern "C" {
 #include "BPH_mass_spring.h"
 #include "implicit.h"
 
+/* Number of off-diagonal non-zero matrix blocks.
+ * Basically there is one of these for each vertex-vertex interaction.
+ */
+static int cloth_count_nondiag_blocks(Cloth *cloth)
+{
+	LinkNode *link;
+	int nondiag = 0;
+	
+	for (link = cloth->springs; link; link = link->next) {
+		ClothSpring *spring = (ClothSpring *)link->link;
+		switch (spring->type) {
+			case CLOTH_SPRING_TYPE_BENDING_ANG:
+				/* angular bending combines 3 vertices */
+				nondiag += 3;
+				break;
+				
+			default:
+				/* all other springs depend on 2 vertices only */
+				nondiag += 1;
+				break;
+		}
+	}
+	
+	return nondiag;
+}
+
 int BPH_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	const float ZERO[3] = {0.0f, 0.0f, 0.0f};
 	Implicit_Data *id;
-	unsigned int i;
+	unsigned int i, nondiag;
 	
-	cloth->implicit = id = BPH_mass_spring_solver_create(cloth->numverts, cloth->numsprings);
+	nondiag = cloth_count_nondiag_blocks(cloth);
+	cloth->implicit = id = BPH_mass_spring_solver_create(cloth->numverts, nondiag);
 	
 	for (i = 0; i < cloth->numverts; i++) {
 		BPH_mass_spring_set_vertex_mass(id, i, verts[i].mass);
 	}
 	
 	// init springs 
+	i = 0;
 	LinkNode *link = cloth->springs;
-	for (i = 0; link; link = link->next, ++i) {
+	for (; link; link = link->next) {
 		ClothSpring *spring = (ClothSpring *)link->link;
 		
-		spring->matrix_index = BPH_mass_spring_init_spring(id, i, spring->ij, spring->kl);
+		spring->matrix_ij_kl = BPH_mass_spring_init_spring(id, i++, spring->ij, spring->kl);
+		if (spring->type == CLOTH_SPRING_TYPE_BENDING_ANG) {
+			spring->matrix_kl_mn = BPH_mass_spring_init_spring(id, i++, spring->kl, spring->mn);
+			spring->matrix_ij_mn = BPH_mass_spring_init_spring(id, i++, spring->ij, spring->mn);
+		}
 	}
 	
 	for (i = 0; i < cloth->numverts; i++) {
@@ -349,10 +381,10 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		if (s->type & CLOTH_SPRING_TYPE_SEWING) {
 			// TODO: verify, half verified (couldn't see error)
 			// sewing springs usually have a large distance at first so clamp the force so we don't get tunnelling through colission objects
-			BPH_mass_spring_force_spring_linear(data, s->ij, s->kl, s->matrix_index, s->restlen, k, parms->Cdis, no_compress, parms->max_sewing, s->f, s->dfdx, s->dfdv);
+			BPH_mass_spring_force_spring_linear(data, s->ij, s->kl, s->matrix_ij_kl, s->restlen, k, parms->Cdis, no_compress, parms->max_sewing, s->f, s->dfdx, s->dfdv);
 		}
 		else {
-			BPH_mass_spring_force_spring_linear(data, s->ij, s->kl, s->matrix_index, s->restlen, k, parms->Cdis, no_compress, 0.0f, s->f, s->dfdx, s->dfdv);
+			BPH_mass_spring_force_spring_linear(data, s->ij, s->kl, s->matrix_ij_kl, s->restlen, k, parms->Cdis, no_compress, 0.0f, s->f, s->dfdx, s->dfdv);
 		}
 #endif
 	}
@@ -370,7 +402,7 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		scaling = parms->goalspring + s->stiffness * fabsf(parms->max_struct - parms->goalspring);
 		k = verts[s->ij].goal * scaling / (parms->avg_spring_len + FLT_EPSILON);
 		
-		BPH_mass_spring_force_spring_goal(data, s->ij, s->matrix_index, goal_x, goal_v, k, parms->goalfrict * 0.01f, s->f, s->dfdx, s->dfdv);
+		BPH_mass_spring_force_spring_goal(data, s->ij, s->matrix_ij_kl, goal_x, goal_v, k, parms->goalfrict * 0.01f, s->f, s->dfdx, s->dfdv);
 #endif
 	}
 	else if (s->type & CLOTH_SPRING_TYPE_BENDING) {  /* calculate force of bending springs */
@@ -382,7 +414,7 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		scaling = parms->bending + s->stiffness * fabsf(parms->max_bend - parms->bending);
 		cb = kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
 		
-		BPH_mass_spring_force_spring_bending(data, s->ij, s->kl, s->matrix_index, s->restlen, kb, cb, s->f, s->dfdx, s->dfdv);
+		BPH_mass_spring_force_spring_bending(data, s->ij, s->kl, s->matrix_ij_kl, s->restlen, kb, cb, s->f, s->dfdx, s->dfdv);
 #endif
 	}
 	else if (s->type & CLOTH_SPRING_TYPE_BENDING_ANG) {
@@ -394,7 +426,8 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		scaling = parms->bending + s->stiffness * fabsf(parms->max_bend - parms->bending);
 		cb = kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
 		
-		BPH_mass_spring_force_spring_bending_angular(data, s->ij, s->kl, s->mn, s->matrix_index, s->restlen, kb, cb, s->f, s->dfdx, s->dfdv);
+		/* XXX assuming same restlen for ij and jk segments here, this can be done correctly for hair later */
+		BPH_mass_spring_force_spring_bending_angular(data, s->ij, s->kl, s->mn, s->matrix_ij_kl, s->matrix_kl_mn, s->matrix_ij_mn, s->restlen, s->restlen, kb, cb);
 #endif
 	}
 }
