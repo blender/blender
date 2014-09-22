@@ -3949,6 +3949,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			}
 			
 			psys->hair_in_dm = psys->hair_out_dm = NULL;
+			psys->clmd->solver_result = NULL;
 			
 			psys->clmd->point_cache = psys->pointcache;
 		}
