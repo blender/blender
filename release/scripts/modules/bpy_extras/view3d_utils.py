@@ -54,9 +54,13 @@ def region_2d_to_vector_3d(region, rv3d, coord):
 
         w = out.dot(persinv[3].xyz) + persinv[3][3]
 
-        return ((persinv * out) / w) - viewinv.translation
+        view_vector = ((persinv * out) / w) - viewinv.translation
     else:
-        return viewinv.col[2].xyz.normalized()
+        view_vector = -viewinv.col[2].xyz
+
+    view_vector.normalize()
+
+    return view_vector
 
 
 def region_2d_to_origin_3d(region, rv3d, coord):
