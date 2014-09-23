@@ -798,8 +798,8 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 #ifdef __SVM__
 		svm_eval_nodes(kg, sd, SHADER_TYPE_SURFACE, path_flag);
 #else
-		sd->closure.weight = make_float3(0.8f, 0.8f, 0.8f);
-		sd->closure.N = sd->N;
+		sd->closure->weight = make_float3(0.8f, 0.8f, 0.8f);
+		sd->closure->N = sd->N;
 		sd->flag |= bsdf_diffuse_setup(&sd->closure);
 #endif
 	}
