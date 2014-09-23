@@ -138,6 +138,7 @@ struct BufferLineAccumulator {
 		int x, y, num;
 		float v, dv;
 		float falloff_factor;
+		float border[4];
 
 		if ((int)pt_ofs[0] == 0 && (int)pt_ofs[1] == 0) {
 			copy_v4_v4(output, input->getBuffer() + COM_NUMBER_OF_CHANNELS * ((int)source[0] + input->getWidth() * (int)source[1]));
@@ -146,19 +147,26 @@ struct BufferLineAccumulator {
 
 		/* initialise the iteration variables */
 		float *buffer = init_buffer_iterator(input, source, pt_ofs, dist_min, dist_max, x, y, num, v, dv, falloff_factor);
-
-		int tot = 0;
+		zero_v3(border);
+		border[3] = 1.0f;
 
 		/* v_local keeps track of when to decrement v (see below) */
 		float v_local = v - floorf(v);
 
 		for (int i = 0; i < num; i++) {
-			/* range check, abort when running beyond the image border */
-			if (x < rect.xmin || x >= rect.xmax || y < rect.ymin || y >= rect.ymax)
-				break;
-
-			float f = 1.0f - (float)i * falloff_factor;
-			madd_v4_v4fl(output, buffer, buffer[3] * f * f);
+			float weight = 1.0f - (float)i * falloff_factor;
+			weight *= weight;
+			
+			/* range check, use last valid color when running beyond the image border */
+			if (x >= rect.xmin && x < rect.xmax && y >= rect.ymin && y < rect.ymax) {
+				madd_v4_v4fl(output, buffer, buffer[3] * weight);
+				/* use as border color in case subsequent pixels are out of bounds */
+				copy_v4_v4(border, buffer);
+			}
+			else {
+				madd_v4_v4fl(output, border, border[3] * weight);
+			}
+			
 			/* TODO implement proper filtering here, see
 			 * http://en.wikipedia.org/wiki/Lanczos_resampling
 			 * http://en.wikipedia.org/wiki/Sinc_function
@@ -166,9 +174,8 @@ struct BufferLineAccumulator {
 			 * using lanczos with x = distance from the line segment,
 			 * normalized to a == 0.5f, could give a good result
 			 *
-			 * for now just count samples and divide equally at the end ...
+			 * for now just divide equally at the end ...
 			 */
-			tot++;
 
 			/* decrement u */
 			x -= fxx;
