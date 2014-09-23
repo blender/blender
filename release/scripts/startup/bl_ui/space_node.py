@@ -200,7 +200,7 @@ class NODE_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("node.select_same_type")
+        layout.operator("node.select_grouped")
         layout.operator("node.select_same_type_step").prev = True
         layout.operator("node.select_same_type_step").prev = False
 
