@@ -808,9 +808,10 @@ int BezierCurveShader::shade(Stroke& stroke) const
 	     ++it)
 	{
 		(it)->setAttribute(*a);
-		if ((index <= index1) || (index > index2))
+		if ((index <= index1) || (index > index2)) {
 			++a;
-			++index;
+		}
+		++index;
 	}
 	return 0;
 }
