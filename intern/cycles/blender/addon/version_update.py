@@ -48,7 +48,7 @@ def do_versions(self):
                 cscene.volume_bounces = 1
 
     # Caustics Reflective/Refractive separation in 272
-    if bpy.data.version <= (2, 71, 0):
+    if bpy.data.version <= (2, 72, 0):
         for scene in bpy.data.scenes:
             cscene = scene.cycles
             if (cscene.get("no_caustics", False) and
