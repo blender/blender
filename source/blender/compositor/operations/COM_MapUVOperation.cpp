@@ -62,7 +62,7 @@ void MapUVOperation::executePixelSampled(float output[4], float x, float y, Pixe
 	 */
 	float du = len_v2(deriv[0]);
 	float dv = len_v2(deriv[1]);
-	float factor = 1.0f - threshold * (du + dv);
+	float factor = 1.0f - threshold * (du / m_inputColorProgram->getWidth() + dv / m_inputColorProgram->getHeight());
 	if (factor < 0.f) alpha = 0.f;
 	else alpha *= factor;
 
