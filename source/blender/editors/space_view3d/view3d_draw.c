@@ -2523,7 +2523,8 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 				mask |= CD_MASK_ORCO;
 		}
 		else {
-			if (scene->gm.matmode == GAME_MAT_GLSL || v3d->drawtype == OB_MATERIAL)
+			if ((scene->gm.matmode == GAME_MAT_GLSL && v3d->drawtype == OB_TEXTURE) || 
+				(v3d->drawtype == OB_MATERIAL))
 				mask |= CD_MASK_ORCO;
 		}
 	}

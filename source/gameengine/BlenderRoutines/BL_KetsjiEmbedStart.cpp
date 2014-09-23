@@ -67,6 +67,7 @@
 
 
 extern "C" {
+	#include "DNA_object_types.h"
 	#include "DNA_view3d_types.h"
 	#include "DNA_screen_types.h"
 	#include "DNA_userdef_types.h"
@@ -282,6 +283,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		bool mouse_state = startscene->gm.flag & GAME_SHOW_MOUSE;
 		bool restrictAnimFPS = startscene->gm.flag & GAME_RESTRICT_ANIM_UPDATES;
 
+		short drawtype = v3d->drawtype;
+		
+		/* we do not support material mode in game engine, force change to texture mode */
+		if (drawtype == OB_MATERIAL) drawtype = OB_TEXTURE;
 		if (animation_record) usefixed= false; /* override since you don't want to run full-speed for sim recording */
 
 		// create the canvas and rasterizer
@@ -370,7 +375,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			camzoom = 2.0;
 		}
 
-		rasterizer->SetDrawingMode(v3d->drawtype);
+		rasterizer->SetDrawingMode(drawtype);
 		ketsjiengine->SetCameraZoom(camzoom);
 		
 		// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file
