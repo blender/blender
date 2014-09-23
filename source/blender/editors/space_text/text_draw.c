@@ -377,6 +377,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 	FlattenString fs;
 	int basex, lines;
 	int i, wrap, end, max, columns, padding; /* column */
+	/* warning, only valid when 'use_syntax' is set */
 	int a, fstart, fpos;                     /* utf8 chars */
 	int mi, ma, mstart, mend;                /* mem */
 	char fmt_prev = 0xff;
@@ -398,8 +399,11 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 			/* skip hidden part of line */
 			if (skip) {
 				skip--;
-				fstart = fpos = end;
-				mstart = mend;
+				if (use_syntax) {
+					/* currently fpos only used when formatting */
+					fpos += BLI_strnlen_utf8(str + mstart, mend - mstart);
+				}
+				fstart = fpos; mstart = mend;
 				mend = txt_utf8_forward_columns(str + mend, max, &padding) - str;
 				end = (wrap += max - padding);
 				continue;
