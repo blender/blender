@@ -352,13 +352,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "int", "preview_start_resolution")) {
-		Scene *scene;
-		for (scene = main->scene.first; scene; scene = scene->id.next) {
-			scene->r.preview_start_resolution = 64;
-		}
-	}
-
 	if (!MAIN_VERSION_ATLEAST(main, 271, 6)) {
 		Object *ob;
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -371,6 +364,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 						pmd->psys->clmd->sim_parms->vel_damping = 1.0f;
 					}
 				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 272, 0)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "int", "preview_start_resolution")) {
+			Scene *scene;
+			for (scene = main->scene.first; scene; scene = scene->id.next) {
+				scene->r.preview_start_resolution = 64;
 			}
 		}
 	}
