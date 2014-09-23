@@ -373,6 +373,7 @@ static const char *txt_utf8_forward_columns(const char *str, int columns, int *p
 
 static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w, const char *format, int skip)
 {
+	const bool use_syntax = (st->showsyntax && format);
 	FlattenString fs;
 	int basex, lines;
 	int i, wrap, end, max, columns, padding; /* column */
@@ -406,7 +407,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 
 			/* Draw the visible portion of text on the overshot line */
 			for (a = fstart, ma = mstart; ma < mend; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
-				if (st->showsyntax && format) {
+				if (use_syntax) {
 					if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
 				}
 				x += text_font_draw_character_utf8(st, x, y, str + ma);
@@ -428,7 +429,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 
 	/* Draw the remaining text */
 	for (a = fstart, ma = mstart; str[ma] && y > 0; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
-		if (st->showsyntax && format) {
+		if (use_syntax) {
 			if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
 		}
 
@@ -442,6 +443,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 
 static void text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int x, int y, const char *format)
 {
+	const bool use_syntax = (st->showsyntax && format);
 	FlattenString fs;
 	int columns, size, n, w = 0, padding, amount = 0;
 	const char *in = NULL;
@@ -474,7 +476,7 @@ static void text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int x,
 
 	x += st->cwidth * padding;
 
-	if (st->showsyntax && format) {
+	if (use_syntax) {
 		int a, str_shift = 0;
 		char fmt_prev = 0xff;
 
