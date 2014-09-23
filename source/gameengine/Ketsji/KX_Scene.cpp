@@ -1577,7 +1577,7 @@ void KX_Scene::AddAnimatedObject(CValue* gameobj)
 
 static void update_anim_thread_func(TaskPool *pool, void *taskdata, int UNUSED(threadid))
 {
-	KX_GameObject *gameobj, *child;
+	KX_GameObject *gameobj, *child, *parent;
 	CListValue *children;
 	bool needs_update;
 	double curtime = *(double*)BLI_task_pool_userdata(pool);
@@ -1621,8 +1621,11 @@ static void update_anim_thread_func(TaskPool *pool, void *taskdata, int UNUSED(t
 	if (needs_update) {
 		gameobj->UpdateActionManager(curtime);
 		children = gameobj->GetChildren();
+		parent = gameobj->GetParent();
 
-		if (!gameobj->GetParent() && gameobj->GetDeformer())
+		// Only do deformers here if they are not parented to an armature, otherwise the armature will
+		// handle updating its children
+		if (gameobj->GetDeformer() && (!parent || (parent && parent->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)))
 			gameobj->GetDeformer()->Update();
 
 		for (int j=0; j<children->GetCount(); ++j) {
