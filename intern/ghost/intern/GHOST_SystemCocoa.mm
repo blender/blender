@@ -562,7 +562,8 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 
 	//Ensures window top left is inside this available rect
 	left = left > contentRect.origin.x ? left : contentRect.origin.x;
-	bottom = bottom > contentRect.origin.y ? bottom : contentRect.origin.y;
+	// Add contentRect.origin.y to respect docksize
+	bottom = bottom > contentRect.origin.y ? bottom + contentRect.origin.y : contentRect.origin.y;
 
 	window = new GHOST_WindowCocoa (this, title, left, bottom, width, height, state, type, stereoVisual, numOfAASamples);
 
