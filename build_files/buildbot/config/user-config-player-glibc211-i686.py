@@ -34,7 +34,7 @@ BF_CXX_LIB_STATIC = '/usr/lib/gcc/i486-linux-gnu/4.7.1/libstdc++.a'
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = True
 BF_OPENAL = '/opt/lib/openal'
-BF_OPENAL_LIB_STATIC = '/opt/lib/openal/lib/libopenal.a'
+BF_OPENAL_LIB_STATIC = '/opt/lib/openal/lib/libopenal.a /opt/lib/openal/lib/libcommon.a'
 
 WITH_BF_GETTEXT_STATIC = True
 
