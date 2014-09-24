@@ -252,7 +252,7 @@ ccl_device bool BVH_FUNCTION_NAME
 							if(kernel_tex_fetch(__prim_type, isect_array->prim) & PRIMITIVE_ALL_TRIANGLE)
 #endif
 							{
-								shader =  __float_as_int(kernel_tex_fetch(__tri_shader, prim));
+								shader =  kernel_tex_fetch(__tri_shader, prim);
 							}
 #ifdef __HAIR__
 							else {

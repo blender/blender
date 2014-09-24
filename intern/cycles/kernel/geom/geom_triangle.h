@@ -157,7 +157,7 @@ ccl_device_inline void triangle_point_normal(KernelGlobals *kg, int object, int 
 		*Ng = normalize(cross(v1 - v0, v2 - v0));
 
 	/* shader`*/
-	*shader = __float_as_int(kernel_tex_fetch(__tri_shader, prim));
+	*shader = kernel_tex_fetch(__tri_shader, prim);
 }
 
 /* Triangle vertex locations */

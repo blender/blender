@@ -69,7 +69,7 @@ public:
 	device_vector<uint> prim_object;
 
 	/* mesh */
-	device_vector<float> tri_shader;
+	device_vector<uint> tri_shader;
 	device_vector<float4> tri_vnormal;
 	device_vector<float4> tri_vindex;
 	device_vector<float4> tri_verts;

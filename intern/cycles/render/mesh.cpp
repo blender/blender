@@ -378,12 +378,12 @@ void Mesh::add_vertex_normals()
 	}
 }
 
-void Mesh::pack_normals(Scene *scene, float *tri_shader, float4 *vnormal)
+void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 {
 	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
 
 	float3 *vN = attr_vN->data_float3();
-	int shader_id = 0;
+	uint shader_id = 0;
 	uint last_shader = -1;
 	bool last_smooth = false;
 
@@ -401,7 +401,7 @@ void Mesh::pack_normals(Scene *scene, float *tri_shader, float4 *vnormal)
 			shader_id = scene->shader_manager->get_shader_id(last_shader, this, last_smooth);
 		}
 
-		tri_shader[i] = __int_as_float(shader_id);
+		tri_shader[i] = shader_id;
 	}
 
 	size_t verts_size = verts.size();
@@ -936,7 +936,7 @@ void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene 
 		/* normals */
 		progress.set_status("Updating Mesh", "Computing normals");
 
-		float *tri_shader = dscene->tri_shader.resize(tri_size);
+		uint *tri_shader = dscene->tri_shader.resize(tri_size);
 		float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
 		float4 *tri_verts = dscene->tri_verts.resize(vert_size);
 		float4 *tri_vindex = dscene->tri_vindex.resize(tri_size);

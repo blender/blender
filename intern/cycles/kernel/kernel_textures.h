@@ -36,7 +36,7 @@ KERNEL_TEX(float4, texture_float4, __objects)
 KERNEL_TEX(float4, texture_float4, __objects_vector)
 
 /* triangles */
-KERNEL_TEX(float, texture_float, __tri_shader)
+KERNEL_TEX(uint, texture_uint, __tri_shader)
 KERNEL_TEX(float4, texture_float4, __tri_vnormal)
 KERNEL_TEX(float4, texture_float4, __tri_vindex)
 KERNEL_TEX(float4, texture_float4, __tri_verts)
