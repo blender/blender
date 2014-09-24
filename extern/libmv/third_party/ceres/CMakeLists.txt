@@ -245,46 +245,46 @@ set(SRC
 	internal/ceres/wall_time.h
 )
 
-#if(FALSE)
-#	list(APPEND SRC
-#		internal/ceres/generated/partitioned_matrix_view_2_2_2.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_2_3.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_2_4.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_2_d.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_3_3.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_3_4.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_3_9.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_3_d.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_4_3.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_4_4.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_4_8.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_4_9.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_4_d.cc
-#		internal/ceres/generated/partitioned_matrix_view_2_d_d.cc
-#		internal/ceres/generated/partitioned_matrix_view_4_4_2.cc
-#		internal/ceres/generated/partitioned_matrix_view_4_4_3.cc
-#		internal/ceres/generated/partitioned_matrix_view_4_4_4.cc
-#		internal/ceres/generated/partitioned_matrix_view_4_4_d.cc
-#		internal/ceres/generated/schur_eliminator_2_2_2.cc
-#		internal/ceres/generated/schur_eliminator_2_2_3.cc
-#		internal/ceres/generated/schur_eliminator_2_2_4.cc
-#		internal/ceres/generated/schur_eliminator_2_2_d.cc
-#		internal/ceres/generated/schur_eliminator_2_3_3.cc
-#		internal/ceres/generated/schur_eliminator_2_3_4.cc
-#		internal/ceres/generated/schur_eliminator_2_3_9.cc
-#		internal/ceres/generated/schur_eliminator_2_3_d.cc
-#		internal/ceres/generated/schur_eliminator_2_4_3.cc
-#		internal/ceres/generated/schur_eliminator_2_4_4.cc
-#		internal/ceres/generated/schur_eliminator_2_4_8.cc
-#		internal/ceres/generated/schur_eliminator_2_4_9.cc
-#		internal/ceres/generated/schur_eliminator_2_4_d.cc
-#		internal/ceres/generated/schur_eliminator_2_d_d.cc
-#		internal/ceres/generated/schur_eliminator_4_4_2.cc
-#		internal/ceres/generated/schur_eliminator_4_4_3.cc
-#		internal/ceres/generated/schur_eliminator_4_4_4.cc
-#		internal/ceres/generated/schur_eliminator_4_4_d.cc
-#	)
-#endif()
+if(TRUE)
+	list(APPEND SRC
+		internal/ceres/generated/partitioned_matrix_view_2_2_2.cc
+		internal/ceres/generated/partitioned_matrix_view_2_2_3.cc
+		internal/ceres/generated/partitioned_matrix_view_2_2_4.cc
+		internal/ceres/generated/partitioned_matrix_view_2_2_d.cc
+		internal/ceres/generated/partitioned_matrix_view_2_3_3.cc
+		internal/ceres/generated/partitioned_matrix_view_2_3_4.cc
+		internal/ceres/generated/partitioned_matrix_view_2_3_9.cc
+		internal/ceres/generated/partitioned_matrix_view_2_3_d.cc
+		internal/ceres/generated/partitioned_matrix_view_2_4_3.cc
+		internal/ceres/generated/partitioned_matrix_view_2_4_4.cc
+		internal/ceres/generated/partitioned_matrix_view_2_4_8.cc
+		internal/ceres/generated/partitioned_matrix_view_2_4_9.cc
+		internal/ceres/generated/partitioned_matrix_view_2_4_d.cc
+		internal/ceres/generated/partitioned_matrix_view_2_d_d.cc
+		internal/ceres/generated/partitioned_matrix_view_4_4_2.cc
+		internal/ceres/generated/partitioned_matrix_view_4_4_3.cc
+		internal/ceres/generated/partitioned_matrix_view_4_4_4.cc
+		internal/ceres/generated/partitioned_matrix_view_4_4_d.cc
+		internal/ceres/generated/schur_eliminator_2_2_2.cc
+		internal/ceres/generated/schur_eliminator_2_2_3.cc
+		internal/ceres/generated/schur_eliminator_2_2_4.cc
+		internal/ceres/generated/schur_eliminator_2_2_d.cc
+		internal/ceres/generated/schur_eliminator_2_3_3.cc
+		internal/ceres/generated/schur_eliminator_2_3_4.cc
+		internal/ceres/generated/schur_eliminator_2_3_9.cc
+		internal/ceres/generated/schur_eliminator_2_3_d.cc
+		internal/ceres/generated/schur_eliminator_2_4_3.cc
+		internal/ceres/generated/schur_eliminator_2_4_4.cc
+		internal/ceres/generated/schur_eliminator_2_4_8.cc
+		internal/ceres/generated/schur_eliminator_2_4_9.cc
+		internal/ceres/generated/schur_eliminator_2_4_d.cc
+		internal/ceres/generated/schur_eliminator_2_d_d.cc
+		internal/ceres/generated/schur_eliminator_4_4_2.cc
+		internal/ceres/generated/schur_eliminator_4_4_3.cc
+		internal/ceres/generated/schur_eliminator_4_4_4.cc
+		internal/ceres/generated/schur_eliminator_4_4_d.cc
+	)
+endif()
 
 if(WIN32)
 	list(APPEND INC
@@ -307,7 +307,6 @@ add_definitions(
 	-DCERES_NO_SUITESPARSE
 	-DCERES_NO_CXSPARSE
 	-DCERES_NO_LAPACK
-	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 	-DCERES_HAVE_RWLOCK
 )
 

@@ -138,7 +138,7 @@ ${sources}
 ${headers}
 )
 
-#if(FALSE)
+#if(TRUE)
 #	list(APPEND SRC
 ${generated_sources}
 #	)
@@ -165,7 +165,6 @@ add_definitions(
 	-DCERES_NO_SUITESPARSE
 	-DCERES_NO_CXSPARSE
 	-DCERES_NO_LAPACK
-	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 	-DCERES_HAVE_RWLOCK
 )
 
@@ -217,13 +216,12 @@ defs = []
 $src
 src += env.Glob('internal/ceres/generated/schur_eliminator_d_d_d.cc')
 src += env.Glob('internal/ceres/generated/partitioned_matrix_view_d_d_d.cc')
-#src += env.Glob('internal/ceres/generated/*.cc')
+src += env.Glob('internal/ceres/generated/*.cc')
 
 defs.append('CERES_HAVE_PTHREAD')
 defs.append('CERES_NO_SUITESPARSE')
 defs.append('CERES_NO_CXSPARSE')
 defs.append('CERES_NO_LAPACK')
-defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 defs.append('CERES_HAVE_RWLOCK')
 
 if env['WITH_BF_OPENMP']:
