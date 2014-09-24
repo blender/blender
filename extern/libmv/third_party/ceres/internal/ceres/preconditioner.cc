@@ -37,6 +37,16 @@ namespace internal {
 Preconditioner::~Preconditioner() {
 }
 
+PreconditionerType Preconditioner::PreconditionerForZeroEBlocks(
+    PreconditionerType preconditioner_type) {
+  if (preconditioner_type == SCHUR_JACOBI ||
+      preconditioner_type == CLUSTER_JACOBI ||
+      preconditioner_type == CLUSTER_TRIDIAGONAL) {
+    return JACOBI;
+  }
+  return preconditioner_type;
+}
+
 SparseMatrixPreconditionerWrapper::SparseMatrixPreconditionerWrapper(
     const SparseMatrix* matrix)
     : matrix_(CHECK_NOTNULL(matrix)) {

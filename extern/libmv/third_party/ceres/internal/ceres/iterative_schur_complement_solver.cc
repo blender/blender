@@ -101,6 +101,7 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   // complement matrix with the block diagonal of the matrix F'F as
   // the preconditioner.
   LinearSolver::Options cg_options;
+  cg_options.min_num_iterations = options_.min_num_iterations;
   cg_options.max_num_iterations = options_.max_num_iterations;
   ConjugateGradientsSolver cg_solver(cg_options);
   LinearSolver::PerSolveOptions cg_per_solve_options;

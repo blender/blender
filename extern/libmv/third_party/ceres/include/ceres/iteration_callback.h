@@ -36,6 +36,7 @@
 #define CERES_PUBLIC_ITERATION_CALLBACK_H_
 
 #include "ceres/types.h"
+#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
 
@@ -218,5 +219,7 @@ class CERES_EXPORT IterationCallback {
 };
 
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_ITERATION_CALLBACK_H_

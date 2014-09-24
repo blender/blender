@@ -251,6 +251,16 @@ void Problem::GetParameterBlocksForResidualBlock(
                                                     parameter_blocks);
 }
 
+const CostFunction* Problem::GetCostFunctionForResidualBlock(
+    const ResidualBlockId residual_block) const {
+  return problem_impl_->GetCostFunctionForResidualBlock(residual_block);
+}
+
+const LossFunction* Problem::GetLossFunctionForResidualBlock(
+    const ResidualBlockId residual_block) const {
+  return problem_impl_->GetLossFunctionForResidualBlock(residual_block);
+}
+
 void Problem::GetResidualBlocksForParameterBlock(
     const double* values,
     vector<ResidualBlockId>* residual_blocks) const {

@@ -159,6 +159,7 @@
 #include <cmath>
 #include <iosfwd>
 #include <iostream>  // NOLINT
+#include <limits>
 #include <string>
 
 #include "Eigen/Core"
@@ -197,10 +198,8 @@ struct Jet {
   // to be passed in without being fully evaluated until
   // they are assigned to v
   template<typename Derived>
-  Jet(const T& value, const Eigen::DenseBase<Derived> &vIn)
-    : a(value),
-      v(vIn)
-  {
+  EIGEN_STRONG_INLINE Jet(const T& a, const Eigen::DenseBase<Derived> &v)
+      : a(a), v(v) {
   }
 
   // Compound operators
@@ -649,7 +648,9 @@ struct NumTraits<ceres::Jet<T, N> > {
     return ceres::Jet<T, N>(1e-12);
   }
 
-  static inline Real epsilon() { return Real(std::numeric_limits<T>::epsilon()); }
+  static inline Real epsilon() {
+    return Real(std::numeric_limits<T>::epsilon());
+  }
 
   enum {
     IsComplex = 0,

@@ -32,6 +32,7 @@
 
 #include <map>
 #include <vector>
+#include "ceres/array_utils.h"
 #include "ceres/casts.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/cost_function.h"
@@ -44,6 +45,7 @@
 #include "ceres/problem.h"
 #include "ceres/residual_block.h"
 #include "ceres/stl_util.h"
+#include "ceres/triplet_sparse_matrix.h"
 
 namespace ceres {
 namespace internal {
@@ -168,6 +170,259 @@ bool Program::IsValid() const {
   }
 
   return true;
+}
+
+bool Program::ParameterBlocksAreFinite(string* message) const {
+  CHECK_NOTNULL(message);
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
+    const ParameterBlock* parameter_block = parameter_blocks_[i];
+    const double* array = parameter_block->user_state();
+    const int size = parameter_block->Size();
+    const int invalid_index = FindInvalidValue(size, array);
+    if (invalid_index != size) {
+      *message = StringPrintf(
+          "ParameterBlock: %p with size %d has at least one invalid value.\n"
+          "First invalid value is at index: %d.\n"
+          "Parameter block values: ",
+          array, size, invalid_index);
+      AppendArrayToString(size, array, message);
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Program::IsBoundsConstrained() const {
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
+    const ParameterBlock* parameter_block = parameter_blocks_[i];
+    if (parameter_block->IsConstant()) {
+      continue;
+    }
+    const int size = parameter_block->Size();
+    for (int j = 0; j < size; ++j) {
+      const double lower_bound = parameter_block->LowerBoundForParameter(j);
+      const double upper_bound = parameter_block->UpperBoundForParameter(j);
+      if (lower_bound > -std::numeric_limits<double>::max() ||
+          upper_bound < std::numeric_limits<double>::max()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool Program::IsFeasible(string* message) const {
+  CHECK_NOTNULL(message);
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
+    const ParameterBlock* parameter_block = parameter_blocks_[i];
+    const double* parameters = parameter_block->user_state();
+    const int size = parameter_block->Size();
+    if (parameter_block->IsConstant()) {
+      // Constant parameter blocks must start in the feasible region
+      // to ultimately produce a feasible solution, since Ceres cannot
+      // change them.
+      for (int j = 0; j < size; ++j) {
+        const double lower_bound = parameter_block->LowerBoundForParameter(j);
+        const double upper_bound = parameter_block->UpperBoundForParameter(j);
+        if (parameters[j] < lower_bound || parameters[j] > upper_bound) {
+          *message = StringPrintf(
+              "ParameterBlock: %p with size %d has at least one infeasible "
+              "value."
+              "\nFirst infeasible value is at index: %d."
+              "\nLower bound: %e, value: %e, upper bound: %e"
+              "\nParameter block values: ",
+              parameters, size, j, lower_bound, parameters[j], upper_bound);
+          AppendArrayToString(size, parameters, message);
+          return false;
+        }
+      }
+    } else {
+      // Variable parameter blocks must have non-empty feasible
+      // regions, otherwise there is no way to produce a feasible
+      // solution.
+      for (int j = 0; j < size; ++j) {
+        const double lower_bound = parameter_block->LowerBoundForParameter(j);
+        const double upper_bound = parameter_block->UpperBoundForParameter(j);
+        if (lower_bound >= upper_bound) {
+          *message = StringPrintf(
+              "ParameterBlock: %p with size %d has at least one infeasible "
+              "bound."
+              "\nFirst infeasible bound is at index: %d."
+              "\nLower bound: %e, upper bound: %e"
+              "\nParameter block values: ",
+              parameters, size, j, lower_bound, upper_bound);
+          AppendArrayToString(size, parameters, message);
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+Program* Program::CreateReducedProgram(vector<double*>* removed_parameter_blocks,
+                                       double* fixed_cost,
+                                       string* error) const {
+  CHECK_NOTNULL(removed_parameter_blocks);
+  CHECK_NOTNULL(fixed_cost);
+  CHECK_NOTNULL(error);
+
+  scoped_ptr<Program> reduced_program(new Program(*this));
+  if (!reduced_program->RemoveFixedBlocks(removed_parameter_blocks,
+                                          fixed_cost,
+                                          error)) {
+    return NULL;
+  }
+
+  reduced_program->SetParameterOffsetsAndIndex();
+  return reduced_program.release();
+}
+
+bool Program::RemoveFixedBlocks(vector<double*>* removed_parameter_blocks,
+                                double* fixed_cost,
+                                string* error) {
+  CHECK_NOTNULL(removed_parameter_blocks);
+  CHECK_NOTNULL(fixed_cost);
+  CHECK_NOTNULL(error);
+
+  scoped_array<double> residual_block_evaluate_scratch;
+  residual_block_evaluate_scratch.reset(
+      new double[MaxScratchDoublesNeededForEvaluate()]);
+  *fixed_cost = 0.0;
+
+  // Mark all the parameters as unused. Abuse the index member of the
+  // parameter blocks for the marking.
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
+    parameter_blocks_[i]->set_index(-1);
+  }
+
+  // Filter out residual that have all-constant parameters, and mark
+  // all the parameter blocks that appear in residuals.
+  int num_active_residual_blocks = 0;
+  for (int i = 0; i < residual_blocks_.size(); ++i) {
+    ResidualBlock* residual_block = residual_blocks_[i];
+    int num_parameter_blocks = residual_block->NumParameterBlocks();
+
+    // Determine if the residual block is fixed, and also mark varying
+    // parameters that appear in the residual block.
+    bool all_constant = true;
+    for (int k = 0; k < num_parameter_blocks; k++) {
+      ParameterBlock* parameter_block = residual_block->parameter_blocks()[k];
+      if (!parameter_block->IsConstant()) {
+        all_constant = false;
+        parameter_block->set_index(1);
+      }
+    }
+
+    if (!all_constant) {
+      residual_blocks_[num_active_residual_blocks++] = residual_block;
+      continue;
+    }
+
+    // The residual is constant and will be removed, so its cost is
+    // added to the variable fixed_cost.
+    double cost = 0.0;
+    if (!residual_block->Evaluate(true,
+                                  &cost,
+                                  NULL,
+                                  NULL,
+                                  residual_block_evaluate_scratch.get())) {
+      *error = StringPrintf("Evaluation of the residual %d failed during "
+                            "removal of fixed residual blocks.", i);
+      return false;
+    }
+    *fixed_cost += cost;
+  }
+  residual_blocks_.resize(num_active_residual_blocks);
+
+  // Filter out unused or fixed parameter blocks.
+  int num_active_parameter_blocks = 0;
+  removed_parameter_blocks->clear();
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
+    ParameterBlock* parameter_block = parameter_blocks_[i];
+    if (parameter_block->index() == -1) {
+      removed_parameter_blocks->push_back(parameter_block->mutable_user_state());
+    } else {
+      parameter_blocks_[num_active_parameter_blocks++] = parameter_block;
+    }
+  }
+  parameter_blocks_.resize(num_active_parameter_blocks);
+
+  if (!(((NumResidualBlocks() == 0) &&
+         (NumParameterBlocks() == 0)) ||
+        ((NumResidualBlocks() != 0) &&
+         (NumParameterBlocks() != 0)))) {
+    *error =  "Congratulations, you found a bug in Ceres. Please report it.";
+    return false;
+  }
+
+  return true;
+}
+
+bool Program::IsParameterBlockSetIndependent(const set<double*>& independent_set) const {
+  // Loop over each residual block and ensure that no two parameter
+  // blocks in the same residual block are part of
+  // parameter_block_ptrs as that would violate the assumption that it
+  // is an independent set in the Hessian matrix.
+  for (vector<ResidualBlock*>::const_iterator it = residual_blocks_.begin();
+       it != residual_blocks_.end();
+       ++it) {
+    ParameterBlock* const* parameter_blocks = (*it)->parameter_blocks();
+    const int num_parameter_blocks = (*it)->NumParameterBlocks();
+    int count = 0;
+    for (int i = 0; i < num_parameter_blocks; ++i) {
+      count += independent_set.count(
+          parameter_blocks[i]->mutable_user_state());
+    }
+    if (count > 1) {
+      return false;
+    }
+  }
+  return true;
+}
+
+TripletSparseMatrix* Program::CreateJacobianBlockSparsityTranspose() const {
+  // Matrix to store the block sparsity structure of the Jacobian.
+  TripletSparseMatrix* tsm =
+      new TripletSparseMatrix(NumParameterBlocks(),
+                              NumResidualBlocks(),
+                              10 * NumResidualBlocks());
+  int num_nonzeros = 0;
+  int* rows = tsm->mutable_rows();
+  int* cols = tsm->mutable_cols();
+  double* values = tsm->mutable_values();
+
+  for (int c = 0; c < residual_blocks_.size(); ++c) {
+    const ResidualBlock* residual_block = residual_blocks_[c];
+    const int num_parameter_blocks = residual_block->NumParameterBlocks();
+    ParameterBlock* const* parameter_blocks =
+        residual_block->parameter_blocks();
+
+    for (int j = 0; j < num_parameter_blocks; ++j) {
+      if (parameter_blocks[j]->IsConstant()) {
+        continue;
+      }
+
+      // Re-size the matrix if needed.
+      if (num_nonzeros >= tsm->max_num_nonzeros()) {
+        tsm->set_num_nonzeros(num_nonzeros);
+        tsm->Reserve(2 * num_nonzeros);
+        rows = tsm->mutable_rows();
+        cols = tsm->mutable_cols();
+        values = tsm->mutable_values();
+      }
+
+      const int r = parameter_blocks[j]->index();
+      rows[num_nonzeros] = r;
+      cols[num_nonzeros] = c;
+      values[num_nonzeros] = 1.0;
+      ++num_nonzeros;
+    }
+  }
+
+  tsm->set_num_nonzeros(num_nonzeros);
+  return tsm;
 }
 
 int Program::NumResidualBlocks() const {

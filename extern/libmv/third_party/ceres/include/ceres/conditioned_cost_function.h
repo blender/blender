@@ -39,6 +39,7 @@
 #include "ceres/cost_function.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
+#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
 
@@ -93,5 +94,6 @@ class CERES_EXPORT ConditionedCostFunction : public CostFunction {
 
 }  // namespace ceres
 
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_CONDITIONED_COST_FUNCTION_H_

@@ -39,11 +39,12 @@
 #include <set>
 #include <vector>
 
+#include "glog/logging.h"
 #include "ceres/internal/macros.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
-#include "glog/logging.h"
+#include "ceres/internal/disable_warnings.h"
 
 
 namespace ceres {
@@ -367,6 +368,15 @@ class CERES_EXPORT Problem {
       const ResidualBlockId residual_block,
       vector<double*>* parameter_blocks) const;
 
+  // Get the CostFunction for the given residual block.
+  const CostFunction* GetCostFunctionForResidualBlock(
+      const ResidualBlockId residual_block) const;
+
+  // Get the LossFunction for the given residual block. Returns NULL
+  // if no loss function is associated with this residual block.
+  const LossFunction* GetLossFunctionForResidualBlock(
+      const ResidualBlockId residual_block) const;
+
   // Get all the residual blocks that depend on the given parameter block.
   //
   // If Problem::Options::enable_fast_removal is true, then
@@ -465,5 +475,7 @@ class CERES_EXPORT Problem {
 };
 
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_PROBLEM_H_

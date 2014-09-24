@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@
 
 #include "Eigen/Core"
 #include "ceres/array_utils.h"
+#include "ceres/coordinate_descent_minimizer.h"
 #include "ceres/evaluator.h"
 #include "ceres/file.h"
 #include "ceres/internal/eigen.h"
@@ -128,9 +129,10 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   double iteration_start_time =  start_time;
   Init(options);
 
-  Evaluator* evaluator = CHECK_NOTNULL(options_.evaluator);
-  SparseMatrix* jacobian = CHECK_NOTNULL(options_.jacobian);
-  TrustRegionStrategy* strategy = CHECK_NOTNULL(options_.trust_region_strategy);
+  Evaluator* evaluator = CHECK_NOTNULL(options_.evaluator.get());
+  SparseMatrix* jacobian = CHECK_NOTNULL(options_.jacobian.get());
+  TrustRegionStrategy* strategy =
+      CHECK_NOTNULL(options_.trust_region_strategy.get());
 
   const bool is_not_silent = !options.is_silent;
 
@@ -253,7 +255,8 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   double candidate_cost = cost;
   double accumulated_candidate_model_cost_change = 0.0;
   int num_consecutive_invalid_steps = 0;
-  bool inner_iterations_are_enabled = options.inner_iteration_minimizer != NULL;
+  bool inner_iterations_are_enabled =
+      options.inner_iteration_minimizer.get() != NULL;
   while (true) {
     bool inner_iterations_were_useful = false;
     if (!RunCallbacks(options, iteration_summary, summary)) {

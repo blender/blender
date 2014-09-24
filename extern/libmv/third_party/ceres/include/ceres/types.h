@@ -40,6 +40,7 @@
 #include <string>
 
 #include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
 
@@ -149,8 +150,14 @@ enum SparseLinearAlgebraLibraryType {
   // minimum degree ordering.
   SUITE_SPARSE,
 
-  // A lightweight replacment for SuiteSparse.
-  CX_SPARSE
+  // A lightweight replacment for SuiteSparse, which does not require
+  // a LAPACK/BLAS implementation. Consequently, its performance is
+  // also a bit lower than SuiteSparse.
+  CX_SPARSE,
+
+  // Eigen's sparse linear algebra routines. In particular Ceres uses
+  // the Simplicial LDLT routines.
+  EIGEN_SPARSE
 };
 
 enum DenseLinearAlgebraLibraryType {
@@ -246,7 +253,7 @@ enum LineSearchDirectionType {
 // details see Numerical Optimization by Nocedal & Wright.
 enum NonlinearConjugateGradientType {
   FLETCHER_REEVES,
-  POLAK_RIBIRERE,
+  POLAK_RIBIERE,
   HESTENES_STIEFEL,
 };
 
@@ -398,8 +405,8 @@ enum LineSearchInterpolationType {
 
 enum CovarianceAlgorithmType {
   DENSE_SVD,
-  SPARSE_CHOLESKY,
-  SPARSE_QR
+  SUITE_SPARSE_QR,
+  EIGEN_SPARSE_QR
 };
 
 CERES_EXPORT const char* LinearSolverTypeToString(
@@ -474,5 +481,7 @@ CERES_EXPORT bool IsDenseLinearAlgebraLibraryTypeAvailable(
     DenseLinearAlgebraLibraryType type);
 
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_TYPES_H_

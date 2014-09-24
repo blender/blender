@@ -37,11 +37,13 @@
 #include "ceres/evaluator.h"
 #include "ceres/minimizer.h"
 #include "ceres/problem_impl.h"
-#include "ceres/program.h"
 #include "ceres/solver.h"
 
 namespace ceres {
 namespace internal {
+
+class Program;
+class LinearSolver;
 
 // Given a Program, and a ParameterBlockOrdering which partitions
 // (non-exhaustively) the Hessian matrix into independent sets,
@@ -65,6 +67,17 @@ class CoordinateDescentMinimizer : public Minimizer {
   virtual void Minimize(const Minimizer::Options& options,
                         double* parameters,
                         Solver::Summary* summary);
+
+  // Verify that each group in the ordering forms an independent set.
+  static bool IsOrderingValid(const Program& program,
+                              const ParameterBlockOrdering& ordering,
+                              string* message);
+
+  // Find a recursive decomposition of the Hessian matrix as a set
+  // of independent sets of decreasing size and invert it. This
+  // seems to work better in practice, i.e., Cameras before
+  // points.
+  static ParameterBlockOrdering* CreateOrdering(const Program& program);
 
  private:
   void Solve(Program* program,

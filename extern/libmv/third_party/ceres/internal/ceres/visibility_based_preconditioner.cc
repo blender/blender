@@ -167,9 +167,9 @@ void VisibilityBasedPreconditioner::ComputeClusterTridiagonalSparsity(
   // maximum spanning forest of this graph.
   vector<set<int> > cluster_visibility;
   ComputeClusterVisibility(visibility, &cluster_visibility);
-  scoped_ptr<Graph<int> > cluster_graph(
+  scoped_ptr<WeightedGraph<int> > cluster_graph(
       CHECK_NOTNULL(CreateClusterGraph(cluster_visibility)));
-  scoped_ptr<Graph<int> > forest(
+  scoped_ptr<WeightedGraph<int> > forest(
       CHECK_NOTNULL(Degree2MaximumSpanningForest(*cluster_graph)));
   ForestToClusterPairs(*forest, &cluster_pairs_);
 }
@@ -189,7 +189,7 @@ void VisibilityBasedPreconditioner::InitStorage(
 // memberships for each camera block.
 void VisibilityBasedPreconditioner::ClusterCameras(
     const vector<set<int> >& visibility) {
-  scoped_ptr<Graph<int> > schur_complement_graph(
+  scoped_ptr<WeightedGraph<int> > schur_complement_graph(
       CHECK_NOTNULL(CreateSchurComplementGraph(visibility)));
 
   HashMap<int, int> membership;
@@ -498,7 +498,7 @@ bool VisibilityBasedPreconditioner::IsBlockPairOffDiagonal(
 // Convert a graph into a list of edges that includes self edges for
 // each vertex.
 void VisibilityBasedPreconditioner::ForestToClusterPairs(
-    const Graph<int>& forest,
+    const WeightedGraph<int>& forest,
     HashSet<pair<int, int> >* cluster_pairs) const {
   CHECK_NOTNULL(cluster_pairs)->clear();
   const HashSet<int>& vertices = forest.vertices();
@@ -541,9 +541,9 @@ void VisibilityBasedPreconditioner::ComputeClusterVisibility(
 // Construct a graph whose vertices are the clusters, and the edge
 // weights are the number of 3D points visible to cameras in both the
 // vertices.
-Graph<int>* VisibilityBasedPreconditioner::CreateClusterGraph(
+WeightedGraph<int>* VisibilityBasedPreconditioner::CreateClusterGraph(
     const vector<set<int> >& cluster_visibility) const {
-  Graph<int>* cluster_graph = new Graph<int>;
+  WeightedGraph<int>* cluster_graph = new WeightedGraph<int>;
 
   for (int i = 0; i < num_clusters_; ++i) {
     cluster_graph->AddVertex(i);

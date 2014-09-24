@@ -44,7 +44,7 @@ namespace internal {
 
 int ComputeSingleLinkageClustering(
     const SingleLinkageClusteringOptions& options,
-    const Graph<int>& graph,
+    const WeightedGraph<int>& graph,
     HashMap<int, int>* membership) {
   CHECK_NOTNULL(membership)->clear();
 

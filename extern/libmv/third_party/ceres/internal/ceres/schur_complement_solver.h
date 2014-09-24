@@ -35,6 +35,8 @@
 #include <utility>
 #include <vector>
 
+#include "ceres/internal/port.h"
+
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
@@ -44,6 +46,11 @@
 #include "ceres/suitesparse.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
+
+#ifdef CERES_USE_EIGEN_SPARSE
+#include "Eigen/SparseCholesky"
+#include "Eigen/OrderingMethods"
+#endif
 
 namespace ceres {
 namespace internal {
@@ -153,7 +160,6 @@ class DenseSchurComplementSolver : public SchurComplementSolver {
   CERES_DISALLOW_COPY_AND_ASSIGN(DenseSchurComplementSolver);
 };
 
-#if !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARE)
 // Sparse Cholesky factorization based solver.
 class SparseSchurComplementSolver : public SchurComplementSolver {
  public:
@@ -168,6 +174,8 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
       double* solution);
   LinearSolver::Summary SolveReducedLinearSystemUsingCXSparse(
       double* solution);
+  LinearSolver::Summary SolveReducedLinearSystemUsingEigen(
+      double* solution);
 
   // Size of the blocks in the Schur complement.
   vector<int> blocks_;
@@ -180,10 +188,27 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
   CXSparse cxsparse_;
   // Cached factorization
   cs_dis* cxsparse_factor_;
+
+#ifdef CERES_USE_EIGEN_SPARSE
+
+  // The preprocessor gymnastics here are dealing with the fact that
+  // before version 3.2.2, Eigen did not support a third template
+  // parameter to specify the ordering.
+#if EIGEN_VERSION_AT_LEAST(3,2,2)
+  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Lower,
+                                Eigen::NaturalOrdering<int> >
+  SimplicialLDLT;
+#else
+  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Lower>
+  SimplicialLDLT;
+#endif
+
+  scoped_ptr<SimplicialLDLT> simplicial_ldlt_;
+#endif
+
   CERES_DISALLOW_COPY_AND_ASSIGN(SparseSchurComplementSolver);
 };
 
-#endif  // !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARE)
 }  // namespace internal
 }  // namespace ceres
 

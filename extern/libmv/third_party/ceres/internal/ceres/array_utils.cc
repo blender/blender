@@ -30,10 +30,11 @@
 
 #include "ceres/array_utils.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <string>
-
+#include <vector>
 #include "ceres/fpclassify.h"
 #include "ceres/stringprintf.h"
 
@@ -91,6 +92,20 @@ void AppendArrayToString(const int size, const double* x, string* result) {
         StringAppendF(result, "%12g ", x[i]);
       }
     }
+  }
+}
+
+void MapValuesToContiguousRange(const int size, int* array) {
+  std::vector<int> unique_values(array, array + size);
+  std::sort(unique_values.begin(), unique_values.end());
+  unique_values.erase(std::unique(unique_values.begin(),
+                                  unique_values.end()),
+                      unique_values.end());
+
+  for (int i = 0; i < size; ++i) {
+    array[i] = std::lower_bound(unique_values.begin(),
+                                unique_values.end(),
+                                array[i]) - unique_values.begin();
   }
 }
 

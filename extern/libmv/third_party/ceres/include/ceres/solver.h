@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@
 #include "ceres/iteration_callback.h"
 #include "ceres/ordered_groups.h"
 #include "ceres/types.h"
+#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
 
@@ -91,7 +92,7 @@ class CERES_EXPORT Solver {
       gradient_tolerance = 1e-10;
       parameter_tolerance = 1e-8;
 
-#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
+#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE) && !defined(CERES_ENABLE_LGPL_CODE)
       linear_solver_type = DENSE_QR;
 #else
       linear_solver_type = SPARSE_NORMAL_CHOLESKY;
@@ -100,16 +101,26 @@ class CERES_EXPORT Solver {
       preconditioner_type = JACOBI;
       visibility_clustering_type = CANONICAL_VIEWS;
       dense_linear_algebra_library_type = EIGEN;
-      sparse_linear_algebra_library_type = SUITE_SPARSE;
-#if defined(CERES_NO_SUITESPARSE) && !defined(CERES_NO_CXSPARSE)
-      sparse_linear_algebra_library_type = CX_SPARSE;
-#endif
 
+      // Choose a default sparse linear algebra library in the order:
+      //
+      //   SUITE_SPARSE > CX_SPARSE > EIGEN_SPARSE
+#if !defined(CERES_NO_SUITESPARSE)
+      sparse_linear_algebra_library_type = SUITE_SPARSE;
+#else
+  #if !defined(CERES_NO_CXSPARSE)
+      sparse_linear_algebra_library_type = CX_SPARSE;
+  #else
+    #if defined(CERES_USE_EIGEN_SPARSE)
+      sparse_linear_algebra_library_type = EIGEN_SPARSE;
+    #endif
+  #endif
+#endif
 
       num_linear_solver_threads = 1;
       use_postordering = false;
       dynamic_sparsity = false;
-      min_linear_solver_iterations = 1;
+      min_linear_solver_iterations = 0;
       max_linear_solver_iterations = 500;
       eta = 1e-1;
       jacobi_scaling = true;
@@ -124,6 +135,11 @@ class CERES_EXPORT Solver {
       numeric_derivative_relative_step_size = 1e-6;
       update_state_every_iteration = false;
     }
+
+    // Returns true if the options struct has a valid
+    // configuration. Returns false otherwise, and fills in *error
+    // with a message describing the problem.
+    bool IsValid(string* error) const;
 
     // Minimizer options ----------------------------------------
 
@@ -707,10 +723,6 @@ class CERES_EXPORT Solver {
     //
     // The solver does NOT take ownership of these pointers.
     vector<IterationCallback*> callbacks;
-
-    // If non-empty, a summary of the execution of the solver is
-    // recorded to this file.
-    string solver_log;
   };
 
   struct CERES_EXPORT Summary {
@@ -898,9 +910,15 @@ class CERES_EXPORT Solver {
     // parameter blocks.
     vector<int> inner_iteration_ordering_used;
 
-    //  Type of preconditioner used for solving the trust region
-    //  step. Only meaningful when an iterative linear solver is used.
-    PreconditionerType preconditioner_type;
+    // Type of the preconditioner requested by the user.
+    PreconditionerType preconditioner_type_given;
+
+    // Type of the preconditioner actually used. This may be different
+    // from linear_solver_type_given if Ceres determines that the
+    // problem structure is not compatible with the linear solver
+    // requested or if the linear solver requested by the user is not
+    // available.
+    PreconditionerType preconditioner_type_used;
 
     // Type of clustering algorithm used for visibility based
     // preconditioning. Only meaningful when the preconditioner_type
@@ -956,5 +974,7 @@ CERES_EXPORT void Solve(const Solver::Options& options,
            Solver::Summary* summary);
 
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_SOLVER_H_

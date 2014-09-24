@@ -33,7 +33,9 @@
 
 #include <map>
 #include <set>
+#include <vector>
 #include "ceres/internal/port.h"
+#include "glog/logging.h"
 
 namespace ceres {
 
@@ -103,6 +105,20 @@ class OrderedGroups {
     return true;
   }
 
+  // Bulk remove elements. The return value indicates the number of
+  // elements successfully removed.
+  int Remove(const vector<T>& elements) {
+    if (NumElements() == 0 || elements.size() == 0) {
+      return 0;
+    }
+
+    int num_removed = 0;
+    for (int i = 0; i < elements.size(); ++i) {
+      num_removed += Remove(elements[i]);
+    }
+    return num_removed;
+  }
+
   // Reverse the order of the groups in place.
   void Reverse() {
     typename map<int, set<T> >::reverse_iterator it =
@@ -156,8 +172,20 @@ class OrderedGroups {
     return group_to_elements_.size();
   }
 
+  // The first group with one or more elements. Calling this when
+  // there are no groups with non-zero elements will result in a
+  // crash.
+  int MinNonZeroGroup() const {
+    CHECK_NE(NumGroups(), 0);
+    return group_to_elements_.begin()->first;
+  }
+
   const map<int, set<T> >& group_to_elements() const {
     return group_to_elements_;
+  }
+
+  const map<T, int>& element_to_group() const {
+    return element_to_group_;
   }
 
  private:

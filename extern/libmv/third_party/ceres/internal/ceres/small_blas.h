@@ -42,30 +42,6 @@
 namespace ceres {
 namespace internal {
 
-// Remove the ".noalias()" annotation from the matrix matrix
-// mutliplies to produce a correct build with the Android NDK,
-// including versions 6, 7, 8, and 8b, when built with STLPort and the
-// non-standalone toolchain (i.e. ndk-build). This appears to be a
-// compiler bug; if the workaround is not in place, the line
-//
-//   block.noalias() -= A * B;
-//
-// gets compiled to
-//
-//   block.noalias() += A * B;
-//
-// which breaks schur elimination. Introducing a temporary by removing the
-// .noalias() annotation causes the issue to disappear. Tracking this
-// issue down was tricky, since the test suite doesn't run when built with
-// the non-standalone toolchain.
-//
-// TODO(keir): Make a reproduction case for this and send it upstream.
-#ifdef CERES_WORK_AROUND_ANDROID_NDK_COMPILER_BUG
-#define CERES_MAYBE_NOALIAS
-#else
-#define CERES_MAYBE_NOALIAS .noalias()
-#endif
-
 // The following three macros are used to share code and reduce
 // template junk across the various GEMM variants.
 #define CERES_GEMM_BEGIN(name)                                          \
@@ -168,11 +144,11 @@ CERES_GEMM_BEGIN(MatrixMatrixMultiplyEigen) {
     block(Cref, start_row_c, start_col_c, num_row_a, num_col_b);
 
   if (kOperation > 0) {
-    block CERES_MAYBE_NOALIAS += Aref * Bref;
+    block.noalias() += Aref * Bref;
   } else if (kOperation < 0) {
-    block CERES_MAYBE_NOALIAS -= Aref * Bref;
+    block.noalias() -= Aref * Bref;
   } else {
-    block CERES_MAYBE_NOALIAS = Aref * Bref;
+    block.noalias() = Aref * Bref;
   }
 }
 
@@ -228,11 +204,11 @@ CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiplyEigen) {
                                               start_row_c, start_col_c,
                                               num_col_a, num_col_b);
   if (kOperation > 0) {
-    block CERES_MAYBE_NOALIAS += Aref.transpose() * Bref;
+    block.noalias() += Aref.transpose() * Bref;
   } else if (kOperation < 0) {
-    block CERES_MAYBE_NOALIAS -= Aref.transpose() * Bref;
+    block.noalias() -= Aref.transpose() * Bref;
   } else {
-    block CERES_MAYBE_NOALIAS = Aref.transpose() * Bref;
+    block.noalias() = Aref.transpose() * Bref;
   }
 }
 
@@ -394,8 +370,6 @@ inline void MatrixTransposeVectorMultiply(const double* A,
 #endif  // CERES_NO_CUSTOM_BLAS
 }
 
-
-#undef CERES_MAYBE_NOALIAS
 #undef CERES_GEMM_BEGIN
 #undef CERES_GEMM_EIGEN_HEADER
 #undef CERES_GEMM_NAIVE_HEADER

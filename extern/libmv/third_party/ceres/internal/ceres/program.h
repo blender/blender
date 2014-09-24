@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_PROGRAM_H_
 #define CERES_INTERNAL_PROGRAM_H_
 
+#include <set>
 #include <string>
 #include <vector>
 #include "ceres/internal/port.h"
@@ -41,6 +42,7 @@ namespace internal {
 class ParameterBlock;
 class ProblemImpl;
 class ResidualBlock;
+class TripletSparseMatrix;
 
 // A nonlinear least squares optimization problem. This is different from the
 // similarly-named "Problem" object, which offers a mutation interface for
@@ -103,6 +105,47 @@ class Program {
   // offsets) are correct.
   bool IsValid() const;
 
+  bool ParameterBlocksAreFinite(string* message) const;
+
+  // Returns true if the program has any non-constant parameter blocks
+  // which have non-trivial bounds constraints.
+  bool IsBoundsConstrained() const;
+
+  // Returns false, if the program has any constant parameter blocks
+  // which are not feasible, or any variable parameter blocks which
+  // have a lower bound greater than or equal to the upper bound.
+  bool IsFeasible(string* message) const;
+
+  // Loop over each residual block and ensure that no two parameter
+  // blocks in the same residual block are part of
+  // parameter_blocks as that would violate the assumption that it
+  // is an independent set in the Hessian matrix.
+  bool IsParameterBlockSetIndependent(const set<double*>& independent_set) const;
+
+  // Create a TripletSparseMatrix which contains the zero-one
+  // structure corresponding to the block sparsity of the transpose of
+  // the Jacobian matrix.
+  //
+  // Caller owns the result.
+  TripletSparseMatrix* CreateJacobianBlockSparsityTranspose() const;
+
+  // Create a copy of this program and removes constant parameter
+  // blocks and residual blocks with no varying parameter blocks while
+  // preserving their relative order.
+  //
+  // removed_parameter_blocks on exit will contain the list of
+  // parameter blocks that were removed.
+  //
+  // fixed_cost will be equal to the sum of the costs of the residual
+  // blocks that were removed.
+  //
+  // If there was a problem, then the function will return a NULL
+  // pointer and error will contain a human readable description of
+  // the problem.
+  Program* CreateReducedProgram(vector<double*>* removed_parameter_blocks,
+                                double* fixed_cost,
+                                string* error) const;
+
   // See problem.h for what these do.
   int NumParameterBlocks() const;
   int NumParameters() const;
@@ -120,6 +163,21 @@ class Program {
   string ToString() const;
 
  private:
+  // Remove constant parameter blocks and residual blocks with no
+  // varying parameter blocks while preserving their relative order.
+  //
+  // removed_parameter_blocks on exit will contain the list of
+  // parameter blocks that were removed.
+  //
+  // fixed_cost will be equal to the sum of the costs of the residual
+  // blocks that were removed.
+  //
+  // If there was a problem, then the function will return false and
+  // error will contain a human readable description of the problem.
+  bool RemoveFixedBlocks(vector<double*>* removed_parameter_blocks,
+                         double* fixed_cost,
+                         string* message);
+
   // The Program does not own the ParameterBlock or ResidualBlock objects.
   vector<ParameterBlock*> parameter_blocks_;
   vector<ResidualBlock*> residual_blocks_;

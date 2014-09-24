@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,23 @@
 
 namespace ceres {
 
+LocalParameterization::~LocalParameterization() {
+}
+
+bool LocalParameterization::MultiplyByJacobian(const double* x,
+                                               const int num_rows,
+                                               const double* global_matrix,
+                                               double* local_matrix) const {
+  Matrix jacobian(GlobalSize(), LocalSize());
+  if (!ComputeJacobian(x, jacobian.data())) {
+    return false;
+  }
+
+  MatrixRef(local_matrix, num_rows, LocalSize()) =
+      ConstMatrixRef(global_matrix, num_rows, GlobalSize()) * jacobian;
+  return true;
+}
+
 IdentityParameterization::IdentityParameterization(const int size)
     : size_(size) {
   CHECK_GT(size, 0);
@@ -52,6 +69,16 @@ bool IdentityParameterization::Plus(const double* x,
 bool IdentityParameterization::ComputeJacobian(const double* x,
                                                double* jacobian) const {
   MatrixRef(jacobian, size_, size_) = Matrix::Identity(size_, size_);
+  return true;
+}
+
+bool IdentityParameterization::MultiplyByJacobian(const double* x,
+                                                  const int num_cols,
+                                                  const double* global_matrix,
+                                                  double* local_matrix) const {
+  std::copy(global_matrix,
+            global_matrix + num_cols * GlobalSize(),
+            local_matrix);
   return true;
 }
 
@@ -103,6 +130,21 @@ bool SubsetParameterization::ComputeJacobian(const double* x,
   for (int i = 0, j = 0; i < constancy_mask_.size(); ++i) {
     if (!constancy_mask_[i]) {
       m(i, j++) = 1.0;
+    }
+  }
+  return true;
+}
+
+bool SubsetParameterization::MultiplyByJacobian(const double* x,
+                                               const int num_rows,
+                                               const double* global_matrix,
+                                               double* local_matrix) const {
+  for (int row = 0; row < num_rows; ++row) {
+    for (int col = 0, j = 0; col < constancy_mask_.size(); ++col) {
+      if (!constancy_mask_[col]) {
+        local_matrix[row * LocalSize() + j++] =
+            global_matrix[row * GlobalSize() + col];
+      }
     }
   }
   return true;

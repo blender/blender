@@ -38,6 +38,7 @@
 #include <utility>
 #include "ceres/collections_port.h"
 #include "ceres/graph.h"
+#include "ceres/wall_time.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -270,11 +271,11 @@ Vertex FindConnectedComponent(const Vertex& vertex,
 // spanning forest, or a collection of linear paths that span the
 // graph G.
 template <typename Vertex>
-Graph<Vertex>*
-Degree2MaximumSpanningForest(const Graph<Vertex>& graph) {
+WeightedGraph<Vertex>*
+Degree2MaximumSpanningForest(const WeightedGraph<Vertex>& graph) {
   // Array of edges sorted in decreasing order of their weights.
   vector<pair<double, pair<Vertex, Vertex> > > weighted_edges;
-  Graph<Vertex>* forest = new Graph<Vertex>();
+  WeightedGraph<Vertex>* forest = new WeightedGraph<Vertex>();
 
   // Disjoint-set to keep track of the connected components in the
   // maximum spanning tree.

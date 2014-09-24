@@ -103,13 +103,16 @@ struct NumericDiff {
 
     typedef Matrix<double, kNumResiduals, 1> ResidualVector;
     typedef Matrix<double, kParameterBlockSize, 1> ParameterVector;
+
+    // The convoluted reasoning for choosing the Row/Column major
+    // ordering of the matrix is an artifact of the restrictions in
+    // Eigen that prevent it from creating RowMajor matrices with a
+    // single column. In these cases, we ask for a ColMajor matrix.
     typedef Matrix<double,
                    kNumResiduals,
                    kParameterBlockSize,
-                   (kParameterBlockSize == 1 &&
-                    kNumResiduals > 1) ? ColMajor : RowMajor>
+                   (kParameterBlockSize == 1) ? ColMajor : RowMajor>
         JacobianMatrix;
-
 
     Map<JacobianMatrix> parameter_jacobian(jacobian,
                                            NUM_RESIDUALS,

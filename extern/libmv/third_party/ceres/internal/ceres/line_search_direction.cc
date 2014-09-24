@@ -65,7 +65,7 @@ class NonlinearConjugateGradient : public LineSearchDirection {
       case FLETCHER_REEVES:
         beta = current.gradient_squared_norm / previous.gradient_squared_norm;
         break;
-      case POLAK_RIBIRERE:
+      case POLAK_RIBIERE:
         gradient_change = current.gradient - previous.gradient;
         beta = (current.gradient.dot(gradient_change) /
                 previous.gradient_squared_norm);

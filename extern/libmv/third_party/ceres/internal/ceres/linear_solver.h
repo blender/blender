@@ -274,6 +274,14 @@ class LinearSolver {
     string message;
   };
 
+  // If the optimization problem is such that there are no remaining
+  // e-blocks, a Schur type linear solver cannot be used. If the
+  // linear solver is of Schur type, this function implements a policy
+  // to select an alternate nearest linear solver to the one selected
+  // by the user. The input linear_solver_type is returned otherwise.
+  static LinearSolverType LinearSolverForZeroEBlocks(
+      LinearSolverType linear_solver_type);
+
   virtual ~LinearSolver();
 
   // Solve Ax = b.

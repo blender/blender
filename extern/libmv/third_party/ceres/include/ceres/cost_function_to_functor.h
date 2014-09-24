@@ -107,9 +107,7 @@ class CostFunctionToFunctor {
   explicit CostFunctionToFunctor(CostFunction* cost_function)
   : cost_function_(cost_function) {
     CHECK_NOTNULL(cost_function);
-
-    CHECK_GE(kNumResiduals, 0);
-    CHECK_EQ(cost_function->num_residuals(), kNumResiduals);
+    CHECK(kNumResiduals > 0 || kNumResiduals == DYNAMIC);
 
     // This block breaks the 80 column rule to keep it somewhat readable.
     CHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||

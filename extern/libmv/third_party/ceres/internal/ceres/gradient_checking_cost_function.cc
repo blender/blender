@@ -310,6 +310,17 @@ ProblemImpl* CreateGradientCheckingProblemImpl(ProblemImpl* problem_impl,
         parameter_blocks);
   }
 
+  // Normally, when a problem is given to the solver, we guarantee
+  // that the state pointers for each parameter block point to the
+  // user provided data. Since we are creating this new problem from a
+  // problem given to us at an arbitrary stage of the solve, we cannot
+  // depend on this being the case, so we explicitly call
+  // SetParameterBlockStatePtrsToUserStatePtrs to ensure that this is
+  // the case.
+  gradient_checking_problem_impl
+      ->mutable_program()
+      ->SetParameterBlockStatePtrsToUserStatePtrs();
+
   return gradient_checking_problem_impl;
 }
 

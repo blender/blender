@@ -34,13 +34,14 @@
 
 #include <cmath>
 #include <cstddef>
+#include <limits>
 
 namespace ceres {
 
 void TrivialLoss::Evaluate(double s, double rho[3]) const {
   rho[0] = s;
-  rho[1] = 1;
-  rho[2] = 0;
+  rho[1] = 1.0;
+  rho[2] = 0.0;
 }
 
 void HuberLoss::Evaluate(double s, double rho[3]) const {
@@ -48,32 +49,32 @@ void HuberLoss::Evaluate(double s, double rho[3]) const {
     // Outlier region.
     // 'r' is always positive.
     const double r = sqrt(s);
-    rho[0] = 2 * a_ * r - b_;
-    rho[1] = a_ / r;
-    rho[2] = - rho[1] / (2 * s);
+    rho[0] = 2.0 * a_ * r - b_;
+    rho[1] = std::max(std::numeric_limits<double>::min(), a_ / r);
+    rho[2] = - rho[1] / (2.0 * s);
   } else {
     // Inlier region.
     rho[0] = s;
-    rho[1] = 1;
-    rho[2] = 0;
+    rho[1] = 1.0;
+    rho[2] = 0.0;
   }
 }
 
 void SoftLOneLoss::Evaluate(double s, double rho[3]) const {
-  const double sum = 1 + s * c_;
+  const double sum = 1.0 + s * c_;
   const double tmp = sqrt(sum);
   // 'sum' and 'tmp' are always positive, assuming that 's' is.
-  rho[0] = 2 * b_ * (tmp - 1);
-  rho[1] = 1 / tmp;
-  rho[2] = - (c_ * rho[1]) / (2 * sum);
+  rho[0] = 2.0 * b_ * (tmp - 1.0);
+  rho[1] = std::max(std::numeric_limits<double>::min(), 1.0 / tmp);
+  rho[2] = - (c_ * rho[1]) / (2.0 * sum);
 }
 
 void CauchyLoss::Evaluate(double s, double rho[3]) const {
-  const double sum = 1 + s * c_;
-  const double inv = 1 / sum;
+  const double sum = 1.0 + s * c_;
+  const double inv = 1.0 / sum;
   // 'sum' and 'inv' are always positive, assuming that 's' is.
   rho[0] = b_ * log(sum);
-  rho[1] = inv;
+  rho[1] = std::max(std::numeric_limits<double>::min(), inv);
   rho[2] = - c_ * (inv * inv);
 }
 
@@ -82,8 +83,8 @@ void ArctanLoss::Evaluate(double s, double rho[3]) const {
   const double inv = 1 / sum;
   // 'sum' and 'inv' are always positive.
   rho[0] = a_ * atan2(s, a_);
-  rho[1] = inv;
-  rho[2] = -2 * s * b_ * (inv * inv);
+  rho[1] = std::max(std::numeric_limits<double>::min(), inv);
+  rho[2] = -2.0 * s * b_ * (inv * inv);
 }
 
 TolerantLoss::TolerantLoss(double a, double b)
@@ -108,7 +109,7 @@ void TolerantLoss::Evaluate(double s, double rho[3]) const {
   } else {
     const double e_x = exp(x);
     rho[0] = b_ * log(1.0 + e_x) - c_;
-    rho[1] = e_x / (1.0 + e_x);
+    rho[1] = std::max(std::numeric_limits<double>::min(), e_x / (1.0 + e_x));
     rho[2] = 0.5 / (b_ * (1.0 + cosh(x)));
   }
 }

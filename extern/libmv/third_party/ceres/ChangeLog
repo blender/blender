@@ -1,646 +1,652 @@
-commit 8c62487e437b91d3d354cd1ae8957e43fe540732
+commit d3ecd18625ba260e0d00912a305a448b566acc59
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri May 16 09:44:18 2014 -0700
+Date:   Tue Sep 23 10:12:42 2014 -0700
 
-    Preparations for 1.9.0 release.
+    Add an explicit include for local_parameterization.h
     
-    Version bump.
-    minor docs update.
+    Thanks to cooordz for reporting this.
     
-    Change-Id: I2fbe20ba4af6b2e186fe244c96ce6d6464fe0469
+    Change-Id: I7d345404e362a94ff1eb433ad6b9dcc4960ba76d
 
-commit 0831275a78ab65e4c95979598cb35c54d03d3185
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri May 16 08:17:54 2014 -0700
-
-    Documentation update.
-    
-    1. Update iOS build instructions.
-    2. Update version history.
-    
-    Change-Id: I49d62e86ecff39190b50c050cb12eef4e2773357
-
-commit c7c7458625996a20203f1366d11bd701e5fb621b
-Author: Jack Feng <jackfengji@gmail.com>
-Date:   Mon May 12 10:23:56 2014 +0800
-
-    add support for building for ios
-    
-    use ios-cmake to build for ios
-    
-    Change-Id: I6b17c33339f3121322a4004d79629b22a62f7a94
-
-commit 36c2ce87d13b9b7123bd0473b8b45fb3b6ae4271
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Jan 13 21:18:08 2014 +0600
-
-    Libmv 2D homography estimation example application
-    
-    Add an example application of homography matrix estimation
-    from a 2D euclidean correspondences which is done in two
-    steps:
-    
-    - Coarse algebraic estimation
-    - Fine refinement using Ceres minimizer
-    
-    Nothing terribly exciting apart from an example of how to
-    use user callbacks.
-    
-    User callback is used here to stop minimizer when average
-    of symmetric geometric distance becomes good enough.
-    This might be arguable whether it's the best way to go
-    (in some cases you would want to stop minimizer when
-    maximal symmetric distance is lower than a threshold) but
-    for a callback usage example it's good enough to stick
-    to current logic.
-    
-    Change-Id: I60c8559cb10b001a0eb64ab71920c08bd68455b8
-
-commit d99a3a961e4a6ff7218d0ab749da57cf1a1677bd
-Author: Björn Piltz <bjornpiltz@gmail.com>
-Date:   Wed May 7 14:59:12 2014 +0200
-
-    Separate PUBLIC and PRIVATE library dependencies
-    Do not propagate 3d party libs through
-    IMPORTED_LINK_INTERFACE_LIBRARIES_[DEBUG/RELEASE] mechanism
-    when building shared libraries. SuiteSparse, lapack & co
-    are considered private. Glog still gets propagated since
-    it is part of the public interface. See documentation of
-    TARGET_LINK_LIBRARIES().
-    
-    Change-Id: If0563b0c705b102876f5190e9a86694d10f79283
-
-commit 1c089e8453583876f417b214f76a5863d7694986
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 13 16:58:25 2014 -0700
-
-    Notational fix in modeling.rst by William Rucklidge.
-    
-    Change-Id: Iffa127541380fcc32da13fe4ac474692e1e3d0ec
-
-commit 082d9e2a1b43b26a81157a6c711de0ff34c40ba4
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon May 12 20:41:27 2014 -0700
-
-    Add iOS.cmake from the ios-cmake project.
-    
-    URL: https://github.com/cristeab/ios-cmake
-    Commit: 86dc085f0d5ed955cd58e2657cc3efc7c1aabbc8
-    
-    Change-Id: I8fe6023d4cb6655b5a724e8b695fdae87ce3b685
-
-commit a97056c9752fe7223c8560da58862ecb1fd241ad
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 13 16:45:36 2014 -0700
-
-    Various documentation fixes from William Rucklidge.
-    
-    Change-Id: I102e98f41f4b5fe2a84d1224d5ed7517fdfdb022
-
-commit 2f8fb218f0a08102231ace07ef02b34b4aad7336
+commit 5dd76869cf45122c79579423f09e0de08cf04092
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Tue May 13 20:57:39 2014 +0100
+Date:   Fri Sep 19 16:08:25 2014 +0100
 
-    Adding function to update CMake cache variables and preserve help.
+    Fix unused-function warning with Eigen < 3.2.2.
     
-    - Previously we were replicating the same two lines to update a cache
-      variable whilst preserving its help string.
-    - This commit adds a function which wraps up this common operation into
-      a single line.
+    - CreateBlockJacobian() is only ever used when Eigen >= 3.2.2 is
+      detected, but was previously defined whenever CERES_USE_EIGEN_SPARSE
+      was defined with no check on the Eigen version.
+    - This resulted in an unused-function compile warning that became an
+      error due to -Werror, preventing compilation when using Eigen < 3.2.2.
     
-    Change-Id: Ic78a5adf5d59262bbbcec1e353ded7620391e862
+    Change-Id: I24628ff329f14b087ece66bf2626bdc0de4ba224
 
-commit 8f4dcb25f1be74a8c12c0f9eeb67b6b0755563f5
+commit 820cb7b14831aa03eca1e8186000cebfdf0a42f3
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Apr 29 21:40:57 2014 -0700
+Date:   Wed Sep 17 09:46:08 2014 -0700
 
-    Documentation update.
+    Add solver_utils.cc to Android.mk
     
-    Update modeling.rst and solving.rst to reflect
-    changes to the API.
-    
-    Change-Id: Id1a8adfed1486f08e5fd67c5af2d29708a26490c
+    Change-Id: I358522971711280f4362a1fa39b1568160e21e63
 
-commit d48e7050225730f61eaef851def5b43bc439e991
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sat May 10 08:58:58 2014 +0100
-
-    Configure config.h and include it from the build directory.
-    
-    - Previously we overwrote the default (empty) config.h in the source
-      tree with a configured config.h, generated using the current compile
-      options.
-    - This was undesirable as it could lead to inadvertant commits of the
-      generated config.h.
-    
-    - This patch moves the default config.h to <src>/config/ceres/internal,
-      separate from the other headers, thus if Ceres is compiled without
-      CMake this directory will now also have to be included.  This
-      directory is _not_ added to the CMake include directories for Ceres
-      (thus the default config.h is never used when compiling with CMake).
-    - When using CMake, the generated config.h is now placed in
-      <build>/config/ceres/internal, which is in turn added to the include
-      directories for Ceres when it is compiled, and the resulting config.h
-      is copied to ceres/internal when installed.
-    
-    Change-Id: Ib1ba45e66e383ade2ebb08603af9165c1df616f2
-
-commit 11c496164ffe9809306945c2b81276efcd51533d
+commit 092b94970a073f8b47179d96160226fc19095898
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri May 9 16:27:03 2014 -0700
+Date:   Fri Sep 5 11:56:29 2014 -0700
 
-    Fix 80cols violation in local_parameterization.h
+    Add GradientProblem and GradientProblemSolver.
     
-    Change-Id: I07f59baa9e4aba7c5ae028f0c144ea9ad153d49a
+    The line search minimizer in Ceres does not require that the
+    problems that is solving is a sum of squares. Over the past
+    year there have been multiple requests to expose this algorithm
+    on its own so that it can be used to solve unconstrained
+    non-linear minimization problems on its own.
+    
+    With this change, a new optimization problem called
+    GradientProblem is introduced which is basically a thin
+    wrapper around a user defined functor that evaluates cost
+    and gradients (FirstOrderFunction) and an optional LocalParameterization.
+    
+    Corresponding to it, a GradientProblemSolver and its associated
+    options and summary structs are introduced too.
+    
+    An example that uses the new API to find the minimum of Rosenbrock's
+    function is also added.
+    
+    Change-Id: I42bf687540da25de991e9bdb00e321239244e8b4
 
-commit af3154422b63b7792ecd23b00ca1a0c003764dae
+commit 6c45d6b891aac01489b478a021f99081c61792cb
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri May 9 05:45:03 2014 -0700
+Date:   Thu Sep 11 07:48:30 2014 -0700
 
-    Add Alex Stewart as a maintainer.
+    Add more inspection methods to Problem.
     
-    Update contributing.rst to mention Alex
-    as one of the people who can be added
-    as a reviewer.
+    Problem::GetCostFunctionForResidualBlock
+    Problem::GetLossFunctionForResidualBlock
     
-    Change-Id: I30ff3e635e8c419e11e8f20394aaea5f284a10d5
-
-commit ea765850685f1ff0431da5212656378fc20d3673
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed May 7 20:46:17 2014 +0100
-
-    Adding autogenerated Ceres config.h to #define Ceres compile options.
+    are added, so that users do not have to maintain this mapping
+    outside the Problem.
     
-    - Previously we passed all compile options to Ceres via add_definitions
-      in CMake.  This was fine for private definitions (used only by Ceres)
-      but required additional work for public definitions to ensure they
-      were correctly propagated to clients via CMake using
-      target_compile_definitions() (>= 2.8.11) or add_definitions().
-    - A drawback to these approaches is that they did not work for chained
-      dependencies on Ceres, as in if in the users project B <- A <- Ceres,
-      then although the required Ceres public compile definitions would
-      be used when compiling A, they would not be propagated to B.
-    
-    - This patch replaces the addition of compile definitions via
-      add_definitions() with an autogenerated config.h header which
-      is installed with Ceres and defines all of the enabled Ceres compile
-      options.
-    - This removes the need for the user to propagate any compile
-      definitions in their projects, and additionally allows post-install
-      inspect of the options with which Ceres was compiled.
-    
-    Change-Id: Idbdb6abdad0eb31e7540370e301afe87a07f2260
+    Change-Id: I38356dfa094b2c7eec90651dafeaf3a33c5f5f56
 
-commit cbf955474acf8f275b272da6ff5acd3a629cc806
-Author: Björn Piltz <bjornpiltz@gmail.com>
-Date:   Wed May 7 17:10:15 2014 +0200
-
-    Fixes swapped verboselevel and condition.
-    
-    Change-Id: I296d86e6bbf415be4bfd19d6a0fe0963e3d36d74
-
-commit 3209b045744ea31f38d74bd9e9c8f88e605e7f76
-Author: Björn Piltz <bjornpiltz@gmail.com>
-Date:   Wed May 7 17:02:27 2014 +0200
-
-    Fixed warning : 'va_copy' : macro redefinition
-    MSVC 2013 has got va_copy
-    Compare
-    http://msdn.microsoft.com/en-us/library/kb57fad8(v=vs.110).aspx
-    and
-    http://msdn.microsoft.com/en-us/library/kb57fad8.aspx.
-    
-    Change-Id: If0937c76e8d250cde4b343844f3d35c980bf0921
-
-commit 1df2f0f5d704f0cc458cf707e2602d495979e3c6
-Author: Björn Piltz <bjornpiltz@gmail.com>
-Date:   Wed May 7 11:10:30 2014 +0200
-
-    Removed MSVC warnings
-    These are warnings which show up when using Ceres.
-    
-    Change-Id: Id1f382f46b8a60743f0b12535b5b3cdf46f988e0
-
-commit eca7e1c635581834c858794e09c1e876323b7775
+commit 6ad9b8e2ae66c9009441d0f9304486ec8dfa9a6a
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 6 10:16:19 2014 -0700
+Date:   Tue Sep 9 14:29:28 2014 -0700
 
-    Remove BlockRandomAccessCRSMatrix.
+    Ignore row/column blocks structure when using dynamic sparsity
     
-    It is not used anywhere.
+    The row/column blocks can be huge when using dynamic sparsity. This
+    can result in very large memory usage when augmenting the jacobian
+    with the LM diagonal.
     
-    Change-Id: I2a8ebbdacf788582f21266825ead3f76646da29e
+    Thanks to Mingsong Dou for reporting this.
+    
+    Change-Id: I6aa140ceefa98389ae17958f89ca76e0c76f95b8
 
-commit 7088a08f5d9e04e75a5a4c3823ef7927e13ff0e4
+commit 7e43460d42e20be1ba13121655dbbfd0d1c751ae
+Author: Martin Baeuml <baeuml@gmail.com>
+Date:   Mon Sep 8 16:49:06 2014 +0200
+
+    Fix a few typos in the documentation.
+    
+    Change-Id: I541db56b2b81ae758e233ce850d78c3cbb4b6fa3
+
+commit 1aef66eeae7042902655a11b0d6a1a32900abb7b
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon May 5 09:02:05 2014 -0700
+Date:   Sun Sep 7 21:18:44 2014 -0700
 
-    Fix some 80col violations and reflow the comments in cmake.in file.
+    Remove errant space.
     
-    Change-Id: I4c65c89b794845aeef69159a03350c727e2ee812
+    Change-Id: Iedc06960417a9b938d57f623b4beb87a98e3d081
 
-commit 95cce0834d5a2d72568e6d2be968a51c244c2787
+commit 89080ab153a33008782759187fa8e9af7d2f83f1
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon May 5 08:54:50 2014 -0700
+Date:   Sat Sep 6 21:13:48 2014 -0700
 
-    Remove some errant tabs.
+    Add LocalParameterization::MultiplyByJacobian.
     
-    Change-Id: Ie1f7051e99bcb15ad068711b68a9d8f317b12ed7
+    This is needed to efficiently support LocalParameterization objects
+    in GradientProblemSolver.
+    
+    Change-Id: Ic7b715b8be694b099dc95d6707a67474297533e6
 
-commit a536ae76dfa2dbe2bc487900b98cf6c15276c649
+commit d76da16f49d419ae3664ca1bdc2286c1ea78ebed
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun May 4 21:18:42 2014 -0700
+Date:   Sun Sep 7 18:42:49 2014 -0700
 
-    Lazily initialize the bounds arrays in ParameterBlock.
+    Move some routines to solver_utils.h/cc
     
-    Problems that do not use bounds do not have to pay the
-    price of storing bounds constraints.
+    This moves a couple of routines from solver.cc into solver_utils.h/cc
+    so that they can also be used by the upcoming GradientProblemSolver.
     
-    Also replace the raw pointer access to the upper and
-    lower bounds arrays with accessors which hides the
-    lazy initialization from the user.
-    
-    Change-Id: I0325a35de9c29f853559f891e32e7c777686e537
+    Change-Id: I627b32ad3dc639422aacde78a8e391459d947e99
 
-commit 633b50b7af9841607c07133f585e131fba7de177
+commit cbf03ac292a0c0e9e6b7fcc1b08b67e95965922f
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri May 2 22:46:20 2014 -0700
+Date:   Sat Sep 6 21:07:08 2014 -0700
 
-    Add the (2,4,8) template specialization.
+    Make LineSearchMinimizer consistent with TrustRegionMinimizer.
     
-    Change-Id: I058bcebdd1725031d573404133b184d6f27dc005
+    Change the logic for how IterationSummary objects are added to
+    Summary::iterations to match the one in TrustRegionMinimizer.
+    
+    Change-Id: I57851ad8294e58f83b9115cca9c24695d86ee92a
 
-commit 5ffe06019a6c741ee7edc940ffeeceaaeabfa05d
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Thu May 1 12:06:46 2014 +0100
-
-    Export Ceres compile definitions to targets compiled against Ceres.
-    
-    - Previously all Ceres compile definitions were private to Ceres, that
-      is they were not exported to users via the CMake export mechanism.
-    - Now that we use compile definitions in public (installed) Ceres
-      headers, we need to export the Ceres compile definitions.
-    - If we did not do this, then the client's code 'see's' a different
-      version of the Ceres headers to those which were in fact compiled,
-      or in the case of shared_ptr, may not find the required header.
-    
-    - This patch makes use of the new, in CMake 2.8.11, function:
-      target_compile_definitions() to export all of the Ceres compile
-      definitions using CMake's export functionality.
-    - For CMake versions < 2.8.11, we have to use the blunter instrument of
-      calling add_definitions() in CeresConfig.cmake (invoked by a call to
-      find_package(Ceres)).  This is messy because it ends up adding the
-      Ceres compile definitions to any target declared in the user's code
-      after the call to find_package(Ceres).  Although this should do no
-      harm as all of our defines are prefaced with CERES_, so any
-      unintentional name clashes are unlikely.
-    
-    Change-Id: I5dea80949190eaf4fb08ea4ac568ce28c32dd4e0
-
-commit 0e811b0881f1f21df0ae04fd745ae4ba5189cac1
+commit f04c32319751e1efd610acd3699bca0a6dd6c6d1
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 1 07:54:12 2014 -0700
+Date:   Sat Sep 6 21:05:41 2014 -0700
 
-    Fix a bug in Minimizer::RunCallbacks.
+    Fix some obsolete documentation in CostFunction::Evaluate
     
-    Solver::Summary::message was not being updated when the solver
-    terminated because of a user's iteration callback indicating
-    success or failure.
-    
-    Thanks to Sergey Sharybin for reporting this.
-    
-    Change-Id: I27e6e5eed086920ddf765461b0159417ac79d7b3
+    Change-Id: I1d7ee5c596fbf6a4d886dce5b989c8eb18af2dce
 
-commit 31b503792611d2119bb1acb3528fc8d58c5bd029
+commit 9263547c02a1807532b159c217e7acd124d3db10
+Author: Johannes Schönberger <hannesschoenberger@gmail.com>
+Date:   Sat Sep 6 17:26:15 2014 -0400
+
+    Fix CG solver options for ITERATIVE_SCHUR, which did not copy min_num_iterations
+    
+    Change-Id: If31bc53b49ec20426fd438b79b8fa1f69d11e861
+
+commit b41f048256d1a8184cbe874b5a96dffa7fa4630d
+Author: Martin Baeuml <baeuml@gmail.com>
+Date:   Fri Sep 5 15:03:32 2014 +0200
+
+    Remove obsolete include of numeric_diff_functor.h.
+    
+    numeric_diff_functor.h was removed and does not exist anymore.
+    
+    Change-Id: I07bf04bf81142551e867b95b83a0653e11cad54c
+
+commit b7fb6056a717cc3c372cfb7115c527ee8bc05ddb
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Apr 30 15:02:38 2014 -0700
+Date:   Wed Sep 3 11:19:02 2014 -0700
+
+    Remove NumericDiffFunctor.
+    
+    Its API was broken, and its implementation was an unnecessary
+    layer of abstraction over CostFunctionToFunctor.
+    
+    Change-Id: I18fc261fc6a3620b51a9eeb4dde0af03d753af69
+
+commit 175fa8ff09049110a8509409f60cee5fd52cdbe6
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Sep 2 06:49:08 2014 -0700
+
+    CostFunctionToFunctor allows dynamic number of residuals.
+    
+    The code itself was perfectly capable of handling residuals, but there
+    was an overly strict runtime check that had to be removed.
+    
+    Thanks to Domink Reitzle for reporting this.
+    
+    Change-Id: I6a6d000a7c5203dd5945a61b4caeda1b8aeb09c9
+
+commit 70ace0d5a5601901288974fcf27919754260cf0e
+Author: Johannes Schönberger <hannesschoenberger@gmail.com>
+Date:   Sat Aug 30 15:52:34 2014 -0400
+
+    Fix max. linear solver iterations in ConjugateGradientsSolver
+    
+    Change-Id: Ice0cef46441dbc1c121eeb42113667a46c96936f
+
+commit c5d8d0680250f5eb554577d30d28fc805b03fab9
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 29 20:31:19 2014 -0700
+
+    Fix a unused function error with Eigen version 3.2.1 or less.
+    
+    Thanks to Johannes Schoenberger  for reporting this.
+    
+    Change-Id: Ie17d28f2a68734a978a8c95007724bc4055de43a
+
+commit 0e1cc2a55488e4cf381833baaa3531c02ce9d69e
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 29 09:16:56 2014 -0700
+
+    Fix the build on Eigen version 3.2.1 and older.
+    
+    Change-Id: I18f5cb5d42113737d7b8f78a67acee28bd5b3e08
+
+commit 5f96c62b56222f27e606f2246a8a16b6942af8d1
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 28 23:06:17 2014 -0700
+
+    Add Block AMD ordering for SPARSE_SCHUR + EIGEN_SPARSE.
+    
+    Ordering routines for the Schur complement when using EIGEN_SPARSE.
+    Also integration into SchurComplementSolver.
+    
+    Part of this CL is also a refactoring of the block jacobian matrix
+    construction.
+    
+    Change-Id: I11d665cc7d4867c64190e6fed1118f4d2e13d59b
+
+commit 7344626c04d19ca1dc4871c377c4422c744b1bca
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 28 22:03:09 2014 -0700
+
+    Let EIGEN_SPARSE + SPARSE_NORMAL_CHOLESKY use block AMD.
+    
+    Modify SparseNormalCholeskySolver to use a pre-ordered Jacobian
+    matrix.
+    
+    Change-Id: Ib4d725d7a2d7bb94ea76dbb3a9b172784dbc8ea0
+
+commit 9f7032369ea4e432f0fb507cb6d2209741ee6946
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 28 21:46:43 2014 -0700
+
+    Block AMD for SparseNormalCholesky + EIGEN_SPARSE.
+    
+    This is just the reordering routine. The integration with
+    SparseNormalCholesky shall happen in a subsequent CL.
+    
+    Change-Id: I39ddc32aa66b11c368faf75404850fa0ae0d2b3a
+
+commit b9331cd4077100d645be22a912d5743eeda72878
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 28 14:42:27 2014 -0700
+
+    Cleanup reorder_program.cc
+    
+    Program::SetParameterOffsetsAndIndex() was being called willy nilly.
+    Now the invariant is that any function that actually reorders the
+    program, updates the offsets and indices.
+    
+    Also the logic around handling EIGEN_SPARSE has been simplified in
+    anticipation of the block AMD code that is forthcoming.
+    
+    Last but not the least, num_eliminate_blocks, which is a rather
+    cryptic name to begin with has been replaced by the more meaningful
+    size_of_first_elimination_group.
+    
+    Change-Id: I77e684f699a93b53e76aa406d64f40f8704df813
+
+commit 79491a3f4a3939a3cce4644da7a998b7782b963a
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 28 13:57:50 2014 -0700
+
+    Solver::FullReport now reports build config.
+    
+    The header of Summary::FullReport now looks like
+    
+    Solver Summary (v 1.10.0-suitesparse-cxsparse-lapack-no_openmp)
+    
+                                         Original                  Reduced
+    Parameter blocks                        22122                    22122
+    Parameters                              66462                    66462
+    Residual blocks                         83718                    83718
+    Residual                               167436                   167436
+    
+    Change-Id: Id1b81bbf90ba412d19e2dd3687eeb9d372b72c1b
+
+commit 48068c753e91d77f6c96ef2d529a27ef8ee3947c
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 28 13:03:40 2014 -0700
 
     Lint cleanup from William Rucklidge.
     
-    Change-Id: If545f114c1a2b07edd660a3c71ecfc16ffa25e43
+    Change-Id: Ie0e0aa58440be7a4f67dcd633dbb6f1bb0c051a8
 
-commit 15c1210a8bdf3e936b4ef600d75f0fbb70878fb5
+commit 6a51b135e6298e8ba44a58cc2b54a170ab61a82f
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Apr 29 08:12:19 2014 -0700
+Date:   Thu Aug 28 10:48:29 2014 -0700
 
-    Lint cleanup from Jim Roseborough.
+    Fix solver_test.cc
     
-    Change-Id: I53f4e0d020602443b397387b8c5908f25649403d
+    When Eigen is not installed, Solver::IsValid was not detecting
+    it correctly.
+    
+    Change-Id: Id285a84d829a9e20bc5de663adfca66ac31e08f3
 
-commit b1668067f1c97520d5d28eecf2c11d2afc1b01b3
+commit 62a8d64453ee41dae56710a4eead3fadf2fe1a4e
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Apr 29 08:12:19 2014 -0700
+Date:   Wed Aug 27 22:54:00 2014 -0700
 
-    Variety of changes to documentation and example code.
+    Expand check for lack of a sparse linear algebra library.
     
-    1. Update version history.
-    2. Minor changes to the tutorial to reflect the bounds constrained
-       problem.
-    3. Added static factory methods to the SnavelyReprojectionError.
-    4. Removed relative gradient tolerance from types.h as it is
-       not true anymore.
+    The LinearSolver factory was creating a NULL linear solver
+    if only Eigen's sparse linear algebra backend was available.
     
-    Change-Id: I8de386e5278a008c84ef2d3290d2c4351417a9f1
+    Thanks to Michael Samples and Domink Reitzle for reporting this.
+    
+    Change-Id: I35e3a6c0fd0da2a31934adb5dfe4cad29577cc73
 
-commit 658407dacc351a999206980fbb3265099e50e7a3
+commit 12eb389b4ec4113a2260c1a192a1d3f8d1b6a2d3
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Apr 28 13:25:17 2014 -0700
+Date:   Wed Aug 27 22:18:33 2014 -0700
 
-    Add missing template specializations to the NDK build.
+    Fix Eigen Row/ColMajor bug in NumericDiffCostFunction.
     
-    Change-Id: I42bb6c3bd47648050298472af80333aa900e79bf
+    If the parameter block size is 1, asking Eigen to create
+    a row-major matrix triggers a compile time error. Previously
+    we were handling the case where the number of rows in the
+    jacobian block was known statically, but the problem is present
+    when the nummber of rows is dynamic.
+    
+    This CL fixes this problem.
+    
+    Thanks to Dominik Reitzle for reporting this.
+    
+    Change-Id: I99c3eec3558e66ebf4efa51c4dee8ce292ffe0c1
 
-commit 5d7eed87b47871bc882af765188fa4fbca976855
+commit 6c25185bb1643d8d0f3d8e1a7b82a058156aa869
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Thu Aug 28 16:07:51 2014 +0100
+
+    Fix crash in Covariance if # threads > 1 requested without OpenMP.
+    
+    - Previously if options.num_threads > 1 was given to Covariance compiled
+      without OpenMP, a CHECK() would be triggered in program_evalutor.
+    
+    Change-Id: Iaade4f5ed5326b0c59a7014c750c41ee026e1124
+
+commit 6f89d850fb4ace0104abccf467c4fe37ad378b79
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Aug 27 11:51:50 2014 -0700
+
+    Further build breakage fixes.
+    
+    1. Allow the minimum number of linear solver iterations to be zero.
+    2. Fix conjugate gradients solver's iteration loop to be sane again.
+    
+    Change-Id: I8594815fec940c2b30e28eb58ec5d8baacf13dae
+
+commit dd596d0f0d6d08951efc2c11a639b546db2080c6
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Aug 27 11:26:50 2014 -0700
+
+    Fix the broken build.
+    
+    Change-Id: I083cf1cca1bf4cca956193022d450364e73f833a
+
+commit d906afae22b05b9b9a9a2657924f4c0bf1a9b5ea
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Aug 25 22:32:38 2014 -0700
+
+    A number of bug fixes.
+    
+    1. Fix a build breakage in graph_test.
+    2. Respect Solver::Options::min_num_linear_solver_iterations in
+       conjugate_gradients_solver.cc
+    
+    Thanks to Johannes Schönberger for reporting these.
+    
+    Change-Id: Ib32e3929bf5d92dd576ae5b53d4d88797095136e
+
+commit dab955928c6d0942d6acc5b5f1c4c11260d0767d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Aug 17 13:14:50 2014 -0700
+
+    Add an unweighted graph.
+    
+    Rename Graph -> WeightedGraph.
+    Add a new Graph class, which is cheaper to construct and
+    work with if the weights are not needed.
+    
+    This cuts down the cost of building the Hessian graph
+    significantly.
+    
+    Change-Id: Id0cfc81dd2c0bb5ff8f63a1b55aa133c53c0c869
+
+commit a0c282adbd268c2ad82551fab31fe1cf8d0c4282
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Aug 24 22:19:03 2014 -0700
+
+    Add EIGEN_STRONG_INLINE annotation to jet.h
+    
+    This improves performance when using MSVC on Windows. On GCC
+    there will be no effect.
+    
+    Change-Id: I555a81ff6823c2855d64773073f75af50c48d716
+
+commit 20de0a7793c574e964350a623446136889f74632
 Author: Björn Piltz <bjornpiltz@gmail.com>
-Date:   Wed Apr 23 22:13:37 2014 +0200
+Date:   Mon Aug 25 17:05:54 2014 +0200
 
-    Suppport for MSVC DLLs.
+    Fixed Malformed regex
     
-    Change-Id: Ibbcc4ba4e59f5bbf1cb91fe81c7d3b9042d03493
+    I got the following error with MSVC:
+    Syntax error at index 9 in simple regular expression "NumGroups()": '(' is unsupported.
+    
+    Change-Id: Id1952831d81d3eb5d73bbed8c311914c4c8ab51f
 
-commit c830820a5c2be0d0cecb0822f2cff8b4ffe88f36
+commit ccf8aea988269841d84d746e52164d5056c67a10
+Author: Björn Piltz <bjornpiltz@gmail.com>
+Date:   Mon Aug 25 16:16:01 2014 +0200
+
+    Fixed MSVC error C2124: divide or mod by zero
+    
+    Alternatively, if quiet_NaN is not available on all platforms a workaround would be:
+        volatile double zero = 0.0;
+        double x = 1.0/zero;
+    The 'volatile' is needed to shut up "warning C4723: potential divide by 0".
+    
+    Change-Id: If2bbdab8540595aa2e0079e1eb6b6fed6d4a6ef7
+
+commit 8de27be218d42b282d7f15867733ad07058b0887
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Apr 28 10:28:24 2014 -0700
+Date:   Tue Aug 19 08:22:40 2014 -0700
 
-    Add missing files to Android.mk
+    Fix a bug in TrustRegionPreprocessor
     
-    Change-Id: Ibdf577c592bcde0fe5c2ce343ed8e9028b82af8f
+    TrustRegionPreprocessor was not setting Minimizer::Options::is_constrained.
+    This meant that the line search for bounds constraints was not being
+    invoked for bounds constrained problems.
+    
+    And some minor lint cleanup.
+    
+    Change-Id: I18852cfaf1b33fd90b7d8c196f2063c128126658
 
-commit ceb7a3beaad140762b499f9a306fd7230715941a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 28 13:50:09 2014 +0600
-
-    Fix compilation error when using G++ compiler
-    
-    This compiler defines shared_ptr in std::tr1 namespace, but
-    for this <tr1/memory> is to be included. Further, this compiler
-    also does have <memory> header which confused previous shared
-    pointer check.
-    
-    Simplified logic around defines now, so currently we've got:
-    - CERES_TR1_MEMORY_HEADER defined if <tr1/memory> is to be
-      used for shared_ptr, otherwise <memory> is to be used.
-    - CERES_TR1_SHARED_PTR defined if shared_ptr is defined in
-      std::tr1 namespace, otherwise it's defined in std namespace.
-    
-    All the shared_ptr checks are now moved to own file FindSharedPtr
-    which simplifies main CMakeLists.
-    
-    Change-Id: I558a74793baaa0bd088801910a356be4ef17c31b
-
-commit 02db9414fb6739857a37e268500083a0546cd0a3
+commit 1745dd615b3897a3ef9896acfdba67eee1739bf4
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Apr 28 08:32:51 2014 -0700
+Date:   Thu Jun 5 21:30:13 2014 -0700
 
-    Fix the documentation for RandNormal.
+    Refactor SolverImpl.
     
-    As pointed out by Jim Roseborough, this is the Marsaglia Polar
-    method and not the Box-Muller method.
+    Replace SolverImpl with
     
-    Change-Id: Id5332bcd4b4c23a3885cc296729b44eaa5edd0a8
+     a. A minimizer specific preprocessor class.
+     b. A generic Solve function inside solver.cc
+     c. Presummarize and Postsummarize functions to handle
+        updates to the summary object.
+    
+    The existing SolverImpl class was a mixture of the above three
+    things and was increasingly complicated code to follow. This change,
+    breaks it into its three separate constituents, with the aims of
+    better separation of concerns and thus better testability and
+    reliability.
+    
+    The call to Solver::Solve() now consists of
+    
+    1. Presummarize - summarize the given state of the problem and solver
+       options.
+    2. Preprocess - Setup everything that is needed to call the minimizer.
+       This includes, removing redundant parameter and residual blocks,
+       setting up the reordering for the linear solver, creating the
+       linear solver, evaluator, inner iteration minimizer etc.
+    3. Minimize.
+    4. Post summarize - summarize the result of the preprocessing and the
+       solve.
+    
+    Change-Id: I80f35cfc9f2cbf78f1df4aceace27075779d8a3a
 
-commit 32530788d08c53f8d2c8a5f9bd61aa60a23d6e03
-Author: Richard Stebbing <richie.stebbing@gmail.com>
-Date:   Sat Apr 26 07:42:23 2014 +0100
-
-    Add dynamic_sparsity option.
-    
-    The standard sparse normal Cholesky solver assumes a fixed
-    sparsity pattern which is useful for a large number of problems
-    presented to Ceres. However, some problems are symbolically dense
-    but numerically sparse i.e. each residual is a function of a
-    large number of parameters but at any given state the residual
-    only depends on a sparse subset of them. For these class of
-    problems it is faster to re-analyse the sparsity pattern of the
-    jacobian at each iteration of the non-linear optimisation instead
-    of including all of the zero entries in the step computation.
-    
-    The proposed solution adds the dynamic_sparsity option which can
-    be used with SPARSE_NORMAL_CHOLESKY. A
-    DynamicCompressedRowSparseMatrix type (which extends
-    CompressedRowSparseMatrix) has been introduced which allows
-    dynamic addition and removal of elements. A Finalize method is
-    provided which then consolidates the matrix so that it can be
-    used in place of a regular CompressedRowSparseMatrix. An
-    associated jacobian writer has also been provided.
-    
-    Changes that were required to make this extension were adding the
-    SetMaxNumNonZeros method to CompressedRowSparseMatrix and adding
-    a JacobianFinalizer template parameter to the ProgramEvaluator.
-    
-    Change-Id: Ia5a8a9523fdae8d5b027bc35e70b4611ec2a8d01
-
-commit 2569076ff0bf8ffb3938da8b5df7edc4883aa053
+commit bd90384226a7f8629467f72fc410a9e8086a2dff
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Apr 25 23:54:48 2014 -0700
+Date:   Mon Aug 18 11:27:06 2014 -0700
 
-    More NDK fixes.
+    Lint comments from William Rucklidge.
     
-    Fix variable names in port.h and fix fpclassify when
-    using gnustl. This was tested by switching to gnustl
-    in the JNI build.
+    Also some minor refactoring of the trust_region_preprocessor_test.cc
     
-    Thanks to Carlos Hernandez for suggesting the gnustl fixes.
-    
-    Change-Id: I690b73caf495ccc79061f45288e416da1604cc72
+    Change-Id: Ica28002254c95722faf93a7ef35bf3deab557f0b
 
-commit e55596f8860a09b12b5e1f949237f15357c1ac59
+commit 3150321db4a0cb1bb4894961a030d95dacae3591
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Apr 25 16:17:19 2014 -0700
+Date:   Tue Aug 12 22:46:51 2014 -0700
 
-    Change the defaults for shared_ptr.
+    Preprocessor for the LineSearchMinimizer.
     
-    By default shared_ptr is now assumed to be
-    in the standard <memory> header and in the
-    std namespace.
-    
-    Previously the way the ifdefs were structured if the appropriate
-    variable was not defined, it would default to <t1/memory>.
-    
-    The new defaults are more future proof.
-    
-    Change-Id: If457806191196be2b6425b8289ea7a3488a27445
+    Change-Id: Ieb5dfe1c0b96ef323c1130edd0c3a8a8b2c644cc
 
-commit bb05be341b8436f611e4b69954a529edcca5b577
+commit f7da411ef0d0067e269629887d64cdb769368800
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Apr 13 14:22:19 2014 -0700
+Date:   Thu Aug 7 14:30:33 2014 -0700
 
-    Solver::Options uses shared_ptr to handle ownership.
+    Preprocessor for the TrustRegionMinimizer.
     
-    Solver::Options::linear_solver_ordering and
-    Solver::Options::inner_iteration_ordering
-    were bare pointers even though Solver::Options took ownership of these
-    objects.
+    1. Base class for preprocessors.
+    2. A preprocessor for problems that will be solved using
+       the trust region minimizer.
+    3. Added sanity tests to the program reordering options
+       for Schur type linear solvers.
+    4. Tests for the TrustRegionPreprocessor.
     
-    This lead to buggy user code and the inability to copy Solver::Options
-    objects around.
-    
-    With this change, these naked pointers have been replaced by a
-    shared_ptr object which will managed the lifetime of these objects. This
-    also leads to simplification of the lifetime handling of these objects
-    inside the solver.
-    
-    The Android.mk and Application.mk files have also been updated
-    to use a newer NDK revision which ships with LLVM's libc++.
-    
-    Change-Id: I25161fb3ddf737be0b3e5dfd8e7a0039b22548cd
+    Change-Id: I88cd926f0053bbbf2bd6b11e03ec55b8bf473cf1
 
-commit 8e0991381ea3a2baddea017cd07b333f0c5de595
-Author: Joydeep Biswas <joydeep.biswas@gmail.com>
-Date:   Tue Apr 22 10:40:47 2014 -0400
-
-    Added a simplified robotics example for DynamicAutoDiffCostFunction.
-    
-    Change-Id: I9520e0a9a8d9743285c5114523fbafa6ffa5b0bd
-
-commit cc9d3bba1008066e51502cabd956985c6bdedfe8
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Apr 18 22:58:09 2014 -0700
-
-    Remove a comment from conf.py
-    
-    Change-Id: I675f7e8fc5dd2143eab74901bc7241e02e37285f
-
-commit c4cd29dd7c80ade5b3ac7a1f6ee7df22c8869ab5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Apr 16 23:40:12 2014 -0700
-
-    Merge landing page with introduction.
-    
-    The existing introduction was a bit redundant and also
-    was not really an introduction. Also updated the build
-    instructions to reflect the new reality on Mac OSX.
-    
-    Also updated the beginning of the tutorial to be a bit
-    gentler and updated the history to be more consistent
-    
-    Change-Id: Ife38c1949252cf9f4c6301856957f2d38365f313
-
-commit 46ccfb376ac52ac159f9187e0f7384ef68c1cbdd
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Apr 12 21:56:51 2014 -0700
-
-    Cleanup block_structure.h/cc
-    
-    1. Remove obsolete Proto conversion functions.
-    2. Fix a strict weak ordering bug.
-    
-    Change-Id: I1ce6d4b06e29cf475df1d5bd37c79f66f20f8d93
-
-commit 7d489fdb073937ac05c0693c1902fbcb9eeb7dfc
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Apr 7 11:14:51 2014 -0700
-
-    Refactor the landing page to be a bit more compact.
-    
-    Also minor changes to the introduction.
-    
-    Change-Id: Iaa71f576b95c869f075d6837dbb60ba4bb608ee7
-
-commit 406ac7816730c15425db20d994ac0d60d932ab6c
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Apr 7 08:36:07 2014 +0000
-
-    Rework Ceres documentation as new website
-    
-    This reworks the Ceres Sphinx documentation such that it can
-    function as the main Ceres website, now hosted at
-    ceres-solver.org. This also changes to the theme sphinx_rtd_theme
-    used by Read The Docs; this theme has strong mobile support and is
-    well enough designed.
-    
-    Change-Id: I63232d985859a6dac94ff58f08bf81eb2b9e7f99
-
-commit 3e60a998ac970da659d590bac2ff892ee619aa1b
-Author: Richard Bowen <rsbowen@google.com>
-Date:   Tue Apr 1 16:22:49 2014 -0700
-
-    Added support and tests: row and column blocks for sparse matrix
-    transpose.
-    
-    Change-Id: Ife641b08a9e86826478521a405f21ba60667f0e8
-
-commit 5ecb1c3f1dfde6e8ed4b493eafef7b43dad19e72
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Apr 1 09:20:35 2014 -0700
-
-    Add Problem::IsParameterBlockPresent.
-    
-    This allows the user to query the Problem to see if a
-    parameter block is already present or not.
-    
-    Change-Id: If786f6c008cc644f3398597901d718d12a6d865d
-
-commit 75e2232b29ff2ea42c8406c9d45b138a7e7a0048
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Mar 28 11:21:02 2014 -0700
-
-    Fix spacing in building.rst
-    
-    Change-Id: I4c68d732c80d7ff2bdbc812bf0b7c7fb98c43957
-
-commit b555b489b8447434294a8a6676272289140d6a1d
-Author: Richard Bowen <rsbowen@google.com>
-Date:   Thu Mar 27 15:51:28 2014 -0700
-
-    Changes documentation to reflect changes in output format.
-    
-    Change-Id: Ic0ba234283e791edcad29aec067905dcb2130813
-
-commit 1cfb600bfc3be8342f85f155b2b219a595ee58da
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Mar 26 12:55:11 2014 -0700
-
-    Add the (2,4,9) template specialization for PartitionedMatrixView
-    and SchurEliminator.
-    
-    Also update the comment inside generate_partitioned_matrix_view_specializations.py
-    
-    Change-Id: I99a7ab4256091b1da48553da3076e5996a5757ed
-
-commit 195e49351b386ffc23020d406883eaa6511e29b3
+commit 54893ba523106e38ab06eb72fb5d8748685c7797
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Mar 26 11:36:11 2014 +0000
+Date:   Mon Aug 11 19:04:18 2014 +0100
 
-    Check validity of residual block before removal in RemoveResidualBlock.
+    Add missing #include of <limits> for loss functions.
     
-    - Breaking change: Problem::Options::enable_fast_parameter_block_removal
-      is now Problem::Options::enable_fast_removal, as it now controls
-      the behaviour for both parameter and residual blocks.
-    
-    - Previously we did not check that the specified residual block to
-      remove in RemoveResidualBlock actually represented a valid residual
-      for the problem.
-    - This meant that Ceres would die unexpectedly if the user passed an
-      uninitialised residual_block, or more likely attempted to remove a
-      residual block that had already been removed automatically after
-      the user removed a parameter block upon on which it was dependent.
-    - RemoveResidualBlock now verifies the validity of the given
-      residual_block to remove.  Either by checking against a hash set of
-      all residuals maintained in ProblemImpl iff enable_fast_removal
-      is enabled.  Or by a full scan of the residual blocks if not.
-    
-    Change-Id: I9ab178e2f68a74135f0a8e20905b16405c77a62b
+    Change-Id: Id632451429e03031a1533a9be795270debc70706
 
-commit 74762b60332d4a1c08ec5aef75ec718da9d305a2
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Thu Mar 20 14:50:25 2014 +0000
-
-    Allow construction of an AutoDiffLocalParameterization with a functor.
-    
-    - Previously AutoDiffLocalParameterization would internally instantiate
-      a functor instance whenever one was required.  This prohibits the
-      user passing arguments to the constructor of the functor.
-    - Now AutoDiffLocalParameterization can take over ownership of an
-      allocated functor which the user created.  This mimics the behaviour
-      of AutoDiffCostFunction.
-    
-    Change-Id: I264e1face44ca5d5e71cc20c77cc7654d3f74cc0
-
-commit 4f603fb0d82317a53fa9d96abe6a97b2e69bff36
+commit 4a2a888905fd1ce7203e45df15762d52740bb240
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Mar 19 17:16:43 2014 -0700
+Date:   Thu Aug 7 11:48:03 2014 -0700
 
-    Grammer fixes from William Rucklidge.
+    Change ownership of pointers in Minimizer::Options.
     
-    Change-Id: Ia40df7a1d141eb2552694510453d1431bb0c8dce
+    This is a intermediate change to clean things up
+    in preparation for a broader refactoring of the SolverImpl.
+    
+    Essentially we are replacing raw pointers in Minimizer::Options
+    with shared_ptr objects. For now this only makes things a bit
+    more complicated looking inside solver_impl.cc, but going
+    forward this will lead to considerable simplifications in
+    tracking ownership of various pointers.
+    
+    Change-Id: I21db8fc6763c29b0d15e834d7c968a0f514042a0
+
+commit 0d4e3bd664d442b700fee2895c7a8ac37717dc08
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 7 12:19:10 2014 -0700
+
+    GradientCheckingProblem's parameter blocks are initialized correctly.
+    
+    Ensure that when a new problem object is constructed for validing
+    gradients, the parameter blocks have their data pointers point to
+    the user's parameter blocks.
+    
+    We used to do this inside solver_impl.cc, but doing this at
+    construction is the right thing to do.
+    
+    Change-Id: I3bfdc89bb0027c8d67cde937e8f2fa385d89c30c
+
+commit cfb36463f9c1f806121779d651c7105ad899bb20
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Aug 5 14:42:33 2014 -0700
+
+    Small fixes from William Rucklidge.
+    
+    Change-Id: I0be52f0f1e53cedccffe4807dc664a2f3fb4a8e4
+
+commit 9a41132a0523af407b53644c07900f86aa6fceac
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Aug 4 22:45:53 2014 -0700
+
+    Small changes from Jim Roseborough.
+    
+    Change-Id: Ic8b19ea5c5f4f8fd782eb4420b30514153087d18
+
+commit a521fc3afc11425b46992388a83ef07017d02ac9
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 1 08:27:35 2014 -0700
+
+    Simplify, cleanup and instrument SchurComplementSolver.
+    
+    The instrumentation revealed that EIGEN_SPARSE can be upto
+    an order of magnitude slower than CX_SPARSE on some bundle
+    adjustment problems.
+    
+    The problem comes down to the quality of AMD ordering that
+    CXSparse/Eigen implements. It does particularly badly
+    on the Schur complement. In the CXSparse implementation
+    we got around this by considering the block sparsity structure
+    and computing the AMD ordering on it and lifting it to the
+    full matrix.
+    
+    This is currently not possible with the release version of
+    Eigen, as the support for using preordered/natural orderings
+    is in the master branch but has not been released yet.
+    
+    Change-Id: I25588d3e723e50606f327db5759f174f58439e29
+
+commit b43e73a03485f0fd0fe514e356ad8925731d3a81
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 1 12:09:09 2014 -0700
+
+    Simplify the Eigen code in SparseNormalCholeskySolver.
+    
+    Simplifying some of the template handling, and remove the use
+    of SelfAdjointView as it is not needed. The solver itself takes
+    an argument for where the data is actually stored.
+    
+    The performance of SparseNormalCholesky with EIGEN_SPARSE
+    seems to be on par with CX_SPARSE.
+    
+    Change-Id: I69e22a144b447c052b6cbe59ef1aa33eae2dd9e3
+
+commit 031598295c6b2f061c171b9b2338919f41b7eb0b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Jul 17 14:35:18 2014 -0700
+
+    Enable Eigen as sparse linear algebra library.
+    
+    SPARSE_NORMAL_CHOLESKY and SPARSE_SCHUR can now be used
+    with EIGEN_SPARSE as the backend.
+    
+    The performance is not as good as CXSparse. This needs to be
+    investigated. Is it because the quality of AMD ordering that
+    we are computing is not as good as the one for CXSparse? This
+    could be because we are working with the scalar matrix instead
+    of the block matrix.
+    
+    Also, the upper/lower triangular story is not completely clear.
+    Both of these issues will be benchmarked and tackled in the
+    near future.
+    
+    Also included in this change is a bunch of cleanup to the
+    SparseNormalCholeskySolver and SparseSchurComplementSolver
+    classes around the use of the of defines used to conditionally
+    compile out parts of the code.
+    
+    The system_test has been updated to test EIGEN_SPARSE also.
+    
+    Change-Id: I46a57e9c4c97782696879e0b15cfc7a93fe5496a
+
+commit 1b17145adf6aa0072db2989ad799e90313970ab3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Jul 30 10:14:15 2014 -0700
+
+    Make canned loss functions more robust.
+    
+    The loss functions that ship with ceres can sometimes
+    generate a zero first derivative if the residual is too
+    large.
+    
+    In such cases Corrector fails with an ugly undebuggable
+    crash. This CL is the first in a series of fixes to
+    take care of this.
+    
+    We clamp the values of rho' from below by
+    numeric_limits<double>::min().
+    
+    Also included here is some minor cleanup where the constants
+    are treated as doubles rather than integers.
+    
+    Thanks to Pierre Moulon for reporting this problem.
+    
+    Change-Id: I3aaf375303ecc2659bbf6fb56a812e7dc3a41106

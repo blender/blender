@@ -39,6 +39,7 @@
 #define CERES_PUBLIC_C_API_H_
 
 #include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -139,5 +140,7 @@ CERES_EXPORT void ceres_solve(ceres_problem_t* problem);
 #ifdef __cplusplus
 }
 #endif
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  /* CERES_PUBLIC_C_API_H_ */

@@ -34,15 +34,19 @@
 #ifndef CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 #define CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
+#include <vector>
+
 // This include must come before any #ifndef check on Ceres compile options.
 #include "ceres/internal/port.h"
 
-#if !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARSE)
-
-#include "ceres/cxsparse.h"
 #include "ceres/internal/macros.h"
 #include "ceres/linear_solver.h"
 #include "ceres/suitesparse.h"
+#include "ceres/cxsparse.h"
+
+#ifdef CERES_USE_EIGEN_SPARSE
+#include "Eigen/SparseCholesky"
+#endif
 
 namespace ceres {
 namespace internal {
@@ -74,6 +78,12 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
       const LinearSolver::PerSolveOptions& options,
       double* rhs_and_solution);
 
+  // Crashes if CERES_USE_EIGEN_SPARSE is not defined.
+  LinearSolver::Summary SolveImplUsingEigen(
+      CompressedRowSparseMatrix* A,
+      const LinearSolver::PerSolveOptions& options,
+      double* rhs_and_solution);
+
   void FreeFactorization();
 
   SuiteSparse ss_;
@@ -83,6 +93,32 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
   CXSparse cxsparse_;
   // Cached factorization
   cs_dis* cxsparse_factor_;
+
+#ifdef CERES_USE_EIGEN_SPARSE
+
+  // The preprocessor gymnastics here are dealing with the fact that
+  // before version 3.2.2, Eigen did not support a third template
+  // parameter to specify the ordering.
+#if EIGEN_VERSION_AT_LEAST(3,2,2)
+  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Upper,
+                                Eigen::NaturalOrdering<int> >
+  SimplicialLDLTWithNaturalOrdering;
+  scoped_ptr<SimplicialLDLTWithNaturalOrdering> natural_ldlt_;
+
+  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Upper,
+                                Eigen::AMDOrdering<int> >
+  SimplicialLDLTWithAMDOrdering;
+  scoped_ptr<SimplicialLDLTWithAMDOrdering> amd_ldlt_;
+
+#else
+  typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>, Eigen::Upper>
+  SimplicialLDLTWithAMDOrdering;
+
+  scoped_ptr<SimplicialLDLTWithAMDOrdering> amd_ldlt_;
+#endif
+
+#endif
+
   scoped_ptr<CompressedRowSparseMatrix> outer_product_;
   vector<int> pattern_;
   const LinearSolver::Options options_;
@@ -92,5 +128,4 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // !defined(CERES_NO_SUITESPARSE) || !defined(CERES_NO_CXSPARSE)
 #endif  // CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_

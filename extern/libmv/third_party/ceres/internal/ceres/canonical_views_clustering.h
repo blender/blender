@@ -101,7 +101,7 @@ struct CanonicalViewsClusteringOptions;
 // cluster. In this case they are assigned to a cluster with id = -1;
 void ComputeCanonicalViewsClustering(
     const CanonicalViewsClusteringOptions& options,
-    const Graph<int>& graph,
+    const WeightedGraph<int>& graph,
     vector<int>* centers,
     HashMap<int, int>* membership);
 

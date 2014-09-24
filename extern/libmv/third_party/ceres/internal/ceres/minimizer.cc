@@ -28,12 +28,28 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#include "ceres/line_search_minimizer.h"
 #include "ceres/minimizer.h"
+#include "ceres/trust_region_minimizer.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
+
+Minimizer* Minimizer::Create(MinimizerType minimizer_type) {
+  if (minimizer_type == TRUST_REGION) {
+    return new TrustRegionMinimizer;
+  }
+
+  if (minimizer_type == LINE_SEARCH) {
+    return new LineSearchMinimizer;
+  }
+
+  LOG(FATAL) << "Unknown minimizer_type: " << minimizer_type;
+  return NULL;
+}
+
 
 Minimizer::~Minimizer() {}
 

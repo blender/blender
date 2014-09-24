@@ -45,26 +45,48 @@ namespace internal {
 LinearSolver::~LinearSolver() {
 }
 
+LinearSolverType LinearSolver::LinearSolverForZeroEBlocks(
+    LinearSolverType linear_solver_type) {
+  if (!IsSchurType(linear_solver_type)) {
+    return linear_solver_type;
+  }
+
+  if (linear_solver_type == SPARSE_SCHUR) {
+    return SPARSE_NORMAL_CHOLESKY;
+  }
+
+  if (linear_solver_type == DENSE_SCHUR) {
+    // TODO(sameeragarwal): This is probably not a great choice.
+    // Ideally, we should have a DENSE_NORMAL_CHOLESKY, that can take
+    // a BlockSparseMatrix as input.
+    return DENSE_QR;
+  }
+
+  if (linear_solver_type == ITERATIVE_SCHUR) {
+    return CGNR;
+  }
+
+  return linear_solver_type;
+}
+
 LinearSolver* LinearSolver::Create(const LinearSolver::Options& options) {
   switch (options.type) {
     case CGNR:
       return new CgnrSolver(options);
 
     case SPARSE_NORMAL_CHOLESKY:
-#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
-      LOG(WARNING) << "SPARSE_NORMAL_CHOLESKY is not available. Please "
-                   << "build Ceres with SuiteSparse or CXSparse. "
-                   << "Returning NULL.";
+#if defined(CERES_NO_SUITESPARSE) &&              \
+    defined(CERES_NO_CXSPARSE) &&                 \
+   !defined(CERES_USE_EIGEN_SPARSE)
       return NULL;
 #else
       return new SparseNormalCholeskySolver(options);
 #endif
 
     case SPARSE_SCHUR:
-#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
-      LOG(WARNING) << "SPARSE_SCHUR is not available. Please "
-                   << "build Ceres with SuiteSparse or CXSparse. "
-                   << "Returning NULL.";
+#if defined(CERES_NO_SUITESPARSE) &&                 \
+    defined(CERES_NO_CXSPARSE) &&                    \
+   !defined(CERES_USE_EIGEN_SPARSE)
       return NULL;
 #else
       return new SparseSchurComplementSolver(options);

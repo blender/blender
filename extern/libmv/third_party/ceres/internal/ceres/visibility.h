@@ -72,9 +72,10 @@ void ComputeVisibility(const CompressedRowBlockStructure& block_structure,
 // matrix/Schur complement matrix obtained by eliminating the e_blocks
 // from the normal equations.
 //
-// Caller acquires ownership of the returned Graph pointer
+// Caller acquires ownership of the returned WeightedGraph pointer
 // (heap-allocated).
-Graph<int>* CreateSchurComplementGraph(const vector<set<int> >& visibility);
+WeightedGraph<int>* CreateSchurComplementGraph(
+    const vector<set<int> >& visibility);
 
 }  // namespace internal
 }  // namespace ceres

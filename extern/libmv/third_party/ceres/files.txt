@@ -11,13 +11,17 @@ include/ceres/dynamic_autodiff_cost_function.h
 include/ceres/dynamic_numeric_diff_cost_function.h
 include/ceres/fpclassify.h
 include/ceres/gradient_checker.h
+include/ceres/gradient_problem.h
+include/ceres/gradient_problem_solver.h
 include/ceres/internal/autodiff.h
+include/ceres/internal/disable_warnings.h
 include/ceres/internal/eigen.h
 include/ceres/internal/fixed_array.h
 include/ceres/internal/macros.h
 include/ceres/internal/manual_constructor.h
 include/ceres/internal/numeric_diff.h
 include/ceres/internal/port.h
+include/ceres/internal/reenable_warnings.h
 include/ceres/internal/scoped_ptr.h
 include/ceres/internal/variadic_evaluate.h
 include/ceres/iteration_callback.h
@@ -26,13 +30,13 @@ include/ceres/local_parameterization.h
 include/ceres/loss_function.h
 include/ceres/normal_prior.h
 include/ceres/numeric_diff_cost_function.h
-include/ceres/numeric_diff_functor.h
 include/ceres/ordered_groups.h
 include/ceres/problem.h
 include/ceres/rotation.h
 include/ceres/sized_cost_function.h
 include/ceres/solver.h
 include/ceres/types.h
+include/ceres/version.h
 internal/ceres/array_utils.cc
 internal/ceres/array_utils.h
 internal/ceres/blas.cc
@@ -55,6 +59,8 @@ internal/ceres/block_sparse_matrix.cc
 internal/ceres/block_sparse_matrix.h
 internal/ceres/block_structure.cc
 internal/ceres/block_structure.h
+internal/ceres/callbacks.cc
+internal/ceres/callbacks.h
 internal/ceres/canonical_views_clustering.cc
 internal/ceres/canonical_views_clustering.h
 internal/ceres/c_api.cc
@@ -62,7 +68,6 @@ internal/ceres/casts.h
 internal/ceres/cgnr_linear_operator.h
 internal/ceres/cgnr_solver.cc
 internal/ceres/cgnr_solver.h
-internal/ceres/CMakeLists.txt
 internal/ceres/collections_port.h
 internal/ceres/compressed_col_sparse_matrix_utils.cc
 internal/ceres/compressed_col_sparse_matrix_utils.h
@@ -145,6 +150,9 @@ internal/ceres/generate_eliminator_specialization.py
 internal/ceres/generate_partitioned_matrix_view_specializations.py
 internal/ceres/gradient_checking_cost_function.cc
 internal/ceres/gradient_checking_cost_function.h
+internal/ceres/gradient_problem.cc
+internal/ceres/gradient_problem_evaluator.h
+internal/ceres/gradient_problem_solver.cc
 internal/ceres/graph_algorithms.h
 internal/ceres/graph.h
 internal/ceres/implicit_schur_complement.cc
@@ -170,6 +178,8 @@ internal/ceres/line_search_direction.h
 internal/ceres/line_search.h
 internal/ceres/line_search_minimizer.cc
 internal/ceres/line_search_minimizer.h
+internal/ceres/line_search_preprocessor.cc
+internal/ceres/line_search_preprocessor.h
 internal/ceres/local_parameterization.cc
 internal/ceres/loss_function.cc
 internal/ceres/low_rank_inverse_hessian.cc
@@ -189,6 +199,8 @@ internal/ceres/polynomial.cc
 internal/ceres/polynomial.h
 internal/ceres/preconditioner.cc
 internal/ceres/preconditioner.h
+internal/ceres/preprocessor.cc
+internal/ceres/preprocessor.h
 internal/ceres/problem.cc
 internal/ceres/problem_impl.cc
 internal/ceres/problem_impl.h
@@ -196,6 +208,8 @@ internal/ceres/program.cc
 internal/ceres/program_evaluator.h
 internal/ceres/program.h
 internal/ceres/random.h
+internal/ceres/reorder_program.cc
+internal/ceres/reorder_program.h
 internal/ceres/residual_block.cc
 internal/ceres/residual_block.h
 internal/ceres/residual_block_utils.cc
@@ -213,8 +227,8 @@ internal/ceres/single_linkage_clustering.cc
 internal/ceres/single_linkage_clustering.h
 internal/ceres/small_blas.h
 internal/ceres/solver.cc
-internal/ceres/solver_impl.cc
-internal/ceres/solver_impl.h
+internal/ceres/solver_utils.cc
+internal/ceres/solver_utils.h
 internal/ceres/sparse_matrix.cc
 internal/ceres/sparse_matrix.h
 internal/ceres/sparse_normal_cholesky_solver.cc
@@ -230,6 +244,8 @@ internal/ceres/triplet_sparse_matrix.cc
 internal/ceres/triplet_sparse_matrix.h
 internal/ceres/trust_region_minimizer.cc
 internal/ceres/trust_region_minimizer.h
+internal/ceres/trust_region_preprocessor.cc
+internal/ceres/trust_region_preprocessor.h
 internal/ceres/trust_region_strategy.cc
 internal/ceres/trust_region_strategy.h
 internal/ceres/types.cc

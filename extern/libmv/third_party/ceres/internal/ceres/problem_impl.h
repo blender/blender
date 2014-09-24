@@ -157,6 +157,11 @@ class ProblemImpl {
       const ResidualBlockId residual_block,
       vector<double*>* parameter_blocks) const;
 
+  const CostFunction* GetCostFunctionForResidualBlock(
+      const ResidualBlockId residual_block) const;
+  const LossFunction* GetLossFunctionForResidualBlock(
+      const ResidualBlockId residual_block) const;
+
   void GetResidualBlocksForParameterBlock(
       const double* values,
       vector<ResidualBlockId>* residual_blocks) const;

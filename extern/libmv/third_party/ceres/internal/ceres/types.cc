@@ -96,6 +96,7 @@ const char* SparseLinearAlgebraLibraryTypeToString(
   switch (type) {
     CASESTR(SUITE_SPARSE);
     CASESTR(CX_SPARSE);
+    CASESTR(EIGEN_SPARSE);
     default:
       return "UNKNOWN";
   }
@@ -107,6 +108,7 @@ bool StringToSparseLinearAlgebraLibraryType(
   UpperCase(&value);
   STRENUM(SUITE_SPARSE);
   STRENUM(CX_SPARSE);
+  STRENUM(EIGEN_SPARSE);
   return false;
 }
 
@@ -240,7 +242,7 @@ const char* NonlinearConjugateGradientTypeToString(
     NonlinearConjugateGradientType type) {
   switch (type) {
     CASESTR(FLETCHER_REEVES);
-    CASESTR(POLAK_RIBIRERE);
+    CASESTR(POLAK_RIBIERE);
     CASESTR(HESTENES_STIEFEL);
     default:
       return "UNKNOWN";
@@ -252,7 +254,7 @@ bool StringToNonlinearConjugateGradientType(
     NonlinearConjugateGradientType* type) {
   UpperCase(&value);
   STRENUM(FLETCHER_REEVES);
-  STRENUM(POLAK_RIBIRERE);
+  STRENUM(POLAK_RIBIERE);
   STRENUM(HESTENES_STIEFEL);
   return false;
 }
@@ -261,8 +263,8 @@ const char* CovarianceAlgorithmTypeToString(
     CovarianceAlgorithmType type) {
   switch (type) {
     CASESTR(DENSE_SVD);
-    CASESTR(SPARSE_CHOLESKY);
-    CASESTR(SPARSE_QR);
+    CASESTR(EIGEN_SPARSE_QR);
+    CASESTR(SUITE_SPARSE_QR);
     default:
       return "UNKNOWN";
   }
@@ -273,8 +275,8 @@ bool StringToCovarianceAlgorithmType(
     CovarianceAlgorithmType* type) {
   UpperCase(&value);
   STRENUM(DENSE_SVD);
-  STRENUM(SPARSE_CHOLESKY);
-  STRENUM(SPARSE_QR);
+  STRENUM(EIGEN_SPARSE_QR);
+  STRENUM(SUITE_SPARSE_QR);
   return false;
 }
 

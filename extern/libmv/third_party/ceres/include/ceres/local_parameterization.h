@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 #include <vector>
 #include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
 
@@ -109,7 +110,7 @@ namespace ceres {
 // Jacobian which is needed to compute the Jacobian of f w.r.t delta.
 class CERES_EXPORT LocalParameterization {
  public:
-  virtual ~LocalParameterization() {}
+  virtual ~LocalParameterization();
 
   // Generalization of the addition operation,
   //
@@ -121,7 +122,22 @@ class CERES_EXPORT LocalParameterization {
                     double* x_plus_delta) const = 0;
 
   // The jacobian of Plus(x, delta) w.r.t delta at delta = 0.
+  //
+  // jacobian is a row-major GlobalSize() x LocalSize() matrix.
   virtual bool ComputeJacobian(const double* x, double* jacobian) const = 0;
+
+  // local_matrix = global_matrix * jacobian
+  //
+  // global_matrix is a num_rows x GlobalSize  row major matrix.
+  // local_matrix is a num_rows x LocalSize row major matrix.
+  // jacobian(x) is the matrix returned by ComputeJacobian at x.
+  //
+  // This is only used by GradientProblem. For most normal uses, it is
+  // okay to use the default implementation.
+  virtual bool MultiplyByJacobian(const double* x,
+                                  const int num_rows,
+                                  const double* global_matrix,
+                                  double* local_matrix) const;
 
   // Size of x.
   virtual int GlobalSize() const = 0;
@@ -142,6 +158,10 @@ class CERES_EXPORT IdentityParameterization : public LocalParameterization {
                     double* x_plus_delta) const;
   virtual bool ComputeJacobian(const double* x,
                                double* jacobian) const;
+  virtual bool MultiplyByJacobian(const double* x,
+                                  const int num_cols,
+                                  const double* global_matrix,
+                                  double* local_matrix) const;
   virtual int GlobalSize() const { return size_; }
   virtual int LocalSize() const { return size_; }
 
@@ -160,6 +180,10 @@ class CERES_EXPORT SubsetParameterization : public LocalParameterization {
                     double* x_plus_delta) const;
   virtual bool ComputeJacobian(const double* x,
                                double* jacobian) const;
+  virtual bool MultiplyByJacobian(const double* x,
+                                  const int num_cols,
+                                  const double* global_matrix,
+                                  double* local_matrix) const;
   virtual int GlobalSize() const {
     return static_cast<int>(constancy_mask_.size());
   }
@@ -187,5 +211,7 @@ class CERES_EXPORT QuaternionParameterization : public LocalParameterization {
 };
 
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_LOCAL_PARAMETERIZATION_H_

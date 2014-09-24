@@ -36,6 +36,7 @@
 
 #include "ceres/cost_function.h"
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
 
@@ -71,5 +72,7 @@ class CERES_EXPORT NormalPrior: public CostFunction {
 };
 
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_NORMAL_PRIOR_H_

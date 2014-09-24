@@ -38,6 +38,25 @@
 #include <cstdlib>
 #include <utility>
 #include <vector>
+#include "Eigen/SparseCore"
+
+// Suppress unused local variable warning from Eigen Ordering.h #included by
+// SparseQR in Eigen 3.2.0. This was fixed in Eigen 3.2.1, but 3.2.0 is still
+// widely used (Ubuntu 14.04), and Ceres won't compile otherwise due to -Werror.
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4189 )
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+#include "Eigen/SparseQR"
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#else
+#pragma GCC diagnostic pop
+#endif
+
 #include "Eigen/SVD"
 #include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
@@ -53,40 +72,6 @@
 
 namespace ceres {
 namespace internal {
-namespace {
-
-// Per thread storage for SuiteSparse.
-#ifndef CERES_NO_SUITESPARSE
-
-struct PerThreadContext {
-  explicit PerThreadContext(int num_rows)
-      : solution(NULL),
-        solution_set(NULL),
-        y_workspace(NULL),
-        e_workspace(NULL),
-        rhs(NULL) {
-    rhs = ss.CreateDenseVector(NULL, num_rows, num_rows);
-  }
-
-  ~PerThreadContext() {
-    ss.Free(solution);
-    ss.Free(solution_set);
-    ss.Free(y_workspace);
-    ss.Free(e_workspace);
-    ss.Free(rhs);
-  }
-
-  cholmod_dense* solution;
-  cholmod_sparse* solution_set;
-  cholmod_dense* y_workspace;
-  cholmod_dense* e_workspace;
-  cholmod_dense* rhs;
-  SuiteSparse ss;
-};
-
-#endif
-
-}  // namespace
 
 typedef vector<pair<const double*, const double*> > CovarianceBlocks;
 
@@ -94,8 +79,17 @@ CovarianceImpl::CovarianceImpl(const Covariance::Options& options)
     : options_(options),
       is_computed_(false),
       is_valid_(false) {
-  evaluate_options_.num_threads = options.num_threads;
-  evaluate_options_.apply_loss_function = options.apply_loss_function;
+#ifndef CERES_USE_OPENMP
+  if (options_.num_threads > 1) {
+    LOG(WARNING)
+        << "OpenMP support is not compiled into this binary; "
+        << "only options.num_threads = 1 is supported. Switching "
+        << "to single threaded mode.";
+    options_.num_threads = 1;
+  }
+#endif
+  evaluate_options_.num_threads = options_.num_threads;
+  evaluate_options_.apply_loss_function = options_.apply_loss_function;
 }
 
 CovarianceImpl::~CovarianceImpl() {
@@ -396,11 +390,15 @@ bool CovarianceImpl::ComputeCovarianceValues() {
     case DENSE_SVD:
       return ComputeCovarianceValuesUsingDenseSVD();
 #ifndef CERES_NO_SUITESPARSE
-    case SPARSE_CHOLESKY:
-      return ComputeCovarianceValuesUsingSparseCholesky();
-    case SPARSE_QR:
-      return ComputeCovarianceValuesUsingSparseQR();
+    case SUITE_SPARSE_QR:
+      return ComputeCovarianceValuesUsingSuiteSparseQR();
+#else
+      LOG(ERROR) << "SuiteSparse is required to use the "
+                 << "SUITE_SPARSE_QR algorithm.";
+      return false;
 #endif
+    case EIGEN_SPARSE_QR:
+      return ComputeCovarianceValuesUsingEigenSparseQR();
     default:
       LOG(ERROR) << "Unsupported covariance estimation algorithm type: "
                  << CovarianceAlgorithmTypeToString(options_.algorithm_type);
@@ -409,197 +407,7 @@ bool CovarianceImpl::ComputeCovarianceValues() {
   return false;
 }
 
-bool CovarianceImpl::ComputeCovarianceValuesUsingSparseCholesky() {
-  EventLogger event_logger(
-      "CovarianceImpl::ComputeCovarianceValuesUsingSparseCholesky");
-#ifndef CERES_NO_SUITESPARSE
-  if (covariance_matrix_.get() == NULL) {
-    // Nothing to do, all zeros covariance matrix.
-    return true;
-  }
-
-  SuiteSparse ss;
-
-  CRSMatrix jacobian;
-  problem_->Evaluate(evaluate_options_, NULL, NULL, NULL, &jacobian);
-
-  event_logger.AddEvent("Evaluate");
-  // m is a transposed view of the Jacobian.
-  cholmod_sparse cholmod_jacobian_view;
-  cholmod_jacobian_view.nrow = jacobian.num_cols;
-  cholmod_jacobian_view.ncol = jacobian.num_rows;
-  cholmod_jacobian_view.nzmax = jacobian.values.size();
-  cholmod_jacobian_view.nz = NULL;
-  cholmod_jacobian_view.p = reinterpret_cast<void*>(&jacobian.rows[0]);
-  cholmod_jacobian_view.i = reinterpret_cast<void*>(&jacobian.cols[0]);
-  cholmod_jacobian_view.x = reinterpret_cast<void*>(&jacobian.values[0]);
-  cholmod_jacobian_view.z = NULL;
-  cholmod_jacobian_view.stype = 0;  // Matrix is not symmetric.
-  cholmod_jacobian_view.itype = CHOLMOD_INT;
-  cholmod_jacobian_view.xtype = CHOLMOD_REAL;
-  cholmod_jacobian_view.dtype = CHOLMOD_DOUBLE;
-  cholmod_jacobian_view.sorted = 1;
-  cholmod_jacobian_view.packed = 1;
-
-  string message;
-  cholmod_factor* factor = ss.AnalyzeCholesky(&cholmod_jacobian_view, &message);
-  event_logger.AddEvent("Symbolic Factorization");
-  if (factor == NULL) {
-    LOG(ERROR) << "Covariance estimation failed. "
-               << "CHOLMOD symbolic cholesky factorization returned with: "
-               << message;
-    return false;
-  }
-
-  LinearSolverTerminationType termination_type =
-      ss.Cholesky(&cholmod_jacobian_view, factor, &message);
-  event_logger.AddEvent("Numeric Factorization");
-  if (termination_type != LINEAR_SOLVER_SUCCESS) {
-    LOG(ERROR) << "Covariance estimation failed. "
-               << "CHOLMOD numeric cholesky factorization returned with: "
-               << message;
-    ss.Free(factor);
-    return false;
-  }
-
-  const double reciprocal_condition_number =
-      cholmod_rcond(factor, ss.mutable_cc());
-
-  if (reciprocal_condition_number <
-      options_.min_reciprocal_condition_number) {
-    LOG(ERROR) << "Cholesky factorization of J'J is not reliable. "
-               << "Reciprocal condition number: "
-               << reciprocal_condition_number << " "
-               << "min_reciprocal_condition_number: "
-               << options_.min_reciprocal_condition_number;
-    ss.Free(factor);
-    return false;
-  }
-
-  const int num_rows = covariance_matrix_->num_rows();
-  const int* rows = covariance_matrix_->rows();
-  const int* cols = covariance_matrix_->cols();
-  double* values = covariance_matrix_->mutable_values();
-
-  // The following loop exploits the fact that the i^th column of A^{-1}
-  // is given by the solution to the linear system
-  //
-  //  A x = e_i
-  //
-  // where e_i is a vector with e(i) = 1 and all other entries zero.
-  //
-  // Since the covariance matrix is symmetric, the i^th row and column
-  // are equal.
-  //
-  // The ifdef separates two different version of SuiteSparse. Newer
-  // versions of SuiteSparse have the cholmod_solve2 function which
-  // re-uses memory across calls.
-#if (SUITESPARSE_VERSION < 4002)
-  cholmod_dense* rhs = ss.CreateDenseVector(NULL, num_rows, num_rows);
-  double* rhs_x = reinterpret_cast<double*>(rhs->x);
-
-  for (int r = 0; r < num_rows; ++r) {
-    int row_begin = rows[r];
-    int row_end = rows[r + 1];
-    if (row_end == row_begin) {
-      continue;
-    }
-
-    rhs_x[r] = 1.0;
-    cholmod_dense* solution = ss.Solve(factor, rhs, &message);
-    double* solution_x = reinterpret_cast<double*>(solution->x);
-    for (int idx = row_begin; idx < row_end; ++idx) {
-      const int c = cols[idx];
-      values[idx] = solution_x[c];
-    }
-    ss.Free(solution);
-    rhs_x[r] = 0.0;
-  }
-
-  ss.Free(rhs);
-#else  // SUITESPARSE_VERSION < 4002
-
-  const int num_threads = options_.num_threads;
-  vector<PerThreadContext*> contexts(num_threads);
-  for (int i = 0; i < num_threads; ++i) {
-    contexts[i] = new PerThreadContext(num_rows);
-  }
-
-  // The first call to cholmod_solve2 is not thread safe, since it
-  // changes the factorization from supernodal to simplicial etc.
-  {
-    PerThreadContext* context = contexts[0];
-    double* context_rhs_x =  reinterpret_cast<double*>(context->rhs->x);
-    context_rhs_x[0] = 1.0;
-    cholmod_solve2(CHOLMOD_A,
-                   factor,
-                   context->rhs,
-                   NULL,
-                   &context->solution,
-                   &context->solution_set,
-                   &context->y_workspace,
-                   &context->e_workspace,
-                   context->ss.mutable_cc());
-    context_rhs_x[0] = 0.0;
-  }
-
-#pragma omp parallel for num_threads(num_threads) schedule(dynamic)
-  for (int r = 0; r < num_rows; ++r) {
-    int row_begin = rows[r];
-    int row_end = rows[r + 1];
-    if (row_end == row_begin) {
-      continue;
-    }
-
-#  ifdef CERES_USE_OPENMP
-    int thread_id = omp_get_thread_num();
-#  else
-    int thread_id = 0;
-#  endif
-
-    PerThreadContext* context = contexts[thread_id];
-    double* context_rhs_x =  reinterpret_cast<double*>(context->rhs->x);
-    context_rhs_x[r] = 1.0;
-
-    // TODO(sameeragarwal) There should be a more efficient way
-    // involving the use of Bset but I am unable to make it work right
-    // now.
-    cholmod_solve2(CHOLMOD_A,
-                   factor,
-                   context->rhs,
-                   NULL,
-                   &context->solution,
-                   &context->solution_set,
-                   &context->y_workspace,
-                   &context->e_workspace,
-                   context->ss.mutable_cc());
-
-    double* solution_x = reinterpret_cast<double*>(context->solution->x);
-    for (int idx = row_begin; idx < row_end; ++idx) {
-      const int c = cols[idx];
-      values[idx] = solution_x[c];
-    }
-    context_rhs_x[r] = 0.0;
-  }
-
-  for (int i = 0; i < num_threads; ++i) {
-    delete contexts[i];
-  }
-
-#endif  // SUITESPARSE_VERSION < 4002
-
-  ss.Free(factor);
-  event_logger.AddEvent("Inversion");
-  return true;
-
-#else  // CERES_NO_SUITESPARSE
-
-  return false;
-
-#endif  // CERES_NO_SUITESPARSE
-};
-
-bool CovarianceImpl::ComputeCovarianceValuesUsingSparseQR() {
+bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   EventLogger event_logger(
       "CovarianceImpl::ComputeCovarianceValuesUsingSparseQR");
 
@@ -851,7 +659,102 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingDenseSVD() {
   }
   event_logger.AddEvent("CopyToCovarianceMatrix");
   return true;
-};
+}
+
+bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
+  EventLogger event_logger(
+      "CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR");
+  if (covariance_matrix_.get() == NULL) {
+    // Nothing to do, all zeros covariance matrix.
+    return true;
+  }
+
+  CRSMatrix jacobian;
+  problem_->Evaluate(evaluate_options_, NULL, NULL, NULL, &jacobian);
+  event_logger.AddEvent("Evaluate");
+
+  typedef Eigen::SparseMatrix<double, Eigen::ColMajor> EigenSparseMatrix;
+
+  // Convert the matrix to column major order as required by SparseQR.
+  EigenSparseMatrix sparse_jacobian =
+      Eigen::MappedSparseMatrix<double, Eigen::RowMajor>(
+          jacobian.num_rows, jacobian.num_cols,
+          static_cast<int>(jacobian.values.size()),
+          jacobian.rows.data(), jacobian.cols.data(), jacobian.values.data());
+  event_logger.AddEvent("ConvertToSparseMatrix");
+
+  Eigen::SparseQR<EigenSparseMatrix, Eigen::COLAMDOrdering<int> >
+      qr_solver(sparse_jacobian);
+  event_logger.AddEvent("QRDecomposition");
+
+  if(qr_solver.info() != Eigen::Success) {
+    LOG(ERROR) << "Eigen::SparseQR decomposition failed.";
+    return false;
+  }
+
+  if (qr_solver.rank() < jacobian.num_cols) {
+    LOG(ERROR) << "Jacobian matrix is rank deficient. "
+               << "Number of columns: " << jacobian.num_cols
+               << " rank: " << qr_solver.rank();
+    return false;
+  }
+
+  const int* rows = covariance_matrix_->rows();
+  const int* cols = covariance_matrix_->cols();
+  double* values = covariance_matrix_->mutable_values();
+
+  // Compute the inverse column permutation used by QR factorization.
+  Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> inverse_permutation =
+      qr_solver.colsPermutation().inverse();
+
+  // The following loop exploits the fact that the i^th column of A^{-1}
+  // is given by the solution to the linear system
+  //
+  //  A x = e_i
+  //
+  // where e_i is a vector with e(i) = 1 and all other entries zero.
+  //
+  // Since the covariance matrix is symmetric, the i^th row and column
+  // are equal.
+  const int num_cols = jacobian.num_cols;
+  const int num_threads = options_.num_threads;
+  scoped_array<double> workspace(new double[num_threads * num_cols]);
+
+#pragma omp parallel for num_threads(num_threads) schedule(dynamic)
+  for (int r = 0; r < num_cols; ++r) {
+    const int row_begin = rows[r];
+    const int row_end = rows[r + 1];
+    if (row_end == row_begin) {
+      continue;
+    }
+
+#  ifdef CERES_USE_OPENMP
+    int thread_id = omp_get_thread_num();
+#  else
+    int thread_id = 0;
+#  endif
+
+    double* solution = workspace.get() + thread_id * num_cols;
+    SolveRTRWithSparseRHS<int>(
+        num_cols,
+        qr_solver.matrixR().innerIndexPtr(),
+        qr_solver.matrixR().outerIndexPtr(),
+        &qr_solver.matrixR().data().value(0),
+        inverse_permutation.indices().coeff(r),
+        solution);
+
+    // Assign the values of the computed covariance using the
+    // inverse permutation used in the QR factorization.
+    for (int idx = row_begin; idx < row_end; ++idx) {
+     const int c = cols[idx];
+     values[idx] = solution[inverse_permutation.indices().coeff(c)];
+    }
+  }
+
+  event_logger.AddEvent("Inverse");
+
+  return true;
+}
 
 }  // namespace internal
 }  // namespace ceres

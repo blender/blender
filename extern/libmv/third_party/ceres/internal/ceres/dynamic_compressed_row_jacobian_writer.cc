@@ -54,8 +54,15 @@ SparseMatrix* DynamicCompressedRowJacobianWriter::CreateJacobian() const {
                                            num_effective_parameters,
                                            0);
 
-  CompressedRowJacobianWriter::PopulateJacobianRowAndColumnBlockVectors(
-      program_, jacobian);
+  vector<int>* row_blocks = jacobian->mutable_row_blocks();
+  for (int i = 0; i < jacobian->num_rows(); ++i) {
+    row_blocks->push_back(1);
+  }
+
+  vector<int>* col_blocks = jacobian->mutable_col_blocks();
+  for (int i = 0; i < jacobian->num_cols(); ++i) {
+    col_blocks->push_back(1);
+  }
 
   return jacobian;
 }

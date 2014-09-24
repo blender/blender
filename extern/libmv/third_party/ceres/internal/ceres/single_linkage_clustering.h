@@ -64,7 +64,7 @@ struct SingleLinkageClusteringOptions {
 // identified by the algorithm.
 int ComputeSingleLinkageClustering(
     const SingleLinkageClusteringOptions& options,
-    const Graph<int>& graph,
+    const WeightedGraph<int>& graph,
     HashMap<int, int>* membership);
 
 }  // namespace internal

@@ -46,7 +46,7 @@ rm -rf $tmp
 sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | \
   grep -v -E 'schur_eliminator_[0-9]_[0-9d]_[0-9d].cc' | \
   grep -v -E 'partitioned_matrix_view_[0-9]_[0-9d]_[0-9d].cc' | sort -d`
-generated_sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//#\t\t/' | \
+generated_sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t\t/' | \
   grep -E 'schur_eliminator_[0-9]_[0-9d]_[0-9d].cc|partitioned_matrix_view_[0-9]_[0-9d]_[0-9d].cc' | sort -d`
 headers=`find ./include ./internal -type f -iname '*.h' | sed -r 's/^\.\//\t/' | sort -d`
 
@@ -138,11 +138,11 @@ ${sources}
 ${headers}
 )
 
-#if(TRUE)
-#	list(APPEND SRC
+if(TRUE)
+	list(APPEND SRC
 ${generated_sources}
-#	)
-#endif()
+	)
+endif()
 
 if(WIN32)
 	list(APPEND INC

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,6 @@
 #ifndef CERES_PUBLIC_CERES_H_
 #define CERES_PUBLIC_CERES_H_
 
-#define CERES_VERSION 1.9.0
-#define CERES_ABI_VERSION 1.9.0
-
 #include "ceres/autodiff_cost_function.h"
 #include "ceres/autodiff_local_parameterization.h"
 #include "ceres/cost_function.h"
@@ -45,16 +42,18 @@
 #include "ceres/crs_matrix.h"
 #include "ceres/dynamic_autodiff_cost_function.h"
 #include "ceres/dynamic_numeric_diff_cost_function.h"
+#include "ceres/gradient_problem.h"
+#include "ceres/gradient_problem_solver.h"
 #include "ceres/iteration_callback.h"
 #include "ceres/jet.h"
 #include "ceres/local_parameterization.h"
 #include "ceres/loss_function.h"
 #include "ceres/numeric_diff_cost_function.h"
-#include "ceres/numeric_diff_functor.h"
 #include "ceres/ordered_groups.h"
 #include "ceres/problem.h"
 #include "ceres/sized_cost_function.h"
 #include "ceres/solver.h"
 #include "ceres/types.h"
+#include "ceres/version.h"
 
 #endif  // CERES_PUBLIC_CERES_H_
