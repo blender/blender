@@ -222,8 +222,6 @@ static void cloth_setup_constraints(ClothModifierData *clmd, ColliderContacts *c
 	
 	const float ZERO[3] = {0.0f, 0.0f, 0.0f};
 	
-	BPH_mass_spring_clear_constraints(data);
-	
 	for (v = 0; v < numverts; v++) {
 		if (verts[v].flags & CLOTH_VERT_FLAG_PINNED) {
 			/* pinned vertex constraints */
@@ -506,9 +504,6 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 	MFace 		*mfaces 	= cloth->mfaces;
 	unsigned int numverts = cloth->numverts;
 	
-	/* initialize forces to zero */
-	BPH_mass_spring_force_clear(data);
-	
 #ifdef CLOTH_FORCE_GRAVITY
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
@@ -643,6 +638,10 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	
 	while (step < tf) {
 		ImplicitSolverResult result;
+		
+		/* initialize forces to zero */
+		BPH_mass_spring_clear_forces(id);
+		BPH_mass_spring_clear_constraints(id);
 		
 		/* copy velocities for collision */
 		for (i = 0; i < numverts; i++) {

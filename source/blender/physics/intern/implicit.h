@@ -129,7 +129,7 @@ bool BPH_mass_spring_solve(struct Implicit_Data *data, float dt, struct Implicit
 void BPH_mass_spring_apply_result(struct Implicit_Data *data);
 
 /* Clear the force vector at the beginning of the time step */
-void BPH_mass_spring_force_clear(struct Implicit_Data *data);
+void BPH_mass_spring_clear_forces(struct Implicit_Data *data);
 /* Fictitious forces introduced by moving coordinate systems */
 void BPH_mass_spring_force_reference_frame(struct Implicit_Data *data, int index, const float acceleration[3], const float omega[3], const float domega_dt[3]);
 /* Simple uniform gravity force */

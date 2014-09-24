@@ -1281,7 +1281,7 @@ void BPH_mass_spring_add_constraint_ndof2(Implicit_Data *data, int index, const 
 	add_v3_v3(data->z[index], u);
 }
 
-void BPH_mass_spring_force_clear(Implicit_Data *data)
+void BPH_mass_spring_clear_forces(Implicit_Data *data)
 {
 	int numverts = data->M[0].vcount;
 	zero_lfvector(data->F, numverts);
