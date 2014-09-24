@@ -55,11 +55,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 		/* intersect scene */
 		Intersection isect;
 		uint visibility = path_state_ray_visibility(kg, &state);
-#ifdef __HAIR__
 		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f);
-#else
-		bool hit = scene_intersect(kg, &ray, visibility, &isect);
-#endif
 
 #ifdef __LAMP_MIS__
 		if(kernel_data.integrator.use_lamp_mis && !(state.flag & PATH_RAY_CAMERA)) {
@@ -445,7 +441,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
-		bool hit = scene_intersect(kg, &ray, visibility, &isect);
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f);
 #endif
 
 #ifdef __LAMP_MIS__
@@ -807,7 +803,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
-		bool hit = scene_intersect(kg, &ray, visibility, &isect);
+		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f);
 #endif
 
 #ifdef __VOLUME__

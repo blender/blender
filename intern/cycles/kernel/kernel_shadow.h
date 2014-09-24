@@ -168,11 +168,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 	}
 	else {
 		Intersection isect;
-#ifdef __HAIR__
 		blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
-#else
-		blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect);
-#endif
 	}
 
 #ifdef __VOLUME__
@@ -203,11 +199,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 		return false;
 
 	Intersection isect;
-#ifdef __HAIR__
 	bool blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
-#else
-	bool blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect);
-#endif
 
 #ifdef __TRANSPARENT_SHADOWS__
 	if(blocked && kernel_data.integrator.transparent_shadows) {
@@ -223,11 +215,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 				if(bounce >= kernel_data.integrator.transparent_max_bounce)
 					return true;
 
-#ifdef __HAIR__
 				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect, NULL, 0.0f, 0.0f))
-#else
-				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, &isect))
-#endif
 				{
 
 #ifdef __VOLUME__

@@ -129,11 +129,8 @@ ccl_device_inline
 #else
 ccl_device_noinline
 #endif
-#ifdef __HAIR__ 
-bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect, uint *lcg_state, float difl, float extmax)
-#else
-bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
-#endif
+bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect,
+					 uint *lcg_state, float difl, float extmax)
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
