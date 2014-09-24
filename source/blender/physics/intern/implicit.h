@@ -34,9 +34,9 @@
 
 #include "stdio.h"
 
-#include "BKE_collision.h"
-
 #include "BLI_utildefines.h"
+
+#include "BKE_collision.h"
 
 #ifdef __cplusplus
 extern "C" {
