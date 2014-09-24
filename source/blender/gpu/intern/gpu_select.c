@@ -127,7 +127,7 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, rctf *input, c
 		}
 		else if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
 			glEnable(GL_DEPTH_TEST);
-			glDepthMask(GL_TRUE);
+			glDepthMask(GL_FALSE);
 			glDepthFunc(GL_EQUAL);
 		}
 	}

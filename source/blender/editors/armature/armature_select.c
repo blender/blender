@@ -73,7 +73,7 @@ Bone *get_indexed_bone(Object *ob, int index)
 
 /* See if there are any selected bones in this buffer */
 /* only bones from base are checked on */
-void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short findunsel)
+void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short findunsel, bool do_nearest)
 {
 	Object *obedit = scene->obedit; // XXX get from context
 	Bone *bone;
@@ -82,6 +82,7 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 	unsigned int hitresult;
 	short i;
 	bool takeNext = false;
+	int minsel = 0xffffffff, minunsel = 0xffffffff;
 	
 	for (i = 0; i < hits; i++) {
 		hitresult = buffer[3 + (i * 4)];
@@ -102,7 +103,7 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 						else
 							sel = !(bone->flag & BONE_SELECTED);
 						
-						data = bone;
+						data = bone;						
 					}
 					else {
 						data = NULL;
@@ -123,14 +124,29 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 				
 				if (data) {
 					if (sel) {
-						if (!firstSel) firstSel = data;
-						takeNext = 1;
+						if (do_nearest) {
+							if (minsel > buffer[4 * i + 1]) {
+								firstSel = bone;
+								minsel = buffer[4 * i + 1];
+							}
+						}
+						else {
+							if (!firstSel) firstSel = data;
+							takeNext = 1;
+						}
 					}
 					else {
-						if (!firstunSel)
-							firstunSel = data;
-						if (takeNext)
-							return data;
+						if (do_nearest) {
+							if (minunsel > buffer[4 * i + 1]) {
+								firstunSel = bone;
+								minunsel = buffer[4 * i + 1];
+							}
+						}
+						else 
+						{
+							if (!firstunSel) firstunSel = data;
+							if (takeNext) return data;
+						}
 					}
 				}
 			}
@@ -163,7 +179,7 @@ void *get_nearest_bone(bContext *C, short findunsel, int x, int y)
 	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, true);
 
 	if (hits > 0)
-		return get_bone_from_selectbuffer(vc.scene, vc.scene->basact, buffer, hits, findunsel);
+		return get_bone_from_selectbuffer(vc.scene, vc.scene->basact, buffer, hits, findunsel, true);
 	
 	return NULL;
 }
