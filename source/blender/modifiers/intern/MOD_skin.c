@@ -218,6 +218,7 @@ static bool skin_frame_find_contained_faces(const Frame *frame,
 /* Returns true if hull is successfully built, false otherwise */
 static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 {
+#ifdef WITH_BULLET
 	BMesh *bm = so->bm;
 	BMOperator op;
 	BMIter iter;
@@ -326,6 +327,9 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 	BM_mesh_delete_hflag_tagged(bm, BM_ELEM_TAG, BM_EDGE | BM_FACE);
 
 	return true;
+#else
+	return false;
+#endif
 }
 
 /* Returns the average frame side length (frames are rectangular, so
