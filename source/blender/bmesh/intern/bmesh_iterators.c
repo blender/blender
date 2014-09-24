@@ -338,50 +338,18 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
 #  define USE_IMMUTABLE_ASSERT
 #endif
 
-void bmiter__vert_of_mesh_begin(struct BMIter__vert_of_mesh *iter)
+void bmiter__elem_of_mesh_begin(struct BMIter__elem_of_mesh *iter)
 {
 #ifdef USE_IMMUTABLE_ASSERT
-	((BMIter *)iter)->count = iter->bm->totvert;
+	((BMIter *)iter)->count = BLI_mempool_count(iter->pooliter.pool);
 #endif
-	BLI_mempool_iternew(iter->bm->vpool, &iter->pooliter);
+	BLI_mempool_iternew(iter->pooliter.pool, &iter->pooliter);
 }
 
-void *bmiter__vert_of_mesh_step(struct BMIter__vert_of_mesh *iter)
+void *bmiter__elem_of_mesh_step(struct BMIter__elem_of_mesh *iter)
 {
 #ifdef USE_IMMUTABLE_ASSERT
-	BLI_assert(((BMIter *)iter)->count <= iter->bm->totvert);
-#endif
-	return BLI_mempool_iterstep(&iter->pooliter);
-}
-
-void bmiter__edge_of_mesh_begin(struct BMIter__edge_of_mesh *iter)
-{
-#ifdef USE_IMMUTABLE_ASSERT
-	((BMIter *)iter)->count = iter->bm->totedge;
-#endif
-	BLI_mempool_iternew(iter->bm->epool, &iter->pooliter);
-}
-
-void  *bmiter__edge_of_mesh_step(struct BMIter__edge_of_mesh *iter)
-{
-#ifdef USE_IMMUTABLE_ASSERT
-	BLI_assert(((BMIter *)iter)->count <= iter->bm->totedge);
-#endif
-	return BLI_mempool_iterstep(&iter->pooliter);
-}
-
-void  bmiter__face_of_mesh_begin(struct BMIter__face_of_mesh *iter)
-{
-#ifdef USE_IMMUTABLE_ASSERT
-	((BMIter *)iter)->count = iter->bm->totface;
-#endif
-	BLI_mempool_iternew(iter->bm->fpool, &iter->pooliter);
-}
-
-void  *bmiter__face_of_mesh_step(struct BMIter__face_of_mesh *iter)
-{
-#ifdef USE_IMMUTABLE_ASSERT
-	BLI_assert(((BMIter *)iter)->count <= iter->bm->totface);
+	BLI_assert(((BMIter *)iter)->count <= BLI_mempool_count(iter->pooliter.pool));
 #endif
 	return BLI_mempool_iterstep(&iter->pooliter);
 }

@@ -110,16 +110,7 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 	for (ele = BM_iter_new(iter, NULL, itype, data), indexvar = 0; ele; ele = BM_iter_step(iter), (indexvar)++)
 
 /* iterator type structs */
-struct BMIter__vert_of_mesh {
-	BMesh *bm;
-	BLI_mempool_iter pooliter;
-};
-struct BMIter__edge_of_mesh {
-	BMesh *bm;
-	BLI_mempool_iter pooliter;
-};
-struct BMIter__face_of_mesh {
-	BMesh *bm;
+struct BMIter__elem_of_mesh {
 	BLI_mempool_iter pooliter;
 };
 struct BMIter__edge_of_vert {
@@ -173,9 +164,7 @@ typedef void *(*BMIter__step_cb) (void *);
 typedef struct BMIter {
 	/* keep union first */
 	union {
-		struct BMIter__vert_of_mesh vert_of_mesh;
-		struct BMIter__edge_of_mesh edge_of_mesh;
-		struct BMIter__face_of_mesh face_of_mesh;
+		struct BMIter__elem_of_mesh elem_of_mesh;
 
 		struct BMIter__edge_of_vert edge_of_vert;
 		struct BMIter__face_of_vert face_of_vert;
@@ -219,9 +208,7 @@ int     BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, c
 	void  bmiter__##name##_begin(struct BMIter__##name *iter); \
 	void *bmiter__##name##_step(struct BMIter__##name *iter)
 
-BMITER_CB_DEF(vert_of_mesh);
-BMITER_CB_DEF(edge_of_mesh);
-BMITER_CB_DEF(face_of_mesh);
+BMITER_CB_DEF(elem_of_mesh);
 BMITER_CB_DEF(edge_of_vert);
 BMITER_CB_DEF(face_of_vert);
 BMITER_CB_DEF(loop_of_vert);

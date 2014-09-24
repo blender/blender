@@ -60,23 +60,23 @@ BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *da
 		case BM_VERTS_OF_MESH:
 			BLI_assert(bm != NULL);
 			BLI_assert(data == NULL);
-			iter->begin = (BMIter__begin_cb)bmiter__vert_of_mesh_begin;
-			iter->step  = (BMIter__step_cb)bmiter__vert_of_mesh_step;
-			iter->data.vert_of_mesh.bm = bm;
+			iter->begin = (BMIter__begin_cb)bmiter__elem_of_mesh_begin;
+			iter->step  = (BMIter__step_cb)bmiter__elem_of_mesh_step;
+			iter->data.elem_of_mesh.pooliter.pool = bm->vpool;
 			break;
 		case BM_EDGES_OF_MESH:
 			BLI_assert(bm != NULL);
 			BLI_assert(data == NULL);
-			iter->begin = (BMIter__begin_cb)bmiter__edge_of_mesh_begin;
-			iter->step  = (BMIter__step_cb)bmiter__edge_of_mesh_step;
-			iter->data.edge_of_mesh.bm = bm;
+			iter->begin = (BMIter__begin_cb)bmiter__elem_of_mesh_begin;
+			iter->step  = (BMIter__step_cb)bmiter__elem_of_mesh_step;
+			iter->data.elem_of_mesh.pooliter.pool = bm->epool;
 			break;
 		case BM_FACES_OF_MESH:
 			BLI_assert(bm != NULL);
 			BLI_assert(data == NULL);
-			iter->begin = (BMIter__begin_cb)bmiter__face_of_mesh_begin;
-			iter->step  = (BMIter__step_cb)bmiter__face_of_mesh_step;
-			iter->data.face_of_mesh.bm = bm;
+			iter->begin = (BMIter__begin_cb)bmiter__elem_of_mesh_begin;
+			iter->step  = (BMIter__step_cb)bmiter__elem_of_mesh_step;
+			iter->data.elem_of_mesh.pooliter.pool = bm->fpool;
 			break;
 		case BM_EDGES_OF_VERT:
 			BLI_assert(data != NULL);
