@@ -248,22 +248,34 @@ static bool node_select_grouped_name(SpaceNode *snode, bNode *node_act, const bo
 	bNode *node;
 	bool changed = false;
 	const unsigned int delims[] = {'.', '-', '_', '\0'};
-	size_t index_act, index_curr;
+	size_t pref_len_act, pref_len_curr;
 	char *sep, *suf_act, *suf_curr;
 
-	index_act = BLI_str_partition_ex_utf8(node_act->name, delims, &sep, &suf_act, from_right);
+	pref_len_act = BLI_str_partition_ex_utf8(node_act->name, delims, &sep, &suf_act, from_right);
 
-	if (index_act > 0) {
-		for (node = snode->edittree->nodes.first; node; node = node->next) {
-			if ((node->flag & SELECT) == 0) {
-				index_curr = BLI_str_partition_ex_utf8(node->name, delims, &sep, &suf_curr, from_right);
-				if ((from_right && STREQ(suf_act, suf_curr)) ||
-				    (!from_right && (index_act == index_curr) && STREQLEN(node_act->name, node->name, index_act)))
-				{
-					nodeSetSelected(node, true);
-					changed = true;
-				}
-			}
+	/* Note: in case we are searching for suffix, and found none, use whole name as suffix. */
+	if (from_right && !(sep && suf_act)) {
+		pref_len_act = 0;
+		suf_act = node_act->name;
+	}
+
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		if (node->flag & SELECT) {
+			continue;
+		}
+		pref_len_curr = BLI_str_partition_ex_utf8(node->name, delims, &sep, &suf_curr, from_right);
+
+		/* Same as with active node name! */
+		if (from_right && !(sep && suf_curr)) {
+			pref_len_curr = 0;
+			suf_curr = node->name;
+		}
+
+		if ((from_right && STREQ(suf_act, suf_curr)) ||
+		    (!from_right && (pref_len_act == pref_len_curr) && STREQLEN(node_act->name, node->name, pref_len_act)))
+		{
+			nodeSetSelected(node, true);
+			changed = true;
 		}
 	}
 
