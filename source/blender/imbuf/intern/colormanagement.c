@@ -252,22 +252,13 @@ static unsigned int colormanage_hashhash(const void *key_v)
 	return rval;
 }
 
-static int colormanage_hashcmp(const void *av, const void *bv)
+static bool colormanage_hashcmp(const void *av, const void *bv)
 {
 	const ColormanageCacheKey *a = (ColormanageCacheKey *) av;
 	const ColormanageCacheKey *b = (ColormanageCacheKey *) bv;
 
-	if (a->view < b->view)
-		return -1;
-	else if (a->view > b->view)
-		return 1;
-
-	if (a->display < b->display)
-		return -1;
-	else if (a->display > b->display)
-		return 1;
-
-	return 0;
+	return ((a->view != b->view) ||
+	        (a->display != b->display));
 }
 
 static struct MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)

@@ -120,12 +120,12 @@ static unsigned int imagecache_hashhash(const void *key_v)
 	return key->index;
 }
 
-static int imagecache_hashcmp(const void *a_v, const void *b_v)
+static bool imagecache_hashcmp(const void *a_v, const void *b_v)
 {
 	const ImageCacheKey *a = (ImageCacheKey *) a_v;
 	const ImageCacheKey *b = (ImageCacheKey *) b_v;
 
-	return a->index - b->index;
+	return (a->index != b->index);
 }
 
 static void imagecache_keydata(void *userkey, int *framenr, int *proxy, int *render_flags)

@@ -41,7 +41,7 @@ extern "C" {
 #endif
 
 typedef unsigned int  (*GHashHashFP)     (const void *key);
-typedef int           (*GHashCmpFP)      (const void *a, const void *b);
+typedef bool          (*GHashCmpFP)      (const void *a, const void *b);
 typedef void          (*GHashKeyFreeFP)  (void *key);
 typedef void          (*GHashValFreeFP)  (void *val);
 
@@ -120,14 +120,14 @@ BLI_INLINE bool   BLI_ghashIterator_done(GHashIterator *ghi)       { return !ghi
  * \{ */
 
 unsigned int    BLI_ghashutil_ptrhash(const void *key);
-int             BLI_ghashutil_ptrcmp(const void *a, const void *b);
+bool            BLI_ghashutil_ptrcmp(const void *a, const void *b);
 
 unsigned int    BLI_ghashutil_strhash_n(const char *key, size_t n);
 #define         BLI_ghashutil_strhash(key) ( \
                 CHECK_TYPE_INLINE(key, char *), \
                 BLI_ghashutil_strhash_p(key))
 unsigned int    BLI_ghashutil_strhash_p(const void *key);
-int             BLI_ghashutil_strcmp(const void *a, const void *b);
+bool            BLI_ghashutil_strcmp(const void *a, const void *b);
 
 #define         BLI_ghashutil_inthash(key) ( \
                 CHECK_TYPE_INLINE(&(key), int *), \
@@ -139,11 +139,11 @@ unsigned int    BLI_ghashutil_uinthash(unsigned int key);
 unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
 #define         BLI_ghashutil_inthash_v4_p \
    ((GSetHashFP)BLI_ghashutil_uinthash_v4)
-int BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b);
+bool            BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b);
 #define         BLI_ghashutil_inthash_v4_cmp \
                 BLI_ghashutil_uinthash_v4_cmp
 unsigned int    BLI_ghashutil_inthash_p(const void *ptr);
-int             BLI_ghashutil_intcmp(const void *a, const void *b);
+bool            BLI_ghashutil_intcmp(const void *a, const void *b);
 
 /** \} */
 
@@ -167,7 +167,7 @@ typedef struct GHashPair {
 
 GHashPair      *BLI_ghashutil_pairalloc(const void *first, const void *second);
 unsigned int    BLI_ghashutil_pairhash(const void *ptr);
-int             BLI_ghashutil_paircmp(const void *a, const void *b);
+bool            BLI_ghashutil_paircmp(const void *a, const void *b);
 void            BLI_ghashutil_pairfree(void *ptr);
 
 

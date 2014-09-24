@@ -999,7 +999,7 @@ static int mirror_facerotation(MFace *a, MFace *b)
 	return -1;
 }
 
-static int mirror_facecmp(const void *a, const void *b)
+static bool mirror_facecmp(const void *a, const void *b)
 {
 	return (mirror_facerotation((MFace *)a, (MFace *)b) == -1);
 }

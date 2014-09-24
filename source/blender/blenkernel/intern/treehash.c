@@ -91,7 +91,7 @@ static unsigned int tse_hash(const void *ptr)
 	return hash.u_int;
 }
 
-static int tse_cmp(const void *a, const void *b)
+static bool tse_cmp(const void *a, const void *b)
 {
 	const TreeStoreElem *tse_a = a;
 	const TreeStoreElem *tse_b = b;

@@ -2682,16 +2682,12 @@ static unsigned int node_instance_hash_key(const void *key)
 	return ((const bNodeInstanceKey *)key)->value;
 }
 
-static int node_instance_hash_key_cmp(const void *a, const void *b)
+static bool node_instance_hash_key_cmp(const void *a, const void *b)
 {
 	unsigned int value_a = ((const bNodeInstanceKey *)a)->value;
 	unsigned int value_b = ((const bNodeInstanceKey *)b)->value;
-	if (value_a == value_b)
-		return 0;
-	else if (value_a < value_b)
-		return -1;
-	else
-		return 1;
+
+	return (value_a != value_b);
 }
 
 bNodeInstanceHash *BKE_node_instance_hash_new(const char *info)

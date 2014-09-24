@@ -406,27 +406,14 @@ static unsigned int moviecache_hashhash(const void *keyv)
 	return rval;
 }
 
-static int moviecache_hashcmp(const void *av, const void *bv)
+static bool moviecache_hashcmp(const void *av, const void *bv)
 {
 	const MovieClipImBufCacheKey *a = (MovieClipImBufCacheKey *)av;
 	const MovieClipImBufCacheKey *b = (MovieClipImBufCacheKey *)bv;
 
-	if (a->framenr < b->framenr)
-		return -1;
-	else if (a->framenr > b->framenr)
-		return 1;
-
-	if (a->proxy < b->proxy)
-		return -1;
-	else if (a->proxy > b->proxy)
-		return 1;
-
-	if (a->render_flag < b->render_flag)
-		return -1;
-	else if (a->render_flag > b->render_flag)
-		return 1;
-
-	return 0;
+	return ((a->framenr != b->framenr) ||
+	        (a->proxy != b->proxy) ||
+	        (a->render_flag != b->render_flag));
 }
 
 static void *moviecache_getprioritydata(void *key_v)

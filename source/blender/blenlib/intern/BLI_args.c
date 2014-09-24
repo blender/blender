@@ -91,15 +91,17 @@ static unsigned int keyhash(const void *ptr)
 	return case_strhash(k->arg);  /* ^ BLI_ghashutil_inthash((void *)k->pass); */
 }
 
-static int keycmp(const void *a, const void *b)
+static bool keycmp(const void *a, const void *b)
 {
 	const bAKey *ka = a;
 	const bAKey *kb = b;
 	if (ka->pass == kb->pass || ka->pass == -1 || kb->pass == -1) { /* -1 is wildcard for pass */
-		if (ka->case_str == 1 || kb->case_str == 1)
-			return BLI_strcasecmp(ka->arg, kb->arg);
-		else
-			return strcmp(ka->arg, kb->arg);
+		if (ka->case_str == 1 || kb->case_str == 1) {
+			return (BLI_strcasecmp(ka->arg, kb->arg) != 0);
+		}
+		else {
+			return (strcmp(ka->arg, kb->arg) != 0);
+		}
 	}
 	else {
 		return BLI_ghashutil_intcmp((const void *)ka->pass, (const void *)kb->pass);

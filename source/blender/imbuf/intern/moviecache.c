@@ -104,7 +104,7 @@ static unsigned int moviecache_hashhash(const void *keyv)
 	return key->cache_owner->hashfp(key->userkey);
 }
 
-static int moviecache_hashcmp(const void *av, const void *bv)
+static bool moviecache_hashcmp(const void *av, const void *bv)
 {
 	const MovieCacheKey *a = (MovieCacheKey *)av;
 	const MovieCacheKey *b = (MovieCacheKey *)bv;
