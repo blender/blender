@@ -2624,7 +2624,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "dupfacesca");
 	RNA_def_property_range(prop, 0.001f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Dupli Faces Scale", "Scale the DupliFace objects");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "dupli_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "dup_group");
