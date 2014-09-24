@@ -54,7 +54,7 @@ static void bm_data_interp_from_elem(CustomData *data_layer, BMElem *ele1, BMEle
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block_data(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
 				CustomData_bmesh_copy_data(data_layer, data_layer, ele1->head.data, &ele_dst->head.data);
 			}
 		}
@@ -63,7 +63,7 @@ static void bm_data_interp_from_elem(CustomData *data_layer, BMElem *ele1, BMEle
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block_data(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
 				CustomData_bmesh_copy_data(data_layer, data_layer, ele2->head.data, &ele_dst->head.data);
 			}
 		}

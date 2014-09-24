@@ -505,7 +505,7 @@ static void bm_vert_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 		return;
 	}
 	copy_v3_v3(target_vertex->no, source_vertex->no);
-	CustomData_bmesh_free_block_data(&target_mesh->vdata, &target_vertex->head.data);
+	CustomData_bmesh_free_block_data(&target_mesh->vdata, target_vertex->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata,
 	                           source_vertex->head.data, &target_vertex->head.data);
 }
@@ -517,7 +517,7 @@ static void bm_edge_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 		BLI_assert(!"BMEdge: source and targer match");
 		return;
 	}
-	CustomData_bmesh_free_block_data(&target_mesh->edata, &target_edge->head.data);
+	CustomData_bmesh_free_block_data(&target_mesh->edata, target_edge->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata,
 	                           source_edge->head.data, &target_edge->head.data);
 }
@@ -529,7 +529,7 @@ static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 		BLI_assert(!"BMLoop: source and targer match");
 		return;
 	}
-	CustomData_bmesh_free_block_data(&target_mesh->ldata, &target_loop->head.data);
+	CustomData_bmesh_free_block_data(&target_mesh->ldata, target_loop->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata,
 	                           source_loop->head.data, &target_loop->head.data);
 }
@@ -542,7 +542,7 @@ static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 		return;
 	}
 	copy_v3_v3(target_face->no, source_face->no);
-	CustomData_bmesh_free_block_data(&target_mesh->pdata, &target_face->head.data);
+	CustomData_bmesh_free_block_data(&target_mesh->pdata, target_face->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata,
 	                           source_face->head.data, &target_face->head.data);
 	target_face->mat_nr = source_face->mat_nr;

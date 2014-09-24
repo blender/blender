@@ -310,7 +310,7 @@ void CustomData_set_layer_flag(struct CustomData *data, int type, int flag);
 
 void CustomData_bmesh_set_default(struct CustomData *data, void **block);
 void CustomData_bmesh_free_block(struct CustomData *data, void **block);
-void CustomData_bmesh_free_block_data(struct CustomData *data, void **block);
+void CustomData_bmesh_free_block_data(struct CustomData *data, void *block);
 
 /* copy custom data to/from layers as in mesh/derivedmesh, to editmesh
  * blocks of data. the CustomData's must not be compatible */
