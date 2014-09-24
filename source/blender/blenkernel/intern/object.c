@@ -1067,10 +1067,10 @@ void BKE_object_lod_add(Object *ob)
 	BLI_addtail(&ob->lodlevels, lod);
 }
 
-static int lod_cmp(void *a, void *b)
+static int lod_cmp(const void *a, const void *b)
 {
-	LodLevel *loda = (LodLevel *)a;
-	LodLevel *lodb = (LodLevel *)b;
+	const LodLevel *loda = a;
+	const LodLevel *lodb = b;
 
 	if (loda->distance < lodb->distance) return -1;
 	return loda->distance > lodb->distance;
