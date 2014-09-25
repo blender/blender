@@ -155,7 +155,7 @@ BLI_INLINE Entry *ghash_lookup_entry_ex(GHash *gh, const void *key,
 	Entry *e;
 
 	for (e = gh->buckets[hash]; e; e = e->next) {
-		if (UNLIKELY(gh->cmpfp(key, e->key) == 0)) {
+		if (UNLIKELY(gh->cmpfp(key, e->key) == false)) {
 			return e;
 		}
 	}
@@ -251,7 +251,7 @@ static Entry *ghash_remove_ex(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GH
 	Entry *e_prev = NULL;
 
 	for (e = gh->buckets[hash]; e; e = e->next) {
-		if (UNLIKELY(gh->cmpfp(key, e->key) == 0)) {
+		if (UNLIKELY(gh->cmpfp(key, e->key) == false)) {
 			Entry *e_next = e->next;
 
 			if (keyfreefp) keyfreefp(e->key);

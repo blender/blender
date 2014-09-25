@@ -92,10 +92,9 @@ static bool _ghashutil_keycmp(const void *a, const void *b)
 	const GHashKey *B = b;
 
 	/* Note: comparing msgid first, most of the time it will be enough! */
-	int cmp = BLI_ghashutil_strcmp(A->msgid, B->msgid);
-	if (cmp == 0)
-		return BLI_ghashutil_strcmp(A->msgctxt, B->msgctxt) == 0;
-	return false;
+	if (BLI_ghashutil_strcmp(A->msgid, B->msgid) == false)
+		return BLI_ghashutil_strcmp(A->msgctxt, B->msgctxt);
+	return true;  /* true means they are not equal! */
 }
 
 static void _ghashutil_keyfree(void *ptr)
