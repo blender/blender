@@ -7,7 +7,7 @@ else
   exit 1
 fi
 
-BRANCH="devel"
+BRANCH="master"
 
 repo="git://git.blender.org/libmv.git"
 tmp=`mktemp -d`
@@ -128,12 +128,10 @@ set(INC_SYS
 
 set(SRC
 	libmv-capi.h
-	libmv-capi_intern.h
 )
 
 if(WITH_LIBMV)
 	add_definitions(
-		-DWITH_LIBMV
 		-DWITH_LIBMV_GUARDED_ALLOC
 		-DGOOGLE_GLOG_DLL_DECL=
 		-DLIBMV_NO_FAST_DETECTOR=
@@ -166,11 +164,29 @@ if(WITH_LIBMV)
 	)
 
 	list(APPEND SRC
-		libmv-capi.cc
-		libmv-util.cc
+		intern/camera_intrinsics.cc
+		intern/detector.cc
+		intern/frame_accessor.cc
+		intern/homography.cc
+		intern/image.cc
+		intern/logging.cc
+		intern/reconstruction.cc
+		intern/track_region.cc
+		intern/tracks.cc
+		intern/tracksN.cc
 ${sources}
 ${third_sources}
-		libmv-util.h
+
+		intern/camera_intrinsics.h
+		intern/detector.h
+		intern/frame_accessor.h
+		intern/homography.h
+		intern/image.h
+		intern/logging.h
+		intern/reconstruction.h
+		intern/track_region.h
+		intern/tracks.h
+		intern/tracksN.h
 ${headers}
 
 ${third_headers}
@@ -287,11 +303,10 @@ if env['WITH_BF_LIBMV']:
         defs.append('CERES_TR1_SHARED_PTR')
 
     defs.append('GOOGLE_GLOG_DLL_DECL=')
-    defs.append('WITH_LIBMV')
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
     defs.append('LIBMV_NO_FAST_DETECTOR')
 
-    src = env.Glob('*.cc')
+    src = env.Glob('intern/*.cc')
 $src
 
     incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include third_party/ceres/config ../../intern/guardedalloc'
@@ -309,7 +324,7 @@ ${win_src}
         src += env.Glob("third_party/glog/src/*.cc")
         incs += ' ./third_party/glog/src'
 else:
-    src = env.Glob("libmv-capi_stub.cc")
+    src = env.Glob("intern/stub.cc")
 
 src = [src for src in src if src.find('_test.cc') == -1]
 

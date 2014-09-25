@@ -24,16 +24,32 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef LIBMV_C_API_H
-#define LIBMV_C_API_H
-
-#include "intern/camera_intrinsics.h"
-#include "intern/detector.h"
-#include "intern/homography.h"
-#include "intern/image.h"
 #include "intern/logging.h"
-#include "intern/reconstruction.h"
-#include "intern/track_region.h"
-#include "intern/tracks.h"
+#include "intern/utildefines.h"
+#include "libmv/logging/logging.h"
 
-#endif  // LIBMV_C_API_H
+void libmv_initLogging(const char* argv0) {
+  // Make it so FATAL messages are always print into console.
+  char severity_fatal[32];
+  snprintf(severity_fatal, sizeof(severity_fatal), "%d",
+           google::GLOG_FATAL);
+
+  google::InitGoogleLogging(argv0);
+  google::SetCommandLineOption("logtostderr", "1");
+  google::SetCommandLineOption("v", "0");
+  google::SetCommandLineOption("stderrthreshold", severity_fatal);
+  google::SetCommandLineOption("minloglevel", severity_fatal);
+}
+
+void libmv_startDebugLogging(void) {
+  google::SetCommandLineOption("logtostderr", "1");
+  google::SetCommandLineOption("v", "2");
+  google::SetCommandLineOption("stderrthreshold", "1");
+  google::SetCommandLineOption("minloglevel", "0");
+}
+
+void libmv_setLoggingVerbosity(int verbosity) {
+  char val[10];
+  snprintf(val, sizeof(val), "%d", verbosity);
+  google::SetCommandLineOption("v", val);
+}

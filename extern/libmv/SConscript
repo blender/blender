@@ -24,11 +24,10 @@ if env['WITH_BF_LIBMV']:
         defs.append('CERES_TR1_SHARED_PTR')
 
     defs.append('GOOGLE_GLOG_DLL_DECL=')
-    defs.append('WITH_LIBMV')
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
     defs.append('LIBMV_NO_FAST_DETECTOR')
 
-    src = env.Glob('*.cc')
+    src = env.Glob('intern/*.cc')
     src += env.Glob('libmv/base/*.cc')
     src += env.Glob('libmv/image/*.cc')
     src += env.Glob('libmv/multiview/*.cc')
@@ -52,7 +51,7 @@ if env['WITH_BF_LIBMV']:
         src += env.Glob("third_party/glog/src/*.cc")
         incs += ' ./third_party/glog/src'
 else:
-    src = env.Glob("libmv-capi_stub.cc")
+    src = env.Glob("intern/stub.cc")
 
 src = [src for src in src if src.find('_test.cc') == -1]
 

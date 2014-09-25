@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * The Original Code is Copyright (C) 2014 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation,
@@ -24,16 +24,20 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef LIBMV_C_API_H
-#define LIBMV_C_API_H
+#ifndef LIBMV_C_API_REGION_H_
+#define LIBMV_C_API_REGION_H_
 
-#include "intern/camera_intrinsics.h"
-#include "intern/detector.h"
-#include "intern/homography.h"
-#include "intern/image.h"
-#include "intern/logging.h"
-#include "intern/reconstruction.h"
-#include "intern/track_region.h"
-#include "intern/tracks.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif  // LIBMV_C_API_H
+typedef struct libmv_Region {
+  float min[2];
+  float max[2];
+} libmv_Region;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // LIBMV_C_API_REGION_H_

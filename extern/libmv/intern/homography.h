@@ -24,16 +24,20 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef LIBMV_C_API_H
-#define LIBMV_C_API_H
+#ifndef LIBMV_C_API_HOMOGRAPHY_H_
+#define LIBMV_C_API_HOMOGRAPHY_H_
 
-#include "intern/camera_intrinsics.h"
-#include "intern/detector.h"
-#include "intern/homography.h"
-#include "intern/image.h"
-#include "intern/logging.h"
-#include "intern/reconstruction.h"
-#include "intern/track_region.h"
-#include "intern/tracks.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif  // LIBMV_C_API_H
+void libmv_homography2DFromCorrespondencesEuc(/* const */ double (*x1)[2],
+                                              /* const */ double (*x2)[2],
+                                              int num_points,
+                                              double H[3][3]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // LIBMV_C_API_HOMOGRAPHY_H_

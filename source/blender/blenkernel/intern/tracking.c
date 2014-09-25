@@ -1789,13 +1789,19 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 	if (ibuf->rect_float) {
 		if (undistort) {
 			libmv_cameraIntrinsicsUndistortFloat(distortion->intrinsics,
-			                                     ibuf->rect_float, resibuf->rect_float,
-			                                     ibuf->x, ibuf->y, overscan, ibuf->channels);
+			                                     ibuf->rect_float,
+			                                     ibuf->x, ibuf->y,
+			                                     overscan,
+			                                     ibuf->channels,
+			                                     resibuf->rect_float);
 		}
 		else {
 			libmv_cameraIntrinsicsDistortFloat(distortion->intrinsics,
-			                                   ibuf->rect_float, resibuf->rect_float,
-			                                   ibuf->x, ibuf->y, overscan, ibuf->channels);
+			                                   ibuf->rect_float,
+			                                   ibuf->x, ibuf->y,
+			                                   overscan,
+			                                   ibuf->channels,
+			                                   resibuf->rect_float);
 		}
 
 		if (ibuf->rect)
@@ -1804,13 +1810,19 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 	else {
 		if (undistort) {
 			libmv_cameraIntrinsicsUndistortByte(distortion->intrinsics,
-			                                    (unsigned char *)ibuf->rect, (unsigned char *)resibuf->rect,
-			                                    ibuf->x, ibuf->y, overscan, ibuf->channels);
+			                                    (unsigned char *)ibuf->rect,
+			                                    ibuf->x, ibuf->y,
+			                                    overscan,
+			                                    ibuf->channels,
+			                                    (unsigned char *)resibuf->rect);
 		}
 		else {
 			libmv_cameraIntrinsicsDistortByte(distortion->intrinsics,
-			                                  (unsigned char *)ibuf->rect, (unsigned char *)resibuf->rect,
-			                                  ibuf->x, ibuf->y, overscan, ibuf->channels);
+			                                  (unsigned char *)ibuf->rect,
+			                                  ibuf->x, ibuf->y,
+			                                  overscan,
+			                                  ibuf->channels,
+			                                  (unsigned char *)resibuf->rect);
 		}
 	}
 
@@ -2017,14 +2029,14 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	}
 
 	if (search_ibuf->rect_float) {
-		libmv_samplePlanarPatch(search_ibuf->rect_float,
-		                        search_ibuf->x, search_ibuf->y, 4,
-		                        src_pixel_x, src_pixel_y,
-		                        num_samples_x, num_samples_y,
-		                        mask,
-		                        pattern_ibuf->rect_float,
-		                        &warped_position_x,
-		                        &warped_position_y);
+		libmv_samplePlanarPatchFloat(search_ibuf->rect_float,
+		                             search_ibuf->x, search_ibuf->y, 4,
+		                             src_pixel_x, src_pixel_y,
+		                             num_samples_x, num_samples_y,
+		                             mask,
+		                             pattern_ibuf->rect_float,
+		                             &warped_position_x,
+		                             &warped_position_y);
 	}
 	else {
 		libmv_samplePlanarPatchByte((unsigned char *) search_ibuf->rect,

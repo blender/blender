@@ -35,12 +35,10 @@ set(INC_SYS
 
 set(SRC
 	libmv-capi.h
-	libmv-capi_intern.h
 )
 
 if(WITH_LIBMV)
 	add_definitions(
-		-DWITH_LIBMV
 		-DWITH_LIBMV_GUARDED_ALLOC
 		-DGOOGLE_GLOG_DLL_DECL=
 		-DLIBMV_NO_FAST_DETECTOR=
@@ -73,8 +71,14 @@ if(WITH_LIBMV)
 	)
 
 	list(APPEND SRC
-		libmv-capi.cc
-		libmv-util.cc
+		intern/camera_intrinsics.cc
+		intern/detector.cc
+		intern/homography.cc
+		intern/image.cc
+		intern/logging.cc
+		intern/reconstruction.cc
+		intern/track_region.cc
+		intern/tracks.cc
 		libmv/base/aligned_malloc.cc
 		libmv/image/array_nd.cc
 		libmv/image/convolve.cc
@@ -109,7 +113,15 @@ if(WITH_LIBMV)
 		libmv/tracking/track_region.cc
 		libmv/tracking/trklt_region_tracker.cc
 
-		libmv-util.h
+
+		intern/camera_intrinsics.h
+		intern/detector.h
+		intern/homography.h
+		intern/image.h
+		intern/logging.h
+		intern/reconstruction.h
+		intern/track_region.h
+		intern/tracks.h
 		libmv/base/aligned_malloc.h
 		libmv/base/id_generator.h
 		libmv/base/scoped_ptr.h
@@ -217,7 +229,7 @@ if(WITH_LIBMV)
 	endif()
 else()
 	list(APPEND SRC
-		libmv-capi_stub.cc
+		intern/stub.cc
 	)
 endif()
 

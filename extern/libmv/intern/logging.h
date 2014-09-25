@@ -24,16 +24,24 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef LIBMV_C_API_H
-#define LIBMV_C_API_H
+#ifndef LIBMV_C_API_LOGGING_H_
+#define LIBMV_C_API_LOGGING_H_
 
-#include "intern/camera_intrinsics.h"
-#include "intern/detector.h"
-#include "intern/homography.h"
-#include "intern/image.h"
-#include "intern/logging.h"
-#include "intern/reconstruction.h"
-#include "intern/track_region.h"
-#include "intern/tracks.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif  // LIBMV_C_API_H
+// Initialize GLog logging.
+void libmv_initLogging(const char* argv0);
+
+// Switch Glog to debug logging level.
+void libmv_startDebugLogging(void);
+
+// Set GLog logging verbosity level.
+void libmv_setLoggingVerbosity(int verbosity);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // LIBMV_C_API_LOGGING_H_
