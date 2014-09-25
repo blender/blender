@@ -44,12 +44,7 @@
 #define __KERNEL_WITH_SSE_ALIGN__
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
-
-#  ifdef NDEBUG
-#    define ccl_device_inline static __forceinline
-#  else
-#    define ccl_device_inline static
-#  endif
+#define ccl_device_inline static __forceinline
 #define ccl_align(...) __declspec(align(__VA_ARGS__))
 #ifdef __KERNEL_64_BIT__
 #define ccl_try_align(...) __declspec(align(__VA_ARGS__))
