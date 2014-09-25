@@ -86,7 +86,7 @@ static unsigned int _ghashutil_keyhash(const void *ptr)
 	return hash ^ BLI_ghashutil_strhash(key->msgid);
 }
 
-static int _ghashutil_keycmp(const void *a, const void *b)
+static bool _ghashutil_keycmp(const void *a, const void *b)
 {
 	const GHashKey *A = a;
 	const GHashKey *B = b;
@@ -94,8 +94,8 @@ static int _ghashutil_keycmp(const void *a, const void *b)
 	/* Note: comparing msgid first, most of the time it will be enough! */
 	int cmp = BLI_ghashutil_strcmp(A->msgid, B->msgid);
 	if (cmp == 0)
-		return BLI_ghashutil_strcmp(A->msgctxt, B->msgctxt);
-	return cmp;
+		return BLI_ghashutil_strcmp(A->msgctxt, B->msgctxt) == 0;
+	return false;
 }
 
 static void _ghashutil_keyfree(void *ptr)
