@@ -128,7 +128,7 @@ ATOMIC_INLINE uint64_t
 atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
 {
 	uint64_t init_val = *v;
-	OSAtomicCompareAndSwap64(old, _new, v);
+	OSAtomicCompareAndSwap64((int64_t)old, (int64_t)_new, (int64_t *)v);
 	return init_val;
 }
 #  elif (defined(__amd64__) || defined(__x86_64__))
@@ -273,7 +273,7 @@ ATOMIC_INLINE uint32_t
 atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
 {
 	uint32_t init_val = *v;
-	OSAtomicCompareAndSwap32(old, _new, v);
+	OSAtomicCompareAndSwap32((int32_t)old, (int32_t)_new, (int32_t *)v);
 	return init_val;
 }
 #elif (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))

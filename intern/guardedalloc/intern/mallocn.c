@@ -72,6 +72,7 @@ void *aligned_malloc(size_t size, size_t alignment)
 	 * they work natively with SSE types with no further work.
 	 */
 	assert(alignment == 16);
+	(void)alignment;
 	return malloc(size);
 #elif defined(__FreeBSD__) || defined(__NetBSD__)
 	void *result;
