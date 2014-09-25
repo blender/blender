@@ -149,9 +149,6 @@ typedef struct ClothSpring {
 	
 	/* angular bending spring target and derivatives */
 	float target[3];
-	float dtarget_dxij[3][3];
-	float dtarget_dxkl[3][3];
-	float dtarget_dxmn[3][3];
 }
 ClothSpring;
 
@@ -251,7 +248,7 @@ void cloth_clear_cache (struct Object *ob, struct ClothModifierData *clmd, float
 // needed for cloth.c
 int cloth_add_spring (struct ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
 
-void cloth_parallel_transport_hair_frame(float mat[3][3], float dir_old[3], const float x_cur[3], const float x_new[3]);
+void cloth_parallel_transport_hair_frame(float mat[3][3], const float dir_old[3], const float dir_new[3]);
 
 ////////////////////////////////////////////////
 

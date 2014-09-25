@@ -1106,7 +1106,7 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring;
 	LinkNode *search = NULL;
-	float hair_frame[3][3], dir[3];
+	float hair_frame[3][3], dir_old[3], dir_new[3];
 	bool is_root;
 	
 	/* XXX Note: we need to propagate frames from the root up,
@@ -1119,7 +1119,7 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 	
 	is_root = true;
 	for (search = cloth->springs; search; search = search->next) {
-		ClothHairRoot *hair_info;
+		ClothHairRoot *hair_ij, *hair_kl;
 		
 		spring = search->link;
 		if (spring->type != CLOTH_SPRING_TYPE_BENDING_ANG) {
@@ -1127,20 +1127,23 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 			continue;
 		}
 		
-		hair_info = &clmd->roots[spring->kl];
+		hair_ij = &clmd->roots[spring->ij];
+		hair_kl = &clmd->roots[spring->kl];
 		if (is_root) {
 			/* initial hair frame from root orientation */
-			copy_m3_m3(hair_frame, hair_info->rot);
+			copy_m3_m3(hair_frame, hair_ij->rot);
 			/* surface normal is the initial direction,
 			 * parallel transport then keeps it aligned to the hair direction
 			 */
-			copy_v3_v3(dir, hair_frame[2]);
+			copy_v3_v3(dir_new, hair_frame[2]);
 		}
 		
-		/* move frame to next hair segment */
-		cloth_parallel_transport_hair_frame(hair_frame, dir, cloth->verts[spring->kl].x, cloth->verts[spring->mn].x);
+		copy_v3_v3(dir_old, dir_new);
+		sub_v3_v3v3(dir_new, cloth->verts[spring->mn].x, cloth->verts[spring->kl].x);
+		normalize_v3(dir_new);
 		
-		if (clmd->debug_data) {
+#if 1
+		if (clmd->debug_data && (spring->ij == 0 || spring->ij == 1)) {
 			float a[3], b[3];
 			
 			copy_v3_v3(a, cloth->verts[spring->kl].x);
@@ -1155,13 +1158,69 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 			mul_v3_v3fl(b, hair_frame[2], clmd->sim_parms->avg_spring_len);
 			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 0, 0, 1, "frames", hash_vertex(8249, hash_int_2d(spring->kl, spring->mn)));
 		}
+#endif
 		
-		/* get target direction by putting rest target into the current frame */
-		mul_v3_m3v3(spring->target, hair_frame, hair_info->rest_target);
-		/* XXX TODO */
-		zero_m3(spring->dtarget_dxij);
-		zero_m3(spring->dtarget_dxkl);
-		zero_m3(spring->dtarget_dxmn);
+		/* get local targets for kl/mn vertices by putting rest targets into the current frame,
+		 * then multiply with the rest length to get the actual goals
+		 */
+		
+		mul_v3_m3v3(spring->target, hair_frame, hair_kl->rest_target);
+		mul_v3_fl(spring->target, spring->restlen);
+		
+		/* move frame to next hair segment */
+		cloth_parallel_transport_hair_frame(hair_frame, dir_old, dir_new);
+		
+		is_root = false; /* next bending spring not connected to root */
+	}
+}
+
+static void cloth_update_bending_rest_targets(ClothModifierData *clmd)
+{
+	Cloth *cloth = clmd->clothObject;
+	ClothSpring *spring;
+	LinkNode *search = NULL;
+	float hair_frame[3][3], dir_old[3], dir_new[3];
+	bool is_root;
+	
+	/* XXX Note: we need to propagate frames from the root up,
+	 * but structural hair springs are stored in reverse order.
+	 * The bending springs however are then inserted in the same
+	 * order as vertices again ...
+	 * This messy situation can be resolved when solver data is
+	 * generated directly from a dedicated hair system.
+	 */
+	
+	is_root = true;
+	for (search = cloth->springs; search; search = search->next) {
+		ClothHairRoot *hair_ij, *hair_kl;
+		
+		spring = search->link;
+		if (spring->type != CLOTH_SPRING_TYPE_BENDING_ANG) {
+			is_root = true; /* next bending spring connects to root */
+			continue;
+		}
+		
+		hair_ij = &clmd->roots[spring->ij];
+		hair_kl = &clmd->roots[spring->kl];
+		if (is_root) {
+			/* initial hair frame from root orientation */
+			copy_m3_m3(hair_frame, hair_ij->rot);
+			/* surface normal is the initial direction,
+			 * parallel transport then keeps it aligned to the hair direction
+			 */
+			copy_v3_v3(dir_new, hair_frame[2]);
+		}
+		
+		copy_v3_v3(dir_old, dir_new);
+		sub_v3_v3v3(dir_new, cloth->verts[spring->mn].xrest, cloth->verts[spring->kl].xrest);
+		normalize_v3(dir_new);
+		
+		/* dir expressed in the hair frame defines the rest target direction */
+		copy_v3_v3(hair_kl->rest_target, dir_new);
+		mul_transposed_m3_v3(hair_frame, hair_kl->rest_target);
+		
+		/* move frame to next hair segment */
+		cloth_parallel_transport_hair_frame(hair_frame, dir_old, dir_new);
 		
 		is_root = false; /* next bending spring not connected to root */
 	}
@@ -1232,23 +1291,15 @@ BLI_INLINE void madd_m3_m3fl(float r[3][3], float m[3][3], float f)
 	r[2][2] += m[2][2] * f;
 }
 
-void cloth_parallel_transport_hair_frame(float mat[3][3], float dir_old[3], const float x_cur[3], const float x_new[3])
+void cloth_parallel_transport_hair_frame(float mat[3][3], const float dir_old[3], const float dir_new[3])
 {
-	float dir_new[3];
 	float rot[3][3];
-	
-	/* next segment direction */
-	sub_v3_v3v3(dir_new, x_new, x_cur);
-	normalize_v3(dir_new);
 	
 	/* rotation between segments */
 	rotation_between_vecs_to_mat3(rot, dir_old, dir_new);
 	
 	/* rotate the frame */
 	mul_m3_m3m3(mat, rot, mat);
-	
-	/* advance old variables */
-	copy_v3_v3(dir_old, dir_new);
 }
 
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
@@ -1491,6 +1542,8 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				search2 = search2->next;
 			}
 		}
+		
+		cloth_update_bending_rest_targets(clmd);
 	}
 	
 	/* note: the edges may already exist so run reinsert */
