@@ -37,7 +37,7 @@ if _cycles.with_network:
 
 enum_feature_set = (
     ('SUPPORTED', "Supported", "Only use finished and supported features"),
-    ('EXPERIMENTAL', "Experimental", "Use experimental and incomplete features that might be broken or change in the future"),
+    ('EXPERIMENTAL', "Experimental", "Use experimental and incomplete features that might be broken or change in the future", 'ERROR', 1),
     )
 
 enum_displacement_methods = (
