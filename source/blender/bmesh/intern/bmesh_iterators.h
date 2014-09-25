@@ -224,4 +224,12 @@ BMITER_CB_DEF(loop_of_face);
 
 #include "intern/bmesh_iterators_inline.h"
 
+#define BM_ITER_CHECK_TYPE_DATA(data) \
+	CHECK_TYPE_ANY(data, void *, BMFace *, BMEdge *, BMVert *, BMLoop *, BMElem *)
+
+#define BM_iter_new(iter, bm, itype, data) \
+	(BM_ITER_CHECK_TYPE_DATA(data), BM_iter_new(iter, bm, itype, data))
+#define BM_iter_init(iter, bm, itype, data) \
+	(BM_ITER_CHECK_TYPE_DATA(data), BM_iter_init(iter, bm, itype, data))
+
 #endif /* __BMESH_ITERATORS_H__ */
