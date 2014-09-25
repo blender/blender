@@ -387,94 +387,96 @@ class QuickSmoke(Operator):
             links.new(node_add_shader_1.outputs["Shader"],
                     node_out.inputs["Volume"])
 
-            # Smoke
+            if self.style in {'SMOKE', 'BOTH'}:
+                # Smoke
 
-            # Add shader 2
-            node_add_shader_2 = nodes.new(type='ShaderNodeAddShader')
-            node_add_shader_2.location = grid_location(4, 2)
-            links.new(node_add_shader_2.outputs["Shader"],
-                    node_add_shader_1.inputs[0])
+                # Add shader 2
+                node_add_shader_2 = nodes.new(type='ShaderNodeAddShader')
+                node_add_shader_2.location = grid_location(4, 2)
+                links.new(node_add_shader_2.outputs["Shader"],
+                        node_add_shader_1.inputs[0])
 
-            # Volume scatter
-            node_scatter = nodes.new(type='ShaderNodeVolumeScatter')
-            node_scatter.location = grid_location(3, 3)
-            links.new(node_scatter.outputs["Volume"],
-                    node_add_shader_2.inputs[0])
+                # Volume scatter
+                node_scatter = nodes.new(type='ShaderNodeVolumeScatter')
+                node_scatter.location = grid_location(3, 3)
+                links.new(node_scatter.outputs["Volume"],
+                        node_add_shader_2.inputs[0])
 
-            # Volume absorption
-            node_absorption = nodes.new(type='ShaderNodeVolumeAbsorption')
-            node_absorption.location = grid_location(3, 2)
-            links.new(node_absorption.outputs["Volume"],
-                    node_add_shader_2.inputs[1])
+                # Volume absorption
+                node_absorption = nodes.new(type='ShaderNodeVolumeAbsorption')
+                node_absorption.location = grid_location(3, 2)
+                links.new(node_absorption.outputs["Volume"],
+                        node_add_shader_2.inputs[1])
 
-            # Density Multiplier
-            node_densmult = nodes.new(type='ShaderNodeMath')
-            node_densmult.location = grid_location(2, 2)
-            node_densmult.operation = 'MULTIPLY'
-            node_densmult.inputs[1].default_value = 5.0
-            links.new(node_densmult.outputs["Value"],
-                    node_scatter.inputs["Density"])
-            links.new(node_densmult.outputs["Value"],
-                    node_absorption.inputs["Density"])
+                # Density Multiplier
+                node_densmult = nodes.new(type='ShaderNodeMath')
+                node_densmult.location = grid_location(2, 2)
+                node_densmult.operation = 'MULTIPLY'
+                node_densmult.inputs[1].default_value = 5.0
+                links.new(node_densmult.outputs["Value"],
+                        node_scatter.inputs["Density"])
+                links.new(node_densmult.outputs["Value"],
+                        node_absorption.inputs["Density"])
 
-            # Attribute "density"
-            node_attrib_density = nodes.new(type='ShaderNodeAttribute')
-            node_attrib_density.attribute_name = "density"
-            node_attrib_density.location = grid_location(1, 2)
-            links.new(node_attrib_density.outputs["Fac"],
-                    node_densmult.inputs[0])
+                # Attribute "density"
+                node_attrib_density = nodes.new(type='ShaderNodeAttribute')
+                node_attrib_density.attribute_name = "density"
+                node_attrib_density.location = grid_location(1, 2)
+                links.new(node_attrib_density.outputs["Fac"],
+                        node_densmult.inputs[0])
 
-            # Attribute "color"
-            node_attrib_color = nodes.new(type='ShaderNodeAttribute')
-            node_attrib_color.attribute_name = "color"
-            node_attrib_color.location = grid_location(2, 3)
-            links.new(node_attrib_color.outputs["Color"],
-                    node_scatter.inputs["Color"])
-            links.new(node_attrib_color.outputs["Color"],
-                    node_absorption.inputs["Color"])
+                # Attribute "color"
+                node_attrib_color = nodes.new(type='ShaderNodeAttribute')
+                node_attrib_color.attribute_name = "color"
+                node_attrib_color.location = grid_location(2, 3)
+                links.new(node_attrib_color.outputs["Color"],
+                        node_scatter.inputs["Color"])
+                links.new(node_attrib_color.outputs["Color"],
+                        node_absorption.inputs["Color"])
 
-            # Fire
+            if self.style in {'FIRE', 'BOTH'}:
+                # Fire
 
-            # Emission
-            node_emission = nodes.new(type='ShaderNodeEmission')
-            node_emission.inputs["Color"].default_value = (0.8, 0.1, 0.01, 1.0)
-            node_emission.location = grid_location(4, 1)
-            links.new(node_emission.outputs["Emission"],
-                    node_add_shader_1.inputs[1])
+                # Emission
+                node_emission = nodes.new(type='ShaderNodeEmission')
+                node_emission.inputs["Color"].default_value = (0.8, 0.1, 0.01, 1.0)
+                node_emission.location = grid_location(4, 1)
+                links.new(node_emission.outputs["Emission"],
+                        node_add_shader_1.inputs[1])
 
-            # Flame strength multiplier
-            node_flame_strength_mult = nodes.new(type='ShaderNodeMath')
-            node_flame_strength_mult.location = grid_location(3, 1)
-            node_flame_strength_mult.operation = 'MULTIPLY'
-            node_flame_strength_mult.inputs[1].default_value = 2.5
-            links.new(node_flame_strength_mult.outputs["Value"],
-                    node_emission.inputs["Strength"])
+                # Flame strength multiplier
+                node_flame_strength_mult = nodes.new(type='ShaderNodeMath')
+                node_flame_strength_mult.location = grid_location(3, 1)
+                node_flame_strength_mult.operation = 'MULTIPLY'
+                node_flame_strength_mult.inputs[1].default_value = 2.5
+                links.new(node_flame_strength_mult.outputs["Value"],
+                        node_emission.inputs["Strength"])
 
-            # Color ramp Flame
-            node_flame_ramp = nodes.new(type='ShaderNodeValToRGB')
-            node_flame_ramp.location = grid_location(1, 1)
-            ramp = node_flame_ramp.color_ramp
-            ramp.interpolation = 'EASE'
+                # Color ramp Flame
+                node_flame_ramp = nodes.new(type='ShaderNodeValToRGB')
+                node_flame_ramp.location = grid_location(1, 1)
+                ramp = node_flame_ramp.color_ramp
+                ramp.interpolation = 'EASE'
 
-            # orange
-            elem = ramp.elements.new(0.5)
-            elem.color = (1.0, 0.128, 0.0, 1.0)
+                # orange
+                elem = ramp.elements.new(0.5)
+                elem.color = (1.0, 0.128, 0.0, 1.0)
 
-            # yellow
-            elem = ramp.elements.new(0.9)
-            elem.color = (0.9, 0.6, 0.1, 1.0)
+                # yellow
+                elem = ramp.elements.new(0.9)
+                elem.color = (0.9, 0.6, 0.1, 1.0)
 
-            links.new(node_flame_ramp.outputs["Color"],
-                    node_emission.inputs["Color"])
+                links.new(node_flame_ramp.outputs["Color"],
+                        node_emission.inputs["Color"])
 
-            # Attribute "flame"
-            node_attrib_flame = nodes.new(type='ShaderNodeAttribute')
-            node_attrib_flame.attribute_name = "flame"
-            node_attrib_flame.location = grid_location(0, 1)
-            links.new(node_attrib_flame.outputs["Fac"],
-                    node_flame_ramp.inputs["Fac"])
-            links.new(node_attrib_flame.outputs["Fac"],
-                    node_flame_strength_mult.inputs[0])
+                # Attribute "flame"
+                node_attrib_flame = nodes.new(type='ShaderNodeAttribute')
+                node_attrib_flame.attribute_name = "flame"
+                node_attrib_flame.location = grid_location(0, 1)
+                links.new(node_attrib_flame.outputs["Fac"],
+                        node_flame_ramp.inputs["Fac"])
+                links.new(node_attrib_flame.outputs["Fac"],
+                        node_flame_strength_mult.inputs[0])
 
         # Blender Internal
         else:
