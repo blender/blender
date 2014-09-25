@@ -28,7 +28,7 @@ CCL_NAMESPACE_BEGIN
 #if !defined(WITH_CYCLES_LOGGING) || defined(__KERNEL_GPU__)
 class StubStream : public std::ostream {
  public:
-	StubStream () { }
+	StubStream() : std::ostream(NULL) { }
 };
 
 class LogMessageVoidify {
