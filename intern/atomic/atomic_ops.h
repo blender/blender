@@ -79,37 +79,57 @@
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
 {
-	return (__sync_add_and_fetch(p, x));
+	return __sync_add_and_fetch(p, x);
 }
 
 ATOMIC_INLINE uint64_t
 atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
-	return (__sync_sub_and_fetch(p, x));
+	return __sync_sub_and_fetch(p, x);
+}
+
+ATOMIC_INLINE uint64_t
+atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
+{
+	return __sync_val_compare_and_swap(v, old, _new);
 }
 #elif (defined(_MSC_VER))
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
 {
-	return (InterlockedExchangeAdd64(p, x));
+	return InterlockedExchangeAdd64(p, x);
 }
 
 ATOMIC_INLINE uint64_t
 atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
-	return (InterlockedExchangeAdd64(p, -((int64_t)x)));
+	return InterlockedExchangeAdd64(p, -((int64_t)x));
+}
+
+ATOMIC_INLINE uint64_t
+atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
+{
+	return InterlockedCompareExchange64((int64_t *)v, _new, old);
 }
 #elif (defined(__APPLE__))
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
 {
-	return (uint64_t)(OSAtomicAdd64((int64_t)x, (int64_t *)p));
+	return (uint64_t)OSAtomicAdd64((int64_t)x, (int64_t *)p);
 }
 
 ATOMIC_INLINE uint64_t
 atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
-	return (uint64_t)(OSAtomicAdd64(-((int64_t)x), (int64_t *)p));
+	return (uint64_t)OSAtomicAdd64(-((int64_t)x), (int64_t *)p);
+}
+
+ATOMIC_INLINE uint64_t
+atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
+{
+	uint64_t init_val = *v;
+	OSAtomicCompareAndSwap64(old, _new, v);
+	return init_val;
 }
 #  elif (defined(__amd64__) || defined(__x86_64__))
 ATOMIC_INLINE uint64_t
@@ -120,7 +140,7 @@ atomic_add_uint64(uint64_t *p, uint64_t x)
 	    : "+r" (x), "=m" (*p) /* Outputs. */
 	    : "m" (*p) /* Inputs. */
 	    );
-	return (x);
+	return x;
 }
 
 ATOMIC_INLINE uint64_t
@@ -132,8 +152,21 @@ atomic_sub_uint64(uint64_t *p, uint64_t x)
 	    : "+r" (x), "=m" (*p) /* Outputs. */
 	    : "m" (*p) /* Inputs. */
 	    );
-	return (x);
+	return x;
 }
+
+ATOMIC_INLINE uint64_t
+atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
+{
+	uint64_t ret;
+	asm volatile (
+	    "lock; cmpxchgq %2,%1"
+	    : "=a" (ret), "+m" (*v)
+	    : "r" (_new), "0" (old)
+	    : "memory");
+	return ret;
+}
+
 #  elif (defined(JEMALLOC_ATOMIC9))
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
@@ -144,7 +177,7 @@ atomic_add_uint64(uint64_t *p, uint64_t x)
 	 */
 	assert(sizeof(uint64_t) == sizeof(unsigned long));
 
-	return (atomic_fetchadd_long(p, (unsigned long)x) + x);
+	return atomic_fetchadd_long(p, (unsigned long)x) + x;
 }
 
 ATOMIC_INLINE uint64_t
@@ -152,19 +185,33 @@ atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
 	assert(sizeof(uint64_t) == sizeof(unsigned long));
 
-	return (atomic_fetchadd_long(p, (unsigned long)(-(long)x)) - x);
+	return atomic_fetchadd_long(p, (unsigned long)(-(long)x)) - x;
+}
+
+ATOMIC_INLINE uint64_t
+atomic_cas_uint32(uint64_t *v, uint64_t old, uint64_t _new)
+{
+	assert(sizeof(uint64_t) == sizeof(unsigned long));
+
+	return atomic_cmpset_long(v, old, _new);
 }
 #  elif (defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
 {
-	return (__sync_add_and_fetch(p, x));
+	return __sync_add_and_fetch(p, x);
 }
 
 ATOMIC_INLINE uint64_t
 atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
-	return (__sync_sub_and_fetch(p, x));
+	return __sync_sub_and_fetch(p, x);
+}
+
+ATOMIC_INLINE uint64_t
+atomic_cas_uint32(uint64_t *v, uint64_t old, uint64_t _new)
+{
+	return __sync_val_compare_and_swap(v, old, _new);
 }
 #  else
 #    error "Missing implementation for 64-bit atomic operations"
@@ -177,37 +224,57 @@ atomic_sub_uint64(uint64_t *p, uint64_t x)
 ATOMIC_INLINE uint32_t
 atomic_add_uint32(uint32_t *p, uint32_t x)
 {
-	return (__sync_add_and_fetch(p, x));
+	return __sync_add_and_fetch(p, x);
 }
 
 ATOMIC_INLINE uint32_t
 atomic_sub_uint32(uint32_t *p, uint32_t x)
 {
-	return (__sync_sub_and_fetch(p, x));
+	return __sync_sub_and_fetch(p, x);
+}
+
+ATOMIC_INLINE uint32_t
+atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
+{
+   return __sync_val_compare_and_swap(v, old, _new);
 }
 #elif (defined(_MSC_VER))
 ATOMIC_INLINE uint32_t
 atomic_add_uint32(uint32_t *p, uint32_t x)
 {
-	return (InterlockedExchangeAdd(p, x));
+	return InterlockedExchangeAdd(p, x);
 }
 
 ATOMIC_INLINE uint32_t
 atomic_sub_uint32(uint32_t *p, uint32_t x)
 {
-	return (InterlockedExchangeAdd(p, -((int32_t)x)));
+	return InterlockedExchangeAdd(p, -((int32_t)x));
+}
+
+ATOMIC_INLINE uint32_t
+atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
+{
+	return InterlockedCompareExchange((long *)v, _new, old);
 }
 #elif (defined(__APPLE__))
 ATOMIC_INLINE uint32_t
 atomic_add_uint32(uint32_t *p, uint32_t x)
 {
-	return (uint32_t)(OSAtomicAdd32((int32_t)x, (int32_t *)p));
+	return (uint32_t)OSAtomicAdd32((int32_t)x, (int32_t *)p);
 }
 
 ATOMIC_INLINE uint32_t
 atomic_sub_uint32(uint32_t *p, uint32_t x)
 {
-	return (uint32_t)(OSAtomicAdd32(-((int32_t)x), (int32_t *)p));
+	return (uint32_t)OSAtomicAdd32(-((int32_t)x), (int32_t *)p);
+}
+
+ATOMIC_INLINE uint32_t
+atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
+{
+	uint32_t init_val = *v;
+	OSAtomicCompareAndSwap32(old, _new, v);
+	return init_val;
 }
 #elif (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))
 ATOMIC_INLINE uint32_t
@@ -218,7 +285,7 @@ atomic_add_uint32(uint32_t *p, uint32_t x)
 	    : "+r" (x), "=m" (*p) /* Outputs. */
 	    : "m" (*p) /* Inputs. */
 	    );
-	return (x);
+	return x;
 }
 
 ATOMIC_INLINE uint32_t
@@ -230,31 +297,55 @@ atomic_sub_uint32(uint32_t *p, uint32_t x)
 	    : "+r" (x), "=m" (*p) /* Outputs. */
 	    : "m" (*p) /* Inputs. */
 	    );
-	return (x);
+	return x;
+}
+
+ATOMIC_INLINE uint32_t
+atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
+{
+	uint32_t ret;
+	asm volatile (
+	    "lock; cmpxchgl %2,%1"
+	    : "=a" (ret), "+m" (*v)
+	    : "r" (_new), "0" (old)
+	    : "memory");
+	return ret;
 }
 #elif (defined(JEMALLOC_ATOMIC9))
 ATOMIC_INLINE uint32_t
 atomic_add_uint32(uint32_t *p, uint32_t x)
 {
-	return (atomic_fetchadd_32(p, x) + x);
+	return atomic_fetchadd_32(p, x) + x;
 }
 
 ATOMIC_INLINE uint32_t
 atomic_sub_uint32(uint32_t *p, uint32_t x)
 {
-	return (atomic_fetchadd_32(p, (uint32_t)(-(int32_t)x)) - x);
+	return atomic_fetchadd_32(p, (uint32_t)(-(int32_t)x)) - x;
 }
-#elif (defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_4))
+
+ATOMIC_INLINE uint32_t
+atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
+{
+	return atomic_cmpset_32(v, old, _new);
+}
+#elif defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_4)
 ATOMIC_INLINE uint32_t
 atomic_add_uint32(uint32_t *p, uint32_t x)
 {
-	return (__sync_add_and_fetch(p, x));
+	return __sync_add_and_fetch(p, x);
 }
 
 ATOMIC_INLINE uint32_t
 atomic_sub_uint32(uint32_t *p, uint32_t x)
 {
-	return (__sync_sub_and_fetch(p, x));
+	return __sync_sub_and_fetch(p, x);
+}
+
+ATOMIC_INLINE uint32_t
+atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
+{
+	return __sync_val_compare_and_swap(v, old, _new);
 }
 #else
 #  error "Missing implementation for 32-bit atomic operations"
@@ -268,9 +359,9 @@ atomic_add_z(size_t *p, size_t x)
 	assert(sizeof(size_t) == 1 << LG_SIZEOF_PTR);
 
 #if (LG_SIZEOF_PTR == 3)
-	return ((size_t)atomic_add_uint64((uint64_t *)p, (uint64_t)x));
+	return (size_t)atomic_add_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_PTR == 2)
-	return ((size_t)atomic_add_uint32((uint32_t *)p, (uint32_t)x));
+	return (size_t)atomic_add_uint32((uint32_t *)p, (uint32_t)x);
 #endif
 }
 
@@ -280,11 +371,27 @@ atomic_sub_z(size_t *p, size_t x)
 	assert(sizeof(size_t) == 1 << LG_SIZEOF_PTR);
 
 #if (LG_SIZEOF_PTR == 3)
-	return ((size_t)atomic_add_uint64((uint64_t *)p,
-	    (uint64_t)-((int64_t)x)));
+	return (size_t)atomic_add_uint64((uint64_t *)p,
+	                                 (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_PTR == 2)
-	return ((size_t)atomic_add_uint32((uint32_t *)p,
-	    (uint32_t)-((int32_t)x)));
+	return (size_t)atomic_add_uint32((uint32_t *)p,
+	                                 (uint32_t)-((int32_t)x));
+#endif
+}
+
+ATOMIC_INLINE size_t
+atomic_cas_z(size_t *v, size_t old, size_t _new)
+{
+	assert(sizeof(size_t) == 1 << LG_SIZEOF_PTR);
+
+#if (LG_SIZEOF_PTR == 3)
+	return (size_t)atomic_cas_uint64((uint64_t *)v,
+	                                 (uint64_t)old,
+	                                 (uint64_t)_new);
+#elif (LG_SIZEOF_PTR == 2)
+	return (size_t)atomic_cas_uint32((uint32_t *)v,
+	                                 (uint32_t)old,
+	                                 (uint32_t)_new);
 #endif
 }
 
@@ -296,9 +403,9 @@ atomic_add_u(unsigned *p, unsigned x)
 	assert(sizeof(unsigned) == 1 << LG_SIZEOF_INT);
 
 #if (LG_SIZEOF_INT == 3)
-	return ((unsigned)atomic_add_uint64((uint64_t *)p, (uint64_t)x));
+	return (unsigned)atomic_add_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_INT == 2)
-	return ((unsigned)atomic_add_uint32((uint32_t *)p, (uint32_t)x));
+	return (unsigned)atomic_add_uint32((uint32_t *)p, (uint32_t)x);
 #endif
 }
 
@@ -308,11 +415,27 @@ atomic_sub_u(unsigned *p, unsigned x)
 	assert(sizeof(unsigned) == 1 << LG_SIZEOF_INT);
 
 #if (LG_SIZEOF_INT == 3)
-	return ((unsigned)atomic_add_uint64((uint64_t *)p,
-	    (uint64_t)-((int64_t)x)));
+	return (unsigned)atomic_add_uint64((uint64_t *)p,
+	                                   (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_INT == 2)
-	return ((unsigned)atomic_add_uint32((uint32_t *)p,
-	    (uint32_t)-((int32_t)x)));
+	return (unsigned)atomic_add_uint32((uint32_t *)p,
+	                                   (uint32_t)-((int32_t)x));
+#endif
+}
+
+ATOMIC_INLINE unsigned
+atomic_cas_u(unsigned *v, unsigned old, unsigned _new)
+{
+	assert(sizeof(unsigned) == 1 << LG_SIZEOF_INT);
+
+#if (LG_SIZEOF_PTR == 3)
+	return (unsigned)atomic_cas_uint64((uint64_t *)v,
+	                                   (uint64_t)old,
+	                                   (uint64_t)_new);
+#elif (LG_SIZEOF_PTR == 2)
+	return (unsigned)atomic_cas_uint32((uint32_t *)v,
+	                                   (uint32_t)old,
+	                                   (uint32_t)_new);
 #endif
 }
 
