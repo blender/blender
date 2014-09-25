@@ -426,6 +426,13 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		
 		/* XXX assuming same restlen for ij and jk segments here, this can be done correctly for hair later */
 		BPH_mass_spring_force_spring_bending_angular(data, s->ij, s->kl, s->mn, s->matrix_ij_kl, s->matrix_kl_mn, s->matrix_ij_mn, s->restlen, s->restlen, kb, cb);
+		
+		{
+			float x[3], v[3], d[3];
+			BPH_mass_spring_get_motion_state(data, s->kl, x, v);
+			mul_v3_v3fl(d, s->target, clmd->sim_parms->avg_spring_len);
+			BKE_sim_debug_data_add_vector(clmd->debug_data, x, d, 0.4, 0.4, 1, "target", hash_vertex(7982, s->kl));
+		}
 #endif
 	}
 }

@@ -62,6 +62,7 @@ struct PartDeflect;
 typedef struct ClothHairRoot {
 	float loc[3];
 	float rot[3][3];
+	float rest_target[3]; /* rest target direction for each segment */
 } ClothHairRoot;
 
 typedef struct ClothSolverResult {
@@ -145,6 +146,12 @@ typedef struct ClothSpring {
 	float f[3];
 	float 	stiffness;	/* stiffness factor from the vertex groups */
 	float editrestlen;
+	
+	/* angular bending spring target and derivatives */
+	float target[3];
+	float dtarget_dxij[3][3];
+	float dtarget_dxkl[3][3];
+	float dtarget_dxmn[3][3];
 }
 ClothSpring;
 
@@ -243,6 +250,8 @@ void cloth_clear_cache (struct Object *ob, struct ClothModifierData *clmd, float
 
 // needed for cloth.c
 int cloth_add_spring (struct ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
+
+void cloth_parallel_transport_hair_frame(float mat[3][3], float dir_old[3], const float x_cur[3], const float x_new[3]);
 
 ////////////////////////////////////////////////
 
