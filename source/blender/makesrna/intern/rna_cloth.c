@@ -544,6 +544,13 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bending Stiffness Maximum", "Maximum bending stiffness value");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+	prop = RNA_def_property(srna, "bending_damping", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "bending_damping");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "Bending Spring Damping",
+	                         "Damping of bending motion");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
 	prop = RNA_def_property(srna, "use_sewing_springs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_SEW);
 	RNA_def_property_ui_text(prop, "Sew Cloth", "Pulls loose edges together");

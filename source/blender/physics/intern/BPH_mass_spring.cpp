@@ -410,7 +410,10 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 		
 		scaling = parms->bending + s->stiffness * fabsf(parms->max_bend - parms->bending);
-		cb = kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
+		kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
+		
+		scaling = parms->bending_damping;
+		cb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
 		
 		BPH_mass_spring_force_spring_bending(data, s->ij, s->kl, s->matrix_ij_kl, s->restlen, kb, cb, s->f, s->dfdx, s->dfdv);
 #endif
@@ -422,7 +425,10 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 		
 		scaling = parms->bending + s->stiffness * fabsf(parms->max_bend - parms->bending);
-		cb = kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
+		kb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
+		
+		scaling = parms->bending_damping;
+		cb = scaling / (20.0f * (parms->avg_spring_len + FLT_EPSILON));
 		
 		/* XXX assuming same restlen for ij and jk segments here, this can be done correctly for hair later */
 		BPH_mass_spring_force_spring_bending_angular(data, s->ij, s->kl, s->mn, s->matrix_ij_kl, s->matrix_kl_mn, s->matrix_ij_mn, s->target, kb, cb);

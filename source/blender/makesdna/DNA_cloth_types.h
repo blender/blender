@@ -76,6 +76,10 @@ typedef struct ClothSimSettings {
 	float	shrink_min;  /* min amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
 	float	shrink_max;  /* max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
 	
+	/* XXX various hair stuff
+	 * should really be separate, this struct is a horrible mess already
+	 */
+	float	bending_damping;	/* damping of bending springs */
 	int		voxel_res;          /* resolution of voxel grid for interaction */
 	int		voxel_filter_size;  /* filter size for voxel grid */
 
@@ -91,7 +95,6 @@ typedef struct ClothSimSettings {
 	short	shapekey_rest;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
 	short 	reset;
-	int		pad;
 
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;
