@@ -754,6 +754,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "INDIVIDUAL_ORIGINS");
 
+	/* Copy-paste */
+	WM_keymap_add_item(keymap, "CLIP_OT_copy_tracks", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_paste_tracks", VKEY, KM_PRESS, KM_CTRL, 0);
+
 	/* ******** Hotkeys avalaible for preview region only ******** */
 
 	keymap = WM_keymap_find(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
