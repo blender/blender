@@ -521,6 +521,9 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->r.preview_start_resolution = 64;
 	
+	sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
+	sce->r.unit_line_thickness = 1.0f;
+
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 	sce->toolsettings->doublimit = 0.001;
 	sce->toolsettings->uvcalc_margin = 0.001f;
