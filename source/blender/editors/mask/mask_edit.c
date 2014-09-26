@@ -550,6 +550,8 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 
 	/* duplicate */
 	WM_keymap_add_item(keymap, "MASK_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_copy_splines", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_paste_splines", VKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* for image editor only */
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
