@@ -328,6 +328,8 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	return true;
 #else
+	(void)so, (void)frames, (void)totframe;
+	(void)skin_frame_find_contained_faces;
 	return false;
 #endif
 }
