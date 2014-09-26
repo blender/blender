@@ -142,8 +142,7 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 								minunsel = buffer[4 * i + 1];
 							}
 						}
-						else 
-						{
+						else {
 							if (!firstunSel) firstunSel = data;
 							if (takeNext) return data;
 						}

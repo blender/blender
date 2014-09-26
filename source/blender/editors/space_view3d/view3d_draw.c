@@ -2068,14 +2068,14 @@ static void draw_dupli_objects_color(
 				 * so for now it should be ok to - campbell */
 				
 				if ( /* if this is the last no need  to make a displist */
-					 (dob_next == NULL || dob_next->ob != dob->ob) ||
-					 /* lamp drawing messes with matrices, could be handled smarter... but this works */
-					 (dob->ob->type == OB_LAMP) ||
-					 (dob->type == OB_DUPLIGROUP && dob->animated) ||
-					 !bb_tmp ||
-					 draw_glsl_material(scene, dob->ob, v3d, dt) ||
-					 check_object_draw_texture(scene, v3d, dt) ||
-					 (base->object == OBACT && v3d->flag2 & V3D_SOLID_MATCAP))
+				     (dob_next == NULL || dob_next->ob != dob->ob) ||
+				     /* lamp drawing messes with matrices, could be handled smarter... but this works */
+				     (dob->ob->type == OB_LAMP) ||
+				     (dob->type == OB_DUPLIGROUP && dob->animated) ||
+				     !bb_tmp ||
+				     draw_glsl_material(scene, dob->ob, v3d, dt) ||
+				     check_object_draw_texture(scene, v3d, dt) ||
+				     (base->object == OBACT && v3d->flag2 & V3D_SOLID_MATCAP))
 				{
 					// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name + 2);
 					use_displist = false;
@@ -2524,8 +2524,10 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 		}
 		else {
 			if ((scene->gm.matmode == GAME_MAT_GLSL && v3d->drawtype == OB_TEXTURE) || 
-				(v3d->drawtype == OB_MATERIAL))
+			    (v3d->drawtype == OB_MATERIAL))
+			{
 				mask |= CD_MASK_ORCO;
+			}
 		}
 	}
 

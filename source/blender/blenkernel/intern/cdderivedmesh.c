@@ -3088,7 +3088,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	MEM_freeN(oldv);
 	MEM_freeN(olde);
 	MEM_freeN(oldl);
-	MEM_freeN(oldp);;
+	MEM_freeN(oldp);
 
 	BLI_edgehash_free(ehash, NULL);
 
