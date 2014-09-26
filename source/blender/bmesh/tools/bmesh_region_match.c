@@ -642,7 +642,7 @@ static int facestep_sort(const void *a, const const void *b)
 static bool bm_uuidwalk_facestep_begin(
         UUIDWalk *uuidwalk, UUIDFaceStep *fstep)
 {
-	LinkNode *f_link, *f_link_next, **f_link_prev_p;;
+	LinkNode *f_link, *f_link_next, **f_link_prev_p;
 	bool ok = false;
 
 	BLI_assert(BLI_ghash_size(uuidwalk->cache.faces_from_uuid) == 0);
