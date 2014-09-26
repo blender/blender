@@ -371,6 +371,9 @@ void BKE_tracking_clipboard_paste_tracks(MovieTracking *tracking, MovieTrackingO
 
 	while (track) {
 		MovieTrackingTrack *new_track = BKE_tracking_track_duplicate(track);
+		if (track->prev == NULL) {
+			tracking->act_track = new_track;
+		}
 
 		BLI_addtail(tracksbase, new_track);
 		BKE_tracking_track_unique_name(tracksbase, new_track);
