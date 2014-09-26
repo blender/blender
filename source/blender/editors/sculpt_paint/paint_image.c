@@ -527,8 +527,11 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 		kernel->pixel_len = radius;
 	}
 	else {
-		radius = br->blur_kernel_radius;
+		if (br->blur_kernel_radius <= 0)
+			br->blur_kernel_radius = 1;
 		
+		radius = br->blur_kernel_radius;
+					
 		side = kernel->side = radius * 2 + 1;
 		kernel->side_squared = kernel->side * kernel->side;
 		kernel->wdata = MEM_mallocN(sizeof(float) * kernel->side_squared, "blur kernel data");
@@ -543,11 +546,11 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 
 		case KERNEL_GAUSSIAN:
 		{
-			/* at standard deviation of 3.0 kernel is at about zero */			
+			/* at 3.0 standard deviations distance, kernel is about zero */			
 			float standard_dev = radius / 3.0f; 
 			
 			/* make the necessary adjustment to the value for use in the normal distribution formula */
-			standard_dev = standard_dev * standard_dev * 2;
+			standard_dev = -standard_dev * standard_dev * 2;
 
 			for (i = 0; i < side; i++) {
 				for (j = 0; j < side; j++) {
