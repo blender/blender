@@ -1104,10 +1104,9 @@ static void cloth_free_errorsprings(Cloth *cloth,  LinkNode **edgelist)
 static void cloth_update_bending_targets(ClothModifierData *clmd)
 {
 	Cloth *cloth = clmd->clothObject;
-	ClothSpring *spring;
 	LinkNode *search = NULL;
 	float hair_frame[3][3], dir_old[3], dir_new[3];
-	bool is_root;
+	int prev_mn; /* to find hair chains */
 	
 	/* XXX Note: we need to propagate frames from the root up,
 	 * but structural hair springs are stored in reverse order.
@@ -1117,13 +1116,13 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 	 * generated directly from a dedicated hair system.
 	 */
 	
-	is_root = true;
+	prev_mn = -1;
 	for (search = cloth->springs; search; search = search->next) {
+		ClothSpring *spring = search->link;
 		ClothHairRoot *hair_ij, *hair_kl;
+		bool is_root = spring->kl != prev_mn;
 		
-		spring = search->link;
 		if (spring->type != CLOTH_SPRING_TYPE_BENDING_ANG) {
-			is_root = true; /* next bending spring connects to root */
 			continue;
 		}
 		
@@ -1142,7 +1141,7 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 		sub_v3_v3v3(dir_new, cloth->verts[spring->mn].x, cloth->verts[spring->kl].x);
 		normalize_v3(dir_new);
 		
-#if 1
+#if 0
 		if (clmd->debug_data && (spring->ij == 0 || spring->ij == 1)) {
 			float a[3], b[3];
 			
@@ -1170,17 +1169,16 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 		/* move frame to next hair segment */
 		cloth_parallel_transport_hair_frame(hair_frame, dir_old, dir_new);
 		
-		is_root = false; /* next bending spring not connected to root */
+		prev_mn = spring->mn;
 	}
 }
 
 static void cloth_update_bending_rest_targets(ClothModifierData *clmd)
 {
 	Cloth *cloth = clmd->clothObject;
-	ClothSpring *spring;
 	LinkNode *search = NULL;
 	float hair_frame[3][3], dir_old[3], dir_new[3];
-	bool is_root;
+	int prev_mn; /* to find hair roots */
 	
 	/* XXX Note: we need to propagate frames from the root up,
 	 * but structural hair springs are stored in reverse order.
@@ -1190,13 +1188,13 @@ static void cloth_update_bending_rest_targets(ClothModifierData *clmd)
 	 * generated directly from a dedicated hair system.
 	 */
 	
-	is_root = true;
+	prev_mn = -1;
 	for (search = cloth->springs; search; search = search->next) {
+		ClothSpring *spring = search->link;
 		ClothHairRoot *hair_ij, *hair_kl;
+		bool is_root = spring->kl != prev_mn;
 		
-		spring = search->link;
 		if (spring->type != CLOTH_SPRING_TYPE_BENDING_ANG) {
-			is_root = true; /* next bending spring connects to root */
 			continue;
 		}
 		
@@ -1222,7 +1220,7 @@ static void cloth_update_bending_rest_targets(ClothModifierData *clmd)
 		/* move frame to next hair segment */
 		cloth_parallel_transport_hair_frame(hair_frame, dir_old, dir_new);
 		
-		is_root = false; /* next bending spring not connected to root */
+		prev_mn = spring->mn;
 	}
 }
 
