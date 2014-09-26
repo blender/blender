@@ -58,9 +58,14 @@ int main(int argc, const char **UNUSED(argv_c))
 	wcsncpy(command, BLENDER_BINARY, len - 1);
 	len -= wcslen(BLENDER_BINARY);
 	for (i = 1; i < argc; ++i) {
+		size_t argument_len = wcslen(argv_16[i]);
 		wcsncat(command, L" \"", len - 2);
 		wcsncat(command, argv_16[i], len - 3);
-		len -= wcslen(argv_16[i]) + 1;
+		len -= argument_len + 1;
+		if (argv_16[i][argument_len - 1] == '\\') {
+			wcsncat(command, L"\\", len - 1);
+			len--;
+		}
 		wcsncat(command, L"\"", len - 1);
 	}
 
