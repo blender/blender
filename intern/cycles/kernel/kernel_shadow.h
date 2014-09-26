@@ -181,6 +181,8 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 	return blocked;
 }
 
+#undef STACK_MAX_HITS
+
 #else
 
 /* Shadow function to compute how much light is blocked, GPU variation.
