@@ -360,7 +360,7 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 
 #ifdef __SUBSURFACE__
 
-#  ifdef __VOLUME__
+#ifdef __VOLUME__
 ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
                                                            Ray *ray,
                                                            VolumeStack *stack)
@@ -391,7 +391,7 @@ ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
 		}
 	}
 }
-#  endif
+#endif
 
 ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, Ray *ray, float3 *throughput)
 {
@@ -800,9 +800,9 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 			float bssrdf_u, bssrdf_v;
 			path_branched_rng_2D(kg, &bssrdf_rng, state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 			int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
-#  ifdef __VOLUME__
+#ifdef __VOLUME__
 			Ray volume_ray = *ray;
-#  endif
+#endif
 
 			/* compute lighting with the BSDF closure */
 			for(int hit = 0; hit < num_hits; hit++) {
