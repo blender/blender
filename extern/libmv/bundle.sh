@@ -307,6 +307,7 @@ if env['WITH_BF_LIBMV']:
     defs.append('LIBMV_NO_FAST_DETECTOR')
 
     src = env.Glob('intern/*.cc')
+    src.remove('intern' + os.sep + 'stub.cc')
 $src
 
     incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include third_party/ceres/config ../../intern/guardedalloc'
