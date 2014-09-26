@@ -1622,7 +1622,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				}
 
 				image_aspect[0] = ima->aspx;
-				image_aspect[1] = ima->aspx;
+				image_aspect[1] = ima->aspy;
 			}
 			else if (bgpic->source == V3D_BGPIC_MOVIE) {
 				clip = NULL;
