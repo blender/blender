@@ -4030,6 +4030,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	float hairmat[4][4];
 	float (*deformedVerts)[3];
 	float max_length;
+	bool realloc_roots;
 
 	if (!psys->clmd) {
 		psys->clmd = (ClothModifierData*)modifier_new(eModifierType_Cloth);
@@ -4057,20 +4058,24 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	totedge = totpoint;
 	totpoint += psys->totpart;
 
+	realloc_roots = false; /* whether hair root info array has to be reallocated */
 	if (dm && (totpoint != dm->getNumVerts(dm) || totedge != dm->getNumEdges(dm))) {
 		dm->release(dm);
 		dm = psys->hair_in_dm = NULL;
 		
-		MEM_freeN(psys->clmd->roots);
-		psys->clmd->roots = NULL;
+		realloc_roots = true;
 	}
 
 	if (!dm) {
 		dm = psys->hair_in_dm = CDDM_new(totpoint, totedge, 0, 0, 0);
 		DM_add_vert_layer(dm, CD_MDEFORMVERT, CD_CALLOC, NULL);
+		
+		realloc_roots = true;
 	}
 	
-	if (!psys->clmd->roots) {
+	if (!psys->clmd->roots || realloc_roots) {
+		if (psys->clmd->roots)
+			MEM_freeN(psys->clmd->roots);
 		psys->clmd->roots = MEM_mallocN(sizeof(ClothHairRoot) * totpoint, "hair roots");
 	}
 
