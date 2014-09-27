@@ -608,6 +608,19 @@ class VIEW3D_MT_select_particle(Menu):
         layout.operator("particle.select_tips", text="Tips")
 
 
+class VIEW3D_MT_edit_mesh_select_similar(Menu):
+    bl_label = "Select Similar"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_enum("mesh.select_similar", "type")
+
+        layout.separator()
+
+        layout.operator("mesh.select_similar_region", text="Face Regions")
+
+
 class VIEW3D_MT_select_edit_mesh(Menu):
     bl_label = "Select"
 
@@ -647,7 +660,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.separator()
 
         # other ...
-        layout.operator_menu_enum("mesh.select_similar", "type", text="Similar")
+        layout.menu("VIEW3D_MT_edit_mesh_select_similar")
         layout.operator("mesh.select_ungrouped", text="Ungrouped Verts")
 
         layout.separator()
