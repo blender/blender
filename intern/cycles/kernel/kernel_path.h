@@ -371,7 +371,7 @@ ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
 	Intersection isect;
 	const float3 Pend = volume_ray.P + volume_ray.D*volume_ray.t;
 
-	while(scene_intersect(kg, &volume_ray, PATH_RAY_ALL_VISIBILITY
+	while(scene_intersect(kg, &volume_ray, PATH_RAY_ALL_VISIBILITY,
 	                      &isect, NULL, 0.0f, 0.0f))
 	{
 		ShaderData sd;
