@@ -1342,7 +1342,7 @@ static bool bm_vert_fasthash_edge_is_match(
 	        (e_a_fm[1] == e_b_fm[1]));
 }
 
-static void bm_vert_fasthash_distroy(
+static void bm_vert_fasthash_destroy(
         UUIDFashMatch *fm)
 {
 	MEM_freeN(fm);
@@ -1485,7 +1485,7 @@ int BM_mesh_region_match(
 
 #ifdef USE_PIVOT_FASTMATCH
 	if (fm) {
-		bm_vert_fasthash_distroy(fm);
+		bm_vert_fasthash_destroy(fm);
 	}
 #endif
 
