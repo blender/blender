@@ -58,8 +58,8 @@
  *
  * \subsection bm_loop The Loop
  *
- * Loops define the boundary loop of a face. Each loop logically corresponds to an edge,
- * which is defined by the loop and next loop's vertices.
+ * Each loop connects the face to one of its corner vertices,
+ * and also references an edge which connects this loop's vertex to the next loop's vertex.
  *
  * Loops store several handy pointers:
  *
