@@ -85,10 +85,11 @@
 
 #ifdef WITH_LZO
 #include "minilzo.h"
-#else
-/* used for non-lzo cases */
-#define LZO_OUT_LEN(size)     ((size) + (size) / 16 + 64 + 3)
+#define LZO_HEAP_ALLOC(var,size) \
+	lzo_align_t __LZO_MMODEL var [ ((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ]
 #endif
+
+#define LZO_OUT_LEN(size)     ((size) + (size) / 16 + 64 + 3)
 
 #ifdef WITH_LZMA
 #include "LzmaLib.h"
