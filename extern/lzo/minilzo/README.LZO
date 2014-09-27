@@ -6,8 +6,8 @@
  Author  : Markus Franz Xaver Johannes Oberhumer
            <markus@oberhumer.com>
            http://www.oberhumer.com/opensource/lzo/
- Version : 2.06
- Date    : 12 Aug 2011
+ Version : 2.08
+ Date    : 29 Jun 2014
 
  I've created miniLZO for projects where it is inconvenient to
  include (or require) the full LZO source code just because you
@@ -110,9 +110,8 @@
 
  Appendix D: Copyright
  ---------------------
- LZO and miniLZO are Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001,
- 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
- Markus Franz Xaver Oberhumer <markus@oberhumer.com>.
+ LZO and miniLZO are Copyright (C) 1996-2014 Markus Franz Xaver Oberhumer
+ All Rights Reserved.
 
  LZO and miniLZO are distributed under the terms of the GNU General
  Public License (GPL).  See the file COPYING.
