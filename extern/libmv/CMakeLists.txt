@@ -64,7 +64,7 @@ if(WITH_LIBMV)
 		../../intern/guardedalloc
 	)
 
-	set(INC_SYS
+	list(APPEND INC_SYS
 		../Eigen3
 		${PNG_INCLUDE_DIRS}
 		${ZLIB_INCLUDE_DIRS}
