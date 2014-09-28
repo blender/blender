@@ -40,7 +40,7 @@ SRC="$HOME/src/blender-deps"
 INST="/opt/lib"
 TMP="/tmp"
 CWD=$PWD
-INFO_PATH = CWD
+INFO_PATH=$CWD
 
 # Do not install some optional, potentially conflicting libs by default...
 WITH_ALL=false
