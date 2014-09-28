@@ -1972,7 +1972,7 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 	
 	ED_armature_sync_selection(arm->edbo);
 	
-	return OPERATOR_CANCELLED;
+	return hits > 0 ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, bool select, bool extend)
