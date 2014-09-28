@@ -88,6 +88,29 @@ TEST(stack, String)
 	BLI_stack_free(stack);
 }
 
+TEST(stack, Peek)
+{
+	const int tot = SIZE;
+	int i;
+
+	BLI_Stack *stack;
+	const short in[] = {1, 10, 100, 1000};
+
+	stack = BLI_stack_new(sizeof(*in), __func__);
+
+	for (i = 0; i < tot; i++) {
+		BLI_stack_push(stack, &in[i % ARRAY_SIZE(in)]);
+	}
+
+	for (i = tot - 1; i >= 0; i--, BLI_stack_discard(stack)) {
+		short *ret = (short *)BLI_stack_peek(stack);
+		EXPECT_EQ(*ret, in[i % ARRAY_SIZE(in)]);
+	}
+
+	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+}
+
+
 TEST(stack, Reuse)
 {
 	const int sizes[] = {3, 11, 81, 400, 999, 12, 1, 9721, 7, 99, 5, 0};

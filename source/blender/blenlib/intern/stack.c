@@ -48,8 +48,6 @@
 	((void)0, (((char *)(_stack)->chunk_curr->data) + \
 	           ((_stack)->elem_size * (_stack)->chunk_index)))
 
-#define IS_POW2(a) (((a) & ((a) - 1)) == 0)
-
 struct StackChunk {
 	struct StackChunk *next;
 	char data[0];
@@ -95,11 +93,6 @@ BLI_Stack *BLI_stack_new_ex(const size_t elem_size, const char *description,
 	stack->elem_size = elem_size;
 	/* force init */
 	stack->chunk_index = stack->chunk_elem_max - 1;
-
-	/* ensure we have a correctly rounded size */
-	BLI_assert((IS_POW2(stack->elem_size) == 0) ||
-	           (IS_POW2((stack->chunk_elem_max * stack->elem_size) +
-	                    (sizeof(struct StackChunk) + MEM_SIZE_OVERHEAD))));
 
 	return stack;
 }
@@ -182,6 +175,31 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
 	BLI_assert(BLI_stack_is_empty(stack) == false);
 
 	memcpy(dst, CHUNK_LAST_ELEM(stack), stack->elem_size);
+
+	BLI_stack_discard(stack);
+}
+
+void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n)
+{
+	BLI_assert(n <= BLI_stack_count(stack));
+
+	while (n--) {
+		BLI_stack_pop(stack, dst);
+		dst = (void *)((char *)dst + stack->elem_size);
+	}
+}
+
+void *BLI_stack_peek(BLI_Stack *stack)
+{
+	BLI_assert(BLI_stack_is_empty(stack) == false);
+
+	return CHUNK_LAST_ELEM(stack);
+}
+
+void BLI_stack_discard(BLI_Stack *stack)
+{
+	BLI_assert(BLI_stack_is_empty(stack) == false);
+
 #ifdef USE_TOTELEM
 	stack->totelem--;
 #endif
@@ -195,16 +213,6 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
 		stack->chunk_free = chunk_free;
 
 		stack->chunk_index = stack->chunk_elem_max - 1;
-	}
-}
-
-void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n)
-{
-	BLI_assert(n <= BLI_stack_count(stack));
-
-	while (n--) {
-		BLI_stack_pop(stack, dst);
-		dst = (void *)((char *)dst + stack->elem_size);
 	}
 }
 
