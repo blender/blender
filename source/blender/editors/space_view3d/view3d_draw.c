@@ -1585,6 +1585,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 	int fg_flag = do_foreground ? V3D_BGPIC_FOREGROUND : 0;
 
 	for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+		bgpic->iuser.scene = scene;  /* Needed for render results. */
 
 		if ((bgpic->flag & V3D_BGPIC_FOREGROUND) != fg_flag)
 			continue;
@@ -1598,9 +1599,10 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			float x1, y1, x2, y2;
 
 			ImBuf *ibuf = NULL, *freeibuf, *releaseibuf;
+			void *lock;
 
-			Image *ima;
-			MovieClip *clip;
+			Image *ima = NULL;
+			MovieClip *clip = NULL;
 
 			/* disable individual images */
 			if ((bgpic->flag & V3D_BGPIC_DISABLED))
@@ -1617,7 +1619,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					ibuf = NULL; /* frame is out of range, dont show */
 				}
 				else {
-					ibuf = BKE_image_acquire_ibuf(ima, &bgpic->iuser, NULL);
+					ibuf = BKE_image_acquire_ibuf(ima, &bgpic->iuser, &lock);
 					releaseibuf = ibuf;
 				}
 
@@ -1625,8 +1627,6 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				image_aspect[1] = ima->aspy;
 			}
 			else if (bgpic->source == V3D_BGPIC_MOVIE) {
-				clip = NULL;
-
 				/* TODO: skip drawing when out of frame range (as image sequences do above) */
 
 				if (bgpic->flag & V3D_BGPIC_CAMERACLIP) {
@@ -1664,7 +1664,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				if (freeibuf)
 					IMB_freeImBuf(freeibuf);
 				if (releaseibuf)
-					BKE_image_release_ibuf(ima, releaseibuf, NULL);
+					BKE_image_release_ibuf(ima, releaseibuf, lock);
 
 				continue;
 			}
@@ -1763,7 +1763,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				if (freeibuf)
 					IMB_freeImBuf(freeibuf);
 				if (releaseibuf)
-					BKE_image_release_ibuf(ima, releaseibuf, NULL);
+					BKE_image_release_ibuf(ima, releaseibuf, lock);
 
 				continue;
 			}
@@ -1830,7 +1830,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			if (freeibuf)
 				IMB_freeImBuf(freeibuf);
 			if (releaseibuf)
-				BKE_image_release_ibuf(ima, releaseibuf, NULL);
+				BKE_image_release_ibuf(ima, releaseibuf, lock);
 		}
 	}
 }
