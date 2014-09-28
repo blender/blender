@@ -1494,11 +1494,14 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 				add_to_diffuse(shr->shad, shi, is, lashdw[0]*(i_noshad-i)*lacol[0], lashdw[1]*(i_noshad-i)*lacol[1], lashdw[2]*(i_noshad-i)*lacol[2]);
 			}
 			if (i_noshad>0.0f) {
-				if (passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW)) {
+				if (passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW) ||
+				    ((passflag & SCE_PASS_COMBINED) && !(shi->combinedflag & SCE_PASS_SHADOW)))
+				{
 					add_to_diffuse(shr->diff, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
 				}
-				else
+				else {
 					copy_v3_v3(shr->diff, shr->shad);
+				}
 			}
 		}
 		
@@ -1889,7 +1892,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		}
 		
 		if (shi->combinedflag & SCE_PASS_SHADOW)
-			copy_v3_v3(shr->diffshad, shr->shad); 	/* note, no ';' ! */
+			copy_v3_v3(shr->diffshad, shr->shad);
 		else
 			copy_v3_v3(shr->diffshad, shr->diff);
 
