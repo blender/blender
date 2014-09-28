@@ -567,7 +567,7 @@ static void pf_triangulate(PolyFill *pf)
 
 #ifdef USE_CLIP_EVEN
 #ifdef USE_CLIP_SWEEP
-		pi_ear_init = reverse ? pi_next->next : pi_prev->prev;
+		pi_ear_init = reverse ? pi_prev->prev : pi_next->next;
 #else
 		pi_ear_init = pi_next->next;
 #endif
