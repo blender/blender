@@ -548,6 +548,29 @@ static PyObject *Operators_create(BPy_Operators *self, PyObject *args, PyObject 
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Operators_reset_doc,
+".. staticmethod:: reset(delete_strokes=True)\n"
+"\n"
+"   Resets the stroke selection (and therefore chaining, splitting, sorting and shading)\n"
+"\n"
+"   :arg delete_strokes: Delete the strokes that are currently stored\n"
+"   :type delete_strokes: bool\n");
+
+static PyObject *Operators_reset(BPy_Operators *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"delete_strokes", NULL};
+	PyObject *obj1 = 0;
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &PyBool_Type, &obj1)) {
+		// true is the default
+		Operators::reset(obj1 ? bool_from_PyBool(obj1) : true);
+	}
+	else {
+		PyErr_SetString(PyExc_RuntimeError, "Operators.reset() failed");
+		return NULL;
+	}
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(Operators_get_viewedge_from_index_doc,
 ".. staticmethod:: get_viewedge_from_index(i)\n"
 "\n"
@@ -671,6 +694,7 @@ static PyMethodDef BPy_Operators_methods[] = {
 	                    Operators_recursive_split_doc},
 	{"sort", (PyCFunction) Operators_sort, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_sort_doc},
 	{"create", (PyCFunction) Operators_create, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_create_doc},
+	{"reset", (PyCFunction) Operators_reset, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_reset_doc},
 	{"get_viewedge_from_index", (PyCFunction) Operators_get_viewedge_from_index,
 	                            METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_get_viewedge_from_index_doc},
 	{"get_chain_from_index", (PyCFunction) Operators_get_chain_from_index, METH_VARARGS | METH_KEYWORDS | METH_STATIC,

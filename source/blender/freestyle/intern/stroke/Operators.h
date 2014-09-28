@@ -259,7 +259,7 @@ public:
 		return &_current_strokes_set;
 	}
 
-	static void reset();
+	static void reset(bool removeStrokes=true);
 
 private:
 	Operators() {}

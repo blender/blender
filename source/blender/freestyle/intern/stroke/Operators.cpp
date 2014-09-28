@@ -1242,7 +1242,7 @@ error:
 	return -1;
 }
 
-void Operators::reset()
+void Operators::reset(bool removeStrokes)
 {
 	ViewMap *vm = ViewMap::getInstance();
 	if (!vm) {
@@ -1253,11 +1253,7 @@ void Operators::reset()
 	for (I1DContainer::iterator it = _current_chains_set.begin(); it != _current_chains_set.end(); ++it)
 		delete *it;
 	_current_chains_set.clear();
-#if 0
-	_current_view_edges_set.insert(_current_view_edges_set.begin(),
-	vm->ViewEdges().begin(),
-	vm->ViewEdges().end());
-#else
+
 	ViewMap::viewedges_container& vedges = vm->ViewEdges();
 	ViewMap::viewedges_container::iterator ve = vedges.begin(), veend = vedges.end();
 	for (; ve != veend; ++ve) {
@@ -1265,9 +1261,9 @@ void Operators::reset()
 			continue;
 		_current_view_edges_set.push_back(*ve);
 	}
-#endif
 	_current_set = &_current_view_edges_set;
-	_current_strokes_set.clear();
+	if (removeStrokes)
+		_current_strokes_set.clear();
 }
 
 } /* namespace Freestyle */
