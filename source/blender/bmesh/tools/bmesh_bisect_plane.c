@@ -53,7 +53,7 @@
 /* -------------------------------------------------------------------- */
 /* Math utils */
 
-static int plane_point_test_v3(const float plane[4], const float co[3], const float eps, float *r_depth)
+static short plane_point_test_v3(const float plane[4], const float co[3], const float eps, float *r_depth)
 {
 	const float f = plane_point_side_v3(plane, co);
 	*r_depth = f;
@@ -69,7 +69,8 @@ static int plane_point_test_v3(const float plane[4], const float co[3], const fl
  * later we may want to move this into some hash lookup
  * to a separate struct, but for now we can store in BMesh data */
 
-#define BM_VERT_DIR(v)     ((v)->head.index)    /* Direction -1/0/1 */
+#define BM_VERT_DIR(v)     ((short *)(&(v)->head.index))[0]    /* Direction -1/0/1 */
+#define BM_VERT_SKIP(v)    ((short *)(&(v)->head.index))[1]    /* Skip Vert 0/1 */
 #define BM_VERT_DIST(v)    ((v)->no[0])         /* Distance from the plane. */
 #define BM_VERT_SORTVAL(v) ((v)->no[1])         /* Temp value for sorting. */
 #define BM_VERT_LOOPINDEX(v)                    /* The verts index within a face (temp var) */ \
@@ -117,6 +118,7 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 	STACK_DECLARE(vert_split_arr);
 	BMLoop *l_iter, *l_first;
 	bool use_dirs[3] = {false, false, false};
+	bool is_inside = false;
 
 	STACK_INIT(vert_split_arr, f_len_orig);
 
@@ -129,6 +131,11 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 	do {
 		if (vert_is_center_test(l_iter->v)) {
 			BLI_assert(BM_VERT_DIR(l_iter->v) == 0);
+
+			/* if both are -1 or 1, or both are zero:
+			 * don't flip 'inside' var while walking */
+			BM_VERT_SKIP(l_iter->v) = (((BM_VERT_DIR(l_iter->prev->v) ^ BM_VERT_DIR(l_iter->next->v))) == 0);
+
 			STACK_PUSH(vert_split_arr, l_iter->v);
 		}
 		use_dirs[BM_VERT_DIR(l_iter->v) + 1] = true;
@@ -230,15 +237,12 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 			for (i = 0; i < STACK_SIZE(vert_split_arr) - 1; i++) {
 				BMVert *v_a = vert_split_arr[i];
 				BMVert *v_b = vert_split_arr[i + 1];
-				float co_mid[2];
 
-				/* geometric test before doing face lookups,
-				 * find if the split spans a filled region of the polygon. */
-				mid_v2_v2v2(co_mid,
-				            face_verts_proj_2d[BM_VERT_LOOPINDEX(v_a)],
-				            face_verts_proj_2d[BM_VERT_LOOPINDEX(v_b)]);
+				if (!BM_VERT_SKIP(v_a)) {
+					is_inside = !is_inside;
+				}
 
-				if (isect_point_poly_v2(co_mid, (const float (*)[2])face_verts_proj_2d, f_len_orig, false)) {
+				if (is_inside) {
 					BMLoop *l_a, *l_b;
 					bool found = false;
 					unsigned int j;
@@ -254,7 +258,8 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 						}
 					}
 
-					BLI_assert(found == true);
+					/* ideally wont happen, but it can for self intersecting faces */
+					// BLI_assert(found == true);
 
 					/* in fact this simple test is good enough,
 					 * test if the loops are adjacent */
