@@ -58,6 +58,7 @@
 #include "BKE_particle.h"
 #include "BKE_unit.h"
 #include "BKE_mask.h"
+#include "BKE_report.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -4066,6 +4067,9 @@ static void initTranslation(TransInfo *t)
 {
 	if (t->spacetype == SPACE_ACTION) {
 		/* this space uses time translate */
+		BKE_report(t->reports, RPT_ERROR, 
+		           "Use 'Time_Translate' transform mode instead of 'Translation' mode "
+				   "for translating keyframes in Dope Sheet Editor");
 		t->state = TRANS_CANCEL;
 	}
 
