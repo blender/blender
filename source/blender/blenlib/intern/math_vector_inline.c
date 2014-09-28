@@ -957,6 +957,18 @@ MINLINE bool compare_v4v4(const float v1[4], const float v2[4], const float limi
 	return false;
 }
 
+/**
+ * <pre>
+ *        + l1
+ *        |
+ * neg <- | -> pos
+ *        |
+ *        + l2
+ * </pre>
+ *
+ * \return Positive value when 'pt' is left-of-line
+ * (looking from 'l1' -> 'l2').
+ */
 MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2])
 {
 	return (((l1[0] - pt[0]) * (l2[1] - pt[1])) -

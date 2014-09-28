@@ -160,6 +160,12 @@ float area_poly_v3(const float verts[][3], unsigned int nr)
 	return normal_poly_v3(n, verts, nr) * 0.5f;
 }
 
+/**
+ * Scalar cross product of a 2d polygon.
+ *
+ * - equivalent to ``area * 2``
+ * - useful for checking polygon winding (a positive value is clockwise).
+ */
 float cross_poly_v2(const float verts[][2], unsigned int nr)
 {
 	unsigned int a;
@@ -1786,7 +1792,10 @@ float closest_to_line_v2(float cp[2], const float p[2], const float l1[2], const
 	return lambda;
 }
 
-/* little sister we only need to know lambda */
+/**
+ * A simplified version of #closest_to_line_v3
+ * we only need to return the ``lambda``
+ */
 float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3])
 {
 	float h[3], u[3];
