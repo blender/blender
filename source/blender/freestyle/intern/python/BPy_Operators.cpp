@@ -551,9 +551,10 @@ static PyObject *Operators_create(BPy_Operators *self, PyObject *args, PyObject 
 PyDoc_STRVAR(Operators_reset_doc,
 ".. staticmethod:: reset(delete_strokes=True)\n"
 "\n"
-"   Resets the stroke selection (and therefore chaining, splitting, sorting and shading)\n"
+"   Resets the line stylization process to the initial state.  The results of\n"
+"   stroke creation are accumulated if **delete_strokes** is set to False.\n"
 "\n"
-"   :arg delete_strokes: Delete the strokes that are currently stored\n"
+"   :arg delete_strokes: Delete the strokes that are currently stored.\n"
 "   :type delete_strokes: bool\n");
 
 static PyObject *Operators_reset(BPy_Operators *self, PyObject *args, PyObject *kwds)
