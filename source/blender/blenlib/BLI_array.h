@@ -88,12 +88,12 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 	(((void *)(arr) == NULL) &&                                               \
 	 ((void *)(_##arr##_static) != NULL) &&                                   \
 	/* don't add _##arr##_count below because it must be zero */              \
-	 (_bli_array_totalsize_static(arr) >= _##arr##_count + num)) ?            \
+	 (_bli_array_totalsize_static(arr) >= _##arr##_count + (num))) ?          \
 	/* we have an empty array and a static var big enough */                  \
 	(void)(arr = (void *)_##arr##_static)                                     \
 	    :                                                                     \
 	/* use existing static array or allocate */                               \
-	(LIKELY(_bli_array_totalsize(arr) >= _##arr##_count + num) ?              \
+	(LIKELY(_bli_array_totalsize(arr) >= _##arr##_count + (num)) ?            \
 	 (void)0 /* do nothing */ :                                               \
 	 _bli_array_grow_func((void **)&(arr), _##arr##_static,                   \
 	                       sizeof(*(arr)), _##arr##_count, num,               \
@@ -126,7 +126,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 
 /* appends (grows) & returns a pointer to the uninitialized memory */
 #define BLI_array_append_ret(arr) \
-	(BLI_array_reserve(arr, 1), &arr[(_##arr##_count += 1)])
+	(BLI_array_reserve(arr, 1), &arr[(_##arr##_count++)])
 
 #define BLI_array_free(arr)                                                   \
 	if (arr && (char *)arr != _##arr##_static) {                              \
