@@ -81,7 +81,7 @@ CallbackReturnType LoggingCallback::operator()(
       output = "iter      cost      cost_change  |gradient|   |step|    tr_ratio  tr_radius  ls_iter  iter_time  total_time\n";
     }
     const char* kReportRowFormat =
-        "% 4d % 8e   % 3.2e   % 3.2e  % 3.2e  % 3.2e % 3.2e     % 3d   % 3.2e   % 3.2e";
+        "% 4d % 8e   % 3.2e   % 3.2e  % 3.2e  % 3.2e % 3.2e     % 4d   % 3.2e   % 3.2e";
     output += StringPrintf(kReportRowFormat,
                           summary.iteration,
                           summary.cost,

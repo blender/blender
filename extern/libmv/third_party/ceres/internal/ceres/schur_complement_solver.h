@@ -46,6 +46,7 @@
 #include "ceres/suitesparse.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
+#include "ceres/block_random_access_diagonal_matrix.h"
 
 #ifdef CERES_USE_EIGEN_SPARSE
 #include "Eigen/SparseCholesky"
@@ -134,6 +135,7 @@ class SchurComplementSolver : public BlockSparseMatrixSolver {
  private:
   virtual void InitStorage(const CompressedRowBlockStructure* bs) = 0;
   virtual LinearSolver::Summary SolveReducedLinearSystem(
+      const LinearSolver::PerSolveOptions& per_solve_options,
       double* solution) = 0;
 
   LinearSolver::Options options_;
@@ -155,6 +157,7 @@ class DenseSchurComplementSolver : public SchurComplementSolver {
  private:
   virtual void InitStorage(const CompressedRowBlockStructure* bs);
   virtual LinearSolver::Summary SolveReducedLinearSystem(
+      const LinearSolver::PerSolveOptions& per_solve_options,
       double* solution);
 
   CERES_DISALLOW_COPY_AND_ASSIGN(DenseSchurComplementSolver);
@@ -169,12 +172,19 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
  private:
   virtual void InitStorage(const CompressedRowBlockStructure* bs);
   virtual LinearSolver::Summary SolveReducedLinearSystem(
+      const LinearSolver::PerSolveOptions& per_solve_options,
       double* solution);
   LinearSolver::Summary SolveReducedLinearSystemUsingSuiteSparse(
+      const LinearSolver::PerSolveOptions& per_solve_options,
       double* solution);
   LinearSolver::Summary SolveReducedLinearSystemUsingCXSparse(
+      const LinearSolver::PerSolveOptions& per_solve_options,
       double* solution);
   LinearSolver::Summary SolveReducedLinearSystemUsingEigen(
+      const LinearSolver::PerSolveOptions& per_solve_options,
+      double* solution);
+  LinearSolver::Summary SolveReducedLinearSystemUsingConjugateGradients(
+      const LinearSolver::PerSolveOptions& per_solve_options,
       double* solution);
 
   // Size of the blocks in the Schur complement.
@@ -206,6 +216,7 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
   scoped_ptr<SimplicialLDLT> simplicial_ldlt_;
 #endif
 
+  scoped_ptr<BlockRandomAccessDiagonalMatrix> preconditioner_;
   CERES_DISALLOW_COPY_AND_ASSIGN(SparseSchurComplementSolver);
 };
 

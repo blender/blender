@@ -32,7 +32,6 @@
 
 #include <utility>
 #include <vector>
-#include "Eigen/Dense"
 #include "ceres/block_random_access_diagonal_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/collections_port.h"
@@ -55,12 +54,12 @@ SchurJacobiPreconditioner::SchurJacobiPreconditioner(
       << "Jacobian should have atleast 1 f_block for "
       << "SCHUR_JACOBI preconditioner.";
 
-  block_size_.resize(num_blocks);
+  vector<int> blocks(num_blocks);
   for (int i = 0; i < num_blocks; ++i) {
-    block_size_[i] = bs.cols[i + options_.elimination_groups[0]].size;
+    blocks[i] = bs.cols[i + options_.elimination_groups[0]].size;
   }
 
-  m_.reset(new BlockRandomAccessDiagonalMatrix(block_size_));
+  m_.reset(new BlockRandomAccessDiagonalMatrix(blocks));
   InitEliminator(bs);
 }
 
@@ -99,32 +98,13 @@ bool SchurJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
 
   // Compute a subset of the entries of the Schur complement.
   eliminator_->Eliminate(&A, b.data(), D, m_.get(), rhs.data());
+  m_->Invert();
   return true;
 }
 
 void SchurJacobiPreconditioner::RightMultiply(const double* x,
                                               double* y) const {
-  CHECK_NOTNULL(x);
-  CHECK_NOTNULL(y);
-
-  const double* lhs_values =
-      down_cast<BlockRandomAccessDiagonalMatrix*>(m_.get())->matrix()->values();
-
-  // This loop can be easily multi-threaded with OpenMP if need be.
-  for (int i = 0; i < block_size_.size(); ++i) {
-    const int block_size = block_size_[i];
-    ConstMatrixRef block(lhs_values, block_size, block_size);
-
-    VectorRef(y, block_size) =
-        block
-        .selfadjointView<Eigen::Upper>()
-        .llt()
-        .solve(ConstVectorRef(x, block_size));
-
-    x += block_size;
-    y += block_size;
-    lhs_values += block_size * block_size;
-  }
+  m_->RightMultiply(x, y);
 }
 
 int SchurJacobiPreconditioner::num_rows() const {

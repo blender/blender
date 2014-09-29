@@ -94,11 +94,7 @@ class SchurJacobiPreconditioner : public BlockSparseMatrixPreconditioner {
   virtual bool UpdateImpl(const BlockSparseMatrix& A, const double* D);
 
   Preconditioner::Options options_;
-
-  // Sizes of the blocks in the schur complement.
-  vector<int> block_size_;
   scoped_ptr<SchurEliminatorBase> eliminator_;
-
   // Preconditioner matrix.
   scoped_ptr<BlockRandomAccessDiagonalMatrix> m_;
   CERES_DISALLOW_COPY_AND_ASSIGN(SchurJacobiPreconditioner);

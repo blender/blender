@@ -118,6 +118,7 @@ class CERES_EXPORT Solver {
 #endif
 
       num_linear_solver_threads = 1;
+      use_explicit_schur_complement = false;
       use_postordering = false;
       dynamic_sparsity = false;
       min_linear_solver_iterations = 0;
@@ -495,6 +496,29 @@ class CERES_EXPORT Solver {
     // for the cameras, where the group containing the points has an id
     // smaller than the group containing cameras.
     shared_ptr<ParameterBlockOrdering> linear_solver_ordering;
+
+    // Use an explicitly computed Schur complement matrix with
+    // ITERATIVE_SCHUR.
+    //
+    // By default this option is disabled and ITERATIVE_SCHUR
+    // evaluates evaluates matrix-vector products between the Schur
+    // complement and a vector implicitly by exploiting the algebraic
+    // expression for the Schur complement.
+    //
+    // The cost of this evaluation scales with the number of non-zeros
+    // in the Jacobian.
+    //
+    // For small to medium sized problems there is a sweet spot where
+    // computing the Schur complement is cheap enough that it is much
+    // more efficient to explicitly compute it and use it for evaluating
+    // the matrix-vector products.
+    //
+    // Enabling this option tells ITERATIVE_SCHUR to use an explicitly
+    // computed Schur complement.
+    //
+    // NOTE: This option can only be used with the SCHUR_JACOBI
+    // preconditioner.
+    bool use_explicit_schur_complement;
 
     // Sparse Cholesky factorization algorithms use a fill-reducing
     // ordering to permute the columns of the Jacobian matrix. There

@@ -120,6 +120,14 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
     OPTION_GT(max_consecutive_nonmonotonic_steps, 0);
   }
 
+  if (options.linear_solver_type == ITERATIVE_SCHUR &&
+      options.use_explicit_schur_complement &&
+      options.preconditioner_type != SCHUR_JACOBI) {
+    *error =  "use_explicit_schur_complement only supports"
+        "SCHUR_JACOBI as the preconditioner.";
+    return false;
+  }
+
   if (options.preconditioner_type == CLUSTER_JACOBI &&
       options.sparse_linear_algebra_library_type != SUITE_SPARSE) {
     *error =  "CLUSTER_JACOBI requires "

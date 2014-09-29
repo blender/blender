@@ -1,3 +1,106 @@
+commit b44cfdef25f6bf0917a23b3fd65cce38aa6a3362
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Sep 29 07:53:54 2014 -0700
+
+    Let ITERATIVE_SCHUR use an explicit Schur Complement matrix.
+    
+    Up till now ITERATIVE_SCHUR evaluates matrix-vector products
+    between the Schur complement and a vector implicitly by exploiting
+    the algebraic expression for the Schur complement.
+    
+    This cost of this evaluation scales with the number of non-zeros
+    in the Jacobian.
+    
+    For small to medium sized problems there is a sweet spot where
+    computing the Schur complement is cheap enough that it is much
+    more efficient to explicitly compute it and use it for evaluating
+    the matrix-vector products.
+    
+    This changes implements support for an explicit Schur complement
+    in ITERATIVE_SCHUR in combination with the SCHUR_JACOBI preconditioner.
+    
+    API wise a new bool Solver::Options::use_explicit_schur_complement
+    has been added.
+    
+    The implementation extends the SparseSchurComplementSolver to use
+    Conjugate Gradients.
+    
+    Example speedup:
+    
+    use_explicit_schur_complement = false
+    
+    Time (in seconds):
+    Preprocessor                            0.585
+    
+      Residual evaluation                   0.319
+      Jacobian evaluation                   1.590
+      Linear solver                        25.685
+    Minimizer                              27.990
+    
+    Postprocessor                           0.010
+    Total                                  28.585
+    
+    use_explicit_schur_complement = true
+    
+    Time (in seconds):
+    Preprocessor                            0.638
+    
+      Residual evaluation                   0.318
+      Jacobian evaluation                   1.507
+      Linear solver                         5.930
+    Minimizer                               8.144
+    
+    Postprocessor                           0.010
+    Total                                   8.791
+    
+    Which indicates an end-to-end speedup of more than 3x, with the linear
+    solver being sped up by > 4x.
+    
+    The idea to explore this optimization was inspired by the recent paper:
+    
+    Mining structure fragments for smart bundle adjustment
+    L. Carlone, P. Alcantarilla, H. Chiu, K. Zsolt, F. Dellaert
+    British Machine Vision Conference, 2014
+    
+    which uses a more complicated algorithm to compute parts of the
+    Schur complement to speed up the matrix-vector product.
+    
+    Change-Id: I95324af0ab351faa1600f5204039a1d2a64ae61d
+
+commit 4ad91490827f2ebebcc70d17e63ef653bf06fd0d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Sep 24 23:54:18 2014 -0700
+
+    Simplify the Block Jacobi and Schur Jacobi preconditioners.
+    
+    1. Extend the implementation of BlockRandomAccessDiagonalMatrix
+    by adding Invert and RightMultiply methods.
+    
+    2. Simplify the implementation of the Schur Jacobi preconditioner
+    using these new methods.
+    
+    3. Replace the custom storage used inside Block Jacobi preconditioner
+    with BlockRandomAccessDiagonalMatrix and simplify its implementation
+    too.
+    
+    Change-Id: I9d4888b35f0f228c08244abbdda5298b3ce9c466
+
+commit 8f7be1036b853addc33224d97b92412b5a1281b6
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Sep 29 08:13:35 2014 -0700
+
+    Fix a formatting error TrustRegionMinimizer logging.
+    
+    Change-Id: Iad1873c51eece46c3fdee1356d154367cfd7925e
+
+commit c99872d48e322662ea19efb9010a62b7432687ae
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Sep 24 21:30:02 2014 -0700
+
+    Add BlockRandomAccessSparseMatrix::SymmetricRightMultiply.
+    
+    Change-Id: Ib06a22a209b4c985ba218162dfb6bf46bd93169e
+
 commit d3ecd18625ba260e0d00912a305a448b566acc59
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Tue Sep 23 10:12:42 2014 -0700
@@ -560,93 +663,3 @@ Date:   Mon Aug 4 22:45:53 2014 -0700
     Small changes from Jim Roseborough.
     
     Change-Id: Ic8b19ea5c5f4f8fd782eb4420b30514153087d18
-
-commit a521fc3afc11425b46992388a83ef07017d02ac9
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Aug 1 08:27:35 2014 -0700
-
-    Simplify, cleanup and instrument SchurComplementSolver.
-    
-    The instrumentation revealed that EIGEN_SPARSE can be upto
-    an order of magnitude slower than CX_SPARSE on some bundle
-    adjustment problems.
-    
-    The problem comes down to the quality of AMD ordering that
-    CXSparse/Eigen implements. It does particularly badly
-    on the Schur complement. In the CXSparse implementation
-    we got around this by considering the block sparsity structure
-    and computing the AMD ordering on it and lifting it to the
-    full matrix.
-    
-    This is currently not possible with the release version of
-    Eigen, as the support for using preordered/natural orderings
-    is in the master branch but has not been released yet.
-    
-    Change-Id: I25588d3e723e50606f327db5759f174f58439e29
-
-commit b43e73a03485f0fd0fe514e356ad8925731d3a81
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Aug 1 12:09:09 2014 -0700
-
-    Simplify the Eigen code in SparseNormalCholeskySolver.
-    
-    Simplifying some of the template handling, and remove the use
-    of SelfAdjointView as it is not needed. The solver itself takes
-    an argument for where the data is actually stored.
-    
-    The performance of SparseNormalCholesky with EIGEN_SPARSE
-    seems to be on par with CX_SPARSE.
-    
-    Change-Id: I69e22a144b447c052b6cbe59ef1aa33eae2dd9e3
-
-commit 031598295c6b2f061c171b9b2338919f41b7eb0b
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jul 17 14:35:18 2014 -0700
-
-    Enable Eigen as sparse linear algebra library.
-    
-    SPARSE_NORMAL_CHOLESKY and SPARSE_SCHUR can now be used
-    with EIGEN_SPARSE as the backend.
-    
-    The performance is not as good as CXSparse. This needs to be
-    investigated. Is it because the quality of AMD ordering that
-    we are computing is not as good as the one for CXSparse? This
-    could be because we are working with the scalar matrix instead
-    of the block matrix.
-    
-    Also, the upper/lower triangular story is not completely clear.
-    Both of these issues will be benchmarked and tackled in the
-    near future.
-    
-    Also included in this change is a bunch of cleanup to the
-    SparseNormalCholeskySolver and SparseSchurComplementSolver
-    classes around the use of the of defines used to conditionally
-    compile out parts of the code.
-    
-    The system_test has been updated to test EIGEN_SPARSE also.
-    
-    Change-Id: I46a57e9c4c97782696879e0b15cfc7a93fe5496a
-
-commit 1b17145adf6aa0072db2989ad799e90313970ab3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Jul 30 10:14:15 2014 -0700
-
-    Make canned loss functions more robust.
-    
-    The loss functions that ship with ceres can sometimes
-    generate a zero first derivative if the residual is too
-    large.
-    
-    In such cases Corrector fails with an ugly undebuggable
-    crash. This CL is the first in a series of fixes to
-    take care of this.
-    
-    We clamp the values of rho' from below by
-    numeric_limits<double>::min().
-    
-    Also included here is some minor cleanup where the constants
-    are treated as doubles rather than integers.
-    
-    Thanks to Pierre Moulon for reporting this problem.
-    
-    Change-Id: I3aaf375303ecc2659bbf6fb56a812e7dc3a41106

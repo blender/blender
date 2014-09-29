@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@
 #define CERES_INTERNAL_BLOCK_JACOBI_PRECONDITIONER_H_
 
 #include <vector>
+#include "ceres/block_random_access_diagonal_matrix.h"
+#include "ceres/internal/scoped_ptr.h"
 #include "ceres/preconditioner.h"
 
 namespace ceres {
@@ -39,7 +41,6 @@ namespace internal {
 
 class BlockSparseMatrix;
 struct CompressedRowBlockStructure;
-class LinearOperator;
 
 // A block Jacobi preconditioner. This is intended for use with
 // conjugate gradients, or other iterative symmetric solvers. To use
@@ -60,18 +61,14 @@ class BlockJacobiPreconditioner : public BlockSparseMatrixPreconditioner {
   // Preconditioner interface
   virtual void RightMultiply(const double* x, double* y) const;
   virtual void LeftMultiply(const double* x, double* y) const;
-  virtual int num_rows() const { return num_rows_; }
-  virtual int num_cols() const { return num_rows_; }
+  virtual int num_rows() const { return m_->num_rows(); }
+  virtual int num_cols() const { return m_->num_rows(); }
 
+  const BlockRandomAccessDiagonalMatrix& matrix() const { return *m_; }
  private:
   virtual bool UpdateImpl(const BlockSparseMatrix& A, const double* D);
 
-  std::vector<double*> blocks_;
-  std::vector<double> block_storage_;
-  int num_rows_;
-
-  // The block structure of the matrix this preconditioner is for (e.g. J).
-  const CompressedRowBlockStructure& block_structure_;
+  scoped_ptr<BlockRandomAccessDiagonalMatrix> m_;
 };
 
 }  // namespace internal

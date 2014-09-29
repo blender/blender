@@ -30,9 +30,9 @@
 
 #include "ceres/block_jacobi_preconditioner.h"
 
-#include "Eigen/Cholesky"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
+#include "ceres/block_random_access_diagonal_matrix.h"
 #include "ceres/casts.h"
 #include "ceres/integral_types.h"
 #include "ceres/internal/eigen.h"
@@ -41,27 +41,14 @@ namespace ceres {
 namespace internal {
 
 BlockJacobiPreconditioner::BlockJacobiPreconditioner(
-    const BlockSparseMatrix& A)
-    : num_rows_(A.num_rows()),
-      block_structure_(*A.block_structure()) {
-  // Calculate the amount of storage needed.
-  int storage_needed = 0;
-  for (int c = 0; c < block_structure_.cols.size(); ++c) {
-    int size = block_structure_.cols[c].size;
-    storage_needed += size * size;
+    const BlockSparseMatrix& A) {
+  const CompressedRowBlockStructure* bs = A.block_structure();
+  vector<int> blocks(bs->cols.size());
+  for (int i = 0; i < blocks.size(); ++i) {
+    blocks[i] = bs->cols[i].size;
   }
 
-  // Size the offsets and storage.
-  blocks_.resize(block_structure_.cols.size());
-  block_storage_.resize(storage_needed);
-
-  // Put pointers to the storage in the offsets.
-  double* block_cursor = &block_storage_[0];
-  for (int c = 0; c < block_structure_.cols.size(); ++c) {
-    int size = block_structure_.cols[c].size;
-    blocks_[c] = block_cursor;
-    block_cursor += size * size;
-  }
+  m_.reset(new BlockRandomAccessDiagonalMatrix(blocks));
 }
 
 BlockJacobiPreconditioner::~BlockJacobiPreconditioner() {}
@@ -69,70 +56,54 @@ BlockJacobiPreconditioner::~BlockJacobiPreconditioner() {}
 bool BlockJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
                                            const double* D) {
   const CompressedRowBlockStructure* bs = A.block_structure();
-
-  // Compute the diagonal blocks by block inner products.
-  std::fill(block_storage_.begin(), block_storage_.end(), 0.0);
   const double* values = A.values();
-  for (int r = 0; r < bs->rows.size(); ++r) {
-    const int row_block_size = bs->rows[r].block.size;
-    const vector<Cell>& cells = bs->rows[r].cells;
-    for (int c = 0; c < cells.size(); ++c) {
-      const int col_block_size = bs->cols[cells[c].block_id].size;
-      ConstMatrixRef m(values + cells[c].position,
+  m_->SetZero();
+  for (int i = 0; i < bs->rows.size(); ++i) {
+    const int row_block_size = bs->rows[i].block.size;
+    const vector<Cell>& cells = bs->rows[i].cells;
+    for (int j = 0; j < cells.size(); ++j) {
+      const int block_id = cells[j].block_id;
+      const int col_block_size = bs->cols[block_id].size;
+
+      int r, c, row_stride, col_stride;
+      CellInfo* cell_info = m_->GetCell(block_id, block_id,
+                                        &r, &c,
+                                        &row_stride, &col_stride);
+      MatrixRef m(cell_info->values, row_stride, col_stride);
+      ConstMatrixRef b(values + cells[j].position,
                        row_block_size,
                        col_block_size);
-
-      MatrixRef(blocks_[cells[c].block_id],
-                col_block_size,
-                col_block_size).noalias() += m.transpose() * m;
-
-      // TODO(keir): Figure out when the below expression is actually faster
-      // than doing the full rank update. The issue is that for smaller sizes,
-      // the rankUpdate() function is slower than the full product done above.
-      //
-      // On the typical bundling problems, the above product is ~5% faster.
-      //
-      //   MatrixRef(blocks_[cells[c].block_id],
-      //             col_block_size,
-      //             col_block_size)
-      //      .selfadjointView<Eigen::Upper>()
-      //      .rankUpdate(m);
-      //
+      m.block(r, c, col_block_size, col_block_size) += b.transpose() * b;
     }
   }
 
-  // Add the diagonal and invert each block.
-  for (int c = 0; c < bs->cols.size(); ++c) {
-    const int size = block_structure_.cols[c].size;
-    const int position = block_structure_.cols[c].position;
-    MatrixRef block(blocks_[c], size, size);
-
-    if (D != NULL) {
-      block.diagonal() +=
-          ConstVectorRef(D + position, size).array().square().matrix();
+  if (D != NULL) {
+    // Add the diagonal.
+    int position = 0;
+    for (int i = 0; i < bs->cols.size(); ++i) {
+      const int block_size = bs->cols[i].size;
+      int r, c, row_stride, col_stride;
+      CellInfo* cell_info = m_->GetCell(i, i,
+                                        &r, &c,
+                                        &row_stride, &col_stride);
+      MatrixRef m(cell_info->values, row_stride, col_stride);
+      m.block(r, c, block_size, block_size).diagonal() +=
+          ConstVectorRef(D + position, block_size).array().square().matrix();
+      position += block_size;
     }
-
-    block = block.selfadjointView<Eigen::Upper>()
-                 .llt()
-                 .solve(Matrix::Identity(size, size));
   }
+
+  m_->Invert();
   return true;
 }
 
 void BlockJacobiPreconditioner::RightMultiply(const double* x,
                                               double* y) const {
-  for (int c = 0; c < block_structure_.cols.size(); ++c) {
-    const int size = block_structure_.cols[c].size;
-    const int position = block_structure_.cols[c].position;
-    ConstMatrixRef D(blocks_[c], size, size);
-    ConstVectorRef x_block(x + position, size);
-    VectorRef y_block(y + position, size);
-    y_block += D * x_block;
-  }
+  m_->RightMultiply(x, y);
 }
 
 void BlockJacobiPreconditioner::LeftMultiply(const double* x, double* y) const {
-  RightMultiply(x, y);
+  m_->RightMultiply(x, y);
 }
 
 }  // namespace internal

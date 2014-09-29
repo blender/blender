@@ -96,7 +96,11 @@ LinearSolver* LinearSolver::Create(const LinearSolver::Options& options) {
       return new DenseSchurComplementSolver(options);
 
     case ITERATIVE_SCHUR:
-      return new IterativeSchurComplementSolver(options);
+      if (options.use_explicit_schur_complement) {
+        return new SparseSchurComplementSolver(options);
+      } else {
+        return new IterativeSchurComplementSolver(options);
+      }
 
     case DENSE_QR:
       return new DenseQRSolver(options);

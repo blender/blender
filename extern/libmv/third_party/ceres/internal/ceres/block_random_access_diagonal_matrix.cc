@@ -34,15 +34,18 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include "Eigen/Dense"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/stl_util.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
-#include "ceres/stl_util.h"
 #include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
+
+// TODO(sameeragarwal): Drop the dependence on TripletSparseMatrix.
 
 BlockRandomAccessDiagonalMatrix::BlockRandomAccessDiagonalMatrix(
     const vector<int>& blocks)
@@ -51,9 +54,9 @@ BlockRandomAccessDiagonalMatrix::BlockRandomAccessDiagonalMatrix(
   // rows/columns.
   int num_cols = 0;
   int num_nonzeros = 0;
-  vector<int> col_layout;
+  vector<int> block_positions;
   for (int i = 0; i < blocks_.size(); ++i) {
-    col_layout.push_back(num_cols);
+    block_positions.push_back(num_cols);
     num_cols += blocks_[i];
     num_nonzeros += blocks_[i] * blocks_[i];
   }
@@ -72,7 +75,7 @@ BlockRandomAccessDiagonalMatrix::BlockRandomAccessDiagonalMatrix(
   for (int i = 0; i < blocks_.size(); ++i) {
     const int block_size = blocks_[i];
     layout_.push_back(new CellInfo(values + pos));
-    const int block_begin = col_layout[i];
+    const int block_begin = block_positions[i];
     for (int r = 0; r < block_size; ++r) {
       for (int c = 0; c < block_size; ++c, ++pos) {
         rows[pos] = block_begin + r;
@@ -113,6 +116,35 @@ void BlockRandomAccessDiagonalMatrix::SetZero() {
   if (tsm_->num_nonzeros()) {
     VectorRef(tsm_->mutable_values(),
               tsm_->num_nonzeros()).setZero();
+  }
+}
+
+void BlockRandomAccessDiagonalMatrix::Invert() {
+  double* values = tsm_->mutable_values();
+  for (int i = 0; i < blocks_.size(); ++i) {
+    const int block_size = blocks_[i];
+    MatrixRef block(values, block_size, block_size);
+    block =
+        block
+        .selfadjointView<Eigen::Upper>()
+        .llt()
+        .solve(Matrix::Identity(block_size, block_size));
+    values += block_size * block_size;
+  }
+}
+
+void BlockRandomAccessDiagonalMatrix::RightMultiply(const double* x,
+                                                    double* y) const {
+  CHECK_NOTNULL(x);
+  CHECK_NOTNULL(y);
+  const double* values = tsm_->values();
+  for (int i = 0; i < blocks_.size(); ++i) {
+    const int block_size = blocks_[i];
+    ConstMatrixRef block(values, block_size, block_size);
+    VectorRef(y, block_size).noalias() += block * ConstVectorRef(x, block_size);
+    x += block_size;
+    y += block_size;
+    values += block_size * block_size;
   }
 }
 

@@ -43,6 +43,7 @@
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
+#include "ceres/small_blas.h"
 
 namespace ceres {
 namespace internal {
@@ -75,6 +76,12 @@ class BlockRandomAccessSparseMatrix : public BlockRandomAccessMatrix {
   // locked.
   virtual void SetZero();
 
+  // Assume that the matrix is symmetric and only one half of the
+  // matrix is stored.
+  //
+  // y += S * x
+  void SymmetricRightMultiply(const double* x, double* y) const;
+
   // Since the matrix is square, num_rows() == num_cols().
   virtual int num_rows() const { return tsm_->num_rows(); }
   virtual int num_cols() const { return tsm_->num_cols(); }
@@ -84,13 +91,20 @@ class BlockRandomAccessSparseMatrix : public BlockRandomAccessMatrix {
   TripletSparseMatrix* mutable_matrix() { return tsm_.get(); }
 
  private:
-  int64 IntPairToLong(int a, int b) {
-    return a * kMaxRowBlocks + b;
+  int64 IntPairToLong(int row, int col) const {
+    return row * kMaxRowBlocks + col;
+  }
+
+  void LongToIntPair(int64 index, int* row, int* col) const {
+    *row = index / kMaxRowBlocks;
+    *col = index % kMaxRowBlocks;
   }
 
   const int64 kMaxRowBlocks;
+
   // row/column block sizes.
   const vector<int> blocks_;
+  vector<int> block_positions_;
 
   // A mapping from <row_block_id, col_block_id> to the position in
   // the values array of tsm_ where the block is stored.

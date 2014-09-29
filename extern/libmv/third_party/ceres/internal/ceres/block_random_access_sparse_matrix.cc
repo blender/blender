@@ -54,9 +54,9 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
   // Build the row/column layout vector and count the number of scalar
   // rows/columns.
   int num_cols = 0;
-  vector<int> col_layout;
+  block_positions_.reserve(blocks_.size());
   for (int i = 0; i < blocks_.size(); ++i) {
-    col_layout.push_back(num_cols);
+    block_positions_.push_back(num_cols);
     num_cols += blocks_[i];
   }
 
@@ -105,8 +105,8 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
         layout_[IntPairToLong(row_block_id, col_block_id)]->values - values;
     for (int r = 0; r < row_block_size; ++r) {
       for (int c = 0; c < col_block_size; ++c, ++pos) {
-          rows[pos] = col_layout[row_block_id] + r;
-          cols[pos] = col_layout[col_block_id] + c;
+          rows[pos] = block_positions_[row_block_id] + r;
+          cols[pos] = block_positions_[col_block_id] + c;
           values[pos] = 1.0;
           DCHECK_LT(rows[pos], tsm_->num_rows());
           DCHECK_LT(cols[pos], tsm_->num_rows());
@@ -151,6 +151,38 @@ void BlockRandomAccessSparseMatrix::SetZero() {
   if (tsm_->num_nonzeros()) {
     VectorRef(tsm_->mutable_values(),
               tsm_->num_nonzeros()).setZero();
+  }
+}
+
+void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
+                                                           double* y) const {
+  for (LayoutType::const_iterator it = layout_.begin();
+       it != layout_.end();
+       ++it) {
+    int row;
+    int col;
+    LongToIntPair(it->first, &row, &col);
+
+    const int row_block_size = blocks_[row];
+    const int row_block_pos = block_positions_[row];
+    const int col_block_size = blocks_[col];
+    const int col_block_pos = block_positions_[col];
+
+    MatrixVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
+        it->second->values, row_block_size, col_block_size,
+        x + col_block_pos,
+        y + row_block_pos);
+
+    // Since the matrix is symmetric, but only the upper triangular
+    // part is stored, if the block being accessed is not a diagonal
+    // block, then use the same block to do the corresponding lower
+    // triangular multiply also.
+    if (row != col) {
+      MatrixTransposeVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
+          it->second->values, row_block_size, col_block_size,
+          x + row_block_pos,
+          y + col_block_pos);
+    }
   }
 }
 
