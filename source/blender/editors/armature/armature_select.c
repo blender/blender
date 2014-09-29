@@ -126,7 +126,7 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 					if (sel) {
 						if (do_nearest) {
 							if (minsel > buffer[4 * i + 1]) {
-								firstSel = bone;
+								firstSel = data;
 								minsel = buffer[4 * i + 1];
 							}
 						}
@@ -138,7 +138,7 @@ void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer,
 					else {
 						if (do_nearest) {
 							if (minunsel > buffer[4 * i + 1]) {
-								firstunSel = bone;
+								firstunSel = data;
 								minunsel = buffer[4 * i + 1];
 							}
 						}
