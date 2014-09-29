@@ -156,7 +156,7 @@
           <ThemeWidgetColors outline="#0a0a0a"
                              inner="#191919e6"
                              inner_sel="#8c8c8cff"
-                             item="#2d2d2de6"
+                             item="#33406be6"
                              text="#a0a0a0"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
@@ -286,6 +286,7 @@
                    editmesh_active="#ff020080"
                    normal="#22dddd"
                    vertex_normal="#2361dd"
+                   split_normal="#dd23dd"
                    bone_solid="#c8c8c8"
                    bone_pose="#50c8ff"
                    bone_pose_active="#8cffff"
@@ -310,7 +311,7 @@
                               tab_active="#212947"
                               tab_inactive="#000000"
                               tab_back="#060606ff"
-                              tab_outline="#3a3a3a">
+                              tab_outline="#000000">
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
                                    gradient="#0a0a0a"
