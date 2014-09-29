@@ -8999,7 +8999,7 @@ static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, co
 			/* link at active layer (view3d->lay if in context, else scene->lay */
 			if ((flag & FILE_ACTIVELAY)) {
 				View3D *v3d = CTX_wm_view3d(C);
-				ob->lay = v3d ? v3d->layact : scene->lay;
+				ob->lay = v3d ? v3d->lay : scene->lay;
 			}
 			
 			ob->mode = OB_MODE_OBJECT;
