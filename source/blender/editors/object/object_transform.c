@@ -974,7 +974,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						DAG_id_tag_update(&ob_other->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 						copy_v3_v3(centn, cent);
-						mul_mat3_m4_v3(ob_other->obmat, centn); /* ommit translation part */
+						mul_mat3_m4_v3(ob_other->obmat, centn); /* omit translation part */
 						add_v3_v3(ob_other->loc, centn);
 
 						BKE_object_where_is_calc(scene, ob_other);

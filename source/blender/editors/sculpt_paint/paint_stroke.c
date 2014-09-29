@@ -758,7 +758,7 @@ bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 
 bool paint_supports_texture(PaintMode mode)
 {
-	/* ommit: PAINT_WEIGHT, PAINT_SCULPT_UV, PAINT_INVALID */
+	/* omit: PAINT_WEIGHT, PAINT_SCULPT_UV, PAINT_INVALID */
 	return ELEM(mode, PAINT_SCULPT, PAINT_VERTEX, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D);
 }
 

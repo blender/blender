@@ -420,7 +420,7 @@ static void python_script_error_jump_text(struct Text *text)
 typedef struct {
 	PyObject_HEAD
 	PyObject *md_dict;
-	/* ommit other values, we only want the dict. */
+	/* omit other values, we only want the dict. */
 } PyModuleObject;
 #endif
 

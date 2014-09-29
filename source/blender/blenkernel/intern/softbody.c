@@ -2160,7 +2160,7 @@ static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, floa
 		// dfdx_spring(ia, ia, op, dir, bs->len, distance, -mpos);
 		/* depending on my vel */
 		// dfdv_goal(ia, ia, mvel); // well that ignores geometie
-		if (bp2->goal < SOFTGOALSNAP) { /* ommit this bp when it snaps */
+		if (bp2->goal < SOFTGOALSNAP) {  /* omit this bp when it snaps */
 			/* depending on other pos */
 			// dfdx_spring(ia, ic, op, dir, bs->len, distance, mpos);
 			/* depending on other vel */
@@ -2257,7 +2257,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 		}
 		/* naive ball self collision done */
 
-		if (_final_goal(ob, bp) < SOFTGOALSNAP) { /* ommit this bp when it snaps */
+		if (_final_goal(ob, bp) < SOFTGOALSNAP) {  /* omit this bp when it snaps */
 			float auxvect[3];
 			float velgoal[3];
 
@@ -2652,7 +2652,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 			}
 			/* naive ball self collision done */
 
-			if (_final_goal(ob, bp) < SOFTGOALSNAP) { /* ommit this bp when it snaps */
+			if (_final_goal(ob, bp) < SOFTGOALSNAP) {  /* omit this bp when it snaps */
 				float auxvect[3];
 				float velgoal[3];
 
