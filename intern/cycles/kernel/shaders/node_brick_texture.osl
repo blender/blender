@@ -93,6 +93,6 @@ shader node_brick_texture(
 		Col[2] = facm * (Color1[2]) + tint * Color2[2];
 	}
 	
-	Color = (Fac == 1.0) ? Mortar: Col;
+	Color = (Fac == 1.0) ? Mortar : Col;
 }
 
