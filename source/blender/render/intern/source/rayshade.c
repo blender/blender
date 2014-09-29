@@ -2371,9 +2371,9 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, const float lampco[
 		mul_m3_v3(lar->mat, vec);
 		
 		/* set start and vec */
-		isec->dir[0] = vec[0]+lampco[0]-isec->start[0];
-		isec->dir[1] = vec[1]+lampco[1]-isec->start[1];
-		isec->dir[2] = vec[2]+lampco[2]-isec->start[2];
+		isec->dir[0] = vec[0]+lampco[0]-shi->co[0];
+		isec->dir[1] = vec[1]+lampco[1]-shi->co[1];
+		isec->dir[2] = vec[2]+lampco[2]-shi->co[2];
 		
 		RE_instance_rotate_ray_dir(shi->obi, isec);
 		
