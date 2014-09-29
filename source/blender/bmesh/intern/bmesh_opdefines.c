@@ -104,7 +104,7 @@ static BMOpDefine bmo_smooth_vert_def = {
 	"smooth_vert",
 	/* slots_in */
 	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},    /* input vertices */
-	 {"smooth_factor",  BMO_OP_SLOT_FLT},   /* Smoothing factor, 0.5f to get previous behavior */
+	 {"factor", BMO_OP_SLOT_FLT},           /* smoothing factor */
 	 {"mirror_clip_x", BMO_OP_SLOT_BOOL},   /* set vertices close to the x axis before the operation to 0 */
 	 {"mirror_clip_y", BMO_OP_SLOT_BOOL},   /* set vertices close to the y axis before the operation to 0 */
 	 {"mirror_clip_z", BMO_OP_SLOT_BOOL},   /* set vertices close to the z axis before the operation to 0 */
