@@ -28,13 +28,15 @@
  */
 
 #ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
 #  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406  /* gcc4.6+ only */
 #    pragma GCC diagnostic error "-Wsign-compare"
 #    pragma GCC diagnostic error "-Wconversion"
 #  endif
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408  /* gcc4.8+ only (behavior changed to ignore globals)*/
+#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408
+     /* gcc4.8+ only (behavior changed to ignore globals)*/
 #    pragma GCC diagnostic error "-Wshadow"
+     /* older gcc changed behavior with ternary */
+#    pragma GCC diagnostic error "-Wsign-conversion"
 #  endif
 /* pedantic gives too many issues, developers can define this for own use */
 #  ifdef WARN_PEDANTIC
