@@ -58,7 +58,7 @@ static void imb_handle_alpha(ImBuf *ibuf, int flags, char colorspace[IM_MAX_SPAC
 	int alpha_flags;
 
 	if (colorspace) {
-		if (ibuf->rect) {
+		if (ibuf->rect != NULL && ibuf->rect_float == NULL) {
 			/* byte buffer is never internally converted to some standard space,
 			 * store pointer to it's color space descriptor instead
 			 */
