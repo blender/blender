@@ -628,7 +628,7 @@ static unsigned int bm_uuidwalk_init_from_edge(
 /** \name Internal UUIDFaceStep API
  * \{ */
 
-static int facestep_sort(const void *a, const const void *b)
+static int facestep_sort(const void *a, const void *b)
 {
 	const UUIDFaceStepItem *fstep_a = a;
 	const UUIDFaceStepItem *fstep_b = b;
