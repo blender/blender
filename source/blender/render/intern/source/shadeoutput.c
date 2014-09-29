@@ -1717,7 +1717,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	 */
 	const int color_passes =
 		SCE_PASS_COMBINED | SCE_PASS_RGBA | SCE_PASS_DIFFUSE | SCE_PASS_SPEC |
-		SCE_PASS_REFLECT | SCE_PASS_NORMAL | SCE_PASS_REFRACT | SCE_PASS_EMIT;
+		SCE_PASS_REFLECT | SCE_PASS_NORMAL | SCE_PASS_REFRACT | SCE_PASS_EMIT | SCE_PASS_SHADOW;
 
 	Material *ma= shi->mat;
 	int passflag= shi->passflag;
