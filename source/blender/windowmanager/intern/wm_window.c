@@ -339,6 +339,19 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 	}
 }
 
+float wm_window_pixelsize(wmWindow *win)
+{
+	float pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
+	
+	switch (U.virtual_pixel) {
+		default:
+		case VIRTUAL_PIXEL_NATIVE:
+			return pixelsize;
+		case VIRTUAL_PIXEL_DOUBLE:
+			return 2.0f * pixelsize;
+	}
+}
+
 /* belongs to below */
 static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 {
@@ -397,7 +410,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		
 		/* displays with larger native pixels, like Macbook. Used to scale dpi with */
 		/* needed here, because it's used before it reads userdef */
-		U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
+		U.pixelsize = wm_window_pixelsize(win);
 		BKE_userdef_state();
 		
 		wm_window_swap_buffers(win);
@@ -686,7 +699,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 		
 		/* this can change per window */
-		U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
+		U.pixelsize = wm_window_pixelsize(win);
 		BKE_userdef_state();
 	}
 }
@@ -1046,7 +1059,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			case GHOST_kEventNativeResolutionChange:
 				// printf("change, pixel size %f\n", GHOST_GetNativePixelSize(win->ghostwin));
 				
-				U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
+				U.pixelsize = wm_window_pixelsize(win);
 				BKE_userdef_state();
 				WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 				WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);

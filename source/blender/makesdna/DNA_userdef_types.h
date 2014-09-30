@@ -534,6 +534,8 @@ typedef struct UserDef {
 	
 	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
 	float pixelsize;			/* private, set by GHOST, to multiply DPI with */
+	int virtual_pixel;			/* virtual pixelsize mode */
+	int pad2;
 
 	short pie_interaction_type;     /* if keeping a pie menu spawn button pressed after this time, it turns into
 	                             * a drag/release pie menu */
@@ -853,6 +855,11 @@ typedef enum eImageDrawMethod {
 	IMAGE_DRAW_METHOD_2DTEXTURE = 2,
 	IMAGE_DRAW_METHOD_DRAWPIXELS = 3,
 } eImageDrawMethod;
+
+typedef enum eUserpref_VirtualPixel {
+	VIRTUAL_PIXEL_NATIVE = 0,
+	VIRTUAL_PIXEL_DOUBLE = 1,
+} eUserpref_VirtualPixel;
 
 #ifdef __cplusplus
 }
