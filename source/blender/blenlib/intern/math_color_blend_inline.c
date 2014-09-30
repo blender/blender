@@ -781,7 +781,7 @@ MINLINE void blend_color_add_alpha_float(float dst[4], const float src1[4], cons
 	}
 }
 
-MINLINE void blend_color_overlay_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_overlay_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -807,7 +807,7 @@ MINLINE void blend_color_overlay_float(float dst[3], const float src1[3], const 
 }
 
 
-MINLINE void blend_color_hardlight_float(float dst[4], const float src1[4], const float src2[2])
+MINLINE void blend_color_hardlight_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -832,7 +832,7 @@ MINLINE void blend_color_hardlight_float(float dst[4], const float src1[4], cons
 	}
 }
 
-MINLINE void blend_color_burn_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_burn_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -850,7 +850,7 @@ MINLINE void blend_color_burn_float(float dst[3], const float src1[3], const flo
 	}
 }
 
-MINLINE void blend_color_linearburn_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_linearburn_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -869,7 +869,7 @@ MINLINE void blend_color_linearburn_float(float dst[3], const float src1[3], con
 }
 
 
-MINLINE void blend_color_dodge_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_dodge_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -887,7 +887,7 @@ MINLINE void blend_color_dodge_float(float dst[3], const float src1[3], const fl
 	}
 }
 
-MINLINE void blend_color_screen_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_screen_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -905,7 +905,7 @@ MINLINE void blend_color_screen_float(float dst[3], const float src1[3], const f
 	}
 }
 
-MINLINE void blend_color_softlight_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_softlight_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -930,7 +930,7 @@ MINLINE void blend_color_softlight_float(float dst[3], const float src1[3], cons
 	}
 }
 
-MINLINE void blend_color_pinlight_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_pinlight_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -956,7 +956,7 @@ MINLINE void blend_color_pinlight_float(float dst[3], const float src1[3], const
 }
 
 
-MINLINE void blend_color_linearlight_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_linearlight_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -982,7 +982,7 @@ MINLINE void blend_color_linearlight_float(float dst[3], const float src1[3], co
 }
 
 
-MINLINE void blend_color_vividlight_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_vividlight_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -1013,7 +1013,7 @@ MINLINE void blend_color_vividlight_float(float dst[3], const float src1[3], con
 	}
 }
 
-MINLINE void blend_color_difference_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_difference_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -1031,7 +1031,7 @@ MINLINE void blend_color_difference_float(float dst[3], const float src1[3], con
 }
 
 
-MINLINE void blend_color_exclusion_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_exclusion_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -1050,7 +1050,7 @@ MINLINE void blend_color_exclusion_float(float dst[3], const float src1[3], cons
 
 }
 
-MINLINE void blend_color_color_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_color_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -1078,7 +1078,7 @@ MINLINE void blend_color_color_float(float dst[3], const float src1[3], const fl
 }
 
 
-MINLINE void blend_color_hue_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_hue_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -1104,7 +1104,7 @@ MINLINE void blend_color_hue_float(float dst[3], const float src1[3], const floa
 	}
 }
 
-MINLINE void blend_color_saturation_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_saturation_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
@@ -1131,7 +1131,7 @@ MINLINE void blend_color_saturation_float(float dst[3], const float src1[3], con
 	}
 }
 
-MINLINE void blend_color_luminosity_float(float dst[3], const float src1[3], const float src2[3])
+MINLINE void blend_color_luminosity_float(float dst[4], const float src1[4], const float src2[4])
 {
 	const float fac = src2[3];
 	if (fac != 0.0f && fac < 1.0f) {
