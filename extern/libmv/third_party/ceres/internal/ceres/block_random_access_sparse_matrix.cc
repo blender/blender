@@ -88,6 +88,8 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
        ++it) {
     const int row_block_size = blocks_[it->first];
     const int col_block_size = blocks_[it->second];
+    cell_values_.push_back(make_pair(make_pair(it->first, it->second),
+                                     values + pos));
     layout_[IntPairToLong(it->first, it->second)] =
         new CellInfo(values + pos);
     pos += row_block_size * col_block_size;
@@ -156,20 +158,19 @@ void BlockRandomAccessSparseMatrix::SetZero() {
 
 void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
                                                            double* y) const {
-  for (LayoutType::const_iterator it = layout_.begin();
-       it != layout_.end();
-       ++it) {
-    int row;
-    int col;
-    LongToIntPair(it->first, &row, &col);
-
+  vector< pair<pair<int, int>, double*> >::const_iterator it =
+      cell_values_.begin();
+  for (; it != cell_values_.end(); ++it) {
+    const int row = it->first.first;
     const int row_block_size = blocks_[row];
     const int row_block_pos = block_positions_[row];
+
+    const int col = it->first.second;
     const int col_block_size = blocks_[col];
     const int col_block_pos = block_positions_[col];
 
     MatrixVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-        it->second->values, row_block_size, col_block_size,
+        it->second, row_block_size, col_block_size,
         x + col_block_pos,
         y + row_block_pos);
 
@@ -179,7 +180,7 @@ void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
     // triangular multiply also.
     if (row != col) {
       MatrixTransposeVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-          it->second->values, row_block_size, col_block_size,
+          it->second, row_block_size, col_block_size,
           x + row_block_pos,
           y + col_block_pos);
     }

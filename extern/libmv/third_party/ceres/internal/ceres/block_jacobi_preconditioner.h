@@ -60,7 +60,6 @@ class BlockJacobiPreconditioner : public BlockSparseMatrixPreconditioner {
 
   // Preconditioner interface
   virtual void RightMultiply(const double* x, double* y) const;
-  virtual void LeftMultiply(const double* x, double* y) const;
   virtual int num_rows() const { return m_->num_rows(); }
   virtual int num_cols() const { return m_->num_rows(); }
 

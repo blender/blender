@@ -102,9 +102,5 @@ void BlockJacobiPreconditioner::RightMultiply(const double* x,
   m_->RightMultiply(x, y);
 }
 
-void BlockJacobiPreconditioner::LeftMultiply(const double* x, double* y) const {
-  m_->RightMultiply(x, y);
-}
-
 }  // namespace internal
 }  // namespace ceres

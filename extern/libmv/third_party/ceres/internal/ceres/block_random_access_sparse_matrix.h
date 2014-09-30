@@ -111,6 +111,10 @@ class BlockRandomAccessSparseMatrix : public BlockRandomAccessMatrix {
   typedef HashMap<long int, CellInfo* > LayoutType;
   LayoutType layout_;
 
+  // In order traversal of contents of the matrix. This allows us to
+  // implement a matrix-vector which is 20% faster than using the
+  // iterator in the Layout object instead.
+  vector<pair<pair<int, int>, double*> > cell_values_;
   // The underlying matrix object which actually stores the cells.
   scoped_ptr<TripletSparseMatrix> tsm_;
 

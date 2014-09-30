@@ -1,3 +1,25 @@
+commit 9e11cd16d09403b9270e621e839d5948b6a74b8d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Sep 29 14:27:58 2014 -0700
+
+    Faster  BlockRandomAccessSparseMatrix::SymmetricRightMultiply.
+    
+    Trade a small amount of memory to improve the cache coherency of
+    the SymmetricRightMultiply operation.
+    
+    The resulting code leads to a 10-20% speedup in the linear solver
+    end to end.
+    
+    Change-Id: I8ab2fe152099e849b211b5b19e4ef9f03d8e7f1c
+
+commit 46b8461fd010c1e7ffce6bb2bdf8a84b659d5e09
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Sep 29 15:10:58 2014 -0700
+
+    Various minor fixes from William Rucklidge.
+    
+    Change-Id: Ibe731d5db374ad8ee148d62a9fdd8d726b607a3f
+
 commit b44cfdef25f6bf0917a23b3fd65cce38aa6a3362
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Mon Sep 29 07:53:54 2014 -0700
@@ -647,19 +669,3 @@ Date:   Thu Aug 7 12:19:10 2014 -0700
     construction is the right thing to do.
     
     Change-Id: I3bfdc89bb0027c8d67cde937e8f2fa385d89c30c
-
-commit cfb36463f9c1f806121779d651c7105ad899bb20
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 5 14:42:33 2014 -0700
-
-    Small fixes from William Rucklidge.
-    
-    Change-Id: I0be52f0f1e53cedccffe4807dc664a2f3fb4a8e4
-
-commit 9a41132a0523af407b53644c07900f86aa6fceac
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Aug 4 22:45:53 2014 -0700
-
-    Small changes from Jim Roseborough.
-    
-    Change-Id: Ic8b19ea5c5f4f8fd782eb4420b30514153087d18
