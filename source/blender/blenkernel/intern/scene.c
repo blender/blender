@@ -1994,14 +1994,13 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
 	switch (unit_type) {
 		case B_UNIT_LENGTH:
 			return value * (double)unit->scale_length;
-		case B_UNIT_CAMERA:
-			return value * (double)unit->scale_length;
 		case B_UNIT_AREA:
 			return value * pow(unit->scale_length, 2);
 		case B_UNIT_VOLUME:
 			return value * pow(unit->scale_length, 3);
 		case B_UNIT_MASS:
 			return value * pow(unit->scale_length, 3);
+		case B_UNIT_CAMERA:  /* *Do not* use scene's unit scale for camera focal lens! See T42026. */
 		default:
 			return value;
 	}
