@@ -96,7 +96,9 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int use_object_instantiation;
 	int sort_by_name;
 	int export_transformation_type;
-	int open_sim; 
+	int open_sim;
+
+	int export_count;
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -148,7 +150,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	ED_object_editmode_load(CTX_data_edit_object(C));
 
 
-	int export_count = collada_export(CTX_data_scene(C),
+	export_count = collada_export(CTX_data_scene(C),
 		filepath,
 		apply_modifiers,
 		export_mesh_type,
