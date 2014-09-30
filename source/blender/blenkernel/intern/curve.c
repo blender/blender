@@ -2590,7 +2590,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 			if (nu->type == CU_POLY) {
 				len = nu->pntsu;
 				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList2");
-				if (need_seglen) {
+				if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
 					bl->seglen = MEM_mallocN(segcount * sizeof(float), "makeBevelList2_seglen");
 					bl->segbevcount = MEM_mallocN(segcount * sizeof(int), "makeBevelList2_segbevcount");
 				}
@@ -2613,7 +2613,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 					bevp->weight = bp->weight;
 					bevp->split_tag = true;
 					bp++;
-					if (seglen != NULL) {
+					if (seglen != NULL && len != 0) {
 						*seglen = len_v3v3(bevp->vec, bp->vec);
 						bevp++;
 						bevp->offset = *seglen;
@@ -2629,11 +2629,6 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 				if ((nu->flagu & CU_NURB_CYCLIC) == 0) {
 					bevlist_firstlast_direction_calc_from_bpoint(nu, bl);
-					if (seglen != NULL) {
-						*seglen = len_v3v3(bevp->vec, nu->bp->vec);
-						bl->bevpoints->offset = *seglen;
-						*segbevcount = 1;
-					}
 				}
 			}
 			else if (nu->type == CU_BEZIER) {
@@ -2641,7 +2636,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				len = segcount * resolu + 1;
 
 				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelBPoints");
-				if (need_seglen) {
+				if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
 					bl->seglen = MEM_mallocN(segcount * sizeof(float), "makeBevelBPoints_seglen");
 					bl->segbevcount = MEM_mallocN(segcount * sizeof(int), "makeBevelBPoints_segbevcount");
 				}
@@ -2777,7 +2772,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 					len = (resolu * segcount);
 
 					bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList3");
-					if (need_seglen) {
+					if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
 						bl->seglen = MEM_mallocN(segcount * sizeof(float), "makeBevelList3_seglen");
 						bl->segbevcount = MEM_mallocN(segcount * sizeof(int), "makeBevelList3_segbevcount");
 					}
