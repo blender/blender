@@ -1651,7 +1651,8 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 				else { /* shadowonly_flag == MA_SO_SHADED */
 					/* Use shaded value */
 					accum = 1.0f - shaded;
-			}}
+				}
+			}
 
 			shr->alpha= (shi->alpha)*(accum);
 			if (shr->alpha<0.0f) shr->alpha=0.0f;
