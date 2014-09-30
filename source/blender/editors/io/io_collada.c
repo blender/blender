@@ -148,33 +148,36 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	ED_object_editmode_load(CTX_data_edit_object(C));
 
 
+	int export_count = collada_export(CTX_data_scene(C),
+		filepath,
+		apply_modifiers,
+		export_mesh_type,
+		selected,
+		include_children,
+		include_armatures,
+		include_shapekeys,
+		deform_bones_only,
 
-	if (collada_export(CTX_data_scene(C),
-	                   filepath,
-	                   apply_modifiers,
-	                   export_mesh_type,
-	                   selected,
-	                   include_children,
-	                   include_armatures,
-	                   include_shapekeys,
-	                   deform_bones_only,
+		active_uv_only,
+		include_uv_textures,
+		include_material_textures,
+		use_texture_copies,
 
-	                   active_uv_only,
-	                   include_uv_textures,
-	                   include_material_textures,
-	                   use_texture_copies,
+		triangulate,
+		use_object_instantiation,
+		sort_by_name,
+		export_transformation_type,
+		open_sim);
 
-	                   triangulate,
-	                   use_object_instantiation,
-	                   sort_by_name,
-	                   export_transformation_type,
-	                   open_sim))
-	{
-		return OPERATOR_FINISHED;
-	}
-	else {
-		BKE_report(op->reports, RPT_WARNING, "Export file not created");
+	if(export_count == 0) {
+		BKE_report(op->reports, RPT_WARNING, "Export file is empty");
 		return OPERATOR_CANCELLED;
+		}
+	else {
+		char buff[100];
+		sprintf(buff, "Exported %d Objects", export_count);
+		BKE_report(op->reports, RPT_INFO, buff);
+		return OPERATOR_FINISHED;
 	}
 }
 
