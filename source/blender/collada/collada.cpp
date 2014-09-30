@@ -111,16 +111,28 @@ int collada_export(Scene *sce,
 
 	eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
 	export_settings.export_set = BKE_object_relational_superset(sce, objectSet, (eObRelationTypes)includeFilter);
+	int export_count = BLI_linklist_length(export_settings.export_set);
 
-	if (export_settings.sort_by_name)
-		bc_bubble_sort_by_Object_name(export_settings.export_set);
+	if (export_count==0)
+	{
+		if (export_settings.selected) {
+			fprintf(stderr, "Collada: Found no objects to export.\nPlease ensure that all objects which shall be exported are also visible in the 3D Viewport.\n");
+		}
+		else{
+			fprintf(stderr, "Collada: Your scene seems to be empty. No Objects will be exported.\n");
+		}
+	}
+	else {
+		if (export_settings.sort_by_name)
+			bc_bubble_sort_by_Object_name(export_settings.export_set);
+	}
 
 	DocumentExporter exporter(&export_settings);
 	exporter.exportCurrentScene(sce);
 
 	BLI_linklist_free(export_settings.export_set, NULL);
 
-	return 1;
+	return export_count;
 }
 
 /* end extern C */
