@@ -168,6 +168,15 @@ static void playanim_window_get_size(int *width_r, int *height_r)
 	GHOST_DisposeRectangle(bounds);
 }
 
+static void playanim_gl_matrix(void)
+{
+	/* unified matrix, note it affects offset for drawing */
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+	glMatrixMode(GL_MODELVIEW);
+}
+
 /* implementation */
 static void playanim_event_qual_update(void)
 {
@@ -780,11 +789,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 			glViewport(0, 0, ps->win_x, ps->win_y);
 			glScissor(0, 0, ps->win_x, ps->win_y);
 			
-			/* unified matrix, note it affects offset for drawing */
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
-			glMatrixMode(GL_MODELVIEW);
+			playanim_gl_matrix();
 
 			glPixelZoom(ps->zoom, ps->zoom);
 			ptottime = 0.0;
@@ -1008,11 +1013,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 		playanim_window_open("Blender:Anim", start_x, start_y, ibuf->x, ibuf->y);
 
-		/* unified matrix, note it affects offset for drawing */
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
-		glMatrixMode(GL_MODELVIEW);
+		playanim_gl_matrix();
 	}
 
 	GHOST_GetMainDisplayDimensions(g_WS.ghost_system, &maxwinx, &maxwiny);
