@@ -262,7 +262,7 @@ set(SRC
 	internal/ceres/wall_time.h
 )
 
-if(TRUE)
+if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 	list(APPEND SRC
 		internal/ceres/generated/partitioned_matrix_view_2_2_2.cc
 		internal/ceres/generated/partitioned_matrix_view_2_2_3.cc
@@ -301,6 +301,8 @@ if(TRUE)
 		internal/ceres/generated/schur_eliminator_4_4_4.cc
 		internal/ceres/generated/schur_eliminator_4_4_d.cc
 	)
+else()
+	add_definitions(-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
 endif()
 
 if(WIN32)

@@ -244,6 +244,7 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
+option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size schur specializations." ON)
 
 # Freestyle
 option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)

@@ -138,10 +138,12 @@ ${sources}
 ${headers}
 )
 
-if(TRUE)
+if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 	list(APPEND SRC
 ${generated_sources}
 	)
+else()
+	add_definitions-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
 endif()
 
 if(WIN32)
@@ -214,9 +216,12 @@ src = []
 defs = []
 
 $src
-src += env.Glob('internal/ceres/generated/schur_eliminator_d_d_d.cc')
-src += env.Glob('internal/ceres/generated/partitioned_matrix_view_d_d_d.cc')
-src += env.Glob('internal/ceres/generated/*.cc')
+if env['WITH_BF_LIBMV_SCHUR_SPECIALIZATIONS']:
+    src += env.Glob('internal/ceres/generated/*.cc')
+else:
+    src += env.Glob('internal/ceres/generated/schur_eliminator_d_d_d.cc')
+    src += env.Glob('internal/ceres/generated/partitioned_matrix_view_d_d_d.cc')
+    defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 
 defs.append('CERES_HAVE_PTHREAD')
 defs.append('CERES_NO_SUITESPARSE')
