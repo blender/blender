@@ -1979,30 +1979,15 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 	switch (type) {
 		case PART_KINK_CURL:
 		{
-			negate_v3(par_vec);
-
-			if (flat > 0.f) {
-				float proj[3];
-				project_v3_v3v3(proj, par_vec, par->vel);
-				madd_v3_v3fl(par_vec, proj, -flat);
-
-				project_v3_v3v3(proj, par_vec, kink);
-				madd_v3_v3fl(par_vec, proj, -flat);
-			}
-
-			axis_angle_to_quat(q1, kink, (float)M_PI / 2.f);
-
-			mul_qt_v3(q1, par_vec);
-
-			madd_v3_v3fl(par_vec, kink, amplitude);
-
+			float curl_offset[3];
+			
 			/* rotate kink vector around strand tangent */
-			if (t != 0.f) {
-				axis_angle_to_quat(q1, par->vel, t);
-				mul_qt_v3(q1, par_vec);
-			}
-
-			add_v3_v3v3(result, par->co, par_vec);
+			mul_v3_v3fl(curl_offset, kink, amplitude);
+			axis_angle_to_quat(q1, par->vel, t);
+			mul_qt_v3(q1, curl_offset);
+			
+			interp_v3_v3v3(par_vec, state->co, par->co, flat);
+			add_v3_v3v3(result, par_vec, curl_offset);
 			break;
 		}
 		case PART_KINK_RADIAL:
