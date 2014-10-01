@@ -188,9 +188,9 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	BLI_freelistN(&edges);
 
 	if (triangulation->triangles_total) {
-		rctf *rect;
+		rcti *rect;
 		rect = triangulation->triangles_AABB =
-			(rctf *) MEM_callocN(sizeof(rctf) * triangulation->triangles_total, "voronoi triangulation AABB");
+			(rcti *) MEM_callocN(sizeof(rcti) * triangulation->triangles_total, "voronoi triangulation AABB");
 
 		for (i = 0; i < triangulation->triangles_total; i++, rect++) {
 			int *triangle = triangulation->triangles[i];
@@ -206,11 +206,11 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 			minmax_v2v2_v2(min, max, b->co);
 			minmax_v2v2_v2(min, max, c->co);
 
-			rect->xmin = min[0];
-			rect->ymin = min[1];
+			rect->xmin = (int)min[0];
+			rect->ymin = (int)min[1];
 
-			rect->xmax = max[0];
-			rect->ymax = max[1];
+			rect->xmax = (int)max[0] + 1;
+			rect->ymax = (int)max[1] + 1;
 		}
 	}
 
@@ -224,7 +224,6 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
 	int triangles_allocated = 0;
 	int chunk_size = 20;
 	int i;
-	rctf rect_float;
 
 	if (this->m_movieClip == NULL)
 		return NULL;
@@ -242,14 +241,10 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
 	if (!triangulation)
 		return NULL;
 
-	BLI_rctf_init(&rect_float, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
-
 	tile_data = (TileData *) MEM_callocN(sizeof(TileData), "keying screen tile data");
 
 	for (i = 0; i < triangulation->triangles_total; i++) {
-		bool ok = BLI_rctf_isect(&rect_float, &triangulation->triangles_AABB[i], NULL);
-
-		if (ok) {
+		if (BLI_rcti_isect(rect, &triangulation->triangles_AABB[i], NULL)) {
 			tile_data->triangles_total++;
 
 			if (tile_data->triangles_total > triangles_allocated) {
@@ -316,7 +311,7 @@ void KeyingScreenOperation::executePixel(float output[4], int x, int y, void *da
 
 		for (i = 0; i < tile_data->triangles_total; i++) {
 			int triangle_idx = tile_data->triangles[i];
-			rctf *rect = &triangulation->triangles_AABB[triangle_idx];
+			rcti *rect = &triangulation->triangles_AABB[triangle_idx];
 
 			if (IN_RANGE_INCL(x, rect->xmin, rect->xmax) && IN_RANGE_INCL(y, rect->ymin, rect->ymax)) {
 				int *triangle = triangulation->triangles[triangle_idx];

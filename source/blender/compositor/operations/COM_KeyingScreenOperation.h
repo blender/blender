@@ -47,7 +47,7 @@ protected:
 		VoronoiTriangulationPoint *triangulated_points;
 		int (*triangles)[3];
 		int triangulated_points_total, triangles_total;
-		rctf *triangles_AABB;
+		rcti *triangles_AABB;
 	} TriangulationData;
 
 	typedef struct TileData {
