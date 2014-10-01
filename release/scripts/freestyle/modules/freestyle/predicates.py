@@ -584,7 +584,7 @@ class NotBP1D(BinaryPredicate1D):
         self._predicate = predicate
 
     def __call__(self, i1, i2):
-        return (not self._precicate(i1, i2))
+        return (not self._predicate(i1, i2))
 
 
 class pyZBP1D(BinaryPredicate1D):
