@@ -131,26 +131,26 @@ typedef struct Lamp {
 #define LA_YF_PHOTON	5
 
 /* mode */
-#define LA_SHAD_BUF		1
-#define LA_HALO			2
-#define LA_LAYER		4
-#define LA_QUAD			8	/* no longer used */
-#define LA_NEG			16
-#define LA_ONLYSHADOW	32
-#define LA_SPHERE		64
-#define LA_SQUARE		128
-#define LA_TEXTURE		256
-#define LA_OSATEX		512
-/* #define LA_DEEP_SHADOW	1024 */ /* not used anywhere */
-#define LA_NO_DIFF		2048
-#define LA_NO_SPEC		4096
-#define LA_SHAD_RAY		8192
+#define LA_SHAD_BUF		(1 << 0)
+#define LA_HALO			(1 << 1)
+#define LA_LAYER		(1 << 2)
+#define LA_QUAD			(1 << 3) /* no longer used */
+#define LA_NEG			(1 << 4)
+#define LA_ONLYSHADOW	(1 << 5)
+#define LA_SPHERE		(1 << 6)
+#define LA_SQUARE		(1 << 7)
+#define LA_TEXTURE		(1 << 8)
+#define LA_OSATEX		(1 << 9)
+/* #define LA_DEEP_SHADOW	(1 << 10) */ /* not used anywhere */
+#define LA_NO_DIFF		(1 << 11)
+#define LA_NO_SPEC		(1 << 12)
+#define LA_SHAD_RAY		(1 << 13)
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
-/* #define LA_YF_SOFT		16384 */ /* no longer used */
-#define LA_LAYER_SHADOW	32768
-#define LA_SHAD_TEX     (1<<16)
-#define LA_SHOW_CONE    (1<<17)
+/* #define LA_YF_SOFT		(1 << 14) */ /* no longer used */
+#define LA_LAYER_SHADOW	(1 << 15)
+#define LA_SHAD_TEX     (1 << 16)
+#define LA_SHOW_CONE    (1 << 17)
 
 /* layer_shadow */
 #define LA_LAYER_SHADOW_BOTH	0
