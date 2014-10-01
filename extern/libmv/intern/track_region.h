@@ -49,8 +49,8 @@ typedef struct libmv_TrackRegionResult {
 
 #ifdef __cplusplus
 namespace libmv {
-  class TrackRegionOptions;
-  class TrackRegionResult;
+  struct TrackRegionOptions;
+  struct TrackRegionResult;
 }
 void libmv_configureTrackRegionOptions(
     const libmv_TrackRegionOptions& options,
