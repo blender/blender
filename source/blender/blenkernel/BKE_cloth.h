@@ -96,7 +96,6 @@ typedef struct Cloth {
 	struct BVHTree 		*bvhselftree;			/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
-	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
 	struct EdgeSet	 	*edgeset; 		/* used for selfcollisions */
 	int last_frame, pad4;
 } Cloth;
