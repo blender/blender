@@ -99,6 +99,7 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		linestyle->sort_key = LS_SORT_KEY_DISTANCE_FROM_CAMERA;
 		linestyle->integration_type = LS_INTEGRATION_MEAN;
 		linestyle->texstep = 1.0;
+		linestyle->chain_count = 10;
 	}
 
 	{

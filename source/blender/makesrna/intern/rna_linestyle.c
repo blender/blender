@@ -1322,6 +1322,8 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	static EnumPropertyItem sort_key_items[] = {
 		{LS_SORT_KEY_DISTANCE_FROM_CAMERA, "DISTANCE_FROM_CAMERA", 0, "Distance from Camera", "Sort by distance from camera (closer lines lie on top of further lines)"},
 		{LS_SORT_KEY_2D_LENGTH, "2D_LENGTH", 0, "2D Length", "Sort by curvilinear 2D length (longer lines lie on top of shorter lines)"},
+		{LS_SORT_KEY_PROJECTED_X, "PROJECTED_X", 0, "Projected X", "Sort by the projected X value in the image coordinate system"},
+		{LS_SORT_KEY_PROJECTED_Y, "PROJECTED_Y", 0, "Projected Y", "Sort by the projected Y value in the image coordinate system"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem sort_order_items[] = {
@@ -1486,6 +1488,16 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "max_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Max 2D Length", "Maximum curvilinear 2D length for the selection of chains");
+	RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "use_chain_count", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_CHAIN_COUNT);
+	RNA_def_property_ui_text(prop, "Use Chain Count", "Enable the selection of first N chains");
+	RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
+
+	prop = RNA_def_property(srna, "chain_count", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "chain_count");
+	RNA_def_property_ui_text(prop, "Chain Count", "Chain count for the selection of first N chains");
 	RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
 	prop = RNA_def_property(srna, "use_split_pattern", PROP_BOOLEAN, PROP_NONE);

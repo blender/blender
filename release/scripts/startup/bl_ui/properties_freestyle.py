@@ -579,6 +579,20 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             sub.prop(linestyle, "split_dash3", text="D3")
             sub.prop(linestyle, "split_gap3", text="G3")
 
+            ## Sorting
+            layout.prop(linestyle, "use_sorting", text="Sorting:")
+            col = layout.column()
+            col.active = linestyle.use_sorting
+            row = col.row(align=True)
+            row.prop(linestyle, "sort_key", text="")
+            sub = row.row()
+            sub.active = linestyle.sort_key in {'DISTANCE_FROM_CAMERA',
+                                                'PROJECTED_X',
+                                                'PROJECTED_Y'}
+            sub.prop(linestyle, "integration_type", text="")
+            row = col.row(align=True)
+            row.prop(linestyle, "sort_order", expand=True)
+
             ## Selection
             layout.label(text="Selection:")
             split = layout.split(align=True)
@@ -589,25 +603,18 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             sub = row.row()
             sub.active = linestyle.use_length_min
             sub.prop(linestyle, "length_min")
-            # Second column
-            col = split.column()
             row = col.row(align=True)
             row.prop(linestyle, "use_length_max", text="")
             sub = row.row()
             sub.active = linestyle.use_length_max
             sub.prop(linestyle, "length_max")
-
-            ## Sorting
-            layout.prop(linestyle, "use_sorting", text="Sorting:")
-            col = layout.column()
-            col.active = linestyle.use_sorting
+            # Second column
+            col = split.column()
             row = col.row(align=True)
-            row.prop(linestyle, "sort_key", text="")
+            row.prop(linestyle, "use_chain_count", text="")
             sub = row.row()
-            sub.active = linestyle.sort_key in {'DISTANCE_FROM_CAMERA'}
-            sub.prop(linestyle, "integration_type", text="")
-            row = col.row(align=True)
-            row.prop(linestyle, "sort_order", expand=True)
+            sub.active = linestyle.use_chain_count
+            sub.prop(linestyle, "chain_count")
 
             ## Caps
             layout.label(text="Caps:")

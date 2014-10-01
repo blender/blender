@@ -387,6 +387,7 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_NO_SORTING         (1 << 11)
 #define LS_REVERSE_ORDER      (1 << 12)  /* for sorting */
 #define LS_TEXTURE            (1 << 13)
+#define LS_CHAIN_COUNT        (1 << 14)
 
 /* FreestyleLineStyle::chaining */
 #define LS_CHAINING_PLAIN    1
@@ -406,6 +407,8 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 /* FreestyleLineStyle::sort_key */
 #define LS_SORT_KEY_DISTANCE_FROM_CAMERA  1
 #define LS_SORT_KEY_2D_LENGTH             2
+#define LS_SORT_KEY_PROJECTED_X           3
+#define LS_SORT_KEY_PROJECTED_Y           4
 
 /* FreestyleLineStyle::integration_type */
 #define LS_INTEGRATION_MEAN   1
@@ -428,13 +431,14 @@ typedef struct FreestyleLineStyle {
 	float split_length;
 	float min_angle, max_angle; /* in radians, for splitting */
 	float min_length, max_length;
+	unsigned int chain_count;
 	unsigned short split_dash1, split_gap1;
 	unsigned short split_dash2, split_gap2;
 	unsigned short split_dash3, split_gap3;
 	int sort_key, integration_type;
 	float texstep;
 	short texact, pr_texture;
-	short use_nodes, pad;
+	short use_nodes, pad[3];
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	int panel; /* for UI */
 
