@@ -98,6 +98,8 @@ typedef struct PlayState {
 	bool  go;
 	/* waiting for images to load */
 	bool  loading;
+	/* x/y image flip */
+	bool draw_flip[2];
 	
 	int fstep;
 
@@ -254,7 +256,8 @@ static int pupdate_time(void)
 
 static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf *ibuf, int fontid, int fstep)
 {
-	float offsx, offsy;
+	float offs_x, offs_y;
+	float span_x, span_y;
 
 	if (ibuf == NULL) {
 		printf("%s: no ibuf for picture '%s'\n", __func__, picture ? picture->name : "<NIL>");
@@ -269,13 +272,17 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 
 	GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
-	/* offset within window */
-	offsx = 0.5f * (((float)ps->win_x - ps->zoom * ibuf->x) / (float)ps->win_x);
-	offsy = 0.5f * (((float)ps->win_y - ps->zoom * ibuf->y) / (float)ps->win_y);
+	/* size within window */
+	span_x = (ps->zoom * ibuf->x) / (float)ps->win_x;
+	span_y = (ps->zoom * ibuf->y) / (float)ps->win_y;
 
-	CLAMP(offsx, 0.0f, 1.0f);
-	CLAMP(offsy, 0.0f, 1.0f);
-	glRasterPos2f(offsx, offsy);
+	/* offset within window */
+	offs_x = 0.5f * (1.0f - span_x);
+	offs_y = 0.5f * (1.0f - span_y);
+
+	CLAMP(offs_x, 0.0f, 1.0f);
+	CLAMP(offs_y, 0.0f, 1.0f);
+	glRasterPos2f(offs_x, offs_y);
 
 	glClearColor(0.1, 0.1, 0.1, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -285,9 +292,15 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		fdrawcheckerboard(offsx, offsy, offsx + (ps->zoom * ibuf->x) / (float)ps->win_x, offsy + (ps->zoom * ibuf->y) / (float)ps->win_y);
+		fdrawcheckerboard(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
 	}
-	
+
+	glRasterPos2f(offs_x + (ps->draw_flip[0] ? span_x : 0.0f),
+	              offs_y + (ps->draw_flip[1] ? span_y : 0.0f));
+
+	glPixelZoom(ps->zoom * ps->draw_flip[0] ? -1.0f : 1.0f,
+	            ps->zoom * ps->draw_flip[1] ? -1.0f : 1.0f);
+
 	glDrawPixels(ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 
 	glDisable(GL_BLEND);
@@ -527,6 +540,14 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyP:
 					if (val) ps->pingpong = !ps->pingpong;
 					break;
+				case GHOST_kKeyF:
+				{
+					if (val) {
+						int axis = (g_WS.qual & WS_QUAL_SHIFT) ? 1 : 0;
+						ps->draw_flip[axis] = !ps->draw_flip[axis];
+					}
+					break;
+				}
 				case GHOST_kKey1:
 				case GHOST_kKeyNumpad1:
 					if (val) swaptime = ps->fstep / 60.0;
@@ -791,7 +812,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 			
 			playanim_gl_matrix();
 
-			glPixelZoom(ps->zoom, ps->zoom);
 			ptottime = 0.0;
 			playanim_toscreen(ps, ps->picture, ps->curframe_ibuf, ps->fontid, ps->fstep);
 
@@ -896,6 +916,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	ps.dropped_file[0] = 0;
 	ps.zoom      = 1.0f;
 	/* resetmap = false */
+	ps.draw_flip[0] = false;
+	ps.draw_flip[1] = false;
 
 	ps.fstep     = 1;
 
