@@ -49,37 +49,27 @@ void *KeyingBlurOperation::initializeTileData(rcti *rect)
 void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
+	const int bufferWidth = inputBuffer->getWidth();
 	float *buffer = inputBuffer->getBuffer();
-
-	int bufferWidth = inputBuffer->getWidth();
-	int bufferHeight = inputBuffer->getHeight();
-
-	int i, count = 0;
-
+	int count = 0;
 	float average = 0.0f;
 
 	if (this->m_axis == 0) {
-		for (i = -this->m_size + 1; i < this->m_size; i++) {
-			int cx = x + i;
-
-			if (cx >= 0 && cx < bufferWidth) {
-				int bufferIndex = (y * bufferWidth + cx) * 4;
-
-				average += buffer[bufferIndex];
-				count++;
-			}
+		const int start = max(0, x - this->m_size + 1),
+		          end = min(bufferWidth, x + this->m_size);
+		for (int cx = start; cx < end; ++cx) {
+			int bufferIndex = (y * bufferWidth + cx) * 4;
+			average += buffer[bufferIndex];
+			count++;
 		}
 	}
 	else {
-		for (i = -this->m_size + 1; i < this->m_size; i++) {
-			int cy = y + i;
-
-			if (cy >= 0 && cy < bufferHeight) {
-				int bufferIndex = (cy * bufferWidth + x) * 4;
-
-				average += buffer[bufferIndex];
-				count++;
-			}
+		const int start = max(0, y - this->m_size + 1),
+		          end = min(inputBuffer->getHeight(), y + this->m_size);
+		for (int cy = start; cy < end; ++cy) {
+			int bufferIndex = (cy * bufferWidth + x) * 4;
+			average += buffer[bufferIndex];
+			count++;
 		}
 	}
 
