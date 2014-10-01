@@ -255,11 +255,6 @@ if env['SHARED_PTR_NAMESPACE'] == 'std::tr1':
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags ./config'
 
-# work around broken hashtable in 10.5 SDK
-if env['OURPLATFORM'] == 'darwin' and env['WITH_BF_BOOST']:
-    incs += ' ' + env['BF_BOOST_INC']
-    defs.append('CERES_HASH_BOOST')
-
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
         incs += ' ../msinttypes'
