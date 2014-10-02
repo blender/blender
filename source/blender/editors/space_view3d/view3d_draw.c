@@ -2481,7 +2481,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		
 		v3d->drawtype = OB_SOLID;
 		v3d->lay &= GPU_lamp_shadow_layer(shadow->lamp);
-		v3d->flag2 &= ~V3D_SOLID_TEX | V3D_SHOW_SOLID_MATCAP;
+		v3d->flag2 &= ~(V3D_SOLID_TEX | V3D_SHOW_SOLID_MATCAP);
 		v3d->flag2 |= V3D_RENDER_OVERRIDE | V3D_RENDER_SHADOW;
 		
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
