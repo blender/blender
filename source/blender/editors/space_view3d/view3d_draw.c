@@ -2075,7 +2075,7 @@ static void draw_dupli_objects_color(
 				     !bb_tmp ||
 				     draw_glsl_material(scene, dob->ob, v3d, dt) ||
 				     check_object_draw_texture(scene, v3d, dt) ||
-				     (base->object == OBACT && v3d->flag2 & V3D_SOLID_MATCAP))
+				     (v3d->flag2 & V3D_SOLID_MATCAP) != 0)
 				{
 					// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name + 2);
 					use_displist = false;
