@@ -580,7 +580,10 @@ static bool spline_under_mouse_get(const bContext *C,
 			}
 		}
 	}
-	if (closest_spline != NULL) {
+	/* TODO(sergey): Chech whether tesellated spline point is closer
+	 * to the mouse than the spline center.
+	 */
+	if (closest_dist_squared < 32.0f * 32.0f && closest_spline != NULL) {
 		*mask_layer_r = closest_layer;
 		*mask_spline_r = closest_spline;
 		return true;
