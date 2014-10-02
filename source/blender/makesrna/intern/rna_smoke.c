@@ -311,7 +311,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "resolution_max", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxres");
-    RNA_def_property_range(prop, 6, 512);
+	RNA_def_property_range(prop, 6, 512);
 	RNA_def_property_ui_range(prop, 24, 512, 2, -1);
 	RNA_def_property_ui_text(prop, "Max Res", "Maximal resolution used in the fluid domain");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

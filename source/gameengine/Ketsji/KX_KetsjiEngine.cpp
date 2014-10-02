@@ -1734,18 +1734,17 @@ void KX_KetsjiEngine::AddScheduledScenes()
 
 bool KX_KetsjiEngine::ReplaceScene(const STR_String& oldscene,const STR_String& newscene)
 {
-    // Don't allow replacement if the new scene doesn't exists.
-    // Allows smarter game design (used to have no check here).
-    // Note that it creates a small backward compatbility issue
-    // for a game that did a replace followed by a lib load with the
-    // new scene in the lib => it won't work anymore, the lib
-    // must be loaded before doing the replace.
-    if (m_sceneconverter->GetBlenderSceneForName(newscene) != NULL)
-    {
-        m_replace_scenes.push_back(std::make_pair(oldscene,newscene));
-        return true;
-    }
-    return false;
+	// Don't allow replacement if the new scene doesn't exists.
+	// Allows smarter game design (used to have no check here).
+	// Note that it creates a small backward compatbility issue
+	// for a game that did a replace followed by a lib load with the
+	// new scene in the lib => it won't work anymore, the lib
+	// must be loaded before doing the replace.
+	if (m_sceneconverter->GetBlenderSceneForName(newscene) != NULL) {
+		m_replace_scenes.push_back(std::make_pair(oldscene,newscene));
+		return true;
+	}
+	return false;
 }
 
 // replace scene is not the same as removing and adding because the
@@ -1767,21 +1766,20 @@ void KX_KetsjiEngine::ReplaceScheduledScenes()
 			int i=0;
 			/* Scenes are not supposed to be included twice... I think */
 			KX_SceneList::iterator sceneit;
-			for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++)
-			{
-                KX_Scene* scene = *sceneit;
-				if (scene->GetName() == oldscenename)
-				{
-                    // avoid crash if the new scene doesn't exist, just do nothing
-                    Scene *blScene = m_sceneconverter->GetBlenderSceneForName(newscenename);
-                    if (blScene) {
-                        m_sceneconverter->RemoveScene(scene);
-                        KX_Scene* tmpscene = CreateScene(blScene);
-                        m_scenes[i]=tmpscene;
-                        PostProcessScene(tmpscene);
-                    } else {
-                        printf("warning: scene %s could not be found, not replaced!\n",newscenename.ReadPtr());
-                    }
+			for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++) {
+				KX_Scene* scene = *sceneit;
+				if (scene->GetName() == oldscenename) {
+					// avoid crash if the new scene doesn't exist, just do nothing
+					Scene *blScene = m_sceneconverter->GetBlenderSceneForName(newscenename);
+					if (blScene) {
+						m_sceneconverter->RemoveScene(scene);
+						KX_Scene* tmpscene = CreateScene(blScene);
+						m_scenes[i]=tmpscene;
+						PostProcessScene(tmpscene);
+					}
+					else {
+						printf("warning: scene %s could not be found, not replaced!\n",newscenename.ReadPtr());
+					}
 				}
 				i++;
 			}

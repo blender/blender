@@ -1529,9 +1529,9 @@ int main(
 #endif
 
 #ifdef WIN32
-    /* FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it. */
+	/* FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it. */
 #  if defined(_MSC_VER) && _MSC_VER >= 1800 && defined(_M_X64)
-    _set_FMA3_enable(0);
+	_set_FMA3_enable(0);
 #  endif
 
 	/* Win32 Unicode Args */
