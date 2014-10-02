@@ -251,7 +251,7 @@ private:
 	FEdgeXDetector edgeDetector;
 
 	SceneHash sceneHashFunc;
-	real prevSceneHash = -1.0;
+	real prevSceneHash;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Controller")

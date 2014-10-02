@@ -1183,7 +1183,7 @@ static void rna_Scene_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 	DAG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_Scene_use_view_map_cache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Scene_use_view_map_cache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 #ifdef WITH_FREESTYLE
 	FRS_free_view_map_cache();

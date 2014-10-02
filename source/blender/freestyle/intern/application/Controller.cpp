@@ -127,6 +127,7 @@ Controller::Controller()
 	_ComputeMaterialBoundaries = true;
 	_sphereRadius = 1.0;
 	_creaseAngle = 134.43;
+	prevSceneHash = -1.0;
 
 	init_options();
 }
