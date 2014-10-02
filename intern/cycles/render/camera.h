@@ -102,13 +102,6 @@ public:
 	bool need_device_update;
 	int previous_need_motion;
 
-	/* Camera in volume. */
-	/* TODO(sergey): Get rid of this argument once
-	 * cameras in volume considered fast enough for
-	  * the regular kernel.
-	 */
-	bool use_camera_in_volume;
-
 	/* functions */
 	Camera();
 	~Camera();

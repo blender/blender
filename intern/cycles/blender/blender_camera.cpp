@@ -390,7 +390,6 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 	/* sync */
 	Camera *cam = scene->camera;
 	blender_camera_sync(cam, &bcam, width, height);
-	scene->camera->use_camera_in_volume = experimental;
 }
 
 void BlenderSync::sync_camera_motion(BL::Object b_ob, float motion_time)
@@ -555,7 +554,6 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 	blender_camera_border(&bcam, b_scene.render(), b_scene, b_v3d, b_rv3d, width, height);
 
 	blender_camera_sync(scene->camera, &bcam, width, height);
-	scene->camera->use_camera_in_volume = experimental;
 }
 
 BufferParams BlenderSync::get_buffer_params(BL::RenderSettings b_render, BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height)

@@ -276,17 +276,15 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	/* Camera in volume. */
 	kcam->is_inside_volume = 0;
-	if(use_camera_in_volume) {
-		BoundBox viewplane_boundbox = viewplane_bounds_get();
-		for(size_t i = 0; i < scene->objects.size(); ++i) {
-			Object *object = scene->objects[i];
-			if(object->mesh->has_volume &&
-			   viewplane_boundbox.intersects(object->bounds))
-			{
-				/* TODO(sergey): Consider adding more grained check. */
-				kcam->is_inside_volume = 1;
-				break;
-			}
+	BoundBox viewplane_boundbox = viewplane_bounds_get();
+	for(size_t i = 0; i < scene->objects.size(); ++i) {
+		Object *object = scene->objects[i];
+		if(object->mesh->has_volume &&
+		   viewplane_boundbox.intersects(object->bounds))
+		{
+			/* TODO(sergey): Consider adding more grained check. */
+			kcam->is_inside_volume = 1;
+			break;
 		}
 	}
 }
