@@ -728,9 +728,12 @@ void GPU_invalid_tex_bind(int mode)
 
 void GPU_invalid_tex_free(void)
 {
-	GPU_texture_free(GG.invalid_tex_1D);
-	GPU_texture_free(GG.invalid_tex_2D);
-	GPU_texture_free(GG.invalid_tex_3D);
+	if (GG.invalid_tex_1D)
+		GPU_texture_free(GG.invalid_tex_1D);
+	if (GG.invalid_tex_2D)
+		GPU_texture_free(GG.invalid_tex_2D);
+	if (GG.invalid_tex_3D)
+		GPU_texture_free(GG.invalid_tex_3D);
 }
 
 
