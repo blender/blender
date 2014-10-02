@@ -342,9 +342,26 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		objects[offset+9] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], __int_as_float(numkeys));
 		objects[offset+10] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], __int_as_float(numsteps), __int_as_float(numverts));
 
+		/* That's a bit weird place to update mesh flags, but we do it here
+		 * because  object needs to know if it's a volume or not and mesh needs
+		 * to have the updated.
+		 *
+		 * TODO(sergey): Check on whether we can reshuffle update order in scene.
+		 */
+		if(ob->mesh->need_update) {
+			foreach(uint shader, ob->mesh->used_shaders) {
+				if(scene->shaders[shader]->has_volume) {
+					ob->mesh->has_volume = true;
+					break;
+				}
+			}
+		}
+
 		/* object flag */
 		if(ob->use_holdout)
 			flag |= SD_HOLDOUT_MASK;
+		if(ob->mesh->has_volume)
+			flag |= SD_OBJECT_HAS_VOLUME;
 		object_flag[i] = flag;
 
 		/* have curves */

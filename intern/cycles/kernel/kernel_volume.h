@@ -985,9 +985,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 	      enclosed_index < VOLUME_STACK_SIZE - 1)
 	{
 		Intersection isect;
-		if(!scene_intersect(kg, &volume_ray, PATH_RAY_ALL_VISIBILITY,
-		                    &isect, NULL, 0.0f, 0.0f))
-		{
+		if(!scene_intersect_volume(kg, &volume_ray, &isect)) {
 			break;
 		}
 

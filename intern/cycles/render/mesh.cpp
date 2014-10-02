@@ -1034,13 +1034,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	/* update normals */
 	foreach(Mesh *mesh, scene->meshes) {
-		mesh->has_volume = false;
 		foreach(uint shader, mesh->used_shaders) {
 			if(scene->shaders[shader]->need_update_attributes)
 				mesh->need_update = true;
-			if(scene->shaders[shader]->has_volume) {
-				mesh->has_volume = true;
-			}
 		}
 
 		if(mesh->need_update) {
