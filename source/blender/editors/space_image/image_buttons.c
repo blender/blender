@@ -809,6 +809,10 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				uiItemR(col, &imaptr, "use_generated_float", 0, NULL, ICON_NONE);
 
 				uiItemR(split, &imaptr, "generated_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+				if (ima->gen_type == IMA_GENTYPE_BLANK) {
+					uiItemR(layout, &imaptr, "generated_color", 0, NULL, ICON_NONE);
+				}
 			}
 
 		}

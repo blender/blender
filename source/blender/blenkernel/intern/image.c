@@ -62,6 +62,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_vector.h"
 #include "BLI_threads.h"
 #include "BLI_timecode.h"  /* for stamp timecode format */
 #include "BLI_utildefines.h"
@@ -365,6 +366,7 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 	nima->gen_x = ima->gen_x;
 	nima->gen_y = ima->gen_y;
 	nima->gen_type = ima->gen_type;
+	copy_v4_v4(nima->gen_color, ima->gen_color);
 
 	nima->animspeed = ima->animspeed;
 
@@ -769,6 +771,7 @@ Image *BKE_image_add_generated(Main *bmain, unsigned int width, unsigned int hei
 		ima->gen_type = gen_type;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 		ima->gen_depth = depth;
+		copy_v4_v4(ima->gen_color, color);
 
 		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color, &ima->colorspace_settings);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
@@ -2996,7 +2999,6 @@ BLI_INLINE bool image_quick_test(Image *ima, ImageUser *iuser)
 static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 {
 	ImBuf *ibuf = NULL;
-	float color[] = {0, 0, 0, 1};
 	int frame = 0, index = 0;
 
 	if (lock_r)
@@ -3041,7 +3043,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 			if (ima->gen_y == 0) ima->gen_y = 1024;
 			if (ima->gen_depth == 0) ima->gen_depth = 24;
 			ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, ima->gen_depth, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type,
-			                     color, &ima->colorspace_settings);
+			                     ima->gen_color, &ima->colorspace_settings);
 			image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 			ima->ok = IMA_OK_LOADED;
 		}

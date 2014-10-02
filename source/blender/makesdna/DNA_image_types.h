@@ -109,6 +109,7 @@ typedef struct Image {
 	int gen_x, gen_y;
 	char gen_type, gen_flag;
 	short gen_depth;
+	float gen_color[4];
 	
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;
