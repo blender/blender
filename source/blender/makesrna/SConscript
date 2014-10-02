@@ -126,6 +126,10 @@ if env['WITH_BF_OPENAL']:
 if env['WITH_BF_JACK']:
     defs.append('WITH_JACK')
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+    incs += ' ../freestyle'
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
 
