@@ -69,8 +69,6 @@ void ED_image_point_pos__reverse(struct SpaceImage *sima, struct ARegion *ar, co
 bool ED_space_image_show_render(struct SpaceImage *sima);
 bool ED_space_image_show_paint(struct SpaceImage *sima);
 bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
-bool ED_space_image_show_texpaint(struct SpaceImage *sima, struct Object *ob);
-bool ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
 
 bool ED_space_image_paint_curve(const struct bContext *C);
 
