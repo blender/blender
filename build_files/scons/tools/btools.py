@@ -556,7 +556,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_LZMA', 'Enable best LZMA pointcache compression', True)),
 
         (BoolVariable('WITH_BF_LIBMV', 'Enable libmv structure from motion library', True)),
-        (BoolVariable('WITH_LIBMV_SCHUR_SPECIALIZATIONS', 'Enable fixed-size schur specializations', True)),
+        (BoolVariable('WITH_BF_LIBMV_SCHUR_SPECIALIZATIONS', 'Enable fixed-size schur specializations', True)),
 
         (BoolVariable('WITH_BF_COMPOSITOR', 'Enable the tile based nodal compositor', True)),
     ) # end of opts.AddOptions()
