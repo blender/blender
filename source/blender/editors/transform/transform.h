@@ -537,7 +537,6 @@ void restoreBones(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
 bool gimbal_axis(struct Object *ob, float gmat[3][3]); /* return 0 when no gimbal for selection */
-int calc_manipulator_stats(const struct bContext *C);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);
