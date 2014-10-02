@@ -474,6 +474,10 @@ public:
 
 	/* interface definition */
 	/* inherited */
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:StrokeVertex")
+#endif
 };
 
 
@@ -862,6 +866,10 @@ public:
 
 	virtual Interface0DIterator pointsBegin(float t = 0.0f);
 	virtual Interface0DIterator pointsEnd(float t = 0.0f);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Stroke")
+#endif
 };
 
 

@@ -369,7 +369,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewVertex")
 #endif
-
 };
 
 /**********************************/
@@ -642,7 +641,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TVertex")
 #endif
-
 };
 
 
@@ -859,7 +857,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:NonTVertex")
 #endif
-
 };
 
 /**********************************/
@@ -1379,7 +1376,6 @@ public:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:ViewEdge")
 #endif
-
 };
 
 

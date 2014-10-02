@@ -341,6 +341,10 @@ public:
 	real curvatureFredo() const;
 	Vec2d directionFredo() const;
 #endif
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:CurvePoint")
+#endif
 };
 
 
@@ -586,6 +590,10 @@ public:
 	 *  At each iteration a virtual temporary CurvePoint is created.
 	 */
 	virtual Interface0DIterator pointsEnd(float t = 0.0f);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Curve")
+#endif
 };
 
 } /* namespace Freestyle */
