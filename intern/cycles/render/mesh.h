@@ -79,6 +79,8 @@ public:
 	vector<uint> shader;
 	vector<bool> smooth;
 
+	bool has_volume;  /* Set in the device_update(). */
+
 	vector<float4> curve_keys; /* co + radius */
 	vector<Curve> curves;
 

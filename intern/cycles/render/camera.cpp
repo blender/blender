@@ -26,32 +26,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-namespace {
-
-bool object_has_volume(Scene *scene, Object *object)
-{
-	Mesh *mesh = object->mesh;
-	foreach(uint shader, mesh->used_shaders) {
-		if(scene->shaders[shader]->has_volume) {
-			return true;
-		}
-	}
-	return false;
-}
-
-bool scene_has_volume(Scene *scene)
-{
-	for(size_t i = 0; i < scene->objects.size(); ++i) {
-		Object *object = scene->objects[i];
-		if(object_has_volume(scene, object)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-}  // namespace
-
 Camera::Camera()
 {
 	shuttertime = 1.0f;
@@ -303,33 +277,15 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	/* Camera in volume. */
 	kcam->is_inside_volume = 0;
 	if(use_camera_in_volume) {
-		if(type == CAMERA_PANORAMA) {
-			/* It's not clear how to do viewplace->object intersection for
-			 * panoramic cameras, for now let's just check for whether there
-			 * are any volumes in the scene.
-			 */
-			kcam->is_inside_volume = scene_has_volume(scene);
-		}
-		else {
-			/* TODO(sergey): Whole bunch of stuff here actually:
-			 * - We do rather stupid check with object AABB to camera viewplane
-			 *   AABB intersection, which is quite fast to perform, but which
-			 *   could give some false-positives checks here, More grained check
-			 *   would help avoiding time wasted n the kernel to initialize the
-			 *   volume stack.
-			 * - We could cache has_volume in the cache, would save quite a few
-			 *   CPU ticks when having loads of instanced meshes.
-			 */
-			BoundBox viewplane_boundbox = viewplane_bounds_get();
-			for(size_t i = 0; i < scene->objects.size(); ++i) {
-				Object *object = scene->objects[i];
-				if(object_has_volume(scene, object)) {
-					if(viewplane_boundbox.intersects(object->bounds)) {
-						/* TODO(sergey): Consider adding more grained check. */
-						kcam->is_inside_volume = 1;
-						break;
-					}
-				}
+		BoundBox viewplane_boundbox = viewplane_bounds_get();
+		for(size_t i = 0; i < scene->objects.size(); ++i) {
+			Object *object = scene->objects[i];
+			if(object->mesh->has_volume &&
+			   viewplane_boundbox.intersects(object->bounds))
+			{
+				/* TODO(sergey): Consider adding more grained check. */
+				kcam->is_inside_volume = 1;
+				break;
 			}
 		}
 	}
@@ -408,21 +364,27 @@ float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
 
 BoundBox Camera::viewplane_bounds_get()
 {
-	assert(type != CAMERA_PANORAMA);
-
 	/* TODO(sergey): This is all rather stupid, but is there a way to perform
 	 * checks we need in a more clear and smart fasion?
 	 */
 	BoundBox bounds = BoundBox::empty;
-	bounds.grow(transform_raster_to_world(0.0f, 0.0f));
-	bounds.grow(transform_raster_to_world(0.0f, (float)height));
-	bounds.grow(transform_raster_to_world((float)width, (float)height));
-	bounds.grow(transform_raster_to_world((float)width, 0.0f));
-	if(type == CAMERA_PERSPECTIVE) {
-		/* Center point has the most distancei in local Z axis,
-		 * use it to construct bounding box/
-		 */
-		bounds.grow(transform_raster_to_world(0.5f*width, 0.5f*height));
+
+	if(type == CAMERA_PANORAMA) {
+		bounds.grow(make_float3(cameratoworld.w.x,
+		                        cameratoworld.w.y,
+		                        cameratoworld.w.z));
+	}
+	else {
+		bounds.grow(transform_raster_to_world(0.0f, 0.0f));
+		bounds.grow(transform_raster_to_world(0.0f, (float)height));
+		bounds.grow(transform_raster_to_world((float)width, (float)height));
+		bounds.grow(transform_raster_to_world((float)width, 0.0f));
+		if(type == CAMERA_PERSPECTIVE) {
+			/* Center point has the most distancei in local Z axis,
+			 * use it to construct bounding box/
+			 */
+			bounds.grow(transform_raster_to_world(0.5f*width, 0.5f*height));
+		}
 	}
 	return bounds;
 }
