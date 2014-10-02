@@ -423,10 +423,15 @@ void Controller::DeleteViewMap(bool freeCache)
 			_DebugNode->addRef();
 	}
 
-	if ((freeCache || !_EnableViewMapCache) && NULL != _ViewMap) {
-		delete _ViewMap;
-		_ViewMap = NULL;
-		prevSceneHash = -1.0;
+	if (NULL != _ViewMap) {
+		if (freeCache || !_EnableViewMapCache) {
+			delete _ViewMap;
+			_ViewMap = NULL;
+			prevSceneHash = -1.0;
+		}
+		else {
+			_ViewMap->Clean();
+		}
 	}
 }
 
