@@ -651,7 +651,7 @@ void FRS_finish_stroke_rendering(Render *re)
 	controller->Clear();
 }
 
-void FRS_free_view_map_cache()
+void FRS_free_view_map_cache(void)
 {
 	// free cache
 	controller->DeleteViewMap(true);

@@ -168,6 +168,7 @@ struct wmWindowManager;
 #include "../blender/editors/include/UI_interface_icons.h"
 #include "../blender/editors/include/UI_resources.h"
 #include "../blender/editors/include/UI_view2d.h"
+#include "../blender/freestyle/FRS_freestyle.h"
 #include "../blender/python/BPY_extern.h"
 #include "../blender/render/extern/include/RE_engine.h"
 #include "../blender/render/extern/include/RE_pipeline.h"
@@ -229,6 +230,7 @@ void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, flo
 
 /* Freestyle */
 bool ED_texture_context_check_linestyle(const struct bContext *C) RET_ZERO
+void FRS_free_view_map_cache(void) RET_NONE
 
 /* texture.c */
 int multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage) RET_ZERO
