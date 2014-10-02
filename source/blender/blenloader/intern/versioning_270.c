@@ -350,6 +350,20 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		for (br = main->brush.first; br; br = br->id.next) {
 			br->fill_threshold = 0.2f;
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "int", "mat")) {
+			Object *ob;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Bevel) {
+						BevelModifierData *bmd = (BevelModifierData *)md;
+						bmd->mat = -1;
+					}
+				}
+			}
+		}
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 271, 6)) {
