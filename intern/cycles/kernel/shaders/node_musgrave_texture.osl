@@ -35,14 +35,14 @@ float noise_musgrave_fBm(point p, string basis, float H, float lacunarity, float
 	int i;
 
 	for (i = 0; i < (int)octaves; i++) {
-		value += safe_noise(p, 0) * pwr;
+		value += safe_noise(p, "signed") * pwr;
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0)
-		value += rmd * safe_noise(p, 0) * pwr;
+		value += rmd * safe_noise(p, "signed") * pwr;
 
 	return value;
 }
@@ -63,14 +63,14 @@ float noise_musgrave_multi_fractal(point p, string basis, float H, float lacunar
 	int i;
 
 	for (i = 0; i < (int)octaves; i++) {
-		value *= (pwr * safe_noise(p, 0) + 1.0);
+		value *= (pwr * safe_noise(p, "signed") + 1.0);
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0)
-		value *= (rmd * pwr * safe_noise(p, 0) + 1.0); /* correct? */
+		value *= (rmd * pwr * safe_noise(p, "signed") + 1.0); /* correct? */
 
 	return value;
 }
@@ -91,11 +91,11 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
 	int i;
 
 	/* first unscaled octave of function; later octaves are scaled */
-	value = offset + safe_noise(p, 0);
+	value = offset + safe_noise(p, "signed");
 	p *= lacunarity;
 
 	for (i = 1; i < (int)octaves; i++) {
-		increment = (safe_noise(p, 0) + offset) * pwr * value;
+		increment = (safe_noise(p, "signed") + offset) * pwr * value;
 		value += increment;
 		pwr *= pwHL;
 		p *= lacunarity;
@@ -103,7 +103,7 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0) {
-		increment = (safe_noise(p, 0) + offset) * pwr * value;
+		increment = (safe_noise(p, "signed") + offset) * pwr * value;
 		value += rmd * increment;
 	}
 
@@ -126,7 +126,7 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
 	float pwr = pwHL;
 	int i;
 
-	result = safe_noise(p, 0) + offset;
+	result = safe_noise(p, "signed") + offset;
 	weight = gain * result;
 	p *= lacunarity;
 
@@ -134,7 +134,7 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
 		if (weight > 1.0)
 			weight = 1.0;
 
-		signal = (safe_noise(p, 0) + offset) * pwr;
+		signal = (safe_noise(p, "signed") + offset) * pwr;
 		pwr *= pwHL;
 		result += weight * signal;
 		weight *= gain * signal;
@@ -143,7 +143,7 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0)
-		result += rmd * ((safe_noise(p, 0) + offset) * pwr);
+		result += rmd * ((safe_noise(p, "signed") + offset) * pwr);
 
 	return result;
 }
@@ -164,7 +164,7 @@ float noise_musgrave_ridged_multi_fractal(point p, string basis, float H,
 	float pwr = pwHL;
 	int i;
 
-	signal = offset - fabs(safe_noise(p, 0));
+	signal = offset - fabs(safe_noise(p, "signed"));
 	signal *= signal;
 	result = signal;
 	weight = 1.0;
@@ -172,7 +172,7 @@ float noise_musgrave_ridged_multi_fractal(point p, string basis, float H,
 	for (i = 1; i < (int)octaves; i++) {
 		p *= lacunarity;
 		weight = clamp(signal * gain, 0.0, 1.0);
-		signal = offset - fabs(safe_noise(p, 0));
+		signal = offset - fabs(safe_noise(p, "signed"));
 		signal *= signal;
 		signal *= weight;
 		result += signal * pwr;

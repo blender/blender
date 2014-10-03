@@ -153,12 +153,12 @@ float voronoi_CrS(point p) { return 2.0 * voronoi_Cr(p) - 1.0; }
 
 /* Noise Bases */
 
-float safe_noise(point p, int type)
+float safe_noise(point p, string type)
 {
 	float f = 0.0;
 	
 	/* Perlin noise in range -1..1 */
-	if (type == 0)
+	if (type == "signed")
 		f = noise("perlin", p);
 	
 	/* Perlin noise in range 0..1 */
@@ -175,7 +175,7 @@ float safe_noise(point p, int type)
 float noise_basis(point p, string basis)
 {
 	if (basis == "Perlin")
-		return safe_noise(p, 1);
+		return safe_noise(p, "unsigned");
 	if (basis == "Voronoi F1")
 		return voronoi_F1S(p);
 	if (basis == "Voronoi F2")
