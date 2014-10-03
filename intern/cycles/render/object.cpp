@@ -349,6 +349,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		 * TODO(sergey): Check on whether we can reshuffle update order in scene.
 		 */
 		if(ob->mesh->need_update) {
+			ob->mesh->has_volume = false;
 			foreach(uint shader, ob->mesh->used_shaders) {
 				if(scene->shaders[shader]->has_volume) {
 					ob->mesh->has_volume = true;
