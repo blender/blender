@@ -75,8 +75,14 @@ void Object::compute_bounds(bool motion_blur)
 			bounds.grow(mbounds.transformed(&ttfm));
 		}
 	}
-	else
-		bounds = mbounds.transformed(&tfm);
+	else {
+		if(mesh->transform_applied) {
+			bounds = mbounds;
+		}
+		else {
+			bounds = mbounds.transformed(&tfm);
+		}
+	}
 }
 
 void Object::apply_transform(bool apply_to_motion)
@@ -410,9 +416,6 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 		progress.set_status("Updating Objects", "Applying Static Transformations");
 		apply_static_transforms(dscene, scene, object_flag, progress);
 	}
-
-	/* allocate object flag */
-	device->tex_alloc("__object_flag", dscene->object_flag);
 }
 
 void ObjectManager::device_free(Device *device, DeviceScene *dscene)

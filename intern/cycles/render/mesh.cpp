@@ -1105,8 +1105,37 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	bool motion_blur = false;
 #endif
 
-	foreach(Object *object, scene->objects)
+	/* TODO(sergey): There's an ongoing fake cyclic dependency between objects
+	 * and meshes here -- needs to make update functions a bit more granular in
+	 * order to keep all the updates in a logical way.
+	 */
+
+	/* update obejcts */
+	vector<Object *> volume_objects;
+	foreach(Object *object, scene->objects) {
 		object->compute_bounds(motion_blur);
+		if(object->mesh->has_volume) {
+			volume_objects.push_back(object);
+		}
+	}
+
+	int object_index = 0;
+	uint *object_flags = dscene->object_flag.get_data();
+	foreach(Object *object, scene->objects) {
+		foreach(Object *volume_object, volume_objects) {
+			if(object == volume_object) {
+				continue;
+			}
+			if(object->bounds.intersects(volume_object->bounds)) {
+				object_flags[object_index] |= SD_OBJECT_INTERSECTS_VOLUME;
+				break;
+			}
+		}
+		++object_index;
+	}
+
+	/* allocate object flag */
+	device->tex_alloc("__object_flag", dscene->object_flag);
 
 	if(progress.get_cancel()) return;
 

@@ -411,6 +411,8 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 		int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
 #ifdef __VOLUME__
 		Ray volume_ray = *ray;
+		bool need_update_volume_stack = kernel_data.integrator.use_volumes &&
+		                                sd->flag & SD_OBJECT_INTERSECTS_VOLUME;
 #endif
 
 		/* compute lighting with the BSDF closure */
@@ -430,7 +432,7 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 #endif
 
 #ifdef __VOLUME__
-				if(kernel_data.integrator.use_volumes) {
+				if(need_update_volume_stack) {
 					/* Setup ray from previous surface point to the new one. */
 					volume_ray.D = normalize_len(hit_ray.P - volume_ray.P,
 					                             &volume_ray.t);
@@ -802,6 +804,8 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 			int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, true);
 #ifdef __VOLUME__
 			Ray volume_ray = *ray;
+			bool need_update_volume_stack = kernel_data.integrator.use_volumes &&
+			                                sd->flag & SD_OBJECT_INTERSECTS_VOLUME;
 #endif
 
 			/* compute lighting with the BSDF closure */
@@ -811,7 +815,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				path_state_branch(&hit_state, j, num_samples);
 
 #ifdef __VOLUME__
-				if(kernel_data.integrator.use_volumes) {
+				if(need_update_volume_stack) {
 					/* Setup ray from previous surface point to the new one. */
 					float3 P = ray_offset(bssrdf_sd[hit].P, -bssrdf_sd[hit].Ng);
 					volume_ray.D = normalize_len(P - volume_ray.P,

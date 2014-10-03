@@ -260,6 +260,11 @@ public:
 		return data.size();
 	}
 
+	T* get_data()
+	{
+		return &data[0];
+	}
+
 private:
 	array<T> data;
 };
