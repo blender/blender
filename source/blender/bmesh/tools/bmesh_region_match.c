@@ -23,6 +23,16 @@
  *
  * Given a contiguous region of faces,
  * find multiple matching regions (based on topology) and return them.
+ *
+ * Implementation:
+ *
+ * - Given a face region, find its topological center.
+ * - Compare this with other vertices surrounding geometry with this ones.
+ *   (reduce the search space by creating a connectivity ID per vertex
+ *   and only run comprehensive tests on those).
+ * - All hashes must be order independent so matching topology can be identified.
+ * - The term UUID here doesn't mean each ID is initially unique.
+ *   (uniqueness is improved by re-hashing with connected data).
  */
 
 #include <string.h>

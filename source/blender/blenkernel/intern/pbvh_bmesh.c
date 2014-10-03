@@ -1214,7 +1214,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
                                    const float center[3], float radius)
 {
 	/* 2 is enough for edge faces - manifold edge */
-	BLI_buffer_declare_static(BMFace *, edge_loops, BLI_BUFFER_NOP, 2);
+	BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);
 	BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
 	const int cd_vert_mask_offset = CustomData_get_offset(&bvh->bm->vdata, CD_PAINT_MASK);
 	const int cd_vert_node_offset = bvh->cd_vert_node_offset;
