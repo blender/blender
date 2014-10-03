@@ -290,40 +290,6 @@ ccl_device_noinline float perlin(float x, float y, float z)
 }
 #endif
 
-#if 0 // unused
-ccl_device_noinline float perlin_periodic(float x, float y, float z, float3 pperiod)
-{
-	int X; float fx = floorfrac(x, &X);
-	int Y; float fy = floorfrac(y, &Y);
-	int Z; float fz = floorfrac(z, &Z);
-
-	int3 p;
-
-	p.x = max(quick_floor(pperiod.x), 1);
-	p.y = max(quick_floor(pperiod.y), 1);
-	p.z = max(quick_floor(pperiod.z), 1);
-
-	float u = fade(fx);
-	float v = fade(fy);
-	float w = fade(fz);
-
-	float result;
-
-	result = nerp (w, nerp (v, nerp (u, grad (phash (X  , Y  , Z  , p), fx	 , fy	 , fz	  ),
-										grad (phash (X+1, Y  , Z  , p), fx-1.0f, fy	 , fz	  )),
-							   nerp (u, grad (phash (X  , Y+1, Z  , p), fx	 , fy-1.0f, fz	  ),
-										grad (phash (X+1, Y+1, Z  , p), fx-1.0f, fy-1.0f, fz	  ))),
-					  nerp (v, nerp (u, grad (phash (X  , Y  , Z+1, p), fx	 , fy	 , fz-1.0f ),
-										grad (phash (X+1, Y  , Z+1, p), fx-1.0f, fy	 , fz-1.0f )),
-							   nerp (u, grad (phash (X  , Y+1, Z+1, p), fx	 , fy-1.0f, fz-1.0f ),
-										grad (phash (X+1, Y+1, Z+1, p), fx-1.0f, fy-1.0f, fz-1.0f ))));
-	float r = scale3(result);
-
-	/* can happen for big coordinates, things even out to 0.0 then anyway */
-	return (isfinite(r))? r: 0.0f;
-}
-#endif
-
 /* perlin noise in range 0..1 */
 ccl_device float noise(float3 p)
 {
@@ -364,21 +330,6 @@ ccl_device ssef cellnoise_color(const ssef& p)
 	ssei ip_xyy = shuffle<0, 1, 1, 3>(ip);
 	ssei ip_zzx = shuffle<2, 2, 0, 3>(ip);
 	return bits_to_01_sse(hash_sse(ip_xyy, ip_yxz, ip_zzx));
-}
-#endif
-
-#if 0 // unused
-/* periodic perlin noise in range 0..1 */
-ccl_device float pnoise(float3 p, float3 pperiod)
-{
-	float r = perlin_periodic(p.x, p.y, p.z, pperiod);
-	return 0.5f*r + 0.5f;
-}
-
-/* periodic perlin noise in range -1..1 */
-ccl_device float psnoise(float3 p, float3 pperiod)
-{
-	return perlin_periodic(p.x, p.y, p.z, pperiod);
 }
 #endif
 
