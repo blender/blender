@@ -718,18 +718,18 @@ public:
 	typedef WXShape type_name;
 
 protected:
-	bool _computeViewIndependant; // flag to indicate whether the view independant stuff must be computed or not
+	bool _computeViewIndependent; // flag to indicate whether the view independent stuff must be computed or not
 
 public:
 	inline WXShape() : WShape()
 	{
-		_computeViewIndependant = true;
+		_computeViewIndependent = true;
 	}
 
 	/*! copy constructor */
 	inline WXShape(WXShape& iBrother) : WShape(iBrother)
 	{
-		_computeViewIndependant = iBrother._computeViewIndependant;
+		_computeViewIndependent = iBrother._computeViewIndependent;
 	}
 
 	virtual WShape *duplicate()
@@ -740,14 +740,14 @@ public:
 
 	virtual ~WXShape() {}
 
-	inline bool getComputeViewIndependantFlag() const
+	inline bool getComputeViewIndependentFlag() const
 	{
-		return _computeViewIndependant;
+		return _computeViewIndependent;
 	}
 
-	inline void setComputeViewIndependantFlag(bool iFlag)
+	inline void setComputeViewIndependentFlag(bool iFlag)
 	{
-		_computeViewIndependant = iFlag;
+		_computeViewIndependent = iFlag;
 	}
 
 	/*! designed to build a specialized WFace for use in MakeFace */

@@ -63,14 +63,14 @@ void FEdgeXDetector::processShapes(WingedEdge& we)
 				WXFace *wxf = dynamic_cast<WXFace*>(*wf);
 				wxf->Clear();
 			}
-			_computeViewIndependant = true;
+			_computeViewIndependent = true;
 		}
-		else if (!(wxs)->getComputeViewIndependantFlag()) {
+		else if (!(wxs)->getComputeViewIndependentFlag()) {
 			wxs->Reset();
-			_computeViewIndependant = false;
+			_computeViewIndependent = false;
 		}
 		else {
-			_computeViewIndependant = true;
+			_computeViewIndependent = true;
 		}
 		preProcessShape(wxs);
 		if (progressBarDisplay)
@@ -97,8 +97,8 @@ void FEdgeXDetector::processShapes(WingedEdge& we)
 		if (progressBarDisplay)
 			_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
 
-		wxs->setComputeViewIndependantFlag(false);
-		_computeViewIndependant = false;
+		wxs->setComputeViewIndependentFlag(false);
+		_computeViewIndependent = false;
 		_changes = false;
 
 		// reset user data
@@ -187,8 +187,8 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
 	CurvatureInfo *C;
 	float radius = _sphereRadius * _meanEdgeSize; 
 
-	// view independant stuff
-	if (_computeViewIndependant) {
+	// view independent stuff
+	if (_computeViewIndependent) {
 		C = new CurvatureInfo();
 		vertex->setCurvatures(C);
 		OGF::NormalCycle ncycle;
@@ -333,7 +333,7 @@ void FEdgeXDetector::ProcessSilhouetteEdge(WXEdge *iEdge)
 /////////
 void FEdgeXDetector::processBorderShape(WXShape *iWShape)
 {
-	if (!_computeViewIndependant)
+	if (!_computeViewIndependent)
 		return;
 	// Make a pass on the edges to detect the BORDER
 	vector<WEdge*>::iterator we, weend;
@@ -358,7 +358,7 @@ void FEdgeXDetector::ProcessBorderEdge(WXEdge *iEdge)
 /////////
 void FEdgeXDetector::processCreaseShape(WXShape *iWShape)
 {
-	if (!_computeViewIndependant)
+	if (!_computeViewIndependent)
 		return;
 
 	// Make a pass on the edges to detect the CREASE 
@@ -390,7 +390,7 @@ void FEdgeXDetector::processRidgesAndValleysShape(WXShape *iWShape)
 	// Don't forget to add the built layer to the face at the end of the ProcessFace:
 	//iFace->AddSmoothLayer(faceLayer);
 
-	if (!_computeViewIndependant)
+	if (!_computeViewIndependent)
 		return;
 
 	// Here the curvatures must already have been computed
@@ -684,7 +684,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
 ////////////////////
 void FEdgeXDetector::processMaterialBoundaryShape(WXShape *iWShape)
 {
-	if (!_computeViewIndependant)
+	if (!_computeViewIndependent)
 		return;
 	// Make a pass on the edges to detect material boundaries
 	vector<WEdge*>::iterator we, weend;

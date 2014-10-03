@@ -362,9 +362,9 @@ static void edgering_select(RingSelOpData *lcd)
 	}
 
 	BMW_init(&walker, em->bm, BMW_EDGERING,
-			 BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-			 BMW_FLAG_TEST_HIDDEN,
-			 BMW_NIL_LAY);
+	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
+	         BMW_FLAG_TEST_HIDDEN,
+	         BMW_NIL_LAY);
 
 	for (eed = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
 		BM_edge_select_set(em->bm, eed, true);
