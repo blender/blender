@@ -60,7 +60,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static bool isDisabled(ModifierData *UNUSED(md), int UNUSED(useRenderParams))
 {
-	return 0;
+	return false;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
@@ -75,14 +75,17 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 }
 
+static bool dependsOnNormals(ModifierData *UNUSED(md))
+{
+	return true;
+}
+
 static DerivedMesh *WireframeModifier_do( WireframeModifierData *wmd, Object *ob, DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	BMesh *bm;
 
 	const int defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
-
-	DM_ensure_normals(dm);
 
 	bm = DM_to_bmesh(dm, true);
 
@@ -137,7 +140,7 @@ ModifierTypeInfo modifierType_Wireframe = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
+	/* dependsOnNormals */  dependsOnNormals,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
