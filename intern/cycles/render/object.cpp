@@ -348,27 +348,9 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		objects[offset+9] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], __int_as_float(numkeys));
 		objects[offset+10] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], __int_as_float(numsteps), __int_as_float(numverts));
 
-		/* That's a bit weird place to update mesh flags, but we do it here
-		 * because  object needs to know if it's a volume or not and mesh needs
-		 * to have the updated.
-		 *
-		 * TODO(sergey): Check on whether we can reshuffle update order in scene.
-		 */
-		if(ob->mesh->need_update) {
-			ob->mesh->has_volume = false;
-			foreach(uint shader, ob->mesh->used_shaders) {
-				if(scene->shaders[shader]->has_volume) {
-					ob->mesh->has_volume = true;
-					break;
-				}
-			}
-		}
-
 		/* object flag */
 		if(ob->use_holdout)
 			flag |= SD_HOLDOUT_MASK;
-		if(ob->mesh->has_volume)
-			flag |= SD_OBJECT_HAS_VOLUME;
 		object_flag[i] = flag;
 
 		/* have curves */
@@ -396,8 +378,6 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	
 	device_free(device, dscene);
 
-	need_update = false;
-
 	if(scene->objects.size() == 0)
 		return;
 
@@ -416,6 +396,49 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 		progress.set_status("Updating Objects", "Applying Static Transformations");
 		apply_static_transforms(dscene, scene, object_flag, progress);
 	}
+}
+
+void ObjectManager::device_update_flags(Device *device, DeviceScene *dscene,
+                                        Scene *scene, Progress& progress)
+{
+	if(!need_update)
+		return;
+
+	need_update = false;
+
+	if(scene->objects.size() == 0)
+		return;
+
+	/* object info flag */
+	uint *object_flag = dscene->object_flag.get_data();
+
+	vector<Object *> volume_objects;
+	foreach(Object *object, scene->objects) {
+		if(object->mesh->has_volume) {
+			volume_objects.push_back(object);
+		}
+	}
+
+	int object_index = 0;
+	foreach(Object *object, scene->objects) {
+		if(object->mesh->has_volume) {
+			object_flag[object_index] |= SD_OBJECT_HAS_VOLUME;
+		}
+
+		foreach(Object *volume_object, volume_objects) {
+			if(object == volume_object) {
+				continue;
+			}
+			if(object->bounds.intersects(volume_object->bounds)) {
+				object_flag[object_index] |= SD_OBJECT_INTERSECTS_VOLUME;
+				break;
+			}
+		}
+		++object_index;
+	}
+
+	/* allocate object flag */
+	device->tex_alloc("__object_flag", dscene->object_flag);
 }
 
 void ObjectManager::device_free(Device *device, DeviceScene *dscene)

@@ -175,6 +175,11 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	if(progress.get_cancel()) return;
 
+	progress.set_status("Updating Objects Flags");
+	object_manager->device_update_flags(device, &dscene, this, progress);
+
+	if(progress.get_cancel()) return;
+
 	progress.set_status("Updating Hair Systems");
 	curve_system_manager->device_update(device, &dscene, this, progress);
 
