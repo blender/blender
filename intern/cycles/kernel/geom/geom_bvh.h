@@ -35,6 +35,8 @@ CCL_NAMESPACE_BEGIN
 #define BVH_HAIR				4
 #define BVH_HAIR_MINIMUM_WIDTH	8
 
+/* Regular BVH traversal */
+
 #define BVH_FUNCTION_NAME bvh_intersect
 #define BVH_FUNCTION_FEATURES 0
 #include "geom_bvh_traversal.h"
@@ -62,6 +64,8 @@ CCL_NAMESPACE_BEGIN
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
 #include "geom_bvh_traversal.h"
 #endif
+
+/* Subsurface scattering BVH traversal */
 
 #if defined(__SUBSURFACE__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface
@@ -93,6 +97,8 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_subsurface.h"
 #endif
 
+/* Record all BVH intersection for shadows */
+
 #if defined(__SHADOW_RECORD_ALL__)
 #define BVH_FUNCTION_NAME bvh_intersect_shadow_all
 #define BVH_FUNCTION_FEATURES 0
@@ -122,6 +128,8 @@ CCL_NAMESPACE_BEGIN
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
 #include "geom_bvh_shadow.h"
 #endif
+
+/* Camera inside Volume BVH intersection */
 
 #if defined(__VOLUME__)
 #define BVH_FUNCTION_NAME bvh_intersect_volume
@@ -287,6 +295,53 @@ uint scene_intersect_shadow_all(KernelGlobals *kg, const Ray *ray, Intersection 
 }
 #endif
 
+/* to work around titan bug when using arrays instead of textures */
+#ifdef __VOLUME__
+#if !defined(__KERNEL_CUDA__) || defined(__KERNEL_CUDA_TEX_STORAGE__)
+ccl_device_inline
+#else
+ccl_device_noinline
+#endif
+bool scene_intersect_volume(KernelGlobals *kg,
+                            const Ray *ray,
+                            Intersection *isect)
+{
+#ifdef __OBJECT_MOTION__
+	if(kernel_data.bvh.have_motion) {
+#ifdef __HAIR__
+		if(kernel_data.bvh.have_curves)
+			return bvh_intersect_volume_hair_motion(kg, ray, isect);
+#endif /* __HAIR__ */
+
+		return bvh_intersect_volume_motion(kg, ray, isect);
+	}
+#endif /* __OBJECT_MOTION__ */
+
+#ifdef __HAIR__
+	if(kernel_data.bvh.have_curves)
+		return bvh_intersect_volume_hair(kg, ray, isect);
+#endif /* __HAIR__ */
+
+#ifdef __KERNEL_CPU__
+
+#ifdef __INSTANCING__
+	if(kernel_data.bvh.have_instancing)
+		return bvh_intersect_volume_instancing(kg, ray, isect);
+#endif /* __INSTANCING__ */
+
+	return bvh_intersect_volume(kg, ray, isect);
+#else /* __KERNEL_CPU__ */
+
+#ifdef __INSTANCING__
+	return bvh_intersect_volume_instancing(kg, ray, isect);
+#else
+	return bvh_intersect_volume(kg, ray, isect);
+#endif /* __INSTANCING__ */
+
+#endif /* __KERNEL_CPU__ */
+}
+#endif
+
 
 /* Ray offset to avoid self intersection.
  *
@@ -339,51 +394,6 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 	const float epsilon_f = 1e-4f;
 	return P + epsilon_f*Ng;
 #endif
-}
-
-/* to work around titan bug when using arrays instead of textures */
-#if !defined(__KERNEL_CUDA__) || defined(__KERNEL_CUDA_TEX_STORAGE__)
-ccl_device_inline
-#else
-ccl_device_noinline
-#endif
-bool scene_intersect_volume(KernelGlobals *kg,
-                            const Ray *ray,
-                            Intersection *isect)
-{
-#ifdef __OBJECT_MOTION__
-	if(kernel_data.bvh.have_motion) {
-#ifdef __HAIR__
-		if(kernel_data.bvh.have_curves)
-			return bvh_intersect_volume_hair_motion(kg, ray, isect);
-#endif /* __HAIR__ */
-
-		return bvh_intersect_volume_motion(kg, ray, isect);
-	}
-#endif /* __OBJECT_MOTION__ */
-
-#ifdef __HAIR__
-	if(kernel_data.bvh.have_curves)
-		return bvh_intersect_volume_hair(kg, ray, isect);
-#endif /* __HAIR__ */
-
-#ifdef __KERNEL_CPU__
-
-#ifdef __INSTANCING__
-	if(kernel_data.bvh.have_instancing)
-		return bvh_intersect_volume_instancing(kg, ray, isect);
-#endif /* __INSTANCING__ */
-
-	return bvh_intersect_volume(kg, ray, isect);
-#else /* __KERNEL_CPU__ */
-
-#ifdef __INSTANCING__
-	return bvh_intersect_volume_instancing(kg, ray, isect);
-#else
-	return bvh_intersect_volume(kg, ray, isect);
-#endif /* __INSTANCING__ */
-
-#endif /* __KERNEL_CPU__ */
 }
 
 CCL_NAMESPACE_END
