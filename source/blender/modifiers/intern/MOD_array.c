@@ -406,6 +406,9 @@ static DerivedMesh *arrayModifier_doArray(
 
 	const bool use_merge = amd->flags & MOD_ARR_MERGE;
 	const bool use_recalc_normals = (dm->dirty & DM_DIRTY_NORMALS) || use_merge;
+	const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob);
+	/* allow pole vertices to be used by many faces */
+	const bool with_follow = use_offset_ob;
 
 	int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
 	int end_cap_nverts = 0, end_cap_nedges = 0, end_cap_npolys = 0, end_cap_nloops = 0;
@@ -454,7 +457,7 @@ static DerivedMesh *arrayModifier_doArray(
 			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert, chunk_nverts, j);
 	}
 
-	if ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
+	if (use_offset_ob) {
 		float obinv[4][4];
 		float result_mat[4][4];
 
@@ -606,10 +609,12 @@ static DerivedMesh *arrayModifier_doArray(
 					int target = full_doubles_map[prev_chunk_index];
 					if (target != -1) {
 						target += chunk_nverts; /* translate mapping */
-						/* The rule here is to not follow mapping to chunk N-2, which could be too far
-						 * so if target vertex was itself mapped, then this vertex is not mapped */
-						if (full_doubles_map[target] != -1) {
-							target = -1;
+						if (!with_follow) {
+							/* The rule here is to not follow mapping to chunk N-2, which could be too far
+							 * so if target vertex was itself mapped, then this vertex is not mapped */
+							if (full_doubles_map[target] != -1) {
+								target = -1;
+							}
 						}
 					}
 					full_doubles_map[this_chunk_index] = target;
@@ -624,7 +629,7 @@ static DerivedMesh *arrayModifier_doArray(
 				        c * chunk_nverts,
 				        chunk_nverts,
 				        amd->merge_dist,
-				        false);
+				        with_follow);
 			}
 		}
 	}
@@ -644,7 +649,7 @@ static DerivedMesh *arrayModifier_doArray(
 		        first_chunk_start,
 		        first_chunk_nverts,
 		        amd->merge_dist,
-		        false);
+		        with_follow);
 	}
 
 	/* start capping */
@@ -711,7 +716,12 @@ static DerivedMesh *arrayModifier_doArray(
 	if (use_merge) {
 		for (i = 0; i < result_nverts; i++) {
 			if (full_doubles_map[i] != -1) {
-				tot_doubles++;
+				if (i == full_doubles_map[i]) {
+					full_doubles_map[i] = -1;
+				}
+				else {
+					tot_doubles++;
+				}
 			}
 		}
 		if (tot_doubles > 0) {
