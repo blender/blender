@@ -5159,6 +5159,34 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 			}
 		}
+
+		if (part->type ==  PART_HAIR) {
+			if (part->draw & PART_DRAW_GUIDE_HAIRS) {
+				glDisable(GL_LIGHTING);
+				glDisable(GL_COLOR_MATERIAL);
+				glDisableClientState(GL_NORMAL_ARRAY);
+				glDisableClientState(GL_COLOR_ARRAY);
+				for (a = 0, pa = psys->particles; a < totpart; a++, pa++) {
+					if (pa->totkey > 1) {
+						HairKey *hkey = pa->hair;
+						
+						glVertexPointer(3, GL_FLOAT, sizeof(HairKey), hkey->world_co);
+						
+						// XXX use proper theme color here
+//						UI_ThemeColor(TH_NORMAL);
+						glColor3f(0.58f, 0.67f, 1.0f);
+						
+						glDrawArrays(GL_LINE_STRIP, 0, pa->totkey);
+					}
+				}
+				glEnable(GL_LIGHTING);
+				glEnable(GL_COLOR_MATERIAL);
+				glEnableClientState(GL_NORMAL_ARRAY);
+				if ((dflag & DRAW_CONSTCOLOR) == 0)
+					if (part->draw_col == PART_DRAW_COL_MAT)
+						glEnableClientState(GL_COLOR_ARRAY);
+			}
+		}
 		
 		/* draw child particles */
 		cache = psys->childcache;

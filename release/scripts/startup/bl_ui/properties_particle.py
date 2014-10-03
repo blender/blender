@@ -1053,6 +1053,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
 
         row = layout.row()
         row.prop(part, "draw_method", expand=True)
+        row.prop(part, "show_guide_hairs")
 
         if part.draw_method == 'NONE' or (part.render_type == 'NONE' and part.draw_method == 'RENDER'):
             return

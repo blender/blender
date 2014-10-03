@@ -44,6 +44,7 @@ typedef struct HairKey {
 	float weight;	/* softbody weight */
 	short editflag;	/* saved particled edit mode flags */
 	short pad;
+	float world_co[3];
 } HairKey;
 
 typedef struct ParticleKey {	/* when changed update size of struct to copy_particleKey()!! */
@@ -313,6 +314,28 @@ typedef struct ParticleSystem {
 	float _pad;								/* spare capacity */
 } ParticleSystem;
 
+typedef enum eParticleDrawFlag {
+	PART_DRAW_VEL           = (1 << 0),
+	PART_DRAW_GLOBAL_OB	    = (1 << 1),
+	PART_DRAW_SIZE          = (1 << 2),
+	PART_DRAW_EMITTER       = (1 << 3), /* render emitter also */
+	PART_DRAW_HEALTH        = (1 << 4),
+	PART_ABS_PATH_TIME      = (1 << 5),
+	PART_DRAW_COUNT_GR      = (1 << 6),
+	PART_DRAW_BB_LOCK       = (1 << 7), /* used with billboards */
+	PART_DRAW_ROTATE_OB     = (1 << 7), /* used with dupliobjects/groups */
+	PART_DRAW_PARENT        = (1 << 8),
+	PART_DRAW_NUM           = (1 << 9),
+	PART_DRAW_RAND_GR       = (1 << 10),
+	PART_DRAW_REN_ADAPT     = (1 << 11),
+	PART_DRAW_VEL_LENGTH    = (1 << 12),
+	PART_DRAW_MAT_COL       = (1 << 13), /* deprecated, but used in do_versions */
+	PART_DRAW_WHOLE_GR      = (1 << 14),
+	PART_DRAW_REN_STRAND    = (1 << 15),
+	PART_DRAW_NO_SCALE_OB   = (1 << 16), /* used with dupliobjects/groups */
+	PART_DRAW_GUIDE_HAIRS   = (1 << 17),
+} eParticleDrawFlag;
+
 /* part->type */
 /* hair is allways baked static in object/geometry space */
 /* other types (normal particles) are in global space and not static baked */
@@ -390,26 +413,6 @@ typedef struct ParticleSystem {
 #define PART_KINK_RADIAL	2
 #define PART_KINK_WAVE		3
 #define PART_KINK_BRAID		4
-
-/* part->draw */
-#define PART_DRAW_VEL		1
-#define PART_DRAW_GLOBAL_OB	2
-#define PART_DRAW_SIZE		4
-#define PART_DRAW_EMITTER	8	/* render emitter also */
-#define PART_DRAW_HEALTH	16
-#define PART_ABS_PATH_TIME  32
-#define PART_DRAW_COUNT_GR	64
-#define PART_DRAW_BB_LOCK	128	/* used with billboards */
-#define PART_DRAW_ROTATE_OB 128 /* used with dupliobjects/groups */
-#define PART_DRAW_PARENT	256
-#define PART_DRAW_NUM		512
-#define PART_DRAW_RAND_GR	1024
-#define PART_DRAW_REN_ADAPT	2048
-#define PART_DRAW_VEL_LENGTH	(1<<12)
-#define PART_DRAW_MAT_COL		(1<<13) /* deprecated, but used in do_versions */
-#define PART_DRAW_WHOLE_GR		(1<<14)
-#define PART_DRAW_REN_STRAND	(1<<15)
-#define PART_DRAW_NO_SCALE_OB 	(1<<16) /* used with dupliobjects/groups */
 
 /* part->draw_col */
 #define PART_DRAW_COL_NONE		0

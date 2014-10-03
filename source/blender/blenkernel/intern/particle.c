@@ -3046,7 +3046,15 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 
 			copy_v3_v3(ca->col, col);
 		}
-		
+
+		if (part->type == PART_HAIR) {
+			HairKey *hkey;
+			
+			for (k = 0, hkey = pa->hair; k < pa->totkey; ++k, ++hkey) {
+				mul_v3_m4v3(hkey->world_co, hairmat, hkey->co);
+			}
+		}
+
 		/*--modify paths and calculate rotation & velocity--*/
 
 		if (!(psys->flag & PSYS_GLOBAL_HAIR)) {
