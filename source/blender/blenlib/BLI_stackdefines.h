@@ -64,6 +64,13 @@
 			stack[_i] = stack[_##stack##_index]; \
 		} \
 	} (void)0
+#define STACK_DISCARD(stack, n) \
+	{ \
+		const unsigned int _n = n; \
+		BLI_assert(_##stack##_index >= _n); \
+		(void)stack; \
+		_##stack##_index -= _n; \
+	} (void)0
 #ifdef __GNUC__
 #define STACK_SWAP(stack_a, stack_b) { \
 	SWAP(typeof(stack_a), stack_a, stack_b); \
