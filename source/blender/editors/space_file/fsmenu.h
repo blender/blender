@@ -47,7 +47,8 @@ typedef enum FSMenuCategory {
 typedef enum FSMenuInsert {
 	FS_INSERT_SORTED = (1 << 0),
 	FS_INSERT_SAVE   = (1 << 1),
-	FS_INSERT_FIRST  = (1 << 2)   /* moves the item to the front of the list when its not already there */
+	FS_INSERT_FIRST  = (1 << 2),   /* moves the item to the front of the list when its not already there */
+	FS_INSERT_LAST  = (1 << 3)   /* moves the item to the end of the list when its not already there */
 } FSMenuInsert;
 
 struct FSMenu;
