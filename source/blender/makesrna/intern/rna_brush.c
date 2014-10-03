@@ -264,7 +264,7 @@ static int rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
 	return (!(br->flag & BRUSH_ANCHORED));
 }
 
-static int rna_SculptToolCapabilities_has_strength_get(PointerRNA *ptr)
+static int rna_SculptToolCapabilities_has_strength_pressure_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return !ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK);
@@ -689,7 +689,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	SCULPT_TOOL_CAPABILITY(has_secondary_color, "Has Secondary Color");
 	SCULPT_TOOL_CAPABILITY(has_smooth_stroke, "Has Smooth Stroke");
 	SCULPT_TOOL_CAPABILITY(has_space_attenuation, "Has Space Attenuation");
-	SCULPT_TOOL_CAPABILITY(has_strength, "Has Strength");
+	SCULPT_TOOL_CAPABILITY(has_strength_pressure, "Has Strength Pressure");
 	SCULPT_TOOL_CAPABILITY(has_gravity, "Has Gravity");
 
 #undef SCULPT_CAPABILITY

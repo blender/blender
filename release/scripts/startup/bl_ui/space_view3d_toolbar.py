@@ -844,14 +844,15 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             # strength, use_strength_pressure, and use_strength_attenuation
-            if capabilities.has_strength:
-                col.separator()
-                row = col.row(align=True)
+            col.separator()
+            row = col.row(align=True)
 
-                if capabilities.has_space_attenuation:
-                    row.prop(brush, "use_space_attenuation", toggle=True, icon_only=True)
+            if capabilities.has_space_attenuation:
+                row.prop(brush, "use_space_attenuation", toggle=True, icon_only=True)
 
-                self.prop_unified_strength(row, context, brush, "strength", text="Strength")
+            self.prop_unified_strength(row, context, brush, "strength", text="Strength")
+
+            if capabilities.has_strength_pressure:
                 self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             # auto_smooth_factor and use_inverse_smooth_pressure

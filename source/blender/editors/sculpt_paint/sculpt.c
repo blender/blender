@@ -809,10 +809,10 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather, Unifi
 			return alpha * pressure * feather;
 
 		case SCULPT_TOOL_SNAKE_HOOK:
-			return feather;
+			return root_alpha * feather;
 
 		case SCULPT_TOOL_GRAB:
-			return feather;
+			return root_alpha * feather;
 
 		case SCULPT_TOOL_ROTATE:
 			return alpha * pressure * feather;

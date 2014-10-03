@@ -390,6 +390,14 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+	
+	if (!MAIN_VERSION_ATLEAST(main, 272, 1)) {
+		Brush *br;
+		for (br = main->brush.first; br; br = br->id.next) {
+			if ((br->ob_mode & OB_MODE_SCULPT) && ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK))
+				br->alpha = 1.0f;
+		}
+	}
 
 	if (!DNA_struct_elem_find(fd->filesdna, "Image", "float", "gen_color")) {
 		Image *image;
