@@ -161,13 +161,7 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_volume.h"
 #endif
 
-/* to work around titan bug when using arrays instead of textures */
-#if !defined(__KERNEL_CUDA__) || defined(__KERNEL_CUDA_TEX_STORAGE__)
-ccl_device_inline
-#else
-ccl_device_noinline
-#endif
-bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect,
+ccl_device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect,
 					 uint *lcg_state, float difl, float extmax)
 {
 #ifdef __OBJECT_MOTION__
@@ -205,14 +199,8 @@ bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, I
 #endif /* __KERNEL_CPU__ */
 }
 
-/* to work around titan bug when using arrays instead of textures */
 #ifdef __SUBSURFACE__
-#if !defined(__KERNEL_CUDA__) || defined(__KERNEL_CUDA_TEX_STORAGE__)
-ccl_device_inline
-#else
-ccl_device_noinline
-#endif
-uint scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, uint *lcg_state, int max_hits)
+ccl_device_inline uint scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, uint *lcg_state, int max_hits)
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
@@ -278,14 +266,8 @@ ccl_device_inline bool scene_intersect_shadow_all(KernelGlobals *kg, const Ray *
 }
 #endif
 
-/* to work around titan bug when using arrays instead of textures */
 #ifdef __VOLUME__
-#if !defined(__KERNEL_CUDA__) || defined(__KERNEL_CUDA_TEX_STORAGE__)
-ccl_device_inline
-#else
-ccl_device_noinline
-#endif
-bool scene_intersect_volume(KernelGlobals *kg,
+ccl_device_inline bool scene_intersect_volume(KernelGlobals *kg,
                             const Ray *ray,
                             Intersection *isect)
 {
