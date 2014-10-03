@@ -176,6 +176,10 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 					img->frame = frame;
 					img->need_load = true;
 				}
+				if(img->use_alpha != use_alpha) {
+					img->use_alpha = use_alpha;
+					img->need_load = true;
+				}
 				img->users++;
 				return slot;
 			}
@@ -217,6 +221,10 @@ int ImageManager::add_image(const string& filename, void *builtin_data, bool ani
 			if(img && image_equals(img, filename, builtin_data, interpolation)) {
 				if(img->frame != frame) {
 					img->frame = frame;
+					img->need_load = true;
+				}
+				if(img->use_alpha != use_alpha) {
+					img->use_alpha = use_alpha;
 					img->need_load = true;
 				}
 				img->users++;
