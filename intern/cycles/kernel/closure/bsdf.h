@@ -24,7 +24,6 @@
 #include "../closure/bsdf_refraction.h"
 #include "../closure/bsdf_transparent.h"
 #include "../closure/bsdf_ashikhmin_shirley.h"
-#include "../closure/bsdf_westin.h"
 #include "../closure/bsdf_toon.h"
 #include "../closure/bsdf_hair.h"
 #ifdef __SUBSURFACE__
@@ -109,14 +108,6 @@ ccl_device int bsdf_sample(KernelGlobals *kg, const ShaderData *sd, const Shader
 			label = bsdf_glossy_toon_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
-		case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
-			label = bsdf_westin_backscatter_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
-				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
-			break;
-		case CLOSURE_BSDF_WESTIN_SHEEN_ID:
-			label = bsdf_westin_sheen_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
-				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
-			break;
 		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 			label = bsdf_hair_reflection_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
@@ -199,12 +190,6 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 			case CLOSURE_BSDF_GLOSSY_TOON_ID:
 				eval = bsdf_glossy_toon_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
-			case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
-				eval = bsdf_westin_backscatter_eval_reflect(sc, sd->I, omega_in, pdf);
-				break;
-			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
-				eval = bsdf_westin_sheen_eval_reflect(sc, sd->I, omega_in, pdf);
-				break;
 			case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 				eval = bsdf_hair_reflection_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
@@ -266,12 +251,6 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 				break;
 			case CLOSURE_BSDF_GLOSSY_TOON_ID:
 				eval = bsdf_glossy_toon_eval_transmit(sc, sd->I, omega_in, pdf);
-				break;
-			case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
-				eval = bsdf_westin_backscatter_eval_transmit(sc, sd->I, omega_in, pdf);
-				break;
-			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
-				eval = bsdf_westin_sheen_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 				eval = bsdf_hair_reflection_eval_transmit(sc, sd->I, omega_in, pdf);
@@ -352,12 +331,6 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 			break;
 		case CLOSURE_BSDF_GLOSSY_TOON_ID:
 			bsdf_glossy_toon_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
-			bsdf_westin_backscatter_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_WESTIN_SHEEN_ID:
-			bsdf_westin_sheen_blur(sc, roughness);
 			break;
 		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:

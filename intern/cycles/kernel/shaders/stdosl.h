@@ -476,8 +476,6 @@ closure color diffuse_ramp(normal N, color colors[8]) BUILTIN;
 closure color phong_ramp(normal N, float exponent, color colors[8]) BUILTIN;
 closure color diffuse_toon(normal N, float size, float smooth) BUILTIN;
 closure color glossy_toon(normal N, float size, float smooth) BUILTIN;
-closure color westin_backscatter(normal N, float roughness) BUILTIN;
-closure color westin_sheen(normal N, float edginess) BUILTIN;
 closure color translucent(normal N) BUILTIN;
 closure color reflection(normal N) BUILTIN;
 closure color refraction(normal N, float eta) BUILTIN;
