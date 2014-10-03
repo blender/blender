@@ -82,6 +82,8 @@ static DerivedMesh *WireframeModifier_do( WireframeModifierData *wmd, Object *ob
 
 	const int defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
 
+	DM_ensure_normals(dm);
+
 	bm = DM_to_bmesh(dm, true);
 
 	BM_mesh_wireframe(
