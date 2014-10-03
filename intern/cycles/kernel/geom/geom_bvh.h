@@ -105,25 +105,25 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_shadow.h"
 #endif
 
-#if defined(__SUBSURFACE__) && defined(__INSTANCING__)
+#if defined(__SHADOW_RECORD_ALL__) && defined(__INSTANCING__)
 #define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING
 #include "geom_bvh_shadow.h"
 #endif
 
-#if defined(__SUBSURFACE__) && defined(__HAIR__)
+#if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__)
 #define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
 #include "geom_bvh_shadow.h"
 #endif
 
-#if defined(__SUBSURFACE__) && defined(__OBJECT_MOTION__)
+#if defined(__SHADOW_RECORD_ALL__) && defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
 #include "geom_bvh_shadow.h"
 #endif
 
-#if defined(__SUBSURFACE__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
+#if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
 #include "geom_bvh_shadow.h"
