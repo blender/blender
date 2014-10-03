@@ -27,7 +27,7 @@ echo -n "Building manifest of files:  \"$BASE_DIR/$MANIFEST\" ..."
 git ls-files > $BASE_DIR/$MANIFEST
 
 # Enumerate submodules
-for lcv in $(git submodule | cut -f2 -d" "); do
+for lcv in $(git submodule | awk '{print $2}'); do
 	cd "$BASE_DIR"
 	cd "$blender_srcdir/$lcv"
 	git ls-files | awk '$0="'"$lcv"/'"$0' >> $BASE_DIR/$MANIFEST
