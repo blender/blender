@@ -29,7 +29,7 @@ getopt \
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,\
 force-all,force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-opencollada,\
 force-ffmpeg,\
-skip-python,skip-numpy,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg,skip-opencollada,\
+skip-python,skip-numpy,skip-boost,skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg,skip-opencollada,\
 required-numpy: \
 -- "$@" \
 )
