@@ -36,9 +36,9 @@
 CCL_NAMESPACE_BEGIN
 
 /* Approximate erf and erfinv implementations.
- * Implementation comes stright from the wikipedia:
+ * Implementation comes straight from Wikipedia:
  *
- *   http://en.wikipedia.org/wiki/Error_function
+ * http://en.wikipedia.org/wiki/Error_function
  *
  * Some constants are baked into the code.
  */
