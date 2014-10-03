@@ -3014,10 +3014,17 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		if (UNLIKELY(c == 0)) {
 			continue;
 		}
+		else if (UNLIKELY(c < 3)) {
+			STACK_DISCARD(oldl, c);
+			STACK_DISCARD(mloop, c);
+			continue;
+		}
+
 
 		mp_new = STACK_PUSH_RET_PTR(mpoly);
 		*mp_new = *mp;
 		mp_new->totloop = c;
+		BLI_assert(mp_new->totloop >= 3);
 		mp_new->loopstart = STACK_SIZE(mloop) - c;
 		
 		STACK_PUSH(oldp, i);
