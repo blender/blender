@@ -1091,6 +1091,9 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	/* passepartout, specified in camera edit buttons */
 	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f) {
+		const float winx = (ar->winx + 1);
+		const float winy = (ar->winy + 1);
+
 		if (ca->passepartalpha == 1.0f) {
 			glColor3f(0, 0, 0);
 		}
@@ -1100,11 +1103,11 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			glColor4f(0, 0, 0, ca->passepartalpha);
 		}
 		if (x1i > 0.0f)
-			glRectf(0.0, (float)ar->winy, x1i, 0.0);
-		if (x2i < (float)ar->winx)
-			glRectf(x2i, (float)ar->winy, (float)ar->winx, 0.0);
-		if (y2i < (float)ar->winy)
-			glRectf(x1i, (float)ar->winy, x2i, y2i);
+			glRectf(0.0, winy, x1i, 0.0);
+		if (x2i < winx)
+			glRectf(x2i, winy, winx, 0.0);
+		if (y2i < winy)
+			glRectf(x1i, winy, x2i, y2i);
 		if (y2i > 0.0f)
 			glRectf(x1i, y1i, x2i, 0.0);
 		
