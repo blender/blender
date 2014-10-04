@@ -190,6 +190,14 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 					pixels[0] = clamp(f*scale_exposure, 0.0f, 1.0f);
 				}
 			}
+#ifdef WITH_CYCLES_DEBUG
+			else if(type == PASS_BVH_TRAVERSAL_STEPS) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
+					float f = *in;
+					pixels[0] = f;
+				}
+			}
+#endif
 			else {
 				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
 					float f = *in;

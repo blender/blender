@@ -261,6 +261,14 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 		case BL::RenderPass::type_SPECULAR:
 		case BL::RenderPass::type_REFLECTION:
 			return PASS_NONE;
+#ifdef WITH_CYCLES_DEBUG
+		case BL::RenderPass::type_DEBUG:
+		{
+			if(b_pass.debug_type() == BL::RenderPass::debug_type_BVH_TRAVERSAL_STEPS)
+				return PASS_BVH_TRAVERSAL_STEPS;
+			break;
+		}
+#endif
 	}
 	
 	return PASS_NONE;
@@ -423,6 +431,9 @@ void BlenderSession::render()
 		/* add passes */
 		vector<Pass> passes;
 		Pass::add(PASS_COMBINED, passes);
+#ifdef WITH_CYCLES_DEBUG
+		Pass::add(PASS_BVH_TRAVERSAL_STEPS, passes);
+#endif
 
 		if(session_params.device.advanced_shading) {
 

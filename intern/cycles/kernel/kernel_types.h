@@ -157,6 +157,10 @@ CCL_NAMESPACE_BEGIN
 #define __HAIR__
 #endif
 
+#ifdef WITH_CYCLES_DEBUG
+#  define __KERNEL_DEBUG__
+#endif
+
 /* Random Numbers */
 
 typedef uint RNG;
@@ -313,6 +317,9 @@ typedef enum PassType {
 	PASS_SUBSURFACE_INDIRECT = 8388608,
 	PASS_SUBSURFACE_COLOR = 16777216,
 	PASS_LIGHT = 33554432, /* no real pass, used to force use_light_pass */
+#ifdef __KERNEL_DEBUG__
+	PASS_BVH_TRAVERSAL_STEPS = 67108864,
+#endif
 } PassType;
 
 #define PASS_ALL (~0)
@@ -453,6 +460,10 @@ typedef struct Intersection {
 	int prim;
 	int object;
 	int type;
+
+#ifdef __KERNEL_DEBUG__
+	int num_traversal_steps;
+#endif
 } Intersection;
 
 /* Primitives */
@@ -850,6 +861,11 @@ typedef struct KernelFilm {
 	float mist_start;
 	float mist_inv_depth;
 	float mist_falloff;
+
+#ifdef __KERNEL_DEBUG__
+	int pass_bvh_traversal_steps;
+	int pad[3];
+#endif
 } KernelFilm;
 
 typedef struct KernelBackground {
@@ -975,6 +991,14 @@ typedef struct KernelData {
 	KernelCurves curve;
 	KernelTables tables;
 } KernelData;
+
+#ifdef __KERNEL_DEBUG__
+typedef struct DebugData {
+	// Total number of BVH node travesal steps and primitives intersections
+	// for the camera rays.
+	int num_bvh_traversal_steps;
+} DebugData;
+#endif
 
 CCL_NAMESPACE_END
 

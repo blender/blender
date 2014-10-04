@@ -48,6 +48,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#ifdef WITH_CYCLES_DEBUG
+#  include "BKE_scene.h"
+#endif
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -402,7 +405,7 @@ static int passtype_from_name(const char *str)
 
 /********************************** New **************************************/
 
-static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
+static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
 {
 	const char *typestr = get_pass_name(passtype, 0);
 	RenderPass *rpass = MEM_callocN(sizeof(RenderPass), typestr);
@@ -438,7 +441,33 @@ static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channel
 				rect[x] = 10e10;
 		}
 	}
+	return rpass;
 }
+
+#ifdef WITH_CYCLES_DEBUG
+static const char *debug_pass_type_name_get(int debug_type)
+{
+	switch (debug_type) {
+		case RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS:
+			return "BVH Traversal Steps";
+	}
+	return "Unknown";
+}
+
+static RenderPass *render_layer_add_debug_pass(RenderResult *rr,
+                                               RenderLayer *rl,
+                                               int channels,
+                                               int pass_type,
+                                               int debug_type)
+{
+	RenderPass *rpass = render_layer_add_pass(rr, rl, channels, pass_type);
+	rpass->debug_type = debug_type;
+	BLI_strncpy(rpass->name,
+	            debug_pass_type_name_get(debug_type),
+	            sizeof(rpass->name));
+	return rpass;
+}
+#endif
 
 /* called by main render as well for parts */
 /* will read info from Render *re to define layers */
@@ -578,6 +607,13 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBSURFACE_INDIRECT);
 		if (srl->passflag  & SCE_PASS_SUBSURFACE_COLOR)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBSURFACE_COLOR);
+
+#ifdef WITH_CYCLES_DEBUG
+		if(BKE_scene_use_new_shading_nodes(re->scene)) {
+			render_layer_add_debug_pass(rr, rl, 1, SCE_PASS_DEBUG,
+			        RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS);
+		}
+#endif
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
 	if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {

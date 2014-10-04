@@ -68,6 +68,10 @@ ccl_device bool BVH_FUNCTION_NAME
 	isect->u = 0.0f;
 	isect->v = 0.0f;
 
+#if defined(__KERNEL_DEBUG__)
+	isect->num_traversal_steps = 0;
+#endif
+
 #if defined(__KERNEL_SSE2__)
 	const shuffle_swap_t shuf_identity = shuffle_swap_identity();
 	const shuffle_swap_t shuf_swap = shuffle_swap_swap();
@@ -226,6 +230,10 @@ ccl_device bool BVH_FUNCTION_NAME
 						--stackPtr;
 					}
 				}
+
+#if defined(__KERNEL_DEBUG__)
+				isect->num_traversal_steps++;
+#endif
 			}
 
 			/* if node is leaf, fetch triangle list */
@@ -273,6 +281,10 @@ ccl_device bool BVH_FUNCTION_NAME
 								break;
 							}
 						}
+
+#if defined(__KERNEL_DEBUG__)
+						isect->num_traversal_steps++;
+#endif
 
 						/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)

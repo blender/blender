@@ -24,6 +24,7 @@ set(SRC_HEADERS
 	kernel_compat_cpu.h
 	kernel_compat_cuda.h
 	kernel_compat_opencl.h
+	kernel_debug.h
 	kernel_differential.h
 	kernel_emission.h
 	kernel_film.h

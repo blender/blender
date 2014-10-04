@@ -162,6 +162,10 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+if(WITH_CYCLES AND WITH_CYCLES_DEBUG)
+	add_definitions(-DWITH_CYCLES_DEBUG)
+endif()
+
 if(APPLE)
 	# SSE math is enabled by default on x86_64
 	if(CMAKE_OSX_ARCHITECTURES MATCHES "i386")

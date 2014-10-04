@@ -59,6 +59,9 @@ if env['WITH_BF_CYCLES_OSL']:
     defs.append('OSL_STATIC_LIBRARY')
     incs.append(cycles['BF_OSL_INC'])
 
+if env['WITH_BF_CYCLES_DEBUG']:
+    defs.append('WITH_CYCLES_DEBUG')
+
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna #source/blender/blenlib'.split())
 incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())

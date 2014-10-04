@@ -72,7 +72,12 @@ typedef struct RenderPass {
 	char chan_id[8];	/* amount defined in openexr_multi.h */
 	float *rect;
 	int rectx, recty;
+	int debug_type;
 } RenderPass;
+
+enum {
+	RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS = 0,
+};
 
 /* a renderlayer is a full image, but with all passes and samples */
 /* size of the rects is defined in RenderResult */

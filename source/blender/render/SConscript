@@ -103,6 +103,9 @@ if env['WITH_BF_GAMEENGINE']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_CYCLES'] and env['WITH_VF_CYCLES_DEBUG']:
+    defs.append('WITH_CYCLES_DEBUG')
+
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
 

@@ -282,6 +282,9 @@ set(CYCLES_CUDA_BINARIES_ARCH sm_20 sm_21 sm_30 sm_35 sm_50 CACHE STRING "CUDA a
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
 option(WITH_CYCLES_LOGGING	"Build cycles with logging support" OFF)
+option(WITH_CYCLES_DEBUG	"Build cycles with with extra debug capabilties" OFF)
+mark_as_advanced(WITH_CYCLES_LOGGING)
+mark_as_advanced(WITH_CYCLES_DEBUG)
 
 # LLVM
 option(WITH_LLVM					"Use LLVM" OFF)
