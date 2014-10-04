@@ -220,11 +220,10 @@ bool Controller::hitViewMapCache()
 	if (!_EnableViewMapCache) {
 		return false;
 	}
-	real hashCode = sceneHashFunc.getValue();
-	if (prevSceneHash == hashCode) {
+	if (sceneHashFunc.match()) {
 		return (NULL != _ViewMap);
 	}
-	prevSceneHash = hashCode;
+	sceneHashFunc.store();
 	return false;
 }
 
@@ -281,10 +280,26 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 		return 0;
 
 	if (_EnableViewMapCache) {
+
+		NodeCamera *cam;
+		if (freestyle_proj[3][3] != 0.0)
+			cam = new NodeOrthographicCamera;
+		else
+			cam = new NodePerspectiveCamera;
+		double proj[16];
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				proj[i * 4 + j] = freestyle_proj[i][j];
+			}
+		}
+		cam->setProjectionMatrix(proj);
+		_RootNode->AddChild(cam);
+
 		sceneHashFunc.reset();
-		blenderScene->accept(sceneHashFunc);
+		//blenderScene->accept(sceneHashFunc);
+		_RootNode->accept(sceneHashFunc);
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			printf("Scene hash       : %.16e\n", sceneHashFunc.getValue());
+			cout << "Scene hash       : " << sceneHashFunc.toString() << endl;
 		}
 		if (hitViewMapCache()) {
 			ClearRootNode();

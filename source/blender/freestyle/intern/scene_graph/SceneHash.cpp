@@ -24,7 +24,24 @@
 
 #include "SceneHash.h"
 
+#include <sstream>
+
 namespace Freestyle {
+
+string SceneHash::toString()
+{
+	 stringstream ss;
+	 ss << hex << _sum;
+	 return ss.str();
+}
+
+void SceneHash::visitNodeCamera(NodeCamera& cam)
+{
+	double *proj = cam.projectionMatrix();
+	for (int i = 0; i < 16; i++) {
+		adler32((unsigned char *)&proj[i], sizeof(double));
+	}
+}
 
 void SceneHash::visitIndexedFaceSet(IndexedFaceSet& ifs)
 {
@@ -32,8 +49,22 @@ void SceneHash::visitIndexedFaceSet(IndexedFaceSet& ifs)
 	const unsigned n = ifs.vsize();
 
 	for (unsigned i = 0; i < n; i++) {
-		_hashcode += v[i];
+		adler32((unsigned char *)&v[i], sizeof(v[i]));
 	}
+}
+
+static const int MOD_ADLER = 65521;
+
+void SceneHash::adler32(unsigned char *data, int size)
+{
+	uint32_t sum1 = _sum & 0xffff;
+	uint32_t sum2 = (_sum >> 16) & 0xffff;
+
+	for (int i = 0; i < size; i++) {
+		sum1 = (sum1 + data[i]) % MOD_ADLER;
+		sum2 = (sum1 + sum2) % MOD_ADLER;
+	}
+	_sum = sum1 | (sum2 << 16);
 }
 
 } /* namespace Freestyle */
