@@ -117,8 +117,8 @@ if env['WITH_BF_OCEANSIM']:
 if env['WITH_BF_CYCLES']:
     defs.append('WITH_CYCLES')
 
-if env['WITH_BF_CYCLES_DEBUG']:
-    defs.append('WITH_CYCLES_DEBUG')
+    if env['WITH_BF_CYCLES_DEBUG']:
+        defs.append('WITH_CYCLES_DEBUG')
 
 if env['WITH_BF_SDL']:
     defs.append('WITH_SDL')
