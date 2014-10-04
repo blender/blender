@@ -688,6 +688,7 @@ static void rna_def_render_pass(BlenderRNA *brna)
 
 	static EnumPropertyItem render_pass_debug_type_items[] = {
 		{RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS, "BVH_TRAVERSAL_STEPS", 0, "BVH Traversal Steps", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "RenderPass", NULL);
