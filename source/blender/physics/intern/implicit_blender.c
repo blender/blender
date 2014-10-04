@@ -1672,18 +1672,16 @@ BLI_INLINE void spring_grad_dir(Implicit_Data *data, int i, int j, float edge[3]
 BLI_INLINE void spring_angbend_forces(Implicit_Data *data, int i, int j, int k,
                                       const float goal[3],
                                       float stiffness, float damping,
-                                      int p, int q, const float dx[3], const float dv[3],
+                                      int q, const float dx[3], const float dv[3],
                                       float r_f[3])
 {
 	float edge_ij[3], dir_ij[3];
 	float edge_jk[3], dir_jk[3];
 	float vel_ij[3], vel_jk[3], vel_ortho[3];
 	float f_bend[3], f_damp[3];
-	float fi[3], fj[3], fk[3];
+	float fk[3];
 	float dist[3];
 	
-	zero_v3(fi);
-	zero_v3(fj);
 	zero_v3(fk);
 	
 	sub_v3_v3v3(edge_ij, data->X[j], data->X[i]);
@@ -1708,29 +1706,22 @@ BLI_INLINE void spring_angbend_forces(Implicit_Data *data, int i, int j, int k,
 	sub_v3_v3v3(dist, goal, edge_jk);
 	mul_v3_v3fl(f_bend, dist, stiffness);
 	
-	sub_v3_v3(fj, f_bend);
 	add_v3_v3(fk, f_bend);
 	
 	/* damping force */
 	madd_v3_v3v3fl(vel_ortho, vel_jk, dir_jk, -dot_v3v3(vel_jk, dir_jk));
 	mul_v3_v3fl(f_damp, vel_ortho, damping);
 	
-	add_v3_v3(fj, f_damp);
 	sub_v3_v3(fk, f_damp);
 	
-	if (p == i)
-		copy_v3_v3(r_f, fi);
-	else if (p == j)
-		copy_v3_v3(r_f, fj);
-	else if (p == k)
-		copy_v3_v3(r_f, fk);
+	copy_v3_v3(r_f, fk);
 }
 
 /* Finite Differences method for estimating the jacobian of the force */
 BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data, int i, int j, int k,
                                              const float goal[3],
                                              float stiffness, float damping,
-                                             int q, int p, float dfdx[3][3])
+                                             int q, float dfdx[3][3])
 {
 	const float delta = 0.00001f; // TODO find a good heuristic for this
 	float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
@@ -1747,11 +1738,11 @@ BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data, int i, int j, 
 	
 	for (a = 0; a < 3; ++a) {
 		spring_angbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, p, dvec_pos[a], dvec_null[a], f);
+		                      q, dvec_pos[a], dvec_null[a], f);
 		copy_v3_v3(dfdx[a], f);
 		
 		spring_angbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, p, dvec_neg[a], dvec_null[a], f);
+		                      q, dvec_neg[a], dvec_null[a], f);
 		sub_v3_v3(dfdx[a], f);
 		
 		for (b = 0; b < 3; ++b) {
@@ -1764,7 +1755,7 @@ BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data, int i, int j, 
 BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data, int i, int j, int k,
                                              const float goal[3],
                                              float stiffness, float damping,
-                                             int q, int p, float dfdv[3][3])
+                                             int q, float dfdv[3][3])
 {
 	const float delta = 0.00001f; // TODO find a good heuristic for this
 	float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
@@ -1781,11 +1772,11 @@ BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data, int i, int j, 
 	
 	for (a = 0; a < 3; ++a) {
 		spring_angbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, p, dvec_null[a], dvec_pos[a], f);
+		                      q, dvec_null[a], dvec_pos[a], f);
 		copy_v3_v3(dfdv[a], f);
 		
 		spring_angbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, p, dvec_null[a], dvec_neg[a], f);
+		                      q, dvec_null[a], dvec_neg[a], f);
 		sub_v3_v3(dfdv[a], f);
 		
 		for (b = 0; b < 3; ++b) {
@@ -1801,38 +1792,33 @@ bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, in
                                                   const float target[3], float stiffness, float damping)
 {
 	float goal[3];
-	float fi[3], fj[3], fk[3];
-	float dfi_dxi[3][3], dfj_dxi[3][3], dfj_dxj[3][3], dfk_dxi[3][3], dfk_dxj[3][3], dfk_dxk[3][3];
-	float dfi_dvi[3][3], dfj_dvi[3][3], dfj_dvj[3][3], dfk_dvi[3][3], dfk_dvj[3][3], dfk_dvk[3][3];
+	float fj[3], fk[3];
+	float dfj_dxi[3][3], dfj_dxj[3][3], dfk_dxi[3][3], dfk_dxj[3][3], dfk_dxk[3][3];
+	float dfj_dvi[3][3], dfj_dvj[3][3], dfk_dvi[3][3], dfk_dvj[3][3], dfk_dvk[3][3];
 	
 	const float vecnull[3] = {0.0f, 0.0f, 0.0f};
 	
 	world_to_root_v3(data, j, goal, target);
 	
-	spring_angbend_forces(data, i, j, k, goal, stiffness, damping, i, -1, vecnull, vecnull, fi);
-	spring_angbend_forces(data, i, j, k, goal, stiffness, damping, j, -1, vecnull, vecnull, fj);
-	spring_angbend_forces(data, i, j, k, goal, stiffness, damping, k, -1, vecnull, vecnull, fk);
+	spring_angbend_forces(data, i, j, k, goal, stiffness, damping, k, vecnull, vecnull, fk);
+	negate_v3_v3(fj, fk); /* counterforce */
 	
-	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, i, i, dfi_dxi);
-	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, j, i, dfj_dxi);
-	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, j, j, dfj_dxj);
-	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, k, i, dfk_dxi);
-	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, k, j, dfk_dxj);
-	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, k, k, dfk_dxk);
+	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, i, dfk_dxi);
+	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, j, dfk_dxj);
+	spring_angbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, k, dfk_dxk);
+	copy_m3_m3(dfj_dxi, dfk_dxi); negate_m3(dfj_dxi);
+	copy_m3_m3(dfj_dxj, dfk_dxj); negate_m3(dfj_dxj);
 	
-	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, i, i, dfi_dvi);
-	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, j, i, dfj_dvi);
-	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, j, j, dfj_dvj);
-	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, k, i, dfk_dvi);
-	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, k, j, dfk_dvj);
-	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, k, k, dfk_dvk);
+	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, i, dfk_dvi);
+	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, j, dfk_dvj);
+	spring_angbend_estimate_dfdv(data, i, j, k, goal, stiffness, damping, k, dfk_dvk);
+	copy_m3_m3(dfj_dvi, dfk_dvi); negate_m3(dfj_dvi);
+	copy_m3_m3(dfj_dvj, dfk_dvj); negate_m3(dfj_dvj);
 	
 	/* add forces and jacobians to the solver data */
-	add_v3_v3(data->F[i], fi);
 	add_v3_v3(data->F[j], fj);
 	add_v3_v3(data->F[k], fk);
 	
-	add_m3_m3m3(data->dFdX[i].m, data->dFdX[i].m, dfi_dxi);
 	add_m3_m3m3(data->dFdX[j].m, data->dFdX[j].m, dfj_dxj);
 	add_m3_m3m3(data->dFdX[k].m, data->dFdX[k].m, dfk_dxk);
 	
@@ -1840,7 +1826,6 @@ bool BPH_mass_spring_force_spring_bending_angular(Implicit_Data *data, int i, in
 	add_m3_m3m3(data->dFdX[block_jk].m, data->dFdX[block_jk].m, dfk_dxj);
 	add_m3_m3m3(data->dFdX[block_ik].m, data->dFdX[block_ik].m, dfk_dxi);
 	
-	add_m3_m3m3(data->dFdV[i].m, data->dFdV[i].m, dfi_dvi);
 	add_m3_m3m3(data->dFdV[j].m, data->dFdV[j].m, dfj_dvj);
 	add_m3_m3m3(data->dFdV[k].m, data->dFdV[k].m, dfk_dvk);
 	
