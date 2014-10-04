@@ -704,13 +704,6 @@ static DerivedMesh *arrayModifier_doArray(
 	}
 	/* done capping */
 
-	/* In case org dm has dirty normals, or we made some merging, mark normals as dirty in new dm!
-	 * TODO: we may need to set other dirty flags as well?
-	 */
-	if (use_recalc_normals) {
-		result->dirty |= DM_DIRTY_NORMALS;
-	}
-
 	/* Handle merging */
 	tot_doubles = 0;
 	if (use_merge) {
@@ -729,6 +722,14 @@ static DerivedMesh *arrayModifier_doArray(
 		}
 		MEM_freeN(full_doubles_map);
 	}
+
+	/* In case org dm has dirty normals, or we made some merging, mark normals as dirty in new dm!
+	 * TODO: we may need to set other dirty flags as well?
+	 */
+	if (use_recalc_normals) {
+		result->dirty |= DM_DIRTY_NORMALS;
+	}
+
 	return result;
 }
 
