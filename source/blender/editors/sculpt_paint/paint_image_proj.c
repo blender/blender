@@ -5187,7 +5187,7 @@ void PAINT_OT_delete_texture_paint_slot(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Texture Paint Slot";
-	ot->description = "Add a texture paint slot";
+	ot->description = "Delete selected texture paint slot";
 	ot->idname = "PAINT_OT_delete_texture_paint_slot";
 
 	/* api callbacks */
