@@ -118,7 +118,7 @@ void BPH_mass_spring_set_velocity(struct Implicit_Data *data, int index, const f
 void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, float x[3], float v[3]);
 void BPH_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
 
-int BPH_mass_spring_init_spring(struct Implicit_Data *data, int index, int v1, int v2);
+int BPH_mass_spring_add_block(struct Implicit_Data *data, int v1, int v2);
 
 void BPH_mass_spring_clear_constraints(struct Implicit_Data *data);
 void BPH_mass_spring_add_constraint_ndof0(struct Implicit_Data *data, int index, const float dV[3]);
@@ -143,18 +143,18 @@ void BPH_mass_spring_force_face_wind(struct Implicit_Data *data, int v1, int v2,
 /* Wind force, acting on an edge */
 void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, const float (*winvec)[3]);
 /* Linear spring force between two points */
-bool BPH_mass_spring_force_spring_linear(struct Implicit_Data *data, int i, int j, int spring_index, float restlen,
+bool BPH_mass_spring_force_spring_linear(struct Implicit_Data *data, int i, int j, float restlen,
                                          float stiffness, float damping, bool no_compress, float clamp_force,
                                          float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);
 /* Bending force, forming a triangle at the base of two structural springs */
-bool BPH_mass_spring_force_spring_bending(struct Implicit_Data *data, int i, int j, int spring_index, float restlen,
+bool BPH_mass_spring_force_spring_bending(struct Implicit_Data *data, int i, int j, float restlen,
                                           float kb, float cb,
                                           float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);
 /* Angular bending force based on local target vectors */
-bool BPH_mass_spring_force_spring_bending_angular(struct Implicit_Data *data, int i, int j, int k, int block_ij, int block_jk, int block_ik,
+bool BPH_mass_spring_force_spring_bending_angular(struct Implicit_Data *data, int i, int j, int k,
                                                   const float target[3], float stiffness, float damping);
 /* Global goal spring */
-bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, int spring_index, const float goal_x[3], const float goal_v[3],
+bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, const float goal_x[3], const float goal_v[3],
                                        float stiffness, float damping,
                                        float r_f[3], float r_dfdx[3][3], float r_dfdv[3][3]);
 

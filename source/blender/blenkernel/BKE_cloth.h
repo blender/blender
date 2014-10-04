@@ -134,10 +134,6 @@ typedef struct ClothSpring {
 	int	kl;		/* Pkl from the paper, one end of the spring.	*/
 	int mn;
 	float	restlen;	/* The original length of the spring.	*/
-	/* needed for implicit solver (fast lookup) */
-	int	matrix_ij_kl;
-	int	matrix_kl_mn;
-	int	matrix_ij_mn;
 	int	type;		/* types defined in BKE_cloth.h ("springType") */
 	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
 	float dfdx[3][3];
