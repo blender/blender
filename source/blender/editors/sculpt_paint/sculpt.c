@@ -192,8 +192,8 @@ typedef struct StrokeCache {
 	float true_location[3];
 	float location[3];
 
-	float pen_flip;
-	float invert;
+	bool pen_flip;
+	bool invert;
 	float pressure;
 	float mouse[2];
 	float bstrength;
