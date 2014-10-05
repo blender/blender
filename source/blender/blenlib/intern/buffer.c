@@ -38,17 +38,14 @@ static void *buffer_alloc(BLI_Buffer *buffer, int len)
 
 static void *buffer_realloc(BLI_Buffer *buffer, int len)
 {
-	if (buffer->flag & BLI_BUFFER_USE_CALLOC) {
-		return MEM_recallocN(buffer->data, buffer->elem_size * len);
-	}
-	else {
-		return MEM_reallocN(buffer->data, buffer->elem_size * len);
-	}
+	return ((buffer->flag & BLI_BUFFER_USE_CALLOC) ?
+	        MEM_recallocN_id : MEM_reallocN_id)
+	        (buffer->data, buffer->elem_size * len, "BLI_Buffer.data");
 }
 
 void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)
 {
-	if (new_count > buffer->alloc_count) {
+	if (UNLIKELY(new_count > buffer->alloc_count)) {
 		if (buffer->flag & BLI_BUFFER_USE_STATIC) {
 			void *orig = buffer->data;
 
@@ -65,12 +62,7 @@ void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)
 				buffer->alloc_count = new_count;
 			}
 
-			if (buffer->data) {
-				buffer->data = buffer_realloc(buffer, buffer->alloc_count);
-			}
-			else {
-				buffer->data = buffer_alloc(buffer, buffer->alloc_count);
-			}
+			buffer->data = buffer_realloc(buffer, buffer->alloc_count);
 		}
 	}
 
