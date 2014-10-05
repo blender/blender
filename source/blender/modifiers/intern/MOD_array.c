@@ -609,10 +609,13 @@ static DerivedMesh *arrayModifier_doArray(
 					int target = full_doubles_map[prev_chunk_index];
 					if (target != -1) {
 						target += chunk_nverts; /* translate mapping */
-						if (!with_follow) {
-							/* The rule here is to not follow mapping to chunk N-2, which could be too far
-							 * so if target vertex was itself mapped, then this vertex is not mapped */
-							if (full_doubles_map[target] != -1) {
+						if (full_doubles_map[target] != -1) {
+							if (with_follow) {
+								target = full_doubles_map[target];
+							}
+							else {
+								/* The rule here is to not follow mapping to chunk N-2, which could be too far
+								 * so if target vertex was itself mapped, then this vertex is not mapped */
 								target = -1;
 							}
 						}
