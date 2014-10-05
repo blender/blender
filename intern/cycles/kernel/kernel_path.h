@@ -46,7 +46,7 @@
 #include "kernel_path_volume.h"
 
 #ifdef __KERNEL_DEBUG__
-#  include "kernel_debug.h"
+#include "kernel_debug.h"
 #endif
 
 CCL_NAMESPACE_BEGIN

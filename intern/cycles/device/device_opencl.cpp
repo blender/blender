@@ -102,7 +102,11 @@ static string opencl_kernel_build_options(const string& platform, const string *
 
 	if(opencl_kernel_use_debug())
 		build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
-	
+
+#ifdef WITH_CYCLES_DEBUG
+	build_options += "-D__KERNEL_DEBUG__ ";
+#endif
+
 	return build_options;
 }
 
