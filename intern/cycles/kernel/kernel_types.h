@@ -864,7 +864,7 @@ typedef struct KernelFilm {
 
 #ifdef __KERNEL_DEBUG__
 	int pass_bvh_traversal_steps;
-	int pad[3];
+	int pass_pad3, pass_pad4, pass_pad5;
 #endif
 } KernelFilm;
 

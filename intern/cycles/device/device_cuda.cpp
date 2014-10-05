@@ -278,6 +278,10 @@ public:
 		if(experimental)
 			command += " -D__KERNEL_CUDA_EXPERIMENTAL__";
 
+#ifdef WITH_CYCLES_DEBUG
+		command += " -D__KERNEL_DEBUG__";
+#endif
+
 		printf("%s\n", command.c_str());
 
 		if(system(command.c_str()) == -1) {
