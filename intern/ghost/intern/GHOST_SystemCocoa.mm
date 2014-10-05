@@ -740,7 +740,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				// For some reason NSApp is swallowing the key up events when modifier
 				// key is pressed, even if there seems to be no apparent reason to do
 				// so, as a workaround we always handle these up events.
-				if ([event type] == NSKeyUp && (([event modifierFlags] & NSCommandKeyMask) || ([event modifierFlags] & NSAlternateKeyMask)))
+				if ([event type] == NSKeyUp && ([event modifierFlags] & (NSCommandKeyMask | NSAlternateKeyMask)))
 					handleKeyEvent(event);
 
 				[NSApp sendEvent:event];
