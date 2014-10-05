@@ -170,6 +170,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
 			set(cuda_cubin kernel_${arch}.cubin)
 		endif()
 
+		if(WITH_CYCLES_DEBUG)
+			set(cuda_debug_flags "-D__KERNEL_DEBUG__")
+		else()
+			set(cuda_debug_flags "")
+		endif()
+
 		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${CUDA_VERSION}")
 		set(cuda_math_flags "--use_fast_math")
 
@@ -185,6 +191,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 					${cuda_version_flags}
 					${cuda_math_flags}
 					${cuda_extra_flags}
+					${cuda_debug_flags}
 					-I${CMAKE_CURRENT_SOURCE_DIR}/../util
 					-I${CMAKE_CURRENT_SOURCE_DIR}/svm
 					-DCCL_NAMESPACE_BEGIN=
@@ -197,6 +204,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		list(APPEND cuda_cubins ${cuda_cubin})
 
 		unset(cuda_extra_flags)
+		unset(cuda_debug_flags)
 	endmacro()
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
