@@ -24,14 +24,6 @@
 #define CCL_NAMESPACE_BEGIN
 #define CCL_NAMESPACE_END
 
-#ifdef __KERNEL_OPENCL_AMD__
-#define __CL_NO_FLOAT3__
-#endif
-
-#ifdef __CL_NO_FLOAT3__
-#define float3 float4
-#endif
-
 #ifdef __CL_NOINLINE__
 #define ccl_noinline __attribute__((noinline))
 #else
@@ -73,11 +65,7 @@
 #endif
 
 #define make_float2(x, y) ((float2)(x, y))
-#ifdef __CL_NO_FLOAT3__
-#define make_float3(x, y, z) ((float4)(x, y, z, 0.0f))
-#else
 #define make_float3(x, y, z) ((float3)(x, y, z))
-#endif
 #define make_float4(x, y, z, w) ((float4)(x, y, z, w))
 #define make_int2(x, y) ((int2)(x, y))
 #define make_int3(x, y, z) ((int3)(x, y, z))
