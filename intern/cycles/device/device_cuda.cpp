@@ -202,6 +202,10 @@ public:
 		/* compute cubin name */
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
+		
+		/* workaround to make sm_52 cards work, until we bundle kernel */
+		if(major == 5 && minor == 2)
+			minor = 0;
 
 		/* attempt to use kernel provided with blender */
 		string cubin;
