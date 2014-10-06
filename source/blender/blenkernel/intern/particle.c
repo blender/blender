@@ -53,6 +53,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_linklist.h"
 
@@ -2441,17 +2442,15 @@ static void get_strand_normal(Material *ma, const float surfnor[3], float surfdi
 	copy_v3_v3(nor, vnor);
 }
 
-static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, int editupdate)
+static bool psys_thread_context_init_path(ParticleThreadContext *ctx, ParticleSimulationData *sim, Scene *scene, float cfra, int editupdate)
 {
-	ParticleThreadContext *ctx = threads[0].ctx;
-/*	Object *ob = ctx->sim.ob; */
-	ParticleSystem *psys = ctx->sim.psys;
+	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-/*	ParticleEditSettings *pset = &scene->toolsettings->particle; */
 	int totparent = 0, between = 0;
-	int steps = (int)pow(2.0, (double)part->draw_step);
+	int steps = 1 << part->draw_step;
 	int totchild = psys->totchild;
-	int i, seed, totthread = threads[0].tot;
+
+	psys_thread_context_init(ctx, sim);
 
 	/*---start figuring out what is actually wanted---*/
 	if (psys_in_edit_mode(scene, psys)) {
@@ -2460,7 +2459,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 		if (psys->renderdata == 0 && (psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
 			totchild = 0;
 
-		steps = (int)pow(2.0, (double)pset->draw_step);
+		steps = 1 << pset->draw_step;
 	}
 
 	if (totchild && part->childtype == PART_CHILD_FACES) {
@@ -2480,18 +2479,8 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 		totparent = MIN2(totparent, totchild);
 	}
 
-	if (totchild == 0) return 0;
-
-	/* init random number generator */
-	seed = 31415926 + ctx->sim.psys->seed;
-	
-	if (ctx->editupdate || totchild < 10000)
-		totthread = 1;
-	
-	for (i = 0; i < totthread; i++) {
-		threads[i].rng_path = BLI_rng_new(seed);
-		threads[i].tot = totthread;
-	}
+	if (totchild == 0)
+		return false;
 
 	/* fill context values */
 	ctx->between = between;
@@ -2514,21 +2503,21 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 	if (psys->part->flag & PART_CHILD_EFFECT)
 		ctx->vg_effector = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_EFFECTOR);
 
-	/* set correct ipo timing */
-#if 0 // XXX old animation system
-	if (part->flag & PART_ABS_TIME && part->ipo) {
-		calc_ipo(part->ipo, cfra);
-		execute_ipo((ID *)part, part->ipo);
-	}
-#endif // XXX old animation system
+	return true;
+}
 
-	return 1;
+static void psys_task_init_path(ParticleTask *task, ParticleSimulationData *sim)
+{
+	/* init random number generator */
+	int seed = 31415926 + sim->psys->seed;
+	
+	task->rng_path = BLI_rng_new(seed);
 }
 
 /* note: this function must be thread safe, except for branching! */
-static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, ParticleCacheKey *child_keys, int i)
+static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cpa, ParticleCacheKey *child_keys, int i)
 {
-	ParticleThreadContext *ctx = thread->ctx;
+	ParticleThreadContext *ctx = task->ctx;
 	Object *ob = ctx->sim.ob;
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleSettings *part = psys->part;
@@ -2794,89 +2783,80 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 		child_keys->steps = -1;
 }
 
-static void *exec_child_path_cache(void *data)
+static void exec_child_path_cache(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
-	ParticleThread *thread = (ParticleThread *)data;
-	ParticleThreadContext *ctx = thread->ctx;
+	ParticleTask *task = taskdata;
+	ParticleThreadContext *ctx = task->ctx;
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleCacheKey **cache = psys->childcache;
 	ChildParticle *cpa;
-	int i, totchild = ctx->totchild, first = 0;
+	int i;
 
-	if (thread->tot > 1) {
-		first = ctx->parent_pass ? 0 : ctx->totparent;
-		totchild = ctx->parent_pass ? ctx->totparent : ctx->totchild;
+	cpa = psys->child + task->begin;
+	for (i = task->begin; i < task->end; ++i, ++cpa) {
+		psys_thread_create_path(task, cpa, cache[i], i);
 	}
-	
-	cpa = psys->child + first + thread->num;
-	for (i = first + thread->num; i < totchild; i += thread->tot, cpa += thread->tot)
-		psys_thread_create_path(thread, cpa, cache[i], i);
-
-	return 0;
 }
 
 void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupdate)
 {
-	ParticleThread *pthreads;
-	ParticleThreadContext *ctx;
-	ListBase threads;
-	int i, totchild, totparent, totthread;
-
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
+	ParticleThreadContext ctx;
+	ParticleTask *tasks_parent, *tasks_child;
+	int numtasks_parent, numtasks_child;
+	int i, totchild, totparent;
+	
 	if (sim->psys->flag & PSYS_GLOBAL_HAIR)
 		return;
-
-	pthreads = psys_threads_create(sim);
-
-	if (!psys_threads_init_path(pthreads, sim->scene, cfra, editupdate)) {
-		psys_threads_free(pthreads);
+	
+	/* create a task pool for child path tasks */
+	if (!psys_thread_context_init_path(&ctx, sim, sim->scene, cfra, editupdate))
 		return;
-	}
-
-	ctx = pthreads[0].ctx;
-	totchild = ctx->totchild;
-	totparent = ctx->totparent;
-
+	
+	task_scheduler = BLI_task_scheduler_get();
+	task_pool = BLI_task_pool_create(task_scheduler, &ctx);
+	totchild = ctx.totchild;
+	totparent = ctx.totparent;
+	
 	if (editupdate && sim->psys->childcache && totchild == sim->psys->totchildcache) {
 		; /* just overwrite the existing cache */
 	}
 	else {
 		/* clear out old and create new empty path cache */
 		free_child_path_cache(sim->psys);
-		sim->psys->childcache = psys_alloc_path_cache_buffers(&sim->psys->childcachebufs, totchild, ctx->steps + 1);
+		sim->psys->childcache = psys_alloc_path_cache_buffers(&sim->psys->childcachebufs, totchild, ctx.steps + 1);
 		sim->psys->totchildcache = totchild;
 	}
-
-	totthread = pthreads[0].tot;
-
-	if (totthread > 1) {
-
-		/* make virtual child parents thread safe by calculating them first */
-		if (totparent) {
-			BLI_init_threads(&threads, exec_child_path_cache, totthread);
-			
-			for (i = 0; i < totthread; i++) {
-				pthreads[i].ctx->parent_pass = 1;
-				BLI_insert_thread(&threads, &pthreads[i]);
-			}
-
-			BLI_end_threads(&threads);
-
-			for (i = 0; i < totthread; i++)
-				pthreads[i].ctx->parent_pass = 0;
-		}
-
-		BLI_init_threads(&threads, exec_child_path_cache, totthread);
-
-		for (i = 0; i < totthread; i++)
-			BLI_insert_thread(&threads, &pthreads[i]);
-
-		BLI_end_threads(&threads);
+	
+	/* cache parent paths */
+	ctx.parent_pass = 1;
+	psys_tasks_create(&ctx, totparent, &tasks_parent, &numtasks_parent);
+	for (i = 0; i < numtasks_parent; ++i) {
+		ParticleTask *task = &tasks_parent[i];
+		
+		psys_task_init_path(task, sim);
+		BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, TASK_PRIORITY_LOW);
 	}
-	else
-		exec_child_path_cache(&pthreads[0]);
+	BLI_task_pool_work_and_wait(task_pool);
+	
+	/* cache child paths */
+	ctx.parent_pass = 0;
+	psys_tasks_create(&ctx, totchild, &tasks_child, &numtasks_child);
+	for (i = 0; i < numtasks_child; ++i) {
+		ParticleTask *task = &tasks_child[i];
+		
+		psys_task_init_path(task, sim);
+		BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, TASK_PRIORITY_LOW);
+	}
+	BLI_task_pool_work_and_wait(task_pool);
 
-	psys_threads_free(pthreads);
+	BLI_task_pool_free(task_pool);
+	
+	psys_tasks_free(tasks_parent, numtasks_parent);
+	psys_tasks_free(tasks_child, numtasks_child);
 }
+
 /* figure out incremental rotations along path starting from unit quat */
 static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCacheKey *key1, ParticleCacheKey *key2, float *prev_tangent, int i)
 {

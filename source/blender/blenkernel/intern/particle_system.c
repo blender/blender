@@ -68,6 +68,7 @@
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_sort.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_linklist.h"
 
@@ -789,7 +790,7 @@ static int distribute_binary_search(float *sum, int n, float value)
 
 /* note: this function must be thread safe, for from == PART_FROM_CHILD */
 #define ONLY_WORKING_WITH_PA_VERTS 0
-static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, ChildParticle *cpa, int p)
+static void distribute_threads_exec(ParticleTask *thread, ParticleData *pa, ChildParticle *cpa, int p)
 {
 	ParticleThreadContext *ctx= thread->ctx;
 	Object *ob= ctx->sim.ob;
@@ -979,36 +980,40 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 		BLI_rng_skip(thread->rng, rng_skip_tot);
 }
 
-static void *distribute_threads_exec_cb(void *data)
+static void exec_distribute_parent(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
-	ParticleThread *thread= (ParticleThread*)data;
-	ParticleSystem *psys= thread->ctx->sim.psys;
+	ParticleTask *task = taskdata;
+	ParticleSystem *psys= task->ctx->sim.psys;
 	ParticleData *pa;
+	int p;
+	
+	pa= psys->particles + task->begin;
+	for (p = task->begin; p < task->end; ++p, ++pa)
+		distribute_threads_exec(task, pa, NULL, p);
+}
+
+static void exec_distribute_child(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+{
+	ParticleTask *task = taskdata;
+	ParticleSystem *psys = task->ctx->sim.psys;
 	ChildParticle *cpa;
-	int p, totpart;
-
-	if (thread->ctx->from == PART_FROM_CHILD) {
-		totpart= psys->totchild;
-		cpa= psys->child;
-
-		for (p=0; p<totpart; p++, cpa++) {
-			if (thread->ctx->skip) /* simplification skip */
-				BLI_rng_skip(thread->rng, PSYS_RND_DIST_SKIP * thread->ctx->skip[p]);
-
-			if ((p+thread->num) % thread->tot == 0)
-				distribute_threads_exec(thread, NULL, cpa, p);
-			else /* thread skip */
-				BLI_rng_skip(thread->rng, PSYS_RND_DIST_SKIP);
-		}
+	int p;
+	
+	/* RNG skipping at the beginning */
+	cpa = psys->child;
+	for (p = 0; p < task->begin; ++p, ++cpa) {
+		if (task->ctx->skip) /* simplification skip */
+			BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP * task->ctx->skip[p]);
+		
+		BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP);
 	}
-	else {
-		totpart= psys->totpart;
-		pa= psys->particles + thread->num;
-		for (p=thread->num; p<totpart; p+=thread->tot, pa+=thread->tot)
-			distribute_threads_exec(thread, pa, NULL, p);
+		
+	for (; p < task->end; ++p, ++cpa) {
+		if (task->ctx->skip) /* simplification skip */
+			BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP * task->ctx->skip[p]);
+		
+		distribute_threads_exec(task, NULL, cpa, p);
 	}
-
-	return 0;
 }
 
 static int distribute_compare_orig_index(const void *p1, const void *p2, void *user_data)
@@ -1061,18 +1066,19 @@ static void distribute_invalid(Scene *scene, ParticleSystem *psys, int from)
 
 /* Creates a distribution of coordinates on a DerivedMesh	*/
 /* This is to denote functionality that does not yet work with mesh - only derived mesh */
-static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, DerivedMesh *finaldm, int from)
+static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, ParticleSimulationData *sim, int from)
 {
-	ParticleThreadContext *ctx= threads[0].ctx;
-	Object *ob= ctx->sim.ob;
-	ParticleSystem *psys= ctx->sim.psys;
+	Scene *scene = sim->scene;
+	DerivedMesh *finaldm = sim->psmd->dm;
+	Object *ob = sim->ob;
+	ParticleSystem *psys= sim->psys;
 	ParticleData *pa=0, *tpars= 0;
 	ParticleSettings *part;
 	ParticleSeam *seams= 0;
 	KDTree *tree=0;
 	DerivedMesh *dm= NULL;
 	float *jit= NULL;
-	int i, seed, p=0, totthread= threads[0].tot;
+	int i, p=0;
 	int cfrom=0;
 	int totelem=0, totpart, *particle_element=0, children=0, totseam=0;
 	int jitlevel= 1, distr;
@@ -1081,18 +1087,20 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	
 	if (ELEM(NULL, ob, psys, psys->part))
 		return 0;
-
+	
 	part=psys->part;
 	totpart=psys->totpart;
 	if (totpart==0)
 		return 0;
-
+	
 	if (!finaldm->deformedOnly && !finaldm->getTessFaceDataArray(finaldm, CD_ORIGINDEX)) {
 		printf("Can't create particles with the current modifier stack, disable destructive modifiers\n");
 // XXX		error("Can't paint with the current modifier stack, disable destructive modifiers");
 		return 0;
 	}
-
+	
+	psys_thread_context_init(ctx, sim);
+	
 	/* First handle special cases */
 	if (from == PART_FROM_CHILD) {
 		/* Simple children */
@@ -1392,52 +1400,54 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		alloc_child_particles(psys, totpart);
 	}
 
-	if (!children || psys->totchild < 10000)
-		totthread= 1;
-	
-	seed= 31415926 + ctx->sim.psys->seed;
-	for (i=0; i<totthread; i++) {
-		threads[i].rng= BLI_rng_new(seed);
-		threads[i].tot= totthread;
-	}
-
 	return 1;
+}
+
+static void psys_task_init_distribute(ParticleTask *task, ParticleSimulationData *sim)
+{
+	/* init random number generator */
+	int seed = 31415926 + sim->psys->seed;
+	
+	task->rng = BLI_rng_new(seed);
 }
 
 static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 {
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
+	ParticleThreadContext ctx;
+	ParticleTask *tasks;
 	DerivedMesh *finaldm = sim->psmd->dm;
-	ListBase threads;
-	ParticleThread *pthreads;
-	ParticleThreadContext *ctx;
-	int i, totthread;
-
-	pthreads= psys_threads_create(sim);
-
-	if (!distribute_threads_init_data(pthreads, sim->scene, finaldm, from)) {
-		psys_threads_free(pthreads);
+	int i, totpart, numtasks;
+	
+	/* create a task pool for distribution tasks */
+	if (!psys_thread_context_init_distribute(&ctx, sim, from))
 		return;
+	
+	task_scheduler = BLI_task_scheduler_get();
+	task_pool = BLI_task_pool_create(task_scheduler, &ctx);
+	
+	totpart = (from == PART_FROM_CHILD ? sim->psys->totchild : sim->psys->totpart);
+	psys_tasks_create(&ctx, totpart, &tasks, &numtasks);
+	for (i = 0; i < numtasks; ++i) {
+		ParticleTask *task = &tasks[i];
+		
+		psys_task_init_distribute(task, sim);
+		if (from == PART_FROM_CHILD)
+			BLI_task_pool_push(task_pool, exec_distribute_child, task, false, TASK_PRIORITY_LOW);
+		else
+			BLI_task_pool_push(task_pool, exec_distribute_parent, task, false, TASK_PRIORITY_LOW);
 	}
-
-	totthread= pthreads[0].tot;
-	if (totthread > 1) {
-		BLI_init_threads(&threads, distribute_threads_exec_cb, totthread);
-
-		for (i=0; i<totthread; i++)
-			BLI_insert_thread(&threads, &pthreads[i]);
-
-		BLI_end_threads(&threads);
-	}
-	else
-		distribute_threads_exec_cb(&pthreads[0]);
-
+	BLI_task_pool_work_and_wait(task_pool);
+	
+	BLI_task_pool_free(task_pool);
+	
 	psys_calc_dmcache(sim->ob, finaldm, sim->psys);
-
-	ctx= pthreads[0].ctx;
-	if (ctx->dm != finaldm)
-		ctx->dm->release(ctx->dm);
-
-	psys_threads_free(pthreads);
+	
+	if (ctx.dm != finaldm)
+		ctx.dm->release(ctx.dm);
+	
+	psys_tasks_free(tasks, numtasks);
 }
 
 /* ready for future use, to emit particles without geometry */
@@ -1470,35 +1480,55 @@ static void distribute_particles(ParticleSimulationData *sim, int from)
 }
 
 /* threaded child particle distribution and path caching */
-ParticleThread *psys_threads_create(ParticleSimulationData *sim)
+void psys_thread_context_init(ParticleThreadContext *ctx, ParticleSimulationData *sim)
 {
-	ParticleThread *threads;
-	ParticleThreadContext *ctx;
-	int i, totthread = BKE_scene_num_threads(sim->scene);
-	
-	threads= MEM_callocN(sizeof(ParticleThread)*totthread, "ParticleThread");
-	ctx= MEM_callocN(sizeof(ParticleThreadContext), "ParticleThreadContext");
-
+	memset(ctx, 0, sizeof(ParticleThreadContext));
 	ctx->sim = *sim;
-	ctx->dm= ctx->sim.psmd->dm;
-	ctx->ma= give_current_material(sim->ob, sim->psys->part->omat);
-
-	memset(threads, 0, sizeof(ParticleThread)*totthread);
-
-	for (i=0; i<totthread; i++) {
-		threads[i].ctx= ctx;
-		threads[i].num= i;
-		threads[i].tot= totthread;
-	}
-
-	return threads;
+	ctx->dm = ctx->sim.psmd->dm;
+	ctx->ma = give_current_material(sim->ob, sim->psys->part->omat);
 }
 
-void psys_threads_free(ParticleThread *threads)
-{
-	ParticleThreadContext *ctx= threads[0].ctx;
-	int i, totthread= threads[0].tot;
+#define MAX_PARTICLES_PER_TASK 256 /* XXX arbitrary - maybe use at least number of points instead for better balancing? */
 
+BLI_INLINE int ceil_ii(int a, int b)
+{
+	return (a + b - 1) / b;
+}
+
+void psys_tasks_create(ParticleThreadContext *ctx, int totpart, ParticleTask **r_tasks, int *r_numtasks)
+{
+	ParticleTask *tasks;
+	int numtasks = ceil_ii(totpart, MAX_PARTICLES_PER_TASK);
+	float particles_per_task = (float)totpart / (float)numtasks, p, pnext;
+	int i;
+	
+	tasks = MEM_callocN(sizeof(ParticleTask) * numtasks, "ParticleThread");
+	*r_numtasks = numtasks;
+	*r_tasks = tasks;
+	
+	printf("made %d tasks:\n", numtasks);
+	p = 0.0f;
+	printf("  %d", (int)p);
+	for (i = 0; i < numtasks; i++, p = pnext) {
+		pnext = p + particles_per_task;
+		
+		tasks[i].ctx = ctx;
+		tasks[i].begin = (int)p;
+		tasks[i].end = min_ii((int)pnext, totpart);
+		printf("..%d", tasks[i].end);
+	}
+	printf("\n");
+}
+
+void psys_tasks_free(ParticleTask *tasks, int numtasks)
+{
+	ParticleThreadContext *ctx;
+	int i;
+	
+	if (numtasks == 0)
+		return;
+	
+	ctx = tasks[0].ctx;
 	/* path caching */
 	if (ctx->vg_length)
 		MEM_freeN(ctx->vg_length);
@@ -1529,15 +1559,14 @@ void psys_threads_free(ParticleThread *threads)
 	BLI_kdtree_free(ctx->tree);
 
 	/* threads */
-	for (i=0; i<totthread; i++) {
-		if (threads[i].rng)
-			BLI_rng_free(threads[i].rng);
-		if (threads[i].rng_path)
-			BLI_rng_free(threads[i].rng_path);
+	for (i = 0; i < numtasks; ++i) {
+		if (tasks[i].rng)
+			BLI_rng_free(tasks[i].rng);
+		if (tasks[i].rng_path)
+			BLI_rng_free(tasks[i].rng_path);
 	}
 
-	MEM_freeN(ctx);
-	MEM_freeN(threads);
+	MEM_freeN(tasks);
 }
 
 static void initialize_particle_texture(ParticleSimulationData *sim, ParticleData *pa, int p)
