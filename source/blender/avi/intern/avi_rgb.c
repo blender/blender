@@ -123,13 +123,12 @@ void *avi_converter_to_avi_rgb(AviMovie *movie, int stream, unsigned char *buffe
 
 	(void)stream; /* unused */
 
-	*size = movie->header->Height * movie->header->Width * 3;
-	if (movie->header->Width % 2) *size += movie->header->Height;
-	
-	buf = MEM_mallocN(*size, "toavirgbbuf");
-
 	rowstride = movie->header->Width * 3;
-	if (movie->header->Width % 2) rowstride++;
+	/* AVI files has uncompressed lines 4-byte aligned */
+	rowstride = (rowstride + 3) & ~3;
+
+	*size = movie->header->Height * rowstride;
+	buf = MEM_mallocN(*size, "toavirgbbuf");
 
 	for (y = 0; y < movie->header->Height; y++) {
 		memcpy(&buf[y * rowstride], &buffer[((movie->header->Height - 1) - y) * movie->header->Width * 3], movie->header->Width * 3);
