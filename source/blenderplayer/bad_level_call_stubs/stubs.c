@@ -142,6 +142,7 @@ struct wmWindowManager;
 #include "../../intern/dualcon/dualcon.h"
 #include "../../intern/elbeem/extern/elbeem.h"
 #include "../blender/blenkernel/BKE_modifier.h"
+#include "../blender/blenkernel/BKE_paint.h"
 #include "../blender/collada/collada.h"
 #include "../blender/compositor/COM_compositor.h"
 #include "../blender/editors/include/ED_armature.h"
@@ -247,6 +248,9 @@ struct Render *RE_GetRender(const char *name) RET_NULL
 float RE_lamp_get_data(struct ShadeInput *shi, struct Object *lamp_obj, float col[4], float lv[3], float *dist, float shadow[4]) RET_ZERO
 
 /* blenkernel */
+bool BKE_paint_proj_mesh_data_check(struct Scene *scene, struct Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil) RET_ZERO
+
+/* render */
 void RE_FreeRenderResult(struct RenderResult *res) RET_NONE
 void RE_FreeAllRenderResults(void) RET_NONE
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty) RET_NULL
