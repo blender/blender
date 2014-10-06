@@ -17,6 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* So ImathMath is included before our kernel_cpu_compat. */
+#ifdef WITH_OSL
+#  include <OSL/oslexec.h>
+#endif
+
 #include "device.h"
 #include "device_intern.h"
 

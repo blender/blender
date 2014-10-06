@@ -25,6 +25,13 @@
 #include "util_half.h"
 #include "util_types.h"
 
+/* On 64bit linux single precision exponent is really slow comparing to the
+ * double precision version, even with float<->double conversion involved.
+ */
+#if !defined(__KERNEL_GPU__) && defined(__linux__) && defined(__x86_64__)
+#  define expf(x) ((float)exp((double)x))
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Assertions inside the kernel only work for the CPU device, so we wrap it in
