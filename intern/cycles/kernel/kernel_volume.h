@@ -978,6 +978,8 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 
 	const float3 Pend = ray->P + ray->D*ray->t;
 	Ray volume_ray = *ray;
+	volume_ray.t = FLT_MAX;
+
 	int stack_index = 0, enclosed_index = 0;
 	int enclosed_volumes[VOLUME_STACK_SIZE];
 
@@ -1019,15 +1021,6 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 
 		/* Move ray forward. */
 		volume_ray.P = ray_offset(sd.P, -sd.Ng);
-		if(volume_ray.t != FLT_MAX) {
-			volume_ray.D = normalize_len(Pend - volume_ray.P, &volume_ray.t);
-			/* TODO(sergey): Find a faster way detecting that ray_offset moved
-			 * us pass through the end point.
-			 */
-			if(dot(ray->D, volume_ray.D) < 0.0f) {
-				break;
-			}
-		}
 	}
 	/* stack_index of 0 means quick checks outside of the kernel gave false
 	 * positive, nothing to worry about, just we've wasted quite a few of
