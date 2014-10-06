@@ -1604,7 +1604,7 @@ int main(
 
 #ifdef WITH_LIBMV
 	libmv_initLogging(argv[0]);
-#elif defined(WITH_CYCLES_DEBUG)
+#elif defined(WITH_CYCLES_LOGGING)
 	CCL_init_logging(argv[0]);
 #endif
 
