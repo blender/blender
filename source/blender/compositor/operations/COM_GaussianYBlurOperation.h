@@ -40,7 +40,12 @@ public:
 	 * the inner loop of this program
 	 */
 	void executePixel(float output[4], int x, int y, void *data);
-	
+
+	void executeOpenCL(OpenCLDevice *device,
+	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
+	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
+	                   list<cl_kernel> *clKernelsToCleanUp);
+
 	/**
 	 * @brief initialize the execution
 	 */
@@ -53,5 +58,9 @@ public:
 	
 	void *initializeTileData(rcti *rect);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+
+	void checkOpenCL() {
+		this->setOpenCL(m_data.sizex >= 128);
+	}
 };
 #endif

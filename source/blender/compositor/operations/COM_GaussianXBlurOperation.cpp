@@ -21,6 +21,7 @@
  */
 
 #include "COM_GaussianXBlurOperation.h"
+#include "COM_OpenCLDevice.h"
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 
@@ -122,6 +123,32 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 	}
 #endif
 	mul_v4_v4fl(output, color_accum, 1.0f / multiplier_accum);
+}
+
+void GaussianXBlurOperation::executeOpenCL(OpenCLDevice *device,
+                                           MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
+                                           MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
+                                           list<cl_kernel> *clKernelsToCleanUp)
+{
+	cl_kernel gaussianXBlurOperationKernel = device->COM_clCreateKernel("gaussianXBlurOperationKernel", NULL);
+	cl_int filter_size = this->m_filtersize;
+
+	cl_mem gausstab = clCreateBuffer(device->getContext(),
+	                                 CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
+	                                 sizeof(float) * (this->m_filtersize * 2 + 1),
+	                                 this->m_gausstab,
+	                                 NULL);
+
+	device->COM_clAttachMemoryBufferToKernelParameter(gaussianXBlurOperationKernel, 0, 1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
+	device->COM_clAttachOutputMemoryBufferToKernelParameter(gaussianXBlurOperationKernel, 2, clOutputBuffer);
+	device->COM_clAttachMemoryBufferOffsetToKernelParameter(gaussianXBlurOperationKernel, 3, outputMemoryBuffer);
+	clSetKernelArg(gaussianXBlurOperationKernel, 4, sizeof(cl_int), &filter_size);
+	device->COM_clAttachSizeToKernelParameter(gaussianXBlurOperationKernel, 5, this);
+	clSetKernelArg(gaussianXBlurOperationKernel, 6, sizeof(cl_mem), &gausstab);
+
+	device->COM_clEnqueueRange(gaussianXBlurOperationKernel, outputMemoryBuffer, 7, this);
+
+	clReleaseMemObject(gausstab);
 }
 
 void GaussianXBlurOperation::deinitExecution()

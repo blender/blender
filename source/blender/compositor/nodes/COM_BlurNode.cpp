@@ -105,6 +105,7 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
 		operationx->setData(data);
 		operationx->setQuality(quality);
+		operationx->checkOpenCL();
 		
 		converter.addOperation(operationx);
 		converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1));
@@ -112,6 +113,7 @@ void BlurNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
 		operationy->setData(data);
 		operationy->setQuality(quality);
+		operationy->checkOpenCL();
 
 		converter.addOperation(operationy);
 		converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1));

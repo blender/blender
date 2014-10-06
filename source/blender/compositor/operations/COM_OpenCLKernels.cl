@@ -250,3 +250,66 @@ __kernel void directionalBlurKernel(__read_only image2d_t inputImage,  __write_o
 
 	write_imagef(output, coords, col);
 }
+
+// KERNEL --- GAUSSIAN BLUR ---
+__kernel void gaussianXBlurOperationKernel(__read_only image2d_t inputImage,
+                                           int2 offsetInput,
+                                           __write_only image2d_t output,
+                                           int2 offsetOutput,
+                                           int filter_size,
+                                           int2 dimension,
+                                           __global float *gausstab,
+                                           int2 offset)
+{
+	float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
+	int2 coords = {get_global_id(0), get_global_id(1)};
+	coords += offset;
+	const int2 realCoordinate = coords + offsetOutput;
+	int2 inputCoordinate = realCoordinate - offsetInput;
+	float weight = 0.0f;
+
+	int xmin = max(realCoordinate.x - filter_size,     0) - offsetInput.x;
+	int xmax = min(realCoordinate.x + filter_size + 1, dimension.x) - offsetInput.x;
+
+	for (int nx = xmin, i = max(filter_size - realCoordinate.x, 0); nx < xmax; ++nx, ++i) {
+		float w = gausstab[i];
+		inputCoordinate.x = nx;
+		color += read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate) * w;
+		weight += w;
+	}
+
+	color *= (1.0f / weight);
+
+	write_imagef(output, coords, color);
+}
+
+__kernel void gaussianYBlurOperationKernel(__read_only image2d_t inputImage,
+                                           int2 offsetInput,
+                                           __write_only image2d_t output,
+                                           int2 offsetOutput,
+                                           int filter_size,
+                                           int2 dimension,
+                                           __global float *gausstab,
+                                           int2 offset)
+{
+	float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
+	int2 coords = {get_global_id(0), get_global_id(1)};
+	coords += offset;
+	const int2 realCoordinate = coords + offsetOutput;
+	int2 inputCoordinate = realCoordinate - offsetInput;
+	float weight = 0.0f;
+
+	int ymin = max(realCoordinate.y - filter_size,     0) - offsetInput.y;
+	int ymax = min(realCoordinate.y + filter_size + 1, dimension.y) - offsetInput.y;
+
+	for (int ny = ymin, i = max(filter_size - realCoordinate.y, 0); ny < ymax; ++ny, ++i) {
+		float w = gausstab[i];
+		inputCoordinate.y = ny;
+		color += read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate) * w;
+		weight += w;
+	}
+
+	color *= (1.0f / weight);
+
+	write_imagef(output, coords, color);
+}
