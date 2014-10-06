@@ -1711,7 +1711,9 @@ static void createTransLatticeVerts(TransInfo *t)
 				if (bp->f1 & SELECT) {
 					td->flag = TD_SELECTED;
 				}
-				else td->flag = 0;
+				else {
+					td->flag = 0;
+				}
 				copy_m3_m3(td->smtx, smtx);
 				copy_m3_m3(td->mtx, mtx);
 

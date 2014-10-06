@@ -5096,7 +5096,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ma->id, 0);
 			ED_area_tag_redraw(CTX_wm_area(C));
 			
-			return true;			
+			return true;
 		}
 	}
 	
@@ -5105,9 +5105,12 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 
 static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op)
 {
-	if(proj_paint_add_slot(C, op))
+	if (proj_paint_add_slot(C, op)) {
 		return OPERATOR_FINISHED;
-	else return OPERATOR_CANCELLED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 

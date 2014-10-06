@@ -271,7 +271,8 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 			r_vec[0] = dx;
 			r_vec[1] = dy;
 		}
-		else {	const float mval_f[2] = {(float)dx, (float)dy};
+		else {
+			const float mval_f[2] = {(float)dx, (float)dy};
 			ED_view3d_win_to_delta(t->ar, mval_f, r_vec, t->zfac);
 		}
 	}
