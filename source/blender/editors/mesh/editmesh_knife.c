@@ -2157,7 +2157,7 @@ static ListBase *find_hole(KnifeTool_OpData *kcd, ListBase *fedges)
 static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, ListBase **mainchain,
                              ListBase **sidechain)
 {
-	float **fco, **hco;
+	float (*fco)[2], (*hco)[2];
 	BMVert **fv;
 	KnifeVert **hv;
 	KnifeEdge **he;
@@ -2179,8 +2179,8 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 	/* Gather 2d projections of hole and face vertex coordinates.
 	 * Use best-axis projection - not completely accurate, maybe revisit */
 	axis_dominant_v3(&ax, &ay, f->no);
-	hco = BLI_memarena_alloc(kcd->arena, nh * sizeof(float *));
-	fco = BLI_memarena_alloc(kcd->arena, nf * sizeof(float *));
+	hco = BLI_memarena_alloc(kcd->arena, nh * sizeof(float[2]));
+	fco = BLI_memarena_alloc(kcd->arena, nf * sizeof(float[2]));
 	hv = BLI_memarena_alloc(kcd->arena, nh * sizeof(KnifeVert *));
 	fv = BLI_memarena_alloc(kcd->arena, nf * sizeof(BMVert *));
 	he = BLI_memarena_alloc(kcd->arena, nh * sizeof(KnifeEdge *));
@@ -2198,7 +2198,6 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 			kfv = kfvother;
 			BLI_assert(kfv == kfe->v1 || kfv == kfe->v2);
 		}
-		hco[i] = BLI_memarena_alloc(kcd->arena, 2 * sizeof(float));
 		hco[i][0] = kfv->co[ax];
 		hco[i][1] = kfv->co[ay];
 		hv[i] = kfv;
@@ -2208,7 +2207,6 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 
 	j = 0;
 	BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
-		fco[j] = BLI_memarena_alloc(kcd->arena, 2 * sizeof(float));
 		fco[j][0] = v->co[ax];
 		fco[j][1] = v->co[ay];
 		fv[j] = v;
