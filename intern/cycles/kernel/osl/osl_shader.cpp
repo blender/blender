@@ -14,6 +14,8 @@
  * limitations under the License
  */
 
+#include <OSL/oslexec.h>
+
 #include "kernel_compat_cpu.h"
 #include "kernel_montecarlo.h"
 #include "kernel_types.h"
@@ -34,7 +36,6 @@
 
 #include "attribute.h"
 
-#include <OSL/oslexec.h>
 
 CCL_NAMESPACE_BEGIN
 

@@ -20,7 +20,6 @@
 #ifdef WITH_OSL
 
 #include <OSL/oslexec.h>
-#include <cmath>
 
 #include "util_map.h"
 #include "util_param.h"
