@@ -3111,8 +3111,9 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, c
 		}
 	}
 	else if (data->state == BUTTON_STATE_WAIT_KEY_EVENT) {
-		if (event->type == MOUSEMOVE)
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 			return WM_UI_HANDLER_CONTINUE;
+		}
 
 		if (event->val == KM_PRESS) {
 			if (WM_key_event_string(event->type)[0])
