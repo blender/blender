@@ -37,8 +37,10 @@ struct Main;
 struct AnimData;
 struct KeyingSet;
 struct KS_Path;
+struct bContext;
 
 struct PointerRNA;
+struct PropertyRNA;
 struct ReportList;
 struct bAction;
 struct bActionGroup;
@@ -126,6 +128,9 @@ void BKE_animdata_separate_by_basepath(struct ID *srcID, struct ID *dstID, struc
 
 /* Move F-Curves from src to destination if it's path is based on basepath */
 void action_move_fcurves_by_basepath(struct bAction *srcAct, struct bAction *dstAct, const char basepath[]);
+
+char *BKE_animdata_driver_path_hack(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop,
+                                    char *base_path);
 
 /* ************************************* */
 /* Batch AnimData API */

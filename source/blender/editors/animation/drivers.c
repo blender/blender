@@ -426,74 +426,6 @@ bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int a
 /* ************************************************** */
 /* UI-Button Interface */
 
-/**
- * Temporary wrapper for driver operators for buttons to make it easier to create
- * such drivers by rerouting all paths through the active object instead so that
- * they will get picked up by the dependency system.
- *
- * \param C Context pointer - for getting active data
- * \param[in,out] ptr RNA pointer for property's datablock. May be modified as result of path remapping.
- * \param prop RNA definition of property to add for
- * \return MEM_alloc'd string representing the path to the property from the given #PointerRNA
- */
-static char *get_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
-{
-	ID *id = (ID *)ptr->id.data;
-	ScrArea *sa = CTX_wm_area(C);
-	
-	/* get standard path which may be extended */
-	char *basepath = RNA_path_from_ID_to_property(ptr, prop);
-	char *path = basepath; /* in case no remapping is needed */
-	
-	
-	/* Remapping will only be performed in the Properties Editor, as only this 
-	 * restricts the subspace of options to the 'active' data (a manageable state)
-	 */
-	// TODO: watch out for pinned context?
-	if ((sa) && (sa->spacetype == SPACE_BUTS)) {
-		Object *ob = CTX_data_active_object(C);
-		
-		if (ob && id) {
-			/* only id-types which can be remapped to go through objects should be considered */
-			switch (GS(id->name)) {
-				case ID_TE: /* textures */
-				{
-					Material *ma = give_current_material(ob, ob->actcol);
-					Tex *tex = give_current_material_texture(ma);
-					
-					/* assumes: texture will only be shown if it is active material's active texture it's ok */
-					if ((ID *)tex == id) {
-						char name_esc_ma[(sizeof(ma->id.name) - 2) * 2];
-						char name_esc_tex[(sizeof(tex->id.name) - 2) * 2];
-
-						BLI_strescape(name_esc_ma, ma->id.name + 2, sizeof(name_esc_ma));
-						BLI_strescape(name_esc_tex, tex->id.name + 2, sizeof(name_esc_tex));
-
-						/* create new path */
-						// TODO: use RNA path functions to construct step by step instead?
-						// FIXME: maybe this isn't even needed anymore...
-						path = BLI_sprintfN("material_slots[\"%s\"].material.texture_slots[\"%s\"].texture.%s", 
-						                    name_esc_ma, name_esc_tex, basepath);
-							
-						/* free old one */
-						MEM_freeN(basepath);
-					}
-					break;
-				}
-			}
-			
-			/* fix RNA pointer, as we've now changed the ID root by changing the paths */
-			if (basepath != path) {
-				/* rebase provided pointer so that it starts from object... */
-				RNA_pointer_create(&ob->id, ptr->type, ptr->data, ptr);
-			}
-		}
-	}
-	
-	/* the path should now have been corrected for use */
-	return path;
-}
-
 /* Add Driver Button Operator ------------------------ */
 
 static int add_driver_button_exec(bContext *C, wmOperator *op)
@@ -511,7 +443,7 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 		index = -1;
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		char *path = get_driver_path_hack(C, &ptr, prop);
+		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
 		short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 		
 		if (path) {
@@ -566,7 +498,7 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
 		index = -1;
 	
 	if (ptr.id.data && ptr.data && prop) {
-		char *path = get_driver_path_hack(C, &ptr, prop);
+		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
 		
 		success = ANIM_remove_driver(op->reports, ptr.id.data, path, index, 0);
 		MEM_freeN(path);
@@ -613,7 +545,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		char *path = get_driver_path_hack(C, &ptr, prop);
+		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
 		
 		if (path) {
 			/* only copy the driver for the button that this was involved for */
@@ -657,7 +589,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		char *path = get_driver_path_hack(C, &ptr, prop);
+		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
 		
 		if (path) {
 			/* only copy the driver for the button that this was involved for */

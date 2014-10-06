@@ -61,7 +61,7 @@ static FCurve *ui_but_get_fcurve(uiBut *but, bAction **action, bool *r_driven)
 	 * but works well enough in typical cases */
 	int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
-	return rna_get_fcurve(&but->rnapoin, but->rnaprop, rnaindex, action, r_driven);
+	return rna_get_fcurve_context_ui(but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, action, r_driven);
 }
 
 void ui_but_anim_flag(uiBut *but, float cfra)

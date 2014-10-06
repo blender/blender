@@ -51,18 +51,23 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_library.h"
 #include "BKE_report.h"
+#include "BKE_texture.h"
 
 #include "RNA_access.h"
 
@@ -549,6 +554,74 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 			}
 		}
 	}
+}
+
+/**
+ * Temporary wrapper for driver operators for buttons to make it easier to create
+ * such drivers by rerouting all paths through the active object instead so that
+ * they will get picked up by the dependency system.
+ *
+ * \param C Context pointer - for getting active data
+ * \param[in,out] ptr RNA pointer for property's datablock. May be modified as result of path remapping.
+ * \param prop RNA definition of property to add for
+ * \return MEM_alloc'd string representing the path to the property from the given #PointerRNA
+ */
+char *BKE_animdata_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *prop, char *base_path)
+{
+	ID *id = (ID *)ptr->id.data;
+	ScrArea *sa = CTX_wm_area(C);
+
+	/* get standard path which may be extended */
+	char *basepath = base_path ? base_path : RNA_path_from_ID_to_property(ptr, prop);
+	char *path = basepath; /* in case no remapping is needed */
+
+	/* Remapping will only be performed in the Properties Editor, as only this
+	 * restricts the subspace of options to the 'active' data (a manageable state)
+	 */
+	/* TODO: watch out for pinned context? */
+	if ((sa) && (sa->spacetype == SPACE_BUTS)) {
+		Object *ob = CTX_data_active_object(C);
+
+		if (ob && id) {
+			/* only id-types which can be remapped to go through objects should be considered */
+			switch (GS(id->name)) {
+				case ID_TE: /* textures */
+				{
+					Material *ma = give_current_material(ob, ob->actcol);
+					Tex *tex = give_current_material_texture(ma);
+
+					/* assumes: texture will only be shown if it is active material's active texture it's ok */
+					if ((ID *)tex == id) {
+						char name_esc_ma[(sizeof(ma->id.name) - 2) * 2];
+						char name_esc_tex[(sizeof(tex->id.name) - 2) * 2];
+
+						BLI_strescape(name_esc_ma, ma->id.name + 2, sizeof(name_esc_ma));
+						BLI_strescape(name_esc_tex, tex->id.name + 2, sizeof(name_esc_tex));
+
+						/* create new path */
+						// TODO: use RNA path functions to construct step by step instead?
+						// FIXME: maybe this isn't even needed anymore...
+						path = BLI_sprintfN("material_slots[\"%s\"].material.texture_slots[\"%s\"].texture.%s",
+						                    name_esc_ma, name_esc_tex, basepath);
+
+						/* free old one */
+						if (basepath != base_path)
+							MEM_freeN(basepath);
+					}
+					break;
+				}
+			}
+
+			/* fix RNA pointer, as we've now changed the ID root by changing the paths */
+			if (basepath != path) {
+				/* rebase provided pointer so that it starts from object... */
+				RNA_pointer_create(&ob->id, ptr->type, ptr->data, ptr);
+			}
+		}
+	}
+
+	/* the path should now have been corrected for use */
+	return path;
 }
 
 /* Path Validation -------------------------------------------- */

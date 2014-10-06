@@ -55,6 +55,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_context.h"
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -310,19 +311,35 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 
 FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, bool *r_driven)
 {
+	return rna_get_fcurve_context_ui(NULL, ptr, prop, rnaindex, action, r_driven);
+}
+
+FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int rnaindex,
+                                  bAction **action, bool *r_driven)
+{
 	FCurve *fcu = NULL;
+	PointerRNA tptr = *ptr;
 	
 	*r_driven = false;
 	
 	/* there must be some RNA-pointer + property combon */
-	if (prop && ptr->id.data && RNA_property_animateable(ptr, prop)) {
-		AnimData *adt = BKE_animdata_from_id(ptr->id.data);
-		char *path;
+	if (prop && tptr.id.data && RNA_property_animateable(&tptr, prop)) {
+		AnimData *adt = BKE_animdata_from_id(tptr.id.data);
+		int step = 2;
+		char *path = NULL;
 		
-		if (adt) {
+		if (adt == NULL) {
+			path = BKE_animdata_driver_path_hack(C, &tptr, prop, NULL);
+			adt = BKE_animdata_from_id(tptr.id.data);
+			step--;
+		}
+		
+		while (adt && step--) {
 			if ((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
 				/* XXX this function call can become a performance bottleneck */
-				path = RNA_path_from_ID_to_property(ptr, prop);
+				if (step) {
+					path = RNA_path_from_ID_to_property(&tptr, prop);
+				}
 				
 				if (path) {
 					/* animation takes priority over drivers */
@@ -337,13 +354,25 @@ FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction
 							*r_driven = true;
 					}
 					
-					if (fcu && action)
+					if (fcu && action) {
 						*action = adt->action;
-					
-					MEM_freeN(path);
+						break;
+					}
+					else if (step) {
+						char *tpath = BKE_animdata_driver_path_hack(C, &tptr, prop, path);
+						if (tpath && tpath != path) {
+							MEM_freeN(path);
+							path = tpath;
+							adt = BKE_animdata_from_id(tptr.id.data);
+						}
+						else {
+							adt = NULL;
+						}
+					}
 				}
 			}
 		}
+		MEM_SAFE_FREE(path);
 	}
 	
 	return fcu;
