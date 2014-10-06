@@ -27,9 +27,12 @@ ccl_device_inline void kernel_write_debug_passes(KernelGlobals *kg,
                                                  DebugData *debug_data,
                                                  int sample)
 {
-	kernel_write_pass_float(buffer + kernel_data.film.pass_bvh_traversal_steps,
-	                        sample,
-	                        debug_data->num_bvh_traversal_steps);
+	int flag = kernel_data.film.pass_flag;
+	if(flag & PASS_BVH_TRAVERSAL_STEPS) {
+		kernel_write_pass_float(buffer + kernel_data.film.pass_bvh_traversal_steps,
+		                        sample,
+		                        debug_data->num_bvh_traversal_steps);
+	}
 }
 
 CCL_NAMESPACE_END
