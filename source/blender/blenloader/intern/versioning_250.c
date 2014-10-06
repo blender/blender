@@ -89,9 +89,6 @@
 
 #include "NOD_socket.h"
 
-//XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
-//XXX #include "BIF_filelist.h" // badlevel too, where to move this? - elubie
-//XXX #include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 

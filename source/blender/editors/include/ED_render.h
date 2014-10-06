@@ -35,7 +35,6 @@ struct ID;
 struct Main;
 struct MTex;
 struct Render;
-struct RenderInfo;
 struct Scene;
 struct ScrArea;
 struct RegionView3D;
@@ -55,18 +54,6 @@ void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated
 
 void ED_viewport_render_kill_jobs(const struct bContext *C, bool free_database);
 struct Scene *ED_render_job_get_scene(const struct bContext *C);
-
-/* render_preview.c */
-
-/* stores rendered preview  - is also used for icons */
-typedef struct RenderInfo {
-	int pr_rectx;
-	int pr_recty;
-	short curtile, tottile;
-	rcti disprect;          /* storage for view3d preview rect */
-	unsigned int *rect;
-	struct Render *re;      /* persistent render */
-} RenderInfo;
 
 /* Render the preview
  *

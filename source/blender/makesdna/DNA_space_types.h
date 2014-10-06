@@ -57,7 +57,6 @@ struct Scopes;
 struct Histogram;
 struct SpaceIpo;
 struct BlendHandle;
-struct RenderInfo;
 struct bNodeTree;
 struct uiBlock;
 struct FileList;

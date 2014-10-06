@@ -41,7 +41,6 @@ struct Base;
 struct BoundBox;
 struct MovieClip;
 struct MovieClipUser;
-struct RenderInfo;
 struct RenderEngine;
 struct bGPdata;
 struct SmoothView3DStore;
@@ -102,7 +101,6 @@ typedef struct RegionView3D {
 	struct BoundBox *clipbb;
 
 	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
-	struct RenderInfo *ri;
 	struct RenderEngine *render_engine;
 	struct ViewDepths *depths;
 	void *gpuoffscreen;
