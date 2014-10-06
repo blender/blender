@@ -308,12 +308,22 @@ static void rna_ImaPaint_mode_update(Main *UNUSED(bmain), Scene *scene, PointerR
 	BKE_texpaint_slots_refresh_object(scene, ob);
 
 	/* we assume that changing the current mode will invalidate the uv layers so we need to refresh display */
-	GPU_drawobject_free(ob->derivedFinal);	
-	WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);
+	GPU_drawobject_free(ob->derivedFinal);
+	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+}
+
+static void rna_ImaPaint_stencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	Object *ob = OBACT;	
+	GPU_drawobject_free(ob->derivedFinal);
+	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
 static void rna_ImaPaint_canvas_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
+	Object *ob = OBACT;
 	bScreen *sc;
 	Image *ima = scene->toolsettings->imapaint.canvas;
 	
@@ -331,8 +341,15 @@ static void rna_ImaPaint_canvas_update(Main *bmain, Scene *scene, PointerRNA *UN
 			}
 		}
 	}
-
+	
+	GPU_drawobject_free(ob->derivedFinal);
+	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+}
+
+static int rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
+{
+	return imapaint->missing_data == 0;
 }
 #else
 
@@ -614,6 +631,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 
 	static EnumPropertyItem paint_type_items[] = {
 		{IMAGEPAINT_MODE_MATERIAL, "MATERIAL", 0,
@@ -627,6 +645,13 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ImagePaintSettings");
 	RNA_def_struct_path_func(srna, "rna_ImagePaintSettings_path");
 	RNA_def_struct_ui_text(srna, "Image Paint", "Properties of image and texture painting mode");
+
+	/* functions */	
+	func = RNA_def_function(srna, "detect_data", "rna_ImaPaint_detect_data");
+	RNA_def_function_ui_description(func, "Check if required texpaint data exist");
+
+	/* return type */
+	RNA_def_function_return(func, RNA_def_boolean(func, "ok", 1, "", ""));
 	
 	/* booleans */	
 	prop = RNA_def_property(srna, "use_occlude", PROP_BOOLEAN, PROP_NONE);
@@ -658,7 +683,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "stencil");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Stencil Image", "Image used as stencil");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_stencil_update");
 
 	prop = RNA_def_property(srna, "canvas", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -700,7 +725,32 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, paint_type_items);
 	RNA_def_property_ui_text(prop, "Mode", "Mode of operation for projection painting");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_mode_update");	
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_mode_update");
+	
+	/* Missing data */
+	prop = RNA_def_property(srna, "missing_uvs", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "missing_data", IMAGEPAINT_MISSING_UVS);
+	RNA_def_property_ui_text(prop, "Missing UVs",
+	                         "A UV layer is missing on the mesh");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);	
+	
+	prop = RNA_def_property(srna, "missing_materials", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "missing_data", IMAGEPAINT_MISSING_MATERIAL);
+	RNA_def_property_ui_text(prop, "Missing Materials",
+	                         "The mesh is missing materials");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);	
+
+	prop = RNA_def_property(srna, "missing_stencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "missing_data", IMAGEPAINT_MISSING_STENCIL);
+	RNA_def_property_ui_text(prop, "Missing Stencil",
+	                         "Image Painting does not have a stencil");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);	
+
+	prop = RNA_def_property(srna, "missing_texture", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "missing_data", IMAGEPAINT_MISSING_TEX);
+	RNA_def_property_ui_text(prop, "Missing Texture",
+	                         "Image Painting does not have a texture to paint on");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);	
 }
 
 static void rna_def_particle_edit(BlenderRNA *brna)

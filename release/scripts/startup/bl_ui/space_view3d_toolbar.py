@@ -775,6 +775,65 @@ class View3DPaintPanel(UnifiedPaintPanel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
+class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
+    bl_category = "Tools"
+    bl_label = "Missing Data"
+
+    @classmethod
+    def poll(cls, context):
+        toolsettings = context.tool_settings.image_paint
+        return context.image_paint_object and not toolsettings.detect_data()
+
+    def draw(self, context):
+        layout = self.layout
+        toolsettings = context.tool_settings.image_paint
+
+        col = layout.column()
+        col.label("Missing Data", icon='ERROR')
+        if toolsettings.missing_uvs:
+            col.separator()
+            col.label("Missing UVs", icon='INFO')
+            col.label("Unwrap the mesh in edit mode or generate a simple UVs")
+            col.operator("mesh.uv_texture_add", text="Add Simple UVs")
+    
+        if toolsettings.mode == 'MATERIAL':
+            if toolsettings.missing_materials:
+                col.separator()
+                col.label("Missing Materials", icon='INFO')
+                col.label("Add a material and paint slot below")
+                col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
+                   
+            elif toolsettings.missing_texture:
+                ob = context.active_object
+                mat = ob.active_material
+
+                col.separator()
+                if mat:
+                    col.label("Missing Texture Slots", icon='INFO')
+                    col.label("Add a paint slot below")
+                    col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
+                else:
+                    col.label("Missing Materials", icon='INFO')
+                    col.label("Add a material and paint slot below")
+                    col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
+ 
+
+        elif toolsettings.mode == 'IMAGE':
+            if toolsettings.missing_texture:
+                col.separator()
+                col.label("Missing Canvas", icon='INFO')
+                col.label("Add or assign a canvas image below")
+                col.label("Canvas Image")
+                col.template_ID(toolsettings, "canvas")
+                col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
+
+        if toolsettings.missing_stencil:
+            col.separator()
+            col.label("Missing Stencil", icon='INFO')
+            col.label("Add or assign a stencil image below")
+            col.label("Stencil Image")
+            col.template_ID(toolsettings, "stencil_image")
+            col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
 class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
     bl_category = "Tools"
@@ -1072,8 +1131,9 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         elif settings.mode == 'IMAGE':
             mesh = ob.data
             uv_text = mesh.uv_textures.active.name if mesh.uv_textures.active else ""
-            col.label("Image")
+            col.label("Canvas Image")
             col.template_ID(settings, "canvas")
+            col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
             col.label("UV Map")
             col.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
 
@@ -1111,9 +1171,10 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         col.label("UV Map")
         col.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
-        col.label("Image")
-        row = col.row(align=True)
-        row.template_ID(ipaint, "stencil_image")
+        col.label("Stencil Image")
+        col.template_ID(ipaint, "stencil_image")
+        col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
+
  
         col.label("Visualization")
         row = col.row(align=True)
@@ -1211,7 +1272,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         brush_texture_settings(col, brush, context.sculpt_object)
 
 
-class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
+class VIEW3D_PT_tools_mask_texture(View3DPanel, View3DPaintPanel):
     bl_category = "Tools"
     bl_context = "imagepaint"
     bl_label = "Texture Mask"
@@ -1219,8 +1280,8 @@ class VIEW3D_PT_tools_mask_texture(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        brush = context.tool_settings.image_paint.brush
-        return (context.image_paint_object and brush)
+        settings = cls.paint_settings(context)
+        return (settings and settings.image_paint.brush and context.image_paint_object and brush)
 
     def draw(self, context):
         layout = self.layout
@@ -1475,11 +1536,8 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        toolsettings = context.tool_settings
-        return ((context.sculpt_object and toolsettings.sculpt) or
-                (context.vertex_paint_object and toolsettings.vertex_paint) or
-                (context.weight_paint_object and toolsettings.weight_paint) or
-                (context.image_paint_object and toolsettings.image_paint))
+        settings = cls.paint_settings(context)
+        return settings
 
     def draw(self, context):
         layout = self.layout

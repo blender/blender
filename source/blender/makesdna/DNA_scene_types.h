@@ -836,7 +836,7 @@ typedef struct Paint {
 typedef struct ImagePaintSettings {
 	Paint paint;
 
-	short flag, pad;
+	short flag, missing_data;
 	
 	/* for projection painting only */
 	short seam_bleed, normal_angle;
@@ -1733,6 +1733,11 @@ typedef enum ImagePaintMode {
 #define IMAGEPAINT_PROJECT_LAYER_CLONE	128
 #define IMAGEPAINT_PROJECT_LAYER_STENCIL	256
 #define IMAGEPAINT_PROJECT_LAYER_STENCIL_INV	512
+
+#define IMAGEPAINT_MISSING_UVS       (1 << 0)
+#define IMAGEPAINT_MISSING_MATERIAL  (1 << 1)
+#define IMAGEPAINT_MISSING_TEX       (1 << 2)
+#define IMAGEPAINT_MISSING_STENCIL   (1 << 3)
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1

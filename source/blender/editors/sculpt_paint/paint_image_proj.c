@@ -74,6 +74,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -84,6 +85,7 @@
 
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -362,7 +364,7 @@ static TexPaintSlot *project_paint_face_paint_slot(const ProjPaintState *ps, int
 {
 	MFace *mf = ps->dm_mface + face_index;
 	Material *ma = ps->dm->mat[mf->mat_nr];
-	return ma->texpaintslot + ma->paint_active_slot;
+	return ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
 }
 
 static Image *project_paint_face_paint_image(const ProjPaintState *ps, int face_index)
@@ -373,7 +375,7 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int face_
 	else {
 		MFace *mf = ps->dm_mface + face_index;
 		Material *ma = ps->dm->mat[mf->mat_nr];
-		TexPaintSlot *slot = ma->texpaintslot + ma->paint_active_slot;
+		TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
 		return slot ? slot->ima : ps->canvas_ima;
 	}
 }
@@ -382,14 +384,14 @@ static TexPaintSlot *project_paint_face_clone_slot(const ProjPaintState *ps, int
 {
 	MFace *mf = ps->dm_mface + face_index;
 	Material *ma = ps->dm->mat[mf->mat_nr];
-	return ma->texpaintslot + ma->paint_clone_slot;
+	return ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
 }
 
 static Image *project_paint_face_clone_image(const ProjPaintState *ps, int face_index)
 {
 	MFace *mf = ps->dm_mface + face_index;
 	Material *ma = ps->dm->mat[mf->mat_nr];
-	TexPaintSlot *slot = ma->texpaintslot + ma->paint_clone_slot;
+	TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
 	return slot ? slot->ima : ps->clone_ima;
 }
 
@@ -4665,13 +4667,18 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	IDProperty *idgroup;
 	IDProperty *view_data = NULL;
 	Object *ob = OBACT;
+	bool uvs, mat, tex;
 
 	if (ob == NULL || ob->type != OB_MESH) {
 		BKE_report(op->reports, RPT_ERROR, "No active mesh object");
 		return OPERATOR_CANCELLED;
 	}
 
-	paint_proj_mesh_data_ensure(C, ob, op);
+	if (!BKE_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, NULL)) {
+		BKE_paint_data_warning(op->reports, uvs, mat, tex, true);
+		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
+		return OPERATOR_CANCELLED;		
+	}
 
 	project_state_init(C, ob, &ps, BRUSH_STROKE_NORMAL);
 
@@ -4863,110 +4870,78 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
  * Data generation for projective texturing  *
  * *******************************************/
 
+void BKE_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool tex, bool stencil)
+{
+	BKE_reportf(reports, RPT_WARNING, "Missing%s%s%s%s detected!", 
+	           !uvs ? " UVs," : "",
+	           !mat ? " Materials," : "",
+	           !tex ? " Textures," : "",
+	           !stencil ? " Stencil," : ""
+	           );
+}
 
 /* Make sure that active object has a material, and assign UVs and image layers if they do not exist */
-void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
+bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil)
 {
 	Mesh *me;
 	int layernum;
-	ImagePaintSettings *imapaint = &(CTX_data_tool_settings(C)->imapaint);
-	bScreen *sc;
-	Scene *scene = CTX_data_scene(C);
-	Main *bmain = CTX_data_main(C);
+	ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
 	Brush *br = BKE_paint_brush(&imapaint->paint);
+	bool hasmat = true;
+	bool hastex = true;
+	bool hasstencil = true;
+	bool hasuvs = true;
 
+	imapaint->missing_data = 0;
+	
 	BLI_assert(ob->type == OB_MESH);
 
-	/* no material, add one */
-	if (ob->totcol == 0) {
-		Material *ma = BKE_material_add(CTX_data_main(C), "Material");
-		/* no material found, just assign to first slot */
-		assign_material(ob, ma, 1, BKE_MAT_ASSIGN_USERPREF);
-		proj_paint_add_slot(C, ma, NULL);
-	}
-	else {
-		/* there may be material slots but they may be empty, check */
-		int i;
-		
-		for (i = 1; i < ob->totcol + 1; i++) {
-			Material *ma = give_current_material(ob, i);
-
-			if (ma) {
-				if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+	if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+		/* no material, add one */
+		if (ob->totcol == 0) {
+			hasmat = false;
+			hastex = false;
+		}
+		else {
+			/* there may be material slots but they may be empty, check */
+			int i;
+			hasmat = false;
+			hastex = false;
+			
+			for (i = 1; i < ob->totcol + 1; i++) {
+				Material *ma = give_current_material(ob, i);
+				
+				if (ma) {
+					hasmat = true;
 					if (!ma->texpaintslot) {
 						/* refresh here just in case */
 						BKE_texpaint_slot_refresh_cache(scene, ma);				
 						
 						/* if still no slots, we have to add */
-						if (!ma->texpaintslot) {
-							proj_paint_add_slot(C, ma, NULL);
-							
-							if (ma->texpaintslot) {
-								for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-									ScrArea *sa;
-									for (sa = sc->areabase.first; sa; sa = sa->next) {
-										SpaceLink *sl;
-										for (sl = sa->spacedata.first; sl; sl = sl->next) {
-											if (sl->spacetype == SPACE_IMAGE) {
-												SpaceImage *sima = (SpaceImage *)sl;
-												
-												if (!sima->pin)
-													ED_space_image_set(sima, scene, scene->obedit, ma->texpaintslot[0].ima);
-											}
-										}
-									}
-								}
-							}							
+						if (ma->texpaintslot) {							
+							hastex = true;
+							break;						
 						}
 					}
+					else {
+						hastex = true;
+						break;						
+					}
 				}
-			}
-			else {
-				Material *ma = BKE_material_add(CTX_data_main(C), "Material");
-				/* no material found, just assign to first slot */
-				assign_material(ob, ma, i, BKE_MAT_ASSIGN_USERPREF);
-				proj_paint_add_slot(C, ma, NULL);
 			}
 		}
 	}
-	
-	if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
+	else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
 		if (imapaint->canvas == NULL) {
-			int width;
-			int height;
-			Main *bmain = CTX_data_main(C);
-			float color[4] = {0.0, 0.0, 0.0, 1.0};
-
-			width = 1024;
-			height = 1024;
-			imapaint->canvas = BKE_image_add_generated(bmain, width, height, "Canvas", 32, false, IMA_GENTYPE_BLANK, color);
-			
-			GPU_drawobject_free(ob->derivedFinal);
-			
-			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-				ScrArea *sa;
-				for (sa = sc->areabase.first; sa; sa = sa->next) {
-					SpaceLink *sl;
-					for (sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_IMAGE) {
-							SpaceImage *sima = (SpaceImage *)sl;
-							
-							if (!sima->pin)
-								ED_space_image_set(sima, scene, scene->obedit, imapaint->canvas);
-						}
-					}
-				}
-			}			
+			hastex = false;
 		}		
 	}
-		
+	
 	me = BKE_mesh_from_object(ob);
 	layernum = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
 
 	if (layernum == 0) {
-		BKE_reportf(op->reports, RPT_WARNING, "Object did not have UV map, manual unwrap recommended");
-
-		ED_mesh_uv_texture_add(me, "UVMap", true);
+		hasuvs = false;
 	}
 
 	/* Make sure we have a stencil to paint on! */
@@ -4974,16 +4949,29 @@ void paint_proj_mesh_data_ensure(bContext *C, Object *ob, wmOperator *op)
 		imapaint->flag |= IMAGEPAINT_PROJECT_LAYER_STENCIL;
 
 		if (imapaint->stencil == NULL) {
-			int width;
-			int height;
-			Main *bmain = CTX_data_main(C);
-			float color[4] = {0.0, 0.0, 0.0, 1.0};
-
-			width = 1024;
-			height = 1024;
-			imapaint->stencil = BKE_image_add_generated(bmain, width, height, "Stencil", 32, false, IMA_GENTYPE_BLANK, color);
+			hasstencil = false;
 		}
 	}
+
+	if (!hasuvs) imapaint->missing_data |= IMAGEPAINT_MISSING_UVS;
+	if (!hasmat) imapaint->missing_data |= IMAGEPAINT_MISSING_MATERIAL;
+	if (!hastex) imapaint->missing_data |= IMAGEPAINT_MISSING_TEX;
+	if (!hasstencil) imapaint->missing_data |= IMAGEPAINT_MISSING_STENCIL;
+	
+	if (uvs) {
+		*uvs = hasuvs;
+	}
+	if (mat) {
+		*mat = hasmat;
+	}
+	if (tex) {
+		*tex = hastex;
+	}
+	if (stencil) {
+		*stencil = hasstencil;
+	}
+	
+	return hasuvs && hasmat && hastex && hasstencil;
 }
 
 /* Add layer operator */
@@ -5006,30 +4994,74 @@ static EnumPropertyItem layer_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
+static Image *proj_paint_image_create(wmOperator *op, Main *bmain)
+{
+	Image *ima;
+	float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	char imagename[MAX_ID_NAME - 2] = "Material Diffuse Color";
+	int width = 1024;
+	int height = 1024;
+	bool use_float = false;
+	short gen_type = IMA_GENTYPE_BLANK;
+	bool alpha = false;
+
+	if (op) {
+		width = RNA_int_get(op->ptr, "width");
+		height = RNA_int_get(op->ptr, "height");
+		use_float = RNA_boolean_get(op->ptr, "float");
+		gen_type = RNA_enum_get(op->ptr, "generated_type");
+		RNA_float_get_array(op->ptr, "color", color);
+		alpha = RNA_boolean_get(op->ptr, "alpha");
+		RNA_string_get(op->ptr, "name", imagename);
+	}
+	ima = BKE_image_add_generated(bmain, width, height, imagename, alpha ? 32 : 24, use_float,
+	                                               gen_type, color);
+	
+	return ima;
+}
+
+static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
+	Material *ma;
 	bool is_bi = BKE_scene_uses_blender_internal(scene);
+	Image *ima = NULL;
 
 	if (!ob)
 		return false;
 
-	if (!ma)
-		ma = give_current_material(ob, ob->actcol);
+	ma = give_current_material(ob, ob->actcol);
 
 	if (ma) {
+		Main *bmain = CTX_data_main(C);
 
-		if (!is_bi || ma->use_nodes) {
-			/* not supported for now */
+		if (!is_bi && BKE_scene_use_new_shading_nodes(scene)) {
+			bNode *imanode;
+			bNodeTree *ntree = ma->nodetree;
+
+			if (!ntree) {
+				ED_node_shader_default(C, &ma->id);
+				ntree = ma->nodetree;
+			}
+			
+			ma->use_nodes = true;
+						
+			/* try to add an image node */
+			imanode = nodeAddStaticNode(C, ntree, SH_NODE_TEX_IMAGE);
+			
+			ima = proj_paint_image_create(op, bmain);
+			imanode->id = &ima->id;
+			
+			nodeSetActive(ntree, imanode);
+					
+			ntreeUpdateTree(CTX_data_main(C), ntree);
 		}
 		else {
 			MTex *mtex = add_mtex_id(&ma->id, -1);
 
 			/* successful creation of mtex layer, now create set */
 			if (mtex) {
-				Main *bmain = CTX_data_main(C);
-				Image *ima;
 				int type = MAP_COL;
 				int type_id = 0;
 
@@ -5049,47 +5081,33 @@ bool proj_paint_add_slot(bContext *C, Material *ma, wmOperator *op)
 				mtex->mapto = type;
 
 				if (mtex->tex) {
-					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-					char imagename[MAX_ID_NAME - 2] = "Material Diffuse Color";
-					int width = 1024;
-					int height = 1024;
-					bool use_float = false;
-					short gen_type = IMA_GENTYPE_BLANK;
-					bool alpha = false;
-
-					if (op) {
-						width = RNA_int_get(op->ptr, "width");
-						height = RNA_int_get(op->ptr, "height");
-						use_float = RNA_boolean_get(op->ptr, "float");
-						gen_type = RNA_enum_get(op->ptr, "generated_type");
-						RNA_float_get_array(op->ptr, "color", color);
-						alpha = RNA_boolean_get(op->ptr, "alpha");
-						RNA_string_get(op->ptr, "name", imagename);
-					}
-
-					ima = mtex->tex->ima = BKE_image_add_generated(bmain, width, height, imagename, alpha ? 32 : 24, use_float,
-					                                               gen_type, color);
-
-					BKE_texpaint_slot_refresh_cache(scene, ma);
-					BKE_image_signal(ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
-					WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, mtex->tex);
-					WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
-					DAG_id_tag_update(&ma->id, 0);
-					ED_area_tag_redraw(CTX_wm_area(C));
+					ima = mtex->tex->ima = proj_paint_image_create(op, bmain);
 				}
 
 				WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));
-				return true;
 			}
+			WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, mtex->tex);				
+		}
+		
+		if (ima) {
+			BKE_texpaint_slot_refresh_cache(scene, ma);
+			BKE_image_signal(ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
+			WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
+			DAG_id_tag_update(&ma->id, 0);
+			ED_area_tag_redraw(CTX_wm_area(C));
+			
+			return true;			
 		}
 	}
-
+	
 	return false;
 }
 
 static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op)
 {
-	return proj_paint_add_slot(C, NULL, op);
+	if(proj_paint_add_slot(C, op))
+		return OPERATOR_FINISHED;
+	else return OPERATOR_CANCELLED;
 }
 
 
@@ -5100,6 +5118,12 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 	Material *ma = give_current_material(ob, ob->actcol);
 	int type = RNA_enum_get(op->ptr, "type");
 
+	if (!ma) {
+		ma = BKE_material_add(CTX_data_main(C), "Material");
+		/* no material found, just assign to first slot */
+		assign_material(ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);		
+	}
+	
 	type = RNA_enum_from_value(layer_type_items, type);
 
 	/* get the name of the texture layer type */
