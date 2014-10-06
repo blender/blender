@@ -325,10 +325,10 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 	/* there must be some RNA-pointer + property combon */
 	if (prop && tptr.id.data && RNA_property_animateable(&tptr, prop)) {
 		AnimData *adt = BKE_animdata_from_id(tptr.id.data);
-		int step = 2;
+		int step = C ? 2 : 1;  /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
 		char *path = NULL;
 		
-		if (adt == NULL) {
+		if (!adt && C) {
 			path = BKE_animdata_driver_path_hack(C, &tptr, prop, NULL);
 			adt = BKE_animdata_from_id(tptr.id.data);
 			step--;
