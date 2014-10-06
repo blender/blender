@@ -2411,10 +2411,13 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
 		return OPERATOR_CANCELLED;
 	
 	assign_material(base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
-	
+
+	DAG_id_tag_update(&base->object->id, OB_RECALC_OB);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, base->object);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
-	
+
 	return OPERATOR_FINISHED;
 }
 
