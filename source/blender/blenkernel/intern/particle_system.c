@@ -1506,18 +1506,14 @@ void psys_tasks_create(ParticleThreadContext *ctx, int totpart, ParticleTask **r
 	*r_numtasks = numtasks;
 	*r_tasks = tasks;
 	
-	printf("made %d tasks:\n", numtasks);
 	p = 0.0f;
-	printf("  %d", (int)p);
 	for (i = 0; i < numtasks; i++, p = pnext) {
 		pnext = p + particles_per_task;
 		
 		tasks[i].ctx = ctx;
 		tasks[i].begin = (int)p;
 		tasks[i].end = min_ii((int)pnext, totpart);
-		printf("..%d", tasks[i].end);
 	}
-	printf("\n");
 }
 
 void psys_tasks_free(ParticleTask *tasks, int numtasks)
