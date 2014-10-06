@@ -375,8 +375,7 @@ ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
 	Intersection isect;
 	const float3 Pend = volume_ray.P + volume_ray.D*volume_ray.t;
 
-	while(scene_intersect(kg, &volume_ray, PATH_RAY_ALL_VISIBILITY,
-	                      &isect, NULL, 0.0f, 0.0f))
+	while(scene_intersect_volume(kg, &volume_ray, &isect))
 	{
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
@@ -384,15 +383,7 @@ ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
 
 		/* Move ray forward. */
 		volume_ray.P = ray_offset(sd.P, -sd.Ng);
-		volume_ray.D = normalize_len(Pend - volume_ray.P,
-		                             &volume_ray.t);
-
-		/* TODO(sergey): Find a faster way detecting that ray_offset moved
-		 * us pass through the end point.
-		 */
-		if(dot(ray->D, volume_ray.D) < 0.0f) {
-			break;
-		}
+		volume_ray.t -= sd.ray_length;
 	}
 }
 #endif
