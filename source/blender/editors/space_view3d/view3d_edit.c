@@ -3423,7 +3423,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		/* find the closest Z pixel */
 		depth_close = view3d_depth_near(&depth_temp);
 	
-		MEM_freeN(depth_temp.depths);
+		MEM_SAFE_FREE(depth_temp.depths);
 	}
 
 	cent[0] = (((double)rect.xmin) + ((double)rect.xmax)) / 2;
@@ -4640,7 +4640,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 
 	view3d_update_depths_rect(ar, &depth_temp, &rect);
 	depth_close = view3d_depth_near(&depth_temp);
-	if (depth_temp.depths) MEM_freeN(depth_temp.depths);
+	MEM_SAFE_FREE(depth_temp.depths);
 	return depth_close;
 }
 
