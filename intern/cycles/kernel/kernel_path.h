@@ -373,7 +373,6 @@ ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
 
 	Ray volume_ray = *ray;
 	Intersection isect;
-	const float3 Pend = volume_ray.P + volume_ray.D*volume_ray.t;
 
 	while(scene_intersect_volume(kg, &volume_ray, &isect))
 	{

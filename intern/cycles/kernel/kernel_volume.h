@@ -976,7 +976,6 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 		return;
 	}
 
-	const float3 Pend = ray->P + ray->D*ray->t;
 	Ray volume_ray = *ray;
 	volume_ray.t = FLT_MAX;
 
