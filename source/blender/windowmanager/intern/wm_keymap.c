@@ -589,8 +589,12 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 
 		/* add item */
 		if (kmdi->add_item) {
+			/* Do not re-add an already existing keymap item! See T42088. */
+			kmi_add = wm_keymap_find_item_equals(km, kmdi->add_item);
+			if (!kmi_add)
+				kmi_add = wm_keymap_find_item_equals_result(km, kmdi->add_item);
 			/* only if nothing to remove or item to remove found */
-			if (!kmdi->remove_item || kmi_remove) {
+			if (!kmi_add && (!kmdi->remove_item || kmi_remove)) {
 				kmi_add = wm_keymap_item_copy(kmdi->add_item);
 				kmi_add->flag |= KMI_USER_MODIFIED;
 
