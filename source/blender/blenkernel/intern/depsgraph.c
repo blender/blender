@@ -75,6 +75,7 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
@@ -2509,6 +2510,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 			obt = sce->basact ? sce->basact->object : NULL;
 			if (obt && obt->mode & OB_MODE_TEXTURE_PAINT) {
 				BKE_texpaint_slots_refresh_object(sce, obt);
+				BKE_paint_proj_mesh_data_check(sce, obt, NULL, NULL, NULL, NULL);
 				GPU_drawobject_free(obt->derivedFinal);
 			}
 		}

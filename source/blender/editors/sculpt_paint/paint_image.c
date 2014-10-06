@@ -57,6 +57,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_brush.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -87,6 +88,7 @@
 #include "RNA_enum_types.h"
 
 #include "GPU_draw.h"
+#include "GPU_buffers.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -752,14 +754,16 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 	copy_v2_v2(pop->prevmouse, mouse);
 	copy_v2_v2(pop->startmouse, mouse);
 
-	if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
-		pop->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, gradient_draw_line, pop);
-	}
-
 	/* initialize from context */
 	if (CTX_wm_region_view3d(C)) {
 		Object *ob = OBACT;
-		paint_proj_mesh_data_ensure(C, ob, op);
+		bool uvs, mat, tex, stencil;
+		if (!BKE_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, &stencil)) {
+			BKE_paint_data_warning(op->reports, uvs, mat, tex, stencil);
+			MEM_freeN(pop);
+			WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
+			return NULL;			
+		}
 		pop->mode = PAINT_MODE_3D_PROJECT;
 		pop->custom_paint = paint_proj_new_stroke(C, ob, mouse, mode);
 	}
@@ -773,6 +777,10 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 		return NULL;
 	}
 
+	if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
+		pop->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, gradient_draw_line, pop);
+	}
+	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
 	ED_undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
 	                         ED_image_undo_restore, ED_image_undo_free, NULL);
@@ -1381,29 +1389,31 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		 * cache in case we are loading a file */
 		BKE_texpaint_slots_refresh_object(scene, ob);
 
-		paint_proj_mesh_data_ensure(C, ob, op);
-
+		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+		
 		/* entering paint mode also sets image to editors */
 		if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
 			Material *ma = give_current_material(ob, ob->actcol); /* set the current material active paint slot on image editor */
 
-			if (ma->texpaintslot)
+			if (ma && ma->texpaintslot)
 				ima = ma->texpaintslot[ma->paint_active_slot].ima;
 		}
 		else if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
 			ima = imapaint->canvas;
 		}	
 		
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-			ScrArea *sa;
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				SpaceLink *sl;
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_IMAGE) {
-						SpaceImage *sima = (SpaceImage *)sl;
-						
-						if (!sima->pin)
-							ED_space_image_set(sima, scene, scene->obedit, ima);
+		if (ima) {
+			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+				ScrArea *sa;
+				for (sa = sc->areabase.first; sa; sa = sa->next) {
+					SpaceLink *sl;
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_IMAGE) {
+							SpaceImage *sima = (SpaceImage *)sl;
+							
+							if (!sima->pin)
+								ED_space_image_set(sima, scene, scene->obedit, ima);
+						}
 					}
 				}
 			}
@@ -1420,7 +1430,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		toggle_paint_cursor(C, 1);
 	}
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	GPU_drawobject_free(ob->derivedFinal);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
 	return OPERATOR_FINISHED;

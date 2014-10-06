@@ -279,10 +279,10 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 		if (!ma && BKE_image_has_alpha(texface->tpage))
 			alphablend = GPU_BLEND_ALPHA;
 	}
-	else if (texpaint && ma) {
+	else if (texpaint) {
 		if (gtexdraw.texpaint_material)
-			ima = ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
-		else 
+			ima = ma && ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
+		else
 			ima = gtexdraw.canvas;
 	}
 	else
@@ -315,6 +315,14 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 					
 					glActiveTexture(GL_TEXTURE1);
 					glEnable(GL_TEXTURE_2D);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_INTERPOLATE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PREVIOUS);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_PRIMARY_COLOR);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SRC2_RGB, GL_PREVIOUS);
+					glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
 					glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 					glActiveTexture(GL_TEXTURE0);					
 				}
