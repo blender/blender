@@ -76,7 +76,7 @@ public:
 
 	
 	void setUseValueAlphaMultiply(const bool value) { this->m_valueAlphaMultiply = value; }
-	bool useValueAlphaMultiply() { return this->m_valueAlphaMultiply; }
+	inline bool useValueAlphaMultiply() { return this->m_valueAlphaMultiply; }
 	void setUseClamp(bool value) { this->m_useClamp = value; }
 };
 
