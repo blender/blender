@@ -339,7 +339,7 @@ int BKE_text_reload(Text *text)
 	char str[FILE_MAX];
 	BLI_stat_t st;
 
-	if (!text || !text->name) return 0;
+	if (!text->name) return 0;
 	
 	BLI_strncpy(str, text->name, FILE_MAX);
 	BLI_path_abs(str, G.main->name);
@@ -647,7 +647,7 @@ int BKE_text_file_modified_check(Text *text)
 	int result;
 	char file[FILE_MAX];
 
-	if (!text || !text->name)
+	if (!text->name)
 		return 0;
 
 	BLI_strncpy(file, text->name, FILE_MAX);
@@ -676,7 +676,7 @@ void BKE_text_file_modified_ignore(Text *text)
 	int result;
 	char file[FILE_MAX];
 
-	if (!text || !text->name) return;
+	if (!text->name) return;
 
 	BLI_strncpy(file, text->name, FILE_MAX);
 	BLI_path_abs(file, G.main->name);
@@ -742,9 +742,7 @@ static TextLine *txt_new_linen(const char *str, int n)
 void txt_clean_text(Text *text)
 {	
 	TextLine **top, **bot;
-	
-	if (!text) return;
-	
+
 	if (!text->lines.first) {
 		if (text->lines.last) text->lines.first = text->lines.last;
 		else text->lines.first = text->lines.last = txt_new_line(NULL);
@@ -883,8 +881,7 @@ void txt_move_up(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
@@ -906,8 +903,7 @@ void txt_move_down(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
@@ -929,8 +925,7 @@ void txt_move_left(Text *text, const bool sel)
 	TextLine **linep;
 	int *charp;
 	int tabsize = 0, i = 0;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
@@ -974,8 +969,7 @@ void txt_move_right(Text *text, const bool sel)
 	TextLine **linep;
 	int *charp, i;
 	bool do_tab = false;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
@@ -1016,8 +1010,7 @@ void txt_jump_left(Text *text, const bool sel, const bool use_init_step)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
@@ -1033,8 +1026,7 @@ void txt_jump_right(Text *text, const bool sel, const bool use_init_step)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
@@ -1050,8 +1042,7 @@ void txt_move_bol(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else txt_curs_cur(text, &linep, &charp);
 	if (!*linep) return;
@@ -1065,8 +1056,7 @@ void txt_move_eol(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else txt_curs_cur(text, &linep, &charp);
 	if (!*linep) return;
@@ -1080,8 +1070,7 @@ void txt_move_bof(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else txt_curs_cur(text, &linep, &charp);
 	if (!*linep) return;
@@ -1096,8 +1085,7 @@ void txt_move_eof(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else txt_curs_cur(text, &linep, &charp);
 	if (!*linep) return;
@@ -1119,8 +1107,7 @@ void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
 	TextLine **linep;
 	int *charp;
 	unsigned int i;
-	
-	if (!text) return;
+
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else txt_curs_cur(text, &linep, &charp);
 	if (!*linep) return;
@@ -1157,7 +1144,6 @@ static void txt_curs_swap(Text *text)
 
 static void txt_pop_first(Text *text)
 {
-			
 	if (txt_get_span(text->curl, text->sell) < 0 ||
 	    (text->curl == text->sell && text->curc > text->selc))
 	{
@@ -1186,7 +1172,6 @@ void txt_pop_sel(Text *text)
 
 void txt_order_cursors(Text *text, const bool reverse)
 {
-	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
 	
@@ -1216,8 +1201,7 @@ static void txt_delete_sel(Text *text)
 {
 	TextLine *tmpl;
 	char *buf;
-	
-	if (!text) return;
+
 	if (!text->curl) return;
 	if (!text->sell) return;
 
@@ -1253,8 +1237,6 @@ static void txt_delete_sel(Text *text)
 
 void txt_sel_all(Text *text)
 {
-	if (!text) return;
-
 	text->curl = text->lines.first;
 	text->curc = 0;
 	
@@ -1277,7 +1259,6 @@ void txt_sel_clear(Text *text)
 
 void txt_sel_line(Text *text)
 {
-	if (!text) return;
 	if (!text->curl) return;
 	
 	text->curc = 0;
@@ -1295,8 +1276,7 @@ char *txt_to_buf(Text *text)
 	TextLine *tmp, *linef, *linel;
 	int charf, charl;
 	char *buf;
-	
-	if (!text) return NULL;
+
 	if (!text->curl) return NULL;
 	if (!text->sell) return NULL;
 	if (!text->lines.first) return NULL;
@@ -1358,7 +1338,7 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 	TextLine *tl, *startl;
 	const char *s = NULL;
 
-	if (!text || !text->curl || !text->sell) return 0;
+	if (!text->curl || !text->sell) return 0;
 	
 	txt_order_cursors(text, false);
 
@@ -1398,8 +1378,7 @@ char *txt_sel_to_buf(Text *text)
 	int length = 0;
 	TextLine *tmp, *linef, *linel;
 	int charf, charl;
-	
-	if (!text) return NULL;
+
 	if (!text->curl) return NULL;
 	if (!text->sell) return NULL;
 	
@@ -1480,7 +1459,6 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 	TextLine *add;
 	char *buffer;
 
-	if (!text) return;
 	if (!in_buffer) return;
 
 	txt_delete_sel(text);
@@ -2362,8 +2340,7 @@ void txt_split_curline(Text *text)
 {
 	TextLine *ins;
 	char *left, *right;
-	
-	if (!text) return;
+
 	if (!text->curl) return;
 
 	txt_delete_sel(text);
@@ -2405,7 +2382,6 @@ void txt_split_curline(Text *text)
 
 static void txt_delete_line(Text *text, TextLine *line)
 {
-	if (!text) return;
 	if (!text->curl) return;
 
 	BLI_remlink(&text->lines, line);
@@ -2422,8 +2398,6 @@ static void txt_delete_line(Text *text, TextLine *line)
 static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 {
 	char *tmp, *s;
-
-	if (!text) return;
 	
 	if (!linea || !lineb) return;
 
@@ -2447,7 +2421,7 @@ void txt_duplicate_line(Text *text)
 {
 	TextLine *textline;
 	
-	if (!text || !text->curl) return;
+	if (!text->curl) return;
 	
 	if (text->curl == text->sell) {
 		textline = txt_new_line(text->curl->line);
@@ -2463,8 +2437,7 @@ void txt_duplicate_line(Text *text)
 void txt_delete_char(Text *text) 
 {
 	unsigned int c = '\n';
-	
-	if (!text) return;
+
 	if (!text->curl) return;
 
 	if (txt_has_sel(text)) { /* deleting a selection */
@@ -2507,7 +2480,6 @@ void txt_backspace_char(Text *text)
 {
 	unsigned int c = '\n';
 	
-	if (!text) return;
 	if (!text->curl) return;
 	
 	if (txt_has_sel(text)) { /* deleting a selection */
@@ -2571,8 +2543,7 @@ static bool txt_add_char_intern(Text *text, unsigned int add, bool replace_tabs)
 {
 	char *tmp, ch[BLI_UTF8_MAX];
 	size_t add_len;
-	
-	if (!text) return 0;
+
 	if (!text->curl) return 0;
 
 	if (add == '\n') {
@@ -2631,8 +2602,7 @@ bool txt_replace_char(Text *text, unsigned int add)
 	unsigned int del;
 	size_t del_size = 0, add_size;
 	char ch[BLI_UTF8_MAX];
-	
-	if (!text) return 0;
+
 	if (!text->curl) return 0;
 
 	/* If text is selected or we're at the end of the line just use txt_add_char */
@@ -2686,7 +2656,7 @@ void txt_indent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	if (ELEM(NULL, text, text->curl, text->sell)) {
+	if (ELEM(NULL, text->curl, text->sell)) {
 		return;
 	}
 
@@ -2753,7 +2723,7 @@ void txt_unindent(Text *text)
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
-	if (ELEM(NULL, text, text->curl, text->sell)) {
+	if (ELEM(NULL, text->curl, text->sell)) {
 		return;
 	}
 
@@ -2806,8 +2776,7 @@ void txt_comment(Text *text)
 	int len, num;
 	char *tmp;
 	char add = '#';
-	
-	if (!text) return;
+
 	if (!text->curl) return;
 	if (!text->sell) return;  // Need to change this need to check if only one line is selected to more than one
 
@@ -2854,8 +2823,7 @@ void txt_uncomment(Text *text)
 {
 	int num = 0;
 	char remove = '#';
-	
-	if (!text) return;
+
 	if (!text->curl) return;
 	if (!text->sell) return;
 
@@ -2901,7 +2869,7 @@ void txt_move_lines(struct Text *text, const int direction)
 
 	BLI_assert(ELEM(direction, TXT_MOVE_LINE_UP, TXT_MOVE_LINE_DOWN));
 
-	if (!text || !text->curl || !text->sell) return;
+	if (!text->curl || !text->sell) return;
 	
 	txt_order_cursors(text, false);
 
@@ -2934,6 +2902,7 @@ int txt_setcurr_tab_spaces(Text *text, int space)
 	const char *comm = "#";
 	const char indent = (text->flags & TXT_TABSTOSPACES) ? ' ' : '\t';
 	static const char *back_words[] = {"return", "break", "continue", "pass", "yield", NULL};
+
 	if (!text->curl) return 0;
 
 	while (text->curl->line[i] == indent) {
