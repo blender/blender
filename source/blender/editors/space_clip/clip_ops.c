@@ -79,6 +79,8 @@
 
 #include "UI_view2d.h"
 
+#include "PIL_time.h"
+
 #include "clip_intern.h"	// own include
 
 /******************** view navigation utilities *********************/
@@ -486,17 +488,24 @@ typedef struct ViewZoomData {
 	float zoom;
 	int event_type;
 	float location[2];
+	wmTimer *timer;
+	double timer_lastdraw;
 } ViewZoomData;
 
 static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
-
 	ViewZoomData *vpd;
 
 	op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ClipViewZoomData");
 	WM_cursor_modal_set(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
+
+	if (U.viewzoom == USER_ZOOM_CONT) {
+		/* needs a timer to continue redrawing */
+		vpd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+		vpd->timer_lastdraw = PIL_check_seconds_timer();
+	}
 
 	vpd->x = event->x;
 	vpd->y = event->y;
@@ -516,6 +525,10 @@ static void view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
 	if (cancel) {
 		sc->zoom = vpd->zoom;
 		ED_region_tag_redraw(CTX_wm_region(C));
+	}
+
+	if (vpd->timer) {
+		WM_event_remove_timer(CTX_wm_manager(C), vpd->timer->win, vpd->timer);
 	}
 
 	WM_cursor_modal_restore(CTX_wm_window(C));
@@ -555,22 +568,61 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 }
 
+static void view_zoom_apply(bContext *C,
+                            ViewZoomData *vpd,
+                            wmOperator *op,
+                            const wmEvent *event)
+{
+	float factor;
+
+	if (U.viewzoom == USER_ZOOM_CONT) {
+		SpaceClip *sclip = CTX_wm_space_clip(C);
+		double time = PIL_check_seconds_timer();
+		float time_step = (float)(time - vpd->timer_lastdraw);
+		float fac;
+		float zfac;
+
+		if (U.uiflag & USER_ZOOM_HORIZ) {
+			fac = (float)(event->x - vpd->x);
+		}
+		else {
+			fac = (float)(event->y - vpd->y);
+		}
+
+		if (U.uiflag & USER_ZOOM_INVERT) {
+			fac = -fac;
+		}
+
+		zfac = 1.0f + ((fac / 20.0f) * time_step);
+		vpd->timer_lastdraw = time;
+		factor = (sclip->zoom * zfac) / vpd->zoom;
+	}
+	else {
+		float delta = event->x - vpd->x + event->y - vpd->y;
+
+		if (U.uiflag & USER_ZOOM_INVERT) {
+			delta *= -1;
+		}
+
+		factor = 1.0f + delta / 300.0f;
+	}
+
+	RNA_float_set(op->ptr, "factor", factor);
+	sclip_zoom_set(C, vpd->zoom * factor, vpd->location);
+	ED_region_tag_redraw(CTX_wm_region(C));
+}
+
 static int view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewZoomData *vpd = op->customdata;
-	float delta, factor;
-
 	switch (event->type) {
+		case TIMER:
+			if (event->customdata == vpd->timer) {
+				view_zoom_apply(C, vpd, op, event);
+			}
+			break;
 		case MOUSEMOVE:
-			delta = event->x - vpd->x + event->y - vpd->y;
-
-			if (U.uiflag & USER_ZOOM_INVERT)
-				delta *= -1;
-
-			factor = 1.0f + delta / 300.0f;
-			RNA_float_set(op->ptr, "factor", factor);
-			sclip_zoom_set(C, vpd->zoom * factor, vpd->location);
-			ED_region_tag_redraw(CTX_wm_region(C));
+			view_zoom_apply(C, vpd, op, event);
 			break;
 		default:
 			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
