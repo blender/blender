@@ -443,7 +443,13 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				
 				if (pathString == NULL || !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingASCII))
 					continue;
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL);
+
+                /* Exclude "all my files" as it makes no sense in blender fileselector */
+                /* Exclude "airdrop" if wlan not active as it would show "" ) */
+                if (strcmp((char *)line, "/System/Library/CoreServices/Finder.app/Contents/Resources/MyLibraries/myDocuments.cannedSearch")
+                    && (strcmp((char *)line, "")))   {
+                    fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL);
+                }
 				
 				CFRelease(pathString);
 				CFRelease(cfURL);
