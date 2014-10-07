@@ -739,7 +739,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	i = is;
 	GPU_link(mat, "shade_visifac", i, visifac, shi->refl, &i);
 	
-	GPU_link(mat, "set_value_v3", GPU_dynamic_uniform(lamp->dyncol, GPU_DYNAMIC_LAMP_DYNCOL, lamp->ob), &lcol);
+	GPU_link(mat, "set_rgb", GPU_dynamic_uniform(lamp->dyncol, GPU_DYNAMIC_LAMP_DYNCOL, lamp->ob), &lcol);
 	shade_light_textures(mat, lamp, &lcol);
 	GPU_link(mat, "shade_mul_value_v3", GPU_dynamic_uniform(&lamp->dynenergy, GPU_DYNAMIC_LAMP_DYNENERGY, lamp->ob), lcol, &lcol);	
 
