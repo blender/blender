@@ -75,12 +75,11 @@ typedef texture<uchar4, 2, cudaReadModeNormalizedFloat> texture_image_uchar4;
 
 /* Use fast math functions */
 
-#define cosf(x) __cosf(((float)x))
-#define sinf(x) __sinf(((float)x))
-#define powf(x, y) __powf(((float)x), ((float)y))
-#define tanf(x) __tanf(((float)x))
-#define logf(x) __logf(((float)x))
-#define expf(x) __expf(((float)x))
+#define cosf(x) __cosf(((float)(x)))
+#define sinf(x) __sinf(((float)(x)))
+#define powf(x, y) __powf(((float)(x)), ((float)(y)))
+#define tanf(x) __tanf(((float)(x)))
+#define logf(x) __logf(((float)(x)))
+#define expf(x) __expf(((float)(x)))
 
 #endif /* __KERNEL_COMPAT_CUDA_H__ */
-
