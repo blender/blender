@@ -319,7 +319,7 @@ static void mask_lasso_px_cb(int x, int y, void *user_data)
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = (int (*)[2])WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		float clip_planes[4][4], clip_planes_final[4][4];
@@ -349,13 +349,13 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		ob = vc.obact;
 		ED_view3d_ob_project_mat_get(vc.rv3d, ob, data.projviewobjmat);
 
-		BLI_lasso_boundbox(&data.rect, (const int (*)[2])mcords, mcords_tot);
+		BLI_lasso_boundbox(&data.rect, mcords, mcords_tot);
 		data.width = data.rect.xmax - data.rect.xmin;
-		data.px = MEM_callocN(sizeof(*data.px) * data.width * (data.rect.ymax - data.rect.ymin), "lasso_mask_pixel_buffer");
+		data.px = MEM_callocN(sizeof(*data.px) * data.width * (data.rect.ymax - data.rect.ymin), __func__);
 
 		fill_poly_v2i_n(
 		       data.rect.xmin, data.rect.ymin, data.rect.xmax, data.rect.ymax,
-		       (const int (*)[2])mcords, mcords_tot,
+		       mcords, mcords_tot,
 		       mask_lasso_px_cb, &data);
 
 		ED_view3d_clipping_calc(&bb, clip_planes, &mats, &data.rect);
