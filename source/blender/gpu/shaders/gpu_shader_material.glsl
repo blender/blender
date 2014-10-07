@@ -385,11 +385,6 @@ void set_value(float val, out float outval)
 	outval = val;
 }
 
-void set_value_v3(vec3 val, out vec3 outval)
-{
-	outval = val;
-}
-
 void set_rgb(vec3 col, out vec3 outcol)
 {
 	outcol = col;
