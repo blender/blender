@@ -39,13 +39,13 @@ unsigned range_tree_uint_take_any(RangeTreeUInt *rt);
 
 void range_tree_uint_release(RangeTreeUInt *rt, unsigned v);
 
-int range_tree_uint_has(const RangeTreeUInt *rt, unsigned v);
+bool range_tree_uint_has(const RangeTreeUInt *rt, unsigned v);
 
-int range_tree_uint_has_range(const RangeTreeUInt *rt,
-							  unsigned vmin,
-							  unsigned vmax);
+bool range_tree_uint_has_range(
+        const RangeTreeUInt *rt,
+        unsigned vmin, unsigned vmax);
 
-int range_tree_uint_empty(const RangeTreeUInt *rt);
+bool range_tree_uint_empty(const RangeTreeUInt *rt);
 
 unsigned range_tree_uint_size(const RangeTreeUInt *rt);
 
