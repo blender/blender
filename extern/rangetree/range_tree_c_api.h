@@ -35,6 +35,8 @@ void range_tree_uint_free(RangeTreeUInt *rt);
 
 void range_tree_uint_take(RangeTreeUInt *rt, unsigned v);
 
+bool range_tree_uint_retake(RangeTreeUInt *rt, unsigned v);
+
 unsigned range_tree_uint_take_any(RangeTreeUInt *rt);
 
 void range_tree_uint_release(RangeTreeUInt *rt, unsigned v);

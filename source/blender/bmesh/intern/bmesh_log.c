@@ -423,9 +423,7 @@ static void bm_log_id_ghash_retake(RangeTreeUInt *unused_ids, GHash *id_ghash)
 		void *key = BLI_ghashIterator_getKey(&gh_iter);
 		unsigned int id = GET_UINT_FROM_POINTER(key);
 
-		if (range_tree_uint_has(unused_ids, id)) {
-			range_tree_uint_take(unused_ids, id);
-		}
+		range_tree_uint_retake(unused_ids, id);
 	}
 }
 

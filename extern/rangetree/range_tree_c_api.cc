@@ -43,6 +43,11 @@ void range_tree_uint_take(RangeTreeUInt *rt, unsigned v)
 	rt->take(v);
 }
 
+bool range_tree_uint_retake(RangeTreeUInt *rt, unsigned v)
+{
+	return rt->retake(v);
+}
+
 unsigned range_tree_uint_take_any(RangeTreeUInt *rt)
 {
 	return rt->take_any();
