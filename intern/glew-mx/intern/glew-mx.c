@@ -69,6 +69,9 @@ GLenum glew_chk(GLenum error, const char *file, int line, const char *text)
 		        code ? code : "<no symbol>",
 		        msg  ? msg  : "<no message>");
 #else
+		(void) file;
+		(void) line;
+		(void) text;
 		fprintf(stderr,
 		        "GLEW Error (0x%04X): %s: %s\n",
 		        error,
@@ -88,7 +91,7 @@ MXContext *_mx_context = NULL;
 
 MXContext *mxCreateContext(void)
 {
-#if WITH_GLEW_MX
+#ifdef WITH_GLEW_MX
 	MXContext* new_ctx = calloc(1, sizeof(MXContext));
 
 	if (new_ctx != NULL) {
@@ -108,7 +111,7 @@ MXContext *mxCreateContext(void)
 
 MXContext *mxGetCurrentContext(void)
 {
-#if WITH_GLEW_MX
+#ifdef WITH_GLEW_MX
 	return _mx_context;
 #else
 	return NULL;
@@ -118,7 +121,7 @@ MXContext *mxGetCurrentContext(void)
 
 void mxMakeCurrentContext(MXContext *ctx)
 {
-#if WITH_GLEW_MX
+#ifdef WITH_GLEW_MX
 	_mx_context = ctx;
 #else
 	(void)ctx;
@@ -128,7 +131,7 @@ void mxMakeCurrentContext(MXContext *ctx)
 
 void mxDestroyContext(MXContext *ctx)
 {
-#if WITH_GLEW_MX
+#ifdef WITH_GLEW_MX
 	if (_mx_context == ctx)
 		_mx_context = NULL;
 
