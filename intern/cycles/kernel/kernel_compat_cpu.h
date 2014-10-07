@@ -29,7 +29,7 @@
  * double precision version, even with float<->double conversion involved.
  */
 #if !defined(__KERNEL_GPU__) && defined(__linux__) && defined(__x86_64__)
-#  define expf(x) ((float)exp((double)x))
+#  define expf(x) ((float)exp((double)(x)))
 #endif
 
 CCL_NAMESPACE_BEGIN
