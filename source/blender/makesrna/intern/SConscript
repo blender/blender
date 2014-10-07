@@ -53,11 +53,12 @@ makesrna_tool = env.Clone()
 rna = env.Clone()
 makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
 
-defs = []
+defs = env['BF_GL_DEFINITIONS']
 
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '#/intern/audaspace/intern',
     '#/intern/cycles/blender',
     '#/intern/smoke/extern',
@@ -66,6 +67,7 @@ incs = [
     '../../blenlib',
     '../../bmesh',
     '../../editors/include',
+    '../../gpu',
     '../../ikplugin',
     '../../imbuf',
     '../../makesdna',

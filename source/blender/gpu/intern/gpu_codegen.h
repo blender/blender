@@ -35,7 +35,7 @@
 
 #include "DNA_listBase.h"
 #include "GPU_material.h"
-#include "GL/glew.h"
+#include "GPU_glew.h"
 
 struct ListBase;
 struct GPUShader;
@@ -106,7 +106,7 @@ struct GPUNodeLink {
 	int type;
 	int users;
 
-	GPUTexture *dynamictex;
+	struct GPUTexture *dynamictex;
 
 	GPUBuiltin builtin;
 	GPUOpenGLBuiltin oglbuiltin;
@@ -146,7 +146,7 @@ typedef struct GPUInput {
 	float *dynamicvec;		/* vector data in case it is dynamic */
 	int dynamictype;		/* origin of the dynamic uniform (GPUDynamicType) */
 	void *dynamicdata;		/* data source of the dynamic uniform */
-	GPUTexture *tex;		/* input texture, only set at runtime */
+	struct GPUTexture *tex;	/* input texture, only set at runtime */
 	int shaderloc;			/* id from opengl */
 	char shadername[32];	/* name in shader */
 
@@ -185,8 +185,8 @@ void GPU_pass_unbind(GPUPass *pass);
 
 void GPU_pass_free(GPUPass *pass);
 
-void GPU_codegen_init(void);
-void GPU_codegen_exit(void);
+void gpu_codegen_init(void);
+void gpu_codegen_exit(void);
 
 /* Material calls */
 

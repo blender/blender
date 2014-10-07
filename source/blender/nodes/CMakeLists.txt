@@ -38,6 +38,7 @@ set(INC
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc
+	../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -278,6 +279,8 @@ if(WITH_COMPOSITOR)
 	)
 	add_definitions(-DWITH_COMPOSITOR)
 endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)

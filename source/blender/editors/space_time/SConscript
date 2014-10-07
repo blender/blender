@@ -31,15 +31,17 @@ sources = env.Glob('*.c')
 
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '../include',
     '../../blenkernel',
     '../../blenlib',
+    '../../gpu',
     '../../makesdna',
     '../../makesrna',
     '../../windowmanager',
     ]
 
-defs = []
+defs = env['BF_GL_DEFINITIONS']
 
 env.BlenderLib('bf_editors_space_time', sources, incs, defs, libtype=['core'], priority=[65])

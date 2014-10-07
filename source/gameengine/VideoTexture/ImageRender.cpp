@@ -36,7 +36,7 @@
 #include <math.h>
 
 
-#include "GL/glew.h"
+#include "glew-mx.h"
 
 #include "KX_PythonInit.h"
 #include "DNA_scene_types.h"

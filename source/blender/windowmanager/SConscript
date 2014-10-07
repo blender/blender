@@ -36,7 +36,8 @@ incs = [
     '#/intern/guardedalloc',
     '#/intern/memutil',
     '#/source/gameengine/BlenderRoutines',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '../blenfont',
     '../blenkernel',
     '../blenlib',
@@ -54,7 +55,7 @@ incs = [
     ]
 incs = ' '.join(incs)
 
-defs = [ 'GLEW_STATIC' ]
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_PYTHON']:
     defs.append('WITH_PYTHON')
@@ -77,5 +78,8 @@ if env['WITH_BF_COMPOSITOR']:
 
 if env['WITH_BF_PYTHON_SECURITY']:
     defs.append("WITH_PYTHON_SECURITY")
+
+if env['OURPLATFORM'] in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'aix4', 'aix5'):
+    defs.append("WITH_X11")
 
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )

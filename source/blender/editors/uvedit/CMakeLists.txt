@@ -24,10 +24,12 @@ set(INC
 	../../blenlib
 	../../blenfont
 	../../bmesh
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -56,5 +58,7 @@ if(WITH_OPENNL)
 		../../../../intern/opennl/extern
 	)
 endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_uvedit "${SRC}" "${INC}" "${INC_SYS}")

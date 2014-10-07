@@ -42,6 +42,7 @@ set(INC
 	../../blender/python/generic
 	../../../intern/container
 	../../../intern/ffmpeg
+	../../../intern/glew-mx
 	../../../intern/guardedalloc
 	../../../intern/string
 )
@@ -51,7 +52,7 @@ set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
-add_definitions(-DGLEW_STATIC)
+add_definitions(${GL_DEFINITIONS})
 
 set(SRC
 	Exception.cpp

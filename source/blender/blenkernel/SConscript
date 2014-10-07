@@ -45,7 +45,8 @@ incs = [
     '#/intern/raskter',
     '#/intern/rigidbody',
     '#/extern/bullet2/src',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '#/intern/audaspace/intern',
     '#/intern/elbeem/extern',
     '#/intern/iksolver/extern',
@@ -65,14 +66,11 @@ incs = [
     '../nodes',
     '../render/extern/include',
     '../windowmanager',
-    env['BF_OPENGL_INC'],
     env['BF_ZLIB_INC'],
     ]
 incs = ' '.join(incs)
 
-defs = [
-    'GLEW_STATIC',
-    ]
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')

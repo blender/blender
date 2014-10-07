@@ -36,8 +36,9 @@
 #  include <windows.h>
 #endif
 
-#include "GL/glew.h"
+#include "glew-mx.h"
 #include "GPU_extensions.h"
+#include "GPU_init_exit.h"
 
 #include "GPG_Application.h"
 #include "BL_BlenderDataConversion.h"
@@ -545,7 +546,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 {
 	if (!m_engineInitialized)
 	{
-		GPU_extensions_init();
+		GPU_init();
 		bgl::InitExtensions(true);
 
 		// get and set the preferences
@@ -867,7 +868,7 @@ void GPG_Application::exitEngine()
 		m_canvas = 0;
 	}
 
-	GPU_extensions_exit();
+	GPU_exit();
 
 #ifdef WITH_PYTHON
 	// Call this after we're sure nothing needs Python anymore (e.g., destructors)

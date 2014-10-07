@@ -49,6 +49,7 @@ set(INC
 	../../blender/python/generic
 	../../blender/python/mathutils
 	../../../intern/container
+	../../../intern/glew-mx
 	../../../intern/guardedalloc
 	../../../intern/string
 )
@@ -229,7 +230,7 @@ set(SRC
 
 )
 
-add_definitions(-DGLEW_STATIC)
+add_definitions(${GL_DEFINITIONS})
 
 if(WITH_IMAGE_DDS)
 	add_definitions(-DWITH_DDS)

@@ -74,6 +74,12 @@ endif()
 # -----------------------------------------------------------------------------
 # Libraries
 
+if(UNIX AND NOT APPLE)
+	set(WITH_X11 ON)
+endif()
+# for now... default to this
+add_definitions(-DWITH_GL_PROFILE_COMPAT)
+
 # ghost
 include(${CMAKE_SOURCE_DIR}/../CMakeLists.txt)
 suffix_relpaths(INC_NEW "${INC}" "../")

@@ -55,8 +55,6 @@ typedef struct GPUShader GPUShader;
 /* GPU extensions support */
 
 void GPU_extensions_disable(void);
-void GPU_extensions_init(void); /* call this before running any of the functions below */
-void GPU_extensions_exit(void);
 int GPU_print_error(const char *str);
 
 int GPU_glsl_support(void);

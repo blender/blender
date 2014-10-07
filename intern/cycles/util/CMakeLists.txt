@@ -1,11 +1,11 @@
 
 set(INC
 	.
+	../../glew-mx
 )
 
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}
-	${OPENGL_INCLUDE_DIR}
 )
 
 set(SRC
@@ -70,5 +70,7 @@ set(SRC_HEADERS
 
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
+
+add_definitions(${GL_DEFINITIONS})
 
 add_library(cycles_util ${SRC} ${SRC_HEADERS})

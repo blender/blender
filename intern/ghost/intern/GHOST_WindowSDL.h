@@ -30,6 +30,7 @@
 
 #include "GHOST_Window.h"
 #include "GHOST_SystemSDL.h"
+
 #include <map>
 
 extern "C" {
@@ -47,10 +48,10 @@ class GHOST_WindowSDL : public GHOST_Window
 {
 private:
 	GHOST_SystemSDL  *m_system;
+	bool m_valid_setup;
 	bool m_invalid_window;
 
 	SDL_Window       *m_sdl_win;
-	SDL_GLContext     m_sdl_glcontext;
 	SDL_Cursor       *m_sdl_custom_cursor;
 
 public:
@@ -93,17 +94,18 @@ public:
 		m_invalid_window = false;
 	}
 
-	bool getValid() const
-	{
-		return (m_sdl_win != NULL);
-	}
+	bool getValid() const;
 
 	void getWindowBounds(GHOST_Rect& bounds) const;
 	void getClientBounds(GHOST_Rect& bounds) const;
 
 protected:
-	GHOST_TSuccess installDrawingContext(GHOST_TDrawingContextType type);
-	GHOST_TSuccess removeDrawingContext();
+
+	/**
+	 * \param type	The type of rendering context create.
+	 * \return Indication of success.
+	 */
+	virtual GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
 
 	GHOST_TSuccess
 	setWindowCursorGrab(GHOST_TGrabCursorMode mode);
@@ -151,12 +153,6 @@ protected:
 	               GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	GHOST_TSuccess
-	swapBuffers();
-
-	GHOST_TSuccess
-	activateDrawingContext();
-
-	GHOST_TSuccess
 	setState(GHOST_TWindowState state);
 
 	GHOST_TWindowState
@@ -172,9 +168,6 @@ protected:
 	GHOST_TSuccess beginFullScreen() const { return GHOST_kFailure; }
 
 	GHOST_TSuccess endFullScreen() const { return GHOST_kFailure; }
-
-	GHOST_TSuccess setSwapInterval(int interval);
-	int getSwapInterval();
 };
 
 

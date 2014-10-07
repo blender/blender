@@ -30,6 +30,7 @@ set(INC
 	../../python
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -69,5 +70,7 @@ endif()
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_interface "${SRC}" "${INC}" "${INC_SYS}")

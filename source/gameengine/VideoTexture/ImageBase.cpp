@@ -32,7 +32,7 @@
 extern "C" {
 #include "bgl.h"
 }
-#include "GL/glew.h"
+#include "glew-mx.h"
 
 #include <vector>
 #include <string.h>

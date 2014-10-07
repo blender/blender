@@ -24,6 +24,7 @@ set(INC
 	../../blender/makesrna
 	../../blender/windowmanager
 	../../../intern/container
+	../../../intern/glew-mx
 	../../../intern/guardedalloc
 	../../../intern/string
 )
@@ -52,7 +53,7 @@ set(SRC
 	KX_BlenderSystem.h
 )
 
-add_definitions(-DGLEW_STATIC)
+add_definitions(${GL_DEFINITIONS})
 
 if(WITH_AUDASPACE)
 	list(APPEND INC

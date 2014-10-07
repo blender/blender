@@ -45,7 +45,7 @@ incs = []
 defs = []
 cxxflags = Split(env['CXXFLAGS'])
 
-defs.append('GLEW_STATIC')
+defs += env['BF_GL_DEFINITIONS']
 
 defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
 defs.append('CCL_NAMESPACE_END=}')
@@ -65,7 +65,12 @@ if env['WITH_BF_CYCLES_DEBUG']:
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna #source/blender/blenlib'.split())
 incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())
+
+incs.append(env['BF_GLEW_INC'])
+incs.append('#/intern/glew-mx')
+incs.append('#intern/mikktspace')
 incs.extend('#extern/glew/include #extern/clew/include #extern/cuew/include #intern/mikktspace'.split())
+
 incs.append(cycles['BF_OIIO_INC'])
 incs.append(cycles['BF_BOOST_INC'])
 incs.append(cycles['BF_OPENEXR_INC'].split())

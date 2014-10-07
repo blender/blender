@@ -36,6 +36,11 @@ set(SRC
 	boost_locale_wrapper.h
 )
 
+if(APPLE)
+	# Cocoa code to read the locale on OSX
+	list(APPEND SRC osx_user_locale.mm)
+endif()
+
 if(WITH_HEADLESS)
 	add_definitions(-DWITH_HEADLESS)
 endif()

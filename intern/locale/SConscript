@@ -29,6 +29,10 @@ Import('env')
 
 sources = env.Glob('*.cpp')
 
+if env['OURPLATFORM'] in ['darwin']:
+    # Cocoa code to read user locale on OSX
+    sources.append('osx_user_locale.mm')
+
 incs = '.'
 defs = []
 

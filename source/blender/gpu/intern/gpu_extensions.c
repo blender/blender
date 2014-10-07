@@ -33,7 +33,7 @@
  */
 
 
-#include "GL/glew.h"
+#include "GPU_glew.h"
 
 #include "DNA_image_types.h"
 
@@ -48,7 +48,9 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_simple_shader.h"
-#include "gpu_codegen.h"
+
+#include "intern/gpu_codegen.h"
+#include "intern/gpu_extensions_private.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -110,8 +112,6 @@ int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 
 /* GPU Extensions */
 
-static int gpu_extensions_init = 0;
-
 void GPU_extensions_disable(void)
 {
 	GG.extdisabled = 1;
@@ -122,17 +122,10 @@ int GPU_max_texture_size(void)
 	return GG.maxtexsize;
 }
 
-void GPU_extensions_init(void)
+void gpu_extensions_init(void)
 {
 	GLint r, g, b;
 	const char *vendor, *renderer;
-
-	/* can't avoid calling this multiple times, see wm_window_add_ghostwindow */
-	if (gpu_extensions_init) return;
-	gpu_extensions_init= 1;
-
-	glewInit();
-	GPU_codegen_init();
 
 	/* glewIsSupported("GL_VERSION_2_0") */
 
@@ -233,10 +226,8 @@ void GPU_extensions_init(void)
 	GPU_simple_shaders_init();
 }
 
-void GPU_extensions_exit(void)
+void gpu_extensions_exit(void)
 {
-	gpu_extensions_init = 0;
-	GPU_codegen_exit();
 	GPU_simple_shaders_exit();
 	GPU_invalid_tex_free();
 }

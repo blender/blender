@@ -42,6 +42,8 @@
 
 @class CocoaWindow;
 @class CocoaOpenGLView;
+@class NSCursor;
+@class NSScreen;
 
 class GHOST_SystemCocoa;
 
@@ -53,6 +55,7 @@ class GHOST_SystemCocoa;
  * which is called the gutter.
  * When OpenGL contexts are active, GHOST will use AGL_BUFFER_RECT to prevent
  * OpenGL drawing outside the reduced client rectangle.
+ * XXX jwilkins: This comment seems out of date since we neither use Carbon nor AGL
  * \author	Maarten Gribnau
  * \date	May 23, 2001
  */
@@ -220,28 +223,8 @@ public:
 	 */
 	virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order);
 
-	/**
-	 * Swaps front and back buffers of a window.
-	 * \return	A boolean success indicator.
-	 */
-	virtual GHOST_TSuccess swapBuffers();
-
-	/**
-	 * Updates the drawing context of this window. Needed
-	 * whenever the window is changed.
-	 * \return Indication of success.
-	 */
-	GHOST_TSuccess updateDrawingContext();
-
-	/**
-	 * Activates the drawing context of this window.
-	 * \return	A boolean success indicator.
-	 */
-	virtual GHOST_TSuccess activateDrawingContext();
-
 	virtual void loadCursor(bool visible, GHOST_TStandardCursor cursor) const;
     
-
 	const GHOST_TabletData *GetTabletData()
 	{
 		return &m_tablet;
@@ -278,19 +261,13 @@ public:
 	bool getImmediateDraw(void) const { return m_immediateDraw; }
 	
 protected:
-	/**
-	 * Tries to install a rendering context in this window.
-	 * \param type	The type of rendering context installed.
-	 * \return Indication as to whether installation has succeeded.
-	 */
-	virtual GHOST_TSuccess installDrawingContext(GHOST_TDrawingContextType type);
 
 	/**
-	 * Removes the current drawing context.
-	 * \return Indication as to whether removal has succeeded.
+	 * \param type	The type of rendering context create.
+	 * \return Indication of success.
 	 */
-	virtual GHOST_TSuccess removeDrawingContext();
-    
+	virtual GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
+
 	/**
 	 * Invalidates the contents of this window.
 	 * \return Indication of success.
@@ -330,15 +307,9 @@ protected:
 	/** The openGL view */
 	CocoaOpenGLView *m_openGLView; 
 
-	/** The opgnGL drawing context */
-	NSOpenGLContext *m_openGLContext;
-	
 	/** The mother SystemCocoa class to send events */
 	GHOST_SystemCocoa *m_systemCocoa;
-			
-	/** The first created OpenGL context (for sharing display lists) */
-	static NSOpenGLContext *s_firstOpenGLcontext;
-	
+
 	NSCursor *m_customCursor;
 
 	GHOST_TabletData m_tablet;
@@ -349,4 +320,3 @@ protected:
 };
 
 #endif // __GHOST_WINDOWCOCOA_H__
-

@@ -30,7 +30,7 @@ import sys
 Import ('env')
 
 sources = env.Glob('*.cpp')
-defs = [ 'GLEW_STATIC' ]
+defs = env['BF_GL_DEFINITIONS']
 
 incs = [
     '.',
@@ -38,7 +38,8 @@ incs = [
     '#intern/guardedalloc',
     '#intern/string',
     '#source/blender',
-    '#extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '#intern/audaspace/FX',
     '#intern/audaspace/intern',
     '#intern/moto/include',

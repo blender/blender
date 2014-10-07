@@ -25,10 +25,12 @@ set(INC
 	../include
 	../../blenkernel
 	../../blenlib
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -47,5 +49,7 @@ set(SRC
 
 	mask_intern.h
 )
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_mask "${SRC}" "${INC}" "${INC_SYS}")

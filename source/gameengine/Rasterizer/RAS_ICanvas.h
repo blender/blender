@@ -113,8 +113,9 @@ public:
 	)=0;
 
 	virtual
-		int
+		bool
 	GetSwapInterval(
+		int& intervalOut
 	)=0;
  
 	virtual 

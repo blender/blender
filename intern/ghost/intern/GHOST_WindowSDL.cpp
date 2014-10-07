@@ -26,10 +26,11 @@
 
 #include "GHOST_WindowSDL.h"
 #include "SDL_mouse.h"
-#include <GL/glew.h>
-#include <assert.h>
+#include "glew-mx.h"
 
-static SDL_GLContext s_firstContext = NULL;
+#include "GHOST_ContextSDL.h"
+
+#include <assert.h>
 
 GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  const STR_String& title,
@@ -44,39 +45,29 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  const bool exclusive,
                                  const GHOST_TUns16 numOfAASamples
                                  )
-	:
-	GHOST_Window(width, height, state, type, stereoVisual, exclusive, numOfAASamples),
-	m_system(system),
-	m_invalid_window(false),
-	m_sdl_custom_cursor(NULL)
+    : GHOST_Window(width, height, state, stereoVisual, exclusive, numOfAASamples),
+      m_system(system),
+      m_valid_setup(false),
+      m_invalid_window(false),
+      m_sdl_custom_cursor(NULL)
 {
-	SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-	if (numOfAASamples) {
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, numOfAASamples);
-	}
 
 	/* creating the window _must_ come after setting attributes */
-	m_sdl_win = SDL_CreateWindow(title,
-	                             left,
-	                             top,
-	                             width,
-	                             height,
-	                             SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+	m_sdl_win = SDL_CreateWindow(
+	        title,
+	        left, top,
+	        width, height,
+	        SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
+	/* now set up the rendering context. */
+	if (setDrawingContextType(type) == GHOST_kSuccess) {
+		m_valid_setup = true;
+		GHOST_PRINT("Created window\n");
+	}
 
-
-	m_sdl_glcontext = SDL_GL_CreateContext(m_sdl_win);
-
-	//fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
-	//	theEvent->error_code, theEvent->request_code);
+	if (exclusive) {
+		SDL_RaiseWindow(m_sdl_win);
+	}
 
 	setTitle(title);
 }
@@ -87,64 +78,38 @@ GHOST_WindowSDL::~GHOST_WindowSDL()
 		SDL_FreeCursor(m_sdl_custom_cursor);
 	}
 
-	if (m_sdl_glcontext != s_firstContext) {
-		SDL_GL_DeleteContext(m_sdl_glcontext);
-	}
+	releaseNativeHandles();
 
 	SDL_DestroyWindow(m_sdl_win);
 }
 
 
-GHOST_TSuccess
-GHOST_WindowSDL::installDrawingContext(GHOST_TDrawingContextType type)
+GHOST_Context *
+GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type)
 {
-	// only support openGL for now.
-	GHOST_TSuccess success;
-	switch (type) {
-		case GHOST_kDrawingContextTypeOpenGL:
-			m_sdl_glcontext = SDL_GL_CreateContext(m_sdl_win);
+	if (type == GHOST_kDrawingContextTypeOpenGL) {
+		GHOST_Context *context = new GHOST_ContextSDL(
+		        m_wantStereoVisual,
+		        m_wantNumOfAASamples,
+		        m_sdl_win,
+		        0, // profile bit
+		        0, 0,
+		        GHOST_OPENGL_SDL_CONTEXT_FLAGS,
+		        GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-			if (m_sdl_glcontext != NULL) {
-				if (!s_firstContext) {
-					s_firstContext = m_sdl_glcontext;
-				}
-
-				success = (SDL_GL_MakeCurrent(m_sdl_win, m_sdl_glcontext) < 0) ?
-				          GHOST_kFailure : GHOST_kSuccess;
-			}
-			else {
-				success = GHOST_kFailure;
-			}
-
-			break;
-
-		case GHOST_kDrawingContextTypeNone:
-			success = GHOST_kSuccess;
-			break;
-
-		default:
-			success = GHOST_kFailure;
+		if (context->initializeDrawingContext())
+			return context;
+		else
+			delete context;
 	}
-	return success;
+
+	return NULL;
 }
 
 
 GHOST_TSuccess
 GHOST_WindowSDL::invalidate(void)
 {
-	// So the idea of this function is to generate an expose event
-	// for the window.
-	// Unfortunately X does not handle expose events for you and
-	// it is the client's job to refresh the dirty part of the window.
-	// We need to queue up invalidate calls and generate GHOST events
-	// for them in the system.
-
-	// We implement this by setting a boolean in this class to concatenate
-	// all such calls into a single event for this window.
-
-	// At the same time we queue the dirty windows in the system class
-	// and generate events for them at the next processEvents call.
-
 	if (m_invalid_window == false) {
 		m_system->addDirtyWindow(this);
 		m_invalid_window = true;
@@ -152,52 +117,6 @@ GHOST_WindowSDL::invalidate(void)
 
 	return GHOST_kSuccess;
 }
-
-
-GHOST_TSuccess
-GHOST_WindowSDL::swapBuffers()
-{
-	if (getDrawingContextType() == GHOST_kDrawingContextTypeOpenGL) {
-		SDL_GL_SwapWindow(m_sdl_win);
-		return GHOST_kSuccess;
-	}
-	else {
-		return GHOST_kFailure;
-	}
-}
-
-
-GHOST_TSuccess
-GHOST_WindowSDL::activateDrawingContext()
-{
-	if (m_sdl_glcontext != NULL) {
-		int status = SDL_GL_MakeCurrent(m_sdl_win, m_sdl_glcontext);
-		(void)status;
-		/* Disable AA by default */
-		if (m_numOfAASamples > 0) {
-			glDisable(GL_MULTISAMPLE_ARB);
-		}
-		return GHOST_kSuccess;
-	}
-	return GHOST_kFailure;
-}
-
-
-GHOST_TSuccess
-GHOST_WindowSDL::removeDrawingContext()
-{
-	GHOST_TSuccess success;
-
-	if (m_sdl_glcontext != NULL) {
-		SDL_GL_DeleteContext(m_sdl_glcontext);
-		success = GHOST_kSuccess;
-	}
-	else {
-		success = GHOST_kFailure;
-	}
-	return success;
-}
-
 
 GHOST_TSuccess
 GHOST_WindowSDL::setState(GHOST_TWindowState state)
@@ -236,6 +155,12 @@ GHOST_WindowSDL::getState() const
 	return GHOST_kWindowStateNormal;
 }
 
+bool
+GHOST_WindowSDL::
+getValid() const
+{
+	return GHOST_Window::getValid() && m_valid_setup;
+}
 
 void
 GHOST_WindowSDL::setTitle(const STR_String& title)
@@ -637,17 +562,4 @@ GHOST_WindowSDL::setWindowCursorVisibility(bool visible)
 {
 	SDL_ShowCursor(visible);
 	return GHOST_kSuccess;
-}
-
-GHOST_TSuccess
-GHOST_WindowSDL::setSwapInterval(int interval)
-{
-	SDL_GL_SetSwapInterval(interval);
-	return GHOST_kSuccess;
-}
-
-int
-GHOST_WindowSDL::getSwapInterval()
-{
-	return SDL_GL_GetSwapInterval();
 }

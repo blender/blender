@@ -39,7 +39,8 @@ incs = [
     './shader',
     './texture',
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '../blenfont',
     '../blenkernel',
     '../blenlib',
@@ -48,12 +49,11 @@ incs = [
     '../makesdna',
     '../makesrna',
     '../render/extern/include',
-    env['BF_OPENGL_INC'],
     env['BF_ZLIB_INC'],
     ]
 incs = ' '.join(incs)
 
-defs = [] 
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']

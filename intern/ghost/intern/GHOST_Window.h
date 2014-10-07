@@ -36,6 +36,7 @@
 #include "GHOST_IWindow.h"
 
 class STR_String;
+class GHOST_Context;
 
 /**
  * Platform independent implementation of GHOST_IWindow.
@@ -49,29 +50,6 @@ class STR_String;
 class GHOST_Window : public GHOST_IWindow
 {
 public:
-	/**
-	 * \section Interface inherited from GHOST_IWindow left for derived class
-	 * implementation.
-	 * virtual	bool getValid() const = 0;
-	 * virtual void setTitle(const STR_String& title) = 0;
-	 * virtual void getTitle(STR_String& title) const = 0;
-	 * virtual	void getWindowBounds(GHOST_Rect& bounds) const = 0;
-	 * virtual	void getClientBounds(GHOST_Rect& bounds) const = 0;
-	 * virtual	GHOST_TSuccess setClientWidth(GHOST_TUns32 width) = 0;
-	 * virtual	GHOST_TSuccess setClientHeight(GHOST_TUns32 height) = 0;
-	 * virtual	GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height) = 0;
-	 * virtual	void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
-	 * virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
-	 * virtual GHOST_TWindowState getState() const = 0;
-	 * virtual GHOST_TSuccess setState(GHOST_TWindowState state) = 0;
-	 * virtual GHOST_TWindowOrder getOrder(void) = 0;
-	 * virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order) = 0;
-	 * virtual GHOST_TSuccess swapBuffers() = 0;
-	 * virtual GHOST_TSuccess setSwapInterval() = 0;
-	 * virtual int getSwapInterval() = 0;
-	 * virtual GHOST_TSuccess activateDrawingContext() = 0;
-	 * virtual GHOST_TSuccess invalidate() = 0;
-	 */
 
 	/**
 	 * Constructor.
@@ -90,10 +68,9 @@ public:
 	    GHOST_TUns32 width,
 	    GHOST_TUns32 height,
 	    GHOST_TWindowState state,
-	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-	    const bool stereoVisual = false,
+	    const bool wantStereoVisual = false,
 	    const bool exclusive = false,
-	    const GHOST_TUns16 numOfAASamples = 0);
+	    const GHOST_TUns16 wantNumOfAASamples = 0);
 
 	/**
 	 * \section Interface inherited from GHOST_IWindow left for derived class
@@ -113,7 +90,7 @@ public:
 	 * virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order) = 0;
 	 * virtual GHOST_TSuccess swapBuffers() = 0;
 	 * virtual GHOST_TSuccess setSwapInterval() = 0;
-	 * virtual int getSwapInterval() = 0;
+	 * virtual GHOST_TSuccess getSwapInterval(int& intervalOut) = 0;
 	 * virtual GHOST_TSuccess activateDrawingContext() = 0;
 	 * virtual GHOST_TSuccess invalidate() = 0;
 	 */
@@ -123,6 +100,14 @@ public:
 	 * Closes the window and disposes resources allocated.
 	 */
 	virtual ~GHOST_Window();
+
+	/**
+	 * Returns indication as to whether the window is valid.
+	 * \return The validity of the window.
+	 */
+	virtual bool getValid() const { 
+		return m_context != 0;
+	}
 
 	/**
 	 * Returns the associated OS object/handle
@@ -213,18 +198,20 @@ public:
 	 * \param interval The swap interval to use.
 	 * \return A boolean success indicator.
 	 */
-	virtual GHOST_TSuccess setSwapInterval(int interval) {
-		return GHOST_kFailure;
-	}
-	
+	virtual GHOST_TSuccess setSwapInterval(int interval);
+
 	/**
 	 * Gets the current swap interval for swapBuffers.
 	 * \return An integer.
 	 */
-	virtual int getSwapInterval() {
-		return 0;
-	}
-	
+	virtual GHOST_TSuccess getSwapInterval(int& intervalOut);
+
+	/**
+	 * Gets the current swap interval for swapBuffers.
+	 * \return Number of AA Samples (0 if there is no multisample buffer)
+	 */
+	virtual GHOST_TUns16 getNumOfAASamples();
+
 	/**
 	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
 	 */
@@ -257,12 +244,31 @@ public:
 
 	/**
 	 * Tries to install a rendering context in this window.
-	 * Child classes do not need to overload this method.
-	 * They should overload the installDrawingContext and removeDrawingContext instead.
+	 * Child classes do not need to overload this method,
+	 * They should overload newDrawingContext instead.
 	 * \param type	The type of rendering context installed.
 	 * \return Indication as to whether installation has succeeded.
 	 */
 	virtual GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type);
+
+	/**
+	 * Swaps front and back buffers of a window.
+	 * \return  A boolean success indicator.
+	 */
+	virtual GHOST_TSuccess swapBuffers();
+
+	/**
+	 * Activates the drawing context of this window.
+	 * \return  A boolean success indicator.
+	 */
+	virtual GHOST_TSuccess activateDrawingContext();
+
+	/**
+	 * Updates the drawing context of this window. Needed
+	 * whenever the window is changed.
+	 * \return Indication of success.
+	 */
+	virtual GHOST_TSuccess updateDrawingContext();
 
 	/**
 	 * Returns the window user data.
@@ -295,13 +301,7 @@ protected:
 	 * \param type	The type of rendering context installed.
 	 * \return Indication as to whether installation has succeeded.
 	 */
-	virtual GHOST_TSuccess installDrawingContext(GHOST_TDrawingContextType type) = 0;
-
-	/**
-	 * Removes the current drawing context.
-	 * \return Indication as to whether removal has succeeded.
-	 */
-	virtual GHOST_TSuccess removeDrawingContext() = 0;
+	virtual GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) = 0;
 
 	/**
 	 * Sets the cursor visibility on the window using
@@ -333,6 +333,9 @@ protected:
 	
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask, 
 	                                                  int szx, int szy, int hotX, int hotY, int fg, int bg) = 0;
+
+	GHOST_TSuccess releaseNativeHandles();
+
 	/** The the of drawing context installed in this window. */
 	GHOST_TDrawingContextType m_drawingContextType;
 	
@@ -369,14 +372,11 @@ protected:
 	/** Stores whether this is a full screen window. */
 	bool m_fullScreen;
 
-	/** Stereo visual created. Only necessary for 'real' stereo support,
-	 *  ie quad buffered stereo. This is not always possible, depends on
-	 *  the graphics h/w
-	 */
-	bool m_stereoVisual;
-	
-	/** Number of samples used in anti-aliasing, set to 0 if no AA **/
-	GHOST_TUns16 m_numOfAASamples;
+	/** Whether to attempt to initialize a context with a stereo framebuffer. */
+	bool m_wantStereoVisual;
+
+	/** Attempt to initialize a context with this many samples. */
+	GHOST_TUns16 m_wantNumOfAASamples;
 
 	/** Full-screen width */
 	GHOST_TUns32 m_fullScreenWidth;
@@ -385,6 +385,9 @@ protected:
 	
 	/* OSX only, retina screens */
 	float m_nativePixelSize;
+
+private:
+	GHOST_Context *m_context;
 };
 
 

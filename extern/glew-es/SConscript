@@ -1,0 +1,14 @@
+#!/usr/bin/python
+import sys
+import os
+
+Import('env')
+
+sources = ['src/glew.c']
+
+defs = env['BF_GL_DEFINITIONS']
+if env['WITH_BF_GLEW_MX']:
+    defs += ['GLEW_MX']
+incs = ['include']
+
+env.BlenderLib ( 'extern_glew_es', sources, incs, defs, libtype=['extern','player'], priority=[50,230] )

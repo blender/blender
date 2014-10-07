@@ -33,8 +33,6 @@
 
 /* Part of the code copied from elbeem fluid library, copyright by Nils Thuerey */
 
-#include <GL/glew.h>
-
 #include "MEM_guardedalloc.h"
 
 #include <float.h>
@@ -83,6 +81,8 @@
 #include "BKE_texture.h"
 
 #include "RE_shader_ext.h"
+
+#include "GPU_glew.h"
 
 /* UNUSED so far, may be enabled later */
 /* #define USE_SMOKE_COLLISION_DM */

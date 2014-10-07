@@ -110,6 +110,7 @@
 #include "GPU_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
+#include "GPU_init_exit.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
@@ -195,7 +196,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	wm_init_reports(C); /* reports cant be initialized before the wm */
 
 	if (!G.background) {
-		GPU_extensions_init();
+		GPU_init();
+
 		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 		GPU_set_anisotropic(U.anisotropic_filter);
 		GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
@@ -502,7 +504,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	if (!G.background) {
 		GPU_global_buffer_pool_free();
 		GPU_free_unused_buffers();
-		GPU_extensions_exit();
+
+		GPU_exit();
 	}
 
 	BKE_reset_undo(); 

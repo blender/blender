@@ -58,8 +58,8 @@ void		wm_window_lower			(wmWindow *win);
 void		wm_window_set_size		(wmWindow *win, int width, int height);
 void		wm_window_get_position	(wmWindow *win, int *posx_r, int *posy_r);
 void		wm_window_swap_buffers	(wmWindow *win);
-void		wm_window_set_swap_interval	(wmWindow *win, int interval);
-int			wm_window_get_swap_interval	(wmWindow *win);
+void		wm_window_set_swap_interval(wmWindow *win, int interval);
+bool		wm_window_get_swap_interval(wmWindow *win, int *intervalOut);
 
 float		wm_window_pixelsize(wmWindow *win);
 

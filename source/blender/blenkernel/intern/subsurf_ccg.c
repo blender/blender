@@ -72,10 +72,9 @@
 #  include "BLI_array.h"
 #endif
 
-#include "GL/glew.h"
-
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "GPU_glew.h"
 #include "GPU_material.h"
 
 #include "CCGSubSurf.h"

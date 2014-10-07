@@ -38,7 +38,8 @@ incs = [
     '#/intern/guardedalloc',
     '#/intern/atomic',
     '#/intern/memutil',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '#/intern/audaspace/intern',
     '#/intern/cycles/blender',
     '#/intern/smoke/extern',
@@ -57,7 +58,7 @@ incs = [
     ]
 incs = ' '.join(incs)
 
-defs = []
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')

@@ -33,7 +33,8 @@ incs = [
     '.',
     '#/intern/guardedalloc',
     '#/intern/memutil',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '#/intern/audaspace/intern',
     '#/intern/cycles/blender',
     '../blenfont',
@@ -62,7 +63,7 @@ sources = env.Glob('bmesh/*.c')
 env.BlenderLib( libname = 'bf_python_bmesh', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [362,165])
 
 # generic
-defs = ['GLEW_STATIC']
+defs = env['BF_GL_DEFINITIONS']
 
 if is_debug:
     defs.append('_DEBUG')
@@ -79,7 +80,7 @@ env.BlenderLib( libname = 'bf_python_mathutils', sources = Split(sources), inclu
 
 
 # bpy
-defs = []
+defs = env['BF_GL_DEFINITIONS']
 
 if is_debug:
     defs.append('_DEBUG')

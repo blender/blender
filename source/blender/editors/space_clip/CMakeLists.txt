@@ -27,11 +27,12 @@ set(INC
 	../../blenfont
 	../../blenlib
 	../../imbuf
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../gpu
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -55,6 +56,8 @@ set(SRC
 
 	clip_intern.h
 )
+
+add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)

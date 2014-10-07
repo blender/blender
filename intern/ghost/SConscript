@@ -36,21 +36,32 @@ sources = env.Glob('intern/*.cpp')
 sources2 = env.Glob('intern/GHOST_NDOFManager3Dconnexion.c')
 if window_system == 'darwin':
     sources += env.Glob('intern/*.mm')
+    #remove, will be readded below if needed.
+    sources.remove('intern' + os.sep + 'GHOST_ContextCGL.mm')
 
+if not env['WITH_BF_GL_EGL']:
+    sources.remove('intern' + os.sep + 'GHOST_ContextEGL.cpp')
 
-pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager']
-defs=['_USE_MATH_DEFINES', 'GLEW_STATIC']
+# seems cleaner to remove these now then add back the one that is needed
+sources.remove('intern' + os.sep + 'GHOST_ContextGLX.cpp')
+sources.remove('intern' + os.sep + 'GHOST_ContextWGL.cpp')
+
+pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager', 'GHOST_Context']
+
+defs = env['BF_GL_DEFINITIONS']
+
+if env['WITH_BF_GL_EGL']:
+    defs.append('WITH_EGL')
 
 incs = [
     '.',
-    '#extern/glew/include',
+    env['BF_GLEW_INC'],
+    '../glew-mx',
     '#source/blender/imbuf',
     '#source/blender/makesdna',
     '../string',
     ]
 incs = ' '.join(incs)
-
-incs += ' ' + env['BF_OPENGL_INC']
 
 if env['WITH_GHOST_SDL']:
     for f in pf:
@@ -65,9 +76,16 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
     for f in pf:
         try:
             sources.remove('intern' + os.sep + f + 'Win32.cpp')
+        except ValueError:
+            pass
+
+        try:
             sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
+
+    defs += ['WITH_X11']
+
     ## removing because scons does not support system installation
     ## if this is used for blender.org builds it means our distrobution
     ## will find any locally installed blender and double up its script path.
@@ -88,23 +106,45 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
     else:
         sources.remove('intern' + os.sep + 'GHOST_DropTargetX11.cpp')
 
+    if not env['WITH_BF_GL_EGL']:
+        sources.append('intern' + os.sep + 'GHOST_ContextGLX.cpp')
+
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc', 'win64-mingw'):
     for f in pf:
         try:
             sources.remove('intern' + os.sep + f + 'X11.cpp')
+        except ValueError:
+            pass
+
+        try:
             sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
+
+    if not env['WITH_BF_GL_EGL']:
+        sources.append('intern' + os.sep + 'GHOST_ContextWGL.cpp')
+
 elif window_system == 'darwin':
-	if env['WITH_BF_QUICKTIME']:
-		defs.append('WITH_QUICKTIME')
-	for f in pf:
-		try:
-			sources.remove('intern' + os.sep + f + 'Win32.cpp')
-			sources.remove('intern' + os.sep + f + 'X11.cpp')
-			sources.remove('intern' + os.sep + f + 'SDL.cpp')
-		except ValueError:
-			pass
+    if env['WITH_BF_QUICKTIME']:
+        defs.append('WITH_QUICKTIME')
+    for f in pf:
+        try:
+            sources.remove('intern' + os.sep + f + 'Win32.cpp')
+        except ValueError:
+            pass
+
+        try:
+            sources.remove('intern' + os.sep + f + 'X11.cpp')
+        except ValueError:
+            pass
+        try:
+            sources.remove('intern' + os.sep + f + 'SDL.cpp')
+        except ValueError:
+            pass
+
+    if not env['WITH_BF_GL_EGL']:
+        sources.append('intern' + os.sep + 'GHOST_ContextCGL.mm')
+
 else:
     print "Unknown window system specified."
     Exit()

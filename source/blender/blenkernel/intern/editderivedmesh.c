@@ -41,8 +41,6 @@
  * is likely to be a little slow.
  */
 
-#include "GL/glew.h"
-
 #include "BLI_math.h"
 #include "BLI_jitter.h"
 #include "BLI_bitmap.h"
@@ -58,6 +56,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_extensions.h"
+#include "GPU_glew.h"
 
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 

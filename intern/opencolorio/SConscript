@@ -30,12 +30,13 @@ Import('env')
 sources = env.Glob('*.cc')
 
 incs = '. ../guardedalloc ../../source/blender/blenlib'
-defs = [ 'GLEW_STATIC' ]
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_OCIO']:
     defs.append('WITH_OCIO')
     incs += ' ' + env['BF_OCIO_INC']
-    incs += ' ' + '#/extern/glew/include'
+    incs += ' ' + env['BF_GLEW_INC']
+    incs += ' ' + '#/intern/glew-mx'
 
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
         incs += ' ' + env['BF_BOOST_INC']

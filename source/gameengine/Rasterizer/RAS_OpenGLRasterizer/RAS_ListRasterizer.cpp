@@ -30,7 +30,7 @@
 #include <windows.h>
 #endif // WIN32
 
-#include "GL/glew.h"
+#include "glew-mx.h"
 
 #include "RAS_MaterialBucket.h"
 #include "RAS_TexVert.h"

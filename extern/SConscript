@@ -2,7 +2,11 @@
 
 Import('env')
 
-SConscript(['glew/SConscript'])
+if env['WITH_BF_GLEW_ES']:
+    SConscript(['glew-es/SConscript'])
+else:
+    SConscript(['glew/SConscript'])
+
 SConscript(['colamd/SConscript'])
 SConscript(['rangetree/SConscript'])
 SConscript(['wcwidth/SConscript'])

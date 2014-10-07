@@ -54,7 +54,7 @@
 #include "Exception.h"
 
 #include <memory.h>
-#include "GL/glew.h"
+#include "glew-mx.h"
 
 
 // macro for exception handling and logging

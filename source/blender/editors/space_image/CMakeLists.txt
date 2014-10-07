@@ -23,14 +23,15 @@ set(INC
 	../../blenfont
 	../../blenkernel
 	../../blenlib
-	../../imbuf
 	../../bmesh
+	../../imbuf
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
-	../../gpu
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -70,5 +71,7 @@ endif()
 if(WITH_IMAGE_CINEON)
 	add_definitions(-DWITH_CINEON)
 endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_space_image "${SRC}" "${INC}" "${INC_SYS}")

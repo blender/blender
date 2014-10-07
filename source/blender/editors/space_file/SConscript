@@ -30,12 +30,14 @@ Import ('env')
 sources = env.Glob('*.c')
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '../include',
     '../../blenfont',
     '../../blenkernel',
     '../../blenlib',
     '../../blenloader',
+    '../../gpu',
     '../../imbuf',
     '../../makesdna',
     '../../makesrna',
@@ -44,7 +46,7 @@ incs = [
     ]
 incs = ' '.join(incs)
 
-defs = []
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_OPENJPEG']:
     defs.append('WITH_OPENJPEG')

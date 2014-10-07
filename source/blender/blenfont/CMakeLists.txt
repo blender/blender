@@ -26,11 +26,13 @@ set(INC
 	../blenkernel
 	../blenlib
 	../editors/include
+	../gpu
 	../makesdna
 	../makesrna
 	../python
 	../imbuf
 	../../../intern/guardedalloc
+	../../../intern/glew-mx
 	../../../intern/locale
 )
 
@@ -58,7 +60,7 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
-add_definitions(-DGLEW_STATIC)
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}")
 

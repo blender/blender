@@ -34,7 +34,6 @@
 #define __GHOST_SYSTEMX11_H__
 
 #include <X11/Xlib.h>
-#include <GL/glx.h>
 
 #include "GHOST_System.h"
 #include "../GHOST_Types.h"

@@ -24,10 +24,12 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../bmesh
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -91,7 +93,7 @@ set(SRC
 	../include/UI_view2d.h
 )
 
-add_definitions(-DGLEW_STATIC)
+add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)

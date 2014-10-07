@@ -23,10 +23,12 @@ set(INC
 	../../blenfont
 	../../blenkernel
 	../../blenlib
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -55,5 +57,7 @@ endif()
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_space_graph "${SRC}" "${INC}" "${INC_SYS}")

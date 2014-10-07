@@ -39,6 +39,7 @@ set(INC
 	../../../blender/gpu
 	../../../blender/makesdna
 	../../../../intern/container
+	../../../../intern/glew-mx
 	../../../../intern/string
 )
 
@@ -66,6 +67,6 @@ set(SRC
 	RAS_StorageVBO.h
 )
 
-add_definitions(-DGLEW_STATIC)
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(ge_oglrasterizer "${SRC}" "${INC}" "${INC_SYS}")

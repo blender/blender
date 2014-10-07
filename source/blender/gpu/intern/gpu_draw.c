@@ -38,7 +38,7 @@
 
 #include <string.h>
 
-#include "GL/glew.h"
+#include "GPU_glew.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
@@ -1878,6 +1878,37 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 	return count;
 }
 
+static void gpu_multisample(bool enable)
+{
+	if (GLEW_VERSION_1_3 || GLEW_ARB_multisample) {
+#ifdef __linux__
+		/* changing multisample enablement from the default (enabled) causes problems on some
+		 * systems (NVIDIA/Linux) when the pixel format doesn't have a multisample buffer */
+		bool toggle_ok = true;
+
+		if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
+			int samples = 0;
+			glGetIntegerv(GL_SAMPLES, &samples);
+
+			if (samples == 0)
+				toggle_ok = false;
+		}
+
+		if (toggle_ok) {
+			if (enable)
+				glEnable(GL_MULTISAMPLE);
+			else
+				glDisable(GL_MULTISAMPLE);
+		}
+#else
+		if (enable)
+			glEnable(GL_MULTISAMPLE);
+		else
+			glDisable(GL_MULTISAMPLE);
+#endif
+	}
+}
+
 /* Default OpenGL State */
 
 void GPU_state_init(void)
@@ -1950,9 +1981,7 @@ void GPU_state_init(void)
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 
-	/* calling this makes drawing very slow when AA is not set up in ghost
-	 * on Linux/NVIDIA. */
-	// glDisable(GL_MULTISAMPLE);
+	gpu_multisample(false);
 }
 
 #ifdef DEBUG

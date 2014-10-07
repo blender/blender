@@ -31,7 +31,7 @@
  */
 
  
-#include "GL/glew.h"
+#include "glew-mx.h"
 #include "KX_Camera.h"
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"

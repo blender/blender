@@ -33,7 +33,7 @@
 #ifndef __BIF_GL_H__
 #define __BIF_GL_H__
 
-#include "GL/glew.h"
+#include "GPU_glew.h"
 
 #ifdef __APPLE__
 

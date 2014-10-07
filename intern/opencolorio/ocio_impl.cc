@@ -29,13 +29,6 @@
 #include <sstream>
 #include <string.h>
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/glew.h>
-#endif
-
 #include <OpenColorIO/OpenColorIO.h>
 
 using namespace OCIO_NAMESPACE;

@@ -25,6 +25,7 @@
 
 set(INC
 	.
+	../glew-mx
 	../guardedalloc
 	../../source/blender/blenlib
 )
@@ -44,8 +45,9 @@ set(SRC
 if(WITH_OPENCOLORIO)
 	add_definitions(
 		-DWITH_OCIO
-		-DGLEW_STATIC
 	)
+
+	add_definitions(${GL_DEFINITIONS})
 
 	list(APPEND INC_SYS
 		${OPENCOLORIO_INCLUDE_DIRS}

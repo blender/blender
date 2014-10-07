@@ -136,6 +136,8 @@ def validate_arguments(args, bc):
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH', 'WITH_BF_STATICFFTW3', 'BF_FFTW3_LIB_STATIC',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
+            'WITH_BF_EGL', 'WITH_BF_GLEW_ES', 'BF_GLEW_INC', 'WITH_BF_GL_PROFILE_CORE', 'WITH_BF_GL_PROFILE_COMPAT', 'WITH_BF_GL_PROFILE_ES20',
+
             'WITH_BF_COLLADA', 'BF_COLLADA', 'BF_COLLADA_INC', 'BF_COLLADA_LIB', 'BF_OPENCOLLADA', 'BF_OPENCOLLADA_INC', 'BF_OPENCOLLADA_LIB', 'BF_OPENCOLLADA_LIBPATH', 'BF_PCRE', 'BF_PCRE_LIB', 'BF_PCRE_LIBPATH', 'BF_EXPAT', 'BF_EXPAT_LIB', 'BF_EXPAT_LIBPATH',
             'WITH_BF_STATICOPENCOLLADA', 'BF_OPENCOLLADA_LIB_STATIC',
             'WITH_BF_PLAYER',
@@ -185,6 +187,7 @@ def validate_arguments(args, bc):
     opts_list_split = [
             'BF_PYTHON_LINKFLAGS',
             'BF_OPENGL_LINKFLAGS',
+            'BF_GL_DEFINITIONS',
             'CFLAGS', 'CCFLAGS', 'CXXFLAGS', 'CPPFLAGS',
             'REL_CFLAGS', 'REL_CCFLAGS', 'REL_CXXFLAGS',
             'BGE_CXXFLAGS',
@@ -462,6 +465,18 @@ def read_opts(env, cfg, args):
         ('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
         ('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
 
+        (BoolVariable('WITH_BF_GLEW_MX', '', True)),
+        (BoolVariable('WITH_BF_GLEW_ES', '', False)),
+        (BoolVariable('WITH_BF_GL_EGL', '', False)),
+        (BoolVariable('WITH_BF_GL_PROFILE_COMPAT', '', True)),
+        (BoolVariable('WITH_BF_GL_PROFILE_CORE', '', False)),
+        (BoolVariable('WITH_BF_GL_PROFILE_ES20', '', False)),
+        (BoolVariable('WITH_BF_GL_ANGLE', '', False)),
+        ('BF_GL_DEFINITIONS', '', []),
+        ('BF_GLEW_INC', '', ''),
+    ) # end of opts.AddVariables()
+
+    localopts.AddVariables(
         (BoolVariable('WITH_BF_COLLADA', 'Build COLLADA import/export module if true', False)),
         (BoolVariable('WITH_BF_STATICOPENCOLLADA', 'Staticly link to OpenCollada', False)),
         ('BF_COLLADA', 'COLLADA base path', ''),

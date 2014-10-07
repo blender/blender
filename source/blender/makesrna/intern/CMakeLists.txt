@@ -293,6 +293,7 @@ blender_include_dirs(
 	../../../../intern/audaspace/intern
 	../../../../intern/cycles/blender
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 	../../../../intern/atomic
 	../../../../intern/memutil
 	../../../../intern/smoke/extern
@@ -327,5 +328,7 @@ set(SRC
 	rna_internal_types.h
 	rna_mesh_utils.h
 )
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}")

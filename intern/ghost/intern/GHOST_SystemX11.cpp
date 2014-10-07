@@ -55,6 +55,7 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h> /* allow detectable autorepeate */
+#include <X11/Xutil.h>
 
 #ifdef WITH_XF86KEYSYM
 #include <X11/XF86keysym.h>

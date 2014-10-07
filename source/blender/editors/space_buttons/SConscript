@@ -31,12 +31,14 @@ sources = env.Glob('*.c')
 
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '../include',
     '../../blenfont',
     '../../blenkernel',
     '../../blenlib',
     '../../bmesh',
+    '../../gpu',
     '../../imbuf',
     '../../makesdna',
     '../../makesrna',
@@ -44,7 +46,8 @@ incs = [
     '../../windowmanager',
     ]
 incs = ' '.join(incs)
-defs = []
+
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')

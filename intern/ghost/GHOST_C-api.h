@@ -674,9 +674,17 @@ extern GHOST_TSuccess GHOST_SetSwapInterval(GHOST_WindowHandle windowhandle, int
 
 /**
  * Gets the current swap interval for swapBuffers.
- * \return An integer.
+ * \param windowhandle The handle to the window
+ * \param intervalOut pointer to location to return swap interval (left untouched if there is an error)
+ * \return A boolean success indicator of if swap interval was successfully read.
  */
-extern int GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle);
+extern GHOST_TSuccess GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle, int* intervalOut);
+
+/**
+ * Gets the current swap interval for swapBuffers.
+ * \return Number of AA Samples (0 if there is no multisample buffer)
+ */
+extern GHOST_TUns16 GHOST_GetNumOfAASamples(GHOST_WindowHandle windowhandle);
 
 /**
  * Activates the drawing context of this window.

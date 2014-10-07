@@ -31,10 +31,12 @@ sources = env.Glob('*.c')
 
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '../include',
     '../../blenkernel',
     '../../blenlib',
+    '../../gpu',
     '../../imbuf',
     '../../makesdna',
     '../../makesrna',
@@ -42,7 +44,7 @@ incs = [
     '../../windowmanager',
     ]
 
-defs = []
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_PYTHON']:
     defs.append('WITH_PYTHON')

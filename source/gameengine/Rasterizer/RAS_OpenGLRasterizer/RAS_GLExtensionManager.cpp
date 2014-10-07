@@ -32,7 +32,7 @@
 
 #include <iostream>
 
-#include "GL/glew.h"
+#include "glew-mx.h"
 
 #include "RAS_GLExtensionManager.h"
 

@@ -526,6 +526,49 @@ env['CPPFLAGS'].append('-DWITH_OPENNL')
 if env['OURPLATFORM'] not in ('win32-vc', 'win64-vc'):
     env['CPPFLAGS'].append('-DHAVE_STDBOOL_H')
 
+# OpenGL
+
+if env['WITH_BF_GL_PROFILE_COMPAT']:
+    env['BF_GL_DEFINITIONS'].append('WITH_GL_PROFILE_COMPAT')
+
+if env['WITH_BF_GL_PROFILE_CORE']:
+    env['BF_GL_DEFINITIONS'].append('WITH_GL_PROFILE_CORE')
+
+if env['WITH_BF_GL_PROFILE_ES20']:
+    env['BF_GL_DEFINITIONS'].append('WITH_GL_PROFILE_ES20')
+
+if env['WITH_BF_GL_EGL']:
+    env['BF_GL_DEFINITIONS'].append('WITH_EGL')
+
+# GLEW
+
+if env['WITH_BF_GLEW_MX']:
+    env['BF_GL_DEFINITIONS'].append('WITH_GLEW_MX')
+
+if env['WITH_BF_GLEW_ES']:
+    env['BF_GLEW_INC'] = '#extern/glew-es/include'
+
+    env['BF_GL_DEFINITIONS'] += ['GLEW_STATIC', 'WITH_GLEW_ES']
+
+    if not env['WITH_BF_GL_PROFILE_ES20']:
+        # No ES functions are needed
+        env['BF_GL_DEFINITIONS'].append('GLEW_NO_ES')
+    elif not (env['WITH_BF_GL_PROFILE_CORE'] or env['WITH_BF_GL_PROFILE_COMPAT']):
+        # ES is enabled, but the other functions are all disabled
+        env['BF_GL_DEFINITIONS'].append('GLEW_ES_ONLY')
+
+    if env['WITH_BF_GL_PROFILE_ES20']:
+        if env['WITH_BF_GL_EGL']:
+            env['BF_GL_DEFINITIONS'].append('GLEW_USE_LIB_ES20')
+
+    if env['WITH_BF_GL_EGL']:
+        env['BF_GL_DEFINITIONS'].append('GLEW_INC_EGL')
+
+else:
+    env['BF_GLEW_INC'] = '#extern/glew/include'
+
+    env['BF_GL_DEFINITIONS'].append('GLEW_STATIC')
+
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
 B.doc_build_dir = os.path.join(env['BF_INSTALLDIR'], 'doc')

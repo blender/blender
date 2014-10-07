@@ -68,15 +68,14 @@ incs = [
     '#source/blender/misc',
     '#source/blender/blenloader',
     '#source/blender/gpu',
-    '#extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     ]
 
 incs.append(env['BF_PTHREADS_INC'])
 incs.append(env['BF_BOOST_INC'])
 
-defs = [
-    'GLEW_STATIC',
-    ]
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_PYTHON']:
     incs += Split(env['BF_PYTHON_INC'])

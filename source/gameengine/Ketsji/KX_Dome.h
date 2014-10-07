@@ -38,7 +38,7 @@
 #include "RAS_IRasterizer.h"
 #include "KX_KetsjiEngine.h"
 
-#include "GL/glew.h"
+#include "glew-mx.h"
 #include <vector>
 
 #include "MEM_guardedalloc.h"

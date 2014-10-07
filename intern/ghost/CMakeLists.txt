@@ -25,6 +25,7 @@
 
 set(INC
 	.
+	../glew-mx
 	../string
 	../../source/blender/imbuf
 	../../source/blender/makesdna
@@ -38,6 +39,8 @@ set(SRC
 	intern/GHOST_Buttons.cpp
 	intern/GHOST_C-api.cpp
 	intern/GHOST_CallbackEventConsumer.cpp
+	intern/GHOST_Context.cpp
+	intern/GHOST_ContextNone.cpp
 	intern/GHOST_DisplayManager.cpp
 	intern/GHOST_EventManager.cpp
 	intern/GHOST_ISystem.cpp
@@ -63,6 +66,8 @@ set(SRC
 
 	intern/GHOST_Buttons.h
 	intern/GHOST_CallbackEventConsumer.h
+	intern/GHOST_Context.h
+	intern/GHOST_ContextNone.h
 	intern/GHOST_Debug.h
 	intern/GHOST_DisplayManager.h
 	intern/GHOST_Event.h
@@ -120,42 +125,14 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
 			intern/GHOST_DisplayManagerSDL.cpp
 			intern/GHOST_SystemSDL.cpp
 			intern/GHOST_WindowSDL.cpp
+			intern/GHOST_ContextSDL.cpp
 
 			intern/GHOST_DisplayManagerSDL.h
 			intern/GHOST_SystemSDL.h
 			intern/GHOST_WindowSDL.h
+			intern/GHOST_ContextSDL.h
 		)
 		add_definitions(-DWITH_GHOST_SDL)
-	endif()
-
-
-	# ack, this is still system dependent
-	if(APPLE)
-		list(APPEND SRC
-			intern/GHOST_SystemPathsCocoa.mm
-			intern/GHOST_SystemPathsCocoa.h
-		)
-
-	elseif(UNIX)
-		list(APPEND SRC
-			intern/GHOST_SystemPathsX11.cpp
-			intern/GHOST_SystemPathsX11.h
-		)
-
-		if(NOT WITH_INSTALL_PORTABLE)
-			add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
-		endif()
-
-	elseif(WIN32)
-		list(APPEND SRC
-			intern/GHOST_SystemPathsWin32.cpp
-
-			intern/GHOST_SystemPathsWin32.h
-		)
-
-		list(APPEND INC
-			../utfconv
-		)
 	endif()
 
 	if(NOT WITH_HEADLESS)
@@ -164,24 +141,32 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
 		)
 	endif()
 
-elseif(APPLE)
+elseif(APPLE AND NOT WITH_X11)
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerCocoa.mm
 		intern/GHOST_SystemCocoa.mm
-		intern/GHOST_SystemPathsCocoa.mm
 		intern/GHOST_WindowCocoa.mm
 
 		intern/GHOST_DisplayManagerCocoa.h
 		intern/GHOST_SystemCocoa.h
-		intern/GHOST_SystemPathsCocoa.h
 		intern/GHOST_WindowCocoa.h
 	)
+
+	if (NOT WITH_GL_EGL)
+		list(APPEND SRC
+			intern/GHOST_ContextCGL.mm
+
+			intern/GHOST_ContextCGL.h
+		)
+	endif()
 
 	if(WITH_INPUT_NDOF)
 		list(APPEND SRC
 			intern/GHOST_NDOFManagerCocoa.mm
+
 			intern/GHOST_NDOFManagerCocoa.h
 		)
+
 		list(APPEND SRC_NDOF3DCONNEXION
 			intern/GHOST_NDOFManager3Dconnexion.c
 			intern/GHOST_NDOFManager3Dconnexion.h
@@ -192,8 +177,7 @@ elseif(APPLE)
 		add_definitions(-DWITH_QUICKTIME)
 	endif()
 
-elseif(UNIX)
-
+elseif(WITH_X11)
 	list(APPEND INC_SYS
 		${X11_X11_INCLUDE_PATH}
 	)
@@ -201,14 +185,20 @@ elseif(UNIX)
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerX11.cpp
 		intern/GHOST_SystemX11.cpp
-		intern/GHOST_SystemPathsX11.cpp
 		intern/GHOST_WindowX11.cpp
 
 		intern/GHOST_DisplayManagerX11.h
 		intern/GHOST_SystemX11.h
-		intern/GHOST_SystemPathsX11.h
 		intern/GHOST_WindowX11.h
 	)
+
+	if (NOT WITH_GL_EGL)
+		list(APPEND SRC
+			intern/GHOST_ContextGLX.cpp
+
+			intern/GHOST_ContextGLX.h
+		)
+	endif()
 
 	if(WITH_GHOST_XDND)
 		add_definitions(-DWITH_XDND)
@@ -257,6 +247,8 @@ elseif(UNIX)
 		)
 	endif()
 
+	add_definitions(-DWITH_X11)
+
 elseif(WIN32)
 	## Warnings as errors, this is too strict!
 	#if(MSVC)
@@ -267,24 +259,26 @@ elseif(WIN32)
 		${WINTAB_INC}
 	)
 
-	list(APPEND INC
-		../utfconv
-	)
-
 	list(APPEND SRC
 		intern/GHOST_DisplayManagerWin32.cpp
 		intern/GHOST_SystemWin32.cpp
-		intern/GHOST_SystemPathsWin32.cpp
 		intern/GHOST_WindowWin32.cpp
 		intern/GHOST_DropTargetWin32.cpp
 
 		intern/GHOST_DisplayManagerWin32.h
 		intern/GHOST_DropTargetWin32.h
 		intern/GHOST_SystemWin32.h
-		intern/GHOST_SystemPathsWin32.h
 		intern/GHOST_WindowWin32.h
 		intern/GHOST_TaskbarWin32.h
 	)
+
+	if (NOT WITH_GL_EGL)
+		list(APPEND SRC
+			intern/GHOST_ContextWGL.cpp
+				
+			intern/GHOST_ContextWGL.h
+		)
+	endif()
 
 	if(WITH_INPUT_NDOF)
 		list(APPEND SRC
@@ -294,9 +288,45 @@ elseif(WIN32)
 		)
 	endif()
 
+	list(APPEND INC
+		../utfconv
+	)
+
 endif()
 
-add_definitions(-DGLEW_STATIC)
+if(WITH_GL_EGL AND NOT (WITH_HEADLESS OR WITH_GHOST_SDL))
+	list(APPEND SRC
+		intern/GHOST_ContextEGL.cpp
+			
+		intern/GHOST_ContextEGL.h
+	)
+endif()
+
+if(APPLE)
+	list(APPEND SRC
+		intern/GHOST_SystemPathsCocoa.mm
+		intern/GHOST_SystemPathsCocoa.h
+	)
+
+elseif(UNIX)
+	list(APPEND SRC
+		intern/GHOST_SystemPathsX11.cpp
+		intern/GHOST_SystemPathsX11.h
+	)
+
+	if(NOT WITH_INSTALL_PORTABLE)
+		add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	endif()
+
+elseif(WIN32)
+	list(APPEND SRC
+		intern/GHOST_SystemPathsWin32.cpp
+		intern/GHOST_SystemPathsWin32.h
+	)
+
+endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
 

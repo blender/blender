@@ -284,8 +284,7 @@ macro(setup_liblinks
 	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 
 	target_link_libraries(${target}
-			${OPENGL_gl_LIBRARY}
-			${OPENGL_glu_LIBRARY}
+			${BLENDER_GL_LIBRARIES}
 			${PNG_LIBRARIES}
 			${ZLIB_LIBRARIES}
 			${FREETYPE_LIBRARY})
@@ -305,7 +304,7 @@ macro(setup_liblinks
 	endif()
 
 	if(WITH_SYSTEM_GLEW)
-		target_link_libraries(${target} ${GLEW_LIBRARY})
+		target_link_libraries(${target} ${BLENDER_GLEW_LIBRARIES})
 	endif()
 	if(WITH_BULLET AND WITH_SYSTEM_BULLET)
 		target_link_libraries(${target} ${BULLET_LIBRARIES})
@@ -359,9 +358,12 @@ macro(setup_liblinks
 	endif()
 	if(WITH_CODEC_FFMPEG)
 
-		# Strange!, without this ffmpeg gives linking errors (on linux)
-		# even though its linked above
-		target_link_libraries(${target} ${OPENGL_glu_LIBRARY})
+		# Strange! Without this ffmpeg gives linking errors (on linux),
+		# even though it's linked above.
+		# XXX: Does FFMPEG depend on GLU?
+		if(WITH_GLU)
+			target_link_libraries(${target} ${OPENGL_glu_LIBRARY})
+		endif()
 
 		target_link_libraries(${target} ${FFMPEG_LIBRARIES})
 	endif()
@@ -557,6 +559,8 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 		extern_wcwidth
 		extern_libmv
 		extern_glog
+
+		bf_intern_glew_mx
 	)
 
 	if(WITH_COMPOSITOR)
@@ -574,7 +578,7 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 	endif()
 
 	if(NOT WITH_SYSTEM_GLEW)
-		list(APPEND BLENDER_SORTED_LIBS extern_glew)
+		list(APPEND BLENDER_SORTED_LIBS ${BLENDER_GLEW_LIBRARIES})
 	endif()
 
 	if(WITH_BINRELOC)

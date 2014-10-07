@@ -33,7 +33,7 @@
 #include <Python.h>
 
 #include "bgl.h" /*This must come first */
-#include <GL/glew.h>
+#include "GPU_glew.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

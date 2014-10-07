@@ -7,6 +7,7 @@ set(INC
 	../kernel/osl
 	../bvh
 	../util
+	../../glew-mx
 )
 
 set(INC_SYS
@@ -76,5 +77,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RTTI_DISABLE_FLAGS}")
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-add_library(cycles_render ${SRC} ${SRC_HEADERS})
+add_definitions(${GL_DEFINITIONS})
 
+add_library(cycles_render ${SRC} ${SRC_HEADERS})

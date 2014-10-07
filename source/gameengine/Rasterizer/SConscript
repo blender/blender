@@ -36,15 +36,17 @@ incs = [
     '#intern/moto/include',
     '#intern/container',
     '#source/gameengine/BlenderRoutines',
-    '#extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '#source/gameengine/Expressions',
     '#source/gameengine/SceneGraph',
     '#source/blender/blenlib',
     '#source/blender/blenkernel',
+    '#source/blender/gpu',
     '#source/blender/makesdna',
     ]
 
-defs = ['GLEW_STATIC']
+defs = env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_PYTHON']:
     incs.extend(Split(env['BF_PYTHON_INC']))

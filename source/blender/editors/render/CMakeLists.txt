@@ -32,6 +32,7 @@ set(INC
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
 )
 
 set(INC_SYS
@@ -63,6 +64,8 @@ endif()
 if(WITH_HEADLESS)
 	add_definitions(-DWITH_HEADLESS)
 endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 if(WITH_FREESTYLE)
 	list(APPEND INC

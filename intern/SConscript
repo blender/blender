@@ -30,6 +30,7 @@ Import ('env')
 SConscript(['audaspace/SConscript',
             'string/SConscript',
             'ghost/SConscript',
+            'glew-mx/SConscript',
             'guardedalloc/SConscript',
             'moto/SConscript',
             'memutil/SConscript/',

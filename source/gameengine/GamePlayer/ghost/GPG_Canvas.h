@@ -56,7 +56,7 @@ public:
 	virtual void SetMouseState(RAS_MouseState mousestate);
 	virtual void SwapBuffers();
 	virtual void SetSwapInterval(int interval);
-	virtual int	GetSwapInterval();
+	virtual bool GetSwapInterval(int& intervalOut);
 
 	virtual int GetMouseX(int x) { return x; }
 	virtual int GetMouseY(int y) { return y; }

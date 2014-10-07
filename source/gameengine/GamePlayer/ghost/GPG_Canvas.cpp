@@ -113,12 +113,12 @@ void GPG_Canvas::SetSwapInterval(int interval)
 		m_window->setSwapInterval(interval);
 }
 
-int GPG_Canvas::GetSwapInterval()
+bool GPG_Canvas::GetSwapInterval(int& intervalOut)
 {
 	if (m_window)
-		return m_window->getSwapInterval();
+		return (bool)m_window->getSwapInterval(intervalOut);
 
-	return 0;
+	return false;
 }
 
 void GPG_Canvas::ResizeWindow(int width, int height)

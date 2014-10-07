@@ -29,16 +29,20 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
+defs = env['BF_GL_DEFINITIONS']
+
 incs = [
     '#/intern/guardedalloc',
-    '#/extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '../include',
     '../../blenkernel',
     '../../blenlib',
+    '../../gpu',
     '../../makesdna',
     '../../makesrna',
     '../../windowmanager',
     ]
 incs = ' '.join(incs)
 
-env.BlenderLib ( 'bf_editors_space_action', sources, Split(incs), [], libtype=['core'], priority=[40] )
+env.BlenderLib ( 'bf_editors_space_action', sources, Split(incs), defs, libtype=['core'], priority=[40] )

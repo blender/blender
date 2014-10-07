@@ -38,21 +38,23 @@
 
 #include "GHOST_Window.h"
 
+#include "GHOST_ContextNone.h"
+
 #include <assert.h>
 
 GHOST_Window::GHOST_Window(
         GHOST_TUns32 width, GHOST_TUns32 height,
         GHOST_TWindowState state,
-        GHOST_TDrawingContextType type,
-        const bool stereoVisual,
+        const bool wantStereoVisual,
         const bool exclusive,
-        const GHOST_TUns16 numOfAASamples)
-    : m_drawingContextType(type),
+        const GHOST_TUns16 wantNumOfAASamples)
+    : m_drawingContextType(GHOST_kDrawingContextTypeNone),
       m_cursorVisible(true),
       m_cursorGrab(GHOST_kGrabDisable),
       m_cursorShape(GHOST_kStandardCursorDefault),
-      m_stereoVisual(stereoVisual),
-      m_numOfAASamples(numOfAASamples)
+      m_wantStereoVisual(wantStereoVisual),
+      m_wantNumOfAASamples(wantNumOfAASamples),
+      m_context(new GHOST_ContextNone(false, 0))
 {
 	m_isUnsavedChanges = false;
 	m_canAcceptDragOperation = false;
@@ -74,6 +76,7 @@ GHOST_Window::GHOST_Window(
 
 GHOST_Window::~GHOST_Window()
 {
+	delete m_context;
 }
 
 void *GHOST_Window::getOSWindow() const
@@ -83,18 +86,61 @@ void *GHOST_Window::getOSWindow() const
 
 GHOST_TSuccess GHOST_Window::setDrawingContextType(GHOST_TDrawingContextType type)
 {
-	GHOST_TSuccess success = GHOST_kSuccess;
 	if (type != m_drawingContextType) {
-		success = removeDrawingContext();
-		if (success) {
-			success = installDrawingContext(type);
+		delete m_context;
+		m_context = NULL;
+
+		if (type != GHOST_kDrawingContextTypeNone)
+			m_context = newDrawingContext(type);
+
+		if (m_context != NULL) {
 			m_drawingContextType = type;
 		}
 		else {
+			m_context = new GHOST_ContextNone(m_wantStereoVisual, m_wantNumOfAASamples);
 			m_drawingContextType = GHOST_kDrawingContextTypeNone;
 		}
+
+		return (type == m_drawingContextType) ? GHOST_kSuccess : GHOST_kFailure;
 	}
-	return success;
+	else {
+		return GHOST_kSuccess;
+	}
+}
+
+GHOST_TSuccess GHOST_Window::swapBuffers()
+{
+	return m_context->swapBuffers();
+}
+
+GHOST_TSuccess GHOST_Window::setSwapInterval(int interval)
+{
+	return m_context->setSwapInterval(interval);
+}
+
+GHOST_TSuccess GHOST_Window::getSwapInterval(int& intervalOut)
+{
+	return m_context->getSwapInterval(intervalOut);
+}
+
+GHOST_TUns16 GHOST_Window::getNumOfAASamples()
+{
+	return m_context->getNumOfAASamples();
+}
+
+GHOST_TSuccess GHOST_Window::activateDrawingContext()
+{
+	return m_context->activateDrawingContext();
+}
+
+GHOST_TSuccess GHOST_Window::updateDrawingContext()
+{
+	return m_context->updateDrawingContext();
+}
+
+GHOST_TSuccess GHOST_Window::releaseNativeHandles()
+{
+	return m_context->releaseNativeHandles();
 }
 
 GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)

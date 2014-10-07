@@ -162,7 +162,7 @@ endif()
 	endif()
 
 	if(NOT WITH_SYSTEM_GLEW)
-		list(APPEND BLENDER_SORTED_LIBS extern_glew)
+		list(APPEND BLENDER_SORTED_LIBS ${BLENDER_GLEW_LIBRARIES})
 	endif()
 
 	if(WITH_LZMA)

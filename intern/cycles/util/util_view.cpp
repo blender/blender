@@ -248,7 +248,7 @@ void view_main_loop(const char *title, int width, int height,
 	glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH);
 	glutCreateWindow(title);
 
-	glewInit();
+	mxMakeCurrentContext(mxCreateContext());
 
 	view_reshape(width, height);
 

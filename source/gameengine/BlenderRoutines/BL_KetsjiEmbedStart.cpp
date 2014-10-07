@@ -40,7 +40,7 @@
 #  pragma warning (disable:4786)
 #endif
 
-#include "GL/glew.h"
+#include "glew-mx.h"
 
 #include "KX_BlenderCanvas.h"
 #include "KX_BlenderKeyboardDevice.h"
@@ -299,7 +299,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 
 		// Setup vsync
-		int previous_vsync = canvas->GetSwapInterval();
+		int previous_vsync = 0;
+		canvas->GetSwapInterval(previous_vsync);
 		if (startscene->gm.vsync == VSYNC_ADAPTIVE)
 			canvas->SetSwapInterval(-1);
 		else

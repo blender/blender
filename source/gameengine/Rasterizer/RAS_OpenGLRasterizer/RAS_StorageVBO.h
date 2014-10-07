@@ -29,7 +29,7 @@
 #define __KX_VERTEXBUFFEROBJECTSTORAGE
 
 #include <map>
-#include "GL/glew.h"
+#include "glew-mx.h"
 
 #include "RAS_IStorage.h"
 #include "RAS_IRasterizer.h"

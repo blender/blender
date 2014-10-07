@@ -3,14 +3,15 @@ Import ('env')
 
 sources = env.Glob('*.cpp')
 
-defs = [ 'GLEW_STATIC' ]
+defs = env['BF_GL_DEFINITIONS']
 
 incs = [
     '.',
     '#intern/container',
     '#intern/guardedalloc',
     '#intern/string',
-    '#extern/glew/include',
+    env['BF_GLEW_INC'],
+    '#/intern/glew-mx',
     '#intern/moto/include',
     '#source/blender/blenkernel',
     '#source/blender/blenfont',

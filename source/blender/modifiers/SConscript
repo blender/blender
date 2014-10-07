@@ -34,7 +34,6 @@ incs = [
     './intern', 
     '#/intern/guardedalloc',
     '#/intern/elbeem/extern',
-    '#/extern/glew/include',
     '#/intern/opennl/extern',
     '../render/extern/include',
     '../bmesh',

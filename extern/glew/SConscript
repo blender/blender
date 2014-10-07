@@ -6,7 +6,10 @@ Import('env')
 
 sources = ['src/glew.c']
 
-defs = 'GLEW_STATIC'
-incs = 'include'
+defs = env['BF_GL_DEFINITIONS']
+if env['WITH_BF_GLEW_MX']:
+    defs += ['GLEW_MX']
 
-env.BlenderLib ( 'extern_glew', sources, Split(incs), Split(defs), libtype=['extern','player'], priority=[50,230])
+incs = ['include']
+
+env.BlenderLib ( 'extern_glew', sources, incs, defs, libtype=['extern','player'], priority=[50,230] )

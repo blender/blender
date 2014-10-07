@@ -34,6 +34,8 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_sys_types.h" /* for bool */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

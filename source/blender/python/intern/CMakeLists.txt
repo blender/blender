@@ -260,5 +260,6 @@ if(WITH_PLAYER)
 	add_definitions(-DWITH_PLAYER)
 endif()
 
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}")

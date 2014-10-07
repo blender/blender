@@ -29,7 +29,7 @@
 #include "RAS_MaterialBucket.h"
 #include "RAS_IPolygonMaterial.h"
 
-#include "GL/glew.h"
+#include "glew-mx.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"

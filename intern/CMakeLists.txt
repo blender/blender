@@ -31,6 +31,7 @@ add_subdirectory(memutil)
 add_subdirectory(opencolorio)
 add_subdirectory(mikktspace)
 add_subdirectory(raskter)
+add_subdirectory(glew-mx)
 
 if(WITH_AUDASPACE)
 	add_subdirectory(audaspace)

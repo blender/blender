@@ -37,7 +37,7 @@
 #include <sstream>
 #include <string.h>
 
-#include <GL/glew.h>
+#include "glew-mx.h"
 
 #include <OpenColorIO/OpenColorIO.h>
 
