@@ -435,6 +435,10 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
 			weight.z = ((2.0f - limit)*N.z + (limit - 1.0f))/(2.0f*limit - 1.0f);
 		}
 	}
+	else {
+		/* Desperate mode, no valid choice anyway, fallback to one side.*/
+		weight.x = 1.0f;
+	}
 
 	/* now fetch textures */
 	uint co_offset, out_offset, alpha_offset, srgb;
