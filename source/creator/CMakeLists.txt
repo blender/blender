@@ -41,7 +41,7 @@ blender_include_dirs(
 )
 
 add_definitions(${GL_DEFINITIONS})
-blender_include_dirs(${GLEW_INCLUDE_PATH})
+blender_include_dirs("${GLEW_INCLUDE_PATH}")
 
 if(WIN32)
 	blender_include_dirs(../../intern/utfconv)

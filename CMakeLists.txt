@@ -330,7 +330,7 @@ option(WITH_GTESTS "Enable GTest unit testing" OFF)
 
 # OpenGL
 
-option(WITH_GLEW_MX             "Support multiple GLEW contexts (experimental)"                                                                     ON )
+option(WITH_GLEW_MX             "Support multiple GLEW contexts (experimental)"                                                                     OFF )
 option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
 option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, glX, or WGL)"       OFF)
 option(WITH_GL_PROFILE_COMPAT   "Support using the OpenGL 'compatibility' profile. (deprecated)"                                                    ON )
