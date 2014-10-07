@@ -274,15 +274,20 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 
 /**********************************************************************/
 
-static PBVHNode *pbvh_bmesh_node_lookup(PBVH *bvh, void *key, const int cd_node_offset)
+static int pbvh_bmesh_node_lookup_index(PBVH *bvh, void *key, const int cd_node_offset)
 {
 	int node_index = BM_ELEM_CD_GET_INT((BMElem *)key, cd_node_offset);
 
 	BLI_assert(node_index != DYNTOPO_NODE_NONE);
-
 	BLI_assert(node_index < bvh->totnode);
+	(void)bvh;
 
-	return &bvh->nodes[node_index];
+	return node_index;
+}
+
+static PBVHNode *pbvh_bmesh_node_lookup(PBVH *bvh, void *key, const int cd_node_offset)
+{
+	return &bvh->nodes[pbvh_bmesh_node_lookup_index(bvh, key, cd_node_offset)];
 }
 
 static BMVert *pbvh_bmesh_vert_create(PBVH *bvh, int node_index,
@@ -406,14 +411,25 @@ static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v, const int cd_vert_node_
 	BMIter bm_iter;
 	BMFace *f;
 
+	/* never match for first time */
+	int f_node_index_prev = DYNTOPO_NODE_NONE;
+
 	v_node = pbvh_bmesh_node_lookup(bvh, v, cd_vert_node_offset);
 	BLI_gset_remove(v_node->bm_unique_verts, v, NULL);
 	BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
 	/* Have to check each neighboring face's node */
 	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
-		PBVHNode *f_node = pbvh_bmesh_node_lookup(bvh, f, cd_face_node_offset);
+		const int f_node_index = pbvh_bmesh_node_lookup_index(bvh, f, cd_face_node_offset);
+		PBVHNode *f_node;
 
+		/* faces often share the same node,
+		 * quick check to avoid redundant #BLI_gset_remove calls */
+		if (f_node_index_prev == f_node_index)
+			continue;
+		f_node_index_prev = f_node_index;
+
+		f_node = &bvh->nodes[f_node_index];
 		f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
 
 		/* Remove current ownership */
