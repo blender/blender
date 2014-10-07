@@ -385,6 +385,11 @@ void set_value(float val, out float outval)
 	outval = val;
 }
 
+void set_value_v3(vec3 val, out vec3 outval)
+{
+	outval = val;
+}
+
 void set_rgb(vec3 col, out vec3 outcol)
 {
 	outcol = col;
@@ -1956,6 +1961,11 @@ void shade_mul(vec4 col1, vec4 col2, out vec4 outcol)
 }
 
 void shade_mul_value(float fac, vec4 col, out vec4 outcol)
+{
+	outcol = col*fac;
+}
+
+void shade_mul_value_v3(float fac, vec3 col, out vec3 outcol)
 {
 	outcol = col*fac;
 }
