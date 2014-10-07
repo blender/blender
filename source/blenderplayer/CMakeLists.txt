@@ -151,6 +151,7 @@ endif()
 		bf_intern_raskter
 		bf_intern_opencolorio
 		bf_intern_opennl
+		bf_intern_glew_mx
 		extern_rangetree
 		extern_wcwidth
 		extern_libmv
