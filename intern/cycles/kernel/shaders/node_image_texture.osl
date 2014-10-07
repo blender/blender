@@ -113,6 +113,10 @@ shader node_image_texture(
 				weight[2] = ((2.0 - limit) * Nob[2] + (limit - 1.0)) / (2.0 * limit - 1.0);
 			}
 		}
+		else {
+			/* Desperate mode, no valid choice anyway, fallback to one side.*/
+			weight[0] = 1.0;
+		}
 
 		Color = color(0.0, 0.0, 0.0);
 		Alpha = 0.0;
