@@ -521,14 +521,15 @@ static int project_brush_radius(ViewContext *vc,
 	}
 }
 
-static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
-                                     int x, int y, int *pixel_radius,
-                                     float location[3])
+static bool sculpt_get_brush_geometry(
+        bContext *C, ViewContext *vc,
+        int x, int y, int *pixel_radius,
+        float location[3])
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	float mouse[2];
-	int hit;
+	bool hit;
 
 	mouse[0] = x;
 	mouse[1] = y;
@@ -1011,7 +1012,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	 * special mode of drawing will go away */
 	if ((mode == PAINT_SCULPT) && vc.obact->sculpt) {
 		float location[3];
-		int pixel_radius, hit;
+		int pixel_radius;
+		bool hit;
 
 		/* test if brush is over the mesh */
 		hit = sculpt_get_brush_geometry(C, &vc, x, y, &pixel_radius, location);

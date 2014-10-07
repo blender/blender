@@ -4006,14 +4006,14 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 typedef struct {
 	SculptSession *ss;
 	const float *ray_start, *ray_normal;
-	int hit;
+	bool hit;
 	float dist;
 	int original;
 } SculptRaycastData;
 
 typedef struct {
 	const float *ray_start, *ray_normal;
-	int hit;
+	bool hit;
 	float dist;
 	float detail;
 } SculptDetailRaycastData;
@@ -4145,7 +4145,7 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
 	sculpt_update_tex(scene, sd, ss);
 }
 
-static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
+static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
