@@ -83,7 +83,7 @@ static void beckmann_table_rows(float *table, int row_from, int row_to)
 			}
 
 			/* CDF of P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
-			CDF_P22_omega_i[index_slope_x] = CDF_P22_omega_i[index_slope_x - 1] + P22_omega_i;
+			CDF_P22_omega_i[index_slope_x] = CDF_P22_omega_i[index_slope_x - 1] + (double)P22_omega_i;
 		}
 
 		/* renormalize CDF_P22_omega_i */
@@ -106,8 +106,8 @@ static void beckmann_table_rows(float *table, int row_from, int row_to)
 
 			/* store value */
 			table[index_U + index_theta*BECKMANN_TABLE_SIZE] = (float)(
-				interp * slope_x[index_slope_x - 1]
-				+ (1.0f-interp) * slope_x[index_slope_x]);
+				interp * slope_x[index_slope_x - 1] +
+				    (1.0 - interp) * slope_x[index_slope_x]);
 		}
 	}
 }

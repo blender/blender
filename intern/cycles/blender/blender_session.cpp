@@ -830,7 +830,7 @@ void BlenderSession::update_status_progress()
 
 	if(background) {
 		if(progress>0)
-			remaining_time = (1-progress) * (total_time / progress);
+			remaining_time = (1.0 - (double)progress) * (total_time / (double)progress);
 
 		scene += " | " + b_scene.name();
 		if(b_rlay_name != "")
@@ -849,7 +849,7 @@ void BlenderSession::update_status_progress()
 		timestatus += "Remaining:" + string(time_str) + " | ";
 	}
 	
-	timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", mem_used, mem_peak);
+	timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);
 
 	if(status.size() > 0)
 		status = " | " + status;
