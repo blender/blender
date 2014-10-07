@@ -68,6 +68,12 @@
 #include <float.h>
 #include <math.h>
 
+// #define DEBUG_TIME
+
+#ifdef DEBUG_TIME
+#  include "PIL_time_utildefines.h"
+#endif
+
 typedef struct PaintSample {
 	float mouse[2];
 	float pressure;
@@ -910,6 +916,7 @@ static void paint_stroke_line_end(bContext *C, wmOperator *op, PaintStroke *stro
 static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
 	Brush *br = stroke->brush;
+
 	if (br->flag & BRUSH_CURVE) {
 		const Scene *scene = CTX_data_scene(C);
 		const float spacing = paint_space_stroke_spacing(scene, stroke, 1.0f, 1.0f);
@@ -920,6 +927,10 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 
 		if (!pc)
 			return true;
+
+#ifdef DEBUG_TIME
+		TIMEIT_START(stroke);
+#endif
 
 		pcp = pc->points;
 		stroke->ups->overlap_factor = paint_stroke_integrate_overlap(br, 1.0);
@@ -956,6 +967,11 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 		}
 
 		stroke_done(C, op);
+
+#ifdef DEBUG_TIME
+		TIMEIT_END(stroke);
+#endif
+
 		return true;
 	}
 
