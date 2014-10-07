@@ -56,8 +56,10 @@ struct PartDeflect;
 #define ALMOST_ZERO		FLT_EPSILON
 
 /* Bits to or into the ClothVertex.flags. */
-#define CLOTH_VERT_FLAG_PINNED 1
-#define CLOTH_VERT_FLAG_NOSELFCOLL 2 /* vertex NOT used for self collisions */
+typedef enum eClothVertexFlag {
+	CLOTH_VERT_FLAG_PINNED      = 1,
+	CLOTH_VERT_FLAG_NOSELFCOLL  = 2, /* vertex NOT used for self collisions */
+} eClothVertexFlag;
 
 typedef struct ClothHairRoot {
 	float loc[3];
