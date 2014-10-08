@@ -149,6 +149,11 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject *
 	/* calculate t, ray intersects triangle */
 	t = dot_v3v3(e2, qvec) * inv_det;
 
+	/* ray hit behind */
+	if (t < 0.0f) {
+		Py_RETURN_NONE;
+	}
+
 	mul_v3_fl(dir, t);
 	add_v3_v3v3(pvec, orig, dir);
 
