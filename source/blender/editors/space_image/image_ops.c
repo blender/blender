@@ -3101,3 +3101,88 @@ void IMAGE_OT_read_renderlayers(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 }
+
+/* ********************* Render border operator ****************** */
+
+static int render_border_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar = CTX_wm_region(C);
+	Scene *scene = CTX_data_scene(C);
+	rctf border;
+
+	/* get rectangle from operator */
+	WM_operator_properties_border_to_rctf(op, &border);
+	UI_view2d_region_to_view_rctf(&ar->v2d, &border, &border);
+
+	/* actually set border */
+	CLAMP(border.xmin, 0.0f, 1.0f);
+	CLAMP(border.ymin, 0.0f, 1.0f);
+	CLAMP(border.xmax, 0.0f, 1.0f);
+	CLAMP(border.ymax, 0.0f, 1.0f);
+	scene->r.border = border;
+
+	/* drawing a border surrounding the entire camera view switches off border rendering
+	 * or the border covers no pixels */
+	if ((border.xmin <= 0.0f && border.xmax >= 1.0f &&
+	     border.ymin <= 0.0f && border.ymax >= 1.0f) ||
+	    (border.xmin == border.xmax || border.ymin == border.ymax))
+	{
+		scene->r.mode &= ~R_BORDER;
+	}
+	else {
+		scene->r.mode |= R_BORDER;
+	}
+
+	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	return OPERATOR_FINISHED;
+
+}
+
+void IMAGE_OT_render_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Render Border";
+	ot->description = "Set the boundaries of the border render and enable border render";
+	ot->idname = "IMAGE_OT_render_border";
+
+	/* api callbacks */
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = render_border_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
+	ot->poll = image_cycle_render_slot_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* rna */
+	WM_operator_properties_border(ot);
+}
+
+/* ********************* Clear render border operator ****************** */
+
+static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	scene->r.mode &= ~R_BORDER;
+	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+	BLI_rctf_init(&scene->r.border, 0.0f, 1.0f, 0.0f, 1.0f);
+	return OPERATOR_FINISHED;
+
+}
+
+void IMAGE_OT_clear_render_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Render Border";
+	ot->description = "Clear the boundaries of the border render and disable border render";
+	ot->idname = "IMAGE_OT_clear_render_border";
+
+	/* api callbacks */
+	ot->exec = clear_render_border_exec;
+	ot->poll = image_cycle_render_slot_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}

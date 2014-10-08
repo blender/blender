@@ -257,6 +257,8 @@ static void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_change_frame);
 
 	WM_operatortype_append(IMAGE_OT_read_renderlayers);
+	WM_operatortype_append(IMAGE_OT_render_border);
+	WM_operatortype_append(IMAGE_OT_clear_render_border);
 }
 
 static void image_keymap(struct wmKeyConfig *keyconf)
@@ -343,6 +345,10 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "CURSOR");
+
+	/* render border */
+	WM_keymap_add_item(keymap, "IMAGE_OT_render_border", BKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_clear_render_border", BKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 }
 
 /* dropboxes */
