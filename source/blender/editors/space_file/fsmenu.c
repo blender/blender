@@ -446,8 +446,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
                 /* Exclude "all my files" as it makes no sense in blender fileselector */
                 /* Exclude "airdrop" if wlan not active as it would show "" ) */
-                if (strcmp((char *)line, "/System/Library/CoreServices/Finder.app/Contents/Resources/MyLibraries/myDocuments.cannedSearch")
-                    && (strcmp((char *)line, "")))   {
+                if (!strstr((char *)line, "myDocuments.cannedSearch") && (strcmp((char *)line, "")))   {
                     fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL);
                 }
 				
