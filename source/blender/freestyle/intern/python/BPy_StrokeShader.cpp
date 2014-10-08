@@ -32,11 +32,9 @@
 #include "StrokeShader/BPy_BlenderTextureShader.h"
 #include "StrokeShader/BPy_CalligraphicShader.h"
 #include "StrokeShader/BPy_ColorNoiseShader.h"
-#include "StrokeShader/BPy_ColorVariationPatternShader.h"
 #include "StrokeShader/BPy_ConstantColorShader.h"
 #include "StrokeShader/BPy_ConstantThicknessShader.h"
 #include "StrokeShader/BPy_ConstrainedIncreasingThicknessShader.h"
-#include "StrokeShader/BPy_fstreamShader.h"
 #include "StrokeShader/BPy_GuidingLinesShader.h"
 #include "StrokeShader/BPy_IncreasingColorShader.h"
 #include "StrokeShader/BPy_IncreasingThicknessShader.h"
@@ -44,12 +42,8 @@
 #include "StrokeShader/BPy_SamplingShader.h"
 #include "StrokeShader/BPy_SmoothingShader.h"
 #include "StrokeShader/BPy_SpatialNoiseShader.h"
-#include "StrokeShader/BPy_streamShader.h"
-#include "StrokeShader/BPy_StrokeTextureShader.h"
 #include "StrokeShader/BPy_StrokeTextureStepShader.h"
-#include "StrokeShader/BPy_TextureAssignerShader.h"
 #include "StrokeShader/BPy_ThicknessNoiseShader.h"
-#include "StrokeShader/BPy_ThicknessVariationPatternShader.h"
 #include "StrokeShader/BPy_TipRemoverShader.h"
 
 #ifdef __cplusplus
@@ -94,11 +88,6 @@ int StrokeShader_Init(PyObject *module)
 	Py_INCREF(&ColorNoiseShader_Type);
 	PyModule_AddObject(module, "ColorNoiseShader", (PyObject *)&ColorNoiseShader_Type);
 
-	if (PyType_Ready(&ColorVariationPatternShader_Type) < 0)
-		return -1;
-	Py_INCREF(&ColorVariationPatternShader_Type);
-	PyModule_AddObject(module, "ColorVariationPatternShader", (PyObject *)&ColorVariationPatternShader_Type);
-
 	if (PyType_Ready(&ConstantColorShader_Type) < 0)
 		return -1;
 	Py_INCREF(&ConstantColorShader_Type);
@@ -114,11 +103,6 @@ int StrokeShader_Init(PyObject *module)
 	Py_INCREF(&ConstrainedIncreasingThicknessShader_Type);
 	PyModule_AddObject(module, "ConstrainedIncreasingThicknessShader",
 	                   (PyObject *)&ConstrainedIncreasingThicknessShader_Type);
-
-	if (PyType_Ready(&fstreamShader_Type) < 0)
-		return -1;
-	Py_INCREF(&fstreamShader_Type);
-	PyModule_AddObject(module, "fstreamShader", (PyObject *)&fstreamShader_Type);
 
 	if (PyType_Ready(&GuidingLinesShader_Type) < 0)
 		return -1;
@@ -155,35 +139,15 @@ int StrokeShader_Init(PyObject *module)
 	Py_INCREF(&SpatialNoiseShader_Type);
 	PyModule_AddObject(module, "SpatialNoiseShader", (PyObject *)&SpatialNoiseShader_Type);
 
-	if (PyType_Ready(&streamShader_Type) < 0)
-		return -1;
-	Py_INCREF(&streamShader_Type);
-	PyModule_AddObject(module, "streamShader", (PyObject *)&streamShader_Type);
-
-	if (PyType_Ready(&StrokeTextureShader_Type) < 0)
-		return -1;
-	Py_INCREF(&StrokeTextureShader_Type);
-	PyModule_AddObject(module, "StrokeTextureShader", (PyObject *)&StrokeTextureShader_Type);
-
 	if (PyType_Ready(&StrokeTextureStepShader_Type) < 0)
 		return -1;
 	Py_INCREF(&StrokeTextureStepShader_Type);
 	PyModule_AddObject(module, "StrokeTextureStepShader", (PyObject *)&StrokeTextureStepShader_Type);
 
-	if (PyType_Ready(&TextureAssignerShader_Type) < 0)
-		return -1;
-	Py_INCREF(&TextureAssignerShader_Type);
-	PyModule_AddObject(module, "TextureAssignerShader", (PyObject *)&TextureAssignerShader_Type);
-
 	if (PyType_Ready(&ThicknessNoiseShader_Type) < 0)
 		return -1;
 	Py_INCREF(&ThicknessNoiseShader_Type);
 	PyModule_AddObject(module, "ThicknessNoiseShader", (PyObject *)&ThicknessNoiseShader_Type);
-
-	if (PyType_Ready(&ThicknessVariationPatternShader_Type) < 0)
-		return -1;
-	Py_INCREF(&ThicknessVariationPatternShader_Type);
-	PyModule_AddObject(module, "ThicknessVariationPatternShader", (PyObject *)&ThicknessVariationPatternShader_Type);
 
 	if (PyType_Ready(&TipRemoverShader_Type) < 0)
 		return -1;

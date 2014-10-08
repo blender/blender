@@ -36,7 +36,6 @@ __all__ = (
     "BlenderTextureShader",
     "CalligraphicShader",
     "ColorNoiseShader",
-    "ColorVariationPatternShader",
     "ConstantColorShader",
     "ConstantThicknessShader",
     "ConstrainedIncreasingThicknessShader",
@@ -49,13 +48,9 @@ __all__ = (
     "SmoothingShader",
     "SpatialNoiseShader",
     "SquareCapShader",
-    "StrokeTextureShader",
     "StrokeTextureStepShader",
-    "TextureAssignerShader",
     "ThicknessNoiseShader",
-    "ThicknessVariationPatternShader",
     "TipRemoverShader",
-    "fstreamShader",
     "py2DCurvatureColorShader",
     "pyBackboneStretcherNoCuspShader",
     "pyBackboneStretcherShader",
@@ -92,7 +87,6 @@ __all__ = (
     "pyTimeColorShader",
     "pyTipRemoverShader",
     "pyZDependingThicknessShader",
-    "streamShader",
     )
 
 
@@ -103,7 +97,6 @@ from _freestyle import (
     BlenderTextureShader,
     CalligraphicShader,
     ColorNoiseShader,
-    ColorVariationPatternShader,
     ConstantColorShader,
     ConstantThicknessShader,
     ConstrainedIncreasingThicknessShader,
@@ -114,14 +107,9 @@ from _freestyle import (
     SamplingShader,
     SmoothingShader,
     SpatialNoiseShader,
-    StrokeTextureShader,
     StrokeTextureStepShader,
-    TextureAssignerShader,
     ThicknessNoiseShader,
-    ThicknessVariationPatternShader,
     TipRemoverShader,
-    fstreamShader,
-    streamShader,
     )
 
 # constructs for shader definition in Python

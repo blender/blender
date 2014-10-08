@@ -81,20 +81,6 @@ int CalligraphicShader::shade(Stroke &ioStroke) const
 	return 0;
 }
 
-#if 0
-void TipRemoverShader::shade(Stroke &ioStroke) const
-{
-	StrokeInternal::StrokeVertexIterator v, vend;
-	for (v = ioStroke.strokeVerticesBegin(), vend = ioStroke.strokeVerticesEnd(); v != vend; ++v) {
-		if (((*v)->curvilinearAbscissa() < _tipLength) ||
-		    (((*v)->strokeLength() - (*v)->curvilinearAbscissa()) < _tipLength)) {
-			(*v)->attribute().setThickness(0.0, 0.0);
-			(*v)->attribute().setColor(1, 1, 1);
-		}
-	}
-}
-#endif
-
 /////////////////////////////////////////
 //
 //  SPATIAL NOISE SHADER
@@ -346,64 +332,5 @@ void Smoother::copyVertices()
 	}
 	_stroke->UpdateLength();
 }
-
-#if 0 // FIXME
-
-/////////////////////////////////////////
-//
-//  OMISSION SHADER
-//
-/////////////////////////////////////////
-
-OmissionShader::OmissionShader(real sizeWindow, real thrVari, real thrFlat, real lFlat)
-{
-	_sizeWindow = sizeWindow;
-	_thresholdVariation = thrVari;
-	_thresholdFlat = thrFlat;
-	_lengthFlat = lFlat;
-}
-
-int OmissionShader::shade(Stroke &ioStroke) const
-{
-	Omitter omi(ioStroke);
-	omi.omit(_sizeWindow, _thresholdVariation, _thresholdFlat, _lengthFlat);
-
-	return 0;
-}
-
-
-// OMITTER
-///////////////////////////
-
-Omitter::Omitter(Stroke &ioStroke) : Smoother(ioStroke)
-{
-	StrokeInternal::StrokeVertexIterator v, vend;
-	int i = 0;
-	for (v = ioStroke.strokeVerticesBegin(), vend = ioStroke.strokeVerticesEnd(); v != vend; ++v, ++i) {
-		_u[i] = (v)->curvilinearAbscissa();
-	}
-}
-
-void Omitter::omit(real sizeWindow, real thrVari, real thrFlat, real lFlat)
-{
-	_sizeWindow=sizeWindow;
-	_thresholdVariation=thrVari;
-	_thresholdFlat=thrFlat;
-	_lengthFlat=lFlat;
-
-	for (int i = 1; i < _nbVertices-1; ++i) {
-		if (_u[i] < _lengthFlat)
-			continue;
-		// is the previous segment flat?
-		int j = i - 1;
-		while ((j >= 0) && (_u[i] - _u[j] < _lengthFlat)) {
-			if ((_normal[j] * _normal[i]) < _thresholdFlat)
-				; // FIXME
-			--j;
-		}
-	}
-}
-
-#endif
 
 } /* namespace Freestyle */
