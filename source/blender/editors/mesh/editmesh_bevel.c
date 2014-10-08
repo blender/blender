@@ -75,7 +75,8 @@ typedef struct {
 
 static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 {
-	const char *str = IFACE_("Confirm: (Enter/LMB), Cancel: (Esc/RMB), Mode: %s (M), Offset: %s, Segments: %d");
+	const char *str = IFACE_("Confirm: (Enter/LMB), Cancel: (Esc/RMB), Mode: %s (M), Clamp Overlap: %s (C), "
+	                         "Offset: %s, Segments: %d");
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
@@ -96,7 +97,9 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 
 		RNA_property_enum_name_gettexted(C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &type_str);
 
-		BLI_snprintf(msg, HEADER_LENGTH, str, type_str, offset_str, RNA_int_get(op->ptr, "segments"));
+		BLI_snprintf(msg, HEADER_LENGTH, str, type_str,
+		             WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
+		             offset_str, RNA_int_get(op->ptr, "segments"));
 
 		ED_area_headerprint(sa, msg);
 	}
@@ -150,6 +153,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const int segments = RNA_int_get(op->ptr, "segments");
 	const float profile = RNA_float_get(op->ptr, "profile");
 	const bool vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
+	const bool clamp_overlap = RNA_boolean_get(op->ptr, "clamp_overlap");
 	int material = RNA_int_get(op->ptr, "material");
 
 	/* revert to original mesh */
@@ -161,8 +165,9 @@ static bool edbm_bevel_calc(wmOperator *op)
 		material = CLAMPIS(material, -1, em->ob->totcol - 1);
 
 	EDBM_op_init(em, &bmop, op,
-	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f material=%i",
-	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile, material);
+	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
+	             "material=%i",
+	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile, clamp_overlap, material);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -408,6 +413,18 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
+			case CKEY:
+				if (event->val == KM_RELEASE)
+					break;
+
+				{
+					PropertyRNA *prop = RNA_struct_find_property(op->ptr, "clamp_overlap");
+					RNA_property_enum_set(op->ptr, prop, !RNA_property_boolean_get(op->ptr, prop));
+				}
+				edbm_bevel_calc(op);
+				edbm_bevel_update_header(C, op);
+				handled = true;
+				break;
 		}
 
 		/* Modal numinput inactive, try to handle numeric inputs last... */
@@ -467,6 +484,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_property_float_array_funcs_runtime(prop, NULL, NULL, mesh_ot_bevel_offset_range_func);
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
 	RNA_def_float(ot->srna, "profile", 0.5f, 0.15f, 1.0f, "Profile", "Controls profile shape (0.5 = round)", 0.15f, 1.0f);
-	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex only", "Bevel only vertices");
+	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex Only", "Bevel only vertices");
+	RNA_def_boolean(ot->srna, "clamp_overlap", false, "Clamp Overlap",
+	                "Do not allow beveled edges/vertices to overlap each other");
 	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material", "Material for bevel faces (-1 means use adjacent faces)", -1, 100);
 }
