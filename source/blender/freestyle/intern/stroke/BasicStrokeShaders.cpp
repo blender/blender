@@ -50,20 +50,6 @@ extern "C" {
 
 namespace Freestyle {
 
-// Internal function
-
-static void convert(ImBuf *imBuf, float **oArray, unsigned &oSize)
-{
-	oSize = imBuf->x;
-	*oArray = new float[oSize];
-
-	char *pix;
-	for (unsigned int i = 0; i < oSize; ++i) {
-		pix = (char *) imBuf->rect + i * 4;
-		(*oArray)[i] = ((float) pix[2]) / 255.0f;
-	}
-}
-
 namespace StrokeShaders {
 
 //
