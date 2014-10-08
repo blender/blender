@@ -165,7 +165,9 @@ include_directories(
 # Warnings
 if(CMAKE_COMPILER_IS_GNUCXX)
 	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_float_conversion "-Werror=float-conversion")
+	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_double_promotion "-Werror=double-promotion")
 	unset(_has_cxxflag_float_conversion)
+	unset(_has_cxxflag_double_promotion)
 endif()
 
 

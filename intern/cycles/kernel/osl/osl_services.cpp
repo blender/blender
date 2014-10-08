@@ -1018,7 +1018,7 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 
 	ray.P = TO_FLOAT3(P);
 	ray.D = TO_FLOAT3(R);
-	ray.t = (options.maxdist == 1.0e30)? FLT_MAX: options.maxdist - options.mindist;
+	ray.t = (options.maxdist == 1.0e30f)? FLT_MAX: options.maxdist - options.mindist;
 	ray.time = sd->time;
 
 	if(options.mindist == 0.0f) {
