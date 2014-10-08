@@ -1009,7 +1009,7 @@ static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir))
 	glDisable(GL_BLEND);
 }
 
-static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, short x2, short y2, short a) 
+static void drawscredge_area_draw(int sizex, int sizey, int x1, int y1, int x2, int y2, int a)
 {
 	/* right border area */
 	if (x2 < sizex - 1)
