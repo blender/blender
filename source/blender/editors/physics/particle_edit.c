@@ -1588,6 +1588,87 @@ void PARTICLE_OT_select_tips(wmOperatorType *ot)
 	WM_operator_properties_select_action(ot, SEL_SELECT);
 }
 
+/*********************** select random operator ************************/
+
+enum { RAN_HAIR, RAN_POINTS };
+
+static EnumPropertyItem select_random_type_items[] = {
+	{RAN_HAIR, "HAIR", 0, "Hair", ""},
+	{RAN_POINTS, "POINTS", 0, "Points", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int select_random_exec(bContext *C, wmOperator *op)
+{
+	PEData data;
+	int type;
+	Scene *scene;
+	Object *ob;
+
+	/* used by LOOP_VISIBLE_POINTS, LOOP_VISIBLE_KEYS and LOOP_KEYS */
+	PTCacheEdit *edit;
+	PTCacheEditPoint *point;
+	PTCacheEditKey *key;
+	int p;
+	int k;
+
+	const float randf = RNA_float_get (op->ptr, "percent") / 100.0f;
+
+	type = RNA_enum_get(op->ptr, "type");
+
+	PE_set_data(C, &data);
+	data.select_action = SEL_SELECT;
+	scene = CTX_data_scene(C);
+	ob = CTX_data_active_object(C);
+	edit = PE_get_current(scene, ob);
+
+	switch (type) {
+		case RAN_HAIR:
+			LOOP_VISIBLE_POINTS {
+				int flag = (BLI_frand() < randf) ? SEL_SELECT : SEL_DESELECT;
+				LOOP_KEYS {
+					select_action_apply (point, key, flag);
+				}
+			}
+			break;
+		case RAN_POINTS:
+			LOOP_VISIBLE_POINTS {
+				LOOP_VISIBLE_KEYS {
+					int flag = (BLI_frand() < randf) ? SEL_SELECT : SEL_DESELECT;
+					select_action_apply (point, key, flag);
+				}
+			}
+			break;
+	}
+
+	PE_update_selection(data.scene, data.ob, 1);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_select_random(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Random";
+	ot->idname = "PARTICLE_OT_select_random";
+	ot->description = "Select a randomly distributed set of hair or points";
+
+	/* api callbacks */
+	ot->exec = select_random_exec;
+	ot->poll = PE_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_float_percentage (ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent",
+                           "Percentage (mean) of elements in randomly selected set",
+                           0.0f, 100.0f);
+	ot->prop = RNA_def_enum (ot->srna, "type", select_random_type_items, RAN_HAIR,
+                           "Type", "Select either hair or points");
+}
+
 /************************ select linked operator ************************/
 
 static int select_linked_exec(bContext *C, wmOperator *op)
