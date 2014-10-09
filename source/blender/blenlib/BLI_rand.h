@@ -40,6 +40,9 @@
 struct RNG;
 typedef struct RNG RNG;
 
+struct RNG_THREAD_ARRAY;
+typedef struct RNG_THREAD_ARRAY RNG_THREAD_ARRAY;
+
 struct RNG *BLI_rng_new(unsigned int seed);
 struct RNG *BLI_rng_new_srandom(unsigned int seed);
 void        BLI_rng_free(struct RNG *rng) ATTR_NONNULL(1);
@@ -88,5 +91,10 @@ int     BLI_thread_rand(int thread) ATTR_WARN_UNUSED_RESULT;
 /** Return a pseudo-random number N where 0.0f<=N<1.0f */
 /** Allows up to BLENDER_MAX_THREADS threads to address */
 float   BLI_thread_frand(int thread) ATTR_WARN_UNUSED_RESULT;
+
+/** array versions for thread safe random generation */
+RNG_THREAD_ARRAY *BLI_rng_threaded_new(void);
+void  BLI_rng_threaded_free(struct RNG_THREAD_ARRAY *rngarr) ATTR_NONNULL(1);
+int   BLI_rng_thread_rand(RNG_THREAD_ARRAY *rngarr, int thread) ATTR_WARN_UNUSED_RESULT;
 
 #endif  /* __BLI_RAND_H__ */

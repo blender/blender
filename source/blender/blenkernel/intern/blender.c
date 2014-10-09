@@ -80,6 +80,7 @@
 #include "BKE_sound.h"
 
 #include "RE_pipeline.h"
+#include "RE_render_ext.h"
 
 #include "BLF_api.h"
 
@@ -119,6 +120,7 @@ void free_blender(void)
 	DAG_exit();
 
 	BKE_brush_system_exit();
+	RE_exit_texture_rng();	
 
 	BLI_callback_global_finalize();
 

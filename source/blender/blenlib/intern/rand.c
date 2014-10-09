@@ -245,3 +245,29 @@ float BLI_thread_frand(int thread)
 	return BLI_rng_get_float(&rng_tab[thread]);
 }
 
+struct RNG_THREAD_ARRAY {
+	RNG rng_tab[BLENDER_MAX_THREADS];
+};
+
+RNG_THREAD_ARRAY *BLI_rng_threaded_new(void)
+{
+	unsigned int i;
+	RNG_THREAD_ARRAY *rngarr = MEM_mallocN(sizeof(RNG_THREAD_ARRAY), "random_array");
+	
+	for (i = 0; i < BLENDER_MAX_THREADS; i++) {
+		BLI_rng_srandom(&rngarr->rng_tab[i], (unsigned int)(rngarr->rng_tab[i].X * 257));
+	}
+	
+	return rngarr;
+}
+
+void BLI_rng_threaded_free(struct RNG_THREAD_ARRAY *rngarr)
+{
+	MEM_freeN(rngarr);
+}
+
+int BLI_rng_thread_rand(RNG_THREAD_ARRAY *rngarr, int thread)
+{
+	return BLI_rng_get_int(&rngarr->rng_tab[thread]);
+}
+
