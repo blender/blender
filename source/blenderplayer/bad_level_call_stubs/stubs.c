@@ -221,6 +221,8 @@ void *g_system;
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) RET_NULL
 float RE_filter_value(int type, float x) RET_ZERO
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name) RET_NULL
+void RE_init_texture_rng() RET_NONE
+void RE_exit_texture_rng() RET_NONE
 
 /* zbuf.c stub */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove) RET_NONE

@@ -731,12 +731,11 @@ static int texnoise(Tex *tex, TexResult *texres, int thread)
 
 	/* start from top bits since they have more variance */
 	val= ((ran >> shift) & 3);
-	shift -= 2;
 	
 	while (loop--) {
+		shift -= 2;		
 		val += ((ran >> shift) & 3);
 		div += 3.0f;
-		shift -= 2;		
 	}
 	
 	texres->tin= ((float)val)/div;
