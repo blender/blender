@@ -71,7 +71,7 @@ enum {
 #define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & (size_t) MEMHEAD_ALIGN_FLAG)
 
 /* Uncomment this to have proper peak counter. */
-//#define USE_ATOMIC_MAX
+#define USE_ATOMIC_MAX
 
 MEM_INLINE void update_maximum(size_t *maximum_value, size_t value)
 {
