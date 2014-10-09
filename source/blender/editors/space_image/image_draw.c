@@ -83,6 +83,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 {
 	RenderResult *rr;
 	Render *re = RE_GetRender(scene->id.name);
+	RenderData *rd = RE_engine_get_render_data(re);
 
 	rr = BKE_image_acquire_renderresult(scene, ima);
 
@@ -110,9 +111,9 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 			glTranslatef(x, y, 0.0f);
 			glScalef(zoomx, zoomy, 1.0f);
 
-			if (scene->r.mode & R_BORDER) {
-				glTranslatef((int)(-scene->r.border.xmin * scene->r.xsch * scene->r.size / 100.0f),
-				             (int)(-scene->r.border.ymin * scene->r.ysch * scene->r.size / 100.0f),
+			if (rd->mode & R_BORDER) {
+				glTranslatef((int)(-rd->border.xmin * rd->xsch * rd->size / 100.0f),
+				             (int)(-rd->border.ymin * rd->ysch * rd->size / 100.0f),
 				             0.0f);
 			}
 
