@@ -64,6 +64,10 @@ typedef struct ImageUser {
 
 } ImageUser;
 
+typedef struct RenderSlot {
+	char name[64];  /* 64 = MAX_NAME */
+} RenderSlot;
+
 /* iuser->flag */
 #define	IMA_ANIM_ALWAYS		1
 #define IMA_ANIM_REFRESHED	2
@@ -119,6 +123,7 @@ typedef struct Image {
 	char alpha_mode;
 
 	char pad[7];
+	RenderSlot render_slots[8];  /* 8 = IMA_MAX_RENDER_SLOT */
 } Image;
 
 

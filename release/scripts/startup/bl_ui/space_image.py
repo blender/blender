@@ -661,6 +661,11 @@ class IMAGE_PT_view_properties(Panel):
             sub.active = uvedit.show_stretch
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
 
+        if ima:
+            layout.separator()
+            render_slot = ima.render_slots.active
+            layout.prop(render_slot, "name", text="Slot Name")
+
 
 class IMAGE_PT_tools_transform_uvs(Panel, UVToolsPanel):
     bl_label = "Transform"
