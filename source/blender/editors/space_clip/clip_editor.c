@@ -48,7 +48,7 @@
 #include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
-#include "BLI_threads.h"
+#include "BLI_task.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -620,11 +620,6 @@ typedef struct PrefetchQueue {
 	float *progress;
 } PrefetchQueue;
 
-typedef struct PrefetchThread {
-	MovieClip *clip;
-	PrefetchQueue *queue;
-} PrefetchThread;
-
 /* check whether pre-fetching is allowed */
 static bool check_prefetch_break(void)
 {
@@ -757,15 +752,15 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 	return mem;
 }
 
-static void *do_prefetch_thread(void *data_v)
+static void prefetch_task_func(TaskPool *pool, void *task_data, int UNUSED(threadid))
 {
-	PrefetchThread *data = (PrefetchThread *) data_v;
-	MovieClip *clip = data->clip;
+	PrefetchQueue *queue = (PrefetchQueue *)BLI_task_pool_userdata(pool);
+	MovieClip *clip = (MovieClip *)task_data;
 	unsigned char *mem;
 	size_t size;
 	int current_frame;
 
-	while ((mem = prefetch_thread_next_frame(data->queue, data->clip, &size, &current_frame))) {
+	while ((mem = prefetch_thread_next_frame(queue, clip, &size, &current_frame))) {
 		ImBuf *ibuf;
 		MovieClipUser user = {0};
 		int flag = IB_rect | IB_alphamode_detect;
@@ -773,17 +768,17 @@ static void *do_prefetch_thread(void *data_v)
 		char *colorspace_name = NULL;
 
 		user.framenr = current_frame;
-		user.render_size = data->queue->render_size;
-		user.render_flag = data->queue->render_flag;
+		user.render_size = queue->render_size;
+		user.render_flag = queue->render_flag;
 
 		/* Proxies are stored in the display space. */
-		if (data->queue->render_flag & MCLIP_USE_PROXY) {
+		if (queue->render_flag & MCLIP_USE_PROXY) {
 			colorspace_name = clip->colorspace_settings.name;
 		}
 
 		ibuf = IMB_ibImageFromMemory(mem, size, flag, colorspace_name, "prefetch frame");
 
-		result = BKE_movieclip_put_frame_if_possible(data->clip, &user, ibuf);
+		result = BKE_movieclip_put_frame_if_possible(clip, &user, ibuf);
 
 		IMB_freeImBuf(ibuf);
 
@@ -791,27 +786,20 @@ static void *do_prefetch_thread(void *data_v)
 
 		if (!result) {
 			/* no more space in the cache, stop reading frames */
-			*data->queue->stop = 1;
+			*queue->stop = 1;
 			break;
 		}
 	}
-
-	return NULL;
 }
 
 static void start_prefetch_threads(MovieClip *clip, int start_frame, int current_frame, int end_frame,
                                    short render_size, short render_flag, short *stop, short *do_update,
                                    float *progress)
 {
-	ListBase threads;
 	PrefetchQueue queue;
-	PrefetchThread *handles;
-	int tot_thread = BLI_system_thread_count();
-	int i;
-
-	/* reserve one thread for the interface */
-	if (tot_thread > 1)
-		tot_thread--;
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
+	TaskPool *task_pool;
+	int i, tot_thread = BLI_task_scheduler_num_threads(task_scheduler);
 
 	/* initialize queue */
 	BLI_spin_init(&queue.spin);
@@ -828,29 +816,18 @@ static void start_prefetch_threads(MovieClip *clip, int start_frame, int current
 	queue.do_update = do_update;
 	queue.progress = progress;
 
-	/* fill in thread handles */
-	handles = MEM_callocN(sizeof(PrefetchThread) * tot_thread, "prefetch threaded handles");
-
-	if (tot_thread > 1)
-		BLI_init_threads(&threads, do_prefetch_thread, tot_thread);
-
+	task_pool = BLI_task_pool_create(task_scheduler, &queue);
 	for (i = 0; i < tot_thread; i++) {
-		PrefetchThread *handle = &handles[i];
-
-		handle->clip = clip;
-		handle->queue = &queue;
-
-		if (tot_thread > 1)
-			BLI_insert_thread(&threads, handle);
+		BLI_task_pool_push(task_pool,
+		                   prefetch_task_func,
+		                   clip,
+		                   false,
+		                   TASK_PRIORITY_LOW);
 	}
+	BLI_task_pool_work_and_wait(task_pool);
+	BLI_task_pool_free(task_pool);
 
-	/* run the threads */
-	if (tot_thread > 1)
-		BLI_end_threads(&threads);
-	else
-		do_prefetch_thread(handles);
-
-	MEM_freeN(handles);
+	BLI_spin_end(&queue.spin);
 }
 
 static bool prefetch_movie_frame(MovieClip *clip, int frame, short render_size,
