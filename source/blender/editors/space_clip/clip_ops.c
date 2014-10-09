@@ -49,7 +49,7 @@
 #include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
-#include "BLI_threads.h"
+#include "BLI_task.h"
 #include "BLI_string.h"
 
 #include "BLF_translation.h"
@@ -1123,10 +1123,7 @@ typedef struct ProxyQueue {
 
 typedef struct ProxyThread {
 	MovieClip *clip;
-	ProxyQueue *queue;
-
 	struct MovieDistortion *distortion;
-
 	int *build_sizes, build_count;
 	int *build_undistort_sizes, build_undistort_count;
 } ProxyThread;
@@ -1182,14 +1179,15 @@ static unsigned char *proxy_thread_next_frame(ProxyQueue *queue, MovieClip *clip
 	return mem;
 }
 
-static void *do_proxy_thread(void *data_v)
+static void proxy_task_func(TaskPool *pool, void *task_data, int UNUSED(threadid))
 {
-	ProxyThread *data = (ProxyThread *) data_v;
+	ProxyThread *data = (ProxyThread *)task_data;
+	ProxyQueue *queue = (ProxyQueue *)BLI_task_pool_userdata(pool);
 	unsigned char *mem;
 	size_t size;
 	int cfra;
 
-	while ((mem = proxy_thread_next_frame(data->queue, data->clip, &size, &cfra))) {
+	while ((mem = proxy_thread_next_frame(queue, data->clip, &size, &cfra))) {
 		ImBuf *ibuf;
 
 		ibuf = IMB_ibImageFromMemory(mem, size, IB_rect | IB_multilayer | IB_alphamode_detect,
@@ -1205,8 +1203,6 @@ static void *do_proxy_thread(void *data_v)
 
 		MEM_freeN(mem);
 	}
-
-	return NULL;
 }
 
 static void do_sequence_proxy(void *pjv, int *build_sizes, int build_count,
@@ -1216,11 +1212,17 @@ static void do_sequence_proxy(void *pjv, int *build_sizes, int build_count,
 	ProxyJob *pj = pjv;
 	MovieClip *clip = pj->clip;
 	Scene *scene = pj->scene;
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
+	TaskPool *task_pool;
 	int sfra = SFRA, efra = EFRA;
 	ProxyThread *handles;
-	ListBase threads;
-	int i, tot_thread = BLI_system_thread_count();
+	int i, tot_thread = BLI_task_scheduler_num_threads(task_scheduler);
+	int width, height;
 	ProxyQueue queue;
+
+	if (build_undistort_count) {
+		BKE_movieclip_get_size(clip, NULL, &width, &height);
+	}
 
 	BLI_spin_init(&queue.spin);
 
@@ -1231,16 +1233,13 @@ static void do_sequence_proxy(void *pjv, int *build_sizes, int build_count,
 	queue.do_update = do_update;
 	queue.progress = progress;
 
-	handles = MEM_callocN(sizeof(ProxyThread) * tot_thread, "proxy threaded handles");
-
-	if (tot_thread > 1)
-		BLI_init_threads(&threads, do_proxy_thread, tot_thread);
-
+	task_pool = BLI_task_pool_create(task_scheduler, &queue);
+	handles = MEM_callocN(sizeof(ProxyThread) * tot_thread,
+	                      "proxy threaded handles");
 	for (i = 0; i < tot_thread; i++) {
 		ProxyThread *handle = &handles[i];
 
 		handle->clip = clip;
-		handle->queue = &queue;
 
 		handle->build_count = build_count;
 		handle->build_sizes = build_sizes;
@@ -1249,29 +1248,29 @@ static void do_sequence_proxy(void *pjv, int *build_sizes, int build_count,
 		handle->build_undistort_sizes = build_undistort_sizes;
 
 		if (build_undistort_count) {
-			int width, height;
-			BKE_movieclip_get_size(clip, NULL, &width, &height);
-			handle->distortion = BKE_tracking_distortion_new(&clip->tracking, width, height);
+			handle->distortion = BKE_tracking_distortion_new(&clip->tracking,
+			                                                 width, height);
 		}
 
-		if (tot_thread > 1)
-			BLI_insert_thread(&threads, handle);
+		BLI_task_pool_push(task_pool,
+		                   proxy_task_func,
+		                   handle,
+		                   false,
+		                   TASK_PRIORITY_LOW);
 	}
 
-	if (tot_thread > 1)
-		BLI_end_threads(&threads);
-	else
-		do_proxy_thread(handles);
-
-	MEM_freeN(handles);
+	BLI_task_pool_work_and_wait(task_pool);
+	BLI_task_pool_free(task_pool);
 
 	if (build_undistort_count) {
 		for (i = 0; i < tot_thread; i++) {
 			ProxyThread *handle = &handles[i];
-
 			BKE_tracking_distortion_free(handle->distortion);
 		}
 	}
+
+	BLI_spin_end(&queue.spin);
+	MEM_freeN(handles);
 }
 
 static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
