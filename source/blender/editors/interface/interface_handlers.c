@@ -6560,7 +6560,7 @@ static bool ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 
 	ui_window_to_block_fl(ar, block, &mx, &my);
 
-	if (but->dt == UI_EMBOSSR) {
+	if (but->pie_dir != UI_RADIAL_NONE) {
 		if (!ui_but_isect_pie_seg(block, but)) {
 			return false;
 		}

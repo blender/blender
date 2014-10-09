@@ -88,12 +88,12 @@ extern struct Render R;
 static RNG_THREAD_ARRAY *random_tex_array;
 
 
-void RE_init_texture_rng()
+void RE_init_texture_rng(void)
 {
 	random_tex_array = BLI_rng_threaded_new();
 }
 
-void RE_exit_texture_rng()
+void RE_exit_texture_rng(void)
 {
 	BLI_rng_threaded_free(random_tex_array);
 }

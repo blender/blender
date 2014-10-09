@@ -255,7 +255,7 @@ RNG_THREAD_ARRAY *BLI_rng_threaded_new(void)
 	RNG_THREAD_ARRAY *rngarr = MEM_mallocN(sizeof(RNG_THREAD_ARRAY), "random_array");
 	
 	for (i = 0; i < BLENDER_MAX_THREADS; i++) {
-		BLI_rng_srandom(&rngarr->rng_tab[i], (unsigned int)(rngarr->rng_tab[i].X * 257));
+		BLI_rng_srandom(&rngarr->rng_tab[i], (unsigned int)clock());
 	}
 	
 	return rngarr;
