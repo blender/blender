@@ -72,7 +72,6 @@ class CERES_EXPORT GradientProblemSolver {
       max_line_search_step_expansion = 10.0;
       max_num_iterations = 50;
       max_solver_time_in_seconds = 1e9;
-      num_threads = 1;
       function_tolerance = 1e-6;
       gradient_tolerance = 1e-10;
       logging_type = PER_MINIMIZER_ITERATION;
@@ -224,10 +223,6 @@ class CERES_EXPORT GradientProblemSolver {
     // Maximum time for which the minimizer should run for.
     double max_solver_time_in_seconds;
 
-    // Number of threads used by Ceres for evaluating the cost and
-    // jacobians.
-    int num_threads;
-
     // Minimizer terminates when
     //
     //   (new_cost - old_cost) < function_tolerance * old_cost;
@@ -250,13 +245,6 @@ class CERES_EXPORT GradientProblemSolver {
     // set to true, and logging_type is not SILENT, the logging output
     // is sent to STDOUT.
     bool minimizer_progress_to_stdout;
-
-    // If true, the user's parameter blocks are updated at the end of
-    // every Minimizer iteration, otherwise they are updated when the
-    // Minimizer terminates. This is useful if, for example, the user
-    // wishes to visualize the state of the optimization every
-    // iteration.
-    bool update_state_every_iteration;
 
     // Callbacks that are executed at the end of each iteration of the
     // Minimizer. An iteration may terminate midway, either due to
@@ -309,10 +297,10 @@ class CERES_EXPORT GradientProblemSolver {
     // Sum total of all time spent inside Ceres when Solve is called.
     double total_time_in_seconds;
 
-    // Time (in seconds) spent evaluating the residual vector.
+    // Time (in seconds) spent evaluating the cost.
     double cost_evaluation_time_in_seconds;
 
-    // Time (in seconds) spent evaluating the jacobian matrix.
+    // Time (in seconds) spent evaluating the gradient.
     double gradient_evaluation_time_in_seconds;
 
     // Number of parameters in the probem.

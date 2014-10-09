@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -140,15 +140,24 @@ void CoordinateDescentMinimizer::Minimize(
   }
 
   for (int i = 0; i < independent_set_offsets_.size() - 1; ++i) {
-    // No point paying the price for an OpemMP call if the set if of
+    const int num_problems =
+        independent_set_offsets_[i + 1] - independent_set_offsets_[i];
+    // No point paying the price for an OpemMP call if the set is of
     // size zero.
-    if (independent_set_offsets_[i] ==  independent_set_offsets_[i + 1]) {
+    if (num_problems == 0) {
       continue;
     }
 
+#ifdef CERES_USE_OPENMP
+    const int num_inner_iteration_threads =
+        min(options.num_threads, num_problems);
+    evaluator_options_.num_threads =
+        max(1, options.num_threads / num_inner_iteration_threads);
+
     // The parameter blocks in each independent set can be optimized
     // in parallel, since they do not co-occur in any residual block.
-#pragma omp parallel for num_threads(options.num_threads)
+#pragma omp parallel for num_threads(num_inner_iteration_threads)
+#endif
     for (int j = independent_set_offsets_[i];
          j < independent_set_offsets_[i + 1];
          ++j) {

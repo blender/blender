@@ -1,3 +1,78 @@
+commit 0435246de5f45e69b2c97d244ed61bedd340215a
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Oct 8 18:12:53 2014 -0700
+
+    Add seene to users.rst
+    
+    Change-Id: If40726775a3d4b234b6e10517fe9943d122a3384
+
+commit fdf32b315f39553639f0becf078ad4eec763a10e
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Oct 8 16:04:32 2014 -0700
+
+    Fix some errant tabs.
+    
+    Change-Id: Iaf1906eaade49467ba282656cf0a10879d258b1f
+
+commit 6768b3586a027bb850c0a50e2a27380f5d80142a
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Oct 8 12:48:16 2014 -0700
+
+    Minor cleanups in preparation for a release.
+    
+    1. Fix the release script to ignore the version.h checking.
+    2. Fix some ceres documentation formatting errors.
+    
+    Change-Id: I3fd6b85e771b242f463d6a36c3efd8d691f9242f
+
+commit 7b6bd1cd31aa0b8cb7fb97600c1b9999846e3152
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Oct 2 16:16:26 2014 -0700
+
+    Documentation update.
+    
+    1. Complete restructuring of the documentation to account for
+       GradientProblemSolver.
+    2. Update the version history to account for changes since 1.9.0.
+    3. Add links and document the various examples that ship with ceres.
+    4. Documentation for GradientProblem GradientProblemSolver.
+    
+    Change-Id: If3a18f2850cbc98be1bc34435e9ea468785b8b27
+
+commit b7d321f505e936b6c09aeb43ae3f7b1252388a95
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Oct 3 15:47:59 2014 -0700
+
+    Relax the warning/error handing in GCC.
+    
+    Thanks to Matthew Woehlke for suggesting this.
+    
+    Change-Id: Iae754465c086b0841a7816df1a36781371d0dc9a
+
+commit 94c6e7d27b5d48d81ab54ed9cdcbc55c3c099311
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Oct 1 15:55:13 2014 -0700
+
+    Improve multithreading when using inner iterations.
+    
+    Inner iterations by default would use problems where the evaluator
+    was configured to use exactly one thread for doing the evaluation.
+    This is fine when there are multiple inner iteration problems
+    being executed concurrently, but every now and then there are
+    problem decompositions where there is just one parameter block
+    in the current independent set and it touches every single
+    residual block. In such cases it is essential that the evaluator
+    be configured to use multiple threads.
+    
+    We now pay attention to the size of the independent set and
+    dynamically configure the number of threads being used by the
+    outer loop and the evaluator loop.
+    
+    Thanks to William Rucklidge for reporting this issue and providing
+    a test problem to debug.
+    
+    Change-Id: Iaff9a4ab6d2658cf7b61ea213575d23aab604e3b
+
 commit 9e11cd16d09403b9270e621e839d5948b6a74b8d
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Mon Sep 29 14:27:58 2014 -0700
@@ -596,76 +671,3 @@ Date:   Thu Jun 5 21:30:13 2014 -0700
        solve.
     
     Change-Id: I80f35cfc9f2cbf78f1df4aceace27075779d8a3a
-
-commit bd90384226a7f8629467f72fc410a9e8086a2dff
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Aug 18 11:27:06 2014 -0700
-
-    Lint comments from William Rucklidge.
-    
-    Also some minor refactoring of the trust_region_preprocessor_test.cc
-    
-    Change-Id: Ica28002254c95722faf93a7ef35bf3deab557f0b
-
-commit 3150321db4a0cb1bb4894961a030d95dacae3591
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 12 22:46:51 2014 -0700
-
-    Preprocessor for the LineSearchMinimizer.
-    
-    Change-Id: Ieb5dfe1c0b96ef323c1130edd0c3a8a8b2c644cc
-
-commit f7da411ef0d0067e269629887d64cdb769368800
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Aug 7 14:30:33 2014 -0700
-
-    Preprocessor for the TrustRegionMinimizer.
-    
-    1. Base class for preprocessors.
-    2. A preprocessor for problems that will be solved using
-       the trust region minimizer.
-    3. Added sanity tests to the program reordering options
-       for Schur type linear solvers.
-    4. Tests for the TrustRegionPreprocessor.
-    
-    Change-Id: I88cd926f0053bbbf2bd6b11e03ec55b8bf473cf1
-
-commit 54893ba523106e38ab06eb72fb5d8748685c7797
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Aug 11 19:04:18 2014 +0100
-
-    Add missing #include of <limits> for loss functions.
-    
-    Change-Id: Id632451429e03031a1533a9be795270debc70706
-
-commit 4a2a888905fd1ce7203e45df15762d52740bb240
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Aug 7 11:48:03 2014 -0700
-
-    Change ownership of pointers in Minimizer::Options.
-    
-    This is a intermediate change to clean things up
-    in preparation for a broader refactoring of the SolverImpl.
-    
-    Essentially we are replacing raw pointers in Minimizer::Options
-    with shared_ptr objects. For now this only makes things a bit
-    more complicated looking inside solver_impl.cc, but going
-    forward this will lead to considerable simplifications in
-    tracking ownership of various pointers.
-    
-    Change-Id: I21db8fc6763c29b0d15e834d7c968a0f514042a0
-
-commit 0d4e3bd664d442b700fee2895c7a8ac37717dc08
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Aug 7 12:19:10 2014 -0700
-
-    GradientCheckingProblem's parameter blocks are initialized correctly.
-    
-    Ensure that when a new problem object is constructed for validing
-    gradients, the parameter blocks have their data pointers point to
-    the user's parameter blocks.
-    
-    We used to do this inside solver_impl.cc, but doing this at
-    construction is the right thing to do.
-    
-    Change-Id: I3bfdc89bb0027c8d67cde937e8f2fa385d89c30c

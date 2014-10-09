@@ -143,7 +143,7 @@ if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 ${generated_sources}
 	)
 else()
-	add_definitions-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
+	add_definitions(-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
 endif()
 
 if(WIN32)
