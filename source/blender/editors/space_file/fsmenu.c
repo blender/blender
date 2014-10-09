@@ -444,11 +444,11 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				if (pathString == NULL || !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingASCII))
 					continue;
 
-                /* Exclude "all my files" as it makes no sense in blender fileselector */
-                /* Exclude "airdrop" if wlan not active as it would show "" ) */
-                if (!strstr((char *)line, "myDocuments.cannedSearch") && (strcmp((char *)line, "")))   {
-                    fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL);
-                }
+				/* Exclude "all my files" as it makes no sense in blender fileselector */
+				/* Exclude "airdrop" if wlan not active as it would show "" ) */
+				if (!strstr((char *)line, "myDocuments.cannedSearch") && (strcmp((char *)line, ""))) {
+					fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL);
+				}
 				
 				CFRelease(pathString);
 				CFRelease(cfURL);

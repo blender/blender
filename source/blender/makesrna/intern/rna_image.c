@@ -402,7 +402,7 @@ static int rna_Image_is_float_get(PointerRNA *ptr)
 static void rna_Image_render_slots_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Image *image = (Image *)ptr->id.data;
-	rna_iterator_array_begin(iter, (void*)image->render_slots, sizeof(RenderSlot), IMA_MAX_RENDER_SLOT, 0, NULL);
+	rna_iterator_array_begin(iter, (void *)image->render_slots, sizeof(RenderSlot), IMA_MAX_RENDER_SLOT, 0, NULL);
 }
 
 static PointerRNA rna_render_slots_active_get(PointerRNA *ptr)
