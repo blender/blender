@@ -471,9 +471,10 @@ while true; do
   esac
 done
 
-if $WITH_ALL; then
+if [ $WITH_ALL == true -a $OPENCOLLADA_SKIP == false ]; then
   WITH_OPENCOLLADA=true
 fi
+
 
 
 # This has to be done here, because user might force some versions...
