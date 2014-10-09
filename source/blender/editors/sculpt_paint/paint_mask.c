@@ -277,7 +277,7 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 typedef struct LassoMaskData {
 	struct ViewContext *vc;
 	float projviewobjmat[4][4];
-	bool *px;
+	BLI_bitmap *px;
 	int width;
 	rcti rect; /* bounding box for scanfilling */
 	int symmpass;
@@ -307,13 +307,13 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
 	scr_co_s[0] -= data->rect.xmin;
 	scr_co_s[1] -= data->rect.ymin;
 
-	return data->px[scr_co_s[1] * data->width + scr_co_s[0]];
+	return BLI_BITMAP_TEST_BOOL(data->px, scr_co_s[1] * data->width + scr_co_s[0]);
 }
 
 static void mask_lasso_px_cb(int x, int y, void *user_data)
 {
 	struct LassoMaskData *data = user_data;
-	data->px[(y * data->width) + x] = true;
+	BLI_BITMAP_ENABLE(data->px, (y * data->width) + x);
 }
 
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
@@ -351,7 +351,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
 		BLI_lasso_boundbox(&data.rect, mcords, mcords_tot);
 		data.width = data.rect.xmax - data.rect.xmin;
-		data.px = MEM_callocN(sizeof(*data.px) * data.width * (data.rect.ymax - data.rect.ymin), __func__);
+		data.px = BLI_BITMAP_NEW(data.width * (data.rect.ymax - data.rect.ymin), __func__);
 
 		fill_poly_v2i_n(
 		       data.rect.xmin, data.rect.ymin, data.rect.xmax, data.rect.ymax,
