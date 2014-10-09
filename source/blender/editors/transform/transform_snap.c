@@ -2396,7 +2396,7 @@ bool snapNodesContext(bContext *C, const int mval[2], float *r_dist_px, float r_
 
 /*================================================================*/
 
-static void applyGridIncrement(TransInfo *t, float *val, int max_index, float fac[3], GearsType action);
+static void applyGridIncrement(TransInfo *t, float *val, int max_index, const float fac[3], GearsType action);
 
 
 void snapGridIncrementAction(TransInfo *t, float *val, GearsType action)
@@ -2429,7 +2429,7 @@ void snapGridIncrement(TransInfo *t, float *val)
 }
 
 
-static void applyGridIncrement(TransInfo *t, float *val, int max_index, float fac[3], GearsType action)
+static void applyGridIncrement(TransInfo *t, float *val, int max_index, const float fac[3], GearsType action)
 {
 	int i;
 	float asp[3] = {1.0f, 1.0f, 1.0f}; // TODO: Remove hard coded limit here (3)
@@ -2457,6 +2457,6 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, float fa
 	}
 
 	for (i = 0; i <= max_index; i++) {
-		val[i] = fac[action] * asp[i] * (float)floor(val[i] / (fac[action] * asp[i]) + 0.5f);
+		val[i] = fac[action] * asp[i] * floorf(val[i] / (fac[action] * asp[i]) + 0.5f);
 	}
 }
