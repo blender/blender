@@ -791,14 +791,6 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
 	texr->ta = texr->talpha ? texr->ta*xsd : (clip ? cw*xsd : 1.f);
 }
 
-/* test if a float value is 'nan'
- * there is a C99 function for this: isnan(), but blender seems to use C90 (according to gcc warns),
- * and may not be supported by other compilers either */
-/* TODO(sergey): Consider using isnan(), it's used in the other areas. */
-#ifndef ISNAN
-#  define ISNAN(x) ((x) != (x))
-#endif
-
 typedef struct ReadEWAData {
 	ImBuf *ibuf;
 	afdata_t *AFD;
@@ -1212,7 +1204,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			if (tex->texfilter == TXF_FELINE) AFD.iProbes = 1;
 		}
 		else {
-			const int lev = ISNAN(levf) ? 0 : (int)levf;
+			const int lev = isnan(levf) ? 0 : (int)levf;
 			curibuf = mipmaps[lev];
 			previbuf = mipmaps[lev + 1];
 			levf -= floorf(levf);
