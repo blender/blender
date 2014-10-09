@@ -2720,6 +2720,11 @@ uiPieMenu *uiPieMenuBegin(struct bContext *C, const char *title, int icon, const
 	pie->block_radial->flag |= UI_BLOCK_RADIAL;
 	pie->block_radial->pie_data.event = event->type;
 
+	/* if pie is spawned by a left click, it is always assumed to be click style */
+	if (event->type == LEFTMOUSE) {
+		pie->block_radial->flag |= UI_PIE_CLICK_STYLE;
+	}
+
 	pie->layout = uiBlockLayout(pie->block_radial, UI_LAYOUT_VERTICAL, UI_LAYOUT_PIEMENU, 0, 0, 200, 0, 0, style);
 	pie->mx = event->x;
 	pie->my = event->y;
