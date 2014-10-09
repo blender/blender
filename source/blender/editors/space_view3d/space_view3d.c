@@ -434,9 +434,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	BGpic *bgpic;
 	
 	/* clear or remove stuff from old */
-	
-// XXX	BIF_view3d_previewrender_free(v3do);
-	
+
 	if (v3dn->localvd) {
 		v3dn->localvd = NULL;
 		v3dn->properties_storage = NULL;

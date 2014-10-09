@@ -3231,9 +3231,10 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 
 /********************************* Normals **********************************/
 
-void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
-                               float n4[3], const float f_no[3], const float co1[3], const float co2[3],
-                               const float co3[3], const float co4[3])
+void accumulate_vertex_normals(
+        float n1[3], float n2[3], float n3[3], float n4[3],
+        const float f_no[3],
+        const float co1[3], const float co2[3], const float co3[3], const float co4[3])
 {
 	float vdiffs[4][3];
 	const int nverts = (n4 != NULL && co4 != NULL) ? 4 : 3;
@@ -3305,7 +3306,11 @@ void accumulate_vertex_normals_poly(float **vertnos, const float polyno[3],
 
 /********************************* Tangents **********************************/
 
-void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], float co2[3], float co3[3], float n[3], float tang[3])
+void tangent_from_uv(
+        const float uv1[2], const float uv2[2], const float uv3[3],
+        const float co1[3], const float co2[3], const float co3[3],
+        const float n[3],
+        float r_tang[3])
 {
 	const float s1 = uv2[0] - uv1[0];
 	const float s2 = uv3[0] - uv1[0];
@@ -3313,7 +3318,8 @@ void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], flo
 	const float t2 = uv3[1] - uv1[1];
 	float det = (s1 * t2 - s2 * t1);
 
-	if (det != 0.0f) { /* otherwise 'tang' becomes nan */
+	/* otherwise 'r_tang' becomes nan */
+	if (det != 0.0f) {
 		float tangv[3], ct[3], e1[3], e2[3];
 
 		det = 1.0f / det;
@@ -3321,21 +3327,21 @@ void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], flo
 		/* normals in render are inversed... */
 		sub_v3_v3v3(e1, co1, co2);
 		sub_v3_v3v3(e2, co1, co3);
-		tang[0] = (t2 * e1[0] - t1 * e2[0]) * det;
-		tang[1] = (t2 * e1[1] - t1 * e2[1]) * det;
-		tang[2] = (t2 * e1[2] - t1 * e2[2]) * det;
+		r_tang[0] = (t2 * e1[0] - t1 * e2[0]) * det;
+		r_tang[1] = (t2 * e1[1] - t1 * e2[1]) * det;
+		r_tang[2] = (t2 * e1[2] - t1 * e2[2]) * det;
 		tangv[0] = (s1 * e2[0] - s2 * e1[0]) * det;
 		tangv[1] = (s1 * e2[1] - s2 * e1[1]) * det;
 		tangv[2] = (s1 * e2[2] - s2 * e1[2]) * det;
-		cross_v3_v3v3(ct, tang, tangv);
+		cross_v3_v3v3(ct, r_tang, tangv);
 
 		/* check flip */
 		if (dot_v3v3(ct, n) < 0.0f) {
-			negate_v3(tang);
+			negate_v3(r_tang);
 		}
 	}
 	else {
-		tang[0] = tang[1] = tang[2] = 0.0f;
+		zero_v3(r_tang);
 	}
 }
 

@@ -1433,7 +1433,7 @@ void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *pro
 
 typedef struct {
 	IsectRayAABBData ray;
-	int original;
+	bool original;
 } RaycastData;
 
 static bool ray_aabb_intersect(PBVHNode *node, void *data_v)
@@ -1449,9 +1449,10 @@ static bool ray_aabb_intersect(PBVHNode *node, void *data_v)
 	return isect_ray_aabb(&rcd->ray, bb_min, bb_max, &node->tmin);
 }
 
-void BKE_pbvh_raycast(PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
-                      const float ray_start[3], const float ray_normal[3],
-                      int original)
+void BKE_pbvh_raycast(
+        PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
+        const float ray_start[3], const float ray_normal[3],
+        bool original)
 {
 	RaycastData rcd;
 

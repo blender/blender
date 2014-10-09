@@ -8747,8 +8747,9 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 		switch (event->type) {
 			case MOUSEMOVE:
-				if (len_squared_v2v2(event_xy, block->pie_data.pie_center_init) > PIE_CLICK_THRESHOLD_SQ &&
-				    !is_click_style) {
+				if (!is_click_style &&
+				    (len_squared_v2v2(event_xy, block->pie_data.pie_center_init) > PIE_CLICK_THRESHOLD_SQ))
+				{
 					block->pie_data.flags |= UI_PIE_DRAG_STYLE;
 				}
 				ui_handle_menu_button(C, event, menu);

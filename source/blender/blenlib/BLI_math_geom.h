@@ -275,17 +275,22 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 
 /********************************** Normals **********************************/
 
-void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
-                               float n4[3], const float f_no[3], const float co1[3], const float co2[3],
-                               const float co3[3], const float co4[3]);
+void accumulate_vertex_normals(
+        float n1[3], float n2[3], float n3[3], float n4[3],
+        const float f_no[3],
+        const float co1[3], const float co2[3], const float co3[3], const float co4[3]);
 
-void accumulate_vertex_normals_poly(float **vertnos, const float polyno[3],
-                                    const float **vertcos, float vdiffs[][3], const int nverts);
+void accumulate_vertex_normals_poly(
+        float **vertnos, const float polyno[3],
+        const float **vertcos, float vdiffs[][3], const int nverts);
 
 /********************************* Tangents **********************************/
 
-void tangent_from_uv(float uv1[2], float uv2[2], float uv3[2],
-                     float co1[3], float co2[3], float co3[3], float n[3], float tang[3]);
+void tangent_from_uv(
+        const float uv1[2], const float uv2[2], const float uv3[2],
+        const float co1[3], const float co2[3], const float co3[3],
+        const float n[3],
+        float r_tang[3]);
 
 /******************************** Vector Clouds ******************************/
 

@@ -89,9 +89,10 @@ void BKE_pbvh_search_gather(PBVH *bvh,
  * it's up to the callback to find the primitive within the leaves that is
  * hit first */
 
-void BKE_pbvh_raycast(PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
-                      const float ray_start[3], const float ray_normal[3],
-                      int original);
+void BKE_pbvh_raycast(
+        PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
+        const float ray_start[3], const float ray_normal[3],
+        bool original);
 
 bool BKE_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use_origco,
                           const float ray_start[3], const float ray_normal[3],

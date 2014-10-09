@@ -268,8 +268,8 @@ typedef struct {
 
 	/* Original coordinate, normal, and mask */
 	const float *co;
-	float mask;
 	const short *no;
+	float mask;
 } SculptOrigVertData;
 
 
@@ -4008,7 +4008,7 @@ typedef struct {
 	const float *ray_start, *ray_normal;
 	bool hit;
 	float dist;
-	int original;
+	bool original;
 } SculptRaycastData;
 
 typedef struct {
