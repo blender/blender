@@ -220,8 +220,7 @@ Marker libmv_projectMarker(const EuclideanPoint& point,
 
 void libmv_getNormalizedTracks(const Tracks &tracks,
                                const CameraIntrinsics &camera_intrinsics,
-                               Tracks *normalized_tracks)
-{
+                               Tracks *normalized_tracks) {
   libmv::vector<Marker> markers = tracks.AllMarkers();
   for (int i = 0; i < markers.size(); ++i) {
     Marker &marker = markers[i];

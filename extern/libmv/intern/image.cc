@@ -238,7 +238,7 @@ void libmv_samplePlanarPatchFloat(const float* image,
   libmv_floatImageToFloatBuffer(libmv_patch, patch);
 }
 
- void libmv_samplePlanarPatchByte(const unsigned char* image,
+void libmv_samplePlanarPatchByte(const unsigned char* image,
                                   int width,
                                   int height,
                                   int channels,
@@ -268,5 +268,5 @@ void libmv_samplePlanarPatchFloat(const float* image,
                            warped_position_x,
                            warped_position_y);
 
-	libmv_floatImageToByteBuffer(libmv_patch, patch);
+  libmv_floatImageToByteBuffer(libmv_patch, patch);
 }

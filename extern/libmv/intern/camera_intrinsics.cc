@@ -349,6 +349,7 @@ CameraIntrinsics* libmv_cameraIntrinsicsCreateFromOptions(
     default:
       assert(!"Unknown distortion model");
   }
-  libmv_cameraIntrinsicsFillFromOptions(camera_intrinsics_options, camera_intrinsics);
+  libmv_cameraIntrinsicsFillFromOptions(camera_intrinsics_options,
+                                        camera_intrinsics);
   return camera_intrinsics;
 }
