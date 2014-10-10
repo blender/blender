@@ -29,6 +29,7 @@
  *  \ingroup spoutliner
  */
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -46,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -55,6 +57,7 @@
 #include "BKE_object.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 
@@ -168,7 +171,7 @@ static void restrictbutton_recursive_bone(bContext *C, bArmature *arm, Bone *bon
 }
 
 static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob_parent, char flag,
-                                           bool state, bool deselect)
+                                           bool state, bool deselect, const char *rnapropname)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *ob;
@@ -182,6 +185,33 @@ static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob
 			}
 			else {
 				ob->restrictflag &= ~flag;
+			}
+
+			if (rnapropname) {
+				PointerRNA ptr;
+				PropertyRNA *prop;
+				ID *id;
+				bAction *action;
+				FCurve *fcu;
+				bool driven;
+
+				RNA_id_pointer_create(&ob->id, &ptr);
+				prop = RNA_struct_find_property(&ptr, rnapropname);
+				fcu = rna_get_fcurve_context_ui(C, &ptr, prop, 0, &action, &driven);
+
+				if (fcu && !driven) {
+					id = ptr.id.data;
+					if (autokeyframe_cfra_can_key(scene, id)) {
+						ReportList *reports = CTX_wm_reports(C);
+						short flag = ANIM_get_keyframing_flags(scene, 1);
+
+						fcu->flag &= ~FCURVE_SELECTED;
+						insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
+						                fcu->rna_path, fcu->array_index, CFRA, flag);
+						/* Assuming this is not necessary here, since 'ancestor' object button will do it anyway. */
+						/* WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL); */
+					}
+				}
 			}
 		}
 	}
@@ -203,7 +233,7 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {
 		restrictbutton_recursive_child(C, scene, ob, OB_RESTRICT_VIEW,
-		                               (ob->restrictflag & OB_RESTRICT_VIEW) != 0, true);
+		                               (ob->restrictflag & OB_RESTRICT_VIEW) != 0, true, "hide");
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -226,7 +256,7 @@ static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {
 		restrictbutton_recursive_child(C, scene, ob, OB_RESTRICT_SELECT,
-		                               (ob->restrictflag & OB_RESTRICT_SELECT) != 0, true);
+		                               (ob->restrictflag & OB_RESTRICT_SELECT) != 0, true, NULL);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -239,7 +269,7 @@ static void restrictbutton_rend_cb(bContext *C, void *poin, void *poin2)
 
 	if (CTX_wm_window(C)->eventstate->ctrl) {
 		restrictbutton_recursive_child(C, (Scene *)poin, ob, OB_RESTRICT_RENDER,
-		                               (ob->restrictflag & OB_RESTRICT_RENDER) != 0, false);
+		                               (ob->restrictflag & OB_RESTRICT_RENDER) != 0, false, "hide_render");
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_RENDER, poin);
