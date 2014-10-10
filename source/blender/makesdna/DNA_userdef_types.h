@@ -540,7 +540,8 @@ typedef struct UserDef {
 	                             * a drag/release pie menu */
 	short pie_initial_timeout;  /* direction in the pie menu will always be calculated from the initial position
 	                             * within this time limit */
-	int pie_animation_timeout;
+	short pie_animation_timeout;
+	short pie_menu_confirm;
 	short pie_menu_radius;        /* pie menu radius */
 	short pie_menu_threshold;     /* pie menu distance from center before a direction is set */
 

@@ -168,9 +168,9 @@ enum {
 	UI_PIE_INITIAL_DIRECTION    = (1 << 1),  /* use initial center of pie menu to calculate direction */
 	UI_PIE_DRAG_STYLE           = (1 << 2),  /* pie menu is drag style */
 	UI_PIE_INVALID_DIR          = (1 << 3),  /* mouse not far enough from center position  */
-	UI_PIE_FINISHED             = (1 << 4),  /* pie menu finished but we still wait for a release event  */
-	UI_PIE_CLICK_STYLE          = (1 << 5),  /* pie menu changed to click style, click to confirm  */
-	UI_PIE_ANIMATION_FINISHED   = (1 << 6),  /* pie animation finished, do not calculate any more motio  */
+	UI_PIE_CLICK_STYLE          = (1 << 4),  /* pie menu changed to click style, click to confirm  */
+	UI_PIE_ANIMATION_FINISHED   = (1 << 5),  /* pie animation finished, do not calculate any more motion  */
+	UI_PIE_GESTURE_END_WAIT     = (1 << 6),  /* pie gesture selection has been done, now wait for mouse motion to end */
 };
 
 #define PIE_CLICK_THRESHOLD_SQ 50.0f
@@ -310,6 +310,8 @@ struct PieMenuData {
 	float pie_dir[2];
 	float pie_center_init[2];
 	float pie_center_spawned[2];
+	float last_pos[2];
+	double duration_gesture;
 	int flags;
 	int event; /* initial event used to fire the pie menu, store here so we can query for release */
 	float alphafac;

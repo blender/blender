@@ -3838,6 +3838,8 @@ void ui_draw_pie_center(uiBlock *block)
 
 	float pie_radius_internal = U.pixelsize * U.pie_menu_threshold;
 	float pie_radius_external = U.pixelsize * (U.pie_menu_threshold + 7.0f);
+	float pie_confirm_radius = U.pixelsize * (U.pie_menu_confirm);
+	float pie_confirm_external = U.pixelsize * (U.pie_menu_confirm + 2.0f);
 
 	int subd = 40;
 
@@ -3874,6 +3876,10 @@ void ui_draw_pie_center(uiBlock *block)
 	glutil_draw_lined_arc(0.0f, (float)M_PI * 2.0f, pie_radius_internal, subd);
 	glutil_draw_lined_arc(0.0f, (float)M_PI * 2.0f, pie_radius_external, subd);
 
+	if (pie_confirm_radius > pie_radius_external) {
+		glColor4ub(btheme->tui.wcol_pie_menu.text_sel[0], btheme->tui.wcol_pie_menu.text_sel[1], btheme->tui.wcol_pie_menu.text_sel[2], 64);
+		draw_disk_shaded(angle - range / 2.0f, range, pie_confirm_radius, pie_confirm_external, subd, NULL, NULL, false);
+	}
 	glDisable(GL_BLEND);
 	glPopMatrix();
 }

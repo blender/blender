@@ -2188,6 +2188,12 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 	
 }
 
+static void wm_event_pie_filter(wmWindow *win, wmEvent *event)
+{
+	if (win->lock_pie_event == event->type && event->val == KM_RELEASE)
+		win->lock_pie_event = EVENT_NONE;
+}
+
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void wm_event_do_handlers(bContext *C)
@@ -2262,6 +2268,9 @@ void wm_event_do_handlers(bContext *C)
 			wm_window_make_drawable(wm, win);
 			
 			wm_region_mouse_co(C, event);
+
+			/* take care of pie event filter */
+			wm_event_pie_filter(win, event);
 
 			/* first we do priority handlers, modal + some limited keymaps */
 			action |= wm_handlers_do(C, event, &win->modalhandlers);

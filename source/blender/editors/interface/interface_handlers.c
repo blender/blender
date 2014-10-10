@@ -8632,6 +8632,13 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 	duration = menu->scrolltimer->duration;
 
+	event_xy[0] = event->x;
+	event_xy[1] = event->y;
+
+	ui_window_to_block_fl(ar, block, &event_xy[0], &event_xy[1]);
+
+	ui_block_calculate_pie_segment(block, event_xy);
+
 	if (event->type == TIMER) {
 		if (event->customdata == menu->scrolltimer) {
 			/* deactivate initial direction after a while */
@@ -8677,24 +8684,26 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				ED_region_tag_redraw(ar);
 			}
 		}
-	}
 
-	event_xy[0] = event->x;
-	event_xy[1] = event->y;
+		/* check pie velociy here if gesture has ended */
+		if (block->pie_data.flags & UI_PIE_GESTURE_END_WAIT) {
+			float len_sq = 10;
 
-	ui_window_to_block_fl(ar, block, &event_xy[0], &event_xy[1]);
+			/* use a time threshold to ensure we leave time to the mouse to move */
+			if (duration - block->pie_data.duration_gesture > 0.02) {
+				len_sq = len_squared_v2v2(event_xy, block->pie_data.last_pos);
+				copy_v2_v2(block->pie_data.last_pos, event_xy);
+				block->pie_data.duration_gesture = duration;
+			}
 
-	ui_block_calculate_pie_segment(block, event_xy);
+			if (len_sq < 1.0) {
+				uiBut *but = ui_but_find_activated(menu->region);
 
-	if (block->pie_data.flags & UI_PIE_FINISHED) {
-		if ((event->type == block->pie_data.event && event->val == KM_RELEASE) ||
-		    ((event->type == RIGHTMOUSE || event->type == ESCKEY) && (event->val == KM_PRESS)))
-		{
-			menu->menuretval = UI_RETURN_OK;
+				if (but) {
+					return ui_but_pie_menu_apply(C, menu, but, true);
+				}
+			}
 		}
-
-		ED_region_tag_redraw(ar);
-		return WM_UI_HANDLER_BREAK;
 	}
 
 	if (event->type == block->pie_data.event && !is_click_style) {
@@ -8714,9 +8723,18 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				block->pie_data.flags |= UI_PIE_CLICK_STYLE;
 			}
 			else {
+				float len_sq = len_squared_v2v2(event_xy, block->pie_data.pie_center_init);
 				uiBut *but = ui_but_find_activated(menu->region);
 
+				if (but && (U.pie_menu_confirm >= U.pie_menu_threshold) &&
+				    (sqrtf(len_sq) >= U.pie_menu_confirm))
+				{
+					if (but)
+						return ui_but_pie_menu_apply(C, menu, but, true);
+				}
+
 				retval = ui_but_pie_menu_apply(C, menu, but, true);
+
 			}
 		}
 	}
@@ -8726,11 +8744,23 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 		switch (event->type) {
 			case MOUSEMOVE:
-				if (!is_click_style &&
-				    (len_squared_v2v2(event_xy, block->pie_data.pie_center_init) > PIE_CLICK_THRESHOLD_SQ))
-				{
-					block->pie_data.flags |= UI_PIE_DRAG_STYLE;
+				if (!is_click_style) {
+					float len_sq = len_squared_v2v2(event_xy, block->pie_data.pie_center_init);
+
+					if (len_sq > PIE_CLICK_THRESHOLD_SQ)
+					{
+						block->pie_data.flags |= UI_PIE_DRAG_STYLE;
+					}
+
+					if ((U.pie_menu_confirm >= U.pie_menu_threshold) &&
+					    (sqrtf(len_sq) >= U.pie_menu_confirm))
+					{
+						block->pie_data.flags |= UI_PIE_GESTURE_END_WAIT;
+						copy_v2_v2(block->pie_data.last_pos, event_xy);
+						block->pie_data.duration_gesture = duration;
+					}
 				}
+
 				ui_handle_menu_button(C, event, menu);
 				
 				/* mouse move should always refresh the area for pie menus */
@@ -8750,13 +8780,7 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 			case ESCKEY:
 			case RIGHTMOUSE:
-				if (!is_click_style) {
-					block->pie_data.flags |= UI_PIE_FINISHED;
-					menu->menuretval = 0;
-					ED_region_tag_redraw(ar);
-				}
-				else
-					menu->menuretval = UI_RETURN_CANCEL;
+				menu->menuretval = UI_RETURN_CANCEL;
 				break;
 
 			case AKEY:
@@ -9043,6 +9067,7 @@ static int ui_handler_popup(bContext *C, const wmEvent *event, void *userdata)
 	struct ARegion *menu_region;
 	/* we block all events, this is modal interaction, except for drop events which is described below */
 	int retval = WM_UI_HANDLER_BREAK;
+	bool reset_pie = false;
 
 	menu_region = CTX_wm_menu(C);
 	CTX_wm_menu_set(C, menu->region);
@@ -9063,6 +9088,13 @@ static int ui_handler_popup(bContext *C, const wmEvent *event, void *userdata)
 		wmWindow *win = CTX_wm_window(C);
 		/* copy values, we have to free first (closes region) */
 		uiPopupBlockHandle temp = *menu;
+		uiBlock *block = menu->region->uiblocks.first;
+
+		/* set last pie event to allow chained pie spawning */
+		if (block->flag & UI_BLOCK_RADIAL) {
+			win->last_pie_event = block->pie_data.event;
+			reset_pie = true;
+		}
 		
 		ui_popup_block_free(C, menu);
 		UI_remove_popup_handlers(&win->modalhandlers, menu);
@@ -9093,6 +9125,14 @@ static int ui_handler_popup(bContext *C, const wmEvent *event, void *userdata)
 
 	/* delayed apply callbacks */
 	ui_apply_but_funcs_after(C);
+
+	if (reset_pie) {
+		/* reaqcuire window in case pie invalidates it somehow */
+		wmWindow *win = CTX_wm_window(C);
+
+		if (win)
+			win->last_pie_event = EVENT_NONE;
+	}
 
 	CTX_wm_region_set(C, menu_region);
 

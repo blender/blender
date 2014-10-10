@@ -171,11 +171,6 @@ typedef struct wmWindow {
 
 	void *ghostwin;             /* don't want to include ghost.h stuff */
 
-	int winid;                  /* winid also in screens, is for retrieving this window after read */
-
-	short grabcursor;           /* cursor grab mode */
-	short pad;
-
 	struct bScreen *screen;     /* active screen */
 	struct bScreen *newscreen;  /* temporary when switching */
 	char screenname[64];        /* MAX_ID_NAME for matching window with active screen after file read */
@@ -187,8 +182,14 @@ typedef struct wmWindow {
 	short cursor;       /* current mouse cursor type */
 	short lastcursor;   /* previous cursor when setting modal one */
 	short modalcursor;  /* the current modal cursor */
+	short grabcursor;           /* cursor grab mode */
 	short addmousemove; /* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
-	short pad2;
+
+	int winid;                  /* winid also in screens, is for retrieving this window after read */
+
+	short lock_pie_event;      /* internal, lock pie creation from this event until released */
+	short last_pie_event;      /* exception to the above rule for nested pies, store last pie event for operators
+	                            * that spawn a new pie right after destruction of last pie */
 
 	struct wmEvent *eventstate;   /* storage for event system */
 
