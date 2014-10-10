@@ -85,7 +85,7 @@ ccl_device_inline float approx_erfinvf_do(float x)
 		const float c1 = -1.970840454f;
 		const float c2 = -1.624906493f;
 		const float c3 =  3.429567803f;
-		const float c4 =  1.641345311;
+		const float c4 =  1.641345311f;
 		const float d1 =  3.543889200f;
 		const float d2 =  1.637067800f;
 		const float z = sqrtf(-logf((1.0f - x) * 0.5f));
