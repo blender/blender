@@ -146,32 +146,6 @@ static const int NAN_INT = 0x7FC00000;
 #  endif
 #endif
 
-/* Causes warning:
- * incompatible types when assigning to type 'Foo' from type 'Bar'
- * ... the compiler optimizes away the temp var */
-#ifndef CHECK_TYPE
-#ifdef __GNUC__
-#define CHECK_TYPE(var, type)  {  \
-	typeof(var) *__tmp;           \
-	__tmp = (type *)NULL;         \
-	(void)__tmp;                  \
-} (void)0
-#else
-#define CHECK_TYPE(var, type)
-#endif
-#endif
-
-#ifndef SWAP
-#  define SWAP(type, a, b)  {  \
-	type sw_ap;                \
-	CHECK_TYPE(a, type);       \
-	CHECK_TYPE(b, type);       \
-	sw_ap = (a);               \
-	(a) = (b);                 \
-	(b) = sw_ap;               \
-} (void)0
-#endif
-
 #if BLI_MATH_DO_INLINE
 #include "intern/math_base_inline.c"
 #endif
