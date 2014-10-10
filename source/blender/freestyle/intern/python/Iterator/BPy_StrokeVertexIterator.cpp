@@ -155,9 +155,9 @@ static PyObject *StrokeVertexIterator_incremented(BPy_StrokeVertexIterator *self
 		PyErr_SetString(PyExc_RuntimeError, "cannot increment any more");
 		return NULL;
 	}
-	StrokeInternal::StrokeVertexIterator *copy = new StrokeInternal::StrokeVertexIterator(*self->sv_it);
-	copy->increment();
-	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(*copy, self->reversed);
+	StrokeInternal::StrokeVertexIterator copy(*self->sv_it);
+	copy.increment();
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(copy, self->reversed);
 }
 
 PyDoc_STRVAR(StrokeVertexIterator_decremented_doc,
@@ -174,10 +174,9 @@ static PyObject *StrokeVertexIterator_decremented(BPy_StrokeVertexIterator *self
 		PyErr_SetString(PyExc_RuntimeError, "cannot decrement any more");
 		return NULL;
 	}
-
-	StrokeInternal::StrokeVertexIterator *copy = new StrokeInternal::StrokeVertexIterator(*self->sv_it);
-	copy->decrement();
-	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(*copy, self->reversed);
+	StrokeInternal::StrokeVertexIterator copy(*self->sv_it);
+	copy.decrement();
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(copy, self->reversed);
 }
 
 PyDoc_STRVAR(StrokeVertexIterator_reversed_doc,
@@ -191,8 +190,7 @@ PyDoc_STRVAR(StrokeVertexIterator_reversed_doc,
 
 static PyObject *StrokeVertexIterator_reversed(BPy_StrokeVertexIterator *self)
 {
-	StrokeInternal::StrokeVertexIterator *copy = new StrokeInternal::StrokeVertexIterator(*self->sv_it);
-	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(*copy, !self->reversed);
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(*self->sv_it, !self->reversed);
 }
 
 static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
