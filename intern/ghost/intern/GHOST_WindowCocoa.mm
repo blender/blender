@@ -962,7 +962,12 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 
 	if (masks & NSFullScreenWindowMask) {
 		// Lion style fullscreen
-		state = GHOST_kWindowStateFullScreen;
+        if (!m_immediateDraw) {
+            state = GHOST_kWindowStateFullScreen;
+        }
+        else {
+            state = GHOST_kWindowStateNormal;
+        }
 	}
 	else
 #endif
@@ -976,7 +981,12 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 		state = GHOST_kWindowStateMaximized;
 	}
 	else {
+        if (m_immediateDraw) {
+            state = GHOST_kWindowStateFullScreen;
+        }
+        else {
 		state = GHOST_kWindowStateNormal;
+        }
 	}
 	[pool drain];
 	return state;
