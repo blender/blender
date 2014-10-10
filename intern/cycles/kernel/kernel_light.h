@@ -167,12 +167,137 @@ ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, flo
 	return disk_light_sample(normalize(P - center), randu, randv)*radius;
 }
 
-ccl_device float3 area_light_sample(float3 axisu, float3 axisv, float randu, float randv)
+/* Uses the following paper:
+ *
+ * Carlos Urena et al.
+ * An Area-Preserving Parametrization for Spherical Rectangles.
+ *
+ * https://www.solidangle.com/research/egsr2013_spherical_rectangle.pdf
+ */
+ccl_device float3 area_light_sample(float3 P,
+                                    float3 light_p,
+                                    float3 axisu, float3 axisv,
+                                    float randu, float randv,
+                                    float *pdf)
 {
-	randu = randu - 0.5f;
-	randv = randv - 0.5f;
+	/* In our name system we're using P for the center,
+	 * which is o in the paper.
+	 */
 
-	return axisu*randu + axisv*randv;
+	float3 corner = light_p - axisu * 0.5f - axisv * 0.5f;
+	float axisu_len, axisv_len;
+	/* Compute local reference system R. */
+	float3 x = normalize_len(axisu, &axisu_len);
+	float3 y = normalize_len(axisv, &axisv_len);
+	float3 z = cross(x, y);
+	/* Compute rectangle coords in local reference system. */
+	float3 dir = corner - P;
+	float z0 = dot(dir, z);
+	/* Flip 'z' to make it point against Q. */
+	if(z0 > 0.0f) {
+		z *= -1.0f;
+		z0 *= -1.0f;
+	}
+	float z0sq = z0 * z0;
+	float x0 = dot(dir, x);
+	float y0 = dot(dir, y);
+	float x1 = x0 + axisu_len;
+	float y1 = y0 + axisv_len;
+	float y0sq = y0 * y0;
+	float y1sq = y1 * y1;
+	/* Create vectors to four vertices. */
+	float3 v00 = make_float3(x0, y0, z0);
+	float3 v01 = make_float3(x0, y1, z0);
+	float3 v10 = make_float3(x1, y0, z0);
+	float3 v11 = make_float3(x1, y1, z0);
+	/* Compute normals to edges. */
+	float3 n0 = normalize(cross(v00, v10));
+	float3 n1 = normalize(cross(v10, v11));
+	float3 n2 = normalize(cross(v11, v01));
+	float3 n3 = normalize(cross(v01, v00));
+	/* Compute internal angles (gamma_i). */
+	float g0 = acosf(-dot(n0, n1));
+	float g1 = acosf(-dot(n1, n2));
+	float g2 = acosf(-dot(n2, n3));
+	float g3 = acosf(-dot(n3, n0));
+	/* Compute predefined constants. */
+	float b0 = n0.z;
+	float b1 = n2.z;
+	float b0sq = b0 * b0;
+	float k = M_2PI_F - g2 - g3;
+	/* Compute solid angle from internal angles. */
+	float S = g0 + g1 - k;
+
+	/* Compute cu. */
+	float au = randu * S + k;
+	float fu = (cosf(au) * b0 - b1) / sinf(au);
+	float cu = 1.0f / sqrtf(fu * fu + b0sq) * (fu > 0.0f ? 1.0f : -1.0f);
+	cu = clamp(cu, -1.0f, 1.0f);
+	/* Compute xu. */
+	float xu = -(cu * z0) / sqrtf(1.0f - cu * cu);
+	xu = clamp(xu, x0, x1);
+	/* Compute yv. */
+	float d = sqrtf(xu * xu + z0sq);
+	float h0 = y0 / sqrtf(d * d + y0sq);
+	float h1 = y1 / sqrtf(d * d + y1sq);
+	float hv = h0 + randv * (h1 - h0), hv2 = hv * hv;
+	float yv = (hv2 < 1.0f - 1e-6f) ? (hv * d) / sqrtf(1.0f - hv2) : y1;
+
+	*pdf = 1.0f / S;
+
+	/* Transform (xu, yv, z0) to world coords. */
+	return P + xu * x + yv * y + z0 * z;
+}
+
+/* TODO(sergey): This is actually a duplicated code from above, but how to avoid
+ * this without having some nasty function with loads of parameters?
+ */
+ccl_device float area_light_pdf(float3 P,
+                                float3 light_p,
+                                float3 axisu, float3 axisv)
+{
+	/* In our name system we're using P for the center,
+	 * which is o in the paper.
+	 */
+
+	float3 corner = light_p - axisu * 0.5f - axisv * 0.5f;
+	float axisu_len, axisv_len;
+	/* Compute local reference system R. */
+	float3 x = normalize_len(axisu, &axisu_len);
+	float3 y = normalize_len(axisv, &axisv_len);
+	float3 z = cross(x, y);
+	/* Compute rectangle coords in local reference system. */
+	float3 dir = corner - P;
+	float z0 = dot(dir, z);
+	/* Flip 'z' to make it point against Q. */
+	if(z0 > 0.0f) {
+		z *= -1.0f;
+		z0 *= -1.0f;
+	}
+	float x0 = dot(dir, x);
+	float y0 = dot(dir, y);
+	float x1 = x0 + axisu_len;
+	float y1 = y0 + axisv_len;
+	/* Create vectors to four vertices. */
+	float3 v00 = make_float3(x0, y0, z0);
+	float3 v01 = make_float3(x0, y1, z0);
+	float3 v10 = make_float3(x1, y0, z0);
+	float3 v11 = make_float3(x1, y1, z0);
+	/* Compute normals to edges. */
+	float3 n0 = normalize(cross(v00, v10));
+	float3 n1 = normalize(cross(v10, v11));
+	float3 n2 = normalize(cross(v11, v01));
+	float3 n3 = normalize(cross(v01, v00));
+	/* Compute internal angles (gamma_i). */
+	float g0 = acosf(-dot(n0, n1));
+	float g1 = acosf(-dot(n1, n2));
+	float g2 = acosf(-dot(n2, n3));
+	float g3 = acosf(-dot(n3, n0));
+	/* Compute predefined constants. */
+	float k = M_2PI_F - g2 - g3;
+	/* Compute solid angle from internal angles. */
+	float S = g0 + g1 - k;
+    return 1.0f / S;
 }
 
 ccl_device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
@@ -276,6 +401,7 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 				float4 data2 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 2);
 				ls->eval_fac *= spot_light_attenuation(data1, data2, ls);
 			}
+			ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 		}
 		else {
 			/* area light */
@@ -286,18 +412,22 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 			float3 axisv = make_float3(data2.y, data2.z, data2.w);
 			float3 D = make_float3(data3.y, data3.z, data3.w);
 
-			ls->P += area_light_sample(axisu, axisv, randu, randv);
+			ls->P = area_light_sample(P, ls->P,
+			                          axisu, axisv,
+			                          randu, randv,
+			                          &ls->pdf);
+
 			ls->Ng = D;
 			ls->D = normalize_len(ls->P - P, &ls->t);
 
 			float invarea = data2.x;
-
 			ls->eval_fac = 0.25f*invarea;
-			ls->pdf = invarea;
+
+			if(dot(ls->D, D) > 0.0f)
+				ls->pdf = 0.0f;
 		}
 
 		ls->eval_fac *= kernel_data.integrator.inv_pdf_lights;
-		ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 	}
 }
 
@@ -355,8 +485,12 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 		ls->D = D;
 		ls->t = FLT_MAX;
 
+		/* compute pdf */
 		float invarea = data1.w;
 		ls->pdf = invarea/(costheta*costheta*costheta);
+		if(ls->t != FLT_MAX)
+			ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
+
 		ls->eval_fac = ls->pdf;
 	}
 	else if(type == LIGHT_POINT || type == LIGHT_SPOT) {
@@ -386,6 +520,10 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 			if(ls->eval_fac == 0.0f)
 				return false;
 		}
+
+		/* compute pdf */
+		if(ls->t != FLT_MAX)
+			ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 	}
 	else if(type == LIGHT_AREA) {
 		/* area light */
@@ -412,15 +550,11 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 
 		ls->D = D;
 		ls->Ng = Ng;
-		ls->pdf = invarea;
-		ls->eval_fac = 0.25f*ls->pdf;
+		ls->pdf = area_light_pdf(P, ls->P, axisu, axisv);
+		ls->eval_fac = 0.25f*invarea;
 	}
 	else
 		return false;
-
-	/* compute pdf */
-	if(ls->t != FLT_MAX)
-		ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 
 	return true;
 }
