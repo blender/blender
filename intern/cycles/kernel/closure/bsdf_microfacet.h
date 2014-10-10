@@ -43,30 +43,65 @@ CCL_NAMESPACE_BEGIN
  * Some constants are baked into the code.
  */
 
-ccl_device_inline float approx_erff(float x)
+ccl_device_inline float approx_erff_do(float x)
 {
-	float s = 1.0f;
-	if(x < 0.0f) {
-		s = -1.0f;
-		x = -x;
-	}
 	/* Such a clamp doesn't give much distortion to the output value
 	 * and gives quite a few of the speedup.
 	 */
 	if(x > 3.0f) {
-		return s;
+		return 1.0f;
 	}
 	float t = 1.0f / (1.0f + 0.47047f*x);
-	return s * (1.0f -
-	            t*(0.3480242f + t*(-0.0958798f + t*0.7478556f)) * expf(-x*x));
+	return  (1.0f -
+	         t*(0.3480242f + t*(-0.0958798f + t*0.7478556f)) * expf(-x*x));
+}
+
+ccl_device_inline float approx_erff(float x)
+{
+	if(x >= 0.0f) {
+		return approx_erff_do(x);
+	}
+	else {
+		return -approx_erff_do(-x);
+	}
+}
+
+ccl_device_inline float approx_erfinvf_do(float x)
+{
+	if(x <= 0.7f) {
+		const float x2 = x * x;
+		const float a1 =  0.886226899f;
+		const float a2 = -1.645349621f;
+		const float a3 =  0.914624893f;
+		const float a4 = -0.140543331f;
+		const float b1 = -2.118377725f;
+		const float b2 =  1.442710462f;
+		const float b3 = -0.329097515f;
+		const float b4 =  0.012229801f;
+		return x * (((a4 * x2 + a3) * x2 + a2) * x2 + a1) /
+		          ((((b4 * x2 + b3) * x2 + b2) * x2 + b1) * x2 + 1.0f);
+	}
+	else {
+		const float c1 = -1.970840454f;
+		const float c2 = -1.624906493f;
+		const float c3 =  3.429567803f;
+		const float c4 =  1.641345311;
+		const float d1 =  3.543889200f;
+		const float d2 =  1.637067800f;
+		const float z = sqrtf(-logf((1.0f - x) * 0.5f));
+		return (((c4 * z + c3) * z + c2) * z + c1) /
+		        ((d2 * z + d1) * z + 1.0f);
+	}
 }
 
 ccl_device_inline float approx_erfinvf(float x)
 {
-	float ln1_x2 = logf(1.0f - x*x);
-	float term = 4.546884979448f + ln1_x2 * 0.5f;
-	return copysignf(1.0f, x) *
-	       sqrtf(sqrtf(term*term - ln1_x2 * 7.142230224076f) - term);
+	if(x >= 0.0f) {
+		return approx_erfinvf_do(x);
+	}
+	else {
+		return -approx_erfinvf_do(-x);
+	}
 }
 
 /* Beckmann and GGX microfacet importance sampling from:
