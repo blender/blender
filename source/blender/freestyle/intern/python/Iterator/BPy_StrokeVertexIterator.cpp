@@ -115,19 +115,25 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 		self->sv_it->decrement();
 	}
 	else {
-		/* if sv_it.isEnd() is true, the iterator can't be incremented. if sv_it.isLast() is true,
-		 * the iterator is currently pointing to the final valid argument. Incrementing it further would
-		 * give a python object that can't be dereferenced. */
-		if (self->sv_it->atLast() || self->sv_it->isEnd()) {
+		/* If sv_it.isEnd() is true, the iterator can't be incremented. */
+		if (self->sv_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-		/* if at the start of the iterator, only return the object
-		 * and don't increment, to keep for-loops in sync */
-		if (self->at_start)
+		/* If at the start of the iterator, only return the object
+		* and don't increment, to keep for-loops in sync */
+		else if (self->at_start) {
 			self->at_start = false;
-		else
+		}
+		/* If sv_it.atLast() is true, the iterator is currently pointing to the final valid element.
+		 * Incrementing it further would lead to a state that the iterator can't be dereferenced. */
+		else if (self->sv_it->atLast()) {
+			PyErr_SetNone(PyExc_StopIteration);
+			return NULL;
+		}
+		else {
 			self->sv_it->increment();
+		}
 	}
 	StrokeVertex *sv = self->sv_it->operator->();
 	return BPy_StrokeVertex_from_StrokeVertex(*sv);
