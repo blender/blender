@@ -120,14 +120,20 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 		self->if0D_it->decrement();
 	}
 	else {
-		if (self->if0D_it->atLast() || self->if0D_it->isEnd()) {
+		if (self->if0D_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}
-		if (self->at_start)
+		else if (self->at_start) {
 			self->at_start = false;
-		else
+		}
+		else if (self->if0D_it->atLast()) {
+			PyErr_SetNone(PyExc_StopIteration);
+			return NULL;
+		}
+		else {
 			self->if0D_it->increment();
+		}
 	}
 	Interface0D *if0D = self->if0D_it->operator->();
 	return Any_BPy_Interface0D_from_Interface0D(*if0D);
