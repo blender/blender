@@ -153,19 +153,20 @@ void ED_editors_exit(bContext *C)
 
 /* flush any temp data from object editing to DNA before writing files,
  * rendering, copying, etc. */
-void ED_editors_flush_edits(const bContext *C, bool for_render)
+bool ED_editors_flush_edits(const bContext *C, bool for_render)
 {
+	bool has_edited = false;
 	Object *ob;
-	Object *obedit = CTX_data_edit_object(C);
 	Main *bmain = CTX_data_main(C);
-	/* get editmode results */
-	if (obedit)
-		ED_object_editmode_load(obedit);
 
+	/* loop through all data to find edit mode or object mode, because during
+	 * exiting we might not have a context for edit object and multiple sculpt
+	 * objects can exist at the same time */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ob && (ob->mode & OB_MODE_SCULPT)) {
+		if (ob->mode & OB_MODE_SCULPT) {
 			/* flush multires changes (for sculpt) */
 			multires_force_update(ob);
+			has_edited = true;
 
 			if (for_render) {
 				/* flush changes from dynamic topology sculpt */
@@ -177,7 +178,14 @@ void ED_editors_flush_edits(const bContext *C, bool for_render)
 				BKE_sculptsession_bm_to_me(ob, false);
 			}
 		}
+		else if (ob->mode & OB_MODE_EDIT) {
+			/* get editmode results */
+			has_edited = true;
+			ED_object_editmode_load(ob);
+		}
 	}
+
+	return has_edited;
 }
 
 /* ***** XXX: functions are using old blender names, cleanup later ***** */

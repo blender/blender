@@ -54,6 +54,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLO_writefile.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -409,11 +411,18 @@ void WM_exit_ext(bContext *C, const bool do_python)
 			if ((U.uiflag2 & USER_KEEP_SESSION) || BKE_undo_valid(NULL)) {
 				/* save the undo state as quit.blend */
 				char filename[FILE_MAX];
-				
+				bool has_edited;
+				int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN | G_FILE_HISTORY);
+
 				BLI_make_file_string("/", filename, BLI_temp_dir_base(), BLENDER_QUIT_FILE);
 
-				if (BKE_undo_save_file(filename))
-					printf("Saved session recovery to '%s'\n", filename);
+				has_edited = ED_editors_flush_edits(C, false);
+
+				if ((has_edited && BLO_write_file(CTX_data_main(C), filename, fileflags, NULL, NULL)) ||
+					BKE_undo_save_file(filename))
+				{
+						printf("Saved session recovery to '%s'\n", filename);
+				}
 			}
 		}
 		
