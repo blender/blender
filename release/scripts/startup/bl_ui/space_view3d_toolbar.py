@@ -1272,7 +1272,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         brush_texture_settings(col, brush, context.sculpt_object)
 
 
-class VIEW3D_PT_tools_mask_texture(View3DPanel, View3DPaintPanel):
+class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
     bl_category = "Tools"
     bl_context = "imagepaint"
     bl_label = "Texture Mask"
@@ -1281,7 +1281,7 @@ class VIEW3D_PT_tools_mask_texture(View3DPanel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
-        return (settings and settings.image_paint.brush and context.image_paint_object and brush)
+        return (settings and settings.brush and context.image_paint_object)
 
     def draw(self, context):
         layout = self.layout
