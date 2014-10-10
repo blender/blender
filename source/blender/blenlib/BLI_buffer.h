@@ -88,12 +88,14 @@ enum {
 #define BLI_buffer_resize_data(buffer_, type_, new_count_) ( \
 	(BLI_buffer_resize(buffer_, new_count_), new_count_ ? BLI_buffer_array(buffer_, type_) : NULL))
 
-
-
 #define BLI_buffer_append(buffer_, type_, val_)  ( \
 	BLI_buffer_resize(buffer_, (buffer_)->count + 1), \
 	(BLI_buffer_at(buffer_, type_, (buffer_)->count - 1) = val_) \
 )
+
+#define BLI_buffer_empty(buffer_) { \
+	(buffer_)->count = 0; \
+} (void)0
 
 /* Never decreases the amount of memory allocated */
 void BLI_buffer_resize(BLI_Buffer *buffer, int new_count);
