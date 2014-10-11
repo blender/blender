@@ -61,10 +61,10 @@ ccl_device bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 #endif
 
 	isect->t = ray->t;
-	isect->object = OBJECT_NONE;
-	isect->prim = PRIM_NONE;
 	isect->u = 0.0f;
 	isect->v = 0.0f;
+	isect->prim = PRIM_NONE;
+	isect->object = OBJECT_NONE;
 
 #if defined(__KERNEL_SSE2__)
 	const shuffle_swap_t shuf_identity = shuffle_swap_identity();

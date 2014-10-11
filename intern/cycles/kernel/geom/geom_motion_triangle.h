@@ -336,12 +336,12 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection
 		if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
 #endif
 		{
+			isect->t = t;
+			isect->u = u;
+			isect->v = v;
 			isect->prim = triAddr;
 			isect->object = object;
 			isect->type = PRIMITIVE_MOTION_TRIANGLE;
-			isect->u = u;
-			isect->v = v;
-			isect->t = t;
 		
 			return true;
 		}
@@ -388,12 +388,12 @@ ccl_device_inline void motion_triangle_intersect_subsurface(KernelGlobals *kg, I
 
 		/* record intersection */
 		Intersection *isect = &isect_array[hit];
+		isect->t = t;
+		isect->u = u;
+		isect->v = v;
 		isect->prim = triAddr;
 		isect->object = object;
 		isect->type = PRIMITIVE_MOTION_TRIANGLE;
-		isect->u = u;
-		isect->v = v;
-		isect->t = t;
 	}
 }
 #endif

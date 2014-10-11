@@ -600,12 +600,12 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 #endif
 			{
 				/* record intersection */
+				isect->t = t;
+				isect->u = u;
+				isect->v = gd;
 				isect->prim = curveAddr;
 				isect->object = object;
 				isect->type = type;
-				isect->u = u;
-				isect->v = gd;
-				isect->t = t;
 				hit = true;
 			}
 			
@@ -835,12 +835,12 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 #endif
 			{
 				/* record intersection */
+				isect->t = t;
+				isect->u = z*invl;
+				isect->v = gd;
 				isect->prim = curveAddr;
 				isect->object = object;
 				isect->type = type;
-				isect->u = z*invl;
-				isect->v = gd;
-				isect->t = t;
 
 				return true;
 			}
