@@ -1587,9 +1587,10 @@ CListValue* KX_GameObject::GetChildrenRecursive()
 KX_Scene* KX_GameObject::GetScene()
 {
 	SG_Node* node = this->GetSGNode();
-	KX_Scene* scene = static_cast<KX_Scene*>(node->GetSGClientInfo());
-
-	return scene;
+    if (node == NULL)
+        // this happens for object in non active layers, rely on static scene then
+        return KX_GetActiveScene();
+    return static_cast<KX_Scene*>(node->GetSGClientInfo());
 }
 
 /* ---------------------------------------------------------------------
