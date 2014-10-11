@@ -41,6 +41,13 @@
 
 #include <assert.h>
 
+// #define USE_VERIFY
+
+#ifdef USE_VERIFY
+static void pbvh_bmesh_verify(PBVH *bvh);
+#endif
+
+
 /****************************** Building ******************************/
 
 /* Update node data after splitting */
@@ -1297,6 +1304,10 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 	BLI_buffer_free(&edge_loops);
 	BLI_buffer_free(&deleted_faces);
 
+#ifdef USE_VERIFY
+	pbvh_bmesh_verify(bvh);
+#endif
+
 	return modified;
 }
 
@@ -1418,104 +1429,28 @@ struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node)
 
 #if 0
 
-void bli_gset_duplicate_key_check(GSet *gs)
+static void pbvh_bmesh_print(PBVH *bvh)
 {
-	GSetIterator gs_iter1, gs_iter2;
-
-	GSET_ITER (gs_iter1, gs) {
-		void *key1 = BLI_gsetIterator_getKey(&gs_iter1);
-		int dup = -1;
-
-		GSET_ITER (gs_iter2, gs) {
-			void *key2 = BLI_gsetIterator_getKey(&gs_iter2);
-
-			if (key1 == key2) {
-				dup++;
-				if (dup > 0) {
-					BLI_assert(!"duplicate in hash");
-				}
-			}
-		}
-	}
-}
-
-void bmesh_print(BMesh *bm)
-{
-	BMIter iter, siter;
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
-	BMLoop *l;
-
-	fprintf(stderr, "\nbm=%p, totvert=%d, totedge=%d, "
-	        "totloop=%d, totface=%d\n",
-	        bm, bm->totvert, bm->totedge,
-	        bm->totloop, bm->totface);
-
-	fprintf(stderr, "vertices:\n");
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		fprintf(stderr, "  %d co=(%.3f %.3f %.3f) oflag=%x\n",
-		        BM_elem_index_get(v), v->co[0], v->co[1], v->co[2],
-		        v->oflags[bm->stackdepth - 1].f);
-	}
-
-	fprintf(stderr, "edges:\n");
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		fprintf(stderr, "  %d v1=%d, v2=%d, oflag=%x\n",
-		        BM_elem_index_get(e),
-		        BM_elem_index_get(e->v1),
-		        BM_elem_index_get(e->v2),
-		        e->oflags[bm->stackdepth - 1].f);
-	}
-
-	fprintf(stderr, "faces:\n");
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		fprintf(stderr, "  %d len=%d, oflag=%x\n",
-		        BM_elem_index_get(f), f->len,
-		        f->oflags[bm->stackdepth - 1].f);
-
-		fprintf(stderr, "    v: ");
-		BM_ITER_ELEM(v, &siter, f, BM_VERTS_OF_FACE) {
-			fprintf(stderr, "%d ", BM_elem_index_get(v));
-		}
-		fprintf(stderr, "\n");
-
-		fprintf(stderr, "    e: ");
-		BM_ITER_ELEM(e, &siter, f, BM_EDGES_OF_FACE) {
-			fprintf(stderr, "%d ", BM_elem_index_get(e));
-		}
-		fprintf(stderr, "\n");
-
-		fprintf(stderr, "    l: ");
-		BM_ITER_ELEM(l, &siter, f, BM_LOOPS_OF_FACE) {
-			fprintf(stderr, "%d(v=%d, e=%d) ",
-			        BM_elem_index_get(l),
-			        BM_elem_index_get(l->v),
-			        BM_elem_index_get(l->e));
-		}
-		fprintf(stderr, "\n");
-	}	
-}
-
-void pbvh_bmesh_print(PBVH *bvh)
-{
-	GHashIterator gh_iter;
 	GSetIterator gs_iter;
 	int n;
+	BMIter iter;
+	BMFace *f;
+	BMVert *v;
 
 	fprintf(stderr, "\npbvh=%p\n", bvh);
 	fprintf(stderr, "bm_face_to_node:\n");
-	GHASH_ITER (gh_iter, bvh->bm_face_to_node) {
+
+	BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
 		fprintf(stderr, "  %d -> %d\n",
-		        BM_elem_index_get((BMFace *)BLI_ghashIterator_getKey(&gh_iter)),
-		        GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
+		        BM_elem_index_get(v),
+		        pbvh_bmesh_node_lookup_index(bvh, f));
 	}
 
 	fprintf(stderr, "bm_vert_to_node:\n");
-	GHASH_ITER (gh_iter, bvh->bm_vert_to_node) {
+	BM_ITER_MESH(v, &iter, bvh->bm, BM_FACES_OF_MESH) {
 		fprintf(stderr, "  %d -> %d\n",
-		        BM_elem_index_get((BMVert *)BLI_ghashIterator_getKey(&gh_iter)),
-		        GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter)));
+		        BM_elem_index_get(v),
+		        pbvh_bmesh_node_lookup_index(bvh, v));
 	}
 
 	for (n = 0; n < bvh->totnode; n++) {
@@ -1524,9 +1459,9 @@ void pbvh_bmesh_print(PBVH *bvh)
 			continue;
 
 		fprintf(stderr, "node %d\n  faces:\n", n);
-		GHASH_ITER (gh_iter, node->bm_faces)
+		GSET_ITER (gs_iter, node->bm_faces)
 			fprintf(stderr, "    %d\n",
-			        BM_elem_index_get((BMFace *)BLI_ghashIterator_getKey(&gh_iter)));
+			        BM_elem_index_get((BMFace *)BLI_gsetIterator_getKey(&gs_iter)));
 		fprintf(stderr, "  unique verts:\n");
 		GSET_ITER (gs_iter, node->bm_unique_verts)
 			fprintf(stderr, "    %d\n",
@@ -1538,7 +1473,7 @@ void pbvh_bmesh_print(PBVH *bvh)
 	}
 }
 
-void print_flag_factors(int flag)
+static void print_flag_factors(int flag)
 {
 	int i;
 	printf("flag=0x%x:\n", flag);
@@ -1548,24 +1483,53 @@ void print_flag_factors(int flag)
 		}
 	}
 }
+#endif
 
-void pbvh_bmesh_verify(PBVH *bvh)
+
+#ifdef USE_VERIFY
+
+static void pbvh_bmesh_verify(PBVH *bvh)
 {
-	GHashIterator gh_iter;
 	GSetIterator gs_iter;
-	int i, vert_count = 0;
+	int i;
 	BMIter iter;
-	BMVert *vi;
+	BMFace *f;
+	BMVert *v;
 
-	/* Check faces */
-	BLI_assert(bvh->bm->totface == BLI_ghash_size(bvh->bm_face_to_node));
-	GHASH_ITER (gh_iter, bvh->bm_face_to_node) {
+	GSet *faces_all;
+	GSet *verts_all;
+
+
+	/* build list of faces & verts to lookup */
+	faces_all = BLI_gset_ptr_new_ex(__func__, bvh->bm->totface);
+	verts_all = BLI_gset_ptr_new_ex(__func__, bvh->bm->totvert);
+
+	BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
+		BLI_gset_insert(faces_all, f);
+	}
+	BM_ITER_MESH(v, &iter, bvh->bm, BM_VERTS_OF_MESH) {
+		if (BM_ELEM_CD_GET_INT(v, bvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
+			BLI_gset_insert(verts_all, v);
+		}
+	}
+
+	/* Check vert/face counts */
+	{
+		int totface = 0, totvert = 0;
+		for (i = 0; i < bvh->totnode; i++) {
+			PBVHNode *n = &bvh->nodes[i];
+			totface += n->bm_faces ? BLI_gset_size(n->bm_faces) : 0;
+			totvert += n->bm_unique_verts ? BLI_gset_size(n->bm_unique_verts) : 0;
+		}
+
+		BLI_assert(totface == BLI_gset_size(faces_all));
+		BLI_assert(totvert == BLI_gset_size(verts_all));
+	}
+
+	BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
 		BMIter bm_iter;
 		BMVert *v;
-		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
-		void *nip = BLI_ghashIterator_getValue(&gh_iter);
-		int ni = GET_INT_FROM_POINTER(nip);
-		PBVHNode *n = &bvh->nodes[ni];
+		PBVHNode *n = pbvh_bmesh_node_lookup(bvh, f);
 
 		/* Check that the face's node is a leaf */
 		BLI_assert(n->flag & PBVH_Leaf);
@@ -1582,7 +1546,7 @@ void pbvh_bmesh_verify(PBVH *bvh)
 			           BLI_gset_haskey(n->bm_other_verts, v));
 
 			/* Check that the vertex has a node owner */
-			nv = pbvh_bmesh_node_lookup(bvh, bvh->bm_vert_to_node, v);
+			nv = pbvh_bmesh_node_lookup(bvh, v);
 
 			/* Check that the vertex's node knows it owns the vert */
 			BLI_assert(BLI_gset_haskey(nv->bm_unique_verts, v));
@@ -1593,15 +1557,17 @@ void pbvh_bmesh_verify(PBVH *bvh)
 	}
 
 	/* Check verts */
-	BLI_assert(bvh->bm->totvert == BLI_ghash_size(bvh->bm_vert_to_node));
-	GHASH_ITER (gh_iter, bvh->bm_vert_to_node) {
+	BM_ITER_MESH(v, &iter, bvh->bm, BM_VERTS_OF_MESH) {
 		BMIter bm_iter;
-		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
-		BMFace *f;
-		void *nip = BLI_ghashIterator_getValue(&gh_iter);
-		int ni = GET_INT_FROM_POINTER(nip);
-		PBVHNode *n = &bvh->nodes[ni];
+		PBVHNode *n;
 		bool found;
+
+		/* vertex isn't tracked */
+		if (BM_ELEM_CD_GET_INT(v, bvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
+			continue;
+		}
+
+		n = pbvh_bmesh_node_lookup(bvh, v);
 
 		/* Check that the vert's node is a leaf */
 		BLI_assert(n->flag & PBVH_Leaf);
@@ -1615,7 +1581,7 @@ void pbvh_bmesh_verify(PBVH *bvh)
 		/* Check that the vert's node also contains one of the vert's
 		 * adjacent faces */
 		BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
-			if (BLI_ghash_lookup(bvh->bm_face_to_node, f) == nip) {
+			if (pbvh_bmesh_node_lookup(bvh, f) == n) {
 				found = true;
 				break;
 			}
@@ -1626,9 +1592,10 @@ void pbvh_bmesh_verify(PBVH *bvh)
 		/* total freak stuff, check if node exists somewhere else */
 		/* Slow */
 		for (i = 0; i < bvh->totnode; i++) {
-			PBVHNode *n = &bvh->nodes[i];
-			if (i != ni && n->bm_unique_verts)
-				BLI_assert(!BLI_gset_haskey(n->bm_unique_verts, v));
+			PBVHNode *n_other = &bvh->nodes[i];
+			if ((n != n_other) && (n_other->bm_unique_verts)) {
+				BLI_assert(!BLI_gset_haskey(n_other->bm_unique_verts, v));
+			}
 		}
 
 #endif
@@ -1656,36 +1623,32 @@ void pbvh_bmesh_verify(PBVH *bvh)
 	for (i = 0; i < bvh->totnode; i++) {
 		PBVHNode *n = &bvh->nodes[i];
 		if (n->flag & PBVH_Leaf) {
-			/* Check for duplicate entries */
-			/* Slow */
-#if 0
-			bli_gset_duplicate_key_check(n->bm_faces);
-			bli_gset_duplicate_key_check(n->bm_unique_verts);
-			bli_gset_duplicate_key_check(n->bm_other_verts);
-#endif
 
-			GHASH_ITER (gh_iter, n->bm_faces) {
-				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
-				void *nip = BLI_ghash_lookup(bvh->bm_face_to_node, f);
-				BLI_assert(BLI_ghash_haskey(bvh->bm_face_to_node, f));
-				BLI_assert(GET_INT_FROM_POINTER(nip) == (n - bvh->nodes));
+			GSET_ITER (gs_iter, n->bm_faces) {
+				BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
+				PBVHNode *n_other = pbvh_bmesh_node_lookup(bvh, f);
+				BLI_assert(n == n_other);
+				BLI_assert(BLI_gset_haskey(faces_all, f));
 			}
 
 			GSET_ITER (gs_iter, n->bm_unique_verts) {
 				BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-				void *nip = BLI_ghash_lookup(bvh->bm_vert_to_node, v);
-				BLI_assert(BLI_ghash_haskey(bvh->bm_vert_to_node, v));
+				PBVHNode *n_other = pbvh_bmesh_node_lookup(bvh, v);
 				BLI_assert(!BLI_gset_haskey(n->bm_other_verts, v));
-				BLI_assert(GET_INT_FROM_POINTER(nip) == (n - bvh->nodes));
+				BLI_assert(n == n_other);
+				BLI_assert(BLI_gset_haskey(verts_all, v));
 			}
 
 			GSET_ITER (gs_iter, n->bm_other_verts) {
 				BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-				BLI_assert(BLI_ghash_haskey(bvh->bm_vert_to_node, v));
 				BLI_assert(BM_vert_face_count(v) > 0);
+				BLI_assert(BLI_gset_haskey(verts_all, v));
 			}
 		}
 	}
+
+	BLI_gset_free(faces_all, NULL);
+	BLI_gset_free(verts_all, NULL);
 }
 
 #endif
