@@ -490,12 +490,12 @@ static void widget_draw_tria_ex(
 	minsize = min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 
 	/* center position and size */
-	centx = (float)rect->xmin + 0.5f * minsize;
+	centx = (float)rect->xmin + 0.4f * minsize;
 	centy = (float)rect->ymin + 0.5f * minsize;
 	sizex = sizey = -0.5f * triasize * minsize;
 
 	if (where == 'r') {
-		centx = (float)rect->xmax - 0.5f * minsize;
+		centx = (float)rect->xmax - 0.4f * minsize;
 		sizex = -sizex;
 	}
 	else if (where == 't') {
