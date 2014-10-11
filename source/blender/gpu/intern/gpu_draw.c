@@ -1882,7 +1882,7 @@ static void gpu_multisample(bool enable)
 {
 	if (GLEW_VERSION_1_3 || GLEW_ARB_multisample) {
 #ifdef __linux__
-		/* changing multisample enablement from the default (enabled) causes problems on some
+		/* changing multisample from the default (enabled) causes problems on some
 		 * systems (NVIDIA/Linux) when the pixel format doesn't have a multisample buffer */
 		bool toggle_ok = true;
 

@@ -435,11 +435,11 @@ typedef enum eObClearParentTypes {
 
 EnumPropertyItem prop_clear_parent_types[] = {
 	{CLEAR_PARENT_ALL, "CLEAR", 0, "Clear Parent",
-			"Completely clear the parenting relationship, including involved modifiers is any"},
+	 "Completely clear the parenting relationship, including involved modifiers is any"},
 	{CLEAR_PARENT_KEEP_TRANSFORM, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation",
-			"As 'Clear Parent', but keep the current visual transformations of the object"},
+	 "As 'Clear Parent', but keep the current visual transformations of the object"},
 	{CLEAR_PARENT_INVERSE, "CLEAR_INVERSE", 0, "Clear Parent Inverse",
-			"Reset the transform corrections applied to the parenting relationship, does not remove parenting itself"},
+	 "Reset the transform corrections applied to the parenting relationship, does not remove parenting itself"},
 	{0, NULL, 0, NULL, NULL}
 };
 
