@@ -59,6 +59,7 @@ extern "C" {
 //#define IMPLICIT_ENABLE_EIGEN_DEBUG
 
 struct Implicit_Data;
+struct ImplicitSolverInput;
 struct SimDebugData;
 
 typedef struct ImplicitSolverResult {
@@ -118,8 +119,6 @@ void BPH_mass_spring_set_velocity(struct Implicit_Data *data, int index, const f
 void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, float x[3], float v[3]);
 void BPH_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
 
-int BPH_mass_spring_add_block(struct Implicit_Data *data, int v1, int v2);
-
 void BPH_mass_spring_clear_constraints(struct Implicit_Data *data);
 void BPH_mass_spring_add_constraint_ndof0(struct Implicit_Data *data, int index, const float dV[3]);
 void BPH_mass_spring_add_constraint_ndof1(struct Implicit_Data *data, int index, const float c1[3], const float c2[3], const float dV[3]);
@@ -131,9 +130,9 @@ void BPH_mass_spring_apply_result(struct Implicit_Data *data);
 /* Clear the force vector at the beginning of the time step */
 void BPH_mass_spring_clear_forces(struct Implicit_Data *data);
 /* Fictitious forces introduced by moving coordinate systems */
-void BPH_mass_spring_force_reference_frame(struct Implicit_Data *data, int index, const float acceleration[3], const float omega[3], const float domega_dt[3]);
+void BPH_mass_spring_force_reference_frame(struct Implicit_Data *data, int index, const float acceleration[3], const float omega[3], const float domega_dt[3], float mass);
 /* Simple uniform gravity force */
-void BPH_mass_spring_force_gravity(struct Implicit_Data *data, const float g[3]);
+void BPH_mass_spring_force_gravity(struct Implicit_Data *data, int index, float mass, const float g[3]);
 /* Global drag force (velocity damping) */
 void BPH_mass_spring_force_drag(struct Implicit_Data *data, float drag);
 /* Custom external force */

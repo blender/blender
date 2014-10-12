@@ -754,7 +754,8 @@ void BPH_mass_spring_solver_free(Implicit_Data *id)
 
 void BPH_mass_spring_solver_debug_data(Implicit_Data *id, struct SimDebugData *debug_data)
 {
-	id->debug_data = debug_data;
+	if (id)
+		id->debug_data = debug_data;
 }
 
 /* ==== Transformation from/to root reference frames ==== */
@@ -1215,7 +1216,7 @@ void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
 	mul_m3_fl(data->M[index].m, mass);
 }
 
-int BPH_mass_spring_add_block(Implicit_Data *data, int v1, int v2)
+static int BPH_mass_spring_add_block(Implicit_Data *data, int v1, int v2)
 {
 	int s = data->M[0].vcount + data->num_blocks; /* index from array start */
 	BLI_assert(s < data->M[0].vcount + data->M[0].scount);
@@ -1294,7 +1295,7 @@ void BPH_mass_spring_clear_forces(Implicit_Data *data)
 	data->num_blocks = 0;
 }
 
-void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index, const float acceleration[3], const float omega[3], const float domega_dt[3])
+void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index, const float acceleration[3], const float omega[3], const float domega_dt[3], float mass)
 {
 #ifdef CLOTH_ROOT_FRAME
 	float acc[3], w[3], dwdt[3];
@@ -1316,7 +1317,7 @@ void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index, const
 	sub_v3_v3(f, coriolis);
 	sub_v3_v3(f, centrifugal);
 	
-	mul_m3_v3(data->M[index].m, f); /* F = m * a */
+	mul_v3_fl(f, mass); /* F = m * a */
 	
 	cross_v3_identity(deuler, dwdt);
 	cross_v3_identity(dcoriolis, w);
@@ -1326,11 +1327,11 @@ void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index, const
 	
 	add_m3_m3m3(dfdx, deuler, dcentrifugal);
 	negate_m3(dfdx);
-	mul_m3_m3m3(dfdx, data->M[index].m, dfdx);
+	mul_m3_fl(dfdx, mass);
 	
 	copy_m3_m3(dfdv, dcoriolis);
 	negate_m3(dfdv);
-	mul_m3_m3m3(dfdv, data->M[index].m, dfdv);
+	mul_m3_fl(dfdv, mass);
 	
 	add_v3_v3(data->F[index], f);
 	add_m3_m3m3(data->dFdX[index].m, data->dFdX[index].m, dfdx);
@@ -1344,19 +1345,14 @@ void BPH_mass_spring_force_reference_frame(Implicit_Data *data, int index, const
 #endif
 }
 
-void BPH_mass_spring_force_gravity(Implicit_Data *data, const float g[3])
+void BPH_mass_spring_force_gravity(Implicit_Data *data, int index, float mass, const float g[3])
 {
-	int i, numverts = data->M[0].vcount;
-	/* multiply F with mass matrix
-	 * force = mass * acceleration (in this case: gravity)
-	 */
-	for (i = 0; i < numverts; i++) {
-		float f[3];
-		world_to_root_v3(data, i, f, g);
-		mul_m3_v3(data->M[i].m, f);
-		
-		add_v3_v3(data->F[i], f);
-	}
+	/* force = mass * acceleration (in this case: gravity) */
+	float f[3];
+	world_to_root_v3(data, index, f, g);
+	mul_v3_fl(f, mass);
+	
+	add_v3_v3(data->F[index], f);
 }
 
 void BPH_mass_spring_force_drag(Implicit_Data *data, float drag)

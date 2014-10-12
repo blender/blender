@@ -519,7 +519,10 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 		/* scale gravity force */
 		mul_v3_v3fl(gravity, clmd->scene->physics_settings.gravity, 0.001f * clmd->sim_parms->effector_weights->global_gravity);
 	}
-	BPH_mass_spring_force_gravity(data, gravity);
+	vert = cloth->verts;
+	for (i = 0; i < cloth->numverts; i++, vert++) {
+		BPH_mass_spring_force_gravity(data, i, vert->mass, gravity);
+	}
 #endif
 
 	cloth_calc_volume_force(clmd);
