@@ -506,36 +506,30 @@ BLI_INLINE void root_to_world_m3(Implicit_Data *data, int index, float r[3][3], 
 bool BPH_mass_spring_solve(Implicit_Data *data, float dt, ImplicitSolverResult *result)
 {
 #ifdef USE_EIGEN_CORE
-	ConjugateGradient cg;
-	cg.setMaxIterations(100);
-	cg.setTolerance(0.01f);
-	
-	id->A = id->M - dt * id->dFdV - dt*dt * id->dFdX;
-	cg.compute(id->A);
-	
-	id->B = dt * id->F + dt*dt * id->dFdX * id->V;
-	id->dV = cg.solve(id->B);
-	
-	id->Vnew = id->V + id->dV;
-	
-	return cg.info() != Eigen::Success;
+	typedef ConjugateGradient solver_t;
 #endif
-
 #ifdef USE_EIGEN_CONSTRAINED_CG
-	ConstraintConjGrad cg;
-	cg.setMaxIterations(100);
-	cg.setTolerance(0.01f);
+	typedef ConstraintConjGrad solver_t;
+#endif
 	
 	data->iM.construct(data->M);
 	data->idFdX.construct(data->dFdX);
 	data->idFdV.construct(data->dFdV);
 	data->iS.construct(data->S);
 	
+	solver_t cg;
+	cg.setMaxIterations(100);
+	cg.setTolerance(0.01f);
+	
+#ifdef USE_EIGEN_CONSTRAINED_CG
+	cg.filter() = data->S;
+#endif
+	
 	data->A = data->M - dt * data->dFdV - dt*dt * data->dFdX;
 	cg.compute(data->A);
-	cg.filter() = data->S;
 	
 	data->B = dt * data->F + dt*dt * data->dFdX * data->V;
+	
 #ifdef IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
 	printf("==== A ====\n");
 	print_lmatrix(id->A);
@@ -546,7 +540,14 @@ bool BPH_mass_spring_solve(Implicit_Data *data, float dt, ImplicitSolverResult *
 	printf("==== S ====\n");
 	print_lmatrix(id->S);
 #endif
+	
+#ifdef USE_EIGEN_CORE
+	data->dV = cg.solve(data->B);
+#endif
+#ifdef USE_EIGEN_CONSTRAINED_CG
 	data->dV = cg.solveWithGuess(data->B, data->z);
+#endif
+	
 #ifdef IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
 	printf("==== dV ====\n");
 	print_lvector(id->dV);
@@ -567,7 +568,6 @@ bool BPH_mass_spring_solve(Implicit_Data *data, float dt, ImplicitSolverResult *
 	result->error = cg.error();
 	
 	return cg.info() != Eigen::Success;
-#endif
 }
 
 /* ================================ */
