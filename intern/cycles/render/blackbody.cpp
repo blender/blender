@@ -100,7 +100,7 @@ vector<float> blackbody_table()
 
 	/* ToDo: bring this back to what OSL does with the lastTemperature limit ? */
 	for (int i = 0;  i <= 317;  ++i) {
-		double Temperature = pow((double)i, (double)BB_TABLE_XPOWER) * (double)BB_TABLE_SPACING + (double)BB_DRAPPER;
+		double Temperature = pow((double)i, (double)BB_TABLE_XPOWER) * (double)BB_TABLE_SPACING + (double)BB_DRAPER;
 		X = 0;
 		Y = 0;
 		Z = 0;

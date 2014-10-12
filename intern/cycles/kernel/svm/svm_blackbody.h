@@ -42,7 +42,7 @@ ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *sta
 	/* Input */
 	float temperature = stack_load_float(stack, temperature_offset);
 
-	if (temperature < BB_DRAPPER) {
+	if (temperature < BB_DRAPER) {
 		/* just return very very dim red */
 		color_rgb = make_float3(1.0e-6f,0.0f,0.0f);
 	}
@@ -53,7 +53,7 @@ ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *sta
 
 		/* reconstruct a proper index for the table lookup, compared to OSL we don't look up two colors
 		just one (the OSL-lerp is also automatically done for us by "lookup_table_read") */
-		float t = powf((temperature - BB_DRAPPER) * (1.0f / BB_TABLE_SPACING), (1.0f / BB_TABLE_XPOWER));
+		float t = powf((temperature - BB_DRAPER) * (1.0f / BB_TABLE_SPACING), (1.0f / BB_TABLE_XPOWER));
 
 		int blackbody_table_offset = kernel_data.tables.blackbody_offset;
 
