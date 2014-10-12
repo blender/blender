@@ -42,8 +42,8 @@
 extern "C" {
 #endif
 
-#define IMPLICIT_SOLVER_EIGEN
-//#define IMPLICIT_SOLVER_BLENDER
+//#define IMPLICIT_SOLVER_EIGEN
+#define IMPLICIT_SOLVER_BLENDER
 
 #define CLOTH_ROOT_FRAME /* enable use of root frame coordinate transform */
 
