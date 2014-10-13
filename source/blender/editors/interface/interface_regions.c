@@ -2729,17 +2729,20 @@ uiPieMenu *uiPieMenuBegin(struct bContext *C, const char *title, int icon, const
 	pie->block_radial->puphash = ui_popup_menu_hash(title);
 	pie->block_radial->flag |= UI_BLOCK_RADIAL;
 
-	if (win->last_pie_event != EVENT_NONE)
-		event_type = win->last_pie_event;
-	else
-		event_type = event->type;
-
-	pie->block_radial->pie_data.event = event_type;
-	win->lock_pie_event = event_type;
-
 	/* if pie is spawned by a left click, it is always assumed to be click style */
-	if (event_type == LEFTMOUSE) {
-		pie->block_radial->flag |= UI_PIE_CLICK_STYLE;
+	if (event->type == LEFTMOUSE) {
+		pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
+		pie->block_radial->pie_data.event = EVENT_NONE;
+		win->lock_pie_event = EVENT_NONE;
+	}
+	else {
+		if (win->last_pie_event != EVENT_NONE)
+			event_type = win->last_pie_event;
+		else
+			event_type = event->type;
+
+		pie->block_radial->pie_data.event = event_type;
+		win->lock_pie_event = event_type;
 	}
 
 	pie->layout = uiBlockLayout(pie->block_radial, UI_LAYOUT_VERTICAL, UI_LAYOUT_PIEMENU, 0, 0, 200, 0, 0, style);
