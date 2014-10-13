@@ -1167,7 +1167,7 @@ static bool slide_spline_curvature_check(bContext *C, const wmEvent *event)
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	float co[2];
-	const float threshold = 19;
+	const float threshold = 19.0f;
 
 	ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, co);
 
