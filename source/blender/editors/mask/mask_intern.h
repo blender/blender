@@ -49,7 +49,8 @@ bool ED_mask_find_nearest_diff_point(const struct bContext *C,
                                      struct MaskSplinePoint **point_r,
                                      float *u_r, float tangent[2],
                                      const bool use_deform,
-                                     const bool use_project);
+                                     const bool use_project,
+                                     float *score_r);
 
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);

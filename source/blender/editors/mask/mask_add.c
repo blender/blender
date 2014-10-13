@@ -62,7 +62,8 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                                      MaskSplinePoint **point_r,
                                      float *u_r, float tangent[2],
                                      const bool use_deform,
-                                     const bool use_project)
+                                     const bool use_project,
+                                     float *score_r)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -169,6 +170,10 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 			}
 
 			*u_r = u;
+		}
+
+		if (score_r) {
+			*score_r = dist;
 		}
 
 		return true;
@@ -339,7 +344,7 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
 	float tangent[2];
 	float u;
 
-	if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, false, &masklay, &spline, &point, &u, tangent, true, true)) {
+	if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, false, &masklay, &spline, &point, &u, tangent, true, true, NULL)) {
 		MaskSplinePoint *new_point;
 		int point_index = point - spline->points;
 
@@ -624,7 +629,7 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 	if (point)
 		return OPERATOR_FINISHED;
 
-	if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, true, &masklay, &spline, &point, &u, NULL, true, true)) {
+	if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, true, &masklay, &spline, &point, &u, NULL, true, true, NULL)) {
 		Scene *scene = CTX_data_scene(C);
 		float w = BKE_mask_point_weight(spline, point, u);
 		float weight_scalar = BKE_mask_point_weight_scalar(spline, point, u);
