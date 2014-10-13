@@ -416,18 +416,22 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 		while (ps_curr_idx != ps_end_idx) {
 			const MPoly *mp;
 			const MLoop *ml;
+			bool sharp_poly;
 			int j;
 
 			poly = poly_stack[ps_curr_idx++];
 			BLI_assert(poly_groups[poly] == poly_group_id);
 
 			mp = &mpoly[poly];
+			sharp_poly = !(mp->flag & ME_SMOOTH);
 			for (ml = &mloop[mp->loopstart], j = mp->totloop; j--; ml++) {
 				/* loop over poly users */
 				const MeshElemMap *map_ele = &edge_poly_map[ml->e];
 				const int *p = map_ele->indices;
 				int i = map_ele->count;
-				if (!(medge[ml->e].flag & ME_SHARP)) {
+				/* Edge is smooth only if its poly is not sharp, edge is not sharp,
+				 * and edge is used by exactly two polygons. */
+				if (!sharp_poly && !(medge[ml->e].flag & ME_SHARP) && i == 2) {
 					for (; i--; p++) {
 						/* if we meet other non initialized its a bug */
 						BLI_assert(ELEM(poly_groups[*p], 0, poly_group_id));
@@ -482,6 +486,11 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 		}
 	}
 
+	if (use_bitflags) {
+		/* used bits are zero-based. */
+		tot_group++;
+	}
+
 	if (UNLIKELY(group_id_overflow)) {
 		int i = totpoly, *gid = poly_groups;
 		for (; i--; gid++) {
@@ -489,13 +498,15 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge, const int totedge,
 				*gid = 0;
 			}
 		}
+		/* Using 0 as group id adds one more group! */
+		tot_group++;
 	}
 
 	MEM_freeN(edge_poly_map);
 	MEM_freeN(edge_poly_mem);
 	MEM_freeN(poly_stack);
 
-	*r_totgroup = tot_group + 1;
+	*r_totgroup = tot_group;
 
 	return poly_groups;
 }
