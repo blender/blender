@@ -919,7 +919,7 @@ static float calc_vp_strength_col_dl(VPaint *vp, ViewContext *vc, const float co
 	{
 		const float dist_sq = len_squared_v2v2(mval, co_ss);
 
-		if (dist_sq <= brush_size_pressure * brush_size_pressure) {
+		if (dist_sq <= SQUARE(brush_size_pressure)) {
 			Brush *brush = BKE_paint_brush(&vp->paint);
 			const float dist = sqrtf(dist_sq);
 			float factor;

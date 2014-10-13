@@ -309,10 +309,14 @@
 #define ABS(a)  ({ \
 	typeof(a) a_ = (a); \
 	((a_) < 0 ? (-(a_)) : (a_)); })
+#define SQUARE(a)  ({ \
+	typeof(a) a_ = (a); \
+	((a_) * (a_)); })
 
 #else
 
 #define ABS(a)  ((a) < 0 ? (-(a)) : (a))
+#define SQUARE(a)  ((a) * (a))
 
 #endif
 

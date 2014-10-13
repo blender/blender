@@ -1126,7 +1126,7 @@ static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
 	}
 	else {
 		/* check for lower LoD */
-		while (current->next && dist_sq > (current->next->distance * current->next->distance)) {
+		while (current->next && dist_sq > SQUARE(current->next->distance)) {
 			current = current->next;
 		}
 	}

@@ -8747,13 +8747,12 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				if (!is_click_style) {
 					float len_sq = len_squared_v2v2(event_xy, block->pie_data.pie_center_init);
 
-					if (len_sq > PIE_CLICK_THRESHOLD_SQ)
-					{
+					if (len_sq > PIE_CLICK_THRESHOLD_SQ) {
 						block->pie_data.flags |= UI_PIE_DRAG_STYLE;
 					}
 
 					if ((U.pie_menu_confirm >= U.pie_menu_threshold) &&
-					    (sqrtf(len_sq) >= U.pie_menu_confirm))
+					    (len_sq >= SQUARE(U.pie_menu_confirm)))
 					{
 						block->pie_data.flags |= UI_PIE_GESTURE_END_WAIT;
 						copy_v2_v2(block->pie_data.last_pos, event_xy);

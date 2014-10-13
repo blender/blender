@@ -937,7 +937,7 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 	do {
 		rand_pos[0] = BLI_rng_get_float(brush_rng) - 0.5f;
 		rand_pos[1] = BLI_rng_get_float(brush_rng) - 0.5f;
-	} while (len_squared_v2(rand_pos) > (0.5f * 0.5f));
+	} while (len_squared_v2(rand_pos) > SQUARE(0.5f));
 
 
 	if (brush->flag & BRUSH_ABSOLUTE_JITTER) {

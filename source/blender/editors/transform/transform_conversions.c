@@ -249,7 +249,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 					}
 
 					dist_sq = len_squared_v3(vec);
-					if ((tob->rdist == -1.0f) || (dist_sq < (tob->rdist * tob->rdist))) {
+					if ((tob->rdist == -1.0f) || (dist_sq < SQUARE(tob->rdist))) {
 						tob->rdist = sqrtf(dist_sq);
 					}
 				}
