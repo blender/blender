@@ -2715,10 +2715,6 @@ uiPieMenu *uiPieMenuBegin(struct bContext *C, const char *title, int icon, const
 
 	wmWindow *win = CTX_wm_window(C);
 
-	/* allow respawning a pie from the last pie event */
-	if (event->type == win->lock_pie_event && event->type != win->last_pie_event)
-		return NULL;
-
 	style = UI_GetStyleDraw();
 	pie = MEM_callocN(sizeof(uiPopupMenu), "pie menu");
 
@@ -2805,8 +2801,7 @@ void uiPieMenuInvoke(struct bContext *C, const char *idname, const wmEvent *even
 	if (mt->poll && mt->poll(C, mt) == 0)
 		return;
 
-	if (!(pie = uiPieMenuBegin(C, IFACE_(mt->label), ICON_NONE, event)))
-		return;
+	pie = uiPieMenuBegin(C, IFACE_(mt->label), ICON_NONE, event);
 	layout = uiPieMenuLayout(pie);
 
 	menu.layout = layout;
@@ -2827,9 +2822,7 @@ void uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *
 	uiPieMenu *pie;
 	uiLayout *layout;
 
-	if (!(pie = uiPieMenuBegin(C, IFACE_(title), ICON_NONE, event)))
-		return;
-
+	pie = uiPieMenuBegin(C, IFACE_(title), ICON_NONE, event);
 	layout = uiPieMenuLayout(pie);
 
 	layout = uiLayoutRadial(layout);
@@ -2859,8 +2852,7 @@ void uiPieEnumInvoke(struct bContext *C, const char *title, const char *path,
 		return;
 	}
 
-	if (!(pie = uiPieMenuBegin(C, IFACE_(title), ICON_NONE, event)))
-		return;
+	pie = uiPieMenuBegin(C, IFACE_(title), ICON_NONE, event);
 
 	layout = uiPieMenuLayout(pie);
 
