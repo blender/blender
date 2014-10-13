@@ -325,12 +325,20 @@ static void ui_imageuser_layer_menu(bContext *UNUSED(C), uiLayout *layout, void 
 {
 	void **rnd_data = rnd_pt;
 	uiBlock *block = uiLayoutGetBlock(layout);
-	RenderResult *rr = rnd_data[0];
+	Image *image = rnd_data[0];
 	ImageUser *iuser = rnd_data[1];
+	Scene *scene = iuser->scene;
+	RenderResult *rr;
 	RenderLayer *rl;
 	RenderLayer rl_fake = {NULL};
 	const char *fake_name;
 	int nr;
+
+	/* may have been freed since drawing */
+	rr = BKE_image_acquire_renderresult(scene, image);
+	if (UNLIKELY(rr == NULL)) {
+		return;
+	}
 
 	uiBlockSetCurLayout(block, layout);
 	uiLayoutColumn(layout, false);
@@ -360,6 +368,8 @@ final:
 	}
 
 	BLI_assert(nr == -1);
+
+	BKE_image_release_renderresult(scene, image);
 }
 
 static const char *ui_imageuser_pass_fake_name(RenderLayer *rl)
@@ -374,16 +384,27 @@ static const char *ui_imageuser_pass_fake_name(RenderLayer *rl)
 
 static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *ptrpair_p)
 {
-	void **ptrpair = ptrpair_p;
+	void **rnd_data = ptrpair_p;
 	uiBlock *block = uiLayoutGetBlock(layout);
-	// RenderResult *rr = ptrpair[0];
-	ImageUser *iuser = ptrpair[1];
-	/* rl==NULL means composite result */
-	RenderLayer *rl = ptrpair[2];
+	Image *image = rnd_data[0];
+	ImageUser *iuser = rnd_data[1];
+	/* (rpass_index == -1) means composite result */
+	const int rpass_index = GET_INT_FROM_POINTER(rnd_data[2]);
+	Scene *scene = iuser->scene;
+	RenderResult *rr;
+	RenderLayer *rl;
 	RenderPass rpass_fake = {NULL};
 	RenderPass *rpass;
 	const char *fake_name;
 	int nr;
+
+	/* may have been freed since drawing */
+	rr = BKE_image_acquire_renderresult(scene, image);
+	if (UNLIKELY(rr == NULL)) {
+		return;
+	}
+
+	rl = BLI_findlink(&rr->layers, rpass_index);
 
 	uiBlockSetCurLayout(block, layout);
 	uiLayoutColumn(layout, false);
@@ -415,6 +436,8 @@ final:
 	}
 
 	BLI_assert(nr == -1);
+
+	BKE_image_release_renderresult(scene, image);
 }
 
 /* 5 layer button callbacks... */
@@ -514,7 +537,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 	wmenu2 = (3 * w) / 5;
 	wmenu3 = (3 * w) / 6;
 	
-	rnd_pt[0] = rr;
+	rnd_pt[0] = image;
 	rnd_pt[1] = iuser;
 	rnd_pt[2] = NULL;
 
@@ -534,11 +557,13 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 
 	if (rr) {
 		RenderPass *rpass;
+		int rpass_index;
 
 		/* layer */
 		fake_name = ui_imageuser_layer_fake_name(rr);
-		rl = BLI_findlink(&rr->layers, iuser->layer  - (fake_name ? 1 : 0));
-		rnd_pt[2] = rl;
+		rpass_index = iuser->layer  - (fake_name ? 1 : 0);
+		rl = BLI_findlink(&rr->layers, rpass_index);
+		rnd_pt[2] = SET_INT_IN_POINTER(rpass_index);
 
 		display_name = rl ? rl->name : (fake_name ? fake_name : "");
 		but = uiDefMenuBut(block, ui_imageuser_layer_menu, rnd_pt, display_name, 0, 0, wmenu2, UI_UNIT_Y, TIP_("Select Layer"));
