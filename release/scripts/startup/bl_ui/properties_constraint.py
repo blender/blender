@@ -502,6 +502,20 @@ class ConstraintButtonsPanel():
         row.operator("constraint.stretchto_reset", text="Reset")
 
         layout.prop(con, "bulge", text="Volume Variation")
+        split = layout.split()
+        col = split.column(align=True)
+        col.prop(con, "use_bulge_min", text="Volume Min")
+        sub = col.column()
+        sub.active = con.use_bulge_min
+        sub.prop(con, "bulge_min", text="")
+        col = split.column(align=True)
+        col.prop(con, "use_bulge_max", text="Volume Max")
+        sub = col.column()
+        sub.active = con.use_bulge_max
+        sub.prop(con, "bulge_max", text="")
+        col = layout.column()
+        col.active = con.use_bulge_min or con.use_bulge_max
+        col.prop(con, "bulge_smooth", text="Smooth")
 
         row = layout.row()
         row.label(text="Volume:")
