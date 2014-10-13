@@ -698,6 +698,7 @@ static void rna_def_modifier_material_common(StructRNA *srna)
 		{LS_MODIFIER_MATERIAL_LINE_R, "LINE_R", 0, "Line Color Red", ""},
 		{LS_MODIFIER_MATERIAL_LINE_G, "LINE_G", 0, "Line Color Green", ""},
 		{LS_MODIFIER_MATERIAL_LINE_B, "LINE_B", 0, "Line Color Blue", ""},
+		{LS_MODIFIER_MATERIAL_LINE_A, "LINE_A", 0, "Line Color Alpha", ""},
 		{LS_MODIFIER_MATERIAL_DIFF, "DIFF", 0, "Diffuse Color", ""},
 		{LS_MODIFIER_MATERIAL_DIFF_R, "DIFF_R", 0, "Diffuse Color Red", ""},
 		{LS_MODIFIER_MATERIAL_DIFF_G, "DIFF_G", 0, "Diffuse Color Green", ""},

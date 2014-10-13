@@ -203,6 +203,7 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 #define LS_MODIFIER_MATERIAL_LINE_R     12
 #define LS_MODIFIER_MATERIAL_LINE_G     13
 #define LS_MODIFIER_MATERIAL_LINE_B     14
+#define LS_MODIFIER_MATERIAL_LINE_A     15
 
 typedef struct LineStyleColorModifier_Material {
 	struct LineStyleModifier modifier;

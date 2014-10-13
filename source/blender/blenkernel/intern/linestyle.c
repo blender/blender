@@ -442,7 +442,7 @@ LineStyleModifier *BKE_linestyle_alpha_modifier_add(FreestyleLineStyle *linestyl
 		{
 			LineStyleAlphaModifier_Material *p = (LineStyleAlphaModifier_Material *)m;
 			p->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-			p->mat_attr = LS_MODIFIER_MATERIAL_ALPHA;
+			p->mat_attr = LS_MODIFIER_MATERIAL_LINE_A;
 			break;
 		}
 		default:
