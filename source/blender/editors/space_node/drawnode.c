@@ -605,7 +605,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 static int node_tweak_area_reroute(bNode *node, int x, int y)
 {
 	/* square of tweak radius */
-	static const float tweak_radius_sq = SQUARE(24);
+	const float tweak_radius_sq = SQUARE(24);
 	
 	bNodeSocket *sock = node->inputs.first;
 	float dx = sock->locx - x;
