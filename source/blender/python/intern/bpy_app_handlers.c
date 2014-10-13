@@ -240,7 +240,10 @@ PyObject *BPY_app_handlers_struct(void)
 
 void BPY_app_handlers_reset(const short do_all)
 {
+	PyGILState_STATE gilstate;
 	int pos = 0;
+
+	gilstate = PyGILState_Ensure();
 
 	if (do_all) {
 		for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
@@ -279,6 +282,8 @@ void BPY_app_handlers_reset(const short do_all)
 
 		Py_DECREF(perm_id_str);
 	}
+
+	PyGILState_Release(gilstate);
 }
 
 /* the actual callback - not necessarily called from py */
