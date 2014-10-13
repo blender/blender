@@ -4985,7 +4985,7 @@ static EnumPropertyItem layer_type_items[] = {
 	{MAP_SPEC, "SPECULAR_INTENSITY", 0, "Specular Intensity", ""},
 	{MAP_HAR, "SPECULAR_HARDNESS", 0, "Specular Hardness", ""},
 	{MAP_AMB, "AMBIENT", 0, "Ambient", ""},
-	{MAP_EMIT, "EMMIT", 0, "Emmit", ""},
+	{MAP_EMIT, "EMIT", 0, "Emit", ""},
 	{MAP_COLMIR, "MIRROR_COLOR", 0, "Mirror Color", ""},
 	{MAP_RAYMIRR, "RAYMIRROR", 0, "Ray Mirror", ""},
 	{MAP_NORM, "NORMAL", 0, "Normal", ""},
