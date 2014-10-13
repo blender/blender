@@ -583,9 +583,10 @@ static bool spline_under_mouse_get(const bContext *C,
 	}
 	if (closest_dist_squared < SQUARE(threshold) && closest_spline != NULL) {
 		float diff_score;
-		if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, false,
+		if (ED_mask_find_nearest_diff_point(C, mask, co, threshold,
+		                                    false, NULL, true, false,
 		                                    NULL, NULL, NULL, NULL,
-		                                    NULL, true, false, &diff_score))
+		                                    &diff_score))
 		{
 			if (SQUARE(diff_score) < closest_dist_squared) {
 				return false;
@@ -1206,8 +1207,9 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(
 	ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, co);
 
 	if (!ED_mask_find_nearest_diff_point(C, mask, co, threshold, false,
+	                                     NULL, true, false,
 	                                     &mask_layer, &spline, &point, &u,
-	                                     NULL, true, false, NULL))
+	                                     NULL))
 	{
 		return NULL;
 	}
