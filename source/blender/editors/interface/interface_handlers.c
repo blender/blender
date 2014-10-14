@@ -7995,7 +7995,7 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
 	return retval;
 }
 
-void ui_block_calculate_pie_segment(uiBlock *block, const float event_xy[2])
+float ui_block_calculate_pie_segment(uiBlock *block, const float event_xy[2])
 {
 	float seg1[2];
 	float seg2[2];
@@ -8017,6 +8017,8 @@ void ui_block_calculate_pie_segment(uiBlock *block, const float event_xy[2])
 		block->pie_data.flags |= UI_PIE_INVALID_DIR;
 	else
 		block->pie_data.flags &= ~UI_PIE_INVALID_DIR;
+
+	return len;
 }
 
 static int ui_handle_menu_event(
@@ -8609,6 +8611,7 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 	float event_xy[2];
 	double duration;
 	bool is_click_style;
+	float dist;
 
 	/* we block all events, this is modal interaction, except for drop events which is described below */
 	int retval = WM_UI_HANDLER_BREAK;
@@ -8637,7 +8640,7 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 	ui_window_to_block_fl(ar, block, &event_xy[0], &event_xy[1]);
 
-	ui_block_calculate_pie_segment(block, event_xy);
+	dist = ui_block_calculate_pie_segment(block, event_xy);
 
 	if (event->type == TIMER) {
 		if (event->customdata == menu->scrolltimer) {
@@ -8723,11 +8726,10 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				block->pie_data.flags |= UI_PIE_CLICK_STYLE;
 			}
 			else {
-				float len_sq = len_squared_v2v2(event_xy, block->pie_data.pie_center_init);
 				uiBut *but = ui_but_find_activated(menu->region);
 
-				if (but && (U.pie_menu_confirm >= U.pie_menu_threshold) &&
-				    (sqrtf(len_sq) >= U.pie_menu_confirm))
+				if (but && (U.pie_menu_confirm > 0) &&
+				    (dist >= U.pie_menu_threshold + U.pie_menu_confirm))
 				{
 					if (but)
 						return ui_but_pie_menu_apply(C, menu, but, true);
@@ -8747,12 +8749,14 @@ static int ui_handler_pie(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				if (!is_click_style) {
 					float len_sq = len_squared_v2v2(event_xy, block->pie_data.pie_center_init);
 
+					/* here we use the initial position explicitly */
 					if (len_sq > PIE_CLICK_THRESHOLD_SQ) {
 						block->pie_data.flags |= UI_PIE_DRAG_STYLE;
 					}
 
-					if ((U.pie_menu_confirm >= U.pie_menu_threshold) &&
-					    (len_sq >= SQUARE(U.pie_menu_confirm)))
+					/* here instead, we use the offset location to account for the initial direction timeout */
+					if ((U.pie_menu_confirm > 0) &&
+					    (dist >= U.pie_menu_threshold + U.pie_menu_confirm))
 					{
 						block->pie_data.flags |= UI_PIE_GESTURE_END_WAIT;
 						copy_v2_v2(block->pie_data.last_pos, event_xy);

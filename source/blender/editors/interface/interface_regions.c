@@ -2732,10 +2732,18 @@ uiPieMenu *uiPieMenuBegin(struct bContext *C, const char *title, int icon, const
 		win->lock_pie_event = EVENT_NONE;
 	}
 	else {
-		if (win->last_pie_event != EVENT_NONE)
-			event_type = win->last_pie_event;
-		else
+		if (win->last_pie_event != EVENT_NONE) {
+			/* original pie key has been released, so don't propagate the event */
+			if (win->lock_pie_event == EVENT_NONE) {
+				event_type = EVENT_NONE;
+				pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
+			}
+			else
+				event_type = win->last_pie_event;
+		}
+		else {
 			event_type = event->type;
+		}
 
 		pie->block_radial->pie_data.event = event_type;
 		win->lock_pie_event = event_type;

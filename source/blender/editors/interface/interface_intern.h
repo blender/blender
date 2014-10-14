@@ -608,7 +608,7 @@ extern uiBut *ui_but_find_activated(struct ARegion *ar);
 bool ui_but_is_editable(const uiBut *but);
 void ui_but_pie_dir_visual(RadialDirection dir, float vec[2]);
 void ui_but_pie_dir(RadialDirection dir, float vec[2]);
-void ui_block_calculate_pie_segment(struct uiBlock *block, const float event_xy[2]);
+float ui_block_calculate_pie_segment(struct uiBlock *block, const float event_xy[2]);
 
 void ui_button_clipboard_free(void);
 void ui_panel_menu(struct bContext *C, ARegion *ar, Panel *pa);
