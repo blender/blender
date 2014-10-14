@@ -302,8 +302,8 @@ enum {
 
 	/* Start or continue composing? */
 	if ([[event characters] length] == 0  ||
-	    [[event charactersIgnoringModifiers] length] == 0 ||
-	    composing)
+		[[event charactersIgnoringModifiers] length] == 0 ||
+		composing)
 	{
 		composing = YES;
 
@@ -636,13 +636,13 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 
 	// Starting with 10.9 (darwin 13.x.x), we can use Lion fullscreen,
 	// since it now has better multi-monitor support
-    // if the screens are spawned, additional screens get useless,
-    // so we only use lionStyleFullScreen when screens have separate spaces
-    
-    if ([NSScreen respondsToSelector:@selector(screensHaveSeparateSpaces)] && [NSScreen screensHaveSeparateSpaces]) {
-        // implies we are on >= OSX 10.9
-        m_lionStyleFullScreen = true;
-    }
+	// if the screens are spawned, additional screens get useless,
+	// so we only use lionStyleFullScreen when screens have separate spaces
+	
+	if ([NSScreen respondsToSelector:@selector(screensHaveSeparateSpaces)] && [NSScreen screensHaveSeparateSpaces]) {
+		// implies we are on >= OSX 10.9
+		m_lionStyleFullScreen = true;
+	}
 	
 	[pool drain];
 }
@@ -848,7 +848,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 	if ((((GHOST_TUns32)cBnds.getWidth())  != width) ||
-	    (((GHOST_TUns32)cBnds.getHeight()) != height))
+		(((GHOST_TUns32)cBnds.getHeight()) != height))
 	{
 		NSSize size;
 		size.width=width;
@@ -871,12 +871,12 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 
 	if (masks & NSFullScreenWindowMask) {
 		// Lion style fullscreen
-        if (!m_immediateDraw) {
-            state = GHOST_kWindowStateFullScreen;
-        }
-        else {
-            state = GHOST_kWindowStateNormal;
-        }
+		if (!m_immediateDraw) {
+			state = GHOST_kWindowStateFullScreen;
+		}
+		else {
+			state = GHOST_kWindowStateNormal;
+		}
 	}
 	else
 #endif
@@ -890,12 +890,12 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 		state = GHOST_kWindowStateMaximized;
 	}
 	else {
-        if (m_immediateDraw) {
-            state = GHOST_kWindowStateFullScreen;
-        }
-        else {
+		if (m_immediateDraw) {
+			state = GHOST_kWindowStateFullScreen;
+		}
+		else {
 		state = GHOST_kWindowStateNormal;
-        }
+		}
 	}
 	[pool drain];
 	return state;
@@ -1049,7 +1049,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow setDelegate:[m_window delegate]];
 				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
 				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
-				                                    NSStringPboardType, NSTIFFPboardType, nil]];
+													NSStringPboardType, NSTIFFPboardType, nil]];
 				
 				//Assign the openGL view to the new window
 				[tmpWindow setContentView:m_openGLView];
@@ -1514,7 +1514,7 @@ static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask,
-                                                             int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color)
+															 int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color)
 {
 	int y,nbUns16;
 	NSPoint hotSpotPoint;
@@ -1533,15 +1533,15 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 	
 
 	cursorImageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil
-															 pixelsWide:sizex
-															 pixelsHigh:sizey
-														  bitsPerSample:1 
-														samplesPerPixel:2
-															   hasAlpha:YES
-															   isPlanar:YES
-														 colorSpaceName:NSDeviceWhiteColorSpace
+															pixelsWide:sizex
+															pixelsHigh:sizey
+															bitsPerSample:1
+															samplesPerPixel:2
+															hasAlpha:YES
+															isPlanar:YES
+															colorSpaceName:NSDeviceWhiteColorSpace
 															bytesPerRow:(sizex/8 + (sizex%8 >0 ?1:0))
-														   bitsPerPixel:1];
+															bitsPerPixel:1];
 	
 	
 	cursorBitmap = (GHOST_TUns16*)[cursorImageRep bitmapData];
@@ -1569,7 +1569,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 	
 	//foreground and background color parameter is not handled for now (10.6)
 	m_customCursor = [[NSCursor alloc] initWithImage:cursorImage
-											 hotSpot:hotSpotPoint];
+											hotSpot:hotSpotPoint];
 	
 	[cursorImageRep release];
 	[cursorImage release];
@@ -1582,7 +1582,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], 
-                                                             GHOST_TUns8 mask[16][2], int hotX, int hotY)
+															 GHOST_TUns8 mask[16][2], int hotX, int hotY)
 {
 	return setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*) mask, 16, 16, hotX, hotY, 0, 1);
 }
