@@ -165,9 +165,9 @@ extern "C" {
 	 * Memory usage stats
 	 * - MEM_get_memory_in_use is all memory
 	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
-	extern uintptr_t (*MEM_get_memory_in_use)(void);
+	extern size_t (*MEM_get_memory_in_use)(void);
 	/** Get mapped memory usage. */
-	extern uintptr_t (*MEM_get_mapped_memory_in_use)(void);
+	extern size_t (*MEM_get_mapped_memory_in_use)(void);
 	/** Get amount of memory blocks in use. */
 	extern unsigned int (*MEM_get_memory_blocks_in_use)(void);
 

@@ -452,12 +452,12 @@ void MEM_lockfree_set_memory_debug(void)
 	malloc_debug_memset = true;
 }
 
-uintptr_t MEM_lockfree_get_memory_in_use(void)
+size_t MEM_lockfree_get_memory_in_use(void)
 {
 	return mem_in_use;
 }
 
-uintptr_t MEM_lockfree_get_mapped_memory_in_use(void)
+size_t MEM_lockfree_get_mapped_memory_in_use(void)
 {
 	return mmap_in_use;
 }
@@ -473,7 +473,7 @@ void MEM_lockfree_reset_peak_memory(void)
 	peak_mem = 0;
 }
 
-uintptr_t MEM_lockfree_get_peak_memory(void)
+size_t MEM_lockfree_get_peak_memory(void)
 {
 	return peak_mem;
 }

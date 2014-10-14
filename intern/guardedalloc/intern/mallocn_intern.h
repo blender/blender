@@ -139,11 +139,11 @@ void MEM_lockfree_set_error_callback(void (*func)(const char *));
 bool MEM_lockfree_check_memory_integrity(void);
 void MEM_lockfree_set_lock_callback(void (*lock)(void), void (*unlock)(void));
 void MEM_lockfree_set_memory_debug(void);
-uintptr_t MEM_lockfree_get_memory_in_use(void);
-uintptr_t MEM_lockfree_get_mapped_memory_in_use(void);
+size_t MEM_lockfree_get_memory_in_use(void);
+size_t MEM_lockfree_get_mapped_memory_in_use(void);
 unsigned int MEM_lockfree_get_memory_blocks_in_use(void);
 void MEM_lockfree_reset_peak_memory(void);
-uintptr_t MEM_lockfree_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
+size_t MEM_lockfree_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 #ifndef NDEBUG
 const char *MEM_lockfree_name_ptr(void *vmemh);
 #endif
@@ -166,11 +166,11 @@ void MEM_guarded_set_error_callback(void (*func)(const char *));
 bool MEM_guarded_check_memory_integrity(void);
 void MEM_guarded_set_lock_callback(void (*lock)(void), void (*unlock)(void));
 void MEM_guarded_set_memory_debug(void);
-uintptr_t MEM_guarded_get_memory_in_use(void);
-uintptr_t MEM_guarded_get_mapped_memory_in_use(void);
+size_t MEM_guarded_get_memory_in_use(void);
+size_t MEM_guarded_get_mapped_memory_in_use(void);
 unsigned int MEM_guarded_get_memory_blocks_in_use(void);
 void MEM_guarded_reset_peak_memory(void);
-uintptr_t MEM_guarded_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
+size_t MEM_guarded_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 #ifndef NDEBUG
 const char *MEM_guarded_name_ptr(void *vmemh);
 #endif
