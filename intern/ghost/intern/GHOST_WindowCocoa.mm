@@ -634,12 +634,15 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
 
-	//Starting with 10.9 (darwin 13.x.x), we always use Lion fullscreen, since it
-	//now has proper multi-monitor support for fullscreen
+	// Starting with 10.9 (darwin 13.x.x), we always use Lion fullscreen, since it
+	// now has better multi-monitor support for fullscreen
+    // if the screens are spawned, additional screens get useless,
+    // so we only use lionStyleFullScreen when screens have separate spaces
+    
 	char darwin_ver[10];
 	size_t len = sizeof(darwin_ver);
 	sysctlbyname("kern.osrelease", &darwin_ver, &len, NULL, 0);
-	if(darwin_ver[0] == '1' && darwin_ver[1] >= '3') {
+	if(darwin_ver[0] == '1' && darwin_ver[1] >= '3' && [NSScreen screensHaveSeparateSpaces]) {
 		m_lionStyleFullScreen = true;
 	}
 	
