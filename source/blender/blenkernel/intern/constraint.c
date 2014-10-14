@@ -2613,6 +2613,8 @@ static void stretchto_new_data(void *cdata)
 	data->plane = 0;
 	data->orglength = 0.0; 
 	data->bulge = 1.0;
+	data->bulge_max = 1.0f;
+	data->bulge_min = 1.0f;
 }
 
 static void stretchto_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -2689,37 +2691,28 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		
 		bulge = powf(data->orglength / dist, data->bulge);
 		
-		if (data->flag & STRETCHTOCON_USE_BULGE_MAX) {
-			const float bulge_median = ((data->flag & STRETCHTOCON_USE_BULGE_MIN) ?
-			                            0.5f * (data->bulge_min + data->bulge_max) : 0.0f);
-			const float bulge_range = data->bulge_max - bulge_median;
-			float bulge_smoothed;
-
-			bulge_smoothed = bulge_median + bulge_range * atanf(bulge - bulge_median) / (0.5f * M_PI);
-
-			if (data->flag & STRETCHTOCON_USE_BULGE_MIN) {
-				CLAMP_MIN(bulge, data->bulge_min);
+		if (bulge > 1.0f) {
+			if (data->flag & STRETCHTOCON_USE_BULGE_MAX) {
+				float bulge_max = max_ff(data->bulge_max, 1.0f);
+				float hard = min_ff(bulge, bulge_max);
+				
+				float range = bulge_max - 1.0f;
+				float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
+				float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / (0.5f * M_PI);
+				
+				bulge = interpf(soft, hard, data->bulge_smooth);
 			}
-			CLAMP_MAX(bulge, data->bulge_max);
-
-			bulge = interpf(bulge_smoothed, bulge, data->bulge_smooth);
 		}
-		else if (data->flag & STRETCHTOCON_USE_BULGE_MIN) {
-			/* The quadratic formula below creates a smooth asymptote
-			 * of the clamped bulge value. By scaling x with the inverse smooth factor
-			 * the smoothed area becomes smaller ("less smoothing").
-			 * For very small smoothing factor below epsilon it is replaced
-			 * by the clamped version to avoid floating point precision issues.
-			 */
-			const float epsilon = 0.000001f;
-			if (data->bulge_smooth < epsilon) {
-				CLAMP_MIN(bulge, data->bulge_min);
-			}
-			else {
-				float scale = data->bulge_smooth;
-				float inv_scale = 1.0f / scale;
-				float x = (bulge - data->bulge_min) * 0.5f * inv_scale;
-				bulge = scale * (x + sqrtf((x * x) + 1.0f)) + data->bulge_min;
+		if (bulge < 1.0f) {
+			if (data->flag & STRETCHTOCON_USE_BULGE_MIN) {
+				float bulge_min = CLAMPIS(data->bulge_max, 0.0f, 1.0f);
+				float hard = max_ff(bulge, bulge_min);
+				
+				float range = 1.0f - bulge_min;
+				float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
+				float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / (0.5f * M_PI);
+				
+				bulge = interpf(soft, hard, data->bulge_smooth);
 			}
 		}
 		
