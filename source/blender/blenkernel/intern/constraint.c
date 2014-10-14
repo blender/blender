@@ -2693,11 +2693,9 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			const float bulge_median = ((data->flag & STRETCHTOCON_USE_BULGE_MIN) ?
 			                            0.5f * (data->bulge_min + data->bulge_max) : 0.0f);
 			const float bulge_range = data->bulge_max - bulge_median;
-			float x, bulge_smoothed;
+			float bulge_smoothed;
 
-			x = bulge_range != 0.0f ? (bulge - bulge_median) / bulge_range : 0.0f;
-			CLAMP(x, -1.0f, 1.0f);
-			bulge_smoothed = bulge_median + bulge_range * sinf(0.5f*M_PI * x);
+			bulge_smoothed = bulge_median + bulge_range * atanf(bulge - bulge_median) / (0.5f * M_PI);
 
 			if (data->flag & STRETCHTOCON_USE_BULGE_MIN) {
 				CLAMP_MIN(bulge, data->bulge_min);
