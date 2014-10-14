@@ -1906,7 +1906,6 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 
 				if (ELEM(ar->regiontype,
 				         RGN_TYPE_UI,
-				         RGN_TYPE_PREVIEW,
 				         RGN_TYPE_HEADER,
 				         RGN_TYPE_TOOLS))
 				{
