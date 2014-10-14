@@ -529,7 +529,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 				else if (sca > 0.0f) {
 					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && !BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							float *bweight = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset);
 							*bweight *= sca;
 							CLAMP(*bweight, 0.0f, 1.0f);
@@ -538,7 +538,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 				else {
 					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && !BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							float *bweight = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset);
 							*bweight = 1.0f + ((1.0f - *bweight) * sca);
 							CLAMP(*bweight, 0.0f, 1.0f);
@@ -618,7 +618,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 				else if (sca > 0.0f) {
 					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
 							*bweight *= sca;
 							CLAMP(*bweight, 0.0f, 1.0f);
@@ -627,7 +627,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 				else {
 					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
 							*bweight = 1.0f + ((1.0f - *bweight) * sca);
 							CLAMP(*bweight, 0.0f, 1.0f);
@@ -651,7 +651,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 				else if (sca > 0.0f) {
 					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
 							*crease *= sca;
 							CLAMP(*crease, 0.0f, 1.0f);
@@ -660,7 +660,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 				else {
 					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
 							*crease = 1.0f + ((1.0f - *crease) * sca);
 							CLAMP(*crease, 0.0f, 1.0f);
