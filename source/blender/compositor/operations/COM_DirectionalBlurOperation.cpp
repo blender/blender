@@ -69,8 +69,8 @@ void DirectionalBlurOperation::initExecution()
 void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const int iterations = pow(2.0f, this->m_data->iter);
-	float col[4] = {0, 0, 0, 0};
-	float col2[4] = {0, 0, 0, 0};
+	float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float col2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	this->m_inputProgram->readSampled(col2, x, y, COM_PS_BILINEAR);
 	float ltx = this->m_tx;
 	float lty = this->m_ty;
@@ -78,7 +78,7 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
 	float lrot = this->m_rot;
 	/* blur the image */
 	for (int i = 0; i < iterations; ++i) {
-		const float cs = cos(lrot), ss = sin(lrot);
+		const float cs = cosf(lrot), ss = sinf(lrot);
 		const float isc = 1.0f / (1.0f + lsc);
 
 		const float v = isc * (y - this->m_center_y_pix) + lty;
