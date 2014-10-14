@@ -124,6 +124,50 @@ static float compute_scale_factor(const float ve_median, const float median)
 	}
 }
 
+/* Apply helpers.
+ * Note: In case we only have one element, copy directly the value instead of applying the diff or scale factor.
+ *       Avoids some glitches when going e.g. from 3 to 0.0001 (see T37327).
+ */
+static void apply_raw_diff(float *val, const int tot, const float ve_median, const float median)
+{
+	*val = (tot == 1) ? ve_median : (*val + median);
+}
+
+static void apply_raw_diff_v3(float val[3], const int tot, const float ve_median[3], const float median[3])
+{
+	if (tot == 1) {
+		copy_v3_v3(val, ve_median);
+	}
+	else {
+		add_v3_v3(val, median);
+	}
+}
+
+static void apply_scale_factor(float *val, const int tot, const float ve_median, const float median, const float sca)
+{
+	if (tot == 1 || ve_median == median) {
+		*val = ve_median;
+	}
+	else {
+		*val *= sca;
+	}
+}
+
+static void apply_scale_factor_clamp(float *val, const int tot, const float ve_median, const float sca)
+{
+	if (tot == 1) {
+		*val = ve_median;
+		CLAMP(*val, 0.0f, 1.0f);
+	}
+	else if (ELEM(sca, 0.0f, 1.0f)) {
+		*val = sca;
+	}
+	else {
+		*val = (sca > 0.0f) ? (*val * sca) : (1.0f + ((1.0f - *val) * sca));
+		CLAMP(*val, 0.0f, 1.0f);
+	}
+}
+
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
@@ -473,6 +517,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	}
 	else { /* apply */
 		int i;
+		bool apply_vcos;
 
 		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
 
@@ -485,191 +530,130 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		while (i--)
 			median[i] = ve_median[i] - median[i];
 
-		if (ob->type == OB_MESH) {
+		/* Note with a single element selected, we always do. */
+		apply_vcos = (tot == 1) || (len_squared_v3(&median[LOC_X]) != 0.0f);
+
+		if ((ob->type == OB_MESH) &&
+		    (apply_vcos || median[M_BV_WEIGHT] || median[M_SKIN_X] || median[M_SKIN_Y] ||
+		     median[M_BE_WEIGHT] || median[M_CREASE]))
+		{
 			Mesh *me = ob->data;
 			BMEditMesh *em = me->edit_btmesh;
 			BMesh *bm = em->bm;
 			BMIter iter;
+			BMVert *eve;
+			BMEdge *eed;
 
-			if (tot == 1 || len_v3(&median[LOC_X]) != 0.0f) {
-				BMVert *eve;
+			int cd_vert_bweight_offset = -1;
+			int cd_vert_skin_offset = -1;
+			int cd_edge_bweight_offset = -1;
+			int cd_edge_crease_offset = -1;
+
+			float scale_bv_weight = 1.0f;
+			float scale_skin_x = 1.0f;
+			float scale_skin_y = 1.0f;
+			float scale_be_weight = 1.0f;
+			float scale_crease = 1.0f;
+
+			/* Vertices */
+
+			if (apply_vcos || median[M_BV_WEIGHT] || median[M_SKIN_X] || median[M_SKIN_Y]) {
+				if (median[M_BV_WEIGHT]) {
+					BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_VERT_BWEIGHT);
+					cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+					BLI_assert(cd_vert_bweight_offset != -1);
+
+					scale_bv_weight = compute_scale_factor(ve_median[M_BV_WEIGHT], median[M_BV_WEIGHT]);
+				}
+
+				if (median[M_SKIN_X]) {
+					cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
+					BLI_assert(cd_vert_skin_offset != -1);
+
+					if (ve_median[M_SKIN_X] != median[M_SKIN_X]) {
+						scale_skin_x = ve_median[M_SKIN_X] / (ve_median[M_SKIN_X] - median[M_SKIN_X]);
+					}
+				}
+				if (median[M_SKIN_Y]) {
+					if (cd_vert_skin_offset == -1) {
+						cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
+						BLI_assert(cd_vert_skin_offset != -1);
+					}
+
+					if (ve_median[M_SKIN_Y] != median[M_SKIN_Y]) {
+						scale_skin_y = ve_median[M_SKIN_Y] / (ve_median[M_SKIN_Y] - median[M_SKIN_Y]);
+					}
+				}
 
 				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 					if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-						if (tot == 1) {
-							/* In case we only have one element selected, copy directly the value instead of applying
-							 * the diff. Avoids some glitches when going e.g. from 3 to 0.0001 (see [#37327]).
-							 */
-							copy_v3_v3(eve->co, &ve_median[LOC_X]);
+						if (apply_vcos) {
+							apply_raw_diff_v3(eve->co, tot, &ve_median[LOC_X], &median[LOC_X]);
 						}
-						else {
-							add_v3_v3(eve->co, &median[LOC_X]);
+
+						if (cd_vert_bweight_offset != -1) {
+							float *bweight = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset);
+							apply_scale_factor_clamp(bweight, tot, ve_median[M_BV_WEIGHT], scale_bv_weight);
+						}
+
+						if (cd_vert_skin_offset != -1) {
+							MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
+
+							/* That one is not clamped to [0.0, 1.0]. */
+							if (median[M_SKIN_X] != 0.0f) {
+								apply_scale_factor(&vs->radius[0], tot, ve_median[M_SKIN_X], median[M_SKIN_X],
+								                   scale_skin_x);
+							}
+							if (median[M_SKIN_Y] != 0.0f) {
+								apply_scale_factor(&vs->radius[1], tot, ve_median[M_SKIN_Y], median[M_SKIN_Y],
+								                   scale_skin_y);
+							}
 						}
 					}
 				}
+			}
 
+			if (apply_vcos) {
 				EDBM_mesh_normals_update(em);
 			}
 
-			if (median[M_BV_WEIGHT] != 0.0f) {
-				const int cd_vert_bweight_offset = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_VERT_BWEIGHT),
-				                                    CustomData_get_offset(&bm->vdata, CD_BWEIGHT));
-				const float sca = compute_scale_factor(ve_median[M_BV_WEIGHT], median[M_BV_WEIGHT]);
-				BMVert *eve;
+			/* Edges */
 
-				BLI_assert(cd_vert_bweight_offset != -1);
+			if (median[M_BE_WEIGHT] || median[M_CREASE]) {
+				if (median[M_BE_WEIGHT]) {
+					BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT);
+					cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+					BLI_assert(cd_edge_bweight_offset != -1);
 
-				if (ELEM(sca, 0.0f, 1.0f)) {
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset);
-							*bweight = sca;
-						}
-					}
+					scale_be_weight = compute_scale_factor(ve_median[M_BE_WEIGHT], median[M_BE_WEIGHT]);
 				}
-				else if (sca > 0.0f) {
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset);
-							*bweight *= sca;
-							CLAMP(*bweight, 0.0f, 1.0f);
-						}
-					}
+
+				if (median[M_CREASE]) {
+					BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE);
+					cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+					BLI_assert(cd_edge_crease_offset != -1);
+
+					scale_crease = compute_scale_factor(ve_median[M_CREASE], median[M_CREASE]);
 				}
-				else {
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset);
-							*bweight = 1.0f + ((1.0f - *bweight) * sca);
-							CLAMP(*bweight, 0.0f, 1.0f);
-						}
-					}
-				}
-			}
 
-			if (median[M_SKIN_X] != 0.0f) {
-				const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
-				/* That one is not clamped to [0.0, 1.0]. */
-				float sca = ve_median[M_SKIN_X];
-				BMVert *eve;
-
-				BLI_assert(cd_vert_skin_offset != -1);
-
-				if (ve_median[M_SKIN_X] - median[M_SKIN_X] == 0.0f) {
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
-							vs->radius[0] = sca;
-						}
-					}
-				}
-				else {
-					sca /= (ve_median[M_SKIN_X] - median[M_SKIN_X]);
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
-							vs->radius[0] *= sca;
-						}
-					}
-				}
-			}
-			if (median[M_SKIN_Y] != 0.0f) {
-				const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
-				/* That one is not clamped to [0.0, 1.0]. */
-				float sca = ve_median[M_SKIN_Y];
-				BMVert *eve;
-
-				BLI_assert(cd_vert_skin_offset != -1);
-
-				if (ve_median[M_SKIN_Y] - median[M_SKIN_Y] == 0.0f) {
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
-							vs->radius[1] = sca;
-						}
-					}
-				}
-				else {
-					sca /= (ve_median[M_SKIN_Y] - median[M_SKIN_Y]);
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
-							vs->radius[1] *= sca;
-						}
-					}
-				}
-			}
-
-			if (median[M_BE_WEIGHT] != 0.0f) {
-				const int cd_edge_bweight_offset = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT),
-				                                    CustomData_get_offset(&bm->edata, CD_BWEIGHT));
-				const float sca = compute_scale_factor(ve_median[M_BE_WEIGHT], median[M_BE_WEIGHT]);
-				BMEdge *eed;
-
-				BLI_assert(cd_edge_bweight_offset != -1);
-
-				if (ELEM(sca, 0.0f, 1.0f)) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+					if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+						if (median[M_BE_WEIGHT] != 0.0f) {
 							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
-							*bweight = sca;
+							apply_scale_factor_clamp(bweight, tot, ve_median[M_BE_WEIGHT], scale_be_weight);
 						}
-					}
-				}
-				else if (sca > 0.0f) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
-							*bweight *= sca;
-							CLAMP(*bweight, 0.0f, 1.0f);
-						}
-					}
-				}
-				else {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
-							*bweight = 1.0f + ((1.0f - *bweight) * sca);
-							CLAMP(*bweight, 0.0f, 1.0f);
-						}
-					}
-				}
-			}
 
-			if (median[M_CREASE] != 0.0f) {
-				const int cd_edge_crease_offset  = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE),
-				                                    CustomData_get_offset(&bm->edata, CD_CREASE));
-				const float sca = compute_scale_factor(ve_median[M_CREASE], median[M_CREASE]);
-				BMEdge *eed;
-
-				if (ELEM(sca, 0.0f, 1.0f)) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							BM_ELEM_CD_SET_FLOAT(eed, cd_edge_crease_offset, sca);
-						}
-					}
-				}
-				else if (sca > 0.0f) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+						if (median[M_CREASE] != 0.0f) {
 							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
-							*crease *= sca;
-							CLAMP(*crease, 0.0f, 1.0f);
-						}
-					}
-				}
-				else {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
-							*crease = 1.0f + ((1.0f - *crease) * sca);
-							CLAMP(*crease, 0.0f, 1.0f);
+							apply_scale_factor_clamp(crease, tot, ve_median[M_CREASE], scale_crease);
 						}
 					}
 				}
 			}
 		}
-		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF) &&
+		         (apply_vcos || median[C_BWEIGHT] || median[C_WEIGHT] || median[C_RADIUS] || median[C_TILT]))
+		{
 			Curve *cu = ob->data;
 			Nurb *nu;
 			BPoint *bp;
@@ -683,44 +667,31 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				if (nu->type == CU_BEZIER) {
 					for (a = nu->pntsu, bezt = nu->bezt; a--; bezt++) {
 						if (bezt->f2 & SELECT) {
-							/* Here we always have to use the diff... :/
-							 * Cannot avoid some glitches when going e.g. from 3 to 0.0001 (see [#37327]),
-							 * unless we use doubles.
-							 */
-							add_v3_v3(bezt->vec[0], &median[LOC_X]);
-							add_v3_v3(bezt->vec[1], &median[LOC_X]);
-							add_v3_v3(bezt->vec[2], &median[LOC_X]);
-
-							if (median[C_WEIGHT] != 0.0f) {
-								if (ELEM(scale_w, 0.0f, 1.0f)) {
-									bezt->weight = scale_w;
-								}
-								else {
-									bezt->weight = scale_w > 0.0f ? bezt->weight * scale_w :
-									                                1.0f + ((1.0f - bezt->weight) * scale_w);
-									CLAMP(bezt->weight, 0.0f, 1.0f);
-								}
+							if (apply_vcos) {
+								/* Here we always have to use the diff... :/
+								 * Cannot avoid some glitches when going e.g. from 3 to 0.0001 (see T37327),
+								 * unless we use doubles.
+								 */
+								add_v3_v3(bezt->vec[0], &median[LOC_X]);
+								add_v3_v3(bezt->vec[1], &median[LOC_X]);
+								add_v3_v3(bezt->vec[2], &median[LOC_X]);
 							}
-
-							bezt->radius += median[C_RADIUS];
-							bezt->alfa += median[C_TILT];
+							if (median[C_WEIGHT]) {
+								apply_scale_factor_clamp(&bezt->weight, tot, ve_median[C_WEIGHT], scale_w);
+							}
+							if (median[C_RADIUS]) {
+								apply_raw_diff(&bezt->radius, tot, ve_median[C_RADIUS], median[C_RADIUS]);
+							}
+							if (median[C_TILT]) {
+								apply_raw_diff(&bezt->alfa, tot, ve_median[C_TILT], median[C_TILT]);
+							}
 						}
-						else {
+						else if (apply_vcos) {  /* Handles can only have their coordinates changed here. */
 							if (bezt->f1 & SELECT) {
-								if (tot == 1) {
-									copy_v3_v3(bezt->vec[0], &ve_median[LOC_X]);
-								}
-								else {
-									add_v3_v3(bezt->vec[0], &median[LOC_X]);
-								}
+								apply_raw_diff_v3(bezt->vec[0], tot, &ve_median[LOC_X], &median[LOC_X]);
 							}
 							if (bezt->f3 & SELECT) {
-								if (tot == 1) {
-									copy_v3_v3(bezt->vec[2], &ve_median[LOC_X]);
-								}
-								else {
-									add_v3_v3(bezt->vec[2], &median[LOC_X]);
-								}
+								apply_raw_diff_v3(bezt->vec[2], tot, &ve_median[LOC_X], &median[LOC_X]);
 							}
 						}
 					}
@@ -728,28 +699,20 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				else {
 					for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a--; bp++) {
 						if (bp->f1 & SELECT) {
-							if (tot == 1) {
-								copy_v3_v3(bp->vec, &ve_median[LOC_X]);
-								bp->vec[3] = ve_median[C_BWEIGHT];
-								bp->radius = ve_median[C_RADIUS];
-								bp->alfa = ve_median[C_TILT];
+							if (apply_vcos) {
+								apply_raw_diff_v3(bp->vec, tot, &ve_median[LOC_X], &median[LOC_X]);
 							}
-							else {
-								add_v3_v3(bp->vec, &median[LOC_X]);
-								bp->vec[3] += median[C_BWEIGHT];
-								bp->radius += median[C_RADIUS];
-								bp->alfa += median[C_TILT];
+							if (median[C_BWEIGHT]) {
+								apply_raw_diff(&bp->vec[3], tot, ve_median[C_BWEIGHT], median[C_BWEIGHT]);
 							}
-
-							if (median[C_WEIGHT] != 0.0f) {
-								if (ELEM(scale_w, 0.0f, 1.0f)) {
-									bp->weight = scale_w;
-								}
-								else {
-									bp->weight = scale_w > 0.0f ? bp->weight * scale_w :
-									                              1.0f + ((1.0f - bp->weight) * scale_w);
-									CLAMP(bp->weight, 0.0f, 1.0f);
-								}
+							if (median[C_WEIGHT]) {
+								apply_scale_factor_clamp(&bp->weight, tot, ve_median[C_WEIGHT], scale_w);
+							}
+							if (median[C_RADIUS]) {
+								apply_raw_diff(&bp->radius, tot, ve_median[C_RADIUS], median[C_RADIUS]);
+							}
+							if (median[C_TILT]) {
+								apply_raw_diff(&bp->alfa, tot, ve_median[C_TILT], median[C_TILT]);
 							}
 						}
 					}
@@ -760,7 +723,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				nu = nu->next;
 			}
 		}
-		else if (ob->type == OB_LATTICE) {
+		else if ((ob->type == OB_LATTICE) && (apply_vcos || median[L_WEIGHT])) {
 			Lattice *lt = ob->data;
 			BPoint *bp;
 			int a;
@@ -770,22 +733,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			bp = lt->editlatt->latt->def;
 			while (a--) {
 				if (bp->f1 & SELECT) {
-					if (tot == 1) {
-						copy_v3_v3(bp->vec, &ve_median[LOC_X]);
+					if (apply_vcos) {
+						apply_raw_diff_v3(bp->vec, tot, &ve_median[LOC_X], &median[LOC_X]);
 					}
-					else {
-						add_v3_v3(bp->vec, &median[LOC_X]);
-					}
-
-					if (median[L_WEIGHT] != 0.0f) {
-						if (ELEM(scale_w, 0.0f, 1.0f)) {
-							bp->weight = scale_w;
-						}
-						else {
-							bp->weight = scale_w > 0.0f ? bp->weight * scale_w :
-							             1.0f + ((1.0f - bp->weight) * scale_w);
-							CLAMP(bp->weight, 0.0f, 1.0f);
-						}
+					if (median[L_WEIGHT]) {
+						apply_scale_factor_clamp(&bp->weight, tot, ve_median[L_WEIGHT], scale_w);
 					}
 				}
 				bp++;
