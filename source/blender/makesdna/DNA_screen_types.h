@@ -60,7 +60,7 @@ typedef struct bScreen {
 	int redraws_flag;					/* user-setting for which editors get redrawn during anim playback (used to be time->redraws) */
 	int pad1;
 	
-	short full;							/* temp screen for image render display or fileselect */
+	short state;						/* temp screen for image render display or fileselect */
 	short temp;							/* temp screen in a temp window, don't save (like user prefs) */
 	short winid;						/* winid from WM, starts with 1 */
 	short do_draw;						/* notifier for drawing edges */
@@ -247,7 +247,8 @@ typedef struct ARegion {
 	short do_draw_overlay;		/* private, cached notifier events */
 	short swap;					/* private, indicator to survive swap-exchange */
 	short overlap;				/* private, set for indicate drawing overlapped */
-	short pad[2];
+	short flagfullscreen;		/* temporary copy of flag settings for clean fullscreen */
+	short pad;
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	
@@ -287,9 +288,12 @@ typedef struct ARegion {
 #define HEADERDOWN	1
 #define HEADERTOP	2
 
-/* screen->full */
-#define SCREENNORMAL	0
-#define SCREENFULL		1
+/* screen->state */
+enum {
+	SCREENNORMAL     = 0,
+	SCREENMAXIMIZED  = 1, /* one editor taking over the screen */
+	SCREENFULL       = 2, /* one editor taking over the screen with no bare-minimum UI elements */
+};
 
 /* Panel->flag */
 enum {

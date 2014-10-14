@@ -36,6 +36,8 @@ struct wmWindow;
 struct Scene;
 
 #define AZONESPOT       (0.6f * U.widget_unit)
+#define AZONEFADEIN     (5.0f * U.widget_unit) /* when azone is totally visible */
+#define AZONEFADEOUT    (6.5f * U.widget_unit) /* when we start seeing the azone */
 
 /* area.c */
 void        ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free);

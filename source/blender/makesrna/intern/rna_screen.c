@@ -116,7 +116,7 @@ static int rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
 static int rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
 	bScreen *sc = (bScreen *)ptr->data;
-	return (sc->full != 0);
+	return (sc->state == SCREENMAXIMIZED);
 }
 
 /* UI compatible list: should not be needed, but for now we need to keep EMPTY
@@ -398,7 +398,7 @@ static void rna_def_screen(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_fullscreen", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Screen_fullscreen_get", NULL);
-	RNA_def_property_ui_text(prop, "Fullscreen", "An area is maximized, filling this screen");
+	RNA_def_property_ui_text(prop, "Maximize", "An area is maximized, filling this screen");
 
 	/* Define Anim Playback Areas */
 	prop = RNA_def_property(srna, "use_play_top_left_3d_editor", PROP_BOOLEAN, PROP_NONE);

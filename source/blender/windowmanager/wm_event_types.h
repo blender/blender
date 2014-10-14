@@ -299,13 +299,14 @@ enum {
 	/* Tweak, gestures: 0x500x, 0x501x */
 	EVT_ACTIONZONE_AREA   = 0x5000,
 	EVT_ACTIONZONE_REGION = 0x5001,
+	EVT_ACTIONZONE_FULLSCREEN = 0x5002,
 	/* tweak events, for L M R mousebuttons */
-	EVT_TWEAK_L           = 0x5002,
-	EVT_TWEAK_M           = 0x5003,
-	EVT_TWEAK_R           = 0x5004,
+	EVT_TWEAK_L           = 0x5003,
+	EVT_TWEAK_M           = 0x5004,
+	EVT_TWEAK_R           = 0x5005,
 	/* tweak events for action or select mousebutton */
-	EVT_TWEAK_A           = 0x5005,
-	EVT_TWEAK_S           = 0x5006,
+	EVT_TWEAK_A           = 0x5006,
+	EVT_TWEAK_S           = 0x5007,
 	EVT_GESTURE           = 0x5010,
 
 	/* Misc Blender internals: 0x502x */

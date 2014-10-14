@@ -252,7 +252,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else if (sima->flag & SI_FULLWINDOW) {
 		sima->flag &= ~SI_FULLWINDOW;
-		ED_screen_full_toggle(C, win, sa);
+		ED_screen_state_toggle(C, win, sa, SCREENMAXIMIZED);
 		return OPERATOR_FINISHED;
 	}
 

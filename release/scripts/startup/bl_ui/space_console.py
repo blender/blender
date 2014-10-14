@@ -70,7 +70,8 @@ class CONSOLE_MT_console(Menu):
         layout.separator()
 
         layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
+        layout.operator("screen.screen_full_area", text="Toggle Maximize Area")
+        layout.operator("screen.screen_full_area").use_hide_panels = True
 
 
 class CONSOLE_MT_language(Menu):
