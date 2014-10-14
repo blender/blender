@@ -129,24 +129,24 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 {
 /* Get rid of those ugly magic numbers, even in a single func they become confusing! */
 /* Location, common to all. */
-/* XXX Those two *must* remain contiguous (used as array)! */
-#define LOC_X     0
-#define LOC_Y     1
-#define LOC_Z     2
+/* Next three *must* remain contiguous (used as array)! */
+#define LOC_X        0
+#define LOC_Y        1
+#define LOC_Z        2
 /* Meshes... */
-#define M_CREASE  3
-#define M_BV_WEIGHT  4
-#define M_BE_WEIGHT  5
-/* XXX Those two *must* remain contiguous (used as array)! */
-#define M_SKIN_X  6
-#define M_SKIN_Y  7
+#define M_BV_WEIGHT  3
+/* Next two *must* remain contiguous (used as array)! */
+#define M_SKIN_X     4
+#define M_SKIN_Y     5
+#define M_BE_WEIGHT  6
+#define M_CREASE     7
 /* Curves... */
-#define C_BWEIGHT 3
-#define C_WEIGHT  4
-#define C_RADIUS  5
-#define C_TILT    6
+#define C_BWEIGHT    3
+#define C_WEIGHT     4
+#define C_RADIUS     5
+#define C_TILT       6
 /*Lattice... */
-#define L_WEIGHT  4
+#define L_WEIGHT     4
 
 	uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
 	TransformProperties *tfp;
@@ -172,8 +172,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		BMEdge *eed;
 		BMIter iter;
 
-		const int cd_vert_skin_offset    = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 		const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+		const int cd_vert_skin_offset    = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 		const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 		const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 
@@ -197,9 +197,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			}
 		}
 
-		if ((cd_edge_bweight_offset != -1) ||
-		    (cd_edge_crease_offset  != -1))
-		{
+		if ((cd_edge_bweight_offset != -1) || (cd_edge_crease_offset  != -1)) {
 			if (bm->totedgesel) {
 				BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 					if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
@@ -341,14 +339,16 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 	}
 	else if (totcurvedata) {
+		if (totcurvebweight) {
+			median[C_BWEIGHT] /= (float)totcurvebweight;
+		}
 		median[C_WEIGHT] /= (float)totcurvedata;
 		median[C_RADIUS] /= (float)totcurvedata;
 		median[C_TILT] /= (float)totcurvedata;
-		if (totcurvebweight)
-			median[C_BWEIGHT] /= (float)totcurvebweight;
 	}
-	else if (totlattdata)
+	else if (totlattdata) {
 		median[L_WEIGHT] /= (float)totlattdata;
+	}
 
 	if (block) { /* buttons */
 		uiBut *but;
@@ -400,20 +400,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 		/* Meshes... */
 		if (has_meshdata) {
-			if (totedgedata) {
-				uiDefBut(block, LABEL, 0, totedgedata == 1 ? IFACE_("Edge Data:") : IFACE_("Edges Data:"),
-				         0, yi -= buth + but_margin, 200, buth, NULL, 0.0, 0.0, 0, 0, "");
-				/* customdata layer added on demand */
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
-				          totedgedata == 1 ? IFACE_("Crease:") : IFACE_("Mean Crease:"),
-				          0, yi -= buth + but_margin, 200, buth,
-				          &(tfp->ve_median[M_CREASE]), 0.0, 1.0, 1, 2, TIP_("Weight used by SubSurf modifier"));
-				/* customdata layer added on demand */
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
-				          totedgedata == 1 ? IFACE_("Bevel Weight:") : IFACE_("Mean Bevel Weight:"),
-				          0, yi -= buth + but_margin, 200, buth,
-				          &(tfp->ve_median[M_BE_WEIGHT]), 0.0, 1.0, 1, 2, TIP_("Edge weight used by Bevel modifier"));
-			}
 			if (tot) {
 				uiDefBut(block, LABEL, 0, tot == 1 ? IFACE_("Vertex Data:") : IFACE_("Vertices Data:"),
 				         0, yi -= buth + but_margin, 200, buth, NULL, 0.0, 0.0, 0, 0, "");
@@ -424,6 +410,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				          &(tfp->ve_median[M_BV_WEIGHT]), 0.0, 1.0, 1, 2, TIP_("Vertex weight used by Bevel modifier"));
 			}
 			if (has_skinradius) {
+				uiBlockBeginAlign(block);
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
 				          tot == 1 ? IFACE_("Radius X:") : IFACE_("Mean Radius X:"),
 				          0, yi -= buth + but_margin, 200, buth,
@@ -432,6 +419,21 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				          tot == 1 ? IFACE_("Radius Y:") : IFACE_("Mean Radius Y:"),
 				          0, yi -= buth + but_margin, 200, buth,
 				          &(tfp->ve_median[M_SKIN_Y]), 0.0, 100.0, 1, 3, TIP_("Y radius used by Skin modifier"));
+				uiBlockEndAlign(block);
+			}
+			if (totedgedata) {
+				uiDefBut(block, LABEL, 0, totedgedata == 1 ? IFACE_("Edge Data:") : IFACE_("Edges Data:"),
+				         0, yi -= buth + but_margin, 200, buth, NULL, 0.0, 0.0, 0, 0, "");
+				/* customdata layer added on demand */
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+				          totedgedata == 1 ? IFACE_("Bevel Weight:") : IFACE_("Mean Bevel Weight:"),
+				          0, yi -= buth + but_margin, 200, buth,
+				          &(tfp->ve_median[M_BE_WEIGHT]), 0.0, 1.0, 1, 2, TIP_("Edge weight used by Bevel modifier"));
+				/* customdata layer added on demand */
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+				          totedgedata == 1 ? IFACE_("Crease:") : IFACE_("Mean Crease:"),
+				          0, yi -= buth + but_margin, 200, buth,
+				          &(tfp->ve_median[M_CREASE]), 0.0, 1.0, 1, 2, TIP_("Weight used by SubSurf modifier"));
 			}
 		}
 		/* Curve... */
@@ -468,7 +470,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 
 		uiBlockEndAlign(block);
-
 	}
 	else { /* apply */
 		int i;
@@ -546,75 +547,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 			}
 
-			if (median[M_CREASE] != 0.0f) {
-				const int cd_edge_crease_offset  = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE),
-				                                    CustomData_get_offset(&bm->edata, CD_CREASE));
-				const float sca = compute_scale_factor(ve_median[M_CREASE], median[M_CREASE]);
-				BMEdge *eed;
-
-				if (ELEM(sca, 0.0f, 1.0f)) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							BM_ELEM_CD_SET_FLOAT(eed, cd_edge_crease_offset, sca);
-						}
-					}
-				}
-				else if (sca > 0.0f) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
-							*crease *= sca;
-							CLAMP(*crease, 0.0f, 1.0f);
-						}
-					}
-				}
-				else {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
-							*crease = 1.0f + ((1.0f - *crease) * sca);
-							CLAMP(*crease, 0.0f, 1.0f);
-						}
-					}
-				}
-			}
-
-			if (median[M_BE_WEIGHT] != 0.0f) {
-				const int cd_edge_bweight_offset = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT),
-				                                    CustomData_get_offset(&bm->edata, CD_BWEIGHT));
-				const float sca = compute_scale_factor(ve_median[M_BE_WEIGHT], median[M_BE_WEIGHT]);
-				BMEdge *eed;
-
-				BLI_assert(cd_edge_bweight_offset != -1);
-
-				if (ELEM(sca, 0.0f, 1.0f)) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
-							*bweight = sca;
-						}
-					}
-				}
-				else if (sca > 0.0f) {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
-							*bweight *= sca;
-							CLAMP(*bweight, 0.0f, 1.0f);
-						}
-					}
-				}
-				else {
-					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
-							*bweight = 1.0f + ((1.0f - *bweight) * sca);
-							CLAMP(*bweight, 0.0f, 1.0f);
-						}
-					}
-				}
-			}
-
 			if (median[M_SKIN_X] != 0.0f) {
 				const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 				/* That one is not clamped to [0.0, 1.0]. */
@@ -663,6 +595,75 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
 							vs->radius[1] *= sca;
+						}
+					}
+				}
+			}
+
+			if (median[M_BE_WEIGHT] != 0.0f) {
+				const int cd_edge_bweight_offset = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT),
+				                                    CustomData_get_offset(&bm->edata, CD_BWEIGHT));
+				const float sca = compute_scale_factor(ve_median[M_BE_WEIGHT], median[M_BE_WEIGHT]);
+				BMEdge *eed;
+
+				BLI_assert(cd_edge_bweight_offset != -1);
+
+				if (ELEM(sca, 0.0f, 1.0f)) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
+							*bweight = sca;
+						}
+					}
+				}
+				else if (sca > 0.0f) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
+							*bweight *= sca;
+							CLAMP(*bweight, 0.0f, 1.0f);
+						}
+					}
+				}
+				else {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *bweight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
+							*bweight = 1.0f + ((1.0f - *bweight) * sca);
+							CLAMP(*bweight, 0.0f, 1.0f);
+						}
+					}
+				}
+			}
+
+			if (median[M_CREASE] != 0.0f) {
+				const int cd_edge_crease_offset  = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE),
+				                                    CustomData_get_offset(&bm->edata, CD_CREASE));
+				const float sca = compute_scale_factor(ve_median[M_CREASE], median[M_CREASE]);
+				BMEdge *eed;
+
+				if (ELEM(sca, 0.0f, 1.0f)) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+							BM_ELEM_CD_SET_FLOAT(eed, cd_edge_crease_offset, sca);
+						}
+					}
+				}
+				else if (sca > 0.0f) {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
+							*crease *= sca;
+							CLAMP(*crease, 0.0f, 1.0f);
+						}
+					}
+				}
+				else {
+					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+						if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+							float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
+							*crease = 1.0f + ((1.0f - *crease) * sca);
+							CLAMP(*crease, 0.0f, 1.0f);
 						}
 					}
 				}
@@ -800,11 +801,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 #undef LOC_Y
 #undef LOC_Z
 /* Meshes (and lattice)... */
-#undef M_CREASE
 #undef M_BV_WEIGHT
-#undef M_BE_WEIGHT
 #undef M_SKIN_X
 #undef M_SKIN_Y
+#undef M_BE_WEIGHT
+#undef M_CREASE
 /* Curves... */
 #undef C_BWEIGHT
 #undef C_WEIGHT
