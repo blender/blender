@@ -325,6 +325,16 @@ static HWND clone_window(HWND hWnd, LPVOID lpParam)
 
 void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 {
+	HWND  dummyHWND  = NULL;
+	HDC   dummyHDC   = NULL;
+	HGLRC dummyHGLRC = NULL;
+
+	HDC   prevHDC;
+	HGLRC prevHGLRC;
+
+	int iPixelFormat;
+
+
 #ifdef WITH_GLEW_MX
 	wglewContext = new WGLEWContext;
 	memset(wglewContext, 0, sizeof(WGLEWContext));
@@ -333,16 +343,12 @@ void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 	m_wglewContext = wglewContext;
 #endif
 
-	HWND  dummyHWND  = NULL;
-	HDC   dummyHDC   = NULL;
-	HGLRC dummyHGLRC = NULL;
-
 	SetLastError(NO_ERROR);
 
-	HDC prevHDC = ::wglGetCurrentDC();
+	prevHDC = ::wglGetCurrentDC();
 	WIN32_CHK(GetLastError() == NO_ERROR);
 
-	HGLRC prevHGLRC = ::wglGetCurrentContext();
+	prevHGLRC = ::wglGetCurrentContext();
 	WIN32_CHK(GetLastError() == NO_ERROR);
 
 	dummyHWND = clone_window(m_hWnd, NULL);
@@ -355,7 +361,7 @@ void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 	if (!WIN32_CHK(dummyHDC != NULL))
 		goto finalize;
 
-	int iPixelFormat = choose_pixel_format_legacy(dummyHDC, preferredPFD);
+	iPixelFormat = choose_pixel_format_legacy(dummyHDC, preferredPFD);
 
 	if (iPixelFormat == 0)
 		goto finalize;
@@ -689,14 +695,6 @@ static void reportContextString(const char *name, const char *dummy, const char 
 
 GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 {
-	SetLastError(NO_ERROR);
-
-	HGLRC prevHGLRC = ::wglGetCurrentContext();
-	WIN32_CHK(GetLastError() == NO_ERROR);
-
-	HDC   prevHDC   = ::wglGetCurrentDC();
-	WIN32_CHK(GetLastError() == NO_ERROR);
-
 #ifdef GHOST_OPENGL_ALPHA
 	const bool needAlpha = true;
 #else
@@ -710,19 +708,34 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 #endif
 
 #ifdef GHOST_OPENGL_SRGB
-	static const bool sRGB        = true;
+	const bool sRGB = true;
 #else
-	static const bool sRGB        = false;
+	const bool sRGB = false;
 #endif
 
-	int iPixelFormat = choose_pixel_format(m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, sRGB);
+	HGLRC prevHGLRC;
+	HDC   prevHDC;
+
+	int iPixelFormat;
+	int lastPFD;
+
+	PIXELFORMATDESCRIPTOR chosenPFD;
+
+
+	SetLastError(NO_ERROR);
+
+	prevHGLRC = ::wglGetCurrentContext();
+	WIN32_CHK(GetLastError() == NO_ERROR);
+
+	prevHDC   = ::wglGetCurrentDC();
+	WIN32_CHK(GetLastError() == NO_ERROR);
+
+	iPixelFormat = choose_pixel_format(m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, sRGB);
 
 	if (iPixelFormat == 0)
 		goto error;
 
-	PIXELFORMATDESCRIPTOR chosenPFD;
-
-	int lastPFD = ::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD);
+	lastPFD = ::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD);
 
 	if (!WIN32_CHK(lastPFD != 0))
 		goto error;
