@@ -271,6 +271,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->view_overlay; break;
 				case TH_WIRE:
 					cp = ts->wire; break;
+				case TH_WIRE_INNER:
+					cp = ts->syntaxr; break;
 				case TH_WIRE_EDIT:
 					cp = ts->wire_edit; break;
 				case TH_LAMP:
@@ -1104,6 +1106,7 @@ void ui_theme_init_default(void)
 	
 	/* space node, re-uses syntax and console color storage */
 	btheme->tnode = btheme->tv3d;
+	rgba_char_args_set(btheme->tnode.syntaxr, 115, 115, 115, 255);  /* wire inner color */
 	rgba_char_args_set(btheme->tnode.edge_select, 255, 255, 255, 255);  /* wire selected */
 	rgba_char_args_set(btheme->tnode.syntaxl, 155, 155, 155, 160);  /* TH_NODE, backdrop */
 	rgba_char_args_set(btheme->tnode.syntaxn, 100, 100, 100, 255);  /* in */
@@ -2444,6 +2447,7 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set_fl(btheme->tv3d.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
 			rgba_char_args_set_fl(btheme->tima.paint_curve_handle, 0.5f, 1.0f, 0.5f, 0.5f);
 			rgba_char_args_set_fl(btheme->tima.paint_curve_pivot, 1.0f, 0.5f, 0.5f, 0.5f);
+			rgba_char_args_set(btheme->tnode.syntaxr, 115, 115, 115, 255);
 		}
 	}
 

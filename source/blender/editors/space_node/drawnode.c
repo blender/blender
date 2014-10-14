@@ -3444,7 +3444,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
 	bool do_shaded = false;
 	bool do_triple = false;
-	int th_col1 = TH_HEADER, th_col2 = TH_HEADER, th_col3 = TH_WIRE;
+	int th_col1 = TH_SYNTAX_R, th_col2 = TH_SYNTAX_R, th_col3 = TH_WIRE;
 	
 	if (link->fromsock == NULL && link->tosock == NULL)
 		return;
