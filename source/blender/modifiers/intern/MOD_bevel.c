@@ -121,7 +121,12 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_vert_is_manifold(v))
 				continue;
-			if (vgroup != -1) {
+			if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
+				weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
+				if (weight == 0.0f)
+					continue;
+			}
+			else if (vgroup != -1) {
 				weight = defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup);
 				/* Check is against 0.5 rather than != 0.0 because cascaded bevel modifiers will
 				 * interpolate weights for newly created vertices, and may cause unexpected "selection" */

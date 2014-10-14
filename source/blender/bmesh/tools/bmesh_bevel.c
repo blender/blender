@@ -2935,6 +2935,10 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			}
 			bv->offset *= weight;
 		}
+		else if (bp->use_weights) {
+			weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
+			bv->offset *= weight;
+		}
 	}
 	BLI_ghash_insert(bp->vert_hash, v, bv);
 
