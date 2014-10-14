@@ -101,6 +101,8 @@ static void rna_GPencil_active_layer_set(PointerRNA *ptr, PointerRNA value)
 				gl->flag &= ~GP_LAYER_ACTIVE;
 			}
 		}
+		
+		WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 	}
 }
 
@@ -586,7 +588,7 @@ static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_struct_type(prop, "GPencilLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_GPencil_active_layer_get", "rna_GPencil_active_layer_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Layer", "Active grease pencil layer");
