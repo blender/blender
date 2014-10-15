@@ -32,7 +32,7 @@
 
 #include <stdlib.h>
 
-#ifndef __GLIBC__
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 8))
 
 #include "BLI_utildefines.h"
 
