@@ -56,7 +56,12 @@ ccl_device void kernel_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
 #endif
 }
 
-ccl_device bool kernel_path_volume_bounce(KernelGlobals *kg, RNG *rng,
+#ifdef __KERNEL_GPU__
+ccl_device_noinline
+#else
+ccl_device
+#endif
+bool kernel_path_volume_bounce(KernelGlobals *kg, RNG *rng,
 	ShaderData *sd, float3 *throughput, PathState *state, PathRadiance *L, Ray *ray)
 {
 	/* sample phase function */
