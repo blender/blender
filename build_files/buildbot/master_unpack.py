@@ -71,13 +71,13 @@ def get_branch(filename):
     branch = ""
 
     for token in tokens:
+        if token == "blender":
+            return branch
+
         if branch == "":
             branch = token
         else:
             branch = branch + "-" + token
-
-        if token == "blender":
-            return branch
 
     return ""
 
