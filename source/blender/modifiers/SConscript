@@ -52,6 +52,9 @@ defs = []
 if env['WITH_BF_BOOLEAN']:
     incs.append('#/extern/carve')
     defs.append('WITH_MOD_BOOLEAN')
+else:
+    from os import path
+    sources.remove(path.join('intern', 'MOD_boolean_util.c'))
 
 if env['WITH_BF_REMESH']:
     incs.append('#/intern/dualcon')
