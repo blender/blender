@@ -179,6 +179,13 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 	}
 }
 
+int rna_ActionGroup_is_custom_colorset_get(PointerRNA *ptr)
+{
+	bActionGroup *grp = ptr->data;
+	
+	return (bool)(grp->customCol < 0);
+}
+
 static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
@@ -674,6 +681,11 @@ void rna_def_actionbone_group_common(StructRNA *srna, int update_flag, const cha
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ActionGroup_colorset_set", NULL);
 	RNA_def_property_ui_text(prop, "Color Set", "Custom color set to use");
 	RNA_def_property_update(prop, update_flag, update_cb);
+	
+	prop = RNA_def_property(srna, "is_custom_color_set", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ActionGroup_is_custom_colorset_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Custom Color Set", "Color set is user-defined instead of a fixed theme color set");
 	
 	/* TODO: editing the colors for this should result in changes to the color type... */
 	prop = RNA_def_property(srna, "colors", PROP_POINTER, PROP_NONE);
