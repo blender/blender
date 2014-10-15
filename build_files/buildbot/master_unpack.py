@@ -120,7 +120,7 @@ directory = 'public_html/download'
 if not branch or branch == 'master':
     directory = 'public_html/download'
 elif branch == 'experimental-build':
-    directory = 'public_html/experimental'
+    directory = 'public_html/download/experimental'
 # else: put 'official' branches in their own public subdir of download/ ?
 
 try:
