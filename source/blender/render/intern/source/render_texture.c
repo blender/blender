@@ -712,16 +712,16 @@ static float voronoiTex(Tex *tex, const float texvec[3], TexResult *texres)
 static int texnoise(Tex *tex, TexResult *texres)
 {
 	float div=3.0;
-	int val, ran, loop;
+	int val, ran, loop, shift = 29;
 	
 	ran= BLI_rand();
 	val= (ran & 3);
 	
 	loop= tex->noisedepth;
 	while (loop--) {
-		ran= (ran>>2);
-		val*= (ran & 3);
-		div*= 3.0f;
+		shift -= 2;		
+		val *= ((ran >> shift) & 3);
+		div *= 3.0f;
 	}
 	
 	texres->tin= ((float)val)/div;
