@@ -83,7 +83,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     -t n, --threads=n
         Use a specific number of threads when building the libraries (auto-detected as '\$THREADS').
 
-    --no_sudo
+    --no-sudo
         Disable use of sudo (this script won't be able to do much though, will just print needed packages...).
 
     --with-all
