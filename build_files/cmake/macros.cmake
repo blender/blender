@@ -722,6 +722,8 @@ macro(TEST_SSE_SUPPORT
 endmacro()
 
 macro(TEST_STDBOOL_SUPPORT)
+	include(CheckCSourceRuns)
+
 	# This program will compile correctly if and only if
 	# this C compiler supports C99 stdbool.
 	check_c_source_runs("
