@@ -14,7 +14,9 @@ include(cmake/external_libs.cmake)
 # todo: refactor this code to match scons
 # note: CXX_HAS_SSE is needed in case passing SSE flags fails altogether (gcc-arm)
 
-if(WIN32 AND MSVC)
+if(NOT WITH_CPU_SSE)
+	set(CXX_HAS_SSE FALSE)
+elseif(WIN32 AND MSVC)
 	set(CXX_HAS_SSE TRUE)
 
 	# /arch:AVX for VC2012 and above
