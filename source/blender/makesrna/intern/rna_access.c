@@ -903,7 +903,7 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name)
 				return 3;
 		}
 	}
-	else if (ELEM(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ,
+	else if (ELEM(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_XYZ_LENGTH,
 	               PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
 	{
 		switch (name) {
