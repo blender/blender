@@ -1392,16 +1392,20 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 }
 
 static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
-{	
+{
+	const Editing *ed = BKE_sequencer_editing_get(scene, false);
+	const int frame_sta = PSFRA;
+	const int frame_end = PEFRA + 1;
+
 	glEnable(GL_BLEND);
 	
 	/* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range */
 	UI_ThemeColorShadeAlpha(TH_BACK, -25, -100);
 
-	if (PSFRA < PEFRA + 1) {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-		glRectf((float)(PEFRA + 1), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+	if (frame_sta < frame_end) {
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)frame_sta, v2d->cur.ymax);
+		glRectf((float)frame_end, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 	else {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -1409,9 +1413,21 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-	fdrawline((float)(PEFRA + 1), v2d->cur.ymin, (float)(PEFRA + 1), v2d->cur.ymax);
-	
+	fdrawline(frame_sta, v2d->cur.ymin, frame_sta, v2d->cur.ymax);
+	fdrawline(frame_end, v2d->cur.ymin, frame_end, v2d->cur.ymax);
+
+	if (!BLI_listbase_is_empty(&ed->metastack)) {
+		MetaStack *ms = ed->metastack.last;
+
+		glColor4ub(255, 255, 255, 8);
+		glRectf(ms->disp_range[0], v2d->cur.ymin, ms->disp_range[1], v2d->cur.ymax);
+
+		UI_ThemeColorShade(TH_BACK, -40);
+
+		fdrawline(ms->disp_range[0], v2d->cur.ymin, ms->disp_range[0], v2d->cur.ymax);
+		fdrawline(ms->disp_range[1], v2d->cur.ymin, ms->disp_range[1], v2d->cur.ymax);
+	}
+
 	glDisable(GL_BLEND);
 }
 
