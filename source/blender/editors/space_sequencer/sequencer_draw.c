@@ -1416,7 +1416,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 	fdrawline(frame_sta, v2d->cur.ymin, frame_sta, v2d->cur.ymax);
 	fdrawline(frame_end, v2d->cur.ymin, frame_end, v2d->cur.ymax);
 
-	if (!BLI_listbase_is_empty(&ed->metastack)) {
+	if (ed && !BLI_listbase_is_empty(&ed->metastack)) {
 		MetaStack *ms = ed->metastack.last;
 
 		glColor4ub(255, 255, 255, 8);
