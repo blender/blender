@@ -3305,7 +3305,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 {
 	/* for undo system, pointers could be restored */
 	if (fd->imamap)
-		ima->cache = newmclipadr(fd, ima->cache);
+		ima->cache = newimaadr(fd, ima->cache);
 	else
 		ima->cache = NULL;
 
