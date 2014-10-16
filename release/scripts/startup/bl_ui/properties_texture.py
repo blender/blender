@@ -893,7 +893,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, Panel):
 class TEXTURE_PT_ocean(TextureTypePanel, Panel):
     bl_label = "Ocean"
     tex_type = 'OCEAN'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'CYCLES'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
