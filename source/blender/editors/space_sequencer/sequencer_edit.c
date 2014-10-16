@@ -1993,6 +1993,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		BLI_addtail(&ed->metastack, ms);
 		ms->parseq = last_seq;
 		ms->oldbasep = ed->seqbasep;
+		copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
 
 		ed->seqbasep = &last_seq->seqbase;
 
@@ -2012,12 +2013,25 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 		ed->seqbasep = ms->oldbasep;
 
+		/* for old files, update from meta */
+		if (ms->disp_range[0] ==  ms->disp_range[1]) {
+			copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
+		}
+
 		/* recalc all: the meta can have effects connected to it */
 		for (seq = ed->seqbasep->first; seq; seq = seq->next)
 			BKE_sequence_calc(scene, seq);
 
+		/* 2.73+, keeping endpoings is important!
+		 * moving them around means you can't usefully use metas in a complex edit */
+#if 1
+		BKE_sequence_tx_set_final_left(ms->parseq, ms->disp_range[0]);
+		BKE_sequence_tx_set_final_right(ms->parseq, ms->disp_range[1]);
+		BKE_sequence_calc(scene, ms->parseq);
+#else
 		if (BKE_sequence_test_overlap(ed->seqbasep, ms->parseq))
 			BKE_sequence_base_shuffle(ed->seqbasep, ms->parseq, scene);
+#endif
 
 		BKE_sequencer_active_set(scene, ms->parseq);
 

@@ -193,6 +193,8 @@ typedef struct MetaStack {
 	struct MetaStack *next, *prev;
 	ListBase *oldbasep;
 	Sequence *parseq;
+	/* the startdisp/enddisp when entering the meta */
+	int disp_range[2];
 } MetaStack;
 
 typedef struct Editing {
