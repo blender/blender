@@ -2459,73 +2459,59 @@ static int find_next_prev_edit(Scene *scene, int cfra,
                                const bool do_skip_mute, const bool do_center)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
-	Sequence *seq, *best_seq = NULL, *frame_seq = NULL;
+	Sequence *seq;
 	
-	int dist, best_dist;
+	int dist, best_dist, best_frame = cfra;
+	int seq_frames[2], seq_frames_tot;
+
 	best_dist = MAXFRAME * 2;
 
 	if (ed == NULL) return cfra;
 	
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-		int seq_frame;
+		int i;
 
 		if (do_skip_mute && (seq->flag & SEQ_MUTE)) {
 			continue;
 		}
 
 		if (do_center) {
-			seq_frame = (seq->startdisp + seq->enddisp) / 2;
+			seq_frames[0] = (seq->startdisp + seq->enddisp) / 2;
+			seq_frames_tot = 1;
 		}
 		else {
-			seq_frame = seq->startdisp;
+			seq_frames[0] = seq->startdisp;
+			seq_frames[1] = seq->enddisp;
+
+			seq_frames_tot = 2;
 		}
 
-		dist = MAXFRAME * 2;
-			
-		switch (side) {
-			case SEQ_SIDE_LEFT:
-				if (seq_frame < cfra) {
-					dist = cfra - seq_frame;
-				}
-				break;
-			case SEQ_SIDE_RIGHT:
-				if (seq_frame > cfra) {
-					dist = seq_frame - cfra;
-				}
-				else if (seq_frame == cfra) {
-					frame_seq = seq;
-				}
-				break;
-		}
+		for (i = 0; i < seq_frames_tot; i++) {
+			const int seq_frame = seq_frames[i];
 
-		if (dist < best_dist) {
-			best_dist = dist;
-			best_seq = seq;
+			dist = MAXFRAME * 2;
+
+			switch (side) {
+				case SEQ_SIDE_LEFT:
+					if (seq_frame < cfra) {
+						dist = cfra - seq_frame;
+					}
+					break;
+				case SEQ_SIDE_RIGHT:
+					if (seq_frame > cfra) {
+						dist = seq_frame - cfra;
+					}
+					break;
+			}
+
+			if (dist < best_dist) {
+				best_frame = seq_frame;
+				best_dist = dist;
+			}
 		}
 	}
 
-	/* if no sequence to the right is found and the
-	 * frame is on the start of the last sequence,
-	 * move to the end of the last sequence */
-	if (frame_seq) {
-		if (do_center) {
-			cfra = (frame_seq->startdisp + frame_seq->enddisp) / 2;
-		}
-		else {
-			cfra = frame_seq->enddisp;
-		}
-	}
-
-	if (best_seq) {
-		if (do_center) {
-			cfra = (best_seq->startdisp + best_seq->enddisp) / 2;
-		}
-		else {
-			cfra = best_seq->startdisp;
-		}
-	}
-
-	return cfra;
+	return best_frame;
 }
 
 static bool strip_jump_internal(Scene *scene,
