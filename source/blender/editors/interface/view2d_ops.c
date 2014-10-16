@@ -1726,7 +1726,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	temp = vsm->fac * vsm->delta;
 
 	/* round to pixel */
-	temp = roundf(temp / vsm->fac_round) * vsm->fac_round;
+	temp = floorf(temp / vsm->fac_round + 0.5f) * vsm->fac_round;
 	
 	/* type of movement */
 	switch (vsm->zone) {
