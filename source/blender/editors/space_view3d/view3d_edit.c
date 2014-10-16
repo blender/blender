@@ -4008,6 +4008,14 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static EnumPropertyItem prop_view_roll_items[] = {
+    {0, "ROLLANGLE", 0, "Roll Angle", "Roll the view using an angle value"},
+	{V3D_VIEW_STEPLEFT, "ROLLLEFT", 0, "Roll Left", "Roll the view around to the Left"},
+	{V3D_VIEW_STEPRIGHT, "ROLLTRIGHT", 0, "Roll Right", "Roll the view around to the Right"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
 static int viewroll_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d;
@@ -4025,11 +4033,16 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 
 	rv3d = ar->regiondata;
 	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
-		const float angle = RNA_float_get(op->ptr, "angle");
+		int type = RNA_enum_get(op->ptr, "type");
+		float angle = (type == 0) ? RNA_float_get(op->ptr, "angle") : DEG2RADF((float)U.pad_rot_angle);
 		float mousevec[3];
 		float quat_new[4];
 
 		const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+
+		if (type == V3D_VIEW_STEPLEFT) {
+			angle = -angle;
+		}
 
 		normalize_v3_v3(mousevec, rv3d->viewinv[2]);
 		negate_v3(mousevec);
@@ -4052,7 +4065,9 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewOpsData *vod;
 
-	if (RNA_struct_property_is_set(op->ptr, "angle")) {
+	bool use_angle = RNA_enum_get(op->ptr, "type") != 0;
+
+	if (use_angle || RNA_struct_property_is_set(op->ptr, "angle")) {
 		viewroll_exec(C, op);
 	}
 	else {
@@ -4090,6 +4105,8 @@ static void viewroll_cancel(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_view_roll(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "View Roll";
 	ot->description = "Roll the view";
@@ -4106,7 +4123,10 @@ void VIEW3D_OT_view_roll(wmOperatorType *ot)
 	ot->flag = 0;
 
 	/* properties */
-	ot->prop = RNA_def_float(ot->srna, "angle", 0, -FLT_MAX, FLT_MAX, "Roll", "", -FLT_MAX, FLT_MAX);
+	ot->prop = prop = RNA_def_float(ot->srna, "angle", 0, -FLT_MAX, FLT_MAX, "Roll", "", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_enum(ot->srna, "type", prop_view_roll_items, 0, "Roll Angle Source", "How roll angle is calculated");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static EnumPropertyItem prop_view_pan_items[] = {
