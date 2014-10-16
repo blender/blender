@@ -185,6 +185,10 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
 	
 	/* calculate delta of constraints evaluation */
 	invert_m4_m4(imat, cob->startmat);
+	/* XXX This would seem to be in wrong order. However, it does not work in 'right' order - would be nice to
+	 *     understand why premul is needed here instead of usual postmul?
+	 *     In any case, we **do not get a delta** here (e.g. startmat & matrix having same location, still gives
+	 *     a 'delta' with non-null translation component :/ ).*/
 	mul_m4_m4m4(delta, cob->matrix, imat);
 	
 	/* copy matrices back to source */
