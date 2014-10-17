@@ -4104,6 +4104,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							                      color_f, ps->blend);
 						}
 						else {
+							linearrgb_to_srgb_v3_v3(color_f, color_f);
 							rgba_float_to_uchar(projPixel->newColor.ch, color_f);
 							IMB_blend_color_byte(projPixel->pixel.ch_pt,  projPixel->origColor.ch_pt,
 							                     projPixel->newColor.ch, ps->blend);

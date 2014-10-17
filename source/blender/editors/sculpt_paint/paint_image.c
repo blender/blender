@@ -1309,6 +1309,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					data->sample_palette = true;
 					sample_color_update_header(data, C);
 				}
+				WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
 			}
 			break;
 	}
