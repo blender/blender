@@ -2088,6 +2088,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 		}
 	}
+
+	if (index != -1) {
+		GPU_select_load_id(-1);
+	}
 }
 
 /* in editmode, we don't store the bone matrix... */
