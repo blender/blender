@@ -59,7 +59,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, Panel):
         elif world:
             split.template_ID(space, "pin_id")
 
-        if texture_count and rd.engine != 'CYCLES':
+        if texture_count:
             split.label(text=str(texture_count), icon='TEXTURE')
 
 
