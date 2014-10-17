@@ -901,7 +901,7 @@ elseif(APPLE)
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
 		set(OSX_APP_PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/blenderplayer.app)
 		set(PLAYER_SOURCEINFO ${OSX_APP_PLAYER_SOURCEDIR}/Contents/Info.plist)
-		set(PLAYER_TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/MacOS/${BLENDER_VERSION})
+		set(PLAYER_TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/Resources/${BLENDER_VERSION})
 
 
 		# important to make a clean  install each time else old scripts get loaded.
