@@ -296,7 +296,9 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 				float cursor_rel[3];
 				sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
 				if (axis_flip) negate_v3(cursor_rel);
-				ebone->roll = ED_rollBoneToVector(ebone, cursor_rel, axis_only);
+				if (normalize_v3(cursor_rel) != 0.0f) {
+					ebone->roll = ED_rollBoneToVector(ebone, cursor_rel, axis_only);
+				}
 			}
 		}
 	}
