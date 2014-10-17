@@ -93,6 +93,8 @@ Mesh::Mesh()
 
 	attributes.triangle_mesh = this;
 	curve_attributes.curve_mesh = this;
+
+	has_volume = false;
 }
 
 Mesh::~Mesh()
