@@ -53,7 +53,7 @@ public:
 	    const bool stereoVisual,
 	    const GHOST_TUns16 numOfAASamples
 	    ) :
-		GHOST_Window(width, height, state, type, stereoVisual, false, numOfAASamples),
+		GHOST_Window(width, height, state, stereoVisual, false, numOfAASamples),
 		m_system(system)
 	{
 		setTitle(title);
@@ -91,6 +91,12 @@ protected:
 
 private:
 	GHOST_SystemNULL *m_system;
+
+	/**
+	 * \param type	The type of rendering context create.
+	 * \return Indication of success.
+	 */
+	virtual GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) {return NULL;}
 };
 
 
