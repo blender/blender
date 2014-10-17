@@ -166,6 +166,10 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char outI[4], 
 	if (x2 >= in->x) x2 = x2 - in->x;
 	if (y2 >= in->y) y2 = y2 - in->y;
 
+	a = u - floorf(u);
+	b = v - floorf(v);
+	a_b = a * b; ma_b = (1.0f - a) * b; a_mb = a * (1.0f - b); ma_mb = (1.0f - a) * (1.0f - b);
+
 	if (outF) {
 		/* sample including outside of edges of image */
 		row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
@@ -173,14 +177,16 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char outI[4], 
 		row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
 		row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
 
-		a = u - floorf(u);
-		b = v - floorf(v);
-		a_b = a * b; ma_b = (1.0f - a) * b; a_mb = a * (1.0f - b); ma_mb = (1.0f - a) * (1.0f - b);
-
 		outF[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
 		outF[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
 		outF[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
 		outF[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
+
+		/* clamp here or else we can easily get off-range */
+		CLAMP(outF[0], 0.0f, 1.0f);
+		CLAMP(outF[1], 0.0f, 1.0f);
+		CLAMP(outF[2], 0.0f, 1.0f);
+		CLAMP(outF[3], 0.0f, 1.0f);
 	}
 	if (outI) {
 		/* sample including outside of edges of image */
@@ -188,10 +194,6 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char outI[4], 
 		row2I = (unsigned char *)in->rect + in->x * y2 * 4 + 4 * x1;
 		row3I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x2;
 		row4I = (unsigned char *)in->rect + in->x * y2 * 4 + 4 * x2;
-
-		a = u - floorf(u);
-		b = v - floorf(v);
-		a_b = a * b; ma_b = (1.0f - a) * b; a_mb = a * (1.0f - b); ma_mb = (1.0f - a) * (1.0f - b);
 		
 		/* need to add 0.5 to avoid rounding down (causes darken with the smear brush)
 		 * tested with white images and this should not wrap back to zero */
