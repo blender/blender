@@ -20,15 +20,39 @@
 
 import bpy
 
-from export_svg import svg_export_header, svg_export_animation
+if bpy.app.build_options.freestyle:
+    from bpy.app.handlers import persistent
 
-def register():
-    bpy.app.handlers.render_init.append(svg_export_header)
-    bpy.app.handlers.render_complete.append(svg_export_animation)
+    @persistent
+    def freestyle_render_init(scene):
+        render = scene.render
+        if render.use_freestyle:
+            if render.use_svg_export:
+                from export_svg import svg_export_header
+                svg_export_header(scene)
 
-def unregister():
-    bpy.app.handlers.render_init.remove(svg_export_header)
-    bpy.app.handlers.render_complete.remove(svg_export_animation)
+    @persistent
+    def freestyle_render_complete(scene):
+        render = scene.render
+        if render.use_freestyle:
+            if render.use_svg_export and render.svg_mode == 'ANIMATION':
+                from export_svg import svg_export_animation
+                svg_export_animation(scene)
+
+    def register():
+        bpy.app.handlers.render_init.append(freestyle_render_init)
+        bpy.app.handlers.render_complete.append(freestyle_render_complete)
+
+    def unregister():
+        bpy.app.handlers.render_init.remove(freestyle_render_init)
+        bpy.app.handlers.render_complete.remove(freestyle_render_complete)
+
+else:
+    def register():
+        pass
+
+    def unregister():
+        pass
 
 if __name__ == '__main__':
     register()
