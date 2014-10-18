@@ -1,6 +1,6 @@
 import bpy
 
-from svg_export import svg_export_header, svg_export_animation
+from export_svg import svg_export_header, svg_export_animation
 
 def register():
     bpy.app.handlers.render_init.append(svg_export_header)

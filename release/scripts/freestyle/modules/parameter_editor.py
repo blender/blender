@@ -107,7 +107,7 @@ from _freestyle import (
     evaluateCurveMappingF,
     )
 
-from svg_export import (
+from export_svg import (
     SVGPathShader,
     SVGFillShader,
     ShapeZ,
