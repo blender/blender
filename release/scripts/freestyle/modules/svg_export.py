@@ -27,7 +27,7 @@ et.register_namespace("inkscape", "http://www.inkscape.org/namespaces/inkscape")
 et.register_namespace("sodipodi", "http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd")
 
 
-# use utf-8 here to keep ElementTree happy, end result is utf-16
+# use utf-8 here to keep ElementTree happy
 svg_primitive = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="{:d}" height="{:d}">
 </svg>"""
@@ -128,7 +128,7 @@ class SVGPathShader(StrokeShader):
 
         # write SVG to file
         indent_xml(root)
-        tree.write(self.filepath, encoding='UTF-16', xml_declaration=True)
+        tree.write(self.filepath, encoding='UTF-8', xml_declaration=True)
 
 # - Fill export - #
 class ShapeZ(BinaryPredicate1D):
@@ -222,7 +222,7 @@ class SVGFillShader(StrokeShader):
 
         # write SVG to file
         indent_xml(root)
-        tree.write(self.filepath, encoding='UTF-16', xml_declaration=True)
+        tree.write(self.filepath, encoding='UTF-8', xml_declaration=True)
 
 
 def indent_xml(elem, level=0, indentsize=4):
@@ -302,4 +302,4 @@ def write_animation(filepath, frame_begin, fps=25):
 
     # write SVG to file
     indent_xml(root)
-    tree.write(filepath, encoding='UTF-16', xml_declaration=True)
+    tree.write(filepath, encoding='UTF-8', xml_declaration=True)
