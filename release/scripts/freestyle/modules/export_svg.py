@@ -60,6 +60,7 @@ namespaces = {
     "svg": "http://www.w3.org/2000/svg",
     }
 
+
 # - SVG export - #
 class SVGPathShader(StrokeShader):
     """Stroke Shader for writing stroke data to a .svg file."""
@@ -103,7 +104,7 @@ class SVGPathShader(StrokeShader):
         for v in it:
             x, y = v.point
             yield '{:.3f}, {:.3f} '.format(x, height - y)
-            if split_at_invisible and v.attribute.visible == False:
+            if split_at_invisible and v.attribute.visible is False:
                 # end current and start new path;
                 yield '" />' + path
                 # fast-forward till the next visible vertex
@@ -150,6 +151,7 @@ class SVGPathShader(StrokeShader):
         # write SVG to file
         indent_xml(root)
         tree.write(self.filepath, encoding='UTF-8', xml_declaration=True)
+
 
 # - Fill export - #
 class ShapeZ(BinaryPredicate1D):
@@ -205,7 +207,8 @@ class SVGFillShader(StrokeShader):
         for point in vertices:
             x, y = point
             yield '{:.3f}, {:.3f} '.format(x, height - y)
-        yield 'z" />' # closes the path; connects the current to the first point
+        # closes the path; connects the current to the first point
+        yield 'z" />'
 
     def write(self):
         """Write SVG data tree to file """
@@ -261,13 +264,14 @@ def indent_xml(elem, level=0, indentsize=4):
     elif level and (not elem.tail or not elem.tail.strip()):
         elem.tail = i
 
+
 # - callbacks - #
 @persistent
 def svg_export_header(scene):
     render = scene.render
     if not (render.use_freestyle and render.use_svg_export):
         return
-    #create new file (overwrite existing)
+    # create new file (overwrite existing)
     width, height = render.resolution_x, render.resolution_y
     scale = render.resolution_percentage / 100
 
@@ -277,6 +281,7 @@ def svg_export_header(scene):
     except:
         # invalid path is properly handled in the parameter editor
         print("SVG export: invalid path")
+
 
 @persistent
 def svg_export_animation(scene):
