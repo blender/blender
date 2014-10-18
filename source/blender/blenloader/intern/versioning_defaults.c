@@ -76,6 +76,7 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 		scene->r.im_format.compress = 15;
+		scene->r.svg_mode = FREESTYLE_CONTROL_SVG_FRAME;
 
 		for (srl = scene->r.layers.first; srl; srl = srl->next) {
 			srl->freestyleConfig.sphere_radius = 0.1f;

@@ -4330,6 +4330,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_OUTPUT_NONE, "NONE", 0, "Keep UI", "Images are rendered without forcing UI changes"},
 		{0, NULL, 0, NULL, NULL}
 	};
+
+	/* Freestyle SVG export */
+	static EnumPropertyItem freestyle_ui_svg_mode_items[] = {
+		{FREESTYLE_CONTROL_SVG_FRAME, "FRAME", 0, "Frame", "Write a single frame to the SVG file"},
+		{FREESTYLE_CONTROL_SVG_ANIMATION, "ANIMATION", 0, "Animation", "Write an animation to the SVG file"},
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	/* Bake */
 	static EnumPropertyItem bake_mode_items[] = {
@@ -4859,6 +4866,35 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	                         "Save render cache to EXR files (useful for heavy compositing, "
 	                         "Note: affects indirectly rendered scenes)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "use_svg_export", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "svg_flag", FREESTYLE_SVG_EXPORT);
+	RNA_def_property_ui_text(prop, "SVG export",
+	                         "Export the freestyle view map to the given location");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
+
+	prop = RNA_def_property(srna, "svg_split_at_invisible", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "svg_flag", FREESTYLE_SVG_SPLIT_AT_INVISIBLE);
+	RNA_def_property_ui_text(prop, "Split at Invisible",
+	                         "Start a new SVG path when encountering an invisible stroke vertex");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
+
+	prop = RNA_def_property(srna, "svg_use_object_fill", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "svg_flag", FREESTYLE_SVG_OBJECT_FILL);
+	RNA_def_property_ui_text(prop, "Object Fill",
+	                         "Fill surface patches within contours (doesn't always work as expected)");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
+
+	prop = RNA_def_property(srna, "svg_path", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "svg_path");
+	RNA_def_property_ui_text(prop, "SVG Output Path", "Path to store the svg ouput");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
+
+	prop = RNA_def_property(srna, "svg_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "svg_mode");
+	RNA_def_property_enum_items(prop, freestyle_ui_svg_mode_items);
+	RNA_def_property_ui_text(prop, "SVG Export Mode", "Select the SVG export mode");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	/* Bake */
 	
