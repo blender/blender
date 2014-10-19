@@ -435,17 +435,4 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
-
-	// uncomment when commiting
-		/*
-		if (!MAIN_VERSION_ATLEAST(main, 273, 0)) {
-			Scene *scene;
-
-			for (scene = main->scene.first; scene; scene = scene->id.next) {
-				scene->r.svg_mode = FREESTYLE_CONTROL_SVG_FRAME;
-			}
-		}
-	*/
-
-
 }

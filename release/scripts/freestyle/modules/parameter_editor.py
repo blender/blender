@@ -59,7 +59,6 @@ from freestyle.predicates import (
     NotUP1D,
     OrUP1D,
     QuantitativeInvisibilityUP1D,
-    SameShapeIdBP1D,
     TrueBP1D,
     TrueUP1D,
     WithinImageBoundaryUP1D,
@@ -98,8 +97,7 @@ from freestyle.utils import (
     stroke_normal,
     bound,
     pairwise,
-    BoundedProperty,
-    get_dashed_pattern,
+    BoundedProperty
     )
 from _freestyle import (
     blendRamp,
@@ -107,19 +105,10 @@ from _freestyle import (
     evaluateCurveMappingF,
     )
 
-from svg_export import (
-    SVGPathShader,
-    SVGFillShader,
-    ShapeZ,
-    )
-
 import time
-
 from mathutils import Vector
 from math import pi, sin, cos, acos, radians
 from itertools import cycle, tee
-from bpy.path import abspath
-from os.path import isfile
 
 
 class ColorRampModifier(StrokeShader):
@@ -430,7 +419,7 @@ class ColorMaterialShader(ColorRampModifier):
             for svert in it:
                 material = self.func(it)
                 if self.attribute == 'LINE':
-                    b = material.line[0:3]
+                    b = material.line[0:3] 
                 elif self.attribute == 'DIFF':
                     b = material.diffuse[0:3]
                 else:
@@ -898,6 +887,7 @@ integration_types = {
 
 
 # main function for parameter processing
+
 def process(layer_name, lineset_name):
     scene = getCurrentScene()
     layer = scene.render.layers[layer_name]
@@ -1182,51 +1172,24 @@ def process(layer_name, lineset_name):
                 has_tex = True
     if has_tex:
         shaders_list.append(StrokeTextureStepShader(linestyle.texture_spacing))
-    # -- Dashed line -- #
-    if linestyle.use_dashed_line:
-        pattern = get_dashed_pattern(linestyle)
-        if len(pattern) > 0:
-            shaders_list.append(DashedLineShader(pattern))
-    # -- SVG export -- #
-    render = scene.render
-    filepath = abspath(render.svg_path)
-    # if the export path is invalid: log to console, but continue normal rendering
-    if render.use_svg_export:
-        if not isfile(filepath):
-            print("Error: SVG export: path is invalid")
-        else:
-            height = render.resolution_y * render.resolution_percentage / 100
-            split_at_inv = render.svg_split_at_invisible
-            frame_current = scene.frame_current
-            # SVGPathShader: keep reference and add to shader list
-            renderer = SVGPathShader.from_lineset(lineset, filepath, height, split_at_inv, frame_current)
-            shaders_list.append(renderer)
-
     # -- Stroke caps -- #
-    # appended after svg shader to ensure correct svg output
     if linestyle.caps == 'ROUND':
         shaders_list.append(RoundCapShader())
     elif linestyle.caps == 'SQUARE':
         shaders_list.append(SquareCapShader())
-
+    # -- Dashed line -- #
+    if linestyle.use_dashed_line:
+        pattern = []
+        if linestyle.dash1 > 0 and linestyle.gap1 > 0:
+            pattern.append(linestyle.dash1)
+            pattern.append(linestyle.gap1)
+        if linestyle.dash2 > 0 and linestyle.gap2 > 0:
+            pattern.append(linestyle.dash2)
+            pattern.append(linestyle.gap2)
+        if linestyle.dash3 > 0 and linestyle.gap3 > 0:
+            pattern.append(linestyle.dash3)
+            pattern.append(linestyle.gap3)
+        if len(pattern) > 0:
+            shaders_list.append(DashedLineShader(pattern))
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)
-
-    if render.use_svg_export and isfile(filepath):
-        # write svg output to file
-        renderer.write()
-        if render.svg_use_object_fill:
-            # reset the stroke selection (but don't delete the already generated ones)
-            Operators.reset(delete_strokes=False)
-            # shape detection
-            upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D())
-            Operators.select(upred)
-            # chain when the same shape and visible
-            bpred = SameShapeIdBP1D()
-            Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
-            # sort according to the distance from camera
-            Operators.sort(ShapeZ(scene))
-            # render and write fills
-            renderer = SVGFillShader(filepath, height, lineset.name)
-            Operators.create(TrueUP1D(), [renderer,])
-            renderer.write()

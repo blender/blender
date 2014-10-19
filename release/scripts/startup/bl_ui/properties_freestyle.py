@@ -47,8 +47,8 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         rd = context.scene.render
-        freestyle = rd.layers.active.freestyle_settings
 
         layout.active = rd.use_freestyle
 
@@ -58,23 +58,6 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
 
         if (rd.line_thickness_mode == 'ABSOLUTE'):
             layout.prop(rd, "line_thickness")
-
-        row = layout.row()
-        #row.label(text="Use SVG Export")
-        row.prop(rd, "use_svg_export", text="SVG Export")
-
-        row = layout.row()
-        row.active = rd.use_svg_export and freestyle.mode != 'SCRIPT'
-        row.prop(rd, "svg_mode", expand=True)
-
-        row = layout.row()
-        row.active = rd.use_svg_export and freestyle.mode != 'SCRIPT'
-        row.prop(rd, "svg_path", text="")
-
-        row = layout.row()
-        row.active = rd.use_svg_export
-        row.prop(rd, "svg_split_at_invisible")
-        row.prop(rd, "svg_use_object_fill")
 
 
 # Render layer properties

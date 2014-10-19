@@ -600,11 +600,6 @@ typedef struct RenderData {
 	int line_thickness_mode;
 	float unit_line_thickness; /* in pixels */
 
-	/* Freestyle SVG Export */
-	char svg_path[1024]; /* 1024 = FILE_MAX */
-	int svg_mode;
-	int svg_flag;
-
 	/* render engine */
 	char engine[32];
 
@@ -614,15 +609,6 @@ typedef struct RenderData {
 	int preview_start_resolution;
 	int pad;
 } RenderData;
-
-/* RenderData::svg_flag */
-#define FREESTYLE_SVG_EXPORT                (1 << 0)
-#define FREESTYLE_SVG_SPLIT_AT_INVISIBLE    (1 << 1)
-#define FREESTYLE_SVG_OBJECT_FILL           (1 << 2)
-
-/* RenderData::svg_mode */
-#define FREESTYLE_CONTROL_SVG_FRAME      1
-#define FREESTYLE_CONTROL_SVG_ANIMATION  2
 
 /* *************************************************************** */
 /* Render Conversion/Simplfication Settings */

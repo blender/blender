@@ -467,9 +467,6 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.posthue = 0.0;
 	sce->r.postsat = 1.0;
 
-	/* Freestyle SVG Export */
-	sce->r.svg_mode = FREESTYLE_CONTROL_SVG_FRAME;
-
 	sce->r.bake_mode = 1;    /* prevent to include render stuff here */
 	sce->r.bake_filter = 16;
 	sce->r.bake_osa = 5;

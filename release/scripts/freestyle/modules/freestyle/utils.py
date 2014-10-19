@@ -86,20 +86,6 @@ def bounding_box(stroke):
     x, y = zip(*(svert.point for svert in stroke))
     return (Vector((min(x), min(y))), Vector((max(x), max(y))))
 
-def get_dashed_pattern(linestyle):
-    """Extracts the dashed pattern from the various UI options """
-    pattern = []
-    if linestyle.dash1 > 0 and linestyle.gap1 > 0:
-        pattern.append(linestyle.dash1)
-        pattern.append(linestyle.gap1)
-    if linestyle.dash2 > 0 and linestyle.gap2 > 0:
-        pattern.append(linestyle.dash2)
-        pattern.append(linestyle.gap2)
-    if linestyle.dash3 > 0 and linestyle.gap3 > 0:
-        pattern.append(linestyle.dash3)
-        pattern.append(linestyle.gap3)
-    return pattern
-
 # -- General helper functions -- #
 
 
