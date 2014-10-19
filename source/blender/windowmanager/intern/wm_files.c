@@ -171,6 +171,28 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 #endif
 }
 
+static void wm_window_substitute_old(wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)
+{
+	win->ghostwin = oldwin->ghostwin;
+	win->active = oldwin->active;
+	if (win->active)
+		wm->winactive = win;
+
+	if (!G.background) /* file loading in background mode still calls this */
+		GHOST_SetWindowUserData(win->ghostwin, win);    /* pointer back */
+
+	oldwin->ghostwin = NULL;
+
+	win->eventstate = oldwin->eventstate;
+	oldwin->eventstate = NULL;
+
+	/* ensure proper screen rescaling */
+	win->sizex = oldwin->sizex;
+	win->sizey = oldwin->sizey;
+	win->posx = oldwin->posx;
+	win->posy = oldwin->posy;
+}
+
 /* match old WM with new, 4 cases:
  * 1- no current wm, no read wm: make new default
  * 2- no current wm, but read wm: that's OK, do nothing
@@ -224,6 +246,8 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			ED_screens_initialize(G.main->wm.first);
 		}
 		else {
+			bool has_match = false;
+
 			/* what if old was 3, and loaded 1? */
 			/* this code could move to setup_appdata */
 			oldwm = oldwmlist->first;
@@ -243,33 +267,27 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			/* ensure making new keymaps and set space types */
 			wm->initialized = 0;
 			wm->winactive = NULL;
-			
+
 			/* only first wm in list has ghostwins */
 			for (win = wm->windows.first; win; win = win->next) {
 				for (oldwin = oldwm->windows.first; oldwin; oldwin = oldwin->next) {
-					
+
 					if (oldwin->winid == win->winid) {
-						win->ghostwin = oldwin->ghostwin;
-						win->active = oldwin->active;
-						if (win->active)
-							wm->winactive = win;
+						has_match = true;
 
-						if (!G.background) /* file loading in background mode still calls this */
-							GHOST_SetWindowUserData(win->ghostwin, win);    /* pointer back */
-
-						oldwin->ghostwin = NULL;
-						
-						win->eventstate = oldwin->eventstate;
-						oldwin->eventstate = NULL;
-						
-						/* ensure proper screen rescaling */
-						win->sizex = oldwin->sizex;
-						win->sizey = oldwin->sizey;
-						win->posx = oldwin->posx;
-						win->posy = oldwin->posy;
+						wm_window_substitute_old(wm, oldwin, win);
 					}
 				}
 			}
+
+			/* make sure at least one window is kept open so we don't lose the context, check T42303 */
+			if (!has_match) {
+				oldwin = oldwm->windows.first;
+				win = wm->windows.first;
+
+				wm_window_substitute_old(wm, oldwin, win);
+			}
+
 			wm_close_and_free_all(C, oldwmlist);
 		}
 	}
