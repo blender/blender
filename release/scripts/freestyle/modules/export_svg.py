@@ -26,8 +26,8 @@ from bpy.path import abspath
 from bpy.app.handlers import persistent
 from bpy_extras.object_utils import world_to_camera_view
 
-from freestyle.types import StrokeShader, BinaryPredicate1D, Interface0DIterator
-from freestyle.utils import get_dashed_pattern
+from freestyle.types import StrokeShader, ChainingIterator, BinaryPredicate1D, Interface0DIterator, AdjacencyIterator
+from freestyle.utils import getCurrentScene, get_dashed_pattern, get_test_stroke
 from freestyle.functions import GetShapeF1D, CurveMaterialF0D
 
 from itertools import dropwhile, repeat
