@@ -23,6 +23,7 @@ import bpy
 import xml.etree.cElementTree as et
 
 from bpy.path import abspath
+from bpy.app.handlers import persistent
 from bpy_extras.object_utils import world_to_camera_view
 
 from freestyle.types import StrokeShader, BinaryPredicate1D, Interface0DIterator
@@ -265,10 +266,12 @@ def indent_xml(elem, level=0, indentsize=4):
 
 
 # - callbacks - #
-# called from: bpy.app.handlers.render_init
+@persistent
 def svg_export_header(scene):
-    # create new file (overwrite existing)
     render = scene.render
+    if not (render.use_freestyle and render.use_svg_export):
+        return
+    # create new file (overwrite existing)
     width, height = render.resolution_x, render.resolution_y
     scale = render.resolution_percentage / 100
 
@@ -280,15 +283,16 @@ def svg_export_header(scene):
         print("SVG export: invalid path")
 
 
-# called from: bpy.app.handlers.render_complete
+@persistent
 def svg_export_animation(scene):
-    # makes an animation of the exported SVG file
+    """makes an animation of the exported SVG file """
     render = scene.render
-    write_animation(abspath(render.svg_path), scene.frame_start, render.fps)
+    if render.use_freestyle and render.use_svg_export and render.svg_mode == 'ANIMATION':
+        write_animation(abspath(render.svg_path), scene.frame_start, render.fps)
 
 
 def write_animation(filepath, frame_begin, fps=25):
-    # Adds animate tags to the specified file.
+    """Adds animate tags to the specified file."""
     tree = et.parse(filepath)
     root = tree.getroot()
 
