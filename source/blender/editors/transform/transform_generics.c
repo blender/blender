@@ -1651,8 +1651,9 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
 			}
 		}
 	}
-	if (i)
-		mul_v3_fl(partial, 1.0f / total);
+	if (total) {
+		mul_v3_fl(partial, 1.0f / (float)total);
+	}
 	copy_v3_v3(r_center, partial);
 }
 
