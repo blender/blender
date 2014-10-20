@@ -1274,19 +1274,22 @@ static void transseq_restore(TransSeq *ts, Sequence *seq)
 	seq->len = ts->len;
 }
 
-static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool *trim, int offset, bool do_trim) {
+static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool *trim, int offset, bool first_level) {
 	Sequence *seq;
 	int num_items = 0;
 
 	for (seq = seqbasep->first; seq; seq = seq->next) {
-		if (!(seq->type & SEQ_TYPE_EFFECT) && (!do_trim || (seq->flag & SELECT))) {
+		if (!first_level || (!(seq->type & SEQ_TYPE_EFFECT) && (seq->flag & SELECT))) {
 			seq_array[offset + num_items] = seq;
-			trim[offset + num_items] = do_trim;
+			trim[offset + num_items] = first_level;
 			num_items++;
 
 			if (seq->type == SEQ_TYPE_META) {
 				/* trim the sub-sequences */
 				num_items += trim_add_sequences_rec(&seq->seqbase, seq_array, trim, num_items + offset, false);
+			}
+			else if (seq->type & SEQ_TYPE_EFFECT) {
+				trim[offset + num_items] = false;
 			}
 		}
 	}
@@ -1299,7 +1302,7 @@ static int trim_count_sequences_rec(ListBase *seqbasep, bool first_level) {
 	int trimmed_sequences = 0;
 
 	for (seq = seqbasep->first; seq; seq = seq->next) {
-		if (!(seq->type & SEQ_TYPE_EFFECT) && (!first_level || (seq->flag & SELECT))) {
+		if (!first_level || (!(seq->type & SEQ_TYPE_EFFECT) && (seq->flag & SELECT))) {
 			trimmed_sequences++;
 
 			if (seq->type == SEQ_TYPE_META) {
@@ -1397,8 +1400,10 @@ static bool sequencer_trim_recursively(Scene *scene, TrimData *data, int offset)
 				seq->enddisp = data->ts[i].enddisp + offset;
 			}
 
-			BKE_sequence_reload_new_file(scene, seq, false);
-			BKE_sequence_calc(scene, seq);
+			/* effects are only added if we they are in a metastrip. In this case, dependent strips will just be transformed and we can skip calculating for effects
+			 * This way we can avoid an extra loop just for effects*/
+			if (!(seq->type & SEQ_TYPE_EFFECT))
+				BKE_sequence_calc(scene, seq);
 		}
 		BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
 
