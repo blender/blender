@@ -1231,6 +1231,349 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will be snapped", INT_MIN, INT_MAX);
 }
 
+
+typedef struct TrimData {
+		int init_mouse[2];
+		float init_mouseloc[2];
+		TransSeq *ts;
+		Sequence **seq_array;
+		bool *trim;
+		int num_seq;
+		bool slow;
+		int slow_offset; /* offset at the point where offset was turned on */
+} TrimData;
+
+static void transseq_backup(TransSeq *ts, Sequence *seq)
+{
+	ts->start = seq->start;
+	ts->machine = seq->machine;
+	ts->startstill = seq->startstill;
+	ts->endstill = seq->endstill;
+	ts->startdisp = seq->startdisp;
+	ts->enddisp = seq->enddisp;
+	ts->startofs = seq->startofs;
+	ts->endofs = seq->endofs;
+	ts->anim_startofs = seq->anim_startofs;
+	ts->anim_endofs = seq->anim_endofs;
+	ts->len = seq->len;
+}
+
+
+static void transseq_restore(TransSeq *ts, Sequence *seq)
+{
+	seq->start = ts->start;
+	seq->machine = ts->machine;
+	seq->startstill = ts->startstill;
+	seq->endstill = ts->endstill;
+	seq->startdisp = ts->startdisp;
+	seq->enddisp = ts->enddisp;
+	seq->startofs = ts->startofs;
+	seq->endofs = ts->endofs;
+	seq->anim_startofs = ts->anim_startofs;
+	seq->anim_endofs = ts->anim_endofs;
+	seq->len = ts->len;
+}
+
+static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool *trim, int offset, bool do_trim) {
+	Sequence *seq;
+	int num_items = 0;
+
+	for (seq = seqbasep->first; seq; seq = seq->next) {
+		if ((((seq->type & SEQ_TYPE_EFFECT) == 0) || !do_trim) && (seq->flag & SELECT)) {
+			if (seq->type == SEQ_TYPE_META) {
+				/* trim the sub-sequences */
+				num_items += trim_add_sequences_rec(&seq->seqbase, seq_array, trim, num_items + offset, false);
+			}
+			else {
+				seq_array[offset + num_items] = seq;
+				trim[offset + num_items] = do_trim;
+				num_items++;
+			}
+		}
+	}
+
+	return num_items;
+}
+
+static int trim_count_sequences_rec(ListBase *seqbasep, bool first_level) {
+	Sequence *seq;
+	int trimmed_sequences = 0;
+
+	for (seq = seqbasep->first; seq; seq = seq->next) {
+		if ((((seq->type & SEQ_TYPE_EFFECT) == 0) || !first_level) && (seq->flag & SELECT)) {
+			if (seq->type == SEQ_TYPE_META) {
+				/* trim the sub-sequences */
+				trimmed_sequences += trim_count_sequences_rec(&seq->seqbase, false);
+			}
+			else {
+				trimmed_sequences++;
+			}
+		}
+	}
+
+	return trimmed_sequences;
+}
+
+static int sequencer_trim_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	TrimData *data;
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
+	float mouseloc[2];
+	int num_seq, i;
+	View2D *v2d = UI_view2d_fromcontext(C);
+
+	/* first recursively cound the trimmed elements */
+	num_seq = trim_count_sequences_rec(ed->seqbasep, true);
+
+	if (num_seq == 0)
+		return OPERATOR_CANCELLED;
+
+	data = op->customdata = MEM_mallocN(sizeof(TrimData), "trimdata");
+	data->ts = MEM_mallocN(num_seq * sizeof(TransSeq), "trimdata_transform");
+	data->seq_array = MEM_mallocN(num_seq * sizeof(Sequence *), "trimdata_sequences");
+	data->trim = MEM_mallocN(num_seq * sizeof(bool), "trimdata_trim");
+	data->num_seq = num_seq;
+
+	trim_add_sequences_rec(ed->seqbasep, data->seq_array, data->trim, 0, true);
+
+	for (i = 0; i < num_seq; i++) {
+		transseq_backup(data->ts + i, data->seq_array[i]);
+	}
+
+	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
+
+	copy_v2_v2_int(data->init_mouse, event->mval);
+	copy_v2_v2(data->init_mouseloc, mouseloc);
+
+	data->slow = false;
+
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static bool sequencer_trim_recursively(Scene *scene, TrimData *data, int offset)
+{
+
+	/* only data types supported for now */
+	if (offset != 0) {
+		Editing *ed = BKE_sequencer_editing_get(scene, false);
+		int i;
+
+		for (i = 0; i < data->num_seq; i++) {
+			Sequence *seq = data->seq_array[i];
+			int endframe;
+			/* we have the offset, do the terrible math */
+
+			/* first, do the offset */
+			seq->start = data->ts[i].start + offset;
+
+			if (data->trim[i]) {
+				/* find the endframe */
+				endframe = seq->start + seq->len;
+
+				/* now compute the terrible offsets */
+				if (endframe > seq->enddisp) {
+					seq->endstill = 0;
+					seq->endofs = endframe - seq->enddisp;
+				}
+				else if (endframe <= seq->enddisp) {
+					seq->endstill = seq->enddisp - endframe;
+					seq->endofs = 0;
+				}
+
+				if (seq->start > seq->startdisp) {
+					seq->startstill = seq->start - seq->startdisp;
+					seq->startofs = 0;
+				}
+				else if (seq->start <= seq->startdisp) {
+					seq->startstill = 0;
+					seq->startofs = seq->startdisp - seq->start;
+				}
+			}
+			else {
+				/* if no real trim, don't change the data, rather transform the strips themselves */
+				seq->startdisp = data->ts[i].startdisp + offset;
+				seq->enddisp = data->ts[i].enddisp + offset;
+			}
+
+			BKE_sequence_reload_new_file(scene, seq, false);
+			BKE_sequence_calc(scene, seq);
+		}
+		BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
+
+		return true;
+	}
+
+	return false;
+}
+
+static int sequencer_trim_exec(bContext *C, wmOperator *op)
+{
+	TrimData *data;
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
+	int num_seq, i;
+	int offset = RNA_int_get(op->ptr, "offset");
+	bool success = false;
+
+	/* first recursively cound the trimmed elements */
+	num_seq = trim_count_sequences_rec(ed->seqbasep, true);
+
+	if (num_seq == 0)
+		return OPERATOR_CANCELLED;
+
+	data = op->customdata = MEM_mallocN(sizeof(TrimData), "trimdata");
+	data->ts = MEM_mallocN(num_seq * sizeof(TransSeq), "trimdata_transform");
+	data->seq_array = MEM_mallocN(num_seq * sizeof(Sequence *), "trimdata_sequences");
+	data->trim = MEM_mallocN(num_seq * sizeof(bool), "trimdata_trim");
+	data->num_seq = num_seq;
+
+	trim_add_sequences_rec(ed->seqbasep, data->seq_array, data->trim, 0, true);
+
+	for (i = 0; i < num_seq; i++) {
+		transseq_backup(data->ts + i, data->seq_array[i]);
+	}
+
+	success = sequencer_trim_recursively(scene, data, offset);
+
+	MEM_freeN(data->seq_array);
+	MEM_freeN(data->trim);
+	MEM_freeN(data->ts);
+	MEM_freeN(data);
+
+	if (success) return OPERATOR_FINISHED;
+	else return OPERATOR_CANCELLED;
+}
+
+static int sequencer_trim_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	Scene *scene = CTX_data_scene(C);
+	TrimData *data = (TrimData *)op->customdata;
+	ScrArea *sa = CTX_wm_area(C);
+
+	switch (event->type) {
+		case MOUSEMOVE:
+		{
+			float mouseloc[2];
+			int offset;
+			int mouse_x;
+			View2D *v2d = UI_view2d_fromcontext(C);
+
+			if (data->slow) {
+				mouse_x = event->mval[0] - data->slow_offset;
+				mouse_x *= 0.1f;
+				mouse_x += data->slow_offset;
+			}
+			else {
+				mouse_x = event->mval[0];
+			}
+
+
+			/* choose the side based on which side of the playhead the mouse is on */
+			UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
+			offset = mouseloc[0] - data->init_mouseloc[0];
+
+			RNA_int_set(op->ptr, "offset", offset);
+
+			if (sa) {
+#define HEADER_LENGTH 40
+				char msg[HEADER_LENGTH];
+				BLI_snprintf(msg, HEADER_LENGTH, "Trim offset: %d", offset);
+#undef HEADER_LENGTH
+				ED_area_headerprint(sa, msg);
+			}
+
+			if (sequencer_trim_recursively(scene, data, offset)) {
+				WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+			}
+			break;
+		}
+
+		case LEFTMOUSE:
+		{
+			MEM_freeN(data->seq_array);
+			MEM_freeN(data->trim);
+			MEM_freeN(data->ts);
+			MEM_freeN(data);
+			op->customdata = NULL;
+			if (sa) {
+				ED_area_headerprint(sa, NULL);
+			}
+			WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+			return OPERATOR_FINISHED;
+		}
+		case RIGHTMOUSE:
+		{
+			int i;
+			Editing *ed = BKE_sequencer_editing_get(scene, false);
+
+			for (i = 0; i < data->num_seq; i++) {
+				transseq_restore(data->ts + i, data->seq_array[i]);
+			}
+
+			for (i = 0; i < data->num_seq; i++) {
+				Sequence *seq = data->seq_array[i];
+				BKE_sequence_reload_new_file(scene, seq, false);
+				BKE_sequence_calc(scene, seq);
+			}
+
+			MEM_freeN(data->seq_array);
+			MEM_freeN(data->ts);
+			MEM_freeN(data->trim);
+			MEM_freeN(data);
+			op->customdata = NULL;
+
+			WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+
+			BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
+
+			if (sa) {
+				ED_area_headerprint(sa, NULL);
+			}
+
+			return OPERATOR_CANCELLED;
+		}
+
+		case RIGHTSHIFTKEY:
+		case LEFTSHIFTKEY:
+			if (event->val == KM_PRESS) {
+				data->slow = true;
+				data->slow_offset = event->mval[0];
+			}
+			else if (event->val == KM_RELEASE) {
+				data->slow = false;
+			}
+			break;
+
+		default:
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void SEQUENCER_OT_trim(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Trim Strips";
+	ot->idname = "SEQUENCER_OT_trim";
+	ot->description = "Trim the contents of the active strip";
+
+	/* api callbacks */
+	ot->invoke = sequencer_trim_invoke;
+	ot->modal = sequencer_trim_modal;
+	ot->exec = sequencer_trim_exec;
+	ot->poll = sequencer_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "offset", 0, INT32_MIN, INT32_MAX, "Offset", "offset to the data of the strip", INT32_MIN, INT32_MAX);
+}
+
+
 /* mute operator */
 static int sequencer_mute_exec(bContext *C, wmOperator *op)
 {
