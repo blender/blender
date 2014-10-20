@@ -1279,7 +1279,7 @@ static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool
 	int num_items = 0;
 
 	for (seq = seqbasep->first; seq; seq = seq->next) {
-		if ((((seq->type & SEQ_TYPE_EFFECT) == 0) || !do_trim) && (seq->flag & SELECT)) {
+		if (!(seq->type & SEQ_TYPE_EFFECT) && (!do_trim || (seq->flag & SELECT))) {
 			seq_array[offset + num_items] = seq;
 			trim[offset + num_items] = do_trim;
 			num_items++;
@@ -1299,7 +1299,7 @@ static int trim_count_sequences_rec(ListBase *seqbasep, bool first_level) {
 	int trimmed_sequences = 0;
 
 	for (seq = seqbasep->first; seq; seq = seq->next) {
-		if ((((seq->type & SEQ_TYPE_EFFECT) == 0) || !first_level) && (seq->flag & SELECT)) {
+		if (!(seq->type & SEQ_TYPE_EFFECT) && (!first_level || (seq->flag & SELECT))) {
 			trimmed_sequences++;
 
 			if (seq->type == SEQ_TYPE_META) {
