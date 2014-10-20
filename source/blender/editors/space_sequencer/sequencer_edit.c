@@ -1280,14 +1280,13 @@ static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool
 
 	for (seq = seqbasep->first; seq; seq = seq->next) {
 		if ((((seq->type & SEQ_TYPE_EFFECT) == 0) || !do_trim) && (seq->flag & SELECT)) {
+			seq_array[offset + num_items] = seq;
+			trim[offset + num_items] = do_trim;
+			num_items++;
+
 			if (seq->type == SEQ_TYPE_META) {
 				/* trim the sub-sequences */
 				num_items += trim_add_sequences_rec(&seq->seqbase, seq_array, trim, num_items + offset, false);
-			}
-			else {
-				seq_array[offset + num_items] = seq;
-				trim[offset + num_items] = do_trim;
-				num_items++;
 			}
 		}
 	}
@@ -1301,12 +1300,11 @@ static int trim_count_sequences_rec(ListBase *seqbasep, bool first_level) {
 
 	for (seq = seqbasep->first; seq; seq = seq->next) {
 		if ((((seq->type & SEQ_TYPE_EFFECT) == 0) || !first_level) && (seq->flag & SELECT)) {
+			trimmed_sequences++;
+
 			if (seq->type == SEQ_TYPE_META) {
 				/* trim the sub-sequences */
 				trimmed_sequences += trim_count_sequences_rec(&seq->seqbase, false);
-			}
-			else {
-				trimmed_sequences++;
 			}
 		}
 	}
@@ -1361,7 +1359,8 @@ static bool sequencer_trim_recursively(Scene *scene, TrimData *data, int offset)
 		Editing *ed = BKE_sequencer_editing_get(scene, false);
 		int i;
 
-		for (i = 0; i < data->num_seq; i++) {
+		/* we iterate in reverse so metastrips are iterated after their children */
+		for (i = data->num_seq - 1; i >= 0; i--) {
 			Sequence *seq = data->seq_array[i];
 			int endframe;
 			/* we have the offset, do the terrible math */
