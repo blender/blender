@@ -1181,14 +1181,14 @@ static short selectbuffer_ret_hits_15(unsigned int *UNUSED(buffer), const short 
 static short selectbuffer_ret_hits_9(unsigned int *buffer, const short hits15, const short hits9)
 {
 	const int offs = 4 * hits15;
-	memcpy(buffer, buffer + offs, 4 * hits9);
+	memcpy(buffer, buffer + offs, 4 * hits9 * sizeof (unsigned int));
 	return hits9;
 }
 
 static short selectbuffer_ret_hits_5(unsigned int *buffer, const short hits15, const short hits9, const short hits5)
 {
 	const int offs = 4 * hits15 + 4 * hits9;
-	memcpy(buffer, buffer + offs, 4 * hits5);
+	memcpy(buffer, buffer + offs, 4 * hits5  * sizeof (unsigned int));
 	return hits5;
 }
 
