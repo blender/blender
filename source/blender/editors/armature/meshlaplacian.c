@@ -1303,7 +1303,7 @@ static int meshdeform_inside_cage(MeshDeformBind *mdb, float *co)
 
 /* solving */
 
-static int meshdeform_index(MeshDeformBind *mdb, int x, int y, int z, int n)
+BLI_INLINE int meshdeform_index(MeshDeformBind *mdb, int x, int y, int z, int n)
 {
 	int size = mdb->size;
 	
@@ -1321,7 +1321,7 @@ static int meshdeform_index(MeshDeformBind *mdb, int x, int y, int z, int n)
 	return x + y * size + z * size * size;
 }
 
-static void meshdeform_cell_center(MeshDeformBind *mdb, int x, int y, int z, int n, float *center)
+BLI_INLINE void meshdeform_cell_center(MeshDeformBind *mdb, int x, int y, int z, int n, float *center)
 {
 	x += MESHDEFORM_OFFSET[n][0];
 	y += MESHDEFORM_OFFSET[n][1];
