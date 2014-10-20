@@ -4380,12 +4380,16 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 
 /* ********************* set clipping operator ****************** */
 
-static void calc_clipping_plane(float clip[6][4], const BoundBox *clipbb)
+static void calc_clipping_plane(float clip[6][4], const BoundBox *clipbb, const bool is_flip)
 {
 	int val;
 
 	for (val = 0; val < 4; val++) {
 		normal_tri_v3(clip[val], clipbb->vec[val], clipbb->vec[val == 3 ? 0 : val + 1], clipbb->vec[val + 4]);
+		if (UNLIKELY(is_flip)) {
+			negate_v3(clip[val]);
+		}
+
 		clip[val][3] = -dot_v3v3(clip[val], clipbb->vec[val]);
 	}
 }
@@ -4402,7 +4406,7 @@ static void calc_local_clipping(float clip_local[6][4], BoundBox *clipbb, float 
 		mul_v3_m4v3(clipbb_local.vec[i], imat, clipbb->vec[i]);
 	}
 
-	calc_clipping_plane(clip_local, &clipbb_local);
+	calc_clipping_plane(clip_local, &clipbb_local, is_negative_m4(mat));
 }
 
 void ED_view3d_clipping_local(RegionView3D *rv3d, float mat[4][4])
