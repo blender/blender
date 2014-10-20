@@ -789,7 +789,6 @@ if(UNIX AND NOT APPLE)
 
 		mark_as_advanced(FFMPEG_LIBRARIES)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	endif()
 
 	if(WITH_FFTW3)
@@ -1801,7 +1800,6 @@ elseif(APPLE)
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 		set(FFMPEG_LIBRARIES avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	endif()
 
 	find_library(SYSTEMSTUBS_LIBRARY
