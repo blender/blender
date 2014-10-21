@@ -1169,7 +1169,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						}
 						else if (mtex->normapspace == MTEX_NSPACE_OBJECT) {
 							/* transform normal by object then view matrix */
-							GPU_link(mat, "mtex_nspace_object", GPU_builtin(GPU_VIEW_MATRIX), GPU_builtin(GPU_OBJECT_MATRIX), tnor, &newnor);
+							GPU_link(mat, "mtex_nspace_object", tnor, &newnor);
 						}
 						else if (mtex->normapspace == MTEX_NSPACE_WORLD) {
 							/* transform normal by view matrix */
