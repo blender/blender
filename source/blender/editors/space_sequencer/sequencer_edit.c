@@ -3153,9 +3153,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		}
 
 		/* duplicate pointers */
-		for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
-			BKE_sequence_clipboard_pointers_store(seq);
-		}
+		BKE_sequencer_base_clipboard_pointers_store(&seqbase_clipboard);
 	}
 
 	return OPERATOR_FINISHED;
@@ -3199,9 +3197,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
-		BKE_sequence_clipboard_pointers_restore(iseq, bmain);
-	}
+	BKE_sequencer_base_clipboard_pointers_restore(&nseqbase, bmain);
 
 	for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
 		BKE_sequence_sound_init(scene, iseq);

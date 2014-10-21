@@ -217,6 +217,10 @@ void BKE_sequence_clipboard_pointers_free(struct Sequence *seq);
 void BKE_sequence_clipboard_pointers_store(struct Sequence *seq);
 void BKE_sequence_clipboard_pointers_restore(struct Sequence *seq, struct Main *bmain);
 
+void BKE_sequencer_base_clipboard_pointers_free(struct ListBase *seqbase);
+void BKE_sequencer_base_clipboard_pointers_store(struct ListBase *seqbase);
+void BKE_sequencer_base_clipboard_pointers_restore(struct ListBase *seqbase, struct Main *bmain);
+
 void BKE_sequence_free(struct Scene *scene, struct Sequence *seq);
 const char *BKE_sequence_give_name(struct Sequence *seq);
 void BKE_sequence_calc(struct Scene *scene, struct Sequence *seq);
