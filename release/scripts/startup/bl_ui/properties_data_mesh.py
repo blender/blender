@@ -58,6 +58,8 @@ class MESH_MT_shape_key_specials(Menu):
         layout.operator("object.shape_key_mirror", text="Mirror Shape Key (Topology)", icon='ARROW_LEFTRIGHT').use_topology = True
         layout.operator("object.shape_key_add", icon='ZOOMIN', text="New Shape From Mix").from_mix = True
         layout.operator("object.shape_key_remove", icon='X', text="Delete All Shapes").all = True
+        layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move To Top").type = 'TOP'
+        layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move To Bottom").type = 'BOTTOM'
 
 
 class MESH_UL_vgroups(UIList):

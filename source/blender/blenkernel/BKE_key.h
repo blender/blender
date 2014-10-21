@@ -97,6 +97,10 @@ float (*BKE_key_convert_to_vertcos(struct Object *ob, struct KeyBlock *kb))[3];
 void    BKE_key_convert_from_vertcos(struct Object *ob, struct KeyBlock *kb, float (*vertCos)[3]);
 void    BKE_key_convert_from_offset(struct Object *ob, struct KeyBlock *kb, float (*ofs)[3]);
 
+/* other management */
+bool    BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
+
+
 /* key.c */
 extern int slurph_opt;
 

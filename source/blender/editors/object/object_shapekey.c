@@ -301,6 +301,16 @@ static int shape_key_mode_exists_poll(bContext *C)
 	       (BKE_keyblock_from_object(ob) != NULL);
 }
 
+static int shape_key_move_poll(bContext *C)
+{
+	/* Same as shape_key_mode_exists_poll above, but ensure we have at least two shapes! */
+	Object *ob = ED_object_context(C);
+	ID *data = (ob) ? ob->data : NULL;
+	Key *key = BKE_key_from_object(ob);
+
+	return (ob && !ob->id.lib && data && !data->lib && ob->mode != OB_MODE_EDIT && key && key->totkey > 1);
+}
+
 static int shape_key_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
@@ -482,86 +492,40 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 }
 
 
+enum {
+	KB_MOVE_TOP = -2,
+	KB_MOVE_UP = -1,
+	KB_MOVE_DOWN = 1,
+	KB_MOVE_BOTTOM = 2,
+};
+
 static int shape_key_move_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
-	Key *key = BKE_key_from_object(ob);
 
-	if (!key) {
-		return OPERATOR_CANCELLED;
+	Key *key = BKE_key_from_object(ob);
+	const int type = RNA_enum_get(op->ptr, "type");
+	const int totkey = key->totkey;
+	const int act_index = ob->shapenr - 1;
+	int new_index;
+
+	switch (type) {
+		case KB_MOVE_TOP:
+			/* Replace the ref key only if we're at the top already (only for relative keys) */
+			new_index = (ELEM(act_index, 0, 1) || key->type == KEY_NORMAL) ? 0 : 1;
+			break;
+		case KB_MOVE_BOTTOM:
+			new_index = totkey - 1;
+			break;
+		case KB_MOVE_UP:
+		case KB_MOVE_DOWN:
+		default:
+			new_index = (totkey + act_index + type) % totkey;
+			break;
 	}
 
-	{
-		KeyBlock *kb, *kb_other, *kb_iter;
-		const int type = RNA_enum_get(op->ptr, "type");
-		const int shape_tot = key->totkey;
-		const int shapenr_act = ob->shapenr - 1;
-		const int shapenr_swap = (shape_tot + shapenr_act + type) % shape_tot;
-
-		kb = BLI_findlink(&key->block, shapenr_act);
-		if (!kb || shape_tot == 1) {
-			return OPERATOR_CANCELLED;
-		}
-
-		if (type == -1) {
-			/* move back */
-			kb_other = kb->prev;
-			BLI_remlink(&key->block, kb);
-			BLI_insertlinkbefore(&key->block, kb_other, kb);
-		}
-		else {
-			/* move next */
-			kb_other = kb->next;
-			BLI_remlink(&key->block, kb);
-			BLI_insertlinkafter(&key->block, kb_other, kb);
-		}
-
-		ob->shapenr = shapenr_swap + 1;
-
-		/* for relative shape keys */
-		if (kb_other) {
-			for (kb_iter = key->block.first; kb_iter; kb_iter = kb_iter->next) {
-				if (kb_iter->relative == shapenr_act) {
-					kb_iter->relative = shapenr_swap;
-				}
-				else if (kb_iter->relative == shapenr_swap) {
-					kb_iter->relative = shapenr_act;
-				}
-			}
-		}
-		/* First key became last, or vice-versa, we have to change all keys' relative value. */
-		else {
-			for (kb_iter = key->block.first; kb_iter; kb_iter = kb_iter->next) {
-				if (kb_iter->relative == shapenr_act) {
-					kb_iter->relative = shapenr_swap;
-				}
-				else {
-					kb_iter->relative += type;
-				}
-			}
-		}
-
-		/* for absolute shape keys */
-		if (kb_other) {
-			SWAP(float, kb_other->pos, kb->pos);
-		}
-		/* First key became last, or vice-versa, we have to change all keys' pos value. */
-		else {
-			float pos = kb->pos;
-			if (type == -1) {
-				for (kb_iter = key->block.first; kb_iter; kb_iter = kb_iter->next) {
-					SWAP(float, kb_iter->pos, pos);
-				}
-			}
-			else {
-				for (kb_iter = key->block.last; kb_iter; kb_iter = kb_iter->prev) {
-					SWAP(float, kb_iter->pos, pos);
-				}
-			}
-		}
-
-		/* First key is refkey, matches interface and BKE_key_sort */
-		key->refkey = key->block.first;
+	if (!BKE_keyblock_move(ob, act_index, new_index)) {
+		return OPERATOR_CANCELLED;
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -573,9 +537,11 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 {
 	static EnumPropertyItem slot_move[] = {
-		{-1, "UP", 0, "Up", ""},
-		{1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{KB_MOVE_TOP, "TOP", 0, "Top", "Top of the list"},
+		{KB_MOVE_UP, "UP", 0, "Up", ""},
+		{KB_MOVE_DOWN, "DOWN", 0, "Down", ""},
+		{KB_MOVE_BOTTOM, "BOTTOM", 0, "Bottom", "Bottom of the list"},
+		{ 0, NULL, 0, NULL, NULL }
 	};
 
 	/* identifiers */
@@ -584,7 +550,7 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 	ot->description = "Move the active shape key up/down in the list";
 
 	/* api callbacks */
-	ot->poll = shape_key_mode_poll;
+	ot->poll = shape_key_move_poll;
 	ot->exec = shape_key_move_exec;
 
 	/* flags */
