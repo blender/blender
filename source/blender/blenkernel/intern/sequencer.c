@@ -4616,11 +4616,15 @@ Sequence *BKE_sequence_dupli_recursive(Scene *scene, Scene *scene_to, Sequence *
 	return seqn;
 }
 
-void BKE_sequence_base_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag)
+void BKE_sequence_base_dupli_recursive(
+        Scene *scene, Scene *scene_to, ListBase *nseqbase, ListBase *seqbase,
+        int dupe_flag)
 {
 	Sequence *seq;
 	Sequence *seqn = NULL;
 	Sequence *last_seq = BKE_sequencer_active_get(scene);
+	/* always include meta's strips */
+	int dupe_flag_recursive = dupe_flag | SEQ_DUPE_ALL;
 
 	for (seq = seqbase->first; seq; seq = seq->next) {
 		seq->tmp = NULL;
@@ -4633,8 +4637,11 @@ void BKE_sequence_base_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *
 				}
 
 				BLI_addtail(nseqbase, seqn);
-				if (seq->type == SEQ_TYPE_META)
-					BKE_sequence_base_dupli_recursive(scene, scene_to, &seqn->seqbase, &seq->seqbase, dupe_flag);
+				if (seq->type == SEQ_TYPE_META) {
+					BKE_sequence_base_dupli_recursive(
+					        scene, scene_to, &seqn->seqbase, &seq->seqbase,
+					        dupe_flag_recursive);
+				}
 
 				if (dupe_flag & SEQ_DUPE_CONTEXT) {
 					if (seq == last_seq) {
