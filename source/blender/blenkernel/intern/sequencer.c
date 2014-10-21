@@ -257,26 +257,15 @@ Editing *BKE_sequencer_editing_get(Scene *scene, bool alloc)
 	return scene->ed;
 }
 
-static void seq_free_clipboard_recursive(Sequence *seq_parent)
-{
-	Sequence *seq, *nseq;
-
-	for (seq = seq_parent->seqbase.first; seq; seq = nseq) {
-		nseq = seq->next;
-		seq_free_clipboard_recursive(seq);
-	}
-
-	BKE_sequence_clipboard_pointers_free(seq_parent);
-	BKE_sequence_free_ex(NULL, seq_parent, false);
-}
-
 void BKE_sequencer_free_clipboard(void)
 {
 	Sequence *seq, *nseq;
 
+	BKE_sequencer_base_clipboard_pointers_free(&seqbase_clipboard);
+
 	for (seq = seqbase_clipboard.first; seq; seq = nseq) {
 		nseq = seq->next;
-		seq_free_clipboard_recursive(seq);
+		seq_free_sequence_recurse(NULL, seq);
 	}
 	BLI_listbase_clear(&seqbase_clipboard);
 }
@@ -373,6 +362,33 @@ void BKE_sequence_clipboard_pointers_restore(Sequence *seq, Main *bmain)
 	seqclipboard_ptr_restore(bmain, (ID **)&seq->mask);
 	seqclipboard_ptr_restore(bmain, (ID **)&seq->sound);
 }
+
+/* recursive versions of funcions above */
+void BKE_sequencer_base_clipboard_pointers_free(ListBase *seqbase)
+{
+	Sequence *seq;
+	for (seq = seqbase->first; seq; seq = seq->next) {
+		BKE_sequence_clipboard_pointers_free(seq);
+		BKE_sequencer_base_clipboard_pointers_free(&seq->seqbase);
+	}
+}
+void BKE_sequencer_base_clipboard_pointers_store(ListBase *seqbase)
+{
+	Sequence *seq;
+	for (seq = seqbase->first; seq; seq = seq->next) {
+		BKE_sequence_clipboard_pointers_store(seq);
+		BKE_sequencer_base_clipboard_pointers_store(&seq->seqbase);
+	}
+}
+void BKE_sequencer_base_clipboard_pointers_restore(ListBase *seqbase, Main *bmain)
+{
+	Sequence *seq;
+	for (seq = seqbase->first; seq; seq = seq->next) {
+		BKE_sequence_clipboard_pointers_restore(seq, bmain);
+		BKE_sequencer_base_clipboard_pointers_restore(&seq->seqbase, bmain);
+	}
+}
+
 /* end clipboard pointer mess */
 
 
