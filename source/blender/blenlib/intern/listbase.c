@@ -130,6 +130,44 @@ bool BLI_remlink_safe(ListBase *listbase, void *vlink)
 }
 
 /**
+ * Swaps \a vlinka and \a vlinkb in the list. Assumes they are both already in the list!
+ */
+void BLI_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
+{
+	Link *linka = vlinka;
+	Link *linkb = vlinkb;
+
+	if (!linka || !linkb)
+		return;
+
+	if (linkb->next == linka) {
+		SWAP(Link *, linka, linkb);
+	}
+
+	if (linka->next == linkb) {
+		linka->next = linkb->next;
+		linkb->prev = linka->prev;
+		linka->prev = linkb;
+		linkb->next = linka;
+	}
+	else {  /* Non-contiguous items, we can safely swap. */
+		SWAP(Link *, linka->prev, linkb->prev);
+		SWAP(Link *, linka->next, linkb->next);
+	}
+
+	/* Update neighbors of linka and linkb. */
+	if (linka->prev) linka->prev->next = linka;
+	if (linka->next) linka->next->prev = linka;
+	if (linkb->prev) linkb->prev->next = linkb;
+	if (linkb->next) linkb->next->prev = linkb;
+
+	if (listbase->last == linka) listbase->last = linkb;
+	else if (listbase->last == linkb) listbase->last = linka;
+	if (listbase->first == linka) listbase->first = linkb;
+	else if (listbase->first == linkb) listbase->first = linka;
+}
+
+/**
  * Removes the head from \a listbase and returns it.
  */
 void *BLI_pophead(ListBase *listbase)
