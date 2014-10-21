@@ -132,7 +132,7 @@ bool BLI_remlink_safe(ListBase *listbase, void *vlink)
 /**
  * Swaps \a vlinka and \a vlinkb in the list. Assumes they are both already in the list!
  */
-void BLI_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
+void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
 {
 	Link *linka = vlinka;
 	Link *linkb = vlinkb;

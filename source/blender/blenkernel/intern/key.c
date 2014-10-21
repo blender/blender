@@ -2105,7 +2105,7 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
 			KeyBlock *other_kb = rev ? kb->prev : kb->next;
 
 			/* Swap with previous/next list item. */
-			BLI_swaplinks(&key->block, kb, other_kb);
+			BLI_listbase_swaplinks(&key->block, kb, other_kb);
 
 			/* Swap absolute positions. */
 			SWAP(float, kb->pos, other_kb->pos);
