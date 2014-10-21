@@ -113,6 +113,7 @@ typedef struct tGPsdata {
 
 	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
 	                     * to region space */
+	float mat[4][4];
 	
 	float custom_color[4]; /* custom color - hack for enforcing a particular color for track/mask editing */
 	
@@ -891,9 +892,12 @@ static short gp_stroke_eraser_strokeinside(const int mval[2], const int UNUSED(m
 	return false;
 } 
 
-static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *gps, bGPDspoint *pt,
+static void gp_point_to_xy(tGPsdata *p, bGPDstroke *gps, bGPDspoint *pt,
                            int *r_x, int *r_y)
 {
+	ARegion *ar = p->ar;
+	View2D *v2d = p->v2d;
+	rctf *subrect = p->subrect;
 	int xyval[2];
 
 	if (gps->flag & GP_STROKE_3DSPACE) {
@@ -907,7 +911,9 @@ static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *
 		}
 	}
 	else if (gps->flag & GP_STROKE_2DSPACE) {
-		UI_view2d_view_to_region_clip(v2d, pt->x, pt->y, r_x, r_y);
+		float vec[3] = {pt->x, pt->y, 0.0f};
+		mul_m4_v3(p->mat, vec);
+		UI_view2d_view_to_region_clip(v2d, vec[0], vec[1], r_x, r_y);
 	}
 	else {
 		if (subrect == NULL) { /* normal 3D view */
@@ -939,7 +945,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 	else if (gps->totpoints == 1) {
-		gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, gps->points, &x0, &y0);
+		gp_point_to_xy(p, gps, gps->points, &x0, &y0);
 		
 		/* do boundbox check first */
 		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
@@ -960,8 +966,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
 			
-			gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, pt1, &x0, &y0);
-			gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, pt2, &x1, &y1);
+			gp_point_to_xy(p, gps, pt1, &x0, &y0);
+			gp_point_to_xy(p, gps, pt2, &x1, &y1);
 			
 			/* check that point segment of the boundbox of the eraser stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
@@ -1148,6 +1154,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 				p->imat[3][0] -= marker->pos[0];
 				p->imat[3][1] -= marker->pos[1];
 			}
+			invert_m4_m4(p->mat, p->imat);
 			break;
 		}
 		/* unsupported views */
