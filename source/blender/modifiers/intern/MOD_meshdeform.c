@@ -54,6 +54,9 @@
 
 #include "MOD_util.h"
 
+#ifdef __SSE2__
+#  include <emmintrin.h>
+#endif
 
 static void initData(ModifierData *md)
 {
@@ -134,11 +137,15 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 {
 	MDefCell *cell;
 	MDefInfluence *inf;
-	float gridvec[3], dvec[3], ivec[3], co[3], wx, wy, wz;
+	float gridvec[3], dvec[3], ivec[3], wx, wy, wz;
 	float weight, cageweight, totweight, *cageco;
 	int i, j, a, x, y, z, size;
+#ifdef __SSE2__
+	__m128 co = _mm_setzero_ps();
+#else
+	float co[3] = {0.0f, 0.0f, 0.0f};
+#endif
 
-	zero_v3(co);
 	totweight = 0.0f;
 	size = mmd->dyngridsize;
 
@@ -170,14 +177,30 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 		for (j = 0; j < cell->totinfluence; j++, inf++) {
 			cageco = dco[inf->vertex];
 			cageweight = weight * inf->weight;
+#ifdef __SSE2__
+			{
+				__m128 cageweight_r = _mm_set1_ps(cageweight);
+				/* This will load one extra element, this is ok because
+				 * we ignore that part of reigister anyway.
+				 */
+				__m128 cageco_r = _mm_loadu_ps(cageco);
+				co = _mm_add_ps(co,
+				                _mm_mul_ps(cageco_r, cageweight_r));
+			}
+#else
 			co[0] += cageweight * cageco[0];
 			co[1] += cageweight * cageco[1];
 			co[2] += cageweight * cageco[2];
+#endif
 			totweight += cageweight;
 		}
 	}
 
+#ifdef __SSE2__
+	copy_v3_v3(vec, (float*)&co);
+#else
 	copy_v3_v3(vec, co);
+#endif
 
 	return totweight;
 }
@@ -344,7 +367,11 @@ static void meshdeformModifier_do(
 	cagedm->getVertCos(cagedm, cagecos);
 	bindcagecos = (float(*)[3])mmd->bindcagecos;
 
-	dco = MEM_callocN(sizeof(*dco) * totcagevert, "MDefDco");
+	/* We allocate 1 element extra to make it possible to
+	 * load the values to SSE registers, which are float4.
+	 */
+	dco = MEM_callocN(sizeof(*dco) * (totcagevert + 1), "MDefDco");
+	zero_v3(dco[totcagevert]);
 	for (a = 0; a < totcagevert; a++) {
 		/* get cage vertex in world space with binding transform */
 		copy_v3_v3(co, cagecos[a]);
