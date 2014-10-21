@@ -277,7 +277,8 @@ bool Scene::need_reset()
 		|| shader_manager->need_update
 		|| particle_system_manager->need_update
 		|| curve_system_manager->need_update
-		|| bake_manager->need_update);
+		|| bake_manager->need_update
+		|| film->need_update);
 }
 
 void Scene::reset()
