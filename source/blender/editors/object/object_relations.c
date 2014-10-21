@@ -699,6 +699,9 @@ bool ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object
 								if (md) {
 									((CurveModifierData *)md)->object = par;
 								}
+								if (par->curve_cache && par->curve_cache->path == NULL) {
+									DAG_id_tag_update(&par->id, OB_RECALC_DATA);
+								}
 							}
 							break;
 						case PAR_LATTICE: /* lattice deform */
