@@ -13,8 +13,10 @@ blender_subversion=$(grep "BLENDER_SUBVERSION\s" "$blender_srcdir/source/blender
 
 if [ "$blender_version_cycle" = "release" ] ; then
 	VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)$blender_version_char
+	SUBMODULE_EXCLUDE="^\(release/scripts/addons_contrib\)$"
 else
 	VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)_$blender_subversion
+	SUBMODULE_EXCLUDE="^$"  # dummy regex
 fi
 
 MANIFEST="blender-$VERSION-manifest.txt"
@@ -30,7 +32,7 @@ echo -n "Building manifest of files:  \"$BASE_DIR/$MANIFEST\" ..."
 git ls-files | python3 -c "$FILTER_FILES_PY" > $BASE_DIR/$MANIFEST
 
 # Enumerate submodules
-for lcv in $(git submodule | awk '{print $2}'); do
+for lcv in $(git submodule | awk '{print $2}' | grep -v "$SUBMODULE_EXCLUDE"); do
 	cd "$BASE_DIR"
 	cd "$blender_srcdir/$lcv"
 	git ls-files | python3 -c "$FILTER_FILES_PY" | awk '$0="'"$lcv"/'"$0' >> $BASE_DIR/$MANIFEST
