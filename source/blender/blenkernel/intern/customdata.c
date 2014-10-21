@@ -144,6 +144,9 @@ typedef struct LayerTypeInfo {
 
 	/** a function to determine file size */
 	size_t (*filesize)(CDataFile *cdf, const void *data, int count);
+
+	/** a function to determine max allowed number of layers, should be NULL or return -1 if no limit */
+	int (*layers_max)(void);
 } LayerTypeInfo;
 
 static void layerCopy_mdeformvert(const void *source, void *dest,
@@ -377,6 +380,11 @@ static void layerDefault_tface(void *data, int count)
 
 	for (i = 0; i < count; i++)
 		tf[i] = default_tf;
+}
+
+static int layerMaxNum_tface(void)
+{
+	return MAX_MTFACE;
 }
 
 static void layerCopy_propFloat(const void *source, void *dest,
@@ -745,6 +753,11 @@ static void layerInterp_mloopcol(void **sources, const float *weights,
 	mc->a = (int)col.a;
 }
 
+static int layerMaxNum_mloopcol(void)
+{
+	return MAX_MCOL;
+}
+
 static void layerCopyValue_mloopuv(const void *source, void *dest)
 {
 	const MLoopUV *luv1 = source;
@@ -1093,12 +1106,12 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 4: CD_MFACE */
 	{sizeof(MFace), "MFace", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 5: CD_MTFACE */
-	{sizeof(MTFace), "MTFace", 1, N_("UVMap"), layerCopy_tface, NULL,
-	 layerInterp_tface, layerSwap_tface, layerDefault_tface},
+	{sizeof(MTFace), "MTFace", 1, N_("UVMap"), layerCopy_tface, NULL, layerInterp_tface, layerSwap_tface,
+	 layerDefault_tface, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_tface},
 	/* 6: CD_MCOL */
 	/* 4 MCol structs per face */
 	{sizeof(MCol) * 4, "MCol", 4, N_("Col"), NULL, NULL, layerInterp_mcol,
-	 layerSwap_mcol, layerDefault_mcol},
+	 layerSwap_mcol, layerDefault_mcol, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_mloopcol},
 	/* 7: CD_ORIGINDEX */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_origindex},
 	/* 8: CD_NORMAL */
@@ -1119,15 +1132,16 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float) * 3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 15: CD_MTEXPOLY */
 	/* note, when we expose the UV Map / TexFace split to the user, change this back to face Texture */
-	{sizeof(MTexPoly), "MTexPoly", 1, N_("UVMap") /* "Face Texture" */, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MTexPoly), "MTexPoly", 1, N_("UVMap") /* "Face Texture" */, NULL, NULL, NULL, NULL, NULL,
+	 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_tface},
 	/* 16: CD_MLOOPUV */
 	{sizeof(MLoopUV), "MLoopUV", 1, N_("UVMap"), NULL, NULL, layerInterp_mloopuv, NULL, NULL,
 	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
-	 layerAdd_mloopuv, layerDoMinMax_mloopuv, layerCopyValue_mloopuv},
+	 layerAdd_mloopuv, layerDoMinMax_mloopuv, layerCopyValue_mloopuv, NULL, NULL, NULL, layerMaxNum_tface},
 	/* 17: CD_MLOOPCOL */
 	{sizeof(MLoopCol), "MLoopCol", 1, N_("Col"), NULL, NULL, layerInterp_mloopcol, NULL,
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol, 
-	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
+	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol, NULL, NULL, NULL, layerMaxNum_mloopcol},
 	/* 18: CD_TANGENT */
 	{sizeof(float) * 4 * 4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 19: CD_MDISPS */
@@ -1319,7 +1333,8 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 	/*const LayerTypeInfo *typeInfo;*/
 	CustomDataLayer *layer, *newlayer;
 	void *data;
-	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
+	int i, type, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
+	int number = 0, maxnumber = -1;
 	bool changed = false;
 
 	for (i = 0; i < source->totlayer; ++i) {
@@ -1330,6 +1345,7 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 
 		if (type != lasttype) {
 			number = 0;
+			maxnumber = CustomData_layertype_layers_max(type);
 			lastactive = layer->active;
 			lastrender = layer->active_rnd;
 			lastclone = layer->active_clone;
@@ -1342,6 +1358,7 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 
 		if (lastflag & CD_FLAG_NOCOPY) continue;
 		else if (!(mask & CD_TYPE_AS_MASK(type))) continue;
+		else if ((maxnumber != -1) && (number >= maxnumber)) continue;
 		else if (CustomData_get_layer_named(dest, type, layer->name)) continue;
 
 		switch (alloctype) {
@@ -3037,6 +3054,24 @@ bool CustomData_layertype_is_singleton(int type)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 	return typeInfo->defaultname == NULL;
+}
+
+/**
+ * \return Maximum number of layers of given \a type, -1 means 'no limit'.
+ */
+int CustomData_layertype_layers_max(const int type)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	/* Same test as for singleton above. */
+	if (typeInfo->defaultname == NULL) {
+		return 1;
+	}
+	else if (typeInfo->layers_max == NULL) {
+		return -1;
+	}
+
+	return typeInfo->layers_max();
 }
 
 static bool CustomData_is_property_layer(int type)
