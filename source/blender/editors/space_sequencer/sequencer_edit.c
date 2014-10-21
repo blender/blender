@@ -1233,14 +1233,14 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 
 
 typedef struct TrimData {
-		int init_mouse[2];
-		float init_mouseloc[2];
-		TransSeq *ts;
-		Sequence **seq_array;
-		bool *trim;
-		int num_seq;
-		bool slow;
-		int slow_offset; /* offset at the point where offset was turned on */
+	int init_mouse[2];
+	float init_mouseloc[2];
+	TransSeq *ts;
+	Sequence **seq_array;
+	bool *trim;
+	int num_seq;
+	bool slow;
+	int slow_offset; /* offset at the point where offset was turned on */
 } TrimData;
 
 static void transseq_backup(TransSeq *ts, Sequence *seq)
@@ -1274,7 +1274,8 @@ static void transseq_restore(TransSeq *ts, Sequence *seq)
 	seq->len = ts->len;
 }
 
-static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool *trim, int offset, bool first_level) {
+static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool *trim, int offset, bool first_level)
+{
 	Sequence *seq;
 	int num_items = 0;
 
@@ -1297,7 +1298,8 @@ static int trim_add_sequences_rec(ListBase *seqbasep, Sequence **seq_array, bool
 	return num_items;
 }
 
-static int trim_count_sequences_rec(ListBase *seqbasep, bool first_level) {
+static int trim_count_sequences_rec(ListBase *seqbasep, bool first_level)
+{
 	Sequence *seq;
 	int trimmed_sequences = 0;
 
