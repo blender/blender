@@ -49,6 +49,7 @@ struct rctf;
 typedef struct CurveCache {
 	ListBase disp;
 	ListBase bev;
+	ListBase deformed_nurbs;
 	struct Path *path;
 } CurveCache;
 

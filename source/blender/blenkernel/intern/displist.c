@@ -1271,6 +1271,7 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 	}
 
 	if (!for_orco) {
+		BKE_nurbList_duplicate(&ob->curve_cache->deformed_nurbs, &nubase);
 		curve_calc_modifiers_post(scene, ob, &nubase, dispbase, r_dm_final,
 		                          for_render, use_render_resolution);
 	}
@@ -1729,8 +1730,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			}
 		}
 
-		if (!for_orco)
+		if (!for_orco) {
+			BKE_nurbList_duplicate(&ob->curve_cache->deformed_nurbs, &nubase);
 			curve_calc_modifiers_post(scene, ob, &nubase, dispbase, r_dm_final, for_render, use_render_resolution);
+		}
 
 		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
 			curve_to_filledpoly(cu, &nubase, dispbase);
