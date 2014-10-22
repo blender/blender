@@ -4132,7 +4132,6 @@ static void shape_cut(PEData *data, int pa_index)
 			BLI_bvhtree_ray_cast(data->shape_bvh.tree, key->co, dir, 0.0f, &hit, data->shape_bvh.raycast_callback, &data->shape_bvh);
 			if (hit.index >= 0) {
 				if (hit.dist < len) {
-//					cut_time = interpf((key+1)->time, key->time, hit.dist / len);
 					cut_time = (hit.dist / len + (float)k) / (float)totkeys;
 					cut = true;
 					break;
