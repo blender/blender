@@ -30,7 +30,8 @@ class Scene;
 
 typedef enum FilterType {
 	FILTER_BOX,
-	FILTER_GAUSSIAN
+	FILTER_GAUSSIAN,
+	FILTER_MITCHELL,
 } FilterType;
 
 class Pass {
