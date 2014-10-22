@@ -139,6 +139,7 @@ Shader::Shader()
 	use_transparent_shadow = true;
 	heterogeneous_volume = true;
 	volume_sampling_method = 0;
+	volume_interpolation_method = 0;
 
 	has_surface = false;
 	has_surface_transparent = false;
@@ -356,6 +357,8 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_VOLUME_EQUIANGULAR;
 		if(shader->volume_sampling_method == 2)
 			flag |= SD_VOLUME_MIS;
+		if(shader->volume_interpolation_method == 1)
+			flag |= SD_VOLUME_CUBIC;
 
 		/* regular shader */
 		shader_flag[i++] = flag;

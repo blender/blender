@@ -52,7 +52,11 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 #ifdef __KERNEL_GPU__
 	float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #else
-	float4 r = kernel_tex_image_interp_3d(id, P.x, P.y, P.z);
+	float4 r;
+	if(sd->flag & SD_VOLUME_CUBIC)
+		r = kernel_tex_image_interp_3d_ex(id, P.x, P.y, P.z, INTERPOLATION_CUBIC);
+	else
+		r = kernel_tex_image_interp_3d(id, P.x, P.y, P.z);
 #endif
 
 	if(dx) *dx = 0.0f;
@@ -68,7 +72,11 @@ ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *s
 #ifdef __KERNEL_GPU__
 	float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #else
-	float4 r = kernel_tex_image_interp_3d(id, P.x, P.y, P.z);
+	float4 r;
+	if(sd->flag & SD_VOLUME_CUBIC)
+		r = kernel_tex_image_interp_3d_ex(id, P.x, P.y, P.z, INTERPOLATION_CUBIC);
+	else
+		r = kernel_tex_image_interp_3d(id, P.x, P.y, P.z);
 #endif
 
 	if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);

@@ -616,18 +616,20 @@ enum ShaderDataFlag {
 	SD_HAS_BSSRDF_BUMP = 65536,			/* bssrdf normal uses bump */
 	SD_VOLUME_EQUIANGULAR = 131072,		/* use equiangular sampling */
 	SD_VOLUME_MIS = 262144,				/* use multiple importance sampling */
+	SD_VOLUME_CUBIC = 524288,
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
 	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
-					   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS),
+	                   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS|
+	                   SD_VOLUME_CUBIC),
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 524288,			/* holdout for camera rays */
-	SD_OBJECT_MOTION = 1048576,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 2097152,		/* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED = 4194304,	/* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME = 8388608,		/* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = 16777216, /* object intersects AABB of an object with volume shader */
+	SD_HOLDOUT_MASK = 1048576,			/* holdout for camera rays */
+	SD_OBJECT_MOTION = 2097152,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 4194304,		/* vertices have transform applied */
+	SD_NEGATIVE_SCALE_APPLIED = 8388608,	/* vertices have negative scale applied */
+	SD_OBJECT_HAS_VOLUME = 16777216,		/* object has a volume shader */
+	SD_OBJECT_INTERSECTS_VOLUME = 33554432, /* object intersects AABB of an object with volume shader */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
 	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|

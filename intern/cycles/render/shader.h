@@ -69,6 +69,7 @@ public:
 	bool use_transparent_shadow;
 	bool heterogeneous_volume;
 	int volume_sampling_method;
+	int volume_interpolation_method;
 
 	/* synchronization */
 	bool need_update;
