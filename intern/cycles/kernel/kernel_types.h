@@ -291,34 +291,34 @@ typedef enum ClosureLabel {
 
 typedef enum PassType {
 	PASS_NONE = 0,
-	PASS_COMBINED = 1,
-	PASS_DEPTH = 2,
-	PASS_NORMAL = 4,
-	PASS_UV = 8,
-	PASS_OBJECT_ID = 16,
-	PASS_MATERIAL_ID = 32,
-	PASS_DIFFUSE_COLOR = 64,
-	PASS_GLOSSY_COLOR = 128,
-	PASS_TRANSMISSION_COLOR = 256,
-	PASS_DIFFUSE_INDIRECT = 512,
-	PASS_GLOSSY_INDIRECT = 1024,
-	PASS_TRANSMISSION_INDIRECT = 2048,
-	PASS_DIFFUSE_DIRECT = 4096,
-	PASS_GLOSSY_DIRECT = 8192,
-	PASS_TRANSMISSION_DIRECT = 16384,
-	PASS_EMISSION = 32768,
-	PASS_BACKGROUND = 65536,
-	PASS_AO = 131072,
-	PASS_SHADOW = 262144,
-	PASS_MOTION = 524288,
-	PASS_MOTION_WEIGHT = 1048576,
-	PASS_MIST = 2097152,
-	PASS_SUBSURFACE_DIRECT = 4194304,
-	PASS_SUBSURFACE_INDIRECT = 8388608,
-	PASS_SUBSURFACE_COLOR = 16777216,
-	PASS_LIGHT = 33554432, /* no real pass, used to force use_light_pass */
+	PASS_COMBINED = (1 << 0),
+	PASS_DEPTH = (1 << 1),
+	PASS_NORMAL = (1 << 2),
+	PASS_UV = (1 << 3),
+	PASS_OBJECT_ID = (1 << 4),
+	PASS_MATERIAL_ID = (1 << 5),
+	PASS_DIFFUSE_COLOR = (1 << 6),
+	PASS_GLOSSY_COLOR = (1 << 7),
+	PASS_TRANSMISSION_COLOR = (1 << 8),
+	PASS_DIFFUSE_INDIRECT = (1 << 9),
+	PASS_GLOSSY_INDIRECT = (1 << 10),
+	PASS_TRANSMISSION_INDIRECT = (1 << 11),
+	PASS_DIFFUSE_DIRECT = (1 << 12),
+	PASS_GLOSSY_DIRECT = (1 << 13),
+	PASS_TRANSMISSION_DIRECT = (1 << 14),
+	PASS_EMISSION = (1 << 15),
+	PASS_BACKGROUND = (1 << 16),
+	PASS_AO = (1 << 17),
+	PASS_SHADOW = (1 << 18),
+	PASS_MOTION = (1 << 19),
+	PASS_MOTION_WEIGHT = (1 << 20),
+	PASS_MIST = (1 << 21),
+	PASS_SUBSURFACE_DIRECT = (1 << 22),
+	PASS_SUBSURFACE_INDIRECT = (1 << 23),
+	PASS_SUBSURFACE_COLOR = (1 << 24),
+	PASS_LIGHT = (1 << 25), /* no real pass, used to force use_light_pass */
 #ifdef __KERNEL_DEBUG__
-	PASS_BVH_TRAVERSAL_STEPS = 67108864,
+	PASS_BVH_TRAVERSAL_STEPS = (1 << 26),
 #endif
 } PassType;
 
@@ -591,32 +591,32 @@ typedef enum ShaderContext {
 
 enum ShaderDataFlag {
 	/* runtime flags */
-	SD_BACKFACING = 1,		/* backside of surface? */
-	SD_EMISSION = 2,		/* have emissive closure? */
-	SD_BSDF = 4,			/* have bsdf closure? */
-	SD_BSDF_HAS_EVAL = 8,	/* have non-singular bsdf closure? */
-	SD_PHASE_HAS_EVAL = 8,	/* have non-singular phase closure? */
-	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
-	SD_BSSRDF = 32,			/* have bssrdf */
-	SD_HOLDOUT = 64,		/* have holdout closure? */
-	SD_ABSORPTION = 128,	/* have volume absorption closure? */
-	SD_SCATTER = 256,		/* have volume phase closure? */
-	SD_AO = 512,			/* have ao closure? */
-	SD_TRANSPARENT = 1024,	/* have transparent closure? */
+	SD_BACKFACING     = (1 << 0),   /* backside of surface? */
+	SD_EMISSION       = (1 << 1),   /* have emissive closure? */
+	SD_BSDF           = (1 << 2),   /* have bsdf closure? */
+	SD_BSDF_HAS_EVAL  = (1 << 3),   /* have non-singular bsdf closure? */
+	SD_PHASE_HAS_EVAL = (1 << 3),   /* have non-singular phase closure? */
+	SD_BSDF_GLOSSY    = (1 << 4),   /* have glossy bsdf */
+	SD_BSSRDF         = (1 << 5),   /* have bssrdf */
+	SD_HOLDOUT        = (1 << 6),   /* have holdout closure? */
+	SD_ABSORPTION     = (1 << 7),   /* have volume absorption closure? */
+	SD_SCATTER        = (1 << 8),   /* have volume phase closure? */
+	SD_AO             = (1 << 9),   /* have ao closure? */
+	SD_TRANSPARENT    = (1 << 10),  /* have transparent closure? */
 
 	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY|
 	                    SD_BSSRDF|SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO),
 
 	/* shader flags */
-	SD_USE_MIS = 2048,					/* direct light sample */
-	SD_HAS_TRANSPARENT_SHADOW = 4096,	/* has transparent shadow */
-	SD_HAS_VOLUME = 8192,				/* has volume shader */
-	SD_HAS_ONLY_VOLUME = 16384,			/* has only volume shader, no surface */
-	SD_HETEROGENEOUS_VOLUME = 32768,	/* has heterogeneous volume */
-	SD_HAS_BSSRDF_BUMP = 65536,			/* bssrdf normal uses bump */
-	SD_VOLUME_EQUIANGULAR = 131072,		/* use equiangular sampling */
-	SD_VOLUME_MIS = 262144,				/* use multiple importance sampling */
-	SD_VOLUME_CUBIC = 524288,
+	SD_USE_MIS                = (1 << 11),  /* direct light sample */
+	SD_HAS_TRANSPARENT_SHADOW = (1 << 12),  /* has transparent shadow */
+	SD_HAS_VOLUME             = (1 << 13),  /* has volume shader */
+	SD_HAS_ONLY_VOLUME        = (1 << 14),  /* has only volume shader, no surface */
+	SD_HETEROGENEOUS_VOLUME   = (1 << 15),  /* has heterogeneous volume */
+	SD_HAS_BSSRDF_BUMP        = (1 << 16),  /* bssrdf normal uses bump */
+	SD_VOLUME_EQUIANGULAR     = (1 << 17),  /* use equiangular sampling */
+	SD_VOLUME_MIS             = (1 << 18),  /* use multiple importance sampling */
+	SD_VOLUME_CUBIC           = (1 << 19),  /* use cubic interpolation for voxels */
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
 	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
@@ -624,12 +624,12 @@ enum ShaderDataFlag {
 	                   SD_VOLUME_CUBIC),
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 1048576,			/* holdout for camera rays */
-	SD_OBJECT_MOTION = 2097152,			/* has object motion blur */
-	SD_TRANSFORM_APPLIED = 4194304,		/* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED = 8388608,	/* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME = 16777216,		/* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = 33554432, /* object intersects AABB of an object with volume shader */
+	SD_HOLDOUT_MASK             = (1 << 20),  /* holdout for camera rays */
+	SD_OBJECT_MOTION            = (1 << 21),  /* has object motion blur */
+	SD_TRANSFORM_APPLIED        = (1 << 22),  /* vertices have transform applied */
+	SD_NEGATIVE_SCALE_APPLIED   = (1 << 23),  /* vertices have negative scale applied */
+	SD_OBJECT_HAS_VOLUME        = (1 << 24),  /* object has a volume shader */
+	SD_OBJECT_INTERSECTS_VOLUME = (1 << 25),  /* object intersects AABB of an object with volume shader */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
 	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|
