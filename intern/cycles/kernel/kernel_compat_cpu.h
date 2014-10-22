@@ -174,7 +174,7 @@ template<typename T> struct texture_image  {
 
 			return read(data[ix + iy*width + iz*width*height]);
 		}
-		else {
+		else if(interpolation == INTERPOLATION_LINEAR) {
 			float tx = frac(x*(float)width - 0.5f, &ix);
 			float ty = frac(y*(float)height - 0.5f, &iy);
 			float tz = frac(z*(float)depth - 0.5f, &iz);
@@ -211,6 +211,93 @@ template<typename T> struct texture_image  {
 			r += tz*ty*tx*read(data[nix + niy*width + niz*width*height]);
 
 			return r;
+		}
+		else {
+			/* Tricubic b-spline interpolation. */
+			const float tx = frac(x*(float)width - 0.5f, &ix);
+			const float ty = frac(y*(float)height - 0.5f, &iy);
+			const float tz = frac(z*(float)depth - 0.5f, &iz);
+			int pix, piy, piz, nnix, nniy, nniz;
+
+			if(periodic) {
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+				iz = wrap_periodic(iz, depth);
+
+				pix = wrap_periodic(ix-1, width);
+				piy = wrap_periodic(iy-1, height);
+				piz = wrap_periodic(iz-1, depth);
+
+				nix = wrap_periodic(ix+1, width);
+				niy = wrap_periodic(iy+1, height);
+				niz = wrap_periodic(iz+1, depth);
+
+				nnix = wrap_periodic(ix+2, width);
+				nniy = wrap_periodic(iy+2, height);
+				nniz = wrap_periodic(iz+2, depth);
+			}
+			else {
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+				iz = wrap_clamp(iz, depth);
+
+				pix = wrap_clamp(ix-1, width);
+				piy = wrap_clamp(iy-1, height);
+				piz = wrap_clamp(iz-1, depth);
+
+				nix = wrap_clamp(ix+1, width);
+				niy = wrap_clamp(iy+1, height);
+				niz = wrap_clamp(iz+1, depth);
+
+				nnix = wrap_clamp(ix+2, width);
+				nniy = wrap_clamp(iy+2, height);
+				nniz = wrap_clamp(iz+2, depth);
+			}
+
+			const int xc[4] = {pix, ix, nix, nnix};
+			const int yc[4] = {width * piy,
+			                   width * iy,
+			                   width * niy,
+			                   width * nniy};
+			const int zc[4] = {width * height * piz,
+			                   width * height * iz,
+			                   width * height * niz,
+			                   width * height * nniz};
+			float u[4], v[4], w[4];
+
+			/* Some helper macro to keep code reasonable size,
+			 * let compiler to inline all the matrix multiplications.
+			 */
+#define SET_SPLINE_WEIGHTS(u, t) \
+			{ \
+				u[0] = (((-1.0f/6.0f)* t + 0.5f) * t - 0.5f) * t + (1.0f/6.0f); \
+				u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
+				u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
+				u[3] = (1.0f / 6.0f) * t * t * t; \
+			} (void)0
+#define DATA(x, y, z) (read(data[xc[x] + yc[y] + zc[z]]))
+#define COL_TERM(col, row) \
+			(v[col] * (u[0] * DATA(0, col, row) + \
+			           u[1] * DATA(1, col, row) + \
+			           u[2] * DATA(2, col, row) + \
+			           u[3] * DATA(3, col, row)))
+#define ROW_TERM(row) \
+			(w[row] * (COL_TERM(0, row) + \
+			           COL_TERM(1, row) + \
+			           COL_TERM(2, row) + \
+			           COL_TERM(3, row)))
+
+			SET_SPLINE_WEIGHTS(u, tx);
+			SET_SPLINE_WEIGHTS(v, ty);
+			SET_SPLINE_WEIGHTS(w, tz);
+
+			/* Actual interpolation. */
+			return ROW_TERM(0) + ROW_TERM(1) + ROW_TERM(2) + ROW_TERM(3);
+
+#undef COL_TERM
+#undef ROW_TERM
+#undef DATA
+#undef SET_SPLINE_WEIGHTS
 		}
 	}
 
