@@ -1351,6 +1351,7 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 		notification.informativeText = @"Calculation ended";
 		notification.soundName = NSUserNotificationDefaultSoundName;
 		[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+		[notification release];
 	}
 	
 	[dockIcon release];
