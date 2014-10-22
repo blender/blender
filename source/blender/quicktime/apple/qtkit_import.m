@@ -88,6 +88,7 @@ int anim_is_quicktime(const char *name)
 	        ".swf",
 	        ".txt",
 	        ".mpg",
+	        ".vob",  /* disabled, vob is essential .mpg, don't handle */
 	        ".avi",  /* wouldn't be appropriate ;) */
 	        ".mov",  /* disabled, suboptimal decoding speed */
 	        ".mp4",  /* disabled, suboptimal decoding speed */
