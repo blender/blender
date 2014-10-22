@@ -44,6 +44,18 @@ enum ShadingSystem {
 	SHADINGSYSTEM_SVM
 };
 
+/* Keep those in sync with the python-defined enum. */
+enum VolumeSampling {
+	VOLUME_SAMPLING_DISTANCE = 0,
+	VOLUME_SAMPLING_EQUIANGULAR = 1,
+	VOLUME_SAMPLING_MULTIPLE_IMPORTANCE = 2,
+};
+
+enum VolumeInterpolation {
+	VOLUME_INTERPOLATION_LINEAR = 0,
+	VOLUME_INTERPOLATION_CUBIC = 1,
+};
+
 /* Shader describing the appearance of a Mesh, Light or Background.
  *
  * While there is only a single shader graph, it has three outputs: surface,
@@ -68,7 +80,7 @@ public:
 	bool use_mis;
 	bool use_transparent_shadow;
 	bool heterogeneous_volume;
-	int volume_sampling_method;
+	VolumeSampling volume_sampling_method;
 	int volume_interpolation_method;
 
 	/* synchronization */

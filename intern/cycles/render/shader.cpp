@@ -138,8 +138,8 @@ Shader::Shader()
 	use_mis = true;
 	use_transparent_shadow = true;
 	heterogeneous_volume = true;
-	volume_sampling_method = 0;
-	volume_interpolation_method = 0;
+	volume_sampling_method = VOLUME_SAMPLING_DISTANCE;
+	volume_interpolation_method = VOLUME_INTERPOLATION_LINEAR;
 
 	has_surface = false;
 	has_surface_transparent = false;
@@ -353,11 +353,11 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_HAS_BSSRDF_BUMP;
 		if(shader->has_converter_blackbody)
 			has_converter_blackbody = true;
-		if(shader->volume_sampling_method == 1)
+		if(shader->volume_sampling_method == VOLUME_SAMPLING_EQUIANGULAR)
 			flag |= SD_VOLUME_EQUIANGULAR;
-		if(shader->volume_sampling_method == 2)
+		if(shader->volume_sampling_method == VOLUME_SAMPLING_MULTIPLE_IMPORTANCE)
 			flag |= SD_VOLUME_MIS;
-		if(shader->volume_interpolation_method == 1)
+		if(shader->volume_interpolation_method == VOLUME_INTERPOLATION_CUBIC)
 			flag |= SD_VOLUME_CUBIC;
 
 		/* regular shader */
