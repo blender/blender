@@ -1058,7 +1058,7 @@ void restoreBones(TransInfo *t)
 {
 	bArmature *arm = t->obedit->data;
 	BoneInitData *bid = t->customData;
-	EditBone *ebo, *children;
+	EditBone *ebo;
 
 	while (bid->bone) {
 		ebo = bid->bone;
@@ -1071,19 +1071,23 @@ void restoreBones(TransInfo *t)
 		copy_v3_v3(ebo->head, bid->head);
 		copy_v3_v3(ebo->tail, bid->tail);
 		
-		/* Also move connected children, in case children's name aren't mirrored properly */
-		for (children = arm->edbo->first; children; children = children->next) {
-			if (children->parent == ebo && children->flag & BONE_CONNECTED) {
-				copy_v3_v3(children->head, ebo->tail);
-				children->rad_head = ebo->rad_tail;
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			EditBone *ebo_child;
+
+			/* Also move connected ebo_child, in case ebo_child's name aren't mirrored properly */
+			for (ebo_child = arm->edbo->first; ebo_child; ebo_child = ebo_child->next) {
+				if ((ebo_child->flag & BONE_CONNECTED) && (ebo_child->parent == ebo)) {
+					copy_v3_v3(ebo_child->head, ebo->tail);
+					ebo_child->rad_head = ebo->rad_tail;
+				}
 			}
-		}
-		
-		/* Also move connected parent, in case parent's name isn't mirrored properly */
-		if (ebo->parent && ebo->flag & BONE_CONNECTED) {
-			EditBone *parent = ebo->parent;
-			copy_v3_v3(parent->tail, ebo->head);
-			parent->rad_tail = ebo->rad_head;
+
+			/* Also move connected parent, in case parent's name isn't mirrored properly */
+			if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
+				EditBone *parent = ebo->parent;
+				copy_v3_v3(parent->tail, ebo->head);
+				parent->rad_tail = ebo->rad_head;
+			}
 		}
 		
 		bid++;
