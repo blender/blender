@@ -1578,7 +1578,8 @@ void SEQUENCER_OT_trim(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "offset", 0, INT32_MIN, INT32_MAX, "Offset", "offset to the data of the strip", INT32_MIN, INT32_MAX);
+	RNA_def_int(ot->srna, "offset", 0, INT32_MIN, INT32_MAX, "Offset", "Offset to the data of the strip",
+	            INT32_MIN, INT32_MAX);
 }
 
 

@@ -3253,7 +3253,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "pie_menu_confirm", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 0, 1000);
-	RNA_def_property_ui_text(prop, "Confirm Threshold", "Distance after threshold after which selection is made (zero disables)");
+	RNA_def_property_ui_text(prop, "Confirm Threshold",
+	                         "Distance threshold after which selection is made (zero to disable)");
 
 	prop = RNA_def_property(srna, "use_quit_dialog", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_QUIT_PROMPT);

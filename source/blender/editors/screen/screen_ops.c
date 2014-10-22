@@ -3141,7 +3141,7 @@ static void SCREEN_OT_header(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Header";
-	ot->description = "Display display header";
+	ot->description = "Display header";
 	ot->idname = "SCREEN_OT_header";
 
 	/* api callbacks */
