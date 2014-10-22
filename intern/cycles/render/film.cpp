@@ -198,29 +198,6 @@ static float filter_func_gaussian(float v, float width)
 	return expf(-2.0f*v*v);
 }
 
-static float filter_func_mitchell(float v, float width)
-{
-	(void)width;  /* Ignored. */
-
-	/* B = 1,   C = 0   - cubic B-spline */
-	/* B = 1/3, C = 1/3 - recommended */
-	/* B = 0,   C = 1/2 - Catmull-Rom spline */
-	const float B = 1.0f / 3.0f;
-	const float C = 1.0f / 3.0f;
-
-	const float ax = fabsf(v);
-	if (ax < 1.0f) {
-		return ((12.0f - 9.0f * B - 6 * C) * ax * ax * ax +
-		        (-18.0f + 12.0f * B + 6.0f * C) * ax * ax +
-		        (6.0f - 2.0f * B)) / 6.0f;
-	} else if ((ax >= 1.0f) && (ax < 2.0f)) {
-		return ((-B - 6.0f * C) * ax * ax * ax +
-		        (6.0f * B + 30.0f * C) * ax * ax + (-12.0f * B - 48.0f * C) *
-		        ax + (8.0f * B + 24.0f * C)) / 6.0f;
-	}
-	return 0.0f;
-}
-
 static vector<float> filter_table(FilterType type, float width)
 {
 	const int filter_table_size = FILTER_TABLE_SIZE-1;
@@ -235,9 +212,6 @@ static vector<float> filter_table(FilterType type, float width)
 			break;
 		case FILTER_GAUSSIAN:
 			filter_func = filter_func_gaussian;
-			break;
-		case FILTER_MITCHELL:
-			filter_func = filter_func_mitchell;
 			break;
 		default:
 			assert(0);
