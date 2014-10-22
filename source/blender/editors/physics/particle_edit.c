@@ -61,7 +61,7 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
-
+#include "BKE_bvhutils.h"
 #include "BKE_pointcache.h"
 
 #include "BIF_gl.h"
@@ -355,6 +355,7 @@ typedef struct PEData {
 	Object *ob;
 	DerivedMesh *dm;
 	PTCacheEdit *edit;
+	BVHTreeFromMesh shape_bvh;
 
 	const int *mval;
 	rcti *rect;
@@ -409,6 +410,24 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 			ED_view3d_depth_update(data->vc.ar);
 		}
 	}
+}
+
+static void PE_create_shape_tree(PEData *data, Object *shapeob)
+{
+	DerivedMesh *dm = shapeob->derivedFinal;
+	
+	memset(&data->shape_bvh, 0, sizeof(data->shape_bvh));
+	
+	if (!shapeob || !shapeob->derivedFinal)
+		return;
+	
+	DM_ensure_tessface(dm);
+	bvhtree_from_mesh_faces(&data->shape_bvh, dm, 0.0f, 4, 8);
+}
+
+static void PE_free_shape_tree(PEData *data)
+{
+	free_bvhtree_from_mesh(&data->shape_bvh);
 }
 
 /*************************** selection utilities *******************************/
@@ -4030,6 +4049,178 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+}
+
+/*********************** cut shape ***************************/
+
+static int shape_cut_poll(bContext *C)
+{
+	if (PE_hair_poll(C)) {
+		Scene *scene= CTX_data_scene(C);
+		ParticleEditSettings *pset= PE_settings(scene);
+		
+		if (pset->shape_object)
+			return true;
+	}
+	
+	return false;
+}
+
+typedef struct PointInsideBVH {
+	BVHTreeFromMesh bvhdata;
+	int num_hits;
+} PointInsideBVH;
+
+static void point_inside_bvh_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+{
+	PointInsideBVH *data = userdata;
+	
+	data->bvhdata.raycast_callback(&data->bvhdata, index, ray, hit);
+	
+	if (hit->index != -1)
+		++data->num_hits;
+}
+
+/* true if the point is inside the shape mesh */
+static bool shape_cut_test_point(PEData *data, ParticleCacheKey *key)
+{
+	BVHTreeFromMesh *shape_bvh = &data->shape_bvh;
+	const float dir[3] = {1.0f, 0.0f, 0.0f};
+	PointInsideBVH userdata = { data->shape_bvh, 0 };
+	
+	BLI_bvhtree_ray_cast_all(shape_bvh->tree, key->co, dir, 0.0f, point_inside_bvh_cb, &userdata);
+	
+	/* for any point inside a watertight mesh the number of hits is uneven */
+	return (userdata.num_hits % 2) == 1;
+}
+
+static void shape_cut(PEData *data, int pa_index)
+{
+	PTCacheEdit *edit = data->edit;
+	Object *ob = data->ob;
+	ParticleEditSettings *pset = PE_settings(data->scene);
+	ParticleCacheKey *key;
+	
+	bool cut;
+	float cut_time = 1.0;
+	int k, totkeys = 1 << pset->draw_step;
+	
+	/* don't cut hidden */
+	if (edit->points[pa_index].flag & PEP_HIDE)
+		return;
+	
+	cut = false;
+	
+	/* check if root is inside the cut shape */
+	key = edit->pathcache[pa_index];
+	if (!shape_cut_test_point(data, key)) {
+		cut_time = -1.0f;
+		cut = true;
+	}
+	else {
+		for (k = 0; k < totkeys; k++, key++) {
+			BVHTreeRayHit hit;
+			float dir[3];
+			float len;
+			
+			sub_v3_v3v3(dir, (key+1)->co, key->co);
+			len = normalize_v3(dir);
+			
+			memset(&hit, 0, sizeof(hit));
+			hit.index = -1;
+			hit.dist = len;
+			BLI_bvhtree_ray_cast(data->shape_bvh.tree, key->co, dir, 0.0f, &hit, data->shape_bvh.raycast_callback, &data->shape_bvh);
+			if (hit.index >= 0) {
+				if (hit.dist < len) {
+//					cut_time = interpf((key+1)->time, key->time, hit.dist / len);
+					cut_time = (hit.dist / len + (float)k) / (float)totkeys;
+					cut = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if (cut) {
+		if (cut_time < 0.0f) {
+			edit->points[pa_index].flag |= PEP_TAG;
+		}
+		else {
+			rekey_particle_to_time(data->scene, ob, pa_index, cut_time);
+			edit->points[pa_index].flag |= PEP_EDIT_RECALC;
+		}
+	}
+}
+
+static int shape_cut_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	ParticleEditSettings *pset = PE_settings(scene);
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	Object *shapeob = pset->shape_object;
+	int selected = count_selected_keys(scene, edit);
+	int lock_root = pset->flag & PE_LOCK_FIRST;
+	
+	if (!PE_start_edit(edit))
+		return OPERATOR_CANCELLED;
+	
+	/* disable locking temporatily for disconnected hair */
+	if (edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
+		pset->flag &= ~PE_LOCK_FIRST;
+	
+	if (edit->psys && edit->pathcache) {
+		PEData data;
+		int removed;
+		
+		PE_set_data(C, &data);
+		PE_create_shape_tree(&data, shapeob);
+		
+		if (selected)
+			foreach_selected_point(&data, shape_cut);
+		else
+			foreach_point(&data, shape_cut);
+		
+		removed = remove_tagged_particles(ob, edit->psys, pe_x_mirror(ob));
+		recalc_lengths(edit);
+		
+		if (removed) {
+			update_world_cos(ob, edit);
+			psys_free_path_cache(NULL, edit);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
+		else
+			PE_update_object(scene, ob, 1);
+		
+		if (edit->psys) {
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
+		}
+		else {
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		}
+		
+		PE_free_shape_tree(&data);
+	}
+	
+	pset->flag |= lock_root;
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_shape_cut(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Shape Cut";
+	ot->idname = "PARTICLE_OT_shape_cut";
+	ot->description = "Cut hair to conform to the set shape object";
+	
+	/* api callbacks */
+	ot->exec = shape_cut_exec;
+	ot->poll = shape_cut_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /*********************** undo ***************************/

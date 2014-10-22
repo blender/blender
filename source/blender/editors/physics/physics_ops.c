@@ -64,6 +64,8 @@ static void operatortypes_particle(void)
 
 	WM_operatortype_append(PARTICLE_OT_brush_edit);
 
+	WM_operatortype_append(PARTICLE_OT_shape_cut);
+
 	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
 	WM_operatortype_append(PARTICLE_OT_edited_clear);
 

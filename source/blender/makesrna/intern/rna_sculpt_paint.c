@@ -888,6 +888,10 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "The edited object");
 
+	prop = RNA_def_property(srna, "shape_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Shape Object", "Outer shape to use for tools");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_redo");
 
 	/* brush */
 

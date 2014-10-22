@@ -882,6 +882,7 @@ typedef struct ParticleEditSettings {
 
 	struct Scene *scene;
 	struct Object *object;
+	struct Object *shape_object;
 } ParticleEditSettings;
 
 /* ------------------------------------------- */

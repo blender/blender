@@ -1468,6 +1468,42 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	}
 }
 
+static void dfs_raycast_all(BVHRayCastData *data, BVHNode *node)
+{
+	int i;
+
+	/* ray-bv is really fast.. and simple tests revealed its worth to test it
+	 * before calling the ray-primitive functions */
+	/* XXX: temporary solution for particles until fast_ray_nearest_hit supports ray.radius */
+	float dist = (data->ray.radius == 0.0f) ? fast_ray_nearest_hit(data, node) : ray_nearest_hit(data, node->bv);
+
+	if (node->totnode == 0) {
+		if (data->callback) {
+			data->hit.index = -1;
+			data->hit.dist = FLT_MAX;
+			data->callback(data->userdata, node->index, &data->ray, &data->hit);
+		}
+		else {
+			data->hit.index = node->index;
+			data->hit.dist  = dist;
+			madd_v3_v3v3fl(data->hit.co, data->ray.origin, data->ray.direction, dist);
+		}
+	}
+	else {
+		/* pick loop direction to dive into the tree (based on ray direction and split axis) */
+		if (data->ray_dot_axis[node->main_axis] > 0.0f) {
+			for (i = 0; i != node->totnode; i++) {
+				dfs_raycast_all(data, node->children[i]);
+			}
+		}
+		else {
+			for (i = node->totnode - 1; i >= 0; i--) {
+				dfs_raycast_all(data, node->children[i]);
+			}
+		}
+	}
+}
+
 #if 0
 static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 {
@@ -1571,6 +1607,48 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 
 	return dist;
 	
+}
+
+int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3], float radius,
+                             BVHTree_RayCastCallback callback, void *userdata)
+{
+	int i;
+	BVHRayCastData data;
+	BVHNode *root = tree->nodes[tree->totleaf];
+
+	data.tree = tree;
+
+	data.callback = callback;
+	data.userdata = userdata;
+
+	copy_v3_v3(data.ray.origin,    co);
+	copy_v3_v3(data.ray.direction, dir);
+	data.ray.radius = radius;
+
+	normalize_v3(data.ray.direction);
+
+	for (i = 0; i < 3; i++) {
+		data.ray_dot_axis[i] = dot_v3v3(data.ray.direction, KDOP_AXES[i]);
+		data.idot_axis[i] = 1.0f / data.ray_dot_axis[i];
+
+		if (fabsf(data.ray_dot_axis[i]) < FLT_EPSILON) {
+			data.ray_dot_axis[i] = 0.0;
+		}
+		data.index[2 * i] = data.idot_axis[i] < 0.0f ? 1 : 0;
+		data.index[2 * i + 1] = 1 - data.index[2 * i];
+		data.index[2 * i]   += 2 * i;
+		data.index[2 * i + 1] += 2 * i;
+	}
+
+
+	data.hit.index = -1;
+	data.hit.dist = FLT_MAX;
+
+	if (root) {
+		dfs_raycast_all(&data, root);
+	}
+
+	return data.hit.index;
 }
 
 /**

@@ -1802,6 +1802,9 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
             col.prop(pe, "use_auto_velocity", text="Velocity")
         col.prop(ob.data, "use_mirror_x")
 
+        col.prop(pe, "shape_object")
+        col.operator("particle.shape_cut")
+
         col = layout.column(align=True)
         col.active = pe.is_editable
         col.label(text="Draw:")

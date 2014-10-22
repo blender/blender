@@ -56,6 +56,8 @@ void PARTICLE_OT_mirror(struct wmOperatorType *ot);
 
 void PARTICLE_OT_brush_edit(struct wmOperatorType *ot);
 
+void PARTICLE_OT_shape_cut(struct wmOperatorType *ot);
+
 void PARTICLE_OT_particle_edit_toggle(struct wmOperatorType *ot);
 void PARTICLE_OT_edited_clear(struct wmOperatorType *ot);
 
