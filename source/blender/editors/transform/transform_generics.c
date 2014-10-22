@@ -779,7 +779,7 @@ static void recalcData_objects(TransInfo *t)
 		else if (t->obedit->type == OB_ARMATURE) { /* no recalc flag, does pose */
 			bArmature *arm = t->obedit->data;
 			ListBase *edbo = arm->edbo;
-			EditBone *ebo;
+			EditBone *ebo, *ebo_parent;
 			TransData *td = t->data;
 			int i;
 			
@@ -789,17 +789,18 @@ static void recalcData_objects(TransInfo *t)
 			
 			/* Ensure all bones are correctly adjusted */
 			for (ebo = edbo->first; ebo; ebo = ebo->next) {
+				ebo_parent = (ebo->flag & BONE_CONNECTED) ? ebo->parent : NULL;
 				
-				if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
+				if (ebo_parent) {
 					/* If this bone has a parent tip that has been moved */
-					if (ebo->parent->flag & BONE_TIPSEL) {
-						copy_v3_v3(ebo->head, ebo->parent->tail);
-						if (t->mode == TFM_BONE_ENVELOPE) ebo->rad_head = ebo->parent->rad_tail;
+					if (ebo_parent->flag & BONE_TIPSEL) {
+						copy_v3_v3(ebo->head, ebo_parent->tail);
+						if (t->mode == TFM_BONE_ENVELOPE) ebo->rad_head = ebo_parent->rad_tail;
 					}
 					/* If this bone has a parent tip that has NOT been moved */
 					else {
-						copy_v3_v3(ebo->parent->tail, ebo->head);
-						if (t->mode == TFM_BONE_ENVELOPE) ebo->parent->rad_tail = ebo->rad_head;
+						copy_v3_v3(ebo_parent->tail, ebo->head);
+						if (t->mode == TFM_BONE_ENVELOPE) ebo_parent->rad_tail = ebo->rad_head;
 					}
 				}
 				

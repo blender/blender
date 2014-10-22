@@ -1056,11 +1056,13 @@ static void createTransPose(TransInfo *t, Object *ob)
 
 void restoreBones(TransInfo *t)
 {
+	bArmature *arm = t->obedit->data;
 	BoneInitData *bid = t->customData;
-	EditBone *ebo;
+	EditBone *ebo, *children;
 
 	while (bid->bone) {
 		ebo = bid->bone;
+		
 		ebo->dist = bid->dist;
 		ebo->rad_tail = bid->rad_tail;
 		ebo->roll = bid->roll;
@@ -1068,7 +1070,22 @@ void restoreBones(TransInfo *t)
 		ebo->zwidth = bid->zwidth;
 		copy_v3_v3(ebo->head, bid->head);
 		copy_v3_v3(ebo->tail, bid->tail);
-
+		
+		/* Also move connected children, in case children's name aren't mirrored properly */
+		for (children = arm->edbo->first; children; children = children->next) {
+			if (children->parent == ebo && children->flag & BONE_CONNECTED) {
+				copy_v3_v3(children->head, ebo->tail);
+				children->rad_head = ebo->rad_tail;
+			}
+		}
+		
+		/* Also move connected parent, in case parent's name isn't mirrored properly */
+		if (ebo->parent && ebo->flag & BONE_CONNECTED) {
+			EditBone *parent = ebo->parent;
+			copy_v3_v3(parent->tail, ebo->head);
+			parent->rad_tail = ebo->rad_head;
+		}
+		
 		bid++;
 	}
 }
