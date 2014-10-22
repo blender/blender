@@ -1339,6 +1339,20 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	[[NSImage imageNamed:@"NSApplicationIcon"] drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
 	[dockIcon unlockFocus];
 	[NSApp setApplicationIconImage:dockIcon];
+	
+	
+	// With OSX 10.8 and later, we can use notifications to inform the user when the progress reached 100%
+	// Atm. just fire this when the progressbar ends, the behavior is controlled in the NotificationCenter
+	// If Blender is not frontmost window, a message pops up with sound, in any case an entry in notifications
+	
+	if ([NSUserNotificationCenter respondsToSelector:@selector(defaultUserNotificationCenter)]) {
+		NSUserNotification *notification = [[NSUserNotification alloc] init];
+		notification.title = @"Blender progress notification";
+		notification.informativeText = @"Calculation ended";
+		notification.soundName = NSUserNotificationDefaultSoundName;
+		[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+	}
+	
 	[dockIcon release];
 	
 	[pool drain];
