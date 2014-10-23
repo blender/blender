@@ -457,6 +457,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	unsigned nSize = vSize;
 	float *normals = new float[nSize];
 	unsigned *numVertexPerFaces = new unsigned[numFaces];
+	vector<Material *> meshMaterials;
 	vector<FrsMaterial> meshFrsMaterials;
 
 	IndexedFaceSet::TRIANGLES_STYLE *faceStyle = new IndexedFaceSet::TRIANGLES_STYLE[numFaces];
@@ -588,20 +589,21 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			tmpMat.setPriority(mat->line_priority);
 		}
 
-		if (meshFrsMaterials.empty()) {
+		if (meshMaterials.empty()) {
+			meshMaterials.push_back(mat);
 			meshFrsMaterials.push_back(tmpMat);
 			shape->setFrsMaterial(tmpMat);
 		}
 		else {
-			// find if the material is already in the list
+			// find if the Blender material is already in the list
 			unsigned int i = 0;
 			bool found = false;
 
-			for (vector<FrsMaterial>::iterator it = meshFrsMaterials.begin(), itend = meshFrsMaterials.end();
+			for (vector<Material *>::iterator it = meshMaterials.begin(), itend = meshMaterials.end();
 			     it != itend;
 			     it++, i++)
 			{
-				if (*it == tmpMat) {
+				if (*it == mat) {
 					ls.currentMIndex = i;
 					found = true;
 					break;
@@ -609,6 +611,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			}
 
 			if (!found) {
+				meshMaterials.push_back(mat);
 				meshFrsMaterials.push_back(tmpMat);
 				ls.currentMIndex = meshFrsMaterials.size() - 1;
 			}
