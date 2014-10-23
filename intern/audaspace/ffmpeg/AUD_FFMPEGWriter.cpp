@@ -170,7 +170,7 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 				AUD_THROW(AUD_ERROR_FFMPEG, codec_error);
 
 			if(codec->sample_fmts) {
-				// Check if the prefered sample format for this codec is supported.
+				// Check if the preferred sample format for this codec is supported.
 				const enum AVSampleFormat *p = codec->sample_fmts;
 				for(; *p != -1; p++) {
 					if(*p == m_stream->codec->sample_fmt)

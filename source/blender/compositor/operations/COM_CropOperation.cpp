@@ -109,9 +109,9 @@ bool CropImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void CropImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferedResolution[2])
+void CropImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
-	NodeOperation::determineResolution(resolution, preferedResolution);
+	NodeOperation::determineResolution(resolution, preferredResolution);
 	updateArea();
 	resolution[0] = this->m_xmax - this->m_xmin;
 	resolution[1] = this->m_ymax - this->m_ymin;

@@ -696,7 +696,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 
 	if (codec->sample_fmts) {
-		/* check if the prefered sample format for this codec is supported.
+		/* check if the preferred sample format for this codec is supported.
 		 * this is because, depending on the version of libav, and with the whole ffmpeg/libav fork situation,
 		 * you have various implementations around. float samples in particular are not always supported.
 		 */

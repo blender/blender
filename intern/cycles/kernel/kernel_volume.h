@@ -958,7 +958,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
                                          Ray *ray,
                                          VolumeStack *stack)
 {
-	/* NULL ray happens in the baker, does it need proper initializetion of
+	/* NULL ray happens in the baker, does it need proper initialization of
 	 * camera in volume?
 	 */
 	if(!kernel_data.cam.is_inside_volume || ray == NULL) {

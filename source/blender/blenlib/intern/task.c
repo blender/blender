@@ -496,7 +496,7 @@ void BLI_task_parallel_range_ex(
 
 	BLI_assert(start < stop);
 
-	/* If it's not enough data to be cranched, don't bother with tasks at all,
+	/* If it's not enough data to be crunched, don't bother with tasks at all,
 	 * do everything from the main thread.
 	 */
 	if (stop - start < range_threshold) {
@@ -518,7 +518,7 @@ void BLI_task_parallel_range_ex(
 
 	/* The idea here is to prevent creating task for each of the loop iterations
 	 * and instead have tasks which are evenly distributed across CPU cores and
-	 * pull next iter to be cranched using the queue.
+	 * pull next iter to be crunched using the queue.
 	 */
 	for (i = 0; i < 2 * BLI_task_scheduler_num_threads(task_scheduler); i++) {
 		BLI_task_pool_push(task_pool,

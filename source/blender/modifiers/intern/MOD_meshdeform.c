@@ -181,7 +181,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 			{
 				__m128 cageweight_r = _mm_set1_ps(cageweight);
 				/* This will load one extra element, this is ok because
-				 * we ignore that part of reigister anyway.
+				 * we ignore that part of register anyway.
 				 */
 				__m128 cageco_r = _mm_loadu_ps(cageco);
 				co = _mm_add_ps(co,
@@ -197,7 +197,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 	}
 
 #ifdef __SSE2__
-	copy_v3_v3(vec, (float*)&co);
+	copy_v3_v3(vec, (float *)&co);
 #else
 	copy_v3_v3(vec, co);
 #endif
