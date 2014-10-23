@@ -1326,7 +1326,16 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 	return GHOST_kSuccess;
 }
 
-
+static void postNotification()
+{
+	NSUserNotification *notification = [[NSUserNotification alloc] init];
+	notification.title = @"Blender progress notification";
+	notification.informativeText = @"Calculation is finished";
+	notification.soundName = NSUserNotificationDefaultSoundName;
+	[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+	[notification release];
+}
+	
 GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 {
 	if (!m_progressBarVisible) return GHOST_kFailure;
@@ -1346,12 +1355,7 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	// If Blender is not frontmost window, a message pops up with sound, in any case an entry in notifications
 	
 	if ([NSUserNotificationCenter respondsToSelector:@selector(defaultUserNotificationCenter)]) {
-		NSUserNotification *notification = [[NSUserNotification alloc] init];
-		notification.title = @"Blender progress notification";
-		notification.informativeText = @"Calculation ended";
-		notification.soundName = NSUserNotificationDefaultSoundName;
-		[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
-		[notification release];
+		postNotification();
 	}
 	
 	[dockIcon release];
@@ -1359,6 +1363,7 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	[pool drain];
 	return GHOST_kSuccess;
 }
+
 
 
 
