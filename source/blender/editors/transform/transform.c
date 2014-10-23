@@ -1125,47 +1125,22 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				handled = true;
 				break;
 			case TFM_MODAL_AXIS_X:
-				if ((t->flag & T_NO_CONSTRAINT) == 0) {
-					if (cmode == 'X') {
-						stopConstraint(t);
-					}
-					else {
-						if (t->flag & T_2D_EDIT) {
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), IFACE_("along X"));
-						}
-						else {
-							setUserConstraint(t, t->current_orientation, (CON_AXIS0), IFACE_("along %s X"));
-						}
-					}
+				if (!(t->flag & T_NO_CONSTRAINT)) {
+					transform_event_xyz_constraint(t, XKEY, cmode);
 					t->redraw |= TREDRAW_HARD;
 					handled = true;
 				}
 				break;
 			case TFM_MODAL_AXIS_Y:
 				if ((t->flag & T_NO_CONSTRAINT) == 0) {
-					if (cmode == 'Y') {
-						stopConstraint(t);
-					}
-					else {
-						if (t->flag & T_2D_EDIT) {
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), IFACE_("along Y"));
-						}
-						else {
-							setUserConstraint(t, t->current_orientation, (CON_AXIS1), IFACE_("along %s Y"));
-						}
-					}
+					transform_event_xyz_constraint(t, YKEY, cmode);
 					t->redraw |= TREDRAW_HARD;
 					handled = true;
 				}
 				break;
 			case TFM_MODAL_AXIS_Z:
-				if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-					if (cmode == 'Z') {
-						stopConstraint(t);
-					}
-					else {
-						setUserConstraint(t, t->current_orientation, (CON_AXIS2), IFACE_("along %s Z"));
-					}
+				if ((t->flag & (T_NO_CONSTRAINT)) == 0) {
+					transform_event_xyz_constraint(t, ZKEY, cmode);
 					t->redraw |= TREDRAW_HARD;
 					handled = true;
 				}
