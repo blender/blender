@@ -1940,6 +1940,9 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 			}
 		}
 
+		/* disallow negative values (happens with float precision) */
+		CLAMP_MIN(ikData->points[segcount], 0.0f);
+
 		/* spline has now been bound */
 		ikData->flag |= CONSTRAINT_SPLINEIK_BOUND;
 	}

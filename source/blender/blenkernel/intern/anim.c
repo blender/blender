@@ -627,6 +627,9 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	if (!bl->nr) return 0;
 	if (bl->poly > -1) cycl = 1;
 
+	/* values below zero for non-cyclic curves give strange results */
+	BLI_assert(cycl || ctime >= 0.0f);
+
 	ctime *= (path->len - 1);
 	
 	s1 = (int)floor(ctime);
