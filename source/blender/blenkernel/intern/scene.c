@@ -1905,6 +1905,10 @@ bool BKE_scene_uses_blender_internal(struct Scene *scene)
 	return strcmp("BLENDER_RENDER", scene->r.engine) == 0;
 }
 
+bool BKE_scene_uses_blender_game(struct Scene *scene)
+{
+	return strcmp("BLENDER_GAME", scene->r.engine) == 0;
+}
 
 void BKE_scene_base_flag_to_objects(struct Scene *scene)
 {
