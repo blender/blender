@@ -23,6 +23,7 @@
  * Contributor(s): Maarten Gribnau 05/2001
  *                 Damien Plisson  10/2009
  *                 Jason Wilkins   02/2014
+ *                 Jens Verwiebe   10/2014
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -45,8 +46,6 @@
 #  include <Carbon/Carbon.h>
 #endif
 
-
- 
 #include <sys/sysctl.h>
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
@@ -76,7 +75,6 @@ enum {
 - (BOOL)windowShouldClose:(id)sender;	
 - (void)windowDidChangeBackingProperties:(NSNotification *)notification;
 @end
-
 
 @implementation CocoaWindowDelegate : NSObject
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
@@ -171,6 +169,7 @@ enum {
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 - (GHOST_SystemCocoa*)systemCocoa;
 @end
+
 @implementation CocoaWindow
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
 {
@@ -261,8 +260,6 @@ enum {
 
 @end
 
-
-
 #pragma mark NSOpenGLView subclass
 //We need to subclass it in order to give Cocoa the feeling key events are trapped
 @interface CocoaOpenGLView : NSOpenGLView <NSTextInput>
@@ -277,6 +274,7 @@ enum {
 }
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 @end
+
 @implementation CocoaOpenGLView
 
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
@@ -1363,9 +1361,6 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	[pool drain];
 	return GHOST_kSuccess;
 }
-
-
-
 
 #pragma mark Cursor handling
 
