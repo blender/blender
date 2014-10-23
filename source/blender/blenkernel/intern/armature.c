@@ -1916,7 +1916,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		if (ikData->points)
 			MEM_freeN(ikData->points);
 		ikData->numpoints = ikData->chainlen + 1;
-		ikData->points = MEM_callocN(sizeof(float) * ikData->numpoints, "Spline IK Binding");
+		ikData->points = MEM_mallocN(sizeof(float) * ikData->numpoints, "Spline IK Binding");
 
 		/* bind 'tip' of chain (i.e. first joint = tip of bone with the Spline IK Constraint) */
 		ikData->points[0] = 1.0f;
@@ -1989,7 +1989,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		tree->chainlen = segcount;
 
 		/* copy over the array of links to bones in the chain (from tip to root) */
-		tree->chain = MEM_callocN(sizeof(bPoseChannel *) * segcount, "SplineIK Chain");
+		tree->chain = MEM_mallocN(sizeof(bPoseChannel *) * segcount, "SplineIK Chain");
 		memcpy(tree->chain, pchanChain, sizeof(bPoseChannel *) * segcount);
 
 		/* store reference to joint position array */
