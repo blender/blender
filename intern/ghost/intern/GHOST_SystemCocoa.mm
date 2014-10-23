@@ -22,6 +22,7 @@
  *
  * Contributors: Maarten Gribnau 05/2001
  *               Damien Plisson 09/2009
+ *               Jens Verwiebe   10/2014
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -55,6 +56,7 @@
 #endif
 
 #include "AssertMacros.h"
+
 
 #pragma mark KeyMap, mouse converters
 
@@ -311,8 +313,6 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 }
 
 @end
-
-
 
 
 #pragma mark initialization/finalization
@@ -634,7 +634,6 @@ GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons& buttons) const
 	buttons.set(GHOST_kButtonMaskButton5, button_state & (1 << 4));
 	return GHOST_kSuccess;
 }
-
 
 
 #pragma mark Event handlers
@@ -1571,7 +1570,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	
 	return GHOST_kSuccess;
 }
-
 
 
 #pragma mark Clipboard get/set
