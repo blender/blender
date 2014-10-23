@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Maarten Gribnau, Jason Wilkins
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -47,18 +47,6 @@
 
 class GHOST_SystemCocoa;
 
-/**
- * Window on Mac OSX/Cocoa.
- * Carbon windows have a size widget in the lower right corner of the window.
- * To force it to be visible, the height of the client rectangle is reduced so
- * that applications do not draw in that area. GHOST will manage that area
- * which is called the gutter.
- * When OpenGL contexts are active, GHOST will use AGL_BUFFER_RECT to prevent
- * OpenGL drawing outside the reduced client rectangle.
- * XXX jwilkins: This comment seems out of date since we neither use Carbon nor AGL
- * \author	Maarten Gribnau
- * \date	May 23, 2001
- */
 class GHOST_WindowCocoa : public GHOST_Window {
 public:
 	/**

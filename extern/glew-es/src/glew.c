@@ -97,7 +97,7 @@
 #ifdef linux
 
 #include <dlfcn.h>
-//XXX jwilkins: to do ?? properly set the lib paths depending on openGL version.
+//NOTE jwilkins: to do ?? properly set the lib paths depending on openGL version.
 #if defined(GLEW_USE_LIB_ES20)
 #define GLEW_OPENGLES_LIB_PATH  "/usr/lib/libGLESv2.so"
 #elif defined(GLEW_USE_LIB_ES11)
@@ -235,7 +235,7 @@ void* NSGLGetProcAddress (const GLubyte *name)
     static HMODULE hLibEGL    = NULL;
     static HMODULE hLibGLESv2 = NULL;
 
-    void* weGetProcAddress(const char* name) // XXX jwilkins
+    void* weGetProcAddress(const char* name) // NOTE jwilkins
     {
         void* proc = eglGetProcAddress(name);
 
@@ -271,7 +271,7 @@ void* NSGLGetProcAddress (const GLubyte *name)
 #elif defined(_WIN32)
     static HMODULE hOpenGL = NULL;
 
-    void* wGetProcAddress(const char* name) // XXX jwilkins
+    void* wGetProcAddress(const char* name) // NOTE jwilkins
     {
         void* proc = wglGetProcAddress(name);
 
@@ -408,7 +408,7 @@ static GLboolean _glewSearchExtension (const char* name, const GLubyte *start, c
 	  return GL_FALSE;
 	}
 #ifndef GLEW_ES_ONLY
-	else { // XXX jwilkins: unified extension string is deprecated
+	else { // NOTE jwilkins: unified extension string is deprecated
 		PFNGLGETSTRINGIPROC pglGetStringi = (PFNGLGETSTRINGIPROC)glewGetProcAddress("glGetStringi");
 
 		if (pglGetStringi != NULL) {
@@ -1362,7 +1362,7 @@ PFNGLSAMPLERPARAMETERFVPROC __glewSamplerParameterfv = NULL;
 PFNGLSAMPLERPARAMETERIPROC __glewSamplerParameteri = NULL;
 PFNGLSAMPLERPARAMETERIVPROC __glewSamplerParameteriv = NULL;
 
-#if 0 // XXX jwilkins: inconsistencies
+#if 0 // NOTE jwilkins: inconsistencies
 PFNGLACTIVESHADERPROGRAMPROC __glewActiveShaderProgram = NULL;
 PFNGLBINDPROGRAMPIPELINEPROC __glewBindProgramPipeline = NULL;
 PFNGLCREATESHADERPROGRAMVPROC __glewCreateShaderProgramv = NULL;
@@ -2263,7 +2263,7 @@ PFNGLSECONDARYCOLOR3USEXTPROC __glewSecondaryColor3usEXT = NULL;
 PFNGLSECONDARYCOLOR3USVEXTPROC __glewSecondaryColor3usvEXT = NULL;
 PFNGLSECONDARYCOLORPOINTEREXTPROC __glewSecondaryColorPointerEXT = NULL;
 
-#if 0 // XXX jwilkins: inconsistencies
+#if 0 // NOTE jwilkins: inconsistencies
 PFNGLACTIVEPROGRAMEXTPROC __glewActiveProgramEXT = NULL;
 PFNGLCREATESHADERPROGRAMEXTPROC __glewCreateShaderProgramEXT = NULL;
 PFNGLUSESHADERPROGRAMEXTPROC __glewUseShaderProgramEXT = NULL;
@@ -2422,7 +2422,7 @@ PFNGLDEBUGMESSAGEINSERTPROC __glewDebugMessageInsert = NULL;
 PFNGLGETDEBUGMESSAGELOGPROC __glewGetDebugMessageLog = NULL;
 PFNGLGETOBJECTLABELPROC __glewGetObjectLabel = NULL;
 PFNGLGETOBJECTPTRLABELPROC __glewGetObjectPtrLabel = NULL;
-//PFNGLGETPOINTERVPROC __glewGetPointerv = NULL; // XXX jwilkins: not sure if I'm the one who commented this out
+//PFNGLGETPOINTERVPROC __glewGetPointerv = NULL; // NOTE jwilkins: not sure if I'm the one who commented this out
 PFNGLOBJECTLABELPROC __glewObjectLabel = NULL;
 PFNGLOBJECTPTRLABELPROC __glewObjectPtrLabel = NULL;
 PFNGLPOPDEBUGGROUPPROC __glewPopDebugGroup = NULL;
@@ -3240,7 +3240,7 @@ PFNGLMULTIDRAWELEMENTSSUNPROC __glewMultiDrawElementsSUN = NULL;
 
 #else   
 
-#if GL_ES_VERSION_1_0 // XXX jwilkins: glew doesn't actually seem to be designed to let you use the extension macros
+#if GL_ES_VERSION_1_0 // NOTE jwilkins: glew doesn't actually seem to be designed to let you use the extension macros
 PFNGLACTIVETEXTUREPROC __glewActiveTexture = NULL;
 PFNGLALPHAFUNCXPROC __glewAlphaFuncx = NULL;
 PFNGLCLEARCOLORXPROC __glewClearColorx = NULL;
@@ -3280,9 +3280,9 @@ PFNGLTEXENVXPROC __glewTexEnvx = NULL;
 PFNGLTEXENVXVPROC __glewTexEnvxv = NULL;
 PFNGLTEXPARAMETERXPROC __glewTexParameterx = NULL;
 PFNGLTRANSLATEXPROC __glewTranslatex = NULL;
-#endif // XXX jwilkins
+#endif // NOTE jwilkins
 
-#if GL_ES_VERSION_CL_1_1 // XXX jwilkins
+#if GL_ES_VERSION_CL_1_1 // NOTE jwilkins
 PFNGLBINDBUFFERPROC __glewBindBuffer = NULL;
 PFNGLBUFFERDATAPROC __glewBufferData = NULL;
 PFNGLBUFFERSUBDATAPROC __glewBufferSubData = NULL;
@@ -3311,9 +3311,9 @@ PFNGLTEXENVIVPROC __glewTexEnviv = NULL;
 PFNGLTEXPARAMETERIPROC __glewTexParameteri = NULL;
 PFNGLTEXPARAMETERIVPROC __glewTexParameteriv = NULL;
 PFNGLTEXPARAMETERXVPROC __glewTexParameterxv = NULL;
-#endif // XXX jwilkins
+#endif // NOTE jwilkins
 
-#if GL_ES_VERSION_CM_1_1 // XXX jwilkins
+#if GL_ES_VERSION_CM_1_1 // NOTE jwilkins
 PFNGLCLIPPLANEFPROC __glewClipPlanef = NULL;
 PFNGLGETCLIPPLANEFPROC __glewGetClipPlanef = NULL;
 PFNGLGETFLOATVPROC __glewGetFloatv = NULL;
@@ -3411,7 +3411,7 @@ PFNGLVERTEXATTRIB4FPROC __glewVertexAttrib4f = NULL;
 PFNGLVERTEXATTRIB4FVPROC __glewVertexAttrib4fv = NULL;
 PFNGLVERTEXATTRIBPOINTERPROC __glewVertexAttribPointer = NULL;
 
-#if !GL_ES_VERSION_CL_1_1 // XXX jwilkins: missing function
+#if !GL_ES_VERSION_CL_1_1 // NOTE jwilkins: missing function
 PFNGLBINDBUFFERPROC __glewBindBuffer = NULL; // XXX
 PFNGLBUFFERDATAPROC __glewBufferData = NULL; // XXX
 PFNGLBUFFERSUBDATAPROC __glewBufferSubData = NULL; // XXX
@@ -3611,7 +3611,7 @@ PFNGLBLENDEQUATIONEXTPROC __glewBlendEquationEXT = NULL;
 PFNGLMULTIDRAWARRAYSEXTPROC __glewMultiDrawArraysEXT = NULL;
 PFNGLMULTIDRAWELEMENTSEXTPROC __glewMultiDrawElementsEXT = NULL;
 
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 PFNGLACTIVESHADERPROGRAMEXTPROC __glewActiveShaderProgramEXT = NULL;
 PFNGLBINDPROGRAMPIPELINEEXTPROC __glewBindProgramPipelineEXT = NULL;
 PFNGLCREATESHADERPROGRAMVEXTPROC __glewCreateShaderProgramvEXT = NULL;
@@ -3650,7 +3650,7 @@ PFNGLDEBUGMESSAGEINSERTPROC __glewDebugMessageInsert = NULL;
 PFNGLGETDEBUGMESSAGELOGPROC __glewGetDebugMessageLog = NULL;
 PFNGLGETOBJECTLABELPROC __glewGetObjectLabel = NULL;
 PFNGLGETOBJECTPTRLABELPROC __glewGetObjectPtrLabel = NULL;
-PFNGLGETPOINTERVPROC __glewGetPointerv = NULL; // XXX jwilkins: multiple defs
+PFNGLGETPOINTERVPROC __glewGetPointerv = NULL; // NOTE jwilkins: multiple defs
 PFNGLOBJECTLABELPROC __glewObjectLabel = NULL;
 PFNGLOBJECTPTRLABELPROC __glewObjectPtrLabel = NULL;
 PFNGLPOPDEBUGGROUPPROC __glewPopDebugGroup = NULL;
@@ -3801,7 +3801,7 @@ GLboolean __GLEW_ARB_robustness_share_group_isolation = GL_FALSE;
 GLboolean __GLEW_ARB_sample_shading = GL_FALSE;
 GLboolean __GLEW_ARB_sampler_objects = GL_FALSE;
 GLboolean __GLEW_ARB_seamless_cube_map = GL_FALSE;
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 GLboolean __GLEW_ARB_separate_shader_objects = GL_FALSE;
 #endif
 GLboolean __GLEW_ARB_shader_atomic_counters = GL_FALSE;
@@ -3944,7 +3944,7 @@ GLboolean __GLEW_EXT_provoking_vertex = GL_FALSE;
 GLboolean __GLEW_EXT_rescale_normal = GL_FALSE;
 GLboolean __GLEW_EXT_scene_marker = GL_FALSE;
 GLboolean __GLEW_EXT_secondary_color = GL_FALSE;
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 GLboolean __GLEW_EXT_separate_shader_objects = GL_FALSE;
 #endif
 GLboolean __GLEW_EXT_separate_specular_color = GL_FALSE;
@@ -4421,7 +4421,7 @@ GLboolean __GLEW_AMD_performance_monitor = GL_FALSE;
 GLboolean __GLEW_APPLE_rgb_422 = GL_FALSE;
 GLboolean __GLEW_EXT_blend_minmax = GL_FALSE;
 GLboolean __GLEW_EXT_multi_draw_arrays = GL_FALSE;
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 GLboolean __GLEW_EXT_separate_shader_objects = GL_FALSE;
 #endif // XXX
 GLboolean __GLEW_EXT_texture_compression_dxt1 = GL_FALSE;
@@ -6306,7 +6306,7 @@ static GLboolean _glewInit_GL_ARB_sampler_objects (GLEW_CONTEXT_ARG_DEF_INIT)
 
 #endif /* GL_ARB_seamless_cube_map */
 
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 #ifdef GL_ARB_separate_shader_objects
 
 static GLboolean _glewInit_GL_ARB_separate_shader_objects (GLEW_CONTEXT_ARG_DEF_INIT)
@@ -8324,16 +8324,16 @@ static GLboolean _glewInit_GL_EXT_secondary_color (GLEW_CONTEXT_ARG_DEF_INIT)
 
 #endif /* GL_EXT_secondary_color */
 
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 #ifdef GL_EXT_separate_shader_objects
 
 static GLboolean _glewInit_GL_EXT_separate_shader_objects (GLEW_CONTEXT_ARG_DEF_INIT)
 {
   GLboolean r = GL_FALSE;
 
-  r = ((glActiveProgramEXT = (PFNGLACTIVEPROGRAMEXTPROC)glewGetProcAddress((const GLubyte*)"glActiveProgramEXT")) == NULL) || r; // XXX jwilkins: may be modified
-  r = ((glCreateShaderProgramEXT = (PFNGLCREATESHADERPROGRAMEXTPROC)glewGetProcAddress((const GLubyte*)"glCreateShaderProgramEXT")) == NULL) || r; // XXX jwilkins: may be modified
-  r = ((glUseShaderProgramEXT = (PFNGLUSESHADERPROGRAMEXTPROC)glewGetProcAddress((const GLubyte*)"glUseShaderProgramEXT")) == NULL) || r; // XXX jwilkins: may be modified
+  r = ((glActiveProgramEXT = (PFNGLACTIVEPROGRAMEXTPROC)glewGetProcAddress((const GLubyte*)"glActiveProgramEXT")) == NULL) || r; // NOTE jwilkins: may be modified
+  r = ((glCreateShaderProgramEXT = (PFNGLCREATESHADERPROGRAMEXTPROC)glewGetProcAddress((const GLubyte*)"glCreateShaderProgramEXT")) == NULL) || r; // NOTE jwilkins: may be modified
+  r = ((glUseShaderProgramEXT = (PFNGLUSESHADERPROGRAMEXTPROC)glewGetProcAddress((const GLubyte*)"glUseShaderProgramEXT")) == NULL) || r; // NOTE jwilkins: may be modified
 
   return r;
 }
@@ -10540,7 +10540,7 @@ static GLboolean _glewInit_GL_WIN_swap_hint (GLEW_CONTEXT_ARG_DEF_INIT)
 
 #endif /* GL_WIN_swap_hint */
 
-#if GL_ES_VERSION_1_0 // XXX jwilkins: changed from ifdef
+#if GL_ES_VERSION_1_0 // NOTE jwilkins: changed from ifdef
 
 static GLboolean _glewInit_GL_ES_VERSION_1_0 (GLEW_CONTEXT_ARG_DEF_INIT)
 {
@@ -10591,7 +10591,7 @@ static GLboolean _glewInit_GL_ES_VERSION_1_0 (GLEW_CONTEXT_ARG_DEF_INIT)
 
 #endif /* GL_ES_VERSION_1_0 */
 
-#if GL_ES_VERSION_CL_1_1 // XXX jwilkins: should be 'if' not 'ifdef'
+#if GL_ES_VERSION_CL_1_1 // NOTE jwilkins: should be 'if' not 'ifdef'
 
 static GLboolean _glewInit_GL_ES_VERSION_CL_1_1 (GLEW_CONTEXT_ARG_DEF_INIT)
 {
@@ -10631,7 +10631,7 @@ static GLboolean _glewInit_GL_ES_VERSION_CL_1_1 (GLEW_CONTEXT_ARG_DEF_INIT)
 
 #endif /* GL_ES_VERSION_CL_1_1 */
 
-#if GL_ES_VERSION_CM_1_1 // XXX jwilkins: should be 'if' not 'ifdef'
+#if GL_ES_VERSION_CM_1_1 // NOTE jwilkins: should be 'if' not 'ifdef'
 
 static GLboolean _glewInit_GL_ES_VERSION_CM_1_1 (GLEW_CONTEXT_ARG_DEF_INIT)
 {
@@ -10744,17 +10744,17 @@ static GLboolean _glewInit_GL_ES_VERSION_2_0 (GLEW_CONTEXT_ARG_DEF_INIT)
   r = ((glVertexAttrib4fv = (PFNGLVERTEXATTRIB4FVPROC)glewGetProcAddress((const GLubyte*)"glVertexAttrib4fv")) == NULL) || r;
   r = ((glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)glewGetProcAddress((const GLubyte*)"glVertexAttribPointer")) == NULL) || r;
 
-  r = ((glBindBuffer = (PFNGLBINDBUFFERPROC)glewGetProcAddress((const GLubyte*)"glBindBuffer")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glBufferData = (PFNGLBUFFERDATAPROC)glewGetProcAddress((const GLubyte*)"glBufferData")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glBufferSubData = (PFNGLBUFFERSUBDATAPROC)glewGetProcAddress((const GLubyte*)"glBufferSubData")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)glewGetProcAddress((const GLubyte*)"glDeleteBuffers")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glGenBuffers = (PFNGLGENBUFFERSPROC)glewGetProcAddress((const GLubyte*)"glGenBuffers")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glTexParameteri = (PFNGLTEXPARAMETERIPROC)glewGetProcAddress((const GLubyte*)"glTexParameteri")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glIsEnabled = (PFNGLISENABLEDPROC)glewGetProcAddress((const GLubyte*)"glIsEnabled")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glGetFloatv = (PFNGLGETFLOATVPROC)glewGetProcAddress((const GLubyte*)"glGetFloatv")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glDepthRangef = (PFNGLDEPTHRANGEFPROC)glewGetProcAddress((const GLubyte*)"glDepthRangef")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glActiveTexture = (PFNGLACTIVETEXTUREPROC)glewGetProcAddress((const GLubyte*)"glActiveTexture")) == NULL) || r; // XXX jwilkins: missing function
-  r = ((glGetBooleanv = (PFNGLGETBOOLEANVPROC)glewGetProcAddress((const GLubyte*)"glGetBooleanv")) == NULL) || r; // XXX jwilkins: missing function
+  r = ((glBindBuffer = (PFNGLBINDBUFFERPROC)glewGetProcAddress((const GLubyte*)"glBindBuffer")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glBufferData = (PFNGLBUFFERDATAPROC)glewGetProcAddress((const GLubyte*)"glBufferData")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glBufferSubData = (PFNGLBUFFERSUBDATAPROC)glewGetProcAddress((const GLubyte*)"glBufferSubData")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)glewGetProcAddress((const GLubyte*)"glDeleteBuffers")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glGenBuffers = (PFNGLGENBUFFERSPROC)glewGetProcAddress((const GLubyte*)"glGenBuffers")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glTexParameteri = (PFNGLTEXPARAMETERIPROC)glewGetProcAddress((const GLubyte*)"glTexParameteri")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glIsEnabled = (PFNGLISENABLEDPROC)glewGetProcAddress((const GLubyte*)"glIsEnabled")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glGetFloatv = (PFNGLGETFLOATVPROC)glewGetProcAddress((const GLubyte*)"glGetFloatv")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glDepthRangef = (PFNGLDEPTHRANGEFPROC)glewGetProcAddress((const GLubyte*)"glDepthRangef")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glActiveTexture = (PFNGLACTIVETEXTUREPROC)glewGetProcAddress((const GLubyte*)"glActiveTexture")) == NULL) || r; // NOTE jwilkins: missing function
+  r = ((glGetBooleanv = (PFNGLGETBOOLEANVPROC)glewGetProcAddress((const GLubyte*)"glGetBooleanv")) == NULL) || r; // NOTE jwilkins: missing function
 
   return r;
 }
@@ -11800,7 +11800,7 @@ GLenum glewContextInit (GLEW_CONTEXT_ARG_DEF_LIST)
 	  extEnd = extStart + _glewStrLen(extStart);
 #ifndef GLEW_ES_ONLY
   }
-  else { // XXX jwilkins: unified extension string is deprecated
+  else { // NOTE jwilkins: unified extension string is deprecated
 	  extStart = 0;
 	  extEnd   = 0;
   }
@@ -12218,7 +12218,7 @@ GLenum glewContextInit (GLEW_CONTEXT_ARG_DEF_LIST)
 #ifdef GL_ARB_seamless_cube_map
   CONST_CAST(GLEW_ARB_seamless_cube_map) = _glewSearchExtension("GL_ARB_seamless_cube_map", extStart, extEnd);
 #endif /* GL_ARB_seamless_cube_map */
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 #ifdef GL_ARB_separate_shader_objects
   CONST_CAST(GLEW_ARB_separate_shader_objects) = _glewSearchExtension("GL_ARB_separate_shader_objects", extStart, extEnd);
   if (glewExperimental || GLEW_ARB_separate_shader_objects) CONST_CAST(GLEW_ARB_separate_shader_objects) = !_glewInit_GL_ARB_separate_shader_objects(GLEW_CONTEXT_ARG_VAR_INIT);
@@ -12722,7 +12722,7 @@ GLenum glewContextInit (GLEW_CONTEXT_ARG_DEF_LIST)
   CONST_CAST(GLEW_EXT_secondary_color) = _glewSearchExtension("GL_EXT_secondary_color", extStart, extEnd);
   if (glewExperimental || GLEW_EXT_secondary_color) CONST_CAST(GLEW_EXT_secondary_color) = !_glewInit_GL_EXT_secondary_color(GLEW_CONTEXT_ARG_VAR_INIT);
 #endif /* GL_EXT_secondary_color */
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 #ifdef GL_EXT_separate_shader_objects
   CONST_CAST(GLEW_EXT_separate_shader_objects) = _glewSearchExtension("GL_EXT_separate_shader_objects", extStart, extEnd);
   if (glewExperimental || GLEW_EXT_separate_shader_objects) CONST_CAST(GLEW_EXT_separate_shader_objects) = !_glewInit_GL_EXT_separate_shader_objects(GLEW_CONTEXT_ARG_VAR_INIT);
@@ -13450,13 +13450,13 @@ GLenum glewContextInit (GLEW_CONTEXT_ARG_DEF_LIST)
   CONST_CAST(GLEW_WIN_swap_hint) = _glewSearchExtension("GL_WIN_swap_hint", extStart, extEnd);
   if (glewExperimental || GLEW_WIN_swap_hint) CONST_CAST(GLEW_WIN_swap_hint) = !_glewInit_GL_WIN_swap_hint(GLEW_CONTEXT_ARG_VAR_INIT);
 #endif /* GL_WIN_swap_hint */
-#if GL_ES_VERSION_1_0 // XXX jwilkins: should be 'if' not 'ifdef'
+#if GL_ES_VERSION_1_0 // NOTE jwilkins: should be 'if' not 'ifdef'
   if (glewExperimental || GLEW_ES_VERSION_1_0) CONST_CAST(GLEW_ES_VERSION_1_0) = !_glewInit_GL_ES_VERSION_1_0(GLEW_CONTEXT_ARG_VAR_INIT);
 #endif /* GL_ES_VERSION_1_0 */
-#if GL_ES_VERSION_CL_1_1 // XXX jwilkins: should be 'if' not 'ifdef'
+#if GL_ES_VERSION_CL_1_1 // NOTE jwilkins: should be 'if' not 'ifdef'
   if (glewExperimental || GLEW_ES_VERSION_CL_1_1) CONST_CAST(GLEW_ES_VERSION_CL_1_1) = !_glewInit_GL_ES_VERSION_CL_1_1(GLEW_CONTEXT_ARG_VAR_INIT);
 #endif /* GL_ES_VERSION_CL_1_1 */
-#if GL_ES_VERSION_CM_1_1 // XXX jwilkins: should be 'if' not 'ifdef'
+#if GL_ES_VERSION_CM_1_1 // NOTE jwilkins: should be 'if' not 'ifdef'
   if (glewExperimental || GLEW_ES_VERSION_CM_1_1) CONST_CAST(GLEW_ES_VERSION_CM_1_1) = !_glewInit_GL_ES_VERSION_CM_1_1(GLEW_CONTEXT_ARG_VAR_INIT);
 #endif /* GL_ES_VERSION_CM_1_1 */
 #ifdef GL_ES_VERSION_2_0
@@ -17639,7 +17639,7 @@ GLboolean glewIsSupported (const char* name)
           continue;
         }
 #endif
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 #ifdef GL_ARB_separate_shader_objects
         if (_glewStrSame3(&pos, &len, (const GLubyte*)"separate_shader_objects", 23))
         {
@@ -18786,7 +18786,7 @@ GLboolean glewIsSupported (const char* name)
           continue;
         }
 #endif
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 #ifdef GL_EXT_separate_shader_objects
         if (_glewStrSame3(&pos, &len, (const GLubyte*)"separate_shader_objects", 23))
         {

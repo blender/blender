@@ -954,8 +954,8 @@ typedef BOOL (WINAPI * PFNWGLCOPYIMAGESUBDATANVPROC) (HGLRC hSrcRC, GLuint srcNa
 #if !defined(WGL_NV_gpu_affinity) 
 #define WGL_NV_gpu_affinity 1
 
-#define ERROR_INCOMPATIBLE_AFFINITY_MASKS_NV 0x20D0 // XXX jwilkins: incorrect name
-#define ERROR_MISSING_AFFINITY_MASK_NV 0x20D1 // XXX jwilkins: incorrect name
+#define ERROR_INCOMPATIBLE_AFFINITY_MASKS_NV 0x20D0 // NOTE jwilkins: incorrect name
+#define ERROR_MISSING_AFFINITY_MASK_NV 0x20D1 // NOTE jwilkins: incorrect name
 
 DECLARE_HANDLE(HGPUNV);
 typedef struct _GPU_DEVICE {
@@ -1406,8 +1406,8 @@ GLEWAPI GLboolean wglewContextIsSupported (const WGLEWContext* ctx, const char* 
 #define WGLEW_GET_VAR(x) (*(const GLboolean*)&x)
 #define WGLEW_GET_FUN(x) x
 
-GLEWAPI GLenum wglewContextInit (void); // XXX jwilkins: Why does this require GLEW_MX?  Should I enable GLEW_MX? instead?
-#define wglewInit() wglewContextInit() // XXX jwilkins: Why does this require GLEW_MX?  Should I enable GLEW_MX? instead?
+GLEWAPI GLenum wglewContextInit (void); // NOTE jwilkins: Why does this require GLEW_MX?  Should I enable GLEW_MX? instead?
+#define wglewInit() wglewContextInit() // NOTE jwilkins: Why does this require GLEW_MX?  Should I enable GLEW_MX? instead?
 
 GLEWAPI GLboolean wglewIsSupported (const char* name);
 

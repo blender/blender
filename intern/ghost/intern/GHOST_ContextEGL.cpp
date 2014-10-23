@@ -310,7 +310,9 @@ GHOST_TSuccess GHOST_ContextEGL::setSwapInterval(int interval)
 
 GHOST_TSuccess GHOST_ContextEGL::getSwapInterval(int &intervalOut)
 {
-	intervalOut = m_swap_interval; // XXX jwilkins: make sure there is no way to query this?
+	// This is a bit of a kludge because there does not seem to
+	// be a way to query the swap interval with EGL.
+	intervalOut = m_swap_interval;
 
 	return GHOST_kSuccess;
 }

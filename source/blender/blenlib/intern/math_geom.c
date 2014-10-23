@@ -1756,8 +1756,8 @@ bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
 	if (tzmin > tmin)
 		tmin = tzmin;
 
-	/* XXX jwilkins: tmax does not need to be updated since we don't use it
-	 * keeping this here for future reference */
+	/* Note: tmax does not need to be updated since we don't use it
+	 * keeping this here for future reference - jwilkins */
 	//if (tzmax < tmax) tmax = tzmax;
 
 	if (tmin_out)

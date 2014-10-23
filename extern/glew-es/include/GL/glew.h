@@ -5472,7 +5472,7 @@ typedef void (GLAPIENTRY * PFNGLSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum 
 
 #endif /* !GL_ARB_seamless_cube_map */
 
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 /* --------------------- GL_ARB_separate_shader_objects -------------------- */
 
 #if !defined(GL_ARB_separate_shader_objects) 
@@ -9736,7 +9736,7 @@ typedef void (GLAPIENTRY * PFNGLSECONDARYCOLORPOINTEREXTPROC) (GLint size, GLenu
 
 #endif /* !GL_EXT_secondary_color */
 
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 /* --------------------- GL_EXT_separate_shader_objects -------------------- */
 
 #if !defined(GL_EXT_separate_shader_objects) 
@@ -17948,7 +17948,7 @@ GLEW_FUN_EXPORT PFNGLSAMPLERPARAMETERFVPROC __glewSamplerParameterfv;
 GLEW_FUN_EXPORT PFNGLSAMPLERPARAMETERIPROC __glewSamplerParameteri;
 GLEW_FUN_EXPORT PFNGLSAMPLERPARAMETERIVPROC __glewSamplerParameteriv;
 
-#if 0 // XXX jwilkins: inconsistencies between ES and Desktop versions
+#if 0 // NOTE jwilkins: inconsistencies between ES and Desktop versions
 GLEW_FUN_EXPORT PFNGLACTIVESHADERPROGRAMPROC __glewActiveShaderProgram;
 GLEW_FUN_EXPORT PFNGLBINDPROGRAMPIPELINEPROC __glewBindProgramPipeline;
 GLEW_FUN_EXPORT PFNGLCREATESHADERPROGRAMVPROC __glewCreateShaderProgramv;
@@ -18849,7 +18849,7 @@ GLEW_FUN_EXPORT PFNGLSECONDARYCOLOR3USEXTPROC __glewSecondaryColor3usEXT;
 GLEW_FUN_EXPORT PFNGLSECONDARYCOLOR3USVEXTPROC __glewSecondaryColor3usvEXT;
 GLEW_FUN_EXPORT PFNGLSECONDARYCOLORPOINTEREXTPROC __glewSecondaryColorPointerEXT;
 
-#if 0 // XXX jwilkins: inconsistencies...
+#if 0 // NOTE jwilkins: inconsistencies...
 GLEW_FUN_EXPORT PFNGLACTIVEPROGRAMEXTPROC __glewActiveProgramEXT;
 GLEW_FUN_EXPORT PFNGLCREATESHADERPROGRAMEXTPROC __glewCreateShaderProgramEXT;
 GLEW_FUN_EXPORT PFNGLUSESHADERPROGRAMEXTPROC __glewUseShaderProgramEXT;
@@ -19008,7 +19008,7 @@ GLEW_FUN_EXPORT PFNGLDEBUGMESSAGEINSERTPROC __glewDebugMessageInsert;
 GLEW_FUN_EXPORT PFNGLGETDEBUGMESSAGELOGPROC __glewGetDebugMessageLog;
 GLEW_FUN_EXPORT PFNGLGETOBJECTLABELPROC __glewGetObjectLabel;
 GLEW_FUN_EXPORT PFNGLGETOBJECTPTRLABELPROC __glewGetObjectPtrLabel;
-//GLEW_FUN_EXPORT PFNGLGETPOINTERVPROC __glewGetPointerv; // XXX jwilkins redefinition?
+//GLEW_FUN_EXPORT PFNGLGETPOINTERVPROC __glewGetPointerv; // NOTE jwilkins redefinition?
 GLEW_FUN_EXPORT PFNGLOBJECTLABELPROC __glewObjectLabel;
 GLEW_FUN_EXPORT PFNGLOBJECTPTRLABELPROC __glewObjectPtrLabel;
 GLEW_FUN_EXPORT PFNGLPOPDEBUGGROUPPROC __glewPopDebugGroup;
@@ -19950,7 +19950,7 @@ GLEW_VAR_EXPORT GLboolean __GLEW_ARB_robustness_share_group_isolation;
 GLEW_VAR_EXPORT GLboolean __GLEW_ARB_sample_shading;
 GLEW_VAR_EXPORT GLboolean __GLEW_ARB_sampler_objects;
 GLEW_VAR_EXPORT GLboolean __GLEW_ARB_seamless_cube_map;
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 GLEW_VAR_EXPORT GLboolean __GLEW_ARB_separate_shader_objects;
 #endif
 GLEW_VAR_EXPORT GLboolean __GLEW_ARB_shader_atomic_counters;
@@ -20093,7 +20093,7 @@ GLEW_VAR_EXPORT GLboolean __GLEW_EXT_provoking_vertex;
 GLEW_VAR_EXPORT GLboolean __GLEW_EXT_rescale_normal;
 GLEW_VAR_EXPORT GLboolean __GLEW_EXT_scene_marker;
 GLEW_VAR_EXPORT GLboolean __GLEW_EXT_secondary_color;
-#if 0 // XXX jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
+#if 0 // NOTE jwilkins: there is an inconsistency between the ES and Non-ES versions of this extension??
 GLEW_VAR_EXPORT GLboolean __GLEW_EXT_separate_shader_objects;
 #endif
 GLEW_VAR_EXPORT GLboolean __GLEW_EXT_separate_specular_color;
