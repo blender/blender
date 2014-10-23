@@ -338,7 +338,7 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.operator("sequencer.cut", text="Cut (hard) at frame").type = 'HARD'
         layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
-        layout.operator("sequencer.trim", text="Trim Contents")
+        layout.operator("sequencer.slip", text="Slip Strip Contents")
         layout.operator("sequencer.images_separate")
         layout.operator("sequencer.offset_clear")
         layout.operator("sequencer.deinterlace_selected_movies")

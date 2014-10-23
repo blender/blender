@@ -84,7 +84,7 @@ struct wmOperatorType;
 struct wmKeyConfig;
 
 void SEQUENCER_OT_cut(struct wmOperatorType *ot);
-void SEQUENCER_OT_trim(struct wmOperatorType *ot);
+void SEQUENCER_OT_slip(struct wmOperatorType *ot);
 void SEQUENCER_OT_mute(struct wmOperatorType *ot);
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
 void SEQUENCER_OT_lock(struct wmOperatorType *ot);
