@@ -17,6 +17,7 @@
 #include "image.h"
 #include "nodes.h"
 #include "svm.h"
+#include "svm_math_util.h"
 #include "osl.h"
 #include "sky_model.h"
 
@@ -3682,9 +3683,24 @@ void MathNode::compile(SVMCompiler& compiler)
 	ShaderInput *value2_in = input("Value2");
 	ShaderOutput *value_out = output("Value");
 
+	compiler.stack_assign(value_out);
+
+	/* Optimize math node without links to a single value node. */
+	if(value1_in->link == NULL && value2_in->link == NULL) {
+		float optimized_value = svm_math((NodeMath)type_enum[type],
+		                                 value1_in->value.x,
+		                                 value2_in->value.x);
+		if(use_clamp) {
+			optimized_value = clamp(optimized_value, 0.0f, 1.0f);
+		}
+		compiler.add_node(NODE_VALUE_F,
+		                  __float_as_int(optimized_value),
+		                  value_out->stack_offset);
+		return;
+	}
+
 	compiler.stack_assign(value1_in);
 	compiler.stack_assign(value2_in);
-	compiler.stack_assign(value_out);
 
 	compiler.add_node(NODE_MATH, type_enum[type], value1_in->stack_offset, value2_in->stack_offset);
 	compiler.add_node(NODE_MATH, value_out->stack_offset);

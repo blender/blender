@@ -91,6 +91,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_magic.h
 	svm/svm_mapping.h
 	svm/svm_math.h
+	svm/svm_math_util.h
 	svm/svm_mix.h
 	svm/svm_musgrave.h
 	svm/svm_noise.h
