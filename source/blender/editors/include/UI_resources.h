@@ -266,6 +266,8 @@ enum {
 	TH_NLA_SOUND,
 	TH_NLA_SOUND_SEL,
 	
+	TH_EMBOSS,
+
 	TH_AXIS_X,		/* X/Y/Z Axis */
 	TH_AXIS_Y,
 	TH_AXIS_Z,
