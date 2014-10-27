@@ -292,6 +292,7 @@ static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, c
 	MVert mv[4];
 	float matrix[4][4], proj[4][4];
 	GLint view[4];
+	ImagePaintMode mode = scene->toolsettings->imapaint.mode;
 
 	/* compute barycentric coordinates */
 
@@ -320,19 +321,25 @@ static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, c
 		if (findex == faceindex) {
 			dm->getTessFace(dm, a, &mf);
 
-			ma = dm->mat[mf.mat_nr];
-			slot = &ma->texpaintslot[ma->paint_active_slot];
-
 			dm->getVert(dm, mf.v1, &mv[0]);
 			dm->getVert(dm, mf.v2, &mv[1]);
 			dm->getVert(dm, mf.v3, &mv[2]);
 			if (mf.v4)
 				dm->getVert(dm, mf.v4, &mv[3]);
 
-			if (!(slot && slot->uvname && (tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, slot->uvname))))
-				tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+			if (mode == IMAGEPAINT_MODE_MATERIAL) {
+				ma = dm->mat[mf.mat_nr];
+				slot = &ma->texpaintslot[ma->paint_active_slot];
 
-			tf = &tf_base[a];
+				if (!(slot && slot->uvname && (tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, slot->uvname))))
+					tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+
+				tf = &tf_base[a];
+			}
+			else {
+				tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+				tf = &tf_base[a];
+			}
 
 			p[0] = xy[0];
 			p[1] = xy[1];
