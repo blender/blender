@@ -1900,7 +1900,6 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
 
 	uiBlockSetDirection(block, UI_RIGHT);
 
-	uiEndBlock(C, block);
 	return block;
 }
 
@@ -1975,7 +1974,6 @@ static uiBlock *curvemap_tools_posslope_func(bContext *C, ARegion *ar, void *cum
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
 
-	uiEndBlock(C, block);
 	return block;
 }
 
@@ -2003,7 +2001,6 @@ static uiBlock *curvemap_tools_negslope_func(bContext *C, ARegion *ar, void *cum
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
 
-	uiEndBlock(C, block);
 	return block;
 }
 
@@ -2027,7 +2024,6 @@ static uiBlock *curvemap_brush_tools_func(bContext *C, ARegion *ar, void *cumap_
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
 
-	uiEndBlock(C, block);
 	return block;
 }
 
