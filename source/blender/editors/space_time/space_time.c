@@ -520,7 +520,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
-	draw_markers_time(C, 0);
+	ED_markers_draw(C, 0);
 	
 	/* caches */
 	time_draw_cache(stime, obact, scene);

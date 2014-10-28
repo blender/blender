@@ -47,7 +47,7 @@ enum {
 	DRAW_MARKERS_MARGIN = (1 << 2),
 };
 
-void draw_markers_time(const struct bContext *C, int flag);
+void ED_markers_draw(const struct bContext *C, int flag);
 
 /* Backend API ----------------------------- */
 

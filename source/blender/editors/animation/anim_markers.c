@@ -411,7 +411,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 }
 
 /* Draw Scene-Markers in time window */
-void draw_markers_time(const bContext *C, int flag)
+void ED_markers_draw(const bContext *C, int flag)
 {
 	ListBase *markers = ED_context_get_markers(C);
 	View2D *v2d;
