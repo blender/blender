@@ -1543,16 +1543,20 @@ static void game_set_commmandline_options(GameData *gm)
 
 static int game_engine_poll(bContext *C)
 {
+	bScreen *screen;
 	/* we need a context and area to launch BGE
 	 * it's a temporary solution to avoid crash at load time
 	 * if we try to auto run the BGE. Ideally we want the
 	 * context to be set as soon as we load the file. */
 
 	if (CTX_wm_window(C) == NULL) return 0;
-	if (CTX_wm_screen(C) == NULL) return 0;
+	if ((screen = CTX_wm_screen(C)) == NULL) return 0;
 	if (CTX_wm_area(C) == NULL) return 0;
 
 	if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)
+		return 0;
+
+	if (!BKE_scene_uses_blender_game(screen->scene))
 		return 0;
 
 	return 1;
