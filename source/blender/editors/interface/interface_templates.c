@@ -921,12 +921,18 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		/* When Modifier is a simulation, show button to switch to context rather than the delete button. */
-		if (modifier_can_delete(md) && (!modifier_is_simulation(md) || STREQ(scene->r.engine, "BLENDER_GAME")))
+		if (modifier_can_delete(md) &&
+		    (!modifier_is_simulation(md) ||
+		     STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME)))
+		{
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-		else if (modifier_is_simulation(md) == 1)
+		}
+		else if (modifier_is_simulation(md) == 1) {
 			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PHYSICS");
-		else if (modifier_is_simulation(md) == 2)
+		}
+		else if (modifier_is_simulation(md) == 2) {
 			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PARTICLES");
+		}
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 

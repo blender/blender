@@ -311,7 +311,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			 * seems commonly used render engines does not support
 			 * such kind of rendering.
 			 */
-			BLI_strncpy(sce->r.engine, "BLENDER_RENDER", sizeof(sce->r.engine));
+			BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_RENDER, sizeof(sce->r.engine));
 		}
 		else {
 			BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));

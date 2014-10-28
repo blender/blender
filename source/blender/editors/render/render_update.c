@@ -538,7 +538,7 @@ void ED_render_id_flush_update(Main *bmain, ID *id)
 
 void ED_render_internal_init(void)
 {
-	RenderEngineType *ret = RE_engines_find("BLENDER_RENDER");
+	RenderEngineType *ret = RE_engines_find(RE_engine_id_BLENDER_RENDER);
 	
 	ret->view_update = render_view3d_update;
 	ret->view_draw = render_view3d_draw;

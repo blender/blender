@@ -3413,7 +3413,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 
 	rv3d->rflag &= ~RV3D_IS_GAME_ENGINE;
 #ifdef WITH_GAMEENGINE
-	if (STREQ(scene->r.engine, "BLENDER_GAME")) {
+	if (STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME)) {
 		rv3d->rflag |= RV3D_IS_GAME_ENGINE;
 
 		/* Make sure LoDs are up to date */

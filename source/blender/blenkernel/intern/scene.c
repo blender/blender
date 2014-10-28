@@ -98,6 +98,10 @@
 #  include <sys/time.h>
 #endif
 
+const char *RE_engine_id_BLENDER_RENDER = "BLENDER_RENDER";
+const char *RE_engine_id_BLENDER_GAME = "BLENDER_GAME";
+const char *RE_engine_id_CYCLES = "CYCLES";
+
 void free_avicodecdata(AviCodecData *acd)
 {
 	if (acd) {
@@ -595,7 +599,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.ffcodecdata.audio_bitrate = 192;
 	sce->r.ffcodecdata.audio_channels = 2;
 
-	BLI_strncpy(sce->r.engine, "BLENDER_RENDER", sizeof(sce->r.engine));
+	BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_RENDER, sizeof(sce->r.engine));
 
 	sce->audio.distance_model = 2.0f;
 	sce->audio.doppler_factor = 1.0f;
@@ -1902,12 +1906,12 @@ bool BKE_scene_use_new_shading_nodes(Scene *scene)
 
 bool BKE_scene_uses_blender_internal(struct Scene *scene)
 {
-	return strcmp("BLENDER_RENDER", scene->r.engine) == 0;
+	return STREQ(scene->r.engine, RE_engine_id_BLENDER_RENDER);
 }
 
 bool BKE_scene_uses_blender_game(struct Scene *scene)
 {
-	return strcmp("BLENDER_GAME", scene->r.engine) == 0;
+	return STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME);
 }
 
 void BKE_scene_base_flag_to_objects(struct Scene *scene)

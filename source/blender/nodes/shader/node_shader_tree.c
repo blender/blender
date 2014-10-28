@@ -70,9 +70,9 @@ static int shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 	Scene *scene = CTX_data_scene(C);
 	/* allow empty engine string too, this is from older versions that didn't have registerable engines yet */
 	return (scene->r.engine[0] == '\0' ||
-	        STREQ(scene->r.engine, "BLENDER_RENDER") ||
-	        STREQ(scene->r.engine, "BLENDER_GAME") ||
-	        STREQ(scene->r.engine, "CYCLES"));
+	        STREQ(scene->r.engine, RE_engine_id_BLENDER_RENDER) ||
+	        STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME) ||
+	        STREQ(scene->r.engine, RE_engine_id_CYCLES));
 }
 
 static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)

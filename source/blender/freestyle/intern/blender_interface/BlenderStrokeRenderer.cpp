@@ -448,7 +448,7 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 			BLI_ghash_insert(_nodetree_hash, nt, ma);
 		}
 
-		if (strcmp(freestyle_scene->r.engine, "CYCLES") == 0) {
+		if (STREQ(freestyle_scene->r.engine, RE_engine_id_CYCLES)) {
 			PointerRNA scene_ptr, freestyle_scene_ptr;
 			RNA_pointer_create(NULL, &RNA_Scene, old_scene, &scene_ptr);
 			RNA_pointer_create(NULL, &RNA_Scene, freestyle_scene, &freestyle_scene_ptr);
