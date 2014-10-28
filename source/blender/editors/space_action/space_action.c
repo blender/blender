@@ -197,7 +197,7 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	
-	flag = (ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0;
+	flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) | DRAW_MARKERS_MARGIN;
 	draw_markers_time(C, flag);
 	
 	/* preview range */

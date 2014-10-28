@@ -418,11 +418,24 @@ void draw_markers_time(const bContext *C, int flag)
 	TimeMarker *marker;
 	Scene *scene;
 
-	if (markers == NULL)
+	if (markers == NULL || BLI_listbase_is_empty(markers)) {
 		return;
+	}
 
 	scene = CTX_data_scene(C);
 	v2d = UI_view2d_fromcontext(C);
+
+	if (flag & DRAW_MARKERS_MARGIN) {
+		const unsigned char shade[4] = {0, 0, 0, 16};
+		glColor4ubv(shade);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glRectf(v2d->cur.xmin, 0, v2d->cur.xmax, UI_MARKER_MARGIN_Y);
+
+		glDisable(GL_BLEND);
+	}
 
 	/* unselected markers are drawn at the first time */
 	for (marker = markers->first; marker; marker = marker->next) {

@@ -234,5 +234,6 @@ void ED_keymap_view2d(struct wmKeyConfig *keyconf);
 void UI_view2d_smooth_view(struct bContext *C, struct ARegion *ar,
                            const struct rctf *cur, const int smooth_viewtx);
 
-#endif /* __UI_VIEW2D_H__ */
+#define UI_MARKER_MARGIN_Y (42 * UI_DPI_FAC)
 
+#endif /* __UI_VIEW2D_H__ */
