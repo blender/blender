@@ -162,7 +162,7 @@ void UI_view2d_zoom_cache_reset(void);
 
 /* view matrix operations */
 void UI_view2d_view_ortho(struct View2D *v2d);
-void UI_view2d_view_orthoSpecial(struct ARegion *ar, struct View2D *v2d, short xaxis);
+void UI_view2d_view_orthoSpecial(struct ARegion *ar, struct View2D *v2d, const bool xaxis);
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */

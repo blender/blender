@@ -355,10 +355,10 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 
 				mul_mat3_m4_v3(mat, vec);
 
-				ed_editnurb_translate_flag(editnurb, 1, vec);
-				ed_editnurb_extrude_flag(cu->editnurb, 1);
+				ed_editnurb_translate_flag(editnurb, SELECT, vec);
+				ed_editnurb_extrude_flag(cu->editnurb, SELECT);
 				mul_v3_fl(vec, -2.0f);
-				ed_editnurb_translate_flag(editnurb, 1, vec);
+				ed_editnurb_translate_flag(editnurb, SELECT, vec);
 
 				BLI_remlink(editnurb, nu);
 
