@@ -630,7 +630,7 @@ int uiPieMenuInvoke(struct bContext *C, const char *idname, const struct wmEvent
 struct uiPieMenu *uiPieMenuBegin(struct bContext *C, const char *title, int icon, const struct wmEvent *event) RET_NULL
 void uiPieMenuEnd(struct bContext *C, uiPieMenu *pie) RET_NONE
 struct uiLayout *uiLayoutRadial(struct uiLayout *layout) RET_NULL
-void uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *opname,
+int uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *opname,
                              const char *propname, const struct wmEvent *event) RET_NONE
 
 /* RNA COLLADA dependency */
