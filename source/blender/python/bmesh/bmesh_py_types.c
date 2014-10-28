@@ -2311,6 +2311,22 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(bpy_bmelemseq_ensure_lookup_table_doc,
+".. method:: ensure_lookup_table()\n"
+"\n"
+"   Ensure internal data needed for int subscription is initialized with verts/edges/faces, eg ``bm.verts[index]``.\n"
+"\n"
+"   This needs to be called again after adding/removing data in this sequence."
+);
+static PyObject *bpy_bmelemseq_ensure_lookup_table(BPy_BMElemSeq *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	BM_mesh_elem_table_ensure(self->bm, bm_iter_itype_htype_map[self->itype]);
+
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(bpy_bmelemseq_sort_doc,
 ".. method:: sort(key=None, reverse=False)\n"
 "\n"
@@ -2605,6 +2621,7 @@ static struct PyMethodDef bpy_bmvertseq_methods[] = {
 
 	/* odd function, initializes index values */
 	{"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+	{"ensure_lookup_table", (PyCFunction)bpy_bmelemseq_ensure_lookup_table, METH_NOARGS, bpy_bmelemseq_ensure_lookup_table_doc},
 	{"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -2617,6 +2634,7 @@ static struct PyMethodDef bpy_bmedgeseq_methods[] = {
 
 	/* odd function, initializes index values */
 	{"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+	{"ensure_lookup_table", (PyCFunction)bpy_bmelemseq_ensure_lookup_table, METH_NOARGS, bpy_bmelemseq_ensure_lookup_table_doc},
 	{"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -2629,6 +2647,7 @@ static struct PyMethodDef bpy_bmfaceseq_methods[] = {
 
 	/* odd function, initializes index values */
 	{"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+	{"ensure_lookup_table", (PyCFunction)bpy_bmelemseq_ensure_lookup_table, METH_NOARGS, bpy_bmelemseq_ensure_lookup_table_doc},
 	{"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -2725,9 +2744,43 @@ static PyObject *bpy_bmelemseq_subscript_int(BPy_BMElemSeq *self, int keynum)
 
 	if (keynum < 0) keynum += bpy_bmelemseq_length(self); /* only get length on negative value, may loop entire seq */
 	if (keynum >= 0) {
-		BMHeader *ele = BM_iter_at_index(self->bm, self->itype, self->py_ele ? self->py_ele->ele : NULL, keynum);
-		if (ele) {
-			return BPy_BMElem_CreatePyObject(self->bm, ele);
+		if (self->itype <= BM_FACES_OF_MESH) {
+			if ((self->bm->elem_table_dirty & bm_iter_itype_htype_map[self->itype]) == 0) {
+				BMHeader *ele = NULL;
+				switch (self->itype) {
+					case BM_VERTS_OF_MESH:
+						if (keynum < self->bm->totvert) {
+							ele = (BMHeader *)self->bm->vtable[keynum];
+						}
+						break;
+					case BM_EDGES_OF_MESH:
+						if (keynum < self->bm->totedge) {
+							ele = (BMHeader *)self->bm->etable[keynum];
+						}
+						break;
+					case BM_FACES_OF_MESH:
+						if (keynum < self->bm->totface) {
+							ele = (BMHeader *)self->bm->ftable[keynum];
+						}
+						break;
+				}
+				if (ele) {
+					return BPy_BMElem_CreatePyObject(self->bm, ele);
+				}
+				/* fall through to index error below */
+			}
+			else {
+				PyErr_SetString(PyExc_IndexError,
+				                "BMElemSeq[index]: outdated internal index table, "
+				                "run ensure_lookup_table() first");
+				return NULL;
+			}
+		}
+		else {
+			BMHeader *ele = BM_iter_at_index(self->bm, self->itype, self->py_ele ? self->py_ele->ele : NULL, keynum);
+			if (ele) {
+				return BPy_BMElem_CreatePyObject(self->bm, ele);
+			}
 		}
 	}
 
