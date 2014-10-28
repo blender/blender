@@ -670,7 +670,7 @@ def VectoQuat(vec):
     return vec.to_track_quat('Z', 'X' if abs(vec.x) > 0.5 else 'Y').inverted()
 
 
-class thickface(object):
+class thickface:
     __slost__= "v", "uv", "no", "area", "edge_keys"
     def __init__(self, face, uv_layer, mesh_verts):
         self.v = [mesh_verts[i] for i in face.vertices]

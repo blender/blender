@@ -51,7 +51,7 @@ def classes_recursive(base_type, clss=None):
     return clss
 
 
-class DataPathBuilder(object):
+class DataPathBuilder:
     """Dummy class used to parse fcurve and driver data paths."""
     __slots__ = ("data_path", )
 

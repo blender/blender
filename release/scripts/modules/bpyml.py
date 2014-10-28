@@ -57,7 +57,7 @@ class ReturnStore(tuple):
             return tuple.__getitem__(self, key)
 
 
-class FunctionStore(object):
+class FunctionStore:
     def __call__(self, **kwargs):
         return ReturnStore((self.__class__.__name__, kwargs, []))
 

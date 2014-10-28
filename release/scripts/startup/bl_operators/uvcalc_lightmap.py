@@ -23,7 +23,7 @@ from bpy.types import Operator
 import mathutils
 
 
-class prettyface(object):
+class prettyface:
     __slots__ = (
         "uv",
         "width",
