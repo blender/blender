@@ -86,6 +86,8 @@ enum {
 - (void)windowDidBecomeKey:(NSNotification *)notification
 {
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowActivate, associatedWindow);
+	// work around for broken appswitching when combining cmd-tab and missioncontrol
+	[(NSWindow*)associatedWindow->getOSWindow() orderFrontRegardless];
 }
 
 - (void)windowDidResignKey:(NSNotification *)notification
