@@ -352,13 +352,22 @@ enum {
 	OPERATOR_RUNNING_MODAL  = (1 << 0),
 	OPERATOR_CANCELLED      = (1 << 1),
 	OPERATOR_FINISHED       = (1 << 2),
-/* add this flag if the event should pass through */
+	/* add this flag if the event should pass through */
 	OPERATOR_PASS_THROUGH   = (1 << 3),
-/* in case operator got executed outside WM code... like via fileselect */
+	/* in case operator got executed outside WM code... like via fileselect */
 	OPERATOR_HANDLED        = (1 << 4),
+	/* used for operators that act indirectly (eg. popup menu)
+	 * note: this isn't great design (using operators to trigger UI) avoid where possible. */
+	OPERATOR_INTERFACE      = (1 << 5),
 };
-#define OPERATOR_FLAGS_ALL    (OPERATOR_RUNNING_MODAL | OPERATOR_CANCELLED | OPERATOR_FINISHED | \
-                               OPERATOR_PASS_THROUGH | OPERATOR_HANDLED)
+#define OPERATOR_FLAGS_ALL ( \
+	OPERATOR_RUNNING_MODAL | \
+	OPERATOR_CANCELLED | \
+	OPERATOR_FINISHED | \
+	OPERATOR_PASS_THROUGH | \
+	OPERATOR_HANDLED | \
+	OPERATOR_INTERFACE | \
+	0)
 
 /* sanity checks for debug mode only */
 #define OPERATOR_RETVAL_CHECK(ret) (void)ret, BLI_assert(ret != 0 && (ret & OPERATOR_FLAGS_ALL) == ret)

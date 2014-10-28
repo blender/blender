@@ -1911,7 +1911,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 	/* finish building the menu, and process it (should result in calling self again) */
 	uiPupMenuEnd(C, pup);
 	
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 /* call constraint_add_exec() to add the IK constraint */

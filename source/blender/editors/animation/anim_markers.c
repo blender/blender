@@ -503,8 +503,9 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, const wm
 	/* return status modifications - for now, make this spacetype dependent as above */
 	if (sa->spacetype != SPACE_TIME) {
 		/* unless successful, must add "pass-through" to let normal operator's have a chance at tackling this event */
-		if (retval != OPERATOR_FINISHED)
+		if ((retval & (OPERATOR_FINISHED | OPERATOR_INTERFACE)) == 0) {
 			retval |= OPERATOR_PASS_THROUGH;
+		}
 	}
 	
 	return retval;

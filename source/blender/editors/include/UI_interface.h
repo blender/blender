@@ -359,15 +359,15 @@ void uiPupMenuEnd(struct bContext *C, struct uiPopupMenu *head);
 struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
-bool uiPupMenuInvoke(struct bContext *C, const char *idname, struct ReportList *reports) ATTR_NONNULL(1, 2);
+int uiPupMenuInvoke(struct bContext *C, const char *idname, struct ReportList *reports) ATTR_NONNULL(1, 2);
 
 /* Pie menus */
 typedef struct uiPieMenu uiPieMenu;
 
-void uiPieMenuInvoke(struct bContext *C, const char *idname, const struct wmEvent *event);
-void uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *opname,
+int uiPieMenuInvoke(struct bContext *C, const char *idname, const struct wmEvent *event);
+int uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *opname,
                              const char *propname, const struct wmEvent *event);
-void uiPieEnumInvoke(struct bContext *C, const char *title, const char *path, const struct wmEvent *event);
+int uiPieEnumInvoke(struct bContext *C, const char *title, const char *path, const struct wmEvent *event);
 
 struct uiPieMenu *uiPieMenuBegin(struct bContext *C, const char *title, int icon, const struct wmEvent *event) ATTR_NONNULL();
 void uiPieMenuEnd(struct bContext *C, uiPieMenu *pie);

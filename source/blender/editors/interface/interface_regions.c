@@ -2794,7 +2794,7 @@ uiLayout *uiPieMenuLayout(uiPieMenu *pie)
 	return pie->layout;
 }
 
-void uiPieMenuInvoke(struct bContext *C, const char *idname, const wmEvent *event)
+int uiPieMenuInvoke(struct bContext *C, const char *idname, const wmEvent *event)
 {
 	uiPieMenu *pie;
 	uiLayout *layout;
@@ -2803,11 +2803,11 @@ void uiPieMenuInvoke(struct bContext *C, const char *idname, const wmEvent *even
 
 	if (mt == NULL) {
 		printf("%s: named menu \"%s\" not found\n", __func__, idname);
-		return;
+		return OPERATOR_CANCELLED;
 	}
 
 	if (mt->poll && mt->poll(C, mt) == 0)
-		return;
+		return OPERATOR_CANCELLED;
 
 	pie = uiPieMenuBegin(C, IFACE_(mt->label), ICON_NONE, event);
 	layout = uiPieMenuLayout(pie);
@@ -2822,10 +2822,12 @@ void uiPieMenuInvoke(struct bContext *C, const char *idname, const wmEvent *even
 	mt->draw(C, &menu);
 
 	uiPieMenuEnd(C, pie);
+
+	return OPERATOR_INTERFACE;
 }
 
-void uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *opname,
-                             const char *propname, const wmEvent *event)
+int uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *opname,
+                            const char *propname, const wmEvent *event)
 {
 	uiPieMenu *pie;
 	uiLayout *layout;
@@ -2837,10 +2839,12 @@ void uiPieOperatorEnumInvoke(struct bContext *C, const char *title, const char *
 	uiItemsEnumO(layout, opname, propname);
 
 	uiPieMenuEnd(C, pie);
+
+	return OPERATOR_INTERFACE;
 }
 
-void uiPieEnumInvoke(struct bContext *C, const char *title, const char *path,
-                     const wmEvent *event)
+int uiPieEnumInvoke(struct bContext *C, const char *title, const char *path,
+                    const wmEvent *event)
 {
 	PointerRNA ctx_ptr;
 	PointerRNA r_ptr;
@@ -2851,13 +2855,13 @@ void uiPieEnumInvoke(struct bContext *C, const char *title, const char *path,
 	RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
 
 	if (!RNA_path_resolve(&ctx_ptr, path, &r_ptr, &r_prop)) {
-		return;
+		return OPERATOR_CANCELLED;
 	}
 
 	/* invalid property, only accept enums */
 	if (RNA_property_type(r_prop) != PROP_ENUM) {
 		BLI_assert(0);
-		return;
+		return OPERATOR_CANCELLED;
 	}
 
 	pie = uiPieMenuBegin(C, IFACE_(title), ICON_NONE, event);
@@ -2868,6 +2872,8 @@ void uiPieEnumInvoke(struct bContext *C, const char *title, const char *path,
 	uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, NULL, 0);
 
 	uiPieMenuEnd(C, pie);
+
+	return OPERATOR_INTERFACE;
 }
 
 
@@ -2922,7 +2928,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	}
 }
 
-bool uiPupMenuInvoke(bContext *C, const char *idname, ReportList *reports)
+int uiPupMenuInvoke(bContext *C, const char *idname, ReportList *reports)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -2931,11 +2937,11 @@ bool uiPupMenuInvoke(bContext *C, const char *idname, ReportList *reports)
 
 	if (mt == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Menu \"%s\" not found", idname);
-		return false;
+		return OPERATOR_CANCELLED;
 	}
 
 	if (mt->poll && mt->poll(C, mt) == 0)
-		return false;
+		return OPERATOR_CANCELLED;
 
 	pup = uiPupMenuBegin(C, IFACE_(mt->label), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
@@ -2951,7 +2957,7 @@ bool uiPupMenuInvoke(bContext *C, const char *idname, ReportList *reports)
 
 	uiPupMenuEnd(C, pup);
 
-	return true;
+	return OPERATOR_INTERFACE;
 }
 
 

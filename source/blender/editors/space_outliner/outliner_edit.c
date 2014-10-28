@@ -1617,7 +1617,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			
 			uiPupMenuEnd(C, pup);
 			
-			return OPERATOR_CANCELLED;
+			return OPERATOR_INTERFACE;
 		}
 	}
 	else {

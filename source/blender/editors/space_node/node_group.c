@@ -571,7 +571,7 @@ static int node_group_separate_invoke(bContext *C, wmOperator *UNUSED(op), const
 	
 	uiPupMenuEnd(C, pup);
 	
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 void NODE_OT_group_separate(wmOperatorType *ot)

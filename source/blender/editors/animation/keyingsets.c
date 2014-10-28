@@ -477,7 +477,7 @@ static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEve
 	uiItemsEnumO(layout, "ANIM_OT_keying_set_active_set", "type");
 	uiPupMenuEnd(C, pup);
 	
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 static int keyingset_active_menu_exec(bContext *C, wmOperator *op)

@@ -2759,7 +2759,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
 	
 	uiPupMenuEnd(C, pup);
 	
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 static void SCREEN_OT_area_options(wmOperatorType *ot)
@@ -2866,7 +2866,7 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 	
 	uiPupMenuEnd(C, pup);
 	
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 static int repeat_history_exec(bContext *C, wmOperator *op)
@@ -3262,7 +3262,7 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 
 	uiPupMenuEnd(C, pup);
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 static void SCREEN_OT_header_toolbox(wmOperatorType *ot)

@@ -3173,7 +3173,7 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, const wmEve
 			break;
 	}
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 void TEXT_OT_resolve_conflict(wmOperatorType *ot)

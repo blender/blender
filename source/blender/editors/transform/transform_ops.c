@@ -176,7 +176,7 @@ static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), const 
 	uiItemsEnumO(layout, "TRANSFORM_OT_select_orientation", "orientation");
 	uiPupMenuEnd(C, pup);
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 static void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)

@@ -5386,7 +5386,7 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 					layout = uiPupMenuLayout(pup);
 					uiItemsEnumO(layout, op->type->idname, "direction");
 					uiPupMenuEnd(C, pup);
-					return OPERATOR_CANCELLED;
+					return OPERATOR_INTERFACE;
 				}
 			}
 		}

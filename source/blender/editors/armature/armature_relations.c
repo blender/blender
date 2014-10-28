@@ -693,7 +693,7 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const
 		
 	uiPupMenuEnd(C, pup);
 	
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 void ARMATURE_OT_parent_set(wmOperatorType *ot)

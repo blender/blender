@@ -2256,7 +2256,7 @@ static int image_pack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 
-		return OPERATOR_CANCELLED;
+		return OPERATOR_INTERFACE;
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, NULL);

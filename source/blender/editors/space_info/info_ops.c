@@ -261,7 +261,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 	uiPupMenuEnd(C, pup);
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 void FILE_OT_unpack_all(wmOperatorType *ot)
@@ -330,7 +330,7 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 	
 	uiPupMenuEnd(C, pup);
 	
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 void FILE_OT_unpack_item(wmOperatorType *ot)

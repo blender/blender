@@ -77,7 +77,7 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UN
 	uiItemsEnumR(layout, &ptr, "align");
 	uiPupMenuEnd(C, pup);
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 void BUTTONS_OT_toolbox(wmOperatorType *ot)

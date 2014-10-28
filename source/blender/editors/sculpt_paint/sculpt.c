@@ -4738,7 +4738,7 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, bool vdata, bo
 
 	uiPupMenuEnd(C, pup);
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 

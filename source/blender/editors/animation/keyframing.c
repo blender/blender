@@ -1407,7 +1407,7 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 		uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
 		uiPupMenuEnd(C, pup);
 		
-		return OPERATOR_CANCELLED;
+		return OPERATOR_INTERFACE;
 	}
 	else {
 		/* just call the exec() on the active keyingset */

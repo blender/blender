@@ -423,7 +423,7 @@ static int poselib_add_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	uiPupMenuEnd(C, pup);
 	
 	/* this operator is only for a menu, not used further */
-	return OPERATOR_CANCELLED;
+	return OPERATOR_INTERFACE;
 }
 
 

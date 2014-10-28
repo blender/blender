@@ -162,7 +162,7 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 		/* finish building the menu, and process it (should result in calling self again) */
 		uiPupMenuEnd(C, pup);
 		
-		return OPERATOR_CANCELLED;
+		return OPERATOR_INTERFACE;
 	}
 	else {
 		/* just use the active group index, and call the exec callback for the calling operator */
