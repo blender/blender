@@ -1080,7 +1080,6 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	ctx->jitoff= jitter_offset;
 	ctx->weight= element_weight;
 	ctx->maxweight= maxweight;
-	ctx->from= (children) ? PART_FROM_CHILD : from;
 	ctx->cfrom= cfrom;
 	ctx->distr= distr;
 	ctx->dm= dm;

@@ -145,7 +145,7 @@ typedef struct ParticleThreadContext {
 	float maxweight;
 	int *index, *skip, jitlevel;
 
-	int from, cfrom, distr;
+	int cfrom, distr;
 
 	struct ParticleData *tpars;
 
