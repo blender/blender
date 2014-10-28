@@ -597,7 +597,7 @@ void RE_FreePersistentData(void) RET_NONE
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet) RET_NULL
-struct GHashIterator *WM_operatortype_iter() RET_NULL
+void WM_operatortype_iter(struct GHashIterator *ghi) RET_NONE
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname) RET_NULL
 int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, struct PointerRNA *properties, struct ReportList *reports, const bool is_undo) RET_ZERO
 void WM_operatortype_remove_ptr(struct wmOperatorType *ot) RET_NONE

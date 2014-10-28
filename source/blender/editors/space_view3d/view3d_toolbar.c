@@ -151,10 +151,10 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 
 static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
-	GHashIterator *iter = WM_operatortype_iter();
+	GHashIterator iter;
 
-	for (; !BLI_ghashIterator_done(iter); BLI_ghashIterator_step(iter)) {
-		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
+	for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
+		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
 
 		if (BLI_strcasestr(ot->name, str)) {
 			if (WM_operator_poll((bContext *)C, ot)) {
@@ -164,7 +164,6 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 			}
 		}
 	}
-	BLI_ghashIterator_free(iter);
 }
 
 

@@ -367,17 +367,17 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 
 static PyObject *pyop_dir(PyObject *UNUSED(self))
 {
-	GHashIterator *iter = WM_operatortype_iter();
-	PyObject *list = PyList_New(0), *name;
+	GHashIterator iter;
+	PyObject *list;
+	int i;
 
-	for ( ; !BLI_ghashIterator_done(iter); BLI_ghashIterator_step(iter)) {
-		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
+	WM_operatortype_iter(&iter);
+	list = PyList_New(BLI_ghash_size(iter.gh));
 
-		name = PyUnicode_FromString(ot->idname);
-		PyList_Append(list, name);
-		Py_DECREF(name);
+	for (i = 0; !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter), i++) {
+		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
+		PyList_SET_ITEM(list, i, PyUnicode_FromString(ot->idname));
 	}
-	BLI_ghashIterator_free(iter);
 
 	return list;
 }

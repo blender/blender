@@ -147,9 +147,9 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
 }
 
 /* caller must free */
-GHashIterator *WM_operatortype_iter(void)
+void WM_operatortype_iter(GHashIterator *ghi)
 {
-	return BLI_ghashIterator_new(global_ops_hash);
+	BLI_ghashIterator_init(ghi, global_ops_hash);
 }
 
 /* all ops in 1 list (for time being... needs evaluation later) */
