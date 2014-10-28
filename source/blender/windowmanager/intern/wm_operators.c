@@ -494,6 +494,27 @@ bool WM_operatortype_remove(const char *idname)
 	return true;
 }
 
+/**
+ * Remove memory of all previously executed tools.
+ */
+void WM_operatortype_last_properties_clear_all(void)
+{
+	GHashIterator iter;
+
+	for (WM_operatortype_iter(&iter);
+	     (!BLI_ghashIterator_done(&iter));
+	     (BLI_ghashIterator_step(&iter)))
+	{
+		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
+
+		if (ot->last_properties) {
+			IDP_FreeProperty(ot->last_properties);
+			MEM_freeN(ot->last_properties);
+			ot->last_properties = NULL;
+		}
+	}
+}
+
 /* SOME_OT_op -> some.op */
 void WM_operator_py_idname(char *to, const char *from)
 {

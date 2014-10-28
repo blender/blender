@@ -476,6 +476,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		BPY_python_reset(C);
 #endif
 
+		WM_operatortype_last_properties_clear_all();
+
 		/* important to do before NULL'ing the context */
 		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
@@ -667,6 +669,8 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 		BPY_python_reset(C);
 	}
 #endif
+
+	WM_operatortype_last_properties_clear_all();
 
 	/* important to do before NULL'ing the context */
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
