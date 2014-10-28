@@ -316,19 +316,14 @@ void debug_markers_print_list(ListBase *markers)
 /* ************* Marker Drawing ************ */
 
 /* function to draw markers */
-static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
+static void draw_marker(
+        View2D *v2d, TimeMarker *marker, int cfra, int flag,
+        /* avoid re-calculating each time */
+        const float ypixels, const float xscale, const float yscale)
 {
-	float xpos, ypixels, xscale, yscale;
-	int icon_id = 0;
-	
-	xpos = marker->frame;
-	
-	/* no time correction for framelen! space is drawn with old values */
-	ypixels = BLI_rcti_size_y(&v2d->mask);
-	UI_view2d_scale_get(v2d, &xscale, &yscale);
-	
-	glScalef(1.0f / xscale, 1.0f, 1.0f);
-	
+	const float xpos = marker->frame * xscale;
+	int icon_id;
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
@@ -347,8 +342,8 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 			glColor4ub(0, 0, 0, 96);
 		
 		glBegin(GL_LINES);
-		glVertex2f((xpos * xscale) + 0.5f, 12.0f);
-		glVertex2f((xpos * xscale) + 0.5f, (v2d->cur.ymax + 12.0f) * yscale);
+		glVertex2f(xpos + 0.5f, 12.0f);
+		glVertex2f(xpos + 0.5f, (v2d->cur.ymax + 12.0f) * yscale);
 		glEnd();
 		
 		setlinestyle(0);
@@ -365,7 +360,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		          ICON_MARKER;
 	}
 	
-	UI_icon_draw(xpos * xscale - 0.45f * UI_DPI_ICON_SIZE, UI_DPI_ICON_SIZE, icon_id);
+	UI_icon_draw(xpos - 0.45f * UI_DPI_ICON_SIZE, UI_DPI_ICON_SIZE, icon_id);
 	
 	glDisable(GL_BLEND);
 	
@@ -378,19 +373,19 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		
 		if (marker->flag & SELECT) {
 			UI_ThemeColor(TH_TEXT_HI);
-			x = xpos * xscale + 4.0f * UI_DPI_FAC;
+			x = xpos + 4.0f * UI_DPI_FAC;
 			y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
 			y = max_ii(y, min_y);
 		}
 		else {
 			UI_ThemeColor(TH_TEXT);
 			if ((marker->frame <= cfra) && (marker->frame + 5 > cfra)) {
-				x = xpos * xscale + 8.0f * UI_DPI_FAC;
+				x = xpos + 8.0f * UI_DPI_FAC;
 				y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
 				y = max_ii(y, min_y);
 			}
 			else {
-				x = xpos * xscale + 8.0f * UI_DPI_FAC;
+				x = xpos + 8.0f * UI_DPI_FAC;
 				y = 17.0f * UI_DPI_FAC;
 			}
 		}
@@ -406,8 +401,6 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 
 		UI_DrawString(x, y, marker->name);
 	}
-	
-	glScalef(xscale, 1.0f, 1.0f);
 }
 
 /* Draw Scene-Markers in time window */
@@ -417,6 +410,12 @@ void ED_markers_draw(const bContext *C, int flag)
 	View2D *v2d;
 	TimeMarker *marker;
 	Scene *scene;
+	int select_pass;
+	int v2d_clip_range_x[2];
+	float font_width_max;
+
+	/* cache values */
+	float ypixels, xscale, yscale;
 
 	if (markers == NULL || BLI_listbase_is_empty(markers)) {
 		return;
@@ -437,19 +436,33 @@ void ED_markers_draw(const bContext *C, int flag)
 		glDisable(GL_BLEND);
 	}
 
-	/* unselected markers are drawn at the first time */
-	for (marker = markers->first; marker; marker = marker->next) {
-		if ((marker->flag & SELECT) == 0) {
-			draw_marker(v2d, marker, scene->r.cfra, flag);
+	/* no time correction for framelen! space is drawn with old values */
+	ypixels = BLI_rcti_size_y(&v2d->mask);
+	UI_view2d_scale_get(v2d, &xscale, &yscale);
+	glScalef(1.0f / xscale, 1.0f, 1.0f);
+
+	/* x-bounds with offset for text (adjust for long string, avoid checking string width) */
+	font_width_max = (10 * UI_DPI_FAC) / xscale;
+	v2d_clip_range_x[0] = v2d->cur.xmin - (sizeof(marker->name) * font_width_max);
+	v2d_clip_range_x[1] = v2d->cur.xmax + font_width_max;
+
+	/* loop [unselected, selected] */
+	for (select_pass = 0; select_pass <= SELECT; select_pass += SELECT) {
+		/* unselected markers are drawn at the first time */
+		for (marker = markers->first; marker; marker = marker->next) {
+			if ((marker->flag & SELECT) == select_pass) {
+				/* bounds check */
+				if ((marker->frame >= v2d_clip_range_x[0]) &&
+				    (marker->frame <= v2d_clip_range_x[1]))
+				{
+					draw_marker(v2d, marker, scene->r.cfra, flag,
+					            ypixels, xscale, yscale);
+				}
+			}
 		}
 	}
-	
-	/* selected markers are drawn later */
-	for (marker = markers->first; marker; marker = marker->next) {
-		if (marker->flag & SELECT) {
-			draw_marker(v2d, marker, scene->r.cfra, flag);
-		}
-	}
+
+	glScalef(xscale, 1.0f, 1.0f);
 }
 
 /* ************************ Marker Wrappers API ********************* */
