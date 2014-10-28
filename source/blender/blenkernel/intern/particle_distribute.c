@@ -56,6 +56,8 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 
+static int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot);
+
 static void alloc_child_particles(ParticleSystem *psys, int tot)
 {
 	if (psys->child) {
@@ -1167,4 +1169,246 @@ void distribute_particles(ParticleSimulationData *sim, int from)
 
 		fprintf(stderr,"Particle distribution error!\n");
 	}
+}
+
+/* ======== Simplify ======== */
+
+static float psys_render_viewport_falloff(double rate, float dist, float width)
+{
+	return pow(rate, dist / width);
+}
+
+static float psys_render_projected_area(ParticleSystem *psys, const float center[3], float area, double vprate, float *viewport)
+{
+	ParticleRenderData *data = psys->renderdata;
+	float co[4], view[3], ortho1[3], ortho2[3], w, dx, dy, radius;
+	
+	/* transform to view space */
+	copy_v3_v3(co, center);
+	co[3] = 1.0f;
+	mul_m4_v4(data->viewmat, co);
+	
+	/* compute two vectors orthogonal to view vector */
+	normalize_v3_v3(view, co);
+	ortho_basis_v3v3_v3(ortho1, ortho2, view);
+
+	/* compute on screen minification */
+	w = co[2] * data->winmat[2][3] + data->winmat[3][3];
+	dx = data->winx * ortho2[0] * data->winmat[0][0];
+	dy = data->winy * ortho2[1] * data->winmat[1][1];
+	w = sqrtf(dx * dx + dy * dy) / w;
+
+	/* w squared because we are working with area */
+	area = area * w * w;
+
+	/* viewport of the screen test */
+
+	/* project point on screen */
+	mul_m4_v4(data->winmat, co);
+	if (co[3] != 0.0f) {
+		co[0] = 0.5f * data->winx * (1.0f + co[0] / co[3]);
+		co[1] = 0.5f * data->winy * (1.0f + co[1] / co[3]);
+	}
+
+	/* screen space radius */
+	radius = sqrtf(area / (float)M_PI);
+
+	/* make smaller using fallof once over screen edge */
+	*viewport = 1.0f;
+
+	if (co[0] + radius < 0.0f)
+		*viewport *= psys_render_viewport_falloff(vprate, -(co[0] + radius), data->winx);
+	else if (co[0] - radius > data->winx)
+		*viewport *= psys_render_viewport_falloff(vprate, (co[0] - radius) - data->winx, data->winx);
+
+	if (co[1] + radius < 0.0f)
+		*viewport *= psys_render_viewport_falloff(vprate, -(co[1] + radius), data->winy);
+	else if (co[1] - radius > data->winy)
+		*viewport *= psys_render_viewport_falloff(vprate, (co[1] - radius) - data->winy, data->winy);
+	
+	return area;
+}
+
+/* BMESH_TODO, for orig face data, we need to use MPoly */
+static int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
+{
+	DerivedMesh *dm = ctx->dm;
+	Mesh *me = (Mesh *)(ctx->sim.ob->data);
+	MFace *mf, *mface;
+	MVert *mvert;
+	ParticleRenderData *data;
+	ParticleRenderElem *elems, *elem;
+	ParticleSettings *part = ctx->sim.psys->part;
+	float *facearea, (*facecenter)[3], size[3], fac, powrate, scaleclamp;
+	float co1[3], co2[3], co3[3], co4[3], lambda, arearatio, t, area, viewport;
+	double vprate;
+	int *facetotvert;
+	int a, b, totorigface, totface, newtot, skipped;
+
+	/* double lookup */
+	const int *index_mf_to_mpoly;
+	const int *index_mp_to_orig;
+
+	if (part->ren_as != PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
+		return tot;
+	if (!ctx->sim.psys->renderdata)
+		return tot;
+
+	data = ctx->sim.psys->renderdata;
+	if (data->timeoffset)
+		return 0;
+	if (!(part->simplify_flag & PART_SIMPLIFY_ENABLE))
+		return tot;
+
+	mvert = dm->getVertArray(dm);
+	mface = dm->getTessFaceArray(dm);
+	totface = dm->getNumTessFaces(dm);
+	totorigface = me->totpoly;
+
+	if (totface == 0 || totorigface == 0)
+		return tot;
+
+	index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
+	}
+
+	facearea = MEM_callocN(sizeof(float) * totorigface, "SimplifyFaceArea");
+	facecenter = MEM_callocN(sizeof(float[3]) * totorigface, "SimplifyFaceCenter");
+	facetotvert = MEM_callocN(sizeof(int) * totorigface, "SimplifyFaceArea");
+	elems = MEM_callocN(sizeof(ParticleRenderElem) * totorigface, "SimplifyFaceElem");
+
+	if (data->elems)
+		MEM_freeN(data->elems);
+
+	data->do_simplify = true;
+	data->elems = elems;
+	data->index_mf_to_mpoly = index_mf_to_mpoly;
+	data->index_mp_to_orig  = index_mp_to_orig;
+
+	/* compute number of children per original face */
+	for (a = 0; a < tot; a++) {
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
+		if (b != ORIGINDEX_NONE) {
+			elems[b].totchild++;
+		}
+	}
+
+	/* compute areas and centers of original faces */
+	for (mf = mface, a = 0; a < totface; a++, mf++) {
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
+
+		if (b != ORIGINDEX_NONE) {
+			copy_v3_v3(co1, mvert[mf->v1].co);
+			copy_v3_v3(co2, mvert[mf->v2].co);
+			copy_v3_v3(co3, mvert[mf->v3].co);
+
+			add_v3_v3(facecenter[b], co1);
+			add_v3_v3(facecenter[b], co2);
+			add_v3_v3(facecenter[b], co3);
+
+			if (mf->v4) {
+				copy_v3_v3(co4, mvert[mf->v4].co);
+				add_v3_v3(facecenter[b], co4);
+				facearea[b] += area_quad_v3(co1, co2, co3, co4);
+				facetotvert[b] += 4;
+			}
+			else {
+				facearea[b] += area_tri_v3(co1, co2, co3);
+				facetotvert[b] += 3;
+			}
+		}
+	}
+
+	for (a = 0; a < totorigface; a++)
+		if (facetotvert[a] > 0)
+			mul_v3_fl(facecenter[a], 1.0f / facetotvert[a]);
+
+	/* for conversion from BU area / pixel area to reference screen size */
+	BKE_mesh_texspace_get(me, 0, 0, size);
+	fac = ((size[0] + size[1] + size[2]) / 3.0f) / part->simplify_refsize;
+	fac = fac * fac;
+
+	powrate = log(0.5f) / log(part->simplify_rate * 0.5f);
+	if (part->simplify_flag & PART_SIMPLIFY_VIEWPORT)
+		vprate = pow(1.0f - part->simplify_viewport, 5.0);
+	else
+		vprate = 1.0;
+
+	/* set simplification parameters per original face */
+	for (a = 0, elem = elems; a < totorigface; a++, elem++) {
+		area = psys_render_projected_area(ctx->sim.psys, facecenter[a], facearea[a], vprate, &viewport);
+		arearatio = fac * area / facearea[a];
+
+		if ((arearatio < 1.0f || viewport < 1.0f) && elem->totchild) {
+			/* lambda is percentage of elements to keep */
+			lambda = (arearatio < 1.0f) ? powf(arearatio, powrate) : 1.0f;
+			lambda *= viewport;
+
+			lambda = MAX2(lambda, 1.0f / elem->totchild);
+
+			/* compute transition region */
+			t = part->simplify_transition;
+			elem->t = (lambda - t < 0.0f) ? lambda : (lambda + t > 1.0f) ? 1.0f - lambda : t;
+			elem->reduce = 1;
+
+			/* scale at end and beginning of the transition region */
+			elem->scalemax = (lambda + t < 1.0f) ? 1.0f / lambda : 1.0f / (1.0f - elem->t * elem->t / t);
+			elem->scalemin = (lambda + t < 1.0f) ? 0.0f : elem->scalemax * (1.0f - elem->t / t);
+
+			elem->scalemin = sqrtf(elem->scalemin);
+			elem->scalemax = sqrtf(elem->scalemax);
+
+			/* clamp scaling */
+			scaleclamp = (float)min_ii(elem->totchild, 10);
+			elem->scalemin = MIN2(scaleclamp, elem->scalemin);
+			elem->scalemax = MIN2(scaleclamp, elem->scalemax);
+
+			/* extend lambda to include transition */
+			lambda = lambda + elem->t;
+			if (lambda > 1.0f)
+				lambda = 1.0f;
+		}
+		else {
+			lambda = arearatio;
+
+			elem->scalemax = 1.0f; //sqrt(lambda);
+			elem->scalemin = 1.0f; //sqrt(lambda);
+			elem->reduce = 0;
+		}
+
+		elem->lambda = lambda;
+		elem->scalemin = sqrtf(elem->scalemin);
+		elem->scalemax = sqrtf(elem->scalemax);
+		elem->curchild = 0;
+	}
+
+	MEM_freeN(facearea);
+	MEM_freeN(facecenter);
+	MEM_freeN(facetotvert);
+
+	/* move indices and set random number skipping */
+	ctx->skip = MEM_callocN(sizeof(int) * tot, "SimplificationSkip");
+
+	skipped = 0;
+	for (a = 0, newtot = 0; a < tot; a++) {
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
+
+		if (b != ORIGINDEX_NONE) {
+			if (elems[b].curchild++ < ceil(elems[b].lambda * elems[b].totchild)) {
+				ctx->index[newtot] = ctx->index[a];
+				ctx->skip[newtot] = skipped;
+				skipped = 0;
+				newtot++;
+			}
+			else skipped++;
+		}
+		else skipped++;
+	}
+
+	for (a = 0, elem = elems; a < totorigface; a++, elem++)
+		elem->curchild = 0;
+
+	return newtot;
 }

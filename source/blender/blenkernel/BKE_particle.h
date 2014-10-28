@@ -305,7 +305,6 @@ void psys_free(struct Object *ob, struct ParticleSystem *psys);
 
 void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[4][4], float winmat[4][4], int winx, int winy, int timeoffset);
 void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
-int psys_render_simplify_distribution(struct ParticleThreadContext *ctx, int tot);
 bool psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
 
 void psys_interpolate_uvs(const struct MTFace *tface, int quad, const float w[4], float uvco[2]);
@@ -415,6 +414,33 @@ int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int 
 void reset_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, float dtime, float cfra);
 
 float psys_get_current_display_percentage(struct ParticleSystem *psys);
+
+typedef struct ParticleRenderElem {
+	int curchild, totchild, reduce;
+	float lambda, t, scalemin, scalemax;
+} ParticleRenderElem;
+
+typedef struct ParticleRenderData {
+	ChildParticle *child;
+	ParticleCacheKey **pathcache;
+	ParticleCacheKey **childcache;
+	ListBase pathcachebufs, childcachebufs;
+	int totchild, totcached, totchildcache;
+	struct DerivedMesh *dm;
+	int totdmvert, totdmedge, totdmface;
+
+	float mat[4][4];
+	float viewmat[4][4], winmat[4][4];
+	int winx, winy;
+
+	int do_simplify;
+	int timeoffset;
+	ParticleRenderElem *elems;
+
+	/* ORIGINDEX */
+	const int *index_mf_to_mpoly;
+	const int *index_mp_to_orig;
+} ParticleRenderData;
 
 /* psys_reset */
 #define PSYS_RESET_ALL          1
