@@ -279,6 +279,9 @@ BLI_INLINE void psys_frand_vec(ParticleSystem *psys, unsigned int seed, float ve
 int count_particles(struct ParticleSystem *psys);
 int count_particles_mod(struct ParticleSystem *psys, int totgr, int cur);
 
+int psys_get_child_number(struct Scene *scene, struct ParticleSystem *psys);
+int psys_get_tot_child(struct Scene *scene, struct ParticleSystem *psys);
+
 struct ParticleSystem *psys_get_current(struct Object *ob);
 /* for rna */
 short psys_get_current_num(struct Object *ob);
@@ -404,6 +407,7 @@ void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_
                          float orco[3], float ornor[3]);
 
 /* particle_system.c */
+void distribute_particles(struct ParticleSimulationData *sim, int from);
 void initialize_particle(struct ParticleSimulationData *sim, struct ParticleData *pa);
 void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
 int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, const float fw[4], struct LinkNode *node);

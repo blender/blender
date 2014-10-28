@@ -137,6 +137,7 @@ set(SRC
 	intern/packedFile.c
 	intern/paint.c
 	intern/particle.c
+	intern/particle_distribute.c
 	intern/particle_system.c
 	intern/pbvh.c
 	intern/pbvh_bmesh.c
