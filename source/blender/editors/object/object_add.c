@@ -449,14 +449,23 @@ static int object_add_exec(bContext *C, wmOperator *op)
 	Object *ob;
 	bool enter_editmode;
 	unsigned int layer;
-	float loc[3], rot[3];
+	float loc[3], rot[3], radius;
 
 	WM_operator_view3d_unit_defaults(C, op);
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
+	radius = RNA_float_get(op->ptr, "radius");
 	ob = ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode, layer);
-	BKE_object_obdata_size_init(ob, RNA_float_get(op->ptr, "radius"));
+
+	if (ob->type == OB_LATTICE) {
+		/* lattice is a special case!
+		 * we never want to scale the obdata since that is the rest-state */
+		copy_v3_fl(ob->size, radius);
+	}
+	else {
+		BKE_object_obdata_size_init(ob, radius);
+	}
 
 	return OPERATOR_FINISHED;
 }
