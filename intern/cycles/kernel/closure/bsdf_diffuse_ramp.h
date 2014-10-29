@@ -41,9 +41,9 @@ ccl_device float3 bsdf_diffuse_ramp_get_color(const ShaderClosure *sc, const flo
 	
 	float npos = pos * (float)(MAXCOLORS - 1);
 	int ipos = float_to_int(npos);
-	if (ipos < 0)
+	if(ipos < 0)
 		return colors[0];
-	if (ipos >= (MAXCOLORS - 1))
+	if(ipos >= (MAXCOLORS - 1))
 		return colors[MAXCOLORS - 1];
 	float offset = npos - (float)ipos;
 	return colors[ipos] * (1.0f - offset) + colors[ipos+1] * offset;
@@ -52,7 +52,7 @@ ccl_device float3 bsdf_diffuse_ramp_get_color(const ShaderClosure *sc, const flo
 ccl_device int bsdf_diffuse_ramp_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_DIFFUSE_RAMP_ID;
-	return SD_BSDF | SD_BSDF_HAS_EVAL;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device void bsdf_diffuse_ramp_blur(ShaderClosure *sc, float roughness)

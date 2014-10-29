@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Blender Foundation
+ * Copyright 2011-2014 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,24 +33,20 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device int bsdf_ashikhmin_shirley_setup(ShaderClosure *sc)
 {
-	/* store roughness. could already convert to exponent to save some cycles
-	 * in eval, but this is more consistent with other bsdfs and shader_blur. */
 	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f);
 	sc->data1 = sc->data0;
 
 	sc->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
-	return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 ccl_device int bsdf_ashikhmin_shirley_aniso_setup(ShaderClosure *sc)
 {
-	/* store roughness. could already convert to exponent to save some cycles
-	 * in eval, but this is more consistent with other bsdfs and shader_blur. */
 	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f);
 	sc->data1 = clamp(sc->data1, 1e-4f, 1.0f);
 
 	sc->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID;
-	return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 ccl_device void bsdf_ashikhmin_shirley_blur(ShaderClosure *sc, float roughness)
@@ -73,7 +69,7 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 
 	float out = 0.0f;
 
-	if (NdotI > 0.0f && NdotO > 0.0f) {
+	if(NdotI > 0.0f && NdotO > 0.0f) {
 		NdotI = fmaxf(NdotI, 1e-6f);
 		NdotO = fmaxf(NdotO, 1e-6f);
 		float3 H = normalize(omega_in + I);
@@ -86,7 +82,8 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 		float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data0);
 		float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data1);
 
-		if (n_x == n_y) {  /* => isotropic case */
+		if(n_x == n_y) {
+			/* isotropic */
 			float e = n_x;
 			float lobe = powf(HdotN, e);
 			float norm = (n_x + 1.0f) / (8.0f * M_PI_F);
@@ -94,7 +91,8 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 			out = NdotO * norm * lobe * pump;
 			*pdf = norm * lobe / HdotI; /* this is p_h / 4(H.I)  (conversion from 'wh measure' to 'wi measure', eq. 8 in paper) */
 		}
-		else {             /* => ANisotropic case */
+		else {
+			/* anisotropic */
 			float3 X, Y;
 			make_orthonormals_tangent(N, sc->T, &X, &Y);
 
@@ -130,7 +128,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 	float3 N = sc->N;
 
 	float NdotI = dot(N, I);
-	if (NdotI > 0.0f) {
+	if(NdotI > 0.0f) {
 
 		float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data0);
 		float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data1);
@@ -146,21 +144,23 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 		/* sample spherical coords for h in tangent space */
 		float phi;
 		float cos_theta;
-		if (n_x == n_y) {  /* => simple isotropic sampling */
+		if(n_x == n_y) {
+			/* isotropic sampling */
 			phi = M_2PI_F * randu;
 			cos_theta = powf(randv, 1.0f / (n_x + 1.0f));
 		}
-		else {             /* => more complex anisotropic sampling */
-			if (randu < 0.25f) {      /* first quadrant */
+		else {
+			/* anisotropic sampling */
+			if(randu < 0.25f) {      /* first quadrant */
 				float remapped_randu = 4.0f * randu;
 				bsdf_ashikhmin_shirley_sample_first_quadrant(n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
 			}
-			else if (randu < 0.5f) {  /* second quadrant */
+			else if(randu < 0.5f) {  /* second quadrant */
 				float remapped_randu = 4.0f * (.5f - randu);
 				bsdf_ashikhmin_shirley_sample_first_quadrant(n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
 				phi = M_PI_F - phi;
 			}
-			else if (randu < 0.75f) { /* third quadrant */
+			else if(randu < 0.75f) { /* third quadrant */
 				float remapped_randu = 4.0f * (randu - 0.5f);
 				bsdf_ashikhmin_shirley_sample_first_quadrant(n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
 				phi = M_PI_F + phi;
@@ -185,13 +185,12 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 		/* half vector to world space */
 		float3 H = h.x*X + h.y*Y + h.z*N;
 		float HdotI = dot(H, I);
-		if (HdotI < 0.0f) H = -H;
+		if(HdotI < 0.0f) H = -H;
 
 		/* reflect I on H to get omega_in */
 		*omega_in = -I + (2.0f * HdotI) * H;
 
 		/* leave the rest to eval_reflect */
-		/* (could maybe optimize a few things by manual inlining, but I doubt it would make much difference) */
 		*eval = bsdf_ashikhmin_shirley_eval_reflect(sc, I, *omega_in, pdf);
 
 #ifdef __RAY_DIFFERENTIALS__
@@ -201,7 +200,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 #endif
 	}
 
-	return LABEL_REFLECT | LABEL_GLOSSY;
+	return LABEL_REFLECT|LABEL_GLOSSY;
 }
 
 

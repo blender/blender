@@ -41,9 +41,9 @@ ccl_device float3 bsdf_phong_ramp_get_color(const ShaderClosure *sc, const float
 	
 	float npos = pos * (float)(MAXCOLORS - 1);
 	int ipos = float_to_int(npos);
-	if (ipos < 0)
+	if(ipos < 0)
 		return colors[0];
-	if (ipos >= (MAXCOLORS - 1))
+	if(ipos >= (MAXCOLORS - 1))
 		return colors[MAXCOLORS - 1];
 	float offset = npos - (float)ipos;
 	return colors[ipos] * (1.0f - offset) + colors[ipos+1] * offset;
@@ -54,7 +54,7 @@ ccl_device int bsdf_phong_ramp_setup(ShaderClosure *sc)
 	sc->data0 = max(sc->data0, 0.0f);
 	
 	sc->type = CLOSURE_BSDF_PHONG_RAMP_ID;
-	return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 ccl_device void bsdf_phong_ramp_blur(ShaderClosure *sc, float roughness)
@@ -67,11 +67,11 @@ ccl_device float3 bsdf_phong_ramp_eval_reflect(const ShaderClosure *sc, const fl
 	float cosNI = dot(sc->N, omega_in);
 	float cosNO = dot(sc->N, I);
 	
-	if (cosNI > 0 && cosNO > 0) {
+	if(cosNI > 0 && cosNO > 0) {
 		// reflect the view vector
 		float3 R = (2 * cosNO) * sc->N - I;
 		float cosRI = dot(R, omega_in);
-		if (cosRI > 0) {
+		if(cosRI > 0) {
 			float cosp = powf(cosRI, m_exponent);
 			float common = 0.5f * M_1_PI_F * cosp;
 			float out = cosNI * (m_exponent + 2) * common;
@@ -93,7 +93,7 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colo
 	float cosNO = dot(sc->N, I);
 	float m_exponent = sc->data0;
 	
-	if (cosNO > 0) {
+	if(cosNO > 0) {
 		// reflect the view vector
 		float3 R = (2 * cosNO) * sc->N - I;
 
@@ -111,12 +111,12 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colo
 		*omega_in = (cosf(phi) * sinTheta) * T +
 		            (sinf(phi) * sinTheta) * B +
 		            (            cosTheta) * R;
-		if (dot(Ng, *omega_in) > 0.0f)
+		if(dot(Ng, *omega_in) > 0.0f)
 		{
 			// common terms for pdf and eval
 			float cosNI = dot(sc->N, *omega_in);
 			// make sure the direction we chose is still in the right hemisphere
-			if (cosNI > 0)
+			if(cosNI > 0)
 			{
 				float cosp = powf(cosTheta, m_exponent);
 				float common = 0.5f * M_1_PI_F * cosp;

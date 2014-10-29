@@ -25,7 +25,7 @@ ccl_device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc, float3 
 	float nv = max(dot(n, v), 0.0f);
 	float t = dot(l, v) - nl * nv;
 
-	if (t > 0.0f)
+	if(t > 0.0f)
 		t /= max(nl, nv) + FLT_MIN;
 	float is = nl * (sc->data0 + sc->data1 * t);
 	return make_float3(is, is, is);
@@ -44,7 +44,7 @@ ccl_device int bsdf_oren_nayar_setup(ShaderClosure *sc)
 	sc->data0 = 1.0f * div;
 	sc->data1 = sigma * div;
 
-	return SD_BSDF | SD_BSDF_HAS_EVAL;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)
@@ -53,7 +53,7 @@ ccl_device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)
 
 ccl_device float3 bsdf_oren_nayar_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	if (dot(sc->N, omega_in) > 0.0f) {
+	if(dot(sc->N, omega_in) > 0.0f) {
 		*pdf = 0.5f * M_1_PI_F;
 		return bsdf_oren_nayar_get_intensity(sc, sc->N, I, omega_in);
 	}
@@ -72,7 +72,7 @@ ccl_device int bsdf_oren_nayar_sample(const ShaderClosure *sc, float3 Ng, float3
 {
 	sample_uniform_hemisphere(sc->N, randu, randv, omega_in, pdf);
 
-	if (dot(Ng, *omega_in) > 0.0f) {
+	if(dot(Ng, *omega_in) > 0.0f) {
 		*eval = bsdf_oren_nayar_get_intensity(sc, sc->N, I, *omega_in);
 
 #ifdef __RAY_DIFFERENTIALS__
@@ -86,7 +86,7 @@ ccl_device int bsdf_oren_nayar_sample(const ShaderClosure *sc, float3 Ng, float3
 		*eval = make_float3(0.0f, 0.0f, 0.0f);
 	}
 
-	return LABEL_REFLECT | LABEL_DIFFUSE;
+	return LABEL_REFLECT|LABEL_DIFFUSE;
 }
 
 
