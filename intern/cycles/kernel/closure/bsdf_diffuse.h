@@ -108,11 +108,6 @@ ccl_device float3 bsdf_translucent_eval_transmit(const ShaderClosure *sc, const 
 	return make_float3 (cos_pi, cos_pi, cos_pi);
 }
 
-ccl_device float bsdf_translucent_albedo(const ShaderClosure *sc, const float3 I)
-{
-	return 1.0f;
-}
-
 ccl_device int bsdf_translucent_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float3 N = sc->N;
