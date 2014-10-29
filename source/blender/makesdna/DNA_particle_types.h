@@ -293,7 +293,7 @@ typedef struct ParticleSystem {
 	short vgroup[12], vg_neg, rt3;			/* vertex groups, 0==disable, 1==starting index */
 
 	/* temporary storage during render */
-	void *renderdata;
+	struct ParticleRenderData *renderdata;
 
 	/* point cache */
 	struct PointCache *pointcache;
