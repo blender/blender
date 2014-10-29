@@ -1043,7 +1043,7 @@ static float interpolate_particle_value(float v1, float v2, float v3, float v4, 
 	return value;
 }
 
-void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result, int velocity)
+void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result, bool velocity)
 {
 	float t[4];
 
@@ -1071,7 +1071,6 @@ void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, Partic
 		}
 	}
 }
-
 
 
 typedef struct ParticleInterpolationData {

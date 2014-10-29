@@ -378,7 +378,7 @@ void free_keyed_keys(struct ParticleSystem *psys);
 void psys_free_particles(struct ParticleSystem *psys);
 void psys_free_children(struct ParticleSystem *psys);
 
-void psys_interpolate_particle(short type, struct ParticleKey keys[4], float dt, struct ParticleKey *result, int velocity);
+void psys_interpolate_particle(short type, struct ParticleKey keys[4], float dt, struct ParticleKey *result, bool velocity);
 void psys_vec_rot_to_face(struct DerivedMesh *dm, struct ParticleData *pa, float vec[3]);
 void psys_mat_hair_to_object(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[4][4]);
 void psys_mat_hair_to_global(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[4][4]);

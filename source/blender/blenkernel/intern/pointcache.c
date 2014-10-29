@@ -1043,8 +1043,6 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 {
 	RigidBodyWorld *rbw = rb_v;
 	Object *ob = NULL;
-	ParticleKey keys[4];
-	float dfra;
 	
 	if (rbw->objects)
 		ob = rbw->objects[index];
@@ -1053,6 +1051,11 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 		RigidBodyOb *rbo = ob->rigidbody_object;
 		
 		if (rbo->type == RBO_TYPE_ACTIVE) {
+			ParticleKey keys[4];
+			ParticleKey result;
+			float dfra;
+			
+			memset(keys, 0, sizeof(keys));
 			
 			copy_v3_v3(keys[1].co, rbo->pos);
 			copy_qt_qt(keys[1].rot, rbo->orn);
@@ -1062,16 +1065,17 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 				memcpy(keys[2].rot, data + 3, 4 * sizeof(float));
 			}
 			else {
-				BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
+				BKE_ptcache_make_particle_key(&keys[2], 0, data, cfra2);
 			}
 			
 			dfra = cfra2 - cfra1;
 		
-			psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
-			interp_qt_qtqt(keys->rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
+			/* note: keys[0] and keys[3] unused for type < 1 (crappy) */
+			psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &result, true);
+			interp_qt_qtqt(result.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 			
-			copy_v3_v3(rbo->pos, keys->co);
-			copy_qt_qt(rbo->orn, keys->rot);
+			copy_v3_v3(rbo->pos, result.co);
+			copy_qt_qt(rbo->orn, result.rot);
 		}
 	}
 }
