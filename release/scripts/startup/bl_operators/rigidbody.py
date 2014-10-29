@@ -64,17 +64,19 @@ class CopyRigidbodySettings(Operator):
         for o in context.selected_objects:
             if o.type != 'MESH':
                 o.select = False
+            elif o.rigid_body is None:
+                # Add rigidbody to object!
+                scene.objects.active = o
+                bpy.ops.rigidbody.object_add()
+        scene.objects.active = obj_act
 
         objects = context.selected_objects
         if objects:
-            # add selected objects to active one groups and recalculate
-            bpy.ops.group.objects_add_active()
-            scene.frame_set(scene.frame_current)
             rb_from = obj_act.rigid_body
             # copy settings
             for o in objects:
                 rb_to = o.rigid_body
-                if (o == obj_act) or (rb_to is None):
+                if o == obj_act:
                     continue
                 for attr in self._attrs:
                     setattr(rb_to, attr, getattr(rb_from, attr))
