@@ -2474,6 +2474,7 @@ void txt_delete_word(Text *text)
 {
 	txt_jump_right(text, true, true);
 	txt_delete_sel(text);
+	txt_make_dirty(text);
 }
 
 void txt_backspace_char(Text *text)
@@ -2522,6 +2523,7 @@ void txt_backspace_word(Text *text)
 {
 	txt_jump_left(text, true, true);
 	txt_delete_sel(text);
+	txt_make_dirty(text);
 }
 
 /* Max spaces to replace a tab with, currently hardcoded to TXT_TABSIZE = 4.
