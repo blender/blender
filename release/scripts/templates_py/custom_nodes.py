@@ -13,9 +13,6 @@ class MyCustomTree(NodeTree):
     # Label for nice name display
     bl_label = 'Custom Node Tree'
     # Icon identifier
-    # NOTE: If no icon is defined, the node tree will not show up in the editor header!
-    #       This can be used to make additional tree types for groups and similar nodes (see below)
-    #       Only one base tree class is needed in the editor for selecting the general category
     bl_icon = 'NODETREE'
 
 
