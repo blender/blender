@@ -3179,7 +3179,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	}
 
 	/* If this border is not added we get artifacts for faces that
-	 * have a parallel edge and at the bounds of the the 2D projected verts eg
+	 * have a parallel edge and at the bounds of the 2D projected verts eg
 	 * - a single screen aligned quad */
 	projMargin = (ps->screenMax[0] - ps->screenMin[0]) * 0.000001f;
 	ps->screenMax[0] += projMargin;

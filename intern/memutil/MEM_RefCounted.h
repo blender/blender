@@ -41,7 +41,7 @@
  * An object with reference counting.
  * Base class for objects with reference counting.
  * When a shared object is ceated, it has reference count == 1.
- * If the the reference count of a shared object reaches zero, the object self-destructs.
+ * If the reference count of a shared object reaches zero, the object self-destructs.
  * The default destructor of this object has been made protected on purpose.
  * This disables the creation of shared objects on the stack.
  *
@@ -72,7 +72,7 @@ public:
 
 	/** 
 	 * Decreases the reference count of this object.
-	 * If the the reference count reaches zero, the object self-destructs.
+	 * If the reference count reaches zero, the object self-destructs.
 	 * @return the new reference count.
 	 */
 	inline virtual int decRef();

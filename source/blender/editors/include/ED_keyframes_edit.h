@@ -233,7 +233,7 @@ short bezt_selmap_flush(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* ----------- BezTriple Callback (Assorted Utilities) ---------- */
 
-/* used to calculate the the average location of all relevant BezTriples by summing their locations */
+/* used to calculate the average location of all relevant BezTriples by summing their locations */
 short bezt_calc_average(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* used to extract a set of cfra-elems from the keyframes */

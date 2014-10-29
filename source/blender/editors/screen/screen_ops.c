@@ -412,7 +412,7 @@ int ED_operator_posemode_exclusive(bContext *C)
 }
 
 /* allows for pinned pose objects to be used in the object buttons
- * and the the non-active pose object to be used in the 3D view */
+ * and the non-active pose object to be used in the 3D view */
 int ED_operator_posemode_context(bContext *C)
 {
 	Object *obpose = ED_pose_object_from_context(C);

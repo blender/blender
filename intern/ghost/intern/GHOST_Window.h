@@ -336,7 +336,7 @@ protected:
 
 	GHOST_TSuccess releaseNativeHandles();
 
-	/** The the of drawing context installed in this window. */
+	/** The drawing context installed in this window. */
 	GHOST_TDrawingContextType m_drawingContextType;
 	
 	/** The window user data */

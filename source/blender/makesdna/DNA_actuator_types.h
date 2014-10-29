@@ -57,7 +57,7 @@ typedef struct bActionActuator {
 	short   blendin;        /* Number of frames of blending */
 	short   priority;       /* Execution priority */
 	short   layer;          /* Animation layer */
-	short   end_reset;      /* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
+	short   end_reset;      /* Ending the actuator (negative pulse) wont reset the action to its starting frame */
 	short   strideaxis;     /* Displacement axis */
 	short   blend_mode;		/* Layer blending mode */
 	float   stridelength;   /* Displacement incurred by cycle */ // not in use

@@ -684,7 +684,7 @@ void ShaderGraph::bump_from_displacement()
 	 * different shifted coordinates.
 	 *
 	 * these 3 displacement values are then fed into the bump node, which will
-	 * output the the perturbed normal. */
+	 * output the perturbed normal. */
 
 	ShaderInput *displacement_in = output()->input("Displacement");
 

@@ -115,7 +115,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	num_total = BM_mesh_elem_count(bm, BM_FACE);
 
 	/*
-	 * The first thing to do is to iterate through all the the selected items and mark them since
+	 * The first thing to do is to iterate through all the selected items and mark them since
 	 * they will be in the selection anyway.
 	 * This will increase performance, (especially when the number of originally selected faces is high)
 	 * so the overall complexity will be less than $O(mn)$ where is the total number of selected faces,

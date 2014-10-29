@@ -1662,7 +1662,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			if (pchanw.prop) {
 				pchanw.prop = IDP_CopyProperty(pchanw.prop);
 				
-				/* use the values from the the existing props */
+				/* use the values from the existing props */
 				if (pchan->prop) {
 					IDP_SyncGroupValues(pchanw.prop, pchan->prop);
 				}

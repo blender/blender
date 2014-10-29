@@ -106,7 +106,7 @@ void BKE_keyingsets_free(struct ListBase *list);
 /* ************************************* */
 /* Path Fixing API */
 
-/* Fix all the paths for the the given ID + Action */
+/* Fix all the paths for the given ID + Action */
 void BKE_action_fix_paths_rename(struct ID *owner_id, struct bAction *act, const char *prefix, const char *oldName,
                                  const char *newName, int oldSubscript, int newSubscript, bool verify_paths);
 

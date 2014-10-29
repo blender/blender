@@ -1149,7 +1149,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
  * </pre>
  *
  * \param e  The edge to split.
- * \param v  One of the vertices in \a e and defines the the "from" end of the splitting operation,
+ * \param v  One of the vertices in \a e and defines the "from" end of the splitting operation,
  * the new vertex will be \a fac of the way from \a v to the other end.
  * \param r_e  The newly created edge.
  * \return  The new vertex.

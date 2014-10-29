@@ -180,7 +180,7 @@ void *BMW_walk(BMWalker *walker)
  * \brief Current Walker State
  *
  * Returns the first state from the walker state
- * worklist. This state is the the next in the
+ * worklist. This state is the next in the
  * worklist for processing.
  */
 void *BMW_current_state(BMWalker *walker)

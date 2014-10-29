@@ -64,7 +64,7 @@ extern int	MEM_RefCountedIncRef(MEM_TRefCountedObjectPtr shared);
 
 /** 
  * Decreases the reference count of this object.
- * If the the reference count reaches zero, the object self-destructs.
+ * If the reference count reaches zero, the object self-destructs.
  * @param shared The object to query.
  * @return The new reference count.
  */

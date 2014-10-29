@@ -101,7 +101,7 @@ public:
 		return _internalIterator.isBegin();
 	}
 
-	/*! Returns true if the current ViewEdge is is coming towards the iteration vertex. False otherwise. */
+	/*! Returns true if the current ViewEdge is coming towards the iteration vertex. False otherwise. */
 	bool isIncoming() const;
 
 	/*! Returns a *pointer* to the pointed ViewEdge. */

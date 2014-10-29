@@ -1255,7 +1255,7 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 		first = adt->nla_tracks.last;
 	}
 	else {
-		/* first track to include will the the first one (as per normal) */
+		/* first track to include will the first one (as per normal) */
 		first = adt->nla_tracks.first;
 	}
 	

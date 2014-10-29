@@ -3349,7 +3349,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 			build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
 			/* insert *other second order* springs if desired */
 			if (sb->secondspring > 0.0000001f) {
-				add_2nd_order_springs(ob, sb->secondspring); /* exploits the the first run of build_bps_springlist(ob);*/
+				add_2nd_order_springs(ob, sb->secondspring); /* exploits the first run of build_bps_springlist(ob);*/
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
 			springs_from_mesh(ob); /* write the 'rest'-length of the springs */

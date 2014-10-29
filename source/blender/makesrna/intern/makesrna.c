@@ -1150,7 +1150,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
                                               const char *manualfunc, const char *nextfunc)
 {
 	/* note on indices, this is for external functions and ignores skipped values.
-	 * so the the index can only be checked against the length when there is no 'skip' function. */
+	 * so the index can only be checked against the length when there is no 'skip' function. */
 	char *func;
 
 	if (prop->flag & PROP_IDPROPERTY && manualfunc == NULL)

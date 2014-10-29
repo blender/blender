@@ -595,7 +595,7 @@ void POSE_OT_flip_names(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Names";
 	ot->idname = "POSE_OT_flip_names";
-	ot->description = "Flips (and corrects) the axis suffixes of the the names of selected bones";
+	ot->description = "Flips (and corrects) the axis suffixes of the names of selected bones";
 	
 	/* api callbacks */
 	ot->exec = pose_flip_names_exec;

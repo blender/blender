@@ -448,7 +448,7 @@ bool BM_verts_in_face(BMFace *f, BMVert **varr, int len)
 }
 
 /**
- * Returns whether or not a given edge is is part of a given face.
+ * Returns whether or not a given edge is part of a given face.
  */
 bool BM_edge_in_face(BMEdge *e, BMFace *f)
 {

@@ -1698,7 +1698,7 @@ int sk_detectCommandGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 	if (gest->nb_segments > 2 && gest->nb_intersections == 2 && gest->nb_self_intersections == 1) {
 		SK_Intersection *isect, *self_isect;
 
-		/* get the the last intersection of the first pair */
+		/* get the last intersection of the first pair */
 		for (isect = gest->intersections.first; isect; isect = isect->next) {
 			if (isect->stroke == isect->next->stroke) {
 				isect = isect->next;

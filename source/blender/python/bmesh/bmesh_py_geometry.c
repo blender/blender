@@ -49,7 +49,7 @@ PyDoc_STRVAR(bpy_bm_geometry_intersect_face_point_doc,
 "   :type face: :class:`bmesh.types.BMFace`\n"
 "   :arg point: The point to test.\n"
 "   :type point: float triplet\n"
-"   :return: True when the the point is in the face.\n"
+"   :return: True when the point is in the face.\n"
 "   :rtype: bool\n"
 );
 static PyObject *bpy_bm_geometry_intersect_face_point(BPy_BMFace *UNUSED(self), PyObject *args)

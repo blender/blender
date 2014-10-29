@@ -60,7 +60,7 @@ void ConvertDepthToRadiusOperation::initExecution()
 
 	this->m_inputOperation = this->getInputSocketReader(0);
 	float focalDistance = determineFocalDistance();
-	if (focalDistance == 0.0f) focalDistance = 1e10f;  /* if the dof is 0.0 then set it be be far away */
+	if (focalDistance == 0.0f) focalDistance = 1e10f;  /* if the dof is 0.0 then set it to be far away */
 	this->m_inverseFocalDistance = 1.0f / focalDistance;
 	this->m_aspect = (this->getWidth() > this->getHeight()) ? (this->getHeight() / (float)this->getWidth()) : (this->getWidth() / (float)this->getHeight());
 	this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * cam_sensor)) / this->m_fStop;

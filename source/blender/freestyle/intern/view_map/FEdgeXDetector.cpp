@@ -497,7 +497,7 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
 				}
 			}
 		}
-		// Once we have K1 along the the ppal direction compute the derivative : K1b - K1a put it in DotP
+		// Once we have K1 along the ppal direction compute the derivative : K1b - K1a put it in DotP
 		//real d = fabs(K1_b) - fabs(K1_a);
 		real d = 0;
 		real threshold = _meanK1 + (_maxK1 - _meanK1) / 7.0;

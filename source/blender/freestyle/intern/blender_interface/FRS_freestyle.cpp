@@ -182,7 +182,7 @@ static void init_camera(Render *re)
 {
 	// It is assumed that imported meshes are in the camera coordinate system.
 	// Therefore, the view point (i.e., camera position) is at the origin, and
-	// the the model-view matrix is simply the identity matrix.
+	// the model-view matrix is simply the identity matrix.
 
 	freestyle_viewpoint[0] = 0.0;
 	freestyle_viewpoint[1] = 0.0;

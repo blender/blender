@@ -36,7 +36,7 @@ BLI_INLINE bool BM_vert_in_edge(const BMEdge *e, const BMVert *v)
 }
 
 /**
- * Returns whether or not a given edge is is part of a given loop.
+ * Returns whether or not a given edge is part of a given loop.
  */
 BLI_INLINE bool BM_edge_in_loop(const BMEdge *e, const BMLoop *l)
 {

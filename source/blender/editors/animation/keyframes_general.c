@@ -724,7 +724,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu, tAnimCopybufItem *aci, float
 		}
 	}
 	
-	/* just start pasting, with the the first keyframe on the current frame, and so on */
+	/* just start pasting, with the first keyframe on the current frame, and so on */
 	for (i = 0, bezt = aci->bezt; i < aci->totvert; i++, bezt++) {
 		/* temporarily apply offset to src beztriple while copying */
 		bezt->vec[0][0] += offset;

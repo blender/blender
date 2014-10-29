@@ -1580,7 +1580,7 @@ void BLI_make_existing_file(const char *name)
 	char di[FILE_MAX];
 	BLI_split_dir_part(name, di, sizeof(di));
 
-	/* make if if the dir doesn't exist */
+	/* make if the dir doesn't exist */
 	BLI_dir_create_recursive(di);
 }
 
