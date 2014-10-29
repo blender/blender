@@ -1747,11 +1747,9 @@ bool ui_is_but_compatible(const uiBut *but_a, const uiBut *but_b)
 		return false;
 
 	if (but_a->rnaprop) {
+		/* skip 'rnapoin.data', 'rnapoin.id.data'
+		 * allow different data to have the same props edited at once */
 		if (but_a->rnapoin.type != but_b->rnapoin.type)
-			return false;
-		if (but_a->rnapoin.data != but_b->rnapoin.data)
-			return false;
-		if (but_a->rnapoin.id.data != but_b->rnapoin.id.data)
 			return false;
 		if (RNA_property_type(but_a->rnaprop) != RNA_property_type(but_b->rnaprop))
 			return false;
