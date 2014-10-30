@@ -3917,7 +3917,15 @@ static bool is_object_hidden(Render *re, Object *ob)
 	if (re->r.scemode & R_VIEWPORT_PREVIEW) {
 		/* Mesh deform cages and so on mess up the preview. To avoid the problem,
 		 * viewport doesn't show mesh object if its draw type is bounding box or wireframe.
+		 * Unless it's an active smoke domain!
 		 */
+		ModifierData *md = NULL;
+
+		if ((md = modifiers_findByType(ob, eModifierType_Smoke)) &&
+		    (modifier_isEnabled(re->scene, md, eModifierMode_Realtime)))
+		{
+			return false;
+		}
 		return ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE);
 	}
 	else {
