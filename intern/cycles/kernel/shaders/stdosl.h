@@ -505,6 +505,47 @@ closure color hair_transmission(normal N, float roughnessu, float roughnessv, ve
 closure color henyey_greenstein(float g) BUILTIN;
 closure color absorption() BUILTIN;
 
+// OSL 1.5 Microfacet functions
+closure color microfacet(string distribution, normal N, vector U, float xalpha, float yalpha, float eta, int refract) {
+	/* GGX */
+	if (distribution == "ggx" || distribution == "default") {
+		if (!refract) {
+			if (xalpha == yalpha) {
+				/* Isotropic */
+				return microfacet_ggx(N, xalpha);
+			}
+			else {
+				/* Anisotropic */
+				return microfacet_ggx_aniso(N, U, xalpha, yalpha);
+			}
+		}
+		else {
+			return microfacet_ggx_refraction(N, xalpha, eta);
+		}
+	}
+	/* Beckmann */
+	else {
+		if (!refract) {
+			if (xalpha == yalpha) {
+				/* Isotropic */
+				return microfacet_beckmann(N, xalpha);
+			}
+			else {
+				/* Anisotropic */
+				return microfacet_beckmann_aniso(N, U, xalpha, yalpha);
+			}
+		}
+		else {
+			return microfacet_beckmann_refraction(N, xalpha, eta);
+		}
+	}
+}
+
+closure color microfacet (string distribution, normal N, float alpha, float eta, int refract) {
+	return microfacet(distribution, N, vector(0), alpha, alpha, eta, refract);
+}
+
+
 // Renderer state
 int backfacing () BUILTIN;
 int raytype (string typename) BUILTIN;
