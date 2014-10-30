@@ -2239,14 +2239,14 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	}
 }
 
-void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon)
+void pseudoinverse_m4_m4(float Ainv[4][4], float A_[4][4], float epsilon)
 {
 	/* compute moon-penrose pseudo inverse of matrix, singular values
 	 * below epsilon are ignored for stability (truncated SVD) */
-	float V[4][4], W[4], Wm[4][4], U[4][4];
+	float A[4][4], V[4][4], W[4], Wm[4][4], U[4][4];
 	int i;
 
-	transpose_m4(A);
+	transpose_m4_m4(A, A_);
 	svd_m4(V, W, U, A);
 	transpose_m4(U);
 	transpose_m4(V);
