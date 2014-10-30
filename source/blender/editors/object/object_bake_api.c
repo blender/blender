@@ -768,7 +768,7 @@ static int bake(
 			normalize_m4_m4(highpoly[i].rotmat, highpoly[i].imat);
 			zero_v3(highpoly[i].rotmat[3]);
 			if (is_negative_m4(highpoly[i].rotmat))
-				negate_m4(highpoly[i].rotmat);
+				negate_mat3_m4(highpoly[i].rotmat);
 
 			i++;
 		}

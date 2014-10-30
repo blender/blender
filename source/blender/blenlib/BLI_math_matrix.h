@@ -126,6 +126,7 @@ void mul_m4_fl(float R[4][4], float f);
 void mul_mat3_m4_fl(float R[4][4], float f);
 
 void negate_m3(float R[3][3]);
+void negate_mat3_m4(float R[4][4]);
 void negate_m4(float R[4][4]);
 
 bool invert_m3_ex(float m[3][3], const float epsilon);
