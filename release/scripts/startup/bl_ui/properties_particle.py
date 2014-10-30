@@ -308,30 +308,38 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
 
         layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
 
-        split = layout.split()
+        split = layout.column()
 
         col = split.column()
-        col.label(text="Material:")
-        sub = col.column(align=True)
-        sub.prop(cloth, "pin_stiffness", text="Stiffness")
-        sub.prop(cloth, "mass")
-        sub.prop(cloth, "bending_stiffness", text="Bending")
-        sub.prop(cloth, "internal_friction", slider=True)
-        sub.prop(cloth, "collider_friction", slider=True)
-        sub.prop(cloth, "pressure", slider=True)
-        sub.prop(cloth, "pressure_threshold", slider=True)
+        col.label(text="Structure")
+        col.prop(cloth, "mass")
+        sub = col.row(align=True)
+        sub.prop(cloth, "bending_stiffness", text="Stiffness")
+        sub.prop(cloth, "bending_damping", text="Damping")
+        # XXX has no noticable effect with stiff hair structure springs
+        #col.prop(cloth, "spring_damping", text="Damping")
 
-        sub.separator()
-        
-        sub.prop(cloth, "voxel_resolution")
+        split.separator()
 
         col = split.column()
-        col.label(text="Damping:")
-        sub = col.column(align=True)
-        sub.prop(cloth, "spring_damping", text="Spring")
-        sub.prop(cloth, "air_damping", text="Air")
-        sub.prop(cloth, "bending_damping", text="Bending")
+        col.label(text="Volume")
+        col.prop(cloth, "air_damping", text="Air Drag")
+        col.prop(cloth, "internal_friction", slider=True)
+        sub = col.row(align=True)
+        # XXX disabled due to stability issues
+        #sub.prop(cloth, "pressure", slider=True, text="Pressure")
+        #sub.prop(cloth, "pressure_threshold", slider=True, text="Threshold")
+        col.prop(cloth, "voxel_resolution")
 
+        split.separator()
+
+        col = split.column()
+        col.label(text="Pinning")
+        col.prop(cloth, "pin_stiffness", text="Goal Strength")
+
+        split.separator()
+
+        col = split.column()
         col.label(text="Quality:")
         col.prop(cloth, "quality", text="Steps", slider=True)
 
