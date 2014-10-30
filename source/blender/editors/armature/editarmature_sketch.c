@@ -403,9 +403,7 @@ static void sk_retargetStroke(bContext *C, SK_Stroke *stk)
 	RigGraph *rg;
 
 	invert_m4_m4(imat, obedit->obmat);
-
-	copy_m3_m4(tmat, obedit->obmat);
-	transpose_m3(tmat);
+	transpose_m3_m4(tmat, obedit->obmat);
 
 	arc = sk_strokeToArc(stk, imat, tmat);
 
@@ -1358,9 +1356,7 @@ static void sk_convertStroke(bContext *C, SK_Stroke *stk)
 	head = NULL;
 
 	invert_m4_m4(invmat, obedit->obmat);
-
-	copy_m3_m4(tmat, obedit->obmat);
-	transpose_m3(tmat);
+	transpose_m3_m4(tmat, obedit->obmat);
 
 	for (i = 0; i < stk->nb_points; i++) {
 		SK_Point *pt = stk->points + i;

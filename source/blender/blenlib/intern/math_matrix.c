@@ -876,6 +876,37 @@ void transpose_m3(float mat[3][3])
 	mat[2][1] = t;
 }
 
+void transpose_m3_m3(float rmat[3][3], float mat[3][3])
+{
+	BLI_assert(rmat != mat);
+
+	rmat[0][0] = mat[0][0];
+	rmat[0][1] = mat[1][0];
+	rmat[0][2] = mat[2][0];
+	rmat[1][0] = mat[0][1];
+	rmat[1][1] = mat[1][1];
+	rmat[1][2] = mat[2][1];
+	rmat[2][0] = mat[0][2];
+	rmat[2][1] = mat[1][2];
+	rmat[2][2] = mat[2][2];
+}
+
+/* seems obscure but in-fact a common operation */
+void transpose_m3_m4(float rmat[3][3], float mat[4][4])
+{
+	BLI_assert(&rmat[0][0] != &mat[0][0]);
+
+	rmat[0][0] = mat[0][0];
+	rmat[0][1] = mat[1][0];
+	rmat[0][2] = mat[2][0];
+	rmat[1][0] = mat[0][1];
+	rmat[1][1] = mat[1][1];
+	rmat[1][2] = mat[2][1];
+	rmat[2][0] = mat[0][2];
+	rmat[2][1] = mat[1][2];
+	rmat[2][2] = mat[2][2];
+}
+
 void transpose_m4(float mat[4][4])
 {
 	float t;
@@ -900,6 +931,28 @@ void transpose_m4(float mat[4][4])
 	t = mat[2][3];
 	mat[2][3] = mat[3][2];
 	mat[3][2] = t;
+}
+
+void transpose_m4_m4(float rmat[4][4], float mat[4][4])
+{
+	BLI_assert(rmat != mat);
+
+	rmat[0][0] = mat[0][0];
+	rmat[0][1] = mat[1][0];
+	rmat[0][2] = mat[2][0];
+	rmat[0][3] = mat[3][0];
+	rmat[1][0] = mat[0][1];
+	rmat[1][1] = mat[1][1];
+	rmat[1][2] = mat[2][1];
+	rmat[1][3] = mat[3][1];
+	rmat[2][0] = mat[0][2];
+	rmat[2][1] = mat[1][2];
+	rmat[2][2] = mat[2][2];
+	rmat[2][3] = mat[3][2];
+	rmat[3][0] = mat[0][3];
+	rmat[3][1] = mat[1][3];
+	rmat[3][2] = mat[2][3];
+	rmat[3][3] = mat[3][3];
 }
 
 int compare_m4m4(float mat1[4][4], float mat2[4][4], float limit)
@@ -1145,8 +1198,7 @@ bool is_uniform_scaled_m3(float m[3][3])
 	float t[3][3];
 	float l1, l2, l3, l4, l5, l6;
 
-	copy_m3_m3(t, m);
-	transpose_m3(t);
+	transpose_m3_m3(t, m);
 
 	l1 = len_squared_v3(m[0]);
 	l2 = len_squared_v3(m[1]);
@@ -1413,9 +1465,7 @@ void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])
 	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
 	normalize_m3_m3(mat3_n, mat3);
 	if (is_negative_m3(mat3)) {
-		negate_v3(mat3_n[0]);
-		negate_v3(mat3_n[1]);
-		negate_v3(mat3_n[2]);
+		negate_m3(mat3_n);
 	}
 
 	/* rotation */
@@ -1462,9 +1512,7 @@ void mat4_to_loc_quat(float loc[3], float quat[4], float wmat[4][4])
 	/* so scale doesn't interfere with rotation [#24291] */
 	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
 	if (is_negative_m3(mat3)) {
-		negate_v3(mat3_n[0]);
-		negate_v3(mat3_n[1]);
-		negate_v3(mat3_n[2]);
+		negate_m3(mat3_n);
 	}
 
 	mat3_to_quat(quat, mat3_n);

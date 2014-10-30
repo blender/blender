@@ -307,8 +307,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 
 		/* compute rest basis and its inverse */
 		copy_m3_m3(rest_basis, bone->bone_mat);
-		copy_m3_m3(irest_basis, bone->bone_mat);
-		transpose_m3(irest_basis);
+		transpose_m3_m3(irest_basis, bone->bone_mat);
 
 		/* compute basis with rest_basis removed */
 		invert_m3_m3(iR_parmat, R_parmat);

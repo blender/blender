@@ -1543,8 +1543,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 		float ray_start_local[3], ray_normal_local[3], local_scale, len_diff = TRANSFORM_DIST_MAX_RAY;
 
 		invert_m4_m4(imat, obmat);
-		copy_m3_m4(timat, imat);
-		transpose_m3(timat);
+		transpose_m3_m4(timat, imat);
 
 		copy_v3_v3(ray_start_local, ray_start);
 		copy_v3_v3(ray_normal_local, ray_normal);
@@ -2101,8 +2100,7 @@ static bool peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[4][4],
 
 		invert_m4_m4(imat, obmat);
 
-		copy_m3_m4(timat, imat);
-		transpose_m3(timat);
+		transpose_m3_m4(timat, imat);
 		
 		copy_v3_v3(ray_start_local, ray_start);
 		copy_v3_v3(ray_normal_local, ray_normal);

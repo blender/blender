@@ -1427,8 +1427,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 2.5 setup matrices */
 	mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);	/* need to be that way, for imat texture */
-	copy_m3_m4(nmat, ob->imat);
-	transpose_m3(nmat);
+	transpose_m3_m4(nmat, ob->imat);
 
 	if (psys->flag & PSYS_USE_IMAT) {
 		/* psys->imat is the original emitter's inverse matrix, ob->obmat is the duplicated object's matrix */
@@ -2652,8 +2651,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	negative_scale = is_negative_m4(mat);
 
 	/* local object -> world space transform for normals */
-	copy_m4_m4(nmat, mat);
-	transpose_m4(nmat);
+	transpose_m4_m4(nmat, mat);
 	invert_m4(nmat);
 
 	/* material array */

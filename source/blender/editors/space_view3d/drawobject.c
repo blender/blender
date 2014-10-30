@@ -2153,8 +2153,7 @@ static void calcDrawDMNormalScale(Object *ob, drawDMNormal_userData *data)
 		invert_m3_m3(data->imat, obmat);
 
 		/* transposed inverted matrix */
-		copy_m3_m3(data->tmat, data->imat);
-		transpose_m3(data->tmat);
+		transpose_m3_m3(data->tmat, data->imat);
 	}
 }
 

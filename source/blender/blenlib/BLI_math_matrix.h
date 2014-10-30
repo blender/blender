@@ -144,7 +144,10 @@ void mul_v4d_m4v4d(double r[4], float M[4][4], double v[4]);
 /****************************** Linear Algebra *******************************/
 
 void transpose_m3(float R[3][3]);
+void transpose_m3_m3(float R[3][3], float A[3][3]);
+void transpose_m3_m4(float R[3][3], float A[4][4]);
 void transpose_m4(float R[4][4]);
+void transpose_m4_m4(float R[4][4], float A[4][4]);
 
 int compare_m4m4(float mat1[4][4], float mat2[4][4], float limit);
 

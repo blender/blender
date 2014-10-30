@@ -94,8 +94,7 @@ void UnitConverter::dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::
 
 void UnitConverter::mat4_to_dae(float out[4][4], float in[4][4])
 {
-	copy_m4_m4(out, in);
-	transpose_m4(out);
+	transpose_m4_m4(out, in);
 }
 
 void UnitConverter::mat4_to_dae_double(double out[4][4], float in[4][4])

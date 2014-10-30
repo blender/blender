@@ -4563,8 +4563,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 		psys_particle_on_emitter(psmd, PART_FROM_FACE, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, loc, nor, 0, 0, 0, 0);
 
 	if (psys->part->rotmode == PART_ROT_VEL) {
-		copy_m3_m4(nmat, ob->imat);
-		transpose_m3(nmat);
+		transpose_m3_m4(nmat, ob->imat);
 		mul_m3_v3(nmat, nor);
 		normalize_v3(nor);
 
