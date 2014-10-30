@@ -1113,19 +1113,6 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		angle_cos = (normalize_v2(no3) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir2, no3)) : 0.0f;
 		a3 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
 
-		if (a1 > 10.0) {
-			printf("lala a1 %f\n", a1);
-			fflush(stdout);
-		}
-		if (a2 > 10.0) {
-			printf("lala a2 %f\n", a2);
-			fflush(stdout);
-		}
-		if (a3 > 10.0) {
-			printf("lala a3 %f\n", a3);
-			fflush(stdout);
-		}
-
 		mul_v2_fl(no1, a1 * scaler);
 		mul_v2_fl(no2, a2 * scaler);
 		mul_v2_fl(no3, a3 * scaler);
