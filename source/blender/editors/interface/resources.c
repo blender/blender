@@ -818,6 +818,8 @@ void ui_theme_init_default(void)
 	btheme->tui.panel.show_header = false;
 	rgba_char_args_set(btheme->tui.panel.header, 0, 0, 0, 25);
 	
+	rgba_char_args_set(btheme->tui.wcol_tooltip.text, 255, 255, 255, 255);
+	
 	rgba_char_args_set_fl(btheme->tui.emboss, 1.0f, 1.0f, 1.0f, 0.02f);
 
 	rgba_char_args_set(btheme->tui.xaxis, 220,   0,   0, 255);
