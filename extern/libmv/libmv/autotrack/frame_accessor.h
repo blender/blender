@@ -41,6 +41,7 @@ using libmv::FloatImage;
 // implementations to cache filtered image pieces).
 struct FrameAccessor {
   struct Transform {
+    virtual ~Transform() {  }
     // The key should depend on the transform arguments. Must be non-zero.
     virtual int64_t key() const = 0;
 

@@ -213,7 +213,7 @@ ${tests}
 	endif()
 else()
 	list(APPEND SRC
-		intern/stub.cc
+		libmv-capi_stub.cc
 	)
 endif()
 

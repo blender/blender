@@ -60,6 +60,12 @@ typedef enum libmv_MarkerModelType {
   LIBMV_MARKER_MODEL_TYPE_CUBE,
 } libmv_MarkerModelType;
 
+enum libmv_MarkerChannel {
+  LIBMV_MARKER_CHANNEL_R = (1 << 0),
+  LIBMV_MARKER_CHANNEL_G = (1 << 1),
+  LIBMV_MARKER_CHANNEL_B = (1 << 2),
+};
+
 typedef struct libmv_Marker {
   int clip;
   int frame;
@@ -75,6 +81,7 @@ typedef struct libmv_Marker {
   int reference_frame;
   libmv_MarkerModelType model_type;
   int model_id;
+  int disabled_channels;
 } libmv_Marker;
 
 #ifdef __cplusplus

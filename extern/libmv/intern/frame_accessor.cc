@@ -147,8 +147,8 @@ void libmv_frameAccessorgetTransformRun(const libmv_FrameTransform *transform,
                                         const libmv_FloatImage *input_image,
                                         libmv_FloatImage *output_image) {
   const FloatImage input(input_image->buffer,
-                         input_image->width,
                          input_image->height,
+                         input_image->width,
                          input_image->channels);
 
   FloatImage output;

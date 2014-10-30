@@ -754,19 +754,6 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		               ibuf->y / (1 << downscale));
 	}
 
-	if (input_mode == LIBMV_IMAGE_MODE_RGBA) {
-		BLI_assert(ibuf->channels == 3 || ibuf->channels == 4);
-		/* pass */
-	}
-	else /* if (input_mode == LIBMV_IMAGE_MODE_MONO) */ {
-		ImBuf *grayscale_ibuf = make_grayscale_ibuf_copy(final_ibuf);
-		if (final_ibuf != orig_ibuf) {
-			/* We dereference original frame later. */
-			IMB_freeImBuf(final_ibuf);
-		}
-		final_ibuf = grayscale_ibuf;
-	}
-
 	if (transform != NULL) {
 		libmv_FloatImage input_image, output_image;
 		ibuf_to_float_image(final_ibuf, &input_image);
@@ -778,6 +765,21 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		}
 		final_ibuf = float_image_to_ibuf(&output_image);
 		libmv_floatImageDestroy(&output_image);
+	}
+
+	if (input_mode == LIBMV_IMAGE_MODE_RGBA) {
+		BLI_assert(ibuf->channels == 3 || ibuf->channels == 4);
+		/* pass */
+	}
+	else /* if (input_mode == LIBMV_IMAGE_MODE_MONO) */ {
+		if (final_ibuf->channels != 1) {
+			ImBuf *grayscale_ibuf = make_grayscale_ibuf_copy(final_ibuf);
+			if (final_ibuf != orig_ibuf) {
+				/* We dereference original frame later. */
+				IMB_freeImBuf(final_ibuf);
+			}
+			final_ibuf = grayscale_ibuf;
+		}
 	}
 
 	/* it's possible processing stil didn't happen at this point,

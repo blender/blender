@@ -104,6 +104,15 @@ struct Marker {
   // TODO(keir): Add a "int model_argument" to capture that e.g. a marker is on
   // the 3rd face of a cube.
 
+  enum Channel {
+    CHANNEL_R = (1 << 0),
+    CHANNEL_G = (1 << 1),
+    CHANNEL_B = (1 << 2),
+  };
+
+  // Channels from the original frame which this marker is unable to see.
+  int disabled_channels;
+
   // Offset everything (center, patch, search) by the given delta.
   template<typename T>
   void Offset(const T& offset) {

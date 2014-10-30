@@ -24,12 +24,54 @@
 #include "libmv/autotrack/quad.h"
 #include "libmv/autotrack/frame_accessor.h"
 #include "libmv/autotrack/predict_tracks.h"
+#include "libmv/base/scoped_ptr.h"
 #include "libmv/logging/logging.h"
 #include "libmv/numeric/numeric.h"
 
 namespace mv {
 
 namespace {
+
+class DisableChannelsTransform : public FrameAccessor::Transform {
+ public:
+  DisableChannelsTransform(int disabled_channels)
+      : disabled_channels_(disabled_channels) {  }
+
+  int64_t key() const {
+    return disabled_channels_;
+  }
+
+  void run(const FloatImage& input, FloatImage* output) const {
+    bool disable_red   = (disabled_channels_ & Marker::CHANNEL_R) != 0,
+         disable_green = (disabled_channels_ & Marker::CHANNEL_G) != 0,
+         disable_blue  = (disabled_channels_ & Marker::CHANNEL_B) != 0;
+
+    LG << "Disabling channels: "
+       << (disable_red   ? "R " : "")
+       << (disable_green ? "G " : "")
+       << (disable_blue  ? "B" : "");
+
+    // It's important to rescale the resultappropriately so that e.g. if only
+    // blue is selected, it's not zeroed out.
+    float scale = (disable_red   ? 0.0f : 0.2126f) +
+                  (disable_green ? 0.0f : 0.7152f) +
+                  (disable_blue  ? 0.0f : 0.0722f);
+
+    output->Resize(input.Height(), input.Width(), 1);
+    for (int y = 0; y < input.Height(); y++) {
+      for (int x = 0; x < input.Width(); x++) {
+        float r = disable_red   ? 0.0f : input(y, x, 0);
+        float g = disable_green ? 0.0f : input(y, x, 1);
+        float b = disable_blue  ? 0.0f : input(y, x, 2);
+        (*output)(y, x, 0) = (0.2126f * r + 0.7152f * g + 0.0722f * b) / scale;
+      }
+    }
+  }
+
+ private:
+  // Bitfield representing visible channels, bits are from Marker::Channel.
+  int disabled_channels_;
+};
 
 template<typename QuadT, typename ArrayT>
 void QuadToArrays(const QuadT& quad, ArrayT* x, ArrayT* y) {
@@ -56,12 +98,16 @@ FrameAccessor::Key GetImageForMarker(const Marker& marker,
   // do rounding here.
   // Ideally we would need to pass IntRegion to the frame accessor.
   Region region = marker.search_region.Rounded();
+  libmv::scoped_ptr<FrameAccessor::Transform> transform = NULL;
+  if (marker.disabled_channels != 0) {
+    transform.reset(new DisableChannelsTransform(marker.disabled_channels));
+  }
   return frame_accessor->GetImage(marker.clip,
                                   marker.frame,
                                   FrameAccessor::MONO,
                                   0,  // No downscale for now.
                                   &region,
-                                  NULL,
+                                  transform.get(),
                                   image);
 }
 

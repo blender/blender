@@ -183,6 +183,11 @@ static void dna_marker_to_libmv_marker(/*const*/ MovieTrackingTrack *track,
 		                                marker->framenr - 1 :
 		                                marker->framenr;
 	}
+
+	libmv_marker->disabled_channels =
+	        ((track->flag & TRACK_DISABLE_RED)   ? LIBMV_MARKER_CHANNEL_R : 0) |
+	        ((track->flag & TRACK_DISABLE_GREEN) ? LIBMV_MARKER_CHANNEL_G : 0) |
+	        ((track->flag & TRACK_DISABLE_BLUE)  ? LIBMV_MARKER_CHANNEL_B : 0);
 }
 
 static void libmv_marker_to_dna_marker(libmv_Marker *libmv_marker,

@@ -54,6 +54,7 @@ void libmv_apiMarkerToMarker(const libmv_Marker& libmv_marker,
   marker->reference_frame = libmv_marker.reference_frame;
   marker->model_type = (Marker::ModelType) libmv_marker.model_type;
   marker->model_id = libmv_marker.model_id;
+  marker->disabled_channels = libmv_marker.disabled_channels;
 }
 
 void libmv_markerToApiMarker(const Marker& marker,
@@ -78,6 +79,7 @@ void libmv_markerToApiMarker(const Marker& marker,
   libmv_marker->reference_frame = marker.reference_frame;
   libmv_marker->model_type = (libmv_MarkerModelType) marker.model_type;
   libmv_marker->model_id = marker.model_id;
+  libmv_marker->disabled_channels = marker.disabled_channels;
 }
 
 libmv_TracksN* libmv_tracksNewN(void) {
