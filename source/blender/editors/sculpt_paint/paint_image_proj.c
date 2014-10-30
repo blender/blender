@@ -994,6 +994,14 @@ static bool check_seam(const ProjPaintState *ps,
 	return 1;
 }
 
+#define SMALL_NUMBER  1.e-6f
+BLI_INLINE float shell_v2v2_normal_dir_to_dist(float n[2], float d[2])
+{
+	const float angle_cos = (normalize_v2(n) < SMALL_NUMBER) ? fabsf(dot_v2v2(d, n)) : 0.0f;
+	return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+}
+#undef SMALL_NUMBER
+
 /* Calculate outset UV's, this is not the same as simply scaling the UVs,
  * since the outset coords are a margin that keep an even distance from the original UV's,
  * note that the image aspect is taken into account */
@@ -1005,7 +1013,6 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	float no1[2], no2[2], no3[2], no4[2]; /* normals */
 	float dir1[2], dir2[2], dir3[2], dir4[2];
 	float ibuf_inv[2];
-	float angle_cos;
 
 	ibuf_inv[0] = 1.0f / (float)ibuf_x;
 	ibuf_inv[1] = 1.0f / (float)ibuf_y;
@@ -1042,8 +1049,6 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		normalize_v2(dir3);
 	}
 
-#define SMALL_NUMBER  1.e-6f
-
 	if (is_quad) {
 		if (cw) {
 			no1[0] = -dir4[1] - dir1[1];
@@ -1066,14 +1071,10 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 			no4[1] = -dir3[0] - dir4[0];
 		}
 
-		angle_cos = (normalize_v2(no1) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir4, no1)) : 0.0f;
-		a1 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
-		angle_cos = (normalize_v2(no2) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir1, no2)) : 0.0f;
-		a2 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
-		angle_cos = (normalize_v2(no3) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir2, no3)) : 0.0f;
-		a3 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
-		angle_cos = (normalize_v2(no4) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir3, no4)) : 0.0f;
-		a4 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+		a1 = shell_v2v2_normal_dir_to_dist(no1, dir4);
+		a2 = shell_v2v2_normal_dir_to_dist(no2, dir1);
+		a3 = shell_v2v2_normal_dir_to_dist(no3, dir2);
+		a4 = shell_v2v2_normal_dir_to_dist(no4, dir3);
 
 		mul_v2_fl(no1, a1 * scaler);
 		mul_v2_fl(no2, a2 * scaler);
@@ -1106,12 +1107,9 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 			no3[1] = -dir2[0] - dir3[0];
 		}
 
-		angle_cos = (normalize_v2(no1) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir3, no1)) : 0.0f;
-		a1 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
-		angle_cos = (normalize_v2(no2) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir1, no2)) : 0.0f;
-		a2 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
-		angle_cos = (normalize_v2(no3) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir2, no3)) : 0.0f;
-		a3 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+		a1 = shell_v2v2_normal_dir_to_dist(no1, dir3);
+		a2 = shell_v2v2_normal_dir_to_dist(no2, dir1);
+		a3 = shell_v2v2_normal_dir_to_dist(no3, dir2);
 
 		mul_v2_fl(no1, a1 * scaler);
 		mul_v2_fl(no2, a2 * scaler);
@@ -1124,8 +1122,6 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		mul_v2_v2(outset_uv[1], ibuf_inv);
 		mul_v2_v2(outset_uv[2], ibuf_inv);
 	}
-
-#undef SMALL_NUMBER
 }
 
 /*
