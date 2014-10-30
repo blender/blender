@@ -3159,37 +3159,22 @@ static void headerResize(TransInfo *t, float vec[3], char str[MAX_INFO_LEN])
 	}
 }
 
-/* FLT_EPSILON is too small [#29633], 0.0000001f starts to flip */
-#define TX_FLIP_EPS 0.00001f
-BLI_INLINE int tx_sign(const float a)
-{
-	return (a < -TX_FLIP_EPS ? 1 : a > TX_FLIP_EPS ? 2 : 3);
-}
-BLI_INLINE int tx_vec_sign_flip(const float a[3], const float b[3])
-{
-	return ((tx_sign(a[0]) & tx_sign(b[0])) == 0 ||
-	        (tx_sign(a[1]) & tx_sign(b[1])) == 0 ||
-	        (tx_sign(a[2]) & tx_sign(b[2])) == 0);
-}
-
-/* smat is reference matrix, only scaled */
+/**
+ * \a smat is reference matrix only.
+ *
+ * \note this is a tricky area, before making changes see: T29633, T42444
+ */
 static void TransMat3ToSize(float mat[3][3], float smat[3][3], float size[3])
 {
-	float vec[3];
-	
-	copy_v3_v3(vec, mat[0]);
-	size[0] = normalize_v3(vec);
-	copy_v3_v3(vec, mat[1]);
-	size[1] = normalize_v3(vec);
-	copy_v3_v3(vec, mat[2]);
-	size[2] = normalize_v3(vec);
-	
-	/* first tried with dotproduct... but the sign flip is crucial */
-	if (tx_vec_sign_flip(mat[0], smat[0]) ) size[0] = -size[0];
-	if (tx_vec_sign_flip(mat[1], smat[1]) ) size[1] = -size[1];
-	if (tx_vec_sign_flip(mat[2], smat[2]) ) size[2] = -size[2];
-}
+	float rmat[3][3];
 
+	mat3_to_rot_size(rmat, size, mat);
+
+	/* first tried with dotproduct... but the sign flip is crucial */
+	if (dot_v3v3(rmat[0], smat[0]) < 0.0f) size[0] = -size[0];
+	if (dot_v3v3(rmat[1], smat[1]) < 0.0f) size[1] = -size[1];
+	if (dot_v3v3(rmat[2], smat[2]) < 0.0f) size[2] = -size[2];
+}
 
 static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 {
