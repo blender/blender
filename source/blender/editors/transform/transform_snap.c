@@ -341,22 +341,15 @@ void applyProject(TransInfo *t)
 					if (t->tsnap.align && (t->flag & T_OBJECT)) {
 						/* handle alignment as well */
 						const float *original_normal;
-						float axis[3];
 						float mat[3][3];
-						float angle;
 						float totmat[3][3], smat[3][3];
-						float eul[3], fmat[3][3], quat[4];
+						float eul[3], fmat[3][3];
 						float obmat[3][3];
 
 						/* In pose mode, we want to align normals with Y axis of bones... */
 						original_normal = td->axismtx[2];
 
-						cross_v3_v3v3(axis, original_normal, no);
-						angle = saacos(dot_v3v3(original_normal, no));
-
-						axis_angle_to_quat(quat, axis, angle);
-
-						quat_to_mat3(mat, quat);
+						rotation_between_vecs_to_mat3(mat, original_normal, no);
 
 						mul_m3_m3m3(totmat, mat, td->mtx);
 						mul_m3_m3m3(smat, td->smtx, totmat);

@@ -4187,29 +4187,21 @@ static void applyTranslationValue(TransInfo *t, float vec[3])
 		
 		if (td->flag & TD_SKIP)
 			continue;
-		
+
 		/* handle snapping rotation before doing the translation */
 		if (usingSnappingNormal(t)) {
 			if (validSnappingNormal(t)) {
 				const float *original_normal;
-				float axis[3];
-				float quat[4];
 				float mat[3][3];
-				float angle;
 				
 				/* In pose mode, we want to align normals with Y axis of bones... */
 				if (t->flag & T_POSE)
 					original_normal = td->axismtx[1];
 				else
 					original_normal = td->axismtx[2];
-				
-				cross_v3_v3v3(axis, original_normal, t->tsnap.snapNormal);
-				angle = saacos(dot_v3v3(original_normal, t->tsnap.snapNormal));
-				
-				axis_angle_to_quat(quat, axis, angle);
-				
-				quat_to_mat3(mat, quat);
-				
+
+				rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
+
 				ElementRotation(t, td, mat, V3D_LOCAL);
 			}
 			else {
