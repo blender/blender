@@ -998,13 +998,14 @@ static bool check_seam(const ProjPaintState *ps,
  * since the outset coords are a margin that keep an even distance from the original UV's,
  * note that the image aspect is taken into account */
 static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const float scaler,
-                            const int ibuf_x, const int ibuf_y, const bool is_quad)
+                            const int ibuf_x, const int ibuf_y, const bool is_quad, const bool cw)
 {
 	float a1, a2, a3, a4 = 0.0f;
 	float puv[4][2]; /* pixelspace uv's */
 	float no1[2], no2[2], no3[2], no4[2]; /* normals */
 	float dir1[2], dir2[2], dir3[2], dir4[2];
 	float ibuf_inv[2];
+	float angle_cos;
 
 	ibuf_inv[0] = 1.0f / (float)ibuf_x;
 	ibuf_inv[1] = 1.0f / (float)ibuf_y;
@@ -1041,27 +1042,39 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		normalize_v2(dir3);
 	}
 
-	if (is_quad) {
-		a1 = shell_v2v2_mid_normalized_to_dist(dir4, dir1);
-		a2 = shell_v2v2_mid_normalized_to_dist(dir1, dir2);
-		a3 = shell_v2v2_mid_normalized_to_dist(dir2, dir3);
-		a4 = shell_v2v2_mid_normalized_to_dist(dir3, dir4);
-	}
-	else {
-		a1 = shell_v2v2_mid_normalized_to_dist(dir3, dir1);
-		a2 = shell_v2v2_mid_normalized_to_dist(dir1, dir2);
-		a3 = shell_v2v2_mid_normalized_to_dist(dir2, dir3);
-	}
+#define SMALL_NUMBER  1.e-6f
 
 	if (is_quad) {
-		sub_v2_v2v2(no1, dir4, dir1);
-		sub_v2_v2v2(no2, dir1, dir2);
-		sub_v2_v2v2(no3, dir2, dir3);
-		sub_v2_v2v2(no4, dir3, dir4);
-		normalize_v2(no1);
-		normalize_v2(no2);
-		normalize_v2(no3);
-		normalize_v2(no4);
+		if (cw) {
+			no1[0] = -dir4[1] - dir1[1];
+			no1[1] = dir4[0] + dir1[0];
+			no2[0] = -dir1[1] - dir2[1];
+			no2[1] = dir1[0] + dir2[0];
+			no3[0] = -dir2[1] - dir3[1];
+			no3[1] = dir2[0] + dir3[0];
+			no4[0] = -dir3[1] - dir4[1];
+			no4[1] = dir3[0] + dir4[0];
+		}
+		else {
+			no1[0] = dir4[1] + dir1[1];
+			no1[1] = -dir4[0] - dir1[0];
+			no2[0] = dir1[1] + dir2[1];
+			no2[1] = -dir1[0] - dir2[0];
+			no3[0] = dir2[1] + dir3[1];
+			no3[1] = -dir2[0] - dir3[0];
+			no4[0] = dir3[1] + dir4[1];
+			no4[1] = -dir3[0] - dir4[0];
+		}
+
+		angle_cos = (normalize_v2(no1) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir4, no1)) : 0.0f;
+		a1 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+		angle_cos = (normalize_v2(no2) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir1, no2)) : 0.0f;
+		a2 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+		angle_cos = (normalize_v2(no3) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir2, no3)) : 0.0f;
+		a3 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+		angle_cos = (normalize_v2(no4) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir3, no4)) : 0.0f;
+		a4 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+
 		mul_v2_fl(no1, a1 * scaler);
 		mul_v2_fl(no2, a2 * scaler);
 		mul_v2_fl(no3, a3 * scaler);
@@ -1076,12 +1089,43 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		mul_v2_v2(outset_uv[3], ibuf_inv);
 	}
 	else {
-		sub_v2_v2v2(no1, dir3, dir1);
-		sub_v2_v2v2(no2, dir1, dir2);
-		sub_v2_v2v2(no3, dir2, dir3);
-		normalize_v2(no1);
-		normalize_v2(no2);
-		normalize_v2(no3);
+		if (cw) {
+			no1[0] = -dir3[1] - dir1[1];
+			no1[1] = dir3[0] + dir1[0];
+			no2[0] = -dir1[1] - dir2[1];
+			no2[1] = dir1[0] + dir2[0];
+			no3[0] = -dir2[1] - dir3[1];
+			no3[1] = dir2[0] + dir3[0];
+		}
+		else {
+			no1[0] = dir3[1] + dir1[1];
+			no1[1] = -dir3[0] - dir1[0];
+			no2[0] = dir1[1] + dir2[1];
+			no2[1] = -dir1[0] - dir2[0];
+			no3[0] = dir2[1] + dir3[1];
+			no3[1] = -dir2[0] - dir3[0];
+		}
+
+		angle_cos = (normalize_v2(no1) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir3, no1)) : 0.0f;
+		a1 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+		angle_cos = (normalize_v2(no2) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir1, no2)) : 0.0f;
+		a2 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+		angle_cos = (normalize_v2(no3) < SMALL_NUMBER) ? fabsf(dot_v2v2(dir2, no3)) : 0.0f;
+		a3 = (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
+
+		if (a1 > 10.0) {
+			printf("lala a1 %f\n", a1);
+			fflush(stdout);
+		}
+		if (a2 > 10.0) {
+			printf("lala a2 %f\n", a2);
+			fflush(stdout);
+		}
+		if (a3 > 10.0) {
+			printf("lala a3 %f\n", a3);
+			fflush(stdout);
+		}
+
 		mul_v2_fl(no1, a1 * scaler);
 		mul_v2_fl(no2, a2 * scaler);
 		mul_v2_fl(no3, a3 * scaler);
@@ -1093,6 +1137,8 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		mul_v2_v2(outset_uv[1], ibuf_inv);
 		mul_v2_v2(outset_uv[2], ibuf_inv);
 	}
+
+#undef SMALL_NUMBER
 }
 
 /*
@@ -2513,7 +2559,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 
 
 			if (outset_uv[0][0] == FLT_MAX) /* first time initialize */
-				uv_image_outset(tf_uv_pxoffset, outset_uv, ps->seam_bleed_px, ibuf->x, ibuf->y, mf->v4 != 0);
+				uv_image_outset(tf_uv_pxoffset, outset_uv, ps->seam_bleed_px, ibuf->x, ibuf->y, mf->v4 != 0, (ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_CW) == 0);
 
 			/* ps->faceSeamUVs cant be modified when threading, now this is done we can unlock */
 			if (threaded)
