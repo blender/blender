@@ -1425,11 +1425,19 @@ void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])
 	/* scale */
 	/* note: mat4_to_size(ob->size, mat) fails for negative scale */
 	invert_m3_m3(imat3_n, mat3_n);
+
+	/* better not edit mat3 */
+#if 0
 	mul_m3_m3m3(mat3, imat3_n, mat3);
 
 	size[0] = mat3[0][0];
 	size[1] = mat3[1][1];
 	size[2] = mat3[2][2];
+#else
+	size[0] = dot_m3_v3_row_x(imat3_n, mat3[0]);
+	size[1] = dot_m3_v3_row_y(imat3_n, mat3[1]);
+	size[2] = dot_m3_v3_row_z(imat3_n, mat3[2]);
+#endif
 }
 
 void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[4][4])
