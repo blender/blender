@@ -125,6 +125,8 @@ def create_nb_project_main():
         f.write('    </configuration>\n')
         f.write('</project>\n')
 
+        f.close()
+
         f = open(join(PROJECT_DIR_NB, "configurations.xml"), 'w')
 
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
@@ -242,6 +244,8 @@ def create_nb_project_main():
         # todo
 
         f.write('</configurationDescriptor>\n')
+
+        f.close()
 
 
 def main():
