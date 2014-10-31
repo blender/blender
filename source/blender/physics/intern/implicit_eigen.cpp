@@ -503,7 +503,7 @@ BLI_INLINE void root_to_world_m3(Implicit_Data *data, int index, float r[3][3], 
 
 /* ================================ */
 
-bool BPH_mass_spring_solve(Implicit_Data *data, float dt, ImplicitSolverResult *result)
+bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSolverResult *result)
 {
 #ifdef USE_EIGEN_CORE
 	typedef ConjugateGradient solver_t;
@@ -555,7 +555,6 @@ bool BPH_mass_spring_solve(Implicit_Data *data, float dt, ImplicitSolverResult *
 #endif
 	
 	data->Vnew = data->V + data->dV;
-	data->Xnew = data->X + data->Vnew * dt;
 	
 	switch (cg.info()) {
 		case Eigen::Success:        result->status = BPH_SOLVER_SUCCESS;         break;
@@ -567,7 +566,13 @@ bool BPH_mass_spring_solve(Implicit_Data *data, float dt, ImplicitSolverResult *
 	result->iterations = cg.iterations();
 	result->error = cg.error();
 	
-	return cg.info() != Eigen::Success;
+	return cg.info() == Eigen::Success;
+}
+
+bool BPH_mass_spring_solve_positions(Implicit_Data *data, float dt)
+{
+	data->Xnew = data->X + data->Vnew * dt;
+	return true;
 }
 
 /* ================================ */
@@ -576,6 +581,14 @@ void BPH_mass_spring_apply_result(Implicit_Data *data)
 {
 	data->X = data->Xnew;
 	data->V = data->Vnew;
+}
+
+void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
+{
+	float m[3][3];
+	copy_m3_m3(m, I);
+	mul_m3_fl(m, mass);
+	data->iM.add(index, index, m);
 }
 
 void BPH_mass_spring_set_rest_transform(Implicit_Data *data, int index, float tfm[3][3])
@@ -610,12 +623,19 @@ void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, flo
 	if (v) root_to_world_v3(data, index, v, data->V.v3(index));
 }
 
-void BPH_mass_spring_set_vertex_mass(Implicit_Data *data, int index, float mass)
+void BPH_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3])
 {
-	float m[3][3];
-	copy_m3_m3(m, I);
-	mul_m3_fl(m, mass);
-	data->iM.add(index, index, m);
+	root_to_world_v3(data, index, x, data->X.v3(index));
+}
+
+void BPH_mass_spring_get_new_velocity(Implicit_Data *data, int index, float v[3])
+{
+	root_to_world_v3(data, index, v, data->V.v3(index));
+}
+
+void BPH_mass_spring_set_new_velocity(Implicit_Data *data, int index, const float v[3])
+{
+	world_to_root_v3(data, index, data->V.v3(index), v);
 }
 
 void BPH_mass_spring_clear_constraints(Implicit_Data *data)

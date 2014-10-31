@@ -220,6 +220,18 @@ void BPH_hair_volume_vertex_grid_forces(HairVertexGrid *grid, const float x[3], 
 	mul_m3_fl(dfdv, smoothfac);
 }
 
+void BPH_hair_volume_grid_velocity(HairVertexGrid *grid, const float x[3], const float v[3],
+                                   float fluid_factor,
+                                   float r_v[3])
+{
+	float gdensity, gvelocity[3], ggrad[3], gvelgrad[3][3];
+	
+	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->scale, x, &gdensity, gvelocity, ggrad, gvelgrad);
+	
+	/* XXX TODO implement FLIP method and use fluid_factor to blend between FLIP and PIC */
+	copy_v3_v3(r_v, gvelocity);
+}
+
 BLI_INLINE bool hair_grid_point_valid(const float vec[3], float gmin[3], float gmax[3])
 {
 	return !(vec[0] < gmin[0] || vec[1] < gmin[1] || vec[2] < gmin[2] ||

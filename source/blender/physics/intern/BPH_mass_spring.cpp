@@ -453,54 +453,6 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 	}
 }
 
-static void cloth_calc_volume_force(ClothModifierData *clmd)
-{
-	ClothSimSettings *parms = clmd->sim_parms;
-	Cloth *cloth = clmd->clothObject;
-	Implicit_Data *data = cloth->implicit;
-	int numverts = cloth->numverts;
-	
-	/* 2.0f is an experimental value that seems to give good results */
-	float smoothfac = 2.0f * parms->velocity_smooth;
-	// float collfac = 2.0f * parms->collider_friction;
-	float pressfac = parms->pressure;
-	float minpress = parms->pressure_threshold;
-	float gmin[3], gmax[3];
-	int i;
-	
-	hair_get_boundbox(clmd, gmin, gmax);
-	
-	/* gather velocities & density */
-	if (smoothfac > 0.0f || pressfac > 0.0f) {
-		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
-		
-		for (i = 0; i < numverts; i++) {
-			float x[3], v[3];
-			
-			BPH_mass_spring_get_motion_state(data, i, x, v);
-			BPH_hair_volume_add_vertex(vertex_grid, x, v);
-		}
-		BPH_hair_volume_normalize_vertex_grid(vertex_grid);
-		
-#if 0
-		/* apply velocity filter */
-		BPH_hair_volume_vertex_grid_filter_box(vertex_grid, clmd->sim_parms->voxel_filter_size);
-#endif
-		
-		for (i = 0; i < numverts; i++) {
-			float x[3], v[3], f[3], dfdx[3][3], dfdv[3][3];
-			
-			/* calculate volumetric forces */
-			BPH_mass_spring_get_motion_state(data, i, x, v);
-			BPH_hair_volume_vertex_grid_forces(vertex_grid, x, v, smoothfac, pressfac, minpress, f, dfdx, dfdv);
-			/* apply on hair data */
-			BPH_mass_spring_force_extern(data, i, f, dfdx, dfdv);
-		}
-		
-		BPH_hair_volume_free_vertex_grid(vertex_grid);
-	}
-}
-
 static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListBase *effectors, float time)
 {
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
@@ -525,7 +477,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 	}
 #endif
 
-	cloth_calc_volume_force(clmd);
+	/* cloth_calc_volume_force(clmd); */
 
 #ifdef CLOTH_FORCE_DRAG
 	BPH_mass_spring_force_drag(data, drag);
@@ -567,6 +519,125 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 		// only handle active springs
 		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
 			cloth_calc_spring_force(clmd, spring, time);
+	}
+}
+
+#if 0
+static void cloth_calc_volume_force(ClothModifierData *clmd)
+{
+	ClothSimSettings *parms = clmd->sim_parms;
+	Cloth *cloth = clmd->clothObject;
+	Implicit_Data *data = cloth->implicit;
+	int numverts = cloth->numverts;
+	ClothVertex *vert;
+	
+	/* 2.0f is an experimental value that seems to give good results */
+	float smoothfac = 2.0f * parms->velocity_smooth;
+	float collfac = 2.0f * parms->collider_friction;
+	float pressfac = parms->pressure;
+	float minpress = parms->pressure_threshold;
+	float gmin[3], gmax[3];
+	int i;
+	
+	hair_get_boundbox(clmd, gmin, gmax);
+	
+	/* gather velocities & density */
+	if (smoothfac > 0.0f || pressfac > 0.0f) {
+		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
+		
+		vert = cloth->verts;
+		for (i = 0; i < numverts; i++, vert++) {
+			float x[3], v[3];
+			
+			if (vert->solver_index < 0) {
+				copy_v3_v3(x, vert->x);
+				copy_v3_v3(v, vert->v);
+			}
+			else {
+				BPH_mass_spring_get_motion_state(data, vert->solver_index, x, v);
+			}
+			BPH_hair_volume_add_vertex(vertex_grid, x, v);
+		}
+		BPH_hair_volume_normalize_vertex_grid(vertex_grid);
+		
+#if 0
+		/* apply velocity filter */
+		BPH_hair_volume_vertex_grid_filter_box(vertex_grid, clmd->sim_parms->voxel_filter_size);
+#endif
+		
+		vert = cloth->verts;
+		for (i = 0; i < numverts; i++, vert++) {
+			float x[3], v[3], f[3], dfdx[3][3], dfdv[3][3];
+			
+			if (vert->solver_index < 0)
+				continue;
+			
+			/* calculate volumetric forces */
+			BPH_mass_spring_get_motion_state(data, vert->solver_index, x, v);
+			BPH_hair_volume_vertex_grid_forces(vertex_grid, x, v, smoothfac, pressfac, minpress, f, dfdx, dfdv);
+			/* apply on hair data */
+			BPH_mass_spring_force_extern(data, vert->solver_index, f, dfdx, dfdv);
+		}
+		
+		BPH_hair_volume_free_vertex_grid(vertex_grid);
+	}
+}
+#endif
+
+static void cloth_continuum_step(ClothModifierData *clmd)
+{
+	ClothSimSettings *parms = clmd->sim_parms;
+	Cloth *cloth = clmd->clothObject;
+	Implicit_Data *data = cloth->implicit;
+	int numverts = cloth->numverts;
+	ClothVertex *vert;
+	
+	const float fluid_factor = 0.95f; /* blend between PIC and FLIP methods */
+	/* 2.0f is an experimental value that seems to give good results */
+	float smoothfac = 2.0f * parms->velocity_smooth;
+	float collfac = 2.0f * parms->collider_friction;
+	float pressfac = parms->pressure;
+	float minpress = parms->pressure_threshold;
+	float gmin[3], gmax[3];
+	int i;
+	
+	hair_get_boundbox(clmd, gmin, gmax);
+	
+	/* gather velocities & density */
+	if (smoothfac > 0.0f || pressfac > 0.0f) {
+		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
+		
+		vert = cloth->verts;
+		for (i = 0; i < numverts; i++, vert++) {
+			float x[3], v[3];
+			
+			BPH_mass_spring_get_motion_state(data, i, x, v);
+			BPH_hair_volume_add_vertex(vertex_grid, x, v);
+		}
+		BPH_hair_volume_normalize_vertex_grid(vertex_grid);
+		
+#if 0
+		/* apply velocity filter */
+		BPH_hair_volume_vertex_grid_filter_box(vertex_grid, clmd->sim_parms->voxel_filter_size);
+#endif
+		
+		vert = cloth->verts;
+		for (i = 0; i < numverts; i++, vert++) {
+			float x[3], v[3], nv[3];
+			
+			/* calculate volumetric velocity influence */
+			BPH_mass_spring_get_position(data, i, x);
+			BPH_mass_spring_get_new_velocity(data, i, v);
+			
+			BPH_hair_volume_grid_velocity(vertex_grid, x, v, fluid_factor, nv);
+			
+			interp_v3_v3v3(nv, v, nv, smoothfac);
+			
+			/* apply on hair data */
+			BPH_mass_spring_set_new_velocity(data, i, nv);
+		}
+		
+		BPH_hair_volume_free_vertex_grid(vertex_grid);
 	}
 }
 
@@ -686,8 +757,12 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		cloth_calc_force(clmd, frame, effectors, step);
 		
 		// calculate new velocity and position
-		BPH_mass_spring_solve(id, dt, &result);
+		BPH_mass_spring_solve_velocities(id, dt, &result);
 		cloth_record_result(clmd, &result, clmd->sim_parms->stepsPerFrame);
+		
+		cloth_continuum_step(clmd);
+		
+		BPH_mass_spring_solve_positions(id, dt);
 		
 		BPH_mass_spring_apply_result(id);
 		

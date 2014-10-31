@@ -111,20 +111,26 @@ BLI_INLINE int hash_collpair(int type, CollPair *collpair)
 
 void BPH_mass_spring_solver_debug_data(struct Implicit_Data *id, struct SimDebugData *debug_data);
 
+void BPH_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
 void BPH_mass_spring_set_rest_transform(struct Implicit_Data *data, int index, float rot[3][3]);
 
 void BPH_mass_spring_set_motion_state(struct Implicit_Data *data, int index, const float x[3], const float v[3]);
 void BPH_mass_spring_set_position(struct Implicit_Data *data, int index, const float x[3]);
 void BPH_mass_spring_set_velocity(struct Implicit_Data *data, int index, const float v[3]);
 void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, float x[3], float v[3]);
-void BPH_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
+void BPH_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3]);
+
+/* modified velocity during solver step */
+void BPH_mass_spring_get_new_velocity(struct Implicit_Data *data, int index, float v[3]);
+void BPH_mass_spring_set_new_velocity(struct Implicit_Data *data, int index, const float v[3]);
 
 void BPH_mass_spring_clear_constraints(struct Implicit_Data *data);
 void BPH_mass_spring_add_constraint_ndof0(struct Implicit_Data *data, int index, const float dV[3]);
 void BPH_mass_spring_add_constraint_ndof1(struct Implicit_Data *data, int index, const float c1[3], const float c2[3], const float dV[3]);
 void BPH_mass_spring_add_constraint_ndof2(struct Implicit_Data *data, int index, const float c1[3], const float dV[3]);
 
-bool BPH_mass_spring_solve(struct Implicit_Data *data, float dt, struct ImplicitSolverResult *result);
+bool BPH_mass_spring_solve_velocities(struct Implicit_Data *data, float dt, struct ImplicitSolverResult *result);
+bool BPH_mass_spring_solve_positions(struct Implicit_Data *data, float dt);
 void BPH_mass_spring_apply_result(struct Implicit_Data *data);
 
 /* Clear the force vector at the beginning of the time step */
@@ -170,6 +176,20 @@ void BPH_hair_volume_normalize_vertex_grid(struct HairVertexGrid *grid);
 #if 0 /* XXX weighting is incorrect, disabled for now */
 void BPH_hair_volume_vertex_grid_filter_box(struct HairVertexGrid *grid, int kernel_size);
 #endif
+
+/* Effect of fluid simulation grid on velocities.
+ * fluid_factor controls blending between PIC (Particle-in-Cell)
+ *     and FLIP (Fluid-Implicit-Particle) methods (0 = only PIC, 1 = only FLIP)
+ */
+void BPH_hair_volume_grid_velocity(struct HairVertexGrid *grid, const float x[3], const float v[3],
+                                   float fluid_factor,
+                                   float r_v[3]);
+/* XXX Warning: expressing grid effects on velocity as a force is not very stable,
+ * due to discontinuities in interpolated values!
+ * Better use hybrid approaches such as described in
+ * "Detail Preserving Continuum Simulation of Straight Hair"
+ * (McAdams, Selle 2009)
+ */
 void BPH_hair_volume_vertex_grid_forces(struct HairVertexGrid *grid, const float x[3], const float v[3],
                                         float smoothfac, float pressurefac, float minpressure,
                                         float f[3], float dfdx[3][3], float dfdv[3][3]);
