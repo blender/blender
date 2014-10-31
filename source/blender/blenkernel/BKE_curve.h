@@ -85,8 +85,8 @@ void BKE_curve_texspace_get(struct Curve *cu, float r_loc[3], float r_rot[3], fl
 bool BKE_curve_minmax(struct Curve *cu, bool use_radius, float min[3], float max[3]);
 bool BKE_curve_center_median(struct Curve *cu, float cent[3]);
 bool BKE_curve_center_bounds(struct Curve *cu, float cent[3]);
-void BKE_curve_transform_ex(struct Curve *cu, float mat[4][4], bool do_keys, const float unit_scale);
-void BKE_curve_transform(struct Curve *cu, float mat[4][4], bool do_keys);
+void BKE_curve_transform_ex(struct Curve *cu, float mat[4][4], const bool do_keys, const float unit_scale);
+void BKE_curve_transform(struct Curve *cu, float mat[4][4], const bool do_keys);
 void BKE_curve_translate(struct Curve *cu, float offset[3], const bool do_keys);
 void BKE_curve_material_index_remove(struct Curve *cu, int index);
 void BKE_curve_material_index_clear(struct Curve *cu);
