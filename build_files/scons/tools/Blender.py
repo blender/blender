@@ -813,9 +813,6 @@ def AppIt(target=None, source=None, env=None):
             commands.getoutput(cmd)
             cmd = 'install_name_tool -change @loader_path/libiomp5.dylib  @loader_path/../Resources/lib/libiomp5.dylib %s/%s.app/Contents/MacOS/%s'%(installdir, binary, binary) # change ref to libiomp5 ( blender )
             commands.getoutput(cmd)
-    notification = 'display notification "Finished compiling %s" with title "Blender" sound name "default"'%(binary.upper())
-    cmd = "osascript -e '%s'"%(notification)
-    commands.getoutput(cmd)
 
 # extract copy system python, be sure to update other build systems
 # when making changes to the files that are copied.
