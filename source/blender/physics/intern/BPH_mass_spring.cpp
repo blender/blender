@@ -645,6 +645,37 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 		/* store basic grid info in the modifier data */
 		BPH_hair_volume_grid_geometry(vertex_grid, NULL, clmd->hair_grid_res, clmd->hair_grid_min, clmd->hair_grid_max);
 		
+#if 0 /* DEBUG hair velocity vector field */
+		{
+			const int size = 64;
+			int i, j;
+			float offset[3], a[3], b[3];
+			const int axis = 0;
+			const float shift = 0.45f;
+			
+			copy_v3_v3(offset, clmd->hair_grid_min);
+			zero_v3(a);
+			zero_v3(b);
+			
+			offset[axis] = interpf(clmd->hair_grid_max[axis], clmd->hair_grid_min[axis], shift);
+			a[(axis+1) % 3] = clmd->hair_grid_max[(axis+1) % 3] - clmd->hair_grid_min[(axis+1) % 3];
+			b[(axis+2) % 3] = clmd->hair_grid_max[(axis+2) % 3] - clmd->hair_grid_min[(axis+2) % 3];
+			
+			for (j = 0; j < size; ++j) {
+				for (i = 0; i < size; ++i) {
+					float x[3], v[3], nv[3];
+					madd_v3_v3v3fl(x, offset, a, (float)i / (float)(size-1));
+					madd_v3_v3fl(x, b, (float)j / (float)(size-1));
+					zero_v3(v);
+					
+					BPH_hair_volume_grid_velocity(vertex_grid, x, v, 0.0f, nv);
+					
+					BKE_sim_debug_data_add_vector(clmd->debug_data, x, nv, 0.4, 0, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3112));
+				}
+			}
+		}
+#endif
+		
 		BPH_hair_volume_free_vertex_grid(vertex_grid);
 	}
 }
