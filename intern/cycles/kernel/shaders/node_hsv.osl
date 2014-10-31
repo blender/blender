@@ -35,6 +35,11 @@ shader node_hsv(
 
 	Color = hsv_to_rgb(Color);
 
+	// Clamp color to prevent negative values cauzed by oversaturation.
+	Color[0] = max(Color[0], 0.0);
+	Color[1] = max(Color[1], 0.0);
+	Color[2] = max(Color[2], 0.0);
+
 	ColorOut = mix(ColorIn, Color, Fac);
 }
 
