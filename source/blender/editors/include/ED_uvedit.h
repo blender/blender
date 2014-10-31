@@ -101,15 +101,15 @@ void ED_uvedit_live_unwrap_end(short cancel);
 
 void ED_uvedit_live_unwrap(struct Scene *scene, struct Object *obedit);
 void ED_uvedit_pack_islands(struct Scene *scene, struct Object *ob, struct BMesh *bm, bool selected, bool correct_aspect, bool do_rotate);
-void ED_uvedit_cube_project_unwrap(struct Object *ob, struct BMesh *bm, float cube_size, bool use_select);
+void ED_uvedit_unwrap_cube_project(struct Object *ob, struct BMesh *bm, float cube_size, bool use_select);
 
 /* single call up unwrap using scene settings, used for edge tag unwrapping */
 void ED_unwrap_lscm(struct Scene *scene, struct Object *obedit, const short sel);
 
 
 /* uvedit_draw.c */
-void draw_image_cursor(struct ARegion *ar, const float cursor[2]);
-void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit, struct Object *obact);
+void ED_image_draw_cursor(struct ARegion *ar, const float cursor[2]);
+void ED_uvedit_draw_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit, struct Object *obact);
 
 /* uvedit_buttons.c */
 void ED_uvedit_buttons_register(struct ARegionType *art);

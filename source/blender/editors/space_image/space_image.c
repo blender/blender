@@ -712,7 +712,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
-	draw_uvedit_main(sima, ar, scene, obedit, obact);
+	ED_uvedit_draw_main(sima, ar, scene, obedit, obact);
 
 	/* check for mask (delay draw) */
 	if (ED_space_image_show_uvedit(sima, obedit)) {
@@ -772,12 +772,12 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 		                    NULL, C);
 
 		UI_view2d_view_ortho(v2d);
-		draw_image_cursor(ar, sima->cursor);
+		ED_image_draw_cursor(ar, sima->cursor);
 		UI_view2d_view_restore(C);
 	}
 	else if (curve) {
 		UI_view2d_view_ortho(v2d);
-		draw_image_cursor(ar, sima->cursor);
+		ED_image_draw_cursor(ar, sima->cursor);
 		UI_view2d_view_restore(C);
 	}
 

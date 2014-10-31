@@ -55,7 +55,7 @@
 #include "ED_screen.h"
 #include "ED_clip.h"
 #include "ED_transform.h"
-#include "ED_uvedit.h"  /* just for draw_image_cursor */
+#include "ED_uvedit.h"  /* just for ED_image_draw_cursor */
 
 #include "IMB_imbuf.h"
 
@@ -1218,7 +1218,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		glScalef(zoomx, zoomy, 0);
 		glMultMatrixf(sc->stabmat);
 		glScalef(width, height, 0);
-		draw_image_cursor(ar, sc->cursor);
+		ED_image_draw_cursor(ar, sc->cursor);
 		glPopMatrix();
 	}
 

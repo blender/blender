@@ -1601,7 +1601,7 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
 
 /******************* Cube Project operator ****************/
 
-void ED_uvedit_cube_project_unwrap(Object *ob, BMesh *bm, float cube_size, bool use_select)
+void ED_uvedit_unwrap_cube_project(Object *ob, BMesh *bm, float cube_size, bool use_select)
 {
 	BMFace *efa;
 	BMLoop *l;
@@ -1662,8 +1662,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	ED_uvedit_cube_project_unwrap(obedit, em->bm, cube_size, true);
-
+	ED_uvedit_unwrap_cube_project(obedit, em->bm, cube_size, true);
 	uv_map_clip_correct(scene, obedit, em, op);
 
 	DAG_id_tag_update(obedit->data, 0);
