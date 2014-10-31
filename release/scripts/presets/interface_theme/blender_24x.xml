@@ -433,18 +433,18 @@
     <nla_editor>
       <ThemeNLAEditor grid="#5e5e5e"
                       view_sliders="#969696"
-                      active_action="#00000000"
-                      active_action_unset="#00000000"
+                      active_action="#cc701a66"
+                      active_action_unset="#9987614d"
                       strips="#0c0a0a"
                       strips_selected="#ff8c00"
-                      transition_strips="#000000"
-                      transition_strips_selected="#000000"
-                      meta_strips="#000000"
-                      meta_strips_selected="#000000"
-                      sound_strips="#000000"
-                      sound_strips_selected="#000000"
-                      tweak="#000000"
-                      tweak_duplicate="#000000"
+                      transition_strips="#1c2630"
+                      transition_strips_selected="#2e75db"
+                      meta_strips="#332642"
+                      meta_strips_selected="#692196"
+                      sound_strips="#2b3d3d"
+                      sound_strips_selected="#1f7a7a"
+                      tweak="#4df31a"
+                      tweak_duplicate="#d90000"
                       keyframe_border="#000000ff"
                       keyframe_border_selected="#000000ff"
                       frame_current="#60c040">
@@ -505,7 +505,7 @@
                       keyframe_jitter_selected="#61c042"
                       keyframe_border="#000000ff"
                       keyframe_border_selected="#000000ff"
-                      summary="#00000000">
+                      summary="#cc701a66">
         <space>
           <ThemeSpaceGeneric back="#a0a0a0"
                              title="#000000"
