@@ -2501,6 +2501,21 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_ClothModifier_show_debug_data_get", "rna_ClothModifier_show_debug_data_set");
 	RNA_def_property_ui_text(prop, "Debug", "Show debug info");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "hair_grid_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "hair_grid_min");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Hair Grid Minimum", "");
+
+	prop = RNA_def_property(srna, "hair_grid_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "hair_grid_max");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Hair Grid Maximum", "");
+
+	prop = RNA_def_property(srna, "hair_grid_resolution", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "hair_grid_res");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Hair Grid Resolution", "");
 }
 
 static void rna_def_modifier_smoke(BlenderRNA *brna)
