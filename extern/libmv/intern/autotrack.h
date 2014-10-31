@@ -27,6 +27,8 @@
 #ifndef LIBMV_C_API_AUTOTRACK_H_
 #define LIBMV_C_API_AUTOTRACK_H_
 
+#include "intern/frame_accessor.h"
+#include "intern/tracksN.h"
 #include "intern/track_region.h"
 #include "intern/region.h"
 
@@ -34,9 +36,7 @@
 extern "C" {
 #endif
 
-typedef struct libmv_FrameAccessor libmv_FrameAccessor;
 typedef struct libmv_AutoTrack libmv_AutoTrack;
-typedef struct libmv_Marker libmv_Marker;
 
 typedef struct libmv_AutoTrackOptions {
   libmv_TrackRegionOptions track_region;

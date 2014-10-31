@@ -29,13 +29,13 @@
 
 #include <stdint.h>
 
+#include "intern/image.h"
 #include "intern/region.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct libmv_FloatImage libmv_FloatImage;
 typedef struct libmv_FrameAccessor libmv_FrameAccessor;
 typedef struct libmv_FrameTransform libmv_FrameTransform;
 typedef struct libmv_FrameAccessorUserData libmv_FrameAccessorUserData;
