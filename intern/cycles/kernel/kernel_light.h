@@ -680,22 +680,5 @@ ccl_device int light_select_num_samples(KernelGlobals *kg, int index)
 	return __float_as_int(data3.x);
 }
 
-ccl_device int lamp_light_eval_sample(KernelGlobals *kg, float randt)
-{
-	/* sample index */
-	int index = light_distribution_sample(kg, randt);
-
-	/* fetch light data */
-	float4 l = kernel_tex_fetch(__light_distribution, index);
-	int prim = __float_as_int(l.y);
-
-	if(prim < 0) {
-		int lamp = -prim-1;
-		return lamp;
-	}
-	else
-		return LAMP_NONE;
-}
-
 CCL_NAMESPACE_END
 
