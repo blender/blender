@@ -152,6 +152,8 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 		{WALK_MODAL_JUMP, "JUMP", 0, "Jump", "Jump when in walk mode"},
 		{WALK_MODAL_JUMP_STOP, "JUMP_STOP", 0, "Jump Stop", "Stop pushing jump"},
 
+		{WALK_MODAL_TOGGLE, "GRAVITY_TOGGLE", 0, "Toggle Gravity", "Toggle gravity effect"},
+
 		{0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Walk Modal");
