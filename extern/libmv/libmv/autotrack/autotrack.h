@@ -37,7 +37,7 @@ using libmv::CameraIntrinsics;
 using libmv::TrackRegionOptions;
 using libmv::TrackRegionResult;
 
-class FrameAccessor;
+struct FrameAccessor;
 class OperationListener;
 
 // The coordinator of all tracking operations; keeps track of all state

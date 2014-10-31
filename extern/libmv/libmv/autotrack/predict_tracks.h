@@ -26,7 +26,7 @@
 namespace mv {
 
 class Tracks;
-class Marker;
+struct Marker;
 
 // Predict the position of the given marker, and update it accordingly. The
 // existing position will be overwritten.

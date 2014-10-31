@@ -86,7 +86,7 @@ typedef struct libmv_Marker {
 
 #ifdef __cplusplus
 namespace mv {
-  class Marker;
+  struct Marker;
 }
 void libmv_apiMarkerToMarker(const libmv_Marker& libmv_marker,
                              mv::Marker *marker);
