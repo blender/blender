@@ -31,6 +31,7 @@
 #define __ED_UVEDIT_H__
 
 struct ARegionType;
+struct BMesh;
 struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
@@ -52,6 +53,7 @@ void ED_keymap_uvedit(struct wmKeyConfig *keyconf);
 
 void ED_uvedit_assign_image(struct Main *bmain, struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
 bool ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float min[2], float max[2]);
+void ED_uvedit_select_all(struct BMesh *bm);
 
 bool ED_object_get_active_image(struct Object *ob, int mat_nr,
                                 struct Image **r_ima, struct ImageUser **r_iuser, struct bNode **r_node, struct bNodeTree **r_ntree);
@@ -98,9 +100,12 @@ void ED_uvedit_live_unwrap_re_solve(void);
 void ED_uvedit_live_unwrap_end(short cancel);
 
 void ED_uvedit_live_unwrap(struct Scene *scene, struct Object *obedit);
+void ED_uvedit_pack_islands(struct Scene *scene, struct Object *ob, struct BMesh *bm, bool selected, bool correct_aspect, bool do_rotate);
+void ED_uvedit_cube_project_unwrap(struct Object *ob, struct BMesh *bm, float cube_size, bool use_select);
 
 /* single call up unwrap using scene settings, used for edge tag unwrapping */
 void ED_unwrap_lscm(struct Scene *scene, struct Object *obedit, const short sel);
+
 
 /* uvedit_draw.c */
 void draw_image_cursor(struct ARegion *ar, const float cursor[2]);

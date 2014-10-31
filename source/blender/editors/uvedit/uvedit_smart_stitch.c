@@ -1660,7 +1660,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		return 0;
 	}
 
-	uvedit_get_aspect(scene, obedit, em, &aspx, &aspy);
+	uvedit_get_aspect(scene, obedit, em->bm, &aspx, &aspy);
 	state->aspect = aspx / aspy;
 
 	/* Entirely possible if redoing last operator that static island is bigger than total number of islands.

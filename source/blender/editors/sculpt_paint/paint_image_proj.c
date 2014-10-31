@@ -105,6 +105,9 @@
 
 #include "IMB_colormanagement.h"
 
+#include "bmesh.h"
+//#include "bmesh_tools.h"
+
 #include "paint_intern.h"
 
 /* Defines and Structs */
@@ -5233,9 +5236,9 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 	
 	BKE_texpaint_slot_refresh_cache(scene, ma);
 	DAG_id_tag_update(&ma->id, 0);
-	WM_event_add_notifier(C, NC_MATERIAL, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_MATERIAL, ma);
 	/* we need a notifier for data change since we change the displayed modifier uvs */
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);			
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	return OPERATOR_FINISHED;
 }
 
@@ -5254,3 +5257,64 @@ void PAINT_OT_delete_texture_paint_slot(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	/* no checks here, poll function does them for us */
+	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Mesh *me = ob->data;
+	bool synch_selection = (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+
+	BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default);
+
+	/* turn synch selection off, since we are not in edit mode we need to ensure only the uv flags are tested */
+	scene->toolsettings->uv_flag &= ~UV_SYNC_SELECTION;
+
+	ED_mesh_uv_texture_ensure(me, NULL);
+
+	BM_mesh_bm_from_me(bm, me, true, false, 0);
+
+	/* select all uv loops first - pack parameters needs this to make sure charts are registered */
+	ED_uvedit_select_all(bm);
+	ED_uvedit_cube_project_unwrap(ob, bm, 1.0, false);
+	/* set the margin really quickly before the packing operation*/
+	scene->toolsettings->uvcalc_margin = 0.001f;
+	ED_uvedit_pack_islands(scene, ob, bm, false, false, true);
+	BM_mesh_bm_to_me(bm, me, false);
+	BM_mesh_free(bm);
+
+	if (synch_selection)
+		scene->toolsettings->uv_flag |= UV_SYNC_SELECTION;
+
+	DAG_id_tag_update(ob->data, 0);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);
+	return OPERATOR_FINISHED;
+}
+
+static int add_simple_uvs_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+
+	if (!ob || ob->type != OB_MESH || ob->mode != OB_MODE_TEXTURE_PAINT)
+		return false;
+
+	return true;
+}
+
+void PAINT_OT_add_simple_uvs(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add simple UVs";
+	ot->description = "Add cube map uvs on mesh";
+	ot->idname = "PAINT_OT_add_simple_uvs";
+
+	/* api callbacks */
+	ot->exec = add_simple_uvs_exec;
+	ot->poll = add_simple_uvs_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+

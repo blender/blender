@@ -336,6 +336,26 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set)
 	return layernum_dst;
 }
 
+void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name)
+{
+	BMEditMesh *em;
+	int layernum_dst;
+
+	if (me->edit_btmesh) {
+		em = me->edit_btmesh;
+
+		layernum_dst = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
+		if (layernum_dst == 0)
+			ED_mesh_uv_texture_add(me, name, true);
+	}
+	else {
+		layernum_dst = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+		if (layernum_dst == 0)
+			ED_mesh_uv_texture_add(me, name, true);
+	}
+}
+
+
 bool ED_mesh_uv_texture_remove_index(Mesh *me, const int n)
 {
 	CustomData *pdata = GET_CD_DATA(me, pdata), *ldata = GET_CD_DATA(me, ldata);

@@ -41,6 +41,7 @@ struct SpaceImage;
 struct UvElementMap;
 struct wmOperatorType;
 struct BMEditMesh;
+struct BMesh;
 struct BMFace;
 struct BMLoop;
 struct BMEdge;
@@ -71,7 +72,7 @@ void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct BMEditM
 /* utility tool functions */
 
 void uvedit_live_unwrap_update(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit);
-void uvedit_get_aspect(struct Scene *scene, struct Object *ob, struct BMEditMesh *em, float *aspx, float *aspy);
+void uvedit_get_aspect(struct Scene *scene, struct Object *ob, struct BMesh *em, float *aspx, float *aspy);
 
 /* operators */
 

@@ -668,6 +668,24 @@ bool ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], 
 	return changed;
 }
 
+/* Be careful when using this, it bypasses all synchronization options */
+void ED_uvedit_select_all(BMesh *bm)
+{
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	MLoopUV *luv;
+
+	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+			luv->flag |= MLOOPUV_VERTSEL;
+		}
+	}
+}
+
 static bool ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2])
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
