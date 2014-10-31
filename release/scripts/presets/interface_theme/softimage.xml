@@ -5,6 +5,7 @@
                           menu_shadow_width="12"
                           icon_file=""
                           icon_alpha="1"
+                          emboss="#ffffff05"
                           axis_x="#ff5a5a"
                           axis_y="#58ff58"
                           axis_z="#6262ff">
@@ -747,6 +748,7 @@
       <ThemeNodeEditor node_selected="#ffffff"
                        node_active="#ffffff"
                        wire="#222222"
+                       wire_inner="#737373"
                        wire_select="#ffffff"
                        selected_text="#ffffff"
                        node_backdrop="#d4d4d4ff"
@@ -970,7 +972,6 @@
                        locked_marker="#7f7f7f"
                        path_before="#22d8d1"
                        path_after="#5a7575"
-                       grid="#5e5e5e"
                        frame_current="#f06868"
                        strips="#0c0a0a"
                        strips_selected="#ff8c00"
@@ -1127,9 +1128,9 @@
       <ThemeFontStyle points="12"
                       font_kerning_style="FITTED"
                       shadow="1"
-                      shadow_offset_x="1"
+                      shadow_offset_x="0"
                       shadow_offset_y="-1"
-                      shadow_alpha="0.278"
+                      shadow_alpha="0.15"
                       shadow_value="1">
       </ThemeFontStyle>
     </panel_title>

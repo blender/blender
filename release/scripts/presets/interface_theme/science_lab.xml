@@ -5,6 +5,7 @@
                           menu_shadow_width="12"
                           icon_file=""
                           icon_alpha="1"
+                          emboss="#ffffff05"
                           axis_x="#dc4800"
                           axis_y="#73dc00"
                           axis_z="#00c2ff">
@@ -286,6 +287,7 @@
                    editmesh_active="#e4ffebab"
                    normal="#22dddd"
                    vertex_normal="#2361dd"
+                   split_normal="#dd23dd"
                    bone_solid="#2890e8"
                    bone_pose="#50c8ff"
                    bone_pose_active="#8cffff"
@@ -746,6 +748,7 @@
       <ThemeNodeEditor node_selected="#6ebdff"
                        node_active="#fefff3"
                        wire="#9effc5"
+                       wire_inner="#737373"
                        wire_select="#99d9ff"
                        selected_text="#7f7070"
                        node_backdrop="#9b9b9bb9"
@@ -969,7 +972,6 @@
                        locked_marker="#7f7f7f"
                        path_before="#ff0000"
                        path_after="#0000ff"
-                       grid="#5e5e5e"
                        frame_current="#60c040"
                        strips="#0c0a0a"
                        strips_selected="#ff8c00"
@@ -1125,21 +1127,21 @@
     <panel_title>
       <ThemeFontStyle points="12"
                       font_kerning_style="FITTED"
-                      shadow="4"
+                      shadow="1"
                       shadow_offset_x="0"
-                      shadow_offset_y="0"
-                      shadow_alpha="0.3"
-                      shadow_value="0">
+                      shadow_offset_y="-1"
+                      shadow_alpha="0.15"
+                      shadow_value="1">
       </ThemeFontStyle>
     </panel_title>
     <widget_label>
-      <ThemeFontStyle points="12"
+      <ThemeFontStyle points="11"
                       font_kerning_style="FITTED"
-                      shadow="4"
+                      shadow="3"
                       shadow_offset_x="0"
-                      shadow_offset_y="0"
-                      shadow_alpha="0.5"
-                      shadow_value="0">
+                      shadow_offset_y="-1"
+                      shadow_alpha="0.15"
+                      shadow_value="1">
       </ThemeFontStyle>
     </widget_label>
     <widget>
@@ -1147,7 +1149,7 @@
                       font_kerning_style="FITTED"
                       shadow="0"
                       shadow_offset_x="0"
-                      shadow_offset_y="-1"
+                      shadow_offset_y="0"
                       shadow_alpha="0.25"
                       shadow_value="0">
       </ThemeFontStyle>
