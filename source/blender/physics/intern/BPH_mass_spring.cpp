@@ -593,9 +593,7 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 	ClothVertex *vert;
 	
 	const float fluid_factor = 0.95f; /* blend between PIC and FLIP methods */
-	/* 2.0f is an experimental value that seems to give good results */
-	float smoothfac = 2.0f * parms->velocity_smooth;
-	float collfac = 2.0f * parms->collider_friction;
+	float smoothfac = parms->velocity_smooth;
 	float pressfac = parms->pressure;
 	float minpress = parms->pressure_threshold;
 	float gmin[3], gmax[3];
