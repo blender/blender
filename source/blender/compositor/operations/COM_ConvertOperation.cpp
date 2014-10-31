@@ -292,6 +292,9 @@ void ConvertHSVToRGBOperation::executePixelSampled(float output[4], float x, flo
 	float inputColor[4];
 	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
 	hsv_to_rgb_v(inputColor, output);
+	output[0] = max_ff(output[0], 0.0f);
+	output[1] = max_ff(output[1], 0.0f);
+	output[2] = max_ff(output[2], 0.0f);
 	output[3] = inputColor[3];
 }
 
