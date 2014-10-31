@@ -43,7 +43,7 @@ public:
 
 #endif
 
-class float3;
+struct float3;
 
 std::ostream& operator <<(std::ostream &os,
                           const float3 &value);
