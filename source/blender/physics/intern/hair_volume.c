@@ -545,7 +545,6 @@ bool BPH_hair_volume_get_texture_data(HairVertexGrid *grid, VoxelData *vd)
 					break;
 				
 				case TEX_VD_HAIRVELOCITY: {
-					float tmp = grid->verts[i].velocity[1];
 					vd->dataset[i + 0*totres] = grid->verts[i].velocity[0];
 					vd->dataset[i + 1*totres] = grid->verts[i].velocity[1];
 					vd->dataset[i + 2*totres] = grid->verts[i].velocity[2];
