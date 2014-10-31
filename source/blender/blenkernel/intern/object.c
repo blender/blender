@@ -2154,24 +2154,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 			int numVerts = dm->getNumVerts(dm);
 
 			if (nr < numVerts) {
-				/* avoid dm->getVertDataArray() since it allocates arrays in the dm (not thread safe) */
-				int i;
 				bool use_special_ss_case = false;
-
-				if (em && dm->type == DM_TYPE_EDITBMESH) {
-					if (em->bm->elem_table_dirty & BM_VERT) {
-#ifdef VPARENT_THREADING_HACK
-						BLI_mutex_lock(&vparent_lock);
-						if (em->bm->elem_table_dirty & BM_VERT) {
-							BM_mesh_elem_table_ensure(em->bm, BM_VERT);
-						}
-						BLI_mutex_unlock(&vparent_lock);
-#else
-						BLI_assert(!"Not safe for threading");
-						BM_mesh_elem_table_ensure(em->bm, BM_VERT);
-#endif
-					}
-				}
 
 				if (dm->type == DM_TYPE_CCGDM) {
 					ModifierData *md;
@@ -2190,6 +2173,24 @@ static void give_parvert(Object *par, int nr, float vec[3])
 					}
 				}
 
+				if (!use_special_ss_case) {
+					/* avoid dm->getVertDataArray() since it allocates arrays in the dm (not thread safe) */
+					if (em && dm->type == DM_TYPE_EDITBMESH) {
+						if (em->bm->elem_table_dirty & BM_VERT) {
+#ifdef VPARENT_THREADING_HACK
+							BLI_mutex_lock(&vparent_lock);
+							if (em->bm->elem_table_dirty & BM_VERT) {
+								BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+							}
+							BLI_mutex_unlock(&vparent_lock);
+#else
+							BLI_assert(!"Not safe for threading");
+							BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+#endif
+						}
+					}
+				}
+
 				if (use_special_ss_case) {
 					/* Special case if the last modifier is SS and no constructive modifier
 					 * are in front of it.
@@ -2200,7 +2201,11 @@ static void give_parvert(Object *par, int nr, float vec[3])
 					add_v3_v3(vec, co);
 					count++;
 				}
-				else if (CustomData_has_layer(&dm->vertData, CD_ORIGINDEX)) {
+				else if (CustomData_has_layer(&dm->vertData, CD_ORIGINDEX) &&
+				         !(em && dm->type == DM_TYPE_EDITBMESH))
+				{
+					int i;
+
 					/* Get the average of all verts with (original index == nr). */
 					for (i = 0; i < numVerts; i++) {
 						const int *index = dm->getVertData(dm, i, CD_ORIGINDEX);
