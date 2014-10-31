@@ -1261,7 +1261,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 					scopes->frame_width = ibuf->x;
 					scopes->frame_height = ibuf->y;
 
-					scopes->use_track_mask = track->flag & TRACK_PREVIEW_ALPHA;
+					scopes->use_track_mask = (track->flag & TRACK_PREVIEW_ALPHA) != 0;
 				}
 
 				IMB_freeImBuf(ibuf);
