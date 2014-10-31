@@ -1305,7 +1305,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	int totchild=0, step_nbr;
 	int seed, path_nbr=0, orco1=0, num;
 	int totface;
-	const char **uv_name = NULL;
 
 	const int *index_mf_to_mpoly = NULL;
 	const int *index_mp_to_orig = NULL;
@@ -1853,9 +1852,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	
 	if (sd.mcol)
 		MEM_freeN(sd.mcol);
-
-	if (uv_name)
-		MEM_freeN(uv_name);
 
 	if (states)
 		MEM_freeN(states);
