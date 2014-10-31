@@ -467,7 +467,7 @@ void BLI_ewa_filter(const int width, const int height,
 	/* scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,
 	 * scaling by aspect ratio alone does the opposite, so try something in between instead... */
 	const float ff2 = (float)width, ff = sqrtf(ff2), q = (float)height / ff;
-	const float Ux = du[0] * ff, Vx = dv[0] * q, Uy = du[1] * ff, Vy = dv[1] * q;
+	const float Ux = du[0] * ff, Vx = du[1] * q, Uy = dv[0] * ff, Vy = dv[1] * q;
 	float A = Vx * Vx + Vy * Vy;
 	float B = -2.0f * (Ux * Vx + Uy * Vy);
 	float C = Ux * Ux + Uy * Uy;
