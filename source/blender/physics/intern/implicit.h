@@ -170,6 +170,7 @@ struct HairColliderGrid;
 
 struct HairVertexGrid *BPH_hair_volume_create_vertex_grid(int res, const float gmin[3], const float gmax[3]);
 void BPH_hair_volume_free_vertex_grid(struct HairVertexGrid *grid);
+void BPH_hair_volume_grid_geometry(struct HairVertexGrid *grid, float cellsize[3], int res[3], float gmin[3], float gmax[3]);
 
 void BPH_hair_volume_add_vertex(struct HairVertexGrid *grid, const float x[3], const float v[3]);
 void BPH_hair_volume_normalize_vertex_grid(struct HairVertexGrid *grid);

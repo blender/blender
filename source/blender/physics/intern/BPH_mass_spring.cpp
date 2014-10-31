@@ -601,6 +601,11 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 	float gmin[3], gmax[3];
 	int i;
 	
+	/* clear grid info */
+	zero_v3_int(clmd->hair_grid_res);
+	zero_v3(clmd->hair_grid_min);
+	zero_v3(clmd->hair_grid_max);
+	
 	hair_get_boundbox(clmd, gmin, gmax);
 	
 	/* gather velocities & density */
@@ -636,6 +641,9 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 			/* apply on hair data */
 			BPH_mass_spring_set_new_velocity(data, i, nv);
 		}
+		
+		/* store basic grid info in the modifier data */
+		BPH_hair_volume_grid_geometry(vertex_grid, NULL, clmd->hair_grid_res, clmd->hair_grid_min, clmd->hair_grid_max);
 		
 		BPH_hair_volume_free_vertex_grid(vertex_grid);
 	}

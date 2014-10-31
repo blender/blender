@@ -343,7 +343,9 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         col.label(text="Quality:")
         col.prop(cloth, "quality", text="Steps", slider=True)
 
-        col.prop(cloth_md, "show_debug_data", text="Debug")
+        row = col.row()
+        row.prop(psys.settings, "show_hair_grid", text="HairGrid")
+        row.prop(cloth_md, "show_debug_data", text="Debug")
 
         if result:
             box = layout.box()

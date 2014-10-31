@@ -38,9 +38,14 @@
 
 /* ================ Volumetric Hair Interaction ================
  * adapted from
- *      Volumetric Methods for Simulation and Rendering of Hair
- *      by Lena Petrovic, Mark Henne and John Anderson
- *      Pixar Technical Memo #06-08, Pixar Animation Studios
+ * 
+ * Volumetric Methods for Simulation and Rendering of Hair
+ *     (Petrovic, Henne, Anderson, Pixar Technical Memo #06-08, Pixar Animation Studios)
+ * 
+ * as well as
+ * 
+ * "Detail Preserving Continuum Simulation of Straight Hair"
+ *     (McAdams, Selle 2009)
  */
 
 /* Note about array indexing:
@@ -112,6 +117,10 @@ BLI_INLINE int hair_grid_interp_weights(int res, const float gmin[3], const floa
 	uvw[0] = (vec[0] - gmin[0]) / scale[0] - (float)i;
 	uvw[1] = (vec[1] - gmin[1]) / scale[1] - (float)j;
 	uvw[2] = (vec[2] - gmin[2]) / scale[2] - (float)k;
+	
+//	BLI_assert(0.0f <= uvw[0] && uvw[0] <= 1.0001f);
+//	BLI_assert(0.0f <= uvw[1] && uvw[1] <= 1.0001f);
+//	BLI_assert(0.0f <= uvw[2] && uvw[2] <= 1.0001f);
 	
 	return offset;
 }
@@ -244,6 +253,15 @@ BLI_INLINE float dist_tent_v3f3(const float a[3], float x, float y, float z)
 	return w;
 }
 
+BLI_INLINE float weights_sum(const float weights[8])
+{
+	float totweight = 0.0f;
+	int i;
+	for (i = 0; i < 8; ++i)
+		totweight += weights[i];
+	return totweight;
+}
+
 /* returns the grid array offset as well to avoid redundant calculation */
 static int hair_grid_weights(int res, const float gmin[3], const float scale[3], const float vec[3], float weights[8])
 {
@@ -267,6 +285,8 @@ static int hair_grid_weights(int res, const float gmin[3], const float scale[3],
 	weights[5] = dist_tent_v3f3(uvw, (float)(i+1), (float)j    , (float)(k+1));
 	weights[6] = dist_tent_v3f3(uvw, (float)i    , (float)(j+1), (float)(k+1));
 	weights[7] = dist_tent_v3f3(uvw, (float)(i+1), (float)(j+1), (float)(k+1));
+	
+//	BLI_assert(fabsf(weights_sum(weights) - 1.0f) < 0.0001f);
 	
 	return offset;
 }
@@ -407,6 +427,14 @@ void BPH_hair_volume_free_vertex_grid(HairVertexGrid *grid)
 			MEM_freeN(grid->verts);
 		MEM_freeN(grid);
 	}
+}
+
+void BPH_hair_volume_grid_geometry(HairVertexGrid *grid, float cellsize[3], int res[3], float gmin[3], float gmax[3])
+{
+	if (cellsize) copy_v3_v3(cellsize, grid->scale);
+	if (res) { res[0] = res[1] = res[2] = grid->res; }
+	if (gmin) copy_v3_v3(gmin, grid->gmin);
+	if (gmax) copy_v3_v3(gmax, grid->gmax);
 }
 
 #if 0

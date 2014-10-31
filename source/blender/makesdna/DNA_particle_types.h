@@ -334,6 +334,7 @@ typedef enum eParticleDrawFlag {
 	PART_DRAW_REN_STRAND    = (1 << 15),
 	PART_DRAW_NO_SCALE_OB   = (1 << 16), /* used with dupliobjects/groups */
 	PART_DRAW_GUIDE_HAIRS   = (1 << 17),
+	PART_DRAW_HAIR_GRID     = (1 << 18),
 } eParticleDrawFlag;
 
 /* part->type */
