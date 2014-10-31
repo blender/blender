@@ -465,7 +465,7 @@ def read_opts(env, cfg, args):
         ('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
         ('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
 
-        (BoolVariable('WITH_BF_GLEW_MX', '', True)),
+        (BoolVariable('WITH_BF_GLEW_MX', '', False)),
         (BoolVariable('WITH_BF_GLEW_ES', '', False)),
         (BoolVariable('WITH_BF_GL_EGL', '', False)),
         (BoolVariable('WITH_BF_GL_PROFILE_COMPAT', '', True)),
