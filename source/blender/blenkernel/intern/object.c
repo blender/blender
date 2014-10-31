@@ -107,6 +107,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_speaker.h"
 #include "BKE_softbody.h"
+#include "BKE_subsurf.h"
 #include "BKE_material.h"
 #include "BKE_camera.h"
 #include "BKE_image.h"
@@ -118,6 +119,8 @@
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
+
+#include "CCGSubSurf.h"
 
 #include "GPU_material.h"
 
@@ -2153,6 +2156,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 			if (nr < numVerts) {
 				/* avoid dm->getVertDataArray() since it allocates arrays in the dm (not thread safe) */
 				int i;
+				bool use_special_ss_case = false;
 
 				if (em && dm->type == DM_TYPE_EDITBMESH) {
 					if (em->bm->elem_table_dirty & BM_VERT) {
@@ -2169,8 +2173,35 @@ static void give_parvert(Object *par, int nr, float vec[3])
 					}
 				}
 
-				/* get the average of all verts with (original index == nr) */
-				if (CustomData_has_layer(&dm->vertData, CD_ORIGINDEX)) {
+				if (dm->type == DM_TYPE_CCGDM) {
+					ModifierData *md;
+					VirtualModifierData virtualModifierData;
+					use_special_ss_case = true;
+					for (md = modifiers_getVirtualModifierList(par, &virtualModifierData);
+					     md != NULL;
+					     md = md->next)
+					{
+						ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+						/* TODO(sergey): Check for disabled modifiers. */
+						if (mti->type != eModifierTypeType_OnlyDeform && md->next != NULL) {
+							use_special_ss_case = false;
+							break;
+						}
+					}
+				}
+
+				if (use_special_ss_case) {
+					/* Special case if the last modifier is SS and no constructive modifier
+					 * are in front of it.
+					 */
+					CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
+					CCGVert *ccg_vert = ccgSubSurf_getVert(ccgdm->ss, SET_INT_IN_POINTER(nr));
+					float *co = ccgSubSurf_getVertData(ccgdm->ss, ccg_vert);
+					add_v3_v3(vec, co);
+					count++;
+				}
+				else if (CustomData_has_layer(&dm->vertData, CD_ORIGINDEX)) {
+					/* Get the average of all verts with (original index == nr). */
 					for (i = 0; i < numVerts; i++) {
 						const int *index = dm->getVertData(dm, i, CD_ORIGINDEX);
 						if (*index == nr) {
