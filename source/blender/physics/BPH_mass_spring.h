@@ -33,7 +33,10 @@ extern "C" {
 #endif
 
 struct Implicit_Data;
+struct Object;
 struct ClothModifierData;
+struct ListBase;
+struct VoxelData;
 
 typedef enum eMassSpringSolverStatus {
 	BPH_SOLVER_SUCCESS              = (1 << 0),
@@ -50,7 +53,7 @@ void BPH_cloth_solver_free(struct ClothModifierData *clmd);
 int BPH_cloth_solve(struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors);
 void BKE_cloth_solver_set_positions(struct ClothModifierData *clmd);
 
-bool implicit_hair_volume_get_texture_data(struct Object *UNUSED(ob), struct ClothModifierData *clmd, struct ListBase *UNUSED(effectors), struct VoxelData *vd);
+bool BPH_cloth_solver_get_texture_data(struct Object *ob, struct ClothModifierData *clmd, struct VoxelData *vd);
 
 #ifdef __cplusplus
 }

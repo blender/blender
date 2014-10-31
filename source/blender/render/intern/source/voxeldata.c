@@ -58,6 +58,7 @@
 #include "BKE_modifier.h"
 
 #include "smoke_API.h"
+#include "BPH_mass_spring.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_object_force.h"
@@ -380,8 +381,7 @@ static void init_frame_hair(VoxelData *vd, int UNUSED(cfra))
 		ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
 		
 		if (pmd->psys && pmd->psys->clmd) {
-			// XXX TODO was moved into own subfolder, figure out how to handle this (perhaps make a wrapper in BKE)
-//			found |= implicit_hair_volume_get_texture_data(ob, pmd->psys->clmd, NULL, vd);
+			found |= BPH_cloth_solver_get_texture_data(ob, pmd->psys->clmd, vd);
 		}
 	}
 	

@@ -34,6 +34,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_texture_types.h"
+
 #include "implicit.h"
 
 /* ================ Volumetric Hair Interaction ================
@@ -509,30 +511,16 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd, 
 }
 #endif
 
-#if 0
-bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData *clmd, ListBase *UNUSED(effectors), VoxelData *vd)
+bool BPH_hair_volume_get_texture_data(HairVertexGrid *grid, VoxelData *vd)
 {
-	lfVector *lX, *lV;
-	HairGridVert *hairgrid/*, *collgrid*/;
-	int numverts;
 	int totres, i;
 	int depth;
 
-	if (!clmd->clothObject || !clmd->clothObject->implicit)
-		return false;
-
-	lX = clmd->clothObject->implicit->X;
-	lV = clmd->clothObject->implicit->V;
-	numverts = clmd->clothObject->numverts;
-
-	hairgrid = hair_volume_create_hair_grid(clmd, lX, lV, numverts);
-//	collgrid = hair_volume_create_collision_grid(clmd, lX, numverts);
-
-	vd->resol[0] = hair_grid_res;
-	vd->resol[1] = hair_grid_res;
-	vd->resol[2] = hair_grid_res;
+	vd->resol[0] = grid->res;
+	vd->resol[1] = grid->res;
+	vd->resol[2] = grid->res;
 	
-	totres = hair_grid_size(hair_grid_res);
+	totres = hair_grid_size(grid->res);
 	
 	if (vd->hair_type == TEX_VD_HAIRVELOCITY) {
 		depth = 4;
@@ -549,20 +537,21 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 		for (i = 0; i < totres; ++i) {
 			switch (vd->hair_type) {
 				case TEX_VD_HAIRDENSITY:
-					vd->dataset[i] = hairgrid[i].density;
+					vd->dataset[i] = grid->verts[i].density;
 					break;
 				
 				case TEX_VD_HAIRRESTDENSITY:
 					vd->dataset[i] = 0.0f; // TODO
 					break;
 				
-				case TEX_VD_HAIRVELOCITY:
-					vd->dataset[i + 0*totres] = hairgrid[i].velocity[0];
-					vd->dataset[i + 1*totres] = hairgrid[i].velocity[1];
-					vd->dataset[i + 2*totres] = hairgrid[i].velocity[2];
-					vd->dataset[i + 3*totres] = len_v3(hairgrid[i].velocity);
+				case TEX_VD_HAIRVELOCITY: {
+					float tmp = grid->verts[i].velocity[1];
+					vd->dataset[i + 0*totres] = grid->verts[i].velocity[0];
+					vd->dataset[i + 1*totres] = grid->verts[i].velocity[1];
+					vd->dataset[i + 2*totres] = grid->verts[i].velocity[2];
+					vd->dataset[i + 3*totres] = len_v3(grid->verts[i].velocity);
 					break;
-				
+				}
 				case TEX_VD_HAIRENERGY:
 					vd->dataset[i] = 0.0f; // TODO
 					break;
@@ -573,10 +562,5 @@ bool implicit_hair_volume_get_texture_data(Object *UNUSED(ob), ClothModifierData
 		vd->dataset = NULL;
 	}
 	
-	MEM_freeN(hairgrid);
-//	MEM_freeN(collgrid);
-	
 	return true;
 }
-
-#endif

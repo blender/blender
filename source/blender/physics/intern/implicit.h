@@ -168,6 +168,9 @@ bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, const 
 struct HairVertexGrid;
 struct HairColliderGrid;
 
+struct Object;
+struct VoxelData;
+
 struct HairVertexGrid *BPH_hair_volume_create_vertex_grid(int res, const float gmin[3], const float gmax[3]);
 void BPH_hair_volume_free_vertex_grid(struct HairVertexGrid *grid);
 void BPH_hair_volume_grid_geometry(struct HairVertexGrid *grid, float cellsize[3], int res[3], float gmin[3], float gmax[3]);
@@ -194,6 +197,8 @@ void BPH_hair_volume_grid_velocity(struct HairVertexGrid *grid, const float x[3]
 void BPH_hair_volume_vertex_grid_forces(struct HairVertexGrid *grid, const float x[3], const float v[3],
                                         float smoothfac, float pressurefac, float minpressure,
                                         float f[3], float dfdx[3][3], float dfdv[3][3]);
+
+bool BPH_hair_volume_get_texture_data(struct HairVertexGrid *grid, struct VoxelData *vd);
 
 #ifdef __cplusplus
 }

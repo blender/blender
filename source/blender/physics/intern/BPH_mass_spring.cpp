@@ -584,6 +584,23 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
 }
 #endif
 
+static void cloth_continuum_fill_grid(HairVertexGrid *grid, Cloth *cloth)
+{
+	Implicit_Data *data = cloth->implicit;
+	int numverts = cloth->numverts;
+	ClothVertex *vert;
+	int i;
+	
+	for (i = 0, vert = cloth->verts; i < numverts; i++, vert++) {
+		float x[3], v[3];
+		
+		BPH_mass_spring_get_position(data, i, x);
+		BPH_mass_spring_get_new_velocity(data, i, v);
+		BPH_hair_volume_add_vertex(grid, x, v);
+	}
+	BPH_hair_volume_normalize_vertex_grid(grid);
+}
+
 static void cloth_continuum_step(ClothModifierData *clmd)
 {
 	ClothSimSettings *parms = clmd->sim_parms;
@@ -609,25 +626,14 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 	/* gather velocities & density */
 	if (smoothfac > 0.0f || pressfac > 0.0f) {
 		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
-		
-		vert = cloth->verts;
-		for (i = 0; i < numverts; i++, vert++) {
-			float x[3], v[3];
-			
-			BPH_mass_spring_get_motion_state(data, i, x, v);
-				BPH_mass_spring_get_position(data, i, x);
-				BPH_mass_spring_get_new_velocity(data, i, v);
-			BPH_hair_volume_add_vertex(vertex_grid, x, v);
-		}
-		BPH_hair_volume_normalize_vertex_grid(vertex_grid);
+		cloth_continuum_fill_grid(vertex_grid, cloth);
 		
 #if 0
 		/* apply velocity filter */
 		BPH_hair_volume_vertex_grid_filter_box(vertex_grid, clmd->sim_parms->voxel_filter_size);
 #endif
 		
-		vert = cloth->verts;
-		for (i = 0; i < numverts; i++, vert++) {
+		for (i = 0, vert = cloth->verts; i < numverts; i++, vert++) {
 			float x[3], v[3], nv[3];
 			
 			/* calculate volumetric velocity influence */
@@ -841,4 +847,25 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	BPH_mass_spring_solver_debug_data(id, NULL);
 	
 	return 1;
+}
+
+bool BPH_cloth_solver_get_texture_data(Object *UNUSED(ob), ClothModifierData *clmd, VoxelData *vd)
+{
+	Cloth *cloth = clmd->clothObject;
+	HairVertexGrid *grid;
+	float gmin[3], gmax[3];
+	
+	if (!clmd->clothObject || !clmd->clothObject->implicit)
+		return false;
+	
+	hair_get_boundbox(clmd, gmin, gmax);
+	
+	grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
+	cloth_continuum_fill_grid(grid, cloth);
+	
+	BPH_hair_volume_get_texture_data(grid, vd);
+	
+	BPH_hair_volume_free_vertex_grid(grid);
+	
+	return true;
 }
