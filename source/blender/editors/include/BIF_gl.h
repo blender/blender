@@ -35,16 +35,9 @@
 
 #include "GPU_glew.h"
 
-#ifdef __APPLE__
-
 /* hacking pointsize and linewidth */
-#  define glPointSize(f)	glPointSize(U.pixelsize * (f))
-#  define glLineWidth(f)	glLineWidth(U.pixelsize * (f))
-#else
-   /* avoid include mismatch by referencing 'U' from both */
-#  define glPointSize(f)	glPointSize(((void)U.pixelsize, (f)))
-#  define glLineWidth(f)	glLineWidth(((void)U.pixelsize, (f)))
-#endif
+#define glPointSize(f)	glPointSize(U.pixelsize * (f))
+#define glLineWidth(f)	glLineWidth(U.pixelsize * (f))
 
 /*
  * these should be phased out. cpack should be replaced in
