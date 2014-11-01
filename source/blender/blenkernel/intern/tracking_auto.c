@@ -322,7 +322,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 		}
 
 		for (i = 0; i < track->markersnr; ++i) {
-			MovieTrackingMarker *marker = marker = track->markers + i;
+			MovieTrackingMarker *marker = track->markers + i;
 			if ((marker->flag & MARKER_DISABLED) == 0) {
 				libmv_Marker libmv_marker;
 				dna_marker_to_libmv_marker(track,

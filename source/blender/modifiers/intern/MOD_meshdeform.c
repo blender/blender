@@ -223,7 +223,7 @@ static void meshdeform_vert_task(void *userdata, int iter)
 	const MDeformVert *dvert = data->dvert;
 	const int defgrp_index = data->defgrp_index;
 	const int *offsets = mmd->bindoffsets;
-	const MDefInfluence *influences = influences = mmd->bindinfluences;
+	const MDefInfluence *influences = mmd->bindinfluences;
 	/*const*/ float (*dco)[3] = data->dco;
 	float (*vertexCos)[3] = data->vertexCos;
 	float co[3];

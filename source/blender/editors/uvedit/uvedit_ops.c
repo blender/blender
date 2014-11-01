@@ -1771,7 +1771,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 					if ((vert_arr[uv_b_index].weld == false) &&
 					    (len_manhattan_v2v2(uv_a, uv_b) < threshold))
 					{
-						minmax_v2v2_v2(uv_max, uv_min, uv_b);
+						minmax_v2v2_v2(uv_min, uv_max, uv_b);
 						BLI_array_append(loop_arr, vert_arr[uv_b_index].uv_loop);
 						vert_arr[uv_b_index].weld = true;
 					}
