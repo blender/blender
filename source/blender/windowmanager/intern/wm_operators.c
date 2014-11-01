@@ -1216,31 +1216,32 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	if (action == FILE_SAVE) {
 		/* note, this is only used to check if we should highlight the filename area red when the
 		 * filepath is an existing file. */
-		prop = RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
+		prop = RNA_def_boolean(ot->srna, "check_existing", true, "Check Existing",
+		                       "Check and warn on overwriting existing files");
 		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	}
 	
-	prop = RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE) != 0, "Filter .blend files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_backup", (filter & BLENDERFILE_BACKUP), "Filter .blend files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_backup", (filter & BLENDERFILE_BACKUP) != 0, "Filter .blend files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE) != 0, "Filter image files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE) != 0, "Filter movie files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE) != 0, "Filter python files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE) != 0, "Filter font files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE) != 0, "Filter sound files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE) != 0, "Filter text files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE), "Filter btx files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE) != 0, "Filter btx files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_collada", (filter & COLLADAFILE), "Filter COLLADA files", "");
+	prop = RNA_def_boolean(ot->srna, "filter_collada", (filter & COLLADAFILE) != 0, "Filter COLLADA files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+	prop = RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE) != 0, "Filter folders", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	prop = RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL,
@@ -1329,7 +1330,7 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, bool extend)
 	WM_operator_properties_border(ot);
 
 	if (extend) {
-		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+		RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
 	}
 }
 
@@ -1337,11 +1338,12 @@ void WM_operator_properties_mouse_select(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+	prop = RNA_def_boolean(ot->srna, "extend", false, "Extend",
+	                       "Extend selection instead of deselecting everything first");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from selection");
+	prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Remove from selection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Selection", "Toggle the selection");
+	prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Selection", "Toggle the selection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -2779,9 +2781,9 @@ static void save_set_compress(wmOperator *op)
 {
 	if (!RNA_struct_property_is_set(op->ptr, "compress")) {
 		if (G.save_over) /* keep flag for existing file */
-			RNA_boolean_set(op->ptr, "compress", G.fileflags & G_FILE_COMPRESS);
+			RNA_boolean_set(op->ptr, "compress", (G.fileflags & G_FILE_COMPRESS) != 0);
 		else /* use userdef for new file */
-			RNA_boolean_set(op->ptr, "compress", U.flag & USER_FILECOMPRESS);
+			RNA_boolean_set(op->ptr, "compress", (U.flag & USER_FILECOMPRESS) != 0);
 	}
 }
 
@@ -2880,14 +2882,14 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
 	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
-	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative",
+	RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", true, "Remap Relative",
 	                "Remap relative paths when saving in a different directory");
-	prop = RNA_def_boolean(ot->srna, "copy", 0, "Save Copy",
+	prop = RNA_def_boolean(ot->srna, "copy", false, "Save Copy",
 	                "Save a copy of the actual working state but does not make saved file active");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	RNA_def_boolean(ot->srna, "use_mesh_compat", 0, "Legacy Mesh Format",
+	RNA_def_boolean(ot->srna, "use_mesh_compat", false, "Legacy Mesh Format",
 	                "Save using legacy mesh format (no ngons) - WARNING: only saves tris and quads, other ngons will "
 	                "be lost (no implicit triangulation)");
 #endif
@@ -2956,8 +2958,9 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
-	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
+	RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", false, "Remap Relative",
+	                "Remap relative paths when saving in a different directory");
 }
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
@@ -4005,7 +4008,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		PropertyType prop_type = RNA_property_type(*r_prop);
 
 		if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
-		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT))
+		    ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT)))
 		{
 			MEM_freeN(str);
 			BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a float", name);
@@ -4359,7 +4362,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 
 	RNA_def_string(ot->srna, "image_id", NULL, 0, "Image ID", "Path of ID that is used to generate an image for the control");
 
-	RNA_def_boolean(ot->srna, "secondary_tex", 0, "Secondary Texture", "Tweak brush secondary/mask texture");
+	RNA_def_boolean(ot->srna, "secondary_tex", false, "Secondary Texture", "Tweak brush secondary/mask texture");
 }
 
 /* ************************** timer for testing ***************** */
