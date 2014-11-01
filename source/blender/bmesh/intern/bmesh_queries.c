@@ -202,6 +202,26 @@ bool BM_vert_pair_share_face_check(
 	return false;
 }
 
+bool BM_vert_pair_share_face_check_cb(
+        BMVert *v_a, BMVert *v_b,
+        bool (*test_fn)(BMFace *, void *user_data), void *user_data)
+{
+	if (v_a->e && v_b->e) {
+		BMIter iter;
+		BMFace *f;
+
+		BM_ITER_ELEM (f, &iter, v_a, BM_FACES_OF_VERT) {
+			if (test_fn(f, user_data)) {
+				if (BM_vert_in_face(f, v_b)) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 /**
  * Given 2 verts, find the smallest face they share and give back both loops.
  */

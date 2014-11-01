@@ -877,23 +877,50 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMOperator bmop;
-	const bool is_pair = (bm->totvertsel == 2);
+	bool is_pair = (bm->totvertsel == 2);
 	int len;
-	
+	bool check_degenerate = true;
+	const int verts_len = bm->totvertsel;
+	BMVert **verts;
+
+
+	verts = MEM_mallocN(sizeof(*verts) * verts_len, __func__);
+	{
+		BMIter iter;
+		BMVert *v;
+		int i = 0;
+
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+				verts[i++] = v;
+			}
+		}
+
+		if (is_pair) {
+			if (BM_vert_pair_share_face_check_cb(
+			        verts[0], verts[1],
+			        BM_elem_cb_check_hflag_disabled_simple(BMFace *, BM_ELEM_HIDDEN)))
+			{
+				check_degenerate = false;
+				is_pair = false;
+			}
+		}
+	}
+
 	if (is_pair) {
 		if (!EDBM_op_init(em, &bmop, op,
-		                  "connect_vert_pair verts=%hv verts_exclude=%hv faces_exclude=%hf",
-		                  BM_ELEM_SELECT, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
+		                  "connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
+		                  verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
 		{
-			return OPERATOR_CANCELLED;
+			goto finally;
 		}
 	}
 	else {
 		if (!EDBM_op_init(em, &bmop, op,
-		                  "connect_verts verts=%hv faces_exclude=%hf check_degenerate=%b",
-		                  BM_ELEM_SELECT, BM_ELEM_HIDDEN, true))
+		                  "connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
+		                  verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
 		{
-			return OPERATOR_CANCELLED;
+			goto finally;
 		}
 	}
 
@@ -908,15 +935,18 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 	}
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		len = 0;
 	}
 	else {
 		EDBM_selectmode_flush(em);  /* so newly created edges get the selection state from the vertex */
 
 		EDBM_update_generic(em, true, true);
-
-		return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 	}
+
+
+finally:
+	MEM_freeN(verts);
+	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void MESH_OT_vert_connect(wmOperatorType *ot)

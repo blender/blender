@@ -900,6 +900,21 @@ void BMO_slot_buffer_from_single(BMOperator *op, BMOpSlot *slot, BMHeader *ele)
 	*slot->data.buf = ele;
 }
 
+void BMO_slot_buffer_from_array(BMOperator *op, BMOpSlot *slot, BMHeader **ele_buffer, int ele_buffer_len)
+{
+	BMO_ASSERT_SLOT_IN_OP(slot, op);
+	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(slot->len == 0 || slot->len == ele_buffer_len);
+
+	if (slot->data.buf == NULL) {
+		slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(*slot->data.buf) * ele_buffer_len);
+	}
+
+	slot->len = ele_buffer_len;
+	memcpy(slot->data.buf, ele_buffer, ele_buffer_len * sizeof(*slot->data.buf));
+}
+
+
 void *BMO_slot_buffer_get_single(BMOpSlot *slot)
 {
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
@@ -1636,6 +1651,7 @@ static int BMO_opcode_from_opname_check(const char *opname)
  *
  * **Element Buffer** (#BMO_OP_SLOT_ELEMENT_BUF)
  * - `e` - single element vert/edge/face (use with #BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE).
+ * - `eb` - elem buffer, take an array and a length.
  * - `av` - all verts
  * - `ae` - all edges
  * - `af` - all faces
@@ -1756,12 +1772,23 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
 					state = true;
 					break;
 				}
-				case 'e':  /* single vert/edge/face */
+				case 'e':
 				{
-					BMHeader *ele = va_arg(vlist, void *);
 					BMOpSlot *slot = BMO_slot_get(op->slots_in, slot_name);
 
-					BMO_slot_buffer_from_single(op, slot, ele);
+					if (NEXT_CHAR(fmt) == 'b') {
+						BMHeader **ele_buffer = va_arg(vlist, void *);
+						int ele_buffer_len = va_arg(vlist, int);
+
+						BMO_slot_buffer_from_array(op, slot, ele_buffer, ele_buffer_len);
+						fmt++;
+					}
+					else {
+						/* single vert/edge/face */
+						BMHeader *ele = va_arg(vlist, void *);
+
+						BMO_slot_buffer_from_single(op, slot, ele);
+					}
 
 					state = true;
 					break;

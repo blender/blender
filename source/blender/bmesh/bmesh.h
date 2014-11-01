@@ -243,6 +243,7 @@ extern "C" {
 #include "intern/bmesh_error.h"
 
 #include "intern/bmesh_core.h"
+#include "intern/bmesh_callback_generic.h"
 #include "intern/bmesh_construct.h"
 #include "intern/bmesh_delete.h"
 #include "intern/bmesh_edgeloop.h"

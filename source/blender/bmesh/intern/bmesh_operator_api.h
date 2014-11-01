@@ -395,6 +395,8 @@ void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op,
                                          BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                          const char htype, const char hflag);
 
+void  BMO_slot_buffer_from_array(BMOperator *op, BMOpSlot *slot, BMHeader **ele_buffer, int ele_buffer_len);
+
 void  BMO_slot_buffer_from_single(BMOperator *op, BMOpSlot *slot, BMHeader *ele);
 void *BMO_slot_buffer_get_single(BMOpSlot *slot);
 
