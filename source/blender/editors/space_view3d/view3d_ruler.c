@@ -187,7 +187,6 @@ typedef struct RulerInfo {
 
 	/* wm state */
 	wmWindow *win;
-	ScrArea *sa;
 	ARegion *ar;
 	void *draw_handle_pixel;
 } RulerInfo;
@@ -798,7 +797,6 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	op->customdata = ruler_info;
 
 	ruler_info->win = win;
-	ruler_info->sa = sa;
 	ruler_info->ar = ar;
 	ruler_info->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ruler_info_draw_pixel,
 	                                                           ruler_info, REGION_DRAW_POST_PIXEL);
@@ -825,11 +823,11 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	bool do_draw = false;
 	int exit_code = OPERATOR_RUNNING_MODAL;
 	RulerInfo *ruler_info = op->customdata;
-	ScrArea *sa = ruler_info->sa;
+	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = ruler_info->ar;
 	RegionView3D *rv3d = ar->regiondata;
 
-	/* its possible to change  spaces while running the operator [#34894] */
+	/* its possible to change spaces while running the operator [#34894] */
 	if (UNLIKELY(ar != CTX_wm_region(C))) {
 		exit_code = OPERATOR_FINISHED;
 		goto exit;
