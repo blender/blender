@@ -55,7 +55,7 @@ typedef struct AutoTrackOptions {
 	bool use_keyframe_match;  /* Keyframe pattern matching. */
 
 	/* TODO(sergey): A bit awkward to keep it in here, only used to
-	 * place a disabled marker once the trackign fails,
+	 * place a disabled marker once the tracking fails,
 	 * Wither find a more clear way to do it or call it track context
 	 * or state, not options.
 	 */

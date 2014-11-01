@@ -82,7 +82,7 @@ typedef struct PathContext {
 typedef struct PathLink {
 	struct PathLink *next;
 	BMElem *ele;       /* edge or vert */
-	BMElem *ele_from;  /* edge or face we game from (not 'next->ele') */
+	BMElem *ele_from;  /* edge or face we came from (not 'next->ele') */
 } PathLink;
 
 typedef struct PathLinkState {

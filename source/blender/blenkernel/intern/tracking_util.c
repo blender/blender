@@ -782,7 +782,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		}
 	}
 
-	/* it's possible processing stil didn't happen at this point,
+	/* it's possible processing still didn't happen at this point,
 	 * but we really need a copy of the buffer to be transformed
 	 * and to be put to the cache.
 	 */
@@ -877,7 +877,7 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
 	                                        accesscache_hashhash,
 	                                        accesscache_hashcmp);
 
-	memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip*));
+	memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip *));
 	accessor->num_clips = num_clips;
 	accessor->start_frame = start_frame;
 
