@@ -107,9 +107,6 @@ public:
 		if(datasize > 0) {
 			data = (T*)malloc_aligned(sizeof(T)*datasize, alignment);
 			memcpy(data, &from[0], datasize*sizeof(T));
-			free_aligned(data);
-			data = (T*)malloc_aligned(sizeof(T)*datasize, alignment);
-			memcpy(data, &from[0], datasize*sizeof(T));
 		}
 
 		return *this;
