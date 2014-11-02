@@ -266,7 +266,7 @@ public:
 			else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-			if(system_cpu_support_sse2()) {
+			if(system_cpu_support_sse2())
 				convert_to_half_float_kernel = kernel_cpu_sse2_convert_to_half_float;
 			else
 #endif
