@@ -216,7 +216,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 /* Get data being edited in Graph Editor (depending on current 'mode') */
 static bool graphedit_get_context(bAnimContext *ac, SpaceIpo *sipo)
 {
-	/* init dopesheet data if non-existant (i.e. for old files) */
+	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (sipo->ads == NULL) {
 		sipo->ads = MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 		sipo->ads->source = (ID *)ac->scene;
@@ -267,7 +267,7 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceIpo *sipo)
 /* Get data being edited in Graph Editor (depending on current 'mode') */
 static bool nlaedit_get_context(bAnimContext *ac, SpaceNla *snla)
 {
-	/* init dopesheet data if non-existant (i.e. for old files) */
+	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (snla->ads == NULL)
 		snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
 	ac->ads = snla->ads;

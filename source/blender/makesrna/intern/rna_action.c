@@ -60,7 +60,7 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 	FCurve *fcu = (FCurve *)internal->link;
 	bActionGroup *grp = fcu->grp;
 	
-	/* only continue if the next F-Curve (if existant) belongs in the same group */
+	/* only continue if the next F-Curve (if existent) belongs in the same group */
 	if ((fcu->next) && (fcu->next->grp == grp))
 		internal->link = (Link *)fcu->next;
 	else

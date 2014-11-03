@@ -280,7 +280,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 		closedir(dir);
 	}
 	else {
-		printf("%s non-existant directory\n", dirname);
+		printf("%s non-existent directory\n", dirname);
 	}
 }
 

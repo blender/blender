@@ -21,7 +21,7 @@
 /** \file blender/bmesh/intern/bmesh_callback_generic.c
  *  \ingroup bmesh
  *
- * BM construction functions.
+ * BM element callback functions.
  */
 
 #include "BLI_utildefines.h"

@@ -180,7 +180,7 @@ static void nla_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceNla *snla = (SpaceNla *)sa->spacedata.first;
 	
-	/* init dopesheet data if non-existant (i.e. for old files) */
+	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (snla->ads == NULL) {
 		snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
 		snla->ads->source = (ID *)G.main->scene.first; // XXX this is bad, but we need this to be set correct

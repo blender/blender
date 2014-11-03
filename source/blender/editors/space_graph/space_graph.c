@@ -182,7 +182,7 @@ static void graph_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
 	
-	/* init dopesheet data if non-existant (i.e. for old files) */
+	/* init dopesheet data if non-existent (i.e. for old files) */
 	if (sipo->ads == NULL) {
 		sipo->ads = MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 		sipo->ads->source = (ID *)(G.main->scene.first); // FIXME: this is a really nasty hack here for now...

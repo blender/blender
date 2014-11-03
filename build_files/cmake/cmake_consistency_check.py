@@ -201,7 +201,7 @@ def cmake_get_src(f):
                                     # replace_line(f, i - 1, new_path_rel)
 
                             else:
-                                raise Exception("non existant include %s:%d -> %s" % (f, i, new_file))
+                                raise Exception("non existent include %s:%d -> %s" % (f, i, new_file))
 
                         # print(new_file)
 
