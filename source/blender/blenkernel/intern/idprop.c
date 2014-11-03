@@ -700,56 +700,6 @@ IDProperty *IDP_GetPropertyTypeFromGroup(IDProperty *prop, const char *name, con
 	return (idprop && idprop->type == type) ? idprop : NULL;
 }
 
-typedef struct IDPIter {
-	void *next;
-	IDProperty *parent;
-} IDPIter;
-
-/**
- * Get an iterator to iterate over the members of an id property group.
- * Note that this will automatically free the iterator once iteration is complete;
- * if you stop the iteration before hitting the end, make sure to call
- * IDP_FreeIterBeforeEnd().
- */
-void *IDP_GetGroupIterator(IDProperty *prop)
-{
-	IDPIter *iter;
-
-	BLI_assert(prop->type == IDP_GROUP);
-	iter = MEM_mallocN(sizeof(IDPIter), "IDPIter");
-	iter->next = prop->data.group.first;
-	iter->parent = prop;
-	return (void *) iter;
-}
-
-/**
- * Returns the next item in the iteration.  To use, simple for a loop like the following:
- * while (IDP_GroupIterNext(iter) != NULL) {
- *     ...
- * }
- */
-IDProperty *IDP_GroupIterNext(void *vself)
-{
-	IDPIter *self = (IDPIter *) vself;
-	Link *next = (Link *) self->next;
-	if (self->next == NULL) {
-		MEM_freeN(self);
-		return NULL;
-	}
-
-	self->next = next->next;
-	return (void *) next;
-}
-
-/**
- * Frees the iterator pointed to at vself, only use this if iteration is stopped early;
- * when the iterator hits the end of the list it'll automatically free itself.\
- */
-void IDP_FreeIterBeforeEnd(void *vself)
-{
-	MEM_freeN(vself);
-}
-
 /* Ok, the way things work, Groups free the ID Property structs of their children.
  * This is because all ID Property freeing functions free only direct data (not the ID Property
  * struct itself), but for Groups the child properties *are* considered

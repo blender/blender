@@ -100,9 +100,6 @@ void IDP_FreeFromGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_N
 
 IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop, const char *name, const char type) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void *IDP_GetGroupIterator(struct IDProperty *prop) ATTR_WARN_UNUSED_RESULT;
-IDProperty *IDP_GroupIterNext(void *vself) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void IDP_FreeIterBeforeEnd(void *vself) ATTR_NONNULL();
 
 /*-------- Main Functions --------*/
 struct IDProperty *IDP_GetProperties(struct ID *id, const bool create_if_needed) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
