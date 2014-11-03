@@ -192,6 +192,19 @@ static void printf_func_error(PyObject *py_func)
 	        );
 }
 
+static void bpy_prop_assign_flag(PropertyRNA *prop, const int flag)
+{
+	const int flag_mask = ((PROP_ANIMATABLE) & ~flag);
+
+	if (flag) {
+		RNA_def_property_flag(prop, flag);
+	}
+
+	if (flag_mask) {
+		RNA_def_property_clear_flag(prop, flag_mask);
+	}
+}
+
 /* operators and classes use this so it can store the args given but defer
  * running it until the operator runs where these values are used to setup
  * the default args for that operator instance */
@@ -1955,10 +1968,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_ui_text(prop, name ? name : id, description);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_boolean(prop, get_cb, set_cb);
@@ -2054,10 +2064,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		RNA_def_property_ui_text(prop, name ? name : id, description);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_boolean_array(prop, get_cb, set_cb);
@@ -2151,10 +2158,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_int(prop, get_cb, set_cb);
@@ -2266,10 +2270,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_int_array(prop, get_cb, set_cb);
@@ -2377,10 +2378,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_float(prop, get_cb, set_cb);
@@ -2504,10 +2502,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_float_array(prop, get_cb, set_cb);
@@ -2590,10 +2585,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		RNA_def_property_ui_text(prop, name ? name : id, description);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_string(prop, get_cb, set_cb);
@@ -2722,10 +2714,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		else                        prop = RNA_def_enum(srna, id, eitems, defvalue, name ? name : id, description);
 
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		bpy_prop_callback_assign_enum(prop, get_cb, set_cb, (is_itemf ? items : NULL));
@@ -2828,10 +2817,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 
 		prop = RNA_def_pointer_runtime(srna, id, ptype, name ? name : id, description);
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		bpy_prop_callback_assign_update(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -2885,10 +2871,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 
 		prop = RNA_def_collection_runtime(srna, id, ptype, name ? name : id, description);
 		if (pyopts) {
-			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-			if (opts & PROP_LIB_EXCEPTION) RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+			bpy_prop_assign_flag(prop, opts);
 		}
 		RNA_def_property_duplicate_pointers(srna, prop);
 	}
