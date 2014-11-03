@@ -99,7 +99,7 @@ static bool mouse_mesh_shortest_path_vert(ViewContext *vc)
 
 		if (v_act && (v_act != v_dst)) {
 			if ((path = BM_mesh_calc_path_vert(bm, v_act, v_dst, use_length,
-			                                   &user_data, verttag_filter_cb)))
+			                                   verttag_filter_cb, &user_data)))
 			{
 				BM_select_history_remove(bm, v_act);
 			}
@@ -267,7 +267,7 @@ static bool mouse_mesh_shortest_path_edge(ViewContext *vc)
 
 		if (e_act && (e_act != e_dst)) {
 			if ((path = BM_mesh_calc_path_edge(bm, e_act, e_dst, use_length,
-			                                   &user_data, edgetag_filter_cb)))
+			                                   edgetag_filter_cb, &user_data)))
 			{
 				BM_select_history_remove(bm, e_act);
 			}
@@ -388,7 +388,7 @@ static bool mouse_mesh_shortest_path_face(ViewContext *vc)
 		if (f_act) {
 			if (f_act != f_dst) {
 				if ((path = BM_mesh_calc_path_face(bm, f_act, f_dst, use_length,
-				                                   &user_data, facetag_filter_cb)))
+				                                   facetag_filter_cb, &user_data)))
 				{
 					BM_select_history_remove(bm, f_act);
 				}

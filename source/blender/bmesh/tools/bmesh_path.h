@@ -29,14 +29,14 @@
 
 struct LinkNode *BM_mesh_calc_path_vert(
         BMesh *bm, BMVert *v_src, BMVert *v_dst, const bool  use_length,
-        void *user_data, bool (*filter_fn)(BMVert *, void *));
+        bool (*filter_fn)(BMVert *, void *), void *user_data);
 
 struct LinkNode *BM_mesh_calc_path_edge(
         BMesh *bm, BMEdge *e_src, BMEdge *e_dst, const bool  use_length,
-        void *user_data, bool (*filter_fn)(BMEdge *, void *));
+        bool (*filter_fn)(BMEdge *, void *), void *user_data);
 
 struct LinkNode *BM_mesh_calc_path_face(
         BMesh *bm, BMFace *f_src, BMFace *f_dst, const bool  use_length,
-        void *user_data, bool (*test_fn)(BMFace *, void *));
+        bool (*test_fn)(BMFace *, void *), void *user_data);
 
 #endif /* __BMESH_PATH_H__ */

@@ -56,7 +56,7 @@ const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
 /**
  * Utility function.
  */
-int BM_iter_mesh_count(BMesh *bm, const char itype)
+int BM_iter_mesh_count(const char itype, BMesh *bm)
 {
 	int count;
 
