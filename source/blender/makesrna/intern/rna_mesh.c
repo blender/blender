@@ -1143,6 +1143,37 @@ static int rna_MeshSkinVertexLayer_data_length(PointerRNA *ptr)
 
 /* End skin vertices */
 
+/* Paint mask */
+DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_paint_mask, vdata, CD_PAINT_MASK)
+
+static char *rna_MeshPaintMaskLayer_path(PointerRNA *ptr)
+{
+	CustomDataLayer *cdl = ptr->data;
+	char name_esc[sizeof(cdl->name) * 2];
+	BLI_strescape(name_esc, cdl->name, sizeof(name_esc));
+	return BLI_sprintfN("vertex_paint_masks[\"%s\"]", name_esc);
+}
+
+static char *rna_MeshPaintMask_path(PointerRNA *ptr)
+{
+	return rna_VertCustomData_data_path(ptr, "vertex_paint_masks", CD_PAINT_MASK);
+}
+
+static void rna_MeshPaintMaskLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+	rna_iterator_array_begin(iter, layer->data, sizeof(MFloatProperty), me->totvert, 0, NULL);
+}
+
+static int rna_MeshPaintMaskLayer_data_length(PointerRNA *ptr)
+{
+	Mesh *me = rna_mesh(ptr);
+	return me->totvert;
+}
+
+/* End paint mask */
+
 static void rna_TexturePoly_image_set(PointerRNA *ptr, PointerRNA value)
 {
 	MTexPoly *tf = (MTexPoly *)ptr->data;
@@ -1783,6 +1814,7 @@ static void UNUSED_FUNCTION(rna_mesh_unused)(void)
 {
 	/* unused functions made by macros */
 	(void)rna_Mesh_skin_vertice_index_range;
+	(void)rna_Mesh_vertex_paint_mask_index_range;
 	(void)rna_Mesh_tessface_uv_texture_active_set;
 	(void)rna_Mesh_tessface_uv_texture_clone_get;
 	(void)rna_Mesh_tessface_uv_texture_clone_index_get;
@@ -3172,6 +3204,36 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
+static void rna_def_paint_mask(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "MeshPaintMaskLayer", NULL);
+	RNA_def_struct_ui_text(srna, "Mesh Paint Mask Layer", "Per-vertex paint mask data");
+	RNA_def_struct_sdna(srna, "CustomDataLayer");
+	RNA_def_struct_path_func(srna, "rna_MeshPaintMaskLayer_path");
+
+	prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MeshPaintMaskProperty");
+	RNA_def_property_ui_text(prop, "Data", "");
+
+	RNA_def_property_collection_funcs(prop, "rna_MeshPaintMaskLayer_data_begin", "rna_iterator_array_next",
+	                                  "rna_iterator_array_end", "rna_iterator_array_get",
+	                                  "rna_MeshPaintMaskLayer_data_length", NULL, NULL, NULL);
+
+	srna = RNA_def_struct(brna, "MeshPaintMaskProperty", NULL);
+	RNA_def_struct_sdna(srna, "MFloatProperty");
+	RNA_def_struct_ui_text(srna, "Mesh Paint Mask Property",
+	                       "Floating point paint mask value");
+	RNA_def_struct_path_func(srna, "rna_MeshPaintMask_path");
+
+	prop = RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f");
+	RNA_def_property_ui_text(prop, "Value", "");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+}
+
 static void rna_def_mesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3375,6 +3437,16 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Skin Vertices", "All skin vertices");
 	rna_def_skin_vertices(brna, prop);
 	/* End skin vertices */
+
+	/* Paint mask */
+	prop = RNA_def_property(srna, "vertex_paint_masks", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "vdata.layers", "vdata.totlayer");
+	RNA_def_property_collection_funcs(prop, "rna_Mesh_vertex_paint_masks_begin", NULL, NULL, NULL,
+	                                  "rna_Mesh_vertex_paint_masks_length", NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "MeshPaintMaskLayer");
+	RNA_def_property_ui_text(prop, "Vertex Paint Mask", "Vertex paint mask");
+	rna_def_paint_mask(brna, prop);
+	/* End paint mask */
 
 	prop = RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_AUTOSMOOTH);
