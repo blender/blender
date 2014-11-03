@@ -213,10 +213,9 @@ typedef struct MeshdeformUserdata {
 	float (*vertexCos)[3];
 	float (*cagemat)[4];
 	float (*icagemat)[3];
-	SpinLock lock;
 } MeshdeformUserdata;
 
-static void meshdeform_vert_task(void *userdata, int iter)
+static void meshdeform_vert_task(void * userdata, int iter)
 {
 	MeshdeformUserdata *data = userdata;
 	/*const*/ MeshDeformModifierData *mmd = data->mmd;
@@ -265,12 +264,10 @@ static void meshdeform_vert_task(void *userdata, int iter)
 	if (totweight > 0.0f) {
 		mul_v3_fl(co, fac / totweight);
 		mul_m3_v3(data->icagemat, co);
-		BLI_spin_lock(&data->lock);
 		if (G.debug_value != 527)
 			add_v3_v3(vertexCos[iter], co);
 		else
 			copy_v3_v3(vertexCos[iter], co);
-		BLI_spin_unlock(&data->lock);
 	}
 }
 
@@ -395,13 +392,9 @@ static void meshdeformModifier_do(
 	data.vertexCos = vertexCos;
 	data.cagemat = cagemat;
 	data.icagemat = icagemat;
-	BLI_spin_init(&data.lock);
 
 	/* Do deformation. */
 	BLI_task_parallel_range(0, totvert, &data, meshdeform_vert_task);
-
-	/* Uninitialize user dtaa used by the task system. */
-	BLI_spin_end(&data.lock);
 
 	/* release cage derivedmesh */
 	MEM_freeN(dco);

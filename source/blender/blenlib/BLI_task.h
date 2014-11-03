@@ -106,7 +106,8 @@ void BLI_task_parallel_range_ex(
         int start, int stop,
         void *userdata,
         TaskParallelRangeFunc func,
-        const int range_threshold);
+        const int range_threshold,
+        const bool use_dynamic_scheduling);
 void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
