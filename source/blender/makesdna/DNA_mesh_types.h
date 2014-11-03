@@ -148,16 +148,20 @@ typedef struct TFace {
 /* **************** MESH ********************* */
 
 /* texflag */
-#define ME_AUTOSPACE	1
+enum {
+	ME_AUTOSPACE = 1,
+};
 
 /* me->editflag */
-#define ME_EDIT_MIRROR_X (1 << 0)
-#define ME_EDIT_MIRROR_Y (1 << 1) // unused so far
-#define ME_EDIT_MIRROR_Z (1 << 2) // unused so far
+enum {
+	ME_EDIT_MIRROR_X       = 1 << 0,
+	ME_EDIT_MIRROR_Y       = 1 << 1,  /* unused so far */
+	ME_EDIT_MIRROR_Z       = 1 << 2,  /* unused so far */
 
-#define ME_EDIT_PAINT_FACE_SEL (1 << 3)
-#define ME_EDIT_MIRROR_TOPO (1 << 4)
-#define ME_EDIT_PAINT_VERT_SEL (1 << 5)
+	ME_EDIT_PAINT_FACE_SEL = 1 << 3,
+	ME_EDIT_MIRROR_TOPO    = 1 << 4,
+	ME_EDIT_PAINT_VERT_SEL = 1 << 5,
+};
 
 /* we cant have both flags enabled at once,
  * flags defined in DNA_scene_types.h */
@@ -168,57 +172,65 @@ typedef struct TFace {
 	)
 
 /* me->flag */
-/* #define ME_ISDONE		1 */
-/* #define ME_DEPRECATED	2 */
-#define ME_TWOSIDED		4
-#define ME_UVEFFECT		8
-#define ME_VCOLEFFECT	16
-#define ME_AUTOSMOOTH	32
-#define ME_SMESH		64
-#define ME_SUBSURF		128
-#define ME_OPT_EDGES	256
-#define ME_DS_EXPAND	512
-#define ME_SCULPT_DYNAMIC_TOPOLOGY 1024
+enum {
+/*	ME_ISDONE                  = 1 << 0, */
+/*	ME_DEPRECATED              = 1 << 1, */
+	ME_TWOSIDED                = 1 << 2,
+	ME_UVEFFECT                = 1 << 3,
+	ME_VCOLEFFECT              = 1 << 4,
+	ME_AUTOSMOOTH              = 1 << 5,
+	ME_SMESH                   = 1 << 6,
+	ME_SUBSURF                 = 1 << 7,
+	ME_OPT_EDGES               = 1 << 8,
+	ME_DS_EXPAND               = 1 << 9,
+	ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,
+};
 
 /* me->cd_flag */
-#define ME_CDFLAG_VERT_BWEIGHT (1 << 0)
-#define ME_CDFLAG_EDGE_BWEIGHT (1 << 1)
-#define ME_CDFLAG_EDGE_CREASE  (1 << 2)
+enum {
+	ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
+	ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
+	ME_CDFLAG_EDGE_CREASE  = 1 << 2,
+};
 
 /* me->drawflag, short */
-#define ME_DRAWEDGES	(1 << 0)
-#define ME_DRAWFACES	(1 << 1)
-#define ME_DRAWNORMALS	(1 << 2)
-#define ME_DRAW_VNORMALS (1 << 3)
+enum {
+	ME_DRAWEDGES           = 1 << 0,
+	ME_DRAWFACES           = 1 << 1,
+	ME_DRAWNORMALS         = 1 << 2,
+	ME_DRAW_VNORMALS       = 1 << 3,
 
-#define ME_DRAWEIGHT	(1 << 4)
-#define ME_HIDDENEDGES  (1 << 5)
+	ME_DRAWEIGHT           = 1 << 4,
+	ME_HIDDENEDGES         = 1 << 5,
 
-#define ME_DRAWCREASES	(1 << 6)
-#define ME_DRAWSEAMS    (1 << 7)
-#define ME_DRAWSHARP    (1 << 8)
-#define ME_DRAWBWEIGHTS	(1 << 9)
+	ME_DRAWCREASES         = 1 << 6,
+	ME_DRAWSEAMS           = 1 << 7,
+	ME_DRAWSHARP           = 1 << 8,
+	ME_DRAWBWEIGHTS        = 1 << 9,
 
-#define ME_DRAWEXTRA_EDGELEN  (1 << 10)
-#define ME_DRAWEXTRA_FACEAREA (1 << 11)
-#define ME_DRAWEXTRA_FACEANG  (1 << 12)
-#define ME_DRAWEXTRA_EDGEANG  (1 << 13)
+	ME_DRAWEXTRA_EDGELEN   = 1 << 10,
+	ME_DRAWEXTRA_FACEAREA  = 1 << 11,
+	ME_DRAWEXTRA_FACEANG   = 1 << 12,
+	ME_DRAWEXTRA_EDGEANG   = 1 << 13,
 
 /* debug only option */
-#define ME_DRAWEXTRA_INDICES (1 << 14)
+	ME_DRAWEXTRA_INDICES   = 1 << 14,
 
-#define ME_DRAW_FREESTYLE_EDGE (1 << 15)
-#define ME_DRAW_FREESTYLE_FACE (1 << 16)
+	ME_DRAW_FREESTYLE_EDGE = 1 << 15,
+	ME_DRAW_FREESTYLE_FACE = 1 << 16,
 
 /* draw stats */
-#define ME_DRAW_STATVIS (1 << 17)
+	ME_DRAW_STATVIS        = 1 << 17,
 
 /* draw loop normals */
-#define ME_DRAW_LNORMALS (1 << 18)
+	ME_DRAW_LNORMALS       = 1 << 18,
+};
 
 /* Subsurf Type */
-#define ME_CC_SUBSURF 		0
-#define ME_SIMPLE_SUBSURF 	1
+enum {
+	ME_CC_SUBSURF      = 0,
+	ME_SIMPLE_SUBSURF  = 1,
+};
 
 #define MESH_MAX_VERTS 2000000000L
 
@@ -229,6 +241,6 @@ typedef struct TFace {
 #define USE_BMESH_SAVE_WITHOUT_MFACE
 
 /* enable this so meshes get tessfaces calculated by default */
-// #define USE_TESSFACE_DEFAULT
+/* #define USE_TESSFACE_DEFAULT */
 
 #endif
