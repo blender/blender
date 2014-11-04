@@ -992,30 +992,28 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
-		if(sd.flag & SD_HAS_VOLUME) {
-			if(sd.flag & SD_BACKFACING) {
-				/* If ray exited the volume and never entered to that volume
-				 * it means that camera is inside such a volume.
-				 */
-				bool is_enclosed = false;
-				for(int i = 0; i < enclosed_index; ++i) {
-					if(enclosed_volumes[i] == sd.object) {
-						is_enclosed = true;
-						break;
-					}
-				}
-				if(is_enclosed == false) {
-					stack[stack_index].object = sd.object;
-					stack[stack_index].shader = sd.shader;
-					++stack_index;
+		if(sd.flag & SD_BACKFACING) {
+			/* If ray exited the volume and never entered to that volume
+			 * it means that camera is inside such a volume.
+			 */
+			bool is_enclosed = false;
+			for(int i = 0; i < enclosed_index; ++i) {
+				if(enclosed_volumes[i] == sd.object) {
+					is_enclosed = true;
+					break;
 				}
 			}
-			else {
-				/* If ray from camera enters the volume, this volume shouldn't
-				 * be added to the stak on exit.
-				 */
-				enclosed_volumes[enclosed_index++] = sd.object;
+			if(is_enclosed == false) {
+				stack[stack_index].object = sd.object;
+				stack[stack_index].shader = sd.shader;
+				++stack_index;
 			}
+		}
+		else {
+			/* If ray from camera enters the volume, this volume shouldn't
+			 * be added to the stak on exit.
+			 */
+			enclosed_volumes[enclosed_index++] = sd.object;
 		}
 
 		/* Move ray forward. */
