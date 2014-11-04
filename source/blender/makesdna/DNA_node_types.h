@@ -985,6 +985,13 @@ typedef struct NodeSunBeams {
 #define SHD_NORMAL_MAP_BLENDER_OBJECT	3
 #define SHD_NORMAL_MAP_BLENDER_WORLD	4
 
+/* math node clamp */
+#define SHD_MATH_CLAMP		1
+
+/* mix rgb node flags */
+#define SHD_MIXRGB_USE_ALPHA	1
+#define SHD_MIXRGB_CLAMP	2
+
 /* subsurface */
 enum {
 	SHD_SUBSURFACE_COMPATIBLE		= 0, // Deprecated
