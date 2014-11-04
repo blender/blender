@@ -75,6 +75,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	GHash *sf_vert_map;
 	float normal[3];
 	const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS | BLI_SCANFILL_CALC_LOOSE;
+	unsigned int nors_tot;
 	bool calc_winding = false;
 
 	sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_count(op->slots_in, "edges"));
@@ -103,6 +104,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		/* sf_edge = */ BLI_scanfill_edge_add(&sf_ctx, UNPACK2(sf_verts));
 		/* sf_edge->tmp.p = e; */ /* UNUSED */
 	}
+	nors_tot = BLI_ghash_size(sf_vert_map);
 	BLI_ghash_free(sf_vert_map, NULL, NULL);
 	
 
@@ -111,7 +113,6 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		 * Since we don't know winding, just accumulate */
 		ScanFillVert *sf_vert;
 		struct SortNormal *nors;
-		const unsigned int nors_tot = BLI_ghash_size(sf_vert_map);
 		unsigned int i;
 		bool is_degenerate = true;
 
