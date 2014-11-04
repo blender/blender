@@ -492,6 +492,12 @@ static int check_mode_full_sample(RenderData *rd)
 {
 	int scemode = rd->scemode;
 
+	if (!STREQ(rd->engine, RE_engine_id_BLENDER_RENDER) &&
+	    !STREQ(rd->engine, RE_engine_id_BLENDER_GAME))
+	{
+		scemode &= ~R_FULL_SAMPLE;
+	}
+
 	if ((rd->mode & R_OSA) == 0)
 		scemode &= ~R_FULL_SAMPLE;
 
