@@ -479,6 +479,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			but = uiDefBut(block, BUT, 0, numstr, 0, 0, UI_UNIT_X + ((id->us < 10) ? 0 : 10), UI_UNIT_Y,
 			               NULL, 0, 0, 0, 0,
 			               TIP_("Display number of users of this data (click to make a single-user copy)"));
+			but->flag |= UI_BUT_UNDO;
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if (/* test only */
