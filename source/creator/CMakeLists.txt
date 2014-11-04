@@ -414,10 +414,14 @@ if(UNIX AND NOT APPLE)
 
 	# there are a few differences between portable and system install
 	if(WITH_INSTALL_PORTABLE)
-		install(
-			FILES ${TARGETDIR}/blender.1
-			DESTINATION ${TARGETDIR}
-		)
+		if(WITH_PYTHON_MODULE)
+			# pass
+		else()
+			install(
+				FILES ${TARGETDIR}/blender.1
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
 
 		install(
 			FILES
