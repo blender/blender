@@ -59,6 +59,9 @@ static void node_shader_exec_mix_rgb(void *UNUSED(data), int UNUSED(thread), bNo
 	nodestack_get_vec(vec, SOCK_VECTOR, in[2]);
 
 	ramp_blend(node->custom1, col, fac, vec);
+	if (node->custom2 & SHD_MIXRGB_CLAMP) {
+		CLAMP3(col, 0.0f, 1.0f);
+	}
 	copy_v3_v3(out[0]->vec, col);
 }
 
@@ -68,8 +71,13 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 		                          "mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
 		                          "mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
 		                          "mix_val", "mix_color", "mix_soft", "mix_linear"};
-
-	return GPU_stack_link(mat, names[node->custom1], in, out);
+	int ret = GPU_stack_link(mat, names[node->custom1], in, out);
+	if (ret && node->custom2 & SHD_MIXRGB_CLAMP) {
+		float min[3] = {0.0f, 0.0f, 0.0f};
+		float max[3] = {1.0f, 1.0f, 1.0f};
+		GPU_link(mat, "clamp_val", out[0].link, GPU_uniform(min), GPU_uniform(max), &out[0].link);
+	}
+	return ret;
 }
 
 

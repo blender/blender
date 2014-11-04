@@ -222,7 +222,9 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 			break;
 		}
 	}
-	
+	if (node->custom2 & SHD_MATH_CLAMP) {
+		CLAMP(r, 0.0f, 1.0f);
+	}
 	out[0]->vec[0] = r;
 }
 
@@ -272,7 +274,13 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 		default:
 			return 0;
 	}
-	
+
+	if (node->custom2 & SHD_MATH_CLAMP) {
+		float min[3] = {0.0f, 0.0f, 0.0f};
+		float max[3] = {1.0f, 1.0f, 1.0f};
+		GPU_link(mat, "clamp_val", out[0].link, GPU_uniform(min), GPU_uniform(max), &out[0].link);
+	}
+
 	return 1;
 }
 
