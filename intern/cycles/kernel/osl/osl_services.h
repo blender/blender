@@ -97,16 +97,17 @@ public:
 	bool texture(ustring filename, TextureOpt &options,
 	             OSL::ShaderGlobals *sg,
 	             float s, float t, float dsdx, float dtdx,
-	             float dsdy, float dtdy, float *result);
+	             float dsdy, float dtdy, int nchannels, float *result);
 
 	bool texture3d(ustring filename, TextureOpt &options,
 	               OSL::ShaderGlobals *sg, const OSL::Vec3 &P,
 	               const OSL::Vec3 &dPdx, const OSL::Vec3 &dPdy,
-	               const OSL::Vec3 &dPdz, float *result);
+	               const OSL::Vec3 &dPdz, int nchannels, float *result);
 
 	bool environment(ustring filename, TextureOpt &options,
 	                 OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
-	                 const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy, float *result);
+	                 const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy,
+	                 int nchannels, float *result);
 
 	bool get_texture_info(OSL::ShaderGlobals *sg, ustring filename, int subimage,
 	                      ustring dataname, TypeDesc datatype, void *data);
@@ -158,6 +159,8 @@ public:
 	static ustring u_u;
 	static ustring u_v;
 	static ustring u_empty;
+
+	/* Code to make OSL versions transition smooth. */
 
 #if OSL_LIBRARY_VERSION_CODE < 10500
 	bool get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time) {
@@ -223,6 +226,36 @@ public:
 		return get_texture_info(NULL, filename, subimage, dataname, datatype, data);
 	}
 #endif
+
+#if OSL_LIBRARY_VERSION_CODE < 10600
+	inline bool texture(ustring filename, TextureOpt &options,
+	                    OSL::ShaderGlobals *sg,
+	                    float s, float t, float dsdx, float dtdx,
+	                    float dsdy, float dtdy, float *result)
+	{
+		return texture(filename, options, sg, s, t, dsdx, dtdx, dsdy, dtdy,
+		               options.nchannels, result);
+	}
+
+	inline bool texture3d(ustring filename, TextureOpt &options,
+	                      OSL::ShaderGlobals *sg, const OSL::Vec3 &P,
+	                      const OSL::Vec3 &dPdx, const OSL::Vec3 &dPdy,
+	                      const OSL::Vec3 &dPdz, float *result)
+	{
+		return texture3d(filename, options, sg, P, dPdx, dPdy, dPdz,
+		                 options.nchannels, result);
+	}
+
+	inline bool environment(ustring filename, TextureOpt &options,
+	                        OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
+	                        const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy,
+	                        float *result)
+	{
+		return environment(filename, options, sg, R, dRdx, dRdy,
+		                   options.nchannels, result);
+	}
+#endif
+
 private:
 	KernelGlobals *kernel_globals;
 	OSL::TextureSystem *osl_ts;
