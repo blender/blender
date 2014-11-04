@@ -1873,8 +1873,7 @@ int CustomData_number_of_layers_typemask(const CustomData *data, CustomDataMask 
 	return number;
 }
 
-static void *customData_duplicate_referenced_layer_index(CustomData *data, const int type,
-                                                         const int layer_index, const int totelem)
+static void *customData_duplicate_referenced_layer_index(CustomData *data, const int layer_index, const int totelem)
 {
 	CustomDataLayer *layer;
 
@@ -1908,35 +1907,32 @@ static void *customData_duplicate_referenced_layer_index(CustomData *data, const
 
 void *CustomData_duplicate_referenced_layer(CustomData *data, const int type, const int totelem)
 {
-	CustomDataLayer *layer;
 	int layer_index;
 
 	/* get the layer index of the first layer of type */
 	layer_index = CustomData_get_active_layer_index(data, type);
 
-	return customData_duplicate_referenced_layer_index(data, type, layer_index, totelem);
+	return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
 }
 
 void *CustomData_duplicate_referenced_layer_n(CustomData *data, const int type, const int n, const int totelem)
 {
-	CustomDataLayer *layer;
 	int layer_index;
 
 	/* get the layer index of the desired layer */
 	layer_index = CustomData_get_layer_index_n(data, type, n);
 
-	return customData_duplicate_referenced_layer_index(data, type, layer_index, totelem);
+	return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
 }
 
 void *CustomData_duplicate_referenced_layer_named(CustomData *data, const int type, const char *name, const int totelem)
 {
-	CustomDataLayer *layer;
 	int layer_index;
 
 	/* get the layer index of the desired layer */
 	layer_index = CustomData_get_named_layer_index(data, type, name);
 
-	return customData_duplicate_referenced_layer_index(data, type, layer_index, totelem);
+	return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
 }
 
 bool CustomData_is_referenced_layer(struct CustomData *data, int type)
