@@ -277,6 +277,7 @@ ccl_device bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 					}
 					else {
 						/* pop */
+						object = OBJECT_NONE;
 						nodeAddr = traversalStack[stackPtr];
 						--stackPtr;
 					}
