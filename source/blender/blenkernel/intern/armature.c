@@ -1940,12 +1940,12 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 			}
 		}
 
-		/* disallow negative values (happens with float precision) */
-		CLAMP_MIN(ikData->points[segcount], 0.0f);
-
 		/* spline has now been bound */
 		ikData->flag |= CONSTRAINT_SPLINEIK_BOUND;
 	}
+
+	/* disallow negative values (happens with float precision) */
+	CLAMP_MIN(ikData->points[segcount], 0.0f);
 
 	/* apply corrections for sensitivity to scaling on a copy of the bind points,
 	 * since it's easier to determine the positions of all the joints beforehand this way
