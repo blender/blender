@@ -248,10 +248,6 @@ void OSLShaderManager::shading_system_free()
 
 bool OSLShaderManager::osl_compile(const string& inputfile, const string& outputfile)
 {
-#if OSL_LIBRARY_VERSION_CODE < 10500
-	typedef string string_view;
-#endif
-
 	vector<string_view> options;
 	string stdosl_path;
 	string shader_path = path_get("shader");
@@ -748,11 +744,7 @@ OSL::ShadingAttribStateRef OSLCompiler::compile_type(Shader *shader, ShaderGraph
 
 	current_type = type;
 
-#if OSL_LIBRARY_VERSION_CODE >= 10501
 	OSL::ShadingAttribStateRef group = ss->ShaderGroupBegin(shader->name.c_str());
-#else
-	ss->ShaderGroupBegin(shader->name.c_str());
-#endif
 
 	ShaderNode *output = graph->output();
 	set<ShaderNode*> dependencies;
@@ -780,13 +772,7 @@ OSL::ShadingAttribStateRef OSLCompiler::compile_type(Shader *shader, ShaderGraph
 
 	ss->ShaderGroupEnd();
 
-#if OSL_LIBRARY_VERSION_CODE >= 10501
 	return group;
-#else
-	OSL::ShadingAttribStateRef group = ss->state();
-	ss->clear_state();
-	return group;
-#endif
 }
 
 void OSLCompiler::compile(OSLGlobals *og, Shader *shader)

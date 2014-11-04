@@ -385,13 +385,7 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 		/* find socket socket */
 		BL::NodeSocket b_sock(PointerRNA_NULL);
 		if (param->isoutput) {
-#if OSL_LIBRARY_VERSION_CODE < 10500
-			b_sock = b_node.outputs[param->name];
-#else
 			b_sock = b_node.outputs[param->name.string()];
-#endif
-
-			
 			/* remove if type no longer matches */
 			if(b_sock && b_sock.bl_idname() != socket_type) {
 				b_node.outputs.remove(b_sock);
@@ -399,12 +393,7 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 			}
 		}
 		else {
-#if OSL_LIBRARY_VERSION_CODE < 10500
-			b_sock = b_node.inputs[param->name];
-#else
 			b_sock = b_node.inputs[param->name.string()];
-#endif
-			
 			/* remove if type no longer matches */
 			if(b_sock && b_sock.bl_idname() != socket_type) {
 				b_node.inputs.remove(b_sock);
