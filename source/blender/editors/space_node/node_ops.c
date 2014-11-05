@@ -111,7 +111,6 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_output_file_move_active_socket);
 	
 	WM_operatortype_append(NODE_OT_parent_set);
-	WM_operatortype_append(NODE_OT_parent_clear);
 	WM_operatortype_append(NODE_OT_join);
 	WM_operatortype_append(NODE_OT_attach);
 	WM_operatortype_append(NODE_OT_detach);
@@ -147,6 +146,10 @@ void ED_operatormacros_node(void)
 	RNA_boolean_set(mot->ptr, "release_confirm", true);
 	WM_operatortype_macro_define(ot, "NODE_OT_attach");
 
+	/* Note: Currently not in a default keymap or menu due to messy keymaps
+	 * and tricky invoke functionality.
+	 * Kept around in case users want to make own shortcuts.
+	 */
 	ot = WM_operatortype_append_macro("NODE_OT_detach_translate_attach", "Detach and Move",
 	                                  "Detach nodes, move and attach to frame",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
@@ -267,7 +270,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move_keep_inputs", DKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_detach", PKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_hide_toggle", HKEY, KM_PRESS, 0, 0);

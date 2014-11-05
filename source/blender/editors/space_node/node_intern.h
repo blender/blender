@@ -163,7 +163,6 @@ void NODE_OT_links_cut(struct wmOperatorType *ot);
 void NODE_OT_links_detach(struct wmOperatorType *ot);
 
 void NODE_OT_parent_set(struct wmOperatorType *ot);
-void NODE_OT_parent_clear(struct wmOperatorType *ot);
 void NODE_OT_join(struct wmOperatorType *ot);
 void NODE_OT_attach(struct wmOperatorType *ot);
 void NODE_OT_detach(struct wmOperatorType *ot);

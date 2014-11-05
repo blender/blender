@@ -1011,40 +1011,6 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ****************** Clear Parent ******************* */
-
-static int node_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	bNodeTree *ntree = snode->edittree;
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->flag & NODE_SELECT) {
-			nodeDetachNode(node);
-		}
-	}
-
-	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_parent_clear(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Clear Parent";
-	ot->description = "Detach selected nodes";
-	ot->idname = "NODE_OT_parent_clear";
-
-	/* api callbacks */
-	ot->exec = node_parent_clear_exec;
-	ot->poll = ED_operator_node_editable;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 /* ****************** Join Nodes ******************* */
 
 /* tags for depth-first search */
