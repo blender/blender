@@ -183,7 +183,11 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		calc_winding = false;
 	}
 
-	normalize_v3(normal);
+	/* in this case we almost certainly have degenerate geometry,
+	 * better set a fallback value as a last resort */
+	if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+		normal[2] = 1.0f;
+	}
 
 	BLI_scanfill_calc_ex(&sf_ctx, scanfill_flag, normal);
 

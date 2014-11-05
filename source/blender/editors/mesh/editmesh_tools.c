@@ -2959,7 +2959,14 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const bool use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 	BMOperator bmop;
-	
+	const int totface_orig = em->bm->totface;
+	int ret;
+
+	if (em->bm->totedgesel == 0) {
+		BKE_report(op->reports, RPT_WARNING, "No edges selected");
+		return OPERATOR_CANCELLED;
+	}
+
 	if (!EDBM_op_init(em, &bmop, op,
 	                  "triangle_fill edges=%he use_beauty=%b",
 	                  BM_ELEM_SELECT, use_beauty))
@@ -2969,17 +2976,24 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	
 	BMO_op_exec(em->bm, &bmop);
 	
-	/* select new geometry */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_FACE | BM_EDGE, BM_ELEM_SELECT, true);
-	
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+	if (totface_orig != em->bm->totface) {
+		/* select new geometry */
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_FACE | BM_EDGE, BM_ELEM_SELECT, true);
+
+		EDBM_update_generic(em, true, true);
+
+		ret = OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_WARNING, "No faces filled");
+		ret = OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(em, true, true);
-	
-	return OPERATOR_FINISHED;
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
+		ret = OPERATOR_CANCELLED;
+	}
 
+	return ret;
 }
 
 void MESH_OT_fill(wmOperatorType *ot)
