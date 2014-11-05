@@ -29,61 +29,61 @@ void MathNode::convertToOperations(NodeConverter &converter, const CompositorCon
 	MathBaseOperation *operation = NULL;
 	
 	switch (this->getbNode()->custom1) {
-		case 0: /* Add */
+		case NODE_MATH_ADD:
 			operation = new MathAddOperation();
 			break;
-		case 1: /* Subtract */
+		case NODE_MATH_SUB:
 			operation = new MathSubtractOperation();
 			break;
-		case 2: /* Multiply */
+		case NODE_MATH_MUL:
 			operation = new MathMultiplyOperation();
 			break;
-		case 3: /* Divide */
+		case NODE_MATH_DIVIDE:
 			operation = new MathDivideOperation();
 			break;
-		case 4: /* Sine */
+		case NODE_MATH_SIN:
 			operation = new MathSineOperation();
 			break;
-		case 5: /* Cosine */
+		case NODE_MATH_COS:
 			operation = new MathCosineOperation();
 			break;
-		case 6: /* Tangent */
+		case NODE_MATH_TAN:
 			operation = new MathTangentOperation();
 			break;
-		case 7: /* Arc-Sine */
+		case NODE_MATH_ASIN:
 			operation = new MathArcSineOperation();
 			break;
-		case 8: /* Arc-Cosine */
+		case NODE_MATH_ACOS:
 			operation = new MathArcCosineOperation();
 			break;
-		case 9: /* Arc-Tangent */
+		case NODE_MATH_ATAN:
 			operation = new MathArcTangentOperation();
 			break;
-		case 10: /* Power */
+		case NODE_MATH_POW:
 			operation = new MathPowerOperation();
 			break;
-		case 11: /* Logarithm */
+		case NODE_MATH_LOG:
 			operation = new MathLogarithmOperation();
 			break;
-		case 12: /* Minimum */
+		case NODE_MATH_MIN:
 			operation = new MathMinimumOperation();
 			break;
-		case 13: /* Maximum */
+		case NODE_MATH_MAX:
 			operation = new MathMaximumOperation();
 			break;
-		case 14: /* Round */
+		case NODE_MATH_ROUND:
 			operation = new MathRoundOperation();
 			break;
-		case 15: /* Less Than */
+		case NODE_MATH_LESS:
 			operation = new MathLessThanOperation();
 			break;
-		case 16: /* Greater Than */
+		case NODE_MATH_GREATER:
 			operation = new MathGreaterThanOperation();
 			break;
-		case 17: /* Modulo */
+		case NODE_MATH_MOD:
 			operation = new MathModuloOperation();
 			break;
-		case 18: /* Absolute Value */
+		case NODE_MATH_ABS:
 			operation = new MathAbsoluteOperation();
 			break;
 	}

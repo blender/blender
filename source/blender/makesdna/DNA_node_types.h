@@ -988,6 +988,29 @@ typedef struct NodeSunBeams {
 /* math node clamp */
 #define SHD_MATH_CLAMP		1
 
+/* Math node operation/ */
+enum {
+	NODE_MATH_ADD     = 0,
+	NODE_MATH_SUB     = 1,
+	NODE_MATH_MUL     = 2,
+	NODE_MATH_DIVIDE  = 3,
+	NODE_MATH_SIN     = 4,
+	NODE_MATH_COS     = 5,
+	NODE_MATH_TAN     = 6,
+	NODE_MATH_ASIN    = 7,
+	NODE_MATH_ACOS    = 8,
+	NODE_MATH_ATAN    = 9,
+	NODE_MATH_POW     = 10,
+	NODE_MATH_LOG     = 11,
+	NODE_MATH_MIN     = 12,
+	NODE_MATH_MAX     = 13,
+	NODE_MATH_ROUND   = 14,
+	NODE_MATH_LESS    = 15,
+	NODE_MATH_GREATER = 16,
+	NODE_MATH_MOD     = 17,
+	NODE_MATH_ABS     = 18,
+};
+
 /* mix rgb node flags */
 #define SHD_MIXRGB_USE_ALPHA	1
 #define SHD_MIXRGB_CLAMP	2

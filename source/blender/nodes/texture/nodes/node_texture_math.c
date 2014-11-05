@@ -53,16 +53,16 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 
 	switch (node->custom1) {
 
-		case 0: /* Add */
+		case NODE_MATH_ADD:
 			*out = in0 + in1;
 			break;
-		case 1: /* Subtract */
+		case NODE_MATH_SUB:
 			*out = in0 - in1;
 			break;
-		case 2: /* Multiply */
+		case NODE_MATH_MUL:
 			*out = in0 * in1;
 			break;
-		case 3: /* Divide */
+		case NODE_MATH_DIVIDE:
 		{
 			if (in1 == 0) /* We don't want to divide by zero. */
 				*out = 0.0;
@@ -70,22 +70,22 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				*out = in0 / in1;
 			break;
 		}
-		case 4: /* Sine */
+		case NODE_MATH_SIN:
 		{
 			*out = sinf(in0);
 			break;
 		}
-		case 5: /* Cosine */
+		case NODE_MATH_COS:
 		{
 			*out = cosf(in0);
 			break;
 		}
-		case 6: /* Tangent */
+		case NODE_MATH_TAN:
 		{
 			*out = tanf(in0);
 			break;
 		}
-		case 7: /* Arc-Sine */
+		case NODE_MATH_ASIN:
 		{
 			/* Can't do the impossible... */
 			if (in0 <= 1 && in0 >= -1)
@@ -94,7 +94,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				*out = 0.0;
 			break;
 		}
-		case 8: /* Arc-Cosine */
+		case NODE_MATH_ACOS:
 		{
 			/* Can't do the impossible... */
 			if (in0 <= 1 && in0 >= -1)
@@ -103,12 +103,12 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				*out = 0.0;
 			break;
 		}
-		case 9: /* Arc-Tangent */
+		case NODE_MATH_ATAN:
 		{
 			*out = atan(in0);
 			break;
 		}
-		case 10: /* Power */
+		case NODE_MATH_POW:
 		{
 			/* Only raise negative numbers by full integers */
 			if (in0 >= 0) {
@@ -125,7 +125,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			}
 			break;
 		}
-		case 11: /* Logarithm */
+		case NODE_MATH_LOG:
 		{
 			/* Don't want any imaginary numbers... */
 			if (in0 > 0  && in1 > 0)
@@ -134,7 +134,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				*out = 0.0;
 			break;
 		}
-		case 12: /* Minimum */
+		case NODE_MATH_MIN:
 		{
 			if (in0 < in1)
 				*out = in0;
@@ -142,7 +142,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				*out = in1;
 			break;
 		}
-		case 13: /* Maximum */
+		case NODE_MATH_MAX:
 		{
 			if (in0 > in1)
 				*out = in0;
@@ -150,13 +150,13 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 				*out = in1;
 			break;
 		}
-		case 14: /* Round */
+		case NODE_MATH_ROUND:
 		{
 			*out = (in0 < 0) ? (int)(in0 - 0.5f) : (int)(in0 + 0.5f);
 			break;
 		}
 
-		case 15: /* Less Than */
+		case NODE_MATH_LESS:
 		{
 			if (in0 < in1)
 				*out = 1.0f;
@@ -165,7 +165,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 
-		case 16: /* Greater Than */
+		case NODE_MATH_GREATER:
 		{
 			if (in0 > in1)
 				*out = 1.0f;
@@ -174,7 +174,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 
-		case 17: /* Modulo */
+		case NODE_MATH_MOD:
 		{
 			if (in1 == 0.0f)
 				*out = 0.0f;
@@ -183,7 +183,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 
-		case 18: /* Absolute */
+		case NODE_MATH_ABS:
 		{
 			*out = fabsf(in0);
 			break;
