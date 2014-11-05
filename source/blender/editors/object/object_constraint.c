@@ -1399,6 +1399,8 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	bPoseChannel *pchan = CTX_data_active_pose_bone(C);
+	ListBase lb;
+	CollectionPointerLink *link;
 	
 	/* don't do anything if bone doesn't exist or doesn't have any constraints */
 	if (ELEM(NULL, pchan, pchan->constraints.first)) {
@@ -1407,16 +1409,22 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* copy all constraints from active posebone to all selected posebones */
-	CTX_DATA_BEGIN (C, bPoseChannel *, chan, selected_pose_bones)
-	{
+	CTX_data_selected_pose_bones(C, &lb);
+	for (link = lb.first; link; link = link->next) {
+		Object *ob = link->ptr.id.data;
+		bPoseChannel *chan = link->ptr.data;
+		
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (pchan != chan) {
 			BKE_constraints_copy(&chan->constraints, &pchan->constraints, true);
 			/* update flags (need to add here, not just copy) */
 			chan->constflag |= pchan->constflag;
+			
+			ob->pose->flag |= POSE_RECALC;
+			DAG_id_tag_update((ID *)ob, OB_RECALC_DATA);
 		}
 	}
-	CTX_DATA_END;
+	BLI_freelistN(&lb);
 	
 	/* force depsgraph to get recalculated since new relationships added */
 	DAG_relations_tag_update(bmain);
