@@ -1089,6 +1089,27 @@ void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3
 	debug_data_insert(debug_data, elem);
 }
 
+void BKE_sim_debug_data_add_circle(struct SimDebugData *debug_data, const float p[3], float radius, float r, float g, float b, const char *category, int hash)
+{
+	int category_hash = (int)BLI_ghashutil_strhash_p(category);
+	SimDebugElement *elem;
+	if (!debug_data)
+		return;
+	
+	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
+	elem->type = SIM_DEBUG_ELEM_CIRCLE;
+	elem->category_hash = category_hash;
+	elem->hash = hash;
+	elem->color[0] = r;
+	elem->color[1] = g;
+	elem->color[2] = b;
+	copy_v3_v3(elem->v1, p);
+	elem->v2[0] = radius;
+	elem->v2[1] = elem->v2[2] = 0.0f;
+	
+	debug_data_insert(debug_data, elem);
+}
+
 void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, const char *category, int hash)
 {
 	int category_hash = (int)BLI_ghashutil_strhash_p(category);

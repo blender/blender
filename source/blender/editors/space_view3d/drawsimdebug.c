@@ -52,7 +52,7 @@
 
 #include "UI_resources.h"
 
-static void draw_sim_debug_elements(SimDebugData *debug_data)
+static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 {
 	GHashIterator iter;
 	
@@ -70,6 +70,38 @@ static void draw_sim_debug_elements(SimDebugData *debug_data)
 	}
 	glEnd();
 	glPointSize(1.0f);
+	
+	/**** circles ****/
+	
+	{
+		float circle[16][2] = {
+		    {0.000000, 1.000000}, {0.382683, 0.923880}, {0.707107, 0.707107}, {0.923880, 0.382683},
+		    {1.000000, -0.000000}, {0.923880, -0.382683}, {0.707107, -0.707107}, {0.382683, -0.923880},
+		    {-0.000000, -1.000000}, {-0.382683, -0.923880}, {-0.707107, -0.707107}, {-0.923879, -0.382684},
+		    {-1.000000, 0.000000}, {-0.923879, 0.382684}, {-0.707107, 0.707107}, {-0.382683, 0.923880} };
+		for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
+			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
+			float radius = elem->v2[0];
+			float co[3];
+			int i;
+			
+			if (elem->type != SIM_DEBUG_ELEM_CIRCLE)
+				continue;
+			
+			glColor3f(elem->color[0], elem->color[1], elem->color[2]);
+			glBegin(GL_LINE_LOOP);
+			for (i = 0; i < 16; ++i) {
+				co[0] = radius * circle[i][0];
+				co[1] = radius * circle[i][1];
+				co[2] = 0.0f;
+				mul_mat3_m4_v3(imat, co);
+				add_v3_v3(co, elem->v1);
+				
+				glVertex3f(co[0], co[1], co[2]);
+			}
+			glEnd();
+		}
+	}
 	
 	/**** lines ****/
 	
@@ -119,19 +151,20 @@ void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar,
 {
 	RegionView3D *rv3d = ar->regiondata;
 	/*Object *ob = base->object;*/
-	/*float imat[4][4];*/
+	float imat[4][4];
 	
-	/*invert_m4_m4(imat, rv3d->viewmatob);*/
+	if (!debug_data)
+		return;
+	
+	invert_m4_m4(imat, rv3d->viewmatob);
 	
 //	glDepthMask(GL_FALSE);
 //	glEnable(GL_BLEND);
 	
 	glPushMatrix();
-	glLoadMatrixf(rv3d->viewmat);
 	
-	if (debug_data) {
-		draw_sim_debug_elements(debug_data);
-	}
+	glLoadMatrixf(rv3d->viewmat);
+	draw_sim_debug_elements(debug_data, imat);
 	
 	glPopMatrix();
 	

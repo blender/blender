@@ -150,6 +150,7 @@ typedef struct SimDebugElement {
 
 typedef enum eSimDebugElement_Type {
 	SIM_DEBUG_ELEM_DOT,
+	SIM_DEBUG_ELEM_CIRCLE,
 	SIM_DEBUG_ELEM_LINE,
 	SIM_DEBUG_ELEM_VECTOR,
 } eSimDebugElement_Type;
@@ -160,6 +161,7 @@ typedef struct SimDebugData {
 
 struct SimDebugData *BKE_sim_debug_data_new(void);
 void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, const char *category, int hash);
+void BKE_sim_debug_data_add_circle(struct SimDebugData *debug_data, const float p[3], const float radius, float r, float g, float b, const char *category, int hash);
 void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, const char *category, int hash);
 void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, const char *category, int hash);
 void BKE_sim_debug_data_remove(struct SimDebugData *debug_data, int hash);
