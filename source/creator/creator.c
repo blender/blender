@@ -202,7 +202,7 @@ static bool use_crash_handler = true;
 #if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 static void fpe_handler(int UNUSED(sig))
 {
-	// printf("SIGFPE trapped\n");
+	fprintf(stderr, "debug: SIGFPE trapped\n");
 }
 #endif
 
