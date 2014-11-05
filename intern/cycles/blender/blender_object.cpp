@@ -168,6 +168,8 @@ void BlenderSync::sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSI
 	else
 		light->samples = samples;
 
+	light->max_bounces = get_int(clamp, "max_bounces");
+
 	/* visibility */
 	uint visibility = object_ray_visibility(b_ob);
 	light->use_diffuse = (visibility & PATH_RAY_DIFFUSE) != 0;

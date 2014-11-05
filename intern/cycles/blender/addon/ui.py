@@ -729,11 +729,11 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
 
         if cscene.progressive == 'BRANCHED_PATH':
             col.prop(clamp, "samples")
+        col.prop(clamp, "max_bounces")
 
         col = split.column()
         col.prop(clamp, "cast_shadow")
-
-        layout.prop(clamp, "use_multiple_importance_sampling")
+        col.prop(clamp, "use_multiple_importance_sampling")
 
         if lamp.type == 'HEMI':
             layout.label(text="Not supported, interpreted as sun lamp")

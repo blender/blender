@@ -648,7 +648,13 @@ ccl_device int light_distribution_sample(KernelGlobals *kg, float randt)
 
 /* Generic Light */
 
-ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, LightSample *ls)
+ccl_device bool light_select_reached_max_bounces(KernelGlobals *kg, int index, int bounce)
+{
+	float4 data4 = kernel_tex_fetch(__light_data, index*LIGHT_SIZE + 4);
+	return (bounce > __float_as_int(data4.x));
+}
+
+ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, int bounce, LightSample *ls)
 {
 	/* sample index */
 	int index = light_distribution_sample(kg, randt);
@@ -670,6 +676,12 @@ ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float 
 	}
 	else {
 		int lamp = -prim-1;
+
+		if(UNLIKELY(light_select_reached_max_bounces(kg, lamp, bounce))) {
+			ls->pdf = 0.0f;
+			return;
+		}
+
 		lamp_light_sample(kg, lamp, randu, randv, P, ls);
 	}
 }

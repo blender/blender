@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
 /* constants */
 #define OBJECT_SIZE 		11
 #define OBJECT_VECTOR_SIZE	6
-#define LIGHT_SIZE			4
+#define LIGHT_SIZE			5
 #define FILTER_TABLE_SIZE	256
 #define RAMP_TABLE_SIZE		256
 #define PARTICLE_SIZE 		5

@@ -58,6 +58,7 @@ public:
 
 	int shader;
 	int samples;
+	int max_bounces;
 
 	void tag_update(Scene *scene);
 };

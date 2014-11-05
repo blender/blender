@@ -653,6 +653,12 @@ class CyclesLampSettings(bpy.types.PropertyGroup):
                 min=1, max=10000,
                 default=1,
                 )
+        cls.max_bounces = IntProperty(
+                name="Max Bounces",
+                description="Maximum number of bounces the light will contribute to the render",
+                min=0, max=1024,
+                default=1024,
+                )
         cls.use_multiple_importance_sampling = BoolProperty(
                 name="Multiple Importance Sample",
                 description="Use multiple importance sampling for the lamp, "
