@@ -350,7 +350,7 @@ typedef unsigned int cl_GLenum;
 
 #ifdef _MSC_VER
 #if defined(_M_IX86)
-#if _M_IX86_FP >= 0
+#if _M_IX86_FP >= 0 && !defined(__SSE__)
 #define __SSE__
 #endif
 #if _M_IX86_FP >= 1
