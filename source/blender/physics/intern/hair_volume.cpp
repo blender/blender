@@ -55,14 +55,8 @@
 /* Note about array indexing:
  * Generally the arrays here are one-dimensional.
  * The relation between 3D indices and the array offset is
- *   offset = x + res_x * y + res_y * z
+ *   offset = x + res_x * y + res_x * res_y * z
  */
-
-/* TODO: This is an initial implementation and should be made much better in due time.
- * What should at least be implemented is a grid size parameter and a smoothing kernel
- * for bigger grids.
- */
-
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
