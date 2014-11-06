@@ -93,13 +93,6 @@ typedef struct HairVertexGrid {
 	struct SimDebugData *debug_data;
 } HairVertexGrid;
 
-typedef struct HairColliderGrid {
-	HairGridVert *verts;
-	int res;
-	float gmin[3], gmax[3];
-	float scale[3];
-} HairColliderGrid;
-
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) ( min_ii( max_ii( (int)((vec[axis] - gmin[axis]) / scale[axis]), 0), res-2 ) )
 
 BLI_INLINE int hair_grid_offset(const float vec[3], int res, const float gmin[3], const float scale[3])

@@ -166,7 +166,6 @@ bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, const 
 /* ======== Hair Volumetric Forces ======== */
 
 struct HairVertexGrid;
-struct HairColliderGrid;
 
 struct Object;
 struct VoxelData;
