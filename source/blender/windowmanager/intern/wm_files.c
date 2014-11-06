@@ -1069,11 +1069,16 @@ int wm_userpref_write_exec(bContext *C, wmOperator *op)
 void wm_autosave_location(char *filepath)
 {
 	char pidstr[32];
+	char path[1024];
 #ifdef WIN32
 	const char *savedir;
 #endif
 
-	BLI_snprintf(pidstr, sizeof(pidstr), "%d.blend", abs(getpid()));
+	BLI_snprintf(pidstr, sizeof(pidstr), "%d", abs(getpid()));
+	if (G.main)
+		BLI_snprintf(path, sizeof(path), "%s-%s", pidstr, BLI_path_basename(G.main->name));
+	else
+		BLI_snprintf(path, sizeof(path), "%s.blend", pidstr);
 
 #ifdef WIN32
 	/* XXX Need to investigate how to handle default location of '/tmp/'
@@ -1086,12 +1091,12 @@ void wm_autosave_location(char *filepath)
 	 * If there is no C:\tmp autosave fails. */
 	if (!BLI_exists(BLI_temp_dir_base())) {
 		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
-		BLI_make_file_string("/", filepath, savedir, pidstr);
+		BLI_make_file_string("/", filepath, savedir, path);
 		return;
 	}
 #endif
 
-	BLI_make_file_string("/", filepath, BLI_temp_dir_base(), pidstr);
+	BLI_make_file_string("/", filepath, BLI_temp_dir_base(), path);
 }
 
 void WM_autosave_init(wmWindowManager *wm)
