@@ -564,11 +564,6 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
 		}
 		BPH_hair_volume_normalize_vertex_grid(vertex_grid);
 		
-#if 0
-		/* apply velocity filter */
-		BPH_hair_volume_vertex_grid_filter_box(vertex_grid, clmd->sim_parms->voxel_filter_size);
-#endif
-		
 		vert = cloth->verts;
 		for (i = 0; i < numverts; i++, vert++) {
 			float x[3], v[3], f[3], dfdx[3][3], dfdv[3][3];
@@ -783,11 +778,6 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 		BPH_hair_volume_grid_geometry(grid, cellsize, NULL, NULL, NULL);
 		
 		cloth_continuum_fill_grid(grid, cloth);
-		
-#if 0
-		/* apply velocity filter */
-		BPH_hair_volume_vertex_grid_filter_box(vertex_grid, clmd->sim_parms->voxel_filter_size);
-#endif
 		
 		for (i = 0, vert = cloth->verts; i < numverts; i++, vert++) {
 			float x[3], v[3], nv[3];
