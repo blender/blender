@@ -1309,10 +1309,10 @@ static int uv_select_more_less(bContext *C, const bool select)
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		if (select) {
-			EDBM_select_more(em);
+			EDBM_select_more(em, true);
 		}
 		else {
-			EDBM_select_less(em);
+			EDBM_select_less(em, true);
 		}
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
