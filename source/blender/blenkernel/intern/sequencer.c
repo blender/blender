@@ -3529,28 +3529,16 @@ bool BKE_sequence_single_check(Sequence *seq)
 }
 
 /* check if the selected seq's reference unselected seq's */
-bool BKE_sequence_base_isolated_sel_check(ListBase *seqbase, bool one_only)
+bool BKE_sequence_base_isolated_sel_check(ListBase *seqbase)
 {
 	Sequence *seq;
-	/* is there a valid selection select */
+	/* is there more than 1 select */
 	bool ok = false;
-	/* is there one selected already? */
-	bool first = false;
 
 	for (seq = seqbase->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
-			if (one_only) {
-				ok = true;
-				break;
-			}
-			else {
-				if (first) {
-					ok = true;
-					break;
-				} 
-				else
-					first = true;
-			}
+			ok = true;
+			break;
 		}
 	}
 

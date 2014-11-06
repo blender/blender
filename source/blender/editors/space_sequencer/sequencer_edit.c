@@ -2425,8 +2425,8 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	Sequence *seq, *seqm, *next, *last_seq = BKE_sequencer_active_get(scene);
 	int channel_max = 1;
 
-	if (BKE_sequence_base_isolated_sel_check(ed->seqbasep, false) == false) {
-		BKE_report(op->reports, RPT_ERROR, "Please select more than one or all related strips");
+	if (BKE_sequence_base_isolated_sel_check(ed->seqbasep) == false) {
+		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3119,7 +3119,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 
 	BKE_sequencer_free_clipboard();
 
-	if (BKE_sequence_base_isolated_sel_check(ed->seqbasep, true) == false) {
+	if (BKE_sequence_base_isolated_sel_check(ed->seqbasep) == false) {
 		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
 		return OPERATOR_CANCELLED;
 	}
