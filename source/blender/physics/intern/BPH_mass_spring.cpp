@@ -590,19 +590,12 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
 
 /* returns active vertexes' motion state, or original location the vertex is disabled */
 BLI_INLINE bool cloth_get_grid_location(Implicit_Data *data, const float cell_scale[3], const float cell_offset[3],
-                                        ClothVertex *vert, float x[3], float v[3])
+                                        ClothVertex *vert, int index, float x[3], float v[3])
 {
 	bool is_motion_state;
-	if (vert->solver_index < 0) {
-		copy_v3_v3(x, vert->x);
-		copy_v3_v3(v, vert->v);
-		is_motion_state = false;
-	}
-	else {
-		BPH_mass_spring_get_position(data, vert->solver_index, x);
-		BPH_mass_spring_get_new_velocity(data, vert->solver_index, v);
-		is_motion_state = true;
-	}
+	BPH_mass_spring_get_position(data, index, x);
+	BPH_mass_spring_get_new_velocity(data, index, v);
+	is_motion_state = true;
 	
 	mul_v3_v3(x, cell_scale);
 	add_v3_v3(x, cell_offset);
@@ -630,7 +623,7 @@ BLI_INLINE LinkNode *hair_spring_next(LinkNode *spring_link)
  *   (3,4), (2,3), (1,2)
  * This is currently the only way to figure out hair geometry inside this code ...
  */
-static LinkNode *cloth_continuum_add_hair_segments(HairVertexGrid *grid, const float cell_scale[3], const float cell_offset[3], Cloth *cloth, LinkNode *spring_link)
+static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid, const float cell_scale[3], const float cell_offset[3], Cloth *cloth, LinkNode *spring_link)
 {
 	Implicit_Data *data = cloth->implicit;
 	LinkNode *next_spring_link = NULL; /* return value */
@@ -650,9 +643,9 @@ static LinkNode *cloth_continuum_add_hair_segments(HairVertexGrid *grid, const f
 	zero_v3(dir2);
 	
 	vert3 = &verts[spring3->kl];
-	cloth_get_grid_location(data, cell_scale, cell_offset, vert3, x3, v3);
+	cloth_get_grid_location(data, cell_scale, cell_offset, vert3, spring3->kl, x3, v3);
 	vert4 = &verts[spring3->ij];
-	cloth_get_grid_location(data, cell_scale, cell_offset, vert4, x4, v4);
+	cloth_get_grid_location(data, cell_scale, cell_offset, vert4, spring3->ij, x4, v4);
 	sub_v3_v3v3(dir3, x4, x3);
 	normalize_v3(dir3);
 	
@@ -677,7 +670,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairVertexGrid *grid, const f
 		if (spring_link) {
 			spring3 = (ClothSpring *)spring_link->link;
 			vert4 = &verts[spring3->ij];
-			cloth_get_grid_location(data, cell_scale, cell_offset, vert4, x4, v4);
+			cloth_get_grid_location(data, cell_scale, cell_offset, vert4, spring3->ij, x4, v4);
 			sub_v3_v3v3(dir3, x4, x3);
 			normalize_v3(dir3);
 		}
@@ -719,7 +712,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairVertexGrid *grid, const f
 	return next_spring_link;
 }
 
-static void cloth_continuum_fill_grid(HairVertexGrid *grid, Cloth *cloth)
+static void cloth_continuum_fill_grid(HairGrid *grid, Cloth *cloth)
 {
 #if 0
 	Implicit_Data *data = cloth->implicit;
@@ -784,12 +777,12 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 	
 	/* gather velocities & density */
 	if (smoothfac > 0.0f || pressfac > 0.0f) {
-		HairVertexGrid *vertex_grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
-		BPH_hair_volume_set_debug_data(vertex_grid, clmd->debug_data);
+		HairGrid *grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_res, gmin, gmax);
+		BPH_hair_volume_set_debug_data(grid, clmd->debug_data);
 		
-		BPH_hair_volume_grid_geometry(vertex_grid, cellsize, NULL, NULL, NULL);
+		BPH_hair_volume_grid_geometry(grid, cellsize, NULL, NULL, NULL);
 		
-		cloth_continuum_fill_grid(vertex_grid, cloth);
+		cloth_continuum_fill_grid(grid, cloth);
 		
 #if 0
 		/* apply velocity filter */
@@ -803,7 +796,7 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 			BPH_mass_spring_get_position(data, i, x);
 			BPH_mass_spring_get_new_velocity(data, i, v);
 			
-			BPH_hair_volume_grid_velocity(vertex_grid, x, v, fluid_factor, nv);
+			BPH_hair_volume_grid_velocity(grid, x, v, fluid_factor, nv);
 			
 			interp_v3_v3v3(nv, v, nv, smoothfac);
 			
@@ -812,7 +805,7 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 		}
 		
 		/* store basic grid info in the modifier data */
-		BPH_hair_volume_grid_geometry(vertex_grid, NULL, clmd->hair_grid_res, clmd->hair_grid_min, clmd->hair_grid_max);
+		BPH_hair_volume_grid_geometry(grid, NULL, clmd->hair_grid_res, clmd->hair_grid_min, clmd->hair_grid_max);
 		
 #if 0 /* DEBUG hair velocity vector field */
 		{
@@ -849,7 +842,7 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 		}
 #endif
 		
-		BPH_hair_volume_free_vertex_grid(vertex_grid);
+		BPH_hair_volume_free_vertex_grid(grid);
 	}
 }
 
@@ -1019,7 +1012,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 bool BPH_cloth_solver_get_texture_data(Object *UNUSED(ob), ClothModifierData *clmd, VoxelData *vd)
 {
 	Cloth *cloth = clmd->clothObject;
-	HairVertexGrid *grid;
+	HairGrid *grid;
 	float gmin[3], gmax[3];
 	
 	if (!clmd->clothObject || !clmd->clothObject->implicit)

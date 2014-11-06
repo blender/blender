@@ -165,35 +165,35 @@ bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, const 
 
 /* ======== Hair Volumetric Forces ======== */
 
-struct HairVertexGrid;
+struct HairGrid;
 
 struct Object;
 struct VoxelData;
 
-struct HairVertexGrid *BPH_hair_volume_create_vertex_grid(int res, const float gmin[3], const float gmax[3]);
-void BPH_hair_volume_free_vertex_grid(struct HairVertexGrid *grid);
-void BPH_hair_volume_set_debug_data(struct HairVertexGrid *grid, struct SimDebugData *debug_data);
-void BPH_hair_volume_grid_geometry(struct HairVertexGrid *grid, float cellsize[3], int res[3], float gmin[3], float gmax[3]);
+struct HairGrid *BPH_hair_volume_create_vertex_grid(int res, const float gmin[3], const float gmax[3]);
+void BPH_hair_volume_free_vertex_grid(struct HairGrid *grid);
+void BPH_hair_volume_set_debug_data(struct HairGrid *grid, struct SimDebugData *debug_data);
+void BPH_hair_volume_grid_geometry(struct HairGrid *grid, float cellsize[3], int res[3], float gmin[3], float gmax[3]);
 
-void BPH_hair_volume_add_vertex(struct HairVertexGrid *grid, const float x[3], const float v[3]);
-void BPH_hair_volume_add_segment(struct HairVertexGrid *grid,
+void BPH_hair_volume_add_vertex(struct HairGrid *grid, const float x[3], const float v[3]);
+void BPH_hair_volume_add_segment(struct HairGrid *grid,
                                  const float x1[3], const float v1[3], const float x2[3], const float v2[3],
                                  const float x3[3], const float v3[3], const float x4[3], const float v4[3],
                                  const float dir1[3], const float dir2[3], const float dir3[3]);
 
-void BPH_hair_volume_normalize_vertex_grid(struct HairVertexGrid *grid);
+void BPH_hair_volume_normalize_vertex_grid(struct HairGrid *grid);
 #if 0 /* XXX weighting is incorrect, disabled for now */
 void BPH_hair_volume_vertex_grid_filter_box(struct HairVertexGrid *grid, int kernel_size);
 #endif
 
-void BPH_hair_volume_grid_interpolate(struct HairVertexGrid *grid, const float x[3],
+void BPH_hair_volume_grid_interpolate(struct HairGrid *grid, const float x[3],
                                       float *density, float velocity[3], float density_gradient[3], float velocity_gradient[3][3]);
 
 /* Effect of fluid simulation grid on velocities.
  * fluid_factor controls blending between PIC (Particle-in-Cell)
  *     and FLIP (Fluid-Implicit-Particle) methods (0 = only PIC, 1 = only FLIP)
  */
-void BPH_hair_volume_grid_velocity(struct HairVertexGrid *grid, const float x[3], const float v[3],
+void BPH_hair_volume_grid_velocity(struct HairGrid *grid, const float x[3], const float v[3],
                                    float fluid_factor,
                                    float r_v[3]);
 /* XXX Warning: expressing grid effects on velocity as a force is not very stable,
@@ -202,11 +202,11 @@ void BPH_hair_volume_grid_velocity(struct HairVertexGrid *grid, const float x[3]
  * "Detail Preserving Continuum Simulation of Straight Hair"
  * (McAdams, Selle 2009)
  */
-void BPH_hair_volume_vertex_grid_forces(struct HairVertexGrid *grid, const float x[3], const float v[3],
+void BPH_hair_volume_vertex_grid_forces(struct HairGrid *grid, const float x[3], const float v[3],
                                         float smoothfac, float pressurefac, float minpressure,
                                         float f[3], float dfdx[3][3], float dfdv[3][3]);
 
-bool BPH_hair_volume_get_texture_data(struct HairVertexGrid *grid, struct VoxelData *vd);
+bool BPH_hair_volume_get_texture_data(struct HairGrid *grid, struct VoxelData *vd);
 
 #ifdef __cplusplus
 }
