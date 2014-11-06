@@ -817,7 +817,7 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 					madd_v3_v3fl(x, b, (float)j / (float)(size-1));
 					zero_v3(v);
 					
-					BPH_hair_volume_grid_interpolate(vertex_grid, x, &gdensity, gvel, NULL, NULL);
+					BPH_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, NULL, NULL);
 					
 //					BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity, 0.7, 0.3, 1, "grid density", hash_int_2d(hash_int_2d(i, j), 3111));
 					if (!is_zero_v3(gvel))
