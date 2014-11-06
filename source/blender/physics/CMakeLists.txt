@@ -45,6 +45,7 @@ set(SRC
 	intern/implicit.h
 	intern/implicit_blender.c
 	intern/implicit_eigen.cpp
+	intern/eigen_utils.h
 
 	BPH_mass_spring.h
 )
