@@ -549,8 +549,24 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_ThemeColor4(TH_TEXT);
 
 		if (file->selflag & EDITING_FILE) {
-			uiBut *but = uiDefBut(block, TEX, 1, "", sx, sy - layout->tile_h - 0.15f * UI_UNIT_X,
-			                      textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit), 0, 0, "");
+			uiBut *but;
+			short width;
+
+			if (params->display == FILE_SHORTDISPLAY) {
+				width = layout->tile_w - (ICON_DEFAULT_WIDTH_SCALE + 0.2f * UI_UNIT_X);
+			}
+			else if (params->display == FILE_LONGDISPLAY) {
+				width = layout->column_widths[COLUMN_NAME]  + layout->column_widths[COLUMN_MODE1] +
+				        layout->column_widths[COLUMN_MODE2] + layout->column_widths[COLUMN_MODE3] +
+				        (column_space * 3.5f);
+			}
+			else {
+				BLI_assert(params->display == FILE_IMGDISPLAY);
+				width = textwidth;
+			}
+
+			but = uiDefBut(block, TEX, 1, "", sx, sy - layout->tile_h - 0.15f * UI_UNIT_X,
+			               width, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit), 0, 0, "");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			uiButClearFlag(but, UI_BUT_UNDO);
