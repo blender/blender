@@ -435,6 +435,8 @@ void BKE_object_unlink(Object *ob)
 	Scene *sce;
 	SceneRenderLayer *srl;
 	FreestyleLineSet *lineset;
+	bNodeTree *ntree;
+	bNode *node;
 	Curve *cu;
 	Tex *tex;
 	Group *group;
@@ -810,6 +812,15 @@ void BKE_object_unlink(Object *ob)
 			camera->dof_ob = NULL;
 		}
 		camera = camera->id.next;
+	}
+
+	/* nodes */
+	for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next) {
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->id == &ob->id) {
+				node->id = NULL;
+			}
+		}
 	}
 }
 
