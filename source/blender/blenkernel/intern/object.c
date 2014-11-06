@@ -96,6 +96,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -436,7 +437,6 @@ void BKE_object_unlink(Object *ob)
 	SceneRenderLayer *srl;
 	FreestyleLineSet *lineset;
 	bNodeTree *ntree;
-	bNode *node;
 	Curve *cu;
 	Tex *tex;
 	Group *group;
@@ -638,17 +638,22 @@ void BKE_object_unlink(Object *ob)
 	}
 	
 	/* materials */
-	mat = bmain->mat.first;
-	while (mat) {
-	
+	for (mat = bmain->mat.first; mat; mat = mat->id.next) {
+		if (mat->nodetree) {
+			ntreeSwitchID(mat->nodetree, &ob->id, NULL);
+		}
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (mat->mtex[a] && ob == mat->mtex[a]->object) {
 				/* actually, test for lib here... to do */
 				mat->mtex[a]->object = NULL;
 			}
 		}
+	}
 
-		mat = mat->id.next;
+	/* node trees */
+	for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next) {
+		if (ntree->type == NTREE_SHADER)
+			ntreeSwitchID(ntree, &ob->id, NULL);
 	}
 	
 	/* textures */
@@ -812,15 +817,6 @@ void BKE_object_unlink(Object *ob)
 			camera->dof_ob = NULL;
 		}
 		camera = camera->id.next;
-	}
-
-	/* nodes */
-	for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next) {
-		for (node = ntree->nodes.first; node; node = node->next) {
-			if (node->id == &ob->id) {
-				node->id = NULL;
-			}
-		}
 	}
 }
 
