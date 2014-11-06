@@ -36,6 +36,7 @@
 #include "BLI_compiler_attrs.h"
 #include "UI_resources.h"
 #include "RNA_types.h"
+#include "DNA_listBase.h"
 
 struct ARegion;
 struct bContext;
@@ -306,6 +307,16 @@ struct uiBut {
 	uiBlock *block;
 };
 
+typedef struct ColorPicker {
+	struct ColorPicker *next, *prev;
+	float color_data[3]; /* colr data may be HSV or HSL for now */
+	int representation; /* store hsv/hsl value */
+} ColorPicker;
+
+typedef struct ColorPickerData {
+	ListBase list;
+} ColorPickerData;
+
 struct PieMenuData {
 	float pie_dir[2];
 	float pie_center_init[2];
@@ -392,7 +403,7 @@ struct uiBlock {
 	void *evil_C;               /* XXX hack for dynamic operator enums */
 
 	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
-	float _hsv[3];              /* XXX, only access via ui_block_hsv_get() */
+	ColorPickerData color_pickers; /* XXX, only accessed by color picker templates */
 
 	bool color_profile;         /* color profile for correcting linear colors for display */
 
@@ -540,7 +551,7 @@ void   ui_popup_menu_memory_set(uiBlock *block, struct uiBut *but);
 
 void   ui_popup_translate(struct bContext *C, struct ARegion *ar, const int mdiff[2]);
 
-float *ui_block_hsv_get(struct uiBlock *block);
+ColorPicker *ui_block_picker_new(struct uiBlock *block);
 void ui_popup_block_scrolltest(struct uiBlock *block);
 
 void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3]);

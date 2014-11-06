@@ -1170,8 +1170,7 @@ void uiBlockUpdateFromOld(const bContext *C, uiBlock *block)
 	block->auto_open = block->oldblock->auto_open;
 	block->auto_open_last = block->oldblock->auto_open_last;
 	block->tooltipdisabled = block->oldblock->tooltipdisabled;
-	copy_v3_v3(ui_block_hsv_get(block),
-	           ui_block_hsv_get(block->oldblock));
+	BLI_movelisttolist(&block->color_pickers.list, &block->oldblock->color_pickers.list);
 
 	block->oldblock = NULL;
 }
@@ -2446,6 +2445,7 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 	CTX_store_free_list(&block->contexts);
 
 	BLI_freelistN(&block->saferct);
+	BLI_freelistN(&block->color_pickers.list);
 	
 	MEM_freeN(block);
 }

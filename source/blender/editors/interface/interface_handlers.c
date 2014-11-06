@@ -4294,7 +4294,9 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->alt) {
-			float *hsv = ui_block_hsv_get(but->block);
+			ColorPicker *cpicker = but->custom_data;
+			float hsv_static[3] = {0.0f};
+			float *hsv = cpicker ? cpicker->color_data : hsv_static;
 			float col[3];
 
 			ui_get_but_vectorf(but, col);
@@ -4473,8 +4475,9 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
                                    int mx, int my,
                                    const enum eSnapType snap, const bool shift)
 {
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
 	float rgb[3];
-	float *hsv = ui_block_hsv_get(but->block);
 	float x, y;
 	float mx_fl, my_fl;
 	bool changed = true;
@@ -4510,7 +4513,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 		if (use_display_colorspace)
 			ui_block_to_display_space_v3(but->block, rgb);
 		
-		copy_v3_v3(hsvo, ui_block_hsv_get(but->block));
+		copy_v3_v3(hsvo, hsv);
 
 		ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsvo);
 		
@@ -4591,7 +4594,8 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
                                     const wmNDOFMotionData *ndof,
                                     const enum eSnapType snap, const bool shift)
 {
-	float *hsv = ui_block_hsv_get(but->block);
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
 	const float hsv_v_max = max_ff(hsv[2], but->softmax);
 	float rgb[3];
 	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
@@ -4704,8 +4708,9 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 				if (ELEM(len, 3, 4)) {
 					float rgb[3], def_hsv[3];
 					float def[4];
-					float *hsv = ui_block_hsv_get(but->block);
-					
+					ColorPicker *cpicker = but->custom_data;
+					float *hsv = cpicker->color_data;
+
 					RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
 					ui_rgb_to_color_picker_HSVCUBE_v(but, def, def_hsv);
 
@@ -4758,7 +4763,8 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	bool changed = true;
 	float mx_fl, my_fl;
 	float rgb[3];
-	float *hsv = ui_block_hsv_get(but->block);
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
 	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 
 	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
@@ -4794,8 +4800,8 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 		}
 		else {
-			if (hsv[2] == 0.f) hsv[2] = 0.0001f;
-			if (hsv[2] == 1.f) hsv[2] = 0.9999f;
+			if (hsv[2] == 0.0f) hsv[2] = 0.0001f;
+			if (hsv[2] >= 0.9999f) hsv[2] = 0.9999f;
 		}
 	}
 
@@ -4804,7 +4810,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 		float xpos, ypos, hsvo[3], rgbo[3];
 		
 		/* calculate original hsv again */
-		copy_v3_v3(hsvo, ui_block_hsv_get(but->block));
+		copy_v3_v3(hsvo, hsv);
 		copy_v3_v3(rgbo, data->origvec);
 		if (use_display_colorspace)
 			ui_block_to_display_space_v3(but->block, rgbo);
@@ -4850,7 +4856,8 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
                                       const wmNDOFMotionData *ndof,
                                       const enum eSnapType snap, const bool shift)
 {
-	float *hsv = ui_block_hsv_get(but->block);
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
 	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 	float rgb[3];
 	float phi, r /*, sqr */ /* UNUSED */, v[2];
@@ -4919,6 +4926,8 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 
 static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
 	int mx, my;
 	mx = event->x;
 	my = event->y;
@@ -4960,7 +4969,6 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			if (len >= 3) {
 				float rgb[3], def_hsv[3];
 				float *def;
-				float *hsv = ui_block_hsv_get(but->block);
 				def = MEM_callocN(sizeof(float) * len, "reset_defaults - float");
 				
 				RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
@@ -4992,13 +5000,11 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 		/* XXX hardcoded keymap check.... */
 		else if (event->type == WHEELDOWNMOUSE) {
-			float *hsv = ui_block_hsv_get(but->block);
 			hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
 			ui_set_but_hsv(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if (event->type == WHEELUPMOUSE) {
-			float *hsv = ui_block_hsv_get(but->block);
 			hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
 			ui_set_but_hsv(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);

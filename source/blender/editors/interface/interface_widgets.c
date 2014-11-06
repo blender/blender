@@ -2137,7 +2137,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
 	/* gouraud triangle fan */
-	const float *hsv_ptr = ui_block_hsv_get(but->block);
+	ColorPicker *cpicker = but->custom_data;
+	const float *hsv_ptr = cpicker->color_data;
 	float xpos, ypos, ang = 0.0f;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
 	int a;
@@ -2404,7 +2405,8 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 {
 	float rgb[3];
 	float x = 0.0f, y = 0.0f;
-	const float *hsv = ui_block_hsv_get(but->block);
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
 	float hsv_n[3];
 	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 	

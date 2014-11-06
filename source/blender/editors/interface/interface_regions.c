@@ -1878,18 +1878,20 @@ static void ui_warp_pointer(int x, int y)
 void ui_set_but_hsv(uiBut *but)
 {
 	float col[3];
-	const float *hsv = ui_block_hsv_get(but->block);
-	
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
+
 	ui_color_picker_to_rgb_v(hsv, col);
 
 	ui_set_but_vectorf(but, col);
 }
 
-/* also used by small picker, be careful with name checks below... */
-static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3], bool is_display_space)
+/* Updates all buttons who share the same color picker as the one passed
+ * also used by small picker, be careful with name checks below... */
+static void ui_update_color_picker_buts_rgb(uiBlock *block, ColorPicker *cpicker, const float rgb[3], bool is_display_space)
 {
 	uiBut *bt;
-	float *hsv = ui_block_hsv_get(block);
+	float *hsv = cpicker->color_data;
 	struct ColorManagedDisplay *display = NULL;
 	/* this is to keep the H and S value when V is equal to zero
 	 * and we are working in HSV mode, of course!
@@ -1911,6 +1913,9 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3], bool is
 	
 	/* this updates button strings, is hackish... but button pointers are on stack of caller function */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
+		if (bt->custom_data != cpicker)
+			continue;
+
 		if (bt->rnaprop) {
 			
 			ui_set_but_vectorf(bt, rgb);
@@ -1978,7 +1983,7 @@ static void do_picker_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 	
 	if (prop) {
 		RNA_property_float_get_array(&ptr, prop, rgb);
-		ui_update_block_buts_rgb(but->block, rgb, (RNA_property_subtype(prop) == PROP_COLOR_GAMMA));
+		ui_update_color_picker_buts_rgb(but->block, but->custom_data, rgb, (RNA_property_subtype(prop) == PROP_COLOR_GAMMA));
 	}
 	
 	if (popup)
@@ -1990,7 +1995,8 @@ static void do_color_wheel_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 	uiBut *but = (uiBut *)bt1;
 	uiPopupBlockHandle *popup = but->block->handle;
 	float rgb[3];
-	const float *hsv = ui_block_hsv_get(but->block);
+	ColorPicker *cpicker = but->custom_data;
+	float *hsv = cpicker->color_data;
 	bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 
 	ui_color_picker_to_rgb_v(hsv, rgb);
@@ -2000,7 +2006,7 @@ static void do_color_wheel_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 		ui_block_to_scene_linear_v3(but->block, rgb);
 	}
 
-	ui_update_block_buts_rgb(but->block, rgb, !use_display_colorspace);
+	ui_update_color_picker_buts_rgb(but->block, cpicker, rgb, !use_display_colorspace);
 	
 	if (popup)
 		popup->menuretval = UI_RETURN_UPDATE;
@@ -2010,6 +2016,7 @@ static void do_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexcl)
 {
 	uiBut *but = (uiBut *)bt1;
 	uiPopupBlockHandle *popup = but->block->handle;
+	ColorPicker *cpicker = but->custom_data;
 	char *hexcol = (char *)hexcl;
 	float rgb[3];
 	
@@ -2021,7 +2028,7 @@ static void do_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexcl)
 		ui_block_to_scene_linear_v3(but->block, rgb);
 	}
 	
-	ui_update_block_buts_rgb(but->block, rgb, false);
+	ui_update_color_picker_buts_rgb(but->block, cpicker, rgb, false);
 	
 	if (popup)
 		popup->menuretval = UI_RETURN_UPDATE;
@@ -2074,13 +2081,14 @@ static void do_picker_new_mode_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 
 #define PICKER_TOTAL_W  (PICKER_W + PICKER_SPACE + PICKER_BAR)
 
-static void circle_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop)
+static void circle_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, ColorPicker *cpicker)
 {
 	uiBut *bt;
 	
 	/* HS circle */
 	bt = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, PICKER_H, PICKER_W, ptr, prop, -1, 0.0, 0.0, 0.0, 0, TIP_("Color"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt->custom_data = cpicker;
 
 	/* value */
 	if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
@@ -2091,10 +2099,11 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop)
 		bt = uiDefButR_prop(block, HSVCUBE, 0, "", PICKER_W + PICKER_SPACE, 0, PICKER_BAR, PICKER_H, ptr, prop, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, TIP_("Value"));
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
+	bt->custom_data = cpicker;
 }
 
 
-static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int type)
+static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int type, ColorPicker *cpicker)
 {
 	uiBut *bt;
 	int bartype = type + 3;
@@ -2102,10 +2111,12 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, in
 	/* HS square */
 	bt = uiDefButR_prop(block, HSVCUBE, 0, "",   0, PICKER_BAR + PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, prop, -1, 0.0, 0.0, type, 0, TIP_("Color"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt->custom_data = cpicker;
 	
 	/* value */
 	bt = uiDefButR_prop(block, HSVCUBE, 0, "",       0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, prop, -1, 0.0, 0.0, bartype, 0, TIP_("Value"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt->custom_data = cpicker;
 }
 
 
@@ -2120,8 +2131,9 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	float rgb_gamma[3];
 	unsigned char rgb_gamma_uchar[3];
 	float softmin, softmax, hardmin, hardmax, step, precision;
-	float *hsv = ui_block_hsv_get(block);
 	int yco;
+	ColorPicker *cpicker = ui_block_picker_new(block);
+	float *hsv = cpicker->color_data;
 		
 	width = PICKER_TOTAL_W;
 	butwidth = width - 1.5f * UI_UNIT_X;
@@ -2149,20 +2161,20 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 
 	switch (U.color_picker_type) {
 		case USER_CP_SQUARE_SV:
-			square_picker(block, ptr, prop, UI_GRAD_SV);
+			square_picker(block, ptr, prop, UI_GRAD_SV, cpicker);
 			break;
 		case USER_CP_SQUARE_HS:
-			square_picker(block, ptr, prop, UI_GRAD_HS);
+			square_picker(block, ptr, prop, UI_GRAD_HS, cpicker);
 			break;
 		case USER_CP_SQUARE_HV:
-			square_picker(block, ptr, prop, UI_GRAD_HV);
+			square_picker(block, ptr, prop, UI_GRAD_HV, cpicker);
 			break;
 
 		/* user default */
 		case USER_CP_CIRCLE_HSV:
 		case USER_CP_CIRCLE_HSL:
 		default:
-			circle_picker(block, ptr, prop);
+			circle_picker(block, ptr, prop, cpicker);
 			break;
 	}
 	
@@ -2171,29 +2183,36 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiBlockBeginAlign(block);
 	bt = uiDefButS(block, ROW, 0, IFACE_("RGB"), 0, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
+	bt->custom_data = cpicker;
 	if (U.color_picker_type == USER_CP_CIRCLE_HSL)
 		bt = uiDefButS(block, ROW, 0, IFACE_("HSL"), width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
 	else
 		bt = uiDefButS(block, ROW, 0, IFACE_("HSV"), width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
+	bt->custom_data = cpicker;
 	bt = uiDefButS(block, ROW, 0, IFACE_("Hex"), 2 * width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
+	bt->custom_data = cpicker;
 	uiBlockEndAlign(block);
 
 	yco = -3.0f * UI_UNIT_Y;
 	if (show_picker) {
 		bt = uiDefIconButO(block, BUT, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth + 10, yco, UI_UNIT_X, UI_UNIT_Y, NULL);
 		uiButSetFunc(bt, close_popup_cb, bt, NULL);
+		bt->custom_data = cpicker;
 	}
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
 	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("R:"),  0, yco, butwidth, UI_UNIT_Y, ptr, prop, 0, 0.0, 0.0, 0, 3, TIP_("Red"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt->custom_data = cpicker;
 	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("G:"),  0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, ptr, prop, 1, 0.0, 0.0, 0, 3, TIP_("Green"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt->custom_data = cpicker;
 	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("B:"),  0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, ptr, prop, 2, 0.0, 0.0, 0, 3, TIP_("Blue"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt->custom_data = cpicker;
 
 	/* could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
 	 * but need to use uiButSetFunc for updating other fake buttons */
@@ -2203,8 +2222,10 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiBlockBeginAlign(block);
 	bt = uiDefButF(block, NUMSLI, 0, IFACE_("H:"),   0, yco, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, TIP_("Hue"));
 	uiButSetFunc(bt, do_color_wheel_rna_cb, bt, hsv);
+	bt->custom_data = cpicker;
 	bt = uiDefButF(block, NUMSLI, 0, IFACE_("S:"),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, TIP_("Saturation"));
 	uiButSetFunc(bt, do_color_wheel_rna_cb, bt, hsv);
+	bt->custom_data = cpicker;
 	if (U.color_picker_type == USER_CP_CIRCLE_HSL)
 		bt = uiDefButF(block, NUMSLI, 0, IFACE_("L:"),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 2, 0.0, 1.0, 10, 3, TIP_("Lightness"));
 	else
@@ -2212,12 +2233,14 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 
 	bt->hardmax = hardmax;  /* not common but rgb  may be over 1.0 */
 	uiButSetFunc(bt, do_color_wheel_rna_cb, bt, hsv);
+	bt->custom_data = cpicker;
 
 	uiBlockEndAlign(block);
 
 	if (rgba[3] != FLT_MAX) {
 		bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("A: "),  0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 3, TIP_("Alpha"));
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+		bt->custom_data = cpicker;
 	}
 	else {
 		rgba[3] = 1.0f;
@@ -2229,6 +2252,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	yco = -3.0f * UI_UNIT_Y;
 	bt = uiDefBut(block, TEX, 0, IFACE_("Hex: "), 0, yco, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
+	bt->custom_data = cpicker;
 	uiDefBut(block, LABEL, 0, IFACE_("(Gamma Corrected)"), 0, yco - UI_UNIT_Y, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	ui_rgb_to_color_picker_v(rgb_gamma, hsv);
@@ -2253,7 +2277,8 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, c
 			if (but->type == HSVCUBE && but->active == NULL) {
 				uiPopupBlockHandle *popup = block->handle;
 				float rgb[3];
-				float *hsv = ui_block_hsv_get(block);
+				ColorPicker *cpicker = but->custom_data;
+				float *hsv = cpicker->color_data;
 				bool use_display_colorspace = ui_color_picker_use_display_colorspace(but);
 				
 				ui_get_but_vectorf(but, rgb);
@@ -2271,7 +2296,7 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, c
 
 				ui_set_but_vectorf(but, rgb);
 				
-				ui_update_block_buts_rgb(block, rgb, !use_display_colorspace);
+				ui_update_color_picker_buts_rgb(block, cpicker, rgb, !use_display_colorspace);
 				if (popup)
 					popup->menuretval = UI_RETURN_UPDATE;
 				
@@ -3033,9 +3058,12 @@ void uiPupBlockClose(bContext *C, uiBlock *block)
 	}
 }
 
-float *ui_block_hsv_get(uiBlock *block)
+ColorPicker *ui_block_picker_new(struct uiBlock *block)
 {
-	return block->_hsv;
+	ColorPicker *cpicker = MEM_callocN(sizeof(ColorPicker), "color_picker");
+	BLI_addhead(&block->color_pickers.list, cpicker);
+
+	return cpicker;
 }
 
 void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3])
