@@ -582,7 +582,7 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize, const float gmin[3]
 	}
 	size = hair_grid_size(res);
 	
-	grid = MEM_callocN(sizeof(HairGrid), "hair grid");
+	grid = (HairGrid *)MEM_callocN(sizeof(HairGrid), "hair grid");
 	grid->res[0] = res[0];
 	grid->res[1] = res[1];
 	grid->res[2] = res[2];
@@ -590,7 +590,7 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize, const float gmin[3]
 	copy_v3_v3(grid->gmax, gmax_margin);
 	grid->cellsize = cellsize;
 	grid->inv_cellsize = scale;
-	grid->verts = MEM_mallocN(sizeof(HairGridVert) * size, "hair voxel data");
+	grid->verts = (HairGridVert *)MEM_mallocN(sizeof(HairGridVert) * size, "hair voxel data");
 
 	/* initialize grid */
 	for (i = 0; i < size; ++i) {
