@@ -470,11 +470,11 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shrink Factor Max", "Max amount to shrink cloth by");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "voxel_resolution", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_sdna(prop, NULL, "voxel_res");
-	RNA_def_property_range(prop, 1, 128);
-	RNA_def_property_int_default(prop, 32);
-	RNA_def_property_ui_text(prop, "Voxel Grid Resolution", "Resolution of the voxel grid for interaction effects");
+	prop = RNA_def_property(srna, "voxel_cell_size", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "voxel_cell_size");
+	RNA_def_property_range(prop, 0.0001f, 10000.0f);
+	RNA_def_property_float_default(prop, 0.1f);
+	RNA_def_property_ui_text(prop, "Voxel Grid Cell Size", "Size of the voxel grid cells for interaction effects");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	/* springs */

@@ -329,7 +329,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         # XXX disabled due to stability issues
         #sub.prop(cloth, "pressure", slider=True, text="Pressure")
         #sub.prop(cloth, "pressure_threshold", slider=True, text="Threshold")
-        col.prop(cloth, "voxel_resolution")
+        col.prop(cloth, "voxel_cell_size")
 
         split.separator()
 
