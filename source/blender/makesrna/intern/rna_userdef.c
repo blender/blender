@@ -209,6 +209,14 @@ static void rna_userdef_gl_use_16bit_textures(Main *bmain, Scene *scene, Pointer
 	rna_userdef_update(bmain, scene, ptr);
 }
 
+static void rna_userdef_undo_steps_set(PointerRNA *ptr, int value)
+{
+	UserDef *userdef = (UserDef *)ptr->data;
+
+	/* Do not allow 1 undo steps, useless and breaks undo/redo process (see T42531). */
+	userdef->undosteps = (value == 1) ? 2 : value;
+}
+
 static void rna_userdef_select_mouse_set(PointerRNA *ptr, int value)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -3465,6 +3473,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "undosteps");
 	RNA_def_property_range(prop, 0, 64);
+	RNA_def_property_int_funcs(prop, NULL, "rna_userdef_undo_steps_set", NULL);
 	RNA_def_property_ui_text(prop, "Undo Steps", "Number of undo steps available (smaller values conserve memory)");
 
 	prop = RNA_def_property(srna, "undo_memory_limit", PROP_INT, PROP_NONE);
