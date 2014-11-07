@@ -4086,7 +4086,10 @@ static bool shape_cut_test_point(PEData *data, ParticleCacheKey *key)
 {
 	BVHTreeFromMesh *shape_bvh = &data->shape_bvh;
 	const float dir[3] = {1.0f, 0.0f, 0.0f};
-	PointInsideBVH userdata = { data->shape_bvh, 0 };
+	PointInsideBVH userdata;
+	
+	userdata.bvhdata = data->shape_bvh;
+	userdata.num_hits = 0;
 	
 	BLI_bvhtree_ray_cast_all(shape_bvh->tree, key->co, dir, 0.0f, point_inside_bvh_cb, &userdata);
 	
