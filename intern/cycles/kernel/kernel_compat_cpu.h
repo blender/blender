@@ -25,10 +25,12 @@
 #include "util_half.h"
 #include "util_types.h"
 
-/* On 64bit linux single precision exponent is really slow comparing to the
- * double precision version, even with float<->double conversion involved.
+/* On x86_64, versions of glibc < 2.16 have an issue where expf is
+ * much slower than the double version.  This was fixed in glibc 2.16.
  */
-#if !defined(__KERNEL_GPU__) && defined(__linux__) && defined(__x86_64__)
+#if !defined(__KERNEL_GPU__)  && defined(__x86_64__) && defined(__x86_64__) && \
+     defined(__GNU_LIBRARY__) && defined(__GLIBC__ ) && defined(__GLIBC_MINOR__) && \
+     (__GLIBC__ <= 2 && __GLIBC_MINOR__ < 16)
 #  define expf(x) ((float)exp((double)(x)))
 #endif
 
