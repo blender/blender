@@ -722,7 +722,7 @@ void invert(float fac, vec4 col, out vec4 outcol)
 	outcol.w = col.w;
 }
 
-void clamp_val(vec3 vec, vec3 min, vec3 max, out vec3 out_vec)
+void clamp_vec3(vec3 vec, vec3 min, vec3 max, out vec3 out_vec)
 {
 	out_vec = clamp(vec, min, max);
 }
