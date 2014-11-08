@@ -220,11 +220,18 @@ void BPH_hair_volume_grid_velocity(HairGrid *grid, const float x[3], const float
                                    float r_v[3])
 {
 	float gdensity, gvelocity[3], gvel_smooth[3], ggrad[3], gvelgrad[3][3];
+	float v_pic[3], v_flip[3];
 	
 	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->inv_cellsize, x, &gdensity, gvelocity, gvel_smooth, ggrad, gvelgrad);
 	
-	/* XXX TODO implement FLIP method and use fluid_factor to blend between FLIP and PIC */
-	copy_v3_v3(r_v, gvel_smooth);
+	/* velocity according to PIC method (Particle-in-Cell) */
+	copy_v3_v3(v_pic, gvel_smooth);
+	
+	/* velocity according to FLIP method (Fluid-Implicit-Particle) */
+	sub_v3_v3v3(v_flip, gvel_smooth, gvelocity);
+	add_v3_v3(v_flip, v);
+	
+	interp_v3_v3v3(r_v, v_pic, v_flip, fluid_factor);
 }
 
 void BPH_hair_volume_grid_clear(HairGrid *grid)
