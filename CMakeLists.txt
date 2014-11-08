@@ -116,7 +116,6 @@ set(TESTS_OUTPUT_DIR ${EXECUTABLE_OUTPUT_PATH}/tests CACHE INTERNAL "" FORCE)
 
 get_blender_version()
 
-
 # Blender internal features
 option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
 mark_as_advanced(WITH_BLENDER)
@@ -363,6 +362,23 @@ if(WITH_GLEW_ES AND WITH_SYSTEM_GLEW)
 	message(WARNING Ignoring WITH_SYSTEM_GLEW and using WITH_GLEW_ES)
 	set(WITH_SYSTEM_GLEW OFF)
 endif()
+
+if(MSVC)
+	getDefaultWindowsPrefixBase(CMAKE_GENERIC_PROGRAM_FILES)
+	set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
+endif()
+
+# By default we want to install to the directory we are compiling our executables
+# unless specified otherwise, which we currently do not allow
+if(MSVC)
+	set(BLENDER_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+elseif(APPLE)
+	set(BLENDER_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+else()
+	set(BLENDER_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH})
+endif()
+set(CMAKE_INSTALL_PREFIX ${BLENDER_INSTALL_PREFIX} CACHE INTERNAL "")
+
 
 # Apple
 

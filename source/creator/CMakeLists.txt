@@ -236,16 +236,6 @@ endif()
 
 # Post build steps for bundling/packaging.
 
-
-if(MSVC_IDE)
-	# ${CMAKE_CFG_INTDIR} should replace \${BUILD_TYPE} when using add_command
-	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
-elseif(APPLE)
-	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
-else()
-	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
-endif()
-
 set(BLENDER_TEXT_FILES
 	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
 	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
@@ -267,7 +257,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)
-		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
+		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION})
 	else()
 		if(WITH_PYTHON_MODULE)
 			set(TARGETDIR_VER ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${BLENDER_VERSION})
@@ -277,13 +267,13 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 elseif(WIN32)
-	set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
+	set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION})
 
 elseif(APPLE)
 	if(WITH_PYTHON_MODULE)
-		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
+		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION})
 	else()
-		set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/Resources/${BLENDER_VERSION})
+		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/blender.app/Contents/Resources/${BLENDER_VERSION})
 	endif()
 
 endif()
@@ -406,8 +396,8 @@ if(UNIX AND NOT APPLE)
 			"
 			execute_process(COMMAND
 							${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
-							${TARGETDIR}/blender
-							${TARGETDIR}/blender.1)
+							${CMAKE_INSTALL_PREFIX}/blender
+							${CMAKE_INSTALL_PREFIX}/blender.1)
 			"
 		)
 	endif()
@@ -418,8 +408,8 @@ if(UNIX AND NOT APPLE)
 			# pass
 		else()
 			install(
-				FILES ${TARGETDIR}/blender.1
-				DESTINATION ${TARGETDIR}
+				FILES ${CMAKE_INSTALL_PREFIX}/blender.1
+				DESTINATION ${CMAKE_INSTALL_PREFIX}
 			)
 		endif()
 
@@ -427,18 +417,18 @@ if(UNIX AND NOT APPLE)
 			FILES
 				${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
-			DESTINATION ${TARGETDIR}
+			DESTINATION ${CMAKE_INSTALL_PREFIX}
 		)
 
 		install(
 			PROGRAMS
 			${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
-			DESTINATION ${TARGETDIR}
+			DESTINATION ${CMAKE_INSTALL_PREFIX}
 		)
 
 		install(
 			FILES ${BLENDER_TEXT_FILES}
-			DESTINATION ${TARGETDIR}
+			DESTINATION ${CMAKE_INSTALL_PREFIX}
 		)
 
 	else()
@@ -451,12 +441,12 @@ if(UNIX AND NOT APPLE)
 			)
 		else()
 			install(
-				PROGRAMS ${TARGETDIR}/blender
+				PROGRAMS ${CMAKE_INSTALL_PREFIX}/blender
 				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 			)
 			# manpage only with 'blender' binary
 			install(
-				FILES ${TARGETDIR}/blender.1
+				FILES ${CMAKE_INSTALL_PREFIX}/blender.1
 				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 			)
 		endif()
@@ -464,7 +454,7 @@ if(UNIX AND NOT APPLE)
 
 		if(WITH_GAMEENGINE AND WITH_PLAYER)
 			install(
-				PROGRAMS ${TARGETDIR}/blenderplayer
+				PROGRAMS ${CMAKE_INSTALL_PREFIX}/blenderplayer
 				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 			)
 		endif()
@@ -536,7 +526,7 @@ if(UNIX AND NOT APPLE)
 			)
 
 			# # doesnt work, todo
-			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
+			# install(CODE "execute_process(COMMAND find ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 
 			if(WITH_PYTHON_INSTALL_NUMPY)
 				# Install to the same directory as the source, so debian-like
@@ -611,7 +601,7 @@ elseif(WIN32)
 
 	install(
 		FILES ${BLENDER_TEXT_FILES}
-		DESTINATION ${TARGETDIR}
+		DESTINATION "."
 	)
 
 	if(WITH_PYTHON)
@@ -619,13 +609,13 @@ elseif(WIN32)
 
 		install(
 			FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll ${LIBDIR}/python/lib/sqlite3.dll
-			DESTINATION ${TARGETDIR}
+			DESTINATION "."
 			CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
 		)
 
 		install(
 			FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll ${LIBDIR}/python/lib/sqlite3_d.dll
-			DESTINATION ${TARGETDIR}
+			DESTINATION "."
 			CONFIGURATIONS Debug
 		)
 
@@ -678,7 +668,7 @@ elseif(WIN32)
 
 
 			# doesnt work, todo
-			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
+			# install(CODE "execute_process(COMMAND find ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 		endif()
 
 		unset(_PYTHON_VERSION_NO_DOTS)
@@ -687,11 +677,11 @@ elseif(WIN32)
 	# EGL Runtime Components
 	if(WITH_GL_EGL)
 		if(WIN32)
-			install(FILES "${OPENGLES_DLL}"     DESTINATION ${TARGETDIR})
-			install(FILES "${OPENGLES_EGL_DLL}" DESTINATION ${TARGETDIR})
+			install(FILES "${OPENGLES_DLL}"     DESTINATION ".")
+			install(FILES "${OPENGLES_EGL_DLL}" DESTINATION ".")
 
 			if(WITH_GL_ANGLE)
-				install(FILES "${D3DCOMPILER_DLL}" DESTINATION ${TARGETDIR})
+				install(FILES "${D3DCOMPILER_DLL}" DESTINATION ".")
 			endif()
 		endif()
 	endif()
@@ -699,14 +689,14 @@ elseif(WIN32)
 	if(MSVC)
 		install(
 			FILES ${LIBDIR}/pthreads/lib/pthreadVC2.dll
-			DESTINATION ${TARGETDIR}
+			DESTINATION "."
 		)
 	else()
 		#MinGW64 comes with own version. For portable builds it will probaly have to be copied to work
 		if(NOT WITH_MINGW64)
 			install(
 				FILES ${LIBDIR}/pthreads/lib/pthreadGC2.dll
-				DESTINATION ${TARGETDIR}
+				DESTINATION "."
 			)
 		elseif(WITH_MINGW64)
 			install(
@@ -714,14 +704,14 @@ elseif(WIN32)
 					${LIBDIR}/binaries/libgcc_s_sjlj-1.dll
 					${LIBDIR}/binaries/libwinpthread-1.dll
 					${LIBDIR}/binaries/libstdc++-6.dll
-				DESTINATION ${TARGETDIR}
+				DESTINATION "."
 			)
 			
 			if(WITH_OPENMP)
 				install(
 					FILES 
 					${LIBDIR}/binaries/libgomp-1.dll
-					DESTINATION ${TARGETDIR}
+					DESTINATION "."
 				)
 			endif()
 		endif()
@@ -738,7 +728,7 @@ elseif(WIN32)
 					${LIBDIR}/ffmpeg/lib/swscale-2.dll
 					${LIBDIR}/ffmpeg/lib/swresample-0.dll
 					${LIBDIR}/ffmpeg/lib/xvidcore.dll
-				DESTINATION ${TARGETDIR}
+				DESTINATION "."
 			)
 		else()
 			install(
@@ -748,7 +738,7 @@ elseif(WIN32)
 					${LIBDIR}/ffmpeg/lib/avdevice-55.dll
 					${LIBDIR}/ffmpeg/lib/avutil-52.dll
 					${LIBDIR}/ffmpeg/lib/swscale-2.dll
-				DESTINATION ${TARGETDIR}
+				DESTINATION "."
 			)
 		endif()
 	endif()
@@ -756,7 +746,7 @@ elseif(WIN32)
 	if(WITH_CODEC_SNDFILE)
 		install(
 			FILES ${LIBDIR}/sndfile/lib/libsndfile-1.dll
-			DESTINATION ${TARGETDIR}
+			DESTINATION "."
 		)
 	endif()
 
@@ -765,27 +755,27 @@ elseif(WIN32)
 			FILES
 				${LIBDIR}/openal/lib/OpenAL32.dll
 				${LIBDIR}/openal/lib/wrap_oal.dll
-			DESTINATION ${TARGETDIR}
+			DESTINATION "."
 		)
 	endif()
 
 	if(WITH_SDL)
 		install(
 			FILES ${LIBDIR}/sdl/lib/SDL.dll
-			DESTINATION ${TARGETDIR}
+			DESTINATION "."
 		)
 	endif()
 
 	if(NOT CMAKE_CL_64)
 		install(
 			FILES ${LIBDIR}/thumbhandler/lib/BlendThumb.dll
-			DESTINATION ${TARGETDIR}
+			DESTINATION "."
 		)
 	endif()
 		
 	install( # x86 builds can run on x64 Windows, so this is required at all times
 		FILES ${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
-		DESTINATION ${TARGETDIR}
+		DESTINATION "."
 	)
 
 	if(WITH_OPENCOLORIO)
@@ -794,13 +784,13 @@ elseif(WIN32)
 			install(
 				FILES
 					${OCIOBIN}/OpenColorIO.dll
-				DESTINATION ${TARGETDIR}
+				DESTINATION "."
 			)
 		else()
 			install(
 				FILES
 					${OCIOBIN}/libOpenColorIO.dll
-				DESTINATION ${TARGETDIR}
+				DESTINATION "."
 			)
 		endif()
 	endif()
@@ -839,30 +829,30 @@ elseif(APPLE)
 	# install release and app files
 	install(
 		FILES ${BLENDER_TEXT_FILES}
-		DESTINATION ${TARGETDIR}
+		DESTINATION ${CMAKE_INSTALL_PREFIX}
 	)
 
 	install(
 		FILES ${OSX_APP_SOURCEDIR}/Contents/PkgInfo
-		DESTINATION ${TARGETDIR}/blender.app/Contents
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/blender.app/Contents
 	)
 
 	install_dir(
 		${OSX_APP_SOURCEDIR}/Contents/Resources
-		\${TARGETDIR}/blender.app/Contents/
+		\${CMAKE_INSTALL_PREFIX}/blender.app/Contents/
 	)
 
 	if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
 		install(
 			FILES ${LIBDIR}/openmp/lib/libiomp5.dylib
-			DESTINATION ${TARGETDIR}/blender.app/Contents/MacOS
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/blender.app/Contents/MacOS
 		)
 	endif()
 
 	if(WITH_LLVM AND NOT LLVM_STATIC)
 		install(
 			FILES ${LIBDIR}/llvm/lib/libLLVM-3.4.dylib
-			DESTINATION ${TARGETDIR}/blender.app/Contents/MacOS
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/blender.app/Contents/MacOS
 		)
 	endif()
 
@@ -905,7 +895,7 @@ elseif(APPLE)
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
 		set(OSX_APP_PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/blenderplayer.app)
 		set(PLAYER_SOURCEINFO ${OSX_APP_PLAYER_SOURCEDIR}/Contents/Info.plist)
-		set(PLAYER_TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/Resources/${BLENDER_VERSION})
+		set(PLAYER_TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/blenderplayer.app/Contents/Resources/${BLENDER_VERSION})
 
 
 		# important to make a clean  install each time else old scripts get loaded.
@@ -916,12 +906,12 @@ elseif(APPLE)
 
 		install(
 			FILES ${OSX_APP_PLAYER_SOURCEDIR}/Contents/PkgInfo
-			DESTINATION ${TARGETDIR}/blenderplayer.app/Contents
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/blenderplayer.app/Contents
 		)
 
 		install_dir(
 			${OSX_APP_PLAYER_SOURCEDIR}/Contents/Resources
-			\${TARGETDIR}/blenderplayer.app/Contents/
+			\${CMAKE_INSTALL_PREFIX}/blenderplayer.app/Contents/
 		)
 
 		# python
