@@ -30,12 +30,12 @@ import zipfile
 # extension stripping
 def strip_extension(filename):
     extensions = '.zip', '.tar', '.bz2', '.gz', '.tgz', '.tbz', '.exe'
-    filename_noext, ext = os.path.splitext(filename)
-    if ext in extensions:
-        return strip_extension(filename_noext)  # may have .tar.bz2
-    else:
-        return filename
 
+    for ext in extensions:
+        if filename.endswith(ext):
+            filename = filename[:-len(ext)]
+
+    return filename
 
 # extract platform from package name
 def get_platform(filename):
@@ -48,12 +48,11 @@ def get_platform(filename):
     tokens = filename.split("-")
     platforms = ('osx', 'mac', 'bsd',
                  'win', 'linux', 'source',
-                 'solaris',
-                 'mingw')
+                 'irix', 'solaris', 'mingw')
     platform_tokens = []
     found = False
 
-    for token in tokens:
+    for i, token in enumerate(tokens):
         if not found:
             for platform in platforms:
                 if platform in token.lower():
@@ -65,11 +64,10 @@ def get_platform(filename):
 
     return '-'.join(platform_tokens)
 
-
 def get_branch(filename):
     tokens = filename.split("-")
     branch = ""
-
+    
     for token in tokens:
         if token == "blender":
             return branch
@@ -112,16 +110,16 @@ branch = get_branch(packagename)
 
 if platform == '':
     sys.stderr.write('Failed to detect platform ' +
-                     'from package: %r\n' % packagename)
+        'from package: %r\n' % packagename)
     sys.exit(1)
 
 # extract
-directory = 'public_html/download'
 if not branch or branch == 'master':
     directory = 'public_html/download'
 elif branch == 'experimental-build':
     directory = 'public_html/download/experimental'
-# else: put 'official' branches in their own public subdir of download/ ?
+else:
+    directory = 'public_html/download'
 
 try:
     zf = z.open(package)
@@ -131,8 +129,6 @@ try:
 
     zf.close()
     z.close()
-
-    os.remove(filename)
 except Exception, ex:
     sys.stderr.write('Failed to unzip package: %s\n' % str(ex))
     sys.exit(1)
