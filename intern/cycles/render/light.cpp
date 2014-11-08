@@ -536,9 +536,8 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			float area = M_PI_F*radius*radius;
 			float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
 			float3 dir = light->dir;
-			
-			if(len(dir) > 0.0f)
-				dir = normalize(dir);
+
+			dir = safe_normalize(dir);
 
 			if(light->use_mis && area > 0.0f)
 				shader_id |= SHADER_USE_MIS;
@@ -585,8 +584,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
 			float3 dir = light->dir;
 			
-			if(len(dir) > 0.0f)
-				dir = normalize(dir);
+			dir = safe_normalize(dir);
 
 			if(light->use_mis && area > 0.0f)
 				shader_id |= SHADER_USE_MIS;
@@ -606,8 +604,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			float spot_smooth = (1.0f - spot_angle)*light->spot_smooth;
 			float3 dir = light->dir;
 			
-			if(len(dir) > 0.0f)
-				dir = normalize(dir);
+			dir = safe_normalize(dir);
 
 			if(light->use_mis && radius > 0.0f)
 				shader_id |= SHADER_USE_MIS;

@@ -314,6 +314,12 @@ ccl_device_inline float2 normalize_len(const float2 a, float *t)
 	return a/(*t);
 }
 
+ccl_device_inline float2 safe_normalize(const float2 a)
+{
+	float t = len(a);
+	return (t)? a/t: a;
+}
+
 ccl_device_inline bool operator==(const float2 a, const float2 b)
 {
 	return (a.x == b.x && a.y == b.y);
@@ -508,6 +514,12 @@ ccl_device_inline float3 normalize_len(const float3 a, float *t)
 {
 	*t = len(a);
 	return a/(*t);
+}
+
+ccl_device_inline float3 safe_normalize(const float3 a)
+{
+	float t = len(a);
+	return (t)? a/t: a;
 }
 
 #ifndef __KERNEL_OPENCL__
@@ -815,6 +827,12 @@ ccl_device_inline float len(const float4 a)
 ccl_device_inline float4 normalize(const float4 a)
 {
 	return a/len(a);
+}
+
+ccl_device_inline float4 safe_normalize(const float4 a)
+{
+	float t = len(a);
+	return (t)? a/t: a;
 }
 
 ccl_device_inline float4 min(float4 a, float4 b)
