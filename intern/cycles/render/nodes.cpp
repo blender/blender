@@ -3670,7 +3670,7 @@ static ShaderEnum math_type_init()
 	enm.insert("Less Than", NODE_MATH_LESS_THAN);
 	enm.insert("Greater Than", NODE_MATH_GREATER_THAN);
 	enm.insert("Modulo", NODE_MATH_MODULO);
-    enm.insert("Absolute", NODE_MATH_ABSOLUTE);
+	enm.insert("Absolute", NODE_MATH_ABSOLUTE);
 
 	return enm;
 }

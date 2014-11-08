@@ -880,7 +880,7 @@ bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
 	bool status;
 
 	if(filename[0] == '@' && filename.find('.') == -1) {
-        int slot = atoi(filename.c_str() + 1);
+		int slot = atoi(filename.c_str() + 1);
 		float4 rgba = kernel_tex_image_interp(slot, s, 1.0f - t);
 
 		result[0] = rgba[0];

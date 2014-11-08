@@ -297,7 +297,7 @@ ccl_device float area_light_pdf(float3 P,
 	float k = M_2PI_F - g2 - g3;
 	/* Compute solid angle from internal angles. */
 	float S = g0 + g1 - k;
-    return 1.0f / S;
+	return 1.0f / S;
 }
 
 ccl_device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
