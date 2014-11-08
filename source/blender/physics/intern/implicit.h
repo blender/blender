@@ -177,6 +177,7 @@ void BPH_hair_volume_free_vertex_grid(struct HairGrid *grid);
 void BPH_hair_volume_set_debug_data(struct HairGrid *grid, struct SimDebugData *debug_data);
 void BPH_hair_volume_grid_geometry(struct HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3]);
 
+void BPH_hair_volume_grid_clear(struct HairGrid *grid);
 void BPH_hair_volume_add_vertex(struct HairGrid *grid, const float x[3], const float v[3]);
 void BPH_hair_volume_add_segment(struct HairGrid *grid,
                                  const float x1[3], const float v1[3], const float x2[3], const float v2[3],
@@ -184,12 +185,15 @@ void BPH_hair_volume_add_segment(struct HairGrid *grid,
                                  const float dir1[3], const float dir2[3], const float dir3[3]);
 
 void BPH_hair_volume_normalize_vertex_grid(struct HairGrid *grid);
+
+bool BPH_hair_volume_solve_divergence(struct HairGrid *grid, float dt);
 #if 0 /* XXX weighting is incorrect, disabled for now */
 void BPH_hair_volume_vertex_grid_filter_box(struct HairVertexGrid *grid, int kernel_size);
 #endif
 
 void BPH_hair_volume_grid_interpolate(struct HairGrid *grid, const float x[3],
-                                      float *density, float velocity[3], float density_gradient[3], float velocity_gradient[3][3]);
+                                      float *density, float velocity[3], float velocity_smooth[3],
+                                      float density_gradient[3], float velocity_gradient[3][3]);
 
 /* Effect of fluid simulation grid on velocities.
  * fluid_factor controls blending between PIC (Particle-in-Cell)

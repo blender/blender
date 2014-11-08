@@ -53,21 +53,21 @@ typedef float Scalar;
 /* slightly extended Eigen vector class
  * with conversion to/from plain C float array
  */
-class fVector : public Eigen::Vector3f {
+class Vector3 : public Eigen::Vector3f {
 public:
 	typedef float *ctype;
 	
-	fVector()
+	Vector3()
 	{
 	}
 	
-	fVector(const ctype &v)
+	Vector3(const ctype &v)
 	{
 		for (int k = 0; k < 3; ++k)
 			coeffRef(k) = v[k];
 	}
 	
-	fVector& operator = (const ctype &v)
+	Vector3& operator = (const ctype &v)
 	{
 		for (int k = 0; k < 3; ++k)
 			coeffRef(k) = v[k];
@@ -83,22 +83,22 @@ public:
 /* slightly extended Eigen matrix class
  * with conversion to/from plain C float array
  */
-class fMatrix : public Eigen::Matrix3f {
+class Matrix3 : public Eigen::Matrix3f {
 public:
 	typedef float (*ctype)[3];
 	
-	fMatrix()
+	Matrix3()
 	{
 	}
 	
-	fMatrix(const ctype &v)
+	Matrix3(const ctype &v)
 	{
 		for (int k = 0; k < 3; ++k)
 			for (int l = 0; l < 3; ++l)
 				coeffRef(l, k) = v[k][l];
 	}
 	
-	fMatrix& operator = (const ctype &v)
+	Matrix3& operator = (const ctype &v)
 	{
 		for (int k = 0; k < 3; ++k)
 			for (int l = 0; l < 3; ++l)
@@ -112,19 +112,21 @@ public:
 	}
 };
 
+typedef Eigen::VectorXf lVector;
+
 /* Extension of dense Eigen vectors,
  * providing 3-float block access for blenlib math functions
  */
-class lVector : public Eigen::VectorXf {
+class lVector3f : public Eigen::VectorXf {
 public:
 	typedef Eigen::VectorXf base_t;
 	
-	lVector()
+	lVector3f()
 	{
 	}
 	
 	template <typename T>
-	lVector& operator = (T rhs)
+	lVector3f& operator = (T rhs)
 	{
 		base_t::operator=(rhs);
 		return *this;
@@ -151,8 +153,8 @@ typedef Eigen::SparseMatrix<Scalar> lMatrix;
  * This should be used for building lMatrix instead of writing to such lMatrix directly (which is very inefficient).
  * After all elements have been defined using the set() method, the actual matrix can be filled using construct().
  */
-struct lMatrixCtor {
-	lMatrixCtor()
+struct lMatrix3fCtor {
+	lMatrix3fCtor()
 	{
 	}
 	
@@ -167,7 +169,7 @@ struct lMatrixCtor {
 		m_trips.reserve(numverts * 9);
 	}
 	
-	void add(int i, int j, const fMatrix &m)
+	void add(int i, int j, const Matrix3 &m)
 	{
 		i *= 3;
 		j *= 3;
@@ -176,7 +178,7 @@ struct lMatrixCtor {
 				m_trips.push_back(Triplet(i + k, j + l, m.coeff(l, k)));
 	}
 	
-	void sub(int i, int j, const fMatrix &m)
+	void sub(int i, int j, const Matrix3 &m)
 	{
 		i *= 3;
 		j *= 3;
@@ -199,7 +201,7 @@ typedef Eigen::ConjugateGradient<lMatrix, Eigen::Lower, Eigen::DiagonalPrecondit
 
 using Eigen::ComputationInfo;
 
-BLI_INLINE void print_lvector(const lVector &v)
+BLI_INLINE void print_lvector(const lVector3f &v)
 {
 	for (int i = 0; i < v.rows(); ++i) {
 		if (i > 0 && i % 3 == 0)

@@ -745,7 +745,7 @@ static void cloth_continuum_fill_grid(HairGrid *grid, Cloth *cloth)
 	BPH_hair_volume_normalize_vertex_grid(grid);
 }
 
-static void cloth_continuum_step(ClothModifierData *clmd)
+static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 {
 	ClothSimSettings *parms = clmd->sim_parms;
 	Cloth *cloth = clmd->clothObject;
@@ -773,6 +773,9 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 		BPH_hair_volume_set_debug_data(grid, clmd->debug_data);
 		
 		cloth_continuum_fill_grid(grid, cloth);
+		
+		/* main hair continuum solver */
+		BPH_hair_volume_solve_divergence(grid, dt);
 		
 		for (i = 0, vert = cloth->verts; i < numverts; i++, vert++) {
 			float x[3], v[3], nv[3];
@@ -811,17 +814,19 @@ static void cloth_continuum_step(ClothModifierData *clmd)
 			BKE_sim_debug_data_clear_category(clmd->debug_data, "grid velocity");
 			for (j = 0; j < size; ++j) {
 				for (i = 0; i < size; ++i) {
-					float x[3], v[3], gvel[3], gdensity;
+					float x[3], v[3], gvel[3], gvel_smooth[3], gdensity;
 					
 					madd_v3_v3v3fl(x, offset, a, (float)i / (float)(size-1));
 					madd_v3_v3fl(x, b, (float)j / (float)(size-1));
 					zero_v3(v);
 					
-					BPH_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, NULL, NULL);
+					BPH_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, NULL, NULL);
 					
 //					BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity, 0.7, 0.3, 1, "grid density", hash_int_2d(hash_int_2d(i, j), 3111));
-					if (!is_zero_v3(gvel))
+					if (!is_zero_v3(gvel) || !is_zero_v3(gvel_smooth)) {
 						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel, 0.4, 0, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3112));
+						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel_smooth, 0.6, 4, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3113));
+					}
 				}
 			}
 		}
@@ -950,7 +955,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		BPH_mass_spring_solve_velocities(id, dt, &result);
 		cloth_record_result(clmd, &result, clmd->sim_parms->stepsPerFrame);
 		
-		cloth_continuum_step(clmd);
+		cloth_continuum_step(clmd, dt);
 		
 		BPH_mass_spring_solve_positions(id, dt);
 		

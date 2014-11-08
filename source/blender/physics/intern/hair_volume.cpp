@@ -39,6 +39,7 @@
 #include "BKE_effect.h"
 
 #include "implicit.h"
+#include "eigen_utils.h"
 
 /* ================ Volumetric Hair Interaction ================
  * adapted from
@@ -113,7 +114,7 @@ BLI_INLINE int hair_grid_interp_weights(const int res[3], const float gmin[3], f
 }
 
 BLI_INLINE void hair_grid_interpolate(const HairGridVert *grid, const int res[3], const float gmin[3], float scale, const float vec[3],
-                                      float *density, float velocity[3], float density_gradient[3], float velocity_gradient[3][3])
+                                      float *density, float velocity[3], float vel_smooth[3], float density_gradient[3], float velocity_gradient[3][3])
 {
 	HairGridVert data[8];
 	float uvw[3], muvw[3];
@@ -151,6 +152,16 @@ BLI_INLINE void hair_grid_interpolate(const HairGridVert *grid, const int res[3]
 		}
 	}
 	
+	if (vel_smooth) {
+		int k;
+		for (k = 0; k < 3; ++k) {
+			vel_smooth[k] = muvw[2]*( muvw[1]*( muvw[0]*data[0].velocity_smooth[k] + uvw[0]*data[1].velocity_smooth[k] )   +
+			                           uvw[1]*( muvw[0]*data[2].velocity_smooth[k] + uvw[0]*data[3].velocity_smooth[k] ) ) +
+			                 uvw[2]*( muvw[1]*( muvw[0]*data[4].velocity_smooth[k] + uvw[0]*data[5].velocity_smooth[k] )   +
+			                           uvw[1]*( muvw[0]*data[6].velocity_smooth[k] + uvw[0]*data[7].velocity_smooth[k] ) );
+		}
+	}
+	
 	if (density_gradient) {
 		density_gradient[0] = muvw[1] * muvw[2] * ( data[0].density - data[1].density ) +
 		                       uvw[1] * muvw[2] * ( data[2].density - data[3].density ) +
@@ -180,7 +191,7 @@ void BPH_hair_volume_vertex_grid_forces(HairGrid *grid, const float x[3], const 
 {
 	float gdensity, gvelocity[3], ggrad[3], gvelgrad[3][3], gradlen;
 	
-	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->inv_cellsize, x, &gdensity, gvelocity, ggrad, gvelgrad);
+	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->inv_cellsize, x, &gdensity, gvelocity, NULL, ggrad, gvelgrad);
 	
 	zero_v3(f);
 	sub_v3_v3(gvelocity, v);
@@ -199,21 +210,32 @@ void BPH_hair_volume_vertex_grid_forces(HairGrid *grid, const float x[3], const 
 }
 
 void BPH_hair_volume_grid_interpolate(HairGrid *grid, const float x[3],
-                                      float *density, float velocity[3], float density_gradient[3], float velocity_gradient[3][3])
+                                      float *density, float velocity[3], float velocity_smooth[3], float density_gradient[3], float velocity_gradient[3][3])
 {
-	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->inv_cellsize, x, density, velocity, density_gradient, velocity_gradient);
+	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->inv_cellsize, x, density, velocity, velocity_smooth, density_gradient, velocity_gradient);
 }
 
 void BPH_hair_volume_grid_velocity(HairGrid *grid, const float x[3], const float v[3],
                                    float fluid_factor,
                                    float r_v[3])
 {
-	float gdensity, gvelocity[3], ggrad[3], gvelgrad[3][3];
+	float gdensity, gvelocity[3], gvel_smooth[3], ggrad[3], gvelgrad[3][3];
 	
-	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->inv_cellsize, x, &gdensity, gvelocity, ggrad, gvelgrad);
+	hair_grid_interpolate(grid->verts, grid->res, grid->gmin, grid->inv_cellsize, x, &gdensity, gvelocity, gvel_smooth, ggrad, gvelgrad);
 	
 	/* XXX TODO implement FLIP method and use fluid_factor to blend between FLIP and PIC */
-	copy_v3_v3(r_v, gvelocity);
+	copy_v3_v3(r_v, gvel_smooth);
+}
+
+void BPH_hair_volume_grid_clear(HairGrid *grid)
+{
+	const int size = hair_grid_size(grid->res);
+	int i;
+	for (i = 0; i < size; ++i) {
+		zero_v3(grid->verts[i].velocity);
+		zero_v3(grid->verts[i].velocity_smooth);
+		grid->verts[i].density = 0.0f;
+	}
 }
 
 BLI_INLINE bool hair_grid_point_valid(const float vec[3], float gmin[3], float gmax[3])
@@ -464,6 +486,182 @@ void BPH_hair_volume_normalize_vertex_grid(HairGrid *grid)
 	}
 }
 
+bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt)
+{
+	const float density_threshold = 0.001f; /* cells with density below this are considered empty */
+	
+	const float flowfac = grid->cellsize / dt;
+	const float inv_flowfac = dt / grid->cellsize;
+	
+	/*const int num_cells = hair_grid_size(grid->res);*/
+	const int inner_res[3] = { grid->res[0] - 2, grid->res[1] - 2, grid->res[2] - 2 };
+	
+	const int stride0 = 1;
+	const int stride1 = grid->res[0];
+	const int stride2 = grid->res[1] * grid->res[0];
+	
+	const int strideA0 = 1;
+	const int strideA1 = grid->res[0]-2;
+	const int strideA2 = (grid->res[1]-2) * (grid->res[0]-2);
+	
+	/* NB: to avoid many boundary checks, we only solve the system
+	 * for the inner vertices, excluding a 1-cell margin.
+	 */
+	const int inner_cells_start = stride0 + stride1 + stride2;
+	const int num_inner_cells = inner_res[0] * inner_res[1] * inner_res[2];
+	
+	HairGridVert *vert;
+	int i, j, k, u;
+	
+	BLI_assert(num_inner_cells >= 1);
+	
+	/* Calculate divergence */
+	lVector B(num_inner_cells);
+	for (k = 0; k < inner_res[2]; ++k) {
+		for (j = 0; j < inner_res[1]; ++j) {
+			for (i = 0; i < inner_res[0]; ++i) {
+				u = i * strideA0 + j * strideA1 + k * strideA2;
+				vert = grid->verts + inner_cells_start + i * stride0 + j * stride1 + k * stride2;
+				
+				HairGridVert *vert_px = vert + stride0;
+				HairGridVert *vert_py = vert + stride1;
+				HairGridVert *vert_pz = vert + stride2;
+				
+				const float *v = vert->velocity;
+				float dx = vert_px->velocity[0] - v[0];
+				float dy = vert_py->velocity[1] - v[1];
+				float dz = vert_pz->velocity[2] - v[2];
+				
+				/* B vector contains the finite difference approximation of the velocity divergence.
+				 * Note: according to the discretized Navier-Stokes equation the rhs vector
+				 * and resulting pressure gradient should be multiplied by the (inverse) density;
+				 * however, this is already included in the weighting of hair velocities on the grid!
+				 */
+				B[u] = (dx + dy + dz) * flowfac;
+			}
+		}
+	}
+	
+	/* Main Poisson equation system:
+	 * This is derived from the discretezation of the Poisson equation
+	 *   div(grad(p)) = div(v)
+	 * 
+	 * The finite difference approximation yields the linear equation system described here:
+	 * http://en.wikipedia.org/wiki/Discrete_Poisson_equation
+	 */
+	lMatrix A(num_inner_cells, num_inner_cells);
+	/* Reserve space for the base equation system (without boundary conditions).
+	 * Each column contains a factor 6 on the diagonal
+	 * and up to 6 factors -1 on other places.
+	 */
+	A.reserve(Eigen::VectorXi::Constant(num_inner_cells, 7));
+	
+	for (k = 0; k < inner_res[2]; ++k) {
+		for (j = 0; j < inner_res[1]; ++j) {
+			for (i = 0; i < inner_res[0]; ++i) {
+				u = i * strideA0 + j * strideA1 + k * strideA2;
+				vert = grid->verts + inner_cells_start + i * stride0 + j * stride1 + k * stride2;
+				
+				if (vert->density > density_threshold) {
+					int neighbors_lo = 0;
+					int neighbors_hi = 0;
+					int non_solid_neighbors = 0;
+					int neighbor_lo_index[3];
+					int neighbor_hi_index[3];
+					int n;
+					
+					/* check for upper bounds in advance
+					 * to get the correct number of neighbors,
+					 * needed for the diagonal element
+					 */
+					if (k >= 1) {
+						if ((vert - stride2)->density > density_threshold)
+							neighbor_lo_index[neighbors_lo++] = u - strideA2;
+					}
+					if (j >= 1) {
+						if ((vert - stride1)->density > density_threshold)
+							neighbor_lo_index[neighbors_lo++] = u - strideA1;
+					}
+					if (i >= 1) {
+						if ((vert - stride0)->density > density_threshold)
+							neighbor_lo_index[neighbors_lo++] = u - strideA0;
+					}
+					if (i < inner_res[0] - 1) {
+						if ((vert + stride0)->density > density_threshold)
+							neighbor_hi_index[neighbors_hi++] = u + strideA0;
+					}
+					if (j < inner_res[1] - 1) {
+						if ((vert + stride1)->density > density_threshold)
+							neighbor_hi_index[neighbors_hi++] = u + strideA1;
+					}
+					if (k < inner_res[2] - 1) {
+						if ((vert + stride2)->density > density_threshold)
+							neighbor_hi_index[neighbors_hi++] = u + strideA2;
+					}
+					
+					/*int liquid_neighbors = neighbors_lo + neighbors_hi;*/
+					non_solid_neighbors = 6;
+					
+					for (n = 0; n < neighbors_lo; ++n)
+						A.insert(neighbor_lo_index[n], u) = -1.0f;
+					A.insert(u, u) = (float)non_solid_neighbors;
+					for (n = 0; n < neighbors_hi; ++n)
+						A.insert(neighbor_hi_index[n], u) = -1.0f;
+				}
+				else {
+					A.insert(u, u) = 1.0f;
+				}
+			}
+		}
+	}
+	
+	ConjugateGradient cg;
+	cg.setMaxIterations(100);
+	cg.setTolerance(0.01f);
+	
+	cg.compute(A);
+	
+	lVector p = cg.solve(B);
+	
+	if (cg.info() == Eigen::Success) {
+		/* Calculate velocity = grad(p) */
+		for (k = 0; k < inner_res[2]; ++k) {
+			for (j = 0; j < inner_res[1]; ++j) {
+				for (i = 0; i < inner_res[0]; ++i) {
+					u = i * strideA0 + j * strideA1 + k * strideA2;
+					vert = grid->verts + inner_cells_start + i * stride0 + j * stride1 + k * stride2;
+					
+					if (vert->density > density_threshold) {
+						float p0 = p[u];
+						
+						/* finite difference estimate of pressure gradient */
+						float grad_p[3];
+						grad_p[0] = i >= 1 ? p0 - p[u - strideA0] : 0.0f;
+						grad_p[1] = j >= 1 ? p0 - p[u - strideA1] : 0.0f;
+						grad_p[2] = k >= 1 ? p0 - p[u - strideA2] : 0.0f;
+						
+						/* pressure gradient describes velocity delta */
+						madd_v3_v3v3fl(vert->velocity_smooth, vert->velocity, grad_p, inv_flowfac);
+					}
+					else {
+						zero_v3(vert->velocity_smooth);
+					}
+				}
+			}
+		}
+		
+		return true;
+	}
+	else {
+		/* Clear result in case of error */
+		for (i = inner_cells_start, vert = grid->verts + inner_cells_start; i < num_inner_cells; ++i, ++vert) {
+			zero_v3(vert->velocity_smooth);
+		}
+		
+		return false;
+	}
+}
+
 #if 0 /* XXX weighting is incorrect, disabled for now */
 /* Velocity filter kernel
  * See http://en.wikipedia.org/wiki/Filter_%28large_eddy_simulation%29
@@ -584,14 +782,8 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize, const float gmin[3]
 	copy_v3_v3(grid->gmax, gmax_margin);
 	grid->cellsize = cellsize;
 	grid->inv_cellsize = scale;
-	grid->verts = (HairGridVert *)MEM_mallocN(sizeof(HairGridVert) * size, "hair voxel data");
+	grid->verts = (HairGridVert *)MEM_callocN(sizeof(HairGridVert) * size, "hair voxel data");
 
-	/* initialize grid */
-	for (i = 0; i < size; ++i) {
-		zero_v3(grid->verts[i].velocity);
-		grid->verts[i].density = 0.0f;
-	}
-	
 	return grid;
 }
 
