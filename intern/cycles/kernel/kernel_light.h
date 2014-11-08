@@ -488,9 +488,6 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 		/* compute pdf */
 		float invarea = data1.w;
 		ls->pdf = invarea/(costheta*costheta*costheta);
-		if(ls->t != FLT_MAX)
-			ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
-
 		ls->eval_fac = ls->pdf;
 	}
 	else if(type == LIGHT_POINT || type == LIGHT_SPOT) {
