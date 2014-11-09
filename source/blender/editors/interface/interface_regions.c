@@ -1377,7 +1377,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	/* aspect /= (float)xsize;*/ /*UNUSED*/
 
 	{
-		int left = 0, right = 0, top = 0, down = 0;
+		bool left = 0, right = 0, top = 0, down = 0;
 		int winx, winy;
 		// int offscreen;
 
@@ -1444,8 +1444,6 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 			else xof = butrct.xmin - block->rect.xmin;
 			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
-				if (block->direction & UI_SHIFT_FLIPPED)
-					xof += dir2 == UI_LEFT ? 25 : -25;
 				uiBlockFlipOrder(block);
 			}
 		}
@@ -1455,8 +1453,6 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 			else xof = butrct.xmin - block->rect.xmin;
 			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
-				if (block->direction & UI_SHIFT_FLIPPED)
-					xof += dir2 == UI_LEFT ? 25 : -25;
 				uiBlockFlipOrder(block);
 			}
 		}

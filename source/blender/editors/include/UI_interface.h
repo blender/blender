@@ -111,7 +111,6 @@ typedef struct uiLayout uiLayout;
 #define UI_LEFT            (1 << 2)
 #define UI_RIGHT           (1 << 3)
 #define UI_CENTER          (1 << 4)
-#define UI_SHIFT_FLIPPED   (1 << 5)
 
 #if 0
 /* uiBlock->autofill (not yet used) */
