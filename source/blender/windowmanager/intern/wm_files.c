@@ -1015,6 +1015,8 @@ int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	char filepath[FILE_MAX];
 	int fileflags;
 
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+
 	/* check current window and close it if temp */
 	if (win && win->screen->temp)
 		wm_window_close(C, wm, win);
@@ -1038,6 +1040,8 @@ int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	printf("ok\n");
 
 	G.save_over = 0;
+
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_POST);
 
 	return OPERATOR_FINISHED;
 }
