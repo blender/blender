@@ -267,6 +267,8 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 				shi.amb = gpu_get_input_link(&in[MAT_IN_AMB]);
 			if (hasinput[MAT_IN_EMIT])
 				shi.emit = gpu_get_input_link(&in[MAT_IN_EMIT]);
+			if (hasinput[MAT_IN_SPECTRA])
+				shi.spectra = gpu_get_input_link(&in[MAT_IN_SPECTRA]);
 			if (hasinput[MAT_IN_ALPHA])
 				shi.alpha = gpu_get_input_link(&in[MAT_IN_ALPHA]);
 		}

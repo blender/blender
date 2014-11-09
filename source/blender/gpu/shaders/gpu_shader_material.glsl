@@ -1935,6 +1935,17 @@ void shade_add_spec(float t, vec3 lampcol, vec3 speccol, out vec3 outcol)
 	outcol = t*lampcol*speccol;
 }
 
+void alpha_spec_correction(vec3 spec, float spectra, float alpha, out float outalpha)
+{
+	if (spectra > 0.0) {
+		float t = clamp(max(max(spec.r, spec.g), spec.b) * spectra, 0.0, 1.0);
+		outalpha = (1.0 - t) * alpha + t;
+	}
+	else {
+		outalpha = alpha;
+	}
+}
+
 void shade_add(vec4 col1, vec4 col2, out vec4 outcol)
 {
 	outcol = col1 + col2;

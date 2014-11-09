@@ -1426,6 +1426,7 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 	GPU_link(mat, "set_value", GPU_uniform(&ma->emit), &shi->emit);
 	GPU_link(mat, "set_value", GPU_uniform(&hard), &shi->har);
 	GPU_link(mat, "set_value", GPU_uniform(&ma->amb), &shi->amb);
+	GPU_link(mat, "set_value", GPU_uniform(&ma->spectra), &shi->spectra);
 	GPU_link(mat, "shade_view", GPU_builtin(GPU_VIEW_POSITION), &shi->view);
 	GPU_link(mat, "vcol_attribute", GPU_attribute(CD_MCOL, ""), &shi->vcol);
 	if (GPU_material_do_color_management(mat))
@@ -1495,6 +1496,12 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 					GPU_link(mat, "shade_maddf", shr->combined, GPU_uniform(&ma->amb),
 						GPU_uniform(&world->ambr), &shr->combined);
 			}
+		}
+
+		if (ma->mode & MA_TRANSP && (ma->mode & (MA_ZTRANSP|MA_RAYTRANSP))) {
+			if (GPU_link_changed(shi->spectra) || ma->spectra != 0.0f)
+				GPU_link(mat, "alpha_spec_correction", shr->spec, shi->spectra,
+					shi->alpha, &shr->alpha);
 		}
 
 		if (ma->mode & MA_RAMP_COL) ramp_diffuse_result(shi, &shr->combined);
