@@ -863,6 +863,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* modifier name */
+		md->scene = scene;
 		if (mti->isDisabled && mti->isDisabled(md, 0)) {
 			uiLayoutSetRedAlert(row, true);
 		}
