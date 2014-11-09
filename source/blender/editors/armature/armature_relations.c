@@ -673,8 +673,8 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	EditBone *actbone = CTX_data_active_bone(C);
-	uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
-	uiLayout *layout = uiPupMenuLayout(pup);
+	uiPopupMenu *pup = UI_popup_menu_begin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
+	uiLayout *layout = UI_popup_menu_layout(pup);
 	int allchildbones = 0;
 	
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
@@ -691,7 +691,7 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const
 	if (allchildbones)
 		uiItemEnumO(layout, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_OFFSET);
 		
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	
 	return OPERATOR_INTERFACE;
 }

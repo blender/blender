@@ -587,7 +587,7 @@ static void rna_Event_tilt_get(PointerRNA *ptr, float *values)
 static PointerRNA rna_PopupMenu_layout_get(PointerRNA *ptr)
 {
 	struct uiPopupMenu *pup = ptr->data;
-	uiLayout *layout = uiPupMenuLayout(pup);
+	uiLayout *layout = UI_popup_menu_layout(pup);
 
 	PointerRNA rptr;
 	RNA_pointer_create(ptr->id.data, &RNA_UILayout, layout, &rptr);
@@ -598,7 +598,7 @@ static PointerRNA rna_PopupMenu_layout_get(PointerRNA *ptr)
 static PointerRNA rna_PieMenu_layout_get(PointerRNA *ptr)
 {
 	struct uiPieMenu *pie = ptr->data;
-	uiLayout *layout = uiPieMenuLayout(pie);
+	uiLayout *layout = UI_pie_menu_layout(pie);
 
 	PointerRNA rptr;
 	RNA_pointer_create(ptr->id.data, &RNA_UILayout, layout, &rptr);

@@ -4714,8 +4714,8 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 
 static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, bool vdata, bool modifiers)
 {
-	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Warning!"), ICON_ERROR);
-	uiLayout *layout = uiPupMenuLayout(pup);
+	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Warning!"), ICON_ERROR);
+	uiLayout *layout = UI_popup_menu_layout(pup);
 
 	if (vdata) {
 		const char *msg_error = TIP_("Vertex Data Detected!");
@@ -4736,7 +4736,7 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, bool vdata, bo
 
 	uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0);
 
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 
 	return OPERATOR_INTERFACE;
 }

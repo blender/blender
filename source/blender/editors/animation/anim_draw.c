@@ -79,7 +79,7 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	else {
 		BLI_timecode_string_from_time_simple(&numstr[4], sizeof(numstr) - 4, 1, cfra);
 	}
-	slen = (short)UI_GetStringWidth(numstr) - 1;
+	slen = (short)UI_fontstyle_string_width(numstr) - 1;
 	
 	/* get starting coordinates for drawing */
 	x = cfra * xscale;
@@ -91,7 +91,7 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	UI_DrawString(x - 0.25f * U.widget_unit, y + 0.15f * U.widget_unit, numstr);
+	UI_draw_string(x - 0.25f * U.widget_unit, y + 0.15f * U.widget_unit, numstr);
 	
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);

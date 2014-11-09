@@ -254,7 +254,7 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
 	/* adt = adt_ptr.data; */
 	
 	block = uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+	UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
 	
 	/* AnimData Source Properties ----------------------------------- */
 	
@@ -309,7 +309,7 @@ static void nla_panel_track(const bContext *C, Panel *pa)
 		return;
 	
 	block = uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+	UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
 	
 	/* Info - Active NLA-Context:Track ----------------------  */
 	row = uiLayoutRow(layout, true);
@@ -329,7 +329,7 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 		return;
 	
 	block = uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+	UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
 	
 	/* Strip Properties ------------------------------------- */
 	/* strip type */
@@ -394,7 +394,7 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 		return;
 	
 	block = uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+	UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
 		
 	/* Strip Properties ------------------------------------- */
 	/* action pointer */
@@ -434,7 +434,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 		return;
 		
 	block = uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+	UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
 		
 	col = uiLayoutColumn(layout, true);
 	uiItemR(col, &strip_ptr, "use_animated_influence", 0, NULL, ICON_NONE);
@@ -468,7 +468,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
 	strip = strip_ptr.data;
 		
 	block = uiLayoutGetBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+	UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
 	
 	/* 'add modifier' button at top of panel */
 	{
@@ -477,7 +477,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
 		
 		// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
 		// FIXME: we need to set the only-active property so that this will only add modifiers for the active strip (not all selected)
-		uiDefButO(block, BUT, "NLA_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, IFACE_("Add Modifier"), 10, 0, 150, 20,
+		uiDefButO(block, UI_BTYPE_BUT, "NLA_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, IFACE_("Add Modifier"), 10, 0, 150, 20,
 		          TIP_("Adds a new F-Modifier for the active NLA Strip"));
 		
 		/* copy/paste (as sub-row)*/

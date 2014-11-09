@@ -206,7 +206,7 @@ static void view2d_masks(View2D *v2d, int check_scrollers)
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	bool tot_changed = false, do_init;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 
 	do_init = (v2d->flag & V2D_IS_INITIALISED) == 0;
 		
@@ -1719,7 +1719,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
 		}
 		
-		uiWidgetScrollDraw(&wcol, &hor, &slider, state);
+		UI_draw_widget_scroll(&wcol, &hor, &slider, state);
 		
 		/* scale indicators */
 		if ((scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
@@ -1820,7 +1820,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
 		}
 		
-		uiWidgetScrollDraw(&wcol, &vert, &slider, state);
+		UI_draw_widget_scroll(&wcol, &vert, &slider, state);
 		
 		
 		/* scale indiators */

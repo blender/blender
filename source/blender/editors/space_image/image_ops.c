@@ -947,7 +947,7 @@ static void image_open_init(bContext *C, wmOperator *op)
 
 	op->customdata = iod = MEM_callocN(sizeof(ImageOpenData), __func__);
 	iod->iuser = CTX_data_pointer_get_type(C, "image_user", &RNA_ImageUser).data;
-	uiIDContextProperty(C, &iod->pprop.ptr, &iod->pprop.prop);
+	UI_context_active_but_prop_get_templateID(C, &iod->pprop.ptr, &iod->pprop.prop);
 }
 
 static void image_open_cancel(bContext *UNUSED(C), wmOperator *op)
@@ -1158,7 +1158,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 		PropertyRNA *prop;
 
 		/* hook into UI */
-		uiIDContextProperty(C, &ptr, &prop);
+		UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
 		if (prop) {
 			PointerRNA oldptr;
@@ -1958,7 +1958,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* hook into UI */
-	uiIDContextProperty(C, &ptr, &prop);
+	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
 	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
@@ -2024,7 +2024,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 }
 
 /* XXX, Ton is not a fan of OK buttons but using this function to avoid undo/redo bug while in mesh-editmode, - campbell */
-/* XXX Note: the WM_operator_props_dialog_popup() doesn't work for uiIDContextProperty(), image is not being that way */
+/* XXX Note: the WM_operator_props_dialog_popup() doesn't work for UI_context_active_but_prop_get_templateID(), image is not being that way */
 static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	/* Better for user feedback. */
@@ -2248,11 +2248,11 @@ static int image_pack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		pup = uiPupMenuBegin(C, IFACE_("OK"), ICON_QUESTION);
-		layout = uiPupMenuLayout(pup);
+		pup = UI_popup_menu_begin(C, IFACE_("OK"), ICON_QUESTION);
+		layout = UI_popup_menu_layout(pup);
 		uiItemBooleanO(layout, IFACE_("Can't pack edited image from disk, pack as internal PNG?"), ICON_NONE,
 		               op->idname, "as_png", 1);
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 

@@ -1897,8 +1897,8 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 	}
 	
 	/* prepare popup menu to choose targetting options */
-	pup = uiPupMenuBegin(C, IFACE_("Add IK"), ICON_NONE);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, IFACE_("Add IK"), ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
 	
 	/* the type of targets we'll set determines the menu entries to show... */
 	if (get_new_constraint_target(C, CONSTRAINT_TYPE_KINEMATIC, &tar_ob, &tar_pchan, 0)) {
@@ -1917,7 +1917,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 	}
 	
 	/* finish building the menu, and process it (should result in calling self again) */
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	
 	return OPERATOR_INTERFACE;
 }

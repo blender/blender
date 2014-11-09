@@ -127,7 +127,7 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 	
 	/* unless button has own callback, it adds this callback to button */
 	block = uiLayoutGetBlock(layout);
-	uiBlockSetFunc(block, gp_ui_activelayer_cb, gpd, gpl);
+	UI_block_func_set(block, gp_ui_activelayer_cb, gpd, gpl);
 	
 	/* draw header ---------------------------------- */
 	/* get layout-row + UI-block for header */
@@ -137,7 +137,7 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
 	block = uiLayoutGetBlock(row); /* err... */
 	
-	uiBlockSetEmboss(block, UI_EMBOSSN);
+	UI_block_emboss_set(block, UI_EMBOSS_NONE);
 	
 	/* left-align ............................... */
 	sub = uiLayoutRow(row, false);
@@ -145,9 +145,9 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 	/* active */
 	block = uiLayoutGetBlock(sub);
 	icon = (gpl->flag & GP_LAYER_ACTIVE) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
-	but = uiDefIconButBitI(block, TOG, GP_LAYER_ACTIVE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+	but = uiDefIconButBitI(block, UI_BTYPE_TOGGLE, GP_LAYER_ACTIVE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 	                       &gpl->flag, 0.0, 0.0, 0.0, 0.0, TIP_("Set active layer"));
-	uiButSetFunc(but, gp_ui_activelayer_cb, gpd, gpl);
+	UI_but_func_set(but, gp_ui_activelayer_cb, gpd, gpl);
 	
 	/* locked */
 	icon = (gpl->flag & GP_LAYER_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
@@ -175,11 +175,11 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 			uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 			block = uiLayoutGetBlock(sub); /* XXX... err... */
 			
-			but = uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete layer"));
-			uiButSetFunc(but, gp_ui_dellayer_cb, gpd, gpl);
+			UI_but_func_set(but, gp_ui_dellayer_cb, gpd, gpl);
 		}
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		UI_block_emboss_set(block, UI_EMBOSS);
 	}
 	else {
 		/* draw rest of header -------------------------------- */
@@ -191,38 +191,38 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		icon = (gpl->flag & GP_LAYER_FRAMELOCK) ? ICON_RENDER_STILL : ICON_RENDER_ANIMATION;
 		uiItemR(sub, &ptr, "lock_frame", 0, "", icon);
 		
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		UI_block_emboss_set(block, UI_EMBOSS);
 		
 		/* name */
 		uiItemR(sub, &ptr, "info", 0, "", ICON_NONE);
 		
 		/* move up/down */
-		uiBlockBeginAlign(block);
+		UI_block_align_begin(block);
 		
 		if (gpl->prev) {
-			but = uiDefIconBut(block, BUT, 0, ICON_TRIA_UP, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_UP, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer up"));
-			uiButSetFunc(but, gp_ui_layer_up_cb, gpd, gpl);
+			UI_but_func_set(but, gp_ui_layer_up_cb, gpd, gpl);
 		}
 		if (gpl->next) {
-			but = uiDefIconBut(block, BUT, 0, ICON_TRIA_DOWN, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_DOWN, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer down"));
-			uiButSetFunc(but, gp_ui_layer_down_cb, gpd, gpl);
+			UI_but_func_set(but, gp_ui_layer_down_cb, gpd, gpl);
 		}
 		
-		uiBlockEndAlign(block);
+		UI_block_align_end(block);
 		
 		/* delete 'button' */
-		uiBlockSetEmboss(block, UI_EMBOSSN);
+		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 		/* right-align ............................... */
 		sub = uiLayoutRow(row, true);
 		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 		block = uiLayoutGetBlock(sub); /* XXX... err... */
 		
-		but = uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+		but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete layer"));
-		uiButSetFunc(but, gp_ui_dellayer_cb, gpd, gpl);
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		UI_but_func_set(but, gp_ui_dellayer_cb, gpd, gpl);
+		UI_block_emboss_set(block, UI_EMBOSS);
 		
 		/* new backdrop ----------------------------------- */
 		box = uiLayoutBox(layout);

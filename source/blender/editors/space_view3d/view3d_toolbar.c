@@ -118,7 +118,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 			uiLayoutSetEnabled(pa->layout, false);
 
 		/* note, blockfunc is a default but->func, use Handle func to allow button callbacks too */
-		uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, op);
+		UI_block_func_handle_set(block, ED_undo_operator_repeat_cb_evt, op);
 
 		view3d_panel_operator_redo_operator(C, pa, op);
 	}
@@ -159,7 +159,7 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 		if (BLI_strcasestr(ot->name, str)) {
 			if (WM_operator_poll((bContext *)C, ot)) {
 				
-				if (false == uiSearchItemAdd(items, ot->name, ot, 0))
+				if (false == UI_search_item_add(items, ot->name, ot, 0))
 					break;
 			}
 		}
@@ -179,18 +179,18 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	/* clear initial search string, then all items show */
 	search[0] = 0;
 	
-	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_SEARCH_MENU);
+	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_SEARCH_MENU);
 	
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 15, uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 15, UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
 	
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, 19, 0, 0, "");
-	uiButSetSearchFunc(but, operator_search_cb, arg_listbase, operator_call_cb, NULL);
+	UI_but_func_search_set(but, operator_search_cb, arg_listbase, operator_call_cb, NULL);
 	
-	uiBoundsBlock(block, 6);
-	uiBlockSetDirection(block, UI_DOWN);
-	uiEndBlock(C, block);
+	UI_block_bounds_set_normal(block, 6);
+	UI_block_direction_set(block, UI_DIR_DOWN);
+	UI_block_end(C, block);
 	
 	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;

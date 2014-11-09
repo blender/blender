@@ -227,54 +227,54 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 
 void ui_but_anim_insert_keyframe(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_keyframe_insert_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_delete_keyframe(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_keyframe_delete_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_clear_keyframe(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_keyframe_clear_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_add_driver(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_driver_button_add", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_remove_driver(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_driver_button_remove", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_copy_driver(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_paste_driver(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_add_keyingset(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_keyingset_button_add", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_remove_keyingset(bContext *C)
 {
-	/* this operator calls uiContextActiveProperty */
+	/* this operator calls UI_context_active_but_prop_get */
 	WM_operator_name_call(C, "ANIM_OT_keyingset_button_remove", WM_OP_INVOKE_DEFAULT, NULL);
 }

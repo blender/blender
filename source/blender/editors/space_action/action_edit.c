@@ -85,7 +85,7 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* hook into UI */
-	uiIDContextProperty(C, &ptr, &prop);
+	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 	
 	if (prop) {
 		bAction *action = NULL, *oldact = NULL;

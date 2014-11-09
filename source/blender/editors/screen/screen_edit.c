@@ -1439,7 +1439,7 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 				/* this used to be a notifier, but needs to be done immediate
 				 * because it can undo setting the right button as active due
 				 * to delayed notifier handling */
-				uiFreeActiveButtons(C, win->screen);
+				UI_screen_free_active_but(C, win->screen);
 			}
 			else
 				region_cursor_set(win, scr->subwinactive, false);
@@ -1813,7 +1813,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		 * switching screens with tooltip open because region and tooltip
 		 * are no longer in the same screen */
 		for (ar = sa->regionbase.first; ar; ar = ar->next)
-			uiFreeBlocks(C, &ar->uiblocks);
+			UI_blocklist_free(C, &ar->uiblocks);
 
 		/* prevent hanging header prints */
 		ED_area_headerprint(sa, NULL);

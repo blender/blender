@@ -1543,8 +1543,8 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		else {
 			/* Menu creation */
 			wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_parent_drop", false);
-			uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Set Parent To"), ICON_NONE);
-			uiLayout *layout = uiPupMenuLayout(pup);
+			uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
+			uiLayout *layout = UI_popup_menu_layout(pup);
 			
 			PointerRNA ptr;
 			
@@ -1615,7 +1615,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 				uiItemFullO_ptr(layout, ot, IFACE_("Lattice Deform"), 0, ptr.data, WM_OP_EXEC_DEFAULT, 0);
 			}
 			
-			uiPupMenuEnd(C, pup);
+			UI_popup_menu_end(C, pup);
 			
 			return OPERATOR_INTERFACE;
 		}

@@ -242,7 +242,7 @@ static void clip_panel_operator_redo(const bContext *C, Panel *pa)
 			uiLayoutSetEnabled(pa->layout, false);
 
 		/* note, blockfunc is a default but->func, use Handle func to allow button callbacks too */
-		uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, op);
+		UI_block_func_handle_set(block, ED_undo_operator_repeat_cb_evt, op);
 
 		clip_panel_operator_redo_operator(C, pa, op);
 	}

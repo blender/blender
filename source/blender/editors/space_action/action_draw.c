@@ -112,7 +112,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 		}
 	}
 	{   /* second pass: widgets */
-		uiBlock *block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
+		uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 		size_t channel_index = 0;
 		
 		y = (float)ACHANNEL_FIRST;
@@ -134,8 +134,8 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 			channel_index++;
 		}
 		
-		uiEndBlock(C, block);
-		uiDrawBlock(C, block);
+		UI_block_end(C, block);
+		UI_block_draw(C, block);
 	}
 	
 	/* free tempolary channels */

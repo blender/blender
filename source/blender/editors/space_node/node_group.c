@@ -562,14 +562,14 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 
 static int node_group_separate_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-	uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
-	uiLayout *layout = uiPupMenuLayout(pup);
+	uiPopupMenu *pup = UI_popup_menu_begin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
+	uiLayout *layout = UI_popup_menu_layout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_COPY);
 	uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_MOVE);
 	
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	
 	return OPERATOR_INTERFACE;
 }

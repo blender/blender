@@ -503,7 +503,7 @@ static void pose_copy_menu(Scene *scene)
 		/* build the puplist of constraints */
 		for (con = pchanact->constraints.first, i = 0; con; con = con->next, i++) {
 			const_toggle[i] = 1;
-//			add_numbut(i, TOG|INT, con->name, 0, 0, &(const_toggle[i]), "");
+//			add_numbut(i, UI_BTYPE_TOGGLE|INT, con->name, 0, 0, &(const_toggle[i]), "");
 		}
 		
 //		if (!do_clever_numbuts("Select Constraints", i, REDRAW)) {

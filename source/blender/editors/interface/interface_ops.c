@@ -98,7 +98,7 @@ static int copy_data_path_button_poll(bContext *C)
 	char *path;
 	int index;
 
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
 		path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -120,7 +120,7 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 	int index;
 
 	/* try to create driver using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
 		path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -160,7 +160,7 @@ static int operator_button_property_finish(bContext *C, PointerRNA *ptr, Propert
 	RNA_property_update(C, ptr, prop);
 
 	/* as if we pressed the button */
-	uiContextActivePropertyHandle(C);
+	UI_context_active_but_prop_handle(C);
 
 	/* Since we don't want to undo _all_ edits to settings, eg window
 	 * edits on the screen or on operator settings.
@@ -180,7 +180,7 @@ static int reset_default_button_poll(bContext *C)
 	PropertyRNA *prop;
 	int index;
 
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	return (ptr.data && prop && RNA_property_editable(&ptr, prop));
 }
@@ -193,7 +193,7 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 	const bool all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to reset the nominated setting to its default value */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
@@ -231,7 +231,7 @@ static int unset_property_button_exec(bContext *C, wmOperator *UNUSED(op))
 	int index;
 
 	/* try to unset the nominated property */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop && RNA_property_editable(&ptr, prop) &&
@@ -317,7 +317,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 	int index;
 
 	/* try to reset the nominated setting to its default value */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	/* if there is a valid property that is editable... */
 	if (ptr.data && prop) {
@@ -595,7 +595,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 
 static int editsource_exec(bContext *C, wmOperator *op)
 {
-	uiBut *but = uiContextActiveButton(C);
+	uiBut *but = UI_context_active_but_get(C);
 
 	if (but) {
 		GHashIterator ghi;
@@ -605,7 +605,7 @@ static int editsource_exec(bContext *C, wmOperator *op)
 		int ret;
 
 		/* needed else the active button does not get tested */
-		uiFreeActiveButtons(C, CTX_wm_screen(C));
+		UI_screen_free_active_but(C, CTX_wm_screen(C));
 
 		// printf("%s: begin\n", __func__);
 
@@ -715,7 +715,7 @@ static void edittranslation_find_po_file(const char *root, const char *uilng, ch
 
 static int edittranslation_exec(bContext *C, wmOperator *op)
 {
-	uiBut *but = uiContextActiveButton(C);
+	uiBut *but = UI_context_active_but_get(C);
 	int ret = OPERATOR_CANCELLED;
 
 	if (but) {
@@ -755,7 +755,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 
-		uiButGetStrInfo(C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
+		UI_but_string_info_get(C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
 		                &rna_struct, &rna_prop, &rna_enum, &rna_ctxt, NULL);
 
 		WM_operator_properties_create_ptr(&ptr, ot);
@@ -877,9 +877,9 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 	/* find button under mouse, check if it has RNA color property and
 	 * if it does copy the data */
-	but = ui_but_find_activated(ar);
+	but = ui_but_find_active_in_region(ar);
 
-	if (but && but->type == COLOR && but->rnaprop) {
+	if (but && but->type == UI_BTYPE_COLOR && but->rnaprop) {
 		const int color_len = RNA_property_array_length(&but->rnapoin, but->rnaprop);
 		BLI_assert(color_len <= 4);
 
@@ -890,13 +890,13 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
 			if (!gamma)
-				ui_block_to_display_space_v3(but->block, color);
+				ui_block_cm_to_display_space_v3(but->block, color);
 			RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
 			RNA_property_update(C, &but->rnapoin, but->rnaprop);
 		}
 		else if (RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
 			if (gamma)
-				ui_block_to_scene_linear_v3(but->block, color);
+				ui_block_cm_to_scene_linear_v3(but->block, color);
 			RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
 			RNA_property_update(C, &but->rnapoin, but->rnaprop);
 		}
@@ -932,7 +932,7 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 /* ********************************************************* */
 /* Registration */
 
-void UI_buttons_operatortypes(void)
+void ED_button_operatortypes(void)
 {
 	WM_operatortype_append(UI_OT_reset_default_theme);
 	WM_operatortype_append(UI_OT_copy_data_path_button);

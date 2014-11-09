@@ -218,8 +218,8 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 	char line[FILE_MAX + 100];
 	wmOperatorType *ot = WM_operatortype_find(opname, 1);
 
-	pup = uiPupMenuBegin(C, IFACE_("Unpack File"), ICON_NONE);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
 
 	props_ptr = uiItemFullO_ptr(layout, ot, IFACE_("Remove Pack"), ICON_NONE,
 	                            NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
@@ -295,7 +295,7 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 			break;
 	}
 
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 }
 
 /* ********************* generic callbacks for drawcall api *********************** */

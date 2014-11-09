@@ -207,7 +207,7 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
  */
 /* #define UI_USE_PANELTAB */
 
-Panel *uiPanelFindByType(ARegion *ar, PanelType *pt)
+Panel *UI_panel_find_by_type(ARegion *ar, PanelType *pt)
 {
 	Panel *pa;
 	const char *idname = pt->idname;
@@ -233,9 +233,9 @@ Panel *uiPanelFindByType(ARegion *ar, PanelType *pt)
 }
 
 /**
- * \note \a pa should be return value from #uiPanelFindByType and can be NULL.
+ * \note \a pa should be return value from #UI_panel_find_by_type and can be NULL.
  */
-Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Panel *pa, bool *r_open)
+Panel *UI_panel_begin(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Panel *pa, bool *r_open)
 {
 	Panel *palast, *panext;
 	const char *drawname = CTX_IFACE_(pt->translation_context, pt->label);
@@ -336,7 +336,7 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, Pan
 	return pa;
 }
 
-void uiEndPanel(uiBlock *block, int width, int height)
+void UI_panel_end(uiBlock *block, int width, int height)
 {
 	Panel *pa = block->panel;
 
@@ -363,12 +363,12 @@ void uiEndPanel(uiBlock *block, int width, int height)
 
 static void ui_offset_panel_block(uiBlock *block)
 {
-	uiStyle *style = UI_GetStyleDraw();
+	uiStyle *style = UI_style_get_dpi();
 	uiBut *but;
 	int ofsy;
 
 	/* compute bounds and offset */
-	ui_bounds_block(block);
+	ui_block_bounds_calc(block);
 
 	ofsy = block->panel->sizey - style->panelspace;
 
@@ -401,7 +401,7 @@ static void uiPanelPop(uiBlock *UNUSED(block))
 #endif
 
 /* triangle 'icon' for panel header */
-void UI_DrawTriIcon(float x, float y, char dir)
+void UI_draw_icon_tri(float x, float y, char dir)
 {
 	float f3 = 0.15 * U.widget_unit;
 	float f5 = 0.25 * U.widget_unit;
@@ -542,14 +542,14 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 	if (dir == 'h') {
 		hrect.xmin = rect->xmin + pnl_icons;
 		hrect.ymin += 2.0f / block->aspect;
-		uiStyleFontDraw(&style->paneltitle, &hrect, activename);
+		UI_fontstyle_draw(&style->paneltitle, &hrect, activename);
 	}
 	else {
 		/* ignore 'pnl_icons', otherwise the text gets offset horizontally 
 		 * + 0.001f to avoid flirting with float inaccuracy
 		 */
 		hrect.xmin = rect->xmin + (PNL_ICON + 5) / block->aspect + 0.001f;
-		uiStyleFontDrawRotated(&style->paneltitle, &hrect, activename);
+		UI_fontstyle_draw_rotated(&style->paneltitle, &hrect, activename);
 	}
 }
 
@@ -641,11 +641,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	else {
 		/* in some occasions, draw a border */
 		if (panel->flag & PNL_SELECT) {
-			if (panel->control & UI_PNL_SOLID) uiSetRoundBox(UI_CNR_ALL);
-			else uiSetRoundBox(UI_CNR_NONE);
+			if (panel->control & UI_PNL_SOLID) UI_draw_roundbox_corner_set(UI_CNR_ALL);
+			else UI_draw_roundbox_corner_set(UI_CNR_NONE);
 
 			UI_ThemeColorShade(TH_BACK, -120);
-			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8);
+			UI_draw_roundbox_unfilled(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8);
 		}
 
 		/* panel backdrop */
@@ -938,7 +938,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	}
 }
 
-void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
+void UI_panels_begin(const bContext *UNUSED(C), ARegion *ar)
 {
 	Panel *pa;
 
@@ -953,7 +953,7 @@ void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
 }
 
 /* only draws blocks with panels */
-void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
+void UI_panels_end(const bContext *C, ARegion *ar, int *x, int *y)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	uiBlock *block;
@@ -1012,7 +1012,7 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 	ui_panels_size(sa, ar, x, y);
 }
 
-void uiDrawPanels(const bContext *C, ARegion *ar)
+void UI_panels_draw(const bContext *C, ARegion *ar)
 {
 	uiBlock *block;
 
@@ -1021,18 +1021,18 @@ void uiDrawPanels(const bContext *C, ARegion *ar)
 	/* draw panels, selected on top */
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		if (block->active && block->panel && !(block->panel->flag & PNL_SELECT)) {
-			uiDrawBlock(C, block);
+			UI_block_draw(C, block);
 		}
 	}
 
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		if (block->active && block->panel && (block->panel->flag & PNL_SELECT)) {
-			uiDrawBlock(C, block);
+			UI_block_draw(C, block);
 		}
 	}
 }
 
-void uiScalePanels(ARegion *ar, float new_width)
+void UI_panels_scale(ARegion *ar, float new_width)
 {
 	uiBlock *block;
 	uiBut *but;
@@ -1327,7 +1327,7 @@ void UI_panel_category_clear_all(ARegion *ar)
 	BLI_freelistN(&ar->panels_category);
 }
 
-/* based on uiDrawBox, check on making a version which allows us to skip some sides */
+/* based on UI_draw_roundbox_gl_mode, check on making a version which allows us to skip some sides */
 static void ui_panel_category_draw_tab(int mode, float minx, float miny, float maxx, float maxy, float rad,
                                        int roundboxtype,
                                        const bool use_highlight, const bool use_shadow,
@@ -1420,7 +1420,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	/* no tab outlines for */
 // #define USE_FLAT_INACTIVE
 	View2D *v2d = &ar->v2d;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	const uiFontStyle *fstyle = &style->widget;
 	const int fontid = fstyle->uifont_id;
 	short fstyle_points = fstyle->points;
@@ -1487,7 +1487,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 	BLF_enable(fontid, BLF_ROTATION);
 	BLF_rotation(fontid, M_PI / 2);
-	//uiStyleFontSet(&style->widget);
+	//UI_fontstyle_set(&style->widget);
 	ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
 	BLF_size(fontid, fstyle_points, U.dpi);
 
@@ -1768,7 +1768,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 		}
 		
 		/* on active button, do not handle panels */
-		if (ui_button_is_active(ar))
+		if (ui_but_is_active(ar))
 			continue;
 		
 		if (inside || inside_header) {

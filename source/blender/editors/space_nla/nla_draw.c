@@ -341,9 +341,9 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	if (nonSolo == 0) {
 		/* strip is in normal track */
 		glColor3fv(color);
-		uiSetRoundBox(UI_CNR_ALL); /* all corners rounded */
+		UI_draw_roundbox_corner_set(UI_CNR_ALL); /* all corners rounded */
 		
-		uiDrawBoxShade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
+		UI_draw_roundbox_shade_x(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	}
 	else {
 		/* strip is in disabled track - make less visible */
@@ -379,7 +379,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		setlinestyle(4);
 		
 	/* draw outline */
-	uiDrawBoxShade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
+	UI_draw_roundbox_shade_x(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
 	
 	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
 	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQF(strip->repeat, 1.0f) == 0) {
@@ -670,7 +670,7 @@ void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar)
 		}
 	}
 	{   /* second pass: UI widgets */
-		uiBlock *block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
+		uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 		size_t channel_index = 0;
 		
 		y = (float)(-NLACHANNEL_HEIGHT(snla));
@@ -697,8 +697,8 @@ void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar)
 			channel_index++;
 		}
 		
-		uiEndBlock(C, block);
-		uiDrawBlock(C, block);
+		UI_block_end(C, block);
+		UI_block_draw(C, block);
 		
 		glDisable(GL_BLEND);
 	}

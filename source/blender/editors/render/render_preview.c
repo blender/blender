@@ -525,7 +525,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 }
 
 /* new UI convention: draw is in pixel space already. */
-/* uses ROUNDBOX button in block to get the rect */
+/* uses UI_BTYPE_ROUNDBOX button in block to get the rect */
 static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, rcti *newrect)
 {
 	Render *re;

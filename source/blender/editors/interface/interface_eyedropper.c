@@ -91,7 +91,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 
 	op->customdata = eye = MEM_callocN(sizeof(Eyedropper), "Eyedropper");
 
-	uiContextActiveProperty(C, &eye->ptr, &eye->prop, &eye->index);
+	UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
 
 	if ((eye->ptr.data == NULL) ||
 	    (eye->prop == NULL) ||
@@ -381,7 +381,7 @@ static void datadropper_draw_cb(const struct bContext *C, ARegion *ar, void *arg
 		return;
 	}
 
-	width = UI_GetStringWidth(name);
+	width = UI_fontstyle_string_width(name);
 	x = x - ar->winrct.xmin;
 	y = y - ar->winrct.ymin;
 
@@ -389,11 +389,11 @@ static void datadropper_draw_cb(const struct bContext *C, ARegion *ar, void *arg
 
 	glColor4ub(0, 0, 0, 50);
 
-	uiSetRoundBox(UI_CNR_ALL | UI_RB_ALPHA);
-	uiRoundBox(x, y, x + width + 8, y + 15, 4);
+	UI_draw_roundbox_corner_set(UI_CNR_ALL | UI_RB_ALPHA);
+	UI_draw_roundbox(x, y, x + width + 8, y + 15, 4);
 
 	glColor4ub(255, 255, 255, 255);
-	UI_DrawString(x + 4, y + 4, name);
+	UI_draw_string(x + 4, y + 4, name);
 }
 
 
@@ -411,7 +411,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
 
 	op->customdata = ddr = MEM_callocN(sizeof(DataDropper), "DataDropper");
 
-	uiContextActiveProperty(C, &ddr->ptr, &ddr->prop, &index_dummy);
+	UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
 	if ((ddr->ptr.data == NULL) ||
 	    (ddr->prop == NULL) ||

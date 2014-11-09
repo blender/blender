@@ -618,15 +618,15 @@ static bool select_grouped_group(bContext *C, Object *ob)  /* Select objects in 
 	}
 
 	/* build the menu. */
-	pup = uiPupMenuBegin(C, IFACE_("Select Group"), ICON_NONE);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, IFACE_("Select Group"), ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
 
 	for (i = 0; i < group_count; i++) {
 		group = ob_groups[i];
 		uiItemStringO(layout, group->id.name + 2, 0, "OBJECT_OT_select_same_group", "group", group->id.name + 2);
 	}
 
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	return changed;  /* The operator already handle this! */
 }
 

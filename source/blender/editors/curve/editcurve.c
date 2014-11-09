@@ -5382,10 +5382,10 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 		for (nu = editnurb->first; nu; nu = nu->next) {
 			if (nu->pntsu > 1 || nu->pntsv > 1) {
 				if (nu->type == CU_NURBS) {
-					pup = uiPupMenuBegin(C, IFACE_("Direction"), ICON_NONE);
-					layout = uiPupMenuLayout(pup);
+					pup = UI_popup_menu_begin(C, IFACE_("Direction"), ICON_NONE);
+					layout = UI_popup_menu_layout(pup);
 					uiItemsEnumO(layout, op->type->idname, "direction");
-					uiPupMenuEnd(C, pup);
+					UI_popup_menu_end(C, pup);
 					return OPERATOR_INTERFACE;
 				}
 			}

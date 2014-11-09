@@ -1143,7 +1143,7 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 			const char *name = ob->id.name + 2;
 
 			BLI_strncpy(object_mouse_select_menu_data[i].idname, name, MAX_ID_NAME - 2);
-			object_mouse_select_menu_data[i].icon = uiIconFromID(&ob->id);
+			object_mouse_select_menu_data[i].icon = UI_icon_from_id(&ob->id);
 		}
 
 		{

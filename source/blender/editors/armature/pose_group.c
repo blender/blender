@@ -144,8 +144,8 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	/* if there's no active group (or active is invalid), create a new menu to find it */
 	if (pose->active_group <= 0) {
 		/* create a new menu, and start populating it with group names */
-		pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
-		layout = uiPupMenuLayout(pup);
+		pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
+		layout = UI_popup_menu_layout(pup);
 		
 		/* special entry - allow to create new group, then use that 
 		 *	(not to be used for removing though)
@@ -160,7 +160,7 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 			uiItemIntO(layout, grp->name, ICON_NONE, op->idname, "type", i);
 			
 		/* finish building the menu, and process it (should result in calling self again) */
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 		
 		return OPERATOR_INTERFACE;
 	}

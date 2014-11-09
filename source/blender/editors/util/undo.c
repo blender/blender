@@ -536,8 +536,8 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 		EnumPropertyItem *item = rna_undo_itemf(C, undosys, &totitem);
 		
 		if (totitem > 0) {
-			uiPopupMenu *pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
-			uiLayout *layout = uiPupMenuLayout(pup);
+			uiPopupMenu *pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
+			uiLayout *layout = UI_popup_menu_layout(pup);
 			uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
 			uiLayout *column = NULL;
 			const int col_size = 20 + totitem / 12;
@@ -558,7 +558,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 			
 			MEM_freeN(item);
 			
-			uiPupMenuEnd(C, pup);
+			UI_popup_menu_end(C, pup);
 		}
 		
 	}

@@ -404,8 +404,8 @@ static int poselib_add_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
@@ -420,7 +420,7 @@ static int poselib_add_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 		uiItemMenuF(layout, IFACE_("Replace Existing..."), 0, poselib_add_menu_invoke__replacemenu, NULL);
 	}
 	
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_INTERFACE;

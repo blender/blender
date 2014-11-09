@@ -399,7 +399,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		if (sfile) {
 			op = sfile->op;
 		}
-		else if ((op = uiContextActiveOperator(C))) {
+		else if ((op = UI_context_active_operator_get(C))) {
 			/* do nothign */
 		}
 		else {

@@ -576,9 +576,9 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 		else
 			BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
 
-		but = uiDefIconTextBut(block, BUT, 0, user->icon, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
+		but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, user->icon, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
 		                       NULL, 0.0, 0.0, 0.0, 0.0, "");
-		uiButSetNFunc(but, template_texture_select, MEM_dupallocN(user), NULL);
+		UI_but_funcN_set(but, template_texture_select, MEM_dupallocN(user), NULL);
 
 		last_category = user->category;
 	}
@@ -620,9 +620,9 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	}
 
 	/* some cosmetic tweaks */
-	uiButSetMenuFromPulldown(but);
+	UI_but_type_set_menu_from_pulldown(but);
 
-	but->flag &= ~UI_ICON_SUBMENU;
+	but->flag &= ~UI_BUT_ICON_SUBMENU;
 }
 
 /************************* Texture Show **************************/
@@ -675,9 +675,9 @@ void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, Prope
 		uiBlock *block = uiLayoutGetBlock(layout);
 		uiBut *but;
 		
-		but = uiDefIconBut(block, BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+		but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, "Show texture in texture tab");
-		uiButSetFunc(but, template_texture_show, user->ptr.data, user->prop);
+		UI_but_func_set(but, template_texture_show, user->ptr.data, user->prop);
 	}
 }
 

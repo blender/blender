@@ -382,7 +382,7 @@ static void node_draw_frame_prepare(const bContext *UNUSED(C), bNodeTree *ntree,
 static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float aspect)
 {
 	/* XXX font id is crap design */
-	const int fontid = UI_GetStyle()->widgetlabel.uifont_id;
+	const int fontid = UI_style_get()->widgetlabel.uifont_id;
 	NodeFrame *data = (NodeFrame *)node->storage;
 	rctf *rct = &node->totr;
 	int color_id = node_get_colorid(node);
@@ -424,7 +424,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 	
 	/* skip if out of view */
 	if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == false) {
-		uiEndBlock(C, node->block);
+		UI_block_end(C, node->block);
 		node->block = NULL;
 		return;
 	}
@@ -441,8 +441,8 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 	else
 		UI_ThemeColor4(TH_NODE_FRAME);
 	glEnable(GL_BLEND);
-	uiSetRoundBox(UI_CNR_ALL);
-	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+	UI_draw_roundbox_corner_set(UI_CNR_ALL);
+	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
@@ -454,8 +454,8 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 			UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -40);
 		else
 			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
-		uiSetRoundBox(UI_CNR_ALL);
-		uiDrawBox(GL_LINE_LOOP,
+		UI_draw_roundbox_corner_set(UI_CNR_ALL);
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP,
 		          rct->xmin, rct->ymin,
 		          rct->xmax, rct->ymax, BASIS_RAD);
 		
@@ -468,8 +468,8 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 	
 	UI_ThemeClearColor(color_id);
 		
-	uiEndBlock(C, node->block);
-	uiDrawBlock(C, node->block);
+	UI_block_end(C, node->block);
+	UI_block_draw(C, node->block);
 	node->block = NULL;
 }
 
@@ -546,7 +546,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
 	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax)
 	{
-		uiEndBlock(C, node->block);
+		UI_block_end(C, node->block);
 		node->block = NULL;
 		return;
 	}
@@ -556,10 +556,10 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	 */
 #if 0
 	/* body */
-	uiSetRoundBox(UI_CNR_ALL);
+	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	UI_ThemeColor4(TH_NODE);
 	glEnable(GL_BLEND);
-	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
+	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
@@ -571,7 +571,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 			UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
 		else
 			UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
-		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -581,7 +581,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	if (node->label[0] != '\0') {
 		/* draw title (node label) */
 		BLI_strncpy(showname, node->label, sizeof(showname));
-		uiDefBut(node->block, LABEL, 0, showname,
+		uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
 		         (int)(rct->xmin - NODE_DYS), (int)(rct->ymax),
 		         (short)512, (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, NULL);
@@ -594,8 +594,8 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 		node_socket_circle_draw(C, ntree, node, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
 	}
 
-	uiEndBlock(C, node->block);
-	uiDrawBlock(C, node->block);
+	UI_block_end(C, node->block);
+	UI_block_draw(C, node->block);
 	node->block = NULL;
 }
 
@@ -2899,9 +2899,9 @@ static void node_file_output_socket_draw(bContext *C, uiLayout *layout, PointerR
 		RNA_property_enum_name((bContext *)C, &imfptr, imtype_prop,
 		                       RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
 		block = uiLayoutGetBlock(row);
-		uiBlockSetEmboss(block, UI_EMBOSSP);
+		UI_block_emboss_set(block, UI_EMBOSS_PULLDOWN);
 		uiItemL(row, imtype_name, ICON_NONE);
-		uiBlockSetEmboss(block, UI_EMBOSSN);
+		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 	}
 }
 

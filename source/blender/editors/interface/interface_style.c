@@ -145,13 +145,13 @@ static uiFont *uifont_to_blfont(int id)
 /* *************** draw ************************ */
 
 
-void uiStyleFontDrawExt(uiFontStyle *fs, const rcti *rect, const char *str,
+void UI_fontstyle_draw_ex(uiFontStyle *fs, const rcti *rect, const char *str,
                         size_t len, float *r_xofs, float *r_yofs)
 {
 	float height;
 	int xofs = 0, yofs;
 	
-	uiStyleFontSet(fs);
+	UI_fontstyle_set(fs);
 
 	height = BLF_ascender(fs->uifont_id);
 	yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
@@ -192,22 +192,22 @@ void uiStyleFontDrawExt(uiFontStyle *fs, const rcti *rect, const char *str,
 	*r_yofs = yofs;
 }
 
-void uiStyleFontDraw(uiFontStyle *fs, const rcti *rect, const char *str)
+void UI_fontstyle_draw(uiFontStyle *fs, const rcti *rect, const char *str)
 {
 	float xofs, yofs;
-	uiStyleFontDrawExt(fs, rect, str,
+	UI_fontstyle_draw_ex(fs, rect, str,
 	                   BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs);
 }
 
 /* drawn same as above, but at 90 degree angle */
-void uiStyleFontDrawRotated(uiFontStyle *fs, const rcti *rect, const char *str)
+void UI_fontstyle_draw_rotated(uiFontStyle *fs, const rcti *rect, const char *str)
 {
 	float height;
 	int xofs, yofs;
 	float angle;
 	rcti txtrect;
 
-	uiStyleFontSet(fs);
+	UI_fontstyle_set(fs);
 
 	height = BLF_ascender(fs->uifont_id);
 	/* becomes x-offset when rotated */
@@ -255,7 +255,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, const rcti *rect, const char *str)
 
 /* ************** helpers ************************ */
 /* XXX: read a style configure */
-uiStyle *UI_GetStyle(void)
+uiStyle *UI_style_get(void)
 {
 	uiStyle *style = NULL;
 	/* offset is two struct uiStyle pointers */
@@ -264,9 +264,9 @@ uiStyle *UI_GetStyle(void)
 }
 
 /* for drawing, scaled with DPI setting */
-uiStyle *UI_GetStyleDraw(void)
+uiStyle *UI_style_get_dpi(void)
 {
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	static uiStyle _style;
 	
 	_style = *style;
@@ -290,16 +290,16 @@ uiStyle *UI_GetStyleDraw(void)
 }
 
 /* temporarily, does widget font */
-int UI_GetStringWidth(const char *str)
+int UI_fontstyle_string_width(const char *str)
 {
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	uiFontStyle *fstyle = &style->widget;
 	int width;
 	
 	if (fstyle->kerning == 1) /* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
-	uiStyleFontSet(fstyle);
+	UI_fontstyle_set(fstyle);
 	width = BLF_width(fstyle->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 	
 	if (fstyle->kerning == 1)
@@ -309,14 +309,14 @@ int UI_GetStringWidth(const char *str)
 }
 
 /* temporarily, does widget font */
-void UI_DrawString(float x, float y, const char *str)
+void UI_draw_string(float x, float y, const char *str)
 {
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	
 	if (style->widget.kerning == 1)
 		BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
 
-	uiStyleFontSet(&style->widget);
+	UI_fontstyle_set(&style->widget);
 	BLF_position(style->widget.uifont_id, x, y, 0.0f);
 	BLF_draw(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 
@@ -451,7 +451,7 @@ void uiStyleInit(void)
 	BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72);
 }
 
-void uiStyleFontSet(uiFontStyle *fs)
+void UI_fontstyle_set(uiFontStyle *fs)
 {
 	uiFont *font = uifont_to_blfont(fs->uifont_id);
 	

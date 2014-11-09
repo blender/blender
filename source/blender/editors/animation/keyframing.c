@@ -1402,10 +1402,10 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 		uiLayout *layout;
 		
 		/* call the menu, which will call this operator again, hence the canceled */
-		pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
-		layout = uiPupMenuLayout(pup);
+		pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
+		layout = UI_popup_menu_layout(pup);
 		uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 		
 		return OPERATOR_INTERFACE;
 	}
@@ -1704,7 +1704,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* try to insert keyframe using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	if ((ptr.id.data && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
 		path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -1751,7 +1751,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		uiContextAnimUpdate(C);
+		UI_context_update_anim_flag(C);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
@@ -1792,7 +1792,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 	const bool all = RNA_boolean_get(op->ptr, "all");
 	
 	/* try to insert keyframe using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
 		path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -1822,7 +1822,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		uiContextAnimUpdate(C);
+		UI_context_update_anim_flag(C);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
@@ -1862,7 +1862,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 	const bool all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to insert keyframe using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
 		path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -1892,7 +1892,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 
 	if (success) {
 		/* send updates */
-		uiContextAnimUpdate(C);
+		UI_context_update_anim_flag(C);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);

@@ -1073,12 +1073,12 @@ int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 		return retval;
 	}
 	else {
-		pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
-		layout = uiPupMenuLayout(pup);
+		pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
+		layout = UI_popup_menu_layout(pup);
 		/* set this so the default execution context is the same as submenus */
 		uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
 		uiItemsFullEnumO(layout, op->type->idname, RNA_property_identifier(prop), op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 		return OPERATOR_INTERFACE;
 	}
 
@@ -1096,19 +1096,19 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBut *but;
 	wmOperator *op = (wmOperator *)arg_op;
 
-	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
+	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
 
 #if 0 /* ok, this isn't so easy... */
-	uiDefBut(block, LABEL, 0, RNA_struct_ui_name(op->type->srna), 10, 10, uiSearchBoxWidth(), UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, UI_BTYPE_LABEL, 0, RNA_struct_ui_name(op->type->srna), 10, 10, UI_searchbox_size_x(), UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 #endif
 	but = uiDefSearchButO_ptr(block, op->type, op->ptr->data, search, 0, ICON_VIEWZOOM, sizeof(search),
-	                          10, 10, uiSearchBoxWidth(), UI_UNIT_Y, 0, 0, "");
+	                          10, 10, UI_searchbox_size_x(), UI_UNIT_Y, 0, 0, "");
 
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - UI_searchbox_size_y(), UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
 
-	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
+	UI_block_bounds_set_popup(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 
 	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;
@@ -1123,7 +1123,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 
 int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	uiPupBlock(C, wm_enum_search_menu, op);
+	UI_popup_block_invoke(C, wm_enum_search_menu, op);
 	return OPERATOR_INTERFACE;
 }
 
@@ -1141,10 +1141,10 @@ int WM_operator_confirm_message_ex(bContext *C, wmOperator *op,
 	else
 		properties = NULL;
 
-	pup = uiPupMenuBegin(C, title, icon);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, title, icon);
+	layout = UI_popup_menu_layout(pup);
 	uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0);
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	
 	return OPERATOR_INTERFACE;
 }
@@ -1428,19 +1428,19 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	wmOperator *op = arg_op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	int width = 15 * UI_UNIT_X;
 
-	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
+	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+	UI_block_flag_disable(block, UI_BLOCK_LOOP);
+	UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
 
 	/* if register is not enabled, the operator gets freed on OPERATOR_FINISHED
 	 * ui_apply_but_funcs_after calls ED_undo_operator_repeate_cb and crashes */
 	assert(op->type->flag & OPTYPE_REGISTER);
 
-	uiBlockSetHandleFunc(block, wm_block_redo_cb, arg_op);
-	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, 0, style);
+	UI_block_func_handle_set(block, wm_block_redo_cb, arg_op);
+	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, 0, style);
 
 	if (op == WM_operator_last_redo(C))
 		if (!WM_operator_check_ui_enabled(C, op->type->name))
@@ -1455,7 +1455,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 	}
 	
-	uiPopupBoundsBlock(block, 4, 0, 0);
+	UI_block_bounds_set_popup(block, 4, 0, 0);
 
 	return block;
 }
@@ -1482,7 +1482,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	/* in this case, wm_operator_ui_popup_cancel wont run */
 	MEM_freeN(data);
 
-	uiPupBlockClose(C, block);
+	UI_popup_block_close(C, block);
 }
 
 static void dialog_check_cb(bContext *C, void *op_ptr, void *UNUSED(arg))
@@ -1506,23 +1506,23 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	wmOperator *op = data->op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 
-	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+	UI_block_flag_disable(block, UI_BLOCK_LOOP);
 
 	/* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogues have many items
 	 * where quitting by accident is very annoying */
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
+	UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN);
 
-	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, 0, style);
+	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, 0, style);
 	
-	uiBlockSetFunc(block, dialog_check_cb, op, NULL);
+	UI_block_func_set(block, dialog_check_cb, op, NULL);
 
 	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 	
 	/* clear so the OK button is left alone */
-	uiBlockSetFunc(block, NULL, NULL, NULL);
+	UI_block_func_set(block, NULL, NULL, NULL);
 
 	/* new column so as not to interfere with custom layouts [#26436] */
 	{
@@ -1533,12 +1533,12 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 		col = uiLayoutColumn(layout, false);
 		col_block = uiLayoutGetBlock(col);
 		/* Create OK button, the callback of which will execute op */
-		btn = uiDefBut(col_block, BUT, 0, IFACE_("OK"), 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(btn, dialog_exec_cb, data, col_block);
+		btn = uiDefBut(col_block, UI_BTYPE_BUT, 0, IFACE_("OK"), 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+		UI_but_func_set(btn, dialog_exec_cb, data, col_block);
 	}
 
 	/* center around the mouse */
-	uiPopupBoundsBlock(block, 4, data->width / -2, data->height / 2);
+	UI_block_bounds_set_popup(block, 4, data->width / -2, data->height / 2);
 
 	return block;
 }
@@ -1549,18 +1549,18 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	wmOperator *op = data->op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 
-	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
+	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+	UI_block_flag_disable(block, UI_BLOCK_LOOP);
+	UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
 
-	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, 0, style);
+	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, 0, style);
 
 	/* since ui is defined the auto-layout args are not used */
 	uiLayoutOperatorButs(C, layout, op, NULL, 'V', 0);
 
-	uiPopupBoundsBlock(block, 4, 0, 0);
+	UI_block_bounds_set_popup(block, 4, 0, 0);
 
 	return block;
 }
@@ -1601,7 +1601,7 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 	data->width = width;
 	data->height = height;
 	data->free_op = true; /* if this runs and gets registered we may want not to free it */
-	uiPupBlockEx(C, wm_operator_ui_create, NULL, wm_operator_ui_popup_cancel, data);
+	UI_popup_block_ex(C, wm_operator_ui_create, NULL, wm_operator_ui_popup_cancel, data);
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1631,7 +1631,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op,
 	if (!do_redo || !(U.uiflag & USER_GLOBALUNDO))
 		return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, UI_UNIT_Y);
 
-	uiPupBlockEx(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op);
+	UI_popup_block_ex(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op);
 
 	if (do_call)
 		wm_block_redo_cb(C, op, 0);
@@ -1671,7 +1671,7 @@ int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int h
 	data->free_op = true; /* if this runs and gets registered we may want not to free it */
 
 	/* op is not executed until popup OK but is clicked */
-	uiPupBlockEx(C, wm_block_dialog_create, wm_operator_ui_popup_ok, wm_operator_ui_popup_cancel, data);
+	UI_popup_block_ex(C, wm_block_dialog_create, wm_operator_ui_popup_ok, wm_operator_ui_popup_cancel, data);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1689,7 +1689,7 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	uiPupBlock(C, wm_block_create_redo, op);
+	UI_popup_block_invoke(C, wm_block_create_redo, op);
 
 	return OPERATOR_CANCELLED;
 }
@@ -1754,7 +1754,7 @@ static void WM_OT_operator_defaults(wmOperatorType *ot)
 
 static void wm_block_splash_close(bContext *C, void *arg_block, void *UNUSED(arg))
 {
-	uiPupBlockClose(C, arg_block);
+	UI_popup_block_close(C, arg_block);
 }
 
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused);
@@ -1766,8 +1766,8 @@ static void wm_block_splash_refreshmenu(bContext *UNUSED(C), void *UNUSED(arg_bl
 	/* ugh, causes crashes in other buttons, disabling for now until 
 	 * a better fix */
 #if 0
-	uiPupBlockClose(C, arg_block);
-	uiPupBlock(C, wm_block_create_splash, NULL);
+	UI_popup_block_close(C, arg_block);
+	UI_popup_block_invoke(C, wm_block_create_splash, NULL);
 #endif
 }
 
@@ -1799,7 +1799,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlock *block;
 	uiBut *but;
 	uiLayout *layout, *split, *col;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	const struct RecentFile *recent;
 	int i;
 	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", true);
@@ -1845,17 +1845,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	}
 #endif
 
-	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
 
 	/* note on UI_BLOCK_NO_WIN_CLIP, the window size is not always synchronized
 	 * with the OS when the splash shows, window clipping in this case gives
 	 * ugly results and clipping the splash isn't useful anyway, just disable it [#32938] */
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
+	UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
 
 	/* XXX splash scales with pixelsize, should become widget-units */
-	but = uiDefBut(block, BUT_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.pixelsize * 501, U.pixelsize * 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
-	uiButSetFunc(but, wm_block_splash_close, block, NULL);
-	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
+	but = uiDefBut(block, UI_BTYPE_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.pixelsize * 501, U.pixelsize * 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
+	UI_but_func_set(but, wm_block_splash_close, block, NULL);
+	UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 *  avoids recreating splash for version updates */
@@ -1873,32 +1873,32 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 		int w = 240;
 
 		/* hack to have text draw 'text_sel' */
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		but = uiDefBut(block, LABEL, 0, version_suffix, x * U.pixelsize, y * U.pixelsize, w * U.pixelsize, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		UI_block_emboss_set(block, UI_EMBOSS_NONE);
+		but = uiDefBut(block, UI_BTYPE_LABEL, 0, version_suffix, x * U.pixelsize, y * U.pixelsize, w * U.pixelsize, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 		/* XXX, set internal flag - UI_SELECT */
-		uiButSetFlag(but, 1);
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		UI_but_flag_enable(but, 1);
+		UI_block_emboss_set(block, UI_EMBOSS);
 	}
 
 #ifdef WITH_BUILDINFO
 	if (build_commit_timestamp != 0) {
-		uiDefBut(block, LABEL, 0, date_buf, U.pixelsize * 494 - date_width, U.pixelsize * 270, date_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		uiDefBut(block, UI_BTYPE_LABEL, 0, date_buf, U.pixelsize * 494 - date_width, U.pixelsize * 270, date_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 		label_delta = 12;
 	}
-	uiDefBut(block, LABEL, 0, hash_buf, U.pixelsize * 494 - hash_width, U.pixelsize * (270 - label_delta), hash_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, UI_BTYPE_LABEL, 0, hash_buf, U.pixelsize * 494 - hash_width, U.pixelsize * (270 - label_delta), hash_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 
 	if (!STREQ(build_branch, "master")) {
 		char branch_buf[128] = "\0";
 		int branch_width;
 		BLI_snprintf(branch_buf, sizeof(branch_buf), "Branch: %s", build_branch);
 		branch_width = (int)BLF_width(style->widgetlabel.uifont_id, branch_buf, sizeof(branch_buf)) + U.widget_unit;
-		uiDefBut(block, LABEL, 0, branch_buf, U.pixelsize * 494 - branch_width, U.pixelsize * (258 - label_delta), branch_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		uiDefBut(block, UI_BTYPE_LABEL, 0, branch_buf, U.pixelsize * 494 - branch_width, U.pixelsize * (258 - label_delta), branch_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 	}
 #endif  /* WITH_BUILDINFO */
 	
-	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, U.pixelsize * 480, U.pixelsize * 110, 0, style);
+	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, U.pixelsize * 480, U.pixelsize * 110, 0, style);
 	
-	uiBlockSetEmboss(block, UI_EMBOSS);
+	UI_block_emboss_set(block, UI_EMBOSS);
 	/* show the splash menu (containing interaction presets), using python */
 	if (mt) {
 		Menu menu = {NULL};
@@ -1910,7 +1910,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 //		uiItemM(layout, C, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NONE);
 	}
 	
-	uiBlockSetEmboss(block, UI_EMBOSSP);
+	UI_block_emboss_set(block, UI_EMBOSS_PULLDOWN);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
 	split = uiLayoutSplit(layout, 0.0f, false);
@@ -1959,14 +1959,14 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemO(col, NULL, ICON_RECOVER_LAST, "WM_OT_recover_last_session");
 	uiItemL(col, "", ICON_NONE);
 	
-	uiCenteredBoundsBlock(block, 0);
+	UI_block_bounds_set_centered(block, 0);
 	
 	return block;
 }
 
 static int wm_splash_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-	uiPupBlock(C, wm_block_create_splash, NULL);
+	UI_popup_block_invoke(C, wm_block_create_splash, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1991,16 +1991,16 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	uiBlock *block;
 	uiBut *but;
 	
-	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
+	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
 	
-	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, uiSearchBoxWidth(), UI_UNIT_Y, 0, 0, "");
-	uiOperatorSearch_But(but);
+	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, UI_searchbox_size_x(), UI_UNIT_Y, 0, 0, "");
+	UI_but_func_operator_search(but);
 	
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - UI_searchbox_size_y(), UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
 	
-	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
+	UI_block_bounds_set_popup(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	
 	wm_event_init_from_window(win, &event);
 	event.type = EVT_BUT_OPEN;
@@ -2019,7 +2019,7 @@ static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	uiPupBlock(C, wm_block_search_menu, op);
+	UI_popup_block_invoke(C, wm_block_search_menu, op);
 	
 	return OPERATOR_INTERFACE;
 }
@@ -2060,7 +2060,7 @@ static int wm_call_menu_exec(bContext *C, wmOperator *op)
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
 
-	return uiPupMenuInvoke(C, idname, op->reports);
+	return UI_popup_menu_invoke(C, idname, op->reports);
 }
 
 static void WM_OT_call_menu(wmOperatorType *ot)
@@ -2082,7 +2082,7 @@ static int wm_call_pie_menu_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
 
-	return uiPieMenuInvoke(C, idname, event);
+	return UI_pie_menu_invoke(C, idname, event);
 }
 
 static int wm_call_pie_menu_exec(bContext *C, wmOperator *op)
@@ -2090,7 +2090,7 @@ static int wm_call_pie_menu_exec(bContext *C, wmOperator *op)
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
 
-	return uiPieMenuInvoke(C, idname, CTX_wm_window(C)->eventstate);
+	return UI_pie_menu_invoke(C, idname, CTX_wm_window(C)->eventstate);
 }
 
 static void WM_OT_call_menu_pie(wmOperatorType *ot)
@@ -3856,7 +3856,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 {
 	RadialControl *rc = customdata;
 	ARegion *ar = CTX_wm_region(C);
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	const uiFontStyle *fstyle = &style->widget;
 	const int fontid = fstyle->uifont_id;
 	short fstyle_points = fstyle->points;

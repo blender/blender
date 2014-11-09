@@ -408,7 +408,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* hook into UI */
-	uiIDContextProperty(C, &ptr, &prop);
+	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
 	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
@@ -457,7 +457,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* hook into UI */
-	uiIDContextProperty(C, &ptr, &prop);
+	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
 	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
@@ -520,7 +520,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* hook into UI */
-	uiIDContextProperty(C, &ptr, &prop);
+	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
 	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA

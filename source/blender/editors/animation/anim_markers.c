@@ -399,7 +399,7 @@ static void draw_marker(
 		}
 #endif
 
-		UI_DrawString(x, y, marker->name);
+		UI_draw_string(x, y, marker->name);
 	}
 }
 

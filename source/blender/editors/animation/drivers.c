@@ -437,7 +437,7 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 	const bool all = RNA_boolean_get(op->ptr, "all");
 	
 	/* try to create driver using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	if (all)
 		index = -1;
@@ -455,7 +455,7 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		uiContextAnimUpdate(C);
+		UI_context_update_anim_flag(C);
 		
 		WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL); // XXX
 	}
@@ -492,7 +492,7 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
 	const bool all = RNA_boolean_get(op->ptr, "all");
 	
 	/* try to find driver using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	if (all)
 		index = -1;
@@ -506,7 +506,7 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		uiContextAnimUpdate(C);
+		UI_context_update_anim_flag(C);
 		
 		WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
 	}
@@ -542,7 +542,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
 	int index;
 	
 	/* try to create driver using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
@@ -551,7 +551,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
 			/* only copy the driver for the button that this was involved for */
 			success = ANIM_copy_driver(op->reports, ptr.id.data, path, index, 0);
 			
-			uiContextAnimUpdate(C);
+			UI_context_update_anim_flag(C);
 			
 			MEM_freeN(path);
 		}
@@ -586,7 +586,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
 	int index;
 	
 	/* try to create driver using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
@@ -595,7 +595,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
 			/* only copy the driver for the button that this was involved for */
 			success = ANIM_paste_driver(op->reports, ptr.id.data, path, index, 0);
 			
-			uiContextAnimUpdate(C);
+			UI_context_update_anim_flag(C);
 			
 			MEM_freeN(path);
 		}

@@ -142,7 +142,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 	uiPopupMenu *pup;
 
 	if (text) {
-		pup = uiPupMenuBegin(C, IFACE_("Text"), ICON_NONE);
+		pup = UI_popup_menu_begin(C, IFACE_("Text"), ICON_NONE);
 		if (txt_has_sel(text)) {
 			uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_cut");
 			uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_copy");
@@ -153,13 +153,13 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_save");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_save_as");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_run_script");
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 	}
 	else {
-		pup = uiPupMenuBegin(C, IFACE_("File"), ICON_NONE);
+		pup = UI_popup_menu_begin(C, IFACE_("File"), ICON_NONE);
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_new");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_open");
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 	}
 }
 
@@ -168,11 +168,11 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	pup = uiPupMenuBegin(C, IFACE_("Edit"), ICON_NONE);
+	pup = UI_popup_menu_begin(C, IFACE_("Edit"), ICON_NONE);
 	uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_cut");
 	uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_copy");
 	uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_paste");
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 }
 
 {
@@ -181,19 +181,19 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 	uiPopupMenu *pup;
 
 	if (text) {
-		pup = uiPupMenuBegin(C, IFACE_("Text"), ICON_NONE);
+		pup = UI_popup_menu_begin(C, IFACE_("Text"), ICON_NONE);
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_new");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_open");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_save");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_save_as");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_run_script");
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 	}
 	else {
-		pup = uiPupMenuBegin(C, IFACE_("File"), ICON_NONE);
+		pup = UI_popup_menu_begin(C, IFACE_("File"), ICON_NONE);
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_new");
 		uiItemO(layout, NULL, ICON_NONE, "TEXT_OT_open");
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 	}
 }
 
@@ -202,7 +202,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	pup = uiPupMenuBegin(C, IFACE_("Text"), ICON_NONE);
+	pup = UI_popup_menu_begin(C, IFACE_("Text"), ICON_NONE);
 	uiItemEnumO(layout, "TEXT_OT_move", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Top of File"),
 	            0, "type", FILE_TOP);
 	uiItemEnumO(layout, "TEXT_OT_move", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Bottom of File"),
@@ -210,7 +210,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 	uiItemEnumO(layout, "TEXT_OT_move", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Page Up"), 0, "type", PREV_PAGE);
 	uiItemEnumO(layout, "TEXT_OT_move", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Page Down"),
 	            0, "type", NEXT_PAGE);
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 }
 #endif
 

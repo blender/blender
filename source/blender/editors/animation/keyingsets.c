@@ -327,7 +327,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* try to add to keyingset using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
@@ -413,7 +413,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* try to add to keyingset using property retrieved from UI */
-	uiContextActiveProperty(C, &ptr, &prop, &index);
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
 		path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -472,10 +472,10 @@ static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEve
 	uiLayout *layout;
 	
 	/* call the menu, which will call this operator again, hence the canceled */
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
 	uiItemsEnumO(layout, "ANIM_OT_keying_set_active_set", "type");
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	
 	return OPERATOR_INTERFACE;
 }

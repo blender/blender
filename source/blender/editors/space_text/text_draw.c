@@ -891,15 +891,15 @@ static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 	UI_ThemeColor(TH_BACK);
 	glRecti(back->xmin, back->ymin, back->xmax, back->ymax);
 
-	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT) ? UI_SCROLL_PRESSED : 0);
+	UI_draw_widget_scroll(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT) ? UI_SCROLL_PRESSED : 0);
 
-	uiSetRoundBox(UI_CNR_ALL);
+	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	rad = 0.4f * min_ii(BLI_rcti_size_x(&st->txtscroll), BLI_rcti_size_y(&st->txtscroll));
 	UI_GetThemeColor3ubv(TH_HILITE, col);
 	col[3] = 48;
 	glColor4ubv(col);
 	glEnable(GL_BLEND);
-	uiRoundBox(st->txtscroll.xmin + 1, st->txtscroll.ymin, st->txtscroll.xmax - 1, st->txtscroll.ymax, rad);
+	UI_draw_roundbox(st->txtscroll.xmin + 1, st->txtscroll.ymin, st->txtscroll.xmax - 1, st->txtscroll.ymax, rad);
 	glDisable(GL_BLEND);
 }
 
@@ -1033,7 +1033,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 		x = MAX2(0, ar->winx - boxw);
 
 	/* not needed but stands out nicer */
-	uiDrawBoxShadow(220, x, y - boxh, x + boxw, y);
+	UI_draw_box_shadow(220, x, y - boxh, x + boxw, y);
 
 	UI_ThemeColor(TH_SHADE1);
 	glRecti(x - 1, y + 1, x + boxw + 1, y - boxh - 1);

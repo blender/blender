@@ -171,10 +171,10 @@ static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), const 
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup = uiPupMenuBegin(C, IFACE_("Orientation"), ICON_NONE);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, IFACE_("Orientation"), ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
 	uiItemsEnumO(layout, "TRANSFORM_OT_select_orientation", "orientation");
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 
 	return OPERATOR_INTERFACE;
 }

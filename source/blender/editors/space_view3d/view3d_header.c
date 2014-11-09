@@ -262,7 +262,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block = uiLayoutGetBlock(layout);
 
-	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
+	UI_block_func_handle_set(block, do_view3d_header_buttons, NULL);
 
 	if (obedit && (obedit->type == OB_MESH)) {
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -270,13 +270,13 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 
 		row = uiLayoutRow(layout, true);
 		block = uiLayoutGetBlock(row);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL,
+		uiDefIconButBitS(block, UI_BTYPE_TOGGLE, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL,
 		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
 		                 TIP_("Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL,
+		uiDefIconButBitS(block, UI_BTYPE_TOGGLE, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL,
 		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
 		                 TIP_("Edge select - Shift-Click for multiple modes, Ctrl-Click expands/contracts selection"));
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL,
+		uiDefIconButBitS(block, UI_BTYPE_TOGGLE, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL,
 		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
 		                 TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
 	}
@@ -302,10 +302,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
 
 	block = uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
+	UI_block_func_handle_set(block, do_view3d_header_buttons, NULL);
 
 	/* other buttons: */
-	uiBlockSetEmboss(block, UI_EMBOSS);
+	UI_block_emboss_set(block, UI_EMBOSS);
 	
 	/* mode */
 	if (ob) {

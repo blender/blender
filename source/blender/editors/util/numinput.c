@@ -103,7 +103,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 
 		if (n->val_flag[i] & NUM_EDITED) {
 			/* Get the best precision, allows us to draw '10.0001' as '10' instead! */
-			prec = uiFloatPrecisionCalc(prec, (double)n->val[i]);
+			prec = UI_calc_float_precision(prec, (double)n->val[i]);
 			if (i == n->idx) {
 				const char *heading_exp = "", *trailing_exp = "";
 				char before_cursor[NUM_STR_REP_LEN];

@@ -168,7 +168,7 @@ static void open_init(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 
 	op->customdata = pprop = MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
-	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
+	UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void open_cancel(bContext *UNUSED(C), wmOperator *op)

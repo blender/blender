@@ -120,8 +120,8 @@ static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-	uiSetRoundBox((expanded) ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-	uiDrawBox(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
+	UI_draw_roundbox_corner_set((expanded) ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
+	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
 }
 
 
@@ -420,8 +420,8 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 	 *	- top and bottom 
 	 *	- special hack: make the top a bit higher, since we are first... 
 	 */
-	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
-	uiDrawBox(GL_POLYGON, 0,  yminc - 2, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
+	UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, 0,  yminc - 2, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
 }
 
 /* name for summary entries */
@@ -800,8 +800,8 @@ static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc
 	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-	uiSetRoundBox(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-	uiDrawBox(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
+	UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
+	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
 }
 
 /* name for group entries */
@@ -3010,12 +3010,12 @@ static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float y
 	/* only on top left corner, to show that this channel sits on top of the preceding ones 
 	 * while still linking into the action line strip to the right
 	 */
-	uiSetRoundBox(UI_CNR_TOP_LEFT);
+	UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT);
 	
 	/* draw slightly shifted up vertically to look like it has more separation from other channels,
 	 * but we then need to slightly shorten it so that it doesn't look like it overlaps
 	 */
-	uiDrawBox(GL_POLYGON, offset,  yminc + NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc + NLACHANNEL_SKIP - 1, 8);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc + NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc + NLACHANNEL_SKIP - 1, 8);
 }
 
 /* name for nla action entries */
@@ -3449,7 +3449,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		acf->name(ale, name);
 		
 		offset += 3;
-		UI_DrawString(offset, ytext, name);
+		UI_draw_string(offset, ytext, name);
 		
 		/* draw red underline if channel is disabled */
 		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) {
@@ -3788,9 +3788,9 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 	
 	/* type of button */
 	if (negflag)
-		butType = ICONTOGN;
+		butType = UI_BTYPE_ICON_TOGGLE_N;
 	else
-		butType = ICONTOG;
+		butType = UI_BTYPE_ICON_TOGGLE;
 	
 	/* draw button for setting */
 	if (ptr && flag) {
@@ -3819,18 +3819,18 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 				case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
 				case ACHANNEL_SETTING_MUTE: /* General - muting flags */
 				case ACHANNEL_SETTING_PINNED: /* NLA Actions - 'map/nomap' */
-					uiButSetNFunc(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), SET_INT_IN_POINTER(setting));
+					UI_but_funcN_set(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), SET_INT_IN_POINTER(setting));
 					break;
 					
 				/* settings needing special attention */
 				case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
-					uiButSetFunc(but, achannel_nlatrack_solo_widget_cb, ale->adt, ale->data);
+					UI_but_func_set(but, achannel_nlatrack_solo_widget_cb, ale->adt, ale->data);
 					break;
 					
 				/* no flushing */
 				case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush, otherwise all would open/close at once */
 				default:
-					uiButSetFunc(but, achannel_setting_widget_cb, NULL, NULL);
+					UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
 					break;
 			}
 		}
@@ -3861,7 +3861,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 	ymid = y - 0.5f * ICON_WIDTH;
 	
 	/* no button backdrop behind icons */
-	uiBlockSetEmboss(block, UI_EMBOSSN);
+	UI_block_emboss_set(block, UI_EMBOSS_NONE);
 	
 	/* step 1) draw expand widget ....................................... */
 	if (acf->has_setting(ac, ale, ACHANNEL_SETTING_EXPAND)) {
@@ -3908,14 +3908,14 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			if (acf->name_prop(ale, &ptr, &prop)) {
 				uiBut *but;
 				
-				uiBlockSetEmboss(block, UI_EMBOSS);
+				UI_block_emboss_set(block, UI_EMBOSS);
 				
-				but = uiDefButR(block, TEX, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
+				but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
 				                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
-				uiButSetFunc(but, achannel_setting_rename_done_cb, ac->ads, NULL);
-				uiButActiveOnly(C, ac->ar, block, but);
+				UI_but_func_set(but, achannel_setting_rename_done_cb, ac->ads, NULL);
+				UI_but_active_only(C, ac->ar, block, but);
 				
-				uiBlockSetEmboss(block, UI_EMBOSSN);
+				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 			}
 		}
 	}
@@ -3972,16 +3972,16 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 				uiBut *but;
 				PointerRNA *opptr_b;
 				
-				uiBlockSetEmboss(block, UI_EMBOSS);
+				UI_block_emboss_set(block, UI_EMBOSS);
 				
 				offset += UI_UNIT_X;
-				but = uiDefIconButO(block, BUT, "NLA_OT_action_pushdown", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN, 
+				but = uiDefIconButO(block, UI_BTYPE_BUT, "NLA_OT_action_pushdown", WM_OP_INVOKE_DEFAULT, ICON_NLA_PUSHDOWN, 
 				                   (int)v2d->cur.xmax - offset, ymid, UI_UNIT_X, UI_UNIT_X, NULL);
 				
-				opptr_b = uiButGetOperatorPtrRNA(but);
+				opptr_b = UI_but_operator_ptr_get(but);
 				RNA_int_set(opptr_b, "channel_index", channel_index);
 				
-				uiBlockSetEmboss(block, UI_EMBOSSN);
+				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 			}
 		}
 		
@@ -3999,7 +3999,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			offset += SLIDER_WIDTH;
 			
 			/* need backdrop behind sliders... */
-			uiBlockSetEmboss(block, UI_EMBOSS);
+			UI_block_emboss_set(block, UI_EMBOSS);
 			
 			if (ale->id) { /* Slider using RNA Access -------------------- */
 				PointerRNA id_ptr, ptr;
@@ -4037,9 +4037,9 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 						
 						/* assign keyframing function according to slider type */
 						if (ale->type == ANIMTYPE_SHAPEKEY)
-							uiButSetFunc(but, achannel_setting_slider_shapekey_cb, ale->id, ale->data);
+							UI_but_func_set(but, achannel_setting_slider_shapekey_cb, ale->id, ale->data);
 						else
-							uiButSetFunc(but, achannel_setting_slider_cb, ale->id, ale->data);
+							UI_but_func_set(but, achannel_setting_slider_cb, ale->id, ale->data);
 					}
 					
 					/* free the path if necessary */

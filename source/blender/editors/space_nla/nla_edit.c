@@ -2174,8 +2174,8 @@ static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	uiLayout *layout;
 	int i;
 	
-	pup = uiPupMenuBegin(C, IFACE_("Add F-Modifier"), ICON_NONE);
-	layout = uiPupMenuLayout(pup);
+	pup = UI_popup_menu_begin(C, IFACE_("Add F-Modifier"), ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
 	
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
@@ -2192,7 +2192,7 @@ static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	}
 	uiItemS(layout);
 	
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 	
 	return OPERATOR_INTERFACE;
 }

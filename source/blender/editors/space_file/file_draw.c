@@ -116,7 +116,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	
 	/* Initialize UI block. */
 	BLI_snprintf(uiblockstr, sizeof(uiblockstr), "win %p", (void *)ar);
-	block = uiBeginBlock(C, ar, uiblockstr, UI_EMBOSS);
+	block = UI_block_begin(C, ar, uiblockstr, UI_EMBOSS);
 
 	/* exception to make space for collapsed region icon */
 	for (artmp = CTX_wm_area(C)->regionbase.first; artmp; artmp = artmp->next) {
@@ -128,10 +128,10 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	}
 	
 	/* Is there enough space for the execute / cancel buttons? */
-	loadbutton = UI_GetStringWidth(sfile->params->title) + btn_margin;
+	loadbutton = UI_fontstyle_string_width(sfile->params->title) + btn_margin;
 	if (loadbutton < btn_minw) {
 		loadbutton = MAX2(btn_minw, 
-		                  btn_margin + UI_GetStringWidth(params->title));
+		                  btn_margin + UI_fontstyle_string_width(params->title));
 	}
 	
 	if (available_w <= loadbutton + separator + input_minw || params->title[0] == 0) {
@@ -155,80 +155,80 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	if (available_w > 0) {
 		int overwrite_alert = file_draw_check_exists(sfile);
 		/* callbacks for operator check functions */
-		uiBlockSetFunc(block, file_draw_check_cb, NULL, NULL);
+		UI_block_func_set(block, file_draw_check_cb, NULL, NULL);
 
-		but = uiDefBut(block, TEX, -1, "",
+		but = uiDefBut(block, UI_BTYPE_TEXT, -1, "",
 		               min_x, line1_y, line1_w - chan_offs, btn_h,
 		               params->dir, 0.0, (float)FILE_MAX, 0, 0,
 		               TIP_("File path"));
-		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
-		uiButSetFlag(but, UI_BUT_NO_UTF8);
-		uiButClearFlag(but, UI_BUT_UNDO);
-		uiButSetNFunc(but, file_directory_enter_handle, NULL, but);
+		UI_but_func_complete_set(but, autocomplete_directory, NULL);
+		UI_but_flag_enable(but, UI_BUT_NO_UTF8);
+		UI_but_flag_disable(but, UI_BUT_UNDO);
+		UI_but_funcN_set(but, file_directory_enter_handle, NULL, but);
 
 		/* TODO, directory editing is non-functional while a library is loaded
 		 * until this is properly supported just disable it. */
 		if (sfile->files && filelist_lib(sfile->files))
-			uiButSetFlag(but, UI_BUT_DISABLED);
+			UI_but_flag_enable(but, UI_BUT_DISABLED);
 
 		if ((params->flag & FILE_DIRSEL_ONLY) == 0) {
-			but = uiDefBut(block, TEX, -1, "",
+			but = uiDefBut(block, UI_BTYPE_TEXT, -1, "",
 			               min_x, line2_y, line2_w - chan_offs, btn_h,
 			               params->file, 0.0, (float)FILE_MAXFILE, 0, 0,
 			               TIP_(overwrite_alert ? N_("File name, overwrite existing") : N_("File name")));
-			uiButSetCompleteFunc(but, autocomplete_file, NULL);
-			uiButSetFlag(but, UI_BUT_NO_UTF8);
-			uiButClearFlag(but, UI_BUT_UNDO);
+			UI_but_func_complete_set(but, autocomplete_file, NULL);
+			UI_but_flag_enable(but, UI_BUT_NO_UTF8);
+			UI_but_flag_disable(but, UI_BUT_UNDO);
 			/* silly workaround calling NFunc to ensure this does not get called
 			 * immediate ui_apply_but_func but only after button deactivates */
-			uiButSetNFunc(but, file_filename_enter_handle, NULL, but);
+			UI_but_funcN_set(but, file_filename_enter_handle, NULL, but);
 
 			/* check if this overrides a file and if the operator option is used */
 			if (overwrite_alert) {
-				uiButSetFlag(but, UI_BUT_REDALERT);
+				UI_but_flag_enable(but, UI_BUT_REDALERT);
 			}
 		}
 		
 		/* clear func */
-		uiBlockSetFunc(block, NULL, NULL, NULL);
+		UI_block_func_set(block, NULL, NULL, NULL);
 	}
 	
 	/* Filename number increment / decrement buttons. */
 	if (fnumbuttons && (params->flag & FILE_DIRSEL_ONLY) == 0) {
-		uiBlockBeginAlign(block);
-		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
+		UI_block_align_begin(block);
+		but = uiDefIconButO(block, UI_BTYPE_BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
 		                    min_x + line2_w + separator - chan_offs, line2_y,
 		                    btn_fn_w, btn_h,
 		                    TIP_("Decrement the filename number"));
-		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1);
+		RNA_int_set(UI_but_operator_ptr_get(but), "increment", -1);
 
-		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN,
+		but = uiDefIconButO(block, UI_BTYPE_BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN,
 		                    min_x + line2_w + separator + btn_fn_w - chan_offs, line2_y,
 		                    btn_fn_w, btn_h,
 		                    TIP_("Increment the filename number"));
-		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1);
-		uiBlockEndAlign(block);
+		RNA_int_set(UI_but_operator_ptr_get(but), "increment", 1);
+		UI_block_align_end(block);
 	}
 	
 	/* Execute / cancel buttons. */
 	if (loadbutton) {
 		/* params->title is already translated! */
-		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
+		uiDefButO(block, UI_BTYPE_BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
 		          max_x - loadbutton, line1_y, loadbutton, btn_h, "");
-		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, IFACE_("Cancel"),
+		uiDefButO(block, UI_BTYPE_BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, IFACE_("Cancel"),
 		          max_x - loadbutton, line2_y, loadbutton, btn_h, "");
 	}
 	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
+	UI_block_end(C, block);
+	UI_block_draw(C, block);
 }
 
 
 static void draw_tile(int sx, int sy, int width, int height, int colorid, int shade)
 {
 	UI_ThemeColorShade(colorid, shade);
-	uiSetRoundBox(UI_CNR_ALL);
-	uiRoundBox((float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f);
+	UI_draw_roundbox_corner_set(UI_CNR_ALL);
+	UI_draw_roundbox((float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f);
 }
 
 
@@ -281,16 +281,16 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 	
 	/*if (icon == ICON_FILE_BLANK) alpha = 0.375f;*/
 
-	but = uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
+	but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
 
 	if (drag)
-		uiButSetDragPath(but, path);
+		UI_but_drag_set_path(but, path);
 }
 
 
 static void file_draw_string(int sx, int sy, const char *string, float width, int height, short align)
 {
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	uiFontStyle fs = style->widgetlabel;
 	rcti rect;
 	char fname[FILE_MAXFILE];
@@ -300,13 +300,13 @@ static void file_draw_string(int sx, int sy, const char *string, float width, in
 	BLI_strncpy(fname, string, FILE_MAXFILE);
 	file_shorten_string(fname, width + 1.0f, 0);
 
-	/* no text clipping needed, uiStyleFontDraw does it but is a bit too strict (for buttons it works) */
+	/* no text clipping needed, UI_fontstyle_draw does it but is a bit too strict (for buttons it works) */
 	rect.xmin = sx;
 	rect.xmax = (int)(sx + ceil(width + 4.0f));
 	rect.ymin = sy - height;
 	rect.ymax = sy;
 	
-	uiStyleFontDraw(&fs, &rect, fname);
+	UI_fontstyle_draw(&fs, &rect, fname);
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
@@ -362,7 +362,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		
 		/* shadow */
 		if (dropshadow)
-			uiDrawBoxShadow(220, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
+			UI_draw_box_shadow(220, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
 
 		glEnable(GL_BLEND);
 		
@@ -378,8 +378,8 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		
 		/* dragregion */
 		if (drag) {
-			but = uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
-			uiButSetDragImage(but, file->path, get_file_icon(file), imb, scale);
+			but = uiDefBut(block, UI_BTYPE_LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
+			UI_but_drag_set_image(but, file->path, get_file_icon(file), imb, scale);
 		}
 		
 		glDisable(GL_BLEND);
@@ -470,7 +470,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	struct FileList *files = sfile->files;
 	struct direntry *file;
 	ImBuf *imb;
-	uiBlock *block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
+	uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	int numfiles;
 	int numfiles_layout;
 	int sx, sy;
@@ -526,7 +526,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				draw_tile(sx, sy - 1, layout->tile_w + 4, sfile->layout->tile_h + layout->tile_border_y, colorid, shade);
 			}
 		}
-		uiSetRoundBox(UI_CNR_NONE);
+		UI_draw_roundbox_corner_set(UI_CNR_NONE);
 
 		/* don't drag parent or refresh items */
 		do_drag = !(STREQ(file->relname, "..") || STREQ(file->relname, "."));
@@ -565,12 +565,12 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				width = textwidth;
 			}
 
-			but = uiDefBut(block, TEX, 1, "", sx, sy - layout->tile_h - 0.15f * UI_UNIT_X,
+			but = uiDefBut(block, UI_BTYPE_TEXT, 1, "", sx, sy - layout->tile_h - 0.15f * UI_UNIT_X,
 			               width, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit), 0, 0, "");
-			uiButSetRenameFunc(but, renamebutton_cb, file);
-			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
-			uiButClearFlag(but, UI_BUT_UNDO);
-			if (false == uiButActiveOnly(C, ar, block, but)) {
+			UI_but_func_rename_set(but, renamebutton_cb, file);
+			UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
+			UI_but_flag_disable(but, UI_BUT_UNDO);
+			if (false == UI_but_active_only(C, ar, block, but)) {
 				file->selflag &= ~EDITING_FILE;
 			}
 		}
@@ -618,7 +618,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 	}
 
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
+	UI_block_end(C, block);
+	UI_block_draw(C, block);
 
 }

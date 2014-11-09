@@ -300,15 +300,15 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 	else if (ob->id.lib) {
-		uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("OK?"), ICON_QUESTION);
-		uiLayout *layout = uiPupMenuLayout(pup);
+		uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("OK?"), ICON_QUESTION);
+		uiLayout *layout = UI_popup_menu_layout(pup);
 
 		/* create operator menu item with relevant properties filled in */
 		uiItemFullO_ptr(layout, op->type, op->type->name, ICON_NONE, NULL,
 		                WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 
 		/* present the menu and be done... */
-		uiPupMenuEnd(C, pup);
+		UI_popup_menu_end(C, pup);
 
 		/* this invoke just calls another instance of this operator... */
 		return OPERATOR_INTERFACE;
@@ -881,8 +881,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	Object *ob = ED_object_active_context(C);
-	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Set Parent To"), ICON_NONE);
-	uiLayout *layout = uiPupMenuLayout(pup);
+	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
+	uiLayout *layout = UI_popup_menu_layout(pup);
 
 	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", true);
 	PointerRNA opptr;
@@ -923,7 +923,7 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_VERTEX_TRI);
 	}
 
-	uiPupMenuEnd(C, pup);
+	UI_popup_menu_end(C, pup);
 
 	return OPERATOR_INTERFACE;
 }
@@ -2477,7 +2477,7 @@ static int object_unlink_data_exec(bContext *C, wmOperator *op)
 	ID *id;
 	PropertyPointerRNA pprop;
 
-	uiIDContextProperty(C, &pprop.ptr, &pprop.prop);
+	UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
 	if (pprop.prop == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Incorrect context for running object data unlink");

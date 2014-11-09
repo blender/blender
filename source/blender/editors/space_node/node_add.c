@@ -498,7 +498,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 	ntree = ntreeAddTree(bmain, treename, idname);
 	
 	/* hook into UI */
-	uiIDContextProperty(C, &ptr, &prop);
+	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
 	if (prop) {
 		/* RNA_property_pointer_set increases the user count,

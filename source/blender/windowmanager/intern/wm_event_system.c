@@ -269,7 +269,7 @@ void wm_event_do_notifiers(bContext *C)
 				if (note->category == NC_SCREEN) {
 					if (note->data == ND_SCREENBROWSE) {
 						/* free popup handlers only [#35434] */
-						UI_remove_popup_handlers_all(C, &win->modalhandlers);
+						UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
 
 						ED_screen_set(C, note->reference);  // XXX hrms, think this over!
@@ -621,7 +621,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
 {
 	if (caller_owns_reports == false) { /* popup */
 		if (op->reports->list.first) {
-			/* FIXME, temp setting window, see other call to uiPupMenuReports for why */
+			/* FIXME, temp setting window, see other call to UI_popup_menu_reports for why */
 			wmWindow *win_prev = CTX_wm_window(C);
 			ScrArea *area_prev = CTX_wm_area(C);
 			ARegion *ar_prev = CTX_wm_region(C);
@@ -629,7 +629,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
 			if (win_prev == NULL)
 				CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
-			uiPupMenuReports(C, op->reports);
+			UI_popup_menu_reports(C, op->reports);
 
 			CTX_wm_window_set(C, win_prev);
 			CTX_wm_area_set(C, area_prev);
@@ -1720,7 +1720,7 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 				
 			wm_handler_op_context(C, handler);
 
-			/* needed for uiPupMenuReports */
+			/* needed for UI_popup_menu_reports */
 
 			if (val == EVT_FILESELECT_EXEC) {
 				int retval;
@@ -1752,7 +1752,7 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 						CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 					BKE_report_print_level_set(handler->op->reports, RPT_WARNING);
-					uiPupMenuReports(C, handler->op->reports);
+					UI_popup_menu_reports(C, handler->op->reports);
 
 					/* XXX - copied from 'wm_operator_finished()' */
 					/* add reports to the global list, otherwise they are not seen */

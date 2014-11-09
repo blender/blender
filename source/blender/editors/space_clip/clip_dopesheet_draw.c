@@ -283,7 +283,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	MovieTracking *tracking;
 	MovieTrackingDopesheet *dopesheet;
 	MovieTrackingDopesheetChannel *channel;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_style_get();
 	uiBlock *block;
 	int fontid = style->widget.uifont_id;
 	int height;
@@ -348,7 +348,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	}
 
 	/* second pass: widgets */
-	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
+	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	y = (float) CHANNEL_FIRST;
 
 	/* get RNA properties (once) */
@@ -370,11 +370,11 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 
 			RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, &ptr);
 
-			uiBlockSetEmboss(block, UI_EMBOSSN);
-			uiDefIconButR_prop(block, ICONTOG, 1, icon,
+			UI_block_emboss_set(block, UI_EMBOSS_NONE);
+			uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 1, icon,
 			                   v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD, y - UI_UNIT_Y / 2.0f,
 			                   UI_UNIT_X, UI_UNIT_Y, &ptr, chan_prop_lock, 0, 0, 0, 0, 0, NULL);
-			uiBlockSetEmboss(block, UI_EMBOSS);
+			UI_block_emboss_set(block, UI_EMBOSS);
 		}
 
 		/* adjust y-position for next one */
@@ -382,6 +382,6 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	}
 	glDisable(GL_BLEND);
 
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
+	UI_block_end(C, block);
+	UI_block_draw(C, block);
 }

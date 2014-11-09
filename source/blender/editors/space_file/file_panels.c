@@ -114,16 +114,16 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 			BLI_strncpy(dir, entry, FILE_MAX);
 
 		/* create list item */
-		but = uiDefIconTextButS(block, LISTROW, 0, icon, dir, 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nr, 0, i, 0, 0, entry);
-		uiButSetFunc(but, file_panel_cb, entry, NULL);
-		uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-		uiButSetDrawFlag(but, UI_BUT_ICON_LEFT | UI_BUT_TEXT_LEFT);
+		but = uiDefIconTextButS(block, UI_BTYPE_LISTROW, 0, icon, dir, 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nr, 0, i, 0, 0, entry);
+		UI_but_func_set(but, file_panel_cb, entry, NULL);
+		UI_but_flag_disable(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+		UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT | UI_BUT_TEXT_LEFT);
 
 		/* create delete button */
 		if (allow_delete && fsmenu_can_save(fsmenu, category, i)) {
-			uiBlockSetEmboss(block, UI_EMBOSSN);
+			UI_block_emboss_set(block, UI_EMBOSS_NONE);
 			uiItemIntO(layout, "", ICON_X, "FILE_OT_bookmark_delete", "index", i);
-			uiBlockSetEmboss(block, UI_EMBOSS);
+			UI_block_emboss_set(block, UI_EMBOSS);
 		}
 	}
 }
@@ -218,11 +218,11 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 	wmOperator *op = sfile->op;
 	// int empty = 1, flag;
 	
-	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
+	UI_block_func_set(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
 
 	uiLayoutOperatorButs(C, pa->layout, op, file_panel_check_prop, '\0', UI_LAYOUT_OP_SHOW_EMPTY);
 
-	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
+	UI_block_func_set(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
 }
 
 void file_panels_register(ARegionType *art)

@@ -69,7 +69,7 @@
 #include "COM_compositor.h"
 
 /* XXX interface.h */
-extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
+extern void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 float ED_node_grid_size(void)
 {
@@ -283,11 +283,11 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 	for (node = ntree->nodes.first; node; node = node->next) {
 		/* ui block */
 		BLI_snprintf(uiblockstr, sizeof(uiblockstr), "node buttons %p", (void *)node);
-		node->block = uiBeginBlock(C, CTX_wm_region(C), uiblockstr, UI_EMBOSS);
-		uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
+		node->block = UI_block_begin(C, CTX_wm_region(C), uiblockstr, UI_EMBOSS);
+		UI_block_func_handle_set(node->block, do_node_internal_buttons, node);
 
 		/* this cancels events for background nodes */
-		uiBlockSetFlag(node->block, UI_BLOCK_CLIP_EVENTS);
+		UI_block_flag_enable(node->block, UI_BLOCK_CLIP_EVENTS);
 	}
 }
 
@@ -336,8 +336,9 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		
 		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, nsock, &sockptr);
 		
-		layout = uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, 0, UI_GetStyle());
+		layout = UI_block_layout(
+		        node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+		        locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, 0, UI_style_get());
 		/* context pointers for current node and socket */
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);
@@ -348,8 +349,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		
 		nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(nsock->name));
 		
-		uiBlockEndAlign(node->block);
-		uiBlockLayoutResolve(node->block, NULL, &buty);
+		UI_block_align_end(node->block);
+		UI_block_layout_resolve(node->block, NULL, &buty);
 		
 		/* ensure minimum socket height in case layout is empty */
 		buty = min_ii(buty, dy - NODE_DY);
@@ -407,14 +408,15 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		node->butr.ymax = 0;
 		
 			
-		layout = uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       locx + NODE_DYS, dy, node->butr.xmax, 0, 0, UI_GetStyle());
+		layout = UI_block_layout(
+		        node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+		        locx + NODE_DYS, dy, node->butr.xmax, 0, 0, UI_style_get());
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		
 		node->typeinfo->draw_buttons(layout, (bContext *)C, &nodeptr);
 		
-		uiBlockEndAlign(node->block);
-		uiBlockLayoutResolve(node->block, NULL, &buty);
+		UI_block_align_end(node->block);
+		UI_block_layout_resolve(node->block, NULL, &buty);
 			
 		dy = buty - NODE_DYS / 2;
 	}
@@ -426,8 +428,9 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		
 		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, nsock, &sockptr);
 		
-		layout = uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, 0, UI_GetStyle());
+		layout = UI_block_layout(
+		        node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+		        locx + NODE_DYS, dy, NODE_WIDTH(node) - NODE_DY, NODE_DY, 0, UI_style_get());
 		/* context pointers for current node and socket */
 		uiLayoutSetContextPointer(layout, "node", &nodeptr);
 		uiLayoutSetContextPointer(layout, "socket", &sockptr);
@@ -436,8 +439,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		
 		nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(nsock->name));
 		
-		uiBlockEndAlign(node->block);
-		uiBlockLayoutResolve(node->block, NULL, &buty);
+		UI_block_align_end(node->block);
+		UI_block_layout_resolve(node->block, NULL, &buty);
 		
 		/* ensure minimum socket height in case layout is empty */
 		buty = min_ii(buty, dy - NODE_DY);
@@ -463,11 +466,12 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	/* Set the block bounds to clip mouse events from underlying nodes.
 	 * Add a margin for sockets on each side.
 	 */
-	uiExplicitBoundsBlock(node->block,
-	                      node->totr.xmin - NODE_SOCKSIZE,
-	                      node->totr.ymin,
-	                      node->totr.xmax + NODE_SOCKSIZE,
-	                      node->totr.ymax);
+	UI_block_bounds_set_explicit(
+	        node->block,
+	        node->totr.xmin - NODE_SOCKSIZE,
+	        node->totr.ymin,
+	        node->totr.xmax + NODE_SOCKSIZE,
+	        node->totr.ymax);
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
@@ -524,11 +528,12 @@ static void node_update_hidden(bNode *node)
 	/* Set the block bounds to clip mouse events from underlying nodes.
 	 * Add a margin for sockets on each side.
 	 */
-	uiExplicitBoundsBlock(node->block,
-	                      node->totr.xmin - NODE_SOCKSIZE,
-	                      node->totr.ymin,
-	                      node->totr.xmax + NODE_SOCKSIZE,
-	                      node->totr.ymax);
+	UI_block_bounds_set_explicit(
+	        node->block,
+	        node->totr.xmin - NODE_SOCKSIZE,
+	        node->totr.ymin,
+	        node->totr.xmax + NODE_SOCKSIZE,
+	        node->totr.ymax);
 }
 
 void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node)
@@ -739,16 +744,16 @@ void node_draw_shadow(SpaceNode *snode, bNode *node, float radius, float alpha)
 {
 	rctf *rct = &node->totr;
 	
-	uiSetRoundBox(UI_CNR_ALL);
+	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	if (node->parent == NULL)
-		ui_dropshadow(rct, radius, snode->aspect, alpha, node->flag & SELECT);
+		ui_draw_dropshadow(rct, radius, snode->aspect, alpha, node->flag & SELECT);
 	else {
 		const float margin = 3.0f;
 		
 		glColor4f(0.0f, 0.0f, 0.0f, 0.33f);
 		glEnable(GL_BLEND);
-		uiRoundBox(rct->xmin - margin, rct->ymin - margin,
-		           rct->xmax + margin, rct->ymax + margin, radius + margin);
+		UI_draw_roundbox(rct->xmin - margin, rct->ymin - margin,
+		                 rct->xmax + margin, rct->ymax + margin, radius + margin);
 		glDisable(GL_BLEND);
 	}
 }
@@ -771,7 +776,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 	/* skip if out of view */
 	if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == false) {
-		uiEndBlock(C, node->block);
+		UI_block_end(C, node->block);
 		node->block = NULL;
 		return;
 	}
@@ -800,8 +805,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	}
 #endif
 
-	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
-	uiRoundBox(rct->xmin, rct->ymax - NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
+	UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+	UI_draw_roundbox(rct->xmin, rct->ymax - NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
 	/* show/hide icons */
 	iconofs = rct->xmax - 0.35f * U.widget_unit;
@@ -810,27 +815,27 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if (node->typeinfo->flag & NODE_PREVIEW) {
 		uiBut *but;
 		iconofs -= iconbutw;
-		uiBlockSetEmboss(node->block, UI_EMBOSSN);
-		but = uiDefIconBut(node->block, TOGBUT, B_REDR, ICON_MATERIAL,
+		UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
+		but = uiDefIconBut(node->block, UI_BTYPE_BUT_TOGGLE, B_REDR, ICON_MATERIAL,
 		                   iconofs, rct->ymax - NODE_DY, iconbutw, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(but, node_toggle_button_cb, node, (void *)"NODE_OT_preview_toggle");
+		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_preview_toggle");
 		/* XXX this does not work when node is activated and the operator called right afterwards,
 		 * since active ID is not updated yet (needs to process the notifier).
 		 * This can only work as visual indicator!
 		 */
 //		if (!(node->flag & (NODE_ACTIVE_ID|NODE_DO_OUTPUT)))
-//			uiButSetFlag(but, UI_BUT_DISABLED);
-		uiBlockSetEmboss(node->block, UI_EMBOSS);
+//			UI_but_flag_enable(but, UI_BUT_DISABLED);
+		UI_block_emboss_set(node->block, UI_EMBOSS);
 	}
 	/* group edit */
 	if (node->type == NODE_GROUP) {
 		uiBut *but;
 		iconofs -= iconbutw;
-		uiBlockSetEmboss(node->block, UI_EMBOSSN);
-		but = uiDefIconBut(node->block, TOGBUT, B_REDR, ICON_NODETREE,
+		UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
+		but = uiDefIconBut(node->block, UI_BTYPE_BUT_TOGGLE, B_REDR, ICON_NODETREE,
 		                   iconofs, rct->ymax - NODE_DY, iconbutw, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(but, node_toggle_button_cb, node, (void *)"NODE_OT_group_edit");
-		uiBlockSetEmboss(node->block, UI_EMBOSS);
+		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_group_edit");
+		UI_block_emboss_set(node->block, UI_EMBOSS);
 	}
 	
 	/* title */
@@ -844,15 +849,15 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		uiBut *but;
 		int but_size = UI_UNIT_X * 0.6f;
 		/* XXX button uses a custom triangle draw below, so make it invisible without icon */
-		uiBlockSetEmboss(node->block, UI_EMBOSSN);
-		but = uiDefBut(node->block, TOGBUT, B_REDR, "",
+		UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
+		but = uiDefBut(node->block, UI_BTYPE_BUT_TOGGLE, B_REDR, "",
 		               rct->xmin + 0.5f * U.widget_unit - but_size / 2, rct->ymax - NODE_DY / 2.0f - but_size / 2,
 		               but_size, but_size, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
-		uiBlockSetEmboss(node->block, UI_EMBOSS);
+		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
+		UI_block_emboss_set(node->block, UI_EMBOSS);
 		
 		/* custom draw function for this button */
-		UI_DrawTriIcon(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v');
+		UI_draw_icon_tri(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v');
 	}
 	
 	/* this isn't doing anything for the label, so commenting out */
@@ -868,7 +873,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	//if (node->flag & NODE_MUTED)
 	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 	
-	uiDefBut(node->block, LABEL, 0, showname,
+	uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
 	         (int)(rct->xmin + (NODE_MARGIN_X)), (int)(rct->ymax - NODE_DY),
 	         (short)(iconofs - rct->xmin - 18.0f), (short)NODE_DY,
 	         NULL, 0, 0, 0, 0, "");
@@ -881,8 +886,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor4(TH_NODE);
 	glEnable(GL_BLEND);
-	uiSetRoundBox(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
-	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax - NODE_DY, BASIS_RAD);
+	UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax - NODE_DY, BASIS_RAD);
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
@@ -896,8 +901,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		else
 			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
 		
-		uiSetRoundBox(UI_CNR_ALL);
-		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+		UI_draw_roundbox_corner_set(UI_CNR_ALL);
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
 		
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -936,8 +941,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 	UI_ThemeClearColor(color_id);
 		
-	uiEndBlock(C, node->block);
-	uiDrawBlock(C, node->block);
+	UI_block_end(C, node->block);
+	UI_block_draw(C, node->block);
 	node->block = NULL;
 }
 
@@ -969,7 +974,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	(void)ntree;
 #endif
 	
-	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
+	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active and selected emphasis */
 	if (node->flag & SELECT) {
@@ -980,7 +985,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -40);
 		else
 			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
-		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 		
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -992,7 +997,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		glEnable(GL_LINE_SMOOTH);
 
 		glColor3fv(node->color);
-		uiDrawBox(GL_LINE_LOOP, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad);
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -1009,15 +1014,15 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		uiBut *but;
 		int but_size = UI_UNIT_X * 0.6f;
 		/* XXX button uses a custom triangle draw below, so make it invisible without icon */
-		uiBlockSetEmboss(node->block, UI_EMBOSSN);
-		but = uiDefBut(node->block, TOGBUT, B_REDR, "",
+		UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
+		but = uiDefBut(node->block, UI_BTYPE_BUT_TOGGLE, B_REDR, "",
 		               rct->xmin + 10.0f - but_size / 2, centy - but_size / 2,
 		               but_size, but_size, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
-		uiBlockSetEmboss(node->block, UI_EMBOSS);
+		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
+		UI_block_emboss_set(node->block, UI_EMBOSS);
 		
 		/* custom draw function for this button */
-		UI_DrawTriIcon(rct->xmin + 10.0f, centy, 'h');
+		UI_draw_icon_tri(rct->xmin + 10.0f, centy, 'h');
 	}
 	
 	/* disable lines */
@@ -1035,7 +1040,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		//if (node->flag & NODE_MUTED)
 		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 
-		uiDefBut(node->block, LABEL, 0, showname,
+		uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
 		         (int)(rct->xmin + (NODE_MARGIN_X)), (int)(centy - 10),
 		         (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, "");
@@ -1063,8 +1068,8 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			node_socket_circle_draw(C, ntree, node, sock, socket_size, sock->flag & SELECT);
 	}
 	
-	uiEndBlock(C, node->block);
-	uiDrawBlock(C, node->block);
+	UI_block_end(C, node->block);
+	UI_block_draw(C, node->block);
 	node->block = NULL;
 }
 
@@ -1243,15 +1248,15 @@ static void draw_group_overlay(const bContext *C, ARegion *ar)
 	/* shade node groups to separate them visually */
 	UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
 	glEnable(GL_BLEND);
-	uiSetRoundBox(UI_CNR_NONE);
-	uiDrawBox(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0);
+	UI_draw_roundbox_corner_set(UI_CNR_NONE);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0);
 	glDisable(GL_BLEND);
 	
 	/* set the block bounds to clip mouse events from underlying nodes */
-	block = uiBeginBlock(C, ar, "node tree bounds block", UI_EMBOSS);
-	uiExplicitBoundsBlock(block, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-	uiBlockSetFlag(block, UI_BLOCK_CLIP_EVENTS);
-	uiEndBlock(C, block);
+	block = UI_block_begin(C, ar, "node tree bounds block", UI_EMBOSS);
+	UI_block_bounds_set_explicit(block, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
+	UI_block_end(C, block);
 }
 
 void drawnodespace(const bContext *C, ARegion *ar)
