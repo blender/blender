@@ -18,7 +18,7 @@ DO_OUT_PDF=false
 BLENDER="./blender.bin"
 SSH_USER="ideasman42"
 SSH_HOST=$SSH_USER"@blender.org"
-SSH_UPLOAD="/data/www/vhosts/www.blender.org/documentation" # blender_python_api_VERSION, added after
+SSH_UPLOAD="/data/www/vhosts/www.blender.org/api" # blender_python_api_VERSION, added after
 
 # ----------------------------------------------------------------------------
 # Blender Version & Info
