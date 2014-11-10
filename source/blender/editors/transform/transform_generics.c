@@ -1203,7 +1203,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 
 		/* exceptional case */
-		if (t->around == V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
+		if (t->around == V3D_LOCAL) {
 			if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
 				t->options |= CTX_NO_PET;
 			}
