@@ -464,6 +464,10 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 				negate_v3(basis_nor_b);
 			}
 			add_v3_v3v3(basis_nor, basis_nor_a, basis_nor_b);
+
+			if (UNLIKELY(fabsf(dot_v3v3(basis_nor, basis_dir)) < FLT_EPSILON)) {
+				ortho_v3_v3(basis_nor, basis_dir);
+			}
 		}
 #endif
 
@@ -491,6 +495,9 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	while (pc.state_lb.first) {
 		PathLinkState *state, *state_next;
 		found_all = true;
+#ifdef DEBUG_PRINT
+		printf("\n%s: stepping %d\n", __func__, BLI_countlist(&pc.state_lb));
+#endif
 		for (state = pc.state_lb.first; state; state = state_next) {
 			state_next = state->next;
 			if (state->link_last->ele == (BMElem *)pc.v_b) {
