@@ -381,6 +381,12 @@ void EDBM_mesh_load(Object *ob)
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh->bm;
 
+	/* Workaround for T42360, 'ob->shapenr' should be 1 in this case.
+	 * however this isn't synchronized between objects at the moment. */
+	if (UNLIKELY((ob->shapenr == 0) && (me->key && !BLI_listbase_is_empty(&me->key->block)))) {
+		bm->shapenr = 1;
+	}
+
 	BM_mesh_bm_to_me(bm, me, false);
 
 #ifdef USE_TESSFACE_DEFAULT

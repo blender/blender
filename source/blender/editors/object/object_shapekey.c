@@ -379,7 +379,6 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 	ot->description = "Remove shape key from the object";
 	
 	/* api callbacks */
-	ot->poll = shape_key_mode_poll;
 	ot->poll = shape_key_mode_exists_poll;
 	ot->exec = shape_key_remove_exec;
 
