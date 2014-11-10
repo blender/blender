@@ -1498,6 +1498,15 @@ static int file_rename_poll(bContext *C)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile && sfile->params) {
+		int idx = sfile->params->active_file;
+
+		if (idx >= 0) {
+			struct direntry *file = filelist_file(sfile->files, idx);
+			if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+				poll = 0;
+			}
+		}
+
 		if (sfile->params->active_file < 0) {
 			poll = 0;
 		}
