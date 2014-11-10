@@ -646,6 +646,7 @@ void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, const char *name,
 void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 
 #define UI_TEXT_MARGIN_X 0.4f
+#define UI_POPUP_MARGIN (UI_DPI_FAC * 12)
 
 /* interface_style.c */
 void uiStyleInit(void);

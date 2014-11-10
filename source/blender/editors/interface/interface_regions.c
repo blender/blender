@@ -668,18 +668,18 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	/* widget rect, in region coords */
 	{
-		int width = UI_ThemeMenuShadowWidth();
+		const int margin = UI_POPUP_MARGIN;
 		
-		data->bbox.xmin = width;
-		data->bbox.xmax = BLI_rcti_size_x(&rect_i) - width;
-		data->bbox.ymin = width;
+		data->bbox.xmin = margin;
+		data->bbox.xmax = BLI_rcti_size_x(&rect_i) - margin;
+		data->bbox.ymin = margin;
 		data->bbox.ymax = BLI_rcti_size_y(&rect_i);
 		
 		/* region bigger for shadow */
-		ar->winrct.xmin = rect_i.xmin - width;
-		ar->winrct.xmax = rect_i.xmax + width;
-		ar->winrct.ymin = rect_i.ymin - width;
-		ar->winrct.ymax = rect_i.ymax + width;
+		ar->winrct.xmin = rect_i.xmin - margin;
+		ar->winrct.xmax = rect_i.xmax + margin;
+		ar->winrct.ymin = rect_i.ymin - margin;
+		ar->winrct.ymax = rect_i.ymax + margin;
 	}
 
 	/* adds subwindow */
@@ -1166,15 +1166,15 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* compute position */
 	if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
-		int width = UI_ThemeMenuShadowWidth();
+		const int margin = UI_POPUP_MARGIN;
 		/* this case is search menu inside other menu */
 		/* we copy region size */
 
 		ar->winrct = butregion->winrct;
 		
 		/* widget rect, in region coords */
-		data->bbox.xmin = width;
-		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - width;
+		data->bbox.xmin = margin;
+		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - margin;
 		/* Do not use shadow width for height, gives insane margin with big shadows, and issue T41548 with small ones */
 		data->bbox.ymin = 8 * UI_DPI_FAC;
 		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - 8 * UI_DPI_FAC;
@@ -1189,7 +1189,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 	else {
 		const int searchbox_width = uiSearchBoxWidth();
-		const int shadow_width = UI_ThemeMenuShadowWidth();
+		const int margin = UI_POPUP_MARGIN;
 
 		rect_fl.xmin = but->rect.xmin - 5;   /* align text with button */
 		rect_fl.xmax = but->rect.xmax + 5;   /* symmetrical */
@@ -1244,15 +1244,15 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 
 		/* widget rect, in region coords */
-		data->bbox.xmin = shadow_width;
-		data->bbox.xmax = BLI_rcti_size_x(&rect_i) + shadow_width;
-		data->bbox.ymin = shadow_width;
-		data->bbox.ymax = BLI_rcti_size_y(&rect_i) + shadow_width;
+		data->bbox.xmin = margin;
+		data->bbox.xmax = BLI_rcti_size_x(&rect_i) + margin;
+		data->bbox.ymin = margin;
+		data->bbox.ymax = BLI_rcti_size_y(&rect_i) + margin;
 		
 		/* region bigger for shadow */
-		ar->winrct.xmin = rect_i.xmin - shadow_width;
-		ar->winrct.xmax = rect_i.xmax + shadow_width;
-		ar->winrct.ymin = rect_i.ymin - shadow_width;
+		ar->winrct.xmin = rect_i.xmin - margin;
+		ar->winrct.xmax = rect_i.xmax + margin;
+		ar->winrct.ymin = rect_i.ymin - margin;
 		ar->winrct.ymax = rect_i.ymax;
 	}
 	
@@ -1642,7 +1642,7 @@ uiBlock *ui_popup_block_refresh(
         bContext *C, uiPopupBlockHandle *handle,
         ARegion *butregion, uiBut *but)
 {
-	const int width = UI_ThemeMenuShadowWidth();
+	const int margin = UI_POPUP_MARGIN;
 	wmWindow *window = CTX_wm_window(C);
 	ARegion *ar = handle->region;
 
@@ -1769,9 +1769,9 @@ uiBlock *ui_popup_block_refresh(
 		/* the block and buttons were positioned in window space as in 2.4x, now
 		 * these menu blocks are regions so we bring it back to region space.
 		 * additionally we add some padding for the menu shadow or rounded menus */
-		ar->winrct.xmin = block->rect.xmin - width;
-		ar->winrct.xmax = block->rect.xmax + width;
-		ar->winrct.ymin = block->rect.ymin - width;
+		ar->winrct.xmin = block->rect.xmin - margin;
+		ar->winrct.xmax = block->rect.xmax + margin;
+		ar->winrct.ymin = block->rect.ymin - margin;
 		ar->winrct.ymax = block->rect.ymax + MENU_TOP;
 
 		ui_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
