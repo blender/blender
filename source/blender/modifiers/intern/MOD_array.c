@@ -323,8 +323,8 @@ static void dm_merge_transform(
 	/* needed for subsurf so arrays are allocated */
 	cap_dm->getVertArray(cap_dm);
 	cap_dm->getEdgeArray(cap_dm);
-	cap_dm->getNumLoops(cap_dm);
-	cap_dm->getNumPolys(cap_dm);
+	cap_dm->getLoopArray(cap_dm);
+	cap_dm->getPolyArray(cap_dm);
 
 	DM_copy_vert_data(cap_dm, result, 0, cap_verts_index, cap_nverts);
 	DM_copy_edge_data(cap_dm, result, 0, cap_edges_index, cap_nedges);
