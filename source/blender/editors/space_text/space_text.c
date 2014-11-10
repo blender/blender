@@ -135,7 +135,7 @@ static void text_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					break;
 				case ND_CURSOR:
 					if (st->text && st->text == wmn->reference)
-						text_scroll_to_cursor(st, sa);
+						text_scroll_to_cursor__area(st, sa, true);
 
 					ED_area_tag_redraw(sa);
 					break;
@@ -156,7 +156,7 @@ static void text_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					break;
 				case NA_SELECTED:
 					if (st->text && st->text == wmn->reference)
-						text_scroll_to_cursor(st, sa);
+						text_scroll_to_cursor__area(st, sa, true);
 
 					break;
 			}
