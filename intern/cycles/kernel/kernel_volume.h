@@ -595,6 +595,7 @@ typedef struct VolumeStep {
 } VolumeStep;
 
 typedef struct VolumeSegment {
+	VolumeStep stack_step;      /* stack storage for homogenous step, to avoid malloc */
 	VolumeStep *steps;			/* recorded steps */
 	int numsteps;				/* number of steps */
 	int closure_flag;			/* accumulated closure flags from all steps */
@@ -627,11 +628,13 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 
 		/* compute exact steps in advance for malloc */
 		max_steps = max((int)ceilf(ray->t/step_size), 1);
+		segment->steps = (VolumeStep*)malloc(sizeof(VolumeStep)*max_steps);
 	}
 	else {
 		max_steps = 1;
 		step_size = ray->t;
 		random_jitter_offset = 0.0f;
+		segment->steps = &segment->stack_step;
 	}
 	
 	/* init accumulation variables */
@@ -640,10 +643,8 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 	float3 cdf_distance = make_float3(0.0f, 0.0f, 0.0f);
 	float t = 0.0f;
 
-	segment->closure_flag = 0;
 	segment->numsteps = 0;
-
-	segment->steps = (VolumeStep*)malloc(sizeof(VolumeStep)*max_steps);
+	segment->closure_flag = 0;
 
 	VolumeStep *step = segment->steps;
 
@@ -729,7 +730,8 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 
 ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *segment)
 {
-	free(segment->steps);
+	if(segment->steps != &segment->stack_step)
+		free(segment->steps);
 }
 
 /* scattering for homogeneous and heterogeneous volumes, using decoupled ray
