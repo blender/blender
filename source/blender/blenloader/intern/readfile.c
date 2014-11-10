@@ -1155,6 +1155,9 @@ bool BLO_is_a_library(const char *path, char *dir, char *group)
 	int len;
 	char *fd;
 	
+	/* if path leads to a directory we can be sure we're not in a library */
+	if (BLI_is_dir(path)) return 0;
+
 	strcpy(dir, path);
 	len = strlen(dir);
 	if (len < 7) return 0;
