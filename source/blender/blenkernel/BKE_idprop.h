@@ -91,6 +91,7 @@ void IDP_SyncGroupValues(struct IDProperty *dest, const struct IDProperty *src) 
 void IDP_SyncGroupTypes(struct IDProperty *dest, const struct IDProperty *src, const bool do_arraylen) ATTR_NONNULL();
 void IDP_ReplaceGroupInGroup(struct IDProperty *dest, const struct IDProperty *src) ATTR_NONNULL();
 void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
+void IDP_ReplaceInGroup_ex(struct IDProperty *group, struct IDProperty *prop, struct IDProperty *prop_exist);
 void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overwrite) ATTR_NONNULL();
 bool IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
 bool IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous,

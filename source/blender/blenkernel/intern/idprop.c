@@ -571,23 +571,30 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src)
  * Checks if a property with the same name as prop exists, and if so replaces it.
  * Use this to preserve order!
  */
-void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
+void IDP_ReplaceInGroup_ex(IDProperty *group, IDProperty *prop, IDProperty *prop_exist)
 {
-	IDProperty *loop;
-
 	BLI_assert(group->type == IDP_GROUP);
 
-	if ((loop = IDP_GetPropertyFromGroup(group, prop->name))) {
-		BLI_insertlinkafter(&group->data.group, loop, prop);
+	BLI_assert(prop_exist == IDP_GetPropertyFromGroup(group, prop->name));
+
+	if ((prop_exist = IDP_GetPropertyFromGroup(group, prop->name))) {
+		BLI_insertlinkafter(&group->data.group, prop_exist, prop);
 		
-		BLI_remlink(&group->data.group, loop);
-		IDP_FreeProperty(loop);
-		MEM_freeN(loop);
+		BLI_remlink(&group->data.group, prop_exist);
+		IDP_FreeProperty(prop_exist);
+		MEM_freeN(prop_exist);
 	}
 	else {
 		group->len++;
 		BLI_addtail(&group->data.group, prop);
 	}
+}
+
+void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
+{
+	IDProperty *prop_exist = IDP_GetPropertyFromGroup(group, prop->name);
+
+	IDP_ReplaceInGroup_ex(group, prop, prop_exist);
 }
 
 /**
