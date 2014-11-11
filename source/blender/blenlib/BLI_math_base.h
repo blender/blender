@@ -157,6 +157,11 @@ static const int NAN_INT = 0x7FC00000;
 
 /******************************* Float ******************************/
 
+MINLINE float pow2f(float x);
+MINLINE float pow3f(float x);
+MINLINE float pow4f(float x);
+MINLINE float pow7f(float x);
+
 MINLINE float sqrt3f(float f);
 MINLINE double sqrt3d(double d);
 

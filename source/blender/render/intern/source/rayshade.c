@@ -1299,7 +1299,7 @@ static void trace_refract(float col[4], ShadeInput *shi, ShadeResult *shr)
 	float v_refract[3], v_refract_new[3];
 	float sampcol[4], colsq[4];
 	
-	float blur = powf(1.0f - shi->mat->gloss_tra, 3);
+	float blur = pow3f(1.0f - shi->mat->gloss_tra);
 	short max_samples = shi->mat->samp_gloss_tra;
 	float adapt_thresh = shi->mat->adapt_thresh_tra;
 	
@@ -1400,7 +1400,7 @@ static void trace_reflect(float col[3], ShadeInput *shi, ShadeResult *shr, float
 	float v_nor_new[3], v_reflect[3];
 	float sampcol[4], colsq[4];
 		
-	float blur = powf(1.0f - shi->mat->gloss_mir, 3);
+	float blur = pow3f(1.0f - shi->mat->gloss_mir);
 	short max_samples = shi->mat->samp_gloss_mir;
 	float adapt_thresh = shi->mat->adapt_thresh_mir;
 	float aniso = 1.0f - shi->mat->aniso_gloss_mir;

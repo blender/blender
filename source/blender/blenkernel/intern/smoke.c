@@ -2020,7 +2020,7 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 	if (fuel && fuel[index] > FLT_EPSILON) {
 		/* instead of using 1.0 for all new fuel add slight falloff
 		 * to reduce flow blockiness */
-		float value = 1.0f - powf(1.0f - emission_value, 2.0f);
+		float value = 1.0f - pow2f(1.0f - emission_value);
 
 		if (value > react[index]) {
 			float f = fuel_flow / fuel[index];

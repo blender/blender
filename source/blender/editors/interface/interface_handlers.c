@@ -5381,7 +5381,7 @@ static bool ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int m
 	float dy = my - data->draglasty;
 
 	/* scale histogram values (dy / 10 for better control) */
-	const float yfac = min_ff(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
+	const float yfac = min_ff(pow2f(hist->ymax), 1.0f) * 0.5f;
 	hist->ymax += (dy * 0.1f) * yfac;
 
 	/* 0.1 allows us to see HDR colors up to 10 */

@@ -2764,24 +2764,6 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	sphdata->pass++;
 }
 
-/* powf is really slow for raising to integer powers. */
-MINLINE float pow2(float x)
-{
-	return x * x;
-}
-MINLINE float pow3(float x)
-{
-	return pow2(x) * x;
-}
-MINLINE float pow4(float x)
-{
-	return pow2(pow2(x));
-}
-MINLINE float pow7(float x)
-{
-	return pow2(pow3(x)) * x;
-}
-
 static void sphclassical_density_accum_cb(void *userdata, int index, float UNUSED(squared_dist))
 {
 	SPHRangeData *pfr = (SPHRangeData *)userdata;
@@ -2803,7 +2785,7 @@ static void sphclassical_density_accum_cb(void *userdata, int index, float UNUSE
 	/* Smoothing factor. Utilise the Wendland kernel. gnuplot:
 	 *     q1(x) = (2.0 - x)**4 * ( 1.0 + 2.0 * x)
 	 *     plot [0:2] q1(x) */
-	q  = qfac / pow3(pfr->h) * pow4(2.0f - rij_h) * ( 1.0f + 2.0f * rij_h);
+	q  = qfac / pow3f(pfr->h) * pow4f(2.0f - rij_h) * ( 1.0f + 2.0f * rij_h);
 	q *= pfr->npsys->part->mass;
 
 	if (pfr->use_size)
@@ -2857,7 +2839,7 @@ static void sphclassical_force_cb(void *sphdata_v, ParticleKey *state, float *fo
 	float rest_density = fluid->rest_density * (fluid->flag & SPH_FAC_DENSITY ? 4.77f : 1.0f);
 
 	// Use speed of sound squared
-	float stiffness = pow2(fluid->stiffness_k);
+	float stiffness = pow2f(fluid->stiffness_k);
 
 	ParticleData *npa;
 	float vec[3];
@@ -2878,10 +2860,10 @@ static void sphclassical_force_cb(void *sphdata_v, ParticleKey *state, float *fo
 	pfr.pa = pa;
 
 	sph_evaluate_func(NULL, psys, state->co, &pfr, interaction_radius, sphclassical_neighbour_accum_cb);
-	pressure =  stiffness * (pow7(pa->sphdensity / rest_density) - 1.0f);
+	pressure =  stiffness * (pow7f(pa->sphdensity / rest_density) - 1.0f);
 
 	/* multiply by mass so that we return a force, not accel */
-	qfac2 *= sphdata->mass / pow3(pfr.h);
+	qfac2 *= sphdata->mass / pow3f(pfr.h);
 
 	pfn = pfr.neighbors;
 	for (i = 0; i < pfr.tot_neighbors; i++, pfn++) {
@@ -2902,19 +2884,19 @@ static void sphclassical_force_cb(void *sphdata_v, ParticleKey *state, float *fo
 		if (rij_h > 2.0f)
 			continue;
 
-		npressure = stiffness * (pow7(npa->sphdensity / rest_density) - 1.0f);
+		npressure = stiffness * (pow7f(npa->sphdensity / rest_density) - 1.0f);
 
 		/* First derivative of smoothing factor. Utilise the Wendland kernel.
 		 * gnuplot:
 		 *     q2(x) = 2.0 * (2.0 - x)**4 - 4.0 * (2.0 - x)**3 * (1.0 + 2.0 * x)
 		 *     plot [0:2] q2(x)
 		 * Particles > 2h away are excluded above. */
-		dq = qfac2 * (2.0f * pow4(2.0f - rij_h) - 4.0f * pow3(2.0f - rij_h) * (1.0f + 2.0f * rij_h)  );
+		dq = qfac2 * (2.0f * pow4f(2.0f - rij_h) - 4.0f * pow3f(2.0f - rij_h) * (1.0f + 2.0f * rij_h)  );
 
 		if (pfn->psys->part->flag & PART_SIZEMASS)
 			dq *= npa->size;
 
-		pressureTerm = pressure / pow2(pa->sphdensity) + npressure / pow2(npa->sphdensity);
+		pressureTerm = pressure / pow2f(pa->sphdensity) + npressure / pow2f(npa->sphdensity);
 
 		/* Note that 'minus' is removed, because vec = vecBA, not vecAB.
 		 * This applies to the viscosity calculation below, too. */
