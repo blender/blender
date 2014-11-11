@@ -257,12 +257,12 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)
-		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION})
+		set(TARGETDIR_VER ${BLENDER_VERSION})
 	else()
 		if(WITH_PYTHON_MODULE)
 			set(TARGETDIR_VER ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${BLENDER_VERSION})
 		else()
-			set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION})
+			set(TARGETDIR_VER share/blender/${BLENDER_VERSION})
 		endif()
 	endif()
 
@@ -391,15 +391,11 @@ endif()
 if(UNIX AND NOT APPLE)
 
 	if(NOT WITH_PYTHON_MODULE)
-		install(
-			CODE
-			"
-			execute_process(COMMAND
-							${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
-							${CMAKE_INSTALL_PREFIX}/blender
-							${CMAKE_INSTALL_PREFIX}/blender.1)
-			"
-		)
+	    add_custom_target(blender_man_page ALL
+	                      COMMAND ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py ${EXECUTABLE_OUTPUT_PATH}/blender ${CMAKE_CURRENT_BINARY_DIR}/blender.1)
+
+	    add_dependencies(blender_man_page blender)
+
 	endif()
 
 	# there are a few differences between portable and system install
@@ -408,27 +404,31 @@ if(UNIX AND NOT APPLE)
 			# pass
 		else()
 			install(
-				FILES ${CMAKE_INSTALL_PREFIX}/blender.1
-				DESTINATION ${CMAKE_INSTALL_PREFIX}
+				FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+				DESTINATION "."
 			)
 		endif()
+		install(
+			TARGETS blender
+			DESTINATION "."
+		)
 
 		install(
 			FILES
 				${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
-			DESTINATION ${CMAKE_INSTALL_PREFIX}
+			DESTINATION "."
 		)
 
 		install(
 			PROGRAMS
 			${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
-			DESTINATION ${CMAKE_INSTALL_PREFIX}
+			DESTINATION "."
 		)
 
 		install(
 			FILES ${BLENDER_TEXT_FILES}
-			DESTINATION ${CMAKE_INSTALL_PREFIX}
+			DESTINATION "."
 		)
 
 	else()
@@ -436,33 +436,32 @@ if(UNIX AND NOT APPLE)
 		if(WITH_PYTHON_MODULE)
 			install(
 				TARGETS blender
-				LIBRARY
-				DESTINATION ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages
+				LIBRARY	DESTINATION ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages
 			)
 		else()
 			install(
-				PROGRAMS ${CMAKE_INSTALL_PREFIX}/blender
-				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+				TARGETS blender
+				DESTINATION bin
 			)
 			# manpage only with 'blender' binary
 			install(
-				FILES ${CMAKE_INSTALL_PREFIX}/blender.1
-				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+				FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+				DESTINATION share/man/man1
 			)
 		endif()
 
 
 		if(WITH_GAMEENGINE AND WITH_PLAYER)
 			install(
-				PROGRAMS ${CMAKE_INSTALL_PREFIX}/blenderplayer
-				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+				TARGETS blenderplayer
+				DESTINATION bin
 			)
 		endif()
 
 		# misc files
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
+			DESTINATION share/applications
 		)
 		install(
 			DIRECTORY
@@ -472,20 +471,20 @@ if(UNIX AND NOT APPLE)
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/32x32
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/48x48
 				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/256x256
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor
+			DESTINATION share/icons/hicolor
 			PATTERN "*.svg" EXCLUDE
 		)
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps
+			DESTINATION share/icons/hicolor/scalable/apps
 		)
 		install(
 			PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+			DESTINATION bin
 		)
 		install(
 			FILES ${BLENDER_TEXT_FILES}
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
+			DESTINATION share/doc/blender
 		)
 	endif()
 
@@ -805,7 +804,9 @@ elseif(APPLE)
 	set(OSX_APP_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/blender.app)
 
 	# setup Info.plist
-	execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BLENDER_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+	execute_process(COMMAND date "+%Y-%m-%d"
+	                OUTPUT_VARIABLE BLENDER_DATE
+	                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 	set_target_properties(blender PROPERTIES
 		MACOSX_BUNDLE_INFO_PLIST ${OSX_APP_SOURCEDIR}/Contents/Info.plist

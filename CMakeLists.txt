@@ -368,16 +368,19 @@ if(MSVC)
 	set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
 endif()
 
+
 # By default we want to install to the directory we are compiling our executables
 # unless specified otherwise, which we currently do not allow
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 if(MSVC)
-	set(BLENDER_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+	set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
 elseif(APPLE)
-	set(BLENDER_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+	set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
 else()
-	set(BLENDER_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH})
+	set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "default install path" FORCE )
 endif()
-set(CMAKE_INSTALL_PREFIX ${BLENDER_INSTALL_PREFIX} CACHE INTERNAL "")
+endif()
+
 
 
 # Apple
@@ -1691,6 +1694,12 @@ elseif(WIN32)
 			message(STATUS "OSL not found")
 		endif()
 	endif()
+
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "Blender Foundation/Blender")
+	set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "Blender Foundation/Blender")
+	set(CPACK_WIX_LICENSE_RTF ${CMAKE_SOURCE_DIR}/release/text/GPL-license.rtf)
+	set(CPACK_WIX_PRODUCT_ICON ${CMAKE_SOURCE_DIR}/source/icons/winblender.ico)
+	set(CPACK_WIX_UPGRADE_GUID "B767E4FD-7DE7-4094-B051-3AE62E13A17A")
 
 elseif(APPLE)
 
