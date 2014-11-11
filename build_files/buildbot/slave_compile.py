@@ -33,7 +33,7 @@ builder = sys.argv[1]
 # we run from build/ directory
 blender_dir = '../blender.git'
 
-if builder.find('cmake') != -1:
+if 'cmake' in builder:
     # cmake
 
     # set build options
@@ -46,11 +46,21 @@ if builder.find('cmake') != -1:
     elif builder.endswith('mac_ppc_cmake'):
         cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
 
+    if 'win64' in builder:
+
+        cmake_options.append('-G Visual Studio 12 2013 Win64')
+    elif 'win32' in builder:
+        cmake_options.append('-G Visual Studio 12 2013')
+
+
     # configure and make
     retcode = subprocess.call(['cmake', blender_dir] + cmake_options)
     if retcode != 0:
         sys.exit(retcode)
-    retcode = subprocess.call(['make', '-s', '-j4', 'install'])
+    if 'win' in builder:
+        retcode = subprocess.call(['msbuild', 'INSTALL.vcxproj', '/p:Configuration=Release'])
+    else:
+        retcode = subprocess.call(['make', '-s', '-j4', 'install'])
     sys.exit(retcode)
 else:
     python_bin = 'python'
