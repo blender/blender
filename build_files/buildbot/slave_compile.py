@@ -48,9 +48,9 @@ if 'cmake' in builder:
 
     if 'win64' in builder:
 
-        cmake_options.append('-G Visual Studio 12 2013 Win64')
+        cmake_options.append(['-G','"Visual Studio 12 2013 Win64"'])
     elif 'win32' in builder:
-        cmake_options.append('-G Visual Studio 12 2013')
+        cmake_options.append(['-G','"Visual Studio 12 2013"'])
 
 
     # configure and make
