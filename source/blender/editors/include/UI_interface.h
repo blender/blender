@@ -102,8 +102,7 @@ enum {
 	UI_EMBOSS               = 0,  /* use widget style for drawing */
 	UI_EMBOSS_NONE          = 1,  /* Nothing, only icon and/or text */
 	UI_EMBOSS_PULLDOWN      = 2,  /* Pulldown menu style */
-	UI_EMBOSS_TABLE         = 3,  /* Table */
-	UI_EMBOSS_RADIAL        = 4,  /* Pie Menu */
+	UI_EMBOSS_RADIAL        = 3,  /* Pie Menu */
 };
 
 /* uiBlock->direction */

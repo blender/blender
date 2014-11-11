@@ -3517,7 +3517,8 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		wt = widget_type(UI_WTYPE_MENU_ITEM_RADIAL);
 	}
 	else {
-		
+		BLI_assert(but->dt == UI_EMBOSS);
+
 		switch (but->type) {
 			case UI_BTYPE_LABEL:
 				if (but->block->flag & UI_BLOCK_LOOP)

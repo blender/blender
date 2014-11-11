@@ -775,8 +775,6 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 	TreeStoreElem *tselem;
 	PointerRNA *ptr;
 	PropertyRNA *prop;
-	
-	UI_block_emboss_set(block, UI_EMBOSS_TABLE);
 
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
