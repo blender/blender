@@ -359,6 +359,8 @@ void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Sc
 			flag |= SD_VOLUME_MIS;
 		if(shader->volume_interpolation_method == VOLUME_INTERPOLATION_CUBIC)
 			flag |= SD_VOLUME_CUBIC;
+		if(shader->graph_bump)
+			flag |= SD_HAS_BUMP;
 
 		/* regular shader */
 		shader_flag[i++] = flag;
