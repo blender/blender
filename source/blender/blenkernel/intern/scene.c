@@ -1096,18 +1096,15 @@ void BKE_scene_base_select(Scene *sce, Base *selbase)
 }
 
 /* checks for cycle, returns 1 if it's all OK */
-int BKE_scene_validate_setscene(Main *bmain, Scene *sce)
+bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 {
-	Scene *scene;
+	Scene *sce_iter;
 	int a, totscene;
-	
+
 	if (sce->set == NULL) return 1;
+	totscene = BLI_countlist(&bmain->scene);
 	
-	totscene = 0;
-	for (scene = bmain->scene.first; scene; scene = scene->id.next)
-		totscene++;
-	
-	for (a = 0, scene = sce; scene->set; scene = scene->set, a++) {
+	for (a = 0, sce_iter = sce; sce_iter->set; sce_iter = sce_iter->set, a++) {
 		/* more iterations than scenes means we have a cycle */
 		if (a > totscene) {
 			/* the tested scene gets zero'ed, that's typically current scene */

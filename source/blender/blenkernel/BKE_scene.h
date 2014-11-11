@@ -110,7 +110,7 @@ char *BKE_scene_find_marker_name(struct Scene *scene, int frame);
 char *BKE_scene_find_last_marker_name(struct Scene *scene, int frame);
 
 /* checks for cycle, returns 1 if it's all OK */
-int BKE_scene_validate_setscene(struct Main *bmain, struct Scene *sce);
+bool BKE_scene_validate_setscene(struct Main *bmain, struct Scene *sce);
 
 float BKE_scene_frame_get(struct Scene *scene);
 float BKE_scene_frame_get_from_ctime(struct Scene *scene, const float frame);
