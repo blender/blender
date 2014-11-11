@@ -2199,14 +2199,15 @@ static void give_parvert(Object *par, int nr, float vec[3])
 				}
 
 				if (use_special_ss_case) {
-					/* Special case if the last modifier is SS and no constructive modifier
-					 * are in front of it.
-					 */
+					/* Special case if the last modifier is SS and no constructive modifier are in front of it. */
 					CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
 					CCGVert *ccg_vert = ccgSubSurf_getVert(ccgdm->ss, SET_INT_IN_POINTER(nr));
-					float *co = ccgSubSurf_getVertData(ccgdm->ss, ccg_vert);
-					add_v3_v3(vec, co);
-					count++;
+					/* In case we deleted some verts, nr may refer to inexistent one now, see T42557. */
+					if (ccg_vert) {
+						float *co = ccgSubSurf_getVertData(ccgdm->ss, ccg_vert);
+						add_v3_v3(vec, co);
+						count++;
+					}
 				}
 				else if (CustomData_has_layer(&dm->vertData, CD_ORIGINDEX) &&
 				         !(em && dm->type == DM_TYPE_EDITBMESH))
