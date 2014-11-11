@@ -851,7 +851,13 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 		 * fun first pass on all buttons so first word chars always get first priority */
 
 		for (but = block->buttons.first; but; but = but->next) {
-			if (!ELEM(but->type, UI_BTYPE_BUT, UI_BTYPE_BUT_MENU, UI_BTYPE_MENU, UI_BTYPE_BLOCK, UI_BTYPE_PULLDOWN) || (but->flag & UI_HIDDEN)) {
+			if (!ELEM(but->type,
+			          UI_BTYPE_BUT,
+			          UI_BTYPE_BUT_MENU,
+			          UI_BTYPE_MENU, UI_BTYPE_BLOCK,
+			          UI_BTYPE_PULLDOWN) ||
+			    (but->flag & UI_HIDDEN))
+			{
 				/* pass */
 			}
 			else if (but->menu_key == '\0') {
@@ -3088,7 +3094,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
 	}
 	else if ((block->flag & UI_BLOCK_LOOP) ||
-	         ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_TEXT, UI_BTYPE_LABEL, UI_BTYPE_BLOCK, UI_BTYPE_BUT_MENU, UI_BTYPE_SEARCH_MENU, UI_BTYPE_PROGRESS_BAR, UI_BTYPE_SEARCH_MENU_UNLINK))
+	         ELEM(but->type,
+	              UI_BTYPE_MENU, UI_BTYPE_TEXT, UI_BTYPE_LABEL,
+	              UI_BTYPE_BLOCK, UI_BTYPE_BUT_MENU, UI_BTYPE_SEARCH_MENU,
+	              UI_BTYPE_PROGRESS_BAR, UI_BTYPE_SEARCH_MENU_UNLINK))
 	{
 		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
 	}
