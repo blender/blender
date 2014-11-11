@@ -62,7 +62,7 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 {
 	float xscale, yscale, x, y;
 	char numstr[32] = "    t";  /* t is the character to start replacing from */
-	short slen;
+	int slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_scale_get(v2d, &xscale, &yscale);
@@ -79,7 +79,7 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	else {
 		BLI_timecode_string_from_time_simple(&numstr[4], sizeof(numstr) - 4, 1, cfra);
 	}
-	slen = (short)UI_fontstyle_string_width(numstr) - 1;
+	slen = UI_fontstyle_string_width(numstr) - 1;
 	
 	/* get starting coordinates for drawing */
 	x = cfra * xscale;

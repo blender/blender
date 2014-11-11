@@ -128,12 +128,9 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	}
 	
 	/* Is there enough space for the execute / cancel buttons? */
-	loadbutton = UI_fontstyle_string_width(sfile->params->title) + btn_margin;
-	if (loadbutton < btn_minw) {
-		loadbutton = MAX2(btn_minw, 
-		                  btn_margin + UI_fontstyle_string_width(params->title));
-	}
-	
+	loadbutton = UI_fontstyle_string_width(params->title) + btn_margin;
+	CLAMP_MIN(loadbutton, btn_minw);
+
 	if (available_w <= loadbutton + separator + input_minw || params->title[0] == 0) {
 		loadbutton = 0;
 	}
