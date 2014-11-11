@@ -5124,6 +5124,36 @@ static void lib_link_sequence_modifiers(FileData *fd, Scene *scene, ListBase *lb
 	}
 }
 
+/* check for cyclic set-scene,
+ * libs can cause this case which is normally prevented, see (T#####) */
+#define USE_SETSCENE_CHECK
+
+#ifdef USE_SETSCENE_CHECK
+/**
+ * A version of #BKE_scene_validate_setscene with special checks for linked libs.
+ */
+static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
+{
+	Scene *sce_iter;
+	int a;
+
+	if (sce->set == NULL) return 1;
+
+	for (a = 0, sce_iter = sce; sce_iter->set; sce_iter = sce_iter->set, a++) {
+		if (sce_iter->id.flag & LIB_NEED_LINK) {
+			return 1;
+		}
+
+		if (a > totscene) {
+			sce->set = NULL;
+			return 0;
+		}
+	}
+
+	return 1;
+}
+#endif
+
 static void lib_link_scene(FileData *fd, Main *main)
 {
 	Scene *sce;
@@ -5133,6 +5163,11 @@ static void lib_link_scene(FileData *fd, Main *main)
 	TimeMarker *marker;
 	FreestyleModuleConfig *fmc;
 	FreestyleLineSet *fls;
+
+#ifdef USE_SETSCENE_CHECK
+	bool need_check_set = false;
+	int totscene = 0;
+#endif
 	
 	for (sce = main->scene.first; sce; sce = sce->id.next) {
 		if (sce->id.flag & LIB_NEED_LINK) {
@@ -5278,11 +5313,44 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			/* Motion Tracking */
 			sce->clip = newlibadr_us(fd, sce->id.lib, sce->clip);
-			
-			sce->id.flag -= LIB_NEED_LINK;
+
+#ifdef USE_SETSCENE_CHECK
+			if (sce->set != NULL) {
+				/* link flag for scenes with set would be reset later,
+				 * so this way we only check cyclic for newly linked scenes.
+				 */
+				need_check_set = true;
+			}
+			else {
+				/* postpone un-setting the flag until we've checked the set-scene */
+				sce->id.flag &= ~LIB_NEED_LINK;
+			}
+#else
+			sce->id.flag &= ~LIB_NEED_LINK;
+#endif
+		}
+
+#ifdef USE_SETSCENE_CHECK
+		totscene++;
+#endif
+	}
+
+#ifdef USE_SETSCENE_CHECK
+	if (need_check_set) {
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			if (sce->id.flag & LIB_NEED_LINK) {
+				sce->id.flag &= ~LIB_NEED_LINK;
+				if (!scene_validate_setscene__liblink(sce, totscene)) {
+					printf("Found cyclic background scene when linking %s\n", sce->id.name + 2);
+				}
+			}
 		}
 	}
+#endif
 }
+
+#undef USE_SETSCENE_CHECK
+
 
 static void link_recurs_seq(FileData *fd, ListBase *lb)
 {
