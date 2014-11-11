@@ -267,7 +267,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 elseif(WIN32)
-	set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION})
+	set(TARGETDIR_VER ${BLENDER_VERSION})
 
 elseif(APPLE)
 	if(WITH_PYTHON_MODULE)
@@ -622,53 +622,40 @@ elseif(WIN32)
 		if(WITH_PYTHON_INSTALL)
 			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
 
-			# create the directory in multiple steps, so it actually gets created when it doesn't exist yet
-			install(
-				CODE
-				"
-				message(\"creating ${TARGETDIR_VER}/python/lib\")
-				file(MAKE_DIRECTORY \"${TARGETDIR_VER}/python\")
-				file(MAKE_DIRECTORY \"${TARGETDIR_VER}/python/lib\")
-				message(\"done creating dir\")
-				"
-			)
+			install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python)
+			install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python/lib)
 
-			install(
-				CODE
-				"
-				if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" STREQUAL \"Debug\")
-					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz\")
-				else()
-					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz\")
-				endif()
-				"
-			)
+			execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib")
 
-			if(WITH_PYTHON_INSTALL_NUMPY)
-				install(
-					CODE
-					"
-					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/site-packages\"
-						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_1.8.tar.gz\")
-					"
-				)
+			if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" STREQUAL \"Debug\")
+				add_custom_target(python_std_lib
+					COMMAND ${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz"
+					WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib)
+			else()
+				add_custom_target(python_std_lib
+					COMMAND ${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz"
+					WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib)
 			endif()
 
+			add_dependencies(blender python_std_lib)
+
 			# release/site-packages
-			install(
-				CODE
-				"
-				execute_process(COMMAND \"${CMAKE_COMMAND}\" -E copy_directory
-					${LIBDIR}/release/site-packages
-					\"${TARGETDIR_VER}/python/lib/site-packages\")
-				"
-			)
+			add_custom_target(python_site-packages
+					COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/release/site-packages ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/)
 
+			add_dependencies(blender python_site-packages)
 
-			# doesnt work, todo
-			# install(CODE "execute_process(COMMAND find ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
+			if(WITH_PYTHON_INSTALL_NUMPY)
+				add_custom_target(python_numpy
+					COMMAND ${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_1.8.tar.gz"
+					WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages)
+			endif()
+
+			add_dependencies(blender python_numpy)
+
+			install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib
+					DESTINATION ${BLENDER_VERSION}/python	)
+
 		endif()
 
 		unset(_PYTHON_VERSION_NO_DOTS)
@@ -969,4 +956,7 @@ if(WIN32 AND NOT WITH_PYTHON_MODULE)
 
 	set_target_properties(blender PROPERTIES OUTPUT_NAME blender-app)
 	set_target_properties(blender-launcher PROPERTIES OUTPUT_NAME blender)
+
+	install(TARGETS blender blender-launcher
+			DESTINATION ".")
 endif()

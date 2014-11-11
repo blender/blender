@@ -115,6 +115,11 @@ if builder.find('scons') != -1:
 
         retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
         sys.exit(retcode)
+else:
+#cmake
+    if 'win' in builder:
+        retcode = subprocess.call(['cpack', '-G','ZIP'])
+        sys.exit(retcode)
 
 # clean release directory if it already exists
 release_dir = 'release'
