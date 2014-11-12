@@ -595,7 +595,7 @@ typedef struct VolumeStep {
 } VolumeStep;
 
 typedef struct VolumeSegment {
-	VolumeStep stack_step;      /* stack storage for homogenous step, to avoid malloc */
+	VolumeStep stack_step;      /* stack storage for homogeneous step, to avoid malloc */
 	VolumeStep *steps;			/* recorded steps */
 	int numsteps;				/* number of steps */
 	int closure_flag;			/* accumulated closure flags from all steps */
@@ -1013,7 +1013,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 		}
 		else {
 			/* If ray from camera enters the volume, this volume shouldn't
-			 * be added to the stak on exit.
+			 * be added to the stack on exit.
 			 */
 			enclosed_volumes[enclosed_index++] = sd.object;
 		}
