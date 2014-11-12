@@ -211,6 +211,7 @@ if(WITH_PYTHON_MODULE)
 		set_target_properties(
 			blender
 			PROPERTIES
+				MACOSX_BUNDLE
 				LINK_FLAGS_RELEASE "${PLATFORM_LINKFLAGS}"
 				LINK_FLAGS_DEBUG "${PLATFORM_LINKFLAGS_DEBUG}"
 		)
@@ -271,9 +272,9 @@ elseif(WIN32)
 
 elseif(APPLE)
 	if(WITH_PYTHON_MODULE)
-		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION})
+		set(TARGETDIR_VER ${BLENDER_VERSION})
 	else()
-		set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/blender.app/Contents/Resources/${BLENDER_VERSION})
+		set(TARGETDIR_VER blender.app/Contents/Resources/${BLENDER_VERSION})
 	endif()
 
 endif()
@@ -813,34 +814,38 @@ elseif(APPLE)
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${BLENDER_VERSION}
 		MACOSX_BUNDLE_LONG_VERSION_STRING "${BLENDER_VERSION} ${BLENDER_DATE}")
 
+	install(
+		TARGETS blender
+		DESTINATION "."
+	)
 
 	# install release and app files
 	install(
 		FILES ${BLENDER_TEXT_FILES}
-		DESTINATION ${CMAKE_INSTALL_PREFIX}
+		DESTINATION blender.app/Contents
 	)
 
 	install(
 		FILES ${OSX_APP_SOURCEDIR}/Contents/PkgInfo
-		DESTINATION ${CMAKE_INSTALL_PREFIX}/blender.app/Contents
+		DESTINATION blender.app/Contents
 	)
 
 	install_dir(
 		${OSX_APP_SOURCEDIR}/Contents/Resources
-		\${CMAKE_INSTALL_PREFIX}/blender.app/Contents/
+		blender.app/Contents/
 	)
 
 	if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
 		install(
 			FILES ${LIBDIR}/openmp/lib/libiomp5.dylib
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/blender.app/Contents/MacOS
+			DESTINATION blender.app/Contents/MacOS
 		)
 	endif()
 
 	if(WITH_LLVM AND NOT LLVM_STATIC)
 		install(
 			FILES ${LIBDIR}/llvm/lib/libLLVM-3.4.dylib
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/blender.app/Contents/MacOS
+			DESTINATION blender.app/Contents/MacOS
 		)
 	endif()
 
@@ -883,7 +888,7 @@ elseif(APPLE)
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
 		set(OSX_APP_PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/blenderplayer.app)
 		set(PLAYER_SOURCEINFO ${OSX_APP_PLAYER_SOURCEDIR}/Contents/Info.plist)
-		set(PLAYER_TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/blenderplayer.app/Contents/Resources/${BLENDER_VERSION})
+		set(PLAYER_TARGETDIR_VER blenderplayer.app/Contents/Resources/${BLENDER_VERSION})
 
 
 		# important to make a clean  install each time else old scripts get loaded.
@@ -894,12 +899,12 @@ elseif(APPLE)
 
 		install(
 			FILES ${OSX_APP_PLAYER_SOURCEDIR}/Contents/PkgInfo
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/blenderplayer.app/Contents
+			DESTINATION blenderplayer.app/Contents
 		)
 
 		install_dir(
 			${OSX_APP_PLAYER_SOURCEDIR}/Contents/Resources
-			\${CMAKE_INSTALL_PREFIX}/blenderplayer.app/Contents/
+			blenderplayer.app/Contents/
 		)
 
 		# python
