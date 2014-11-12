@@ -118,7 +118,12 @@ if builder.find('scons') != -1:
 else:
 #cmake
     if 'win' in builder:
+        files = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.zip')]
+        for f in files:
+            os.remove(f)
         retcode = subprocess.call(['cpack', '-G','ZIP'])
+        result_file = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.zip')][0]
+        os.rename(result_file, "buildbot_upload.zip")
         sys.exit(retcode)
 
 # clean release directory if it already exists
