@@ -622,7 +622,7 @@ enum ShaderDataFlag {
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
 	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
 	                   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS|
-	                   SD_VOLUME_CUBIC | SD_HAS_BUMP),
+	                   SD_VOLUME_CUBIC|SD_HAS_BUMP),
 
 	/* object flags */
 	SD_HOLDOUT_MASK             = (1 << 21),  /* holdout for camera rays */
