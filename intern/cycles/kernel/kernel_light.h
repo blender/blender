@@ -216,10 +216,10 @@ ccl_device float3 area_light_sample(float3 P,
 	float3 n2 = normalize(cross(v11, v01));
 	float3 n3 = normalize(cross(v01, v00));
 	/* Compute internal angles (gamma_i). */
-	float g0 = acosf(-dot(n0, n1));
-	float g1 = acosf(-dot(n1, n2));
-	float g2 = acosf(-dot(n2, n3));
-	float g3 = acosf(-dot(n3, n0));
+	float g0 = safe_acosf(-dot(n0, n1));
+	float g1 = safe_acosf(-dot(n1, n2));
+	float g2 = safe_acosf(-dot(n2, n3));
+	float g3 = safe_acosf(-dot(n3, n0));
 	/* Compute predefined constants. */
 	float b0 = n0.z;
 	float b1 = n2.z;
@@ -243,7 +243,10 @@ ccl_device float3 area_light_sample(float3 P,
 	float hv = h0 + randv * (h1 - h0), hv2 = hv * hv;
 	float yv = (hv2 < 1.0f - 1e-6f) ? (hv * d) / sqrtf(1.0f - hv2) : y1;
 
-	*pdf = 1.0f / S;
+	if(S != 0.0f)
+		*pdf = 1.0f / S;
+	else
+		*pdf = 0.0f;
 
 	/* Transform (xu, yv, z0) to world coords. */
 	return P + xu * x + yv * y + z0 * z;
@@ -289,15 +292,18 @@ ccl_device float area_light_pdf(float3 P,
 	float3 n2 = normalize(cross(v11, v01));
 	float3 n3 = normalize(cross(v01, v00));
 	/* Compute internal angles (gamma_i). */
-	float g0 = acosf(-dot(n0, n1));
-	float g1 = acosf(-dot(n1, n2));
-	float g2 = acosf(-dot(n2, n3));
-	float g3 = acosf(-dot(n3, n0));
+	float g0 = safe_acosf(-dot(n0, n1));
+	float g1 = safe_acosf(-dot(n1, n2));
+	float g2 = safe_acosf(-dot(n2, n3));
+	float g3 = safe_acosf(-dot(n3, n0));
 	/* Compute predefined constants. */
 	float k = M_2PI_F - g2 - g3;
 	/* Compute solid angle from internal angles. */
 	float S = g0 + g1 - k;
-	return 1.0f / S;
+	if(S != 0.0f)
+		return 1.0f / S;
+	else
+		return 0.0f;
 }
 
 ccl_device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
