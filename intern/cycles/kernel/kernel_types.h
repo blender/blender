@@ -543,7 +543,7 @@ typedef enum AttributeStandard {
  * could be simply a compilers bug for which we can't find a generic
  * platform independent workaround. Also even if it's a compiler
  * issue, it's not so simple to upgrade the compiler in the release
- * environment for linux and doing it so closer to the release is
+ * environment for Linux and doing it so closer to the release is
  * rather a risky business.
  *
  * For this release it's probably safer to stick with such a rather
@@ -997,7 +997,7 @@ typedef struct KernelData {
 
 #ifdef __KERNEL_DEBUG__
 typedef struct DebugData {
-	// Total number of BVH node travesal steps and primitives intersections
+	// Total number of BVH node traversal steps and primitives intersections
 	// for the camera rays.
 	int num_bvh_traversal_steps;
 } DebugData;

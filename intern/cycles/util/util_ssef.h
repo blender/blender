@@ -151,7 +151,7 @@ __forceinline ssef maxi(const ssef& a, const ssef& b) {
 /// Ternary Operators
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined(__KERNEL_AVX2__)
+#if defined(__KERNEL_AVX2__) && !defined(_MSC_VER) // see T41066
 __forceinline const ssef madd (const ssef& a, const ssef& b, const ssef& c) { return _mm_fmadd_ps(a,b,c); }
 __forceinline const ssef msub (const ssef& a, const ssef& b, const ssef& c) { return _mm_fmsub_ps(a,b,c); }
 __forceinline const ssef nmadd(const ssef& a, const ssef& b, const ssef& c) { return _mm_fnmadd_ps(a,b,c); }
