@@ -412,7 +412,7 @@ void BL_ConvertActuators(const char* maggiename,
 						// if sound shall be 3D but isn't mono, we have to make it mono!
 						if (is3d)
 						{
-							snd_sound = AUD_monoSound(snd_sound);
+							snd_sound = AUD_Sound_rechannel(snd_sound, AUD_CHANNELS_MONO);
 						}
 					}
 					KX_SoundActuator* tmpsoundact =
@@ -426,7 +426,7 @@ void BL_ConvertActuators(const char* maggiename,
 
 					// if we made it mono, we have to free it
 					if(snd_sound != sound->playback_handle && snd_sound != NULL)
-						AUD_unload(snd_sound);
+						AUD_Sound_free(snd_sound);
 
 					tmpsoundact->SetName(bact->name);
 					baseact = tmpsoundact;

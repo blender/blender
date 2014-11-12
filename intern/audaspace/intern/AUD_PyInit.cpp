@@ -47,7 +47,7 @@ static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
 			if (sound) {
 				Sound *obj = (Sound *)Sound_empty();
 				if (obj) {
-					obj->sound = AUD_copy(sound);
+					obj->sound = AUD_Sound_copy(sound);
 					return (PyObject *) obj;
 				}
 			}

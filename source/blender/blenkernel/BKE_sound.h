@@ -53,6 +53,8 @@ typedef struct SoundWaveform {
 void BKE_sound_init_once(void);
 void BKE_sound_exit_once(void);
 
+void* BKE_sound_get_device(void);
+
 void BKE_sound_init(struct Main *main);
 
 void BKE_sound_init_main(struct Main *bmain);
