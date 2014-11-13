@@ -61,7 +61,19 @@ if(APPLE)
 	set(CPACK_COMPONENT_LIBRARIES_HIDDEN TRUE)
 endif()
 
-set(CPACK_PACKAGE_EXECUTABLES "blender")
+if(WIN32)
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "Blender Foundation/Blender")
+	set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "Blender Foundation/Blender")
+
+	set(CPACK_NSIS_MUI_ICON ${CMAKE_SOURCE_DIR}/source/icons/winblender.ico)
+	set(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
+
+	set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt)
+	set(CPACK_WIX_PRODUCT_ICON ${CMAKE_SOURCE_DIR}/source/icons/winblender.ico)
+	set(CPACK_WIX_UPGRADE_GUID "B767E4FD-7DE7-4094-B051-3AE62E13A17A")
+endif()
+
+set(CPACK_PACKAGE_EXECUTABLES "blender" "blender")
 include(CPack)
 
 # Target for build_archive.py script, to automatically pass along
