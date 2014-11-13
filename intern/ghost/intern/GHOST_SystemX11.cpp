@@ -1874,8 +1874,11 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
 }
 #endif
 
-#ifdef WITH_X11_XINPUT
-/* 
+#if defined(USE_X11_ERROR_HANDLERS) || defined(WITH_X11_XINPUT)
+/*
+ * These callbacks can be used for debugging, so we can breakpoint on an X11 error.
+
+ *
  * Dummy function to get around IO Handler exiting if device invalid
  * Basically it will not crash blender now if you have a X device that
  * is configured but not plugged in.
@@ -1896,7 +1899,9 @@ int GHOST_X11_ApplicationIOErrorHandler(Display *display)
 	/* No exit! - but keep lint happy */
 	return 0;
 }
+#endif
 
+#ifdef WITH_X11_XINPUT
 /* These C functions are copied from Wine 1.1.13's wintab.c */
 #define BOOL int
 #define TRUE 1
