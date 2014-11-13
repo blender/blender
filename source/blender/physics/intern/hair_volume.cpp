@@ -530,10 +530,22 @@ void BPH_hair_volume_normalize_vertex_grid(HairGrid *grid)
 	}
 }
 
-bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt)
+static const float density_threshold = 0.001f; /* cells with density below this are considered empty */
+
+/* Contribution of target density pressure to the laplacian in the pressure poisson equation.
+ * This is based on the model found in
+ * "Two-way Coupled SPH and Particle Level Set Fluid Simulation" (Losasso et al., 2008)
+ */
+BLI_INLINE float hair_volume_density_divergence(float density, float target_density, float strength)
 {
-	const float density_threshold = 0.001f; /* cells with density below this are considered empty */
-	
+	if (density > density_threshold && density > target_density)
+		return strength * density * logf(target_density / density);
+	else
+		return 0.0f;
+}
+
+bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_density, float target_strength)
+{
 	const float flowfac = grid->cellsize / dt;
 	const float inv_flowfac = dt / grid->cellsize;
 	
@@ -576,12 +588,17 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt)
 				float dy = vert_py->velocity[1] - v[1];
 				float dz = vert_pz->velocity[2] - v[2];
 				
+				float divergence = (dx + dy + dz) * flowfac;
+				
+				/* adjustment term for target density */
+				float target = hair_volume_density_divergence(vert->density, target_density, target_strength);
+				
 				/* B vector contains the finite difference approximation of the velocity divergence.
 				 * Note: according to the discretized Navier-Stokes equation the rhs vector
 				 * and resulting pressure gradient should be multiplied by the (inverse) density;
 				 * however, this is already included in the weighting of hair velocities on the grid!
 				 */
-				B[u] = (dx + dy + dz) * flowfac;
+				B[u] = divergence + target;
 			}
 		}
 	}

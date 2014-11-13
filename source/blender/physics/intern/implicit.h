@@ -187,7 +187,7 @@ void BPH_hair_volume_add_segment(struct HairGrid *grid,
 
 void BPH_hair_volume_normalize_vertex_grid(struct HairGrid *grid);
 
-bool BPH_hair_volume_solve_divergence(struct HairGrid *grid, float dt);
+bool BPH_hair_volume_solve_divergence(struct HairGrid *grid, float dt, float target_density, float target_strength);
 #if 0 /* XXX weighting is incorrect, disabled for now */
 void BPH_hair_volume_vertex_grid_filter_box(struct HairVertexGrid *grid, int kernel_size);
 #endif

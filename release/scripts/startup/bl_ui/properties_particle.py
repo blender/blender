@@ -325,10 +325,9 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         col.label(text="Volume")
         col.prop(cloth, "air_damping", text="Air Drag")
         col.prop(cloth, "internal_friction", slider=True)
-        sub = col.row(align=True)
-        # XXX disabled due to stability issues
-        #sub.prop(cloth, "pressure", slider=True, text="Pressure")
-        #sub.prop(cloth, "pressure_threshold", slider=True, text="Threshold")
+        sub = col.column(align=True)
+        sub.prop(cloth, "density_target", text="Density Target")
+        sub.prop(cloth, "density_strength", slider=True, text="Strength")
         col.prop(cloth, "voxel_cell_size")
 
         split.separator()

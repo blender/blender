@@ -1017,8 +1017,8 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 	
 	const float fluid_factor = 0.95f; /* blend between PIC and FLIP methods */
 	float smoothfac = parms->velocity_smooth;
-	float pressfac = parms->pressure;
-	float minpress = parms->pressure_threshold;
+	float denstarget = parms->density_target;
+	float densfac = parms->density_strength;
 	float gmin[3], gmax[3];
 	int i;
 	
@@ -1030,14 +1030,15 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 	hair_get_boundbox(clmd, gmin, gmax);
 	
 	/* gather velocities & density */
-	if (smoothfac > 0.0f || pressfac > 0.0f) {
+	if (smoothfac > 0.0f || densfac > 0.0f) {
 		HairGrid *grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_cell_size, gmin, gmax);
 		BPH_hair_volume_set_debug_data(grid, clmd->debug_data);
 		
+//		BPH_hair_volume_set_debug_value(grid, (int)(spring2->ij == clmd->sim_parms->density_target));
 		cloth_continuum_fill_grid(grid, cloth);
 		
 		/* main hair continuum solver */
-		BPH_hair_volume_solve_divergence(grid, dt);
+		BPH_hair_volume_solve_divergence(grid, dt, denstarget, densfac);
 		
 		for (i = 0, vert = cloth->verts; i < numverts; i++, vert++) {
 			float x[3], v[3], nv[3];
