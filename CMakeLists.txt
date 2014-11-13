@@ -158,6 +158,10 @@ mark_as_advanced(WITH_GHOST_DEBUG)
 option(WITH_GHOST_SDL    "Enable building blender against SDL for windowing rather then the native APIs" OFF)
 mark_as_advanced(WITH_GHOST_SDL)
 
+if(WITH_X11)
+	option(WITH_GHOST_XDND    "Enable drag'n'drop support on X11 using XDND protocol" ON)
+endif()
+
 # Misc...
 option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)
@@ -174,7 +178,6 @@ endif()
 if(WITH_X11)
 	option(WITH_X11_XINPUT    "Enable X11 Xinput (tablet support and unicode input)"  ON)
 	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"                       ON)
-	option(WITH_GHOST_XDND    "Enable drag'n'drop support on X11 using XDND protocol" ON)
 endif()
 
 if(UNIX AND NOT APPLE)
@@ -320,11 +323,6 @@ option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_ass
 mark_as_advanced(WITH_ASSERT_ABORT)
 
 option(WITH_BOOST					"Enable features depending on boost" ON)
-
-if(CMAKE_COMPILER_IS_GNUCC)
-	option(WITH_GCC_MUDFLAP			"Enable mudflap" OFF)
-	mark_as_advanced(WITH_GCC_MUDFLAP)
-endif()
 
 # Unit testsing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
@@ -2546,13 +2544,6 @@ if(WITH_PYTHON)
 	elseif(WITH_PYTHON_INSTALL_REQUESTS)
 		find_python_package(requests)
 	endif()
-endif()
-
-if(WITH_GCC_MUDFLAP)
-	set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -fmudflapth -funwind-tables")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lmudflapth -rdynamic")
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS     C_WARN_NO_ERROR_MUDFLAP   -Wno-error=mudflap)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_ERROR_MUDFLAP -Wno-error=mudflap)
 endif()
 
 # Include warnings first, so its possible to disable them with user defined flags
