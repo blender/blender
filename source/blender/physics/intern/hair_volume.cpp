@@ -794,18 +794,18 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize, const float gmin[3]
 	
 	sub_v3_v3v3(extent, gmax, gmin);
 	for (i = 0; i < 3; ++i) {
-		resmin[i] = (int)(gmin[i] * scale);
-		resmax[i] = (int)(gmax[i] * scale) + 1;
+		resmin[i] = floor_int(gmin[i] * scale);
+		resmax[i] = floor_int(gmax[i] * scale) + 1;
 		
 		/* add margin of 1 cell */
 		resmin[i] -= 1;
 		resmax[i] += 1;
 		
-		res[i] = resmax[i] - resmin[i];
+		res[i] = resmax[i] - resmin[i] + 1;
 		/* sanity check: avoid null-sized grid */
-		if (res[i] < 3) {
-			res[i] = 3;
-			resmax[i] = resmin[i] + 3;
+		if (res[i] < 4) {
+			res[i] = 4;
+			resmax[i] = resmin[i] + 4;
 		}
 		/* sanity check: avoid too large grid size */
 		if (res[i] > MAX_HAIR_GRID_RES) {
