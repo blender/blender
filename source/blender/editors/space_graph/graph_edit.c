@@ -1888,7 +1888,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 
 		ked.f1 += current_ked.f1;
 		ked.i1 += current_ked.i1;
-		ked.f2 += current_ked.f2 / unit_scale;
+		ked.f2 += current_ked.f2 * unit_scale;
 		ked.i2 += current_ked.i2;
 	}
 	
