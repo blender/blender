@@ -962,7 +962,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.template_ID(md, "texture", new="texture.new")
         layout.prop(md, "texture_coords")
-        if md.texture_coords == 'MAP_UV' and ob.type == 'MESH':
+        if md.texture_coords == 'UV' and ob.type == 'MESH':
             layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
         elif md.texture_coords == 'OBJECT':
             layout.prop(md, "texture_coords_object")
