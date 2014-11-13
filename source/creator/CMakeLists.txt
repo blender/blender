@@ -392,11 +392,14 @@ endif()
 if(UNIX AND NOT APPLE)
 
 	if(NOT WITH_PYTHON_MODULE)
-	    add_custom_target(blender_man_page ALL
-	                      COMMAND ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py ${EXECUTABLE_OUTPUT_PATH}/blender ${CMAKE_CURRENT_BINARY_DIR}/blender.1)
-
-	    add_dependencies(blender_man_page blender)
-
+		if(WITH_DOC_MANPAGE)
+			add_custom_target(
+				blender_man_page ALL
+				COMMAND ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
+				        ${EXECUTABLE_OUTPUT_PATH}/blender
+				        ${CMAKE_CURRENT_BINARY_DIR}/blender.1)
+			add_dependencies(blender_man_page blender)
+		endif()
 	endif()
 
 	# there are a few differences between portable and system install
@@ -404,10 +407,12 @@ if(UNIX AND NOT APPLE)
 		if(WITH_PYTHON_MODULE)
 			# pass
 		else()
-			install(
-				FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-				DESTINATION "."
-			)
+			if(WITH_DOC_MANPAGE)
+				install(
+					FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+					DESTINATION "."
+				)
+			endif()
 		endif()
 		install(
 			TARGETS blender
@@ -444,11 +449,13 @@ if(UNIX AND NOT APPLE)
 				TARGETS blender
 				DESTINATION bin
 			)
-			# manpage only with 'blender' binary
-			install(
-				FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-				DESTINATION share/man/man1
-			)
+			if(WITH_DOC_MANPAGE)
+				# manpage only with 'blender' binary
+				install(
+					FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+					DESTINATION share/man/man1
+				)
+			endif()
 		endif()
 
 		# misc files

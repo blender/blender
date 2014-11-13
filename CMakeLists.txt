@@ -329,6 +329,13 @@ endif()
 # Unit testsing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
 
+
+# Documentation
+if(UNIX AND NOT APPLE)
+	option(WITH_DOC_MANPAGE "Create a manual page (Unix manpage)" OFF)
+endif()
+
+
 # OpenGL
 
 option(WITH_GLEW_MX             "Support multiple GLEW contexts (experimental)"                                                                     OFF )
