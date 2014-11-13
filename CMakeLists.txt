@@ -378,14 +378,16 @@ endif()
 
 # By default we want to install to the directory we are compiling our executables
 # unless specified otherwise, which we currently do not allow
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND WITH_INSTALL_PORTABLE)
-if(MSVC)
-	set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
-elseif(APPLE)
-	set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
-else()
-	set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "default install path" FORCE )
-endif()
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	if(MSVC)
+		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
+	elseif(APPLE)
+		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
+	else()
+		if (WITH_INSTALL_PORTABLE)
+			set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "default install path" FORCE )
+		endif()
+	endif()
 endif()
 
 
