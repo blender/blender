@@ -354,7 +354,7 @@ mark_as_advanced(
 	WITH_GL_PROFILE_ES20
 )
 
-if (WITH_GL_PROFILE_COMPAT)
+if(WITH_GL_PROFILE_COMPAT)
 	set(WITH_GLU ON)
 else()
 	set(WITH_GLU OFF)
@@ -378,14 +378,14 @@ endif()
 
 # By default we want to install to the directory we are compiling our executables
 # unless specified otherwise, which we currently do not allow
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	if(MSVC)
-		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
+		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE)
 	elseif(APPLE)
-		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE )
+		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE)
 	else()
-		if (WITH_INSTALL_PORTABLE)
-			set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "default install path" FORCE )
+		if(WITH_INSTALL_PORTABLE)
+			set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "default install path" FORCE)
 		endif()
 	endif()
 endif()
@@ -1154,12 +1154,12 @@ elseif(WIN32)
 		endif()
 
 		# Add each of our libraries to our cmake_prefix_path so find_package() could work
-		FILE(GLOB children RELATIVE ${LIBDIR} ${LIBDIR}/*)
-		FOREACH(child ${children})
-		IF(IS_DIRECTORY ${LIBDIR}/${child})
-			LIST(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
-		ENDIF()
-		ENDFOREACH()
+		file(GLOB children RELATIVE ${LIBDIR} ${LIBDIR}/*)
+		foreach(child ${children})
+		if(IS_DIRECTORY ${LIBDIR}/${child})
+			list(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
+		endif()
+		endforeach()
 
 		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
 		set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
@@ -1329,7 +1329,7 @@ elseif(WIN32)
 			set(Boost_USE_MULTITHREADED ON) # suffix -mt
 			set(Boost_USE_STATIC_LIBS ON) # suffix -s
 			find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
-			IF(NOT Boost_FOUND)
+			if(NOT Boost_FOUND)
 				message(WARNING "USING HARDCODED boost locations")
 				set(BOOST ${LIBDIR}/boost)
 				set(BOOST_INCLUDE_DIR ${BOOST}/include)
@@ -2170,7 +2170,7 @@ elseif(WITH_GL_PROFILE_ES20)
 
 		list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}")
 
-		if (NOT OPENGLES_LIBRARY)
+		if(NOT OPENGLES_LIBRARY)
 			message(FATAL_ERROR "To compile WITH_GL_EGL you need to set OPENGLES_LIBRARY to the file path of an OpenGL ES 2.0 library.")
 		endif()
 
@@ -2196,7 +2196,7 @@ elseif(WITH_GL_PROFILE_ES20)
 
 			mark_as_advanced(D3DCOMPILER_DLL)
 
-			if (D3DCOMPILER_DLL STREQUAL "")
+			if(D3DCOMPILER_DLL STREQUAL "")
 				message(FATAL_ERROR "To compile WITH_GL_ANGLE you need to set D3DCOMPILER_DLL to the file path of a copy of the DirectX redistributable DLL file: D3DCompiler_46.dll")
 			endif()
 
@@ -2222,7 +2222,7 @@ if(WITH_GL_EGL)
 
 		list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}" "${OPENGLES_EGL_LIBRARY}")
 
-		if (NOT OPENGLES_EGL_LIBRARY)
+		if(NOT OPENGLES_EGL_LIBRARY)
 			message(FATAL_ERROR "To compile WITH_GL_EGL you need to set OPENGLES_EGL_LIBRARY to the file path of an EGL library.")
 		endif()
 
