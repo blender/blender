@@ -52,7 +52,7 @@ BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'
-BF_SDL_LIB = 'SDL.lib'
+BF_SDL_LIB = 'SDL2.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
 WITH_BF_JACK = False

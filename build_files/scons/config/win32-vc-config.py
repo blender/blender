@@ -57,7 +57,7 @@ BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'
-BF_SDL_LIB = 'SDL.lib'
+BF_SDL_LIB = 'SDL2.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
 BF_PTHREADS = LIBDIR + '/pthreads'

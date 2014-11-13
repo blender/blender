@@ -1180,7 +1180,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         dllsources += ['${BF_PTHREADS_LIBPATH}/${BF_PTHREADS_LIB}.dll']
 
     if env['WITH_BF_SDL']:
-        dllsources.append('${BF_SDL_LIBPATH}/SDL.dll')
+        dllsources.append('${BF_SDL_LIBPATH}/SDL2.dll')
 
     if env['WITH_BF_PYTHON']:
         if env['BF_DEBUG']:

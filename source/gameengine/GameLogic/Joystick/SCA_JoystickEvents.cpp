@@ -36,6 +36,9 @@
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
+#ifdef _MSC_VER
+#  include <cstdio> /* printf */
+#endif
 
 #ifdef WITH_SDL
 void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)

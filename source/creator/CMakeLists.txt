@@ -747,7 +747,7 @@ elseif(WIN32)
 
 	if(WITH_SDL)
 		install(
-			FILES ${LIBDIR}/sdl/lib/SDL.dll
+			FILES ${LIBDIR}/sdl/lib/SDL2.dll
 			DESTINATION "."
 		)
 	endif()

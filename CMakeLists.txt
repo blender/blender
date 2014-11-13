@@ -1675,7 +1675,7 @@ elseif(WIN32)
 	if(WITH_SDL)
 		set(SDL ${LIBDIR}/sdl)
 		set(SDL_INCLUDE_DIR ${SDL}/include)
-		set(SDL_LIBRARY SDL)
+		set(SDL_LIBRARY SDL2)
 		set(SDL_LIBPATH ${SDL}/lib)
 	endif()
 
