@@ -69,6 +69,13 @@ elseif(APPLE)
 
 else()
 	add_executable(blenderplayer bad_level_call_stubs/stubs.c)
+
+	if(NOT WITH_INSTALL_PORTABLE)
+		install(
+			TARGETS blenderplayer
+			DESTINATION bin
+		)
+	endif()
 endif()
 
 add_dependencies(blenderplayer makesdna)

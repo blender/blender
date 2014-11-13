@@ -451,14 +451,6 @@ if(UNIX AND NOT APPLE)
 			)
 		endif()
 
-
-		if(WITH_GAMEENGINE AND WITH_PLAYER)
-			install(
-				TARGETS blenderplayer
-				DESTINATION bin
-			)
-		endif()
-
 		# misc files
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
