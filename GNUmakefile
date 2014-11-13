@@ -206,6 +206,9 @@ help:
 	@echo "  * doc_dna  - generate blender file format reference"
 	@echo "  * doc_man  - generate manpage"
 	@echo ""
+	@echo "Information"
+	@echo "  * help          - this help message"
+	@echo "  * help_features - show a list of optional features when building"
 
 # -----------------------------------------------------------------------------
 # Packages
@@ -401,6 +404,16 @@ doc_dna:
 
 doc_man:
 	python3 doc/manpage/blender.1.py "$(BUILD_DIR)/bin/blender"
+
+help_features:
+	@python3 -c \
+		"import re; \
+		print('\n'.join([ \
+		w for l in open('"$(BLENDER_DIR)"/CMakeLists.txt', 'r').readlines() \
+		if not l.lstrip().startswith('#') \
+		for w in (re.sub(\
+		    r'.*\boption\s*\(\s*(WITH_[a-zA-Z0-9_]+)\s+(\".*\")\s*.*', r'\g<1> - \g<2>', l).strip('() \n'),) \
+		if w.startswith('WITH_')]))" | uniq
 
 
 clean:
