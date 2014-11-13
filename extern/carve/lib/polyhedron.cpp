@@ -36,7 +36,11 @@
 
 #include <carve/mesh.hpp>
 
-#include BOOST_INCLUDE(random.hpp)
+#ifdef HAVE_BOOST_LIBRARY
+#  include BOOST_INCLUDE(random.hpp)
+#else
+#  include <carve/random/random.h>
+#endif
 
 namespace {
   bool emb_test(carve::poly::Polyhedron *poly,

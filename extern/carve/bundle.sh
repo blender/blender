@@ -31,6 +31,8 @@ headers=`find ./lib -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t
 includes=`find ./include -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t/' | sort -d`
 
 cp patches/files/config.h include/carve/config.h
+mkdir -p include/carve/random
+cp patches/files/random.h include/carve/random/random.h
 
 cat > CMakeLists.txt << EOF
 # ***** BEGIN GPL LICENSE BLOCK *****
@@ -91,6 +93,7 @@ if(WITH_BOOST)
 
 	add_definitions(
 		-DCARVE_SYSTEM_BOOST
+		-DHAVE_BOOST_LIBRARY
 	)
 
 	list(APPEND INC_SYS
@@ -123,6 +126,7 @@ if env['WITH_BF_BOOST']:
             defs.append('HAVE_BOOST_UNORDERED_COLLECTIONS')
 
     defs.append('CARVE_SYSTEM_BOOST')
+    defs.append('HAVE_BOOST_LIBRARY')
     incs.append(env['BF_BOOST_INC'])
 
 env.BlenderLib ('extern_carve', Split(sources), incs, defs, libtype=['extern'], priority=[40] )

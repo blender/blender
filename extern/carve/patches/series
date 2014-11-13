@@ -11,3 +11,4 @@ mesh_simplify_uninitialized_var.patch
 memory_leak_fix.patch
 msvc_fix.patch
 face_hole_merge_workaround.patch
+random.patch

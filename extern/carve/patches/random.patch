@@ -1,0 +1,16 @@
+diff -r 9a85d733a43d lib/polyhedron.cpp
+--- a/lib/polyhedron.cpp	Tue Jun 24 11:15:23 2014 +1000
++++ b/lib/polyhedron.cpp	Thu Nov 13 17:36:06 2014 +0500
+@@ -36,7 +36,11 @@
+ 
+ #include <carve/mesh.hpp>
+ 
+-#include BOOST_INCLUDE(random.hpp)
++#ifdef HAVE_BOOST_LIBRARY
++#  include BOOST_INCLUDE(random.hpp)
++#else
++#  include <carve/random/random.h>
++#endif
+ 
+ namespace {
+   bool emb_test(carve::poly::Polyhedron *poly,

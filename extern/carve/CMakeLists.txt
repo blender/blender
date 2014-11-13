@@ -161,6 +161,7 @@ if(WITH_BOOST)
 
 	add_definitions(
 		-DCARVE_SYSTEM_BOOST
+		-DHAVE_BOOST_LIBRARY
 	)
 
 	list(APPEND INC_SYS
