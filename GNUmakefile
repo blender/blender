@@ -152,6 +152,7 @@ help:
 	@echo ""
 	@echo "Convenience targets provided for building blender, (multiple at once can be used)"
 	@echo "  * debug     - build a debug binary"
+	@echo "  * full      - enable all supported dependencies & options"
 	@echo "  * lite      - disable non essential features for a smaller binary and faster build"
 	@echo "  * headless  - build without an interface (renderfarm or server automation)"
 	@echo "  * cycles    - build Cycles standalone only, without Blender"
