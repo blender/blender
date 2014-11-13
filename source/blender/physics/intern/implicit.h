@@ -176,6 +176,7 @@ struct HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize, const float 
 void BPH_hair_volume_free_vertex_grid(struct HairGrid *grid);
 void BPH_hair_volume_set_debug_data(struct HairGrid *grid, struct SimDebugData *debug_data);
 void BPH_hair_volume_grid_geometry(struct HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3]);
+void BPH_hair_volume_set_debug_value(struct HairGrid *grid, int debug_value);
 
 void BPH_hair_volume_grid_clear(struct HairGrid *grid);
 void BPH_hair_volume_add_vertex(struct HairGrid *grid, const float x[3], const float v[3]);

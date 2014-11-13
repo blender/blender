@@ -31,12 +31,14 @@
 
 #include "MEM_guardedalloc.h"
 
+extern "C" {
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_texture_types.h"
 
 #include "BKE_effect.h"
+}
 
 #include "implicit.h"
 #include "eigen_utils.h"
@@ -67,6 +69,7 @@ BLI_INLINE int hair_grid_size(const int res[3])
 }
 
 typedef struct HairGridVert {
+	int samples;
 	float velocity[3];
 	float density;
 	
@@ -80,6 +83,7 @@ typedef struct HairGrid {
 	float cellsize, inv_cellsize;
 	
 	struct SimDebugData *debug_data;
+	int debug_value;
 } HairGrid;
 
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) ( min_ii( max_ii( (int)((vec[axis] - gmin[axis]) * scale), 0), res[axis]-2 ) )
@@ -242,6 +246,7 @@ void BPH_hair_volume_grid_clear(HairGrid *grid)
 		zero_v3(grid->verts[i].velocity);
 		zero_v3(grid->verts[i].velocity_smooth);
 		grid->verts[i].density = 0.0f;
+		grid->verts[i].samples = 0;
 	}
 }
 
@@ -336,12 +341,26 @@ BLI_INLINE void hair_volume_eval_grid_vertex(HairGridVert *vert, const float loc
 		interp_v3_v3v3(vel, v2, v3, lambda);
 		madd_v3_v3fl(vert->velocity, vel, weight);
 		vert->density += weight;
+		vert->samples += 1;
 	}
+}
+
+BLI_INLINE int floor_int(float value)
+{
+	return value > 0.0f ? (int)value : ((int)value) - 1;
+}
+
+BLI_INLINE float floor_mod(float value)
+{
+	return value - floorf(value);
 }
 
 BLI_INLINE int major_axis_v3(const float v[3])
 {
-	return v[0] > v[1] ? (v[0] > v[2] ? 0 : 2) : (v[1] > v[2] ? 1 : 2);
+	const float a = fabsf(v[0]);
+	const float b = fabsf(v[1]);
+	const float c = fabsf(v[2]);
+	return a > b ? (a > c ? 0 : 2) : (b > c ? 1 : 2);
 }
 
 BLI_INLINE void grid_to_world(HairGrid *grid, float vecw[3], const float vec[3])
@@ -349,6 +368,66 @@ BLI_INLINE void grid_to_world(HairGrid *grid, float vecw[3], const float vec[3])
 	copy_v3_v3(vecw, vec);
 	mul_v3_fl(vecw, grid->cellsize);
 	add_v3_v3(vecw, grid->gmin);
+}
+
+void BPH_hair_volume_set_debug_value(HairGrid *grid, int debug_value)
+{
+	grid->debug_value = debug_value;
+}
+
+BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
+                                           const float UNUSED(x1[3]), const float UNUSED(v1[3]), const float x2[3], const float v2[3],
+                                           const float x3[3], const float v3[3], const float UNUSED(x4[3]), const float UNUSED(v4[3]),
+                                           const float UNUSED(dir1[3]), const float dir2[3], const float UNUSED(dir3[3]),
+                                           int resj, int resk, int jmin, int jmax, int kmin, int kmax,
+                                           HairGridVert *vert, int stride_j, int stride_k, const float loc[3], int axis_j, int axis_k,
+                                           int debug_i)
+{
+	SimDebugData *debug_data = grid->debug_data;
+	const float radius = 1.5f;
+	const float dist_scale = grid->inv_cellsize;
+	
+	int j, k;
+	
+	/* boundary checks to be safe */
+	CLAMP_MIN(jmin, 0);
+	CLAMP_MAX(jmax, resj-1);
+	CLAMP_MIN(kmin, 0);
+	CLAMP_MAX(kmax, resk-1);
+	
+	HairGridVert *vert_j = vert + jmin * stride_j;
+	float loc_j[3] = { loc[0], loc[1], loc[2] };
+	loc_j[axis_j] += (float)jmin;
+	for (j = jmin; j <= jmax; ++j, vert_j += stride_j, loc_j[axis_j] += 1.0f) {
+		
+		HairGridVert *vert_k = vert_j + kmin * stride_k;
+		float loc_k[3] = { loc_j[0], loc_j[1], loc_j[2] };
+		loc_k[axis_k] += (float)kmin;
+		for (k = kmin; k <= kmax; ++k, vert_k += stride_k, loc_k[axis_k] += 1.0f) {
+			
+			hair_volume_eval_grid_vertex(vert_k, loc_k, radius, dist_scale, x2, v2, x3, v3);
+			
+#if 1
+			{
+				float wloc[3], x2w[3], x3w[3];
+				grid_to_world(grid, wloc, loc_k);
+				grid_to_world(grid, x2w, x2);
+				grid_to_world(grid, x3w, x3);
+				
+				if (vert_k->samples > 0)
+					BKE_sim_debug_data_add_circle(debug_data, wloc, 0.01f, 1.0, 1.0, 0.3, "blah", hash_vertex(2525, hash_int_2d(debug_i, hash_int_2d(j, k))));
+				
+				if (grid->debug_value) {
+					BKE_sim_debug_data_add_dot(debug_data, wloc, 1, 0, 0, "blah", hash_vertex(93, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_dot(debug_data, x2w, 0.1, 0.1, 0.7, "blah", hash_vertex(649, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_line(debug_data, wloc, x2w, 0.3, 0.8, 0.3, "blah", hash_vertex(253, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_line(debug_data, wloc, x3w, 0.8, 0.3, 0.3, "blah", hash_vertex(254, hash_int_2d(debug_i, hash_int_2d(j, k))));
+//					BKE_sim_debug_data_add_circle(debug_data, x2w, len_v3v3(wloc, x2w), 0.2, 0.7, 0.2, "blah", hash_vertex(255, hash_int_2d(i, hash_int_2d(j, k))));
+				}
+			}
+#endif
+		}
+	}
 }
 
 /* Uses a variation of Bresenham's algorithm for rasterizing a 3D grid with a line segment.
@@ -359,9 +438,9 @@ BLI_INLINE void grid_to_world(HairGrid *grid, float vecw[3], const float vec[3])
  * 
  */
 void BPH_hair_volume_add_segment(HairGrid *grid,
-                                 const float UNUSED(x1[3]), const float UNUSED(v1[3]), const float x2[3], const float v2[3],
-                                 const float x3[3], const float v3[3], const float UNUSED(x4[3]), const float UNUSED(v4[3]),
-                                 const float UNUSED(dir1[3]), const float dir2[3], const float UNUSED(dir3[3]))
+                                 const float x1[3], const float v1[3], const float x2[3], const float v2[3],
+                                 const float x3[3], const float v3[3], const float x4[3], const float v4[3],
+                                 const float dir1[3], const float dir2[3], const float dir3[3])
 {
 	SimDebugData *debug_data = grid->debug_data;
 	
@@ -372,113 +451,71 @@ void BPH_hair_volume_add_segment(HairGrid *grid,
 	const int axis1 = (axis0 + 1) % 3;
 	const int axis2 = (axis0 + 2) % 3;
 	
-	/* range along primary direction */
-	const float h2 = x2[axis0], h3 = x3[axis0];
-	const float hmin = min_ff(h2, h3);
-	const float hmax = max_ff(h2, h3);
-	const int imin = max_ii((int)hmin, 0);
-	const int imax = min_ii((int)hmax + 1, res[axis0]);
-	
-	const float inc[2] = { dir2[axis1], dir2[axis2] };          /* increment of secondary directions per step in the primary direction */
-	const int grid_start1 = (int)x2[axis1];                     /* offset of cells on minor axes */
-	const int grid_start2 = (int)x2[axis2];                     /* offset of cells on minor axes */
-	
-	const float cellsize = grid->cellsize;
-	float shift[2] = { x2[axis1] - floorf(x2[axis1]),           /* fraction of a full cell shift [0.0, 1.0) */
-	                   x2[axis2] - floorf(x2[axis2]) };
-	
 	/* vertex buffer offset factors along cardinal axes */
 	const int strides[3] = { 1, res[0], res[0] * res[1] };
-	/* change in offset when incrementing one of the axes */
 	const int stride0 = strides[axis0];
 	const int stride1 = strides[axis1];
 	const int stride2 = strides[axis2];
 	
-	const float radius = 1.5f;
-	/* XXX cell size should be fixed and uniform! */
-	const float dist_scale = grid->inv_cellsize;
+	/* increment of secondary directions per step in the primary direction
+	 * note: we always go in the positive direction along axis0, so the sign can be inverted
+	 */
+	const float inc1 = dir2[axis1] / dir2[axis0];
+	const float inc2 = dir2[axis2] / dir2[axis0];
 	
+	/* start/end points, so increment along axis0 is always positive */
+	const float *start = x2[axis0] < x3[axis0] ? x2 : x3;
+	const float *end   = x2[axis0] < x3[axis0] ? x3 : x2;
+	const float start0 = start[axis0], start1 = start[axis1], start2 = start[axis2];
+	const float end0 = end[axis0];
+	
+	/* range along primary direction */
+	const int imin = max_ii(floor_int(start[axis0]) - 1, 0);
+	const int imax = min_ii(floor_int(end[axis0]) + 2, res[axis0]-1);
+	
+	float h = 0.0f;
 	HairGridVert *vert0;
 	float loc0[3];
-	int j0, k0;
+	int j0, k0, j0_prev, k0_prev;
 	int i;
 	
 	(void)debug_data;
 	
-	j0 = grid_start1 - 1;
-	k0 = grid_start2 - 1;
-	vert0 = grid->verts + stride0 * imin + stride1 * j0 + stride2 * k0;
-	loc0[axis0] = (float)imin;
-	loc0[axis1] = (float)j0;
-	loc0[axis2] = (float)k0;
-	
-	/* loop over all planes crossed along the primary direction */
-	for (i = imin; i < imax; ++i, vert0 += stride0, loc0[axis0] += cellsize) {
-		const int jmin = max_ii(j0, 0);
-		const int jmax = min_ii(j0 + 5, res[axis1]);
-		const int kmin = max_ii(k0, 0);
-		const int kmax = min_ii(k0 + 5, res[axis2]);
+	for (i = imin; i <= imax; ++i) {
+		float shift1, shift2; /* fraction of a full cell shift [0.0, 1.0) */
+		int jmin, jmax, kmin, kmax;
 		
-		/* XXX problem: this can be offset beyond range of this plane when jmin/kmin gets clamped,
-		 * for now simply calculate in outer loop with multiplication once
-		 */
-//		HairGridVert *vert1 = vert0;
-//		float loc1[3] = { loc0[0], loc0[1], loc0[2] };
-		HairGridVert *vert1 = grid->verts + stride0 * i + stride1 * jmin + stride2 * kmin;
-		float loc1[3];
-		int j, k;
+		h = CLAMPIS((float)i, start0, end0);
 		
-		/* note: loc is in grid cell units,
-		 * distances are be scaled by cell size for weighting
-		 */
-		loc1[axis0] = (float)i;
-		loc1[axis1] = (float)jmin;
-		loc1[axis2] = (float)kmin;
+		shift1 = start1 + (h - start0) * inc1;
+		shift2 = start2 + (h - start0) * inc2;
 		
-		/* 2x2 cells can be hit directly by the segment between two planes,
-		 * margin is 1 cell, i.e. 4x4 cells are influenced at most,
-		 * -> evaluate 5x5 grid vertices on cell borders
-		 */
+		j0_prev = j0;
+		j0 = floor_int(shift1);
 		
-		for (j = jmin; j < jmax; ++j, vert1 += stride1, loc1[axis1] += 1.0f) {
-			HairGridVert *vert2 = vert1;
-			float loc2[3] = { loc1[0], loc1[1], loc1[2] };
-			
-			for (k = kmin; k < kmax; ++k, vert2 += stride2, loc2[axis2] += 1.0f) {
-				hair_volume_eval_grid_vertex(vert2, loc2, radius, dist_scale, x2, v2, x3, v3);
-			}
+		k0_prev = k0;
+		k0 = floor_int(shift2);
+		
+		if (i > imin) {
+			jmin = min_ii(j0, j0_prev);
+			jmax = max_ii(j0, j0_prev);
+			kmin = min_ii(k0, k0_prev);
+			kmax = max_ii(k0, k0_prev);
+		}
+		else {
+			jmin = jmax = j0;
+			kmin = kmax = k0;
 		}
 		
-		/* increment */
-		add_v2_v2(shift, inc);
-		if (shift[0] > 1.0f) {
-			shift[0] -= 1.0f;
-			
-			j0 += 1;
-			vert0 += stride1;
-			loc0[axis1] += 1.0f;
-		}
-		else if (shift[0] < -1.0f) {
-			shift[0] += 1.0f;
-			
-			j0 -= 1;
-			vert0 -= stride1;
-			loc0[axis1] -= 1.0f;
-		}
-		if (shift[1] > 1.0f) {
-			shift[1] -= 1.0f;
-			
-			k0 += 1;
-			vert0 += stride2;
-			loc0[axis2] += 1.0f;
-		}
-		else if (shift[1] < -1.0f) {
-			shift[1] += 1.0f;
-			
-			k0 -= 1;
-			vert0 -= stride2;
-			loc0[axis2] -= 1.0f;
-		}
+		vert0 = grid->verts + i * stride0;
+		loc0[axis0] = (float)i;
+		loc0[axis1] = 0.0f;
+		loc0[axis2] = 0.0f;
+		
+		hair_volume_add_segment_2D(grid, x1, v1, x2, v2, x3, v3, x4, v4, dir1, dir2, dir3,
+		                           res[axis1], res[axis2], jmin-1, jmax+2, kmin-1, kmax+2,
+		                           vert0, stride1, stride2, loc0, axis1, axis2,
+		                           i);
 	}
 }
 
