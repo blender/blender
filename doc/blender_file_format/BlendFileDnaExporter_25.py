@@ -112,7 +112,7 @@ class DNACatalogHTML:
         # ${version} and ${revision}
         if bpy:
             version = '.'.join(map(str, bpy.app.version))
-            revision = bpy.app.build_revision[:-1]
+            revision = bpy.app.build_hash
         else:
             version = str(header.Version)
             revision = 'Unknown'
@@ -404,7 +404,7 @@ def main():
         # Files
         if '--dna-versioned' in sys.argv:
             blender_version = '_'.join(map(str, bpy.app.version))
-            filename = 'dna-{0}-{1}_endian-{2}-r{3}'.format(sys.arch, sys.byteorder, blender_version, bpy.app.build_revision[2:-1])
+            filename = 'dna-{0}-{1}_endian-{2}-{3}'.format(sys.arch, sys.byteorder, blender_version, bpy.app.build_hash)
         else:
             filename = 'dna'
         dir = os.path.dirname(__file__)
@@ -451,7 +451,7 @@ def main():
             os.remove(Path_Blend)
         
         # export dna to xhtml
-        log.info("6: export sdna to xhtml file")
+        log.info("6: export sdna to xhtml file: %r" % Path_HTML)
         handleHTML = open(Path_HTML, "w")
         catalog.WriteToHTML(handleHTML)
         handleHTML.close()
