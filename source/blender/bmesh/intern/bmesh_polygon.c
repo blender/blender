@@ -422,6 +422,43 @@ void BM_edge_normals_update(BMEdge *e)
 	BM_vert_normal_update(e->v2);
 }
 
+bool BM_vert_normal_update_ex(BMVert *v, const char hflag, float r_no[3])
+{
+	/* TODO, we can normalize each edge only once, then compare with previous edge */
+
+	BMIter liter;
+	BMLoop *l;
+	int len = 0;
+
+	zero_v3(r_no);
+
+	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+		if (BM_elem_flag_test(l->f, hflag)) {
+			float vec1[3], vec2[3], fac;
+
+			/* Same calculation used in BM_mesh_normals_update */
+			sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
+			sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
+			normalize_v3(vec1);
+			normalize_v3(vec2);
+
+			fac = saacos(-dot_v3v3(vec1, vec2));
+
+			madd_v3_v3fl(r_no, l->f->no, fac);
+
+			len++;
+		}
+	}
+
+	if (len) {
+		normalize_v3(r_no);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 /**
  * update a vert normal (but not the faces incident on it)
  */
@@ -431,12 +468,13 @@ void BM_vert_normal_update(BMVert *v)
 
 	BMIter liter;
 	BMLoop *l;
-	float vec1[3], vec2[3], fac;
 	int len = 0;
 
 	zero_v3(v->no);
 
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+		float vec1[3], vec2[3], fac;
+
 		/* Same calculation used in BM_mesh_normals_update */
 		sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
 		sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
