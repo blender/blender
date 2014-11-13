@@ -1948,21 +1948,32 @@ static bool snapObjectsRay(Scene *scene, short snap_mode, Base *base_act, View3D
 		     (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != base_act)))
 		{
 			Object *ob = base->object;
-			
+			Object *ob_snap = ob;
+			bool use_obedit = false;
+
+			/* for linked objects, use the same object but a different matrix */
+			if (obedit && ob->data == obedit->data) {
+				use_obedit = true;
+				ob_snap = obedit;
+			}
+
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
 				ListBase *lb = object_duplilist(G.main->eval_ctx, scene, ob);
 				
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
-					retval |= snapObject(scene, snap_mode, ar, dupli_ob->ob, dupli_ob->mat, false,
+					bool use_obedit_dupli = (obedit && dupli_ob->ob->data == obedit->data);
+					Object *dupli_snap = (use_obedit_dupli) ? obedit : dupli_ob->ob;
+
+					retval |= snapObject(scene, snap_mode, ar, dupli_snap, dupli_ob->mat, use_obedit_dupli,
 					                     r_ob, r_obmat,
 					                     ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 				}
 				
 				free_object_duplilist(lb);
 			}
-			
-			retval |= snapObject(scene, snap_mode, ar, ob, ob->obmat, false,
+
+			retval |= snapObject(scene, snap_mode, ar, ob_snap, ob->obmat, use_obedit,
 			                     r_ob, r_obmat,
 			                     ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_ray_dist);
 		}
