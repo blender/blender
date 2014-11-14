@@ -1523,11 +1523,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Texture Paint UVs", "Draw overlay of texture paint uv layer");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-	prop = RNA_def_property(srna, "texpaint_filter_mat", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_TEXPAINT_FILTER_MATERIAL);
-	RNA_def_property_ui_text(prop, "Same Material UVs", "Only draw UVs of faces with active material");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
 	prop = RNA_def_property(srna, "show_normalized_coords", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
 	RNA_def_property_ui_text(prop, "Normalized Coordinates",

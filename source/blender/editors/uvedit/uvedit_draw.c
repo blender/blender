@@ -506,7 +506,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 		mloopuv_base = mloopuv;
 
 		for (a = me->totpoly; a > 0; a--, mpoly++) {
-			if ((sima->flag & SI_TEXPAINT_FILTER_MATERIAL) && mpoly->mat_nr != ob->actcol - 1)
+			if ((scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE) && mpoly->mat_nr != ob->actcol - 1)
 				continue;
 			glBegin(GL_LINE_LOOP);
 

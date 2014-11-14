@@ -33,6 +33,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_image_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -807,7 +808,7 @@ static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegion *
 			if (wmn->data == ND_SHADING_LINKS) {
 				SpaceImage *sima = sa->spacedata.first;
 
-				if (sima->flag & SI_TEXPAINT_FILTER_MATERIAL)
+				if (sima->iuser.scene && (sima->iuser.scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE))
 					ED_region_tag_redraw(ar);
 			}
 			break;
