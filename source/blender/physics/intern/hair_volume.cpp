@@ -550,43 +550,61 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 	const float inv_flowfac = dt / grid->cellsize;
 	
 	/*const int num_cells = hair_grid_size(grid->res);*/
-	const int inner_res[3] = { grid->res[0] - 2, grid->res[1] - 2, grid->res[2] - 2 };
+	const int res[3] = { grid->res[0], grid->res[1], grid->res[2] };
+	const int resA[3] = { grid->res[0] + 2, grid->res[1] + 2, grid->res[2] + 2 };
 	
 	const int stride0 = 1;
 	const int stride1 = grid->res[0];
 	const int stride2 = grid->res[1] * grid->res[0];
-	
 	const int strideA0 = 1;
-	const int strideA1 = grid->res[0]-2;
-	const int strideA2 = (grid->res[1]-2) * (grid->res[0]-2);
+	const int strideA1 = grid->res[0] + 2;
+	const int strideA2 = (grid->res[1] + 2) * (grid->res[0] + 2);
 	
-	/* NB: to avoid many boundary checks, we only solve the system
-	 * for the inner vertices, excluding a 1-cell margin.
-	 */
-	const int inner_cells_start = stride0 + stride1 + stride2;
-	const int num_inner_cells = inner_res[0] * inner_res[1] * inner_res[2];
+	const int num_cells = res[0] * res[1] * res[2];
+	const int num_cellsA = (res[0] + 2) * (res[1] + 2) * (res[2] + 2);
 	
+	HairGridVert *vert_start = grid->verts - (stride0 + stride1 + stride2);
 	HairGridVert *vert;
-	int i, j, k, u;
+	int i, j, k;
 	
-	BLI_assert(num_inner_cells >= 1);
+	#define MARGIN_i0 (i < 1)
+	#define MARGIN_j0 (j < 1)
+	#define MARGIN_k0 (k < 1)
+	#define MARGIN_i1 (i >= resA[0]-1)
+	#define MARGIN_j1 (j >= resA[1]-1)
+	#define MARGIN_k1 (k >= resA[2]-1)
+	
+	#define NEIGHBOR_MARGIN_i0 (i < 2)
+	#define NEIGHBOR_MARGIN_j0 (j < 2)
+	#define NEIGHBOR_MARGIN_k0 (k < 2)
+	#define NEIGHBOR_MARGIN_i1 (i >= resA[0]-2)
+	#define NEIGHBOR_MARGIN_j1 (j >= resA[1]-2)
+	#define NEIGHBOR_MARGIN_k1 (k >= resA[2]-2)
+	
+	BLI_assert(num_cells >= 1);
 	
 	/* Calculate divergence */
-	lVector B(num_inner_cells);
-	for (k = 0; k < inner_res[2]; ++k) {
-		for (j = 0; j < inner_res[1]; ++j) {
-			for (i = 0; i < inner_res[0]; ++i) {
-				u = i * strideA0 + j * strideA1 + k * strideA2;
-				vert = grid->verts + inner_cells_start + i * stride0 + j * stride1 + k * stride2;
+	lVector B(num_cellsA);
+	for (k = 0; k < resA[2]; ++k) {
+		for (j = 0; j < resA[1]; ++j) {
+			for (i = 0; i < resA[0]; ++i) {
+				int u = i * strideA0 + j * strideA1 + k * strideA2;
+				bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
 				
+				if (is_margin) {
+					B[u] = 0.0f;
+					continue;
+				}
+				
+				vert = vert_start + i * stride0 + j * stride1 + k * stride2;
 				HairGridVert *vert_px = vert + stride0;
 				HairGridVert *vert_py = vert + stride1;
 				HairGridVert *vert_pz = vert + stride2;
 				
 				const float *v = vert->velocity;
-				float dx = vert_px->velocity[0] - v[0];
-				float dy = vert_py->velocity[1] - v[1];
-				float dz = vert_pz->velocity[2] - v[2];
+				float dx = NEIGHBOR_MARGIN_i1 ? 0.0f : vert_px->velocity[0] - v[0];
+				float dy = NEIGHBOR_MARGIN_j1 ? 0.0f : vert_py->velocity[1] - v[1];
+				float dz = NEIGHBOR_MARGIN_k1 ? 0.0f : vert_pz->velocity[2] - v[2];
 				
 				float divergence = (dx + dy + dz) * flowfac;
 				
@@ -610,20 +628,21 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 	 * The finite difference approximation yields the linear equation system described here:
 	 * http://en.wikipedia.org/wiki/Discrete_Poisson_equation
 	 */
-	lMatrix A(num_inner_cells, num_inner_cells);
+	lMatrix A(num_cellsA, num_cellsA);
 	/* Reserve space for the base equation system (without boundary conditions).
 	 * Each column contains a factor 6 on the diagonal
 	 * and up to 6 factors -1 on other places.
 	 */
-	A.reserve(Eigen::VectorXi::Constant(num_inner_cells, 7));
+	A.reserve(Eigen::VectorXi::Constant(num_cellsA, 7));
 	
-	for (k = 0; k < inner_res[2]; ++k) {
-		for (j = 0; j < inner_res[1]; ++j) {
-			for (i = 0; i < inner_res[0]; ++i) {
-				u = i * strideA0 + j * strideA1 + k * strideA2;
-				vert = grid->verts + inner_cells_start + i * stride0 + j * stride1 + k * stride2;
+	for (k = 0; k < resA[2]; ++k) {
+		for (j = 0; j < resA[1]; ++j) {
+			for (i = 0; i < resA[0]; ++i) {
+				int u = i * strideA0 + j * strideA1 + k * strideA2;
+				bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
 				
-				if (vert->density > density_threshold) {
+				vert = vert_start + i * stride0 + j * stride1 + k * stride2;
+				if (!is_margin && vert->density > density_threshold) {
 					int neighbors_lo = 0;
 					int neighbors_hi = 0;
 					int non_solid_neighbors = 0;
@@ -635,30 +654,18 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 					 * to get the correct number of neighbors,
 					 * needed for the diagonal element
 					 */
-					if (k >= 1) {
-						if ((vert - stride2)->density > density_threshold)
-							neighbor_lo_index[neighbors_lo++] = u - strideA2;
-					}
-					if (j >= 1) {
-						if ((vert - stride1)->density > density_threshold)
-							neighbor_lo_index[neighbors_lo++] = u - strideA1;
-					}
-					if (i >= 1) {
-						if ((vert - stride0)->density > density_threshold)
-							neighbor_lo_index[neighbors_lo++] = u - strideA0;
-					}
-					if (i < inner_res[0] - 1) {
-						if ((vert + stride0)->density > density_threshold)
-							neighbor_hi_index[neighbors_hi++] = u + strideA0;
-					}
-					if (j < inner_res[1] - 1) {
-						if ((vert + stride1)->density > density_threshold)
-							neighbor_hi_index[neighbors_hi++] = u + strideA1;
-					}
-					if (k < inner_res[2] - 1) {
-						if ((vert + stride2)->density > density_threshold)
-							neighbor_hi_index[neighbors_hi++] = u + strideA2;
-					}
+					if (!NEIGHBOR_MARGIN_k0 && (vert - stride2)->density > density_threshold)
+						neighbor_lo_index[neighbors_lo++] = u - stride2;
+					if (!NEIGHBOR_MARGIN_j0 && (vert - stride1)->density > density_threshold)
+						neighbor_lo_index[neighbors_lo++] = u - stride1;
+					if (!NEIGHBOR_MARGIN_i0 && (vert - stride0)->density > density_threshold)
+						neighbor_lo_index[neighbors_lo++] = u - stride0;
+					if (!NEIGHBOR_MARGIN_i1 && (vert + stride0)->density > density_threshold)
+						neighbor_hi_index[neighbors_hi++] = u + stride0;
+					if (!NEIGHBOR_MARGIN_j1 && (vert + stride1)->density > density_threshold)
+						neighbor_hi_index[neighbors_hi++] = u + stride1;
+					if (!NEIGHBOR_MARGIN_k1 && (vert + stride2)->density > density_threshold)
+						neighbor_hi_index[neighbors_hi++] = u + stride2;
 					
 					/*int liquid_neighbors = neighbors_lo + neighbors_hi;*/
 					non_solid_neighbors = 6;
@@ -686,20 +693,23 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 	
 	if (cg.info() == Eigen::Success) {
 		/* Calculate velocity = grad(p) */
-		for (k = 0; k < inner_res[2]; ++k) {
-			for (j = 0; j < inner_res[1]; ++j) {
-				for (i = 0; i < inner_res[0]; ++i) {
-					u = i * strideA0 + j * strideA1 + k * strideA2;
-					vert = grid->verts + inner_cells_start + i * stride0 + j * stride1 + k * stride2;
+		for (k = 0; k < resA[2]; ++k) {
+			for (j = 0; j < resA[1]; ++j) {
+				for (i = 0; i < resA[0]; ++i) {
+					int u = i * strideA0 + j * strideA1 + k * strideA2;
+					bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
+					if (is_margin)
+						continue;
 					
+					vert = vert_start + i * stride0 + j * stride1 + k * stride2;
 					if (vert->density > density_threshold) {
 						float p0 = p[u];
 						
 						/* finite difference estimate of pressure gradient */
 						float grad_p[3];
-						grad_p[0] = i >= 1 ? p0 - p[u - strideA0] : 0.0f;
-						grad_p[1] = j >= 1 ? p0 - p[u - strideA1] : 0.0f;
-						grad_p[2] = k >= 1 ? p0 - p[u - strideA2] : 0.0f;
+						grad_p[0] = p0 - p[u - stride0];
+						grad_p[1] = p0 - p[u - stride1];
+						grad_p[2] = p0 - p[u - stride2];
 						
 						/* pressure gradient describes velocity delta */
 						madd_v3_v3v3fl(vert->velocity_smooth, vert->velocity, grad_p, inv_flowfac);
@@ -715,7 +725,7 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 	}
 	else {
 		/* Clear result in case of error */
-		for (i = inner_cells_start, vert = grid->verts + inner_cells_start; i < num_inner_cells; ++i, ++vert) {
+		for (i = 0, vert = grid->verts; i < num_cells; ++i, ++vert) {
 			zero_v3(vert->velocity_smooth);
 		}
 		
