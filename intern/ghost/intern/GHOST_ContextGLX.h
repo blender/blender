@@ -65,6 +65,7 @@ public:
 	        GHOST_TUns16 numOfAASamples,
 	        Window window,
 	        Display *display,
+	        XVisualInfo *visualInfo,
 	        int contextProfileMask,
 	        int contextMajorVersion,
 	        int contextMinorVersion,
@@ -126,6 +127,7 @@ private:
 	void initContextGLXEW();
 
 	Display *m_display;
+	XVisualInfo *m_visualInfo;
 	Window   m_window;
 
 	const int m_contextProfileMask;
@@ -133,8 +135,6 @@ private:
 	const int m_contextMinorVersion;
 	const int m_contextFlags;
 	const int m_contextResetNotificationStrategy;
-
-	XVisualInfo *m_visualInfo;
 
 	GLXContext m_context;
 

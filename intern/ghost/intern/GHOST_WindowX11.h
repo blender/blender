@@ -319,6 +319,8 @@ private:
 	
 	Window m_window;
 	Display *m_display;
+	XVisualInfo *m_visualInfo;
+
 	GHOST_TWindowState m_normal_state;
 
 	/** A pointer to the typed system class. */

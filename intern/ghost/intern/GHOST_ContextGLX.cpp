@@ -54,6 +54,7 @@ GHOST_ContextGLX::GHOST_ContextGLX(
         GHOST_TUns16 numOfAASamples,
         Window window,
         Display *display,
+        XVisualInfo *visualInfo,
         int contextProfileMask,
         int contextMajorVersion,
         int contextMinorVersion,
@@ -61,13 +62,13 @@ GHOST_ContextGLX::GHOST_ContextGLX(
         int contextResetNotificationStrategy)
     : GHOST_Context(stereoVisual, numOfAASamples),
       m_display(display),
+      m_visualInfo(visualInfo),
       m_window(window),
       m_contextProfileMask(contextProfileMask),
       m_contextMajorVersion(contextMajorVersion),
       m_contextMinorVersion(contextMinorVersion),
       m_contextFlags(contextFlags),
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_visualInfo(NULL),
       m_context(None)
 #ifdef WITH_GLEW_MX
       ,
@@ -104,8 +105,6 @@ GHOST_ContextGLX::~GHOST_ContextGLX()
 		delete m_glxewContext;
 #endif
 	}
-
-	XFree(m_visualInfo);
 }
 
 
@@ -145,121 +144,6 @@ void GHOST_ContextGLX::initContextGLXEW()
 
 GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 {
-	/* Set up the minimum attributes that we require and see if
-	 * X can find us a visual matching those requirements. */
-
-	std::vector<int> attribs;
-	attribs.reserve(40);
-
-	int glx_major, glx_minor; /* GLX version: major.minor */
-
-	if (!glXQueryVersion(m_display, &glx_major, &glx_minor)) {
-		fprintf(stderr,
-		        "%s:%d: X11 glXQueryVersion() failed, "
-		        "verify working openGL system!\n",
-		        __FILE__, __LINE__);
-
-		/* exit if this is the first window */
-		if (s_sharedContext == NULL) {
-			fprintf(stderr, "initial window could not find the GLX extension, exit!\n");
-			exit(EXIT_FAILURE);
-		}
-
-		return GHOST_kFailure;
-	}
-
-#ifdef GHOST_OPENGL_ALPHA
-	const bool needAlpha = true;
-#else
-	const bool needAlpha = false;
-#endif
-
-#ifdef GHOST_OPENGL_STENCIL
-	const bool needStencil = true;
-#else
-	const bool needStencil = false;
-#endif
-
-	/* Find the display with highest samples, starting at level requested */
-	int actualSamples = m_numOfAASamples;
-	for (;;) {
-		attribs.clear();
-
-		if (m_stereoVisual)
-			attribs.push_back(GLX_STEREO);
-
-		attribs.push_back(GLX_RGBA);
-
-		attribs.push_back(GLX_DOUBLEBUFFER);
-
-		attribs.push_back(GLX_RED_SIZE);
-		attribs.push_back(1);
-
-		attribs.push_back(GLX_BLUE_SIZE);
-		attribs.push_back(1);
-
-		attribs.push_back(GLX_GREEN_SIZE);
-		attribs.push_back(1);
-
-		attribs.push_back(GLX_DEPTH_SIZE);
-		attribs.push_back(1);
-
-		if (needAlpha) {
-			attribs.push_back(GLX_ALPHA_SIZE);
-			attribs.push_back(1);
-		}
-
-		if (needStencil) {
-			attribs.push_back(GLX_STENCIL_SIZE);
-			attribs.push_back(1);
-		}
-
-		/* GLX >= 1.4 required for multi-sample */
-		if (actualSamples > 0 && ((glx_major > 1) || (glx_major == 1 && glx_minor >= 4))) {
-			attribs.push_back(GLX_SAMPLE_BUFFERS);
-			attribs.push_back(1);
-
-			attribs.push_back(GLX_SAMPLES);
-			attribs.push_back(actualSamples);
-		}
-
-		attribs.push_back(None);
-
-		m_visualInfo = glXChooseVisual(m_display, DefaultScreen(m_display), &attribs[0]);
-
-		/* Any sample level or even zero, which means oversampling disabled, is good
-		 * but we need a valid visual to continue */
-		if (m_visualInfo != NULL) {
-			if (actualSamples < m_numOfAASamples) {
-				fprintf(stderr,
-				        "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
-				        "Substituting one that uses %d samples.\n",
-				        m_numOfAASamples, actualSamples);
-			}
-			break;
-		}
-
-		if (actualSamples == 0) {
-			/* All options exhausted, cannot continue */
-			fprintf(stderr,
-			        "%s:%d: X11 glXChooseVisual() failed, "
-			        "verify working openGL system!\n",
-			        __FILE__, __LINE__);
-
-			if (s_sharedContext == None) {
-				fprintf(stderr, "initial window could not find the GLX extension, exit!\n");
-				exit(1);
-			}
-
-			return GHOST_kFailure;
-		}
-		else {
-			--actualSamples;
-		}
-	}
-
-	m_numOfAASamples = actualSamples;
-
 #ifdef WITH_X11_XINPUT
 	/* use our own event handlers to avoid exiting blender,
 	 * this would happen for eg:
