@@ -3983,7 +3983,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy Vertex Groups to Linked";
 	ot->idname = "OBJECT_OT_vertex_group_copy_to_linked";
-	ot->description = "Copy vertex groups to all users of the same geometry data";
+	ot->description = "Replace vertex groups of all users of the same geometry data by vertex groups of active object";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
@@ -4022,7 +4022,7 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy Vertex Group to Selected";
 	ot->idname = "OBJECT_OT_vertex_group_copy_to_selected";
-	ot->description = "Copy vertex groups to other selected objects with matching indices";
+	ot->description = "Replace vertex groups of selected objects by vertex groups of active object";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
