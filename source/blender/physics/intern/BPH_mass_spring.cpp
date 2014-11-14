@@ -765,6 +765,8 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 					if (!is_zero_v3(gvel) || !is_zero_v3(gvel_smooth)) {
 						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel, 0.4, 0, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3112));
 						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel_smooth, 0.6, 4, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3113));
+						if (gdensity > 0.0f)
+							BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4, "grid velocity", hash_int_2d(354, hash_int_2d(i, j)));
 					}
 				}
 			}

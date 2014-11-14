@@ -63,6 +63,16 @@ extern "C" {
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
+BLI_INLINE int floor_int(float value)
+{
+	return value > 0.0f ? (int)value : ((int)value) - 1;
+}
+
+BLI_INLINE float floor_mod(float value)
+{
+	return value - floorf(value);
+}
+
 BLI_INLINE int hair_grid_size(const int res[3])
 {
 	return res[0] * res[1] * res[2];
@@ -325,6 +335,7 @@ void BPH_hair_volume_add_vertex(HairGrid *grid, const float x[3], const float v[
 	}
 }
 
+#if 0
 BLI_INLINE void hair_volume_eval_grid_vertex(HairGridVert *vert, const float loc[3], float radius, float dist_scale,
                                              const float x2[3], const float v2[3], const float x3[3], const float v3[3])
 {
@@ -343,16 +354,6 @@ BLI_INLINE void hair_volume_eval_grid_vertex(HairGridVert *vert, const float loc
 		vert->density += weight;
 		vert->samples += 1;
 	}
-}
-
-BLI_INLINE int floor_int(float value)
-{
-	return value > 0.0f ? (int)value : ((int)value) - 1;
-}
-
-BLI_INLINE float floor_mod(float value)
-{
-	return value - floorf(value);
 }
 
 BLI_INLINE int major_axis_v3(const float v[3])
@@ -518,6 +519,68 @@ void BPH_hair_volume_add_segment(HairGrid *grid,
 		                           i);
 	}
 }
+#else
+BLI_INLINE void hair_volume_eval_grid_vertex_sample(HairGridVert *vert, const float loc[3], float radius, float dist_scale,
+                                                    const float x[3], const float v[3])
+{
+	float dist, weight;
+	
+	dist = len_v3v3(x, loc);
+	
+	weight = (radius - dist) * dist_scale;
+	
+	if (weight > 0.0f) {
+		madd_v3_v3fl(vert->velocity, v, weight);
+		vert->density += weight;
+		vert->samples += 1;
+	}
+}
+
+/* XXX simplified test implementation using a series of discrete sample along the segment,
+ * instead of finding the closest point for all affected grid vertices.
+ */
+void BPH_hair_volume_add_segment(HairGrid *grid,
+                                 const float UNUSED(x1[3]), const float UNUSED(v1[3]), const float x2[3], const float v2[3],
+                                 const float x3[3], const float v3[3], const float UNUSED(x4[3]), const float UNUSED(v4[3]),
+                                 const float UNUSED(dir1[3]), const float UNUSED(dir2[3]), const float UNUSED(dir3[3]))
+{
+	const float radius = 1.5f;
+	const float dist_scale = grid->inv_cellsize;
+	
+	const int res[3] = { grid->res[0], grid->res[1], grid->res[2] };
+	const int stride[3] = { 1, res[0], res[0] * res[1] };
+	const int num_samples = 10;
+	
+	int s;
+	
+	for (s = 0; s < num_samples; ++s) {
+		float x[3], v[3];
+		int i, j, k;
+		
+		float f = (float)s / (float)(num_samples-1);
+		interp_v3_v3v3(x, x2, x3, f);
+		interp_v3_v3v3(v, v2, v3, f);
+		
+		int imin = max_ii(floor_int(x[0]) - 2, 0);
+		int imax = min_ii(floor_int(x[0]) + 2, res[0]-1);
+		int jmin = max_ii(floor_int(x[1]) - 2, 0);
+		int jmax = min_ii(floor_int(x[1]) + 2, res[1]-1);
+		int kmin = max_ii(floor_int(x[2]) - 2, 0);
+		int kmax = min_ii(floor_int(x[2]) + 2, res[2]-1);
+		
+		for (k = kmin; k <= kmax; ++k) {
+			for (j = jmin; j <= jmax; ++j) {
+				for (i = imin; i <= imax; ++i) {
+					float loc[3] = { (float)i, (float)j, (float)k };
+					HairGridVert *vert = grid->verts + i * stride[0] + j * stride[1] + k * stride[2];
+					
+					hair_volume_eval_grid_vertex_sample(vert, loc, radius, dist_scale, x, v);
+				}
+			}
+		}
+	}
+}
+#endif
 
 void BPH_hair_volume_normalize_vertex_grid(HairGrid *grid)
 {
