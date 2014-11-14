@@ -224,7 +224,7 @@ if(WITH_LIBMV)
 endif()
 
 # make GLog a separate target, so it can be used for gtest as well.
-if(WITH_LIBMV OR WITH_GTESTS)
+if(WITH_LIBMV OR WITH_GTESTS OR WITH_CYCLES_LOGGING)
 	# We compile GLog together with GFlag so we don't worry about
 	# adding extra lib to linker.
 	set(GLOG_SRC
