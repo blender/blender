@@ -1053,6 +1053,8 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	}
 
 	if (is_quad) {
+		/* here we just use the orthonormality property (a1, a2) dot (a2, -a1) = 0
+		 * to get normals from the edge directions based on the winding */
 		if (cw) {
 			no1[0] = -dir4[1] - dir1[1];
 			no1[1] = dir4[0] + dir1[0];
@@ -2542,7 +2544,6 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 
 			float seam_subsection[4][2];
 			float fac1, fac2, ftot;
-
 
 			if (outset_uv[0][0] == FLT_MAX) /* first time initialize */
 				uv_image_outset(tf_uv_pxoffset, outset_uv, ps->seam_bleed_px, ibuf->x, ibuf->y, mf->v4 != 0, (ps->faceWindingFlags[face_index] & PROJ_FACE_WINDING_CW) == 0);
