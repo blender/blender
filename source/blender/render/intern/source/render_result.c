@@ -1160,13 +1160,13 @@ static void render_result_exr_file_cache_path(Scene *sce, const char *root, char
 	if (G.main->name[0]) {
 		BLI_split_dirfile(G.main->name, dirname, filename, sizeof(dirname), sizeof(filename));
 		BLI_replace_extension(filename, sizeof(filename), "");  /* strip '.blend' */
-		md5_buffer(G.main->name, strlen(G.main->name), path_digest);
+		BLI_hash_md5_buffer(G.main->name, strlen(G.main->name), path_digest);
 	}
 	else {
 		BLI_strncpy(dirname, BLI_temp_dir_base(), sizeof(dirname));
 		BLI_strncpy(filename, "UNSAVED", sizeof(filename));
 	}
-	md5_to_hexdigest(path_digest, path_hexdigest);
+	BLI_hash_md5_to_hexdigest(path_digest, path_hexdigest);
 
 	/* Default to *non-volatile* tmp dir. */
 	if (*root == '\0') {

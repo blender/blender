@@ -244,9 +244,9 @@ static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_len
 	char hexdigest[33];
 	unsigned char digest[16];
 
-	md5_buffer(uri, strlen(uri), digest);
+	BLI_hash_md5_buffer(uri, strlen(uri), digest);
 	hexdigest[0] = '\0';
-	BLI_snprintf(thumb, thumb_len, "%s.png", md5_to_hexdigest(digest, hexdigest));
+	BLI_snprintf(thumb, thumb_len, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));
 
 	// printf("%s: '%s' --> '%s'\n", __func__, uri, thumb);
 }

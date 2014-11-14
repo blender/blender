@@ -77,7 +77,8 @@
 #endif
 
 
-/* Following code is low level, upon which are built up the functions 'md5_stream' and 'md5_buffer'. */
+/* Following code is low level, upon which are built up the functions
+ * 'BLI_hash_md5_stream' and 'BLI_hash_md5_buffer'. */
 
 /* Structure to save state of computation between the single steps. */
 struct md5_ctx
@@ -284,7 +285,7 @@ static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
  *  The resulting message digest number will be written into the 16 bytes beginning at 'resblock'.
  *  \return Non-zero if an error occurred.
  */
-int md5_stream(FILE *stream, void *resblock)
+int BLI_hash_md5_stream(FILE *stream, void *resblock)
 {
 #define BLOCKSIZE 4096  /* Important: must be a multiple of 64. */
 	struct md5_ctx ctx;
@@ -356,7 +357,7 @@ int md5_stream(FILE *stream, void *resblock)
  *  The result is always in little endian byte order, so that a byte-wise output yields to the wanted
  *  ASCII representation of the message digest.
  */
-void *md5_buffer(const char *buffer, size_t len, void *resblock)
+void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock)
 {
 	struct md5_ctx ctx;
 	char restbuf[64 + 72];
@@ -390,7 +391,7 @@ void *md5_buffer(const char *buffer, size_t len, void *resblock)
 	return md5_read_ctx(&ctx, resblock);
 }
 
-char *md5_to_hexdigest(void *resblock, char r_hex_digest[33])
+char *BLI_hash_md5_to_hexdigest(void *resblock, char r_hex_digest[33])
 {
 	static const char hex_map[17] = "0123456789abcdef";
 	const unsigned char *p;
