@@ -1154,6 +1154,9 @@ elseif(WIN32)
 			endif()
 		endif()
 
+		set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+		include(InstallRequiredSystemLibraries)
+
 		add_definitions(-DOIIO_STATIC_BUILD)
 
 		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc /MP" CACHE STRING "MSVC MT C++ flags " FORCE)
