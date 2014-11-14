@@ -336,7 +336,10 @@ static float draw_seq_handle_size_get_clamped(Sequence *seq, const float pixelx)
 {
 	const float minhandle = pixelx * SEQ_HANDLE_SIZE_MIN;
 	const float maxhandle = pixelx * SEQ_HANDLE_SIZE_MAX;
-	return CLAMPIS(seq->handsize, minhandle, maxhandle);
+	float size = CLAMPIS(seq->handsize, minhandle, maxhandle);
+
+	/* ensure we're not greater then half width */
+	return min_ff(size, ((float)(seq->enddisp - seq->startdisp) / 2.0f) / pixelx);
 }
 
 /* draw a handle, for each end of a sequence strip */
