@@ -4443,18 +4443,18 @@ static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cpro
 	RNA_def_property_srna(cprop, "Addons");
 	srna = RNA_def_struct(brna, "Addons", NULL);
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
-	RNA_def_struct_ui_text(srna, "User Addons", "Collection of addons");
+	RNA_def_struct_ui_text(srna, "User Add-ons", "Collection of add-ons");
 
 	func = RNA_def_function(srna, "new", "rna_userdef_addon_new");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
-	RNA_def_function_ui_description(func, "Add a new addon");
+	RNA_def_function_ui_description(func, "Add a new add-on");
 	/* return type */
 	parm = RNA_def_pointer(func, "addon", "Addon", "", "Addon datablock");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_userdef_addon_remove");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Remove addon");
+	RNA_def_function_ui_description(func, "Remove add-on");
 	parm = RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
@@ -4495,7 +4495,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
 		{USER_SECTION_EDIT, "EDITING", 0, "Editing", ""},
 		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
-		{USER_SECTION_ADDONS, "ADDONS", 0, "Addons", ""},
+		{USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
 		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
 		{USER_SECTION_FILE, "FILES", 0, "File", ""},
 		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},

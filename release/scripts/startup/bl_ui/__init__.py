@@ -99,10 +99,10 @@ def register():
     def addon_filter_items(self, context):
         import addon_utils
 
-        items = [('All', "All", "All Addons"),
-                 ('User', "User", "All Addons Installed by User"),
-                 ('Enabled', "Enabled", "All Enabled Addons"),
-                 ('Disabled', "Disabled", "All Disabled Addons"),
+        items = [('All', "All", "All Add-ons"),
+                 ('User', "User", "All Add-ons Installed by User"),
+                 ('Enabled', "Enabled", "All Enabled Add-ons"),
+                 ('Disabled', "Disabled", "All Disabled Add-ons"),
                  ]
 
         items_unique = set()

@@ -821,9 +821,9 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Get strings from addons' categories.
     for uid, label, tip in bpy.types.WindowManager.addon_filter[1]['items'](bpy.context.window_manager, bpy.context):
-        process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Addons' categories", reports, None, settings)
+        process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
         if tip:
-            process_msg(msgs, settings.DEFAULT_CONTEXT, tip, "Addons' categories", reports, None, settings)
+            process_msg(msgs, settings.DEFAULT_CONTEXT, tip, "Add-ons' categories", reports, None, settings)
 
     # Get strings specific to translations' menu.
     for lng in settings.LANGUAGES:

@@ -1160,7 +1160,7 @@ class USERPREF_MT_addons_dev_guides(Menu):
 
 class USERPREF_PT_addons(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = "Addons"
+    bl_label = "Add-ons"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
