@@ -570,7 +570,7 @@ typedef struct ClothModifierData {
 	float hair_grid_min[3];
 	float hair_grid_max[3];
 	int hair_grid_res[3];
-	int pad;
+	float hair_grid_cellsize;
 	
 	struct ClothSolverResult *solver_result;
 	

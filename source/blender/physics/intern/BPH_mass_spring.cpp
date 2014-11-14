@@ -703,6 +703,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 	zero_v3_int(clmd->hair_grid_res);
 	zero_v3(clmd->hair_grid_min);
 	zero_v3(clmd->hair_grid_max);
+	clmd->hair_grid_cellsize = 0.0f;
 	
 	hair_get_boundbox(clmd, gmin, gmax);
 	
@@ -732,7 +733,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 		}
 		
 		/* store basic grid info in the modifier data */
-		BPH_hair_volume_grid_geometry(grid, NULL, clmd->hair_grid_res, clmd->hair_grid_min, clmd->hair_grid_max);
+		BPH_hair_volume_grid_geometry(grid, &clmd->hair_grid_cellsize, clmd->hair_grid_res, clmd->hair_grid_min, clmd->hair_grid_max);
 		
 #if 0 /* DEBUG hair velocity vector field */
 		{
@@ -740,13 +741,13 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 			int i, j;
 			float offset[3], a[3], b[3];
 			const int axis = 0;
-			const float shift = 0.45f;
+			const float shift = 0.0f;
 			
 			copy_v3_v3(offset, clmd->hair_grid_min);
 			zero_v3(a);
 			zero_v3(b);
 			
-			offset[axis] = interpf(clmd->hair_grid_max[axis], clmd->hair_grid_min[axis], shift);
+			offset[axis] = shift * clmd->hair_grid_cellsize;
 			a[(axis+1) % 3] = clmd->hair_grid_max[(axis+1) % 3] - clmd->hair_grid_min[(axis+1) % 3];
 			b[(axis+2) % 3] = clmd->hair_grid_max[(axis+2) % 3] - clmd->hair_grid_min[(axis+2) % 3];
 			
@@ -763,10 +764,23 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 					
 //					BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity, 0.7, 0.3, 1, "grid density", hash_int_2d(hash_int_2d(i, j), 3111));
 					if (!is_zero_v3(gvel) || !is_zero_v3(gvel_smooth)) {
-						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel, 0.4, 0, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3112));
-						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel_smooth, 0.6, 4, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3113));
-						if (gdensity > 0.0f)
-							BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4, "grid velocity", hash_int_2d(354, hash_int_2d(i, j)));
+						float dvel[3];
+						sub_v3_v3v3(dvel, gvel_smooth, gvel);
+//						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel, 0.4, 0, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3112));
+//						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel_smooth, 0.6, 1, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3113));
+						BKE_sim_debug_data_add_vector(clmd->debug_data, x, dvel, 0.4, 1, 0.7, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3114));
+#if 0
+						if (gdensity > 0.0f) {
+							float col0[3] = {0.0, 0.0, 0.0};
+							float col1[3] = {0.0, 1.0, 0.0};
+							float col[3];
+							
+							interp_v3_v3v3(col, col0, col1, CLAMPIS(gdensity * clmd->sim_parms->density_strength, 0.0, 1.0));
+//							BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3115));
+//							BKE_sim_debug_data_add_dot(clmd->debug_data, x, col[0], col[1], col[2], "grid velocity", hash_int_2d(hash_int_2d(i, j), 3115));
+							BKE_sim_debug_data_add_circle(clmd->debug_data, x, 0.01f, col[0], col[1], col[2], "grid velocity", hash_int_2d(hash_int_2d(i, j), 3115));
+						}
+#endif
 					}
 				}
 			}

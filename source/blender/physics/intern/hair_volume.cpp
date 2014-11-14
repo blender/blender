@@ -384,7 +384,6 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
                                            HairGridVert *vert, int stride_j, int stride_k, const float loc[3], int axis_j, int axis_k,
                                            int debug_i)
 {
-	SimDebugData *debug_data = grid->debug_data;
 	const float radius = 1.5f;
 	const float dist_scale = grid->inv_cellsize;
 	
@@ -408,22 +407,23 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
 			
 			hair_volume_eval_grid_vertex(vert_k, loc_k, radius, dist_scale, x2, v2, x3, v3);
 			
-#if 1
+#if 0
 			{
+				SimDebugData *debug_data = grid->debug_data;
 				float wloc[3], x2w[3], x3w[3];
 				grid_to_world(grid, wloc, loc_k);
 				grid_to_world(grid, x2w, x2);
 				grid_to_world(grid, x3w, x3);
 				
 				if (vert_k->samples > 0)
-					BKE_sim_debug_data_add_circle(debug_data, wloc, 0.01f, 1.0, 1.0, 0.3, "blah", hash_vertex(2525, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_circle(debug_data, wloc, 0.01f, 1.0, 1.0, 0.3, "grid", hash_vertex(2525, hash_int_2d(debug_i, hash_int_2d(j, k))));
 				
 				if (grid->debug_value) {
-					BKE_sim_debug_data_add_dot(debug_data, wloc, 1, 0, 0, "blah", hash_vertex(93, hash_int_2d(debug_i, hash_int_2d(j, k))));
-					BKE_sim_debug_data_add_dot(debug_data, x2w, 0.1, 0.1, 0.7, "blah", hash_vertex(649, hash_int_2d(debug_i, hash_int_2d(j, k))));
-					BKE_sim_debug_data_add_line(debug_data, wloc, x2w, 0.3, 0.8, 0.3, "blah", hash_vertex(253, hash_int_2d(debug_i, hash_int_2d(j, k))));
-					BKE_sim_debug_data_add_line(debug_data, wloc, x3w, 0.8, 0.3, 0.3, "blah", hash_vertex(254, hash_int_2d(debug_i, hash_int_2d(j, k))));
-//					BKE_sim_debug_data_add_circle(debug_data, x2w, len_v3v3(wloc, x2w), 0.2, 0.7, 0.2, "blah", hash_vertex(255, hash_int_2d(i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_dot(debug_data, wloc, 1, 0, 0, "grid", hash_vertex(93, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_dot(debug_data, x2w, 0.1, 0.1, 0.7, "grid", hash_vertex(649, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_line(debug_data, wloc, x2w, 0.3, 0.8, 0.3, "grid", hash_vertex(253, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_line(debug_data, wloc, x3w, 0.8, 0.3, 0.3, "grid", hash_vertex(254, hash_int_2d(debug_i, hash_int_2d(j, k))));
+//					BKE_sim_debug_data_add_circle(debug_data, x2w, len_v3v3(wloc, x2w), 0.2, 0.7, 0.2, "grid", hash_vertex(255, hash_int_2d(i, hash_int_2d(j, k))));
 				}
 			}
 #endif
@@ -687,6 +687,33 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 				 * however, this is already included in the weighting of hair velocities on the grid!
 				 */
 				B[u] = divergence + target;
+				
+#if 0
+				{
+					float wloc[3], loc[3];
+					float col0[3] = {0.0, 0.0, 0.0};
+					float colp[3] = {0.0, 1.0, 1.0};
+					float coln[3] = {1.0, 0.0, 1.0};
+					float col[3];
+					float fac;
+					
+					loc[0] = (float)(i - 1);
+					loc[1] = (float)(j - 1);
+					loc[2] = (float)(k - 1);
+					grid_to_world(grid, wloc, loc);
+					
+					if (divergence > 0.0f) {
+						fac = CLAMPIS(divergence * target_strength, 0.0, 1.0);
+						interp_v3_v3v3(col, col0, colp, fac);
+					}
+					else {
+						fac = CLAMPIS(-divergence * target_strength, 0.0, 1.0);
+						interp_v3_v3v3(col, col0, coln, fac);
+					}
+					if (fac > 0.05f)
+						BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", hash_int_2d(5522, hash_int_2d(i, hash_int_2d(j, k))));
+				}
+#endif
 			}
 		}
 	}
@@ -762,6 +789,63 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 	lVector p = cg.solve(B);
 	
 	if (cg.info() == Eigen::Success) {
+#if 0
+		{
+			int axis = 0;
+			float offset = 0.0f;
+			
+			int slice = (offset - grid->gmin[axis]) / grid->cellsize;
+			
+			for (k = 0; k < resA[2]; ++k) {
+				for (j = 0; j < resA[1]; ++j) {
+					for (i = 0; i < resA[0]; ++i) {
+						int u = i * strideA0 + j * strideA1 + k * strideA2;
+						bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
+//						if (i != slice)
+//							continue;
+						
+						vert = vert_start + i * stride0 + j * stride1 + k * stride2;
+						
+						float wloc[3], loc[3];
+						float col0[3] = {0.0, 0.0, 0.0};
+						float colp[3] = {0.0, 1.0, 1.0};
+						float coln[3] = {1.0, 0.0, 1.0};
+						float col[3];
+						float fac;
+						
+						loc[0] = (float)(i - 1);
+						loc[1] = (float)(j - 1);
+						loc[2] = (float)(k - 1);
+						grid_to_world(grid, wloc, loc);
+						
+						float pressure = p[u];
+						if (pressure > 0.0f) {
+							fac = CLAMPIS(pressure * target_strength, 0.0, 1.0);
+							interp_v3_v3v3(col, col0, colp, fac);
+						}
+						else {
+							fac = CLAMPIS(-pressure * target_strength, 0.0, 1.0);
+							interp_v3_v3v3(col, col0, coln, fac);
+						}
+						if (fac > 0.05f)
+							BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", hash_int_2d(5533, hash_int_2d(i, hash_int_2d(j, k))));
+						
+						if (!is_margin) {
+							float d = CLAMPIS(vert->density * target_density, 0.0f, 1.0f);
+							float col0[3] = {0.3, 0.3, 0.3};
+							float colp[3] = {0.0, 0.0, 1.0};
+							float col[3];
+							
+							interp_v3_v3v3(col, col0, colp, d);
+							if (d > 0.05f)
+								BKE_sim_debug_data_add_dot(grid->debug_data, wloc, col[0], col[1], col[2], "grid", hash_int_2d(5544, hash_int_2d(i, hash_int_2d(j, k))));
+						}
+					}
+				}
+			}
+		}
+#endif
+		
 		/* Calculate velocity = grad(p) */
 		for (k = 0; k < resA[2]; ++k) {
 			for (j = 0; j < resA[1]; ++j) {
@@ -946,6 +1030,7 @@ void BPH_hair_volume_free_vertex_grid(HairGrid *grid)
 void BPH_hair_volume_set_debug_data(HairGrid *grid, SimDebugData *debug_data)
 {
 	grid->debug_data = debug_data;
+	BKE_sim_debug_data_clear_category(grid->debug_data, "grid");
 }
 
 void BPH_hair_volume_grid_geometry(HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3])
