@@ -682,7 +682,7 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 				 * and resulting pressure gradient should be multiplied by the (inverse) density;
 				 * however, this is already included in the weighting of hair velocities on the grid!
 				 */
-				B[u] = divergence + target;
+				B[u] = divergence - target;
 				
 #if 0
 				{
