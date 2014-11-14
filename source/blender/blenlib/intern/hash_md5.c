@@ -29,7 +29,7 @@
  *  according to the definition of MD5 in RFC 1321 from April 1992.
  */
 
-#include "BLI_md5.h"  /* own include */
+#include "BLI_hash_md5.h"  /* own include */
 
 #include <stdlib.h>
 #include <string.h>

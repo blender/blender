@@ -18,30 +18,28 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_MD5_H__
-#define __BLI_MD5_H__ 
+#ifndef __BLI_MM2A_H__
+#define __BLI_MM2A_H__
 
-/** \file BLI_md5.h
+/** \file BLI_hash_mm2a.h
  *  \ingroup bli
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "BLI_sys_types.h"
 
-/* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
- * result is always in little endian byte order, so that a byte-wise
- * output yields to the wanted ASCII representation of the message
- * digest.  */
+typedef struct BLI_HashMurmur2A {
+	uint32_t hash;
+	uint32_t tail;
+	uint32_t count;
+	uint32_t size;
+} BLI_HashMurmur2A;
 
-void *md5_buffer(const char *buffer, size_t len, void *resblock);
+void BLI_hash_mm2a_init(BLI_HashMurmur2A *mm2, uint32_t seed);
 
-/* Compute MD5 message digest for bytes read from STREAM.  The
- * resulting message digest number will be written into the 16 bytes
- * beginning at RESBLOCK.  */
+void BLI_hash_mm2a_add(BLI_HashMurmur2A *mm2, const unsigned char *data, size_t len);
 
-int md5_stream(FILE *stream, void *resblock);
+void BLI_hash_mm2a_add_int(BLI_HashMurmur2A *mm2, int data);
 
-char *md5_to_hexdigest(void *resblock, char r_hex_digest[33]);
+uint32_t BLI_hash_mm2a_end(BLI_HashMurmur2A *mm2);
 
-#endif
-
+#endif  /* __BLI_MM2A_H__ */

@@ -37,7 +37,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
-#include "BLI_md5.h"
+#include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
