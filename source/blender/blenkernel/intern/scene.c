@@ -63,6 +63,7 @@
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_editmesh.h"
@@ -1243,8 +1244,35 @@ static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scen
 			}
 		}
 	}
-
 }
+
+/* That's like really a bummer, because currently animation data for armatures
+ * might want to use pose, and pose might be missing on the object.
+ * This happens when changing visible layers, which leads to situations when
+ * pose is missing or marked for recalc, animation will change it and then
+ * object update will restore the pose.
+ *
+ * This could be solved by the new dependency graph, but for until then we'll
+ * do an extra pass on the objects to ensure it's all fine.
+ */
+#define POSE_ANIMATION_WORKAROUND
+
+#ifdef POSE_ANIMATION_WORKAROUND
+static void scene_armature_depsgraph_workaround(Main *bmain)
+{
+	Object *ob;
+	if (!DAG_id_type_tagged(bmain, ID_OB)) {
+		return;
+	}
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (ob->type == OB_ARMATURE && ob->adt && ob->adt->recalc & ADT_RECALC_ANIM) {
+			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
+				BKE_pose_rebuild(ob, ob->data);
+			}
+		}
+	}
+}
+#endif
 
 static void scene_rebuild_rbw_recursive(Scene *scene, float ctime)
 {
@@ -1736,6 +1764,10 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	DAG_scene_update_flags(bmain, sce, lay, true, do_invisible_flush);   // only stuff that moves or needs display still
 
 	BKE_mask_evaluate_all_masks(bmain, ctime, true);
+
+#ifdef POSE_ANIMATION_WORKAROUND
+	scene_armature_depsgraph_workaround(bmain);
+#endif
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that
