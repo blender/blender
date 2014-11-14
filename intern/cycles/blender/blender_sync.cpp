@@ -517,7 +517,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	/* color managagement */
 #ifdef GLEW_MX
 	/* When using GLEW MX we need to check whether we've got an OpenGL
-	 * context for crrent window. This is because command line rendering
+	 * context for current window. This is because command line rendering
 	 * doesn't have OpenGL context actually.
 	 */
 	if(glewGetContext() != NULL)

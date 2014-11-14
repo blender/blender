@@ -1261,7 +1261,7 @@ static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scen
 static void scene_armature_depsgraph_workaround(Main *bmain)
 {
 	Object *ob;
-	if (!DAG_id_type_tagged(bmain, ID_OB)) {
+	if (BLI_listbase_is_empty(&bmain->armature) || !DAG_id_type_tagged(bmain, ID_OB)) {
 		return;
 	}
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
