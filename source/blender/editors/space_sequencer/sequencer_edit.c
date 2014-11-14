@@ -1449,8 +1449,13 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 	MEM_freeN(data->ts);
 	MEM_freeN(data);
 
-	if (success) return OPERATOR_FINISHED;
-	else return OPERATOR_CANCELLED;
+	if (success) {
+		WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)
