@@ -33,11 +33,7 @@
 
 #ifndef __KERNEL_GPU__
 
-#  ifdef NDEBUG
-#    define ccl_device static inline
-#  else
-#    define ccl_device static
-#  endif
+#define ccl_device static inline
 #define ccl_device_noinline static
 #define ccl_global
 #define ccl_constant
@@ -53,11 +49,7 @@
 #define ccl_try_align(...) /* not support for function arguments (error C2719) */
 #endif
 #define ccl_may_alias
-#  ifdef NDEBUG
-#    define ccl_always_inline __forceinline
-#  else
-#    define ccl_always_inline
-#  endif
+#define ccl_always_inline __forceinline
 #define ccl_maybe_unused
 
 #else
