@@ -970,7 +970,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 		GLubyte col[4];
 		if (attribs->mcol[i].em_offset != -1) {
 			const MLoopCol *cp = BM_ELEM_CD_GET_VOID_P(loop, attribs->mcol[i].em_offset);
-			col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+			copy_v4_v4_char((char *)col, &cp->r);
 		}
 		else {
 			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;
