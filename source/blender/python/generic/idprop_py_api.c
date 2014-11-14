@@ -519,6 +519,10 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 		    (prop_exist->type == prop->type) &&
 		    (prop_exist->subtype == prop->subtype))
 		{
+			/* Preserve prev/next links!!! See T42593. */
+			prop->prev = prop_exist->prev;
+			prop->next = prop_exist->next;
+
 			IDP_FreeProperty(prop_exist);
 			*prop_exist = *prop;
 			MEM_freeN(prop);
