@@ -93,7 +93,8 @@ typedef struct HairGrid {
 	float cellsize, inv_cellsize;
 	
 	struct SimDebugData *debug_data;
-	int debug_value;
+	float debug1, debug2;
+	int debug3, debug4;
 } HairGrid;
 
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) ( min_ii( max_ii( (int)((vec[axis] - gmin[axis]) * scale), 0), res[axis]-2 ) )
@@ -369,11 +370,6 @@ BLI_INLINE int major_axis_v3(const float v[3])
 	const float b = fabsf(v[1]);
 	const float c = fabsf(v[2]);
 	return a > b ? (a > c ? 0 : 2) : (b > c ? 1 : 2);
-}
-
-void BPH_hair_volume_set_debug_value(HairGrid *grid, int debug_value)
-{
-	grid->debug_value = debug_value;
 }
 
 BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
@@ -855,11 +851,11 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 						
 						float pressure = p[u];
 						if (pressure > 0.0f) {
-							fac = CLAMPIS(pressure * target_strength, 0.0, 1.0);
+							fac = CLAMPIS(pressure * grid->debug1, 0.0, 1.0);
 							interp_v3_v3v3(col, col0, colp, fac);
 						}
 						else {
-							fac = CLAMPIS(-pressure * target_strength, 0.0, 1.0);
+							fac = CLAMPIS(-pressure * grid->debug1, 0.0, 1.0);
 							interp_v3_v3v3(col, col0, coln, fac);
 						}
 						if (fac > 0.05f)
@@ -868,11 +864,11 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 						if (!is_margin) {
 							float dvel[3];
 							sub_v3_v3v3(dvel, vert->velocity_smooth, vert->velocity);
-							BKE_sim_debug_data_add_vector(grid->debug_data, wloc, dvel, 1, 1, 1, "grid", hash_int_2d(5566, hash_int_2d(i, hash_int_2d(j, k))));
+//							BKE_sim_debug_data_add_vector(grid->debug_data, wloc, dvel, 1, 1, 1, "grid", hash_int_2d(5566, hash_int_2d(i, hash_int_2d(j, k))));
 						}
 						
 						if (!is_margin) {
-							float d = CLAMPIS(vert->density * target_density, 0.0f, 1.0f);
+							float d = CLAMPIS(vert->density * grid->debug2, 0.0f, 1.0f);
 							float col0[3] = {0.3, 0.3, 0.3};
 							float colp[3] = {0.0, 0.0, 1.0};
 							float col[3];
@@ -1037,6 +1033,14 @@ void BPH_hair_volume_set_debug_data(HairGrid *grid, SimDebugData *debug_data)
 {
 	grid->debug_data = debug_data;
 	BKE_sim_debug_data_clear_category(grid->debug_data, "grid");
+}
+
+void BPH_hair_volume_set_debug_value(HairGrid *grid, float debug1, float debug2, int debug3, int debug4)
+{
+	grid->debug1 = debug1;
+	grid->debug2 = debug2;
+	grid->debug3 = debug3;
+	grid->debug4 = debug4;
 }
 
 void BPH_hair_volume_grid_geometry(HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3])

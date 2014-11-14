@@ -329,6 +329,11 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         sub.prop(cloth, "density_target", text="Density Target")
         sub.prop(cloth, "density_strength", slider=True, text="Strength")
         col.prop(cloth, "voxel_cell_size")
+        sub = col.column(align=True)
+        sub.prop(cloth, "debug1")
+        sub.prop(cloth, "debug2")
+        sub.prop(cloth, "debug3")
+        sub.prop(cloth, "debug4")
 
         split.separator()
 

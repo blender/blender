@@ -688,7 +688,9 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 	/* gather velocities & density */
 	if (smoothfac > 0.0f || density_strength > 0.0f) {
 		HairGrid *grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_cell_size, gmin, gmax);
+		
 		BPH_hair_volume_set_debug_data(grid, clmd->debug_data);
+		BPH_hair_volume_set_debug_value(grid, parms->debug1, parms->debug2, parms->debug3, parms->debug4);
 		
 		cloth_continuum_fill_grid(grid, cloth);
 		
