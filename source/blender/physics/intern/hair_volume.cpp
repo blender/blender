@@ -752,17 +752,17 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 					 * needed for the diagonal element
 					 */
 					if (!NEIGHBOR_MARGIN_k0 && (vert - stride2)->density > density_threshold)
-						neighbor_lo_index[neighbors_lo++] = u - stride2;
+						neighbor_lo_index[neighbors_lo++] = u - strideA2;
 					if (!NEIGHBOR_MARGIN_j0 && (vert - stride1)->density > density_threshold)
-						neighbor_lo_index[neighbors_lo++] = u - stride1;
+						neighbor_lo_index[neighbors_lo++] = u - strideA1;
 					if (!NEIGHBOR_MARGIN_i0 && (vert - stride0)->density > density_threshold)
-						neighbor_lo_index[neighbors_lo++] = u - stride0;
+						neighbor_lo_index[neighbors_lo++] = u - strideA0;
 					if (!NEIGHBOR_MARGIN_i1 && (vert + stride0)->density > density_threshold)
-						neighbor_hi_index[neighbors_hi++] = u + stride0;
+						neighbor_hi_index[neighbors_hi++] = u + strideA0;
 					if (!NEIGHBOR_MARGIN_j1 && (vert + stride1)->density > density_threshold)
-						neighbor_hi_index[neighbors_hi++] = u + stride1;
+						neighbor_hi_index[neighbors_hi++] = u + strideA1;
 					if (!NEIGHBOR_MARGIN_k1 && (vert + stride2)->density > density_threshold)
-						neighbor_hi_index[neighbors_hi++] = u + stride2;
+						neighbor_hi_index[neighbors_hi++] = u + strideA2;
 					
 					/*int liquid_neighbors = neighbors_lo + neighbors_hi;*/
 					non_solid_neighbors = 6;
@@ -789,6 +789,41 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 	lVector p = cg.solve(B);
 	
 	if (cg.info() == Eigen::Success) {
+		/* Calculate velocity = grad(p) */
+		for (k = 0; k < resA[2]; ++k) {
+			for (j = 0; j < resA[1]; ++j) {
+				for (i = 0; i < resA[0]; ++i) {
+					int u = i * strideA0 + j * strideA1 + k * strideA2;
+					bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
+					if (is_margin)
+						continue;
+					
+					vert = vert_start + i * stride0 + j * stride1 + k * stride2;
+					if (vert->density > density_threshold) {
+						float p_left   = p[u - strideA0];
+						float p_right  = p[u + strideA0];
+						float p_down   = p[u - strideA1];
+						float p_up     = p[u + strideA1];
+						float p_bottom = p[u - strideA2];
+						float p_top    = p[u + strideA2];
+						
+						/* finite difference estimate of pressure gradient */
+						float dvel[3];
+						dvel[0] = p_right - p_left;
+						dvel[1] = p_up - p_down;
+						dvel[2] = p_top - p_bottom;
+						mul_v3_fl(dvel, -0.5f * inv_flowfac);
+						
+						/* pressure gradient describes velocity delta */
+						add_v3_v3v3(vert->velocity_smooth, vert->velocity, dvel);
+					}
+					else {
+						zero_v3(vert->velocity_smooth);
+					}
+				}
+			}
+		}
+		
 #if 0
 		{
 			int axis = 0;
@@ -801,8 +836,8 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 					for (i = 0; i < resA[0]; ++i) {
 						int u = i * strideA0 + j * strideA1 + k * strideA2;
 						bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
-//						if (i != slice)
-//							continue;
+						if (i != slice)
+							continue;
 						
 						vert = vert_start + i * stride0 + j * stride1 + k * stride2;
 						
@@ -831,55 +866,26 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 							BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", hash_int_2d(5533, hash_int_2d(i, hash_int_2d(j, k))));
 						
 						if (!is_margin) {
+							float dvel[3];
+							sub_v3_v3v3(dvel, vert->velocity_smooth, vert->velocity);
+							BKE_sim_debug_data_add_vector(grid->debug_data, wloc, dvel, 1, 1, 1, "grid", hash_int_2d(5566, hash_int_2d(i, hash_int_2d(j, k))));
+						}
+						
+						if (!is_margin) {
 							float d = CLAMPIS(vert->density * target_density, 0.0f, 1.0f);
 							float col0[3] = {0.3, 0.3, 0.3};
 							float colp[3] = {0.0, 0.0, 1.0};
 							float col[3];
 							
 							interp_v3_v3v3(col, col0, colp, d);
-							if (d > 0.05f)
-								BKE_sim_debug_data_add_dot(grid->debug_data, wloc, col[0], col[1], col[2], "grid", hash_int_2d(5544, hash_int_2d(i, hash_int_2d(j, k))));
+//							if (d > 0.05f)
+//								BKE_sim_debug_data_add_dot(grid->debug_data, wloc, col[0], col[1], col[2], "grid", hash_int_2d(5544, hash_int_2d(i, hash_int_2d(j, k))));
 						}
 					}
 				}
 			}
 		}
 #endif
-		
-		/* Calculate velocity = grad(p) */
-		for (k = 0; k < resA[2]; ++k) {
-			for (j = 0; j < resA[1]; ++j) {
-				for (i = 0; i < resA[0]; ++i) {
-					int u = i * strideA0 + j * strideA1 + k * strideA2;
-					bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 || MARGIN_k1;
-					if (is_margin)
-						continue;
-					
-					vert = vert_start + i * stride0 + j * stride1 + k * stride2;
-					if (vert->density > density_threshold) {
-						float p_left   = p[u - stride0];
-						float p_right  = p[u + stride0];
-						float p_down   = p[u - stride1];
-						float p_up     = p[u + stride1];
-						float p_bottom = p[u - stride2];
-						float p_top    = p[u + stride2];
-						
-						/* finite difference estimate of pressure gradient */
-						float dvel[3];
-						dvel[0] = p_right - p_left;
-						dvel[1] = p_up - p_down;
-						dvel[2] = p_top - p_bottom;
-						mul_v3_fl(dvel, -0.5f * inv_flowfac);
-						
-						/* pressure gradient describes velocity delta */
-						add_v3_v3v3(vert->velocity_smooth, vert->velocity, dvel);
-					}
-					else {
-						zero_v3(vert->velocity_smooth);
-					}
-				}
-			}
-		}
 		
 		return true;
 	}
