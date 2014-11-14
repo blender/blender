@@ -621,28 +621,6 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid, const float c
 		                            spring3 ? dir3 : NULL);
 	}
 	
-	/* last segment */
-	spring1 = spring2;
-	spring2 = spring3;
-	spring3 = NULL;
-	
-	vert3 = vert4;
-	vert4 = NULL;
-	
-	copy_v3_v3(x1, x2); copy_v3_v3(v1, v2);
-	copy_v3_v3(x2, x3); copy_v3_v3(v2, v3);
-	copy_v3_v3(x3, x4); copy_v3_v3(v3, v4);
-	zero_v3(x4);        zero_v3(v4);
-	
-	copy_v3_v3(dir1, dir2);
-	copy_v3_v3(dir2, dir3);
-	zero_v3(dir3);
-	
-	BPH_hair_volume_add_segment(grid, x1, v1, x2, v2, x3, v3, x4, v4,
-	                            spring1 ? dir1 : NULL,
-	                            dir2,
-	                            NULL);
-	
 	return next_spring_link;
 }
 
