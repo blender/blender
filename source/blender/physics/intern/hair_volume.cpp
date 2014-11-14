@@ -310,6 +310,13 @@ BLI_INLINE int hair_grid_weights(const int res[3], const float gmin[3], float sc
 	return offset;
 }
 
+BLI_INLINE void grid_to_world(HairGrid *grid, float vecw[3], const float vec[3])
+{
+	copy_v3_v3(vecw, vec);
+	mul_v3_fl(vecw, grid->cellsize);
+	add_v3_v3(vecw, grid->gmin);
+}
+
 void BPH_hair_volume_add_vertex(HairGrid *grid, const float x[3], const float v[3])
 {
 	const int res[3] = { grid->res[0], grid->res[1], grid->res[2] };
@@ -362,13 +369,6 @@ BLI_INLINE int major_axis_v3(const float v[3])
 	const float b = fabsf(v[1]);
 	const float c = fabsf(v[2]);
 	return a > b ? (a > c ? 0 : 2) : (b > c ? 1 : 2);
-}
-
-BLI_INLINE void grid_to_world(HairGrid *grid, float vecw[3], const float vec[3])
-{
-	copy_v3_v3(vecw, vec);
-	mul_v3_fl(vecw, grid->cellsize);
-	add_v3_v3(vecw, grid->gmin);
 }
 
 void BPH_hair_volume_set_debug_value(HairGrid *grid, int debug_value)
@@ -609,8 +609,8 @@ BLI_INLINE float hair_volume_density_divergence(float density, float target_dens
 
 bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_density, float target_strength)
 {
-	const float flowfac = grid->cellsize / dt;
-	const float inv_flowfac = dt / grid->cellsize;
+	const float flowfac = grid->cellsize;
+	const float inv_flowfac = 1.0f / grid->cellsize;
 	
 	/*const int num_cells = hair_grid_size(grid->res);*/
 	const int res[3] = { grid->res[0], grid->res[1], grid->res[2] };
@@ -660,16 +660,23 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 				}
 				
 				vert = vert_start + i * stride0 + j * stride1 + k * stride2;
-				HairGridVert *vert_px = vert + stride0;
-				HairGridVert *vert_py = vert + stride1;
-				HairGridVert *vert_pz = vert + stride2;
 				
-				const float *v = vert->velocity;
-				float dx = NEIGHBOR_MARGIN_i1 ? 0.0f : vert_px->velocity[0] - v[0];
-				float dy = NEIGHBOR_MARGIN_j1 ? 0.0f : vert_py->velocity[1] - v[1];
-				float dz = NEIGHBOR_MARGIN_k1 ? 0.0f : vert_pz->velocity[2] - v[2];
+				const float *v0 = vert->velocity;
+				float dx = 0.0f, dy = 0.0f, dz = 0.0f;
+				if (!NEIGHBOR_MARGIN_i0)
+					dx += v0[0] - (vert - stride0)->velocity[0];
+				if (!NEIGHBOR_MARGIN_i1)
+					dx += (vert + stride0)->velocity[0] - v0[0];
+				if (!NEIGHBOR_MARGIN_j0)
+					dy += v0[1] - (vert - stride1)->velocity[1];
+				if (!NEIGHBOR_MARGIN_j1)
+					dy += (vert + stride1)->velocity[1] - v0[1];
+				if (!NEIGHBOR_MARGIN_k0)
+					dz += v0[2] - (vert - stride2)->velocity[2];
+				if (!NEIGHBOR_MARGIN_k1)
+					dz += (vert + stride2)->velocity[2] - v0[2];
 				
-				float divergence = (dx + dy + dz) * flowfac;
+				float divergence = -0.5f * flowfac * (dx + dy + dz);
 				
 				/* adjustment term for target density */
 				float target = hair_volume_density_divergence(vert->density, target_density, target_strength);
@@ -766,16 +773,22 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 					
 					vert = vert_start + i * stride0 + j * stride1 + k * stride2;
 					if (vert->density > density_threshold) {
-						float p0 = p[u];
+						float p_left   = p[u - stride0];
+						float p_right  = p[u + stride0];
+						float p_down   = p[u - stride1];
+						float p_up     = p[u + stride1];
+						float p_bottom = p[u - stride2];
+						float p_top    = p[u + stride2];
 						
 						/* finite difference estimate of pressure gradient */
-						float grad_p[3];
-						grad_p[0] = p0 - p[u - stride0];
-						grad_p[1] = p0 - p[u - stride1];
-						grad_p[2] = p0 - p[u - stride2];
+						float dvel[3];
+						dvel[0] = p_right - p_left;
+						dvel[1] = p_up - p_down;
+						dvel[2] = p_top - p_bottom;
+						mul_v3_fl(dvel, -0.5f * inv_flowfac);
 						
 						/* pressure gradient describes velocity delta */
-						madd_v3_v3v3fl(vert->velocity_smooth, vert->velocity, grad_p, inv_flowfac);
+						add_v3_v3v3(vert->velocity_smooth, vert->velocity, dvel);
 					}
 					else {
 						zero_v3(vert->velocity_smooth);
