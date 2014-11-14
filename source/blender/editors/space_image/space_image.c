@@ -791,7 +791,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 #endif
 }
 
-static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -802,6 +802,14 @@ static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), A
 		case NC_IMAGE:
 			if (wmn->action == NA_PAINTING)
 				ED_region_tag_redraw(ar);
+			break;
+		case NC_MATERIAL:
+			if (wmn->data == ND_SHADING_LINKS) {
+				SpaceImage *sima = sa->spacedata.first;
+
+				if (sima->flag & SI_TEXPAINT_FILTER_MATERIAL)
+					ED_region_tag_redraw(ar);
+			}
 			break;
 	}
 }

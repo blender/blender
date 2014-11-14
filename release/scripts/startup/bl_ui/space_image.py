@@ -82,6 +82,7 @@ class IMAGE_MT_view(Menu):
         layout.prop(uv, "show_other_objects")
         if paint.brush and (context.image_paint_object or sima.mode == 'PAINT'):
             layout.prop(uv, "show_texpaint")
+            layout.prop(uv, "texpaint_filter_mat")
 
         layout.separator()
 
