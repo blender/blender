@@ -8031,7 +8031,6 @@ float ui_block_calc_pie_segment(uiBlock *block, const float event_xy[2])
 
 	len = normalize_v2_v2(block->pie_data.pie_dir, seg2);
 
-	/* ten pixels for now, a bit arbitrary */
 	if (len < U.pie_menu_threshold * U.pixelsize)
 		block->pie_data.flags |= UI_PIE_INVALID_DIR;
 	else

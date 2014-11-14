@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_MM2A_H__
-#define __BLI_MM2A_H__
+#ifndef __BLI_HASH_MM2A_H__
+#define __BLI_HASH_MM2A_H__
 
 /** \file BLI_hash_mm2a.h
  *  \ingroup bli
@@ -42,4 +42,4 @@ void BLI_hash_mm2a_add_int(BLI_HashMurmur2A *mm2, int data);
 
 uint32_t BLI_hash_mm2a_end(BLI_HashMurmur2A *mm2);
 
-#endif  /* __BLI_MM2A_H__ */
+#endif  /* __BLI_HASH_MM2A_H__ */
