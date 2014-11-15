@@ -963,7 +963,9 @@ if(WIN32 AND NOT WITH_PYTHON_MODULE)
 	set_target_properties(blender-launcher PROPERTIES OUTPUT_NAME blender)
 
 	install(TARGETS blender blender-launcher
+			COMPONENT Blender
 			DESTINATION ".")
+
 	if(MSVC12_REDIST_DIR)
 		if(CMAKE_CL_64)
 			set(_WIN_PLATFORM x64)
