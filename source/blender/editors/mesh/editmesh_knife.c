@@ -206,6 +206,7 @@ typedef struct KnifeTool_OpData {
 		MODE_CONNECT,
 		MODE_PANNING
 	} mode;
+	bool is_drag_hold;
 
 	int prevmode;
 	bool snap_midpoints;
@@ -559,6 +560,16 @@ static KnifeVert *knife_split_edge(
 	return newkfe->v2;
 }
 
+static void linehit_to_knifepos(KnifePosData *kpos, KnifeLineHit *lh)
+{
+	kpos->bmface = lh->f;
+	kpos->vert = lh->v;
+	kpos->edge = lh->kfe;
+	copy_v3_v3(kpos->cage, lh->cagehit);
+	copy_v3_v3(kpos->co, lh->hit);
+	copy_v2_v2(kpos->mval, lh->schit);
+}
+
 /* primary key: lambda along cut
  * secondary key: lambda along depth
  * tertiary key: pointer comparisons of verts if both snapped to verts
@@ -771,7 +782,9 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 
 	prepare_linehits_for_cut(kcd);
 	if (kcd->totlinehit == 0) {
-		kcd->prev = kcd->curr;
+		if (kcd->is_drag_hold == false) {
+			kcd->prev = kcd->curr;
+		}
 		return;
 	}
 
@@ -806,10 +819,20 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 
 	/* set up for next cut */
 	kcd->prev = kcd->curr;
+
+
 	if (kcd->prev.bmface) {
+		KnifeLineHit *lh;
 		/* was "in face" but now we have a KnifeVert it is snapped to */
+		lh = &kcd->linehits[kcd->totlinehit - 1];
+
+		if (kcd->is_drag_hold) {
+			linehit_to_knifepos(&kcd->prev, lh);
+		}
+		else {
+			kcd->prev.vert = lh->v;
+		}
 		kcd->prev.bmface = NULL;
-		kcd->prev.vert = kcd->linehits[kcd->totlinehit - 1].v;
 	}
 
 	BLI_ghash_free(facehits, NULL, NULL);
@@ -1285,6 +1308,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	int isect_kind;
 	unsigned int tot;
 	int i;
+	const bool use_hit_prev = true;
+	const bool use_hit_curr = (kcd->is_drag_hold == false);
 
 	bgl_get_mats(&mats);
 
@@ -1477,7 +1502,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	{
 		float p[3], p_cage[3];
 
-		if (knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol_sq, p, p_cage)) {
+		if (use_hit_prev && knife_ray_intersect_face(kcd, s1, v1, v3, f, face_tol_sq, p, p_cage)) {
 			if (point_is_visible(kcd, p_cage, s1, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.f = f;
@@ -1488,7 +1513,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 				BLI_array_append(linehits, hit);
 			}
 		}
-		if (knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol_sq, p, p_cage)) {
+
+		if (use_hit_curr && knife_ray_intersect_face(kcd, s2, v2, v4, f, face_tol_sq, p, p_cage)) {
 			if (point_is_visible(kcd, p_cage, s2, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.f = f;
@@ -1913,7 +1939,10 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 
 	kcd->curr.vert = knife_find_closest_vert(kcd, kcd->curr.co, kcd->curr.cage, &kcd->curr.bmface, &kcd->curr.is_space);
 
-	if (!kcd->curr.vert) {
+	if (!kcd->curr.vert &&
+	    /* no edge snapping while dragging (edges are too sticky when cuts are immediate) */
+	    !kcd->is_drag_hold)
+	{
 		kcd->curr.edge = knife_find_closest_edge(kcd, kcd->curr.co, kcd->curr.cage,
 		                                         &kcd->curr.bmface, &kcd->curr.is_space);
 	}
@@ -2840,7 +2869,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_ANY, KM_ANY, 0, KNF_MODAL_PANNING);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_ADD_CUT);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, KNF_MODAL_ADD_CUT);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
@@ -2951,12 +2980,23 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case KNF_MODAL_ADD_CUT:
 				knife_recalc_projmat(kcd);
 
-				if (kcd->mode == MODE_DRAGGING) {
-					knife_add_cut(kcd);
+				/* get the value of the event which triggered this one */
+				if (event->prevval != KM_RELEASE) {
+					if (kcd->mode == MODE_DRAGGING) {
+						knife_add_cut(kcd);
+					}
+					else if (kcd->mode != MODE_PANNING) {
+						knife_start_cut(kcd);
+						kcd->mode = MODE_DRAGGING;
+					}
+
+					/* freehand drawing is incompatible with cut-through */
+					if (kcd->cut_through == false) {
+						kcd->is_drag_hold = true;
+					}
 				}
-				else if (kcd->mode != MODE_PANNING) {
-					knife_start_cut(kcd);
-					kcd->mode = MODE_DRAGGING;
+				else {
+					kcd->is_drag_hold = false;
 				}
 
 				ED_region_tag_redraw(kcd->ar);
@@ -2987,6 +3027,12 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case MOUSEMOVE: /* mouse moved somewhere to select another loop */
 				if (kcd->mode != MODE_PANNING) {
 					knifetool_update_mval_i(kcd, event->mval);
+
+					if (kcd->is_drag_hold) {
+						if (kcd->totlinehit >= 2) {
+							knife_add_cut(kcd);
+						}
+					}
 				}
 
 				break;
