@@ -1310,23 +1310,13 @@ elseif(WIN32)
 			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-			if(MSVC12)
-				set(OPENEXR_LIBRARIES
-					${OPENEXR_LIBPATH}/Iex-2_1.lib
-					${OPENEXR_LIBPATH}/Half.lib
-					${OPENEXR_LIBPATH}/IlmImf-2_1.lib
-					${OPENEXR_LIBPATH}/Imath-2_1.lib
-					${OPENEXR_LIBPATH}/IlmThread-2_1.lib
-				)
-			else()
-				set(OPENEXR_LIBRARIES
-					${OPENEXR_LIBPATH}/Iex.lib
-					${OPENEXR_LIBPATH}/Half.lib
-					${OPENEXR_LIBPATH}/IlmImf.lib
-					${OPENEXR_LIBPATH}/Imath.lib
-					${OPENEXR_LIBPATH}/IlmThread.lib
-				)
-			endif()
+			set(OPENEXR_LIBRARIES
+				${OPENEXR_LIBPATH}/Iex-2_1.lib
+				${OPENEXR_LIBPATH}/Half.lib
+				${OPENEXR_LIBPATH}/IlmImf-2_1.lib
+				${OPENEXR_LIBPATH}/Imath-2_1.lib
+				${OPENEXR_LIBPATH}/IlmThread-2_1.lib
+			)
 			endif(NOT OPENEXR_FOUND)
 		endif()
 
@@ -1423,6 +1413,7 @@ elseif(WIN32)
 			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
 			set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
 			set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
+			add_definitions(-DOIIO_STATIC_BUILD)
 		endif()
 
 		if(WITH_LLVM)
@@ -1977,7 +1968,6 @@ elseif(APPLE)
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO}/lib/libOpenImageIO.a ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
 		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
-		add_definitions(-DOIIO_STATIC_BUILD)
 	endif()
 
 	if(WITH_OPENCOLORIO)
