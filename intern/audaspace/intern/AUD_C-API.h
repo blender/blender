@@ -77,22 +77,26 @@ extern void AUD_exitOnce(void);
  * \param buffersize The buffersize for the device.
  * \return Whether the device has been initialized.
  */
-extern int AUD_init(const char* device, const char* name, AUD_DeviceSpecs specs, int buffersize);
+extern AUD_Device* AUD_init(const char* device, AUD_DeviceSpecs specs, int buffersize, const char* name);
 
 /**
  * Unitinitializes an audio device.
  */
-extern void AUD_exit(void);
+extern void AUD_exit(AUD_Device* device);
 
 /**
  * Locks the playback device.
  */
-extern void AUD_lock(void);
+extern void AUD_Device_lock(AUD_Device* device);
 
 /**
  * Unlocks the device.
  */
-extern void AUD_unlock(void);
+extern void AUD_Device_unlock(AUD_Device* device);
+
+extern AUD_Channels AUD_Device_getChannels(AUD_Device* device);
+
+extern AUD_SampleRate AUD_Device_getRate(AUD_Device* device);
 
 /**
  * Returns information about a sound.
@@ -106,7 +110,7 @@ extern AUD_SoundInfo AUD_getInfo(AUD_Sound *sound);
  * \param filename The filename of the sound file.
  * \return A handle of the sound file.
  */
-extern AUD_Sound *AUD_load(const char *filename);
+extern AUD_Sound *AUD_Sound_file(const char *filename);
 
 /**
  * Loads a sound file.
@@ -114,21 +118,21 @@ extern AUD_Sound *AUD_load(const char *filename);
  * \param size The size of the buffer.
  * \return A handle of the sound file.
  */
-extern AUD_Sound *AUD_loadBuffer(unsigned char *buffer, int size);
+extern AUD_Sound *AUD_Sound_bufferFile(unsigned char *buffer, int size);
 
 /**
  * Buffers a sound.
  * \param sound The sound to buffer.
  * \return A handle of the sound buffer.
  */
-extern AUD_Sound *AUD_bufferSound(AUD_Sound *sound);
+extern AUD_Sound *AUD_Sound_cache(AUD_Sound *sound);
 
 /**
  * Rechannels the sound to be mono.
  * \param sound The sound to rechannel.
  * \return The mono sound.
  */
-extern AUD_Sound *AUD_monoSound(AUD_Sound *sound);
+extern AUD_Sound *AUD_Sound_rechannel(AUD_Sound *sound, AUD_Channels channels);
 
 /**
  * Delays a sound.
@@ -136,7 +140,7 @@ extern AUD_Sound *AUD_monoSound(AUD_Sound *sound);
  * \param delay The delay in seconds.
  * \return A handle of the delayed sound.
  */
-extern AUD_Sound *AUD_delaySound(AUD_Sound *sound, float delay);
+extern AUD_Sound *AUD_Sound_delay(AUD_Sound *sound, float delay);
 
 /**
  * Limits a sound.
@@ -145,21 +149,21 @@ extern AUD_Sound *AUD_delaySound(AUD_Sound *sound, float delay);
  * \param end The stop time in seconds.
  * \return A handle of the limited sound.
  */
-extern AUD_Sound *AUD_limitSound(AUD_Sound *sound, float start, float end);
+extern AUD_Sound *AUD_Sound_limit(AUD_Sound *sound, float start, float end);
 
 /**
  * Ping pongs a sound.
  * \param sound The sound to ping pong.
  * \return A handle of the ping pong sound.
  */
-extern AUD_Sound *AUD_pingpongSound(AUD_Sound *sound);
+extern AUD_Sound *AUD_Sound_pingpong(AUD_Sound *sound);
 
 /**
  * Loops a sound.
  * \param sound The sound to loop.
  * \return A handle of the looped sound.
  */
-extern AUD_Sound *AUD_loopSound(AUD_Sound *sound);
+extern AUD_Sound *AUD_Sound_loop(AUD_Sound *sound);
 
 /**
  * Sets a remaining loop count of a looping sound that currently plays.
@@ -167,7 +171,7 @@ extern AUD_Sound *AUD_loopSound(AUD_Sound *sound);
  * \param loops The count of remaining loops, -1 for infinity.
  * \return Whether the handle is valid.
  */
-extern int AUD_setLoop(AUD_Handle *handle, int loops);
+extern int AUD_Handle_setLoopCount(AUD_Handle *handle, int loops);
 
 /**
  * Rectifies a sound.
@@ -180,7 +184,7 @@ extern AUD_Sound *AUD_rectifySound(AUD_Sound *sound);
  * Unloads a sound of any type.
  * \param sound The handle of the sound.
  */
-extern void AUD_unload(AUD_Sound *sound);
+extern void AUD_Sound_free(AUD_Sound *sound);
 
 /**
  * Plays back a sound file.
@@ -189,30 +193,30 @@ extern void AUD_unload(AUD_Sound *sound);
  *             paused when its end has been reached.
  * \return A handle to the played back sound.
  */
-extern AUD_Handle *AUD_play(AUD_Sound *sound, int keep);
+extern AUD_Handle *AUD_Device_play(AUD_Device* device, AUD_Sound *sound, int keep);
 
 /**
  * Pauses a played back sound.
  * \param handle The handle to the sound.
  * \return Whether the handle has been playing or not.
  */
-extern int AUD_pause(AUD_Handle *handle);
+extern int AUD_Handle_pause(AUD_Handle *handle);
 
 /**
  * Resumes a paused sound.
  * \param handle The handle to the sound.
  * \return Whether the handle has been paused or not.
  */
-extern int AUD_resume(AUD_Handle *handle);
+extern int AUD_Handle_resume(AUD_Handle *handle);
 
 /**
  * Stops a playing or paused sound.
  * \param handle The handle to the sound.
  * \return Whether the handle has been valid or not.
  */
-extern int AUD_stop(AUD_Handle *handle);
+extern int AUD_Handle_stop(AUD_Handle *handle);
 
-extern void AUD_stopAll(void);
+extern void AUD_Device_stopAll(void* device);
 
 /**
  * Sets the end behaviour of a playing or paused sound.
@@ -221,7 +225,7 @@ extern void AUD_stopAll(void);
  *             paused when its end has been reached.
  * \return Whether the handle has been valid or not.
  */
-extern int AUD_setKeep(AUD_Handle *handle, int keep);
+extern int AUD_Handle_setKeep(AUD_Handle *handle, int keep);
 
 /**
  * Seeks a playing or paused sound.
@@ -229,7 +233,7 @@ extern int AUD_setKeep(AUD_Handle *handle, int keep);
  * \param seekTo From where the sound file should be played back in seconds.
  * \return Whether the handle has been valid or not.
  */
-extern int AUD_seek(AUD_Handle *handle, float seekTo);
+extern int AUD_Handle_setPosition(AUD_Handle *handle, float seekTo);
 
 /**
  * Retrieves the playback position of a handle.
@@ -237,39 +241,39 @@ extern int AUD_seek(AUD_Handle *handle, float seekTo);
  * \return The current playback position in seconds or 0.0 if the handle is
  *         invalid.
  */
-extern float AUD_getPosition(AUD_Handle *handle);
+extern float AUD_Handle_getPosition(AUD_Handle *handle);
 
 /**
  * Returns the status of a playing, paused or stopped sound.
  * \param handle The handle to the sound.
  * \return The status of the sound behind the handle.
  */
-extern AUD_Status AUD_getStatus(AUD_Handle *handle);
+extern AUD_Status AUD_Handle_getStatus(AUD_Handle *handle);
 
 /**
  * Sets the listener location.
  * \param location The new location.
  */
-extern int AUD_setListenerLocation(const float location[3]);
+extern int AUD_Device_setListenerLocation(const float location[3]);
 
 /**
  * Sets the listener velocity.
  * \param velocity The new velocity.
  */
-extern int AUD_setListenerVelocity(const float velocity[3]);
+extern int AUD_Device_setListenerVelocity(const float velocity[3]);
 
 /**
  * Sets the listener orientation.
  * \param orientation The new orientation as quaternion.
  */
-extern int AUD_setListenerOrientation(const float orientation[4]);
+extern int AUD_Device_setListenerOrientation(const float orientation[4]);
 
 /**
  * Sets the speed of sound.
  * This value is needed for doppler effect calculation.
  * \param speed The new speed of sound.
  */
-extern int AUD_setSpeedOfSound(float speed);
+extern int AUD_Device_setSpeedOfSound(void* device, float speed);
 
 /**
  * Sets the doppler factor.
@@ -277,13 +281,13 @@ extern int AUD_setSpeedOfSound(float speed);
  * listener which is used while calculating the doppler effect.
  * \param factor The new doppler factor.
  */
-extern int AUD_setDopplerFactor(float factor);
+extern int AUD_Device_setDopplerFactor(void* device, float factor);
 
 /**
  * Sets the distance model.
  * \param model distance model.
  */
-extern int AUD_setDistanceModel(AUD_DistanceModel model);
+extern int AUD_Device_setDistanceModel(void* device, AUD_DistanceModel model);
 
 /**
  * Sets the location of a source.
@@ -291,7 +295,7 @@ extern int AUD_setDistanceModel(AUD_DistanceModel model);
  * \param location The new location.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSourceLocation(AUD_Handle *handle, const float location[3]);
+extern int AUD_Handle_setLocation(AUD_Handle *handle, const float location[3]);
 
 /**
  * Sets the velocity of a source.
@@ -299,7 +303,7 @@ extern int AUD_setSourceLocation(AUD_Handle *handle, const float location[3]);
  * \param velocity The new velocity.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSourceVelocity(AUD_Handle *handle, const float velocity[3]);
+extern int AUD_Handle_setVelocity(AUD_Handle *handle, const float velocity[3]);
 
 /**
  * Sets the orientation of a source.
@@ -307,7 +311,7 @@ extern int AUD_setSourceVelocity(AUD_Handle *handle, const float velocity[3]);
  * \param orientation The new orientation as quaternion.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSourceOrientation(AUD_Handle *handle, const float orientation[4]);
+extern int AUD_Handle_setOrientation(AUD_Handle *handle, const float orientation[4]);
 
 /**
  * Sets whether the source location, velocity and orientation are relative
@@ -316,7 +320,7 @@ extern int AUD_setSourceOrientation(AUD_Handle *handle, const float orientation[
  * \param relative Whether the source is relative.
  * \return Whether the action succeeded.
  */
-extern int AUD_setRelative(AUD_Handle *handle, int relative);
+extern int AUD_Handle_setRelative(AUD_Handle *handle, int relative);
 
 /**
  * Sets the maximum volume of a source.
@@ -324,7 +328,7 @@ extern int AUD_setRelative(AUD_Handle *handle, int relative);
  * \param volume The new maximum volume.
  * \return Whether the action succeeded.
  */
-extern int AUD_setVolumeMaximum(AUD_Handle *handle, float volume);
+extern int AUD_Handle_setVolumeMaximum(AUD_Handle *handle, float volume);
 
 /**
  * Sets the minimum volume of a source.
@@ -332,7 +336,7 @@ extern int AUD_setVolumeMaximum(AUD_Handle *handle, float volume);
  * \param volume The new minimum volume.
  * \return Whether the action succeeded.
  */
-extern int AUD_setVolumeMinimum(AUD_Handle *handle, float volume);
+extern int AUD_Handle_setVolumeMinimum(AUD_Handle *handle, float volume);
 
 /**
  * Sets the maximum distance of a source.
@@ -342,7 +346,7 @@ extern int AUD_setVolumeMinimum(AUD_Handle *handle, float volume);
  * \param distance The new maximum distance.
  * \return Whether the action succeeded.
  */
-extern int AUD_setDistanceMaximum(AUD_Handle *handle, float distance);
+extern int AUD_Handle_setDistanceMaximum(AUD_Handle *handle, float distance);
 
 /**
  * Sets the reference distance of a source.
@@ -350,7 +354,7 @@ extern int AUD_setDistanceMaximum(AUD_Handle *handle, float distance);
  * \param distance The new reference distance.
  * \return Whether the action succeeded.
  */
-extern int AUD_setDistanceReference(AUD_Handle *handle, float distance);
+extern int AUD_Handle_setDistanceReference(AUD_Handle *handle, float distance);
 
 /**
  * Sets the attenuation of a source.
@@ -359,7 +363,7 @@ extern int AUD_setDistanceReference(AUD_Handle *handle, float distance);
  * \param factor The new attenuation.
  * \return Whether the action succeeded.
  */
-extern int AUD_setAttenuation(AUD_Handle *handle, float factor);
+extern int AUD_Handle_setAttenuation(AUD_Handle *handle, float factor);
 
 /**
  * Sets the outer angle of the cone of a source.
@@ -367,7 +371,7 @@ extern int AUD_setAttenuation(AUD_Handle *handle, float factor);
  * \param angle The new outer angle of the cone.
  * \return Whether the action succeeded.
  */
-extern int AUD_setConeAngleOuter(AUD_Handle *handle, float angle);
+extern int AUD_Handle_setConeAngleOuter(AUD_Handle *handle, float angle);
 
 /**
  * Sets the inner angle of the cone of a source.
@@ -375,7 +379,7 @@ extern int AUD_setConeAngleOuter(AUD_Handle *handle, float angle);
  * \param angle The new inner angle of the cone.
  * \return Whether the action succeeded.
  */
-extern int AUD_setConeAngleInner(AUD_Handle *handle, float angle);
+extern int AUD_Handle_setConeAngleInner(AUD_Handle *handle, float angle);
 
 /**
  * Sets the outer volume of the cone of a source.
@@ -385,7 +389,7 @@ extern int AUD_setConeAngleInner(AUD_Handle *handle, float angle);
  * \param volume The new outer volume of the cone.
  * \return Whether the action succeeded.
  */
-extern int AUD_setConeVolumeOuter(AUD_Handle *handle, float volume);
+extern int AUD_Handle_setConeVolumeOuter(AUD_Handle *handle, float volume);
 
 /**
  * Sets the volume of a played back sound.
@@ -393,7 +397,7 @@ extern int AUD_setConeVolumeOuter(AUD_Handle *handle, float volume);
  * \param volume The new volume, must be between 0.0 and 1.0.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSoundVolume(AUD_Handle *handle, float volume);
+extern int AUD_Handle_setVolume(AUD_Handle *handle, float volume);
 
 /**
  * Sets the pitch of a played back sound.
@@ -401,7 +405,7 @@ extern int AUD_setSoundVolume(AUD_Handle *handle, float volume);
  * \param pitch The new pitch.
  * \return Whether the action succeeded.
  */
-extern int AUD_setSoundPitch(AUD_Handle *handle, float pitch);
+extern int AUD_Handle_setPitch(AUD_Handle *handle, float pitch);
 
 /**
  * Opens a read device, with which audio data can be read.
@@ -436,13 +440,13 @@ extern AUD_Handle *AUD_playDevice(AUD_Device *device, AUD_Sound *sound, float se
  *         played back currently, in that case the buffer is filled with
  *         silence.
  */
-extern int AUD_readDevice(AUD_Device *device, data_t *buffer, int length);
+extern int AUD_Device_read(AUD_Device *device, data_t *buffer, int length);
 
 /**
  * Closes a read device.
  * \param device The read device.
  */
-extern void AUD_closeReadDevice(AUD_Device *device);
+extern void AUD_Device_free(AUD_Device *device);
 
 /**
  * Reads a sound file into a newly created float buffer.
@@ -468,27 +472,27 @@ extern AUD_Handle *AUD_pauseAfter(AUD_Handle *handle, float seconds);
  * \param muted Whether the scene is muted.
  * \return The new sound scene.
  */
-extern AUD_Sound *AUD_createSequencer(float fps, int muted);
+extern AUD_Sound *AUD_Sequence_create(float fps, int muted);
 
 /**
  * Deletes a sound scene.
  * \param sequencer The sound scene.
  */
-extern void AUD_destroySequencer(AUD_Sound *sequencer);
+extern void AUD_Sequence_free(AUD_Sound *sequencer);
 
 /**
  * Sets the muting state of the scene.
  * \param sequencer The sound scene.
  * \param muted Whether the scene is muted.
  */
-extern void AUD_setSequencerMuted(AUD_Sound *sequencer, int muted);
+extern void AUD_Sequence_setMuted(AUD_Sound *sequencer, int muted);
 
 /**
  * Sets the scene's FPS.
  * \param sequencer The sound scene.
  * \param fps The new FPS.
  */
-extern void AUD_setSequencerFPS(AUD_Sound *sequencer, float fps);
+extern void AUD_Sequence_setFPS(AUD_Sound *sequencer, float fps);
 
 /**
  * Adds a new entry to the scene.
@@ -499,7 +503,7 @@ extern void AUD_setSequencerFPS(AUD_Sound *sequencer, float fps);
  * \param skip How much seconds should be skipped at the beginning.
  * \return The entry added.
  */
-extern AUD_SEntry *AUD_addSequence(AUD_Sound *sequencer, AUD_Sound *sound,
+extern AUD_SEntry *AUD_Sequence_add(AUD_Sound *sequencer, AUD_Sound *sound,
                                    float begin, float end, float skip);
 
 /**
@@ -507,7 +511,7 @@ extern AUD_SEntry *AUD_addSequence(AUD_Sound *sequencer, AUD_Sound *sound,
  * \param sequencer The sound scene.
  * \param entry The entry to remove.
  */
-extern void AUD_removeSequence(AUD_Sound *sequencer, AUD_SEntry *entry);
+extern void AUD_Sequence_remove(AUD_Sound *sequencer, AUD_SEntry *entry);
 
 /**
  * Moves the entry.
@@ -516,30 +520,21 @@ extern void AUD_removeSequence(AUD_Sound *sequencer, AUD_SEntry *entry);
  * \param end The new end time or a negative value if unknown.
  * \param skip How many seconds to skip at the beginning.
  */
-extern void AUD_moveSequence(AUD_SEntry *entry, float begin, float end, float skip);
+extern void AUD_SequenceEntry_move(AUD_SEntry *entry, float begin, float end, float skip);
 
 /**
  * Sets the muting state of the entry.
  * \param entry The sequenced entry.
  * \param mute Whether the entry should be muted or not.
  */
-extern void AUD_muteSequence(AUD_SEntry *entry, char mute);
-
-/**
- * Sets whether the entrie's location, velocity and orientation are relative
- * to the listener.
- * \param entry The sequenced entry.
- * \param relative Whether the source is relative.
- * \return Whether the action succeeded.
- */
-extern void AUD_setRelativeSequence(AUD_SEntry *entry, char relative);
+extern void AUD_SequenceEntry_setMuted(AUD_SEntry *entry, char mute);
 
 /**
  * Sets the sound of the entry.
  * \param entry The sequenced entry.
  * \param sound The new sound.
  */
-extern void AUD_updateSequenceSound(AUD_SEntry *entry, AUD_Sound *sound);
+extern void AUD_SequenceEntry_setSound(AUD_SEntry *entry, AUD_Sound *sound);
 
 /**
  * Writes animation data to a sequenced entry.
@@ -549,7 +544,7 @@ extern void AUD_updateSequenceSound(AUD_SEntry *entry, AUD_Sound *sound);
  * \param data The data to write.
  * \param animated Whether the attribute is animated.
  */
-extern void AUD_setSequenceAnimData(AUD_SEntry *entry, AUD_AnimateablePropertyType type, int frame, float *data, char animated);
+extern void AUD_SequenceEntry_setAnimationData(AUD_SEntry *entry, AUD_AnimateablePropertyType type, int frame, float *data, char animated);
 
 /**
  * Writes animation data to a sequenced entry.
@@ -559,33 +554,90 @@ extern void AUD_setSequenceAnimData(AUD_SEntry *entry, AUD_AnimateablePropertyTy
  * \param data The data to write.
  * \param animated Whether the attribute is animated.
  */
-extern void AUD_setSequencerAnimData(AUD_Sound *sequencer, AUD_AnimateablePropertyType type, int frame, float *data, char animated);
+extern void AUD_Sequence_setAnimationData(AUD_Sound *sequencer, AUD_AnimateablePropertyType type, int frame, float *data, char animated);
 
 /**
- * Updates all non-animated parameters of the entry.
- * \param entry The sequenced entry.
- * \param volume_max The maximum volume.
- * \param volume_min The minimum volume.
- * \param distance_max The maximum distance.
- * \param distance_reference The reference distance.
- * \param attenuation The attenuation.
- * \param cone_angle_outer The outer cone opening angle.
- * \param cone_angle_inner The inner cone opening angle.
- * \param cone_volume_outer The volume outside the outer cone.
+ * Sets the distance model of a sequence.
+ * param sequence The sequence to set the distance model from.
+ * param value The new distance model to set.
  */
-extern void AUD_updateSequenceData(AUD_SEntry *entry, float volume_max, float volume_min,
-                                   float distance_max, float distance_reference, float attenuation,
-                                   float cone_angle_outer, float cone_angle_inner, float cone_volume_outer);
+extern void AUD_Sequence_setDistanceModel(AUD_Sound* sequence, AUD_DistanceModel value);
 
 /**
- * Updates all non-animated parameters of the entry.
- * \param sequencer The sound scene.
- * \param speed_of_sound The speed of sound for doppler calculation.
- * \param factor The doppler factor to control the effect's strength.
- * \param model The distance model for distance calculation.
+ * Sets the doppler factor of a sequence.
+ * param sequence The sequence to set the doppler factor from.
+ * param value The new doppler factor to set.
  */
-extern void AUD_updateSequencerData(AUD_Sound *sequencer, float speed_of_sound,
-                                    float factor, AUD_DistanceModel model);
+extern void AUD_Sequence_setDopplerFactor(AUD_Sound* sequence, float value);
+
+/**
+ * Sets the speed of sound of a sequence.
+ * param sequence The sequence to set the speed of sound from.
+ * param value The new speed of sound to set.
+ */
+extern void AUD_Sequence_setSpeedOfSound(AUD_Sound* sequence, float value);
+/**
+ * Sets the attenuation of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the attenuation from.
+ * param value The new attenuation to set.
+ */
+extern void AUD_SequenceEntry_setAttenuation(AUD_SEntry* sequence_entry, float value);
+
+/**
+ * Sets the cone angle inner of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the cone angle inner from.
+ * param value The new cone angle inner to set.
+ */
+extern void AUD_SequenceEntry_setConeAngleInner(AUD_SEntry* sequence_entry, float value);
+
+/**
+ * Sets the cone angle outer of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the cone angle outer from.
+ * param value The new cone angle outer to set.
+ */
+extern void AUD_SequenceEntry_setConeAngleOuter(AUD_SEntry* sequence_entry, float value);
+
+/**
+ * Sets the cone volume outer of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the cone volume outer from.
+ * param value The new cone volume outer to set.
+ */
+extern void AUD_SequenceEntry_setConeVolumeOuter(AUD_SEntry* sequence_entry, float value);
+
+/**
+ * Sets the distance maximum of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the distance maximum from.
+ * param value The new distance maximum to set.
+ */
+extern void AUD_SequenceEntry_setDistanceMaximum(AUD_SEntry* sequence_entry, float value);
+
+/**
+ * Sets the distance reference of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the distance reference from.
+ * param value The new distance reference to set.
+ */
+extern void AUD_SequenceEntry_setDistanceReference(AUD_SEntry* sequence_entry, float value);
+
+/**
+ * Sets the relative of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the relative from.
+ * param value The new relative to set.
+ */
+extern void AUD_SequenceEntry_setRelative(AUD_SEntry* sequence_entry, int value);
+
+/**
+ * Sets the volume maximum of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the volume maximum from.
+ * param value The new volume maximum to set.
+ */
+extern void AUD_SequenceEntry_setVolumeMaximum(AUD_SEntry* sequence_entry, float value);
+
+/**
+ * Sets the volume minimum of a sequence_entry.
+ * param sequence_entry The sequence_entry to set the volume minimum from.
+ * param value The new volume minimum to set.
+ */
+extern void AUD_SequenceEntry_setVolumeMinimum(AUD_SEntry* sequence_entry, float value);
 
 /**
  * Sets the audio output specification of the sound scene to the specs of the
@@ -599,7 +651,7 @@ extern void AUD_setSequencerDeviceSpecs(AUD_Sound *sequencer);
  * \param sequencer The sound scene.
  * \param specs The new specification.
  */
-extern void AUD_setSequencerSpecs(AUD_Sound *sequencer, AUD_Specs specs);
+extern void AUD_Sequence_setSpecs(AUD_Sound *sequencer, AUD_Specs specs);
 
 /**
  * Seeks sequenced sound scene playback.
@@ -655,13 +707,13 @@ extern int AUD_readSound(AUD_Sound *sound, sample_t *buffer, int length, int sam
  * \param sound Sound to copy.
  * \return Copied sound.
  */
-extern AUD_Sound *AUD_copy(AUD_Sound *sound);
+extern AUD_Sound *AUD_Sound_copy(AUD_Sound *sound);
 
 /**
  * Frees a handle.
  * \param channel Handle to free.
  */
-extern void AUD_freeHandle(AUD_Handle *channel);
+extern void AUD_Handle_free(AUD_Handle *channel);
 
 /**
  * Creates a new set.
