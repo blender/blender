@@ -1437,6 +1437,20 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 			if (point_is_visible(kcd, v->cageco, s, &mats)) {
 				memset(&hit, 0, sizeof(hit));
 				hit.v = v;
+
+				/* If this isn't from an existing BMVert, it may have been added to a BMEdge originally.
+				 * knowing if the hit comes from an edge is important for edge-in-face checks later on
+				 * see: #knife_add_single_cut -> #knife_verts_edge_in_face, T42611 */
+				if (v->v == NULL) {
+					for (ref = v->edges.first; ref; ref = ref->next) {
+						kfe = ref->ref;
+						if (kfe->e) {
+							hit.kfe = kfe;
+							break;
+						}
+					}
+				}
+
 				copy_v3_v3(hit.hit, v->co);
 				copy_v3_v3(hit.cagehit, v->cageco);
 				copy_v2_v2(hit.schit, s);
