@@ -475,7 +475,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		}
 	}
 	else if (subtype == PROP_DIRECTION && !expand) {
-		uiDefButR_prop(block, UI_BTYPE_UNITVEC, 0, name, x, y, UI_UNIT_X * 3, UI_UNIT_Y * 3, ptr, prop, 0, 0, 0, -1, -1, NULL);
+		uiDefButR_prop(block, UI_BTYPE_UNITVEC, 0, name, x, y, UI_UNIT_X * 3, UI_UNIT_Y * 3, ptr, prop, -1, 0, 0, -1, -1, NULL);
 	}
 	else {
 		/* note, this block of code is a bit arbitrary and has just been made
