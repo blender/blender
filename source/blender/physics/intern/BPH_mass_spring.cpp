@@ -672,6 +672,9 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 	
 	const float fluid_factor = 0.95f; /* blend between PIC and FLIP methods */
 	float smoothfac = parms->velocity_smooth;
+	/* XXX FIXME arbitrary factor!!! this should be based on some intuitive value instead,
+	 * like number of hairs per cell and time decay instead of "strength"
+	 */
 	float density_target = parms->density_target;
 	float density_strength = parms->density_strength;
 	float gmin[3], gmax[3];

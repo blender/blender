@@ -598,7 +598,7 @@ static const float density_threshold = 0.001f; /* cells with density below this 
 BLI_INLINE float hair_volume_density_divergence(float density, float target_density, float strength)
 {
 	if (density > density_threshold && density > target_density)
-		return strength * density * logf(target_density / density);
+		return strength * logf(target_density / density);
 	else
 		return 0.0f;
 }
