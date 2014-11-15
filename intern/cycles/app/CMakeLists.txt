@@ -28,6 +28,7 @@ set(LIBRARIES
 	${JPEG_LIBRARIES}
 	${ZLIB_LIBRARIES}
 	${TIFF_LIBRARY}
+	${PTHREADS_LIBRARIES}
 	extern_clew
 	extern_cuew
 )
@@ -41,8 +42,6 @@ if(NOT CYCLES_STANDALONE_REPOSITORY)
 endif()
 
 add_definitions(${GL_DEFINITIONS})
-
-list(APPEND LIBRARIES ${PTHREADS_LIBRARIES})
 
 link_directories(${OPENIMAGEIO_LIBPATH}
                  ${BOOST_LIBPATH}
