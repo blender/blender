@@ -1143,21 +1143,16 @@ elseif(WIN32)
 		)
 
 		# MSVC11 needs _ALLOW_KEYWORD_MACROS to build
-		if(NOT MSVC_VERSION VERSION_LESS 1700)
-			add_definitions(-D_ALLOW_KEYWORD_MACROS)
-		endif()
+		add_definitions(-D_ALLOW_KEYWORD_MACROS)
 
 		if(CMAKE_CL_64)
 			# We want to support Vista level ABI for x64
-			if(NOT MSVC_VERSION VERSION_LESS 1700)
-				add_definitions(-D_WIN32_WINNT=0x600)
-			endif()
+			add_definitions(-D_WIN32_WINNT=0x600)
 		endif()
 
+		# Make cmake find the msvc redistributables
 		set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 		include(InstallRequiredSystemLibraries)
-
-		add_definitions(-DOIIO_STATIC_BUILD)
 
 		set(CMAKE_CXX_FLAGS "/nologo /J /Gd /EHsc /MP" CACHE STRING "MSVC MT C++ flags " FORCE)
 		set(CMAKE_C_FLAGS   "/nologo /J /Gd /MP"       CACHE STRING "MSVC MT C++ flags " FORCE)
@@ -1987,6 +1982,7 @@ elseif(APPLE)
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO}/lib/libOpenImageIO.a ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
 		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
+		add_definitions(-DOIIO_STATIC_BUILD)
 	endif()
 
 	if(WITH_OPENCOLORIO)
