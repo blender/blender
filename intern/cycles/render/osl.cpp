@@ -30,6 +30,7 @@
 #include "osl_shader.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_md5.h"
 #include "util_path.h"
 #include "util_progress.h"
@@ -193,6 +194,8 @@ void OSLShaderManager::shading_system_init()
 		ss_shared->attribute("commonspace", "world");
 		ss_shared->attribute("searchpath:shader", path_get("shader"));
 		//ss_shared->attribute("greedyjit", 1);
+
+		VLOG(1) << "Using shader search path: " << path_get("shader");
 
 		/* our own ray types */
 		static const char *raytypes[] = {

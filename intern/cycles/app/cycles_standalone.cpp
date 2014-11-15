@@ -320,6 +320,11 @@ static void options_parse(int argc, const char **argv)
 
 	vector<DeviceType>& types = Device::available_types();
 
+	/* TODO(sergey): Here's a feedback loop happens: on the one hand we want
+	 * the device list to be printed in help message, on the other hand logging
+	 * is not initialized yet so we wouldn't have debug log happening in the
+	 * device initialization.
+	 */
 	foreach(DeviceType type, types) {
 		if(device_names != "")
 			device_names += ", ";

@@ -29,13 +29,14 @@ using namespace ccl;
 
 int main(int argc, const char **argv)
 {
+	util_logging_init(argv[0]);
 	path_init();
 
 	/* device types */
 	string devicelist = "";
 	string devicename = "cpu";
-	bool list = false;
-	int threads = 0;
+	bool list = false, debug = false;
+	int threads = 0, verbosity = 1;
 
 	vector<DeviceType>& types = Device::available_types();
 
@@ -53,6 +54,10 @@ int main(int argc, const char **argv)
 		"--device %s", &devicename, ("Devices to use: " + devicelist).c_str(),
 		"--list-devices", &list, "List information about all available devices",
 		"--threads %d", &threads, "Number of threads to use for CPU device",
+#ifdef WITH_CYCLES_LOGGING
+		"--debug", &debug, "Enable debug logging",
+		"--verbose %d", &verbosity, "Set verbosity of the logger",
+#endif
 		NULL);
 
 	if(ap.parse(argc, argv) < 0) {
@@ -60,7 +65,13 @@ int main(int argc, const char **argv)
 		ap.usage();
 		exit(EXIT_FAILURE);
 	}
-	else if(list) {
+
+	if (debug) {
+		util_logging_start();
+		util_logging_verbosity_set(verbosity);
+	}
+
+	if(list) {
 		vector<DeviceInfo>& devices = Device::available_devices();
 
 		printf("Devices:\n");
