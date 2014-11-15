@@ -124,7 +124,6 @@ enum {
 
 /* uiBlock->flag (controls) */
 #define UI_BLOCK_LOOP           (1 << 0)
-#define UI_BLOCK_REDRAW         (1 << 1)
 #define UI_BLOCK_SEARCH_MENU    (1 << 2)
 #define UI_BLOCK_NUMSELECT      (1 << 3)
 #define UI_BLOCK_NO_WIN_CLIP    (1 << 4)   /* don't apply window clipping */ /* was UI_BLOCK_ENTER_OK */

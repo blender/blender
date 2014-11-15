@@ -184,7 +184,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	idptr = RNA_property_pointer_get(&template.ptr, template.prop);
 
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
-	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_SEARCH_MENU);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
 	
 	/* preview thumbnails */
 	if (template.prv_rows > 0 && template.prv_cols > 0) {
@@ -1636,7 +1636,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	// icon = RNA_property_enum_get(&cb.ptr, cb.prop);
 	
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
-	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP);
 	
 	
 	RNA_property_enum_items(C, &cb.ptr, cb.prop, &item, NULL, &free);

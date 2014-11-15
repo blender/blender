@@ -180,7 +180,7 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	search[0] = 0;
 	
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
-	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_SEARCH_MENU);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
 	
 	/* fake button, it holds space for search items */
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 15, UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
