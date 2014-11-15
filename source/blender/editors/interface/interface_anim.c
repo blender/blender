@@ -219,7 +219,14 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			short flag = ANIM_get_keyframing_flags(scene, 1);
 
 			fcu->flag &= ~FCURVE_SELECTED;
-			insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+
+			/* Note: We use but->rnaindex instead of fcu->array_index,
+			 *       because a button may control all items of an array at once.
+			 *       E.g., color wheels (see T42567). */
+			BLI_assert((fcu->array_index == but->rnaindex) || (but->rnaindex == -1));
+			insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
+			                fcu->rna_path, but->rnaindex, cfra, flag);
+
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
