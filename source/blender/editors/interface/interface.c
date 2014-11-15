@@ -3270,6 +3270,9 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 	if (free) {
 		MEM_freeN(item_array);
 	}
+
+	BLI_assert((block->flag & UI_BLOCK_IS_FLIP) == 0);
+	block->flag |= UI_BLOCK_IS_FLIP;
 }
 
 /**
@@ -3888,6 +3891,8 @@ void UI_block_order_flip(uiBlock *block)
 		but->rect.ymax = centy - (but->rect.ymax - centy);
 		SWAP(float, but->rect.ymin, but->rect.ymax);
 	}
+
+	block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 

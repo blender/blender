@@ -8045,7 +8045,7 @@ static int ui_handle_menu_event(
 {
 	ARegion *ar;
 	uiBlock *block;
-	uiBut *but, *bt;
+	uiBut *but;
 	int mx, my, retval;
 	bool inside;
 	bool inside_title;  /* check for title dragging */
@@ -8173,7 +8173,9 @@ static int ui_handle_menu_event(
 							ui_pan_to_scroll(event, &type, &val);
 						
 						if (val == KM_PRESS) {
-							const eButType type_flip = UI_BTYPE_BUT | UI_BTYPE_ROW;
+							const bool is_next =
+							        (ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE) ==
+							        ((block->flag & UI_BLOCK_IS_FLIP) != 0));
 
 							if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval))
 								break;
@@ -8184,57 +8186,22 @@ static int ui_handle_menu_event(
 
 							but = ui_but_find_active_in_region(ar);
 							if (but) {
-								/* is there a situation where UI_DIR_LEFT or UI_DIR_RIGHT would also change navigation direction? */
-								if (((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_DIR_DOWN)) ||
-								    ((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_DIR_RIGHT)) ||
-								    ((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_DIR_UP)))
-								{
-									/* the following is just a hack - uiBut->type set to
-									 * UI_BTYPE_BUT and UI_BTYPE_BUT_MENU have there menus built opposite ways -
-									 * this should be changed so that all popup-menus use the same uiBlock->direction */
-									if (but->type & type_flip)
-										but = ui_but_next(but);
-									else
-										but = ui_but_prev(but);
-								}
-								else {
-									if (but->type & type_flip)
-										but = ui_but_prev(but);
-									else
-										but = ui_but_next(but);
-								}
-
-								if (but) {
-									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
-									ui_menu_scroll(ar, block, my, but);
-								}
+								/* next button */
+								but = is_next ? ui_but_next(but) : ui_but_prev(but);
 							}
 
 							if (!but) {
-								if (((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_DIR_DOWN)) ||
-								    ((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_DIR_RIGHT)) ||
-								    ((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_DIR_UP)))
-								{
-									if ((bt = ui_but_first(block)) && (bt->type & type_flip)) {
-										bt = ui_but_last(block);
-									}
-									else {
-										/* keep ui_but_first() */
-									}
+								/* wrap button */
+								uiBut *but_wrap;
+								but_wrap = is_next ? ui_but_first(block) : ui_but_last(block);
+								if (but_wrap) {
+									but = but_wrap;
 								}
-								else {
-									if ((bt = ui_but_first(block)) && (bt->type & type_flip)) {
-										/* keep ui_but_first() */
-									}
-									else {
-										bt = ui_but_last(block);
-									}
-								}
+							}
 
-								if (bt) {
-									ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);
-									ui_menu_scroll(ar, block, my, bt);
-								}
+							if (but) {
+								ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
+								ui_menu_scroll(ar, block, my, but);
 							}
 						}
 

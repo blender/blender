@@ -977,6 +977,11 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 		if (free) {
 			MEM_freeN(item_array);
 		}
+
+		if ((block->flag & UI_BLOCK_NO_FLIP) == 0) {
+			BLI_assert((block->flag & UI_BLOCK_IS_FLIP) == 0);
+			block->flag |= UI_BLOCK_IS_FLIP;
+		}
 	}
 	else if (prop && RNA_property_type(prop) != PROP_ENUM) {
 		RNA_warning("%s.%s, not an enum type", RNA_struct_identifier(ptr.type), propname);
@@ -1431,6 +1436,11 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 			MEM_freeN(item);
 		}
 	}
+
+	if ((block->flag & UI_BLOCK_NO_FLIP) == 0) {
+		BLI_assert((block->flag & UI_BLOCK_IS_FLIP) == 0);
+		block->flag |= UI_BLOCK_IS_FLIP;
+	}
 }
 
 /* Pointer RNA button with search */
@@ -1663,6 +1673,9 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 
 	if (layout->context)
 		CTX_store_set(C, NULL);
+
+	/* menus are created flipped (from event handling pov) */
+	layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 static uiBut *ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN,
