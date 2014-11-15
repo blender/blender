@@ -161,6 +161,7 @@ include_directories(
 	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO
 	${OPENEXR_INCLUDE_DIR}
 	${OPENEXR_INCLUDE_DIRS}
+	${PUGIXML_INCLUDE_DIR}
 )
 
 # TODO(sergey): Adjust so standalone repository is also happy.

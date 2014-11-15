@@ -32,6 +32,10 @@ set(LIBRARIES
 	extern_cuew
 )
 
+if(NOT PUGIXML_LIBRARIES STREQUAL "")
+	list(APPEND LIBRARIES ${PUGIXML_LIBRARIES})
+endif()
+
 if(NOT CYCLES_STANDALONE_REPOSITORY)
 	list(APPEND LIBRARIES bf_intern_glew_mx)
 endif()

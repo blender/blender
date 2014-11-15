@@ -66,6 +66,12 @@ if(CYCLES_STANDALONE_REPOSITORY)
 	####
 	# OpenImageIO
 	find_package(OpenImageIO REQUIRED)
+	if(OPENIMAGEIO_PUGIXML_FOUND)
+		set(PUGIXML_INCLUDE_DIR "${OPENIMAGEIO_INCLUDE_DIR/OpenImageIO}")
+		set(PUGIXML_LIBRARIES "")
+	else()
+		find_package(PugiXML REQUIRED)
+	endif()
 
 	# OIIO usually depends on OpenEXR, so find this library
 	# but don't make it required.
@@ -75,10 +81,12 @@ if(CYCLES_STANDALONE_REPOSITORY)
 	# Boost
 	set(__boost_packages filesystem regex system thread date_time)
 	if(WITH_CYCLES_NETWORK)
-	       list(APPEND __boost_packages serialization)
+		list(APPEND __boost_packages serialization)
 	endif()
 	if(WITH_CYCLES_OSL AND APPLE)
-	       list(APPEND __boost_packages wave)
+		# TODO(sergey): This is because of the way how our precompiled
+		# libraries works, could be different for someone's else libs..
+		list(APPEND __boost_packages wave)
 	endif()
 	find_package(Boost 1.48 COMPONENTS ${__boost_packages} REQUIRED)
 	if(NOT Boost_FOUND)

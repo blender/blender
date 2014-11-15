@@ -17,9 +17,9 @@
 #ifndef __UTIL_XML_H__
 #define __UTIL_XML_H__
 
-/* PugiXML from OpenImageIO is used for XML parsing. */
+/* PugiXML is used for XML parsing. */
 
-#include <OpenImageIO/pugixml.hpp>
+#include <pugixml.hpp>
 
 CCL_NAMESPACE_BEGIN
 
