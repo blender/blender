@@ -38,9 +38,7 @@ endif()
 
 add_definitions(${GL_DEFINITIONS})
 
-if(WIN32)
-	list(APPEND LIBRARIES ${PTHREADS_LIBRARIES})
-endif()
+list(APPEND LIBRARIES ${PTHREADS_LIBRARIES})
 
 link_directories(${OPENIMAGEIO_LIBPATH}
                  ${BOOST_LIBPATH}
