@@ -1070,7 +1070,14 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm -lpthread)
+	list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm)
+
+	find_package(Threads REQUIRED)
+	list(APPEND PLATFORM_LINKLIBS ${CMAKE_THREAD_LIBS_INIT})
+
+	if(CMAKE_DL_LIBS)
+		list(APPEND PLATFORM_LINKLIBS ${CMAKE_DL_LIBS})
+	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if(NOT WITH_PYTHON_MODULE)
@@ -1078,11 +1085,6 @@ if(UNIX AND NOT APPLE)
 			set(BINRELOC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/binreloc/include)
 			set(WITH_BINRELOC ON)
 		endif()
-	endif()
-
-	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -pthread")
-	if(CMAKE_DL_LIBS)
-		list(APPEND PLATFORM_LINKLIBS ${CMAKE_DL_LIBS})
 	endif()
 
 	# lfs on glibc, all compilers should use
