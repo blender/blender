@@ -46,6 +46,10 @@ if(CYCLES_STANDALONE_REPOSITORY)
 		include(precompiled_libs)
 	endif()
 
+	# PThreads
+	find_package(Threads REQUIRED)
+	set(PTHREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+
 	####
 	# OpenGL
 
