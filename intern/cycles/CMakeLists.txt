@@ -134,19 +134,11 @@ add_definitions(
 if(WITH_CYCLES_LOGGING)
 	add_definitions(-DWITH_CYCLES_LOGGING)
 	add_definitions(-DGOOGLE_GLOG_DLL_DECL=)
-	if(WIN32)
-		include_directories(
-			SYSTEM
-			../../extern/libmv/third_party/glog/src/windows
-			../../extern/libmv/third_party/gflags
-		)
-	else()
-		include_directories(
-			SYSTEM
-			../../extern/libmv/third_party/glog/src
-			../../extern/libmv/third_party/gflags
-		)
-	endif()
+	include_directories(
+		SYSTEM
+		${GLOG_INCLUDE_DIRS}
+		${GFLAGS_INCLUDE_DIRS}
+	)
 endif()
 
 # Debugging capabilities (debug passes etc).

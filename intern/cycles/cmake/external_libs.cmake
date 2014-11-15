@@ -109,5 +109,20 @@ if(CYCLES_STANDALONE_REPOSITORY)
 		find_package(LLVM REQUIRED)
 	endif()
 
+	####
+	# Logging
+	if(WITH_CYCLES_LOGGING)
+		find_package(Glog REQUIRED)
+		find_package(Gflags REQUIRED)
+	endif()
+
 	unset(_lib_DIR)
+else()
+	if(WIN32)
+		set(GLOG_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/libmv/third_party/glog/src/windows)
+		set(GFLAGS_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/libmv/third_party/gflags)
+	else()
+		set(GLOG_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/libmv/third_party/glog/src)
+		set(GFLAGS_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/libmv/third_party/gflags)
+	endif()
 endif()
