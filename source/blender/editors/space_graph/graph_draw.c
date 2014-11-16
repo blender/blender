@@ -502,7 +502,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	 *	which means that our curves can be as smooth as possible. However,
 	 *  this does mean that curves may not be fully accurate (i.e. if they have
 	 *  sudden spikes which happen at the sampling point, we may have problems).
-	 *  Also, this may introduce lower performance on less densely detailed curves,'
+	 *  Also, this may introduce lower performance on less densely detailed curves,
 	 *	though it is impossible to predict this from the modifiers!
 	 *
 	 *	If the automatically determined sampling frequency is likely to cause an infinite
@@ -525,12 +525,13 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	 *	  the displayed values appear correctly in the viewport
 	 */
 	glBegin(GL_LINE_STRIP);
-
-	for (i = 0, n = (etime - stime) / samplefreq + 0.5f; i < n; ++i) {
+	
+	n = (etime - stime) / samplefreq + 0.5f;
+	for (i = 0; i < n; i++) {
 		float ctime = stime + i * samplefreq;
 		glVertex2f(ctime, evaluate_fcurve(fcu, ctime) * unitFac);
 	}
-
+	
 	glEnd();
 	
 	/* restore driver */
