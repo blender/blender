@@ -5222,14 +5222,10 @@ static void SCULPT_OT_set_detail_size(wmOperatorType *ot)
 	ot->description = "Set the mesh detail (either relative or constant one, depending on current dyntopo mode)";
 
 	/* api callbacks */
-	//ot->invoke = sculpt_set_detail_size_invoke;
 	ot->exec = sculpt_set_detail_size_exec;
-	//ot->modal = sculpt_set_detail_size_modal;
 	ot->poll = sculpt_and_dynamic_topology_poll;
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	//RNA_def_int_array(ot->srna, "location", 2, NULL, 0, SHRT_MAX, "Location", "Screen Coordinates of sampling", 0, SHRT_MAX);
 }
 
 void ED_operatortypes_sculpt(void)
