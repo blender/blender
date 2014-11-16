@@ -412,14 +412,14 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
 				grid_to_world(grid, x3w, x3);
 				
 				if (vert_k->samples > 0)
-					BKE_sim_debug_data_add_circle(debug_data, wloc, 0.01f, 1.0, 1.0, 0.3, "grid", hash_vertex(2525, hash_int_2d(debug_i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_circle(debug_data, wloc, 0.01f, 1.0, 1.0, 0.3, "grid", 2525, debug_i, j, k);
 				
 				if (grid->debug_value) {
-					BKE_sim_debug_data_add_dot(debug_data, wloc, 1, 0, 0, "grid", hash_vertex(93, hash_int_2d(debug_i, hash_int_2d(j, k))));
-					BKE_sim_debug_data_add_dot(debug_data, x2w, 0.1, 0.1, 0.7, "grid", hash_vertex(649, hash_int_2d(debug_i, hash_int_2d(j, k))));
-					BKE_sim_debug_data_add_line(debug_data, wloc, x2w, 0.3, 0.8, 0.3, "grid", hash_vertex(253, hash_int_2d(debug_i, hash_int_2d(j, k))));
-					BKE_sim_debug_data_add_line(debug_data, wloc, x3w, 0.8, 0.3, 0.3, "grid", hash_vertex(254, hash_int_2d(debug_i, hash_int_2d(j, k))));
-//					BKE_sim_debug_data_add_circle(debug_data, x2w, len_v3v3(wloc, x2w), 0.2, 0.7, 0.2, "grid", hash_vertex(255, hash_int_2d(i, hash_int_2d(j, k))));
+					BKE_sim_debug_data_add_dot(debug_data, wloc, 1, 0, 0, "grid", 93, debug_i, j, k);
+					BKE_sim_debug_data_add_dot(debug_data, x2w, 0.1, 0.1, 0.7, "grid", 649, debug_i, j, k);
+					BKE_sim_debug_data_add_line(debug_data, wloc, x2w, 0.3, 0.8, 0.3, "grid", 253, debug_i, j, k);
+					BKE_sim_debug_data_add_line(debug_data, wloc, x3w, 0.8, 0.3, 0.3, "grid", 254, debug_i, j, k);
+//					BKE_sim_debug_data_add_circle(debug_data, x2w, len_v3v3(wloc, x2w), 0.2, 0.7, 0.2, "grid", 255, i, j, k);
 				}
 			}
 #endif
@@ -707,7 +707,7 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 						interp_v3_v3v3(col, col0, coln, fac);
 					}
 					if (fac > 0.05f)
-						BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", hash_int_2d(5522, hash_int_2d(i, hash_int_2d(j, k))));
+						BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5522, i, j, k);
 				}
 #endif
 			}
@@ -859,12 +859,12 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 							interp_v3_v3v3(col, col0, coln, fac);
 						}
 						if (fac > 0.05f)
-							BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", hash_int_2d(5533, hash_int_2d(i, hash_int_2d(j, k))));
+							BKE_sim_debug_data_add_circle(grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5533, i, j, k);
 						
 						if (!is_margin) {
 							float dvel[3];
 							sub_v3_v3v3(dvel, vert->velocity_smooth, vert->velocity);
-//							BKE_sim_debug_data_add_vector(grid->debug_data, wloc, dvel, 1, 1, 1, "grid", hash_int_2d(5566, hash_int_2d(i, hash_int_2d(j, k))));
+//							BKE_sim_debug_data_add_vector(grid->debug_data, wloc, dvel, 1, 1, 1, "grid", 5566, i, j, k);
 						}
 						
 						if (!is_margin) {
@@ -875,7 +875,7 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 							
 							interp_v3_v3v3(col, col0, colp, d);
 //							if (d > 0.05f)
-//								BKE_sim_debug_data_add_dot(grid->debug_data, wloc, col[0], col[1], col[2], "grid", hash_int_2d(5544, hash_int_2d(i, hash_int_2d(j, k))));
+//								BKE_sim_debug_data_add_dot(grid->debug_data, wloc, col[0], col[1], col[2], "grid", 5544, i, j, k);
 						}
 					}
 				}

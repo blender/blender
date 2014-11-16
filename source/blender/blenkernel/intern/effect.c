@@ -30,6 +30,7 @@
  */
 
 #include <stddef.h>
+#include <stdarg.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -1028,6 +1029,34 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 
 /* ======== Simulation Debugging ======== */
 
+unsigned int BKE_sim_debug_data_hash(int i)
+{
+	return BLI_ghashutil_uinthash((unsigned int)i);
+}
+
+unsigned int BKE_sim_debug_data_hash_combine(unsigned int kx, unsigned int ky)
+{
+#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
+
+	unsigned int a, b, c;
+
+	a = b = c = 0xdeadbeef + (2 << 2) + 13;
+	a += kx;
+	b += ky;
+
+	c ^= b; c -= rot(b,14);
+	a ^= c; a -= rot(c,11);
+	b ^= a; b -= rot(a,25);
+	c ^= b; c -= rot(b,16);
+	a ^= c; a -= rot(c,4);
+	b ^= a; b -= rot(a,14);
+	c ^= b; c -= rot(b,24);
+
+	return c;
+
+#undef rot
+}
+
 static unsigned int debug_element_hash(const void *key)
 {
 	const SimDebugElement *elem = key;
@@ -1070,87 +1099,27 @@ static void debug_data_insert(SimDebugData *debug_data, SimDebugElement *elem)
 		BLI_ghash_insert(debug_data->gh, elem, elem);
 }
 
-void BKE_sim_debug_data_add_dot(struct SimDebugData *debug_data, const float p[3], float r, float g, float b, const char *category, int hash)
+void BKE_sim_debug_data_add_element(SimDebugData *debug_data, int type, const float v1[3], const float v2[3], float r, float g, float b, const char *category, unsigned int hash)
 {
-	int category_hash = (int)BLI_ghashutil_strhash_p(category);
+	unsigned int category_hash = BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
 	if (!debug_data)
 		return;
 	
 	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
-	elem->type = SIM_DEBUG_ELEM_DOT;
+	elem->type = type;
 	elem->category_hash = category_hash;
 	elem->hash = hash;
 	elem->color[0] = r;
 	elem->color[1] = g;
 	elem->color[2] = b;
-	copy_v3_v3(elem->v1, p);
+	copy_v3_v3(elem->v1, v1);
+	copy_v3_v3(elem->v2, v2);
 	
 	debug_data_insert(debug_data, elem);
 }
 
-void BKE_sim_debug_data_add_circle(struct SimDebugData *debug_data, const float p[3], float radius, float r, float g, float b, const char *category, int hash)
-{
-	int category_hash = (int)BLI_ghashutil_strhash_p(category);
-	SimDebugElement *elem;
-	if (!debug_data)
-		return;
-	
-	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
-	elem->type = SIM_DEBUG_ELEM_CIRCLE;
-	elem->category_hash = category_hash;
-	elem->hash = hash;
-	elem->color[0] = r;
-	elem->color[1] = g;
-	elem->color[2] = b;
-	copy_v3_v3(elem->v1, p);
-	elem->v2[0] = radius;
-	elem->v2[1] = elem->v2[2] = 0.0f;
-	
-	debug_data_insert(debug_data, elem);
-}
-
-void BKE_sim_debug_data_add_line(struct SimDebugData *debug_data, const float p1[3], const float p2[3], float r, float g, float b, const char *category, int hash)
-{
-	int category_hash = (int)BLI_ghashutil_strhash_p(category);
-	SimDebugElement *elem;
-	if (!debug_data)
-		return;
-	
-	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
-	elem->type = SIM_DEBUG_ELEM_LINE;
-	elem->category_hash = category_hash;
-	elem->hash = hash;
-	elem->color[0] = r;
-	elem->color[1] = g;
-	elem->color[2] = b;
-	copy_v3_v3(elem->v1, p1);
-	copy_v3_v3(elem->v2, p2);
-	
-	debug_data_insert(debug_data, elem);
-}
-
-void BKE_sim_debug_data_add_vector(struct SimDebugData *debug_data, const float p[3], const float d[3], float r, float g, float b, const char *category, int hash)
-{
-	int category_hash = (int)BLI_ghashutil_strhash_p(category);
-	SimDebugElement *elem;
-	if (!debug_data)
-		return;
-	
-	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
-	elem->type = SIM_DEBUG_ELEM_VECTOR;
-	elem->category_hash = category_hash;
-	elem->hash = hash;
-	elem->color[0] = r;
-	elem->color[1] = g;
-	elem->color[2] = b;
-	copy_v3_v3(elem->v1, p);
-	copy_v3_v3(elem->v2, d);
-	
-	debug_data_insert(debug_data, elem);
-}
-
-void BKE_sim_debug_data_remove(SimDebugData *debug_data, int hash)
+void BKE_sim_debug_data_remove_element(SimDebugData *debug_data, unsigned int hash)
 {
 	SimDebugElement dummy;
 	if (!debug_data)

@@ -61,43 +61,6 @@
 #endif
 
 
-/* ==== hash functions for debugging ==== */
-static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
-{
-#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
-
-	unsigned int a, b, c;
-
-	a = b = c = 0xdeadbeef + (2 << 2) + 13;
-	a += kx;
-	b += ky;
-
-	c ^= b; c -= rot(b,14);
-	a ^= c; a -= rot(c,11);
-	b ^= a; b -= rot(a,25);
-	c ^= b; c -= rot(b,16);
-	a ^= c; a -= rot(c,4);
-	b ^= a; b -= rot(a,14);
-	c ^= b; c -= rot(b,24);
-
-	return c;
-
-#undef rot
-}
-
-#if 0
-static int hash_vertex(int type, int vertex)
-{
-	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
-}
-#endif
-
-static int hash_collpair(int type, CollPair *collpair)
-{
-	return hash_int_2d((unsigned int)type, hash_int_2d((unsigned int)collpair->face1, (unsigned int)collpair->face2));
-}
-/* ================ */
-
 /***********************************
 Collision modifier code start
 ***********************************/
@@ -1028,10 +991,9 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 
 		/**** DEBUG ****/
 		if (clmd->debug_data) {
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0.9, 0.2, 0.2, "collision", hash_collpair(833, collpair));
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 0.2, 0.9, 0.2, "collision", hash_collpair(834, collpair));
-			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.8, 0.8, 0.8, "collision", hash_collpair(835, collpair));
-//			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, collpair->normal, 1.0, 1.0, 0.0, "collision", hash_collpair(836, collpair));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0.9, 0.2, 0.2, "collision", 833, collpair->face1, collpair->face2);
+			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 0.2, 0.9, 0.2, "collision", 834, collpair->face1, collpair->face2);
+			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.8, 0.8, 0.8, "collision", 835, collpair->face1, collpair->face2);
 		}
 		/********/
 
@@ -1061,21 +1023,7 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 				bounce = 0.0f;
 				mul_v3_v3fl(impulse, collpair->normal, repulse);
 			}
-#if 0
-			{
-				float d[3], md[3];
-				mul_v3_v3fl(d, collpair->normal, -collpair->distance);
-				mul_v3_v3fl(md, collpair->normal, -margin_distance);
-				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, d, 1, 1, 0, "collision", hash_collpair(5, collpair));
-				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, md, 0, 1, 1, "collision", hash_collpair(6, collpair));
-				
-				BKE_sim_debug_data_add_line(clmd->debug_data, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, 0, 0, 1, "collision", hash_collpair(85, collpair));
-				BKE_sim_debug_data_add_line(clmd->debug_data, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, 0, 0, 1, "collision", hash_collpair(86, collpair));
-				BKE_sim_debug_data_add_line(clmd->debug_data, collmd->current_x[collpair->bp3].co, collmd->current_x[collpair->bp1].co, 0, 0, 1, "collision", hash_collpair(87, collpair));
-			}
-#endif
 			cloth1->verts[collpair->ap1].impulse_count++;
-//			BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, impulse, 1.0, 1.0, 1.0, "collision", hash_collpair(873, collpair));
 			
 			result = true;
 		}

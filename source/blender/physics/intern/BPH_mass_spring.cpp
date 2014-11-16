@@ -242,20 +242,6 @@ static void cloth_setup_constraints(ClothModifierData *clmd, ColliderContacts *c
 			
 			BPH_mass_spring_add_constraint_ndof2(data, v, collpair->normal, impulse);
 			++verts[v].impulse_count;
-			
-			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pa, 0, 1, 0, "collision", hash_collpair(936, collpair));
-//			BKE_sim_debug_data_add_dot(clmd->debug_data, collpair->pb, 1, 0, 0, "collision", hash_collpair(937, collpair));
-//			BKE_sim_debug_data_add_line(clmd->debug_data, collpair->pa, collpair->pb, 0.7, 0.7, 0.7, "collision", hash_collpair(938, collpair));
-			
-#if 0
-			{ /* DEBUG */
-				float nor[3];
-				mul_v3_v3fl(nor, collpair->normal, -collpair->distance);
-				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pa, nor, 1, 1, 0, "collision", hash_collpair(939, collpair));
-//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, impulse, 1, 1, 0, "collision", hash_collpair(940, collpair));
-//				BKE_sim_debug_data_add_vector(clmd->debug_data, collpair->pb, collpair->normal, 1, 1, 0, "collision", hash_collpair(941, collpair));
-			}
-#endif
 		}
 	}
 }
@@ -428,14 +414,14 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 			BPH_mass_spring_get_motion_state(data, s->kl, x_kl, v);
 			BPH_mass_spring_get_motion_state(data, s->mn, x_mn, v);
 			
-			BKE_sim_debug_data_add_dot(clmd->debug_data, x_kl, 0.9, 0.9, 0.9, "target", hash_vertex(7980, s->kl));
-			BKE_sim_debug_data_add_line(clmd->debug_data, x_kl, x_mn, 0.8, 0.8, 0.8, "target", hash_vertex(7981, s->kl));
+			BKE_sim_debug_data_add_dot(clmd->debug_data, x_kl, 0.9, 0.9, 0.9, "target", 7980, s->kl);
+			BKE_sim_debug_data_add_line(clmd->debug_data, x_kl, x_mn, 0.8, 0.8, 0.8, "target", 7981, s->kl);
 			
 			copy_v3_v3(d, s->target);
-			BKE_sim_debug_data_add_vector(clmd->debug_data, x_kl, d, 0.8, 0.8, 0.2, "target", hash_vertex(7982, s->kl));
+			BKE_sim_debug_data_add_vector(clmd->debug_data, x_kl, d, 0.8, 0.8, 0.2, "target", 7982, s->kl);
 			
 //			copy_v3_v3(d, s->target_ij);
-//			BKE_sim_debug_data_add_vector(clmd->debug_data, x, d, 1, 0.4, 0.4, "target", hash_vertex(7983, s->kl));
+//			BKE_sim_debug_data_add_vector(clmd->debug_data, x, d, 1, 0.4, 0.4, "target", 7983, s->kl);
 		}
 #endif
 #endif
@@ -745,13 +731,13 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 					
 					BPH_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, NULL, NULL);
 					
-//					BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity, 0.7, 0.3, 1, "grid density", hash_int_2d(hash_int_2d(i, j), 3111));
+//					BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity, 0.7, 0.3, 1, "grid density", i, j, 3111);
 					if (!is_zero_v3(gvel) || !is_zero_v3(gvel_smooth)) {
 						float dvel[3];
 						sub_v3_v3v3(dvel, gvel_smooth, gvel);
-//						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel, 0.4, 0, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3112));
-//						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel_smooth, 0.6, 1, 1, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3113));
-						BKE_sim_debug_data_add_vector(clmd->debug_data, x, dvel, 0.4, 1, 0.7, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3114));
+//						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel, 0.4, 0, 1, "grid velocity", i, j, 3112);
+//						BKE_sim_debug_data_add_vector(clmd->debug_data, x, gvel_smooth, 0.6, 1, 1, "grid velocity", i, j, 3113);
+						BKE_sim_debug_data_add_vector(clmd->debug_data, x, dvel, 0.4, 1, 0.7, "grid velocity", i, j, 3114);
 #if 0
 						if (gdensity > 0.0f) {
 							float col0[3] = {0.0, 0.0, 0.0};
@@ -759,9 +745,9 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 							float col[3];
 							
 							interp_v3_v3v3(col, col0, col1, CLAMPIS(gdensity * clmd->sim_parms->density_strength, 0.0, 1.0));
-//							BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4, "grid velocity", hash_int_2d(hash_int_2d(i, j), 3115));
-//							BKE_sim_debug_data_add_dot(clmd->debug_data, x, col[0], col[1], col[2], "grid velocity", hash_int_2d(hash_int_2d(i, j), 3115));
-							BKE_sim_debug_data_add_circle(clmd->debug_data, x, 0.01f, col[0], col[1], col[2], "grid velocity", hash_int_2d(hash_int_2d(i, j), 3115));
+//							BKE_sim_debug_data_add_circle(clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4, "grid velocity", i, j, 3115);
+//							BKE_sim_debug_data_add_dot(clmd->debug_data, x, col[0], col[1], col[2], "grid velocity", i, j, 3115);
+							BKE_sim_debug_data_add_circle(clmd->debug_data, x, 0.01f, col[0], col[1], col[2], "grid velocity", i, j, 3115);
 						}
 #endif
 					}
@@ -903,12 +889,6 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		}
 	}
 	
-	if (clmd->debug_data) {
-		for (i = 0; i < numverts; i++) {
-//			BKE_sim_debug_data_add_dot(clmd->debug_data, verts[i].x, 1.0f, 0.1f, 1.0f, "points", hash_vertex(583, i));
-		}
-	}
-	
 	while (step < tf) {
 		ImplicitSolverResult result;
 		
@@ -967,12 +947,6 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			}
 			
 			BPH_mass_spring_get_motion_state(id, i, verts[i].txold, NULL);
-			
-//			if (!(verts[i].flags & CLOTH_VERT_FLAG_PINNED) && i > 0) {
-//				BKE_sim_debug_data_add_line(clmd->debug_data, id->X[i], id->X[i-1], 0.6, 0.3, 0.3, "hair", hash_vertex(4892, i));
-//				BKE_sim_debug_data_add_line(clmd->debug_data, id->Xnew[i], id->Xnew[i-1], 1, 0.5, 0.5, "hair", hash_vertex(4893, i));
-//			}
-//			BKE_sim_debug_data_add_vector(clmd->debug_data, id->X[i], id->V[i], 0, 0, 1, "velocity", hash_vertex(3158, i));
 		}
 		
 		/* free contact points */

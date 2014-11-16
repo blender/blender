@@ -61,36 +61,6 @@ static void cloth_update_springs( ClothModifierData *clmd );
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 
-/* ==== hash functions for debugging ==== */
-BLI_INLINE unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
-{
-#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
-
-	unsigned int a, b, c;
-
-	a = b = c = 0xdeadbeef + (2 << 2) + 13;
-	a += kx;
-	b += ky;
-
-	c ^= b; c -= rot(b,14);
-	a ^= c; a -= rot(c,11);
-	b ^= a; b -= rot(a,25);
-	c ^= b; c -= rot(b,16);
-	a ^= c; a -= rot(c,4);
-	b ^= a; b -= rot(a,14);
-	c ^= b; c -= rot(b,24);
-
-	return c;
-
-#undef rot
-}
-
-BLI_INLINE int hash_vertex(int type, int vertex)
-{
-	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
-}
-/* ================ */
-
 /******************************************************************************
  *
  * External interface called by modifier.c clothModifier functions.
@@ -1129,16 +1099,16 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 			float a[3], b[3];
 			
 			copy_v3_v3(a, cloth->verts[spring->kl].x);
-//			BKE_sim_debug_data_add_dot(clmd->debug_data, cloth_vert ? cloth_vert->x : key->co, 1, 1, 0, "frames", hash_vertex(8246, hash_int_2d(p, k)));
+//			BKE_sim_debug_data_add_dot(clmd->debug_data, cloth_vert ? cloth_vert->x : key->co, 1, 1, 0, "frames", 8246, p, k);
 			
 			mul_v3_v3fl(b, hair_frame[0], clmd->sim_parms->avg_spring_len);
-			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 1, 0, 0, "frames", hash_vertex(8247, hash_int_2d(spring->kl, spring->mn)));
+			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 1, 0, 0, "frames", 8247, spring->kl, spring->mn);
 			
 			mul_v3_v3fl(b, hair_frame[1], clmd->sim_parms->avg_spring_len);
-			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 0, 1, 0, "frames", hash_vertex(8248, hash_int_2d(spring->kl, spring->mn)));
+			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 0, 1, 0, "frames", 8248, spring->kl, spring->mn);
 			
 			mul_v3_v3fl(b, hair_frame[2], clmd->sim_parms->avg_spring_len);
-			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 0, 0, 1, "frames", hash_vertex(8249, hash_int_2d(spring->kl, spring->mn)));
+			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 0, 0, 1, "frames", 8249, spring->kl, spring->mn);
 		}
 #endif
 		

@@ -74,41 +74,6 @@ BLI_INLINE void implicit_print_matrix_elem(float v)
     printf("%-8.3f", v);
 }
 
-/* ==== hash functions for debugging ==== */
-BLI_INLINE unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
-{
-#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
-
-	unsigned int a, b, c;
-
-	a = b = c = 0xdeadbeef + (2 << 2) + 13;
-	a += kx;
-	b += ky;
-
-	c ^= b; c -= rot(b,14);
-	a ^= c; a -= rot(c,11);
-	b ^= a; b -= rot(a,25);
-	c ^= b; c -= rot(b,16);
-	a ^= c; a -= rot(c,4);
-	b ^= a; b -= rot(a,14);
-	c ^= b; c -= rot(b,24);
-
-	return c;
-
-#undef rot
-}
-
-BLI_INLINE int hash_vertex(int type, int vertex)
-{
-	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
-}
-
-BLI_INLINE int hash_collpair(int type, CollPair *collpair)
-{
-	return hash_int_2d((unsigned int)type, hash_int_2d((unsigned int)collpair->face1, (unsigned int)collpair->face2));
-}
-/* ================ */
-
 void BPH_mass_spring_solver_debug_data(struct Implicit_Data *id, struct SimDebugData *debug_data);
 
 void BPH_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
