@@ -178,7 +178,7 @@ static void rna_uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const c
 }
 
 static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
-                              int translate, int icon, int emboss)
+                              int translate, int icon, int emboss, int icon_value)
 {
 	wmOperatorType *ot;
 	int flag;
@@ -191,6 +191,10 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, ot->srna, NULL, translate);
+
+	if (icon_value && !icon) {
+		icon = icon_value;
+	}
 
 	flag = UI_ITEM_O_RETURN_PROPS;
 	flag |= (emboss) ? 0 : UI_ITEM_R_NO_BG;
@@ -551,6 +555,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "operator", "rna_uiItemO");
 	api_ui_item_op_common(func);
 	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
+	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(parm, "Icon Value",
+	                         "Override automatic icon of the item "
+	                         "(use it e.g. with custom material icons returned by icon()...)");
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "",
 	                       "Operator properties to fill in, return when 'properties' is set to true");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
