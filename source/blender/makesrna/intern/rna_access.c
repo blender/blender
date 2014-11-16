@@ -4960,7 +4960,7 @@ bool RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const cha
 
 	if (prop) {
 		int i;
-		bool cmp;
+		bool cmp = false;
 
 		RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
 		i = RNA_enum_from_identifier(item, enumname);
