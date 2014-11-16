@@ -126,10 +126,10 @@ void make_unique_prop_names(bContext *C, char *str)
 	/* count total names */
 	for (a=0; a<obcount; a++) {
 		ob= (Object *)idar[a];
-		propcount+= BLI_countlist(&ob->prop);
-		propcount+= BLI_countlist(&ob->sensors);
-		propcount+= BLI_countlist(&ob->controllers);
-		propcount+= BLI_countlist(&ob->actuators);
+		propcount+= BLI_listbase_count(&ob->prop);
+		propcount+= BLI_listbase_count(&ob->sensors);
+		propcount+= BLI_listbase_count(&ob->controllers);
+		propcount+= BLI_listbase_count(&ob->actuators);
 	}
 	if (propcount==0) {
 		if (idar) MEM_freeN(idar);

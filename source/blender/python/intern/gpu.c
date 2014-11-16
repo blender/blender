@@ -200,7 +200,7 @@ static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObj
 	if (shader->vertex) {
 		PY_DICT_ADD_STRING(result, shader, vertex);
 	}
-	seq = PyList_New(BLI_countlist(&shader->uniforms));
+	seq = PyList_New(BLI_listbase_count(&shader->uniforms));
 	for (i = 0, uniform = shader->uniforms.first; uniform; uniform = uniform->next, i++) {
 		dict = PyDict_New();
 		PY_DICT_ADD_STRING(dict, uniform, varname);
@@ -229,7 +229,7 @@ static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObj
 	PyDict_SetItemString(result, "uniforms", seq);
 	Py_DECREF(seq);
 
-	seq = PyList_New(BLI_countlist(&shader->attributes));
+	seq = PyList_New(BLI_listbase_count(&shader->attributes));
 	for (i = 0, attribute = shader->attributes.first; attribute; attribute = attribute->next, i++) {
 		dict = PyDict_New();
 		PY_DICT_ADD_STRING(dict, attribute, varname);

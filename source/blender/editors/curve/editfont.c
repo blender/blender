@@ -668,7 +668,7 @@ void ED_text_to_object(bContext *C, Text *text, const bool split_lines)
 		offset[1] = 0.0f;
 		offset[2] = 0.0f;
 
-		txt_add_object(C, text->lines.first, BLI_countlist(&text->lines), offset);
+		txt_add_object(C, text->lines.first, BLI_listbase_count(&text->lines), offset);
 	}
 }
 

@@ -381,14 +381,14 @@ static void pose_copy_menu(Scene *scene)
 	 * but for constraints (just add local constraints)
 	 */
 	if (pose_has_protected_selected(ob, 0)) {
-		i = BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
+		i = BLI_listbase_count(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 		if (i < 25)
 			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|Constraints... %x5");
 		else
 			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4");
 	}
 	else {
-		i = BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
+		i = BLI_listbase_count(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 		if (i < 25)
 			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|Constraints... %x5|%l|Transform Locks %x6|IK Limits %x7|Bone Shape %x8");
 		else

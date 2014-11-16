@@ -243,7 +243,7 @@ static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, 
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {
-			*max = max_ii(0, BLI_countlist(pid->ptcaches) - 1);
+			*max = max_ii(0, BLI_listbase_count(pid->ptcaches) - 1);
 			break;
 		}
 	}

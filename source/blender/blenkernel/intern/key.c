@@ -1086,7 +1086,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
 
 		if (cache) {
 			if (cache->defgroup_weights == NULL) {
-				int num_defgroup = BLI_countlist(&ob->defbase);
+				int num_defgroup = BLI_listbase_count(&ob->defbase);
 				cache->defgroup_weights =
 				    MEM_callocN(sizeof(*cache->defgroup_weights) * num_defgroup,
 				                "cached defgroup weights");
@@ -1518,7 +1518,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 	BLI_addtail(&key->block, kb);
 	kb->type = KEY_CARDINAL;
 	
-	tot = BLI_countlist(&key->block);
+	tot = BLI_listbase_count(&key->block);
 	if (name) {
 		BLI_strncpy(kb->name, name, sizeof(kb->name));
 	}

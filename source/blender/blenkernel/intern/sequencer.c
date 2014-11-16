@@ -3096,7 +3096,7 @@ ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int cha
 	if (ed == NULL) return NULL;
 
 	if ((chanshown < 0) && !BLI_listbase_is_empty(&ed->metastack)) {
-		int count = BLI_countlist(&ed->metastack);
+		int count = BLI_listbase_count(&ed->metastack);
 		count = max_ii(count + chanshown, 0);
 		seqbasep = ((MetaStack *)BLI_findlink(&ed->metastack, count))->oldbasep;
 	}

@@ -421,7 +421,7 @@ static void rna_PoseChannel_bone_group_index_range(PointerRNA *ptr, int *min, in
 	bPose *pose = (ob) ? ob->pose : NULL;
 	
 	*min = 0;
-	*max = pose ? max_ii(0, BLI_countlist(&pose->agroups) - 1) : 0;
+	*max = pose ? max_ii(0, BLI_listbase_count(&pose->agroups) - 1) : 0;
 }
 
 static PointerRNA rna_Pose_active_bone_group_get(PointerRNA *ptr)
@@ -454,7 +454,7 @@ static void rna_Pose_active_bone_group_index_range(PointerRNA *ptr, int *min, in
 	bPose *pose = (bPose *)ptr->data;
 
 	*min = 0;
-	*max = max_ii(0, BLI_countlist(&pose->agroups) - 1);
+	*max = max_ii(0, BLI_listbase_count(&pose->agroups) - 1);
 }
 
 #if 0

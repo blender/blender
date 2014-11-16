@@ -1457,7 +1457,7 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const bool d
 		{
 			if (found == 1) {
 #if 0
-				printf("%s: exact %d %d (%d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
+				printf("%s: exact %d %d (%d)\n", __func__, (int)ctime, BLI_listbase_count(&masklay->splines_shapes),
 				       masklay_shape_a->frame);
 #endif
 
@@ -1466,7 +1466,7 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const bool d
 			else if (found == 2) {
 				float w = masklay_shape_b->frame - masklay_shape_a->frame;
 #if 0
-				printf("%s: tween %d %d (%d %d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
+				printf("%s: tween %d %d (%d %d)\n", __func__, (int)ctime, BLI_listbase_count(&masklay->splines_shapes),
 				       masklay_shape_a->frame, masklay_shape_b->frame);
 #endif
 				BKE_mask_layer_shape_to_mask_interp(masklay, masklay_shape_a, masklay_shape_b,
@@ -1833,7 +1833,7 @@ static int mask_layer_shape_sort_cb(const void *masklay_shape_a_ptr, const void 
 
 void BKE_mask_layer_shape_sort(MaskLayer *masklay)
 {
-	BLI_sortlist(&masklay->splines_shapes, mask_layer_shape_sort_cb);
+	BLI_listbase_sort(&masklay->splines_shapes, mask_layer_shape_sort_cb);
 }
 
 bool BKE_mask_layer_shape_spline_from_index(MaskLayer *masklay, int index,

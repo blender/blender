@@ -642,7 +642,7 @@ static bool pose_select_same_group(bContext *C, Object *ob, bool extend)
 		return 0;
 		
 	/* count the number of groups */
-	numGroups = BLI_countlist(&pose->agroups);
+	numGroups = BLI_listbase_count(&pose->agroups);
 	if (numGroups == 0)
 		return 0;
 		

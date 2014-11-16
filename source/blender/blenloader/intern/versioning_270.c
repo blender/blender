@@ -310,7 +310,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		{
 			Scene *scene;
 			for (scene = main->scene.first; scene; scene = scene->id.next) {
-				int num_layers = BLI_countlist(&scene->r.layers);
+				int num_layers = BLI_listbase_count(&scene->r.layers);
 				scene->r.actlay = min_ff(scene->r.actlay, num_layers - 1);
 			}
 		}

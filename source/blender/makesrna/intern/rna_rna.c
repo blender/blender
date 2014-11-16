@@ -984,7 +984,7 @@ static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, Point
 /* optional, for faster lookups */
 static int rna_BlenderRNA_structs_length(PointerRNA *ptr)
 {
-	return BLI_countlist(&((BlenderRNA *)ptr->data)->structs);
+	return BLI_listbase_count(&((BlenderRNA *)ptr->data)->structs);
 }
 static int rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {

@@ -572,7 +572,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 	unsigned int masklay_index;
 	MemArena *sf_arena;
 
-	mr_handle->layers_tot = (unsigned int)BLI_countlist(&mask->masklayers);
+	mr_handle->layers_tot = (unsigned int)BLI_listbase_count(&mask->masklayers);
 	mr_handle->layers = MEM_mallocN(sizeof(MaskRasterLayer) * mr_handle->layers_tot, "MaskRasterLayer");
 	BLI_rctf_init_minmax(&mr_handle->bounds);
 
@@ -608,7 +608,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			continue;
 		}
 
-		tot_splines = (unsigned int)BLI_countlist(&masklay->splines);
+		tot_splines = (unsigned int)BLI_listbase_count(&masklay->splines);
 		open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
 
 		BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
@@ -956,7 +956,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			                                             &isect_remvertbase,
 			                                             &isect_remedgebase)))
 			{
-				unsigned int sf_vert_tot_isect = (unsigned int)BLI_countlist(&sf_ctx.fillvertbase);
+				unsigned int sf_vert_tot_isect = (unsigned int)BLI_listbase_count(&sf_ctx.fillvertbase);
 				unsigned int i = sf_vert_tot;
 
 				face_coords = MEM_reallocN(face_coords, sizeof(float[3]) * (sf_vert_tot + sf_vert_tot_isect));

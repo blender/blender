@@ -152,7 +152,7 @@ void ED_node_tree_pop(SpaceNode *snode)
 
 int ED_node_tree_depth(SpaceNode *snode)
 {
-	return BLI_countlist(&snode->treepath);
+	return BLI_listbase_count(&snode->treepath);
 }
 
 bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)

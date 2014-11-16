@@ -788,7 +788,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, bool do_tessface)
 
 	{
 		BMEditSelection *selected;
-		me->totselect = BLI_countlist(&(bm->selected));
+		me->totselect = BLI_listbase_count(&(bm->selected));
 
 		if (me->mselect) MEM_freeN(me->mselect);
 

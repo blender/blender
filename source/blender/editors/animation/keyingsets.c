@@ -127,7 +127,7 @@ static int add_default_keyingset_exec(bContext *C, wmOperator *UNUSED(op))
 	/* call the API func, and set the active keyingset index */
 	BKE_keyingset_add(&scene->keyingsets, NULL, NULL, flag, keyingflag);
 	
-	scene->active_keyingset = BLI_countlist(&scene->keyingsets);
+	scene->active_keyingset = BLI_listbase_count(&scene->keyingsets);
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
@@ -216,7 +216,7 @@ static int add_empty_ks_path_exec(bContext *C, wmOperator *op)
 	/* don't use the API method for this, since that checks on values... */
 	ksp = MEM_callocN(sizeof(KS_Path), "KeyingSetPath Empty");
 	BLI_addtail(&ks->paths, ksp);
-	ks->active_path = BLI_countlist(&ks->paths);
+	ks->active_path = BLI_listbase_count(&ks->paths);
 	
 	ksp->groupmode = KSP_GROUP_KSNAME; // XXX?
 	ksp->idtype = ID_OB;
@@ -316,7 +316,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 		/* call the API func, and set the active keyingset index */
 		ks = BKE_keyingset_add(&scene->keyingsets, "ButtonKeyingSet", "Button Keying Set", flag, keyingflag);
 		
-		scene->active_keyingset = BLI_countlist(&scene->keyingsets);
+		scene->active_keyingset = BLI_listbase_count(&scene->keyingsets);
 	}
 	else if (scene->active_keyingset < 0) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot add property to built in keying set");
@@ -347,7 +347,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 				
 			/* add path to this setting */
 			BKE_keyingset_add_path(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
-			ks->active_path = BLI_countlist(&ks->paths);
+			ks->active_path = BLI_listbase_count(&ks->paths);
 			success = 1;
 			
 			/* free the temp path created */

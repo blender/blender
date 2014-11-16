@@ -203,7 +203,7 @@ static void snode_autoconnect(SpaceNode *snode, const bool allow_multiple, const
 	}
 
 	/* sort nodes left to right */
-	BLI_sortlist(nodelist, sort_nodes_locx);
+	BLI_listbase_sort(nodelist, sort_nodes_locx);
 
 	for (nli = nodelist->first; nli; nli = nli->next) {
 		bNode *node_fr, *node_to;
@@ -236,7 +236,7 @@ static void snode_autoconnect(SpaceNode *snode, const bool allow_multiple, const
 
 		if (!has_selected_inputs) {
 			/* no selected inputs, connect by finding suitable match */
-			int num_inputs = BLI_countlist(&node_to->inputs);
+			int num_inputs = BLI_listbase_count(&node_to->inputs);
 
 			for (i = 0; i < num_inputs; i++) {
 

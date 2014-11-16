@@ -558,7 +558,7 @@ static int render_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 
 	BKE_scene_add_render_layer(scene, NULL);
-	scene->r.actlay = BLI_countlist(&scene->r.layers) - 1;
+	scene->r.actlay = BLI_listbase_count(&scene->r.layers) - 1;
 
 	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);

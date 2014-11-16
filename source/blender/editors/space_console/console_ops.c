@@ -95,7 +95,7 @@ static void console_scrollback_limit(SpaceConsole *sc)
 	
 	if (U.scrollback < 32) U.scrollback = 256;  // XXX - save in user defaults
 	
-	for (tot = BLI_countlist(&sc->scrollback); tot > U.scrollback; tot--)
+	for (tot = BLI_listbase_count(&sc->scrollback); tot > U.scrollback; tot--)
 		console_scrollback_free(sc, sc->scrollback.first);
 }
 
@@ -136,7 +136,7 @@ static void console_lb_debug__internal(ListBase *lb)
 {
 	ConsoleLine *cl;
 
-	printf("%d: ", BLI_countlist(lb));
+	printf("%d: ", BLI_listbase_count(lb));
 	for (cl = lb->first; cl; cl = cl->next)
 		printf("<%s> ", cl->line);
 	printf("\n");

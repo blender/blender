@@ -1305,7 +1305,7 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 	// XXX the default settings have yet to evolve
 	if ((add) && (ks == NULL)) {
 		ks = BKE_keyingset_add(&scene->keyingsets, NULL, NULL, KEYINGSET_ABSOLUTE, 0);
-		scene->active_keyingset = BLI_countlist(&scene->keyingsets);
+		scene->active_keyingset = BLI_listbase_count(&scene->keyingsets);
 	}
 	
 	return ks;
@@ -1347,7 +1347,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 						/* TODO: what do we do with group name?
 						 * for now, we don't supply one, and just let this use the KeyingSet name */
 						BKE_keyingset_add_path(ks, id, NULL, path, array_index, flag, groupmode);
-						ks->active_path = BLI_countlist(&ks->paths);
+						ks->active_path = BLI_listbase_count(&ks->paths);
 						break;
 					}
 					case KEYINGSET_EDITMODE_REMOVE:

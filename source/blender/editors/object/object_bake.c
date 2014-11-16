@@ -438,7 +438,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 	MultiresBakeJob *bkj = bkv;
 	int baked_objects = 0, tot_obj;
 
-	tot_obj = BLI_countlist(&bkj->data);
+	tot_obj = BLI_listbase_count(&bkj->data);
 
 	if (bkj->bake_clear) {  /* clear images */
 		for (data = bkj->data.first; data; data = data->next) {

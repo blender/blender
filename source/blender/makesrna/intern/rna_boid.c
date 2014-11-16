@@ -169,7 +169,7 @@ static void rna_BoidState_active_boid_rule_index_range(PointerRNA *ptr, int *min
 {
 	BoidState *state = (BoidState *)ptr->data;
 	*min = 0;
-	*max = max_ii(0, BLI_countlist(&state->rules) - 1);
+	*max = max_ii(0, BLI_listbase_count(&state->rules) - 1);
 }
 
 static int rna_BoidState_active_boid_rule_index_get(PointerRNA *ptr)
@@ -235,7 +235,7 @@ static void rna_BoidSettings_active_boid_state_index_range(PointerRNA *ptr, int 
 {
 	BoidSettings *boids = (BoidSettings *)ptr->data;
 	*min = 0;
-	*max = max_ii(0, BLI_countlist(&boids->states) - 1);
+	*max = max_ii(0, BLI_listbase_count(&boids->states) - 1);
 }
 
 static int rna_BoidSettings_active_boid_state_index_get(PointerRNA *ptr)

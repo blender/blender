@@ -496,7 +496,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		PathLinkState *state, *state_next;
 		found_all = true;
 #ifdef DEBUG_PRINT
-		printf("\n%s: stepping %d\n", __func__, BLI_countlist(&pc.state_lb));
+		printf("\n%s: stepping %d\n", __func__, BLI_listbase_count(&pc.state_lb));
 #endif
 		for (state = pc.state_lb.first; state; state = state_next) {
 			state_next = state->next;

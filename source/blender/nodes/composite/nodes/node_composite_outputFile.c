@@ -140,7 +140,7 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
 {
 	NodeImageMultiFile *nimf = node->storage;
 	bNodeSocket *sock = BLI_findlink(&node->inputs, nimf->active_input);
-	int totinputs = BLI_countlist(&node->inputs);
+	int totinputs = BLI_listbase_count(&node->inputs);
 	
 	if (!sock)
 		return 0;

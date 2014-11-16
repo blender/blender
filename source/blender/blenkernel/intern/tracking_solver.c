@@ -356,7 +356,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
 	MovieReconstructContext *context = MEM_callocN(sizeof(MovieReconstructContext), "MovieReconstructContext data");
 	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
-	int num_tracks = BLI_countlist(tracksbase);
+	int num_tracks = BLI_listbase_count(tracksbase);
 	int sfra = INT_MAX, efra = INT_MIN;
 	MovieTrackingTrack *track;
 

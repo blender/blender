@@ -256,7 +256,7 @@ static void buttons_texture_user_property_add(ListBase *users, ID *id,
 	user->category = category;
 	user->icon = icon;
 	user->name = name;
-	user->index = BLI_countlist(users);
+	user->index = BLI_listbase_count(users);
 
 	BLI_addtail(users, user);
 }
@@ -273,7 +273,7 @@ static void buttons_texture_user_node_add(ListBase *users, ID *id,
 	user->category = category;
 	user->icon = icon;
 	user->name = name;
-	user->index = BLI_countlist(users);
+	user->index = BLI_listbase_count(users);
 
 	BLI_addtail(users, user);
 }
@@ -468,7 +468,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 	}
 	else {
 		/* set one user as active based on active index */
-		if (ct->index >= BLI_countlist(&ct->users))
+		if (ct->index >= BLI_listbase_count(&ct->users))
 			ct->index = 0;
 
 		ct->user = BLI_findlink(&ct->users, ct->index);

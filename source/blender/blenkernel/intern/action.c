@@ -966,7 +966,7 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
 	BLI_addtail(&pose->agroups, grp);
 	BLI_uniquename(&pose->agroups, grp, name, '.', offsetof(bActionGroup, name), sizeof(grp->name));
 	
-	pose->active_group = BLI_countlist(&pose->agroups);
+	pose->active_group = BLI_listbase_count(&pose->agroups);
 	
 	return grp;
 }

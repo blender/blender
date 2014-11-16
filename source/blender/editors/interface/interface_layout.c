@@ -1518,7 +1518,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 	}
 	RNA_PROP_END;
 	
-	BLI_sortlist(items_list, sort_search_items_list);
+	BLI_listbase_sort(items_list, sort_search_items_list);
 	
 	/* add search items from temporary list */
 	for (cis = items_list->first; cis; cis = cis->next) {
@@ -2512,7 +2512,7 @@ static void ui_litem_layout_split(uiLayout *litem)
 	uiLayoutItemSplit *split = (uiLayoutItemSplit *)litem;
 	uiItem *item;
 	float percentage;
-	const int tot = BLI_countlist(&litem->items);
+	const int tot = BLI_listbase_count(&litem->items);
 	int itemh, x, y, w, colw = 0;
 
 	if (tot == 0)

@@ -582,7 +582,7 @@ void BM_log_free(BMLog *log)
 /* Get the number of log entries */
 int BM_log_length(const BMLog *log)
 {
-	return BLI_countlist(&log->entries);
+	return BLI_listbase_count(&log->entries);
 }
 
 /* Apply a consistent ordering to BMesh vertices */

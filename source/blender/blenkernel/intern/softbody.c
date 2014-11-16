@@ -3561,7 +3561,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 
 	if (ob->softflag & OB_SB_EDGES) {
 		if (ob->type==OB_CURVE) {
-			totspring= totvert - BLI_countlist(&cu->nurb);
+			totspring= totvert - BLI_listbase_count(&cu->nurb);
 		}
 	}
 

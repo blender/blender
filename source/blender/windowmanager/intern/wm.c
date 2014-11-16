@@ -155,7 +155,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	int tot;
 
 	BLI_addtail(&wm->operators, op);
-	tot = BLI_countlist(&wm->operators);
+	tot = BLI_listbase_count(&wm->operators);
 	
 	while (tot > MAX_OP_REGISTERED) {
 		wmOperator *opt = wm->operators.first;

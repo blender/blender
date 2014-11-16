@@ -265,7 +265,7 @@ static bool scanfill_preprocess_self_isect(
 				}
 
 				if (BLI_listbase_is_single(e_ls) == false) {
-					BLI_sortlist_r(e_ls, eed->v2->co, edge_isect_ls_sort_cb);
+					BLI_listbase_sort_r(e_ls, eed->v2->co, edge_isect_ls_sort_cb);
 				}
 
 				/* move original edge to filledgebase and add replacement

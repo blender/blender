@@ -1523,7 +1523,7 @@ static void ipo_to_animdata(ID *id, Ipo *ipo, char actname[], char constname[], 
 	if (G.debug & G_DEBUG) {
 		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s seqname:%s  curves:%d\n",
 		       id->name + 2, ipo->id.name + 2, (actname) ? actname : "<None>", (constname) ? constname : "<None>", (seq) ? (seq->name + 2) : "<None>",
-		       BLI_countlist(&ipo->curve));
+		       BLI_listbase_count(&ipo->curve));
 	}
 	
 	/* Convert curves to animato system (separated into separate lists of F-Curves for animation and drivers),

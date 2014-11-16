@@ -583,7 +583,7 @@ static void rna_Object_active_vertex_group_index_range(PointerRNA *ptr, int *min
 	Object *ob = (Object *)ptr->id.data;
 
 	*min = 0;
-	*max = max_ii(0, BLI_countlist(&ob->defbase) - 1);
+	*max = max_ii(0, BLI_listbase_count(&ob->defbase) - 1);
 }
 
 void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
@@ -736,7 +736,7 @@ static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *
 {
 	Object *ob = (Object *)ptr->id.data;
 	*min = 0;
-	*max = max_ii(0, BLI_countlist(&ob->particlesystem) - 1);
+	*max = max_ii(0, BLI_listbase_count(&ob->particlesystem) - 1);
 }
 
 static int rna_Object_active_particle_system_index_get(PointerRNA *ptr)
@@ -1241,7 +1241,7 @@ static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, i
 
 	*min = 0;
 	if (key) {
-		*max = BLI_countlist(&key->block) - 1;
+		*max = BLI_listbase_count(&key->block) - 1;
 		if (*max < 0) *max = 0;
 	}
 	else {

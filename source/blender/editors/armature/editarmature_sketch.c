@@ -1575,7 +1575,7 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 		added = MAX2(s_added, added);
 	}
 
-	BLI_sortlist(list, cmpIntersections);
+	BLI_listbase_sort(list, cmpIntersections);
 
 	return added;
 }

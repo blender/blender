@@ -200,7 +200,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 	Object *par_arma = m_armobj->GetArmatureObject();
 	MDeformVert *dverts = m_bmesh->dvert;
 	bDeformGroup *dg;
-	int defbase_tot = BLI_countlist(&m_objMesh->defbase);
+	int defbase_tot = BLI_listbase_count(&m_objMesh->defbase);
 	Eigen::Matrix4f pre_mat, post_mat, chan_mat, norm_chan_mat;
 
 	if (!dverts)

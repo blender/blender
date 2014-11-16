@@ -1475,7 +1475,7 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 	BLI_addtail(&tracking->objects, object);
 
 	tracking->tot_object++;
-	tracking->objectnr = BLI_countlist(&tracking->objects) - 1;
+	tracking->objectnr = BLI_listbase_count(&tracking->objects) - 1;
 
 	object->scale = 1.0f;
 	object->keyframe1 = 1;
@@ -2410,30 +2410,30 @@ static void tracking_dopesheet_channels_sort(MovieTracking *tracking, int sort_m
 
 	if (inverse) {
 		if (sort_method == TRACKING_DOPE_SORT_NAME) {
-			BLI_sortlist(&dopesheet->channels, channels_alpha_inverse_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_alpha_inverse_sort);
 		}
 		else if (sort_method == TRACKING_DOPE_SORT_LONGEST) {
-			BLI_sortlist(&dopesheet->channels, channels_longest_segment_inverse_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_longest_segment_inverse_sort);
 		}
 		else if (sort_method == TRACKING_DOPE_SORT_TOTAL) {
-			BLI_sortlist(&dopesheet->channels, channels_total_track_inverse_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_total_track_inverse_sort);
 		}
 		else if (sort_method == TRACKING_DOPE_SORT_AVERAGE_ERROR) {
-			BLI_sortlist(&dopesheet->channels, channels_average_error_inverse_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_average_error_inverse_sort);
 		}
 	}
 	else {
 		if (sort_method == TRACKING_DOPE_SORT_NAME) {
-			BLI_sortlist(&dopesheet->channels, channels_alpha_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_alpha_sort);
 		}
 		else if (sort_method == TRACKING_DOPE_SORT_LONGEST) {
-			BLI_sortlist(&dopesheet->channels, channels_longest_segment_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_longest_segment_sort);
 		}
 		else if (sort_method == TRACKING_DOPE_SORT_TOTAL) {
-			BLI_sortlist(&dopesheet->channels, channels_total_track_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_total_track_sort);
 		}
 		else if (sort_method == TRACKING_DOPE_SORT_AVERAGE_ERROR) {
-			BLI_sortlist(&dopesheet->channels, channels_average_error_sort);
+			BLI_listbase_sort(&dopesheet->channels, channels_average_error_sort);
 		}
 	}
 }

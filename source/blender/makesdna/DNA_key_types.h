@@ -92,7 +92,7 @@ typedef struct Key {
 	ID *from;
 
 	short type;    /* absolute or relative shape key */
-	short totkey;  /* (totkey == BLI_countlist(&key->block)) */
+	short totkey;  /* (totkey == BLI_listbase_count(&key->block)) */
 	short slurph;  /* quaint feature to delay moving points based on their order (Key->type == KEY_NORMAL) only */
 	short flag;
 

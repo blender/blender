@@ -695,7 +695,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 					if (scene->nodetree && scene->use_nodes && ntreeHasTree(scene->nodetree, ntree)) {
 						if (node->id == NULL || node->id == (ID *)scene) {
-							int num_layers = BLI_countlist(&scene->r.layers);
+							int num_layers = BLI_listbase_count(&scene->r.layers);
 							scene->r.actlay = node->custom1;
 							/* Clamp the value, because it might have come from a different
 							 * scene which could have more render layers than new one.

@@ -233,7 +233,7 @@ static void set_constraint_nth_target(bConstraint *con, Object *target, const ch
 	
 	if (cti && cti->get_constraint_targets) {
 		cti->get_constraint_targets(con, &targets);
-		num_targets = BLI_countlist(&targets);
+		num_targets = BLI_listbase_count(&targets);
 		
 		if (index < 0) {
 			if (abs(index) < num_targets)

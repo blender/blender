@@ -387,7 +387,7 @@ static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	/* create temporary array with bone groups and indices */
-	agrp_count = BLI_countlist(&pose->agroups);
+	agrp_count = BLI_listbase_count(&pose->agroups);
 	agrp_array = MEM_mallocN(sizeof(tSortActionGroup) * agrp_count, "sort bone groups");
 	for (agrp = pose->agroups.first, i = 0; agrp; agrp = agrp->next, i++) {
 		BLI_assert(i < agrp_count);

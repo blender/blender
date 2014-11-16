@@ -165,7 +165,7 @@ static Py_ssize_t bpy_bmeditselseq_length(BPy_BMEditSelSeq *self)
 {
 	BPY_BM_CHECK_INT(self);
 
-	return BLI_countlist(&self->bm->selected);
+	return BLI_listbase_count(&self->bm->selected);
 }
 
 static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, int keynum)

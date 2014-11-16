@@ -2496,7 +2496,7 @@ static void draw_dm_edges_weight_interp(BMEditMesh *em, DerivedMesh *dm, const c
 
 	data.bm = em->bm;
 	data.cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-	data.defgroup_tot = BLI_countlist(&ob->defbase);
+	data.defgroup_tot = BLI_listbase_count(&ob->defbase);
 	data.vgroup_index = ob->actdef - 1;
 	data.weight_user = weight_user;
 	UI_GetThemeColor3fv(TH_VERTEX_UNREFERENCED, data.alert_color);

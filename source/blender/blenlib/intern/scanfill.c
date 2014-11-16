@@ -807,7 +807,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 
 #if 0
 	if (flag & BLI_SCANFILL_CALC_QUADTRI_FASTPATH) {
-		const int totverts = BLI_countlist(&sf_ctx->fillvertbase);
+		const int totverts = BLI_listbase_count(&sf_ctx->fillvertbase);
 
 		if (totverts == 3) {
 			eve = sf_ctx->fillvertbase.first;

@@ -382,7 +382,7 @@ static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 		mirrdef = defgroup_name_index(ob, name_flip);
 		if (mirrdef == -1) {
 			if (BKE_defgroup_new(ob, name_flip)) {
-				mirrdef = BLI_countlist(&ob->defbase) - 1;
+				mirrdef = BLI_listbase_count(&ob->defbase) - 1;
 			}
 		}
 
@@ -1177,7 +1177,7 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 			me = BKE_mesh_from_object(vc.obact);
 
 			if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
-				const int defbase_tot = BLI_countlist(&vc.obact->defbase);
+				const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
 				const int use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 				int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
 				bool found = false;
@@ -2235,7 +2235,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 
 	/* set up auto-normalize, and generate map for detecting which
 	 * vgroups affect deform bones */
-	wpd->defbase_tot = BLI_countlist(&ob->defbase);
+	wpd->defbase_tot = BLI_listbase_count(&ob->defbase);
 	wpd->lock_flags = BKE_objdef_lock_flags_get(ob, wpd->defbase_tot);
 	if (ts->auto_normalize || ts->multipaint || wpd->lock_flags) {
 		wpd->vgroup_validmap = BKE_objdef_validmap_get(ob, wpd->defbase_tot);

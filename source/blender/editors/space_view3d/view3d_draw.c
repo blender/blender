@@ -2003,7 +2003,7 @@ static void draw_dupli_objects_color(
 
 	tbase.flag = OB_FROMDUPLI | base->flag;
 	lb = object_duplilist(G.main->eval_ctx, scene, base->object);
-	// BLI_sortlist(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
+	// BLI_listbase_sort(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
 
 	apply_data = duplilist_apply(base->object, lb);
 

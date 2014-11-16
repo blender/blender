@@ -1240,7 +1240,7 @@ int count_duplilist(Object *ob)
 DupliApplyData *duplilist_apply(Object *ob, ListBase *duplilist)
 {
 	DupliApplyData *apply_data = NULL;
-	int num_objects = BLI_countlist(duplilist);
+	int num_objects = BLI_listbase_count(duplilist);
 	
 	if (num_objects > 0) {
 		DupliObject *dob;

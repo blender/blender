@@ -1024,7 +1024,7 @@ static int image_sequence_get_len(ListBase *frames, int *ofs)
 {
 	ImageFrame *frame;
 
-	BLI_sortlist(frames, image_cmp_frame);
+	BLI_listbase_sort(frames, image_cmp_frame);
 
 	frame = frames->first;
 	if (frame) {

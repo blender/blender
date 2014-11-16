@@ -181,7 +181,7 @@ static FreestyleLineSet *alloc_lineset(void)
 
 FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config, const char *name)
 {
-	int lineset_index = BLI_countlist(&config->linesets);
+	int lineset_index = BLI_listbase_count(&config->linesets);
 
 	FreestyleLineSet *lineset = alloc_lineset();
 	BLI_addtail(&config->linesets, (void *)lineset);

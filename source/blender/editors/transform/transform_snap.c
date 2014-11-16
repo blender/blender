@@ -2267,7 +2267,7 @@ static bool peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit,
 		}
 	}
 	
-	BLI_sortlist(depth_peels, cmpPeel);
+	BLI_listbase_sort(depth_peels, cmpPeel);
 	removeDoublesPeel(depth_peels);
 	
 	return retval;

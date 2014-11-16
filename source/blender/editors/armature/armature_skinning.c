@@ -428,7 +428,7 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 	bArmature *arm = par->data;
 
 	if (mode == ARM_GROUPS_NAME) {
-		const int defbase_tot = BLI_countlist(&ob->defbase);
+		const int defbase_tot = BLI_listbase_count(&ob->defbase);
 		int defbase_add;
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups corresponding to the bone.

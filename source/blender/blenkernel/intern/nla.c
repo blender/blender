@@ -268,7 +268,7 @@ NlaTrack *add_nlatrack(AnimData *adt, NlaTrack *prev)
 	
 	/* set settings requiring the track to not be part of the stack yet */
 	nlt->flag = NLATRACK_SELECTED;
-	nlt->index = BLI_countlist(&adt->nla_tracks);
+	nlt->index = BLI_listbase_count(&adt->nla_tracks);
 	
 	/* add track to stack, and make it the active one */
 	if (prev)

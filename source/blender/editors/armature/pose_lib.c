@@ -472,7 +472,7 @@ static int poselib_add_exec(bContext *C, wmOperator *op)
 	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
 	/* store new 'active' pose number */
-	act->active_marker = BLI_countlist(&act->markers);
+	act->active_marker = BLI_listbase_count(&act->markers);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1348,7 +1348,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
 			else {
 				/* change to last pose */
 				pld->marker = pld->act->markers.last;
-				pld->act->active_marker = BLI_countlist(&pld->act->markers);
+				pld->act->active_marker = BLI_listbase_count(&pld->act->markers);
 				
 				pld->redraw = PL_PREVIEW_REDRAWALL;
 			}

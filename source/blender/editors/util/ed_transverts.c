@@ -310,7 +310,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 	}
 	else if (obedit->type == OB_ARMATURE) {
 		bArmature *arm = obedit->data;
-		int totmalloc = BLI_countlist(arm->edbo);
+		int totmalloc = BLI_listbase_count(arm->edbo);
 
 		totmalloc *= 2;  /* probably overkill but bones can have 2 trans verts each */
 
@@ -441,7 +441,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 	}
 	else if (obedit->type == OB_MBALL) {
 		MetaBall *mb = obedit->data;
-		int totmalloc = BLI_countlist(mb->editelems);
+		int totmalloc = BLI_listbase_count(mb->editelems);
 
 		tv = tvs->transverts = MEM_callocN(totmalloc * sizeof(TransVert), __func__);
 

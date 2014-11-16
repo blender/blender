@@ -441,7 +441,7 @@ int defgroup_name_index(Object *ob, const char *name)
 /* note, must be freed */
 int *defgroup_flip_map(Object *ob, int *flip_map_len, const bool use_default)
 {
-	int defbase_tot = *flip_map_len = BLI_countlist(&ob->defbase);
+	int defbase_tot = *flip_map_len = BLI_listbase_count(&ob->defbase);
 
 	if (defbase_tot == 0) {
 		return NULL;
@@ -480,7 +480,7 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, const bool use_default)
 /* note, must be freed */
 int *defgroup_flip_map_single(Object *ob, int *flip_map_len, const bool use_default, int defgroup)
 {
-	int defbase_tot = *flip_map_len = BLI_countlist(&ob->defbase);
+	int defbase_tot = *flip_map_len = BLI_listbase_count(&ob->defbase);
 
 	if (defbase_tot == 0) {
 		return NULL;

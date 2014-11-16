@@ -214,7 +214,7 @@ void ED_node_sort(bNodeTree *ntree)
 {
 	/* merge sort is the algorithm of choice here */
 	bNode *first_a, *first_b, *node_a, *node_b, *tmp;
-	int totnodes = BLI_countlist(&ntree->nodes);
+	int totnodes = BLI_listbase_count(&ntree->nodes);
 	int k, a, b;
 	
 	k = 1;

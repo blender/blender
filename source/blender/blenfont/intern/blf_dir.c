@@ -103,7 +103,7 @@ char **BLF_dir_get(int *ndir)
 	char *path;
 	int i, count;
 	
-	count = BLI_countlist(&global_font_dir);
+	count = BLI_listbase_count(&global_font_dir);
 	if (!count)
 		return NULL;
 	

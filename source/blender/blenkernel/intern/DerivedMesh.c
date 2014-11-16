@@ -1221,7 +1221,7 @@ static void calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const d
 		unsigned int i;
 
 		/* variables for multipaint */
-		const int defbase_tot = BLI_countlist(&ob->defbase);
+		const int defbase_tot = BLI_listbase_count(&ob->defbase);
 		const int defbase_act = ob->actdef - 1;
 
 		int defbase_sel_tot = 0;

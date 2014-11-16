@@ -753,7 +753,7 @@ static void knife_cut_face(KnifeTool_OpData *kcd, BMFace *f, ListBase *hits)
 
 	(void) kcd;
 
-	n = BLI_countlist(hits);
+	n = BLI_listbase_count(hits);
 	if (n < 2)
 		return;
 
@@ -2108,7 +2108,7 @@ static ListBase *find_chain(KnifeTool_OpData *kcd, ListBase *fedges)
 			break;
 	}
 	if (ans) {
-		BLI_assert(BLI_countlist(ans) > 0);
+		BLI_assert(BLI_listbase_count(ans) > 0);
 		for (r = ans->first; r; r = r->next) {
 			ref = find_ref(fedges, r->ref);
 			BLI_assert(ref != NULL);
@@ -2216,7 +2216,7 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 	int besti[2], bestj[2];
 	float dist_sq, dist_best_sq;
 
-	nh = BLI_countlist(hole);
+	nh = BLI_listbase_count(hole);
 	nf = f->len;
 	if (nh < 2 || nf < 3)
 		return false;
@@ -2393,7 +2393,7 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 	KnifeVert *kfv, *kfvprev;
 	BMLoop *l_new, *l_iter;
 	int i;
-	int nco = BLI_countlist(chain) - 1;
+	int nco = BLI_listbase_count(chain) - 1;
 	float (*cos)[3] = BLI_array_alloca(cos, nco);
 	KnifeVert **kverts = BLI_array_alloca(kverts, nco);
 
@@ -2466,7 +2466,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 	Ref *ref, *refnext;
 	int count, oldcount;
 
-	oldcount = BLI_countlist(kfedges);
+	oldcount = BLI_listbase_count(kfedges);
 	while ((chain = find_chain(kcd, kfedges)) != NULL) {
 		ListBase fnew_kfedges;
 		knife_make_chain_cut(kcd, f, chain, &fnew);
@@ -2495,7 +2495,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 
 		/* find_chain should always remove edges if it returns true,
 		 * but guard against infinite loop anyway */
-		count = BLI_countlist(kfedges);
+		count = BLI_listbase_count(kfedges);
 		if (count >= oldcount) {
 			BLI_assert(!"knife find_chain infinite loop");
 			return;
@@ -2563,7 +2563,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 				break;
 			/* find_hole should always remove edges if it returns true,
 			 * but guard against infinite loop anyway */
-			count = BLI_countlist(kfedges);
+			count = BLI_listbase_count(kfedges);
 			if (count >= oldcount) {
 				BLI_assert(!"knife find_hole infinite loop");
 				return;

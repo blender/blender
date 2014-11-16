@@ -840,7 +840,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 	/* bone defmats are already in the channels, chan_mat */
 
 	/* initialize B_bone matrices and dual quaternions */
-	totchan = BLI_countlist(&armOb->pose->chanbase);
+	totchan = BLI_listbase_count(&armOb->pose->chanbase);
 
 	if (use_quaternion) {
 		dualquats = MEM_callocN(sizeof(DualQuat) * totchan, "dualquats");
@@ -866,7 +866,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 	armature_def_nr = defgroup_name_index(target, defgrp_name);
 
 	if (ELEM(target->type, OB_MESH, OB_LATTICE)) {
-		defbase_tot = BLI_countlist(&target->defbase);
+		defbase_tot = BLI_listbase_count(&target->defbase);
 
 		if (target->type == OB_MESH) {
 			Mesh *me = target->data;

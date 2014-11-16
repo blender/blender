@@ -656,7 +656,7 @@ static bool bm_uuidwalk_facestep_begin(
 	bool ok = false;
 
 	BLI_assert(BLI_ghash_size(uuidwalk->cache.faces_from_uuid) == 0);
-	BLI_assert(BLI_countlist(&fstep->items) == 0);
+	BLI_assert(BLI_listbase_count(&fstep->items) == 0);
 
 	f_link_prev_p = &fstep->faces;
 	for (f_link = fstep->faces; f_link; f_link = f_link_next) {
@@ -695,7 +695,7 @@ static bool bm_uuidwalk_facestep_begin(
 
 	BLI_ghash_clear(uuidwalk->cache.faces_from_uuid, NULL, NULL);
 
-	BLI_sortlist(&fstep->items, facestep_sort);
+	BLI_listbase_sort(&fstep->items, facestep_sort);
 
 	return ok;
 }
@@ -781,7 +781,7 @@ static BMFace **bm_mesh_region_match_pair(
 		UUIDFaceStep *fstep_src = w_src->faces_step.first;
 		UUIDFaceStep *fstep_dst = w_dst->faces_step.first;
 
-		BLI_assert(BLI_countlist(&w_src->faces_step) == BLI_countlist(&w_dst->faces_step));
+		BLI_assert(BLI_listbase_count(&w_src->faces_step) == BLI_listbase_count(&w_dst->faces_step));
 
 		while (fstep_src) {
 

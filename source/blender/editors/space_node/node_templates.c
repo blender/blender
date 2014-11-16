@@ -300,7 +300,7 @@ static void ui_node_link_items(NodeLinkArg *arg, int in_out, NodeLinkItem **r_it
 		
 		for (ngroup = arg->bmain->nodetree.first; ngroup; ngroup = ngroup->id.next) {
 			ListBase *lb = ((in_out == SOCK_IN) ? &ngroup->inputs : &ngroup->outputs);
-			totitems += BLI_countlist(lb);
+			totitems += BLI_listbase_count(lb);
 		}
 		
 		if (totitems > 0) {

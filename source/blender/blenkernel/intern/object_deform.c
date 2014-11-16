@@ -50,7 +50,7 @@ bool *BKE_objdef_lock_flags_get(Object *ob, const int defbase_tot)
 {
 	bool is_locked = false;
 	int i;
-	//int defbase_tot = BLI_countlist(&ob->defbase);
+	//int defbase_tot = BLI_listbase_count(&ob->defbase);
 	bool *lock_flags = MEM_mallocN(defbase_tot * sizeof(bool), "defflags");
 	bDeformGroup *defgroup;
 
@@ -73,7 +73,7 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 	bool *vgroup_validmap;
 	GHash *gh;
 	int i, step1 = 1;
-	//int defbase_tot = BLI_countlist(&ob->defbase);
+	//int defbase_tot = BLI_listbase_count(&ob->defbase);
 	VirtualModifierData virtualModifierData;
 
 	if (BLI_listbase_is_empty(&ob->defbase)) {
