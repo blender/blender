@@ -1955,7 +1955,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									event->customdata = NULL;
 									event->custom = 0;
 									
-									WM_operator_name_call(C, drop->ot->idname, drop->opcontext, drop->ptr);
+									WM_operator_name_call_ptr(C, drop->ot, drop->opcontext, drop->ptr);
 									action |= WM_HANDLER_BREAK;
 									
 									/* XXX fileread case */

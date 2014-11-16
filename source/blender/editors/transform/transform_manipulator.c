@@ -1850,7 +1850,6 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 			WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
-			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_translate", 0), event, op->ptr, NULL, false);
 		}
 		else if (drawflags & MAN_SCALE_C) {
 			switch (drawflags) {
@@ -1881,7 +1880,6 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 			WM_operator_name_call(C, "TRANSFORM_OT_resize", WM_OP_INVOKE_DEFAULT, op->ptr);
-			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_resize", 0), event, op->ptr, NULL, false);
 		}
 		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
 			/* Do not pass op->ptr!!! trackball has no "constraint" properties!
@@ -1894,8 +1892,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 			if ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) && RNA_property_is_set(op->ptr, prop)) {
 				RNA_property_boolean_set(&props_ptr, prop, RNA_property_boolean_get(op->ptr, prop));
 			}
-			WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, &props_ptr);
-			//wm_operator_invoke(C, WM_operatortype_find(ot->idname, 0), event, NULL, NULL, false);
+			WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
 			WM_operator_properties_free(&props_ptr);
 		}
 		else if (drawflags & MAN_ROT_C) {
@@ -1912,7 +1909,6 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 			WM_operator_name_call(C, "TRANSFORM_OT_rotate", WM_OP_INVOKE_DEFAULT, op->ptr);
-			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_rotate", 0), event, op->ptr, NULL, false);
 		}
 	}
 	/* after transform, restore drawflags */
