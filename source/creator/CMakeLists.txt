@@ -837,7 +837,7 @@ elseif(APPLE)
 	if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
 		install(
 			FILES ${LIBDIR}/openmp/lib/libiomp5.dylib
-			DESTINATION blender.app/Contents/MacOS
+			DESTINATION blender.app/Contents/Resources/lib/
 		)
 	endif()
 

@@ -809,10 +809,6 @@ def AppIt(target=None, source=None, env=None):
             instname = env['LCGDIR'][1:] # made libiomp5 part of blender libs
             cmd = 'ditto --arch %s %s/openmp/lib/libiomp5.dylib %s/%s.app/Contents/Resources/lib/'%(osxarch, instname, installdir, binary) # copy libiomp5
             commands.getoutput(cmd)
-            cmd = 'install_name_tool -id @loader_path/../Resources/lib/libiomp5.dylib %s/%s.app/Contents/Resources/lib/libiomp5.dylib'%(installdir, binary) # change id of libiomp5
-            commands.getoutput(cmd)
-            cmd = 'install_name_tool -change @loader_path/libiomp5.dylib  @loader_path/../Resources/lib/libiomp5.dylib %s/%s.app/Contents/MacOS/%s'%(installdir, binary, binary) # change ref to libiomp5 ( blender )
-            commands.getoutput(cmd)
 
 # extract copy system python, be sure to update other build systems
 # when making changes to the files that are copied.
