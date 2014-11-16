@@ -801,8 +801,17 @@ static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 
 	xml_read_string(&shader->name, node, "name");
 	xml_read_bool(&shader->use_mis, node, "use_mis");
-	xml_read_bool(&shader->use_transparent_shadow, node, "use_transparent_shadow");
+
+	/* Volume */
 	xml_read_bool(&shader->heterogeneous_volume, node, "heterogeneous_volume");
+	xml_read_int(&shader->volume_interpolation_method, node, "volume_interpolation_method");
+
+	if(xml_equal_string(node, "volume_sampling_method", "distance"))
+		shader->volume_sampling_method = VOLUME_SAMPLING_DISTANCE;
+	else if(xml_equal_string(node, "volume_sampling_method", "equiangular"))
+		shader->volume_sampling_method = VOLUME_SAMPLING_EQUIANGULAR;
+	else if(xml_equal_string(node, "volume_sampling_method", "multiple_importance"))
+		shader->volume_sampling_method = VOLUME_SAMPLING_MULTIPLE_IMPORTANCE;
 
 	xml_read_shader_graph(state, shader, node);
 	state.scene->shaders.push_back(shader);
