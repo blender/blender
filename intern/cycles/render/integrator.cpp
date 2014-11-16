@@ -39,7 +39,6 @@ Integrator::Integrator()
 	transparent_max_bounce = max_bounce;
 	transparent_shadows = false;
 
-	volume_homogeneous_sampling = 0;
 	volume_max_steps = 1024;
 	volume_step_size = 0.1f;
 
@@ -189,7 +188,6 @@ bool Integrator::modified(const Integrator& integrator)
 		transparent_min_bounce == integrator.transparent_min_bounce &&
 		transparent_max_bounce == integrator.transparent_max_bounce &&
 		transparent_shadows == integrator.transparent_shadows &&
-		volume_homogeneous_sampling == integrator.volume_homogeneous_sampling &&
 		volume_max_steps == integrator.volume_max_steps &&
 		volume_step_size == integrator.volume_step_size &&
 		caustics_reflective == integrator.caustics_reflective &&
