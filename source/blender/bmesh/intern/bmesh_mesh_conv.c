@@ -850,15 +850,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, bool do_tessface)
 		                                        * bmesh and the mesh are out of sync */
 		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applying 'ofs' */
 		{
-			bool act_is_basis = false;
-
-			/* find if this key is a basis for any others */
-			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-				if (bm->shapenr - 1 == currkey->relative) {
-					act_is_basis = true;
-					break;
-				}
-			}
+			const bool act_is_basis = BKE_keyblock_is_basis(me->key, bm->shapenr - 1);
 
 			/* active key is a base */
 			if (act_is_basis && (cd_shape_keyindex_offset != -1)) {

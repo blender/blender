@@ -1890,9 +1890,23 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)
 	float *fp = kb->data;
 	int tot, a;
 
-	BLI_assert(((ob->type == OB_MESH) ? me->totvert :
-	            (ob->type == OB_LATTICE) ? lt->pntsu * lt->pntsv * lt->pntsw :
-	            ELEM(ob->type, OB_CURVE, OB_SURF) ? BKE_nurbList_verts_count(&cu->nurb) : 0) == kb->totelem);
+#ifndef NDEBUG
+	if (ob->type == OB_LATTICE) {
+		Lattice *lt = ob->data;
+		BLI_assert((lt->pntsu * lt->pntsv * lt->pntsw) == kb->totelem);
+	}
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		Curve *cu = ob->data;
+		BLI_assert(BKE_nurbList_verts_count(&cu->nurb) == kb->totelem);
+	}
+	else if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		BLI_assert(me->totvert == kb->totelem);
+	}
+	else {
+		BLI_assert(0 == kb->totelem);
+	}
+#endif
 
 	tot = kb->totelem;
 	if (tot == 0) return;
@@ -2191,4 +2205,23 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
 	key->refkey = key->block.first;
 
 	return true;
+}
+
+/**
+ * Check if given keyblock (as index) is used as basis by others in given key.
+ */
+bool BKE_keyblock_is_basis(struct Key *key, const int index)
+{
+	KeyBlock *kb;
+	int i;
+
+	if (key->type == KEY_RELATIVE) {
+		for (i = 0, kb = key->block.first; kb; i++, kb = kb->next) {
+			if ((i != index) && (kb->relative == index)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }

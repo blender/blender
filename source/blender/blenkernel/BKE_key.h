@@ -109,6 +109,8 @@ void    BKE_keyblock_update_from_offset(struct Object *ob, struct KeyBlock *kb, 
 /* other management */
 bool    BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
 
+bool    BKE_keyblock_is_basis(struct Key *key, const int index);
+
 /* key.c */
 extern int slurph_opt;
 

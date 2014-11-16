@@ -2917,18 +2917,12 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 {
 	Mesh *me = (Mesh *)ob->data;
 	float (*ofs)[3] = NULL;
-	int a, is_basis = 0;
+	int a;
+	const int kb_act_idx = ob->shapenr - 1;
 	KeyBlock *currkey;
 
 	/* for relative keys editing of base should update other keys */
-	if (me->key->type == KEY_RELATIVE)
-		for (currkey = me->key->block.first; currkey; currkey = currkey->next)
-			if (ob->shapenr - 1 == currkey->relative) {
-				is_basis = 1;
-				break;
-			}
-
-	if (is_basis) {
+	if (BKE_keyblock_is_basis(me->key, kb_act_idx)) {
 		ofs = BKE_keyblock_convert_to_vertcos(ob, kb);
 
 		/* calculate key coord offsets (from previous location) */
@@ -2937,14 +2931,10 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		}
 
 		/* apply offsets on other keys */
-		currkey = me->key->block.first;
-		while (currkey) {
-			int apply_offset = ((currkey != kb) && (ob->shapenr - 1 == currkey->relative));
-
-			if (apply_offset)
+		for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
+			if ((currkey != kb) && (currkey->relative == kb_act_idx)) {
 				BKE_keyblock_update_from_offset(ob, currkey, ofs);
-
-			currkey = currkey->next;
+			}
 		}
 
 		MEM_freeN(ofs);
