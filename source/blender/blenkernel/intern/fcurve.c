@@ -2157,18 +2157,29 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 						v4[0] = bezt->vec[1][0];
 						v4[1] = bezt->vec[1][1];
 						
-						/* adjust handles so that they don't overlap (forming a loop) */
-						correct_bezpart(v1, v2, v3, v4);
-						
-						/* try to get a value for this position - if failure, try another set of points */
-						b = findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl);
-						if (b) {
-							berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
-							cvalue = opl[0];
-							/* break; */
-						}
-						else {
-							if (G.debug & G_DEBUG) printf("    ERROR: findzero() failed at %f with %f %f %f %f\n", evaltime, v1[0], v2[0], v3[0], v4[0]);
+						if (fabsf(v1[1] - v4[1]) < FLT_EPSILON &&
+						    fabsf(v2[1] - v3[1]) < FLT_EPSILON &&
+						    fabsf(v3[1] - v4[1]) < FLT_EPSILON)
+						{
+							/* Optimisation: If all the handles are flat/at the same values,
+							 * the value is simply the shared value (see T40372 -> F91346)
+							 */
+							cvalue = v1[1];
+ 						}
+ 						else {
+							/* adjust handles so that they don't overlap (forming a loop) */
+							correct_bezpart(v1, v2, v3, v4);
+							
+							/* try to get a value for this position - if failure, try another set of points */
+							b = findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl);
+							if (b) {
+								berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
+								cvalue = opl[0];
+								/* break; */
+							}
+							else {
+								if (G.debug & G_DEBUG) printf("    ERROR: findzero() failed at %f with %f %f %f %f\n", evaltime, v1[0], v2[0], v3[0], v4[0]);
+							}
 						}
 						break;
 						
