@@ -1358,7 +1358,7 @@ void make_editNurb(Object *obedit)
 		if (actkey) {
 			// XXX strcpy(G.editModeTitleExtra, "(Key) ");
 			undo_editmode_clear();
-			BKE_key_convert_to_curve(actkey, cu, &cu->nurb);
+			BKE_keyblock_convert_to_curve(actkey, cu, &cu->nurb);
 		}
 
 		if (editnurb) {

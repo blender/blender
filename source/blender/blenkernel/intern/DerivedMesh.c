@@ -914,7 +914,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 	if (mti->isDisabled && mti->isDisabled(md, 0)) return NULL;
 	
 	if (build_shapekey_layers && me->key && (kb = BLI_findlink(&me->key->block, ob->shapenr - 1))) {
-		BKE_key_convert_to_mesh(kb, me);
+		BKE_keyblock_convert_to_mesh(kb, me);
 	}
 	
 	if (mti->type == eModifierTypeType_OnlyDeform) {

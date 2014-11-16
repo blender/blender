@@ -3360,7 +3360,7 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, cons
 	if (newkey || from_mix == false) {
 		/* create from mesh */
 		kb = BKE_keyblock_add_ctime(key, name, false);
-		BKE_key_convert_from_mesh(me, kb);
+		BKE_keyblock_convert_from_mesh(me, kb);
 	}
 	else {
 		/* copy from current values */
@@ -3397,7 +3397,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, cons
 			kb->totelem = basekb->totelem;
 		}
 		else {
-			BKE_key_convert_from_lattice(lt, kb);
+			BKE_keyblock_convert_from_lattice(lt, kb);
 		}
 	}
 	else {
@@ -3437,7 +3437,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, con
 			kb->totelem = basekb->totelem;
 		}
 		else {
-			BKE_key_convert_from_curve(cu, kb, lb);
+			BKE_keyblock_convert_from_curve(cu, kb, lb);
 		}
 	}
 	else {

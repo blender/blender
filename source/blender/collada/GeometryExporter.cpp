@@ -159,7 +159,7 @@ void GeometryExporter::operator()(Object *ob)
 			//skip the basis
 			kb = kb->next;
 			for (; kb; kb = kb->next) {
-				BKE_key_convert_to_mesh(kb, me);
+				BKE_keyblock_convert_to_mesh(kb, me);
 				export_key_mesh(ob, me, kb);
 			}
 		}

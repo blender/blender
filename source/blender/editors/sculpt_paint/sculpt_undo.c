@@ -127,7 +127,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 
 		if (ss->kb) {
 			float (*vertCos)[3];
-			vertCos = BKE_key_convert_to_vertcos(ob, ss->kb);
+			vertCos = BKE_keyblock_convert_to_vertcos(ob, ss->kb);
 
 			for (i = 0; i < unode->totvert; i++) {
 				if (ss->modifiers_active) {

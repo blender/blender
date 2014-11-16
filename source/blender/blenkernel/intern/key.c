@@ -1669,7 +1669,7 @@ char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 /* conversion functions */
 
 /************************* Lattice ************************/
-void BKE_key_update_from_lattice(Lattice *lt, KeyBlock *kb)
+void BKE_keyblock_update_from_lattice(Lattice *lt, KeyBlock *kb)
 {
 	BPoint *bp;
 	float *fp;
@@ -1687,7 +1687,7 @@ void BKE_key_update_from_lattice(Lattice *lt, KeyBlock *kb)
 	}
 }
 
-void BKE_key_convert_from_lattice(Lattice *lt, KeyBlock *kb)
+void BKE_keyblock_convert_from_lattice(Lattice *lt, KeyBlock *kb)
 {
 	int tot;
 
@@ -1699,10 +1699,10 @@ void BKE_key_convert_from_lattice(Lattice *lt, KeyBlock *kb)
 	kb->data = MEM_mallocN(lt->key->elemsize * tot, __func__);
 	kb->totelem = tot;
 
-	BKE_key_update_from_lattice(lt, kb);
+	BKE_keyblock_update_from_lattice(lt, kb);
 }
 
-void BKE_key_convert_to_lattice(KeyBlock *kb, Lattice *lt)
+void BKE_keyblock_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 {
 	BPoint *bp;
 	const float *fp;
@@ -1720,7 +1720,7 @@ void BKE_key_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 }
 
 /************************* Curve ************************/
-void BKE_key_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *nurb)
+void BKE_keyblock_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *nurb)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1767,7 +1767,7 @@ void BKE_key_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *nurb)
 	}
 }
 
-void BKE_key_convert_from_curve(Curve *cu, KeyBlock *kb, ListBase *nurb)
+void BKE_keyblock_convert_from_curve(Curve *cu, KeyBlock *kb, ListBase *nurb)
 {
 	int tot;
 
@@ -1780,10 +1780,10 @@ void BKE_key_convert_from_curve(Curve *cu, KeyBlock *kb, ListBase *nurb)
 	kb->data = MEM_mallocN(cu->key->elemsize * tot, __func__);
 	kb->totelem = tot;
 
-	BKE_key_update_from_curve(cu, kb, nurb);
+	BKE_keyblock_update_from_curve(cu, kb, nurb);
 }
 
-void BKE_key_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
+void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1834,7 +1834,7 @@ void BKE_key_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 }
 
 /************************* Mesh ************************/
-void BKE_key_update_from_mesh(Mesh *me, KeyBlock *kb)
+void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
 {
 	MVert *mvert;
 	float *fp;
@@ -1853,7 +1853,7 @@ void BKE_key_update_from_mesh(Mesh *me, KeyBlock *kb)
 	}
 }
 
-void BKE_key_convert_from_mesh(Mesh *me, KeyBlock *kb)
+void BKE_keyblock_convert_from_mesh(Mesh *me, KeyBlock *kb)
 {
 	int tot = me->totvert;
 
@@ -1864,10 +1864,10 @@ void BKE_key_convert_from_mesh(Mesh *me, KeyBlock *kb)
 	kb->data = MEM_mallocN(me->key->elemsize * tot, __func__);
 	kb->totelem = tot;
 
-	BKE_key_update_from_mesh(me, kb);
+	BKE_keyblock_update_from_mesh(me, kb);
 }
 
-void BKE_key_convert_to_mesh(KeyBlock *kb, Mesh *me)
+void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
 {
 	MVert *mvert;
 	const float *fp;
@@ -1884,7 +1884,7 @@ void BKE_key_convert_to_mesh(KeyBlock *kb, Mesh *me)
 }
 
 /************************* raw coords ************************/
-void BKE_key_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 {
 	float *co = (float *)vertCos;
 	float *fp = kb->data;
@@ -1945,7 +1945,7 @@ void BKE_key_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 	}
 }
 
-void BKE_key_convert_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 {
 	int tot = 0, elemsize;
 
@@ -1973,10 +1973,10 @@ void BKE_key_convert_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 	kb->data = MEM_mallocN(tot * elemsize, __func__);
 
 	/* Copy coords to keyblock */
-	BKE_key_update_from_vertcos(ob, kb, vertCos);
+	BKE_keyblock_update_from_vertcos(ob, kb, vertCos);
 }
 
-float (*BKE_key_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
+float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 {
 	float (*vertCos)[3], *co;
 	const float *fp = kb->data;
@@ -1998,7 +1998,7 @@ float (*BKE_key_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 
 	if (tot == 0) return NULL;
 
-	vertCos = MEM_mallocN(tot * sizeof(*vertCos), "BKE_key_convert_to_vertcos vertCos");
+	vertCos = MEM_mallocN(tot * sizeof(*vertCos), __func__);
 
 	/* Copy coords to array */
 	co = (float *)vertCos;
@@ -2053,7 +2053,7 @@ float (*BKE_key_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 }
 
 /************************* raw coord offsets ************************/
-void BKE_key_update_from_offset(Object *ob, KeyBlock *kb, float (*ofs)[3])
+void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, float (*ofs)[3])
 {
 	int a;
 	float *co = (float *)ofs, *fp = kb->data;

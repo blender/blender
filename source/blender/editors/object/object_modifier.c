@@ -560,7 +560,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 			/* if that was the first key block added, then it was the basis.
 			 * Initialize it with the mesh, and add another for the modifier */
 			kb = BKE_keyblock_add(key, NULL);
-			BKE_key_convert_from_mesh(me, kb);
+			BKE_keyblock_convert_from_mesh(me, kb);
 		}
 
 		kb = BKE_keyblock_add(key, md->name);

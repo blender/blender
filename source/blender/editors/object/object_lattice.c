@@ -100,7 +100,7 @@ void make_editLatt(Object *obedit)
 
 	actkey = BKE_keyblock_from_object(obedit);
 	if (actkey)
-		BKE_key_convert_to_lattice(actkey, lt);
+		BKE_keyblock_convert_to_lattice(actkey, lt);
 
 	lt->editlatt = MEM_callocN(sizeof(EditLatt), "editlatt");
 	lt->editlatt->latt = MEM_dupallocN(lt);

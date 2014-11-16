@@ -702,7 +702,7 @@ void ArmatureImporter::make_shape_keys()
 			
 			//insert basis key
 			kb = BKE_keyblock_add_ctime(key, "Basis", false);
-			BKE_key_convert_from_mesh(source_me, kb);
+			BKE_keyblock_convert_from_mesh(source_me, kb);
 
 			//insert other shape keys
 			for (int i = 0 ; i < morphTargetIds.getCount() ; i++ ) {
@@ -716,7 +716,7 @@ void ArmatureImporter::make_shape_keys()
 					std::string morph_name = *this->mesh_importer->get_geometry_name(me->id.name);
 
 					kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), false);
-					BKE_key_convert_from_mesh(me, kb);
+					BKE_keyblock_convert_from_mesh(me, kb);
 					
 					//apply weights
 					weight =  morphWeights.getFloatValues()->getData()[i];
