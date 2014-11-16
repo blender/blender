@@ -33,6 +33,7 @@
 #include <float.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -42,6 +43,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_fcurve.h"
 
 
@@ -636,8 +638,24 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 	glPopMatrix();
 }
 
-#if 0
-/* helper func - draw one repeat of an F-Curve */
+/* helper func - check if the F-Curve only contains easily drawable segments 
+ * (i.e. no easing equation interpolations) 
+ */
+static bool fcurve_can_use_simple_bezt_drawing(FCurve *fcu)
+{
+	BezTriple *bezt;
+	int i;
+	
+	for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+		if (ELEM(bezt->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN, BEZT_IPO_BEZ) == false) {
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+/* helper func - draw one repeat of an F-Curve (using Bezier curve approximations) */
 static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d)
 {
 	BezTriple *prevbezt = fcu->bezt;
@@ -649,12 +667,12 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	int resol;
 	float unit_scale;
 	short mapping_flag = ANIM_get_normalization_flags(ac);
-
+	
 	/* apply unit mapping */
 	glPushMatrix();
 	unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag);
 	glScalef(1.0f, unit_scale, 1.0f);
-
+	
 	glBegin(GL_LINE_STRIP);
 	
 	/* extrapolate to left? */
@@ -709,17 +727,19 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 			v1[1] = prevbezt->vec[1][1];
 			glVertex2fv(v1);
 		}
-		else {
+		else if (prevbezt->ipo == BEZT_IPO_BEZ) {
 			/* Bezier-Interpolation: draw curve as series of segments between keyframes 
 			 *	- resol determines number of points to sample in between keyframes
 			 */
 			
 			/* resol depends on distance between points (not just horizontal) OR is a fixed high res */
 			/* TODO: view scale should factor into this someday too... */
-			if (fcu->driver) 
+			if (fcu->driver) {
 				resol = 32;
-			else 
+			}
+			else {
 				resol = (int)(5.0f * len_v2v2(bezt->vec[1], prevbezt->vec[1]));
+			}
 			
 			if (resol < 2) {
 				/* only draw one */
@@ -793,7 +813,6 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	glEnd();
 	glPopMatrix();
 }
-#endif
 
 /* Debugging -------------------------------- */
 
@@ -1009,11 +1028,15 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			}
 			else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
 				/* just draw curve based on defined data (i.e. no modifiers) */
-				if (fcu->bezt)
-					//draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d);
-					draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid);  // XXX: better to do an optimised integration here instead, but for now, this works
-				else if (fcu->fpt)
+				if (fcu->bezt) {
+					if (fcurve_can_use_simple_bezt_drawing(fcu))
+						draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d);
+					else
+						draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid);
+				}
+				else if (fcu->fpt) {
 					draw_fcurve_curve_samples(ac, ale->id, fcu, &ar->v2d);
+				}
 			}
 			
 			/* restore settings */
