@@ -998,7 +998,7 @@ macro(ADD_CHECK_CXX_COMPILER_FLAG
 	endif()
 endmacro()
 
-macro(get_blender_version)
+function(get_blender_version)
 	# So cmake depends on BKE_blender.h, beware of inf-loops!
 	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h
 	               ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender.h.done)
@@ -1035,29 +1035,22 @@ macro(get_blender_version)
 	math(EXPR BLENDER_VERSION_MINOR "${_out_version} % 100")
 	set(BLENDER_VERSION "${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}")
 
-	set(BLENDER_SUBVERSION ${_out_subversion})
-	set(BLENDER_VERSION_CHAR ${_out_version_char})
-	set(BLENDER_VERSION_CYCLE ${_out_version_cycle})
+	set(BLENDER_SUBVERSION ${_out_subversion} PARENT_SCOPE)
+	set(BLENDER_VERSION_CHAR ${_out_version_char} PARENT_SCOPE)
+	set(BLENDER_VERSION_CYCLE ${_out_version_cycle} PARENT_SCOPE)
 
 	# for packaging, alpha to numbers
 	string(COMPARE EQUAL "${BLENDER_VERSION_CHAR}" "" _out_version_char_empty)
 	if(${_out_version_char_empty})
-		set(BLENDER_VERSION_CHAR_INDEX "0")
+		set(BLENDER_VERSION_CHAR_INDEX "0" PARENT_SCOPE)
 	else()
 		set(_char_ls a b c d e f g h i j k l m n o p q r s t u v w x y z)
 		list(FIND _char_ls ${BLENDER_VERSION_CHAR} _out_version_char_index)
-		math(EXPR BLENDER_VERSION_CHAR_INDEX "${_out_version_char_index} + 1")
-		unset(_char_ls)
-		unset(_out_version_char_index)
+		math(EXPR BLENDER_VERSION_CHAR_INDEX "${_out_version_char_index} + 1" PARENT_SCOPE)
 	endif()
 
-	unset(_out_subversion)
-	unset(_out_version_char)
-	unset(_out_version_char_empty)
-	unset(_out_version_cycle)
-
 	# message(STATUS "Version (Internal): ${BLENDER_VERSION}.${BLENDER_SUBVERSION}, Version (external): ${BLENDER_VERSION}${BLENDER_VERSION_CHAR}-${BLENDER_VERSION_CYCLE}")
-endmacro()
+endfunction()
 
 
 # hacks to override initial project settings
@@ -1154,6 +1147,7 @@ macro(delayed_install
 		endif()
 		set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_DESTINATIONS ${destination})
 	endforeach()
+	unset(f)
 endmacro()
 
 # note this is a function instead of a macro so that ${BUILD_TYPE} in targetdir
@@ -1173,6 +1167,7 @@ function(delayed_do_install
 			list(GET destinations ${i} d)
 			install(FILES ${f} DESTINATION ${targetdir}/${d})
 		endforeach()
+		unset(f)
 	endif()
 endfunction()
 
@@ -1387,3 +1382,14 @@ macro(find_python_package
 
 	  unset(_upper_package)
 endmacro()
+
+# like Python's 'print(dir())'
+macro(print_all_vars)
+	get_cmake_property(_vars VARIABLES)
+	foreach(_var ${_vars})
+		message("${_var}=${${_var}}")
+	endforeach()
+	unset(_vars)
+	unset(_var)
+endmacro()
+

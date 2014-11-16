@@ -2,7 +2,6 @@ set(PROJECT_DESCRIPTION  "Blender is a very fast and versatile 3D modeller/rende
 set(PROJECT_COPYRIGHT    "Copyright (C) 2001-2012 Blender Foundation")
 set(PROJECT_CONTACT      "foundation@blender.org")
 set(PROJECT_VENDOR       "Blender Foundation")
-set(ORG_WEBSITE          "www.blender.org")
 
 set(MAJOR_VERSION ${BLENDER_VERSION_MAJOR})
 set(MINOR_VERSION ${BLENDER_VERSION_MINOR})
@@ -32,6 +31,7 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/.git/)
 	endif()
 endif()
 set(BUILD_REV ${MY_WC_HASH})
+unset(MY_WC_HASH)
 
 
 # Force Package Name
@@ -41,7 +41,7 @@ set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	# RPM packages
 	include(build_files/cmake/RpmBuild.cmake)
-	if(RPMBUILD_FOUND AND NOT WIN32)
+	if(RPMBUILD_FOUND)
 		set(CPACK_GENERATOR "RPM")
 		set(CPACK_RPM_PACKAGE_RELEASE "git${CPACK_DATE}.${BUILD_REV}")
 		set(CPACK_SET_DESTDIR "true")
@@ -94,6 +94,8 @@ macro(add_package_archive packagename extension)
 		OUTPUT ${package_output}
 		COMMAND ${build_archive} ${packagename} ${extension} bin release
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+	unset(build_archive)
+	unset(package_output)
 endmacro()
 
 if(APPLE)

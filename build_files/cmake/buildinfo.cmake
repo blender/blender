@@ -146,6 +146,14 @@ file(WRITE buildinfo.h.txt
 	"#define BUILD_TIME \"${BUILD_TIME}\"\n"
 )
 
+# cleanup
+unset(MY_WC_HASH)
+unset(MY_WC_COMMIT_TIMESTAMP)
+unset(MY_WC_BRANCH)
+unset(BUILD_DATE)
+unset(BUILD_TIME)
+
+
 # Copy the file to the final header only if the version changes
 # and avoid needless rebuilds
 # TODO: verify this comment is true, as BUILD_TIME probably changes

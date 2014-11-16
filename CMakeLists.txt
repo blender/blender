@@ -767,7 +767,6 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	macro(find_package_wrapper)
-		string(TOUPPER ${ARGV0} _NAME_UPPER)
 		if(WITH_STATIC_LIBS)
 			set(_cmake_find_library_suffixes_back ${CMAKE_FIND_LIBRARY_SUFFIXES})
 			set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
@@ -2786,3 +2785,8 @@ if(FIRST_RUN)
 
 	message("${_config_msg}")
 endif()
+
+if(0)
+	print_all_vars()
+endif()
+
