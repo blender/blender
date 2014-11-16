@@ -3761,6 +3761,7 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
 	switch (rc->subtype) {
 		case PROP_NONE:
 		case PROP_DISTANCE:
+		case PROP_PERCENTAGE:
 		case PROP_PIXEL:
 			d[0] = rc->initial_value;
 			break;
@@ -3869,6 +3870,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	switch (rc->subtype) {
 		case PROP_NONE:
 		case PROP_DISTANCE:
+		case PROP_PERCENTAGE:
 		case PROP_PIXEL:
 			r1 = rc->current_value;
 			r2 = rc->initial_value;
@@ -4134,8 +4136,8 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
 	/* get subtype of property */
 	rc->subtype = RNA_property_subtype(rc->prop);
-	if (!ELEM(rc->subtype, PROP_NONE, PROP_DISTANCE, PROP_FACTOR, PROP_ANGLE, PROP_PIXEL)) {
-		BKE_report(op->reports, RPT_ERROR, "Property must be a none, distance, a factor, or an angle");
+	if (!ELEM(rc->subtype, PROP_NONE, PROP_DISTANCE, PROP_FACTOR, PROP_PERCENTAGE, PROP_ANGLE, PROP_PIXEL)) {
+		BKE_report(op->reports, RPT_ERROR, "Property must be a none, distance, factor, percentage, angle, or pixel");
 		MEM_freeN(rc);
 		return OPERATOR_CANCELLED;
 	}
@@ -4261,6 +4263,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 			switch (rc->subtype) {
 				case PROP_NONE:
 				case PROP_DISTANCE:
+				case PROP_PERCENTAGE:
 				case PROP_PIXEL:
 					new_value = dist;
 					if (snap) new_value = ((int)new_value + 5) / 10 * 10;
