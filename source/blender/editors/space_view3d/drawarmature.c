@@ -2396,7 +2396,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	/* draw from first frame of range to last */
-	for (CFRA = (int)start; CFRA < end; CFRA += (int)stepsize) {
+	for (CFRA = (int)start; CFRA <= end; CFRA += (int)stepsize) {
 		colfac = (end - (float)CFRA) / range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0f * sqrtf(colfac)));
 		
