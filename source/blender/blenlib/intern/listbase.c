@@ -372,6 +372,17 @@ void BLI_freelistN(ListBase *listbase)
 	BLI_listbase_clear(listbase);
 }
 
+int BLI_listbase_count_ex(const ListBase *listbase, const int count_max)
+{
+	Link *link;
+	int count = 0;
+
+	for (link = listbase->first; link && count != count_max; link = link->next) {
+		count++;
+	}
+
+	return count;
+}
 
 /**
  * Returns the number of elements in \a listbase.
@@ -380,14 +391,11 @@ int BLI_listbase_count(const ListBase *listbase)
 {
 	Link *link;
 	int count = 0;
-	
-	if (listbase) {
-		link = listbase->first;
-		while (link) {
-			count++;
-			link = link->next;
-		}
+
+	for (link = listbase->first; link; link = link->next) {
+		count++;
 	}
+
 	return count;
 }
 
