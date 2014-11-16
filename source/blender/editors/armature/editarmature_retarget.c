@@ -1205,7 +1205,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 static void RIG_findHead(RigGraph *rg)
 {
 	if (rg->head == NULL) {
-		if (BLI_listbase_count(&rg->arcs) == 1) {
+		if (BLI_listbase_is_single(&rg->arcs)) {
 			RigArc *arc = rg->arcs.first;
 			
 			rg->head = (RigNode *)arc->head;
@@ -2152,7 +2152,7 @@ void exec_retargetArctoArc(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(th
 	RigNode *inode_start = p->inode_start;
 	ReebArc *earc = iarc->link_mesh;
 	
-	if (BLI_listbase_count(&iarc->edges) == 1) {
+	if (BLI_listbase_is_single(&iarc->edges)) {
 		RigEdge *edge = iarc->edges.first;
 
 		if (testFlipArc(iarc, inode_start)) {

@@ -1098,7 +1098,7 @@ bool BKE_object_lod_remove(Object *ob, int level)
 	MEM_freeN(rem);
 
 	/* If there are no user defined lods, remove the base lod as well */
-	if (BLI_listbase_count(&ob->lodlevels) == 1) {
+	if (BLI_listbase_is_single(&ob->lodlevels)) {
 		LodLevel *base = ob->lodlevels.first;
 		BLI_remlink(&ob->lodlevels, base);
 		MEM_freeN(base);

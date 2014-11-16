@@ -656,7 +656,7 @@ static bool bm_uuidwalk_facestep_begin(
 	bool ok = false;
 
 	BLI_assert(BLI_ghash_size(uuidwalk->cache.faces_from_uuid) == 0);
-	BLI_assert(BLI_listbase_count(&fstep->items) == 0);
+	BLI_assert(BLI_listbase_is_empty(&fstep->items));
 
 	f_link_prev_p = &fstep->faces;
 	for (f_link = fstep->faces; f_link; f_link = f_link_next) {

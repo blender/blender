@@ -749,12 +749,8 @@ static void knife_cut_face(KnifeTool_OpData *kcd, BMFace *f, ListBase *hits)
 {
 	Ref *r;
 	KnifeLineHit *lh, *prevlh;
-	int n;
 
-	(void) kcd;
-
-	n = BLI_listbase_count(hits);
-	if (n < 2)
+	if (BLI_listbase_count_ex(hits, 2) != 2)
 		return;
 
 	prevlh = NULL;
@@ -2108,7 +2104,7 @@ static ListBase *find_chain(KnifeTool_OpData *kcd, ListBase *fedges)
 			break;
 	}
 	if (ans) {
-		BLI_assert(BLI_listbase_count(ans) > 0);
+		BLI_assert(!BLI_listbase_is_empty(ans));
 		for (r = ans->first; r; r = r->next) {
 			ref = find_ref(fedges, r->ref);
 			BLI_assert(ref != NULL);

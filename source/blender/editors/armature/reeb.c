@@ -2460,7 +2460,7 @@ void renormalizeWeight(EditMesh *em, float newmax)
 	EditVert *eve;
 	float minimum, maximum, range;
 	
-	if (em == NULL || BLI_listbase_count(&em->verts) == 0)
+	if (em == NULL || BLI_listbase_is_empty(&em->verts))
 		return;
 
 	/* First pass, determine maximum and minimum */
@@ -2486,7 +2486,7 @@ int weightFromLoc(EditMesh *em, int axis)
 {
 	EditVert *eve;
 	
-	if (em == NULL || BLI_listbase_count(&em->verts) == 0 || axis < 0 || axis > 2)
+	if (em == NULL || BLI_listbase_is_empty(&em->verts) || axis < 0 || axis > 2)
 		return 0;
 
 	/* Copy coordinate in weight */

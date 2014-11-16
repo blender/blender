@@ -1568,7 +1568,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		gameobj->AddMesh(meshobj);
 
 		// gather levels of detail
-		if (BLI_listbase_count(&ob->lodlevels) > 1) {
+		if (BLI_listbase_count_ex(&ob->lodlevels, 2) > 1) {
 			LodLevel *lod = ((LodLevel*)ob->lodlevels.first)->next;
 			Mesh* lodmesh = mesh;
 			Object* lodmatob = ob;

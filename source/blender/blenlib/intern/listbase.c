@@ -372,6 +372,11 @@ void BLI_freelistN(ListBase *listbase)
 	BLI_listbase_clear(listbase);
 }
 
+/**
+ * Returns the number of elements in \a listbase, up until (and including count_max)
+ *
+ * \note Use to avoid redundant looping.
+ */
 int BLI_listbase_count_ex(const ListBase *listbase, const int count_max)
 {
 	Link *link;
