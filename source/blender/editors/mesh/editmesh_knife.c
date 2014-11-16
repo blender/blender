@@ -174,8 +174,10 @@ typedef struct KnifeTool_OpData {
 	KnifeLineHit *linehits;
 	int totlinehit;
 
-	/* Data for mouse-position-derived data (cur) and previous click (prev) */
-	KnifePosData curr, prev;
+	/* Data for mouse-position-derived data */
+	KnifePosData curr;  /* current point under the cursor */
+	KnifePosData prev;  /* last added cut (a line draws from the cursor to this) */
+	KnifePosData init;  /* the first point in the cut-list, used for closing the loop */
 
 	int totkedge, totkvert;
 
@@ -2852,7 +2854,8 @@ enum {
 	KNF_MODAL_ADD_CUT,
 	KNF_MODAL_ANGLE_SNAP_TOGGLE,
 	KNF_MODAL_CUT_THROUGH_TOGGLE,
-	KNF_MODAL_PANNING
+	KNF_MODAL_PANNING,
+	KNF_MODAL_ADD_CUT_CLOSED,
 };
 
 wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
@@ -2883,6 +2886,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_ANY, KM_ANY, 0, KNF_MODAL_PANNING);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_DBL_CLICK, KM_ANY, 0, KNF_MODAL_ADD_CUT_CLOSED);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, KNF_MODAL_ADD_CUT);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KNF_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KNF_MODAL_CONFIRM);
@@ -3002,6 +3006,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					else if (kcd->mode != MODE_PANNING) {
 						knife_start_cut(kcd);
 						kcd->mode = MODE_DRAGGING;
+						kcd->init = kcd->curr;
 					}
 
 					/* freehand drawing is incompatible with cut-through */
@@ -3014,6 +3019,21 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 
 				ED_region_tag_redraw(kcd->ar);
+				break;
+			case KNF_MODAL_ADD_CUT_CLOSED:
+				if (kcd->mode == MODE_DRAGGING) {
+					kcd->prev = kcd->curr;
+					kcd->curr = kcd->init;
+
+					knife_project_v2(kcd, kcd->curr.cage, kcd->curr.mval);
+					knifetool_update_mval(kcd, kcd->curr.mval);
+
+					knife_add_cut(kcd);
+
+					/* KNF_MODAL_NEW_CUT */
+					knife_finish_cut(kcd);
+					kcd->mode = MODE_IDLE;
+				}
 				break;
 			case KNF_MODAL_PANNING:
 				if (event->val != KM_RELEASE) {
