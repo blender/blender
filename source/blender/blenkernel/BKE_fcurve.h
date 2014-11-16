@@ -44,6 +44,7 @@ struct DriverTarget;
 struct FCM_EnvelopeData;
 
 struct bContext;
+struct AnimData;
 struct bAction;
 struct BezTriple;
 struct StructRNA;
@@ -224,10 +225,10 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 
 /* find an f-curve based on an rna property. */
 struct FCurve *rna_get_fcurve(struct PointerRNA *ptr, struct PropertyRNA *prop, int rnaindex,
-                              struct bAction **action, bool *r_driven);
+                              struct AnimData **adt, struct bAction **action, bool *r_driven);
 /* Same as above, but takes a context data, temp hack needed for complex paths like texture ones. */
 struct FCurve *rna_get_fcurve_context_ui(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop,
-                                         int rnaindex, struct bAction **action, bool *r_driven);
+                                         int rnaindex, struct AnimData **adt, struct bAction **action, bool *r_driven);
 
 /* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)

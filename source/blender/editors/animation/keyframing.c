@@ -2011,7 +2011,13 @@ static bool object_frame_has_keyframe(Object *ob, float frame, short filter)
 	
 	/* check own animation data - specifically, the action it contains */
 	if ((ob->adt) && (ob->adt->action)) {
-		if (action_frame_has_keyframe(ob->adt->action, frame, filter))
+		/* T41525 - When the active action is a NLA strip being edited, 
+		 * we need to correct the frame number to "look inside" the
+		 * remapped action
+		 */
+		float ob_frame = BKE_nla_tweakedit_remap(ob->adt, frame, NLATIME_CONVERT_UNMAP);
+		
+		if (action_frame_has_keyframe(ob->adt->action, ob_frame, filter))
 			return 1;
 	}
 	

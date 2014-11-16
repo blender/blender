@@ -309,17 +309,18 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 	return matches;
 }
 
-FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, bool *r_driven)
+FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, AnimData **adt, bAction **action, bool *r_driven)
 {
-	return rna_get_fcurve_context_ui(NULL, ptr, prop, rnaindex, action, r_driven);
+	return rna_get_fcurve_context_ui(NULL, ptr, prop, rnaindex, adt, action, r_driven);
 }
 
 FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int rnaindex,
-                                  bAction **action, bool *r_driven)
+                                  AnimData **animdata, bAction **action, bool *r_driven)
 {
 	FCurve *fcu = NULL;
 	PointerRNA tptr = *ptr;
 	
+	if (animdata) *animdata = NULL;
 	*r_driven = false;
 	
 	/* there must be some RNA-pointer + property combon */
@@ -350,11 +351,14 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 					if (!fcu && (adt->drivers.first)) {
 						fcu = list_find_fcurve(&adt->drivers, path, rnaindex);
 						
-						if (fcu)
+						if (fcu) {
+							if (animdata) *animdata = adt;
 							*r_driven = true;
+						}
 					}
 					
 					if (fcu && action) {
+						if (animdata) *animdata = adt;
 						*action = adt->action;
 						break;
 					}

@@ -43,6 +43,7 @@
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_nla.h"
 
 #include "ED_keyframing.h"
 
@@ -55,27 +56,36 @@
 
 #include "interface_intern.h"
 
-static FCurve *ui_but_get_fcurve(uiBut *but, bAction **action, bool *r_driven)
+static FCurve *ui_but_get_fcurve(uiBut *but, AnimData **adt, bAction **action, bool *r_driven)
 {
 	/* for entire array buttons we check the first component, it's not perfect
 	 * but works well enough in typical cases */
 	int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
-	return rna_get_fcurve_context_ui(but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, action, r_driven);
+	return rna_get_fcurve_context_ui(but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, adt, action, r_driven);
 }
 
 void ui_but_anim_flag(uiBut *but, float cfra)
 {
+	AnimData *adt;
+	bAction *act;
 	FCurve *fcu;
 	bool driven;
 
 	but->flag &= ~(UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN);
 
-	fcu = ui_but_get_fcurve(but, NULL, &driven);
+	fcu = ui_but_get_fcurve(but, &adt, &act, &driven);
 
 	if (fcu) {
 		if (!driven) {
 			but->flag |= UI_BUT_ANIMATED;
+			
+			/* T41525 - When the active action is a NLA strip being edited, 
+			 * we need to correct the frame number to "look inside" the
+			 * remapped action
+			 */
+			if (adt)
+				cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 			
 			if (fcurve_frame_has_keyframe(fcu, cfra, 0))
 				but->flag |= UI_BUT_ANIMATED_KEY;
@@ -92,7 +102,7 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 	ChannelDriver *driver;
 	bool driven;
 
-	fcu = ui_but_get_fcurve(but, NULL, &driven);
+	fcu = ui_but_get_fcurve(but, NULL, NULL, &driven);
 
 	if (fcu && driven) {
 		driver = fcu->driver;
@@ -112,7 +122,7 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
 	ChannelDriver *driver;
 	bool driven;
 
-	fcu = ui_but_get_fcurve(but, NULL, &driven);
+	fcu = ui_but_get_fcurve(but, NULL, NULL, &driven);
 
 	if (fcu && driven) {
 		driver = fcu->driver;
@@ -208,7 +218,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 	FCurve *fcu;
 	bool driven;
 
-	fcu = ui_but_get_fcurve(but, &action, &driven);
+	fcu = ui_but_get_fcurve(but, NULL, &action, &driven);
 
 	if (fcu && !driven) {
 		id = but->rnapoin.id.data;
