@@ -1,4 +1,13 @@
 ###########################################################################
+# Precompiled libraries tips and hints, for find_package().
+
+if(CYCLES_STANDALONE_REPOSITORY)
+	if(APPLE OR WIN32)
+		include(precompiled_libs)
+	endif()
+endif()
+
+###########################################################################
 # GLUT
 
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
@@ -42,13 +51,13 @@ endif()
 # source code. but which we need to take care of when building Cycles from a
 # standalone repository
 if(CYCLES_STANDALONE_REPOSITORY)
-	if(APPLE OR WIN32)
-		include(precompiled_libs)
-	endif()
-
 	# PThreads
-	find_package(Threads REQUIRED)
-	set(PTHREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+	# TODO(sergey): Bloody exception, handled in precompiled_libs.cmake.
+	if(NOT WIN32)
+		set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+		find_package(Threads REQUIRED)
+		set(PTHREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+	endif()
 
 	####
 	# OpenGL
@@ -83,10 +92,12 @@ if(CYCLES_STANDALONE_REPOSITORY)
 	if(WITH_CYCLES_NETWORK)
 		list(APPEND __boost_packages serialization)
 	endif()
-	if(WITH_CYCLES_OSL AND APPLE)
+	if(WITH_CYCLES_OSL)
 		# TODO(sergey): This is because of the way how our precompiled
 		# libraries works, could be different for someone's else libs..
-		list(APPEND __boost_packages wave)
+		if(APPLE OR MSVC)
+			list(APPEND __boost_packages wave)
+		endif()
 	endif()
 	find_package(Boost 1.48 COMPONENTS ${__boost_packages} REQUIRED)
 	if(NOT Boost_FOUND)
