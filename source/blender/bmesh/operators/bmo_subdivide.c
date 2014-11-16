@@ -802,13 +802,13 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	patterns[1] = NULL;
 	/* straight cut is patterns[1] == NULL */
 	switch (cornertype) {
-		case SUBD_PATH:
+		case SUBD_CORNER_PATH:
 			patterns[1] = &quad_2edge_path;
 			break;
-		case SUBD_INNERVERT:
+		case SUBD_CORNER_INNERVERT:
 			patterns[1] = &quad_2edge_innervert;
 			break;
-		case SUBD_FAN:
+		case SUBD_CORNER_FAN:
 			patterns[1] = &quad_2edge_fan;
 			break;
 	}

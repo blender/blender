@@ -33,10 +33,10 @@
 
 /*quad innervert values*/
 enum {
-	SUBD_INNERVERT,
-	SUBD_PATH,
-	SUBD_FAN,
-	SUBD_STRAIGHT_CUT
+	SUBD_CORNER_INNERVERT,
+	SUBD_CORNER_PATH,
+	SUBD_CORNER_FAN,
+	SUBD_CORNER_STRAIGHT_CUT
 };
 
 /* aligned with PROP_SMOOTH and friends */

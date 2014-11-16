@@ -1263,7 +1263,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 
 		BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
 		             "subdivide_edges edges=%he cuts=%i quad_corner_type=%i",
-		             BM_ELEM_TAG, 1, SUBD_STRAIGHT_CUT);
+		             BM_ELEM_TAG, 1, SUBD_CORNER_STRAIGHT_CUT);
 	}
 	else if (split_face->len > 4) {
 		/* Maintain a dynamic vert array containing the split_face's

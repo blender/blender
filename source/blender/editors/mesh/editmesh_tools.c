@@ -90,9 +90,9 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
-	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
+	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT)
 	{
-		RNA_enum_set(op->ptr, "quadcorner", SUBD_INNERVERT);
+		RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
 	}
 	
 	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
@@ -110,10 +110,10 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_cornervert_types[] = {
-	{SUBD_INNERVERT,     "INNERVERT", 0,      "Inner Vert", ""},
-	{SUBD_PATH,          "PATH", 0,           "Path", ""},
-	{SUBD_STRAIGHT_CUT,  "STRAIGHT_CUT", 0,   "Straight Cut", ""},
-	{SUBD_FAN,           "FAN", 0,            "Fan", ""},
+	{SUBD_CORNER_INNERVERT,     "INNERVERT", 0,      "Inner Vert", ""},
+	{SUBD_CORNER_PATH,          "PATH", 0,           "Path", ""},
+	{SUBD_CORNER_STRAIGHT_CUT,  "STRAIGHT_CUT", 0,   "Straight Cut", ""},
+	{SUBD_CORNER_FAN,           "FAN", 0,            "Fan", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -141,7 +141,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor", 0.0f, 1.0f);
 
 	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
-	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT,
+	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_CORNER_STRAIGHT_CUT,
 	             "Quad Corner Type", "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
 
 	RNA_def_float(ot->srna, "fractal", 0.0f, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
@@ -2539,7 +2539,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
 	BMO_slot_int_set(bmop.slots_in, "cuts", numcuts);
 
-	BMO_slot_int_set(bmop.slots_in, "quad_corner_type", SUBD_STRAIGHT_CUT);
+	BMO_slot_int_set(bmop.slots_in, "quad_corner_type", SUBD_CORNER_STRAIGHT_CUT);
 	BMO_slot_bool_set(bmop.slots_in, "use_single_edge", false);
 	BMO_slot_bool_set(bmop.slots_in, "use_grid_fill", false);
 

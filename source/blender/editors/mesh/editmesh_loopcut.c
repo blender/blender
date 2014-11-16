@@ -412,7 +412,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
 			                   smoothness, smooth_falloff, true,
 			                   0.0f, 0.0f,
-			                   cuts, seltype, SUBD_PATH, 0, true,
+			                   cuts, seltype, SUBD_CORNER_PATH, 0, true,
 			                   use_only_quads, 0);
 
 			/* when used in a macro tessface is already re-recalculated */
