@@ -245,6 +245,18 @@ typedef enum BrushStrokeMode {
 	BRUSH_STROKE_SMOOTH
 } BrushStrokeMode;
 
+/* paint_ops.c */
+typedef enum {
+	RC_COLOR    = 1,
+	RC_ROTATION = 2,
+	RC_ZOOM     = 4,
+	RC_WEIGHT   = 8,
+	RC_SECONDARY_ROTATION = 16
+} RCFlags;
+
+void set_brush_rc_props(struct PointerRNA *ptr, const char *paint, const char *prop, const char *secondary_prop,
+                        RCFlags flags);
+
 /* paint_undo.c */
 struct ListBase *undo_paint_push_get_list(int type);
 void undo_paint_push_count_alloc(int type, int size);

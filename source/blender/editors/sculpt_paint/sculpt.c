@@ -5188,6 +5188,50 @@ static void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
 	RNA_def_int_array(ot->srna, "location", 2, NULL, 0, SHRT_MAX, "Location", "Screen Coordinates of sampling", 0, SHRT_MAX);
 }
 
+
+static int sculpt_set_detail_size_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+	PointerRNA props_ptr;
+	wmOperatorType *ot = WM_operatortype_find("WM_OT_radial_control", true);
+
+	WM_operator_properties_create_ptr(&props_ptr, ot);
+
+	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
+		set_brush_rc_props(&props_ptr, "sculpt", "constant_detail", NULL, 0);
+		RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.constant_detail");
+	}
+	else {
+		set_brush_rc_props(&props_ptr, "sculpt", "detail_size", NULL, 0);
+		RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_size");
+	}
+
+	WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+
+	WM_operator_properties_free(&props_ptr);
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_set_detail_size(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Set Detail Size";
+	ot->idname = "SCULPT_OT_set_detail_size";
+	ot->description = "Set the mesh detail (either relative or constant one, depending on current dyntopo mode)";
+
+	/* api callbacks */
+	//ot->invoke = sculpt_set_detail_size_invoke;
+	ot->exec = sculpt_set_detail_size_exec;
+	//ot->modal = sculpt_set_detail_size_modal;
+	ot->poll = sculpt_and_dynamic_topology_poll;
+
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	//RNA_def_int_array(ot->srna, "location", 2, NULL, 0, SHRT_MAX, "Location", "Screen Coordinates of sampling", 0, SHRT_MAX);
+}
+
 void ED_operatortypes_sculpt(void)
 {
 	WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -5198,4 +5242,5 @@ void ED_operatortypes_sculpt(void)
 	WM_operatortype_append(SCULPT_OT_symmetrize);
 	WM_operatortype_append(SCULPT_OT_detail_flood_fill);
 	WM_operatortype_append(SCULPT_OT_sample_detail_size);
+	WM_operatortype_append(SCULPT_OT_set_detail_size);
 }
