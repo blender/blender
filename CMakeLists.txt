@@ -2049,7 +2049,7 @@ elseif(APPLE)
 				link_directories(${LIBDIR}/openmp/lib)
 				# This is a workaround for our helperbinaries ( datatoc, masgfmt, ... ),
 				# They are linked also to omp lib, so we need it in builddir for runtime exexcution, TODO: remove all unneeded dependencies from these
-				execute_process(COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES} ${LIBDIR}/openmp/lib/libiomp5.dylib ${CMAKE_BINARY_DIR}/Resources/lib/libiomp5.dylib) # for intermediate binaries, lib id @loader_path
+				execute_process(COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES} ${LIBDIR}/openmp/lib/libiomp5.dylib ${CMAKE_BINARY_DIR}/Resources/lib/libiomp5.dylib) # for intermediate binaries, in respect to lib ID
 			endif()
 		endif()
 	endif()
