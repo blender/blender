@@ -2942,7 +2942,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 			int apply_offset = ((currkey != kb) && (ob->shapenr - 1 == currkey->relative));
 
 			if (apply_offset)
-				BKE_key_convert_from_offset(ob, currkey, ofs);
+				BKE_key_update_from_offset(ob, currkey, ofs);
 
 			currkey = currkey->next;
 		}
@@ -2960,8 +2960,8 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		BKE_mesh_calc_normals(me);
 	}
 
-	/* apply new coords on active key block */
-	BKE_key_convert_from_vertcos(ob, kb, vertCos);
+	/* apply new coords on active key block, no need to re-allocate kb->data here! */
+	BKE_key_update_from_vertcos(ob, kb, vertCos);
 }
 
 /* Note: we do the topology update before any brush actions to avoid

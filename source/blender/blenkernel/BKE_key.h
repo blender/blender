@@ -87,15 +87,24 @@ void BKE_key_evaluate_relative(const int start, int end, const int tot, char *ba
                                float **per_keyblock_weights, const int mode);
 
 /* conversion functions */
-void    BKE_key_convert_to_mesh(struct KeyBlock *kb, struct Mesh *me);
-void    BKE_key_convert_from_mesh(struct Mesh *me, struct KeyBlock *kb);
-void    BKE_key_convert_to_lattice(struct KeyBlock *kb, struct Lattice *lt);
+/* Note: 'update_from' versions do not (re)allocate mem in kb, while 'convert_from' do. */
+void    BKE_key_update_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
 void    BKE_key_convert_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
-void    BKE_key_convert_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
+void    BKE_key_convert_to_lattice(struct KeyBlock *kb, struct Lattice *lt);
+
+void    BKE_key_update_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 void    BKE_key_convert_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
-float (*BKE_key_convert_to_vertcos(struct Object *ob, struct KeyBlock *kb))[3];
+void    BKE_key_convert_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
+
+void    BKE_key_update_from_mesh(struct Mesh *me, struct KeyBlock *kb);
+void    BKE_key_convert_from_mesh(struct Mesh *me, struct KeyBlock *kb);
+void    BKE_key_convert_to_mesh(struct KeyBlock *kb, struct Mesh *me);
+
+void    BKE_key_update_from_vertcos(struct Object *ob, struct KeyBlock *kb, float (*vertCos)[3]);
 void    BKE_key_convert_from_vertcos(struct Object *ob, struct KeyBlock *kb, float (*vertCos)[3]);
-void    BKE_key_convert_from_offset(struct Object *ob, struct KeyBlock *kb, float (*ofs)[3]);
+float (*BKE_key_convert_to_vertcos(struct Object *ob, struct KeyBlock *kb))[3];
+
+void    BKE_key_update_from_offset(struct Object *ob, struct KeyBlock *kb, float (*ofs)[3]);
 
 /* other management */
 bool    BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
