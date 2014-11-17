@@ -3525,9 +3525,10 @@ bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 {
 	wmWindow *window;
 
-	for (window = wm->windows.first; window; window = window->next)
-		if (window->screen->animtimer)
-			return window->screen;
+	if (wm)
+		for (window = wm->windows.first; window; window = window->next)
+			if (window->screen->animtimer)
+				return window->screen;
 	
 	return NULL;
 }
