@@ -43,6 +43,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
@@ -327,17 +328,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 				/* Incrementally Rotating Frame (Bishop Frame) */
 				if (k == 0) {
+					float hairmat[4][4];
 					float mat[3][3];
-					float temp[3] = {0.0f, 0.0f, 0.0f};
-					temp[axis] = 1.0f;
 					
-					/* normal direction */
-					copy_v3_v3(mat[0], state.vel);
-					/* tangent from projecting axis onto the surface plane */
-					project_v3_plane(mat[1], state.vel, temp);
-					normalize_v3(mat[1]);
-					/* cotangent */
-					cross_v3_v3v3(mat[2], mat[0], mat[1]);
+					psys_mat_hair_to_global(sim.ob, sim.psmd->dm, sim.psys->part->from, pa, hairmat);
+					copy_m3_m4(mat, hairmat);
 					/* to quaternion */
 					mat3_to_quat(frame, mat);
 					
@@ -355,7 +350,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					mul_qt_qtqt(frame, rot, frame);
 					
 					copy_v3_v3(prev_dir, state.vel);
-					}
+				}
 				
 				copy_qt_qt(state.rot, frame);
 #if 0
