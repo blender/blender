@@ -90,3 +90,7 @@ endif()
 if(WITH_GTESTS)
 	add_subdirectory(gtest)
 endif()
+
+if(WITH_SDL AND WITH_SDL_DYNLOAD)
+	add_subdirectory(sdlew)
+endif()

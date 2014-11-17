@@ -218,6 +218,8 @@ else:
 if not env['BF_FANCY']:
     B.bc.disable()
 
+if env['WITH_BF_SDL_DYNLOAD']:
+    env['BF_SDL_INC'] = '#extern/sdlew/include/SDL2'
 
 # remove install dir so old and new files are not mixed.
 # NOTE: only do the scripts directory for now, otherwise is too disruptive for developers

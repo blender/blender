@@ -108,7 +108,7 @@ def validate_arguments(args, bc):
     opts_list = [
             'WITH_BF_FREESTYLE', 'WITH_BF_PYTHON', 'WITH_BF_PYTHON_SAFETY', 'WITH_BF_PYTHON_SECURITY', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LIBPATH_ARCH', 'WITH_BF_STATICPYTHON', 'WITH_OSX_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL', 'BF_PYTHON_ABI_FLAGS',
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
-            'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
+            'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH', 'WITH_BF_SDL_DYNLOAD',
             'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH', 'WITH_BF_JACK_DYNLOAD',
             'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH', 'WITH_BF_STATICSNDFILE', 'BF_SNDFILE_LIB_STATIC',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
@@ -300,6 +300,7 @@ def read_opts(env, cfg, args):
         ('BF_SDL_INC', 'SDL include path', ''),
         ('BF_SDL_LIB', 'SDL library', ''),
         ('BF_SDL_LIBPATH', 'SDL library path', ''),
+        (BoolVariable('WITH_BF_SDL_DYNLOAD', 'Enable runtime dynamic SDL libraries loading (works only on Linux)', False)),
 
         (BoolVariable('WITH_BF_JACK', 'Enable jack support if true', True)),
         ('BF_JACK', 'jack base path', ''),

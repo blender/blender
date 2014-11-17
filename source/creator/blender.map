@@ -18,5 +18,6 @@ local:
 	NumNamedVarArgParams;
 	X86CompilationCallback*;
 	*boost*;
+	*SDL*;
 };
 

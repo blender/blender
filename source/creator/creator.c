@@ -154,6 +154,10 @@
 #  include "CCL_api.h"
 #endif
 
+#ifdef WITH_SDL_DYNLOAD
+#  include "sdlew.h"
+#endif
+
 /* from buildinfo.c */
 #ifdef BUILD_DATE
 extern char build_date[];
@@ -1584,6 +1588,10 @@ int main(
 			BLI_strncpy(build_commit_time, unknown, sizeof(build_commit_time));
 		}
 	}
+#endif
+
+#ifdef WITH_SDL_DYNLOAD
+	sdlewInit();
 #endif
 
 	C = CTX_create();

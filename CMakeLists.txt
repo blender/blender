@@ -296,6 +296,9 @@ option(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" ${_in
 if(UNIX AND NOT APPLE)
 	option(WITH_JACK_DYNLOAD  "Enable runtime dynamic Jack libraries loading" OFF)
 endif()
+if(UNIX AND NOT APPLE)
+	option(WITH_SDL_DYNLOAD  "Enable runtime dynamic SDL libraries loading" OFF)
+endif()
 
 # Compression
 option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
@@ -826,16 +829,23 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_SDL)
-		find_package_wrapper(SDL)
-		mark_as_advanced(
-			SDLMAIN_LIBRARY
-			SDL_INCLUDE_DIR
-			SDL_LIBRARY
-			SDL_LIBRARY_TEMP
-		)
-		# unset(SDLMAIN_LIBRARY CACHE)
-		if(NOT SDL_FOUND)
-			set(WITH_SDL OFF)
+		if(WITH_SDL_DYNLOAD)
+			set(SDLMAIN_LIBRARY)
+			set(SDL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/extern/sdlew/include/SDL2")
+			set(SDL_LIBRARY)
+			set(SDL_LIBRARY_TEMP)
+		else()
+			find_package_wrapper(SDL)
+			mark_as_advanced(
+				SDLMAIN_LIBRARY
+				SDL_INCLUDE_DIR
+				SDL_LIBRARY
+				SDL_LIBRARY_TEMP
+			)
+			# unset(SDLMAIN_LIBRARY CACHE)
+			if(NOT SDL_FOUND)
+				set(WITH_SDL OFF)
+			endif()
 		endif()
 	endif()
 
@@ -1040,6 +1050,9 @@ if(UNIX AND NOT APPLE)
 			message(FATAL_ERROR "LLVM not found.")
 		endif()
 
+	endif()
+
+	if(WITH_LLVM OR WITH_SDL_DYNLOAD)
 		# Fix for conflict with Mesa llvmpipe
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Wl,--version-script=${CMAKE_SOURCE_DIR}/source/creator/blender.map")
 	endif()
@@ -2739,6 +2752,7 @@ if(FIRST_RUN)
 	info_cfg_text("Audio:")
 	info_cfg_option(WITH_OPENAL)
 	info_cfg_option(WITH_SDL)
+	info_cfg_option(WITH_SDL_DYNLOAD)
 	info_cfg_option(WITH_JACK)
 	info_cfg_option(WITH_JACK_DYNLOAD)
 	info_cfg_option(WITH_CODEC_AVI)

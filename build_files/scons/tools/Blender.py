@@ -143,7 +143,7 @@ def setup_staticlibs(lenv):
     libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
     if lenv['WITH_BF_PYTHON']:
         libincs += Split(lenv['BF_PYTHON_LIBPATH'])
-    if lenv['WITH_BF_SDL']:
+    if lenv['WITH_BF_SDL'] and not lenv['WITH_BF_SDL_DYNLOAD']:
         libincs += Split(lenv['BF_SDL_LIBPATH'])
     if lenv['WITH_BF_JACK'] and not lenv['WITH_BF_JACK_DYNLOAD']:
         libincs += Split(lenv['BF_JACK_LIBPATH'])
@@ -303,7 +303,7 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_ELTOPO']:
         syslibs += Split(lenv['BF_LAPACK_LIB'])
     '''
-    if lenv['WITH_BF_SDL']:
+    if lenv['WITH_BF_SDL'] and not lenv['WITH_BF_SDL_DYNLOAD']:
         syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
         syslibs += Split(lenv['BF_OPENGL_LIB'])
@@ -381,6 +381,9 @@ def creator(env):
         defs.append('WITH_BINRELOC')
 
     if env['WITH_BF_SDL']:
+        if env['WITH_BF_SDL_DYNLOAD']:
+            defs.append('WITH_SDL_DYNLOAD')
+            incs.append('#/extern/sdlew/include')
         defs.append('WITH_SDL')
 
     if env['WITH_BF_LIBMV']:

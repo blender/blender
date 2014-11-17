@@ -241,6 +241,12 @@ if(WITH_MOD_OCEANSIM)
 endif()
 
 if(WITH_SDL)
+	if(WITH_SDL_DYNLOAD)
+		add_definitions(-DWITH_SDL_DYNLOAD)
+		list(APPEND INC
+			../../../../extern/sdlew/include
+		)
+	endif()
 	add_definitions(-DWITH_SDL)
 endif()
 

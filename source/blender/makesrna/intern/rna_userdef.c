@@ -104,6 +104,10 @@ EnumPropertyItem navigation_mode_items[] = {
 
 #include "BKE_addon.h"
 
+#ifdef WITH_SDL_DYNLOAD
+#  include "sdlew.h"
+#endif
+
 static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -510,37 +514,38 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
                                                         PropertyRNA *UNUSED(prop), bool *r_free)
 {
-#ifdef WITH_JACK
-	int jack_supported = sound_is_jack_supported();
+	int index = 0;
+	int totitem = 0;
+	EnumPropertyItem *item = NULL;
 
-	if (jack_supported) {
-		return audio_device_items;
-	}
-	else {
-		int index = 0;
-		int totitem = 0;
-		EnumPropertyItem *item = NULL;
-
-		/* NONE */
-		RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
+	/* NONE */
+	RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
 
 #ifdef WITH_SDL
-		RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
+#  ifdef WITH_SDL_DYNLOAD
+	if (sdlewInit() == SDLEW_SUCCESS)
+#  endif
+	{
+		RNA_enum_item_add(&item, &totitem, &audio_device_items[index]);
+	}
+	index++;
 #endif
 
 #ifdef WITH_OPENAL
-		RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
+	RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
 #endif
 
-		RNA_enum_item_end(&item, &totitem);
-		*r_free = true;
-
-		return item;
+#ifdef WITH_JACK
+	if (sound_is_jack_supported()) {
+		RNA_enum_item_add(&item, &totitem, &audio_device_items[index]);
 	}
-#else
-	(void)r_free;
-	return audio_device_items;
+	index++;
 #endif
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
 }
 
 #ifdef WITH_INTERNATIONAL

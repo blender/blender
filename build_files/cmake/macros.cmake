@@ -221,7 +221,7 @@ macro(SETUP_LIBDIRS)
 	if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		link_directories(${PYTHON_LIBPATH})
 	endif()
-	if(WITH_SDL)
+	if(WITH_SDL AND NOT WITH_SDL_DYNLOAD)
 		link_directories(${SDL_LIBPATH})
 	endif()
 	if(WITH_CODEC_FFMPEG)
@@ -321,7 +321,7 @@ macro(setup_liblinks
 	if(WITH_CODEC_SNDFILE)
 		target_link_libraries(${target} ${SNDFILE_LIBRARIES})
 	endif()
-	if(WITH_SDL)
+	if(WITH_SDL AND NOT WITH_SDL_DYNLOAD)
 		target_link_libraries(${target} ${SDL_LIBRARY})
 	endif()
 	if(WITH_CODEC_QUICKTIME)
@@ -559,6 +559,7 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 		extern_wcwidth
 		extern_libmv
 		extern_glog
+		extern_sdlew
 
 		bf_intern_glew_mx
 	)

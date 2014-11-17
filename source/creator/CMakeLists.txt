@@ -81,6 +81,10 @@ if(WITH_GAMEENGINE)
 endif()
 
 if(WITH_SDL)
+	if(WITH_SDL_DYNLOAD)
+		add_definitions(-DWITH_SDL_DYNLOAD)
+		blender_include_dirs(../../extern/sdlew/include)
+	endif()
 	add_definitions(-DWITH_SDL)
 endif()
 

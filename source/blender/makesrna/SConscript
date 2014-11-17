@@ -122,6 +122,9 @@ if env['WITH_BF_CYCLES']:
         defs.append('WITH_CYCLES_DEBUG')
 
 if env['WITH_BF_SDL']:
+    if env['WITH_BF_SDL_DYNLOAD']:
+        defs.append('WITH_SDL_DYNLOAD')
+        incs += ' #extern/sdlew/include'
     defs.append('WITH_SDL')
 
 if env['WITH_BF_OPENAL']:

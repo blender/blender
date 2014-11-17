@@ -114,6 +114,10 @@ extern char datatoc_bmonofont_ttf[];
 #endif // !defined(DEBUG)
 #endif // WIN32
 
+#ifdef WITH_SDL_DYNLOAD
+#  include "sdlew.h"
+#endif
+
 const int kMinWindowWidth = 100;
 const int kMinWindowHeight = 100;
 
@@ -421,6 +425,11 @@ int main(int argc, char** argv)
 	signal (SIGFPE, SIG_IGN);
 #endif /* __alpha__ */
 #endif /* __linux__ */
+
+#ifdef WITH_SDL_DYNLOAD
+	sdlewInit();
+#endif
+
 	BLI_init_program_path(argv[0]);
 	BLI_temp_dir_init(NULL);
 	

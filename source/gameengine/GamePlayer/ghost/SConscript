@@ -87,4 +87,8 @@ if env['WITH_BF_FFMPEG']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_SDL'] and env['WITH_BF_SDL_DYNLOAD']:
+    defs.append('WITH_SDL_DYNLOAD')
+    incs += ['#extern/sdlew/include']
+
 env.BlenderLib (libname='ge_player_ghost', sources=source_files, includes = incs, defines = defs, libtype=['player'],priority=[0], cxx_compileflags=env['BGE_CXXFLAGS'])

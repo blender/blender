@@ -167,6 +167,7 @@ endif()
 		extern_wcwidth
 		extern_libmv
 		extern_glog
+		extern_sdlew
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
