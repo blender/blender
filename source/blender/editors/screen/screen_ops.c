@@ -3523,13 +3523,14 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 /* find window that owns the animation timer */
 bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 {
-	wmWindow *window;
+	wmWindow *win;
 
-	if (wm)
-		for (window = wm->windows.first; window; window = window->next)
-			if (window->screen->animtimer)
-				return window->screen;
-	
+	for (win = wm->windows.first; win; win = win->next) {
+		if (win->screen->animtimer) {
+			return win->screen;
+		}
+	}
+
 	return NULL;
 }
 
