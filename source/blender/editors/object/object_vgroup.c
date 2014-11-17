@@ -126,16 +126,6 @@ bool ED_vgroup_sync_from_pose(Object *ob)
 	return false;
 }
 
-bool ED_vgroup_object_is_edit_mode(Object *ob)
-{
-	if (ob->type == OB_MESH)
-		return (BKE_editmesh_from_object(ob) != NULL);
-	else if (ob->type == OB_LATTICE)
-		return (((Lattice *)ob->data)->editlatt != NULL);
-
-	return false;
-}
-
 bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 {
 	bDeformGroup *defgroup;
@@ -159,7 +149,7 @@ void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup)
 {
 	BLI_assert(BLI_findindex(&ob->defbase, defgroup) != -1);
 
-	if (ED_vgroup_object_is_edit_mode(ob))
+	if (BKE_object_is_in_editmode_vgroup(ob))
 		vgroup_delete_edit_mode(ob, defgroup);
 	else
 		vgroup_delete_object_mode(ob, defgroup);
@@ -168,7 +158,7 @@ void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup)
 void ED_vgroup_clear(Object *ob)
 {
 	bDeformGroup *dg = (bDeformGroup *)ob->defbase.first;
-	int edit_mode = ED_vgroup_object_is_edit_mode(ob);
+	int edit_mode = BKE_object_is_in_editmode_vgroup(ob);
 
 	while (dg) {
 		bDeformGroup *next_dg = dg->next;

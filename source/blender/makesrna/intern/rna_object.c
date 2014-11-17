@@ -1422,7 +1422,7 @@ static void rna_VertexGroup_vertex_add(ID *id, bDeformGroup *def, ReportList *re
 {
 	Object *ob = (Object *)id;
 
-	if (ED_vgroup_object_is_edit_mode(ob)) {
+	if (BKE_object_is_in_editmode_vgroup(ob)) {
 		BKE_report(reports, RPT_ERROR, "VertexGroup.add(): cannot be called while object is in edit mode");
 		return;
 	}
@@ -1437,7 +1437,7 @@ static void rna_VertexGroup_vertex_remove(ID *id, bDeformGroup *dg, ReportList *
 {
 	Object *ob = (Object *)id;
 
-	if (ED_vgroup_object_is_edit_mode(ob)) {
+	if (BKE_object_is_in_editmode_vgroup(ob)) {
 		BKE_report(reports, RPT_ERROR, "VertexGroup.remove(): cannot be called while object is in edit mode");
 		return;
 	}

@@ -467,7 +467,6 @@ void ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertn
 float ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum) RET_ZERO
 void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup) RET_NONE
 void ED_vgroup_clear(struct Object *ob) RET_NONE
-bool ED_vgroup_object_is_edit_mode(struct Object *ob) RET_ZERO
 int ED_mesh_mirror_topo_table(struct Object *ob, char mode) RET_ZERO
 int ED_mesh_mirror_spatial_table(struct Object *ob, struct BMEditMesh *em, const float co[3], char mode) RET_ZERO
 

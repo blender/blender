@@ -244,8 +244,6 @@ void                 ED_vgroup_mirror(struct Object *ob,
                                       const bool all_vgroups, const bool use_topology,
                                       int *r_totmirr, int *r_totfail);
 
-bool                 ED_vgroup_object_is_edit_mode(struct Object *ob);
-
 void                 ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float                ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
