@@ -43,6 +43,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -276,6 +277,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	orig_mloop = dm->getLoopArray(dm);
 
 	for (p = 0, p_skip = 0; p < totpart; p++) {
+		float prev_dir[3];
+		float frame[4]; /* frame orientation quaternion */
+		
 		/* skip particle? */
 		if (particle_skip(pimd, psys, p))
 			continue;
@@ -321,19 +325,54 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 				normalize_v3(state.vel);
 
-				/* TODO: incremental rotations somehow */
+				/* Incrementally Rotating Frame (Bishop Frame) */
+				if (k == 0) {
+					float mat[3][3];
+					float temp[3] = {0.0f, 0.0f, 0.0f};
+					temp[axis] = 1.0f;
+					
+					/* normal direction */
+					copy_v3_v3(mat[0], state.vel);
+					/* tangent from projecting axis onto the surface plane */
+					project_v3_plane(mat[1], state.vel, temp);
+					normalize_v3(mat[1]);
+					/* cotangent */
+					cross_v3_v3v3(mat[2], mat[0], mat[1]);
+					/* to quaternion */
+					mat3_to_quat(frame, mat);
+					
+					/* note: direction is same as normal vector currently,
+					 * but best to keep this separate so the frame can be
+					 * rotated later if necessary
+					 */
+					copy_v3_v3(prev_dir, state.vel);
+				}
+				else {
+					float rot[4];
+					
+					/* incrementally rotate along bend direction */
+					rotation_between_vecs_to_quat(rot, prev_dir, state.vel);
+					mul_qt_qtqt(frame, rot, frame);
+					
+					copy_v3_v3(prev_dir, state.vel);
+					}
+				
+				copy_qt_qt(state.rot, frame);
+#if 0
+				/* Absolute Frame (Frenet Frame) */
 				if (state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
 					unit_qt(state.rot);
 				}
 				else {
 					float temp[3] = {0.0f, 0.0f, 0.0f};
 					temp[axis] = 1.0f;
-
+					
 					cross_v3_v3v3(cross, temp, state.vel);
-
+					
 					/* state.vel[axis] is the only component surviving from a dot product with the axis */
 					axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
 				}
+#endif
 			}
 			else {
 				state.time = -1.0;
