@@ -1672,7 +1672,7 @@ char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 void BKE_keyblock_update_from_lattice(Lattice *lt, KeyBlock *kb)
 {
 	BPoint *bp;
-	float *fp;
+	float (*fp)[3];
 	int a, tot;
 
 	BLI_assert(kb->totelem == lt->pntsu * lt->pntsv * lt->pntsw);
@@ -1682,8 +1682,8 @@ void BKE_keyblock_update_from_lattice(Lattice *lt, KeyBlock *kb)
 
 	bp = lt->def;
 	fp = kb->data;
-	for (a = 0; a < kb->totelem; a++, fp += 3, bp++) {
-		copy_v3_v3(fp, bp->vec);
+	for (a = 0; a < kb->totelem; a++, fp++, bp++) {
+		copy_v3_v3(*fp, bp->vec);
 	}
 }
 
@@ -1705,7 +1705,7 @@ void BKE_keyblock_convert_from_lattice(Lattice *lt, KeyBlock *kb)
 void BKE_keyblock_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 {
 	BPoint *bp;
-	const float *fp;
+	const float (*fp)[3];
 	int a, tot;
 
 	bp = lt->def;
@@ -1714,8 +1714,8 @@ void BKE_keyblock_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 	tot = lt->pntsu * lt->pntsv * lt->pntsw;
 	tot = min_ii(kb->totelem, tot);
 
-	for (a = 0; a < tot; a++, fp += 3, bp++) {
-		copy_v3_v3(bp->vec, fp);
+	for (a = 0; a < tot; a++, fp++, bp++) {
+		copy_v3_v3(bp->vec, *fp);
 	}
 }
 
@@ -1734,36 +1734,27 @@ void BKE_keyblock_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *n
 	tot = kb->totelem;
 	if (tot == 0) return;
 
-	nu = nurb->first;
 	fp = kb->data;
-	while (nu) {
+	for (nu = nurb->first; nu; nu = nu->next) {
 		if (nu->bezt) {
-			bezt = nu->bezt;
-			a = nu->pntsu;
-			while (a--) {
-				copy_v3_v3(fp, bezt->vec[0]);
-				fp += 3;
-				copy_v3_v3(fp, bezt->vec[1]);
-				fp += 3;
-				copy_v3_v3(fp, bezt->vec[2]);
-				fp += 3;
+			for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
+				int i;
+
+				for (i = 0; i < 3; i++, fp += 3) {
+					copy_v3_v3(fp, bezt->vec[i]);
+				}
 				fp[0] = bezt->alfa;
 				fp += 3; /* alphas */
-				bezt++;
 			}
 		}
 		else {
-			bp = nu->bp;
-			a = nu->pntsu * nu->pntsv;
-			while (a--) {
+			
+			;
+			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a; a--, fp += 4, bp++) {
 				copy_v3_v3(fp, bp->vec);
 				fp[3] = bp->alfa;
-
-				fp += 4;
-				bp++;
 			}
 		}
-		nu = nu->next;
 	}
 }
 
@@ -1791,45 +1782,28 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 	const float *fp;
 	int a, tot;
 
-	nu = nurb->first;
-	fp = kb->data;
-
 	tot = BKE_nurbList_verts_count(nurb);
-
 	tot = min_ii(kb->totelem, tot);
 
-	while (nu && tot > 0) {
-
+	fp = kb->data;
+	for (nu = nurb->first; nu && tot > 0; nu = nu->next) {
 		if (nu->bezt) {
-			bezt = nu->bezt;
-			a = nu->pntsu;
-			while (a-- && tot > 0) {
-				copy_v3_v3(bezt->vec[0], fp);
-				fp += 3;
-				copy_v3_v3(bezt->vec[1], fp);
-				fp += 3;
-				copy_v3_v3(bezt->vec[2], fp);
-				fp += 3;
+			for (a = nu->pntsu, bezt = nu->bezt; a && tot > 0; a--, tot -= 3, bezt++) {
+				int i;
+
+				for (i = 0; i < 3; i++, fp += 3) {
+					copy_v3_v3(bezt->vec[i], fp);
+				}
 				bezt->alfa = fp[0];
 				fp += 3; /* alphas */
-
-				tot -= 3;
-				bezt++;
 			}
 		}
 		else {
-			bp = nu->bp;
-			a = nu->pntsu * nu->pntsv;
-			while (a-- && tot > 0) {
+			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a && tot; a--, tot--, fp += 4, bp++) {
 				copy_v3_v3(bp->vec, fp);
 				bp->alfa = fp[3];
-
-				fp += 4;
-				tot--;
-				bp++;
 			}
 		}
-		nu = nu->next;
 	}
 }
 
@@ -1837,7 +1811,7 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
 {
 	MVert *mvert;
-	float *fp;
+	float (*fp)[3];
 	int a, tot;
 
 	BLI_assert(me->totvert == kb->totelem);
@@ -1847,9 +1821,8 @@ void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
 
 	mvert = me->mvert;
 	fp = kb->data;
-	for (a = 0; a < tot; a++, fp += 3, mvert++) {
-		copy_v3_v3(fp, mvert->co);
-
+	for (a = 0; a < tot; a++, fp++, mvert++) {
+		copy_v3_v3(*fp, mvert->co);
 	}
 }
 
@@ -1870,7 +1843,7 @@ void BKE_keyblock_convert_from_mesh(Mesh *me, KeyBlock *kb)
 void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
 {
 	MVert *mvert;
-	const float *fp;
+	const float (*fp)[3];
 	int a, tot;
 
 	mvert = me->mvert;
@@ -1878,15 +1851,15 @@ void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
 
 	tot = min_ii(kb->totelem, me->totvert);
 
-	for (a = 0; a < tot; a++, fp += 3, mvert++) {
-		copy_v3_v3(mvert->co, fp);
+	for (a = 0; a < tot; a++, fp++, mvert++) {
+		copy_v3_v3(mvert->co, *fp);
 	}
 }
 
 /************************* raw coords ************************/
 void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 {
-	float *co = (float *)vertCos;
+	float (*co)[3] = vertCos;
 	float *fp = kb->data;
 	int tot, a;
 
@@ -1913,48 +1886,32 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)
 
 	/* Copy coords to keyblock */
 	if (ELEM(ob->type, OB_MESH, OB_LATTICE)) {
-		for (a = 0; a < tot; a++, fp += 3, co += 3) {
-			copy_v3_v3(fp, co);
+		for (a = 0; a < tot; a++, fp += 3, co++) {
+			copy_v3_v3(fp, *co);
 		}
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = (Curve *)ob->data;
-		Nurb *nu = cu->nurb.first;
+		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
 
-		while (nu) {
+		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			if (nu->bezt) {
-				int i;
-				bezt = nu->bezt;
-				a = nu->pntsu;
+				for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
+					int i;
 
-				while (a--) {
-					for (i = 0; i < 3; i++) {
-						copy_v3_v3(fp, co);
-						fp += 3; co += 3;
+					for (i = 0; i < 3; i++, fp += 3, co++) {
+						copy_v3_v3(fp, *co);
 					}
-
 					fp += 3; /* skip alphas */
-
-					bezt++;
 				}
 			}
 			else {
-				bp = nu->bp;
-				a = nu->pntsu * nu->pntsv;
-
-				while (a--) {
-					copy_v3_v3(fp, co);
-
-					fp += 4;
-					co += 3;
-
-					bp++;
+				for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a; a--, bp++, fp += 4, co++) {
+					copy_v3_v3(fp, *co);
 				}
 			}
-
-			nu = nu->next;
 		}
 	}
 }
@@ -1992,7 +1949,7 @@ void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos
 
 float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 {
-	float (*vertCos)[3], *co;
+	float (*vertCos)[3], (*co)[3];
 	const float *fp = kb->data;
 	int tot = 0, a;
 
@@ -2012,54 +1969,36 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 
 	if (tot == 0) return NULL;
 
-	vertCos = MEM_mallocN(tot * sizeof(*vertCos), __func__);
+	co = vertCos = MEM_mallocN(tot * sizeof(*vertCos), __func__);
 
 	/* Copy coords to array */
-	co = (float *)vertCos;
-
 	if (ELEM(ob->type, OB_MESH, OB_LATTICE)) {
-		for (a = 0; a < tot; a++, fp += 3, co += 3) {
-			copy_v3_v3(co, fp);
+		for (a = 0; a < tot; a++, fp += 3, co++) {
+			copy_v3_v3(*co, fp);
 		}
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = (Curve *)ob->data;
-		Nurb *nu = cu->nurb.first;
+		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
 
-		while (nu) {
+		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			if (nu->bezt) {
-				int i;
-				bezt = nu->bezt;
-				a = nu->pntsu;
+				for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
+					int i;
 
-				while (a--) {
-					for (i = 0; i < 3; i++) {
-						copy_v3_v3(co, fp);
-						fp += 3; co += 3;
+					for (i = 0; i < 3; i++, fp += 3, co++) {
+						copy_v3_v3(*co, fp);
 					}
-
 					fp += 3; /* skip alphas */
-
-					bezt++;
 				}
 			}
 			else {
-				bp = nu->bp;
-				a = nu->pntsu * nu->pntsv;
-
-				while (a--) {
-					copy_v3_v3(co, fp);
-
-					fp += 4;
-					co += 3;
-
-					bp++;
+				for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a; a--, bp++, fp += 4, co++) {
+					copy_v3_v3(*co, fp);
 				}
 			}
-
-			nu = nu->next;
 		}
 	}
 
@@ -2070,51 +2009,35 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, float (*ofs)[3])
 {
 	int a;
-	float *co = (float *)ofs, *fp = kb->data;
+	float *fp = kb->data;
 
 	if (ELEM(ob->type, OB_MESH, OB_LATTICE)) {
-		for (a = 0; a < kb->totelem; a++, fp += 3, co += 3) {
-			add_v3_v3(fp, co);
+		for (a = 0; a < kb->totelem; a++, fp += 3, ofs++) {
+			add_v3_v3(fp, *ofs);
 		}
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = (Curve *)ob->data;
-		Nurb *nu = cu->nurb.first;
+		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
 
-		while (nu) {
+		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			if (nu->bezt) {
-				int i;
-				bezt = nu->bezt;
-				a = nu->pntsu;
+				for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
+					int i;
 
-				while (a--) {
-					for (i = 0; i < 3; i++) {
-						add_v3_v3(fp, co);
-						fp += 3; co += 3;
+					for (i = 0; i < 3; i++, fp += 3, ofs++) {
+						add_v3_v3(fp, *ofs);
 					}
-
 					fp += 3; /* skip alphas */
-
-					bezt++;
 				}
 			}
 			else {
-				bp = nu->bp;
-				a = nu->pntsu * nu->pntsv;
-
-				while (a--) {
-					add_v3_v3(fp, co);
-
-					fp += 4;
-					co += 3;
-
-					bp++;
+				for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a; a--, bp++, fp += 4, ofs++) {
+					add_v3_v3(fp, *ofs);
 				}
 			}
-
-			nu = nu->next;
 		}
 	}
 }
