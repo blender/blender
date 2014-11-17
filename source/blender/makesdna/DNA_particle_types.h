@@ -234,6 +234,10 @@ typedef struct ParticleSettings {
 	/* keyed particles */
 	int keyed_loops;
 
+	/* hair dynamics */
+	float bending_random;
+	int pad3;
+
 	struct MTex *mtex[18];		/* MAX_MTEX */
 
 	struct Group *dup_group;

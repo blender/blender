@@ -313,8 +313,10 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         col = split.column()
         col.label(text="Structure")
         col.prop(cloth, "mass")
-        sub = col.row(align=True)
-        sub.prop(cloth, "bending_stiffness", text="Stiffness")
+        sub = col.column(align=True)
+        subsub = sub.row(align=True)
+        subsub.prop(cloth, "bending_stiffness", text="Stiffness")
+        subsub.prop(psys.settings, "bending_random", text="Random")
         sub.prop(cloth, "bending_damping", text="Damping")
         # XXX has no noticable effect with stiff hair structure springs
         #col.prop(cloth, "spring_damping", text="Damping")

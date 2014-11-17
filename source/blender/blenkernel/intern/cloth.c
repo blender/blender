@@ -1072,15 +1072,15 @@ static void cloth_update_bending_targets(ClothModifierData *clmd)
 	prev_mn = -1;
 	for (search = cloth->springs; search; search = search->next) {
 		ClothSpring *spring = search->link;
-		ClothHairRoot *hair_ij, *hair_kl;
+		ClothHairData *hair_ij, *hair_kl;
 		bool is_root = spring->kl != prev_mn;
 		
 		if (spring->type != CLOTH_SPRING_TYPE_BENDING_ANG) {
 			continue;
 		}
 		
-		hair_ij = &clmd->roots[spring->ij];
-		hair_kl = &clmd->roots[spring->kl];
+		hair_ij = &clmd->hairdata[spring->ij];
+		hair_kl = &clmd->hairdata[spring->kl];
 		if (is_root) {
 			/* initial hair frame from root orientation */
 			copy_m3_m3(hair_frame, hair_ij->rot);
@@ -1144,15 +1144,15 @@ static void cloth_update_bending_rest_targets(ClothModifierData *clmd)
 	prev_mn = -1;
 	for (search = cloth->springs; search; search = search->next) {
 		ClothSpring *spring = search->link;
-		ClothHairRoot *hair_ij, *hair_kl;
+		ClothHairData *hair_ij, *hair_kl;
 		bool is_root = spring->kl != prev_mn;
 		
 		if (spring->type != CLOTH_SPRING_TYPE_BENDING_ANG) {
 			continue;
 		}
 		
-		hair_ij = &clmd->roots[spring->ij];
-		hair_kl = &clmd->roots[spring->kl];
+		hair_ij = &clmd->hairdata[spring->ij];
+		hair_kl = &clmd->hairdata[spring->kl];
 		if (is_root) {
 			/* initial hair frame from root orientation */
 			copy_m3_m3(hair_frame, hair_ij->rot);
@@ -1197,6 +1197,16 @@ static void cloth_update_springs( ClothModifierData *clmd )
 		}
 		else if (spring->type == CLOTH_SPRING_TYPE_BENDING) {
 			spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
+		}
+		else if (spring->type == CLOTH_SPRING_TYPE_BENDING_ANG) {
+			ClothVertex *v1 = &cloth->verts[spring->ij];
+			ClothVertex *v2 = &cloth->verts[spring->kl];
+			if (clmd->hairdata) {
+				/* copy extra hair data to generic cloth vertices */
+				v1->bend_stiff = clmd->hairdata[spring->ij].bending_stiffness;
+				v2->bend_stiff = clmd->hairdata[spring->kl].bending_stiffness;
+			}
+			spring->stiffness = (v1->bend_stiff + v2->bend_stiff) / 2.0f;
 		}
 		else if (spring->type == CLOTH_SPRING_TYPE_GOAL) {
 			/* Warning: Appending NEW goal springs does not work because implicit solver would need reset! */

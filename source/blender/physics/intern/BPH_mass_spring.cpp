@@ -114,11 +114,11 @@ void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts, i;
-	ClothHairRoot *cloth_roots = clmd->roots;
+	ClothHairData *cloth_hairdata = clmd->hairdata;
 	Implicit_Data *id = cloth->implicit;
 	
 	for (i = 0; i < numverts; i++) {
-		ClothHairRoot *root = &cloth_roots[i];
+		ClothHairData *root = &cloth_hairdata[i];
 		
 		BPH_mass_spring_set_rest_transform(id, i, root->rot);
 		BPH_mass_spring_set_motion_state(id, i, verts[i].x, verts[i].v);

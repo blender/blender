@@ -565,7 +565,7 @@ typedef struct ClothModifierData {
 	struct PointCache *point_cache;       /* definition is in DNA_object_force.h */
 	struct ListBase ptcaches;
 	/* XXX nasty hack, remove once hair can be separated from cloth modifier data */
-	struct ClothHairRoot *roots;
+	struct ClothHairData *hairdata;
 	/* grid geometry values of hair continuum */
 	float hair_grid_min[3];
 	float hair_grid_max[3];

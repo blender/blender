@@ -178,7 +178,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tclmd->point_cache = BKE_ptcache_add(&tclmd->ptcaches);
 	tclmd->point_cache->step = 1;
 	tclmd->clothObject = NULL;
-	tclmd->roots = NULL;
+	tclmd->hairdata = NULL;
 	tclmd->solver_result = NULL;
 	tclmd->debug_data = NULL;
 }
@@ -209,8 +209,8 @@ static void freeData(ModifierData *md)
 		BKE_ptcache_free_list(&clmd->ptcaches);
 		clmd->point_cache = NULL;
 		
-		if (clmd->roots)
-			MEM_freeN(clmd->roots);
+		if (clmd->hairdata)
+			MEM_freeN(clmd->hairdata);
 		
 		if (clmd->solver_result)
 			MEM_freeN(clmd->solver_result);

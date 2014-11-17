@@ -2318,6 +2318,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Segments", "Number of hair segments");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
+	prop = RNA_def_property(srna, "bending_random", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "bending_random");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Random Bending Stiffness", "Random stiffness of hairs");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/*TODO: not found in UI, readonly? */
 	prop = RNA_def_property(srna, "keys_step", PROP_INT, PROP_NONE);
