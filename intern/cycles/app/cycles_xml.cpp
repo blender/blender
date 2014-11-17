@@ -801,6 +801,7 @@ static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 
 	xml_read_string(&shader->name, node, "name");
 	xml_read_bool(&shader->use_mis, node, "use_mis");
+	xml_read_bool(&shader->use_transparent_shadow, node, "use_transparent_shadow");
 
 	/* Volume */
 	xml_read_bool(&shader->heterogeneous_volume, node, "heterogeneous_volume");
