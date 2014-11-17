@@ -3934,7 +3934,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Mirror Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_mirror";
-	ot->description = "Mirror all vertex groups, flip weights and/or names, editing only selected vertices, "
+	ot->description = "Mirror vertex group, flip weights and/or names, editing only selected vertices, "
 	                  "flipping when both sides are selected otherwise copy from unselected";
 
 	/* api callbacks */
