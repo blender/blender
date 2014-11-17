@@ -48,13 +48,6 @@
 #  include "utfconv.h"
 #endif
 
-/* for backtrace */
-#if defined(__linux__) || defined(__APPLE__)
-#  include <execinfo.h>
-#elif defined(_MSV_VER)
-#  include <DbgHelp.h>
-#endif
-
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
@@ -515,72 +508,11 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 	return 0;
 }
 
-#if defined(__linux__) || defined(__APPLE__)
-
-/* Unix */
 static void blender_crash_handler_backtrace(FILE *fp)
 {
-#define SIZE 100
-	void *buffer[SIZE];
-	int nptrs;
-	char **strings;
-	int i;
-
 	fputs("\n# backtrace\n", fp);
-
-	/* include a backtrace for good measure */
-	nptrs = backtrace(buffer, SIZE);
-	strings = backtrace_symbols(buffer, nptrs);
-	for (i = 0; i < nptrs; i++) {
-		fputs(strings[i], fp);
-		fputc('\n', fp);
-	}
-
-	free(strings);
-#undef SIZE
+	BLI_system_backtrace(fp);
 }
-
-#elif defined(_MSC_VER)
-
-static void blender_crash_handler_backtrace(FILE *fp)
-{
-	(void)fp;
-
-#if 0
-#define MAXSYMBOL 256
-	unsigned short	i;
-	void *stack[SIZE];
-	unsigned short nframes;
-	SYMBOL_INFO	*symbolinfo;
-	HANDLE process;
-
-	process = GetCurrentProcess();
-
-	SymInitialize(process, NULL, true);
-
-	nframes = CaptureStackBackTrace(0, SIZE, stack, NULL);
-	symbolinfo = MEM_callocN(sizeof(SYMBOL_INFO) + MAXSYMBOL * sizeof(char), "crash Symbol table");
-	symbolinfo->MaxNameLen = MAXSYMBOL - 1;
-	symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
-
-	for (i = 0; i < nframes; i++) {
-		SymFromAddr(process, ( DWORD64 )( stack[ i ] ), 0, symbolinfo);
-
-		fprintf(fp, "%u: %s - 0x%0X\n", nframes - i - 1, symbolinfo->Name, symbolinfo->Address);
-	}
-
-	MEM_freeN(symbolinfo);
-#endif
-}
-
-#else  /* non msvc/osx/linux */
-
-static void blender_crash_handler_backtrace(FILE *fp)
-{
-	(void)fp;
-}
-
-#endif
 
 static void blender_crash_handler(int signum)
 {

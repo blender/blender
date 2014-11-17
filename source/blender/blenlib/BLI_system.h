@@ -27,6 +27,10 @@
 
 int BLI_cpu_support_sse2(void);
 
+#if !defined(NDEBUG) && !defined(__BLI_UTILDEFINES_H__)
+void BLI_system_backtrace(FILE *fp);
+#endif
+
 /* getpid */
 #ifdef WIN32
 #  define BLI_SYSTEM_PID_H <process.h>
@@ -35,4 +39,3 @@ int BLI_cpu_support_sse2(void);
 #endif
 
 #endif  /* __BLI_SYSTEM_H__ */
-
