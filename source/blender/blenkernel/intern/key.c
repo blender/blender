@@ -2210,7 +2210,7 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
 /**
  * Check if given keyblock (as index) is used as basis by others in given key.
  */
-bool BKE_keyblock_is_basis(struct Key *key, const int index)
+bool BKE_keyblock_is_basis(Key *key, const int index)
 {
 	KeyBlock *kb;
 	int i;
