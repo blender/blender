@@ -349,6 +349,7 @@ void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype) RET_NONE
 void ED_render_engine_changed(struct Main *bmain) RET_NONE
 
 void ED_file_read_bookmarks(void) RET_NONE
+void ED_preview_kill_jobs(struct wmWindowManager *wm, struct Main *bmain) RET_NONE
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob) RET_NULL
 void PE_current_changed(struct Scene *scene, struct Object *ob) RET_NONE
