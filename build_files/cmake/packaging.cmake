@@ -59,8 +59,6 @@ if(APPLE)
 
 	# Libraries are bundled directly
 	set(CPACK_COMPONENT_LIBRARIES_HIDDEN TRUE)
-	set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/release/darwin/background.png")
-	set(CPACK_DMG_DS_STORE "${CMAKE_SOURCE_DIR}/release/darwin/SET_DS_Store")
 endif()
 
 if(WIN32)
