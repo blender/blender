@@ -27,7 +27,7 @@
 
 int BLI_cpu_support_sse2(void);
 
-#if !defined(NDEBUG) && !defined(__BLI_UTILDEFINES_H__)
+#if defined(NDEBUG) || !defined(__BLI_UTILDEFINES_H__)
 void BLI_system_backtrace(FILE *fp);
 #endif
 
