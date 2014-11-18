@@ -3048,7 +3048,7 @@ static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int 
 		mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
 		normalize_m4(root_mat);
 		
-		bending_stiffness = 1.0f - part->bending_random * psys_frand(psys, p + 666);
+		bending_stiffness = CLAMPIS(1.0f - part->bending_random * psys_frand(psys, p + 666), 0.0f, 1.0f);
 		
 		for (k=0, key=pa->hair; k<pa->totkey; k++,key++) {
 			ClothHairData *hair;
