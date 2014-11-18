@@ -645,6 +645,15 @@ static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
 	particle_recalc(bmain, scene, ptr, PSYS_RECALC_CHILD);
 }
 
+static void rna_Particle_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
+}
+
+
 static ParticleSystem *rna_particle_system_for_target(Object *ob, ParticleTarget *target)
 {
 	ParticleSystem *psys;
@@ -2322,7 +2331,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "bending_random");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Bending Stiffness", "Random stiffness of hairs");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+	RNA_def_property_update(prop, 0, "rna_Particle_cloth_update");
 
 	/*TODO: not found in UI, readonly? */
 	prop = RNA_def_property(srna, "keys_step", PROP_INT, PROP_NONE);
