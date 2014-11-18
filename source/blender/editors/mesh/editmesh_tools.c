@@ -878,7 +878,7 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 	BMesh *bm = em->bm;
 	BMOperator bmop;
 	bool is_pair = (bm->totvertsel == 2);
-	int len;
+	int len = 0;
 	bool check_degenerate = true;
 	const int verts_len = bm->totvertsel;
 	BMVert **verts;
