@@ -318,6 +318,9 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 				mtfm_pre = mtfm_pre * itfm;
 				mtfm_post = mtfm_post * itfm;
 			}
+			else {
+				flag |= SD_OBJECT_HAS_VERTEX_MOTION;
+			}
 
 			memcpy(&objects_vector[i*OBJECT_VECTOR_SIZE+0], &mtfm_pre, sizeof(float4)*3);
 			memcpy(&objects_vector[i*OBJECT_VECTOR_SIZE+3], &mtfm_post, sizeof(float4)*3);

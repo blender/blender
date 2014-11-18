@@ -173,7 +173,7 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 		motion_post = primitive_attribute_float3(kg, sd, elem, offset_next, NULL, NULL);
 
 #ifdef __HAIR__
-		if(is_curve_primitive) {
+		if(is_curve_primitive && (sd->flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
 			object_position_transform(kg, sd, &motion_pre);
 			object_position_transform(kg, sd, &motion_post);
 		}

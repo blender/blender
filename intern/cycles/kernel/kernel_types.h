@@ -631,6 +631,7 @@ enum ShaderDataFlag {
 	SD_NEGATIVE_SCALE_APPLIED   = (1 << 24),  /* vertices have negative scale applied */
 	SD_OBJECT_HAS_VOLUME        = (1 << 25),  /* object has a volume shader */
 	SD_OBJECT_INTERSECTS_VOLUME = (1 << 26),  /* object intersects AABB of an object with volume shader */
+	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 22),  /* has position for motion vertices */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
 	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|
