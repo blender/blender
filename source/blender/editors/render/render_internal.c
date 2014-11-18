@@ -1551,10 +1551,10 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 	RE_ReleaseResultImage(re);
 }
 
-void ED_viewport_render_kill_jobs(const bContext *C, bool free_database)
+void ED_viewport_render_kill_jobs(wmWindowManager *wm,
+                                  Main *bmain,
+                                  bool free_database)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-	Main *bmain = CTX_data_main(C);
 	bScreen *sc;
 	ScrArea *sa;
 	ARegion *ar;

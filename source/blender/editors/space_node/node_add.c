@@ -227,7 +227,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		float insert_point[2];
 		
 		/* always first */
-		ED_preview_kill_jobs(C);
+		ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 		
 		node_deselect_all(snode);
 		
@@ -347,7 +347,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 	
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 	
 	node = node_add_node(C, NULL, type, snode->cursor[0], snode->cursor[1]);
 	
@@ -426,7 +426,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	node = node_add_node(C, NULL, CMP_NODE_MASK, snode->cursor[0], snode->cursor[1]);
 

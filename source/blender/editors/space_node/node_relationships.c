@@ -368,7 +368,7 @@ static int node_active_link_viewer_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!node)
 		return OPERATOR_CANCELLED;
 
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	if (node_link_viewer(C, node) == OPERATOR_CANCELLED)
 		return OPERATOR_CANCELLED;
@@ -747,7 +747,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 	                         &cursor[0], &cursor[1]);
 
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	nldrag = node_link_init(snode, cursor, detach);
 
@@ -803,7 +803,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	const bool replace = RNA_boolean_get(op->ptr, "replace");
 
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	snode_autoconnect(snode, 1, replace);
 
@@ -874,7 +874,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		bool found = false;
 		bNodeLink *link, *next;
 		
-		ED_preview_kill_jobs(C);
+		ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 		
 		for (link = snode->edittree->links.first; link; link = next) {
 			next = link->next;
@@ -884,7 +884,8 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 			if (cut_links_intersect(link, mcoords, i)) {
 
 				if (found == false) {
-					ED_preview_kill_jobs(C);
+					/* TODO(sergey): Why did we kill jobs twice? */
+					ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 					found = true;
 				}
 
@@ -941,7 +942,7 @@ static int detach_links_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeTree *ntree = snode->edittree;
 	bNode *node;
 
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {

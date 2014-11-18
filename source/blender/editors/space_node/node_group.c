@@ -144,7 +144,7 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
 	bNode *gnode;
 	const bool exit = RNA_boolean_get(op->ptr, "exit");
 	
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 	
 	gnode = node_group_get_active(C, node_idname);
 	
@@ -352,7 +352,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 	const char *node_idname = group_node_idname(C);
 	bNode *gnode;
 
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	gnode = node_group_get_active(C, node_idname);
 	if (!gnode)
@@ -522,7 +522,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 	float offx, offy;
 
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
 	/* are we inside of a group? */
 	ngroup = snode->edittree;
@@ -915,7 +915,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 	bNode *gnode;
 	Main *bmain = CTX_data_main(C);
 	
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 	
 	if (!node_group_make_test_selected(ntree, NULL, ntree_idname, op->reports))
 		return OPERATOR_CANCELLED;
@@ -966,7 +966,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 	bNode *gnode;
 	Main *bmain = CTX_data_main(C);
 	
-	ED_preview_kill_jobs(C);
+	ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 	
 	gnode = node_group_get_active(C, node_idname);
 	

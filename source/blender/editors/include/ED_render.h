@@ -40,6 +40,7 @@ struct ScrArea;
 struct RegionView3D;
 struct RenderEngine;
 struct View3D;
+struct wmWindowManager;
 
 /* render_ops.c */
 
@@ -52,7 +53,7 @@ void ED_render_engine_changed(struct Main *bmain);
 void ED_render_engine_area_exit(struct ScrArea *sa);
 void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated);
 
-void ED_viewport_render_kill_jobs(const struct bContext *C, bool free_database);
+void ED_viewport_render_kill_jobs(struct wmWindowManager *wm, struct Main *bmain, bool free_database);
 struct Scene *ED_render_job_get_scene(const struct bContext *C);
 
 /* Render the preview
@@ -72,7 +73,7 @@ void ED_preview_free_dbase(void);
 
 void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, struct ID *parent, struct MTex *slot, int sizex, int sizey, int method);
 void ED_preview_icon_job(const struct bContext *C, void *owner, struct ID *id, unsigned int *rect, int sizex, int sizey);
-void ED_preview_kill_jobs(const struct bContext *C);
+void ED_preview_kill_jobs(struct wmWindowManager *wm, struct Main *bmain);
 
 void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *slot, rcti *rect);
 
