@@ -145,6 +145,9 @@ void BKE_tracking_plane_marker_delete(struct MovieTrackingPlaneTrack *plane_trac
 struct MovieTrackingPlaneMarker *BKE_tracking_plane_marker_get(struct MovieTrackingPlaneTrack *plane_track, int framenr);
 struct MovieTrackingPlaneMarker *BKE_tracking_plane_marker_get_exact(struct MovieTrackingPlaneTrack *plane_track, int framenr);
 struct MovieTrackingPlaneMarker *BKE_tracking_plane_marker_ensure(struct MovieTrackingPlaneTrack *plane_track, int framenr);
+void BKE_tracking_plane_marker_get_subframe_corners(struct MovieTrackingPlaneTrack *plane_track,
+                                                    float framenr,
+                                                    float corners[4][2]);
 
 /* **** Object **** */
 struct MovieTrackingObject *BKE_tracking_object_add(struct MovieTracking *tracking, const char *name);
