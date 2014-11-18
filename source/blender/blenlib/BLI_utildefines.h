@@ -32,6 +32,10 @@
  *  \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* avoid many includes for now */
 #include "BLI_sys_types.h"
 #include "BLI_compiler_compat.h"
@@ -558,6 +562,10 @@ extern void BLI_system_backtrace(FILE *fp);
 #else
 #  define LIKELY(x)       (x)
 #  define UNLIKELY(x)     (x)
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif  /* __BLI_UTILDEFINES_H__ */
