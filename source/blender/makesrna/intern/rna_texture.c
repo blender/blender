@@ -119,6 +119,7 @@ static EnumPropertyItem blend_type_items[] = {
 #include "BKE_main.h"
 
 #include "ED_node.h"
+#include "ED_render.h"
 
 static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
@@ -443,8 +444,10 @@ static void rna_Envmap_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex = ptr->id.data;
 	
-	if (tex->env)
+	if (tex->env) {
+		ED_preview_kill_jobs(bmain->wm.first, bmain);
 		BKE_free_envmapdata(tex->env);
+	}
 	
 	rna_Texture_update(bmain, scene, ptr);
 }
