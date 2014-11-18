@@ -103,6 +103,16 @@ static struct GPUGlobal {
 	GPUTexture *invalid_tex_3D;
 } GG = {1, 0};
 
+/* Number of maximum output slots. We support 4 outputs for now (usually we wouldn't need more to preserve fill rate) */
+#define GPU_FB_MAX_SLOTS 4
+
+struct GPUFrameBuffer {
+	GLuint object;
+	GPUTexture *colortex[GPU_FB_MAX_SLOTS];
+	GPUTexture *depthtex;
+};
+
+
 /* GPU Types */
 
 int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
@@ -739,7 +749,13 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 		return;
 	}
 
-	if (number == -1)
+	if (tex->fb) {
+		if (tex->fb->object == GG.currentfb) {
+			fprintf(stderr, "Feedback loop warning!: Attempting to bind texture attached to current framebuffer!\n");
+		}
+	}
+
+	if (number < 0)
 		return;
 
 	GPU_print_error("Pre Texture Bind");
@@ -833,15 +849,6 @@ GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex)
 
 /* GPUFrameBuffer */
 
-/* Number of maximum output slots. We support 4 outputs for now (usually we wouldn't need more to preserve fill rate) */
-#define GPU_FB_MAX_SLOTS 4
-
-struct GPUFrameBuffer {
-	GLuint object;
-	GPUTexture *colortex[GPU_FB_MAX_SLOTS];
-	GPUTexture *depthtex;
-};
-
 GPUFrameBuffer *GPU_framebuffer_create(void)
 {
 	GPUFrameBuffer *fb;
@@ -871,6 +878,10 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 	if (slot >= GPU_FB_MAX_SLOTS) {
 		fprintf(stderr, "Attaching to index %d framebuffer slot unsupported in blender use at most %d\n", slot, GPU_FB_MAX_SLOTS);
 		return 0;
+	}
+
+	if (tex->target != -1) {
+		fprintf(stderr, "Feedback loop warning!: Attempting to attach texture to framebuffer while still bound to texture unit for drawing!");
 	}
 
 	if (tex->depth)
@@ -929,7 +940,7 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 	GLenum attachment;
 	GPUFrameBuffer *fb;
 
-	if (!tex->fb || tex->fb_attachment == -1)
+	if (!tex->fb)
 		return;
 
 	fb = tex->fb;
