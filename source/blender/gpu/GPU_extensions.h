@@ -141,8 +141,8 @@ int GPU_texture_opengl_bindcode(GPUTexture *tex);
  *   be called before rendering to the window framebuffer again */
 
 GPUFrameBuffer *GPU_framebuffer_create(void);
-int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err_out[256]);
-void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex);
+int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, char err_out[256]);
+void GPU_framebuffer_texture_detach(GPUTexture *tex);
 void GPU_framebuffer_texture_bind(GPUFrameBuffer *fb, GPUTexture *tex, int w, int h);
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);

@@ -323,6 +323,7 @@ struct GPUTexture {
 	int fromblender;		/* we got the texture from Blender */
 
 	GPUFrameBuffer *fb;		/* GPUFramebuffer this texture is attached to */
+	int fb_attachment;		/* slot the texture is attached to */
 	int depth;				/* is a depth texture? */
 };
 
@@ -370,6 +371,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	tex->refcount = 1;
 	tex->target = (n == 1)? GL_TEXTURE_1D: GL_TEXTURE_2D;
 	tex->depth = depth;
+	tex->fb_attachment = -1;
 
 	glGenTextures(1, &tex->bindcode);
 
@@ -791,7 +793,7 @@ void GPU_texture_free(GPUTexture *tex)
 	
 	if (tex->refcount == 0) {
 		if (tex->fb)
-			GPU_framebuffer_texture_detach(tex->fb, tex);
+			GPU_framebuffer_texture_detach(tex);
 		if (tex->bindcode && !tex->fromblender)
 			glDeleteTextures(1, &tex->bindcode);
 
@@ -831,9 +833,12 @@ GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex)
 
 /* GPUFrameBuffer */
 
+/* Number of maximum output slots. We support 4 outputs for now (usually we wouldn't need more to preserve fill rate) */
+#define GPU_FB_MAX_SLOTS 4
+
 struct GPUFrameBuffer {
 	GLuint object;
-	GPUTexture *colortex;
+	GPUTexture *colortex[GPU_FB_MAX_SLOTS];
 	GPUTexture *depthtex;
 };
 
@@ -857,16 +862,21 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 	return fb;
 }
 
-int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err_out[256])
+int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, char err_out[256])
 {
 	GLenum status;
 	GLenum attachment;
 	GLenum error;
 
+	if (slot >= GPU_FB_MAX_SLOTS) {
+		fprintf(stderr, "Attaching to index %d framebuffer slot unsupported in blender use at most %d\n", slot, GPU_FB_MAX_SLOTS);
+		return 0;
+	}
+
 	if (tex->depth)
 		attachment = GL_DEPTH_ATTACHMENT_EXT;
 	else
-		attachment = GL_COLOR_ATTACHMENT0_EXT;
+		attachment = GL_COLOR_ATTACHMENT0_EXT + slot;
 
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
 	GG.currentfb = fb->object;
@@ -890,8 +900,9 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err
 		glReadBuffer(GL_NONE);
 	}
 	else {
-		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+		/* last bound prevails here, better allow explicit control here too */
+		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
 	}
 
 	status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
@@ -905,22 +916,26 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err
 	if (tex->depth)
 		fb->depthtex = tex;
 	else
-		fb->colortex = tex;
+		fb->colortex[slot] = tex;
 
 	tex->fb= fb;
+	tex->fb_attachment = slot;
 
 	return 1;
 }
 
-void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
+void GPU_framebuffer_texture_detach(GPUTexture *tex)
 {
 	GLenum attachment;
+	GPUFrameBuffer *fb;
 
-	if (!tex->fb)
+	if (!tex->fb || tex->fb_attachment == -1)
 		return;
 
-	if (GG.currentfb != tex->fb->object) {
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, tex->fb->object);
+	fb = tex->fb;
+
+	if (GG.currentfb != fb->object) {
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
 		GG.currentfb = tex->fb->object;
 	}
 
@@ -929,14 +944,16 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
 		attachment = GL_DEPTH_ATTACHMENT_EXT;
 	}
 	else {
-		fb->colortex = NULL;
-		attachment = GL_COLOR_ATTACHMENT0_EXT;
+		BLI_assert(fb->colortex[tex->fb_attachment] == tex);
+		fb->colortex[tex->fb_attachment] = NULL;
+		attachment = GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment;
 	}
 
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, attachment,
 		tex->target, 0, 0);
 
 	tex->fb = NULL;
+	tex->fb_attachment = -1;
 }
 
 void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex, int w, int h)
@@ -973,10 +990,15 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUS
 
 void GPU_framebuffer_free(GPUFrameBuffer *fb)
 {
+	int i;
 	if (fb->depthtex)
-		GPU_framebuffer_texture_detach(fb, fb->depthtex);
-	if (fb->colortex)
-		GPU_framebuffer_texture_detach(fb, fb->colortex);
+		GPU_framebuffer_texture_detach(fb->depthtex);
+
+	for (i = 0; i < GPU_FB_MAX_SLOTS; i++) {
+		if (fb->colortex[i]) {
+			GPU_framebuffer_texture_detach(fb->colortex[i]);
+		}
+	}
 
 	if (fb->object) {
 		glDeleteFramebuffersEXT(1, &fb->object);
@@ -1093,7 +1115,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
 		return NULL;
 	}
 
-	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth, err_out)) {
+	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth, 0, err_out)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
@@ -1104,7 +1126,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
 		return NULL;
 	}
 
-	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->color, err_out)) {
+	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->color, 0, err_out)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
