@@ -1362,7 +1362,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	else
 		glScissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 
-	glClearColor(0.0, 0.0, 0.0, 0.0); 
+	glClearColor(0.0, 0.0, 0.0, 0.0);
 	if (v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
