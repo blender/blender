@@ -25,6 +25,7 @@
 #include "blender_util.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -555,6 +556,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resol
 
 void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 {
+	VLOG(1) << "Exporting curve segments for mesh " << mesh->name;
 	int num_keys = 0;
 	int num_curves = 0;
 
@@ -623,12 +625,16 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 
 static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveData *CData, int time_index)
 {
+	VLOG(1) << "Exporting curve motion segments for mesh " << mesh->name
+	        << ", time index " << time_index;
+
 	/* find attribute */
 	Attribute *attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	bool new_attribute = false;
 
 	/* add new attribute if it doesn't exist already */
 	if(!attr_mP) {
+		VLOG(1) << "Creating new motion vertex position attribute";
 		attr_mP = mesh->curve_attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
 		new_attribute = true;
 	}
@@ -675,9 +681,12 @@ static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveDat
 	if(new_attribute) {
 		if(i != numkeys || !have_motion) {
 			/* no motion, remove attributes again */
+			VLOG(1) << "No motion, removing attribute";
 			mesh->curve_attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
 		}
 		else if(time_index > 0) {
+			VLOG(1) << "Filling in new motion vertex position for time_index"
+			        << time_index;
 			/* motion, fill up previous steps that we might have skipped because
 			 * they had no motion, but we need them anyway now */
 			for(int step = 0; step < time_index; step++) {
