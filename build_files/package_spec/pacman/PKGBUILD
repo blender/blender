@@ -17,7 +17,7 @@ else
 	blender_version_full=${blender_version}
 fi
 
-blender_ver_string=$blender_version+svn$blender_version_full
+blender_ver_string=$blender_version+git$blender_version_full
 
 pkgname=blender-snapshot
 pkgver=$blender_ver_string
@@ -27,8 +27,8 @@ arch=('i686' 'x86_64')
 url="www.blender.org"
 license=('GPL')
 groups=()
-depends=('libjpeg' 'libpng' 'openjpeg' 'libtiff' 'openexr'  'python>=3.2' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'ffmpeg')
-makedepends=('cmake' 'svn')
+depends=('libjpeg' 'libpng' 'openjpeg' 'libtiff' 'openexr'  'python>=3.4' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'ffmpeg')
+makedepends=('cmake' 'git')
 optdepends=()
 provides=()
 conflicts=('blender')
@@ -36,7 +36,7 @@ replaces=('blender')
 backup=()
 options=()
 install=blender.install
-# use current svn to make the package.
+# use current git to make the package.
 # source=(http://download.blender.org/source/$pkgname-$pkgver.tar.gz)
 # md5sums=('27edb80c82c25252d43d6a01980d953a') #generate with 'makepkg -g'
 source=()
@@ -51,11 +51,7 @@ build() {
     -DCMAKE_BUILD_TYPE:STRING=Release \
     -DWITH_INSTALL_PORTABLE:BOOL=OFF \
     -DWITH_PYTHON_INSTALL:BOOL=OFF \
-    -DWITH_OPENCOLLADA:BOOL=OFF \
-	-DPYTHON_VERSION:STRING=3.2 \
-	-DPYTHON_LIBPATH:STRING=/usr/lib \
-	-DPYTHON_LIBRARY:STRING=python3.2mu \
-	-DPYTHON_INCLUDE_DIRS:STRING=/usr/include/python3.2mu
+    -DWITH_OPENCOLLADA:BOOL=OFF
 
   make $MAKEFLAGS
 }
