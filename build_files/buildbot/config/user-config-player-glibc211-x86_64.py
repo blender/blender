@@ -64,6 +64,8 @@ WITH_BF_STATICZLIB = True
 BF_ZLIB_LIB_STATIC = '${BF_ZLIB}/lib/libz.a'
 
 WITH_BF_SDL = True
+WITH_BF_SDL_DYNLOAD = True
+
 WITH_BF_OGG = False
 
 WITH_BF_OPENMP = True
