@@ -462,12 +462,9 @@ bool ED_mesh_color_remove_named(struct Mesh *me, const char *name) RET_ZERO
 bool ED_mesh_uv_texture_remove_named(struct Mesh *me, const char *name) RET_ZERO
 void ED_object_constraint_dependency_update(struct Main *bmain, struct Object *ob) RET_NONE
 void ED_object_constraint_update(struct Object *ob) RET_NONE
-struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, const char *name) RET_NULL
 void ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum, float weight, int assignmode) RET_NONE
 void ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum) RET_NONE
 float ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum) RET_ZERO
-void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup) RET_NONE
-void ED_vgroup_clear(struct Object *ob) RET_NONE
 int ED_mesh_mirror_topo_table(struct Object *ob, char mode) RET_ZERO
 int ED_mesh_mirror_spatial_table(struct Object *ob, struct BMEditMesh *em, const float co[3], char mode) RET_ZERO
 

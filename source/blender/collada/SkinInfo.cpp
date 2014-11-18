@@ -38,13 +38,16 @@
 #include "BLI_math.h"
 #include "BLI_compiler_attrs.h"
 
-#include "BKE_object.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
+
+#include "BKE_action.h"
+#include "BKE_object.h"
+#include "BKE_object_deform.h"
+
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "BKE_action.h"
 
 #include "SkinInfo.h"
 #include "collada_utils.h"
@@ -263,7 +266,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 			name = bc_get_joint_name(joint_by_uid[(*it).joint_uid]);
 		}
 
-		ED_vgroup_add_name(ob, (char *)name);
+		BKE_object_defgroup_add_name(ob, name);
 	}
 
 	// <vcount> - number of joints per vertex - joints_per_vertex

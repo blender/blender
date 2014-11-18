@@ -1228,7 +1228,7 @@ static void calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const d
 		bool *defbase_sel = NULL;
 
 		if (draw_flag & CALC_WP_MULTIPAINT) {
-			defbase_sel = BKE_objdef_selected_get(ob, defbase_tot, &defbase_sel_tot);
+			defbase_sel = BKE_object_defgroup_selected_get(ob, defbase_tot, &defbase_sel_tot);
 		}
 
 		for (i = numVerts; i != 0; i--, wc++, dv++) {

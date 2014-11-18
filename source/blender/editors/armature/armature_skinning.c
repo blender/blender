@@ -43,6 +43,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_deform.h"
+#include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "BKE_subsurf.h"
 #include "BKE_modifier.h"
@@ -117,7 +118,7 @@ static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
 	 */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!defgroup_find_name(ob, bone->name)) {
-			ED_vgroup_add_name(ob, bone->name);
+			BKE_object_defgroup_add_name(ob, bone->name);
 			return 1;
 		}
 	}
@@ -164,7 +165,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 			
 			if (!wpmode || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED)))
 				if (!(defgroup = defgroup_find_name(ob, bone->name)))
-					defgroup = ED_vgroup_add_name(ob, bone->name);
+					defgroup = BKE_object_defgroup_add_name(ob, bone->name);
 			
 			if (data->list != NULL) {
 				hgroup = (bDeformGroup ***) &data->list;
@@ -276,7 +277,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	if (numbones == 0)
 		return;
 	
-	if (ED_vgroup_data_create(ob->data) == false)
+	if (BKE_object_defgroup_data_create(ob->data) == false)
 		return;
 
 	/* create an array of pointer to bones that are skinnable

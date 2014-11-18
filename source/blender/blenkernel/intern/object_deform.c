@@ -27,18 +27,457 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_translation.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
+#include "DNA_armature_types.h"
+#include "DNA_cloth_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_force.h"
+#include "DNA_particle_types.h"
+#include "DNA_scene_types.h"
+
 #include "BKE_action.h"
+#include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_object_deform.h"  /* own include */
 #include "BKE_object.h"
 #include "BKE_modifier.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
+/** \name Misc helpers
+ * \{ */
+
+static Lattice *object_defgroup_lattice_get(ID *id)
+{
+	Lattice *lt = (Lattice *)id;
+	BLI_assert(GS(id->name) == ID_LT);
+	return (lt->editlatt) ? lt->editlatt->latt : lt;
+}
+
+/**
+ * Update users of vgroups from this object, according to given map.
+ *
+ * Use it when you remove or reorder vgroups in the object.
+ *
+ * \param map an array mapping old indices to new indices.
+ */
+void BKE_object_defgroup_remap_update_users(Object *ob, int *map)
+{
+	ModifierData *md;
+	ParticleSystem *psys;
+	int a;
+
+	/* these cases don't use names to refer to vertex groups, so when
+	 * they get removed the numbers get out of sync, this corrects that */
+
+	if (ob->soft) {
+		ob->soft->vertgroup = map[ob->soft->vertgroup];
+	}
+
+	for (md = ob->modifiers.first; md; md = md->next) {
+		if (md->type == eModifierType_Explode) {
+			ExplodeModifierData *emd = (ExplodeModifierData *)md;
+			emd->vgroup = map[emd->vgroup];
+		}
+		else if (md->type == eModifierType_Cloth) {
+			ClothModifierData *clmd = (ClothModifierData *)md;
+			ClothSimSettings *clsim = clmd->sim_parms;
+
+			if (clsim) {
+				clsim->vgroup_mass = map[clsim->vgroup_mass];
+				clsim->vgroup_bend = map[clsim->vgroup_bend];
+				clsim->vgroup_struct = map[clsim->vgroup_struct];
+			}
+		}
+	}
+
+	for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+		for (a = 0; a < PSYS_TOT_VG; a++) {
+			psys->vgroup[a] = map[psys->vgroup[a]];
+		}
+	}
+}
+/** \} */
+
+
+/** \name Group creation
+ * \{ */
+
+/**
+ * Add a vgroup of given name to object. *Does not* handle MDeformVert data at all!
+ */
+bDeformGroup *BKE_object_defgroup_add_name(Object *ob, const char *name)
+{
+	bDeformGroup *defgroup;
+
+	if (!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
+		return NULL;
+
+	defgroup = BKE_defgroup_new(ob, name);
+
+	ob->actdef = BLI_listbase_count(&ob->defbase);
+
+	return defgroup;
+}
+
+/**
+ * Add a vgroup of default name to object. *Does not* handle MDeformVert data at all!
+ */
+bDeformGroup *BKE_object_defgroup_add(Object *ob) 
+{
+	return BKE_object_defgroup_add_name(ob, DATA_("Group"));
+}
+
+/**
+ * Create MDeformVert data for given ID. Work in Object mode only.
+ */
+MDeformVert *BKE_object_defgroup_data_create(ID *id)
+{
+	if (GS(id->name) == ID_ME) {
+		Mesh *me = (Mesh *)id;
+		me->dvert = CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, me->totvert);
+		return me->dvert;
+	}
+	else if (GS(id->name) == ID_LT) {
+		Lattice *lt = (Lattice *)id;
+		lt->dvert = MEM_callocN(sizeof(MDeformVert) * lt->pntsu * lt->pntsv * lt->pntsw, "lattice deformVert");
+		return lt->dvert;
+	}
+
+	return NULL;
+}
+/** \} */
+
+
+/** \name Group clearing
+ * \{ */
+
+/**
+ * Remove all verts (or only selected ones) from given vgroup. Work in Object and Edit modes.
+ *
+ * \param allverts If true, remove all vertices, else only selected ones.
+ * \return True if any vertex was removed, false otherwise.
+ */
+bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_selection)
+{
+	MDeformVert *dv;
+	const int def_nr = BLI_findindex(&ob->defbase, dg);
+	bool changed = false;
+
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+
+		if (me->edit_btmesh) {
+			BMEditMesh *em = me->edit_btmesh;
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
+			if (cd_dvert_offset != -1) {
+				BMVert *eve;
+				BMIter iter;
+
+				BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+					dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+
+					if (dv && dv->dw && (!use_selection || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
+						MDeformWeight *dw = defvert_find_index(dv, def_nr);
+						defvert_remove_group(dv, dw); /* dw can be NULL */
+						changed = true;
+					}
+				}
+			}
+		}
+		else {
+			if (me->dvert) {
+				MVert *mv;
+				int i;
+
+				mv = me->mvert;
+				dv = me->dvert;
+
+				for (i = 0; i < me->totvert; i++, mv++, dv++) {
+					if (mv->flag & SELECT) {
+						if (dv->dw && (!use_selection || (mv->flag & SELECT))) {
+							MDeformWeight *dw = defvert_find_index(dv, def_nr);
+							defvert_remove_group(dv, dw);  /* dw can be NULL */
+							changed = true;
+						}
+					}
+				}
+			}
+		}
+	}
+	else if (ob->type == OB_LATTICE) {
+		Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
+
+		if (lt->dvert) {
+			BPoint *bp;
+			int i, tot = lt->pntsu * lt->pntsv * lt->pntsw;
+
+			for (i = 0, bp = lt->def; i < tot; i++, bp++) {
+				if (!use_selection || (bp->f1 & SELECT)) {
+					MDeformWeight *dw;
+
+					dv = &lt->dvert[i];
+
+					dw = defvert_find_index(dv, def_nr);
+					defvert_remove_group(dv, dw);  /* dw can be NULL */
+					changed = true;
+				}
+			}
+		}
+	}
+
+	return changed;
+}
+
+/**
+ * Remove all verts (or only selected ones) from all vgroups. Work in Object and Edit modes.
+ *
+ * \param allverts If true, remove all vertices, else only selected ones.
+ * \return True if any vertex was removed, false otherwise.
+ */
+bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
+{
+	bDeformGroup *dg;
+	bool changed = false;
+
+	for (dg = ob->defbase.first; dg; dg = dg->next) {
+		if (BKE_object_defgroup_clear(ob, dg, use_selection)) {
+			changed = true;
+		}
+	}
+
+	return changed;
+}
+/** \} */
+
+
+/** \name Group removal
+ * \{ */
+
+static void object_defgroup_remove_update_users(Object *ob, const int idx)
+{
+	int i, defbase_tot = BLI_listbase_count(&ob->defbase) + 1;
+	int *map = MEM_mallocN(sizeof(int) * defbase_tot, "vgroup del");
+
+	map[idx] = map[0] = 0;
+	for (i = 1; i < idx; i++) {
+		map[i] = i;
+	}
+	for (i = idx + 1; i < defbase_tot; i++) {
+		map[i] = i - 1;
+	}
+
+	BKE_object_defgroup_remap_update_users(ob, map);
+	MEM_freeN(map);
+}
+
+static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const int def_nr)
+{
+	object_defgroup_remove_update_users(ob, def_nr + 1);
+
+	/* Remove the group */
+	BLI_freelinkN(&ob->defbase, dg);
+
+	/* Update the active deform index if necessary */
+	if (ob->actdef > def_nr)
+		ob->actdef--;
+
+	/* remove all dverts */
+	if (BLI_listbase_is_empty(&ob->defbase)) {
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
+			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+			me->dvert = NULL;
+		}
+		else if (ob->type == OB_LATTICE) {
+			Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
+			if (lt->dvert) {
+				MEM_freeN(lt->dvert);
+				lt->dvert = NULL;
+			}
+		}
+	}
+	else if (ob->actdef < 1) {  /* Keep a valid active index if we still have some vgroups. */
+		ob->actdef = 1;
+	}
+}
+
+static void object_defgroup_remove_object_mode(Object *ob, bDeformGroup *dg)
+{
+	MDeformVert *dvert_array = NULL;
+	int dvert_tot = 0;
+	const int def_nr = BLI_findindex(&ob->defbase, dg);
+
+	BLI_assert(def_nr != -1);
+
+	BKE_object_defgroup_array_get(ob->data, &dvert_array, &dvert_tot);
+
+	if (dvert_array) {
+		int i, j;
+		MDeformVert *dv;
+		for (i = 0, dv = dvert_array; i < dvert_tot; i++, dv++) {
+			MDeformWeight *dw;
+
+			dw = defvert_find_index(dv, def_nr);
+			defvert_remove_group(dv, dw); /* dw can be NULL */
+
+			/* inline, make into a function if anything else needs to do this */
+			for (j = 0; j < dv->totweight; j++) {
+				if (dv->dw[j].def_nr > def_nr) {
+					dv->dw[j].def_nr--;
+				}
+			}
+			/* done */
+		}
+	}
+
+	object_defgroup_remove_common(ob, dg, def_nr);
+}
+
+static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
+{
+	int i;
+	const int def_nr = BLI_findindex(&ob->defbase, dg);
+
+	BLI_assert(def_nr != -1);
+
+	/* Make sure that no verts are using this group - if none were removed, we can skip next per-vert update. */
+	if (!BKE_object_defgroup_clear(ob, dg, false)) {
+		/* Nothing to do. */
+	}
+	/* Else, make sure that any groups with higher indices are adjusted accordingly */
+	else if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		BMEditMesh *em = me->edit_btmesh;
+		const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+
+		BMIter iter;
+		BMVert *eve;
+		MDeformVert *dvert;
+
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+			dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+
+			if (dvert) {
+				for (i = 0; i < dvert->totweight; i++) {
+					if (dvert->dw[i].def_nr > def_nr) {
+						dvert->dw[i].def_nr--;
+					}
+				}
+			}
+		}
+	}
+	else if (ob->type == OB_LATTICE) {
+		Lattice *lt = ((Lattice *)(ob->data))->editlatt->latt;
+		BPoint *bp;
+		MDeformVert *dvert = lt->dvert;
+		int a, tot;
+
+		if (dvert) {
+			tot = lt->pntsu * lt->pntsv * lt->pntsw;
+			for (a = 0, bp = lt->def; a < tot; a++, bp++, dvert++) {
+				for (i = 0; i < dvert->totweight; i++) {
+					if (dvert->dw[i].def_nr > def_nr) {
+						dvert->dw[i].def_nr--;
+					}
+				}
+			}
+		}
+	}
+
+	object_defgroup_remove_common(ob, dg, def_nr);
+}
+
+/**
+ * Remove given vgroup from object. Work in Object and Edit modes.
+ */
+void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
+{
+	if (BKE_object_is_in_editmode_vgroup(ob))
+		object_defgroup_remove_edit_mode(ob, defgroup);
+	else
+		object_defgroup_remove_object_mode(ob, defgroup);
+}
+
+/**
+ * Remove all vgroups from object. Work in Object and Edit modes.
+ */
+void BKE_object_defgroup_remove_all(Object *ob)
+{
+	bDeformGroup *dg = (bDeformGroup *)ob->defbase.first;
+	const bool edit_mode = BKE_object_is_in_editmode_vgroup(ob);
+
+	if (dg) {
+		while (dg) {
+			bDeformGroup *next_dg = dg->next;
+
+			if (edit_mode)
+				object_defgroup_remove_edit_mode(ob, dg);
+			else
+				object_defgroup_remove_object_mode(ob, dg);
+
+			dg = next_dg;
+		}
+	}
+	else {  /* ob->defbase is empty... */
+		/* remove all dverts */
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
+			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+			me->dvert = NULL;
+		}
+		else if (ob->type == OB_LATTICE) {
+			Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
+			if (lt->dvert) {
+				MEM_freeN(lt->dvert);
+				lt->dvert = NULL;
+			}
+		}
+		/* Fix counters/indices */
+		ob->actdef = 0;
+	}
+}
+
+/**
+ * Get MDeformVert vgroup data from given object. Should only be used in Object mode.
+ *
+ * \return True if the id type supports weights.
+ */
+bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
+{
+	if (id) {
+		switch (GS(id->name)) {
+			case ID_ME:
+			{
+				Mesh *me = (Mesh *)id;
+				*dvert_arr = me->dvert;
+				*dvert_tot = me->totvert;
+				return true;
+			}
+			case ID_LT:
+			{
+				Lattice *lt = object_defgroup_lattice_get(id);
+				*dvert_arr = lt->dvert;
+				*dvert_tot = lt->pntsu * lt->pntsv * lt->pntsw;
+				return true;
+			}
+		}
+	}
+
+	*dvert_arr = NULL;
+	*dvert_tot = 0;
+	return false;
+}
+/** \} */
 
 /* --- functions for getting vgroup aligned maps --- */
 
@@ -46,7 +485,7 @@
  * gets the status of "flag" for each bDeformGroup
  * in ob->defbase and returns an array containing them
  */
-bool *BKE_objdef_lock_flags_get(Object *ob, const int defbase_tot)
+bool *BKE_object_defgroup_lock_flags_get(Object *ob, const int defbase_tot)
 {
 	bool is_locked = false;
 	int i;
@@ -66,11 +505,11 @@ bool *BKE_objdef_lock_flags_get(Object *ob, const int defbase_tot)
 	return NULL;
 }
 
-bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
+bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
 {
 	bDeformGroup *dg;
 	ModifierData *md;
-	bool *vgroup_validmap;
+	bool *defgroup_validmap;
 	GHash *gh;
 	int i, step1 = 1;
 	//int defbase_tot = BLI_listbase_count(&ob->defbase);
@@ -80,7 +519,7 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 		return NULL;
 	}
 
-	gh = BLI_ghash_str_new_ex("BKE_objdef_validmap_get gh", defbase_tot);
+	gh = BLI_ghash_str_new_ex(__func__, defbase_tot);
 
 	/* add all names to a hash table */
 	for (dg = ob->defbase.first; dg; dg = dg->next) {
@@ -115,23 +554,23 @@ bool *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 		}
 	}
 
-	vgroup_validmap = MEM_mallocN(sizeof(*vgroup_validmap) * defbase_tot, "wpaint valid map");
+	defgroup_validmap = MEM_mallocN(sizeof(*defgroup_validmap) * defbase_tot, "wpaint valid map");
 
 	/* add all names to a hash table */
 	for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
-		vgroup_validmap[i] = (BLI_ghash_lookup(gh, dg->name) != NULL);
+		defgroup_validmap[i] = (BLI_ghash_lookup(gh, dg->name) != NULL);
 	}
 
 	BLI_assert(i == BLI_ghash_size(gh));
 
 	BLI_ghash_free(gh, NULL, NULL);
 
-	return vgroup_validmap;
+	return defgroup_validmap;
 }
 
 /* Returns total selected vgroups,
  * wpi.defbase_sel is assumed malloc'd, all values are set */
-bool *BKE_objdef_selected_get(Object *ob, int defbase_tot, int *r_dg_flags_sel_tot)
+bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_flags_sel_tot)
 {
 	bool *dg_selection = MEM_mallocN(defbase_tot * sizeof(bool), __func__);
 	bDeformGroup *defgroup;
@@ -158,3 +597,86 @@ bool *BKE_objdef_selected_get(Object *ob, int defbase_tot, int *r_dg_flags_sel_t
 
 	return dg_selection;
 }
+
+
+/**
+ * Return the subset type of the Vertex Group Selection
+ */
+bool *BKE_object_defgroup_subset_from_select_type(
+        Object *ob, eVGroupSelect subset_type, int *r_defgroup_tot, int *r_subset_count)
+{
+	bool *defgroup_validmap = NULL;
+	*r_defgroup_tot = BLI_listbase_count(&ob->defbase);
+
+	switch (subset_type) {
+		case WT_VGROUP_ACTIVE:
+		{
+			const int def_nr_active = ob->actdef - 1;
+			defgroup_validmap = MEM_mallocN(*r_defgroup_tot * sizeof(*defgroup_validmap), __func__);
+			memset(defgroup_validmap, false, *r_defgroup_tot * sizeof(*defgroup_validmap));
+			if ((def_nr_active >= 0) && (def_nr_active < *r_defgroup_tot)) {
+				*r_subset_count = 1;
+				defgroup_validmap[def_nr_active] = true;
+			}
+			else {
+				*r_subset_count = 0;
+			}
+			break;
+		}
+		case WT_VGROUP_BONE_SELECT:
+		{
+			defgroup_validmap = BKE_object_defgroup_selected_get(ob, *r_defgroup_tot, r_subset_count);
+			break;
+		}
+		case WT_VGROUP_BONE_DEFORM:
+		{
+			int i;
+			defgroup_validmap = BKE_object_defgroup_validmap_get(ob, *r_defgroup_tot);
+			*r_subset_count = 0;
+			for (i = 0; i < *r_defgroup_tot; i++) {
+				if (defgroup_validmap[i] == true) {
+					*r_subset_count += 1;
+				}
+			}
+			break;
+		}
+		case WT_VGROUP_BONE_DEFORM_OFF:
+		{
+			int i;
+			defgroup_validmap = BKE_object_defgroup_validmap_get(ob, *r_defgroup_tot);
+			*r_subset_count = 0;
+			for (i = 0; i < *r_defgroup_tot; i++) {
+				defgroup_validmap[i] = !defgroup_validmap[i];
+				if (defgroup_validmap[i] == true) {
+					*r_subset_count += 1;
+				}
+			}
+			break;
+		}
+		case WT_VGROUP_ALL:
+		default:
+		{
+			defgroup_validmap = MEM_mallocN(*r_defgroup_tot * sizeof(*defgroup_validmap), __func__);
+			memset(defgroup_validmap, true, *r_defgroup_tot * sizeof(*defgroup_validmap));
+			*r_subset_count = *r_defgroup_tot;
+			break;
+		}
+	}
+
+	return defgroup_validmap;
+}
+
+/**
+ * store indices from the defgroup_validmap (faster lookups in some cases)
+ */
+void BKE_object_defgroup_subset_to_index_array(
+        const bool *defgroup_validmap, const int defgroup_tot, int *r_defgroup_subset_map)
+{
+	int i, j = 0;
+	for (i = 0; i < defgroup_tot; i++) {
+		if (defgroup_validmap[i]) {
+			r_defgroup_subset_map[j++] = i;
+		}
+	}
+}
+

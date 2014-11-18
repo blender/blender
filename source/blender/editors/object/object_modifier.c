@@ -68,6 +68,7 @@
 #include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_object.h"
+#include "BKE_object_deform.h"
 #include "BKE_ocean.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -1667,7 +1668,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 		BLI_snprintf(bone->name, sizeof(bone->name), "Bone.%.2d", endx);
 
 		/* add bDeformGroup */
-		if ((dg = ED_vgroup_add_name(skin_ob, bone->name))) {
+		if ((dg = BKE_object_defgroup_add_name(skin_ob, bone->name))) {
 			ED_vgroup_vert_add(skin_ob, dg, parent_v, 1, WEIGHT_REPLACE);
 			ED_vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
 		}

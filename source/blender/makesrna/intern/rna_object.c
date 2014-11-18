@@ -46,6 +46,8 @@
 #include "BKE_editmesh.h"
 #include "BKE_group.h" /* needed for BKE_group_object_exists() */
 #include "BKE_object.h" /* Needed for BKE_object_matrix_local_get() */
+#include "BKE_object_deform.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -1389,7 +1391,7 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 
 static bDeformGroup *rna_Object_vgroup_new(Object *ob, const char *name)
 {
-	bDeformGroup *defgroup = ED_vgroup_add_name(ob, name);
+	bDeformGroup *defgroup = BKE_object_defgroup_add_name(ob, name);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 
@@ -1404,7 +1406,7 @@ static void rna_Object_vgroup_remove(Object *ob, ReportList *reports, PointerRNA
 		return;
 	}
 
-	ED_vgroup_delete(ob, defgroup);
+	BKE_object_defgroup_remove(ob, defgroup);
 	RNA_POINTER_INVALIDATE(defgroup_ptr);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
@@ -1412,7 +1414,7 @@ static void rna_Object_vgroup_remove(Object *ob, ReportList *reports, PointerRNA
 
 static void rna_Object_vgroup_clear(Object *ob)
 {
-	ED_vgroup_clear(ob);
+	BKE_object_defgroup_remove_all(ob);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
