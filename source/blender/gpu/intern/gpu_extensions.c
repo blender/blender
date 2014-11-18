@@ -880,7 +880,7 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 		return 0;
 	}
 
-	if (tex->target != -1) {
+	if (tex->number != -1) {
 		fprintf(stderr, "Feedback loop warning!: Attempting to attach texture to framebuffer while still bound to texture unit for drawing!");
 	}
 
