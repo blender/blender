@@ -84,9 +84,16 @@ static void copyData(ModifierData *md, ModifierData *target)
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
 	MeshDeformModifierData *tmmd = (MeshDeformModifierData *) target;
 
-	tmmd->gridsize = mmd->gridsize;
-	tmmd->flag = mmd->flag;
-	tmmd->object = mmd->object;
+	*tmmd = *mmd;
+
+	if (mmd->bindinfluences) tmmd->bindinfluences = MEM_dupallocN(mmd->bindinfluences);
+	if (mmd->bindoffsets) tmmd->bindoffsets = MEM_dupallocN(mmd->bindoffsets);
+	if (mmd->bindcagecos) tmmd->bindcagecos = MEM_dupallocN(mmd->bindcagecos);
+	if (mmd->dyngrid) tmmd->dyngrid = MEM_dupallocN(mmd->dyngrid);
+	if (mmd->dyninfluences) tmmd->dyninfluences = MEM_dupallocN(mmd->dyninfluences);
+	if (mmd->dynverts) tmmd->dynverts = MEM_dupallocN(mmd->dynverts);
+	if (mmd->bindweights) tmmd->dynverts = MEM_dupallocN(mmd->bindweights);  /* deprecated */
+	if (mmd->bindcos) tmmd->dynverts = MEM_dupallocN(mmd->bindcos);  /* deprecated */
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
