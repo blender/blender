@@ -1979,8 +1979,7 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[4][4], int *winsiz
 
 	/* opengl */
 	glDisable(GL_SCISSOR_TEST);
-	GPU_framebuffer_texture_bind(lamp->fb, lamp->tex,
-		GPU_texture_opengl_width(lamp->tex), GPU_texture_opengl_height(lamp->tex));
+	GPU_texture_bind_as_framebuffer(lamp->tex);
 	if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE)
 		GPU_shader_bind(GPU_shader_get_builtin_shader(GPU_SHADER_VSM_STORE));
 

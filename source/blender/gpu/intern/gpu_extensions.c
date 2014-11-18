@@ -906,16 +906,6 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 		return 0;
 	}
 
-	if (tex->depth) {
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-	}
-	else {
-		/* last bound prevails here, better allow explicit control here too */
-		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
-		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
-	}
-
 	status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
@@ -967,8 +957,13 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 	tex->fb_attachment = -1;
 }
 
-void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex, int w, int h)
+void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 {
+	if (!tex->fb) {
+		fprintf(stderr, "Error, texture not bound to framebuffer!");
+		return;
+	}
+
 	/* push attributes */
 	glPushAttrib(GL_ENABLE_BIT | GL_VIEWPORT_BIT);
 	glDisable(GL_SCISSOR_TEST);
@@ -976,8 +971,12 @@ void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex, i
 	/* bind framebuffer */
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, tex->fb->object);
 
+	/* last bound prevails here, better allow explicit control here too */
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment);
+	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment);
+
 	/* push matrices and set default viewport and matrix */
-	glViewport(0, 0, w, h);
+	glViewport(0, 0, tex->w, tex->h);
 	GG.currentfb = tex->fb->object;
 
 	glMatrixMode(GL_PROJECTION);
@@ -985,6 +984,35 @@ void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex, i
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 }
+
+void GPU_framebuffer_slot_bind(GPUFrameBuffer *fb, int slot)
+{
+	if (!fb->colortex[slot]) {
+		fprintf(stderr, "Error, framebuffer slot empty!");
+		return;
+	}
+
+	/* push attributes */
+	glPushAttrib(GL_ENABLE_BIT | GL_VIEWPORT_BIT);
+	glDisable(GL_SCISSOR_TEST);
+
+	/* bind framebuffer */
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+
+	/* last bound prevails here, better allow explicit control here too */
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
+	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
+
+	/* push matrices and set default viewport and matrix */
+	glViewport(0, 0, fb->colortex[slot]->w, fb->colortex[slot]->h);
+	GG.currentfb = fb->object;
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+}
+
 
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUSED(tex))
 {
@@ -996,7 +1024,6 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUS
 
 	/* restore attributes */
 	glPopAttrib();
-	glEnable(GL_SCISSOR_TEST);
 }
 
 void GPU_framebuffer_free(GPUFrameBuffer *fb)
@@ -1100,10 +1127,6 @@ struct GPUOffScreen {
 	GPUFrameBuffer *fb;
 	GPUTexture *color;
 	GPUTexture *depth;
-
-	/* requested width/height, may be smaller than actual texture size due
-	 * to missing non-power of two support, so we compensate for that */
-	int w, h;
 };
 
 GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
@@ -1111,8 +1134,6 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
 	GPUOffScreen *ofs;
 
 	ofs= MEM_callocN(sizeof(GPUOffScreen), "GPUOffScreen");
-	ofs->w= width;
-	ofs->h= height;
 
 	ofs->fb = GPU_framebuffer_create();
 	if (!ofs->fb) {
@@ -1162,7 +1183,7 @@ void GPU_offscreen_free(GPUOffScreen *ofs)
 void GPU_offscreen_bind(GPUOffScreen *ofs)
 {
 	glDisable(GL_SCISSOR_TEST);
-	GPU_framebuffer_texture_bind(ofs->fb, ofs->color, ofs->w, ofs->h);
+	GPU_texture_bind_as_framebuffer(ofs->color);
 }
 
 void GPU_offscreen_unbind(GPUOffScreen *ofs)
@@ -1174,17 +1195,17 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs)
 
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 {
-	glReadPixels(0, 0, ofs->w, ofs->h, GL_RGBA, type, pixels);
+	glReadPixels(0, 0, ofs->color->w, ofs->color->h, GL_RGBA, type, pixels);
 }
 
 int GPU_offscreen_width(GPUOffScreen *ofs)
 {
-	return ofs->w;
+	return ofs->color->w;
 }
 
 int GPU_offscreen_height(GPUOffScreen *ofs)
 {
-	return ofs->h;
+	return ofs->color->h;
 }
 
 /* GPUShader */
