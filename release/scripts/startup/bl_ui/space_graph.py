@@ -189,6 +189,8 @@ class GRAPH_MT_channel(Menu):
 
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
+        layout.operator("graph.hide")
+        layout.operator("graph.unhide")
         layout.operator("anim.channels_visibility_set")
         layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
 

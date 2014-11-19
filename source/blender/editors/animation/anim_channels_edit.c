@@ -1665,89 +1665,12 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_channels_visibility_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Set Visibility";
+	ot->name = "Show Selected Curves Only";
 	ot->idname = "ANIM_OT_channels_visibility_set";
 	ot->description = "Make only the selected animation channels visible in the Graph Editor";
 	
 	/* api callbacks */
 	ot->exec = animchannels_visibility_set_exec;
-	ot->poll = ED_operator_graphedit_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-
-/* ******************** Toggle Channel Visibility Operator *********************** */
-/* NOTE: this operator is only valid in the Graph Editor channels region */
-
-static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	bAnimContext ac;
-	ListBase anim_data = {NULL, NULL};
-	ListBase all_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	short vis = ACHANNEL_SETFLAG_ADD;
-	
-	/* get editor data */
-	if (ANIM_animdata_get_context(C, &ac) == 0)
-		return OPERATOR_CANCELLED;
-		
-	/* get list of all channels that selection may need to be flushed to 
-	 * - hierarchy mustn't affect what we have access to here...
-	 */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
-		
-	/* filter data
-	 * - restrict this to only applying on settings we can get to in the list
-	 */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
-	/* See if we should be making showing all selected or hiding */
-	for (ale = anim_data.first; ale; ale = ale->next) {
-		/* set the setting in the appropriate way (if available) */
-		if (ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_VISIBLE)) {
-			vis = ACHANNEL_SETFLAG_CLEAR;
-			break;
-		}
-	}
-
-	/* Now set the flags */
-	for (ale = anim_data.first; ale; ale = ale->next) {
-		/* hack: skip object channels for now, since flushing those will always flush everything, but they are always included */
-		/* TODO: find out why this is the case, and fix that */
-		if (ale->type == ANIMTYPE_OBJECT)
-			continue;
-		
-		/* change the setting */
-		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
-		
-		/* now, also flush selection status up/down as appropriate */
-		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, (vis == ACHANNEL_SETFLAG_ADD));
-	}
-	
-	/* cleanup */
-	ANIM_animdata_freelist(&anim_data);
-	BLI_freelistN(&all_data);
-	
-	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void ANIM_OT_channels_visibility_toggle(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Toggle Visibility";
-	ot->idname = "ANIM_OT_channels_visibility_toggle";
-	ot->description = "Toggle visibility in Graph Editor of all selected animation channels";
-	
-	/* api callbacks */
-	ot->exec = animchannels_visibility_toggle_exec;
 	ot->poll = ED_operator_graphedit_active;
 	
 	/* flags */
@@ -3042,7 +2965,6 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_expand);
 	WM_operatortype_append(ANIM_OT_channels_collapse);
 	
-	WM_operatortype_append(ANIM_OT_channels_visibility_toggle);
 	WM_operatortype_append(ANIM_OT_channels_visibility_set);
 	
 	WM_operatortype_append(ANIM_OT_channels_fcurves_enable);
@@ -3113,7 +3035,6 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	
 	/* Graph Editor only */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_set", VKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_toggle", VKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 /* ************************************************************************** */
