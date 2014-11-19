@@ -189,10 +189,12 @@ class GRAPH_MT_channel(Menu):
 
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
-        layout.operator("graph.hide")
-        layout.operator("graph.reveal")
-        layout.operator("anim.channels_visibility_set")
         layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
+
+        layout.separator()
+        layout.operator("graph.hide", text="Hide Selected Curves").unselected = False
+        layout.operator("graph.hide", text="Hide Unselected Curves").unselected = True
+        layout.operator("graph.reveal")
 
         layout.separator()
         layout.operator("anim.channels_expand")

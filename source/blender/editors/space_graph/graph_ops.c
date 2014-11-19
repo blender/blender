@@ -203,13 +203,14 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 
 /* Hide/Reveal ------------------------------------------------------------ */
 
-static int graphview_curves_hide_exec(bContext *C, wmOperator *UNUSED(op))
+static int graphview_curves_hide_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	ListBase all_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -222,9 +223,15 @@ static int graphview_curves_hide_exec(bContext *C, wmOperator *UNUSED(op))
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 	
 	/* filter data
-	 * - of the remaining visible curves, we want to hide the ones that are selected 
+	 * - of the remaining visible curves, we want to hide the ones that are 
+	 *   selected/unselected (depending on "unselected" prop) 
 	 */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+	if (unselected)
+		filter |= ANIMFILTER_UNSEL;
+	else
+		filter |= ANIMFILTER_SEL;
+	
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -264,6 +271,9 @@ static void GRAPH_OT_hide(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected curves");
 }
 
 /* ........ */
@@ -575,6 +585,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 void graphedit_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 	
 	/* keymap for all regions */
 	keymap = WM_keymap_find(keyconf, "Graph Editor Generic", SPACE_IPO, 0);
@@ -587,7 +598,12 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_find", FKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* hide/reveal selected curves */
-	WM_keymap_add_item(keymap, "GRAPH_OT_hide", HKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_hide", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", false);
+	
+	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", true);
+	
 	WM_keymap_add_item(keymap, "GRAPH_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	
 	

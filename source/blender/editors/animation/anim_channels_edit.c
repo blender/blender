@@ -1585,98 +1585,6 @@ static void ANIM_OT_channels_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Set Channel Visibility Operator *********************** */
-/* NOTE: this operator is only valid in the Graph Editor channels region */
-
-static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	bAnimContext ac;
-	ListBase anim_data = {NULL, NULL};
-	ListBase all_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	/* get editor data */
-	if (ANIM_animdata_get_context(C, &ac) == 0)
-		return OPERATOR_CANCELLED;
-	
-	/* get list of all channels that selection may need to be flushed to 
-	 * - hierarchy mustn't affect what we have access to here...
-	 */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
-		
-	/* hide all channels not selected
-	 * - hierarchy matters if we're doing this from the channels region
-	 *   since we only want to apply this to channels we can "see", 
-	 *   and have these affect their relatives
-	 * - but for Graph Editor, this gets used also from main region
-	 *   where hierarchy doesn't apply, as for [#21276]
-	 */
-	if ((ac.spacetype == SPACE_IPO) && (ac.regiontype != RGN_TYPE_CHANNELS)) {
-		/* graph editor (case 2) */
-		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
-	}
-	else {
-		/* standard case */
-		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
-	}
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
-	for (ale = anim_data.first; ale; ale = ale->next) {
-		/* clear setting first */
-		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_CLEAR);
-		
-		/* now also flush selection status as appropriate 
-		 * NOTE: in some cases, this may result in repeat flushing being performed
-		 */
-		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 0);
-	}
-	
-	ANIM_animdata_freelist(&anim_data);
-	
-	/* make all the selected channels visible */
-	filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
-	for (ale = anim_data.first; ale; ale = ale->next) {
-		/* hack: skip object channels for now, since flushing those will always flush everything, but they are always included */
-		/* TODO: find out why this is the case, and fix that */
-		if (ale->type == ANIMTYPE_OBJECT)
-			continue;
-		
-		/* enable the setting */
-		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_ADD);
-		
-		/* now, also flush selection status up/down as appropriate */
-		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 1);
-	}
-	
-	ANIM_animdata_freelist(&anim_data);
-	BLI_freelistN(&all_data);
-	
-	
-	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void ANIM_OT_channels_visibility_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Show Selected Curves Only";
-	ot->idname = "ANIM_OT_channels_visibility_set";
-	ot->description = "Make only the selected animation channels visible in the Graph Editor";
-	
-	/* api callbacks */
-	ot->exec = animchannels_visibility_set_exec;
-	ot->poll = ED_operator_graphedit_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 /* ********************** Set Flags Operator *********************** */
 
 /* defines for setting animation-channel flags */
@@ -2965,8 +2873,6 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_expand);
 	WM_operatortype_append(ANIM_OT_channels_collapse);
 	
-	WM_operatortype_append(ANIM_OT_channels_visibility_set);
-	
 	WM_operatortype_append(ANIM_OT_channels_fcurves_enable);
 	
 	WM_operatortype_append(ANIM_OT_channels_clean_empty);
@@ -3032,9 +2938,6 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	/* grouping */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_group", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
-	
-	/* Graph Editor only */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_set", HKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 /* ************************************************************************** */
