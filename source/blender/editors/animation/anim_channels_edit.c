@@ -3034,7 +3034,7 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* Graph Editor only */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_set", VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_set", HKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 /* ************************************************************************** */

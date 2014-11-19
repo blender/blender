@@ -588,7 +588,7 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	
 	/* hide/reveal selected curves */
 	WM_keymap_add_item(keymap, "GRAPH_OT_hide", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPH_OT_reveal", HKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	
 	
 	/* channels */
