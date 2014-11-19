@@ -683,6 +683,7 @@ static void add_hit_to_facehits(KnifeTool_OpData *kcd, GHash *facehits, BMFace *
 static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, KnifeLineHit *lh2, BMFace *f)
 {
 	KnifeEdge *kfe, *kfe2;
+	BMEdge *e_base;
 
 	if ((lh1->v && lh1->v == lh2->v) ||
 	    (lh1->kfe && lh1->kfe == lh2->kfe))
@@ -690,8 +691,18 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 		return;
 	}
 
+	/* if the cut is on an edge, just tag that its a cut and return */
+	if ((lh1->v && lh2->v) &&
+	    (lh1->v->v && lh2->v && lh2->v->v) &&
+	    (e_base = BM_edge_exists(lh1->v->v, lh2->v->v)))
+	{
+		kfe = get_bm_knife_edge(kcd, e_base);
+		kfe->is_cut = true;
+		kfe->e = e_base;
+		return;
+	}
 	/* Check if edge actually lies within face (might not, if this face is concave) */
-	if ((lh1->v && !lh1->kfe) && (lh2->v && !lh2->kfe)) {
+	else if ((lh1->v && !lh1->kfe) && (lh2->v && !lh2->kfe)) {
 		if (!knife_verts_edge_in_face(lh1->v, lh2->v, f)) {
 			return;
 		}
@@ -2615,6 +2626,14 @@ static void knife_make_cuts(KnifeTool_OpData *kcd)
 	/* put list of cutting edges for a face into fhash, keyed by face */
 	BLI_mempool_iternew(kcd->kedges, &iter);
 	for (kfe = BLI_mempool_iterstep(&iter); kfe; kfe = BLI_mempool_iterstep(&iter)) {
+
+		/* select edges that lie directly on the cut */
+		if (kcd->select_result) {
+			if (kfe->e && kfe->is_cut) {
+				BM_edge_select_set(bm, kfe->e, true);
+			}
+		}
+
 		f = kfe->basef;
 		if (!f || kfe->e)
 			continue;
