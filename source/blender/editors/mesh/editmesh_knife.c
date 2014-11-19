@@ -748,19 +748,13 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 static void knife_cut_face(KnifeTool_OpData *kcd, BMFace *f, ListBase *hits)
 {
 	Ref *r;
-	KnifeLineHit *lh, *prevlh;
 
 	if (BLI_listbase_count_ex(hits, 2) != 2)
 		return;
 
-	prevlh = NULL;
-	for (r = hits->first; r; r = r->next) {
-		lh = (KnifeLineHit *)r->ref;
-		if (prevlh)
-			knife_add_single_cut(kcd, prevlh, lh, f);
-		prevlh = lh;
+	for (r = hits->first; r->next; r = r->next) {
+		knife_add_single_cut(kcd, r->ref, r->next->ref, f);
 	}
-
 }
 
 /* User has just left-clicked after the first time.
@@ -2351,13 +2345,22 @@ static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)
 {
 	bool v1_inside, v2_inside;
 	bool v1_inface, v2_inface;
+	BMLoop *l1, *l2;
 
 	if (!f || !v1 || !v2)
 		return false;
 
+	l1 = v1->v ? BM_face_vert_share_loop(f, v1->v) : NULL;
+	l2 = v2->v ? BM_face_vert_share_loop(f, v2->v) : NULL;
+
+	if ((l1 && l2) && BM_loop_is_adjacent(l1, l2)) {
+		/* boundary-case, always false to avoid edge-in-face checks below */
+		return false;
+	}
+
 	/* find out if v1 and v2, if set, are part of the face */
-	v1_inface = v1->v ? BM_vert_in_face(f, v1->v) : false;
-	v2_inface = v2->v ? BM_vert_in_face(f, v2->v) : false;
+	v1_inface = (l1 != NULL);
+	v2_inface = (l2 != NULL);
 
 	/* BM_face_point_inside_test uses best-axis projection so this isn't most accurate test... */
 	v1_inside = v1_inface ? false : BM_face_point_inside_test(f, v1->co);
