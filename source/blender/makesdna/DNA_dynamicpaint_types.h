@@ -33,55 +33,71 @@ struct CurveMapping;
 struct PaintSurfaceData;
 
 /* surface format */
-#define MOD_DPAINT_SURFACE_F_PTEX 0
-#define MOD_DPAINT_SURFACE_F_VERTEX 1
-#define MOD_DPAINT_SURFACE_F_IMAGESEQ 2
+enum {
+	MOD_DPAINT_SURFACE_F_PTEX     = 0,
+	MOD_DPAINT_SURFACE_F_VERTEX   = 1,
+	MOD_DPAINT_SURFACE_F_IMAGESEQ = 2,
+};
 
 /* surface type */
-#define MOD_DPAINT_SURFACE_T_PAINT 0
-#define MOD_DPAINT_SURFACE_T_DISPLACE 1
-#define MOD_DPAINT_SURFACE_T_WEIGHT 2
-#define MOD_DPAINT_SURFACE_T_WAVE 3
+enum {
+	MOD_DPAINT_SURFACE_T_PAINT    = 0,
+	MOD_DPAINT_SURFACE_T_DISPLACE = 1,
+	MOD_DPAINT_SURFACE_T_WEIGHT   = 2,
+	MOD_DPAINT_SURFACE_T_WAVE     = 3,
+};
 
 /* surface flags */
-#define MOD_DPAINT_ACTIVE (1<<0) /* Is surface enabled */
+enum {
+	MOD_DPAINT_ACTIVE             = 1 << 0,  /* Is surface enabled */
 
-#define MOD_DPAINT_ANTIALIAS (1<<1) /* do antialiasing */
-#define MOD_DPAINT_DISSOLVE (1<<2) /* do dissolve */
-#define MOD_DPAINT_MULALPHA (1<<3) /* Multiply color by alpha when saving image */
-#define MOD_DPAINT_DISSOLVE_LOG (1<<4) /* Use 1/x for surface dissolve */
-#define MOD_DPAINT_DRY_LOG (1<<5) /* Use 1/x for drying paint */
-#define MOD_DPAINT_PREVIEW (1<<6) /* preview this surface on viewport*/
+	MOD_DPAINT_ANTIALIAS          = 1 << 1,  /* do antialiasing */
+	MOD_DPAINT_DISSOLVE           = 1 << 2,  /* do dissolve */
+	MOD_DPAINT_MULALPHA           = 1 << 3,  /* Multiply color by alpha when saving image */
+	MOD_DPAINT_DISSOLVE_LOG       = 1 << 4,  /* Use 1/x for surface dissolve */
+	MOD_DPAINT_DRY_LOG            = 1 << 5,  /* Use 1/x for drying paint */
+	MOD_DPAINT_PREVIEW            = 1 << 6,  /* preview this surface on viewport*/
 
-#define MOD_DPAINT_WAVE_OPEN_BORDERS (1<<7) /* passes waves through mesh edges */
-#define MOD_DPAINT_DISP_INCREMENTAL (1<<8) /* builds displace on top of earlier values */
-#define MOD_DPAINT_USE_DRYING (1<<9) /* use drying */
+	MOD_DPAINT_WAVE_OPEN_BORDERS  = 1 << 7,  /* passes waves through mesh edges */
+	MOD_DPAINT_DISP_INCREMENTAL   = 1 << 8,  /* builds displace on top of earlier values */
+	MOD_DPAINT_USE_DRYING         = 1 << 9,  /* use drying */
 
-#define MOD_DPAINT_OUT1 (1<<10) /* output primary surface */
-#define MOD_DPAINT_OUT2 (1<<11) /* output secondary surface */
+	MOD_DPAINT_OUT1               = 1 << 10,  /* output primary surface */
+	MOD_DPAINT_OUT2               = 1 << 11,  /* output secondary surface */
+};
 
 /* image_fileformat */
-#define MOD_DPAINT_IMGFORMAT_PNG 0
-#define MOD_DPAINT_IMGFORMAT_OPENEXR 1
+enum {
+	MOD_DPAINT_IMGFORMAT_PNG      = 0,
+	MOD_DPAINT_IMGFORMAT_OPENEXR  = 1,
+};
 
 /* disp_format */
-#define MOD_DPAINT_DISP_DISPLACE 0 /* displacement output displace map */
-#define MOD_DPAINT_DISP_DEPTH 1 /* displacement output depth data */
+enum {
+	MOD_DPAINT_DISP_DISPLACE      = 0,  /* displacement output displace map */
+	MOD_DPAINT_DISP_DEPTH         = 1,  /* displacement output depth data */
+};
 
 /* effect */
-#define MOD_DPAINT_EFFECT_DO_SPREAD (1<<0) /* do spread effect */
-#define MOD_DPAINT_EFFECT_DO_DRIP (1<<1) /* do drip effect */
-#define MOD_DPAINT_EFFECT_DO_SHRINK (1<<2) /* do shrink effect */
+enum {
+	MOD_DPAINT_EFFECT_DO_SPREAD   = 1 << 0,  /* do spread effect */
+	MOD_DPAINT_EFFECT_DO_DRIP     = 1 << 1,  /* do drip effect */
+	MOD_DPAINT_EFFECT_DO_SHRINK   = 1 << 2,  /* do shrink effect */
+};
 
 /* preview_id */
-#define MOD_DPAINT_SURFACE_PREV_PAINT 0
-#define MOD_DPAINT_SURFACE_PREV_WETMAP 1
+enum {
+	MOD_DPAINT_SURFACE_PREV_PAINT  = 0,
+	MOD_DPAINT_SURFACE_PREV_WETMAP = 1,
+};
 
 /* init_color_type */
-#define MOD_DPAINT_INITIAL_NONE 0
-#define MOD_DPAINT_INITIAL_COLOR 1
-#define MOD_DPAINT_INITIAL_TEXTURE 2
-#define MOD_DPAINT_INITIAL_VERTEXCOLOR 3
+enum {
+	MOD_DPAINT_INITIAL_NONE        = 0,
+	MOD_DPAINT_INITIAL_COLOR       = 1,
+	MOD_DPAINT_INITIAL_TEXTURE     = 2,
+	MOD_DPAINT_INITIAL_VERTEXCOLOR = 3,
+};
 
 typedef struct DynamicPaintSurface {
 	
@@ -136,11 +152,14 @@ typedef struct DynamicPaintSurface {
 } DynamicPaintSurface;
 
 /* canvas flags */
-#if 0 /* This should not be needed, having a valid WEIGHT_MCOL layer should be enough.
-       * And if not, should be a general flag. But seems unnecessary for now... */
-#define MOD_DPAINT_PREVIEW_READY (1<<0) /* if viewport preview is ready */
+enum {
+	/* This should not be needed, having a valid WEIGHT_MCOL layer should be enough.
+	 * And if not, should be a general flag. But seems unnecessary for now... */
+#if 0
+	MOD_DPAINT_PREVIEW_READY      = 1 << 0,  /* if viewport preview is ready */
 #endif
-#define MOD_DPAINT_BAKING (1<<1) /* surface is already baking, so it wont get updated (loop) */
+	MOD_DPAINT_BAKING             = 1 << 1,  /* surface is already baking, so it wont get updated (loop) */
+};
 
 /* Canvas settings */
 typedef struct DynamicPaintCanvasSettings {
@@ -157,47 +176,56 @@ typedef struct DynamicPaintCanvasSettings {
 
 
 /* flags */
-#define MOD_DPAINT_PART_RAD (1<<0) /* use particle radius */
-#define MOD_DPAINT_USE_MATERIAL (1<<1) /* use object material */
-#define MOD_DPAINT_ABS_ALPHA (1<<2) /* don't increase alpha unless
-                                     * paint alpha is higher than existing */
-#define MOD_DPAINT_ERASE (1<<3) /* removes paint */
+enum {
+	MOD_DPAINT_PART_RAD           = 1 << 0,  /* use particle radius */
+	MOD_DPAINT_USE_MATERIAL       = 1 << 1,  /* use object material */
+	MOD_DPAINT_ABS_ALPHA          = 1 << 2,  /* don't increase alpha unless paint alpha is higher than existing */
+	MOD_DPAINT_ERASE              = 1 << 3,  /* removes paint */
 
-#define MOD_DPAINT_RAMP_ALPHA (1<<4) /* only read falloff ramp alpha */
-#define MOD_DPAINT_PROX_PROJECT (1<<5) /* do proximity check only in defined dir */
-#define MOD_DPAINT_INVERSE_PROX (1<<6) /* inverse proximity painting */
-#define MOD_DPAINT_NEGATE_VOLUME (1<<7) /* negates volume influence on "volume + prox" mode */
+	MOD_DPAINT_RAMP_ALPHA         = 1 << 4,  /* only read falloff ramp alpha */
+	MOD_DPAINT_PROX_PROJECT       = 1 << 5,  /* do proximity check only in defined dir */
+	MOD_DPAINT_INVERSE_PROX       = 1 << 6,  /* inverse proximity painting */
+	MOD_DPAINT_NEGATE_VOLUME      = 1 << 7,  /* negates volume influence on "volume + prox" mode */
 
-#define MOD_DPAINT_DO_SMUDGE (1<<8) /* brush smudges existing paint */
-#define MOD_DPAINT_VELOCITY_ALPHA (1<<9) /* multiply brush influence by velocity */
-#define MOD_DPAINT_VELOCITY_COLOR (1<<10) /* replace brush color by velocity color ramp */
-#define MOD_DPAINT_VELOCITY_DEPTH (1<<11) /* multiply brush intersection depth by velocity */
+	MOD_DPAINT_DO_SMUDGE          = 1 << 8,  /* brush smudges existing paint */
+	MOD_DPAINT_VELOCITY_ALPHA     = 1 << 9,  /* multiply brush influence by velocity */
+	MOD_DPAINT_VELOCITY_COLOR     = 1 << 10,  /* replace brush color by velocity color ramp */
+	MOD_DPAINT_VELOCITY_DEPTH     = 1 << 11,  /* multiply brush intersection depth by velocity */
 
-#define MOD_DPAINT_USES_VELOCITY ((1<<8)|(1<<9)|(1<<10)|(1<<11))
+	MOD_DPAINT_USES_VELOCITY      = (MOD_DPAINT_DO_SMUDGE | MOD_DPAINT_VELOCITY_ALPHA |
+	                                 MOD_DPAINT_VELOCITY_COLOR | MOD_DPAINT_VELOCITY_DEPTH),
+};
 
 /* collision type */
-#define MOD_DPAINT_COL_VOLUME 0 /* paint with mesh volume */
-#define MOD_DPAINT_COL_DIST 1 /* paint using distance to mesh surface */
-#define MOD_DPAINT_COL_VOLDIST 2 /* use both volume and distance */
-#define MOD_DPAINT_COL_PSYS 3 /* use particle system */
-#define MOD_DPAINT_COL_POINT 4 /* use distance to object center point */
+enum {
+	MOD_DPAINT_COL_VOLUME         = 0,  /* paint with mesh volume */
+	MOD_DPAINT_COL_DIST           = 1,  /* paint using distance to mesh surface */
+	MOD_DPAINT_COL_VOLDIST        = 2,  /* use both volume and distance */
+	MOD_DPAINT_COL_PSYS           = 3,  /* use particle system */
+	MOD_DPAINT_COL_POINT          = 4,  /* use distance to object center point */
+};
 
 /* proximity_falloff */
-#define MOD_DPAINT_PRFALL_CONSTANT 0 /* no-falloff */
-#define MOD_DPAINT_PRFALL_SMOOTH 1 /* smooth, linear falloff */
-#define MOD_DPAINT_PRFALL_RAMP 2 /* use color ramp */
+enum {
+	MOD_DPAINT_PRFALL_CONSTANT    = 0,  /* no-falloff */
+	MOD_DPAINT_PRFALL_SMOOTH      = 1,  /* smooth, linear falloff */
+	MOD_DPAINT_PRFALL_RAMP        = 2,  /* use color ramp */
+};
 
 /* wave_brush_type */
-#define MOD_DPAINT_WAVEB_DEPTH 0 /* use intersection depth */
-#define MOD_DPAINT_WAVEB_FORCE 1 /* act as a force on intersection area */
-#define MOD_DPAINT_WAVEB_REFLECT 2 /* obstacle that reflects waves */
-#define MOD_DPAINT_WAVEB_CHANGE 3  /* use change of intersection depth from previous frame */
+enum {
+	MOD_DPAINT_WAVEB_DEPTH        = 0,  /* use intersection depth */
+	MOD_DPAINT_WAVEB_FORCE        = 1,  /* act as a force on intersection area */
+	MOD_DPAINT_WAVEB_REFLECT      = 2,  /* obstacle that reflects waves */
+	MOD_DPAINT_WAVEB_CHANGE       = 3,  /* use change of intersection depth from previous frame */
+};
 
 /* brush ray_dir */
-#define MOD_DPAINT_RAY_CANVAS 0
-#define MOD_DPAINT_RAY_BRUSH_AVG 1
-#define MOD_DPAINT_RAY_ZPLUS 2
-
+enum {
+	MOD_DPAINT_RAY_CANVAS         = 0,
+	MOD_DPAINT_RAY_BRUSH_AVG      = 1,
+	MOD_DPAINT_RAY_ZPLUS          = 2,
+};
 
 /* Brush settings */
 typedef struct DynamicPaintBrushSettings {
