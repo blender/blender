@@ -201,7 +201,7 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Value", "", -100.0f, 100.0f);
 }
 
-/* Hide/UnHide Curves ----------------------------------------------------------------------------- */
+/* Hide/Reveal ------------------------------------------------------------ */
 
 static int graphview_curves_hide_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -268,7 +268,7 @@ static void GRAPH_OT_hide(wmOperatorType *ot)
 
 /* ........ */
 
-static int graphview_curves_unhide_exec(bContext *C, wmOperator *UNUSED(op))
+static int graphview_curves_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
@@ -319,15 +319,15 @@ static int graphview_curves_unhide_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static void GRAPH_OT_unhide(wmOperatorType *ot)
+static void GRAPH_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Unhide Curves";
-	ot->idname = "GRAPH_OT_unhide";
+	ot->name = "Reveal Curves";
+	ot->idname = "GRAPH_OT_reveal";
 	ot->description = "Make previously hidden curves visible again in Graph Editor view";
 	
 	/* api callbacks */
-	ot->exec = graphview_curves_unhide_exec;
+	ot->exec = graphview_curves_reveal_exec;
 	ot->poll = ED_operator_graphedit_active;
 	
 	/* flags */
@@ -350,7 +350,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_ghost_curves_clear);
 	
 	WM_operatortype_append(GRAPH_OT_hide);
-	WM_operatortype_append(GRAPH_OT_unhide);
+	WM_operatortype_append(GRAPH_OT_reveal);
 	
 	/* keyframes */
 	/* selection */
@@ -586,9 +586,9 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	/* find (i.e. a shortcut for setting the name filter) */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_find", FKEY, KM_PRESS, KM_CTRL, 0);
 	
-	/* hide/unhide selected curves */
+	/* hide/reveal selected curves */
 	WM_keymap_add_item(keymap, "GRAPH_OT_hide", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPH_OT_unhide", HKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_reveal", HKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	
 	/* channels */
