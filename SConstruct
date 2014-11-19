@@ -422,6 +422,9 @@ if env['OURPLATFORM']=='darwin':
             env.Append(LINKFLAGS=['-F/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','Jackmp'])
             print B.bc.OKGREEN + "Using Jack"
 
+    if env['WITH_BF_SDL']:
+        env.Append(LINKFLAGS=['-lazy_framework','ForceFeedback'])
+
     if env['WITH_BF_QUICKTIME'] == 1:
         env['PLATFORM_LINKFLAGS'] = env['PLATFORM_LINKFLAGS']+['-framework','QTKit']
 
