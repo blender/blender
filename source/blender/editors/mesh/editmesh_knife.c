@@ -97,7 +97,7 @@ typedef struct KnifeVert {
 
 	float co[3], cageco[3], sco[2]; /* sco is screen coordinates for cageco */
 	bool is_face, in_space;
-	bool draw;
+	bool is_cut;  /* along a cut created by user input (will draw too) */
 } KnifeVert;
 
 typedef struct Ref {
@@ -111,7 +111,7 @@ typedef struct KnifeEdge {
 	ListBase faces;
 
 	BMEdge *e /* , *e_old */; /* non-NULL if this is an original edge */
-	bool draw;
+	bool is_cut;  /* along a cut created by user input (will draw too) */
 } KnifeEdge;
 
 typedef struct KnifeLineHit {
@@ -529,7 +529,7 @@ static KnifeVert *knife_split_edge(
 
 	newkfe->v1 = kfe->v1;
 	newkfe->v2 = new_knife_vert(kcd, co, cageco);
-	newkfe->v2->draw = 1;
+	newkfe->v2->is_cut = true;
 	if (kfe->e) {
 		knife_add_edge_faces_to_vert(kcd, newkfe->v2, kfe->e);
 	}
@@ -554,7 +554,7 @@ static KnifeVert *knife_split_edge(
 
 	knife_add_to_vert_edges(kcd, newkfe);
 
-	newkfe->draw = kfe->draw;
+	newkfe->is_cut = kfe->is_cut;
 	newkfe->e = kfe->e;
 
 	*r_kfe = newkfe;
@@ -698,7 +698,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 	}
 
 	kfe = new_knife_edge(kcd);
-	kfe->draw = true;
+	kfe->is_cut = true;
 	kfe->basef = f;
 
 	if (lh1->v) {
@@ -711,7 +711,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 	else {
 		BLI_assert(lh1->f);
 		kfe->v1 = new_knife_vert(kcd, lh1->hit, lh1->cagehit);
-		kfe->v1->draw = true;
+		kfe->v1->is_cut = true;
 		kfe->v1->is_face = true;
 		knife_append_list(kcd, &kfe->v1->faces, lh1->f);
 		lh1->v = kfe->v1;  /* record the KnifeVert for this hit */
@@ -727,7 +727,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 	else {
 		BLI_assert(lh2->f);
 		kfe->v2 = new_knife_vert(kcd, lh2->hit, lh2->cagehit);
-		kfe->v2->draw = true;
+		kfe->v2->is_cut = true;
 		kfe->v2->is_face = true;
 		knife_append_list(kcd, &kfe->v2->faces, lh2->f);
 		lh2->v = kfe->v2;  /* record the KnifeVert for this hit */
@@ -1070,7 +1070,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		BLI_mempool_iternew(kcd->kedges, &iter);
 		for (kfe = BLI_mempool_iterstep(&iter); kfe; kfe = BLI_mempool_iterstep(&iter)) {
-			if (!kfe->draw)
+			if (!kfe->is_cut)
 				continue;
 
 			glColor3ubv(kcd->colors.line);
@@ -1092,7 +1092,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glBegin(GL_POINTS);
 		BLI_mempool_iternew(kcd->kverts, &iter);
 		for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {
-			if (!kfv->draw)
+			if (!kfv->is_cut)
 				continue;
 
 			glColor3ubv(kcd->colors.point);
