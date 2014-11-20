@@ -1867,7 +1867,7 @@ float angle_wrap_deg(float angle)
 /* returns an angle compatible with angle_compat */
 float angle_compat_rad(float angle, float angle_compat)
 {
-	return angle + (floorf(((angle_compat - angle) / (float)M_PI) + 0.5f)) * (float)M_PI;
+	return angle_compat + angle_wrap_rad(angle - angle_compat);
 }
 
 /* axis conversion */
