@@ -2390,10 +2390,27 @@ void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
 	fac = 1.0;
 }
 
-void node_tex_environment(vec3 co, sampler2D ima, out vec4 color)
+void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color)
 {
-	float u = (atan(co.y, co.x) + M_PI)/(2.0*M_PI);
-	float v = atan(co.z, hypot(co.x, co.y))/M_PI + 0.5;
+	vec3 nco = normalize(co);
+	float u = -atan(nco.y, nco.x)/(2.0*M_PI) + 0.5;
+	float v = atan(nco.z, hypot(nco.x, nco.y))/M_PI + 0.5;
+
+	color = texture2D(ima, vec2(u, v));
+}
+
+void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
+{
+	vec3 nco = normalize(co);
+
+	nco.y -= 1.0;
+
+	float div = 2.0*sqrt(max(-0.5*nco.y, 0.0f));
+	if(div > 0.0f)
+		nco /= div;
+
+	float u = 0.5*(nco.x + 1.0);
+	float v = 0.5*(nco.z + 1.0);
 
 	color = texture2D(ima, vec2(u, v));
 }
