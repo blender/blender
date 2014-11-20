@@ -270,6 +270,36 @@ static float bm_face_calc_split_dot(BMLoop *l_a, BMLoop *l_b)
 }
 
 /**
+ * Check if a point is inside the corner defined by a loop
+ * (within the 2 planes defined by the loops corner & face normal).
+ *
+ * \return less than 0.0 when inside.
+ */
+float BM_loop_point_side_of_loop_test(const BMLoop *l, const float co[3])
+{
+	const float *axis = l->f->no;
+	return (angle_signed_on_axis_v3v3v3_v3(l->prev->v->co, l->v->co, co,             axis) -
+	        angle_signed_on_axis_v3v3v3_v3(l->prev->v->co, l->v->co, l->next->v->co, axis));
+}
+
+/**
+ * Check if a point is inside the edge defined by a loop
+ * (within the plane defined by the loops edge & face normal).
+ *
+ * \return less than 0.0 when inside.
+ */
+float BM_loop_point_side_of_edge_test(const BMLoop *l, const float co[3])
+{
+	const float *axis = l->f->no;
+	float dir[3];
+	float plane[3];
+	sub_v3_v3v3(dir, l->v->co, l->next->v->co);
+	cross_v3_v3v3(plane, axis, dir);
+	return (dot_v3v3(plane, co) -
+	        dot_v3v3(plane, l->v->co));
+}
+
+/**
  * Given 2 verts, find a face they share that has the lowest angle across these verts and give back both loops.
  *
  * This can be better then #BM_vert_pair_share_face_by_len because concave splits are ranked lowest.

@@ -83,6 +83,8 @@ bool    BM_edge_is_convex(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(
 
 bool    BM_loop_is_convex(const BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool BM_loop_is_adjacent(const BMLoop *l_a, const BMLoop *l_b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_loop_point_side_of_loop_test(const BMLoop *l, const float co[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_loop_point_side_of_edge_test(const BMLoop *l, const float co[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 float   BM_loop_calc_face_angle(BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void    BM_loop_calc_face_normal(BMLoop *l, float r_normal[3]) ATTR_NONNULL();
