@@ -860,9 +860,11 @@ if B.targets != ['cudakernels']:
     from FindUnorderedMap import FindUnorderedMap
 
     conf = Configure(env)
+    old_linkflags = conf.env['LINKFLAGS']
     conf.env.Append(LINKFLAGS=env['PLATFORM_LINKFLAGS'])
     FindSharedPtr(conf)
     FindUnorderedMap(conf)
+    conf.env['LINKFLAGS'] = old_linkflags
     env = conf.Finish()
 
 # End of auto configuration

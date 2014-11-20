@@ -191,6 +191,7 @@ makesrna_tool.Append (LIBPATH = libdir)
 
 makesrna_tool.Append( CFLAGS = env['CFLAGS'])
 makesrna_tool.Append( CCFLAGS = env['CCFLAGS'])
+makesrna_tool.Append( LINKFLAGS = env['PLATFORM_LINKFLAGS'])
 
 if env['BF_PROFILE']:
     makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])

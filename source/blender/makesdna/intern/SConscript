@@ -64,6 +64,7 @@ if sys.platform != 'cygwin':
 makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append( CFLAGS = env['CFLAGS'])
 makesdna_tool.Append( CCFLAGS = env['CCFLAGS'])
+makesdna_tool.Append( LINKFLAGS = env['PLATFORM_LINKFLAGS'])
 targetdir = normpath(root_build_dir+'/lib')
 
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
