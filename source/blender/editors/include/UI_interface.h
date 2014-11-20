@@ -266,12 +266,12 @@ typedef enum {
 	UI_BTYPE_CURVE                  = (32 << 9),
 	UI_BTYPE_LISTBOX                = (36 << 9),
 	UI_BTYPE_LISTROW                = (37 << 9),
+	UI_BTYPE_HSVCIRCLE              = (38 << 9),
 	UI_BTYPE_TRACK_PREVIEW          = (40 << 9),
 
 	/* buttons with value >= UI_BTYPE_SEARCH_MENU don't get undo pushes */
 	UI_BTYPE_SEARCH_MENU            = (41 << 9),
 	UI_BTYPE_EXTRA                  = (42 << 9),
-	UI_BTYPE_HSVCIRCLE              = (43 << 9),
 	UI_BTYPE_HOTKEY_EVENT           = (46 << 9),
 	UI_BTYPE_IMAGE                  = (47 << 9),  /* non-interactive image, used for splash screen */
 	UI_BTYPE_HISTOGRAM              = (48 << 9),
