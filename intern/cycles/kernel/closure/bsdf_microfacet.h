@@ -305,7 +305,7 @@ ccl_device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 	
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
 
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_microfacet_ggx_aniso_setup(ShaderClosure *sc)
@@ -315,7 +315,7 @@ ccl_device int bsdf_microfacet_ggx_aniso_setup(ShaderClosure *sc)
 	
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID;
 
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
@@ -325,7 +325,7 @@ ccl_device int bsdf_microfacet_ggx_refraction_setup(ShaderClosure *sc)
 
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device void bsdf_microfacet_ggx_blur(ShaderClosure *sc, float roughness)
@@ -657,7 +657,7 @@ ccl_device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 	sc->data1 = sc->data0; /* alpha_y */
 
 	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_microfacet_beckmann_aniso_setup(ShaderClosure *sc)
@@ -666,7 +666,7 @@ ccl_device int bsdf_microfacet_beckmann_aniso_setup(ShaderClosure *sc)
 	sc->data1 = clamp(sc->data1, 0.0f, 1.0f); /* alpha_y */
 
 	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID;
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
@@ -675,7 +675,7 @@ ccl_device int bsdf_microfacet_beckmann_refraction_setup(ShaderClosure *sc)
 	sc->data1 = sc->data0; /* alpha_y */
 
 	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device void bsdf_microfacet_beckmann_blur(ShaderClosure *sc, float roughness)

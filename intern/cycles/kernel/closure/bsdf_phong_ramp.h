@@ -54,7 +54,7 @@ ccl_device int bsdf_phong_ramp_setup(ShaderClosure *sc)
 	sc->data0 = max(sc->data0, 0.0f);
 	
 	sc->type = CLOSURE_BSDF_PHONG_RAMP_ID;
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device void bsdf_phong_ramp_blur(ShaderClosure *sc, float roughness)

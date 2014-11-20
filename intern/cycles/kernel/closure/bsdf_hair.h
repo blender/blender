@@ -49,7 +49,7 @@ ccl_device int bsdf_hair_reflection_setup(ShaderClosure *sc)
 	sc->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;
 	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
 	sc->data1 = clamp(sc->data1, 0.001f, 1.0f);
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_hair_transmission_setup(ShaderClosure *sc)
@@ -57,7 +57,7 @@ ccl_device int bsdf_hair_transmission_setup(ShaderClosure *sc)
 	sc->type = CLOSURE_BSDF_HAIR_TRANSMISSION_ID;
 	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
 	sc->data1 = clamp(sc->data1, 0.001f, 1.0f);
-	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
