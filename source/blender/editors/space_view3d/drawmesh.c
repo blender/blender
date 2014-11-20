@@ -1189,7 +1189,7 @@ void draw_mesh_paint_weight_faces(DerivedMesh *dm, const bool use_light,
 	}
 
 	dm->drawMappedFaces(dm, (DMSetDrawOptions)facemask_cb, GPU_enable_material, NULL, user_data,
-	                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+	                    DM_DRAW_USE_COLORS);
 
 	if (use_light) {
 		draw_mesh_paint_light_end();
@@ -1206,12 +1206,11 @@ void draw_mesh_paint_vcolor_faces(DerivedMesh *dm, const bool use_light,
 
 	if (me->mloopcol) {
 		dm->drawMappedFaces(dm, facemask_cb, GPU_enable_material, NULL, user_data,
-		                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+		                    DM_DRAW_USE_COLORS);
 	}
 	else {
 		glColor3f(1.0f, 1.0f, 1.0f);
-		dm->drawMappedFaces(dm, facemask_cb, GPU_enable_material, NULL, user_data,
-		                    DM_DRAW_ALWAYS_SMOOTH);
+		dm->drawMappedFaces(dm, facemask_cb, GPU_enable_material, NULL, user_data, 0);
 	}
 
 	if (use_light) {
