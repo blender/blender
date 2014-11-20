@@ -844,7 +844,7 @@ void ShaderGraph::dump_graph(const char *filename)
 		return;
 	}
 
-	fprintf(fd, "digraph dependencygraph {\n");
+	fprintf(fd, "digraph shader_graph {\n");
 	fprintf(fd, "ranksep=1.5\n");
 	fprintf(fd, "splines=false\n");
 
