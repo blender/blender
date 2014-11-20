@@ -916,7 +916,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
 	
 	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 	ListBase dsources = {NULL, NULL};
-	short autokey = autokeyframe_cfra_can_key(scene, &pld->ob->id);
+	bool autokey = autokeyframe_cfra_can_key(scene, &pld->ob->id);
 	
 	/* start tagging/keying */
 	for (agrp = act->groups.first; agrp; agrp = agrp->next) {
