@@ -80,10 +80,10 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 }
 
 //KERNEL --- DEFOCUS /VARIABLESIZEBOKEHBLUR ---
-__kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2d_t bokehImage, 
-					__read_only image2d_t inputSize,
-					__write_only image2d_t output, int2 offsetInput, int2 offsetOutput, 
-					int step, int maxBlurScalar, float threshold, float scalar, int2 dimension, int2 offset) 
+__kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2d_t bokehImage,
+                            __read_only image2d_t inputSize,
+                            __write_only image2d_t output, int2 offsetInput, int2 offsetOutput,
+                            int step, int maxBlurScalar, float threshold, float scalar, int2 dimension, int2 offset)
 {
 	float4 color = {1.0f, 0.0f, 0.0f, 1.0f};
 	int2 coords = {get_global_id(0), get_global_id(1)};
@@ -212,8 +212,8 @@ __kernel void erodeKernel(__read_only image2d_t inputImage,  __write_only image2
 
 // KERNEL --- DIRECTIONAL BLUR ---
 __kernel void directionalBlurKernel(__read_only image2d_t inputImage,  __write_only image2d_t output,
-                           int2 offsetOutput, int iterations, float scale, float rotation, float2 translate,
-                           float2 center, int2 offset)
+                                    int2 offsetOutput, int iterations, float scale, float rotation, float2 translate,
+                                     float2 center, int2 offset)
 {
 	int2 coords = {get_global_id(0), get_global_id(1)};
 	coords += offset;
