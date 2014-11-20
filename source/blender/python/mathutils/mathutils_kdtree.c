@@ -126,7 +126,7 @@ static void PyKDTree__tp_dealloc(PyKDTree *self)
 }
 
 PyDoc_STRVAR(py_kdtree_insert_doc,
-".. method:: insert(index, co)\n"
+".. method:: insert(co, index)\n"
 "\n"
 "   Insert a point into the KDTree.\n"
 "\n"
@@ -171,6 +171,10 @@ PyDoc_STRVAR(py_kdtree_balance_doc,
 ".. method:: balance()\n"
 "\n"
 "   Balance the tree.\n"
+"\n"
+".. note::\n"
+"\n"
+"   This builds the entire tree, avoid calling after each insertion.\n"
 );
 static PyObject *py_kdtree_balance(PyKDTree *self)
 {
