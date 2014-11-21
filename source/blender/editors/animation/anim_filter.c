@@ -1699,6 +1699,12 @@ static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data,
 			mtex = (MTex **)(&wo->mtex);
 			break;
 		}
+		case ID_PA:
+		{
+			ParticleSettings *part = (ParticleSettings *)owner_id;
+			mtex = (MTex **)(&part->mtex);
+			break;
+		}
 		default: 
 		{
 			/* invalid/unsupported option */
@@ -1910,8 +1916,12 @@ static size_t animdata_filter_ds_particles(bAnimContext *ac, ListBase *anim_data
 		/* add particle-system's animation data to temp collection */
 		BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_PART_OBJD(psys->part))
 		{
-			/* material's animation data */
+			/* particle system's animation data */
 			tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)psys->part, filter_mode);
+			
+			/* textures */
+			if (!(ads->filterflag & ADS_FILTER_NOTEX))
+				tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)psys->part, filter_mode);
 		}
 		END_ANIMFILTER_SUBCHANNELS;
 		
