@@ -334,7 +334,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					if (first_particle + p < psys->totpart)
 						pa = psys->particles + first_particle + p;
 					else {
-						ChildParticle *cpa = psys->child + p;
+						ChildParticle *cpa = psys->child + (p - psys->totpart);
 						pa = psys->particles + cpa->parent;
 					}
 					psys_mat_hair_to_global(sim.ob, sim.psmd->dm, sim.psys->part->from, pa, hairmat);
