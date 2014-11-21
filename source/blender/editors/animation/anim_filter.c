@@ -2257,7 +2257,7 @@ static size_t animdata_filter_ds_world(bAnimContext *ac, ListBase *anim_data, bD
 		
 		/* textures for world */
 		if (!(ads->filterflag & ADS_FILTER_NOTEX))
-			items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)wo, filter_mode);
+			tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)wo, filter_mode);
 			
 		/* nodes */
 		if ((wo->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
