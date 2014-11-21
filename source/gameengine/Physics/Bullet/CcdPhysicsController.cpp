@@ -2265,7 +2265,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		/* transverts are only used for deformed RAS_Meshes, the RAS_TexVert data
 		 * is too hard to get at, see below for details */
 		float (*transverts)[3] = NULL;
-		int transverts_tot= 0; /* with deformed meshes - should always be greater then the max orginal index, or we get crashes */
+		int transverts_tot= 0; /* with deformed meshes - should always be greater than the max orginal index, or we get crashes */
 
 		if (deformer) {
 			/* map locations from the deformed array

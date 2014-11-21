@@ -3795,10 +3795,9 @@ static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 	}
 }
 
-/* do_projectpaint_smear*
- *
- * note, mask is used to modify the alpha here, this is not correct since it allows
- * accumulation of color greater then 'projPixel->mask' however in the case of smear its not
+/**
+ * \note mask is used to modify the alpha here, this is not correct since it allows
+ * accumulation of color greater than 'projPixel->mask' however in the case of smear its not
  * really that important to be correct as it is with clone and painting
  */
 static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float mask,

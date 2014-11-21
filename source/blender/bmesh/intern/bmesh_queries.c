@@ -1797,7 +1797,7 @@ bool BM_face_exists_multi_edge(BMEdge **earr, int len)
  *
  * \note The face may contain other verts \b not in \a varr.
  *
- * \note Its possible there are more then one overlapping faces,
+ * \note Its possible there are more than one overlapping faces,
  * in this case the first one found will be assigned to \a r_f_overlap.
  *
  * \param varr  Array of unordered verts.

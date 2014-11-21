@@ -177,7 +177,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 
 					ED_view3d_project_float_v2_m4(ar, v_other->co, v_other_sco, projectMat);
 
-					/* avoid comparing with view-axis aligned edges (less then a pixel) */
+					/* avoid comparing with view-axis aligned edges (less than a pixel) */
 					if (len_squared_v2v2(v_sco, v_other_sco) > 1.0f) {
 						float v_dir[2];
 

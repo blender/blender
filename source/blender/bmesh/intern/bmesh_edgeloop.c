@@ -662,7 +662,7 @@ void BM_edgeloop_flip(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
 
 void BM_edgeloop_expand(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store, int el_store_len)
 {
-	/* first double until we are more then half as big */
+	/* first double until we are more than half as big */
 	while ((el_store->len * 2) < el_store_len) {
 		LinkData *node_curr = el_store->verts.first;
 		while (node_curr) {

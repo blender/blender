@@ -1840,7 +1840,7 @@ float line_plane_factor_v3(const float plane_co[3], const float plane_no[3],
 	return (dot != 0.0f) ? -dot_v3v3(plane_no, h) / dot : 0.0f;
 }
 
-/** Ensure the distance between these points is no greater then 'dist'.
+/** Ensure the distance between these points is no greater than 'dist'.
  *  If it is, scale then both into the center.
  */
 void limit_dist_v3(float v1[3], float v2[3], const float dist)

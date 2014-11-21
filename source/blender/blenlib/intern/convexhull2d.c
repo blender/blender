@@ -187,8 +187,8 @@ static int pointref_cmp_yx(const void *a_, const void *b_)
  * \param  points  An array of 2D points.
  * \param  n  The number of points in points.
  * \param  r_points  An array of the convex hull vertex indices (max is n).
- *         _must_ be allocated as ``n * 2`` because of how its used internally,
- *         even though the final result will be no more then \a n in size.
+ * _must_ be allocated as ``n * 2`` because of how its used internally,
+ * even though the final result will be no more than \a n in size.
  * \returns the number of points in r_points.
  */
 int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])

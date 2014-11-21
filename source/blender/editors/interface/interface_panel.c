@@ -1226,7 +1226,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 
 bool UI_panel_category_is_visible(ARegion *ar)
 {
-	/* more then one */
+	/* more than one */
 	return ar->panels_category.first && ar->panels_category.first != ar->panels_category.last;
 }
 

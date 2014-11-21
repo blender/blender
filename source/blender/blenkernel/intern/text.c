@@ -369,8 +369,8 @@ int BKE_text_reload(Text *text)
 
 
 	buffer = MEM_mallocN(len, "text_buffer");
-	// under windows fread can return less then len bytes because
-	// of CR stripping
+	/* under windows fread can return less than len bytes because
+	 * of CR stripping */
 	len = fread(buffer, 1, len, fp);
 
 	fclose(fp);
@@ -425,8 +425,8 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	fseek(fp, 0L, SEEK_SET);
 	
 	buffer = MEM_mallocN(len, "text_buffer");
-	// under windows fread can return less then len bytes because
-	// of CR stripping
+	/* under windows fread can return less than len bytes because
+	 * of CR stripping */
 	len = fread(buffer, 1, len, fp);
 
 	fclose(fp);

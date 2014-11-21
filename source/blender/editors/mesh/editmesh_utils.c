@@ -232,7 +232,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 	else {
 		em->emcopyusers--;
 		if (em->emcopyusers < 0) {
-			printf("warning: em->emcopyusers was less then zero.\n");
+			printf("warning: em->emcopyusers was less than zero.\n");
 		}
 
 		if (em->emcopyusers <= 0) {

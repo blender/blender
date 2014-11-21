@@ -1824,7 +1824,7 @@ static Mathutils_Callback mathutils_kxgameob_matrix_cb = {
 
 void KX_GameObject_Mathutils_Callback_Init(void)
 {
-	// register mathutils callbacks, ok to run more then once.
+	// register mathutils callbacks, ok to run more than once.
 	mathutils_kxgameob_vector_cb_index= Mathutils_RegisterCallback(&mathutils_kxgameob_vector_cb);
 	mathutils_kxgameob_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_kxgameob_matrix_cb);
 }

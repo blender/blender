@@ -626,7 +626,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	 * split off vertex if...
 	 * - we cant find an edge - this means we are ripping a faces vert that is connected to other
 	 *   geometry only at the vertex.
-	 * - the boundary edge total is greater then 2,
+	 * - the boundary edge total is greater than 2,
 	 *   in this case edge split _can_ work but we get far nicer results if we use this special case.
 	 * - there are only 2 edges but we are a wire vert. */
 	if ((is_wire == false && totboundary_edge > 2) ||

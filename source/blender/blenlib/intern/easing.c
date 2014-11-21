@@ -139,7 +139,7 @@ float BLI_easing_cubic_ease_in_out(float time, float begin, float change, float 
 
 #ifdef USE_ELASTIC_BLEND
 /**
- * When the amplitude is less then the change, we need to blend
+ * When the amplitude is less than the change, we need to blend
  * \a f when we're close to the crossing point (int time), else we get an ugly sharp falloff.
  */
 static float elastic_blend(float time, float change, float duration, float amplitude, float s, float f)

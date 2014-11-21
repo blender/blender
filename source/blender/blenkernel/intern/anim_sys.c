@@ -1350,7 +1350,7 @@ static bool animsys_remap_path(AnimMapper *UNUSED(remap), char *path, char **dst
 }
 
 
-/* less then 1.0 evaluates to false, use epsilon to avoid float error */
+/* less than 1.0 evaluates to false, use epsilon to avoid float error */
 #define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > ((1.0f - FLT_EPSILON)))
 
 /* Write the given value to a setting using RNA, and return success */

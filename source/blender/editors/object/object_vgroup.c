@@ -1100,7 +1100,7 @@ static void ED_vgroup_nr_vert_add(Object *ob,
 					break;
 				case WEIGHT_SUBTRACT:
 					dw->weight -= weight;
-					/* if the weight is zero or less then
+					/* if the weight is zero or less than
 					 * remove the vert from the deform group
 					 */
 					if (dw->weight <= 0.0f) {

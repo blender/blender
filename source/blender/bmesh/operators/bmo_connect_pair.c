@@ -141,7 +141,7 @@ static void state_calc_co_pair(const PathContext *pc,
 
 /**
  * Ideally we wouldn't need this and for most cases we don't.
- * But when a face has vertices that are on the boundary more then once this becomes tricky.
+ * But when a face has vertices that are on the boundary more than once this becomes tricky.
  */
 static bool state_link_find(PathLinkState *state, BMElem *ele)
 {

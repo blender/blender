@@ -385,7 +385,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 					displen = (float)abs(seq->startdisp - seq->enddisp);
 					
 					if (displen / pixelx > 16) { /* don't even try to grab the handles of small strips */
-						/* Set the max value to handle to 1/3 of the total len when its less then 28.
+						/* Set the max value to handle to 1/3 of the total len when its less than 28.
 						 * This is important because otherwise selecting handles happens even when you click in the middle */
 						
 						if ((displen / 3) < 30 * pixelx) {

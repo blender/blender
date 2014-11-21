@@ -755,7 +755,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 			MDeformWeight *dw;
 
 			for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
-				/* note, greater then max defgroups is accounted for in our code, but not < 0 */
+				/* note, greater than max defgroups is accounted for in our code, but not < 0 */
 				if (!finite(dw->weight)) {
 					PRINT_ERR("\tVertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
 					if (do_fixes) {

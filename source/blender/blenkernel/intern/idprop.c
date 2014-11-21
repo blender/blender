@@ -158,7 +158,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 	BLI_assert(prop->type == IDP_IDPARRAY);
 
 	/* first check if the array buffer size has room */
-	/* if newlen is 200 items less then totallen, reallocate anyway */
+	/* if newlen is 200 items less than totallen, reallocate anyway */
 	if (newlen <= prop->totallen) {
 		if (newlen < prop->len && prop->totallen - newlen < 200) {
 			int i;
@@ -235,7 +235,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	const bool is_grow = newlen >= prop->len;
 
 	/* first check if the array buffer size has room */
-	/* if newlen is 200 chars less then totallen, reallocate anyway */
+	/* if newlen is 200 chars less than totallen, reallocate anyway */
 	if (newlen <= prop->totallen && prop->totallen - newlen < 200) {
 		idp_resize_group_array(prop, newlen, prop->data.pointer);
 		prop->len = newlen;

@@ -338,7 +338,7 @@ static float draw_seq_handle_size_get_clamped(Sequence *seq, const float pixelx)
 	const float maxhandle = pixelx * SEQ_HANDLE_SIZE_MAX;
 	float size = CLAMPIS(seq->handsize, minhandle, maxhandle);
 
-	/* ensure we're not greater then half width */
+	/* ensure we're not greater than half width */
 	return min_ff(size, ((float)(seq->enddisp - seq->startdisp) / 2.0f) / pixelx);
 }
 

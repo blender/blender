@@ -70,7 +70,7 @@
  * \param r_co  hit location.
  * \param r_no  hit normal (optional).
  * \param co_ss  Screenspace coordinate.
- * \param use_depth  Snap to the closest element, use when using more then one snap type.
+ * \param use_depth  Snap to the closest element, use when using more than one snap type.
  * \param use_obedit  Use editmode cage.
  * \param use_vert  Snap to verts.
  * \param use_edge  Snap to edges.
