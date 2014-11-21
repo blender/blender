@@ -1020,20 +1020,9 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         cmat = mat.cycles
 
         split = layout.split()
-
-        col = split.column(align=True)
-        col.prop(mat, "diffuse_color", text="Viewport Color")
-        col.prop(mat, "alpha")
-
-        col = split.column(align=True)
-        col.label()
-        col.prop(mat, "pass_index")
-
-        split = layout.split()
-
         col = split.column()
-        col.label(text="Surface:")
-        col.prop(cmat, "sample_as_light", text="Multiple Importance")
+        col.prop(mat, "pass_index")
+        col.prop(cmat, "sample_as_light")
         col.prop(cmat, "use_transparent_shadow")
 
         col = split.column()
@@ -1043,6 +1032,21 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         sub.prop(cmat, "volume_sampling", text="")
         col.prop(cmat, "volume_interpolation", text="")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
+
+        layout.separator()
+        layout.label("Viewport Shading:")
+
+        split = layout.split()
+
+        col = split.column()
+        col.label("Diffuse")
+        col.label("Specular")
+        col.label("Hardness")
+
+        col = split.column()
+        col.prop(mat, "diffuse_color", text="")
+        col.prop(mat, "specular_color", text="")
+        col.prop(mat, "specular_hardness", text="")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):

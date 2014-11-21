@@ -1391,7 +1391,7 @@ static struct GPUMaterialState {
 /* fixed function material, alpha handed by caller */
 static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob, const int new_shading_nodes)
 {
-	if (new_shading_nodes || bmat->mode & MA_SHLESS) {
+	if (bmat->mode & MA_SHLESS) {
 		copy_v3_v3(smat->diff, &bmat->r);
 		smat->diff[3]= 1.0;
 
@@ -1400,6 +1400,19 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 
 		zero_v4(smat->spec);
 		smat->hard= 0;
+	}
+	else if (new_shading_nodes) {
+		copy_v3_v3(smat->diff, &bmat->r);
+		smat->diff[3]= 1.0;
+		
+		copy_v3_v3(smat->spec, &bmat->specr);
+		smat->spec[3] = 1.0;
+		smat->hard= CLAMPIS(bmat->har, 0, 128);
+		
+		if (gamma) {
+			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
+			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
+		}		
 	}
 	else {
 		mul_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
