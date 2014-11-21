@@ -286,7 +286,7 @@ bGPdata *gpencil_data_duplicate(bGPdata *src)
 		return NULL;
 	
 	/* make a copy of the base-data */
-	dst = MEM_dupallocN(src);
+	dst = BKE_libblock_copy(&src->id);
 	
 	/* copy layers */
 	BLI_listbase_clear(&dst->layers);
