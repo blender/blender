@@ -2405,8 +2405,8 @@ void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
 
 	nco.y -= 1.0;
 
-	float div = 2.0*sqrt(max(-0.5*nco.y, 0.0f));
-	if(div > 0.0f)
+	float div = 2.0*sqrt(max(-0.5*nco.y, 0.0));
+	if(div > 0.0)
 		nco /= div;
 
 	float u = 0.5*(nco.x + 1.0);
