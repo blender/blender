@@ -88,6 +88,9 @@ void BLI_task_pool_cancel(TaskPool *pool);
 /* stop all worker threads */
 void BLI_task_pool_stop(TaskPool *pool);
 
+/* set number of threads allowed to be used by this pool */
+void BLI_pool_set_num_threads(TaskPool *pool, int num_threads);
+
 /* for worker threads, test if canceled */
 bool BLI_task_pool_canceled(TaskPool *pool);
 
