@@ -38,7 +38,7 @@
  */
 
 #ifdef WIN32
-#  include <io.h>
+#  include "BLI_utildefines.h"
 #endif
 
 #include "MEM_guardedalloc.h"
