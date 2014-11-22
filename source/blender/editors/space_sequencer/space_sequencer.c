@@ -328,7 +328,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 	SpaceSeq *sseqn = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-// XXX	sseq->gpd = gpencil_data_duplicate(sseq->gpd);
+// XXX	sseq->gpd = gpencil_data_duplicate(sseq->gpd, false);
 
 	memset(&sseqn->scopes, 0, sizeof(sseqn->scopes));
 

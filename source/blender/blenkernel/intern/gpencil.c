@@ -276,7 +276,7 @@ bGPDlayer *gpencil_layer_duplicate(bGPDlayer *src)
 }
 
 /* make a copy of a given gpencil datablock */
-bGPdata *gpencil_data_duplicate(bGPdata *src)
+bGPdata *gpencil_data_duplicate(bGPdata *src, bool internal_copy)
 {
 	bGPDlayer *gpl, *gpld;
 	bGPdata *dst;
@@ -286,7 +286,14 @@ bGPdata *gpencil_data_duplicate(bGPdata *src)
 		return NULL;
 	
 	/* make a copy of the base-data */
-	dst = BKE_libblock_copy(&src->id);
+	if (internal_copy) {
+		/* make a straight copy for undo buffers used during stroke drawing */
+		dst = MEM_dupallocN(src);
+	}
+	else {
+		/* make a copy when others use this */
+		dst = BKE_libblock_copy(&src->id);
+	}
 	
 	/* copy layers */
 	BLI_listbase_clear(&dst->layers);

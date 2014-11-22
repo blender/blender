@@ -49,11 +49,7 @@ struct bGPdata *gpencil_data_addnew(const char name[]);
 
 struct bGPDframe *gpencil_frame_duplicate(struct bGPDframe *src);
 struct bGPDlayer *gpencil_layer_duplicate(struct bGPDlayer *src);
-struct bGPdata *gpencil_data_duplicate(struct bGPdata *gpd);
-
-//struct bGPdata *gpencil_data_getactive(struct ScrArea *sa);
-//short gpencil_data_setactive(struct ScrArea *sa, struct bGPdata *gpd);
-//struct ScrArea *gpencil_data_findowner(struct bGPdata *gpd);
+struct bGPdata *gpencil_data_duplicate(struct bGPdata *gpd, bool internal_copy);
 
 void gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 

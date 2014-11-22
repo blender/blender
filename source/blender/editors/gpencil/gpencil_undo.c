@@ -145,7 +145,7 @@ void gpencil_undo_push(bGPdata *gpd)
 
 	/* create new undo node */
 	undo_node = MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
-	undo_node->gpd = gpencil_data_duplicate(gpd);
+	undo_node->gpd = gpencil_data_duplicate(gpd, true);
 
 	cur_node = undo_node;
 
