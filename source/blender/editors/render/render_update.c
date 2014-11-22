@@ -41,6 +41,7 @@
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -85,7 +86,11 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	/* don't call this recursively for frame updates */
 	if (recursive_check)
 		return;
-	
+
+	/* Do not call if no WM available, see T42688. */
+	if (BLI_listbase_is_empty(&bmain->wm))
+		return;
+
 	recursive_check = true;
 
 	C = CTX_create();
