@@ -2229,7 +2229,6 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 	BoundVert *bndv;
 	int i, j, k, ns2;
 	float co[3], coc[3];
-	float w;
 
 	if (r == PRO_SQUARE_R)
 		return make_cube_corner_straight(mem_arena, nseg);
@@ -2262,10 +2261,8 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 		bndv = bndv->next;
 	}
 	/* center vertex */
-	w = (float)(1.0 / M_SQRT3);
-	co[0] = w;
-	co[1] = w;
-	co[2] = w;
+	copy_v3_fl(co, M_SQRT1_3);
+
 	if (nseg > 2) {
 		if (r > 1.5f)
 			mul_v3_fl(co, 1.4f);
