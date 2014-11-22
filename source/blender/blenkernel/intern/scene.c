@@ -70,6 +70,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_group.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -306,6 +307,19 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 			scen->ed = MEM_callocN(sizeof(Editing), "addseq");
 			scen->ed->seqbasep = &scen->ed->seqbase;
 			BKE_sequence_base_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
+		}
+	}
+	
+	/* grease pencil */
+	if (scen->gpd) {
+		if (type == SCE_COPY_FULL) {
+			scen->gpd = gpencil_data_duplicate(scen->gpd, false);
+		}
+		else if (type == SCE_COPY_EMPTY) {
+			scen->gpd = NULL;
+		}
+		else {
+			id_us_plus((ID *)scen->gpd);
 		}
 	}
 
