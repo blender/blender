@@ -661,7 +661,7 @@ Image *BKE_image_load(Main *bmain, const char *filepath)
 /* otherwise creates new. */
 /* does not load ibuf itself */
 /* pass on optional frame for #name images */
-Image *BKE_image_load_exists(const char *filepath)
+Image *BKE_image_load_exists_ex(const char *filepath, bool *r_exists)
 {
 	Image *ima;
 	char str[FILE_MAX], strtest[FILE_MAX];
@@ -681,14 +681,22 @@ Image *BKE_image_load_exists(const char *filepath)
 					ima->id.us++;                                       /* officially should not, it doesn't link here! */
 					if (ima->ok == 0)
 						ima->ok = IMA_OK;
-					/* RETURN! */
+					if (r_exists)
+						*r_exists = true;
 					return ima;
 				}
 			}
 		}
 	}
 
+	if (r_exists)
+		*r_exists = false;
 	return BKE_image_load(G.main, filepath);
+}
+
+Image *BKE_image_load_exists(const char *filepath)
+{
+	return BKE_image_load_exists_ex(filepath, NULL);
 }
 
 static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type,

@@ -307,6 +307,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	bNode *node;
 	Image *ima = NULL;
 	int type = 0;
+	bool exists = false;
 
 	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
@@ -317,7 +318,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 		errno = 0;
 
-		ima = BKE_image_load_exists(path);
+		ima = BKE_image_load_exists_ex(path, &exists);
 
 		if (!ima) {
 			BKE_reportf(op->reports, RPT_ERROR, "Cannot read image '%s': %s",
@@ -326,9 +327,10 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		}
 
 		if (is_relative_path) {
-			Main *bmain = CTX_data_main(C);
-			const char *relbase = ID_BLEND_PATH(bmain, &ima->id);
-			BLI_path_rel(ima->name, relbase);
+			if (exists == false) {
+				Main *bmain = CTX_data_main(C);
+				BLI_path_rel(ima->name, bmain->name);
+			}
 		}
 	}
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {

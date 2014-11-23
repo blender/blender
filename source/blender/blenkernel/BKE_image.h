@@ -162,6 +162,7 @@ void BKE_image_alpha_mode_from_extension(struct Image *image);
 /* returns a new image or NULL if it can't load */
 struct Image *BKE_image_load(struct Main *bmain, const char *filepath);
 /* returns existing Image when filename/type is same (frame optional) */
+struct Image *BKE_image_load_exists_ex(const char *filepath, bool *r_exists);
 struct Image *BKE_image_load_exists(const char *filepath);
 
 /* adds image, adds ibuf, generates color or pattern */
