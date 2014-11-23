@@ -356,6 +356,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 			view3d_smooth_view_state_restore(&sms->dst, v3d, rv3d);
 
 			ED_view3d_camera_lock_sync(v3d, rv3d);
+			ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
 		}
 		
 		if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
@@ -382,6 +383,10 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		v3d->lens  = sms->dst.lens * step + sms->src.lens * step_inv;
 
 		ED_view3d_camera_lock_sync(v3d, rv3d);
+		if (ED_screen_animation_playing(CTX_wm_manager(C))) {
+			ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
+		}
+
 	}
 	
 	if (rv3d->viewlock & RV3D_BOXVIEW)
