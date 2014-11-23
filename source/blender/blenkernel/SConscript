@@ -46,6 +46,7 @@ incs = [
     '#/intern/rigidbody',
     '#/extern/bullet2/src',
     env['BF_GLEW_INC'],
+    '#/intern/ghost',
     '#/intern/glew-mx',
     '#/intern/audaspace/intern',
     '#/intern/elbeem/extern',
