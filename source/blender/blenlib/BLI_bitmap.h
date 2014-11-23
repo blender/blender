@@ -47,7 +47,7 @@ typedef unsigned int BLI_bitmap;
 
 /* size (in bytes) used to hold '_tot' bits */
 #define BLI_BITMAP_SIZE(_tot) \
-	(_BITMAP_NUM_BLOCKS(_tot) * sizeof(BLI_bitmap))
+	((size_t)(_BITMAP_NUM_BLOCKS(_tot)) * sizeof(BLI_bitmap))
 
 /* allocate memory for a bitmap with '_tot' bits; free
  *  with MEM_freeN() */
