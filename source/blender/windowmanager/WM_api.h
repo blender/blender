@@ -268,6 +268,7 @@ void		WM_operator_properties_select_action_simple(struct wmOperatorType *ot, int
 
 bool        WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
+ID         *WM_operator_drop_load_path(struct bContext *C, struct wmOperator *op, const short idcode);
 
 bool        WM_operator_last_properties_init(struct wmOperator *op);
 bool        WM_operator_last_properties_store(struct wmOperator *op);

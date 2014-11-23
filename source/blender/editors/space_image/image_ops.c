@@ -1052,6 +1052,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	char path[FILE_MAX];
 	int frame_seq_len = 0;
 	int frame_ofs = 1;
+	bool exists = false;
 
 	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
@@ -1070,7 +1071,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	errno = 0;
 
-	ima = BKE_image_load_exists(path);
+	ima = BKE_image_load_exists_ex(path, &exists);
 
 	if (!ima) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -1084,8 +1085,9 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	/* only image path after save, never ibuf */
 	if (is_relative_path) {
-		const char *relbase = ID_BLEND_PATH(bmain, &ima->id);
-		BLI_path_rel(ima->name, relbase);
+		if (!exists) {
+			BLI_path_rel(ima->name, bmain->name);
+		}
 	}
 
 	/* hook into UI */

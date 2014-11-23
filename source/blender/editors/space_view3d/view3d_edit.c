@@ -4282,41 +4282,16 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
 	View3D *v3d = CTX_wm_view3d(C);
 	Image *ima = NULL;
 	BGpic *bgpic;
-	char name[MAX_ID_NAME - 2];
-	bool exists = false;
+	
+	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+	if (!ima) {
+		return OPERATOR_CANCELLED;
+	}
 
-	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
-	
-	/* check input variables */
-	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-		char path[FILE_MAX];
-		
-		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_image_load_exists_ex(path, &exists);
-	}
-	else if (RNA_struct_property_is_set(op->ptr, "name")) {
-		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
-		exists = true;
-	}
-	
 	bgpic = background_image_add(C);
-	
-	if (ima) {
-		if (is_relative_path) {
-			if (exists == false) {
-				Main *bmain = CTX_data_main(C);
-				BLI_path_rel(ima->name, bmain->name);
-			}
-		}
+	bgpic->ima = ima;
 
-		bgpic->ima = ima;
-		
-		id_us_plus(&ima->id);
-		
-		if (!(v3d->flag & V3D_DISPBGPICS))
-			v3d->flag |= V3D_DISPBGPICS;
-	}
+	v3d->flag |= V3D_DISPBGPICS;
 	
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	

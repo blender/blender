@@ -833,24 +833,12 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
 	Image *ima = NULL;
 	Object *ob = NULL;
 
-	/* check image input variables */
-	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-		char path[FILE_MAX];
-
-		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_image_load_exists(path);
-	}
-	else if (RNA_struct_property_is_set(op->ptr, "name")) {
-		char name[MAX_ID_NAME - 2];
-
-		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
-	}
-
-	if (ima == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Not an image");
+	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+	if (!ima) {
 		return OPERATOR_CANCELLED;
 	}
+	/* handled below */
+	id_us_min((ID *)ima);
 
 	base = ED_view3d_give_base_under_cursor(C, event->mval);
 

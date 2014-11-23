@@ -571,24 +571,13 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* check input variables */
-	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-		char path[FILE_MAX];
-		
-		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_image_load_exists(path);
-	}
-	else {
-		char name[MAX_ID_NAME - 2];
-		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
-	}
-	
+	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
 	if (!ima) {
-		BKE_report(op->reports, RPT_ERROR, "Not an image");
 		return OPERATOR_CANCELLED;
 	}
-	
+	/* handled below */
+	id_us_min((ID *)ima);
+
 	/* put mesh in editmode */
 
 	obedit = base->object;
