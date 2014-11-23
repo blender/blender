@@ -25,6 +25,8 @@
  *  \date 11/01/2003
  */
 
+#include <stdio.h>  /* printf */
+
 #include "Curve.h"
 #include "CurveIterators.h"
 #include "CurveAdvancedIterators.h"
