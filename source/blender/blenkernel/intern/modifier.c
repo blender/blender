@@ -714,7 +714,7 @@ const char *modifier_path_relbase(Object *ob)
 	else {
 		/* last resort, better then using "" which resolves to the current
 		 * working directory */
-		return BLI_temp_dir_session();
+		return BKE_tempdir_session();
 	}
 }
 
@@ -724,7 +724,7 @@ void modifier_path_init(char *path, int path_maxlen, const char *name)
 	/* elubie: changed this to default to the same dir as the render output
 	 * to prevent saving to C:\ on Windows */
 	BLI_join_dirfile(path, path_maxlen,
-	                 G.relbase_valid ? "//" : BLI_temp_dir_session(),
+	                 G.relbase_valid ? "//" : BKE_tempdir_session(),
 	                 name);
 }
 

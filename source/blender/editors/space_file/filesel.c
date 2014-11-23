@@ -254,7 +254,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			BLI_split_dir_part(G.main->name, sfile->params->dir, sizeof(sfile->params->dir));
 		}
 		else {
-			const char *doc_path = BLI_getDefaultDocumentFolder();
+			const char *doc_path = BKE_appdir_folder_default();
 			if (doc_path) {
 				BLI_strncpy(sfile->params->dir, doc_path, sizeof(sfile->params->dir));
 			}

@@ -367,7 +367,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
 		/* As 10.4 doesn't provide proper API to retrieve the favorite places,
 		 * assume they are the standard ones 
-		 * TODO : replace hardcoded paths with proper BLI_get_folder calls */
+		 * TODO : replace hardcoded paths with proper BKE_appdir_folder_id calls */
 		home = getenv("HOME");
 		if (read_bookmarks && home) {
 			BLI_snprintf(line, sizeof(line), "%s/", home);

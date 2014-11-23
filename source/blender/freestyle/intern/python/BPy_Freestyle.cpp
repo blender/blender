@@ -493,7 +493,7 @@ PyObject *Freestyle_Init(void)
 	PyDict_SetItemString(PySys_GetObject("modules"), module_definition.m_name, module);
 
 	// update 'sys.path' for Freestyle Python API modules
-	const char * const path = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "freestyle");
+	const char * const path = BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, "freestyle");
 	if (path) {
 		char modpath[FILE_MAX];
 		BLI_join_dirfile(modpath, sizeof(modpath), path, "modules");

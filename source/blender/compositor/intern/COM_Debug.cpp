@@ -398,7 +398,7 @@ void DebugInfo::graphviz(const ExecutionSystem *system)
 		char filename[FILE_MAX];
 		
 		BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", m_file_index);
-		BLI_join_dirfile(filename, sizeof(filename), BLI_temp_dir_session(), basename);
+		BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), basename);
 		++m_file_index;
 		
 		FILE *fp = BLI_fopen(filename, "wb");

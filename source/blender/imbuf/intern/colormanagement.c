@@ -625,7 +625,7 @@ void colormanagement_init(void)
 	}
 
 	if (config == NULL) {
-		configdir = BLI_get_folder(BLENDER_DATAFILES, "colormanagement");
+		configdir = BKE_appdir_folder_id(BLENDER_DATAFILES, "colormanagement");
 
 		if (configdir) {
 			BLI_join_dirfile(configfile, sizeof(configfile), configdir, BCM_CONFIG_FILE);

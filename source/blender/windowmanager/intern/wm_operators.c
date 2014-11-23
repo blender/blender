@@ -1777,14 +1777,14 @@ static void wm_block_splash_refreshmenu(bContext *UNUSED(C), void *UNUSED(arg_bl
 static int wm_resource_check_prev(void)
 {
 
-	const char *res = BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION, true);
+	const char *res = BKE_appdir_folder_id_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION, true);
 
 	// if (res) printf("USER: %s\n", res);
 
 #if 0 /* ignore the local folder */
 	if (res == NULL) {
 		/* with a local dir, copying old files isn't useful since local dir get priority for config */
-		res = BLI_get_folder_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, true);
+		res = BKE_appdir_folder_id_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, true);
 	}
 #endif
 
@@ -1793,7 +1793,7 @@ static int wm_resource_check_prev(void)
 		return false;
 	}
 	else {
-		return (BLI_get_folder_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION - 1, true) != NULL);
+		return (BKE_appdir_folder_id_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION - 1, true) != NULL);
 	}
 }
 
@@ -2688,7 +2688,7 @@ void WM_recover_last_session(bContext *C, ReportList *reports)
 {
 	char filepath[FILE_MAX];
 	
-	BLI_make_file_string("/", filepath, BLI_temp_dir_base(), BLENDER_QUIT_FILE);
+	BLI_make_file_string("/", filepath, BKE_tempdir_base(), BLENDER_QUIT_FILE);
 	/* if reports==NULL, it's called directly without operator, we add a quick check here */
 	if (reports || BLI_exists(filepath)) {
 		G.fileflags |= G_FILE_RECOVER;

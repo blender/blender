@@ -431,8 +431,8 @@ int main(int argc, char** argv)
 	sdlewInit();
 #endif
 
-	BLI_init_program_path(argv[0]);
-	BLI_temp_dir_init(NULL);
+	BKE_appdir_program_path_init(argv[0]);
+	BKE_tempdir_init(NULL);
 	
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
@@ -871,7 +871,7 @@ int main(int argc, char** argv)
 						}
 					}
 					else {
-						bfd = load_game_data(BLI_program_path(), filename[0]? filename: NULL);
+						bfd = load_game_data(BKE_appdir_program_path(), filename[0]? filename: NULL);
 					}
 
 #if defined(DEBUG)
@@ -1143,7 +1143,7 @@ int main(int argc, char** argv)
 		MEM_printmemlist();
 	}
 
-	BLI_temp_dir_session_purge();
+	BKE_tempdir_session_purge();
 
 	return error ? -1 : 0;
 }

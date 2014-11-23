@@ -19,6 +19,8 @@
 
 /** \file blender/blenlib/intern/appdir.c
  *  \ingroup bke
+ *
+ * Access to application level directories.
  */
 
 #include <stdlib.h>
@@ -65,7 +67,7 @@ static char btempdir_session[FILE_MAX] = "";  /* volatile temporary directory */
 /* This is now only used to really get the user's default document folder */
 /* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
  * as default location to save documents */
-const char *BLI_getDefaultDocumentFolder(void)
+const char *BKE_appdir_folder_default(void)
 {
 #ifndef WIN32
 	const char * const xdg_documents_dir = getenv("XDG_DOCUMENTS_DIR");
@@ -354,7 +356,7 @@ static bool get_path_system(char *targetpath, const char *folder_name, const cha
 
 /* get a folder out of the 'folder_id' presets for paths */
 /* returns the path if found, NULL string if not */
-const char *BLI_get_folder(int folder_id, const char *subfolder)
+const char *BKE_appdir_folder_id(const int folder_id, const char *subfolder)
 {
 	const int ver = BLENDER_VERSION;
 	static char path[FILE_MAX] = "";
@@ -408,7 +410,7 @@ const char *BLI_get_folder(int folder_id, const char *subfolder)
 /**
  * Returns the path to a folder in the user area without checking that it actually exists first.
  */
-const char *BLI_get_user_folder_notest(int folder_id, const char *subfolder)
+const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *subfolder)
 {
 	const int ver = BLENDER_VERSION;
 	static char path[FILE_MAX] = "";
@@ -440,7 +442,7 @@ const char *BLI_get_user_folder_notest(int folder_id, const char *subfolder)
 /**
  * Returns the path to a folder in the user area, creating it if it doesn't exist.
  */
-const char *BLI_get_folder_create(int folder_id, const char *subfolder)
+const char *BKE_appdir_folder_id_create(int folder_id, const char *subfolder)
 {
 	const char *path;
 
@@ -448,10 +450,10 @@ const char *BLI_get_folder_create(int folder_id, const char *subfolder)
 	if (!ELEM(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_SCRIPTS, BLENDER_USER_AUTOSAVE))
 		return NULL;
 	
-	path = BLI_get_folder(folder_id, subfolder);
+	path = BKE_appdir_folder_id(folder_id, subfolder);
 	
 	if (!path) {
-		path = BLI_get_user_folder_notest(folder_id, subfolder);
+		path = BKE_appdir_folder_id_user_notest(folder_id, subfolder);
 		if (path) BLI_dir_create_recursive(path);
 	}
 	
@@ -462,11 +464,11 @@ const char *BLI_get_folder_create(int folder_id, const char *subfolder)
  * Returns the path of the top-level version-specific local, user or system directory.
  * If do_check, then the result will be NULL if the directory doesn't exist.
  */
-const char *BLI_get_folder_version(const int id, const int ver, const bool do_check)
+const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, const bool do_check)
 {
 	static char path[FILE_MAX] = "";
 	bool ok;
-	switch (id) {
+	switch (folder_id) {
 		case BLENDER_RESOURCE_PATH_USER:
 			ok = get_path_user(path, NULL, NULL, NULL, ver);
 			break;
@@ -648,7 +650,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 	}
 }
 
-void BLI_init_program_path(const char *argv0)
+void BKE_appdir_program_path_init(const char *argv0)
 {
 	bli_where_am_i(bprogname, sizeof(bprogname), argv0);
 	BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
@@ -657,7 +659,7 @@ void BLI_init_program_path(const char *argv0)
 /**
  * Path to executable
  */
-const char *BLI_program_path(void)
+const char *BKE_appdir_program_path(void)
 {
 	return bprogname;
 }
@@ -665,7 +667,7 @@ const char *BLI_program_path(void)
 /**
  * Path to directory of executable
  */
-const char *BLI_program_dir(void)
+const char *BKE_appdir_program_dir(void)
 {
 	return bprogdir;
 }
@@ -684,7 +686,7 @@ const char *BLI_program_dir(void)
 static void BLI_where_is_temp(char *fullname, char *basename, const size_t maxlen, char *userdir)
 {
 	/* Clear existing temp dir, if needed. */
-	BLI_temp_dir_session_purge();
+	BKE_tempdir_session_purge();
 
 	fullname[0] = '\0';
 	if (basename) {
@@ -764,8 +766,10 @@ static void BLI_where_is_temp(char *fullname, char *basename, const size_t maxle
  * Sets btempdir_base to userdir if specified and is a valid directory, otherwise
  * chooses a suitable OS-specific temporary directory.
  * Sets btempdir_session to a mkdtemp-generated sub-dir of btempdir_base.
+ *
+ * \note On Window userdir will be set to the temporary directory!
  */
-void BLI_temp_dir_init(char *userdir)
+void BKE_tempdir_init(char *userdir)
 {
 	BLI_where_is_temp(btempdir_session, btempdir_base, FILE_MAX, userdir);
 ;
@@ -774,15 +778,15 @@ void BLI_temp_dir_init(char *userdir)
 /**
  * Path to temporary directory (with trailing slash)
  */
-const char *BLI_temp_dir_session(void)
+const char *BKE_tempdir_session(void)
 {
-	return btempdir_session[0] ? btempdir_session : BLI_temp_dir_base();
+	return btempdir_session[0] ? btempdir_session : BKE_tempdir_base();
 }
 
 /**
  * Path to persistent temporary directory (with trailing slash)
  */
-const char *BLI_temp_dir_base(void)
+const char *BKE_tempdir_base(void)
 {
 	return btempdir_base;
 }
@@ -790,7 +794,7 @@ const char *BLI_temp_dir_base(void)
 /**
  * Path to the system temporary directory (with trailing slash)
  */
-void BLI_system_temporary_dir(char *dir)
+void BKE_tempdir_system_init(char *dir)
 {
 	BLI_where_is_temp(dir, NULL, FILE_MAX, NULL);
 }
@@ -798,7 +802,7 @@ void BLI_system_temporary_dir(char *dir)
 /**
  * Delete content of this instance's temp dir.
  */
-void BLI_temp_dir_session_purge(void)
+void BKE_tempdir_session_purge(void)
 {
 	if (btempdir_session[0] && BLI_is_dir(btempdir_session)) {
 		BLI_delete(btempdir_session, true, true);

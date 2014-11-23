@@ -24,62 +24,57 @@
  *  \ingroup bli
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-const char *BLI_getDefaultDocumentFolder(void);
-
-const char *BLI_get_folder(int folder_id, const char *subfolder);
-const char *BLI_get_folder_create(int folder_id, const char *subfolder);
-const char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
-const char *BLI_get_folder_version(const int id, const int ver, const bool do_check);
-
+/* note on naming: typical _get() suffix is omitted here,
+ * since its the main purpose of the API. */
+const char *BKE_appdir_folder_default(void);
+const char *BKE_appdir_folder_id(const int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, const bool do_check);
 
 /* Initialize path to program executable */
-void BLI_init_program_path(const char *argv0);
-/* Initialize path to temporary directory.
- * NOTE: On Window userdir will be set to the temporary directory! */
-void BLI_temp_dir_init(char *userdir);
+void        BKE_appdir_program_path_init(const char *argv0);
 
-const char *BLI_program_path(void);
-const char *BLI_program_dir(void);
-const char *BLI_temp_dir_session(void);
-const char *BLI_temp_dir_base(void);
-void BLI_system_temporary_dir(char *dir);
-void BLI_temp_dir_session_purge(void);
+const char *BKE_appdir_program_path(void);
+const char *BKE_appdir_program_dir(void);
+
+/* Initialize path to temporary directory. */
+void        BKE_tempdir_init(char *userdir);
+void        BKE_tempdir_system_init(char *dir);
+
+const char *BKE_tempdir_base(void);
+const char *BKE_tempdir_session(void);
+void        BKE_tempdir_session_purge(void);
 
 
 /* folder_id */
+enum {
+	/* general, will find based on user/local/system priority */
+	BLENDER_DATAFILES           = 2,
 
-/* general, will find based on user/local/system priority */
-#define BLENDER_DATAFILES           2
+	/* user-specific */
+	BLENDER_USER_CONFIG         = 31,
+	BLENDER_USER_DATAFILES      = 32,
+	BLENDER_USER_SCRIPTS        = 33,
+	BLENDER_USER_AUTOSAVE       = 34,
 
-/* user-specific */
-#define BLENDER_USER_CONFIG         31
-#define BLENDER_USER_DATAFILES      32
-#define BLENDER_USER_SCRIPTS        33
-#define BLENDER_USER_AUTOSAVE       34
+	/* system */
+	BLENDER_SYSTEM_DATAFILES    = 52,
+	BLENDER_SYSTEM_SCRIPTS      = 53,
+	BLENDER_SYSTEM_PYTHON       = 54,
+};
 
-/* system */
-#define BLENDER_SYSTEM_DATAFILES    52
-#define BLENDER_SYSTEM_SCRIPTS      53
-#define BLENDER_SYSTEM_PYTHON       54
-
-/* for BLI_get_folder_version only */
-#define BLENDER_RESOURCE_PATH_USER      0
-#define BLENDER_RESOURCE_PATH_LOCAL     1
-#define BLENDER_RESOURCE_PATH_SYSTEM    2
+/* for BKE_appdir_folder_id_version only */
+enum {
+	BLENDER_RESOURCE_PATH_USER      = 0,
+	BLENDER_RESOURCE_PATH_LOCAL     = 1,
+	BLENDER_RESOURCE_PATH_SYSTEM    = 2,
+};
 
 #define BLENDER_STARTUP_FILE    "startup.blend"
 #define BLENDER_USERPREF_FILE   "userpref.blend"
 #define BLENDER_QUIT_FILE       "quit.blend"
 #define BLENDER_BOOKMARK_FILE   "bookmarks.txt"
 #define BLENDER_HISTORY_FILE    "recent-files.txt"
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  /* __BKE_APPDIR_H__ */

@@ -320,7 +320,7 @@ static void wm_init_userdef(bContext *C, const bool from_memory)
 	}
 
 	/* update tempdir from user preferences */
-	BLI_temp_dir_init(U.tempdir);
+	BKE_tempdir_init(U.tempdir);
 
 	BKE_userdef_state();
 }
@@ -569,7 +569,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 
 	G.relbase_valid = 0;
 	if (!from_memory) {
-		const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+		const char * const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
 		if (custom_file) {
 			BLI_strncpy(startstr, custom_file, FILE_MAX);
 
@@ -615,7 +615,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 		if (BLI_listbase_is_empty(&wmbase)) {
 			wm_clear_default_size(C);
 		}
-		BLI_temp_dir_init(U.tempdir);
+		BKE_tempdir_init(U.tempdir);
 
 #ifdef WITH_PYTHON_SECURITY
 		/* use alternative setting for security nuts
@@ -728,7 +728,7 @@ void wm_read_history(void)
 	struct RecentFile *recent;
 	const char *line;
 	int num;
-	const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+	const char * const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
 
 	if (!cfgdir) return;
 
@@ -765,7 +765,7 @@ static void write_history(void)
 		return;
 	
 	/* will be NULL in background mode */
-	user_config_dir = BLI_get_folder_create(BLENDER_USER_CONFIG, NULL);
+	user_config_dir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL);
 	if (!user_config_dir)
 		return;
 
@@ -1025,7 +1025,7 @@ int wm_homefile_write_exec(bContext *C, wmOperator *op)
 	/* update keymaps in user preferences */
 	WM_keyconfig_update(wm);
 	
-	BLI_make_file_string("/", filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
+	BLI_make_file_string("/", filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	printf("trying to save homefile at %s ", filepath);
 	
 	ED_editors_flush_edits(C, false);
@@ -1056,7 +1056,7 @@ int wm_userpref_write_exec(bContext *C, wmOperator *op)
 	/* update keymaps in user preferences */
 	WM_keyconfig_update(wm);
 	
-	BLI_make_file_string("/", filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_USERPREF_FILE);
+	BLI_make_file_string("/", filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_USERPREF_FILE);
 	printf("trying to save userpref at %s ", filepath);
 	
 	if (BKE_write_file_userdef(filepath, op->reports) == 0) {
@@ -1097,14 +1097,14 @@ void wm_autosave_location(char *filepath)
 	 * BLI_make_file_string will create string that has it most likely on C:\
 	 * through get_default_root().
 	 * If there is no C:\tmp autosave fails. */
-	if (!BLI_exists(BLI_temp_dir_base())) {
-		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
+	if (!BLI_exists(BKE_tempdir_base())) {
+		savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filepath, savedir, path);
 		return;
 	}
 #endif
 
-	BLI_make_file_string("/", filepath, BLI_temp_dir_base(), path);
+	BLI_make_file_string("/", filepath, BKE_tempdir_base(), path);
 }
 
 void WM_autosave_init(wmWindowManager *wm)
@@ -1168,7 +1168,7 @@ void wm_autosave_delete(void)
 
 	if (BLI_exists(filename)) {
 		char str[FILE_MAX];
-		BLI_make_file_string("/", str, BLI_temp_dir_base(), BLENDER_QUIT_FILE);
+		BLI_make_file_string("/", str, BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
 		/* if global undo; remove tempsave, otherwise rename */
 		if (U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, false, false);

@@ -122,7 +122,7 @@ ImBuf *get_brush_icon(Brush *brush)
 
 				// otherwise lets try to find it in other directories
 				if (!(brush->icon_imbuf)) {
-					folder = BLI_get_folder(BLENDER_DATAFILES, "brushicons");
+					folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
 
 					BLI_make_file_string(G.main->name, path, folder, brush->icon_filepath);
 

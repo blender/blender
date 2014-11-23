@@ -43,7 +43,7 @@ Path::Path()
 {
 	// get the root directory
 	// soc
-	setRootDir(BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL));
+	setRootDir(BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, NULL));
 
 	_pInstance = this;
 }

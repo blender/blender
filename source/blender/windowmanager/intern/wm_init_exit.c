@@ -220,7 +220,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	/* allow a path of "", this is what happens when making a new file */
 #if 0
 	if (G.main->name[0] == 0)
-		BLI_make_file_string("/", G.main->name, BLI_getDefaultDocumentFolder(), "untitled.blend");
+		BLI_make_file_string("/", G.main->name, BKE_appdir_folder_default(), "untitled.blend");
 #endif
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
@@ -415,7 +415,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 				bool has_edited;
 				int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN | G_FILE_HISTORY);
 
-				BLI_make_file_string("/", filename, BLI_temp_dir_base(), BLENDER_QUIT_FILE);
+				BLI_make_file_string("/", filename, BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
 				has_edited = ED_editors_flush_edits(C, false);
 
@@ -544,7 +544,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	}
 	wm_autosave_delete();
 
-	BLI_temp_dir_session_purge();
+	BKE_tempdir_session_purge();
 }
 
 void WM_exit(bContext *C)

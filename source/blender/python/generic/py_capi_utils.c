@@ -568,7 +568,7 @@ void PyC_MainModule_Restore(PyObject *main_mod)
 	Py_XDECREF(main_mod);
 }
 
-/* must be called before Py_Initialize, expects output of BLI_get_folder(BLENDER_PYTHON, NULL) */
+/* must be called before Py_Initialize, expects output of BKE_appdir_folder_id(BLENDER_PYTHON, NULL) */
 void PyC_SetHomePath(const char *py_path_bundle)
 {
 	if (py_path_bundle == NULL) {

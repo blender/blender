@@ -1470,7 +1470,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
 	/* temporary directory is assumed to exist and ALWAYS has a trailing slash */
-	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH, BLI_temp_dir_session());
+	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH, BKE_tempdir_session());
 	
 	return BLI_add_slash(filename); /* new strlen() */
 }
