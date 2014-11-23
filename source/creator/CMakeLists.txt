@@ -652,9 +652,9 @@ elseif(WIN32)
 				add_custom_target(python_numpy
 					COMMAND ${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_numpy_1.8.tar.gz"
 					WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages)
+				add_dependencies(blender python_numpy)
 			endif()
 
-			add_dependencies(blender python_numpy)
 
 			install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib
 					DESTINATION ${BLENDER_VERSION}/python	)
