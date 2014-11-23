@@ -51,6 +51,7 @@
 #include "BKE_font.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -4282,6 +4283,8 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
 	Image *ima = NULL;
 	BGpic *bgpic;
 	char name[MAX_ID_NAME - 2];
+
+	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 	
 	/* check input variables */
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -4298,6 +4301,12 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
 	bgpic = background_image_add(C);
 	
 	if (ima) {
+		if (is_relative_path) {
+			Main *bmain = CTX_data_main(C);
+			const char *relbase = ID_BLEND_PATH(bmain, &ima->id);
+			BLI_path_rel(ima->name, relbase);
+		}
+
 		bgpic->ima = ima;
 		
 		id_us_plus(&ima->id);
@@ -4330,7 +4339,8 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");
-	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
+	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 }
 
 

@@ -37,6 +37,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_path_util.h"
 
 #include "BLF_translation.h"
 
@@ -307,6 +308,8 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	Image *ima = NULL;
 	int type = 0;
 
+	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
+
 	/* check input variables */
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
@@ -320,6 +323,12 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 			BKE_reportf(op->reports, RPT_ERROR, "Cannot read image '%s': %s",
 			            path, errno ? strerror(errno) : TIP_("unsupported format"));
 			return OPERATOR_CANCELLED;
+		}
+
+		if (is_relative_path) {
+			Main *bmain = CTX_data_main(C);
+			const char *relbase = ID_BLEND_PATH(bmain, &ima->id);
+			BLI_path_rel(ima->name, relbase);
 		}
 	}
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
@@ -398,7 +407,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
+	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Datablock name to assign");
 }
 
