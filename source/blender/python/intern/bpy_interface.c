@@ -63,6 +63,7 @@
 
 #include "DNA_text_types.h"
 
+#include "BKE_appdir.h"
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_main.h"

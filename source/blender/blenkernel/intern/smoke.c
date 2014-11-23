@@ -60,6 +60,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
+#include "BKE_appdir.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"

@@ -42,6 +42,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include "BKE_appdir.h"
 
 #include "DNA_userdef_types.h"
 

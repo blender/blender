@@ -69,6 +69,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_appdir.h"
 #include "BKE_utildefines.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"

@@ -58,6 +58,7 @@
 
 #include "WM_api.h"
 
+#include "BKE_appdir.h"
 #include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_cloth.h"

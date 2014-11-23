@@ -67,6 +67,7 @@ extern "C" {
 
 #include "BKE_global.h"
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
 
 #include "DNA_freestyle_types.h"
 

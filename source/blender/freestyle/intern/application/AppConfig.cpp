@@ -31,7 +31,7 @@
 using namespace std;
 
 extern "C" {
-#include "BLI_path_util.h"
+#include "BKE_appdir.h"
 }
 
 namespace Freestyle {

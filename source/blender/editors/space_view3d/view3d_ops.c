@@ -42,6 +42,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_main.h"

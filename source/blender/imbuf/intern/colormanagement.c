@@ -56,11 +56,11 @@
 #include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_rect.h"
 
+#include "BKE_appdir.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"

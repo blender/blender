@@ -35,6 +35,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_appdir.h"
 #include "BKE_sound.h"
 #include "BKE_addon.h"
 

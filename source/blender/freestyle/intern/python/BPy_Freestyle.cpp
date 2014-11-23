@@ -60,6 +60,7 @@ extern "C" {
 
 #include "FRS_freestyle.h"
 #include "RNA_access.h"
+#include "BKE_appdir.h"
 #include "DNA_scene_types.h"
 #include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
 

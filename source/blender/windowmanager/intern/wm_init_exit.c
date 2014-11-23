@@ -68,6 +68,7 @@
 #include "BKE_report.h"
 
 #include "BKE_addon.h"
+#include "BKE_appdir.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
 #include "BKE_tracking.h" /* free tracking clipboard */

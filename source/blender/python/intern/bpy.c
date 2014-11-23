@@ -31,9 +31,9 @@
 #include <Python.h>
 
 #include "BLI_utildefines.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include "BKE_appdir.h"
 #include "BKE_main.h"
 #include "BKE_global.h" /* XXX, G.main only */
 #include "BKE_blender.h"

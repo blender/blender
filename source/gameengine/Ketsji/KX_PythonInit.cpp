@@ -133,6 +133,7 @@ extern "C" {
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_appdir.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
 #include "MEM_guardedalloc.h"

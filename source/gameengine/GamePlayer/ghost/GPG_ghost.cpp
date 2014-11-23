@@ -64,6 +64,7 @@ extern "C"
 #include "BLO_readfile.h"
 #include "BLO_runtime.h"
 
+#include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"

@@ -61,6 +61,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
 
+#include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_bpath.h"
 #include "BKE_brush.h"
