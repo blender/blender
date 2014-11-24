@@ -473,11 +473,12 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 		if (id->us > 1) {
 			char numstr[32];
+			short numstr_len;
 
-			BLI_snprintf(numstr, sizeof(numstr), "%d", id->us);
+			numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", id->us);
 
-			but = uiDefBut(block, UI_BTYPE_BUT, 0, numstr, 0, 0, UI_UNIT_X + ((id->us < 10) ? 0 : 10), UI_UNIT_Y,
-			               NULL, 0, 0, 0, 0,
+			but = uiDefBut(block, UI_BTYPE_BUT, 0, numstr, 0, 0,
+			               numstr_len * 0.2f * UI_UNIT_X + UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
 			               TIP_("Display number of users of this data (click to make a single-user copy)"));
 			but->flag |= UI_BUT_UNDO;
 
