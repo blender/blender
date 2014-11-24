@@ -115,6 +115,11 @@ public:
 	__forceinline int prim_object() const { return __float_as_int(rbounds.max.w); }
 	__forceinline int prim_type() const { return type; }
 
+	BVHReference& operator=(const BVHReference &arg) {
+		memcpy(this, &arg, sizeof(BVHReference));
+		return *this;
+	}
+
 protected:
 	BoundBox rbounds;
 	uint type;
