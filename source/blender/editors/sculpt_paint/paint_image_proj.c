@@ -5129,6 +5129,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ma->id, 0);
 			ED_area_tag_redraw(CTX_wm_area(C));
 			
+			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);			
+			
 			return true;
 		}
 	}
@@ -5287,6 +5289,8 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 	if (synch_selection)
 		scene->toolsettings->uv_flag |= UV_SYNC_SELECTION;
 
+	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+	
 	DAG_id_tag_update(ob->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);
