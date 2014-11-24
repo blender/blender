@@ -51,6 +51,9 @@ private:
 	/// The 3D handle in the read device.
 	boost::shared_ptr<AUD_I3DHandle> m_3dhandle;
 
+	/// Whether the sound is playable.
+	bool m_valid;
+
 	/// The last read status from the entry.
 	int m_status;
 
@@ -62,6 +65,18 @@ private:
 
 	/// The read device this handle is played on.
 	AUD_ReadDevice& m_device;
+
+	/**
+	 * Starts playing back the handle.
+	 */
+	void start();
+
+	/**
+	 * Updates the handle state depending on position.
+	 * \param position Current playback position in seconds.
+	 * \return Whether the handle is valid.
+	 */
+	bool updatePosition(float position);
 
 public:
 	/**
@@ -99,8 +114,9 @@ public:
 	/**
 	 * Seeks the handle to a specific time position.
 	 * \param position The time to seek to.
+	 * \return Whether the handle is valid.
 	 */
-	void seek(float position);
+	bool seek(float position);
 };
 
 #endif //__AUD_SEQUENCERHANDLE_H__
