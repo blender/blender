@@ -639,7 +639,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 	if (srna->flag & STRUCT_RUNTIME)
 		rna_freelinkN(&brna->structs, srna);
 #else
-	(void)brna, (void)srna;
+	UNUSED_VARS(brna, srna);
 #endif
 }
 

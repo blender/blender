@@ -497,6 +497,56 @@ extern "C" {
 #  define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
+/**
+ * UNUSED_VARS#(a, ...): quiet unused warnings
+ *
+ * <pre>
+ * for i in range(16):
+ *     args = [(chr(ord('a') + (c % 26)) + (chr(ord('0') + (c // 26)))) for c in range(i + 1)]
+ *     print("#define _VA_UNUSED_VARS_%d(%s) \\" % (i + 1, ", ".join(args)))
+ *     print("\t((void)(%s)%s)" %
+ *             (args[0], ((", _VA_UNUSED_VARS_" + str(i) + "(%s)") if i else "%s") % ", ".join((args[1:]))))
+ * </pre>
+ *
+ */
+
+#define _VA_UNUSED_VARS_1(a0) \
+	((void)(a0))
+#define _VA_UNUSED_VARS_2(a0, b0) \
+	((void)(a0), _VA_UNUSED_VARS_1(b0))
+#define _VA_UNUSED_VARS_3(a0, b0, c0) \
+	((void)(a0), _VA_UNUSED_VARS_2(b0, c0))
+#define _VA_UNUSED_VARS_4(a0, b0, c0, d0) \
+	((void)(a0), _VA_UNUSED_VARS_3(b0, c0, d0))
+#define _VA_UNUSED_VARS_5(a0, b0, c0, d0, e0) \
+	((void)(a0), _VA_UNUSED_VARS_4(b0, c0, d0, e0))
+#define _VA_UNUSED_VARS_6(a0, b0, c0, d0, e0, f0) \
+	((void)(a0), _VA_UNUSED_VARS_5(b0, c0, d0, e0, f0))
+#define _VA_UNUSED_VARS_7(a0, b0, c0, d0, e0, f0, g0) \
+	((void)(a0), _VA_UNUSED_VARS_6(b0, c0, d0, e0, f0, g0))
+#define _VA_UNUSED_VARS_8(a0, b0, c0, d0, e0, f0, g0, h0) \
+	((void)(a0), _VA_UNUSED_VARS_7(b0, c0, d0, e0, f0, g0, h0))
+#define _VA_UNUSED_VARS_9(a0, b0, c0, d0, e0, f0, g0, h0, i0) \
+	((void)(a0), _VA_UNUSED_VARS_8(b0, c0, d0, e0, f0, g0, h0, i0))
+#define _VA_UNUSED_VARS_10(a0, b0, c0, d0, e0, f0, g0, h0, i0, j0) \
+	((void)(a0), _VA_UNUSED_VARS_9(b0, c0, d0, e0, f0, g0, h0, i0, j0))
+#define _VA_UNUSED_VARS_11(a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0) \
+	((void)(a0), _VA_UNUSED_VARS_10(b0, c0, d0, e0, f0, g0, h0, i0, j0, k0))
+#define _VA_UNUSED_VARS_12(a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0) \
+	((void)(a0), _VA_UNUSED_VARS_11(b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0))
+#define _VA_UNUSED_VARS_13(a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0) \
+	((void)(a0), _VA_UNUSED_VARS_12(b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0))
+#define _VA_UNUSED_VARS_14(a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0) \
+	((void)(a0), _VA_UNUSED_VARS_13(b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0))
+#define _VA_UNUSED_VARS_15(a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0) \
+	((void)(a0), _VA_UNUSED_VARS_14(b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0))
+#define _VA_UNUSED_VARS_16(a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0) \
+	((void)(a0), _VA_UNUSED_VARS_15(b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0))
+
+
+/* reusable ELEM macro */
+#define UNUSED_VARS(...) VA_NARGS_CALL_OVERLOAD(_VA_UNUSED_VARS_, __VA_ARGS__)
+
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
 #  define BLI_INLINE static __forceinline

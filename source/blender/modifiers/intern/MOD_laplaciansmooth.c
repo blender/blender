@@ -613,7 +613,7 @@ static void laplaciansmoothModifier_do(
         LaplacianSmoothModifierData *smd, Object *ob, DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts)
 {
-	(void)smd, (void)ob, (void)dm, (void)vertexCos, (void)numVerts;
+	UNUSED_VARS(smd, ob, dm, vertexCos, numVerts);
 }
 #endif  /* WITH_OPENNL */
 

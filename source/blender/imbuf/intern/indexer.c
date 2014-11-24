@@ -1170,7 +1170,7 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecod
 
 	return context;
 
-	(void)tcs_in_use, (void)proxy_sizes_in_use, (void)quality;
+	UNUSED_VARS(tcs_in_use, proxy_sizes_in_use, quality);
 }
 
 void IMB_anim_index_rebuild(struct IndexBuildContext *context,
@@ -1189,7 +1189,7 @@ void IMB_anim_index_rebuild(struct IndexBuildContext *context,
 #endif
 	}
 
-	(void)stop, (void)do_update, (void)progress;
+	UNUSED_VARS(stop, do_update, progress);
 }
 
 void IMB_anim_index_rebuild_finish(IndexBuildContext *context, short stop)
@@ -1207,8 +1207,8 @@ void IMB_anim_index_rebuild_finish(IndexBuildContext *context, short stop)
 #endif
 	}
 
-	(void)stop;
-	(void)proxy_sizes;  /* static defined at top of the file */
+	/* static defined at top of the file */
+	UNUSED_VARS(stop, proxy_sizes);
 }
 
 

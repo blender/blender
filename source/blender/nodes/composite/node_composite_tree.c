@@ -236,11 +236,10 @@ void ntreeCompositExecTree(Scene *scene, bNodeTree *ntree, RenderData *rd, int r
 #ifdef WITH_COMPOSITOR
 	COM_execute(rd, scene, ntree, rendering, view_settings, display_settings);
 #else
-	(void)scene, (void)ntree, (void)rd, (void)rendering, (void)do_preview;
-	(void)view_settings, (void)display_settings;
+	UNUSED_VARS(scene, ntree, rd, rendering, view_settings, display_settings);
 #endif
 
-	(void)do_preview;
+	UNUSED_VARS(do_preview);
 }
 
 /* *********************************************** */

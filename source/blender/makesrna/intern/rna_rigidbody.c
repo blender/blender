@@ -644,8 +644,7 @@ static void rna_RigidBodyWorld_convex_sweep_test(
 		BKE_report(reports, RPT_ERROR, "Rigidbody world was not properly initialized, need to step the simulation first");
 	}
 #else
-	(void)rbw, (void)reports, (void)object, (void)ray_start, (void)ray_end;
-	(void)r_location, (void)r_hitpoint, (void)r_normal, (void)r_hit;
+	UNUSED_VARS(rbw, reports, object, ray_start, ray_end, r_location, r_hitpoint, r_normal, r_hit);
 #endif
 }
 

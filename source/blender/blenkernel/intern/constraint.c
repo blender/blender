@@ -1971,7 +1971,7 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 static void pycon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
 #ifndef WITH_PYTHON
-	(void)con; (void)cob; (void)targets; /* unused */
+	UNUSED_VARS(con, cob, targets);
 	return;
 #else
 	bPythonConstraint *data = con->data;

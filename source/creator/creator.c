@@ -1128,7 +1128,7 @@ static int run_python_file(int argc, const char **argv, void *data)
 		return 0;
 	}
 #else
-	(void)argc; (void)argv; (void)data; /* unused */
+	UNUSED_VARS(argc, argv, data);
 	printf("This blender was built without python support\n");
 	return 0;
 #endif /* WITH_PYTHON */
@@ -1158,7 +1158,7 @@ static int run_python_text(int argc, const char **argv, void *data)
 		return 0;
 	}
 #else
-	(void)argc; (void)argv; (void)data; /* unused */
+	UNUSED_VARS(argc, argv, data);
 	printf("This blender was built without python support\n");
 	return 0;
 #endif /* WITH_PYTHON */
@@ -1173,7 +1173,7 @@ static int run_python_console(int UNUSED(argc), const char **argv, void *data)
 
 	return 0;
 #else
-	(void)argv; (void)data; /* unused */
+	UNUSED_VARS(argv, data);
 	printf("This blender was built without python support\n");
 	return 0;
 #endif /* WITH_PYTHON */
@@ -1191,7 +1191,7 @@ static int set_addons(int argc, const char **argv, void *data)
 		BPY_CTX_SETUP(BPY_string_exec(C, str));
 		free(str);
 #else
-		(void)argv; (void)data; /* unused */
+		UNUSED_VARS(argv, data);
 #endif /* WITH_PYTHON */
 		return 1;
 	}

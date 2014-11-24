@@ -257,7 +257,7 @@ static void *ctx_wm_python_context_get(
 		}
 	}
 #else
-	(void)C, (void)member, (void)member_type;
+	UNUSED_VARS(C, member, member_type);
 #endif
 
 	/* don't allow UI context access from non-main threads */
