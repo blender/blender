@@ -97,7 +97,7 @@ from freestyle.utils import (
     stroke_normal,
     bound,
     pairwise,
-    BoundedProperty
+    BoundedProperty,
     )
 from _freestyle import (
     blendRamp,
@@ -109,6 +109,12 @@ import time
 from mathutils import Vector
 from math import pi, sin, cos, acos, radians
 from itertools import cycle, tee
+
+# lists of callback functions
+# WARNING: highly experimental, not a stable API
+callbacks_lineset_pre = []
+callbacks_modifiers_post = []
+callbacks_lineset_post = []
 
 
 class ColorRampModifier(StrokeShader):
@@ -878,6 +884,21 @@ class Seed:
 _seed = Seed()
 
 
+def get_dashed_pattern(linestyle):
+    """Extracts the dashed pattern from the various UI options """
+    pattern = []
+    if linestyle.dash1 > 0 and linestyle.gap1 > 0:
+        pattern.append(linestyle.dash1)
+        pattern.append(linestyle.gap1)
+    if linestyle.dash2 > 0 and linestyle.gap2 > 0:
+        pattern.append(linestyle.dash2)
+        pattern.append(linestyle.gap2)
+    if linestyle.dash3 > 0 and linestyle.gap3 > 0:
+        pattern.append(linestyle.dash3)
+        pattern.append(linestyle.gap3)
+    return pattern
+
+
 integration_types = {
     'MEAN': IntegrationType.MEAN,
     'MIN': IntegrationType.MIN,
@@ -887,12 +908,18 @@ integration_types = {
 
 
 # main function for parameter processing
-
 def process(layer_name, lineset_name):
     scene = getCurrentScene()
     layer = scene.render.layers[layer_name]
     lineset = layer.freestyle_settings.linesets[lineset_name]
     linestyle = lineset.linestyle
+
+    # execute line set pre-processing callback functions
+    for fn in callbacks_lineset_pre:
+        try:
+            fn(scene, layer, lineset)
+        except Exception as e:
+            print(e)
 
     selection_criteria = []
     # prepare selection criteria by visibility
@@ -1172,24 +1199,26 @@ def process(layer_name, lineset_name):
                 has_tex = True
     if has_tex:
         shaders_list.append(StrokeTextureStepShader(linestyle.texture_spacing))
+
+    # execute post-base stylization callbacks
+    for fn in callbacks_modifiers_post:
+        shaders_list.extend(fn(scene, layer, lineset))
+
     # -- Stroke caps -- #
     if linestyle.caps == 'ROUND':
         shaders_list.append(RoundCapShader())
     elif linestyle.caps == 'SQUARE':
         shaders_list.append(SquareCapShader())
+
     # -- Dashed line -- #
     if linestyle.use_dashed_line:
-        pattern = []
-        if linestyle.dash1 > 0 and linestyle.gap1 > 0:
-            pattern.append(linestyle.dash1)
-            pattern.append(linestyle.gap1)
-        if linestyle.dash2 > 0 and linestyle.gap2 > 0:
-            pattern.append(linestyle.dash2)
-            pattern.append(linestyle.gap2)
-        if linestyle.dash3 > 0 and linestyle.gap3 > 0:
-            pattern.append(linestyle.dash3)
-            pattern.append(linestyle.gap3)
+        pattern = get_dashed_pattern(linestyle)
         if len(pattern) > 0:
             shaders_list.append(DashedLineShader(pattern))
+
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)
+
+    # execute line set post-processing callback functions
+    for fn in callbacks_lineset_post:
+        fn(scene, layer, lineset)
