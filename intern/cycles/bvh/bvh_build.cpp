@@ -28,6 +28,7 @@
 
 #include "util_debug.h"
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_progress.h"
 #include "util_time.h"
 
@@ -223,7 +224,8 @@ BVHNode* BVHBuild::run()
 	spatial_right_bounds.resize(max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1);
 
 	/* init progress updates */
-	progress_start_time = time_dt();
+	double build_start_time;
+	build_start_time = progress_start_time = time_dt();
 	progress_count = 0;
 	progress_total = references.size();
 	progress_original_total = progress_total;
@@ -257,6 +259,10 @@ BVHNode* BVHBuild::run()
 			rootnode->update_visibility();
 		}
 	}
+
+	VLOG(1) << "BVH built in "
+	        << time_dt() - build_start_time
+	        << " seconds.";
 
 	return rootnode;
 }
