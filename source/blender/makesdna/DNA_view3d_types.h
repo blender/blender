@@ -201,7 +201,9 @@ typedef struct View3D {
 	char gridflag;
 
 	/* transform widget info */
-	char twtype, twmode, twflag, pad2[2];
+	char twtype, twmode, twflag;
+	
+	short flag3;
 	
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw_transp;
@@ -267,21 +269,24 @@ typedef struct View3D {
 	((view >= RV3D_VIEW_FRONT) && (view <= RV3D_VIEW_BOTTOM))
 
 /* View3d->flag2 (short) */
-#define V3D_RENDER_OVERRIDE		4
-#define V3D_SOLID_TEX			8
-#define V3D_SHOW_GPENCIL		16
-#define V3D_LOCK_CAMERA			32
-#define V3D_RENDER_SHADOW		64		/* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
-#define V3D_SHOW_RECONSTRUCTION	128
-#define V3D_SHOW_CAMERAPATH		256
-#define V3D_SHOW_BUNDLENAME		512
-#define V3D_BACKFACE_CULLING	1024
-#define V3D_RENDER_BORDER		2048
-#define V3D_SOLID_MATCAP		4096	/* user flag */
-#define V3D_SHOW_SOLID_MATCAP	8192	/* runtime flag */
-#define V3D_OCCLUDE_WIRE		16384
-#define V3D_SHADELESS_TEX		32768
+#define V3D_RENDER_OVERRIDE		(1 << 2)
+#define V3D_SOLID_TEX			(1 << 3)
+#define V3D_SHOW_GPENCIL		(1 << 4)
+#define V3D_LOCK_CAMERA			(1 << 5)
+#define V3D_RENDER_SHADOW		(1 << 6)		/* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
+#define V3D_SHOW_RECONSTRUCTION	(1 << 7)
+#define V3D_SHOW_CAMERAPATH		(1 << 8)
+#define V3D_SHOW_BUNDLENAME		(1 << 9)
+#define V3D_BACKFACE_CULLING	(1 << 10)
+#define V3D_RENDER_BORDER		(1 << 11)
+#define V3D_SOLID_MATCAP		(1 << 12)	/* user flag */
+#define V3D_SHOW_SOLID_MATCAP	(1 << 13)	/* runtime flag */
+#define V3D_OCCLUDE_WIRE		(1 << 14)
+#define V3D_SHADELESS_TEX		(1 << 15)
 
+
+/* View3d->flag3 (short) */
+#define V3D_SHOW_WORLD			(1 << 0)
 
 /* View3D->around */
 #define V3D_CENTER		 0

@@ -2813,6 +2813,7 @@ class VIEW3D_PT_view3d_display(Panel):
 
         col = layout.column()
         col.prop(view, "show_only_render")
+        col.prop(view, "show_world")
 
         col = layout.column()
         display_all = not view.show_only_render

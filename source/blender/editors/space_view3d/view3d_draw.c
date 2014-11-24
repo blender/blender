@@ -3211,7 +3211,7 @@ static void view3d_main_area_draw_engine_info(View3D *v3d, RegionView3D *rv3d, A
 static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 {
 	/* clear background */
-	if (scene->world && (v3d->flag2 & V3D_RENDER_OVERRIDE)) {  /* clear with solid color */
+	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {  /* clear with solid color */
 		if (scene->world->skytype & WO_SKYBLEND) {  /* blend sky */
 			int x, y;
 			float col_hor[3];
