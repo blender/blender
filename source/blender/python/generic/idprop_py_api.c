@@ -512,7 +512,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 	else {
 		IDProperty *prop_exist;
 
-		/* avoid freeing when types match incase they are referenced by the UI, see: T37073
+		/* avoid freeing when types match in case they are referenced by the UI, see: T37073
 		 * obviously this isn't a complete solution, but helps for common cases. */
 		prop_exist = IDP_GetPropertyFromGroup(group, prop->name);
 		if ((prop_exist != NULL) &&

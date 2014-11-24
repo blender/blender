@@ -2165,8 +2165,8 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 							 * the value is simply the shared value (see T40372 -> F91346)
 							 */
 							cvalue = v1[1];
- 						}
- 						else {
+						}
+						else {
 							/* adjust handles so that they don't overlap (forming a loop) */
 							correct_bezpart(v1, v2, v3, v4);
 							

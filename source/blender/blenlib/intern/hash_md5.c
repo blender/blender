@@ -22,7 +22,7 @@
  * Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>.
  */
 
-/** \file blender/blenlib/intern/md5.c
+/** \file blender/blenlib/intern/hash_md5.c
  *  \ingroup bli
  *
  *  Functions to compute MD5 message digest of files or memory blocks

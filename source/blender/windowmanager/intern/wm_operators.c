@@ -1402,7 +1402,7 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 }
 
 /**
- * Use for drag & drop a path or name with opeators invoke() function.
+ * Use for drag & drop a path or name with operators invoke() function.
  */
 ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short idcode)
 {
