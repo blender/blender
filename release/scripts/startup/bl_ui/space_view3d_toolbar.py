@@ -794,7 +794,7 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
         if toolsettings.missing_uvs:
             col.separator()
             col.label("Missing UVs", icon='INFO')
-            col.label("Unwrap the mesh in edit mode or generate a simple UVs")
+            col.label("Unwrap the mesh in edit mode or generate a simple UV layer")
             col.operator("paint.add_simple_uvs")
     
         if toolsettings.mode == 'MATERIAL':
