@@ -2801,6 +2801,179 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 		gpu_update_lamps_shadows(scene, v3d);
 }
 
+/*
+ * Function to clear the view
+ */
+static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar, bool force)
+{
+	/* clear background */
+	if (scene->world && ((v3d->flag3 & V3D_SHOW_WORLD) || force)) {  /* clear with solid color */
+		float alpha = (force) ? 1.0f : 0.0;
+		
+		if (scene->world->skytype & WO_SKYBLEND) {  /* blend sky */
+			int x, y;
+			float col_hor[3];
+			float col_zen[3];
+
+#define VIEWGRAD_RES_X 16
+#define VIEWGRAD_RES_Y 16
+
+			GLubyte grid_col[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][4];
+			static float   grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][3];
+			static GLushort indices[VIEWGRAD_RES_X - 1][VIEWGRAD_RES_X - 1][4];
+			static bool buf_calculated = false;
+
+			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
+			                                              &scene->display_settings);
+			IMB_colormanagement_pixel_to_display_space_v3(col_zen, &scene->world->zenr, &scene->view_settings,
+			                                              &scene->display_settings);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glShadeModel(GL_SMOOTH);
+
+			/* calculate buffers the first time only */
+			if (!buf_calculated) {
+				for (x = 0; x < VIEWGRAD_RES_X; x++) {
+					for (y = 0; y < VIEWGRAD_RES_Y; y++) {
+						const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
+						const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
+
+						/* -1..1 range */
+						grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
+						grid_pos[x][y][1] = (yf - 0.5f) * 2.0f;
+						grid_pos[x][y][2] = 1.0;
+					}
+				}
+
+				for (x = 0; x < VIEWGRAD_RES_X - 1; x++) {
+					for (y = 0; y < VIEWGRAD_RES_Y - 1; y++) {
+						indices[x][y][0] = x * VIEWGRAD_RES_X + y;
+						indices[x][y][1] = x * VIEWGRAD_RES_X + y + 1;
+						indices[x][y][2] = (x + 1) * VIEWGRAD_RES_X + y + 1;
+						indices[x][y][3] = (x + 1) * VIEWGRAD_RES_X + y;
+					}
+				}
+
+				buf_calculated = true;
+			}
+
+			for (x = 0; x < VIEWGRAD_RES_X; x++) {
+				for (y = 0; y < VIEWGRAD_RES_Y; y++) {
+					const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
+					const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
+					const float mval[2] = {xf * (float)ar->winx, yf * ar->winy};
+					const float z_up[3] = {0.0f, 0.0f, 1.0f};
+					float out[3];
+					GLubyte *col_ub = grid_col[x][y];
+
+					float col_fac;
+					float col_fl[3];
+
+					ED_view3d_win_to_vector(ar, mval, out);
+
+					if (scene->world->skytype & WO_SKYPAPER) {
+						if (scene->world->skytype & WO_SKYREAL) {
+							col_fac = fabsf(((float)y / (float)VIEWGRAD_RES_Y) - 0.5f) * 2.0f;
+						}
+						else {
+							col_fac = (float)y / (float)VIEWGRAD_RES_Y;
+						}
+					}
+					else {
+						if (scene->world->skytype & WO_SKYREAL) {
+							col_fac = fabsf((angle_normalized_v3v3(z_up, out) / (float)M_PI) - 0.5f) * 2.0f;
+						}
+						else {
+							col_fac = 1.0f - (angle_normalized_v3v3(z_up, out) / (float)M_PI);
+						}
+					}
+
+					interp_v3_v3v3(col_fl, col_hor, col_zen, col_fac);
+
+					rgb_float_to_uchar(col_ub, col_fl);
+					col_ub[3] = alpha * 255;
+				}
+			}
+
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_ALWAYS);
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, grid_pos);
+			glColorPointer(4, GL_UNSIGNED_BYTE, 0, grid_col);
+
+			glDrawElements(GL_QUADS, (VIEWGRAD_RES_X - 1) * (VIEWGRAD_RES_Y - 1) * 4, GL_UNSIGNED_SHORT, indices);
+
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
+
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_DEPTH_TEST);
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+
+			glShadeModel(GL_FLAT);
+
+#undef VIEWGRAD_RES_X
+#undef VIEWGRAD_RES_Y
+		}
+		else {  /* solid sky */
+			float col_hor[3];
+			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
+			                                              &scene->display_settings);
+
+			glClearColor(col_hor[0], col_hor[1], col_hor[2], alpha);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+	else {
+		if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_ALWAYS);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_QUADS);
+			UI_ThemeColor(TH_LOW_GRAD);
+			glVertex3f(-1.0, -1.0, 1.0);
+			glVertex3f(1.0, -1.0, 1.0);
+			UI_ThemeColor(TH_HIGH_GRAD);
+			glVertex3f(1.0, 1.0, 1.0);
+			glVertex3f(-1.0, 1.0, 1.0);
+			glEnd();
+			glShadeModel(GL_FLAT);
+
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_DEPTH_TEST);
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
+		else {
+			UI_ThemeClearColor(TH_HIGH_GRAD);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+}
+
 /* ED_view3d_draw_offscreen_init should be called before this to initialize
  * stuff like shadow buffers
  */
@@ -2839,16 +3012,12 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	/* clear opengl buffers */
 	if (do_sky) {
-		float sky_color[3];
-
-		ED_view3d_offscreen_sky_color_get(scene, sky_color);
-		glClearColor(sky_color[0], sky_color[1], sky_color[2], 1.0f);
+		view3d_main_area_clear(scene, v3d, ar, true);
 	}
 	else {
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 	}
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 	/* setup view matrices */
@@ -3205,178 +3374,6 @@ static void view3d_main_area_draw_engine_info(View3D *v3d, RegionView3D *rv3d, A
 	ED_region_info_draw(ar, rv3d->render_engine->text, 1, fill_color);
 }
 
-/*
- * Function to clear the view
- */
-static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
-{
-	/* clear background */
-	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {  /* clear with solid color */
-		if (scene->world->skytype & WO_SKYBLEND) {  /* blend sky */
-			int x, y;
-			float col_hor[3];
-			float col_zen[3];
-
-#define VIEWGRAD_RES_X 16
-#define VIEWGRAD_RES_Y 16
-
-			GLubyte grid_col[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][4];
-			static float   grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][3];
-			static GLushort indices[VIEWGRAD_RES_X - 1][VIEWGRAD_RES_X - 1][4];
-			static bool buf_calculated = false;
-
-			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
-			                                              &scene->display_settings);
-			IMB_colormanagement_pixel_to_display_space_v3(col_zen, &scene->world->zenr, &scene->view_settings,
-			                                              &scene->display_settings);
-
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glLoadIdentity();
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-
-			glShadeModel(GL_SMOOTH);
-
-			/* calculate buffers the first time only */
-			if (!buf_calculated) {
-				for (x = 0; x < VIEWGRAD_RES_X; x++) {
-					for (y = 0; y < VIEWGRAD_RES_Y; y++) {
-						const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
-						const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
-
-						/* -1..1 range */
-						grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
-						grid_pos[x][y][1] = (yf - 0.5f) * 2.0f;
-						grid_pos[x][y][2] = 1.0;
-					}
-				}
-
-				for (x = 0; x < VIEWGRAD_RES_X - 1; x++) {
-					for (y = 0; y < VIEWGRAD_RES_Y - 1; y++) {
-						indices[x][y][0] = x * VIEWGRAD_RES_X + y;
-						indices[x][y][1] = x * VIEWGRAD_RES_X + y + 1;
-						indices[x][y][2] = (x + 1) * VIEWGRAD_RES_X + y + 1;
-						indices[x][y][3] = (x + 1) * VIEWGRAD_RES_X + y;
-					}
-				}
-
-				buf_calculated = true;
-			}
-
-			for (x = 0; x < VIEWGRAD_RES_X; x++) {
-				for (y = 0; y < VIEWGRAD_RES_Y; y++) {
-					const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
-					const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
-					const float mval[2] = {xf * (float)ar->winx, yf * ar->winy};
-					const float z_up[3] = {0.0f, 0.0f, 1.0f};
-					float out[3];
-					GLubyte *col_ub = grid_col[x][y];
-
-					float col_fac;
-					float col_fl[3];
-
-					ED_view3d_win_to_vector(ar, mval, out);
-
-					if (scene->world->skytype & WO_SKYPAPER) {
-						if (scene->world->skytype & WO_SKYREAL) {
-							col_fac = fabsf(((float)y / (float)VIEWGRAD_RES_Y) - 0.5f) * 2.0f;
-						}
-						else {
-							col_fac = (float)y / (float)VIEWGRAD_RES_Y;
-						}
-					}
-					else {
-						if (scene->world->skytype & WO_SKYREAL) {
-							col_fac = fabsf((angle_normalized_v3v3(z_up, out) / (float)M_PI) - 0.5f) * 2.0f;
-						}
-						else {
-							col_fac = 1.0f - (angle_normalized_v3v3(z_up, out) / (float)M_PI);
-						}
-					}
-
-					interp_v3_v3v3(col_fl, col_hor, col_zen, col_fac);
-
-					rgb_float_to_uchar(col_ub, col_fl);
-					col_ub[3] = 0;
-				}
-			}
-
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_ALWAYS);
-
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_COLOR_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, grid_pos);
-			glColorPointer(4, GL_UNSIGNED_BYTE, 0, grid_col);
-
-			glDrawElements(GL_QUADS, (VIEWGRAD_RES_X - 1) * (VIEWGRAD_RES_Y - 1) * 4, GL_UNSIGNED_SHORT, indices);
-
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glDisableClientState(GL_COLOR_ARRAY);
-
-			glDepthFunc(GL_LEQUAL);
-			glDisable(GL_DEPTH_TEST);
-
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-
-			glShadeModel(GL_FLAT);
-
-#undef VIEWGRAD_RES_X
-#undef VIEWGRAD_RES_Y
-		}
-		else {  /* solid sky */
-			float col_hor[3];
-			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
-			                                              &scene->display_settings);
-
-			glClearColor(col_hor[0], col_hor[1], col_hor[2], 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}
-	}
-	else {
-		if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glLoadIdentity();
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_ALWAYS);
-			glShadeModel(GL_SMOOTH);
-			glBegin(GL_QUADS);
-			UI_ThemeColor(TH_LOW_GRAD);
-			glVertex3f(-1.0, -1.0, 1.0);
-			glVertex3f(1.0, -1.0, 1.0);
-			UI_ThemeColor(TH_HIGH_GRAD);
-			glVertex3f(1.0, 1.0, 1.0);
-			glVertex3f(-1.0, 1.0, 1.0);
-			glEnd();
-			glShadeModel(GL_FLAT);
-
-			glDepthFunc(GL_LEQUAL);
-			glDisable(GL_DEPTH_TEST);
-
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
-
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-		}
-		else {
-			UI_ThemeClearColor(TH_HIGH_GRAD);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}
-	}
-}
-
-
 #ifdef WITH_GAMEENGINE
 static void update_lods(Scene *scene, float camera_pos[3])
 {
@@ -3422,7 +3419,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 #endif
 
 	/* clear the background */
-	view3d_main_area_clear(scene, v3d, ar);
+	view3d_main_area_clear(scene, v3d, ar, false);
 
 	/* enables anti-aliasing for 3D view drawing */
 	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
