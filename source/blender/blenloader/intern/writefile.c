@@ -156,6 +156,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
+#include "BKE_sound.h"
 #include "BKE_subsurf.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"

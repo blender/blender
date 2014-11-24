@@ -38,6 +38,7 @@
 
 #include "BKE_sound.h"
 #include "BKE_context.h"
+#include "BKE_sequencer.h"
 
 static void rna_Sound_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -59,9 +60,9 @@ static void rna_Sound_caching_set(PointerRNA *ptr, const int value)
 		sound_delete_cache(sound);
 }
 
-static void rna_Sound_caching_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Sound_caching_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
-	sound_update_sequencer(bmain, (bSound *)(ptr->data));
+	BKE_sequencer_update_sound(scene, (bSound *)(ptr->data));
 }
 
 #else

@@ -4528,9 +4528,46 @@ static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *
 			}
 		}
 	}
-
 	return tot;
 }
+
+
+static void SeqTransDataBounds(TransInfo *t, ListBase *seqbase, TransSeq *ts)
+{
+	Sequence *seq;
+	int recursive, count, flag;
+	int max = INT32_MIN, min = INT32_MAX;
+
+	for (seq = seqbase->first; seq; seq = seq->next) {
+
+		/* just to get the flag since there are corner cases where this isn't totally obvious */
+		SeqTransInfo(t, seq, &recursive, &count, &flag);
+
+		/* use 'flag' which is derived from seq->flag but modified for special cases */
+		if (flag & SELECT) {
+			if (flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) {
+				if (flag & SEQ_LEFTSEL) {
+					min = min_ii(seq->startdisp, min);
+					max = max_ii(seq->startdisp, max);
+				}
+				if (flag & SEQ_RIGHTSEL) {
+					min = min_ii(seq->enddisp, min);
+					max = max_ii(seq->enddisp, max);
+				}
+			}
+			else {
+				min = min_ii(seq->startdisp, min);
+				max = max_ii(seq->enddisp, max);
+			}
+		}
+	}
+
+	if (ts) {
+		ts->max = max;
+		ts->min = min;
+	}
+}
+
 
 static void freeSeqData(TransInfo *t)
 {
@@ -4694,6 +4731,8 @@ static void freeSeqData(TransInfo *t)
 	}
 
 	if ((t->customData != NULL) && (t->flag & T_FREE_CUSTOMDATA)) {
+		TransSeq *ts = t->customData;
+		MEM_freeN(ts->tdseq);
 		MEM_freeN(t->customData);
 		t->customData = NULL;
 	}
@@ -4713,6 +4752,8 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	TransDataSeq *tdsq = NULL;
+	TransSeq *ts = NULL;
+	float xmouse, ymouse;
 
 	int count = 0;
 
@@ -4723,12 +4764,11 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	t->customFree = freeSeqData;
 
+	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
 		/* only side on which mouse is gets transformed */
-		float xmouse, ymouse;
-
-		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
 		t->frame_side = (xmouse > CFRA) ? 'R' : 'L';
 	}
 	else {
@@ -4768,15 +4808,19 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 		return;
 	}
 
+	t->customData = ts = MEM_mallocN(sizeof(TransSeq), "transseq");
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransSeq TransData");
 	td2d = t->data2d = MEM_callocN(t->total * sizeof(TransData2D), "TransSeq TransData2D");
-	tdsq = t->customData = MEM_callocN(t->total * sizeof(TransDataSeq), "TransSeq TransDataSeq");
+	ts->tdseq = tdsq = MEM_callocN(t->total * sizeof(TransDataSeq), "TransSeq TransDataSeq");
 	t->flag |= T_FREE_CUSTOMDATA;
-
-
 
 	/* loop 2: build transdata array */
 	SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
+	SeqTransDataBounds(t, ed->seqbasep, ts);
+	
+	/* set the snap mode based on how close the mouse is at the end/start points */
+	if (abs(xmouse - ts->max) > abs(xmouse - ts->min))
+		ts->snap_left = true;
 
 #undef XXX_DURIAN_ANIM_TX_HACK
 }

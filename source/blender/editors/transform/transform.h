@@ -173,6 +173,13 @@ typedef struct TransDataSeq {
 
 } TransDataSeq;
 
+typedef struct TransSeq {
+	TransDataSeq *tdseq;
+	int min;
+	int max;
+	bool snap_left;
+} TransSeq;
+
 /* for NLA transform (stored in td->extra pointer) */
 typedef struct TransDataNla {
 	ID *id;						/* ID-block NLA-data is attached to */
@@ -587,6 +594,8 @@ typedef enum {
 
 void snapGridIncrement(TransInfo *t, float *val);
 void snapGridIncrementAction(TransInfo *t, float *val, GearsType action);
+
+int snapSequenceBounds(TransInfo *t, const int mval[2]);
 
 bool activeSnap(TransInfo *t);
 bool validSnap(TransInfo *t);

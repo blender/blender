@@ -71,8 +71,6 @@ void sound_delete(struct Main *bmain, struct bSound *sound);
 
 void sound_cache(struct bSound *sound);
 
-void sound_cache_notifying(struct Main *main, struct bSound *sound);
-
 void sound_delete_cache(struct bSound *sound);
 
 void sound_load(struct Main *main, struct bSound *sound);
@@ -132,7 +130,7 @@ int sound_scene_playing(struct Scene *scene);
 
 void sound_free_waveform(struct bSound *sound);
 
-void sound_read_waveform(struct bSound *sound);
+void sound_read_waveform(struct bSound *sound, bool locked, short *stop);
 
 void sound_update_scene(struct Main *bmain, struct Scene *scene);
 

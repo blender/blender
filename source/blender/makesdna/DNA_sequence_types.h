@@ -131,10 +131,11 @@ typedef struct Sequence {
 
 	int flag, type; /*flags bitmap (see below) and the type of sequence*/
 	int len; /* the length of the contents of this strip - before handles are applied */
-	int start, startofs, endofs;
-	int startstill, endstill;
+	int start; /* start frame of contents of strip in absolute frame coordinates. For metastrips start of first strip startdisp */
+	int startofs, endofs; /* frames after the first frame where display starts, frames before the last frame where display ends */
+	int startstill, endstill; /* frames that use the first frame before data begins, frames that use the last frame after data ends */
 	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
-	int startdisp, enddisp; /*starting and ending points in the sequence*/
+	int startdisp, enddisp; /* starting and ending points of the strip in the sequence*/
 	float sat;
 	float mul, handsize;
 

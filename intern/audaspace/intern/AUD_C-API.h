@@ -646,7 +646,7 @@ extern int AUD_doesPlayback(void);
  * \param samples_per_second How many samples to read per second of the sound.
  * \return How many samples really have been read. Always <= length.
  */
-extern int AUD_readSound(AUD_Sound *sound, sample_t *buffer, int length, int samples_per_second);
+extern int AUD_readSound(AUD_Sound *sound, sample_t *buffer, int length, int samples_per_second, short *interrupt);
 
 /**
  * Copies a sound.

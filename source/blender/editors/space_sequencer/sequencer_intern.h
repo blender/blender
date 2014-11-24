@@ -45,6 +45,7 @@ struct ARegion;
 struct ARegionType;
 struct Scene;
 struct Main;
+struct SequencePreview;
 
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
@@ -52,7 +53,9 @@ struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
-void draw_image_seq(const struct bContext *C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, bool draw_overlay);
+void draw_image_seq(const struct bContext *C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, bool draw_overlay, bool draw_backdrop);
+void color3ubv_from_seq(struct Scene *curscene, struct Sequence *seq, unsigned char col[3]);
+void draw_shadedstrip(struct Sequence *seq, unsigned char col[3], float x1, float y1, float x2, float y2);
 
 /* UNUSED */
 // void seq_reset_imageofs(struct SpaceSeq *sseq);
@@ -150,13 +153,6 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
 
-/* RNA enums, just to be more readable */
-enum {
-	SEQ_SIDE_NONE = 0,
-	SEQ_SIDE_LEFT,
-	SEQ_SIDE_RIGHT,
-	SEQ_SIDE_BOTH
-};
 enum {
 	SEQ_CUT_SOFT,
 	SEQ_CUT_HARD
@@ -198,6 +194,9 @@ void SEQUENCER_OT_strip_modifier_move(struct wmOperatorType *ot);
 
 /* sequencer_view.c */
 void SEQUENCER_OT_sample(struct wmOperatorType *ot);
+
+/* sequencer_preview.c */
+void sequencer_preview_add_sound(const struct bContext *C, struct Sequence *seq);
 
 #endif /* __SEQUENCER_INTERN_H__ */
 

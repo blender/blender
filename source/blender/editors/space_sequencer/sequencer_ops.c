@@ -40,6 +40,8 @@
 #include "ED_markers.h"
 #include "ED_transform.h" /* transform keymap */
 
+#include "BKE_sequencer.h"
+
 #include "sequencer_intern.h"
 
 

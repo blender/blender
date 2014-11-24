@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_sequencer.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_sound.h"
@@ -92,9 +93,15 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	
+	int frame = RNA_int_get(op->ptr, "frame");
+	bool do_snap = RNA_boolean_get(op->ptr, "snap");
+
+	if (do_snap && CTX_wm_space_seq(C)) {
+		frame = BKE_sequencer_find_next_prev_edit(scene, frame, SEQ_SIDE_BOTH, true, false, false);
+	}
+
 	/* set the new frame number */
-	CFRA = RNA_int_get(op->ptr, "frame");
+	CFRA = frame;
 	FRAMENUMBER_MIN_CLAMP(CFRA);
 	SUBFRA = 0.0f;
 	
@@ -144,7 +151,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	 * click-dragging over a range (modal scrubbing).
 	 */
 	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
-	
+
 	change_frame_apply(C, op);
 	
 	/* add temp handler */
@@ -175,6 +182,16 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_RELEASE)
 				return OPERATOR_FINISHED;
 			break;
+
+		case LEFTCTRLKEY:
+		case RIGHTCTRLKEY:
+			if (event->val == KM_RELEASE) {
+				RNA_boolean_set(op->ptr, "snap", false);
+			}
+			else if (event->val == KM_PRESS) {
+				RNA_boolean_set(op->ptr, "snap", true);
+			}
+			break;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -182,6 +199,8 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void ANIM_OT_change_frame(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Change Frame";
 	ot->idname = "ANIM_OT_change_frame";
@@ -198,6 +217,8 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 
 	/* rna */
 	ot->prop = RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
+	prop = RNA_def_boolean(ot->srna, "snap", false, "Snap", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ****************** set preview range operator ****************************/
