@@ -73,6 +73,7 @@ data_to_c_simple(shaders/gpu_shader_sep_gaussian_blur_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_simple_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_simple_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vertex.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_vertex_world.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_vert.glsl SRC)
 

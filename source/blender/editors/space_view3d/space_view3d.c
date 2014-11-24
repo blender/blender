@@ -414,7 +414,7 @@ static void view3d_free(SpaceLink *sl)
 	/* matcap material, its preview rect gets freed via icons */
 	if (vd->defmaterial) {
 		if (vd->defmaterial->gpumaterial.first)
-			GPU_material_free(vd->defmaterial);
+			GPU_material_free(&vd->defmaterial->gpumaterial);
 		BKE_previewimg_free(&vd->defmaterial->preview);
 		MEM_freeN(vd->defmaterial);
 	}
@@ -1168,6 +1168,7 @@ static void space_view3d_listener(bScreen *UNUSED(sc), ScrArea *sa, struct wmNot
 		case NC_WORLD:
 			switch (wmn->data) {
 				case ND_WORLD_DRAW:
+				case ND_WORLD:
 					if (v3d->flag3 & V3D_SHOW_WORLD)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;

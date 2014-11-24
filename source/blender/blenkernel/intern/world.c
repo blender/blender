@@ -49,6 +49,8 @@
 #include "BKE_node.h"
 #include "BKE_world.h"
 
+#include "GPU_material.h"
+
 void BKE_world_free_ex(World *wrld, bool do_id_user)
 {
 	MTex *mtex;
@@ -69,6 +71,9 @@ void BKE_world_free_ex(World *wrld, bool do_id_user)
 		MEM_freeN(wrld->nodetree);
 	}
 
+	if (wrld->gpumaterial.first)
+		GPU_material_free(&wrld->gpumaterial);
+	
 	BKE_icon_delete((struct ID *)wrld);
 	wrld->id.icon_id = 0;
 }

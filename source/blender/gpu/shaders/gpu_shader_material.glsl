@@ -2256,6 +2256,22 @@ void node_emission(vec4 color, float strength, vec3 N, out vec4 result)
 	result = color*strength;
 }
 
+/* background */
+
+void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
+{
+	vec4 v = (gl_ProjectionMatrix[3][3] == 0.0) ? vec4(viewvec, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
+	vec4 co_homogenous = (gl_ProjectionMatrixInverse * v);
+
+	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
+	worldvec = (gl_ModelViewMatrixInverse * co).xyz;
+}
+
+void node_background(vec4 color, float strength, vec3 N, out vec4 result)
+{
+	result = color*strength;
+}
+
 /* closures */
 
 void node_mix_shader(float fac, vec4 shader1, vec4 shader2, out vec4 shader)
@@ -2362,6 +2378,30 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	shade_view(I, shade_I);
 	vec3 view_reflection = reflect(shade_I, normalize(N));
 	reflection = (viewinvmat*vec4(view_reflection, 0.0)).xyz;
+}
+
+void node_tex_coord_background(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
+	vec3 attr_orco, vec3 attr_uv,
+	out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
+	out vec3 camera, out vec3 window, out vec3 reflection)
+{
+	vec4 v = (gl_ProjectionMatrix[3][3] == 0.0) ? vec4(I, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
+	vec4 co_homogenous = (gl_ProjectionMatrixInverse * v);
+
+	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
+
+	co = normalize(co);
+	vec3 coords = (gl_ModelViewMatrixInverse * co).xyz;
+
+	generated = coords;
+	normal = -coords;
+	uv = attr_uv;
+	object = coords;
+
+	camera = co.xyz;
+	window = mtex_2d_mapping(I);
+
+	reflection = -coords;
 }
 
 /* textures */
@@ -2521,6 +2561,11 @@ void node_bump(float strength, float dist, float height, vec3 N, out vec3 result
 /* output */
 
 void node_output_material(vec4 surface, vec4 volume, float displacement, out vec4 result)
+{
+	result = surface;
+}
+
+void node_output_world(vec4 surface, vec4 volume, out vec4 result)
 {
 	result = surface;
 }

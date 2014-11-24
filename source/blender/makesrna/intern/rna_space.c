@@ -485,7 +485,7 @@ static void rna_SpaceView3D_matcap_update(Main *UNUSED(bmain), Scene *UNUSED(sce
 			BKE_previewimg_free(&ma->preview);
 		
 		if (ma->gpumaterial.first)
-			GPU_material_free(ma);
+			GPU_material_free(&ma->gpumaterial);
 		
 		WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 	}

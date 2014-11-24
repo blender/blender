@@ -116,7 +116,7 @@ void BKE_material_free_ex(Material *ma, bool do_id_user)
 		MEM_freeN(ma->texpaintslot);
 
 	if (ma->gpumaterial.first)
-		GPU_material_free(ma);
+		GPU_material_free(&ma->gpumaterial);
 }
 
 void init_material(Material *ma)
@@ -1724,7 +1724,7 @@ void paste_matcopybuf(Material *ma)
 		MEM_freeN(ma->nodetree);
 	}
 
-	GPU_material_free(ma);
+	GPU_material_free(&ma->gpumaterial);
 
 	id = (ma->id);
 	memcpy(ma, &matcopybuf, sizeof(Material));

@@ -342,14 +342,22 @@ void snode_dag_update(bContext *C, SpaceNode *snode)
 
 void snode_notify(bContext *C, SpaceNode *snode)
 {
+	ID *id = snode->id;
+
 	WM_event_add_notifier(C, NC_NODE | NA_EDITED, NULL);
 
-	if (ED_node_is_shader(snode))
-		WM_event_add_notifier(C, NC_MATERIAL | ND_NODES, snode->id);
+	if (ED_node_is_shader(snode)) {
+		if (GS(id->name) == ID_MA)
+			WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
+		else if (GS(id->name) == ID_LA)
+			WM_main_add_notifier(NC_LAMP | ND_LIGHTING, id);
+		else if (GS(id->name) == ID_WO)
+			WM_main_add_notifier(NC_WORLD | ND_WORLD, id);
+	}
 	else if (ED_node_is_compositor(snode))
-		WM_event_add_notifier(C, NC_SCENE | ND_NODES, snode->id);
+		WM_event_add_notifier(C, NC_SCENE | ND_NODES, id);
 	else if (ED_node_is_texture(snode))
-		WM_event_add_notifier(C, NC_TEXTURE | ND_NODES, snode->id);
+		WM_event_add_notifier(C, NC_TEXTURE | ND_NODES, id);
 }
 
 void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo)
@@ -662,11 +670,16 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 			/* if active texture changed, free glsl materials */
 			if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
 				Material *ma;
+				World *wo;
 
 				for (ma = bmain->mat.first; ma; ma = ma->id.next)
 					if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree))
-						GPU_material_free(ma);
+						GPU_material_free(&ma->gpumaterial);
 
+				for (wo = bmain->world.first; wo; wo = wo->id.next)
+					if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree))
+						GPU_material_free(&wo->gpumaterial);
+				
 				WM_main_add_notifier(NC_IMAGE, NULL);
 			}
 

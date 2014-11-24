@@ -76,10 +76,15 @@ typedef enum DynMatProperty {
 	DYN_LAMP_PERSMAT = 8,
 } DynMatProperty;
 
+
 struct GPUMaterial {
 	Scene *scene;
 	Material *ma;
 
+	/* material for mesh surface, worlds or something else.
+	 * some code generation is done differently depending on the use case */
+	int type;
+	
 	/* for creating the material */
 	ListBase nodes;
 	GPUNodeLink *outlink;
@@ -194,7 +199,7 @@ static void gpu_material_set_attrib_id(GPUMaterial *material)
 	attribs->totlayer = b;
 }
 
-static int GPU_material_construct_end(GPUMaterial *material)
+static int GPU_material_construct_end(GPUMaterial *material, const char *passname)
 {
 	if (material->outlink) {
 		GPUNodeLink *outlink;
@@ -202,7 +207,7 @@ static int GPU_material_construct_end(GPUMaterial *material)
 
 		outlink = material->outlink;
 		material->pass = GPU_generate_pass(&material->nodes, outlink,
-			&material->attribs, &material->builtins, material->ma->id.name);
+			&material->attribs, &material->builtins, material->type, passname);
 
 		if (!material->pass)
 			return 0;
@@ -229,12 +234,12 @@ static int GPU_material_construct_end(GPUMaterial *material)
 	return 0;
 }
 
-void GPU_material_free(Material *ma)
+void GPU_material_free(ListBase *gpumaterial)
 {
 	LinkData *link;
 	LinkData *nlink, *mlink, *next;
 
-	for (link=ma->gpumaterial.first; link; link=link->next) {
+	for (link=gpumaterial->first; link; link=link->next) {
 		GPUMaterial *material = link->data;
 
 		if (material->pass)
@@ -243,19 +248,23 @@ void GPU_material_free(Material *ma)
 		for (nlink=material->lamps.first; nlink; nlink=nlink->next) {
 			GPULamp *lamp = nlink->data;
 
-			for (mlink=lamp->materials.first; mlink; mlink=next) {
-				next = mlink->next;
-				if (mlink->data == ma)
-					BLI_freelinkN(&lamp->materials, mlink);
+			if (material->ma) {
+				Material *ma = material->ma;
+				
+				for (mlink=lamp->materials.first; mlink; mlink=next) {
+					next = mlink->next;
+					if (mlink->data == ma)
+						BLI_freelinkN(&lamp->materials, mlink);
+				}
 			}
 		}
-
+		
 		BLI_freelistN(&material->lamps);
 
 		MEM_freeN(material);
 	}
 
-	BLI_freelistN(&ma->gpumaterial);
+	BLI_freelistN(gpumaterial);
 }
 
 bool GPU_lamp_override_visible(GPULamp *lamp, SceneRenderLayer *srl, Material *ma)
@@ -280,42 +289,44 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			viewlay &= srl->lay;
 
 		/* handle layer lamps */
-		for (nlink=material->lamps.first; nlink; nlink=nlink->next) {
-			lamp= nlink->data;
-
-			if (!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))
-			    && GPU_lamp_override_visible(lamp, srl, material->ma)) {
-				lamp->dynenergy = lamp->energy;
-				copy_v3_v3(lamp->dyncol, lamp->col);
-			}
-			else {
-				lamp->dynenergy = 0.0f;
-				lamp->dyncol[0]= lamp->dyncol[1]= lamp->dyncol[2] = 0.0f;
-			}
-
-			if (material->dynproperty & DYN_LAMP_VEC) {
-				copy_v3_v3(lamp->dynvec, lamp->vec);
-				normalize_v3(lamp->dynvec);
-				negate_v3(lamp->dynvec);
-				mul_mat3_m4_v3(viewmat, lamp->dynvec);
-			}
-
-			if (material->dynproperty & DYN_LAMP_CO) {
-				copy_v3_v3(lamp->dynco, lamp->co);
-				mul_m4_v3(viewmat, lamp->dynco);
-			}
-
-			if (material->dynproperty & DYN_LAMP_IMAT) {
-				mul_m4_m4m4(lamp->dynimat, lamp->imat, viewinv);
-			}
-
-			if (material->dynproperty & DYN_LAMP_PERSMAT) {
-				if (!GPU_lamp_has_shadow_buffer(lamp)) /* The lamp matrices are already updated if we're using shadow buffers */
-					GPU_lamp_update_buffer_mats(lamp);
-				mul_m4_m4m4(lamp->dynpersmat, lamp->persmat, viewinv);
+		if (material->type == GPU_MATERIAL_TYPE_MESH) {
+			for (nlink=material->lamps.first; nlink; nlink=nlink->next) {
+				lamp= nlink->data;
+				
+				if (!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))
+				        && GPU_lamp_override_visible(lamp, srl, material->ma)) {
+					lamp->dynenergy = lamp->energy;
+					copy_v3_v3(lamp->dyncol, lamp->col);
+				}
+				else {
+					lamp->dynenergy = 0.0f;
+					lamp->dyncol[0]= lamp->dyncol[1]= lamp->dyncol[2] = 0.0f;
+				}
+				
+				if (material->dynproperty & DYN_LAMP_VEC) {
+					copy_v3_v3(lamp->dynvec, lamp->vec);
+					normalize_v3(lamp->dynvec);
+					negate_v3(lamp->dynvec);
+					mul_mat3_m4_v3(viewmat, lamp->dynvec);
+				}
+				
+				if (material->dynproperty & DYN_LAMP_CO) {
+					copy_v3_v3(lamp->dynco, lamp->co);
+					mul_m4_v3(viewmat, lamp->dynco);
+				}
+				
+				if (material->dynproperty & DYN_LAMP_IMAT) {
+					mul_m4_m4m4(lamp->dynimat, lamp->imat, viewinv);
+				}
+				
+				if (material->dynproperty & DYN_LAMP_PERSMAT) {
+					if (!GPU_lamp_has_shadow_buffer(lamp)) /* The lamp matrices are already updated if we're using shadow buffers */
+						GPU_lamp_update_buffer_mats(lamp);
+					mul_m4_m4m4(lamp->dynpersmat, lamp->persmat, viewinv);
+				}
 			}
 		}
-
+		
 		/* note material must be bound before setting uniforms */
 		GPU_pass_bind(material->pass, time, mipmap);
 
@@ -375,6 +386,12 @@ Scene *GPU_material_scene(GPUMaterial *material)
 {
 	return material->scene;
 }
+
+GPUMatType GPU_Material_get_type(GPUMaterial *material)
+{
+	return material->type;
+}
+
 
 void GPU_material_vertex_attributes(GPUMaterial *material, GPUVertexAttribs *attribs)
 {
@@ -1589,6 +1606,7 @@ GPUMaterial *GPU_material_matcap(Scene *scene, Material *ma)
 	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
+	mat->type = GPU_MATERIAL_TYPE_MESH;
 	
 	if (ma->preview && ma->preview->rect[0]) {
 		outlink = gpu_material_preview_matcap(mat, ma);
@@ -1599,7 +1617,7 @@ GPUMaterial *GPU_material_matcap(Scene *scene, Material *ma)
 		
 	GPU_material_output_link(mat, outlink);
 
-	GPU_material_construct_end(mat);
+	GPU_material_construct_end(mat, "matcap_pass");
 	
 	/* note that even if building the shader fails in some way, we still keep
 	 * it to avoid trying to compile again and again, and simple do not use
@@ -1611,6 +1629,45 @@ GPUMaterial *GPU_material_matcap(Scene *scene, Material *ma)
 	
 	return mat;
 }
+
+GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
+{
+	LinkData *link;
+	GPUMaterial *mat;
+
+	for (link=wo->gpumaterial.first; link; link=link->next)
+		if (((GPUMaterial*)link->data)->scene == scene)
+			return link->data;
+
+	/* allocate material */
+	mat = GPU_material_construct_begin(NULL);
+	mat->scene = scene;
+	mat->type = GPU_MATERIAL_TYPE_WORLD;
+	
+	/* create nodes */
+	if (BKE_scene_use_new_shading_nodes(scene) && wo->nodetree && wo->use_nodes)
+		ntreeGPUMaterialNodes(wo->nodetree, mat, NODE_NEW_SHADING);
+	else {
+		/* old fixed function world */
+	}
+
+	if (GPU_material_do_color_management(mat))
+		if (mat->outlink)
+			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
+
+	GPU_material_construct_end(mat, wo->id.name);
+	
+	/* note that even if building the shader fails in some way, we still keep
+	 * it to avoid trying to compile again and again, and simple do not use
+	 * the actual shader on drawing */
+
+	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
+	link->data = mat;
+	BLI_addtail(&wo->gpumaterial, link);
+
+	return mat;
+}
+
 
 GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 {
@@ -1625,6 +1682,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
+	mat->type = GPU_MATERIAL_TYPE_MESH;
 
 	/* render pipeline option */
 	if (ma->mode & MA_TRANSP)
@@ -1654,7 +1712,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		if (mat->outlink)
 			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
 
-	GPU_material_construct_end(mat);
+	GPU_material_construct_end(mat, ma->id.name);
 
 	/* note that even if building the shader fails in some way, we still keep
 	 * it to avoid trying to compile again and again, and simple do not use
@@ -1671,12 +1729,16 @@ void GPU_materials_free(void)
 {
 	Object *ob;
 	Material *ma;
+	World *wo;
 	extern Material defmaterial;
 
 	for (ma=G.main->mat.first; ma; ma=ma->id.next)
-		GPU_material_free(ma);
+		GPU_material_free(&ma->gpumaterial);
 
-	GPU_material_free(&defmaterial);
+	for (wo=G.main->world.first; wo; wo=wo->id.next)
+		GPU_material_free(&ma->gpumaterial);
+	
+	GPU_material_free(&defmaterial.gpumaterial);
 
 	for (ob=G.main->object.first; ob; ob=ob->id.next)
 		GPU_lamp_free(ob);
@@ -1945,7 +2007,7 @@ void GPU_lamp_free(Object *ob)
 			BLI_freelinkN(&lamp->materials, nlink);
 
 			if (ma->gpumaterial.first)
-				GPU_material_free(ma);
+				GPU_material_free(&ma->gpumaterial);
 		}
 
 		gpu_lamp_shadow_free(lamp);

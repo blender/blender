@@ -89,7 +89,7 @@ static void rna_World_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	World *wo = ptr->id.data;
 
 	DAG_id_tag_update(&wo->id, 0);
-	WM_main_add_notifier(NC_WORLD, wo);
+	WM_main_add_notifier(NC_WORLD | ND_WORLD, wo);
 }
 
 static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

@@ -128,6 +128,7 @@ typedef struct World {
 	/* nodes */
 	struct bNodeTree *nodetree;
 
+	ListBase gpumaterial;		/* runtime */
 } World;
 
 /* **************** WORLD ********************* */

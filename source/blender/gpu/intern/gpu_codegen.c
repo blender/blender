@@ -58,6 +58,7 @@
 
 extern char datatoc_gpu_shader_material_glsl[];
 extern char datatoc_gpu_shader_vertex_glsl[];
+extern char datatoc_gpu_shader_vertex_world_glsl[];
 
 
 static char *glsl_material_library = NULL;
@@ -252,7 +253,7 @@ void gpu_codegen_exit(void)
 	extern Material defmaterial;    // render module abuse...
 
 	if (defmaterial.gpumaterial.first)
-		GPU_material_free(&defmaterial);
+		GPU_material_free(&defmaterial.gpumaterial);
 
 	if (FUNCTION_HASH) {
 		BLI_ghash_free(FUNCTION_HASH, NULL, MEM_freeN);
@@ -624,8 +625,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 
 	if (builtins & GPU_VIEW_NORMAL)
 		BLI_dynstr_append(ds, "\tvec3 facingnormal = (gl_FrontFacing)? varnormal: -varnormal;\n");
-		
-
+	
 	codegen_declare_tmps(ds, nodes);
 	codegen_call_functions(ds, nodes, output);
 
@@ -640,12 +640,13 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	return code;
 }
 
-static char *code_generate_vertex(ListBase *nodes)
+static char *code_generate_vertex(ListBase *nodes, int type)
 {
 	DynStr *ds = BLI_dynstr_new();
 	GPUNode *node;
 	GPUInput *input;
 	char *code;
+	char *vertcode;
 	
 	for (node=nodes->first; node; node=node->next) {
 		for (input=node->inputs.first; input; input=input->next) {
@@ -659,8 +660,21 @@ static char *code_generate_vertex(ListBase *nodes)
 	}
 
 	BLI_dynstr_append(ds, "\n");
-	BLI_dynstr_append(ds, datatoc_gpu_shader_vertex_glsl);
 
+	switch (type) {
+		case GPU_MATERIAL_TYPE_MESH:
+			vertcode = datatoc_gpu_shader_vertex_glsl;
+			break;
+		case GPU_MATERIAL_TYPE_WORLD:
+			vertcode = datatoc_gpu_shader_vertex_world_glsl;
+			break;
+		default:
+			fprintf(stderr, "invalid material type, set one after GPU_material_construct_begin\n");
+			break;
+	}
+
+	BLI_dynstr_append(ds, vertcode);
+	
 	for (node=nodes->first; node; node=node->next)
 		for (input=node->inputs.first; input; input=input->next)
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
@@ -1386,7 +1400,7 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 	}
 }
 
-GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttribs *attribs, int *builtins, const char *name)
+GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttribs *attribs, int *builtins, int type, const char *name)
 {
 	GPUShader *shader;
 	GPUPass *pass;
@@ -1405,7 +1419,7 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttri
 
 	/* generate code and compile with opengl */
 	fragmentcode = code_generate_fragment(nodes, outlink->output, name);
-	vertexcode = code_generate_vertex(nodes);
+	vertexcode = code_generate_vertex(nodes, type);
 	shader = GPU_shader_create(vertexcode, fragmentcode, glsl_material_library, NULL);
 
 	/* failed? */

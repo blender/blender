@@ -35,6 +35,16 @@ static bNodeSocketTemplate sh_node_output_world_in[] = {
 	{	-1, 0, ""	}
 };
 
+static int node_shader_gpu_output_world(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+{
+	GPUNodeLink *outlink;
+
+	GPU_stack_link(mat, "node_output_world", in, out, &outlink);
+	GPU_material_output_link(mat, outlink);
+
+	return 1;
+}
+
 /* node type definition */
 void register_node_type_sh_output_world(void)
 {
@@ -45,7 +55,8 @@ void register_node_type_sh_output_world(void)
 	node_type_socket_templates(&ntype, sh_node_output_world_in, NULL);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-
+	node_type_gpu(&ntype, node_shader_gpu_output_world);
+	
 	/* Do not allow muting output node. */
 	node_type_internal_links(&ntype, NULL);
 

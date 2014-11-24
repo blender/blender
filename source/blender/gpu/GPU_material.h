@@ -58,6 +58,7 @@ struct GPUMaterial;
 struct GPUTexture;
 struct GPULamp;
 struct PreviewImage;
+struct World;
 
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
@@ -95,6 +96,12 @@ typedef enum GPUOpenGLBuiltin {
 	GPU_COLOR = 2,
 } GPUOpenGLBuiltin;
 
+typedef enum GPUMatType {
+	GPU_MATERIAL_TYPE_MESH  = 1,
+	GPU_MATERIAL_TYPE_WORLD = 2,	
+} GPUMatType;
+
+
 typedef enum GPUBlendMode {
 	GPU_BLEND_SOLID = 0,
 	GPU_BLEND_ADD = 1,
@@ -131,10 +138,11 @@ void GPU_material_enable_alpha(GPUMaterial *material);
 GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 
 /* High level functions to create and use GPU materials */
+GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo);
 
 GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma);
 GPUMaterial *GPU_material_matcap(struct Scene *scene, struct Material *ma);
-void GPU_material_free(struct Material *ma);
+void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_materials_free(void);
 
@@ -144,6 +152,7 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float 
 void GPU_material_unbind(GPUMaterial *material);
 int GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
+GPUMatType GPU_Material_get_type(GPUMaterial *material);
 
 void GPU_material_vertex_attributes(GPUMaterial *material,
 	struct GPUVertexAttribs *attrib);

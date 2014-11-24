@@ -40,6 +40,11 @@ static bNodeSocketTemplate sh_node_background_out[] = {
 	{	-1, 0, ""	}
 };
 
+static int node_shader_gpu_background(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "node_background", in, out, GPU_builtin(GPU_VIEW_NORMAL));
+}
+
 /* node type definition */
 void register_node_type_sh_background(void)
 {
@@ -50,6 +55,7 @@ void register_node_type_sh_background(void)
 	node_type_socket_templates(&ntype, sh_node_background_in, sh_node_background_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
+	node_type_gpu(&ntype, node_shader_gpu_background);
 
 	nodeRegisterType(&ntype);
 }
