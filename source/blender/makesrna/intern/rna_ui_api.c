@@ -137,9 +137,7 @@ static void rna_uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const 
 
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
-
-	/* XXX This will search property again :( */
-	uiItemMenuEnumR(layout, ptr, propname, name, icon);
+	uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
 }
 
 static void rna_uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value,
