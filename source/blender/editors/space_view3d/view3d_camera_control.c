@@ -266,6 +266,8 @@ void ED_view3d_cameracontrol_update(
 
 		BKE_object_apply_mat4(v3d->camera, view_mat, true, true);
 
+		DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+
 		copy_v3_v3(v3d->camera->size, size_back);
 
 		id_key = &v3d->camera->id;
