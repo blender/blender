@@ -1868,6 +1868,11 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 				return lamp;
 			}
 
+			if (!GPU_framebuffer_check_valid(lamp->fb, NULL)) {
+				gpu_lamp_shadow_free(lamp);
+				return lamp;				
+			}
+			
 			/* FBO and texture for blurring */
 			lamp->blurfb = GPU_framebuffer_create();
 			if (!lamp->blurfb) {
@@ -1885,6 +1890,11 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 				gpu_lamp_shadow_free(lamp);
 				return lamp;
 			}
+			
+			if (!GPU_framebuffer_check_valid(lamp->blurfb, NULL)) {
+				gpu_lamp_shadow_free(lamp);
+				return lamp;				
+			}			
 		}
 		else {
 			lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size, NULL);
@@ -1897,6 +1907,11 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 				gpu_lamp_shadow_free(lamp);
 				return lamp;
 			}
+			
+			if (!GPU_framebuffer_check_valid(lamp->fb, NULL)) {
+				gpu_lamp_shadow_free(lamp);
+				return lamp;				
+			}						
 		}
 
 		GPU_framebuffer_restore();

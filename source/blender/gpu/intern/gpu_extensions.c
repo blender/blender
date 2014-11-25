@@ -866,12 +866,17 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 		return NULL;
 	}
 
+	/* make sure no read buffer is enabled, so completeness check will not fail. We set those at binding time */
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glReadBuffer(GL_NONE);
+	glDrawBuffer(GL_NONE);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	
 	return fb;
 }
 
 int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, char err_out[256])
 {
-	GLenum status;
 	GLenum attachment;
 	GLenum error;
 
@@ -903,14 +908,6 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 	if (error == GL_INVALID_OPERATION) {
 		GPU_framebuffer_restore();
 		GPU_print_framebuffer_error(error, err_out);
-		return 0;
-	}
-
-	status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-
-	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		GPU_framebuffer_restore();
-		GPU_print_framebuffer_error(status, err_out);
 		return 0;
 	}
 
@@ -1025,6 +1022,29 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUS
 	/* restore attributes */
 	glPopAttrib();
 }
+
+
+bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
+{
+	GLenum status;
+	
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	GG.currentfb = fb->object;
+	
+	/* Clean glError buffer. */
+	while (glGetError() != GL_NO_ERROR) {}
+	
+	status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	
+	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+		GPU_framebuffer_restore();
+		GPU_print_framebuffer_error(status, err_out);
+		return false;
+	}
+	
+	return true;
+}
+
 
 void GPU_framebuffer_free(GPUFrameBuffer *fb)
 {
@@ -1161,6 +1181,12 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
 	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->color, 0, err_out)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
+	}
+	
+	/* check validity at the very end! */
+	if (!GPU_framebuffer_check_valid(ofs->fb, err_out)) {
+		GPU_offscreen_free(ofs);
+		return NULL;		
 	}
 
 	GPU_framebuffer_restore();
