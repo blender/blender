@@ -205,7 +205,7 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		
 		BLI_mutex_lock(sound->mutex);
 		if (!seq->sound->waveform) {
-			if(!(sound->flags & SOUND_FLAGS_WAVEFORM_LOADING)) {
+			if (!(sound->flags & SOUND_FLAGS_WAVEFORM_LOADING)) {
 				/* prevent sounds from reloading */
 				seq->sound->flags |= SOUND_FLAGS_WAVEFORM_LOADING;
 				BLI_mutex_unlock(sound->mutex);
@@ -747,7 +747,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	
 	/* draw sound wave */
 	if (seq->type == SEQ_TYPE_SOUND_RAM) {
-		if(!(sseq->flag & SEQ_NO_WAVEFORMS)) {
+		if (!(sseq->flag & SEQ_NO_WAVEFORMS)) {
 			drawseqwave(C, sseq, scene, seq, x1, y1, x2, y2, BLI_rctf_size_x(&ar->v2d.cur) / ar->winx);
 		}
 	}
@@ -1204,22 +1204,22 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 	else if (draw_backdrop) {
 		float aspect = BLI_rcti_size_x(&ar->winrct) / (float)BLI_rcti_size_y(&ar->winrct);	
-		float image_aspect = viewrectx/viewrecty;
+		float image_aspect = viewrectx / viewrecty;
 		float imagex, imagey;
 		
 		if (aspect >= image_aspect) {
-			imagex = image_aspect/aspect;
+			imagex = image_aspect / aspect;
 			imagey = 1.0f;
 		}
 		else {
-			imagex = 1.0f;	
-			imagey = aspect/image_aspect;
+			imagex = 1.0f;
+			imagey = aspect / image_aspect;
 		}
 		
 		glTexCoord2f(0.0f, 0.0f); glVertex2f(-imagex, -imagey);
 		glTexCoord2f(0.0f, 1.0f); glVertex2f(-imagex, imagey);
 		glTexCoord2f(1.0f, 1.0f); glVertex2f(imagex, imagey);
-		glTexCoord2f(1.0f, 0.0f); glVertex2f(imagex, -imagey);		
+		glTexCoord2f(1.0f, 0.0f); glVertex2f(imagex, -imagey);
 	}
 	else {
 		glTexCoord2f(0.0f, 0.0f); glVertex2f(v2d->tot.xmin, v2d->tot.ymin);

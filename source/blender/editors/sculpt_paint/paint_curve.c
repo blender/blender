@@ -329,7 +329,7 @@ void PAINTCURVE_OT_add_point(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add New Paint Curve Point";
-	ot->description = "Add new paint curve point";
+	ot->description = ot->name;
 	ot->idname = "PAINTCURVE_OT_add_point";
 
 	/* api callbacks */
@@ -410,8 +410,8 @@ static int paintcurve_delete_point_exec(bContext *C, wmOperator *op)
 void PAINTCURVE_OT_delete_point(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add New Paint Curve Point";
-	ot->description = "Add new paint curve point";
+	ot->name = "Remove Paint Curve Point";
+	ot->description = ot->name;
 	ot->idname = "PAINTCURVE_OT_delete_point";
 
 	/* api callbacks */
