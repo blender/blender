@@ -2457,7 +2457,7 @@ void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
 
 void node_tex_environment_empty(vec3 co, out vec4 color)
 {
-	color = vec4(0.0);
+	color = vec4(1.0, 0.0, 1.0, 1.0);
 }
 
 void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
