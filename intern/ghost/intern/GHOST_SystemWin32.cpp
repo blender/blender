@@ -1060,17 +1060,13 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 					/* Get the winow under the mouse and send event to it's queue. */
 					POINT mouse_pos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-					HWND mouse_hwnd = WindowFromPoint(mouse_pos);
+					HWND mouse_hwnd = ChildWindowFromPoint(HWND_DESKTOP, mouse_pos);
 					GHOST_WindowWin32 *mouse_window = (GHOST_WindowWin32 *)::GetWindowLongPtr(mouse_hwnd, GWLP_USERDATA);
 					if (mouse_window != NULL) {
 						event = processWheelEvent(mouse_window, wParam, lParam);
 					}
 					else {
-						/* If it happened so window under the mouse is not found (which i'm not
-						 * really sure might happen), then we add event to the focused window
-						 * in order to avoid some possible negative side effects.
-						 *                                                    - sergey -
-						 */
+						/* Happens when wmouse is not over of any of blender windows. */
 						event = processWheelEvent(window, wParam, lParam);
 					}
 
