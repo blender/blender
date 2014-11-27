@@ -3374,7 +3374,6 @@ static DMDrawOption draw_em_fancy__setFaceOpts(void *userData, int index)
 
 	efa = BM_face_at_index(em->bm, index);
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		GPU_enable_material(efa->mat_nr + 1, NULL);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {

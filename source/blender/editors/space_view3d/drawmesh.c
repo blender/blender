@@ -668,48 +668,48 @@ static void update_tface_color_layer(DerivedMesh *dm)
 	}
 }
 
-static DMDrawOption draw_tface_mapped__set_draw(void *userData, int index)
+static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, int UNUSED(index))
 {
 	Mesh *me = ((drawTFace_userData *)userData)->me;
 
 	/* array checked for NULL before calling */
-	MPoly *mpoly = &me->mpoly[index];
+	MPoly *mpoly = &me->mpoly[origindex];
 
-	BLI_assert(index >= 0 && index < me->totpoly);
+	BLI_assert(origindex >= 0 && origindex < me->totpoly);
 
 	if (mpoly->flag & ME_HIDE) {
 		return DM_DRAW_OPTION_SKIP;
 	}
 	else {
-		MTexPoly *tpoly = (me->mtpoly) ? &me->mtpoly[index] : NULL;
+		MTexPoly *tpoly = (me->mtpoly) ? &me->mtpoly[origindex] : NULL;
 		MTFace mtf = {{{0}}};
 		int matnr = mpoly->mat_nr;
 
 		if (tpoly) {
 			ME_MTEXFACE_CPY(&mtf, tpoly);
 		}
-
+		
 		return draw_tface__set_draw(&mtf, (me->mloopcol != NULL), matnr);
 	}
 }
 
-static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int index)
+static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int origindex, int index)
 {
 	drawEMTFMapped_userData *data = userData;
 	BMEditMesh *em = data->em;
 	BMFace *efa;
 
-	if (UNLIKELY(index >= em->bm->totface))
+	if (UNLIKELY(origindex >= em->bm->totface))
 		return DM_DRAW_OPTION_NORMAL;
 
-	efa = BM_face_at_index(em->bm, index);
+	efa = BM_face_at_index(em->bm, origindex);
 
 	if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return DM_DRAW_OPTION_SKIP;
 	}
 	else {
 		MTFace mtf = {{{0}}};
-		int matnr = efa->mat_nr;
+		int matnr = (data->mf) ? data->mf[index].mat_nr : efa->mat_nr;
 
 		if (data->has_mtface) {
 			MTexPoly *tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);

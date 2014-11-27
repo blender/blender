@@ -2289,7 +2289,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 
 static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
                                       DMSetDrawOptionsTex drawParams,
-                                      DMSetDrawOptions drawParamsMapped,
+                                      DMSetDrawOptionsMappedTex drawParamsMapped,
                                       DMCompareDrawOptions compareDrawOptions,
                                       void *userData, DMDrawFlag flag)
 {
@@ -2361,7 +2361,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		if (drawParams)
 			draw_option = drawParams(tf, (mcol != NULL), mat_nr);
 		else if (index != ORIGINDEX_NONE)
-			draw_option = (drawParamsMapped) ? drawParamsMapped(userData, index) : DM_DRAW_OPTION_NORMAL;
+			draw_option = (drawParamsMapped) ? drawParamsMapped(userData, index, i) : DM_DRAW_OPTION_NORMAL;
 		else
 			draw_option = GPU_enable_material(mat_nr, NULL) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
 
@@ -2530,7 +2530,7 @@ static void ccgDM_drawFacesTex(DerivedMesh *dm,
 }
 
 static void ccgDM_drawMappedFacesTex(DerivedMesh *dm,
-                                     DMSetDrawOptions setDrawOptions,
+                                     DMSetDrawOptionsMappedTex setDrawOptions,
                                      DMCompareDrawOptions compareDrawOptions,
                                      void *userData, DMDrawFlag flag)
 {

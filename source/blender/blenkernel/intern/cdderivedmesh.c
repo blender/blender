@@ -667,7 +667,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 
 static void cdDM_drawFacesTex_common(DerivedMesh *dm,
                                      DMSetDrawOptionsTex drawParams,
-                                     DMSetDrawOptions drawParamsMapped,
+                                     DMSetDrawOptionsMappedTex drawParamsMapped,
                                      DMCompareDrawOptions compareDrawOptions,
                                      void *userData, DMDrawFlag uvflag)
 {
@@ -759,7 +759,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 						draw_option = DM_DRAW_OPTION_NORMAL;
 					}
 					else if (drawParamsMapped) {
-						draw_option = drawParamsMapped(userData, orig);
+						draw_option = drawParamsMapped(userData, orig, i);
 					}
 					else {
 						if (nors) {
@@ -769,7 +769,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					}
 				}
 				else if (drawParamsMapped) {
-					draw_option = drawParamsMapped(userData, i);
+					draw_option = drawParamsMapped(userData, i, i);
 				}
 				else {
 					if (nors) {
@@ -880,11 +880,11 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 							draw_option = DM_DRAW_OPTION_NORMAL;
 						}
 						else if (drawParamsMapped) {
-							draw_option = drawParamsMapped(userData, orig);
+							draw_option = drawParamsMapped(userData, orig, actualFace);
 						}
 					}
 					else if (drawParamsMapped) {
-						draw_option = drawParamsMapped(userData, actualFace);
+						draw_option = drawParamsMapped(userData, actualFace, actualFace);
 					}
 				}
 
@@ -1089,6 +1089,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 			else {
 				/* we need to check if the next material changes */
 				int next_actualFace = dm->drawObject->triangle_to_mface[0];
+				int prev_mat_nr = -1;
 				
 				for (i = 0; i < tottri; i++) {
 					//int actualFace = dm->drawObject->triangle_to_mface[i];
@@ -1103,9 +1104,14 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 
 					orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : actualFace;
 
-					if (orig == ORIGINDEX_NONE)
-						draw_option = setMaterial(mface->mat_nr + 1, NULL);
-					else if (setDrawOptions != NULL)
+					if (mface->mat_nr != prev_mat_nr) {
+						if (setMaterial)
+							draw_option = setMaterial(mface->mat_nr + 1, NULL);
+
+						prev_mat_nr = mface->mat_nr;
+					}
+					
+					if (setDrawOptions != NULL && (orig != ORIGINDEX_NONE))
 						draw_option = setDrawOptions(userData, orig);
 
 					if (draw_option == DM_DRAW_OPTION_STIPPLE) {
@@ -1150,7 +1156,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 }
 
 static void cdDM_drawMappedFacesTex(DerivedMesh *dm,
-                                    DMSetDrawOptions setDrawOptions,
+                                    DMSetDrawOptionsMappedTex setDrawOptions,
                                     DMCompareDrawOptions compareDrawOptions,
                                     void *userData, DMDrawFlag flag)
 {

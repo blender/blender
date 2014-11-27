@@ -147,6 +147,7 @@ typedef int (*DMSetMaterial)(int mat_nr, void *attribs);
 typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_index);
 typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
 typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
+typedef DMDrawOption (*DMSetDrawOptionsMappedTex)(void *userData, int origindex, int index);
 typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTFace *tface, const bool has_vcol, int matnr);
 
 typedef enum DMDrawFlag {
@@ -423,7 +424,7 @@ struct DerivedMesh {
 	 * - Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawMappedFacesTex)(DerivedMesh *dm,
-	                           DMSetDrawOptions setDrawOptions,
+	                           DMSetDrawOptionsMappedTex setDrawOptions,
 	                           DMCompareDrawOptions compareDrawOptions,
 	                           void *userData, DMDrawFlag uvflag);
 
