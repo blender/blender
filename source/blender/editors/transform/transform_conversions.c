@@ -3824,33 +3824,19 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				const bool sel1 = use_handle ? bezt->f1 & SELECT : sel2;
 				const bool sel3 = use_handle ? bezt->f3 & SELECT : sel2;
 
-				if (is_translation_mode) {
-					/* for 'normal' pivots - just include anything that is selected.
-					 * this works a bit differently in translation modes */
-					if (sel2) {
+				if (!is_translation_mode || !(sel2)) {
+					if (sel1) {
 						count++;
 					}
-					else {
-						if (sel1) count++;
-						if (sel3) count++;
+
+					if (sel3) {
+						count++;
 					}
 				}
-				else if (use_local_center) {
-					/* for local-pivot we only need to count the number of selected handles only,
-					 * so that centerpoints don't get moved wrong
-					 */
-					if (bezt->ipo == BEZT_IPO_BEZ) {
-						if (sel1) count++;
-						if (sel3) count++;
-					}
-					/* else if (sel2) count++; // TODO: could this cause problems? */
-					/* - yes this causes problems, because no td is created for the center point */
-				}
-				else {
-					/* for 'normal' pivots - just include anything that is selected */
-					if (sel1) count++;
-					if (sel2) count++;
-					if (sel3) count++;
+
+				/* only include main vert if selected */
+				if (sel2 && !use_local_center) {
+					count++;
 				}
 			}
 		}
