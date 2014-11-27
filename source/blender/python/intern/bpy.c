@@ -59,7 +59,6 @@
 #include "../generic/idprop_py_api.h"
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
-#include "../generic/blf_py_api.h"
 #include "../mathutils/mathutils.h"
 
 #ifdef WITH_FREESTYLE

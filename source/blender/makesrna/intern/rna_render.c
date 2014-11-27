@@ -38,7 +38,6 @@
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
-#include "RE_engine.h"
 
 
 EnumPropertyItem render_pass_type_items[] = {

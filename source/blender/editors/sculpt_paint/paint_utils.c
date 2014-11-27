@@ -56,7 +56,6 @@
 #include "BKE_image.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_image.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -66,6 +65,7 @@
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 #include "RE_shader_ext.h"
 #include "RE_render_ext.h"
@@ -73,9 +73,6 @@
 #include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
-
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "BLI_sys_types.h"
 #include "ED_mesh.h" /* for face mask functions */

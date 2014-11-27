@@ -49,13 +49,11 @@
 
 #include "DNA_genfile.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-
 #include "BKE_main.h"
 #include "BKE_node.h"
 
 #include "BLI_math.h"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "BLO_readfile.h"
