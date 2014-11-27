@@ -4341,13 +4341,11 @@ static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
 static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	Image *ima = NULL;
+	Image *ima;
 	BGpic *bgpic;
 	
 	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
-	if (!ima) {
-		return OPERATOR_CANCELLED;
-	}
+	/* may be NULL, continue anyway */
 
 	bgpic = background_image_add(C);
 	bgpic->ima = ima;
