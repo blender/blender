@@ -3769,7 +3769,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	
 	BezTriple *bezt;
 	int count = 0, i;
-	float cfra;
 	float mtx[3][3], smtx[3][3];
 	const bool is_translation_mode = graph_edit_is_translation_mode(t);
 	const bool use_handle = !(sipo->flag & SIPO_NOHANDLES);
@@ -3804,7 +3803,12 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
-		
+		float cfra;
+
+		/* F-Curve may not have any keyframes */
+		if (fcu->bezt == NULL)
+			continue;
+
 		/* convert current-frame to action-time (slightly less accurate, especially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
@@ -3812,11 +3816,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
-		
-		/* F-Curve may not have any keyframes */
-		if (fcu->bezt == NULL)
-			continue;
-		
+
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
@@ -3899,8 +3899,13 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
-		bool intvals = (fcu->flag & FCURVE_INT_VALUES);
+		bool intvals = (fcu->flag & FCURVE_INT_VALUES) != 0;
 		float unit_scale;
+		float cfra;
+
+		/* F-Curve may not have any keyframes */
+		if (fcu->bezt == NULL)
+			continue;
 
 		/* convert current-frame to action-time (slightly less accurate, especially under
 		 * higher scaling ratios, but is faster than converting all points)
@@ -3909,11 +3914,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
-			
-		/* F-Curve may not have any keyframes */
-		if (fcu->bezt == NULL)
-			continue;
-		
+
 		unit_scale = ANIM_unit_mapping_get_factor(ac.scene, ale->id, ale->key_data, anim_map_flag);
 
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
