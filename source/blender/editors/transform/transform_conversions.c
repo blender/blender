@@ -218,6 +218,9 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 	float _proj_vec[3];
 	const float *proj_vec = NULL;
 
+	/* support for face-islands */
+	const bool use_island = transdata_check_local_islands(t, t->around);
+
 	if (t->flag & T_PROP_PROJECTED) {
 		if (t->spacetype == SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
 			RegionView3D *rv3d = t->ar->regiondata;
@@ -239,7 +242,12 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
 			for (i = 0, td = t->data; i < t->total; i++, td++) {
 				if (td->flag & TD_SELECTED) {
-					sub_v3_v3v3(vec, tob->center, td->center);
+					if (use_island) {
+						sub_v3_v3v3(vec, tob->iloc, td->iloc);
+					}
+					else {
+						sub_v3_v3v3(vec, tob->center, td->center);
+					}
 					mul_m3_v3(tob->mtx, vec);
 
 					if (proj_vec) {
@@ -251,6 +259,10 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 					dist_sq = len_squared_v3(vec);
 					if ((tob->rdist == -1.0f) || (dist_sq < SQUARE(tob->rdist))) {
 						tob->rdist = sqrtf(dist_sq);
+						if (use_island) {
+							copy_v3_v3(tob->center, td->center);
+							copy_m3_m3(tob->axismtx, td->axismtx);
+						}
 					}
 				}
 				else {

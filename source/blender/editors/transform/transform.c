@@ -200,6 +200,12 @@ static bool transdata_check_local_center(TransInfo *t, short around)
 	        );
 }
 
+bool transdata_check_local_islands(TransInfo *t, short around)
+{
+	return ((around == V3D_LOCAL) && (
+	        (t->obedit && ELEM(t->obedit->type, OB_MESH))));
+}
+
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)

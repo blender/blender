@@ -552,6 +552,7 @@ void special_aftertrans_update(struct bContext *C, TransInfo *t);
 int  special_transform_moving(TransInfo *t);
 
 void transform_autoik_update(TransInfo *t, short mode);
+bool transdata_check_local_islands(TransInfo *t, short around);
 
 int count_set_pose_transflags(int *out_mode, short around, struct Object *ob);
 
