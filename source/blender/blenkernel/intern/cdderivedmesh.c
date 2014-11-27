@@ -880,11 +880,11 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 							draw_option = DM_DRAW_OPTION_NORMAL;
 						}
 						else if (drawParamsMapped) {
-							draw_option = drawParamsMapped(userData, orig, actualFace);
+							draw_option = drawParamsMapped(userData, orig, mf[actualFace].mat_nr);
 						}
 					}
 					else if (drawParamsMapped) {
-						draw_option = drawParamsMapped(userData, actualFace, actualFace);
+						draw_option = drawParamsMapped(userData, actualFace, mf[actualFace].mat_nr);
 					}
 				}
 

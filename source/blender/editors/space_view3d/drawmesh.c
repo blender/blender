@@ -668,7 +668,7 @@ static void update_tface_color_layer(DerivedMesh *dm)
 	}
 }
 
-static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, int UNUSED(index))
+static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, int UNUSED(mat_nr))
 {
 	Mesh *me = ((drawTFace_userData *)userData)->me;
 
@@ -693,7 +693,7 @@ static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, i
 	}
 }
 
-static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int origindex, int index)
+static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int origindex, int mat_nr)
 {
 	drawEMTFMapped_userData *data = userData;
 	BMEditMesh *em = data->em;
@@ -709,7 +709,7 @@ static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int origindex, i
 	}
 	else {
 		MTFace mtf = {{{0}}};
-		int matnr = (data->mf) ? data->mf[index].mat_nr : efa->mat_nr;
+		int matnr = (mat_nr != -1) ? mat_nr : efa->mat_nr;
 
 		if (data->has_mtface) {
 			MTexPoly *tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
