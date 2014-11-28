@@ -502,7 +502,7 @@ LLVM_CLANG_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.
 #OSL_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
 #OSL_REPO_BRANCH="master"
 OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
-OSL_REPO_UID="1eb052331210a231900eb173a64500056d83b88c"
+OSL_REPO_UID="22ee5ea298fd215430dfbd160b5aefd507f06db0"
 OSL_REPO_BRANCH="blender-fixes"
 
 OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
