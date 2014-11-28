@@ -37,7 +37,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "../generic/py_capi_utils.h"
 
 #include "bmesh.h"
 

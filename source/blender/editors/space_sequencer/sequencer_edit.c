@@ -65,7 +65,6 @@
 
 #include "UI_view2d.h"
 
-#include "GL/glew.h"
 
 /* own include */
 #include "sequencer_intern.h"

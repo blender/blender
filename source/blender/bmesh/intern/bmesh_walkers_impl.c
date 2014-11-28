@@ -33,7 +33,6 @@
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
-#include "intern/bmesh_private.h"
 #include "intern/bmesh_walkers_private.h"
 
 /* pop into stack memory (common operation) */
