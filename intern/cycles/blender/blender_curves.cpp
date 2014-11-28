@@ -556,7 +556,6 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resol
 
 void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 {
-	VLOG(1) << "Exporting curve segments for mesh " << mesh->name;
 	int num_keys = 0;
 	int num_curves = 0;
 
@@ -577,6 +576,10 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 			num_keys += CData->curve_keynum[curve];
 			num_curves++;
 		}
+	}
+
+	if (num_curves > 0) {
+		VLOG(1) << "Exporting curve segments for mesh " << mesh->name;
 	}
 
 	mesh->curve_keys.reserve(mesh->curve_keys.size() + num_keys);
@@ -614,9 +617,9 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 		}
 	}
 
-	/* check allocation*/
+	/* check allocation */
 	if((mesh->curve_keys.size() !=  num_keys) || (mesh->curves.size() !=  num_curves)) {
-		/* allocation failed -> clear data */
+		VLOG(1) << "Allocation failed, clearing data";
 		mesh->curve_keys.clear();
 		mesh->curves.clear();
 		mesh->curve_attributes.clear();
