@@ -343,106 +343,64 @@ static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
 
 static void cdDM_drawVerts(DerivedMesh *dm)
 {
-	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MVert *mv = cddm->mvert;
-	int i;
-
-	if (GPU_buffer_legacy(dm)) {
-		glBegin(GL_POINTS);
-		for (i = 0; i < dm->numVertData; i++, mv++)
-			glVertex3fv(mv->co);
-		glEnd();
-	}
-	else {  /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		GPU_vertex_setup(dm);
-		if (!GPU_buffer_legacy(dm)) {
-			if (dm->drawObject->tot_triangle_point)
-				glDrawArrays(GL_POINTS, 0, dm->drawObject->tot_triangle_point);
-			else
-				glDrawArrays(GL_POINTS, 0, dm->drawObject->tot_loose_point);
-		}
-		GPU_buffer_unbind();
-	}
+	GPU_vertex_setup(dm);
+	if (dm->drawObject->tot_triangle_point)
+		glDrawArrays(GL_POINTS, 0, dm->drawObject->tot_triangle_point);
+	else
+		glDrawArrays(GL_POINTS, 0, dm->drawObject->tot_loose_point);
+	GPU_buffer_unbind();
 }
 
 static void cdDM_drawUVEdges(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	MFace *mf = cddm->mface;
-	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	int i;
 
 	if (mf) {
-		if (GPU_buffer_legacy(dm)) {
-			glBegin(GL_LINES);
-			for (i = 0; i < dm->numTessFaceData; i++, mf++, tf++) {
-				if (!(mf->flag & ME_HIDE)) {
-					glVertex2fv(tf->uv[0]);
-					glVertex2fv(tf->uv[1]);
-
-					glVertex2fv(tf->uv[1]);
-					glVertex2fv(tf->uv[2]);
-
-					if (!mf->v4) {
-						glVertex2fv(tf->uv[2]);
-						glVertex2fv(tf->uv[0]);
-					}
-					else {
-						glVertex2fv(tf->uv[2]);
-						glVertex2fv(tf->uv[3]);
-
-						glVertex2fv(tf->uv[3]);
-						glVertex2fv(tf->uv[0]);
-					}
-				}
+		int prevstart = 0;
+		int prevdraw = 1;
+		int draw = 1;
+		int curpos = 0;
+		
+		GPU_uvedge_setup(dm);
+		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
+			if (!(mf->flag & ME_HIDE)) {
+				draw = 1;
 			}
-			glEnd();
-		}
-		else {
-			int prevstart = 0;
-			int prevdraw = 1;
-			int draw = 1;
-			int curpos = 0;
-
-			GPU_uvedge_setup(dm);
-			if (!GPU_buffer_legacy(dm)) {
-				for (i = 0; i < dm->numTessFaceData; i++, mf++) {
-					if (!(mf->flag & ME_HIDE)) {
-						draw = 1;
-					}
-					else {
-						draw = 0;
-					}
-					if (prevdraw != draw) {
-						if (prevdraw > 0 && (curpos - prevstart) > 0) {
-							glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
-						}
-						prevstart = curpos;
-					}
-					if (mf->v4) {
-						curpos += 8;
-					}
-					else {
-						curpos += 6;
-					}
-					prevdraw = draw;
-				}
+			else {
+				draw = 0;
+			}
+			if (prevdraw != draw) {
 				if (prevdraw > 0 && (curpos - prevstart) > 0) {
 					glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
 				}
+				prevstart = curpos;
 			}
-			GPU_buffer_unbind();
+			if (mf->v4) {
+				curpos += 8;
+			}
+			else {
+				curpos += 6;
+			}
+			prevdraw = draw;
 		}
+		if (prevdraw > 0 && (curpos - prevstart) > 0) {
+			glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
+		}
+		GPU_buffer_unbind();
 	}
 }
 
 static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MVert *mvert = cddm->mvert;
 	MEdge *medge = cddm->medge;
 	int i;
-
+	int prevstart = 0;
+	int prevdraw = 1;
+	bool draw = true;
+	
 	if (cddm->pbvh && cddm->pbvh_draw &&
 	    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH)
 	{
@@ -451,97 +409,60 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 		return;
 	}
 	
-	if (GPU_buffer_legacy(dm)) {
-		DEBUG_VBO("Using legacy code. cdDM_drawEdges\n");
-		glBegin(GL_LINES);
-		for (i = 0; i < dm->numEdgeData; i++, medge++) {
-			if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
-			    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
-			{
-				glVertex3fv(mvert[medge->v1].co);
-				glVertex3fv(mvert[medge->v2].co);
-			}
+	GPU_edge_setup(dm);
+	for (i = 0; i < dm->numEdgeData; i++, medge++) {
+		if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
+		        (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
+		{
+			draw = true;
 		}
-		glEnd();
-	}
-	else {  /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		int prevstart = 0;
-		int prevdraw = 1;
-		bool draw = true;
-
-		GPU_edge_setup(dm);
-		if (!GPU_buffer_legacy(dm)) {
-			for (i = 0; i < dm->numEdgeData; i++, medge++) {
-				if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
-				    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
-				{
-					draw = true;
-				}
-				else {
-					draw = false;
-				}
-				if (prevdraw != draw) {
-					if (prevdraw > 0 && (i - prevstart) > 0) {
-						GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
-					}
-					prevstart = i;
-				}
-				prevdraw = draw;
-			}
+		else {
+			draw = false;
+		}
+		if (prevdraw != draw) {
 			if (prevdraw > 0 && (i - prevstart) > 0) {
 				GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
 			}
+			prevstart = i;
 		}
-		GPU_buffer_unbind();
+		prevdraw = draw;
 	}
+	if (prevdraw > 0 && (i - prevstart) > 0) {
+		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
+	}
+	GPU_buffer_unbind();
 }
 
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MVert *mvert = cddm->mvert;
 	MEdge *medge = cddm->medge;
 	int i;
-
-	if (GPU_buffer_legacy(dm)) {
-		DEBUG_VBO("Using legacy code. cdDM_drawLooseEdges\n");
-		glBegin(GL_LINES);
-		for (i = 0; i < dm->numEdgeData; i++, medge++) {
-			if (medge->flag & ME_LOOSEEDGE) {
-				glVertex3fv(mvert[medge->v1].co);
-				glVertex3fv(mvert[medge->v2].co);
-			}
+	
+	int prevstart = 0;
+	int prevdraw = 1;
+	int draw = 1;
+	
+	GPU_edge_setup(dm);
+	for (i = 0; i < dm->numEdgeData; i++, medge++) {
+		if (medge->flag & ME_LOOSEEDGE) {
+			draw = 1;
 		}
-		glEnd();
-	}
-	else {  /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		int prevstart = 0;
-		int prevdraw = 1;
-		int draw = 1;
-
-		GPU_edge_setup(dm);
-		if (!GPU_buffer_legacy(dm)) {
-			for (i = 0; i < dm->numEdgeData; i++, medge++) {
-				if (medge->flag & ME_LOOSEEDGE) {
-					draw = 1;
-				}
-				else {
-					draw = 0;
-				}
-				if (prevdraw != draw) {
-					if (prevdraw > 0 && (i - prevstart) > 0) {
-						GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
-					}
-					prevstart = i;
-				}
-				prevdraw = draw;
-			}
+		else {
+			draw = 0;
+		}
+		if (prevdraw != draw) {
 			if (prevdraw > 0 && (i - prevstart) > 0) {
 				GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
 			}
+			prevstart = i;
 		}
-		GPU_buffer_unbind();
+		prevdraw = draw;
 	}
+	if (prevdraw > 0 && (i - prevstart) > 0) {
+		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
+	}
+	GPU_buffer_unbind();
 }
 
 static void cdDM_drawFacesSolid(DerivedMesh *dm,
@@ -549,11 +470,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
                                 bool UNUSED(fast), DMSetMaterial setMaterial)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MVert *mvert = cddm->mvert;
-	MFace *mface = cddm->mface;
-	const float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
-	const short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
-	int a, glmode = -1, shademodel = -1, matnr = -1, drawCurrentMat = 1;
+	int a;
 
 	if (cddm->pbvh && cddm->pbvh_draw) {
 		if (dm->numTessFaceData) {
@@ -566,101 +483,17 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 
 		return;
 	}
-
-	if (GPU_buffer_legacy(dm)) {
-		DEBUG_VBO("Using legacy code. cdDM_drawFacesSolid\n");
-		glBegin(glmode = GL_QUADS);
-		for (a = 0; a < dm->numTessFaceData; a++, mface++) {
-			int new_glmode, new_matnr, new_shademodel;
-
-			new_glmode = mface->v4 ? GL_QUADS : GL_TRIANGLES;
-			new_matnr = mface->mat_nr + 1;
-			new_shademodel = (lnors || (mface->flag & ME_SMOOTH)) ? GL_SMOOTH : GL_FLAT;
-
-
-			if ((new_glmode != glmode) || (new_shademodel != shademodel) ||
-			    (setMaterial && (new_matnr != matnr)))
-			{
-				glEnd();
-
-				if (setMaterial) {
-					drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
-				}
-
-				glShadeModel(shademodel = new_shademodel);
-				glBegin(glmode = new_glmode);
-			}
-			
-			if (drawCurrentMat) {
-				if (lnors) {
-					glNormal3sv((const GLshort *)lnors[0][0]);
-					glVertex3fv(mvert[mface->v1].co);
-					glNormal3sv((const GLshort *)lnors[0][1]);
-					glVertex3fv(mvert[mface->v2].co);
-					glNormal3sv((const GLshort *)lnors[0][2]);
-					glVertex3fv(mvert[mface->v3].co);
-					if (mface->v4) {
-						glNormal3sv((const GLshort *)lnors[0][3]);
-						glVertex3fv(mvert[mface->v4].co);
-					}
-				}
-				else if (shademodel == GL_FLAT) {
-					if (nors) {
-						glNormal3fv(nors);
-					}
-					else {
-						/* TODO make this better (cache facenormals as layer?) */
-						float nor[3];
-						if (mface->v4) {
-							normal_quad_v3(nor, mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co, mvert[mface->v4].co);
-						}
-						else {
-							normal_tri_v3(nor, mvert[mface->v1].co, mvert[mface->v2].co, mvert[mface->v3].co);
-						}
-						glNormal3fv(nor);
-					}
-					glVertex3fv(mvert[mface->v1].co);
-					glVertex3fv(mvert[mface->v2].co);
-					glVertex3fv(mvert[mface->v3].co);
-					if (mface->v4) {
-						glVertex3fv(mvert[mface->v4].co);
-					}
-				}
-				else {  /* shademodel == GL_SMOOTH */
-					glNormal3sv(mvert[mface->v1].no);
-					glVertex3fv(mvert[mface->v1].co);
-					glNormal3sv(mvert[mface->v2].no);
-					glVertex3fv(mvert[mface->v2].co);
-					glNormal3sv(mvert[mface->v3].no);
-					glVertex3fv(mvert[mface->v3].co);
-					if (mface->v4) {
-						glNormal3sv(mvert[mface->v4].no);
-						glVertex3fv(mvert[mface->v4].co);
-					}
-				}
-			}
-
-			if (nors)
-				nors += 3;
-			if (lnors)
-				lnors++;
+	
+	GPU_vertex_setup(dm);
+	GPU_normal_setup(dm);
+	glShadeModel(GL_SMOOTH);
+	for (a = 0; a < dm->drawObject->totmaterial; a++) {
+		if (!setMaterial || setMaterial(dm->drawObject->materials[a].mat_nr + 1, NULL)) {
+			glDrawArrays(GL_TRIANGLES, dm->drawObject->materials[a].start,
+			             dm->drawObject->materials[a].totpoint);
 		}
-		glEnd();
 	}
-	else {  /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		GPU_vertex_setup(dm);
-		GPU_normal_setup(dm);
-		if (!GPU_buffer_legacy(dm)) {
-			glShadeModel(GL_SMOOTH);
-			for (a = 0; a < dm->drawObject->totmaterial; a++) {
-				if (!setMaterial || setMaterial(dm->drawObject->materials[a].mat_nr + 1, NULL)) {
-					glDrawArrays(GL_TRIANGLES, dm->drawObject->materials[a].start,
-					             dm->drawObject->materials[a].totpoint);
-				}
-			}
-		}
-		GPU_buffer_unbind();
-	}
+	GPU_buffer_unbind();
 
 	glShadeModel(GL_FLAT);
 }
@@ -672,15 +505,15 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
                                      void *userData, DMDrawFlag uvflag)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MVert *mv = cddm->mvert;
 	const MFace *mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-	const float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
-	const short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	MCol *mcol;
 	int i, orig;
 	int colType, startFace = 0;
 	bool use_tface = (uvflag & DM_DRAW_USE_ACTIVE_UV) != 0;
+	int tottri;
+	int next_actualFace;
+	
 
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
@@ -717,208 +550,81 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 
 	cdDM_update_normals_from_pbvh(dm);
-
-	if (GPU_buffer_legacy(dm)) {
-		int mat_nr_cache = -1;
-		MTFace *tf_base = DM_get_tessface_data_layer(dm, CD_MTFACE);
-		MTFace *tf_stencil_base = NULL;
-		MTFace *tf_stencil = NULL;
-
-		if (uvflag & DM_DRAW_USE_TEXPAINT_UV) {
-			int stencil = CustomData_get_stencil_layer(&dm->faceData, CD_MTFACE);
-			tf_stencil_base = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, stencil);
-		}
-
-		DEBUG_VBO("Using legacy code. cdDM_drawFacesTex_common\n");
-		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
-			MVert *mvert;
-			DMDrawOption draw_option;
-			unsigned char *cp = NULL;
-
-			if (uvflag & DM_DRAW_USE_TEXPAINT_UV) {
-				if (mf->mat_nr != mat_nr_cache) {
-					tf_base = DM_paint_uvlayer_active_get(dm, mf->mat_nr);
-
-					mat_nr_cache = mf->mat_nr;
-				}
-			}
-
-			tf = tf_base ? tf_base + i : NULL;
-			tf_stencil = tf_stencil_base ? tf_stencil_base + i : NULL;
-
-			if (drawParams) {
-				draw_option = drawParams(use_tface ? tf : NULL, (mcol != NULL), mf->mat_nr);
-			}
-			else {
-				if (index_mf_to_mpoly) {
-					orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i);
-					if (orig == ORIGINDEX_NONE) {
-						/* XXX, this is not really correct
-						 * it will draw the previous faces context for this one when we don't know its settings.
-						 * but better then skipping it altogether. - campbell */
-						draw_option = DM_DRAW_OPTION_NORMAL;
-					}
-					else if (drawParamsMapped) {
-						draw_option = drawParamsMapped(userData, orig, i);
-					}
-					else {
-						if (nors) {
-							nors += 3;
-						}
-						continue;
-					}
-				}
-				else if (drawParamsMapped) {
-					draw_option = drawParamsMapped(userData, i, i);
-				}
-				else {
-					if (nors) {
-						nors += 3;
-					}
-					continue;
-				}
-			}
-			
-			if (draw_option != DM_DRAW_OPTION_SKIP) {
-				if (draw_option != DM_DRAW_OPTION_NO_MCOL && mcol)
-					cp = (unsigned char *) &mcol[i * 4];
-
-				if (!(lnors || (mf->flag & ME_SMOOTH))) {
-					if (nors) {
-						glNormal3fv(nors);
-					}
-					else {
-						float nor[3];
-						if (mf->v4) {
-							normal_quad_v3(nor, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
-						}
-						else {
-							normal_tri_v3(nor, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
-						}
-						glNormal3fv(nor);
-					}
-				}
-
-				glBegin(mf->v4 ? GL_QUADS : GL_TRIANGLES);
-				if (tf) glTexCoord2fv(tf->uv[0]);
-				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[0]);
-				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
-				mvert = &mv[mf->v1];
-				if (lnors) glNormal3sv((const GLshort *)lnors[0][0]);
-				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
-				glVertex3fv(mvert->co);
-
-				if (tf) glTexCoord2fv(tf->uv[1]);
-				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[1]);
-				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
-				mvert = &mv[mf->v2];
-				if (lnors) glNormal3sv((const GLshort *)lnors[0][1]);
-				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
-				glVertex3fv(mvert->co);
-
-				if (tf) glTexCoord2fv(tf->uv[2]);
-				if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[2]);
-				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
-				mvert = &mv[mf->v3];
-				if (lnors) glNormal3sv((const GLshort *)lnors[0][2]);
-				else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
-				glVertex3fv(mvert->co);
-
-				if (mf->v4) {
-					if (tf) glTexCoord2fv(tf->uv[3]);
-					if (tf_stencil) glMultiTexCoord2fv(GL_TEXTURE2, tf->uv[3]);
-					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
-					mvert = &mv[mf->v4];
-					if (lnors) glNormal3sv((const GLshort *)lnors[0][3]);
-					else if (mf->flag & ME_SMOOTH) glNormal3sv(mvert->no);
-					glVertex3fv(mvert->co);
-				}
-				glEnd();
-			}
-			
-			if (nors)
-				nors += 3;
-			if (lnors)
-				lnors++;
-		}
+	
+	GPU_vertex_setup(dm);
+	GPU_normal_setup(dm);
+	if (uvflag & DM_DRAW_USE_TEXPAINT_UV)
+		GPU_texpaint_uv_setup(dm);
+	else
+		GPU_uv_setup(dm);
+	if (mcol) {
+		GPU_color_setup(dm, colType);
 	}
-	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		GPU_vertex_setup(dm);
-		GPU_normal_setup(dm);
-		if (uvflag & DM_DRAW_USE_TEXPAINT_UV)
-			GPU_texpaint_uv_setup(dm);
-		else
-			GPU_uv_setup(dm);
-		if (mcol) {
-			GPU_color_setup(dm, colType);
+	
+	tottri = dm->drawObject->tot_triangle_point / 3;
+	next_actualFace = dm->drawObject->triangle_to_mface[0];
+	
+	glShadeModel(GL_SMOOTH);
+	/* lastFlag = 0; */ /* UNUSED */
+	for (i = 0; i < tottri; i++) {
+		int actualFace = next_actualFace;
+		DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
+		int flush = 0;
+		
+		if (i != tottri - 1)
+			next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
+		
+		if (drawParams) {
+			draw_option = drawParams(use_tface && tf ? &tf[actualFace] : NULL, (mcol != NULL), mf[actualFace].mat_nr);
 		}
-
-		if (!GPU_buffer_legacy(dm)) {
-			int tottri = dm->drawObject->tot_triangle_point / 3;
-			int next_actualFace = dm->drawObject->triangle_to_mface[0];
-
-			glShadeModel(GL_SMOOTH);
-			/* lastFlag = 0; */ /* UNUSED */
-			for (i = 0; i < tottri; i++) {
-				int actualFace = next_actualFace;
-				DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
-				int flush = 0;
-
-				if (i != tottri - 1)
-					next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
-
-				if (drawParams) {
-					draw_option = drawParams(use_tface && tf ? &tf[actualFace] : NULL, (mcol != NULL), mf[actualFace].mat_nr);
-				}
-				else {
-					if (index_mf_to_mpoly) {
-						orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
-						if (orig == ORIGINDEX_NONE) {
-							/* XXX, this is not really correct
+		else {
+			if (index_mf_to_mpoly) {
+				orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
+				if (orig == ORIGINDEX_NONE) {
+					/* XXX, this is not really correct
 							 * it will draw the previous faces context for this one when we don't know its settings.
 							 * but better then skipping it altogether. - campbell */
-							draw_option = DM_DRAW_OPTION_NORMAL;
-						}
-						else if (drawParamsMapped) {
-							draw_option = drawParamsMapped(userData, orig, mf[actualFace].mat_nr);
-						}
-					}
-					else if (drawParamsMapped) {
-						draw_option = drawParamsMapped(userData, actualFace, mf[actualFace].mat_nr);
-					}
+					draw_option = DM_DRAW_OPTION_NORMAL;
 				}
-
-				/* flush buffer if current triangle isn't drawable or it's last triangle */
-				flush = (draw_option == DM_DRAW_OPTION_SKIP) || (i == tottri - 1);
-
-				if (!flush && compareDrawOptions) {
-					/* also compare draw options and flush buffer if they're different
-					 * need for face selection highlight in edit mode */
-					flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
-				}
-
-				if (flush) {
-					int first = startFace * 3;
-					/* Add one to the length if we're drawing at the end of the array */
-					int count = (i - startFace + (draw_option != DM_DRAW_OPTION_SKIP ? 1 : 0)) * 3;
-
-					if (count) {
-						if (mcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
-							GPU_color_switch(1);
-						else
-							GPU_color_switch(0);
-
-						glDrawArrays(GL_TRIANGLES, first, count);
-					}
-
-					startFace = i + 1;
+				else if (drawParamsMapped) {
+					draw_option = drawParamsMapped(userData, orig, mf[actualFace].mat_nr);
 				}
 			}
+			else if (drawParamsMapped) {
+				draw_option = drawParamsMapped(userData, actualFace, mf[actualFace].mat_nr);
+			}
 		}
-
-		GPU_buffer_unbind();
-		glShadeModel(GL_FLAT);
+		
+		/* flush buffer if current triangle isn't drawable or it's last triangle */
+		flush = (draw_option == DM_DRAW_OPTION_SKIP) || (i == tottri - 1);
+		
+		if (!flush && compareDrawOptions) {
+			/* also compare draw options and flush buffer if they're different
+					 * need for face selection highlight in edit mode */
+			flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
+		}
+		
+		if (flush) {
+			int first = startFace * 3;
+			/* Add one to the length if we're drawing at the end of the array */
+			int count = (i - startFace + (draw_option != DM_DRAW_OPTION_SKIP ? 1 : 0)) * 3;
+			
+			if (count) {
+				if (mcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
+					GPU_color_switch(1);
+				else
+					GPU_color_switch(0);
+				
+				glDrawArrays(GL_TRIANGLES, first, count);
+			}
+			
+			startFace = i + 1;
+		}
 	}
+	
+	GPU_buffer_unbind();
+	glShadeModel(GL_FLAT);
+	
 }
 
 static void cdDM_drawFacesTex(DerivedMesh *dm,
@@ -968,7 +674,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 
 	/* back-buffer always uses legacy since VBO's would need the
 	 * color array temporarily overwritten for drawing, then reset. */
-	if (GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
+	if (G.f & G_BACKBUFSEL) {
 		DEBUG_VBO("Using legacy code. cdDM_drawMappedFaces\n");
 		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
 			int drawSmooth = ((flag & DM_DRAW_ALWAYS_SMOOTH) || lnors) ? 1 : (mf->flag & ME_SMOOTH);
@@ -1070,85 +776,85 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	}
 	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		int prevstart = 0;
+		int tottri;
+		
 		GPU_vertex_setup(dm);
 		GPU_normal_setup(dm);
 		if (useColors && mcol) {
 			GPU_color_setup(dm, colType);
 		}
-		if (!GPU_buffer_legacy(dm)) {
-			int tottri = dm->drawObject->tot_triangle_point / 3;
-			glShadeModel(GL_SMOOTH);
+		tottri = dm->drawObject->tot_triangle_point / 3;
+		glShadeModel(GL_SMOOTH);
+		
+		if (tottri == 0) {
+			/* avoid buffer problems in following code */
+		}
+		if (setDrawOptions == NULL) {
+			/* just draw the entire face array */
+			glDrawArrays(GL_TRIANGLES, 0, (tottri) * 3);
+		}
+		else {
+			/* we need to check if the next material changes */
+			int next_actualFace = dm->drawObject->triangle_to_mface[0];
+			int prev_mat_nr = -1;
 			
-			if (tottri == 0) {
-				/* avoid buffer problems in following code */
-			}
-			if (setDrawOptions == NULL) {
-				/* just draw the entire face array */
-				glDrawArrays(GL_TRIANGLES, 0, (tottri) * 3);
-			}
-			else {
-				/* we need to check if the next material changes */
-				int next_actualFace = dm->drawObject->triangle_to_mface[0];
-				int prev_mat_nr = -1;
+			for (i = 0; i < tottri; i++) {
+				//int actualFace = dm->drawObject->triangle_to_mface[i];
+				int actualFace = next_actualFace;
+				MFace *mface = mf + actualFace;
+				/*int drawSmooth = (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mface->flag & ME_SMOOTH);*/ /* UNUSED */
+				DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
+				int flush = 0;
 				
-				for (i = 0; i < tottri; i++) {
-					//int actualFace = dm->drawObject->triangle_to_mface[i];
-					int actualFace = next_actualFace;
-					MFace *mface = mf + actualFace;
-					/*int drawSmooth = (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mface->flag & ME_SMOOTH);*/ /* UNUSED */
-					DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
-					int flush = 0;
-
-					if (i != tottri - 1)
-						next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
-
-					orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : actualFace;
-
-					if (mface->mat_nr != prev_mat_nr) {
-						if (setMaterial)
-							draw_option = setMaterial(mface->mat_nr + 1, NULL);
-
-						prev_mat_nr = mface->mat_nr;
-					}
+				if (i != tottri - 1)
+					next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
+				
+				orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : actualFace;
+				
+				if (mface->mat_nr != prev_mat_nr) {
+					if (setMaterial)
+						draw_option = setMaterial(mface->mat_nr + 1, NULL);
 					
-					if (setDrawOptions != NULL && (orig != ORIGINDEX_NONE))
-						draw_option = setDrawOptions(userData, orig);
-
-					if (draw_option == DM_DRAW_OPTION_STIPPLE) {
-						glEnable(GL_POLYGON_STIPPLE);
-						glPolygonStipple(stipple_quarttone);
-					}
-	
-					/* Goal is to draw as long of a contiguous triangle
+					prev_mat_nr = mface->mat_nr;
+				}
+				
+				if (setDrawOptions != NULL && (orig != ORIGINDEX_NONE))
+					draw_option = setDrawOptions(userData, orig);
+				
+				if (draw_option == DM_DRAW_OPTION_STIPPLE) {
+					glEnable(GL_POLYGON_STIPPLE);
+					glPolygonStipple(stipple_quarttone);
+				}
+				
+				/* Goal is to draw as long of a contiguous triangle
 					 * array as possible, so draw when we hit either an
 					 * invisible triangle or at the end of the array */
-
-					/* flush buffer if current triangle isn't drawable or it's last triangle... */
-					flush = (ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE)) || (i == tottri - 1);
-
-					/* ... or when material setting is dissferent  */
-					flush |= mf[actualFace].mat_nr != mf[next_actualFace].mat_nr;
-
-					if (!flush && compareDrawOptions) {
-						flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
-					}
-
-					if (flush) {
-						int first = prevstart * 3;
-						/* Add one to the length if we're drawing at the end of the array */
-						int count = (i - prevstart + (draw_option != DM_DRAW_OPTION_SKIP ? 1 : 0)) * 3;
-
-						if (count)
-							glDrawArrays(GL_TRIANGLES, first, count);
-
-						prevstart = i + 1;
-
-						if (draw_option == DM_DRAW_OPTION_STIPPLE)
-							glDisable(GL_POLYGON_STIPPLE);
-					}
+				
+				/* flush buffer if current triangle isn't drawable or it's last triangle... */
+				flush = (ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE)) || (i == tottri - 1);
+				
+				/* ... or when material setting is dissferent  */
+				flush |= mf[actualFace].mat_nr != mf[next_actualFace].mat_nr;
+				
+				if (!flush && compareDrawOptions) {
+					flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
+				}
+				
+				if (flush) {
+					int first = prevstart * 3;
+					/* Add one to the length if we're drawing at the end of the array */
+					int count = (i - prevstart + (draw_option != DM_DRAW_OPTION_SKIP ? 1 : 0)) * 3;
+					
+					if (count)
+						glDrawArrays(GL_TRIANGLES, first, count);
+					
+					prevstart = i + 1;
+					
+					if (draw_option == DM_DRAW_OPTION_STIPPLE)
+						glDisable(GL_POLYGON_STIPPLE);
 				}
 			}
-
+			
 			glShadeModel(GL_FLAT);
 		}
 		GPU_buffer_unbind();
@@ -1276,7 +982,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 	glShadeModel(GL_SMOOTH);
 
-	if (GPU_buffer_legacy(dm) || setDrawOptions != NULL) {
+	if (setDrawOptions != NULL) {
 		DEBUG_VBO("Using legacy code. cdDM_drawMappedFacesGLSL\n");
 		memset(&attribs, 0, sizeof(attribs));
 
@@ -1335,11 +1041,11 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				ln3 = &lnors[a][2];
 				ln4 = &lnors[a][3];
 			}
-
+			
 			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v1, 0, ln1, smoothnormal);
 			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v2, 1, ln2, smoothnormal);
 			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, ln3, smoothnormal);
-
+			
 			if (mface->v4)
 				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v4, 3, ln4, smoothnormal);
 			else
@@ -1353,214 +1059,213 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		int numdata = 0, elementsize = 0, offset;
 		int start = 0, numfaces = 0 /* , prevdraw = 0 */ /* UNUSED */, curface = 0;
 		int i;
-
+		
 		const MFace *mf = mface;
 		GPUAttrib datatypes[GPU_MAX_ATTRIB]; /* TODO, messing up when switching materials many times - [#21056]*/
 		memset(&attribs, 0, sizeof(attribs));
-
+		
 		GPU_vertex_setup(dm);
 		GPU_normal_setup(dm);
-
-		if (!GPU_buffer_legacy(dm)) {
-			for (i = 0; i < dm->drawObject->tot_triangle_point / 3; i++) {
-
-				a = dm->drawObject->triangle_to_mface[i];
-
-				mface = mf + a;
-				new_matnr = mface->mat_nr + 1;
-
-				if (new_matnr != matnr) {
-					numfaces = curface - start;
-					if (numfaces > 0) {
-
-						if (do_draw) {
-
-							if (numdata != 0) {
-
-								GPU_buffer_unlock(buffer);
-
-								GPU_interleaved_attrib_setup(buffer, datatypes, numdata);
-							}
-
-							glDrawArrays(GL_TRIANGLES, start * 3, numfaces * 3);
-
-							if (numdata != 0) {
-
-								GPU_buffer_free(buffer);
-
-								buffer = NULL;
-							}
-
-						}
-					}
-					numdata = 0;
-					start = curface;
-					/* prevdraw = do_draw; */ /* UNUSED */
-					do_draw = setMaterial(matnr = new_matnr, &gattribs);
+		
+		for (i = 0; i < dm->drawObject->tot_triangle_point / 3; i++) {
+			
+			a = dm->drawObject->triangle_to_mface[i];
+			
+			mface = mf + a;
+			new_matnr = mface->mat_nr + 1;
+			
+			if (new_matnr != matnr) {
+				numfaces = curface - start;
+				if (numfaces > 0) {
+					
 					if (do_draw) {
-						DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
-
-						if (attribs.totorco && attribs.orco.array) {
-							datatypes[numdata].index = attribs.orco.gl_index;
-							datatypes[numdata].size = 3;
-							datatypes[numdata].type = GL_FLOAT;
-							numdata++;
-						}
-						for (b = 0; b < attribs.tottface; b++) {
-							if (attribs.tface[b].array) {
-								datatypes[numdata].index = attribs.tface[b].gl_index;
-								datatypes[numdata].size = 2;
-								datatypes[numdata].type = GL_FLOAT;
-								numdata++;
-							}
-						}
-						for (b = 0; b < attribs.totmcol; b++) {
-							if (attribs.mcol[b].array) {
-								datatypes[numdata].index = attribs.mcol[b].gl_index;
-								datatypes[numdata].size = 4;
-								datatypes[numdata].type = GL_UNSIGNED_BYTE;
-								numdata++;
-							}
-						}
-						if (attribs.tottang && attribs.tang.array) {
-							datatypes[numdata].index = attribs.tang.gl_index;
-							datatypes[numdata].size = 4;
-							datatypes[numdata].type = GL_FLOAT;
-							numdata++;
-						}
+						
 						if (numdata != 0) {
-							elementsize = GPU_attrib_element_size(datatypes, numdata);
-							buffer = GPU_buffer_alloc(elementsize * dm->drawObject->tot_triangle_point);
-							if (buffer == NULL) {
-								GPU_buffer_unbind();
-								dm->drawObject->legacy = 1;
-								return;
-							}
-							varray = GPU_buffer_lock_stream(buffer);
-							if (varray == NULL) {
-								GPU_buffer_unbind();
-								GPU_buffer_free(buffer);
-								dm->drawObject->legacy = 1;
-								return;
-							}
+							
+							GPU_buffer_unlock(buffer);
+							
+							GPU_interleaved_attrib_setup(buffer, datatypes, numdata);
 						}
-						else {
-							/* if the buffer was set, don't use it again.
-							 * prevdraw was assumed true but didnt run so set to false - [#21036] */
-							/* prevdraw = 0; */ /* UNUSED */
+						
+						glDrawArrays(GL_TRIANGLES, start * 3, numfaces * 3);
+						
+						if (numdata != 0) {
+							
+							GPU_buffer_free(buffer);
+							
 							buffer = NULL;
 						}
+						
 					}
 				}
-
+				numdata = 0;
+				start = curface;
+				/* prevdraw = do_draw; */ /* UNUSED */
+				do_draw = setMaterial(matnr = new_matnr, &gattribs);
+				if (do_draw) {
+					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+					
+					if (attribs.totorco && attribs.orco.array) {
+						datatypes[numdata].index = attribs.orco.gl_index;
+						datatypes[numdata].size = 3;
+						datatypes[numdata].type = GL_FLOAT;
+						numdata++;
+					}
+					for (b = 0; b < attribs.tottface; b++) {
+						if (attribs.tface[b].array) {
+							datatypes[numdata].index = attribs.tface[b].gl_index;
+							datatypes[numdata].size = 2;
+							datatypes[numdata].type = GL_FLOAT;
+							numdata++;
+						}
+					}
+					for (b = 0; b < attribs.totmcol; b++) {
+						if (attribs.mcol[b].array) {
+							datatypes[numdata].index = attribs.mcol[b].gl_index;
+							datatypes[numdata].size = 4;
+							datatypes[numdata].type = GL_UNSIGNED_BYTE;
+							numdata++;
+						}
+					}
+					if (attribs.tottang && attribs.tang.array) {
+						datatypes[numdata].index = attribs.tang.gl_index;
+						datatypes[numdata].size = 4;
+						datatypes[numdata].type = GL_FLOAT;
+						numdata++;
+					}
+					if (numdata != 0) {
+						elementsize = GPU_attrib_element_size(datatypes, numdata);
+						buffer = GPU_buffer_alloc(elementsize * dm->drawObject->tot_triangle_point, true);
+						if (buffer == NULL) {
+							GPU_buffer_unbind();
+							buffer = GPU_buffer_alloc(elementsize * dm->drawObject->tot_triangle_point, true);
+							return;
+						}
+						varray = GPU_buffer_lock_stream(buffer);
+						if (varray == NULL) {
+							GPU_buffer_unbind();
+							GPU_buffer_free(buffer);
+							fprintf(stderr, "Out of memory, can't draw object\n");
+							return;
+						}
+					}
+					else {
+						/* if the buffer was set, don't use it again.
+						 * prevdraw was assumed true but didnt run so set to false - [#21036] */
+						/* prevdraw = 0; */ /* UNUSED */
+						buffer = NULL;
+					}
+				}
+			}
+			
+			if (do_draw && numdata != 0) {
+				offset = 0;
+				if (attribs.totorco && attribs.orco.array) {
+					copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v1]);
+					copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize], (float *)attribs.orco.array[mface->v2]);
+					copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize * 2], (float *)attribs.orco.array[mface->v3]);
+					offset += sizeof(float) * 3;
+				}
+				for (b = 0; b < attribs.tottface; b++) {
+					if (attribs.tface[b].array) {
+						MTFace *tf = &attribs.tface[b].array[a];
+						copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[0]);
+						copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[1]);
+						
+						copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[2]);
+						offset += sizeof(float) * 2;
+					}
+				}
+				for (b = 0; b < attribs.totmcol; b++) {
+					if (attribs.mcol[b].array) {
+						MCol *cp = &attribs.mcol[b].array[a * 4 + 0];
+						GLubyte col[4];
+						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset], (char *)col);
+						cp = &attribs.mcol[b].array[a * 4 + 1];
+						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize], (char *)col);
+						cp = &attribs.mcol[b].array[a * 4 + 2];
+						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
+						offset += sizeof(unsigned char) * 4;
+					}
+				}
+				if (attribs.tottang && attribs.tang.array) {
+					const float *tang = attribs.tang.array[a * 4 + 0];
+					copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
+					tang = attribs.tang.array[a * 4 + 1];
+					copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize], tang);
+					tang = attribs.tang.array[a * 4 + 2];
+					copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tang);
+					offset += sizeof(float) * 4;
+				}
+				(void)offset;
+			}
+			curface++;
+			if (mface->v4) {
 				if (do_draw && numdata != 0) {
 					offset = 0;
 					if (attribs.totorco && attribs.orco.array) {
-						copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v1]);
-						copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize], (float *)attribs.orco.array[mface->v2]);
-						copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize * 2], (float *)attribs.orco.array[mface->v3]);
+						copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v3]);
+						copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize], (float *)attribs.orco.array[mface->v4]);
+						copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize * 2], (float *)attribs.orco.array[mface->v1]);
 						offset += sizeof(float) * 3;
 					}
 					for (b = 0; b < attribs.tottface; b++) {
 						if (attribs.tface[b].array) {
 							MTFace *tf = &attribs.tface[b].array[a];
-							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[0]);
-							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[1]);
-
-							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[2]);
+							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[2]);
+							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[3]);
+							copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[0]);
 							offset += sizeof(float) * 2;
 						}
 					}
 					for (b = 0; b < attribs.totmcol; b++) {
 						if (attribs.mcol[b].array) {
-							MCol *cp = &attribs.mcol[b].array[a * 4 + 0];
+							MCol *cp = &attribs.mcol[b].array[a * 4 + 2];
 							GLubyte col[4];
 							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset], (char *)col);
-							cp = &attribs.mcol[b].array[a * 4 + 1];
+							cp = &attribs.mcol[b].array[a * 4 + 3];
 							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize], (char *)col);
-							cp = &attribs.mcol[b].array[a * 4 + 2];
+							cp = &attribs.mcol[b].array[a * 4 + 0];
 							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
 							offset += sizeof(unsigned char) * 4;
 						}
 					}
 					if (attribs.tottang && attribs.tang.array) {
-						const float *tang = attribs.tang.array[a * 4 + 0];
+						const float *tang = attribs.tang.array[a * 4 + 2];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
-						tang = attribs.tang.array[a * 4 + 1];
+						tang = attribs.tang.array[a * 4 + 3];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize], tang);
-						tang = attribs.tang.array[a * 4 + 2];
+						tang = attribs.tang.array[a * 4 + 0];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tang);
 						offset += sizeof(float) * 4;
 					}
 					(void)offset;
 				}
 				curface++;
-				if (mface->v4) {
-					if (do_draw && numdata != 0) {
-						offset = 0;
-						if (attribs.totorco && attribs.orco.array) {
-							copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v3]);
-							copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize], (float *)attribs.orco.array[mface->v4]);
-							copy_v3_v3((float *)&varray[elementsize * curface * 3 + elementsize * 2], (float *)attribs.orco.array[mface->v1]);
-							offset += sizeof(float) * 3;
-						}
-						for (b = 0; b < attribs.tottface; b++) {
-							if (attribs.tface[b].array) {
-								MTFace *tf = &attribs.tface[b].array[a];
-								copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset], tf->uv[2]);
-								copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize], tf->uv[3]);
-								copy_v2_v2((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tf->uv[0]);
-								offset += sizeof(float) * 2;
-							}
-						}
-						for (b = 0; b < attribs.totmcol; b++) {
-							if (attribs.mcol[b].array) {
-								MCol *cp = &attribs.mcol[b].array[a * 4 + 2];
-								GLubyte col[4];
-								col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-								copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset], (char *)col);
-								cp = &attribs.mcol[b].array[a * 4 + 3];
-								col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-								copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize], (char *)col);
-								cp = &attribs.mcol[b].array[a * 4 + 0];
-								col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
-								copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
-								offset += sizeof(unsigned char) * 4;
-							}
-						}
-						if (attribs.tottang && attribs.tang.array) {
-							const float *tang = attribs.tang.array[a * 4 + 2];
-							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
-							tang = attribs.tang.array[a * 4 + 3];
-							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize], tang);
-							tang = attribs.tang.array[a * 4 + 0];
-							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset + elementsize * 2], tang);
-							offset += sizeof(float) * 4;
-						}
-						(void)offset;
-					}
-					curface++;
-					i++;
-				}
+				i++;
 			}
-			numfaces = curface - start;
-			if (numfaces > 0) {
-				if (do_draw) {
-					if (numdata != 0) {
-						GPU_buffer_unlock(buffer);
-						GPU_interleaved_attrib_setup(buffer, datatypes, numdata);
-					}
-					glDrawArrays(GL_TRIANGLES, start * 3, (curface - start) * 3);
-				}
-			}
-			GPU_buffer_unbind();
 		}
+		numfaces = curface - start;
+		if (numfaces > 0) {
+			if (do_draw) {
+				if (numdata != 0) {
+					GPU_buffer_unlock(buffer);
+					GPU_interleaved_attrib_setup(buffer, datatypes, numdata);
+				}
+				glDrawArrays(GL_TRIANGLES, start * 3, (curface - start) * 3);
+			}
+		}
+		GPU_buffer_unbind();
+		
 		GPU_buffer_free(buffer);
 	}
-
+	
 	glShadeModel(GL_FLAT);
 }
 

@@ -62,6 +62,8 @@
 
 #include "bmesh.h"
 
+#include "gpu_extensions_private.h"
+
 typedef enum {
 	GPU_BUFFER_VERTEX_STATE = (1 << 0),
 	GPU_BUFFER_NORMAL_STATE = (1 << 1),
@@ -76,7 +78,6 @@ typedef enum {
 #define BUFFER_OFFSET(n) ((GLubyte *)NULL + (n))
 
 /* -1 - undefined, 0 - vertex arrays, 1 - VBOs */
-static int useVBOs = -1;
 static GPUBufferState GLStates = 0;
 static GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
 
@@ -110,10 +111,6 @@ typedef struct GPUBufferPool {
 static GPUBufferPool *gpu_buffer_pool_new(void)
 {
 	GPUBufferPool *pool;
-
-	/* enable VBOs if supported */
-	if (useVBOs == -1)
-		useVBOs = (GLEW_ARB_vertex_buffer_object ? 1 : 0);
 
 	pool = MEM_callocN(sizeof(GPUBufferPool), "GPUBuffer_Pool");
 
@@ -158,7 +155,7 @@ static void gpu_buffer_pool_delete_last(GPUBufferPool *pool)
 		return;
 
 	/* delete the buffer's data */
-	if (useVBOs)
+	if (last->use_vbo)
 		glDeleteBuffersARB(1, &last->id);
 	else
 		MEM_freeN(last->pointer);
@@ -226,7 +223,7 @@ void GPU_global_buffer_pool_free_unused(void)
  *
  * Thread-unsafe version for internal usage only.
  */
-static GPUBuffer *gpu_buffer_alloc_intern(int size)
+static GPUBuffer *gpu_buffer_alloc_intern(int size, bool use_VBO)
 {
 	GPUBufferPool *pool;
 	GPUBuffer *buf;
@@ -251,6 +248,10 @@ static GPUBuffer *gpu_buffer_alloc_intern(int size)
 	for (i = 0; i < pool->totbuf; i++) {
 		bufsize = pool->buffers[i]->size;
 
+		/* only return a buffer that matches the VBO preference */
+		 if (pool->buffers[i]->use_vbo != use_VBO)
+			 continue;
+		
 		/* check for an exact size match */
 		if (bufsize == size) {
 			bestfit = i;
@@ -279,8 +280,9 @@ static GPUBuffer *gpu_buffer_alloc_intern(int size)
 	/* no acceptable buffer found in the pool, create a new one */
 	buf = MEM_callocN(sizeof(GPUBuffer), "GPUBuffer");
 	buf->size = size;
+	buf->use_vbo = use_VBO;
 
-	if (useVBOs == 1) {
+	if (use_VBO) {
 		/* create a new VBO and initialize it to the requested
 		 * size */
 		glGenBuffersARB(1, &buf->id);
@@ -307,9 +309,10 @@ static GPUBuffer *gpu_buffer_alloc_intern(int size)
 }
 
 /* Same as above, but safe for threading. */
-GPUBuffer *GPU_buffer_alloc(int size)
+GPUBuffer *GPU_buffer_alloc(int size, bool force_vertex_arrays)
 {
 	GPUBuffer *buffer;
+	bool use_VBOs = (GLEW_ARB_vertex_buffer_object) && !(U.gameflags & USER_DISABLE_VBO) && !force_vertex_arrays;
 
 	if (size == 0) {
 		/* Early out, no lock needed in this case. */
@@ -317,7 +320,7 @@ GPUBuffer *GPU_buffer_alloc(int size)
 	}
 
 	BLI_mutex_lock(&buffer_mutex);
-	buffer = gpu_buffer_alloc_intern(size);
+	buffer = gpu_buffer_alloc_intern(size, use_VBOs);
 	BLI_mutex_unlock(&buffer_mutex);
 
 	return buffer;
@@ -577,12 +580,29 @@ void GPU_drawobject_free(DerivedMesh *dm)
 	GPU_buffer_free(gdo->points);
 	GPU_buffer_free(gdo->normals);
 	GPU_buffer_free(gdo->uv);
+	GPU_buffer_free(gdo->uv_tex);
 	GPU_buffer_free(gdo->colors);
 	GPU_buffer_free(gdo->edges);
 	GPU_buffer_free(gdo->uvedges);
 
 	MEM_freeN(gdo);
 	dm->drawObject = NULL;
+}
+
+static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, int size, bool use_VBOs)
+{
+	gpu_buffer_free_intern(buffer);
+	gpu_buffer_pool_delete_last(pool);
+	buffer = NULL;
+	
+	/* try freeing an entry from the pool
+	 * and reallocating the buffer */
+	if (pool->totbuf > 0) {
+		gpu_buffer_pool_delete_last(pool);
+		buffer = gpu_buffer_alloc_intern(size, use_VBOs);
+	}
+	
+	return buffer;
 }
 
 typedef void (*GPUBufferCopyFunc)(DerivedMesh *dm, float *varray, int *index,
@@ -598,7 +618,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	int *mat_orig_to_new;
 	int *cur_index_per_mat;
 	int i;
-	bool success;
+	bool use_VBOs = (GLEW_ARB_vertex_buffer_object == 1) && !(U.gameflags & USER_DISABLE_VBO);
 	GLboolean uploaded;
 
 	pool = gpu_get_global_buffer_pool();
@@ -606,11 +626,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	BLI_mutex_lock(&buffer_mutex);
 
 	/* alloc a GPUBuffer; fall back to legacy mode on failure */
-	if (!(buffer = gpu_buffer_alloc_intern(size)))
-		dm->drawObject->legacy = 1;
-
-	/* nothing to do for legacy mode */
-	if (dm->drawObject->legacy) {
+	if (!(buffer = gpu_buffer_alloc_intern(size, use_VBOs))) {
 		BLI_mutex_unlock(&buffer_mutex);
 		return NULL;
 	}
@@ -628,8 +644,8 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 		mat_orig_to_new[object->materials[i].mat_nr] = i;
 	}
 
-	if (useVBOs) {
-		success = 0;
+	if (use_VBOs) {
+		bool success = false;
 
 		while (!success) {
 			/* bind the buffer and discard previous data,
@@ -639,32 +655,22 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 
 			/* attempt to map the buffer */
 			if (!(varray = glMapBufferARB(target, GL_WRITE_ONLY_ARB))) {
-				/* failed to map the buffer; delete it */
-				gpu_buffer_free_intern(buffer);
-				gpu_buffer_pool_delete_last(pool);
-				buffer = NULL;
-
-				/* try freeing an entry from the pool
-				 * and reallocating the buffer */
-				if (pool->totbuf > 0) {
-					gpu_buffer_pool_delete_last(pool);
-					buffer = gpu_buffer_alloc_intern(size);
-				}
-
+				 buffer = gpu_try_realloc(pool, buffer, size, true);
+				 
 				/* allocation still failed; fall back
 				 * to legacy mode */
 				if (!buffer) {
-					dm->drawObject->legacy = 1;
-					success = 1;
+					use_VBOs = false;
+					success = true;
 				}
 			}
 			else {
-				success = 1;
+				success = true;
 			}
 		}
 
 		/* check legacy fallback didn't happen */
-		if (dm->drawObject->legacy == 0) {
+		if (use_VBOs) {
 			uploaded = GL_FALSE;
 			/* attempt to upload the data to the VBO */
 			while (uploaded == GL_FALSE) {
@@ -677,14 +683,15 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 		}
 		glBindBufferARB(target, 0);
 	}
-	else {
+	if (!use_VBOs) {
 		/* VBO not supported, use vertex array fallback */
-		if (buffer->pointer) {
+		if (!buffer || !buffer->pointer) {
+			buffer = gpu_try_realloc(pool, buffer, size, false);
+		}
+		
+		if (buffer) {
 			varray = buffer->pointer;
 			(*copy_f)(dm, varray, cur_index_per_mat, mat_orig_to_new, user);
-		}
-		else {
-			dm->drawObject->legacy = 1;
 		}
 	}
 
@@ -1019,7 +1026,7 @@ static GPUBuffer **gpu_drawobject_buffer_from_type(GPUDrawObject *gdo, GPUBuffer
 		case GPU_BUFFER_UV:
 			return &gdo->uv;
 		case GPU_BUFFER_UV_TEXPAINT:
-			return &gdo->uv;
+			return &gdo->uv_tex;
 		case GPU_BUFFER_EDGE:
 			return &gdo->edges;
 		case GPU_BUFFER_UVEDGE:
@@ -1105,7 +1112,7 @@ void GPU_vertex_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (useVBOs) {
+	if (dm->drawObject->points->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->points->id);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
 	}
@@ -1122,7 +1129,7 @@ void GPU_normal_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_NORMAL_ARRAY);
-	if (useVBOs) {
+	if (dm->drawObject->normals->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->normals->id);
 		glNormalPointer(GL_FLOAT, 0, 0);
 	}
@@ -1139,7 +1146,7 @@ void GPU_uv_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	if (useVBOs) {
+	if (dm->drawObject->uv->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->uv->id);
 		glTexCoordPointer(2, GL_FLOAT, 0, 0);
 	}
@@ -1156,8 +1163,8 @@ void GPU_texpaint_uv_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	if (useVBOs) {
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->uv->id);
+	if (dm->drawObject->uv_tex->use_vbo) {
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->uv_tex->id);
 		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), 0);
 		glClientActiveTexture(GL_TEXTURE2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1165,10 +1172,10 @@ void GPU_texpaint_uv_setup(DerivedMesh *dm)
 		glClientActiveTexture(GL_TEXTURE0);
 	}
 	else {
-		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), dm->drawObject->uv->pointer);
+		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), dm->drawObject->uv_tex->pointer);
 		glClientActiveTexture(GL_TEXTURE2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (char *)dm->drawObject->uv->pointer + 2 * sizeof(float));
+		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (char *)dm->drawObject->uv_tex->pointer + 2 * sizeof(float));
 		glClientActiveTexture(GL_TEXTURE0);
 	}
 
@@ -1202,7 +1209,7 @@ void GPU_color_setup(DerivedMesh *dm, int colType)
 		return;
 
 	glEnableClientState(GL_COLOR_ARRAY);
-	if (useVBOs) {
+	if (dm->drawObject->colors->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->colors->id);
 		glColorPointer(3, GL_UNSIGNED_BYTE, 0, 0);
 	}
@@ -1222,7 +1229,7 @@ void GPU_edge_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (useVBOs) {
+	if (dm->drawObject->edges->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->points->id);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
 	}
@@ -1232,7 +1239,7 @@ void GPU_edge_setup(DerivedMesh *dm)
 	
 	GLStates |= GPU_BUFFER_VERTEX_STATE;
 
-	if (useVBOs)
+	if (dm->drawObject->edges->use_vbo)
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, dm->drawObject->edges->id);
 
 	GLStates |= GPU_BUFFER_ELEMENT_STATE;
@@ -1244,7 +1251,7 @@ void GPU_uvedge_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (useVBOs) {
+	if (dm->drawObject->uvedges->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->uvedges->id);
 		glVertexPointer(2, GL_FLOAT, 0, 0);
 	}
@@ -1300,7 +1307,7 @@ void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numda
 	}
 	elementsize = GPU_attrib_element_size(data, numdata);
 
-	if (useVBOs) {
+	if (buffer->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer->id);
 		for (i = 0; i < numdata; i++) {
 			glEnableVertexAttribArrayARB(data[i].index);
@@ -1343,7 +1350,8 @@ void GPU_buffer_unbind(void)
 	if (GLStates & GPU_BUFFER_COLOR_STATE)
 		glDisableClientState(GL_COLOR_ARRAY);
 	if (GLStates & GPU_BUFFER_ELEMENT_STATE) {
-		if (useVBOs) {
+		/* not guaranteed we used VBOs but in that case it's just a no-op */
+		if (GLEW_ARB_vertex_buffer_object) {
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 		}
 	}
@@ -1359,7 +1367,8 @@ void GPU_buffer_unbind(void)
 			break;
 	}
 
-	if (useVBOs)
+	/* not guaranteed we used VBOs but in that case it's just a no-op */
+	if (GLEW_ARB_vertex_buffer_object)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
 
@@ -1377,19 +1386,6 @@ void GPU_color_switch(int mode)
 	}
 }
 
-/* return 1 if drawing should be done using old immediate-mode
- * code, 0 otherwise */
-bool GPU_buffer_legacy(DerivedMesh *dm)
-{
-	int test = (U.gameflags & USER_DISABLE_VBO);
-	if (test)
-		return 1;
-
-	if (dm->drawObject == NULL)
-		dm->drawObject = GPU_drawobject_new(dm);
-	return dm->drawObject->legacy;
-}
-
 void *GPU_buffer_lock(GPUBuffer *buffer)
 {
 	float *varray;
@@ -1397,7 +1393,7 @@ void *GPU_buffer_lock(GPUBuffer *buffer)
 	if (!buffer)
 		return 0;
 
-	if (useVBOs) {
+	if (buffer->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer->id);
 		varray = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 		return varray;
@@ -1414,7 +1410,7 @@ void *GPU_buffer_lock_stream(GPUBuffer *buffer)
 	if (!buffer)
 		return 0;
 
-	if (useVBOs) {
+	if (buffer->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer->id);
 		/* discard previous data, avoid stalling gpu */
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, buffer->size, 0, GL_STREAM_DRAW_ARB);
@@ -1428,7 +1424,7 @@ void *GPU_buffer_lock_stream(GPUBuffer *buffer)
 
 void GPU_buffer_unlock(GPUBuffer *buffer)
 {
-	if (useVBOs) {
+	if (buffer->use_vbo) {
 		if (buffer) {
 			/* note: this operation can fail, could return
 			 * an error code from this function? */
@@ -1442,7 +1438,7 @@ void GPU_buffer_unlock(GPUBuffer *buffer)
 void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start, int count)
 {
 	glDrawElements(mode, count, GL_UNSIGNED_INT,
-	               (useVBOs ?
+	               (elements->use_vbo ?
 	                (void *)(start * sizeof(unsigned int)) :
 	                ((int *)elements->pointer) + start));
 }

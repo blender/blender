@@ -562,14 +562,6 @@ static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, const bool has_mc
 	}
 }
 
-static DMDrawOption draw_mcol__set_draw_legacy(MTFace *UNUSED(tface), const bool has_mcol, int UNUSED(matnr))
-{
-	if (has_mcol)
-		return DM_DRAW_OPTION_NORMAL;
-	else
-		return DM_DRAW_OPTION_NO_MCOL;
-}
-
 static DMDrawOption draw_tface__set_draw(MTFace *tface, const bool UNUSED(has_mcol), int matnr)
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
@@ -929,24 +921,16 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, compareDrawOptions, &userData, uvflag);
 		}
 	}
-	else {
-		if (GPU_buffer_legacy(dm)) {
-			if (draw_flags & DRAW_MODIFIERS_PREVIEW)
-				dm->drawFacesTex(dm, draw_mcol__set_draw_legacy, NULL, NULL, uvflag);
-			else 
-				dm->drawFacesTex(dm, draw_tface__set_draw_legacy, NULL, NULL, uvflag);
-		}
-		else {
-			drawTFace_userData userData;
-
-			update_tface_color_layer(dm);
-
-			userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-			userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
-			userData.me = NULL;
-
-			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, &userData, uvflag);
-		}
+	else {		
+		drawTFace_userData userData;
+		
+		update_tface_color_layer(dm);
+		
+		userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
+		userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+		userData.me = NULL;
+		
+		dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, &userData, uvflag);
 	}
 
 	/* draw game engine text hack */
