@@ -3601,18 +3601,6 @@ static void achannel_nlatrack_solo_widget_cb(bContext *C, void *adt_poin, void *
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
 }
 
-/* callback for rename widgets - clear rename-in-progress */
-static void achannel_setting_rename_done_cb(bContext *C, void *ads_poin, void *UNUSED(arg2))
-{
-	bDopeSheet *ads = (bDopeSheet *)ads_poin;
-	
-	/* reset rename index so that edit box disappears now that editing is done */
-	ads->renameIndex = 0;
-	
-	/* send notifiers */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
-}
-
 /* callback for widget sliders - insert keyframes */
 static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poin)
 {
@@ -3912,8 +3900,14 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 				
 				but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
 				                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
-				UI_but_func_set(but, achannel_setting_rename_done_cb, ac->ads, NULL);
-				UI_but_active_only(C, ac->ar, block, but);
+				
+				/* copy what outliner does here, see outliner_buttons */
+				if (UI_but_active_only(C, ac->ar, block, but) == false) {
+					ac->ads->renameIndex = 0;
+					
+					/* send notifiers */
+					WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
+				}
 				
 				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 			}
