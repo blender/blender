@@ -498,8 +498,12 @@ LLVM_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar
 LLVM_CLANG_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz" "http://llvm.org/releases/$LLVM_VERSION/cfe-$LLVM_VERSION.src.tar.gz" )
 #OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
 #OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage.git" )
-OSL_SOURCE=( "https://github.com/mont29/OpenShadingLanguage.git" )
-OSL_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
+#OSL_SOURCE=( "https://github.com/mont29/OpenShadingLanguage.git" )
+#OSL_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
+#OSL_REPO_BRANCH="master"
+OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
+OSL_REPO_UID="1eb052331210a231900eb173a64500056d83b88c"
+OSL_REPO_BRANCH="blender-fixes"
 
 OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
 OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
@@ -1405,12 +1409,13 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=15
+  osl_magic=16
   _init_osl
 
   # Clean install if needed!
   magic_compile_check osl-$OSL_VERSION $osl_magic
   if [ $? -eq 1 -o $OSL_FORCE_REBUILD == true ]; then
+    rm -Rf $_src  # XXX Radical, but not easy to change remote repo fully automatically
     clean_OSL
   fi
 
@@ -1434,10 +1439,10 @@ compile_OSL() {
 
     cd $_src
 
-    git remote set-url origin $OSL_SOURCE
+    git remote set-url origin ${OSL_SOURCE[0]}
 
     # XXX For now, always update from latest repo...
-    git pull -X theirs origin master
+    git pull --no-edit -X theirs origin $OSL_GIT_BRANCH
 
     # Stick to same rev as windows' libs...
     git checkout $OSL_REPO_UID
