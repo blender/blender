@@ -79,8 +79,6 @@
 
 #include "bmesh.h"
 
-#include "MOD_util.h"
-
 typedef struct {
 	float mat[3][3];
 	/* Vert that edge is pointing away from, no relation to

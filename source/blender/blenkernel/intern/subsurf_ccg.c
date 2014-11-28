@@ -41,7 +41,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -66,8 +65,6 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
-#include "PIL_time.h"
-
 #ifndef USE_DYNSIZE
 #  include "BLI_array.h"
 #endif
@@ -75,7 +72,6 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
-#include "GPU_material.h"
 
 #include "CCGSubSurf.h"
 

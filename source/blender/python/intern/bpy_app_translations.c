@@ -44,7 +44,6 @@
 #include "BLF_translation.h"
 
 #include "RNA_types.h"
-#include "RNA_access.h"
 
 
 typedef struct

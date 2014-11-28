@@ -44,10 +44,6 @@
 #include "bmesh_py_ops_call.h"
 #include "bmesh_py_ops.h"  /* own include */
 
-#include "bmesh_py_types.h"
-
-#include "bmesh_py_utils.h"
-
 /* bmesh operator 'bmesh.ops.*' callable types
  * ******************************************* */
 static PyTypeObject bmesh_op_Type;

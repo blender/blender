@@ -27,7 +27,6 @@
  *  \ingroup render
  */
 
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -50,24 +49,17 @@
 
 #include "BKE_node.h"
 
-
-#include "PIL_time.h"
-
 #include "render_result.h"
 #include "render_types.h"
-#include "renderpipeline.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
-#include "pixelblending.h"
 #include "pixelshading.h"
 #include "shading.h"
-#include "texture.h"
 #include "volumetric.h"
 
 #include "rayintersection.h"
 #include "rayobject.h"
 #include "raycounter.h"
-
 
 #define RAY_TRA		1
 #define RAY_INSIDE	2

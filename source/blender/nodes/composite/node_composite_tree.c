@@ -36,11 +36,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_node_types.h"
 
-#include "BLI_listbase.h"
-
 #include "BLF_translation.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -49,8 +46,6 @@
 
 #include "node_common.h"
 #include "node_util.h"
-
-#include "PIL_time.h"
 
 #include "RNA_access.h"
 

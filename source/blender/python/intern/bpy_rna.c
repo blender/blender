@@ -77,10 +77,6 @@
 #include "../generic/idprop_py_api.h" /* for IDprop lookups */
 #include "../generic/py_capi_utils.h"
 
-#ifdef WITH_INTERNATIONAL
-#  include "BLF_translation.h"
-#endif
-
 #define USE_PEDANTIC_WRITE
 #define USE_MATHUTILS
 #define USE_STRING_COERCE

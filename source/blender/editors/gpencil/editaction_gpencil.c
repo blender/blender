@@ -49,8 +49,6 @@
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 
-#include "gpencil_intern.h"
-
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
  *  This file contains code for editing Grease Pencil data in the Action Editor

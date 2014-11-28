@@ -29,7 +29,6 @@
  *  \ingroup nodes
  */
 
-
 #include <string.h>
 #include <stddef.h>
 
@@ -43,15 +42,12 @@
 
 #include "BKE_node.h"
 
-#include "RNA_access.h"
 #include "RNA_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "node_common.h"
 #include "node_util.h"
-#include "node_exec.h"
-#include "NOD_socket.h"
 #include "NOD_common.h"
 
 

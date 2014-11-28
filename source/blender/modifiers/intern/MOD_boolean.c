@@ -39,8 +39,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 
@@ -48,8 +46,6 @@
 
 #include "MOD_boolean_util.h"
 #include "MOD_util.h"
-
-#include "PIL_time.h"
 
 static void copyData(ModifierData *md, ModifierData *target)
 {

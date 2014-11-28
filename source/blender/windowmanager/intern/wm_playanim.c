@@ -69,8 +69,6 @@
 #include "GHOST_C-api.h"
 #include "BLF_api.h"
 
-#include "wm_event_types.h"
-
 #include "WM_api.h"  /* only for WM_main_playanim */
 
 struct PlayState;

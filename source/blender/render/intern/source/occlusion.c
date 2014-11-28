@@ -56,9 +56,7 @@
 #include "render_types.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
-#include "pixelshading.h"
 #include "shading.h"
-#include "zbuf.h"
 
 /* ------------------------- Declarations --------------------------- */
 

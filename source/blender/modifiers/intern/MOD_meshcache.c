@@ -48,8 +48,6 @@
 
 #include "MOD_modifiertypes.h"
 
-#include "MOD_util.h"
-
 static void initData(ModifierData *md)
 {
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;

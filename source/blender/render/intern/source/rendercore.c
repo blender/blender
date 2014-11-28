@@ -50,15 +50,7 @@
 #include "DNA_material_types.h"
 #include "DNA_group_types.h"
 
-#include "BKE_main.h"
-
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-#include "IMB_colormanagement.h"
-
 /* local include */
-#include "rayintersection.h"
-#include "rayobject.h"
 #include "renderpipeline.h"
 #include "render_result.h"
 #include "render_types.h"
@@ -70,8 +62,6 @@
 #include "shading.h"
 #include "sss.h"
 #include "zbuf.h"
-
-#include "PIL_time.h"
 
 /* own include */
 #include "rendercore.h"

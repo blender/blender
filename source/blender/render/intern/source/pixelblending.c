@@ -38,7 +38,6 @@
 
 /* own includes */
 #include "render_types.h"
-#include "renderpipeline.h"
 #include "pixelblending.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

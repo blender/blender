@@ -43,9 +43,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_linestyle.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 
@@ -57,7 +55,6 @@
 
 #include "RNA_access.h"
 
-#include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
 

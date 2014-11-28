@@ -35,7 +35,6 @@
 #include "node_composite_util.h"
 #include "NOD_common.h"
 #include "node_common.h"
-#include "node_exec.h"
 
 #include "BKE_node.h"
 

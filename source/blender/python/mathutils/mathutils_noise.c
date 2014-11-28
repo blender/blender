@@ -34,8 +34,6 @@
 
 #include <Python.h>
 
-#include "structseq.h"
-
 #include "BLI_math.h"
 #include "BLI_noise.h"
 #include "BLI_utildefines.h"

@@ -70,11 +70,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_userdef_types.h"
-
 #include "BKE_global.h"
-
-#include "imbuf.h"
 
 #ifdef WITH_AVI
 #  include "AVI_avi.h"
@@ -89,7 +85,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "IMB_allocimbuf.h"
 #include "IMB_anim.h"
 #include "IMB_indexer.h"
 

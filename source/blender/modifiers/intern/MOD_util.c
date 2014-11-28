@@ -32,7 +32,6 @@
 
 #include <string.h>
 
-#include "DNA_curve_types.h"
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -48,8 +47,6 @@
 #include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_displist.h"
-#include "BKE_scene.h"
 
 #include "BKE_modifier.h"
 
@@ -57,8 +54,6 @@
 #include "MOD_modifiertypes.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "RE_shader_ext.h"
 
 #ifdef OPENNL_THREADING_HACK
 #include "BLI_threads.h"

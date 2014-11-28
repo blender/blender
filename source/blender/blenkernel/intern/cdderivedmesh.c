@@ -35,7 +35,6 @@
  */
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
 #include "BLI_stackdefines.h"
@@ -49,7 +48,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_curve.h"
 
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -61,7 +59,6 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
-#include "GPU_material.h"
 
 #include <string.h>
 #include <limits.h>

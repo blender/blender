@@ -31,8 +31,6 @@
 
 #include "node_shader_util.h"
 
-#include "BKE_idprop.h"
-
 /* **************** Script ******************** */
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)

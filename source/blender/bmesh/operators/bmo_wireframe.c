@@ -26,8 +26,6 @@
  * Creates a solid wireframe from connected faces.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_material_types.h"
 
 #include "BLI_sys_types.h"

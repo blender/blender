@@ -34,8 +34,6 @@
 
 #include "BKE_context.h"
 
-#include "RNA_access.h"
-
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_moviedistortion_in[] = {

@@ -36,8 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
@@ -48,11 +46,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-
 #include "BKE_camera.h"
-
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
@@ -61,10 +55,6 @@
 /* this module */
 #include "renderpipeline.h"
 #include "render_types.h"
-
-#include "rendercore.h"
-#include "pixelshading.h"
-#include "zbuf.h"
 
 /* Own includes */
 #include "initrender.h"

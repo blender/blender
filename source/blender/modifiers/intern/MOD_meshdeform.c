@@ -40,8 +40,6 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_modifier.h"

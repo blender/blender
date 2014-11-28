@@ -39,11 +39,9 @@
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.h"
 
-#include "imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "IMB_allocimbuf.h"
 #include "IMB_colormanagement.h"
 
 void IMB_blend_color_byte(unsigned char dst[4], unsigned char src1[4], unsigned char src2[4], IMB_BlendMode mode)

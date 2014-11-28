@@ -49,7 +49,6 @@
 #include "BKE_DerivedMesh.h"
 
 #include "MOD_modifiertypes.h"
-#include "MOD_util.h"
 
 #include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"

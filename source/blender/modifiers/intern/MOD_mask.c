@@ -51,8 +51,6 @@
 
 #include "depsgraph_private.h"
 
-#include "MOD_util.h"
-
 static void copyData(ModifierData *md, ModifierData *target)
 {
 #if 0

@@ -33,7 +33,6 @@
 #include "DNA_vec_types.h"
 
 #include "BLI_math.h"
-#include "BLI_rect.h"
 #include "BLI_strict_flags.h"
 
 #include "BLI_lasso.h" /* own include */

@@ -47,9 +47,7 @@
 
 /* local include */
 #include "occlusion.h"
-#include "renderpipeline.h"
 #include "render_types.h"
-#include "pixelblending.h"
 #include "rendercore.h"
 #include "shadbuf.h"
 #include "sss.h"

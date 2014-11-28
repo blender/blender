@@ -69,7 +69,6 @@
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
 
-#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
@@ -77,8 +76,6 @@
 #ifdef WITH_OPENEXR
 #  include "intern/openexr/openexr_multi.h"
 #endif
-
-#include "NOD_composite.h"
 
 /*********************** movieclip buffer loaders *************************/
 

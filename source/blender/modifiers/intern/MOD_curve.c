@@ -32,7 +32,6 @@
  *  \ingroup modifiers
  */
 
-
 #include <string.h>
 
 #include "DNA_scene_types.h"
@@ -47,7 +46,6 @@
 
 #include "depsgraph_private.h"
 
-#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {

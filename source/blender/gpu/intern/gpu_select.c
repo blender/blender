@@ -33,8 +33,6 @@
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
  
-#include "BLI_utildefines.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"

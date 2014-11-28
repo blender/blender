@@ -48,7 +48,6 @@
 #include "DNA_node_types.h"
 
 #include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
 
 #include "BKE_image.h"
@@ -68,9 +67,7 @@
 #include "envmap.h"
 #include "pointdensity.h"
 #include "voxeldata.h"
-#include "renderpipeline.h"
 #include "render_types.h"
-#include "rendercore.h"
 #include "shading.h"
 #include "texture.h"
 #include "texture_ocean.h"

@@ -55,14 +55,10 @@
 
 /* this module */
 #include "render_types.h"
-#include "renderpipeline.h"
 #include "envmap.h"
-#include "rendercore.h" 
 #include "renderdatabase.h" 
 #include "texture.h"
 #include "zbuf.h"
-#include "initrender.h"
-
 
 /* ------------------------------------------------------------------------- */
 

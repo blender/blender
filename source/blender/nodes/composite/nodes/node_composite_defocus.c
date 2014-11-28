@@ -33,10 +33,6 @@
 
 #include <limits.h>
 
-#include "BKE_context.h"
-
-#include "RNA_access.h"
-
 /* ************ qdn: Defocus node ****************** */
 static bNodeSocketTemplate cmp_node_defocus_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},

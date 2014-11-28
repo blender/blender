@@ -34,7 +34,6 @@
 #include "BLI_string.h"
 
 #include "BKE_appdir.h"
-#include "BKE_main.h"
 #include "BKE_global.h" /* XXX, G.main only */
 #include "BKE_blender.h"
 #include "BKE_bpath.h"
@@ -52,8 +51,6 @@
 #include "bpy_utils_units.h"
 
 #include "../generic/py_capi_utils.h"
-
-#include "MEM_guardedalloc.h"
 
 /* external util modules */
 #include "../generic/idprop_py_api.h"

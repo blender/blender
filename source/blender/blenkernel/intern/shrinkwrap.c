@@ -52,7 +52,6 @@
 #include "BKE_deform.h"
 #include "BKE_mesh.h"  /* for OMP limits. */
 #include "BKE_subsurf.h"
-#include "BKE_editmesh.h"
 
 #include "BLI_strict_flags.h"
 

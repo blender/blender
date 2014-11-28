@@ -141,13 +141,9 @@
 #include "BKE_treehash.h"
 #include "BKE_sound.h"
 
-#include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 
 #include "NOD_common.h"
 #include "NOD_socket.h"
-#include "NOD_composite.h"
-#include "NOD_shader.h"
-#include "NOD_texture.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
@@ -157,7 +153,6 @@
 
 #include "readfile.h"
 
-#include "PIL_time.h"
 
 #include <errno.h>
 

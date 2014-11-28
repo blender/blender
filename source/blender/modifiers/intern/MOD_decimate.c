@@ -35,17 +35,12 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
-
-#include "BLF_translation.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
-#include "BKE_particle.h"
 #include "BKE_cdderivedmesh.h"
 
 #include "bmesh.h"

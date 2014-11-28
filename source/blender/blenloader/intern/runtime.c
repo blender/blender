@@ -51,7 +51,6 @@
 #include "BLO_readfile.h"
 #include "BLO_runtime.h"
 
-#include "BKE_blender.h"
 #include "BKE_report.h"
 
 /* Runtime reading */

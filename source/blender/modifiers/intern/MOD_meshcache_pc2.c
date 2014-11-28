@@ -31,7 +31,6 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_fileops.h"
-#include "BLI_math.h"
 #ifdef __BIG_ENDIAN__
 #  include "BLI_endian_switch.h"
 #endif

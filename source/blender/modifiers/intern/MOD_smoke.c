@@ -52,9 +52,6 @@
 
 #include "depsgraph_private.h"
 
-#include "MOD_util.h"
-
-
 static void initData(ModifierData *md) 
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;

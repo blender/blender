@@ -30,12 +30,9 @@
  *  \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
 
 #include "BKE_context.h"
-
-#include "RNA_access.h"
 
 /* **************** Translate  ******************** */
 

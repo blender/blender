@@ -40,9 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -111,7 +108,6 @@
 #include "BLF_translation.h"
 
 #include "GPU_buffers.h"
-#include "GPU_extensions.h"
 #include "GPU_draw.h"
 #include "GPU_init_exit.h"
 

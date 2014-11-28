@@ -53,8 +53,6 @@
 #include "BKE_colortools.h"
 #include "BKE_animsys.h"
 
-#include "RNA_access.h"
-
 static const char *modifier_name[LS_MODIFIER_NUM] = {
 	NULL,
 	"Along Stroke",

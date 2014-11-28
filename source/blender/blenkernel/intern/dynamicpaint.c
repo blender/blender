@@ -71,10 +71,6 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
 /* for image output	*/
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

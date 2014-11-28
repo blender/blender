@@ -50,7 +50,6 @@
 #include "BLI_threads.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_system.h"
 
 #include "BLF_translation.h"
 

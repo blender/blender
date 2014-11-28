@@ -47,11 +47,8 @@
 
 
 #include "render_types.h"
-#include "initrender.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
-#include "renderpipeline.h"
-#include "pixelblending.h"
 #include "shading.h"
 #include "strand.h"
 #include "zbuf.h"

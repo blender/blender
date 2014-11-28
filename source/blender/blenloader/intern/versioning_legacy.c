@@ -30,8 +30,6 @@
  */
 
 
-#include "zlib.h"
-
 #include <limits.h>
 
 #ifndef WIN32
@@ -94,14 +92,9 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
-#include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
-
 #include "NOD_socket.h"
 
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
-
-#include "RE_engine.h"
 
 #include "readfile.h"
 

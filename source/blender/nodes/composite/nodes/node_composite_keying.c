@@ -34,12 +34,8 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "BKE_movieclip.h"
-
-#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
-#include "BLI_voronoi.h"
 
 #include "node_composite_util.h"
 

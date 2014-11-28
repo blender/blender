@@ -56,7 +56,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
 

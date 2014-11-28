@@ -57,7 +57,6 @@
 
 #include "BLF_translation.h"
 
-#include "PIL_time.h"
 
 #include "DNA_material_types.h"
 
@@ -68,11 +67,7 @@
 
 /* this module */
 #include "render_types.h"
-#include "rendercore.h"
-#include "renderdatabase.h" 
-#include "shading.h"
 #include "sss.h"
-#include "zbuf.h"
 
 /* Generic Multiple Scattering API */
 

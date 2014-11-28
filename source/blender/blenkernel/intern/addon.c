@@ -29,14 +29,8 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-#include "BLI_string.h"
 
 #include "BKE_addon.h"  /* own include */
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "BLF_translation.h"
 
 #include "MEM_guardedalloc.h"
 

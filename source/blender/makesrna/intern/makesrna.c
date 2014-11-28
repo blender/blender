@@ -35,7 +35,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 

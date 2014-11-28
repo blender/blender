@@ -33,7 +33,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
-#include "BLI_rect.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -49,7 +48,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h" /* externtex */
-#include "RE_shader_ext.h"
 
 static RNG *brush_rng;
 

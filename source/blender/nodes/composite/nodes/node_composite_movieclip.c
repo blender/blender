@@ -30,12 +30,9 @@
  *  \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
 
 #include "BKE_context.h"
-
-#include "RNA_access.h"
 
 static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	SOCK_RGBA,		0,	N_("Image")},

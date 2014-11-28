@@ -40,16 +40,12 @@
 #include "BLI_math_vector.h"
 #include "BLI_ghash.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-
-#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {

@@ -45,10 +45,8 @@
 #include "BIF_glutil.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
 
 #include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -58,8 +56,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_event_system.h"
-#include "wm.h"
-
 
 /* ****************************************************** */
 

@@ -46,13 +46,11 @@
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
 
-#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
-#include "BKE_material.h"
 #include "BKE_pbvh.h"
 
 #include "DNA_userdef_types.h"
@@ -61,8 +59,6 @@
 #include "GPU_draw.h"
 
 #include "bmesh.h"
-
-#include "gpu_extensions_private.h"
 
 typedef enum {
 	GPU_BUFFER_VERTEX_STATE = (1 << 0),

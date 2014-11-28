@@ -41,8 +41,6 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-#include "imbuf.h"
-
 static ImBuf *prepare_write_imbuf(ImFileType *type, ImBuf *ibuf)
 {
 	ImBuf *write_ibuf = ibuf;

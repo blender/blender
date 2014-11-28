@@ -82,9 +82,7 @@
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
-
 #include "PIL_time.h"
-#include "IMB_imbuf_types.h"
 
 #include "envmap.h"
 #include "occlusion.h"
@@ -102,8 +100,6 @@
 #include "sss.h"
 #include "zbuf.h"
 #include "sunsky.h"
-
-#include "RE_render_ext.h"
 
 /* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp (for quad detection) */
 /* or for checking vertex normal flips */

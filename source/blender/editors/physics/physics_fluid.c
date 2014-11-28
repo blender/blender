@@ -72,8 +72,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 
-#include "PIL_time.h"
-
 
 static float get_fluid_viscosity(FluidsimSettings *settings)
 {

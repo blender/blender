@@ -40,9 +40,6 @@
 
 #include "node_composite_util.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
 #include "intern/openexr/openexr_multi.h"
 
 

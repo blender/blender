@@ -39,8 +39,6 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "GHOST_C-api.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -59,7 +57,6 @@
 #include "WM_types.h"
 #include "wm_window.h"
 #include "wm_event_system.h"
-#include "wm_event_types.h"
 #include "wm_draw.h"
 #include "wm.h"
 

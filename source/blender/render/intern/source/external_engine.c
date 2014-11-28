@@ -46,9 +46,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
 #include "RNA_access.h"
 
 #ifdef WITH_PYTHON

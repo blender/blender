@@ -34,7 +34,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_color_types.h"      /* CurveMapping. */
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -43,11 +42,9 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_colortools.h"       /* CurveMapping. */
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
 
-#include "depsgraph_private.h"
 #include "MEM_guardedalloc.h"
 #include "MOD_util.h"
 #include "MOD_weightvg_util.h"

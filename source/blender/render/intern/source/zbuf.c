@@ -63,12 +63,10 @@
 #include "pixelblending.h"
 #include "render_result.h"
 #include "render_types.h"
-#include "renderpipeline.h"
 #include "renderdatabase.h"
 #include "rendercore.h"
 #include "shadbuf.h"
 #include "shading.h"
-#include "sss.h"
 #include "strand.h"
 
 /* own includes */

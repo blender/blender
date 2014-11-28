@@ -27,8 +27,6 @@
 
 #include "../node_shader_util.h"
 
-#include "DNA_customdata_types.h"
-
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_uvalongstroke_out[] = {

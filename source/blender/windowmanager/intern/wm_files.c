@@ -97,8 +97,6 @@
 #include "ED_view3d.h"
 #include "ED_util.h"
 
-#include "RE_pipeline.h" /* only to report missing engine */
-
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.h"
 

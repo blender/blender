@@ -51,8 +51,6 @@
 #include "quicktime_import.h"
 #endif
 
-#include "imbuf.h"
-
 static int imb_ftype_default(ImFileType *type, ImBuf *ibuf)
 {
 	return (ibuf->ftype & type->filetype);

@@ -40,7 +40,6 @@
 #include "BKE_tracking.h"
 
 #include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "libmv-capi.h"
 

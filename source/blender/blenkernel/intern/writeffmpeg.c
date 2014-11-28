@@ -57,7 +57,6 @@
 #include "BKE_sound.h"
 #include "BKE_writeffmpeg.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "ffmpeg_compat.h"

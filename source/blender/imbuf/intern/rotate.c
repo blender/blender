@@ -39,8 +39,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "IMB_allocimbuf.h"
-
 void IMB_flipy(struct ImBuf *ibuf)
 {
 	int x, y;

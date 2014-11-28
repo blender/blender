@@ -40,7 +40,6 @@
 #include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_linklist.h"
 
 #include "BLO_undofile.h"
 

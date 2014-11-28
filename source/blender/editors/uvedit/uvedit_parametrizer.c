@@ -35,7 +35,6 @@
 #include "BLI_boxpack2d.h"
 #include "BLI_convexhull2d.h"
 
-#include "uvedit_intern.h"
 #include "uvedit_parametrizer.h"
 
 #include <math.h>

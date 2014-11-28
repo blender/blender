@@ -39,8 +39,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "RNA_access.h"
-
 /* **************** IMAGE (and RenderResult, multilayer image) ******************** */
 
 static bNodeSocketTemplate cmp_node_rlayers_out[] = {

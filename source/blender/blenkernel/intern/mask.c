@@ -59,8 +59,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_image.h"
 
-#include "NOD_composite.h"
-
 static struct {
 	ListBase splines;
 	struct GHash *id_hash;

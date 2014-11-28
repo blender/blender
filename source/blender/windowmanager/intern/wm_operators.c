@@ -40,7 +40,9 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "GHOST_C-api.h"
+#ifdef WIN32
+#  include "GHOST_C-api.h"
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -2904,6 +2906,8 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	                 (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
 	                  RNA_boolean_get(op->ptr, "use_mesh_compat")),
 	                 G_FILE_MESH_COMPAT);
+#else
+#  error "don't remove by accident"
 #endif
 
 	if (wm_file_write(C, path, fileflags, op->reports) != 0)

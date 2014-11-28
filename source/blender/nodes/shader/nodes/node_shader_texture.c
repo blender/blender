@@ -29,10 +29,7 @@
  *  \ingroup shdnodes
  */
 
-
 #include "DNA_texture_types.h"
-
-#include "IMB_colormanagement.h"
 
 #include "node_shader_util.h"
 

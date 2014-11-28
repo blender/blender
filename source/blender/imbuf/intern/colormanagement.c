@@ -44,7 +44,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "IMB_filter.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_filetype.h"
@@ -53,7 +52,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_string.h"

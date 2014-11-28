@@ -30,11 +30,7 @@
  *  \ingroup cmpnodes
  */
 
-#include "BLF_translation.h"
-
 #include "DNA_mask_types.h"
-
-#include "BKE_mask.h"
 
 #include "node_composite_util.h"
 

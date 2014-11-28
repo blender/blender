@@ -39,11 +39,9 @@
 
 #include "bmesh.h"
 
-#include "bmesh_py_ops.h"
 #include "bmesh_py_ops_call.h"  /* own include */
 
 #include "bmesh_py_types.h"
-#include "bmesh_py_utils.h"
 
 static int bpy_bm_op_as_py_error(BMesh *bm)
 {

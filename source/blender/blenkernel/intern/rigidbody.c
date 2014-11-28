@@ -62,8 +62,6 @@
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 
-#include "RNA_access.h"
-
 #ifdef WITH_BULLET
 
 /* ************************************** */

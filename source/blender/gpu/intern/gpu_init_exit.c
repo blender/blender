@@ -31,7 +31,6 @@
 
 #include "BLI_sys_types.h"
 #include "GPU_init_exit.h"  /* interface */
-#include "GPU_extensions.h"  /* library */
 
 #include "intern/gpu_codegen.h"
 #include "intern/gpu_extensions_private.h"

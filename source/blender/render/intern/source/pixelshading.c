@@ -36,8 +36,6 @@
 #include "BLI_utildefines.h"
 
 /* External modules: */
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
@@ -51,14 +49,11 @@
 
 /* own module */
 #include "render_types.h"
-#include "renderpipeline.h"
 #include "renderdatabase.h"
 #include "texture.h"
-#include "pixelblending.h"
 #include "rendercore.h"
 #include "shadbuf.h"
 #include "pixelshading.h"
-#include "shading.h"
 #include "sunsky.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

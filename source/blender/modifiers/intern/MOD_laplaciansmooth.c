@@ -41,7 +41,6 @@
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
 
-#include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
 #ifdef WITH_OPENNL

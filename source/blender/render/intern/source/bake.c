@@ -54,8 +54,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
 
-#include "RE_bake.h"
-
 /* local include */
 #include "rayintersection.h"
 #include "rayobject.h"

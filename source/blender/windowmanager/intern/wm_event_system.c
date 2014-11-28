@@ -81,7 +81,6 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
-#include "wm_draw.h"
 
 #ifndef NDEBUG
 #  include "RNA_enum_types.h"

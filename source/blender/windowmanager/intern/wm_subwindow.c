@@ -53,7 +53,6 @@
 
 #include "WM_api.h"
 #include "wm_subwindow.h"
-#include "wm_window.h"
 
 /* wmSubWindow stored in wmWindow... but not exposed outside this C file */
 /* it seems a bit redundant (area regions can store it too, but we keep it

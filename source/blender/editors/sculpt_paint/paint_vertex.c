@@ -66,8 +66,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "GPU_buffers.h"
-
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_mesh.h"

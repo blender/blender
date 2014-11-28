@@ -37,7 +37,6 @@
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "IMB_allocimbuf.h"
 #include "IMB_filter.h"
 
 #include "IMB_colormanagement.h"

@@ -44,7 +44,6 @@
 
 #include "depsgraph_private.h"
 #include "MEM_guardedalloc.h"
-#include "MOD_util.h"
 #include "MOD_weightvg_util.h"
 
 

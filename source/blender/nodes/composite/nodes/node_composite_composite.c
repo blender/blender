@@ -31,10 +31,6 @@
 
 #include "node_composite_util.h"
 
-#include "BKE_context.h"
-
-#include "RNA_access.h"
-
 /* **************** COMPOSITE ******************** */
 static bNodeSocketTemplate cmp_node_composite_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},

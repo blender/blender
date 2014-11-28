@@ -46,11 +46,9 @@
 
 /* local include */
 #include "raycounter.h"
-#include "renderpipeline.h"
 #include "render_types.h"
 #include "renderdatabase.h"
 #include "rendercore.h"
-#include "shadbuf.h"
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"

@@ -47,9 +47,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-
 #include "GPU_extensions.h"
 #include "GPU_simple_shader.h"
 

@@ -34,7 +34,6 @@
 #include "BLI_rand.h"
 
 #include "DNA_color_types.h"      /* CurveMapping. */
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -48,7 +47,6 @@
 
 #include "depsgraph_private.h"
 #include "MEM_guardedalloc.h"
-#include "MOD_util.h"
 #include "MOD_weightvg_util.h"
 
 /**************************************

@@ -50,7 +50,6 @@
 
 #include "PIL_time.h"
 
-#include "renderpipeline.h"
 #include "render_types.h"
 #include "renderdatabase.h"
 #include "rendercore.h"

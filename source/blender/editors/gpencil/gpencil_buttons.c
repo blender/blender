@@ -55,8 +55,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "gpencil_intern.h"
-
 /* ************************************************** */
 /* GREASE PENCIL PANEL-UI DRAWING */
 

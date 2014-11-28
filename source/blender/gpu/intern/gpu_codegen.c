@@ -51,8 +51,6 @@
 
 #include "gpu_codegen.h"
 
-#include "node_util.h" /* For muting node stuff... */
-
 #include <string.h>
 #include <stdarg.h>
 

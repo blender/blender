@@ -55,7 +55,6 @@
 #include "DNA_particle_types.h"
 
 #include "render_types.h"
-#include "renderdatabase.h"
 #include "texture.h"
 #include "pointdensity.h"
 

@@ -44,10 +44,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
-#include "BKE_paint.h"
 #include "BKE_subsurf.h"
-
-#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {

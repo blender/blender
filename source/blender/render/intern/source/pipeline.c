@@ -90,7 +90,6 @@
 #include "renderdatabase.h"
 #include "rendercore.h"
 #include "initrender.h"
-#include "shadbuf.h"
 #include "pixelblending.h"
 #include "zbuf.h"
 

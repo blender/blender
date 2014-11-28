@@ -34,7 +34,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_sequencer.h"
