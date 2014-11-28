@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_sound.h"
 #include "BKE_addon.h"
 
@@ -49,6 +50,7 @@
 #include "WM_types.h"
 
 #include "BLF_translation.h"
+#include "GPU_buffers.h"
 
 #ifdef WITH_CYCLES
 static EnumPropertyItem compute_device_type_items[] = {
@@ -140,6 +142,15 @@ static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	BLF_cache_clear();
 	BLF_lang_set(NULL);
 	UI_reinit_font();
+}
+
+static void rna_userdef_vbo_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	Object *ob;
+	
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		GPU_drawobject_free(ob->derivedFinal);
+	}
 }
 
 static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -3952,7 +3963,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "VBOs",
 	                         "Use Vertex Buffer Objects (or Vertex Arrays, if unsupported) for viewport rendering");
 	/* this isn't essential but nice to check if VBO draws any differently */
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_vbo_update");
 
 	prop = RNA_def_property(srna, "anisotropic_filter", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "anisotropic_filter");

@@ -499,7 +499,7 @@ static void scene_changed(Main *bmain, Scene *scene)
 		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 			BKE_texpaint_slots_refresh_object(scene, ob);
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-			GPU_drawobject_free(ob->derivedFinal);			
+			GPU_drawobject_free(ob->derivedFinal);
 		}
 	}
 
