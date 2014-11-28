@@ -39,7 +39,6 @@
 #include "BKE_tracking.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_object_types.h"  /* SELECT */
 
 #include "WM_api.h"
 #include "WM_types.h"

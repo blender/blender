@@ -66,7 +66,10 @@
 #include "RNA_access.h"
 
 #include "node_intern.h"  /* own include */
-#include "COM_compositor.h"
+
+#ifdef WITH_COMPOSITOR
+#  include "COM_compositor.h"
+#endif
 
 /* XXX interface.h */
 extern void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);

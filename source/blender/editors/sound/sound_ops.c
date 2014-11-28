@@ -72,7 +72,6 @@
 #include "ED_sound.h"
 #include "ED_util.h"
 
-#include "sound_intern.h"
 
 /******************** open sound operator ********************/
 

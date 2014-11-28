@@ -37,9 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
-#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-#include "BLI_callbacks.h"
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
@@ -55,7 +53,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_draw.h"
 #include "GPU_select.h"
 
 #include "WM_api.h"
@@ -64,14 +61,16 @@
 #include "ED_screen.h"
 #include "ED_armature.h"
 
-#include "RE_engine.h"
 
 #ifdef WITH_GAMEENGINE
-#include "BL_System.h"
+#  include "BLI_listbase.h"
+#  include "BLI_callbacks.h"
+
+#  include "GPU_draw.h"
+
+#  include "BL_System.h"
 #endif
 
-#include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "view3d_intern.h"  /* own include */
 

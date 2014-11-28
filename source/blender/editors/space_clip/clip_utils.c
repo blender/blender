@@ -30,12 +30,10 @@
  */
 
 #include "DNA_scene_types.h"
-#include "DNA_object_types.h"   /* SELECT */
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
@@ -54,8 +52,6 @@
 #include "ED_screen.h"
 #include "ED_clip.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

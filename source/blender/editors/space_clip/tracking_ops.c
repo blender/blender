@@ -41,7 +41,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
-#include "BLI_rect.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_main.h"
@@ -65,7 +64,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "UI_interface.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -74,7 +72,6 @@
 
 #include "PIL_time.h"
 
-#include "UI_view2d.h"
 
 #include "clip_intern.h"    // own include
 

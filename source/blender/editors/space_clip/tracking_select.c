@@ -36,7 +36,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_lasso.h"
 
@@ -49,15 +48,8 @@
 #include "ED_screen.h"
 #include "ED_clip.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-
-#include "UI_interface.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "PIL_time.h"
 
 #include "UI_view2d.h"
 

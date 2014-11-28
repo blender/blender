@@ -33,16 +33,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
 
-#include "DNA_group_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 
 #include "BLF_translation.h"
 
@@ -50,7 +46,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 

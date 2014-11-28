@@ -48,8 +48,6 @@
 #include "ED_util.h"
 #include "ED_mesh.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "util_intern.h"
 

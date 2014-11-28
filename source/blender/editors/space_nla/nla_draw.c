@@ -59,7 +59,6 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 

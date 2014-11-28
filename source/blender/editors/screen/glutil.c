@@ -45,7 +45,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_extensions.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"

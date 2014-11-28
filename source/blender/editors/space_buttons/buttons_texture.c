@@ -61,7 +61,9 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_freestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "BKE_freestyle.h"
+#endif
 
 #include "RNA_access.h"
 

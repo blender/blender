@@ -31,7 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -73,8 +72,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "node_intern.h"  /* own include */
-#include "NOD_common.h"
-#include "NOD_socket.h"
 #include "NOD_composite.h"
 #include "NOD_shader.h"
 #include "NOD_texture.h"

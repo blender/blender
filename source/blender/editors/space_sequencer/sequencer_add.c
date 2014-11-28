@@ -40,7 +40,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 
-#include "BLF_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -61,7 +60,6 @@
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 
-#include "UI_view2d.h"
 
 #include "BKE_sound.h"
 

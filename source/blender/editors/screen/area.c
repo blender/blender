@@ -41,7 +41,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist_stack.h"
 
-#include "BLF_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

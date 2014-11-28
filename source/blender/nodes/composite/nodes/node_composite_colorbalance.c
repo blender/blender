@@ -29,10 +29,7 @@
  *  \ingroup cmpnodes
  */
 
-
-
 #include "node_composite_util.h"
-
 
 /* ******************* Color Balance ********************************* */
 static bNodeSocketTemplate cmp_node_colorbalance_in[] = {

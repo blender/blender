@@ -40,7 +40,6 @@
 #include "BLI_dial.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-#include "BLI_threads.h"
 
 #include "BLF_translation.h"
 
@@ -56,7 +55,6 @@
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_crazyspace.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
@@ -85,7 +83,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "RE_render_ext.h"
 
 #include "GPU_buffers.h"
 

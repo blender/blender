@@ -45,13 +45,11 @@
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
 
-#include "PIL_time.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
@@ -62,15 +60,9 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_colortools.h"
-
-#include "BKE_editmesh.h"
 
 #include "UI_view2d.h"
 
@@ -85,7 +77,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "GPU_draw.h"
 #include "GPU_buffers.h"

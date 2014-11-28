@@ -54,7 +54,6 @@
 
 #include "ED_util.h"
 
-#include "node_intern.h"
 
 /************************* Node Socket Manipulation **************************/
 

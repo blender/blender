@@ -24,7 +24,6 @@
  *  \ingroup edtransform
  */
 
-
 #include <string.h>
 #include <stddef.h>
 #include <ctype.h>
@@ -56,10 +55,6 @@
 #include "BLF_translation.h"
 
 #include "ED_armature.h"
-
-#include "RNA_define.h"
-
-#include "UI_interface.h"
 
 #include "transform.h"
 

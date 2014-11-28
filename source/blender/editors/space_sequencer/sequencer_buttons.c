@@ -46,7 +46,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 
 #include "sequencer_intern.h"
 

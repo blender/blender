@@ -54,7 +54,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "ED_node.h"
 
@@ -64,7 +63,6 @@
 #include "UI_resources.h"
 
 #include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "node_intern.h"  /* own include */

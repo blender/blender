@@ -49,7 +49,6 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
-#include "IMB_imbuf.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -65,10 +64,8 @@
 #include "ED_space_api.h"
 
 #include "UI_view2d.h"
-#include "UI_resources.h"
 
 #include "GL/glew.h"
-#include "BIF_glutil.h"
 
 /* own include */
 #include "sequencer_intern.h"

@@ -63,7 +63,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "RNA_access.h"
 
 #include "BLF_api.h"
 

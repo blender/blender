@@ -32,12 +32,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -45,8 +42,6 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
-#include "BKE_modifier.h"
-#include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_editmesh.h"
 

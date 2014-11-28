@@ -37,8 +37,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
-
 #ifdef WITH_BULLET
 #  include "RBI_api.h"
 #endif
@@ -48,8 +46,6 @@
 #include "BKE_rigidbody.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

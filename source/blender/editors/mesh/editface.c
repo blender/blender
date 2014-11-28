@@ -31,8 +31,6 @@
 #include "BLI_math.h"
 #include "BLI_bitmap.h"
 
-#include "BLF_translation.h"
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 

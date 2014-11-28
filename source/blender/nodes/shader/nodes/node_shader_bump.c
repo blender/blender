@@ -29,10 +29,7 @@
  *  \ingroup shdnodes
  */
 
-
-
 #include "node_shader_util.h"
-
 
 /* **************** BUMP ******************** */ 
 static bNodeSocketTemplate sh_node_bump_in[] = {

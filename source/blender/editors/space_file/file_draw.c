@@ -47,7 +47,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BLF_api.h"
 #include "BLF_translation.h"
 
 #include "IMB_imbuf_types.h"
@@ -67,7 +66,6 @@
 
 #include "WM_types.h"
 
-#include "fsmenu.h"
 #include "filelist.h"
 
 #include "file_intern.h"    // own include

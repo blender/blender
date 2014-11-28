@@ -32,19 +32,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-
-#include "BKE_context.h"
-
-#include "RNA_access.h"
-
 #include "WM_api.h"
-#include "WM_types.h"
 
 
 #include "script_intern.h"
@@ -63,4 +51,3 @@ void script_keymap(wmKeyConfig *UNUSED(keyconf))
 {
 	/* Script space is deprecated, and doesn't need a keymap */
 }
-

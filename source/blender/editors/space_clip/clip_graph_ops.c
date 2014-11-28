@@ -45,8 +45,6 @@
 #include "ED_screen.h"
 #include "ED_clip.h"
 
-#include "UI_interface.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 

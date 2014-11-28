@@ -28,7 +28,6 @@
  *  \ingroup spbuttons
  */
 
-
 #include <string.h>
 #include <stdio.h>
 
@@ -45,10 +44,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-#include "UI_resources.h"
-#include "UI_view2d.h"
-
 
 #include "buttons_intern.h"  /* own include */
 

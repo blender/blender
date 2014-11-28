@@ -79,14 +79,11 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 
-#include "GPU_extensions.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "PIL_time.h"
 
 #include "RE_pipeline.h"
 #include "RE_engine.h"
@@ -97,9 +94,7 @@
 #include "ED_datafiles.h"
 #include "ED_render.h"
 
-#include "UI_interface.h"
 
-#include "render_intern.h"
 
 ImBuf *get_brush_icon(Brush *brush)
 {

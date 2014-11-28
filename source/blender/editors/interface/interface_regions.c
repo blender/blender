@@ -27,8 +27,6 @@
  *  \ingroup edinterface
  */
 
-
-
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,7 +52,6 @@
 #include "WM_types.h"
 #include "wm_draw.h"
 #include "wm_subwindow.h"
-#include "wm_window.h"
 
 #include "RNA_access.h"
 

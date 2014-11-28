@@ -43,7 +43,6 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -51,7 +50,6 @@
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "WM_api.h"

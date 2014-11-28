@@ -57,7 +57,6 @@
 #include "BLF_translation.h"
 
 #include "node_intern.h"  /* own include */
-#include "NOD_common.h"
 
 /* ****************** Add *********************** */
 

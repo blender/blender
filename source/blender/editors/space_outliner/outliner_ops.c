@@ -30,7 +30,6 @@
 
 #include "DNA_space_types.h"
 
-#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 

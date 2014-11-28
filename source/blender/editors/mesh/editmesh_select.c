@@ -38,7 +38,6 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_array.h"
-#include "BLI_smallhash.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -61,8 +60,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-
-#include "GPU_extensions.h"
 
 #include "UI_resources.h"
 

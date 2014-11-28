@@ -42,8 +42,6 @@
 
 #include "BLF_translation.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "BIF_gl.h"
 

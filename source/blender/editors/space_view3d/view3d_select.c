@@ -93,7 +93,6 @@
 #include "ED_mball.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "view3d_intern.h"  /* own include */
 

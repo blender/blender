@@ -51,14 +51,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_object.h"
 
 #include "BKE_depsgraph.h" /* for object updating */
 
-#include "ED_keyframing.h"
 #include "ED_screen.h"
 
 #include "view3d_intern.h"  /* own include */

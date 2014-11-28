@@ -28,26 +28,17 @@
  *  \ingroup nodes
  */
 
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
 
 #include "BKE_context.h"
-#include "BKE_node.h"
 #include "BKE_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
-
 #include "ED_screen.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "node_intern.h"  /* own include */
 

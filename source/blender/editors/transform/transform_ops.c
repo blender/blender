@@ -324,6 +324,9 @@ static void transformops_loopsel_hack(bContext *C, wmOperator *op)
 		}
 	}
 }
+#else
+/* prevent removal by cleanup */
+#  error "loopslide hack removed!"
 #endif  /* USE_LOOPSLIDE_HACK */
 
 

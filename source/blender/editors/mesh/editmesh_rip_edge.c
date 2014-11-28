@@ -24,8 +24,6 @@
  * based on mouse cursor position, split of vertices along the closest edge.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
@@ -33,9 +31,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
-
-#include "RNA_define.h"
-#include "RNA_access.h"
 
 #include "WM_types.h"
 

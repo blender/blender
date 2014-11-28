@@ -28,8 +28,6 @@
  *  \ingroup edarmature
  */
 
-#include "BLI_math.h"
-
 #include "RNA_access.h"
 
 #include "WM_api.h"

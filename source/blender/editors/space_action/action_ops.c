@@ -35,7 +35,6 @@
 
 #include "DNA_space_types.h"
 
-#include "BLI_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
@@ -44,7 +43,6 @@
 #include "action_intern.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

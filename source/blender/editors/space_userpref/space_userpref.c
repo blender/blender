@@ -47,9 +47,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_view2d.h"
 
-#include "userpref_intern.h"	// own include
 
 /* ******************** default callbacks for userpref space ***************** */
 

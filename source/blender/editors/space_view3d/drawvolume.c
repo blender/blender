@@ -27,8 +27,6 @@
  *  \ingroup spview3d
  */
 
-
-
 #include <string.h>
 #include <math.h>
 
@@ -38,7 +36,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_property_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -52,8 +49,6 @@
 #include "GPU_extensions.h"
 
 #include "ED_mesh.h"
-
-#include "BLF_api.h"
 
 #include "view3d_intern.h"  // own include
 

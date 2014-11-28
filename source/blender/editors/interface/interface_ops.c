@@ -45,7 +45,6 @@
 #include "BKE_global.h"
 #include "BKE_text.h" /* for UI_OT_reports_to_text */
 #include "BKE_report.h"
-#include "BKE_paint.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

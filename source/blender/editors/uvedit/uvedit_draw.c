@@ -43,7 +43,6 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_alloca.h"
 #include "BLI_buffer.h"
 #include "BLI_bitmap.h"
 

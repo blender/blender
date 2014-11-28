@@ -55,7 +55,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -64,7 +63,6 @@
 
 #include "node_intern.h"  /* own include */
 #include "NOD_common.h"
-#include "NOD_socket.h"
 
 static int node_group_operator_active(bContext *C)
 {

@@ -38,9 +38,7 @@
 #include "DNA_space_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
 
-#include "BLI_rect.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_stack.h"
 #include "BLI_bitmap.h"
@@ -65,7 +63,6 @@
 
 #include "UI_view2d.h"
 
-#include "RE_shader_ext.h"
 
 #include "GPU_draw.h"
 

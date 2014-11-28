@@ -69,7 +69,6 @@
 
 #include "ED_armature.h"
 #include "ED_gpencil.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 

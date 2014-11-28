@@ -60,8 +60,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"

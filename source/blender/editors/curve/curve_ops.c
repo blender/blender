@@ -36,10 +36,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-
-
 #include "RNA_access.h"
 
 #include "WM_api.h"

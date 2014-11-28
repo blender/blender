@@ -41,7 +41,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
-#include "BKE_object.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"

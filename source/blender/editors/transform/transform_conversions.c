@@ -54,7 +54,6 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_smallhash.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_string.h"
@@ -90,7 +89,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
-#include "BKE_lattice.h"
 
 #include "BIK_api.h"
 

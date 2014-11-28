@@ -30,8 +30,6 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "RNA_access.h"
 
 #include "WM_api.h"

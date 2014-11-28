@@ -51,7 +51,6 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
-#include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -65,17 +64,15 @@
 #include "BKE_world.h"
 #include "BKE_editmesh.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
-#include "GPU_material.h"
 
 #ifdef WITH_FREESTYLE
+#  include "BKE_freestyle.h"
 #  include "FRS_freestyle.h"
+#  include "RNA_enum_types.h"
 #endif
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

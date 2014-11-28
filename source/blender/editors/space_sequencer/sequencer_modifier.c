@@ -29,24 +29,15 @@
  *  \ingroup spseq
  */
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_mask_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_sequencer.h"
-#include "BKE_movieclip.h"
-#include "BKE_mask.h"
-#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -54,8 +45,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 /* own include */
 #include "sequencer_intern.h"

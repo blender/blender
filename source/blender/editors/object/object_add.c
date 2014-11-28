@@ -69,7 +69,6 @@
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_group.h"
-#include "BKE_image.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -97,7 +96,6 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
@@ -108,7 +106,6 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "GPU_material.h"

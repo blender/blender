@@ -53,7 +53,10 @@
 
 
 #include "armature_intern.h"
-#include "meshlaplacian.h"
+
+#ifdef WITH_OPENNL
+#  include "meshlaplacian.h"
+#endif
 
 #if 0
 #include "reeb.h"

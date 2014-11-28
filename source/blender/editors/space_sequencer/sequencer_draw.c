@@ -63,7 +63,6 @@
 #include "ED_mask.h"
 #include "ED_sequencer.h"
 #include "ED_space_api.h"
-#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -71,7 +70,6 @@
 
 #include "WM_api.h"
 
-#include "MEM_guardedalloc.h"
 
 /* own include */
 #include "sequencer_intern.h"

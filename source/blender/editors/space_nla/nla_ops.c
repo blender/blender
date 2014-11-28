@@ -28,14 +28,10 @@
  *  \ingroup spnla
  */
 
-
 #include <string.h>
 #include <stdio.h>
 
 #include "DNA_scene_types.h"
-
-
-#include "BLI_blenlib.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"

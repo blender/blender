@@ -81,8 +81,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "wm_window.h"
-
 #include "screen_intern.h"  /* own module include */
 
 #define KM_MODAL_CANCEL     1

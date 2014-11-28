@@ -35,7 +35,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_path_util.h"
 
 #include "BLF_translation.h"
 

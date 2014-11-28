@@ -69,7 +69,6 @@
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
 
-#include "wm_window.h"
 
 #include "render_intern.h"
 

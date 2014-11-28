@@ -39,7 +39,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_fileops_types.h"
 
-#include "BLO_readfile.h"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"

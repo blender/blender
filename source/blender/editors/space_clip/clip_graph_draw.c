@@ -50,7 +50,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "BLF_api.h"
 
 #include "clip_intern.h"    // own include
 

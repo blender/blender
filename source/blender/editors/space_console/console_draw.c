@@ -30,7 +30,6 @@
 #include <sys/stat.h>
 #include <limits.h>
 
-#include "BLF_api.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

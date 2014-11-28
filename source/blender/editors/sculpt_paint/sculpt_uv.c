@@ -60,7 +60,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "paint_intern.h"
 #include "uvedit_intern.h"

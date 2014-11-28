@@ -29,10 +29,7 @@
  *  \ingroup shdnodes
  */
 
-
-
 #include "node_shader_util.h"
-
 
 /* **************** VECTOR MATH ******************** */ 
 static bNodeSocketTemplate sh_node_vect_math_in[] = {
