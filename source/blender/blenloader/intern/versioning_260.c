@@ -25,8 +25,6 @@
  *  \ingroup blenloader
  */
 
-#include "zlib.h"
-
 #include "BLI_utildefines.h"
 
 /* allow readfile to use deprecated functionality */

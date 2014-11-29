@@ -36,6 +36,10 @@
 #include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
 
+#ifdef WIN32
+#  include "BLI_string.h"
+#endif
+
 #include "BKE_autoexec.h"  /* own include */
 
 /**

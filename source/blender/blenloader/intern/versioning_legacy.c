@@ -35,6 +35,7 @@
 #ifndef WIN32
 #  include <unistd.h> // for read close
 #else
+#  include <zlib.h>  /* odd include order-issue */
 #  include <io.h> // for open close read
 #  include "winsock2.h"
 #  include "BLI_winstuff.h"
