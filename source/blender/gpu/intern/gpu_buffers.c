@@ -2740,7 +2740,7 @@ void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
 /* debug function, draws the pbvh BB */
 void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf)
 {
-	float quads[4][4][3] = {
+	const float quads[4][4][3] = {
 	    {
 	        {min[0], min[1], min[2]},
 	        {max[0], min[1], min[2]},

@@ -848,9 +848,10 @@ bool invert_m4_m4(float inverse[4][4], float mat[4][4])
 			}
 		}
 
-		temp = tempmat[i][i];
-		if (temp == 0)
-			return 0;  /* No non-zero pivot */
+		if (UNLIKELY(tempmat[i][i] == 0.0f)) {
+			return false;  /* No non-zero pivot */
+		}
+		temp = (double)tempmat[i][i];
 		for (k = 0; k < 4; k++) {
 			tempmat[i][k] = (float)((double)tempmat[i][k] / temp);
 			inverse[i][k] = (float)((double)inverse[i][k] / temp);

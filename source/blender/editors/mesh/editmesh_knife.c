@@ -1410,8 +1410,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	{
 		/* Scale the epsilon by the zoom level
 		 * to compensate for projection imprecision, see T41164 */
-		float zoom_xy[2] = {kcd->vc.rv3d->winmat[0][0],
-		                    kcd->vc.rv3d->winmat[1][1]};
+		const float zoom_xy[2] = {
+		        kcd->vc.rv3d->winmat[0][0],
+		        kcd->vc.rv3d->winmat[1][1]};
 		eps_scale = len_v2(zoom_xy);
 	}
 

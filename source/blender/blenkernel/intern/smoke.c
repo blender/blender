@@ -1425,7 +1425,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 
 static void sample_derivedmesh(
         SmokeFlowSettings *sfs, MVert *mvert, MTFace *tface, MFace *mface,
-        float *influence_map, float *velocity_map, int index, int base_res[3], float flow_center[3],
+        float *influence_map, float *velocity_map, int index, const int base_res[3], float flow_center[3],
         BVHTreeFromMesh *treeData, const float ray_start[3], const float *vert_vel,
         bool has_velocity, int defgrp_index, MDeformVert *dvert, float x, float y, float z)
 {
