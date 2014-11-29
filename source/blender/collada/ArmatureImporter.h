@@ -54,23 +54,41 @@ extern "C" {
 
 #include "collada_internal.h"
 #include "collada_utils.h"
+#include "ImportSettings.h"
+
+#define UNLIMITED_CHAIN_MAX INT_MAX
+#define MINIMUM_BONE_LENGTH 0.000001f
+
+class BoneExtended {
+
+private:
+	char  name[MAXBONENAME];
+	int   chain_length;
+	bool  is_leaf;
+
+public:
+
+	BoneExtended(EditBone *aBone);
+	char *get_name();
+	int  get_chain_length();
+
+	void set_name(char *aName);
+	void set_chain_length(const int aLength);
+	void set_leaf_bone(bool state);
+	bool is_leaf_bone();
+};
 
 class ArmatureImporter : private TransformReader
 {
 private:
 	Scene *scene;
 	UnitConverter *unit_converter;
+	const ImportSettings *import_settings;
 
 	// std::map<int, JointData> joint_index_to_joint_info_map;
 	// std::map<COLLADAFW::UniqueId, int> joint_id_to_joint_index_map;
 
-	struct LeafBone {
-		// COLLADAFW::Node *node;
-		EditBone *bone;
-		char name[32];
-		float mat[4][4]; // bone matrix, derived from inv_bind_mat
-	};
-	std::vector<LeafBone> leaf_bones;
+	std::map<std::string, BoneExtended *> extended_bones;
 	// int bone_direction_row; // XXX not used
 	float leaf_bone_length;
 	int totbone;
@@ -106,13 +124,15 @@ private:
 	JointData *get_joint_data(COLLADAFW::Node *node);
 #endif
 
-	void create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
+	int create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
 	                 float parent_mat[4][4], bArmature *arm);
 
-	void add_leaf_bone(float mat[4][4], EditBone *bone, COLLADAFW::Node * node);
+	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node);
+	void clear_extended_boneset();
 
-	void fix_leaf_bones();
-	
+	void fix_bone_orientation(bArmature *armature, Bone *bone);
+	void connect_bone_chains(bArmature *armature, Bone *bone, const int max_chain_length);
+
 	void set_pose( Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4]);
 
 
@@ -137,7 +157,7 @@ private:
 	TagsMap uid_tags_map;
 public:
 
-	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce);
+	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, const ImportSettings *import_settings);
 	~ArmatureImporter();
 
 	void add_root_joint(COLLADAFW::Node *node, Object *parent);

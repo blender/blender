@@ -37,6 +37,7 @@
 #include "BKE_object.h"
 #include "BKE_armature.h"
 #include "BLI_string.h"
+#include "BLI_listbase.h"
 #include "ED_armature.h"
 
 #include "ArmatureImporter.h"
@@ -49,12 +50,37 @@ static const char *bc_get_joint_name(T *node)
 	return id.size() ? id.c_str() : node->getOriginalId().c_str();
 }
 
-ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce) :
+static EditBone *get_edit_bone(bArmature * armature, char *name) {
+	EditBone  *eBone;
+
+	eBone = (EditBone *)armature->edbo->first;
+	for (eBone; eBone; eBone = eBone->next) {
+		if (!strcmp(name, eBone->name))
+			return eBone;
+	}
+
+	return NULL;
+
+}
+
+
+
+ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, const ImportSettings *import_settings) :
+    import_settings(import_settings),
 	unit_converter(conv),
 	TransformReader(conv), 
 	scene(sce), 
 	empty(NULL), 
 	mesh_importer(mesh) {
+}
+
+void ArmatureImporter::clear_extended_boneset()
+{
+	for (std::map<std::string, BoneExtended *>::iterator it = extended_bones.begin(); it != extended_bones.end(); ++it) {
+		if (it->second != NULL)
+			delete it->second;
+	}
+	extended_bones.clear();
 }
 
 ArmatureImporter::~ArmatureImporter()
@@ -64,6 +90,7 @@ ArmatureImporter::~ArmatureImporter()
 	for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
 		it->second.free();
 	}
+	clear_extended_boneset();
 }
 
 #if 0
@@ -83,16 +110,17 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 }
 #endif
 
-void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
+int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
                                    float parent_mat[4][4], bArmature *arm)
 {
 	float mat[4][4];
 	float joint_inv_bind_mat[4][4];
+	int chain_length = 0;
 
 	//Checking if bone is already made.
 	std::vector<COLLADAFW::Node *>::iterator it;
 	it = std::find(finished_joints.begin(), finished_joints.end(), node);
-	if (it != finished_joints.end()) return;
+	if (it != finished_joints.end()) return chain_length;
 
 	// JointData* jd = get_joint_data(node);
 	
@@ -143,96 +171,150 @@ void ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBo
 	// set tail, don't set it to head because 0-length bones are not allowed
 	add_v3_v3v3(bone->tail, bone->head, vec);
 
-	// set parent tail
+	/* find smallest bone length in armature (used later for leaf bone length) */
 	if (parent) {
 
-		// XXX increase this to prevent "very" small bones?
-		const float epsilon = 0.000001f;
-
-		// derive leaf bone length
+		/* guess reasonable leaf bone length */
 		float length = len_v3v3(parent->head, bone->head);
-		if ((length < leaf_bone_length || totbone == 0) && length > epsilon) {
+		if ((length < leaf_bone_length || totbone == 0) && length > MINIMUM_BONE_LENGTH) {
 			leaf_bone_length = length;
 		}
-
-		if (totchild == 1) {
-			copy_v3_v3(parent->tail, bone->head);
-
-			// not setting BONE_CONNECTED because this would lock child bone location with respect to parent
-			bone->flag |= BONE_CONNECTED;
-
-
-			// treat zero-sized bone like a leaf bone
-			if (length <= epsilon) {
-				add_leaf_bone(parent_mat, parent, node);
-			}
-		}
-
 	}
 
 	COLLADAFW::NodePointerArray& children = node->getChildNodes();
+
+	BoneExtended &be = add_bone_extended(bone, node);
+	be.set_leaf_bone(true);
+
 	for (unsigned int i = 0; i < children.getCount(); i++) {
-		create_bone(skin, children[i], bone, children.getCount(), mat, arm);
+		int cl = create_bone(skin, children[i], bone, children.getCount(), mat, arm);
+		if (cl > chain_length)
+			chain_length = cl;
 	}
 
-	// in second case it's not a leaf bone, but we handle it the same way
-	if (!children.getCount() || children.getCount() > 1) {
-		add_leaf_bone(mat, bone, node);
-	}
 
 	bone->length = len_v3v3(bone->head, bone->tail);
 	joint_by_uid[node->getUniqueId()] = node;
 	finished_joints.push_back(node);
+
+	be.set_chain_length(chain_length + 1);
+
+	return chain_length + 1;
 }
 
-void ArmatureImporter::add_leaf_bone(float mat[4][4], EditBone *bone,  COLLADAFW::Node *node)
+/**
+  * Collada only knows Joints, hence bones at the end of a bone chain
+  * don't have a defined length. This function guesses reasonable
+  * tail locations for the affected bones (nodes which don't have any connected child)
+  * Hint: The extended_bones set gets populated in ArmatureImporter::create_bone
+**/
+void ArmatureImporter::fix_bone_orientation(bArmature *armature, Bone *bone)
 {
-	LeafBone leaf;
+	/* armature has no bones */
+	if (bone == NULL)
+		return;
 
-	leaf.bone = bone;
-	copy_m4_m4(leaf.mat, mat);
-	BLI_strncpy(leaf.name, bone->name, sizeof(leaf.name));
-	
-	TagsMap::iterator etit;
-	ExtraTags *et = 0;
-	etit = uid_tags_map.find(node->getUniqueId().toAscii());
-	if (etit != uid_tags_map.end()) {
-		et = etit->second;
-		//else return;
+	BoneExtended *be = extended_bones[bone->name];
+	if (be != NULL && be->is_leaf_bone() ) {
+		/* Collada only knows Joints, Here we guess a reasonable leaf bone length */
+		float leaf_length = (leaf_bone_length == FLT_MAX) ? 1.0 : leaf_bone_length;
 
-		float x, y, z;
-		et->setData("tip_x", &x);
-		et->setData("tip_y", &y);
-		et->setData("tip_z", &z);
-		float vec[3] = {x, y, z};
-		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
-		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
+		EditBone *ebone = get_edit_bone(armature, bone->name);
+
+		float vec[3];
+		if (ebone->parent != NULL) {
+			EditBone *parent = ebone->parent;
+			sub_v3_v3v3(vec, ebone->head, parent->tail);
+			if (len_squared_v3(vec) < MINIMUM_BONE_LENGTH)
+			{
+				sub_v3_v3v3(vec, parent->tail, parent->head);
+			}
+		}
+		else {
+			vec[2] = 0.1f;
+			sub_v3_v3v3(vec, ebone->tail, ebone->head);
+		}
+		normalize_v3_v3(vec, vec);
+		mul_v3_fl(vec, leaf_length);
+		add_v3_v3v3(ebone->tail, ebone->head, vec);
+	}
+
+	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+		fix_bone_orientation(armature, child);
+	}
+
+}
+
+
+void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone, int clip)
+{
+	BoneExtended *dominant_child = NULL;
+	int maxlen = 0;
+	Bone *child = (Bone *)parentbone->childbase.first;
+	if (child && (import_settings->find_chains || child->next==NULL) )
+	{
+		for (child; child; child = child->next) {
+			BoneExtended *be = extended_bones[child->name];
+			if (be != NULL) {
+				if (be->get_chain_length() <= clip) {
+					if (be->get_chain_length() > maxlen) {
+						dominant_child = be;
+						maxlen = be->get_chain_length();
+					}
+					else if (be->get_chain_length() == maxlen) {
+						dominant_child = NULL;
+					}
+				}
+			}
+		}
+	}
+
+	BoneExtended *pbe = extended_bones[parentbone->name];
+	if (dominant_child != NULL) {
+		/* Found a valid chain. Now connect current bone with that chain.*/
+		EditBone *pebone = get_edit_bone(armature, parentbone->name);
+		EditBone *cebone = get_edit_bone(armature, dominant_child->get_name());
+		if (pebone && !(cebone->flag & BONE_CONNECTED)) {
+
+			float vec[3];
+			sub_v3_v3v3(vec, cebone->head, pebone->head);
+
+			/*
+			 * It is possible that the child's head is located on the parents head.
+			 * When this happens, then moving the parent's tail to the child's head
+			 * would result in a zero sized bone and Blender would  silently remove the bone.
+			 * So we move the tail only when the resulting bone has a minimum length:
+			 */
+
+			if (len_squared_v3(vec) > MINIMUM_BONE_LENGTH)
+			{
+				pebone->tail[0] = cebone->head[0];
+				pebone->tail[1] = cebone->head[1];
+				pebone->tail[2] = cebone->head[2];
+
+				if (pbe && pbe->get_chain_length() >= this->import_settings->min_chain_length) {
+					cebone->flag |= BONE_CONNECTED;
+					printf("Connecting chain: parent %s --> %s (child)\n", pebone->name, cebone->name);
+					pbe->set_leaf_bone(false);
+				}
+			}
+		}
+		for (Bone *child = (Bone *)parentbone->childbase.first; child; child = child->next) {
+			ArmatureImporter::connect_bone_chains(armature, child, UNLIMITED_CHAIN_MAX);
+		}
+	}
+	else if (maxlen>1 && maxlen > this->import_settings->min_chain_length) {
+		/* Try again with smaller chain length */
+		ArmatureImporter::connect_bone_chains(armature, parentbone, maxlen - 1);
 	}
 	else {
-		leaf_bones.push_back(leaf);
+		/* can't connect this Bone. Proceed with children ... */
+		if (pbe) pbe->set_leaf_bone(true);
+		for (Bone *child = (Bone *)parentbone->childbase.first; child; child = child->next) {
+			ArmatureImporter::connect_bone_chains(armature, child, UNLIMITED_CHAIN_MAX);
+		}
 	}
-}
 
-void ArmatureImporter::fix_leaf_bones( )
-{
-	// Collada only knows Joints, Here we guess a reasonable
-	// leaf bone length
-	float leaf_length = (leaf_bone_length == FLT_MAX) ? 1.0:leaf_bone_length;
-
-	// just setting tail for leaf bones here
-	std::vector<LeafBone>::iterator it;
-	for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
-
-		LeafBone& leaf = *it;
-
-		// pointing up
-		float vec[3] = {0.0f, 0.0f, 0.1f};
-		
-		sub_v3_v3v3(vec, leaf.bone->tail , leaf.bone->head);
-		mul_v3_fl(vec, leaf_length);
-		add_v3_v3v3(leaf.bone->tail, leaf.bone->head , vec);
-
-	}
 }
 
 #if 0
@@ -351,21 +433,26 @@ void ArmatureImporter::create_armature_bones( )
 			continue;
 		}
 
+		clear_extended_boneset();
+
 		ED_armature_to_edit(armature);
 
 		create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, armature);
 
-		//leaf bone tails are derived from the matrix, so no need of this.
-		fix_leaf_bones();
+		/* exit armature edit mode to populate the Armature object */
+		ED_armature_from_edit(armature);
+		ED_armature_edit_free(armature);
+
+		/* and step back to edit mode to fix the leaf nodes */
+		ED_armature_to_edit(armature);
+
+		connect_bone_chains(armature, (Bone *)armature->bonebase.first, UNLIMITED_CHAIN_MAX);
+		fix_bone_orientation(armature, (Bone *)armature->bonebase.first);
 
 		// exit armature edit mode
 		unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
 		ED_armature_from_edit(armature);
-
-		//This serves no purpose, as pose is automatically reset later, in BKE_where_is_bone()
-		//set_pose(ob_arm, *ri, NULL, NULL);
-
 		ED_armature_edit_free(armature);
 		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 	}
@@ -459,9 +546,11 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	}
 
 	// enter armature edit mode
-	ED_armature_to_edit((bArmature *)ob_arm->data);
+	bArmature * armature = (bArmature *)ob_arm->data;
+	ED_armature_to_edit(armature);
 
-	leaf_bones.clear();
+	clear_extended_boneset();
+
 	totbone = 0;
 	// bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on default row
 	leaf_bone_length = FLT_MAX;
@@ -480,20 +569,27 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 
 		// since root_joints may contain joints for multiple controllers, we need to filter
 		if (skin.uses_joint_or_descendant(*ri)) {
-			create_bone(&skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature *)ob_arm->data);
+			create_bone(&skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, armature);
 
 			if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && !skin.get_parent())
 				skin.set_parent(joint_parent_map[(*ri)->getUniqueId()]);
 		}
 	}
 
-	fix_leaf_bones();
+	/* exit armature edit mode to populate the Armature object */
+	ED_armature_from_edit(armature);
+	ED_armature_edit_free(armature);
+
+	/* and step back to edit mode to fix the leaf nodes */
+	ED_armature_to_edit(armature);
+
+	connect_bone_chains(armature, (Bone *)armature->bonebase.first, UNLIMITED_CHAIN_MAX);
+	fix_bone_orientation(armature, (Bone *)armature->bonebase.first);
 
 	// exit armature edit mode
-	ED_armature_from_edit((bArmature *)ob_arm->data);
-	ED_armature_edit_free((bArmature *)ob_arm->data);
+	ED_armature_from_edit(armature);
+	ED_armature_edit_free(armature);
 	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
-
 }
 
 void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4])
@@ -538,10 +634,11 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 
 }
 
-
-// root - if this joint is the top joint in hierarchy, if a joint
-// is a child of a node (not joint), root should be true since
-// this is where we build armature bones from
+/**
+  * root - if this joint is the top joint in hierarchy, if a joint
+  * is a child of a node (not joint), root should be true since
+  * this is where we build armature bones from
+  **/
 void ArmatureImporter::add_root_joint(COLLADAFW::Node *node, Object *parent)
 {
 	root_joints.push_back(node);
@@ -784,4 +881,72 @@ bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)
 	}
 
 	return found;
+}
+
+
+/**
+  * BoneExtended is a helper class needed for the Bone chain finder
+  * See ArmatureImporter::fix_bone_orientation()
+  * and ArmatureImporter::connect_bone_chains()
+  **/
+
+BoneExtended::BoneExtended(EditBone *aBone) 
+{
+	this->set_name(aBone->name);
+	this->chain_length = 0;
+	this->is_leaf = false;
+}
+
+char *BoneExtended::get_name() 
+{
+	return name;
+}
+
+void BoneExtended::set_name(char *aName) 
+{
+	BLI_strncpy(name, aName, MAXBONENAME);
+}
+
+int BoneExtended::get_chain_length() 
+{
+	return chain_length;
+}
+
+void BoneExtended::set_chain_length(const int aLength) 
+{
+	chain_length = aLength;
+}
+
+
+void BoneExtended::set_leaf_bone(bool state)
+{
+	is_leaf = state;
+}
+
+bool BoneExtended::is_leaf_bone()
+{
+	return is_leaf;
+}
+
+BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone, COLLADAFW::Node *node)
+{
+
+	TagsMap::iterator etit;
+	ExtraTags *et = 0;
+	etit = uid_tags_map.find(node->getUniqueId().toAscii());
+	if (etit != uid_tags_map.end()) {
+		float x, y, z;
+
+		et = etit->second;
+		et->setData("tip_x", &x);
+		et->setData("tip_y", &y);
+		et->setData("tip_z", &z);
+		float vec[3] = { x, y, z };
+		copy_v3_v3(bone->tail, bone->head);
+		add_v3_v3v3(bone->tail, bone->head, vec);
+	}
+
+	BoneExtended *be = new BoneExtended(bone);
+	extended_bones[bone->name] = be;
+	return *be;
 }

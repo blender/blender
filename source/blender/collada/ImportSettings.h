@@ -32,7 +32,8 @@
 struct ImportSettings {
 public:
 	bool import_units;
-
+	bool find_chains;
+	int  min_chain_length;
 	char *filepath;
 };
 
