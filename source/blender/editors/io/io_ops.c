@@ -29,6 +29,7 @@
  */
 
 #include "io_ops.h"  /* own include */
+#include "io_collada.h"
 
 void ED_operatortypes_io(void) 
 {
