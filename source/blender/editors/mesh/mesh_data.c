@@ -626,6 +626,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");
 	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
+	RNA_def_boolean(ot->srna, "relative_path", true, "Relative Path", "Select the file relative to the blend file");
 }
 
 static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
