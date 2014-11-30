@@ -7372,7 +7372,7 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 			bGPDstroke *gps;
 			
 			/* Make a new frame to work on if the layer's frame and the current scene frame don't match up 
-			 * - This is useful when animating as it saves that "uh-oh" moment when you realise you've
+			 * - This is useful when animating as it saves that "uh-oh" moment when you realize you've
 			 *   spent too much time editing the wrong frame...
 			 */
 			// XXX: should this be allowed when framelock is enabled?

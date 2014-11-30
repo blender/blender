@@ -1024,8 +1024,6 @@ void BLI_getlastdir(const char *dir, char *last, const size_t maxlen)
 }
 
 
-
-
 /**
  * Sets the specified environment variable to the specified value,
  * and clears it if val == NULL.

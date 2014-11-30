@@ -66,7 +66,3 @@ void register_node_type_cmp_boxmask(void)
 
 	nodeRegisterType(&ntype);
 }
-
-
-
-

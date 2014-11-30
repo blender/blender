@@ -977,7 +977,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 	}
 }
 
-void image_buttons_register(ARegionType *art)
+void image_buttons_register(ARegionType *UNUSED(art))
 {
 	
 }

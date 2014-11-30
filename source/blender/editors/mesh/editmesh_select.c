@@ -383,8 +383,6 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, const float 
 }
 
 
-
-
 static bool findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
 	BMEditMesh *em = (BMEditMesh *)handle;

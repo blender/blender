@@ -3973,7 +3973,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			
 			uiDefButR(block, UI_BTYPE_COLOR, 1, "", offset, yminc, ICON_WIDTH, ICON_WIDTH, 
 			          &ptr, "color", -1, 
-					  0, 0, 0, 0, gpl->info);
+			          0, 0, 0, 0, gpl->info);
 			
 			UI_block_emboss_set(block, UI_EMBOSS_NONE);
 			

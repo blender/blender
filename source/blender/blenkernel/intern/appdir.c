@@ -497,8 +497,6 @@ const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, con
 #endif
 
 
-
-
 /* -------------------------------------------------------------------- */
 /* Preset paths */
 

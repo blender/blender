@@ -69,9 +69,9 @@
 
 /* Panels */
 
-void ED_clip_buttons_register(ARegionType *art)
+void ED_clip_buttons_register(ARegionType *UNUSED(art))
 {
-	
+
 }
 
 /********************* MovieClip Template ************************/

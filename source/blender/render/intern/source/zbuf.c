@@ -2063,8 +2063,6 @@ static void zmask_rect(int *rectz, int *rectp, int xs, int ys, int neg)
 }
 
 
-
-
 /* ***************** ZBUFFER MAIN ROUTINES **************** */
 
 void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart *, ZSpan *, int, void *), void *data)

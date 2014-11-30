@@ -232,8 +232,6 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 }
 
 
-
-
 /* Applies weights to given vgroup (defgroup), and optionally add/remove vertices from the group.
  * If dws is not NULL, it must be an array of MDeformWeight pointers of same length as weights (and
  * defgrp_idx can then have any value).

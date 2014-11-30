@@ -61,7 +61,7 @@ static int sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNUS
 }
 #endif
 
-void sequencer_buttons_register(ARegionType *art)
+void sequencer_buttons_register(ARegionType *UNUSED(art))
 {
 #if 0
 	PanelType *pt;

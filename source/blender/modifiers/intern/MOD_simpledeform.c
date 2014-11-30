@@ -244,8 +244,6 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 }
 
 
-
-
 /* SimpleDeform */
 static void initData(ModifierData *md)
 {

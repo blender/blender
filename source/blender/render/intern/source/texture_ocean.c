@@ -56,8 +56,6 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
-
-
 /* ***** actual texture sampling ***** */
 int ocean_texture(Tex *tex, const float texvec[2], TexResult *texres)
 {
