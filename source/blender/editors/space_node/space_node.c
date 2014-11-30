@@ -702,10 +702,12 @@ static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 
 	if (id) {
 		RNA_string_set(drop->ptr, "name", id->name + 2);
+		RNA_struct_property_unset(drop->ptr, "filepath");
 	}
-	if (drag->path[0]) {
+	else if (drag->path[0]) {
 		RNA_string_set(drop->ptr, "filepath", drag->path);
-	}
+		RNA_struct_property_unset(drop->ptr, "name");
+}
 }
 
 /* this region dropbox definition */
