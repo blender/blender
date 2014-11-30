@@ -72,6 +72,13 @@ class VIEW3D_HT_header(Header):
                 row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
                 if toolsettings.use_proportional_edit_objects:
                     row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+        else:
+            # Proportional editing
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
+                if toolsettings.proportional_edit != 'DISABLED':
+                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
         # Snap
         if not obj or mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
