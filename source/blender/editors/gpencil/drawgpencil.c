@@ -179,7 +179,8 @@ static void gp_calc_2d_stroke_xy(bGPDspoint *pt, short sflag, int offsx, int off
 /* draw a 2D buffer stroke in "volumetric" style
  * NOTE: the stroke buffer doesn't have any coordinate offsets/transforms
  */
-static void gp_draw_stroke_volumetric_buffer(tGPspoint *points, int totpoints, short thickness, short dflag, short sflag)
+static void gp_draw_stroke_volumetric_buffer(tGPspoint *points, int totpoints, short thickness,
+                                             short dflag, short UNUSED(sflag))
 {
 	GLUquadricObj *qobj = gluNewQuadric();
 	float modelview[4][4];
@@ -221,7 +222,8 @@ static void gp_draw_stroke_volumetric_buffer(tGPspoint *points, int totpoints, s
 }
 
 /* draw a 2D strokes in "volumetric" style */
-static void gp_draw_stroke_volumetric_2d(bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag,
+static void gp_draw_stroke_volumetric_2d(bGPDspoint *points, int totpoints, short thickness,
+                                         short UNUSED(dflag), short sflag,
                                          int offsx, int offsy, int winx, int winy)
 {
 	GLUquadricObj *qobj = gluNewQuadric();
@@ -260,7 +262,8 @@ static void gp_draw_stroke_volumetric_2d(bGPDspoint *points, int totpoints, shor
 }
 
 /* draw a 3D stroke in "volumetric" style */
-static void gp_draw_stroke_volumetric_3d(bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag)
+static void gp_draw_stroke_volumetric_3d(bGPDspoint *points, int totpoints, short thickness,
+                                         short UNUSED(dflag), short UNUSED(sflag))
 {
 	GLUquadricObj *qobj = gluNewQuadric();
 	
@@ -313,7 +316,8 @@ static void gp_draw_stroke_volumetric_3d(bGPDspoint *points, int totpoints, shor
 /* --------------- Stroke Fills ----------------- */
 
 /* draw fills for shapes */
-static void gp_draw_stroke_fill(bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag,
+static void gp_draw_stroke_fill(bGPDspoint *points, int totpoints, short UNUSED(thickness),
+                                short UNUSED(dflag), short sflag,
                                 int offsx, int offsy, int winx, int winy)
 {
 	bGPDspoint *pt;
@@ -388,7 +392,7 @@ static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dfla
 }
 
 /* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
-static void gp_draw_stroke_3d(bGPDspoint *points, int totpoints, short thickness, bool debug, short sflag)
+static void gp_draw_stroke_3d(bGPDspoint *points, int totpoints, short thickness, bool debug, short UNUSED(sflag))
 {
 	bGPDspoint *pt;
 	float curpressure = points[0].pressure;
@@ -868,7 +872,7 @@ static void gp_draw_strokes_edit(bGPDframe *gpf, int offsx, int offsy, int winx,
 
 /* draw onion-skinning for a layer */
 static void gp_draw_onionskins(bGPDlayer *gpl, bGPDframe *gpf, int offsx, int offsy, int winx, int winy, 
-                               int cfra, int dflag, short debug, short lthick)
+                               int UNUSED(cfra), int dflag, short debug, short lthick)
 {
 	const float alpha = gpl->color[3];
 	float color[4];
