@@ -401,7 +401,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "gpencil_data")) {
 		/* FIXME: for some reason, CTX_data_active_object(C) returns NULL when called from these situations
-		 * (as outlined above - see Campbell's #ifdefs). That causes the get active function to fail when 
+		 * (as outlined above - see Campbell's #ifdefs). That causes the get_active function to fail when 
 		 * called from context. For that reason, we end up using an alternative where we pass everything in!
 		 */
 		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
@@ -513,7 +513,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			op = sfile->op;
 		}
 		else if ((op = UI_context_active_operator_get(C))) {
-			/* do nothign */
+			/* do nothing */
 		}
 		else {
 			/* note, this checks poll, could be a problem, but this also
