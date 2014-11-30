@@ -66,7 +66,6 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
 	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
 	
-#if 0 // XXX: disabled, since they won't be of any use anymore
 	/* draw - straight lines */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL, DKEY);
 	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_STRAIGHT);
@@ -76,7 +75,6 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_ALT, DKEY);
 	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_POLY);
 	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-#endif	
 	
 	/* erase */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", RIGHTMOUSE, KM_PRESS, 0, DKEY);
