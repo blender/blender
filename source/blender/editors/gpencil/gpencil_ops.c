@@ -90,8 +90,8 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "gpencil_data.use_stroke_edit_mode");
 	
 	/* Pie Menu - For standard tools */
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_tool_palette", DKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_settings_palette", QKEY, KM_PRESS, 0, DKEY);
+	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_tool_palette", QKEY, KM_PRESS, 0, DKEY);
+	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_settings_palette", WKEY, KM_PRESS, 0, DKEY);
 }
 
 /* ==================== */
