@@ -508,12 +508,17 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, RAWINPUT const &raw
 
 //! note: this function can be extended to include other exotic cases as they arise.
 // This function was added in response to bug [#25715]
+// This is going to be a long list [T42426]
 GHOST_TKey GHOST_SystemWin32::processSpecialKey(GHOST_IWindow *window, short vKey, short scanCode) const
 {
 	GHOST_TKey key = GHOST_kKeyUnknown;
 	switch (PRIMARYLANGID(m_langId)) {
 		case LANG_FRENCH:
 			if (vKey == VK_OEM_8) key = GHOST_kKeyF13;  // oem key; used purely for shortcuts .
+			break;
+		case LANG_ENGLISH:
+			if (SUBLANGID(m_langId) == SUBLANG_ENGLISH_UK && vKey == VK_OEM_8) // "`¬"
+				key = GHOST_kKeyAccentGrave;
 			break;
 	}
 
