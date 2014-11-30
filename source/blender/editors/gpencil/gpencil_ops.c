@@ -237,7 +237,7 @@ void ED_operatormacros_gpencil(void)
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "GPENCIL_OT_duplicate");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "gpencil_strokes", true);
+	RNA_boolean_set(otmacro->ptr, "gpencil_strokes", true);
 }
 
 /* ****************************************** */
