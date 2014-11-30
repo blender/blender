@@ -979,6 +979,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 void image_buttons_register(ARegionType *art)
 {
+#if 0
 	PanelType *pt;
 	const char *category = "Grease Pencil";
 
@@ -990,6 +991,7 @@ void image_buttons_register(ARegionType *art)
 	pt->draw = ED_gpencil_panel_standard;
 	BLI_strncpy(pt->category, category, BLI_strlen_utf8(category));
 	BLI_addtail(&art->paneltypes, pt);
+#endif
 }
 
 static int image_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))

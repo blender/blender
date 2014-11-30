@@ -35,6 +35,7 @@ struct ListBase;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
+struct bGPDstroke;
 
 /* ------------ Grease-Pencil API ------------------ */
 
@@ -42,6 +43,8 @@ bool free_gpencil_strokes(struct bGPDframe *gpf);
 void free_gpencil_frames(struct bGPDlayer *gpl);
 void free_gpencil_layers(struct ListBase *list);
 void BKE_gpencil_free(struct bGPdata *gpd);
+
+void gpencil_stroke_sync_selection(struct bGPDstroke *gps);
 
 struct bGPDframe *gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
 struct bGPDlayer *gpencil_layer_addnew(struct bGPdata *gpd, const char *name, int setactive);

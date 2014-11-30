@@ -5732,6 +5732,21 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 
 /* ****************** READ GREASE PENCIL ***************** */
 
+/* relink's grease pencil data's refs */
+static void lib_link_gpencil(FileData *fd, Main *main)
+{
+	bGPdata *gpd;
+	
+	for (gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
+		if (gpd->id.flag & LIB_NEED_LINK) {
+			gpd->id.flag -= LIB_NEED_LINK;
+			
+			if (gpd->adt)
+				lib_link_animdata(fd, &gpd->id, gpd->adt);
+		}
+	}
+}
+
 /* relinks grease-pencil data - used for direct_link and old file linkage */
 static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 {
@@ -5742,6 +5757,10 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 	/* we must firstly have some grease-pencil data to link! */
 	if (gpd == NULL)
 		return;
+	
+	/* relink animdata */
+	gpd->adt = newdataadr(fd, gpd->adt);
+	direct_link_animdata(fd, gpd->adt);
 	
 	/* relink layers */
 	link_list(fd, &gpd->layers);
@@ -7714,6 +7733,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_movieclip(fd, main);
 	lib_link_mask(fd, main);
 	lib_link_linestyle(fd, main);
+	lib_link_gpencil(fd, main);
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 	
@@ -8819,6 +8839,12 @@ static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *li
 	}
 }
 
+static void expand_gpencil(FileData *fd, Main *mainvar, bGPdata *gpd)
+{
+	if (gpd->adt)
+		expand_animdata(fd, mainvar, gpd->adt);
+}
+
 void BLO_main_expander(void (*expand_doit_func)(void *, Main *, void *))
 {
 	expand_doit = expand_doit_func;
@@ -8912,6 +8938,9 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 						break;
 					case ID_LS:
 						expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
+						break;
+					case ID_GD:
+						expand_gpencil(fd, mainvar, (bGPdata *)id);
 						break;
 					}
 					

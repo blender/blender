@@ -352,6 +352,10 @@ static void sequencer_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn
 			if (wmn->data == ND_SPACE_SEQUENCER)
 				sequencer_scopes_tag_refresh(sa);
 			break;
+		case NC_GPENCIL:
+			if (wmn->data & ND_GPENCIL_EDITMODE)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 }
 
@@ -585,7 +589,7 @@ static void sequencer_preview_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED
 	/* context changes */
 	switch (wmn->category) {
 		case NC_GPENCIL:
-			if (wmn->action == NA_EDITED) {
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
 				ED_region_tag_redraw(ar);
 			}
 			break;
@@ -641,7 +645,7 @@ static void sequencer_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED
 	/* context changes */
 	switch (wmn->category) {
 		case NC_GPENCIL:
-			if (wmn->data == ND_DATA) {
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
 				ED_region_tag_redraw(ar);
 			}
 			break;

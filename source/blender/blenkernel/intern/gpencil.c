@@ -45,6 +45,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_library.h"
@@ -115,6 +116,12 @@ void BKE_gpencil_free(bGPdata *gpd)
 {
 	/* free layers */
 	free_gpencil_layers(&gpd->layers);
+	
+	/* free animation data */
+	if (gpd->adt) {
+		BKE_free_animdata(&gpd->id);
+		gpd->adt = NULL;
+	}
 }
 
 /* -------- Container Creation ---------- */
@@ -307,6 +314,31 @@ bGPdata *gpencil_data_duplicate(bGPdata *src, bool internal_copy)
 	return dst;
 }
 
+/* -------- GP-Stroke API --------- */
+
+/* ensure selection status of stroke is in sync with its points */
+void gpencil_stroke_sync_selection(bGPDstroke *gps)
+{
+	bGPDspoint *pt;
+	int i;
+	
+	/* error checking */
+	if (gps == NULL)
+		return;
+	
+	/* we'll stop when we find the first selected point,
+	 * so initially, we must deselect
+	 */
+	gps->flag &= ~GP_STROKE_SELECT;
+	
+	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+		if (pt->flag & GP_SPOINT_SELECT) {
+			gps->flag |= GP_STROKE_SELECT;
+			break;
+		}
+	}
+}
+
 /* -------- GP-Frame API ---------- */
 
 /* delete the last stroke of the given frame */
@@ -366,7 +398,7 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 		/* do not allow any changes to layer's active frame if layer is locked from changes
 		 * or if the layer has been set to stay on the current frame
 		 */
-		if (gpl->flag & (GP_LAYER_LOCKED | GP_LAYER_FRAMELOCK))
+		if (gpl->flag & GP_LAYER_FRAMELOCK)
 			return gpf;
 		/* do not allow any changes to actframe if frame has painting tag attached to it */
 		if (gpf->flag & GP_FRAME_PAINT) 
@@ -475,16 +507,23 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 bool gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bool changed = false;
-
+	
 	/* error checking */
 	if (ELEM(NULL, gpl, gpf))
 		return false;
-		
+	
+	/* if this frame was active, make the previous frame active instead 
+	 * since it's tricky to set active frame otherwise
+	 */
+	if (gpl->actframe == gpf)
+		gpl->actframe = gpf->prev;
+	else
+		gpl->actframe = NULL;
+	
 	/* free the frame and its data */
 	changed = free_gpencil_strokes(gpf);
 	BLI_freelinkN(&gpl->frames, gpf);
-	gpl->actframe = NULL;
-
+	
 	return changed;
 }
 

@@ -143,13 +143,12 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 	/* active */
 	block = uiLayoutGetBlock(sub);
 	icon = (gpl->flag & GP_LAYER_ACTIVE) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
-	but = uiDefIconButBitI(block, UI_BTYPE_TOGGLE, GP_LAYER_ACTIVE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+	but = uiDefIconButBitS(block, UI_BTYPE_TOGGLE, GP_LAYER_ACTIVE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 	                       &gpl->flag, 0.0, 0.0, 0.0, 0.0, TIP_("Set active layer"));
 	UI_but_func_set(but, gp_ui_activelayer_cb, gpd, gpl);
 	
 	/* locked */
-	icon = (gpl->flag & GP_LAYER_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
-	uiItemR(sub, &ptr, "lock", 0, "", icon);
+	uiItemR(sub, &ptr, "lock", 0, "", ICON_NONE);
 	
 	/* when layer is locked or hidden, only draw header */
 	if (gpl->flag & (GP_LAYER_LOCKED | GP_LAYER_HIDE)) {
@@ -157,7 +156,7 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		
 		/* visibility button (only if hidden but not locked!) */
 		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
-			uiItemR(sub, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_ON);
+			uiItemR(sub, &ptr, "hide", 0, "", ICON_NONE);
 		
 		/* name */
 		if (gpl->flag & GP_LAYER_HIDE)
@@ -182,7 +181,7 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 	else {
 		/* draw rest of header -------------------------------- */
 		/* visibility button */
-		uiItemR(sub, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_OFF);
+		uiItemR(sub, &ptr, "hide", 0, "", ICON_NONE);
 		
 		/* frame locking */
 		/* TODO: this needs its own icons... */

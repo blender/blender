@@ -86,35 +86,51 @@
 /* ************************************************ */
 /* Context Wrangling... */
 
-/* Get pointer to active Grease Pencil datablock, and an RNA-pointer to trace back to whatever owns it */
-bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
+/* Get pointer to active Grease Pencil datablock, and an RNA-pointer to trace back to whatever owns it,
+ * when context info is not available.
+ */
+bGPdata **ED_gpencil_data_get_pointers_direct(ID *screen_id, Scene *scene, ScrArea *sa, Object *ob, PointerRNA *ptr)
 {
-	ID *screen_id = (ID *)CTX_wm_screen(C);
-	Scene *scene = CTX_data_scene(C);
-	ScrArea *sa = CTX_wm_area(C);
-
 	/* if there's an active area, check if the particular editor may
 	 * have defined any special Grease Pencil context for editing...
 	 */
 	if (sa) {
+		SpaceLink *sl = sa->spacedata.first;
+		
 		switch (sa->spacetype) {
 			case SPACE_VIEW3D: /* 3D-View */
+			case SPACE_TIME: /* Timeline - XXX: this is a hack to get it to show GP keyframes for 3D view */
 			{
-				Object *ob = CTX_data_active_object(C);
-
-				/* TODO: we can include other data-types such as bones later if need be... */
-
-				/* just in case no active/selected object */
-				if (ob && (ob->flag & SELECT)) {
-					/* for now, as long as there's an object, default to using that in 3D-View */
-					if (ptr) RNA_id_pointer_create(&ob->id, ptr);
+				/* default to using scene's data, unless it doesn't exist (and object's does instead) */
+				/* XXX: this will require a toggle switch later to be more predictable */
+				bool scene_ok = (scene != NULL);
+				bool ob_ok    = ((ob) && (ob->flag & SELECT) && (ob->gpd));
+				
+				if (ob_ok || !scene_ok) {
+					/* Object Case (not good for users):
+					 * - For existing files with object-level already, 
+					 *   or where user has explicitly assigned to object,
+					 *   we can use the object as the host...
+					 *
+					 * - If there is no scene data provided (rare/impossible)
+					 *   we will also be forced to use the object
+					 */
+					if (ptr) RNA_id_pointer_create((ID *)ob, ptr);
 					return &ob->gpd;
+				}
+				else {
+					/* Scene Case (default):
+					 * This is the new (as of 2014-Oct-13, for 2.73) default setting
+					 * which should work better for most users.
+					 */
+					if (ptr) RNA_id_pointer_create((ID *)scene, ptr);
+					return &scene->gpd;
 				}
 				break;
 			}
 			case SPACE_NODE: /* Nodes Editor */
 			{
-				SpaceNode *snode = (SpaceNode *)CTX_wm_space_data(C);
+				SpaceNode *snode = (SpaceNode *)sl;
 
 				/* return the GP data for the active node block/node */
 				if (snode && snode->nodetree) {
@@ -128,7 +144,7 @@ bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 			}
 			case SPACE_SEQ: /* Sequencer */
 			{
-				SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
+				SpaceSeq *sseq = (SpaceSeq *)sl;
 
 				/* for now, Grease Pencil data is associated with the space (actually preview region only) */
 				/* XXX our convention for everything else is to link to data though... */
@@ -137,7 +153,7 @@ bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 			}
 			case SPACE_IMAGE: /* Image/UV Editor */
 			{
-				SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
+				SpaceImage *sima = (SpaceImage *)sl;
 
 				/* for now, Grease Pencil data is associated with the space... */
 				/* XXX our convention for everything else is to link to data though... */
@@ -146,7 +162,7 @@ bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 			}
 			case SPACE_CLIP: /* Nodes Editor */
 			{
-				SpaceClip *sc = (SpaceClip *)CTX_wm_space_data(C);
+				SpaceClip *sc = (SpaceClip *)sl;
 				MovieClip *clip = ED_space_clip_get_clip(sc);
 
 				if (clip) {
@@ -180,12 +196,34 @@ bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 	return (scene) ? &scene->gpd : NULL;
 }
 
+/* Get pointer to active Grease Pencil datablock, and an RNA-pointer to trace back to whatever owns it */
+bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
+{
+	ID *screen_id = (ID *)CTX_wm_screen(C);
+	Scene *scene = CTX_data_scene(C);
+	ScrArea *sa = CTX_wm_area(C);
+	Object *ob = CTX_data_active_object(C);
+	
+	return ED_gpencil_data_get_pointers_direct(screen_id, scene, sa, ob, ptr);
+}
+
+/* -------------------------------------------------------- */
+
+/* Get the active Grease Pencil datablock, when context is not available */
+bGPdata *ED_gpencil_data_get_active_direct(ID *screen_id, Scene *scene, ScrArea *sa, Object *ob)
+{
+	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers_direct(screen_id, scene, sa, ob, NULL);
+	return (gpd_ptr) ? *(gpd_ptr) : NULL;
+}
+
 /* Get the active Grease Pencil datablock */
 bGPdata *ED_gpencil_data_get_active(const bContext *C)
 {
 	bGPdata **gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 	return (gpd_ptr) ? *(gpd_ptr) : NULL;
 }
+
+/* -------------------------------------------------------- */
 
 bGPdata *ED_gpencil_data_get_active_v3d(Scene *scene, View3D *v3d)
 {
@@ -209,6 +247,15 @@ static int gp_add_poll(bContext *C)
 {
 	/* the base line we have is that we have somewhere to add Grease Pencil data */
 	return ED_gpencil_data_get_pointers(C, NULL) != NULL;
+}
+
+/* poll callback for checking if there is an active layer */
+static int gp_active_layer_poll(bContext *C)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	
+	return (gpl != NULL);
 }
 
 /* ******************* Add New Data ************************ */
@@ -327,11 +374,266 @@ void GPENCIL_OT_layer_add(wmOperatorType *ot)
 	ot->name = "Add New Layer";
 	ot->idname = "GPENCIL_OT_layer_add";
 	ot->description = "Add new Grease Pencil layer for the active Grease Pencil datablock";
+	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
+	
 	/* callbacks */
 	ot->exec = gp_layer_add_exec;
 	ot->poll = gp_add_poll;
+}
+
+/* ******************* Remove Active Layer ************************* */
+
+static int gp_layer_remove_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	
+	/* sanity checks */
+	if (ELEM(NULL, gpd, gpl))
+		return OPERATOR_CANCELLED;
+	
+	if (gpl->flag & GP_LAYER_LOCKED) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot delete locked layers");
+		return OPERATOR_CANCELLED;
+	}	
+	
+	/* make the layer before this the new active layer 
+	 * - use the one after if this is the first
+	 * - if this is the only layer, this naturally becomes NULL
+	 */
+	if (gpl->prev)
+		gpencil_layer_setactive(gpd, gpl->prev);
+	else
+		gpencil_layer_setactive(gpd, gpl->next);
+		
+	/* delete the layer now... */
+	gpencil_layer_delete(gpd, gpl);
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_layer_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Layer";
+	ot->idname = "GPENCIL_OT_layer_remove";
+	ot->description = "Remove active Grease Pencil layer";
+	
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* callbacks */
+	ot->exec = gp_layer_remove_exec;
+	ot->poll = gp_active_layer_poll;
+}
+
+/* ******************* Move Layer Up/Down ************************** */
+
+enum {
+	GP_LAYER_MOVE_UP   = -1,
+	GP_LAYER_MOVE_DOWN = 1
+};
+
+static int gp_layer_move_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	
+	int direction = RNA_enum_get(op->ptr, "type");
+	
+	/* sanity checks */
+	if (ELEM(NULL, gpd, gpl))
+		return OPERATOR_CANCELLED;
+		
+	/* up or down? */
+	if (direction == GP_LAYER_MOVE_UP) {
+		/* up */
+		BLI_remlink(&gpd->layers, gpl);
+		BLI_insertlinkbefore(&gpd->layers, gpl->prev, gpl);
+	}
+	else {
+		/* down */
+		BLI_remlink(&gpd->layers, gpl);
+		BLI_insertlinkafter(&gpd->layers, gpl->next, gpl);
+	}
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_layer_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem slot_move[] = {
+		{GP_LAYER_MOVE_UP, "UP", 0, "Up", ""},
+		{GP_LAYER_MOVE_DOWN, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Move Grease Pencil Layer";
+	ot->idname = "GPENCIL_OT_layer_move";
+	ot->description = "Move the active Grease Pencil layer up/down in the list";
+
+	/* api callbacks */
+	ot->exec = gp_layer_move_exec;
+	ot->poll = gp_active_layer_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	ot->prop = RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
+}
+
+/* ************************************************ */
+/* Stroke Editing Operators */
+
+/* poll callback for all stroke editing operators */
+static int gp_stroke_edit_poll(bContext *C)
+{
+	/* NOTE: this is a bit slower, but is the most accurate... */
+	return CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0;
+}
+
+/* ************** Duplicate Selected Strokes **************** */
+
+/* Make copies of selected point segments in a selected stroke */
+static void gp_duplicate_points(const bGPDstroke *gps, ListBase *new_strokes)
+{
+	bGPDspoint *pt;
+	int i;
+	
+	int start_idx = -1;
+	
+	
+	/* Step through the original stroke's points:
+	 * - We accumulate selected points (from start_idx to current index)
+	 *   and then convert that to a new stroke
+	 */
+	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+		/* searching for start, are waiting for end? */
+		if (start_idx == -1) {
+			/* is this the first selected point for a new island? */
+			if (pt->flag & GP_SPOINT_SELECT) {
+				start_idx = i;
+			}
+		}
+		else {
+			size_t len = 0;
+			
+			/* is this the end of current island yet? 
+			 * 1) Point i-1 was the last one that was selected
+			 * 2) Point i is the last in the array
+			 */
+			if ((pt->flag & GP_SPOINT_SELECT) == 0) {
+				len = i - start_idx;
+			}
+			else if (i == gps->totpoints - 1) {
+				len = i - start_idx + 1;
+			}
+			//printf("copying from %d to %d = %d\n", start_idx, i, len);
+			
+			/* make copies of the relevant data */
+			if (len) {
+				bGPDstroke *gpsd;
+				
+				/* make a stupid copy first of the entire stroke (to get the flags too) */
+				gpsd = MEM_dupallocN(gps);
+				
+				/* now, make a new points array, and copy of the relevant parts */
+				gpsd->points = MEM_callocN(sizeof(bGPDspoint) * len, "gps stroke points copy");
+				memcpy(gpsd->points, gps->points + start_idx, sizeof(bGPDspoint) * len);
+				gpsd->totpoints = len;
+				
+				/* add to temp buffer */
+				gpsd->next = gpsd->prev = NULL;
+				BLI_addtail(new_strokes, gpsd);
+				
+				/* cleanup + reset for next */
+				start_idx = -1;
+			}
+		}
+	}
+}
+
+static int gp_duplicate_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	
+	if (gpd == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* for each visible (and editable) layer's selected strokes,
+	 * copy the strokes into a temporary buffer, then append
+	 * once all done
+	 */
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		ListBase new_strokes = {NULL, NULL};
+		bGPDframe *gpf = gpl->actframe;
+		bGPDstroke *gps;
+		
+		if (gpf == NULL)
+			continue;
+		
+		/* make copies of selected strokes, and deselect these once we're done */
+		for (gps = gpf->strokes.first; gps; gps = gps->next) {
+			if (gps->flag & GP_STROKE_SELECT) {
+				if (gps->totpoints == 1) {
+					/* Special Case: If there's just a single point in this stroke... */
+					bGPDstroke *gpsd;
+					
+					/* make direct copies of the stroke and its points */
+					gpsd = MEM_dupallocN(gps);
+					gpsd->points = MEM_dupallocN(gps->points);
+					
+					/* add to temp buffer */
+					gpsd->next = gpsd->prev = NULL;
+					BLI_addtail(&new_strokes, gpsd);
+				}
+				else {
+					/* delegate to a helper, as there's too much to fit in here (for copying subsets)... */
+					gp_duplicate_points(gps, &new_strokes);
+				}
+				
+				/* deselect original stroke, or else the originals get moved too 
+				 * (when using the copy + move macro)
+				 */
+				gps->flag &= ~GP_STROKE_SELECT;
+			}
+		}
+		
+		/* add all new strokes in temp buffer to the frame (preventing double-copies) */
+		BLI_movelisttolist(&gpf->strokes, &new_strokes);
+		BLI_assert(new_strokes.first == NULL);
+	}
+	CTX_DATA_END;
+	
+	/* updates */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_duplicate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Duplicate Strokes";
+	ot->idname = "GPENCIL_OT_duplicate";
+	ot->description = "Duplicate the selected Grease Pencil strokes";
+	
+	/* callbacks */
+	ot->exec = gp_duplicate_exec;
+	ot->poll = gp_stroke_edit_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ******************* Delete Active Frame ************************ */
@@ -378,11 +680,312 @@ void GPENCIL_OT_active_frame_delete(wmOperatorType *ot)
 	ot->name = "Delete Active Frame";
 	ot->idname = "GPENCIL_OT_active_frame_delete";
 	ot->description = "Delete the active frame for the active Grease Pencil datablock";
+	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* callbacks */
 	ot->exec = gp_actframe_delete_exec;
 	ot->poll = gp_actframe_delete_poll;
+}
+
+/* ******************* Delete Operator ************************ */
+
+typedef enum eGP_DeleteMode {
+	/* delete selected stroke points */
+	GP_DELETEOP_POINTS          = 0,
+	/* delete selected strokes */
+	GP_DELETEOP_STROKES         = 1,
+	/* delete active frame */
+	GP_DELETEOP_FRAME           = 2,
+	/* delete selected stroke points (without splitting stroke) */
+	GP_DELETEOP_POINTS_DISSOLVE = 3,
+} eGP_DeleteMode;
+
+
+/* Delete selected strokes */
+static int gp_delete_selected_strokes(bContext *C)
+{
+	bool changed = false;
+	
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *gpf = gpl->actframe;
+		bGPDstroke *gps, *gpsn;
+		
+		if (gpf == NULL)
+			continue;
+		
+		/* simply delete strokes which are selected */
+		for (gps = gpf->strokes.first; gps; gps = gpsn) {
+			gpsn = gps->next;
+			
+			if (gps->flag & GP_STROKE_SELECT) {
+				/* free stroke memory arrays, then stroke itself */
+				if (gps->points) MEM_freeN(gps->points);
+				BLI_freelinkN(&gpf->strokes, gps);
+				
+				changed = true;
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+/* Delete selected points but keep the stroke */
+static int gp_dissolve_selected_points(bContext *C)
+{
+	bool changed = false;
+	
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *gpf = gpl->actframe;
+		bGPDstroke *gps, *gpsn;
+		
+		if (gpf == NULL)
+			continue;
+		
+		/* simply delete points from selected strokes
+		 * NOTE: we may still have to remove the stroke if it ends up having no points!
+		 */
+		for (gps = gpf->strokes.first; gps; gps = gpsn) {
+			gpsn = gps->next;
+			
+			if (gps->flag & GP_STROKE_SELECT) {
+				bGPDspoint *pt;
+				int i;
+				
+				int tot = gps->totpoints; /* number of points in new buffer */
+				
+				/* First Pass: Count how many points are selected (i.e. how many to remove) */
+				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+					if (pt->flag & GP_SPOINT_SELECT) {
+						/* selected point - one of the points to remove */
+						tot--;
+					}
+				}
+				
+				/* if no points are left, we simply delete the entire stroke */
+				if (tot <= 0) {
+					/* remove the entire stroke */
+					MEM_freeN(gps->points);
+					BLI_freelinkN(&gpf->strokes, gps);
+				}
+				else {	
+					/* just copy all unselected into a smaller buffer */
+					bGPDspoint *new_points = MEM_callocN(sizeof(bGPDspoint) * tot, "new gp stroke points copy");
+					bGPDspoint *npt        = new_points;
+					
+					for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+						if ((pt->flag & GP_SPOINT_SELECT) == 0) {
+							*npt = *pt;
+							npt++;
+						}
+					}
+					
+					/* free the old buffer */
+					MEM_freeN(gps->points);
+					
+					/* save the new buffer */
+					gps->points = new_points;
+					gps->totpoints = tot;
+					
+					/* deselect the stroke, since none of its selected points will still be selected */
+					gps->flag &= ~GP_STROKE_SELECT;
+				}
+				
+				changed = true;
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+/* Split selected strokes into segments, splitting on selected points */
+static int gp_delete_selected_points(bContext *C)
+{
+	bool changed = false;
+	
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *gpf = gpl->actframe;
+		bGPDstroke *gps, *gpsn;
+		
+		if (gpf == NULL)
+			continue;
+		
+		/* simply delete strokes which are selected */
+		for (gps = gpf->strokes.first; gps; gps = gpsn) {
+			gpsn = gps->next;
+			
+			if (gps->flag & GP_STROKE_SELECT) {
+				bGPDspoint *pt;
+				int i;
+				
+				/* The algorithm used here is as follows:
+				 * 1) We firstly identify the number of "islands" of non-selected points
+				 *    which will all end up being in new strokes.
+				 *    - In the most extreme case (i.e. every other vert is a 1-vert island), 
+				 *      we have at most n / 2 islands
+				 *    - Once we start having larger islands than that, the number required
+				 *      becomes much less
+				 * 2) Each island gets converted to a new stroke
+				 */
+				typedef struct tGPDeleteIsland {
+					int start_idx;
+					int end_idx;
+				} tGPDeleteIsland;
+				
+				tGPDeleteIsland *islands = MEM_callocN(sizeof(tGPDeleteIsland) * (gps->totpoints + 1) / 2, "gp_point_islands");
+				bool in_island  = false;
+				int num_islands = 0;
+				
+				/* First Pass: Identify start/end of islands */
+				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+					if (pt->flag & GP_SPOINT_SELECT) {
+						/* selected - stop accumulating to island */
+						in_island = false;
+					}
+					else {
+						/* unselected - start of a new island? */
+						int idx;
+						
+						if (in_island) {
+							/* extend existing island */
+							idx = num_islands - 1;
+							islands[idx].end_idx = i;
+						}
+						else {
+							/* start of new island */
+							in_island = true;
+							num_islands++;
+							
+							idx = num_islands - 1;
+							islands[idx].start_idx = islands[idx].end_idx = i;
+						}
+					}
+				}
+				
+				/* Watch out for special case where No islands = All points selected = Delete Stroke only */
+				if (num_islands) {
+					/* there are islands, so create a series of new strokes, adding them before the "next" stroke */
+					int idx;
+					
+					/* deselect old stroke, since it will be used as template for the new strokes */
+					gps->flag &= ~GP_STROKE_SELECT;
+					
+					/* create each new stroke... */
+					for (idx = 0; idx < num_islands; idx++) {
+						tGPDeleteIsland *island = &islands[idx];
+						bGPDstroke *new_stroke  = MEM_dupallocN(gps);
+						
+						/* compute new buffer size (+ 1 needed as the endpoint index is "inclusive") */
+						new_stroke->totpoints = island->end_idx - island->start_idx + 1;
+						new_stroke->points    = MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints, "gp delete stroke fragment");
+						
+						/* copy over the relevant points */
+						memcpy(new_stroke->points, gps->points + island->start_idx, sizeof(bGPDspoint) * new_stroke->totpoints);
+						
+						/* add new stroke to the frame */
+						if (gpsn) {
+							BLI_insertlinkbefore(&gpf->strokes, gpsn, new_stroke);
+						}
+						else {
+							BLI_addtail(&gpf->strokes, new_stroke);
+						}
+					}
+				}
+				
+				/* free islands */
+				MEM_freeN(islands);
+				
+				/* Delete the old stroke */
+				MEM_freeN(gps->points);
+				BLI_freelinkN(&gpf->strokes, gps);
+				
+				changed = true;
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+
+static int gp_delete_exec(bContext *C, wmOperator *op)
+{	
+	eGP_DeleteMode mode = RNA_enum_get(op->ptr, "type");
+	int result = OPERATOR_CANCELLED;
+	
+	switch (mode) {
+		case GP_DELETEOP_STROKES:	/* selected strokes */
+			result = gp_delete_selected_strokes(C);
+			break;
+		
+		case GP_DELETEOP_POINTS:	/* selected points (breaks the stroke into segments) */
+			result = gp_delete_selected_points(C);
+			break;
+		
+		case GP_DELETEOP_POINTS_DISSOLVE: /* selected points (without splitting the stroke) */
+			result = gp_dissolve_selected_points(C);
+			break;
+			
+		case GP_DELETEOP_FRAME:		/* active frame */
+			result = gp_actframe_delete_exec(C, op);
+			break;
+	}
+	
+	return result;
+}
+
+void GPENCIL_OT_delete(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_gpencil_delete_types[] = {
+		{GP_DELETEOP_POINTS, "POINTS", 0, "Points", "Delete selected points and split strokes into segments"},
+		{GP_DELETEOP_STROKES, "STROKES", 0, "Strokes", "Delete selected strokes"},
+		{GP_DELETEOP_FRAME, "FRAME", 0, "Frame", "Delete active frame"},
+		{0, "", 0, NULL, NULL},
+		{GP_DELETEOP_POINTS_DISSOLVE, "DISSOLVE_POINTS", 0, "Dissolve Points", "Delete selected points without splitting strokesp"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
+	/* identifiers */
+	ot->name = "Delete...";
+	ot->idname = "GPENCIL_OT_delete";
+	ot->description = "Delete selected Grease Pencil strokes, vertices, or frames";
+	
+	/* callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = gp_delete_exec;
+	ot->poll = gp_stroke_edit_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
+	
+	/* props */
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_gpencil_delete_types, 0, "Type", "Method used for deleting Grease Pencil data");
 }
 
 /* ************************************************ */

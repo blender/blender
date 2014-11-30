@@ -2465,6 +2465,8 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 			/* write gpd data block to file */
 			writestruct(wd, ID_GD, "bGPdata", 1, gpd);
 			
+			if (gpd->adt) write_animdata(wd, gpd->adt);
+			
 			/* write grease-pencil layers to file */
 			writelist(wd, DATA, "bGPDlayer", &gpd->layers);
 			for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {

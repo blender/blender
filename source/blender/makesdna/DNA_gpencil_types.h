@@ -33,6 +33,9 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+struct AnimData;
+
+
 /* Grease-Pencil Annotations - 'Stroke Point'
  *	-> Coordinates may either be 2d or 3d depending on settings at the time
  * 	-> Coordinates of point on stroke, in proportions of window size
@@ -42,7 +45,14 @@ typedef struct bGPDspoint {
 	float x, y, z;			/* co-ordinates of point (usually 2d, but can be 3d as well) */
 	float pressure;			/* pressure of input device (from 0 to 1) at this point */
 	float time;				/* seconds since start of stroke */
+	int flag;				/* additional options (NOTE: can shrink this field down later if needed) */
 } bGPDspoint;
+
+/* bGPDspoint->flag */
+typedef enum eGPDspoint_Flag {
+	/* stroke point is selected (for editing) */
+	GP_SPOINT_SELECT	= (1 << 0)
+} eGPSPoint_Flag;
 
 /* Grease-Pencil Annotations - 'Stroke'
  * 	-> A stroke represents a (simplified version) of the curve
@@ -61,15 +71,18 @@ typedef struct bGPDstroke {
 } bGPDstroke;
 
 /* bGPDstroke->flag */
+typedef enum eGPDstroke_Flag {
 	/* stroke is in 3d-space */
-#define GP_STROKE_3DSPACE		(1<<0)
+	GP_STROKE_3DSPACE		= (1 << 0),
 	/* stroke is in 2d-space */
-#define GP_STROKE_2DSPACE		(1<<1)
+	GP_STROKE_2DSPACE		= (1 << 1),
 	/* stroke is in 2d-space (but with special 'image' scaling) */
-#define GP_STROKE_2DIMAGE		(1<<2)
+	GP_STROKE_2DIMAGE		= (1 << 2),
+	/* stroke is selected */
+	GP_STROKE_SELECT		= (1 << 3),
 	/* only for use with stroke-buffer (while drawing eraser) */
-#define GP_STROKE_ERASER		(1<<15)
-
+	GP_STROKE_ERASER		= (1 << 15)
+} eGPDstroke_Flag;
 
 /* Grease-Pencil Annotations - 'Frame'
  *	-> Acts as storage for the 'image' formed by strokes
@@ -80,15 +93,18 @@ typedef struct bGPDframe {
 	ListBase strokes;	/* list of the simplified 'strokes' that make up the frame's data */
 	
 	int framenum;		/* frame number of this frame */
-	int flag;			/* temp settings */
+	
+	short flag;			/* temp settings */
+	short key_type;		/* keyframe type (eBezTriple_KeyframeType) */
 } bGPDframe;
 
-/* bGPDframe->flag */	
+/* bGPDframe->flag */
+typedef enum eGPDframe_Flag {
 	/* frame is being painted on */
-#define GP_FRAME_PAINT		(1<<0)
+	GP_FRAME_PAINT		= (1 << 0),
 	/* for editing in Action Editor */
-#define GP_FRAME_SELECT		(1<<1)
-
+	GP_FRAME_SELECT		= (1 << 1)
+} eGPDframe_Flag;
 
 /* Grease-Pencil Annotations - 'Layer' */
 typedef struct bGPDlayer {
@@ -97,38 +113,52 @@ typedef struct bGPDlayer {
 	ListBase frames;		/* list of annotations to display for frames (bGPDframe list) */
 	bGPDframe *actframe;	/* active frame (should be the frame that is currently being displayed) */
 	
-	int flag;				/* settings for layer */
+	short flag;				/* settings for layer */
 	short thickness;		/* current thickness to apply to strokes */
-	short gstep;			/* max number of frames between active and ghost to show (0=only those on either side) */
+	
+	short gstep;			/* Ghosts Before: max number of ghost frames to show between active frame and the one before it (0 = only the ghost itself) */
+	short gstep_next;		/* Ghosts After:  max number of ghost frames to show after active frame and the following it    (0 = only the ghost itself) */
+	
+	float gcolor_prev[3];	/* optional color for ghosts before the active frame */
+	float gcolor_next[3];	/* optional color for ghosts after the active frame */
 	
 	float color[4];			/* color that should be used to draw all the strokes in this layer */
+	float fill[4];			/* color that should be used for drawing "fills" for strokes */
 	
 	char info[128];			/* optional reference info about this layer (i.e. "director's comments, 12/3")
 							 * this is used for the name of the layer  too and kept unique. */
 } bGPDlayer;
 
 /* bGPDlayer->flag */
+typedef enum eGPDlayer_Flag {
 	/* don't display layer */
-#define GP_LAYER_HIDE		(1<<0)
+	GP_LAYER_HIDE			= (1 << 0),
 	/* protected from further editing */
-#define GP_LAYER_LOCKED		(1<<1)	
+	GP_LAYER_LOCKED			= (1 << 1),
 	/* layer is 'active' layer being edited */
-#define GP_LAYER_ACTIVE		(1<<2)
+	GP_LAYER_ACTIVE			= (1 << 2),
 	/* draw points of stroke for debugging purposes */
-#define GP_LAYER_DRAWDEBUG 	(1<<3)
-	/* do onionskinning */
-#define GP_LAYER_ONIONSKIN	(1<<4)
+	GP_LAYER_DRAWDEBUG 		= (1 << 3),
+	/* do onion skinning */
+	GP_LAYER_ONIONSKIN		= (1 << 4),
 	/* for editing in Action Editor */
-#define GP_LAYER_SELECT		(1<<5)
+	GP_LAYER_SELECT			= (1 << 5),
 	/* current frame for layer can't be changed */
-#define GP_LAYER_FRAMELOCK	(1<<6)
+	GP_LAYER_FRAMELOCK		= (1 << 6),
 	/* don't render xray (which is default) */
-#define GP_LAYER_NO_XRAY	(1<<7)
-
+	GP_LAYER_NO_XRAY		= (1 << 7),
+	/* use custom color for ghosts before current frame */
+	GP_LAYER_GHOST_PREVCOL	= (1 << 8),
+	/* use custom color for ghosts after current frame */
+	GP_LAYER_GHOST_NEXTCOL	= (1 << 9),
+	/* "volumetric" strokes (i.e. GLU Quadric discs in 3D) */
+	GP_LAYER_VOLUMETRIC		= (1 << 10),
+} eGPDlayer_Flag;
 
 /* Grease-Pencil Annotations - 'DataBlock' */
 typedef struct bGPdata {
-	ID id;					/* Grease Pencil data is */
+	ID id;					/* Grease Pencil data is a datablock */
+	struct AnimData *adt;   /* animation data - for animating draw settings */
 	
 	/* saved Grease-Pencil data */
 	ListBase layers;		/* bGPDlayers */
@@ -144,23 +174,33 @@ typedef struct bGPdata {
 } bGPdata;
 
 /* bGPdata->flag */
-// XXX many of these flags should be deprecated for more general ideas in 2.5
+/* NOTE: A few flags have been deprecated since early 2.5,
+ *       since they have been made redundant by interaction
+ *       changes made during the porting process.
+ */
+typedef enum eGPdata_Flag {
 	/* don't allow painting to occur at all */
-	// XXX is deprecated - not well understood
-// #define GP_DATA_LMBPLOCK	(1<<0)
+	/* GP_DATA_LMBPLOCK  = (1 << 0), */
+	
 	/* show debugging info in viewport (i.e. status print) */
-#define GP_DATA_DISPINFO	(1<<1)
+	GP_DATA_DISPINFO	= (1 << 1),
 	/* in Action Editor, show as expanded channel */
-#define GP_DATA_EXPAND		(1<<2)
+	GP_DATA_EXPAND		= (1 << 2),
+	
 	/* is the block overriding all clicks? */
-	// XXX is deprecated - nasty old concept
-// #define GP_DATA_EDITPAINT	(1<<3)
+ 	/* GP_DATA_EDITPAINT = (1 << 3), */
+	
 	/* new strokes are added in viewport space */
-#define GP_DATA_VIEWALIGN	(1<<4)
-	/* Project into the screens Z values */
-#define GP_DATA_DEPTH_VIEW	(1<<5)
-#define GP_DATA_DEPTH_STROKE (1<<6)
+	GP_DATA_VIEWALIGN	= (1 << 4),
+	
+	/* Project into the screen's Z values */
+	GP_DATA_DEPTH_VIEW	= (1 << 5),
+	GP_DATA_DEPTH_STROKE = (1 << 6),
 
-#define GP_DATA_DEPTH_STROKE_ENDPOINTS (1<<7)
+	GP_DATA_DEPTH_STROKE_ENDPOINTS = (1 << 7),
+	
+	/* Stroke Editing Mode - Toggle to enable alternative keymap for easier editing of stroke points */
+	GP_DATA_STROKE_EDITMODE	= (1 << 8)
+} eGPdata_Flag;
 
 #endif /*  __DNA_GPENCIL_TYPES_H__ */

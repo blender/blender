@@ -182,6 +182,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 		case ANIMTYPE_DSLAT:
 		case ANIMTYPE_DSLINESTYLE:
 		case ANIMTYPE_DSSPK:
+		case ANIMTYPE_DSGPENCIL:
 		{
 			/* sanity checking... */
 			if (ale->adt) {

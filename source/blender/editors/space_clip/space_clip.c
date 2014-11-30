@@ -420,6 +420,9 @@ static void clip_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 				clip_scopes_check_gpencil_change(sa);
 				ED_area_tag_redraw(sa);
 			}
+			else if (wmn->data & ND_GPENCIL_EDITMODE) {
+				ED_area_tag_redraw(sa);
+			}
 			break;
 	}
 }
@@ -1245,6 +1248,8 @@ static void clip_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), AR
 		case NC_GPENCIL:
 			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
+			else if (wmn->data & ND_GPENCIL_EDITMODE)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -1495,7 +1500,7 @@ static void clip_properties_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(s
 	/* context changes */
 	switch (wmn->category) {
 		case NC_GPENCIL:
-			if (wmn->data == ND_DATA)
+			if (ELEM(wmn->data, ND_DATA, ND_GPENCIL_EDITMODE))
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:

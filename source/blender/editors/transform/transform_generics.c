@@ -961,6 +961,9 @@ void recalcData(TransInfo *t)
 	else if (t->options & CTX_PAINT_CURVE) {
 		flushTransPaintCurve(t);
 	}
+	else if (t->options & CTX_GPENCIL_STROKES) {
+		/* pass? */
+	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		recalcData_image(t);
 	}
@@ -1313,6 +1316,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			if (t->flag & T_MODAL) {
 				if ((t->options & CTX_NO_PET) == 0) {
 					if (t->obedit) {
+						t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional);
+					}
+					else if (t->options & CTX_GPENCIL_STROKES) {
 						t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional);
 					}
 					else if (t->options & CTX_MASK) {

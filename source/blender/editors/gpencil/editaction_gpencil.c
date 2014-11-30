@@ -251,6 +251,23 @@ void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
 	}
 }
 
+/* Set keyframe type for selected frames from given gp-layer 
+ * \param type The type of keyframe (eBezTriple_KeyframeType) to set selected frames to
+ */
+void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
+{
+	bGPDframe *gpf;
+	
+	if (gpl == NULL)
+		return;
+	
+	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+		if (gpf->flag & GP_FRAME_SELECT) {
+			gpf->key_type = type;
+		}
+	}
+}
+
 #if 0 // XXX disabled until grease pencil code stabilises again
 /* -------------------------------------- */
 /* Copy and Paste Tools */

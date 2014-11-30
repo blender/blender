@@ -1351,8 +1351,18 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 	}
 	if (flag & ED_KEYMAP_GPENCIL) {
 		/* grease pencil */
-		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
-		WM_event_add_keymap_handler(handlers, keymap);
+		/* NOTE: This is now 2 keymaps - One for basic functionality, 
+		 *       and one that only applies when "Edit Mode" is enabled 
+		 *       for strokes.
+		 *
+		 *       For now, it's easier to just include both, 
+		 *       since you hardly want one without the other.
+		 */
+		wmKeyMap *keymap_general = WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
+		wmKeyMap *keymap_edit = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Edit Mode", 0, 0);
+		
+		WM_event_add_keymap_handler(handlers, keymap_general);
+		WM_event_add_keymap_handler(handlers, keymap_edit);
 	}
 	if (flag & ED_KEYMAP_HEADER) {
 		/* standard keymap for headers regions */

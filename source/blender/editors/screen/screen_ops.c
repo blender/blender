@@ -43,6 +43,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mask_types.h"
@@ -2148,6 +2149,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
+	bGPdata *gpd = CTX_data_gpencil_data(C);
 	bDopeSheet ads = {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
@@ -2175,7 +2177,9 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
 	if (ob)
 		ob_to_keylist(&ads, ob, &keys, NULL);
-
+	
+	gpencil_to_keylist(&ads, gpd, &keys);
+	
 	{
 		Mask *mask = CTX_data_edit_mask(C);
 		if (mask) {

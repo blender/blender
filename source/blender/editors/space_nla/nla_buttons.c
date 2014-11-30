@@ -143,6 +143,7 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 			case ANIMTYPE_DSLAT:
 			case ANIMTYPE_DSLINESTYLE:
 			case ANIMTYPE_DSSPK:
+			case ANIMTYPE_DSGPENCIL:
 			{
 				/* for these channels, we only do AnimData */
 				if (ale->adt && adt_ptr) {

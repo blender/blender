@@ -2365,6 +2365,83 @@ static bAnimChannelType ACF_DSSPK =
 	acf_dsspk_setting_ptr                   /* pointer for setting */
 };
 
+/* GPencil Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dsgpencil_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_GREASEPENCIL;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dsgpencil_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
+{
+	/* clear extra return data first */
+	*neg = false;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return GP_DATA_EXPAND;
+		
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+		
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg = true;
+			return ADT_CURVES_NOT_VISIBLE;
+		
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dsgpencil_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+{
+	bGPdata *gpd = (bGPdata *)ale->data;
+	
+	/* clear extra return data first */
+	*type = 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return GET_ACF_FLAG_PTR(gpd->flag, type);
+		
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (gpd->adt)
+				return GET_ACF_FLAG_PTR(gpd->adt->flag, type);
+			return NULL;
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* grease pencil expander type define */
+static bAnimChannelType ACF_DSGPENCIL =
+{
+	"GPencil DS Expander",          /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
+	
+	acf_generic_dataexpand_color,   /* backdrop color */
+	acf_generic_dataexpand_backdrop, /* backdrop */
+	acf_generic_indention_1,        /* indent level */
+	acf_generic_basic_offset,       /* offset */
+
+	acf_generic_idblock_name,       /* name */
+	acf_generic_idblock_name_prop,  /* name prop */
+	acf_dsgpencil_icon,             /* icon */
+
+	acf_generic_dataexpand_setting_valid,   /* has setting */
+	acf_dsgpencil_setting_flag,             /* flag for setting */
+	acf_dsgpencil_setting_ptr               /* pointer for setting */
+};
+
 /* ShapeKey Entry  ------------------------------------------- */
 
 /* name for ShapeKey */
@@ -3162,6 +3239,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_DSLAT;        /* Lattice Channel */
 		animchannelTypeInfo[type++] = &ACF_DSLINESTYLE;  /* LineStyle Channel */
 		animchannelTypeInfo[type++] = &ACF_DSSPK;        /* Speaker Channel */
+		animchannelTypeInfo[type++] = &ACF_DSGPENCIL;    /* GreasePencil Channel */
 		
 		animchannelTypeInfo[type++] = &ACF_SHAPEKEY;     /* ShapeKey */
 		
@@ -3407,6 +3485,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	/* step 4) draw special toggles  .................................
 	 *	- in Graph Editor, checkboxes for visibility in curves area
 	 *	- in NLA Editor, glowing dots for solo/not solo...
+	 *	- in Grease Pencil mode, color swatches for layer color
 	 */
 	if (ac->sl) {
 		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
@@ -3430,6 +3509,10 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		else if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
 			/* just skip - drawn as widget now */
 			offset += ICON_WIDTH; 
+		}
+		else if (ale->type == ANIMTYPE_GPLAYER) {
+			/* just skip - drawn as a widget */
+			offset += ICON_WIDTH;
 		}
 	}
 
@@ -3866,6 +3949,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 	/* step 3) draw special toggles  .................................
 	 *	- in Graph Editor, checkboxes for visibility in curves area
 	 *	- in NLA Editor, glowing dots for solo/not solo...
+	 *	- in Grease Pencil mode, color swatches for layer color
 	 */
 	if (ac->sl) {
 		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
@@ -3877,6 +3961,23 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			/* 'solo' setting for NLA Tracks */
 			draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_SOLO);
 			offset += ICON_WIDTH; 
+		}
+		else if (ale->type == ANIMTYPE_GPLAYER) {
+			/* color swatch for layer color */
+			bGPDlayer *gpl = (bGPDlayer *)ale->data;
+			PointerRNA ptr;
+			
+			RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, &ptr);
+			
+			UI_block_emboss_set(block, UI_EMBOSS);
+			
+			uiDefButR(block, UI_BTYPE_COLOR, 1, "", offset, yminc, ICON_WIDTH, ICON_WIDTH, 
+			          &ptr, "color", -1, 
+					  0, 0, 0, 0, gpl->info);
+			
+			UI_block_emboss_set(block, UI_EMBOSS_NONE);
+			
+			offset += ICON_WIDTH;
 		}
 	}
 	

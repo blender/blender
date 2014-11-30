@@ -69,15 +69,18 @@
 
 /* Panels */
 
+#if 0
 static int clip_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	return sc->view == SC_VIEW_CLIP;
 }
+#endif
 
 void ED_clip_buttons_register(ARegionType *art)
 {
+#if 0
 	PanelType *pt;
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype clip panel gpencil");
@@ -89,6 +92,7 @@ void ED_clip_buttons_register(ARegionType *art)
 	pt->flag |= PNL_DEFAULT_CLOSED;
 	pt->poll = clip_grease_pencil_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
+#endif
 }
 
 /********************* MovieClip Template ************************/

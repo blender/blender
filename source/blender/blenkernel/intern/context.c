@@ -37,6 +37,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_object_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -1090,3 +1091,34 @@ int CTX_data_visible_pose_bones(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "visible_pose_bones", list);
 }
+
+bGPdata *CTX_data_gpencil_data(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "gpencil_data");
+}
+
+bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "active_gpencil_layer");
+}
+
+bGPDframe *CTX_data_active_gpencil_frame(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "active_gpencil_frame");
+}
+
+int CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "visible_gpencil_layers", list);
+}
+
+int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "editable_gpencil_layers", list);
+}
+
+int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "editable_gpencil_strokes", list);
+}
+

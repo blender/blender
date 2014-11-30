@@ -153,6 +153,7 @@ void ED_spacemacros_init(void)
 	ED_operatormacros_mask();
 	ED_operatormacros_sequencer();
 	ED_operatormacros_paint();
+	ED_operatormacros_gpencil();
 
 	/* register dropboxes (can use macros) */
 	spacetypes = BKE_spacetypes_list();

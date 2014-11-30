@@ -51,6 +51,7 @@
 
 /* **************************** buttons ********************************* */
 
+#if 0
 static int sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
@@ -58,9 +59,11 @@ static int sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNUS
 	/* don't show the gpencil if we are not showing the image */
 	return ED_space_sequencer_check_show_imbuf(sseq);
 }
+#endif
 
 void sequencer_buttons_register(ARegionType *art)
 {
+#if 0
 	PanelType *pt;
 	
 	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel gpencil");
@@ -71,6 +74,7 @@ void sequencer_buttons_register(ARegionType *art)
 	pt->draw = ED_gpencil_panel_standard;
 	pt->poll = sequencer_grease_pencil_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
+#endif
 }
 
 /* **************** operator to open/close properties view ************* */

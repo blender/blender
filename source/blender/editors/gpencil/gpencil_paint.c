@@ -86,6 +86,8 @@ typedef struct tGPsdata {
 	rctf *subrect;      /* for using the camera rect within the 3d view */
 	rctf subrect_data;
 	
+	GP_SpaceConversion gsc; /* settings to pass to gp_points_to_xy() */
+	
 	PointerRNA ownerPtr; /* pointer to owner of gp-datablock */
 	bGPdata *gpd;       /* gp-datablock layer comes from */
 	bGPDlayer *gpl;     /* layer we're working on */
@@ -875,58 +877,6 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p,
 	return false;
 }
 
-/* eraser tool - check if part of stroke occurs within last segment drawn by eraser */
-static short gp_stroke_eraser_strokeinside(const int mval[2], const int UNUSED(mvalo[2]),
-                                           int rad, int x0, int y0, int x1, int y1)
-{
-	/* simple within-radius check for now */
-	const float mval_fl[2]     = {mval[0], mval[1]};
-	const float screen_co_a[2] = {x0, y0};
-	const float screen_co_b[2] = {x1, y1};
-	
-	if (edge_inside_circle(mval_fl, rad, screen_co_a, screen_co_b)) {
-		return true;
-	}
-	
-	/* not inside */
-	return false;
-} 
-
-static void gp_point_to_xy(tGPsdata *p, bGPDstroke *gps, bGPDspoint *pt,
-                           int *r_x, int *r_y)
-{
-	ARegion *ar = p->ar;
-	View2D *v2d = p->v2d;
-	rctf *subrect = p->subrect;
-	int xyval[2];
-
-	if (gps->flag & GP_STROKE_3DSPACE) {
-		if (ED_view3d_project_int_global(ar, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-			*r_x = xyval[0];
-			*r_y = xyval[1];
-		}
-		else {
-			*r_x = V2D_IS_CLIPPED;
-			*r_y = V2D_IS_CLIPPED;
-		}
-	}
-	else if (gps->flag & GP_STROKE_2DSPACE) {
-		float vec[3] = {pt->x, pt->y, 0.0f};
-		mul_m4_v3(p->mat, vec);
-		UI_view2d_view_to_region_clip(v2d, vec[0], vec[1], r_x, r_y);
-	}
-	else {
-		if (subrect == NULL) { /* normal 3D view */
-			*r_x = (int)(pt->x / 100 * ar->winx);
-			*r_y = (int)(pt->y / 100 * ar->winy);
-		}
-		else { /* camera view, use subrect */
-			*r_x = (int)((pt->x / 100) * BLI_rctf_size_x(subrect)) + subrect->xmin;
-			*r_y = (int)((pt->y / 100) * BLI_rctf_size_y(subrect)) + subrect->ymin;
-		}
-	}
-}
-
 
 /* eraser tool - evaluation per stroke */
 /* TODO: this could really do with some optimization (KD-Tree/BVH?) */
@@ -945,7 +895,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 	else if (gps->totpoints == 1) {
-		gp_point_to_xy(p, gps, gps->points, &x0, &y0);
+		gp_point_to_xy(&p->gsc, gps, gps->points, &x0, &y0);
 		
 		/* do boundbox check first */
 		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
@@ -966,8 +916,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
 			
-			gp_point_to_xy(p, gps, pt1, &x0, &y0);
-			gp_point_to_xy(p, gps, pt2, &x1, &y1);
+			gp_point_to_xy(&p->gsc, gps, pt1, &x0, &y0);
+			gp_point_to_xy(&p->gsc, gps, pt2, &x1, &y1);
 			
 			/* check that point segment of the boundbox of the eraser stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
@@ -977,7 +927,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				 * eraser region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant
 				 */
-				if (gp_stroke_eraser_strokeinside(mval, mvalo, rad, x0, y0, x1, y1)) {
+				if (gp_stroke_inside_circle(mval, mvalo, rad, x0, y0, x1, y1)) {
 					if ((gp_stroke_eraser_is_occluded(p, pt1, x0, y0) == false) ||
 					    (gp_stroke_eraser_is_occluded(p, pt2, x1, y1) == false))
 					{
@@ -1068,6 +1018,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 	p->win = CTX_wm_window(C);
 
 	unit_m4(p->imat);
+	unit_m4(p->mat);
 	
 	switch (curarea->spacetype) {
 		/* supported views first */
@@ -1154,7 +1105,9 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 				p->imat[3][0] -= marker->pos[0];
 				p->imat[3][1] -= marker->pos[1];
 			}
+			
 			invert_m4_m4(p->mat, p->imat);
+			copy_m4_m4(p->gsc.mat, p->mat);
 			break;
 		}
 		/* unsupported views */
@@ -1290,7 +1243,21 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 			}
 		}
 	}
-
+	
+	/* init stroke point space-conversion settings... */
+	p->gsc.gpd = p->gpd;
+	p->gsc.gpl = p->gpl;
+	
+	p->gsc.sa = p->sa;
+	p->gsc.ar = p->ar;
+	p->gsc.v2d = p->v2d;
+	
+	p->gsc.subrect_data = p->subrect_data;
+	p->gsc.subrect = p->subrect;
+	
+	copy_m4_m4(p->gsc.mat, p->mat);
+	
+	
 	/* check if points will need to be made in view-aligned space */
 	if (p->gpd->flag & GP_DATA_VIEWALIGN) {
 		switch (p->sa->spacetype) {
@@ -1772,11 +1739,8 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	else
 		WM_cursor_modal_set(win, BC_PAINTBRUSHCURSOR);
 	
-	/* special hack: if there was an initial event, then we were invoked via a hotkey, and 
-	 * painting should start immediately. Otherwise, this was called from a toolbar, in which
-	 * case we should wait for the mouse to be clicked.
-	 */
-	if (event->val == KM_PRESS) {
+	/* only start drawing immediately if we're allowed to do so... */
+	if (RNA_boolean_get(op->ptr, "wait_for_input") == false) {
 		/* hotkey invoked - start drawing */
 		/* printf("\tGP - set first spot\n"); */
 		p->status = GP_STATUS_PAINTING;
@@ -1868,8 +1832,11 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
 	if (ISKEYBOARD(event->type)) {
-		if (ELEM(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY)) {
-			/* allow some keys - for frame changing: [#33412] */
+		if (ELEM(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY, ZKEY)) {
+			/* allow some keys:
+			 *   - for frame changing [#33412]
+			 *   - for undo (during sketching sessions)
+			 */
 		}
 		else {
 			estate = OPERATOR_RUNNING_MODAL;
@@ -2053,6 +2020,8 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
 	
 	/* settings for drawing */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to interpret mouse movements");
-	
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	
+	/* NOTE: wait for input is enabled by default, so that all UI code can work properly without needing users to know about this */
+	RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "Wait for first click instead of painting immediately");
 }

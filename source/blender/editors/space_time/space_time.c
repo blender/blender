@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -310,6 +311,9 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 		case ID_OB:
 			ob_to_keylist(&ads, (Object *)id, &keys, NULL);
 			break;
+		case ID_GD:
+			gpencil_to_keylist(&ads, (bGPdata *)id, &keys);
+			break;
 	}
 		
 	/* build linked-list for searching */
@@ -339,8 +343,15 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
+	bGPdata *gpd = CTX_data_gpencil_data(C);
 	View2D *v2d = &ar->v2d;
 	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);
+	
+	/* draw grease pencil keyframes (if available) */
+	if (gpd) {
+		glColor3ub(0xB5, 0xE6, 0x1D);
+		time_draw_idblock_keyframes(v2d, (ID *)gpd, onlysel);
+	}
 	
 	/* draw scene keyframes first 
 	 *	- don't try to do this when only drawing active/selected data keyframes,

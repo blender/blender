@@ -120,8 +120,9 @@ void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Obje
 void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos);
 /* DopeSheet Summary */
 void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos);
-/* Grease Pencil Layer */ 
-// XXX not restored 
+/* Grease Pencil datablock summary */
+void draw_gpencil_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPdata *gpd, float ypos);
+/* Grease Pencil Layer */
 void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos);
 /* Mask Layer */
 void draw_masklay_channel(struct View2D *v2d, struct bDopeSheet *ads, struct MaskLayer *masklay, float ypos);
@@ -139,11 +140,11 @@ void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree 
 void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 /* DopeSheet Summary */
 void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* Grease Pencil datablock summary */
+void gpencil_to_keylist(struct bDopeSheet *ads, struct bGPdata *gpd, struct DLRBT_Tree *keys);
 /* Grease Pencil Layer */
-// XXX not restored
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys);
 /* Mask */
-// XXX not restored
 void mask_to_keylist(struct bDopeSheet *UNUSED(ads), struct MaskLayer *masklay, struct DLRBT_Tree *keys);
 
 /* ActKeyColumn API ---------------- */

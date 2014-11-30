@@ -2013,6 +2013,12 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			options |= CTX_TEXTURE;
 		}
 	}
+	
+	if ((prop = RNA_struct_find_property(op->ptr, "gpencil_strokes")) && RNA_property_is_set(op->ptr, prop)) {
+		if (RNA_property_boolean_get(op->ptr, prop)) {
+			options |= CTX_GPENCIL_STROKES;
+		}
+	}
 
 	t->options = options;
 

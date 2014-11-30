@@ -30,6 +30,7 @@
 #ifndef __ED_GPENCIL_H__
 #define __ED_GPENCIL_H__
 
+struct ID;
 struct ListBase;
 struct bContext;
 struct bScreen;
@@ -38,6 +39,7 @@ struct ARegion;
 struct View3D;
 struct SpaceNode;
 struct SpaceSeq;
+struct Object;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
@@ -65,14 +67,26 @@ typedef struct tGPspoint {
 
 /* ----------- Grease Pencil Tools/Context ------------- */
 
+/* Context-dependent */
 struct bGPdata **ED_gpencil_data_get_pointers(const struct bContext *C, struct PointerRNA *ptr);
 struct bGPdata  *ED_gpencil_data_get_active(const struct bContext *C);
+
+/* Context independent (i.e. each required part is passed in instead) */
+struct bGPdata **ED_gpencil_data_get_pointers_direct(struct ID *screen_id, struct Scene *scene,
+                                                     struct ScrArea *sa, struct Object *ob,
+                                                     struct PointerRNA *ptr);
+struct bGPdata *ED_gpencil_data_get_active_direct(struct ID *screen_id, struct Scene *scene,
+                                                  struct ScrArea *sa, struct Object *ob);
+
+/* 3D View */
 struct bGPdata  *ED_gpencil_data_get_active_v3d(struct Scene *scene, struct View3D *v3d);
 
 /* ----------- Grease Pencil Operators ----------------- */
 
 void ED_keymap_gpencil(struct wmKeyConfig *keyconf);
+
 void ED_operatortypes_gpencil(void);
+void ED_operatormacros_gpencil(void);
 
 /* ------------ Grease-Pencil Drawing API ------------------ */
 /* drawgpencil.c */
@@ -98,6 +112,8 @@ void  ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode
 
 bool  ED_gplayer_frames_delete(struct bGPDlayer *gpl);
 void  ED_gplayer_frames_duplicate(struct bGPDlayer *gpl);
+
+void ED_gplayer_frames_keytype_set(struct bGPDlayer *gpl, short type);
 
 void  ED_gplayer_snap_frames(struct bGPDlayer *gpl, struct Scene *scene, short mode);
 

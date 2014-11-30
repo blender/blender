@@ -541,7 +541,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_ONLYNLA          = (1 << 2),   /* for 'NLA' editor - only include NLA data from AnimData */
 	ADS_FILTER_SELEDIT          = (1 << 3),   /* for Graph Editor - used to indicate whether to include a filtering flag or not */
 
-	/* general filtering 2 */
+	/* general filtering */
 	ADS_FILTER_SUMMARY          = (1 << 4),   /* for 'DopeSheet' Editors - include 'summary' line */
 	ADS_FILTER_ONLYOBGROUP      = (1 << 5),   /* only the objects in the specified object group get used */
 
@@ -564,6 +564,8 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_NOSPK            = (1 << 21),
 	ADS_FILTER_NOLINESTYLE      = (1 << 22),
 	ADS_FILTER_NOMODIFIERS      = (1 << 23),
+	ADS_FILTER_NOGPENCIL        = (1 << 24),
+	/* NOTE: all new datablock filters will have to go in filterflag2 (see below) */
 
 	/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT        = (1 << 25),  /* if the AnimData block has no NLA data, don't include to just show Action-line */
@@ -581,6 +583,8 @@ typedef enum eDopeSheet_FilterFlag {
 typedef enum eDopeSheet_Flag {
 	ADS_FLAG_SUMMARY_COLLAPSED  = (1 << 0),   /* when summary is shown, it is collapsed, so all other channels get hidden */
 	ADS_FLAG_SHOW_DBFILTERS     = (1 << 1)    /* show filters for datablocks */
+	
+	/* NOTE: datablock filter flags continued (1 << 10) onwards... */
 } eDopeSheet_Flag;
 
 

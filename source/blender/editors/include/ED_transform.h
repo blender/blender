@@ -99,6 +99,7 @@ enum TfmMode {
 #define CTX_MOVIECLIP       (1 << 6)
 #define CTX_MASK            (1 << 7)
 #define CTX_PAINT_CURVE     (1 << 8)
+#define CTX_GPENCIL_STROKES (1 << 9)
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
@@ -146,6 +147,7 @@ int BIF_countTransformOrientation(const struct bContext *C);
 #define P_CORRECT_UV    (1 << 8)
 #define P_NO_DEFAULTS   (1 << 10)
 #define P_NO_TEXSPACE   (1 << 11)
+#define P_GPENCIL_EDIT  (1 << 12)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 

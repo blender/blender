@@ -462,6 +462,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Speaker", "Include visualization of speaker related animation data");
 	RNA_def_property_ui_icon(prop, ICON_SPEAKER, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
+	prop = RNA_def_property(srna, "show_gpencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOGPENCIL);
+	RNA_def_property_ui_text(prop, "Display Grease Pencil", "Include visualization of Grease Pencil related animation data and frames");
+	RNA_def_property_ui_icon(prop, ICON_GREASEPENCIL, 0);
+	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 }
 
 static void rna_def_action_group(BlenderRNA *brna)

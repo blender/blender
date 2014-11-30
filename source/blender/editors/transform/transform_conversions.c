@@ -105,6 +105,7 @@
 #include "ED_uvedit.h"
 #include "ED_clip.h"
 #include "ED_mask.h"
+#include "ED_gpencil.h"
 
 #include "WM_api.h"  /* for WM_event_add_notifier to deal with stabilization nodes */
 #include "WM_types.h"
@@ -5613,7 +5614,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 
 
-	if (t->spacetype == SPACE_SEQ) {
+	if (t->options & CTX_GPENCIL_STROKES) {
+		/* pass */
+	}
+	else if (t->spacetype == SPACE_SEQ) {
 		/* freeSeqData in transform_conversions.c does this
 		 * keep here so the else at the end wont run... */
 
@@ -7280,6 +7284,230 @@ void flushTransPaintCurve(TransInfo *t)
 }
 
 
+static void createTransGPencil(bContext *C, TransInfo *t)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl;
+	TransData *td = NULL;
+	float mtx[3][3], smtx[3][3];
+	
+	const Scene *scene = CTX_data_scene(C);
+	const int cfra = CFRA;
+	
+	const int propedit = (t->flag & T_PROP_EDIT);
+	const int propedit_connected = (t->flag & T_PROP_CONNECTED);
+	
+	
+	/* == Grease Pencil Strokes to Transform Data ==
+	 * Grease Pencil stroke points can be a mixture of 2D (screen-space),
+	 * or 3D coordinates. However, they're always saved as 3D points.
+	 * For now, we just do these without creating TransData2D for the 2D
+	 * strokes. This may cause issues in future though.
+	 */
+	t->total = 0;
+	
+	if (gpd == NULL)
+		return;
+	
+	/* First Pass: Count the number of datapoints required for the strokes, 
+	 * (and additional info about the configuration - e.g. 2D/3D?)
+	 */
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		/* only editable and visible layers are considered */
+		if ((gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) == 0 &&
+		    (gpl->actframe != NULL))
+		{
+			bGPDframe *gpf = gpl->actframe;
+			bGPDstroke *gps;
+			
+			for (gps = gpf->strokes.first; gps; gps = gps->next) {
+				if (propedit) {
+					/* Proportional Editing... */
+					if (propedit_connected) {
+						/* connected only - so only if selected */
+						if (gps->flag & GP_STROKE_SELECT)
+							t->total += gps->totpoints;
+					}
+					else {
+						/* everything goes - connection status doesn't matter */
+						t->total += gps->totpoints;
+					}
+				}
+				else {
+					/* only selected stroke points are considered */
+					if (gps->flag & GP_STROKE_SELECT) {
+						bGPDspoint *pt;
+						int i;
+						
+						// TODO: 2D vs 3D?
+						for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+							if (pt->flag & GP_SPOINT_SELECT)
+								t->total++;
+						}
+					}
+				}				
+			}
+		}
+	}
+	
+	/* Stop trying if nothing selected */
+	if (t->total == 0) {
+		return;
+	}
+	
+	/* Allocate memory for data */
+	t->data = MEM_callocN(t->total * sizeof(TransData), "TransData(GPencil)");
+	td = t->data;
+	
+	unit_m3(smtx);
+	unit_m3(mtx);
+	
+	/* Second Pass: Build transdata array */
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		/* only editable and visible layers are considered */
+		if ((gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) == 0 &&
+		    (gpl->actframe != NULL))
+		{
+			bGPDframe *gpf = gpl->actframe;
+			bGPDstroke *gps;
+			
+			/* Make a new frame to work on if the layer's frame and the current scene frame don't match up 
+			 * - This is useful when animating as it saves that "uh-oh" moment when you realise you've
+			 *   spent too much time editing the wrong frame...
+			 */
+			// XXX: should this be allowed when framelock is enabled?
+			if (gpf->framenum != cfra) {
+				bGPDframe *new_frame = gpencil_frame_duplicate(gpf);
+				bGPDframe *gf;
+				bool found = false;
+				
+				/* Find frame to insert it before */
+				for (gf = gpf->next; gf; gf = gf->next) {
+					if (gf->framenum > cfra) {
+						/* Add it here */
+						BLI_insertlinkbefore(&gpl->frames, gf, new_frame);
+						
+						found = true;
+						break;
+					}
+					else if (gf->framenum == cfra) {
+						/* This only happens when we're editing with framelock on...
+						 * - Delete the new frame and don't do anything else here...
+						 */
+						//printf("GP Frame convert to TransData - Copy aborted for frame %d -> %d\n", gpf->framenum, gf->framenum);
+						free_gpencil_strokes(new_frame);
+						MEM_freeN(new_frame);
+						new_frame = NULL;
+						
+						found = true;
+						break;
+					}
+				}
+				
+				if (found == false) {
+					/* Add new frame to the end */
+					BLI_addtail(&gpl->frames, new_frame);
+				}
+				
+				/* Edit the new frame instead, if it did get created + added */
+				if (new_frame) {
+					// TODO: tag this one as being "newly created" so that we can remove it if the edit is cancelled
+					new_frame->framenum = cfra;
+					
+					gpf = new_frame;
+				}
+			}
+			
+			/* Loop over strokes, adding TransData for points as needed... */
+			for (gps = gpf->strokes.first; gps; gps = gps->next) {
+				TransData *head = td;
+				TransData *tail = td;
+				bool stroke_ok;
+				
+				/* What we need to include depends on proportional editing settings... */
+				if (propedit) {
+					if (propedit_connected) {
+						/* A) "Connected" - Only those in selected strokes */
+						stroke_ok = (gps->flag & GP_STROKE_SELECT) != 0;
+					}
+					else {
+						/* B) All points, always */
+						stroke_ok = true;
+					}
+				}
+				else {
+					/* C) Only selected points in selected strokes */
+					stroke_ok = (gps->flag & GP_STROKE_SELECT) != 0;
+				}
+				
+				/* Do stroke... */
+				if (stroke_ok && gps->totpoints) {
+					bGPDspoint *pt;
+					int i;
+					
+#if 0	/* XXX: this isn't needed anymore; cannot calculate center this way or propedit breaks */				
+					const float ninv = 1.0f / gps->totpoints;
+					float center[3] = {0.0f};
+					
+					/* compute midpoint of stroke */
+					for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+						madd_v3_v3v3fl(center, center, &pt->x, ninv);
+					}
+#endif
+					
+					/* add all necessary points... */
+					for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+						bool point_ok;
+						
+						/* include point? */
+						if (propedit) {
+							/* Always all points in strokes that get included */
+							point_ok = true;
+						}
+						else {
+							/* Only selected points in selected strokes */
+							point_ok = (pt->flag & GP_SPOINT_SELECT) != 0;
+						}
+						
+						/* do point... */
+						if (point_ok) {
+							copy_v3_v3(td->iloc, &pt->x);
+							copy_v3_v3(td->center, &pt->x); // XXX: what about  t->around == local?
+							
+							td->loc = &pt->x;
+							
+							td->flag = 0;
+							
+							if (pt->flag & GP_SPOINT_SELECT)
+								td->flag |= TD_SELECTED;
+							
+							/* configure 2D points so that they don't play up... */
+							if (gps->flag & (GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) {
+								td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
+								// XXX: matrices may need to be different?
+							}
+							
+							copy_m3_m3(td->smtx, smtx);
+							copy_m3_m3(td->mtx, mtx);
+							unit_m3(td->axismtx); // XXX?
+							
+							td++;
+							tail++;
+						}
+					}
+					
+					/* March over these points, and calculate the proportional editing distances */
+					if (propedit && (head != tail)) {
+						/* XXX: for now, we are similar enough that this works... */
+						calc_distanceCurveVerts(head, tail - 1);
+					}
+				}
+			}
+		}
+	}
+}
+
+
 void createTransData(bContext *C, TransInfo *t)
 {
 	Scene *scene = t->scene;
@@ -7295,6 +7523,16 @@ void createTransData(bContext *C, TransInfo *t)
 		t->flag |= T_EDIT;
 		createTransEdge(t);
 		if (t->data && t->flag & T_PROP_EDIT) {
+			sort_trans_data(t); // makes selected become first in array
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
+	}
+	else if (t->options & CTX_GPENCIL_STROKES) {
+		t->flag |= T_POINTS; // XXX...
+		createTransGPencil(C, t);
+		
+		if (t->data && (t->flag & T_PROP_EDIT)) {
 			sort_trans_data(t); // makes selected become first in array
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
