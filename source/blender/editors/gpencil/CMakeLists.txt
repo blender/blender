@@ -39,7 +39,6 @@ set(INC_SYS
 set(SRC
 	drawgpencil.c
 	editaction_gpencil.c
-	gpencil_buttons.c
 	gpencil_edit.c
 	gpencil_ops.c
 	gpencil_paint.c

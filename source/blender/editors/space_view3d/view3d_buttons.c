@@ -1185,16 +1185,6 @@ void view3d_buttons_register(ARegionType *art)
 	pt->poll = view3d_panel_transform_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
-#if 0
-	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
-	strcpy(pt->idname, "VIEW3D_PT_gpencil");
-	strcpy(pt->label, N_("Grease Pencil"));  /* XXX C panels are not available through RNA (bpy.types)! */
-	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw_header = ED_gpencil_panel_standard_header;
-	pt->draw = ED_gpencil_panel_standard;
-	BLI_addtail(&art->paneltypes, pt);
-#endif
-
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel vgroup");
 	strcpy(pt->idname, "VIEW3D_PT_vgroup");
 	strcpy(pt->label, N_("Vertex Weights"));  /* XXX C panels are not available through RNA (bpy.types)! */
