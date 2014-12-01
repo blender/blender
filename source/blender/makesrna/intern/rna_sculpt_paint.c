@@ -289,7 +289,8 @@ static char *rna_ParticleBrush_path(PointerRNA *UNUSED(ptr))
 
 static void rna_Paint_brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Brush *br = (Brush *)ptr->data;
+	Paint *paint = ptr->data;
+	Brush *br = paint->brush;
 	BKE_paint_invalidate_overlay_all();
 	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 }
