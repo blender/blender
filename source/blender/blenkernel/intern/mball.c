@@ -2436,10 +2436,10 @@ bool BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
 
 	if (BKE_mball_minmax(mb, min, max)) {
 		mid_v3_v3v3(r_cent, min, max);
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 void BKE_mball_transform(MetaBall *mb, float mat[4][4])

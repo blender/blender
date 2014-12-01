@@ -567,7 +567,7 @@ bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
 	
 	/* sanity checks */
 	if ((strips == NULL) || IS_EQF(start, end))
-		return 0;
+		return false;
 	if (start > end) {
 		puts("BKE_nlastrips_has_space() error... start and end arguments swapped");
 		SWAP(float, start, end);
@@ -579,17 +579,17 @@ bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
 		 * we've gone past the window we need to check for, so things are fine
 		 */
 		if (strip->start >= end)
-			return 1;
+			return true;
 		
 		/* if the end of the strip is greater than either of the boundaries, the range
 		 * must fall within the extents of the strip
 		 */
 		if ((strip->end > start) || (strip->end > end))
-			return 0;
+			return false;
 	}
 	
 	/* if we are still here, we haven't encountered any overlapping strips */
-	return 1;
+	return true;
 }
 
 /* Rearrange the strips in the track so that they are always in order 
@@ -646,11 +646,11 @@ bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
 	
 	/* sanity checks */
 	if (ELEM(NULL, strips, strip))
-		return 0;
+		return false;
 		
 	/* check if any space to add */
 	if (BKE_nlastrips_has_space(strips, strip->start, strip->end) == 0)
-		return 0;
+		return false;
 	
 	/* find the right place to add the strip to the nominated track */
 	for (ns = strips->first; ns; ns = ns->next) {
@@ -667,7 +667,7 @@ bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
 	}
 	
 	/* added... */
-	return 1;
+	return true;
 }
 
 
@@ -785,11 +785,11 @@ bool BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 {
 	/* sanity checks */
 	if (ELEM(NULL, mstrip, strip))
-		return 0;
+		return false;
 		
 	/* firstly, check if the meta-strip has space for this */
 	if (BKE_nlastrips_has_space(&mstrip->strips, strip->start, strip->end) == 0)
-		return 0;
+		return false;
 		
 	/* check if this would need to be added to the ends of the meta,
 	 * and subsequently, if the neighboring strips allow us enough room
@@ -803,10 +803,10 @@ bool BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 			BLI_addhead(&mstrip->strips, strip);
 			mstrip->start = strip->start;
 			
-			return 1;
+			return true;
 		}
 		else /* failed... no room before */
-			return 0;
+			return false;
 	}
 	else if (strip->end > mstrip->end) {
 		/* check if strip to the right (if it exists) starts before the 
@@ -817,10 +817,10 @@ bool BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 			BLI_addtail(&mstrip->strips, strip);
 			mstrip->end = strip->end;
 			
-			return 1;
+			return true;
 		}
 		else /* failed... no room after */
-			return 0;
+			return false;
 	}
 	else {
 		/* just try to add to the meta-strip (no dimension changes needed) */
@@ -988,7 +988,7 @@ bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
 	 *  - bounds cannot be equal (0-length is nasty)
 	 */
 	if ((nlt == NULL) || (nlt->flag & NLATRACK_PROTECTED) || IS_EQF(start, end))
-		return 0;
+		return false;
 	
 	if (start > end) {
 		puts("BKE_nlatrack_has_space() error... start and end arguments swapped");
@@ -1019,7 +1019,7 @@ bool BKE_nlatrack_add_strip(NlaTrack *nlt, NlaStrip *strip)
 {
 	/* sanity checks */
 	if (ELEM(NULL, nlt, strip))
-		return 0;
+		return false;
 		
 	/* try to add the strip to the track using a more generic function */
 	return BKE_nlastrips_add_strip(&nlt->strips, strip);
@@ -1036,11 +1036,11 @@ bool BKE_nlatrack_get_bounds(NlaTrack *nlt, float bounds[2])
 	if (bounds)
 		bounds[0] = bounds[1] = 0.0f;
 	else
-		return 0;
+		return false;
 	
 	/* sanity checks */
 	if (ELEM(NULL, nlt, nlt->strips.first))
-		return 0;
+		return false;
 		
 	/* lower bound is first strip's start frame */
 	strip = nlt->strips.first;
@@ -1051,7 +1051,7 @@ bool BKE_nlatrack_get_bounds(NlaTrack *nlt, float bounds[2])
 	bounds[1] = strip->end;
 	
 	/* done */
-	return 1;
+	return true;
 }
 
 /* NLA Strips -------------------------------------- */
@@ -1105,7 +1105,7 @@ bool BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
 	
 	/* sanity checks */
 	if ((strip == NULL) || IS_EQF(stripLen, 0.0f) || IS_EQF(boundsLen, 0.0f))
-		return 0;
+		return false;
 	
 	/* only ok if at least part of the strip is within the bounding window
 	 *	- first 2 cases cover when the strip length is less than the bounding area
@@ -1115,17 +1115,17 @@ bool BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
 	    !(IN_RANGE(strip->start, min, max) ||
 	      IN_RANGE(strip->end, min, max)))
 	{
-		return 0;
+		return false;
 	}
 	if ((stripLen > boundsLen) &&
 	    !(IN_RANGE(min, strip->start, strip->end) ||
 	      IN_RANGE(max, strip->start, strip->end)) )
 	{
-		return 0;
+		return false;
 	}
 	
 	/* should be ok! */
-	return 1;
+	return true;
 }
 
 
@@ -1209,11 +1209,11 @@ static bool nlastrip_is_first(AnimData *adt, NlaStrip *strip)
 	
 	/* sanity checks */
 	if (ELEM(NULL, adt, strip))
-		return 0;
+		return false;
 		
 	/* check if strip has any strips before it */
 	if (strip->prev)
-		return 0;
+		return false;
 		
 	/* check other tracks to see if they have a strip that's earlier */
 	/* TODO: or should we check that the strip's track is also the first? */
@@ -1222,12 +1222,12 @@ static bool nlastrip_is_first(AnimData *adt, NlaStrip *strip)
 		ns = nlt->strips.first;
 		if (ns) {
 			if (ns->start < strip->start)
-				return 0;
+				return false;
 		}
 	}
 	
 	/* should be first now */
-	return 1;
+	return true;
 }
 
 /* Animated Strips ------------------------------------------- */
@@ -1239,16 +1239,16 @@ bool BKE_nlatrack_has_animated_strips(NlaTrack *nlt)
 	
 	/* sanity checks */
 	if (ELEM(NULL, nlt, nlt->strips.first))
-		return 0;
+		return false;
 		
 	/* check each strip for F-Curves only (don't care about whether the flags are set) */
 	for (strip = nlt->strips.first; strip; strip = strip->next) {
 		if (strip->fcurves.first)
-			return 1;
+			return true;
 	}
 	
 	/* none found */
-	return 0;
+	return false;
 }
 
 /* Check if given NLA-Tracks have any strips with own F-Curves */
@@ -1258,16 +1258,16 @@ bool BKE_nlatracks_have_animated_strips(ListBase *tracks)
 	
 	/* sanity checks */
 	if (ELEM(NULL, tracks, tracks->first))
-		return 0;
+		return false;
 		
 	/* check each track, stopping on the first hit */
 	for (nlt = tracks->first; nlt; nlt = nlt->next) {
 		if (BKE_nlatrack_has_animated_strips(nlt))
-			return 1;
+			return true;
 	}
 	
 	/* none found */
-	return 0;
+	return false;
 }
 
 /* Validate the NLA-Strips 'control' F-Curves based on the flags set*/
@@ -1587,13 +1587,13 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 	
 	/* verify that data is valid */
 	if (ELEM(NULL, adt, adt->nla_tracks.first))
-		return 0;
+		return false;
 		
 	/* if block is already in tweakmode, just leave, but we should report 
 	 * that this block is in tweakmode (as our returncode)
 	 */
 	if (adt->flag & ADT_NLA_EDIT_ON)
-		return 1;
+		return true;
 		
 	/* go over the tracks, finding the active one, and its active strip
 	 *  - if we cannot find both, then there's nothing to do
@@ -1642,7 +1642,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 			printf("NLA tweakmode enter - neither active requirement found\n");
 			printf("\tactiveTrack = %p, activeStrip = %p\n", (void *)activeTrack, (void *)activeStrip);
 		}
-		return 0;
+		return false;
 	}
 		
 	/* go over all the tracks up to the active one, tagging each strip that uses the same 
@@ -1677,7 +1677,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 	adt->flag |= ADT_NLA_EDIT_ON;
 	
 	/* done! */
-	return 1;
+	return true;
 }
 
 /* Exit tweakmode for this AnimData block */

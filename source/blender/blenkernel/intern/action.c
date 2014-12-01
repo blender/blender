@@ -1028,12 +1028,12 @@ bool action_has_motion(const bAction *act)
 	if (act) {
 		for (fcu = act->curves.first; fcu; fcu = fcu->next) {
 			if (fcu->totvert)
-				return 1;
+				return true;
 		}
 	}
 	
 	/* nothing found */
-	return 0;
+	return false;
 }
 
 /* Calculate the extents of given action */

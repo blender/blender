@@ -1171,7 +1171,7 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 	
 	/* sanity check */
 	if (fcm == NULL)
-		return 0;
+		return false;
 	
 	/* free modifier's special data (stored inside fcm->data) */
 	if (fcm->data) {
@@ -1185,13 +1185,13 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 	/* remove modifier from stack */
 	if (modifiers) {
 		BLI_freelinkN(modifiers, fcm);
-		return 1;
+		return true;
 	}
 	else {
 		/* XXX this case can probably be removed some day, as it shouldn't happen... */
 		printf("remove_fmodifier() - no modifier stack given\n");
 		MEM_freeN(fcm);
-		return 0;
+		return false;
 	}
 }
 
@@ -1262,7 +1262,7 @@ bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 		
 	/* sanity checks */
 	if (ELEM(NULL, modifiers, modifiers->first))
-		return 0;
+		return false;
 		
 	/* find the first mdifier fitting these criteria */
 	for (fcm = modifiers->first; fcm; fcm = fcm->next) {
@@ -1277,11 +1277,11 @@ bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 			
 		/* if both are ok, we've found a hit */
 		if (mOk && aOk)
-			return 1;
+			return true;
 	}
 	
 	/* no matches */
-	return 0;
+	return false;
 }  
 
 /* Evaluation API --------------------------- */

@@ -1798,7 +1798,8 @@ bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 	const int n = index - CustomData_get_layer_index(data, type);
 	int i;
 	
-	if (index < 0) return 0;
+	if (index < 0)
+		return false;
 
 	customData_free_layer__internal(&data->layers[index], totelem);
 
@@ -1828,14 +1829,15 @@ bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 
 	customData_update_offsets(data);
 
-	return 1;
+	return true;
 }
 
 bool CustomData_free_layer_active(CustomData *data, int type, int totelem)
 {
 	int index = 0;
 	index = CustomData_get_active_layer_index(data, type);
-	if (index == -1) return 0;
+	if (index == -1)
+		return false;
 	return CustomData_free_layer(data, type, totelem, index);
 }
 
@@ -1942,7 +1944,8 @@ bool CustomData_is_referenced_layer(struct CustomData *data, int type)
 
 	/* get the layer index of the first layer of type */
 	layer_index = CustomData_get_active_layer_index(data, type);
-	if (layer_index == -1) return 0;
+	if (layer_index == -1)
+		return false;
 
 	layer = &data->layers[layer_index];
 
@@ -2260,8 +2263,8 @@ bool CustomData_set_layer_name(const CustomData *data, int type, int n, const ch
 	/* get the layer index of the first layer of type */
 	int layer_index = CustomData_get_layer_index_n(data, type, n);
 
-	if (layer_index == -1) return false;
-	if (!name) return false;
+	if ((layer_index == -1) || !name)
+		return false;
 	
 	BLI_strncpy(data->layers[layer_index].name, name, sizeof(data->layers[layer_index].name));
 	

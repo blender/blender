@@ -954,7 +954,7 @@ static bool subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int
 
 	/* if other is dynamic paint canvas, don't update */
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN))
-		return 1;
+		return true;
 
 	/* if object has parents, update them too */
 	if (parent_recursion) {
@@ -966,7 +966,7 @@ static bool subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int
 		/* skip subframe if object is parented
 		 *  to vertex of a dynamic paint canvas */
 		if (is_domain && (ob->partype == PARVERT1 || ob->partype == PARVERT3))
-			return 0;
+			return false;
 
 		/* also update constraint targets */
 		for (con = ob->constraints.first; con; con = con->next) {
@@ -1012,7 +1012,7 @@ static bool subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int
 		BKE_pose_where_is(scene, ob);
 	}
 
-	return 0;
+	return false;
 }
 
 /**********************************************************

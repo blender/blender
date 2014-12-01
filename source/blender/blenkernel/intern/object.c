@@ -1136,7 +1136,7 @@ static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
 
 bool BKE_object_lod_is_usable(Object *ob, Scene *scene)
 {
-	bool active = (scene) ? ob == OBACT : 0;
+	bool active = (scene) ? ob == OBACT : false;
 	return (ob->mode == OB_MODE_OBJECT || !active);
 }
 
@@ -1402,10 +1402,10 @@ bool BKE_object_pose_context_check(Object *ob)
 	    (ob->pose) &&
 	    (ob->mode & OB_MODE_POSE))
 	{
-		return 1;
+		return true;
 	}
 	else {
-		return 0;
+		return false;
 	}
 }
 
@@ -2401,7 +2401,7 @@ static bool where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat
 
 	/* include framerate */
 	fac1 = (1.0f / (1.0f + fabsf(ob->sf)));
-	if (fac1 >= 1.0f) return 0;
+	if (fac1 >= 1.0f) return false;
 	fac2 = 1.0f - fac1;
 
 	fp1 = obmat[0];
@@ -2410,7 +2410,7 @@ static bool where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat
 		fp1[0] = fac1 * fp1[0] + fac2 * fp2[0];
 	}
 
-	return 1;
+	return true;
 }
 
 /* note, scene is the active scene while actual_scene is the scene the object resides in */

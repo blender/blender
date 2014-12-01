@@ -1515,7 +1515,7 @@ static bool max_undo_test(Text *text, int x)
 			/* XXX error("Undo limit reached, buffer cleared\n"); */
 			MEM_freeN(text->undo_buf);
 			init_undo_text(text);
-			return 0;
+			return false;
 		}
 		else {
 			void *tmp = text->undo_buf;
@@ -1526,7 +1526,7 @@ static bool max_undo_test(Text *text, int x)
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 #if 0  /* UNUSED */
@@ -2550,13 +2550,13 @@ static bool txt_add_char_intern(Text *text, unsigned int add, bool replace_tabs)
 
 	if (add == '\n') {
 		txt_split_curline(text);
-		return 1;
+		return true;
 	}
 	
 	/* insert spaces rather than tabs */
 	if (add == '\t' && replace_tabs) {
 		txt_convert_tab_to_spaces(text);
-		return 1;
+		return true;
 	}
 
 	txt_delete_sel(text);
@@ -2605,7 +2605,7 @@ bool txt_replace_char(Text *text, unsigned int add)
 	size_t del_size = 0, add_size;
 	char ch[BLI_UTF8_MAX];
 
-	if (!text->curl) return 0;
+	if (!text->curl) return false;
 
 	/* If text is selected or we're at the end of the line just use txt_add_char */
 	if (text->curc == text->curl->len || txt_has_sel(text) || add == '\n') {
@@ -2644,7 +2644,7 @@ bool txt_replace_char(Text *text, unsigned int add)
 		text->curc += add_size;
 		txt_pop_sel(text);
 	}
-	return 1;
+	return true;
 }
 
 void txt_indent(Text *text)
@@ -2979,37 +2979,37 @@ bool text_check_delim(const char ch)
 
 	for (a = 0; a < (sizeof(delims) - 1); a++) {
 		if (ch == delims[a])
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 bool text_check_digit(const char ch)
 {
-	if (ch < '0') return 0;
-	if (ch <= '9') return 1;
-	return 0;
+	if (ch < '0') return false;
+	if (ch <= '9') return true;
+	return false;
 }
 
 bool text_check_identifier(const char ch)
 {
-	if (ch < '0') return 0;
-	if (ch <= '9') return 1;
-	if (ch < 'A') return 0;
-	if (ch <= 'Z' || ch == '_') return 1;
-	if (ch < 'a') return 0;
-	if (ch <= 'z') return 1;
-	return 0;
+	if (ch < '0') return false;
+	if (ch <= '9') return true;
+	if (ch < 'A') return false;
+	if (ch <= 'Z' || ch == '_') return true;
+	if (ch < 'a') return false;
+	if (ch <= 'z') return true;
+	return false;
 }
 
 bool text_check_identifier_nodigit(const char ch)
 {
-	if (ch <= '9') return 0;
-	if (ch < 'A') return 0;
-	if (ch <= 'Z' || ch == '_') return 1;
-	if (ch < 'a') return 0;
-	if (ch <= 'z') return 1;
-	return 0;
+	if (ch <= '9') return false;
+	if (ch < 'A') return false;
+	if (ch <= 'Z' || ch == '_') return true;
+	if (ch < 'a') return false;
+	if (ch <= 'z') return true;
+	return false;
 }
 
 #ifndef WITH_PYTHON
@@ -3027,8 +3027,8 @@ int text_check_identifier_nodigit_unicode(const unsigned int ch)
 bool text_check_whitespace(const char ch)
 {
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 int text_find_identifier_start(const char *str, int i)

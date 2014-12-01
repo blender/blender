@@ -253,20 +253,20 @@ static int dynamicPaint_surfaceNumOfPoints(DynamicPaintSurface *surface)
 bool dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface)
 {
 	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
-		return 0;
+		return false;
 	}
 	else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 		    surface->type == MOD_DPAINT_SURFACE_T_WAVE)
 		{
-			return 0;
+			return false;
 		}
 		else {
-			return 1;
+			return true;
 		}
 	}
 	else {
-		return 1;
+		return true;
 	}
 }
 
@@ -321,7 +321,7 @@ bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object 
 	else if (output == 1)
 		name = surface->output_name2;
 	else
-		return 0;
+		return false;
 
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
@@ -332,7 +332,7 @@ bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object 
 			return (defgroup_name_index(ob, surface->output_name) != -1);
 	}
 
-	return 0;
+	return false;
 }
 
 static bool surface_duplicateOutputExists(void *arg, const char *name)
@@ -1102,13 +1102,13 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 
 			canvas = pmd->canvas = MEM_callocN(sizeof(DynamicPaintCanvasSettings), "DynamicPaint Canvas");
 			if (!canvas)
-				return 0;
+				return false;
 			canvas->pmd = pmd;
 			canvas->dm = NULL;
 
 			/* Create one surface */
 			if (!dynamicPaint_createNewSurface(canvas, scene))
-				return 0;
+				return false;
 
 		}
 		else if (type == MOD_DYNAMICPAINT_TYPE_BRUSH) {
@@ -1118,7 +1118,7 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 
 			brush = pmd->brush = MEM_callocN(sizeof(DynamicPaintBrushSettings), "DynamicPaint Paint");
 			if (!brush)
-				return 0;
+				return false;
 			brush->pmd = pmd;
 
 			brush->psys = NULL;
@@ -1153,7 +1153,7 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 
 				brush->paint_ramp = add_colorband(false);
 				if (!brush->paint_ramp)
-					return 0;
+					return false;
 				ramp = brush->paint_ramp->data;
 				/* Add default smooth-falloff ramp.	*/
 				ramp[0].r = ramp[0].g = ramp[0].b = ramp[0].a = 1.0f;
@@ -1169,7 +1169,7 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 
 				brush->vel_ramp = add_colorband(false);
 				if (!brush->vel_ramp)
-					return 0;
+					return false;
 				ramp = brush->vel_ramp->data;
 				ramp[0].r = ramp[0].g = ramp[0].b = ramp[0].a = ramp[0].pos = 0.0f;
 				ramp[1].r = ramp[1].g = ramp[1].b = ramp[1].a = ramp[1].pos = 1.0f;
@@ -1177,10 +1177,11 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 			}
 		}
 	}
-	else
-		return 0;
+	else {
+		return false;
+	}
 
-	return 1;
+	return true;
 }
 
 void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tpmd)
@@ -1626,12 +1627,12 @@ bool dynamicPaint_resetSurface(Scene *scene, DynamicPaintSurface *surface)
 	if (surface->data) dynamicPaint_freeSurfaceData(surface);
 
 	/* don't reallocate for image sequence types. they get handled only on bake */
-	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) return 1;
-	if (numOfPoints < 1) return 0;
+	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) return true;
+	if (numOfPoints < 1) return false;
 
 	/* allocate memory */
 	surface->data = MEM_callocN(sizeof(PaintSurfaceData), "PaintSurfaceData");
-	if (!surface->data) return 0;
+	if (!surface->data) return false;
 
 	/* allocate data depending on surface type and format */
 	surface->data->total_points = numOfPoints;
@@ -1642,7 +1643,7 @@ bool dynamicPaint_resetSurface(Scene *scene, DynamicPaintSurface *surface)
 	if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
 		dynamicPaint_setInitialColor(scene, surface);
 
-	return 1;
+	return true;
 }
 
 /* make sure allocated surface size matches current requirements */
@@ -1651,7 +1652,7 @@ static bool dynamicPaint_checkSurfaceData(Scene *scene, DynamicPaintSurface *sur
 	if (!surface->data || ((dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points))) {
 		return dynamicPaint_resetSurface(scene, surface);
 	}
-	return 1;
+	return true;
 }
 
 

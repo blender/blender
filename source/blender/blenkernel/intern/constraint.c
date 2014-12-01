@@ -4395,10 +4395,10 @@ bool BKE_constraint_remove(ListBase *list, bConstraint *con)
 	if (con) {
 		BKE_constraint_free_data(con);
 		BLI_freelinkN(list, con);
-		return 1;
+		return true;
 	}
 	else
-		return 0;
+		return false;
 }
 
 /* ......... */
@@ -4662,15 +4662,15 @@ bool BKE_constraints_proxylocked_owner(Object *ob, bPoseChannel *pchan)
 			
 			/* On bone-level, check if bone is on proxy-protected layer */
 			if ((pchan->bone) && (pchan->bone->layer & arm->layer_protected))
-				return 1;
+				return true;
 		}
 		else {
 			/* FIXME: constraints on object-level are not handled well yet */
-			return 1;
+			return true;
 		}
 	}
 	
-	return 0;
+	return false;
 }
 
 /* -------- Target-Matrix Stuff ------- */

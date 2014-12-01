@@ -1137,28 +1137,28 @@ static bool material_in_nodetree(bNodeTree *ntree, Material *mat)
 		if (node->id) {
 			if (GS(node->id->name) == ID_MA) {
 				if (node->id == (ID *)mat) {
-					return 1;
+					return true;
 				}
 			}
 			else if (node->type == NODE_GROUP) {
 				if (material_in_nodetree((bNodeTree *)node->id, mat)) {
-					return 1;
+					return true;
 				}
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 bool material_in_material(Material *parmat, Material *mat)
 {
 	if (parmat == mat)
-		return 1;
+		return true;
 	else if (parmat->nodetree && parmat->use_nodes)
 		return material_in_nodetree(parmat->nodetree, mat);
 	else
-		return 0;
+		return false;
 }
 
 

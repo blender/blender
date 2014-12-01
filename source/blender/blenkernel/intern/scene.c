@@ -1116,7 +1116,7 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 	Scene *sce_iter;
 	int a, totscene;
 
-	if (sce->set == NULL) return 1;
+	if (sce->set == NULL) return true;
 	totscene = BLI_listbase_count(&bmain->scene);
 	
 	for (a = 0, sce_iter = sce; sce_iter->set; sce_iter = sce_iter->set, a++) {
@@ -1124,11 +1124,11 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 		if (a > totscene) {
 			/* the tested scene gets zero'ed, that's typically current scene */
 			sce->set = NULL;
-			return 0;
+			return false;
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 /* This function is needed to cope with fractional frames - including two Blender rendering features
@@ -1852,13 +1852,13 @@ bool BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *
 	Scene *sce;
 
 	if (act == -1) {
-		return 0;
+		return false;
 	}
 	else if ( (scene->r.layers.first == scene->r.layers.last) &&
 	          (scene->r.layers.first == srl))
 	{
 		/* ensure 1 layer is kept */
-		return 0;
+		return false;
 	}
 
 	BLI_remlink(&scene->r.layers, srl);
@@ -1880,7 +1880,7 @@ bool BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 /* render simplification */

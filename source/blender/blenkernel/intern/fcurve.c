@@ -687,11 +687,11 @@ bool fcurve_are_keyframes_usable(FCurve *fcu)
 {
 	/* F-Curve must exist */
 	if (fcu == NULL)
-		return 0;
+		return false;
 		
 	/* F-Curve must not have samples - samples are mutually exclusive of keyframes */
 	if (fcu->fpt)
-		return 0;
+		return false;
 	
 	/* if it has modifiers, none of these should "drastically" alter the curve */
 	if (fcu->modifiers.first) {
@@ -718,7 +718,7 @@ bool fcurve_are_keyframes_usable(FCurve *fcu)
 					FMod_Generator *data = (FMod_Generator *)fcm->data;
 					
 					if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
-						return 0;
+						return false;
 					break;
 				}
 				case FMODIFIER_TYPE_FN_GENERATOR:
@@ -726,18 +726,18 @@ bool fcurve_are_keyframes_usable(FCurve *fcu)
 					FMod_FunctionGenerator *data = (FMod_FunctionGenerator *)fcm->data;
 					
 					if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
-						return 0;
+						return false;
 					break;
 				}
 				/* always harmful - cannot allow */
 				default:
-					return 0;
+					return false;
 			}
 		}
 	}
 	
 	/* keyframes are usable */
-	return 1;
+	return true;
 }
 
 bool BKE_fcurve_is_protected(FCurve *fcu)

@@ -2433,10 +2433,10 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
 	    (pk1->totloops == pk2->totloops))
 	{
 		/* Equality - note that this does not mean equality of polys */
-		return 0;
+		return false;
 	}
 	else {
-		return 1;
+		return true;
 	}
 }
 

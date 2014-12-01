@@ -981,14 +981,14 @@ bool psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float
 	int b;
 
 	if (!(psys->renderdata && (psys->part->simplify_flag & PART_SIMPLIFY_ENABLE)))
-		return 0;
+		return false;
 	
 	data = psys->renderdata;
 	if (!data->do_simplify)
-		return 0;
+		return false;
 	b = (data->index_mf_to_mpoly) ? DM_origindex_mface_mpoly(data->index_mf_to_mpoly, data->index_mp_to_orig, cpa->num) : cpa->num;
 	if (b == ORIGINDEX_NONE) {
-		return 0;
+		return false;
 	}
 
 	elem = &data->elems[b];

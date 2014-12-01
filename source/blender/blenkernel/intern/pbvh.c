@@ -943,7 +943,7 @@ static bool update_search_cb(PBVHNode *node, void *data_v)
 	if (node->flag & PBVH_Leaf)
 		return (node->flag & flag) != 0;
 
-	return 1;
+	return true;
 }
 
 static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
@@ -1474,10 +1474,10 @@ bool ray_face_intersection(const float ray_start[3],
 	    (t3 && isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t2, t3, &dist, NULL, 0.1f) && dist < *fdist))
 	{
 		*fdist = dist;
-		return 1;
+		return true;
 	}
 	else {
-		return 0;
+		return false;
 	}
 }
 

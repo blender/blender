@@ -3401,9 +3401,9 @@ bool BKE_image_has_alpha(struct Image *image)
 	BKE_image_release_ibuf(image, ibuf, lock);
 
 	if (planes == 32)
-		return 1;
+		return true;
 	else
-		return 0;
+		return false;
 }
 
 void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
