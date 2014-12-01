@@ -986,7 +986,7 @@ bool BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const 
 	
 	/* check if index exists */
 	if (index > tree->totleaf)
-		return 0;
+		return false;
 	
 	node = tree->nodearray + index;
 	
@@ -1001,7 +1001,7 @@ bool BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const 
 		node->bv[(2 * axis_iter) + 1] += tree->epsilon; /* maximum */
 	}
 
-	return 1;
+	return true;
 }
 
 /* call BLI_bvhtree_update_node() first for every node/point/triangle */

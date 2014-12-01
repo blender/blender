@@ -866,7 +866,7 @@ bool invert_m4_m4(float inverse[4][4], float mat[4][4])
 			}
 		}
 	}
-	return 1;
+	return true;
 }
 
 /****************************** Linear Algebra *******************************/
@@ -1150,11 +1150,11 @@ bool is_orthogonal_m3(float m[3][3])
 	for (i = 0; i < 3; i++) {
 		for (j = 0; j < i; j++) {
 			if (fabsf(dot_v3v3(m[i], m[j])) > 1.5f * FLT_EPSILON)
-				return 0;
+				return false;
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 bool is_orthogonal_m4(float m[4][4])
@@ -1164,12 +1164,12 @@ bool is_orthogonal_m4(float m[4][4])
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < i; j++) {
 			if (fabsf(dot_v4v4(m[i], m[j])) > 1.5f * FLT_EPSILON)
-				return 0;
+				return false;
 		}
 
 	}
 
-	return 1;
+	return true;
 }
 
 bool is_orthonormal_m3(float m[3][3])
@@ -1179,12 +1179,12 @@ bool is_orthonormal_m3(float m[3][3])
 
 		for (i = 0; i < 3; i++)
 			if (fabsf(dot_v3v3(m[i], m[i]) - 1) > 1.5f * FLT_EPSILON)
-				return 0;
+				return false;
 
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 bool is_orthonormal_m4(float m[4][4])
@@ -1194,12 +1194,12 @@ bool is_orthonormal_m4(float m[4][4])
 
 		for (i = 0; i < 4; i++)
 			if (fabsf(dot_v4v4(m[i], m[i]) - 1) > 1.5f * FLT_EPSILON)
-				return 0;
+				return false;
 
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 bool is_uniform_scaled_m3(float m[3][3])

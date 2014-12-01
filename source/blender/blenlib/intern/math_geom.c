@@ -912,12 +912,12 @@ bool isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[
 	if (line_point_side_v2(v1, v2, pt) >= 0.0f) {
 		if (line_point_side_v2(v2, v3, pt) >= 0.0f) {
 			if (line_point_side_v2(v3, v1, pt) >= 0.0f) {
-				return 1;
+				return true;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], const float v3[2])
@@ -983,28 +983,28 @@ bool isect_line_tri_v3(const float p1[3], const float p2[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if (a == 0.0f) return 0;
+	if (a == 0.0f) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < 0.0f) || (u > 1.0f)) return 0;
+	if ((u < 0.0f) || (u > 1.0f)) return false;
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(d, q);
-	if ((v < 0.0f) || ((u + v) > 1.0f)) return 0;
+	if ((v < 0.0f) || ((u + v) > 1.0f)) return false;
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return 0;
+	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return false;
 
 	if (r_uv) {
 		r_uv[0] = u;
 		r_uv[1] = v;
 	}
 
-	return 1;
+	return true;
 }
 
 /* like isect_line_tri_v3, but allows epsilon tolerance around triangle */
@@ -1022,28 +1022,28 @@ bool isect_line_tri_epsilon_v3(const float p1[3], const float p2[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if (a == 0.0f) return 0;
+	if (a == 0.0f) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < -epsilon) || (u > 1.0f + epsilon)) return 0;
+	if ((u < -epsilon) || (u > 1.0f + epsilon)) return false;
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(d, q);
-	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return 0;
+	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return false;
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return 0;
+	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) return false;
 
 	if (r_uv) {
 		r_uv[0] = u;
 		r_uv[1] = v;
 	}
 
-	return 1;
+	return true;
 }
 
 /* moved from effect.c
@@ -1064,28 +1064,28 @@ bool isect_ray_tri_v3(const float p1[3], const float d[3],
 	a = dot_v3v3(e1, p);
 	/* note: these values were 0.000001 in 2.4x but for projection snapping on
 	 * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
-	if ((a > -0.00000001f) && (a < 0.00000001f)) return 0;
+	if ((a > -0.00000001f) && (a < 0.00000001f)) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < 0.0f) || (u > 1.0f)) return 0;
+	if ((u < 0.0f) || (u > 1.0f)) return false;
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(d, q);
-	if ((v < 0.0f) || ((u + v) > 1.0f)) return 0;
+	if ((v < 0.0f) || ((u + v) > 1.0f)) return false;
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f)) return 0;
+	if ((*r_lambda < 0.0f)) return false;
 
 	if (r_uv) {
 		r_uv[0] = u;
 		r_uv[1] = v;
 	}
 
-	return 1;
+	return true;
 }
 
 /**
@@ -1107,7 +1107,7 @@ bool isect_ray_plane_v3(const float p1[3], const float d[3],
 	a = dot_v3v3(e1, p);
 	/* note: these values were 0.000001 in 2.4x but for projection snapping on
 	 * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
-	if ((a > -0.00000001f) && (a < 0.00000001f)) return 0;
+	if ((a > -0.00000001f) && (a < 0.00000001f)) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
@@ -1119,9 +1119,9 @@ bool isect_ray_plane_v3(const float p1[3], const float d[3],
 	/* v = f * dot_v3v3(d, q); */ /*UNUSED*/
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if (clip && (*r_lambda < 0.0f)) return 0;
+	if (clip && (*r_lambda < 0.0f)) return false;
 
-	return 1;
+	return true;
 }
 
 bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
@@ -1142,22 +1142,22 @@ bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
 	sub_v3_v3v3(s, p1, v0);
 
 	u = f * dot_v3v3(s, p);
-	if ((u < -epsilon) || (u > 1.0f + epsilon)) return 0;
+	if ((u < -epsilon) || (u > 1.0f + epsilon)) return false;
 
 	cross_v3_v3v3(q, s, e1);
 
 	v = f * dot_v3v3(d, q);
-	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return 0;
+	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return false;
 
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f)) return 0;
+	if ((*r_lambda < 0.0f)) return false;
 
 	if (uv) {
 		uv[0] = u;
 		uv[1] = v;
 	}
 
-	return 1;
+	return true;
 }
 
 bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
@@ -1173,14 +1173,14 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -0.000001f) && (a < 0.000001f)) return 0;
+	if ((a > -0.000001f) && (a < 0.000001f)) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
 
 	cross_v3_v3v3(q, s, e1);
 	*r_lambda = f * dot_v3v3(e2, q);
-	if ((*r_lambda < 0.0f)) return 0;
+	if ((*r_lambda < 0.0f)) return false;
 
 	u = f * dot_v3v3(s, p);
 	v = f * dot_v3v3(d, q);
@@ -1204,7 +1204,7 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 	mul_v3_fl(e2, dv);
 
 	if (len_squared_v3(e1) + len_squared_v3(e2) > threshold * threshold) {
-		return 0;
+		return false;
 	}
 
 	if (r_uv) {
@@ -1212,7 +1212,7 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 		r_uv[1] = v;
 	}
 
-	return 1;
+	return true;
 }
 
 /**
@@ -1363,7 +1363,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const fl
 		if (t0 > t1)
 			SWAP(float, t0, t1);
 
-		if (t0 > 1.0f || t1 < 0.0f) return 0;
+		if (t0 > 1.0f || t1 < 0.0f) return false;
 
 		/* clamp to [0, 1] */
 		CLAMP(t0, 0.0f, 1.0f);
@@ -1542,7 +1542,7 @@ bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3
 	if ((f > -0.000001f) && (f < 0.000001f)) return false;
 
 	v = (p[a2] * e1[a1] - p[a1] * e1[a2]) / f;
-	if ((v < 0.0f) || (v > 1.0f)) return 0;
+	if ((v < 0.0f) || (v > 1.0f)) return false;
 
 	f = e1[a1];
 	if ((f > -0.000001f) && (f < 0.000001f)) {
@@ -1553,7 +1553,7 @@ bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3
 	else
 		u = (-p[a1] - v * e2[a1]) / f;
 
-	if ((u < 0.0f) || ((u + v) > 1.0f)) return 0;
+	if ((u < 0.0f) || ((u + v) > 1.0f)) return false;
 
 	*r_lambda = (p[a0] + u * e1[a0] + v * e2[a0]) / (p2[a0] - p1[a0]);
 

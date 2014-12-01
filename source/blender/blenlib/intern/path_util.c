@@ -1253,11 +1253,10 @@ bool BLI_testextensie_n(const char *str, ...)
 	while ((ext = (const char *) va_arg(args, void *))) {
 		if (testextensie_ex(str, str_len, ext, strlen(ext))) {
 			ret = true;
-			goto finally;
+			break;
 		}
 	}
 
-finally:
 	va_end(args);
 
 	return ret;

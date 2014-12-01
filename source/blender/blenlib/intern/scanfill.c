@@ -173,13 +173,13 @@ static bool boundisect(PolyFill *pf2, PolyFill *pf1)
 	/* has pf2 been touched (intersected) by pf1 ? with bounding box */
 	/* test first if polys exist */
 
-	if (pf1->edges == 0 || pf2->edges == 0) return 0;
+	if (pf1->edges == 0 || pf2->edges == 0) return false;
 
-	if (pf2->max_xy[0] < pf1->min_xy[0]) return 0;
-	if (pf2->max_xy[1] < pf1->min_xy[1]) return 0;
+	if (pf2->max_xy[0] < pf1->min_xy[0]) return false;
+	if (pf2->max_xy[1] < pf1->min_xy[1]) return false;
 
-	if (pf2->min_xy[0] > pf1->max_xy[0]) return 0;
-	if (pf2->min_xy[1] > pf1->max_xy[1]) return 0;
+	if (pf2->min_xy[0] > pf1->max_xy[0]) return false;
+	if (pf2->min_xy[1] > pf1->max_xy[1]) return false;
 
 	/* join */
 	if (pf2->max_xy[0] < pf1->max_xy[0]) pf2->max_xy[0] = pf1->max_xy[0];
@@ -188,7 +188,7 @@ static bool boundisect(PolyFill *pf2, PolyFill *pf1)
 	if (pf2->min_xy[0] > pf1->min_xy[0]) pf2->min_xy[0] = pf1->min_xy[0];
 	if (pf2->min_xy[1] > pf1->min_xy[1]) pf2->min_xy[1] = pf1->min_xy[1];
 
-	return 1;
+	return true;
 }
 
 
@@ -225,13 +225,13 @@ static bool testedgeside(const float v1[2], const float v2[2], const float v3[2]
 	      (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
 	if (inp < 0.0f) {
-		return 0;
+		return false;
 	}
 	else if (inp == 0.0f) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return 0;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return 0;
+		if (v1[0] == v3[0] && v1[1] == v3[1]) return false;
+		if (v2[0] == v3[0] && v2[1] == v3[1]) return false;
 	}
-	return 1;
+	return true;
 }
 
 static bool addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
@@ -261,7 +261,7 @@ static bool addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 	for (ed = sc->edge_first; ed; ed = ed->next) {
 
 		if (ed->v2 == eed->v2) {
-			return 0;
+			return false;
 		}
 
 		fac = ed->v2->xy[1] - y;
@@ -279,7 +279,7 @@ static bool addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 	if (ed) BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed, eed);
 	else BLI_addtail((ListBase *)&(sc->edge_first), eed);
 
-	return 1;
+	return true;
 }
 
 
@@ -341,10 +341,10 @@ static bool boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
 			maxy = eed->v1->xy[1];
 		}
 		if (eve->xy[1] >= miny && eve->xy[1] <= maxy) {
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 

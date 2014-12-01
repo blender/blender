@@ -170,11 +170,11 @@ bool BLI_hasAdjacencyList(BGraph *graph)
 	
 	for (node = graph->nodes.first; node; node = node->next) {
 		if (node->arcs == NULL) {
-			return 0;
+			return false;
 		}
 	}
 	
-	return 1;
+	return true;
 }
 
 void BLI_replaceNodeInArc(BGraph *graph, BArc *arc, BNode *node_src, BNode *node_replaced)
@@ -337,7 +337,7 @@ static bool detectCycle(BNode *node, BArc *src_arc)
 		}
 	}
 	else {
-		value = 1;
+		value = true;
 	}
 	
 	return value;
@@ -354,7 +354,7 @@ bool BLI_isGraphCyclic(BGraph *graph)
 	BLI_flagNodes(graph, 0);
 
 	/* detectCycles in subgraphs */
-	for (node = graph->nodes.first; node && value == 0; node = node->next) {
+	for (node = graph->nodes.first; node && value == false; node = node->next) {
 		/* only for nodes in subgraphs that haven't been visited yet */
 		if (node->flag == 0) {
 			value = value || detectCycle(node, NULL);
