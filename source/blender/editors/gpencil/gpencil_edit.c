@@ -967,7 +967,8 @@ void GPENCIL_OT_delete(wmOperatorType *ot)
 		{GP_DELETEOP_STROKES, "STROKES", 0, "Strokes", "Delete selected strokes"},
 		{GP_DELETEOP_FRAME, "FRAME", 0, "Frame", "Delete active frame"},
 		{0, "", 0, NULL, NULL},
-		{GP_DELETEOP_POINTS_DISSOLVE, "DISSOLVE_POINTS", 0, "Dissolve Points", "Delete selected points without splitting strokesp"},
+		{GP_DELETEOP_POINTS_DISSOLVE, "DISSOLVE_POINTS", 0, "Dissolve Points",
+		                              "Delete selected points without splitting strokes"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
