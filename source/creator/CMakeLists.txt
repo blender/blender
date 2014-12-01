@@ -628,24 +628,41 @@ elseif(WIN32)
 			install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python)
 			install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python/lib)
 
-			if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" STREQUAL \"Debug\")
-				add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib
-					COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib"
-					COMMAND ${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz -C ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib")
-			else()
-				add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib
-					COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib"
-					COMMAND ${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz -C ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib")
-			endif()
+			# extract python
+			install(
+				CODE
+				"
+				if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" MATCHES \"^([Dd][Ee][Bb][Uu][Gg])$\")
+					set(PYTHON_ZIP ${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz)
+				else()
+					set(PYTHON_ZIP ${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz)
+				endif()
+
+				execute_process(
+					COMMAND ${CMAKE_COMMAND} -E
+					        make_directory \"${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib\"
+					COMMAND ${CMAKE_COMMAND} -E
+					        tar xzfv \"\${PYTHON_ZIP} -C ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib\"
+				)
+				unset(PYTHON_ZIP)
+				"
+			)
+			# install python
+			install(
+				DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib
+				DESTINATION ${BLENDER_VERSION}/python
+				PATTERN 'site-packages/*' EXCLUDE
+			)
 
 			# release/site-packages
-			install(DIRECTORY ${LIBDIR}/release/site-packages
-					DESTINATION ${BLENDER_VERSION}/python/lib
-					PATTERN ".svn" EXCLUDE
-					PATTERN "__pycache__" EXCLUDE           # * any cache *
-					PATTERN "*.pyc" EXCLUDE                 # * any cache *
-					PATTERN "*.pyo" EXCLUDE                 # * any cache *)
-					)
+			install(
+				DIRECTORY ${LIBDIR}/release/site-packages
+				DESTINATION ${BLENDER_VERSION}/python/lib
+				PATTERN ".svn" EXCLUDE
+				PATTERN "__pycache__" EXCLUDE           # * any cache *
+				PATTERN "*.pyc" EXCLUDE                 # * any cache *
+				PATTERN "*.pyo" EXCLUDE                 # * any cache *)
+			)
 
 			if(WITH_PYTHON_INSTALL_NUMPY)
 				add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy
@@ -655,11 +672,6 @@ elseif(WIN32)
 				install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy
 						DESTINATION ${BLENDER_VERSION}/python/lib/site-packages)
 			endif()
-
-
-			install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib
-					DESTINATION ${BLENDER_VERSION}/python
-					PATTERN 'site-packages/*' EXCLUDE)
 
 		endif()
 
