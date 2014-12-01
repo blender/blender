@@ -1389,7 +1389,8 @@ static struct GPUMaterialState {
 } GMS = {NULL};
 
 /* fixed function material, alpha handed by caller */
-static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob, const int new_shading_nodes)
+static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob, const int new_shading_nodes, 
+                                  const bool dimdown)
 {
 	if (bmat->mode & MA_SHLESS) {
 		copy_v3_v3(smat->diff, &bmat->r);
@@ -1409,10 +1410,15 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		smat->spec[3] = 1.0;
 		smat->hard= CLAMPIS(bmat->har, 0, 128);
 		
+		if (dimdown) {
+			mul_v3_fl(smat->diff, 0.8f);
+			mul_v3_fl(smat->spec, 0.5f);
+		}
+		
 		if (gamma) {
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
 			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
-		}		
+		}
 	}
 	else {
 		mul_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
@@ -1514,7 +1520,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	
 		/* no materials assigned? */
 		if (ob->totcol==0) {
-			gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob, new_shading_nodes);
+			gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob, new_shading_nodes, true);
 
 			/* do material 1 too, for displists! */
 			memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
@@ -1544,7 +1550,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 			}
 			else {
 				/* fixed function opengl materials */
-				gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
+				gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes, false);
 
 				if (GMS.use_alpha_pass && ((ma->mode & MA_TRANSP) || (new_shading_nodes && ma->alpha != 1.0f))) {
 					GMS.matbuf[a].diff[3]= ma->alpha;
