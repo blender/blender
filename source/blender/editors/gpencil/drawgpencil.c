@@ -451,30 +451,18 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 {
 	/* otherwise thickness is twice that of the 3D view */
 	float thickness = (float)thickness_s * 0.5f;
-
-	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
-	 *  - 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
-	 */
-	if ((thickness < GP_DRAWTHICKNESS_SPECIAL) ||
-	    ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)))
-	{
-		bGPDspoint *pt;
-		int i;
-		
-		glBegin(GL_LINE_STRIP);
-		for (i = 0, pt = points; i < totpoints && pt; i++, pt++) {
-			float co[2];
-			
-			gp_calc_2d_stroke_xy(pt, sflag, offsx, offsy, winx, winy, co);
-			glVertex2fv(co);
-		}
-		glEnd();
+	
+	/* strokes in Image Editor need a scale factor, since units there are not pixels! */
+	float scalefac  = 1.0f;
+	if ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)) {
+		scalefac = 0.001f;
 	}
+	
 	
 	/* tessellation code - draw stroke as series of connected quads with connection
 	 * edges rotated to minimize shrinking artifacts, and rounded endcaps
 	 */
-	else {
+	{
 		bGPDspoint *pt1, *pt2;
 		float pm[2];
 		int i;
@@ -501,7 +489,7 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 			m2[0] = m1[1];
 			
 			/* always use pressure from first point here */
-			pthick = (pt1->pressure * thickness);
+			pthick = (pt1->pressure * thickness * scalefac);
 			
 			/* if the first segment, start of segment is segment's normal */
 			if (i == 0) {
@@ -576,7 +564,7 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 			/* if last segment, also draw end of segment (defined as segment's normal) */
 			if (i == totpoints - 2) {
 				/* for once, we use second point's pressure (otherwise it won't be drawn) */
-				pthick = (pt2->pressure * thickness);
+				pthick = (pt2->pressure * thickness * scalefac);
 				
 				/* calculate points for end of segment */
 				mt[0] = m2[0] * pthick;
