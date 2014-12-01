@@ -46,14 +46,15 @@ int collada_import(bContext *C,
 				   const char *filepath,
 				   int import_units,
 				   int find_chains,
+				   int fix_orientation,
 				   int min_chain_length)
 {
 
 	ImportSettings import_settings;
-	import_settings.filepath = (char *)filepath;
-
-	import_settings.import_units =  import_units != 0;
-	import_settings.find_chains = find_chains != 0;
+	import_settings.filepath         = (char *)filepath;
+	import_settings.import_units     = import_units != 0;
+	import_settings.find_chains      = find_chains != 0;
+	import_settings.fix_orientation  = fix_orientation != 0;
 	import_settings.min_chain_length = min_chain_length;
 
 	DocumentImporter imp(C, &import_settings);

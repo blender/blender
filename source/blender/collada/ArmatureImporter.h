@@ -130,7 +130,7 @@ private:
 	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node);
 	void clear_extended_boneset();
 
-	void fix_bone_orientation(bArmature *armature, Bone *bone);
+	void fix_leaf_bones(bArmature *armature, Bone *bone);
 	void connect_bone_chains(bArmature *armature, Bone *bone, const int max_chain_length);
 
 	void set_pose( Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4]);

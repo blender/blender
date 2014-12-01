@@ -57,6 +57,7 @@ int collada_import(struct bContext *C,
                    const char *filepath,
 				   int import_units,
 				   int find_chains,
+				   int fix_orientation,
 				   int min_chain_length);
 
 int collada_export(struct Scene *sce,
