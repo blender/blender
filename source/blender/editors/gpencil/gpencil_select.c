@@ -489,7 +489,7 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
 	
-	GP_SpaceConversion gsc = {0};
+	GP_SpaceConversion gsc = {NULL};
 	rcti rect = {0};            /* for bounding rect around circle (for quicky intersection testing) */
 	
 	bool changed = false;
@@ -562,7 +562,7 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
-	GP_SpaceConversion gsc = {0};
+	GP_SpaceConversion gsc = {NULL};
 	rcti rect = {0};
 	
 	bool changed = false;
@@ -676,7 +676,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 	int location[2] = {0};
 	int mx, my;
 	
-	GP_SpaceConversion gsc = {0};
+	GP_SpaceConversion gsc = {NULL};
 	
 	bGPDstroke *hit_stroke = NULL;
 	bGPDspoint *hit_point = NULL;
@@ -835,5 +835,3 @@ void GPENCIL_OT_select(wmOperatorType *ot)
 }
 
 /* ********************************************** */
-
- 
