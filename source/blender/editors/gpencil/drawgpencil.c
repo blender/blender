@@ -725,6 +725,7 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 		else {
 			/* 2D - Fill */
 			if ((dflag & GP_DRAWDATA_FILL) && (gps->totpoints >= 3)) {
+				glColor4fv(fill_color);
 				gp_draw_stroke_fill(gps->points, gps->totpoints, lthick, dflag, gps->flag, offsx, offsy, winx, winy);
 			}
 			
