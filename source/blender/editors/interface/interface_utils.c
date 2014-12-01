@@ -390,6 +390,27 @@ void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
 }
 
 /**
+ * Update the pointer for a registered button.
+ */
+bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src)
+{
+	uiButStore *bs_handle;
+	bool found = false;
+
+	for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
+		uiButStoreElem *bs_elem;
+		for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+			if (*bs_elem->but_p == but_src) {
+				*bs_elem->but_p = but_dst;
+				found = true;
+			}
+		}
+	}
+
+	return found;
+}
+
+/**
  * NULL all pointers, don't free since the owner needs to be able to inspect.
  */
 void UI_butstore_clear(uiBlock *block)

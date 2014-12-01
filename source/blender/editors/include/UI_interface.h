@@ -1000,6 +1000,7 @@ void UI_butstore_free(uiBlock *block, uiButStore *bs);
 bool UI_butstore_is_valid(uiButStore *bs);
 bool UI_butstore_is_registered(uiBlock *block, uiBut *but);
 void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p);
+bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src);
 void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
 
 

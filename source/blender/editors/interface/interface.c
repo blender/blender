@@ -723,6 +723,10 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 
 		ui_but_update_linklines(block, oldbut, but);
 
+		if (!BLI_listbase_is_empty(&block->butstore)) {
+			UI_butstore_register_update(block, oldbut, but);
+		}
+
 		/* move/copy string from the new button to the old */
 		/* needed for alt+mouse wheel over enums */
 		if (but->str != but->strdata) {
