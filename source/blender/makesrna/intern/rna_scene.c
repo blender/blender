@@ -5741,7 +5741,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	/* Transform Orientations */
 	prop = RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);
