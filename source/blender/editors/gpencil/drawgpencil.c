@@ -223,16 +223,25 @@ static void gp_draw_stroke_volumetric_buffer(tGPspoint *points, int totpoints, s
 
 /* draw a 2D strokes in "volumetric" style */
 static void gp_draw_stroke_volumetric_2d(bGPDspoint *points, int totpoints, short thickness,
-                                         short UNUSED(dflag), short sflag,
+                                         short dflag, short sflag,
                                          int offsx, int offsy, int winx, int winy)
 {
 	GLUquadricObj *qobj = gluNewQuadric();
 	float modelview[4][4];
 	float baseloc[3];
+	float scalefac = 1.0f;
 	
 	bGPDspoint *pt;
 	int i;
 	
+	
+	/* HACK: We need a scale factor for the drawing in the image editor,
+	 * which seems to use 1 unit as it's maximum size, whereas everything
+	 * else assumes 1 unit = 1 pixel. Otherwise, we only get a massive blob.
+	 */
+	if ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)) {
+		scalefac = 0.001f;
+	}
 	
 	/* get basic matrix */
 	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)modelview);
@@ -251,7 +260,7 @@ static void gp_draw_stroke_volumetric_2d(bGPDspoint *points, int totpoints, shor
 		glLoadMatrixf((float *)modelview);
 		
 		/* draw the disk using the current state... */
-		gluDisk(qobj, 0.0,  pt->pressure * thickness, 32, 1);
+		gluDisk(qobj, 0.0,  pt->pressure * thickness * scalefac, 32, 1);
 		
 		/* restore matrix */
 		copy_v3_v3(modelview[3], baseloc);
