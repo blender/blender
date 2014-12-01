@@ -632,6 +632,7 @@ elseif(WIN32)
 			install(
 				CODE
 				"
+				message(STATUS \"Extracting Python to: \${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python\")
 				if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" MATCHES \"^([Dd][Ee][Bb][Uu][Gg])$\")
 					set(PYTHON_ZIP ${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz)
 				else()
@@ -639,19 +640,15 @@ elseif(WIN32)
 				endif()
 
 				execute_process(
-					COMMAND ${CMAKE_COMMAND} -E
-					        make_directory \"${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib\"
-					COMMAND ${CMAKE_COMMAND} -E
-					        tar xzfv \"\${PYTHON_ZIP} -C ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib\"
+					COMMAND \${CMAKE_COMMAND} -E make_directory
+					        \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python/lib\"
+					COMMAND \${CMAKE_COMMAND} -E
+					        chdir \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python/lib\"
+					        \${CMAKE_COMMAND} -E
+					        tar xzfv \"\${PYTHON_ZIP}\"
 				)
 				unset(PYTHON_ZIP)
 				"
-			)
-			# install python
-			install(
-				DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib
-				DESTINATION ${BLENDER_VERSION}/python
-				PATTERN 'site-packages/*' EXCLUDE
 			)
 
 			# release/site-packages
@@ -672,7 +669,6 @@ elseif(WIN32)
 				install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy
 						DESTINATION ${BLENDER_VERSION}/python/lib/site-packages)
 			endif()
-
 		endif()
 
 		unset(_PYTHON_VERSION_NO_DOTS)
