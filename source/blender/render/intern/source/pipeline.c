@@ -2834,6 +2834,9 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 		}
 
 		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+		if (write_still) {
+			BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
+		}
 	}
 
 	BLI_callback_exec(re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
@@ -3031,6 +3034,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 				if (G.is_break == false) {
 					BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+					BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
 				}
 			}
 			else {
@@ -3114,6 +3118,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 			if (G.is_break == false) {
 				BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+				BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
 			}
 		}
 	}
