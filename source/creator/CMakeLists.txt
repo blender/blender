@@ -628,6 +628,12 @@ elseif(WIN32)
 			install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python)
 			install(DIRECTORY DESTINATION ${TARGETDIR_VER}/python/lib)
 
+			# WARNING: its important that 'CMAKE_INSTALL_CONFIG_NAME' is evaluated at build time
+			# and _NOT_ configuration time, when modifying the lines below,
+			# check it works in both Release & Debug mode.
+			#
+			# Edit with extreme care! - Campbell
+
 			# extract python
 			install(
 				CODE
