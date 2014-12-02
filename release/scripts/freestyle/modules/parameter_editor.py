@@ -916,10 +916,7 @@ def process(layer_name, lineset_name):
 
     # execute line set pre-processing callback functions
     for fn in callbacks_lineset_pre:
-        try:
-            fn(scene, layer, lineset)
-        except Exception as e:
-            print(e)
+        fn(scene, layer, lineset)
 
     selection_criteria = []
     # prepare selection criteria by visibility
