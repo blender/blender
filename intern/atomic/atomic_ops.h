@@ -34,6 +34,11 @@
 #if defined (__APPLE__)
 #  include <libkern/OSAtomic.h>
 #elif defined(_MSC_VER)
+#  define NOGDI
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #elif defined(__arm__)
 /* Attempt to fix compilation error on Debian armel kernel.
@@ -97,13 +102,13 @@ atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
 ATOMIC_INLINE uint64_t
 atomic_add_uint64(uint64_t *p, uint64_t x)
 {
-	return InterlockedExchangeAdd64(p, x);
+	return InterlockedExchangeAdd64((int64_t *)p, (int64_t)x);
 }
 
 ATOMIC_INLINE uint64_t
 atomic_sub_uint64(uint64_t *p, uint64_t x)
 {
-	return InterlockedExchangeAdd64(p, -((int64_t)x));
+	return InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x));
 }
 
 ATOMIC_INLINE uint64_t
