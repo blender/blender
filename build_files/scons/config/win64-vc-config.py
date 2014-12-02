@@ -200,7 +200,7 @@ BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 #CUDA
 WITH_BF_CYCLES_CUDA_BINARIES = False
 #BF_CYCLES_CUDA_NVCC = "" # Path to the nvidia compiler
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35', 'sm_50']
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35', 'sm_50', 'sm_52']
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
