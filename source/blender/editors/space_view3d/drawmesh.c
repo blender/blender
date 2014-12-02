@@ -96,7 +96,7 @@ typedef struct drawTFace_userData {
 BLI_INLINE int edge_vis_index(const int index) { return index * 2; }
 BLI_INLINE int edge_sel_index(const int index) { return index * 2 + 1; }
 
-static BLI_bitmap *get_tface_mesh_marked_edge_info(Mesh *me)
+static BLI_bitmap *get_tface_mesh_marked_edge_info(Mesh *me, bool draw_select_edges)
 {
 	BLI_bitmap *bitmap_edge_flags = BLI_BITMAP_NEW(me->totedge * 2, __func__);
 	MPoly *mp;
@@ -112,8 +112,17 @@ static BLI_bitmap *get_tface_mesh_marked_edge_info(Mesh *me)
 
 			ml = me->mloop + mp->loopstart;
 			for (j = 0; j < mp->totloop; j++, ml++) {
-				BLI_BITMAP_ENABLE(bitmap_edge_flags, edge_vis_index(ml->e));
-				if (select_set) BLI_BITMAP_ENABLE(bitmap_edge_flags, edge_sel_index(ml->e));
+				if ((draw_select_edges == false) &&
+				    (select_set && BLI_BITMAP_TEST(bitmap_edge_flags, edge_sel_index(ml->e))))
+				{
+					BLI_BITMAP_DISABLE(bitmap_edge_flags, edge_vis_index(ml->e));
+				}
+				else {
+					BLI_BITMAP_ENABLE(bitmap_edge_flags, edge_vis_index(ml->e));
+					if (select_set) {
+						BLI_BITMAP_ENABLE(bitmap_edge_flags, edge_sel_index(ml->e));
+					}
+				}
 			}
 		}
 	}
@@ -128,21 +137,26 @@ static DMDrawOption draw_mesh_face_select__setHiddenOpts(void *userData, int ind
 	Mesh *me = data->me;
 
 	if (me->drawflag & ME_DRAWEDGES) {
-		if ((me->drawflag & ME_HIDDENEDGES) || (BLI_BITMAP_TEST(data->edge_flags, edge_vis_index(index))))
+		if ((BLI_BITMAP_TEST(data->edge_flags, edge_vis_index(index))))
 			return DM_DRAW_OPTION_NORMAL;
 		else
 			return DM_DRAW_OPTION_SKIP;
 	}
-	else if (BLI_BITMAP_TEST(data->edge_flags, edge_sel_index(index)))
+	else if (BLI_BITMAP_TEST(data->edge_flags, edge_sel_index(index)) &&
+	         BLI_BITMAP_TEST(data->edge_flags, edge_vis_index(index)))
+	{
 		return DM_DRAW_OPTION_NORMAL;
-	else
+	}
+	else {
 		return DM_DRAW_OPTION_SKIP;
+	}
 }
 
 static DMDrawOption draw_mesh_face_select__setSelectOpts(void *userData, int index)
 {
 	drawMeshFaceSelect_userData *data = userData;
-	return (BLI_BITMAP_TEST(data->edge_flags, edge_sel_index(index))) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
+	return (BLI_BITMAP_TEST(data->edge_flags, edge_sel_index(index)) &&
+	        BLI_BITMAP_TEST(data->edge_flags, edge_vis_index(index))) ? DM_DRAW_OPTION_NORMAL : DM_DRAW_OPTION_SKIP;
 }
 
 /* draws unselected */
@@ -157,12 +171,12 @@ static DMDrawOption draw_mesh_face_select__drawFaceOptsInv(void *userData, int i
 		return DM_DRAW_OPTION_SKIP;
 }
 
-void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
+void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm, bool draw_select_edges)
 {
 	drawMeshFaceSelect_userData data;
 
 	data.me = me;
-	data.edge_flags = get_tface_mesh_marked_edge_info(me);
+	data.edge_flags = get_tface_mesh_marked_edge_info(me, draw_select_edges);
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
@@ -939,8 +953,10 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	draw_textured_end();
 	
 	/* draw edges and selected faces over textured mesh */
-	if (!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT))
-		draw_mesh_face_select(rv3d, me, dm);
+	if (!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT)) {
+		bool draw_select_edges = (ob->mode & OB_MODE_TEXTURE_PAINT) == 0;
+		draw_mesh_face_select(rv3d, me, dm, draw_select_edges);
+	}
 
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);
@@ -1136,8 +1152,10 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	glMatrixMode(GL_MODELVIEW);
 
 	/* faceselect mode drawing over textured mesh */
-	if (!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT))
-		draw_mesh_face_select(rv3d, ob->data, dm);
+	if (!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT)) {
+		bool draw_select_edges = (ob->mode & OB_MODE_TEXTURE_PAINT) == 0;
+		draw_mesh_face_select(rv3d, ob->data, dm, draw_select_edges);
+	}
 }
 
 /* Vertex Paint and Weight Paint */
@@ -1261,7 +1279,8 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 
 	/* draw face selection on top */
 	if (draw_flags & DRAW_FACE_SELECT) {
-		draw_mesh_face_select(rv3d, me, dm);
+		bool draw_select_edges = (ob->mode & OB_MODE_TEXTURE_PAINT) == 0;
+		draw_mesh_face_select(rv3d, me, dm, draw_select_edges);
 	}
 	else if ((use_light == false) || (ob->dtx & OB_DRAWWIRE)) {
 		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) || !(ob->mode & OB_MODE_WEIGHT_PAINT);

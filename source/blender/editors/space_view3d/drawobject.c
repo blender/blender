@@ -3771,7 +3771,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glFrontFace(GL_CCW);
 
 			if (draw_flags & DRAW_FACE_SELECT)
-				draw_mesh_face_select(rv3d, me, dm);
+				draw_mesh_face_select(rv3d, me, dm, false);
 		}
 		else {
 			draw_mesh_textured(scene, v3d, rv3d, ob, dm, draw_flags);
