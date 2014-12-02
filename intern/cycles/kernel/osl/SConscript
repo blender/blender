@@ -38,6 +38,7 @@ incs.append(env['BF_OIIO_INC'])
 incs.append(env['BF_BOOST_INC'])
 incs.append(env['BF_OSL_INC'])
 incs.append(env['BF_OPENEXR_INC'].split())
+incs.append('#/intern/atomic')
 
 defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
 defs.append('CCL_NAMESPACE_END=}')
