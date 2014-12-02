@@ -32,6 +32,8 @@
 
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
