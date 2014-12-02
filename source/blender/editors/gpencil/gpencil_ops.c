@@ -110,6 +110,12 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	/* set poll callback - so that this keymap only gets enabled when stroke editmode is enabled */
 	keymap->poll = gp_stroke_editmode_poll;
 	
+	/* ----------------------------------------------- */
+	
+	/* Exit EditMode */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "gpencil_data.use_stroke_edit_mode");
+	
 	/* Selection ------------------------------------- */
 	/* select all */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_all", AKEY, KM_PRESS, 0, 0);
