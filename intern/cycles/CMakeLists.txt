@@ -163,6 +163,10 @@ include_directories(
 	${OPENEXR_INCLUDE_DIRS}
 )
 
+# TODO(sergey): Adjust so standalone repository is also happy.
+include_directories(
+	../atomic
+)
 
 # Warnings
 if(CMAKE_COMPILER_IS_GNUCXX)

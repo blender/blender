@@ -30,6 +30,7 @@ endif()
 set(SRC_HEADERS
 	util_algorithm.h
 	util_args.h
+	util_atomic.h
 	util_boundbox.h
 	util_cache.h
 	util_debug.h

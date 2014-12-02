@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Blender Foundation
+ * Copyright 2014 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,20 @@
  * limitations under the License
  */
 
-#ifndef __UTIL_STATS_H__
-#define __UTIL_STATS_H__
+#ifndef __UTIL_ATOMIC_H__
+#define __UTIL_ATOMIC_H__
 
-#include "util_atomic.h"
+/* Using atomic ops header from Blender. */
+#include "atomic_ops.h"
 
-CCL_NAMESPACE_BEGIN
-
-class Stats {
-public:
-	Stats() : mem_used(0), mem_peak(0) {}
-
-	void mem_alloc(size_t size) {
-		atomic_add_z(&mem_used, size);
-		atomic_update_max_z(&mem_peak, mem_used);
+ATOMIC_INLINE void atomic_update_max_z(size_t *maximum_value, size_t value)
+{
+	size_t prev_value = *maximum_value;
+	while (prev_value < value) {
+		if (atomic_cas_z(maximum_value, prev_value, value) != prev_value) {
+			break;
+		}
 	}
+}
 
-	void mem_free(size_t size) {
-		assert(mem_used >= size);
-		atomic_sub_z(&mem_used, size);
-	}
-
-	size_t mem_used;
-	size_t mem_peak;
-};
-
-CCL_NAMESPACE_END
-
-#endif /* __UTIL_STATS_H__ */
+#endif /* __UTIL_ATOMIC_H__ */

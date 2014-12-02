@@ -68,6 +68,7 @@ incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.sp
 
 incs.append(env['BF_GLEW_INC'])
 incs.append('#/intern/glew-mx')
+incs.append('#/intern/atomic')
 incs.append('#intern/mikktspace')
 incs.extend('#extern/glew/include #extern/clew/include #extern/cuew/include #intern/mikktspace'.split())
 
