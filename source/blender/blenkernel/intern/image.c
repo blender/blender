@@ -273,7 +273,13 @@ void BKE_image_free_buffers(Image *ima)
 		ima->rr = NULL;
 	}
 
-	GPU_free_image(ima);
+	if (!G.background) {
+		/* Background mode doesn't use opnegl,
+		 * so we can avoid freeing GPU images and save some
+		 * time by skipping mutex lock.
+		 */
+		GPU_free_image(ima);
+	}
 
 	ima->ok = IMA_OK;
 }
