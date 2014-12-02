@@ -945,36 +945,26 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 
 				nf_i = 0;
 				for (i = 0; i < edge_array_len; i++) {
-					BMFace *f_a, *f_b;
+					BMFace *f_pair[2];
 					BMEdge *e = edge_array[i];
+					int j;
 #ifndef NDEBUG
-					const bool ok = BM_edge_face_pair(e, &f_a, &f_b);
+					const bool ok = BM_edge_face_pair(e, &f_pair[0], &f_pair[1]);
 					BLI_assert(ok);
 #else
-					BM_edge_face_pair(e, &f_a, &f_b);
+					BM_edge_face_pair(e, &f_pair[0], &f_pair[1]);
 #endif
+					for (j = 0; j < 2; j++) {
+						if (FACE_USED_TEST(f_pair[j]) == false) {
+							FACE_USED_SET(f_pair[j]);  /* set_dirty */
 
-					if (FACE_USED_TEST(f_a) == false) {
-						FACE_USED_SET(f_a);  /* set_dirty */
-
-						if (nf_i < edge_array_len) {
-							r_faces_new[nf_i++] = f_a;
-						}
-						else {
-							f_new = f_a;
-							break;
-						}
-					}
-
-					if (FACE_USED_TEST(f_b) == false) {
-						FACE_USED_SET(f_b);  /* set_dirty */
-
-						if (nf_i < edge_array_len) {
-							r_faces_new[nf_i++] = f_b;
-						}
-						else {
-							f_new = f_b;
-							break;
+							if (nf_i < edge_array_len) {
+								r_faces_new[nf_i++] = f_pair[j];
+							}
+							else {
+								f_new = f_pair[j];
+								break;
+							}
 						}
 					}
 				}

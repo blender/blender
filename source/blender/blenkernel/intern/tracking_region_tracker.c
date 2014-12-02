@@ -113,7 +113,7 @@ static float *track_get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, 
 	return gray_pixels;
 }
 
-/* Get image boffer for a given frame
+/* Get image buffer for a given frame
  *
  * Frame is in clip space.
  */

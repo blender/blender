@@ -400,9 +400,10 @@ static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_
 /**
  * \note This function sets the edge indices to invalid values.
  */
-void BM_mesh_beautify_fill(BMesh *bm, BMEdge **edge_array, const int edge_array_len,
-                                  const short flag, const short method,
-                                  const short oflag_edge, const short oflag_face)
+void BM_mesh_beautify_fill(
+        BMesh *bm, BMEdge **edge_array, const int edge_array_len,
+        const short flag, const short method,
+        const short oflag_edge, const short oflag_face)
 {
 	Heap *eheap;             /* edge heap */
 	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */

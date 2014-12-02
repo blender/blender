@@ -714,7 +714,7 @@ static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 			
 			/* test if in lasso boundbox + within the lasso noose */
 			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0) &&
-				BLI_lasso_is_point_inside(mcords, mcords_tot, x0, y0, INT_MAX)) 
+			    BLI_lasso_is_point_inside(mcords, mcords_tot, x0, y0, INT_MAX))
 			{
 				if (select) {
 					pt->flag |= GP_SPOINT_SELECT;

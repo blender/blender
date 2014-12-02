@@ -381,11 +381,13 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	min_chain_length = RNA_int_get(op->ptr, "min_chain_length");
 
 	RNA_string_get(op->ptr, "filepath", filename);
-	if (collada_import(C, filename,
-		import_units,
-		find_chains,
-		fix_orientation,
-		min_chain_length)) {
+	if (collada_import(
+	        C, filename,
+	        import_units,
+	        find_chains,
+	        fix_orientation,
+	        min_chain_length))
+	{
 		return OPERATOR_FINISHED;
 	}
 	else {
