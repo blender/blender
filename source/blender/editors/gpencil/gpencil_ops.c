@@ -162,6 +162,9 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "gpencil_strokes", true);
 	
+	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+	RNA_boolean_set(kmi->ptr, "gpencil_strokes", true);
+	
 	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "gpencil_strokes", true);
 	
