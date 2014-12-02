@@ -961,7 +961,7 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 	
 	/* turn on alpha-blending */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 		
 	/* loop over layers, drawing them */
