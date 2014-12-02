@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_lasso.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_types.h"
@@ -655,6 +656,111 @@ void GPENCIL_OT_select_border(wmOperatorType *ot)
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, true);
+}
+
+/* ********************************************** */
+/* Lasso */
+
+static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
+{
+	GP_SpaceConversion gsc = {NULL};
+	rcti rect = {0};
+	
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+		
+	int mcords_tot;
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	
+	bool changed = false;
+	
+	/* sanity check */
+	if (mcords == NULL)
+		return OPERATOR_PASS_THROUGH;
+	
+	/* compute boundbox of lasso (for faster testing later) */
+	BLI_lasso_boundbox(&rect, mcords, mcords_tot);
+	
+	/* init space conversion stuff */
+	gp_point_conversion_init(C, &gsc);
+	
+	/* deselect all strokes first? */
+	if (select && !extend) {
+		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+		{
+			bGPDspoint *pt;
+			int i;
+			
+			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+				pt->flag &= ~GP_SPOINT_SELECT;
+			}
+			
+			gps->flag &= ~GP_STROKE_SELECT;
+		}
+		CTX_DATA_END;
+	}
+	
+	/* select/deselect points */
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		bGPDspoint *pt;
+		int i;
+		
+		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+			int x0, y0;
+			
+			/* convert point coords to screenspace */
+			gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
+			
+			/* test if in lasso boundbox + within the lasso noose */
+			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0) &&
+				BLI_lasso_is_point_inside(mcords, mcords_tot, x0, y0, INT_MAX)) 
+			{
+				if (select) {
+					pt->flag |= GP_SPOINT_SELECT;
+				}
+				else {
+					pt->flag &= ~GP_SPOINT_SELECT;
+				}
+				
+				changed = true;
+			}
+		}
+		
+		/* Ensure that stroke selection is in sync with its points */
+		gpencil_stroke_sync_selection(gps);
+	}
+	CTX_DATA_END;
+	
+	/* cleanup */
+	MEM_freeN((void *)mcords);
+	
+	/* updates */
+	if (changed) {
+		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_select_lasso(wmOperatorType *ot)
+{
+	ot->name = "Lasso Select Strokes";
+	ot->description = "Select Grease Pencil strokes using lasso selection";
+	ot->idname = "GPENCIL_OT_select_lasso";
+	
+	ot->invoke = WM_gesture_lasso_invoke;
+	ot->modal = WM_gesture_lasso_modal;
+	ot->exec = gpencil_lasso_select_exec;
+	ot->poll = gpencil_select_poll;
+	ot->cancel = WM_gesture_lasso_cancel;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+	
+	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* ********************************************** */

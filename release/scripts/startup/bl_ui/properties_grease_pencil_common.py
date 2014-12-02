@@ -195,12 +195,14 @@ class GPENCIL_PIE_tool_palette(Menu):
                 # NW - Select (Non-Modal)
                 col = pie.column()
                 col.operator("gpencil.select_all", text="Select All", icon='PARTICLE_POINT')
+                col.operator("gpencil.select_all", text="Select Inverse", icon='BLANK1')
                 col.operator("gpencil.select_linked", text="Select Linked", icon='LINKED')
 
                 # NE - Select (Modal)
                 col = pie.column()
                 col.operator("gpencil.select_border", text="Border Select", icon='BORDER_RECT')
                 col.operator("gpencil.select_circle", text="Circle Select", icon='META_EMPTY')
+                col.operator("gpencil.select_lasso", text="Lasso Select", icon='BORDER_LASSO')
 
                 # SW - Edit Tools
                 col = pie.column()

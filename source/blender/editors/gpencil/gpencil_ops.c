@@ -124,6 +124,12 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	/* border select */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	
+	/* lasso select */
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
+	
 	/* normal select */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	
@@ -201,6 +207,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_select_all);
 	WM_operatortype_append(GPENCIL_OT_select_circle);
 	WM_operatortype_append(GPENCIL_OT_select_border);
+	WM_operatortype_append(GPENCIL_OT_select_lasso);
 	
 	WM_operatortype_append(GPENCIL_OT_select_linked);
 	WM_operatortype_append(GPENCIL_OT_select_more);
