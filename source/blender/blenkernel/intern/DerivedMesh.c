@@ -77,7 +77,7 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #include "GPU_glew.h"
 
 /* very slow! enable for testing only! */
-// #define USE_MODIFIER_VALIDATE
+//#define USE_MODIFIER_VALIDATE
 
 #ifdef USE_MODIFIER_VALIDATE
 #  define ASSERT_IS_VALID_DM(dm) (BLI_assert((dm == NULL) || (DM_is_valid(dm) == true)))
