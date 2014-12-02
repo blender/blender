@@ -35,6 +35,7 @@ incs = [
     '.',
     '#/extern/wcwidth',
     '#/intern/guardedalloc',
+    '#/intern/atomic',
     '../makesdna',
     env['BF_FREETYPE_INC'],
     env['BF_ZLIB_INC'],

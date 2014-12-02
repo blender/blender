@@ -33,6 +33,8 @@
 #include "BLI_task.h"
 #include "BLI_threads.h"
 
+#include "atomic_ops.h"
+
 /* Types */
 
 typedef struct Task {
@@ -49,8 +51,8 @@ struct TaskPool {
 
 	volatile size_t num;
 	volatile size_t done;
-	volatile int num_threads;
-	volatile int currently_running_tasks;
+	size_t num_threads;
+	size_t currently_running_tasks;
 	ThreadMutex num_mutex;
 	ThreadCondition num_cond;
 
@@ -86,7 +88,7 @@ static void task_pool_num_decrease(TaskPool *pool, size_t done)
 	BLI_assert(pool->num >= done);
 
 	pool->num -= done;
-	pool->currently_running_tasks -= done;
+	atomic_sub_z(&pool->currently_running_tasks, done);
 	pool->done += done;
 
 	if (pool->num == 0)
@@ -130,7 +132,7 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 			{
 				*task = current_task;
 				found_task = true;
-				pool->currently_running_tasks++;
+				atomic_add_z(&pool->currently_running_tasks, 1);
 				BLI_remlink(&scheduler->queue, *task);
 				break;
 			}
@@ -392,7 +394,7 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		/* if found task, do it, otherwise wait until other tasks are done */
 		if (found_task) {
 			/* run task */
-			pool->currently_running_tasks++;
+			atomic_add_z(&pool->currently_running_tasks, 1);
 			work_task->run(pool, work_task->taskdata, 0);
 
 			/* delete task */

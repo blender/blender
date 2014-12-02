@@ -30,6 +30,7 @@ set(INC
 	# ../blenkernel  # dont add this back!
 	../makesdna
 	../../../intern/guardedalloc
+	../../../intern/atomic
 	../../../extern/wcwidth
 )
 
