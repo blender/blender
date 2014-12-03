@@ -737,7 +737,7 @@ static int rna_RenderSettings_threads_mode_get(PointerRNA *ptr)
 		return (rd->mode & R_FIXED_THREADS);
 }
 
-static int rna_RenderSettings_is_movie_fomat_get(PointerRNA *ptr)
+static int rna_RenderSettings_is_movie_format_get(PointerRNA *ptr)
 {
 	RenderData *rd = (RenderData *)ptr->data;
 	return BKE_imtype_is_movie(rd->im_format.imtype);
@@ -4801,7 +4801,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "is_movie_format", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_is_movie_fomat_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_is_movie_format_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Movie Format", "When true the format is a movie");
 
