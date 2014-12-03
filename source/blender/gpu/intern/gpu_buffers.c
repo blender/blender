@@ -614,7 +614,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	int *mat_orig_to_new;
 	int *cur_index_per_mat;
 	int i;
-	bool use_VBOs = (GLEW_ARB_vertex_buffer_object == 1) && !(U.gameflags & USER_DISABLE_VBO);
+	bool use_VBOs = (GLEW_ARB_vertex_buffer_object) && !(U.gameflags & USER_DISABLE_VBO);
 	GLboolean uploaded;
 
 	pool = gpu_get_global_buffer_pool();
