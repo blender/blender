@@ -504,9 +504,9 @@ bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctr
 	btRigidBody* body = ctrl->GetRigidBody();
 	if (body)
 	{
-		for (int i=body->getNumConstraintRefs()-1;i>=0;i--)
+		for (int i = m_dynamicsWorld->getNumConstraints()-1;i>=0;i--)
 		{
-			btTypedConstraint* con = body->getConstraintRef(i);
+			btTypedConstraint *con = m_dynamicsWorld->getConstraint(i);
 			m_dynamicsWorld->removeConstraint(con);
 			body->removeConstraintRef(con);
 			//delete con; //might be kept by python KX_ConstraintWrapper
