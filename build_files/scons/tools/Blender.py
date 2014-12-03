@@ -390,6 +390,10 @@ def creator(env):
         incs.append('#/extern/libmv')
         defs.append('WITH_LIBMV')
 
+    if env['WITH_BF_CYCLES'] and env['WITH_BF_CYCLES_LOGGING']:
+        incs.append('#/intern/cycles/blender')
+        defs.append('WITH_CYCLES_LOGGING')
+
     if env['WITH_BF_FFMPEG']:
         defs.append('WITH_FFMPEG')
 

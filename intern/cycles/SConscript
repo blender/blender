@@ -62,6 +62,16 @@ if env['WITH_BF_CYCLES_OSL']:
 if env['WITH_BF_CYCLES_DEBUG']:
     defs.append('WITH_CYCLES_DEBUG')
 
+if env['WITH_BF_CYCLES_LOGGING']:
+    defs.append('WITH_CYCLES_LOGGING')
+    defs.append('GOOGLE_GLOG_DLL_DECL=')
+    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
+        incs.append('#extern/libmv/third_party/glog/src/windows')
+        incs.append('#extern/libmv/third_party/gflags')
+    else:
+        incs.append('#extern/libmv/third_party/glog/src')
+        incs.append('#extern/libmv/third_party/gflags')
+
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna #source/blender/blenlib'.split())
 incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())
