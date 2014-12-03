@@ -320,8 +320,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	
 			case ACT_ACTION_FLIPPER:
 				// Convert into a play action and play back to the beginning
+				float temp = end;
 				end = start;
-				start = obj->GetActionFrame(m_layer);
+				start = curr_action ? obj->GetActionFrame(m_layer) : temp;
 				obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags, 1.f, blendmode);
 
 				m_flag |= ACT_FLAG_PLAY_END;
