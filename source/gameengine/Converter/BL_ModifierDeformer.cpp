@@ -186,6 +186,7 @@ bool BL_ModifierDeformer::Update(void)
 			m_dm->release(m_dm);
 			// HACK! use deformedOnly as a user counter
 			m_dm->deformedOnly = 1;
+			DM_update_materials(m_dm, blendobj);
 			/* update the graphic controller */
 			PHY_IGraphicController *ctrl = m_gameobj->GetGraphicController();
 			if (ctrl) {
