@@ -605,7 +605,7 @@ def read_opts(env, cfg, args):
         ('BF_CYCLES_CUDA_ENV', 'preset environement nvcc will execute in', ''),
         ('BF_CYCLES_CUDA_BINARIES_ARCH', 'CUDA architectures to compile binaries for', []),
         (BoolVariable('WITH_BF_CYCLES_DEBUG', 'Build Cycles engine with extra debugging capabilities', False)),
-        (BoolVariable('WITH_BF_CYCLES_LOGGING', 'Build Cycles engine with logging support', False)),
+        (BoolVariable('WITH_BF_CYCLES_LOGGING', 'Build Cycles engine with logging support', True)),
 
         (BoolVariable('WITH_BF_OIIO', 'Build with OpenImageIO', False)),
         (BoolVariable('WITH_BF_STATICOIIO', 'Statically link to OpenImageIO', False)),
