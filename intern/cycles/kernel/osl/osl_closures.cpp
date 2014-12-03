@@ -189,7 +189,7 @@ static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, O
 	/* optimization: it's possible to not use a prepare function at all and
 	 * only initialize the actual class when accessing the closure component
 	 * data, but then we need to map the id to the class somehow */
-	ss->register_closure(name, id, params, prepare, NULL);
+	ss->register_closure(name, id, params, prepare, NULL, 16);
 }
 
 void OSLShader::register_closures(OSLShadingSystem *ss_)
