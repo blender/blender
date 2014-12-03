@@ -268,7 +268,7 @@ int GPU_print_error(const char *str)
 {
 	GLenum errCode;
 
-	if (G.debug & G_DEBUG) {
+	if ((G.debug & G_DEBUG)) {
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
 			fprintf(stderr, "%s opengl error: %s\n", str, gluErrorString(errCode));
 			return 1;
@@ -748,8 +748,8 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 		return;
 	}
 
-	if (tex->fb) {
-		if (tex->fb->object == GG.currentfb && (G.debug & G_DEBUG)) {
+	if ((G.debug & G_DEBUG)) {
+		if (tex->fb && tex->fb->object == GG.currentfb) {
 			fprintf(stderr, "Feedback loop warning!: Attempting to bind texture attached to current framebuffer!\n");
 		}
 	}
@@ -884,8 +884,10 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 		return 0;
 	}
 
-	if (tex->number != -1 && (G.debug & G_DEBUG)) {
-		fprintf(stderr, "Feedback loop warning!: Attempting to attach texture to framebuffer while still bound to texture unit for drawing!");
+	if ((G.debug & G_DEBUG)) {
+		if (tex->number != -1) {
+			fprintf(stderr, "Feedback loop warning!: Attempting to attach texture to framebuffer while still bound to texture unit for drawing!");
+		}
 	}
 
 	if (tex->depth)
@@ -1252,8 +1254,8 @@ static void shader_print_errors(const char *task, char *log, const char **code, 
 	for (i = 0; i < totcode; i++) {
 		const char *c, *pos, *end = code[i] + strlen(code[i]);
 		int line = 1;
-				
-		if (G.debug & G_DEBUG) {
+
+		if ((G.debug & G_DEBUG)) {
 			fprintf(stderr, "===== shader string %d ====\n", i + 1);
 
 			c = code[i];
