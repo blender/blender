@@ -85,7 +85,8 @@ public:
 
 	/// release video source
 	virtual bool release (void);
-
+    /// overwrite base refresh to handle fixed image
+    virtual void refresh(void);
 	/// play video
 	virtual bool play (void);
 	/// pause video

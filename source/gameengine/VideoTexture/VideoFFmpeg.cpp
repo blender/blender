@@ -86,6 +86,13 @@ VideoFFmpeg::~VideoFFmpeg ()
 {
 }
 
+void VideoFFmpeg::refresh(void)
+{
+    // a fixed image will not refresh because it is loaded only once at creation
+    if (m_isImage)
+        return;
+    m_avail = false;
+}
 
 // release components
 bool VideoFFmpeg::release()
