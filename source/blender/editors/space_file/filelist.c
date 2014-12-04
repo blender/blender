@@ -298,21 +298,21 @@ static bool is_hidden_file(const char *filename, short hide_dot)
 
 	if (hide_dot) {
 		if (filename[0] == '.' && filename[1] != '.' && filename[1] != 0) {
-			is_hidden = 1; /* ignore .file */
+			is_hidden = true; /* ignore .file */
 		}
 		else if (((filename[0] == '.') && (filename[1] == 0))) {
-			is_hidden = 1; /* ignore . */
+			is_hidden = true; /* ignore . */
 		}
 		else {
 			int len = strlen(filename);
 			if ((len > 0) && (filename[len - 1] == '~')) {
-				is_hidden = 1;  /* ignore file~ */
+				is_hidden = true;  /* ignore file~ */
 			}
 		}
 	}
 	else {
 		if (((filename[0] == '.') && (filename[1] == 0))) {
-			is_hidden = 1; /* ignore . */
+			is_hidden = true; /* ignore . */
 		}
 	}
 	return is_hidden;
@@ -323,16 +323,16 @@ static bool is_filtered_file(struct direntry *file, const char *UNUSED(dir), uns
 	bool is_filtered = false;
 	if (filter) {
 		if (file->flags & filter) {
-			is_filtered = 1;
+			is_filtered = true;
 		}
 		else if (file->type & S_IFDIR) {
 			if (filter & FOLDERFILE) {
-				is_filtered = 1;
+				is_filtered = true;
 			}
 		}
 	}
 	else {
-		is_filtered = 1;
+		is_filtered = true;
 	}
 	return is_filtered && !is_hidden_file(file->relname, hide_dot);
 }
