@@ -1489,19 +1489,24 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 	int quality;
 	int rectx, recty;
 	int ok;
-	ImBuf *ibuf;
+	ImBuf *ibuf_tmp, *ibuf;
 
 	if (!seq_proxy_get_fname(seq, cfra, proxy_render_size, name)) {
 		return;
 	}
 
-	ibuf = seq_render_strip(context, seq, cfra);
+	ibuf_tmp = seq_render_strip(context, seq, cfra);
 
-	rectx = (proxy_render_size * ibuf->x) / 100;
-	recty = (proxy_render_size * ibuf->y) / 100;
+	rectx = (proxy_render_size * ibuf_tmp->x) / 100;
+	recty = (proxy_render_size * ibuf_tmp->y) / 100;
 
-	if (ibuf->x != rectx || ibuf->y != recty) {
+	if (ibuf_tmp->x != rectx || ibuf_tmp->y != recty) {
+		ibuf = IMB_dupImBuf(ibuf_tmp);
+		IMB_freeImBuf(ibuf_tmp);
 		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
+	}
+	else {
+		ibuf = ibuf_tmp;
 	}
 
 	/* depth = 32 is intentionally left in, otherwise ALPHA channels
