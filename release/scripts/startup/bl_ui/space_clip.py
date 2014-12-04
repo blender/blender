@@ -426,7 +426,9 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col = layout.column()
         row = col.row()
         row.prop(settings, "use_tripod_solver", text="Tripod")
-        row.prop(settings, "use_keyframe_selection", text="Keyframe")
+        sub = row.row()
+        sub.active = not settings.use_tripod_solver
+        sub.prop(settings, "use_keyframe_selection", text="Keyframe")
 
         col = layout.column(align=True)
         col.active = (not settings.use_tripod_solver and
