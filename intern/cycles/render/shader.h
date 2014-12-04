@@ -18,6 +18,15 @@
 #define __SHADER_H__
 
 #ifdef WITH_OSL
+#  if defined(_MSC_VER)
+/* Prevent OSL from pollyting the context with weird macroses from windows.h.
+ * TODO(sergey): Ideally it's only enough to have class/struct declarations in
+ * the header and skip header include here.
+ */
+#    define NOGDI
+#    define NOMINMAX
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  include <OSL/oslexec.h>
 #endif
 
