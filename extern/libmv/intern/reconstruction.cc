@@ -61,6 +61,7 @@ struct libmv_Reconstruction {
   CameraIntrinsics *intrinsics;
 
   double error;
+  bool is_valid;
 };
 
 namespace {
@@ -289,6 +290,12 @@ libmv_Reconstruction *libmv_solveReconstruction(
 
   LG << "number of markers for init: " << keyframe_markers.size();
 
+  if (keyframe_markers.size() < 8) {
+    LG << "No enough markers to initialize from";
+    libmv_reconstruction->is_valid = false;
+    return libmv_reconstruction;
+  }
+
   update_callback.invoke(0, "Initial reconstruction");
 
   EuclideanReconstructTwoFrames(keyframe_markers, &reconstruction);
@@ -319,6 +326,7 @@ libmv_Reconstruction *libmv_solveReconstruction(
                        progress_update_callback,
                        callback_customdata);
 
+  libmv_reconstruction->is_valid = true;
   return (libmv_Reconstruction *) libmv_reconstruction;
 }
 
@@ -377,7 +385,12 @@ libmv_Reconstruction *libmv_solveModal(
                        progress_update_callback,
                        callback_customdata);
 
+  libmv_reconstruction->is_valid = true;
   return (libmv_Reconstruction *) libmv_reconstruction;
+}
+
+int libmv_reconstructionIsValid(libmv_Reconstruction *libmv_reconstruction) {
+  return libmv_reconstruction->is_valid;
 }
 
 void libmv_reconstructionDestroy(libmv_Reconstruction *libmv_reconstruction) {

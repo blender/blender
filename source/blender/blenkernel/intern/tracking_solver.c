@@ -391,7 +391,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
 			last_marker--;
 		}
 
-		if (first < track->markersnr - 1)
+		if (first <= track->markersnr - 1)
 			sfra = min_ii(sfra, first_marker->framenr);
 
 		if (last >= 0)
@@ -508,6 +508,11 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
 {
 	MovieTrackingReconstruction *reconstruction;
 	MovieTrackingObject *object;
+
+	if (!libmv_reconstructionIsValid(context->reconstruction)) {
+		printf("Failed solve the motion: most likely there are no good keyframes\n");
+		return false;
+	}
 
 	tracks_map_merge(context->tracks_map, tracking);
 	BKE_tracking_dopesheet_tag_update(tracking);

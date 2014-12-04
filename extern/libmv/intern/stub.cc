@@ -138,6 +138,10 @@ libmv_Reconstruction *libmv_solveModal(
   return NULL;
 }
 
+int libmv_reconstructionIsValid(libmv_Reconstruction * /*libmv_reconstruction*/) {
+  return 0;
+}
+
 int libmv_reprojectionPointForTrack(
     const libmv_Reconstruction * /*libmv_reconstruction*/,
     int /*track*/,

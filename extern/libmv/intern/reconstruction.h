@@ -68,6 +68,8 @@ libmv_Reconstruction* libmv_solveModal(
     reconstruct_progress_update_cb progress_update_callback,
     void* callback_customdata);
 
+int libmv_reconstructionIsValid(libmv_Reconstruction *libmv_reconstruction);
+
 void libmv_reconstructionDestroy(libmv_Reconstruction* libmv_reconstruction);
 
 int libmv_reprojectionPointForTrack(
