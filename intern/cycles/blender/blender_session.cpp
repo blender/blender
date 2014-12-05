@@ -875,6 +875,7 @@ void BlenderSession::update_status_progress()
 			 * For until then, 1 << 5 means RPT_ERROR.
 			 */
 			b_engine.report(1 << 5, error.c_str());
+			b_engine.error_set(error.c_str());
 			last_error = error;
 		}
 	}
