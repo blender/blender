@@ -91,6 +91,7 @@ public:
 	string b_rlay_name;
 
 	string last_status;
+	string last_error;
 	float last_progress;
 
 	int width, height;
