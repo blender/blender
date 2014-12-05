@@ -92,7 +92,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 			RNA_property_update_main(G.main, scene, &ptr, prop);
 	}
 	else {
-		/* in other case we do standard depsgaph update, ideally
+		/* in other case we do standard depsgraph update, ideally
 		 * we'd be calling property update functions here too ... */
 		DAG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}

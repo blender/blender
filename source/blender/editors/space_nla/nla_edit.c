@@ -2331,6 +2331,9 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
+	/* free temp data */
+	ANIM_animdata_freelist(&anim_data);
+	
 	/* successful or not? */
 	if (ok == 0) {
 		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
