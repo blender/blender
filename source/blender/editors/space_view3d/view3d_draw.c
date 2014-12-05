@@ -3147,7 +3147,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 
 /* creates own 3d views, used by the sequencer */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height, unsigned int flag, int drawtype,
-                                             bool use_solid_tex, bool draw_background, int alpha_mode, char err_out[256])
+                                             bool use_solid_tex, bool use_gpencil, bool draw_background, int alpha_mode, char err_out[256])
 {
 	View3D v3d = {NULL};
 	ARegion ar = {NULL};
@@ -3162,6 +3162,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	v3d.lay = scene->lay;
 	v3d.drawtype = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
+	
+	if (use_gpencil)
+		v3d.flag2 |= V3D_SHOW_GPENCIL;
 
 	if (use_solid_tex)
 		v3d.flag2 |= V3D_SOLID_TEX;
