@@ -826,10 +826,8 @@ void BlenderSession::update_status_progress()
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
-	
-
 	if(background) {
-		if(progress>0)
+		if(progress > 0)
 			remaining_time = (1.0 - (double)progress) * (total_time / (double)progress);
 
 		scene += " | " + b_scene.name();
@@ -843,12 +841,12 @@ void BlenderSession::update_status_progress()
 		if(samples > 0 && total_samples != USHRT_MAX)
 			remaining_time = (total_samples - samples) * (total_time / samples);
 	}
-	
-	if(remaining_time>0) {
+
+	if(remaining_time > 0) {
 		BLI_timestr(remaining_time, time_str, sizeof(time_str));
 		timestatus += "Remaining:" + string(time_str) + " | ";
 	}
-	
+
 	timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);
 
 	if(status.size() > 0)
