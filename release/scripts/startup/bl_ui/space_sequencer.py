@@ -793,6 +793,8 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")
 
+        layout.prop(strip, "use_grease_pencil", text="Show Grease Pencil")
+
         if scene:
             layout.prop(scene, "audio_volume", text="Audio Volume")
 

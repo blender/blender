@@ -363,6 +363,9 @@ enum {
 	SEQ_AUDIO_PITCH_ANIMATED    = (1 << 25),
 	SEQ_AUDIO_PAN_ANIMATED      = (1 << 26),
 	SEQ_AUDIO_DRAW_WAVEFORM     = (1 << 27),
+	
+	/* don't include Grease Pencil in OpenGL previews of Scene strips */
+	SEQ_SCENE_NO_GPENCIL        = (1 << 28),
 
 	SEQ_INVALID_EFFECT          = (1 << 31),
 };
