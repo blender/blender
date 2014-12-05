@@ -153,81 +153,83 @@ void Scene::device_update(Device *device_, Progress& progress)
 	progress.set_status("Updating Shaders");
 	shader_manager->device_update(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Images");
 	image_manager->device_update(device, &dscene, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Background");
 	background->device_update(device, &dscene, this);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Objects");
 	object_manager->device_update(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Meshes");
 	mesh_manager->device_update(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Objects Flags");
 	object_manager->device_update_flags(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Hair Systems");
 	curve_system_manager->device_update(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Lookup Tables");
 	lookup_tables->device_update(device, &dscene);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	/* TODO(sergey): Make sure camera is not needed above. */
 	progress.set_status("Updating Camera");
 	camera->device_update(device, &dscene, this);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Lights");
 	light_manager->device_update(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Particle Systems");
 	particle_system_manager->device_update(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Film");
 	film->device_update(device, &dscene, this);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Integrator");
 	integrator->device_update(device, &dscene, this);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Lookup Tables");
 	lookup_tables->device_update(device, &dscene);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Baking");
 	bake_manager->device_update(device, &dscene, this, progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel() || device->have_error()) return;
 
-	progress.set_status("Updating Device", "Writing constant memory");
-	device->const_copy_to("__data", &dscene.data, sizeof(dscene.data));
+	if(device->have_error() == false) {
+		progress.set_status("Updating Device", "Writing constant memory");
+		device->const_copy_to("__data", &dscene.data, sizeof(dscene.data));
+	}
 }
 
 Scene::MotionType Scene::need_motion(bool advanced_shading)
