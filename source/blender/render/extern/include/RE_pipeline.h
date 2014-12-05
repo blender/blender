@@ -144,7 +144,7 @@ typedef struct RenderResult {
 
 	/* render info text */
 	char *text;
-	
+	char *error;
 } RenderResult;
 
 

@@ -519,6 +519,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_string(func, "message", NULL, 0, "Report Message", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
+	func = RNA_def_function(srna, "error_set", "RE_engine_set_error_message");
+	RNA_def_function_ui_description(func, "Set error message displaying after the render is finished");
+	prop = RNA_def_string(func, "message", NULL, 0, "Report Message", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+
 	func = RNA_def_function(srna, "bind_display_space_shader", "engine_bind_display_space_shader");
 	RNA_def_function_ui_description(func, "Bind GLSL fragment shader that converts linear colors to display space colors using scene color management settings");
 	prop = RNA_def_pointer(func, "scene", "Scene", "", "");

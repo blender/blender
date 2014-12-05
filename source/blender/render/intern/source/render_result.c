@@ -94,6 +94,8 @@ void render_result_free(RenderResult *res)
 		MEM_freeN(res->rectf);
 	if (res->text)
 		MEM_freeN(res->text);
+	if (res->error)
+		MEM_freeN(res->error);
 	
 	MEM_freeN(res);
 }
