@@ -251,7 +251,7 @@ void Session::run_gpu()
 			update_scene();
 
 			if(!device->error_message().empty())
-				progress.set_cancel(device->error_message());
+				progress.set_error(device->error_message());
 
 			if(progress.get_cancel())
 				break;
@@ -292,7 +292,7 @@ void Session::run_gpu()
 			}
 
 			if(!device->error_message().empty())
-				progress.set_cancel(device->error_message());
+				progress.set_error(device->error_message());
 
 			tiles_written = update_progressive_refine(progress.get_cancel());
 
@@ -540,7 +540,7 @@ void Session::run_cpu()
 			update_scene();
 
 			if(!device->error_message().empty())
-				progress.set_cancel(device->error_message());
+				progress.set_error(device->error_message());
 
 			if(progress.get_cancel())
 				break;
@@ -558,7 +558,7 @@ void Session::run_cpu()
 				need_tonemap = true;
 
 			if(!device->error_message().empty())
-				progress.set_cancel(device->error_message());
+				progress.set_error(device->error_message());
 		}
 
 		device->task_wait();
@@ -580,7 +580,7 @@ void Session::run_cpu()
 			}
 
 			if(!device->error_message().empty())
-				progress.set_cancel(device->error_message());
+				progress.set_error(device->error_message());
 
 			tiles_written = update_progressive_refine(progress.get_cancel());
 		}
@@ -604,7 +604,7 @@ void Session::load_kernels()
 			if(message.empty())
 				message = "Failed loading render kernel, see console for errors";
 
-			progress.set_cancel(message);
+			progress.set_error(message);
 			progress.set_status("Error", message);
 			progress.set_update();
 			return;
