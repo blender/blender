@@ -645,6 +645,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		m_lionStyleFullScreen = true;
 	}
 	
+	[m_window orderFrontRegardless]; // to rise window for new blender instance animation play case
+	
 	[pool drain];
 }
 
