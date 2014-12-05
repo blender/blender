@@ -142,6 +142,7 @@ BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib/opencollada'
 
 #Cycles
 WITH_BF_CYCLES = True
+WITH_BF_CYCLES_LOGGING = False
 WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = "" # Path to the NVIDIA CUDA compiler
 BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30', 'sm_35', 'sm_50']
