@@ -1372,11 +1372,15 @@ static int nlaedit_toggle_mute_exec(bContext *C, wmOperator *UNUSED(op))
 				/* just flip the mute flag for now */
 				// TODO: have a pre-pass to check if mute all or unmute all?
 				strip->flag ^= NLASTRIP_FLAG_MUTED;
+				
+				/* tag AnimData to get recalculated */
+				ale->update |= ANIM_UPDATE_DEPS;
 			}
 		}
 	}
 	
-	/* free temp data */
+	/* cleanup */
+	ANIM_animdata_update(&ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
@@ -2130,9 +2134,13 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
 		
 		/* remove the meta-strips now that we're done */
 		BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+		
+		/* tag for recalculating the animation */
+		ale->update |= ANIM_UPDATE_DEPS;
 	}
 	
-	/* free temp data */
+	/* cleanup */
+	ANIM_animdata_update(&ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 	
 	/* refresh auto strip properties */
@@ -2246,6 +2254,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 			
 			if (fcm) {
 				set_active_fmodifier(&strip->modifiers, fcm);
+				ale->update |= ANIM_UPDATE_DEPS;
 			}
 			else {
 				BKE_reportf(op->reports, RPT_ERROR,
@@ -2256,6 +2265,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* free temp data */
+	ANIM_animdata_update(&ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
@@ -2375,10 +2385,12 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 		for (strip = nlt->strips.first; strip; strip = strip->next) {
 			// TODO: do we want to replace existing modifiers? add user pref for that!
 			ok += ANIM_fmodifiers_paste_from_buf(&strip->modifiers, 0);
+			ale->update |= ANIM_UPDATE_DEPS;
 		}
 	}
 	
 	/* clean up */
+	ANIM_animdata_update(&ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 	
 	/* successful or not? */
