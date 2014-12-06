@@ -76,7 +76,7 @@ typedef struct ScanFillIsect {
 
 
 #if 0
-void BKE_scanfill_obj_dump(ScanFillContext *sf_ctx)
+void BLI_scanfill_obj_dump(ScanFillContext *sf_ctx)
 {
 	FILE *f = fopen("test.obj", "w");
 	unsigned int i = 1;
@@ -96,7 +96,7 @@ void BKE_scanfill_obj_dump(ScanFillContext *sf_ctx)
 #endif
 
 #if 0
-void BKE_scanfill_view3d_dump(ScanFillContext *sf_ctx)
+void BLI_scanfill_view3d_dump(ScanFillContext *sf_ctx)
 {
 	ScanFillEdge *eed;
 
@@ -508,8 +508,8 @@ bool BLI_scanfill_calc_self_isect(
 	sf_ctx->poly_nr = SF_POLY_UNSET;
 
 #if 0
-	BKE_scanfill_view3d_dump(sf_ctx);
-	BKE_scanfill_obj_dump(sf_ctx);
+	BLI_scanfill_view3d_dump(sf_ctx);
+	BLI_scanfill_obj_dump(sf_ctx);
 #endif
 
 	return changed;

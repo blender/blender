@@ -130,12 +130,6 @@ if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
 endif()
 
-if(WIN322)
-	list(APPEND INC
-		../../../intern/utfconv
-	)
-endif()
-
 if(WITH_COMPOSITOR)
 	add_definitions(-DWITH_COMPOSITOR)
 endif()

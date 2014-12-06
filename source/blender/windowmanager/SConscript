@@ -65,7 +65,6 @@ if env['WITH_BF_COLLADA']:
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
-    incs += ' ../../intern/utfconv'
 
 if env['BF_BUILDINFO']:
     defs.append('WITH_BUILDINFO')
