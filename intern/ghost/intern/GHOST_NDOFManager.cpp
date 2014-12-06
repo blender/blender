@@ -228,7 +228,7 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 	// that I don't have access to. Thanks!
 
 	switch (vendor_id) {
-		case 0x046D: // Logitech (3Dconnexion)
+		case 0x046D: // Logitech (3Dconnexion was a subsidiary)
 			switch (product_id) {
 				// -- current devices --
 				case 0xC626: // full-size SpaceNavigator
@@ -281,6 +281,29 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					printf("ndof: unknown Logitech product %04hx\n", product_id);
 			}
 			break;
+		case 0x256F: // 3Dconnexion
+			switch (product_id) {
+				case 0xC62E: // plugged in
+				case 0xC62F: // wireless
+					puts("ndof: using SpaceMouse Wireless");
+					m_deviceType = NDOF_SpaceMouseWireless;
+					m_buttonCount = 2;
+					m_hidMap = Modern3Dx_HID_map;
+					break;
+				case 0xC631: // plugged in
+				case 0xC632: // wireless
+					puts("ndof: using SpaceMouse Pro Wireless");
+					m_deviceType = NDOF_SpaceMouseProWireless;
+					m_buttonCount = 27;
+					// ^^ actually has 15 buttons, but their HID codes range from 0 to 26
+					m_buttonMask = 0x07C0F137;
+					m_hidMap = Modern3Dx_HID_map;
+					break;
+
+				default:
+					printf("ndof: unknown 3Dconnexion product %04hx\n", product_id);
+            }
+            break;
 		default:
 			printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
 	}
