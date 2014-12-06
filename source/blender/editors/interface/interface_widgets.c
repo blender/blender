@@ -59,6 +59,10 @@
 
 #include "interface_intern.h"
 
+#ifdef WITH_INPUT_IME
+#  include "WM_types.h"
+#endif
+
 /* icons are 80% of height of button (16 pixels inside 20 height) */
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
@@ -1232,12 +1236,60 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 }
 
+#ifdef WITH_INPUT_IME
+static void widget_draw_text_ime_underline(
+        uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, const rcti *rect,
+        const wmIMEData *ime_data, const char *drawstr)
+{
+	int ofs_x, width;
+	int rect_x = BLI_rcti_size_x(rect);
+	int sel_start = ime_data->sel_start, sel_end = ime_data->sel_end;
+
+	if (drawstr[0] != 0) {
+		if (but->pos >= but->ofs) {
+			ofs_x = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->pos - but->ofs);
+		}
+		else {
+			ofs_x = 0;
+		}
+
+		width = BLF_width(fstyle->uifont_id, drawstr + but->ofs,
+		                  ime_data->composite_len + but->pos - but->ofs);
+
+		glColor4ubv((unsigned char *)wcol->text);
+		UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 1);
+
+		/* draw the thick line */
+		if (sel_start != -1 && sel_end != -1) {
+			sel_end -= sel_start;
+			sel_start += but->pos;
+
+			if (sel_start >= but->ofs) {
+				ofs_x = BLF_width(fstyle->uifont_id, drawstr + but->ofs, sel_start - but->ofs);
+			}
+			else {
+				ofs_x = 0;
+			}
+
+			width = BLF_width(fstyle->uifont_id, drawstr + but->ofs,
+			                  sel_end + sel_start - but->ofs);
+
+			UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 2);
+		}
+	}
+}
+#endif  /* WITH_INPUT_IME */
+
 static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
 	int drawstr_left_len = UI_MAX_DRAW_STR;
 	const char *drawstr = but->drawstr;
 	const char *drawstr_right = NULL;
 	bool use_right_only = false;
+
+#ifdef WITH_INPUT_IME
+	const wmIMEData *ime_data;
+#endif
 
 	UI_fontstyle_set(fstyle);
 	
@@ -1266,13 +1318,30 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			/* max length isn't used in this case,
 			 * we rely on string being NULL terminated. */
 			drawstr_left_len = INT_MAX;
-			drawstr = but->editstr;
+
+#ifdef WITH_INPUT_IME
+			/* FIXME, IME is modifying 'const char *drawstr! */
+			ime_data = ui_but_get_ime_data(but);
+
+			if (ime_data && ime_data->composite_len) {
+				/* insert composite string into cursor pos */
+				BLI_snprintf((char *)drawstr, UI_MAX_DRAW_STR, "%s%s%s",
+				             but->editstr, ime_data->str_composite,
+				             but->editstr + but->pos);
+			}
+			else
+#endif
+			{
+				drawstr = but->editstr;
+			}
 		}
 	}
 
 
-	/* text button selection and cursor */
+	/* text button selection, cursor, composite underline */
 	if (but->editstr && but->pos != -1) {
+		int but_pos_ofs;
+		int tx, ty;
 
 		/* text button selection */
 		if ((but->selend - but->selsta) > 0) {
@@ -1298,18 +1367,44 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		}
 
 		/* text cursor */
+		but_pos_ofs = but->pos;
+
+#ifdef WITH_INPUT_IME
+		/* if is ime compositing, move the cursor */
+		if (ime_data && ime_data->composite_len && ime_data->cursor_pos != -1) {
+			but_pos_ofs += ime_data->cursor_pos;
+		}
+#endif
+
 		if (but->pos >= but->ofs) {
 			int t;
 			if (drawstr[0] != 0) {
-				t = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->pos - but->ofs);
+				t = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but_pos_ofs - but->ofs);
 			}
 			else {
 				t = 0;
 			}
 
 			glColor3f(0.20, 0.6, 0.9);
-			glRecti(rect->xmin + t, rect->ymin + 2, rect->xmin + t + 2, rect->ymax - 2);
+
+			tx = rect->xmin + t + 2;
+			ty = rect->ymin + 2;
+
+			/* draw cursor */
+			glRecti(rect->xmin + t, ty, tx, rect->ymax - 2);
 		}
+
+#ifdef WITH_INPUT_IME
+		if (ime_data && ime_data->composite_len) {
+			/* ime cursor following */
+			if (but->pos >= but->ofs) {
+				ui_but_ime_reposition(but, tx + 5, ty + 3, false);
+			}
+
+			/* composite underline */
+			widget_draw_text_ime_underline(fstyle, wcol, but, rect, ime_data, drawstr);
+		}
+#endif
 	}
 	
 	if (fstyle->kerning == 1)

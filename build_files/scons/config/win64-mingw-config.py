@@ -170,6 +170,8 @@ BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']
 
+WITH_BF_IME = True
+
 WITH_BF_OPENMP = True
 
 #Freestyle
@@ -192,6 +194,9 @@ C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-pro
 CC_WARN = [ '-Wall' ]
 
 LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++','-lole32','-luuid', '-lwsock32', '-lpsapi', '-lpthread']
+
+if WITH_BF_IME:
+    LLIBS.append('-limm32')
 
 PLATFORM_LINKFLAGS = ['-Xlinker', '--stack=2097152']
 

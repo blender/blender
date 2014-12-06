@@ -69,6 +69,11 @@ wmWindow	*wm_window_copy			(bContext *C, wmWindow *winorig);
 
 void		wm_window_testbreak		(void);
 
+#ifdef WITH_INPUT_IME
+void		wm_window_IME_begin	(wmWindow *win, int x, int y, int w, int h, bool complete);
+void		wm_window_IME_end	(wmWindow *win);
+#endif
+
 /* *************** window operators ************** */
 int			wm_window_duplicate_exec(bContext *C, struct wmOperator *op);
 int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);

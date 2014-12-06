@@ -570,6 +570,24 @@ typedef struct wmOperatorType {
 
 } wmOperatorType;
 
+#ifdef WITH_INPUT_IME
+/* *********** Input Method Editor (IME) *********** */
+
+/* similar to GHOST_TEventImeData */
+typedef struct wmIMEData {
+	size_t result_len, composite_len;
+
+	char *str_result;           /* utf8 encoding */
+	char *str_composite;        /* utf8 encoding */
+
+	int cursor_pos;             /* cursor position in the IME composition. */
+	int sel_start;              /* beginning of the selection */
+	int sel_end;                /* end of the selection */
+
+	bool is_ime_composing;
+} wmIMEData;
+#endif
+
 /* **************** Paint Cursor ******************* */
 
 typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata);

@@ -433,6 +433,7 @@ extern void ui_block_to_window_rctf(const struct ARegion *ar, uiBlock *block, rc
 extern void ui_window_to_block_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_window_to_block(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
+extern void ui_region_to_window(const struct ARegion *ar, int *x, int *y);
 
 extern double ui_but_value_get(uiBut *but);
 extern void ui_but_value_set(uiBut *but, double value);
@@ -626,6 +627,11 @@ void ui_but_clipboard_free(void);
 void ui_panel_menu(struct bContext *C, ARegion *ar, Panel *pa);
 uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new);
 uiBut *ui_but_find_new(uiBlock *block_old, const uiBut *but_new);
+
+#ifdef WITH_INPUT_IME
+void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete);
+struct wmIMEData *ui_but_get_ime_data(uiBut *but);
+#endif
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);

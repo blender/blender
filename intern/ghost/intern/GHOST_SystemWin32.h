@@ -307,6 +307,15 @@ protected:
 	static GHOST_Event *processWindowEvent(GHOST_TEventType type, GHOST_IWindow *window);
 
 	/**
+	 * Creates a IME event.
+	 * \param type		The type of event to create.
+	 * \param window		The window receiving the event (the active window).
+	 * \param data		IME data.
+	 * \return The event created.
+	 */
+	static GHOST_Event *processImeEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TEventImeData *data);
+
+	/**
 	 * Handles minimum window size.
 	 * \param minmax	The MINMAXINFO structure.
 	 */

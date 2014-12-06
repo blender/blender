@@ -154,6 +154,8 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include/opencollada'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib/opencollada'
 
+WITH_BF_IME = True
+
 WITH_BF_3DMOUSE = True
 
 WITH_BF_OPENMP = True
@@ -243,6 +245,9 @@ CC_WARN = []
 CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid', 'psapi']
+
+if WITH_BF_IME:
+    LLIBS.append('imm32')
 
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 

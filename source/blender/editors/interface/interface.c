@@ -209,6 +209,11 @@ void ui_window_to_region(const ARegion *ar, int *x, int *y)
 	*y -= ar->winrct.ymin;
 }
 
+void ui_region_to_window(const ARegion *ar, int *x, int *y)
+{
+	*x += ar->winrct.xmin;
+	*y += ar->winrct.ymin;
+}
 /* ******************* block calc ************************* */
 
 void ui_block_translate(uiBlock *block, int x, int y)

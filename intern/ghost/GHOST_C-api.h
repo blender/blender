@@ -897,6 +897,30 @@ extern int GHOST_UseNativePixels(void);
  */
 extern float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle);
 
+/**
+ * Enable IME attached to the given window, i.e. allows user-input
+ * events to be dispatched to the IME.
+ * \param windowhandle Window handle of the caller
+ * \param x Requested x-coordinate of the rectangle
+ * \param y Requested y-coordinate of the rectangle
+ * \param w Requested width of the rectangle
+ * \param h Requested height of the rectangle
+ * \param complete Whether or not to complete the ongoing composition
+ * true:  Start a new composition
+ * false: Move the IME windows to the given position without finishing it.
+ */
+extern void GHOST_BeginIME(GHOST_WindowHandle windowhandle,
+                            GHOST_TInt32 x,
+                            GHOST_TInt32 y,
+                            GHOST_TInt32 w,
+                            GHOST_TInt32 h,
+                            int complete);
+/**
+ * Disable the IME attached to the given window, i.e. prohibits any user-input
+ * events from being dispatched to the IME.
+ * \param windowhandle The window handle of the caller
+ */
+extern void GHOST_EndIME(GHOST_WindowHandle windowhandle);
 
 #ifdef __cplusplus
 }

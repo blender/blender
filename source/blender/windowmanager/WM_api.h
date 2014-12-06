@@ -462,6 +462,10 @@ void        WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4
 float       WM_event_tablet_data(const struct wmEvent *event, int *pen_flip, float tilt[2]);
 bool        WM_event_is_tablet(const struct wmEvent *event);
 
+#ifdef WITH_INPUT_IME
+bool        WM_event_is_ime_switch(const struct wmEvent *event);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

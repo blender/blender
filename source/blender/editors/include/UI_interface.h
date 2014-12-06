@@ -313,6 +313,7 @@ void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx,
 void UI_draw_roundbox_gl_mode(int mode, float minx, float miny, float maxx, float maxy, float rad);
 void UI_draw_roundbox_shade_x(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 void UI_draw_roundbox_shade_y(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
+void UI_draw_text_underline(int pos_x, int pos_y, int len, int height);
 
 /* state for scrolldrawing */
 #define UI_SCROLL_PRESSED       (1 << 0)

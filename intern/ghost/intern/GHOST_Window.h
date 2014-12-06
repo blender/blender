@@ -295,6 +295,22 @@ public:
 		return 1.0f;
 	}
 
+#ifdef WITH_INPUT_IME
+	virtual void beginIME(GHOST_TInt32 x,
+	                      GHOST_TInt32 y,
+	                      GHOST_TInt32 w,
+	                      GHOST_TInt32 h,
+	                      int completed)
+	{
+		/* do nothing temporarily if not in windows */
+	}
+
+	virtual void endIME()
+	{
+		/* do nothing temporarily if not in windows */
+	}
+#endif /* WITH_INPUT_IME */
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.

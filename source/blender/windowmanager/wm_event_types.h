@@ -86,6 +86,13 @@ enum {
 	 * paint and drawing tools however will want to handle these. */
 	INBETWEEN_MOUSEMOVE = 0x0011,
 
+/* IME event, GHOST_kEventImeCompositionStart in ghost */
+	WM_IME_COMPOSITE_START = 0x0014,
+/* IME event, GHOST_kEventImeComposition in ghost */
+	WM_IME_COMPOSITE_EVENT      = 0x0015,
+/* IME event, GHOST_kEventImeCompositionEnd in ghost */
+	WM_IME_COMPOSITE_END   = 0x0016,
+
 	/* *** Start of keyboard codes. *** */
 
 	/* standard keyboard.

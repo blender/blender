@@ -1524,3 +1524,20 @@ bool WM_window_is_fullscreen(wmWindow *win)
 	return win->windowstate == GHOST_kWindowStateFullScreen;
 }
 
+
+#ifdef WITH_INPUT_IME
+void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
+{
+	BLI_assert(win && (win->ime_data == NULL));
+
+	GHOST_BeginIME(win->ghostwin, x, win->sizey - y, w, h, complete);
+}
+
+void wm_window_IME_end(wmWindow *win)
+{
+	BLI_assert(win && win->ime_data);
+
+	GHOST_EndIME(win->ghostwin);
+	win->ime_data = NULL;
+}
+#endif  /* WITH_INPUT_IME */
