@@ -3063,10 +3063,10 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		}
 	}
 	else if (data->state == BUTTON_STATE_WAIT_KEY_EVENT) {
-		
-		if (event->type == MOUSEMOVE)
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 			return WM_UI_HANDLER_CONTINUE;
-		
+		}
+
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
 			/* only cancel if click outside the button */
 			if (ui_but_contains_point_px(but->active->region, but, event->x, event->y) == 0) {
