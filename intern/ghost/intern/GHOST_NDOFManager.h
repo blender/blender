@@ -20,7 +20,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __GHOST_NDOFMANAGER_H__
 #define __GHOST_NDOFMANAGER_H__
 

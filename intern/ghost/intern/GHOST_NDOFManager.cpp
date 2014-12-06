@@ -146,8 +146,8 @@ static const NDOF_ButtonT SpaceExplorer_HID_map[] = {
 	NDOF_BUTTON_ROTATE
 };
 
-/* this is the older SpacePilot (sans Pro)
- * thanks to polosson for info about this device */
+// this is the older SpacePilot (sans Pro)
+// thanks to polosson for info about this device
 static const NDOF_ButtonT SpacePilot_HID_map[] = {
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
@@ -190,17 +190,17 @@ static const NDOF_ButtonT Generic_HID_map[] = {
 static const int genericButtonCount = sizeof(Generic_HID_map) / sizeof(NDOF_ButtonT);
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System &sys)
-    : m_system(sys),
-      m_deviceType(NDOF_UnknownDevice),  /* each platform has its own device detection code */
-      m_buttonCount(genericButtonCount),
-      m_buttonMask(0),
-      m_hidMap(Generic_HID_map),
-      m_buttons(0),
-      m_motionTime(0),
-      m_prevMotionTime(0),
-      m_motionState(GHOST_kNotStarted),
-      m_motionEventPending(false),
-      m_deadZone(0.0f)
+	: m_system(sys),
+	  m_deviceType(NDOF_UnknownDevice), // each platform has its own device detection code
+	  m_buttonCount(genericButtonCount),
+	  m_buttonMask(0),
+	  m_hidMap(Generic_HID_map),
+	  m_buttons(0),
+	  m_motionTime(0),
+	  m_prevMotionTime(0),
+	  m_motionState(GHOST_kNotStarted),
+	  m_motionEventPending(false),
+	  m_deadZone(0.0f)
 {
 	// to avoid the rare situation where one triple is updated and
 	// the other is not, initialize them both here:
@@ -302,8 +302,8 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 
 				default:
 					printf("ndof: unknown 3Dconnexion product %04hx\n", product_id);
-            }
-            break;
+			}
+			break;
 		default:
 			printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
 	}
@@ -413,9 +413,9 @@ void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
 
 void GHOST_NDOFManager::setDeadZone(float dz)
 {
-	if (dz < 0.f) {
+	if (dz < 0.0f) {
 		// negative values don't make sense, so clamp at zero
-		dz = 0.f;
+		dz = 0.0f;
 	}
 	else if (dz > 0.5f) {
 		// warn the rogue user/developer, but allow it
@@ -428,14 +428,14 @@ void GHOST_NDOFManager::setDeadZone(float dz)
 
 static bool atHomePosition(GHOST_TEventNDOFMotionData *ndof)
 {
-#define HOME(foo) (ndof->foo == 0.f)
+#define HOME(foo) (ndof->foo == 0.0f)
 	return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
 #undef HOME
 }
 
 static bool nearHomePosition(GHOST_TEventNDOFMotionData *ndof, float threshold)
 {
-	if (threshold == 0.f) {
+	if (threshold == 0.0f) {
 		return atHomePosition(ndof);
 	}
 	else {
@@ -465,7 +465,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	// scale axis values here to normalize them to around +/- 1
 	// they are scaled again for overall sensitivity in the WM based on user prefs
 
-	const float scale = 1.f / 350.f; // 3Dconnexion devices send +/- 350 usually
+	const float scale = 1.0f / 350.0f; // 3Dconnexion devices send +/- 350 usually
 
 	data->tx = scale * m_translation[0];
 	data->ty = scale * m_translation[1];
