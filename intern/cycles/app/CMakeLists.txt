@@ -19,7 +19,6 @@ set(LIBRARIES
 	cycles_bvh
 	cycles_subd
 	cycles_util
-	${BOOST_LIBRARIES}
 	${BLENDER_GL_LIBRARIES}
 	${CYCLES_APP_GLEW_LIBRARY}
 	${PNG_LIBRARIES}
@@ -50,6 +49,12 @@ macro(target_link_libraries_oiio target)
 		unset(OPENIMAGEIO_LIBRARIES_DEBUG)
 		unset(OPENIMAGEIO_LIBRARIES_DEBUG)
 	endif()
+endmacro()
+
+macro(cycles_target_link_libraries target)
+	target_link_libraries(${target} ${LIBRARIES})
+	target_link_libraries_oiio(${target})
+	target_link_libraries(${target} ${BOOST_LIBRARIES} ${CMAKE_DL_LIBS} ${PLATFORM_LINKLIBS})
 endmacro()
 
 if(NOT PUGIXML_LIBRARIES STREQUAL "")
@@ -95,9 +100,7 @@ if(WITH_CYCLES_STANDALONE)
 		cycles_xml.h
 	)
 	add_executable(cycles ${SRC})
-	list(APPEND LIBRARIES ${PLATFORM_LINKLIBS})
-	target_link_libraries(cycles ${LIBRARIES} ${CMAKE_DL_LIBS})
-	target_link_libraries_oiio(cycles)
+	cycles_target_link_libraries(cycles)
 
 	if(UNIX AND NOT APPLE)
 		set_target_properties(cycles PROPERTIES INSTALL_RPATH $ORIGIN/lib)
@@ -110,8 +113,7 @@ if(WITH_CYCLES_NETWORK)
 		cycles_server.cpp
 	)
 	add_executable(cycles_server ${SRC})
-	target_link_libraries(cycles_server ${LIBRARIES} ${CMAKE_DL_LIBS})
-	target_link_libraries_oiio(cycles_server)
+	cycles_target_link_libraries(cycles_server)
 
 	if(UNIX AND NOT APPLE)
 		set_target_properties(cycles_server PROPERTIES INSTALL_RPATH $ORIGIN/lib)
