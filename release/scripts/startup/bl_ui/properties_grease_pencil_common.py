@@ -68,6 +68,17 @@ class GreasePencilDrawingToolsPanel():
         row = col.row(align=True)
         row.prop(context.tool_settings, "use_grease_pencil_sessions", text="Continuous Drawing")
 
+		
+        if context.space_data.type in ('VIEW_3D', 'CLIP_EDITOR'):
+            col.separator()
+            col.label("Data Source:")
+            row = col.row(align=True)
+            if context.space_data.type == 'VIEW_3D':
+                row.prop(context.tool_settings, "grease_pencil_source", expand=True)
+            elif context.space_data.type == 'CLIP_EDITOR':
+                row.prop(context.space_data, "grease_pencil_source", expand=True)
+
+
         gpd = context.gpencil_data
         if gpd:
             col.separator()
@@ -328,8 +339,9 @@ class GreasePencilDataPanel():
         gpd = context.gpencil_data
 
         # Owner Selector
-        # XXX: add this for 3D view too
-        if context.space_data.type == 'CLIP_EDITOR':
+        if context.space_data.type == 'VIEW_3D':
+            layout.prop(context.tool_settings, "grease_pencil_source", expand=True)
+        elif context.space_data.type == 'CLIP_EDITOR':
             layout.prop(context.space_data, "grease_pencil_source", expand=True)
 
         # Grease Pencil data selector

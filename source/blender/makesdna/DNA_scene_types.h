@@ -1093,9 +1093,10 @@ typedef struct ToolSettings {
 	short autoik_chainlen;  /* runtime only */
 
 	/* Grease Pencil */
-	char gpencil_flags;
+	char gpencil_flags;		/* flags/options for how the tool works */
+	char gpencil_src;		/* for main 3D view Grease Pencil, where data comes from */
 
-	char pad[5];
+	char pad[4];
 
 	/* Image Paint (8 byttse aligned please!) */
 	struct ImagePaintSettings imapaint;
@@ -1768,6 +1769,12 @@ typedef enum ImagePaintMode {
 
 /* toolsettings->gpencil_flags */
 #define GP_TOOL_FLAG_PAINTSESSIONS_ON	(1<<0)
+
+/* toolsettings->gpencil_src */
+typedef enum eGPencil_Source_3D {
+	GP_TOOL_SOURCE_SCENE    = 0,
+	GP_TOOL_SOURCE_OBJECT   = 1
+} eGPencil_Source_3d;
 
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1
