@@ -242,17 +242,26 @@ if(CXX_HAS_SSE)
 		kernel_sse2.cpp
 		kernel_sse3.cpp
 		kernel_sse41.cpp
-		kernel_avx.cpp
-		kernel_avx2.cpp
 	)
 
 	set_source_files_properties(kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
 	set_source_files_properties(kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
 	set_source_files_properties(kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-	set_source_files_properties(kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-	set_source_files_properties(kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 endif()
 
+if(CXX_HAS_AVX)
+	list(APPEND SRC
+		kernel_avx.cpp
+	)
+	set_source_files_properties(kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+endif()
+
+if(CXX_HAS_AVX2)
+	list(APPEND SRC
+		kernel_avx2.cpp
+	)
+	set_source_files_properties(kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+endif()
 
 add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_SVM_HEADERS} ${SRC_GEOM_HEADERS})
 
