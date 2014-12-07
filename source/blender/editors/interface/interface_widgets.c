@@ -761,10 +761,9 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			glDrawArrays(GL_QUAD_STRIP, 0, wtb->totvert * 2 + 2);
 
 			/* emboss bottom shadow */
-			UI_GetThemeColor4ubv(TH_EMBOSS, emboss);
-
 			if (wtb->emboss) {
-				UI_GetThemeColor4ubv(TH_EMBOSS, emboss);
+				UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss);
+
 				if (emboss[3]) {
 					glColor4ubv(emboss);
 					glVertexPointer(2, GL_FLOAT, 0, quad_strip_emboss);

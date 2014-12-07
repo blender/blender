@@ -168,7 +168,7 @@ typedef struct ThemeUI {
 
 	uiPanelColors panel; /* depricated, but we keep it for do_versions (2.66.1) */
 
-	char emboss[4];
+	char widget_emboss[4];
 
 	/* fac: 0 - 1 for blend factor, width in pixels */
 	float menu_shadow_fac;

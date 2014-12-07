@@ -776,7 +776,7 @@ class USERPREF_PT_theme(Panel):
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
-            colsub.row().prop(ui, "emboss")
+            colsub.row().prop(ui, "widget_emboss")
 
             col.separator()
             col.separator()
