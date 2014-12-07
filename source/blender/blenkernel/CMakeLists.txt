@@ -277,6 +277,13 @@ set(SRC
 	intern/pbvh_intern.h
 )
 
+if(WITH_BINRELOC)
+	list(APPEND INC_SYS
+		${BINRELOC_INCLUDE_DIRS}
+	)
+	add_definitions(-DWITH_BINRELOC)
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 
 if(WIN32)

@@ -189,13 +189,6 @@ set(SRC
 	PIL_time_utildefines.h
 )
 
-if(WITH_BINRELOC)
-	list(APPEND INC_SYS
-		${BINRELOC_INCLUDE_DIRS}
-	)
-	add_definitions(-DWITH_BINRELOC)
-endif()
-
 if(WITH_MEM_VALGRIND)
 	add_definitions(-DWITH_MEM_VALGRIND)
 endif()
