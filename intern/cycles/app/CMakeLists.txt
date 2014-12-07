@@ -12,6 +12,8 @@ set(INC
 set(INC_SYS
 )
 
+# NOTE: LIBRARIES contains all the libraries which are common
+# across release and debug build types, stored in a linking order.
 set(LIBRARIES
 	cycles_device
 	cycles_kernel
@@ -30,35 +32,8 @@ set(LIBRARIES
 	extern_cuew
 )
 
-macro(target_link_libraries_oiio target)
-	if(NOT MSVC)
-		target_link_libraries(${target}
-		                      ${OPENIMAGEIO_LIBRARIES}
-		                      ${OPENEXR_LIBRARIES})
-	else()
-		# For MSVC we link to different libraries depending whether
-		# release or debug target is being built.
-		file_list_suffix(OPENIMAGEIO_LIBRARIES_DEBUG "${OPENIMAGEIO_LIBRARIES}" "_d")
-		file_list_suffix(OPENIMAGEIO_LIBRARIES_DEBUG "${OPENEXR_LIBRARIES}" "_d")
-
-		target_link_libraries_debug("${target}" "${OPENIMAGEIO_LIBRARIES_DEBUG}")
-		target_link_libraries_debug("${target}" "${OPENEXR_LIBRARIES_DEBUG}")
-		target_link_libraries_optimized("${target}" "${OPENIMAGEIO_LIBRARIES}")
-		target_link_libraries_optimized("${target}" "${OPENEXR_LIBRARIES}")
-
-		unset(OPENIMAGEIO_LIBRARIES_DEBUG)
-		unset(OPENIMAGEIO_LIBRARIES_DEBUG)
-	endif()
-endmacro()
-
-macro(cycles_target_link_libraries target)
-	target_link_libraries(${target} ${LIBRARIES})
-	target_link_libraries_oiio(${target})
-	target_link_libraries(${target} ${BOOST_LIBRARIES} ${CMAKE_DL_LIBS} ${PLATFORM_LINKLIBS})
-endmacro()
-
-if(NOT PUGIXML_LIBRARIES STREQUAL "")
-	list(APPEND LIBRARIES ${PUGIXML_LIBRARIES})
+if(WITH_CYCLES_OSL)
+	list(APPEND LIBRARIES cycles_kernel_osl)
 endif()
 
 if(CYCLES_STANDALONE_REPOSITORY)
@@ -72,7 +47,11 @@ else()
 	list(APPEND LIBRARIES bf_intern_glew_mx)
 endif()
 
-add_definitions(${GL_DEFINITIONS})
+if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
+	list(APPEND LIBRARIES ${GLUT_LIBRARIES})
+endif()
+
+# Common configuration.
 
 link_directories(${OPENIMAGEIO_LIBPATH}
                  ${BOOST_LIBPATH}
@@ -82,16 +61,41 @@ link_directories(${OPENIMAGEIO_LIBPATH}
                  ${TIFF_LIBPATH}
                  ${OPENEXR_LIBPATH})
 
-if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
-	list(APPEND LIBRARIES ${GLUT_LIBRARIES})
-endif()
-
-if(WITH_CYCLES_OSL)
-	list(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES} ${LLVM_LIBRARIES})
-endif()
+add_definitions(${GL_DEFINITIONS})
 
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
+
+# Make sure given target is linked against proper libraries
+# which varies across debug and release build types.
+#
+# This will also make sure dependencies of that libraries
+# are sent to the linker after them.
+#
+# TODO(sergey): Think of a better place for this?
+macro(cycles_target_link_libraries target)
+	target_link_libraries(${target} ${LIBRARIES})
+	if(WITH_CYCLES_OSL)
+		target_link_libraries_decoupled(${target} OSL_LIBRARIES)
+		if(MSVC)
+			target_link_libraries_debug(${target} "${LLVM_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${LLVM_LIBRARIES}")
+		else()
+			target_link_libraries(${target} ${LLVM_LIBRARIES})
+		endif()
+	endif()
+	target_link_libraries_decoupled(${target} OPENIMAGEIO_LIBRARIES)
+	target_link_libraries_decoupled(${target} OPENEXR_LIBRARIES)
+	target_link_libraries(
+		${target}
+		${PUGIXML_LIBRARIES}
+		${BOOST_LIBRARIES}
+		${CMAKE_DL_LIBS}
+		${PLATFORM_LINKLIBS}
+	)
+endmacro()
+
+# Application build targets
 
 if(WITH_CYCLES_STANDALONE)
 	set(SRC
