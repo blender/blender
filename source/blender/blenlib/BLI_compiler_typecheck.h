@@ -51,9 +51,9 @@
 }))
 
 #else
-#  define CHECK_TYPE(var, type)
-#  define CHECK_TYPE_PAIR(var_a, var_b)
-#  define CHECK_TYPE_PAIR_INLINE(var_a, var_b) (void)0
+#  define CHECK_TYPE(var, type)  { EXPR_NOP(var); }(void)0
+#  define CHECK_TYPE_PAIR(var_a, var_b)  { (EXPR_NOP(var_a), EXPR_NOP(var_b)); }(void)0
+#  define CHECK_TYPE_PAIR_INLINE(var_a, var_b)  (EXPR_NOP(var_a), EXPR_NOP(var_b))
 #endif
 
 /* can be used in simple macros */
@@ -66,10 +66,15 @@
 	((void)(((type)0) != (0 ? (val) : ((type)0))))
 #endif
 
-#define CHECK_TYPE_NONCONST(var)  {      \
-	void *non_const = 0 ? (var) : NULL;  \
-	(void)non_const;                     \
-} (void)0
+#if defined(__GNUC__) || defined(__clang__)
+#  define CHECK_TYPE_NONCONST(var) __extension__ ({ \
+	void *non_const = 0 ? (var) : NULL; \
+	(void)non_const; \
+})
+#else
+#  define CHECK_TYPE_NONCONST(var) EXPR_NOP(var)
+#endif
+
 
 /**
  * CHECK_TYPE_ANY: handy macro, eg:

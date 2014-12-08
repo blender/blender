@@ -198,16 +198,17 @@ int  bpy_bm_generic_valid_check_source(BMesh *bm_source, const char *error_prefi
 
 #define BPY_BM_IS_VALID(obj) (LIKELY((obj)->bm != NULL))
 
-#define BM_ITER_BPY_BM_SEQ(ele, iter, bpy_bmelemseq)                          \
-	for (ele = BM_iter_new(iter,                                              \
-	                       (bpy_bmelemseq)->bm,                               \
-	                       (bpy_bmelemseq)->itype,                            \
-	                       (bpy_bmelemseq)->py_ele ?                          \
-	                           ((BPy_BMElem *)(bpy_bmelemseq)->py_ele)->ele : \
-	                           NULL                                           \
-	                       );                                                 \
-	     ele;                                                                 \
-	     ele = BM_iter_step(iter))
+#define BM_ITER_BPY_BM_SEQ(ele, iter, bpy_bmelemseq)                \
+	for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_new(              \
+	             iter,                                              \
+	             (bpy_bmelemseq)->bm,                               \
+	             (bpy_bmelemseq)->itype,                            \
+	             (bpy_bmelemseq)->py_ele ?                          \
+	                 ((BPy_BMElem *)(bpy_bmelemseq)->py_ele)->ele : \
+	                 NULL                                           \
+	             );                                                 \
+	     ele;                                                       \
+	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_step(iter))
 
 
 #ifdef __PY_CAPI_UTILS_H__

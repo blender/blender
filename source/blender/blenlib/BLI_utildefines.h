@@ -219,6 +219,8 @@ extern "C" {
 /* reusable ELEM macro */
 #define ELEM(...) VA_NARGS_CALL_OVERLOAD(_VA_ELEM, __VA_ARGS__)
 
+/* no-op for expressions we don't want to instansiate, but must remian valid */
+#define EXPR_NOP(expr) (void)(0 ? ((void)(expr), 1) : 0)
 
 /* shift around elements */
 #define SHIFT3(type, a, b, c)  {                                              \

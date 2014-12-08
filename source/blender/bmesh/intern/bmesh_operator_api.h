@@ -479,7 +479,9 @@ int   BMO_iter_map_value_int(BMOIter *iter);
 bool  BMO_iter_map_value_bool(BMOIter *iter);
 
 #define BMO_ITER(ele, iter, slot_args, slot_name, restrict_flag)   \
-	for (ele = BMO_iter_new(iter, slot_args, slot_name, restrict_flag); ele; ele = BMO_iter_step(iter))
+	for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_new(iter, slot_args, slot_name, restrict_flag); \
+	     ele; \
+	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter))
 
 /******************* Inlined Functions********************/
 typedef void (*opexec)(BMesh *bm, BMOperator *op);

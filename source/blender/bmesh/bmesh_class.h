@@ -256,6 +256,12 @@ enum {
 #define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 #define BM_ALL_NOLOOP (BM_VERT | BM_EDGE | BM_FACE)
 
+#define BM_CHECK_TYPE_ELEM(ele) \
+	CHECK_TYPE_ANY(ele, void *, BMFace *, BMEdge *, BMVert *, BMLoop *, BMElem *, BMElemF *, BMHeader *)
+
+#define BM_CHECK_TYPE_ELEM_ASSIGN(ele) \
+	(BM_CHECK_TYPE_ELEM(ele), CHECK_TYPE_NONCONST(ele)), ele
+
 /* BMHeader->hflag (char) */
 enum {
 	BM_ELEM_SELECT  = (1 << 0),
