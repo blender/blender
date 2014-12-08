@@ -49,7 +49,6 @@ struct Heap {
 	unsigned int bufsize;
 	MemArena *arena;
 	HeapNode *freenodes;
-	HeapNode *nodes;
 	HeapNode **tree;
 };
 
@@ -163,7 +162,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 
 	if (heap->freenodes) {
 		node = heap->freenodes;
-		heap->freenodes = (HeapNode *)(((HeapNode *)heap->freenodes)->ptr);
+		heap->freenodes = heap->freenodes->ptr;
 	}
 	else {
 		node = (HeapNode *)BLI_memarena_alloc(heap->arena, sizeof(*node));
