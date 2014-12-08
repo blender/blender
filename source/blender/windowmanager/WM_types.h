@@ -557,9 +557,7 @@ typedef struct wmOperatorType {
 	/* pointer to modal keymap, do not free! */
 	struct wmKeyMap *modalkeymap;
 
-	/* only used for operators defined with python
-	 * use to store pointers to python functions */
-	void *pyop_data;
+	/* python needs the operator type as well */
 	int (*pyop_poll)(struct bContext *, struct wmOperatorType *ot) ATTR_WARN_UNUSED_RESULT;
 
 	/* RNA integration */
