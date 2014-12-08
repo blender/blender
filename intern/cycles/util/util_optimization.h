@@ -130,6 +130,9 @@
 
 /* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
  * Since we can't avoid including <windows.h>, better only include that */
+#define NOGDI
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #endif
