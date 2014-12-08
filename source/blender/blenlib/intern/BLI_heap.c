@@ -205,13 +205,8 @@ void *BLI_heap_popmin(Heap *heap)
 	heap->tree[0]->ptr = heap->freenodes;
 	heap->freenodes = heap->tree[0];
 
-	if (UNLIKELY(heap->size == 1)) {
-		heap->size--;
-	}
-	else {
-		heap_swap(heap, 0, heap->size - 1);
-		heap->size--;
-
+	if (--heap->size) {
+		heap_swap(heap, 0, heap->size);
 		heap_down(heap, 0);
 	}
 
