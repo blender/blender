@@ -279,7 +279,7 @@ class INFO_MT_help(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("wm.url_open", text="Manual", icon='HELP').url = "http://wiki.blender.org/index.php/Doc:2.6/Manual"
+        layout.operator("wm.url_open", text="Manual", icon='HELP').url = "http://www.blender.org/manual"
         layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/%d.%d" % bpy.app.version[:2]
         layout.separator()
 

@@ -76,7 +76,7 @@ public:
 	{
 		if(first_error) {
 			fprintf(stderr, "\nRefer to the Cycles GPU rendering documentation for possible solutions:\n");
-			fprintf(stderr, "http://wiki.blender.org/index.php/Doc:2.6/Manual/Render/Cycles/GPU_Rendering\n\n");
+			fprintf(stderr, "http://www.blender.org/manual/render/cycles/gpu_rendering.html\n\n");
 			first_error = false;
 		}
 	}
