@@ -1286,6 +1286,44 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 
 /********************* Make Duplicates Real ************************/
 
+/**
+ * \note regarding hashing dupli-objects, skip the first member of #DupliObject.persistent_id
+ * since its a unique index and we only wan't to know if the group objects are from the same dupli-group instance.
+ */
+static unsigned int dupliobject_hash(const void *ptr)
+{
+	const DupliObject *dob = ptr;
+	unsigned int hash = BLI_ghashutil_ptrhash(dob->ob);
+	unsigned int i;
+	for (i = 1; (i < MAX_DUPLI_RECUR) && dob->persistent_id[i] != INT_MAX; i++) {
+		hash ^= (dob->persistent_id[i] ^ i);
+	}
+	return hash;
+}
+
+static bool dupliobject_cmp(const void *a_, const void *b_)
+{
+	const DupliObject *a = a_;
+	const DupliObject *b = b_;
+	unsigned int i;
+
+	if (a->ob != b->ob) {
+		return true;
+	}
+
+	for (i = 1; (i < MAX_DUPLI_RECUR); i++) {
+		if (a->persistent_id[i] != b->persistent_id[i]) {
+			return true;
+		}
+		else if (a->persistent_id[i] == INT_MAX) {
+			break;
+		}
+	}
+
+	/* matching */
+	return false;
+}
+
 static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
                                        const bool use_base_parent,
                                        const bool use_hierarchy)
@@ -1302,8 +1340,8 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	lb = object_duplilist(bmain->eval_ctx, scene, base->object);
 
 	if (use_hierarchy || use_base_parent) {
-		dupli_gh = BLI_ghash_ptr_new("make_object_duplilist_real dupli_gh");
-		parent_gh = BLI_ghash_pair_new("make_object_duplilist_real parent_gh");
+		dupli_gh = BLI_ghash_ptr_new(__func__);
+		parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
 	}
 
 	for (dob = lb->first; dob; dob = dob->next) {
@@ -1343,7 +1381,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		if (dupli_gh)
 			BLI_ghash_insert(dupli_gh, dob, ob);
 		if (parent_gh)
-			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, SET_INT_IN_POINTER(dob->persistent_id[0])), ob);
+			BLI_ghash_insert(parent_gh, dob, ob);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
@@ -1359,9 +1397,14 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 			/* find parent that was also made real */
 			if (ob_src_par) {
-				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, SET_INT_IN_POINTER(dob->persistent_id[0]));
-				ob_dst_par = BLI_ghash_lookup(parent_gh, pair);
-				BLI_ghashutil_pairfree(pair);
+				/* OK to keep most of the members uninitialized,
+				 * they won't be read, this is simply for a hash lookup. */
+				DupliObject dob_key;
+				dob_key.ob = ob_src_par;
+				memcpy(&dob_key.persistent_id[1],
+				       &dob->persistent_id[1],
+				       sizeof(dob->persistent_id[1]) * (MAX_DUPLI_RECUR - 1));
+				ob_dst_par = BLI_ghash_lookup(parent_gh, &dob_key);
 			}
 
 			if (ob_dst_par) {
@@ -1424,7 +1467,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	if (dupli_gh)
 		BLI_ghash_free(dupli_gh, NULL, NULL);
 	if (parent_gh)
-		BLI_ghash_free(parent_gh, BLI_ghashutil_pairfree, NULL);
+		BLI_ghash_free(parent_gh, NULL, NULL);
 
 	copy_object_set_idnew(C, 0);
 
