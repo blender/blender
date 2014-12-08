@@ -146,7 +146,7 @@ BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const unsigned int nentri
 
 /**
  * Internal lookup function.
- * Takes a hash argument to avoid calling #ghash_keyhash multiple times.
+ * Takes a hash argument to avoid calling #edgehash_keyhash multiple times.
  */
 BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(EdgeHash *eh, unsigned int v0, unsigned int v1,
                                                const unsigned int hash)
@@ -253,6 +253,35 @@ BLI_INLINE void edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, 
 	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
 	hash = edgehash_keyhash(eh, v0, v1);
 	edgehash_insert_ex(eh, v0, v1, val, hash);
+}
+
+/**
+ * Remove the entry and return it, caller must free from eh->epool.
+ */
+static EdgeEntry *edgehash_remove_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, EdgeHashFreeFP valfreefp,
+                                     unsigned int hash)
+{
+	EdgeEntry *e;
+	EdgeEntry *e_prev = NULL;
+
+	BLI_assert(v0 < v1);
+
+	for (e = eh->buckets[hash]; e; e = e->next) {
+		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
+			EdgeEntry *e_next = e->next;
+
+			if (valfreefp) valfreefp(e->val);
+
+			if (e_prev) e_prev->next = e_next;
+			else   eh->buckets[hash] = e_next;
+
+			eh->nentries--;
+			return e;
+		}
+		e_prev = e;
+	}
+
+	return NULL;
 }
 
 /**
@@ -366,6 +395,57 @@ void *BLI_edgehash_lookup_default(EdgeHash *eh, unsigned int v0, unsigned int v1
 }
 
 /**
+ * Remove \a key from \a eh, or return false if the key wasn't found.
+ *
+ * \param key  The key to remove.
+ * \param valfreefp  Optional callback to free the value.
+ * \return true if \a key was removed from \a eh.
+ */
+bool BLI_edgehash_remove(EdgeHash *eh, unsigned int v0, unsigned int v1, EdgeHashFreeFP valfreefp)
+{
+	unsigned int hash;
+	EdgeEntry *e;
+
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash(eh, v0, v1);
+	e = edgehash_remove_ex(eh, v0, v1, valfreefp, hash);
+	if (e) {
+		BLI_mempool_free(eh->epool, e);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/* same as above but return the value,
+ * no free value argument since it will be returned */
+/**
+ * Remove \a key from \a eh, returning the value or NULL if the key wasn't found.
+ *
+ * \param key  The key to remove.
+ * \return the value of \a key int \a eh or NULL.
+ */
+void *BLI_edgehash_popkey(EdgeHash *eh, unsigned int v0, unsigned int v1)
+{
+	unsigned int hash;
+	EdgeEntry *e;
+
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash(eh, v0, v1);
+	e = edgehash_remove_ex(eh, v0, v1, NULL, hash);
+	IS_EDGEHASH_ASSERT(eh);
+	if (e) {
+		void *val = e->val;
+		BLI_mempool_free(eh->epool, e);
+		return val;
+	}
+	else {
+		return NULL;
+	}
+}
+
+/**
  * Return boolean true/false if edge (v0,v1) in hash.
  */
 bool BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1)
@@ -404,6 +484,14 @@ void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP valfreefp,
 	BLI_mempool_clear_ex(eh->epool, nentries_reserve ? (int)nentries_reserve : -1);
 }
 
+/**
+ * Wraps #BLI_edgehash_clear_ex with zero entries reserved.
+ */
+void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
+{
+	BLI_edgehash_clear_ex(eh, valfreefp, 0);
+}
+
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 {
 	BLI_assert((int)eh->nentries == BLI_mempool_count(eh->epool));
@@ -440,7 +528,7 @@ void BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag)
 /**
  * Create a new EdgeHashIterator. The hash table must not be mutated
  * while the iterator is in use, and the iterator will step exactly
- * BLI_edgehash_size(gh) times before becoming done.
+ * BLI_edgehash_size(eh) times before becoming done.
  */
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 {

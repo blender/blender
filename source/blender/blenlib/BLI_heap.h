@@ -37,6 +37,7 @@ typedef void (*HeapFreeFP)(void *ptr);
  * are recycled, so memory usage will not shrink. */
 Heap           *BLI_heap_new_ex(unsigned int tot_reserve) ATTR_WARN_UNUSED_RESULT;
 Heap           *BLI_heap_new(void) ATTR_WARN_UNUSED_RESULT;
+void            BLI_heap_clear(Heap *heap, HeapFreeFP ptrfreefp) ATTR_NONNULL(1);
 void            BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp) ATTR_NONNULL(1);
 
 /* Insert heap node with a value (often a 'cost') and pointer into the heap,

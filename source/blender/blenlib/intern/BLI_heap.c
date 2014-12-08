@@ -138,9 +138,9 @@ Heap *BLI_heap_new(void)
 
 void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 {
-	unsigned int i;
-
 	if (ptrfreefp) {
+		unsigned int i;
+
 		for (i = 0; i < heap->size; i++) {
 			ptrfreefp(heap->tree[i]->ptr);
 		}
@@ -149,6 +149,21 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 	MEM_freeN(heap->tree);
 	BLI_memarena_free(heap->arena);
 	MEM_freeN(heap);
+}
+
+void BLI_heap_clear(Heap *heap, HeapFreeFP ptrfreefp)
+{
+	if (ptrfreefp) {
+		unsigned int i;
+
+		for (i = 0; i < heap->size; i++) {
+			ptrfreefp(heap->tree[i]->ptr);
+		}
+	}
+
+	heap->size = 0;
+	BLI_memarena_clear(heap->arena);
+	heap->freenodes = NULL;
 }
 
 HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
