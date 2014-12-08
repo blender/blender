@@ -85,6 +85,7 @@ set(SRC
 	intern/noise.c
 	intern/path_util.c
 	intern/polyfill2d.c
+	intern/polyfill2d_beautify.c
 	intern/quadric.c
 	intern/rand.c
 	intern/rct.c
@@ -161,6 +162,7 @@ set(SRC
 	BLI_noise.h
 	BLI_path_util.h
 	BLI_polyfill2d.h
+	BLI_polyfill2d_beautify.h
 	BLI_quadric.h
 	BLI_rand.h
 	BLI_rect.h

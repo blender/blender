@@ -27,13 +27,20 @@
  *
  */
 
+#include "DNA_modifier_types.h"  /* for MOD_TRIANGULATE_NGON_BEAUTY only */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
 #include "BLI_memarena.h"
 #include "BLI_listbase.h"
-#include "BLI_polyfill2d.h"  /* only for define */
+#include "BLI_heap.h"
+#include "BLI_edgehash.h"
+
+/* only for defines */
+#include "BLI_polyfill2d.h"
+#include "BLI_polyfill2d_beautify.h"
 
 #include "bmesh.h"
 
@@ -48,7 +55,9 @@ static void bm_face_triangulate_mapping(
         const bool use_tag,
         BMOperator *op, BMOpSlot *slot_facemap_out,
 
-        MemArena *pf_arena)
+        MemArena *pf_arena,
+        /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
+        struct Heap *pf_heap, struct EdgeHash *pf_ehash)
 {
 	int faces_array_tot = face->len - 3;
 	BMFace  **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
@@ -57,7 +66,8 @@ static void bm_face_triangulate_mapping(
 	BM_face_triangulate(
 	        bm, face, faces_array, &faces_array_tot,
 	        quad_method, ngon_method, use_tag,
-	        pf_arena);
+	        pf_arena,
+	        pf_heap, pf_ehash);
 
 	if (faces_array_tot) {
 		int i;
@@ -76,8 +86,15 @@ void BM_mesh_triangulate(
 	BMIter iter;
 	BMFace *face;
 	MemArena *pf_arena;
+	Heap *pf_heap;
+	EdgeHash *pf_ehash;
 
 	pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+
+	if (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY) {
+		pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
+		pf_ehash = BLI_edgehash_new_ex(__func__, BLI_POLYFILL_ALLOC_NGON_RESERVE);
+	}
 
 	if (slot_facemap_out) {
 		/* same as below but call: bm_face_triangulate_mapping() */
@@ -88,7 +105,9 @@ void BM_mesh_triangulate(
 					        bm, face, quad_method,
 					        ngon_method, tag_only,
 					        op, slot_facemap_out,
-					        pf_arena);
+
+					        pf_arena,
+					        pf_heap, pf_ehash);
 				}
 			}
 		}
@@ -100,11 +119,17 @@ void BM_mesh_triangulate(
 					BM_face_triangulate(
 					        bm, face, NULL, NULL,
 					        quad_method, ngon_method, tag_only,
-					        pf_arena);
+					        pf_arena,
+					        pf_heap, pf_ehash);
 				}
 			}
 		}
 	}
 
 	BLI_memarena_free(pf_arena);
+
+	if (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY) {
+		BLI_heap_free(pf_heap, NULL);
+		BLI_edgehash_free(pf_ehash, NULL);
+	}
 }

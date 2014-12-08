@@ -27,6 +27,9 @@
  *  \ingroup bmesh
  */
 
+struct EdgeHash;
+struct Heap;
+
 #include "BLI_compiler_attrs.h"
 
 void  BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot);
@@ -62,7 +65,9 @@ void  BM_face_triangulate(
         int     *r_faces_new_tot,
         const int quad_method, const int ngon_method,
         const bool use_tag,
-        struct MemArena *pf_arena) ATTR_NONNULL(1, 2);
+        struct MemArena *pf_arena,
+        struct Heap *pf_heap, struct EdgeHash *pf_ehash
+        ) ATTR_NONNULL(1, 2);
 
 void  BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len) ATTR_NONNULL();
 void  BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len) ATTR_NONNULL();
