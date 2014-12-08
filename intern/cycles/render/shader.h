@@ -19,7 +19,7 @@
 
 #ifdef WITH_OSL
 #  if defined(_MSC_VER)
-/* Prevent OSL from pollyting the context with weird macroses from windows.h.
+/* Prevent OSL from polluting the context with weird macros from windows.h.
  * TODO(sergey): Ideally it's only enough to have class/struct declarations in
  * the header and skip header include here.
  */

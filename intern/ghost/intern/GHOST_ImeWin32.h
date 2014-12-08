@@ -114,7 +114,7 @@ struct ImeComposition {
 
 	/**
 	 * Represents the type of the string in the 'ime_string' parameter.
-	 * Its possible values and description are listed bwlow:
+	 * Its possible values and description are listed below:
 	 *   Value         Description
 	 *   0             The parameter is not used.
 	 *   GCS_RESULTSTR The parameter represents a result string.

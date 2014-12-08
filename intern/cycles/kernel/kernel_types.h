@@ -541,7 +541,7 @@ typedef enum AttributeStandard {
 
 /* This struct is to be 16 bytes aligned, we also keep some extra precautions:
  * - All the float3 members are in the beginning of the struct, so compiler
- *   does not put own pddings trying to align this members.
+ *   does not put own padding trying to align this members.
  * - We make sure OSL pointer is also 16 bytes aligned.
  */
 typedef struct ShaderClosure {
