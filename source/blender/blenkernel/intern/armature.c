@@ -1654,6 +1654,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.next = pchan->next;
 			pchanw.parent = pchan->parent;
 			pchanw.child = pchan->child;
+			pchanw.custom_tx = pchan->custom_tx;
 
 			pchanw.mpath = pchan->mpath;
 			pchan->mpath = NULL;
