@@ -219,7 +219,7 @@ void GRAPH_OT_select_all_toggle(wmOperatorType *ot)
  */
 static void borderselect_graphkeys(
         bAnimContext *ac, const rctf *rectf_view, short mode, short selectmode, bool incl_handles,
-        struct KeyframeEdit_LassoData *data_lasso)
+        void *data)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -244,9 +244,15 @@ static void borderselect_graphkeys(
 	
 	/* init editing data */
 	memset(&ked, 0, sizeof(KeyframeEditData));
-	if (data_lasso) {
+	if (mode == BEZT_OK_REGION_LASSO) {
+		struct KeyframeEdit_LassoData *data_lasso = data;
 		data_lasso->rectf_scaled = &scaled_rectf;
 		ked.data = data_lasso;
+	}
+	if (mode == BEZT_OK_REGION_CIRCLE) {
+		struct KeyframeEdit_CircleData *data_circle = data;
+		data_circle->rectf_scaled = &scaled_rectf;
+		ked.data = data;
 	}
 	else {
 		ked.data = &scaled_rectf;
@@ -483,6 +489,81 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
 	RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
 	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
+}
+
+static int graph_circle_select_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	short selectmode;
+	bool incl_handles;
+	rctf rect_fl;
+	struct KeyframeEdit_CircleData data;
+	float x = RNA_int_get(op->ptr, "x");
+	float y = RNA_int_get(op->ptr, "y");
+	float radius = RNA_int_get(op->ptr, "radius");
+
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+
+	data.mval[0] = x;
+	data.mval[1] = y;
+	data.radius_squared = radius * radius;
+	data.rectf_view = &rect_fl;
+	
+	if (gesture_mode == GESTURE_MODAL_SELECT)
+		selectmode = SELECT_ADD;
+	else
+		selectmode = SELECT_SUBTRACT;
+
+	rect_fl.xmin = x - radius;
+	rect_fl.xmax = x + radius;
+	rect_fl.ymin = y - radius;
+	rect_fl.ymax = y + radius;
+	
+	if (ac.spacetype == SPACE_IPO) {
+		SpaceIpo *sipo = (SpaceIpo *)ac.sl;
+		if (selectmode == SELECT_ADD) {
+			incl_handles = ((sipo->flag & SIPO_SELVHANDLESONLY) ||
+			                (sipo->flag & SIPO_NOHANDLES)) == 0;
+		}
+		else {
+			incl_handles = (sipo->flag & SIPO_NOHANDLES) == 0;
+		}
+	}
+	else {
+		incl_handles = false;
+	}
+
+	/* apply borderselect action */
+	borderselect_graphkeys(&ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
+	
+	/* send notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_select_circle(wmOperatorType *ot)
+{
+	ot->name = "Circle Select";
+	ot->description = "Select keyframe points using circle selection";
+	ot->idname = "GRAPH_OT_select_circle";
+	
+	ot->invoke = WM_gesture_circle_invoke;
+	ot->modal = WM_gesture_circle_modal;
+	ot->exec = graph_circle_select_exec;
+	ot->poll = graphop_visible_keyframes_poll;
+	ot->cancel = WM_gesture_circle_cancel;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 }
 
 /* ******************** Column Select Operator **************************** */

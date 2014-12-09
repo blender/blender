@@ -58,6 +58,7 @@ typedef enum eEditKeyframes_Validate {
 	BEZT_OK_VALUERANGE,
 	BEZT_OK_REGION,
 	BEZT_OK_REGION_LASSO,
+	BEZT_OK_REGION_CIRCLE,
 } eEditKeyframes_Validate;
 
 /* ------------ */
@@ -105,6 +106,14 @@ struct KeyframeEdit_LassoData {
 	const rctf *rectf_view;
 	const int (*mcords)[2];
 	int mcords_tot;
+};
+
+/* use with BEZT_OK_REGION_CIRCLE */
+struct KeyframeEdit_CircleData {
+	const rctf *rectf_scaled;
+	const rctf *rectf_view;
+	float mval[2];
+	float radius_squared;
 };
 
 
