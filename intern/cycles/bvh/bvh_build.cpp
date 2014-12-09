@@ -400,7 +400,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range, int level)
 	progress_total += left.size() + right.size() - range.size();
 	size_t total = progress_total;
 
-	/* leaft node */
+	/* left node */
 	BVHNode *leftnode = build_node(left, level + 1);
 
 	/* right node (modify start for splits) */
