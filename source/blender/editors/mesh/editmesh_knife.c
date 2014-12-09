@@ -1289,6 +1289,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	SmallHashIter hiter;
 	KnifeLineHit hit;
 	void *val;
+	void **val_p;
 	float plane_cos[12];
 	float s[2], se1[2], se2[2], sint[2];
 	float r1[3], r2[3];
@@ -1396,11 +1397,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 				continue;
 			BLI_smallhash_insert(&kfes, (uintptr_t)kfe, kfe);
 			v = kfe->v1;
-			if (!BLI_smallhash_haskey(&kfvs, (uintptr_t)v))
-				BLI_smallhash_insert(&kfvs, (uintptr_t)v, v);
+			BLI_smallhash_reinsert(&kfvs, (uintptr_t)v, v);
 			v = kfe->v2;
-			if (!BLI_smallhash_haskey(&kfvs, (uintptr_t)v))
-				BLI_smallhash_insert(&kfvs, (uintptr_t)v, v);
+			BLI_smallhash_reinsert(&kfvs, (uintptr_t)v, v);
 		}
 	}
 
@@ -1426,41 +1425,53 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	/* Assume these tolerances swamp floating point rounding errors in calculations below */
 
 	/* first look for vertex hits */
-	for (val = BLI_smallhash_iternew(&kfvs, &hiter, (uintptr_t *)&v); val;
-	     val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&v))
+	for (val_p = BLI_smallhash_iternew_p(&kfvs, &hiter, (uintptr_t *)&v); val_p;
+	     val_p = BLI_smallhash_iternext_p(&hiter, (uintptr_t *)&v))
 	{
 		knife_project_v2(kcd, v->cageco, s);
 		d = dist_squared_to_line_segment_v2(s, s1, s2);
-		if (d <= vert_tol_sq) {
-			if (point_is_visible(kcd, v->cageco, s, &mats)) {
-				memset(&hit, 0, sizeof(hit));
-				hit.v = v;
+		if ((d <= vert_tol_sq) &&
+		    point_is_visible(kcd, v->cageco, s, &mats))
+		{
+			memset(&hit, 0, sizeof(hit));
+			hit.v = v;
 
-				/* If this isn't from an existing BMVert, it may have been added to a BMEdge originally.
-				 * knowing if the hit comes from an edge is important for edge-in-face checks later on
-				 * see: #knife_add_single_cut -> #knife_verts_edge_in_face, T42611 */
-				if (v->v == NULL) {
-					for (ref = v->edges.first; ref; ref = ref->next) {
-						kfe = ref->ref;
-						if (kfe->e) {
-							hit.kfe = kfe;
-							break;
-						}
+			/* If this isn't from an existing BMVert, it may have been added to a BMEdge originally.
+			 * knowing if the hit comes from an edge is important for edge-in-face checks later on
+			 * see: #knife_add_single_cut -> #knife_verts_edge_in_face, T42611 */
+			if (v->v == NULL) {
+				for (ref = v->edges.first; ref; ref = ref->next) {
+					kfe = ref->ref;
+					if (kfe->e) {
+						hit.kfe = kfe;
+						break;
 					}
 				}
-
-				copy_v3_v3(hit.hit, v->co);
-				copy_v3_v3(hit.cagehit, v->cageco);
-				copy_v2_v2(hit.schit, s);
-				set_linehit_depth(kcd, &hit);
-				BLI_array_append(linehits, hit);
 			}
+
+			copy_v3_v3(hit.hit, v->co);
+			copy_v3_v3(hit.cagehit, v->cageco);
+			copy_v2_v2(hit.schit, s);
+			set_linehit_depth(kcd, &hit);
+			BLI_array_append(linehits, hit);
+		}
+		else {
+			/* note that these vertes aren't used */
+			*val_p = NULL;
 		}
 	}
+
 	/* now edge hits; don't add if a vertex at end of edge should have hit */
 	for (val = BLI_smallhash_iternew(&kfes, &hiter, (uintptr_t *)&kfe); val;
 	     val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&kfe))
 	{
+		/* if we intersect both verts, don't attempt to intersect the edge */
+		if (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) &&
+		    BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2))
+		{
+			continue;
+		}
+
 		knife_project_v2(kcd, kfe->v1->cageco, se1);
 		knife_project_v2(kcd, kfe->v2->cageco, se2);
 		isect_kind = isect_seg_seg_v2_point(s1, s2, se1, se2, sint);
