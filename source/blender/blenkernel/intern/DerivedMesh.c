@@ -1484,8 +1484,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	const bool has_multires = (mmd && mmd->sculptlvl != 0);
 	bool multires_applied = false;
-	const bool sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
-	const bool sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm);
+	const bool sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt && !useRenderParams;
+	const bool sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm)  && !useRenderParams;
 	const int draw_flag = dm_drawflag_calc(scene->toolsettings);
 
 	/* Generic preview only in object mode! */
