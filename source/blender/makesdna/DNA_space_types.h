@@ -518,6 +518,7 @@ typedef enum eSpaceSeq_RegionType {
 /* sseq->draw_flag */
 typedef enum eSpaceSeq_DrawFlag {
 	SEQ_DRAW_BACKDROP              = (1 << 0),
+	SEQ_DRAW_OFFSET_EXT            = (1 << 1),
 } eSpaceSeq_DrawFlag;
 
 

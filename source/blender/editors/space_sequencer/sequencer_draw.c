@@ -669,7 +669,7 @@ void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		draw_shadedstrip(seq, col, x1, y1, (float)(seq->start), y2);
 		
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
-			 * especially when the extension is very small */
+		 * especially when the extension is very small */
 		if (seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 24);
 		else UI_GetColorPtrShade3ubv(col, col, -16);
 		
@@ -687,7 +687,7 @@ void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		draw_shadedstrip(seq, col, (float)(seq->start + seq->len), y1, x2, y2);
 		
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
-			 * especially when the extension is very small */
+		 * especially when the extension is very small */
 		if (seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, 24);
 		else UI_GetColorPtrShade3ubv(col, col, -16);
 		
@@ -736,6 +736,10 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
 	}
 	
+	if ((sseq->draw_flag & SEQ_DRAW_OFFSET_EXT) && !is_single_image) {
+		draw_sequence_extensions(scene, ar, seq);
+	}
+
 	draw_seq_handle(v2d, seq, handsize_clamped, SEQ_LEFTHANDLE);
 	draw_seq_handle(v2d, seq, handsize_clamped, SEQ_RIGHTHANDLE);
 	

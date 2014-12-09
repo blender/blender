@@ -198,6 +198,7 @@ class SEQUENCER_MT_view(Menu):
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             layout.prop(st, "show_seconds")
             layout.prop(st, "show_frame_indicator")
+            layout.prop(st, "show_strip_offset")
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             if st.display_mode == 'IMAGE':
