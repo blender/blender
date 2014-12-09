@@ -1476,16 +1476,19 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	for (val = BLI_smallhash_iternew(&kfes, &hiter, (uintptr_t *)&kfe); val;
 	     val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&kfe))
 	{
+		int kfe_verts_in_cut;
 		/* if we intersect both verts, don't attempt to intersect the edge */
-		if (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) &&
-		    BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2))
-		{
+
+		kfe_verts_in_cut = (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) != NULL) +
+		                   (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2) != NULL);
+
+		if (kfe_verts_in_cut == 2) {
 			continue;
 		}
 
 		knife_project_v2(kcd, kfe->v1->cageco, se1);
 		knife_project_v2(kcd, kfe->v2->cageco, se2);
-		isect_kind = isect_seg_seg_v2_point(s1, s2, se1, se2, sint);
+		isect_kind = (kfe_verts_in_cut) ? -1 : isect_seg_seg_v2_point(s1, s2, se1, se2, sint);
 		if (isect_kind == -1) {
 			/* isect_seg_seg_v2 doesn't do tolerance test around ends of s1-s2 */
 			closest_to_line_segment_v2(sint, s1, se1, se2);
