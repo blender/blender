@@ -1383,6 +1383,11 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 		ls = (BMLoop **)kcd->em->looptris[result->indexA];
 		f = ls[0]->f;
 		set_lowest_face_tri(kcd, f, result->indexA);
+
+		/* occlude but never cut unselected faces (when only_select is used) */
+		if (kcd->only_select && !BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+			continue;
+		}
 		/* for faces, store index of lowest hit looptri in hash */
 		if (BLI_smallhash_haskey(&faces, (uintptr_t)f)) {
 			continue;
@@ -1589,6 +1594,10 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 	sub_v3_v3v3(ray, origin_ofs, origin);
 
 	f = BKE_bmbvh_ray_cast(kcd->bmbvh, origin, ray, 0.0f, NULL, co, cageco);
+
+	if (f && kcd->only_select && BM_elem_flag_test(f, BM_ELEM_SELECT) == 0) {
+		f = NULL;
+	}
 
 	if (is_space)
 		*is_space = !f;
@@ -2760,10 +2769,11 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 
 	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(kcd->em, scene, NULL);
 
-	kcd->bmbvh = BKE_bmbvh_new_from_editmesh(kcd->em,
-	                                         BMBVH_RETURN_ORIG |
-	                                         (only_select ? BMBVH_RESPECT_SELECT : BMBVH_RESPECT_HIDDEN),
-	                                         kcd->cagecos, false);
+	kcd->bmbvh = BKE_bmbvh_new_from_editmesh(
+	        kcd->em,
+	        BMBVH_RETURN_ORIG |
+	        ((only_select && cut_through) ? BMBVH_RESPECT_SELECT : BMBVH_RESPECT_HIDDEN),
+	        kcd->cagecos, false);
 
 	kcd->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 15), "knife");
 	kcd->vthresh = KMAXDIST - 1;
