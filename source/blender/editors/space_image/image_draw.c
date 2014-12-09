@@ -854,8 +854,13 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		draw_render_info(sima->iuser.scene, ima, ar, zoomx, zoomy);
 }
 
-static bool show_image_cache(Image *image, Mask *mask)
+bool ED_space_image_show_cache(SpaceImage *sima)
 {
+	Image *image = ED_space_image(sima);
+	Mask *mask = NULL;
+	if (sima->mode == SI_MODE_MASK) {
+		mask = ED_space_image_get_mask(sima);
+	}
 	if (image == NULL && mask == NULL) {
 		return false;
 	}
@@ -873,12 +878,12 @@ void draw_image_cache(const bContext *C, ARegion *ar)
 	float x, cfra = CFRA, sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
 	Mask *mask = NULL;
 
-	if (sima->mode == SI_MODE_MASK) {
-		mask = ED_space_image_get_mask(sima);
+	if (!ED_space_image_show_cache(sima)) {
+		return;
 	}
 
-	if (!show_image_cache(image, mask)) {
-		return;
+	if (sima->mode == SI_MODE_MASK) {
+		mask = ED_space_image_get_mask(sima);
 	}
 
 	glEnable(GL_BLEND);

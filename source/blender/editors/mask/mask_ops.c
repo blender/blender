@@ -784,7 +784,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	SlidePointData *slidedata;
 
 	if (mask == NULL) {
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	}
 
 	slidedata = slide_point_customdata(C, op, event);
@@ -1286,7 +1286,7 @@ static int slide_spline_curvature_invoke(bContext *C, wmOperator *op, const wmEv
 	SlideSplineCurvatureData *slide_data;
 
 	if (mask == NULL) {
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	}
 
 	/* Be sure we don't conflict with point slide here. */

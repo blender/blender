@@ -3877,6 +3877,15 @@ static int uv_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	ARegion *ar = CTX_wm_region(C);
 	float location[2];
 
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
+		if (event->mval[1] <= 16) {
+			SpaceImage *sima = CTX_wm_space_image(C);
+			if (sima && ED_space_image_show_cache(sima)) {
+				return OPERATOR_PASS_THROUGH;
+			}
+		}
+	}
+
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 	RNA_float_set_array(op->ptr, "location", location);
 

@@ -2582,8 +2582,9 @@ static int image_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	ImageSampleInfo *info;
 
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
-		if (event->mval[1] <= 16)
+		if (event->mval[1] <= 16 && ED_space_image_show_cache(sima)) {
 			return OPERATOR_PASS_THROUGH;
+		}
 	}
 
 	if (!ED_space_image_has_buffer(sima))
@@ -3017,8 +3018,10 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	ARegion *ar = CTX_wm_region(C);
 
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
-		if (event->mval[1] > 16)
+		SpaceImage *sima = CTX_wm_space_image(C);
+		if (event->mval[1] > 16 || !ED_space_image_show_cache(sima)) {
 			return OPERATOR_PASS_THROUGH;
+		}
 	}
 
 	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
