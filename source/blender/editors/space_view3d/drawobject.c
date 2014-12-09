@@ -6857,14 +6857,17 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	glDepthMask(0);
 	
 	if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
-		DerivedMesh *dm = ob->derivedFinal;
+		DerivedMesh *dm;
 		bool has_faces = false;
 
-		if (dm)
-			DM_update_materials(dm, ob);
 #ifdef SEQUENCER_DAG_WORKAROUND
 		ensure_curve_cache(scene, ob);
 #endif
+
+		dm = ob->derivedFinal;
+		if (dm) {
+			DM_update_materials(dm, ob);
+		}
 
 		if (dm) {
 			has_faces = dm->getNumTessFaces(dm) > 0;
