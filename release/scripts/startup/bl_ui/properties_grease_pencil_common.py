@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 
-import bpy
 from bpy.types import Menu, UIList
 
 
@@ -38,7 +37,7 @@ def gpencil_stroke_placement_settings(context, layout, gpd):
         row.prop_enum(gpd, "draw_mode", 'STROKE')
 
         row = col.row(align=False)
-        row.active = gpd.draw_mode in ('SURFACE', 'STROKE')
+        row.active = gpd.draw_mode in {'SURFACE', 'STROKE'}
         row.prop(gpd, "use_stroke_endpoints")
 
 
@@ -64,12 +63,10 @@ class GreasePencilDrawingToolsPanel():
         row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
         row.operator("gpencil.draw", text="Poly").mode = 'DRAW_POLY'
 
-
         row = col.row(align=True)
         row.prop(context.tool_settings, "use_grease_pencil_sessions", text="Continuous Drawing")
 
-		
-        if context.space_data.type in ('VIEW_3D', 'CLIP_EDITOR'):
+        if context.space_data.type in {'VIEW_3D', 'CLIP_EDITOR'}:
             col.separator()
             col.label("Data Source:")
             row = col.row(align=True)
@@ -78,12 +75,10 @@ class GreasePencilDrawingToolsPanel():
             elif context.space_data.type == 'CLIP_EDITOR':
                 row.prop(context.space_data, "grease_pencil_source", expand=True)
 
-
         gpd = context.gpencil_data
         if gpd:
             col.separator()
             gpencil_stroke_placement_settings(context, col, gpd)
-
 
         if context.space_data.type == 'VIEW_3D':
             col.separator()
@@ -239,7 +234,7 @@ class GPENCIL_PIE_settings_palette(Menu):
         layout = self.layout
 
         pie = layout.menu_pie()
-        gpd = context.gpencil_data
+        # gpd = context.gpencil_data
         gpl = context.active_gpencil_layer
 
         # W - Stroke draw settings
@@ -257,7 +252,7 @@ class GPENCIL_PIE_settings_palette(Menu):
         # S - Layer settings
         col = pie.column()
         col.prop(gpl, "line_width", slider=True)
-        #col.prop(gpl, "use_volumetric_strokes")
+        # col.prop(gpl, "use_volumetric_strokes")
         col.prop(gpl, "use_onion_skinning")
 
         # N - Active Layer
@@ -265,12 +260,12 @@ class GPENCIL_PIE_settings_palette(Menu):
         col = pie.column()
         col.label("Active Layer:      ")
         col.prop(gpl, "info", text="")
-        #col.prop(gpd, "layers")
+        # col.prop(gpd, "layers")
         row = col.row()
         row.prop(gpl, "lock")
         row.prop(gpl, "hide")
 
-        
+
 class GPENCIL_PIE_tools_more(Menu):
     """A pie menu for accessing more Grease Pencil tools"""
     bl_label = "More Grease Pencil Tools"
@@ -284,20 +279,19 @@ class GPENCIL_PIE_tools_more(Menu):
         layout = self.layout
 
         pie = layout.menu_pie()
-        gpd = context.gpencil_data
-        
+        # gpd = context.gpencil_data
+
         pie.operator("gpencil.select_more", icon='ZOOMIN')
         pie.operator("gpencil.select_less", icon='ZOOMOUT')
-		
+
         pie.operator("transform.mirror", icon='MOD_MIRROR').gpencil_strokes = True
         pie.operator("transform.bend", icon='MOD_SIMPLEDEFORM').gpencil_strokes = True
         pie.operator("transform.shear", icon='MOD_TRIANGULATE').gpencil_strokes = True
         pie.operator("transform.tosphere", icon='MOD_MULTIRES').gpencil_strokes = True
-		
+
         pie.operator("gpencil.convert", icon='OUTLINER_OB_CURVE')
         pie.operator("wm.call_menu_pie", text="Back to Main Palette...").name = "GPENCIL_PIE_tool_palette"
 
-###############################
 
 class GPENCIL_UL_layer(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
@@ -402,8 +396,8 @@ class GreasePencilDataPanel():
         col = split.column(align=True)
         col.prop(gpl, "show_x_ray")
 
-        #if debug:
-        #   layout.prop(gpl, "show_points")
+        # if debug:
+        #     layout.prop(gpl, "show_points")
 
         layout.separator()
 
@@ -429,7 +423,7 @@ class GreasePencilDataPanel():
         row.prop(gpl, "use_onion_skinning")
         row.prop(gpl, "use_ghost_custom_colors", text="", icon='COLOR')
 
-        split = col.split(percentage = 0.5)
+        split = col.split(percentage=0.5)
         split.active = gpl.use_onion_skinning
 
         # - Before Frames
@@ -438,7 +432,6 @@ class GreasePencilDataPanel():
         row.active = gpl.use_ghost_custom_colors
         row.prop(gpl, "before_color", text="")
         sub.prop(gpl, "ghost_before_range", text="Before")
-
 
         # - After Frames
         sub = split.column(align=True)
@@ -463,7 +456,7 @@ class GreasePencilToolsPanel():
     def draw(self, context):
         layout = self.layout
 
-        gpd_owner = context.gpencil_data_owner
+        # gpd_owner = context.gpencil_data_owner
         gpd = context.gpencil_data
 
         layout.prop(gpd, "use_stroke_edit_mode", text="Enable Editing", icon='EDIT', toggle=True)
