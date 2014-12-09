@@ -246,6 +246,26 @@ void BLI_smallhash_insert(SmallHash *sh, uintptr_t key, void *val)
 	e->val = val;
 }
 
+/**
+ * Inserts a new value to a key that may already be in ghash.
+ *
+ * Avoids #BLI_smallhash_remove, #BLI_smallhash_insert calls (double lookups)
+ *
+ * \returns true if a new key has been added.
+ */
+bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item)
+{
+	SmallHashEntry *e = smallhash_lookup(sh, key);
+	if (e) {
+		e->val = item;
+		return false;
+	}
+	else {
+		BLI_smallhash_insert(sh, key, item);
+		return true;
+	}
+}
+
 #ifdef USE_REMOVE
 bool BLI_smallhash_remove(SmallHash *sh, uintptr_t key)
 {
@@ -290,7 +310,7 @@ int BLI_smallhash_count(SmallHash *sh)
 	return (int)sh->nentries;
 }
 
-void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
+BLI_INLINE SmallHashEntry *smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
 {
 	while (iter->i < iter->sh->nbuckets) {
 		if (smallhash_val_is_used(iter->sh->buckets[iter->i].val)) {
@@ -298,13 +318,27 @@ void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
 				*key = iter->sh->buckets[iter->i].key;
 			}
 
-			return iter->sh->buckets[iter->i++].val;
+			return &iter->sh->buckets[iter->i++];
 		}
 
 		iter->i++;
 	}
 
 	return NULL;
+}
+
+void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
+{
+	SmallHashEntry *e = smallhash_iternext(iter, key);
+
+	return e ? e->val : NULL;
+}
+
+void **BLI_smallhash_iternext_p(SmallHashIter *iter, uintptr_t *key)
+{
+	SmallHashEntry *e = smallhash_iternext(iter, key);
+
+	return e ? &e->val : NULL;
 }
 
 void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
@@ -314,6 +348,15 @@ void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
 
 	return BLI_smallhash_iternext(iter, key);
 }
+
+void **BLI_smallhash_iternew_p(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+{
+	iter->sh = sh;
+	iter->i = 0;
+
+	return BLI_smallhash_iternext_p(iter, key);
+}
+
 
 /** \name Debugging & Introspection
  * \{ */
