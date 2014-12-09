@@ -742,13 +742,15 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
  *
  * \note use_tag tags new flags and edges.
  */
-void BM_face_triangulate(BMesh *bm, BMFace *f,
-                         BMFace **r_faces_new,
-                         int *r_faces_new_tot,
-                         MemArena *sf_arena,
-                         const int quad_method,
-                         const int ngon_method,
-                         const bool use_tag)
+void BM_face_triangulate(
+        BMesh *bm, BMFace *f,
+        BMFace **r_faces_new,
+        int *r_faces_new_tot,
+        const int quad_method,
+        const int ngon_method,
+        const bool use_tag,
+
+        MemArena *pf_arena)
 {
 	BMLoop *l_iter, *l_first, *l_new;
 	BMFace *f_new;
@@ -854,7 +856,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 		}
 
 		BLI_polyfill_calc_arena((const float (*)[2])projverts, f->len, -1, tris,
-		                        sf_arena);
+		                        pf_arena);
 
 		if (use_beauty) {
 			edge_array = BLI_array_alloca(edge_array, orig_f_len - 3);
