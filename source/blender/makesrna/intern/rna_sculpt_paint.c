@@ -343,9 +343,11 @@ static void rna_ImaPaint_canvas_update(Main *bmain, Scene *scene, PointerRNA *UN
 		}
 	}
 	
-	GPU_drawobject_free(ob->derivedFinal);
-	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+	if (ob && ob->type == OB_MESH) {
+		GPU_drawobject_free(ob->derivedFinal);
+		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+	}
 }
 
 static int rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
