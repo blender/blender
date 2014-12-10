@@ -362,7 +362,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		/* special case enum rna buttons */
 		if ((but->type & UI_BTYPE_ROW) && but->rnaprop && RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG) {
-			BLI_strncpy(data->lines[data->totline], IFACE_("(Shift-click to select multiple)"), sizeof(data->lines[0]));
+			BLI_strncpy(data->lines[data->totline], IFACE_("(Shift-Click/Drag to select multiple)"),
+			            sizeof(data->lines[0]));
 
 			data->format[data->totline].color_id = UI_TIP_LC_NORMAL;
 			data->totline++;

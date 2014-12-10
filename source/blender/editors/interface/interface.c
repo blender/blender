@@ -1721,6 +1721,9 @@ bool ui_but_is_bool(const uiBut *but)
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_BOOLEAN)
 		return true;
 
+	if ((but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) && (but->type == UI_BTYPE_ROW))
+		return true;
+
 	return false;
 }
 
