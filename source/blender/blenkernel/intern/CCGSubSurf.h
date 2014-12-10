@@ -53,6 +53,13 @@ typedef struct CCGAllocatorIFC {
 	void		(*release)			(CCGAllocatorHDL a);
 } CCGAllocatorIFC;
 
+/* private, so we can allocate on the stack */
+typedef struct _EHashIterator {
+	struct _EHash *eh;
+	int curBucket;
+	struct _EHEntry *curEntry;
+} EHashIterator;
+
 /***/
 
 typedef enum {
@@ -163,27 +170,24 @@ int			ccgSubSurf_getNumFinalFaces		(const CCGSubSurf *ss);
 
 /***/
 
-typedef struct CCGVertIterator CCGVertIterator;
-typedef struct CCGEdgeIterator CCGEdgeIterator;
-typedef struct CCGFaceIterator CCGFaceIterator;
+typedef struct _EHashIterator CCGVertIterator;
+typedef struct _EHashIterator CCGEdgeIterator;
+typedef struct _EHashIterator CCGFaceIterator;
 
-CCGVertIterator*	ccgSubSurf_getVertIterator	(CCGSubSurf *ss);
-CCGEdgeIterator*	ccgSubSurf_getEdgeIterator	(CCGSubSurf *ss);
-CCGFaceIterator*	ccgSubSurf_getFaceIterator	(CCGSubSurf *ss);
+void		ccgSubSurf_initVertIterator(CCGSubSurf *ss, CCGVertIterator *viter);
+void		ccgSubSurf_initEdgeIterator(CCGSubSurf *ss, CCGEdgeIterator *eiter);
+void		ccgSubSurf_initFaceIterator(CCGSubSurf *ss, CCGFaceIterator *fiter);
 
 CCGVert*			ccgVertIterator_getCurrent	(CCGVertIterator *vi);
 int					ccgVertIterator_isStopped	(CCGVertIterator *vi);
 void				ccgVertIterator_next		(CCGVertIterator *vi);
-void				ccgVertIterator_free		(CCGVertIterator *vi);
 
 CCGEdge*			ccgEdgeIterator_getCurrent	(CCGEdgeIterator *ei);
 int					ccgEdgeIterator_isStopped	(CCGEdgeIterator *ei);
 void				ccgEdgeIterator_next		(CCGEdgeIterator *ei);
-void				ccgEdgeIterator_free		(CCGEdgeIterator *ei);
 
 CCGFace*			ccgFaceIterator_getCurrent	(CCGFaceIterator *fi);
 int					ccgFaceIterator_isStopped	(CCGFaceIterator *fi);
 void				ccgFaceIterator_next		(CCGFaceIterator *fi);
-void				ccgFaceIterator_free		(CCGFaceIterator *fi);
 
 #endif  /* __CCGSUBSURF_H__ */
