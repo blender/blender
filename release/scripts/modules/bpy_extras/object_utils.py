@@ -99,7 +99,7 @@ def add_object_align_init(context, operator):
     return location * rotation
 
 
-def object_data_add(context, obdata, operator=None, use_active_layer=True):
+def object_data_add(context, obdata, operator=None, use_active_layer=True, name=None):
     """
     Add an object using the view context and preference to to initialize the
     location, rotation and layer.
@@ -110,6 +110,8 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
     :type obdata: valid object data type or None.
     :arg operator: The operator, checked for location and rotation properties.
     :type operator: :class:`bpy.types.Operator`
+    :arg name: Optional name
+    :type name: string
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.ObjectBase`
     """
@@ -119,7 +121,10 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
     for ob in scene.objects:
         ob.select = False
 
-    obj_new = bpy.data.objects.new(obdata.name, obdata)
+    if name is None:
+        name = "Object" if obdata is None else obdata.name
+
+    obj_new = bpy.data.objects.new(name, obdata)
 
     base = scene.objects.link(obj_new)
     base.select = True
@@ -150,7 +155,7 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
                 obj_act.mode == 'EDIT' and
                 obj_act.type == obj_new.type):
 
-            _obdata = bpy.data.meshes.new(obdata.name)
+            _obdata = bpy.data.meshes.new(name)
             obj_act = bpy.data.objects.new(_obdata.name, _obdata)
             obj_act.matrix_world = obj_new.matrix_world
             scene.objects.link(obj_act)
@@ -169,7 +174,8 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
         #scene.objects.active = obj_new
 
         bpy.ops.object.join()  # join into the active.
-        bpy.data.meshes.remove(obdata)
+        if obdata:
+            bpy.data.meshes.remove(obdata)
         # base is freed, set to active object
         base = scene.object_bases.active
 
