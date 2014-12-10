@@ -23,6 +23,6 @@ shader node_normal(
 	output float Dot = 1.0)
 {
 	NormalOut = normalize(Direction);
-	Dot = dot(NormalOut, NormalIn);
+	Dot = dot(NormalOut, normalize(NormalIn));
 }
 
