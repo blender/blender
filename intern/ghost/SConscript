@@ -156,16 +156,11 @@ else:
 
 if env['WITH_BF_IME'] and window_system in ('win32-vc', 'win32-mingw', 'win64-vc', 'win64-mingw'):
     defs.append('WITH_INPUT_IME')
+elif env['WITH_BF_IME']:
+    print "IME input is only supported on Windows! Please disable WITH_BF_IME!"
+    Exit()
 else:
-    try:
-        sources.remove('intern' + os.sep + 'GHOST_ImeWin32.h')
-    except ValueError:
-        pass
-
-    try:
-        sources.remove('intern' + os.sep + 'GHOST_ImeWin32.cpp')
-    except ValueError:
-        pass
+    sources.remove('intern' + os.sep + 'GHOST_ImeWin32.cpp')
 
 if env['WITH_BF_3DMOUSE']:
     defs.append('WITH_INPUT_NDOF')
