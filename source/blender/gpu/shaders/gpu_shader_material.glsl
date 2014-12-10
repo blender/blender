@@ -357,6 +357,12 @@ void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
 	outdot = -dot(dir, nor);
 }
 
+void normal_new_shading(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
+{
+	outnor = normalize(nor);
+	outdot = dot(normalize(dir), nor);
+}
+
 void curves_vec(float fac, vec3 vec, sampler2D curvemap, out vec3 outvec)
 {
 	outvec.x = texture2D(curvemap, vec2((vec.x + 1.0)*0.5, 0.0)).x;
