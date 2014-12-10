@@ -178,7 +178,7 @@ static float quad_v2_rotate_beauty_calc(
 
 			float len_12, len_23, len_34, len_41, len_24, len_13;
 
-#define AREA_FROM_CROSS(f) (fabsf(f) / 2.0f)
+#define AREA_FROM_CROSS(val) (fabsf(val) / 2.0f)
 
 			/* edges around the quad */
 			len_12 = len_v2v2(v1, v2);
