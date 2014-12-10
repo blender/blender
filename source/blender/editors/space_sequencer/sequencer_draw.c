@@ -301,6 +301,20 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 	int chan_range = 0;
 	float draw_range = y2 - y1;
 	float draw_height;
+	ListBase *seqbase;
+	int offset;
+
+	seqbase = BKE_sequence_seqbase_get(seqm, &offset);
+	if (!seqbase || BLI_listbase_is_empty(seqbase)) {
+		return;
+	}
+
+	if (seqm->type == SEQ_TYPE_SCENE) {
+		offset  = seqm->start - offset;
+	}
+	else {
+		offset = 0;
+	}
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -308,7 +322,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 	if (seqm->flag & SEQ_MUTE)
 		drawmeta_stipple(1);
 
-	for (seq = seqm->seqbase.first; seq; seq = seq->next) {
+	for (seq = seqbase->first; seq; seq = seq->next) {
 		chan_min = min_ii(chan_min, seq->machine);
 		chan_max = max_ii(chan_max, seq->machine);
 	}
@@ -318,11 +332,14 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 
 	col[3] = 196; /* alpha, used for all meta children */
 
-	for (seq = seqm->seqbase.first; seq; seq = seq->next) {
-		if ((seq->startdisp > x2 || seq->enddisp < x1) == 0) {
+	for (seq = seqbase->first; seq; seq = seq->next) {
+		const int startdisp = seq->startdisp + offset;
+		const int enddisp   = seq->enddisp   + offset;
+
+		if ((startdisp > x2 || enddisp < x1) == 0) {
 			float y_chan = (seq->machine - chan_min) / (float)(chan_range) * draw_range;
-			float x1_chan = seq->startdisp;
-			float x2_chan = seq->enddisp;
+			float x1_chan = startdisp;
+			float x2_chan = enddisp;
 			float y1_chan, y2_chan;
 
 			if ((seqm->flag & SEQ_MUTE) == 0 && (seq->flag & SEQ_MUTE))
@@ -830,7 +847,9 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		glDisable(GL_LINE_STIPPLE);
 	}
 	
-	if (seq->type == SEQ_TYPE_META) {
+	if ((seq->type == SEQ_TYPE_META) ||
+	    ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
+	{
 		drawmeta_contents(scene, seq, x1, y1, x2, y2);
 	}
 	

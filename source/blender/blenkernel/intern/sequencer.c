@@ -91,6 +91,8 @@
 #  include AUD_SPECIAL_H
 #endif
 
+#define USE_SCENE_RECURSIVE_HACK
+
 static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seqbasep, float cfra, int chanshown);
 static ImBuf *seq_render_strip(const SeqRenderData *context, Sequence *seq, float cfra);
 static void seq_free_animdata(Scene *scene, Sequence *seq);
@@ -1147,6 +1149,33 @@ const char *BKE_sequence_give_name(Sequence *seq)
 		}
 	}
 	return name;
+}
+
+ListBase *BKE_sequence_seqbase_get(Sequence *seq, int *r_offset)
+{
+	ListBase *seqbase = NULL;
+
+	switch (seq->type) {
+		case SEQ_TYPE_META:
+		{
+			seqbase = &seq->seqbase;
+			*r_offset = seq->start;
+			break;
+		}
+		case SEQ_TYPE_SCENE:
+		{
+			if (seq->flag & SEQ_SCENE_STRIPS) {
+				Editing *ed = BKE_sequencer_editing_get(seq->scene, false);
+				if (ed) {
+					seqbase = &ed->seqbase;
+					*r_offset = seq->scene->r.sfra;
+				}
+			}
+			break;
+		}
+	}
+
+	return seqbase;
 }
 
 /*********************** DO THE SEQUENCE *************************/
@@ -3319,6 +3348,40 @@ finally:
 	return ibuf;
 }
 
+/**
+ * Used for meta-strips & scenes with #SEQ_SCENE_STRIPS flag set.
+ */
+static ImBuf *do_render_strip_seqbase(
+        const SeqRenderData *context, Sequence *seq, float nr,
+        bool use_preprocess)
+{
+	ImBuf *meta_ibuf = NULL, *ibuf = NULL;
+	ListBase *seqbase = NULL;
+	int offset;
+
+	seqbase = BKE_sequence_seqbase_get(seq, &offset);
+
+	if (seqbase && !BLI_listbase_is_empty(seqbase)) {
+		meta_ibuf = seq_render_strip_stack(
+		        context, seqbase,
+		        /* scene strips don't have their start taken into account */
+		        nr + offset, 0);
+	}
+
+	if (meta_ibuf) {
+		ibuf = meta_ibuf;
+		if (ibuf && use_preprocess) {
+			ImBuf *i = IMB_dupImBuf(ibuf);
+
+			IMB_freeImBuf(ibuf);
+
+			ibuf = i;
+		}
+	}
+
+	return ibuf;
+}
+
 static ImBuf *do_render_strip_uncached(const SeqRenderData *context, Sequence *seq, float cfra)
 {
 	ImBuf *ibuf = NULL;
@@ -3329,22 +3392,38 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context, Sequence *s
 	switch (type) {
 		case SEQ_TYPE_META:
 		{
-			ImBuf *meta_ibuf = NULL;
+			ibuf = do_render_strip_seqbase(context, seq, nr, use_preprocess);
+			break;
+		}
 
-			if (seq->seqbase.first)
-				meta_ibuf = seq_render_strip_stack(context, &seq->seqbase, seq->start + nr, 0);
+		case SEQ_TYPE_SCENE:
+		{
+			if (seq->flag & SEQ_SCENE_STRIPS) {
+				if (seq->scene && (context->scene != seq->scene)) {
+#ifdef USE_SCENE_RECURSIVE_HACK
+					/* weak recusrive check, same as T32017 */
+					if (seq->scene->id.flag & LIB_DOIT) {
+						break;
+					}
+					seq->scene->id.flag |= LIB_DOIT;
+#endif
 
-			if (meta_ibuf) {
-				ibuf = meta_ibuf;
-				if (ibuf && use_preprocess) {
-					ImBuf *i = IMB_dupImBuf(ibuf);
+					ibuf = do_render_strip_seqbase(context, seq, nr, use_preprocess);
 
-					IMB_freeImBuf(ibuf);
-
-					ibuf = i;
+#ifdef USE_SCENE_RECURSIVE_HACK
+					seq->scene->id.flag &= ~LIB_DOIT;
+#endif
 				}
 			}
+			else {
+				/* scene can be NULL after deletions */
+				ibuf = seq_render_scene_strip(context, seq, nr, cfra);
 
+				/* Scene strips update all animation, so we need to restore original state.*/
+				BKE_animsys_evaluate_all_animation(context->bmain, context->scene, cfra);
+
+				copy_to_ibuf_still(context, seq, nr, ibuf);
+			}
 			break;
 		}
 
@@ -3391,18 +3470,6 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context, Sequence *s
 		case SEQ_TYPE_MOVIE:
 		{
 			ibuf = seq_render_movie_strip(context, seq, nr, cfra);
-			copy_to_ibuf_still(context, seq, nr, ibuf);
-			break;
-		}
-
-		case SEQ_TYPE_SCENE:
-		{
-			/* scene can be NULL after deletions */
-			ibuf = seq_render_scene_strip(context, seq, nr, cfra);
-
-			/* Scene strips update all animation, so we need to restore original state.*/
-			BKE_animsys_evaluate_all_animation(context->bmain, context->scene, cfra);
-
 			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;
 		}
@@ -3730,6 +3797,10 @@ ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int cha
 	else {
 		seqbasep = ed->seqbasep;
 	}
+
+#ifdef USE_SCENE_RECURSIVE_HACK
+	BKE_main_id_tag_idcode(context->bmain, ID_SCE, false);
+#endif
 
 	return seq_render_strip_stack(context, seqbasep, cfra, chanshown);
 }

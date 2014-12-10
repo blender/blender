@@ -417,6 +417,9 @@ enum {
 	SEQ_SCENE_NO_GPENCIL        = (1 << 28),
 	SEQ_USE_VIEWS               = (1 << 29),
 
+	/* access scene strips directly (like a metastrip) */
+	SEQ_SCENE_STRIPS            = (1 << 30),
+
 	SEQ_INVALID_EFFECT          = (1 << 31),
 };
 

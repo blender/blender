@@ -1901,7 +1901,12 @@ static void rna_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Camera_object_poll");
 	RNA_def_property_ui_text(prop, "Camera Override", "Override the scenes active camera");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	
+
+	prop = RNA_def_property(srna, "use_sequence", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SCENE_STRIPS);
+	RNA_def_property_ui_text(prop, "Use Sequence", "Use scenes sequence strips directly, instead of rendering");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
 	prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_SCENE_NO_GPENCIL);
 	RNA_def_property_ui_text(prop, "Use Grease Pencil", "Show Grease Pencil strokes in OpenGL previews");
