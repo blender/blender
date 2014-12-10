@@ -250,6 +250,7 @@ typedef enum ePchan_Flag {
 	POSE_ROT        =   (1 << 1),
 	POSE_SIZE       =   (1 << 2),
 	/* old IK/cache stuff... */
+#if 0
 	POSE_IK_MAT     =   (1 << 3),
 	POSE_UNUSED2    =   (1 << 4),
 	POSE_UNUSED3    =   (1 << 5),
@@ -257,6 +258,7 @@ typedef enum ePchan_Flag {
 	POSE_UNUSED5    =   (1 << 7),
 	/* has Standard IK */
 	POSE_HAS_IK     =   (1 << 8),
+#endif
 	/* IK/Pose solving*/
 	POSE_CHAIN      =   (1 << 9),
 	POSE_DONE       =   (1 << 10),
@@ -265,8 +267,10 @@ typedef enum ePchan_Flag {
 	POSE_STRIDE     =   (1 << 12),
 	/* standard IK solving */
 	POSE_IKTREE     =   (1 << 13),
+#if 0
 	/* has Spline IK */
 	POSE_HAS_IKS    =   (1 << 14),
+#endif
 	/* spline IK solving */
 	POSE_IKSPLINE   =   (1 << 15)
 } ePchan_Flag;
