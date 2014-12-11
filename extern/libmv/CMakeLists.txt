@@ -37,13 +37,42 @@ set(SRC
 	libmv-capi.h
 )
 
-if(WITH_LIBMV)
+if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
+	list(APPEND INC
+		third_party/gflags
+		third_party/glog/src
+		third_party/ceres/include
+		third_party/ceres/config
+		../../intern/guardedalloc
+	)
+
+	list(APPEND
+		INC_SYS
+		../Eigen3
+		${PNG_INCLUDE_DIRS}
+		${ZLIB_INCLUDE_DIRS}
+	)
+
+	if(WIN32)
+		list(APPEND INC
+			third_party/glog/src/windows
+		)
+
+		if(NOT MINGW)
+			list(APPEND INC
+				third_party/msinttypes
+			)
+		endif()
+	endif()
+
 	add_definitions(
 		-DWITH_LIBMV_GUARDED_ALLOC
 		-DGOOGLE_GLOG_DLL_DECL=
 		-DLIBMV_NO_FAST_DETECTOR=
 	)
+endif()
 
+if(WITH_LIBMV)
 	TEST_SHARED_PTR_SUPPORT()
 	if(SHARED_PTR_FOUND)
 		if(SHARED_PTR_TR1_MEMORY_HEADER)
@@ -55,20 +84,6 @@ if(WITH_LIBMV)
 	else()
 		message(FATAL_ERROR "Unable to find shared_ptr.")
 	endif()
-
-	list(APPEND INC
-		third_party/gflags
-		third_party/glog/src
-		third_party/ceres/include
-		third_party/ceres/config
-		../../intern/guardedalloc
-	)
-
-	list(APPEND INC_SYS
-		../Eigen3
-		${PNG_INCLUDE_DIRS}
-		${ZLIB_INCLUDE_DIRS}
-	)
 
 	list(APPEND SRC
 		intern/autotrack.cc
@@ -202,17 +217,6 @@ if(WITH_LIBMV)
 		third_party/msinttypes/stdint.h
 	)
 
-	if(WIN32)
-		list(APPEND INC
-			third_party/glog/src/windows
-		)
-
-		if(NOT MINGW)
-			list(APPEND INC
-				third_party/msinttypes
-			)
-		endif()
-	endif()
 
 	if(WITH_GTESTS)
 		blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "" "")
@@ -262,7 +266,7 @@ if(WITH_LIBMV)
 endif()
 
 # make GLog a separate target, so it can be used for gtest as well.
-if(WITH_LIBMV OR WITH_GTESTS OR WITH_CYCLES_LOGGING)
+if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 	# We compile GLog together with GFlag so we don't worry about
 	# adding extra lib to linker.
 	set(GLOG_SRC
@@ -338,13 +342,5 @@ if(WITH_LIBMV OR WITH_GTESTS OR WITH_CYCLES_LOGGING)
 		)
 	endif()
 
-	set(GLOG_INC
-		third_party/gflags
-		third_party/glog/src
-	)
-
-	set(GLOG_INC_SYS
-	)
-
-	blender_add_lib(extern_glog "${GLOG_SRC}" "${GLOG_INC}" "${GLOG_INC_SYS}")
+	blender_add_lib(extern_glog "${GLOG_SRC}" "${INC}" "${INC_SYS}")
 endif()

@@ -12,6 +12,22 @@ Import('env')
 defs = []
 incs = '.'
 
+if env['WITH_BF_LIBMV'] or (env['WITH_BF_CYCLES'] and env['WITH_BF_CYCLES_LOGGING']):
+    defs.append('GOOGLE_GLOG_DLL_DECL=')
+    defs.append('WITH_LIBMV_GUARDED_ALLOC')
+    defs.append('LIBMV_NO_FAST_DETECTOR')
+
+    incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include third_party/ceres/config ../../intern/guardedalloc'
+    incs += ' ' + env['BF_PNG_INC']
+    incs += ' ' + env['BF_ZLIB_INC']
+
+    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
+        incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
+        if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+            incs += ' ./third_party/msinttypes'
+    else:
+        incs += ' ./third_party/glog/src'
+
 if env['WITH_BF_LIBMV']:
     if not env['WITH_SHARED_PTR_SUPPORT']:
         print("-- Unable to find shared_ptr which is required for compilation.")
@@ -21,10 +37,6 @@ if env['WITH_BF_LIBMV']:
         defs.append('CERES_TR1_MEMORY_HEADER')
     if env['SHARED_PTR_NAMESPACE'] == 'std::tr1':
         defs.append('CERES_TR1_SHARED_PTR')
-
-    defs.append('GOOGLE_GLOG_DLL_DECL=')
-    defs.append('WITH_LIBMV_GUARDED_ALLOC')
-    defs.append('LIBMV_NO_FAST_DETECTOR')
 
     src = env.Glob('intern/*.cc')
     src.remove('intern' + os.sep + 'stub.cc')
@@ -36,18 +48,6 @@ if env['WITH_BF_LIBMV']:
     src += env.Glob('libmv/simple_pipeline/*.cc')
     src += env.Glob('libmv/tracking/*.cc')
     src += env.Glob('third_party/gflags/*.cc')
-
-    incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include third_party/ceres/config ../../intern/guardedalloc'
-    incs += ' ' + env['BF_PNG_INC']
-    incs += ' ' + env['BF_ZLIB_INC']
-
-    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
-        incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
-        if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-            incs += ' ./third_party/msinttypes'
-
-    else:
-        incs += ' ./third_party/glog/src'
 else:
     src = env.Glob("intern/stub.cc")
 
