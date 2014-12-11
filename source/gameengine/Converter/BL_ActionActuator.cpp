@@ -256,12 +256,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	if ((m_flag & ACT_FLAG_PLAY_END) && (m_flag & ACT_FLAG_ACTIVE) && obj->IsActionDone(m_layer))
 	{
 		m_flag &= ~ACT_FLAG_ACTIVE;
-		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
 
-		if (m_playtype == ACT_ACTION_PINGPONG)
+		if (m_playtype == ACT_ACTION_PINGPONG) {
 			m_flag ^= ACT_FLAG_REVERSE;
-		else
+		}
+		else {
+			m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
 			return false;
+		}
 	}
 	
 	// If a different action is playing, we've been overruled and are no longer active
