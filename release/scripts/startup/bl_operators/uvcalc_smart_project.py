@@ -708,6 +708,7 @@ def main(context,
          island_margin,
          projection_limit,
          user_area_weight,
+         use_aspect
          ):
     global USER_FILL_HOLES
     global USER_FILL_HOLES_QUALITY
@@ -719,7 +720,6 @@ def main(context,
 
     global dict_matrix
     dict_matrix = {}
-
 
     # Constants:
     # Takes a list of faces that make up a UV island and rotate
@@ -992,8 +992,30 @@ def main(context,
     print("Smart Projection time: %.2f" % (time.time() - time1))
     # Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec" % (time.time() - time1))
 
+    # aspect correction is only done in edit mode - and only smart unwrap supports currently
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT')
+
+        if use_aspect:
+           import bmesh
+           aspect = context.scene.uvedit_aspect(context.active_object)
+           if aspect[0] > aspect[1]:
+               aspect[0] = aspect[1]/aspect[0];
+               aspect[1] = 1.0
+           else:
+               aspect[1] = aspect[0]/aspect[1];
+               aspect[0] = 1.0
+
+           bm = bmesh.from_edit_mesh(me)
+
+           uv_act = bm.loops.layers.uv.active
+
+           faces = [f for f in bm.faces if f.select]
+
+           for f in faces:
+               for l in f.loops:
+                   l[uv_act].uv[0] *= aspect[0]
+                   l[uv_act].uv[1] *= aspect[1]
 
     dict_matrix.clear()
 
@@ -1017,7 +1039,7 @@ def main(context,
     ]
 """
 
-from bpy.props import FloatProperty
+from bpy.props import FloatProperty, BoolProperty
 
 
 class SmartProject(Operator):
@@ -1046,6 +1068,11 @@ class SmartProject(Operator):
             min=0.0, max=1.0,
             default=0.0,
             )
+    use_aspect = BoolProperty(
+            name="Correct Aspect",
+            description="Map UVs taking image aspect ratio into account",
+            default=True
+            )
 
     @classmethod
     def poll(cls, context):
@@ -1056,6 +1083,7 @@ class SmartProject(Operator):
              self.island_margin,
              self.angle_limit,
              self.user_area_weight,
+             self.use_aspect
              )
         return {'FINISHED'}
 

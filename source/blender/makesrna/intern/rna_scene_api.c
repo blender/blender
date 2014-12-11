@@ -47,12 +47,14 @@
 
 #include "BKE_animsys.h"
 #include "BKE_depsgraph.h"
+#include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"
 
 #include "ED_transform.h"
+#include "ED_uvedit.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -88,6 +90,23 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 		/* instead just redraw the views */
 		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
+}
+
+static void rna_Scene_uvedit_aspect(Scene *scene, Object *ob, float *aspect)
+{
+	BMEditMesh *em;
+	if (!(ob && ob->type == OB_MESH && ob->mode == OB_MODE_EDIT)) {
+		aspect[0] = aspect[1]= 1.0f;
+		return;
+	}
+	
+	em = BKE_editmesh_from_object(ob);
+	if (!EDBM_mtexpoly_check(em)) {
+		aspect[0] = aspect[1]= 1.0f;
+		return;
+	}
+	
+	ED_uvedit_get_aspect(scene, ob, em->bm, aspect, aspect + 1);
 }
 
 static void rna_Scene_update_tagged(Scene *scene)
@@ -191,6 +210,15 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_function_ui_description(func,
 	                                "Update data tagged to be updated from previous access to data or operators");
 
+	func = RNA_def_function(srna, "uvedit_aspect", "rna_Scene_uvedit_aspect");
+	RNA_def_function_ui_description(func, "Get uv aspect for current object");
+	parm = RNA_def_pointer(func, "object", "Object", "", "Object");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	parm = RNA_def_float_vector(func, "aspect", 2, NULL, 0.0f, FLT_MAX, "", "aspect", 0.0f, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_output(func, parm);
+	
 	/* Ray Cast */
 	func = RNA_def_function(srna, "ray_cast", "rna_Scene_ray_cast");
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");

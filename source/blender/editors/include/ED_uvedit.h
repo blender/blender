@@ -94,6 +94,8 @@ void uvedit_uv_select_disable(struct BMEditMesh *em, struct Scene *scene, struct
 bool ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima,
                           const float co[2], float r_uv[2]);
 
+void ED_uvedit_get_aspect(struct Scene *scene, struct Object *ob, struct BMesh *em, float *aspx, float *aspy);
+
 /* uvedit_unwrap_ops.c */
 void ED_uvedit_live_unwrap_begin(struct Scene *scene, struct Object *obedit);
 void ED_uvedit_live_unwrap_re_solve(void);

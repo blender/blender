@@ -190,7 +190,7 @@ static bool uvedit_have_selection(Scene *scene, BMEditMesh *em, bool implicit)
 	return false;
 }
 
-void uvedit_get_aspect(Scene *scene, Object *ob, BMesh *bm, float *aspx, float *aspy)
+void ED_uvedit_get_aspect(Scene *scene, Object *ob, BMesh *bm, float *aspx, float *aspy)
 {
 	bool sloppy = true;
 	bool selected = false;
@@ -264,7 +264,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMesh *bm,
 	if (correct_aspect) {
 		float aspx, aspy;
 
-		uvedit_get_aspect(scene, ob, bm, &aspx, &aspy);
+		ED_uvedit_get_aspect(scene, ob, bm, &aspx, &aspy);
 
 		if (aspx != aspy)
 			param_aspect_ratio(handle, aspx, aspy);
@@ -376,7 +376,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	if (correct_aspect) {
 		float aspx, aspy;
 
-		uvedit_get_aspect(scene, ob, em->bm, &aspx, &aspy);
+		ED_uvedit_get_aspect(scene, ob, em->bm, &aspx, &aspy);
 
 		if (aspx != aspy)
 			param_aspect_ratio(handle, aspx, aspy);
@@ -1010,7 +1010,7 @@ static void correct_uv_aspect(Scene *scene, Object *ob, BMEditMesh *em)
 	
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-	uvedit_get_aspect(scene, ob, em->bm, &aspx, &aspy);
+	ED_uvedit_get_aspect(scene, ob, em->bm, &aspx, &aspy);
 	
 	if (aspx == aspy)
 		return;
