@@ -105,7 +105,7 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 	BL::UserPreferences userpref(userprefptr);
 
 	PointerRNA dataptr;
-	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydata), &dataptr);
+	RNA_main_pointer_create((Main*)PyLong_AsVoidPtr(pydata), &dataptr);
 	BL::BlendData data(dataptr);
 
 	PointerRNA sceneptr;
