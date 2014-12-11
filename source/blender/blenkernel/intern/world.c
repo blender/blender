@@ -39,6 +39,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 
 #include "BKE_animsys.h"
 #include "BKE_global.h"
@@ -138,6 +139,8 @@ World *BKE_world_copy(World *wrld)
 	if (wrld->preview)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);
 
+	BLI_listbase_clear(&wrldn->gpumaterial);
+	
 	return wrldn;
 }
 
@@ -161,6 +164,8 @@ World *localize_world(World *wrld)
 		wrldn->nodetree = ntreeLocalize(wrld->nodetree);
 	
 	wrldn->preview = NULL;
+	
+	BLI_listbase_clear(&wrldn->gpumaterial);
 	
 	return wrldn;
 }
