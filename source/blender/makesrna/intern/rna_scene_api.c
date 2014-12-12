@@ -94,19 +94,16 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 
 static void rna_Scene_uvedit_aspect(Scene *scene, Object *ob, float *aspect)
 {
-	BMEditMesh *em;
-	if (!(ob && ob->type == OB_MESH && ob->mode == OB_MODE_EDIT)) {
-		aspect[0] = aspect[1]= 1.0f;
-		return;
+	if ((ob->type == OB_MESH) && (ob->mode == OB_MODE_EDIT)) {
+		BMEditMesh *em;
+		em = BKE_editmesh_from_object(ob);
+		if (EDBM_mtexpoly_check(em)) {
+			ED_uvedit_get_aspect(scene, ob, em->bm, aspect, aspect + 1);
+			return;
+		}
 	}
-	
-	em = BKE_editmesh_from_object(ob);
-	if (!EDBM_mtexpoly_check(em)) {
-		aspect[0] = aspect[1]= 1.0f;
-		return;
-	}
-	
-	ED_uvedit_get_aspect(scene, ob, em->bm, aspect, aspect + 1);
+
+	aspect[0] = aspect[1] = 1.0f;
 }
 
 static void rna_Scene_update_tagged(Scene *scene)
@@ -213,9 +210,9 @@ void RNA_api_scene(StructRNA *srna)
 	func = RNA_def_function(srna, "uvedit_aspect", "rna_Scene_uvedit_aspect");
 	RNA_def_function_ui_description(func, "Get uv aspect for current object");
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
-	parm = RNA_def_float_vector(func, "aspect", 2, NULL, 0.0f, FLT_MAX, "", "aspect", 0.0f, FLT_MAX);
+	parm = RNA_def_float_vector(func, "result", 2, NULL, 0.0f, FLT_MAX, "", "aspect", 0.0f, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 	

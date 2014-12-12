@@ -333,7 +333,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 					BMVert *v_other = BM_edge_other_vert(e, v);
 					float e_dir[3];
 
-					/* we wan't closest to zero */
+					/* we want closest to zero */
 					float dot_best = FLT_MAX;
 
 					sub_v3_v3v3(e_dir, v_other->co, v->co);

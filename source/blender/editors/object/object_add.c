@@ -1288,7 +1288,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 
 /**
  * \note regarding hashing dupli-objects, skip the first member of #DupliObject.persistent_id
- * since its a unique index and we only wan't to know if the group objects are from the same dupli-group instance.
+ * since its a unique index and we only want to know if the group objects are from the same dupli-group instance.
  */
 static unsigned int dupliobject_hash(const void *ptr)
 {

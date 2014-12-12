@@ -733,7 +733,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 							v_pair_swap = true;
 						}
 						else if (eed && BM_edge_is_boundary(eed)) {
-							/* pradictable direction for boundary edges */
+							/* predictable direction for boundary edges */
 							if (eed->l->v != v_pair[0]) {
 								v_pair_swap = true;
 							}
