@@ -154,6 +154,7 @@ add_definitions(
 if(WITH_CYCLES_LOGGING)
 	add_definitions(-DWITH_CYCLES_LOGGING)
 	add_definitions(-DGOOGLE_GLOG_DLL_DECL=)
+	add_definitions(-DCYCLES_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 	include_directories(
 		SYSTEM
 		${GLOG_INCLUDE_DIRS}
