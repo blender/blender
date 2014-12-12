@@ -41,13 +41,13 @@ typedef union IDPropertyTemplate {
 	double d;
 	struct {
 		char *str;
-		short len;
+		int len;
 		char subtype;
 	} string;
 	struct ID *id;
 	struct {
-		short type;
-		short len;
+		int len;
+		char type;
 	} array;
 	struct {
 		int matvec_size;
@@ -110,7 +110,7 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
 
 bool IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
 
-struct IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+struct IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 void IDP_FreeProperty(struct IDProperty *prop);
 
