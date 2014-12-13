@@ -1836,7 +1836,6 @@ PyDoc_STRVAR(Matrix_zero_doc,
 "\n"
 "   Set all the matrix values to zero.\n"
 "\n"
-"   :return: an instance of itself\n"
 "   :rtype: :class:`Matrix`\n"
 );
 static PyObject *Matrix_zero(MatrixObject *self)

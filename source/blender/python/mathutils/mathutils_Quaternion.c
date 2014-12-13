@@ -393,7 +393,6 @@ PyDoc_STRVAR(Quaternion_identity_doc,
 "\n"
 "   Set the quaternion to an identity quaternion.\n"
 "\n"
-"   :return: an instance of itself.\n"
 "   :rtype: :class:`Quaternion`\n"
 );
 static PyObject *Quaternion_identity(QuaternionObject *self)
@@ -412,7 +411,6 @@ PyDoc_STRVAR(Quaternion_negate_doc,
 "\n"
 "   Set the quaternion to its negative.\n"
 "\n"
-"   :return: an instance of itself.\n"
 "   :rtype: :class:`Quaternion`\n"
 );
 static PyObject *Quaternion_negate(QuaternionObject *self)
