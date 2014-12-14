@@ -1526,9 +1526,10 @@ bool WM_window_is_fullscreen(wmWindow *win)
 
 
 #ifdef WITH_INPUT_IME
+/* note: keep in mind wm_window_IME_begin is also used to reposition the IME window */
 void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
 {
-	BLI_assert(win && (win->ime_data == NULL));
+	BLI_assert(win);
 
 	GHOST_BeginIME(win->ghostwin, x, win->sizey - y, w, h, complete);
 }
