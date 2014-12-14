@@ -16,6 +16,8 @@ include(cmake/external_libs.cmake)
 
 if(NOT WITH_CPU_SSE)
 	set(CXX_HAS_SSE FALSE)
+	set(CXX_HAS_AVX FALSE)
+	set(CXX_HAS_AVX2 FALSE)
 elseif(WIN32 AND MSVC)
 	set(CXX_HAS_SSE TRUE)
 	set(CXX_HAS_AVX TRUE)
