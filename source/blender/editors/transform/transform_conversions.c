@@ -2817,8 +2817,8 @@ void flushTransUVs(TransInfo *t)
 		td->loc2d[1] = td->loc[1] * invy;
 
 		if ((sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
-			td->loc2d[0] = floorf(width * td->loc2d[0] + 0.5f) / width;
-			td->loc2d[1] = floorf(height * td->loc2d[1] + 0.5f) / height;
+			td->loc2d[0] = roundf(width * td->loc2d[0]) / width;
+			td->loc2d[1] = roundf(height * td->loc2d[1]) / height;
 		}
 	}
 }

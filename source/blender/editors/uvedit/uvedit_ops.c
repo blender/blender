@@ -3189,8 +3189,8 @@ static void UV_OT_select_lasso(wmOperatorType *ot)
 
 static void uv_snap_to_pixel(float uvco[2], float w, float h)
 {
-	uvco[0] = ((float)((int)((uvco[0] * w) + 0.5f))) / w;
-	uvco[1] = ((float)((int)((uvco[1] * h) + 0.5f))) / h;
+	uvco[0] = roundf(uvco[0] * w) / w;
+	uvco[1] = roundf(uvco[1] * h) / h;
 }
 
 static void uv_snap_cursor_to_pixels(SpaceImage *sima)
