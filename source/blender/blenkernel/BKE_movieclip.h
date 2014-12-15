@@ -46,6 +46,7 @@ void BKE_movieclip_unlink(struct Main *bmain, struct MovieClip *clip);
 struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
 void BKE_movieclip_reload(struct MovieClip *clip);
 void BKE_movieclip_clear_cache(struct MovieClip *clip);
+void BKE_movieclip_clear_proxy_cache(struct MovieClip *clip);
 
 struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
 struct ImBuf *BKE_movieclip_get_postprocessed_ibuf(struct MovieClip *clip, struct MovieClipUser *user, int postprocess_flag);

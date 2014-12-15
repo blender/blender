@@ -1307,7 +1307,14 @@ static void proxy_endjob(void *pjv)
 	if (pj->index_context)
 		IMB_anim_index_rebuild_finish(pj->index_context, pj->stop);
 
-	BKE_movieclip_reload(pj->clip);
+	if (pj->clip->source == MCLIP_SRC_MOVIE) {
+		/* Timecode might have changed, so do a full reload to deal with this. */
+		BKE_movieclip_reload(pj->clip);
+	}
+	else {
+		/* For image sequences we'll preserve original cache. */
+		BKE_movieclip_clear_proxy_cache(pj->clip);
+	}
 
 	WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, pj->clip);
 }
