@@ -446,11 +446,11 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 
 void BKE_autotrack_context_sync(AutoTrackContext *context)
 {
-	int newframe = context->user.framenr,
-	    frame_delta = context->backwards ? -1 : 1;
+	int newframe, frame_delta = context->backwards ? -1 : 1;
 	int clip, frame;
 
 	BLI_spin_lock(&context->spin_lock);
+	newframe = context->user.framenr;
 	for (frame = context->sync_frame;
 	     frame != (context->backwards ? newframe - 1 : newframe + 1);
 	     frame += frame_delta)
