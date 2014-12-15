@@ -431,7 +431,7 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 			}
 			else {
 				options->is_failed = true;
-				options->failed_frame = frame;
+				options->failed_frame = frame + frame_delta;
 			}
 			ok = true;
 		}
@@ -463,22 +463,18 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
 			AutoTrackOptions *options = &context->options[track];
 			int track_frame = BKE_movieclip_remap_scene_to_clip_frame(
 				context->clips[options->clip_index], frame);
-			if (options->is_failed) {
-				if (options->failed_frame == track_frame) {
-					MovieTrackingMarker *prev_marker =
-						BKE_tracking_marker_get_exact(
-							  options->track,
-							  frame);
-					if (prev_marker) {
-						marker = *prev_marker;
-						marker.framenr = context->backwards ?
-						                 track_frame - 1 :
-						                 track_frame + 1;
-						marker.flag |= MARKER_DISABLED;
-						BKE_tracking_marker_insert(options->track, &marker);
-					}
+			if (options->is_failed && options->failed_frame == track_frame) {
+				MovieTrackingMarker *prev_marker =
+					BKE_tracking_marker_get_exact(options->track, frame);
+				if (prev_marker) {
+					marker = *prev_marker;
+					marker.framenr = context->backwards ?
+					                 track_frame - 1 :
+					                 track_frame + 1;
+					marker.flag |= MARKER_DISABLED;
+					BKE_tracking_marker_insert(options->track, &marker);
+					continue;
 				}
-				continue;
 			}
 			if (libmv_autoTrackGetMarker(context->autotrack,
 			                             clip,
