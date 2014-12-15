@@ -383,13 +383,17 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 		int frame = BKE_movieclip_remap_scene_to_clip_frame(
 			context->clips[options->clip_index],
 			context->user.framenr);
+		bool has_marker;
 
-		if (libmv_autoTrackGetMarker(context->autotrack,
-		                             options->clip_index,
-		                             frame,
-		                             options->track_index,
-		                             &libmv_current_marker))
-		{
+		BLI_spin_lock(&context->spin_lock);
+		has_marker = libmv_autoTrackGetMarker(context->autotrack,
+		                                      options->clip_index,
+		                                      frame,
+		                                      options->track_index,
+		                                      &libmv_current_marker);
+		BLI_spin_unlock(&context->spin_lock);
+
+		if (has_marker) {
 			if (!tracking_check_marker_margin(&libmv_current_marker,
 			                                  options->track->margin,
 			                                  context->frame_width,
