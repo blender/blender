@@ -350,6 +350,8 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_BR:  return N_("Browse Brush to be linked");
 			case ID_PA:  return N_("Browse Particle Settings to be linked");
 			case ID_GD:  return N_("Browse Grease Pencil Data to be linked");
+			case ID_MC:  return N_("Browse Movie Clip to be linked");
+			case ID_MSK: return N_("Browse Mask to be linked");
 			case ID_PAL: return N_("Browse Palette Data to be linked");
 			case ID_PC:  return N_("Browse Paint Curve Data to be linked");
 		}
@@ -388,6 +390,10 @@ static const char *template_id_context(StructRNA *type)
 			case ID_BR:  return BLF_I18NCONTEXT_ID_BRUSH;
 			case ID_PA:  return BLF_I18NCONTEXT_ID_PARTICLESETTINGS;
 			case ID_GD:  return BLF_I18NCONTEXT_ID_GPENCIL;
+			case ID_MC:  return BLF_I18NCONTEXT_ID_MOVIECLIP;
+			case ID_MSK: return BLF_I18NCONTEXT_ID_MASK;
+			case ID_PAL: return BLF_I18NCONTEXT_ID_PALETTE;
+			case ID_PC:  return BLF_I18NCONTEXT_ID_PAINTCURVE;
 		}
 	}
 	return BLF_I18NCONTEXT_DEFAULT;
