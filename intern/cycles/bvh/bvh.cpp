@@ -275,67 +275,12 @@ void BVH::pack_triangle(int idx, float4 woop[3])
 	float3 v1 = vpos[vidx[1]];
 	float3 v2 = vpos[vidx[2]];
 
-	float3 r0 = v0 - v2;
-	float3 r1 = v1 - v2;
-	float3 r2 = cross(r0, r1);
-
-	if(is_zero(r0) || is_zero(r1) || is_zero(r2)) {
-		/* degenerate */
-		woop[0] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		woop[1] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		woop[2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-	}
-	else {
-		Transform t = make_transform(
-			r0.x, r1.x, r2.x, v2.x,
-			r0.y, r1.y, r2.y, v2.y,
-			r0.z, r1.z, r2.z, v2.z,
-			0.0f, 0.0f, 0.0f, 1.0f);
-
-		t = transform_inverse(t);
-
-		woop[0] = make_float4(t.z.x, t.z.y, t.z.z, -t.z.w);
-		woop[1] = make_float4(t.x.x, t.x.y, t.x.z, t.x.w);
-		woop[2] = make_float4(t.y.x, t.y.y, t.y.z, t.y.w);
-	}
+	woop[0] = float3_to_float4(v0);
+	woop[1] = float3_to_float4(v1);
+	woop[2] = float3_to_float4(v2);
 }
 
 /* Curves*/
-
-void BVH::pack_curve_segment(int idx, float4 woop[3])
-{
-	int tob = pack.prim_object[idx];
-	const Mesh *mesh = objects[tob]->mesh;
-	int tidx = pack.prim_index[idx];
-	int segment = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[idx]);
-	int k0 = mesh->curves[tidx].first_key + segment;
-	int k1 = mesh->curves[tidx].first_key + segment + 1;
-	float3 v0 = float4_to_float3(mesh->curve_keys[k0]);
-	float3 v1 = float4_to_float3(mesh->curve_keys[k1]);
-
-	float3 d0 = v1 - v0;
-	float l =  len(d0);
-	
-	/*Plan
-	*Transform tfm = make_transform(
-	*	location <3>    , l,
-	*	extra curve data <3>    , StrID,
-	*	nextkey, flags/tip?,    0, 0);
-	*/
-	float3 tg0 = make_float3(1.0f, 0.0f, 0.0f);
-	float3 tg1 = make_float3(1.0f, 0.0f, 0.0f);
-	
-	Transform tfm = make_transform(
-		tg0.x, tg0.y, tg0.z, l,
-		tg1.x, tg1.y, tg1.z, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 1);
-
-	woop[0] = tfm.x;
-	woop[1] = tfm.y;
-	woop[2] = tfm.z;
-
-}
 
 void BVH::pack_primitives()
 {
@@ -351,9 +296,7 @@ void BVH::pack_primitives()
 		if(pack.prim_index[i] != -1) {
 			float4 woop[3];
 
-			if(pack.prim_type[i] & PRIMITIVE_ALL_CURVE)
-				pack_curve_segment(i, woop);
-			else
+			if(pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE)
 				pack_triangle(i, woop);
 			
 			memcpy(&pack.tri_woop[i * nsize], woop, sizeof(float4)*3);

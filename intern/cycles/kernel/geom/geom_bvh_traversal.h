@@ -89,6 +89,9 @@ ccl_device bool BVH_FUNCTION_NAME
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
+	IsectPrecalc isect_precalc;
+	triangle_intersect_precalc(dir, &isect_precalc);
+
 	/* traversal loop */
 	do {
 		do {
@@ -257,7 +260,7 @@ ccl_device bool BVH_FUNCTION_NAME
 
 						switch(type & PRIMITIVE_ALL) {
 							case PRIMITIVE_TRIANGLE: {
-								hit = triangle_intersect(kg, isect, P, dir, visibility, object, primAddr);
+								hit = triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr);
 								break;
 							}
 #if FEATURE(BVH_MOTION)
@@ -312,6 +315,7 @@ ccl_device bool BVH_FUNCTION_NAME
 #else
 					bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect->t);
 #endif
+					triangle_intersect_precalc(dir, &isect_precalc);
 
 #if defined(__KERNEL_SSE2__)
 					Psplat[0] = ssef(P.x);
@@ -342,6 +346,7 @@ ccl_device bool BVH_FUNCTION_NAME
 #else
 			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect->t);
 #endif
+			triangle_intersect_precalc(dir, &isect_precalc);
 
 #if defined(__KERNEL_SSE2__)
 			Psplat[0] = ssef(P.x);

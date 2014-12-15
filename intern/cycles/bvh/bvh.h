@@ -106,7 +106,6 @@ protected:
 	/* triangles and strands*/
 	void pack_primitives();
 	void pack_triangle(int idx, float4 woop[3]);
-	void pack_curve_segment(int idx, float4 woop[3]);
 
 	/* merge instance BVH's */
 	void pack_instances(size_t nodes_size);

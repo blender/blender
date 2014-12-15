@@ -77,6 +77,9 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
+	IsectPrecalc isect_precalc;
+	triangle_intersect_precalc(dir, &isect_precalc);
+
 	/* traversal loop */
 	do {
 		do
@@ -202,7 +205,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 
 						switch(type & PRIMITIVE_ALL) {
 							case PRIMITIVE_TRIANGLE: {
-								triangle_intersect_subsurface(kg, isect_array, P, dir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								triangle_intersect_subsurface(kg, &isect_precalc, isect_array, P, dir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 								break;
 							}
 #if FEATURE(BVH_MOTION)
@@ -228,6 +231,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 #else
 						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif
+						triangle_intersect_precalc(dir, &isect_precalc);
 
 #if defined(__KERNEL_SSE2__)
 						Psplat[0] = ssef(P.x);
@@ -264,6 +268,8 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 #else
 			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif
+
+			triangle_intersect_precalc(dir, &isect_precalc);
 
 #if defined(__KERNEL_SSE2__)
 			Psplat[0] = ssef(P.x);

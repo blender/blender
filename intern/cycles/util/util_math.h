@@ -1452,6 +1452,22 @@ ccl_device bool map_to_sphere(float *r_u, float *r_v,
 	}
 }
 
+ccl_device_inline int util_max_axis(float3 vec)
+{
+	if(vec.x > vec.y) {
+		if(vec.x > vec.z)
+			return 0;
+		else
+			return 2;
+	}
+	else {
+		if(vec.y > vec.z)
+			return 1;
+		else
+			return 2;
+	}
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_H__ */
