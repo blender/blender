@@ -1308,7 +1308,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	float vert_tol, vert_tol_sq;
 	float line_tol, line_tol_sq;
 	float face_tol, face_tol_sq;
-	float eps_scale;
+	float eps_scale, eps_scale_px;
 	int isect_kind;
 	unsigned int tot;
 	int i;
@@ -1423,10 +1423,11 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 		        kcd->vc.rv3d->winmat[0][0],
 		        kcd->vc.rv3d->winmat[1][1]};
 		eps_scale = len_v2(zoom_xy);
+		eps_scale_px = eps_scale * (kcd->is_interactive ? KNIFE_FLT_EPS_PX : KNIFE_FLT_EPSBIG);
 	}
 
-	vert_tol = KNIFE_FLT_EPS_PX * eps_scale;
-	line_tol = KNIFE_FLT_EPS_PX * eps_scale;
+	vert_tol = eps_scale_px;
+	line_tol = eps_scale_px;
 	face_tol = max_ff(vert_tol, line_tol);
 
 	vert_tol_sq = vert_tol * vert_tol;
