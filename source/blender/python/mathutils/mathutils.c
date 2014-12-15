@@ -502,6 +502,7 @@ static struct PyModuleDef M_Mathutils_module_def = {
 
 /* submodules only */
 #include "mathutils_geometry.h"
+#include "mathutils_interpolate.h"
 #ifndef MATH_STANDALONE
 #  include "mathutils_kdtree.h"
 #  include "mathutils_noise.h"
@@ -537,6 +538,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	
 	/* submodule */
 	PyModule_AddObject(mod, "geometry",       (submodule = PyInit_mathutils_geometry()));
+	PyModule_AddObject(mod, "interpolate",    (submodule = PyInit_mathutils_interpolate()));
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */

@@ -38,6 +38,7 @@ set(SRC
 	mathutils_Quaternion.c
 	mathutils_Vector.c
 	mathutils_geometry.c
+	mathutils_interpolate.c
 	mathutils_kdtree.c
 	mathutils_noise.c
 
@@ -48,6 +49,7 @@ set(SRC
 	mathutils_Quaternion.h
 	mathutils_Vector.h
 	mathutils_geometry.h
+	mathutils_interpolate.h
 	mathutils_kdtree.h
 	mathutils_noise.h
 )
