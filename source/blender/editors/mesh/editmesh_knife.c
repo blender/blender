@@ -603,6 +603,7 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
 {
 	KnifeLineHit *linehits, *lhi, *lhj;
 	int i, j, n;
+	bool is_double = false;
 
 	n = kcd->totlinehit;
 	linehits = kcd->linehits;
@@ -626,7 +627,11 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
 				{
 					break;
 				}
-				lhj->l = -1.0f;
+
+				if (lhi->kfe == lhj->kfe) {
+					lhj->l = -1.0f;
+					is_double = true;
+				}
 			}
 			for (j = i + 1; j < n; j++) {
 				lhj = &linehits[j];
@@ -635,37 +640,42 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
 				{
 					break;
 				}
-				if (lhj->kfe || lhi->v == lhj->v) {
+				if ((lhj->kfe && (lhi->kfe == lhj->kfe)) ||
+				    (lhi->v == lhj->v))
+				{
 					lhj->l = -1.0f;
+					is_double = true;
 				}
 			}
 		}
 	}
 
-	/* delete-in-place loop: copying from pos j to pos i+1 */
-	i = 0;
-	j = 1;
-	while (j < n) {
-		lhi = &linehits[i];
-		lhj = &linehits[j];
-		if (lhj->l == -1.0f) {
-			j++; /* skip copying this one */
-		}
-		else {
-			/* copy unless a no-op */
-			if (lhi->l == -1.0f) {
-				/* could happen if linehits[0] is being deleted */
-				memcpy(&linehits[i], &linehits[j], sizeof(KnifeLineHit));
+	if (is_double) {
+		/* delete-in-place loop: copying from pos j to pos i+1 */
+		i = 0;
+		j = 1;
+		while (j < n) {
+			lhi = &linehits[i];
+			lhj = &linehits[j];
+			if (lhj->l == -1.0f) {
+				j++; /* skip copying this one */
 			}
 			else {
-				if (i + 1 != j)
-					memcpy(&linehits[i + 1], &linehits[j], sizeof(KnifeLineHit));
-				i++;
+				/* copy unless a no-op */
+				if (lhi->l == -1.0f) {
+					/* could happen if linehits[0] is being deleted */
+					memcpy(&linehits[i], &linehits[j], sizeof(KnifeLineHit));
+				}
+				else {
+					if (i + 1 != j)
+						memcpy(&linehits[i + 1], &linehits[j], sizeof(KnifeLineHit));
+					i++;
+				}
+				j++;
 			}
-			j++;
 		}
+		kcd->totlinehit = i + 1;
 	}
-	kcd->totlinehit = i + 1;
 }
 
 /* Add hit to list of hits in facehits[f], where facehits is a map, if not already there */
