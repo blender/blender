@@ -2453,7 +2453,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "origin", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Origin", "Origin of modifier space coordinates");
+	RNA_def_property_ui_text(prop, "Origin", "Offset the origin and orientation of the deformation");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
