@@ -1225,7 +1225,7 @@ void GPU_edge_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (dm->drawObject->edges->use_vbo) {
+	if (dm->drawObject->points->use_vbo) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, dm->drawObject->points->id);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
 	}
