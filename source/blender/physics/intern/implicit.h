@@ -111,7 +111,7 @@ void BPH_mass_spring_force_extern(struct Implicit_Data *data, int i, const float
 /* Wind force, acting on a face */
 void BPH_mass_spring_force_face_wind(struct Implicit_Data *data, int v1, int v2, int v3, int v4, const float (*winvec)[3]);
 /* Wind force, acting on an edge */
-void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, const float (*winvec)[3]);
+void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, float radius1, float radius2, const float (*winvec)[3]);
 /* Linear spring force between two points */
 bool BPH_mass_spring_force_spring_linear(struct Implicit_Data *data, int i, int j, float restlen,
                                          float stiffness, float damping, bool no_compress, float clamp_force,

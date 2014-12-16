@@ -1461,21 +1461,41 @@ void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3
 	}
 }
 
-void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
+static void edge_wind_vertex(const float dir[3], float length, float radius, const float wind[3], float f[3], float UNUSED(dfdx[3][3]), float UNUSED(dfdv[3][3]))
 {
-	const float effector_scale = 0.01;
-	float win[3], dir[3], nor[3], length;
+	const float density = 0.01f; /* XXX arbitrary value, corresponds to effect of air density */
+	float cos_alpha, sin_alpha, cross_section;
+	float windlen = len_v3(wind);
+	
+	if (windlen == 0.0f) {
+		zero_v3(f);
+		return;
+	}
+	
+	/* angle of wind direction to edge */
+	cos_alpha = dot_v3v3(wind, dir) / windlen;
+	sin_alpha = sqrt(1.0 - cos_alpha*cos_alpha);
+	cross_section = radius * (M_PI * radius * sin_alpha + length * cos_alpha);
+	
+	mul_v3_v3fl(f, wind, density * cross_section);
+}
+
+void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, float radius1, float radius2, const float (*winvec)[3])
+{
+	float win[3], dir[3], length;
+	float f[3], dfdx[3][3], dfdv[3][3];
 	
 	sub_v3_v3v3(dir, data->X[v1], data->X[v2]);
 	length = normalize_v3(dir);
 	
 	world_to_root_v3(data, v1, win, winvec[v1]);
-	madd_v3_v3v3fl(nor, win, dir, -dot_v3v3(win, dir));
-	madd_v3_v3fl(data->F[v1], nor, effector_scale * length);
+	edge_wind_vertex(dir, length, radius1, win, f, dfdx, dfdv);
+	add_v3_v3(data->F[v1], f);
 	
 	world_to_root_v3(data, v2, win, winvec[v2]);
-	madd_v3_v3v3fl(nor, win, dir, -dot_v3v3(win, dir));
-	madd_v3_v3fl(data->F[v2], nor, effector_scale * length);
+	/* use -length to invert edge direction */
+	edge_wind_vertex(dir, length, radius2, win, f, dfdx, dfdv);
+	add_v3_v3(data->F[v2], f);
 }
 
 BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)

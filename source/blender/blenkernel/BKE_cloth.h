@@ -65,6 +65,7 @@ typedef struct ClothHairData {
 	float loc[3];
 	float rot[3][3];
 	float rest_target[3]; /* rest target direction for each segment */
+	float radius;
 	float bending_stiffness;
 } ClothHairData;
 
