@@ -57,6 +57,9 @@ CCL_NAMESPACE_BEGIN
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
+#ifdef __KERNEL_SSE2__
+#  define __QBVH__
+#endif
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
 #define __BRANCHED_PATH__
@@ -947,8 +950,8 @@ typedef struct KernelBVH {
 	int have_motion;
 	int have_curves;
 	int have_instancing;
-
-	int pad1, pad2, pad3;
+	int use_qbvh;
+	int pad1, pad2;
 } KernelBVH;
 
 typedef enum CurveFlag {

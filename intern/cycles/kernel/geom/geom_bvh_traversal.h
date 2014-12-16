@@ -17,6 +17,10 @@
  * limitations under the License.
  */
 
+#ifdef __QBVH__
+#include "geom_qbvh_traversal.h"
+#endif
+
 /* This is a template BVH traversal function, where various features can be
  * enabled/disabled. This way we can compile optimized versions for each case
  * without new features slowing things down.
@@ -381,16 +385,33 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 #endif
                                          )
 {
-	return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-	                                   ray,
-	                                   isect,
-	                                   visibility
+#ifdef __QBVH__
+	if(kernel_data.bvh.use_qbvh) {
+		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
+		                                    ray,
+		                                    isect,
+		                                    visibility
 #if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-	                                   , lcg_state,
-	                                   difl,
-	                                   extmax
+		                                    , lcg_state,
+		                                    difl,
+		                                    extmax
 #endif
-	                                   );
+		                                    );
+	}
+	else
+#endif
+	{
+		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+		                                   ray,
+		                                   isect,
+		                                   visibility
+#if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+		                                   , lcg_state,
+		                                   difl,
+		                                   extmax
+#endif
+		                                   );
+	}
 }
 
 #undef BVH_FUNCTION_NAME

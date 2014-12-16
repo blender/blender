@@ -48,6 +48,11 @@ CCL_NAMESPACE_BEGIN
 
 #define BVH_FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
+/* Common QBVH functions. */
+#ifdef __QBVH__
+#include "geom_qbvh.h"
+#endif
+
 /* Regular BVH traversal */
 
 #define BVH_FUNCTION_NAME bvh_intersect

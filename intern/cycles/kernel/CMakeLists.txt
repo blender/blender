@@ -123,6 +123,11 @@ set(SRC_GEOM_HEADERS
 	geom/geom_motion_triangle.h
 	geom/geom_object.h
 	geom/geom_primitive.h
+	geom/geom_qbvh.h
+	geom/geom_qbvh_shadow.h
+	geom/geom_qbvh_subsurface.h
+	geom/geom_qbvh_traversal.h
+	geom/geom_qbvh_volume.h
 	geom/geom_triangle.h
 	geom/geom_triangle_intersect.h
 	geom/geom_volume.h

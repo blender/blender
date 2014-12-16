@@ -479,8 +479,11 @@ void BVH::pack_instances(size_t nodes_size)
 
 				pack_nodes[pack_nodes_offset + nsize_bbox] = data;
 
-				if(use_qbvh)
-					pack_nodes[pack_nodes_offset + nsize_bbox+1] = bvh_nodes[i + nsize_bbox+1];
+				if(use_qbvh) {
+					memcpy(&pack_nodes[pack_nodes_offset + nsize_bbox+1],
+					       &bvh_nodes[i + nsize_bbox+1],
+					       sizeof(int4) * (nsize - (nsize_bbox+1)));
+				}
 
 				pack_nodes_offset += nsize;
 			}

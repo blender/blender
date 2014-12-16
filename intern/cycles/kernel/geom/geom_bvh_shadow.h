@@ -17,6 +17,10 @@
  * limitations under the License.
  */
 
+#ifdef __QBVH__
+#include "geom_qbvh_shadow.h"
+#endif
+
 /* This is a template BVH traversal function, where various features can be
  * enabled/disabled. This way we can compile optimized versions for each case
  * without new features slowing things down.
@@ -380,11 +384,23 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const uint max_hits,
                                          uint *num_hits)
 {
-	return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-	                                   ray,
-	                                   isect_array,
-	                                   max_hits,
-	                                   num_hits);
+#ifdef __QBVH__
+	if(kernel_data.bvh.use_qbvh) {
+		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
+		                                    ray,
+		                                    isect_array,
+		                                    max_hits,
+		                                    num_hits);
+	}
+	else
+#endif
+	{
+		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+		                                   ray,
+		                                   isect_array,
+		                                   max_hits,
+		                                   num_hits);
+	}
 }
 
 #undef BVH_FUNCTION_NAME

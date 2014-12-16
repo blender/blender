@@ -17,6 +17,10 @@
  * limitations under the License.
  */
 
+#ifdef __QBVH__
+#include "geom_qbvh_subsurface.h"
+#endif
+
 /* This is a template BVH traversal function for subsurface scattering, where
  * various features can be enabled/disabled. This way we can compile optimized
  * versions for each case without new features slowing things down.
@@ -300,12 +304,25 @@ ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          uint *lcg_state,
                                          int max_hits)
 {
-	return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-	                                   ray,
-	                                   isect_array,
-	                                   subsurface_object,
-	                                   lcg_state,
-	                                   max_hits);
+#ifdef __QBVH__
+	if(kernel_data.bvh.use_qbvh) {
+		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
+		                                    ray,
+		                                    isect_array,
+		                                    subsurface_object,
+		                                    lcg_state,
+		                                    max_hits);
+	}
+	else
+#endif
+	{
+		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+		                                   ray,
+		                                   isect_array,
+		                                   subsurface_object,
+		                                   lcg_state,
+		                                   max_hits);
+	}
 }
 
 #undef BVH_FUNCTION_NAME

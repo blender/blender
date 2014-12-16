@@ -21,6 +21,7 @@
 /* 64 object BVH + 64 mesh BVH + 64 object node splitting */
 #define BVH_STACK_SIZE 192
 #define BVH_NODE_SIZE 4
+#define BVH_QNODE_SIZE 7
 #define TRI_NODE_SIZE 3
 
 /* silly workaround for float extended precision that happens when compiling

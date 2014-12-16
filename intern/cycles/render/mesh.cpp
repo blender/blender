@@ -1027,6 +1027,7 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	}
 
 	dscene->data.bvh.root = pack.root_index;
+	dscene->data.bvh.use_qbvh = scene->params.use_qbvh;
 }
 
 void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -1094,7 +1095,12 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
-			pool.push(function_bind(&Mesh::compute_bvh, mesh, &scene->params, &progress, i, num_bvh));
+			pool.push(function_bind(&Mesh::compute_bvh,
+			                        mesh,
+			                        &scene->params,
+			                        &progress,
+			                        i,
+			                        num_bvh));
 			i++;
 		}
 	}

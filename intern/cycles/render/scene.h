@@ -26,6 +26,7 @@
 
 #include "util_param.h"
 #include "util_string.h"
+#include "util_system.h"
 #include "util_thread.h"
 #include "util_types.h"
 #include "util_vector.h"
@@ -135,11 +136,7 @@ public:
 		bvh_type = BVH_DYNAMIC;
 		use_bvh_cache = false;
 		use_bvh_spatial_split = false;
-#ifdef __QBVH__
-		use_qbvh = true;
-#else
 		use_qbvh = false;
-#endif
 		persistent_data = false;
 	}
 
