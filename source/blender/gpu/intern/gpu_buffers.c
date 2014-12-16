@@ -1420,11 +1420,9 @@ void *GPU_buffer_lock_stream(GPUBuffer *buffer)
 void GPU_buffer_unlock(GPUBuffer *buffer)
 {
 	if (buffer->use_vbo) {
-		if (buffer) {
-			/* note: this operation can fail, could return
-			 * an error code from this function? */
-			glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
-		}
+		/* note: this operation can fail, could return
+		 * an error code from this function? */
+		glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	}
 }
