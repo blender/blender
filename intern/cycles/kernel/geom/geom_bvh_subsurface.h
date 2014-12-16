@@ -54,7 +54,6 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 	int object = OBJECT_NONE;
 	float isect_t = ray->t;
 
-	const uint visibility = PATH_RAY_ALL_VISIBILITY;
 	uint num_hits = 0;
 
 #if FEATURE(BVH_MOTION)
@@ -118,14 +117,8 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 				NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
 
 				/* decide which nodes to traverse next */
-#ifdef __VISIBILITY_FLAG__
-				/* this visibility test gives a 5% performance hit, how to solve? */
-				traverseChild0 = (c0max >= c0min) && (__float_as_uint(cnodes.z) & visibility);
-				traverseChild1 = (c1max >= c1min) && (__float_as_uint(cnodes.w) & visibility);
-#else
 				traverseChild0 = (c0max >= c0min);
 				traverseChild1 = (c1max >= c1min);
-#endif
 
 #else // __KERNEL_SSE2__
 				/* Intersect two child bounding boxes, SSE3 version adapted from Embree */
@@ -145,14 +138,8 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 				const sseb lrhit = tminmax <= shuffle<2, 3, 0, 1>(tminmax);
 
 				/* decide which nodes to traverse next */
-#ifdef __VISIBILITY_FLAG__
-				/* this visibility test gives a 5% performance hit, how to solve? */
-				traverseChild0 = (movemask(lrhit) & 1) && (__float_as_uint(cnodes.z) & visibility);
-				traverseChild1 = (movemask(lrhit) & 2) && (__float_as_uint(cnodes.w) & visibility);
-#else
 				traverseChild0 = (movemask(lrhit) & 1);
 				traverseChild1 = (movemask(lrhit) & 2);
-#endif
 #endif // __KERNEL_SSE2__
 
 				nodeAddr = __float_as_int(cnodes.x);
