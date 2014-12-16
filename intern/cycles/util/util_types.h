@@ -264,6 +264,19 @@ struct ccl_try_align(16) float4 {
 	__forceinline float& operator[](int i) { return *(&x + i); }
 };
 
+template<typename T>
+class vector3
+{
+public:
+	T x, y, z;
+
+	ccl_always_inline vector3() {}
+	ccl_always_inline vector3(const T& a)
+	  : x(a), y(a), z(a) {}
+	ccl_always_inline vector3(const T& x, const T& y, const T& z)
+	  : x(x), y(y), z(z) {}
+};
+
 #endif
 
 #ifndef __KERNEL_GPU__

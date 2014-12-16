@@ -61,9 +61,7 @@ ccl_device_inline void triangle_intersect_precalc(float3 dir,
 
 	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
 	if(IDX(dir, kz) < 0.0f) {
-		int tmp = kx;
-		kx = ky;
-		ky = tmp;
+		util_swap(&kx, &ky);
 	}
 
 	/* Calculate the shear constants. */

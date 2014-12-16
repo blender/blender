@@ -344,6 +344,12 @@ typedef texture_image<uchar4> texture_image_uchar4;
 
 #define kernel_data (kg->__data)
 
+#ifdef __KERNEL_SSE2__
+typedef vector3<sseb> sse3b;
+typedef vector3<ssef> sse3f;
+typedef vector3<ssei> sse3i;
+#endif
+
 CCL_NAMESPACE_END
 
 #endif /* __KERNEL_COMPAT_CPU_H__ */
