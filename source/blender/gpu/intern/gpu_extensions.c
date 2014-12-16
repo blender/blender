@@ -969,10 +969,16 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 	/* bind framebuffer */
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, tex->fb->object);
 
-	/* last bound prevails here, better allow explicit control here too */
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment);
-	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment);
-
+	if (tex->depth) {
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+	}
+	else {
+		/* last bound prevails here, better allow explicit control here too */
+		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment);
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment);
+	}
+	
 	/* push matrices and set default viewport and matrix */
 	glViewport(0, 0, tex->w, tex->h);
 	GG.currentfb = tex->fb->object;
