@@ -125,9 +125,6 @@ static void erot_state_alternate(const BMEdge *e, EdRotState *e_state)
 /* -------------------------------------------------------------------- */
 /* Calculate the improvement of rotating the edge */
 
-/**
- * \return a negative value means the edge can be rotated.
- */
 static float bm_edge_calc_rotate_beauty__area(
         const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
@@ -272,6 +269,12 @@ static float bm_edge_calc_rotate_beauty__angle(
 	return FLT_MAX;
 }
 
+/**
+ * Assuming we have 2 triangles sharing an edge (2 - 4),
+ * check if the edge running from (1 - 3) gives better results.
+ *
+ * \return (negative number means the edge can be rotated, lager == better).
+ */
 float BM_verts_calc_rotate_beauty(
         const BMVert *v1, const BMVert *v2, const BMVert *v3, const BMVert *v4,
         const short flag, const short method)

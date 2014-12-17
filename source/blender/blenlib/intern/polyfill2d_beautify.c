@@ -119,8 +119,9 @@ BLI_INLINE bool is_boundary_edge(unsigned int i_a, unsigned int i_b, const unsig
 }
 /**
  * Assuming we have 2 triangles sharing an edge (2 - 4),
- * check if the edge running from (1 - 3) gives better results
- * (negative number, lager == better).
+ * check if the edge running from (1 - 3) gives better results.
+ *
+ * \return (negative number means the edge can be rotated, lager == better).
  */
 static float quad_v2_rotate_beauty_calc(
         const float v1[2], const float v2[2], const float v3[2], const float v4[2])
