@@ -865,8 +865,138 @@ void QBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
 
 void QBVH::refit_nodes()
 {
-	assert(0); /* todo */
+	assert(!params.top_level);
+
+	BoundBox bbox = BoundBox::empty;
+	uint visibility = 0;
+	refit_node(0, (pack.is_leaf[0])? true: false, bbox, visibility);
+}
+
+void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
+{
+	int4 *data = &pack.nodes[idx*BVH_QNODE_SIZE];
+	int4 c = data[6];
+	if(leaf) {
+		/* Refit leaf node. */
+		for(int prim = c.x; prim < c.y; prim++) {
+			int pidx = pack.prim_index[prim];
+			int tob = pack.prim_object[prim];
+			Object *ob = objects[tob];
+
+			if(pidx == -1) {
+				/* Object instance. */
+				bbox.grow(ob->bounds);
+			}
+			else {
+				/* Primitives. */
+				const Mesh *mesh = ob->mesh;
+
+				if(pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
+					/* Curves. */
+					int str_offset = (params.top_level)? mesh->curve_offset: 0;
+					const Mesh::Curve& curve = mesh->curves[pidx - str_offset];
+					int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
+
+					curve.bounds_grow(k, &mesh->curve_keys[0], bbox);
+
+					visibility |= PATH_RAY_CURVE;
+
+					/* Motion curves. */
+					if(mesh->use_motion_blur) {
+						Attribute *attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+						if(attr) {
+							size_t mesh_size = mesh->curve_keys.size();
+							size_t steps = mesh->motion_steps - 1;
+							float4 *key_steps = attr->data_float4();
+
+							for (size_t i = 0; i < steps; i++)
+								curve.bounds_grow(k, key_steps + i*mesh_size, bbox);
+						}
+					}
+				}
+				else {
+					/* Triangles. */
+					int tri_offset = (params.top_level)? mesh->tri_offset: 0;
+					const Mesh::Triangle& triangle = mesh->triangles[pidx - tri_offset];
+					const float3 *vpos = &mesh->verts[0];
+
+					triangle.bounds_grow(vpos, bbox);
+
+					/* Motion triangles. */
+					if(mesh->use_motion_blur) {
+						Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+						if(attr) {
+							size_t mesh_size = mesh->verts.size();
+							size_t steps = mesh->motion_steps - 1;
+							float3 *vert_steps = attr->data_float3();
+
+							for (size_t i = 0; i < steps; i++)
+								triangle.bounds_grow(vert_steps + i*mesh_size, bbox);
+						}
+					}
+				}
+			}
+
+			visibility |= ob->visibility;
+		}
+
+		/* TODO(sergey): This is actually a copy of pack_leaf(),
+		 * but this chunk of code only knows actual data and has
+		 * no idea about BVHNode.
+		 *
+		 * Would be nice to de-duplicate code, but trying to make
+		 * making code more geenral ends up in much nastier code
+		 * in my opinion so far.
+		 *
+		 * Same applies to the inner nodes case below.
+		 */
+		float4 leaf_data[BVH_QNODE_SIZE];
+		memset(leaf_data, 0, sizeof(leaf_data));
+		leaf_data[6].x = __int_as_float(c.x);
+		leaf_data[6].y = __int_as_float(c.y);
+		leaf_data[7] = make_float4(__uint_as_float(visibility));
+		memcpy(&pack.nodes[idx * BVH_QNODE_SIZE],
+		       leaf_data,
+		       sizeof(float4)*BVH_QNODE_SIZE);
+	}
+	else {
+		/* Refit inner node, set bbox from children. */
+		BoundBox child_bbox[4] = {BoundBox::empty,
+		                          BoundBox::empty,
+		                          BoundBox::empty,
+		                          BoundBox::empty};
+		uint child_visibility[4] = {0};
+		int num_nodes = 0;
+
+		for(int i = 0; i < 4; ++i) {
+			if(c[i] != 0) {
+				refit_node((c[i] < 0)? -c[i]-1: c[i], (c[i] < 0),
+				           child_bbox[i], child_visibility[i]);
+				++num_nodes;
+				bbox.grow(child_bbox[i]);
+				visibility |= child_visibility[i];
+			}
+		}
+
+		float4 inner_data[BVH_QNODE_SIZE];
+		for(int i = 0; i < 4; ++i) {
+			float3 bb_min = child_bbox[i].min;
+			float3 bb_max = child_bbox[i].max;
+			inner_data[0][i] = bb_min.x;
+			inner_data[1][i] = bb_max.x;
+			inner_data[2][i] = bb_min.y;
+			inner_data[3][i] = bb_max.y;
+			inner_data[4][i] = bb_min.z;
+			inner_data[5][i] = bb_max.z;
+			inner_data[6][i] = __int_as_float(c[i]);
+			inner_data[7][i] = __uint_as_float(child_visibility[i]);
+		}
+		memcpy(&pack.nodes[idx * BVH_QNODE_SIZE],
+		       inner_data,
+		       sizeof(float4)*BVH_QNODE_SIZE);
+	}
 }
 
 CCL_NAMESPACE_END
-

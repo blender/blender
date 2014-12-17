@@ -154,6 +154,7 @@ protected:
 
 	/* refit */
 	void refit_nodes();
+	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
 };
 
 CCL_NAMESPACE_END
