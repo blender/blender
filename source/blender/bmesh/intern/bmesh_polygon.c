@@ -814,7 +814,7 @@ void BM_face_triangulate(
 
 				cost = BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0);
 
-				if (cost < 0.0f) {
+				if (cost > 0.0f) {
 					l_v1 = l_v4;
 					//l_v2 = l_v2;
 				}
