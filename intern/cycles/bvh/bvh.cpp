@@ -418,7 +418,7 @@ void BVH::pack_instances(size_t nodes_size)
 			if(mesh_map.find(mesh) == mesh_map.end()) {
 				prim_index_size += bvh->pack.prim_index.size();
 				tri_woop_size += bvh->pack.tri_woop.size();
-				nodes_size += bvh->pack.nodes.size()*nsize;
+				nodes_size += bvh->pack.nodes.size();
 
 				mesh_map[mesh] = 1;
 			}
