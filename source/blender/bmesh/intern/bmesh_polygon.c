@@ -783,38 +783,39 @@ void BM_face_triangulate(
 				break;
 			}
 			case MOD_TRIANGULATE_QUAD_SHORTEDGE:
-			{
-				BMLoop *l_v3, *l_v4;
-				float d1, d2;
-
-				l_v1 = l_first;
-				l_v2 = l_first->next->next;
-				l_v3 = l_first->next;
-				l_v4 = l_first->prev;
-
-				d1 = len_squared_v3v3(l_v1->v->co, l_v2->v->co);
-				d2 = len_squared_v3v3(l_v3->v->co, l_v4->v->co);
-
-				if (d2 < d1) {
-					l_v1 = l_v3;
-					l_v2 = l_v4;
-				}
-				break;
-			}
 			case MOD_TRIANGULATE_QUAD_BEAUTY:
 			default:
 			{
 				BMLoop *l_v3, *l_v4;
-				float cost;
+				bool split_24;
 
 				l_v1 = l_first->next;
 				l_v2 = l_first->next->next;
 				l_v3 = l_first->prev;
 				l_v4 = l_first;
 
-				cost = BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0);
+				if (quad_method == MOD_TRIANGULATE_QUAD_SHORTEDGE) {
+					float d1, d2;
+					d1 = len_squared_v3v3(l_v4->v->co, l_v2->v->co);
+					d2 = len_squared_v3v3(l_v1->v->co, l_v3->v->co);
+					split_24 = ((d2 - d1) > 0.0f);
+				}
+				else {
+					/* first check if the quad is concave on either diagonal */
+					const int flip_flag = is_quad_flip_v3(l_v1->v->co, l_v2->v->co, l_v3->v->co, l_v4->v->co);
+					if (UNLIKELY(flip_flag & (1 << 0))) {
+						split_24 = true;
+					}
+					else if (UNLIKELY(flip_flag & (1 << 1))) {
+						split_24 = false;
+					}
+					else {
+						split_24 = (BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) > 0.0f);
+					}
+				}
 
-				if (cost > 0.0f) {
+				/* named confusingly, l_v1 is in fact the second vertex */
+				if (split_24) {
 					l_v1 = l_v4;
 					//l_v2 = l_v2;
 				}

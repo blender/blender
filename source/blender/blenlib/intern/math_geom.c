@@ -4016,3 +4016,31 @@ bool is_poly_convex_v2(const float verts[][2], unsigned int nr)
 
 	return true;
 }
+
+/**
+ * Check if either of the diagonals along this quad create flipped triangles
+ * (normals pointing away from eachother).
+ * - (1 << 0): (v1-v3) is flipped.
+ * - (1 << 1): (v2-v4) is flipped.
+ */
+int is_quad_flip_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float d_12[3], d_23[3], d_34[3], d_41[3];
+	float cross_a[3], cross_b[3];
+	int ret = 0;
+
+	sub_v3_v3v3(d_12, v1, v2);
+	sub_v3_v3v3(d_23, v2, v3);
+	sub_v3_v3v3(d_34, v3, v4);
+	sub_v3_v3v3(d_41, v4, v1);
+
+	cross_v3_v3v3(cross_a, d_12, d_23);
+	cross_v3_v3v3(cross_b, d_34, d_41);
+	ret |= ((dot_v3v3(cross_a, cross_b) < 0.0f) << 0);
+
+	cross_v3_v3v3(cross_a, d_23, d_34);
+	cross_v3_v3v3(cross_b, d_41, d_12);
+	ret |= ((dot_v3v3(cross_a, cross_b) < 0.0f) << 1);
+
+	return ret;
+}
