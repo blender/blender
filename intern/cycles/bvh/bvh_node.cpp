@@ -47,6 +47,20 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 		case BVH_STAT_CHILDNODE_COUNT:
 			cnt = num_children();
 			break;
+		case BVH_STAT_QNODE_COUNT:
+			cnt = 1;
+			for(int i = 0; i < num_children(); i++) {
+				BVHNode *node = get_child(i);
+				if(node->is_leaf()) {
+					cnt += 1;
+				}
+				else {
+					for(int j = 0; j < node->num_children(); j++) {
+						cnt += node->get_child(j)->getSubtreeSize(stat);
+					}
+				}
+			}
+			return cnt;
 		default:
 			assert(0); /* unknown mode */
 	}

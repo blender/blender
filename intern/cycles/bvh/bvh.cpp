@@ -794,7 +794,7 @@ void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
 
 void QBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
 {
-	size_t node_size = root->getSubtreeSize(BVH_STAT_NODE_COUNT);
+	size_t node_size = root->getSubtreeSize(BVH_STAT_QNODE_COUNT);
 
 	/* resize arrays */
 	pack.nodes.clear();
