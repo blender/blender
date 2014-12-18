@@ -118,7 +118,7 @@ BLI_INLINE void smallhash_buckets_reserve(SmallHash *sh, const unsigned int nent
 	}
 }
 
-BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
+BLI_INLINE SmallHashEntry *smallhash_lookup(const SmallHash *sh, const uintptr_t key)
 {
 	SmallHashEntry *e;
 	unsigned int h = smallhash_key(key);
@@ -284,28 +284,28 @@ bool BLI_smallhash_remove(SmallHash *sh, uintptr_t key)
 }
 #endif
 
-void *BLI_smallhash_lookup(SmallHash *sh, uintptr_t key)
+void *BLI_smallhash_lookup(const SmallHash *sh, uintptr_t key)
 {
 	SmallHashEntry *e = smallhash_lookup(sh, key);
 
 	return e ? e->val : NULL;
 }
 
-void **BLI_smallhash_lookup_p(SmallHash *sh, uintptr_t key)
+void **BLI_smallhash_lookup_p(const SmallHash *sh, uintptr_t key)
 {
 	SmallHashEntry *e = smallhash_lookup(sh, key);
 
 	return e ? &e->val : NULL;
 }
 
-bool BLI_smallhash_haskey(SmallHash *sh, uintptr_t key)
+bool BLI_smallhash_haskey(const SmallHash *sh, uintptr_t key)
 {
 	SmallHashEntry *e = smallhash_lookup(sh, key);
 
 	return (e != NULL);
 }
 
-int BLI_smallhash_count(SmallHash *sh)
+int BLI_smallhash_count(const SmallHash *sh)
 {
 	return (int)sh->nentries;
 }
@@ -341,7 +341,7 @@ void **BLI_smallhash_iternext_p(SmallHashIter *iter, uintptr_t *key)
 	return e ? &e->val : NULL;
 }
 
-void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void *BLI_smallhash_iternew(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
 {
 	iter->sh = sh;
 	iter->i = 0;
@@ -349,7 +349,7 @@ void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
 	return BLI_smallhash_iternext(iter, key);
 }
 
-void **BLI_smallhash_iternew_p(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
 {
 	iter->sh = sh;
 	iter->i = 0;

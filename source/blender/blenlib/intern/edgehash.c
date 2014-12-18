@@ -24,7 +24,7 @@
  *  \ingroup bli
  *
  * An (edge -> pointer) chaining hash table.
- * Using unordered int-paits as keys.
+ * Using unordered int-pairs as keys.
  *
  * \note Based on 'BLI_ghash.c', which is a more generalized hash-table
  * make sure these stay in sync.
