@@ -487,6 +487,12 @@ def GetInfoOperatorRNA(bl_rna):
 
 
 def BuildRNAInfo():
+
+    # needed on successive calls to prevent stale data access
+    for cls in (InfoStructRNA, InfoFunctionRNA, InfoOperatorRNA, InfoPropertyRNA):
+        cls.global_lookup.clear()
+    del cls
+
     # Use for faster lookups
     # use rna_struct.identifier as the key for each dict
     rna_struct_dict = {}  # store identifier:rna lookups
