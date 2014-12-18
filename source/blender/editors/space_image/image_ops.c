@@ -92,6 +92,8 @@
 
 #include "PIL_time.h"
 
+#include "RE_engine.h"
+
 #include "image_intern.h"
 
 /******************** view navigation utilities *********************/
@@ -3113,7 +3115,20 @@ static int render_border_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
+	Render *re = RE_GetRender(scene->id.name);
+	RenderData *rd;
 	rctf border;
+
+	if (re == NULL) {
+		/* Shouldn't happen, but better be safe close to the release. */
+		return OPERATOR_CANCELLED;
+	}
+
+	rd = RE_engine_get_render_data(re);
+	if (rd->mode & (R_BORDER|R_CROP)) {
+		BKE_report(op->reports, RPT_INFO, "Can not set border from a cropped render");
+		return OPERATOR_CANCELLED;
+	}
 
 	/* get rectangle from operator */
 	WM_operator_properties_border_to_rctf(op, &border);
