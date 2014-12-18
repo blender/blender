@@ -3125,7 +3125,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	}
 
 	rd = RE_engine_get_render_data(re);
-	if (rd->mode & (R_BORDER|R_CROP)) {
+	if ((rd->mode & (R_BORDER|R_CROP)) == (R_BORDER|R_CROP)) {
 		BKE_report(op->reports, RPT_INFO, "Can not set border from a cropped render");
 		return OPERATOR_CANCELLED;
 	}
