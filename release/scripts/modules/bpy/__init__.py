@@ -38,10 +38,10 @@ __all__ = (
 from _bpy import types, props, app, data, context
 
 # python modules
-from . import utils, path, ops
+from . import utils, path
 
 # fake operator module
-ops = ops.ops_fake_module
+from .ops import ops_fake_module as ops
 
 
 def main():
