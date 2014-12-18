@@ -303,7 +303,7 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 PyDoc_STRVAR(Quaternion_rotate_doc,
 ".. method:: rotate(other)\n"
 "\n"
-"   Rotates the quaternion a by another mathutils value.\n"
+"   Rotates the quaternion by another mathutils value.\n"
 "\n"
 "   :arg other: rotation component of mathutils value\n"
 "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
