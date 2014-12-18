@@ -1736,7 +1736,7 @@ void GPU_materials_free(void)
 		GPU_material_free(&ma->gpumaterial);
 
 	for (wo=G.main->world.first; wo; wo=wo->id.next)
-		GPU_material_free(&ma->gpumaterial);
+		GPU_material_free(&wo->gpumaterial);
 	
 	GPU_material_free(&defmaterial.gpumaterial);
 
