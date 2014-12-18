@@ -3087,7 +3087,7 @@ static void project_paint_begin(ProjPaintState *ps)
 
 		invert_m4_m4(ps->ob->imat, ps->ob->obmat);
 
-		if (ps->source == PROJ_SRC_VIEW) {
+		if (ELEM(ps->source, PROJ_SRC_VIEW, PROJ_SRC_VIEW_FILL)) {
 			/* normal drawing */
 			ps->winx = ps->ar->winx;
 			ps->winy = ps->ar->winy;
@@ -3225,7 +3225,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		CLAMP(ps->screenMax[1], (float)(-diameter), (float)(ps->winy + diameter));
 #endif
 	}
-	else { /* re-projection, use bounds */
+	else if (ps->source != PROJ_SRC_VIEW_FILL) { /* re-projection, use bounds */
 		ps->screenMin[0] = 0;
 		ps->screenMax[0] = (float)(ps->winx);
 
@@ -3421,8 +3421,8 @@ static void project_paint_begin(ProjPaintState *ps)
 
 #ifdef PROJ_DEBUG_WINCLIP
 			/* ignore faces outside the view */
-			if (
-			    (v1coSS[0] < ps->screenMin[0] &&
+			if ((ps->source != PROJ_SRC_VIEW_FILL) &&
+			    ((v1coSS[0] < ps->screenMin[0] &&
 			     v2coSS[0] < ps->screenMin[0] &&
 			     v3coSS[0] < ps->screenMin[0] &&
 			     (mf->v4 && v4coSS[0] < ps->screenMin[0])) ||
@@ -3440,7 +3440,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			    (v1coSS[1] > ps->screenMax[1] &&
 			     v2coSS[1] > ps->screenMax[1] &&
 			     v3coSS[1] > ps->screenMax[1] &&
-			     (mf->v4 && v4coSS[1] > ps->screenMax[1]))
+			     (mf->v4 && v4coSS[1] > ps->screenMax[1])))
 			    )
 			{
 				continue;
@@ -4620,7 +4620,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 
 	paint_brush_init_tex(ps->brush);
 
-	ps->source = PROJ_SRC_VIEW;
+	ps->source = (ps->tool == PAINT_TOOL_FILL) ? PROJ_SRC_VIEW_FILL : PROJ_SRC_VIEW;
 
 	if (ps->ob == NULL || !(ps->ob->lay & ps->v3d->lay)) {
 		MEM_freeN(ps);
@@ -4642,10 +4642,6 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 	}
 
 	paint_proj_begin_clone(ps, mouse);
-
-	/* special full screen draw mode for fill tool */
-	if (ps->tool == PAINT_TOOL_FILL)
-		ps->source = PROJ_SRC_VIEW_FILL;
 
 	return ps;
 }
