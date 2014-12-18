@@ -1493,9 +1493,20 @@ void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, float 
 	add_v3_v3(data->F[v1], f);
 	
 	world_to_root_v3(data, v2, win, winvec[v2]);
-	/* use -length to invert edge direction */
 	edge_wind_vertex(dir, length, radius2, win, f, dfdx, dfdv);
 	add_v3_v3(data->F[v2], f);
+}
+
+void BPH_mass_spring_force_vertex_wind(Implicit_Data *data, int v, float UNUSED(radius), const float (*winvec)[3])
+{
+	const float density = 0.01f; /* XXX arbitrary value, corresponds to effect of air density */
+	
+	float wind[3];
+	float f[3];
+	
+	world_to_root_v3(data, v, wind, winvec[v]);
+	mul_v3_v3fl(f, wind, density);
+	add_v3_v3(data->F[v], f);
 }
 
 BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)

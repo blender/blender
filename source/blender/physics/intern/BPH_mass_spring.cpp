@@ -497,6 +497,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 
 		/* Hair has only edges */
 		if (cloth->numfaces == 0) {
+#if 0
 			ClothHairData *hairdata = clmd->hairdata;
 			ClothHairData *hair_ij, *hair_kl;
 			
@@ -508,6 +509,16 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 					BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, hair_ij->radius, hair_kl->radius, winvec);
 			}
 		}
+#else
+			ClothHairData *hairdata = clmd->hairdata;
+			
+			vert = cloth->verts;
+			for (i = 0; i < cloth->numverts; i++, vert++) {
+				ClothHairData *hair = &hairdata[i];
+				
+				BPH_mass_spring_force_vertex_wind(data, i, hair->radius, winvec);
+			}
+#endif
 
 		MEM_freeN(winvec);
 	}
