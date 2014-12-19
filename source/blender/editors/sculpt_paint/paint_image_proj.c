@@ -1962,25 +1962,65 @@ static int float_z_sort(const void *p1, const void *p2)
 	return (((float *)p1)[2] < ((float *)p2)[2] ? -1 : 1);
 }
 
+/* assumes one point is within the rectangle */
+static void line_rect_clip(
+        rctf *rect,
+        const float l1[4], const float l2[4],
+        const float uv1[2], const float uv2[2],
+        float uv[2], bool is_ortho)
+{
+	float p[2];
+	float min = FLT_MAX, tmp;
+	if ((l1[0] - rect->xmin) * (l2[0] - rect->xmin) < 0) {
+		tmp = rect->xmin;
+		min = min_ff((tmp - l1[0]) / (l2[0] - l1[0]), min);
+	}
+	else if ((l1[0] - rect->xmax) * (l2[0] - rect->xmax) < 0) {
+		tmp = rect->xmax;
+		min = min_ff((tmp - l1[0]) / (l2[0] - l1[0]), min);
+	}
+	if ((l1[1] - rect->ymin) * (l2[1] - rect->ymin) < 0) {
+		tmp = rect->ymin;
+		min = min_ff((tmp - l1[1]) / (l2[1] - l1[1]), min);
+	}
+	else if ((l1[1] - rect->ymax) * (l2[1] - rect->ymax) < 0) {
+		tmp = rect->ymax;
+		min = min_ff((tmp - l1[1]) / (l2[1] - l1[1]), min);
+	}
+	
+	p[0] = min;
+	p[1] = (is_ortho) ? 1.0f : (l1[3] + p[0] * (l2[3] - l1[3]));
+	
+	uv[0] = (uv1[0] + p[0] * (uv2[0] - uv1[0])) / p[1];
+	uv[1] = (uv1[1] + p[0] * (uv2[1] - uv1[1])) / p[1];
+}
+
+
 static void project_bucket_clip_face(
         const bool is_ortho,
         rctf *bucket_bounds,
         float *v1coSS, float *v2coSS, float *v3coSS,
         const float *uv1co, const float *uv2co, const float *uv3co,
         float bucket_bounds_uv[8][2],
-        int *tot)
+        int *tot, bool cull)
 {
 	int inside_bucket_flag = 0;
 	int inside_face_flag = 0;
 	const int flip = ((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) != (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
-
+	bool colinear = false;
+	
 	float bucket_bounds_ss[4][2];
 
+	/* detect pathological case where face the three vertices are almost colinear in screen space.
+	 * mostly those will be culled but when flood filling or with smooth shading */
+	if (dist_squared_to_line_v2(v1coSS, v2coSS, v3coSS) < PROJ_PIXEL_TOLERANCE)
+		colinear = true;
+	
 	/* get the UV space bounding box */
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v1coSS);
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v2coSS) << 1;
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v3coSS) << 2;
-
+	
 	if (inside_bucket_flag == ISECT_ALL3) {
 		/* all screenspace points are inside the bucket bounding box, this means we don't need to clip and can simply return the UVs */
 		if (flip) { /* facing the back? */
@@ -1992,9 +2032,59 @@ static void project_bucket_clip_face(
 			copy_v2_v2(bucket_bounds_uv[0], uv1co);
 			copy_v2_v2(bucket_bounds_uv[1], uv2co);
 			copy_v2_v2(bucket_bounds_uv[2], uv3co);
+		}		
+		
+		*tot = 3;
+		return;
+	}
+	/* handle pathological case here, no need for further intersections below since tringle area is almost zero */
+	if (colinear) {
+		int flag;
+		
+		(*tot) = 0;
+		
+		if (cull)
+			return;
+		
+		if (inside_bucket_flag & ISECT_1) { copy_v2_v2(bucket_bounds_uv[*tot], uv1co); (*tot)++; }
+
+		flag = inside_bucket_flag & (ISECT_1 | ISECT_2);
+		if (flag && flag != (ISECT_1 | ISECT_2)) {
+			line_rect_clip(bucket_bounds, v1coSS, v2coSS, uv1co, uv2co, bucket_bounds_uv[*tot], is_ortho);
+			(*tot)++;
+		}
+		
+		if (inside_bucket_flag & ISECT_2) { copy_v2_v2(bucket_bounds_uv[*tot], uv2co); (*tot)++; }
+		
+		flag = inside_bucket_flag & (ISECT_2 | ISECT_3);
+		if (flag && flag != (ISECT_2 | ISECT_3)) {
+			line_rect_clip(bucket_bounds, v2coSS, v3coSS, uv2co, uv3co, bucket_bounds_uv[*tot], is_ortho);
+			(*tot)++;
 		}
 
-		*tot = 3;
+		if (inside_bucket_flag & ISECT_3) { copy_v2_v2(bucket_bounds_uv[*tot], uv3co); (*tot)++; }
+
+		flag = inside_bucket_flag & (ISECT_3 | ISECT_1);
+		if (flag && flag != (ISECT_3 | ISECT_1)) {
+			line_rect_clip(bucket_bounds, v3coSS, v1coSS, uv3co, uv1co, bucket_bounds_uv[*tot], is_ortho);
+			(*tot)++;
+		}
+		
+		if ((*tot) < 3) { /* no intersections to speak of */
+			*tot = 0;
+			return;
+		}
+
+		/* at this point we have all uv points needed in a row. all that's needed is to invert them if necessary */
+		if (flip) {
+			/* flip only to the middle of the array */
+			int i, max = *tot / 2;
+			for (i = 0; i < max; i++) {
+				SWAP(float, bucket_bounds_uv[i][0], bucket_bounds_uv[max - i][0]);
+				SWAP(float, bucket_bounds_uv[i][1], bucket_bounds_uv[max - i][1]);
+			}
+		}
+		
 		return;
 	}
 
@@ -2123,46 +2213,31 @@ static void project_bucket_clip_face(
 		if (flip) qsort(isectVCosSS, *tot, sizeof(float) * 3, float_z_sort_flip);
 		else      qsort(isectVCosSS, *tot, sizeof(float) * 3, float_z_sort);
 
-		/* remove doubles */
-		/* first/last check */
-		if (fabsf(isectVCosSS[0][0] - isectVCosSS[(*tot) - 1][0]) < PROJ_PIXEL_TOLERANCE &&
-		    fabsf(isectVCosSS[0][1] - isectVCosSS[(*tot) - 1][1]) < PROJ_PIXEL_TOLERANCE)
-		{
-			(*tot)--;
-		}
-
-		/* its possible there is only a few left after remove doubles */
-		if ((*tot) < 3) {
-			// printf("removed too many doubles A\n");
-			*tot = 0;
-			return;
-		}
-
 		doubles = true;
 		while (doubles == true) {
 			doubles = false;
-			for (i = 1; i < (*tot); i++) {
-				if (fabsf(isectVCosSS[i - 1][0] - isectVCosSS[i][0]) < PROJ_PIXEL_TOLERANCE &&
-				    fabsf(isectVCosSS[i - 1][1] - isectVCosSS[i][1]) < PROJ_PIXEL_TOLERANCE)
+
+			for (i = 0; i < (*tot); i++) {
+				if (fabsf(isectVCosSS[(i + 1) % *tot][0] - isectVCosSS[i][0]) < PROJ_PIXEL_TOLERANCE &&
+				    fabsf(isectVCosSS[(i + 1) % *tot][1] - isectVCosSS[i][1]) < PROJ_PIXEL_TOLERANCE)
 				{
 					int j;
-					for (j = i + 1; j < (*tot); j++) {
-						isectVCosSS[j - 1][0] = isectVCosSS[j][0];
-						isectVCosSS[j - 1][1] = isectVCosSS[j][1];
+					for (j = i; j < (*tot) - 1; j++) {
+						isectVCosSS[j][0] = isectVCosSS[j + 1][0];
+						isectVCosSS[j][1] = isectVCosSS[j + 1][1];
 					}
 					doubles = true; /* keep looking for more doubles */
 					(*tot)--;
 				}
 			}
+			
+			/* its possible there is only a few left after remove doubles */
+			if ((*tot) < 3) {
+				// printf("removed too many doubles B\n");
+				*tot = 0;
+				return;
+			}
 		}
-
-		/* its possible there is only a few left after remove doubles */
-		if ((*tot) < 3) {
-			// printf("removed too many doubles B\n");
-			*tot = 0;
-			return;
-		}
-
 
 		if (is_ortho) {
 			for (i = 0; i < (*tot); i++) {
@@ -2401,8 +2476,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 		        is_ortho, bucket_bounds,
 		        v1coSS, v2coSS, v3coSS,
 		        uv1co, uv2co, uv3co,
-		        uv_clip, &uv_clip_tot
-		        );
+		        uv_clip, &uv_clip_tot,
+		        ps->do_backfacecull || ps->do_occlude);
 
 		/* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
 #if 0
