@@ -2571,12 +2571,19 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 		if (pid->cache->flag & PTCACHE_DISK_CACHE) {
 			ptcache_path(pid, path);
 			
-			len = ptcache_filename(pid, filename, cfra, 0, 0); /* no path */
-			
 			dir = opendir(path);
 			if (dir==NULL)
 				return;
-
+			
+			len = ptcache_filename(pid, filename, cfra, 0, 0); /* no path */
+			/* append underscore terminator to ensure we don't match similar names
+			 * from objects whose names start with the same prefix
+			 */
+			if (len < sizeof(filename) - 2) {
+				BLI_strncpy(filename + len, "_", sizeof(filename) - 2 - len);
+				len += 1;
+			}
+			
 			BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 			
 			while ((de = readdir(dir)) != NULL) {
