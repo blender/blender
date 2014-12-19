@@ -365,6 +365,36 @@ class AddPresetFluid(AddPresetBase, Operator):
     preset_subdir = "fluid"
 
 
+class AddPresetHairDynamics(AddPresetBase, Operator):
+    """Add or remove a Hair Dynamics Preset"""
+    bl_idname = "particle.hair_dynamics_preset_add"
+    bl_label = "Add Hair Dynamics Preset"
+    preset_menu = "PARTICLE_MT_hair_dynamics_presets"
+
+    preset_defines = [
+        "psys = bpy.context.particle_system",
+        "cloth = bpy.context.particle_system.cloth",
+        "settings = bpy.context.particle_system.cloth.settings",
+        "collision = bpy.context.particle_system.cloth.collision_settings",
+    ]
+
+    preset_subdir = "hair_dynamics"
+
+    preset_values = [
+        "settings.quality",
+        "settings.mass",
+        "settings.bending_stiffness",
+        "psys.settings.bending_random",
+        "settings.bending_damping",
+        "settings.air_damping",
+        "settings.internal_friction",
+        "settings.density_target",
+        "settings.density_strength",
+        "settings.voxel_cell_size",
+        "settings.pin_stiffness",
+        ]
+
+
 class AddPresetSunSky(AddPresetBase, Operator):
     """Add or remove a Sky & Atmosphere Preset"""
     bl_idname = "lamp.sunsky_preset_add"

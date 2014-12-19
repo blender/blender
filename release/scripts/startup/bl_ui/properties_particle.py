@@ -63,6 +63,14 @@ def particle_get_settings(context):
     return None
 
 
+class PARTICLE_MT_hair_dynamics_presets(Menu):
+    bl_label = "Hair Dynamics Presets"
+    preset_subdir = "hair_dynamics"
+    preset_operator = "script.execute_preset"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    draw = Menu.draw_preset
+
+
 class ParticleButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -307,6 +315,11 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         result = cloth_md.solver_result
 
         layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
+
+        row = layout.row(align=True)
+        row.menu("PARTICLE_MT_hair_dynamics_presets", text=bpy.types.PARTICLE_MT_hair_dynamics_presets.bl_label)
+        row.operator("particle.hair_dynamics_preset_add", text="", icon='ZOOMIN')
+        row.operator("particle.hair_dynamics_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         split = layout.column()
 
