@@ -946,45 +946,31 @@ static void gp_draw_onionskins(bGPDlayer *gpl, bGPDframe *gpf, int offsx, int of
 	glColor4fv(gpl->color);
 }
 
-/* draw grease-pencil datablock */
-static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
+/* loop over gpencil data layers, drawing them */
+static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
 	bGPDlayer *gpl;
-	
-	/* reset line drawing style (in case previous user didn't reset) */
-	setlinestyle(0);
-	
-	/* turn on smooth lines (i.e. anti-aliasing) */
-	glEnable(GL_LINE_SMOOTH);
-	
-	glEnable(GL_POLYGON_SMOOTH);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-	
-	/* turn on alpha-blending */
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-		
-	/* loop over layers, drawing them */
+
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		bGPDframe *gpf;
-		
+
 		bool debug = (gpl->flag & GP_LAYER_DRAWDEBUG) ? true : false;
 		short lthick = gpl->thickness;
-		
+
 		/* don't draw layer if hidden */
-		if (gpl->flag & GP_LAYER_HIDE) 
+		if (gpl->flag & GP_LAYER_HIDE)
 			continue;
-		
+
 		/* get frame to draw */
 		gpf = gpencil_layer_getframe(gpl, cfra, 0);
-		if (gpf == NULL) 
+		if (gpf == NULL)
 			continue;
-		
+
 		/* set color, stroke thickness, and point size */
 		glLineWidth(lthick);
 		glPointSize((float)(gpl->thickness + 2));
-		
-		/* Add layer drawing settings to the set of "draw flags" 
+
+		/* Add layer drawing settings to the set of "draw flags"
 		 * NOTE: If the setting doesn't apply, it *must* be cleared,
 		 *       as dflag's carry over from the previous layer
 		 */
@@ -992,18 +978,18 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 			if (condition) dflag |= (draw_flag_value);      \
 			else           dflag &= ~(draw_flag_value);     \
 		} (void)0
-		
+
 		/* xray... */
 		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_NO_XRAY), GP_DRAWDATA_NO_XRAY);
-		
+
 		/* volumetric strokes... */
 		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_VOLUMETRIC), GP_DRAWDATA_VOLUMETRIC);
-		
+
 		/* fill strokes... */
 		// XXX: this is not a very good limit
 		GP_DRAWFLAG_APPLY((gpl->fill[3] > 0.001f), GP_DRAWDATA_FILL);
 #undef GP_DRAWFLAG_APPLY
-		
+
 		/* draw 'onionskins' (frame left + right) */
 		if ((gpl->flag & GP_LAYER_ONIONSKIN) && !(dflag & GP_DRAWDATA_NO_ONIONS)) {
 			/* Drawing method - only immediately surrounding (gstep = 0),
@@ -1011,11 +997,11 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 			 */
 			gp_draw_onionskins(gpl, gpf, offsx, offsy, winx, winy, cfra, dflag, debug, lthick);
 		}
-		
+
 		/* draw the strokes already in active frame */
 		gp_draw_strokes(gpf, offsx, offsy, winx, winy, dflag, debug, lthick, gpl->color, gpl->fill);
-		
-		/* Draw verts of selected strokes 
+
+		/* Draw verts of selected strokes
 		 *  - when doing OpenGL renders, we don't want to be showing these, as that ends up flickering
 		 * 	- locked layers can't be edited, so there's no point showing these verts
 		 *    as they will have no bearings on what gets edited
@@ -1024,13 +1010,13 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 		 */
 		/* XXX: perhaps we don't want to show these when users are drawing... */
 		if ((G.f & G_RENDER_OGL) == 0 &&
-		    (gpl->flag & GP_LAYER_LOCKED) == 0 && 
+		    (gpl->flag & GP_LAYER_LOCKED) == 0 &&
 		    (gpd->flag & GP_DATA_STROKE_EDITMODE))
 		{
-			gp_draw_strokes_edit(gpf, offsx, offsy, winx, winy, dflag, 
+			gp_draw_strokes_edit(gpf, offsx, offsy, winx, winy, dflag,
 			                     (gpl->color[3] < 0.95f) ? gpl->color : NULL);
 		}
-		
+
 		/* Check if may need to draw the active stroke cache, only if this layer is the active layer
 		 * that is being edited. (Stroke buffer is currently stored in gp-data)
 		 */
@@ -1039,7 +1025,7 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 		{
 			/* Set color for drawing buffer stroke - since this may not be set yet */
 			glColor4fv(gpl->color);
-			
+
 			/* Buffer stroke needs to be drawn with a different linestyle
 			 * to help differentiate them from normal strokes.
 			 * 
@@ -1054,12 +1040,51 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 			}
 		}
 	}
-	
+}
+
+/* draw grease-pencil datablock */
+static void gp_draw_data(Scene *scene, bGPdata *gpd, int offsx, int offsy, int winx, int winy,
+                         int cfra, int dflag, const char spacetype)
+{
+	/* reset line drawing style (in case previous user didn't reset) */
+	setlinestyle(0);
+
+	/* turn on smooth lines (i.e. anti-aliasing) */
+	glEnable(GL_LINE_SMOOTH);
+
+	glEnable(GL_POLYGON_SMOOTH);
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+	/* turn on alpha-blending */
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
+	/* draw! */
+	gp_draw_data_layers(gpd, offsx, offsy, winx, winy, cfra, dflag);
+	/* if stroke's source is an object (3d view) or a track (movieclip),
+	 * we also want to draw the strokes coming from the scene/clip */
+	if (scene) {
+		bGPdata *gpd_source = NULL;
+
+		if (spacetype == SPACE_VIEW3D) {
+			gpd_source = (scene->gpd ? scene->gpd : NULL);
+		}
+		else if (spacetype == SPACE_CLIP && scene->clip) {
+			/* currently drawing only gpencil data from either clip or track not both - XXX fix logic behind */
+			gpd_source = (scene->clip->gpd ? scene->clip->gpd : NULL);
+		}
+
+		/* if gpd_source == gpd, we've already drawn it above and nothing needs to be done here */
+		if (gpd_source && gpd_source != gpd) {
+			gp_draw_data_layers(gpd_source, offsx, offsy, winx, winy, cfra, dflag);
+		}
+	}
+
 	/* turn off alpha blending, then smooth lines */
 	glDisable(GL_BLEND); // alpha blending
 	glDisable(GL_LINE_SMOOTH); // smooth lines
 	glDisable(GL_POLYGON_SMOOTH); // smooth poly lines
-		
+
 	/* restore initial gl conditions */
 	glLineWidth(1.0);
 	glPointSize(1.0);
@@ -1131,7 +1156,7 @@ void ED_gpencil_draw_2dimage(const bContext *C)
 	
 	
 	/* draw it! */
-	gp_draw_data(gpd, offsx, offsy, sizex, sizey, CFRA, dflag);
+	gp_draw_data(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, sa->spacetype);
 }
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
@@ -1157,7 +1182,7 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 	
 	/* draw it! */
 	if (onlyv2d) dflag |= (GP_DRAWDATA_ONLYV2D | GP_DRAWDATA_NOSTATUS);
-	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag);
+	gp_draw_data(scene, gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag, sa->spacetype);
 }
 
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
@@ -1195,14 +1220,14 @@ void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 	/* draw it! */
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
 
-	gp_draw_data(gpd, offsx, offsy, winx, winy, CFRA, dflag);
+	gp_draw_data(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
 }
 
-void ED_gpencil_draw_ex(bGPdata *gpd, int winx, int winy, const int cfra)
+void ED_gpencil_draw_ex(Scene *scene, bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)
 {
 	int dflag = GP_DRAWDATA_NOSTATUS | GP_DRAWDATA_ONLYV2D;
 
-	gp_draw_data(gpd, 0, 0, winx, winy, cfra, dflag);
+	gp_draw_data(scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
 }
 
 /* ************************************************** */

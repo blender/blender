@@ -101,9 +101,10 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ID *screen_id, Scene *scene, ScrAr
 			case SPACE_VIEW3D: /* 3D-View */
 			case SPACE_TIME: /* Timeline - XXX: this is a hack to get it to show GP keyframes for 3D view */
 			{
-				const char gpencil_src = (scene) ? scene->toolsettings->gpencil_src : GP_TOOL_SOURCE_SCENE;
-				
-				if (gpencil_src == GP_TOOL_SOURCE_OBJECT) {
+				BLI_assert(scene && ELEM(scene->toolsettings->gpencil_src,
+				                         GP_TOOL_SOURCE_SCENE, GP_TOOL_SOURCE_OBJECT));
+
+				if (scene->toolsettings->gpencil_src == GP_TOOL_SOURCE_OBJECT) {
 					/* legacy behaviour for usage with old addons requiring object-linked to objects */
 					
 					/* just in case no active/selected object... */
@@ -113,32 +114,10 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ID *screen_id, Scene *scene, ScrAr
 						return &ob->gpd;
 					}
 					/* else: defaults to scene... */
-				}				
+				}
 				else {
-					/* prefer to use scene's data, unless it doesn't exist (and object's does instead) */
-					bool scene_ok = (scene != NULL);
-					bool ob_ok    = ((ob) && (ob->flag & SELECT) && (ob->gpd));
-					
-					if (ob_ok || !scene_ok) {
-						/* Object Case (not good for users):
-						 * - For existing files with object-level already, 
-						 *   or where user has explicitly assigned to object,
-						 *   we can use the object as the host...
-						 *
-						 * - If there is no scene data provided (rare/impossible)
-						 *   we will also be forced to use the object
-						 */
-						if (ptr) RNA_id_pointer_create((ID *)ob, ptr);
-						return &ob->gpd;
-					}
-					else {
-						/* Scene Case (default):
-						 * This is the new (as of 2014-Oct-13, for 2.73) default setting
-						 * which should work better for most users.
-						 */
-						if (ptr) RNA_id_pointer_create((ID *)scene, ptr);
-						return &scene->gpd;
-					}
+					if (ptr) RNA_id_pointer_create(&scene->id, ptr);
+					return &scene->gpd;
 				}
 				break;
 			}

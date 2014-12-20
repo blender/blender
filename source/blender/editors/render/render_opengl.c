@@ -187,7 +187,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			glTranslatef(sizex / 2, sizey / 2, 0.0f);
 
 			G.f |= G_RENDER_OGL;
-			ED_gpencil_draw_ex(gpd, sizex, sizey, scene->r.cfra);
+			ED_gpencil_draw_ex(scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
 			G.f &= ~G_RENDER_OGL;
 
 			gp_rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");
