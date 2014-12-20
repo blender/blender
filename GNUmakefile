@@ -113,7 +113,7 @@ endif
 
 # -----------------------------------------------------------------------------
 # Build Blender
-all:
+all: FORCE
 	@echo
 	@echo Configuring Blender ...
 
@@ -142,13 +142,13 @@ bpy: all
 
 # -----------------------------------------------------------------------------
 # Configuration (save some cd'ing around)
-config:
+config: FORCE
 	$(CMAKE_CONFIG_TOOL) "$(BUILD_DIR)"
 
 
 # -----------------------------------------------------------------------------
 # Help for build targets
-help:
+help: FORCE
 	@echo ""
 	@echo "Convenience targets provided for building blender, (multiple at once can be used)"
 	@echo "  * debug     - build a debug binary"
@@ -214,13 +214,13 @@ help:
 # -----------------------------------------------------------------------------
 # Packages
 #
-package_debian:
+package_debian: FORCE
 	cd build_files/package_spec ; DEB_BUILD_OPTIONS="parallel=$(NPROCS)" sh ./build_debian.sh
 
-package_pacman:
+package_pacman: FORCE
 	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg --asroot
 
-package_archive:
+package_archive: FORCE
 	make -C "$(BUILD_DIR)" -s package_archive
 	@echo archive in "$(BUILD_DIR)/release"
 
@@ -228,24 +228,24 @@ package_archive:
 # -----------------------------------------------------------------------------
 # Tests
 #
-test:
+test: FORCE
 	cd $(BUILD_DIR) ; ctest . --output-on-failure
 
 # run pep8 check check on scripts we distribute.
-test_pep8:
+test_pep8: FORCE
 	python3 tests/python/pep8.py > test_pep8.log 2>&1
 	@echo "written: test_pep8.log"
 
 # run some checks on our cmakefiles.
-test_cmake:
+test_cmake: FORCE
 	python3 build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
 	@echo "written: test_cmake_consistency.log"
 
 # run deprecation tests, see if we have anything to remove.
-test_deprecated:
+test_deprecated: FORCE
 	python3 tests/check_deprecated.py
 
-test_style_c:
+test_style_c: FORCE
 	# run our own checks on C/C++ style
 	PYTHONIOENCODING=utf_8 python3 \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" \
@@ -253,7 +253,7 @@ test_style_c:
 	    "$(BLENDER_DIR)/source/creator" \
 	    --no-length-check
 
-test_style_c_qtc:
+test_style_c_qtc: FORCE
 	# run our own checks on C/C++ style
 	USE_QTC_TASK=1 \
 	PYTHONIOENCODING=utf_8 python3 \
@@ -266,7 +266,7 @@ test_style_c_qtc:
 	@echo "written: test_style.tasks"
 
 
-test_style_osl:
+test_style_osl: FORCE
 	# run our own checks on C/C++ style
 	PYTHONIOENCODING=utf_8 python3 \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" \
@@ -274,7 +274,7 @@ test_style_osl:
 	    "$(BLENDER_DIR)/release/scripts/templates_osl"
 
 
-test_style_osl_qtc:
+test_style_osl_qtc: FORCE
 	# run our own checks on C/C++ style
 	USE_QTC_TASK=1 \
 	PYTHONIOENCODING=utf_8 python3 \
@@ -289,13 +289,13 @@ test_style_osl_qtc:
 # Project Files
 #
 
-project_qtcreator:
+project_qtcreator: FORCE
 	python3 build_files/cmake/cmake_qtcreator_project.py "$(BUILD_DIR)"
 
-project_netbeans:
+project_netbeans: FORCE
 	python3 build_files/cmake/cmake_netbeans_project.py "$(BUILD_DIR)"
 
-project_eclipse:
+project_eclipse: FORCE
 	cmake -G"Eclipse CDT4 - Unix Makefiles" -H"$(BLENDER_DIR)" -B"$(BUILD_DIR)"
 
 
@@ -303,40 +303,40 @@ project_eclipse:
 # Static Checking
 #
 
-check_cppcheck:
+check_cppcheck: FORCE
 	$(CMAKE_CONFIG)
 	cd "$(BUILD_DIR)" ; \
 	python3 "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py" 2> \
 	    "$(BLENDER_DIR)/check_cppcheck.txt"
 	@echo "written: check_cppcheck.txt"
 
-check_clang_array:
+check_clang_array: FORCE
 	$(CMAKE_CONFIG)
 	cd "$(BUILD_DIR)" ; \
 	python3 "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang_array.py"
 
-check_splint:
+check_splint: FORCE
 	$(CMAKE_CONFIG)
 	cd "$(BUILD_DIR)" ; \
 	python3 "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py"
 
-check_sparse:
+check_sparse: FORCE
 	$(CMAKE_CONFIG)
 	cd "$(BUILD_DIR)" ; \
 	python3 "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py"
 
-check_smatch:
+check_smatch: FORCE
 	$(CMAKE_CONFIG)
 	cd "$(BUILD_DIR)" ; \
 	python3 "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py"
 
-check_spelling_py:
+check_spelling_py: FORCE
 	cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 python3 \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
 	    "$(BLENDER_DIR)/release/scripts"
 
-check_spelling_c:
+check_spelling_c: FORCE
 	cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 python3 \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
@@ -345,7 +345,7 @@ check_spelling_c:
 	    "$(BLENDER_DIR)/intern/guardedalloc" \
 	    "$(BLENDER_DIR)/intern/ghost" \
 
-check_spelling_c_qtc:
+check_spelling_c_qtc: FORCE
 	cd "$(BUILD_DIR)" ; USE_QTC_TASK=1 \
 	PYTHONIOENCODING=utf_8 python3 \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
@@ -356,13 +356,13 @@ check_spelling_c_qtc:
 	    > \
 	    "$(BLENDER_DIR)/check_spelling_c.tasks"
 
-check_spelling_osl:
+check_spelling_osl: FORCE
 	cd "$(BUILD_DIR)" ;\
 	PYTHONIOENCODING=utf_8 python3 \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
 	    "$(BLENDER_DIR)/intern/cycles/kernel/shaders"
 
-check_descriptions:
+check_descriptions: FORCE
 	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup --python \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_descriptions.py"
 
@@ -370,14 +370,14 @@ check_descriptions:
 # Utilities
 #
 
-tgz:
+tgz: FORCE
 	./build_files/utils/build_tgz.sh
 
-icons:
+icons: FORCE
 	"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
 	"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
 
-update:
+update: FORCE
 	if [ -d "../lib" ]; then \
 		svn update ../lib/* ; \
 	fi
@@ -390,23 +390,23 @@ update:
 #
 
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
-doc_py:
+doc_py: FORCE
 	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup --python doc/python_api/sphinx_doc_gen.py
 	cd doc/python_api ; sphinx-build -b html sphinx-in sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
 
-doc_doxy:
+doc_doxy: FORCE
 	cd doc/doxygen; doxygen Doxyfile
 	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
-doc_dna:
+doc_dna: FORCE
 	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
-doc_man:
+doc_man: FORCE
 	python3 doc/manpage/blender.1.py "$(BUILD_DIR)/bin/blender"
 
-help_features:
+help_features: FORCE
 	@python3 -c \
 		"import re; \
 		print('\n'.join([ \
@@ -417,7 +417,9 @@ help_features:
 		if w.startswith('WITH_')]))" | uniq
 
 
-clean:
+clean: FORCE
 	$(MAKE) -C "$(BUILD_DIR)" clean
 
 .PHONY: all
+
+FORCE:
