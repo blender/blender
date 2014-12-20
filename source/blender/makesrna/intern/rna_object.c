@@ -2429,7 +2429,9 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Local Matrix", "Parent relative transformation matrix");
+	RNA_def_property_ui_text(prop, "Local Matrix", "Parent relative transformation matrix - "
+	                         "WARNING: Only takes into account 'Object' parenting, so e.g. in case of bone parenting "
+	                         "you get a matrix relative to the Armature object, not to the actual parent bone");
 	RNA_def_property_float_funcs(prop, "rna_Object_matrix_local_get", "rna_Object_matrix_local_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, NULL);
 
