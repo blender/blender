@@ -636,7 +636,7 @@ void RegularBVH::refit_nodes()
 
 void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 {
-	int4 *data = &pack.nodes[idx*4];
+	int4 *data = &pack.nodes[idx*BVH_NODE_SIZE];
 
 	int c0 = data[3].x;
 	int c1 = data[3].y;
