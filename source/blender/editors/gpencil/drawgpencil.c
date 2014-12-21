@@ -1043,8 +1043,7 @@ static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, in
 }
 
 /* draw grease-pencil datablock */
-static void gp_draw_data(Scene *scene, bGPdata *gpd, int offsx, int offsy, int winx, int winy,
-                         int cfra, int dflag, const char spacetype)
+static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
 	/* reset line drawing style (in case previous user didn't reset) */
 	setlinestyle(0);
@@ -1061,24 +1060,6 @@ static void gp_draw_data(Scene *scene, bGPdata *gpd, int offsx, int offsy, int w
 
 	/* draw! */
 	gp_draw_data_layers(gpd, offsx, offsy, winx, winy, cfra, dflag);
-	/* if stroke's source is an object (3d view) or a track (movieclip),
-	 * we also want to draw the strokes coming from the scene/clip */
-	if (scene) {
-		bGPdata *gpd_source = NULL;
-
-		if (spacetype == SPACE_VIEW3D) {
-			gpd_source = (scene->gpd ? scene->gpd : NULL);
-		}
-		else if (spacetype == SPACE_CLIP && scene->clip) {
-			/* currently drawing only gpencil data from either clip or track not both - XXX fix logic behind */
-			gpd_source = (scene->clip->gpd ? scene->clip->gpd : NULL);
-		}
-
-		/* if gpd_source == gpd, we've already drawn it above and nothing needs to be done here */
-		if (gpd_source && gpd_source != gpd) {
-			gp_draw_data_layers(gpd_source, offsx, offsy, winx, winy, cfra, dflag);
-		}
-	}
 
 	/* turn off alpha blending, then smooth lines */
 	glDisable(GL_BLEND); // alpha blending
@@ -1089,6 +1070,34 @@ static void gp_draw_data(Scene *scene, bGPdata *gpd, int offsx, int offsy, int w
 	glLineWidth(1.0);
 	glPointSize(1.0);
 	glColor4f(0, 0, 0, 1);
+}
+
+/* if we have strokes for scenes (3d view)/clips (movie clip editor)
+ * and objects/tracks, multiple data blocks have to be drawn */
+static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, int winx, int winy,
+                         int cfra, int dflag, const char spacetype)
+{
+	bGPdata *gpd_source = NULL;
+
+	if (scene) {
+		if (spacetype == SPACE_VIEW3D) {
+			gpd_source = (scene->gpd ? scene->gpd : NULL);
+		}
+		else if (spacetype == SPACE_CLIP && scene->clip) {
+			/* currently drawing only gpencil data from either clip or track, but not both - XXX fix logic behind */
+			gpd_source = (scene->clip->gpd ? scene->clip->gpd : NULL);
+		}
+
+		if (gpd_source) {
+			gp_draw_data(gpd_source, offsx, offsy, winx, winy, cfra, dflag);
+		}
+	}
+
+	/* scene/clip data has already been drawn, only object/track data is drawn here
+	 * if gpd_source == gpd, we don't have any object/track data and we can skip */
+	if (gpd_source == NULL || (gpd_source && gpd_source != gpd)) {
+		gp_draw_data(gpd, offsx, offsy, winx, winy, cfra, dflag);
+	}
 }
 
 /* ----- Grease Pencil Sketches Drawing API ------ */
@@ -1156,7 +1165,7 @@ void ED_gpencil_draw_2dimage(const bContext *C)
 	
 	
 	/* draw it! */
-	gp_draw_data(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, sa->spacetype);
+	gp_draw_data_all(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, sa->spacetype);
 }
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
@@ -1182,7 +1191,7 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 	
 	/* draw it! */
 	if (onlyv2d) dflag |= (GP_DRAWDATA_ONLYV2D | GP_DRAWDATA_NOSTATUS);
-	gp_draw_data(scene, gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag, sa->spacetype);
+	gp_draw_data_all(scene, gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag, sa->spacetype);
 }
 
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
@@ -1220,14 +1229,14 @@ void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 	/* draw it! */
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
 
-	gp_draw_data(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
+	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
 }
 
 void ED_gpencil_draw_ex(Scene *scene, bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)
 {
 	int dflag = GP_DRAWDATA_NOSTATUS | GP_DRAWDATA_ONLYV2D;
 
-	gp_draw_data(scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
+	gp_draw_data_all(scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
 }
 
 /* ************************************************** */
