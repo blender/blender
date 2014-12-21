@@ -290,6 +290,10 @@ static eOLDrawState tree_element_active_material(
 		}
 	}
 	if (set != OL_SETSEL_NONE) {
+		/* Tagging object for update seems a bit stupid here, but looks like we have to do it
+		 * for render views to update. See T42973.
+		 * Note that RNA material update does it too, see e.g. rna_MaterialSlot_update(). */
+		DAG_id_tag_update((ID *)ob, OB_RECALC_OB);
 		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
 	}
 	return OL_DRAWSEL_NONE;
