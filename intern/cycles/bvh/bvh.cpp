@@ -506,7 +506,10 @@ void BVH::pack_instances(size_t nodes_size)
 
 		/* merge nodes */
 		if(bvh->pack.nodes.size()) {
-			size_t nsize_bbox = (use_qbvh)? nsize-2: nsize-1;
+			/* For QBVH we're packing ann child bbox into 6 float4,
+			 * and for regulat BVH they're packed into 3 float4.
+			 */
+			size_t nsize_bbox = (use_qbvh)? 6: 3;
 			int4 *bvh_nodes = &bvh->pack.nodes[0];
 			size_t bvh_nodes_size = bvh->pack.nodes.size(); 
 			int *bvh_is_leaf = (bvh->pack.is_leaf.size() != 0) ? &bvh->pack.is_leaf[0] : NULL;

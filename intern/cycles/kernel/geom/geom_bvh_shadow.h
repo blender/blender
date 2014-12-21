@@ -191,7 +191,7 @@ ccl_device bool BVH_FUNCTION_NAME
 
 			/* if node is leaf, fetch triangle list */
 			if(nodeAddr < 0) {
-				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_NODE_SIZE+(BVH_NODE_SIZE-1));
+				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_NODE_SIZE+3);
 				int primAddr = __float_as_int(leaf.x);
 
 #if FEATURE(BVH_INSTANCING)
