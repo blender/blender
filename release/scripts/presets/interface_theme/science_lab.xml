@@ -5,7 +5,7 @@
                           menu_shadow_width="12"
                           icon_file=""
                           icon_alpha="1"
-                          emboss="#ffffff05"
+                          widget_emboss="#ffffff05"
                           axis_x="#dc4800"
                           axis_y="#73dc00"
                           axis_z="#00c2ff">
