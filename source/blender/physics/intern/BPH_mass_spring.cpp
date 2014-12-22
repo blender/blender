@@ -51,6 +51,8 @@ extern "C" {
 #include "BPH_mass_spring.h"
 #include "implicit.h"
 
+static float I3[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
+
 /* Number of off-diagonal non-zero matrix blocks.
  * Basically there is one of these for each vertex-vertex interaction.
  */
@@ -118,9 +120,15 @@ void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 	Implicit_Data *id = cloth->implicit;
 	
 	for (i = 0; i < numverts; i++) {
-		ClothHairData *root = &cloth_hairdata[i];
-		
 		BPH_mass_spring_set_rest_transform(id, i, root->rot);
+		BPH_mass_spring_set_motion_state(id, i, verts[i].x, verts[i].v);
+		if (cloth_hairdata) {
+			ClothHairData *root = &cloth_hairdata[i];
+			BPH_mass_spring_set_rest_transform(id, i, root->rot);
+		}
+		else
+			BPH_mass_spring_set_rest_transform(id, i, I3);
+		
 		BPH_mass_spring_set_motion_state(id, i, verts[i].x, verts[i].v);
 	}
 }
@@ -504,19 +512,29 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 			for (LinkNode *link = cloth->springs; link; link = link->next) {
 				ClothSpring *spring = (ClothSpring *)link->link;
 				if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
-					hair_ij = &hairdata[spring->ij];
-					hair_kl = &hairdata[spring->kl];
-					BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, hair_ij->radius, hair_kl->radius, winvec);
-			}
+					if (hairdata) {
+						hair_ij = &hairdata[spring->ij];
+						hair_kl = &hairdata[spring->kl];
+						BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, hair_ij->radius, hair_kl->radius, winvec);
+					}
+					else
+						BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, 1.0f, 1.0f, winvec);
+				}
 		}
 #else
 			ClothHairData *hairdata = clmd->hairdata;
 			
 			vert = cloth->verts;
 			for (i = 0; i < cloth->numverts; i++, vert++) {
-				ClothHairData *hair = &hairdata[i];
+				if (vert->solver_index < 0)
+					continue;
 				
-				BPH_mass_spring_force_vertex_wind(data, i, hair->radius, winvec);
+				if (hairdata) {
+					ClothHairData *hair = &hairdata[i];
+					BPH_mass_spring_force_vertex_wind(data, i, hair->radius, winvec);
+				}
+				else
+					BPH_mass_spring_force_vertex_wind(data, i, 1.0f, winvec);
 			}
 #endif
 
