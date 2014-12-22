@@ -36,7 +36,7 @@ class Object;
 class Progress;
 
 #define BVH_NODE_SIZE	4
-#define BVH_QNODE_SIZE	8
+#define BVH_QNODE_SIZE	7
 #define BVH_ALIGN		4096
 #define TRI_NODE_SIZE	3
 

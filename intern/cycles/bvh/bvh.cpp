@@ -754,6 +754,7 @@ void QBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
 		data[6].x = __int_as_float(leaf->m_lo);
 		data[6].y = __int_as_float(leaf->m_hi);
 	}
+	data[6].z = __uint_as_float(leaf->m_visibility);
 
 	memcpy(&pack.nodes[e.idx * BVH_QNODE_SIZE], data, sizeof(float4)*BVH_QNODE_SIZE);
 }
@@ -774,7 +775,6 @@ void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
 		data[5][i] = bb_max.z;
 
 		data[6][i] = __int_as_float(en[i].encodeIdx());
-		data[7][i] = 0.0f;
 	}
 
 	for(int i = num; i < 4; i++) {
@@ -787,7 +787,6 @@ void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
 		data[5][i] = 0.0f;
 
 		data[6][i] = __int_as_float(0);
-		data[7][i] = 0.0f;
 	}
 
 	memcpy(&pack.nodes[e.idx * BVH_QNODE_SIZE], data, sizeof(float4)*BVH_QNODE_SIZE);
@@ -959,7 +958,7 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 		memset(leaf_data, 0, sizeof(leaf_data));
 		leaf_data[6].x = __int_as_float(c.x);
 		leaf_data[6].y = __int_as_float(c.y);
-		leaf_data[7] = make_float4(__uint_as_float(visibility));
+		leaf_data[6].z = __uint_as_float(visibility);
 		memcpy(&pack.nodes[idx * BVH_QNODE_SIZE],
 		       leaf_data,
 		       sizeof(float4)*BVH_QNODE_SIZE);
@@ -994,7 +993,6 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			inner_data[4][i] = bb_min.z;
 			inner_data[5][i] = bb_max.z;
 			inner_data[6][i] = __int_as_float(c[i]);
-			inner_data[7][i] = __uint_as_float(child_visibility[i]);
 		}
 		memcpy(&pack.nodes[idx * BVH_QNODE_SIZE],
 		       inner_data,
