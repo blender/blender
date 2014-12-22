@@ -271,7 +271,7 @@ ccl_device bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 					}
 				}
 			}
-#endif
+#endif  /* FEATURE(BVH_INSTANCING) */
 		} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
 #if FEATURE(BVH_INSTANCING)
@@ -299,7 +299,7 @@ ccl_device bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 			nodeAddr = traversalStack[stackPtr];
 			--stackPtr;
 		}
-#endif
+#endif  /* FEATURE(BVH_MOTION) */
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
 	return (isect->prim != PRIM_NONE);

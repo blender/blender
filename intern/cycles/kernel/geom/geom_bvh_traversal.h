@@ -329,7 +329,7 @@ ccl_device bool BVH_FUNCTION_NAME
 					nodeAddr = kernel_tex_fetch(__object_node, object);
 				}
 			}
-#endif
+#endif  /* FEATURE(BVH_INSTANCING) */
 		} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
 #if FEATURE(BVH_INSTANCING)
@@ -357,7 +357,7 @@ ccl_device bool BVH_FUNCTION_NAME
 			nodeAddr = traversalStack[stackPtr];
 			--stackPtr;
 		}
-#endif
+#endif  /* FEATURE(BVH_INSTANCING) */
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
 	return (isect->prim != PRIM_NONE);

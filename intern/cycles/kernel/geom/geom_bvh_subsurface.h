@@ -251,7 +251,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 					}
 				}
 			}
-#endif
+#endif  /* FEATURE(BVH_INSTANCING) */
 		} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
 #if FEATURE(BVH_INSTANCING)
@@ -279,7 +279,7 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 			nodeAddr = traversalStack[stackPtr];
 			--stackPtr;
 		}
-#endif
+#endif  /* FEATURE(BVH_INSTANCING) */
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
 	return num_hits;
