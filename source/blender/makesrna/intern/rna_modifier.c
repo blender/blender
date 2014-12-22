@@ -130,6 +130,7 @@ EnumPropertyItem modifier_triangulate_ngon_method_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "DNA_particle_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_smoke_types.h"
 
 #include "BKE_context.h"
@@ -604,6 +605,40 @@ static int rna_LaplacianDeformModifier_is_bind_get(PointerRNA *ptr)
 	return ((lmd->flag & MOD_LAPLACIANDEFORM_BIND) && (lmd->cache_system != NULL));
 }
 
+/* NOTE: Curve and array modifiers requires curve path to be evaluated,
+ * dependency graph will make sure that curve eval would create such a path,
+ * but if curve was already evaluated we might miss path.
+ *
+ * So what we do here is: if path was not calculated for target curve we
+ * tag it for update.
+ */
+
+static void rna_CurveModifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	CurveModifierData *cmd = (CurveModifierData *)ptr->data;
+	rna_Modifier_update(bmain, scene, ptr);
+	DAG_relations_tag_update(bmain);
+	if (cmd->object != NULL) {
+		Curve *curve = cmd->object->data;
+		if ((curve->flag & CU_PATH) == 0) {
+			DAG_id_tag_update(&curve->id, OB_RECALC_DATA);
+		}
+	}
+}
+
+static void rna_ArrayModifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ArrayModifierData *amd = (ArrayModifierData *)ptr->data;
+	rna_Modifier_update(bmain, scene, ptr);
+	DAG_relations_tag_update(bmain);
+	if (amd->curve_ob != NULL) {
+		Curve *curve = amd->curve_ob->data;
+		if ((curve->flag & CU_PATH) == 0) {
+			DAG_id_tag_update(&curve->id, OB_RECALC_DATA);
+		}
+	}
+}
+
 #else
 
 static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const char type[])
@@ -876,7 +911,7 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object", "Curve object to deform with");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_CurveModifier_object_set", NULL, "rna_Curve_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
-	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+	RNA_def_property_update(prop, 0, "rna_CurveModifier_dependency_update");
 
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
@@ -1399,7 +1434,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Curve", "Curve object to fit array length to");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_curve_ob_set", NULL, "rna_Curve_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
-	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+	RNA_def_property_update(prop, 0, "rna_ArrayModifier_dependency_update");
 
 	/* Offset parameters */
 	prop = RNA_def_property(srna, "use_constant_offset", PROP_BOOLEAN, PROP_NONE);
