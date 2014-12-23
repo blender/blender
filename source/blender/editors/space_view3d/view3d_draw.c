@@ -2656,6 +2656,7 @@ static void view3d_draw_objects(
 		else {
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 				ED_region_pixelspace(ar);
+				*grid_unit = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 				drawgrid(&scene->unit, ar, v3d, grid_unit);
 				/* XXX make function? replaces persp(1) */
 				glMatrixMode(GL_PROJECTION);
