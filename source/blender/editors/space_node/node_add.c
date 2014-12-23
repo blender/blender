@@ -334,9 +334,14 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	}
 	
 	node->id = (ID *)ima;
-	
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
-	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+
+	/* When adding new image file via drag-drop we need to load imbuf in order
+	 * to get proper image source.
+	 */
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+	}
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
