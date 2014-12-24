@@ -26,8 +26,6 @@
  *
  */
 
-#define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
-
 ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                             const Ray *ray,
                                             Intersection *isect_array,
@@ -60,7 +58,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 	uint num_hits = 0;
 
-#if FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
 	Transform ob_tfm;
 #endif
 
@@ -187,7 +185,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_NODE_SIZE+3);
 				int primAddr = __float_as_int(leaf.x);
 
-#if FEATURE(BVH_INSTANCING)
+#if BVH_FEATURE(BVH_INSTANCING)
 				if(primAddr >= 0) {
 #endif
 					int primAddr2 = __float_as_int(leaf.y);
@@ -212,7 +210,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								triangle_intersect_subsurface(kg, &isect_precalc, isect_array, P, dir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 								break;
 							}
-#if FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
 							case PRIMITIVE_MOTION_TRIANGLE: {
 								motion_triangle_intersect_subsurface(kg, isect_array, P, dir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 								break;
@@ -224,13 +222,13 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						}
 					}
 				}
-#if FEATURE(BVH_INSTANCING)
+#if BVH_FEATURE(BVH_INSTANCING)
 				else {
 					/* instance push */
 					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
 						object = subsurface_object;
 
-#if FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
 						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
 #else
 						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
@@ -262,12 +260,12 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #endif  /* FEATURE(BVH_INSTANCING) */
 		} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
-#if FEATURE(BVH_INSTANCING)
+#if BVH_FEATURE(BVH_INSTANCING)
 		if(stackPtr >= 0) {
 			kernel_assert(object != OBJECT_NONE);
 
 			/* instance pop */
-#if FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
 			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
 #else
 			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect_t);
@@ -310,6 +308,5 @@ ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals *kg,
 	                                   max_hits);
 }
 
-#undef FEATURE
 #undef BVH_FUNCTION_NAME
 #undef BVH_FUNCTION_FEATURES

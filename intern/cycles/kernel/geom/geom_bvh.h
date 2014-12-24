@@ -46,6 +46,8 @@ CCL_NAMESPACE_BEGIN
 #define BVH_NAME_EVAL(x,y) BVH_NAME_JOIN(x,y)
 #define BVH_FUNCTION_FULL_NAME(prefix) BVH_NAME_EVAL(prefix, BVH_FUNCTION_NAME)
 
+#define BVH_FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
+
 /* Regular BVH traversal */
 
 #define BVH_FUNCTION_NAME bvh_intersect
@@ -172,6 +174,7 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_volume.h"
 #endif
 
+#undef BVH_FEATURE
 #undef BVH_NAME_JOIN
 #undef BVH_NAME_EVAL
 #undef BVH_FUNCTION_FULL_NAME
