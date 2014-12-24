@@ -30,6 +30,7 @@
 
 #include "util_cache.h"
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_progress.h"
 #include "util_set.h"
 
@@ -979,6 +980,9 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 {
 	/* bvh build */
 	progress.set_status("Updating Scene BVH", "Building");
+
+	VLOG(1) << (scene->params.use_qbvh ? "Using QBVH optimization structure"
+	                                   : "Using regular BVH optimization structure");
 
 	BVHParams bparams;
 	bparams.top_level = true;
