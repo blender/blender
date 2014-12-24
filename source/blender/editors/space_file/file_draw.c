@@ -518,6 +518,11 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			if ((params->active_file == i) || (file->selflag & HILITED_FILE) || (file->selflag & SELECTED_FILE)) {
 				int colorid = (file->selflag & SELECTED_FILE) ? TH_HILITE : TH_BACK;
 				int shade = (params->active_file == i) || (file->selflag & HILITED_FILE) ? 20 : 0;
+
+				/* readonly files (".." and ".") must not be drawn as selected - set color back to normal */
+				if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+					colorid = TH_BACK;
+				}
 				draw_tile(sx, sy - 1, layout->tile_w + 4, sfile->layout->tile_h + layout->tile_border_y, colorid, shade);
 			}
 		}

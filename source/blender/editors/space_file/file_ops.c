@@ -341,8 +341,20 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	if (!BLI_rcti_isect_pt(&ar->v2d.mask, rect.xmin, rect.ymin))
 		return OPERATOR_CANCELLED;
 
-	/* single select, deselect all selected first */
-	if (!extend) file_deselect_all(sfile, SELECTED_FILE);
+	if (sfile && sfile->params) {
+		int idx = sfile->params->active_file;
+
+		if (idx >= 0) {
+			struct direntry *file = filelist_file(sfile->files, idx);
+			if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+				/* skip - If a readonly file (".." or ".") is selected, skip deselect all! */
+			}
+			else {
+				/* single select, deselect all selected first */
+				if (!extend) file_deselect_all(sfile, SELECTED_FILE);
+			}
+		}
+	}
 
 	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill, do_diropen);
 	if (FILE_SELECT_DIR == ret)
