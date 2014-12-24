@@ -721,13 +721,17 @@ void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
 	}
 
 	for(int i = num; i < 4; i++) {
-		data[0][i] = 0.0f;
-		data[1][i] = 0.0f;
-		data[2][i] = 0.0f;
+		/* We store BB which would never be recorded as intersection
+		 * so kernel might safely assume there are always 4 child nodes.
+		 */
+		data[0][i] = FLT_MAX;
+		data[1][i] = -FLT_MAX;
 
-		data[3][i] = 0.0f;
-		data[4][i] = 0.0f;
-		data[5][i] = 0.0f;
+		data[2][i] = FLT_MAX;
+		data[3][i] = -FLT_MAX;
+
+		data[4][i] = FLT_MAX;
+		data[5][i] = -FLT_MAX;
 
 		data[6][i] = __int_as_float(0);
 	}
