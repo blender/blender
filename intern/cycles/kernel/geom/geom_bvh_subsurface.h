@@ -28,8 +28,12 @@
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersection *isect_array,
-	int subsurface_object, uint *lcg_state, int max_hits)
+ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+                                            const Ray *ray,
+                                            Intersection *isect_array,
+                                            int subsurface_object,
+                                            uint *lcg_state,
+                                            int max_hits)
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)
@@ -291,7 +295,21 @@ ccl_device uint BVH_FUNCTION_NAME(KernelGlobals *kg, const Ray *ray, Intersectio
 	return num_hits;
 }
 
+ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals *kg,
+                                         const Ray *ray,
+                                         Intersection *isect_array,
+                                         int subsurface_object,
+                                         uint *lcg_state,
+                                         int max_hits)
+{
+	return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+	                                   ray,
+	                                   isect_array,
+	                                   subsurface_object,
+	                                   lcg_state,
+	                                   max_hits);
+}
+
 #undef FEATURE
 #undef BVH_FUNCTION_NAME
 #undef BVH_FUNCTION_FEATURES
-

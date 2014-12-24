@@ -29,8 +29,11 @@
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-ccl_device bool BVH_FUNCTION_NAME
-(KernelGlobals *kg, const Ray *ray, Intersection *isect_array, const uint max_hits, uint *num_hits)
+ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+                                            const Ray *ray,
+                                            Intersection *isect_array,
+                                            const uint max_hits,
+                                            uint *num_hits)
 {
 	/* todo:
 	 * - likely and unlikely for if() statements
@@ -373,7 +376,19 @@ ccl_device bool BVH_FUNCTION_NAME
 	return false;
 }
 
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
+                                         const Ray *ray,
+                                         Intersection *isect_array,
+                                         const uint max_hits,
+                                         uint *num_hits)
+{
+	return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+	                                   ray,
+	                                   isect_array,
+	                                   max_hits,
+	                                   num_hits);
+}
+
 #undef FEATURE
 #undef BVH_FUNCTION_NAME
 #undef BVH_FUNCTION_FEATURES
-

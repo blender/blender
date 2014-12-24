@@ -42,6 +42,10 @@ CCL_NAMESPACE_BEGIN
 #define BVH_HAIR				4
 #define BVH_HAIR_MINIMUM_WIDTH	8
 
+#define BVH_NAME_JOIN(x,y) x ## _ ## y
+#define BVH_NAME_EVAL(x,y) BVH_NAME_JOIN(x,y)
+#define BVH_FUNCTION_FULL_NAME(prefix) BVH_NAME_EVAL(prefix, BVH_FUNCTION_NAME)
+
 /* Regular BVH traversal */
 
 #define BVH_FUNCTION_NAME bvh_intersect
@@ -167,6 +171,10 @@ CCL_NAMESPACE_BEGIN
 #define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
 #include "geom_bvh_volume.h"
 #endif
+
+#undef BVH_NAME_JOIN
+#undef BVH_NAME_EVAL
+#undef BVH_FUNCTION_FULL_NAME
 
 ccl_device_intersect bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect,
 					 uint *lcg_state, float difl, float extmax)

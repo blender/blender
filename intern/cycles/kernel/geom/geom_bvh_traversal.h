@@ -30,12 +30,16 @@
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-ccl_device bool BVH_FUNCTION_NAME
-(KernelGlobals *kg, const Ray *ray, Intersection *isect, const uint visibility
+ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+                                            const Ray *ray,
+                                            Intersection *isect,
+                                            const uint visibility
 #if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-, uint *lcg_state, float difl, float extmax
+                                            , uint *lcg_state,
+                                            float difl,
+                                            float extmax
 #endif
-)
+                                            )
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)
@@ -368,7 +372,29 @@ ccl_device bool BVH_FUNCTION_NAME
 	return (isect->prim != PRIM_NONE);
 }
 
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
+                                         const Ray *ray,
+                                         Intersection *isect,
+                                         const uint visibility
+#if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+                                         , uint *lcg_state,
+                                         float difl,
+                                         float extmax
+#endif
+                                         )
+{
+	return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+	                                   ray,
+	                                   isect,
+	                                   visibility
+#if FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+	                                   , lcg_state,
+	                                   difl,
+	                                   extmax
+#endif
+	                                   );
+}
+
 #undef FEATURE
 #undef BVH_FUNCTION_NAME
 #undef BVH_FUNCTION_FEATURES
-

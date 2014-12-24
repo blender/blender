@@ -29,9 +29,9 @@
 
 #define FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-ccl_device bool BVH_FUNCTION_NAME(KernelGlobals *kg,
-                                  const Ray *ray,
-                                  Intersection *isect)
+ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+                                            const Ray *ray,
+                                            Intersection *isect)
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)
@@ -312,7 +312,15 @@ ccl_device bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 	return (isect->prim != PRIM_NONE);
 }
 
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
+                                         const Ray *ray,
+                                         Intersection *isect)
+{
+	return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+	                                   ray,
+	                                   isect);
+}
+
 #undef FEATURE
 #undef BVH_FUNCTION_NAME
 #undef BVH_FUNCTION_FEATURES
-
