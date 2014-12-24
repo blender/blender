@@ -598,8 +598,12 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	
 	/* Keep lossless encodes in the RGB domain. */
 	if (codec_id == AV_CODEC_ID_HUFFYUV) {
-		/* HUFFYUV was PIX_FMT_YUV422P before */
-		c->pix_fmt = PIX_FMT_RGB32;
+		if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+			c->pix_fmt = PIX_FMT_BGRA;
+		}
+		else {
+			c->pix_fmt = PIX_FMT_RGB32;
+		}
 	}
 
 	if (codec_id == AV_CODEC_ID_FFV1) {
@@ -1626,6 +1630,12 @@ bool BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 		return true;
 
 	if (codec == AV_CODEC_ID_PNG)
+		return true;
+
+	if (codec == AV_CODEC_ID_PNG)
+		return true;
+
+	if (codec == AV_CODEC_ID_HUFFYUV)
 		return true;
 
 #ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
