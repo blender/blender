@@ -3754,10 +3754,30 @@ void VectorMathNode::compile(SVMCompiler& compiler)
 	ShaderOutput *value_out = output("Value");
 	ShaderOutput *vector_out = output("Vector");
 
-	compiler.stack_assign(vector1_in);
-	compiler.stack_assign(vector2_in);
 	compiler.stack_assign(value_out);
 	compiler.stack_assign(vector_out);
+
+	/* Optimize vector math node without links to a single value node. */
+	if(vector1_in->link == NULL && vector2_in->link == NULL) {
+		float optimized_value;
+		float3 optimized_vector;
+		svm_vector_math(&optimized_value,
+		                &optimized_vector,
+		                (NodeVectorMath)type_enum[type],
+		                vector1_in->value,
+		                vector2_in->value);
+
+		compiler.add_node(NODE_VALUE_F,
+		                  __float_as_int(optimized_value),
+		                  value_out->stack_offset);
+
+		compiler.add_node(NODE_VALUE_V, vector_out->stack_offset);
+		compiler.add_node(NODE_VALUE_V, optimized_vector);
+		return;
+	}
+
+	compiler.stack_assign(vector1_in);
+	compiler.stack_assign(vector2_in);
 
 	compiler.add_node(NODE_VECTOR_MATH, type_enum[type], vector1_in->stack_offset, vector2_in->stack_offset);
 	compiler.add_node(NODE_VECTOR_MATH, value_out->stack_offset, vector_out->stack_offset);
