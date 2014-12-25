@@ -305,15 +305,14 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 					triangle_intersect_precalc(dir, &isect_precalc);
 					num_hits_in_instance = 0;
+					isect_array->t = isect_t;
 
 #if defined(__KERNEL_SSE2__)
 					Psplat[0] = ssef(P.x);
 					Psplat[1] = ssef(P.y);
 					Psplat[2] = ssef(P.z);
 
-					isect_array->t = isect_t;
 					tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
-
 					gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
@@ -356,15 +355,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				triangle_intersect_precalc(dir, &isect_precalc);
 			}
 
+			isect_t = tmax;
+			isect_array->t = isect_t;
+
 #if defined(__KERNEL_SSE2__)
 			Psplat[0] = ssef(P.x);
 			Psplat[1] = ssef(P.y);
 			Psplat[2] = ssef(P.z);
 
-			isect_t = tmax;
-			isect_array->t = isect_t;
 			tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
-
 			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #endif
 
