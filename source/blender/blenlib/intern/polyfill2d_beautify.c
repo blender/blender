@@ -179,8 +179,6 @@ static float quad_v2_rotate_beauty_calc(
 
 			float len_12, len_23, len_34, len_41, len_24, len_13;
 
-#define AREA_FROM_CROSS(val) (fabsf(val) / 2.0f)
-
 			/* edges around the quad */
 			len_12 = len_v2v2(v1, v2);
 			len_23 = len_v2v2(v2, v3);
@@ -190,21 +188,22 @@ static float quad_v2_rotate_beauty_calc(
 			len_13 = len_v2v2(v1, v3);
 			len_24 = len_v2v2(v2, v4);
 
+			/* note, area is in fact (area * 2),
+			 * but in this case its OK, since we're comparing ratios */
+
 			/* edge (2-4), current state */
-			area_a = AREA_FROM_CROSS(area_2x_234);
-			area_b = AREA_FROM_CROSS(area_2x_241);
+			area_a = fabsf(area_2x_234);
+			area_b = fabsf(area_2x_241);
 			prim_a = len_23 + len_34 + len_24;
-			prim_b = len_24 + len_41 + len_12;
+			prim_b = len_41 + len_12 + len_24;
 			fac_24 = (area_a / prim_a) + (area_b / prim_b);
 
 			/* edge (1-3), new state */
-			area_a = AREA_FROM_CROSS(area_2x_123);
-			area_b = AREA_FROM_CROSS(area_2x_134);
+			area_a = fabsf(area_2x_123);
+			area_b = fabsf(area_2x_134);
 			prim_a = len_12 + len_23 + len_13;
 			prim_b = len_34 + len_41 + len_13;
 			fac_13 = (area_a / prim_a) + (area_b / prim_b);
-
-#undef AREA_FROM_CROSS
 
 			/* negative number if (1-3) is an improved state */
 			return fac_24 - fac_13;
