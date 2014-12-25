@@ -187,8 +187,8 @@ static float bm_edge_calc_rotate_beauty__area(
 			 * into a different degenerate shape or flipping the face */
 			float area_a, area_b;
 
-			area_a = area_tri_signed_v2(v1_xy, v2_xy, v3_xy);
-			area_b = area_tri_signed_v2(v1_xy, v3_xy, v4_xy);
+			area_a = cross_tri_v2(v1_xy, v2_xy, v3_xy);
+			area_b = cross_tri_v2(v1_xy, v3_xy, v4_xy);
 
 			if ((fabsf(area_a) <= FLT_EPSILON) || (fabsf(area_b) <= FLT_EPSILON)) {
 				/* one of the new rotations is degenerate */
@@ -219,16 +219,19 @@ static float bm_edge_calc_rotate_beauty__area(
 			len_13 = len_v2v2(v1_xy, v3_xy);
 			len_24 = len_v2v2(v2_xy, v4_xy);
 
+			/* note, area is in fact (area * 2),
+			 * but in this case its OK, since we're comparing ratios */
+
 			/* edge (2-4), current state */
-			area_a = area_tri_v2(v2_xy, v3_xy, v4_xy);
-			area_b = area_tri_v2(v2_xy, v4_xy, v1_xy);
+			area_a = fabsf(cross_tri_v2(v2_xy, v3_xy, v4_xy));
+			area_b = fabsf(cross_tri_v2(v2_xy, v4_xy, v1_xy));
 			prim_a = len_23 + len_34 + len_24;
-			prim_b = len_24 + len_41 + len_12;
+			prim_b = len_41 + len_12 + len_24;
 			fac_24 = (area_a / prim_a) + (area_b / prim_b);
 
 			/* edge (1-3), new state */
-			area_a = area_tri_v2(v1_xy, v2_xy, v3_xy);
-			area_b = area_tri_v2(v1_xy, v3_xy, v4_xy);
+			area_a = fabsf(cross_tri_v2(v1_xy, v2_xy, v3_xy));
+			area_b = fabsf(cross_tri_v2(v1_xy, v3_xy, v4_xy));
 			prim_a = len_12 + len_23 + len_13;
 			prim_b = len_34 + len_41 + len_13;
 			fac_13 = (area_a / prim_a) + (area_b / prim_b);
