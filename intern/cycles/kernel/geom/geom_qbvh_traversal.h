@@ -47,12 +47,14 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	 */
 
 	/* Traversal stack in CUDA thread-local memory. */
-	int traversalStack[BVH_STACK_SIZE];
-	traversalStack[0] = ENTRYPOINT_SENTINEL;
+	QBVHStackItem traversalStack[BVH_STACK_SIZE];
+	traversalStack[0].addr = ENTRYPOINT_SENTINEL;
+	traversalStack[0].dist = -FLT_MAX;
 
 	/* Traversal variables in registers. */
 	int stackPtr = 0;
 	int nodeAddr = kernel_data.bvh.root;
+	float nodeDist = -FLT_MAX;
 
 	/* Ray parameters in registers. */
 	float3 P = ray->P;
@@ -100,6 +102,14 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 		do {
 			/* Traverse internal nodes. */
 			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
+				if(UNLIKELY(nodeDist > isect->t)) {
+					/* Pop. */
+					nodeAddr = traversalStack[stackPtr].addr;
+					nodeDist = traversalStack[stackPtr].dist;
+					--stackPtr;
+					continue;
+				}
+
 				int traverseChild;
 				ssef dist;
 
@@ -152,8 +162,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 					/* One child is hit, continue with that child. */
 					int r = __bscf(traverseChild);
+					float d0 = ((float*)&dist)[r];
 					if(traverseChild == 0) {
 						nodeAddr = __float_as_int(cnodes[r]);
+						nodeDist = d0;
 						continue;
 					}
 
@@ -161,7 +173,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					 * closer child.
 					 */
 					int c0 = __float_as_int(cnodes[r]);
-					float d0 = ((float*)&dist)[r];
 					r = __bscf(traverseChild);
 					int c1 = __float_as_int(cnodes[r]);
 					float d1 = ((float*)&dist)[r];
@@ -169,13 +180,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						if(d1 < d0) {
 							nodeAddr = c1;
 							++stackPtr;
-							traversalStack[stackPtr] = c0;
+							traversalStack[stackPtr].addr = c0;
+							traversalStack[stackPtr].dist = d0;
 							continue;
 						}
 						else {
 							nodeAddr = c0;
 							++stackPtr;
-							traversalStack[stackPtr] = c1;
+							traversalStack[stackPtr].addr = c1;
+							traversalStack[stackPtr].dist = d1;
 							continue;
 						}
 					}
@@ -184,9 +197,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					 * all nodes onto the stack to sort them there.
 					 */
 					++stackPtr;
-					traversalStack[stackPtr] = c1;
+					traversalStack[stackPtr].addr = c1;
+					traversalStack[stackPtr].dist = d1;
 					++stackPtr;
-					traversalStack[stackPtr] = c0;
+					traversalStack[stackPtr].addr = c0;
+					traversalStack[stackPtr].dist = d0;
 
 					/* Three children are hit, push all onto stack and sort 3
 					 * stack items, continue with closest child.
@@ -196,12 +211,13 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					float d2 = ((float*)&dist)[r];
 					if(traverseChild == 0) {
 						++stackPtr;
-						traversalStack[stackPtr] = c2;
+						traversalStack[stackPtr].addr = c2;
+						traversalStack[stackPtr].dist = d2;
 						qbvh_stack_sort(&traversalStack[stackPtr],
 						                &traversalStack[stackPtr - 1],
-						                &traversalStack[stackPtr - 2],
-						                &d2, &d1, &d0);
-						nodeAddr = traversalStack[stackPtr];
+						                &traversalStack[stackPtr - 2]);
+						nodeAddr = traversalStack[stackPtr].addr;
+						nodeDist = traversalStack[stackPtr].dist;
 						--stackPtr;
 						continue;
 					}
@@ -213,22 +229,32 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					int c3 = __float_as_int(cnodes[r]);
 					float d3 = ((float*)&dist)[r];
 					++stackPtr;
-					traversalStack[stackPtr] = c3;
+					traversalStack[stackPtr].addr = c3;
+					traversalStack[stackPtr].dist = d3;
 					++stackPtr;
-					traversalStack[stackPtr] = c2;
+					traversalStack[stackPtr].addr = c2;
+					traversalStack[stackPtr].dist = d2;
 					qbvh_stack_sort(&traversalStack[stackPtr],
 					                &traversalStack[stackPtr - 1],
 					                &traversalStack[stackPtr - 2],
-					                &traversalStack[stackPtr - 3],
-					                &d3, &d2, &d1, &d0);
+					                &traversalStack[stackPtr - 3]);
 				}
 
-				nodeAddr = traversalStack[stackPtr];
+				nodeAddr = traversalStack[stackPtr].addr;
+				nodeDist = traversalStack[stackPtr].dist;
 				--stackPtr;
 			}
 
 			/* If node is leaf, fetch triangle list. */
 			if(nodeAddr < 0) {
+				if(UNLIKELY(nodeDist > isect->t)) {
+					/* Pop. */
+					nodeAddr = traversalStack[stackPtr].addr;
+					nodeDist = traversalStack[stackPtr].dist;
+					--stackPtr;
+					continue;
+				}
+
 				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_QNODE_SIZE+6);
 				int primAddr = __float_as_int(leaf.x);
 
@@ -238,7 +264,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					int primAddr2 = __float_as_int(leaf.y);
 
 					/* Pop. */
-					nodeAddr = traversalStack[stackPtr];
+					nodeAddr = traversalStack[stackPtr].addr;
+					nodeDist = traversalStack[stackPtr].dist;
 					--stackPtr;
 
 #ifdef __VISIBILITY_FLAG__
@@ -299,9 +326,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					object = kernel_tex_fetch(__prim_object, -primAddr-1);
 
 #if BVH_FEATURE(BVH_MOTION)
-					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_tfm);
+					qbvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect->t, &nodeDist, &ob_tfm);
 #else
-					bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect->t);
+					qbvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect->t, &nodeDist);
 #endif
 
 					if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
@@ -318,7 +345,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					triangle_intersect_precalc(dir, &isect_precalc);
 
 					++stackPtr;
-					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+					traversalStack[stackPtr].addr = ENTRYPOINT_SENTINEL;
+					traversalStack[stackPtr].dist = -FLT_MAX;
 
 					nodeAddr = kernel_tex_fetch(__object_node, object);
 				}
@@ -351,7 +379,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			triangle_intersect_precalc(dir, &isect_precalc);
 
 			object = OBJECT_NONE;
-			nodeAddr = traversalStack[stackPtr];
+			nodeAddr = traversalStack[stackPtr].addr;
+			nodeDist = traversalStack[stackPtr].dist;
 			--stackPtr;
 		}
 #endif  /* FEATURE(BVH_INSTANCING) */

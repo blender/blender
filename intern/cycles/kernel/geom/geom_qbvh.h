@@ -14,32 +14,31 @@
  * limitations under the License.
  */
 
-ccl_device_inline void qbvh_stack_sort(int *__restrict s1,
-                                       int *__restrict s2,
-                                       int *__restrict s3,
-                                       float *__restrict d1,
-                                       float *__restrict d2,
-                                       float *__restrict d3)
+struct QBVHStackItem {
+	int addr;
+	float dist;
+};
+
+/* TOOD(sergey): Investigate if using instrinsics helps here. */
+ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
+                                       QBVHStackItem *__restrict s2,
+                                       QBVHStackItem *__restrict s3)
 {
-	if(*d2 < *d1) { util_swap(s2, s1); util_swap(d2, d1); }
-	if(*d3 < *d2) { util_swap(s3, s2); util_swap(d3, d2); }
-	if(*d2 < *d1) { util_swap(s2, s1); util_swap(d2, d1); }
+	if(s2->dist < s1->dist) { util_swap(s2, s1); }
+	if(s3->dist < s2->dist) { util_swap(s3, s2); }
+	if(s2->dist < s1->dist) { util_swap(s2, s1); }
 }
 
-ccl_device_inline void qbvh_stack_sort(int *__restrict s1,
-                                       int *__restrict s2,
-                                       int *__restrict s3,
-                                       int *__restrict s4,
-                                       float *__restrict d1,
-                                       float *__restrict d2,
-                                       float *__restrict d3,
-                                       float *__restrict d4)
+ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
+                                       QBVHStackItem *__restrict s2,
+                                       QBVHStackItem *__restrict s3,
+                                       QBVHStackItem *__restrict s4)
 {
-	if(*d2 < *d1) { util_swap(s2, s1); util_swap(d2, d1); }
-	if(*d4 < *d3) { util_swap(s4, s3); util_swap(d4, d3); }
-	if(*d3 < *d1) { util_swap(s3, s1); util_swap(d3, d1); }
-	if(*d4 < *d2) { util_swap(s4, s2); util_swap(d4, d2); }
-	if(*d3 < *d2) { util_swap(s3, s2); util_swap(d3, d2); }
+	if(s2->dist < s1->dist) { util_swap(s2, s1); }
+	if(s4->dist < s3->dist) { util_swap(s4, s3); }
+	if(s3->dist < s1->dist) { util_swap(s3, s1); }
+	if(s4->dist < s2->dist) { util_swap(s4, s2); }
+	if(s3->dist < s2->dist) { util_swap(s3, s2); }
 }
 
 ccl_device_inline int qbvh_node_intersect(KernelGlobals *__restrict kg,

@@ -42,8 +42,8 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	 */
 
 	/* Traversal stack in CUDA thread-local memory. */
-	int traversalStack[BVH_STACK_SIZE];
-	traversalStack[0] = ENTRYPOINT_SENTINEL;
+	QBVHStackItem traversalStack[BVH_STACK_SIZE];
+	traversalStack[0].addr = ENTRYPOINT_SENTINEL;
 
 	/* Traversal variables in registers. */
 	int stackPtr = 0;
@@ -124,13 +124,15 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						if(d1 < d0) {
 							nodeAddr = c1;
 							++stackPtr;
-							traversalStack[stackPtr] = c0;
+							traversalStack[stackPtr].addr = c0;
+							traversalStack[stackPtr].dist = d0;
 							continue;
 						}
 						else {
 							nodeAddr = c0;
 							++stackPtr;
-							traversalStack[stackPtr] = c1;
+							traversalStack[stackPtr].addr = c1;
+							traversalStack[stackPtr].dist = d1;
 							continue;
 						}
 					}
@@ -139,9 +141,11 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					 * all nodes onto the stack to sort them there.
 					 */
 					++stackPtr;
-					traversalStack[stackPtr] = c1;
+					traversalStack[stackPtr].addr = c1;
+					traversalStack[stackPtr].dist = d1;
 					++stackPtr;
-					traversalStack[stackPtr] = c0;
+					traversalStack[stackPtr].addr = c0;
+					traversalStack[stackPtr].dist = d0;
 
 					/* Three children are hit, push all onto stack and sort 3
 					 * stack items, continue with closest child.
@@ -151,12 +155,12 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					float d2 = ((float*)&dist)[r];
 					if(traverseChild == 0) {
 						++stackPtr;
-						traversalStack[stackPtr] = c2;
+						traversalStack[stackPtr].addr = c2;
+						traversalStack[stackPtr].dist = d2;
 						qbvh_stack_sort(&traversalStack[stackPtr],
 						                &traversalStack[stackPtr - 1],
-						                &traversalStack[stackPtr - 2],
-						                &d2, &d1, &d0);
-						nodeAddr = traversalStack[stackPtr];
+						                &traversalStack[stackPtr - 2]);
+						nodeAddr = traversalStack[stackPtr].addr;
 						--stackPtr;
 						continue;
 					}
@@ -168,17 +172,18 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					int c3 = __float_as_int(cnodes[r]);
 					float d3 = ((float*)&dist)[r];
 					++stackPtr;
-					traversalStack[stackPtr] = c3;
+					traversalStack[stackPtr].addr = c3;
+					traversalStack[stackPtr].dist = d3;
 					++stackPtr;
-					traversalStack[stackPtr] = c2;
+					traversalStack[stackPtr].addr = c2;
+					traversalStack[stackPtr].dist = d2;
 					qbvh_stack_sort(&traversalStack[stackPtr],
 					                &traversalStack[stackPtr - 1],
 					                &traversalStack[stackPtr - 2],
-					                &traversalStack[stackPtr - 3],
-					                &d3, &d2, &d1, &d0);
+					                &traversalStack[stackPtr - 3]);
 				}
 
-				nodeAddr = traversalStack[stackPtr];
+				nodeAddr = traversalStack[stackPtr].addr;
 				--stackPtr;
 			}
 
@@ -193,7 +198,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					int primAddr2 = __float_as_int(leaf.y);
 
 					/* Pop. */
-					nodeAddr = traversalStack[stackPtr];
+					nodeAddr = traversalStack[stackPtr].addr;
 					--stackPtr;
 
 					/* Primitive intersection. */
@@ -250,13 +255,13 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						triangle_intersect_precalc(dir, &isect_precalc);
 
 						++stackPtr;
-						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+						traversalStack[stackPtr].addr = ENTRYPOINT_SENTINEL;
 
 						nodeAddr = kernel_tex_fetch(__object_node, object);
 					}
 					else {
 						/* Pop. */
-						nodeAddr = traversalStack[stackPtr];
+						nodeAddr = traversalStack[stackPtr].addr;
 						--stackPtr;
 					}
 
@@ -290,7 +295,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			triangle_intersect_precalc(dir, &isect_precalc);
 
 			object = OBJECT_NONE;
-			nodeAddr = traversalStack[stackPtr];
+			nodeAddr = traversalStack[stackPtr].addr;
 			--stackPtr;
 		}
 #endif  /* FEATURE(BVH_INSTANCING) */

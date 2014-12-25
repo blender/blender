@@ -391,6 +391,38 @@ ccl_device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ra
 		*t *= len;
 }
 
+#ifdef __QBVH__
+/* Same as above, but optimized for QBVH scene intersection,
+ * which needs to modify two max distances.
+ *
+ * TODO(sergey): Investigate if passing NULL instead of t1 gets optimized
+ * so we can avoid having this duplication.
+ */
+ccl_device_inline void qbvh_instance_push(KernelGlobals *kg,
+                                          int object,
+                                          const Ray *ray,
+                                          float3 *P,
+                                          float3 *dir,
+                                          float3 *idir,
+                                          float *t,
+                                          float *t1)
+{
+	Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+
+	*P = transform_point(&tfm, ray->P);
+
+	float len;
+	*dir = bvh_clamp_direction(normalize_len(transform_direction(&tfm, ray->D), &len));
+	*idir = bvh_inverse_direction(*dir);
+
+	if(*t != FLT_MAX)
+		*t *= len;
+
+	if(*t1 != -FLT_MAX)
+		*t1 *= len;
+}
+#endif
+
 /* Transorm ray to exit static object in BVH */
 
 ccl_device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, float *t)
@@ -435,6 +467,33 @@ ccl_device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, c
 	if(*t != FLT_MAX)
 		*t *= len;
 }
+
+#ifdef __QBVH__
+/* Same as above, but optimized for QBVH scene intersection,
+ * which needs to modify two max distances.
+ *
+ * TODO(sergey): Investigate if passing NULL instead of t1 gets optimized
+ * so we can avoid having this duplication.
+ */
+ccl_device_inline void qbvh_instance_motion_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, float *t, float *t1, Transform *tfm)
+{
+	Transform itfm;
+	*tfm = object_fetch_transform_motion_test(kg, object, ray->time, &itfm);
+
+	*P = transform_point(&itfm, ray->P);
+
+	float len;
+	*dir = bvh_clamp_direction(normalize_len(transform_direction(&itfm, ray->D), &len));
+	*idir = bvh_inverse_direction(*dir);
+
+
+	if(*t != FLT_MAX)
+		*t *= len;
+
+	if(*t1 != -FLT_MAX)
+		*t1 *= len;
+}
+#endif
 
 /* Transorm ray to exit motion blurred object in BVH */
 
