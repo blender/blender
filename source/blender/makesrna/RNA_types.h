@@ -147,7 +147,7 @@ typedef enum PropertySubType {
 } PropertySubType;
 
 /* Make sure enums are updated with these */
-/* HIGHEST FLAG IN USE: 1 << 30 */
+/* HIGHEST FLAG IN USE: 1 << 31 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -164,6 +164,10 @@ typedef enum PropertyFlag {
 	 * properties are animatable by default except for pointers
 	 * and collections */
 	PROP_ANIMATABLE              = (1 << 1),
+
+	/* This flag means when the property's widget is in 'textedit' mode, it will be updated after every typed char,
+	 * instead of waiting final validation. Used e.g. for text searchbox. */
+	PROP_TEXTEDIT_UPDATE         = (1 << 31),
 
 	/* icon */
 	PROP_ICONS_CONSECUTIVE       = (1 << 12),

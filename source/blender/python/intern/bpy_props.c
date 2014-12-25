@@ -64,6 +64,7 @@ static EnumPropertyItem property_flag_items[] = {
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
 	{PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
 	{PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to eachother", ""},
+	{PROP_TEXTEDIT_UPDATE, "TEXTEDIT_UPDATE", 0, "Update on every keystroke in textedit 'mode'", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #define BPY_PROPDEF_OPTIONS_DOC \

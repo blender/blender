@@ -1588,6 +1588,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "search_string");
 	RNA_def_property_ui_text(prop, "Display Filter", "Live search filtering string");
+	RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 	
 	prop = RNA_def_property(srna, "use_filter_case_sensitive", PROP_BOOLEAN, PROP_NONE);
@@ -3376,6 +3377,7 @@ static void rna_def_space_userpref(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "filter");
+	RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
 	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
 
 }

@@ -159,31 +159,32 @@ enum {
 /* but->flag - general state flags. */
 enum {
 	/* warning, the first 6 flags are internal */
-	UI_BUT_ICON_SUBMENU  = (1 << 6),
-	UI_BUT_ICON_PREVIEW  = (1 << 7),
+	UI_BUT_ICON_SUBMENU    = (1 << 6),
+	UI_BUT_ICON_PREVIEW    = (1 << 7),
 
-	UI_BUT_NODE_LINK     = (1 << 8),
-	UI_BUT_NODE_ACTIVE   = (1 << 9),
-	UI_BUT_DRAG_LOCK     = (1 << 10),
-	UI_BUT_DISABLED      = (1 << 11),
-	UI_BUT_COLOR_LOCK    = (1 << 12),
-	UI_BUT_ANIMATED      = (1 << 13),
-	UI_BUT_ANIMATED_KEY  = (1 << 14),
-	UI_BUT_DRIVEN        = (1 << 15),
-	UI_BUT_REDALERT      = (1 << 16),
-	UI_BUT_INACTIVE      = (1 << 17),
-	UI_BUT_LAST_ACTIVE   = (1 << 18),
-	UI_BUT_UNDO          = (1 << 19),
-	UI_BUT_IMMEDIATE     = (1 << 20),
-	UI_BUT_NO_UTF8       = (1 << 21),
+	UI_BUT_NODE_LINK       = (1 << 8),
+	UI_BUT_NODE_ACTIVE     = (1 << 9),
+	UI_BUT_DRAG_LOCK       = (1 << 10),
+	UI_BUT_DISABLED        = (1 << 11),
+	UI_BUT_COLOR_LOCK      = (1 << 12),
+	UI_BUT_ANIMATED        = (1 << 13),
+	UI_BUT_ANIMATED_KEY    = (1 << 14),
+	UI_BUT_DRIVEN          = (1 << 15),
+	UI_BUT_REDALERT        = (1 << 16),
+	UI_BUT_INACTIVE        = (1 << 17),
+	UI_BUT_LAST_ACTIVE     = (1 << 18),
+	UI_BUT_UNDO            = (1 << 19),
+	UI_BUT_IMMEDIATE       = (1 << 20),
+	UI_BUT_NO_UTF8         = (1 << 21),
 
-	UI_BUT_VEC_SIZE_LOCK = (1 << 22),  /* used to flag if color hsv-circle should keep luminance */
-	UI_BUT_COLOR_CUBIC   = (1 << 23),  /* cubic saturation for the color wheel */
-	UI_BUT_LIST_ITEM     = (1 << 24),  /* This but is "inside" a list item (currently used to change theme colors). */
-	UI_BUT_DRAG_MULTI    = (1 << 25),  /* edit this button as well as the active button (not just dragging) */
-	UI_BUT_SCA_LINK_GREY = (1 << 26),  /* used to flag if sca links shoud be grey out */
-	UI_BUT_HAS_SEP_CHAR  = (1 << 27),  /* but->str contains UI_SEP_CHAR, used for key shortcuts */
-	UI_BUT_TIP_FORCE     = (1 << 28),  /* force show tooltips when holding option/alt if U's USER_TOOLTIPS is off */
+	UI_BUT_VEC_SIZE_LOCK   = (1 << 22),  /* used to flag if color hsv-circle should keep luminance */
+	UI_BUT_COLOR_CUBIC     = (1 << 23),  /* cubic saturation for the color wheel */
+	UI_BUT_LIST_ITEM       = (1 << 24),  /* This but is "inside" a list item (currently used to change theme colors). */
+	UI_BUT_DRAG_MULTI      = (1 << 25),  /* edit this button as well as the active button (not just dragging) */
+	UI_BUT_SCA_LINK_GREY   = (1 << 26),  /* used to flag if sca links shoud be grey out */
+	UI_BUT_HAS_SEP_CHAR    = (1 << 27),  /* but->str contains UI_SEP_CHAR, used for key shortcuts */
+	UI_BUT_TIP_FORCE       = (1 << 28),  /* force show tooltips when holding option/alt if U's USER_TOOLTIPS is off */
+	UI_BUT_TEXTEDIT_UPDATE = (1 << 29),  /* when widget is in textedit mode, update value on each char stroke */
 };
 
 #define UI_PANEL_WIDTH          340

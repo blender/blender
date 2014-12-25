@@ -1062,6 +1062,7 @@ static void rna_def_uilist(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "filter_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "filter_byname");
+	RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
 	RNA_def_property_ui_text(prop, "Filter by Name", "Only show items matching this name (use '*' as wildcard)");
 
 	prop = RNA_def_property(srna, "use_filter_invert", PROP_BOOLEAN, PROP_NONE);

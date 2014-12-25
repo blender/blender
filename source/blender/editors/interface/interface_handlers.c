@@ -784,11 +784,18 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 	ui_but_string_set(C, but, data->str);
 	ui_but_update(but);
 
-	/* give butfunc the original text too */
-	/* feature used for bone renaming, channels, etc */
-	/* afterfunc frees origstr */
-	but->rename_orig = data->origstr;
-	data->origstr = NULL;
+	/* give butfunc a copy of the original text too.
+	 * feature used for bone renaming, channels, etc.
+	 * afterfunc frees rename_orig */
+	if (data->origstr && (but->flag & UI_BUT_TEXTEDIT_UPDATE)) {
+		/* In this case, we need to keep origstr available, to restore real org string in case we cancel after
+		 * having typed something already. */
+		but->rename_orig = BLI_strdup(data->origstr);
+	}
+	else {
+		but->rename_orig = data->origstr;
+		data->origstr = NULL;
+	}
 	ui_apply_but_func(C, but);
 
 	data->retval = but->retval;
@@ -2891,9 +2898,10 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			retval = WM_UI_HANDLER_BREAK;
 			
 		}
-		/* textbutton with magnifier icon: do live update for search button */
-		if (but->icon == ICON_VIEWZOOM)
+		/* textbutton with this flag: do live update (e.g. for search buttons) */
+		if (but->flag & UI_BUT_TEXTEDIT_UPDATE) {
 			update = true;
+		}
 	}
 
 #ifdef WITH_INPUT_IME
