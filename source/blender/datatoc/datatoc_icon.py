@@ -113,6 +113,17 @@ def icondir_to_png(path_src, file_dst):
 
     files = [os.path.join(path_src, f) for f in os.listdir(path_src) if f.endswith(".dat")]
 
+    # First check if we need to bother.
+    if os.path.exists(file_dst):
+        dst_time = os.path.getmtime(file_dst)
+        has_newer = False
+        for f in files:
+            if os.path.getmtime(f) > dst_time:
+                has_newer = True
+                break
+        if not has_newer:
+            return
+
     with open(files[0], 'rb') as f_src:
         (icon_w, icon_h,
          orig_x, orig_y,
