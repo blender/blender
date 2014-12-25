@@ -49,8 +49,14 @@ typedef struct IsectPrecalc {
 	float Sx, Sy, Sz;
 } IsectPrecalc;
 
-ccl_device_inline void triangle_intersect_precalc(float3 dir,
-                                                  IsectPrecalc *isect_precalc)
+/* Workaround for CUDA toolkit 6.5.16. */
+#ifdef __KERNEL_CPU__
+ccl_device_inline
+#else
+ccl_device_noinline
+#endif
+void triangle_intersect_precalc(float3 dir,
+                                 IsectPrecalc *isect_precalc)
 {
 	/* Calculate dimension where the ray direction is maximal. */
 	int kz = util_max_axis(make_float3(fabsf(dir.x),
