@@ -320,7 +320,8 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         col.label(text="Acceleration structure:")
         col.prop(cscene, "debug_use_spatial_splits")
-        col.prop(cscene, "use_qbvh")
+        if use_cpu(context):
+            col.prop(cscene, "use_qbvh")
 
 
 class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):

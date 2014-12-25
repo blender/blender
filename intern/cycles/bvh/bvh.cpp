@@ -449,8 +449,8 @@ void BVH::pack_instances(size_t nodes_size)
 
 		/* merge nodes */
 		if(bvh->pack.nodes.size()) {
-			/* For QBVH we're packing ann child bbox into 6 float4,
-			 * and for regulat BVH they're packed into 3 float4.
+			/* For QBVH we're packing a child bbox into 6 float4,
+			 * and for regular BVH they're packed into 3 float4.
 			 */
 			size_t nsize_bbox = (use_qbvh)? 6: 3;
 			int4 *bvh_nodes = &bvh->pack.nodes[0];
@@ -479,8 +479,8 @@ void BVH::pack_instances(size_t nodes_size)
 
 				pack_nodes[pack_nodes_offset + nsize_bbox] = data;
 
-				/* Usually this is gonna to copy nothing, but we'd better to
-				 * beprepared for possible node size extension.
+				/* Usually this copies nothing, but we better
+				 * be prepared for possible node size extension.
 				 */
 				memcpy(&pack_nodes[pack_nodes_offset + nsize_bbox+1],
 				       &bvh_nodes[i + nsize_bbox+1],

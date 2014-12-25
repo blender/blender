@@ -22,7 +22,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Workaroudn stupidness of CUDA/OpenCL which doesn't allow to access indexed
+/* Workaround stupidness of CUDA/OpenCL which doesn't allow to access indexed
  * component of float3 value.
  */
 #ifndef __KERNEL_CPU__
@@ -52,7 +52,7 @@ typedef struct IsectPrecalc {
 ccl_device_inline void triangle_intersect_precalc(float3 dir,
                                                   IsectPrecalc *isect_precalc)
 {
-	/* Calculate dimesion where the ray direction is maximal. */
+	/* Calculate dimension where the ray direction is maximal. */
 	int kz = util_max_axis(make_float3(fabsf(dir.x),
 	                                   fabsf(dir.y),
 	                                   fabsf(dir.z)));
