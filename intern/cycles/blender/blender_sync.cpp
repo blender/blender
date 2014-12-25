@@ -379,7 +379,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background, bo
 		params.persistent_data = false;
 
 	if(is_cpu) {
-		params.use_qbvh = system_cpu_support_sse2() && RNA_boolean_get(&cscene, "use_qbvh");
+		params.use_qbvh = system_cpu_support_sse2();
 	}
 	else {
 		params.use_qbvh = false;
