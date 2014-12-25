@@ -2714,11 +2714,10 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 			w[i_curr] = 1.0f;
 		}
 		else {
-			float len_curr = len_v3v3(co, v_curr);
-			float len_next = len_v3v3(co, v_next);
-			float edge_len = len_curr + len_next;
-			w[i_curr] = len_next / edge_len;
-			w[(i_curr + 1) % n] = len_curr / edge_len;
+			float fac = line_point_factor_v3(co, v_curr, v_next);
+			CLAMP(fac, 0.0f, 1.0f);
+			w[i_curr] = 1.0f - fac;
+			w[(i_curr + 1) % n] = fac;
 		}
 	}
 	else {
@@ -2787,11 +2786,10 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 			w[i_curr] = 1.0f;
 		}
 		else {
-			float len_curr = len_v2v2(co, v_curr);
-			float len_next = len_v2v2(co, v_next);
-			float edge_len = len_curr + len_next;
-			w[i_curr] = len_next / edge_len;
-			w[(i_curr + 1) % n] = len_curr / edge_len;
+			float fac = line_point_factor_v2(co, v_curr, v_next);
+			CLAMP(fac, 0.0f, 1.0f);
+			w[i_curr] = 1.0f - fac;
+			w[(i_curr + 1) % n] = fac;
 		}
 	}
 	else {
