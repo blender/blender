@@ -1001,7 +1001,7 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 		BLI_end_threaded_malloc();
 	}
 	else {
-		printf("\nError: no blend loaded. cannot use '-a'.\n");
+		printf("\nError: no blend loaded. GPG_ghost.cpp use '-a'.\n");
 	}
 	return 0;
 }
@@ -1551,7 +1551,22 @@ int main(
 #endif
 
 	setCallbacks();
+	
+#if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE)
+/* patch to ignore argument finder gives us (pid?) */
+	if (argc == 2 && strncmp(argv[1], "-psn_", 5) == 0) {
+		extern int GHOST_HACK_getFirstFile(char buf[]);
+		static char firstfilebuf[512];
 
+		argc = 1;
+
+		if (GHOST_HACK_getFirstFile(firstfilebuf)) {
+			argc = 2;
+			argv[1] = firstfilebuf;
+		}
+	}
+#endif
+	
 #ifdef __FreeBSD__
 	fpsetmask(0);
 #endif

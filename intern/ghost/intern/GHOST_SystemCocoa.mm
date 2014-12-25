@@ -255,6 +255,24 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 	return GHOST_kKeyUnknown;
 }
 
+#pragma mark Utility functions
+
+#define FIRSTFILEBUFLG 512
+static bool g_hasFirstFile = false;
+static char g_firstFileBuf[512];
+
+//TODO:Need to investigate this. Function called too early in creator.c to have g_hasFirstFile == true
+extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
+{
+	if (g_hasFirstFile) {
+		strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
+		buf[FIRSTFILEBUFLG - 1] = '\0';
+		return 1;
+	}
+	else {
+	return 0;
+	}
+}
 
 #pragma mark Cocoa objects
 
