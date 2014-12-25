@@ -52,6 +52,7 @@ template<typename T> struct texture  {
 		return data[index];
 	}
 
+#ifdef __KERNEL_SSE2__
 	ccl_always_inline ssef fetch_ssef(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
@@ -63,6 +64,7 @@ template<typename T> struct texture  {
 		kernel_assert(index >= 0 && index < width);
 		return ((ssei*)data)[index];
 	}
+#endif
 
 	T *data;
 	int width;
