@@ -246,21 +246,20 @@ def brush_texture_settings(layout, brush, sculpt):
     if brush.brush_capabilities.has_texture_angle:
         col = layout.column()
         col.label(text="Angle:")
-        row = col.row(align=True)
         if brush.brush_capabilities.has_texture_angle_source:
+            col.prop(tex_slot, "angle", text="")
+            col.prop(tex_slot, "use_rake", text="Rake")
+            
             if brush.brush_capabilities.has_random_texture_angle:
                 if sculpt:
                     if brush.sculpt_capabilities.has_random_texture_angle:
-                        row.prop(brush, "texture_angle_source_random", text="")
-                    else:
-                        row.prop(brush, "texture_angle_source_no_random", text="")
-
+                        col.prop(tex_slot, "use_random", text="Random")
+                        if tex_slot.use_random:
+                            col.prop(tex_slot, "random_angle", text="")
                 else:
-                    row.prop(brush, "texture_angle_source_random", text="")
-            else:
-                row.prop(brush, "texture_angle_source_no_random", text="")
-
-        row.prop(tex_slot, "angle", text="")
+                    col.prop(tex_slot, "use_random", text="Random")
+                    if tex_slot.use_random:
+                        col.prop(tex_slot, "random_angle", text="")
 
     # scale and offset
     split = layout.split()
@@ -290,9 +289,18 @@ def brush_mask_texture_settings(layout, brush):
 
     col = layout.column()
     col.prop(brush, "use_pressure_masking", text="")
-    col.label(text="Angle:")
-    col.active = brush.brush_capabilities.has_texture_angle
-    col.prop(mask_tex_slot, "angle", text="")
+    # angle and texture_angle_source
+    if brush.brush_capabilities.has_texture_angle:
+        col = layout.column()
+        col.label(text="Angle:")
+        if brush.brush_capabilities.has_texture_angle_source:
+            col.prop(mask_tex_slot, "angle", text="")
+            col.prop(mask_tex_slot, "use_rake", text="Rake")
+            
+            if brush.brush_capabilities.has_random_texture_angle:
+                col.prop(mask_tex_slot, "use_random", text="Random")
+                if mask_tex_slot.use_random:
+                    col.prop(mask_tex_slot, "random_angle", text="")
 
     # scale and offset
     split = layout.split()

@@ -298,7 +298,6 @@ void BKE_brush_debug_print_state(Brush *br)
 	BR_TEST_FLAG(BRUSH_SIZE_PRESSURE);
 	BR_TEST_FLAG(BRUSH_JITTER_PRESSURE);
 	BR_TEST_FLAG(BRUSH_SPACING_PRESSURE);
-	BR_TEST_FLAG(BRUSH_RAKE);
 	BR_TEST_FLAG(BRUSH_ANCHORED);
 	BR_TEST_FLAG(BRUSH_DIR_IN);
 	BR_TEST_FLAG(BRUSH_SPACE);
@@ -314,7 +313,6 @@ void BKE_brush_debug_print_state(Brush *br)
 	BR_TEST_FLAG(BRUSH_EDGE_TO_EDGE);
 	BR_TEST_FLAG(BRUSH_DRAG_DOT);
 	BR_TEST_FLAG(BRUSH_INVERSE_SMOOTH_PRESSURE);
-	BR_TEST_FLAG(BRUSH_RANDOM_ROTATION);
 	BR_TEST_FLAG(BRUSH_PLANE_TRIM);
 	BR_TEST_FLAG(BRUSH_FRONTFACE);
 	BR_TEST_FLAG(BRUSH_CUSTOM_ICON);
@@ -700,7 +698,7 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* keep coordinates relative to mouse */
 
-			rotation += ups->brush_rotation;
+			rotation += ups->brush_rotation_sec;
 
 			x = point_2d[0] - ups->mask_tex_mouse[0];
 			y = point_2d[1] - ups->mask_tex_mouse[1];
@@ -718,7 +716,7 @@ float BKE_brush_sample_masktex(const Scene *scene, Brush *br,
 			y = point_2d[1];
 		}
 		else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
-			rotation += ups->brush_rotation;
+			rotation += ups->brush_rotation_sec;
 			/* these contain a random coordinate */
 			x = point_2d[0] - ups->mask_tex_mouse[0];
 			y = point_2d[1] - ups->mask_tex_mouse[1];

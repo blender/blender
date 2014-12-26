@@ -435,4 +435,27 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 273, 1)) {
+#define	BRUSH_RAKE (1 << 7)
+#define BRUSH_RANDOM_ROTATION = (1 << 25)
+
+		Brush *br;
+
+		for (br = main->brush.first; br; br = br->id.next) {
+			if (br->flag & BRUSH_RAKE) {
+				br->mtex.brush_angle_mode |= MTEX_ANGLE_RAKE;
+				br->mask_mtex.brush_angle_mode |= MTEX_ANGLE_RAKE;
+			}
+			else if (br->flag & BRUSH_RAKE) {
+				br->mtex.brush_angle_mode |= MTEX_ANGLE_RANDOM;
+				br->mask_mtex.brush_angle_mode |= MTEX_ANGLE_RANDOM;
+			}
+			br->mtex.random_angle = 2.0f * M_PI;
+			br->mask_mtex.random_angle = 2.0f * M_PI;
+		}
+
+#undef BRUSH_RAKE
+#undef BRUSH_RANDOM_ROTATION
+	}
 }

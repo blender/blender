@@ -207,6 +207,7 @@ static bool paint_brush_update(bContext *C,
 	UnifiedPaintSettings *ups = stroke->ups;
 	bool location_sampled = false;
 	bool location_success = false;
+	bool do_random = false;
 	/* XXX: Use pressure value from first brush step for brushes which don't
 	 *      support strokes (grab, thumb). They depends on initial state and
 	 *      brush coord/pressure/etc.
@@ -256,13 +257,9 @@ static bool paint_brush_update(bContext *C,
 	if (paint_supports_dynamic_tex_coords(brush, mode)) {
 		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
 		     (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA) ||
-		     (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)) &&
-		    !(brush->flag & BRUSH_RAKE))
+		     (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)))
 		{
-			if (brush->flag & BRUSH_RANDOM_ROTATION)
-				ups->brush_rotation = 2.0f * (float)M_PI * BLI_frand();
-			else
-				ups->brush_rotation = 0.0f;
+			do_random = true;
 		}
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)
@@ -291,7 +288,7 @@ static bool paint_brush_update(bContext *C,
 
 		ups->anchored_size = ups->pixel_radius = sqrtf(dx * dx + dy * dy);
 
-		ups->brush_rotation = atan2f(dx, dy) + M_PI;
+		ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + M_PI;
 
 		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
 			halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
@@ -328,13 +325,27 @@ static bool paint_brush_update(bContext *C,
 		ups->pixel_radius /= stroke->zoom_2d;
 		ups->draw_anchored = true;
 	}
-	else if (brush->flag & BRUSH_RAKE) {
+	else {
 		/* here we are using the initial mouse coordinate because we do not want the rake
 		 * result to depend on jittering */
-		if (!stroke->brush_init)
+		if (!stroke->brush_init) {
 			copy_v2_v2(ups->last_rake, mouse_init);
-		else
-			paint_calculate_rake_rotation(ups, mouse_init);
+		}
+		else {
+			paint_calculate_rake_rotation(ups, brush, mouse_init);
+		}
+	}
+
+	if (do_random) {
+		if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
+			ups->brush_rotation += -brush->mtex.random_angle / 2.0f +
+			                       brush->mtex.random_angle * BLI_frand();
+		}
+
+		if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
+			ups->brush_rotation_sec += -brush->mask_mtex.random_angle / 2.0f +
+			                           brush->mask_mtex.random_angle * BLI_frand();
+		}
 	}
 
 	if (!location_sampled) {
@@ -675,8 +686,11 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
 	ups->stroke_active = false;
 
 	/* reset rotation here to avoid doing so in cursor display */
-	if (!(stroke->brush->flag & BRUSH_RAKE))
+	if (!(stroke->brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE))
 		ups->brush_rotation = 0.0f;
+
+	if (!(stroke->brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE))
+		ups->brush_rotation_sec = 0.0f;
 
 	if (stroke->stroke_started) {
 		if (stroke->redraw)
@@ -1064,10 +1078,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	else if ((br->flag & BRUSH_LINE) && stroke->stroke_started &&
 	         (first_modal || (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))))
 	{
-		if (br->flag & BRUSH_RAKE) {
+		if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) || (br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
 			copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
-			paint_calculate_rake_rotation(stroke->ups,  sample_average.mouse);
 		}
+		paint_calculate_rake_rotation(stroke->ups, br, sample_average.mouse);
 	}
 	else if (first_modal ||
 	         /* regular dabs */

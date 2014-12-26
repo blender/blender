@@ -62,11 +62,12 @@ typedef struct MTex {
 	char uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	
 	char projx, projy, projz, mapping;
-	float ofs[3], size[3], rot;
-	
+	char brush_map_mode, brush_angle_mode;
+	char pad[2];
+	float ofs[3], size[3], rot, random_angle;
+
 	short texflag, colormodel, pmapto, pmaptoneg;
 	short normapspace, which_output;
-	char brush_map_mode, pad[7];
 	float r, g, b, k;
 	float def_var, rt;
 	
@@ -511,6 +512,10 @@ typedef struct ColorMapping {
 #define MTEX_MAP_MODE_AREA     3
 #define MTEX_MAP_MODE_RANDOM   4
 #define MTEX_MAP_MODE_STENCIL  5
+
+/* brush_angle_mode */
+#define MTEX_ANGLE_RANDOM      1
+#define MTEX_ANGLE_RAKE        2
 
 /* **************** ColorBand ********************* */
 

@@ -93,7 +93,7 @@ typedef struct Brush {
 
 	float plane_offset;     /* offset for plane brushes (clay, flatten, fill, scrape) */
 
-	float pad;
+	int flag2;
 	int gradient_spacing;
 	int gradient_stroke_mode; /* source for stroke color gradient application */
 	int gradient_fill_mode;   /* source for fill tool color gradient application */
@@ -192,7 +192,7 @@ typedef enum BrushFlags {
 	BRUSH_JITTER_PRESSURE = (1 << 4),
 	BRUSH_SPACING_PRESSURE = (1 << 5),
 	BRUSH_UNUSED = (1 << 6),
-	BRUSH_RAKE = (1 << 7),
+//	BRUSH_RAKE = (1 << 7), deprecated, use brush_angle_mode
 	BRUSH_ANCHORED = (1 << 8),
 	BRUSH_DIR_IN = (1 << 9),
 	BRUSH_SPACE = (1 << 10),
@@ -209,7 +209,7 @@ typedef enum BrushFlags {
 	BRUSH_EDGE_TO_EDGE = (1 << 22),
 	BRUSH_DRAG_DOT = (1 << 23),
 	BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
-	BRUSH_RANDOM_ROTATION = (1 << 25),
+//	BRUSH_RANDOM_ROTATION = (1 << 25), deprecated, use brush_angle_mode
 	BRUSH_PLANE_TRIM = (1 << 26),
 	BRUSH_FRONTFACE = (1 << 27),
 	BRUSH_CUSTOM_ICON = (1 << 28),

@@ -686,7 +686,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 		bool do_partial_update_mask = false;
 		/* invalidate case for all mapping modes */
 		if (brush->mask_mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
-			mask_rotation += ups->brush_rotation;
+			mask_rotation += ups->brush_rotation_sec;
 		}
 		else if (brush->mask_mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM) {
 			renew_maxmask = true;

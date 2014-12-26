@@ -595,7 +595,7 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* brush rotation */
 			glTranslatef(0.5, 0.5, 0);
-			glRotatef((double)RAD2DEGF(ups->brush_rotation),
+			glRotatef((double)RAD2DEGF((primary) ? ups->brush_rotation : ups->brush_rotation_sec),
 			          0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
@@ -1000,9 +1000,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	/* don't calculate rake angles while a stroke is active because the rake variables are global and
 	 * we may get interference with the stroke itself. For line strokes, such interference is visible */
 	if (!ups->stroke_active) {
-		if (brush->flag & BRUSH_RAKE)
-			/* here, translation contains the mouse coordinates. */
-			paint_calculate_rake_rotation(ups, translation);
+		paint_calculate_rake_rotation(ups, brush, translation);
 	}
 
 	/* draw overlay */

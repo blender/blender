@@ -654,6 +654,21 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_mask_paint_map_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+
+	prop = RNA_def_property(srna, "use_rake", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "brush_angle_mode", MTEX_ANGLE_RAKE);
+	RNA_def_property_ui_text(prop, "Rake", "");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+
+	prop = RNA_def_property(srna, "use_random", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "brush_angle_mode", MTEX_ANGLE_RANDOM);
+	RNA_def_property_ui_text(prop, "Random", "");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+
+	prop = RNA_def_property(srna, "random_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, 0, M_PI * 2);
+	RNA_def_property_ui_text(prop, "Random Angle", "Brush texture random angle");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
 }
 
 static void rna_def_sculpt_capabilities(BlenderRNA *brna)
@@ -786,19 +801,6 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem texture_angle_source_items[] = {
-		{0, "USER", 0, "User", "Rotate the brush texture by given angle"},
-		{BRUSH_RAKE, "RAKE", 0, "Rake", "Rotate the brush texture to match the stroke direction"},
-		{BRUSH_RANDOM_ROTATION, "RANDOM", 0, "Random", "Rotate the brush texture at random"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static EnumPropertyItem texture_angle_source_no_random_items[] = {
-		{0, "USER", 0, "User", "Rotate the brush texture by given angle"},
-		{BRUSH_RAKE, "RAKE", 0, "Rake", "Rotate the brush texture to match the stroke direction"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem brush_sculpt_plane_items[] = {
 		{SCULPT_DISP_DIR_AREA, "AREA", 0, "Area Plane", ""},
 		{SCULPT_DISP_DIR_VIEW, "VIEW", 0, "View Plane", ""},
@@ -880,18 +882,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Brush_stroke_itemf");
 	RNA_def_property_ui_text(prop, "Stroke Method", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_stroke_update");
-
-	prop = RNA_def_property(srna, "texture_angle_source_random", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, texture_angle_source_items);
-	RNA_def_property_ui_text(prop, "Texture Angle Source", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop = RNA_def_property(srna, "texture_angle_source_no_random", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, texture_angle_source_no_random_items);
-	RNA_def_property_ui_text(prop, "Texture Angle Source", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "sculpt_plane", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_sculpt_plane_items);
@@ -1158,20 +1148,10 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Inverse Smooth Pressure", "Lighter pressure causes more smoothing to be applied");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
-	prop = RNA_def_property(srna, "use_rake", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAKE);
-	RNA_def_property_ui_text(prop, "Rake", "Rotate the brush texture to match the stroke direction");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
 	prop = RNA_def_property(srna, "use_relative_jitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BRUSH_ABSOLUTE_JITTER);
 	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
 	RNA_def_property_ui_text(prop, "Absolute Jitter", "Jittering happens in screen space, not relative to brush size");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop = RNA_def_property(srna, "use_random_rotation", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RANDOM_ROTATION);
-	RNA_def_property_ui_text(prop, "Random Rotation", "Rotate the brush texture at random");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "use_plane_trim", PROP_BOOLEAN, PROP_NONE);
