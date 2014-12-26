@@ -790,7 +790,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 			if (drawParams)
 				draw_option = drawParams(&mtf, has_vcol, efa->mat_nr);
 			else if (drawParamsMapped)
-				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), BM_elem_index_get(efa));
+				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), efa->mat_nr);
 			else
 				draw_option = DM_DRAW_OPTION_NORMAL;
 
@@ -859,7 +859,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 			if (drawParams)
 				draw_option = drawParams(&mtf, has_vcol, efa->mat_nr);
 			else if (drawParamsMapped)
-				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), BM_elem_index_get(efa));
+				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), efa->mat_nr);
 			else
 				draw_option = DM_DRAW_OPTION_NORMAL;
 
