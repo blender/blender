@@ -138,9 +138,13 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 
 	{
 		Brush *br;
-		br = BKE_brush_add(bmain, "Fill");
-		br->imagepaint_tool = PAINT_TOOL_FILL;
-		br->ob_mode = OB_MODE_TEXTURE_PAINT;
+
+		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Fill");
+		if (!br) {
+			br = BKE_brush_add(bmain, "Fill");
+			br->imagepaint_tool = PAINT_TOOL_FILL;
+			br->ob_mode = OB_MODE_TEXTURE_PAINT;
+		}
 
 		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Mask");
 		if (br) {
