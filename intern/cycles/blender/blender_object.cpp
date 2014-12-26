@@ -414,9 +414,17 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 
 	/* hide original object for duplis */
 	BL::Object parent = b_ob.parent();
-	if(parent && object_render_hide_original(b_ob.type(), parent.dupli_type()))
-		if(parent_hide)
-			hide_as_dupli_child_original = true;
+	while(parent) {
+		if(object_render_hide_original(b_ob.type(),
+		                               parent.dupli_type()))
+		{
+			if(parent_hide) {
+				hide_as_dupli_child_original = true;
+				break;
+			}
+		}
+		parent = parent.parent();
+	}
 	
 	hide_triangles = hide_emitter;
 
