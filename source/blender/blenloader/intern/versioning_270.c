@@ -438,7 +438,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 
 	if (!MAIN_VERSION_ATLEAST(main, 273, 1)) {
 #define	BRUSH_RAKE (1 << 7)
-#define BRUSH_RANDOM_ROTATION = (1 << 25)
+#define BRUSH_RANDOM_ROTATION (1 << 25)
 
 		Brush *br;
 
@@ -447,7 +447,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				br->mtex.brush_angle_mode |= MTEX_ANGLE_RAKE;
 				br->mask_mtex.brush_angle_mode |= MTEX_ANGLE_RAKE;
 			}
-			else if (br->flag & BRUSH_RAKE) {
+			else if (br->flag & BRUSH_RANDOM_ROTATION) {
 				br->mtex.brush_angle_mode |= MTEX_ANGLE_RANDOM;
 				br->mask_mtex.brush_angle_mode |= MTEX_ANGLE_RANDOM;
 			}
