@@ -180,20 +180,42 @@ static void bridge_loop_pair(BMesh *bm,
 
 		/* normalizing isn't strictly needed but without we may get very large values */
 		float no[3];
+		float dir_a_orig[3], dir_b_orig[3];
 		float dir_a[3], dir_b[3];
+		const float *test_a, *test_b;
 
-		sub_v3_v3v3(dir_a,
+		sub_v3_v3v3(dir_a_orig,
 		            ((BMVert *)(((LinkData *)lb_a->first)->data))->co,
 		            ((BMVert *)(((LinkData *)lb_a->last)->data))->co);
-		sub_v3_v3v3(dir_b,
+		sub_v3_v3v3(dir_b_orig,
 		            ((BMVert *)(((LinkData *)lb_b->first)->data))->co,
 		            ((BMVert *)(((LinkData *)lb_b->last)->data))->co);
 
 		/* make the directions point out from the normals, 'no' is used as a temp var */
-		cross_v3_v3v3(no, dir_a, el_dir); cross_v3_v3v3(dir_a, no, el_dir);
-		cross_v3_v3v3(no, dir_b, el_dir); cross_v3_v3v3(dir_b, no, el_dir);
+		cross_v3_v3v3(no, dir_a_orig, el_dir); cross_v3_v3v3(dir_a, no, el_dir);
+		cross_v3_v3v3(no, dir_b_orig, el_dir); cross_v3_v3v3(dir_b, no, el_dir);
 
-		if (dot_v3v3(dir_a, dir_b) < 0.0f) {
+		if (LIKELY(!is_zero_v3(dir_a) && !is_zero_v3(dir_b))) {
+			test_a = dir_a;
+			test_b = dir_b;
+		}
+		else {
+			/**
+			 * This is a corner case:
+			 *
+			 * <pre>
+			 *  (loop a)    (loop b)
+			 * +--------+  +--------+
+			 * </pre>
+			 *
+			 * When loops are aligned to the direction between the loops values of 'dir_a/b' is degenerate,
+			 * in this case compare the original directions (before they were corrected by 'el_dir'), see: T43013
+			 */
+			test_a = dir_a_orig;
+			test_b = dir_b_orig;
+		}
+
+		if (dot_v3v3(test_a, test_b) < 0.0f) {
 			BM_edgeloop_flip(bm, el_store_b);
 		}
 
