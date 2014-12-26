@@ -121,7 +121,7 @@ typedef struct Isect {
 
 /* arbitrary, but can't use e.g. FLT_MAX because of precision issues */
 #define RE_RAYTRACE_MAXDIST	1e15f
-#define RE_RAYTRACE_EPSILON -FLT_EPSILON
+#define RE_RAYTRACE_EPSILON 0.0f
 
 #ifdef __cplusplus
 }
