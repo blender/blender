@@ -81,7 +81,7 @@ static int gpencil_select_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
-
+	
 	/* only if there's an active layer with an active frame */
 	return (gpl && gpl->actframe);
 }

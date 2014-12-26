@@ -54,7 +54,7 @@
 
 typedef struct bGPundonode {
 	struct bGPundonode *next, *prev;
-
+	
 	char name[BKE_UNDO_STR_MAX];
 	struct bGPdata *gpd;
 } bGPundonode;
@@ -70,9 +70,9 @@ int ED_gpencil_session_active(void)
 int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 {
 	bGPdata **gpd_ptr = NULL, *new_gpd = NULL;
-
+	
 	gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
-
+	
 	if (step == 1) {  /* undo */
 		//printf("\t\tGP - undo step\n");
 		if (cur_node->prev) {
@@ -91,18 +91,18 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 			}
 		}
 	}
-
+	
 	if (new_gpd) {
 		if (gpd_ptr) {
 			if (*gpd_ptr) {
 				bGPdata *gpd = *gpd_ptr;
 				bGPDlayer *gpl, *gpld;
-
+				
 				free_gpencil_layers(&gpd->layers);
-
+				
 				/* copy layers */
 				BLI_listbase_clear(&gpd->layers);
-
+				
 				for (gpl = new_gpd->layers.first; gpl; gpl = gpl->next) {
 					/* make a copy of source layer and its data */
 					gpld = gpencil_layer_duplicate(gpl);
@@ -111,9 +111,9 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 			}
 		}
 	}
-
+	
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
-
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -125,56 +125,56 @@ void gpencil_undo_init(bGPdata *gpd)
 void gpencil_undo_push(bGPdata *gpd)
 {
 	bGPundonode *undo_node;
-
+	
 	//printf("\t\tGP - undo push\n");
-
+	
 	if (cur_node) {
 		/* remove all un-done nodes from stack */
 		undo_node = cur_node->next;
-
+		
 		while (undo_node) {
 			bGPundonode *next_node = undo_node->next;
-
+			
 			/* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
 			 * or else the real copy will segfault when accessed
 			 */
 			undo_node->gpd->adt = NULL;
-
+			
 			BKE_gpencil_free(undo_node->gpd);
 			MEM_freeN(undo_node->gpd);
-
+			
 			BLI_freelinkN(&undo_nodes, undo_node);
-
+			
 			undo_node = next_node;
 		}
 	}
-
+	
 	/* create new undo node */
 	undo_node = MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
 	undo_node->gpd = gpencil_data_duplicate(gpd, true);
-
+	
 	cur_node = undo_node;
-
+	
 	BLI_addtail(&undo_nodes, undo_node);
 }
 
 void gpencil_undo_finish(void)
 {
 	bGPundonode *undo_node = undo_nodes.first;
-
+	
 	while (undo_node) {
 		/* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
 		 * or else the real copy will segfault when accessed
 		 */
 		undo_node->gpd->adt = NULL;
-
+		
 		BKE_gpencil_free(undo_node->gpd);
 		MEM_freeN(undo_node->gpd);
-
+		
 		undo_node = undo_node->next;
 	}
-
+	
 	BLI_freelistN(&undo_nodes);
-
+	
 	cur_node = NULL;
 }
