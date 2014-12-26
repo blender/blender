@@ -1362,13 +1362,18 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		
 		glTranslatef((float)x, (float)y, 0.0f);
 		
-		glColor4ub(255, 255, 255, 128);
-		
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 		
+		glColor4ub(255, 100, 100, 20);
+		glutil_draw_filled_arc(0.0, M_PI * 2.0, p->radius, 40);
+
+		setlinestyle(6);
+
+		glColor4ub(255, 100, 100, 200);
 		glutil_draw_lined_arc(0.0, M_PI * 2.0, p->radius, 40);
 		
+		setlinestyle(0);
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
 		
