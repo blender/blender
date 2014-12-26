@@ -27,7 +27,7 @@
  *  \ingroup edgpencil
  */
 
- 
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -62,18 +62,18 @@
 bool ED_gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDframe *, Scene *))
 {
 	bGPDframe *gpf;
-	
+
 	/* error checker */
 	if (gpl == NULL)
 		return false;
-	
+
 	/* do loop */
 	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 		/* execute callback */
 		if (gpf_cb(gpf, scene))
 			return true;
 	}
-		
+
 	/* nothing to return */
 	return false;
 }
@@ -86,19 +86,19 @@ void ED_gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
 {
 	bGPDframe *gpf;
 	CfraElem *ce;
-	
+
 	/* error checking */
 	if (ELEM(NULL, gpl, elems))
 		return;
-	
+
 	/* loop through gp-frames, adding */
 	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 		if ((onlysel == 0) || (gpf->flag & GP_FRAME_SELECT)) {
 			ce = MEM_callocN(sizeof(CfraElem), "CfraElem");
-			
+
 			ce->cfra = (float)gpf->framenum;
 			ce->sel = (gpf->flag & GP_FRAME_SELECT) ? 1 : 0;
-			
+
 			BLI_addtail(elems, ce);
 		}
 	}
@@ -111,17 +111,17 @@ void ED_gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
 bool ED_gplayer_frame_select_check(bGPDlayer *gpl)
 {
 	bGPDframe *gpf;
-	
+
 	/* error checking */
-	if (gpl == NULL) 
+	if (gpl == NULL)
 		return false;
-	
+
 	/* stop at the first one found */
 	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT)
 			return true;
 	}
-	
+
 	/* not found */
 	return false;
 }
@@ -131,7 +131,7 @@ static void gpframe_select(bGPDframe *gpf, short select_mode)
 {
 	if (gpf == NULL)
 		return;
-	
+
 	switch (select_mode) {
 		case SELECT_ADD:
 			gpf->flag |= GP_FRAME_SELECT;
@@ -149,11 +149,11 @@ static void gpframe_select(bGPDframe *gpf, short select_mode)
 void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
 {
 	bGPDframe *gpf;
-	
+
 	/* error checking */
-	if (gpl == NULL) 
+	if (gpl == NULL)
 		return;
-		
+
 	/* handle according to mode */
 	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 		gpframe_select(gpf, select_mode);
@@ -164,9 +164,9 @@ void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
 void ED_gplayer_frame_select_set(bGPDlayer *gpl, short mode)
 {
 	/* error checking */
-	if (gpl == NULL) 
+	if (gpl == NULL)
 		return;
-	
+
 	/* now call the standard function */
 	ED_gpencil_select_frames(gpl, mode);
 }
@@ -175,8 +175,8 @@ void ED_gplayer_frame_select_set(bGPDlayer *gpl, short mode)
 void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 {
 	bGPDframe *gpf;
-	
-	if (gpl == NULL) 
+
+	if (gpl == NULL)
 		return;
 
 	gpf = BKE_gpencil_layer_find_frame(gpl, selx);
@@ -190,10 +190,10 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 void ED_gplayer_frames_select_border(bGPDlayer *gpl, float min, float max, short select_mode)
 {
 	bGPDframe *gpf;
-	
+
 	if (gpl == NULL)
 		return;
-	
+
 	/* only select those frames which are in bounds */
 	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 		if (IN_RANGE(gpf->framenum, min, max))
@@ -209,15 +209,15 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
 	bool changed = false;
-	
+
 	/* error checking */
 	if (gpl == NULL)
 		return false;
-		
+
 	/* check for frames to delete */
 	for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
 		gpfn = gpf->next;
-		
+
 		if (gpf->flag & GP_FRAME_SELECT)
 			changed |= gpencil_layer_delframe(gpl, gpf);
 	}
@@ -229,38 +229,38 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
-	
+
 	/* error checking */
 	if (gpl == NULL)
 		return;
-	
+
 	/* duplicate selected frames  */
 	for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
 		gpfn = gpf->next;
-		
+
 		/* duplicate this frame */
 		if (gpf->flag & GP_FRAME_SELECT) {
-			bGPDframe *gpfd; 
-			
+			bGPDframe *gpfd;
+
 			/* duplicate frame, and deselect self */
 			gpfd = gpencil_frame_duplicate(gpf);
 			gpf->flag &= ~GP_FRAME_SELECT;
-			
+
 			BLI_insertlinkafter(&gpl->frames, gpf, gpfd);
 		}
 	}
 }
 
-/* Set keyframe type for selected frames from given gp-layer 
+/* Set keyframe type for selected frames from given gp-layer
  * \param type The type of keyframe (eBezTriple_KeyframeType) to set selected frames to
  */
 void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
 {
 	bGPDframe *gpf;
-	
+
 	if (gpl == NULL)
 		return;
-	
+
 	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT) {
 			gpf->key_type = type;
@@ -278,7 +278,7 @@ void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
  *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.
  */
- 
+
 /* globals for copy/paste data (like for other copy/paste buffers) */
 ListBase gpcopybuf = {NULL, NULL};
 static int gpcopy_firstframe = 999999999;
@@ -286,8 +286,8 @@ static int gpcopy_firstframe = 999999999;
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
 void free_gpcopybuf()
 {
-	free_gpencil_layers(&gpcopybuf); 
-	
+	free_gpencil_layers(&gpcopybuf);
+
 	BLI_listbase_clear(&gpcopybuf);
 	gpcopy_firstframe = 999999999;
 }
@@ -302,33 +302,33 @@ void copy_gpdata()
 	int filter;
 	void *data;
 	short datatype;
-	
+
 	/* clear buffer first */
 	free_gpcopybuf();
-	
+
 	/* get data */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
 	if (datatype != ACTCONT_GPENCIL) return;
-	
+
 	/* filter data */
 	filter = (ACTFILTER_VISIBLE | ACTFILTER_SEL);
 	actdata_filter(&act_data, filter, data, datatype);
-	
+
 	/* assume that each of these is an ipo-block */
 	for (ale = act_data.first; ale; ale = ale->next) {
 		bGPDlayer *gpls, *gpln;
 		bGPDframe *gpf, *gpfn;
-		
+
 		/* get new layer to put into buffer */
 		gpls = (bGPDlayer *)ale->data;
 		gpln = MEM_callocN(sizeof(bGPDlayer), "GPCopyPasteLayer");
-		
+
 		BLI_listbase_clear(&gpln->frames);
 		BLI_strncpy(gpln->info, gpls->info, sizeof(gpln->info));
-		
+
 		BLI_addtail(&gpcopybuf, gpln);
-		
+
 		/* loop over frames, and copy only selected frames */
 		for (gpf = gpls->frames.first; gpf; gpf = gpf->next) {
 			/* if frame is selected, make duplicate it and its strokes */
@@ -336,18 +336,18 @@ void copy_gpdata()
 				/* add frame to buffer */
 				gpfn = gpencil_frame_duplicate(gpf);
 				BLI_addtail(&gpln->frames, gpfn);
-				
+
 				/* check if this is the earliest frame encountered so far */
 				if (gpf->framenum < gpcopy_firstframe)
 					gpcopy_firstframe = gpf->framenum;
 			}
 		}
 	}
-	
+
 	/* check if anything ended up in the buffer */
 	if (ELEM(NULL, gpcopybuf.first, gpcopybuf.last))
 		error("Nothing copied to buffer");
-	
+
 	/* free temp memory */
 	BLI_freelistN(&act_data);
 }
@@ -359,10 +359,10 @@ void paste_gpdata(Scene *scene)
 	int filter;
 	void *data;
 	short datatype;
-	
+
 	const int offset = (CFRA - gpcopy_firstframe);
 	short no_name = 0;
-	
+
 	/* check if buffer is empty */
 	if (ELEM(NULL, gpcopybuf.first, gpcopybuf.last)) {
 		error("No data in buffer to paste");
@@ -371,60 +371,60 @@ void paste_gpdata(Scene *scene)
 	/* check if single channel in buffer (disregard names if so)  */
 	if (gpcopybuf.first == gpcopybuf.last)
 		no_name = 1;
-	
+
 	/* get data */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
 	if (datatype != ACTCONT_GPENCIL) return;
-	
+
 	/* filter data */
 	filter = (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_FOREDIT);
 	actdata_filter(&act_data, filter, data, datatype);
-	
+
 	/* from selected channels */
 	for (ale = act_data.first; ale; ale = ale->next) {
 		bGPDlayer *gpld = (bGPDlayer *)ale->data;
 		bGPDlayer *gpls = NULL;
 		bGPDframe *gpfs, *gpf;
-		
+
 		/* find suitable layer from buffer to use to paste from */
 		for (gpls = gpcopybuf.first; gpls; gpls = gpls->next) {
 			/* check if layer name matches */
 			if ((no_name) || (strcmp(gpls->info, gpld->info) == 0))
 				break;
 		}
-		
+
 		/* this situation might occur! */
 		if (gpls == NULL)
 			continue;
-		
+
 		/* add frames from buffer */
 		for (gpfs = gpls->frames.first; gpfs; gpfs = gpfs->next) {
 			/* temporarily apply offset to buffer-frame while copying */
 			gpfs->framenum += offset;
-			
+
 			/* get frame to copy data into (if no frame returned, then just ignore) */
 			gpf = gpencil_layer_getframe(gpld, gpfs->framenum, 1);
 			if (gpf) {
 				bGPDstroke *gps, *gpsn;
 				ScrArea *sa;
-				
+
 				/* get area that gp-data comes from */
 				//sa = gpencil_data_findowner((bGPdata *)ale->owner);
 				sa = NULL;
-				
-				/* this should be the right frame... as it may be a pre-existing frame, 
-				 * must make sure that only compatible stroke types get copied over 
+
+				/* this should be the right frame... as it may be a pre-existing frame,
+				 * must make sure that only compatible stroke types get copied over
 				 *	- we cannot just add a duplicate frame, as that would cause errors
 				 *	- need to check for compatible types to minimize memory usage (copying 'junk' over)
 				 */
 				for (gps = gpfs->strokes.first; gps; gps = gps->next) {
 					short stroke_ok;
-					
+
 					/* if there's an area, check that it supports this type of stroke */
 					if (sa) {
 						stroke_ok = 0;
-						
+
 						/* check if spacetype supports this type of stroke
 						 *	- NOTE: must sync this with gp_paint_initstroke() in gpencil.c
 						 */
@@ -433,14 +433,14 @@ void paste_gpdata(Scene *scene)
 								if ((gps->flag == 0) || (gps->flag & GP_STROKE_3DSPACE))
 									stroke_ok = 1;
 								break;
-								
+
 							case SPACE_NODE: /* Nodes Editor: either screen-aligned or view-aligned */
 							case SPACE_IMAGE: /* Image Editor: either screen-aligned or view\image-aligned */
 							case SPACE_CLIP: /* Image Editor: either screen-aligned or view\image-aligned */
 								if ((gps->flag == 0) || (gps->flag & GP_STROKE_2DSPACE))
 									stroke_ok = 1;
 								break;
-								
+
 							case SPACE_SEQ: /* Sequence Editor: either screen-aligned or view-aligned */
 								if ((gps->flag == 0) || (gps->flag & GP_STROKE_2DIMAGE))
 									stroke_ok = 1;
@@ -449,31 +449,31 @@ void paste_gpdata(Scene *scene)
 					}
 					else
 						stroke_ok = 1;
-					
+
 					/* if stroke is ok, we make a copy of this stroke and add to frame */
 					if (stroke_ok) {
 						/* make a copy of stroke, then of its points array */
 						gpsn = MEM_dupallocN(gps);
 						gpsn->points = MEM_dupallocN(gps->points);
-						
+
 						/* append stroke to frame */
 						BLI_addtail(&gpf->strokes, gpsn);
 					}
 				}
-				
+
 				/* if no strokes (i.e. new frame) added, free gpf */
 				if (BLI_listbase_is_empty(&gpf->strokes))
 					gpencil_layer_delframe(gpld, gpf);
 			}
-			
+
 			/* unapply offset from buffer-frame */
 			gpfs->framenum -= offset;
 		}
 	}
-	
+
 	/* free temp memory */
 	BLI_freelistN(&act_data);
-	
+
 	/* undo and redraw stuff */
 	BIF_undo_push("Paste Grease Pencil Frames");
 }
@@ -541,36 +541,36 @@ void ED_gplayer_snap_frames(bGPDlayer *gpl, Scene *scene, short mode)
 static short mirror_gpf_cframe(bGPDframe *gpf, Scene *scene)
 {
 	int diff;
-	
+
 	if (gpf->flag & GP_FRAME_SELECT) {
 		diff = CFRA - gpf->framenum;
 		gpf->framenum = CFRA;
 	}
-	
+
 	return 0;
 }
 
 static short mirror_gpf_yaxis(bGPDframe *gpf, Scene *scene)
 {
 	int diff;
-	
+
 	if (gpf->flag & GP_FRAME_SELECT) {
 		diff = -gpf->framenum;
 		gpf->framenum = diff;
 	}
-	
+
 	return 0;
 }
 
 static short mirror_gpf_xaxis(bGPDframe *gpf, Scene *scene)
 {
 	int diff;
-	
+
 	if (gpf->flag & GP_FRAME_SELECT) {
 		diff = -gpf->framenum;
 		gpf->framenum = diff;
 	}
-	
+
 	return 0;
 }
 
@@ -579,15 +579,15 @@ static short mirror_gpf_marker(bGPDframe *gpf, Scene *scene)
 	static TimeMarker *marker;
 	static short initialized = 0;
 	int diff;
-	
+
 	/* In order for this mirror function to work without
 	 * any extra arguments being added, we use the case
-	 * of bezt==NULL to denote that we should find the 
+	 * of bezt==NULL to denote that we should find the
 	 * marker to mirror over. The static pointer is safe
-	 * to use this way, as it will be set to null after 
+	 * to use this way, as it will be set to null after
 	 * each cycle in which this is called.
 	 */
-	
+
 	if (gpf) {
 		/* mirroring time */
 		if ((gpf->flag & GP_FRAME_SELECT) && (marker)) {
@@ -610,7 +610,7 @@ static short mirror_gpf_marker(bGPDframe *gpf, Scene *scene)
 			}
 		}
 	}
-	
+
 	return 0;
 }
 

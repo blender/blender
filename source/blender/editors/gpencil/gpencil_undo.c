@@ -29,6 +29,7 @@
  *  \ingroup edgpencil
  */
 
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -133,12 +134,12 @@ void gpencil_undo_push(bGPdata *gpd)
 
 		while (undo_node) {
 			bGPundonode *next_node = undo_node->next;
-			
+
 			/* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
-			 * or else the real copy will segfault when accessed 
+			 * or else the real copy will segfault when accessed
 			 */
 			undo_node->gpd->adt = NULL;
-			
+
 			BKE_gpencil_free(undo_node->gpd);
 			MEM_freeN(undo_node->gpd);
 
@@ -163,10 +164,10 @@ void gpencil_undo_finish(void)
 
 	while (undo_node) {
 		/* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
-		 * or else the real copy will segfault when accessed 
+		 * or else the real copy will segfault when accessed
 		 */
 		undo_node->gpd->adt = NULL;
-		
+
 		BKE_gpencil_free(undo_node->gpd);
 		MEM_freeN(undo_node->gpd);
 

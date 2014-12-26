@@ -54,20 +54,20 @@ struct wmOperatorType;
 typedef struct GP_SpaceConversion {
 	struct bGPdata *gpd;
 	struct bGPDlayer *gpl;
-	
+
 	struct ScrArea *sa;
 	struct ARegion *ar;
 	struct View2D *v2d;
-	
+
 	rctf *subrect;       /* for using the camera rect within the 3d view */
 	rctf subrect_data;
-	
+
 	float mat[4][4];     /* transform matrix on the strokes (introduced in [b770964]) */
 } GP_SpaceConversion;
 
 
-/** 
- * Check whether a given stroke segment is inside a circular brush 
+/**
+ * Check whether a given stroke segment is inside a circular brush
  *
  * \param mval     The current screen-space coordinates (midpoint) of the brush
  * \param mvalo    The previous screen-space coordinates (midpoint) of the brush (NOT CURRENTLY USED)
@@ -81,7 +81,7 @@ bool gp_stroke_inside_circle(const int mval[2], const int UNUSED(mvalo[2]),
 
 
 /**
- * Init settings for stroke point space conversions 
+ * Init settings for stroke point space conversions
  *
  * \param[out] r_gsc  The space conversion settings struct, populated with necessary params
  */
@@ -152,17 +152,17 @@ void gpencil_undo_finish(void);
 /* This struct defines a structure used for quick access */
 typedef struct bActListElem {
 	struct bActListElem *next, *prev;
-	
+
 	void *data;   /* source data this elem represents */
 	int   type;   /* one of the ACTTYPE_* values */
 	int   flag;   /* copy of elem's flags for quick access */
 	int   index;  /* copy of adrcode where applicable */
-	
+
 	void  *key_data;  /* motion data - ipo or ipo-curve */
 	short  datatype;  /* type of motion data to expect */
-	
+
 	struct bActionGroup *grp;   /* action group that owns the channel */
-	
+
 	void  *owner;      /* will either be an action channel or fake ipo-channel (for keys) */
 	short  ownertype;  /* type of owner */
 } bActListElem;
