@@ -169,6 +169,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	BLF_lang_set(NULL);
 
+	ED_spacemacros_init();
+
 	/* note: there is a bug where python needs initializing before loading the
 	 * startup.blend because it may contain PyDrivers. It also needs to be after
 	 * initializing space types and other internal data.
@@ -186,8 +188,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 	(void)argc; /* unused */
 	(void)argv; /* unused */
 #endif
-
-	ED_spacemacros_init();
 
 	if (!G.background && !wm_start_with_console)
 		GHOST_toggleConsole(3);
