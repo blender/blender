@@ -247,7 +247,14 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 			/* If node is leaf, fetch triangle list. */
 			if(nodeAddr < 0) {
-				if(UNLIKELY(nodeDist > isect->t)) {
+				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_QNODE_SIZE+6);
+
+				if(UNLIKELY((nodeDist > isect->t)
+#ifdef __VISIBILITY_FLAG__
+				            || ((__float_as_uint(leaf.z) & visibility) == 0)
+#endif
+				  ))
+				{
 					/* Pop. */
 					nodeAddr = traversalStack[stackPtr].addr;
 					nodeDist = traversalStack[stackPtr].dist;
@@ -255,7 +262,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					continue;
 				}
 
-				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_QNODE_SIZE+6);
 				int primAddr = __float_as_int(leaf.x);
 
 #if BVH_FEATURE(BVH_INSTANCING)
@@ -267,12 +273,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					nodeAddr = traversalStack[stackPtr].addr;
 					nodeDist = traversalStack[stackPtr].dist;
 					--stackPtr;
-
-#ifdef __VISIBILITY_FLAG__
-					if((__float_as_uint(leaf.z) & visibility) == 0) {
-						continue;
-					}
-#endif
 
 					/* Primitive intersection. */
 					while(primAddr < primAddr2) {
