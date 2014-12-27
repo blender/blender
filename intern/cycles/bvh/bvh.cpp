@@ -681,8 +681,6 @@ QBVH::QBVH(const BVHParams& params_, const vector<Object*>& objects_)
 : BVH(params_, objects_)
 {
 	params.use_qbvh = true;
-
-	/* todo: use visibility */
 }
 
 void QBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
