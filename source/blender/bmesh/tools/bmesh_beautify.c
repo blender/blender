@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_heap.h"
+#include "BLI_polyfill2d_beautify.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -131,13 +132,16 @@ static float bm_edge_calc_rotate_beauty__area(
 	/* not a loop (only to be able to break out) */
 	do {
 		float v1_xy[2], v2_xy[2], v3_xy[2], v4_xy[2];
-		bool is_zero_a, is_zero_b;
 
 		/* first get the 2d values */
 		{
+			const float eps = 1e-5;
 			float no_a[3], no_b[3];
 			float no[3];
 			float axis_mat[3][3];
+			float no_scale;
+			cross_tri_v3(no_a, v2, v3, v4);
+			cross_tri_v3(no_b, v2, v4, v1);
 
 			// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
 			BLI_assert((ELEM(v1, v2, v3, v4) == false) &&
@@ -145,100 +149,40 @@ static float bm_edge_calc_rotate_beauty__area(
 			           (ELEM(v3, v1, v2, v4) == false) &&
 			           (ELEM(v4, v1, v2, v3) == false));
 
-			is_zero_a = (normal_tri_v3(no_a, v2, v3, v4) <= FLT_EPSILON);
-			is_zero_b = (normal_tri_v3(no_b, v2, v4, v1) <= FLT_EPSILON);
-
-			if (LIKELY(is_zero_a == false && is_zero_b == false)) {
-				add_v3_v3v3(no, no_a, no_b);
-				if (UNLIKELY(normalize_v3(no) <= FLT_EPSILON)) {
-					break;
-				}
-			}
-			else if (is_zero_a == false) {
-				copy_v3_v3(no, no_a);
-			}
-			else if (is_zero_b == false) {
-				copy_v3_v3(no, no_b);
-			}
-			else {
-				/* both zero area, no useful normal can be calculated */
+			add_v3_v3v3(no, no_a, no_b);
+			if (UNLIKELY((no_scale = normalize_v3(no)) <= FLT_EPSILON)) {
 				break;
 			}
-
-			// { float a = angle_normalized_v3v3(no_a, no_b); printf("~ %.7f\n", a); fflush(stdout);}
 
 			axis_dominant_v3_to_m3(axis_mat, no);
 			mul_v2_m3v3(v1_xy, axis_mat, v1);
 			mul_v2_m3v3(v2_xy, axis_mat, v2);
 			mul_v2_m3v3(v3_xy, axis_mat, v3);
 			mul_v2_m3v3(v4_xy, axis_mat, v4);
-		}
 
-		// printf("%p %p %p %p - %p %p\n", v1, v2, v3, v4, e->l->f, e->l->radial_next->f);
-
-		if (is_zero_a == false && is_zero_b == false) {
-			/* both tri's are valid, check we make a concave quad */
-			if (!is_quad_convex_v2(v1_xy, v2_xy, v3_xy, v4_xy)) {
-				break;
-			}
-		}
-		else {
-			/* one of the tri's was degenerate, chech we're not rotating
-			 * into a different degenerate shape or flipping the face */
-			float area_a, area_b;
-
-			area_a = cross_tri_v2(v1_xy, v2_xy, v3_xy);
-			area_b = cross_tri_v2(v1_xy, v3_xy, v4_xy);
-
-			if ((fabsf(area_a) <= FLT_EPSILON) || (fabsf(area_b) <= FLT_EPSILON)) {
-				/* one of the new rotations is degenerate */
-				break;
-			}
-
-			if ((area_a >= 0.0f) != (area_b >= 0.0f)) {
-				/* rotation would cause flipping */
+			/**
+			 * Check if input faces are already flipped.
+			 * Logic for 'signum_i' addition is:
+			 *
+			 * Accept:
+			 * - (1, 1) or (-1, -1): same side (common case).
+			 * - (-1/1, 0): one degenerate, OK since we may rotate into a valid state.
+			 *
+			 * Ignore:
+			 * - (-1, 1): opposite winding, ignore.
+			 * - ( 0, 0): both degenerate, ignore.
+			 *
+			 * \note The cross product is divided by 'no_scale'
+			 * so the rotation calculation is scale independent.
+			 */
+			if (!(signum_i_ex(cross_tri_v2(v2_xy, v3_xy, v4_xy) / no_scale, eps) +
+			      signum_i_ex(cross_tri_v2(v2_xy, v4_xy, v1_xy) / no_scale, eps)))
+			{
 				break;
 			}
 		}
 
-		{
-			/* testing rule: the area divided by the perimeter,
-			 * check if (1-3) beats the existing (2-4) edge rotation */
-			float area_a, area_b;
-			float prim_a, prim_b;
-			float fac_24, fac_13;
-
-			float len_12, len_23, len_34, len_41, len_24, len_13;
-
-			/* edges around the quad */
-			len_12 = len_v2v2(v1_xy, v2_xy);
-			len_23 = len_v2v2(v2_xy, v3_xy);
-			len_34 = len_v2v2(v3_xy, v4_xy);
-			len_41 = len_v2v2(v4_xy, v1_xy);
-			/* edges crossing the quad interior */
-			len_13 = len_v2v2(v1_xy, v3_xy);
-			len_24 = len_v2v2(v2_xy, v4_xy);
-
-			/* note, area is in fact (area * 2),
-			 * but in this case its OK, since we're comparing ratios */
-
-			/* edge (2-4), current state */
-			area_a = fabsf(cross_tri_v2(v2_xy, v3_xy, v4_xy));
-			area_b = fabsf(cross_tri_v2(v2_xy, v4_xy, v1_xy));
-			prim_a = len_23 + len_34 + len_24;
-			prim_b = len_41 + len_12 + len_24;
-			fac_24 = (area_a / prim_a) + (area_b / prim_b);
-
-			/* edge (1-3), new state */
-			area_a = fabsf(cross_tri_v2(v1_xy, v2_xy, v3_xy));
-			area_b = fabsf(cross_tri_v2(v1_xy, v3_xy, v4_xy));
-			prim_a = len_12 + len_23 + len_13;
-			prim_b = len_34 + len_41 + len_13;
-			fac_13 = (area_a / prim_a) + (area_b / prim_b);
-
-			/* negative number if (1-3) is an improved state */
-			return fac_24 - fac_13;
-		}
+		return BLI_polyfill_beautify_quad_rotate_calc(v1_xy, v2_xy, v3_xy, v4_xy);
 	} while (false);
 
 	return FLT_MAX;

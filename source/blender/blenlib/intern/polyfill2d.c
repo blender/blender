@@ -165,7 +165,7 @@ static bool       pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip);
 static void       pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip);
 
 
-BLI_INLINE eSign signum_i(float a)
+BLI_INLINE eSign signum_enum(float a)
 {
 	if (UNLIKELY(a == 0.0f))
 		return  0;
@@ -191,7 +191,7 @@ BLI_INLINE float area_tri_signed_v2_alt_2x(const float v1[2], const float v2[2],
 
 static eSign span_tri_v2_sign(const float v1[2], const float v2[2], const float v3[2])
 {
-	return signum_i(area_tri_signed_v2_alt_2x(v3, v2, v1));
+	return signum_enum(area_tri_signed_v2_alt_2x(v3, v2, v1));
 }
 
 

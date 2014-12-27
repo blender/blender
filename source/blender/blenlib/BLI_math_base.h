@@ -194,6 +194,8 @@ MINLINE int min_iiii(int a, int b, int c, int d);
 MINLINE int max_iiii(int a, int b, int c, int d);
 
 MINLINE float signf(float f);
+MINLINE int signum_i_ex(float a, float eps);
+MINLINE int signum_i(float a);
 
 MINLINE float power_of_2(float f);
 

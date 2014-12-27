@@ -33,6 +33,9 @@ void BLI_polyfill_beautify(
         /* structs for reuse */
         struct MemArena *arena, struct Heap *eheap, struct EdgeHash *eh);
 
+float BLI_polyfill_beautify_quad_rotate_calc(
+        const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
+
 /* avoid realloc's when creating new structures for polyfill ngons */
 #define BLI_POLYFILL_ALLOC_NGON_RESERVE 64
 
