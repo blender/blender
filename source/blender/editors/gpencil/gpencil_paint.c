@@ -1598,15 +1598,6 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event)
 	else
 		p->pressure = 1.0f;
 	
-	/* fill in stroke data (not actually used directly by gpencil_draw_apply) */
-	RNA_collection_add(op->ptr, "stroke", &itemptr);
-	
-	mousef[0] = p->mval[0];
-	mousef[1] = p->mval[1];
-	RNA_float_set_array(&itemptr, "mouse", mousef);
-	RNA_float_set(&itemptr, "pressure", p->pressure);
-	RNA_boolean_set(&itemptr, "is_start", (p->flags & GP_PAINTFLAG_FIRSTRUN));
-	
 	/* special exception for start of strokes (i.e. maybe for just a dot) */
 	if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
 		p->flags &= ~GP_PAINTFLAG_FIRSTRUN;
@@ -1622,6 +1613,15 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event)
 		if (tablet && (p->pressure >= 0.99f))
 			return;
 	}
+	
+	/* fill in stroke data (not actually used directly by gpencil_draw_apply) */
+	RNA_collection_add(op->ptr, "stroke", &itemptr);
+	
+	mousef[0] = p->mval[0];
+	mousef[1] = p->mval[1];
+	RNA_float_set_array(&itemptr, "mouse", mousef);
+	RNA_float_set(&itemptr, "pressure", p->pressure);
+	RNA_boolean_set(&itemptr, "is_start", (p->flags & GP_PAINTFLAG_FIRSTRUN));
 	
 	RNA_float_set(&itemptr, "time", p->curtime - p->inittime);
 	
