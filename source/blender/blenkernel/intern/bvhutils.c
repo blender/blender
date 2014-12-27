@@ -65,9 +65,7 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
 	
 	float idist;
 	float p1[3];
-	float plane_normal[3], hit_point[3];
-
-	normal_tri_v3(plane_normal, v0, v1, v2);
+	float hit_point[3];
 
 	madd_v3_v3v3fl(p1, ray->origin, ray->direction, m_dist);
 	if (isect_sweeping_sphere_tri_v3(ray->origin, p1, radius, v0, v1, v2, &idist, hit_point)) {
