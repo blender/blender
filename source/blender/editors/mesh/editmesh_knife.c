@@ -2023,34 +2023,17 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	return 1;
 }
 
-/* sort list of kverts by fraction along edge e */
-static void sort_by_frac_along(ListBase *lst, BMEdge *e)
+static int sort_verts_by_dist_cb(void *co_p, const void *cur_a_p, const void *cur_b_p)
 {
-	/* note, since we know the point is along the edge, sort from distance to v1co */
-	const float *v1co = e->v1->co;
-	Ref *cur = NULL, *prev = NULL, *next = NULL;
+	KnifeVert *cur_a = ((Ref *)cur_a_p)->ref;
+	KnifeVert *cur_b = ((Ref *)cur_b_p)->ref;
+	const float *co = co_p;
+	const float a_sq = len_squared_v3v3(co, cur_a->co);
+	const float b_sq = len_squared_v3v3(co, cur_b->co);
 
-	if (lst->first == lst->last)
-		return;
-
-	for (cur = ((Ref *)lst->first)->next; cur; cur = next) {
-		KnifeVert *vcur = cur->ref;
-		const float vcur_fac_sq = len_squared_v3v3(v1co, vcur->co);
-
-		next = cur->next;
-		prev = cur->prev;
-
-		BLI_remlink(lst, cur);
-
-		while (prev) {
-			KnifeVert *vprev = prev->ref;
-			if (len_squared_v3v3(v1co, vprev->co) <= vcur_fac_sq)
-				break;
-			prev = prev->prev;
-		}
-
-		BLI_insertlinkafter(lst, prev, cur);
-	}
+	if      (a_sq < b_sq) return -1;
+	else if (a_sq > b_sq) return  1;
+	else                  return  0;
 }
 
 /* The chain so far goes from an instantiated vertex to kfv (some may be reversed).
@@ -2684,7 +2667,8 @@ static void knife_make_cuts(KnifeTool_OpData *kcd)
 	for (lst = BLI_smallhash_iternew(ehash, &hiter, (uintptr_t *)&e); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&e))
 	{
-		sort_by_frac_along(lst, e);
+		BLI_listbase_sort_r(lst, e->v1->co, sort_verts_by_dist_cb);
+
 		for (ref = lst->first; ref; ref = ref->next) {
 			kfv = ref->ref;
 			pct = line_point_factor_v3(kfv->co, e->v1->co, e->v2->co);
