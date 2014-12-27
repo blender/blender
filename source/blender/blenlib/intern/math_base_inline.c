@@ -276,5 +276,18 @@ MINLINE float signf(float f)
 	return (f < 0.f) ? -1.f : 1.f;
 }
 
+MINLINE int signum_i_ex(float a, float eps)
+{
+	if (a >  eps) return  1;
+	if (a < -eps) return -1;
+	else          return  0;
+}
+
+MINLINE int signum_i(float a)
+{
+	if (a > 0.0f) return  1;
+	if (a < 0.0f) return -1;
+	else          return  0;
+}
 
 #endif /* __MATH_BASE_INLINE_C__ */

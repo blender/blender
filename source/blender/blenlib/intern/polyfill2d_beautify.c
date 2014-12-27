@@ -123,7 +123,7 @@ BLI_INLINE bool is_boundary_edge(unsigned int i_a, unsigned int i_b, const unsig
  *
  * \return (negative number means the edge can be rotated, lager == better).
  */
-static float quad_v2_rotate_beauty_calc(
+float BLI_polyfill_beautify_quad_rotate_calc(
         const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 	/* not a loop (only to be able to break out) */
@@ -150,24 +150,16 @@ static float quad_v2_rotate_beauty_calc(
 			}
 		}
 
-		if (is_zero_a == false && is_zero_b == false) {
-			/* both tri's are valid, check we make a concave quad */
-			if (!is_quad_convex_v2(v1, v2, v3, v4)) {
-				break;
-			}
+		/* one of the tri's was degenerate, check we're not rotating
+		 * into a different degenerate shape or flipping the face */
+		if ((fabsf(area_2x_123) <= FLT_EPSILON) || (fabsf(area_2x_134) <= FLT_EPSILON)) {
+			/* one of the new rotations is degenerate */
+			break;
 		}
-		else {
-			/* one of the tri's was degenerate, chech we're not rotating
-			 * into a different degenerate shape or flipping the face */
-			if ((fabsf(area_2x_123) <= FLT_EPSILON) || (fabsf(area_2x_134) <= FLT_EPSILON)) {
-				/* one of the new rotations is degenerate */
-				break;
-			}
 
-			if ((area_2x_123 >= 0.0f) != (area_2x_134 >= 0.0f)) {
-				/* rotation would cause flipping */
-				break;
-			}
+		if ((area_2x_123 >= 0.0f) != (area_2x_134 >= 0.0f)) {
+			/* rotation would cause flipping */
+			break;
 		}
 
 		{
@@ -225,7 +217,7 @@ static float polyedge_rotate_beauty_calc(
 	v2 = coords[e->verts[0]];
 	v4 = coords[e->verts[1]];
 
-	return quad_v2_rotate_beauty_calc(v1, v2, v3, v4);
+	return BLI_polyfill_beautify_quad_rotate_calc(v1, v2, v3, v4);
 }
 
 static void polyedge_beauty_cost_update_single(
