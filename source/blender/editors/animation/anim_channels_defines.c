@@ -3966,16 +3966,24 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 			/* color swatch for layer color */
 			bGPDlayer *gpl = (bGPDlayer *)ale->data;
 			PointerRNA ptr;
+			float w = ICON_WIDTH / 2.0f;
 			
 			RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, &ptr);
 			
-			UI_block_emboss_set(block, UI_EMBOSS);
+			UI_block_align_begin(block);
 			
-			uiDefButR(block, UI_BTYPE_COLOR, 1, "", offset, yminc, ICON_WIDTH, ICON_WIDTH, 
+			UI_block_emboss_set(block, RNA_boolean_get(&ptr, "is_stroke_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
+			uiDefButR(block, UI_BTYPE_COLOR, 1, "", offset, yminc, w, ICON_WIDTH, 
 			          &ptr, "color", -1, 
 			          0, 0, 0, 0, gpl->info);
 			
+			UI_block_emboss_set(block, RNA_boolean_get(&ptr, "is_fill_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
+			uiDefButR(block, UI_BTYPE_COLOR, 1, "", offset + w, yminc, w, ICON_WIDTH, 
+			          &ptr, "fill_color", -1, 
+			          0, 0, 0, 0, gpl->info);
+			
 			UI_block_emboss_set(block, UI_EMBOSS_NONE);
+			UI_block_align_end(block);
 			
 			offset += ICON_WIDTH;
 		}

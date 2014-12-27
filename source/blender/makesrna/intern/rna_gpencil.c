@@ -104,6 +104,24 @@ static void rna_GPencilLayer_line_width_range(PointerRNA *ptr, int *min, int *ma
 	}
 }
 
+static int rna_GPencilLayer_is_stroke_visible_get(PointerRNA *ptr)
+{
+	/* see drawgpencil.c -> gp_draw_data_layers() for more details
+	 * about this limit for showing/not showing
+	 */
+	bGPDlayer *gpl = (bGPDlayer *)ptr->data;
+	return (gpl->color[3] > 0.001f);
+}
+
+static int rna_GPencilLayer_is_fill_visible_get(PointerRNA *ptr)
+{
+	/* see drawgpencil.c -> gp_draw_data_layers() for more details
+	 * about this limit for showing/not showing
+	 */
+	bGPDlayer *gpl = (bGPDlayer *)ptr->data;
+	return (gpl->fill[3] > 0.001f);
+}
+
 static PointerRNA rna_GPencil_active_layer_get(PointerRNA *ptr)
 {
 	bGPdata *gpd = ptr->id.data;
@@ -763,6 +781,17 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "X Ray", "Make the layer draw in front of objects");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
+	
+	/* Read-only state props (for simpler UI code) */
+	prop = RNA_def_property(srna, "is_stroke_visible", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_GPencilLayer_is_stroke_visible_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Stroke Visible", "True when opacity of stroke is set high enough to be visible");
+	
+	prop = RNA_def_property(srna, "is_fill_visible", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_GPencilLayer_is_fill_visible_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Fill Visible", "True when opacity of fill is set high enough to be visible");
 	
 	/* Layers API */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_layer_clear");

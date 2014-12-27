@@ -302,9 +302,11 @@ class GPENCIL_UL_layer(UIList):
             if gpl.lock:
                 layout.active = False
 
-            split = layout.split(percentage=0.2)
-            split.prop(gpl, "color", text="")
-            split.prop(gpl, "info", text="", emboss=False)
+            split = layout.split(percentage=0.25)
+            row = split.row(align=True)
+            row.prop(gpl, "color",      text="", emboss = gpl.is_stroke_visible)
+            row.prop(gpl, "fill_color", text="", emboss = gpl.is_fill_visible)
+            split.prop(gpl, "info",  text="", emboss=False)
 
             row = layout.row(align=True)
             row.prop(gpl, "lock", text="", emboss=False)
