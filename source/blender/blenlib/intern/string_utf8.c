@@ -209,6 +209,22 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
 	return r_dst;
 }
 
+size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+{
+	char *r_dst = dst;
+
+	BLI_assert(maxncpy != 0);
+
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
+	/* note: currently we don't attempt to deal with invalid utf8 chars */
+	BLI_STR_UTF8_CPY(dst, src, maxncpy);
+
+	return (size_t)(dst - r_dst);
+}
+
 char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
 {
 	while (*dst && maxncpy > 0) {
