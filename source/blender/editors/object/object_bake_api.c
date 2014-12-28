@@ -1081,8 +1081,9 @@ static int bake_exec(bContext *C, wmOperator *op)
 	/* setup new render */
 	RE_test_break_cb(re, NULL, bake_break);
 
-	if (!bake_objects_check(bkr.main, bkr.ob, &bkr.selected_objects, bkr.reports, bkr.is_selected_to_active))
-		return OPERATOR_CANCELLED;
+	if (!bake_objects_check(bkr.main, bkr.ob, &bkr.selected_objects, bkr.reports, bkr.is_selected_to_active)) {
+		goto finally;
+	}
 
 	if (bkr.is_clear) {
 		const bool is_tangent = ((bkr.pass_type == SCE_PASS_NORMAL) && (bkr.normal_space == R_BAKE_SPACE_TANGENT));
@@ -1117,6 +1118,8 @@ static int bake_exec(bContext *C, wmOperator *op)
 
 	RE_SetReports(re, NULL);
 
+
+finally:
 	BLI_freelistN(&bkr.selected_objects);
 	return result;
 }
