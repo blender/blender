@@ -228,7 +228,8 @@ bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
 		int number;
 		int len = BLI_split_name_num(left, &number, name, delim);
 		do {
-			const int numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number);
+			/* add 1 to account for \0 */
+			const int numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number) + 1;
 
 			/* highly unlikely the string only has enough room for the number
 			 * but support anyway */
@@ -238,9 +239,8 @@ bool BLI_uniquename_cb(bool (*unique_check)(void *arg, const char *name),
 			}
 			else {
 				char *tempname_buf;
-				tempname[0] = '\0';
-				tempname_buf = BLI_strncat_utf8(tempname, left, name_len - numlen);
-				memcpy(tempname_buf, numstr, numlen + 1);
+				tempname_buf = tempname + BLI_strncpy_utf8_rlen(tempname, left, name_len - numlen);
+				memcpy(tempname_buf, numstr, numlen);
 			}
 		} while (unique_check(arg, tempname));
 
