@@ -989,6 +989,7 @@ static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(groups_array);
+	MEM_freeN(group_index);
 
 	if (changed) {
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
