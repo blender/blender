@@ -245,6 +245,13 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 							cont = false;
 						}
 						break;
+
+					case SIMFACE_SMOOTH:
+						if(BM_elem_flag_test(fm, BM_ELEM_SMOOTH) == BM_elem_flag_test(fs, BM_ELEM_SMOOTH)) {
+							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							cont = false;
+						}
+						break;
 #ifdef WITH_FREESTYLE
 					case SIMFACE_FREESTYLE:
 						if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
