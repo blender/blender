@@ -2967,14 +2967,12 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, autosnap_items);
 	RNA_def_property_ui_text(prop, "Auto Snap", "Automatic time snapping settings for transformations");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
-	
+
 	/* readonly state info */
 	prop = RNA_def_property(srna, "has_ghost_curves", PROP_BOOLEAN, PROP_NONE);
-	/* XXX: hack to make this compile, since this property doesn't actually exist*/
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", 0);
 	RNA_def_property_boolean_funcs(prop, "rna_SpaceGraphEditor_has_ghost_curves_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Has Ghost Curves", "Graph Editor instance has some ghost curves stored");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
 	/* nromalize curves */
 	prop = RNA_def_property(srna, "use_normalization", PROP_BOOLEAN, PROP_NONE);
@@ -3110,7 +3108,6 @@ static void rna_def_console_line(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "ConsoleLine", NULL);
 	RNA_def_struct_ui_text(srna, "Console Input", "Input line for the interactive console");
-	/* XXX using non-inited "prop", uh? RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL); */
 	
 	prop = RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ConsoleLine_body_get", "rna_ConsoleLine_body_length",
