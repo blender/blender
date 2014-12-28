@@ -34,6 +34,7 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 
 char        *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
+size_t       BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
 char        *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
 int          BLI_utf8_invalid_byte(const char *str, int length) ATTR_NONNULL();
 int          BLI_utf8_invalid_strip(char *str, int length) ATTR_NONNULL();
