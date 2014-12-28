@@ -1846,8 +1846,24 @@ static PyObject *Matrix_zero(MatrixObject *self)
 		return NULL;
 
 	Py_RETURN_NONE;
+
 }
 /*---------------------------matrix.identity(() ------------------*/
+static void matrix_identity_internal(MatrixObject *self)
+{
+	BLI_assert((self->num_col == self->num_row) && (self->num_row <= 4));
+
+	if (self->num_col == 2) {
+		unit_m2((float (*)[2])self->matrix);
+	}
+	else if (self->num_col == 3) {
+		unit_m3((float (*)[3])self->matrix);
+	}
+	else {
+		unit_m4((float (*)[4])self->matrix);
+	}
+}
+
 PyDoc_STRVAR(Matrix_identity_doc,
 ".. method:: identity()\n"
 "\n"
@@ -1870,15 +1886,7 @@ static PyObject *Matrix_identity(MatrixObject *self)
 		return NULL;
 	}
 
-	if (self->num_col == 2) {
-		unit_m2((float (*)[2])self->matrix);
-	}
-	else if (self->num_col == 3) {
-		unit_m3((float (*)[3])self->matrix);
-	}
-	else {
-		unit_m4((float (*)[4])self->matrix);
-	}
+	matrix_identity_internal(self);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return NULL;
@@ -2808,8 +2816,7 @@ PyObject *Matrix_CreatePyObject(float *mat,
 			}
 			else if (num_col == num_row) {
 				/* or if no arguments are passed return identity matrix for square matrices */
-				PyObject *ret_dummy = Matrix_identity(self);
-				Py_DECREF(ret_dummy);
+				matrix_identity_internal(self);
 			}
 			else {
 				/* otherwise zero everything */
