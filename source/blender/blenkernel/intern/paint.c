@@ -395,7 +395,7 @@ bool BKE_paint_select_elem_test(Object *ob)
 	        BKE_paint_select_face_test(ob));
 }
 
-void BKE_paint_init(Paint *p, const char col[3])
+void BKE_paint_init(UnifiedPaintSettings *ups, Paint *p, const char col[3])
 {
 	Brush *brush;
 
@@ -407,6 +407,9 @@ void BKE_paint_init(Paint *p, const char col[3])
 
 	memcpy(p->paint_cursor_col, col, 3);
 	p->paint_cursor_col[3] = 128;
+	ups->last_stroke_valid = false;
+	zero_v3(ups->average_stroke_accum);
+	ups->average_stroke_counter = 0;
 }
 
 void BKE_paint_free(Paint *paint)
@@ -424,6 +427,18 @@ void BKE_paint_copy(Paint *src, Paint *tar)
 	tar->brush = src->brush;
 	id_us_plus((ID *)tar->brush);
 	id_us_plus((ID *)tar->palette);
+}
+
+void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3])
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+	if (ups->last_stroke_valid && ups->average_stroke_counter > 0) {
+		float fac = 1.0f / ups->average_stroke_counter;
+		mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
+	}
+	else {
+		copy_v3_v3(stroke, ob->obmat[3]);
+	}
 }
 
 /* returns non-zero if any of the face's vertices

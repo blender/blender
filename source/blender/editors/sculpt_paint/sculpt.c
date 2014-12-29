@@ -115,17 +115,6 @@ static int system_physical_thread_count(void)
 }
 #endif  /* __APPLE__ */
 
-void ED_sculpt_stroke_get_average(Object *ob, float stroke[3])
-{
-	if (ob->sculpt->last_stroke_valid && ob->sculpt->average_stroke_counter > 0) {
-		float fac = 1.0f / ob->sculpt->average_stroke_counter;
-		mul_v3_v3fl(stroke, ob->sculpt->average_stroke_accum, fac);
-	}
-	else {
-		copy_v3_v3(stroke, ob->obmat[3]);
-	}
-}
-
 /* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
 static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
@@ -2940,7 +2929,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 /* Note: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
-static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
+static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *UNUSED(ups))
 {
 	SculptSession *ss = ob->sculpt;
 	SculptSearchSphereData data;
@@ -3001,13 +2990,10 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 		/* update average stroke position */
 		copy_v3_v3(location, ss->cache->true_location);
 		mul_m4_v3(ob->obmat, location);
-
-		add_v3_v3(ob->sculpt->average_stroke_accum, location);
-		ob->sculpt->average_stroke_counter++;
 	}
 }
 
-static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
+static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups)
 {
 	SculptSession *ss = ob->sculpt;
 	SculptSearchSphereData data;
@@ -3121,8 +3107,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 		copy_v3_v3(location, ss->cache->true_location);
 		mul_m4_v3(ob->obmat, location);
 
-		add_v3_v3(ob->sculpt->average_stroke_accum, location);
-		ob->sculpt->average_stroke_counter++;
+		add_v3_v3(ups->average_stroke_accum, location);
+		ups->average_stroke_counter++;
 	}
 }
 
@@ -3331,9 +3317,9 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 	}
 }
 
-typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush);
+typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups);
 
-static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush,
+static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups,
                                BrushActionFunc action,
                                const char symm, const int axis,
                                const float feather)
@@ -3345,7 +3331,7 @@ static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush,
 		const float angle = 2 * M_PI * i / sd->radial_symm[axis - 'X'];
 		ss->cache->radial_symmetry_pass = i;
 		calc_brushdata_symm(sd, ss->cache, symm, axis, angle, feather);
-		action(sd, ob, brush);
+		action(sd, ob, brush, ups);
 	}
 }
 
@@ -3383,11 +3369,11 @@ static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
 			cache->radial_symmetry_pass = 0;
 
 			calc_brushdata_symm(sd, cache, i, 0, 0, feather);
-			action(sd, ob, brush);
+			action(sd, ob, brush, ups);
 
-			do_radial_symmetry(sd, ob, brush, action, i, 'X', feather);
-			do_radial_symmetry(sd, ob, brush, action, i, 'Y', feather);
-			do_radial_symmetry(sd, ob, brush, action, i, 'Z', feather);
+			do_radial_symmetry(sd, ob, brush, ups, action, i, 'X', feather);
+			do_radial_symmetry(sd, ob, brush, ups, action, i, 'Y', feather);
+			do_radial_symmetry(sd, ob, brush, ups, action, i, 'Z', feather);
 		}
 	}
 }
@@ -4121,6 +4107,7 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
 static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Object *ob = CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
@@ -4139,8 +4126,8 @@ static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
 	BKE_sculpt_update_mesh_elements(scene, sd, ob, is_smooth, need_mask);
 
-	zero_v3(ob->sculpt->average_stroke_accum);
-	ob->sculpt->average_stroke_counter = 0;
+	zero_v3(ups->average_stroke_accum);
+	ups->average_stroke_counter = 0;
 
 	return 1;
 }
@@ -4349,7 +4336,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		}
 
 		/* update last stroke position */
-		ob->sculpt->last_stroke_valid = 1;
+		ups->last_stroke_valid = true;
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
@@ -4967,7 +4954,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			           "Object has negative scale, sculpting may be unpredictable");
 		}
 
-		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(&ts->unified_paint_settings, &ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 
 		paint_cursor_start(C, sculpt_poll_view3d);
 	}

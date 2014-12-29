@@ -985,7 +985,12 @@ typedef struct UnifiedPaintSettings {
 
 	/* record movement of mouse so that rake can start at an intuitive angle */
 	float last_rake[2];
-	float last_rake_angle, pad;
+	float last_rake_angle;
+	
+	int last_stroke_valid;
+	float average_stroke_accum[3];
+	int average_stroke_counter;
+	
 
 	float brush_rotation;
 	float brush_rotation_sec;

@@ -627,7 +627,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 		 */
 		if (ob->mode & OB_MODE_SCULPT) {
 			float stroke[3];
-			ED_sculpt_stroke_get_average(ob, stroke);
+			BKE_paint_stroke_get_average(scene, ob, stroke);
 			copy_v3_v3(lastofs, stroke);
 		}
 		else {
@@ -2976,7 +2976,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		ok = PE_minmax(scene, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_SCULPT)) {
-		ED_sculpt_stroke_get_average(ob, min);
+		BKE_paint_stroke_get_average(scene, ob, min);
 		copy_v3_v3(max, min);
 		ok = true;
 		ok_dist = 0; /* don't zoom */

@@ -34,6 +34,7 @@ struct ARegion;
 struct bContext;
 struct Object;
 struct RegionView3D;
+struct Scene;
 struct ViewContext;
 struct rcti;
 
@@ -41,7 +42,6 @@ struct rcti;
 void ED_operatortypes_sculpt(void);
 void ED_sculpt_redraw_planes_get(float planes[4][4], struct ARegion *ar,
                                  struct RegionView3D *rv3d, struct Object *ob);
-void ED_sculpt_stroke_get_average(struct Object *ob, float stroke[3]);
 int  ED_sculpt_mask_box_select(struct bContext *C, struct ViewContext *vc, const struct rcti *rect, bool select, bool extend);
 
 #endif /* __ED_SCULPT_H__ */
