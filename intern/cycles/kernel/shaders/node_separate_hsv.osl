@@ -23,7 +23,7 @@ shader node_separate_hsv(
 	output float S = 0.0,
 	output float V = 0.0)
 {
-	color col = rgb_to_hsv(color_scene_linear_to_srgb(Color));
+	color col = rgb_to_hsv(Color);
 	
 	H = col[0];
 	S = col[1];
