@@ -142,7 +142,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
 
-	if (op->customdata) MEM_freeN(op->customdata);
+	MEM_freeN(op->customdata);
 	return OPERATOR_FINISHED;
 }
 
