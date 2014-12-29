@@ -266,6 +266,7 @@ class SpellChecker():
         "ok",
         "orco",
         "ortho",
+        "pano",
         "persp",
         "pref", "prefs",
         "prev",
