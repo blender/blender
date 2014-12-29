@@ -15,7 +15,6 @@
  */
 
 #include "stdosl.h"
-#include "node_color.h"
 
 shader node_combine_hsv(
 	float H = 0.0,
@@ -23,6 +22,6 @@ shader node_combine_hsv(
 	float V = 0.0,
 	output color Color = 0.8)
 {
-	Color = color_srgb_to_scene_linear(color("hsv", H, S, V));
+	Color = color("hsv", H, S, V);	
 }
 
