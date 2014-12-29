@@ -2534,16 +2534,15 @@ void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, c
 		mul_m4_m4m4(diff_mat, parent_mat, ob->parentinv);
 		invert_m4_m4(imat, diff_mat);
 		mul_m4_m4m4(rmat, imat, mat); /* get the parent relative matrix */
-		BKE_object_apply_mat4(ob, rmat, use_compat, false);
 
 		/* same as below, use rmat rather than mat */
 		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
-		BKE_object_mat3_to_rot(ob, rot, use_compat);
 	}
 	else {
 		mat4_to_loc_rot_size(ob->loc, rot, ob->size, mat);
-		BKE_object_mat3_to_rot(ob, rot, use_compat);
 	}
+
+	BKE_object_mat3_to_rot(ob, rot, use_compat);
 
 	sub_v3_v3(ob->loc, ob->dloc);
 
