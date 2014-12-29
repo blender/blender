@@ -102,7 +102,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 	double d_obmat[4][4];
 	float  f_obmat[4][4];
 
-	/* Export the local Matrix (relative to the object parent) */
+	/* Export the local Matrix (relative to the object parent, be it an object, bone or vertex(-tices)) */
 	BKE_object_matrix_local_get(ob, f_obmat);
 	converter.mat4_to_dae_double(d_obmat, f_obmat);
 

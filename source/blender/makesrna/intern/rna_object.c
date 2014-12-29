@@ -233,21 +233,21 @@ static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 {
 	Object *ob = ptr->id.data;
+	float local_mat[4][4];
 
-	/* localspace matrix is truly relative to the parent, but parameters
-	 * stored in object are relative to parentinv matrix.  Undo the parent
-	 * inverse part before updating obmat and calling apply_obmat() */
+	/* localspace matrix is truly relative to the parent, but parameters stored in object are
+	 * relative to parentinv matrix. Undo the parent inverse part before applying it as local matrix. */
 	if (ob->parent) {
 		float invmat[4][4];
 		invert_m4_m4(invmat, ob->parentinv);
-		mul_m4_m4m4(ob->obmat, invmat, (float(*)[4])values);
+		mul_m4_m4m4(local_mat, invmat, (float(*)[4])values);
 	}
 	else {
-		copy_m4_m4(ob->obmat, (float(*)[4])values);
+		copy_m4_m4(local_mat, (float(*)[4])values);
 	}
 
-	/* don't use compat so we get predictable rotation */
-	BKE_object_apply_mat4(ob, ob->obmat, false, false);
+	/* don't use compat so we get predictable rotation, and do not use parenting either, because it's a local matrix! */
+	BKE_object_apply_mat4(ob, local_mat, false, false);
 }
 
 static void rna_Object_matrix_basis_get(PointerRNA *ptr, float values[16])
