@@ -256,11 +256,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			if(nodeAddr < 0) {
 				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_QNODE_SIZE+6);
 
-				if(UNLIKELY((nodeDist > isect->t)
 #ifdef __VISIBILITY_FLAG__
-				            || ((__float_as_uint(leaf.z) & visibility) == 0)
+				if(UNLIKELY((nodeDist > isect->t) || ((__float_as_uint(leaf.z) & visibility) == 0)))
+#else
+				if(UNLIKELY((nodeDist > isect->t)))
 #endif
-				  ))
 				{
 					/* Pop. */
 					nodeAddr = traversalStack[stackPtr].addr;
