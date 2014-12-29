@@ -22,7 +22,6 @@ set(LIBRARIES
 	${BOOST_LIBRARIES}
 	${OPENEXR_LIBRARIES}
 	${BLENDER_GL_LIBRARIES}
-	bf_intern_glew_mx
 	${CYCLES_APP_GLEW_LIBRARY}
 	${OPENIMAGEIO_LIBRARIES}
 	${PNG_LIBRARIES}
@@ -33,20 +32,30 @@ set(LIBRARIES
 	extern_cuew
 )
 
+if(NOT CYCLES_STANDALONE_REPOSITORY)
+	list(APPEND LIBRARIES bf_intern_glew_mx)
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 
 if(WIN32)
 	list(APPEND LIBRARIES ${PTHREADS_LIBRARIES})
 endif()
 
-link_directories(${OPENIMAGEIO_LIBPATH} ${BOOST_LIBPATH} ${PNG_LIBPATH} ${JPEG_LIBPATH} ${ZLIB_LIBPATH} ${TIFF_LIBPATH})
+link_directories(${OPENIMAGEIO_LIBPATH}
+                 ${BOOST_LIBPATH}
+                 ${PNG_LIBPATH}
+                 ${JPEG_LIBPATH}
+                 ${ZLIB_LIBPATH}
+                 ${TIFF_LIBPATH}
+                 ${OPENEXR_LIBPATH})
 
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
 	list(APPEND LIBRARIES ${GLUT_LIBRARIES})
 endif()
 
 if(WITH_CYCLES_OSL)
-	list(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES} ${LLVM_LIBRARY})
+	list(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES} ${LLVM_LIBRARIES})
 endif()
 
 include_directories(${INC})

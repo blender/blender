@@ -10,7 +10,7 @@ set(INC
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_DIR}
 	../../../extern/cuew/include
 	../../../extern/clew/include
 )

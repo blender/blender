@@ -120,7 +120,7 @@ if(WITH_CYCLES_OSL)
 	add_definitions(-DOSL_STATIC_LIBRARY)
 	include_directories(
 		SYSTEM
-		${OSL_INCLUDES}
+		${OSL_INCLUDE_DIR}
 	)
 endif()
 

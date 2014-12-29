@@ -11,7 +11,7 @@ set(INC
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_DIR}
 )
 
 set(SRC

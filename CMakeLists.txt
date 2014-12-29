@@ -1076,10 +1076,10 @@ if(UNIX AND NOT APPLE)
 		# Note: --whole-archive is needed to force loading of all symbols in liboslexec,
 		# otherwise LLVM is missing the osl_allocate_closure_component function
 		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} -Wl,--whole-archive ${OSL_LIB_EXEC} -Wl,--no-whole-archive ${OSL_LIB_QUERY})
-		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
+		find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
 	
-		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+		if(OSL_INCLUDE_DIR AND OSL_LIBRARIES AND OSL_COMPILER)
 			set(OSL_FOUND TRUE)
 		else()
 			message(STATUS "OSL not found")
@@ -1760,10 +1760,10 @@ elseif(WIN32)
 		find_library(OSL_LIB_COMP_DEBUG NAMES oslcomp_d PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_QUERY_DEBUG NAMES oslquery_d PATHS ${CYCLES_OSL}/lib)
 		list(APPEND OSL_LIBRARIES optimized ${OSL_LIB_COMP} optimized ${OSL_LIB_EXEC} optimized ${OSL_LIB_QUERY} debug ${OSL_LIB_EXEC_DEBUG} debug ${OSL_LIB_COMP_DEBUG} debug ${OSL_LIB_QUERY_DEBUG})
-		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
+		find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
 	
-		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+		if(OSL_INCLUDE_DIR AND OSL_LIBRARIES AND OSL_COMPILER)
 			set(OSL_FOUND TRUE)
 		else()
 			message(STATUS "OSL not found")
@@ -2054,10 +2054,10 @@ elseif(APPLE)
 		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
 		# WARNING! depends on correct order of OSL libs linking
 		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} -force_load ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
-		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
+		find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
 	
-		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+		if(OSL_INCLUDE_DIR AND OSL_LIBRARIES AND OSL_COMPILER)
 			set(OSL_FOUND TRUE)
 		else()
 			message(STATUS "OSL not found")
@@ -2629,7 +2629,7 @@ mark_as_advanced(
 	OSL_COMPILER
 	OSL_LIB_COMP
 	OSL_LIB_QUERY
-	OSL_INCLUDES
+	OSL_INCLUDE_DIR
 )
 
 mark_as_advanced(
