@@ -378,10 +378,13 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background, bo
 	else
 		params.persistent_data = false;
 
+#if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
 	if(is_cpu) {
 		params.use_qbvh = system_cpu_support_sse2();
 	}
-	else {
+	else
+#endif
+	{
 		params.use_qbvh = false;
 	}
 
