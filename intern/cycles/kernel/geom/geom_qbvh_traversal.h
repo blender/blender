@@ -180,6 +180,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						if(d1 < d0) {
 							nodeAddr = c1;
 							++stackPtr;
+							kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 							traversalStack[stackPtr].addr = c0;
 							traversalStack[stackPtr].dist = d0;
 							continue;
@@ -187,6 +188,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						else {
 							nodeAddr = c0;
 							++stackPtr;
+							kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 							traversalStack[stackPtr].addr = c1;
 							traversalStack[stackPtr].dist = d1;
 							continue;
@@ -197,9 +199,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					 * all nodes onto the stack to sort them there.
 					 */
 					++stackPtr;
+					kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 					traversalStack[stackPtr].addr = c1;
 					traversalStack[stackPtr].dist = d1;
 					++stackPtr;
+					kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 					traversalStack[stackPtr].addr = c0;
 					traversalStack[stackPtr].dist = d0;
 
@@ -211,6 +215,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					float d2 = ((float*)&dist)[r];
 					if(traverseChild == 0) {
 						++stackPtr;
+						kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 						traversalStack[stackPtr].addr = c2;
 						traversalStack[stackPtr].dist = d2;
 						qbvh_stack_sort(&traversalStack[stackPtr],
@@ -229,9 +234,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					int c3 = __float_as_int(cnodes[r]);
 					float d3 = ((float*)&dist)[r];
 					++stackPtr;
+					kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 					traversalStack[stackPtr].addr = c3;
 					traversalStack[stackPtr].dist = d3;
 					++stackPtr;
+					kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 					traversalStack[stackPtr].addr = c2;
 					traversalStack[stackPtr].dist = d2;
 					qbvh_stack_sort(&traversalStack[stackPtr],
@@ -345,6 +352,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					triangle_intersect_precalc(dir, &isect_precalc);
 
 					++stackPtr;
+					kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 					traversalStack[stackPtr].addr = ENTRYPOINT_SENTINEL;
 					traversalStack[stackPtr].dist = -FLT_MAX;
 
