@@ -20,6 +20,7 @@
 
 /* 64 object BVH + 64 mesh BVH + 64 object node splitting */
 #define BVH_STACK_SIZE 192
+#define BVH_QSTACK_SIZE 384
 #define BVH_NODE_SIZE 4
 #define BVH_QNODE_SIZE 7
 #define TRI_NODE_SIZE 3

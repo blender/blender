@@ -39,7 +39,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	 */
 
 	/* Traversal stack in CUDA thread-local memory. */
-	QBVHStackItem traversalStack[BVH_STACK_SIZE];
+	QBVHStackItem traversalStack[BVH_QSTACK_SIZE];
 	traversalStack[0].addr = ENTRYPOINT_SENTINEL;
 
 	/* Traversal variables in registers. */
