@@ -2976,7 +2976,9 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		ok = PE_minmax(scene, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_SCULPT)) {
-		ok = ED_sculpt_minmax(C, min, max);
+		ED_sculpt_stroke_get_average(ob, min);
+		copy_v3_v3(max, min);
+		ok = true;
 		ok_dist = 0; /* don't zoom */
 	}
 	else {

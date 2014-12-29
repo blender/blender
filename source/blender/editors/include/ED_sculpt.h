@@ -42,7 +42,6 @@ void ED_operatortypes_sculpt(void);
 void ED_sculpt_redraw_planes_get(float planes[4][4], struct ARegion *ar,
                                  struct RegionView3D *rv3d, struct Object *ob);
 void ED_sculpt_stroke_get_average(struct Object *ob, float stroke[3]);
-bool ED_sculpt_minmax(struct bContext *C, float min[3], float max[3]);
 int  ED_sculpt_mask_box_select(struct bContext *C, struct ViewContext *vc, const struct rcti *rect, bool select, bool extend);
 
 #endif /* __ED_SCULPT_H__ */

@@ -126,22 +126,6 @@ void ED_sculpt_stroke_get_average(Object *ob, float stroke[3])
 	}
 }
 
-bool ED_sculpt_minmax(bContext *C, float min[3], float max[3])
-{
-	Object *ob = CTX_data_active_object(C);
-
-	if (ob && ob->sculpt && ob->sculpt->last_stroke_valid) {
-		copy_v3_v3(min, ob->sculpt->last_stroke);
-		copy_v3_v3(max, ob->sculpt->last_stroke);
-
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
-
 /* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
 static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
@@ -4366,7 +4350,6 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 		/* update last stroke position */
 		ob->sculpt->last_stroke_valid = 1;
-		ED_sculpt_stroke_get_average(ob, ob->sculpt->last_stroke);
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
