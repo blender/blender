@@ -3109,6 +3109,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
 		add_v3_v3(ups->average_stroke_accum, location);
 		ups->average_stroke_counter++;
+		/* update last stroke position */
+		ups->last_stroke_valid = true;
 	}
 }
 
@@ -4107,7 +4109,6 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
 static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Object *ob = CTX_data_active_object(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
@@ -4125,9 +4126,6 @@ static bool sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 
 	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
 	BKE_sculpt_update_mesh_elements(scene, sd, ob, is_smooth, need_mask);
-
-	zero_v3(ups->average_stroke_accum);
-	ups->average_stroke_counter = 0;
 
 	return 1;
 }
@@ -4334,9 +4332,6 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 				}
 			}
 		}
-
-		/* update last stroke position */
-		ups->last_stroke_valid = true;
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;

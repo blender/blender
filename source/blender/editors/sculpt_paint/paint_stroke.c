@@ -662,6 +662,10 @@ PaintStroke *paint_stroke_new(bContext *C,
 	/* initialize here */
 	ups->overlap_factor = 1.0;
 	ups->stroke_active = true;
+	
+	zero_v3(ups->average_stroke_accum);
+	ups->average_stroke_counter = 0;
+	
 
 	/* initialize here to avoid initialization conflict with threaded strokes */
 	curvemapping_initialize(br->curve);
