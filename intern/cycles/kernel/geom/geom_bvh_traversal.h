@@ -401,6 +401,7 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 	else
 #endif
 	{
+		kernel_assert(kernel_data.bvh.use_qbvh == false);
 		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
 		                                   ray,
 		                                   isect,
