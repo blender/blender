@@ -1001,7 +1001,7 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 		BLI_end_threaded_malloc();
 	}
 	else {
-		printf("\nError: no blend loaded. GPG_ghost.cpp use '-a'.\n");
+		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
 	return 0;
 }
