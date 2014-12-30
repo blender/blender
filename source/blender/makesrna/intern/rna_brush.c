@@ -194,14 +194,20 @@ static int rna_SculptToolCapabilities_has_random_texture_angle_get(PointerRNA *p
 	              SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB));
 }
 
+static int rna_TextureCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
+{
+	MTex *mtex = (MTex *)ptr->data;
+	return ELEM(mtex->brush_map_mode,
+	             MTEX_MAP_MODE_VIEW,
+	             MTEX_MAP_MODE_AREA,
+	             MTEX_MAP_MODE_RANDOM);
+}
+
+
 static int rna_BrushCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return (ELEM(br->mtex.brush_map_mode,
-	             MTEX_MAP_MODE_VIEW,
-	             MTEX_MAP_MODE_AREA,
-	             MTEX_MAP_MODE_RANDOM) &&
-	        !(br->flag & BRUSH_ANCHORED));
+	return !(br->flag & BRUSH_ANCHORED);
 }
 
 static int rna_SculptToolCapabilities_has_sculpt_plane_get(PointerRNA *ptr)
@@ -270,15 +276,10 @@ static int rna_SculptToolCapabilities_has_strength_pressure_get(PointerRNA *ptr)
 	return !ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK);
 }
 
-static int rna_BrushCapabilities_has_texture_angle_get(PointerRNA *ptr)
+static int rna_TextureCapabilities_has_texture_angle_get(PointerRNA *ptr)
 {
-	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->mtex.brush_map_mode,
-	            MTEX_MAP_MODE_VIEW,
-	            MTEX_MAP_MODE_AREA,
-	            MTEX_MAP_MODE_TILED,
-	            MTEX_MAP_MODE_STENCIL,
-	            MTEX_MAP_MODE_RANDOM);
+	MTex *mtex = (MTex *)ptr->data;
+	return mtex->brush_map_mode != MTEX_MAP_MODE_3D;
 }
 
 static int rna_SculptToolCapabilities_has_gravity_get(PointerRNA *ptr)
@@ -287,10 +288,10 @@ static int rna_SculptToolCapabilities_has_gravity_get(PointerRNA *ptr)
 	return !ELEM(br->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_SMOOTH);
 }
 
-static int rna_BrushCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
+static int rna_TextureCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
 {
-	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->mtex.brush_map_mode,
+	MTex *mtex = (MTex *)ptr->data;
+	return ELEM(mtex->brush_map_mode,
 	            MTEX_MAP_MODE_VIEW,
 	            MTEX_MAP_MODE_AREA,
 	            MTEX_MAP_MODE_RANDOM);
@@ -627,6 +628,15 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+#define TEXTURE_CAPABILITY(prop_name_, ui_name_)                          \
+	prop = RNA_def_property(srna, #prop_name_,                          \
+	                        PROP_BOOLEAN, PROP_NONE);                   \
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);                   \
+	RNA_def_property_boolean_funcs(prop, "rna_TextureCapabilities_"      \
+	                               #prop_name_ "_get", NULL);           \
+	RNA_def_property_ui_text(prop, ui_name_, NULL)
+	
+	
 	srna = RNA_def_struct(brna, "BrushTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Brush Texture Slot", "Texture slot for textures in a Brush datablock");
@@ -669,6 +679,10 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, M_PI * 2);
 	RNA_def_property_ui_text(prop, "Random Angle", "Brush texture random angle");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+	
+	TEXTURE_CAPABILITY(has_texture_angle_source, "Has Texture Angle Source");
+	TEXTURE_CAPABILITY(has_random_texture_angle, "Has Random Texture Angle");
+	TEXTURE_CAPABILITY(has_texture_angle, "Has Texture Angle Source");	
 }
 
 static void rna_def_sculpt_capabilities(BlenderRNA *brna)
@@ -732,8 +746,6 @@ static void rna_def_brush_capabilities(BlenderRNA *brna)
 
 	BRUSH_CAPABILITY(has_overlay, "Has Overlay");
 	BRUSH_CAPABILITY(has_random_texture_angle, "Has Random Texture Angle");
-	BRUSH_CAPABILITY(has_texture_angle, "Has Texture Angle");
-	BRUSH_CAPABILITY(has_texture_angle_source, "Has Texture Angle Source");
 	BRUSH_CAPABILITY(has_spacing, "Has Spacing");
 	BRUSH_CAPABILITY(has_smooth_stroke, "Has Smooth Stroke");
 

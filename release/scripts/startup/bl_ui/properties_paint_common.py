@@ -243,14 +243,14 @@ def brush_texture_settings(layout, brush, sculpt):
         layout.operator("brush.stencil_reset_transform")
 
     # angle and texture_angle_source
-    if brush.brush_capabilities.has_texture_angle:
+    if tex_slot.has_texture_angle:
         col = layout.column()
         col.label(text="Angle:")
-        if brush.brush_capabilities.has_texture_angle_source:
-            col.prop(tex_slot, "angle", text="")
+        col.prop(tex_slot, "angle", text="")
+        if tex_slot.has_texture_angle_source:
             col.prop(tex_slot, "use_rake", text="Rake")
             
-            if brush.brush_capabilities.has_random_texture_angle:
+            if brush.brush_capabilities.has_random_texture_angle and tex_slot.has_random_texture_angle:
                 if sculpt:
                     if brush.sculpt_capabilities.has_random_texture_angle:
                         col.prop(tex_slot, "use_random", text="Random")
@@ -290,14 +290,14 @@ def brush_mask_texture_settings(layout, brush):
     col = layout.column()
     col.prop(brush, "use_pressure_masking", text="")
     # angle and texture_angle_source
-    if brush.brush_capabilities.has_texture_angle:
+    if mask_tex_slot.has_texture_angle:
         col = layout.column()
         col.label(text="Angle:")
-        if brush.brush_capabilities.has_texture_angle_source:
-            col.prop(mask_tex_slot, "angle", text="")
+        col.prop(mask_tex_slot, "angle", text="")
+        if mask_tex_slot.has_texture_angle_source:
             col.prop(mask_tex_slot, "use_rake", text="Rake")
             
-            if brush.brush_capabilities.has_random_texture_angle:
+            if brush.brush_capabilities.has_random_texture_angle and mask_tex_slot.has_random_texture_angle:
                 col.prop(mask_tex_slot, "use_random", text="Random")
                 if mask_tex_slot.use_random:
                     col.prop(mask_tex_slot, "random_angle", text="")
