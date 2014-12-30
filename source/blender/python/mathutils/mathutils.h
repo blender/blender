@@ -115,6 +115,8 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
  * handy when using 3d vectors as 2d */
 #define MU_ARRAY_SPILL     (1 << 31)
 
+#define MU_ARRAY_FLAGS (MU_ARRAY_ZERO | MU_ARRAY_SPILL)
+
 int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject *mat);
 
 #ifndef MATH_STANDALONE

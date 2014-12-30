@@ -72,7 +72,7 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 	const int flag = array_max;
 	int size;
 
-	array_max &= ~(MU_ARRAY_ZERO | MU_ARRAY_SPILL);
+	array_max &= ~MU_ARRAY_FLAGS;
 
 #if 1 /* approx 6x speedup for mathutils types */
 
@@ -217,6 +217,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value, const char *error_prefix)
 {
 	PyObject *value_fast = NULL;
+	const int array_dim_flag = array_dim;
 	int i, size;
 
 	/* non list/tuple cases */
@@ -230,12 +231,14 @@ int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value,
 	if (size != 0) {
 		float *fp;
 
+		array_dim &= ~MU_ARRAY_FLAGS;
+
 		fp = *array = PyMem_Malloc(size * array_dim * sizeof(float));
 
 		for (i = 0; i < size; i++, fp += array_dim) {
 			PyObject *item = PySequence_Fast_GET_ITEM(value, i);
 
-			if (mathutils_array_parse(fp, array_dim, array_dim, item, error_prefix) == -1) {
+			if (mathutils_array_parse(fp, array_dim, array_dim_flag, item, error_prefix) == -1) {
 				PyMem_Free(*array);
 				*array = NULL;
 				size = -1;

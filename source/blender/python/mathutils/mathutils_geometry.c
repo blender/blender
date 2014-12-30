@@ -293,86 +293,42 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject *UNUSED(self), P
 }
 
 PyDoc_STRVAR(M_Geometry_normal_doc,
-".. function:: normal(v1, v2, v3, v4=None)\n"
+".. function:: normal(vectors)\n"
 "\n"
-"   Returns the normal of the 3D tri or quad.\n"
+"   Returns the normal of a 3D polygon.\n"
 "\n"
-"   :arg v1: Point1\n"
-"   :type v1: :class:`mathutils.Vector`\n"
-"   :arg v2: Point2\n"
-"   :type v2: :class:`mathutils.Vector`\n"
-"   :arg v3: Point3\n"
-"   :type v3: :class:`mathutils.Vector`\n"
-"   :arg v4: Point4 (optional)\n"
-"   :type v4: :class:`mathutils.Vector`\n"
+"   :arg vectors: Vectors to calculate normals with\n"
+"   :type vectors: sequence of 3 or more 3d vector\n"
 "   :rtype: :class:`mathutils.Vector`\n"
 );
 static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject *args)
 {
-	VectorObject *vec1, *vec2, *vec3, *vec4;
+	float (*coords)[3];
+	int coords_len;
 	float n[3];
+	PyObject *ret = NULL;
 
-	if (PyTuple_GET_SIZE(args) == 3) {
-		if (!PyArg_ParseTuple(args, "O!O!O!:normal",
-		                      &vector_Type, &vec1,
-		                      &vector_Type, &vec2,
-		                      &vector_Type, &vec3))
-		{
-			return NULL;
-		}
-
-		if (vec1->size != vec2->size || vec1->size != vec3->size) {
-			PyErr_SetString(PyExc_ValueError,
-			                "vectors must be of the same size");
-			return NULL;
-		}
-		if (vec1->size < 3) {
-			PyErr_SetString(PyExc_ValueError,
-			                "2D vectors unsupported");
-			return NULL;
-		}
-
-		if (BaseMath_ReadCallback(vec1) == -1 ||
-		    BaseMath_ReadCallback(vec2) == -1 ||
-		    BaseMath_ReadCallback(vec3) == -1)
-		{
-			return NULL;
-		}
-
-		normal_tri_v3(n, vec1->vec, vec2->vec, vec3->vec);
-	}
-	else {
-		if (!PyArg_ParseTuple(args, "O!O!O!O!:normal",
-		                      &vector_Type, &vec1,
-		                      &vector_Type, &vec2,
-		                      &vector_Type, &vec3,
-		                      &vector_Type, &vec4))
-		{
-			return NULL;
-		}
-		if (vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
-			PyErr_SetString(PyExc_ValueError,
-			                "vectors must be of the same size");
-			return NULL;
-		}
-		if (vec1->size < 3) {
-			PyErr_SetString(PyExc_ValueError,
-			                "2D vectors unsupported");
-			return NULL;
-		}
-
-		if (BaseMath_ReadCallback(vec1) == -1 ||
-		    BaseMath_ReadCallback(vec2) == -1 ||
-		    BaseMath_ReadCallback(vec3) == -1 ||
-		    BaseMath_ReadCallback(vec4) == -1)
-		{
-			return NULL;
-		}
-
-		normal_quad_v3(n, vec1->vec, vec2->vec, vec3->vec, vec4->vec);
+	/* use */
+	if (PyTuple_GET_SIZE(args) == 1) {
+		args = PyTuple_GET_ITEM(args, 0);
 	}
 
-	return Vector_CreatePyObject(n, 3, Py_NEW, NULL);
+	if ((coords_len = mathutils_array_parse_alloc_v((float **)&coords, 3 | MU_ARRAY_SPILL, args, "normal")) == -1) {
+		return NULL;
+	}
+
+	if (coords_len < 3) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Expected 3 or more vectors");
+		goto finally;
+	}
+
+	normal_poly_v3(n, (const float (*)[3])coords, coords_len);
+	ret = Vector_CreatePyObject(n, 3, Py_NEW, NULL);
+
+finally:
+	PyMem_Free(coords);
+	return ret;
 }
 
 /* --------------------------------- AREA FUNCTIONS-------------------- */
