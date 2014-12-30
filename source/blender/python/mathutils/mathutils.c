@@ -69,7 +69,10 @@ static int mathutils_array_parse_fast(float *array,
 /* helper functionm returns length of the 'value', -1 on error */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
+	const int flag = array_max;
 	int size;
+
+	array_max &= ~(MU_ARRAY_ZERO | MU_ARRAY_SPILL);
 
 #if 1 /* approx 6x speedup for mathutils types */
 
@@ -80,6 +83,10 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 	{
 		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
+		}
+
+		if (flag & MU_ARRAY_SPILL) {
+			CLAMP_MAX(size, array_max);
 		}
 
 		if (size > array_max || size < array_min) {
@@ -97,7 +104,6 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		}
 
 		memcpy(array, ((BaseMathObject *)value)->data, size * sizeof(float));
-		return size;
 	}
 	else
 #endif
@@ -111,6 +117,10 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		}
 
 		size = PySequence_Fast_GET_SIZE(value_fast);
+
+		if (flag & MU_ARRAY_SPILL) {
+			CLAMP_MAX(size, array_max);
+		}
 
 		if (size > array_max || size < array_min) {
 			if (array_max == array_min) {
@@ -127,8 +137,19 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 			return -1;
 		}
 
-		return mathutils_array_parse_fast(array, size, value_fast, error_prefix);
+		size = mathutils_array_parse_fast(array, size, value_fast, error_prefix);
 	}
+
+	if (size != -1) {
+		if (flag & MU_ARRAY_ZERO) {
+			int size_left = array_max - size;
+			if (size_left) {
+				memset(&array[size], 0, sizeof(float) * size_left);
+			}
+		}
+	}
+
+	return size;
 }
 
 /* on error, -1 is returned and no allocation is made */

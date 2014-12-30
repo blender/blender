@@ -109,6 +109,12 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value, const char *error_prefix);
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
 
+/* zero remaining unused elements of the array */
+#define MU_ARRAY_ZERO      (1 << 30)
+/* ignore larger py sequences than requested (just use first elements),
+ * handy when using 3d vectors as 2d */
+#define MU_ARRAY_SPILL     (1 << 31)
+
 int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject *mat);
 
 #ifndef MATH_STANDALONE
