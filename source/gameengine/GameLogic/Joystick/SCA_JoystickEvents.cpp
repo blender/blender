@@ -124,6 +124,12 @@ void SCA_Joystick::HandleEvents(void)
 				SCA_Joystick::m_instance[sdl_event.jball.which]->OnBallMotion(&sdl_event);
 				break;
 #endif
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_JOYDEVICEADDED:
+			case SDL_JOYDEVICEREMOVED:
+				/* pass */
+				break;
+#endif
 			default:
 				printf("SCA_Joystick::HandleEvents, Unknown SDL event (%d), this should not happen\n", sdl_event.type);
 				break;
