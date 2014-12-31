@@ -42,7 +42,7 @@
 
 // We always want to import the symbols of the gflags library
 #ifndef GFLAGS_DLL_DECL
-#  if 1 && defined(_MSC_VER)
+#  if 0 && defined(_MSC_VER)
 #    define GFLAGS_DLL_DECL __declspec(dllimport)
 #  else
 #    define GFLAGS_DLL_DECL
@@ -51,7 +51,7 @@
 
 // We always want to import variables declared in user code
 #ifndef GFLAGS_DLL_DECLARE_FLAG
-#  ifdef _MSC_VER
+#  if 0 && defined(_MSC_VER)
 #    define GFLAGS_DLL_DECLARE_FLAG __declspec(dllimport)
 #  else
 #    define GFLAGS_DLL_DECLARE_FLAG
