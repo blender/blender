@@ -307,6 +307,9 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 			third_party/glog/src/windows/glog/log_severity.h
 			third_party/glog/src/windows/port.h
 			third_party/glog/src/windows/config.h
+
+			third_party/gflags/windows_port.cc
+			third_party/gflags/windows_port.h
 		)
 	else()
 		list(APPEND GLOG_SRC

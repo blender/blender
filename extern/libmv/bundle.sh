@@ -75,7 +75,7 @@ for x in $src_dir $src_third_dir; do
     fi
   fi
 
-  if test `echo $x | grep -c windows ` -eq 0; then
+  if test `echo $x | grep -c "windows\|gflags" ` -eq 0; then
     if [ -z "$src" ]; then
       src=$t
     else
@@ -262,6 +262,9 @@ ${third_gflags_headers}
 			third_party/glog/src/windows/glog/log_severity.h
 			third_party/glog/src/windows/port.h
 			third_party/glog/src/windows/config.h
+
+			third_party/gflags/windows_port.cc
+			third_party/gflags/windows_port.h
 		)
 	else()
 		list(APPEND GLOG_SRC
@@ -328,10 +331,12 @@ env.BlenderLib(libname = 'extern_libmv', sources=src, includes=Split(incs), defi
 
 if env['WITH_BF_LIBMV'] or (env['WITH_BF_CYCLES'] and env['WITH_BF_CYCLES_LOGGING']):
     glog_src = []
+    glog_src += env.Glob("third_party/gflags/*.cc")
     if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
         glog_src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
         glog_src += ['./third_party/glog/src/windows/port.cc']
     else:
+        glog_src.remove('third_party/gflags/windows_port.cc')
         glog_src += env.Glob("third_party/glog/src/*.cc")
 
     env.BlenderLib(libname = 'extern_glog', sources=glog_src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137])

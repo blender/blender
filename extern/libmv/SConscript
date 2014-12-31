@@ -47,7 +47,6 @@ if env['WITH_BF_LIBMV']:
     src += env.Glob('libmv/numeric/*.cc')
     src += env.Glob('libmv/simple_pipeline/*.cc')
     src += env.Glob('libmv/tracking/*.cc')
-    src += env.Glob('third_party/gflags/*.cc')
 else:
     src = env.Glob("intern/stub.cc")
 
@@ -57,10 +56,12 @@ env.BlenderLib(libname = 'extern_libmv', sources=src, includes=Split(incs), defi
 
 if env['WITH_BF_LIBMV'] or (env['WITH_BF_CYCLES'] and env['WITH_BF_CYCLES_LOGGING']):
     glog_src = []
+    glog_src += env.Glob("third_party/gflags/*.cc")
     if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
         glog_src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
         glog_src += ['./third_party/glog/src/windows/port.cc']
     else:
+        glog_src.remove('third_party/gflags/windows_port.cc')
         glog_src += env.Glob("third_party/glog/src/*.cc")
 
     env.BlenderLib(libname = 'extern_glog', sources=glog_src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137])

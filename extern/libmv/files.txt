@@ -147,6 +147,8 @@ third_party/gflags/mutex.h
 third_party/gflags/NEWS.txt
 third_party/gflags/README.libmv
 third_party/gflags/util.h
+third_party/gflags/windows_port.cc
+third_party/gflags/windows_port.h
 third_party/glog/AUTHORS
 third_party/glog/ChangeLog
 third_party/glog/COPYING
