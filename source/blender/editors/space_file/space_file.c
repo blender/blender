@@ -218,7 +218,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		filelist_sort(sfile->files);
 	}
 
-	if ((params->display == FILE_IMGDISPLAY)) {
+	if ((params->display == FILE_IMGDISPLAY) && filelist_need_thumbnails(sfile->files)) {
 		if (!thumbnails_running(wm, sfile->files)) {
 			thumbnails_start(sfile->files, C);
 		}

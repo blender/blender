@@ -227,6 +227,8 @@ typedef struct FileList {
 	int *fidx;  /* Also used to detect when we need to filter! */
 	int numfiltered;
 
+	bool need_thumbnails;
+
 	struct BlendHandle *libfiledata;
 
 	void (*readf)(struct FileList *);
@@ -995,6 +997,7 @@ void filelist_readdir(struct FileList *filelist)
 	filelist->readf(filelist);
 
 	filelist->need_sorting = true;
+	filelist->need_thumbnails = true;
 	filelist_filter_clear(filelist);
 }
 
@@ -1334,6 +1337,11 @@ typedef struct ThumbnailJob {
 	ReportList reports;
 } ThumbnailJob;
 
+bool filelist_need_thumbnails(FileList *filelist)
+{
+	return filelist->need_thumbnails;
+}
+
 static void thumbnail_joblist_free(ThumbnailJob *tj)
 {
 	FileImage *limg = tj->loadimages.first;
@@ -1397,6 +1405,15 @@ static void thumbnails_update(void *tjv)
 	}
 }
 
+static void thumbnails_endjob(void *tjv)
+{
+	ThumbnailJob *tj = tjv;
+
+	if (!*tj->stop) {
+		tj->filelist->need_thumbnails = false;
+	}
+}
+
 static void thumbnails_free(void *tjv)
 {
 	ThumbnailJob *tj = tjv;
@@ -1433,7 +1450,7 @@ void thumbnails_start(FileList *filelist, const bContext *C)
 	                     0, WM_JOB_TYPE_FILESEL_THUMBNAIL);
 	WM_jobs_customdata_set(wm_job, tj, thumbnails_free);
 	WM_jobs_timer(wm_job, 0.5, NC_WINDOW, NC_WINDOW);
-	WM_jobs_callbacks(wm_job, thumbnails_startjob, NULL, thumbnails_update, NULL);
+	WM_jobs_callbacks(wm_job, thumbnails_startjob, NULL, thumbnails_update, thumbnails_endjob);
 
 	/* start the job */
 	WM_jobs_start(CTX_wm_manager(C), wm_job);
@@ -1441,7 +1458,7 @@ void thumbnails_start(FileList *filelist, const bContext *C)
 
 void thumbnails_stop(wmWindowManager *wm, FileList *filelist)
 {
-	WM_jobs_kill(wm, filelist, NULL);
+	WM_jobs_kill_type(wm, filelist, WM_JOB_TYPE_FILESEL_THUMBNAIL);
 }
 
 int thumbnails_running(wmWindowManager *wm, FileList *filelist)

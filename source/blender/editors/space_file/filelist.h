@@ -105,6 +105,7 @@ struct BlendHandle *filelist_lib(struct FileList *filelist);
 bool                filelist_islibrary(struct FileList *filelist, char *dir, char *group);
 void                filelist_freelib(struct FileList *filelist);
 
+bool                filelist_need_thumbnails(struct FileList *filelist);
 void                thumbnails_start(struct FileList *filelist, const struct bContext *C);
 void                thumbnails_stop(struct wmWindowManager *wm, struct FileList *filelist);
 int                 thumbnails_running(struct wmWindowManager *wm, struct FileList *filelist);
