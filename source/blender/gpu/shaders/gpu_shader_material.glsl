@@ -2372,13 +2372,13 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
 	out vec3 camera, out vec3 window, out vec3 reflection)
 {
-	generated = mtex_2d_mapping(attr_orco);
+	generated = attr_orco * 0.5 + vec3(0.5);
 	normal = normalize((obinvmat*(viewinvmat*vec4(N, 0.0))).xyz);
 	uv = attr_uv;
 	object = (obinvmat*(viewinvmat*vec4(I, 1.0))).xyz;
-	camera = I;
+	camera = vec3(I.xy, -I.z);
 	vec4 projvec = gl_ProjectionMatrix * vec4(I, 1.0);
-	window = mtex_2d_mapping(projvec.xyz/projvec.w);
+	window = vec3(mtex_2d_mapping(projvec.xyz/projvec.w).xy, 0.0);
 
 	vec3 shade_I;
 	shade_view(I, shade_I);
