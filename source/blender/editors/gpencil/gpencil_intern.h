@@ -134,6 +134,7 @@ void GPENCIL_OT_data_unlink(struct wmOperatorType *ot);
 void GPENCIL_OT_layer_add(struct wmOperatorType *ot);
 void GPENCIL_OT_layer_remove(struct wmOperatorType *ot);
 void GPENCIL_OT_layer_move(struct wmOperatorType *ot);
+void GPENCIL_OT_layer_duplicate(struct wmOperatorType *ot);
 
 void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
 

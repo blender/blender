@@ -219,6 +219,7 @@ bGPdata *ED_gpencil_data_get_active(const bContext *C)
 
 /* -------------------------------------------------------- */
 
+// XXX: this should be removed... We really shouldn't duplicate logic like this!
 bGPdata *ED_gpencil_data_get_active_v3d(Scene *scene, View3D *v3d)
 {
 	Base *base = scene->basact;
@@ -483,6 +484,47 @@ void GPENCIL_OT_layer_move(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
 
+/* ********************* Duplicate Layer ************************** */
+
+static int gp_layer_copy_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	bGPDlayer *new_layer;
+	
+	/* sanity checks */
+	if (ELEM(NULL, gpd, gpl))
+		return OPERATOR_CANCELLED;
+	
+	/* make copy of layer, and add it immediately after the existing layer */
+	new_layer = gpencil_layer_duplicate(gpl);
+	BLI_insertlinkafter(&gpd->layers, gpl, new_layer);
+	
+	/* ensure new layer has a unique name, and is now the active layer */
+	BLI_uniquename(&gpd->layers, new_layer, DATA_("GP_Layer"), '.', offsetof(bGPDlayer, info), sizeof(new_layer->info));
+	gpencil_layer_setactive(gpd, new_layer);
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Duplicate Layer";
+	ot->idname = "GPENCIL_OT_layer_duplicate";
+	ot->description = "Make a copy of the active Grease Pencil layer";
+	
+	/* callbacks */
+	ot->exec = gp_layer_copy_exec;
+	ot->poll = gp_active_layer_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ************************************************ */
 /* Stroke Editing Operators */
 
@@ -629,6 +671,10 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/* ******************* Copy/Paste Strokes ************************* */
+
+// TODO:
 
 /* ******************* Delete Active Frame ************************ */
 

@@ -361,6 +361,8 @@ class GreasePencilDataPanel():
 
         gpl = context.active_gpencil_layer
         if gpl:
+            sub.operator("gpencil.layer_duplicate", icon='COPY_ID', text="") # XXX: needs a dedicated icon
+
             col.separator()
 
             sub = col.column(align=True)
