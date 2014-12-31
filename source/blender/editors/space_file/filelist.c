@@ -45,9 +45,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_fileops_types.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
-#include "BLI_fileops_types.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -64,8 +64,8 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_fileselect.h"
 #include "ED_datafiles.h"
+#include "ED_fileselect.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -80,6 +80,119 @@
 
 #include "filelist.h"
 
+
+/* ----------------- FOLDERLIST (previous/next) -------------- */
+
+typedef struct FolderList {
+	struct FolderList *next, *prev;
+	char *foldername;
+} FolderList;
+
+ListBase *folderlist_new(void)
+{
+	ListBase *p = MEM_callocN(sizeof(ListBase), "folderlist");
+	return p;
+}
+
+void folderlist_popdir(struct ListBase *folderlist, char *dir)
+{
+	const char *prev_dir;
+	struct FolderList *folder;
+	folder = folderlist->last;
+
+	if (folder) {
+		/* remove the current directory */
+		MEM_freeN(folder->foldername);
+		BLI_freelinkN(folderlist, folder);
+
+		folder = folderlist->last;
+		if (folder) {
+			prev_dir = folder->foldername;
+			BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
+		}
+	}
+	/* delete the folder next or use setdir directly before PREVIOUS OP */
+}
+
+void folderlist_pushdir(ListBase *folderlist, const char *dir)
+{
+	struct FolderList *folder, *previous_folder;
+	previous_folder = folderlist->last;
+
+	/* check if already exists */
+	if (previous_folder && previous_folder->foldername) {
+		if (BLI_path_cmp(previous_folder->foldername, dir) == 0) {
+			return;
+		}
+	}
+
+	/* create next folder element */
+	folder = (FolderList *)MEM_mallocN(sizeof(FolderList), "FolderList");
+	folder->foldername = BLI_strdup(dir);
+
+	/* add it to the end of the list */
+	BLI_addtail(folderlist, folder);
+}
+
+const char *folderlist_peeklastdir(ListBase *folderlist)
+{
+	struct FolderList *folder;
+
+	if (!folderlist->last)
+		return NULL;
+
+	folder = folderlist->last;
+	return folder->foldername;
+}
+
+int folderlist_clear_next(struct SpaceFile *sfile)
+{
+	struct FolderList *folder;
+
+	/* if there is no folder_next there is nothing we can clear */
+	if (!sfile->folders_next)
+		return 0;
+
+	/* if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next */
+	folder = sfile->folders_prev->last;
+	if ((!folder) || (BLI_path_cmp(folder->foldername, sfile->params->dir) == 0))
+		return 0;
+
+	/* eventually clear flist->folders_next */
+	return 1;
+}
+
+/* not listbase itself */
+void folderlist_free(ListBase *folderlist)
+{
+	if (folderlist) {
+		FolderList *folder;
+		for (folder = folderlist->first; folder; folder = folder->next)
+			MEM_freeN(folder->foldername);
+		BLI_freelistN(folderlist);
+	}
+}
+
+ListBase *folderlist_duplicate(ListBase *folderlist)
+{
+	
+	if (folderlist) {
+		ListBase *folderlistn = MEM_callocN(sizeof(ListBase), "copy folderlist");
+		FolderList *folder;
+		
+		BLI_duplicatelist(folderlistn, folderlist);
+		
+		for (folder = folderlistn->first; folder; folder = folder->next) {
+			folder->foldername = MEM_dupallocN(folder->foldername);
+		}
+		return folderlistn;
+	}
+	return NULL;
+}
+
+
+/* ------------------FILELIST------------------------ */
+
 struct FileList;
 
 typedef struct FileImage {
@@ -90,14 +203,6 @@ typedef struct FileImage {
 	short done;
 	ImBuf *img;
 } FileImage;
-
-typedef struct ThumbnailJob {
-	ListBase loadimages;
-	const short *stop;
-	const short *do_update;
-	struct FileList *filelist;
-	ReportList reports;
-} ThumbnailJob;
 
 typedef struct FileList {
 	struct direntry *filelist;
@@ -120,11 +225,6 @@ typedef struct FileList {
 
 } FileList;
 
-typedef struct FolderList {
-	struct FolderList *next, *prev;
-	char *foldername;
-} FolderList;
-
 #define SPECIAL_IMG_SIZE 48
 #define SPECIAL_IMG_ROWS 4
 #define SPECIAL_IMG_COLS 4
@@ -146,7 +246,14 @@ typedef struct FolderList {
 static ImBuf *gSpecialFileImages[SPECIAL_IMG_MAX];
 
 
-/* ******************* SORT ******************* */
+static void filelist_from_main(struct FileList *filelist);
+static void filelist_from_library(struct FileList *filelist);
+
+static void filelist_read_main(struct FileList *filelist);
+static void filelist_read_library(struct FileList *filelist);
+static void filelist_read_dir(struct FileList *filelist);
+
+/* ********** Sort helpers ********** */
 
 static bool compare_is_directory(const struct direntry *entry)
 {
@@ -292,6 +399,28 @@ static int compare_extension(const void *a1, const void *a2)
 	return (BLI_strcasecmp(sufix1, sufix2));
 }
 
+void filelist_sort(struct FileList *filelist, short sort)
+{
+	switch (sort) {
+		case FILE_SORT_ALPHA:
+			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);
+			break;
+		case FILE_SORT_TIME:
+			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_date);
+			break;
+		case FILE_SORT_SIZE:
+			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_size);
+			break;
+		case FILE_SORT_EXTENSION:
+			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_extension);
+			break;
+	}
+
+	filelist_filter(filelist);
+}
+
+/* ********** Filter helpers ********** */
+
 static bool is_hidden_file(const char *filename, short hide_dot)
 {
 	bool is_hidden = false;
@@ -347,6 +476,7 @@ static bool is_filtered_lib(struct direntry *file, const char *dir, unsigned int
 	else {
 		is_filtered = is_filtered_file(file, dir, filter, hide_dot);
 	}
+
 	return is_filtered;
 }
 
@@ -385,6 +515,23 @@ void filelist_filter(FileList *filelist)
 		}
 	}
 }
+
+void filelist_hidedot(struct FileList *filelist, short hide)
+{
+	filelist->hide_dot = hide;
+}
+
+void filelist_setfilter(struct FileList *filelist, unsigned int filter)
+{
+	filelist->filter = filter;
+}
+
+void filelist_setfilter_types(struct FileList *filelist, const char *filter_glob)
+{
+	BLI_strncpy(filelist->filter_glob, filter_glob, sizeof(filelist->filter_glob));
+}
+
+/* ********** Icon/image helpers ********** */
 
 void filelist_init_icons(void)
 {
@@ -428,194 +575,10 @@ void filelist_free_icons(void)
 	}
 }
 
-/* -----------------FOLDERLIST (previous/next) -------------- */
-ListBase *folderlist_new(void)
-{
-	ListBase *p = MEM_callocN(sizeof(ListBase), "folderlist");
-	return p;
-}
-
-void folderlist_popdir(struct ListBase *folderlist, char *dir)
-{
-	const char *prev_dir;
-	struct FolderList *folder;
-	folder = folderlist->last;
-
-	if (folder) {
-		/* remove the current directory */
-		MEM_freeN(folder->foldername);
-		BLI_freelinkN(folderlist, folder);
-
-		folder = folderlist->last;
-		if (folder) {
-			prev_dir = folder->foldername;
-			BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
-		}
-	}
-	/* delete the folder next or use setdir directly before PREVIOUS OP */
-}
-
-void folderlist_pushdir(ListBase *folderlist, const char *dir)
-{
-	struct FolderList *folder, *previous_folder;
-	previous_folder = folderlist->last;
-
-	/* check if already exists */
-	if (previous_folder && previous_folder->foldername) {
-		if (BLI_path_cmp(previous_folder->foldername, dir) == 0) {
-			return;
-		}
-	}
-
-	/* create next folder element */
-	folder = (FolderList *)MEM_mallocN(sizeof(FolderList), "FolderList");
-	folder->foldername = BLI_strdup(dir);
-
-	/* add it to the end of the list */
-	BLI_addtail(folderlist, folder);
-}
-
-const char *folderlist_peeklastdir(ListBase *folderlist)
-{
-	struct FolderList *folder;
-
-	if (!folderlist->last)
-		return NULL;
-
-	folder = folderlist->last;
-	return folder->foldername;
-}
-
-int folderlist_clear_next(struct SpaceFile *sfile)
-{
-	struct FolderList *folder;
-
-	/* if there is no folder_next there is nothing we can clear */
-	if (!sfile->folders_next)
-		return 0;
-
-	/* if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next */
-	folder = sfile->folders_prev->last;
-	if ((!folder) || (BLI_path_cmp(folder->foldername, sfile->params->dir) == 0))
-		return 0;
-
-	/* eventually clear flist->folders_next */
-	return 1;
-}
-
-/* not listbase itself */
-void folderlist_free(ListBase *folderlist)
-{
-	if (folderlist) {
-		FolderList *folder;
-		for (folder = folderlist->first; folder; folder = folder->next)
-			MEM_freeN(folder->foldername);
-		BLI_freelistN(folderlist);
-	}
-}
-
-ListBase *folderlist_duplicate(ListBase *folderlist)
-{
-	
-	if (folderlist) {
-		ListBase *folderlistn = MEM_callocN(sizeof(ListBase), "copy folderlist");
-		FolderList *folder;
-		
-		BLI_duplicatelist(folderlistn, folderlist);
-		
-		for (folder = folderlistn->first; folder; folder = folder->next) {
-			folder->foldername = MEM_dupallocN(folder->foldername);
-		}
-		return folderlistn;
-	}
-	return NULL;
-}
-
-
-static void filelist_read_main(struct FileList *filelist);
-static void filelist_read_library(struct FileList *filelist);
-static void filelist_read_dir(struct FileList *filelist);
-
-/* ------------------FILELIST------------------------ */
-FileList *filelist_new(short type)
-{
-	FileList *p = MEM_callocN(sizeof(FileList), "filelist");
-	switch (type) {
-		case FILE_MAIN:
-			p->readf = filelist_read_main;
-			p->filterf = is_filtered_main;
-			break;
-		case FILE_LOADLIB:
-			p->readf = filelist_read_library;
-			p->filterf = is_filtered_lib;
-			break;
-		default:
-			p->readf = filelist_read_dir;
-			p->filterf = is_filtered_file;
-			break;
-
-	}
-	return p;
-}
-
-
-void filelist_free(struct FileList *filelist)
-{
-	if (!filelist) {
-		printf("Attempting to delete empty filelist.\n");
-		return;
-	}
-	
-	if (filelist->fidx) {
-		MEM_freeN(filelist->fidx);
-		filelist->fidx = NULL;
-	}
-
-	BLI_free_filelist(filelist->filelist, filelist->numfiles);
-	filelist->numfiles = 0;
-	filelist->filelist = NULL;
-	filelist->filter = 0;
-	filelist->filter_glob[0] = '\0';
-	filelist->numfiltered = 0;
-	filelist->hide_dot = 0;
-}
-
-void filelist_freelib(struct FileList *filelist)
-{
-	if (filelist->libfiledata)
-		BLO_blendhandle_close(filelist->libfiledata);
-	filelist->libfiledata = NULL;
-}
-
-BlendHandle *filelist_lib(struct FileList *filelist)
-{
-	return filelist->libfiledata;
-}
-
-int filelist_numfiles(struct FileList *filelist)
-{
-	return filelist->numfiltered;
-}
-
-const char *filelist_dir(struct FileList *filelist)
-{
-	return filelist->dir;
-}
-
-void filelist_setdir(struct FileList *filelist, const char *dir)
-{
-	BLI_strncpy(filelist->dir, dir, sizeof(filelist->dir));
-}
-
 void filelist_imgsize(struct FileList *filelist, short w, short h)
 {
 	filelist->prv_w = w;
 	filelist->prv_h = h;
-}
-
-short filelist_changed(struct FileList *filelist)
-{
-	return filelist->changed;
 }
 
 ImBuf *filelist_getimage(struct FileList *filelist, int index)
@@ -690,6 +653,82 @@ ImBuf *filelist_geticon(struct FileList *filelist, int index)
 	return ibuf;
 }
 
+/* ********** Main ********** */
+
+FileList *filelist_new(short type)
+{
+	FileList *p = MEM_callocN(sizeof(FileList), "filelist");
+	switch (type) {
+		case FILE_MAIN:
+			p->readf = filelist_read_main;
+			p->filterf = is_filtered_main;
+			break;
+		case FILE_LOADLIB:
+			p->readf = filelist_read_library;
+			p->filterf = is_filtered_lib;
+			break;
+		default:
+			p->readf = filelist_read_dir;
+			p->filterf = is_filtered_file;
+			break;
+
+	}
+	return p;
+}
+
+void filelist_free(struct FileList *filelist)
+{
+	if (!filelist) {
+		printf("Attempting to delete empty filelist.\n");
+		return;
+	}
+	
+	if (filelist->fidx) {
+		MEM_freeN(filelist->fidx);
+		filelist->fidx = NULL;
+	}
+
+	BLI_free_filelist(filelist->filelist, filelist->numfiles);
+	filelist->numfiles = 0;
+	filelist->filelist = NULL;
+	filelist->filter = 0;
+	filelist->filter_glob[0] = '\0';
+	filelist->numfiltered = 0;
+	filelist->hide_dot = 0;
+}
+
+void filelist_freelib(struct FileList *filelist)
+{
+	if (filelist->libfiledata)
+		BLO_blendhandle_close(filelist->libfiledata);
+	filelist->libfiledata = NULL;
+}
+
+BlendHandle *filelist_lib(struct FileList *filelist)
+{
+	return filelist->libfiledata;
+}
+
+int filelist_numfiles(struct FileList *filelist)
+{
+	return filelist->numfiltered;
+}
+
+const char *filelist_dir(struct FileList *filelist)
+{
+	return filelist->dir;
+}
+
+void filelist_setdir(struct FileList *filelist, const char *dir)
+{
+	BLI_strncpy(filelist->dir, dir, sizeof(filelist->dir));
+}
+
+short filelist_changed(struct FileList *filelist)
+{
+	return filelist->changed;
+}
+
 struct direntry *filelist_file(struct FileList *filelist, int index)
 {
 	int fidx = 0;
@@ -726,21 +765,6 @@ int filelist_find(struct FileList *filelist, const char *filename)
 		}
 	}
 	return fidx;
-}
-
-void filelist_hidedot(struct FileList *filelist, short hide)
-{
-	filelist->hide_dot = hide;
-}
-
-void filelist_setfilter(struct FileList *filelist, unsigned int filter)
-{
-	filelist->filter = filter;
-}
-
-void filelist_setfilter_types(struct FileList *filelist, const char *filter_glob)
-{
-	BLI_strncpy(filelist->filter_glob, filter_glob, sizeof(filelist->filter_glob));
 }
 
 /* would recognize .blend as well */
@@ -874,7 +898,6 @@ static void filelist_setfiletypes(struct FileList *filelist)
 		{
 			file->flags = OPERATORFILE;
 		}
-		
 	}
 }
 
@@ -932,15 +955,8 @@ void filelist_readdir(struct FileList *filelist)
 }
 
 int filelist_empty(struct FileList *filelist)
-{	
-	return filelist->filelist == NULL;
-}
-
-void filelist_parent(struct FileList *filelist)
 {
-	BLI_parent_dir(filelist->dir);
-	BLI_make_exist(filelist->dir);
-	filelist_readdir(filelist);
+	return filelist->filelist == NULL;
 }
 
 void filelist_select_file(struct FileList *filelist, int index, FileSelType select, unsigned int flag, FileCheckType check)
@@ -1004,26 +1020,6 @@ bool filelist_is_selected(struct FileList *filelist, int index, FileCheckType ch
 	}
 }
 
-void filelist_sort(struct FileList *filelist, short sort)
-{
-	switch (sort) {
-		case FILE_SORT_ALPHA:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);
-			break;
-		case FILE_SORT_TIME:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_date);
-			break;
-		case FILE_SORT_SIZE:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_size);
-			break;
-		case FILE_SORT_EXTENSION:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_extension);
-			break;
-	}
-
-	filelist_filter(filelist);
-}
-
 
 bool filelist_islibrary(struct FileList *filelist, char *dir, char *group)
 {
@@ -1042,8 +1038,8 @@ static int groupname_to_code(const char *group)
 
 	return buf[0] ? BKE_idcode_from_name(buf) : 0;
 }
- 
-void filelist_from_library(struct FileList *filelist)
+
+static void filelist_from_library(struct FileList *filelist)
 {
 	LinkNode *l, *names, *previews;
 	struct ImBuf *ima;
@@ -1141,12 +1137,7 @@ void filelist_from_library(struct FileList *filelist)
 	filelist_filter(filelist);
 }
 
-void filelist_hideparent(struct FileList *filelist, short hide)
-{
-	filelist->hide_parent = hide;
-}
-
-void filelist_from_main(struct FileList *filelist)
+static void filelist_from_main(struct FileList *filelist)
 {
 	ID *id;
 	struct direntry *files, *firstlib = NULL;
@@ -1295,6 +1286,17 @@ void filelist_from_main(struct FileList *filelist)
 	filelist->filter = 0;
 	filelist_filter(filelist);
 }
+
+/* ********** Thumbnails job ********** */
+
+typedef struct ThumbnailJob {
+	ListBase loadimages;
+	ImBuf *static_icons_buffers[BIFICONID_LAST];
+	const short *stop;
+	const short *do_update;
+	struct FileList *filelist;
+	ReportList reports;
+} ThumbnailJob;
 
 static void thumbnail_joblist_free(ThumbnailJob *tj)
 {
