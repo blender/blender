@@ -486,7 +486,7 @@ void GPENCIL_OT_layer_move(wmOperatorType *ot)
 
 /* ********************* Duplicate Layer ************************** */
 
-static int gp_layer_copy_exec(bContext *C, wmOperator *op)
+static int gp_layer_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
