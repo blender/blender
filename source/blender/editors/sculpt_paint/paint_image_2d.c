@@ -359,7 +359,7 @@ static unsigned short *brush_painter_curve_mask_new(BrushPainter *painter, int d
 			float xy[2] = {x + xoff, y + yoff};
 			float len = len_v2(xy);
 
-			*m = (unsigned short)(65535.0f * BKE_brush_curve_strength_clamp(brush, len, radius));
+			*m = (unsigned short)(65535.0f * BKE_brush_curve_strength(brush, len, radius));
 		}
 	}
 

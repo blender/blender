@@ -426,7 +426,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 				len = sqrtf(x * x + y * y);
 
 				if (len <= 1) {
-					float avg = BKE_brush_curve_strength_clamp(br, len, 1.0f);  /* Falloff curve */
+					float avg = BKE_brush_curve_strength(br, len, 1.0f);  /* Falloff curve */
 
 					buffer[index] = 255 - (GLubyte)(255 * avg);
 

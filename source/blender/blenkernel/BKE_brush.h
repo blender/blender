@@ -66,8 +66,7 @@ void BKE_brush_randomize_texture_coordinates(struct UnifiedPaintSettings *ups, b
 
 /* brush curve */
 void BKE_brush_curve_preset(struct Brush *b, int preset);
-float BKE_brush_curve_strength_clamp(struct Brush *br, float p, const float len);
-float BKE_brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
+float BKE_brush_curve_strength(struct Brush *br, float p, const float len);
 
 /* sampling */
 float BKE_brush_sample_tex_3D(const Scene *scene, struct Brush *br, const float point[3],

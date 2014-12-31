@@ -4286,7 +4286,7 @@ static void *do_projectpaint_thread(void *ph_v)
 				if (dist_sq <= brush_radius_sq) {
 					dist = sqrtf(dist_sq);
 
-					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, brush_radius);
+					falloff = BKE_brush_curve_strength(ps->brush, dist, brush_radius);
 
 					if (falloff > 0.0f) {
 						float texrgb[3];
