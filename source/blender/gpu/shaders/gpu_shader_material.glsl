@@ -2401,11 +2401,11 @@ void node_tex_coord_background(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 
 	generated = coords;
 	normal = -coords;
-	uv = attr_uv;
+	uv = vec3(attr_uv.xy, 0.0);
 	object = coords;
 
-	camera = co.xyz;
-	window = mtex_2d_mapping(I);
+	camera = vec3(co.xy, -co.z);
+	window = (gl_ProjectionMatrix[3][3] == 0.0) ? vec3(mtex_2d_mapping(I).xy, 0.0) : vec3(0.5, 0.5, 0.0);
 
 	reflection = -coords;
 }
