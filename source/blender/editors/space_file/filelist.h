@@ -69,11 +69,12 @@ const char *        folderlist_peeklastdir(struct ListBase *folderdist);
 int                 folderlist_clear_next(struct SpaceFile *sfile);
 
 
-void                filelist_sort(struct FileList *filelist, short sort);
+void                filelist_setsorting(struct FileList *filelist, const short sort);
+bool                filelist_need_sorting(struct FileList *filelist);
+void                filelist_sort(struct FileList *filelist);
 
-void                filelist_hidedot(struct FileList *filelist, short hide);
-void                filelist_setfilter(struct FileList *filelist, unsigned int filter);
-void                filelist_setfilter_types(struct FileList *filelist, const char *filter_glob);
+void                filelist_setfilter_options(struct FileList *filelist, const bool hide_dot, const bool hide_parent,
+                                               const unsigned int filter, const char *filter_glob);
 void                filelist_filter(struct FileList *filelist);
 
 void                filelist_init_icons(void);

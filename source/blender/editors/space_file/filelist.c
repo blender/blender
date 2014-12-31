@@ -204,26 +204,37 @@ typedef struct FileImage {
 	ImBuf *img;
 } FileImage;
 
+typedef struct FileListFilter {
+	bool hide_dot;
+	bool hide_parent;
+	unsigned int filter;
+	char filter_glob[64];
+} FileListFilter;
+
 typedef struct FileList {
 	struct direntry *filelist;
-	int *fidx;
 	int numfiles;
-	int numfiltered;
 	char dir[FILE_MAX];
 	short prv_w;
 	short prv_h;
-	short hide_dot;
-	unsigned int filter;
-	char filter_glob[64];
-	short changed;
+
+	bool changed;
+
+	short sort;
+	bool need_sorting;
+
+	FileListFilter filter_data;
+	int *fidx;  /* Also used to detect when we need to filter! */
+	int numfiltered;
 
 	struct BlendHandle *libfiledata;
-	short hide_parent;
 
 	void (*readf)(struct FileList *);
-	bool (*filterf)(struct direntry *file, const char *dir, unsigned int filter, short hide_dot);
-
+	bool (*filterf)(struct direntry *, const char *, FileListFilter *);
 } FileList;
+
+#define FILENAME_IS_BREADCRUMBS(_n) \
+	(((_n)[0] == '.' && (_n)[1] == '\0') || ((_n)[0] == '.' && (_n)[1] == '.' && (_n)[2] == '\0'))
 
 #define SPECIAL_IMG_SIZE 48
 #define SPECIAL_IMG_ROWS 4
@@ -252,6 +263,8 @@ static void filelist_from_library(struct FileList *filelist);
 static void filelist_read_main(struct FileList *filelist);
 static void filelist_read_library(struct FileList *filelist);
 static void filelist_read_dir(struct FileList *filelist);
+
+static void filelist_filter_clear(FileList *filelist);
 
 /* ********** Sort helpers ********** */
 
@@ -399,38 +412,56 @@ static int compare_extension(const void *a1, const void *a2)
 	return (BLI_strcasecmp(sufix1, sufix2));
 }
 
-void filelist_sort(struct FileList *filelist, short sort)
+bool filelist_need_sorting(struct FileList *filelist)
 {
-	switch (sort) {
-		case FILE_SORT_ALPHA:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);
-			break;
-		case FILE_SORT_TIME:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_date);
-			break;
-		case FILE_SORT_SIZE:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_size);
-			break;
-		case FILE_SORT_EXTENSION:
-			qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_extension);
-			break;
-	}
+	return filelist->need_sorting && (filelist->sort != FILE_SORT_NONE);
+}
 
-	filelist_filter(filelist);
+void filelist_sort(struct FileList *filelist)
+{
+	if (filelist_need_sorting(filelist)) {
+		filelist->need_sorting = false;
+
+		switch (filelist->sort) {
+			case FILE_SORT_ALPHA:
+				qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);
+				break;
+			case FILE_SORT_TIME:
+				qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_date);
+				break;
+			case FILE_SORT_SIZE:
+				qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_size);
+				break;
+			case FILE_SORT_EXTENSION:
+				qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_extension);
+				break;
+			case FILE_SORT_NONE:  /* Should never reach this point! */
+			default:
+				BLI_assert(0);
+				return;
+		}
+
+		filelist_filter_clear(filelist);
+	}
+}
+
+void filelist_setsorting(struct FileList *filelist, const short sort)
+{
+	if (filelist->sort != sort) {
+		filelist->sort = sort;
+		filelist->need_sorting = true;
+	}
 }
 
 /* ********** Filter helpers ********** */
 
-static bool is_hidden_file(const char *filename, short hide_dot)
+static bool is_hidden_file(const char *filename, FileListFilter *filter)
 {
 	bool is_hidden = false;
 
-	if (hide_dot) {
-		if (filename[0] == '.' && filename[1] != '.' && filename[1] != 0) {
+	if (filter->hide_dot) {
+		if (filename[0] == '.' && filename[1] != '.' && filename[1] != '\0') {
 			is_hidden = true; /* ignore .file */
-		}
-		else if (((filename[0] == '.') && (filename[1] == 0))) {
-			is_hidden = true; /* ignore . */
 		}
 		else {
 			int len = strlen(filename);
@@ -439,96 +470,109 @@ static bool is_hidden_file(const char *filename, short hide_dot)
 			}
 		}
 	}
-	else {
-		if (((filename[0] == '.') && (filename[1] == 0))) {
-			is_hidden = true; /* ignore . */
+	if (!is_hidden && filter->hide_parent) {
+		if (filename[0] == '.' && filename[1] == '.' && filename[2] == '\0') {
+			is_hidden = true; /* ignore .. */
 		}
+	}
+	if (!is_hidden && ((filename[0] == '.') && (filename[1] == '\0'))) {
+		is_hidden = true; /* ignore . */
 	}
 	return is_hidden;
 }
 
-static bool is_filtered_file(struct direntry *file, const char *UNUSED(dir), unsigned int filter, short hide_dot)
+static bool is_filtered_file(struct direntry *file, const char *UNUSED(root), FileListFilter *filter)
 {
-	bool is_filtered = false;
-	if (filter) {
-		if (file->flags & filter) {
-			is_filtered = true;
-		}
-		else if (file->type & S_IFDIR) {
-			if (filter & FOLDERFILE) {
-				is_filtered = true;
-			}
-		}
-	}
-	else {
-		is_filtered = true;
-	}
-	return is_filtered && !is_hidden_file(file->relname, hide_dot);
-}
+	bool is_filtered = !is_hidden_file(file->relname, filter);
 
-static bool is_filtered_lib(struct direntry *file, const char *dir, unsigned int filter, short hide_dot)
-{
-	bool is_filtered = false;
-	char tdir[FILE_MAX], tgroup[BLO_GROUP_MAX];
-	if (BLO_is_a_library(dir, tdir, tgroup)) {
-		is_filtered = !is_hidden_file(file->relname, hide_dot);
-	}
-	else {
-		is_filtered = is_filtered_file(file, dir, filter, hide_dot);
+	if (is_filtered && filter->filter && !FILENAME_IS_BREADCRUMBS(file->relname)) {
+		if ((file->type & S_IFDIR) && !(filter->filter & FOLDERFILE)) {
+			is_filtered = false;
+		}
+		if (!(file->type & S_IFDIR) && !(file->flags & filter->filter)) {
+			is_filtered = false;
+		}
 	}
 
 	return is_filtered;
 }
 
-static bool is_filtered_main(struct direntry *file, const char *UNUSED(dir), unsigned int UNUSED(filter), short hide_dot)
+static bool is_filtered_lib(struct direntry *file, const char *root, FileListFilter *filter)
 {
-	return !is_hidden_file(file->relname, hide_dot);
+	bool is_filtered = !is_hidden_file(file->relname, filter);
+	char dir[FILE_MAXDIR], group[BLO_GROUP_MAX];
+
+	if (BLO_is_a_library(root, dir, group)) {
+		is_filtered = !is_hidden_file(file->relname, filter);
+	}
+	else {
+		is_filtered = is_filtered_file(file, root, filter);
+	}
+
+	return is_filtered;
+}
+
+static bool is_filtered_main(struct direntry *file, const char *UNUSED(dir), FileListFilter *filter)
+{
+	return !is_hidden_file(file->relname, filter);
+}
+
+static void filelist_filter_clear(FileList *filelist)
+{
+	MEM_SAFE_FREE(filelist->fidx);
+	filelist->numfiltered = 0;
 }
 
 void filelist_filter(FileList *filelist)
 {
 	int num_filtered = 0;
-	int i, j;
+	int *fidx_tmp;
+	int i;
 
-	if (!filelist->filelist)
+	if (!filelist->filelist) {
 		return;
+	}
 
-	/* How many files are left after filter ? */
+	if (filelist->fidx) {
+		/* Assume it has already been filtered, nothing else to do! */
+		return;
+	}
+
+	fidx_tmp = MEM_mallocN(sizeof(*fidx_tmp) * (size_t)filelist->numfiles, __func__);
+
+	/* Filter remap & count how many files are left after filter in a single loop. */
 	for (i = 0; i < filelist->numfiles; ++i) {
 		struct direntry *file = &filelist->filelist[i];
-		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot)) {
-			num_filtered++;
+
+		if (filelist->filterf(file, filelist->dir, &filelist->filter_data)) {
+			fidx_tmp[num_filtered++] = i;
 		}
 	}
-	
-	if (filelist->fidx) {
-		MEM_freeN(filelist->fidx);
-		filelist->fidx = NULL;
-	}
-	filelist->fidx = (int *)MEM_callocN(num_filtered * sizeof(int), "filteridx");
+
+	/* Note: maybe we could even accept filelist->fidx to be filelist->numfiles -len allocated? */
+	filelist->fidx = (int *)MEM_mallocN(sizeof(*filelist->fidx) * (size_t)num_filtered, __func__);
+	memcpy(filelist->fidx, fidx_tmp, sizeof(*filelist->fidx) * (size_t)num_filtered);
 	filelist->numfiltered = num_filtered;
 
-	for (i = 0, j = 0; i < filelist->numfiles; ++i) {
-		struct direntry *file = &filelist->filelist[i];
-		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot)) {
-			filelist->fidx[j++] = i;
-		}
+	MEM_freeN(fidx_tmp);
+}
+
+void filelist_setfilter_options(FileList *filelist, const bool hide_dot, const bool hide_parent,
+                                const unsigned int filter, const char *filter_glob)
+{
+	if ((filelist->filter_data.hide_dot != hide_dot) ||
+	    (filelist->filter_data.hide_parent != hide_parent) ||
+	    (filelist->filter_data.filter != filter) ||
+	    (!STREQ(filelist->filter_data.filter_glob, filter_glob)))
+	{
+		filelist->filter_data.hide_dot = hide_dot;
+		filelist->filter_data.hide_parent = hide_parent;
+
+		filelist->filter_data.filter = filter;
+		BLI_strncpy(filelist->filter_data.filter_glob, filter_glob, sizeof(filelist->filter_data.filter_glob));
+
+		filelist_filter_clear(filelist);
 	}
-}
-
-void filelist_hidedot(struct FileList *filelist, short hide)
-{
-	filelist->hide_dot = hide;
-}
-
-void filelist_setfilter(struct FileList *filelist, unsigned int filter)
-{
-	filelist->filter = filter;
-}
-
-void filelist_setfilter_types(struct FileList *filelist, const char *filter_glob)
-{
-	BLI_strncpy(filelist->filter_glob, filter_glob, sizeof(filelist->filter_glob));
 }
 
 /* ********** Icon/image helpers ********** */
@@ -683,18 +727,16 @@ void filelist_free(struct FileList *filelist)
 		return;
 	}
 	
-	if (filelist->fidx) {
-		MEM_freeN(filelist->fidx);
-		filelist->fidx = NULL;
-	}
+	MEM_SAFE_FREE(filelist->fidx);
+	filelist->numfiltered = 0;
+	memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
+
+	filelist->need_sorting = false;
+	filelist->sort = FILE_SORT_NONE;
 
 	BLI_free_filelist(filelist->filelist, filelist->numfiles);
 	filelist->numfiles = 0;
 	filelist->filelist = NULL;
-	filelist->filter = 0;
-	filelist->filter_glob[0] = '\0';
-	filelist->numfiltered = 0;
-	filelist->hide_dot = 0;
 }
 
 void filelist_freelib(struct FileList *filelist)
@@ -893,8 +935,8 @@ static void filelist_setfiletypes(struct FileList *filelist)
 #endif
 		file->flags = file_extension_type(filelist->dir, file->relname);
 		
-		if (filelist->filter_glob[0] &&
-		    BLI_testextensie_glob(file->relname, filelist->filter_glob))
+		if (filelist->filter_data.filter_glob[0] &&
+		    BLI_testextensie_glob(file->relname, filelist->filter_data.filter_glob))
 		{
 			file->flags = OPERATORFILE;
 		}
@@ -912,7 +954,6 @@ static void filelist_read_dir(struct FileList *filelist)
 	filelist->numfiles = BLI_dir_contents(filelist->dir, &(filelist->filelist));
 
 	filelist_setfiletypes(filelist);
-	filelist_filter(filelist);
 }
 
 static void filelist_read_main(struct FileList *filelist)
@@ -952,6 +993,9 @@ static void filelist_read_library(struct FileList *filelist)
 void filelist_readdir(struct FileList *filelist)
 {
 	filelist->readf(filelist);
+
+	filelist->need_sorting = true;
+	filelist_filter_clear(filelist);
 }
 
 int filelist_empty(struct FileList *filelist)
@@ -1129,12 +1173,7 @@ static void filelist_from_library(struct FileList *filelist)
 	BLI_linklist_free(names, free);
 	if (previews) BLI_linklist_free(previews, BKE_previewimg_freefunc);
 
-	filelist_sort(filelist, FILE_SORT_ALPHA);
-
 	BLI_strncpy(G.main->name, filename, sizeof(filename));  /* prevent G.main->name to change */
-
-	filelist->filter = 0;
-	filelist_filter(filelist);
 }
 
 static void filelist_from_main(struct FileList *filelist)
@@ -1194,7 +1233,6 @@ static void filelist_from_main(struct FileList *filelist)
 #ifdef WITH_FREESTYLE
 		filelist->filelist[24].relname = BLI_strdup("FreestyleLineStyle");
 #endif
-		filelist_sort(filelist, FILE_SORT_ALPHA);
 	}
 	else {
 
@@ -1207,7 +1245,7 @@ static void filelist_from_main(struct FileList *filelist)
 		id = lb->first;
 		filelist->numfiles = 0;
 		while (id) {
-			if (!filelist->hide_dot || id->name[2] != '.') {
+			if (!filelist->filter_data.hide_dot || id->name[2] != '.') {
 				filelist->numfiles++;
 			}
 			
@@ -1215,12 +1253,12 @@ static void filelist_from_main(struct FileList *filelist)
 		}
 		
 		/* XXXXX TODO: if databrowse F4 or append/link filelist->hide_parent has to be set */
-		if (!filelist->hide_parent) filelist->numfiles += 1;
+		if (!filelist->filter_data.hide_parent) filelist->numfiles += 1;
 		filelist->filelist = filelist->numfiles > 0 ? (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry)) : NULL;
 
 		files = filelist->filelist;
 		
-		if (!filelist->hide_parent) {
+		if (!filelist->filter_data.hide_parent) {
 			memset(&(filelist->filelist[0]), 0, sizeof(struct direntry));
 			filelist->filelist[0].relname = BLI_strdup("..");
 			filelist->filelist[0].type |= S_IFDIR;
@@ -1234,7 +1272,7 @@ static void filelist_from_main(struct FileList *filelist)
 		while (id) {
 			ok = 1;
 			if (ok) {
-				if (!filelist->hide_dot || id->name[2] != '.') {
+				if (!filelist->filter_data.hide_dot || id->name[2] != '.') {
 					memset(files, 0, sizeof(struct direntry));
 					if (id->lib == NULL) {
 						files->relname = BLI_strdup(id->name + 2);
@@ -1283,8 +1321,6 @@ static void filelist_from_main(struct FileList *filelist)
 			qsort(firstlib, totlib, sizeof(struct direntry), compare_name);
 		}
 	}
-	filelist->filter = 0;
-	filelist_filter(filelist);
 }
 
 /* ********** Thumbnails job ********** */
