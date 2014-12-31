@@ -21,6 +21,10 @@ set(SRC
 	util_transform.cpp
 )
 
+if(NOT CYCLES_STANDALONE_REPOSITORY)
+	add_definitions(-DWITH_GLEW_MX)
+endif()
+
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
 	list(APPEND SRC
 		util_view.cpp

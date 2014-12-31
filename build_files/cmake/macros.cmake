@@ -118,6 +118,19 @@ macro(target_link_libraries_debug TARGET LIBS)
 	unset(_LIB)
 endmacro()
 
+macro(target_link_libraries_decoupled target libraries_var)
+	if(NOT MSVC)
+		target_link_libraries(${target} ${${libraries_var}})
+	else()
+		# For MSVC we link to different libraries depending whether
+		# release or debug target is being built.
+		file_list_suffix(_libraries_debug "${${libraries_var}}" "_d")
+		target_link_libraries_debug(${target} "${_libraries_debug}")
+		target_link_libraries_optimized(${target} "${${libraries_var}}")
+		unset(_libraries_debug)
+	endif()
+endmacro()
+
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
 macro(blender_include_dirs

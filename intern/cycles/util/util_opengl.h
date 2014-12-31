@@ -20,6 +20,12 @@
 /* OpenGL header includes, used everywhere we use OpenGL, to deal with
  * platform differences in one central place. */
 
-#include "glew-mx.h"
+#ifdef WITH_GLEW_MX
+#  include "glew-mx.h"
+#else
+#  include <GL/glew.h>
+#  define mxCreateContext() glewInit()
+#  define mxMakeCurrentContext(x) (x)
+#endif
 
 #endif /* __UTIL_OPENGL_H__ */

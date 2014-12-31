@@ -45,6 +45,7 @@ if(CYCLES_STANDALONE_REPOSITORY)
 	endif()
 else()
 	list(APPEND LIBRARIES bf_intern_glew_mx)
+	list(APPEND LIBRARIES extern_glog)
 endif()
 
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
