@@ -41,6 +41,18 @@ static bNodeSocketTemplate sh_node_gamma_out[] = {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_exec_gamma(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
+{
+	float col[3];
+	float gamma;
+	nodestack_get_vec(col, SOCK_VECTOR, in[0]);
+	nodestack_get_vec(&gamma, SOCK_FLOAT, in[1]);
+
+	out[0]->vec[0] = col[0] > 0.0 ? pow(col[0], gamma) : col[0];
+	out[0]->vec[1] = col[1] > 0.0 ? pow(col[1], gamma) : col[1];
+	out[0]->vec[2] = col[2] > 0.0 ? pow(col[2], gamma) : col[2];
+}
+
 static int node_shader_gpu_gamma(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_gamma", in, out);
@@ -51,10 +63,11 @@ void register_node_type_sh_gamma(void)
 	static bNodeType ntype;
 	
 	sh_node_type_base(&ntype, SH_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_gamma_in, sh_node_gamma_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_gamma);
 	node_type_gpu(&ntype, node_shader_gpu_gamma);
 	
 	nodeRegisterType(&ntype);

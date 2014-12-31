@@ -150,6 +150,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeRGBCurve"),
         NodeItem("ShaderNodeInvert"),
         NodeItem("ShaderNodeHueSaturation"),
+        NodeItem("ShaderNodeGamma"),
         ]),
     ShaderOldNodeCategory("SH_OP_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeNormal"),
