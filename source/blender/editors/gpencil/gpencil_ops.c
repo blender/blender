@@ -163,6 +163,14 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	/* delete */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
+	/* copy + paste */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GPENCIL_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+	
+#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "GPENCIL_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
+#endif	
 	
 	/* Transform Tools */
 	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
@@ -224,6 +232,8 @@ void ED_operatortypes_gpencil(void)
 	
 	WM_operatortype_append(GPENCIL_OT_duplicate);
 	WM_operatortype_append(GPENCIL_OT_delete);
+	WM_operatortype_append(GPENCIL_OT_copy);
+	WM_operatortype_append(GPENCIL_OT_paste);
 	
 	/* Editing (Buttons) ------------ */
 	

@@ -673,8 +673,185 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
 }
 
 /* ******************* Copy/Paste Strokes ************************* */
+/* Grease Pencil stroke data copy/paste buffer:
+ * - The copy operation collects all segments of selected strokes,
+ *   dumping "ready to be copied" copies of the strokes into the buffer.
+ * - The paste operation makes a copy of those elements, and adds them
+ *   to the active layer. This effectively flattens down the strokes
+ *   from several different layers into a single layer.
+ */
 
-// TODO:
+/* list of bGPDstroke instances */
+static ListBase gp_strokes_copypastebuf = {NULL, NULL};
+
+/* Free copy/paste buffer data */
+void ED_gpencil_strokes_copybuf_free(void)
+{
+	bGPDstroke *gps, *gpsn;
+	
+	for (gps = gp_strokes_copypastebuf.first; gps; gps = gpsn) {
+		gpsn = gps->next;
+		
+		MEM_freeN(gps->points);
+		BLI_freelinkN(&gp_strokes_copypastebuf, gps);
+	}
+	
+	gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
+}
+
+/* --------------------- */
+/* Copy selected strokes */
+
+static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	
+	if (gpd == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* clear the buffer first */
+	ED_gpencil_strokes_copybuf_free();
+	
+	/* for each visible (and editable) layer's selected strokes,
+	 * copy the strokes into a temporary buffer, then append
+	 * once all done
+	 */
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *gpf = gpl->actframe;
+		bGPDstroke *gps;
+		
+		if (gpf == NULL)
+			continue;
+		
+		/* make copies of selected strokes, and deselect these once we're done */
+		for (gps = gpf->strokes.first; gps; gps = gps->next) {
+			if (gps->flag & GP_STROKE_SELECT) {
+				if (gps->totpoints == 1) {
+					/* Special Case: If there's just a single point in this stroke... */
+					bGPDstroke *gpsd;
+					
+					/* make direct copies of the stroke and its points */
+					gpsd = MEM_dupallocN(gps);
+					gpsd->points = MEM_dupallocN(gps->points);
+					
+					/* add to temp buffer */
+					gpsd->next = gpsd->prev = NULL;
+					BLI_addtail(&gp_strokes_copypastebuf, gpsd);
+				}
+				else {
+					/* delegate to a helper, as there's too much to fit in here (for copying subsets)... */
+					gp_duplicate_points(gps, &gp_strokes_copypastebuf);
+				}
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	/* done - no updates needed */
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy Strokes";
+	ot->idname = "GPENCIL_OT_copy";
+	ot->description = "Copy selected Grease Pencil points and strokes";
+	
+	/* callbacks */
+	ot->exec = gp_strokes_copy_exec;
+	ot->poll = gp_stroke_edit_poll;
+	
+	/* flags */
+	//ot->flag = OPTYPE_REGISTER;
+}
+
+/* --------------------- */
+/* Paste selected strokes */
+
+static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
+	bGPDframe *gpf;
+	
+	/* check for various error conditions */
+	if (gpd == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		return OPERATOR_CANCELLED;
+	}
+	else if (gp_strokes_copypastebuf.first == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No strokes to paste, select and copy some points before trying again");
+		return OPERATOR_CANCELLED;
+	}
+	else if (gpl == NULL) {
+		/* no active layer - let's just create one */
+		gpl = gpencil_layer_addnew(gpd, DATA_("GP_Layer"), 1);
+	}
+	else if (gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) {
+		BKE_report(op->reports, RPT_ERROR, "Can not paste strokes when active layer is hidden or locked");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* Deselect all strokes first */
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		bGPDspoint *pt;
+		int i;
+		
+		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+			pt->flag &= ~GP_SPOINT_SELECT;
+		}
+		
+		gps->flag &= ~GP_STROKE_SELECT;
+	}
+	CTX_DATA_END;
+	
+	/* Ensure we have a frame to draw into
+	 * NOTE: Since this is an op which creates strokes,
+	 *       we are obliged to add a new frame if one
+	 *       doesn't exist already
+	 */
+	gpf = gpencil_layer_getframe(gpl, CFRA, true);
+	
+	if (gpf) {
+		bGPDstroke *gps;
+		
+		/* Copy each stroke into the layer */
+		for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+			bGPDstroke *new_stroke = MEM_dupallocN(gps);
+			
+			new_stroke->points = MEM_dupallocN(gps->points);
+			new_stroke->next = new_stroke->prev = NULL;
+			
+			BLI_addtail(&gpf->strokes, new_stroke);
+		}
+	}
+	
+	/* updates */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Paste Strokes";
+	ot->idname = "GPENCIL_OT_paste";
+	ot->description = "Paste previously copied strokes into active layer";
+	
+	/* callbacks */
+	ot->exec = gp_strokes_paste_exec;
+	ot->poll = gp_stroke_edit_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
 
 /* ******************* Delete Active Frame ************************ */
 

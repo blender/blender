@@ -96,6 +96,7 @@
 #include "wm_window.h"
 
 #include "ED_armature.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_node.h"
 #include "ED_render.h"
@@ -475,6 +476,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	free_anim_copybuf();
 	free_anim_drivers_copybuf();
 	free_fmodifiers_copybuf();
+	ED_gpencil_strokes_copybuf_free();
 	ED_clipboard_posebuf_free();
 	BKE_node_clipboard_clear();
 

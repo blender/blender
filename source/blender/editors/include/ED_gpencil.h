@@ -87,6 +87,12 @@ void ED_keymap_gpencil(struct wmKeyConfig *keyconf);
 void ED_operatortypes_gpencil(void);
 void ED_operatormacros_gpencil(void);
 
+/* ------------- Copy-Paste Buffers -------------------- */
+
+/* Strokes copybuf */
+void ED_gpencil_strokes_copybuf_free(void);
+
+
 /* ------------ Grease-Pencil Drawing API ------------------ */
 /* drawgpencil.c */
 
