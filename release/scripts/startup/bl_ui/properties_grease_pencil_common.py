@@ -130,6 +130,11 @@ class GreasePencilStrokeEditPanel():
         col.separator()
 
         col.label(text="Edit:")
+        row = col.row(align=True)
+        row.active = edit_ok
+        row.operator("gpencil.copy", text="Copy")
+        row.operator("gpencil.paste", text="Paste")
+
         subcol = col.column(align=True)
         subcol.active = edit_ok
         subcol.operator("gpencil.delete", text="Delete")
@@ -281,15 +286,20 @@ class GPENCIL_PIE_tools_more(Menu):
         pie = layout.menu_pie()
         # gpd = context.gpencil_data
 
-        pie.operator("gpencil.select_more", icon='ZOOMIN')
-        pie.operator("gpencil.select_less", icon='ZOOMOUT')
+        col = pie.column(align=True)
+        col.operator("gpencil.copy", icon='COPYDOWN', text="Copy")
+        col.operator("gpencil.paste", icon='PASTEDOWN', text="Paste")
+
+        col = pie.column(align=True)
+        col.operator("gpencil.select_more", icon='ZOOMIN')
+        col.operator("gpencil.select_less", icon='ZOOMOUT')
 
         pie.operator("transform.mirror", icon='MOD_MIRROR').gpencil_strokes = True
         pie.operator("transform.bend", icon='MOD_SIMPLEDEFORM').gpencil_strokes = True
         pie.operator("transform.shear", icon='MOD_TRIANGULATE').gpencil_strokes = True
         pie.operator("transform.tosphere", icon='MOD_MULTIRES').gpencil_strokes = True
 
-        pie.operator("gpencil.convert", icon='OUTLINER_OB_CURVE')
+        pie.operator("gpencil.convert", icon='OUTLINER_OB_CURVE', text="Convert...")
         pie.operator("wm.call_menu_pie", text="Back to Main Palette...").name = "GPENCIL_PIE_tool_palette"
 
 
