@@ -109,22 +109,13 @@ $ complete -o bashdefault -o default -o nospace -C                            \
 // produce the expected completion output.
 
 
-#ifndef BASE_COMMANDLINEFLAGS_COMPLETIONS_H_
-#define BASE_COMMANDLINEFLAGS_COMPLETIONS_H_
+#ifndef GFLAGS_COMPLETIONS_H_
+#define GFLAGS_COMPLETIONS_H_
 
-// Annoying stuff for windows -- makes sure clients can import these functions
-//
-// NOTE: all functions below MUST have an explicit 'extern' before
-// them.  Our automated opensourcing tools use this as a signal to do
-// appropriate munging for windows, which needs to add GFLAGS_DLL_DECL.
-//
-#define GFLAGS_DLL_DECL  /* rewritten to be non-empty in windows dir */
-
-
-namespace google {
+namespace gflags {
 
 extern void HandleCommandLineCompletions(void);
 
 }
 
-#endif  // BASE_COMMANDLINEFLAGS_COMPLETIONS_H_
+#endif  // GFLAGS_COMPLETIONS_H_

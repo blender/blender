@@ -133,10 +133,10 @@ libmv/tracking/track_region.cc
 libmv/tracking/track_region.h
 libmv/tracking/trklt_region_tracker.cc
 libmv/tracking/trklt_region_tracker.h
-third_party/gflags/AUTHORS
-third_party/gflags/ChangeLog
+third_party/gflags/AUTHORS.txt
+third_party/gflags/ChangeLog.txt
 third_party/gflags/config.h
-third_party/gflags/COPYING
+third_party/gflags/COPYING.txt
 third_party/gflags/gflags.cc
 third_party/gflags/gflags_completions.cc
 third_party/gflags/gflags/gflags_completions.h
@@ -144,7 +144,7 @@ third_party/gflags/gflags/gflags_declare.h
 third_party/gflags/gflags/gflags.h
 third_party/gflags/gflags_reporting.cc
 third_party/gflags/mutex.h
-third_party/gflags/NEWS
+third_party/gflags/NEWS.txt
 third_party/gflags/README.libmv
 third_party/gflags/util.h
 third_party/glog/AUTHORS

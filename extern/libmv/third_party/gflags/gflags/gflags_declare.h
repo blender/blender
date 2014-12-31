@@ -34,43 +34,64 @@
 // This is the file that should be included by any file which declares
 // command line flag.
 
-#ifndef BASE_COMMANDLINEFLAGS_DECLARE_H_
-#define BASE_COMMANDLINEFLAGS_DECLARE_H_
+#ifndef GFLAGS_DECLARE_H_
+#define GFLAGS_DECLARE_H_
 
+// ---------------------------------------------------------------------------
+// Windows DLL import/export.
+
+// We always want to import the symbols of the gflags library
+#ifndef GFLAGS_DLL_DECL
+#  if 1 && defined(_MSC_VER)
+#    define GFLAGS_DLL_DECL __declspec(dllimport)
+#  else
+#    define GFLAGS_DLL_DECL
+#  endif
+#endif
+
+// We always want to import variables declared in user code
+#ifndef GFLAGS_DLL_DECLARE_FLAG
+#  ifdef _MSC_VER
+#    define GFLAGS_DLL_DECLARE_FLAG __declspec(dllimport)
+#  else
+#    define GFLAGS_DLL_DECLARE_FLAG
+#  endif
+#endif
+
+// ---------------------------------------------------------------------------
+// Flag types
 #include <string>
 #if 1
-#include <stdint.h>         // the normal place uint16_t is defined
-#endif
-#if 1
-#include <sys/types.h>      // the normal place u_int16_t is defined
-#endif
-#if 1
-#include <inttypes.h>       // a third place for uint16_t or u_int16_t
+#  include <stdint.h>                   // the normal place uint32_t is defined
+#elif 1
+#  include <sys/types.h>                // the normal place u_int32_t is defined
+#elif 1
+#  include <inttypes.h>                 // a third place for uint32_t or u_int32_t
 #endif
 
-namespace google {
-#if defined(__GNUC__) || defined(__MINGW32__)      // the C99 format
-typedef int32_t int32;
-typedef uint32_t uint32;
-typedef int64_t int64;
-typedef uint64_t uint64;
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)   // the BSD format
-typedef int32_t int32;
-typedef u_int32_t uint32;
-typedef int64_t int64;
-typedef u_int64_t uint64;
-#elif defined(_MSC_VER)     // the windows (vc7) format
-typedef __int32 int32;
+namespace gflags {
+
+#if 1 // C99
+typedef int32_t          int32;
+typedef uint32_t         uint32;
+typedef int64_t          int64;
+typedef uint64_t         uint64;
+#elif 0 // BSD
+typedef int32_t          int32;
+typedef u_int32_t        uint32;
+typedef int64_t          int64;
+typedef u_int64_t        uint64;
+#elif 0 // Windows
+typedef __int32          int32;
 typedef unsigned __int32 uint32;
-typedef __int64 int64;
+typedef __int64          int64;
 typedef unsigned __int64 uint64;
 #else
-#error Do not know how to define a 32-bit integer quantity on your system
+#  error Do not know how to define a 32-bit integer quantity on your system
 #endif
-}
 
+} // namespace gflags
 
-#define GFLAGS_DLL_DECLARE_FLAG  /* rewritten to be non-empty in windows dir */
 
 namespace fLS {
 
@@ -80,7 +101,8 @@ namespace fLS {
 // included).  Save the current meaning now and use it in the macros.
 typedef std::string clstring;
 
-}
+} // namespace fLS
+
 
 #define DECLARE_VARIABLE(type, shorttype, name) \
   /* We always want to import declared variables, dll or no */ \
@@ -91,22 +113,24 @@ typedef std::string clstring;
   DECLARE_VARIABLE(bool, B, name)
 
 #define DECLARE_int32(name) \
-  DECLARE_VARIABLE(::google::int32, I, name)
+  DECLARE_VARIABLE(::gflags::int32, I, name)
 
 #define DECLARE_int64(name) \
-  DECLARE_VARIABLE(::google::int64, I64, name)
+  DECLARE_VARIABLE(::gflags::int64, I64, name)
 
 #define DECLARE_uint64(name) \
-  DECLARE_VARIABLE(::google::uint64, U64, name)
+  DECLARE_VARIABLE(::gflags::uint64, U64, name)
 
 #define DECLARE_double(name) \
   DECLARE_VARIABLE(double, D, name)
 
 #define DECLARE_string(name) \
-  namespace fLS {                       \
-  using ::fLS::clstring;                \
+  /* We always want to import declared variables, dll or no */ \
+  namespace fLS { \
+  using ::fLS::clstring; \
   extern GFLAGS_DLL_DECLARE_FLAG ::fLS::clstring& FLAGS_##name; \
-  }                                     \
+  } \
   using fLS::FLAGS_##name
 
-#endif  // BASE_COMMANDLINEFLAGS_DECLARE_H_
+
+#endif  // GFLAGS_DECLARE_H_

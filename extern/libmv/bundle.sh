@@ -133,6 +133,7 @@ set(SRC
 if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 	list(APPEND INC
 		third_party/gflags
+		third_party/gflags/gflags
 		third_party/glog/src
 		third_party/ceres/include
 		third_party/ceres/config
@@ -294,7 +295,7 @@ if env['WITH_BF_LIBMV'] or (env['WITH_BF_CYCLES'] and env['WITH_BF_CYCLES_LOGGIN
     defs.append('WITH_LIBMV_GUARDED_ALLOC')
     defs.append('LIBMV_NO_FAST_DETECTOR')
 
-    incs += ' ../Eigen3 third_party/gflags third_party/glog/src third_party/ceres/include third_party/ceres/config ../../intern/guardedalloc'
+    incs += ' ../Eigen3 third_party/gflags third_party/gflags/gflags third_party/glog/src third_party/ceres/include third_party/ceres/config ../../intern/guardedalloc'
     incs += ' ' + env['BF_PNG_INC']
     incs += ' ' + env['BF_ZLIB_INC']
 

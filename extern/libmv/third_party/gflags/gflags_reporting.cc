@@ -48,40 +48,32 @@
 // called after all flag-values have been assigned, that is, after
 // parsing the command-line.
 
-#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string>
 #include <vector>
-#include "gflags/gflags.h"
-#include "gflags/gflags_completions.h"
+
+#include "config.h"
+#include "gflags.h"
+#include "gflags_completions.h"
 #include "util.h"
 
-#ifndef PATH_SEPARATOR
-#define PATH_SEPARATOR  '/'
-#endif
 
 // The 'reporting' flags.  They all call gflags_exitfunc().
-DEFINE_bool(help, false,
-            "show help on all flags [tip: all flags can have two dashes]");
-DEFINE_bool(helpfull, false,
-            "show help on all flags -- same as -help");
-DEFINE_bool(helpshort, false,
-            "show help on only the main module for this program");
-DEFINE_string(helpon, "",
-              "show help on the modules named by this flag value");
-DEFINE_string(helpmatch, "",
-              "show help on modules whose name contains the specified substr");
-DEFINE_bool(helppackage, false,
-            "show help on all modules in the main package");
-DEFINE_bool(helpxml, false,
-            "produce an xml version of help");
-DEFINE_bool(version, false,
-            "show version and build info and exit");
+DEFINE_bool  (help,        false, "show help on all flags [tip: all flags can have two dashes]");
+DEFINE_bool  (helpfull,    false, "show help on all flags -- same as -help");
+DEFINE_bool  (helpshort,   false, "show help on only the main module for this program");
+DEFINE_string(helpon,      "",    "show help on the modules named by this flag value");
+DEFINE_string(helpmatch,   "",    "show help on modules whose name contains the specified substr");
+DEFINE_bool  (helppackage, false, "show help on all modules in the main package");
+DEFINE_bool  (helpxml,     false, "produce an xml version of help");
+DEFINE_bool  (version,     false, "show version and build info and exit");
 
-_START_GOOGLE_NAMESPACE_
+
+namespace GFLAGS_NAMESPACE {
+
 
 using std::string;
 using std::vector;
@@ -254,7 +246,7 @@ static bool FileMatchesSubstring(const string& filename,
     // the string to be at the beginning of a directory component.
     // That should match the first directory component as well, so
     // we allow '/foo' to match a filename of 'foo'.
-    if (!target->empty() && (*target)[0] == '/' &&
+    if (!target->empty() && (*target)[0] == PATH_SEPARATOR &&
         strncmp(filename.c_str(), target->c_str() + 1,
                 strlen(target->c_str() + 1)) == 0)
       return true;
@@ -360,7 +352,8 @@ static void ShowVersion() {
 
 static void AppendPrognameStrings(vector<string>* substrings,
                                   const char* progname) {
-  string r("/");
+  string r("");
+  r += PATH_SEPARATOR;
   r += progname;
   substrings->push_back(r + ".");
   substrings->push_back(r + "-main.");
@@ -395,7 +388,7 @@ void HandleCommandLineHelpFlags() {
     gflags_exitfunc(1);
 
   } else if (!FLAGS_helpon.empty()) {
-    string restrict = "/" + FLAGS_helpon + ".";
+    string restrict = PATH_SEPARATOR + FLAGS_helpon + ".";
     ShowUsageWithFlagsRestrict(progname, restrict.c_str());
     gflags_exitfunc(1);
 
@@ -417,7 +410,7 @@ void HandleCommandLineHelpFlags() {
          ++flag) {
       if (!FileMatchesSubstring(flag->filename, substrings))
         continue;
-      const string package = Dirname(flag->filename) + "/";
+      const string package = Dirname(flag->filename) + PATH_SEPARATOR;
       if (package != last_package) {
         ShowUsageWithFlagsRestrict(progname, package.c_str());
         VLOG(7) << "Found package: " << package;
@@ -444,4 +437,5 @@ void HandleCommandLineHelpFlags() {
   }
 }
 
-_END_GOOGLE_NAMESPACE_
+
+} // namespace GFLAGS_NAMESPACE

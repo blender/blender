@@ -1,3 +1,42 @@
+commit 7d6020d2ec42c6cb2749bc891186b4880d26d40b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 31 15:32:07 2014 +0500
+
+    Update GLog to latest upstream revision 143
+    
+    Mainly to solve compilation error with demangle.cc.
+
+commit 5dc746700eaf85cb674f0fb73ff3c1b49a7f6315
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Dec 12 14:59:55 2014 +0500
+
+    Update GFlags to latest release 2.1.1
+    
+    Main purpose of this (andsome of upcoming) update is to check if the
+    upstream sources are useable without any modifications for us. And if
+    not, then we'll need to consider moving some changes into upstream.
+    
+    This commit contains an one-to-one copy of the upstream GFlags library
+    and also changes namespace usage since it's changed in the upstream.
+
+commit 6fe6d75f7e90e161b44643b953f058a3829a5247
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Nov 1 02:53:36 2014 +0500
+
+    Libmv: Code cleanup, mixed class/struct in declaration/definition
+
+commit d2a5f7953812d2d09765431b59c6c4ac72faf35b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Oct 30 23:13:53 2014 +0500
+
+    Libmv: Support disabled color channels in tracking settings
+    
+    This was never ported to a new tracking pipeline and now it's done using
+    FrameAccessor::Transform routines. Quite striaghtforward, but i've changed
+    order of grayscale conversion in blender side with call of transform callback.
+    
+    This way it's much easier to perform rescaling in libmv side.
+
 commit d976e034cdf74b34860e0632d7b29713f47c5756
 Author: Keir Mierle <mierle@gmail.com>
 Date:   Sat Aug 23 00:38:01 2014 -0700
@@ -666,37 +705,3 @@ Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Tue Feb 18 19:38:22 2014 +0600
 
     Remove .orig file which was added by accident
-
-commit 62597e3cf0f266a2fefec415c89759e502793e06
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Jan 2 16:02:08 2014 +0600
-
-    Upgrade glog to latest svn r139
-    
-    The intention of this upgrade is to get rid of custom patches
-    we've been having to support compilation on different platforms
-    and compilers.
-
-commit 2452d5d42b390c7ab853e6fe60e58bdd7a01a004
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Feb 18 18:46:08 2014 +0600
-
-    Tweak Ceres CMake to detect uninstall target properly on Windows
-
-commit 98a281d58ce2301f3dd239a97a448e53f48d0258
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 14 00:36:44 2014 +0600
-
-    Fix order of third party libs compilation and options used by them
-    
-    WITH_FAST_DETECTOR was defined too late and third_party folder
-    didn't see this option.
-
-commit 4962bccd643ec0f2aed3035170d5f20e8f6efc85
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Feb 13 23:55:03 2014 +0600
-
-    Disable Ceres unit tests and examples by default
-    
-    Actually we're to switch to external Ceres rather than
-    bundled one, would make life much easier actually.

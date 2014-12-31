@@ -48,6 +48,7 @@
 
 
 #include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>   // for strlen
@@ -57,17 +58,13 @@
 #include <utility>
 #include <vector>
 
-#include "gflags/gflags_completions.h"
-#include "gflags/gflags.h"
+#include "gflags.h"
 #include "util.h"
 
 using std::set;
 using std::string;
 using std::vector;
 
-#ifndef PATH_SEPARATOR
-#define PATH_SEPARATOR  '/'
-#endif
 
 DEFINE_string(tab_completion_word, "",
               "If non-empty, HandleCommandLineCompletions() will hijack the "
@@ -76,7 +73,9 @@ DEFINE_string(tab_completion_word, "",
 DEFINE_int32(tab_completion_columns, 80,
              "Number of columns to use in output for tab completion");
 
-_START_GOOGLE_NAMESPACE_
+
+namespace GFLAGS_NAMESPACE {
+
 
 namespace {
 // Function prototypes and Type forward declarations.  Code may be
@@ -766,4 +765,5 @@ void HandleCommandLineCompletions(void) {
   gflags_exitfunc(0);
 }
 
-_END_GOOGLE_NAMESPACE_
+
+} // namespace GFLAGS_NAMESPACE

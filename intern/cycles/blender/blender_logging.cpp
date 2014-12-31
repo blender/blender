@@ -33,10 +33,10 @@ void CCL_init_logging(const char *argv0)
 	         google::GLOG_FATAL);
 
 	google::InitGoogleLogging(argv0);
-	google::SetCommandLineOption("logtostderr", "1");
-	google::SetCommandLineOption("v", "0");
-	google::SetCommandLineOption("stderrthreshold", severity_fatal);
-	google::SetCommandLineOption("minloglevel", severity_fatal);
+	gflags::SetCommandLineOption("logtostderr", "1");
+	gflags::SetCommandLineOption("v", "0");
+	gflags::SetCommandLineOption("stderrthreshold", severity_fatal);
+	gflags::SetCommandLineOption("minloglevel", severity_fatal);
 #else
 	(void) argv0;
 #endif
@@ -45,10 +45,10 @@ void CCL_init_logging(const char *argv0)
 void CCL_start_debug_logging(void)
 {
 #ifdef WITH_CYCLES_LOGGING
-	google::SetCommandLineOption("logtostderr", "1");
-	google::SetCommandLineOption("v", "2");
-	google::SetCommandLineOption("stderrthreshold", "1");
-	google::SetCommandLineOption("minloglevel", "0");
+	gflags::SetCommandLineOption("logtostderr", "1");
+	gflags::SetCommandLineOption("v", "2");
+	gflags::SetCommandLineOption("stderrthreshold", "1");
+	gflags::SetCommandLineOption("minloglevel", "0");
 #endif
 }
 
@@ -58,7 +58,7 @@ void CCL_logging_verbosity_set(int verbosity)
 	char val[10];
 	snprintf(val, sizeof(val), "%d", verbosity);
 
-	google::SetCommandLineOption("v", val);
+	gflags::SetCommandLineOption("v", val);
 #else
 	(void) verbosity;
 #endif

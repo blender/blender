@@ -1,7 +1,7 @@
 Project: Google Logging
 URL: http://code.google.com/p/google-glog/
 License: New BSD
-Upstream version: 0.3.3, r139
+Upstream version: 0.3.3, r143
 Local modifications:
 * Added per-platform config.h files so no configuration-time
   checks for functions and so are needed.

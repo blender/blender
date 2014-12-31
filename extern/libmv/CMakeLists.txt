@@ -40,14 +40,14 @@ set(SRC
 if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 	list(APPEND INC
 		third_party/gflags
+		third_party/gflags/gflags
 		third_party/glog/src
 		third_party/ceres/include
 		third_party/ceres/config
 		../../intern/guardedalloc
 	)
 
-	list(APPEND
-		INC_SYS
+	list(APPEND INC_SYS
 		../Eigen3
 		${PNG_INCLUDE_DIRS}
 		${ZLIB_INCLUDE_DIRS}
