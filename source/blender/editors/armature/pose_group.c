@@ -365,8 +365,8 @@ typedef struct tSortActionGroup {
 /* compare bone groups by name */
 static int compare_agroup(const void *sgrp_a_ptr, const void *sgrp_b_ptr)
 {
-	tSortActionGroup *sgrp_a = (tSortActionGroup *)sgrp_a_ptr;
-	tSortActionGroup *sgrp_b = (tSortActionGroup *)sgrp_b_ptr;
+	const tSortActionGroup *sgrp_a = sgrp_a_ptr;
+	const tSortActionGroup *sgrp_b = sgrp_b_ptr;
 
 	return strcmp(sgrp_a->agrp->name, sgrp_b->agrp->name);
 }

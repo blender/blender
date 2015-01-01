@@ -909,7 +909,7 @@ static void dna_write(FILE *file, const void *pntr, const int size)
 	int i;
 	const char *data;
 
-	data = (char *) pntr;
+	data = (const char *)pntr;
 	
 	for (i = 0; i < size; i++) {
 		fprintf(file, "%d, ", data[i]);

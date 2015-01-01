@@ -299,8 +299,7 @@ void GetSkyXYZRadiancef(struct SunSky *sunsky, const float varg[3], float color_
 	float theta, phi;
 	float v[3];
 
-	copy_v3_v3(v, (float *)varg);
-	normalize_v3(v);
+	normalize_v3_v3(v, varg);
 
 	if (v[2] < 0.001f) {
 		v[2] = 0.001f;

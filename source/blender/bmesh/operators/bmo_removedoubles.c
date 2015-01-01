@@ -238,7 +238,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
 static int vergaverco(const void *e1, const void *e2)
 {
-	const BMVert *v1 = *(void **)e1, *v2 = *(void **)e2;
+	const BMVert *v1 = *(const void **)e1, *v2 = *(const void **)e2;
 	float x1 = v1->co[0] + v1->co[1] + v1->co[2];
 	float x2 = v2->co[0] + v2->co[1] + v2->co[2];
 

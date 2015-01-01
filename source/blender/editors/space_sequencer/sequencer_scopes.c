@@ -55,7 +55,7 @@ static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
 
 static void scope_put_pixel(unsigned char *table, unsigned char *pos)
 {
-	char newval = table[*pos];
+	unsigned char newval = table[*pos];
 	pos[0] = pos[1] = pos[2] = newval;
 	pos[3] = 255;
 }
@@ -148,8 +148,8 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
 	int x, y;
-	unsigned char *src = (unsigned char *) ibuf->rect;
-	unsigned char *tgt = (unsigned char *) rval->rect;
+	const unsigned char *src = (unsigned char *)ibuf->rect;
+	unsigned char *tgt = (unsigned char *)rval->rect;
 	int w = ibuf->x + 3;
 	int h = 515;
 	float waveform_gamma = 0.2;
@@ -166,7 +166,7 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 		unsigned char *last_p = NULL;
 
 		for (x = 0; x < ibuf->x; x++) {
-			unsigned char *rgb = src + 4 * (ibuf->x * y + x);
+			const unsigned char *rgb = src + 4 * (ibuf->x * y + x);
 			float v = (float)rgb_to_luma_byte(rgb) / 255.0f;
 			unsigned char *p = tgt;
 			p += 4 * (w * ((int) (v * (h - 3)) + 1) + x + 1);
@@ -189,7 +189,7 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
 	int x, y;
-	float *src = ibuf->rect_float;
+	const float *src = ibuf->rect_float;
 	unsigned char *tgt = (unsigned char *) rval->rect;
 	int w = ibuf->x + 3;
 	int h = 515;
@@ -245,8 +245,8 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
 	int x, y;
-	unsigned char *src = (unsigned char *) ibuf->rect;
-	unsigned char *tgt = (unsigned char *) rval->rect;
+	const unsigned char *src = (const unsigned char *)ibuf->rect;
+	unsigned char *tgt = (unsigned char *)rval->rect;
 	int w = ibuf->x + 3;
 	int sw = ibuf->x / 3;
 	int h = 515;
@@ -264,7 +264,7 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			int c;
-			unsigned char *rgb = src + 4 * (ibuf->x * y + x);
+			const unsigned char *rgb = src + 4 * (ibuf->x * y + x);
 			for (c = 0; c < 3; c++) {
 				unsigned char *p = tgt;
 				p += 4 * (w * ((rgb[c] * (h - 3)) / 255 + 1) + c * sw + x / 3 + 1);
@@ -290,8 +290,8 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
 	int x, y;
-	float *src = ibuf->rect_float;
-	unsigned char *tgt = (unsigned char *) rval->rect;
+	const float *src = ibuf->rect_float;
+	unsigned char *tgt = (unsigned char *)rval->rect;
 	int w = ibuf->x + 3;
 	int sw = ibuf->x / 3;
 	int h = 515;
@@ -455,7 +455,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
 	int x, y;
 	unsigned int nr, ng, nb;
-	unsigned char *src = (unsigned char *) ibuf->rect;
+	const unsigned char *src = (unsigned char *)ibuf->rect;
 
 	unsigned int bins[3][HIS_STEPS];
 
@@ -468,7 +468,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 		memset(cur_bins, 0, sizeof(cur_bins));
 
 		for (x = 0; x < ibuf->x; x++) {
-			unsigned char *pixel = src + (y * ibuf->x + x) * 4;
+			const unsigned char *pixel = src + (y * ibuf->x + x) * 4;
 
 			cur_bins[0][pixel[0]]++;
 			cur_bins[1][pixel[1]]++;
@@ -532,7 +532,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
 	int nr, ng, nb, x, y;
-	float *src = ibuf->rect_float;
+	const float *src = ibuf->rect_float;
 
 	unsigned int bins[3][HIS_STEPS];
 
@@ -635,7 +635,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(515, 515, 32, IB_rect);
 	int x, y;
-	char *src = (char *) ibuf->rect;
+	const char *src = (const char *) ibuf->rect;
 	char *tgt = (char *) rval->rect;
 	float rgb[3], yuv[3];
 	int w = 515;
@@ -659,7 +659,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
 			const char *src1 = src + 4 * (ibuf->x * y + x);
-			const char *p;
+			char *p;
 			
 			rgb[0] = (float)src1[0] / 255.0f;
 			rgb[1] = (float)src1[1] / 255.0f;
@@ -681,7 +681,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(515, 515, 32, IB_rect);
 	int x, y;
-	float *src = ibuf->rect_float;
+	const float *src = ibuf->rect_float;
 	char *tgt = (char *) rval->rect;
 	float rgb[3], yuv[3];
 	int w = 515;

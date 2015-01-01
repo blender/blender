@@ -2025,8 +2025,8 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 
 static int sort_verts_by_dist_cb(void *co_p, const void *cur_a_p, const void *cur_b_p)
 {
-	KnifeVert *cur_a = ((Ref *)cur_a_p)->ref;
-	KnifeVert *cur_b = ((Ref *)cur_b_p)->ref;
+	const KnifeVert *cur_a = ((const Ref *)cur_a_p)->ref;
+	const KnifeVert *cur_b = ((const Ref *)cur_b_p)->ref;
 	const float *co = co_p;
 	const float a_sq = len_squared_v3v3(co, cur_a->co);
 	const float b_sq = len_squared_v3v3(co, cur_b->co);

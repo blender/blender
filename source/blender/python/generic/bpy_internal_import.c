@@ -265,7 +265,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	}
 
 	/* make into a module */
-	return PyImport_ExecCodeModule((char *)name, text->compiled);
+	return PyImport_ExecCodeModule(name, text->compiled);
 }
 
 

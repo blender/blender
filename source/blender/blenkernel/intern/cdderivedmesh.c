@@ -1052,7 +1052,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	}
 	else {
 		GPUBuffer *buffer = NULL;
-		const char *varray = NULL;
+		char *varray = NULL;
 		int numdata = 0, elementsize = 0, offset;
 		int start = 0, numfaces = 0 /* , prevdraw = 0 */ /* UNUSED */, curface = 0;
 		int i;

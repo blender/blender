@@ -1326,7 +1326,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 
 static bool nla_editbone_name_check(void *arg, const char *name)
 {
-	return BLI_ghash_haskey((GHash *)arg, (void *)name);
+	return BLI_ghash_haskey((GHash *)arg, (const void *)name);
 }
 
 /* Find (and set) a unique name for a strip from the whole AnimData block 

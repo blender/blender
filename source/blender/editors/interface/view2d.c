@@ -2305,7 +2305,7 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y,
 
 		BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
-		v2s->col.pack = *((int *)col);
+		v2s->col.pack = *((const int *)col);
 
 		memset(&v2s->rect, 0, sizeof(v2s->rect));
 
@@ -2336,7 +2336,7 @@ void UI_view2d_text_cache_add_rectf(View2D *v2d, const rctf *rect_view,
 
 		BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
-		v2s->col.pack = *((int *)col);
+		v2s->col.pack = *((const int *)col);
 
 		v2s->rect = rect;
 

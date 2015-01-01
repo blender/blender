@@ -238,7 +238,7 @@ GPUFunction *GPU_lookup_function(const char *name)
 		gpu_parse_functions_string(FUNCTION_HASH, glsl_material_library);
 	}
 
-	return (GPUFunction*)BLI_ghash_lookup(FUNCTION_HASH, (void *)name);
+	return BLI_ghash_lookup(FUNCTION_HASH, (const void *)name);
 }
 
 void gpu_codegen_init(void)

@@ -64,10 +64,10 @@ BMFace *BM_vert_pair_share_face_by_angle(
         BMLoop **r_l_a, BMLoop **r_l_b,
         const bool allow_adjacent) ATTR_NONNULL();
 
-int     BM_vert_edge_count_nonwire(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int     BM_vert_edge_count(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int     BM_edge_face_count(BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int     BM_vert_face_count(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int     BM_vert_edge_count_nonwire(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int     BM_vert_edge_count(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int     BM_edge_face_count(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int     BM_vert_face_count(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 bool    BM_vert_is_edge_pair(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

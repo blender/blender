@@ -664,7 +664,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 		}
 	}
 	
-	return (unsigned char *)cp;
+	return (const unsigned char *)cp;
 }
 
 /* use this call to init new bone color sets in Theme */

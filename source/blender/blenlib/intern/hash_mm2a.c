@@ -81,7 +81,7 @@ void BLI_hash_mm2a_add(BLI_HashMurmur2A *mm2, const unsigned char *data, size_t 
 	mm2a_mix_tail(mm2, &data, &len);
 
 	for (; len >= 4; data += 4, len -= 4) {
-		uint32_t k = *(uint32_t *)data;
+		uint32_t k = *(const uint32_t *)data;
 
 		MM2A_MIX(mm2->hash, k);
 	}

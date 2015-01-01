@@ -3362,8 +3362,8 @@ static int loop_find_region(BMLoop *l, int flag,
 
 static int verg_radial(const void *va, const void *vb)
 {
-	BMEdge *e_a = *((BMEdge **)va);
-	BMEdge *e_b = *((BMEdge **)vb);
+	const BMEdge *e_a = *((const BMEdge **)va);
+	const BMEdge *e_b = *((const BMEdge **)vb);
 
 	int a, b;
 	a = BM_edge_face_count(e_a);

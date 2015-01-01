@@ -777,7 +777,7 @@ static void rna_Object_rotation_axis_angle_set(PointerRNA *ptr, const float *val
 	
 	/* for now, assume that rotation mode is axis-angle */
 	ob->rotAngle = value[0];
-	copy_v3_v3(ob->rotAxis, (float *)&value[1]);
+	copy_v3_v3(ob->rotAxis, &value[1]);
 	
 	/* TODO: validate axis? */
 }

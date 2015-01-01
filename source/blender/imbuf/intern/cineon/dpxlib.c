@@ -134,7 +134,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 {
 	DpxMainHeader header;
 	LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
-	char *filename = (char *)byteStuff;
+	const char *filename = (const char *)byteStuff;
 	int i;
 
 	if (dpx == NULL) {

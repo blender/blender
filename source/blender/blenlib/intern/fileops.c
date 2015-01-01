@@ -896,7 +896,7 @@ int BLI_move(const char *file, const char *to)
 }
 #endif
 
-static char *check_destination(const char *file, const char *to)
+static const char *check_destination(const char *file, const char *to)
 {
 	struct stat st;
 
@@ -927,18 +927,18 @@ static char *check_destination(const char *file, const char *to)
 		}
 	}
 
-	return (char *)to;
+	return to;
 }
 
 int BLI_copy(const char *file, const char *to)
 {
-	char *actual_to = check_destination(file, to);
+	const char *actual_to = check_destination(file, to);
 	int ret;
 
 	ret = recursive_operation(file, actual_to, copy_callback_pre, copy_single_file, NULL);
 
 	if (actual_to != to)
-		MEM_freeN(actual_to);
+		MEM_freeN((void *)actual_to);
 
 	return ret;
 }

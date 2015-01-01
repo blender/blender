@@ -40,7 +40,7 @@ typedef union IDPropertyTemplate {
 	float f;
 	double d;
 	struct {
-		char *str;
+		const char *str;
 		int len;
 		char subtype;
 	} string;
@@ -51,7 +51,7 @@ typedef union IDPropertyTemplate {
 	} array;
 	struct {
 		int matvec_size;
-		float *example;
+		const float *example;
 	} matrix_or_vector;
 } IDPropertyTemplate;
 

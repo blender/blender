@@ -236,7 +236,7 @@ static void nla_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		draw_nla_channel_list((bContext *)C, &ac, ar);
+		draw_nla_channel_list(C, &ac, ar);
 	}
 	
 	/* reset view matrix */

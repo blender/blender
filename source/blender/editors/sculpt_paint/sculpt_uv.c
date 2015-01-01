@@ -557,15 +557,15 @@ static int uv_element_offset_from_face_get(UvElementMap *map, BMFace *efa, BMLoo
 
 static unsigned int uv_edge_hash(const void *key)
 {
-	UvEdge *edge = (UvEdge *)key;
+	const UvEdge *edge = key;
 	return (BLI_ghashutil_uinthash(edge->uv2) +
 	        BLI_ghashutil_uinthash(edge->uv1));
 }
 
 static bool uv_edge_compare(const void *a, const void *b)
 {
-	UvEdge *edge1 = (UvEdge *)a;
-	UvEdge *edge2 = (UvEdge *)b;
+	const UvEdge *edge1 = a;
+	const UvEdge *edge2 = b;
 
 	if ((edge1->uv1 == edge2->uv1) && (edge1->uv2 == edge2->uv2)) {
 		return 0;

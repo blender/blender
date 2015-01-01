@@ -466,7 +466,7 @@ static const char *rna_ensure_property_identifier(const PropertyRNA *prop)
 	if (prop->magic == RNA_MAGIC)
 		return prop->identifier;
 	else
-		return ((IDProperty *)prop)->name;
+		return ((const IDProperty *)prop)->name;
 }
 
 static const char *rna_ensure_property_description(PropertyRNA *prop)
@@ -499,7 +499,7 @@ static const char *rna_ensure_property_name(const PropertyRNA *prop)
 	if (prop->magic == RNA_MAGIC)
 		name = prop->name;
 	else
-		name = ((IDProperty *)prop)->name;
+		name = ((const IDProperty *)prop)->name;
 
 	return name;
 }
@@ -4284,7 +4284,7 @@ char *RNA_path_append(const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *pr
 
 	/* add .identifier */
 	if (path) {
-		BLI_dynstr_append(dynstr, (char *)path);
+		BLI_dynstr_append(dynstr, path);
 		if (*path)
 			BLI_dynstr_append(dynstr, ".");
 	}

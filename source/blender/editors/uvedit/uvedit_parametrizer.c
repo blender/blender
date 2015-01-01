@@ -3402,8 +3402,8 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
 static int p_compare_geometric_uv(const void *a, const void *b)
 {
-	PVert *v1 = *(PVert **)a;
-	PVert *v2 = *(PVert **)b;
+	const PVert *v1 = *(const PVert **)a;
+	const PVert *v2 = *(const PVert **)b;
 
 	if (v1->uv[0] < v2->uv[0])
 		return -1;

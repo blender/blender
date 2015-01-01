@@ -1450,8 +1450,8 @@ typedef struct CollItemSearch {
 
 static int sort_search_items_list(const void *a, const void *b)
 {
-	CollItemSearch *cis1 = (CollItemSearch *)a;
-	CollItemSearch *cis2 = (CollItemSearch *)b;
+	const CollItemSearch *cis1 = (CollItemSearch *)a;
+	const CollItemSearch *cis2 = (CollItemSearch *)b;
 	
 	if (BLI_strcasecmp(cis1->name, cis2->name) > 0)
 		return 1;
@@ -1492,7 +1492,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 			BLI_strncpy(name_ui, id->name + 2, sizeof(name_ui));
 #endif
 			name = BLI_strdup(name_ui);
-			iconid = ui_id_icon_get((bContext *)C, id, false);
+			iconid = ui_id_icon_get(C, id, false);
 		}
 		else {
 			name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL); /* could use the string length here */

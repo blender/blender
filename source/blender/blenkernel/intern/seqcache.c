@@ -95,10 +95,10 @@ static unsigned int seq_hash_render_data(const SeqRenderData *a)
 
 static unsigned int seqcache_hashhash(const void *key_)
 {
-	const SeqCacheKey *key = (SeqCacheKey *) key_;
+	const SeqCacheKey *key = key_;
 	unsigned int rval = seq_hash_render_data(&key->context);
 
-	rval ^= *(unsigned int *) &key->cfra;
+	rval ^= *(const unsigned int *) &key->cfra;
 	rval += key->type;
 	rval ^= ((intptr_t) key->seq) << 6;
 
@@ -107,8 +107,8 @@ static unsigned int seqcache_hashhash(const void *key_)
 
 static bool seqcache_hashcmp(const void *a_, const void *b_)
 {
-	const SeqCacheKey *a = (SeqCacheKey *) a_;
-	const SeqCacheKey *b = (SeqCacheKey *) b_;
+	const SeqCacheKey *a = a_;
+	const SeqCacheKey *b = b_;
 
 	return ((a->seq != b->seq) ||
 	        (a->cfra != b->cfra) ||

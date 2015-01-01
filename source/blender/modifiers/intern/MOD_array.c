@@ -167,8 +167,8 @@ typedef struct SortVertsElem {
 
 static int svert_sum_cmp(const void *e1, const void *e2)
 {
-	const SortVertsElem *sv1 = (SortVertsElem *)e1;
-	const SortVertsElem *sv2 = (SortVertsElem *)e2;
+	const SortVertsElem *sv1 = e1;
+	const SortVertsElem *sv2 = e2;
 
 	if      (sv1->sum_co > sv2->sum_co) return  1;
 	else if (sv1->sum_co < sv2->sum_co) return -1;

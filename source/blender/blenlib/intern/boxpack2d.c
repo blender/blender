@@ -236,8 +236,8 @@ static int vertex_sort(const void *p1, const void *p2)
 	BoxVert *v1, *v2;
 	float a1, a2;
 
-	v1 = vertarray + ((int *)p1)[0];
-	v2 = vertarray + ((int *)p2)[0];
+	v1 = vertarray + ((const int *)p1)[0];
+	v2 = vertarray + ((const int *)p2)[0];
 
 #ifdef USE_FREE_STRIP
 	/* push free verts to the end so we can strip */

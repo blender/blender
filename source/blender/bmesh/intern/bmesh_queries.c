@@ -744,17 +744,17 @@ bool BM_vert_is_edge_pair(BMVert *v)
 /**
  *	Returns the number of edges around this vertex.
  */
-int BM_vert_edge_count(BMVert *v)
+int BM_vert_edge_count(const BMVert *v)
 {
 	return bmesh_disk_count(v);
 }
 
-int BM_vert_edge_count_nonwire(BMVert *v)
+int BM_vert_edge_count_nonwire(const BMVert *v)
 {
 	int count = 0;
 	BMIter eiter;
 	BMEdge *edge;
-	BM_ITER_ELEM (edge, &eiter, v, BM_EDGES_OF_VERT) {
+	BM_ITER_ELEM (edge, &eiter, (BMVert *)v, BM_EDGES_OF_VERT) {
 		if (edge->l) {
 			count++;
 		}
@@ -764,7 +764,7 @@ int BM_vert_edge_count_nonwire(BMVert *v)
 /**
  *	Returns the number of faces around this edge
  */
-int BM_edge_face_count(BMEdge *e)
+int BM_edge_face_count(const BMEdge *e)
 {
 	int count = 0;
 
@@ -786,7 +786,7 @@ int BM_edge_face_count(BMEdge *e)
  * Returns the number of faces around this vert
  * length matches #BM_LOOPS_OF_VERT iterator
  */
-int BM_vert_face_count(BMVert *v)
+int BM_vert_face_count(const BMVert *v)
 {
 	return bmesh_disk_facevert_count(v);
 }

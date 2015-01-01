@@ -931,7 +931,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 
 /* only called when icon has changed */
 /* only call with valid pointer from UI_icon_draw */
-static void icon_set_image(bContext *C, ID *id, PreviewImage *prv_img, enum eIconSizes size)
+static void icon_set_image(const bContext *C, ID *id, PreviewImage *prv_img, enum eIconSizes size)
 {
 	if (!prv_img) {
 		if (G.debug & G_DEBUG)
@@ -1149,7 +1149,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	}
 }
 
-static void ui_id_preview_image_render_size(bContext *C, ID *id, PreviewImage *pi, int size)
+static void ui_id_preview_image_render_size(const bContext *C, ID *id, PreviewImage *pi, int size)
 {
 	if ((pi->changed[size] || !pi->rect[size])) { /* changed only ever set by dynamic icons */
 		/* create the rect if necessary */
@@ -1159,7 +1159,7 @@ static void ui_id_preview_image_render_size(bContext *C, ID *id, PreviewImage *p
 	}
 }
 
-static void ui_id_icon_render(bContext *C, ID *id, const bool big)
+static void ui_id_icon_render(const bContext *C, ID *id, const bool big)
 {
 	PreviewImage *pi = BKE_previewimg_get(id);
 
@@ -1171,7 +1171,7 @@ static void ui_id_icon_render(bContext *C, ID *id, const bool big)
 	}
 }
 
-static void ui_id_brush_render(bContext *C, ID *id)
+static void ui_id_brush_render(const bContext *C, ID *id)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
 	enum eIconSizes i;
@@ -1190,7 +1190,7 @@ static void ui_id_brush_render(bContext *C, ID *id)
 }
 
 
-static int ui_id_brush_get_icon(bContext *C, ID *id)
+static int ui_id_brush_get_icon(const bContext *C, ID *id)
 {
 	Brush *br = (Brush *)id;
 
@@ -1243,7 +1243,7 @@ static int ui_id_brush_get_icon(bContext *C, ID *id)
 	return id->icon_id;
 }
 
-int ui_id_icon_get(bContext *C, ID *id, const bool big)
+int ui_id_icon_get(const bContext *C, ID *id, const bool big)
 {
 	int iconid = 0;
 	

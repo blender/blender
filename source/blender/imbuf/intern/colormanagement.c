@@ -243,7 +243,7 @@ static ColormnaageCacheData *colormanage_cachedata_get(const ImBuf *ibuf)
 
 static unsigned int colormanage_hashhash(const void *key_v)
 {
-	ColormanageCacheKey *key = (ColormanageCacheKey *)key_v;
+	const ColormanageCacheKey *key = key_v;
 
 	unsigned int rval = (key->display << 16) | (key->view % 0xffff);
 
@@ -252,8 +252,8 @@ static unsigned int colormanage_hashhash(const void *key_v)
 
 static bool colormanage_hashcmp(const void *av, const void *bv)
 {
-	const ColormanageCacheKey *a = (ColormanageCacheKey *) av;
-	const ColormanageCacheKey *b = (ColormanageCacheKey *) bv;
+	const ColormanageCacheKey *a = av;
+	const ColormanageCacheKey *b = bv;
 
 	return ((a->view != b->view) ||
 	        (a->display != b->display));

@@ -1884,8 +1884,8 @@ static void undoFont_to_editFont(void *strv, void *ecu, void *UNUSED(obdata))
 	EditFont *ef = cu->editfont;
 	const char *str = strv;
 
-	ef->pos = *((short *)str);
-	ef->len = *((short *)(str + 2));
+	ef->pos = *((const short *)str);
+	ef->len = *((const short *)(str + 2));
 
 	memcpy(ef->textbuf, str + 4, (ef->len + 1) * sizeof(wchar_t));
 	memcpy(ef->textbufinfo, str + 4 + (ef->len + 1) * sizeof(wchar_t), ef->len * sizeof(CharInfo));

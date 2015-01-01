@@ -1568,12 +1568,13 @@ void psys_interpolate_uvs(const MTFace *tface, int quad, const float w[4], float
 
 void psys_interpolate_mcol(const MCol *mcol, int quad, const float w[4], MCol *mc)
 {
-	char *cp, *cp1, *cp2, *cp3, *cp4;
+	const char *cp1, *cp2, *cp3, *cp4;
+	char *cp;
 
 	cp = (char *)mc;
-	cp1 = (char *)&mcol[0];
-	cp2 = (char *)&mcol[1];
-	cp3 = (char *)&mcol[2];
+	cp1 = (const char *)&mcol[0];
+	cp2 = (const char *)&mcol[1];
+	cp3 = (const char *)&mcol[2];
 	
 	if (quad) {
 		cp4 = (char *)&mcol[3];

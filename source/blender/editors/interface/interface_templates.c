@@ -154,7 +154,7 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 				char name_ui[MAX_ID_NAME + 1];
 				name_uiprefix_id(name_ui, id);
 
-				iconid = ui_id_icon_get((bContext *)C, id, template->preview);
+				iconid = ui_id_icon_get(C, id, template->preview);
 
 				if (false == UI_search_item_add(items, name_ui, id, iconid))
 					break;

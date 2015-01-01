@@ -99,22 +99,22 @@ typedef struct MovieCacheItem {
 
 static unsigned int moviecache_hashhash(const void *keyv)
 {
-	MovieCacheKey *key = (MovieCacheKey *)keyv;
+	const MovieCacheKey *key = keyv;
 
 	return key->cache_owner->hashfp(key->userkey);
 }
 
 static bool moviecache_hashcmp(const void *av, const void *bv)
 {
-	const MovieCacheKey *a = (MovieCacheKey *)av;
-	const MovieCacheKey *b = (MovieCacheKey *)bv;
+	const MovieCacheKey *a = av;
+	const MovieCacheKey *b = bv;
 
 	return a->cache_owner->cmpfp(a->userkey, b->userkey);
 }
 
 static void moviecache_keyfree(void *val)
 {
-	MovieCacheKey *key = (MovieCacheKey *)val;
+	MovieCacheKey *key = val;
 
 	BLI_mempool_free(key->cache_owner->userkeys_pool, key->userkey);
 
@@ -167,8 +167,8 @@ static void check_unused_keys(MovieCache *cache)
 
 static int compare_int(const void *av, const void *bv)
 {
-	const int *a = (int *)av;
-	const int *b = (int *)bv;
+	const int *a = av;
+	const int *b = bv;
 	return *a - *b;
 }
 

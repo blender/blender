@@ -369,7 +369,7 @@ PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin)
 
 static void mloopcol_to_float(const MLoopCol *mloopcol, float r_col[3])
 {
-	rgb_uchar_to_float(r_col, (unsigned char *)&mloopcol->r);
+	rgb_uchar_to_float(r_col, (const unsigned char *)&mloopcol->r);
 }
 
 static void mloopcol_from_float(MLoopCol *mloopcol, const float col[3])
