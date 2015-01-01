@@ -1452,8 +1452,8 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 				return NULL;
 			}
 
-			/* proxies are generated in default color space */
-			seq->strip->proxy->anim = openanim(name, IB_rect, 0, NULL);
+			seq->strip->proxy->anim = openanim(name, IB_rect, 0,
+			        seq->strip->colorspace_settings.name);
 		}
 		if (seq->strip->proxy->anim == NULL) {
 			return NULL;
