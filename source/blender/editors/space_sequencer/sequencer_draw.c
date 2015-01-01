@@ -853,9 +853,6 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	short is_break = G.is_break;
 
 	render_size = sseq->render_size;
-	if (render_size == 99) {
-		render_size = 100;
-	}
 	if (render_size == 0) {
 		render_size = scene->r.size;
 	}
