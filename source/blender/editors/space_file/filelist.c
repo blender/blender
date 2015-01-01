@@ -1199,9 +1199,9 @@ static void filelist_from_main(struct FileList *filelist)
 		
 		/* make directories */
 #ifdef WITH_FREESTYLE
-		filelist->numfiles = 25;
-#else
 		filelist->numfiles = 24;
+#else
+		filelist->numfiles = 23;
 #endif
 		filelist->filelist = (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
 		
@@ -1211,30 +1211,30 @@ static void filelist_from_main(struct FileList *filelist)
 		}
 		
 		filelist->filelist[0].relname = BLI_strdup("..");
-		filelist->filelist[2].relname = BLI_strdup("Scene");
-		filelist->filelist[3].relname = BLI_strdup("Object");
-		filelist->filelist[4].relname = BLI_strdup("Mesh");
-		filelist->filelist[5].relname = BLI_strdup("Curve");
-		filelist->filelist[6].relname = BLI_strdup("Metaball");
-		filelist->filelist[7].relname = BLI_strdup("Material");
-		filelist->filelist[8].relname = BLI_strdup("Texture");
-		filelist->filelist[9].relname = BLI_strdup("Image");
-		filelist->filelist[10].relname = BLI_strdup("Ika");
-		filelist->filelist[11].relname = BLI_strdup("Wave");
-		filelist->filelist[12].relname = BLI_strdup("Lattice");
-		filelist->filelist[13].relname = BLI_strdup("Lamp");
-		filelist->filelist[14].relname = BLI_strdup("Camera");
-		filelist->filelist[15].relname = BLI_strdup("Ipo");
-		filelist->filelist[16].relname = BLI_strdup("World");
-		filelist->filelist[17].relname = BLI_strdup("Screen");
-		filelist->filelist[18].relname = BLI_strdup("VFont");
-		filelist->filelist[19].relname = BLI_strdup("Text");
-		filelist->filelist[20].relname = BLI_strdup("Armature");
-		filelist->filelist[21].relname = BLI_strdup("Action");
-		filelist->filelist[22].relname = BLI_strdup("NodeTree");
-		filelist->filelist[23].relname = BLI_strdup("Speaker");
+		filelist->filelist[1].relname = BLI_strdup("Scene");
+		filelist->filelist[2].relname = BLI_strdup("Object");
+		filelist->filelist[3].relname = BLI_strdup("Mesh");
+		filelist->filelist[4].relname = BLI_strdup("Curve");
+		filelist->filelist[5].relname = BLI_strdup("Metaball");
+		filelist->filelist[6].relname = BLI_strdup("Material");
+		filelist->filelist[7].relname = BLI_strdup("Texture");
+		filelist->filelist[8].relname = BLI_strdup("Image");
+		filelist->filelist[9].relname = BLI_strdup("Ika");
+		filelist->filelist[10].relname = BLI_strdup("Wave");
+		filelist->filelist[11].relname = BLI_strdup("Lattice");
+		filelist->filelist[12].relname = BLI_strdup("Lamp");
+		filelist->filelist[13].relname = BLI_strdup("Camera");
+		filelist->filelist[14].relname = BLI_strdup("Ipo");
+		filelist->filelist[15].relname = BLI_strdup("World");
+		filelist->filelist[16].relname = BLI_strdup("Screen");
+		filelist->filelist[17].relname = BLI_strdup("VFont");
+		filelist->filelist[18].relname = BLI_strdup("Text");
+		filelist->filelist[19].relname = BLI_strdup("Armature");
+		filelist->filelist[20].relname = BLI_strdup("Action");
+		filelist->filelist[21].relname = BLI_strdup("NodeTree");
+		filelist->filelist[22].relname = BLI_strdup("Speaker");
 #ifdef WITH_FREESTYLE
-		filelist->filelist[24].relname = BLI_strdup("FreestyleLineStyle");
+		filelist->filelist[23].relname = BLI_strdup("FreestyleLineStyle");
 #endif
 	}
 	else {
