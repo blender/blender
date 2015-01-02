@@ -111,7 +111,7 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 		char *videodriver = getenv("SDL_VIDEODRIVER");
 		BLI_setenv("SDL_VIDEODRIVER", "dummy");
 
-		int success = (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) != -1 );
+		int success = (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != -1 );
 
 		BLI_setenv("SDL_VIDEODRIVER", videodriver);
 #  endif
@@ -156,11 +156,7 @@ void SCA_Joystick::ReleaseInstance()
 		/* The video subsystem is required for joystick input to work. However,
 		 * when GHOST is running under SDL, video is freed elsewhere.
 		 * Do this once only. */
-#  ifdef WITH_GHOST_SDL
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-#  else
-		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
-#  endif
 #endif /* WITH_SDL */
 	}
 }
