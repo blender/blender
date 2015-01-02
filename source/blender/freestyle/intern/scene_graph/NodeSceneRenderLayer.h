@@ -18,65 +18,47 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __FREESTYLE_SCENE_HASH_H__
-#define __FREESTYLE_SCENE_HASH_H__
+#ifndef __FREESTYLE_NODE_SCENE_RENDER_LAYER_H__
+#define __FREESTYLE_NODE_SCENE_RENDER_LAYER_H__
 
-/** \file blender/freestyle/intern/scene_graph/SceneHash.h
+/** \file blender/freestyle/intern/scene_graph/NodeSceneRenderLayer.h
  *  \ingroup freestyle
+ *  \brief Class to represent a scene render layer in Blender.
  */
 
-#include "IndexedFaceSet.h"
-#include "NodeSceneRenderLayer.h"
-#include "NodeCamera.h"
-#include "SceneVisitor.h"
+#include "Node.h"
 
-#include "BLI_sys_types.h"
+extern "C" {
+#include "DNA_scene_types.h" /* for SceneRenderLayer */
+}
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
-#endif
+using namespace std;
 
 namespace Freestyle {
 
-class SceneHash : public SceneVisitor
+class NodeSceneRenderLayer : public Node
 {
 public:
-	inline SceneHash() : SceneVisitor()
+	inline NodeSceneRenderLayer(SceneRenderLayer& srl) : Node(), _SceneRenderLayer(srl) {}
+	virtual ~NodeSceneRenderLayer() {}
+
+	inline struct SceneRenderLayer& sceneRenderLayer() const
 	{
-		_sum = 1;
+		return _SceneRenderLayer;
 	}
 
-	virtual ~SceneHash() {}
-
-	VISIT_DECL(NodeCamera)
-	VISIT_DECL(NodeSceneRenderLayer)
-	VISIT_DECL(IndexedFaceSet)
-
-	string toString();
-
-	inline bool match() {
-		return _sum == _prevSum;
+	inline void setSceneRenderLayer(SceneRenderLayer& srl)
+	{
+		_SceneRenderLayer = srl;
 	}
 
-	inline void store() {
-		_prevSum = _sum;
-	}
+	/*! Accept the corresponding visitor */
+	virtual void accept(SceneVisitor& v);
 
-	inline void reset() {
-		_sum = 1;
-	}
-
-private:
-	void adler32(unsigned char *data, int size);
-
-	uint32_t _sum;
-	uint32_t _prevSum;
-
-#ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:SceneHash")
-#endif
+protected:
+	SceneRenderLayer& _SceneRenderLayer;
 };
 
 } /* namespace Freestyle */
 
-#endif // __FREESTYLE_SCENE_HASH_H__
+#endif // __FREESTYLE_NODE_SCENE_RENDER_LAYER_H__

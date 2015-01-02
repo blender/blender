@@ -392,6 +392,8 @@ set(SRC
 	intern/scene_graph/NodeGroup.h
 	intern/scene_graph/NodeLight.cpp
 	intern/scene_graph/NodeLight.h
+	intern/scene_graph/NodeSceneRenderLayer.cpp
+	intern/scene_graph/NodeSceneRenderLayer.h
 	intern/scene_graph/NodeShape.cpp
 	intern/scene_graph/NodeShape.h
 	intern/scene_graph/NodeTransform.cpp
