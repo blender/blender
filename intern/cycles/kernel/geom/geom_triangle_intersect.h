@@ -67,7 +67,9 @@ void triangle_intersect_precalc(float3 dir,
 
 	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
 	if(IDX(dir, kz) < 0.0f) {
-		util_swap(&kx, &ky);
+		float tmp = kx;
+		kx = ky;
+		kx = tmp;
 	}
 
 	/* Calculate the shear constants. */

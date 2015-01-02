@@ -19,14 +19,24 @@ struct QBVHStackItem {
 	float dist;
 };
 
-/* TOOD(sergey): Investigate if using instrinsics helps here. */
+/* TOOD(sergey): Investigate if using instrinsics helps for both
+ * stack item swap and float comparison.
+ */
+ccl_device_inline void qbvh_item_swap(QBVHStackItem *__restrict a,
+                                      QBVHStackItem *__restrict b)
+{
+	QBVHStackItem tmp = *a;
+	*a = *b;
+	*b = tmp;
+}
+
 ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
                                        QBVHStackItem *__restrict s2,
                                        QBVHStackItem *__restrict s3)
 {
-	if(s2->dist < s1->dist) { util_swap(s2, s1); }
-	if(s3->dist < s2->dist) { util_swap(s3, s2); }
-	if(s2->dist < s1->dist) { util_swap(s2, s1); }
+	if(s2->dist < s1->dist) { qbvh_item_swap(s2, s1); }
+	if(s3->dist < s2->dist) { qbvh_item_swap(s3, s2); }
+	if(s2->dist < s1->dist) { qbvh_item_swap(s2, s1); }
 }
 
 ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
@@ -34,11 +44,11 @@ ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
                                        QBVHStackItem *__restrict s3,
                                        QBVHStackItem *__restrict s4)
 {
-	if(s2->dist < s1->dist) { util_swap(s2, s1); }
-	if(s4->dist < s3->dist) { util_swap(s4, s3); }
-	if(s3->dist < s1->dist) { util_swap(s3, s1); }
-	if(s4->dist < s2->dist) { util_swap(s4, s2); }
-	if(s3->dist < s2->dist) { util_swap(s3, s2); }
+	if(s2->dist < s1->dist) { qbvh_item_swap(s2, s1); }
+	if(s4->dist < s3->dist) { qbvh_item_swap(s4, s3); }
+	if(s3->dist < s1->dist) { qbvh_item_swap(s3, s1); }
+	if(s4->dist < s2->dist) { qbvh_item_swap(s4, s2); }
+	if(s3->dist < s2->dist) { qbvh_item_swap(s3, s2); }
 }
 
 ccl_device_inline int qbvh_node_intersect(KernelGlobals *__restrict kg,
