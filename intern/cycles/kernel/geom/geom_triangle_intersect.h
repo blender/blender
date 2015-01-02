@@ -67,7 +67,7 @@ void triangle_intersect_precalc(float3 dir,
 
 	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
 	if(IDX(dir, kz) < 0.0f) {
-		float tmp = kx;
+		int tmp = kx;
 		kx = ky;
 		kx = tmp;
 	}
