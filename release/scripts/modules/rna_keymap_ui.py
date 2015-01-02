@@ -236,7 +236,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                 "MMB": 'MIDDLEMOUSE',
                 })
             _EVENT_TYPE_MAP_EXTRA.update({
-                "%d" % i: "NUMPAD_%d" % i for i in range(9)
+                "%d" % i: "NUMPAD_%d" % i for i in range(10)
                 })
         # done with once off init
 
