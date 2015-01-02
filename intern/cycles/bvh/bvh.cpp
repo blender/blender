@@ -898,7 +898,7 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 		 * no idea about BVHNode.
 		 *
 		 * Would be nice to de-duplicate code, but trying to make
-		 * making code more geenral ends up in much nastier code
+		 * making code more general ends up in much nastier code
 		 * in my opinion so far.
 		 *
 		 * Same applies to the inner nodes case below.

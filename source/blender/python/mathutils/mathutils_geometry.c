@@ -787,7 +787,7 @@ static PyObject *M_Geometry_intersect_point_tri(PyObject *UNUSED(self), PyObject
 
 	if (!PyArg_ParseTuple(
 	        args, "OOOO:intersect_point_tri",
-	        &py_pt, UNPACK3_EX(&, py_tri,)))
+	        &py_pt, UNPACK3_EX(&, py_tri, )))
 	{
 		return NULL;
 	}
@@ -833,7 +833,7 @@ static PyObject *M_Geometry_intersect_point_tri_2d(PyObject *UNUSED(self), PyObj
 
 	if (!PyArg_ParseTuple(
 	        args, "OOOO:intersect_point_tri_2d",
-	        &py_pt, UNPACK3_EX(&, py_tri,)))
+	        &py_pt, UNPACK3_EX(&, py_tri, )))
 	{
 		return NULL;
 	}
@@ -878,7 +878,7 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject *UNUSED(self), PyOb
 	
 	if (!PyArg_ParseTuple(
 	        args, "OOOOO:intersect_point_quad_2d",
-	        &py_pt, UNPACK4_EX(&, py_quad,)))
+	        &py_pt, UNPACK4_EX(&, py_quad, )))
 	{
 		return NULL;
 	}

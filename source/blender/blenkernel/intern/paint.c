@@ -533,7 +533,7 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, cons
 		}
 	}
 	else {
-		ups->brush_rotation = ups->brush_rotation_sec =0.0f;
+		ups->brush_rotation = ups->brush_rotation_sec = 0.0f;
 	}
 }
 
