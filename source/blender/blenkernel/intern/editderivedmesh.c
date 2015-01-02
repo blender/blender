@@ -527,6 +527,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 			               setDrawOptions(userData, BM_elem_index_get(efa)));
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 				const GLenum poly_type = GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
+				GPU_enable_material(efa->mat_nr + 1, NULL);
 				if (draw_option == DM_DRAW_OPTION_STIPPLE) { /* enabled with stipple */
 
 					if (poly_prev != GL_ZERO) glEnd();
