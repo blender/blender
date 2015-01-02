@@ -20,12 +20,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "clew.h"
+
 #include "device.h"
 #include "device_intern.h"
 
 #include "buffers.h"
-
-#include "clew.h"
 
 #include "util_foreach.h"
 #include "util_map.h"

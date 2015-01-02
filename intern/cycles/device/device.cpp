@@ -20,9 +20,6 @@
 #include "device.h"
 #include "device_intern.h"
 
-#include "cuew.h"
-#include "clew.h"
-
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_half.h"
