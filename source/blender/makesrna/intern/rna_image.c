@@ -292,11 +292,21 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 
 static int rna_Image_frame_duration_get(PointerRNA *ptr)
 {
-	Image *im = (Image *)ptr->data;
+	Image *ima = ptr->id.data;
+	int duration = 1;
 
-	if (im->anim)
-		return IMB_anim_get_duration(im->anim, IMB_TC_RECORD_RUN);
-	return 1;
+	if (!ima->anim) {
+		/* acquire ensures ima->anim is set, if possible! */
+		void *lock;
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+		BKE_image_release_ibuf(ima, ibuf, lock);
+	}
+
+	if (ima->anim) {
+		duration = IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN);
+	}
+
+	return duration;
 }
 
 static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
