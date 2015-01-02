@@ -40,6 +40,7 @@ extern "C" {
 #include "../scene_graph/NodeDrawingStyle.h"
 #include "../scene_graph/NodeShape.h"
 #include "../scene_graph/NodeTransform.h"
+#include "../scene_graph/NodeSceneRenderLayer.h"
 #include "../scene_graph/ScenePrettyPrinter.h"
 #include "../scene_graph/VertexRep.h"
 
@@ -294,6 +295,7 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 		}
 		cam->setProjectionMatrix(proj);
 		_RootNode->AddChild(cam);
+		_RootNode->AddChild(new NodeSceneRenderLayer(*srl));
 
 		sceneHashFunc.reset();
 		//blenderScene->accept(sceneHashFunc);
