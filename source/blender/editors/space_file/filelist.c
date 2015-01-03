@@ -46,6 +46,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
+#include "BLI_fnmatch.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
@@ -209,6 +210,7 @@ typedef struct FileListFilter {
 	bool hide_parent;
 	unsigned int filter;
 	char filter_glob[64];
+	char filter_search[66];  /* + 2 for heading/trailing implicit '*' wildcards. */
 } FileListFilter;
 
 typedef struct FileList {
@@ -494,6 +496,11 @@ static bool is_filtered_file(struct direntry *file, const char *UNUSED(root), Fi
 		if (!(file->type & S_IFDIR) && !(file->flags & filter->filter)) {
 			is_filtered = false;
 		}
+		if (is_filtered && (filter->filter_search[0] != '\0')) {
+			if (fnmatch(filter->filter_search, file->relname, FNM_CASEFOLD) != 0) {
+				is_filtered = false;
+			}
+		}
 	}
 
 	return is_filtered;
@@ -506,6 +513,13 @@ static bool is_filtered_lib(struct direntry *file, const char *root, FileListFil
 
 	if (BLO_is_a_library(root, dir, group)) {
 		is_filtered = !is_hidden_file(file->relname, filter);
+		if (is_filtered && filter->filter && !FILENAME_IS_BREADCRUMBS(file->relname)) {
+			if (is_filtered && (filter->filter_search[0] != '\0')) {
+				if (fnmatch(filter->filter_search, file->relname, FNM_CASEFOLD) != 0) {
+					is_filtered = false;
+				}
+			}
+		}
 	}
 	else {
 		is_filtered = is_filtered_file(file, root, filter);
@@ -560,19 +574,24 @@ void filelist_filter(FileList *filelist)
 }
 
 void filelist_setfilter_options(FileList *filelist, const bool hide_dot, const bool hide_parent,
-                                const unsigned int filter, const char *filter_glob)
+                                const unsigned int filter,
+                                const char *filter_glob, const char *filter_search)
 {
 	if ((filelist->filter_data.hide_dot != hide_dot) ||
 	    (filelist->filter_data.hide_parent != hide_parent) ||
 	    (filelist->filter_data.filter != filter) ||
-	    (!STREQ(filelist->filter_data.filter_glob, filter_glob)))
+	    !STREQ(filelist->filter_data.filter_glob, filter_glob) ||
+	    (BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0))
 	{
 		filelist->filter_data.hide_dot = hide_dot;
 		filelist->filter_data.hide_parent = hide_parent;
 
 		filelist->filter_data.filter = filter;
 		BLI_strncpy(filelist->filter_data.filter_glob, filter_glob, sizeof(filelist->filter_data.filter_glob));
+		BLI_strncpy_ensure_pad(filelist->filter_data.filter_search, filter_search, '*',
+		                       sizeof(filelist->filter_data.filter_search));
 
+		/* And now, free filtered data so that we now we have to filter again. */
 		filelist_filter_clear(filelist);
 	}
 }

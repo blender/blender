@@ -585,6 +585,8 @@ typedef struct FileSelectParams {
 
 	char filter_glob[64]; /* list of filetypes to filter */
 
+	char filter_search[64];  /* text items' name must match to be shown. */
+
 	int active_file;
 	int sel_first;
 	int sel_last;
