@@ -372,6 +372,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->keyborder_select; break;
 				case TH_CFRAME:
 					cp = ts->cframe; break;
+				case TH_TIME_KEYFRAME:
+					cp = ts->time_keyframe; break;
+				case TH_TIME_GP_KEYFRAME:
+					cp = ts->time_gp_keyframe; break;
 				case TH_NURB_ULINE:
 					cp = ts->nurb_uline; break;
 				case TH_NURB_VLINE:
@@ -1125,6 +1129,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set_fl(btheme->ttime.back,   0.45, 0.45, 0.45, 1.0);
 	rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
 	rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);      /* sliders */
+	
+	rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 1.0);
+	rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 1.0);
 	
 	/* space node, re-uses syntax and console color storage */
 	btheme->tnode = btheme->tv3d;
@@ -2539,6 +2546,10 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tnode.gp_vertex, 0, 0, 0, 255);
 			rgba_char_args_set(btheme->tnode.gp_vertex_select, 255, 133, 0, 255);
 			btheme->tnode.gp_vertex_size = 3;
+			
+			/* Timeline Keyframe Indicators */
+			rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 1.0);
+			rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 1.0);
 		}
 	}
 

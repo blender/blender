@@ -349,7 +349,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	
 	/* draw grease pencil keyframes (if available) */
 	if (gpd) {
-		glColor3ub(0xB5, 0xE6, 0x1D);
+		UI_ThemeColor(TH_TIME_GP_KEYFRAME);
 		time_draw_idblock_keyframes(v2d, (ID *)gpd, onlysel);
 	}
 	
@@ -359,7 +359,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	 */
 	if (onlysel == 0) {
 		/* set draw color */
-		glColor3ub(0xDD, 0xA7, 0x00);
+		UI_ThemeColorShade(TH_TIME_KEYFRAME, -50);
 		time_draw_idblock_keyframes(v2d, (ID *)scene, onlysel);
 	}
 	
@@ -368,7 +368,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	 *    OR the onlysel flag was set, which means that only active object's keyframes should
 	 *    be considered
 	 */
-	glColor3ub(0xDD, 0xD7, 0x00);
+	UI_ThemeColor(TH_TIME_KEYFRAME);
 	
 	if (ob && ((ob->mode == OB_MODE_POSE) || onlysel)) {
 		/* draw keyframes for active object only */
