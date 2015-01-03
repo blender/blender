@@ -3104,6 +3104,59 @@ void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x
 	}
 }
 
+/**
+ * Frustum planes extraction from a projection matrix (homogeneous 4d vector representations of planes).
+ *
+ * plane parameters can be NULL if you do not need them.
+ */
+void planes_from_projmat(float mat[4][4], float left[4], float right[4], float top[4], float bottom[4],
+                         float near[4], float far[4])
+{
+	/* References:
+	 *
+	 * https://fgiesen.wordpress.com/2012/08/31/frustum-planes-from-the-projection-matrix/
+	 * http://www8.cs.umu.se/kurser/5DV051/HT12/lab/plane_extraction.pdf
+	 */
+
+	int i;
+
+	if (left) {
+		for (i = 4; i--; ) {
+			left[i] = mat[i][3] + mat[i][0];
+		}
+	}
+
+	if (right) {
+		for (i = 4; i--; ) {
+			right[i] = mat[i][3] - mat[i][0];
+		}
+	}
+
+	if (bottom) {
+		for (i = 4; i--; ) {
+			bottom[i] = mat[i][3] + mat[i][1];
+		}
+	}
+
+	if (top) {
+		for (i = 4; i--; ) {
+			top[i] = mat[i][3] - mat[i][1];
+		}
+	}
+
+	if (near) {
+		for (i = 4; i--; ) {
+			near[i] = mat[i][3] + mat[i][2];
+		}
+	}
+
+	if (far) {
+		for (i = 4; i--; ) {
+			far[i] = mat[i][3] - mat[i][2];
+		}
+	}
+}
+
 static void i_multmatrix(float icand[4][4], float Vm[4][4])
 {
 	int row, col;

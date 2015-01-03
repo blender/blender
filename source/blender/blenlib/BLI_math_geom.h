@@ -265,6 +265,9 @@ void orthographic_m4(float mat[4][4], const float left, const float right,
 void window_translate_m4(float winmat[4][4], float perspmat[4][4],
                          const float x, const float y);
 
+void planes_from_projmat(float mat[4][4], float left[4], float right[4], float top[4], float bottom[4],
+                         float front[4], float back[4]);
+
 int box_clip_bounds_m4(float boundbox[2][3],
                        const float bounds[4], float winmat[4][4]);
 void box_minmax_bounds_m4(float min[3], float max[3],

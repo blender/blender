@@ -118,7 +118,9 @@ void BKE_camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float 
 void BKE_camera_view_frame(struct Scene *scene, struct Camera *camera, float r_vec[4][3]);
 
 bool BKE_camera_view_frame_fit_to_scene(struct Scene *scene, struct View3D *v3d, struct Object *camera_ob,
-                                        float r_co[3]);
+                                        float r_co[3], float *r_scale);
+bool BKE_camera_view_frame_fit_to_coords(struct Scene *scene, float (*cos)[3], int num_cos,
+                                         struct Object *camera_ob, float r_co[3], float *r_scale);
 
 #ifdef __cplusplus
 }
