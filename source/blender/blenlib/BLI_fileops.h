@@ -89,6 +89,9 @@ double BLI_dir_free_space(const char *dir);
 char  *BLI_current_working_dir(char *dir, const size_t maxlen);
 
 unsigned int BLI_dir_contents(const char *dir, struct direntry **filelist);
+void BLI_filelist_duplicate(
+        struct direntry **dest_filelist, struct direntry *src_filelist, unsigned int nrentries,
+        void *(*dup_poin)(void *));
 void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries);
 
 /* Files */

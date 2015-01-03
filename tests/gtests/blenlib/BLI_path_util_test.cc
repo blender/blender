@@ -31,6 +31,7 @@ const char *GHOST_getSystemDir(int version, const char *versionstr)
 
 struct ImBuf;
 void IMB_freeImBuf(struct ImBuf *ibuf) {}
+struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf) {return NULL;}
 
 #ifdef __linux__
 char *zLhm65070058860608_br_find_exe(const char *default_exe)

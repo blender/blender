@@ -126,6 +126,54 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t
 }
 
 /**
+ * Like BLI_strncpy but ensures dst is always padded by given char, on both sides (unless src is empty).
+ *
+ * \param dst Destination for copy
+ * \param src Source string to copy
+ * \param pad the char to use for padding
+ * \param maxncpy Maximum number of characters to copy (generally the size of dst)
+ * \retval Returns dst
+ */
+char *BLI_strncpy_ensure_pad(char *__restrict dst, const char *__restrict src, const char pad, size_t maxncpy)
+{
+	BLI_assert(maxncpy != 0);
+
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
+	if (src[0] == '\0') {
+		dst[0] = '\0';
+	}
+	else {
+		/* Add heading/trailing wildcards if needed. */
+		size_t idx = 0;
+		size_t srclen;
+
+		if (src[idx] != pad) {
+			dst[idx++] = pad;
+			maxncpy--;
+		}
+		maxncpy--;  /* trailing '\0' */
+
+		srclen = BLI_strnlen(src, maxncpy);
+		if ((src[srclen - 1] != pad) && (srclen == maxncpy)) {
+			srclen--;
+		}
+
+		memcpy(&dst[idx], src, srclen);
+		idx += srclen;
+
+		if (dst[idx - 1] != pad) {
+			dst[idx++] = pad;
+		}
+		dst[idx] = '\0';
+	}
+
+	return dst;
+}
+
+/**
  * Like strncpy but ensures dst is always
  * '\0' terminated.
  *
@@ -564,6 +612,50 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 	/* we might still have a different string because of lower/upper case, in
 	 * that case fall back to regular string comparison */
 	return strcmp(s1, s2);
+}
+
+/**
+ * Like strcmp, but will ignore any heading/trailing pad char for comparison.
+ * So e.g. if pad is '*', '*world' and 'world*' will compare equal.
+ */
+int BLI_strcmp_ignore_pad(const char *str1, const char *str2, const char pad)
+{
+	size_t str1_len, str2_len;
+
+	while (*str1 == pad) {
+		str1++;
+	}
+	while (*str2 == pad) {
+		str2++;
+	}
+
+	str1_len = strlen(str1);
+	str2_len = strlen(str2);
+
+	while (str1_len && (str1[str1_len - 1] == pad)) {
+		str1_len--;
+	}
+	while (str2_len && (str2[str2_len - 1] == pad)) {
+		str2_len--;
+	}
+
+	if (str1_len == str2_len) {
+		return strncmp(str1, str2, str2_len);
+	}
+	else if (str1_len > str2_len) {
+		int ret = strncmp(str1, str2, str2_len);
+		if (ret == 0) {
+			ret = 1;
+		}
+		return ret;
+	}
+	else {
+		int ret = strncmp(str1, str2, str1_len);
+		if (ret == 0) {
+			ret = -1;
+		}
+		return ret;
+	}
 }
 
 void BLI_timestr(double _time, char *str, size_t maxlen)
