@@ -295,7 +295,10 @@ typedef struct ThemeSpace {
 	char bundle_solid[4];
 	char path_before[4], path_after[4];
 	char camera_path[4];
-	char hpad[3];
+	char hpad[2];
+	
+	char gp_vertex_size;
+	char gp_vertex[4], gp_vertex_select[4];
 	
 	char preview_back[4];
 	char preview_stitch_face[4];

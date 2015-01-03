@@ -794,7 +794,7 @@ static void gp_draw_strokes_edit(bGPDframe *gpf, int offsx, int offsy, int winx,
 		 *   they stand out more.
 		 * - We use the theme setting for size of the unselected verts
 		 */
-		bsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
+		bsize = UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
 		if ((int)bsize > 8) {
 			vsize = 10.0f;
 			bsize = 8.0f;
@@ -810,7 +810,7 @@ static void gp_draw_strokes_edit(bGPDframe *gpf, int offsx, int offsy, int winx,
 		}
 		else {
 			/* this doesn't work well with the default theme and black strokes... */
-			UI_ThemeColor(TH_VERTEX);
+			UI_ThemeColor(TH_GP_VERTEX);
 		}
 		glPointSize(bsize);
 		
@@ -830,7 +830,7 @@ static void gp_draw_strokes_edit(bGPDframe *gpf, int offsx, int offsy, int winx,
 		
 		
 		/* Second Pass: Draw only verts which are selected */
-		UI_ThemeColor(TH_VERTEX_SELECT);
+		UI_ThemeColor(TH_GP_VERTEX_SELECT);
 		glPointSize(vsize);
 		
 		glBegin(GL_POINTS);
@@ -841,7 +841,7 @@ static void gp_draw_strokes_edit(bGPDframe *gpf, int offsx, int offsy, int winx,
 				}
 				else {
 					float co[2];
-
+					
 					gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
 					glVertex2fv(co);
 				}
