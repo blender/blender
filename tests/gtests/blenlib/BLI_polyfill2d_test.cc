@@ -7,6 +7,7 @@
 
 /* test every possible offset and reverse */
 #define USE_COMBINATIONS_ALL
+#define USE_BEAUTIFY
 
 extern "C" {
 #include "BLI_array.h"
@@ -17,6 +18,12 @@ extern "C" {
 
 #ifdef USE_OBJ_PREVIEW
 #  include "BLI_string.h"
+#endif
+
+#ifdef USE_BEAUTIFY
+#include "BLI_polyfill2d_beautify.h"
+#include "BLI_memarena.h"
+#include "BLI_heap.h"
 #endif
 }
 
@@ -179,6 +186,25 @@ static void test_polyfill_template(
 
 	/* check all went well */
 	test_polyfill_template_check(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+
+#ifdef USE_BEAUTIFY
+	/* check beautify gives good results too */
+	{
+		MemArena *pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+		Heap *pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
+		EdgeHash *pf_ehash = BLI_edgehash_new_ex(__func__, BLI_POLYFILL_ALLOC_NGON_RESERVE);
+
+		BLI_polyfill_beautify(
+		        poly, poly_tot, tris,
+		        pf_arena, pf_heap, pf_ehash);
+
+		test_polyfill_template_check(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+
+		BLI_memarena_free(pf_arena);
+		BLI_heap_free(pf_heap, NULL);
+		BLI_edgehash_free(pf_ehash, NULL);
+	}
+#endif
 }
 
 #ifdef USE_COMBINATIONS_ALL
