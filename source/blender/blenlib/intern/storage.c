@@ -385,9 +385,11 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 
 /**
  * Scans the contents of the directory named *dirname, and allocates and fills in an
- * array of entries describing them in *filelist. The length of the array is the function result.
+ * array of entries describing them in *filelist.
+ *
+ * \return The length of filelist array.
  */
-unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
+unsigned int BLI_filelist_dir_contents(const char *dirname,  struct direntry **filelist)
 {
 	struct BuildDirCtx dir_ctx;
 
@@ -443,7 +445,7 @@ void BLI_filelist_duplicate(
 /**
  * frees storage for an array of direntries, including the array itself.
  */
-void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries)
+void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (*free_poin)(void *))
 {
 	unsigned int i;
 	for (i = 0; i < nrentries; ++i) {
@@ -455,7 +457,8 @@ void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries)
 			MEM_freeN(entry->relname);
 		if (entry->path)
 			MEM_freeN(entry->path);
-		/* entry->poin assumed not to point to anything needing freeing here */
+		if (entry->poin && free_poin)
+			free_poin(entry->poin);
 	}
 
 	free(filelist);

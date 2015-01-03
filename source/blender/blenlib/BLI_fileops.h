@@ -88,11 +88,13 @@ void   BLI_dir_create_recursive(const char *dir);
 double BLI_dir_free_space(const char *dir);
 char  *BLI_current_working_dir(char *dir, const size_t maxlen);
 
-unsigned int BLI_dir_contents(const char *dir, struct direntry **filelist);
+/* Filelist */
+
+unsigned int BLI_filelist_dir_contents(const char *dir, struct direntry **filelist);
 void BLI_filelist_duplicate(
         struct direntry **dest_filelist, struct direntry *src_filelist, unsigned int nrentries,
         void *(*dup_poin)(void *));
-void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries);
+void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (free_poin)(void *));
 
 /* Files */
 

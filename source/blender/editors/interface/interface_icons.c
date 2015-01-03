@@ -708,7 +708,7 @@ static void init_iconfile_list(struct ListBase *list)
 	if (icondir == NULL)
 		return;
 	
-	totfile = BLI_dir_contents(icondir, &dir);
+	totfile = BLI_filelist_dir_contents(icondir, &dir);
 
 	for (i = 0; i < totfile; i++) {
 		if ((dir[i].type & S_IFREG)) {
@@ -756,7 +756,7 @@ static void init_iconfile_list(struct ListBase *list)
 		}
 	}
 
-	BLI_free_filelist(dir, totfile);
+	BLI_filelist_free(dir, totfile, NULL);
 	dir = NULL;
 }
 

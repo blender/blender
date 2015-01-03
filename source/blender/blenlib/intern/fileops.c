@@ -311,7 +311,7 @@ static bool delete_recursive(const char *dir)
 	bool err = false;
 	unsigned int nbr, i;
 
-	i = nbr = BLI_dir_contents(dir, &filelist);
+	i = nbr = BLI_filelist_dir_contents(dir, &filelist);
 	fl = filelist;
 	while (i--) {
 		char file[8];
@@ -336,7 +336,7 @@ static bool delete_recursive(const char *dir)
 		err = true;
 	}
 
-	BLI_free_filelist(filelist, nbr);
+	BLI_filelist_free(filelist, nbr, NULL);
 
 	return err;
 }

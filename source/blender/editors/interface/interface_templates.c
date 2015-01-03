@@ -2672,7 +2672,7 @@ static void uilist_filter_items_default(struct uiList *ui_list, struct bContext 
 			names = MEM_callocN(sizeof(StringCmp) * len, "StringCmp");
 		}
 		if (filter_raw[0]) {
-			size_t idx = 0, slen = strlen(filter_raw);
+			size_t slen = strlen(filter_raw);
 
 			dyn_data->items_filter_flags = MEM_callocN(sizeof(int) * len, "items_filter_flags");
 			dyn_data->items_shown = 0;

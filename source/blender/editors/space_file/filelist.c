@@ -736,7 +736,7 @@ void filelist_free(struct FileList *filelist)
 	filelist->need_sorting = false;
 	filelist->sort = FILE_SORT_NONE;
 
-	BLI_free_filelist(filelist->filelist, filelist->numfiles);
+	BLI_filelist_free(filelist->filelist, filelist->numfiles, NULL);
 	filelist->numfiles = 0;
 	filelist->filelist = NULL;
 }
@@ -953,7 +953,7 @@ static void filelist_read_dir(struct FileList *filelist)
 	filelist->filelist = NULL;
 
 	BLI_cleanup_dir(G.main->name, filelist->dir);
-	filelist->numfiles = BLI_dir_contents(filelist->dir, &(filelist->filelist));
+	filelist->numfiles = BLI_filelist_dir_contents(filelist->dir, &(filelist->filelist));
 
 	filelist_setfiletypes(filelist);
 }
