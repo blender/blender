@@ -532,8 +532,9 @@ static PyObject *Operators_create(BPy_Operators *self, PyObject *args, PyObject 
 		return NULL;
 	}
 	vector<StrokeShader *> shaders;
+	shaders.reserve(PyList_Size(obj2));
 	for (int i = 0; i < PyList_Size(obj2); i++) {
-		PyObject *py_ss = PyList_GetItem(obj2, i);
+		PyObject *py_ss = PyList_GET_ITEM(obj2, i);
 		if (!BPy_StrokeShader_Check(py_ss)) {
 			PyErr_SetString(PyExc_TypeError, "Operators.create(): 2nd argument must be a list of StrokeShader objects");
 			return NULL;

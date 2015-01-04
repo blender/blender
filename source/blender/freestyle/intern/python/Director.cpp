@@ -265,8 +265,9 @@ int Director_BPy_UnaryFunction0D___call__(void *uf0D, void *py_uf0D, Interface0D
 	}
 	else if (BPy_UnaryFunction0DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
+		vec.reserve(PyList_Size(result));
 		for (int i = 0; i < PyList_Size(result); i++) {
-			ViewShape *b = ((BPy_ViewShape *)PyList_GetItem(result, i))->vs;
+			ViewShape *b = ((BPy_ViewShape *)PyList_GET_ITEM(result, i))->vs;
 			vec.push_back(b);
 		}
 		((UnaryFunction0D< vector<ViewShape*> > *)uf0D)->result = vec;
@@ -318,8 +319,9 @@ int Director_BPy_UnaryFunction1D___call__(void *uf1D, void *py_uf1D, Interface1D
 	}
 	else if (BPy_UnaryFunction1DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
+		vec.reserve(PyList_Size(result));
 		for (int i = 1; i < PyList_Size(result); i++) {
-			ViewShape *b = ((BPy_ViewShape *)PyList_GetItem(result, i))->vs;
+			ViewShape *b = ((BPy_ViewShape *)PyList_GET_ITEM(result, i))->vs;
 			vec.push_back(b);
 		}
 		((UnaryFunction1D< vector<ViewShape*> > *)uf1D)->result = vec;

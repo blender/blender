@@ -399,8 +399,8 @@ int KX_MouseActuator::pyattr_set_limit_x(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if (PyList_Size(value) != 2)
 		return PY_SET_ATTR_FAIL;
 
-	item1 = PyList_GetItem(value, 0);
-	item2 = PyList_GetItem(value, 1);
+	item1 = PyList_GET_ITEM(value, 0);
+	item2 = PyList_GET_ITEM(value, 1);
 
 	if (!(PyFloat_Check(item1)) || !(PyFloat_Check(item2))) {
 		return PY_SET_ATTR_FAIL;
@@ -430,8 +430,8 @@ int KX_MouseActuator::pyattr_set_limit_y(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if (PyList_Size(value) != 2)
 		return PY_SET_ATTR_FAIL;
 
-	item1 = PyList_GetItem(value, 0);
-	item2 = PyList_GetItem(value, 1);
+	item1 = PyList_GET_ITEM(value, 0);
+	item2 = PyList_GET_ITEM(value, 1);
 
 	if (!(PyFloat_Check(item1)) || !(PyFloat_Check(item2))) {
 		return PY_SET_ATTR_FAIL;
@@ -461,8 +461,8 @@ int KX_MouseActuator::pyattr_set_angle(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	if (PyList_Size(value) != 2)
 		return PY_SET_ATTR_FAIL;
 
-	item1 = PyList_GetItem(value, 0);
-	item2 = PyList_GetItem(value, 1);
+	item1 = PyList_GET_ITEM(value, 0);
+	item2 = PyList_GET_ITEM(value, 1);
 
 	if (!(PyFloat_Check(item1)) || !(PyFloat_Check(item2))) {
 		return PY_SET_ATTR_FAIL;

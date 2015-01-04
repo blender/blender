@@ -568,7 +568,7 @@ CValue *CValue::ConvertPythonToValue(PyObject *pyobj, const bool do_type_excepti
 		Py_ssize_t numitems = PyList_GET_SIZE(pyobj);
 		for (i=0;i<numitems;i++)
 		{
-			PyObject *listitem = PyList_GetItem(pyobj,i); /* borrowed ref */
+			PyObject *listitem = PyList_GET_ITEM(pyobj,i); /* borrowed ref */
 			CValue* listitemval = ConvertPythonToValue(listitem, error_prefix);
 			if (listitemval)
 			{

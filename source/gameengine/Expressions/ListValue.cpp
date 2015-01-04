@@ -432,7 +432,7 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 		
 		for (i=0;i<numitems;i++)
 		{
-			listitemval = listval->ConvertPythonToValue(PyList_GetItem(other,i), true, "cList + pyList: CListValue, ");
+			listitemval = listval->ConvertPythonToValue(PyList_GET_ITEM(other, i), true, "cList + pyList: CListValue, ");
 			
 			if (listitemval) {
 				listval_new->SetValue(i+numitems_orig, listitemval);
