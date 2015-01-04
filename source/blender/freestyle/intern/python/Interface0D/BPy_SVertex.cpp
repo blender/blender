@@ -342,13 +342,14 @@ PyDoc_STRVAR(SVertex_normals_doc,
 static PyObject *SVertex_normals_get(BPy_SVertex *self, void *UNUSED(closure))
 {
 	PyObject *py_normals; 
-	set< Vec3r > normals;
-	
-	py_normals = PyList_New(0);
-	normals = self->sv->normals();
-	for (set< Vec3r >::iterator set_iterator = normals.begin(); set_iterator != normals.end(); set_iterator++) {
-		Vec3r v(*set_iterator);
-		PyList_Append(py_normals, Vector_from_Vec3r(v));
+	set< Vec3r > normals = self->sv->normals();
+	set< Vec3r >::iterator it;
+	py_normals = PyList_New(normals.size());
+	unsigned int i = 0;
+
+	for (it = normals.begin(); it != normals.end(); it++) {
+		Vec3r v(*it);
+		PyList_SET_ITEM(py_normals, i++, Vector_from_Vec3r(v));
 	}
 	return py_normals;
 }

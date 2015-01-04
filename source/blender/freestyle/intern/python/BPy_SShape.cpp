@@ -227,13 +227,14 @@ PyDoc_STRVAR(SShape_vertices_doc,
 
 static PyObject *SShape_vertices_get(BPy_SShape *self, void *UNUSED(closure))
 {
-	PyObject *py_vertices = PyList_New(0);
 
 	vector< SVertex * > vertices = self->ss->getVertexList();
 	vector< SVertex * >::iterator it;
+	PyObject *py_vertices = PyList_New(vertices.size());
+	unsigned int i = 0;
 	
 	for (it = vertices.begin(); it != vertices.end(); it++) {
-		PyList_Append(py_vertices, BPy_SVertex_from_SVertex(*(*it)));
+		PyList_SET_ITEM(py_vertices, i++, BPy_SVertex_from_SVertex(*(*it)));
 	}
 	
 	return py_vertices;
@@ -246,13 +247,14 @@ PyDoc_STRVAR(SShape_edges_doc,
 
 static PyObject *SShape_edges_get(BPy_SShape *self, void *UNUSED(closure))
 {
-	PyObject *py_edges = PyList_New(0);
 
 	vector< FEdge * > edges = self->ss->getEdgeList();
 	vector< FEdge * >::iterator it;
+	PyObject *py_edges = PyList_New(edges.size());
+	unsigned int i = 0;
 	
 	for (it = edges.begin(); it != edges.end(); it++) {
-		PyList_Append(py_edges, Any_BPy_FEdge_from_FEdge(*(*it)));
+		PyList_SET_ITEM(py_edges, i++, Any_BPy_FEdge_from_FEdge(*(*it)));
 	}
 	
 	return py_edges;
