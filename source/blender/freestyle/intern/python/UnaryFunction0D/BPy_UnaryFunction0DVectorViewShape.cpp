@@ -112,20 +112,14 @@ static PyObject *UnaryFunction0DVectorViewShape___call__(BPy_UnaryFunction0DVect
 		}
 		return NULL;
 	}
-	PyObject *list = PyList_New(0);
-	PyObject *item;
-	for (unsigned int i = 0; i < self->uf0D_vectorviewshape->result.size(); i++) {
+
+	const unsigned int list_len = self->uf0D_vectorviewshape->result.size();
+	PyObject *list = PyList_New(list_len);
+	for (unsigned int i = 0; i < list_len; i++) {
 		ViewShape *v = self->uf0D_vectorviewshape->result[i];
-		if (v) {
-			item = BPy_ViewShape_from_ViewShape(*v);
-		}
-		else {
-			item = Py_None;
-			Py_INCREF(item);
-		}
-		PyList_Append(list, item);
+		PyList_SET_ITEM(list, i, v ? BPy_ViewShape_from_ViewShape(*v) : (Py_INCREF(Py_None), Py_None));
 	}
-	
+
 	return list;
 }
 

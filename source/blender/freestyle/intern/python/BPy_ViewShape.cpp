@@ -207,12 +207,13 @@ PyDoc_STRVAR(ViewShape_vertices_doc,
 
 static PyObject *ViewShape_vertices_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
-	PyObject *py_vertices = PyList_New(0);
-
 	vector<ViewVertex *> vertices = self->vs->vertices();
 	vector<ViewVertex *>::iterator it;
+	PyObject *py_vertices = PyList_New(vertices.size());
+	unsigned int i = 0;
+
 	for (it = vertices.begin(); it != vertices.end(); it++) {
-		PyList_Append( py_vertices, Any_BPy_ViewVertex_from_ViewVertex(*(*it)));
+		PyList_SET_ITEM(py_vertices, i++, Any_BPy_ViewVertex_from_ViewVertex(*(*it)));
 	}
 	return py_vertices;
 }
@@ -248,13 +249,13 @@ PyDoc_STRVAR(ViewShape_edges_doc,
 
 static PyObject *ViewShape_edges_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
-	PyObject *py_edges = PyList_New(0);
-
 	vector<ViewEdge *> edges = self->vs->edges();
 	vector<ViewEdge *>::iterator it;
+	PyObject *py_edges = PyList_New(edges.size());
+	unsigned int i = 0;
 
 	for (it = edges.begin(); it != edges.end(); it++) {
-		PyList_Append(py_edges, BPy_ViewEdge_from_ViewEdge(*(*it)));
+		PyList_SET_ITEM(py_edges, i++, BPy_ViewEdge_from_ViewEdge(*(*it)));
 	}
 	return py_edges;
 }
