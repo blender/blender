@@ -891,7 +891,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 			/* get particle */
 			pa = pars + ed_v2;
 
-			psys_get_birth_coordinates(&sim, pa, &birth, 0, 0);
+			psys_get_birth_coords(&sim, pa, &birth, 0, 0);
 
 			state.time = cfra;
 			psys_get_particle_state(&sim, ed_v2, &state, 1);

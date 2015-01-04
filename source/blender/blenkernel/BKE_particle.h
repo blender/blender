@@ -364,7 +364,7 @@ void psys_get_pointcache_start_end(struct Scene *scene, ParticleSystem *psys, in
 
 void psys_check_boid_data(struct ParticleSystem *psys);
 
-void psys_get_birth_coordinates(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleKey *state, float dtime, float cfra);
+void psys_get_birth_coords(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleKey *state, float dtime, float cfra);
 
 void particle_system_update(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 

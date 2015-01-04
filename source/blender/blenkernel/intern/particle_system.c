@@ -1670,7 +1670,7 @@ static void get_angular_velocity_vector(short avemode, ParticleKey *state, float
 	}
 }
 
-void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, ParticleKey *state, float dtime, float cfra)
+void psys_get_birth_coords(ParticleSimulationData *sim, ParticleData *pa, ParticleKey *state, float dtime, float cfra)
 {
 	Object *ob = sim->ob;
 	ParticleSystem *psys = sim->psys;
@@ -2002,7 +2002,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		psys->flag |= PSYS_OB_ANIM_RESTORE;
 	}
 
-	psys_get_birth_coordinates(sim, pa, &pa->state, dtime, cfra);
+	psys_get_birth_coords(sim, pa, &pa->state, dtime, cfra);
 
 	/* Initialize particle settings which depends on texture.
 	 *

@@ -62,7 +62,7 @@ int BKE_brush_clone_image_delete(struct Brush *brush);
 /* jitter */
 void BKE_brush_jitter_pos(const struct Scene *scene, struct Brush *brush,
                           const float pos[2], float jitterpos[2]);
-void BKE_brush_randomize_texture_coordinates(struct UnifiedPaintSettings *ups, bool mask);
+void BKE_brush_randomize_texture_coords(struct UnifiedPaintSettings *ups, bool mask);
 
 /* brush curve */
 void BKE_brush_curve_preset(struct Brush *b, int preset);
