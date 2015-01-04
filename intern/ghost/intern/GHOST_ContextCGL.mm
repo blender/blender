@@ -192,11 +192,7 @@ static void makeAttribList(
 	 * Maybe a command line flag is better... */
 	if (getenv("BLENDER_SOFTWAREGL")) {
 		attribs.push_back(NSOpenGLPFARendererID);
-#if defined(__ppc__) || defined(__ppc64__)
-		attribs.push_back(kCGLRendererAppleSWID);
-#else
 		attribs.push_back(kCGLRendererGenericFloatID);
-#endif
 	}
 	else {
 		attribs.push_back(NSOpenGLPFAAccelerated);
