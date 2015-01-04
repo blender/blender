@@ -259,9 +259,25 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 
 		sel = file_selection_get(C, &rect, 0);
 		if ( (sel.first != params->sel_first) || (sel.last != params->sel_last) ) {
+			int idx;
+
 			file_deselect_all(sfile, HILITED_FILE);
 			filelist_select(sfile->files, &sel, FILE_SEL_ADD, HILITED_FILE, CHECK_ALL);
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+			/* dont highlight readonly file (".." or ".") on border select */
+			for (idx = sel.last; idx >= 0; idx--) {
+				struct direntry *file = filelist_file(sfile->files, idx);
+
+				if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+					file->selflag &= ~HILITED_FILE;
+				}
+
+				/* active_file gets highlighted as well - make sure it is no readonly file */
+				if (sel.last == idx) {
+					params->active_file = idx;
+				}
+			}
 		}
 		params->sel_first = sel.first; params->sel_last = sel.last;
 
