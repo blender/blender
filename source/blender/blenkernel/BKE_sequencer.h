@@ -102,8 +102,10 @@ typedef struct SeqRenderData {
 	bool is_proxy_render;
 } SeqRenderData;
 
-SeqRenderData BKE_sequencer_new_render_data(struct EvaluationContext *eval_ctx, struct Main *bmain,
-                                            struct Scene *scene, int rectx, int recty, int preview_render_size);
+void BKE_sequencer_new_render_data(
+        struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *scene,
+        int rectx, int recty, int preview_render_size,
+        SeqRenderData *r_context);
 
 /* Wipe effect */
 enum {

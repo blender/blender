@@ -2379,6 +2379,7 @@ static void do_render_seq(Render *re)
 	RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
 	int cfra = re->r.cfra;
 	SeqRenderData context;
+	int re_x, re_y;
 
 	re->i.cfra = cfra;
 
@@ -2392,13 +2393,18 @@ static void do_render_seq(Render *re)
 	if ((re->r.mode & R_BORDER) && (re->r.mode & R_CROP) == 0) {
 		/* if border rendering is used and cropping is disabled, final buffer should
 		 * be as large as the whole frame */
-		context = BKE_sequencer_new_render_data(re->eval_ctx, re->main, re->scene,
-		                                        re->winx, re->winy, 100);
+		re_x = re->winx;
+		re_y = re->winy;
 	}
 	else {
-		context = BKE_sequencer_new_render_data(re->eval_ctx, re->main, re->scene,
-		                                        re->result->rectx, re->result->recty, 100);
+		re_x = re->result->rectx;
+		re_y = re->result->recty;
 	}
+
+	BKE_sequencer_new_render_data(
+	        re->eval_ctx, re->main, re->scene,
+	        re_x, re_y, 100,
+	        &context);
 
 	out = BKE_sequencer_give_ibuf(&context, cfra, 0);
 

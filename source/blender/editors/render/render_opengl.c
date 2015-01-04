@@ -143,8 +143,10 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		int chanshown = sseq ? sseq->chanshown : 0;
 		struct bGPdata *gpd = (sseq && (sseq->flag & SEQ_SHOW_GPENCIL)) ? sseq->gpd : NULL;
 
-		context = BKE_sequencer_new_render_data(oglrender->bmain->eval_ctx, oglrender->bmain,
-		                                        scene, oglrender->sizex, oglrender->sizey, 100.0f);
+		BKE_sequencer_new_render_data(
+		        oglrender->bmain->eval_ctx, oglrender->bmain, scene,
+		        oglrender->sizex, oglrender->sizey, 100.0f,
+		        &context);
 
 		ibuf = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
 
