@@ -495,6 +495,13 @@ bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 	        ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
 }
 
+bool ED_space_sequencer_check_show_strip(SpaceSeq *sseq)
+{
+	return (ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW) &&
+	        ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
+}
+
+
 int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, const char **error_str)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -1130,11 +1137,20 @@ int sequencer_strip_has_path_poll(bContext *C)
 	return (((ed = BKE_sequencer_editing_get(CTX_data_scene(C), false)) != NULL) && ((seq = ed->act_seq) != NULL) && (SEQ_HAS_PATH(seq)));
 }
 
-int sequencer_view_poll(bContext *C)
+int sequencer_view_preview_poll(bContext *C)
 {
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
 	Editing *ed = BKE_sequencer_editing_get(CTX_data_scene(C), false);
 	if (ed && sseq && (sseq->mainb == SEQ_DRAW_IMG_IMBUF))
+		return 1;
+
+	return 0;
+}
+
+int sequencer_view_strips_poll(bContext *C)
+{
+	SpaceSeq *sseq = CTX_wm_space_seq(C);
+	if (sseq && ED_space_sequencer_check_show_strip(sseq))
 		return 1;
 
 	return 0;
@@ -3314,7 +3330,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	ot->invoke = WM_border_select_invoke;
 	ot->exec = view_ghost_border_exec;
 	ot->modal = WM_border_select_modal;
-	ot->poll = sequencer_view_poll;
+	ot->poll = sequencer_view_preview_poll;
 	ot->cancel = WM_border_select_cancel;
 
 	/* flags */

@@ -58,6 +58,8 @@ void color3ubv_from_seq(struct Scene *curscene, struct Sequence *seq, unsigned c
 void draw_shadedstrip(struct Sequence *seq, unsigned char col[3], float x1, float y1, float x2, float y2);
 void draw_sequence_extensions(struct Scene *scene, struct ARegion *ar, struct Sequence *seq);
 
+void sequencer_special_update_set(Sequence *seq);
+
 /* UNUSED */
 // void seq_reset_imageofs(struct SpaceSeq *sseq);
 
@@ -77,7 +79,8 @@ int sequencer_edit_poll(struct bContext *C);
 /* UNUSED */
 //int sequencer_strip_poll(struct bContext *C);
 int sequencer_strip_has_path_poll(struct bContext *C);
-int sequencer_view_poll(struct bContext *C);
+int sequencer_view_preview_poll(struct bContext *C);
+int sequencer_view_strips_poll(struct bContext *C);
 
 /* externs */
 extern EnumPropertyItem sequencer_prop_effect_types[];

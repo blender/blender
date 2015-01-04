@@ -56,6 +56,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_screen.h"
+#include "ED_sequencer.h"
 
 #include "anim_intern.h"
 
@@ -143,6 +144,25 @@ static int frame_from_event(bContext *C, const wmEvent *event)
 	return frame;
 }
 
+static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype == SPACE_SEQ) {
+		SpaceSeq *sseq = sa->spacedata.first;
+		if (ED_space_sequencer_check_show_strip(sseq)) {
+			ED_sequencer_special_preview_set(C, event->mval);
+		}
+	}
+}
+static void change_frame_seq_preview_end(bContext *C)
+{
+	if (ED_sequencer_special_preview_get() != NULL) {
+		Scene *scene = CTX_data_scene(C);
+		ED_sequencer_special_preview_clear();
+		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+	}
+}
+
 /* Modal Operator init */
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -152,6 +172,8 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	 */
 	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
 
+	change_frame_seq_preview_begin(C, event);
+
 	change_frame_apply(C, op);
 	
 	/* add temp handler */
@@ -160,14 +182,21 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static void change_frame_cancel(bContext *C, wmOperator *UNUSED(op))
+{
+	change_frame_seq_preview_end(C);
+}
+
 /* Modal event handling of frame changing */
 static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	int ret = OPERATOR_RUNNING_MODAL;
 	/* execute the events */
 	switch (event->type) {
 		case ESCKEY:
-			return OPERATOR_FINISHED;
-		
+			ret = OPERATOR_FINISHED;
+			break;
+
 		case MOUSEMOVE:
 			RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
 			change_frame_apply(C, op);
@@ -180,7 +209,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			 * the modal op) doesn't work for some reason
 			 */
 			if (event->val == KM_RELEASE)
-				return OPERATOR_FINISHED;
+				ret = OPERATOR_FINISHED;
 			break;
 
 		case LEFTCTRLKEY:
@@ -194,7 +223,11 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 	}
 
-	return OPERATOR_RUNNING_MODAL;
+	if (ret == OPERATOR_FINISHED) {
+		change_frame_seq_preview_end(C);
+	}
+
+	return ret;
 }
 
 static void ANIM_OT_change_frame(wmOperatorType *ot)
@@ -209,6 +242,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = change_frame_exec;
 	ot->invoke = change_frame_invoke;
+	ot->cancel = change_frame_cancel;
 	ot->modal = change_frame_modal;
 	ot->poll = change_frame_poll;
 	

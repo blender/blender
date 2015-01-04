@@ -27,6 +27,7 @@
 #ifndef __ED_SEQUENCER_H__
 #define __ED_SEQUENCER_H__
 
+struct bContext;
 struct Scene;
 struct Sequence;
 struct SpaceSeq;
@@ -39,7 +40,12 @@ bool ED_space_sequencer_check_show_maskedit(struct SpaceSeq *sseq, struct Scene 
 int  ED_space_sequencer_maskedit_poll(struct bContext *C);
 
 bool ED_space_sequencer_check_show_imbuf(struct SpaceSeq *sseq);
+bool ED_space_sequencer_check_show_strip(struct SpaceSeq *sseq);
 
 void ED_operatormacros_sequencer(void);
+
+Sequence *ED_sequencer_special_preview_get(void);
+void      ED_sequencer_special_preview_set(struct bContext *C, const int mval[2]);
+void      ED_sequencer_special_preview_clear(void);
 
 #endif /*  __ED_SEQUENCER_H__ */

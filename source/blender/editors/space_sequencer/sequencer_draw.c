@@ -830,17 +830,29 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 
 static Sequence *special_seq_update = NULL;
 
-static void UNUSED_FUNCTION(set_special_seq_update) (int val)
+void sequencer_special_update_set(Sequence *seq)
 {
-//	int x;
+	special_seq_update = seq;
+}
 
-	/* if mouse over a sequence && LEFTMOUSE */
-	if (val) {
-// XXX		special_seq_update = find_nearest_seq(&x);
-	}
-	else {
-		special_seq_update = NULL;
-	}
+Sequence *ED_sequencer_special_preview_get(void)
+{
+	return special_seq_update;
+}
+
+void ED_sequencer_special_preview_set(bContext *C, const int mval[2])
+{
+	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
+	int hand;
+	Sequence *seq;
+	seq = find_nearest_seq(scene, &ar->v2d, &hand, mval);
+	sequencer_special_update_set(seq);
+}
+
+void ED_sequencer_special_preview_clear(void)
+{
+	sequencer_special_update_set(NULL);
 }
 
 ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int cfra, int frame_ofs)
@@ -1450,6 +1462,15 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	/* draw the last selected last (i.e. 'active' in other parts of Blender), removes some overlapping error */
 	if (last_seq)
 		draw_seq_strip(C, sseq, scene, ar, last_seq, 120, pixelx);
+
+	/* draw highlight when previewing a single strip */
+	if (special_seq_update) {
+		const Sequence *seq = special_seq_update;
+		glEnable(GL_BLEND);
+		glColor4ub(255, 255, 255, 48);
+		glRectf(seq->startdisp, seq->machine + SEQ_STRIP_OFSBOTTOM, seq->enddisp, seq->machine + SEQ_STRIP_OFSTOP);
+		glDisable(GL_BLEND);
+	}
 }
 
 static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
