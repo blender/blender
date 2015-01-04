@@ -158,30 +158,30 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 
 		params->filter = 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_blender")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? BLENDERFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDER : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_backup")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? BLENDERFILE_BACKUP : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDER_BACKUP : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_image")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? IMAGEFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_IMAGE : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_movie")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? MOVIEFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_MOVIE : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_python")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? PYSCRIPTFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_PYSCRIPT : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_font")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FTFONTFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_FTFONT : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_sound")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? SOUNDFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_SOUND : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_text")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? TEXTFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_TEXT : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_folder")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FOLDERFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_FOLDER : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_btx")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? BTXFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BTX : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_collada")))
-			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? COLLADAFILE : 0;
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_COLLADA : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
 			RNA_property_string_get(op->ptr, prop, params->filter_glob);
-			params->filter |= (OPERATORFILE | FOLDERFILE);
+			params->filter |= (FILE_TYPE_OPERATOR | FILE_TYPE_FOLDER);
 		}
 		else {
 			params->filter_glob[0] = '\0';
@@ -215,7 +215,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 
 		if (params->display == FILE_DEFAULTDISPLAY) {
 			if (U.uiflag & USER_SHOW_THUMBNAILS) {
-				if (params->filter & (IMAGEFILE | MOVIEFILE))
+				if (params->filter & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE))
 					params->display = FILE_IMGDISPLAY;
 				else
 					params->display = FILE_SHORTDISPLAY;
@@ -635,7 +635,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 	for (i = 0; i < n; i++) {
 		file = filelist_file(sfile->files, i);
 		if (fnmatch(pattern, file->relname, 0) == 0) {
-			file->selflag |= SELECTED_FILE;
+			file->selflag |= FILE_SEL_SELECTED;
 			if (!match) {
 				BLI_strncpy(matched_file, file->relname, FILE_MAX);
 			}

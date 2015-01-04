@@ -1478,7 +1478,7 @@ void TEXTURE_OT_envmap_save(wmOperatorType *ot)
 	                           "(use -1 to skip a face)", 0.0f, 0.0f);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
-	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_SAVE,
+	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE, FILE_SPECIAL, FILE_SAVE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }
 

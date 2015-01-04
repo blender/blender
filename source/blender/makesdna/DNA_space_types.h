@@ -694,28 +694,28 @@ typedef enum eFileSel_Params_Flag {
 
 /* files in filesel list: file types */
 typedef enum eFileSel_File_Types {
-	BLENDERFILE         = (1 << 2),
-	BLENDERFILE_BACKUP  = (1 << 3),
-	IMAGEFILE           = (1 << 4),
-	MOVIEFILE           = (1 << 5),
-	PYSCRIPTFILE        = (1 << 6),
-	FTFONTFILE          = (1 << 7),
-	SOUNDFILE           = (1 << 8),
-	TEXTFILE            = (1 << 9),
-	MOVIEFILE_ICON      = (1 << 10), /* movie file that preview can't load */
-	FOLDERFILE          = (1 << 11), /* represents folders for filtering */
-	BTXFILE             = (1 << 12),
-	COLLADAFILE         = (1 << 13),
-	OPERATORFILE        = (1 << 14), /* from filter_glob operator property */
-	APPLICATIONBUNDLE   = (1 << 15),
+	FILE_TYPE_BLENDER           = (1 << 2),
+	FILE_TYPE_BLENDER_BACKUP    = (1 << 3),
+	FILE_TYPE_IMAGE             = (1 << 4),
+	FILE_TYPE_MOVIE             = (1 << 5),
+	FILE_TYPE_PYSCRIPT          = (1 << 6),
+	FILE_TYPE_FTFONT            = (1 << 7),
+	FILE_TYPE_SOUND             = (1 << 8),
+	FILE_TYPE_TEXT              = (1 << 9),
+	FILE_TYPE_MOVIE_ICON        = (1 << 10), /* movie file that preview can't load */
+	FILE_TYPE_FOLDER            = (1 << 11), /* represents folders for filtering */
+	FILE_TYPE_BTX               = (1 << 12),
+	FILE_TYPE_COLLADA           = (1 << 13),
+	FILE_TYPE_OPERATOR          = (1 << 14), /* from filter_glob operator property */
+	FILE_TYPE_APPLICATIONBUNDLE = (1 << 15),
 } eFileSel_File_Types;
 
 /* Selection Flags in filesel: struct direntry, unsigned char selflag */
 typedef enum eDirEntry_SelectFlag {
-/*  ACTIVE_FILE         = (1 << 1), */ /* UNUSED */
-	HILITED_FILE        = (1 << 2),
-	SELECTED_FILE       = (1 << 3),
-	EDITING_FILE        = (1 << 4),
+/*	FILE_SEL_ACTIVE         = (1 << 1), */ /* UNUSED */
+	FILE_SEL_HIGHLIGHTED    = (1 << 2),
+	FILE_SEL_SELECTED       = (1 << 3),
+	FILE_SEL_EDITING        = (1 << 4),
 } eDirEntry_SelectFlag;
 
 /* Image/UV Editor ======================================== */
