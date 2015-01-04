@@ -745,7 +745,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	}
 
 	/* accept 2d verts */
-	if (((mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix) != -1) &&
+	if ((((size = mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix)) != -1) &&
 	     (mathutils_array_parse(line_a, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_a, error_prefix) != -1) &&
 	     (mathutils_array_parse(line_b, 3, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_b, error_prefix) != -1)) == 0)
 	{
