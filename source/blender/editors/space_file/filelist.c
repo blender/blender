@@ -973,8 +973,13 @@ static void filelist_read_dir(struct FileList *filelist)
 	filelist->fidx = NULL;
 	filelist->filelist = NULL;
 
+	BLI_make_exist(filelist->dir);
 	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_filelist_dir_contents(filelist->dir, &(filelist->filelist));
+
+	/* We shall *never* get an empty list here, since we now the dir exists and is readable
+	 * (ensured by BLI_make_exist()). So we expect at the very least the parent '..' entry. */
+	BLI_assert(filelist->numfiles != 0);
 
 	filelist_setfiletypes(filelist);
 }
@@ -994,7 +999,6 @@ static void filelist_read_library(struct FileList *filelist)
 		int num;
 		struct direntry *file;
 
-		BLI_make_exist(filelist->dir);
 		filelist_read_dir(filelist);
 		file = filelist->filelist;
 		for (num = 0; num < filelist->numfiles; num++, file++) {

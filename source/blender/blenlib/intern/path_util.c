@@ -1087,18 +1087,22 @@ void BLI_char_switch(char *string, char from, char to)
 }
 
 /**
- * Strips off nonexistent subdirectories from the end of *dir, leaving the path of
- * the lowest-level directory that does exist.
+ * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir, leaving the path of
+ * the lowest-level directory that does exist and we can read.
  */
 void BLI_make_exist(char *dir)
 {
 	int a;
+	char par_path[PATH_MAX + 3];
 
 	BLI_char_switch(dir, ALTSEP, SEP);
 
 	a = strlen(dir);
 
-	while (!BLI_is_dir(dir)) {
+	for (BLI_join_dirfile(par_path, sizeof(par_path), dir, "..");
+	     !(BLI_is_dir(dir) && BLI_exists(par_path));
+	     BLI_join_dirfile(par_path, sizeof(par_path), dir, ".."))
+	{
 		a--;
 		while (dir[a] != SEP) {
 			a--;
