@@ -29,10 +29,22 @@
 
 /* Can cast different mathutils types to this, use for generic funcs */
 
+#include "BLI_compiler_attrs.h"
+
 struct DynStr;
 
 extern char BaseMathObject_is_wrapped_doc[];
 extern char BaseMathObject_owner_doc[];
+
+#define BASE_MATH_NEW(struct_name, root_type, base_type) \
+	(struct_name *)((base_type ? (base_type)->tp_alloc(base_type, 0) : _PyObject_GC_New(&(root_type))));
+
+
+/* BaseMathObject.flag */
+enum {
+	BASE_MATH_FLAG_IS_WRAP    = (1 << 0),
+};
+#define BASE_MATH_FLAG_DEFAULT 0
 
 #define BASE_MATH_MEMBERS(_data)                                                                                 \
 	PyObject_VAR_HEAD                                                                                            \
@@ -42,7 +54,7 @@ extern char BaseMathObject_owner_doc[];
 	unsigned char cb_type;      /* which user funcs do we adhere to, RNA, GameObject, etc */                     \
 	unsigned char cb_subtype;   /* subtype: location, rotation...                                                \
 	                             * to avoid defining many new functions for every attribute of the same type */  \
-	unsigned char wrapped       /* wrapped data type? */                                                         \
+	unsigned char flag          /* wrapped data type? */                                                         \
 
 typedef struct {
 	BASE_MATH_MEMBERS(data);
@@ -66,9 +78,6 @@ PyMODINIT_FUNC PyInit_mathutils(void);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);
-
-#define Py_NEW  1
-#define Py_WRAP 2
 
 typedef struct Mathutils_Callback Mathutils_Callback;
 

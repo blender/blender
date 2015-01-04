@@ -150,7 +150,7 @@ PyDoc_STRVAR(bpy_bmloopuv_uv_doc,
 );
 static PyObject *bpy_bmloopuv_uv_get(BPy_BMLoopUV *self, void *UNUSED(closure))
 {
-	return Vector_CreatePyObject(self->data->uv, 2, Py_WRAP, NULL);
+	return Vector_CreatePyObject_wrap(self->data->uv, 2, NULL);
 }
 
 static int bpy_bmloopuv_uv_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
@@ -263,7 +263,7 @@ PyDoc_STRVAR(bpy_bmvertskin_radius_doc,
 );
 static PyObject *bpy_bmvertskin_radius_get(BPy_BMVertSkin *self, void *UNUSED(closure))
 {
-	return Vector_CreatePyObject(self->data->radius, 2, Py_WRAP, NULL);
+	return Vector_CreatePyObject_wrap(self->data->radius, 2, NULL);
 }
 
 static int bpy_bmvertskin_radius_set(BPy_BMVertSkin *self, PyObject *value, void *UNUSED(closure))

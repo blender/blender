@@ -309,7 +309,7 @@ static PyObject *M_Noise_random_unit_vector(PyObject *UNUSED(self), PyObject *ar
 		norm = normalize_vn(vec, size);
 	}
 
-	return Vector_CreatePyObject(vec, size, Py_NEW, NULL);
+	return Vector_CreatePyObject(vec, size, NULL);
 }
 /* This is dumb, most people will want a unit vector anyway, since this doesn't have uniform distribution over a sphere*/
 #if 0
@@ -338,7 +338,7 @@ static PyObject *M_Noise_random_vector(PyObject *UNUSED(self), PyObject *args)
 
 	rand_vn(vec, size);
 
-	return Vector_CreatePyObject(vec, size, Py_NEW, NULL);
+	return Vector_CreatePyObject(vec, size, NULL);
 }
 #endif
 
@@ -412,7 +412,7 @@ static PyObject *M_Noise_noise_vector(PyObject *UNUSED(self), PyObject *args)
 
 	noise_vector(vec[0], vec[1], vec[2], nb, r_vec);
 
-	return Vector_CreatePyObject(r_vec, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(r_vec, 3, NULL);
 }
 
 PyDoc_STRVAR(M_Noise_turbulence_doc,
@@ -484,7 +484,7 @@ static PyObject *M_Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *arg
 		return NULL;
 
 	vTurb(vec[0], vec[1], vec[2], oct, hd, nb, as, fs, r_vec);
-	return Vector_CreatePyObject(r_vec, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(r_vec, 3, NULL);
 }
 
 /* F. Kenton Musgrave's fractal functions */
@@ -736,7 +736,7 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 	voronoi(vec[0], vec[1], vec[2], da, pa, me, dtype);
 
 	for (i = 0; i < 4; i++) {
-		PyList_SET_ITEM(list, i, Vector_CreatePyObject(pa + 3 * i, 3, Py_NEW, NULL));
+		PyList_SET_ITEM(list, i, Vector_CreatePyObject(pa + 3 * i, 3, NULL));
 	}
 
 	return Py_BuildValue("[[ffff]O]", da[0], da[1], da[2], da[3], list);
@@ -788,7 +788,7 @@ static PyObject *M_Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 
 	cellNoiseV(vec[0], vec[1], vec[2], r_vec);
-	return Vector_CreatePyObject(r_vec, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(r_vec, 3, NULL);
 }
 
 static PyMethodDef M_Noise_methods[] = {

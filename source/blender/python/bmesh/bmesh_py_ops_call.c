@@ -540,10 +540,10 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 			item = PyFloat_FromDouble((double)BMO_SLOT_AS_FLOAT(slot));
 			break;
 		case BMO_OP_SLOT_MAT:
-			item = Matrix_CreatePyObject((float *)BMO_SLOT_AS_MATRIX(slot), 4, 4, Py_NEW, NULL);
+			item = Matrix_CreatePyObject((float *)BMO_SLOT_AS_MATRIX(slot), 4, 4, NULL);
 			break;
 		case BMO_OP_SLOT_VEC:
-			item = Vector_CreatePyObject(BMO_SLOT_AS_VECTOR(slot), slot->len, Py_NEW, NULL);
+			item = Vector_CreatePyObject(BMO_SLOT_AS_VECTOR(slot), slot->len, NULL);
 			break;
 		case BMO_OP_SLOT_PTR:
 			BLI_assert(0);  /* currently we don't have any pointer return values in use */

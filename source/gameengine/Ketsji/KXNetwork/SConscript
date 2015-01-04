@@ -39,6 +39,7 @@ incs = [
     '#source/gameengine/Ketsji',
     '#source/gameengine/Network',
     '#source/gameengine/SceneGraph',
+    '../../../blender/blenlib',
     ]
 incs = ' '.join(incs)
 

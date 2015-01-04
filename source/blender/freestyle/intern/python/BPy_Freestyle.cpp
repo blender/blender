@@ -153,7 +153,7 @@ static PyObject *Freestyle_blendRamp(PyObject *self, PyObject *args)
 		return NULL;
 	}
 	ramp_blend(type, a, fac, b);
-	return Vector_CreatePyObject(a, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(a, 3, NULL);
 }
 
 #include "BKE_texture.h" /* do_colorband() */
@@ -187,7 +187,7 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError, "failed to evaluate the color ramp");
 		return NULL;
 	}
-	return Vector_CreatePyObject(out, 4, Py_NEW, NULL);
+	return Vector_CreatePyObject(out, 4, NULL);
 }
 
 #include "DNA_color_types.h"

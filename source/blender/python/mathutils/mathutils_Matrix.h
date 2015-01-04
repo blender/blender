@@ -61,12 +61,21 @@ typedef struct {
  * blender (stored in blend_data). This is an either/or struct not both */
 
 /* prototypes */
-PyObject *Matrix_CreatePyObject(float *mat,
-                                const unsigned short num_col, const unsigned short num_row,
-                                int type, PyTypeObject *base_type);
-PyObject *Matrix_CreatePyObject_cb(PyObject *user,
-                                   const unsigned short num_col, const unsigned short num_row,
-                                   unsigned char cb_type, unsigned char cb_subtype);
+PyObject *Matrix_CreatePyObject(
+        const float *mat,
+        const unsigned short num_col, const unsigned short num_row,
+        PyTypeObject *base_type
+        ) ATTR_WARN_UNUSED_RESULT;
+PyObject *Matrix_CreatePyObject_wrap(
+        float *mat,
+        const unsigned short num_col, const unsigned short num_row,
+        PyTypeObject *base_type
+        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+PyObject *Matrix_CreatePyObject_cb(
+        PyObject *user,
+        const unsigned short num_col, const unsigned short num_row,
+        unsigned char cb_type, unsigned char cb_subtype
+        ) ATTR_WARN_UNUSED_RESULT;
 
 extern unsigned char mathutils_matrix_row_cb_index; /* default */
 extern unsigned char mathutils_matrix_col_cb_index;

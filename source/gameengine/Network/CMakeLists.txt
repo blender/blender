@@ -27,6 +27,7 @@ set(INC
 	.
 	../../../intern/container
 	../../../intern/string
+	../../blender/blenlib
 )
 
 set(INC_SYS

@@ -64,7 +64,7 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 			                "more than a single arg given");
 			return NULL;
 	}
-	return Color_CreatePyObject(col, Py_NEW, type);
+	return Color_CreatePyObject(col, type);
 }
 
 /* -----------------------------METHODS---------------------------- */
@@ -107,7 +107,7 @@ static PyObject *Color_copy(ColorObject *self)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	return Color_CreatePyObject(self->col, Py_NEW, Py_TYPE(self));
+	return Color_CreatePyObject(self->col, Py_TYPE(self));
 }
 static PyObject *Color_deepcopy(ColorObject *self, PyObject *args)
 {
@@ -411,7 +411,7 @@ static PyObject *Color_add(PyObject *v1, PyObject *v2)
 
 	add_vn_vnvn(col, color1->col, color2->col, COLOR_SIZE);
 
-	return Color_CreatePyObject(col, Py_NEW, Py_TYPE(v1));
+	return Color_CreatePyObject(col, Py_TYPE(v1));
 }
 
 /* addition in-place: obj += obj */
@@ -460,7 +460,7 @@ static PyObject *Color_sub(PyObject *v1, PyObject *v2)
 
 	sub_vn_vnvn(col, color1->col, color2->col, COLOR_SIZE);
 
-	return Color_CreatePyObject(col, Py_NEW, Py_TYPE(v1));
+	return Color_CreatePyObject(col, Py_TYPE(v1));
 }
 
 /* subtraction in-place: obj -= obj */
@@ -492,7 +492,7 @@ static PyObject *color_mul_float(ColorObject *color, const float scalar)
 {
 	float tcol[COLOR_SIZE];
 	mul_vn_vn_fl(tcol, color->col, COLOR_SIZE, scalar);
-	return Color_CreatePyObject(tcol, Py_NEW, Py_TYPE(color));
+	return Color_CreatePyObject(tcol, Py_TYPE(color));
 }
 
 
@@ -639,7 +639,7 @@ static PyObject *Color_neg(ColorObject *self)
 		return NULL;
 
 	negate_vn_vn(tcol, self->col, COLOR_SIZE);
-	return Color_CreatePyObject(tcol, Py_NEW, Py_TYPE(self));
+	return Color_CreatePyObject(tcol, Py_TYPE(self));
 }
 
 
@@ -862,40 +862,60 @@ PyTypeObject color_Type = {
 	NULL,                           /* tp_weaklist */
 	NULL                            /* tp_del */
 };
-/* ------------------------Color_CreatePyObject (internal)------------- */
-/* creates a new color object */
-/* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- *  (i.e. it was allocated elsewhere by MEM_mallocN())
- *   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- *  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *Color_CreatePyObject(float col[3], int type, PyTypeObject *base_type)
+
+PyObject *Color_CreatePyObject(
+        const float col[3],
+        PyTypeObject *base_type)
+{
+	ColorObject *self;
+	float *col_alloc;
+
+	col_alloc = PyMem_Malloc(COLOR_SIZE * sizeof(float));
+	if (UNLIKELY(col_alloc == NULL)) {
+		PyErr_SetString(PyExc_MemoryError,
+		                "Color(): "
+		                "problem allocating data");
+		return NULL;
+	}
+
+	self = BASE_MATH_NEW(ColorObject, color_Type, base_type);
+	if (self) {
+		self->col = col_alloc;
+
+		/* init callbacks as NULL */
+		self->cb_user = NULL;
+		self->cb_type = self->cb_subtype = 0;
+
+		/* NEW */
+		if (col)
+			copy_v3_v3(self->col, col);
+		else
+			zero_v3(self->col);
+
+		self->flag = BASE_MATH_FLAG_DEFAULT;
+	}
+	else {
+		PyMem_Free(col_alloc);
+	}
+
+	return (PyObject *)self;
+}
+
+PyObject *Color_CreatePyObject_wrap(
+        float col[3],
+        PyTypeObject *base_type)
 {
 	ColorObject *self;
 
-	self = base_type ?  (ColorObject *)base_type->tp_alloc(base_type, 0) :
-	                    (ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
-
+	self = BASE_MATH_NEW(ColorObject, color_Type, base_type);
 	if (self) {
 		/* init callbacks as NULL */
 		self->cb_user = NULL;
 		self->cb_type = self->cb_subtype = 0;
 
-		if (type == Py_WRAP) {
-			self->col = col;
-			self->wrapped = Py_WRAP;
-		}
-		else if (type == Py_NEW) {
-			self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
-			if (col)
-				copy_v3_v3(self->col, col);
-			else
-				zero_v3(self->col);
-
-			self->wrapped = Py_NEW;
-		}
-		else {
-			Py_FatalError("Color(): invalid type!");
-		}
+		/* WRAP */
+		self->col = col;
+		self->flag = BASE_MATH_FLAG_DEFAULT | BASE_MATH_FLAG_IS_WRAP;
 	}
 
 	return (PyObject *)self;
@@ -904,7 +924,7 @@ PyObject *Color_CreatePyObject(float col[3], int type, PyTypeObject *base_type)
 PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
                                   unsigned char cb_type, unsigned char cb_subtype)
 {
-	ColorObject *self = (ColorObject *)Color_CreatePyObject(NULL, Py_NEW, NULL);
+	ColorObject *self = (ColorObject *)Color_CreatePyObject(NULL, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
 		self->cb_user         = cb_user;

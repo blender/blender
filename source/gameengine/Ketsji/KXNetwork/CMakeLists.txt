@@ -30,6 +30,7 @@ set(INC
 	../../GameLogic
 	../../Network
 	../../SceneGraph
+	../../../blender/blenlib
 	../../../../intern/container
 	../../../../intern/string
 )

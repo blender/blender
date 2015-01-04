@@ -451,7 +451,7 @@ PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *UNUSED(closure))
 char BaseMathObject_is_wrapped_doc[] = "True when this object wraps external data (read-only).\n\n:type: boolean";
 PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *UNUSED(closure))
 {
-	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1 : 0);
+	return PyBool_FromLong((self->flag & BASE_MATH_FLAG_IS_WRAP) != 0);
 }
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg)
@@ -469,7 +469,7 @@ int BaseMathObject_clear(BaseMathObject *self)
 void BaseMathObject_dealloc(BaseMathObject *self)
 {
 	/* only free non wrapped */
-	if (self->wrapped != Py_WRAP) {
+	if ((self->flag & BASE_MATH_FLAG_IS_WRAP) == 0) {
 		PyMem_Free(self->data);
 	}
 

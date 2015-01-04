@@ -70,7 +70,7 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 				return NULL;
 			break;
 	}
-	return Euler_CreatePyObject(eul, order, Py_NEW, type);
+	return Euler_CreatePyObject(eul, order, type);
 }
 
 /* internal use, assume read callback is done */
@@ -150,7 +150,7 @@ static PyObject *Euler_to_quaternion(EulerObject *self)
 
 	eulO_to_quat(quat, self->eul, self->order);
 
-	return Quaternion_CreatePyObject(quat, Py_NEW, NULL);
+	return Quaternion_CreatePyObject(quat, NULL);
 }
 
 /* return a matrix representation of the euler */
@@ -171,7 +171,7 @@ static PyObject *Euler_to_matrix(EulerObject *self)
 
 	eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
 
-	return Matrix_CreatePyObject(mat, 3, 3, Py_NEW, NULL);
+	return Matrix_CreatePyObject(mat, 3, 3, NULL);
 }
 
 PyDoc_STRVAR(Euler_zero_doc,
@@ -304,7 +304,7 @@ static PyObject *Euler_copy(EulerObject *self)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	return Euler_CreatePyObject(self->eul, self->order, Py_NEW, Py_TYPE(self));
+	return Euler_CreatePyObject(self->eul, self->order, Py_TYPE(self));
 }
 static PyObject *Euler_deepcopy(EulerObject *self, PyObject *args)
 {
@@ -710,42 +710,62 @@ PyTypeObject euler_Type = {
 	NULL,                           /* tp_weaklist */
 	NULL                            /* tp_del */
 };
-/* ------------------------Euler_CreatePyObject (internal)------------- */
-/* creates a new euler object */
-/* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- * (i.e. it was allocated elsewhere by MEM_mallocN())
- * pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- * (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *Euler_CreatePyObject(float eul[3], const short order, int type, PyTypeObject *base_type)
+
+
+PyObject *Euler_CreatePyObject(
+        const float eul[3], const short order,
+        PyTypeObject *base_type)
+{
+	EulerObject *self;
+	float *eul_alloc;
+
+	eul_alloc = PyMem_Malloc(EULER_SIZE * sizeof(float));
+	if (UNLIKELY(eul_alloc == NULL)) {
+		PyErr_SetString(PyExc_MemoryError,
+		                "Euler(): "
+		                "problem allocating data");
+		return NULL;
+	}
+
+	self = BASE_MATH_NEW(EulerObject, euler_Type, base_type);
+	if (self) {
+		self->eul = eul_alloc;
+
+		/* init callbacks as NULL */
+		self->cb_user = NULL;
+		self->cb_type = self->cb_subtype = 0;
+
+		if (eul) {
+			copy_v3_v3(self->eul, eul);
+		}
+		else {
+			zero_v3(self->eul);
+		}
+
+		self->flag = BASE_MATH_FLAG_DEFAULT;
+		self->order = order;
+	}
+	else {
+		PyMem_Free(eul_alloc);
+	}
+
+	return (PyObject *)self;
+}
+
+PyObject *Euler_CreatePyObject_wrap(
+        float eul[3], const short order,
+        PyTypeObject *base_type)
 {
 	EulerObject *self;
 
-	self = base_type ?  (EulerObject *)base_type->tp_alloc(base_type, 0) :
-	                    (EulerObject *)PyObject_GC_New(EulerObject, &euler_Type);
-
+	self = BASE_MATH_NEW(EulerObject, euler_Type, base_type);
 	if (self) {
 		/* init callbacks as NULL */
 		self->cb_user = NULL;
 		self->cb_type = self->cb_subtype = 0;
 
-		if (type == Py_WRAP) {
-			self->eul = eul;
-			self->wrapped = Py_WRAP;
-		}
-		else if (type == Py_NEW) {
-			self->eul = PyMem_Malloc(EULER_SIZE * sizeof(float));
-			if (eul) {
-				copy_v3_v3(self->eul, eul);
-			}
-			else {
-				zero_v3(self->eul);
-			}
-
-			self->wrapped = Py_NEW;
-		}
-		else {
-			Py_FatalError("Euler(): invalid type!");
-		}
+		self->eul = eul;
+		self->flag = BASE_MATH_FLAG_DEFAULT | BASE_MATH_FLAG_IS_WRAP;
 
 		self->order = order;
 	}
@@ -753,10 +773,11 @@ PyObject *Euler_CreatePyObject(float eul[3], const short order, int type, PyType
 	return (PyObject *)self;
 }
 
-PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, const short order,
-                                  unsigned char cb_type, unsigned char cb_subtype)
+PyObject *Euler_CreatePyObject_cb(
+        PyObject *cb_user, const short order,
+        unsigned char cb_type, unsigned char cb_subtype)
 {
-	EulerObject *self = (EulerObject *)Euler_CreatePyObject(NULL, order, Py_NEW, NULL);
+	EulerObject *self = (EulerObject *)Euler_CreatePyObject(NULL, order, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
 		self->cb_user         = cb_user;

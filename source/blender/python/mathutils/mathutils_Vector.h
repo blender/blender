@@ -34,13 +34,25 @@ extern PyTypeObject vector_Type;
 typedef struct {
 	BASE_MATH_MEMBERS(vec);
 
-	int size;			/* vec size 2,3 or 4 */
+	int size;  /* vec size 2 or more */
 } VectorObject;
 
 /*prototypes*/
-PyObject *Vector_CreatePyObject(float *vec, const int size, const int type, PyTypeObject *base_type);
-PyObject *Vector_CreatePyObject_cb(PyObject *user, int size,
-                                   unsigned char cb_type, unsigned char subtype);
-PyObject *Vector_CreatePyObject_alloc(const float *vec, const int size, PyTypeObject *base_type);
+PyObject *Vector_CreatePyObject(
+        const float *vec, const int size,
+        PyTypeObject *base_type
+        ) ATTR_WARN_UNUSED_RESULT;
+PyObject *Vector_CreatePyObject_wrap(
+        float *vec, const int size,
+        PyTypeObject *base_type
+        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+PyObject *Vector_CreatePyObject_cb(
+        PyObject *user, int size,
+        unsigned char cb_type, unsigned char subtype
+        ) ATTR_WARN_UNUSED_RESULT;
+PyObject *Vector_CreatePyObject_alloc(
+        float *vec, const int size,
+        PyTypeObject *base_type
+        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 #endif  /* __MATHUTILS_VECTOR_H__ */

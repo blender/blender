@@ -295,7 +295,7 @@ PyObject *BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 		mul_v3_fl(joints,norm);
 		break;
 	}
-	return Vector_CreatePyObject(joints, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(joints, 3, NULL);
 }
 
 int BL_ArmatureChannel::py_attr_set_joint_rotation(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)

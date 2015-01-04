@@ -637,7 +637,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			case PROP_ALL_VECTOR_SUBTYPES:
 				if (len >= 2 && len <= 4) {
 					if (is_thick) {
-						ret = Vector_CreatePyObject(NULL, len, Py_NEW, NULL);
+						ret = Vector_CreatePyObject(NULL, len, NULL);
 						RNA_property_float_get_array(ptr, prop, ((VectorObject *)ret)->vec);
 					}
 					else {
@@ -650,7 +650,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			case PROP_MATRIX:
 				if (len == 16) {
 					if (is_thick) {
-						ret = Matrix_CreatePyObject(NULL, 4, 4, Py_NEW, NULL);
+						ret = Matrix_CreatePyObject(NULL, 4, 4, NULL);
 						RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->matrix);
 					}
 					else {
@@ -661,7 +661,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 				}
 				else if (len == 9) {
 					if (is_thick) {
-						ret = Matrix_CreatePyObject(NULL, 3, 3, Py_NEW, NULL);
+						ret = Matrix_CreatePyObject(NULL, 3, 3, NULL);
 						RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->matrix);
 					}
 					else {
@@ -679,7 +679,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 						PropertyRNA *prop_eul_order = NULL;
 						short order = pyrna_rotation_euler_order_get(ptr, &prop_eul_order, EULER_ORDER_XYZ);
 
-						ret = Euler_CreatePyObject(NULL, order, Py_NEW, NULL);  /* TODO, get order from RNA */
+						ret = Euler_CreatePyObject(NULL, order, NULL);  /* TODO, get order from RNA */
 						RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 					}
 					else {
@@ -691,7 +691,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 				}
 				else if (len == 4) {
 					if (is_thick) {
-						ret = Quaternion_CreatePyObject(NULL, Py_NEW, NULL);
+						ret = Quaternion_CreatePyObject(NULL, NULL);
 						RNA_property_float_get_array(ptr, prop, ((QuaternionObject *)ret)->quat);
 					}
 					else {
@@ -705,7 +705,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			case PROP_COLOR_GAMMA:
 				if (len == 3) { /* color */
 					if (is_thick) {
-						ret = Color_CreatePyObject(NULL, Py_NEW, NULL);
+						ret = Color_CreatePyObject(NULL, NULL);
 						RNA_property_float_get_array(ptr, prop, ((ColorObject *)ret)->col);
 					}
 					else {
@@ -4851,15 +4851,15 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 				switch (RNA_property_subtype(prop)) {
 #ifdef USE_MATHUTILS
 					case PROP_ALL_VECTOR_SUBTYPES:
-						ret = Vector_CreatePyObject(data, len, Py_NEW, NULL);
+						ret = Vector_CreatePyObject(data, len, NULL);
 						break;
 					case PROP_MATRIX:
 						if (len == 16) {
-							ret = Matrix_CreatePyObject(data, 4, 4, Py_NEW, NULL);
+							ret = Matrix_CreatePyObject(data, 4, 4, NULL);
 							break;
 						}
 						else if (len == 9) {
-							ret = Matrix_CreatePyObject(data, 3, 3, Py_NEW, NULL);
+							ret = Matrix_CreatePyObject(data, 3, 3, NULL);
 							break;
 						}
 						/* fall-through */

@@ -31,6 +31,7 @@ sources = env.Glob('*.cpp') #'NG_NetworkMessage.cpp NG_NetworkObject.cpp NG_Netw
 
 incs = [
     '.',
+    '../../blender/blenlib',
     '#intern/container',
     '#intern/string',
     '#intern/moto/include',

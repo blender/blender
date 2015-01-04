@@ -1014,7 +1014,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 		}
 		case CD_SHAPEKEY:
 		{
-			ret = Vector_CreatePyObject((float *)value, 3, Py_WRAP, NULL);
+			ret = Vector_CreatePyObject_wrap((float *)value, 3, NULL);
 			break;
 		}
 		case CD_BWEIGHT:

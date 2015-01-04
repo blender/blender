@@ -58,7 +58,7 @@ static void kdtree_nearest_to_py_tuple(const KDTreeNearest *nearest, PyObject *p
 	BLI_assert(nearest->index >= 0);
 	BLI_assert(PyTuple_GET_SIZE(py_retval) == 3);
 
-	PyTuple_SET_ITEM(py_retval, 0, Vector_CreatePyObject((float *)nearest->co, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(py_retval, 0, Vector_CreatePyObject((float *)nearest->co, 3, NULL));
 	PyTuple_SET_ITEM(py_retval, 1, PyLong_FromLong(nearest->index));
 	PyTuple_SET_ITEM(py_retval, 2, PyFloat_FromDouble(nearest->dist));
 }
