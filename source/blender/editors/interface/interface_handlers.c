@@ -9217,6 +9217,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
 		
 		ui_popup_block_free(C, menu);
 		UI_popup_handlers_remove(&win->modalhandlers, menu);
+		CTX_wm_menu_set(C, NULL);
 
 #ifdef USE_DRAG_TOGGLE
 		{
