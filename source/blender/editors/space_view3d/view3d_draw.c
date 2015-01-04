@@ -3012,6 +3012,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
                               float viewmat[4][4], float winmat[4][4],
                               bool do_bgpic, bool do_sky)
 {
+	struct bThemeState theme_state;
 	int bwinx, bwiny;
 	rcti brect;
 
@@ -3029,7 +3030,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	ar->winrct.xmax = winx;
 	ar->winrct.ymax = winy;
 
-	/* set theme */
+	UI_Theme_Store(&theme_state);
 	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
 	/* set flags */
@@ -3076,8 +3077,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	glPopMatrix();
 
-	/* XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell */
-	glColor4ub(255, 255, 255, 255);
+	UI_Theme_Restore(&theme_state);
 
 	G.f &= ~G_RENDER_OGL;
 }
@@ -3148,7 +3148,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	
 	if (ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
-	
+
 	return ibuf;
 }
 

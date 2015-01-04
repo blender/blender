@@ -61,9 +61,16 @@
 /* global for themes */
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
-static bTheme *theme_active = NULL;
-static int theme_spacetype = SPACE_VIEW3D;
-static int theme_regionid = RGN_TYPE_WINDOW;
+/* be sure to keep 'bThemeState' in sync */
+static struct bThemeState g_theme_state = {
+    NULL,
+    SPACE_VIEW3D,
+    RGN_TYPE_WINDOW,
+};
+
+#define theme_active g_theme_state.theme
+#define theme_spacetype g_theme_state.spacetype
+#define theme_regionid g_theme_state.regionid
 
 void ui_resources_init(void)
 {
@@ -1213,6 +1220,18 @@ void UI_SetTheme(int spacetype, int regionid)
 bTheme *UI_GetTheme(void)
 {
 	return U.themes.first;
+}
+
+/**
+ * for the rare case we need to temp swap in a different theme (offscreen render)
+ */
+void UI_Theme_Store(struct bThemeState *theme_state)
+{
+	*theme_state = g_theme_state;
+}
+void UI_Theme_Restore(struct bThemeState *theme_state)
+{
+	g_theme_state = *theme_state;
 }
 
 /* for space windows only */

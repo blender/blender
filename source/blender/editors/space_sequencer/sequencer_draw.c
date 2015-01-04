@@ -1529,7 +1529,6 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 
 	if (sseq->draw_flag & SEQ_DRAW_BACKDROP) {
 		draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0, false, true);
-		UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 		UI_view2d_view_ortho(v2d);
 	}
 		

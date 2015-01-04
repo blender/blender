@@ -301,6 +301,11 @@ enum {
 struct bTheme;
 struct PointerRNA;
 
+struct bThemeState {
+	struct bTheme *theme;
+	int spacetype, regionid;
+};
+
 // THE CODERS API FOR THEMES:
 
 // sets the color
@@ -359,6 +364,9 @@ void    UI_SetTheme(int spacetype, int regionid);
 
 // get current theme
 struct bTheme *UI_GetTheme(void);
+
+void UI_Theme_Store(struct bThemeState *theme_state);
+void UI_Theme_Restore(struct bThemeState *theme_state);
 
 // return shadow width outside menus and popups */
 int UI_ThemeMenuShadowWidth(void);
