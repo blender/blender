@@ -724,8 +724,12 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 	glBindTexture(GL_TEXTURE_2D, *bind);
 
 	if (!(GPU_get_mipmap() && mipmap)) {
-		if (use_high_bit_depth)
-			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+		if (use_high_bit_depth) {
+			if (GLEW_ARB_texture_float)
+				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16F,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+			else
+				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+		}
 		else
 			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -733,8 +737,12 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 	}
 	else {
 		if (GTS.gpu_mipmap) {
-			if (use_high_bit_depth)
-				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+			if (use_high_bit_depth) {
+				if (GLEW_ARB_texture_float)
+					glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16F,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+				else
+					glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+			}
 			else
 				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 
