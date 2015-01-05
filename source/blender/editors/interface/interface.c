@@ -2603,10 +2603,6 @@ void ui_but_update(uiBut *but)
 		}
 	}
 
-	/* max must never be smaller than min! Both being equal is allowed though */
-	BLI_assert(but->softmin <= but->softmax &&
-	           but->hardmin <= but->hardmax);
-
 	/* test for min and max, icon sliders, etc */
 	switch (but->type) {
 		case UI_BTYPE_NUM:
@@ -2615,9 +2611,13 @@ void ui_but_update(uiBut *but)
 			UI_GET_BUT_VALUE_INIT(but, value);
 			if      (value < (double)but->hardmin) ui_but_value_set(but, but->hardmin);
 			else if (value > (double)but->hardmax) ui_but_value_set(but, but->hardmax);
+
+			/* max must never be smaller than min! Both being equal is allowed though */
+			BLI_assert(but->softmin <= but->softmax &&
+			           but->hardmin <= but->hardmax);
 			break;
 			
-		case UI_BTYPE_ICON_TOGGLE: 
+		case UI_BTYPE_ICON_TOGGLE:
 		case UI_BTYPE_ICON_TOGGLE_N:
 			if (!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
 				if (but->flag & UI_SELECT) but->iconadd = 1;
