@@ -1536,10 +1536,19 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			tselem = TREESTORE(ten);
 			lib = (Library *)tselem->id;
 			if (lib && lib->parent) {
-				BLI_remlink(&soops->tree, ten);
 				par = (TreeElement *)lib->parent->id.newid;
-				BLI_addtail(&par->subtree, ten);
-				ten->parent = par;
+				if (tselem->id->flag & LIB_INDIRECT) {
+					/* Only remove from 'first level' if lib is not also directly used. */
+					BLI_remlink(&soops->tree, ten);
+					BLI_addtail(&par->subtree, ten);
+					ten->parent = par;
+				}
+				else {
+					/* Else, make a new copy of the libtree for our parent. */
+					TreeElement *dupten = outliner_add_element(soops, &par->subtree, lib, NULL, 0, 0);
+					outliner_add_library_contents(mainvar, soops, dupten, lib);
+					dupten->parent = par;
+				}
 			}
 			ten = nten;
 		}
