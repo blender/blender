@@ -2647,7 +2647,18 @@ void ui_but_update(uiBut *but)
 						if (RNA_property_enum_name_gettexted(but->block->evil_C,
 						                                     &but->rnapoin, but->rnaprop, value, &buf))
 						{
-							BLI_strncpy(but->str, buf, sizeof(but->strdata));
+							if (but->str == but->strdata) {
+								if (strlen(buf) < sizeof(but->strdata)) {
+									BLI_strncpy(but->str, buf, sizeof(but->strdata));
+								}
+								else {
+									but->str = BLI_strdup(buf);
+								}
+							}
+							else {
+								MEM_SAFE_FREE(but->str);
+								but->str = BLI_strdup(buf);
+							}
 						}
 					}
 				}
