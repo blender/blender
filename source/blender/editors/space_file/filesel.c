@@ -603,8 +603,11 @@ void file_change_dir(bContext *C, int checkdir)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile->params) {
-
 		ED_fileselect_clear(wm, sfile);
+
+		/* Clear search string, it is very rare to want to keep that filter while changing dir,
+		 * and usually very annoying to keep it actually! */
+		sfile->params->filter_search[0] = '\0';
 
 		if (checkdir && !BLI_is_dir(sfile->params->dir)) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
