@@ -2603,6 +2603,10 @@ void ui_but_update(uiBut *but)
 		}
 	}
 
+	/* max must never be smaller than min! Both being equal is allowed though */
+	BLI_assert(but->softmin <= but->softmax &&
+	           but->hardmin <= but->hardmax);
+
 	/* test for min and max, icon sliders, etc */
 	switch (but->type) {
 		case UI_BTYPE_NUM:

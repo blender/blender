@@ -2199,6 +2199,10 @@ static void rna_NodeSocketStandard_float_range(PointerRNA *ptr, float *min, floa
 	bNodeSocketValueFloat *dval = sock->default_value;
 	int subtype = sock->typeinfo->subtype;
 	
+	if (dval->max < dval->min) {
+		dval->max = dval->min;
+	}
+	
 	*min = (subtype == PROP_UNSIGNED ? 0.0f : -FLT_MAX);
 	*max = FLT_MAX;
 	*softmin = dval->min;
@@ -2211,6 +2215,10 @@ static void rna_NodeSocketStandard_int_range(PointerRNA *ptr, int *min, int *max
 	bNodeSocketValueInt *dval = sock->default_value;
 	int subtype = sock->typeinfo->subtype;
 	
+	if (dval->max < dval->min) {
+		dval->max = dval->min;
+	}
+	
 	*min = (subtype == PROP_UNSIGNED ? 0 : INT_MIN);
 	*max = INT_MAX;
 	*softmin = dval->min;
@@ -2221,6 +2229,10 @@ static void rna_NodeSocketStandard_vector_range(PointerRNA *ptr, float *min, flo
 {
 	bNodeSocket *sock = ptr->data;
 	bNodeSocketValueVector *dval = sock->default_value;
+	
+	if (dval->max < dval->min) {
+		dval->max = dval->min;
+	}
 	
 	*min = -FLT_MAX;
 	*max = FLT_MAX;

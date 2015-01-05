@@ -2874,7 +2874,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	uiWidgetBase wtb, wtb1;
 	rcti rect1;
 	double value;
-	float offs, toffs, fac;
+	float offs, toffs, fac = 0;
 	char outline[3];
 
 	widget_init(&wtb);
@@ -2905,7 +2905,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		rect1 = *rect;
 		
 		value = ui_but_value_get(but);
-		fac = ((float)value - but->softmin) * (BLI_rcti_size_x(&rect1) - offs) / (but->softmax - but->softmin);
+		if ((but->softmax - but->softmin) > 0) {
+			fac = ((float)value - but->softmin) * (BLI_rcti_size_x(&rect1) - offs) / (but->softmax - but->softmin);
+		}
 		
 		/* left part of slider, always rounded */
 		rect1.xmax = rect1.xmin + ceil(offs + U.pixelsize);
