@@ -44,7 +44,7 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *md, Object *ob,
+static void deformVerts(ModifierData *UNUSED(md), Object *ob,
                         DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
                         int numVerts,
@@ -54,8 +54,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	if (key && key->block.first) {
 		int deformedVerts_tot;
-		BKE_key_evaluate_object_ex(md->scene, ob, &deformedVerts_tot,
-		                           (float *)vertexCos, sizeof(*vertexCos) * numVerts);
+		BKE_key_evaluate_object_ex(
+		            ob, &deformedVerts_tot,
+		            (float *)vertexCos, sizeof(*vertexCos) * numVerts);
 
 	}
 }

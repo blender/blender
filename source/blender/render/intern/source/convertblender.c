@@ -5134,8 +5134,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
 	re->lampren.first= re->lampren.last= NULL;
-	
-	slurph_opt= 0;
+
 	re->i.partsdone = false;	/* signal now in use for previewrender */
 	
 	/* in localview, lamps are using normal layers, objects only local bits */
@@ -5197,8 +5196,6 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		re->i.totlamp= re->totlamp;
 		re->stats_draw(re->sdh, &re->i);
 	}
-
-	slurph_opt= 1;
 }
 
 void RE_Database_Preprocess(Render *re)
@@ -5316,8 +5313,6 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.totface=re->i.totvert=re->i.totstrand=re->i.totlamp=re->i.tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
-
-	slurph_opt= 0;
 	
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if (re->lay & 0xFF000000)

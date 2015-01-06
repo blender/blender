@@ -220,7 +220,6 @@ class SpellChecker():
         "polycount",
         "polygonization", "polygonalization",  # yuck!
         "selectability",
-        "slurph",
         "stitchable",
         "symmetrize",
         "trackability",

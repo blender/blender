@@ -75,10 +75,10 @@
 
 /*********************** add shape key ***********************/
 
-static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, const bool from_mix)
+static void ED_object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
 {
 	KeyBlock *kb;
-	if ((kb = BKE_object_insert_shape_key(scene, ob, NULL, from_mix))) {
+	if ((kb = BKE_object_insert_shape_key(ob, NULL, from_mix))) {
 		Key *key = BKE_key_from_object(ob);
 		/* for absolute shape keys, new keys may not be added last */
 		ob->shapenr = BLI_findindex(&key->block, kb) + 1;
@@ -320,11 +320,10 @@ static int shape_key_poll(bContext *C)
 
 static int shape_key_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_context(C);
 	const bool from_mix = RNA_boolean_get(op->ptr, "from_mix");
 
-	ED_object_shape_key_add(C, scene, ob, from_mix);
+	ED_object_shape_key_add(C, ob, from_mix);
 
 	return OPERATOR_FINISHED;
 }

@@ -675,13 +675,6 @@ static void rna_def_key(BlenderRNA *brna)
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Evaluation Time", "Evaluation time for absolute shape keys");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
-
-	prop = RNA_def_property(srna, "slurph", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_sdna(prop, NULL, "slurph");
-	RNA_def_property_range(prop, -500, 500);
-	RNA_def_property_ui_text(prop, "Slurph",
-	                         "Create a delay (in frames) in applying key positions, first vertex goes first");
-	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 }
 
 void RNA_def_key(BlenderRNA *brna)

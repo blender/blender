@@ -91,10 +91,10 @@ typedef struct Key {
 
 	ID *from;
 
-	short type;    /* absolute or relative shape key */
-	short totkey;  /* (totkey == BLI_listbase_count(&key->block)) */
-	short slurph;  /* quaint feature to delay moving points based on their order (Key->type == KEY_NORMAL) only */
+	int totkey;  /* (totkey == BLI_listbase_count(&key->block)) */
 	short flag;
+	char type;  /* absolute or relative shape key */
+	char pad2;
 
 	/* only used when (Key->type == KEY_NORMAL), this value is used as a time slider,
 	 * rather then using the scenes time, this value can be animated to give greater control */

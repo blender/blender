@@ -73,10 +73,6 @@
 #define IPO_BEZTRIPLE   100
 #define IPO_BPOINT      101
 
-/* extern, not threadsafe */
-int slurph_opt = 1;
-
-
 void BKE_key_free(Key *key)
 {
 	KeyBlock *kb;
@@ -607,7 +603,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 	k1 = key_block_get_data(key, actkb, kb, &freek1);
 	kref = key_block_get_data(key, actkb, key->refkey, &freekref);
 
-	/* this exception is needed for slurphing */
+	/* this exception is needed curves with multiple splines */
 	if (start != 0) {
 		
 		poin += poinsize * start;
@@ -891,7 +887,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 		}
 	}
 
-	/* this exception needed for slurphing */
+	/* this exception is needed for curves with multiple splines */
 	if (start != 0) {
 
 		poin += poinsize * start;
@@ -1168,53 +1164,29 @@ void BKE_keyblock_free_per_block_weights(Key *key, float **per_keyblock_weights,
 	MEM_freeN(per_keyblock_weights);
 }
 
-static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
+static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
 {
 	KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
 	float t[4];
 	int flag = 0;
 
-	if (key->slurph && key->type != KEY_RELATIVE) {
-		const float ctime_scaled = key->ctime / 100.0f;
-		float delta = (float)key->slurph / tot;
-		float cfra = BKE_scene_frame_get(scene);
-		int step, a;
-
-		if (tot > 100 && slurph_opt) {
-			step = tot / 50;
-			delta *= step;
-			/* in do_key and cp_key the case a>tot is handled */
-		}
-		else {
-			step = 1;
-		}
-
-		for (a = 0; a < tot; a += step, cfra += delta) {
-			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-			if (flag == 0)
-				do_key(a, a + step, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
-			else
-				cp_key(a, a + step, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
-		}
+	if (key->type == KEY_RELATIVE) {
+		WeightsArrayCache cache = {0, NULL};
+		float **per_keyblock_weights;
+		per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, &cache);
+		BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+		BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
 	}
 	else {
-		if (key->type == KEY_RELATIVE) {
-			WeightsArrayCache cache = {0, NULL};
-			float **per_keyblock_weights;
-			per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, &cache);
-			BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
-			BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
+		const float ctime_scaled = key->ctime / 100.0f;
+
+		flag = setkeys(ctime_scaled, &key->block, k, t, 0);
+
+		if (flag == 0) {
+			do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
 		}
 		else {
-			const float ctime_scaled = key->ctime / 100.0f;
-
-			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-			if (flag == 0)
-				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
-			else
-				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
+			cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
 		}
 	}
 }
@@ -1259,135 +1231,63 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
 	}
 }
 
-static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
+static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
 {
 	Curve *cu = ob->data;
 	KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
 	float t[4];
 	int flag = 0;
 
-	if (key->slurph && key->type != KEY_RELATIVE) {
-		const float ctime_scaled = key->ctime / 100.0f;
-		float delta = (float)key->slurph / tot;
-		float cfra = BKE_scene_frame_get(scene);
-		Nurb *nu;
-		int i = 0, remain = 0;
-		int step, a;
-
-		if (tot > 100 && slurph_opt) {
-			step = tot / 50;
-			delta *= step;
-			/* in do_key and cp_key the case a>tot has been handled */
-		}
-		else {
-			step = 1;
-		}
-
-		for (nu = cu->nurb.first; nu; nu = nu->next) {
-			int estep, mode;
-
-			if (nu->bp) {
-				mode = KEY_MODE_BPOINT;
-				estep = nu->pntsu * nu->pntsv;
-			}
-			else if (nu->bezt) {
-				mode = KEY_MODE_BEZTRIPLE;
-				estep = 3 * nu->pntsu;
-			}
-			else {
-				mode = 0;
-				estep = 0;
-			}
-
-			a = 0;
-			while (a < estep) {
-				int count;
-
-				if (remain <= 0) {
-					cfra += delta;
-					flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-					remain = step;
-				}
-
-				count = min_ii(remain, estep);
-				if (mode == KEY_MODE_BEZTRIPLE) {
-					count += 3 - count % 3;
-				}
-
-				if (flag == 0)
-					do_key(i, i + count, tot, (char *)out, key, actkb, k, t, mode);
-				else
-					cp_key(i, i + count, tot, (char *)out, key, actkb, k[2], NULL, mode);
-
-				a += count;
-				i += count;
-				remain -= count;
-			}
-		}
+	if (key->type == KEY_RELATIVE) {
+		do_rel_cu_key(cu, cu->key, actkb, out, tot);
 	}
 	else {
-		if (key->type == KEY_RELATIVE) {
-			do_rel_cu_key(cu, cu->key, actkb, out, tot);
+		const float ctime_scaled = key->ctime / 100.0f;
+
+		flag = setkeys(ctime_scaled, &key->block, k, t, 0);
+
+		if (flag == 0) {
+			do_cu_key(cu, key, actkb, k, t, out, tot);
 		}
 		else {
-			const float ctime_scaled = key->ctime / 100.0f;
-
-			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-			if (flag == 0) do_cu_key(cu, key, actkb, k, t, out, tot);
-			else cp_cu_key(cu, key, actkb, k[2], 0, tot, out, tot);
+			cp_cu_key(cu, key, actkb, k[2], 0, tot, out, tot);
 		}
 	}
 }
 
-static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
+static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 {
 	Lattice *lt = ob->data;
 	KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
 	float t[4];
 	int flag;
 	
-	if (key->slurph && key->type != KEY_RELATIVE) {
-		const float ctime_scaled = key->ctime / 100.0f;
-		float delta = (float)key->slurph / tot;
-		float cfra = BKE_scene_frame_get(scene);
-		int a;
-
-		for (a = 0; a < tot; a++, cfra += delta) {
-			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-			if (flag == 0)
-				do_key(a, a + 1, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
-			else
-				cp_key(a, a + 1, tot, out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
-		}
+	if (key->type == KEY_RELATIVE) {
+		float **per_keyblock_weights;
+		per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, NULL);
+		BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+		BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, NULL);
 	}
 	else {
-		if (key->type == KEY_RELATIVE) {
-			float **per_keyblock_weights;
-			per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, NULL);
-			BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
-			BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, NULL);
+		const float ctime_scaled = key->ctime / 100.0f;
+		
+		flag = setkeys(ctime_scaled, &key->block, k, t, 0);
+
+		if (flag == 0) {
+			do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
 		}
 		else {
-			const float ctime_scaled = key->ctime / 100.0f;
-			
-			flag = setkeys(ctime_scaled, &key->block, k, t, 0);
-
-			if (flag == 0)
-				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
-			else
-				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
+			cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
 		}
 	}
-	
+
 	if (lt->flag & LT_OUTSIDE) outside_lattice(lt);
 }
 
 /* returns key coordinates (+ tilt) when key applied, NULL otherwise */
-float *BKE_key_evaluate_object_ex(Scene *scene, Object *ob, int *r_totelem,
-                                  float *arr, size_t arr_size)
+float *BKE_key_evaluate_object_ex(
+        Object *ob, int *r_totelem,
+        float *arr, size_t arr_size)
 {
 	Key *key = BKE_key_from_object(ob);
 	KeyBlock *actkb = BKE_keyblock_from_object(ob);
@@ -1469,10 +1369,10 @@ float *BKE_key_evaluate_object_ex(Scene *scene, Object *ob, int *r_totelem,
 	}
 	else {
 		
-		if (ob->type == OB_MESH) do_mesh_key(scene, ob, key, out, tot);
-		else if (ob->type == OB_LATTICE) do_latt_key(scene, ob, key, out, tot);
-		else if (ob->type == OB_CURVE) do_curve_key(scene, ob, key, out, tot);
-		else if (ob->type == OB_SURF) do_curve_key(scene, ob, key, out, tot);
+		if (ob->type == OB_MESH) do_mesh_key(ob, key, out, tot);
+		else if (ob->type == OB_LATTICE) do_latt_key(ob, key, out, tot);
+		else if (ob->type == OB_CURVE) do_curve_key(ob, key, out, tot);
+		else if (ob->type == OB_SURF) do_curve_key(ob, key, out, tot);
 	}
 	
 	if (r_totelem) {
@@ -1481,9 +1381,9 @@ float *BKE_key_evaluate_object_ex(Scene *scene, Object *ob, int *r_totelem,
 	return (float *)out;
 }
 
-float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
+float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
 {
-	return BKE_key_evaluate_object_ex(scene, ob, r_totelem, NULL, 0);
+	return BKE_key_evaluate_object_ex(ob, r_totelem, NULL, 0);
 }
 
 Key *BKE_key_from_object(Object *ob)
