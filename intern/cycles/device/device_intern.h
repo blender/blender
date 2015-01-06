@@ -35,6 +35,10 @@ void device_cuda_info(vector<DeviceInfo>& devices);
 void device_network_info(vector<DeviceInfo>& devices);
 void device_multi_info(vector<DeviceInfo>& devices);
 
+string device_cpu_capabilities(void);
+string device_opencl_capabilities(void);
+string device_cuda_capabilities(void);
+
 CCL_NAMESPACE_END
 
 #endif /* __DEVICE_INTERN_H__ */

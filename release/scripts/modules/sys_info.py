@@ -187,6 +187,12 @@ def write_sysinfo(op):
             bgl.glGetIntegerv(bgl.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, limit)
             output.write("Maximum Pipeline Image Units:\t%d\n" % limit[0])
 
+    if bpy.app.build_options.cycles:
+        import cycles
+        output.write("\nCycles\n")
+        output.write(lilies)
+        output.write(cycles.engine.system_info())
+
     output.current_line_index = 0
 
     op.report({'INFO'}, "System information generated in 'system-info.txt'")

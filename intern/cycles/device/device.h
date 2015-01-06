@@ -148,6 +148,7 @@ public:
 	static string string_from_type(DeviceType type);
 	static vector<DeviceType>& available_types();
 	static vector<DeviceInfo>& available_devices();
+	static string device_capabilities();
 };
 
 CCL_NAMESPACE_END

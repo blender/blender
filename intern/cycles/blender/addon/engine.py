@@ -100,3 +100,7 @@ def with_osl():
 def with_network():
     import _cycles
     return _cycles.with_network
+
+def system_info():
+    import _cycles
+    return _cycles.system_info()

@@ -473,6 +473,12 @@ static PyObject *osl_compile_func(PyObject *self, PyObject *args)
 }
 #endif
 
+static PyObject *system_info_func(PyObject *self, PyObject *value)
+{
+	string system_info = Device::device_capabilities();
+	return PyUnicode_FromString(system_info.c_str());
+}
+
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
 	{"create", create_func, METH_VARARGS, ""},
@@ -487,6 +493,7 @@ static PyMethodDef methods[] = {
 	{"osl_compile", osl_compile_func, METH_VARARGS, ""},
 #endif
 	{"available_devices", available_devices_func, METH_NOARGS, ""},
+	{"system_info", system_info_func, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL},
 };
 

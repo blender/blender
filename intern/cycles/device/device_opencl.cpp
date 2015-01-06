@@ -1195,7 +1195,12 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	}
 }
 
+string device_opencl_capabilities(void)
+{
+	/* TODO(sergey): Not implemented yet. */
+	return "";
+}
+
 CCL_NAMESPACE_END
 
 #endif /* WITH_OPENCL */
-

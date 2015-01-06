@@ -419,5 +419,17 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	devices.insert(devices.begin(), info);
 }
 
-CCL_NAMESPACE_END
+string device_cpu_capabilities(void)
+{
+	string capabilities = "";
+	capabilities += system_cpu_support_sse2() ? "SSE2 " : "";
+	capabilities += system_cpu_support_sse3() ? "SSE3 " : "";
+	capabilities += system_cpu_support_sse41() ? "SSE41 " : "";
+	capabilities += system_cpu_support_avx() ? "AVX " : "";
+	capabilities += system_cpu_support_avx2() ? "AVX2" : "";
+	if(capabilities[capabilities.size() - 1] == ' ')
+		capabilities.resize(capabilities.size() - 1);
+	return capabilities;
+}
 
+CCL_NAMESPACE_END
