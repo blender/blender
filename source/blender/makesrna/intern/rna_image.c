@@ -675,7 +675,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
-	prop = RNA_def_property(srna, "generated_color", PROP_FLOAT, PROP_COLOR);
+	prop = RNA_def_property(srna, "generated_color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "gen_color");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Color", "Fill color for the generated image");
