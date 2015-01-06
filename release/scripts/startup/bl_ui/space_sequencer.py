@@ -446,7 +446,8 @@ class SequencerButtonsPanel_Output():
 
     @staticmethod
     def has_preview(context):
-        return (context.space_data.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'})
+        st = context.space_data
+        return (st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}) or st.show_backdrop
 
     @classmethod
     def poll(cls, context):
