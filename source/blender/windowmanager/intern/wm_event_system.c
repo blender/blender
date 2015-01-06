@@ -3196,6 +3196,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventKeyUp:
 		{
 			GHOST_TEventKeyData *kd = customdata;
+			short keymodifier = KM_NOTHING;
 			event.type = convert_key(kd->key);
 			event.ascii = kd->ascii;
 			memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf)); /* might be not null terminated*/
@@ -3238,25 +3239,36 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 			/* assigning both first and second is strange - campbell */
 			switch (event.type) {
-				case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
-					event.shift = evt->shift = (event.val == KM_PRESS) ?
-					            ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					            false;
+				case LEFTSHIFTKEY:
+				case RIGHTSHIFTKEY:
+					if (event.val == KM_PRESS) {
+						if (evt->ctrl || evt->alt || evt->oskey) keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
+						else keymodifier = KM_MOD_FIRST;
+					}
+					event.shift = evt->shift = keymodifier;
 					break;
-				case LEFTCTRLKEY: case RIGHTCTRLKEY:
-					event.ctrl = evt->ctrl = (event.val == KM_PRESS) ?
-					            ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					            false;
+				case LEFTCTRLKEY:
+				case RIGHTCTRLKEY:
+					if (event.val == KM_PRESS) {
+						if (evt->shift || evt->alt || evt->oskey) keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
+						else keymodifier = KM_MOD_FIRST;
+					}
+					event.ctrl = evt->ctrl = keymodifier;
 					break;
-				case LEFTALTKEY: case RIGHTALTKEY:
-					event.alt = evt->alt = (event.val == KM_PRESS) ?
-					            ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					            false;
+				case LEFTALTKEY:
+				case RIGHTALTKEY:
+					if (event.val == KM_PRESS) {
+						if (evt->ctrl || evt->shift || evt->oskey) keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
+						else keymodifier = KM_MOD_FIRST;
+					}
+					event.alt = evt->alt = keymodifier;
 					break;
 				case OSKEY:
-					event.oskey = evt->oskey = (event.val == KM_PRESS) ?
-					            ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					            false;
+					if (event.val == KM_PRESS) {
+						if (evt->ctrl || evt->alt || evt->shift) keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
+						else keymodifier = KM_MOD_FIRST;
+					}
+					event.oskey = evt->oskey = keymodifier;
 					break;
 				default:
 					if (event.val == KM_PRESS && event.keymodifier == 0)
