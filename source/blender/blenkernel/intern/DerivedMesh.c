@@ -2509,7 +2509,9 @@ DerivedMesh *object_get_derived_final(Object *ob, const bool for_render)
 		return ob->derivedFinal;
 	}
 
-	if (em) {
+	/* only return the editmesh if its from this object because
+	 * we don't a mesh from another object's modifier stack: T43122 */
+	if (em && (em->ob == ob)) {
 		DerivedMesh *dm = em->derivedFinal;
 		return dm;
 	}
