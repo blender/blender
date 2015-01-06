@@ -55,16 +55,16 @@ static EnumPropertyItem actuator_type_items[] = {
 	{ACT_2DFILTER, "FILTER_2D", 0, "Filter 2D", ""},
 	{ACT_GAME, "GAME", 0, "Game", ""},
 	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
-    {ACT_MOUSE, "MOUSE", 0, "Mouse", ""},
 	{ACT_OBJECT, "MOTION", 0, "Motion", ""},
+	{ACT_MOUSE, "MOUSE", 0, "Mouse", ""},
 	{ACT_PARENT, "PARENT", 0, "Parent", ""},
 	{ACT_PROPERTY, "PROPERTY", 0, "Property", ""},
 	{ACT_RANDOM, "RANDOM", 0, "Random", ""},
 	{ACT_SCENE, "SCENE", 0, "Scene", ""},
 	{ACT_SOUND, "SOUND", 0, "Sound", ""},
 	{ACT_STATE, "STATE", 0, "State", ""},
-	{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
 	{ACT_STEERING, "STEERING", 0, "Steering", ""},
+	{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
