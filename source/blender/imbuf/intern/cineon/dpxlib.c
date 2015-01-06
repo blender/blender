@@ -67,7 +67,7 @@ static void fillDpxMainHeader(LogImageFile *dpx, DpxMainHeader *header, const ch
 	/* --- File header --- */
 	header->fileHeader.magic_num = swap_uint(DPX_FILE_MAGIC, dpx->isMSB);
 	header->fileHeader.offset = swap_uint(dpx->element[0].dataOffset, dpx->isMSB);
-	strcpy(header->fileHeader.version, "v2.0");
+	strcpy(header->fileHeader.version, "V2.0");
 	header->fileHeader.file_size = swap_uint(dpx->element[0].dataOffset + dpx->height * getRowLength(dpx->width, dpx->element[0]), dpx->isMSB);
 	header->fileHeader.ditto_key = 0;
 	header->fileHeader.gen_hdr_size = swap_uint(sizeof(DpxFileHeader) + sizeof(DpxImageHeader) + sizeof(DpxOrientationHeader), dpx->isMSB);
