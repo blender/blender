@@ -44,6 +44,7 @@
 #include "../mathutils/mathutils.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 
 #include "bmesh_py_types.h" /* own include */
 #include "bmesh_py_types_select.h"
@@ -2796,7 +2797,6 @@ static PyObject *bpy_bmelemseq_subscript_slice(BPy_BMElemSeq *self, Py_ssize_t s
 	bool ok;
 
 	PyObject *list;
-	PyObject *item;
 	BMHeader *ele;
 
 	BPY_BM_CHECK_OBJ(self);
@@ -2821,9 +2821,7 @@ static PyObject *bpy_bmelemseq_subscript_slice(BPy_BMElemSeq *self, Py_ssize_t s
 
 	/* add items until stop */
 	while ((ele = BM_iter_step(&iter))) {
-		item = BPy_BMElem_CreatePyObject(self->bm, ele);
-		PyList_Append(list, item);
-		Py_DECREF(item);
+		PyList_APPEND(list, BPy_BMElem_CreatePyObject(self->bm, ele));
 
 		count++;
 		if (count == stop) {

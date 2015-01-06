@@ -1061,10 +1061,7 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
 
 									if (l == len) { /* ok */
 										/* python */
-										PyObject *item = Vector_CreatePyObject(potentialVertex, 3, NULL);
-										PyList_Append(py_verts, item);
-										Py_DECREF(item);
-
+										PyList_APPEND(py_verts, Vector_CreatePyObject(potentialVertex, 3, NULL));
 										planes_used[i] = planes_used[j] = planes_used[k] = true;
 									}
 								}
@@ -1080,9 +1077,7 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
 		/* now make a list of used planes */
 		for (i = 0; i < len; i++) {
 			if (planes_used[i]) {
-				PyObject *item = PyLong_FromLong(i);
-				PyList_Append(py_plane_index, item);
-				Py_DECREF(item);
+				PyList_APPEND(py_plane_index, PyLong_FromLong(i));
 			}
 		}
 		PyMem_Free(planes_used);

@@ -44,6 +44,14 @@ extern "C" {
  * use sparingly to avoid comma operator or temp var assignment */
 BLI_INLINE PyObject *Py_INCREF_RET(PyObject *op) { Py_INCREF(op); return op; }
 
+/* append & transfer ownership to the list, avoids inline Py_DECREF all over (which is quite a large macro) */
+BLI_INLINE int PyList_APPEND(PyObject *op, PyObject *v)
+{
+	int ret = PyList_Append(op, v);
+	Py_DecRef(v);
+	return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif

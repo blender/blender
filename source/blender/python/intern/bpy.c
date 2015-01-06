@@ -51,6 +51,7 @@
 #include "bpy_utils_units.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 
 /* external util modules */
 #include "../generic/idprop_py_api.h"
@@ -89,10 +90,7 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 
 static bool bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
-	PyObject *list = (PyObject *)userdata;
-	PyObject *item = PyC_UnicodeFromByte(path_src);
-	PyList_Append(list, item);
-	Py_DECREF(item);
+	PyList_APPEND((PyObject *)userdata, PyC_UnicodeFromByte(path_src));
 	return false; /* never edits the path */
 }
 
