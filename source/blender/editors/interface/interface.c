@@ -2164,6 +2164,32 @@ bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double
 	return ok;
 }
 
+/* just the assignment/free part */
+static void ui_but_string_set_internal(uiBut *but, const char *str, size_t str_len)
+{
+	BLI_assert(str_len == strlen(str));
+	BLI_assert(but->str == NULL);
+	str_len += 1;
+
+	if (str_len > UI_MAX_NAME_STR) {
+		but->str = MEM_mallocN(str_len, "ui_def_but str");
+	}
+	else {
+		but->str = but->strdata;
+	}
+	memcpy(but->str, str, str_len);
+}
+
+static void ui_but_string_free_internal(uiBut *but)
+{
+	if (but->str) {
+		if (but->str != but->strdata) {
+			MEM_freeN(but->str);
+		}
+		/* must call 'ui_but_string_set_internal' after */
+		but->str = NULL;
+	}
+}
 
 bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 {
@@ -2647,18 +2673,9 @@ void ui_but_update(uiBut *but)
 						if (RNA_property_enum_name_gettexted(but->block->evil_C,
 						                                     &but->rnapoin, but->rnaprop, value, &buf))
 						{
-							if (but->str == but->strdata) {
-								if (strlen(buf) < sizeof(but->strdata)) {
-									BLI_strncpy(but->str, buf, sizeof(but->strdata));
-								}
-								else {
-									but->str = BLI_strdup(buf);
-								}
-							}
-							else {
-								MEM_SAFE_FREE(but->str);
-								but->str = BLI_strdup(buf);
-							}
+							size_t slen = strlen(buf);
+							ui_but_string_free_internal(but);
+							ui_but_string_set_internal(but, buf, slen);
 						}
 					}
 				}
@@ -3066,13 +3083,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	but->retval = retval;
 
 	slen = strlen(str);
-	if (slen >= UI_MAX_NAME_STR) {
-		but->str = MEM_mallocN(slen + 1, "ui_def_but str");
-	}
-	else {
-		but->str = but->strdata;
-	}
-	memcpy(but->str, str, slen + 1);
+	ui_but_string_set_internal(but, str, slen);
 
 	but->rect.xmin = x;
 	but->rect.ymin = y;
