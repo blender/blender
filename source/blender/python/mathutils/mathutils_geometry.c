@@ -536,7 +536,7 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
 
 	if (!PyArg_ParseTuple(
 	        args, "OOOO:intersect_plane_plane",
-	        &plane_a_co, &plane_a_no, &plane_b_co, &plane_b_no))
+	        &py_plane_a_co, &py_plane_a_no, &py_plane_b_co, &py_plane_b_no))
 	{
 		return NULL;
 	}
