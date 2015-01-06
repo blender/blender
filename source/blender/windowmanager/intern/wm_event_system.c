@@ -3049,6 +3049,13 @@ static void wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int UNUSED(time), void *customdata)
 {
 	wmWindow *owin;
+
+	/* Having both, event and evt, can be highly confusing to work with, but is necessary for
+	 * our current event system, so let's clear things up a bit:
+	 * - data added to event only will be handled immediately, but will not be copied to the next event
+	 * - data added to evt only stays, but is handled with the next event -> execution delay
+	 * - data added to event and evt stays and is handled immediately
+	 */
 	wmEvent event, *evt = win->eventstate;
 
 	/* initialize and copy state (only mouse x y and modifiers) */
@@ -3229,26 +3236,25 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				}
 			}
 
-			/* modifiers assign to eventstate, so next event gets the modifer (makes modifier key events work) */
 			/* assigning both first and second is strange - campbell */
 			switch (event.type) {
 				case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
-					evt->shift = (event.val == KM_PRESS) ?
+					event.shift = evt->shift = (event.val == KM_PRESS) ?
 					            ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
 					            false;
 					break;
 				case LEFTCTRLKEY: case RIGHTCTRLKEY:
-					evt->ctrl = (event.val == KM_PRESS) ?
+					event.ctrl = evt->ctrl = (event.val == KM_PRESS) ?
 					            ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
 					            false;
 					break;
 				case LEFTALTKEY: case RIGHTALTKEY:
-					evt->alt = (event.val == KM_PRESS) ?
+					event.alt = evt->alt = (event.val == KM_PRESS) ?
 					            ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
 					            false;
 					break;
 				case OSKEY:
-					evt->oskey = (event.val == KM_PRESS) ?
+					event.oskey = evt->oskey = (event.val == KM_PRESS) ?
 					            ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
 					            false;
 					break;
