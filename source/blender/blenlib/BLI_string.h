@@ -48,7 +48,7 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2) AT
 
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy) ATTR_NONNULL();
 
-char *BLI_strncpy_ensure_pad(char *dst, const char *src, const char pad, size_t maxncpy) ATTR_NONNULL();
+char *BLI_strncpy_ensure_pad(char *__restrict dst, const char *__restrict src, const char pad, size_t maxncpy) ATTR_NONNULL();
 
 size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

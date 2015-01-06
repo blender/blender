@@ -94,7 +94,7 @@ unsigned int BLI_filelist_dir_contents(const char *dir, struct direntry **fileli
 void BLI_filelist_duplicate(
         struct direntry **dest_filelist, struct direntry *src_filelist, unsigned int nrentries,
         void *(*dup_poin)(void *));
-void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (free_poin)(void *));
+void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (*free_poin)(void *));
 
 /* Files */
 

@@ -73,7 +73,7 @@ typedef enum TaskPriority {
 } TaskPriority;
 
 typedef struct TaskPool TaskPool;
-typedef void (*TaskRunFunction)(TaskPool *pool, void *taskdata, int threadid);
+typedef void (*TaskRunFunction)(TaskPool *__restrict pool, void *taskdata, int threadid);
 
 TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata);
 void BLI_task_pool_free(TaskPool *pool);

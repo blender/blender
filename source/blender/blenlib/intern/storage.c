@@ -449,7 +449,7 @@ void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (
 {
 	unsigned int i;
 	for (i = 0; i < nrentries; ++i) {
-		struct direntry * const entry = filelist + i;
+		struct direntry *entry = filelist + i;
 		if (entry->image) {
 			IMB_freeImBuf(entry->image);
 		}

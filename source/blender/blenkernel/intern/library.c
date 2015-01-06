@@ -139,7 +139,7 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 	BKE_bpath_traverse_id(bmain, id,
 	                      BKE_bpath_relocate_visitor,
 	                      BKE_BPATH_TRAVERSE_SKIP_MULTIFILE,
-	                      bpath_user_data);
+	                      (void *)bpath_user_data);
 }
 
 void id_lib_extern(ID *id)

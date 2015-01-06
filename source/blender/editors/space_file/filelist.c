@@ -648,7 +648,7 @@ void filelist_imgsize(struct FileList *filelist, short w, short h)
 	filelist->prv_h = h;
 }
 
-ImBuf *filelist_getimage(struct FileList *filelist, int index)
+ImBuf *filelist_getimage(struct FileList *filelist, const int index)
 {
 	ImBuf *ibuf = NULL;
 	int fidx = 0;
@@ -664,7 +664,7 @@ ImBuf *filelist_getimage(struct FileList *filelist, int index)
 	return ibuf;
 }
 
-ImBuf *filelist_geticon(struct FileList *filelist, int index)
+ImBuf *filelist_geticon(struct FileList *filelist, const int index)
 {
 	ImBuf *ibuf = NULL;
 	struct direntry *file = NULL;

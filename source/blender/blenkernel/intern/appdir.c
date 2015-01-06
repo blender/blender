@@ -442,7 +442,7 @@ const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *su
 /**
  * Returns the path to a folder in the user area, creating it if it doesn't exist.
  */
-const char *BKE_appdir_folder_id_create(int folder_id, const char *subfolder)
+const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfolder)
 {
 	const char *path;
 
