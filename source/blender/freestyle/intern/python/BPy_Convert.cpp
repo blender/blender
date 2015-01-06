@@ -401,8 +401,9 @@ PyObject *BPy_CurvePoint_from_CurvePoint(CurvePoint& cp)
 PyObject *BPy_directedViewEdge_from_directedViewEdge(ViewVertex::directedViewEdge& dve)
 {
 	PyObject *py_dve = PyTuple_New(2);
-	PyTuple_SET_ITEM(py_dve, 0, BPy_ViewEdge_from_ViewEdge(*(dve.first)));
-	PyTuple_SET_ITEM(py_dve, 1, PyBool_from_bool(dve.second));
+	PyTuple_SET_ITEMS(py_dve,
+	        BPy_ViewEdge_from_ViewEdge(*(dve.first)),
+	        PyBool_from_bool(dve.second));
 	return py_dve;
 }
 

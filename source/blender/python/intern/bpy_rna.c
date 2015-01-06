@@ -76,6 +76,7 @@
 
 #include "../generic/idprop_py_api.h" /* for IDprop lookups */
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 
 #define USE_PEDANTIC_WRITE
 #define USE_MATHUTILS
@@ -805,7 +806,7 @@ static PyObject *pyrna_struct_richcmp(PyObject *a, PyObject *b, int op)
 			return NULL;
 	}
 
-	return Py_INCREF(res), res;
+	return Py_INCREF_RET(res);
 }
 
 static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
@@ -835,7 +836,7 @@ static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
 			return NULL;
 	}
 
-	return Py_INCREF(res), res;
+	return Py_INCREF_RET(res);
 }
 
 /*----------------------repr--------------------------------------------*/
@@ -4223,7 +4224,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 		}
 	}
 
-	return Py_INCREF(def), def;
+	return Py_INCREF_RET(def);
 }
 
 PyDoc_STRVAR(pyrna_struct_as_pointer_doc,
@@ -4285,7 +4286,7 @@ static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args
 		             Py_TYPE(key_ob)->tp_name);
 	}
 
-	return Py_INCREF(def), def;
+	return Py_INCREF_RET(def);
 }
 
 PyDoc_STRVAR(pyrna_prop_collection_find_doc,
@@ -4798,8 +4799,7 @@ static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UN
 		return NULL;
 
 	if (type == Py_TYPE(base)) {
-		Py_INCREF(base);
-		return (PyObject *)base;
+		return Py_INCREF_RET((PyObject *)base);
 	}
 	else if (PyType_IsSubtype(type, &pyrna_prop_Type)) {
 		BPy_PropertyRNA *ret = (BPy_PropertyRNA *) type->tp_alloc(type, 0);
@@ -6283,7 +6283,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 
 			/* arg[1] (bases=...) */
 			PyTuple_SET_ITEM(args, 1, item = PyTuple_New(1));
-			PyTuple_SET_ITEM(item, 0, py_base); Py_INCREF(py_base);
+			PyTuple_SET_ITEM(item, 0, Py_INCREF_RET(py_base));
 
 
 			/* arg[2] (dict=...) */

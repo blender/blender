@@ -42,6 +42,7 @@
 #include "bmesh_py_types_meshdata.h"
 
 #include "../mathutils/mathutils.h"
+#include "../generic/python_utildefines.h"
 
 #include "BKE_customdata.h"
 
@@ -483,8 +484,9 @@ static PyObject *bpy_bmlayercollection_items(BPy_BMLayerCollection *self)
 
 	for (i = 0; tot-- > 0; index++) {
 		item = PyTuple_New(2);
-		PyTuple_SET_ITEM(item, 0, PyUnicode_FromString(data->layers[index].name));
-		PyTuple_SET_ITEM(item, 1, BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index));
+		PyTuple_SET_ITEMS(item,
+		        PyUnicode_FromString(data->layers[index].name),
+		        BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index));
 		PyList_SET_ITEM(ret, i++, item);
 	}
 
@@ -559,7 +561,7 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 		}
 	}
 
-	return Py_INCREF(def), def;
+	return Py_INCREF_RET(def);
 }
 
 static struct PyMethodDef bpy_bmlayeritem_methods[] = {

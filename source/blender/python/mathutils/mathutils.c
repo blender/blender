@@ -31,6 +31,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/python_utildefines.h"
+
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
 #endif
@@ -444,8 +446,7 @@ char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (read-only
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *UNUSED(closure))
 {
 	PyObject *ret = self->cb_user ? self->cb_user : Py_None;
-	Py_INCREF(ret);
-	return ret;
+	return Py_INCREF_RET(ret);
 }
 
 char BaseMathObject_is_wrapped_doc[] = "True when this object wraps external data (read-only).\n\n:type: boolean";

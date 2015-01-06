@@ -31,6 +31,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "../generic/python_utildefines.h"
 
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
@@ -382,7 +383,7 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
 			return NULL;
 	}
 
-	return Py_INCREF(res), res;
+	return Py_INCREF_RET(res);
 }
 
 /* ---------------------SEQUENCE PROTOCOLS------------------------ */

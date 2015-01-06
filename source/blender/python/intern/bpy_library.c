@@ -53,6 +53,8 @@
 #include "bpy_util.h"
 #include "bpy_library.h"
 
+#include "../generic/python_utildefines.h"
+
 /* nifty feature. swap out strings for RNA data */
 #define USE_RNA_DATABLOCKS
 
@@ -274,10 +276,9 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 
 	/* return pair */
 	ret = PyTuple_New(2);
-
-	PyTuple_SET_ITEM(ret, 0, (PyObject *)self_from);
-
-	PyTuple_SET_ITEM(ret, 1, (PyObject *)self);
+	PyTuple_SET_ITEMS(ret,
+	        (PyObject *)self_from,
+	        (PyObject *)self);
 	Py_INCREF(self);
 
 	BKE_reports_clear(&reports);
@@ -362,8 +363,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 								/* just warn for now */
 								/* err = -1; */
 #ifdef USE_RNA_DATABLOCKS
-								item = Py_None;
-								Py_INCREF(item);
+								item = Py_INCREF_RET(Py_None);
 #endif
 							}
 
@@ -375,8 +375,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 							PyErr_Clear();
 
 #ifdef USE_RNA_DATABLOCKS
-							item = Py_None;
-							Py_INCREF(item);
+							item = Py_INCREF_RET(Py_None);
 #endif
 						}
 

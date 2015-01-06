@@ -43,6 +43,8 @@
 
 #include "bmesh_py_types.h"
 
+#include "../generic/python_utildefines.h"
+
 static int bpy_bm_op_as_py_error(BMesh *bm)
 {
 	if (BMO_error_occurred(bm)) {
@@ -547,13 +549,13 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 			break;
 		case BMO_OP_SLOT_PTR:
 			BLI_assert(0);  /* currently we don't have any pointer return values in use */
-			item = (Py_INCREF(Py_None), Py_None);
+			item = Py_INCREF_RET(Py_None);
 			break;
 		case BMO_OP_SLOT_ELEMENT_BUF:
 		{
 			if (slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) {
 				BMHeader *ele = BMO_slot_buffer_get_single(slot);
-				item = ele ? BPy_BMElem_CreatePyObject(bm, ele) : (Py_INCREF(Py_None), Py_None);
+				item = ele ? BPy_BMElem_CreatePyObject(bm, ele) : Py_INCREF_RET(Py_None);
 			}
 			else {
 				const int size = slot->len;
@@ -664,7 +666,7 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 				}
 				case BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
 					/* can't convert from these */
-					item = (Py_INCREF(Py_None), Py_None);
+					item = Py_INCREF_RET(Py_None);
 					break;
 			}
 			break;
@@ -743,7 +745,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 		ret = NULL;  /* exception raised above */
 	}
 	else if (bmop.slots_out[0].slot_name == NULL) {
-		ret = (Py_INCREF(Py_None), Py_None);
+		ret = Py_INCREF_RET(Py_None);
 	}
 	else {
 		/* build return value */
@@ -759,7 +761,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 			/* this function doesn't throw exceptions */
 			item = bpy_slot_to_py(bm, slot);
 			if (item == NULL) {
-				item = (Py_INCREF(Py_None), Py_None);
+				item = Py_INCREF_RET(Py_None);
 			}
 
 #if 1

@@ -37,6 +37,8 @@
 #include "bpy_rna.h"
 #include "bpy_app_handlers.h"
 
+#include "../generic/python_utildefines.h"
+
 #include "BPY_extern.h"
 
 void bpy_app_generic_callback(struct Main *main, struct ID *id, void *arg);
@@ -306,8 +308,7 @@ void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *ar
 			PyTuple_SET_ITEM(args, 0, pyrna_struct_CreatePyObject(&id_ptr));
 		}
 		else {
-			PyTuple_SET_ITEM(args, 0, Py_None);
-			Py_INCREF(Py_None);
+			PyTuple_SET_ITEM(args, 0, Py_INCREF_RET(Py_None));
 		}
 
 		/* Iterate the list and run the callbacks

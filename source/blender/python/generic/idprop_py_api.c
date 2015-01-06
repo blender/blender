@@ -33,15 +33,16 @@
 
 #include "idprop_py_api.h"
 
-
 #include "BKE_idprop.h"
-
 
 #define USE_STRING_COERCE
 
 #ifdef USE_STRING_COERCE
 #include "py_capi_utils.h"
 #endif
+
+#include "../generic/python_utildefines.h"
+
 
 /*********************** ID Property Main Wrapper Stuff ***************/
 
@@ -746,10 +747,9 @@ static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len,
 
 	printf("%s: ID Property Error found and corrected!\n", func);
 
-	/*fill rest of list with valid references to None*/
+	/* fill rest of list with valid references to None */
 	for (j = len; j < prop->len; j++) {
-		Py_INCREF(Py_None);
-		PyList_SET_ITEM(seq, j, Py_None);
+		PyList_SET_ITEM(seq, j, Py_INCREF_RET(Py_None));
 	}
 
 	/*set correct group length*/
@@ -808,8 +808,9 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
 
 	for (i = 0, loop = prop->data.group.first; loop; loop = loop->next, i++) {
 		PyObject *item = PyTuple_New(2);
-		PyTuple_SET_ITEM(item, 0, PyUnicode_FromString(loop->name));
-		PyTuple_SET_ITEM(item, 1, BPy_IDGroup_WrapData(id, loop, prop));
+		PyTuple_SET_ITEMS(item,
+		        PyUnicode_FromString(loop->name),
+		        BPy_IDGroup_WrapData(id, loop, prop));
 		PyList_SET_ITEM(seq, i, item);
 	}
 
@@ -1406,8 +1407,9 @@ static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 
 		if (self->mode == IDPROP_ITER_ITEMS) {
 			ret = PyTuple_New(2);
-			PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(cur->name));
-			PyTuple_SET_ITEM(ret, 1, BPy_IDGroup_WrapData(self->group->id, cur, self->group->prop));
+			PyTuple_SET_ITEMS(ret,
+			        PyUnicode_FromString(cur->name),
+			        BPy_IDGroup_WrapData(self->group->id, cur, self->group->prop));
 			return ret;
 		}
 		else {

@@ -92,10 +92,11 @@ ContextFunctions_get_border(PyObject *self)
 {
 	BBox<Vec2i> border(ContextFunctions::GetBorderCF());
 	PyObject *v = PyTuple_New(4);
-	PyTuple_SET_ITEM(v, 0, PyLong_FromLong(border.getMin().x()));
-	PyTuple_SET_ITEM(v, 1, PyLong_FromLong(border.getMin().y()));
-	PyTuple_SET_ITEM(v, 2, PyLong_FromLong(border.getMax().x()));
-	PyTuple_SET_ITEM(v, 3, PyLong_FromLong(border.getMax().y()));
+	PyTuple_SET_ITEMS(v,
+	        PyLong_FromLong(border.getMin().x()),
+	        PyLong_FromLong(border.getMin().y()),
+	        PyLong_FromLong(border.getMax().x()),
+	        PyLong_FromLong(border.getMax().y()));
 	return v;
 }
 

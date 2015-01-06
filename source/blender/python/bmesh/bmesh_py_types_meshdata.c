@@ -45,6 +45,8 @@
 
 #include "bmesh_py_types_meshdata.h"
 
+#include "../generic/python_utildefines.h"
+
 
 /* Mesh BMTexPoly
  * ************** */
@@ -684,10 +686,9 @@ static PyObject *bpy_bmdeformvert_items(BPy_BMDeformVert *self)
 	ret = PyList_New(self->data->totweight);
 	for (i = 0; i < self->data->totweight; i++, dw++) {
 		item = PyTuple_New(2);
-
-		PyTuple_SET_ITEM(item, 0, PyLong_FromLong(dw->def_nr));
-		PyTuple_SET_ITEM(item, 1, PyFloat_FromDouble(dw->weight));
-
+		PyTuple_SET_ITEMS(item,
+		        PyLong_FromLong(dw->def_nr),
+		        PyFloat_FromDouble(dw->weight));
 		PyList_SET_ITEM(ret, i, item);
 	}
 
@@ -721,7 +722,7 @@ static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
 			return PyFloat_FromDouble(dw->weight);
 		}
 		else {
-			return Py_INCREF(def), def;
+			return Py_INCREF_RET(def);
 		}
 	}
 }

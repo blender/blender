@@ -32,6 +32,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/python_utildefines.h"
+
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
 #endif
@@ -187,7 +189,7 @@ static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 			return NULL;
 	}
 
-	return Py_INCREF(res), res;
+	return Py_INCREF_RET(res);
 }
 
 /* ---------------------SEQUENCE PROTOCOLS------------------------ */
@@ -753,9 +755,10 @@ static PyObject *Color_hsv_get(ColorObject *self, void *UNUSED(closure))
 	rgb_to_hsv(self->col[0], self->col[1], self->col[2], &(hsv[0]), &(hsv[1]), &(hsv[2]));
 
 	ret = PyTuple_New(3);
-	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(hsv[0]));
-	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(hsv[1]));
-	PyTuple_SET_ITEM(ret, 2, PyFloat_FromDouble(hsv[2]));
+	PyTuple_SET_ITEMS(ret,
+	        PyFloat_FromDouble(hsv[0]),
+	        PyFloat_FromDouble(hsv[1]),
+	        PyFloat_FromDouble(hsv[2]));
 	return ret;
 }
 

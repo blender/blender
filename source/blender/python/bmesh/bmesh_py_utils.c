@@ -42,6 +42,8 @@
 #include "bmesh_py_types.h"
 #include "bmesh_py_utils.h" /* own include */
 
+#include "../generic/python_utildefines.h"
+
 
 PyDoc_STRVAR(bpy_bm_utils_vert_collapse_edge_doc,
 ".. method:: vert_collapse_edge(vert, edge)\n"
@@ -365,8 +367,9 @@ static PyObject *bpy_bm_utils_edge_split(PyObject *UNUSED(self), PyObject *args)
 
 	if (v_new && e_new) {
 		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, BPy_BMEdge_CreatePyObject(bm, e_new));
-		PyTuple_SET_ITEM(ret, 1, BPy_BMVert_CreatePyObject(bm, v_new));
+		PyTuple_SET_ITEMS(ret,
+		        BPy_BMEdge_CreatePyObject(bm, e_new),
+		        BPy_BMVert_CreatePyObject(bm, v_new));
 		return ret;
 	}
 	else {
@@ -524,8 +527,9 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 
 	if (f_new && l_new) {
 		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, BPy_BMFace_CreatePyObject(bm, f_new));
-		PyTuple_SET_ITEM(ret, 1, BPy_BMLoop_CreatePyObject(bm, l_new));
+		PyTuple_SET_ITEMS(ret,
+		        BPy_BMFace_CreatePyObject(bm, f_new),
+		        BPy_BMLoop_CreatePyObject(bm, l_new));
 		return ret;
 	}
 	else {

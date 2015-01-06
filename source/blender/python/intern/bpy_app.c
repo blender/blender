@@ -50,6 +50,7 @@
 #include "BKE_global.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 
 #ifdef BUILD_DATE
 extern char build_date[];
@@ -264,8 +265,7 @@ static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(cl
 		}
 	}
 
-	Py_INCREF(bpy_pydriver_Dict);
-	return bpy_pydriver_Dict;
+	return Py_INCREF_RET(bpy_pydriver_Dict);
 }
 
 static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void *UNUSED(closure))

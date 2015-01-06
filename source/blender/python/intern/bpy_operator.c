@@ -44,6 +44,7 @@
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_util.h"
 #include "../generic/bpy_internal_import.h"
+#include "../generic/python_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -127,9 +128,8 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	/* restore with original context dict, probably NULL but need this for nested operator calls */
 	Py_XDECREF(context_dict);
 	CTX_py_dict_set(C, (void *)context_dict_back);
-	
-	Py_INCREF(ret);
-	return ret;
+
+	return Py_INCREF_RET(ret);
 }
 
 static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)

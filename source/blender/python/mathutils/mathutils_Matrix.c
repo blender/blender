@@ -32,6 +32,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/python_utildefines.h"
+
 #ifndef MATH_STANDALONE
 #  include "BLI_string.h"
 #  include "BLI_dynstr.h"
@@ -1653,10 +1655,10 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 	mat3_to_quat(quat, rot);
 
 	ret = PyTuple_New(3);
-	PyTuple_SET_ITEM(ret, 0, Vector_CreatePyObject(loc, 3, NULL));
-	PyTuple_SET_ITEM(ret, 1, Quaternion_CreatePyObject(quat, NULL));
-	PyTuple_SET_ITEM(ret, 2, Vector_CreatePyObject(size, 3, NULL));
-
+	PyTuple_SET_ITEMS(ret,
+	        Vector_CreatePyObject(loc, 3, NULL),
+	        Quaternion_CreatePyObject(quat, NULL),
+	        Vector_CreatePyObject(size, 3, NULL));
 	return ret;
 }
 
@@ -2032,7 +2034,7 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 			return NULL;
 	}
 
-	return Py_INCREF(res), res;
+	return Py_INCREF_RET(res);
 }
 
 /*---------------------SEQUENCE PROTOCOLS------------------------

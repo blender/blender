@@ -400,13 +400,14 @@ static PyObject *SVertex_curvatures_get(BPy_SVertex *self, void *UNUSED(closure)
 	Vec3r e2(info->e2.x(), info->e2.y(), info->e2.z());
 	Vec3r er(info->er.x(), info->er.y(), info->er.z());
 	PyObject *retval = PyTuple_New(7);
-	PyTuple_SET_ITEM(retval, 0, PyFloat_FromDouble(info->K1));
-	PyTuple_SET_ITEM(retval, 2, Vector_from_Vec3r(e1));
-	PyTuple_SET_ITEM(retval, 1, PyFloat_FromDouble(info->K2));
-	PyTuple_SET_ITEM(retval, 3, Vector_from_Vec3r(e2));
-	PyTuple_SET_ITEM(retval, 4, PyFloat_FromDouble(info->Kr));
-	PyTuple_SET_ITEM(retval, 5, Vector_from_Vec3r(er));
-	PyTuple_SET_ITEM(retval, 6, PyFloat_FromDouble(info->dKr));
+	PyTuple_SET_ITEMS(retval,
+	        PyFloat_FromDouble(info->K1),
+	        PyFloat_FromDouble(info->K2),
+	        Vector_from_Vec3r(e1),
+	        Vector_from_Vec3r(e2),
+	        PyFloat_FromDouble(info->Kr),
+	        Vector_from_Vec3r(er),
+	        PyFloat_FromDouble(info->dKr));
 	return retval;
 }
 

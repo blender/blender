@@ -42,6 +42,7 @@ int				PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 PyObject *      PyC_FromArray(const void *array, int length, const PyTypeObject *type,
                               const bool is_double, const char *error_prefix);
 void            PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
+void            PyC_List_Fill(PyObject *list, PyObject *value);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
 PyObject *      PyC_UnicodeFromByte(const char *str);

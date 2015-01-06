@@ -37,6 +37,8 @@
 
 #include "py_capi_utils.h"
 
+#include "../generic/python_utildefines.h"
+
 /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
 #include "BLI_string_utf8.h"
 
@@ -174,6 +176,17 @@ void PyC_Tuple_Fill(PyObject *tuple, PyObject *value)
 
 	for (i = 0; i < tot; i++) {
 		PyTuple_SET_ITEM(tuple, i, value);
+		Py_INCREF(value);
+	}
+}
+
+void PyC_List_Fill(PyObject *list, PyObject *value)
+{
+	unsigned int tot = PyList_GET_SIZE(list);
+	unsigned int i;
+
+	for (i = 0; i < tot; i++) {
+		PyList_SET_ITEM(list, i, value);
 		Py_INCREF(value);
 	}
 }
@@ -664,8 +677,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 				PyErr_Print();
 				PyErr_Clear();
 
-				PyList_SET_ITEM(values, i, Py_None); /* hold user */
-				Py_INCREF(Py_None);
+				PyList_SET_ITEM(values, i, Py_INCREF_RET(Py_None)); /* hold user */
 
 				sizes[i] = 0;
 			}

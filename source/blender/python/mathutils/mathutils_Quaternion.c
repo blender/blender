@@ -32,6 +32,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/python_utildefines.h"
+
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
 #endif
@@ -169,8 +171,9 @@ static PyObject *Quaternion_to_axis_angle(QuaternionObject *self)
 	quat__axis_angle_sanitize(axis, &angle);
 
 	ret = PyTuple_New(2);
-	PyTuple_SET_ITEM(ret, 0, Vector_CreatePyObject(axis, 3, NULL));
-	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(angle));
+	PyTuple_SET_ITEMS(ret,
+	        Vector_CreatePyObject(axis, 3, NULL),
+	        PyFloat_FromDouble(angle));
 	return ret;
 }
 
@@ -544,7 +547,7 @@ static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
 			return NULL;
 	}
 
-	return Py_INCREF(res), res;
+	return Py_INCREF_RET(res);
 }
 
 /* ---------------------SEQUENCE PROTOCOLS------------------------ */

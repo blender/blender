@@ -45,6 +45,7 @@
 
 #include "RNA_types.h"
 
+#include "../generic/python_utildefines.h"
 
 typedef struct
 {
@@ -406,7 +407,7 @@ static PyObject *app_translations_contexts_make(void)
 	}
 
 #define SetObjString(item) PyStructSequence_SET_ITEM(translations_contexts, pos++, PyUnicode_FromString((item)))
-#define SetObjNone() Py_INCREF(Py_None); PyStructSequence_SET_ITEM(translations_contexts, pos++, Py_None)
+#define SetObjNone() PyStructSequence_SET_ITEM(translations_contexts, pos++, Py_INCREF_RET(Py_None))
 
 	for (ctxt = _contexts; ctxt->c_id; ctxt++) {
 		if (ctxt->value) {
@@ -516,9 +517,7 @@ static PyObject *_py_pgettext(PyObject *args, PyObject *kw, const char *(*_pgett
 		return NULL;
 	}
 
-	Py_INCREF(msgid);
-
-	return msgid;
+	return Py_INCREF_RET(msgid);
 #endif
 }
 

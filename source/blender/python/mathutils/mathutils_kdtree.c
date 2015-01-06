@@ -35,6 +35,7 @@
 #include "BLI_kdtree.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 
 #include "mathutils.h"
 #include "mathutils_kdtree.h"  /* own include */
@@ -58,9 +59,10 @@ static void kdtree_nearest_to_py_tuple(const KDTreeNearest *nearest, PyObject *p
 	BLI_assert(nearest->index >= 0);
 	BLI_assert(PyTuple_GET_SIZE(py_retval) == 3);
 
-	PyTuple_SET_ITEM(py_retval, 0, Vector_CreatePyObject((float *)nearest->co, 3, NULL));
-	PyTuple_SET_ITEM(py_retval, 1, PyLong_FromLong(nearest->index));
-	PyTuple_SET_ITEM(py_retval, 2, PyFloat_FromDouble(nearest->dist));
+	PyTuple_SET_ITEMS(py_retval,
+	        Vector_CreatePyObject((float *)nearest->co, 3, NULL),
+	        PyLong_FromLong(nearest->index),
+	        PyFloat_FromDouble(nearest->dist));
 }
 
 static PyObject *kdtree_nearest_to_py(const KDTreeNearest *nearest)
