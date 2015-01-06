@@ -88,6 +88,8 @@
 #undef SEQP_BEGIN
 #undef SEQ_END
 
+static Sequence *special_seq_update = NULL;
+
 void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 {
 	unsigned char blendcol[3];
@@ -735,9 +737,11 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	else {  /* normal operation */
 		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
 	}
-	
-	if ((sseq->draw_flag & SEQ_DRAW_OFFSET_EXT) && !is_single_image) {
-		draw_sequence_extensions(scene, ar, seq);
+
+	if (!is_single_image) {
+		if ((sseq->draw_flag & SEQ_DRAW_OFFSET_EXT) || (seq == special_seq_update)) {
+			draw_sequence_extensions(scene, ar, seq);
+		}
 	}
 
 	draw_seq_handle(v2d, seq, handsize_clamped, SEQ_LEFTHANDLE);
@@ -827,8 +831,6 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		draw_seq_text(v2d, seq, x1, x2, y1, y2, background_col);
 	}
 }
-
-static Sequence *special_seq_update = NULL;
 
 void sequencer_special_update_set(Sequence *seq)
 {
