@@ -957,8 +957,6 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
 	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
 		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
-
-		wm_ensure_previews(C, G.main);
 	}
 
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
