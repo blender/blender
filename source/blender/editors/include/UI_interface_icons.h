@@ -33,6 +33,7 @@
 #define __UI_INTERFACE_ICONS_H__
 
 struct bContext;
+struct ID;
 struct Image;
 struct ImBuf;
 struct World;
@@ -62,6 +63,8 @@ typedef struct IconFile {
 void UI_icons_init(int first_dyn_id);
 int UI_icon_get_width(int icon_id);
 int UI_icon_get_height(int icon_id);
+
+void UI_id_icon_render(const struct bContext *C, struct ID *id, const bool big, const bool use_job);
 
 void UI_icon_draw(float x, float y, int icon_id);
 void UI_icon_draw_preview(float x, float y, int icon_id);

@@ -1098,6 +1098,26 @@ static void icon_preview_free(void *customdata)
 	MEM_freeN(ip);
 }
 
+void ED_preview_icon_render(const bContext *C, void *UNUSED(owner), ID *id, unsigned int *rect, int sizex, int sizey)
+{
+	IconPreview ip = {0};
+	short stop = false, update = false;
+	float progress = 0.0f;
+
+	/* customdata for preview thread */
+	ip.scene = CTX_data_scene(C);
+	ip.owner = id;
+	ip.id = id;
+
+	icon_preview_add_size(&ip, rect, sizex, sizey);
+
+	icon_preview_startjob_all_sizes(&ip, &stop, &update, &progress);
+
+	icon_preview_endjob(&ip);
+
+	BLI_freelistN(&ip.sizes);
+}
+
 void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *rect, int sizex, int sizey)
 {
 	wmJob *wm_job;
