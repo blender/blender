@@ -903,8 +903,9 @@ static void wm_ensure_previews(bContext *C, Main *mainvar)
 
 	for (i = 0; lb[i]; i++) {
 		for (id = lb[i]->first; id; id = id->next) {
-			/* Only preview non-library datablocks, lib ones do not pertain to this .blend file! */
-			if (!id->lib) {
+			/* Only preview non-library datablocks, lib ones do not pertain to this .blend file!
+			 * Same goes for ID with no user. */
+			if (!id->lib && (id->us != 0)) {
 				UI_id_icon_render(C, id, false, false);
 				UI_id_icon_render(C, id, true, false);
 			}
