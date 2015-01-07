@@ -3000,7 +3000,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	}
 
 	/*---first main loop: create all actual particles' paths---*/
-	LOOP_SHOWN_PARTICLES {
+	LOOP_PARTICLES {
 		if (!psys->totchild) {
 			psys_get_texture(sim, pa, &ptex, PAMAP_LENGTH, 0.f);
 			pa_length = ptex.length * (1.0f - part->randlength * psys_frand(psys, psys->seed + p));
