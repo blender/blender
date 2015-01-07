@@ -1189,7 +1189,7 @@ static void ui_id_brush_render(const bContext *C, ID *id)
 		/* check if rect needs to be created; changed
 		 * only set by dynamic icons */
 		if ((pi->changed[i] || !pi->rect[i])) {
-			icon_set_image(C, id, pi, i, false);
+			icon_set_image(C, id, pi, i, true);
 			pi->changed[i] = 0;
 		}
 	}
