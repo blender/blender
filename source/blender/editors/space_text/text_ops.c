@@ -714,88 +714,6 @@ void TEXT_OT_refresh_pyconstraints(wmOperatorType *ot)
 
 /******************* paste operator *********************/
 
-static char *txt_copy_selected(Text *text)
-{
-	TextLine *tmp, *linef, *linel;
-	char *buf = NULL;
-	int charf, charl, length = 0;
-	
-	if (!text) return NULL;
-	if (!text->curl) return NULL;
-	if (!text->sell) return NULL;
-
-	if (!txt_has_sel(text)) return NULL;
-
-	if (text->curl == text->sell) {
-		linef = linel = text->curl;
-		
-		if (text->curc < text->selc) {
-			charf = text->curc;
-			charl = text->selc;
-		}
-		else {
-			charf = text->selc;
-			charl = text->curc;
-		}
-	}
-	else if (txt_get_span(text->curl, text->sell) < 0) {
-		linef = text->sell;
-		linel = text->curl;
-
-		charf = text->selc;
-		charl = text->curc;
-	}
-	else {
-		linef = text->curl;
-		linel = text->sell;
-		
-		charf = text->curc;
-		charl = text->selc;
-	}
-
-	if (linef == linel) {
-		length = charl - charf;
-
-		buf = MEM_callocN(length + 1, "cut buffera");
-		
-		BLI_strncpy(buf, linef->line + charf, length + 1);
-	}
-	else {
-		length += linef->len - charf;
-		length += charl;
-		length++; /* For the '\n' */
-		
-		tmp = linef->next;
-		while (tmp && tmp != linel) {
-			length += tmp->len + 1;
-			tmp = tmp->next;
-		}
-		
-		buf = MEM_callocN(length + 1, "cut bufferb");
-		
-		strncpy(buf, linef->line + charf, linef->len - charf);
-		length = linef->len - charf;
-		
-		buf[length++] = '\n';
-		
-		tmp = linef->next;
-		while (tmp && tmp != linel) {
-			strncpy(buf + length, tmp->line, tmp->len);
-			length += tmp->len;
-			
-			buf[length++] = '\n';
-			
-			tmp = tmp->next;
-		}
-		strncpy(buf + length, linel->line, charl);
-		length += charl;
-		
-		buf[length] = 0;
-	}
-
-	return buf;
-}
-
 static int text_paste_exec(bContext *C, wmOperator *op)
 {
 	const bool selection = RNA_boolean_get(op->ptr, "selection");
@@ -876,7 +794,10 @@ static void txt_copy_clipboard(Text *text)
 {
 	char *buf;
 
-	buf = txt_copy_selected(text);
+	if (!txt_has_sel(text))
+		return;
+
+	buf = txt_sel_to_buf(text);
 
 	if (buf) {
 		WM_clipboard_text_set(buf, 0);

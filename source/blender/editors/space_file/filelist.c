@@ -284,10 +284,8 @@ static bool compare_is_directory(const struct direntry *entry)
 	return false;
 }
 
-static int compare_name(const void *a1, const void *a2)
+static int compare_direntry_generic(const struct direntry *entry1, const struct direntry *entry2)
 {
-	const struct direntry *entry1 = a1, *entry2 = a2;
-
 	/* type is equal to stat.st_mode */
 
 	if (compare_is_directory(entry1)) {
@@ -311,35 +309,29 @@ static int compare_name(const void *a1, const void *a2)
 	if (strcmp(entry1->relname, "..") == 0) return (-1);
 	if (strcmp(entry2->relname, "..") == 0) return (1);
 	
+	return 0;
+}
+
+static int compare_name(const void *a1, const void *a2)
+{
+	const struct direntry *entry1 = a1, *entry2 = a2;
+	int ret;
+
+	if ((ret = compare_direntry_generic(entry1, entry2))) {
+		return ret;
+	}
+
 	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }
 
 static int compare_date(const void *a1, const void *a2)	
 {
 	const struct direntry *entry1 = a1, *entry2 = a2;
+	int ret;
 	
-	/* type is equal to stat.st_mode */
-
-	if (compare_is_directory(entry1)) {
-		if (compare_is_directory(entry2) == 0) return (-1);
+	if ((ret = compare_direntry_generic(entry1, entry2))) {
+		return ret;
 	}
-	else {
-		if (compare_is_directory(entry2)) return (1);
-	}
-	if (S_ISREG(entry1->type)) {
-		if (S_ISREG(entry2->type) == 0) return (-1);
-	}
-	else {
-		if (S_ISREG(entry2->type)) return (1);
-	}
-	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
-	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
-
-	/* make sure "." and ".." are always first */
-	if (strcmp(entry1->relname, ".") == 0) return (-1);
-	if (strcmp(entry2->relname, ".") == 0) return (1);
-	if (strcmp(entry1->relname, "..") == 0) return (-1);
-	if (strcmp(entry2->relname, "..") == 0) return (1);
 	
 	if (entry1->s.st_mtime < entry2->s.st_mtime) return 1;
 	if (entry1->s.st_mtime > entry2->s.st_mtime) return -1;
@@ -350,29 +342,11 @@ static int compare_date(const void *a1, const void *a2)
 static int compare_size(const void *a1, const void *a2)	
 {
 	const struct direntry *entry1 = a1, *entry2 = a2;
+	int ret;
 
-	/* type is equal to stat.st_mode */
-
-	if (compare_is_directory(entry1)) {
-		if (compare_is_directory(entry2) == 0) return (-1);
+	if ((ret = compare_direntry_generic(entry1, entry2))) {
+		return ret;
 	}
-	else {
-		if (compare_is_directory(entry2)) return (1);
-	}
-	if (S_ISREG(entry1->type)) {
-		if (S_ISREG(entry2->type) == 0) return (-1);
-	}
-	else {
-		if (S_ISREG(entry2->type)) return (1);
-	}
-	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
-	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
-
-	/* make sure "." and ".." are always first */
-	if (strcmp(entry1->relname, ".") == 0) return (-1);
-	if (strcmp(entry2->relname, ".") == 0) return (1);
-	if (strcmp(entry1->relname, "..") == 0) return (-1);
-	if (strcmp(entry2->relname, "..") == 0) return (1);
 	
 	if (entry1->s.st_size < entry2->s.st_size) return 1;
 	if (entry1->s.st_size > entry2->s.st_size) return -1;
@@ -384,6 +358,11 @@ static int compare_extension(const void *a1, const void *a2)
 	const struct direntry *entry1 = a1, *entry2 = a2;
 	const char *sufix1, *sufix2;
 	const char *nil = "";
+	int ret;
+
+	if ((ret = compare_direntry_generic(entry1, entry2))) {
+		return ret;
+	}
 
 	if (!(sufix1 = strstr(entry1->relname, ".blend.gz")))
 		sufix1 = strrchr(entry1->relname, '.');
@@ -392,29 +371,6 @@ static int compare_extension(const void *a1, const void *a2)
 	if (!sufix1) sufix1 = nil;
 	if (!sufix2) sufix2 = nil;
 
-	/* type is equal to stat.st_mode */
-
-	if (compare_is_directory(entry1)) {
-		if (compare_is_directory(entry2) == 0) return (-1);
-	}
-	else {
-		if (compare_is_directory(entry2)) return (1);
-	}
-	if (S_ISREG(entry1->type)) {
-		if (S_ISREG(entry2->type) == 0) return (-1);
-	}
-	else {
-		if (S_ISREG(entry2->type)) return (1);
-	}
-	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
-	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
-	
-	/* make sure "." and ".." are always first */
-	if (strcmp(entry1->relname, ".") == 0) return (-1);
-	if (strcmp(entry2->relname, ".") == 0) return (1);
-	if (strcmp(entry1->relname, "..") == 0) return (-1);
-	if (strcmp(entry2->relname, "..") == 0) return (1);
-	
 	return (BLI_strcasecmp(sufix1, sufix2));
 }
 
