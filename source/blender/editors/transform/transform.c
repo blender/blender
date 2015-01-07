@@ -585,7 +585,10 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 
 static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
-	if (t->spacetype == SPACE_VIEW3D) {
+	if (t->options & CTX_GPENCIL_STROKES) {
+		WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
+	}
+	else if (t->spacetype == SPACE_VIEW3D) {
 		if (t->options & CTX_PAINT_CURVE) {
 			wmWindow *window = CTX_wm_window(C);
 			WM_paint_cursor_tag_redraw(window, t->ar);
