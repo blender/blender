@@ -19,21 +19,17 @@ Prerequisites
 
 Before going through the tutorial you should...
 
-* Familiarity with the basics of working in Blender.
-
-* Know how to run a script in Blender's text editor (as documented in the quick-start)
-
-* Have an understanding of Python primitive types (int, boolean, string, list, tuple, dictionary, and set).
-
-* Be familiar with the concept of Python modules.
-
-* Basic understanding of classes (object orientation) in Python.
+- Familiarity with the basics of working in Blender.
+- Know how to run a script in Blender's text editor (as documented in the quick-start)
+- Have an understanding of Python primitive types (int, boolean, string, list, tuple, dictionary, and set).
+- Be familiar with the concept of Python modules.
+- Basic understanding of classes (object orientation) in Python.
 
 
 Suggested reading before starting this tutorial.
 
-* `Dive Into Python <http://getpython3.com/diveintopython3/index.html>`_ sections (1, 2, 3, 4, and 7).
-* :ref:`Blender API Quickstart <info_quickstart>`
+- `Dive Into Python <http://getpython3.com/diveintopython3/index.html>`_ sections (1, 2, 3, 4, and 7).
+- :ref:`Blender API Quickstart <info_quickstart>`
   to help become familiar with Blender/Python basics.
 
 
@@ -45,13 +41,11 @@ Documentation Links
 
 While going through the tutorial you may want to look into our reference documentation.
 
-* :ref:`Blender API Overview <info_overview>`. -
+- :ref:`Blender API Overview <info_overview>`. -
   *This document is rather detailed but helpful if you want to know more on a topic.*
-
-* :mod:`bpy.context` api reference. -
+- :mod:`bpy.context` api reference. -
   *Handy to have a list of available items your script may operate on.*
-
-* :class:`bpy.types.Operator`. -
+- :class:`bpy.types.Operator`. -
   *The following addons define operators, these docs give details and more examples of operators.*
 
 
@@ -78,11 +72,11 @@ To give an example, here is the simplest possible addon.
        print("Goodbye World")
 
 
-* ``bl_info`` is a dictionary containing addon meta-data such as the title, version and author to be displayed in the
+- ``bl_info`` is a dictionary containing addon meta-data such as the title, version and author to be displayed in the
   user preferences addon list.
-* ``register`` is a function which only runs when enabling the addon, this means the module can be loaded without
+- ``register`` is a function which only runs when enabling the addon, this means the module can be loaded without
   activating the addon.
-* ``unregister`` is a function to unload anything setup by ``register``, this is called when the addon is disabled.
+- ``unregister`` is a function to unload anything setup by ``register``, this is called when the addon is disabled.
 
 
 
@@ -184,12 +178,15 @@ This addon takes the body of the script above, and adds them to an operator's ``
        register()
 
 
-.. note:: ``bl_info`` is split across multiple lines, this is just a style convention used to more easily add items.
+.. note::
 
-.. note:: Rather than using ``bpy.context.scene``, we use the ``context.scene`` argument passed to ``execute()``.
-          In most cases these will be the same however in some cases operators will be passed a custom context
-          so script authors should prefer the ``context`` argument passed to operators.
-   
+   ``bl_info`` is split across multiple lines, this is just a style convention used to more easily add items.
+
+.. note::
+
+   Rather than using ``bpy.context.scene``, we use the ``context.scene`` argument passed to ``execute()``.
+   In most cases these will be the same however in some cases operators will be passed a custom context
+   so script authors should prefer the ``context`` argument passed to operators.
 
 To test the script you can copy and paste this into Blender text editor and run it, this will execute the script
 directly and call register immediately.
@@ -202,8 +199,8 @@ However running the script wont move any objects, for this you need to execute t
    :height: 574px
    :alt: Spacebar
 
-Do this by pressing ``SpaceBar`` to bring up the operator search dialog and type in "Move X by One" (the ``bl_label``),
-then press ``Enter``.
+Do this by pressing :kbd:`Spacebar` to bring up the operator search dialog and type in
+"Move X by One" (the ``bl_label``), then :kbd:`Enter`.
 
 
 
@@ -214,8 +211,8 @@ The objects should move as before.
 Install The Addon
 -----------------
 
-Once you have your addon within in Blender's text editor, you will want to be able to install it so it can be enabled in
-the user preferences to load on startup.
+Once you have your addon within in Blender's text editor,
+you will want to be able to install it so it can be enabled in the user preferences to load on startup.
 
 Even though the addon above is a test, lets go through the steps anyway so you know how to do it for later.
 
@@ -633,15 +630,12 @@ you want to see example code for, this is a good place to start.
 
 Here are some sites you might like to check on after completing this tutorial.
 
-* :ref:`Blender/Python API Overview <info_overview>` -
+- :ref:`Blender/Python API Overview <info_overview>` -
   *For more background details on Blender/Python integration.*
-
-* `How to Think Like a Computer Scientist <http://interactivepython.org/courselib/static/thinkcspy/index.html>`_ -
+- `How to Think Like a Computer Scientist <http://interactivepython.org/courselib/static/thinkcspy/index.html>`_ -
   *Great info for those who are still learning Python.*
-
-* `Blender Development (Wiki) <http://wiki.blender.org/index.php/Dev:Contents>`_ -
+- `Blender Development (Wiki) <http://wiki.blender.org/index.php/Dev:Contents>`_ -
   *Blender Development, general information and helpful links.*
-
-* `Blender Artists (Coding Section) <http://blenderartists.org/forum/forumdisplay.php?47-Coding>`_ -
+- `Blender Artists (Coding Section) <http://blenderartists.org/forum/forumdisplay.php?47-Coding>`_ -
   *forum where people ask Python development questions*
 
