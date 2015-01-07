@@ -1122,7 +1122,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
                                  bool draw_outline, int width, int height)
 {
 	bool tiny = (sc->flag & SC_SHOW_TINY_MARKER) != 0;
-	bool is_selected_track = plane_track->flag & SELECT;
+	bool is_selected_track = (plane_track->flag & SELECT) != 0;
 	bool draw_plane_quad = plane_track->image == NULL || plane_track->image_opacity == 0.0f;
 	float px[2];
 

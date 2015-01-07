@@ -185,7 +185,7 @@ public:
 	
 	void setFastCalculation(bool fastCalculation) {this->m_fastCalculation = fastCalculation;}
 	bool isFastCalculation() const { return this->m_fastCalculation; }
-	bool isGroupnodeBufferEnabled() const { return this->getbNodeTree()->flag & NTREE_COM_GROUPNODE_BUFFER; }
+	bool isGroupnodeBufferEnabled() const { return (this->getbNodeTree()->flag & NTREE_COM_GROUPNODE_BUFFER) != 0; }
 };
 
 

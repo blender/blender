@@ -404,7 +404,7 @@ static DerivedMesh *arrayModifier_doArray(
 	int *full_doubles_map = NULL;
 	int tot_doubles;
 
-	const bool use_merge = amd->flags & MOD_ARR_MERGE;
+	const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
 	const bool use_recalc_normals = (dm->dirty & DM_DIRTY_NORMALS) || use_merge;
 	const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob);
 	/* allow pole vertices to be used by many faces */

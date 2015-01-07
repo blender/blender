@@ -41,8 +41,8 @@ void MixNode::convertToOperations(NodeConverter &converter, const CompositorCont
 	NodeInput *color2Socket = this->getInputSocket(2);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
 	bNode *editorNode = this->getbNode();
-	bool useAlphaPremultiply = this->getbNode()->custom2 & 1;
-	bool useClamp = this->getbNode()->custom2 & 2;
+	bool useAlphaPremultiply = (this->getbNode()->custom2 & 1) != 0;
+	bool useClamp = (this->getbNode()->custom2 & 2) != 0;
 	
 	MixBaseOperation *convertProg;
 	switch (editorNode->custom1) {

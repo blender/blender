@@ -846,7 +846,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		vgroup_validmap = BKE_object_defgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
 		for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
-			bool locked = dg->flag & DG_LOCK_WEIGHT;
+			bool locked = (dg->flag & DG_LOCK_WEIGHT) != 0;
 			if (vgroup_validmap[i]) {
 				MDeformWeight *dw = defvert_find_index(dv, i);
 				if (dw) {

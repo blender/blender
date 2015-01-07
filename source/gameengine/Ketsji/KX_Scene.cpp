@@ -218,7 +218,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_bucketmanager=new RAS_BucketManager();
 	
-	bool showObstacleSimulation = scene->gm.flag & GAME_SHOW_OBSTACLE_SIMULATION;
+	bool showObstacleSimulation = (scene->gm.flag & GAME_SHOW_OBSTACLE_SIMULATION) != 0;
 	switch (scene->gm.obstacleSimulation)
 	{
 	case OBSTSIMULATION_TOI_rays:

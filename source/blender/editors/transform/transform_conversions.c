@@ -3831,9 +3831,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				const bool sel2 = bezt->f2 & SELECT;
-				const bool sel1 = use_handle ? bezt->f1 & SELECT : sel2;
-				const bool sel3 = use_handle ? bezt->f3 & SELECT : sel2;
+				const bool sel2 = (bezt->f2 & SELECT) != 0;
+				const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
+				const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
 
 				if (!is_translation_mode || !(sel2)) {
 					if (sel1) {
@@ -3917,9 +3917,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				const bool sel2 = bezt->f2 & SELECT;
-				const bool sel1 = use_handle ? bezt->f1 & SELECT : sel2;
-				const bool sel3 = use_handle ? bezt->f3 & SELECT : sel2;
+				const bool sel2 = (bezt->f2 & SELECT) != 0;
+				const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
+				const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
 
 				TransDataCurveHandleFlags *hdata = NULL;
 				/* short h1=1, h2=1; */ /* UNUSED */
