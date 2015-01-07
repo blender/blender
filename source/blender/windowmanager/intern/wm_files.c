@@ -895,7 +895,7 @@ bool write_crash_blend(void)
 	}
 }
 
-static void wm_ensure_previews(bContext *C, Main *mainvar)
+static void UNUSED_FUNCTION(wm_ensure_previews)(bContext *C, Main *mainvar)
 {
 	ListBase *lb[] = {&mainvar->mat, &mainvar->tex, &mainvar->image, &mainvar->world, &mainvar->lamp, NULL};
 	ID *id;
