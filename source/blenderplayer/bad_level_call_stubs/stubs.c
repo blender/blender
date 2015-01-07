@@ -163,6 +163,7 @@ struct wmWindowManager;
 #include "../blender/editors/include/ED_render.h"
 #include "../blender/editors/include/ED_screen.h"
 #include "../blender/editors/include/ED_space_api.h"
+#include "../blender/editors/include/ED_text.h"
 #include "../blender/editors/include/ED_transform.h"
 #include "../blender/editors/include/ED_uvedit.h"
 #include "../blender/editors/include/ED_view3d.h"
@@ -481,6 +482,8 @@ bool ED_texture_context_check_material(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_lamp(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_particles(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_others(const struct bContext *C) RET_ZERO
+
+bool ED_text_region_location_from_cursor(SpaceText *st, ARegion *ar, const int cursor_co[2], int r_pixel_co[2]) RET_ZERO
 
 bool snapObjectsRayEx(struct Scene *scene, struct Base *base_act, struct View3D *v3d, struct ARegion *ar, struct Object *obedit, short snap_mode,
                       struct Object **r_ob, float r_obmat[4][4],

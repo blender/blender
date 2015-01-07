@@ -402,6 +402,23 @@ ARegion *BKE_area_find_region_active_win(ScrArea *sa)
 	return NULL;
 }
 
+/**
+ * \note, ideally we can get the area from the context,
+ * there are a few places however where this isn't practical.
+ */
+ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc, SpaceLink *sl)
+{
+	ScrArea *sa;
+
+	for (sa = sc->areabase.first; sa; sa = sa->next) {
+		if (BLI_findindex(&sa->spacedata, sl) != -1) {
+			break;
+		}
+	}
+
+	return sa;
+}
+
 /* note, using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
  * -1 for any type */

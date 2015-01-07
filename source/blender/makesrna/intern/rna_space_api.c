@@ -31,6 +31,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "ED_text.h"
+
 static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
 {
 	bScreen *sc = (bScreen *)id;
@@ -46,6 +48,19 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
 		v3d = (View3D *)sa->spacedata.first;
 
 		ED_view3d_update_viewmat(sc->scene, v3d, ar, NULL, NULL);
+	}
+}
+
+static void rna_SpaceTextEditor_region_location_from_cursor(
+        ID *id, SpaceText *st,
+        int line, int column, int r_pixel_pos[2])
+{
+	bScreen *sc = (bScreen *)id;
+	ScrArea *sa = BKE_screen_find_area_from_space(sc, (SpaceLink *)st);
+	if (sa) {
+		ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+		const int cursor_co[2] = {line, column};
+		ED_text_region_location_from_cursor(st, ar, cursor_co, r_pixel_pos);
 	}
 }
 
@@ -72,6 +87,22 @@ void RNA_api_space_node(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "y", "Region y coordinate", -10000, 10000);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
+void RNA_api_space_text(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func = RNA_def_function(srna, "region_location_from_cursor", "rna_SpaceTextEditor_region_location_from_cursor");
+	RNA_def_function_ui_description(func, "Retrieve the region position from the given line and character position");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_int(func, "line", 0, INT_MIN, INT_MAX, "Line", "Line index", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "column", 0, INT_MIN, INT_MAX, "Column", "Column index", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int_array(func, "result", 2, 0, -1, INT_MAX, "", "Region coordinates", -1, INT_MAX);
+	RNA_def_function_output(func, parm);
 }
 
 #endif

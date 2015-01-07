@@ -266,13 +266,7 @@ static ScrArea *rna_area_from_space(PointerRNA *ptr)
 {
 	bScreen *sc = (bScreen *)ptr->id.data;
 	SpaceLink *link = (SpaceLink *)ptr->data;
-	ScrArea *sa;
-
-	for (sa = sc->areabase.first; sa; sa = sa->next)
-		if (BLI_findindex(&sa->spacedata, link) != -1)
-			return sa;
-
-	return NULL;
+	return BKE_screen_find_area_from_space(sc, link);
 }
 
 static void area_region_from_regiondata(bScreen *sc, void *regiondata, ScrArea **r_sa, ARegion **r_ar)
@@ -855,7 +849,6 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain), Scene *UNUSED(
 	if (st->text)
 		WM_main_add_notifier(NC_TEXT | NA_EDITED, st->text);
 }
-
 
 /* Space Properties */
 
@@ -2748,6 +2741,8 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "replacestr");
 	RNA_def_property_ui_text(prop, "Replace Text", "Text to replace selected text with using the replace tool");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
+
+	RNA_api_space_text(srna);
 }
 
 static void rna_def_space_dopesheet(BlenderRNA *brna)

@@ -31,8 +31,11 @@
 #define __ED_TEXT_H__
 
 struct bContext;
+struct SpaceText;
+struct ARegion;
 
 void ED_text_undo_step(struct bContext *C, int step);
+bool ED_text_region_location_from_cursor(struct SpaceText *st, struct ARegion *ar, const int cursor_co[2], int r_pixel_co[2]);
 
 #endif /* __ED_TEXT_H__ */
 

@@ -44,6 +44,8 @@
 #include "BKE_text.h"
 #include "BKE_screen.h"
 
+#include "ED_text.h"
+
 #include "BIF_gl.h"
 
 #include "UI_interface.h"
@@ -1546,4 +1548,38 @@ void text_update_cursor_moved(bContext *C)
 	SpaceText *st = CTX_wm_space_text(C);
 
 	text_scroll_to_cursor__area(st, sa, true);
+}
+
+/**
+ * Takes a cursor (row, character) and returns x,y pixel coords.
+ */
+bool ED_text_region_location_from_cursor(SpaceText *st, ARegion* ar, const int cursor_co[2], int r_pixel_co[2])
+{
+	TextLine *line = NULL;
+
+	if (!st->text) {
+		goto error;
+	}
+
+	line = BLI_findlink(&st->text->lines, cursor_co[0]);
+	if (!line || (cursor_co[1] < 0) || (cursor_co[1] > line->len)) {
+		goto error;
+	}
+	else {
+		int offl, offc;
+		int linenr_offset = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+		/* handle tabs as well! */
+		int char_pos = text_get_char_pos(st, line->line, cursor_co[1]);
+
+		wrap_offset(st, ar, line, cursor_co[1], &offl, &offc);
+		r_pixel_co[0] = (char_pos + offc - st->left) * st->cwidth + linenr_offset;
+		r_pixel_co[1] = (cursor_co[0] + offl - st->top) * (st->lheight_dpi + TXT_LINE_SPACING);
+		r_pixel_co[1] = (ar->winy - (r_pixel_co[1] + TXT_OFFSET)) - st->lheight_dpi;
+	}
+	return true;
+
+
+error:
+	r_pixel_co[0] = r_pixel_co[1] = -1;
+	return false;
 }
