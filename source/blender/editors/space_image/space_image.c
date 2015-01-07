@@ -797,7 +797,9 @@ static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegion *
 	/* context changes */
 	switch (wmn->category) {
 		case NC_GPENCIL:
-			if (wmn->action == NA_EDITED)
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+				ED_region_tag_redraw(ar);
+			else if (wmn->data & ND_GPENCIL_EDITMODE)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_IMAGE:
@@ -860,6 +862,10 @@ static void image_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_GPENCIL:
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -908,7 +914,7 @@ static void image_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 	/* context changes */
 	switch (wmn->category) {
 		case NC_GPENCIL:
-			if (wmn->data == ND_DATA)
+			if (wmn->data == ND_DATA || ELEM(wmn->action, NA_EDITED, NA_SELECTED))
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:
