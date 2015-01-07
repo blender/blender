@@ -205,9 +205,13 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	/* copy/paste */
 	WM_keymap_add_item(keymap, "ACTION_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "flipped", true);
 #ifdef __APPLE__
 	WM_keymap_add_item(keymap, "ACTION_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_OSKEY | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "flipped", true);
 #endif
 
 	/* auto-set range */

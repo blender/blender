@@ -773,6 +773,35 @@ int BLI_str_index_in_array(const char *__restrict str, const char **__restrict s
 	return -1;
 }
 
+bool BLI_strn_ends_with(const char *str,const char *end, int slength)
+{
+	size_t elength = strlen(end);
+	
+	if (elength < slength) {
+		const char *iter = str + slength - elength;
+		while (*iter) {
+			if (*iter++ != *end++) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Find if a string ends with another string.
+ *
+ * \param str The string to search within.
+ * \param end The string we look for at the end.
+ * \return If str ends with end.
+ */
+bool BLI_str_ends_with(const char *str,const char *end)
+{
+	size_t slength =  strlen(str);
+	return BLI_strn_ends_with(str, end, slength);
+}
+
 /**
  * Find the first char matching one of the chars in \a delim, from left.
  *

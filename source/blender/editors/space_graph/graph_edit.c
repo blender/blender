@@ -697,7 +697,7 @@ static short copy_graph_keys(bAnimContext *ac)
 }
 
 static short paste_graph_keys(bAnimContext *ac,
-                              const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode)
+                              const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode, bool flip)
 {	
 	ListBase anim_data = {NULL, NULL};
 	int filter, ok = 0;
@@ -714,7 +714,7 @@ static short paste_graph_keys(bAnimContext *ac,
 		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* paste keyframes */
-	ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode);
+	ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode, flip);
 
 	/* clean up */
 	ANIM_animdata_freelist(&anim_data);
@@ -765,6 +765,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 
 	const eKeyPasteOffset offset_mode = RNA_enum_get(op->ptr, "offset");
 	const eKeyMergeMode merge_mode = RNA_enum_get(op->ptr, "merge");
+	const bool flipped = RNA_boolean_get(op->ptr, "flipped");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -774,7 +775,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	ac.reports = op->reports;
 
 	/* paste keyframes - non-zero return means an error occurred while trying to paste */
-	if (paste_graph_keys(&ac, offset_mode, merge_mode)) {
+	if (paste_graph_keys(&ac, offset_mode, merge_mode, flipped)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -786,6 +787,8 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
  
 void GRAPH_OT_paste(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Paste Keyframes";
 	ot->idname = "GRAPH_OT_paste";
@@ -802,6 +805,8 @@ void GRAPH_OT_paste(wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
 	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merging pasted keys and existing");
+	prop = RNA_def_boolean(ot->srna, "flipped", false, "Flipped", "Paste keyframes from mirrored bones if they exist");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Duplicate Keyframes Operator ************************* */
