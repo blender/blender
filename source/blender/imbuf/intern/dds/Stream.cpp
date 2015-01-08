@@ -30,10 +30,13 @@
 #include <stdio.h>  // printf
 #include <string.h> // memcpy
 
+static const char *msg_error_seek = "DDS: trying to seek beyond end of stream (corrupt file?)";
+static const char *msg_error_read = "DDS: trying to read beyond end of stream (corrupt file?)";
+
 unsigned int Stream::seek(unsigned int p)
 {
 	if (p > size) {
-		printf("DDS: trying to seek beyond end of stream (corrupt file?)");
+		puts(msg_error_seek);
 	}
 	else {
 		pos = p;
@@ -45,7 +48,7 @@ unsigned int Stream::seek(unsigned int p)
 unsigned int mem_read(Stream & mem, unsigned long long & i)
 {
 	if (mem.pos + 8 > mem.size) {
-		printf("DDS: trying to read beyond end of stream (corrupt file?)");
+		puts(msg_error_seek);
 		return(0);
 	}
 	memcpy(&i, mem.mem + mem.pos, 8); // @@ todo: make sure little endian
@@ -56,7 +59,7 @@ unsigned int mem_read(Stream & mem, unsigned long long & i)
 unsigned int mem_read(Stream & mem, unsigned int & i)
 {
 	if (mem.pos + 4 > mem.size) {
-		printf("DDS: trying to read beyond end of stream (corrupt file?)");
+		puts(msg_error_read);
 		return(0);
 	}
 	memcpy(&i, mem.mem + mem.pos, 4); // @@ todo: make sure little endian
@@ -67,7 +70,7 @@ unsigned int mem_read(Stream & mem, unsigned int & i)
 unsigned int mem_read(Stream & mem, unsigned short & i)
 {
 	if (mem.pos + 2 > mem.size) {
-		printf("DDS: trying to read beyond end of stream (corrupt file?)");
+		puts(msg_error_read);
 		return(0);
 	}
 	memcpy(&i, mem.mem + mem.pos, 2); // @@ todo: make sure little endian
@@ -78,7 +81,7 @@ unsigned int mem_read(Stream & mem, unsigned short & i)
 unsigned int mem_read(Stream & mem, unsigned char & i)
 {
 	if (mem.pos + 1 > mem.size) {
-		printf("DDS: trying to read beyond end of stream (corrupt file?)");
+		puts(msg_error_read);
 		return(0);
 	}
 	i = (mem.mem + mem.pos)[0];
@@ -89,7 +92,7 @@ unsigned int mem_read(Stream & mem, unsigned char & i)
 unsigned int mem_read(Stream & mem, unsigned char *i, unsigned int cnt)
 {
 	if (mem.pos + cnt > mem.size) {
-		printf("DDS: trying to read beyond end of stream (corrupt file?)");
+		puts(msg_error_read);
 		return(0);
 	}
 	memcpy(i, mem.mem + mem.pos, cnt);
