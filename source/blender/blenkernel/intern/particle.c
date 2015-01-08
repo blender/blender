@@ -2587,6 +2587,8 @@ void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupd
 	
 	psys_tasks_free(tasks_parent, numtasks_parent);
 	psys_tasks_free(tasks_child, numtasks_child);
+	
+	psys_thread_context_free(&ctx);
 }
 
 /* figure out incremental rotations along path starting from unit quat */

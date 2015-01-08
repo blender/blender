@@ -350,6 +350,7 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim, struct Pa
                                    struct ParticleCacheKey *cache, float mat[4][4], float *scale);
 
 void psys_thread_context_init(struct ParticleThreadContext *ctx, struct ParticleSimulationData *sim);
+void psys_thread_context_free(struct ParticleThreadContext *ctx);
 void psys_tasks_create(struct ParticleThreadContext *ctx, int totpart, struct ParticleTask **r_tasks, int *r_numtasks);
 void psys_tasks_free(struct ParticleTask *tasks, int numtasks);
 

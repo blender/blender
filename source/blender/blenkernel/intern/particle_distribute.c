@@ -1140,6 +1140,8 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 		ctx.dm->release(ctx.dm);
 	
 	psys_tasks_free(tasks, numtasks);
+	
+	psys_thread_context_free(&ctx);
 }
 
 /* ready for future use, to emit particles without geometry */
