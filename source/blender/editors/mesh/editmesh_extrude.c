@@ -54,18 +54,6 @@
 
 #include "mesh_intern.h"  /* own include */
 
-/* allow accumulated normals to form a new direction but don't
- * accept direct opposite directions else they will cancel each other out */
-static void add_normal_aligned(float nor[3], const float add[3])
-{
-	if (dot_v3v3(nor, add) < -0.9999f) {
-		sub_v3_v3(nor, add);
-	}
-	else {
-		add_v3_v3(nor, add);
-	}
-}
-
 static void edbm_extrude_edge_exclude_mirror(
         Object *obedit, BMEditMesh *em,
         const char hflag,
@@ -137,7 +125,7 @@ static void edbm_extrude_edge_exclude_mirror(
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
-static short edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
+static bool edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const char hflag)
 {
 	BMOIter siter;
 	BMIter liter;
@@ -165,14 +153,14 @@ static short edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const c
 	}
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
+		return false;
 	}
 
-	return 's';  /* s is shrink/fatten */
+	return true;
 }
 
 /* extrudes individual edges */
-static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
+static bool edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char hflag)
 {
 	BMesh *bm = em->bm;
 	BMOperator bmop;
@@ -191,14 +179,14 @@ static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_VERT | BM_EDGE, BM_ELEM_SELECT, true);
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
+		return false;
 	}
 
-	return 'n';  /* n is normal grab */
+	return true;
 }
 
 /* extrudes individual vertices */
-static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
+static bool edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char hflag)
 {
 	BMOperator bmop;
 
@@ -214,27 +202,55 @@ static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, true);
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
+		return false;
 	}
 
-	return 'g';  /* g is grab */
+	return true;
 }
 
-static short edbm_extrude_edge_ex(
+static char edbm_extrude_htype_from_em_select(BMEditMesh *em)
+{
+	char htype = BM_ALL_NOLOOP;
+
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		/* pass */
+	}
+	else if (em->selectmode & SCE_SELECT_EDGE) {
+		htype &= ~BM_VERT;
+	}
+	else {
+		htype &= ~(BM_VERT | BM_EDGE);
+	}
+
+	if (em->bm->totedgesel == 0) {
+		htype &= ~(BM_EDGE | BM_FACE);
+	}
+	else if (em->bm->totfacesel == 0) {
+		htype &= ~BM_FACE;
+	}
+
+	return htype;
+}
+
+static bool edbm_extrude_ex(
         Object *obedit, BMEditMesh *em,
-        const char hflag, float nor[3],
+        char htype, const char hflag,
         const bool use_mirror,
         const bool use_select_history)
 {
 	BMesh *bm = em->bm;
 	BMOIter siter;
 	BMOperator extop;
-	BMFace *f;
 	BMElem *ele;
 	
+	/* needed to remove the faces left behind */
+	if (htype & BM_FACE) {
+		htype |= BM_EDGE;
+	}
+
 	BMO_op_init(bm, &extop, BMO_FLAG_DEFAULTS, "extrude_face_region");
 	BMO_slot_bool_set(extop.slots_in, "use_select_history", use_select_history);
-	BMO_slot_buffer_from_enabled_hflag(bm, &extop, extop.slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, hflag);
+	BMO_slot_buffer_from_enabled_hflag(bm, &extop, extop.slots_in, "geom", htype, hflag);
 
 	if (use_mirror) {
 		BMOpSlot *slot_edges_exclude;
@@ -248,61 +264,14 @@ static short edbm_extrude_edge_ex(
 	BM_SELECT_HISTORY_RESTORE(bm);
 
 	BMO_op_exec(bm, &extop);
-
-	zero_v3(nor);
 	
-	BMO_ITER (ele, &siter, extop.slots_out, "geom.out", BM_ALL) {
+	BMO_ITER (ele, &siter, extop.slots_out, "geom.out", BM_ALL_NOLOOP) {
 		BM_elem_select_set(bm, ele, true);
-
-		if (ele->head.htype == BM_FACE) {
-			f = (BMFace *)ele;
-			add_normal_aligned(nor, f->no);
-		}
 	}
-
-	normalize_v3(nor);
 
 	BMO_op_finish(bm, &extop);
 
-	/* grab / normal constraint */
-	return is_zero_v3(nor) ? 'g' : 'n';
-}
-
-static short edbm_extrude_edge(
-        Object *obedit, BMEditMesh *em,
-        const char hflag, float nor[3])
-{
-	return edbm_extrude_edge_ex(obedit, em, hflag, nor, true, true);
-}
-
-static short edbm_extrude_vert(Object *obedit, BMEditMesh *em, const char hflag, float nor[3])
-{
-	BMIter iter;
-	BMEdge *eed;
-		
-	/* ensure vert flags are consistent for edge selections */
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(eed, hflag)) {
-			if (hflag & BM_ELEM_SELECT) {
-				BM_vert_select_set(em->bm, eed->v1, true);
-				BM_vert_select_set(em->bm, eed->v2, true);
-			}
-
-			BM_elem_flag_enable(eed->v1, hflag & ~BM_ELEM_SELECT);
-			BM_elem_flag_enable(eed->v2, hflag & ~BM_ELEM_SELECT);
-		}
-		else {
-			if (BM_elem_flag_test(eed->v1, hflag) && BM_elem_flag_test(eed->v2, hflag)) {
-				if (hflag & BM_ELEM_SELECT) {
-					BM_edge_select_set(em->bm, eed, true);
-				}
-
-				BM_elem_flag_enable(eed, hflag & ~BM_ELEM_SELECT);
-			}
-		}
-	}
-
-	return edbm_extrude_edge(obedit, em, hflag, nor);
+	return true;
 }
 
 static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
@@ -314,7 +283,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	const int steps = RNA_int_get(op->ptr, "steps");
 	
 	const float offs = RNA_float_get(op->ptr, "offset");
-	float dvec[3], tmat[3][3], bmat[3][3], nor[3] = {0.0, 0.0, 0.0};
+	float dvec[3], tmat[3][3], bmat[3][3];
 	short a;
 
 	/* dvec */
@@ -327,7 +296,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	mul_m3_v3(tmat, dvec);
 
 	for (a = 0; a < steps; a++) {
-		edbm_extrude_edge_ex(obedit, em, BM_ELEM_SELECT, nor, false, false);
+		edbm_extrude_ex(obedit, em, BM_ALL_NOLOOP, BM_ELEM_SELECT, false, false);
 
 		BMO_op_callf(
 		        em->bm, BMO_FLAG_DEFAULTS,
@@ -362,87 +331,62 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 }
 
 /* generic extern called extruder */
-static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOperator *op, float *norin)
+static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 {
-	short nr, transmode = 0;
-	float stacknor[3] = {0.0f, 0.0f, 0.0f};
-	float *nor = norin ? norin : stacknor;
-
-	zero_v3(nor);
+	bool changed = false;
+	const char htype = edbm_extrude_htype_from_em_select(em);
+	enum {NONE = 0, ELEM_FLAG, VERT_ONLY, EDGE_ONLY, FACE_ONLY} nr;
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
-		if (em->bm->totvertsel == 0) nr = 0;
-		else if (em->bm->totvertsel == 1) nr = 4;
-		else if (em->bm->totedgesel == 0) nr = 4;
-		else if (em->bm->totfacesel == 0)
-			nr = 3;
-		else if (em->bm->totfacesel == 1)
-			nr = 1;
-		else
-			nr = 1;
+		if      (em->bm->totvertsel == 0) nr = NONE;
+		else if (em->bm->totvertsel == 1) nr = VERT_ONLY;
+		else if (em->bm->totedgesel == 0) nr = VERT_ONLY;
+		else                              nr = ELEM_FLAG;
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {
-		if (em->bm->totedgesel == 0) nr = 0;
-		
-		nr = 1;
+		if      (em->bm->totedgesel == 0) nr = NONE;
+		else if (em->bm->totfacesel == 0) nr = EDGE_ONLY;
+		else                              nr = ELEM_FLAG;
 	}
 	else {
-		if (em->bm->totfacesel == 0) nr = 0;
-		else if (em->bm->totfacesel == 1) nr = 1;
-		else
-			nr = 1;
+		if      (em->bm->totfacesel == 0) nr = NONE;
+		else if (em->bm->totfacesel == 1) nr = FACE_ONLY;
+		else                              nr = ELEM_FLAG;
 	}
 
-	if (nr < 1) return 'g';
-
-	if (nr == 1 && (em->selectmode & SCE_SELECT_VERTEX))
-		transmode = edbm_extrude_vert(obedit, em, BM_ELEM_SELECT, nor);
-	else if (nr == 1) transmode = edbm_extrude_edge(obedit, em, BM_ELEM_SELECT, nor);
-	else if (nr == 4) transmode = edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT, nor);
-	else if (nr == 3) transmode = edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, nor);
-	else transmode = edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT, nor);
+	switch (nr) {
+		case NONE:
+			return false;
+		case ELEM_FLAG:
+			changed = edbm_extrude_ex(obedit, em, htype, BM_ELEM_SELECT, true, true);
+			break;
+		case VERT_ONLY:
+			changed = edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT);
+			break;
+		case EDGE_ONLY:
+			changed = edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT);
+			break;
+		case FACE_ONLY:
+			changed = edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT);
+			break;
+	}
 	
-	if (transmode == 0) {
+	if (changed) {
+		return true;
+	}
+	else {
 		BKE_report(op->reports, RPT_ERROR, "Not a valid selection for extrude");
+		return false;
 	}
-	else {
-		
-		/* We need to force immediate calculation here because
-		 * transform may use derived objects (which are now stale).
-		 *
-		 * This shouldn't be necessary, derived queries should be
-		 * automatically building this data if invalid. Or something.
-		 */
-//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		BKE_object_handle_update(G.main->eval_ctx, scene, obedit);
-
-		/* individual faces? */
-		if (nr == 2) {
-//			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET|CTX_NO_MIRROR);
-//			Transform();
-		}
-		else {
-//			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
-			if (transmode == 'n') {
-				mul_m4_v3(obedit->obmat, nor);
-				sub_v3_v3v3(nor, nor, obedit->obmat[3]);
-//				BIF_setSingleAxisConstraint(nor, "along normal");
-			}
-//			Transform();
-		}
-	}
-	
-	return transmode;
 }
 
 /* extrude without transform */
 static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	
-	edbm_extrude_mesh(scene, obedit, em, op, NULL);
+	edbm_extrude_mesh(obedit, em, op);
 
 	/* This normally happens when pushing undo but modal operators
 	 * like this one don't push undo data until after modal mode is
@@ -476,9 +420,8 @@ static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	float nor[3];
 
-	edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT, nor);
+	edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT);
 	
 	EDBM_update_generic(em, true, true);
 	
@@ -507,9 +450,8 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	float nor[3];
 
-	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, nor);
+	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT);
 	
 	EDBM_update_generic(em, true, true);
 	
@@ -538,9 +480,8 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	float nor[3];
 
-	edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT, nor);
+	edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT);
 	
 	EDBM_update_generic(em, true, true);
 	
@@ -578,7 +519,6 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
-
 	use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
 	            (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE));
 
@@ -593,6 +533,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
 	/* call extrude? */
 	if (done) {
+		const char extrude_htype = edbm_extrude_htype_from_em_select(vc.em);
 		const bool rot_src = RNA_boolean_get(op->ptr, "rotate_source");
 		BMEdge *eed;
 		float vec[3], cent[3], mat[3][3];
@@ -686,7 +627,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 				EMBM_project_snap_verts(C, vc.ar, vc.em);
 		}
 
-		edbm_extrude_edge(vc.obedit, vc.em, BM_ELEM_SELECT, nor);
+		edbm_extrude_ex(vc.obedit, vc.em, extrude_htype, BM_ELEM_SELECT, true, true);
 		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v matrix=%m3",
 		              BM_ELEM_SELECT, cent, mat);
 		EDBM_op_callf(vc.em, op, "translate verts=%hv vec=%v",
