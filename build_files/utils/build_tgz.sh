@@ -25,7 +25,16 @@ TARBALL="blender-$VERSION.tar.gz"
 cd "$blender_srcdir"
 
 # not so nice, but works
-FILTER_FILES_PY="import os, sys; [print(l[:-1]) for l in sys.stdin.readlines() if os.path.isfile(l[:-1])]"
+FILTER_FILES_PY=\
+"import os, sys; "\
+"[print(l[:-1]) for l in sys.stdin.readlines() "\
+"if os.path.isfile(l[:-1]) "\
+"if os.path.basename(l[:-1]) not in {"\
+"'.gitignore', "\
+"'.gitmodules', "\
+"'.arcconfig', "\
+"}"\
+"]"
 
 # Build master list
 echo -n "Building manifest of files:  \"$BASE_DIR/$MANIFEST\" ..."
