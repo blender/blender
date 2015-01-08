@@ -223,7 +223,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			break;
 	}
 
-	if (ret == OPERATOR_FINISHED) {
+	if (ret != OPERATOR_RUNNING_MODAL) {
 		change_frame_seq_preview_end(C);
 	}
 
