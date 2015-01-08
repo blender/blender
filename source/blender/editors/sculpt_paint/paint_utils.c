@@ -395,7 +395,7 @@ static Image *imapaint_face_image(DerivedMesh *dm, int face_index)
 	Image *ima;
 	MFace *mf = dm->getTessFaceArray(dm) + face_index;
 	Material *ma = dm->mat[mf->mat_nr];
-	ima = ma ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
+	ima = ma && ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 
 	return ima;
 }
