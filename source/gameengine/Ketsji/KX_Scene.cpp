@@ -1502,6 +1502,15 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 	bool dbvt_culling = false;
 	if (m_dbvt_culling) 
 	{
+		/* Reset KX_GameObject m_bCulled to true before doing culling
+		 * since DBVT culling will only set it to false.
+		 * This is similar to what RAS_BucketManager does for RAS_MeshSlot culling.
+		 */
+		for (int i = 0; i < m_objectlist->GetCount(); i++) {
+			KX_GameObject *gameobj = static_cast<KX_GameObject*>(m_objectlist->GetValue(i));
+			gameobj->SetCulled(true);
+		}
+
 		// test culling through Bullet
 		MT_Vector4 planes[6];
 		// get the clip planes
