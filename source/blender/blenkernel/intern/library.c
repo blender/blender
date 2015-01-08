@@ -351,7 +351,7 @@ bool id_copy(ID *id, ID **newid, bool test)
 		case ID_VF:
 			return false;  /* not implemented */
 		case ID_TXT:
-			if (!test) *newid = (ID *)BKE_text_copy((Text *)id);
+			if (!test) *newid = (ID *)BKE_text_copy(G.main, (Text *)id);
 			return true;
 		case ID_SCRIPT:
 			return false;  /* deprecated */
