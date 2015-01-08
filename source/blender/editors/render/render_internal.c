@@ -1445,7 +1445,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	rp->bmain = CTX_data_main(C);
 	rp->resolution_divider = divider;
 	rp->start_resolution_divider = divider;
-	rp->has_freestyle = scene->r.mode & R_EDGE_FRS;
+	rp->has_freestyle = (scene->r.mode & R_EDGE_FRS) != 0;
 	copy_m4_m4(rp->viewmat, rp->rv3d->viewmat);
 	
 	/* clear info text */

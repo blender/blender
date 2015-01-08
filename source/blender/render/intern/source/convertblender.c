@@ -5235,7 +5235,7 @@ void RE_Database_Preprocess(Render *re)
 		}
 		
 		if (!re->test_break(re->tbh))
-			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
+			project_renderdata(re, projectverto, (re->r.mode & R_PANORAMA) != 0, 0, 1);
 		
 		/* Occlusion */
 		if ((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
@@ -5333,7 +5333,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	database_init_objects(re, lay, 0, 0, NULL, timeoffset);
 	
 	if (!re->test_break(re->tbh))
-		project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
+		project_renderdata(re, projectverto, (re->r.mode & R_PANORAMA) != 0, 0, 1);
 
 	/* do this in end, particles for example need cfra */
 	scene->r.cfra -= timeoffset;
