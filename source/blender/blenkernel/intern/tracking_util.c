@@ -172,8 +172,7 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 			MovieTrackingTrack *new_track = BKE_tracking_track_duplicate(track);
 
 			/* Update old-new track mapping */
-			BLI_ghash_remove(map->hash, track, NULL, NULL);
-			BLI_ghash_insert(map->hash, track, new_track);
+			BLI_ghash_reinsert(map->hash, track, new_track, NULL, NULL);
 
 			BLI_addtail(&tracks, new_track);
 		}

@@ -363,8 +363,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
 		item->priority_data = cache->getprioritydatafp(userkey);
 	}
 
-	BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
-	BLI_ghash_insert(cache->hash, key, item);
+	BLI_ghash_reinsert(cache->hash, key, item, moviecache_keyfree, moviecache_valfree);
 
 	if (cache->last_userkey) {
 		memcpy(cache->last_userkey, userkey, cache->keysize);
