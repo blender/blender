@@ -1553,7 +1553,7 @@ void text_update_cursor_moved(bContext *C)
 /**
  * Takes a cursor (row, character) and returns x,y pixel coords.
  */
-bool ED_text_region_location_from_cursor(SpaceText *st, ARegion* ar, const int cursor_co[2], int r_pixel_co[2])
+bool ED_text_region_location_from_cursor(SpaceText *st, ARegion *ar, const int cursor_co[2], int r_pixel_co[2])
 {
 	TextLine *line = NULL;
 

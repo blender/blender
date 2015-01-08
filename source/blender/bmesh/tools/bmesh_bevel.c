@@ -3081,7 +3081,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		}
 		else if (bp->vertex_only) {
 			/* Weight has already been applied to bv->offset, if present.
-			 * Transfer to e->offset_[lr]_spec and treat percet as special case */
+			 * Transfer to e->offset_[lr]_spec and treat percent as special case */
 			if (bp->offset_type == BEVEL_AMT_PERCENT) {
 				v2 = BM_edge_other_vert(e->e, bv->v);
 				e->offset_l_spec = BM_edge_calc_length(e->e) * bv->offset / 100.0f;
