@@ -2089,7 +2089,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 	tkey.time=pa->state.time;
 
 	if (part->type != PART_HAIR) {
-		if (do_guides(sim->psys->effectors, &tkey, p, time)) {
+		if (do_guides(sim->psys->part, sim->psys->effectors, &tkey, p, time)) {
 			copy_v3_v3(pa->state.co,tkey.co);
 			/* guides don't produce valid velocity */
 			sub_v3_v3v3(pa->state.vel, tkey.co, pa->prev_state.co);

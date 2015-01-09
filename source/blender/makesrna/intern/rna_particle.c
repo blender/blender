@@ -131,6 +131,7 @@ static EnumPropertyItem part_hair_ren_as_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_cloth.h"
+#include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -872,6 +873,29 @@ static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 	ParticleSettings *part = (ParticleSettings *)ptr->data;
 
 	return part->type == PART_FLUID;
+}
+
+int rna_ParticleSettings_use_clump_curve_get(PointerRNA *ptr)
+{
+	ParticleSettings *part = ptr->data;
+	return part->clumpcurve != NULL;
+}
+
+void rna_ParticleSettings_use_clump_curve_set(PointerRNA *ptr, int value)
+{
+	ParticleSettings *part = ptr->data;
+	
+	if (!value) {
+		if (part->clumpcurve) {
+			curvemapping_free(part->clumpcurve);
+			part->clumpcurve = NULL;
+		}
+	}
+	else {
+		if (!part->clumpcurve) {
+			BKE_particlesettings_clump_curve_init(part);
+		}
+	}
 }
 
 static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
@@ -2797,6 +2821,17 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shape", "Shape of clumping");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
+	prop = RNA_def_property(srna, "use_clump_curve", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ParticleSettings_use_clump_curve_get", "rna_ParticleSettings_use_clump_curve_set");
+	RNA_def_property_ui_text(prop, "Use Clump Curve", "Use a curve to define clump tapering");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "clump_curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clumpcurve");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Clump Curve", "Curve defining clump tapering");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* kink */
 	prop = RNA_def_property(srna, "kink_amplitude", PROP_FLOAT, PROP_NONE);

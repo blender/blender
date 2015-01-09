@@ -46,6 +46,8 @@
 #include "DNA_material_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_sequence_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -344,6 +346,13 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 
 				WM_main_add_notifier(NC_LINESTYLE, linestyle);
 				break;
+			}
+			case ID_PA:
+			{
+				ParticleSettings *part = ptr->id.data;
+				
+				DAG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+				WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, part);
 			}
 			default:
 				break;

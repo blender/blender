@@ -3816,6 +3816,10 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	direct_link_partdeflect(part->pd);
 	direct_link_partdeflect(part->pd2);
 
+	part->clumpcurve = newdataadr(fd, part->clumpcurve);
+	if (part->clumpcurve)
+		direct_link_curvemapping(fd, part->clumpcurve);
+
 	part->effector_weights = newdataadr(fd, part->effector_weights);
 	if (!part->effector_weights)
 		part->effector_weights = BKE_add_effector_weights(part->eff_group);

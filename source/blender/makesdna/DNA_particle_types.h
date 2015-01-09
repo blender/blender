@@ -233,6 +233,7 @@ typedef struct ParticleSettings {
 	int trail_count;
 	/* keyed particles */
 	int keyed_loops;
+	struct CurveMapping *clumpcurve;
 
 	/* hair dynamics */
 	float bending_random;

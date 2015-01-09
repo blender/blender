@@ -330,7 +330,7 @@ void psys_find_parents(struct ParticleSimulationData *sim);
 void psys_cache_paths(struct ParticleSimulationData *sim, float cfra);
 void psys_cache_edit_paths(struct Scene *scene, struct Object *ob, struct PTCacheEdit *edit, float cfra);
 void psys_cache_child_paths(struct ParticleSimulationData *sim, float cfra, int editupdate);
-int do_guides(struct ListBase *effectors, ParticleKey *state, int pa_num, float time);
+int do_guides(struct ParticleSettings *part, struct ListBase *effectors, ParticleKey *state, int pa_num, float time);
 void precalc_guides(struct ParticleSimulationData *sim, struct ListBase *effectors);
 float psys_get_timestep(struct ParticleSimulationData *sim);
 float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *birthtime, float *dietime);
@@ -339,6 +339,7 @@ void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, s
 int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct ParticleKey *state, int always);
 
 /* child paths */
+void BKE_particlesettings_clump_curve_init(struct ParticleSettings *part);
 void psys_apply_child_modifiers(struct ParticleThreadContext *ctx, struct ListBase *modifiers,
                                 struct ChildParticle *cpa, struct ParticleTexture *ptex, const float orco[3], const float ornor[3], float hairmat[4][4],
                                 struct ParticleCacheKey *keys, struct ParticleCacheKey *parent_keys);

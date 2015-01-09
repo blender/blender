@@ -1108,6 +1108,9 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
 			writestruct(wd, DATA, "EffectorWeights", 1, part->effector_weights);
 
+			if (part->clumpcurve)
+				write_curvemapping(wd, part->clumpcurve);
+			
 			dw = part->dupliweights.first;
 			for (; dw; dw=dw->next) {
 				/* update indices */

@@ -1167,8 +1167,12 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         col.label(text="Effects:")
 
         sub = col.column(align=True)
-        sub.prop(part, "clump_factor", slider=True)
-        sub.prop(part, "clump_shape", slider=True)
+        sub.prop(part, "use_clump_curve")
+        if part.use_clump_curve:
+            sub.template_curve_mapping(part, "clump_curve")
+        else:
+            sub.prop(part, "clump_factor", slider=True)
+            sub.prop(part, "clump_shape", slider=True)
 
         sub = col.column(align=True)
         sub.prop(part, "child_length", slider=True)

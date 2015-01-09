@@ -64,6 +64,7 @@
 
 #include "BKE_boids.h"
 #include "BKE_cloth.h"
+#include "BKE_colortools.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
@@ -373,6 +374,10 @@ void BKE_particlesettings_free(ParticleSettings *part)
 	MTex *mtex;
 	int a;
 	BKE_free_animdata(&part->id);
+	
+	if (part->clumpcurve)
+		curvemapping_free(part->clumpcurve);
+	
 	free_partdeflect(part->pd);
 	free_partdeflect(part->pd2);
 
@@ -1665,7 +1670,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
 
 extern void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat,
                     short type, short axis, float obmat[4][4], int smooth_start);
-extern float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump);
+extern float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump, CurveMapping *clumpcurve);
 
 void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 {
@@ -1708,7 +1713,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 	}
 }
 
-int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
+int do_guides(ParticleSettings *part, ListBase *effectors, ParticleKey *state, int index, float time)
 {
 	EffectorCache *eff;
 	PartDeflect *pd;
@@ -1777,10 +1782,14 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 					mul_v3_fl(vec_to_point, radius);
 				}
 			}
+			
+			if (part->clumpcurve)
+				curvemapping_changed_all(part->clumpcurve);
+			
 			par.co[0] = par.co[1] = par.co[2] = 0.0f;
 			copy_v3_v3(key.co, vec_to_point);
 			do_kink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, 0.f, pd->kink, pd->kink_axis, 0, 0);
-			do_clump(&key, &par, guidetime, pd->clump_fac, pd->clump_pow, 1.0f);
+			do_clump(&key, &par, guidetime, pd->clump_fac, pd->clump_pow, 1.0f, part->clumpcurve);
 			copy_v3_v3(vec_to_point, key.co);
 
 			add_v3_v3(vec_to_point, guidevec);
@@ -1978,6 +1987,10 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx, ParticleSi
 	ctx->vg_roughe = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_ROUGHE);
 	if (psys->part->flag & PART_CHILD_EFFECT)
 		ctx->vg_effector = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_EFFECTOR);
+
+	/* prepare curvemapping tables */
+	if (part->clumpcurve)
+		curvemapping_changed_all(part->clumpcurve);
 
 	return true;
 }
@@ -2545,7 +2558,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 			if (sim->psys->effectors && (psys->part->flag & PART_CHILD_EFFECT) == 0) {
 				for (k = 0, ca = cache[p]; k <= steps; k++, ca++)
 					/* ca is safe to cast, since only co and vel are used */
-					do_guides(sim->psys->effectors, (ParticleKey *)ca, p, (float)k / (float)steps);
+					do_guides(sim->psys->part, sim->psys->effectors, (ParticleKey *)ca, p, (float)k / (float)steps);
 			}
 
 			/* lattices have to be calculated separately to avoid mixups between effector calculations */
@@ -3141,6 +3154,18 @@ ParticleSettings *psys_new_settings(const char *name, Main *main)
 	return part;
 }
 
+void BKE_particlesettings_clump_curve_init(ParticleSettings *part)
+{
+	CurveMapping *cumap = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	
+	cumap->cm[0].curve[0].x = 0.0f;
+	cumap->cm[0].curve[0].y = 1.0f;
+	cumap->cm[0].curve[1].x = 1.0f;
+	cumap->cm[0].curve[1].y = 1.0f;
+	
+	part->clumpcurve = cumap;
+}
+
 ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 {
 	ParticleSettings *partn;
@@ -3152,6 +3177,9 @@ ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 	partn->effector_weights = MEM_dupallocN(part->effector_weights);
 	partn->fluid = MEM_dupallocN(part->fluid);
 
+	if (part->clumpcurve)
+		partn->clumpcurve = curvemapping_copy(part->clumpcurve);
+	
 	partn->boids = boid_copy_settings(part->boids);
 
 	for (a = 0; a < MAX_MTEX; a++) {
@@ -3604,7 +3632,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 					mul_mat3_m4_v3(hairmat, state->vel);
 
 					if (sim->psys->effectors && (part->flag & PART_CHILD_GUIDE) == 0) {
-						do_guides(sim->psys->effectors, state, p, state->time);
+						do_guides(sim->psys->part, sim->psys->effectors, state, p, state->time);
 						/* TODO: proper velocity handling */
 					}
 

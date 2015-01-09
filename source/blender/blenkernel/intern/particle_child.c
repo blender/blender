@@ -34,13 +34,14 @@
 
 #include "DNA_material_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_particle.h"
 
 struct Material;
 
 void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat,
              short type, short axis, float obmat[4][4], int smooth_start);
-float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump);
+float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump, CurveMapping *clumpcurve);
 void do_child_modifiers(ParticleSimulationData *sim,
                         ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa,
                         const float orco[3], float mat[4][4], ParticleKey *state, float t);
@@ -359,11 +360,19 @@ void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, f
 		copy_v3_v3(state->co, result);
 }
 
-float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump)
+float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump, CurveMapping *clumpcurve)
 {
 	float clump = 0.f;
 
-	if (par && clumpfac != 0.0f) {
+	if (!par)
+		return 0.0f;
+	
+	if (clumpcurve) {
+		clump = pa_clump * (1.0f - CLAMPIS(curvemapping_evaluateF(clumpcurve, 0, time), 0.0f, 1.0f));
+		
+		interp_v3_v3v3(state->co, state->co, par->co, clump);
+	}
+	else if (clumpfac != 0.0f) {
 		float cpow;
 
 		if (clumppow < 0.0f)
@@ -439,10 +448,10 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, Part
 
 	if (part->flag & PART_CHILD_EFFECT)
 		/* state is safe to cast, since only co and vel are used */
-		guided = do_guides(sim->psys->effectors, (ParticleKey *)state, cpa->parent, t);
+		guided = do_guides(sim->psys->part, sim->psys->effectors, (ParticleKey *)state, cpa->parent, t);
 
 	if (guided == 0) {
-		float clump = do_clump(state, par, t, part->clumpfac, part->clumppow, ptex ? ptex->clump : 1.f);
+		float clump = do_clump(state, par, t, part->clumpfac, part->clumppow, ptex ? ptex->clump : 1.f, part->clumpcurve);
 
 		if (kink_freq != 0.f) {
 			float kink_amp = part->kink_amp * (1.f - part->kink_amp_clump * clump);
