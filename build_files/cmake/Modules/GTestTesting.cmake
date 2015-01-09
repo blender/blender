@@ -32,6 +32,8 @@ macro(BLENDER_SRC_GTEST NAME SRC EXTRA_LIBS)
 		                      bf_testing_main
 		                      bf_intern_guardedalloc
 		                      extern_gtest
+		                      # needed for glog
+		                      ${PTHREADS_LIBRARIES}
 		                      extern_glog)
 		set_target_properties(${NAME}_test PROPERTIES
 		                      RUNTIME_OUTPUT_DIRECTORY         "${TESTS_OUTPUT_DIR}"
