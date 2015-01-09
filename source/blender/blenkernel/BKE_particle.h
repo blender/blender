@@ -338,6 +338,11 @@ float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa
 void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, struct ParticleKey *state, const bool vel);
 int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct ParticleKey *state, int always);
 
+/* child paths */
+void psys_apply_child_modifiers(struct ParticleThreadContext *ctx, struct ListBase *modifiers,
+                                struct ChildParticle *cpa, struct ParticleTexture *ptex, const float orco[3], const float ornor[3], float hairmat[4][4],
+                                struct ParticleCacheKey *keys, struct ParticleCacheKey *parent_keys);
+
 void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);
 void psys_sph_finalise(struct SPHData *sphdata);
 void psys_sph_density(struct BVHTree *tree, struct SPHData *data, float co[3], float vars[2]);

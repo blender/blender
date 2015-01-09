@@ -102,9 +102,9 @@ void psys_init_rng(void)
 
 static void get_child_modifier_parameters(ParticleSettings *part, ParticleThreadContext *ctx,
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
-static void do_child_modifiers(ParticleSimulationData *sim,
-                               ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa,
-                               float *orco, float mat[4][4], ParticleKey *state, float t);
+void do_child_modifiers(ParticleSimulationData *sim,
+                        ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa,
+                        const float orco[3], float mat[4][4], ParticleKey *state, float t);
 
 /* few helpers for countall etc. */
 int count_particles(ParticleSystem *psys)
@@ -1984,7 +1984,7 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 	}
 	return 0;
 }
-static void do_rough(float *loc, float mat[4][4], float t, float fac, float size, float thres, ParticleKey *state)
+static void do_rough(const float loc[3], float mat[4][4], float t, float fac, float size, float thres, ParticleKey *state)
 {
 	float rough[3];
 	float rco[3];
@@ -2049,20 +2049,6 @@ static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheK
 
 	if (k < steps)
 		*length = len_v3(vec);
-}
-static int check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *state, float max_length, float *cur_length, float length, float *dvec)
-{
-	if (*cur_length + length > max_length) {
-		mul_v3_fl(dvec, (max_length - *cur_length) / length);
-		add_v3_v3v3(state->co, (state - 1)->co, dvec);
-		keys->steps = k;
-		/* something over the maximum step value */
-		return k = 100000;
-	}
-	else {
-		*cur_length += length;
-		return k;
-	}
 }
 static void offset_child(ChildParticle *cpa, ParticleKey *par, float *par_rot, ParticleKey *child, float flat, float radius)
 {
@@ -2140,38 +2126,6 @@ void psys_find_parents(ParticleSimulationData *sim)
 	}
 
 	BLI_kdtree_free(tree);
-}
-
-static void get_strand_normal(Material *ma, const float surfnor[3], float surfdist, float nor[3])
-{
-	float cross[3], nstrand[3], vnor[3], blend;
-
-	if (!((ma->mode & MA_STR_SURFDIFF) || (ma->strand_surfnor > 0.0f)))
-		return;
-
-	if (ma->mode & MA_STR_SURFDIFF) {
-		cross_v3_v3v3(cross, surfnor, nor);
-		cross_v3_v3v3(nstrand, nor, cross);
-
-		blend = dot_v3v3(nstrand, surfnor);
-		CLAMP(blend, 0.0f, 1.0f);
-
-		interp_v3_v3v3(vnor, nstrand, surfnor, blend);
-		normalize_v3(vnor);
-	}
-	else {
-		copy_v3_v3(vnor, nor);
-	}
-	
-	if (ma->strand_surfnor > 0.0f) {
-		if (ma->strand_surfnor > surfdist) {
-			blend = (ma->strand_surfnor - surfdist) / ma->strand_surfnor;
-			interp_v3_v3v3(vnor, vnor, surfnor, blend);
-			normalize_v3(vnor);
-		}
-	}
-
-	copy_v3_v3(nor, vnor);
 }
 
 static bool psys_thread_context_init_path(ParticleThreadContext *ctx, ParticleSimulationData *sim, Scene *scene, float cfra, int editupdate)
@@ -2258,8 +2212,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 	ParticleCacheKey *child, *par = NULL, *key[4];
 	ParticleTexture ptex;
 	float *cpa_fuv = 0, *par_rot = 0, rot[4];
-	float orco[3], ornor[3], hairmat[4][4], t, dvec[3], off1[4][3], off2[4][3];
-	float length, max_length = 1.0f, cur_length = 0.0f;
+	float orco[3], ornor[3], hairmat[4][4], dvec[3], off1[4][3], off2[4][3];
 	float eff_length, eff_vec[3], weight[4];
 	int k, cpa_num;
 	short cpa_from;
@@ -2457,6 +2410,18 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 		}
 	}
 
+	if (ctx->totparent)
+		/* this is now threadsafe, virtual parents are calculated before rest of children */
+		par = (i >= ctx->totparent) ? cache[cpa->parent] : NULL;
+	else if (cpa->parent >= 0)
+		par = pcache[cpa->parent];
+	
+	{
+		ListBase modifiers;
+		BLI_listbase_clear(&modifiers);
+		psys_apply_child_modifiers(ctx, &modifiers, cpa, &ptex, orco, ornor, hairmat, child_keys, par);
+	}
+#if 0
 	for (k = 0, child = child_keys; k <= ctx->steps; k++, child++) {
 		t = (float)k / (float)ctx->steps;
 
@@ -2509,6 +2474,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 			get_strand_normal(ctx->ma, ornor, cur_length, child->vel);
 		}
 	}
+#endif
 
 	/* Hide virtual parents */
 	if (i < ctx->totparent)
@@ -3782,7 +3748,7 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
 	if (ctx->vg_effector)
 		ptex->effector *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_effector);
 }
-static void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa, float *orco, float mat[4][4], ParticleKey *state, float t)
+void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t)
 {
 	ParticleSettings *part = sim->psys->part;
 	int i = cpa - sim->psys->child;
