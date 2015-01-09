@@ -69,6 +69,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "BKE_main.h"
+#include "BKE_fcurve.h"
 
 #include "BLI_math.h"
 
@@ -87,6 +88,7 @@ extern "C"
 #include "BKE_mesh.h" // BKE_mesh_copy
 #include "DNA_space_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_action_types.h"
 #include "RNA_define.h"
 #include "../../blender/editors/include/ED_keyframing.h"
 }
@@ -843,13 +845,26 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 		{
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsRecordAnimation()) {
-#if 0
 				Object* blenderObject = gameObj->GetBlenderObject();
-				if (blenderObject && blenderObject->ipo)
+				if (blenderObject && blenderObject->adt)
 				{
+					bAction *act = verify_adt_action(&blenderObject->id, false);
+					FCurve *fcu;
+
+					if (!act) {
+						continue;
+					}
+
+					/* for now, not much choice but to run this on all curves... */
+					for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {
+						/* Note: calling `sort_time_fcurve()` here is not needed, since
+						 *       all keys have been added in 'right' order. */
+						calchandles_fcurve(fcu);
+					}
+#if 0
 					// XXX animato
 					Ipo* ipo = blenderObject->ipo;
-					
+
 					//create the curves, if not existing
 					//testhandles_ipocurve checks for NULL
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"LocX"));
@@ -858,8 +873,8 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotX"));
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotY"));
 					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ"));
-				}
 #endif
+				}
 			}
 		}
 	}
