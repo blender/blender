@@ -621,6 +621,18 @@ MINLINE float dot_v3v3(const float a[3], const float b[3])
 	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
+MINLINE float dot_v3v3v3(const float p[3], const float a[3], const float b[3])
+{
+	float vec1[3], vec2[3];
+
+	sub_v3_v3v3(vec1, a, p);
+	sub_v3_v3v3(vec2, b, p);
+	if (is_zero_v3(vec1) || is_zero_v3(vec2)) {
+		return 0.0f;
+	}
+	return dot_v3v3(vec1, vec2);
+}
+
 MINLINE float dot_v4v4(const float a[4], const float b[4])
 {
 	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];

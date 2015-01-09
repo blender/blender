@@ -148,6 +148,7 @@ MINLINE void negate_v3_short(short r[3]);
 
 MINLINE float dot_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE float dot_v3v3v3(const float p[3], const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_v4v4(const float a[4], const float b[4]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE float cross_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
