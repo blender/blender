@@ -52,6 +52,7 @@
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_image.h"
+#include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -390,11 +391,11 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *
 }
 
 
-static Image *imapaint_face_image(DerivedMesh *dm, int face_index)
+static Image *imapaint_face_image(Object *ob, Mesh *me, int face_index)
 {
 	Image *ima;
-	MFace *mf = dm->getTessFaceArray(dm) + face_index;
-	Material *ma = dm->mat[mf->mat_nr];
+	MPoly *mp = me->mpoly + face_index;
+	Material *ma = give_current_material(ob, mp->mat_nr + 1);;
 	ima = ma && ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 
 	return ima;
@@ -449,15 +450,14 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 		bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 
 		if (ob) {
+			Mesh *me = (Mesh *)ob->data;
 			DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 
 			ViewContext vc;
 			const int mval[2] = {x, y};
 			unsigned int faceindex;
-			unsigned int totface = dm->getNumTessFaces(dm);
+			unsigned int totface = me->totface;
 			MTFace *dm_mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
-
-			DM_update_materials(dm, ob);
 
 			if (dm_mtface) {
 				view3d_set_viewcontext(C, &vc);
@@ -468,7 +468,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 					Image *image;
 					
 					if (use_material) 
-						image = imapaint_face_image(dm, faceindex);
+						image = imapaint_face_image(ob, me, faceindex);
 					else
 						image = imapaint->canvas;
 					
