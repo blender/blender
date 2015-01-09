@@ -773,12 +773,12 @@ int BLI_str_index_in_array(const char *__restrict str, const char **__restrict s
 	return -1;
 }
 
-bool BLI_strn_ends_with(const char *str,const char *end, int slength)
+bool BLI_strn_endswith(const char *__restrict str,const char *__restrict end, int slength)
 {
-	size_t elength = strlen(end);
+	int elength = strlen(end);
 	
 	if (elength < slength) {
-		const char *iter = str + slength - elength;
+		const char *iter = &str[slength - elength];
 		while (*iter) {
 			if (*iter++ != *end++) {
 				return false;
@@ -796,10 +796,10 @@ bool BLI_strn_ends_with(const char *str,const char *end, int slength)
  * \param end The string we look for at the end.
  * \return If str ends with end.
  */
-bool BLI_str_ends_with(const char *str,const char *end)
+bool BLI_str_endswith(const char *__restrict str,const char *end)
 {
-	size_t slength =  strlen(str);
-	return BLI_strn_ends_with(str, end, slength);
+	int slength = strlen(str);
+	return BLI_strn_endswith(str, end, slength);
 }
 
 /**
