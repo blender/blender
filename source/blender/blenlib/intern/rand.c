@@ -144,6 +144,31 @@ void BLI_rng_get_float_unit_v3(RNG *rng, float v[3])
 	}
 }
 
+/**
+ * Generate a random point inside given tri.
+ */
+void BLI_rng_get_tri_sample_float_v2(
+        RNG *rng, const float v1[2], const float v2[2], const float v3[2],
+        float r_pt[2])
+{
+	float u = BLI_rng_get_float(rng);
+	float v = BLI_rng_get_float(rng);
+
+	float side_u[2], side_v[2];
+
+	if ((u + v) > 1.0f) {
+		u = 1.0f - u;
+		v = 1.0f - v;
+	}
+
+	sub_v2_v2v2(side_u, v2, v1);
+	sub_v2_v2v2(side_v, v3, v1);
+
+	copy_v2_v2(r_pt, v1);
+	madd_v2_v2fl(r_pt, side_u, u);
+	madd_v2_v2fl(r_pt, side_v, v);
+}
+
 void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot)
 {
 	const size_t elem_size = (unsigned int)elem_size_i;

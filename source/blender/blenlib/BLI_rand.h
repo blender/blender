@@ -55,6 +55,9 @@ double      BLI_rng_get_double(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NON
 float       BLI_rng_get_float(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void        BLI_rng_get_float_unit_v2(struct RNG *rng, float v[2]) ATTR_NONNULL(1, 2);
 void        BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]) ATTR_NONNULL(1, 2);
+void        BLI_rng_get_tri_sample_float_v2(
+        struct RNG *rng, const float v1[2], const float v2[2], const float v3[2],
+        float r_pt[2]) ATTR_NONNULL();
 void        BLI_rng_shuffle_array(struct RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot) ATTR_NONNULL(1, 2);
 
 /** Note that skipping is as slow as generating n numbers! */
