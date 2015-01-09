@@ -455,17 +455,7 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 	
 	/* file name can be NULL */
 	if (ta->name) {
-		if (ta->id.lib && BLI_path_is_rel(ta->name)) {
-			char tname[FILE_MAXFILE];
-			/* If path is relative, and source is a lib, path is relative to lib file, not main one! */
-			BLI_strncpy(tname, ta->name, sizeof(tname));
-			BLI_path_abs(tname, ta->id.lib->filepath);
-			BLI_path_rel(tname, bmain->name);
-			tan->name = BLI_strdup(tname);
-		}
-		else {
-			tan->name = BLI_strdup(ta->name);
-		}
+		tan->name = BLI_strdup(ta->name);
 	}
 	else {
 		tan->name = NULL;
@@ -498,6 +488,10 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 	tan->curc = tan->selc = 0;
 
 	init_undo_text(tan);
+
+	if (ta->id.lib) {
+		BKE_id_lib_local_paths(bmain, ta->id.lib, &tan->id);
+	}
 
 	return tan;
 }

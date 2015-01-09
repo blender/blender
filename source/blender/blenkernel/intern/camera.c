@@ -78,6 +78,10 @@ Camera *BKE_camera_copy(Camera *cam)
 
 	id_lib_extern((ID *)camn->dof_ob);
 
+	if (cam->id.lib) {
+		BKE_id_lib_local_paths(G.main, cam->id.lib, &camn->id);
+	}
+
 	return camn;
 }
 

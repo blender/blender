@@ -252,6 +252,10 @@ Material *BKE_material_copy(Material *ma)
 
 	BLI_listbase_clear(&man->gpumaterial);
 	
+	if (ma->id.lib) {
+		BKE_id_lib_local_paths(G.main, ma->id.lib, &man->id);
+	}
+
 	return man;
 }
 

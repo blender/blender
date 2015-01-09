@@ -210,6 +210,10 @@ FreestyleLineStyle *BKE_linestyle_copy(FreestyleLineStyle *linestyle)
 	for (m = (LineStyleModifier *)linestyle->geometry_modifiers.first; m; m = m->next)
 		BKE_linestyle_geometry_modifier_copy(new_linestyle, m);
 
+	if (linestyle->id.lib) {
+		BKE_id_lib_local_paths(G.main, linestyle->id.lib, &new_linestyle->id);
+	}
+
 	return new_linestyle;
 }
 

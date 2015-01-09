@@ -67,6 +67,10 @@ Speaker *BKE_speaker_copy(Speaker *spk)
 	if (spkn->sound)
 		spkn->sound->id.us++;
 
+	if (spk->id.lib) {
+		BKE_id_lib_local_paths(G.main, spk->id.lib, &spkn->id);
+	}
+
 	return spkn;
 }
 

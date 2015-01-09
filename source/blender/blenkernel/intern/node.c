@@ -1202,6 +1202,10 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool do_
 	/* node tree will generate its own interface type */
 	newtree->interface_type = NULL;
 	
+	if (ntree->id.lib) {
+		BKE_id_lib_local_paths(bmain, ntree->id.lib, &newtree->id);
+	}
+
 	return newtree;
 }
 

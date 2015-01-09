@@ -844,6 +844,10 @@ Tex *BKE_texture_copy(Tex *tex)
 		texn->nodetree = ntreeCopyTree(tex->nodetree);
 	}
 	
+	if (tex->id.lib) {
+		BKE_id_lib_local_paths(G.main, tex->id.lib, &texn->id);
+	}
+
 	return texn;
 }
 

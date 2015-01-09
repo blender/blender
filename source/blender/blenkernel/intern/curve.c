@@ -237,6 +237,10 @@ Curve *BKE_curve_copy(Curve *cu)
 	id_us_plus((ID *)cun->vfonti);
 	id_us_plus((ID *)cun->vfontbi);
 
+	if (cu->id.lib) {
+		BKE_id_lib_local_paths(G.main, cu->id.lib, &cun->id);
+	}
+
 	return cun;
 }
 

@@ -50,6 +50,7 @@
 #include "DNA_sequence_types.h"
 
 #include "BKE_curve.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
@@ -853,6 +854,10 @@ Mask *BKE_mask_copy(Mask *mask)
 	if (!(mask_new->id.flag & LIB_FAKEUSER)) {
 		mask_new->id.flag |= LIB_FAKEUSER;
 		mask_new->id.us++;
+	}
+
+	if (mask->id.lib) {
+		BKE_id_lib_local_paths(G.main, mask->id.lib, &mask_new->id);
 	}
 
 	return mask_new;

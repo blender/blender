@@ -140,7 +140,11 @@ World *BKE_world_copy(World *wrld)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);
 
 	BLI_listbase_clear(&wrldn->gpumaterial);
-	
+
+	if (wrld->id.lib) {
+		BKE_id_lib_local_paths(G.main, wrld->id.lib, &wrldn->id);
+	}
+
 	return wrldn;
 }
 

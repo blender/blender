@@ -284,6 +284,10 @@ Lattice *BKE_lattice_copy(Lattice *lt)
 
 	ltn->editlatt = NULL;
 
+	if (lt->id.lib) {
+		BKE_id_lib_local_paths(G.main, lt->id.lib, &ltn->id);
+	}
+
 	return ltn;
 }
 

@@ -167,7 +167,11 @@ Key *BKE_key_copy(Key *key)
 		kbn = kbn->next;
 		kb = kb->next;
 	}
-	
+
+	if (key->id.lib) {
+		BKE_id_lib_local_paths(G.main, key->id.lib, &keyn->id);
+	}
+
 	return keyn;
 }
 

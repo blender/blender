@@ -1518,6 +1518,10 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	/* Copy runtime surve data. */
 	obn->curve_cache = NULL;
 
+	if (ob->id.lib) {
+		BKE_id_lib_local_paths(bmain, ob->id.lib, &obn->id);
+	}
+
 	return obn;
 }
 

@@ -3701,6 +3701,10 @@ ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 
 	BLI_duplicatelist(&partn->dupliweights, &part->dupliweights);
 	
+	if (part->id.lib) {
+		BKE_id_lib_local_paths(G.main, part->id.lib, &partn->id);
+	}
+
 	return partn;
 }
 

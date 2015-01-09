@@ -238,6 +238,10 @@ MetaBall *BKE_mball_copy(MetaBall *mb)
 	mbn->editelems = NULL;
 	mbn->lastelem = NULL;
 	
+	if (mb->id.lib) {
+		BKE_id_lib_local_paths(G.main, mb->id.lib, &mbn->id);
+	}
+
 	return mbn;
 }
 

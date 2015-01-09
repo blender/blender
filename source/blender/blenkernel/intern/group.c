@@ -149,6 +149,10 @@ Group *BKE_group_copy(Group *group)
 	groupn = BKE_libblock_copy(&group->id);
 	BLI_duplicatelist(&groupn->gobject, &group->gobject);
 
+	if (group->id.lib) {
+		BKE_id_lib_local_paths(G.main, group->id.lib, &groupn->id);
+	}
+
 	return groupn;
 }
 

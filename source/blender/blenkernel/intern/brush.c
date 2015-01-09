@@ -178,6 +178,10 @@ Brush *BKE_brush_copy(Brush *brush)
 		brushn->id.us++;
 	}
 	
+	if (brush->id.lib) {
+		BKE_id_lib_local_paths(G.main, brush->id.lib, &brushn->id);
+	}
+
 	return brushn;
 }
 

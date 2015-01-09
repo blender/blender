@@ -365,11 +365,6 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 	Image *nima = image_alloc(bmain, ima->id.name + 2, ima->source, ima->type);
 
 	BLI_strncpy(nima->name, ima->name, sizeof(ima->name));
-	if (ima->id.lib && BLI_path_is_rel(ima->name)) {
-		/* If path is relative, and source is a lib, path is relative to lib file, not main one! */
-		BLI_path_abs(nima->name, ima->id.lib->filepath);
-		BLI_path_rel(nima->name, bmain->name);
-	}
 
 	nima->flag = ima->flag;
 	nima->tpageflag = ima->tpageflag;
@@ -388,6 +383,10 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 
 	if (ima->packedfile)
 		nima->packedfile = dupPackedFile(ima->packedfile);
+
+	if (ima->id.lib) {
+		BKE_id_lib_local_paths(bmain, ima->id.lib, &nima->id);
+	}
 
 	return nima;
 }
