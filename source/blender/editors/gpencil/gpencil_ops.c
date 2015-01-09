@@ -162,6 +162,7 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	
 	/* delete */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GPENCIL_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
 	/* copy + paste */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
