@@ -51,6 +51,7 @@
 #include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -68,6 +69,7 @@ EnumPropertyItem modifier_type_items[] = {
 	{eModifierType_WeightVGMix, "VERTEX_WEIGHT_MIX", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Mix", ""},
 	{eModifierType_WeightVGProximity, "VERTEX_WEIGHT_PROXIMITY", ICON_MOD_VERTEX_WEIGHT,
 	                                  "Vertex Weight Proximity", ""},
+	{eModifierType_DataTransfer, "DATA_TRANSFER", ICON_MOD_DATA_TRANSFER, "Data Transfer", ""},
 	{0, "", 0, N_("Generate"), ""},
 	{eModifierType_Array, "ARRAY", ICON_MOD_ARRAY, "Array", ""},
 	{eModifierType_Bevel, "BEVEL", ICON_MOD_BEVEL, "Bevel", ""},
@@ -353,6 +355,8 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_LaplacianDeformModifier;
 		case eModifierType_Wireframe:
 			return &RNA_WireframeModifier;
+		case eModifierType_DataTransfer:
+			return &RNA_DataTransferModifier;
 		/* Default */
 		case eModifierType_None:
 		case eModifierType_ShapeKey:
@@ -418,6 +422,7 @@ RNA_MOD_VGROUP_NAME_SET(Armature, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Bevel, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Cast, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Curve, name);
+RNA_MOD_VGROUP_NAME_SET(DataTransfer, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Decimate, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Displace, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Hook, name);
@@ -508,6 +513,7 @@ RNA_MOD_OBJECT_SET(Array, curve_ob, OB_CURVE);
 RNA_MOD_OBJECT_SET(Boolean, object, OB_MESH);
 RNA_MOD_OBJECT_SET(Cast, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(Curve, object, OB_CURVE);
+RNA_MOD_OBJECT_SET(DataTransfer, ob_source, OB_MESH);
 RNA_MOD_OBJECT_SET(Lattice, object, OB_LATTICE);
 RNA_MOD_OBJECT_SET(Mask, ob_arm, OB_ARMATURE);
 RNA_MOD_OBJECT_SET(MeshDeform, object, OB_MESH);
@@ -745,6 +751,265 @@ static void rna_ArrayModifier_dependency_update(Main *bmain, Scene *scene, Point
 			DAG_id_tag_update(&curve->id, OB_RECALC_DATA);
 		}
 	}
+}
+
+
+static void rna_DataTransferModifier_use_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
+
+	if (!(dtmd->flags & MOD_DATATRANSFER_USE_VERT)) {
+		dtmd->data_types &= ~DT_TYPE_VERT_ALL;
+	}
+	if (!(dtmd->flags & MOD_DATATRANSFER_USE_EDGE)) {
+		dtmd->data_types &= ~DT_TYPE_EDGE_ALL;
+	}
+	if (!(dtmd->flags & MOD_DATATRANSFER_USE_LOOP)) {
+		dtmd->data_types &= ~DT_TYPE_LOOP_ALL;
+	}
+	if (!(dtmd->flags & MOD_DATATRANSFER_USE_POLY)) {
+		dtmd->data_types &= ~DT_TYPE_POLY_ALL;
+	}
+
+	rna_Modifier_update(bmain, scene, ptr);
+}
+
+static void rna_DataTransferModifier_data_types_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
+	const int item_types = BKE_object_data_transfer_get_dttypes_item_types(dtmd->data_types);
+
+	if (item_types & ME_VERT) {
+		dtmd->flags |= MOD_DATATRANSFER_USE_VERT;
+	}
+	if (item_types & ME_EDGE) {
+		dtmd->flags |= MOD_DATATRANSFER_USE_EDGE;
+	}
+	if (item_types & ME_LOOP) {
+		dtmd->flags |= MOD_DATATRANSFER_USE_LOOP;
+	}
+	if (item_types & ME_POLY) {
+		dtmd->flags |= MOD_DATATRANSFER_USE_POLY;
+	}
+
+	rna_Modifier_update(bmain, scene, ptr);
+}
+
+static EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
+{
+	DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
+	EnumPropertyItem *item = NULL, tmp_item = {0};
+	int totitem = 0;
+
+	if (!C) {  /* needed for docs and i18n tools */
+		return DT_layers_select_src_items;
+	}
+
+	/* No active here! */
+	RNA_enum_items_add_value(&item, &totitem, DT_layers_select_src_items, DT_LAYERS_ALL_SRC);
+
+	if (STREQ(RNA_property_identifier(prop), "layers_vgroup_select_src")) {
+		Object *ob_src = dtmd->ob_source;
+
+#if 0  /* XXX Don't think we want this in modifier version... */
+		if (BKE_object_pose_armature_get(ob_src)) {
+			RNA_enum_items_add_value(&item, &totitem, DT_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_SELECT);
+			RNA_enum_items_add_value(&item, &totitem, DT_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_DEFORM);
+		}
+#endif
+
+		if (ob_src) {
+			bDeformGroup *dg;
+			int i;
+
+			RNA_enum_item_add_separator(&item, &totitem);
+
+			for (i = 0, dg = ob_src->defbase.first; dg; i++, dg = dg->next) {
+				tmp_item.value = i;
+				tmp_item.identifier = tmp_item.name = dg->name;
+				RNA_enum_item_add(&item, &totitem, &tmp_item);
+			}
+		}
+	}
+	else if (STREQ(RNA_property_identifier(prop), "layers_shapekey_select_src")) {
+		/* TODO */
+	}
+	else if (STREQ(RNA_property_identifier(prop), "layers_uv_select_src")) {
+		Object *ob_src = dtmd->ob_source;
+
+		if (ob_src) {
+			DerivedMesh *dm_src;
+			CustomData *pdata;
+			int num_data, i;
+
+			/* XXX Is this OK? */
+			dm_src = mesh_get_derived_final(dtmd->modifier.scene, ob_src, CD_MASK_BAREMESH | CD_MTEXPOLY);
+			pdata = dm_src->getPolyDataLayout(dm_src);
+			num_data = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+
+			RNA_enum_item_add_separator(&item, &totitem);
+
+			for (i = 0; i < num_data; i++) {
+				tmp_item.value = i;
+				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(pdata, CD_MTEXPOLY, i);
+				RNA_enum_item_add(&item, &totitem, &tmp_item);
+			}
+		}
+	}
+	else if (STREQ(RNA_property_identifier(prop), "layers_vcol_select_src")) {
+		Object *ob_src = dtmd->ob_source;
+
+		if (ob_src) {
+			DerivedMesh *dm_src;
+			CustomData *ldata;
+			int num_data, i;
+
+			/* XXX Is this OK? */
+			dm_src = mesh_get_derived_final(dtmd->modifier.scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
+			ldata = dm_src->getLoopDataLayout(dm_src);
+			num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+
+			RNA_enum_item_add_separator(&item, &totitem);
+
+			for (i = 0; i < num_data; i++) {
+				tmp_item.value = i;
+				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPCOL, i);
+				RNA_enum_item_add(&item, &totitem, &tmp_item);
+			}
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
+{
+	DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
+	EnumPropertyItem *item = NULL, tmp_item = {0};
+	int totitem = 0;
+
+	if (!C) {  /* needed for docs and i18n tools */
+		return DT_layers_select_dst_items;
+	}
+
+	/* No active here! */
+	RNA_enum_items_add_value(&item, &totitem, DT_layers_select_dst_items, DT_LAYERS_NAME_DST);
+	RNA_enum_items_add_value(&item, &totitem, DT_layers_select_dst_items, DT_LAYERS_INDEX_DST);
+
+	if (STREQ(RNA_property_identifier(prop), "layers_vgroup_select_dst")) {
+		/* Only list destination layers if we have a single source! */
+		if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_MDEFORMVERT] >= 0) {
+			Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
+
+			if (ob_dst) {
+				bDeformGroup *dg;
+				int i;
+
+				RNA_enum_item_add_separator(&item, &totitem);
+
+				for (i = 0, dg = ob_dst->defbase.first; dg; i++, dg = dg->next) {
+					tmp_item.value = i;
+					tmp_item.identifier = tmp_item.name = dg->name;
+					RNA_enum_item_add(&item, &totitem, &tmp_item);
+				}
+			}
+		}
+	}
+	else if (STREQ(RNA_property_identifier(prop), "layers_shapekey_select_dst")) {
+		/* TODO */
+	}
+	else if (STREQ(RNA_property_identifier(prop), "layers_uv_select_dst")) {
+		/* Only list destination layers if we have a single source! */
+		if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_UV] >= 0) {
+			Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
+
+			if (ob_dst && ob_dst->data) {
+				Mesh *me_dst;
+				CustomData *pdata;
+				int num_data, i;
+
+				me_dst = ob_dst->data;
+				pdata = &me_dst->pdata;
+				num_data = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+
+				RNA_enum_item_add_separator(&item, &totitem);
+
+				for (i = 0; i < num_data; i++) {
+					tmp_item.value = i;
+					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(pdata, CD_MTEXPOLY, i);
+					RNA_enum_item_add(&item, &totitem, &tmp_item);
+				}
+			}
+		}
+	}
+	else if (STREQ(RNA_property_identifier(prop), "layers_vcol_select_dst")) {
+		/* Only list destination layers if we have a single source! */
+		if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_VCOL] >= 0) {
+			Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
+
+			if (ob_dst && ob_dst->data) {
+				Mesh *me_dst;
+				CustomData *ldata;
+				int num_data, i;
+
+				me_dst = ob_dst->data;
+				ldata = &me_dst->ldata;
+				num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+
+				RNA_enum_item_add_separator(&item, &totitem);
+
+				for (i = 0; i < num_data; i++) {
+					tmp_item.value = i;
+					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPCOL, i);
+					RNA_enum_item_add(&item, &totitem, &tmp_item);
+				}
+			}
+		}
+	}
+
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static EnumPropertyItem *rna_DataTransferModifier_mix_mode_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+	bool support_advanced_mixing, support_threshold;
+
+	if (!C) {  /* needed for docs and i18n tools */
+		return DT_mix_mode_items;
+	}
+
+	RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_TRANSFER);
+
+	BKE_object_data_transfer_get_dttypes_capacity(dtmd->data_types, &support_advanced_mixing, &support_threshold);
+
+	if (support_advanced_mixing) {
+		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_REPLACE_ABOVE_THRESHOLD);
+		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_REPLACE_BELOW_THRESHOLD);
+	}
+
+	if (support_advanced_mixing) {
+		RNA_enum_item_add_separator(&item, &totitem);
+		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_MIX);
+		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_ADD);
+		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_SUB);
+		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_MUL);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
 }
 
 #else
@@ -3807,6 +4072,251 @@ static void rna_def_modifier_wireframe(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
+static void rna_def_modifier_datatransfer(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem DT_layer_vert_items[] = {
+#if 0  /* XXX When SkinModifier is enabled, it seems to erase its own CD_MVERT_SKIN layer from final DM :( */
+		{DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
+#endif
+		{DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static EnumPropertyItem DT_layer_vert_vgroup_items[] = {
+		{DT_TYPE_MDEFORMVERT, "VGROUP_WEIGHTS", 0, "Vertex Group(s)", "Transfer active or all vertex groups"},
+		{0, NULL, 0, NULL, NULL}
+	};
+#if 0  /* XXX For now, would like to finish/merge work from 2014 gsoc first. */
+	static EnumPropertyItem DT_layer_vert_shapekey_items[] = {
+		{DT_TYPE_SHAPEKEY, "SHAPEKEYS", 0, "Shapekey(s)", "Transfer active or all shape keys"},
+		{0, NULL, 0, NULL, NULL}
+	};
+#endif
+
+	static EnumPropertyItem DT_layer_edge_items[] = {
+		{DT_TYPE_SHARP_EDGE, "SHARP_EDGE", 0, "Sharp", "Transfer sharp mark"},
+		{DT_TYPE_SEAM, "SEAM", 0, "UV Seam", "Transfer UV seam mark"},
+		{DT_TYPE_CREASE, "CREASE", 0, "Subsurf Crease", "Transfer crease values"},
+		{DT_TYPE_BWEIGHT_EDGE, "BEVEL_WEIGHT_EDGE", 0, "Bevel Weight", "Transfer bevel weights"},
+		{DT_TYPE_FREESTYLE_EDGE, "FREESTYLE_EDGE", 0, "Freestyle Mark", "Transfer Freestyle edge mark"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem DT_layer_loop_items[] = {
+		{0, NULL, 0, NULL, NULL}
+	};
+	static EnumPropertyItem DT_layer_loop_vcol_items[] = {
+		{DT_TYPE_VCOL, "VCOL", 0, "VCol", "Vertex (face corners) colors"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static EnumPropertyItem DT_layer_loop_uv_items[] = {
+		{DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem DT_layer_poly_items[] = {
+		{DT_TYPE_SHARP_FACE, "SMOOTH", 0, "Smooth", "Transfer flat/smooth mark"},
+		{DT_TYPE_FREESTYLE_FACE, "FREESTYLE_FACE", 0, "Freestyle Mark", "Transfer Freestyle face mark"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "DataTransferModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Data Transfer Modifier", "Modifier transferring some data from a source mesh");
+	RNA_def_struct_sdna(srna, "DataTransferModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DATA_TRANSFER);
+
+	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ob_source");
+	RNA_def_property_ui_text(prop, "Source Object", "Object to transfer data from");
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_DataTransferModifier_ob_source_set", NULL, "rna_Mesh_object_poll");
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop = RNA_def_boolean(srna, "use_object_transform", true, "Object Transform",
+	                       "Evaluate source and destination meshes in their respective object spaces");
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DATATRANSFER_OBSRC_TRANSFORM);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* Generic, UI-only data types toggles. */
+	prop = RNA_def_boolean(srna, "use_vert_data", false, "Vertex Data", "Enable vertex data transfer");
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DATATRANSFER_USE_VERT);
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_use_data_update");
+
+	prop = RNA_def_boolean(srna, "use_edge_data", false, "Edge Data", "Enable edge data transfer");
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DATATRANSFER_USE_EDGE);
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_use_data_update");
+
+	prop = RNA_def_boolean(srna, "use_loop_data", false, "Face Corner Data", "Enable face corner data transfer");
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DATATRANSFER_USE_LOOP);
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_use_data_update");
+
+	prop = RNA_def_boolean(srna, "use_poly_data", false, "Face Data", "Enable face data transfer");
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DATATRANSFER_USE_POLY);
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_use_data_update");
+
+	/* Actual data types selection. */
+	prop = RNA_def_enum(srna, "data_types_verts", DT_layer_vert_items, 0, "Vertex Data Types",
+	                    "Which vertex data layers to transfer");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_sdna(prop, NULL, "data_types");
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
+	prop = RNA_def_enum(srna, "data_types_verts_vgroup", DT_layer_vert_vgroup_items, 0, "Vertex Data Types",
+	                    "Which vertex data layers to transfer");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_sdna(prop, NULL, "data_types");
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
+
+	prop = RNA_def_enum(srna, "data_types_edges", DT_layer_edge_items, 0, "Edge Data Types",
+	                    "Which edge data layers to transfer");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_sdna(prop, NULL, "data_types");
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
+
+	prop = RNA_def_enum(srna, "data_types_loops", DT_layer_loop_items, 0, "Face Corner Data Types",
+	                    "Which face corner data layers to transfer");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_sdna(prop, NULL, "data_types");
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
+	prop = RNA_def_enum(srna, "data_types_loops_vcol", DT_layer_loop_vcol_items, 0, "Face Corner Data Types",
+	                    "Which face corner data layers to transfer");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_sdna(prop, NULL, "data_types");
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
+	prop = RNA_def_enum(srna, "data_types_loops_uv", DT_layer_loop_uv_items, 0, "Face Corner Data Types",
+	                    "Which face corner data layers to transfer");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_sdna(prop, NULL, "data_types");
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
+
+	prop = RNA_def_enum(srna, "data_types_polys", DT_layer_poly_items, 0, "Poly Data Types",
+	                    "Which poly data layers to transfer");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_enum_sdna(prop, NULL, "data_types");
+	RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
+
+	/* Mapping methods. */
+	prop = RNA_def_enum(srna, "vert_mapping", DT_method_vertex_items, MREMAP_MODE_VERT_NEAREST, "Vertex Mapping",
+	                    "Method used to map source vertices to destination ones");
+	RNA_def_property_enum_sdna(prop, NULL, "vmap_mode");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_enum(srna, "edge_mapping", DT_method_edge_items, MREMAP_MODE_EDGE_NEAREST, "Edge Mapping",
+	                    "Method used to map source edges to destination ones");
+	RNA_def_property_enum_sdna(prop, NULL, "emap_mode");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_enum(srna, "loop_mapping", DT_method_loop_items, MREMAP_MODE_LOOP_NEAREST_POLYNOR,
+	                    "Face Corner Mapping", "Method used to map source faces' corners to destination ones");
+	RNA_def_property_enum_sdna(prop, NULL, "lmap_mode");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_enum(srna, "poly_mapping", DT_method_poly_items, MREMAP_MODE_POLY_NEAREST, "Face Mapping",
+	                    "Method used to map source faces to destination ones");
+	RNA_def_property_enum_sdna(prop, NULL, "pmap_mode");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* Mapping options and filtering. */
+	prop = RNA_def_boolean(srna, "use_max_distance", false, "Only Neighbor Geometry",
+	                       "Source elements must be closer than given distance from destination one");
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DATATRANSFER_MAP_MAXDIST);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_float(srna, "max_distance", 1.0f, 0.0f, FLT_MAX, "Max Distance",
+	                     "Maximum allowed distance between source and destination element, for non-topology mappings",
+	                     0.0f, 100.0f);
+	RNA_def_property_float_sdna(prop, NULL, "map_max_distance");
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_float(srna, "ray_radius", 0.0f, 0.0f, FLT_MAX, "Ray Radius",
+	                     "'Width' of rays (especially useful when raycasting against vertices or edges)", 0.0f, 10.0f);
+	RNA_def_property_float_sdna(prop, NULL, "map_ray_radius");
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_float(srna, "islands_precision", 0.0f, 0.0f, 1.0f, "Islands Handling Refinement",
+	                     "Factor controlling precision of islands handling "
+	                     "(typically, 0.1 should be enough, higher values can make things really slow)", 0.0f, 1.0f);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* How to handle multi-layers types of data. */
+	prop = RNA_def_enum(srna, "layers_vgroup_select_src", DT_layers_select_src_items, DT_LAYERS_ALL_SRC,
+	                    "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_MDEFORMVERT]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+#if 0
+	prop = RNA_def_enum(srna, "layers_shapekey_select_src", DT_layers_select_src_items, DT_LAYERS_ALL_SRC,
+	                    "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_SHAPEKEY]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+#endif
+
+	prop = RNA_def_enum(srna, "layers_vcol_select_src", DT_layers_select_src_items, DT_LAYERS_ALL_SRC,
+	                    "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_VCOL]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_enum(srna, "layers_uv_select_src", DT_layers_select_src_items, DT_LAYERS_ALL_SRC,
+	                    "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_UV]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_enum(srna, "layers_vgroup_select_dst", DT_layers_select_dst_items, DT_LAYERS_NAME_DST,
+	                    "Destination Layers Matching", "How to match source and destination layers");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_MDEFORMVERT]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+#if 0
+	prop = RNA_def_enum(srna, "layers_shapekey_select_dst", DT_layers_select_dst_items, DT_LAYERS_NAME_DST,
+	                    "Destination Layers Matching", "How to match source and destination layers");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_SHAPEKEY]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+#endif
+
+	prop = RNA_def_enum(srna, "layers_vcol_select_dst", DT_layers_select_dst_items, DT_LAYERS_NAME_DST,
+	                    "Destination Layers Matching", "How to match source and destination layers");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_VCOL]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_enum(srna, "layers_uv_select_dst", DT_layers_select_dst_items, DT_LAYERS_NAME_DST,
+	                    "Destination Layers Matching", "How to match source and destination layers");
+	RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_UV]");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* Mix stuff */
+	prop = RNA_def_enum(srna, "mix_mode", DT_mix_mode_items, CDT_MIX_TRANSFER, "Mix Mode",
+	                   "How to affect destination elements with source values");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_DataTransferModifier_mix_mode_itemf");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_float(srna, "mix_factor", 1.0f, 0.0f, 1.0f, "Mix Factor",
+	                     "Factor to use when applying data to destination (exact behavior depends on mix mode)",
+	                     0.0f, 1.0f);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_string(srna, "vertex_group", NULL, MAX_VGROUP_NAME, "Vertex Group",
+	                      "Vertex group name for selecting the affected areas");
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DataTransferModifier_defgrp_name_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_boolean(srna, "invert_vertex_group", false, "Invert", "Invert vertex group influence");
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DATATRANSFER_INVERT_VGROUP);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3920,6 +4430,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_meshcache(brna);
 	rna_def_modifier_laplaciandeform(brna);
 	rna_def_modifier_wireframe(brna);
+	rna_def_modifier_datatransfer(brna);
 }
 
 #endif

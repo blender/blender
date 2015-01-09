@@ -535,15 +535,33 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 
 static int datalayout_transfer_poll(bContext *C)
 {
-	return (data_transfer_poll(C));
+	return (edit_modifier_poll_generic(C, &RNA_DataTransferModifier, (1 << OB_MESH)) || data_transfer_poll(C));
 }
 
 static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = ED_object_active_context(C);
+	DataTransferModifierData *dtmd;
 
-	{
+	dtmd = (DataTransferModifierData *)edit_modifier_property_get(op, ob_act, eModifierType_DataTransfer);
+
+	/* If we have a modifier, we transfer data layout from this modifier's source object to active one.
+	 * Else, we transfer data layout from active object to all selected ones. */
+	if (dtmd) {
+		Object *ob_src = dtmd->ob_source;
+		Object *ob_dst = ob_act;
+
+		const bool use_delete = false;  /* Never when used from modifier, for now. */
+
+		if (!ob_src) {
+			return OPERATOR_CANCELLED;
+		}
+
+		BKE_object_data_transfer_layout(scene, ob_src, ob_dst, dtmd->data_types, use_delete,
+		                                dtmd->layers_select_src, dtmd->layers_select_dst);
+	}
+	else {
 		Object *ob_src = ob_act;
 
 		ListBase ctx_objects;
@@ -581,7 +599,12 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
 static int datalayout_transfer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return WM_menu_invoke(C, op, event);
+	if (edit_modifier_invoke_properties(C, op)) {
+		return datalayout_transfer_exec(C, op);
+	}
+	else {
+		return WM_menu_invoke(C, op, event);
+	}
 }
 
 void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
@@ -602,7 +625,7 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* Properties.*/
-	/* edit_modifier_properties(ot); */
+	edit_modifier_properties(ot);
 
 	/* Data type to transfer. */
 	ot->prop = RNA_def_enum(ot->srna, "data_type", DT_layer_items, 0, "Data Type", "Which data to transfer");

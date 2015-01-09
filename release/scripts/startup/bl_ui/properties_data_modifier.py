@@ -1225,6 +1225,121 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col.prop(md, "material_offset", text="Material Offset")
 
+    def DATA_TRANSFER(self, layout, ob, md):
+        row = layout.row(align=True)
+        row.prop(md, "object")
+        sub = row.row(align=True)
+        sub.active = bool(md.object)
+        sub.prop(md, "use_object_transform", text="", icon='GROUP')
+
+        layout.separator()
+
+        split = layout.split(0.333)
+        split.prop(md, "use_vert_data")
+        use_vert = md.use_vert_data
+        row = split.row()
+        row.active = use_vert
+        row.prop(md, "vert_mapping", text="")
+        if use_vert:
+            col = layout.column(align=True)
+            split = col.split(0.333, align=True)
+            sub = split.column(align=True)
+            sub.prop(md, "data_types_verts_vgroup")
+            row = split.row(align=True)
+            row.prop(md, "layers_vgroup_select_src", text="")
+            row.label(icon='RIGHTARROW_THIN')
+            row.prop(md, "layers_vgroup_select_dst", text="")
+            split = col.split(0.333, align=True)
+            sub = split.column(align=True)
+            sub.prop(md, "data_types_verts")
+
+        layout.separator()
+
+        split = layout.split(0.333)
+        split.prop(md, "use_edge_data")
+        use_edge = md.use_edge_data
+        row = split.row()
+        row.active = use_edge
+        row.prop(md, "edge_mapping", text="")
+        if use_edge:
+            col = layout.column(align=True)
+            split = col.split(0.333, align=True)
+            sub = split.column(align=True)
+            sub.prop(md, "data_types_edges")
+
+        layout.separator()
+
+        split = layout.split(0.333)
+        split.prop(md, "use_loop_data")
+        use_loop = md.use_loop_data
+        row = split.row()
+        row.active = use_loop
+        row.prop(md, "loop_mapping", text="")
+        if use_loop:
+            col = layout.column(align=True)
+            split = col.split(0.333, align=True)
+            sub = split.column(align=True)
+            sub.prop(md, "data_types_loops")
+            split = col.split(0.333, align=True)
+            sub = split.column(align=True)
+            sub.prop(md, "data_types_loops_vcol")
+            row = split.row(align=True)
+            row.prop(md, "layers_vcol_select_src", text="")
+            row.label(icon='RIGHTARROW')
+            row.prop(md, "layers_vcol_select_dst", text="")
+            split = col.split(0.333, align=True)
+            sub = split.column(align=True)
+            sub.prop(md, "data_types_loops_uv")
+            row = split.row(align=True)
+            row.prop(md, "layers_uv_select_src", text="")
+            row.label(icon='RIGHTARROW')
+            row.prop(md, "layers_uv_select_dst", text="")
+            col.prop(md, "islands_precision")
+
+        layout.separator()
+
+        split = layout.split(0.333)
+        split.prop(md, "use_poly_data")
+        use_poly = md.use_poly_data
+        row = split.row()
+        row.active = use_poly
+        row.prop(md, "poly_mapping", text="")
+        if use_poly:
+            col = layout.column(align=True)
+            split = col.split(0.333, align=True)
+            sub = split.column(align=True)
+            sub.prop(md, "data_types_polys")
+
+        layout.separator()
+
+        split = layout.split()
+        col = split.column()
+        row = col.row(align=True)
+        sub = row.row(align=True)
+        sub.active = md.use_max_distance
+        sub.prop(md, "max_distance")
+        row.prop(md, "use_max_distance", text="", icon='STYLUS_PRESSURE')
+
+        col = split.column()
+        col.prop(md, "ray_radius")
+
+        layout.separator()
+
+        split = layout.split()
+        col = split.column()
+        col.prop(md, "mix_mode")
+        col.prop(md, "mix_factor")
+
+        col = split.column()
+        row = col.row()
+        row.active = bool(md.object)
+        row.operator("object.datalayout_transfer", text="Generate Data Layers")
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = row.row(align=True)
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

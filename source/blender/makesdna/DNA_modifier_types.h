@@ -82,6 +82,7 @@ typedef enum ModifierType {
 	eModifierType_MeshCache         = 46,
 	eModifierType_LaplacianDeform   = 47,
 	eModifierType_Wireframe         = 48,
+	eModifierType_DataTransfer      = 49,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1366,6 +1367,48 @@ enum {
 	MOD_WIREFRAME_CREASE        = (1 << 5),
 };
 
+
+typedef struct DataTransferModifierData {
+	ModifierData modifier;
+
+	struct Object *ob_source;
+
+	int data_types;  /* See DT_TYPE_ enum in ED_object.h */
+
+	/* See MREMAP_MODE_ enum in BKE_mesh_mapping.h */
+	int vmap_mode;
+	int emap_mode;
+	int lmap_mode;
+	int pmap_mode;
+
+	float map_max_distance;
+	float map_ray_radius;
+	float islands_precision;
+
+	int pad_i1;
+
+	int layers_select_src[4];  /* DT_MULTILAYER_INDEX_MAX; See DT_FROMLAYERS_ enum in ED_object.h */
+	int layers_select_dst[4];  /* DT_MULTILAYER_INDEX_MAX; See DT_TOLAYERS_ enum in ED_object.h */
+
+	int mix_mode;  /* See CDT_MIX_ enum in BKE_customdata.h */
+	float mix_factor;
+	char defgrp_name[64];  /* MAX_VGROUP_NAME */
+
+	int flags;
+} DataTransferModifierData;
+
+/* DataTransferModifierData.flags */
+enum {
+	MOD_DATATRANSFER_OBSRC_TRANSFORM  = 1 << 0,
+	MOD_DATATRANSFER_MAP_MAXDIST      = 1 << 1,
+	MOD_DATATRANSFER_INVERT_VGROUP    = 1 << 2,
+
+	/* Only for UI really. */
+	MOD_DATATRANSFER_USE_VERT         = 1 << 28,
+	MOD_DATATRANSFER_USE_EDGE         = 1 << 29,
+	MOD_DATATRANSFER_USE_LOOP         = 1 << 30,
+	MOD_DATATRANSFER_USE_POLY         = 1 << 31,
+};
 
 
 #endif  /* __DNA_MODIFIER_TYPES_H__ */
