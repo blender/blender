@@ -72,4 +72,11 @@ bool *BKE_object_defgroup_selected_get(struct Object *ob, int defbase_tot, int *
 }
 #endif
 
+/* Select helpers */
+bool *BKE_objdef_vgroup_subset_from_select_type(
+        struct Object *ob, enum eVGroupSelect subset_type, int *r_vgroup_tot, int *r_subset_count);
+void BKE_objdef_vgroup_subset_to_index_array(
+        const bool *vgroup_validmap, const int vgroup_tot, int *r_vgroup_subset_map);
+
+
 #endif  /* __BKE_OBJECT_DEFORM_H__ */

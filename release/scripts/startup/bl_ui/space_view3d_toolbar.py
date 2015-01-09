@@ -100,6 +100,13 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
                 row.operator("object.shade_smooth", text="Smooth")
                 row.operator("object.shade_flat", text="Flat")
 
+            if obj_type in {'MESH'}:
+                col = layout.column(align=True)
+                col.label(text="Data Transfer:")
+                row = col.row(align=True)
+                row.operator("object.data_transfer", text="Data")
+                row.operator("object.datalayout_transfer", text="Data Layout")
+
 
 class VIEW3D_PT_tools_add_object(View3DPanel, Panel):
     bl_category = "Create"

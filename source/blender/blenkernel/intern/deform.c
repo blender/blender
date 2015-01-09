@@ -39,7 +39,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -49,7 +51,14 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_customdata.h"
+#include "BKE_object_data_transfer.h"
 #include "BKE_deform.h"  /* own include */
+#include "BKE_mesh_mapping.h"
+#include "BKE_object_deform.h"
+
+#include "data_transfer_intern.h"
+
 
 bDeformGroup *BKE_defgroup_new(Object *ob, const char *name)
 {
@@ -959,4 +968,386 @@ void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
 	BKE_defvert_array_free_elems(dvert, totvert);
 
 	MEM_freeN(dvert);
+}
+
+void BKE_defvert_extract_vgroup_to_vertweights(
+        MDeformVert *dvert, const int defgroup, const int num_verts, float *r_weights, const bool invert_vgroup)
+{
+	if (dvert && defgroup != -1) {
+		int i = num_verts;
+
+		while (i--) {
+			const float w = defvert_find_weight(&dvert[i], defgroup);
+			r_weights[i] = invert_vgroup ? (1.0f - w) : w;
+		}
+	}
+	else {
+		fill_vn_fl(r_weights, invert_vgroup ? 1.0f : 0.0f, num_verts);
+	}
+}
+
+/* The following three make basic interpolation, using temp vert_weights array to avoid looking up same weight
+ * several times. */
+
+void BKE_defvert_extract_vgroup_to_edgeweights(
+        MDeformVert *dvert, const int defgroup, const int num_verts, MEdge *edges, const int num_edges,
+        float *r_weights, const bool invert_vgroup)
+{
+	if (dvert && defgroup != -1) {
+		int i = num_edges;
+		float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
+
+		BKE_defvert_extract_vgroup_to_vertweights(dvert, defgroup, num_verts, tmp_weights, invert_vgroup);
+
+		while (i--) {
+			MEdge *me = &edges[i];
+
+			r_weights[i] = (tmp_weights[me->v1] + tmp_weights[me->v2]) * 0.5f;
+		}
+
+		MEM_freeN(tmp_weights);
+	}
+	else {
+		fill_vn_fl(r_weights, 0.0f, num_edges);
+	}
+}
+
+void BKE_defvert_extract_vgroup_to_loopweights(
+        MDeformVert *dvert, const int defgroup, const int num_verts, MLoop *loops, const int num_loops,
+        float *r_weights, const bool invert_vgroup)
+{
+	if (dvert && defgroup != -1) {
+		int i = num_loops;
+		float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
+
+		BKE_defvert_extract_vgroup_to_vertweights(dvert, defgroup, num_verts, tmp_weights, invert_vgroup);
+
+		while (i--) {
+			MLoop *ml = &loops[i];
+
+			r_weights[i] = tmp_weights[ml->v];
+		}
+
+		MEM_freeN(tmp_weights);
+	}
+	else {
+		fill_vn_fl(r_weights, 0.0f, num_loops);
+	}
+}
+
+void BKE_defvert_extract_vgroup_to_polyweights(
+        MDeformVert *dvert, const int defgroup, const int num_verts, MLoop *loops, const int UNUSED(num_loops),
+        MPoly *polys, const int num_polys, float *r_weights, const bool invert_vgroup)
+{
+	if (dvert && defgroup != -1) {
+		int i = num_polys;
+		float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
+
+		BKE_defvert_extract_vgroup_to_vertweights(dvert, defgroup, num_verts, tmp_weights, invert_vgroup);
+
+		while (i--) {
+			MPoly *mp = &polys[i];
+			MLoop *ml = &loops[mp->loopstart];
+			int j = mp->totloop;
+			float w = 0.0f;
+
+			for (; j--; ml++) {
+				w += tmp_weights[ml->v];
+			}
+			r_weights[i] = w / (float)mp->totloop;
+		}
+
+		MEM_freeN(tmp_weights);
+	}
+	else {
+		fill_vn_fl(r_weights, 0.0f, num_polys);
+	}
+}
+
+/*********** Data Transfer **********/
+
+static void vgroups_datatransfer_interp(const CustomDataTransferLayerMap *laymap, void *dest,
+                                        void **sources, const float *weights, const int count, const float mix_factor)
+{
+	MDeformVert **data_src = (MDeformVert **)sources;
+	MDeformVert *data_dst = (MDeformVert *)dest;
+	const int idx_src = laymap->data_src_n;
+	const int idx_dst = laymap->data_dst_n;
+
+	const int mix_mode = laymap->mix_mode;
+
+	int i, j;
+
+	MDeformWeight *dw_src;
+	MDeformWeight *dw_dst = defvert_find_index(data_dst, idx_dst);
+	float weight_src = 0.0f, weight_dst = 0.0f;
+
+	if (sources) {
+		for (i = count; i--;) {
+			for (j = data_src[i]->totweight; j--;) {
+				if ((dw_src = &data_src[i]->dw[j])->def_nr == idx_src) {
+					weight_src += dw_src->weight * weights[i];
+					break;
+				}
+			}
+		}
+	}
+
+	if (dw_dst) {
+		weight_dst = dw_dst->weight;
+	}
+	else if (mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD) {
+		return;  /* Do not affect destination. */
+	}
+
+	weight_src = data_transfer_interp_float_do(mix_mode, weight_dst, weight_src, mix_factor);
+
+	CLAMP(weight_src, 0.0f, 1.0f);
+
+	if (!dw_dst) {
+		defvert_add_index_notest(data_dst, idx_dst, weight_src);
+	}
+	else {
+		dw_dst->weight = weight_src;
+	}
+}
+
+static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
+        ListBase *r_map, const int mix_mode, const float mix_factor, const float *mix_weights,
+        const int num_elem_dst, const bool use_create, const bool use_delete,
+        Object *ob_src, Object *ob_dst, MDeformVert *data_src, MDeformVert *data_dst,
+        CustomData *UNUSED(cd_src), CustomData *cd_dst, const bool UNUSED(use_dupref_dst),
+        const int tolayers, bool *use_layers_src, const int num_layers_src)
+{
+	int idx_src;
+	int idx_dst;
+	int tot_dst = BLI_listbase_count(&ob_dst->defbase);
+
+	const size_t elem_size = sizeof(*((MDeformVert *)NULL));
+
+	switch (tolayers) {
+		case DT_LAYERS_INDEX_DST:
+			idx_dst = tot_dst;
+
+			/* Find last source actually used! */
+			idx_src = num_layers_src;
+			while (idx_src-- && !use_layers_src[idx_src]);
+			idx_src++;
+
+			if (idx_dst < idx_src) {
+				if (!use_create) {
+					return false;
+				}
+				/* Create as much vgroups as necessary! */
+				for (; idx_dst < idx_src; idx_dst++) {
+					BKE_object_defgroup_add(ob_dst);
+				}
+			}
+			else if (use_delete && idx_dst > idx_src) {
+				while (idx_dst-- > idx_src) {
+					BKE_object_defgroup_remove(ob_dst, ob_dst->defbase.last);
+				}
+			}
+			if (r_map) {
+				/* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
+				 * Again, use_create is not relevant in this case */
+				if (!data_dst) {
+					data_dst = CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_CALLOC, NULL, num_elem_dst);
+				}
+
+				while (idx_src--) {
+					if (!use_layers_src[idx_src]) {
+						continue;
+					}
+					data_transfer_layersmapping_add_item(r_map, CD_FAKE_MDEFORMVERT, mix_mode, mix_factor, mix_weights,
+					                                     data_src, data_dst, idx_src, idx_src,
+					                                     elem_size, 0, 0, 0, vgroups_datatransfer_interp);
+				}
+			}
+			break;
+		case DT_LAYERS_NAME_DST:
+			{
+				bDeformGroup *dg_src, *dg_dst;
+
+				if (use_delete) {
+					/* Remove all unused dst vgroups first, simpler in this case. */
+					for (dg_dst = ob_dst->defbase.first; dg_dst;) {
+						bDeformGroup *dg_dst_next = dg_dst->next;
+
+						if (defgroup_name_index(ob_src, dg_dst->name) == -1) {
+							BKE_object_defgroup_remove(ob_dst, dg_dst);
+						}
+						dg_dst = dg_dst_next;
+					}
+				}
+
+				for (idx_src = 0, dg_src = ob_src->defbase.first;
+				     idx_src < num_layers_src;
+				     idx_src++, dg_src = dg_src->next)
+				{
+					if (!use_layers_src[idx_src]) {
+						continue;
+					}
+
+					if ((idx_dst = defgroup_name_index(ob_dst, dg_src->name)) == -1) {
+						if (!use_create) {
+							if (r_map) {
+								BLI_freelistN(r_map);
+							}
+							return false;
+						}
+						BKE_object_defgroup_add_name(ob_dst, dg_src->name);
+						idx_dst = ob_dst->actdef - 1;
+					}
+					if (r_map) {
+						/* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
+						 * use_create is not relevant in this case */
+						if (!data_dst) {
+							data_dst = CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_CALLOC, NULL, num_elem_dst);
+						}
+
+						data_transfer_layersmapping_add_item(
+						        r_map, CD_FAKE_MDEFORMVERT, mix_mode, mix_factor, mix_weights,
+						        data_src, data_dst, idx_src, idx_dst,
+						        elem_size, 0, 0, 0, vgroups_datatransfer_interp);
+					}
+				}
+				break;
+			}
+		default:
+			return false;
+	}
+
+	return true;
+}
+
+bool data_transfer_layersmapping_vgroups(
+        ListBase *r_map, const int mix_mode, const float mix_factor, const float *mix_weights,
+        const int num_elem_dst, const bool use_create, const bool use_delete, Object *ob_src, Object *ob_dst,
+        CustomData *cd_src, CustomData *cd_dst, const bool use_dupref_dst, const int fromlayers, const int tolayers)
+{
+	int idx_src, idx_dst;
+	MDeformVert *data_src, *data_dst = NULL;
+
+	const size_t elem_size = sizeof(*((MDeformVert *)NULL));
+
+	/* Note: VGroups are a bit hairy, since their layout is defined on object level (ob->defbase), while their actual
+	 *       data is a (mesh) CD layer.
+	 *       This implies we may have to handle data layout itself while having NULL data itself,
+	 *       and even have to support NULL data_src in transfer data code (we always create a data_dst, though).
+	 */
+
+	if (BLI_listbase_is_empty(&ob_src->defbase)) {
+		if (use_delete) {
+			BKE_object_defgroup_remove_all(ob_dst);
+		}
+		return true;
+	}
+
+	data_src = CustomData_get_layer(cd_src, CD_MDEFORMVERT);
+
+	data_dst = CustomData_get_layer(cd_dst, CD_MDEFORMVERT);
+	if (data_dst && use_dupref_dst && r_map) {
+		/* If dest is a derivedmesh, we do not want to overwrite cdlayers of org mesh! */
+		data_dst = CustomData_duplicate_referenced_layer(cd_dst, CD_MDEFORMVERT, num_elem_dst);
+	}
+
+	if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
+		/* Note: use_delete has not much meaning in this case, ignored. */
+
+		if (fromlayers >= 0) {
+			idx_src = fromlayers;
+			BLI_assert(idx_src < BLI_listbase_count(&ob_src->defbase));
+		}
+		else if ((idx_src = ob_src->actdef - 1) == -1) {
+			return false;
+		}
+
+		if (tolayers >= 0) {
+			/* Note: in this case we assume layer exists! */
+			idx_dst = tolayers;
+			BLI_assert(idx_dst < BLI_listbase_count(&ob_dst->defbase));
+		}
+		else if (tolayers == DT_LAYERS_ACTIVE_DST) {
+			if ((idx_dst = ob_dst->actdef - 1) == -1) {
+				bDeformGroup *dg_src;
+				if (!use_create) {
+					return true;
+				}
+				dg_src = BLI_findlink(&ob_src->defbase, idx_src);
+				BKE_object_defgroup_add_name(ob_dst, dg_src->name);
+				idx_dst = ob_dst->actdef - 1;
+			}
+		}
+		else if (tolayers == DT_LAYERS_INDEX_DST) {
+			int num = BLI_listbase_count(&ob_src->defbase);
+			idx_dst = idx_src;
+			if (num <= idx_dst) {
+				if (!use_create) {
+					return true;
+				}
+				/* Create as much vgroups as necessary! */
+				for (; num <= idx_dst; num++) {
+					BKE_object_defgroup_add(ob_dst);
+				}
+			}
+		}
+		else if (tolayers == DT_LAYERS_NAME_DST) {
+			bDeformGroup *dg_src = BLI_findlink(&ob_src->defbase, idx_src);
+			if ((idx_dst = defgroup_name_index(ob_dst, dg_src->name)) == -1) {
+				if (!use_create) {
+					return true;
+				}
+				BKE_object_defgroup_add_name(ob_dst, dg_src->name);
+				idx_dst = ob_dst->actdef - 1;
+			}
+		}
+		else {
+			return false;
+		}
+
+		if (r_map) {
+			/* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
+			 * use_create is not relevant in this case */
+			if (!data_dst) {
+				data_dst = CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_CALLOC, NULL, num_elem_dst);
+			}
+
+			data_transfer_layersmapping_add_item(r_map, CD_FAKE_MDEFORMVERT, mix_mode, mix_factor, mix_weights,
+			                                     data_src, data_dst, idx_src, idx_dst,
+			                                     elem_size, 0, 0, 0, vgroups_datatransfer_interp);
+		}
+	}
+	else {
+		int num_src, num_sel_unused;
+		bool *use_layers_src = NULL;
+		bool ret = false;
+
+		switch (fromlayers) {
+			case DT_LAYERS_ALL_SRC:
+				use_layers_src = BKE_object_defgroup_subset_from_select_type(ob_src, WT_VGROUP_ALL,
+				                                                             &num_src, &num_sel_unused);
+				break;
+			case DT_LAYERS_VGROUP_SRC_BONE_SELECT:
+				use_layers_src = BKE_object_defgroup_subset_from_select_type(ob_src, WT_VGROUP_BONE_SELECT,
+				                                                             &num_src, &num_sel_unused);
+				break;
+			case DT_LAYERS_VGROUP_SRC_BONE_DEFORM:
+				use_layers_src = BKE_object_defgroup_subset_from_select_type(ob_src, WT_VGROUP_BONE_DEFORM,
+				                                                             &num_src, &num_sel_unused);
+				break;
+		}
+
+		if (use_layers_src) {
+			ret = data_transfer_layersmapping_vgroups_multisrc_to_dst(
+			        r_map, mix_mode, mix_factor, mix_weights, num_elem_dst, use_create, use_delete,
+			        ob_src, ob_dst, data_src, data_dst, cd_src, cd_dst, use_dupref_dst,
+			        tolayers, use_layers_src, num_src);
+		}
+
+		MEM_SAFE_FREE(use_layers_src);
+		return ret;
+	}
+
+	return true;
 }

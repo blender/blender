@@ -41,6 +41,8 @@ extern "C" {
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_customdata_types.h"
+
 struct BMesh;
 struct ID;
 struct CustomData;
@@ -77,6 +79,9 @@ extern const CustomDataMask CD_MASK_EVERYTHING;
 
 void customData_mask_layers__print(CustomDataMask mask);
 
+typedef void (*cd_interp)(void **sources, const float *weights, const float *sub_weights, int count, void *dest);
+typedef void (*cd_copy)(const void *source, void *dest, int count);
+
 /**
  * Checks if the layer at physical offset \a layer_n (in data->layers) support math
  * the below operations.
@@ -95,6 +100,9 @@ bool CustomData_bmesh_has_free(const struct CustomData *data);
  * another, while not overwriting anything else (e.g. flags).  probably only
  * implemented for mloopuv/mloopcol, for now.*/
 void CustomData_data_copy_value(int type, const void *source, void *dest);
+
+/* Same as above, but doing advanced mixing. Only available for a few types of data (like colors...). */
+void CustomData_data_mix_value(int type, const void *source, void *dest, const int mixmode, const float mixfactor);
 
 /* compares if data1 is equal to data2.  type is a valid CustomData type
  * enum (e.g. CD_MLOOPUV). the layer type's equal function is used to compare
@@ -246,14 +254,14 @@ void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int typ
 void *CustomData_bmesh_get_layer_n(const struct CustomData *data, void *block, int n);
 
 bool CustomData_set_layer_name(const struct CustomData *data, int type, int n, const char *name);
+const char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
 /* gets a pointer to the active or first layer of type
  * returns NULL if there is no layer of type
  */
 void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
-void *CustomData_get_layer_named(const struct CustomData *data, int type,
-                                 const char *name);
+void *CustomData_get_layer_named(const struct CustomData *data, int type, const char *name);
 int CustomData_get_offset(const struct CustomData *data, int type);
 int CustomData_get_n_offset(const struct CustomData *data, int type, int n);
 
@@ -361,6 +369,82 @@ void CustomData_external_read(struct CustomData *data,
                               struct ID *id, CustomDataMask mask, int totelem);
 void CustomData_external_reload(struct CustomData *data,
                                 struct ID *id, CustomDataMask mask, int totelem);
+
+/* Mesh-to-mesh transfer data. */
+
+struct MeshPairRemap;
+typedef struct CustomDataTransferLayerMap CustomDataTransferLayerMap;
+
+typedef void (*cd_datatransfer_interp)(
+        const CustomDataTransferLayerMap *laymap, void *dest,
+        void **sources, const float *weights, const int count, const float mix_factor);
+
+/**
+ * Fake CD_LAYERS (those are actually 'real' data stored directly into elements' structs, or otherwise not (directly)
+ * accessible to usual CDLayer system). */
+enum {
+	CD_FAKE             = 1 << 8,
+
+	/* Vertices. */
+	CD_FAKE_MDEFORMVERT = CD_FAKE | CD_MDEFORMVERT,  /* *sigh* due to how vgroups are stored :( . */
+	CD_FAKE_SHAPEKEY    = CD_FAKE | CD_SHAPEKEY,  /* Not available as real CD layer in non-bmesh context. */
+
+	/* Edges. */
+	CD_FAKE_SEAM        = CD_FAKE | 100,  /* UV seam flag for edges. */
+	CD_FAKE_CREASE      = CD_FAKE | CD_CREASE,  /* *sigh*. */
+
+	/* Multiple types of mesh elements... */
+	CD_FAKE_BWEIGHT     = CD_FAKE | CD_BWEIGHT,  /* *sigh*. */
+	CD_FAKE_UV          = CD_FAKE | CD_MLOOPUV,  /* UV flag, because we handle both loop's UVs and poly's textures. */
+
+	CD_FAKE_SHARP       = CD_FAKE | 200,  /* Sharp flag for edges, smooth flag for faces. */
+};
+
+enum {
+	ME_VERT = 1 << 0,
+	ME_EDGE = 1 << 1,
+	ME_POLY = 1 << 2,
+	ME_LOOP = 1 << 3,
+};
+
+/**
+ * How to filter out some elements (to leave untouched).
+ * Note those options are highly dependent on type of transferred data! */
+enum {
+	CDT_MIX_NOMIX                   = -1,  /* Special case, only used because we abuse 'copy' CD callback. */
+	CDT_MIX_TRANSFER                = 0,
+	CDT_MIX_REPLACE_ABOVE_THRESHOLD = 1,
+	CDT_MIX_REPLACE_BELOW_THRESHOLD = 2,
+	CDT_MIX_MIX                     = 16,
+	CDT_MIX_ADD                     = 17,
+	CDT_MIX_SUB                     = 18,
+	CDT_MIX_MUL                     = 19,
+	/* etc. etc. */
+};
+
+typedef struct CustomDataTransferLayerMap {
+	CustomDataTransferLayerMap *next, *prev;
+
+	int data_type;
+	int mix_mode;
+	float mix_factor;
+	const float *mix_weights;  /* If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
+
+	void *data_src;      /* Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
+	void *data_dst;      /* Data dest array (same type as dat_src). */
+	int   data_src_n;    /* Index to affect in data_src (used e.g. for vgroups). */
+	int   data_dst_n;    /* Index to affect in data_dst (used e.g. for vgroups). */
+	size_t elem_size;    /* Size of one element of data_src/data_dst. */
+
+	size_t data_size;    /* Size of actual data we transfer. */
+	size_t data_offset;  /* Offset of actual data we transfer (in element contained in data_src/dst). */
+	uint64_t data_flag;  /* For bitflag transfer, flag(s) to affect in transfered data. */
+
+	cd_datatransfer_interp interp;
+} CustomDataTransferLayerMap;
+
+/* Those functions assume src_n and dst_n layers of given type exist in resp. src and dst. */
+void CustomData_data_transfer(const struct MeshPairRemap *me_remap, const CustomDataTransferLayerMap *laymap);
 
 #ifdef __cplusplus
 }

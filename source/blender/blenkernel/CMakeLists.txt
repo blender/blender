@@ -130,6 +130,7 @@ set(SRC
 	intern/nla.c
 	intern/node.c
 	intern/object.c
+	intern/object_data_transfer.c
 	intern/object_deform.c
 	intern/object_dupli.c
 	intern/ocean.c
@@ -238,6 +239,7 @@ set(SRC
 	BKE_nla.h
 	BKE_node.h
 	BKE_object.h
+	BKE_object_data_transfer.h
 	BKE_object_deform.h
 	BKE_ocean.h
 	BKE_packedFile.h
@@ -277,6 +279,7 @@ set(SRC
 	tracking_private.h
 	intern/CCGSubSurf.h
 	intern/pbvh_intern.h
+	intern/data_transfer_intern.h
 )
 
 if(WITH_BINRELOC)

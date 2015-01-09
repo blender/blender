@@ -48,6 +48,7 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_math.h"
+#include "BLI_math_color_blend.h"
 #include "BLI_mempool.h"
 
 #include "BLF_translation.h"
@@ -56,6 +57,8 @@
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
 
 #include "bmesh.h"
@@ -92,7 +95,7 @@ typedef struct LayerTypeInfo {
 	 * (deep copy if appropriate)
 	 * if NULL, memcpy is used
 	 */
-	void (*copy)(const void *source, void *dest, int count);
+	cd_copy copy;
 
 	/**
 	 * a function to free any dynamically allocated components of this
@@ -117,8 +120,7 @@ typedef struct LayerTypeInfo {
 	 *       applying changes while reading from sources.
 	 *       See bug [#32395] - Campbell.
 	 */
-	void (*interp)(void **sources, const float *weights, const float *sub_weights,
-	               int count, void *dest);
+	cd_interp interp;
 
 	/** a function to swap the data in corners of the element */
 	void (*swap)(void *data, const int *corner_indices);
@@ -134,7 +136,7 @@ typedef struct LayerTypeInfo {
 	void (*initminmax)(void *min, void *max);
 	void (*add)(void *data1, const void *data2);
 	void (*dominmax)(const void *data1, void *min, void *max);
-	void (*copyvalue)(const void *source, void *dest);
+	void (*copyvalue)(const void *source, void *dest, const int mixmode, const float mixfactor);
 
 	/** a function to read data from a cdf file */
 	int (*read)(CDataFile *cdf, void *data, int count);
@@ -620,14 +622,53 @@ static void layerFree_grid_paint_mask(void *data, int count, int UNUSED(size))
 }
 
 /* --------- */
-static void layerCopyValue_mloopcol(const void *source, void *dest)
+static void layerCopyValue_mloopcol(const void *source, void *dest, const int mixmode, const float mixfactor)
 {
 	const MLoopCol *m1 = source;
 	MLoopCol *m2 = dest;
-	
-	m2->r = m1->r;
-	m2->g = m1->g;
-	m2->b = m1->b;
+	unsigned char tmp_col[4];
+
+	if (ELEM(mixmode, CDT_MIX_NOMIX, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
+		/* Modes that do a full copy or nothing. */
+		if (ELEM(mixmode, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
+			/* TODO: Check for a real valid way to get 'factor' value of our dest color? */
+			const float f = ((float)m2->r + (float)m2->g + (float)m2->b) / 3.0f;
+			if (mixmode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && f < mixfactor) {
+				return;  /* Do Nothing! */
+			}
+			else if (mixmode == CDT_MIX_REPLACE_BELOW_THRESHOLD && f > mixfactor) {
+				return;  /* Do Nothing! */
+			}
+		}
+		m2->r = m1->r;
+		m2->g = m1->g;
+		m2->b = m1->b;
+	}
+	else {  /* Modes that support 'real' mix factor. */
+		unsigned char src[4] = {m1->r, m1->g, m1->b, m1->a};
+		unsigned char dst[4] = {m2->r, m2->g, m2->b, m2->a};
+
+		if (mixmode == CDT_MIX_MIX) {
+			blend_color_mix_byte(tmp_col, dst, src);
+		}
+		else if (mixmode == CDT_MIX_ADD) {
+			blend_color_add_byte(tmp_col, dst, src);
+		}
+		else if (mixmode == CDT_MIX_SUB) {
+			blend_color_sub_byte(tmp_col, dst, src);
+		}
+		else if (mixmode == CDT_MIX_MUL) {
+			blend_color_mul_byte(tmp_col, dst, src);
+		}
+		else {
+			memcpy(tmp_col, src, sizeof(tmp_col));
+		}
+		blend_color_interpolate_byte(dst, dst, tmp_col, mixfactor);
+
+		m2->r = (char)dst[0];
+		m2->g = (char)dst[1];
+		m2->b = (char)dst[2];
+	}
 	m2->a = m1->a;
 }
 
@@ -758,12 +799,19 @@ static int layerMaxNum_mloopcol(void)
 	return MAX_MCOL;
 }
 
-static void layerCopyValue_mloopuv(const void *source, void *dest)
+static void layerCopyValue_mloopuv(const void *source, void *dest, const int mixmode, const float mixfactor)
 {
 	const MLoopUV *luv1 = source;
 	MLoopUV *luv2 = dest;
 
-	copy_v2_v2(luv2->uv, luv1->uv);
+	/* We only support a limited subset of advanced mixing here - namely the mixfactor interpolation. */
+
+	if (mixmode == CDT_MIX_NOMIX) {
+		copy_v2_v2(luv2->uv, luv1->uv);
+	}
+	else {
+		interp_v2_v2v2(luv2->uv, luv2->uv, luv1->uv, mixfactor);
+	}
 }
 
 static bool layerEqual_mloopuv(const void *data1, const void *data2)
@@ -833,7 +881,8 @@ static void layerInterp_mloopuv(void **sources, const float *weights,
 }
 
 /* origspace is almost exact copy of mloopuv's, keep in sync */
-static void layerCopyValue_mloop_origspace(const void *source, void *dest)
+static void layerCopyValue_mloop_origspace(const void *source, void *dest,
+                                           const int UNUSED(mixmode), const float UNUSED(mixfactor))
 {
 	const OrigSpaceLoop *luv1 = source;
 	OrigSpaceLoop *luv2 = dest;
@@ -2261,7 +2310,7 @@ int CustomData_get_n_offset(const CustomData *data, int type, int n)
 bool CustomData_set_layer_name(const CustomData *data, int type, int n, const char *name)
 {
 	/* get the layer index of the first layer of type */
-	int layer_index = CustomData_get_layer_index_n(data, type, n);
+	const int layer_index = CustomData_get_layer_index_n(data, type, n);
 
 	if ((layer_index == -1) || !name)
 		return false;
@@ -2269,6 +2318,13 @@ bool CustomData_set_layer_name(const CustomData *data, int type, int n, const ch
 	BLI_strncpy(data->layers[layer_index].name, name, sizeof(data->layers[layer_index].name));
 	
 	return true;
+}
+
+const char *CustomData_get_layer_name(const CustomData *data, int type, int n)
+{
+	const int layer_index = CustomData_get_layer_index_n(data, type, n);
+
+	return (layer_index == -1) ? NULL : data->layers[layer_index].name;
 }
 
 void *CustomData_set_layer(const CustomData *data, int type, void *ptr)
@@ -2764,9 +2820,26 @@ void CustomData_data_copy_value(int type, const void *source, void *dest)
 	if (!dest) return;
 
 	if (typeInfo->copyvalue)
-		typeInfo->copyvalue(source, dest);
+		typeInfo->copyvalue(source, dest, CDT_MIX_NOMIX, 0.0f);
 	else
 		memcpy(dest, source, typeInfo->size);
+}
+
+/* Mixes the "value" (e.g. mloopuv uv or mloopcol colors) from one block into
+ * another, while not overwriting anything else (e.g. flags)*/
+void CustomData_data_mix_value(int type, const void *source, void *dest, const int mixmode, const float mixfactor)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if (!dest) return;
+
+	if (typeInfo->copyvalue) {
+		typeInfo->copyvalue(source, dest, mixmode, mixfactor);
+	}
+	else {
+		/* Mere copy if no advanced interpolation is supported. */
+		memcpy(dest, source, typeInfo->size);
+	}
 }
 
 bool CustomData_data_equals(int type, const void *data1, const void *data2)
@@ -3464,3 +3537,233 @@ void CustomData_external_remove_object(CustomData *data, ID *id)
 }
 #endif
 
+/* ********** Mesh-to-mesh data transfer ********** */
+static void copy_bit_flag(void *dst, void *src, const size_t data_size, const uint64_t flag)
+{
+#define COPY_BIT_FLAG(_type, _dst, _src, _f)                    \
+{                                                               \
+	const _type _val = *((_type *)(_src)) & ((_type)(_f));      \
+	*((_type *)(_dst)) &= ~((_type)(_f));                       \
+	*((_type *)(_dst)) |= _val;                                 \
+} (void) 0
+
+	switch (data_size) {
+		case 1:
+			COPY_BIT_FLAG(uint8_t, dst, src, flag);
+			break;
+		case 2:
+			COPY_BIT_FLAG(uint16_t, dst, src, flag);
+			break;
+		case 4:
+			COPY_BIT_FLAG(uint32_t, dst, src, flag);
+			break;
+		case 8:
+			COPY_BIT_FLAG(uint64_t, dst, src, flag);
+			break;
+		default:
+			//printf("ERROR %s: Unknown flags-container size (%zu)\n", __func__, datasize);
+			break;
+	}
+
+#undef COPY_BIT_FLAG
+}
+
+static bool check_bit_flag(void *data, const size_t data_size, const uint64_t flag)
+{
+	switch (data_size) {
+		case 1:
+			return ((*((uint8_t *)data) & ((uint8_t)flag)) != 0);
+		case 2:
+			return ((*((uint16_t *)data) & ((uint16_t)flag)) != 0);
+		case 4:
+			return ((*((uint32_t *)data) & ((uint32_t)flag)) != 0);
+		case 8:
+			return ((*((uint64_t *)data) & ((uint64_t)flag)) != 0);
+		default:
+			//printf("ERROR %s: Unknown flags-container size (%zu)\n", __func__, datasize);
+			return false;
+	}
+}
+
+static void customdata_data_transfer_interp_generic(
+        const CustomDataTransferLayerMap *laymap, void *data_dst, void **sources, const float *weights, const int count,
+        const float mix_factor)
+{
+	/* Fake interpolation, we actually copy highest weighted source to dest.
+	 * Note we also handle bitflags here, in which case we rather choose to transfer value of elements totalizing
+	 * more than 0.5 of weight. */
+
+	int best_src_idx = 0;
+
+	const int data_type = laymap->data_type;
+	const int mix_mode = laymap->mix_mode;
+
+	size_t data_size;
+	const uint64_t data_flag = laymap->data_flag;
+
+	cd_interp interp_cd = NULL;
+	cd_copy copy_cd = NULL;
+
+	void *tmp_dst;
+
+	if (!sources) {
+		/* Not supported here, abort. */
+		return;
+	}
+
+	if (data_type & CD_FAKE) {
+		data_size = laymap->data_size;
+	}
+	else {
+		const LayerTypeInfo *type_info = layerType_getInfo(data_type);
+
+		data_size = (size_t)type_info->size;
+		interp_cd = type_info->interp;
+		copy_cd = type_info->copy;
+	}
+
+	tmp_dst = MEM_mallocN(data_size, __func__);
+
+	if (count > 1 && !interp_cd) {
+		int i;
+
+		if (data_flag) {
+			/* Boolean case, we can 'interpolate' in two groups, and choose value from highest weighted group. */
+			float tot_weight_true = 0.0f;
+			int item_true_idx = -1, item_false_idx = -1;
+
+			for (i = 0; i < count; i++) {
+				if (check_bit_flag(sources[i], data_size, data_flag)) {
+					tot_weight_true += weights[i];
+					item_true_idx = i;
+				}
+				else {
+					item_false_idx = i;
+				}
+			}
+			best_src_idx = (tot_weight_true >= 0.5f) ? item_true_idx : item_false_idx;
+		}
+		else {
+			/* We just choose highest weighted source. */
+			float max_weight = 0.0f;
+
+			for (i = 0; i < count; i++) {
+				if (weights[i] > max_weight) {
+					max_weight = weights[i];
+					best_src_idx = i;
+				}
+			}
+		}
+	}
+
+	BLI_assert(best_src_idx >= 0);
+
+	if (interp_cd) {
+		interp_cd(sources, weights, NULL, count, (char *)tmp_dst);
+	}
+	else if (data_flag) {
+		copy_bit_flag(tmp_dst, sources[best_src_idx], data_size, data_flag);
+	}
+	/* No interpolation, just copy highest weight source element's data. */
+	else if (copy_cd) {
+		copy_cd((char *)sources[best_src_idx], (char *)tmp_dst, 1);
+	}
+	else {
+		memcpy(tmp_dst, sources[best_src_idx], data_size);
+	}
+
+	if (data_flag) {
+		/* Bool flags, only copy if dest data is set (resp. unset) - only 'advanced' modes we can support here! */
+		if (mix_factor >= 0.5f &&
+		    ((mix_mode == CDT_MIX_TRANSFER) ||
+		     (mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && check_bit_flag(data_dst, data_size, data_flag)) ||
+		     (mix_mode == CDT_MIX_REPLACE_BELOW_THRESHOLD && !check_bit_flag(data_dst, data_size, data_flag))))
+		{
+			copy_bit_flag(data_dst, tmp_dst, data_size, data_flag);
+		}
+	}
+	else if (!(data_type & CD_FAKE)) {
+		CustomData_data_mix_value(data_type, tmp_dst, data_dst, mix_mode, mix_factor);
+	}
+	/* Else we can do nothing by default, needs custom interp func!
+	 * Note this is here only for sake of consistency, not expected to be used much actually? */
+	else {
+		if (mix_factor >= 0.5f) {
+			memcpy(data_dst, tmp_dst, data_size);
+		}
+	}
+
+	MEM_freeN(tmp_dst);
+}
+
+void CustomData_data_transfer(const MeshPairRemap *me_remap, const CustomDataTransferLayerMap *laymap)
+{
+	MeshPairRemapItem *mapit = me_remap->items;
+	const int totelem = me_remap->items_num;
+	int i;
+
+	const int data_type = laymap->data_type;
+	void *data_src = laymap->data_src;
+	void *data_dst = laymap->data_dst;
+
+	size_t data_step;
+	size_t data_size;
+	size_t data_offset;
+
+	cd_datatransfer_interp interp = NULL;
+
+	size_t tmp_buff_size = 32;
+	void **tmp_data_src = NULL;
+
+	/* Note: NULL data_src may happen and be valid (see vgroups...). */
+	if (!data_dst) {
+		return;
+	}
+
+	if (data_src) {
+		tmp_data_src = MEM_mallocN(sizeof(*tmp_data_src) * tmp_buff_size, __func__);
+	}
+
+	if (data_type & CD_FAKE) {
+		data_step = laymap->elem_size;
+		data_size = laymap->data_size;
+		data_offset = laymap->data_offset;
+	}
+	else {
+		const LayerTypeInfo *type_info = layerType_getInfo(data_type);
+
+		/* Note: we can use 'fake' CDLayers, like e.g. for crease, bweight, etc. :/ */
+		data_size = (size_t)type_info->size;
+		data_step = laymap->elem_size ? laymap->elem_size : data_size;
+		data_offset = laymap->data_offset;
+	}
+
+	interp = laymap->interp ? laymap->interp : customdata_data_transfer_interp_generic;
+
+	for (i = 0; i < totelem; i++, data_dst = (char *)data_dst + data_step, mapit++) {
+		const int sources_num = mapit->sources_num;
+		const float mix_factor = laymap->mix_weights ? laymap->mix_weights[i] : laymap->mix_factor;
+		int j;
+
+		if (!sources_num) {
+			/* No sources for this element, skip it. */
+			continue;
+		}
+
+		if (tmp_data_src) {
+			if (UNLIKELY(sources_num > tmp_buff_size)) {
+				tmp_buff_size = (size_t)sources_num;
+				tmp_data_src = MEM_reallocN(tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size);
+			}
+
+			for (j = 0; j < sources_num; j++) {
+				const size_t src_idx = (size_t)mapit->indices_src[j];
+				tmp_data_src[j] = (char *)data_src + data_step * src_idx + data_offset;
+			}
+		}
+
+		interp(laymap, (char *)data_dst + data_offset, tmp_data_src, mapit->weights_src, sources_num, mix_factor);
+	}
+
+	MEM_SAFE_FREE(tmp_data_src);
+}
