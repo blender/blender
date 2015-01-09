@@ -1196,20 +1196,28 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
             sub.prop(part, "child_parting_max", text="Max")
 
         col = split.column()
-        col.label(text="Roughness:")
 
-        sub = col.column(align=True)
-        sub.prop(part, "roughness_1", text="Uniform")
-        sub.prop(part, "roughness_1_size", text="Size")
+        col.prop(part, "use_roughness_curve")
+        if part.use_roughness_curve:
+            sub = col.column()
+            sub.template_curve_mapping(part, "roughness_curve")
+            sub.prop(part, "roughness_1", text="Roughness")
+            sub.prop(part, "roughness_1_size", text="Size")
+        else:
+            col.label(text="Roughness:")
 
-        sub = col.column(align=True)
-        sub.prop(part, "roughness_endpoint", "Endpoint")
-        sub.prop(part, "roughness_end_shape")
+            sub = col.column(align=True)
+            sub.prop(part, "roughness_1", text="Uniform")
+            sub.prop(part, "roughness_1_size", text="Size")
 
-        sub = col.column(align=True)
-        sub.prop(part, "roughness_2", text="Random")
-        sub.prop(part, "roughness_2_size", text="Size")
-        sub.prop(part, "roughness_2_threshold", slider=True)
+            sub = col.column(align=True)
+            sub.prop(part, "roughness_endpoint", "Endpoint")
+            sub.prop(part, "roughness_end_shape")
+
+            sub = col.column(align=True)
+            sub.prop(part, "roughness_2", text="Random")
+            sub.prop(part, "roughness_2_size", text="Size")
+            sub.prop(part, "roughness_2_threshold", slider=True)
 
         layout.row().label(text="Kink:")
         layout.row().prop(part, "kink", expand=True)

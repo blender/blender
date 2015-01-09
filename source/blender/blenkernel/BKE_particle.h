@@ -340,6 +340,7 @@ int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct Pa
 
 /* child paths */
 void BKE_particlesettings_clump_curve_init(struct ParticleSettings *part);
+void BKE_particlesettings_rough_curve_init(struct ParticleSettings *part);
 void psys_apply_child_modifiers(struct ParticleThreadContext *ctx, struct ListBase *modifiers,
                                 struct ChildParticle *cpa, struct ParticleTexture *ptex, const float orco[3], const float ornor[3], float hairmat[4][4],
                                 struct ParticleCacheKey *keys, struct ParticleCacheKey *parent_keys);

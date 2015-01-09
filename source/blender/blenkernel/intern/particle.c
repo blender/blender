@@ -377,6 +377,8 @@ void BKE_particlesettings_free(ParticleSettings *part)
 	
 	if (part->clumpcurve)
 		curvemapping_free(part->clumpcurve);
+	if (part->roughcurve)
+		curvemapping_free(part->roughcurve);
 	
 	free_partdeflect(part->pd);
 	free_partdeflect(part->pd2);
@@ -1785,6 +1787,8 @@ int do_guides(ParticleSettings *part, ListBase *effectors, ParticleKey *state, i
 			
 			if (part->clumpcurve)
 				curvemapping_changed_all(part->clumpcurve);
+			if (part->roughcurve)
+				curvemapping_changed_all(part->roughcurve);
 			
 			par.co[0] = par.co[1] = par.co[2] = 0.0f;
 			copy_v3_v3(key.co, vec_to_point);
@@ -1991,6 +1995,8 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx, ParticleSi
 	/* prepare curvemapping tables */
 	if (part->clumpcurve)
 		curvemapping_changed_all(part->clumpcurve);
+	if (part->roughcurve)
+		curvemapping_changed_all(part->roughcurve);
 
 	return true;
 }
@@ -3166,6 +3172,18 @@ void BKE_particlesettings_clump_curve_init(ParticleSettings *part)
 	part->clumpcurve = cumap;
 }
 
+void BKE_particlesettings_rough_curve_init(ParticleSettings *part)
+{
+	CurveMapping *cumap = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	
+	cumap->cm[0].curve[0].x = 0.0f;
+	cumap->cm[0].curve[0].y = 1.0f;
+	cumap->cm[0].curve[1].x = 1.0f;
+	cumap->cm[0].curve[1].y = 1.0f;
+	
+	part->roughcurve = cumap;
+}
+
 ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 {
 	ParticleSettings *partn;
@@ -3179,6 +3197,8 @@ ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 
 	if (part->clumpcurve)
 		partn->clumpcurve = curvemapping_copy(part->clumpcurve);
+	if (part->roughcurve)
+		partn->roughcurve = curvemapping_copy(part->roughcurve);
 	
 	partn->boids = boid_copy_settings(part->boids);
 

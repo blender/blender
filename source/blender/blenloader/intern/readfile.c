@@ -3819,6 +3819,9 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->clumpcurve = newdataadr(fd, part->clumpcurve);
 	if (part->clumpcurve)
 		direct_link_curvemapping(fd, part->clumpcurve);
+	part->roughcurve = newdataadr(fd, part->roughcurve);
+	if (part->roughcurve)
+		direct_link_curvemapping(fd, part->roughcurve);
 
 	part->effector_weights = newdataadr(fd, part->effector_weights);
 	if (!part->effector_weights)

@@ -1110,6 +1110,8 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 
 			if (part->clumpcurve)
 				write_curvemapping(wd, part->clumpcurve);
+			if (part->roughcurve)
+				write_curvemapping(wd, part->roughcurve);
 			
 			dw = part->dupliweights.first;
 			for (; dw; dw=dw->next) {

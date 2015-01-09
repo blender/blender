@@ -898,6 +898,29 @@ void rna_ParticleSettings_use_clump_curve_set(PointerRNA *ptr, int value)
 	}
 }
 
+int rna_ParticleSettings_use_roughness_curve_get(PointerRNA *ptr)
+{
+	ParticleSettings *part = ptr->data;
+	return part->roughcurve != NULL;
+}
+
+void rna_ParticleSettings_use_roughness_curve_set(PointerRNA *ptr, int value)
+{
+	ParticleSettings *part = ptr->data;
+	
+	if (!value) {
+		if (part->roughcurve) {
+			curvemapping_free(part->roughcurve);
+			part->roughcurve = NULL;
+		}
+	}
+	else {
+		if (!part->roughcurve) {
+			BKE_particlesettings_rough_curve_init(part);
+		}
+	}
+}
+
 static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
@@ -2910,6 +2933,18 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rough_end_shape");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Shape", "Shape of end point rough");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "use_roughness_curve", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ParticleSettings_use_roughness_curve_get", "rna_ParticleSettings_use_roughness_curve_set");
+	RNA_def_property_ui_text(prop, "Use Roughness Curve", "Use a curve to define roughness");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "roughness_curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "roughcurve");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Roughness Curve", "Curve defining roughness");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop = RNA_def_property(srna, "child_length", PROP_FLOAT, PROP_NONE);

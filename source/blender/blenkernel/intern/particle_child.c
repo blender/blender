@@ -413,7 +413,7 @@ static void do_rough(const float loc[3], float mat[4][4], float t, float fac, fl
 	madd_v3_v3fl(state->co, mat[2], fac * rough[2]);
 }
 
-static void do_rough_end(float *loc, float mat[4][4], float t, float fac, float shape, ParticleKey *state)
+static void do_rough_end(const float loc[3], float mat[4][4], float t, float fac, float shape, ParticleKey *state)
 {
 	float rough[2];
 	float roughfac;
@@ -426,6 +426,27 @@ static void do_rough_end(float *loc, float mat[4][4], float t, float fac, float 
 
 	madd_v3_v3fl(state->co, mat[0], rough[0]);
 	madd_v3_v3fl(state->co, mat[1], rough[1]);
+}
+
+static void do_rough_curve(const float loc[3], float mat[4][4], float time, float fac, float size, CurveMapping *roughcurve, ParticleKey *state)
+{
+	float rough[3];
+	float rco[3];
+	
+	if (!roughcurve)
+		return;
+	
+	fac *= CLAMPIS(curvemapping_evaluateF(roughcurve, 0, time), 0.0f, 1.0f);
+	
+	copy_v3_v3(rco, loc);
+	mul_v3_fl(rco, time);
+	rough[0] = -1.0f + 2.0f * BLI_gTurbulence(size, rco[0], rco[1], rco[2], 2, 0, 2);
+	rough[1] = -1.0f + 2.0f * BLI_gTurbulence(size, rco[1], rco[2], rco[0], 2, 0, 2);
+	rough[2] = -1.0f + 2.0f * BLI_gTurbulence(size, rco[2], rco[0], rco[1], 2, 0, 2);
+	
+	madd_v3_v3fl(state->co, mat[0], fac * rough[0]);
+	madd_v3_v3fl(state->co, mat[1], fac * rough[1]);
+	madd_v3_v3fl(state->co, mat[2], fac * rough[2]);
 }
 
 void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t)
@@ -462,18 +483,23 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, Part
 		}
 	}
 
-	if (rough1 > 0.f)
-		do_rough(orco, mat, t, rough1, part->rough1_size, 0.0, state);
-
-	if (rough2 > 0.f) {
-		float vec[3];
-		psys_frand_vec(sim->psys, i + 27, vec);
-		do_rough(vec, mat, t, rough2, part->rough2_size, part->rough2_thres, state);
+	if (part->roughcurve) {
+		do_rough_curve(orco, mat, t, rough1, part->rough1_size, part->roughcurve, state);
 	}
-
-	if (rough_end > 0.f) {
-		float vec[3];
-		psys_frand_vec(sim->psys, i + 27, vec);
-		do_rough_end(vec, mat, t, rough_end, part->rough_end_shape, state);
+	else {
+		if (rough1 > 0.f)
+			do_rough(orco, mat, t, rough1, part->rough1_size, 0.0, state);
+	
+		if (rough2 > 0.f) {
+			float vec[3];
+			psys_frand_vec(sim->psys, i + 27, vec);
+			do_rough(vec, mat, t, rough2, part->rough2_size, part->rough2_thres, state);
+		}
+	
+		if (rough_end > 0.f) {
+			float vec[3];
+			psys_frand_vec(sim->psys, i + 27, vec);
+			do_rough_end(vec, mat, t, rough_end, part->rough_end_shape, state);
+		}
 	}
 }
