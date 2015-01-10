@@ -116,6 +116,16 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "gpencil_data.use_stroke_edit_mode");
 	
+	/* Brush Settings */
+	/* NOTE: We cannot expose these in the standard keymap, as they will interfere with regular hotkeys
+	 *       in other modes. However, when we are dealing with Stroke Edit Mode, we know for certain
+	 *       that the only data being edited is that of the Grease Pencil strokes
+	 */
+	
+	/* FKEY = Eraser Radius */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path_primary", "user_preferences.edit.grease_pencil_eraser_radius");
+	
 	/* Selection ------------------------------------- */
 	/* select all */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_all", AKEY, KM_PRESS, 0, 0);
