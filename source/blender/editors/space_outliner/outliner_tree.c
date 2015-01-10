@@ -1398,9 +1398,9 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 		search_string = soops->search_string;
 	}
 	else {
-		search_string = search_buff;
 		/* Implicitly add heading/trailing wildcards if needed. */
-		BLI_strncpy_ensure_pad(search_string, soops->search_string, '*', sizeof(search_string));
+		BLI_strncpy_ensure_pad(search_buff, soops->search_string, '*', sizeof(search_buff));
+		search_string = search_buff;
 	}
 
 	for (te = lb->first; te; te = ten) {

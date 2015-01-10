@@ -1422,7 +1422,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 				}
 
 				if (best_island_index != -1 && isld_steps_src) {
-					best_island = island_store.islands[best_island_index];
+					best_island = use_islands ? island_store.islands[best_island_index] : NULL;
 					as_graph = &as_graphdata[best_island_index];
 					poly_island_index_map = (int *)as_graph->custom_data;
 					BLI_astar_solution_init(as_graph, &as_solution, false);
@@ -1488,7 +1488,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 											BLI_space_transform_apply(space_transform, tmp_co);
 										}
 
-										pidx_src = best_island->indices[last_valid_pidx_isld_src];
+										pidx_src = use_islands ? best_island->indices[last_valid_pidx_isld_src] :
+										                         last_valid_pidx_isld_src;
 										mp_src = &polys_src[pidx_src];
 										ml_src = &loops_src[mp_src->loopstart];
 										for (j = 0; j < mp_src->totloop; j++, ml_src++) {
@@ -1564,7 +1565,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 											BLI_space_transform_apply(space_transform, tmp_co);
 										}
 
-										pidx_src = best_island->indices[last_valid_pidx_isld_src];
+										pidx_src = use_islands ? best_island->indices[last_valid_pidx_isld_src] :
+										                         last_valid_pidx_isld_src;
 										mp_src = &polys_src[pidx_src];
 
 										/* Create that one on demand. */
