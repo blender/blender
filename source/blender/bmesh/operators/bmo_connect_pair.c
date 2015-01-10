@@ -464,19 +464,23 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 				negate_v3(basis_nor_b);
 			}
 			add_v3_v3v3(basis_nor, basis_nor_a, basis_nor_b);
-
-			if (UNLIKELY(fabsf(dot_v3v3(basis_nor, basis_dir)) < FLT_EPSILON)) {
-				ortho_v3_v3(basis_nor, basis_dir);
-			}
 		}
 #endif
 
 		/* get third axis */
+		normalize_v3(basis_dir);
+		normalize_v3(basis_nor);
 		cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
+		if (UNLIKELY(normalize_v3(basis_tmp) < FLT_EPSILON)) {
+			ortho_v3_v3(basis_nor, basis_dir);
+			normalize_v3(basis_nor);
+			cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
+			normalize_v3(basis_tmp);
+		}
 
-		normalize_v3_v3(pc.matrix[0], basis_tmp);
-		normalize_v3_v3(pc.matrix[1], basis_dir);
-		normalize_v3_v3(pc.matrix[2], basis_nor);
+		copy_v3_v3(pc.matrix[0], basis_tmp);
+		copy_v3_v3(pc.matrix[1], basis_dir);
+		copy_v3_v3(pc.matrix[2], basis_nor);
 		invert_m3(pc.matrix);
 
 		pc.axis_sep = dot_m3_v3_row_x(pc.matrix, pc.v_a->co);
