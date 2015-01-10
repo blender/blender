@@ -3590,7 +3590,7 @@ static void customdata_data_transfer_interp_generic(
         const float mix_factor)
 {
 	/* Fake interpolation, we actually copy highest weighted source to dest.
-	 * Note we also handle bitflags here, in which case we rather choose to transfer value of elements totalizing
+	 * Note we also handle bitflags here, in which case we rather choose to transfer value of elements totaling
 	 * more than 0.5 of weight. */
 
 	int best_src_idx = 0;

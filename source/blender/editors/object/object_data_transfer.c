@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/object/object_transfer_data.c
+/** \file blender/editors/object/object_data_transfer.c
  *  \ingroup edobj
  */
 
@@ -378,6 +378,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 	/* Note: issue with that is that if canceled, operator cannot be redone... Nasty in our case. */
 	return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 #else
+	(void)changed;
 	return OPERATOR_FINISHED;
 #endif
 }

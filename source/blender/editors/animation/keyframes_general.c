@@ -615,7 +615,8 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 	return 0;
 }
 
-static void flip_names(tAnimCopybufItem *aci, char **name) {
+static void flip_names(tAnimCopybufItem *aci, char **name)
+{
 	if (aci->is_bone) {
 		char *str_start;
 		if ((str_start = strstr(aci->rna_path, "pose.bones["))) {
@@ -644,7 +645,7 @@ static void flip_names(tAnimCopybufItem *aci, char **name) {
 			BLI_strncpy(str_iter, bname_new, length + 1);
 			str_iter += length;
 			BLI_strncpy(str_iter, str_end, postfix_l + 1);
-			str_iter[postfix_l] = 0;
+			str_iter[postfix_l] = '\0';
 		}
 	}
 }
