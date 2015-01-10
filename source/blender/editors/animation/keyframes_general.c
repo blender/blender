@@ -747,7 +747,7 @@ static tAnimCopybufItem *pastebuf_match_index_only(FCurve *fcu, const short from
 static void do_curve_mirror_flippping(tAnimCopybufItem *aci, BezTriple *bezt)
 {
 	if (aci->is_bone) {
-		int slength = strlen(aci->rna_path);
+		const size_t slength = strlen(aci->rna_path);
 		bool flip = false;
 		if (BLI_strn_endswith(aci->rna_path, "location", slength) && aci->array_index == 0)
 			flip = true;

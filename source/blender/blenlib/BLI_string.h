@@ -86,7 +86,7 @@ int BLI_str_index_in_array_n(const char *__restrict str, const char **__restrict
 int BLI_str_index_in_array(const char *__restrict str, const char **__restrict str_array) ATTR_NONNULL();
 
 bool BLI_str_endswith(const char *__restrict str, const char *__restrict end) ATTR_NONNULL();
-bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, int length) ATTR_NONNULL();
+bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t length) ATTR_NONNULL();
 
 size_t BLI_str_partition(const char *str, const char delim[], char **sep, char **suf) ATTR_NONNULL();
 size_t BLI_str_rpartition(const char *str, const char delim[], char **sep, char **suf) ATTR_NONNULL();

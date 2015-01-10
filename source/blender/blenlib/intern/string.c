@@ -773,9 +773,9 @@ int BLI_str_index_in_array(const char *__restrict str, const char **__restrict s
 	return -1;
 }
 
-bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, int slength)
+bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t slength)
 {
-	int elength = strlen(end);
+	size_t elength = strlen(end);
 	
 	if (elength < slength) {
 		const char *iter = &str[slength - elength];
@@ -798,7 +798,7 @@ bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, i
  */
 bool BLI_str_endswith(const char *__restrict str, const char *end)
 {
-	int slength = strlen(str);
+	const size_t slength = strlen(str);
 	return BLI_strn_endswith(str, end, slength);
 }
 
