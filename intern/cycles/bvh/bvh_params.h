@@ -49,11 +49,6 @@ public:
 	/* QBVH */
 	int use_qbvh;
 
-	/* Split leaf nodes by primitive types,
-	 * leaving node containing primitives of single type only.
-	 */
-	int use_split_leaf_types;
-
 	/* fixed parameters */
 	enum {
 		MAX_DEPTH = 64,
@@ -78,7 +73,6 @@ public:
 		top_level = false;
 		use_cache = false;
 		use_qbvh = false;
-		use_split_leaf_types = false;
 	}
 
 	/* SAH costs */

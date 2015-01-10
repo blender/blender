@@ -203,37 +203,42 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				if(primAddr >= 0) {
 #endif
 					int primAddr2 = __float_as_int(leaf.y);
+					const uint type = __float_as_int(leaf.w);
 
 					/* Pop. */
 					nodeAddr = traversalStack[stackPtr].addr;
 					--stackPtr;
 
 					/* Primitive intersection. */
-					for(; primAddr < primAddr2; primAddr++) {
-						/* only primitives from the same object */
-						uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-
-						if(tri_object != subsurface_object)
-							continue;
-
-						/* Intersect ray against primitive */
-						uint type = kernel_tex_fetch(__prim_type, primAddr);
-
-						switch(type & PRIMITIVE_ALL) {
-							case PRIMITIVE_TRIANGLE: {
+					switch(type & PRIMITIVE_ALL) {
+						case PRIMITIVE_TRIANGLE: {
+							/* Intersect ray against primitive, */
+							for(; primAddr < primAddr2; primAddr++) {
+								/* Only primitives from the same object. */
+								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
+								if(tri_object != subsurface_object) {
+									continue;
+								}
 								triangle_intersect_subsurface(kg, &isect_precalc, isect_array, P, dir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
-								break;
 							}
-#if BVH_FEATURE(BVH_MOTION)
-							case PRIMITIVE_MOTION_TRIANGLE: {
-								motion_triangle_intersect_subsurface(kg, isect_array, P, dir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
-								break;
-							}
-#endif
-							default: {
-								break;
-							}
+							break;
 						}
+#if BVH_FEATURE(BVH_MOTION)
+						case PRIMITIVE_MOTION_TRIANGLE: {
+							/* Intersect ray against primitive. */
+							for(; primAddr < primAddr2; primAddr++) {
+								/* Only primitives from the same object. */
+								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
+								if(tri_object != subsurface_object) {
+									continue;
+								}
+								motion_triangle_intersect_subsurface(kg, isect_array, P, dir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+							}
+							break;
+						}
+#endif
+						default:
+							break;
 					}
 				}
 #if BVH_FEATURE(BVH_INSTANCING)

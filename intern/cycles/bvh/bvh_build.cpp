@@ -473,7 +473,7 @@ BVHNode *BVHBuild::create_primitive_leaf_node(const int *p_type,
 	return new LeafNode(bounds, visibility, start, start + num);
 }
 
-BVHNode* BVHBuild::create_leaf_node_split(const BVHRange& range)
+BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 {
 #define MAX_LEAF_SIZE 8
 	int p_num[PRIMITIVE_NUM_TOTAL] = {0};
@@ -562,68 +562,6 @@ BVHNode* BVHBuild::create_leaf_node_split(const BVHRange& range)
 		return new InnerNode(range.bounds(), inner_a, inner_b);
 	}
 #undef AMX_LEAF_SIZE
-}
-
-BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
-{
-	if(params.use_split_leaf_types) {
-		/* Need to ensure leaf nodes has single primitive type only. */
-		return create_leaf_node_split(range);
-	}
-
-	vector<int>& p_type = prim_type;
-	vector<int>& p_index = prim_index;
-	vector<int>& p_object = prim_object;
-	BoundBox bounds = BoundBox::empty;
-	int num = 0, ob_num = 0;
-	uint visibility = 0;
-
-	for(int i = 0; i < range.size(); i++) {
-		BVHReference& ref = references[range.start() + i];
-
-		if(ref.prim_index() != -1) {
-			if(range.start() + num == prim_index.size()) {
-				assert(params.use_spatial_split);
-
-				p_type.push_back(ref.prim_type());
-				p_index.push_back(ref.prim_index());
-				p_object.push_back(ref.prim_object());
-			}
-			else {
-				p_type[range.start() + num] = ref.prim_type();
-				p_index[range.start() + num] = ref.prim_index();
-				p_object[range.start() + num] = ref.prim_object();
-			}
-
-			bounds.grow(ref.bounds());
-			visibility |= objects[ref.prim_object()]->visibility;
-			num++;
-		}
-		else {
-			if(ob_num < i)
-				references[range.start() + ob_num] = ref;
-			ob_num++;
-		}
-	}
-
-	BVHNode *leaf = NULL;
-  
-	if(num > 0) {
-		leaf = new LeafNode(bounds, visibility, range.start(), range.start() + num);
-
-		if(num == range.size())
-			return leaf;
-	}
-
-	/* while there may be multiple triangles in a leaf, for object primitives
-	 * we want there to be the only one, so we keep splitting */
-	const BVHReference *ref = (ob_num)? &references[range.start()]: NULL;
-	BVHNode *oleaf = create_object_leaf_nodes(ref, range.start() + num, ob_num);
-  
-	if(leaf)
-		return new InnerNode(range.bounds(), leaf, oleaf);
-	else
-		return oleaf;
 }
 
 /* Tree Rotations */

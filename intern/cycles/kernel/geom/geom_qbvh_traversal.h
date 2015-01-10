@@ -275,6 +275,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				if(primAddr >= 0) {
 #endif
 					int primAddr2 = __float_as_int(leaf.y);
+					const uint type = __float_as_int(leaf.w);
 
 					/* Pop. */
 					nodeAddr = traversalStack[stackPtr].addr;
@@ -282,49 +283,59 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					--stackPtr;
 
 					/* Primitive intersection. */
-					while(primAddr < primAddr2) {
-						bool hit;
-						uint type = kernel_tex_fetch(__prim_type, primAddr);
-
-						switch(type & PRIMITIVE_ALL) {
-							case PRIMITIVE_TRIANGLE: {
-								hit = triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr);
-								break;
-							}
-#if BVH_FEATURE(BVH_MOTION)
-							case PRIMITIVE_MOTION_TRIANGLE: {
-								hit = motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr);
-								break;
-							}
+					switch(type & PRIMITIVE_ALL) {
+						case PRIMITIVE_TRIANGLE: {
+#if defined(__KERNEL_DEBUG__)
+							isect->num_traversal_steps++;
 #endif
+							for(; primAddr < primAddr2; primAddr++) {
+								if(triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr)) {
+									tfar = ssef(isect->t);
+									/* Shadow ray early termination. */
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+								}
+							}
+							break;
+						}
+#if BVH_FEATURE(BVH_MOTION)
+						case PRIMITIVE_MOTION_TRIANGLE: {
+							for(; primAddr < primAddr2; primAddr++) {
+#if defined(__KERNEL_DEBUG__)
+								isect->num_traversal_steps++;
+#endif
+								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr)) {
+									tfar = ssef(isect->t);
+									/* Shadow ray early termination. */
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+								}
+							}
+							break;
+						}
+#endif  /* BVH_FEATURE(BVH_MOTION) */
 #if BVH_FEATURE(BVH_HAIR)
-							case PRIMITIVE_CURVE:
-							case PRIMITIVE_MOTION_CURVE: {
-								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+						case PRIMITIVE_CURVE:
+						case PRIMITIVE_MOTION_CURVE: {
+							for(; primAddr < primAddr2; primAddr++) {
+#if defined(__KERNEL_DEBUG__)
+								isect->num_traversal_steps++;
+#endif
+								bool hit;
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
 									hit = bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
 								else
 									hit = bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
-								break;
+								if(hit) {
+									tfar = ssef(isect->t);
+									/* Shadow ray early termination. */
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+								}
 							}
-#endif
-							default: {
-								hit = false;
-								break;
-							}
+							break;
 						}
-
-#if defined(__KERNEL_DEBUG__)
-						isect->num_traversal_steps++;
-#endif
-
-						/* Shadow ray early termination. */
-						if(hit) {
-							tfar = ssef(isect->t);
-							if(visibility == PATH_RAY_SHADOW_OPAQUE)
-								return true;
-						}
-
-						primAddr++;
+#endif  /* BVH_FEATURE(BVH_HAIR) */
 					}
 				}
 #if BVH_FEATURE(BVH_INSTANCING)

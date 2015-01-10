@@ -254,62 +254,82 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_INSTANCING)
 				if(primAddr >= 0) {
 #endif
-					int primAddr2 = __float_as_int(leaf.y);
+					const int primAddr2 = __float_as_int(leaf.y);
+					const uint type = __float_as_int(leaf.w);
 
 					/* pop */
 					nodeAddr = traversalStack[stackPtr];
 					--stackPtr;
 
 					/* primitive intersection */
-					while(primAddr < primAddr2) {
-						bool hit;
-						uint type = kernel_tex_fetch(__prim_type, primAddr);
-
-						switch(type & PRIMITIVE_ALL) {
-							case PRIMITIVE_TRIANGLE: {
-								hit = triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr);
-								break;
-							}
-#if BVH_FEATURE(BVH_MOTION)
-							case PRIMITIVE_MOTION_TRIANGLE: {
-								hit = motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr);
-								break;
-							}
+					switch(type & PRIMITIVE_ALL) {
+						case PRIMITIVE_TRIANGLE: {
+							for(; primAddr < primAddr2; primAddr++) {
+#if defined(__KERNEL_DEBUG__)
+								isect->num_traversal_steps++;
 #endif
+								if(triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr)) {
+									/* shadow ray early termination */
+#if defined(__KERNEL_SSE2__)
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
+#else
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+#endif
+								}
+							}
+							break;
+						}
+#if BVH_FEATURE(BVH_MOTION)
+						case PRIMITIVE_MOTION_TRIANGLE: {
+							for(; primAddr < primAddr2; primAddr++) {
+#if defined(__KERNEL_DEBUG__)
+								isect->num_traversal_steps++;
+#endif
+								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr)) {
+									/* shadow ray early termination */
+#if defined(__KERNEL_SSE2__)
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
+#else
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+#endif
+								}
+							}
+							break;
+						}
+#endif  /* BVH_FEATURE(BVH_MOTION) */
 #if BVH_FEATURE(BVH_HAIR)
-							case PRIMITIVE_CURVE:
-							case PRIMITIVE_MOTION_CURVE: {
-								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+						case PRIMITIVE_CURVE:
+						case PRIMITIVE_MOTION_CURVE: {
+							for(; primAddr < primAddr2; primAddr++) {
+#if defined(__KERNEL_DEBUG__)
+								isect->num_traversal_steps++;
+#endif
+								bool hit;
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
 									hit = bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
 								else
 									hit = bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);
-								break;
-							}
-#endif
-							default: {
-								hit = false;
-								break;
-							}
-						}
-
-#if defined(__KERNEL_DEBUG__)
-						isect->num_traversal_steps++;
-#endif
-
-						/* shadow ray early termination */
+								if(hit) {
+									/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)
-						if(hit) {
-							if(visibility == PATH_RAY_SHADOW_OPAQUE)
-								return true;
-
-							tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
-						}
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
+									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 #else
-						if(hit && visibility == PATH_RAY_SHADOW_OPAQUE)
-							return true;
+									if(visibility == PATH_RAY_SHADOW_OPAQUE)
+										return true;
 #endif
-
-						primAddr++;
+								}
+							}
+							break;
+						}
+#endif  /* BVH_FEATURE(BVH_HAIR) */
 					}
 				}
 #if BVH_FEATURE(BVH_INSTANCING)

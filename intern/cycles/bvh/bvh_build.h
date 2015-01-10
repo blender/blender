@@ -71,7 +71,6 @@ protected:
 	BVHNode *create_object_leaf_nodes(const BVHReference *ref, int start, int num);
 
 	/* Leaf node type splitting. */
-	BVHNode *create_leaf_node_split(const BVHRange& range);
 	BVHNode *create_primitive_leaf_node(const int *p_type,
 	                                    const int *p_index,
 	                                    const int *p_object,

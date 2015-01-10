@@ -194,49 +194,64 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_INSTANCING)
 				if(primAddr >= 0) {
 #endif
-					int primAddr2 = __float_as_int(leaf.y);
+					const int primAddr2 = __float_as_int(leaf.y);
+					const uint type = __float_as_int(leaf.w);
 
 					/* pop */
 					nodeAddr = traversalStack[stackPtr];
 					--stackPtr;
 
 					/* primitive intersection */
-					for(; primAddr < primAddr2; primAddr++) {
-						/* only primitives from volume object */
-						uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-						int object_flag = kernel_tex_fetch(__object_flag, tri_object);
-
-						if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
-							continue;
-						}
-
-						/* intersect ray against primitive */
-						uint type = kernel_tex_fetch(__prim_type, primAddr);
-
-						switch(type & PRIMITIVE_ALL) {
-							case PRIMITIVE_TRIANGLE: {
+					switch(type & PRIMITIVE_ALL) {
+						case PRIMITIVE_TRIANGLE: {
+							/* intersect ray against primitive */
+							for(; primAddr < primAddr2; primAddr++) {
+								/* only primitives from volume object */
+								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
+								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
+								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+									continue;
+								}
 								triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr);
-								break;
 							}
+							break;
+						}
 #if BVH_FEATURE(BVH_MOTION)
-							case PRIMITIVE_MOTION_TRIANGLE: {
+						case PRIMITIVE_MOTION_TRIANGLE: {
+							/* intersect ray against primitive */
+							for(; primAddr < primAddr2; primAddr++) {
+								/* only primitives from volume object */
+								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
+								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
+								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+									continue;
+								}
 								motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr);
-								break;
 							}
+							break;
+						}
 #endif
 #if BVH_FEATURE(BVH_HAIR)
-							case PRIMITIVE_CURVE:
-							case PRIMITIVE_MOTION_CURVE: {
-								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) 
+						case PRIMITIVE_CURVE:
+						case PRIMITIVE_MOTION_CURVE: {
+							/* intersect ray against primitive */
+							for(; primAddr < primAddr2; primAddr++) {
+								/* only primitives from volume object */
+								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
+								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
+								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+									continue;
+								}
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
 									bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
 								else
 									bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
-								break;
 							}
+							break;
+						}
 #endif
-							default: {
-								break;
-							}
+						default: {
+							break;
 						}
 					}
 				}
