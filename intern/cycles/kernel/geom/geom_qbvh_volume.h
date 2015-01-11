@@ -220,6 +220,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					switch(p_type) {
 						case PRIMITIVE_TRIANGLE: {
 							for(; primAddr < primAddr2; primAddr++) {
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								/* Only primitives from volume object. */
 								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
 								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
@@ -234,6 +235,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 						case PRIMITIVE_MOTION_TRIANGLE: {
 							for(; primAddr < primAddr2; primAddr++) {
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								/* Only primitives from volume object. */
 								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
 								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
@@ -250,6 +252,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						case PRIMITIVE_CURVE:
 						case PRIMITIVE_MOTION_CURVE: {
 							for(; primAddr < primAddr2; primAddr++) {
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								/* Only primitives from volume object. */
 								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
 								int object_flag = kernel_tex_fetch(__object_flag, tri_object);

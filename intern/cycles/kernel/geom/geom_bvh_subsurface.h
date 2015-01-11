@@ -205,6 +205,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						case PRIMITIVE_TRIANGLE: {
 							/* intersect ray against primitive */
 							for(; primAddr < primAddr2; primAddr++) {
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								/* only primitives from the same object */
 								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
 								if(tri_object != subsurface_object)
@@ -217,6 +218,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						case PRIMITIVE_MOTION_TRIANGLE: {
 							/* intersect ray against primitive */
 							for(; primAddr < primAddr2; primAddr++) {
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								/* only primitives from the same object */
 								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
 								if(tri_object != subsurface_object)

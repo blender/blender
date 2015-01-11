@@ -285,10 +285,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					/* Primitive intersection. */
 					switch(type & PRIMITIVE_ALL) {
 						case PRIMITIVE_TRIANGLE: {
-#if defined(__KERNEL_DEBUG__)
-							isect->num_traversal_steps++;
-#endif
 							for(; primAddr < primAddr2; primAddr++) {
+#if defined(__KERNEL_DEBUG__)
+								isect->num_traversal_steps++;
+#endif
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								if(triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr)) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
@@ -304,6 +305,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
 #endif
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr)) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
@@ -321,6 +323,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if defined(__KERNEL_DEBUG__)
 								isect->num_traversal_steps++;
 #endif
+								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								bool hit;
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
 									hit = bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, lcg_state, difl, extmax);

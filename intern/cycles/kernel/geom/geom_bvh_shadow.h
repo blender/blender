@@ -216,6 +216,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 					/* primitive intersection */
 					while(primAddr < primAddr2) {
+						kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+
 						bool hit;
 
 						/* todo: specialized intersect functions which don't fill in
