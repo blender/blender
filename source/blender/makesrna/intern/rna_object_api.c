@@ -109,7 +109,7 @@ static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseCh
 		}
 	}
 
-	BKE_constraint_mat_convertspace(ob, pchan, (float (*)[4])mat_ret, from, to);
+	BKE_constraint_mat_convertspace(ob, pchan, (float (*)[4])mat_ret, from, to, false);
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
