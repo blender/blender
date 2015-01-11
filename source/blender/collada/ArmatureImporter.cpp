@@ -53,8 +53,7 @@ static const char *bc_get_joint_name(T *node)
 static EditBone *get_edit_bone(bArmature * armature, char *name) {
 	EditBone  *eBone;
 
-	eBone = (EditBone *)armature->edbo->first;
-	for (eBone; eBone; eBone = eBone->next) {
+	for (eBone = (EditBone *)armature->edbo->first; eBone; eBone = eBone->next) {
 		if (!strcmp(name, eBone->name))
 			return eBone;
 	}
@@ -259,7 +258,7 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 	Bone *child = (Bone *)parentbone->childbase.first;
 	if (child && (import_settings->find_chains || child->next==NULL) )
 	{
-		for (child; child; child = child->next) {
+		for (; child; child = child->next) {
 			BoneExtended *be = extended_bones[child->name];
 			if (be != NULL) {
 				if (be->get_chain_length() <= clip) {

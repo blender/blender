@@ -4304,7 +4304,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
 static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
-	float new_value, dist, zoom[2];
+	float new_value, dist = 0.0f, zoom[2];
 	float delta[2], ret = OPERATOR_RUNNING_MODAL;
 	bool snap;
 	float angle_precision = 0.0f;

@@ -350,7 +350,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	}
 	else if (left_right != SEQ_SELECT_LR_NONE) {
 		/* use different logic for this */
-		float x;
+		float x = 0.0f;
 		ED_sequencer_deselect_all(scene);
 		
 		switch (left_right) {

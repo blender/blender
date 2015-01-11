@@ -904,7 +904,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 	if (prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item, *item_array = NULL;
 		bool free;
-		uiLayout *split;
+		uiLayout *split = NULL;
 		uiLayout *target;
 
 		if (radial) {

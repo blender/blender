@@ -174,7 +174,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	MLoopUV **mloopuv_layers = BLI_array_alloca(mloopuv_layers, mloopuv_layers_tot);
 	float uv_u_scale;
 	float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
-	float uv_v_range_inv;
+	float uv_v_range_inv = 0.0f;
 	float uv_axis_plane[4];
 
 	char axis_char = 'X';
@@ -194,7 +194,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	unsigned int edge_offset;
 	
-	MPoly *mpoly_orig, *mpoly_new, *mp_new;
+	MPoly *mpoly_orig = NULL, *mpoly_new, *mp_new;
 	MLoop *mloop_orig, *mloop_new, *ml_new;
 	MEdge *medge_orig, *med_orig, *med_new, *med_new_firstloop, *medge_new;
 	MVert *mvert_new, *mvert_orig, *mv_orig, *mv_new, *mv_new_base;
@@ -875,7 +875,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const unsigned int step_last = step_tot - (close ? 1 : 2);
 		const unsigned int mpoly_index_orig = totpoly ? edge_poly_map[i] : UINT_MAX;
 		const bool has_mpoly_orig = (mpoly_index_orig != UINT_MAX);
-		float uv_v_offset_a, uv_v_offset_b;
+		float uv_v_offset_a = 0.0f, uv_v_offset_b = 0.0f;
 
 		const unsigned int mloop_index_orig[2] = {
 		    vert_loop_map ? vert_loop_map[medge_new[i].v1] : UINT_MAX,

@@ -803,6 +803,7 @@ static void parent_set_vert_find(KDTree *tree, Object *child, int vert_par[3], b
 
 		tot = BLI_kdtree_find_nearest_n(tree, co_find, nearest, 3);
 		BLI_assert(tot == 3);
+		UNUSED_VARS(tot);
 
 		vert_par[0] = nearest[0].index;
 		vert_par[1] = nearest[1].index;

@@ -5240,6 +5240,8 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 						float tvec[3];
 						float dist;
 
+						zero_v3(tvec);
+
 						if (bm_loop_calc_opposite_co(l_tmp, tdir, tvec)) {
 							dist = len_v3v3(l_tmp->v->co, tvec);
 						}

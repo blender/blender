@@ -895,7 +895,7 @@ static void region_azone_tria(ScrArea *sa, AZone *az, ARegion *ar)
 
 static void region_azone_initialize(ScrArea *sa, ARegion *ar, AZEdge edge, const bool is_fullscreen)
 {
-	AZone *az;
+	AZone *az = NULL;
 	const bool is_hidden = (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) == 0;
 	
 	if (is_hidden || !is_fullscreen) {
@@ -906,7 +906,7 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, AZEdge edge, const
 		az->edge = edge;
 	}
 	
-	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
+	if (!is_hidden) {
 		if (!is_fullscreen) {
 			if (G.debug_value == 3)
 				region_azone_icon(sa, az, ar);

@@ -457,7 +457,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
 {
 	int i;
 	float lam;
-	float vini, vend;
+	float vini = 0.0f, vend;
 
 	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
 		vini = compute_volume(sys->vertexCos, sys->mfaces, sys->numFaces);
