@@ -262,10 +262,15 @@ static bool data_transfer_check(bContext *UNUSED(C), wmOperator *op)
 }
 
 /* Helper, used by both data_transfer_exec and datalayout_transfer_exec. */
-static void data_transfer_exec_preprocess_objects(bContext *C, wmOperator *op, Object *ob_src, ListBase *ctx_objects)
+static void data_transfer_exec_preprocess_objects(
+        bContext *C, wmOperator *op, Object *ob_src, ListBase *ctx_objects, const bool reverse_transfer)
 {
 	CollectionPointerLink *ctx_ob;
 	CTX_data_selected_editable_objects(C, ctx_objects);
+
+	if (reverse_transfer) {
+		return;  /* Nothing else to do in this case... */
+	}
 
 	for (ctx_ob = ctx_objects->first; ctx_ob; ctx_ob = ctx_ob->next) {
 		Object *ob = ctx_ob->ptr.data;
@@ -288,11 +293,16 @@ static void data_transfer_exec_preprocess_objects(bContext *C, wmOperator *op, O
 }
 
 /* Helper, used by both data_transfer_exec and datalayout_transfer_exec. */
-static bool data_transfer_exec_is_object_valid(wmOperator *op, Object *ob_src, Object *ob_dst)
+static bool data_transfer_exec_is_object_valid(
+        wmOperator *op, Object *ob_src, Object *ob_dst, const bool reverse_transfer)
 {
 	Mesh *me;
-	if ((ob_dst == ob_src) || (ob_dst->type != OB_MESH)) {
+	if ((ob_dst == ob_src) || !ELEM(OB_MESH, ob_src->type, ob_dst->type)) {
 		return false;
+	}
+
+	if (reverse_transfer) {
+		return true;
 	}
 
 	me = ob_dst->data;
@@ -320,6 +330,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
 	bool changed = false;
 
+	const bool reverse_transfer = RNA_boolean_get(op->ptr, "use_reverse_transfer");
+
 	const int data_type = RNA_enum_get(op->ptr, "data_type");
 	const bool use_create = RNA_boolean_get(op->ptr, "use_create");
 
@@ -346,16 +358,26 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 	SpaceTransform space_transform_data;
 	SpaceTransform *space_transform = use_object_transform ? &space_transform_data : NULL;
 
+	if (reverse_transfer && ((ID *)(ob_src->data))->lib) {
+		/* Do not transfer to linked data, not supported. */
+		return OPERATOR_CANCELLED;
+	}
+
 	if (fromto_idx != DT_MULTILAYER_INDEX_INVALID) {
 		layers_select_src[fromto_idx] = layers_src;
 		layers_select_dst[fromto_idx] = layers_dst;
 	}
 
-	data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects);
+	data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, reverse_transfer);
 
 	for (ctx_ob_dst = ctx_objects.first; ctx_ob_dst; ctx_ob_dst = ctx_ob_dst->next) {
 		Object *ob_dst = ctx_ob_dst->ptr.data;
-		if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst)) {
+
+		if (reverse_transfer) {
+			SWAP(Object *, ob_src, ob_dst);
+		}
+
+		if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, reverse_transfer)) {
 			if (space_transform) {
 				BLI_SPACE_TRANSFORM_SETUP(space_transform, ob_dst, ob_src);
 			}
@@ -369,6 +391,10 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 			{
 				changed = true;
 			}
+		}
+
+		if (reverse_transfer) {
+			SWAP(Object *, ob_src, ob_dst);
 		}
 	}
 
@@ -384,11 +410,12 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 }
 
 /* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
+/* Note this context poll is only really partial, it cannot check for all possible invalid cases. */
 static int data_transfer_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
-	return (ob && !ob->id.lib && ob->type == OB_MESH && data && !data->lib);
+	return (ob && ob->type == OB_MESH && data);
 }
 
 /* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
@@ -481,6 +508,10 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* Properties.*/
+	prop = RNA_def_boolean(ot->srna, "use_reverse_transfer", false, "Reverse Transfer",
+	                       "Transfer from selected objects to active one");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
 	/* Data type to transfer. */
 	ot->prop = RNA_def_enum(ot->srna, "data_type", DT_layer_items, 0, "Data Type", "Which data to transfer");
 	RNA_def_boolean(ot->srna, "use_create", true, "Create Data", "Add data layers on destination meshes if needed");
@@ -582,11 +613,11 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 			layers_select_dst[fromto_idx] = layers_dst;
 		}
 
-		data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects);
+		data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, false);
 
 		for (ctx_ob_dst = ctx_objects.first; ctx_ob_dst; ctx_ob_dst = ctx_ob_dst->next) {
 			Object *ob_dst = ctx_ob_dst->ptr.data;
-			if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst)) {
+			if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
 				BKE_object_data_transfer_layout(scene, ob_src, ob_dst, data_type, use_delete,
 				                                layers_select_src, layers_select_dst);
 			}
