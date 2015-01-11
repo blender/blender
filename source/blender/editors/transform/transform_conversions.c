@@ -5597,6 +5597,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					 * during cleanup - psy-fi */
 					freeEdgeSlideTempFaces(sld);
 				}
+				else if (t->mode == TFM_VERT_SLIDE) {
+					/* as above */
+					VertSlideData *sld = t->customData;
+					projectVertSlideData(t, true);
+					freeVertSlideTempFaces(sld);
+				}
 
 				if (t->obedit->type == OB_MESH) {
 					special_aftertrans_update__mesh(C, t);

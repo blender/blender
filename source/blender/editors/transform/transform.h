@@ -213,18 +213,23 @@ typedef struct TransDataEdgeSlideVert {
 	int loop_nr;
 } TransDataEdgeSlideVert;
 
+
+/* store original data so we can correct UV's and similar when sliding */
+typedef struct SlideOrigData {
+	/* flag that is set when origfaces is initialized */
+	bool use_origfaces;
+	struct GHash    *origfaces;
+	struct BMesh *bm_origfaces;
+} SlideOrigData;
+
 typedef struct EdgeSlideData {
 	TransDataEdgeSlideVert *sv;
 	int totsv;
-	
-	struct GHash *origfaces;
 
 	int mval_start[2], mval_end[2];
 	struct BMEditMesh *em;
 
-	/* flag that is set when origfaces is initialized */
-	bool use_origfaces;
-	struct BMesh *bm_origfaces;
+	SlideOrigData orig_data;
 
 	float perc;
 
@@ -250,6 +255,8 @@ typedef struct VertSlideData {
 	int totsv;
 
 	struct BMEditMesh *em;
+
+	SlideOrigData orig_data;
 
 	float perc;
 
@@ -699,7 +706,9 @@ void freeEdgeSlideTempFaces(EdgeSlideData *sld);
 void freeEdgeSlideVerts(TransInfo *t);
 void projectEdgeSlideData(TransInfo *t, bool is_final);
 
+void freeVertSlideTempFaces(VertSlideData *sld);
 void freeVertSlideVerts(TransInfo *t);
+void projectVertSlideData(TransInfo *t, bool is_final);
 
 
 /* TODO. transform_queries.c */

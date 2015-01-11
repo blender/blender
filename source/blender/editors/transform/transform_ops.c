@@ -868,7 +868,7 @@ static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot)
 
 	RNA_def_float_factor(ot->srna, "value", 0, -10.0f, 10.0f, "Factor", "", -1.0f, 1.0f);
 
-	Transform_Properties(ot, P_MIRROR | P_SNAP);
+	Transform_Properties(ot, P_MIRROR | P_SNAP | P_CORRECT_UV);
 }
 
 static void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot)
