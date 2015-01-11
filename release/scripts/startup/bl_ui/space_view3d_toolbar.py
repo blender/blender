@@ -1597,7 +1597,9 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
 
         col = layout.column()
         col.operator("paint.weight_gradient")
-        col.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
+        prop = col.operator("object.data_transfer", text="Transfer Weights")
+        prop.use_reverse_transfer = True
+        prop.data_type = 'VGROUP_WEIGHTS'
 
 
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):

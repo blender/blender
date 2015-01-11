@@ -1603,7 +1603,9 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_quantize", text="Quantize")
         layout.operator("object.vertex_group_levels", text="Levels")
         layout.operator("object.vertex_group_blend", text="Blend")
-        layout.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
+        prop = layout.operator("object.data_transfer", text="Transfer Weights")
+        prop.use_reverse_transfer = True
+        prop.data_type = 'VGROUP_WEIGHTS'
         layout.operator("object.vertex_group_limit_total", text="Limit Total")
         layout.operator("object.vertex_group_fix", text="Fix Deforms")
 
