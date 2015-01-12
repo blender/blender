@@ -102,9 +102,7 @@ def region_2d_to_origin_3d(region, rv3d, coord, clamp=None):
                         viewinv.translation)
 
         if clamp != 0.0:
-            winmat = rv3d.window_matrix
-            # check this isn't a camera
-            if winmat[2][3] == 0.0:
+            if rv3d.view_perspective != 'CAMERA':
                 # this value is scaled to the far clip already
                 origin_offset = persinv.col[2].xyz
                 if clamp is not None:
