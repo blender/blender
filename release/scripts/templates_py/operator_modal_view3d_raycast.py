@@ -14,10 +14,6 @@ def main(context, event, ray_max=1000.0):
     view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
     ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
 
-    if rv3d.view_perspective == 'ORTHO':
-        # move ortho origin back
-        ray_origin = ray_origin - (view_vector * (ray_max / 2.0))
-
     ray_target = ray_origin + (view_vector * ray_max)
 
     def visible_objects_and_duplis():

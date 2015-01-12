@@ -63,9 +63,17 @@ def region_2d_to_vector_3d(region, rv3d, coord):
     return view_vector
 
 
-def region_2d_to_origin_3d(region, rv3d, coord):
+def region_2d_to_origin_3d(region, rv3d, coord, clamp=None):
     """
     Return the 3d view origin from the region relative 2d coords.
+
+    .. note::
+
+       Orthographic views have a less obvious origin, the far clip is used to define the viewport near/far extents.
+       Since far clip can be a very large value, the result may give with numeric precision issues.
+
+       To avoid this problem, you can optionally clamp the far clip to a smaller value
+       based on the data you're operating on.
 
     :arg region: region of the 3D viewport, typically bpy.context.region.
     :type region: :class:`bpy.types.Region`
@@ -74,6 +82,9 @@ def region_2d_to_origin_3d(region, rv3d, coord):
     :arg coord: 2d coordinates relative to the region;
        (event.mouse_region_x, event.mouse_region_y) for example.
     :type coord: 2d vector
+    :arg clamp: Clamp the maximum far-clip value used.
+       (negative value will move the offset away from the view_location)
+    :type clamp: float or None
     :return: The origin of the viewpoint in 3d space.
     :rtype: :class:`mathutils.Vector`
     """
@@ -89,6 +100,22 @@ def region_2d_to_origin_3d(region, rv3d, coord):
         origin_start = ((persinv.col[0].xyz * dx) +
                         (persinv.col[1].xyz * dy) +
                         viewinv.translation)
+
+        if clamp != 0.0:
+            winmat = rv3d.window_matrix
+            # check this isn't a camera
+            if winmat[2][3] == 0.0:
+                # this value is scaled to the far clip already
+                origin_offset = persinv.col[2].xyz
+                if clamp is not None:
+                    if clamp < 0.0:
+                        origin_offset.negate()
+                        clamp = -clamp
+                    if origin_offset.length > clamp:
+                        origin_offset.length = clamp
+
+                origin_start -= origin_offset
+
     return origin_start
 
 
