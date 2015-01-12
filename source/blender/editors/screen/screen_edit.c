@@ -1748,6 +1748,13 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 		}
 	}
 	
+	if (sa && (sa->spacetype != type)) {
+		newsa->flag |= AREA_FLAG_TEMP_TYPE;
+	}
+	else {
+		newsa->flag &= ~AREA_FLAG_TEMP_TYPE;
+	}
+
 	ED_area_newspace(C, newsa, type);
 	
 	return newsa;
@@ -1761,6 +1768,21 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 	
 	if (sa->full)
 		ED_screen_state_toggle(C, win, sa, SCREENMAXIMIZED);
+}
+
+void ED_screen_retore_temp_type(bContext *C, ScrArea *sa, bool is_screen_change)
+{
+	/* incase nether functions below run */
+	ED_area_tag_redraw(sa);
+
+	if (sa->flag & AREA_FLAG_TEMP_TYPE) {
+		ED_area_prevspace(C, sa);
+		sa->flag &= ~AREA_FLAG_TEMP_TYPE;
+	}
+
+	if (is_screen_change && sa->full) {
+		ED_screen_state_toggle(C, CTX_wm_window(C), sa, SCREENMAXIMIZED);
+	}
 }
 
 /* restore a screen / area back to default operation, after temp fullscreen modes */
@@ -1789,12 +1811,14 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 			else
 				ED_screen_state_toggle(C, win, sa, state);
 		}
-		else if (sl->spacetype == SPACE_FILE) {
+		else if (sa->flag & AREA_FLAG_TEMP_TYPE) {
 			ED_screen_full_prevspace(C, sa);
 		}
 		else {
 			ED_screen_state_toggle(C, win, sa, state);
 		}
+
+		sa->flag &= ~AREA_FLAG_TEMP_TYPE;
 	}
 	/* otherwise just tile the area again */
 	else {
