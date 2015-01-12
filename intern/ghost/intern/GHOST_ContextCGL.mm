@@ -75,9 +75,10 @@ GHOST_ContextCGL::GHOST_ContextCGL(
 GHOST_ContextCGL::~GHOST_ContextCGL()
 {
 	if (m_openGLContext != nil) {
-		if (m_openGLContext == [NSOpenGLContext currentContext])
+		if (m_openGLContext == [NSOpenGLContext currentContext]) {
 			[NSOpenGLContext clearCurrentContext];
 			[m_openGLView clearGLContext];
+		}
 
 		if (m_openGLContext != s_sharedOpenGLContext || s_sharedCount == 1) {
 			assert(s_sharedCount > 0);
