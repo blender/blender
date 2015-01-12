@@ -51,46 +51,46 @@
 
 #define BLI_LINKSTACK_DECLARE(var, type) \
 	LinkNode *var; \
-	BLI_mempool *_##var##_pool; \
-	type _##var##_type
+	BLI_mempool *var##_pool_; \
+	type var##_type_
 
 #define BLI_LINKSTACK_INIT(var)  { \
 	var = NULL; \
-	_##var##_pool = BLI_mempool_create(sizeof(LinkNode), 0, 64, BLI_MEMPOOL_NOP); \
+	var##_pool_ = BLI_mempool_create(sizeof(LinkNode), 0, 64, BLI_MEMPOOL_NOP); \
 } (void)0
 
 #define BLI_LINKSTACK_SIZE(var) \
-	BLI_mempool_count(_##var##_pool)
+	BLI_mempool_count(var##_pool_)
 
 /* check for typeof() */
 #ifdef __GNUC__
 #define BLI_LINKSTACK_PUSH(var, ptr)  ( \
-	CHECK_TYPE_INLINE(ptr, typeof(_##var##_type)), \
-	BLI_linklist_prepend_pool(&(var), ptr, _##var##_pool))
+	CHECK_TYPE_INLINE(ptr, typeof(var##_type_)), \
+	BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))
 #define BLI_LINKSTACK_POP(var) \
-	(var ? (typeof(_##var##_type))BLI_linklist_pop_pool(&(var), _##var##_pool) : NULL)
+	(var ? (typeof(var##_type_))BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
 #define BLI_LINKSTACK_POP_DEFAULT(var, r) \
-	(var ? (typeof(_##var##_type))BLI_linklist_pop_pool(&(var), _##var##_pool) : r)
+	(var ? (typeof(var##_type_))BLI_linklist_pop_pool(&(var), var##_pool_) : r)
 #else  /* non gcc */
 #define BLI_LINKSTACK_PUSH(var, ptr)  ( \
-	BLI_linklist_prepend_pool(&(var), ptr, _##var##_pool))
+	BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))
 #define BLI_LINKSTACK_POP(var) \
-	(var ? BLI_linklist_pop_pool(&(var), _##var##_pool) : NULL)
+	(var ? BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
 #define BLI_LINKSTACK_POP_DEFAULT(var, r) \
-	(var ? BLI_linklist_pop_pool(&(var), _##var##_pool) : r)
+	(var ? BLI_linklist_pop_pool(&(var), var##_pool_) : r)
 #endif  /* gcc check */
 
 #define BLI_LINKSTACK_SWAP(var_a, var_b)  { \
-	CHECK_TYPE_PAIR(_##var_a##_type, _##var_b##_type); \
+	CHECK_TYPE_PAIR(var_a##_type_, var_b##_type_); \
 	SWAP(LinkNode *, var_a, var_b); \
-	SWAP(BLI_mempool *, _##var_a##_pool, _##var_b##_pool); \
+	SWAP(BLI_mempool *, var_a##_pool_, var_b##_pool_); \
 } (void)0
 
 #define BLI_LINKSTACK_FREE(var)  { \
-	BLI_mempool_destroy(_##var##_pool); \
-	_##var##_pool = NULL; (void)_##var##_pool; \
+	BLI_mempool_destroy(var##_pool_); \
+	var##_pool_ = NULL; (void)var##_pool_; \
 	var = NULL; (void)var; \
-	(void)&(_##var##_type); \
+	(void)&(var##_type_); \
 } (void)0
 
 #include "BLI_linklist.h"
