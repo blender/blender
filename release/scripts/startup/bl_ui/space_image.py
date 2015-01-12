@@ -1041,17 +1041,25 @@ class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
 
 # --- end mask ---
 
+class ImageScopesPanel():
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        if not (sima and sima.image):
+            return False
+        # scopes are not updated in paint modes, hide
+        if sima.mode in {'PAINT'}:
+            return False
+        ob = context.active_object
+        if ob and ob.mode in {'TEXTURE_PAINT'}:
+            return False
+        return True
 
-class IMAGE_PT_view_histogram(Panel):
+class IMAGE_PT_view_histogram(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Histogram"
     bl_category = "Scopes"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return (sima and sima.image)
 
     def draw(self, context):
         layout = self.layout
@@ -1065,16 +1073,11 @@ class IMAGE_PT_view_histogram(Panel):
         row.prop(hist, "show_line", text="")
 
 
-class IMAGE_PT_view_waveform(Panel):
+class IMAGE_PT_view_waveform(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Waveform"
     bl_category = "Scopes"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return (sima and sima.image)
 
     def draw(self, context):
         layout = self.layout
@@ -1087,16 +1090,11 @@ class IMAGE_PT_view_waveform(Panel):
         row.prop(sima.scopes, "waveform_mode", text="")
 
 
-class IMAGE_PT_view_vectorscope(Panel):
+class IMAGE_PT_view_vectorscope(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Vectorscope"
     bl_category = "Scopes"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return (sima and sima.image)
 
     def draw(self, context):
         layout = self.layout
@@ -1106,16 +1104,11 @@ class IMAGE_PT_view_vectorscope(Panel):
         layout.prop(sima.scopes, "vectorscope_alpha")
 
 
-class IMAGE_PT_sample_line(Panel):
+class IMAGE_PT_sample_line(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Sample Line"
     bl_category = "Scopes"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return (sima and sima.image)
 
     def draw(self, context):
         layout = self.layout
@@ -1130,16 +1123,11 @@ class IMAGE_PT_sample_line(Panel):
         row.prop(hist, "show_line", text="")
 
 
-class IMAGE_PT_scope_sample(Panel):
+class IMAGE_PT_scope_sample(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Scope Samples"
     bl_category = "Scopes"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima
 
     def draw(self, context):
         layout = self.layout

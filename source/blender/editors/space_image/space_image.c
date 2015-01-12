@@ -899,9 +899,9 @@ static void image_tools_area_draw(const bContext *C, ARegion *ar)
 				BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, &scene->view_settings, &scene->display_settings);
 			}
 			if (sima->image->flag & IMA_VIEW_AS_RENDER)
-				scopes_update(&sima->scopes, ibuf, &scene->view_settings, &scene->display_settings);
+				ED_space_image_scopes_update(C, sima, ibuf, true);
 			else
-				scopes_update(&sima->scopes, ibuf, NULL, &scene->display_settings);
+				ED_space_image_scopes_update(C, sima, ibuf, false);
 		}
 	}
 	ED_space_image_release_buffer(sima, ibuf, lock);

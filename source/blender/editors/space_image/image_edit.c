@@ -35,6 +35,7 @@
 
 #include "BLI_rect.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -288,6 +289,20 @@ void ED_image_point_pos__reverse(SpaceImage *sima, ARegion *ar, const float co[2
 
 	r_co[0] = (co[0] * width  * zoomx) + (float)sx;
 	r_co[1] = (co[1] * height * zoomy) + (float)sy;
+}
+
+void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *sima, struct ImBuf *ibuf, bool use_view_settings)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	
+	/* scope update can be expensive, don't update during paint modes */
+	if (sima->mode == SI_MODE_PAINT)
+		return;
+	if (ob && ((ob->mode & OB_MODE_TEXTURE_PAINT) != 0))
+		return;
+	
+	scopes_update(&sima->scopes, ibuf, use_view_settings ? &scene->view_settings : NULL, &scene->display_settings);
 }
 
 bool ED_space_image_show_render(SpaceImage *sima)

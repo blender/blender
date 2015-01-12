@@ -35,6 +35,7 @@ struct Main;
 struct bContext;
 struct Image;
 struct ImageUser;
+struct ImBuf;
 struct ToolSettings;
 struct uiBlock;
 struct wmWindowManager;
@@ -57,6 +58,8 @@ void ED_space_image_get_size_fl(struct SpaceImage *sima, float size[2]);
 void ED_space_image_get_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy);
 void ED_space_image_get_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
+
+void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *sima, struct ImBuf *ibuf, bool use_view_settings);
 
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings);
 void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSettings *settings);
