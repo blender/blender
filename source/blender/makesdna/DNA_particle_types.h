@@ -417,11 +417,14 @@ typedef enum eParticleDrawFlag {
 #define PART_PHYS_FLUID		4
 
 /* part->kink */
-#define PART_KINK_NO		0
-#define PART_KINK_CURL		1
-#define PART_KINK_RADIAL	2
-#define PART_KINK_WAVE		3
-#define PART_KINK_BRAID		4
+typedef enum eParticleKink {
+	PART_KINK_NO		= 0,
+	PART_KINK_CURL		= 1,
+	PART_KINK_RADIAL	= 2,
+	PART_KINK_WAVE		= 3,
+	PART_KINK_BRAID		= 4,
+	PART_KINK_SPIRAL	= 5,
+} eParticleKink;
 
 /* part->kink_flag */
 typedef enum eParticleChildFlag {

@@ -2001,6 +2001,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 		{PART_KINK_RADIAL, "RADIAL", 0, "Radial", ""},
 		{PART_KINK_WAVE, "WAVE", 0, "Wave", ""},
 		{PART_KINK_BRAID, "BRAID", 0, "Braid", ""},
+		{PART_KINK_SPIRAL, "SPIRAL", 0, "Spiral", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

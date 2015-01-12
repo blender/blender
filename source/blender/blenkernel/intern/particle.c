@@ -105,7 +105,7 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
 extern void do_child_modifiers(ParticleSimulationData *sim,
                                ParticleTexture *ptex, ParticleKey *par, float *par_rot, const float par_orco[3],
-                               ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
+                               ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t, float spiral_start[3], float *time_prev, float *co_prev);
 
 /* few helpers for countall etc. */
 int count_particles(ParticleSystem *psys)
@@ -1671,7 +1671,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
 /************************************************/
 
 extern void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat,
-                    short type, short axis, float obmat[4][4], int smooth_start);
+                    short type, short axis, float obmat[4][4], int smooth_start, float spiral_start[3], float *time_prev, float *co_prev);
 extern float do_clump(ParticleKey *state, ParticleKey *par, float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
                       bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve);
 
@@ -1729,90 +1729,91 @@ int do_guides(ParticleSettings *part, ListBase *effectors, ParticleKey *state, i
 	float vec_to_point[3];
 
 	if (effectors) for (eff = effectors->first; eff; eff = eff->next) {
-			pd = eff->pd;
-
-			if (pd->forcefield != PFIELD_GUIDE)
-				continue;
-
-			data = eff->guide_data + index;
-
-			if (data->strength <= 0.0f)
-				continue;
-
-			guidetime = time / (1.0f - pd->free_end);
-
-			if (guidetime > 1.0f)
-				continue;
-
-			cu = (Curve *)eff->ob->data;
-
-			if (pd->flag & PFIELD_GUIDE_PATH_ADD) {
-				if (where_on_path(eff->ob, data->strength * guidetime, guidevec, guidedir, NULL, &radius, &weight) == 0)
-					return 0;
-			}
-			else {
-				if (where_on_path(eff->ob, guidetime, guidevec, guidedir, NULL, &radius, &weight) == 0)
-					return 0;
-			}
-
-			mul_m4_v3(eff->ob->obmat, guidevec);
-			mul_mat3_m4_v3(eff->ob->obmat, guidedir);
-
-			normalize_v3(guidedir);
-
-			copy_v3_v3(vec_to_point, data->vec_to_point);
-
-			if (guidetime != 0.0f) {
-				/* curve direction */
-				cross_v3_v3v3(temp, eff->guide_dir, guidedir);
-				angle = dot_v3v3(eff->guide_dir, guidedir) / (len_v3(eff->guide_dir));
-				angle = saacos(angle);
-				axis_angle_to_quat(rot2, temp, angle);
-				mul_qt_v3(rot2, vec_to_point);
-
-				/* curve tilt */
-				axis_angle_to_quat(rot2, guidedir, guidevec[3] - eff->guide_loc[3]);
-				mul_qt_v3(rot2, vec_to_point);
-			}
-
-			/* curve taper */
-			if (cu->taperobj)
-				mul_v3_fl(vec_to_point, BKE_displist_calc_taper(eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
-
-			else { /* curve size*/
-				if (cu->flag & CU_PATH_RADIUS) {
-					mul_v3_fl(vec_to_point, radius);
-				}
-			}
-			
-			if (part->clumpcurve)
-				curvemapping_changed_all(part->clumpcurve);
-			if (part->roughcurve)
-				curvemapping_changed_all(part->roughcurve);
-			
-			{
-				ParticleKey key, par;
-				float orco_offset[3] = {0.0f, 0.0f, 0.0f};
-				
-				par.co[0] = par.co[1] = par.co[2] = 0.0f;
-				copy_v3_v3(key.co, vec_to_point);
-				do_kink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, 0.f, pd->kink, pd->kink_axis, 0, 0);
-				do_clump(&key, &par, guidetime, orco_offset, pd->clump_fac, pd->clump_pow, 1.0f,
-				         part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, part->clumpcurve);
-				copy_v3_v3(vec_to_point, key.co);
-			}
-
-			add_v3_v3(vec_to_point, guidevec);
-
-			//sub_v3_v3v3(pa_loc, pa_loc, pa_zero);
-			madd_v3_v3fl(effect, vec_to_point, data->strength);
-			madd_v3_v3fl(veffect, guidedir, data->strength);
-			totstrength += data->strength;
-
-			if (pd->flag & PFIELD_GUIDE_PATH_WEIGHT)
-				totstrength *= weight;
+		pd = eff->pd;
+		
+		if (pd->forcefield != PFIELD_GUIDE)
+			continue;
+		
+		data = eff->guide_data + index;
+		
+		if (data->strength <= 0.0f)
+			continue;
+		
+		guidetime = time / (1.0f - pd->free_end);
+		
+		if (guidetime > 1.0f)
+			continue;
+		
+		cu = (Curve *)eff->ob->data;
+		
+		if (pd->flag & PFIELD_GUIDE_PATH_ADD) {
+			if (where_on_path(eff->ob, data->strength * guidetime, guidevec, guidedir, NULL, &radius, &weight) == 0)
+				return 0;
 		}
-
+		else {
+			if (where_on_path(eff->ob, guidetime, guidevec, guidedir, NULL, &radius, &weight) == 0)
+				return 0;
+		}
+		
+		mul_m4_v3(eff->ob->obmat, guidevec);
+		mul_mat3_m4_v3(eff->ob->obmat, guidedir);
+		
+		normalize_v3(guidedir);
+		
+		copy_v3_v3(vec_to_point, data->vec_to_point);
+		
+		if (guidetime != 0.0f) {
+			/* curve direction */
+			cross_v3_v3v3(temp, eff->guide_dir, guidedir);
+			angle = dot_v3v3(eff->guide_dir, guidedir) / (len_v3(eff->guide_dir));
+			angle = saacos(angle);
+			axis_angle_to_quat(rot2, temp, angle);
+			mul_qt_v3(rot2, vec_to_point);
+			
+			/* curve tilt */
+			axis_angle_to_quat(rot2, guidedir, guidevec[3] - eff->guide_loc[3]);
+			mul_qt_v3(rot2, vec_to_point);
+		}
+		
+		/* curve taper */
+		if (cu->taperobj)
+			mul_v3_fl(vec_to_point, BKE_displist_calc_taper(eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
+		
+		else { /* curve size*/
+			if (cu->flag & CU_PATH_RADIUS) {
+				mul_v3_fl(vec_to_point, radius);
+			}
+		}
+		
+		if (part->clumpcurve)
+			curvemapping_changed_all(part->clumpcurve);
+		if (part->roughcurve)
+			curvemapping_changed_all(part->roughcurve);
+		
+		{
+			ParticleKey key, par;
+			float orco_offset[3] = {0.0f, 0.0f, 0.0f};
+			float spiral_start[3], time_prev = 0.0f, co_prev[3] = {0,0,0};
+			
+			par.co[0] = par.co[1] = par.co[2] = 0.0f;
+			copy_v3_v3(key.co, vec_to_point);
+			do_kink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, 0.f, pd->kink, pd->kink_axis, 0, 0, spiral_start, &time_prev, co_prev);
+			do_clump(&key, &par, guidetime, orco_offset, pd->clump_fac, pd->clump_pow, 1.0f,
+			         part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, part->clumpcurve);
+			copy_v3_v3(vec_to_point, key.co);
+		}
+		
+		add_v3_v3(vec_to_point, guidevec);
+		
+		//sub_v3_v3v3(pa_loc, pa_loc, pa_zero);
+		madd_v3_v3fl(effect, vec_to_point, data->strength);
+		madd_v3_v3fl(veffect, guidedir, data->strength);
+		totstrength += data->strength;
+		
+		if (pd->flag & PFIELD_GUIDE_PATH_WEIGHT)
+			totstrength *= weight;
+	}
+	
 	if (totstrength != 0.0f) {
 		if (totstrength > 1.0f)
 			mul_v3_fl(effect, 1.0f / totstrength);
@@ -3816,7 +3817,10 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 				copy_particle_key(&tstate, state, 1);
 
 			/* apply different deformations to the child path */
-			do_child_modifiers(sim, &ptex, par, par->rot, par_orco, cpa, orco, hairmat, state, t);
+			{
+				float spiral_start[3], time_prev = 0.0f, co_prev[3] = {0,0,0};
+				do_child_modifiers(sim, &ptex, par, par->rot, par_orco, cpa, orco, hairmat, state, t, spiral_start, &time_prev, co_prev);
+			}
 
 			/* try to estimate correct velocity */
 			if (vel) {
@@ -3912,6 +3916,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			ParticleKey *key1;
 			float t = (cfra - pa->time) / pa->lifetime;
 			float par_orco[3] = {0.0f, 0.0f, 0.0f};
+			float spiral_start[3], time_prev = 0.0f, co_prev[3] = {0,0,0};
 
 			key1 = &pa->state;
 			offset_child(cpa, key1, key1->rot, state, part->childflat, part->childrad);
@@ -3919,7 +3924,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			CLAMP(t, 0.0f, 1.0f);
 
 			unit_m4(mat);
-			do_child_modifiers(sim, NULL, key1, key1->rot, par_orco, cpa, cpa->fuv, mat, state, t);
+			do_child_modifiers(sim, NULL, key1, key1->rot, par_orco, cpa, cpa->fuv, mat, state, t, spiral_start, &time_prev, co_prev);
 
 			if (psys->lattice_deform_data)
 				calc_latt_deform(psys->lattice_deform_data, state->co, 1.0f);

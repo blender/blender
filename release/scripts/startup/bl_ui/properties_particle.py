@@ -1230,14 +1230,22 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         split = layout.split()
         split.active = part.kink != 'NO'
 
-        col = split.column()
-        sub = col.column(align=True)
-        sub.prop(part, "kink_amplitude")
-        sub.prop(part, "kink_amplitude_clump", text="Clump", slider=True)
-        col.prop(part, "kink_flat", slider=True)
-        col = split.column(align=True)
-        col.prop(part, "kink_frequency")
-        col.prop(part, "kink_shape", slider=True)
+        if part.kink in {'SPIRAL'}:
+            col = split.column()
+            col.prop(part, "kink_amplitude", text="Radius")
+            col.prop(part, "kink_flat", text="Start", slider=True)
+            col = split.column(align=True)
+            col.prop(part, "kink_frequency", text="Frequency")
+            col.prop(part, "kink_shape", text="Shape", slider=True)
+        else:
+            col = split.column()
+            sub = col.column(align=True)
+            sub.prop(part, "kink_amplitude")
+            sub.prop(part, "kink_amplitude_clump", text="Clump", slider=True)
+            col.prop(part, "kink_flat", slider=True)
+            col = split.column(align=True)
+            col.prop(part, "kink_frequency")
+            col.prop(part, "kink_shape", slider=True)
 
 
 class PARTICLE_PT_field_weights(ParticleButtonsPanel, Panel):

@@ -40,12 +40,12 @@
 struct Material;
 
 void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat,
-             short type, short axis, float obmat[4][4], int smooth_start);
+             short type, short axis, float obmat[4][4], int smooth_start, float spiral_start[3], float *time_prev, float *co_prev);
 float do_clump(ParticleKey *state, ParticleKey *par, float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
                bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve);
 void do_child_modifiers(ParticleSimulationData *sim,
                         ParticleTexture *ptex, ParticleKey *par, float *par_rot, const float par_orco[3],
-                        ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
+                        ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t, float spiral_start[3], float *time_prev, float *co_prev);
 
 static void get_strand_normal(Material *ma, const float surfnor[3], float surfdist, float nor[3])
 {
@@ -163,11 +163,15 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 	
 	{
 		ParticlePathIterator iter;
+		float spiral_start[3];
+		float time_prev = 0.0f;
+		float co_prev[3] = {0.0f, 0.0f, 0.0f};
+		
 		for (k = 0, key = keys; k < totkeys; k++, key++) {
 			psys_path_iter_get(&iter, keys, totkeys, parent_keys, k);
 			
 			/* apply different deformations to the child path */
-			do_child_modifiers(&ctx->sim, ptex, (ParticleKey *)iter.parent_key, iter.parent_rotation, parent_orco, cpa, orco, hairmat, (ParticleKey *)key, iter.time);
+			do_child_modifiers(&ctx->sim, ptex, (ParticleKey *)iter.parent_key, iter.parent_rotation, parent_orco, cpa, orco, hairmat, (ParticleKey *)key, iter.time, spiral_start, &time_prev, co_prev);
 		}
 	}
 #endif
@@ -203,7 +207,9 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 
 /* ------------------------------------------------------------------------- */
 
-void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat, short type, short axis, float obmat[4][4], int smooth_start)
+void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape,
+             float amplitude, float flat, short type, short axis, float obmat[4][4], int smooth_start,
+             float spiral_start[3], float *time_prev, float *co_prev)
 {
 	float kink[3] = {1.f, 0.f, 0.f}, par_vec[3], q1[4] = {1.f, 0.f, 0.f, 0.f};
 	float t, dt = 1.f, result[3];
@@ -213,7 +219,7 @@ void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, f
 
 	CLAMP(time, 0.f, 1.f);
 
-	if (shape != 0.0f && type != PART_KINK_BRAID) {
+	if (shape != 0.0f && !ELEM(type, PART_KINK_BRAID, PART_KINK_SPIRAL)) {
 		if (shape < 0.0f)
 			time = (float)pow(time, 1.f + shape);
 		else
@@ -222,14 +228,14 @@ void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, f
 
 	t = time * freq * (float)M_PI;
 	
-	if (smooth_start) {
+	if (smooth_start && !ELEM(type, PART_KINK_SPIRAL)) {
 		dt = fabsf(t);
 		/* smooth the beginning of kink */
 		CLAMP(dt, 0.f, (float)M_PI);
 		dt = sinf(dt / 2.f);
 	}
 
-	if (type != PART_KINK_RADIAL) {
+	if (!ELEM(type, PART_KINK_RADIAL, PART_KINK_SPIRAL)) {
 		float temp[3];
 
 		kink[axis] = 1.f;
@@ -351,6 +357,65 @@ void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, f
 			else {
 				copy_v3_v3(result, state_co);
 			}
+			break;
+		}
+		case PART_KINK_SPIRAL:
+		{
+			if (time <= flat) {
+				/* nothing to do for the flat section */
+			}
+			else {
+#if 0
+				/* Creates a logarithmic spiral:
+				 *   r(theta) = a * exp(b * theta)
+				 * 
+				 * For now chose the golden spiral for the "density" parameter b:
+				 * http://en.wikipedia.org/wiki/Golden_spiral
+				 * This could be configurable, but the golden spiral is quite pleasant and natural
+				 */
+				const float b = (1.0f + sqrtf(5.0f)) / (2.0f * M_PI);
+				const float arc_factor = sqrtf(1.0f + b*b) / b;
+				
+				/* Relation to amplitude (spiral radius):
+				 *   a*exp(b*theta0) = sqrt(2) * R
+				 * 
+				 * Arc length of the logarithmic spiral:
+				 *   s(theta) = a*exp(b*theta) * (1 + b^2)/b
+				 */
+				
+				const float a = arc_length / (sqrtf(2.0f) * amplitude * arc_factor);
+				const float theta0 = logf(sqrtf(2.0f) * amplitude / a) / b;
+				
+				float arc = max_length - time;
+				float theta = logf(arc / (a * arc_factor)) / b;
+#else
+//				float theta = (time - flat) / amplitude;
+#endif
+				
+				float dir[3], up[3], rot[3][3];
+				float vec[3];
+				
+				float theta = freq * (time - flat) / (1.0f - flat);
+//				float arc = theta * amplitude;
+				float radius = amplitude * expf(shape * theta);
+				
+				normalize_v3_v3(dir, par->vel);
+				cross_v3_v3v3(up, dir, kink);
+				axis_angle_normalized_to_mat3(rot, kink, theta);
+				
+				if (*time_prev <= flat) {
+					interp_v3_v3v3(spiral_start, co_prev, state->co, (flat - *time_prev) / (time - *time_prev));
+				}
+				
+				mul_v3_v3fl(vec, up, radius);
+				mul_v3_m3v3(result, rot, vec);
+				
+				madd_v3_v3fl(result, up, -radius);
+				add_v3_v3(result, spiral_start);
+			}
+			
+			*time_prev = time;
+			copy_v3_v3(co_prev, state->co);
 			break;
 		}
 	}
@@ -475,7 +540,7 @@ static void do_rough_curve(const float loc[3], float mat[4][4], float time, floa
 }
 
 void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, ParticleKey *par, float *par_rot, const float par_orco[3],
-                        ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t)
+                        ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t, float spiral_start[3], float *time_prev, float *co_prev)
 {
 	ParticleSettings *part = sim->psys->part;
 	int i = cpa - sim->psys->child;
@@ -506,11 +571,17 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, Part
 		                 part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, part->clumpcurve);
 
 		if (kink_freq != 0.f) {
-			float kink_amp = part->kink_amp * (1.f - part->kink_amp_clump * clump);
+			float kink_amp;
+			/* seriously ... */
+			if (ELEM(part->kink, PART_KINK_SPIRAL))
+				kink_amp = part->kink_amp;
+			else
+				kink_amp = part->kink_amp * (1.f - part->kink_amp_clump * clump);
 
 			do_kink(state, par, par_rot, t, kink_freq, part->kink_shape,
 			        kink_amp, part->kink_flat, part->kink, part->kink_axis,
-			        sim->ob->obmat, sim->psys->part->childtype == PART_CHILD_FACES);
+			        sim->ob->obmat, sim->psys->part->childtype == PART_CHILD_FACES,
+			        spiral_start, time_prev, co_prev);
 		}
 	}
 
