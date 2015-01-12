@@ -171,8 +171,10 @@ void initPyTypes(void)
  * .....
  */
 
+	/* Use existing module where possible */
+	PyObject *mod  = initGameTypesPythonBinding();
+
 	/* For now just do PyType_Ready */
-	PyObject *mod = PyModule_New("GameTypes");
 	PyObject *dict = PyModule_GetDict(mod);
 	PyDict_SetItemString(PySys_GetObject("modules"), "GameTypes", mod);
 	Py_DECREF(mod);
@@ -267,6 +269,44 @@ void initPyTypes(void)
 	KX_GameObject_Mathutils_Callback_Init();
 	KX_ObjectActuator_Mathutils_Callback_Init();
 #endif
+}
+
+
+PyDoc_STRVAR(GameTypes_module_documentation,
+"This module provides access to the game engine data types."
+);
+static struct PyModuleDef GameTypes_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"GameTypes",  /* m_name */
+	GameTypes_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
+};
+
+
+PyMODINIT_FUNC initGameTypesPythonBinding(void)
+{
+	PyObject *m;
+
+	/* Use existing module where possible */
+	m = PyImport_ImportModule( "GameTypes" );
+	if (m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+
+		// Create the module and add the functions
+		m = PyModule_Create(&GameTypes_module_def);
+		PyDict_SetItemString(PySys_GetObject("modules"), GameTypes_module_def.m_name, m);
+	}
+
+	return m;
 }
 
 #endif // WITH_PYTHON
