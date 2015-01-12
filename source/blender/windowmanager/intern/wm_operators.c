@@ -61,6 +61,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dial.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -76,6 +77,7 @@
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -105,6 +107,7 @@
 #include "RNA_enum_types.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -4705,6 +4708,90 @@ static void WM_OT_dependency_relations(wmOperatorType *ot)
 	ot->exec = dependency_relations_exec;
 }
 
+/* *************************** Mat/tex/etc. previews generation ************* */
+
+typedef struct PreviewsIDEnsureStack {
+	Scene *scene;
+
+	BLI_LINKSTACK_DECLARE(id_stack, ID *);
+} PreviewsIDEnsureStack;
+
+static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
+{
+	BLI_assert(ELEM(GS(id->name), ID_MA, ID_TE, ID_IM, ID_WO, ID_LA));
+
+	/* Only preview non-library datablocks, lib ones do not pertain to this .blend file!
+	 * Same goes for ID with no user. */
+	if (!id->lib && (id->us != 0)) {
+		UI_id_icon_render(C, scene, id, false, false);
+		UI_id_icon_render(C, scene, id, true, false);
+	}
+}
+
+static bool previews_id_ensure_callback(void *todo_v, ID **idptr, int UNUSED(cd_flag))
+{
+	PreviewsIDEnsureStack *todo = todo_v;
+	ID *id = *idptr;
+
+	if (id && (id->flag & LIB_DOIT)) {
+		if (ELEM(GS(id->name), ID_MA, ID_TE, ID_IM, ID_WO, ID_LA)) {
+			previews_id_ensure(NULL, todo->scene, id);
+		}
+		id->flag &= ~LIB_DOIT;  /* Tag the ID as done in any case. */
+		BLI_LINKSTACK_PUSH(todo->id_stack, id);
+	}
+
+	return true;
+}
+
+static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain = CTX_data_main(C);
+	ListBase *lb[] = {&bmain->mat, &bmain->tex, &bmain->image, &bmain->world, &bmain->lamp, NULL};
+	PreviewsIDEnsureStack preview_id_stack;
+	Scene *scene;
+	ID *id;
+	int i;
+
+	/* We use LIB_DOIT to check whether we have already handled a given ID or not. */
+	BKE_main_id_flag_all(bmain, LIB_DOIT, true);
+
+	BLI_LINKSTACK_INIT(preview_id_stack.id_stack);
+
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		preview_id_stack.scene = scene;
+		id = (ID *)scene;
+
+		do {
+			/* This will loop over all IDs linked by current one, render icons for them if needed,
+			 * and add them to 'todo' preview_id_stack. */
+			BKE_library_foreach_ID_link(id, previews_id_ensure_callback, &preview_id_stack, IDWALK_READONLY);
+		} while((id = BLI_LINKSTACK_POP(preview_id_stack.id_stack)));
+	}
+
+	BLI_LINKSTACK_FREE(preview_id_stack.id_stack);
+
+	/* Check a last time for ID not used (fake users only, in theory), and
+	 * do our best for those, using current scene... */
+	for (i = 0; lb[i]; i++) {
+		for (id = lb[i]->first; id; id = id->next) {
+			previews_id_ensure(C, NULL, id);
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_previews_ensure(wmOperatorType *ot)
+{
+	ot->name = "Refresh DataBlock Previews";
+	ot->idname = "WM_OT_previews_ensure";
+	ot->description = "Ensure datablock previews are available and up-to-date "
+	                  "(to be saved in .blend file, only for some types like materials, textures, etc.)";
+
+	ot->exec = previews_ensure_exec;
+}
+
 /* ******************************************************* */
 
 static void operatortype_ghash_free_cb(wmOperatorType *ot)
@@ -4768,6 +4855,7 @@ void wm_operatortype_init(void)
 #if defined(WIN32)
 	WM_operatortype_append(WM_OT_console_toggle);
 #endif
+	WM_operatortype_append(WM_OT_previews_ensure);
 }
 
 /* circleselect-like modal operators */

@@ -132,6 +132,7 @@ class INFO_MT_file(Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link", text="Link", icon='LINK_BLEND')
         layout.operator("wm.append", text="Append", icon='APPEND_BLEND')
+        layout.menu("INFO_MT_file_previews")
 
         layout.separator()
 
@@ -193,6 +194,15 @@ class INFO_MT_file_external_data(Menu):
         layout.operator("file.make_paths_absolute")
         layout.operator("file.report_missing_files")
         layout.operator("file.find_missing_files")
+
+
+class INFO_MT_file_previews(Menu):
+    bl_label = "Data Previews"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("wm.previews_ensure")
 
 
 class INFO_MT_game(Menu):

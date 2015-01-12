@@ -931,7 +931,8 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 
 /* only called when icon has changed */
 /* only call with valid pointer from UI_icon_draw */
-static void icon_set_image(const bContext *C, ID *id, PreviewImage *prv_img, enum eIconSizes size, const bool use_job)
+static void icon_set_image(
+        const bContext *C, Scene *scene, ID *id, PreviewImage *prv_img, enum eIconSizes size, const bool use_job)
 {
 	if (!prv_img) {
 		if (G.debug & G_DEBUG)
@@ -946,8 +947,11 @@ static void icon_set_image(const bContext *C, ID *id, PreviewImage *prv_img, enu
 		ED_preview_icon_job(C, prv_img, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size]);
 	}
 	else {
+		if (!scene) {
+			scene = CTX_data_scene(C);
+		}
 		/* Immediate version */
-		ED_preview_icon_render(C, prv_img, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size]);
+		ED_preview_icon_render(scene, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size]);
 	}
 }
 
@@ -1155,25 +1159,26 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	}
 }
 
-static void ui_id_preview_image_render_size(const bContext *C, ID *id, PreviewImage *pi, int size, const bool use_job)
+static void ui_id_preview_image_render_size(
+        const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job)
 {
 	if ((pi->changed[size] || !pi->rect[size])) { /* changed only ever set by dynamic icons */
 		/* create the rect if necessary */
-		icon_set_image(C, id, pi, size, use_job);
+		icon_set_image(C, scene, id, pi, size, use_job);
 
 		pi->changed[size] = 0;
 	}
 }
 
-void UI_id_icon_render(const bContext *C, ID *id, const bool big, const bool use_job)
+void UI_id_icon_render(const bContext *C, Scene *scene, ID *id, const bool big, const bool use_job)
 {
 	PreviewImage *pi = BKE_previewimg_get(id);
 
 	if (pi) {
 		if (big)
-			ui_id_preview_image_render_size(C, id, pi, ICON_SIZE_PREVIEW, use_job);  /* bigger preview size */
+			ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_PREVIEW, use_job);  /* bigger preview size */
 		else
-			ui_id_preview_image_render_size(C, id, pi, ICON_SIZE_ICON, use_job);     /* icon size */
+			ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_ICON, use_job);     /* icon size */
 	}
 }
 
@@ -1189,7 +1194,7 @@ static void ui_id_brush_render(const bContext *C, ID *id)
 		/* check if rect needs to be created; changed
 		 * only set by dynamic icons */
 		if ((pi->changed[i] || !pi->rect[i])) {
-			icon_set_image(C, id, pi, i, true);
+			icon_set_image(C, NULL, id, pi, i, true);
 			pi->changed[i] = 0;
 		}
 	}
@@ -1265,7 +1270,7 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
 		case ID_LA: /* fall through */
 			iconid = BKE_icon_getid(id);
 			/* checks if not exists, or changed */
-			UI_id_icon_render(C, id, big, true);
+			UI_id_icon_render(C, NULL, id, big, true);
 			break;
 		default:
 			break;
