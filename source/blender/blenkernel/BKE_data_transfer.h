@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/BKE_object_data_transfer.h
+/** \file blender/blenkernel/BKE_data_transfer.h
  *  \ingroup bke
  */
 

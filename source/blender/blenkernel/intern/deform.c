@@ -52,7 +52,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_customdata.h"
-#include "BKE_object_data_transfer.h"
+#include "BKE_data_transfer.h"
 #include "BKE_deform.h"  /* own include */
 #include "BKE_mesh_mapping.h"
 #include "BKE_object_deform.h"

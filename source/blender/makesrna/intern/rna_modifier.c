@@ -43,7 +43,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_animsys.h"
-#include "BKE_object_data_transfer.h"
+#include "BKE_data_transfer.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_mesh_mapping.h"

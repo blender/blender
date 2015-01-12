@@ -85,6 +85,7 @@ set(SRC
 	intern/curve.c
 	intern/customdata.c
 	intern/customdata_file.c
+	intern/data_transfer.c
 	intern/deform.c
 	intern/depsgraph.c
 	intern/displist.c
@@ -130,7 +131,6 @@ set(SRC
 	intern/nla.c
 	intern/node.c
 	intern/object.c
-	intern/object_data_transfer.c
 	intern/object_deform.c
 	intern/object_dupli.c
 	intern/ocean.c
@@ -203,6 +203,7 @@ set(SRC
 	BKE_curve.h
 	BKE_customdata.h
 	BKE_customdata_file.h
+	BKE_data_transfer.h
 	BKE_deform.h
 	BKE_depsgraph.h
 	BKE_displist.h
@@ -239,7 +240,6 @@ set(SRC
 	BKE_nla.h
 	BKE_node.h
 	BKE_object.h
-	BKE_object_data_transfer.h
 	BKE_object_deform.h
 	BKE_ocean.h
 	BKE_packedFile.h

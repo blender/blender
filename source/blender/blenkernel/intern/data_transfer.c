@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/object_data_transfer.c
+/** \file blender/blenkernel/intern/data_transfer.c
  *  \ingroup bke
  */
 
@@ -44,7 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_object_data_transfer.h"
+#include "BKE_data_transfer.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh_mapping.h"

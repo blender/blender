@@ -41,7 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_object_data_transfer.h"
+#include "BKE_data_transfer.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
