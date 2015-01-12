@@ -34,6 +34,21 @@
 
 CCL_NAMESPACE_BEGIN
 
+#if !defined(__KERNEL_SSE2__)
+/* TODO(sergey): Move to some generic header so all code
+ * can use bitscan on non-SSE processors.
+ */
+ccl_device_inline int bitscan(int value)
+{
+	assert(value != 0);
+	int bit = 0;
+	while (value >>= 1) {
+		++bit;
+	}
+	return bit;
+}
+#endif
+
 /* BVH Build Task */
 
 class BVHBuildTask : public Task {
