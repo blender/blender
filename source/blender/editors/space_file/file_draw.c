@@ -111,6 +111,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	SpaceFile *sfile  = CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 	ARegion *artmp;
+	const bool is_browse_only = (sfile->op == NULL);
 	
 	/* Initialize UI block. */
 	BLI_snprintf(uiblockstr, sizeof(uiblockstr), "win %p", (void *)ar);
@@ -124,15 +125,22 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 			available_w -= chan_offs;
 		}
 	}
-	
-	/* Is there enough space for the execute / cancel buttons? */
-	loadbutton = UI_fontstyle_string_width(params->title) + btn_margin;
-	CLAMP_MIN(loadbutton, btn_minw);
 
-	if (available_w <= loadbutton + separator + input_minw || params->title[0] == 0) {
+	/* Is there enough space for the execute / cancel buttons? */
+
+
+	if (is_browse_only) {
 		loadbutton = 0;
 	}
 	else {
+		loadbutton = UI_fontstyle_string_width(params->title) + btn_margin;
+		CLAMP_MIN(loadbutton, btn_minw);
+		if (available_w <= loadbutton + separator + input_minw) {
+			loadbutton = 0;
+		}
+	}
+
+	if (loadbutton) {
 		line1_w -= (loadbutton + separator);
 		line2_w  = line1_w;
 	}
@@ -145,7 +153,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	else {
 		line2_w -= (fnumbuttons + separator);
 	}
-	
+
 	/* Text input fields for directory and file. */
 	if (available_w > 0) {
 		int overwrite_alert = file_draw_check_exists(sfile);
