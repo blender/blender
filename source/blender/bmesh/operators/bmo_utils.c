@@ -236,6 +236,20 @@ static void bmo_region_extend_expand(
 							bmo_face_flag_set_flush(bm, f, SEL_FLAG, true);
 						}
 					}
+
+					/* handle wire edges (when stepping over faces) */
+					{
+						BMIter eiter;
+						BMEdge *e;
+						BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+							if (BM_edge_is_wire(e)) {
+								if (!BMO_elem_flag_test(bm, e, SEL_FLAG)) {
+									BMO_elem_flag_enable(bm, e, SEL_FLAG);
+									BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -304,6 +318,21 @@ static void bmo_region_extend_contract(
 					if (!BMO_elem_flag_test(bm, f, SEL_ORIG)) {
 						found = true;
 						break;
+					}
+				}
+
+				/* handle wire edges (when stepping over faces) */
+				if (!found) {
+					BMIter eiter;
+					BMEdge *e;
+
+					BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+						if (BM_edge_is_wire(e)) {
+							if (!BMO_elem_flag_test(bm, e, SEL_ORIG)) {
+								found = true;
+								break;
+							}
+						}
 					}
 				}
 			}
