@@ -510,11 +510,12 @@ void RegularBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
 		          leaf->m_visibility, leaf->m_visibility);
 	}
 	else {
+		int prim_type = leaf->num_triangles() ? pack.prim_type[leaf->m_lo] : 0;
 		/* Triangle/curve primitive leaf.  */
 		pack_node(e.idx, leaf->m_bounds, leaf->m_bounds,
 		          leaf->m_lo, leaf->m_hi,
 		          leaf->m_visibility,
-		          pack.prim_type[leaf->m_lo]);
+		          prim_type);
 	}
 
 }
@@ -707,7 +708,9 @@ void QBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
 		data[6].y = __int_as_float(leaf->m_hi);
 	}
 	data[6].z = __uint_as_float(leaf->m_visibility);
-	data[6].w = __uint_as_float(pack.prim_type[leaf->m_lo]);
+	if(leaf->num_triangles() != 0) {
+		data[6].w = __uint_as_float(pack.prim_type[leaf->m_lo]);
+	}
 
 	memcpy(&pack.nodes[e.idx * BVH_QNODE_SIZE], data, sizeof(float4)*BVH_QNODE_SIZE);
 }
