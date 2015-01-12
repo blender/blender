@@ -75,4 +75,11 @@ struct GlyphBLF *blf_glyph_add(struct FontBLF *font, unsigned int index, unsigne
 void blf_glyph_free(struct GlyphBLF *g);
 void blf_glyph_render(struct FontBLF *font, struct GlyphBLF *g, float x, float y);
 
+#ifdef WIN32
+/* blf_font_win32_compat.c */
+#  ifdef FT_FREETYPE_H
+extern FT_Error FT_New_Face__win32_compat(FT_Library library, const char *pathname, FT_Long face_index, FT_Face *aface);
+#  endif
+#endif
+
 #endif /* __BLF_INTERNAL_H__ */

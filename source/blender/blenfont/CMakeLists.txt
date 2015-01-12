@@ -56,6 +56,12 @@ set(SRC
 	intern/blf_internal_types.h
 )
 
+if(WIN32)
+	list(APPEND SRC
+		intern/blf_font_win32_compat.c
+	)
+endif()
+
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()

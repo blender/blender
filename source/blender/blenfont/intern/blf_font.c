@@ -65,6 +65,10 @@
 
 #include "BLI_strict_flags.h"
 
+#ifdef WIN32
+#  define FT_New_Face FT_New_Face__win32_compat
+#endif
+
 /* freetype2 handle ONLY for this file!. */
 static FT_Library ft_lib;
 static SpinLock ft_lib_mutex;
