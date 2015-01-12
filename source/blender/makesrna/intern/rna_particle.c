@@ -2856,6 +2856,18 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clump Curve", "Curve defining clump tapering");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
+	prop = RNA_def_property(srna, "use_clump_noise", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "child_flag", PART_CHILD_USE_CLUMP_NOISE);
+	RNA_def_property_ui_text(prop, "Use Clump Noise", "Create random clumps around the parent");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "clump_noise_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clump_noise_size");
+	RNA_def_property_range(prop, 0.00001f, 100000.0f);
+	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 0.1f, 3);
+	RNA_def_property_ui_text(prop, "Clump Noise Size", "Size of clump noise");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
 	/* kink */
 	prop = RNA_def_property(srna, "kink_amplitude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "kink_amp");

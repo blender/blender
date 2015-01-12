@@ -491,4 +491,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "ParticleSettings", "float", "clumpnoisesize")) {
+		ParticleSettings *part;
+		for (part = main->particle.first; part; part = part->id.next) {
+			part->clump_noise_size = 1.0f;
+		}
+	}
 }

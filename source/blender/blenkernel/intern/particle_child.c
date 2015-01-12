@@ -41,10 +41,11 @@ struct Material;
 
 void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat,
              short type, short axis, float obmat[4][4], int smooth_start);
-float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump, CurveMapping *clumpcurve);
+float do_clump(ParticleKey *state, ParticleKey *par, float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
+               bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve);
 void do_child_modifiers(ParticleSimulationData *sim,
-                        ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa,
-                        const float orco[3], float mat[4][4], ParticleKey *state, float t);
+                        ParticleTexture *ptex, ParticleKey *par, float *par_rot, const float par_orco[3],
+                        ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
 
 static void get_strand_normal(Material *ma, const float surfnor[3], float surfdist, float nor[3])
 {
@@ -89,7 +90,8 @@ typedef struct ParticlePathIterator {
 	float parent_rotation[4];
 } ParticlePathIterator;
 
-static void psys_path_iter_get(ParticlePathIterator *iter, ParticleCacheKey *keys, int totkeys, ParticleCacheKey *parent, int index)
+static void psys_path_iter_get(ParticlePathIterator *iter, ParticleCacheKey *keys, int totkeys,
+                               ParticleCacheKey *parent, int index)
 {
 	BLI_assert(index >= 0 && index < totkeys);
 	
@@ -136,7 +138,7 @@ static bool check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *k
 
 void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *modifiers,
                                 ChildParticle *cpa, ParticleTexture *ptex, const float orco[3], const float ornor[3], float hairmat[4][4],
-                                ParticleCacheKey *keys, ParticleCacheKey *parent_keys)
+                                ParticleCacheKey *keys, ParticleCacheKey *parent_keys, const float parent_orco[3])
 {
 	struct ParticleSettings *part = ctx->sim.psys->part;
 	struct Material *ma = ctx->ma;
@@ -165,7 +167,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 			psys_path_iter_get(&iter, keys, totkeys, parent_keys, k);
 			
 			/* apply different deformations to the child path */
-			do_child_modifiers(&ctx->sim, ptex, (ParticleKey *)iter.parent_key, iter.parent_rotation, cpa, orco, hairmat, (ParticleKey *)key, iter.time);
+			do_child_modifiers(&ctx->sim, ptex, (ParticleKey *)iter.parent_key, iter.parent_rotation, parent_orco, cpa, orco, hairmat, (ParticleKey *)key, iter.time);
 		}
 	}
 #endif
@@ -360,17 +362,15 @@ void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, f
 		copy_v3_v3(state->co, result);
 }
 
-float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump, CurveMapping *clumpcurve)
+static float do_clump_level(float result[3], const float co[3], const float par_co[3], float time,
+                            float clumpfac, float clumppow, float pa_clump, CurveMapping *clumpcurve)
 {
-	float clump = 0.f;
-
-	if (!par)
-		return 0.0f;
+	float clump = 0.0f;
 	
 	if (clumpcurve) {
 		clump = pa_clump * (1.0f - CLAMPIS(curvemapping_evaluateF(clumpcurve, 0, time), 0.0f, 1.0f));
 		
-		interp_v3_v3v3(state->co, state->co, par->co, clump);
+		interp_v3_v3v3(result, co, par_co, clump);
 	}
 	else if (clumpfac != 0.0f) {
 		float cpow;
@@ -385,9 +385,34 @@ float do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac,
 		else
 			clump = clumpfac * pa_clump * (float)pow((double)time, (double)cpow);
 
-		interp_v3_v3v3(state->co, state->co, par->co, clump);
+		interp_v3_v3v3(result, co, par_co, clump);
 	}
+	
+	return clump;
+}
 
+float do_clump(ParticleKey *state, ParticleKey *par, float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
+               bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve)
+{
+	float clump;
+	
+	if (!par)
+		return 0.0f;
+	
+	if (use_clump_noise && clump_noise_size != 0.0f) {
+		float center[3], noisevec[3];
+		float da[4], pa[12];
+		
+		mul_v3_v3fl(noisevec, orco_offset, 1.0f / clump_noise_size);
+		voronoi(noisevec[0], noisevec[1], noisevec[2], da, pa, 1.0f, 0);
+		mul_v3_fl(&pa[0], clump_noise_size);
+		add_v3_v3v3(center, par->co, &pa[0]);
+		
+		do_clump_level(state->co, state->co, center, time, clumpfac, clumppow, pa_clump, clumpcurve);
+	}
+	
+	clump = do_clump_level(state->co, state->co, par->co, time, clumpfac, clumppow, pa_clump, clumpcurve);
+	
 	return clump;
 }
 
@@ -449,7 +474,8 @@ static void do_rough_curve(const float loc[3], float mat[4][4], float time, floa
 	madd_v3_v3fl(state->co, mat[2], fac * rough[2]);
 }
 
-void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, ParticleKey *par, float *par_rot, ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t)
+void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, ParticleKey *par, float *par_rot, const float par_orco[3],
+                        ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t)
 {
 	ParticleSettings *part = sim->psys->part;
 	int i = cpa - sim->psys->child;
@@ -472,7 +498,12 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, Part
 		guided = do_guides(sim->psys->part, sim->psys->effectors, (ParticleKey *)state, cpa->parent, t);
 
 	if (guided == 0) {
-		float clump = do_clump(state, par, t, part->clumpfac, part->clumppow, ptex ? ptex->clump : 1.f, part->clumpcurve);
+		float orco_offset[3];
+		float clump;
+		
+		sub_v3_v3v3(orco_offset, orco, par_orco);
+		clump = do_clump(state, par, t, orco_offset, part->clumpfac, part->clumppow, ptex ? ptex->clump : 1.f,
+		                 part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, part->clumpcurve);
 
 		if (kink_freq != 0.f) {
 			float kink_amp = part->kink_amp * (1.f - part->kink_amp_clump * clump);

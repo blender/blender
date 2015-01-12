@@ -1173,6 +1173,11 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         else:
             sub.prop(part, "clump_factor", slider=True)
             sub.prop(part, "clump_shape", slider=True)
+        sub = col.column(align=True)
+        sub.prop(part, "use_clump_noise")
+        subsub = sub.column()
+        subsub.enabled = part.use_clump_noise
+        subsub.prop(part, "clump_noise_size")
 
         sub = col.column(align=True)
         sub.prop(part, "child_length", slider=True)

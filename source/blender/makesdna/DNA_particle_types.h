@@ -208,6 +208,8 @@ typedef struct ParticleSettings {
 	/* length */
 	float randlength;
 	/* children */
+	int child_flag;
+	int pad3;
 	int child_nbr, ren_child_nbr;
 	float parents, childsize, childrandsize;
 	float childrad, childflat;
@@ -235,10 +237,10 @@ typedef struct ParticleSettings {
 	int keyed_loops;
 	struct CurveMapping *clumpcurve;
 	struct CurveMapping *roughcurve;
+	float clump_noise_size;
 
 	/* hair dynamics */
 	float bending_random;
-	int pad3;
 
 	struct MTex *mtex[18];		/* MAX_MTEX */
 
@@ -420,6 +422,11 @@ typedef enum eParticleDrawFlag {
 #define PART_KINK_RADIAL	2
 #define PART_KINK_WAVE		3
 #define PART_KINK_BRAID		4
+
+/* part->kink_flag */
+typedef enum eParticleChildFlag {
+	PART_CHILD_USE_CLUMP_NOISE  = 1,
+} eParticleChildFlag;
 
 /* part->draw_col */
 #define PART_DRAW_COL_NONE		0
