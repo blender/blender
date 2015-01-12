@@ -205,6 +205,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 			return GHOST_kKeyUnknown;
 			
 		default:
+		{
 			/* alphanumerical or punctuation key that is remappable in int'l keyboards */
 			if ((recvChar >= 'A') && (recvChar <= 'Z')) {
 				return (GHOST_TKey) (recvChar - 'A' + GHOST_kKeyA);
@@ -213,27 +214,25 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 				return (GHOST_TKey) (recvChar - 'a' + GHOST_kKeyA);
 			}
 			else {
-
-			/* Leopard and Snow Leopard 64bit compatible API*/
-			CFDataRef uchrHandle; /*the keyboard layout*/
-			TISInputSourceRef kbdTISHandle;
-			
-			kbdTISHandle = TISCopyCurrentKeyboardLayoutInputSource();
-			uchrHandle = (CFDataRef)TISGetInputSourceProperty(kbdTISHandle,kTISPropertyUnicodeKeyLayoutData);
-			CFRelease(kbdTISHandle);
-			
-			/*get actual character value of the "remappable" keys in int'l keyboards,
-			 if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
-			 then fallback on using the received charactersIgnoringModifiers */
-			if (uchrHandle)
-			{
-				UInt32 deadKeyState=0;
-				UniCharCount actualStrLength=0;
+				/* Leopard and Snow Leopard 64bit compatible API*/
+				CFDataRef uchrHandle; /*the keyboard layout*/
+				TISInputSourceRef kbdTISHandle;
 				
-				UCKeyTranslate((UCKeyboardLayout*)CFDataGetBytePtr(uchrHandle), rawCode, keyAction, 0,
-							   LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 1, &actualStrLength, &recvChar);
+				kbdTISHandle = TISCopyCurrentKeyboardLayoutInputSource();
+				uchrHandle = (CFDataRef)TISGetInputSourceProperty(kbdTISHandle,kTISPropertyUnicodeKeyLayoutData);
+				CFRelease(kbdTISHandle);
 				
-			}
+				/*get actual character value of the "remappable" keys in int'l keyboards,
+				if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
+				then fallback on using the received charactersIgnoringModifiers */
+				if (uchrHandle) {
+					UInt32 deadKeyState=0;
+					UniCharCount actualStrLength=0;
+					
+					UCKeyTranslate((UCKeyboardLayout*)CFDataGetBytePtr(uchrHandle), rawCode, keyAction, 0,
+					               LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 1, &actualStrLength, &recvChar);
+					
+				}
 
 				switch (recvChar) {
 					case '-': 	return GHOST_kKeyMinus;
@@ -251,6 +250,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 						return GHOST_kKeyUnknown;
 				}
 			}
+		}
 	}
 	return GHOST_kKeyUnknown;
 }
@@ -270,7 +270,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 		return 1;
 	}
 	else {
-	return 0;
+		return 0;
 	}
 }
 

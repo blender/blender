@@ -545,7 +545,7 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 		aci->array_index = fcu->array_index;
 		
 		/* detect if this is a bone. We do that here rather than during pasting because ID pointers will get invalidated if we undo.
-		 * storing the relavant information here helps avoiding crashes if we undo-repaste */
+		 * storing the relevant information here helps avoiding crashes if we undo-repaste */
 		if ((aci->id_type == ID_OB) && (((Object *)aci->id)->type == OB_ARMATURE) && aci->rna_path) {
 			Object *ob = (Object *)aci->id;
 			char *str_start;
