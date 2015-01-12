@@ -516,7 +516,7 @@ static bool spline_under_mouse_get(const bContext *C,
 	MaskLayer *mask_layer;
 	int width, height;
 	float pixel_co[2];
-	float closest_dist_squared = FLT_MAX;
+	float closest_dist_squared;
 	MaskLayer *closest_layer = NULL;
 	MaskSpline *closest_spline = NULL;
 	bool undistort = false;
@@ -2209,7 +2209,7 @@ static int mask_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 				}
 				if (end >= start) {
 					int tot_point;
-					int tot_point_shape_start = 0;
+					int tot_point_shape_start;
 					MaskSpline *new_spline = BKE_mask_spline_add(mask_layer);
 					MaskSplinePoint *new_point;
 					int b;

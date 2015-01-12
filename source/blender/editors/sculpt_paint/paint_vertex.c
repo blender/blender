@@ -2272,7 +2272,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float paintweight;
 	int *indexar;
 	float totw;
-	unsigned int index, totindex = 0;
+	unsigned int index, totindex;
 	float alpha;
 	float mval[2];
 	bool use_vert_sel;
