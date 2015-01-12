@@ -373,10 +373,10 @@ void CustomData_external_reload(struct CustomData *data,
 /* Mesh-to-mesh transfer data. */
 
 struct MeshPairRemap;
-typedef struct CustomDataTransferLayerMap CustomDataTransferLayerMap;
+struct CustomDataTransferLayerMap;
 
 typedef void (*cd_datatransfer_interp)(
-        const CustomDataTransferLayerMap *laymap, void *dest,
+        const struct CustomDataTransferLayerMap *laymap, void *dest,
         void **sources, const float *weights, const int count, const float mix_factor);
 
 /**
@@ -423,7 +423,7 @@ enum {
 };
 
 typedef struct CustomDataTransferLayerMap {
-	CustomDataTransferLayerMap *next, *prev;
+	struct CustomDataTransferLayerMap *next, *prev;
 
 	int data_type;
 	int mix_mode;
