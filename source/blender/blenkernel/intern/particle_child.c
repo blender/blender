@@ -347,7 +347,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 				if (ma && draw_col_ma)
 					get_strand_normal(ma, ornor, cur_length, (key-1)->vel);
 			}
-			else if (k == totkeys-1) {
+			if (k == totkeys-1) {
 				/* last key */
 				sub_v3_v3v3(key->vel, key->co, (key-1)->co);
 			}
