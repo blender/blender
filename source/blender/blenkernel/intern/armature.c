@@ -2166,9 +2166,9 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 				mul_v3_fl(poseMat[2], scale);
 				break;
 			}
-			case CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC:
+			case CONSTRAINT_SPLINEIK_XZS_INVERSE:
 			{
-				/* 'volume preservation' */
+				/* old 'volume preservation' method using the inverse scale */
 				float scale;
 
 				/* calculate volume preservation factor which is
@@ -2185,6 +2185,54 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 					scale = 1.0f;
 
 				/* apply the scaling */
+				mul_v3_fl(poseMat[0], scale);
+				mul_v3_fl(poseMat[2], scale);
+				break;
+			}
+			case CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC:
+			{
+				/* improved volume preservation based on the Stretch To constraint */
+				float scale;
+				
+				/* as the basis for volume preservation, we use the inverse scale factor... */
+				if (fabsf(scaleFac) != 0.0f) {
+					/* NOTE: The method here is taken wholesale from the Stretch To constraint */
+					float bulge = powf(1.0f / fabsf(scaleFac), ikData->bulge);
+					
+					if (bulge > 1.0f) {
+						if (ikData->flag & STRETCHTOCON_USE_BULGE_MAX) {
+							float bulge_max = max_ff(ikData->bulge_max, 1.0f);
+							float hard = min_ff(bulge, bulge_max);
+							
+							float range = bulge_max - 1.0f;
+							float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
+							float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / (0.5f * M_PI);
+							
+							bulge = interpf(soft, hard, ikData->bulge_smooth);
+						}
+					}
+					if (bulge < 1.0f) {
+						if (ikData->flag & STRETCHTOCON_USE_BULGE_MIN) {
+							float bulge_min = CLAMPIS(ikData->bulge_max, 0.0f, 1.0f);
+							float hard = max_ff(bulge, bulge_min);
+							
+							float range = 1.0f - bulge_min;
+							float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
+							float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / (0.5f * M_PI);
+							
+							bulge = interpf(soft, hard, ikData->bulge_smooth);
+						}
+					}
+					
+					/* compute scale factor for xz axes from this value */
+					scale = sqrt(bulge);
+				}
+				else {
+					/* no scaling, so scale factor is simple */
+					scale = 1.0f;
+				}
+				
+				/* apply the scaling (assuming normalised scale) */
 				mul_v3_fl(poseMat[0], scale);
 				mul_v3_fl(poseMat[2], scale);
 				break;
