@@ -301,6 +301,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 	struct ParticleSettings *part = ctx->sim.psys->part;
 	struct Material *ma = ctx->ma;
 	const bool draw_col_ma = (part->draw_col == PART_DRAW_COL_MAT);
+	const bool use_length_check = !ELEM(part->kink, PART_KINK_SPIRAL);
 	
 	ParticlePathModifier *mod;
 	ParticleCacheKey *key;
@@ -352,7 +353,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 				sub_v3_v3v3(key->vel, key->co, (key-1)->co);
 			}
 			
-			if (k > 1) {
+			if (use_length_check && k > 1) {
 				float dvec[3];
 				/* check if path needs to be cut before actual end of data points */
 				if (!check_path_length(k, keys, key, max_length, step_length, &cur_length, dvec))
