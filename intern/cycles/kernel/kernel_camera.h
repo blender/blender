@@ -88,8 +88,10 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 
 #ifdef __CAMERA_CLIPPING__
 	/* clipping */
-	ray->P += kernel_data.cam.nearclip*ray->D;
-	ray->t = kernel_data.cam.cliplength;
+	float3 Pclip = normalize(Pcamera);
+	float z_inv = 1.0f / Pclip.z;
+	ray->P += kernel_data.cam.nearclip*ray->D * z_inv;
+	ray->t = kernel_data.cam.cliplength * z_inv;
 #else
 	ray->t = FLT_MAX;
 #endif
