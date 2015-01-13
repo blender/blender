@@ -2192,7 +2192,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 			case CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC:
 			{
 				/* improved volume preservation based on the Stretch To constraint */
-				float scale;
+				float final_scale;
 				
 				/* as the basis for volume preservation, we use the inverse scale factor... */
 				if (fabsf(scaleFac) != 0.0f) {
@@ -2225,16 +2225,16 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 					}
 					
 					/* compute scale factor for xz axes from this value */
-					scale = sqrt(bulge);
+					final_scale = sqrt(bulge);
 				}
 				else {
 					/* no scaling, so scale factor is simple */
-					scale = 1.0f;
+					final_scale = 1.0f;
 				}
 				
 				/* apply the scaling (assuming normalised scale) */
-				mul_v3_fl(poseMat[0], scale);
-				mul_v3_fl(poseMat[2], scale);
+				mul_v3_fl(poseMat[0], final_scale);
+				mul_v3_fl(poseMat[2], final_scale);
 				break;
 			}
 		}
