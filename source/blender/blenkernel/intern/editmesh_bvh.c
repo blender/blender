@@ -239,6 +239,32 @@ struct RayCastUserData {
 	float uv[2];
 };
 
+
+static BMFace *bmbvh_ray_cast_handle_hit(
+        BMBVHTree *bmtree, struct RayCastUserData *bmcb_data, const BVHTreeRayHit *hit,
+        float *r_dist, float r_hitout[3], float r_cagehit[3])
+{
+	if (r_hitout) {
+		if (bmtree->flag & BMBVH_RETURN_ORIG) {
+			BMLoop **ltri = bmtree->looptris[hit->index];
+			interp_v3_v3v3v3_uv(r_hitout, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, bmcb_data->uv);
+		}
+		else {
+			copy_v3_v3(r_hitout, hit->co);
+		}
+
+		if (r_cagehit) {
+			copy_v3_v3(r_cagehit, hit->co);
+		}
+	}
+
+	if (r_dist) {
+		*r_dist = hit->dist;
+	}
+
+	return bmtree->looptris[hit->index][0]->f;
+}
+
 static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	struct RayCastUserData *bmcb_data = userdata;
@@ -284,31 +310,67 @@ BMFace *BKE_bmbvh_ray_cast(BMBVHTree *bmtree, const float co[3], const float dir
 	bmcb_data.cos_cage = (const float (*)[3])bmtree->cos_cage;
 	
 	BLI_bvhtree_ray_cast(bmtree->tree, co, dir, radius, &hit, bmbvh_ray_cast_cb, &bmcb_data);
+
 	if (hit.index != -1 && hit.dist != dist) {
-		if (r_hitout) {
-			if (bmtree->flag & BMBVH_RETURN_ORIG) {
-				BMLoop **ltri = bmtree->looptris[hit.index];
-				interp_v3_v3v3v3_uv(r_hitout, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, bmcb_data.uv);
-			}
-			else {
-				copy_v3_v3(r_hitout, hit.co);
-			}
-
-			if (r_cagehit) {
-				copy_v3_v3(r_cagehit, hit.co);
-			}
-		}
-
-		if (r_dist) {
-			*r_dist = hit.dist;
-		}
-
-		return bmtree->looptris[hit.index][0]->f;
+		return bmbvh_ray_cast_handle_hit(bmtree, &bmcb_data, &hit, r_dist, r_hitout, r_cagehit);
 	}
 
 	return NULL;
 }
 
+/* -------------------------------------------------------------------- */
+/* bmbvh_ray_cast_cb_filter */
+
+/* Same as BKE_bmbvh_ray_cast but takes a callback to filter out faces.
+ */
+
+struct RayCastUserData_Filter {
+	struct RayCastUserData bmcb_data;
+
+	BMBVHTree_FaceFilter filter_cb;
+	void                *filter_userdata;
+};
+
+static void bmbvh_ray_cast_cb_filter(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+{
+	struct RayCastUserData_Filter *bmcb_data_filter = userdata;
+	struct RayCastUserData *bmcb_data = &bmcb_data_filter->bmcb_data;
+	const BMLoop **ltri = bmcb_data->looptris[index];
+	if (bmcb_data_filter->filter_cb(ltri[0]->f, bmcb_data_filter->filter_userdata)) {
+		bmbvh_ray_cast_cb(bmcb_data, index, ray, hit);
+	}
+}
+
+BMFace *BKE_bmbvh_ray_cast_filter(
+        BMBVHTree *bmtree, const float co[3], const float dir[3], const float radius,
+        float *r_dist, float r_hitout[3], float r_cagehit[3],
+        BMBVHTree_FaceFilter filter_cb, void *filter_userdata)
+{
+	BVHTreeRayHit hit;
+	struct RayCastUserData_Filter bmcb_data_filter;
+	struct RayCastUserData *bmcb_data = &bmcb_data_filter.bmcb_data;
+
+	const float dist = r_dist ? *r_dist : FLT_MAX;
+
+	bmcb_data_filter.filter_cb = filter_cb;
+	bmcb_data_filter.filter_userdata = filter_userdata;
+
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
+
+	hit.dist = dist;
+	hit.index = -1;
+
+	/* ok to leave 'uv' uninitialized */
+	bmcb_data->looptris = (const BMLoop *(*)[3])bmtree->looptris;
+	bmcb_data->cos_cage = (const float (*)[3])bmtree->cos_cage;
+
+	BLI_bvhtree_ray_cast(bmtree->tree, co, dir, radius, &hit, bmbvh_ray_cast_cb_filter, &bmcb_data_filter);
+	if (hit.index != -1 && hit.dist != dist) {
+		return bmbvh_ray_cast_handle_hit(bmtree, bmcb_data, &hit, r_dist, r_hitout, r_cagehit);
+	}
+
+	return NULL;
+}
 
 /* -------------------------------------------------------------------- */
 /* BKE_bmbvh_find_face_segment */
