@@ -6,3 +6,8 @@ Erwin
 
 Apply patches/convex_hull.patch to add access to the convex hull
 operation, used in the BMesh convex hull operator.
+
+Documentation is available at:
+http://code.google.com/p/bullet/source/browse/trunk/Bullet_User_Manual.pdf
+and:
+https://github.com/bulletphysics/bullet3/tree/master/docs
