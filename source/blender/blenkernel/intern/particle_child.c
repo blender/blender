@@ -238,19 +238,6 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 		len += seglen;
 	}
 	
-#if 0
-	/* use the last segment's direction for the spiral orientation
-	 * this is more consistent and stable than the last flat segment
-	 * when changing the amplitude
-	 */
-	if (totkeys > 1) {
-		sub_v3_v3v3(dir, (keys+totkeys-1)->co, (keys+totkeys-2)->co);
-		normalize_v3(dir);
-	}
-	else
-		zero_v3(dir);
-#endif
-	
 	zero_v3(dir);
 	for (k = 0, key = keys; k < end_index; k++, key++) {
 		psys_path_iter_get(&iter, keys, end_index, NULL, k);

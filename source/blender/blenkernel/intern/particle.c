@@ -2259,60 +2259,6 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 			psys_apply_child_modifiers(ctx, &modifiers, cpa, &ptex, orco, ornor, hairmat, child_keys, par, par_orco);
 		}
 	}
-#if 0
-	for (k = 0, child = child_keys; k <= ctx->steps; k++, child++) {
-		t = (float)k / (float)ctx->steps;
-
-		if (ctx->totparent)
-			/* this is now threadsafe, virtual parents are calculated before rest of children */
-			par = (i >= ctx->totparent) ? cache[cpa->parent] : NULL;
-		else if (cpa->parent >= 0)
-			par = pcache[cpa->parent];
-
-		if (par) {
-			if (k) {
-				mul_qt_qtqt(rot, (par + k)->rot, par->rot);
-				par_rot = rot;
-			}
-			else {
-				par_rot = par->rot;
-			}
-			par += k;
-		}
-
-		/* apply different deformations to the child path */
-		do_child_modifiers(&ctx->sim, &ptex, (ParticleKey *)par, par_rot, cpa, orco, hairmat, (ParticleKey *)child, t);
-
-		/* we have to correct velocity because of kink & clump */
-		if (k > 1) {
-			sub_v3_v3v3((child - 1)->vel, child->co, (child - 2)->co);
-			mul_v3_fl((child - 1)->vel, 0.5);
-
-			if (ctx->ma && (part->draw_col == PART_DRAW_COL_MAT))
-				get_strand_normal(ctx->ma, ornor, cur_length, (child - 1)->vel);
-		}
-
-		if (k == ctx->steps)
-			sub_v3_v3v3(child->vel, child->co, (child - 1)->co);
-
-		/* check if path needs to be cut before actual end of data points */
-		if (k) {
-			sub_v3_v3v3(dvec, child->co, (child - 1)->co);
-			length = 1.0f / (float)ctx->steps;
-			k = check_path_length(k, child_keys, child, max_length, &cur_length, length, dvec);
-		}
-		else {
-			/* initialize length calculation */
-			max_length = ptex.length;
-			cur_length = 0.0f;
-		}
-
-		if (ctx->ma && (part->draw_col == PART_DRAW_COL_MAT)) {
-			copy_v3_v3(child->col, &ctx->ma->r);
-			get_strand_normal(ctx->ma, ornor, cur_length, child->vel);
-		}
-	}
-#endif
 
 	/* Hide virtual parents */
 	if (i < ctx->totparent)
