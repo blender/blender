@@ -2192,6 +2192,10 @@ PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 
 	bpy_import_init(PyEval_GetBuiltins());
 
+	bpy_import_main_set(maggie);
+
+	initPySysObjects(maggie);
+
 	PyDict_SetItemString(PyImport_GetModuleDict(), "bge", initBGE());
 
 	/* mathutils types are used by the BGE even if we don't import them */
@@ -2207,10 +2211,6 @@ PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 		Py_DECREF(mod);
 	}
 #endif
-
-	bpy_import_main_set(maggie);
-
-	initPySysObjects(maggie);
 
 	initPyTypes();
 
