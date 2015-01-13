@@ -1232,6 +1232,9 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
 	BMElem *ele_test;
 	KnifeEdge *kfe = NULL;
 
+	/* vert? */
+	ele_test = (BMElem *)kfv->v;
+
 	if (r_kfe || ele_test == NULL) {
 		if (kfv->v == NULL) {
 			Ref *ref;
@@ -1245,9 +1248,6 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
 		}
 	}
 
-	/* vert? */
-	ele_test = (BMElem *)kfv->v;
-
 	/* edge? */
 	if (ele_test == NULL) {
 		if (kfe) {
@@ -1255,6 +1255,7 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
 		}
 	}
 
+	/* face? */
 	if (ele_test == NULL) {
 		if (BLI_listbase_is_single(&kfe->faces)) {
 			ele_test = ((Ref *)kfe->faces.first)->ref;
