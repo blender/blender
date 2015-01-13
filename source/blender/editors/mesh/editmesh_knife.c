@@ -75,10 +75,16 @@
 
 #define KMAXDIST    10  /* max mouse distance from edge before not detecting it */
 
+/* WARNING: knife float precision is fragile:
+ * be careful before making changes here see: (T43229, T42864, T42459, T41164).
+ */
 #define KNIFE_FLT_EPS          0.00001f
 #define KNIFE_FLT_EPS_SQUARED  (KNIFE_FLT_EPS * KNIFE_FLT_EPS)
 #define KNIFE_FLT_EPSBIG       0.0005f
-#define KNIFE_FLT_EPS_PX       0.2f
+
+#define KNIFE_FLT_EPS_PX_VERT  0.5f
+#define KNIFE_FLT_EPS_PX_EDGE  0.05f
+#define KNIFE_FLT_EPS_PX_FACE  0.05f
 
 typedef struct KnifeColors {
 	unsigned char line[3];
@@ -1318,7 +1324,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	float vert_tol, vert_tol_sq;
 	float line_tol, line_tol_sq;
 	float face_tol, face_tol_sq;
-	float eps_scale, eps_scale_px;
 	int isect_kind;
 	unsigned int tot;
 	int i;
@@ -1426,19 +1431,10 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
 	/* Now go through the candidates and find intersections */
 	/* These tolerances, in screen space, are for intermediate hits, as ends are already snapped to screen */
-	{
-		/* Scale the epsilon by the zoom level
-		 * to compensate for projection imprecision, see T41164 */
-		const float zoom_xy[2] = {
-		        kcd->vc.rv3d->winmat[0][0],
-		        kcd->vc.rv3d->winmat[1][1]};
-		eps_scale = len_v2(zoom_xy);
-		eps_scale_px = eps_scale * (kcd->is_interactive ? KNIFE_FLT_EPS_PX : KNIFE_FLT_EPSBIG);
-	}
 
-	vert_tol = eps_scale_px;
-	line_tol = eps_scale_px;
-	face_tol = max_ff(vert_tol, line_tol);
+	vert_tol = KNIFE_FLT_EPS_PX_VERT;
+	line_tol = KNIFE_FLT_EPS_PX_EDGE;
+	face_tol = KNIFE_FLT_EPS_PX_FACE;
 
 	vert_tol_sq = vert_tol * vert_tol;
 	line_tol_sq = line_tol * line_tol;
