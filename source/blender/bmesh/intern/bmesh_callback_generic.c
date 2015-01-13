@@ -53,3 +53,8 @@ bool BM_elem_cb_check_hflag_disabled(BMElem *ele, void *user_data)
 
 	return (BM_elem_flag_test(ele, hflag) == 0);
 }
+
+bool BM_elem_cb_check_elem_not_equal(BMElem *ele, void *user_data)
+{
+	return (ele != user_data);
+}
