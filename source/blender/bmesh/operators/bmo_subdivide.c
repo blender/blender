@@ -1082,7 +1082,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 					BMIter other_fiter;
 					BM_ITER_ELEM (other_loop, &other_fiter, loops[a]->v, BM_LOOPS_OF_VERT) {
 						if (other_loop->f != face) {
-							if (BM_vert_in_face(other_loop->f, loops[b]->v)) {
+							if (BM_vert_in_face(loops[b]->v, other_loop->f)) {
 								/* we assume that these verts are not making an edge in the face */
 								BLI_assert(other_loop->prev->v != loops[a]->v);
 								BLI_assert(other_loop->next->v != loops[a]->v);

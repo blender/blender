@@ -5857,12 +5857,12 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 					l_ed_sel = l_ed_sel->prev;
 
 				if (sld->perc < 0.0f) {
-					if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->v_b)) {
+					if (BM_vert_in_face(sv->v_b, l_ed_sel->radial_next->f)) {
 						f_copy_flip = BLI_ghash_lookup(sld->origfaces, l_ed_sel->radial_next->f);
 					}
 				}
 				else if (sld->perc > 0.0f) {
-					if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->v_a)) {
+					if (BM_vert_in_face(sv->v_a, l_ed_sel->radial_next->f)) {
 						f_copy_flip = BLI_ghash_lookup(sld->origfaces, l_ed_sel->radial_next->f);
 					}
 				}
@@ -5922,18 +5922,18 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 
 					BMLoop *l_adj = NULL;
 					if (sld->perc < 0.0f) {
-						if (BM_vert_in_face(e_sel->l->f, sv->v_b)) {
+						if (BM_vert_in_face(sv->v_b, e_sel->l->f)) {
 							l_adj = e_sel->l;
 						}
-						else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_b)) {
+						else if (BM_vert_in_face(sv->v_b, e_sel->l->radial_next->f)) {
 							l_adj = e_sel->l->radial_next;
 						}
 					}
 					else if (sld->perc > 0.0f) {
-						if (BM_vert_in_face(e_sel->l->f, sv->v_a)) {
+						if (BM_vert_in_face(sv->v_a, e_sel->l->f)) {
 							l_adj = e_sel->l;
 						}
-						else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->v_a)) {
+						else if (BM_vert_in_face(sv->v_a, e_sel->l->radial_next->f)) {
 							l_adj = e_sel->l->radial_next;
 						}
 					}

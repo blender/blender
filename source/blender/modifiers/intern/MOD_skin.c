@@ -1114,7 +1114,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 					orig_verts[i] = NULL;
 				}
 				else if (orig_verts[i] &&
-				         !BM_vert_in_face(vf, orig_verts[i]))
+				         !BM_vert_in_face(orig_verts[i], vf))
 				{
 					wrong_face = true;
 					break;

@@ -27,9 +27,9 @@
  *  \ingroup bmesh
  */
 
-bool    BM_vert_in_face(BMFace *f, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int     BM_verts_in_face_count(BMFace *f, BMVert **varr, int len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-bool    BM_verts_in_face(BMFace *f, BMVert **varr, int len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    BM_vert_in_face(BMVert *v, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int     BM_verts_in_face_count(BMVert **varr, int len, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    BM_verts_in_face(BMVert **varr, int len, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 bool    BM_edge_in_face(BMEdge *e, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_in_loop(const BMEdge *e, const BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

@@ -285,8 +285,8 @@ static void hull_remove_overlapping(BMesh *bm, GSet *hull_triangles,
 			
 			/* Note: can't change ghash while iterating, so mark
 			 * with 'skip' flag rather than deleting triangles */
-			if (BM_vert_in_face(f, t->v[1]) &&
-			    BM_vert_in_face(f, t->v[2]) && f_on_hull)
+			if (BM_vert_in_face(t->v[1], f) &&
+			    BM_vert_in_face(t->v[2], f) && f_on_hull)
 			{
 				t->skip = true;
 				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
