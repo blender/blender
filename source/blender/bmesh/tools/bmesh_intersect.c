@@ -857,7 +857,7 @@ bool BM_mesh_intersect(
 					{UNPACK3(looptris[i][2]->v->co)},
 				};
 
-				BLI_bvhtree_insert(tree_a, i, (float *)t_cos, 3);
+				BLI_bvhtree_insert(tree_a, i, (const float *)t_cos, 3);
 			}
 		}
 		BLI_bvhtree_balance(tree_a);
@@ -874,7 +874,7 @@ bool BM_mesh_intersect(
 					{UNPACK3(looptris[i][2]->v->co)},
 				};
 
-				BLI_bvhtree_insert(tree_b, i, (float *)t_cos, 3);
+				BLI_bvhtree_insert(tree_b, i, (const float *)t_cos, 3);
 			}
 		}
 		BLI_bvhtree_balance(tree_b);

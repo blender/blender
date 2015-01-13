@@ -97,7 +97,7 @@ static GSet *erot_gset_new(void)
 
 static void erot_state_ex(const BMEdge *e, int v_index[2], int f_index[2])
 {
-	BLI_assert(BM_edge_is_manifold((BMEdge *)e));
+	BLI_assert(BM_edge_is_manifold(e));
 	BLI_assert(BM_vert_in_edge(e, e->l->prev->v)              == false);
 	BLI_assert(BM_vert_in_edge(e, e->l->radial_next->prev->v) == false);
 

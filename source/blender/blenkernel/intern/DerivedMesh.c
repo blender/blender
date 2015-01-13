@@ -3327,7 +3327,7 @@ static void dm_debug_info_layers(DynStr *dynstr, DerivedMesh *dm, CustomData *cd
 			CustomData_file_write_info(type, &structname, &structnum);
 			BLI_dynstr_appendf(dynstr,
 			                   "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-			                   name, structname, type, (void *)pt, size, pt_size);
+			                   name, structname, type, (const void *)pt, size, pt_size);
 		}
 	}
 }
@@ -3391,7 +3391,7 @@ void DM_debug_print(DerivedMesh *dm)
 void DM_debug_print_cdlayers(CustomData *data)
 {
 	int i;
-	CustomDataLayer *layer;
+	const CustomDataLayer *layer;
 
 	printf("{\n");
 
@@ -3403,7 +3403,7 @@ void DM_debug_print_cdlayers(CustomData *data)
 		int structnum;
 		CustomData_file_write_info(layer->type, &structname, &structnum);
 		printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-		       name, structname, layer->type, (void *)layer->data, size, (int)(MEM_allocN_len(layer->data) / size));
+		       name, structname, layer->type, (const void *)layer->data, size, (int)(MEM_allocN_len(layer->data) / size));
 	}
 
 	printf("}\n");

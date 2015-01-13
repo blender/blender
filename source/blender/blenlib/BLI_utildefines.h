@@ -436,8 +436,8 @@ extern "C" {
 
 /* assuming a static array */
 #if defined(__GNUC__) && !defined(__cplusplus)
-#  define ARRAY_SIZE(arr)                                                     \
-	((sizeof(struct {int isnt_array : ((void *)&(arr) == &(arr)[0]);}) * 0) + \
+#  define ARRAY_SIZE(arr) \
+	((sizeof(struct {int isnt_array : ((const void *)&(arr) == &(arr)[0]);}) * 0) + \
 	 (sizeof(arr) / sizeof(*(arr))))
 #else
 #  define ARRAY_SIZE(arr)  (sizeof(arr) / sizeof(*(arr)))

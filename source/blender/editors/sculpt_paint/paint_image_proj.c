@@ -1334,7 +1334,7 @@ static float project_paint_uvpixel_mask(
 
 		/* now we can use the normal as a mask */
 		if (ps->is_ortho) {
-			angle = angle_normalized_v3v3((float *)ps->viewDir, no);
+			angle = angle_normalized_v3v3(ps->viewDir, no);
 		}
 		else {
 			/* Annoying but for the perspective view we need to get the pixels location in 3D space :/ */

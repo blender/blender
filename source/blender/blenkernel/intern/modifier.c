@@ -262,8 +262,8 @@ void modifier_copyData_generic(const ModifierData *md_src, ModifierData *md_dst)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md_src->type);
 	const size_t data_size = sizeof(ModifierData);
-	const char *md_src_data = ((char *)md_src) + data_size;
-	char       *md_dst_data = ((char *)md_dst) + data_size;
+	const char *md_src_data = ((const char *)md_src) + data_size;
+	char       *md_dst_data =       ((char *)md_dst) + data_size;
 	BLI_assert(data_size <= (size_t)mti->structSize);
 	memcpy(md_dst_data, md_src_data, (size_t)mti->structSize - data_size);
 }

@@ -243,8 +243,7 @@ typedef struct PreviewImage {
 #ifdef GS
 #  undef GS
 #endif
-// #define GS(a)	(*((short *)(a)))
-#define GS(a)	(CHECK_TYPE_INLINE(a, char *), (*((short *)(a))))
+#define GS(a)	(CHECK_TYPE_ANY(a, char *, const char *, char [66], const char[66]), (*((const short *)(a))))
 
 #define ID_NEW(a)		if (      (a) && (a)->id.newid ) (a) = (void *)(a)->id.newid
 #define ID_NEW_US(a)	if (      (a)->id.newid)       { (a) = (void *)(a)->id.newid;       (a)->id.us++; }

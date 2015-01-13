@@ -1628,7 +1628,7 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 			int i;
 
-			if (eprop->item) {
+			if (eprop->item && eprop->totitem) {
 				fprintf(f, "enum {\n");
 
 				for (i = 0; i < eprop->totitem; i++)

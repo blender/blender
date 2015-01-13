@@ -1059,8 +1059,9 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
 			const MDisps *md = &mdisps[mpoly[i].loopstart + j];
 			int hidden_gridsize = BKE_ccg_gridsize(md->level);
 			int factor = BKE_ccg_factor(level, md->level);
+			BLI_bitmap *hidden = md->hidden;
 			
-			if (!md->hidden)
+			if (!hidden)
 				continue;
 			
 			for (y = 0; y < gridSize; y++) {
@@ -1069,7 +1070,7 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
 					
 					vndx = getFaceIndex(ss, f, j, x, y, edgeSize, gridSize);
 					offset = (y * factor) * hidden_gridsize + (x * factor);
-					if (BLI_BITMAP_TEST(md->hidden, offset))
+					if (BLI_BITMAP_TEST(hidden, offset))
 						mvert[vndx].flag |= ME_HIDE;
 				}
 			}

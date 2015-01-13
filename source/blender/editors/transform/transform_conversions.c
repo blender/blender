@@ -4751,7 +4751,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	TransData2D *td2d = NULL;
 	TransDataSeq *tdsq = NULL;
 	TransSeq *ts = NULL;
-	float xmouse, ymouse;
+	int xmouse;
 
 	int count = 0;
 
@@ -4762,7 +4762,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	t->customFree = freeSeqData;
 
-	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+	xmouse = (int)UI_view2d_region_to_view_x(v2d, t->imval[0]);
 
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {

@@ -541,7 +541,7 @@ void WM_event_print(const wmEvent *event)
 		       event->shift, event->ctrl, event->alt, event->oskey, event->keymodifier,
 		       event->x, event->y, event->ascii,
 		       BLI_str_utf8_size(event->utf8_buf), event->utf8_buf,
-		       event->keymap_idname, (void *)event);
+		       event->keymap_idname, (const void *)event);
 
 		if (ISNDOF(event->type)) {
 			const wmNDOFMotionData *ndof = event->customdata;

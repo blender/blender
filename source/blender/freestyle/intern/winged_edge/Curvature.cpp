@@ -535,6 +535,7 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
 
 namespace OGF {
 
+#if 0
 inline static real angle(WOEdge *h)
 {
 	const Vec3r& n1 = h->GetbFace()->GetNormal();
@@ -549,6 +550,7 @@ inline static real angle(WOEdge *h)
 	}
 	return ::asin(sine);
 }
+#endif
 
 // precondition1: P is inside the sphere
 // precondition2: P,V points to the outside of the sphere (i.e. OP.V > 0)

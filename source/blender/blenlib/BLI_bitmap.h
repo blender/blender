@@ -66,23 +66,23 @@ typedef unsigned int BLI_bitmap;
 
 /* get the value of a single bit at '_index' */
 #define BLI_BITMAP_TEST(_bitmap, _index) \
-	(CHECK_TYPE_INLINE(_bitmap, BLI_bitmap *), \
+	(CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
 	 ((_bitmap)[(_index) >> _BITMAP_POWER] & \
 	  (1u << ((_index) & _BITMAP_MASK))))
 
 #define BLI_BITMAP_TEST_BOOL(_bitmap, _index) \
-	(CHECK_TYPE_INLINE(_bitmap, BLI_bitmap *), \
+	(CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
 	 (BLI_BITMAP_TEST(_bitmap, _index) != 0))
 
 /* set the value of a single bit at '_index' */
 #define BLI_BITMAP_ENABLE(_bitmap, _index) \
-	(CHECK_TYPE_INLINE(_bitmap, BLI_bitmap *), \
+	(CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
 	 ((_bitmap)[(_index) >> _BITMAP_POWER] |= \
 	  (1u << ((_index) & _BITMAP_MASK))))
 
 /* clear the value of a single bit at '_index' */
 #define BLI_BITMAP_DISABLE(_bitmap, _index) \
-	(CHECK_TYPE_INLINE(_bitmap, BLI_bitmap *), \
+	(CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
 	 ((_bitmap)[(_index) >> _BITMAP_POWER] &= \
 	  ~(1u << ((_index) & _BITMAP_MASK))))
 

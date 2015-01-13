@@ -124,17 +124,17 @@ bool            BLI_ghashutil_ptrcmp(const void *a, const void *b);
 
 unsigned int    BLI_ghashutil_strhash_n(const char *key, size_t n);
 #define         BLI_ghashutil_strhash(key) ( \
-                CHECK_TYPE_INLINE(key, char *), \
+                CHECK_TYPE_ANY(key, char *, const char *, const char * const), \
                 BLI_ghashutil_strhash_p(key))
 unsigned int    BLI_ghashutil_strhash_p(const void *key);
 bool            BLI_ghashutil_strcmp(const void *a, const void *b);
 
 #define         BLI_ghashutil_inthash(key) ( \
-                CHECK_TYPE_INLINE(&(key), int *), \
+                CHECK_TYPE_ANY(&(key), int *, const int *), \
                 BLI_ghashutil_uinthash((unsigned int)key))
 unsigned int    BLI_ghashutil_uinthash(unsigned int key);
 #define         BLI_ghashutil_inthash_v4(key) ( \
-                CHECK_TYPE_INLINE(key, int *), \
+                CHECK_TYPE_ANY(key, int *, const int *), \
                 BLI_ghashutil_uinthash_v4((const unsigned int *)key))
 unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
 #define         BLI_ghashutil_inthash_v4_p \
