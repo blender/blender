@@ -335,7 +335,7 @@ static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 {
 	bool changed = false;
 	const char htype = edbm_extrude_htype_from_em_select(em);
-	enum {NONE = 0, ELEM_FLAG, VERT_ONLY, EDGE_ONLY, FACE_ONLY} nr;
+	enum {NONE = 0, ELEM_FLAG, VERT_ONLY, EDGE_ONLY} nr;
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		if      (em->bm->totvertsel == 0) nr = NONE;
@@ -350,7 +350,6 @@ static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 	}
 	else {
 		if      (em->bm->totfacesel == 0) nr = NONE;
-		else if (em->bm->totfacesel == 1) nr = FACE_ONLY;
 		else                              nr = ELEM_FLAG;
 	}
 
@@ -365,9 +364,6 @@ static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 			break;
 		case EDGE_ONLY:
 			changed = edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT);
-			break;
-		case FACE_ONLY:
-			changed = edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT);
 			break;
 	}
 	
