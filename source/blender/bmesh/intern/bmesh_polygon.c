@@ -214,9 +214,6 @@ float BM_face_calc_area(BMFace *f)
 	if (f->len == 3) {
 		area = area_tri_v3(verts[0], verts[1], verts[2]);
 	}
-	else if (f->len == 4) {
-		area = area_quad_v3(verts[0], verts[1], verts[2], verts[3]);
-	}
 	else {
 		area = area_poly_v3((const float (*)[3])verts, f->len);
 	}

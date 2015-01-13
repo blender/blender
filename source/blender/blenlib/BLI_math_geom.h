@@ -52,16 +52,23 @@ float normal_quad_v3(float r[3], const float a[3], const float b[3], const float
 float normal_poly_v3(float r[3], const float verts[][3], unsigned int nr);
 
 MINLINE float area_tri_v2(const float a[2], const float b[2], const float c[2]);
+MINLINE float area_squared_tri_v2(const float a[2], const float b[2], const float c[2]);
 MINLINE float area_tri_signed_v2(const float v1[2], const float v2[2], const float v3[2]);
 float area_tri_v3(const float a[3], const float b[3], const float c[3]);
+float area_squared_tri_v3(const float a[3], const float b[3], const float c[3]);
 float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3], const float normal[3]);
 float area_quad_v3(const float a[3], const float b[3], const float c[3], const float d[3]);
+float area_squared_quad_v3(const float a[3], const float b[3], const float c[3], const float d[3]);
 float area_poly_v3(const float verts[][3], unsigned int nr);
 float area_poly_v2(const float verts[][2], unsigned int nr);
+float area_squared_poly_v3(const float verts[][3], unsigned int nr);
+float area_squared_poly_v2(const float verts[][2], unsigned int nr);
+float area_poly_signed_v2(const float verts[][2], unsigned int nr);
 float cotangent_tri_weight_v3(const float v1[3], const float v2[3], const float v3[3]);
 
 void          cross_tri_v3(float n[3], const float v1[3], const float v2[3], const float v3[3]);
 MINLINE float cross_tri_v2(const float v1[2], const float v2[2], const float v3[2]);
+void cross_poly_v3(float n[3], const float verts[][3], unsigned int nr);
 float cross_poly_v2(const float verts[][2], unsigned int nr);
 
 /********************************* Planes **********************************/

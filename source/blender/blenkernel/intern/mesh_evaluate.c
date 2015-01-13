@@ -896,13 +896,6 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 		                   mvarray[loopstart[2].v].co
 		                   );
 	}
-	else if (mpoly->totloop == 4) {
-		return area_quad_v3(mvarray[loopstart[0].v].co,
-		                    mvarray[loopstart[1].v].co,
-		                    mvarray[loopstart[2].v].co,
-		                    mvarray[loopstart[3].v].co
-		                    );
-	}
 	else {
 		int i;
 		MLoop *l_iter = loopstart;

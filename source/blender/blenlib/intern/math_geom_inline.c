@@ -54,6 +54,12 @@ MINLINE float area_tri_v2(const float v1[2], const float v2[2], const float v3[2
 	return fabsf(area_tri_signed_v2(v1, v2, v3));
 }
 
+MINLINE float area_squared_tri_v2(const float v1[2], const float v2[2], const float v3[2])
+{
+	float area = area_tri_signed_v2(v1, v2, v3);
+	return area * area;
+}
+
 /****************************** Spherical Harmonics **************************/
 
 MINLINE void zero_sh(float r[9])

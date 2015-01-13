@@ -109,58 +109,44 @@ float normal_quad_v3(float n[3], const float v1[3], const float v2[3], const flo
  */
 float normal_poly_v3(float n[3], const float verts[][3], unsigned int nr)
 {
-	const float *v_prev = verts[nr - 1];
-	const float *v_curr = verts[0];
-	unsigned int i;
-
-	zero_v3(n);
-
-	/* Newell's Method */
-	for (i = 0; i < nr; v_prev = v_curr, v_curr = verts[++i]) {
-		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
-	}
-
+	cross_poly_v3(n, verts, nr);
 	return normalize_v3(n);
 }
 
-/* only convex Quadrilaterals */
 float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
-	float len, vec1[3], vec2[3], n[3];
+	const float verts[4][3] = {{UNPACK3(v1)}, {UNPACK3(v2)}, {UNPACK3(v3)}, {UNPACK3(v4)}};
+	return area_poly_v3(verts, 4);
+}
 
-	sub_v3_v3v3(vec1, v2, v1);
-	sub_v3_v3v3(vec2, v4, v1);
-	cross_v3_v3v3(n, vec1, vec2);
-	len = len_v3(n);
-
-	sub_v3_v3v3(vec1, v4, v3);
-	sub_v3_v3v3(vec2, v2, v3);
-	cross_v3_v3v3(n, vec1, vec2);
-	len += len_v3(n);
-
-	return (len / 2.0f);
+float area_squared_quad_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	const float verts[4][3] = {{UNPACK3(v1)}, {UNPACK3(v2)}, {UNPACK3(v3)}, {UNPACK3(v4)}};
+	return area_squared_poly_v3(verts, 4);
 }
 
 /* Triangles */
 float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
 {
-	float vec1[3], vec2[3], n[3];
+	float n[3];
+	cross_tri_v3(n, v1, v2, v3);
+	return len_v3(n) * 0.5f;
+}
 
-	sub_v3_v3v3(vec1, v3, v2);
-	sub_v3_v3v3(vec2, v1, v2);
-	cross_v3_v3v3(n, vec1, vec2);
-
-	return len_v3(n) / 2.0f;
+float area_squared_tri_v3(const float v1[3], const float v2[3], const float v3[3])
+{
+	float n[3];
+	cross_tri_v3(n, v1, v2, v3);
+	mul_v3_fl(n, 0.5f);
+	return len_squared_v3(n);
 }
 
 float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3], const float normal[3])
 {
-	float area, vec1[3], vec2[3], n[3];
+	float area, n[3];
 
-	sub_v3_v3v3(vec1, v3, v2);
-	sub_v3_v3v3(vec2, v1, v2);
-	cross_v3_v3v3(n, vec1, vec2);
-	area = len_v3(n) / 2.0f;
+	cross_tri_v3(n, v1, v2, v3);
+	area = len_v3(n) * 0.5f;
 
 	/* negate area for flipped triangles */
 	if (dot_v3v3(n, normal) < 0.0f)
@@ -172,7 +158,17 @@ float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3]
 float area_poly_v3(const float verts[][3], unsigned int nr)
 {
 	float n[3];
-	return normal_poly_v3(n, verts, nr) * 0.5f;
+	cross_poly_v3(n, verts, nr);
+	return len_v3(n) * 0.5f;
+}
+
+float area_squared_poly_v3(const float verts[][3], unsigned int nr)
+{
+	float n[3];
+
+	cross_poly_v3(n, verts, nr);
+	mul_v3_fl(n, 0.5f);
+	return len_squared_v3(n);
 }
 
 /**
@@ -200,9 +196,34 @@ float cross_poly_v2(const float verts[][2], unsigned int nr)
 	return cross;
 }
 
+void cross_poly_v3(float n[3], const float verts[][3], unsigned int nr)
+{
+	const float *v_prev = verts[nr - 1];
+	const float *v_curr = verts[0];
+	unsigned int i;
+
+	zero_v3(n);
+
+	/* Newell's Method */
+	for (i = 0; i < nr; v_prev = v_curr, v_curr = verts[++i]) {
+		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
+	}
+}
+
 float area_poly_v2(const float verts[][2], unsigned int nr)
 {
 	return fabsf(0.5f * cross_poly_v2(verts, nr));
+}
+
+float area_poly_signed_v2(const float verts[][2], unsigned int nr)
+{
+	return (0.5f * cross_poly_v2(verts, nr));
+}
+
+float area_squared_poly_v2(const float verts[][2], unsigned int nr)
+{
+	float area = area_poly_signed_v2(verts, nr);
+	return area * area;
 }
 
 float cotangent_tri_weight_v3(const float v1[3], const float v2[3], const float v3[3])
