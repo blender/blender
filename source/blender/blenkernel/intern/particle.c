@@ -104,7 +104,7 @@ void psys_init_rng(void)
 static void get_child_modifier_parameters(ParticleSettings *part, ParticleThreadContext *ctx,
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
 extern void do_child_modifiers(ParticleSimulationData *sim,
-                               ParticleTexture *ptex, ParticleKey *par, float *par_rot, const float par_orco[3],
+                               ParticleTexture *ptex, const float par_co[3], const float par_vel[3], const float par_rot[4], const float par_orco[3],
                                ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
 
 /* few helpers for countall etc. */
@@ -1670,9 +1670,9 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
 /*			Path Cache							*/
 /************************************************/
 
-extern void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat,
+extern void do_kink(ParticleKey *state, const float par_co[3], const float par_vel[3], const float par_rot[4], float time, float freq, float shape, float amplitude, float flat,
                     short type, short axis, float obmat[4][4], int smooth_start);
-extern float do_clump(ParticleKey *state, ParticleKey *par, float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
+extern float do_clump(ParticleKey *state, const float par_co[3], float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
                       bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve);
 
 void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
@@ -1791,13 +1791,15 @@ int do_guides(ParticleSettings *part, ListBase *effectors, ParticleKey *state, i
 			curvemapping_changed_all(part->roughcurve);
 		
 		{
-			ParticleKey key, par;
+			ParticleKey key;
+			float par_co[3] = {0.0f, 0.0f, 0.0f};
+			float par_vel[3] = {0.0f, 0.0f, 0.0f};
+			float par_rot[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 			float orco_offset[3] = {0.0f, 0.0f, 0.0f};
 			
-			par.co[0] = par.co[1] = par.co[2] = 0.0f;
 			copy_v3_v3(key.co, vec_to_point);
-			do_kink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, 0.f, pd->kink, pd->kink_axis, 0, 0);
-			do_clump(&key, &par, guidetime, orco_offset, pd->clump_fac, pd->clump_pow, 1.0f,
+			do_kink(&key, par_co, par_vel, par_rot, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, 0.f, pd->kink, pd->kink_axis, 0, 0);
+			do_clump(&key, par_co, guidetime, orco_offset, pd->clump_fac, pd->clump_pow, 1.0f,
 			         part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, part->clumpcurve);
 			copy_v3_v3(vec_to_point, key.co);
 		}
@@ -3768,7 +3770,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 				copy_particle_key(&tstate, state, 1);
 
 			/* apply different deformations to the child path */
-			do_child_modifiers(sim, &ptex, par, par->rot, par_orco, cpa, orco, hairmat, state, t);
+			do_child_modifiers(sim, &ptex, par->co, par->vel, par->rot, par_orco, cpa, orco, hairmat, state, t);
 
 			/* try to estimate correct velocity */
 			if (vel) {
@@ -3871,7 +3873,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			CLAMP(t, 0.0f, 1.0f);
 
 			unit_m4(mat);
-			do_child_modifiers(sim, NULL, key1, key1->rot, par_orco, cpa, cpa->fuv, mat, state, t);
+			do_child_modifiers(sim, NULL, key1->co, key1->vel, key1->rot, par_orco, cpa, cpa->fuv, mat, state, t);
 
 			if (psys->lattice_deform_data)
 				calc_latt_deform(psys->lattice_deform_data, state->co, 1.0f);
