@@ -163,7 +163,7 @@ EnumPropertyItem DT_method_edge_items[] = {
 	{MREMAP_MODE_EDGE_POLY_NEAREST, "POLY_NEAREST", 0, "Nearest Face Edge",
 	 "Copy from closest edge of closest face (using midpoints)"},
 	{MREMAP_MODE_EDGE_EDGEINTERP_VNORPROJ, "EDGEINTERP_VNORPROJ", 0, "Projected Edge Interpolated",
-	 "Interpolate all source edges hit by the projection of dest one along its own normal (from vertices)"},
+	 "Interpolate all source edges hit by the projection of destination one along its own normal (from vertices)"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -173,7 +173,7 @@ EnumPropertyItem DT_method_loop_items[] = {
 	{MREMAP_MODE_LOOP_NEAREST_LOOPNOR, "NEAREST_NORMAL", 0, "Nearest Corner And Best Matching Normal",
 	 "Copy from nearest corner which has the best matching normal"},
 	{MREMAP_MODE_LOOP_NEAREST_POLYNOR, "NEAREST_POLYNOR", 0, "Nearest Corner And Best Matching Face Normal",
-	 "Copy from nearest corner which has the face with the best matching normal to dest corner's face one"},
+	 "Copy from nearest corner which has the face with the best matching normal to destination corner's face one"},
 	{MREMAP_MODE_LOOP_POLY_NEAREST, "NEAREST_POLY", 0, "Nearest Corner Of Nearest Face",
 	 "Copy from nearest corner of nearest polygon"},
 	{MREMAP_MODE_LOOP_POLYINTERP_NEAREST, "POLYINTERP_NEAREST", 0, "Nearest Face Interpolated",
@@ -189,9 +189,9 @@ EnumPropertyItem DT_method_poly_items[] = {
 	{MREMAP_MODE_POLY_NEAREST, "NEAREST", 0, "Nearest Face",
 	 "Copy from nearest polygon (using center points)"},
 	{MREMAP_MODE_POLY_NOR, "NORMAL", 0, "Best Normal-Matching",
-	 "Copy from source polygon which normal is the closest to dest one"},
+	 "Copy from source polygon which normal is the closest to destination one"},
 	{MREMAP_MODE_POLY_POLYINTERP_PNORPROJ, "POLYINTERP_PNORPROJ", 0, "Projected Face Interpolated",
-	 "Interpolate all source polygons intersected by the projection of dest one along its own normal"},
+	 "Interpolate all source polygons intersected by the projection of destination one along its own normal"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -199,9 +199,9 @@ EnumPropertyItem DT_mix_mode_items[] = {
 	{CDT_MIX_TRANSFER, "REPLACE", 0, "Replace",
 	 "Overwrite all elements' data"},
 	{CDT_MIX_REPLACE_ABOVE_THRESHOLD, "ABOVE_THRESHOLD", 0, "Above Threshold",
-	 "Only replace dest elements where data is above given threshold (exact behavior depends on data type)"},
+	 "Only replace destination elements where data is above given threshold (exact behavior depends on data type)"},
 	{CDT_MIX_REPLACE_BELOW_THRESHOLD, "BELOW_THRESHOLD", 0, "Below Threshold",
-	 "Only replace dest elements where data is below given threshold (exact behavior depends on data type)"},
+	 "Only replace destination elements where data is below given threshold (exact behavior depends on data type)"},
 	{CDT_MIX_MIX, "MIX", 0, "Mix",
 	 "Mix source value into destination one, using given threshold as factor"},
 	{CDT_MIX_ADD, "ADD", 0, "Add",
@@ -220,7 +220,7 @@ EnumPropertyItem DT_layers_select_src_items[] = {
 	{DT_LAYERS_ALL_SRC, "ALL", 0, "All Layers",
 	 "Transfer all data layers"},
 	{DT_LAYERS_VGROUP_SRC_BONE_SELECT, "BONE_SELECT", 0, "Selected Pose Bones",
-	 "Transfer all vertex groups used by selected posebones"},
+	 "Transfer all vertex groups used by selected pose bones"},
 	{DT_LAYERS_VGROUP_SRC_BONE_DEFORM, "BONE_DEFORM", 0, "Deform Pose Bones",
 	 "Transfer all vertex groups used by deform bones"},
 	{0, NULL, 0, NULL, NULL}

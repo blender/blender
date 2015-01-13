@@ -643,7 +643,7 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	ot->name = "Transfer Mesh Datalayout";
+	ot->name = "Transfer Mesh Data Layout";
 	ot->description = "Transfer layout of data layer(s) from active to selected meshes";
 	ot->idname = "OBJECT_OT_datalayout_transfer";
 
