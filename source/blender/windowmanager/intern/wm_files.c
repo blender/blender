@@ -478,7 +478,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		WM_operatortype_last_properties_clear_all();
 
 		/* important to do before NULL'ing the context */
-		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
 		if (!G.background) {
@@ -672,7 +671,6 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	WM_operatortype_last_properties_clear_all();
 
 	/* important to do before NULL'ing the context */
-	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
