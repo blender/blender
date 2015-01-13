@@ -120,32 +120,13 @@ typedef struct ParticlePathModifier {
 
 /* ------------------------------------------------------------------------- */
 
-static void do_kink_spiral_deform(ParticleKey *state, const float dir[3],
+static void do_kink_spiral_deform(ParticleKey *state, const float dir[3], const float kink[3],
                                   float time, float freq, float shape, float amplitude,
                                   const float spiral_start[3])
 {
-	float kink[3] = {1.f, 0.f, 0.f};
 	float result[3];
 
 	CLAMP(time, 0.f, 1.f);
-
-#if 0
-	{
-		float temp[3];
-		
-		kink[axis] = 1.f;
-		
-		if (obmat)
-			mul_mat3_m4_v3(obmat, kink);
-		
-		mul_qt_v3(par_rot, kink);
-		
-		/* make sure kink is normal to strand */
-		project_v3_v3v3(temp, kink, par_vel);
-		sub_v3_v3(kink, temp);
-		normalize_v3(kink);
-	}
-#endif
 
 	copy_v3_v3(result, state->co);
 
@@ -161,22 +142,26 @@ static void do_kink_spiral_deform(ParticleKey *state, const float dir[3],
 		/* angle of the spiral against the curve (rotated opposite to make a smooth transition) */
 		const float start_angle = (b != 0.0f ? atanf(1.0f / b) : -M_PI*0.5f) + (b > 0.0f ? -M_PI*0.5f : M_PI*0.5f);
 		
-		float up[3], rot[3][3];
+		float spiral_axis[3], rot[3][3];
 		float vec[3];
 		
 		float theta = freq * time * 2.0f*M_PI;
 		float radius = amplitude * expf(b * theta);
 		
-		cross_v3_v3v3(up, dir, kink);
+		/* a bit more intuitive than using negative frequency for this */
+		if (amplitude < 0.0f)
+			theta = -theta;
 		
-		mul_v3_v3fl(vec, up, radius);
+		cross_v3_v3v3(spiral_axis, dir, kink);
 		
-		axis_angle_normalized_to_mat3(rot, kink, theta);
+		mul_v3_v3fl(vec, kink, -radius);
+		
+		axis_angle_normalized_to_mat3(rot, spiral_axis, theta);
 		mul_m3_v3(rot, vec);
 		
-		madd_v3_v3fl(vec, up, -amplitude);
+		madd_v3_v3fl(vec, kink, amplitude);
 		
-		axis_angle_normalized_to_mat3(rot, kink, -start_angle);
+		axis_angle_normalized_to_mat3(rot, spiral_axis, -start_angle);
 		mul_m3_v3(rot, vec);
 		
 		add_v3_v3v3(result, spiral_start, vec);
@@ -208,6 +193,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	float spiral_start[3];
 	float len, totlen, cutlen;
 	int start_index = 0, end_index = 0;
+	float kink_base[3];
 
 	if (ptex) {
 		kink_freq *= ptex->kink;
@@ -220,7 +206,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	for (k = 0, key = keys; k < totkeys-1; k++, key++)
 		totlen += len_v3v3((key+1)->co, key->co);
 	
-	cutlen = totlen - kink_amp;
+	cutlen = totlen - fabsf(kink_amp);
 	zero_v3(spiral_start);
 	
 	len = 0.0f;
@@ -239,6 +225,11 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	}
 	
 	zero_v3(dir);
+	
+	zero_v3(kink_base);
+	kink_base[part->kink_axis] = 1.0f;
+	mul_mat3_m4_v3(ctx->sim.ob->obmat, kink_base);
+	
 	for (k = 0, key = keys; k < end_index; k++, key++) {
 		psys_path_iter_get(&iter, keys, end_index, NULL, k);
 		if (k < start_index) {
@@ -247,7 +238,13 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 		}
 		else {
 			float spiral_time = (float)(k - start_index) / (float)(extrakeys-1);
-			do_kink_spiral_deform((ParticleKey *)key, dir, spiral_time, kink_freq, kink_shape, kink_amp, spiral_start);
+			float kink[3], tmp[3];
+			
+			project_v3_v3v3(tmp, kink_base, dir);
+			sub_v3_v3v3(kink, kink_base, tmp);
+			normalize_v3(kink);
+			
+			do_kink_spiral_deform((ParticleKey *)key, dir, kink, spiral_time, kink_freq, kink_shape, kink_amp, spiral_start);
 		}
 		
 		/* apply different deformations to the child path */
