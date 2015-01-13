@@ -175,12 +175,15 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
                            ParticleCacheKey *keys, int *r_totkeys, float *r_max_length)
 {
 	struct ParticleSettings *part = ctx->sim.psys->part;
+	const int seed = ctx->sim.psys->child_seed + (int)(cpa - ctx->sim.psys->child);
 	const int totkeys = ctx->segments + 1;
 	const int extrakeys = ctx->extra_segments;
 	
-	float kink_amp = part->kink_amp;
+	float kink_amp_random = part->kink_amp_random;
+	float kink_amp = part->kink_amp * (1.0f - kink_amp_random * psys_frand(ctx->sim.psys, 93541 + seed));
 	float kink_freq = part->kink_freq;
 	float kink_shape = part->kink_shape;
+	float kink_axis_random = part->kink_axis_random;
 	float rough1 = part->rough1;
 	float rough2 = part->rough2;
 	float rough_end = part->rough_end;
@@ -243,6 +246,14 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 			project_v3_v3v3(tmp, kink_base, dir);
 			sub_v3_v3v3(kink, kink_base, tmp);
 			normalize_v3(kink);
+			
+			if (kink_axis_random > 0.0f) {
+				float a = kink_axis_random * (psys_frand(ctx->sim.psys, 7112 + seed) * 2.0f - 1.0f) * M_PI;
+				float rot[3][3];
+				
+				axis_angle_normalized_to_mat3(rot, dir, a);
+				mul_m3_v3(rot, kink);
+			}
 			
 			do_kink_spiral_deform((ParticleKey *)key, dir, kink, spiral_time, kink_freq, kink_shape, kink_amp, spiral_start);
 		}

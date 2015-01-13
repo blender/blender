@@ -2885,6 +2885,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Amplitude Clump", "How much clump affects kink amplitude");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
+	prop = RNA_def_property(srna, "kink_amplitude_random", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kink_amp_random");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Amplitude Random", "Random variation of the amplitude");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
 	prop = RNA_def_property(srna, "kink_frequency", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "kink_freq");
 	RNA_def_property_range(prop, -100000.0f, 100000.0f);
@@ -2906,6 +2912,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Extra Steps", "Extra steps for resolution of special kink features");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "kink_axis_random", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Axis Random", "Random variation of the orientation");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* rough */

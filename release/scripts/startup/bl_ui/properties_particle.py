@@ -1232,8 +1232,12 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
 
         if part.kink in {'SPIRAL'}:
             col = split.column()
-            col.prop(part, "kink_amplitude", text="Radius")
-            col.prop(part, "kink_axis")
+            sub = col.column(align=True)
+            sub.prop(part, "kink_amplitude", text="Radius")
+            sub.prop(part, "kink_amplitude_random", text="Random", slider=True)
+            sub = col.column(align=True)
+            sub.prop(part, "kink_axis")
+            sub.prop(part, "kink_axis_random", text="Random", slider=True)
             col = split.column(align=True)
             col.prop(part, "kink_frequency", text="Frequency")
             col.prop(part, "kink_shape", text="Shape", slider=True)
