@@ -141,7 +141,6 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 				int mi = clamp(b_part.material()-1, 0, mesh->used_shaders.size()-1);
 				int shader = mesh->used_shaders[mi];
 				int draw_step = background ? b_part.render_step() : b_part.draw_step();
-				int ren_step = (int)powf(2.0f, (float)draw_step);
 				int totparts = b_psys.particles.length();
 				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.draw_percentage() / 100.0f);
 				int totcurves = totchild;
@@ -151,6 +150,10 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 
 				if(totcurves == 0)
 					continue;
+
+				int ren_step = (1 << draw_step) + 1;
+				if (b_part.kink() == BL::ParticleSettings::kink_SPIRAL)
+					ren_step += b_part.kink_extra_steps();
 
 				PointerRNA cpsys = RNA_pointer_get(&b_part.ptr, "cycles");
 
@@ -173,8 +176,8 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 				CData->curve_firstkey.reserve(CData->curve_firstkey.size() + num_add);
 				CData->curve_keynum.reserve(CData->curve_keynum.size() + num_add);
 				CData->curve_length.reserve(CData->curve_length.size() + num_add);
-				CData->curvekey_co.reserve(CData->curvekey_co.size() + num_add*(ren_step+1));
-				CData->curvekey_time.reserve(CData->curvekey_time.size() + num_add*(ren_step+1));
+				CData->curvekey_co.reserve(CData->curvekey_co.size() + num_add*ren_step);
+				CData->curvekey_time.reserve(CData->curvekey_time.size() + num_add*ren_step);
 
 				for(; pa_no < totparts+totchild; pa_no++) {
 					int keynum = 0;
@@ -182,7 +185,7 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 					
 					float curve_length = 0.0f;
 					float3 pcKey;
-					for(int step_no = 0; step_no <= ren_step; step_no++) {
+					for(int step_no = 0; step_no < ren_step; step_no++) {
 						float nco[3];
 						b_psys.co_hair(*b_ob, pa_no, step_no, nco);
 						float3 cKey = make_float3(nco[0], nco[1], nco[2]);

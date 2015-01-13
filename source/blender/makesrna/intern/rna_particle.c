@@ -357,7 +357,9 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 		return;
 
 	if (part->ren_as == PART_DRAW_PATH && particlesystem->pathcache)
-		path_nbr = (int)pow(2.0, step_nbr);
+		path_nbr = 1 << step_nbr;
+	if (part->kink == PART_KINK_SPIRAL)
+		path_nbr += part->kink_extra_steps;
 
 	if (particle_no < totpart) {
 
