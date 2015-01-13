@@ -363,7 +363,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 
 		if (path_nbr) {
 			cache = particlesystem->pathcache[particle_no];
-			max_k = (int)cache->steps;
+			max_k = (int)cache->segments;
 		}
 
 	}
@@ -372,10 +372,10 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 		if (path_nbr) {
 			cache = particlesystem->childcache[particle_no - totpart];
 
-			if (cache->steps < 0)
+			if (cache->segments < 0)
 				max_k = 0;
 			else
-				max_k = (int)cache->steps;
+				max_k = (int)cache->segments;
 		}
 	}
 
@@ -2898,6 +2898,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "kink_flat", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Flatness", "How flat the hairs are");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "kink_extra_steps", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
+	RNA_def_property_ui_text(prop, "Extra Steps", "Extra steps for resolution of special kink features");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* rough */

@@ -1233,10 +1233,10 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         if part.kink in {'SPIRAL'}:
             col = split.column()
             col.prop(part, "kink_amplitude", text="Radius")
-            col.prop(part, "kink_flat", text="Start", slider=True)
             col = split.column(align=True)
             col.prop(part, "kink_frequency", text="Frequency")
             col.prop(part, "kink_shape", text="Shape", slider=True)
+            col.prop(part, "kink_extra_steps", text="Steps")
         else:
             col = split.column()
             sub = col.column(align=True)

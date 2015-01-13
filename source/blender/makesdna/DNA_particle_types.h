@@ -218,6 +218,7 @@ typedef struct ParticleSettings {
 	/* kink */
 	float kink_amp, kink_freq, kink_shape, kink_flat;
 	float kink_amp_clump;
+	int kink_extra_steps, pad;
 	/* rough */
 	float rough1, rough1_size;
 	float rough2, rough2_size, rough2_thres;

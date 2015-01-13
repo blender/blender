@@ -126,7 +126,7 @@ typedef struct ParticleCacheKey {
 	float rot[4];
 	float col[3];
 	float time;
-	int steps;
+	int segments;
 } ParticleCacheKey;
 
 typedef struct ParticleThreadContext {
@@ -150,7 +150,7 @@ typedef struct ParticleThreadContext {
 	struct ParticleData *tpars;
 
 	/* path caching */
-	int editupdate, between, steps;
+	int editupdate, between, segments, extra_segments;
 	int totchild, totparent, parent_pass;
 
 	float cfra;

@@ -1551,7 +1551,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			if (path_nbr) {
 				cache = psys->pathcache[a];
-				max_k = (int)cache->steps;
+				max_k = (int)cache->segments;
 			}
 
 			if (totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
@@ -1562,10 +1562,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			if (path_nbr) {
 				cache = psys->childcache[a-totpart];
 
-				if (cache->steps < 0)
+				if (cache->segments < 0)
 					continue;
 
-				max_k = (int)cache->steps;
+				max_k = (int)cache->segments;
 			}
 			
 			pa_time = psys_get_child_time(psys, cpa, cfra, &pa_birthtime, &pa_dietime);

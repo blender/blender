@@ -160,7 +160,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 			else
 				continue;
 
-			cache += cache->steps; /* use endpoint */
+			cache += cache->segments; /* use endpoint */
 
 			copy_v3_v3(state.co, cache->co);
 			zero_v3(state.vel);

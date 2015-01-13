@@ -5144,7 +5144,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		cache = psys->pathcache;
 		for (a = 0, pa = psys->particles; a < totpart; a++, pa++) {
 			path = cache[a];
-			if (path->steps > 0) {
+			if (path->segments > 0) {
 				glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
 				if (1) { //ob_dt > OB_WIRE) {
@@ -5156,7 +5156,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					}
 				}
 
-				glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+				glDrawArrays(GL_LINE_STRIP, 0, path->segments + 1);
 			}
 		}
 
@@ -5304,7 +5304,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				}
 			}
 
-			glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+			glDrawArrays(GL_LINE_STRIP, 0, path->segments + 1);
 		}
 
 
@@ -5456,7 +5456,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
 	int i, k, totpoint = edit->totpoint, timed = pset->flag & PE_FADE_TIME ? pset->fade_frames : 0;
-	int steps = 1;
+	int totkeys = 1;
 	float sel_col[3];
 	float nosel_col[3];
 	float *pathcol = NULL, *pcol;
@@ -5475,10 +5475,10 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	UI_GetThemeColor3fv(TH_VERTEX, nosel_col);
 
 	/* draw paths */
-	steps = (*edit->pathcache)->steps + 1;
+	totkeys = (*edit->pathcache)->segments + 1;
 
 	glEnable(GL_BLEND);
-	pathcol = MEM_callocN(steps * 4 * sizeof(float), "particle path color data");
+	pathcol = MEM_callocN(totkeys * 4 * sizeof(float), "particle path color data");
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -5498,7 +5498,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
 		if (point->flag & PEP_HIDE) {
-			for (k = 0, pcol = pathcol; k < steps; k++, pcol += 4) {
+			for (k = 0, pcol = pathcol; k < totkeys; k++, pcol += 4) {
 				copy_v3_v3(pcol, path->col);
 				pcol[3] = 0.25f;
 			}
@@ -5506,7 +5506,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			glColorPointer(4, GL_FLOAT, 4 * sizeof(float), pathcol);
 		}
 		else if (timed) {
-			for (k = 0, pcol = pathcol, pkey = path; k < steps; k++, pkey++, pcol += 4) {
+			for (k = 0, pcol = pathcol, pkey = path; k < totkeys; k++, pkey++, pcol += 4) {
 				copy_v3_v3(pcol, pkey->col);
 				pcol[3] = 1.0f - fabsf((float)(CFRA) -pkey->time) / (float)pset->fade_frames;
 			}
@@ -5516,7 +5516,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		else
 			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
 
-		glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+		glDrawArrays(GL_LINE_STRIP, 0, path->segments + 1);
 	}
 
 	if (pathcol) { MEM_freeN(pathcol); pathcol = pcol = NULL; }
