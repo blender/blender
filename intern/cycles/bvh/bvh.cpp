@@ -919,6 +919,7 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 		leaf_data[6].x = __int_as_float(c.x);
 		leaf_data[6].y = __int_as_float(c.y);
 		leaf_data[6].z = __uint_as_float(visibility);
+		leaf_data[6].w = __uint_as_float(c.w);
 		memcpy(&pack.nodes[idx * BVH_QNODE_SIZE],
 		       leaf_data,
 		       sizeof(float4)*BVH_QNODE_SIZE);
