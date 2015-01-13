@@ -6291,6 +6291,16 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 						}
 					}
 				}
+				else if (but->type == UI_BTYPE_NUM) {
+					if (but->rnaprop &&
+					    (RNA_property_type(but->rnaprop) == PROP_FLOAT) &&
+					    (RNA_property_subtype(but->rnaprop) & PROP_UNIT_LENGTH) &&
+					    (RNA_property_array_check(but->rnaprop) == false))
+					{
+						WM_operator_name_call(C, "UI_OT_eyedropper_depth", WM_OP_INVOKE_DEFAULT, NULL);
+						return WM_UI_HANDLER_BREAK;
+					}
+				}
 			}
 		}
 		/* handle keyframing */

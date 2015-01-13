@@ -1169,12 +1169,16 @@ class VIEW3D_MT_object_specials(Menu):
                 props.header_text = "Camera Lens Scale: %.3f"
 
             if not obj.data.dof_object:
-                #layout.label(text="Test Has DOF obj");
-                props = layout.operator("wm.context_modal_mouse", text="DOF Distance")
-                props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.dof_distance"
-                props.input_scale = 0.02
-                props.header_text = "DOF Distance: %.3f"
+                view = context.space_data
+                if view and view.camera == obj and view.region_3d.view_perspective == 'CAMERA':
+                    props = layout.operator("ui.eyedropper_depth", text="DOF Distance (Pick)")
+                else:
+                    props = layout.operator("wm.context_modal_mouse", text="DOF Distance")
+                    props.data_path_iter = "selected_editable_objects"
+                    props.data_path_item = "data.dof_distance"
+                    props.input_scale = 0.02
+                    props.header_text = "DOF Distance: %.3f"
+                del view
 
         if obj.type in {'CURVE', 'FONT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'

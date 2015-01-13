@@ -949,4 +949,5 @@ void ED_button_operatortypes(void)
 	/* external */
 	WM_operatortype_append(UI_OT_eyedropper_color);
 	WM_operatortype_append(UI_OT_eyedropper_id);
+	WM_operatortype_append(UI_OT_eyedropper_depth);
 }
