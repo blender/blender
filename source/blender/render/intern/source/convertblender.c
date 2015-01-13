@@ -2721,12 +2721,13 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->v4= NULL;
 
 						/* to prevent float accuracy issues, we calculate normal in local object space (not world) */
-						if (area_tri_v3(co3, co2, co1)>FLT_EPSILON) {
-							if (negative_scale)
-								normal_tri_v3(tmp, co1, co2, co3);
-							else
-								normal_tri_v3(tmp, co3, co2, co1);
-							add_v3_v3(n, tmp);
+						if (normal_tri_v3(tmp, co1, co2, co3) > FLT_EPSILON) {
+							if (negative_scale == false) {
+								add_v3_v3(n, tmp);
+							}
+							else {
+								sub_v3_v3(n, tmp);
+							}
 						}
 
 						vlr->mat= matar[ dl->col ];
