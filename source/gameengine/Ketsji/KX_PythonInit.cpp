@@ -2071,7 +2071,61 @@ void removeImportMain(struct Main *maggie)
 	bpy_import_main_extra_remove(maggie);
 }
 
-// Copied from bpy_interface.c
+
+PyDoc_STRVAR(BGE_module_documentation,
+	"This module contains submodules for the Blender Game Engine.\n"
+);
+
+static struct PyModuleDef BGE_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"bge",  /* m_name */
+	BGE_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
+};
+
+PyMODINIT_FUNC initBGE(void)
+{
+	PyObject *mod;
+	PyObject *submodule;
+	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+
+	mod = PyModule_Create(&BGE_module_def);
+
+	PyModule_AddObject(mod, "constraints", (submodule = initConstraintPythonBinding()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	PyModule_AddObject(mod, "events", (submodule = initGameKeysPythonBinding()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	PyModule_AddObject(mod, "logic", (submodule = initGameLogicPythonBinding()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	PyModule_AddObject(mod, "render", (submodule = initRasterizerPythonBinding()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	PyModule_AddObject(mod, "texture", (submodule = initVideoTexturePythonBinding()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	/* GameTypes is initted *after* in initPyTypes() */
+	PyModule_AddObject(mod, "types", (submodule = initGameTypesPythonBinding()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	return mod;
+}
+
+
+/* minimal required blender modules to run blenderplayer */
 static struct _inittab bge_internal_modules[] = {
 	{"mathutils", PyInit_mathutils},
 	{"bgl", BPyInit_bgl},
@@ -2132,11 +2186,13 @@ PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
-	
+
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
 
 	bpy_import_init(PyEval_GetBuiltins());
+
+	PyDict_SetItemString(PyImport_GetModuleDict(), "bge", initBGE());
 
 	/* mathutils types are used by the BGE even if we don't import them */
 	{
@@ -2152,12 +2208,12 @@ PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 	}
 #endif
 
-	initPyTypes();
-	
 	bpy_import_main_set(maggie);
-	
+
 	initPySysObjects(maggie);
-	
+
+	initPyTypes();
+
 	first_time = false;
 	
 	PyObjectPlus::ClearDeprecationWarning();
@@ -2196,11 +2252,9 @@ void exitGamePlayerPythonScripting()
  */
 PyObject *initGamePythonScripting(Main *maggie)
 {
-	/* not essential but nice to set our name */
-	static wchar_t program_path_wchar[FILE_MAX]; /* python holds a reference */
-	BLI_strncpy_wchar_from_utf8(program_path_wchar, BKE_appdir_program_path(), ARRAY_SIZE(program_path_wchar));
-	Py_SetProgramName(program_path_wchar);
+	/* no need to Py_SetProgramName, it was already taken care of in BPY_python_start */
 
+	PyDict_SetItemString(PyImport_GetModuleDict(), "bge", initBGE());
 
 #ifdef WITH_AUDASPACE
 	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
@@ -2247,7 +2301,12 @@ void exitGamePythonScripting()
 void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene *startscene, Main *blenderdata,
                      PyObject *pyGlobalDict, PyObject **gameLogic, PyObject **gameLogic_keys, int argc, char** argv)
 {
-	PyObject *dictionaryobject;
+	PyObject *modules, *dictionaryobject;
+
+	gp_Canvas = ketsjiengine->GetCanvas();
+	gp_Rasterizer = ketsjiengine->GetRasterizer();
+	gp_KetsjiEngine = ketsjiengine;
+	gp_KetsjiScene = startscene;
 
 	if (argv) /* player only */
 		dictionaryobject= initGamePlayerPythonScripting(blenderdata, argc, argv);
@@ -2255,44 +2314,15 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene *startscene, Main *
 		dictionaryobject= initGamePythonScripting(blenderdata);
 
 	ketsjiengine->SetPyNamespace(dictionaryobject);
-	gp_Canvas = ketsjiengine->GetCanvas();
-	gp_Rasterizer = ketsjiengine->GetRasterizer();
-	gp_KetsjiEngine = ketsjiengine;
-	gp_KetsjiScene = startscene;
 
-	initGameLogicPythonBinding();
-	initRasterizerPythonBinding();
-	initGameKeysPythonBinding();
-	initConstraintPythonBinding();
-	initVideoTexturePythonBinding();
+	modules = PyImport_GetModuleDict();
 
-	*gameLogic = PyDict_GetItemString(PyImport_GetModuleDict(), "GameLogic");
+	*gameLogic = PyDict_GetItemString(modules, "GameLogic");
 	/* is set in initGameLogicPythonBinding so only set here if we want it to persist between scenes */
 	if (pyGlobalDict)
 		PyDict_SetItemString(PyModule_GetDict(*gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
 
 	*gameLogic_keys = PyDict_Keys(PyModule_GetDict(*gameLogic));
-
-	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
-	PyRun_SimpleString("sys = __import__('sys');"
-	                   "bge = type(sys)('bge');"
-	                   "bge.__dict__.update({'logic':__import__('GameLogic'), "
-	                                        "'render':__import__('Rasterizer'), "
-	                                        "'events':__import__('GameKeys'), "
-	                                        "'constraints':__import__('PhysicsConstraints'), "
-	                                        "'physics':__import__('PhysicsConstraints'),"
-	                                        "'types':__import__('GameTypes'), "
-	                                        "'texture':__import__('VideoTexture')});"
-	                   /* so we can do 'import bge.foo as bar' */
-	                   "sys.modules.update({'bge': bge, "
-	                                       "'bge.logic':bge.logic, "
-	                                       "'bge.render':bge.render, "
-	                                       "'bge.events':bge.events, "
-	                                       "'bge.constraints':bge.constraints, "
-	                                       "'bge.physics':bge.physics,"
-	                                       "'bge.types':bge.types, "
-	                                       "'bge.texture':bge.texture})"
-	                   );
 }
 
 static struct PyModuleDef Rasterizer_module_def = {
