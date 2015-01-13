@@ -565,16 +565,20 @@ int sdlewInit(void) {
   /* Library paths. */
 #ifdef _WIN32
   /* Expected in c:/windows/system or similar, no path needed. */
-  const char *path = "SDL2.dll";
+  const char *paths[] = {"SDL2.dll", NULL};
 #elif defined(__APPLE__)
   /* Default installation path. */
-  const char *path = "/usr/local/cuda/lib/libSDL2.dylib";
+  const char *paths[] = {"/usr/local/cuda/lib/libSDL2.dylib", NULL};
 #else
-  const char *path = "libSDL2.so";
+  const char *paths[] = {"libSDL2.so",
+                         "libSDL2-2.0.so.0",
+                         "libSDL.so",
+                         NULL};
 #endif
   static int initialized = 0;
   static int result = 0;
-  int error;
+  int a, error;
+  SDL_version version;
 
   if (initialized) {
     return result;
@@ -589,7 +593,9 @@ int sdlewInit(void) {
   }
 
   /* Load library. */
-  lib = dynamic_library_open(path);
+  for (a = 0; paths[a] != NULL && lib == NULL; ++a) {
+    lib = dynamic_library_open(paths[a]);
+  }
 
   if (lib == NULL) {
     result = SDLEW_ERROR_OPEN_FAILED;
@@ -1089,7 +1095,18 @@ int sdlewInit(void) {
   SDL_LIBRARY_FIND(SDL_HasClipboardText);
   SDL_LIBRARY_FIND(SDL_GetWindowWMInfo);
 
-  result = SDLEW_SUCCESS;
+  if (SDL_GetVersion == NULL) {
+    result = SDLEW_ERROR_VERSION;
+  }
+  else {
+    SDL_GetVersion(&version);
+    if(version.major < 2) {
+      result = SDLEW_ERROR_VERSION;
+    }
+    else {
+      result = SDLEW_SUCCESS;
+    }
+  }
 
   return result;
 }
