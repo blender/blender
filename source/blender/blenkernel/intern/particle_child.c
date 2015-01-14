@@ -153,6 +153,7 @@ static void do_kink_spiral_deform(ParticleKey *state, const float dir[3], const 
 			theta = -theta;
 		
 		cross_v3_v3v3(spiral_axis, dir, kink);
+		normalize_v3(spiral_axis);
 		
 		mul_v3_v3fl(vec, kink, -radius);
 		
