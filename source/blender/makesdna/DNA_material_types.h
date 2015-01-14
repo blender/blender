@@ -438,6 +438,7 @@ typedef struct Material {
 #define MAP_PA_CLUMP	128
 #define MAP_PA_KINK		256
 #define MAP_PA_ROUGH	512
+#define MAP_PA_FREQ		1024
 
 /* pr_type */
 #define MA_FLAT			0

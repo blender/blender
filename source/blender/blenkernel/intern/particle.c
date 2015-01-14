@@ -3331,7 +3331,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 	float value, rgba[4], texvec[3];
 
 	ptex->ivel = ptex->life = ptex->exist = ptex->size = ptex->damp =
-	ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink =
+	ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink_freq =
 	ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.0f;
 
 	ptex->length = 1.0f - part->randlength * psys_frand(psys, child_index + 26);
@@ -3378,14 +3378,14 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 
 			SET_PARTICLE_TEXTURE(PAMAP_LENGTH, ptex->length, mtex->lengthfac);
 			SET_PARTICLE_TEXTURE(PAMAP_CLUMP, ptex->clump, mtex->clumpfac);
-			SET_PARTICLE_TEXTURE(PAMAP_KINK, ptex->kink, mtex->kinkfac);
+			SET_PARTICLE_TEXTURE(PAMAP_KINK_FREQ, ptex->kink_freq, mtex->kinkfac);
 			SET_PARTICLE_TEXTURE(PAMAP_DENS, ptex->exist, mtex->padensfac);
 		}
 	}
 
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_LENGTH, ptex->length);
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_CLUMP, ptex->clump);
-	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_KINK, ptex->kink);
+	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_KINK_FREQ, ptex->kink_freq);
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_ROUGH, ptex->rough1);
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_DENS, ptex->exist);
 }
@@ -3402,7 +3402,7 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 
 	/* initialize ptex */
 	ptex->ivel = ptex->life = ptex->exist = ptex->size = ptex->damp =
-	ptex->gravity = ptex->field = ptex->length = ptex->clump = ptex->kink =
+	ptex->gravity = ptex->field = ptex->length = ptex->clump = ptex->kink_freq =
 	ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.0f;
 
 	ptex->time = (float)(pa - sim->psys->particles) / (float)sim->psys->totpart;
@@ -3556,7 +3556,7 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
 	if (ctx->vg_clump)
 		ptex->clump *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_clump);
 	if (ctx->vg_kink)
-		ptex->kink *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_kink);
+		ptex->kink_freq *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_kink);
 	if (ctx->vg_rough1)
 		ptex->rough1 *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_rough1);
 	if (ctx->vg_rough2)

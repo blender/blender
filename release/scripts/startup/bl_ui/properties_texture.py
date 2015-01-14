@@ -1164,7 +1164,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             factor_but(col, "use_map_clump", "clump_factor", "Clump")
 
             col = split.column()
-            factor_but(col, "use_map_kink", "kink_factor", "Kink")
+            factor_but(col, "use_map_kink_freq", "kink_freq_factor", "Kink Frequency")
             factor_but(col, "use_map_rough", "rough_factor", "Rough")
 
         elif isinstance(idblock, FreestyleLineStyle):

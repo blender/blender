@@ -204,7 +204,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	float kink_base[3];
 
 	if (ptex) {
-		kink_freq *= ptex->kink;
+		kink_freq *= ptex->kink_freq;
 		rough1 *= ptex->rough1;
 		rough2 *= ptex->rough2;
 		rough_end *= ptex->roughe;
@@ -677,7 +677,7 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
 	const bool smooth_start = (sim->psys->part->childtype == PART_CHILD_FACES);
 
 	if (ptex) {
-		kink_freq *= ptex->kink;
+		kink_freq *= ptex->kink_freq;
 		rough1 *= ptex->rough1;
 		rough2 *= ptex->rough2;
 		rough_end *= ptex->roughe;
