@@ -2318,6 +2318,14 @@ void wm_event_do_handlers(bContext *C)
 				}
 
 				for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+					/* after restoring a screen from SCREENMAXIMIZED we have to wait
+					 * with the screen handling till the region coordinates are updated */
+					if (win->screen->skip_handling == true) {
+						/* restore for the next iteration of wm_event_do_handlers */
+						win->screen->skip_handling = false;
+						break;
+					}
+
 					if (wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
 

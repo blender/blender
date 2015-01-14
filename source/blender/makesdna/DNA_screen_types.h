@@ -69,11 +69,12 @@ typedef struct bScreen {
 	short do_draw_paintcursor;			/* notifier for paint cursor draw. */
 	short do_draw_drag;					/* notifier for dragging draw. */
 	short swap;							/* indicator to survive swap-exchange systems */
+	short skip_handling;				/* set to delay screen handling after switching back from maximized area */
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
 	
-	short pad;
+	double pad;
 	
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */
@@ -215,7 +216,7 @@ typedef struct ScrArea {
 	short do_refresh;				/* private, for spacetype refresh callback */
 	short flag;
 	short region_active_win;		/* index of last used region of 'RGN_TYPE_WINDOW'
-									 * runtuime variable, updated by executing operators */
+									 * runtime variable, updated by executing operators */
 	char temp, pad;
 	
 	struct SpaceType *type;		/* callbacks for this space type */

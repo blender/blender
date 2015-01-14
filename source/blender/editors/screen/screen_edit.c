@@ -1881,6 +1881,11 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		BKE_screen_free(oldscreen);
 		BKE_libblock_free(CTX_data_main(C), oldscreen);
 
+		/* After we've restored back to SCREENNORMAL, we have to wait with
+		 * screen handling as it uses the area coords which aren't updated yet.
+		 * Without doing so, the screen handling gets wrong area coords,
+		 * which in worst case can lead to crashes (see T43139) */
+		sc->skip_handling = true;
 	}
 	else {
 		/* change from SCREENNORMAL to new state */
