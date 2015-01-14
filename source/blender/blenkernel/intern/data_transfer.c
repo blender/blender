@@ -131,6 +131,7 @@ bool BKE_object_data_transfer_get_dttypes_capacity(
 				ret = true;
 				break;
 			case DT_TYPE_FREESTYLE_EDGE:
+				*r_threshold = true;
 				ret = true;
 				break;
 		/* Loop/Poly data */
@@ -143,9 +144,11 @@ bool BKE_object_data_transfer_get_dttypes_capacity(
 				ret = true;
 				break;
 			case DT_TYPE_SHARP_FACE:
+				*r_threshold = true;
 				ret = true;
 				break;
 			case DT_TYPE_FREESTYLE_FACE:
+				*r_threshold = true;
 				ret = true;
 				break;
 		}
