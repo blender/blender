@@ -61,7 +61,7 @@ public:
 		thread_scoped_lock lock(progress.progress_mutex);
 
 		progress.get_status(status, substatus);
-		progress.get_tile(tile, total_time, tile_time);
+		progress.get_tile(tile, total_time, render_time, tile_time);
 
 		sample = progress.get_sample();
 
@@ -73,7 +73,9 @@ public:
 		tile = 0;
 		sample = 0;
 		start_time = time_dt();
+		render_start_time = time_dt();
 		total_time = 0.0f;
+		render_time = 0.0f;
 		tile_time = 0.0f;
 		status = "Initializing";
 		substatus = "";
@@ -143,21 +145,30 @@ public:
 		start_time = start_time_;
 	}
 
+	void set_render_start_time(double render_start_time_)
+	{
+		thread_scoped_lock lock(progress_mutex);
+
+		render_start_time = render_start_time_;
+	}
+
 	void set_tile(int tile_, double tile_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
 		tile = tile_;
 		total_time = time_dt() - start_time;
+		render_time = time_dt() - render_start_time;
 		tile_time = tile_time_;
 	}
 
-	void get_tile(int& tile_, double& total_time_, double& tile_time_)
+	void get_tile(int& tile_, double& total_time_, double& render_time_, double& tile_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
 		tile_ = tile;
 		total_time_ = (total_time > 0.0)? total_time: 0.0;
+		render_time_ = (render_time > 0.0)? render_time: 0.0;
 		tile_time_ = tile_time;
 	}
 
@@ -195,6 +206,7 @@ public:
 			status = status_;
 			substatus = substatus_;
 			total_time = time_dt() - start_time;
+			render_time = time_dt() - render_start_time;
 		}
 
 		set_update();
@@ -206,6 +218,7 @@ public:
 			thread_scoped_lock lock(progress_mutex);
 			substatus = substatus_;
 			total_time = time_dt() - start_time;
+			render_time = time_dt() - render_start_time;
 		}
 
 		set_update();
@@ -218,6 +231,7 @@ public:
 			sync_status = status_;
 			sync_substatus = substatus_;
 			total_time = time_dt() - start_time;
+			render_time = time_dt() - render_start_time;
 		}
 
 		set_update();
@@ -230,6 +244,7 @@ public:
 			thread_scoped_lock lock(progress_mutex);
 			sync_substatus = substatus_;
 			total_time = time_dt() - start_time;
+			render_time = time_dt() - render_start_time;
 		}
 
 		set_update();
@@ -273,8 +288,8 @@ protected:
 	int tile;    /* counter for rendered tiles */
 	int sample;  /* counter of rendered samples, global for all tiles */
 
-	double start_time;
-	double total_time;
+	double start_time, render_start_time;
+	double total_time, render_time;
 	double tile_time;
 
 	string status;

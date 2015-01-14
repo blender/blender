@@ -70,7 +70,7 @@ public:
 	void tag_redraw();
 	void tag_update();
 	void get_status(string& status, string& substatus);
-	void get_progress(float& progress, double& total_time);
+	void get_progress(float& progress, double& total_time, double& render_time);
 	void test_cancel();
 	void update_status_progress();
 	void update_bake_progress();

@@ -778,19 +778,23 @@ void BlenderSession::get_status(string& status, string& substatus)
 	session->progress.get_status(status, substatus);
 }
 
-void BlenderSession::get_progress(float& progress, double& total_time)
+void BlenderSession::get_progress(float& progress, double& total_time, double& render_time)
 {
 	double tile_time;
 	int tile, sample, samples_per_tile;
 	int tile_total = session->tile_manager.state.num_tiles;
+	int samples = session->tile_manager.state.sample + 1;
+	int total_samples = session->tile_manager.num_samples;
 
-	session->progress.get_tile(tile, total_time, tile_time);
+	session->progress.get_tile(tile, total_time, render_time, tile_time);
 
 	sample = session->progress.get_sample();
 	samples_per_tile = session->tile_manager.num_samples;
 
-	if(samples_per_tile && tile_total)
+	if(background && samples_per_tile && tile_total)
 		progress = ((float)sample / (float)(tile_total * samples_per_tile));
+	else if(!background && samples > 0 && total_samples != USHRT_MAX)
+		progress = ((double)samples) / total_samples;
 	else
 		progress = 0.0;
 }
@@ -820,20 +824,18 @@ void BlenderSession::update_status_progress()
 	string timestatus, status, substatus;
 	string scene = "";
 	float progress;
-	double total_time, remaining_time = 0;
+	double total_time, remaining_time = 0, render_time;
 	char time_str[128];
 	float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
 	float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
-	int samples = session->tile_manager.state.sample + 1;
-	int total_samples = session->tile_manager.num_samples;
 
 	get_status(status, substatus);
-	get_progress(progress, total_time);
+	get_progress(progress, total_time, render_time);
+
+	if(progress > 0)
+		remaining_time = (1.0 - (double)progress) * (render_time / (double)progress);
 
 	if(background) {
-		if(progress > 0)
-			remaining_time = (1.0 - (double)progress) * (total_time / (double)progress);
-
 		scene += " | " + b_scene.name();
 		if(b_rlay_name != "")
 			scene += ", "  + b_rlay_name;
@@ -841,9 +843,6 @@ void BlenderSession::update_status_progress()
 	else {
 		BLI_timestr(total_time, time_str, sizeof(time_str));
 		timestatus = "Time:" + string(time_str) + " | ";
-
-		if(samples > 0 && total_samples != USHRT_MAX)
-			remaining_time = (total_samples - samples) * (total_time / samples);
 	}
 
 	if(remaining_time > 0) {
