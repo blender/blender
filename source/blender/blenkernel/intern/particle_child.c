@@ -213,7 +213,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	for (k = 0, key = keys; k < totkeys-1; k++, key++)
 		totlen += len_v3v3((key+1)->co, key->co);
 	
-	cutlen = totlen - fabsf(kink_amp);
+	cutlen = max_ff(ptex->length * totlen - fabsf(kink_amp), 0.0f);
 	zero_v3(spiral_start);
 	
 	len = 0.0f;
