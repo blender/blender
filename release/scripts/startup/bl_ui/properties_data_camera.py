@@ -98,6 +98,14 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                     row = layout.row()
                     row.prop(ccam, "fisheye_lens", text="Lens")
                     row.prop(ccam, "fisheye_fov")
+                elif ccam.panorama_type == 'EQUIRECTANGULAR':
+                    row = layout.row()
+                    sub = row.column(align=True)
+                    sub.prop(ccam, "latitude_min");
+                    sub.prop(ccam, "latitude_max");
+                    sub = row.column(align=True)
+                    sub.prop(ccam, "longitude_min");
+                    sub.prop(ccam, "longitude_max");
             elif engine == 'BLENDER_RENDER':
                 row = col.row()
                 if cam.lens_unit == 'MILLIMETERS':

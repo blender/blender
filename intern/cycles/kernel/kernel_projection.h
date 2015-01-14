@@ -55,23 +55,33 @@ ccl_device float3 spherical_to_direction(float theta, float phi)
 
 /* Equirectangular coordinates <-> Cartesian direction */
 
-ccl_device float2 direction_to_equirectangular(float3 dir)
+ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
 {
-	float u = -atan2f(dir.y, dir.x)/(M_2PI_F) + 0.5f;
-	float v = atan2f(dir.z, hypotf(dir.x, dir.y))/M_PI_F + 0.5f;
+	float u = (atan2f(dir.y, dir.x) - range.y) / range.x;
+	float v = (acosf(dir.z / len(dir)) - range.w) / range.z;
 
 	return make_float2(u, v);
 }
 
-ccl_device float3 equirectangular_to_direction(float u, float v)
+ccl_device float3 equirectangular_range_to_direction(float u, float v, float4 range)
 {
-	float phi = M_PI_F*(1.0f - 2.0f*u);
-	float theta = M_PI_F*(1.0f - v);
+	float phi = range.x*u + range.y;
+	float theta = range.z*v + range.w;
 
 	return make_float3(
 		sinf(theta)*cosf(phi),
 		sinf(theta)*sinf(phi),
 		cosf(theta));
+}
+
+ccl_device float2 direction_to_equirectangular(float3 dir)
+{
+	return direction_to_equirectangular_range(dir, make_float4(-M_2_PI_F, M_PI_F, -M_PI_F, M_PI_F));
+}
+
+ccl_device float3 equirectangular_to_direction(float u, float v)
+{
+	return equirectangular_range_to_direction(u, v, make_float4(-M_2_PI_F, M_PI_F, -M_PI_F, M_PI_F));
 }
 
 /* Fisheye <-> Cartesian direction */
@@ -180,7 +190,7 @@ ccl_device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
 {
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
-			return equirectangular_to_direction(u, v);
+			return equirectangular_range_to_direction(u, v, kernel_data.cam.equirectangular_range);
 		case PANORAMA_FISHEYE_EQUIDISTANT:
 			return fisheye_to_direction(u, v, kernel_data.cam.fisheye_fov);
 		case PANORAMA_FISHEYE_EQUISOLID:
@@ -194,7 +204,7 @@ ccl_device float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
 {
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
-			return direction_to_equirectangular(dir);
+			return direction_to_equirectangular_range(dir, kernel_data.cam.equirectangular_range);
 		case PANORAMA_FISHEYE_EQUIDISTANT:
 			return direction_to_fisheye(dir, kernel_data.cam.fisheye_fov);
 		case PANORAMA_FISHEYE_EQUISOLID:

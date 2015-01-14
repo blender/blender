@@ -53,6 +53,10 @@ public:
 	PanoramaType panorama_type;
 	float fisheye_fov;
 	float fisheye_lens;
+	float latitude_min;
+	float latitude_max;
+	float longitude_min;
+	float longitude_max;
 
 	/* anamorphic lens bokeh */
 	float aperture_ratio;

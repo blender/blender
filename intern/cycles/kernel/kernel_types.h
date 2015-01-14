@@ -767,6 +767,7 @@ typedef struct KernelCamera {
 	int panorama_type;
 	float fisheye_fov;
 	float fisheye_lens;
+	float4 equirectangular_range;
 
 	/* matrices */
 	Transform cameratoworld;

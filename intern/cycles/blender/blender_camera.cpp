@@ -53,6 +53,10 @@ struct BlenderCamera {
 	PanoramaType panorama_type;
 	float fisheye_fov;
 	float fisheye_lens;
+	float latitude_min;
+	float latitude_max;
+	float longitude_min;
+	float longitude_max;
 
 	enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit;
 	float sensor_width;
@@ -147,6 +151,10 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob, boo
 
 		bcam->fisheye_fov = RNA_float_get(&ccamera, "fisheye_fov");
 		bcam->fisheye_lens = RNA_float_get(&ccamera, "fisheye_lens");
+		bcam->latitude_min = RNA_float_get(&ccamera, "latitude_min");
+		bcam->latitude_max = RNA_float_get(&ccamera, "latitude_max");
+		bcam->longitude_min = RNA_float_get(&ccamera, "longitude_min");
+		bcam->longitude_max = RNA_float_get(&ccamera, "longitude_max");
 
 		bcam->ortho_scale = b_camera.ortho_scale();
 
@@ -332,6 +340,11 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->panorama_type = bcam->panorama_type;
 	cam->fisheye_fov = bcam->fisheye_fov;
 	cam->fisheye_lens = bcam->fisheye_lens;
+	cam->latitude_min = bcam->latitude_min;
+	cam->latitude_max = bcam->latitude_max;
+
+	cam->longitude_min = bcam->longitude_min;
+	cam->longitude_max = bcam->longitude_max;
 
 	/* anamorphic lens bokeh */
 	cam->aperture_ratio = bcam->aperture_ratio;

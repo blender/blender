@@ -47,6 +47,10 @@ Camera::Camera()
 	panorama_type = PANORAMA_EQUIRECTANGULAR;
 	fisheye_fov = M_PI_F;
 	fisheye_lens = 10.5f;
+	latitude_min = -M_PI_2_F;
+	latitude_max = M_PI_2_F;
+	longitude_min = -M_PI_F;
+	longitude_max = M_PI_F;
 	fov = M_PI_4_F;
 
 	sensorwidth = 0.036f;
@@ -253,6 +257,8 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->panorama_type = panorama_type;
 	kcam->fisheye_fov = fisheye_fov;
 	kcam->fisheye_lens = fisheye_lens;
+	kcam->equirectangular_range = make_float4(longitude_min - longitude_max, -longitude_min,
+	                                          latitude_min -  latitude_max, -latitude_min + M_PI_2_F);
 
 	/* sensor size */
 	kcam->sensorwidth = sensorwidth;
@@ -316,7 +322,11 @@ bool Camera::modified(const Camera& cam)
 		(aperture_ratio == cam.aperture_ratio) &&
 		(panorama_type == cam.panorama_type) &&
 		(fisheye_fov == cam.fisheye_fov) &&
-		(fisheye_lens == cam.fisheye_lens));
+		(fisheye_lens == cam.fisheye_lens) &&
+		(latitude_min == cam.latitude_min) &&
+		(latitude_max == cam.latitude_max) &&
+		(longitude_min == cam.longitude_min) &&
+		(longitude_max == cam.longitude_max));
 }
 
 bool Camera::motion_modified(const Camera& cam)
