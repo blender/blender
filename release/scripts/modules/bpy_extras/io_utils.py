@@ -21,7 +21,7 @@
 __all__ = (
     "ExportHelper",
     "ImportHelper",
-    "IOHelperOrientation",
+    "OrientationHelper",
     "axis_conversion",
     "axis_conversion_ensure",
     "create_derived_objects",
@@ -117,10 +117,12 @@ class ImportHelper:
         return _check_axis_conversion(self)
 
 
-class IOHelperOrientation:
+class OrientationHelper:
+
     def _update_axis_forward(self, context):
         if self.axis_forward[-1] == self.axis_up[-1]:
             self.axis_up = self.axis_up[0:-1] + 'XYZ'[('XYZ'.index(self.axis_up[-1]) + 1) % 3]
+
     axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
@@ -137,6 +139,7 @@ class IOHelperOrientation:
     def _update_axis_up(self, context):
         if self.axis_up[-1] == self.axis_forward[-1]:
             self.axis_forward = self.axis_forward[0:-1] + 'XYZ'[('XYZ'.index(self.axis_forward[-1]) + 1) % 3]
+
     axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),
