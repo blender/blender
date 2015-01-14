@@ -29,8 +29,8 @@
  *  \ingroup bke
  */
 
-#ifndef __BKE_OBJECT_DATA_TRANSFER_H__
-#define __BKE_OBJECT_DATA_TRANSFER_H__
+#ifndef __BKE_DATA_TRANSFER_H__
+#define __BKE_DATA_TRANSFER_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -155,4 +155,4 @@ bool BKE_object_data_transfer_dm(
 }
 #endif
 
-#endif  /* __BKE_OBJECT_DATA_TRANSFER_H__ */
+#endif  /* __BKE_DATA_TRANSFER_H__ */

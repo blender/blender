@@ -4766,7 +4766,7 @@ static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
 			/* This will loop over all IDs linked by current one, render icons for them if needed,
 			 * and add them to 'todo' preview_id_stack. */
 			BKE_library_foreach_ID_link(id, previews_id_ensure_callback, &preview_id_stack, IDWALK_READONLY);
-		} while((id = BLI_LINKSTACK_POP(preview_id_stack.id_stack)));
+		} while ((id = BLI_LINKSTACK_POP(preview_id_stack.id_stack)));
 	}
 
 	BLI_LINKSTACK_FREE(preview_id_stack.id_stack);

@@ -3521,7 +3521,7 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
  * objects moves (causing deformation motion blur) or not.
  *
  * This makes it possible to give some degree of false-positives here,
- * but it's currently an acceptable tradeof between complexity and check
+ * but it's currently an acceptable tradeoff between complexity and check
  * speed. In combination with checks of modifier stack and real life usage
  * percentage of false-positives shouldn't be that hight.
  */
