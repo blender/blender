@@ -179,6 +179,8 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
 	/// @note: ignore invalid links
 	if (!(b_nodelink->flag & NODE_LINK_VALID))
 		return;
+	if ((b_nodelink->fromsock->flag & SOCK_UNAVAIL) || (b_nodelink->tosock->flag & SOCK_UNAVAIL))
+		return;
 	
 	/* Note: a DNA input socket can have multiple NodeInput in the compositor tree! (proxies)
 	 * The output then gets linked to each one of them.
