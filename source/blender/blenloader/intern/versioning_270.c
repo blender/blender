@@ -505,4 +505,17 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			part->kink_extra_steps = 4;
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "MTex", "float", "kinkampfac")) {
+		ParticleSettings *part;
+		for (part = main->particle.first; part; part = part->id.next) {
+			int a;
+			for (a = 0; a < MAX_MTEX; a++) {
+				MTex *mtex = part->mtex[a];
+				if (mtex) {
+					mtex->kinkampfac = 1.0f;
+				}
+			}
+		}
+	}
 }

@@ -1835,6 +1835,11 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clump", "Affect the child clumping");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
+	prop = RNA_def_property(srna, "use_map_kink_amp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", PAMAP_KINK_AMP);
+	RNA_def_property_ui_text(prop, "Kink Amplitude", "Affect the child kink amplitude");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
 	prop = RNA_def_property(srna, "use_map_kink_freq", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", PAMAP_KINK_FREQ);
 	RNA_def_property_ui_text(prop, "Kink Frequency", "Affect the child kink frequency");
@@ -1912,6 +1917,12 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "clumpfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Clump Factor", "Amount texture affects child clump");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "kink_amp_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kinkampfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Kink Amplitude Factor", "Amount texture affects child kink amplitude");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop = RNA_def_property(srna, "kink_freq_factor", PROP_FLOAT, PROP_NONE);

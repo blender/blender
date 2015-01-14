@@ -204,6 +204,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	float kink_base[3];
 
 	if (ptex) {
+		kink_amp *= ptex->kink_amp;
 		kink_freq *= ptex->kink_freq;
 		rough1 *= ptex->rough1;
 		rough2 *= ptex->rough2;
@@ -670,6 +671,8 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
 	int i = cpa - sim->psys->child;
 	int guided = 0;
 
+	float kink_amp = part->kink_amp;
+	float kink_amp_clump = part->kink_amp_clump;
 	float kink_freq = part->kink_freq;
 	float rough1 = part->rough1;
 	float rough2 = part->rough2;
@@ -677,6 +680,7 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
 	const bool smooth_start = (sim->psys->part->childtype == PART_CHILD_FACES);
 
 	if (ptex) {
+		kink_amp *= ptex->kink_amp;
 		kink_freq *= ptex->kink_freq;
 		rough1 *= ptex->rough1;
 		rough2 *= ptex->rough2;
@@ -696,13 +700,8 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
 		                 part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, part->clumpcurve);
 
 		if (kink_freq != 0.f) {
-			float kink_amp;
-			/* seriously ... */
-			if (ELEM(part->kink, PART_KINK_SPIRAL))
-				kink_amp = part->kink_amp;
-			else
-				kink_amp = part->kink_amp * (1.f - part->kink_amp_clump * clump);
-
+			kink_amp *= (1.f - kink_amp_clump * clump);
+			
 			do_kink(state, par_co, par_vel, par_rot, t, kink_freq, part->kink_shape,
 			        kink_amp, part->kink_flat, part->kink, part->kink_axis,
 			        sim->ob->obmat, smooth_start);

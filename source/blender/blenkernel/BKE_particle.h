@@ -110,7 +110,7 @@ typedef struct ParticleTexture {
 	float ivel;                           /* used in reset */
 	float time, life, exist, size;        /* used in init */
 	float damp, gravity, field;           /* used in physics */
-	float length, clump, kink_freq, effector;  /* used in path caching */
+	float length, clump, kink_freq, kink_amp, effector;  /* used in path caching */
 	float rough1, rough2, roughe;         /* used in path caching */
 } ParticleTexture;
 

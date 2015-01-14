@@ -745,6 +745,7 @@ void default_mtex(MTex *mtex)
 	mtex->lengthfac = 1.0f;
 	mtex->clumpfac = 1.0f;
 	mtex->kinkfac = 1.0f;
+	mtex->kinkampfac = 1.0f;
 	mtex->roughfac = 1.0f;
 	mtex->padensfac = 1.0f;
 	mtex->lifefac = 1.0f;
