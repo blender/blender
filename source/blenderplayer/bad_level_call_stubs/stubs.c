@@ -341,6 +341,7 @@ bool ED_space_image_show_paint(struct SpaceImage *sima) RET_ZERO
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings) RET_NONE
 void ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima) RET_NONE
 void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSettings *settings) RET_NONE
+void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *sima, struct ImBuf *ibuf, bool use_view_settings) RET_NONE
 
 void ED_uvedit_get_aspect(struct Scene *scene, struct Object *ob, struct BMesh *em, float *aspx, float *aspy) RET_NONE
 
