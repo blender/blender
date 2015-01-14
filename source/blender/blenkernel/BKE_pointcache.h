@@ -241,7 +241,6 @@ typedef struct PTCacheEdit {
 
 	/* particles stuff */
 	struct ParticleSystem *psys;
-	struct ParticleData *particles;
 	struct KDTree *emitter_field;
 	float *emitter_cosnos; /* localspace face centers and normals (average of its verts), from the derived mesh */
 	int *mirror_cache;
