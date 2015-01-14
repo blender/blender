@@ -1133,6 +1133,9 @@ void node_update_nodetree(const bContext *C, bNodeTree *ntree)
 {
 	bNode *node;
 	
+	/* make sure socket "used" tags are correct, for displaying value buttons */
+	ntreeTagUsedSockets(ntree);
+	
 	/* update nodes front to back, so children sizes get updated before parents */
 	for (node = ntree->nodes.last; node; node = node->prev) {
 		node_update(C, ntree, node);

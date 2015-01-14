@@ -485,6 +485,7 @@ void            nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *n
 void            nodeSynchronizeID(struct bNode *node, bool copy_to_id);
 
 int             nodeSocketIsHidden(struct bNodeSocket *sock);
+void            ntreeTagUsedSockets(struct bNodeTree *ntree);
 
 /* Node Clipboard */
 void                   BKE_node_clipboard_init(struct bNodeTree *ntree);
