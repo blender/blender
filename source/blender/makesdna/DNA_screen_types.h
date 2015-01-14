@@ -73,9 +73,7 @@ typedef struct bScreen {
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
-	
-	double pad;
-	
+
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */
 } bScreen;
