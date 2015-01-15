@@ -673,9 +673,12 @@ int sound_scene_playing(struct Scene *scene)
 
 void sound_free_waveform(bSound *sound)
 {
-	if (sound->waveform) {
-		MEM_freeN(((SoundWaveform *)sound->waveform)->data);
-		MEM_freeN(sound->waveform);
+	SoundWaveform *waveform = sound->waveform;
+	if (waveform) {
+		if (waveform->data) {
+			MEM_freeN(waveform->data);
+		}
+		MEM_freeN(waveform);
 	}
 
 	sound->waveform = NULL;
@@ -683,29 +686,37 @@ void sound_free_waveform(bSound *sound)
 
 void sound_read_waveform(bSound *sound, short *stop)
 {
-	AUD_SoundInfo info;
-	SoundWaveform *waveform = NULL;
-	
-	info = AUD_getInfo(sound->playback_handle);
-	
+	AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
+	SoundWaveform *waveform = MEM_mallocN(sizeof(SoundWaveform),
+										  "SoundWaveform");
+
 	if (info.length > 0) {
 		int length = info.length * SOUND_WAVE_SAMPLES_PER_SECOND;
 		
-		waveform = MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform");
 		waveform->data = MEM_mallocN(length * sizeof(float) * 3, "SoundWaveform.samples");
 		waveform->length = AUD_readSound(sound->playback_handle, waveform->data, length, SOUND_WAVE_SAMPLES_PER_SECOND, stop);
-		
-		if (*stop) {
-			MEM_freeN(waveform->data);
-			MEM_freeN(waveform);
-			BLI_mutex_lock(sound->mutex);
-			sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
-			BLI_mutex_unlock(sound->mutex);
-			return;
-		}
-		
-		sound_free_waveform(sound);
 	}
+	else {
+		/* Create an empty waveform here if the sound couldn't be
+		 * read. This indicates that reading the waveform is "done",
+		 * whereas just setting sound->waveform to NULL causes other
+		 * code to think the waveform still needs to be created. */
+		waveform->data = NULL;
+		waveform->length = 0;
+	}
+
+	if (*stop) {
+		if (waveform->data) {
+			MEM_freeN(waveform->data);
+		}
+		MEM_freeN(waveform);
+		BLI_mutex_lock(sound->mutex);
+		sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
+		BLI_mutex_unlock(sound->mutex);
+		return;
+	}
+		
+	sound_free_waveform(sound);
 	
 	BLI_mutex_lock(sound->mutex);
 	sound->waveform = waveform;
