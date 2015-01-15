@@ -2200,7 +2200,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 					float bulge = powf(1.0f / fabsf(scaleFac), ikData->bulge);
 					
 					if (bulge > 1.0f) {
-						if (ikData->flag & STRETCHTOCON_USE_BULGE_MAX) {
+						if (ikData->flag & CONSTRAINT_SPLINEIK_USE_BULGE_MAX) {
 							float bulge_max = max_ff(ikData->bulge_max, 1.0f);
 							float hard = min_ff(bulge, bulge_max);
 							
@@ -2212,7 +2212,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 						}
 					}
 					if (bulge < 1.0f) {
-						if (ikData->flag & STRETCHTOCON_USE_BULGE_MIN) {
+						if (ikData->flag & CONSTRAINT_SPLINEIK_USE_BULGE_MIN) {
 							float bulge_min = CLAMPIS(ikData->bulge_min, 0.0f, 1.0f);
 							float hard = max_ff(bulge, bulge_min);
 							
