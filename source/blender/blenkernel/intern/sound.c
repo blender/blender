@@ -681,7 +681,7 @@ void sound_free_waveform(bSound *sound)
 	sound->waveform = NULL;
 }
 
-void sound_read_waveform(bSound *sound, bool locked, short *stop)
+void sound_read_waveform(bSound *sound, short *stop)
 {
 	AUD_SoundInfo info;
 	SoundWaveform *waveform = NULL;
@@ -698,23 +698,19 @@ void sound_read_waveform(bSound *sound, bool locked, short *stop)
 		if (*stop) {
 			MEM_freeN(waveform->data);
 			MEM_freeN(waveform);
-			if (locked)
-				BLI_mutex_lock(sound->mutex);
+			BLI_mutex_lock(sound->mutex);
 			sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
-			if (locked)
-				BLI_mutex_unlock(sound->mutex);
+			BLI_mutex_unlock(sound->mutex);
 			return;
 		}
 		
 		sound_free_waveform(sound);
 	}
 	
-	if (locked)
-		BLI_mutex_lock(sound->mutex);
+	BLI_mutex_lock(sound->mutex);
 	sound->waveform = waveform;
 	sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
-	if (locked)
-		BLI_mutex_unlock(sound->mutex);
+	BLI_mutex_unlock(sound->mutex);
 }
 
 void sound_update_scene(Main *bmain, struct Scene *scene)
@@ -849,7 +845,7 @@ void sound_stop_scene(struct Scene *UNUSED(scene)) {}
 void sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
 float sound_sync_scene(struct Scene *UNUSED(scene)) { return NAN_FLT; }
 int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
-void sound_read_waveform(struct bSound *sound, bool locked, short *stop) { UNUSED_VARS(sound, locked, stop); }
+void sound_read_waveform(struct bSound *sound, short *stop) { UNUSED_VARS(sound, stop); }
 void sound_init_main(struct Main *UNUSED(bmain)) {}
 void sound_set_cfra(int UNUSED(cfra)) {}
 void sound_update_sequencer(struct Main *UNUSED(main), struct bSound *UNUSED(sound)) {}

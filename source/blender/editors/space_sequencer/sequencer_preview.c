@@ -85,7 +85,7 @@ static void preview_startjob(void *data, short *stop, short *do_update, float *p
 		PreviewJobAudio *preview_next;
 		bSound *sound = previewjb->sound;
 		
-		sound_read_waveform(sound, true, stop);
+		sound_read_waveform(sound, stop);
 
 		if (*stop || G.is_break) {
 			BLI_mutex_lock(pj->mutex);
