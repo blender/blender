@@ -83,9 +83,11 @@
 
 #include "physics_intern.h"
 
-static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys);
-static void PTCacheUndo_clear(PTCacheEdit *edit);
-static void recalc_emitter_field(Object *ob, ParticleSystem *psys);
+void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys);
+void PTCacheUndo_clear(PTCacheEdit *edit);
+void recalc_lengths(PTCacheEdit *edit);
+void recalc_emitter_field(Object *ob, ParticleSystem *psys);
+void update_world_cos(Object *ob, PTCacheEdit *edit);
 
 #define KEY_K					PTCacheEditKey *key; int k
 #define POINT_P					PTCacheEditPoint *point; int p
@@ -1074,7 +1076,7 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 	}
 }
 /* set current distances to be kept between neighbouting keys */
-static void recalc_lengths(PTCacheEdit *edit)
+void recalc_lengths(PTCacheEdit *edit)
 {
 	POINT_P; KEY_K;
 
@@ -1090,7 +1092,7 @@ static void recalc_lengths(PTCacheEdit *edit)
 }
 
 /* calculate a tree for finding nearest emitter's vertice */
-static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
+void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 {
 	DerivedMesh *dm=psys_get_modifier(ob, psys)->dm;
 	PTCacheEdit *edit= psys->edit;
@@ -1178,7 +1180,7 @@ static void PE_update_selection(Scene *scene, Object *ob, int useflag)
 		point->flag &= ~PEP_EDIT_RECALC;
 }
 
-static void update_world_cos(Object *ob, PTCacheEdit *edit)
+void update_world_cos(Object *ob, PTCacheEdit *edit)
 {
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
@@ -4452,7 +4454,7 @@ int PE_undo_valid(Scene *scene)
 	return 0;
 }
 
-static void PTCacheUndo_clear(PTCacheEdit *edit)
+void PTCacheUndo_clear(PTCacheEdit *edit)
 {
 	PTCacheUndo *undo;
 
@@ -4553,7 +4555,7 @@ int PE_minmax(Scene *scene, float min[3], float max[3])
 /************************ particle edit toggle operator ************************/
 
 /* initialize needed data for bake edit */
-static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)
+void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)
 {
 	PTCacheEdit *edit;
 	ParticleSystemModifierData *psmd = (psys) ? psys_get_modifier(ob, psys) : NULL;

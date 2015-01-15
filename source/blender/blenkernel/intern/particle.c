@@ -3041,6 +3041,7 @@ void object_remove_particle_system(Scene *UNUSED(scene), Object *ob)
 	DAG_relations_tag_update(G.main);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
+
 static void default_particle_settings(ParticleSettings *part)
 {
 	part->type = PART_EMITTER;
