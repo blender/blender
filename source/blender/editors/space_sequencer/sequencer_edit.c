@@ -180,6 +180,10 @@ static void seq_proxy_build_job(const bContext *C)
 	LinkData *link;
 	Sequence *seq;
 
+	if (ed == NULL) {
+		return;
+	}
+
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies",
 	                     WM_JOB_PROGRESS, WM_JOB_TYPE_SEQ_BUILD_PROXY);
 
