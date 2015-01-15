@@ -1646,6 +1646,42 @@ static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index),
 /************************************************/
 /*			Particles on emitter				*/
 /************************************************/
+
+CustomDataMask psys_emitter_customdata_mask(ParticleSystem *psys)
+{
+	CustomDataMask dataMask = 0;
+	MTex *mtex;
+	int i;
+
+	if (!psys->part)
+		return 0;
+
+	for (i = 0; i < MAX_MTEX; i++) {
+		mtex = psys->part->mtex[i];
+		if (mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
+			dataMask |= CD_MASK_MTFACE;
+	}
+
+	if (psys->part->tanfac != 0.0f)
+		dataMask |= CD_MASK_MTFACE;
+
+	/* ask for vertexgroups if we need them */
+	for (i = 0; i < PSYS_TOT_VG; i++) {
+		if (psys->vgroup[i]) {
+			dataMask |= CD_MASK_MDEFORMVERT;
+			break;
+		}
+	}
+	
+	/* particles only need this if they are after a non deform modifier, and
+	 * the modifier stack will only create them in that case. */
+	dataMask |= CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORIGINDEX;
+
+	dataMask |= CD_MASK_ORCO;
+	
+	return dataMask;
+}
+
 void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int index, int index_dmcache,
                               float fuv[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3],
                               float orco[3], float ornor[3])

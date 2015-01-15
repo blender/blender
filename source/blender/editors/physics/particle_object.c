@@ -651,9 +651,10 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 }
 
 static bool remap_hair_emitter(Scene *scene, Object *UNUSED(ob), ParticleSystem *psys,
-                               Object *target_ob, DerivedMesh *target_dm, ParticleSystem *target_psys, PTCacheEdit *target_edit,
+                               Object *target_ob, ParticleSystem *target_psys, PTCacheEdit *target_edit,
                                bool from_world_space, bool to_world_space)
 {
+	ParticleSystemModifierData *target_psmd = psys_get_modifier(target_ob, target_psys);
 	ParticleData *pa, *tpa;
 	PTCacheEditPoint *edit_point;
 	PTCacheEditKey *ekey;
@@ -661,22 +662,28 @@ static bool remap_hair_emitter(Scene *scene, Object *UNUSED(ob), ParticleSystem 
 	MFace *mface = NULL, *mf;
 	MEdge *medge = NULL, *me;
 	MVert *mvert;
-	DerivedMesh *dm;
+	DerivedMesh *dm, *target_dm;
 	int numverts;
 	int i, k;
 
-	if (!psys->part || psys->part->type != PART_HAIR || !target_psys->part || target_psys->part->type != PART_HAIR)
+	if (!target_psmd->dm)
+		return false;
+	if (!psys->part || psys->part->type != PART_HAIR)
+		return false;
+	if (!target_psys->part || target_psys->part->type != PART_HAIR)
 		return false;
 	
 	edit_point = target_edit ? target_edit->points : NULL;
 	
-	if (target_dm->deformedOnly) {
-		/* we don't want to mess up target_dm when converting to global coordinates below */
-		dm = target_dm;
+	if (target_psmd->dm->deformedOnly) {
+		/* we don't want to mess up target_psmd->dm when converting to global coordinates below */
+		dm = target_psmd->dm;
 	}
 	else {
+		/* warning: this rebuilds target_psmd->dm! */
 		dm = mesh_get_derived_deform(scene, target_ob, CD_MASK_BAREMESH);
 	}
+	target_dm = target_psmd->dm;
 	/* don't modify the original vertices */
 	dm = CDDM_copy(dm);
 
@@ -738,7 +745,7 @@ static bool remap_hair_emitter(Scene *scene, Object *UNUSED(ob), ParticleSystem 
 			tpa->foffset = 0.0f;
 
 			tpa->num = nearest.index;
-			tpa->num_dmcache = psys_particle_dm_face_lookup(target_ob, dm, tpa->num, tpa->fuv, NULL);
+			tpa->num_dmcache = psys_particle_dm_face_lookup(target_ob, target_dm, tpa->num, tpa->fuv, NULL);
 		}
 		else {
 			me = &medge[nearest.index];
@@ -812,19 +819,14 @@ static bool remap_hair_emitter(Scene *scene, Object *UNUSED(ob), ParticleSystem 
 
 static bool connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
-	ParticleSystemModifierData *psmd;
 	const bool from_global = psys->flag & PSYS_GLOBAL_HAIR;
 	const bool to_global = false;
 	
 	if (!psys)
 		return false;
 	
-	psmd = psys_get_modifier(ob, psys);
-	if (!psmd->dm)
-		return false;
-	
 	psys->flag &= ~PSYS_GLOBAL_HAIR;
-	return remap_hair_emitter(scene, ob, psys, ob, psmd->dm, psys, psys->edit, from_global, to_global);
+	return remap_hair_emitter(scene, ob, psys, ob, psys, psys->edit, from_global, to_global);
 }
 
 static int connect_hair_exec(bContext *C, wmOperator *op)
@@ -937,6 +939,7 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 	ModifierData *md, *md_next;
 	ParticleSystem *psys, *psys_from;
 	DerivedMesh *final_dm;
+	CustomDataMask cdmask;
 	int i;
 	
 	if (ob_to->type != OB_MESH)
@@ -960,16 +963,18 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 	}
 	BKE_object_free_particlesystems(ob_to);
 	
+	BKE_object_copy_particlesystems(ob_to, ob_from);
+	
 	/* For remapping we need a valid DM.
 	 * Because the modifier is appended at the end it's safe to use
 	 * the final DM of the object without particles
 	 */
-	if (ob_to->derivedFinal)
-		final_dm = ob_to->derivedFinal;
-	else
-		final_dm = mesh_get_derived_final(scene, ob_to, CD_MASK_BAREMESH);
+	cdmask = 0;
+	for (psys = ob_to->particlesystem.first; psys; psys = psys->next, ++i) {
+		cdmask |= psys_emitter_customdata_mask(psys);
+	}
+	final_dm = mesh_get_derived_final(scene, ob_to, cdmask);
 	
-	BKE_object_copy_particlesystems(ob_to, ob_from);
 	for (psys = ob_to->particlesystem.first, psys_from = ob_from->particlesystem.first, i = 0;
 	     psys;
 	     psys = psys->next, psys_from = psys_from->next, ++i) {
@@ -988,14 +993,23 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 		psmd->psys = psys;
 		psmd->dm = CDDM_copy(final_dm);
 		CDDM_calc_normals(psmd->dm);
+		DM_ensure_tessface(psmd->dm);
 		
 		if (psys_from->edit)
 			copy_particle_edit(scene, ob_to, psys, psys_from);
+	}
+	
+	/* note: do this after creating DM copies for all the particle system modifiers,
+	 * the remapping otherwise makes final_dm invalid!
+	 */
+	for (psys = ob_to->particlesystem.first, psys_from = ob_from->particlesystem.first, i = 0;
+	     psys;
+	     psys = psys->next, psys_from = psys_from->next, ++i) {
 		
-		remap_hair_emitter(scene, ob_from, psys_from, ob_to, psmd->dm, psys, psys->edit, false, false);
+		remap_hair_emitter(scene, ob_from, psys_from, ob_to, psys, psys->edit, false, false);
 		
 		/* tag for recalc */
-		psys->recalc |= PSYS_RECALC_RESET;
+//		psys->recalc |= PSYS_RECALC_RESET;
 	}
 	
 	DAG_id_tag_update(&ob_to->id, OB_RECALC_DATA);

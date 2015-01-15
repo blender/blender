@@ -85,37 +85,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
-	CustomDataMask dataMask = 0;
-	MTex *mtex;
-	int i;
-
-	if (!psmd->psys->part)
-		return 0;
-
-	for (i = 0; i < MAX_MTEX; i++) {
-		mtex = psmd->psys->part->mtex[i];
-		if (mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
-			dataMask |= CD_MASK_MTFACE;
-	}
-
-	if (psmd->psys->part->tanfac != 0.0f)
-		dataMask |= CD_MASK_MTFACE;
-
-	/* ask for vertexgroups if we need them */
-	for (i = 0; i < PSYS_TOT_VG; i++) {
-		if (psmd->psys->vgroup[i]) {
-			dataMask |= CD_MASK_MDEFORMVERT;
-			break;
-		}
-	}
-	
-	/* particles only need this if they are after a non deform modifier, and
-	 * the modifier stack will only create them in that case. */
-	dataMask |= CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORIGINDEX;
-
-	dataMask |= CD_MASK_ORCO;
-	
-	return dataMask;
+	return psys_emitter_customdata_mask(psmd->psys);
 }
 
 /* saves the current emitter state for a particle system and calculates particles */

@@ -39,6 +39,8 @@
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_customdata.h"
+
 struct ParticleSystemModifierData;
 struct ParticleSystem;
 struct ParticleKey;
@@ -312,6 +314,7 @@ void psys_interpolate_mcol(const struct MCol *mcol, int quad, const float w[4], 
 
 void copy_particle_key(struct ParticleKey *to, struct ParticleKey *from, int time);
 
+CustomDataMask psys_emitter_customdata_mask(struct ParticleSystem *psys);
 void psys_particle_on_emitter(struct ParticleSystemModifierData *psmd, int distr, int index, int index_dmcache,
                               float fuv[4], float foffset, float vec[3], float nor[3],
                               float utan[3], float vtan[3], float orco[3], float ornor[3]);
