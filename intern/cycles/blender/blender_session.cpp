@@ -794,7 +794,7 @@ void BlenderSession::get_progress(float& progress, double& total_time, double& r
 	if(background && samples_per_tile && tile_total)
 		progress = ((float)sample / (float)(tile_total * samples_per_tile));
 	else if(!background && samples > 0 && total_samples != USHRT_MAX)
-		progress = ((double)samples) / total_samples;
+		progress = ((float)samples) / total_samples;
 	else
 		progress = 0.0;
 }
