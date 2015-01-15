@@ -78,6 +78,27 @@ base class --- :class:`SCA_IObject`
 
          The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0.
 
+   .. attribute:: linearDamping
+
+      The object's linear damping, also known as translational damping. Can be set simultaneously with angular damping using the :py:meth:`setDamping` method.
+
+      :type: float between 0 and 1 inclusive.
+
+      .. note::
+
+         The object must have a physics controller for the linear damping to be applied, otherwise the value will be returned as 0.0.
+
+   .. attribute:: angularDamping
+
+      The object's angular damping, also known as rotationation damping. Can be set simultaneously with linear damping using the :py:meth:`setDamping` method.
+
+      :type: float between 0 and 1 inclusive.
+
+      .. note::
+
+         The object must have a physics controller for the angular damping to be applied, otherwise the value will be returned as 0.0.
+
+
    .. attribute:: linVelocityMin
 
       Enforces the object keeps moving at a minimum velocity.
@@ -579,6 +600,15 @@ base class --- :class:`SCA_IObject`
          * False: you get the "global" impulse ie: relative to world coordinates with world orientation.
          * True: you get the "local" impulse ie: relative to local coordinates with object orientation.
       :type local: boolean
+
+   .. method:: setDamping(linear_damping, angular_damping)
+
+      Sets both the :py:attr:`linearDamping` and :py:attr:`angularDamping` simultaneously. This is more efficient than setting both properties individually.
+
+      :arg linear_damping: Linear ("translational") damping factor.
+      :type linear_damping: float ∈ [0, 1]
+      :arg angular_damping: Angular ("rotational") damping factor.
+      :type angular_damping: float ∈ [0, 1]
 
    .. method:: suspendDynamics()
 

@@ -207,6 +207,11 @@ btRigidBody* CcdPhysicsController::GetRigidBody()
 {
 	return btRigidBody::upcast(m_object);
 }
+const btRigidBody* CcdPhysicsController::GetRigidBody() const
+{
+	return btRigidBody::upcast(m_object);
+}
+
 btCollisionObject*	CcdPhysicsController::GetCollisionObject()
 {
 	return m_object;
@@ -1354,6 +1359,42 @@ void		CcdPhysicsController::Jump()
 void		CcdPhysicsController::SetActive(bool active)
 {
 }
+
+float		CcdPhysicsController::GetLinearDamping() const
+{
+	const btRigidBody* body = GetRigidBody();
+	if (body)
+		return body->getLinearDamping();
+	return 0;
+}
+
+float		CcdPhysicsController::GetAngularDamping() const
+{
+	const	btRigidBody* body = GetRigidBody();
+	if (body)
+		return body->getAngularDamping();
+	return 0;
+}
+
+void		CcdPhysicsController::SetLinearDamping(float damping)
+{
+	SetDamping(damping, GetAngularDamping());
+}
+
+void		CcdPhysicsController::SetAngularDamping(float damping)
+{
+	SetDamping(GetLinearDamping(), damping);
+}
+
+void		CcdPhysicsController::SetDamping(float linear, float angular)
+{
+	btRigidBody* body = GetRigidBody();
+	if (!body) return;
+
+	body->setDamping(linear, angular);
+}
+
+
 		// reading out information from physics
 MT_Vector3		CcdPhysicsController::GetLinearVelocity()
 {

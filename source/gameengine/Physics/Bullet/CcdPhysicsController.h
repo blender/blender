@@ -522,6 +522,7 @@ protected:
 
 
 		btRigidBody* GetRigidBody();
+		const btRigidBody*	GetRigidBody() const;
 		btCollisionObject*	GetCollisionObject();
 		btSoftBody* GetSoftBody();
 		btKinematicCharacterController* GetCharacterController();
@@ -572,6 +573,12 @@ protected:
 		virtual void		SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
 		virtual void		Jump();
 		virtual void		SetActive(bool active);
+
+		virtual float		GetLinearDamping() const;
+		virtual float		GetAngularDamping() const;
+		virtual void		SetLinearDamping(float damping);
+		virtual void		SetAngularDamping(float damping);
+		virtual void		SetDamping(float linear, float angular);
 
 		// reading out information from physics
 		virtual MT_Vector3	GetLinearVelocity();

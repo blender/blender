@@ -89,6 +89,12 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual void		SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;
 		virtual void		ResolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
 
+		virtual float		GetLinearDamping() const=0;
+		virtual float		GetAngularDamping() const=0;
+		virtual void		SetLinearDamping(float damping)=0;
+		virtual void		SetAngularDamping(float damping)=0;
+		virtual void		SetDamping(float linear, float angular)=0;
+
 		virtual void		SuspendDynamics(bool ghost=false)=0;
 		virtual void		RestoreDynamics()=0;
 

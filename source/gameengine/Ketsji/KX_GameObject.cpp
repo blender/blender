@@ -575,6 +575,39 @@ CValue* KX_GameObject::GetReplica()
 	return replica;
 }
 
+float KX_GameObject::getLinearDamping() const
+{
+	if (m_pPhysicsController)
+		return m_pPhysicsController->GetLinearDamping();
+	return 0;
+}
+
+float KX_GameObject::getAngularDamping() const
+{
+	if (m_pPhysicsController)
+		return m_pPhysicsController->GetAngularDamping();
+	return 0;
+}
+
+void KX_GameObject::setLinearDamping(float damping)
+{
+	if (m_pPhysicsController)
+		m_pPhysicsController->SetLinearDamping(damping);
+}
+
+
+void KX_GameObject::setAngularDamping(float damping)
+{
+	if (m_pPhysicsController)
+		m_pPhysicsController->SetAngularDamping(damping);
+}
+
+
+void KX_GameObject::setDamping(float linear, float angular)
+{
+	if (m_pPhysicsController)
+		m_pPhysicsController->SetDamping(linear, angular);
+}
 
 
 void KX_GameObject::ApplyForce(const MT_Vector3& force,bool local)
@@ -1822,6 +1855,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getAngularVelocity", (PyCFunction) KX_GameObject::sPyGetAngularVelocity, METH_VARARGS},
 	{"setAngularVelocity", (PyCFunction) KX_GameObject::sPySetAngularVelocity, METH_VARARGS},
 	{"getVelocity", (PyCFunction) KX_GameObject::sPyGetVelocity, METH_VARARGS},
+	{"setDamping", (PyCFunction) KX_GameObject::sPySetDamping, METH_VARARGS},
 	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_NOARGS},
 	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
 	{"getAxisVect",(PyCFunction) KX_GameObject::sPyGetAxisVect, METH_O},
@@ -1897,6 +1931,8 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("angularVelocity", KX_GameObject, pyattr_get_localAngularVelocity, pyattr_set_worldAngularVelocity),
 	KX_PYATTRIBUTE_RW_FUNCTION("localAngularVelocity", KX_GameObject, pyattr_get_localAngularVelocity, pyattr_set_localAngularVelocity),
 	KX_PYATTRIBUTE_RW_FUNCTION("worldAngularVelocity", KX_GameObject, pyattr_get_worldAngularVelocity, pyattr_set_worldAngularVelocity),
+	KX_PYATTRIBUTE_RW_FUNCTION("linearDamping", KX_GameObject, pyattr_get_linearDamping, pyattr_set_linearDamping),
+	KX_PYATTRIBUTE_RW_FUNCTION("angularDamping", KX_GameObject, pyattr_get_angularDamping, pyattr_set_angularDamping),
 	KX_PYATTRIBUTE_RO_FUNCTION("children",	KX_GameObject, pyattr_get_children),
 	KX_PYATTRIBUTE_RO_FUNCTION("childrenRecursive",	KX_GameObject, pyattr_get_children_recursive),
 	KX_PYATTRIBUTE_RO_FUNCTION("attrDict",	KX_GameObject, pyattr_get_attrDict),
@@ -2687,6 +2723,34 @@ int KX_GameObject::pyattr_set_localAngularVelocity(void *self_v, const KX_PYATTR
 	return PY_SET_ATTR_SUCCESS;
 }
 
+PyObject *KX_GameObject::pyattr_get_linearDamping(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	return PyFloat_FromDouble(self->getLinearDamping());
+}
+
+int KX_GameObject::pyattr_set_linearDamping(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	float val = PyFloat_AsDouble(value);
+	self->setLinearDamping(val);
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_GameObject::pyattr_get_angularDamping(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	return PyFloat_FromDouble(self->getAngularDamping());
+}
+
+int KX_GameObject::pyattr_set_angularDamping(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	float val = PyFloat_AsDouble(value);
+	self->setAngularDamping(val);
+	return PY_SET_ATTR_SUCCESS;
+}
+
 
 PyObject *KX_GameObject::pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -2981,6 +3045,18 @@ PyObject *KX_GameObject::PySetAngularVelocity(PyObject *args)
 		}
 	}
 	return NULL;
+}
+
+PyObject *KX_GameObject::PySetDamping(PyObject *args)
+{
+	float linear;
+	float angular;
+
+	if (!PyArg_ParseTuple(args,"ff|i:setDamping", &linear, &angular))
+		return NULL;
+
+	setDamping(linear, angular);
+	Py_RETURN_NONE;
 }
 
 PyObject *KX_GameObject::PySetVisible(PyObject *args)
