@@ -876,45 +876,6 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 
 /************************ particle system copy operator *********************/
 
-static bool find_object_pair(bContext *C, ReportList *reports, Object **r_ob_to, Object **r_ob_from)
-{
-	ListBase selected;
-	CollectionPointerLink *link;
-	Object *ob_from, *ob_to;
-	
-	ob_to = CTX_data_active_object(C);
-	if (!ob_to) {
-		BKE_report(reports, RPT_ERROR, "No active object");
-		return false;
-	}
-	
-	ob_from = NULL;
-	CTX_data_selected_objects(C, &selected);
-	for (link = selected.first; link; link = link->next) {
-		Object *ob = link->ptr.data;
-		if (ob != ob_to) {
-			if (ob_from)
-				break; /* indicates multiple selected objects */
-			else
-				ob_from = ob;
-		}
-	}
-	BLI_freelistN(&selected);
-	
-	if (!ob_from) {
-		BKE_report(reports, RPT_ERROR, "No non-active selected object");
-		return false;
-	}
-	else if (link) {
-		BKE_report(reports, RPT_ERROR, "Multiple non-active selected objects");
-		return false;
-	}
-	
-	*r_ob_to = ob_to;
-	*r_ob_from = ob_from;
-	return true;
-}
-
 static void copy_particle_edit(Scene *scene, Object *ob, ParticleSystem *psys, ParticleSystem *psys_from)
 {
 	PTCacheEdit *edit_from = psys_from->edit, *edit;
@@ -971,22 +932,17 @@ static void copy_particle_edit(Scene *scene, Object *ob, ParticleSystem *psys, P
 	PE_undo_push(scene, "Original");
 }
 
-static int copy_particle_systems_exec(bContext *C, wmOperator *op)
+static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Object *ob_to)
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob_from, *ob_to;
-	ParticleSystem *psys, *psys_from;
 	ModifierData *md, *md_next;
+	ParticleSystem *psys, *psys_from;
 	DerivedMesh *final_dm;
 	int i;
 	
-	if (!find_object_pair(C, op->reports, &ob_to, &ob_from))
-		return OPERATOR_CANCELLED;
-	
-	if (BLI_listbase_is_empty(&ob_from->particlesystem)) {
-		BKE_reportf(op->reports, RPT_ERROR, "Object %200s has no particle systems", ob_from->id.name+2);
-		return OPERATOR_CANCELLED;
-	}
+	if (ob_to->type != OB_MESH)
+		return false;
+	if (!ob_to->data || ((ID *)ob_to->data)->lib)
+		return false;
 	
 	/* XXX in theory it could be nice to not delete existing particle systems,
 	 * but the current code for copying assumes that the target object list is empty ...
@@ -1044,6 +1000,46 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 	
 	DAG_id_tag_update(&ob_to->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, ob_to);
+	return true;
+}
+
+static int copy_particle_systems_poll(bContext *C)
+{
+	Object *ob;
+	if (!ED_operator_object_active_editable(C))
+		return false;
+	
+	ob = ED_object_active_context(C);
+	if (BLI_listbase_is_empty(&ob->particlesystem))
+		return false;
+	
+	return true;
+}
+
+static int copy_particle_systems_exec(bContext *C, wmOperator *op)
+{
+	Object *ob_from = ED_object_active_context(C);
+	Scene *scene = CTX_data_scene(C);
+	
+	int changed_tot = 0;
+	int fail = 0;
+	
+	CTX_DATA_BEGIN (C, Object *, ob_to, selected_editable_objects)
+	{
+		if (ob_from != ob_to) {
+			if (copy_particle_systems_to_object(scene, ob_from, ob_to))
+				changed_tot++;
+			else
+				fail++;
+		}
+	}
+	CTX_DATA_END;
+	
+	if ((changed_tot == 0 && fail == 0) || fail) {
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Copy particle systems to selected: %d done, %d failed",
+		            changed_tot, fail);
+	}
 	
 	return OPERATOR_FINISHED;
 }
@@ -1051,9 +1047,10 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 {
 	ot->name = "Copy Particle Systems";
-	ot->description = "Copy particle systems to the active object";
+	ot->description = "Copy particle systems from the active object to selected objects";
 	ot->idname = "PARTICLE_OT_copy_particle_systems";
 	
+	ot->poll = copy_particle_systems_poll;
 	ot->exec = copy_particle_systems_exec;
 	
 	/* flags */
