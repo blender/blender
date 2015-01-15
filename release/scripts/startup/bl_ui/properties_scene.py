@@ -62,7 +62,8 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
 
         layout.prop(scene, "camera")
         layout.prop(scene, "background_set", text="Background")
-        layout.prop(scene, "active_clip", text="Active Clip")
+        if context.scene.render.engine != 'BLENDER_GAME':
+            layout.prop(scene, "active_clip", text="Active Clip")
 
 
 class SCENE_PT_unit(SceneButtonsPanel, Panel):

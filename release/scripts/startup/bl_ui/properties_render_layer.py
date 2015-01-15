@@ -48,13 +48,17 @@ class RENDERLAYER_UL_renderlayers(UIList):
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
     bl_label = "Layer List"
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
         rd = scene.render
+
+        if rd.engine == 'BLENDER_GAME':
+            layout.label("Not available in the Game Engine")
+            return
 
         row = layout.row()
         col = row.column()
