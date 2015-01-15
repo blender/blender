@@ -46,7 +46,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -773,14 +772,6 @@ static bool remap_hair_emitter(Scene *scene, Object *UNUSED(ob), ParticleSystem 
 			
 			/* offset in world space */
 			sub_v3_v3v3(offset, nearest.co, co);
-			{
-				SimDebugData *dd = psys->clmd ? psys->clmd->debug_data : NULL;
-				BKE_sim_debug_data_add_dot(dd, nearest.co, 1,1,1, "particle matrix", 689, i);
-				
-				BKE_sim_debug_data_add_vector(dd, hairmat[3], hairmat[0], 1,0,0, "particle matrix", 222, i);
-				BKE_sim_debug_data_add_vector(dd, hairmat[3], hairmat[1], 0,1,0, "particle matrix", 333, i);
-				BKE_sim_debug_data_add_vector(dd, hairmat[3], hairmat[2], 0,0,1, "particle matrix", 444, i);
-			}
 			
 			if (edit_point) {
 				for (k=0, key=pa->hair, tkey=tpa->hair, ekey = edit_point->keys; k<tpa->totkey; k++, key++, tkey++, ekey++) {
