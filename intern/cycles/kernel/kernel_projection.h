@@ -76,12 +76,12 @@ ccl_device float3 equirectangular_range_to_direction(float u, float v, float4 ra
 
 ccl_device float2 direction_to_equirectangular(float3 dir)
 {
-	return direction_to_equirectangular_range(dir, make_float4(-M_2_PI_F, M_PI_F, -M_PI_F, M_PI_F));
+	return direction_to_equirectangular_range(dir, make_float4(-M_2PI_F, M_PI_F, -M_PI_F, M_PI_F));
 }
 
 ccl_device float3 equirectangular_to_direction(float u, float v)
 {
-	return equirectangular_range_to_direction(u, v, make_float4(-M_2_PI_F, M_PI_F, -M_PI_F, M_PI_F));
+	return equirectangular_range_to_direction(u, v, make_float4(-M_2PI_F, M_PI_F, -M_PI_F, M_PI_F));
 }
 
 /* Fisheye <-> Cartesian direction */
