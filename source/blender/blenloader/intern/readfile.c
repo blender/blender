@@ -105,7 +105,6 @@
 
 #include "BLI_endian_switch.h"
 #include "BLI_blenlib.h"
-#include "BLI_callbacks.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_mempool.h"
@@ -7890,12 +7889,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	}
 	
 	/* do before read_libraries, but skip undo case */
-	if (fd->memfile==NULL) {
+	if (fd->memfile==NULL)
 		do_versions(fd, NULL, bfd->main);
-		if (BLI_thread_is_main()) {
-			BLI_callback_exec(bfd->main, NULL, BLI_CB_EVT_VERSION_UPDATE);
-		}
-	}
 	
 	do_versions_userdef(fd, bfd);
 	
@@ -9532,9 +9527,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				do_versions(mainptr->curlib->filedata, mainptr->curlib, mainptr);
 			else
 				do_versions(basefd, NULL, mainptr);
-			if (BLI_thread_is_main()) {
-				BLI_callback_exec(mainptr, NULL, BLI_CB_EVT_VERSION_UPDATE);
-			}
 		}
 		
 		if (mainptr->curlib->filedata)
