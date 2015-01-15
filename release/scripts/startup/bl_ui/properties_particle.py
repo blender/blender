@@ -63,6 +63,16 @@ def particle_get_settings(context):
     return None
 
 
+class PARTICLE_MT_specials(Menu):
+    bl_label = "Particle Specials"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("particle.copy_particle_systems")
+
+
 class PARTICLE_MT_hair_dynamics_presets(Menu):
     bl_label = "Hair Dynamics Presets"
     preset_subdir = "hair_dynamics"
@@ -135,6 +145,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             col = row.column(align=True)
             col.operator("object.particle_system_add", icon='ZOOMIN', text="")
             col.operator("object.particle_system_remove", icon='ZOOMOUT', text="")
+            col.menu("PARTICLE_MT_specials", icon='DOWNARROW_HLT', text="")
 
         if psys is None:
             part = particle_get_settings(context)
