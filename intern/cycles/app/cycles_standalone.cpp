@@ -71,12 +71,12 @@ static void session_print(const string& str)
 static void session_print_status()
 {
 	int sample, tile;
-	double total_time, sample_time;
+	double total_time, sample_time, render_time;
 	string status, substatus;
 
 	/* get status */
 	sample = options.session->progress.get_sample();
-	options.session->progress.get_tile(tile, total_time, sample_time);
+	options.session->progress.get_tile(tile, total_time, sample_time, render_time);
 	options.session->progress.get_status(status, substatus);
 
 	if(substatus != "")
@@ -166,11 +166,11 @@ static void display_info(Progress& progress)
 	last = elapsed;
 
 	int sample, tile;
-	double total_time, sample_time;
+	double total_time, sample_time, render_time;
 	string status, substatus;
 
 	sample = progress.get_sample();
-	progress.get_tile(tile, total_time, sample_time);
+	progress.get_tile(tile, total_time, sample_time, render_time);
 	progress.get_status(status, substatus);
 
 	if(substatus != "")
