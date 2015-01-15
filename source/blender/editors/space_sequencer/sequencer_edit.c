@@ -3345,9 +3345,39 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 }
 
 /* rebuild_proxy operator */
-static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
+
+static int sequencer_rebuild_proxy_invoke(bContext *C, wmOperator *UNUSED(op),
+                                          const wmEvent *UNUSED(event))
 {
 	seq_proxy_build_job(C);
+
+	return OPERATOR_FINISHED;
+}
+
+static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
+	Sequence *seq;
+
+	if (ed == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
+	SEQP_BEGIN(ed, seq)
+	{
+		if ((seq->flag & SELECT)) {
+			struct SeqIndexBuildContext *context;
+			short stop = 0, do_update;
+			float progress;
+			context = BKE_sequencer_proxy_rebuild_context(bmain, scene, seq);
+			BKE_sequencer_proxy_rebuild(context, &stop, &do_update, &progress);
+			BKE_sequencer_proxy_rebuild_finish(context, 0);
+			BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
+		}
+	}
+	SEQ_END
 
 	return OPERATOR_FINISHED;
 }
@@ -3360,8 +3390,8 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 	ot->description = "Rebuild all selected proxies and timecode indices using the job system";
 	
 	/* api callbacks */
+	ot->invoke = sequencer_rebuild_proxy_invoke;
 	ot->exec = sequencer_rebuild_proxy_exec;
-	ot->poll = ED_operator_sequencer_active;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;
