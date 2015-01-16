@@ -990,7 +990,8 @@ static void remove_particle_systems_from_object(Object *ob_to)
 	BKE_object_free_particlesystems(ob_to);
 }
 
-static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Object *ob_to, int space)
+/* single_psys_from is optional, if NULL all psys of ob_from are copied */
+static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, ParticleSystem *single_psys_from, Object *ob_to, int space)
 {
 	ModifierData *md;
 	ParticleSystem *psys_start, *psys, *psys_from;
@@ -1012,11 +1013,17 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 	 * To break this hen/egg problem we create all psys separately first (to collect required customdata masks),
 	 * then create the DM, then add them to the object and make the psys modifiers ...
 	 */
-	totpsys = BLI_listbase_count(&ob_from->particlesystem);
+	#define PSYS_FROM_FIRST (single_psys_from ? single_psys_from : ob_from->particlesystem.first)
+	#define PSYS_FROM_NEXT(cur) (single_psys_from ? NULL : (cur)->next)
+	totpsys = single_psys_from ? 1 : BLI_listbase_count(&ob_from->particlesystem);
+	
 	tmp_psys = MEM_mallocN(sizeof(ParticleSystem*) * totpsys, "temporary particle system array");
 	
 	cdmask = 0;
-	for (psys_from = ob_from->particlesystem.first, i = 0; psys_from; psys_from = psys_from->next, ++i) {
+	for (psys_from = PSYS_FROM_FIRST, i = 0;
+	     psys_from;
+	     psys_from = PSYS_FROM_NEXT(psys_from), ++i) {
+		
 		psys = BKE_object_copy_particlesystem(psys_from);
 		tmp_psys[i] = psys;
 		
@@ -1034,9 +1041,9 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 	final_dm = mesh_get_derived_final(scene, ob_to, cdmask);
 	
 	/* now append psys to the object and make modifiers */
-	for (i = 0, psys_from = ob_from->particlesystem.first;
+	for (i = 0, psys_from = PSYS_FROM_FIRST;
 	     i < totpsys;
-	     ++i, psys_from = psys_from->next) {
+	     ++i, psys_from = PSYS_FROM_NEXT(psys_from)) {
 		
 		ParticleSystemModifierData *psmd;
 		
@@ -1067,9 +1074,9 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 	/* note: do this after creating DM copies for all the particle system modifiers,
 	 * the remapping otherwise makes final_dm invalid!
 	 */
-	for (psys = psys_start, psys_from = ob_from->particlesystem.first, i = 0;
+	for (psys = psys_start, psys_from = PSYS_FROM_FIRST, i = 0;
 	     psys;
-	     psys = psys->next, psys_from = psys_from->next, ++i) {
+	     psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), ++i) {
 		
 		float (*from_mat)[4], (*to_mat)[4];
 		
@@ -1094,6 +1101,9 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 //		psys->recalc |= PSYS_RECALC_RESET;
 	}
 	
+	#undef PSYS_FROM_FIRST
+	#undef PSYS_FROM_NEXT
+	
 	DAG_id_tag_update(&ob_to->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, ob_to);
 	return true;
@@ -1114,10 +1124,12 @@ static int copy_particle_systems_poll(bContext *C)
 
 static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 {
-	Object *ob_from = ED_object_active_context(C);
-	Scene *scene = CTX_data_scene(C);
 	const int space = RNA_enum_get(op->ptr, "space");
 	const bool remove_target_particles = RNA_boolean_get(op->ptr, "remove_target_particles");
+	const bool use_active = RNA_boolean_get(op->ptr, "use_active");
+	Scene *scene = CTX_data_scene(C);
+	Object *ob_from = ED_object_active_context(C);
+	ParticleSystem *psys_from = use_active ? CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data : NULL;
 	
 	int changed_tot = 0;
 	int fail = 0;
@@ -1130,7 +1142,7 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 				remove_particle_systems_from_object(ob_to);
 				changed = true;
 			}
-			if (copy_particle_systems_to_object(scene, ob_from, ob_to, space))
+			if (copy_particle_systems_to_object(scene, ob_from, psys_from, ob_to, space))
 				changed = true;
 			else
 				fail++;
@@ -1170,4 +1182,5 @@ void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 	
 	RNA_def_enum(ot->srna, "space", space_items, PAR_COPY_SPACE_OBJECT, "Space", "Space transform for copying from one object to another");
 	RNA_def_boolean(ot->srna, "remove_target_particles", true, "Remove Target Particles", "Remove particle systems on the target objects");
+	RNA_def_boolean(ot->srna, "use_active", false, "Use Active", "Use the active particle system from the context");
 }

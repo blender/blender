@@ -70,7 +70,13 @@ class PARTICLE_MT_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("particle.copy_particle_systems")
+        props = layout.operator("particle.copy_particle_systems", text="Copy Active to Selected Objects")
+        props.use_active = True
+        props.remove_target_particles = False
+
+        props = layout.operator("particle.copy_particle_systems", text="Copy All to Selected Objects")
+        props.use_active = False
+        props.remove_target_particles = True
 
 
 class PARTICLE_MT_hair_dynamics_presets(Menu):
