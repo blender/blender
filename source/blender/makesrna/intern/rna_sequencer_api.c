@@ -313,6 +313,7 @@ static Sequence *rna_Sequences_new_effect(ID *id, Editing *ed, ReportList *repor
 
 	seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
 
+	BKE_sequence_calc(scene, seq);
 	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
