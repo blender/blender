@@ -220,7 +220,6 @@ static PyObject *ViewShape_vertices_get(BPy_ViewShape *self, void *UNUSED(closur
 
 static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void *UNUSED(closure))
 {
-	PyObject *list = 0;
 	PyObject *item;
 	vector< ViewVertex *> v;
 	
@@ -229,9 +228,9 @@ static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void *UN
 		return -1;
 	}
 
-	v.reserve(PyList_Size(list));
-	for (unsigned int i = 0; i < PyList_Size(list); i++) {
-		item = PyList_GET_ITEM(list, i);
+	v.reserve(PyList_Size(value));
+	for (unsigned int i = 0; i < PyList_Size(value); i++) {
+		item = PyList_GET_ITEM(value, i);
 		if (BPy_ViewVertex_Check(item)) {
 			v.push_back(((BPy_ViewVertex *)item)->vv);
 		}
