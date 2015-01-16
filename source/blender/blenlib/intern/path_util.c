@@ -428,6 +428,24 @@ void BLI_cleanup_file(const char *relabase, char *path)
 	BLI_del_slash(path);
 }
 
+
+/**
+ * Make given name safe to be used in paths.
+ *
+ * For now, simply replaces reserved chars (as listed in
+ * http://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words )
+ * by underscores ('_').
+ */
+void BLI_filename_make_safe(char *fname)
+{
+	char *invalid = "/\\?%*:|\"<>. ";
+	char *c;
+
+	for (; *fname && (fname = strpbrk(fname, invalid)); fname++) {
+		*fname = '_';
+	}
+}
+
 /**
  * Does path begin with the special "//" prefix that Blender uses to indicate
  * a path relative to the .blend file.

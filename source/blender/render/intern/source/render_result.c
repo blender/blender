@@ -1074,6 +1074,9 @@ void render_result_exr_file_path(Scene *scene, const char *layname, int sample, 
 		BLI_snprintf(name, sizeof(name), "%s_%s_%s%d.exr", fi, scene->id.name + 2, layname, sample);
 	}
 
+	/* Make name safe for paths, see T43275. */
+	BLI_filename_make_safe(name);
+
 	BLI_make_file_string("/", filepath, BKE_tempdir_session(), name);
 }
 

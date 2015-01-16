@@ -108,6 +108,8 @@ void BLI_cleanup_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
 /* doesn't touch trailing slash */
 void BLI_cleanup_path(const char *relabase, char *path) ATTR_NONNULL(2);
 
+void BLI_filename_make_safe(char *fname) ATTR_NONNULL(1);
+
 /* go back one directory */
 bool BLI_parent_dir(char *path) ATTR_NONNULL();
 
