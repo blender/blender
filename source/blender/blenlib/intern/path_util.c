@@ -438,8 +438,7 @@ void BLI_cleanup_file(const char *relabase, char *path)
  */
 void BLI_filename_make_safe(char *fname)
 {
-	char *invalid = "/\\?%*:|\"<>. ";
-	char *c;
+	const char *invalid = "/\\?%*:|\"<>. ";
 
 	for (; *fname && (fname = strpbrk(fname, invalid)); fname++) {
 		*fname = '_';
