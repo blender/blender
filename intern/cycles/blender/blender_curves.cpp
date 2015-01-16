@@ -196,9 +196,9 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 						CData->curvekey_co.push_back(cKey);
 						CData->curvekey_time.push_back(curve_length);
 						pcKey = cKey;
-						keyno++;
 						keynum++;
 					}
+					keyno += keynum;
 
 					CData->curve_keynum.push_back(keynum);
 					CData->curve_length.push_back(curve_length);
