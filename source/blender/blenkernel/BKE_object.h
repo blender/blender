@@ -57,6 +57,7 @@ void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struc
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
 struct SoftBody *copy_softbody(struct SoftBody *sb, bool copy_caches);
 struct BulletSoftBody *copy_bulletsoftbody(struct BulletSoftBody *sb);
+struct ParticleSystem *BKE_object_copy_particlesystem(struct ParticleSystem *psys);
 void BKE_object_copy_particlesystems(struct Object *obn, struct Object *ob);
 void BKE_object_copy_softbody(struct Object *obn, struct Object *ob);
 void BKE_object_free_particlesystems(struct Object *ob);

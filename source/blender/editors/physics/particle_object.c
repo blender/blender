@@ -966,22 +966,15 @@ static void copy_particle_edit(Scene *scene, Object *ob, ParticleSystem *psys, P
 	PE_undo_push(scene, "Original");
 }
 
-static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Object *ob_to, int space)
+static void remove_particle_systems_from_object(Object *ob_to)
 {
 	ModifierData *md, *md_next;
-	ParticleSystem *psys, *psys_from;
-	DerivedMesh *final_dm;
-	CustomDataMask cdmask;
-	int i;
 	
 	if (ob_to->type != OB_MESH)
-		return false;
+		return;
 	if (!ob_to->data || ((ID *)ob_to->data)->lib)
-		return false;
+		return;
 	
-	/* XXX in theory it could be nice to not delete existing particle systems,
-	 * but the current code for copying assumes that the target object list is empty ...
-	 */
 	for (md = ob_to->modifiers.first; md; md = md_next) {
 		md_next = md->next;
 		
@@ -993,25 +986,64 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 			modifier_free(md);
 		}
 	}
-	BKE_object_free_particlesystems(ob_to);
 	
-	BKE_object_copy_particlesystems(ob_to, ob_from);
+	BKE_object_free_particlesystems(ob_to);
+}
+
+static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Object *ob_to, int space)
+{
+	ModifierData *md;
+	ParticleSystem *psys_start, *psys, *psys_from;
+	ParticleSystem **tmp_psys;
+	DerivedMesh *final_dm;
+	CustomDataMask cdmask;
+	int i, totpsys;
+	
+	if (ob_to->type != OB_MESH)
+		return false;
+	if (!ob_to->data || ((ID *)ob_to->data)->lib)
+		return false;
 	
 	/* For remapping we need a valid DM.
-	 * Because the modifier is appended at the end it's safe to use
-	 * the final DM of the object without particles
+	 * Because the modifiers are appended at the end it's safe to use
+	 * the final DM of the object without particles.
+	 * However, when evaluating the DM all the particle modifiers must be valid,
+	 * i.e. have the psys assigned already.
+	 * To break this hen/egg problem we create all psys separately first (to collect required customdata masks),
+	 * then create the DM, then add them to the object and make the psys modifiers ...
 	 */
+	totpsys = BLI_listbase_count(&ob_from->particlesystem);
+	tmp_psys = MEM_mallocN(sizeof(ParticleSystem*) * totpsys, "temporary particle system array");
+	
 	cdmask = 0;
-	for (psys = ob_to->particlesystem.first; psys; psys = psys->next, ++i) {
+	for (psys_from = ob_from->particlesystem.first, i = 0; psys_from; psys_from = psys_from->next, ++i) {
+		psys = BKE_object_copy_particlesystem(psys_from);
+		tmp_psys[i] = psys;
+		
+		if (psys_start == NULL)
+			psys_start = psys;
+		
 		cdmask |= psys_emitter_customdata_mask(psys);
 	}
+	/* to iterate source and target psys in sync,
+	 * we need to know where the newly added psys start
+	 */
+	psys_start = totpsys > 0 ? tmp_psys[0] : NULL;
+	
+	/* get the DM (psys and their modifiers have not been appended yet) */
 	final_dm = mesh_get_derived_final(scene, ob_to, cdmask);
 	
-	for (psys = ob_to->particlesystem.first, psys_from = ob_from->particlesystem.first, i = 0;
-	     psys;
-	     psys = psys->next, psys_from = psys_from->next, ++i) {
+	/* now append psys to the object and make modifiers */
+	for (i = 0, psys_from = ob_from->particlesystem.first;
+	     i < totpsys;
+	     ++i, psys_from = psys_from->next) {
 		
 		ParticleSystemModifierData *psmd;
+		
+		psys = tmp_psys[i];
+		
+		/* append to the object */
+		BLI_addtail(&ob_to->particlesystem, psys);
 		
 		/* add a particle system modifier for each system */
 		md = modifier_new(eModifierType_ParticleSystem);
@@ -1030,11 +1062,12 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Objec
 		if (psys_from->edit)
 			copy_particle_edit(scene, ob_to, psys, psys_from);
 	}
+	MEM_freeN(tmp_psys);
 	
 	/* note: do this after creating DM copies for all the particle system modifiers,
 	 * the remapping otherwise makes final_dm invalid!
 	 */
-	for (psys = ob_to->particlesystem.first, psys_from = ob_from->particlesystem.first, i = 0;
+	for (psys = psys_start, psys_from = ob_from->particlesystem.first, i = 0;
 	     psys;
 	     psys = psys->next, psys_from = psys_from->next, ++i) {
 		
@@ -1084,6 +1117,7 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 	Object *ob_from = ED_object_active_context(C);
 	Scene *scene = CTX_data_scene(C);
 	const int space = RNA_enum_get(op->ptr, "space");
+	const bool remove_target_particles = RNA_boolean_get(op->ptr, "remove_target_particles");
 	
 	int changed_tot = 0;
 	int fail = 0;
@@ -1091,10 +1125,18 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob_to, selected_editable_objects)
 	{
 		if (ob_from != ob_to) {
+			bool changed = false;
+			if (remove_target_particles) {
+				remove_particle_systems_from_object(ob_to);
+				changed = true;
+			}
 			if (copy_particle_systems_to_object(scene, ob_from, ob_to, space))
-				changed_tot++;
+				changed = true;
 			else
 				fail++;
+			
+			if (changed)
+				changed_tot++;
 		}
 	}
 	CTX_DATA_END;
@@ -1127,4 +1169,5 @@ void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "space", space_items, PAR_COPY_SPACE_OBJECT, "Space", "Space transform for copying from one object to another");
+	RNA_def_boolean(ot->srna, "remove_target_particles", true, "Remove Target Particles", "Remove particle systems on the target objects");
 }
