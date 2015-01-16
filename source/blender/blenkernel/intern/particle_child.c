@@ -199,10 +199,11 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	float spiral_par_co[3] = {0.0f, 0.0f, 0.0f};
 	float spiral_par_vel[3] = {0.0f, 0.0f, 0.0f};
 	float spiral_par_rot[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-	float len, totlen, cutlen;
+	float totlen;
+	float cut_time;
 	int start_index = 0, end_index = 0;
 	float kink_base[3];
-
+	
 	if (ptex) {
 		kink_amp *= ptex->kink_amp;
 		kink_freq *= ptex->kink_freq;
@@ -211,19 +212,12 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 		rough_end *= ptex->roughe;
 	}
 	
-	totlen = 0.0f;
-	for (k = 0, key = keys; k < totkeys-1; k++, key++)
-		totlen += len_v3v3((key+1)->co, key->co);
-	
-	cutlen = max_ff(ptex->length * totlen - fabsf(kink_amp), 0.0f);
+	cut_time = (totkeys - 1) * ptex->length;
 	zero_v3(spiral_start);
 	
-	len = 0.0f;
 	for (k = 0, key = keys; k < totkeys-1; k++, key++) {
-		float seglen = len_v3v3((key+1)->co, key->co);
-		
-		if (seglen > 0.0f && len + seglen >= cutlen) {
-			float fac = (cutlen - len) / seglen;
+		if ((float)(k + 1) >= cut_time) {
+			float fac = cut_time - (float)k;
 			ParticleCacheKey *par = parent_keys + k;
 			
 			start_index = k + 1;
@@ -238,7 +232,6 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 			
 			break;
 		}
-		len += seglen;
 	}
 	
 	zero_v3(dir);
