@@ -73,6 +73,30 @@ class ParticleButtonsPanel():
         return particle_panel_poll(cls, context)
 
 
+def find_modifier(ob, psys):
+    for md in ob.modifiers:
+        if md.type == 'PARTICLE_SYSTEM':
+            if md.particle_system == psys:
+                return md
+
+class PARTICLE_UL_particle_systems(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index, flt_flag):
+        ob = data
+        psys = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            md = find_modifier(ob, psys)
+
+            layout.prop(psys, "name", text="", emboss=False, icon_value=icon)
+            if md:
+                layout.prop(md, "show_render", emboss=False, icon_only=True, icon='RESTRICT_RENDER_OFF' if md.show_render else 'RESTRICT_RENDER_ON')
+                layout.prop(md, "show_viewport", emboss=False, icon_only=True, icon='RESTRICT_VIEW_OFF' if md.show_viewport else 'RESTRICT_VIEW_ON')
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+
+
 class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
@@ -97,7 +121,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
         if ob:
             row = layout.row()
 
-            row.template_list("UI_UL_list", "particle_systems", ob, "particle_systems",
+            row.template_list("PARTICLE_UL_particle_systems", "particle_systems", ob, "particle_systems",
                               ob.particle_systems, "active_index", rows=1)
 
             col = row.column(align=True)
