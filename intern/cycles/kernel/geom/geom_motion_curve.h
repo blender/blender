@@ -27,17 +27,22 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline int find_attribute_curve_motion(KernelGlobals *kg, int object, uint id, AttributeElement *elem)
 {
-	/* todo: find a better (faster) solution for this, maybe store offset per object */
+	/* todo: find a better (faster) solution for this, maybe store offset per object.
+	 *
+	 * NOTE: currently it's not a bottleneck because in test scenes the loop below runs
+	 * zero iterations and rendering is really slow with motion curves. For until other
+	 * areas are speed up it's probably not so crucial to optimize this out.
+	 */
 	uint attr_offset = object*kernel_data.bvh.attributes_map_stride + ATTR_PRIM_CURVE;
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-	
+
 	while(attr_map.x != id) {
 		attr_offset += ATTR_PRIM_TYPES;
 		attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	}
 
 	*elem = (AttributeElement)attr_map.y;
-	
+
 	/* return result */
 	return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
 }

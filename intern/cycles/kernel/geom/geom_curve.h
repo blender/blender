@@ -646,8 +646,8 @@ ccl_device_inline bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isec
 	float4 P_curve[2];
 
 	if(type & PRIMITIVE_CURVE) {
-		P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
-		P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
+		P_curve[0] = kernel_tex_fetch(__curve_keys, k0);
+		P_curve[1] = kernel_tex_fetch(__curve_keys, k1);
 	}
 	else {
 		int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, curveAddr): object;
