@@ -279,6 +279,14 @@ BVHNode* BVHBuild::run()
 	        << time_dt() - build_start_time
 	        << " seconds.";
 
+	VLOG(1) << "BVH statistics:";
+	VLOG(1) << "  Total number of nodes: "
+	        << rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT);
+	VLOG(1) << "  Number of inner nodes: "
+	        << rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT);
+	VLOG(1) << "  Number of leaf nodes: "
+	        << rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT);
+
 	return rootnode;
 }
 
