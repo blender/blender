@@ -1948,6 +1948,10 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "data", "AnyType", "Data",
 	                       "Data containing the property controlled by given FCurve");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
+
+
+	/* Functions */
+	RNA_api_fcurves(srna);
 }
 
 /* *********************** */

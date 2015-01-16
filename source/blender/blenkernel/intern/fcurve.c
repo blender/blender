@@ -820,7 +820,7 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
 	}
-	if (start >= end) {
+	if (start > end) {
 		printf("Error: Frame range for Sampled F-Curve creation is inappropriate\n");
 		return;
 	}
