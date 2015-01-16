@@ -688,7 +688,7 @@ static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveDat
 			mesh->curve_attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
 		}
 		else if(time_index > 0) {
-			VLOG(1) << "Filling in new motion vertex position for time_index"
+			VLOG(1) << "Filling in new motion vertex position for time_index "
 			        << time_index;
 			/* motion, fill up previous steps that we might have skipped because
 			 * they had no motion, but we need them anyway now */
