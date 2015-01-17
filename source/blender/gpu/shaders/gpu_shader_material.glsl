@@ -338,6 +338,7 @@ void vec_math_cross(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
 {
 	outvec = cross(v1, v2);
 	outval = length(outvec);
+	outvec /= outval;
 }
 
 void vec_math_normalize(vec3 v, out vec3 outvec, out float outval)
