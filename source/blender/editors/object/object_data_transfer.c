@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_data_transfer.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
@@ -393,12 +394,16 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 			}
 		}
 
+		DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
+
 		if (reverse_transfer) {
 			SWAP(Object *, ob_src, ob_dst);
 		}
 	}
 
 	BLI_freelistN(&ctx_objects);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
 #if 0  /* TODO */
 	/* Note: issue with that is that if canceled, operator cannot be redone... Nasty in our case. */
@@ -592,6 +597,8 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
 		BKE_object_data_transfer_layout(scene, ob_src, ob_dst, dtmd->data_types, use_delete,
 		                                dtmd->layers_select_src, dtmd->layers_select_dst);
+
+		DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 	}
 	else {
 		Object *ob_src = ob_act;
@@ -621,10 +628,14 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 				BKE_object_data_transfer_layout(scene, ob_src, ob_dst, data_type, use_delete,
 				                                layers_select_src, layers_select_dst);
 			}
+
+			DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 		}
 
 		BLI_freelistN(&ctx_objects);
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
 	return OPERATOR_FINISHED;
 }
