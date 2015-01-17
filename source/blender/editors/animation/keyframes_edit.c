@@ -785,7 +785,8 @@ static short mirror_bezier_cframe(KeyframeEditData *ked, BezTriple *bezt)
 static short mirror_bezier_yaxis(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
-		mirror_bezier_yaxis_ex(bezt, 0.0f);
+		/* Yes, names are inverted, we are mirroring accross y axis, hence along x axis... */
+		mirror_bezier_xaxis_ex(bezt, 0.0f);
 	}
 	
 	return 0;
@@ -794,7 +795,8 @@ static short mirror_bezier_yaxis(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 static short mirror_bezier_xaxis(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
-		mirror_bezier_xaxis_ex(bezt, 0.0f);
+		/* Yes, names are inverted, we are mirroring accross x axis, hence along y axis... */
+		mirror_bezier_yaxis_ex(bezt, 0.0f);
 	}
 	
 	return 0;
@@ -814,7 +816,7 @@ static short mirror_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* value to mirror over is stored in the custom data -> first float value slot */
 	if (bezt->f2 & SELECT) {
-		mirror_bezier_xaxis_ex(bezt, ked->f1);
+		mirror_bezier_yaxis_ex(bezt, ked->f1);
 	}
 	
 	return 0;
