@@ -593,6 +593,49 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 	}
 }
 
+static void outline_delete_hierarchy(bContext *C, Scene *scene, Base *base)
+{
+	Base *child_base;
+	Object *parent;
+
+	if (!base) {
+	    return;
+	}
+
+	for (child_base = scene->base.first; child_base; child_base = child_base->next) {
+		for (parent = child_base->object->parent; parent && (parent != base->object); parent = parent->parent);
+		if (parent) {
+			outline_delete_hierarchy(C, scene, child_base);
+		}
+	}
+
+	ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
+}
+
+static void object_delete_hierarchy_cb(
+        bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+{
+	Base *base = (Base *)te->directdata;
+	Object *obedit = scene->obedit;
+
+	if (!base) {
+		base = BKE_scene_base_find(scene, (Object *)tselem->id);
+	}
+	if (base) {
+		/* Check also library later. */
+		for (; obedit && (obedit != base->object); obedit = obedit->parent);
+		if (obedit == base->object) {
+			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
+		}
+
+		outline_delete_hierarchy(C, scene, base);
+		te->directdata = NULL;
+		tselem->id = NULL;
+	}
+
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+}
+
 /* **************************************** */
 
 enum {
@@ -601,6 +644,7 @@ enum {
 	OL_OP_DESELECT,
 	OL_OP_SELECT_HIERARCHY,
 	OL_OP_DELETE,
+	OL_OP_DELETE_HIERARCHY,
 	OL_OP_LOCALIZED,  /* disabled, see below */
 	OL_OP_TOGVIS,
 	OL_OP_TOGSEL,
@@ -613,6 +657,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 	{OL_OP_DESELECT, "DESELECT", 0, "Deselect", ""},
 	{OL_OP_SELECT_HIERARCHY, "SELECT_HIERARCHY", 0, "Select Hierarchy", ""},
 	{OL_OP_DELETE, "DELETE", 0, "Delete", ""},
+	{OL_OP_DELETE_HIERARCHY, "DELETE_HIERARCHY", 0, "Delete Hierarchy", ""},
 	{OL_OP_TOGVIS, "TOGVIS", 0, "Toggle Visible", ""},
 	{OL_OP_TOGSEL, "TOGSEL", 0, "Toggle Selectable", ""},
 	{OL_OP_TOGREN, "TOGREN", 0, "Toggle Renderable", ""},
@@ -670,6 +715,16 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 
 		DAG_relations_tag_update(bmain);
 		str = "Delete Objects";
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+	}
+	else if (event == OL_OP_DELETE_HIERARCHY) {
+		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_hierarchy_cb);
+
+		/* XXX: See OL_OP_DELETE comment above. */
+		outliner_cleanup_tree(soops);
+
+		DAG_relations_tag_update(bmain);
+		str = "Delete Object Hierarchy";
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	}
 	else if (event == OL_OP_LOCALIZED) {    /* disabled, see above enum (ton) */
