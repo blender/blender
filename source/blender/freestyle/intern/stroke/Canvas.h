@@ -95,6 +95,7 @@ protected:
 	static const char *_MapsPath;
 	SteerableViewMap *_steerableViewMap;
 	bool _basic;
+	int stroke_count;
 
 public:
 	/* Builds the Canvas */
@@ -213,7 +214,10 @@ public:
 		return false;
 	}
 
-	int stroke_count;
+	inline int getStrokeCount() const
+	{
+		return stroke_count;
+	}
 
 	/*! modifiers */
 	inline void setSelectedFEdge(FEdge *iFEdge)

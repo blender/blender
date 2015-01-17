@@ -496,7 +496,7 @@ void FRS_composite_result(Render *re, SceneRenderLayer *srl, Render *freestyle_r
 	rl = render_get_active_layer( freestyle_render, freestyle_render->result );
 	if (!rl || rl->rectf == NULL) {
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << "Cannot find Freestyle result image" << endl;
+			cout << "No Freestyle result image to composite" << endl;
 		}
 		return;
 	}

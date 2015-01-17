@@ -654,6 +654,12 @@ int BlenderStrokeRenderer::GenerateScene()
 	{
 		GenerateStrokeMesh(*it, true);
 	}
+	return get_stroke_count();
+}
+
+// Return the number of strokes
+int BlenderStrokeRenderer::get_stroke_count() const
+{
 	return strokeGroups.size() + texturedStrokeGroups.size();
 }
 
@@ -956,7 +962,8 @@ Render *BlenderStrokeRenderer::RenderScene(Render *re, bool render)
 
 	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
 
-	RE_RenderFreestyleStrokes(freestyle_render, freestyle_bmain, freestyle_scene, render);
+	RE_RenderFreestyleStrokes(freestyle_render, freestyle_bmain, freestyle_scene,
+	                          render && get_stroke_count() > 0);
 
 	return freestyle_render;
 }

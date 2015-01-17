@@ -85,6 +85,7 @@ protected:
 
 	static const char *uvNames[];
 
+	int get_stroke_count() const;
 	float get_stroke_vertex_z(void) const;
 	unsigned int get_stroke_mesh_id(void) const;
 	bool test_triangle_visibility(StrokeVertexRep *svRep[3]) const;
@@ -96,7 +97,6 @@ protected:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderStrokeRenderer")
 #endif
-
 };
 
 } /* namespace Freestyle */
