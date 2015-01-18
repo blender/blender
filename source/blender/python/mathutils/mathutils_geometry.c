@@ -971,7 +971,7 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	if (mathutils_array_parse(pt_src, 2, 2 | MU_ARRAY_SPILL, py_pt_src, error_prefix) == -1) {
+	if (mathutils_array_parse(pt_src, 3, 3 | MU_ARRAY_SPILL, py_pt_src, error_prefix) == -1) {
 		return NULL;
 	}
 	for (i = 0; i < ARRAY_SIZE(tri_src); i++) {
