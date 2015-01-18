@@ -15,7 +15,7 @@ base class --- :class:`SCA_IActuator`
 
       The force applied by the actuator.
 
-      :type: list [x, y, z]
+      :type: Vector((x, y, z))
 
    .. attribute:: useLocalForce
 
@@ -27,7 +27,7 @@ base class --- :class:`SCA_IActuator`
 
       The torque applied by the actuator.
 
-      :type: list [x, y, z]
+      :type: Vector((x, y, z))
 
    .. attribute:: useLocalTorque
 
@@ -39,7 +39,7 @@ base class --- :class:`SCA_IActuator`
 
       The displacement vector applied by the actuator.
 
-      :type: list [x, y, z]
+      :type: Vector((x, y, z))
 
    .. attribute:: useLocalDLoc
 
@@ -51,7 +51,7 @@ base class --- :class:`SCA_IActuator`
 
       The angular displacement vector applied by the actuator
 
-      :type: list [x, y, z]
+      :type: Vector((x, y, z))
       
       .. note::
       
@@ -67,7 +67,7 @@ base class --- :class:`SCA_IActuator`
 
       The linear velocity applied by the actuator.
 
-      :type: list [x, y, z]
+      :type: Vector((x, y, z))
 
    .. attribute:: useLocalLinV
 
@@ -83,7 +83,7 @@ base class --- :class:`SCA_IActuator`
 
       The angular velocity applied by the actuator.
 
-      :type: list [x, y, z]
+      :type: Vector((x, y, z))
 
    .. attribute:: useLocalAngV
 

@@ -17,25 +17,25 @@ base class --- :class:`SCA_IObject`
 
       The position of the vertex.
 
-      :type: list [x, y, z]
+      :type: Vector((x, y, z))
 
    .. attribute:: UV
 
       The texture coordinates of the vertex.
 
-      :type: list [u, v]
+      :type: Vector((u, v))
 
    .. attribute:: normal
 
       The normal of the vertex.
 
-      :type: list [nx, ny, nz]
+      :type: Vector((nx, ny, nz))
 
    .. attribute:: color
 
       The color of the vertex.
 
-      :type: list [r, g, b, a]
+      :type: Vector((r, g, b, a))
 
       Black = [0.0, 0.0, 0.0, 1.0], White = [1.0, 1.0, 1.0, 1.0]
 
@@ -110,13 +110,13 @@ base class --- :class:`SCA_IObject`
       Gets the position of this vertex.
 
       :return: this vertexes position in local coordinates.
-      :rtype: list [x, y, z]
+      :rtype: Vector((x, y, z))
 
    .. method:: setXYZ(pos)
 
       Sets the position of this vertex.
 
-      :type:  list [x, y, z]
+      :type:  Vector((x, y, z))
 
       :arg pos: the new position for this vertex in local coordinates.
 
@@ -125,26 +125,26 @@ base class --- :class:`SCA_IObject`
       Gets the UV (texture) coordinates of this vertex.
 
       :return: this vertexes UV (texture) coordinates.
-      :rtype: list [u, v]
+      :rtype: Vector((u, v))
 
    .. method:: setUV(uv)
 
       Sets the UV (texture) coordinates of this vertex.
 
-      :type:  list [u, v]
+      :type:  Vector((u, v))
 
    .. method:: getUV2()
 
       Gets the 2nd UV (texture) coordinates of this vertex.
 
       :return: this vertexes UV (texture) coordinates.
-      :rtype: list [u, v]
+      :rtype: Vector((u, v))
 
    .. method:: setUV2(uv, unit)
 
       Sets the 2nd UV (texture) coordinates of this vertex.
 
-      :type:  list [u, v]
+      :type:  Vector((u, v))
 
       :arg unit: optional argument, FLAT==1, SECOND_UV==2, defaults to SECOND_UV
       :arg unit:  integer
@@ -197,7 +197,7 @@ base class --- :class:`SCA_IObject`
       Gets the normal vector of this vertex.
 
       :return: normalized normal vector.
-      :rtype: list [nx, ny, nz]
+      :rtype: Vector((nx, ny, nz))
 
    .. method:: setNormal(normal)
 

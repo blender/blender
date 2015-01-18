@@ -135,7 +135,7 @@ base class --- :class:`SCA_IObject`
 
       the object's inertia vector in local coordinates. Read only.
 
-      :type: list [ix, iy, iz]
+      :type: Vector((ix, iy, iz))
 
    .. attribute:: parent
 
@@ -517,7 +517,7 @@ base class --- :class:`SCA_IObject`
          * True: you get the "local" velocity ie: relative to object orientation.
       :type local: boolean
       :return: the object's linear velocity.
-      :rtype: list [vx, vy, vz]
+      :rtype: Vector((vx, vy, vz))
 
    .. method:: setLinearVelocity(velocity, local=False)
 
@@ -544,7 +544,7 @@ base class --- :class:`SCA_IObject`
          * True: you get the "local" velocity ie: relative to object orientation.
       :type local: boolean
       :return: the object's angular velocity.
-      :rtype: list [vx, vy, vz]
+      :rtype: Vector((vx, vy, vz))
 
    .. method:: setAngularVelocity(velocity, local=False)
 
@@ -568,7 +568,7 @@ base class --- :class:`SCA_IObject`
       :arg point: optional point to return the velocity for, in local coordinates.
       :type point: 3D Vector
       :return: the velocity at the specified point.
-      :rtype: list [vx, vy, vz]
+      :rtype: Vector((vx, vy, vz))
 
    .. method:: getReactionForce()
 
@@ -578,7 +578,7 @@ base class --- :class:`SCA_IObject`
       This also includes impulses, eg from collisions.
 
       :return: the reaction force of this object.
-      :rtype: list [fx, fy, fz]
+      :rtype: Vector((fx, fy, fz))
 
       .. note::
 

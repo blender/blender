@@ -123,7 +123,7 @@ base class --- :class:`PyObjectPlus`
 
       The scene gravity using the world x, y and z axis.
 
-      :type: list [fx, fy, fz]
+      :type: Vector((gx, gy, gz))
 
    .. method:: addObject(object, other, time=0)
 

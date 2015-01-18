@@ -25,7 +25,7 @@ base class --- :class:`PyObjectPlus`
 
       The normalized x and y position of the mouse cursor.
 
-      :type: list [x, y]
+      :type: tuple (x, y)
 
    .. attribute:: visible
 
