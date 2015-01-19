@@ -320,10 +320,28 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
  * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
  */
-void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdge *medges, const int numEdges,
-                                 MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
-                                 MPoly *mpolys, float (*polynors)[3], const int numPolys, float split_angle)
+void BKE_mesh_normals_loop_split(
+        MVert *mverts, const int UNUSED(numVerts), MEdge *medges, const int numEdges,
+        MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
+        MPoly *mpolys, float (*polynors)[3], const int numPolys,
+        const bool use_split_normals, float split_angle)
 {
+	if (!use_split_normals) {
+		/* In this case, we simply fill lnors with vnors, quite simple!
+		 * Note this is done here to keep some logic and consistancy in this quite complex code,
+		 * since we may want to use lnors even when mesh's 'autosmooth' is disabled (see e.g. mesh mapping code).
+		 * As usual, we could handle that on case-by-case basis, but simpler to keep it well confined here.
+		 */
+		int i;
+
+		for (i = 0; i < numLoops; i++) {
+			normal_short_to_float_v3(r_loopnors[i], mverts[mloops[i].v].no);
+		}
+		return;
+	}
+
+	{
+
 #define INDEX_UNSET INT_MIN
 #define INDEX_INVALID -1
 /* See comment about edge_to_loops below. */
@@ -588,6 +606,8 @@ void BKE_mesh_normals_loop_split(MVert *mverts, const int UNUSED(numVerts), MEdg
 #undef INDEX_UNSET
 #undef INDEX_INVALID
 #undef IS_EDGE_SHARP
+
+	}
 }
 
 

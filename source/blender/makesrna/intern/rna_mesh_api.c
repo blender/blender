@@ -61,7 +61,7 @@ static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, struct Mesh *me
 	return ret;
 }
 
-static void rna_Mesh_calc_normals_split(Mesh *mesh, float min_angle)
+static void rna_Mesh_calc_normals_split(Mesh *mesh)
 {
 	float (*r_loopnors)[3];
 	float (*polynors)[3];
@@ -90,7 +90,7 @@ static void rna_Mesh_calc_normals_split(Mesh *mesh, float min_angle)
 
 	BKE_mesh_normals_loop_split(mesh->mvert, mesh->totvert, mesh->medge, mesh->totedge,
 	                            mesh->mloop, r_loopnors, mesh->totloop, mesh->mpoly, polynors, mesh->totpoly,
-	                            min_angle);
+	                            (mesh->flag & ME_AUTOSMOOTH) != 0, mesh->smoothresh);
 
 	if (free_polynors) {
 		MEM_freeN(polynors);
@@ -117,7 +117,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 
 	/* Compute loop normals if needed. */
 	if (!CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
-		rna_Mesh_calc_normals_split(mesh, (float)M_PI);
+		rna_Mesh_calc_normals_split(mesh);
 	}
 
 	BKE_mesh_loop_tangents(mesh, uvmap, r_looptangents, reports);
@@ -164,10 +164,6 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func = RNA_def_function(srna, "calc_normals_split", "rna_Mesh_calc_normals_split");
 	RNA_def_function_ui_description(func, "Calculate split vertex normals, which preserve sharp edges");
-	parm = RNA_def_float(func, "split_angle", M_PI, 0.0f, M_PI, "",
-	                     "Angle between polys' normals above which an edge is always sharp (180° to disable)",
-	                     0.0f, M_PI);
-	RNA_def_property_subtype(parm, (PropertySubType)PROP_UNIT_ROTATION);
 
 	func = RNA_def_function(srna, "free_normals_split", "rna_Mesh_free_normals_split");
 	RNA_def_function_ui_description(func, "Free split vertex normals");

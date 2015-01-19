@@ -158,8 +158,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
         struct MVert *verts_dst, const int numverts_dst, struct MEdge *edges_dst, const int numedges_dst,
         struct MLoop *loops_dst, const int numloops_dst, struct MPoly *polys_dst, const int numpolys_dst,
         struct CustomData *ldata_dst, struct CustomData *pdata_dst,
-        const float split_angle_dst, const bool dirty_nors_dst,
-        struct DerivedMesh *dm_src,
+        const bool use_split_nors_dst, const float split_angle_dst, const bool dirty_nors_dst,
+        struct DerivedMesh *dm_src, const bool use_split_nors_src, const float split_angle_src,
         MeshRemapIslandsCalc gen_islands_src, const float islands_precision_src, struct MeshPairRemap *r_map);
 
 void BKE_mesh_remap_calc_polys_from_dm(

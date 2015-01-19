@@ -177,7 +177,8 @@ void BKE_mesh_calc_normals_tessface(
 void BKE_mesh_normals_loop_split(
         struct MVert *mverts, const int numVerts, struct MEdge *medges, const int numEdges,
         struct MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
-        struct MPoly *mpolys, float (*polynors)[3], const int numPolys, float split_angle);
+        struct MPoly *mpolys, float (*polynors)[3], const int numPolys,
+        const bool use_split_normals, float split_angle);
 void BKE_mesh_loop_tangents_ex(
         struct MVert *mverts, const int numVerts, struct MLoop *mloops, float (*r_looptangent)[4], float (*loopnors)[3],
         struct MLoopUV *loopuv, const int numLoops, struct MPoly *mpolys, const int numPolys,

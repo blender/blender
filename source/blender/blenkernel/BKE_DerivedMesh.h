@@ -197,7 +197,7 @@ struct DerivedMesh {
 	void (*calcNormals)(DerivedMesh *dm);
 
 	/** Calculate loop (split) normals */
-	void (*calcLoopNormals)(DerivedMesh *dm, const float split_angle);
+	void (*calcLoopNormals)(DerivedMesh *dm, const bool use_split_normals, const float split_angle);
 
 	/** Recalculates mesh tessellation */
 	void (*recalcTessellation)(DerivedMesh *dm);

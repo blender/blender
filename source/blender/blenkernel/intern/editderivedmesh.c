@@ -169,7 +169,7 @@ static void emDM_calcNormals(DerivedMesh *dm)
 	dm->dirty &= ~DM_DIRTY_NORMALS;
 }
 
-static void emDM_calcLoopNormals(DerivedMesh *dm, const float split_angle)
+static void emDM_calcLoopNormals(DerivedMesh *dm, const bool use_split_normals, const float split_angle)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
@@ -191,7 +191,7 @@ static void emDM_calcLoopNormals(DerivedMesh *dm, const float split_angle)
 		loopNos = dm->getLoopDataArray(dm, CD_NORMAL);
 	}
 
-	BM_loops_calc_normal_vcos(bm, vertexCos, vertexNos, polyNos, split_angle, loopNos);
+	BM_loops_calc_normal_vcos(bm, vertexCos, vertexNos, polyNos, use_split_normals, split_angle, loopNos);
 }
 
 static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))

@@ -45,7 +45,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData data, BL::Object object, BL:
 	BL::Mesh me = data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
 	if ((bool)me) {
 		if (me.use_auto_smooth()) {
-			me.calc_normals_split(me.auto_smooth_angle());
+			me.calc_normals_split();
 		}
 		me.calc_tessface();
 	}

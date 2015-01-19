@@ -2208,7 +2208,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 
 #endif
 
-void CDDM_calc_loop_normals(DerivedMesh *dm, const float split_angle)
+void CDDM_calc_loop_normals(DerivedMesh *dm, const bool use_split_normals, const float split_angle)
 {
 	MVert *mverts = dm->getVertArray(dm);
 	MEdge *medges = dm->getEdgeArray(dm);
@@ -2246,7 +2246,7 @@ void CDDM_calc_loop_normals(DerivedMesh *dm, const float split_angle)
 	dm->dirty &= ~DM_DIRTY_NORMALS;
 
 	BKE_mesh_normals_loop_split(mverts, numVerts, medges, numEdges, mloops, lnors, numLoops,
-	                            mpolys, pnors, numPolys, split_angle);
+	                            mpolys, pnors, numPolys, use_split_normals, split_angle);
 }
 
 

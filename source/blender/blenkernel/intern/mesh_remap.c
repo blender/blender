@@ -933,8 +933,9 @@ void BKE_mesh_remap_calc_loops_from_dm(
         const int mode, const SpaceTransform *space_transform, const float max_dist, const float ray_radius,
         MVert *verts_dst, const int numverts_dst, MEdge *edges_dst, const int numedges_dst,
         MLoop *loops_dst, const int numloops_dst, MPoly *polys_dst, const int numpolys_dst,
-        CustomData *ldata_dst, CustomData *pdata_dst, const float split_angle_dst, const bool dirty_nors_dst,
-        DerivedMesh *dm_src,
+        CustomData *ldata_dst, CustomData *pdata_dst,
+        const bool use_split_nors_dst, const float split_angle_dst, const bool dirty_nors_dst,
+        DerivedMesh *dm_src, const bool use_split_nors_src, const float split_angle_src,
         MeshRemapIslandsCalc gen_islands_src, const float islands_precision_src, MeshPairRemap *r_map)
 {
 	const float full_weight = 1.0f;
@@ -1048,19 +1049,20 @@ void BKE_mesh_remap_calc_loops_from_dm(
 			if (need_lnors_dst) {
 				/* Cache poly nors into a temp CDLayer. */
 				loop_nors_dst = CustomData_get_layer(ldata_dst, CD_NORMAL);
-				if (!loop_nors_dst) {
-					loop_nors_dst = CustomData_add_layer(ldata_dst, CD_NORMAL, CD_CALLOC, NULL, numloops_dst);
-					CustomData_set_layer_flag(ldata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
-				}
-				if (dirty_nors_dst) {
+				if (dirty_nors_dst || !loop_nors_dst) {
+					if (!loop_nors_dst) {
+						loop_nors_dst = CustomData_add_layer(ldata_dst, CD_NORMAL, CD_CALLOC, NULL, numloops_dst);
+						CustomData_set_layer_flag(ldata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
+					}
 					BKE_mesh_normals_loop_split(verts_dst, numverts_dst, edges_dst, numedges_dst,
 					                            loops_dst, loop_nors_dst, numloops_dst,
-					                            polys_dst, poly_nors_dst, numpolys_dst, split_angle_dst);
+					                            polys_dst, poly_nors_dst, numpolys_dst,
+					                            use_split_nors_dst, split_angle_dst);
 				}
 			}
 			if (need_pnors_src || need_lnors_src) {
 				/* Simpler for now, calcNormals never stores pnors :( */
-				dm_src->calcLoopNormals(dm_src, /* TODO */ (float)M_PI);
+				dm_src->calcLoopNormals(dm_src, use_split_nors_src, split_angle_src);
 
 				if (need_pnors_src) {
 					poly_nors_src = dm_src->getPolyDataArray(dm_src, CD_NORMAL);

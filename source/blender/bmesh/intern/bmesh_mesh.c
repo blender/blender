@@ -650,6 +650,31 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 	}
 }
 
+static void bm_mesh_loops_from_vert_normals(BMesh *bm, const float (*vnos)[3], float (*r_lnos)[3])
+{
+	BMIter fiter;
+	BMFace *f_curr;
+
+	{
+		char htype = BM_LOOP;
+		if (vnos) {
+			htype |= BM_VERT;
+		}
+		BM_mesh_elem_index_ensure(bm, htype);
+	}
+
+	BM_ITER_MESH (f_curr, &fiter, bm, BM_FACES_OF_MESH) {
+		BMLoop *l_curr, *l_first;
+
+		l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
+		do {
+			const float *no = vnos ? vnos[BM_elem_index_get(l_curr->v)] : l_curr->v->no;
+			copy_v3_v3(r_lnos[BM_elem_index_get(l_curr)], no);
+
+		} while ((l_curr = l_curr->next) != l_first);
+	}
+}
+
 #if 0  /* Unused currently */
 /**
  * \brief BMesh Compute Loop Normals
@@ -657,13 +682,18 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
  * Updates the loop normals of a mesh. Assumes vertex and face normals are valid (else call BM_mesh_normals_update()
  * first)!
  */
-void BM_mesh_loop_normals_update(BMesh *bm, const float split_angle, float (*r_lnos)[3])
+void BM_mesh_loop_normals_update(BMesh *bm, const bool use_split_normals, const float split_angle, float (*r_lnos)[3])
 {
-	/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
-	bm_mesh_edges_sharp_tag(bm, NULL, NULL, split_angle, r_lnos);
+	if (use_split_normals) {
+		/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
+		bm_mesh_edges_sharp_tag(bm, NULL, NULL, split_angle, r_lnos);
 
-	/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
-	bm_mesh_loops_calc_normals(bm, NULL, NULL, r_lnos);
+		/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+		bm_mesh_loops_calc_normals(bm, NULL, NULL, r_lnos);
+	}
+	else {
+		bm_mesh_loops_from_vert_normals(bm, NULL, r_lnos);
+	}
 }
 #endif
 
@@ -674,13 +704,18 @@ void BM_mesh_loop_normals_update(BMesh *bm, const float split_angle, float (*r_l
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
  */
 void BM_loops_calc_normal_vcos(BMesh *bm, const float (*vcos)[3], const float (*vnos)[3], const float (*fnos)[3],
-                                const float split_angle, float (*r_lnos)[3])
+                               const bool use_split_normals, const float split_angle, float (*r_lnos)[3])
 {
-	/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
-	bm_mesh_edges_sharp_tag(bm, vnos, fnos, split_angle, r_lnos);
+	if (use_split_normals) {
+		/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
+		bm_mesh_edges_sharp_tag(bm, vnos, fnos, split_angle, r_lnos);
 
-	/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
-	bm_mesh_loops_calc_normals(bm, vcos, fnos, r_lnos);
+		/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+		bm_mesh_loops_calc_normals(bm, vcos, fnos, r_lnos);
+	}
+	else {
+		bm_mesh_loops_from_vert_normals(bm, vnos, r_lnos);
+	}
 }
 
 static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
