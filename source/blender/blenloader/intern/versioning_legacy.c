@@ -2183,8 +2183,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				cam->flag |= CAM_SHOWPASSEPARTOUT;
 
 			/* make sure old cameras have title safe on */
-			if (!(cam->flag & CAM_SHOWTITLESAFE))
-				cam->flag |= CAM_SHOWTITLESAFE;
+			if (!(cam->flag & CAM_SHOW_SAFE_MARGINS))
+				cam->flag |= CAM_SHOW_SAFE_MARGINS;
 
 			/* set an appropriate camera passepartout alpha */
 			if (!(cam->passepartalpha))

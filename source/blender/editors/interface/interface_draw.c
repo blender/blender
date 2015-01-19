@@ -450,6 +450,51 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 #endif
 }
 
+/**
+ * Draw title and text safe areas.
+ *
+ * The first 4 parameters are the offsets for the view, not the zones.
+ */
+void UI_draw_safe_areas(
+        float x1, float x2, float y1, float y2,
+        const float title_aspect[2], const float action_aspect[2])
+{
+	const float size_x_half = (x2 - x1) * 0.5f;
+	const float size_y_half = (y2 - y1) * 0.5f;
+
+	const float *safe_areas[] = {title_aspect, action_aspect};
+	int i, safe_len = ARRAY_SIZE(safe_areas);
+	bool is_first = true;
+
+	for (i = 0; i < safe_len; i++) {
+		if (safe_areas[i][0] || safe_areas[i][1]) {
+			float margin_x, margin_y;
+			float minx, miny, maxx, maxy;
+
+			if (is_first) {
+				UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+				is_first = false;
+			}
+
+			margin_x = safe_areas[i][0] * size_x_half;
+			margin_y = safe_areas[i][1] * size_y_half;
+
+			minx = x1 + margin_x;
+			miny = y1 + margin_y;
+			maxx = x2 - margin_x;
+			maxy = y2 - margin_y;
+
+			glBegin(GL_LINE_LOOP);
+			glVertex2f(maxx, miny);
+			glVertex2f(maxx, maxy);
+			glVertex2f(minx, maxy);
+			glVertex2f(minx, miny);
+			glEnd();
+		}
+	}
+}
+
+
 static void draw_scope_end(const rctf *rect, GLint *scissor)
 {
 	/* restore scissortest */

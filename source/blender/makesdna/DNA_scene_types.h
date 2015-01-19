@@ -1216,6 +1216,21 @@ typedef struct PhysicsSettings {
 	int flag, quick_cache_step, rt;
 } PhysicsSettings;
 
+/* ------------------------------------------- */
+/* Safe Area options used in Camera View & VSE
+ */
+typedef struct DisplaySafeAreas {
+	/* each value represents the (x,y) margins as a multiplier.
+	 * 'center' in this context is just the name for a different kind of safe-area */
+
+	float title[2];		/* Title Safe */
+	float action[2];	/* Image/Graphics Safe */
+
+	/* use for alternate aspect ratio */
+	float title_center[2];
+	float action_center[2];
+} DisplaySafeAreas;
+
 /* *************************************************************** */
 /* Scene ID-Block */
 
@@ -1251,6 +1266,7 @@ typedef struct Scene {
 	
 	struct ToolSettings *toolsettings;		/* default allocated now */
 	struct SceneStats *stats;				/* default allocated now */
+	struct DisplaySafeAreas safe_areas;
 
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */

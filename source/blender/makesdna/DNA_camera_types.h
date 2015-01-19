@@ -56,7 +56,7 @@ typedef struct Camera {
 	float lens, ortho_scale, drawsize;
 	float sensor_x, sensor_y;
 	float shiftx, shifty;
-	
+
 	/* yafray: dof params */
 	/* qdn: yafray var 'YF_dofdist' now enabled for defocus composite node as well.
 	 * The name was not changed so that no other files need to be modified */
@@ -96,12 +96,13 @@ enum {
 	CAM_SHOWLIMITS          = (1 << 0),
 	CAM_SHOWMIST            = (1 << 1),
 	CAM_SHOWPASSEPARTOUT    = (1 << 2),
-	CAM_SHOWTITLESAFE       = (1 << 3),
+	CAM_SHOW_SAFE_MARGINS       = (1 << 3),
 	CAM_SHOWNAME            = (1 << 4),
 	CAM_ANGLETOGGLE         = (1 << 5),
 	CAM_DS_EXPAND           = (1 << 6),
 	CAM_PANORAMA            = (1 << 7), /* deprecated */
 	CAM_SHOWSENSOR          = (1 << 8),
+	CAM_SHOW_SAFE_CENTER    = (1 << 9),
 };
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)

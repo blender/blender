@@ -316,6 +316,10 @@ void UI_draw_roundbox_shade_x(int mode, float minx, float miny, float maxx, floa
 void UI_draw_roundbox_shade_y(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height);
 
+void UI_draw_safe_areas(
+        float x1, float x2, float y1, float y2,
+        const float title_aspect[2], const float action_aspect[2]);
+
 /* state for scrolldrawing */
 #define UI_SCROLL_PRESSED       (1 << 0)
 #define UI_SCROLL_ARROWS        (1 << 1)

@@ -277,6 +277,26 @@ class AddPresetCamera(AddPresetBase, Operator):
         return preset_values
 
 
+class AddPresetSafeAreas(AddPresetBase, Operator):
+    """Add or remove a Safe Areas Preset"""
+    bl_idname = "safe_areas.preset_add"
+    bl_label = "Add Safe Area Preset"
+    preset_menu = "SAFE_AREAS_MT_presets"
+
+    preset_defines = [
+        "safe_areas = bpy.context.scene.safe_areas"
+    ]
+
+    preset_values = [
+        "safe_areas.title",
+        "safe_areas.action",
+        "safe_areas.title_center",
+        "safe_areas.action_center",
+    ]
+
+    preset_subdir = "safe_areas"
+
+
 class AddPresetSSS(AddPresetBase, Operator):
     """Add or remove a Subsurface Scattering Preset"""
     bl_idname = "material.sss_preset_add"

@@ -22,6 +22,7 @@ from bpy.types import Header, Menu, Panel
 from bl_ui.properties_grease_pencil_common import GreasePencilDataPanel, GreasePencilToolsPanel
 from bpy.app.translations import pgettext_iface as iface_
 
+from bl_ui.properties_data_camera import draw_display_safe_settings
 
 def act_strip(context):
     try:
@@ -205,7 +206,7 @@ class SEQUENCER_MT_view(Menu):
 
         if is_preview:
             if st.display_mode == 'IMAGE':
-                layout.prop(st, "show_safe_margin")
+                layout.prop(st, "show_safe_areas")
             elif st.display_mode == 'WAVEFORM':
                 layout.prop(st, "show_separate_color")
 
@@ -973,10 +974,36 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         col = layout.column()
         if st.display_mode == 'IMAGE':
             col.prop(st, "draw_overexposed")
-            col.prop(st, "show_safe_margin")
+            col.separator()
+
         elif st.display_mode == 'WAVEFORM':
             col.prop(st, "show_separate_color")
+
+        col = layout.column()
+        col.separator()
         col.prop(st, "proxy_render_size")
+
+
+class SEQUENCER_PT_view_safe_areas(SequencerButtonsPanel_Output, Panel):
+    bl_label = "Safe Areas"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        st = context.space_data
+        is_preview = st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}
+        return is_preview and (st.display_mode == 'IMAGE')
+
+    def draw_header(self, context):
+        st = context.space_data
+
+        self.layout.prop(st, "show_safe_areas", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        st = context.space_data
+
+        draw_display_safe_settings(layout, st)
 
 
 class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):

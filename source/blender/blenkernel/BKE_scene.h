@@ -39,6 +39,7 @@ extern "C" {
 
 struct AviCodecData;
 struct Base;
+struct DisplaySafeAreas;
 struct EvaluationContext;
 struct bglMats;
 struct Main;

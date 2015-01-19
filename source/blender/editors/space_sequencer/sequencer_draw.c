@@ -1292,24 +1292,18 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		glEnd();
 
 		/* safety border */
-		if ((sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
-			float fac = 0.1;
+		if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
+			UI_draw_safe_areas(
+			        x1, x2, y1, y2,
+			        scene->safe_areas.title,
+			        scene->safe_areas.action);
 
-			float a = fac * (x2 - x1);
-			x1 += a;
-			x2 -= a;
-
-			a = fac * (y2 - y1);
-			y1 += a;
-			y2 -= a;
-
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-			UI_draw_roundbox_corner_set(UI_CNR_ALL);
-			UI_draw_roundbox_gl_mode(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
-
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+			if (sseq->flag & SEQ_SHOW_SAFE_CENTER) {
+				UI_draw_safe_areas(
+				        x1, x2, y1, y2,
+				        scene->safe_areas.title_center,
+				        scene->safe_areas.action_center);
+			}
 		}
 
 		setlinestyle(0);

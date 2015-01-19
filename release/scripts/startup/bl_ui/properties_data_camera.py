@@ -41,6 +41,14 @@ class CAMERA_MT_presets(Menu):
     draw = Menu.draw_preset
 
 
+class SAFE_AREAS_MT_presets(Menu):
+    bl_label = "Camera Presets"
+    preset_subdir = "safe_areas"
+    preset_operator = "script.execute_preset"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    draw = Menu.draw_preset
+
+
 class DATA_PT_context_camera(CameraButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
@@ -195,7 +203,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         col = split.column()
         col.prop(cam, "show_limits", text="Limits")
         col.prop(cam, "show_mist", text="Mist")
-        col.prop(cam, "show_title_safe", text="Safe Areas")
+
         col.prop(cam, "show_sensor", text="Sensor")
         col.prop(cam, "show_name", text="Name")
 
@@ -210,10 +218,57 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
 
 
+class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
+    bl_label = "Safe Areas"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw_header(self, context):
+        cam = context.camera
+
+        self.layout.prop(cam, "show_safe_areas", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        cam = context.camera
+
+        draw_display_safe_settings(layout, cam)
+
+
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Camera
+
+
+def draw_display_safe_settings(layout, settings):
+
+    safe_data = bpy.context.scene.safe_areas
+    show_safe_areas = settings.show_safe_areas
+    show_safe_center = settings.show_safe_center
+
+    split = layout.split()
+
+    col = split.column()
+    row = col.row(align=True)
+    row.menu("SAFE_AREAS_MT_presets", text=bpy.types.SAFE_AREAS_MT_presets.bl_label)
+    row.operator("safe_areas.preset_add", text="", icon='ZOOMIN')
+    row.operator("safe_areas.preset_add", text="", icon='ZOOMOUT').remove_active = True
+
+    col = split.column()
+    col.prop(settings, "show_safe_center", text="Center-Cut Safe Areas")
+
+    split = layout.split()
+    col = split.column()
+    col.active = show_safe_areas
+    col.prop(safe_data, "title", slider=True)
+    col.prop(safe_data, "action", slider=True)
+
+    col = split.column()
+    col.active = show_safe_areas and show_safe_center
+    col.prop(safe_data, "title_center", slider=True)
+    col.prop(safe_data, "action_center", slider=True)
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

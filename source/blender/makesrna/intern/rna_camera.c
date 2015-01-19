@@ -258,9 +258,14 @@ void RNA_def_camera(BlenderRNA *brna)
 	                         "Show a darkened overlay outside the image area in Camera view");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
-	prop = RNA_def_property(srna, "show_title_safe", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWTITLESAFE);
-	RNA_def_property_ui_text(prop, "Show Safe Areas", "Show TV title safe and action safe zones in Camera view");
+	prop = RNA_def_property(srna, "show_safe_areas", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOW_SAFE_MARGINS);
+	RNA_def_property_ui_text(prop, "Show Safe Areas", "Show TV title safe and action safe areas in Camera view");
+	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
+
+	prop = RNA_def_property(srna, "show_safe_center", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOW_SAFE_CENTER);
+	RNA_def_property_ui_text(prop, "Show Center-cut safe areas", "Show safe areas to fit content in a different aspect ratio");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
 	prop = RNA_def_property(srna, "show_name", PROP_BOOLEAN, PROP_NONE);

@@ -599,6 +599,7 @@ static void sequencer_preview_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED
 				case ND_MARKERS:
 				case ND_SEQUENCER:
 				case ND_RENDER_OPTIONS:
+				case ND_DRAW_RENDER_VIEWPORT:
 					ED_region_tag_redraw(ar);
 					break;
 			}

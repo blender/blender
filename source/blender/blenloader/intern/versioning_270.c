@@ -458,4 +458,18 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 #undef BRUSH_RAKE
 #undef BRUSH_RANDOM_ROTATION
 	}
+
+	/* Customizable Safe Areas */
+	if (!MAIN_VERSION_ATLEAST(main, 273, 2)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "DisplaySafeAreas", "safe_areas")) {
+			Scene *scene;
+
+			for (scene = main->scene.first; scene; scene = scene->id.next) {
+				copy_v2_fl2(scene->safe_areas.title, 3.5f / 100.0f, 3.5f / 100.0f);
+				copy_v2_fl2(scene->safe_areas.action, 10.0f / 100.0f, 5.0f / 100.0f);
+				copy_v2_fl2(scene->safe_areas.title_center, 17.5f / 100.0f, 5.0f / 100.0f);
+				copy_v2_fl2(scene->safe_areas.action_center, 15.0f / 100.0f, 5.0f / 100.0f);
+			}
+		}
+	}
 }
