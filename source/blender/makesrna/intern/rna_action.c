@@ -533,7 +533,7 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Action Groups", "Collection of action groups");
 
 	func = RNA_def_function(srna, "new", "rna_Action_groups_new");
-	RNA_def_function_ui_description(func, "Add a keyframe to the curve");
+	RNA_def_function_ui_description(func, "Create a new action group and add it to the action");
 	parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the action group");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
