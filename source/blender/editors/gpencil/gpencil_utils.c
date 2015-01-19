@@ -127,7 +127,9 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 }
 
 
-/* Convert Grease Pencil points to screen-space values */
+/* Convert Grease Pencil points to screen-space values
+ * WARNING: This assumes that the caller has already checked whether the stroke in question can be drawn
+ */
 void gp_point_to_xy(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
                     int *r_x, int *r_y)
 {
@@ -135,7 +137,12 @@ void gp_point_to_xy(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
 	View2D *v2d = gsc->v2d;
 	rctf *subrect = gsc->subrect;
 	int xyval[2];
-
+	
+	/* sanity checks */
+	BLI_assert(!(gps->flag & GP_STROKE_3DSPACE) || (gsc->sa->spacetype == SPACE_VIEW3D));
+	BLI_assert(!(gps->flag & GP_STROKE_2DSPACE) || (gsc->sa->spacetype != SPACE_VIEW3D));
+	
+	
 	if (gps->flag & GP_STROKE_3DSPACE) {
 		if (ED_view3d_project_int_global(ar, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 			*r_x = xyval[0];
@@ -152,11 +159,13 @@ void gp_point_to_xy(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
 		UI_view2d_view_to_region_clip(v2d, vec[0], vec[1], r_x, r_y);
 	}
 	else {
-		if (subrect == NULL) { /* normal 3D view */
+		if (subrect == NULL) {
+			/* normal 3D view (or view space) */
 			*r_x = (int)(pt->x / 100 * ar->winx);
 			*r_y = (int)(pt->y / 100 * ar->winy);
 		}
-		else { /* camera view, use subrect */
+		else {
+			/* camera view, use subrect */
 			*r_x = (int)((pt->x / 100) * BLI_rctf_size_x(subrect)) + subrect->xmin;
 			*r_y = (int)((pt->y / 100) * BLI_rctf_size_y(subrect)) + subrect->ymin;
 		}
