@@ -454,6 +454,7 @@ class SpellChecker():
         "vcol", "vcols",
         "vgroup", "vgroups",
         "vinterlace",
+        "vse",
         "wasd", "wasdqe",  # keys...
         "wetmap", "wetmaps",
         "wpaint",
