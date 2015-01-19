@@ -346,6 +346,7 @@ float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
 	if(type == CAMERA_PERSPECTIVE) {
 		D = transform_perspective(&rastertocamera,
 		                          make_float3(raster_x, raster_y, 0.0f));
+		float3 Pclip = normalize(D);
 		P = make_float3(0.0f, 0.0f, 0.0f);
 		/* TODO(sergey): Aperture support? */
 		P = transform_point(&cameratoworld, P);
@@ -354,7 +355,7 @@ float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
 		 * be mistakes in here, currently leading to wrong camera-in-volume
 		 * detection.
 		 */
-		P += nearclip * D;
+		P += nearclip * D / Pclip.z;
 	}
 	else if (type == CAMERA_ORTHOGRAPHIC) {
 		D = make_float3(0.0f, 0.0f, 1.0f);
