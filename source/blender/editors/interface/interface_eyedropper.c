@@ -830,8 +830,10 @@ static void depthdropper_depth_set(bContext *C, DepthDropper *ddr, const float d
 /* set sample from accumulated values */
 static void depthdropper_depth_set_accum(bContext *C, DepthDropper *ddr)
 {
-	float depth;
-	depth = ddr->accum_depth * 1.0f / (float)ddr->accum_tot;
+	float depth = ddr->accum_depth;
+	if (ddr->accum_tot) {
+		depth /= (float)ddr->accum_tot;
+	}
 	depthdropper_depth_set(C, ddr, depth);
 }
 

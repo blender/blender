@@ -1241,7 +1241,9 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
 			for (ref = kfv->edges.first; ref; ref = ref->next) {
 				kfe = ref->ref;
 				if (kfe->e) {
-					*r_kfe = kfe;
+					if (r_kfe) {
+						*r_kfe = kfe;
+					}
 					break;
 				}
 			}
