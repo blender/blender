@@ -221,6 +221,7 @@ vector<float> Object::motion_times()
 ObjectManager::ObjectManager()
 {
 	need_update = true;
+	need_flags_update = true;
 }
 
 ObjectManager::~ObjectManager()
@@ -404,10 +405,11 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 void ObjectManager::device_update_flags(Device *device, DeviceScene *dscene,
                                         Scene *scene, Progress& progress)
 {
-	if(!need_update)
+	if(!need_update && !need_flags_update)
 		return;
 
 	need_update = false;
+	need_flags_update = false;
 
 	if(scene->objects.size() == 0)
 		return;
@@ -426,6 +428,9 @@ void ObjectManager::device_update_flags(Device *device, DeviceScene *dscene,
 	foreach(Object *object, scene->objects) {
 		if(object->mesh->has_volume) {
 			object_flag[object_index] |= SD_OBJECT_HAS_VOLUME;
+		}
+		else {
+			object_flag[object_index] &= ~SD_OBJECT_HAS_VOLUME;
 		}
 
 		foreach(Object *volume_object, volume_objects) {
