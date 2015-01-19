@@ -79,7 +79,7 @@ public:
 	vector<uint> shader;
 	vector<bool> smooth;
 
-	bool has_volume;  /* Set in the device_update(). */
+	bool has_volume;  /* Set in the device_update_flags(). */
 
 	vector<float4> curve_keys; /* co + radius */
 	vector<Curve> curves;
@@ -145,6 +145,7 @@ public:
 	BVH *bvh;
 
 	bool need_update;
+	bool need_flags_update;
 
 	MeshManager();
 	~MeshManager();
@@ -160,6 +161,7 @@ public:
 	void device_update_mesh(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update_attributes(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update_bvh(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+	void device_update_flags(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void tag_update(Scene *scene);

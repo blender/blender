@@ -70,6 +70,7 @@ public:
 class ObjectManager {
 public:
 	bool need_update;
+	bool need_flags_update;
 
 	ObjectManager();
 	~ObjectManager();
