@@ -1450,8 +1450,18 @@ void BKE_mesh_remap_calc_loops_from_dm(
 							pidx_src = loop_to_poly_map_src[lidx_src];
 							/* If prev and curr poly are the same, no need to do anything more!!! */
 							if (!ELEM(pidx_src_prev, -1, pidx_src) && isld_steps_src) {
+								int pidx_isld_src, pidx_isld_src_prev;
+								if (poly_island_index_map) {
+									pidx_isld_src = poly_island_index_map[pidx_src];
+									pidx_isld_src_prev = poly_island_index_map[pidx_src_prev];
+								}
+								else {
+									pidx_isld_src = pidx_src;
+									pidx_isld_src_prev = pidx_src_prev;
+								}
+
 								BLI_astar_graph_solve(
-								        as_graph, poly_island_index_map[pidx_src_prev], poly_island_index_map[pidx_src],
+								        as_graph, pidx_isld_src_prev, pidx_isld_src,
 								        mesh_remap_calc_loops_astar_f_cost, &as_solution, isld_steps_src);
 								if (GET_INT_FROM_POINTER(as_solution.custom_data) && (as_solution.steps > 0)) {
 									/* Find first 'cutting edge' on path, and bring back lidx_src on poly just
@@ -1461,7 +1471,6 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									 * but this is one more level of complexity, better to first see if
 									 * simple solution works!
 									 */
-									int pidx_isld_src = poly_island_index_map[pidx_src];
 									int last_valid_pidx_isld_src = -1;
 									/* Note we go backward here, from dest to src poly. */
 									for (i = as_solution.steps - 1; i--;) {
@@ -1527,8 +1536,18 @@ void BKE_mesh_remap_calc_loops_from_dm(
 
 							/* If prev and curr poly are the same, no need to do anything more!!! */
 							if (!ELEM(pidx_src_prev, -1, pidx_src) && isld_steps_src) {
+								int pidx_isld_src, pidx_isld_src_prev;
+								if (poly_island_index_map) {
+									pidx_isld_src = poly_island_index_map[pidx_src];
+									pidx_isld_src_prev = poly_island_index_map[pidx_src_prev];
+								}
+								else {
+									pidx_isld_src = pidx_src;
+									pidx_isld_src_prev = pidx_src_prev;
+								}
+
 								BLI_astar_graph_solve(
-								        as_graph, poly_island_index_map[pidx_src_prev], poly_island_index_map[pidx_src],
+								        as_graph, pidx_isld_src_prev, pidx_isld_src,
 								        mesh_remap_calc_loops_astar_f_cost, &as_solution, isld_steps_src);
 								if (GET_INT_FROM_POINTER(as_solution.custom_data) && (as_solution.steps > 0)) {
 									/* Find first 'cutting edge' on path, and bring back lidx_src on poly just
@@ -1538,7 +1557,6 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									 * but this is one more level of complexity, better to first see if
 									 * simple solution works!
 									 */
-									int pidx_isld_src = poly_island_index_map[pidx_src];
 									int last_valid_pidx_isld_src = -1;
 									/* Note we go backward here, from dest to src poly. */
 									for (i = as_solution.steps - 1; i--;) {
