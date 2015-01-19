@@ -4040,32 +4040,34 @@ static MDeformVert *hair_set_pinning(MDeformVert *dvert, float weight)
 	return dvert;
 }
 
-static void do_hair_dynamics(ParticleSimulationData *sim)
+static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int totedge, DerivedMesh **r_dm, ClothHairRoot **r_roots)
 {
 	ParticleSystem *psys = sim->psys;
-	DerivedMesh *dm = psys->hair_in_dm;
-	MVert *mvert = NULL;
-	MEdge *medge = NULL;
-	MDeformVert *dvert = NULL;
+	DerivedMesh *dm;
+	ClothHairRoot *roots;
+	MVert *mvert;
+	MEdge *medge;
+	MDeformVert *dvert;
 	HairKey *key;
 	PARTICLE_P;
-	int totpoint = 0;
-	int totedge;
-	int k;
+	int k, hair_index;
 	float hairmat[4][4];
-	float (*deformedVerts)[3];
 	float max_length;
-	bool realloc_roots;
-
-	if (!psys->clmd) {
-		psys->clmd = (ClothModifierData*)modifier_new(eModifierType_Cloth);
-		psys->clmd->sim_parms->goalspring = 0.0f;
-		psys->clmd->sim_parms->vel_damping = 1.0f;
-		psys->clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_GOAL|CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
-		psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;
-		psys->clmd->coll_parms->flags |= CLOTH_COLLSETTINGS_FLAG_POINTS;
+	
+	dm = *r_dm;
+	if (!dm) {
+		*r_dm = dm = CDDM_new(totpoint, totedge, 0, 0, 0);
+		DM_add_vert_layer(dm, CD_MDEFORMVERT, CD_CALLOC, NULL);
 	}
-
+	mvert = CDDM_get_verts(dm);
+	medge = CDDM_get_edges(dm);
+	dvert = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
+	
+	roots = *r_roots;
+	if (!roots) {
+		*r_roots = roots = MEM_mallocN(sizeof(ClothHairRoot) * totpoint, "hair roots");
+	}
+	
 	/* calculate maximum segment length */
 	max_length = 0.0f;
 	LOOP_PARTICLES {
@@ -4075,117 +4077,138 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 				max_length = length;
 		}
 	}
-
-	/* create a dm from hair vertices */
-	LOOP_PARTICLES
-		totpoint += pa->totkey;
-
-	totedge = totpoint;
-	totpoint += psys->totpart;
-
-	realloc_roots = false; /* whether hair root info array has to be reallocated */
-	if (dm && (totpoint != dm->getNumVerts(dm) || totedge != dm->getNumEdges(dm))) {
-		dm->release(dm);
-		dm = psys->hair_in_dm = NULL;
-		
-		realloc_roots = true;
-	}
-
-	if (!dm) {
-		dm = psys->hair_in_dm = CDDM_new(totpoint, totedge, 0, 0, 0);
-		DM_add_vert_layer(dm, CD_MDEFORMVERT, CD_CALLOC, NULL);
-		
-		realloc_roots = true;
-	}
 	
-	if (!psys->clmd->roots || realloc_roots) {
-		if (psys->clmd->roots)
-			MEM_freeN(psys->clmd->roots);
-		psys->clmd->roots = MEM_mallocN(sizeof(ClothHairRoot) * totpoint, "hair roots");
-	}
-
-	mvert = CDDM_get_verts(dm);
-	medge = CDDM_get_edges(dm);
-	dvert = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
-
 	psys->clmd->sim_parms->vgroup_mass = 1;
-
+	
 	/* make vgroup for pin roots etc.. */
-	psys->particles->hair_index = 1;
+	hair_index = 1;
 	LOOP_PARTICLES {
 		float root_mat[4][4];
-		bool use_hair = psys_hair_use_simulation(pa, max_length);
-
-		if (p)
-			pa->hair_index = (pa-1)->hair_index + (pa-1)->totkey + 1;
-
+		bool use_hair;
+		
+		pa->hair_index = hair_index;
+		use_hair = psys_hair_use_simulation(pa, max_length);
+		
 		psys_mat_hair_to_object(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
 		mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
 		normalize_m4(root_mat);
-
+		
 		for (k=0, key=pa->hair; k<pa->totkey; k++,key++) {
 			ClothHairRoot *root;
+			float *co, *co_next;
+			
+			co = key->co;
+			co_next = (key+1)->co;
 			
 			/* create fake root before actual root to resist bending */
 			if (k==0) {
-				float temp[3];
-				
 				root = &psys->clmd->roots[pa->hair_index - 1];
 				copy_v3_v3(root->loc, root_mat[3]);
 				copy_m3_m4(root->rot, root_mat);
 				
-				sub_v3_v3v3(temp, key->co, (key+1)->co);
-				copy_v3_v3(mvert->co, key->co);
-				add_v3_v3v3(mvert->co, mvert->co, temp);
+				add_v3_v3v3(mvert->co, co, co);
+				sub_v3_v3(mvert->co, co_next);
 				mul_m4_v3(hairmat, mvert->co);
-				mvert++;
-
+				
 				medge->v1 = pa->hair_index - 1;
 				medge->v2 = pa->hair_index;
-				medge++;
-
+				
 				dvert = hair_set_pinning(dvert, 1.0f);
+				
+				mvert++;
+				medge++;
 			}
-
+			
 			/* store root transform in cloth data */
 			root = &psys->clmd->roots[pa->hair_index + k];
 			copy_v3_v3(root->loc, root_mat[3]);
 			copy_m3_m4(root->rot, root_mat);
-
-			copy_v3_v3(mvert->co, key->co);
+			
+			copy_v3_v3(mvert->co, co);
 			mul_m4_v3(hairmat, mvert->co);
-			mvert++;
 			
 			if (k) {
 				medge->v1 = pa->hair_index + k - 1;
 				medge->v2 = pa->hair_index + k;
-				medge++;
 			}
-
+			
 			/* roots and disabled hairs should be 1.0, the rest can be anything from 0.0 to 1.0 */
 			if (use_hair)
 				dvert = hair_set_pinning(dvert, key->weight);
 			else
 				dvert = hair_set_pinning(dvert, 1.0f);
+			
+			mvert++;
+			if (k)
+				medge++;
+		}
+		
+		hair_index += pa->totkey + 1;
+	}
+}
+
+static void do_hair_dynamics(ParticleSimulationData *sim)
+{
+	ParticleSystem *psys = sim->psys;
+	PARTICLE_P;
+	int totpoint;
+	int totedge;
+	float (*deformedVerts)[3];
+	bool realloc_roots;
+	
+	if (!psys->clmd) {
+		psys->clmd = (ClothModifierData*)modifier_new(eModifierType_Cloth);
+		psys->clmd->sim_parms->goalspring = 0.0f;
+		psys->clmd->sim_parms->vel_damping = 1.0f;
+		psys->clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_GOAL|CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
+		psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;
+		psys->clmd->coll_parms->flags |= CLOTH_COLLSETTINGS_FLAG_POINTS;
+	}
+	
+	/* count simulated points */
+	totpoint = 0;
+	totedge = 0;
+	LOOP_PARTICLES {
+		/* "out" dm contains all hairs */
+		totedge += pa->totkey;
+		totpoint += pa->totkey + 1; /* +1 for virtual root point */
+	}
+	
+	realloc_roots = false; /* whether hair root info array has to be reallocated */
+	if (psys->hair_in_dm) {
+		DerivedMesh *dm = psys->hair_in_dm;
+		if (totpoint != dm->getNumVerts(dm) || totedge != dm->getNumEdges(dm)) {
+			dm->release(dm);
+			psys->hair_in_dm = NULL;
+			realloc_roots = true;
 		}
 	}
-
+	
+	if (psys->hair_in_dm || !psys->clmd->roots || realloc_roots) {
+		if (psys->clmd->roots) {
+			MEM_freeN(psys->clmd->roots);
+			psys->clmd->roots = NULL;
+		}
+	}
+	
+	hair_create_input_dm(sim, totpoint, totedge, &psys->hair_in_dm, &psys->clmd->roots);
+	
 	if (psys->hair_out_dm)
 		psys->hair_out_dm->release(psys->hair_out_dm);
-
+	
 	psys->clmd->point_cache = psys->pointcache;
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
-
-	deformedVerts = MEM_mallocN(sizeof(*deformedVerts) * dm->getNumVerts(dm), "do_hair_dynamics vertexCos");
-	psys->hair_out_dm = CDDM_copy(dm);
+	
+	deformedVerts = MEM_mallocN(sizeof(*deformedVerts) * psys->hair_in_dm->getNumVerts(psys->hair_in_dm), "do_hair_dynamics vertexCos");
+	psys->hair_out_dm = CDDM_copy(psys->hair_in_dm);
 	psys->hair_out_dm->getVertCos(psys->hair_out_dm, deformedVerts);
-
-	clothModifier_do(psys->clmd, sim->scene, sim->ob, dm, deformedVerts);
-
+	
+	clothModifier_do(psys->clmd, sim->scene, sim->ob, psys->hair_in_dm, deformedVerts);
+	
 	CDDM_apply_vert_coords(psys->hair_out_dm, deformedVerts);
-
+	
 	MEM_freeN(deformedVerts);
-
+	
 	psys->clmd->sim_parms->effector_weights = NULL;
 }
 static void hair_step(ParticleSimulationData *sim, float cfra)

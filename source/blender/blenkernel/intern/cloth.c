@@ -51,15 +51,6 @@
 
 // #include "PIL_time.h"  /* timing for debug prints */
 
-/* Our available solvers. */
-// 255 is the magic reserved number, so NEVER try to put 255 solvers in here!
-// 254 = MAX!
-static CM_SOLVER_DEF	solvers [] =
-{
-	{ "Implicit", CM_IMPLICIT, BPH_cloth_solver_init, BPH_cloth_solve, BPH_cloth_solver_free },
-	// { "Implicit C++", CM_IMPLICITCPP, implicitcpp_init, implicitcpp_solver, implicitcpp_free },
-};
-
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
  */
@@ -419,8 +410,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	// TIMEIT_START(cloth_step)
 
 	/* call the solver. */
-	if (solvers [clmd->sim_parms->solver_type].solver)
-		ret = solvers[clmd->sim_parms->solver_type].solver(ob, framenr, clmd, effectors);
+	ret = BPH_cloth_solve(ob, framenr, clmd, effectors);
 
 	// TIMEIT_END(cloth_step)
 
@@ -615,10 +605,7 @@ void cloth_free_modifier(ClothModifierData *clmd )
 
 	
 	if ( cloth ) {
-		// If our solver provides a free function, call it
-		if ( solvers [clmd->sim_parms->solver_type].free ) {
-			solvers [clmd->sim_parms->solver_type].free ( clmd );
-		}
+		BPH_cloth_solver_free(clmd);
 
 		// Free the verts.
 		if ( cloth->verts != NULL )
@@ -684,10 +671,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 		if (G.debug_value > 0)
 			printf("cloth_free_modifier_extern in\n");
 
-		// If our solver provides a free function, call it
-		if ( solvers [clmd->sim_parms->solver_type].free ) {
-			solvers [clmd->sim_parms->solver_type].free ( clmd );
-		}
+		BPH_cloth_solver_free(clmd);
 
 		// Free the verts.
 		if ( cloth->verts != NULL )
@@ -965,9 +949,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	}
 	
 	// init our solver
-	if ( solvers [clmd->sim_parms->solver_type].init ) {
-		solvers [clmd->sim_parms->solver_type].init ( ob, clmd );
-	}
+	BPH_cloth_solver_init(ob, clmd);
 	
 	if (!first)
 		BKE_cloth_solver_set_positions(clmd);
