@@ -90,6 +90,42 @@ bool gp_stroke_inside_circle(const int mval[2], const int UNUSED(mvalo[2]),
 
 /* ******************************************************** */
 
+/* Check whether given stroke can be edited given the supplied context */
+// XXX: do we need additional flags for screenspace vs dataspace?
+bool ED_gpencil_stroke_can_use_direct(const ScrArea *sa, const bGPDstroke *gps)
+{
+	/* sanity check */
+	if (ELEM(NULL, sa, gps))
+		return false;
+
+	/* filter stroke types by flags + spacetype */
+	if (gps->flag & GP_STROKE_3DSPACE) {
+		/* 3D strokes - only in 3D view */
+		return (sa->spacetype == SPACE_VIEW3D);
+	}
+	else if (gps->flag & GP_STROKE_2DIMAGE) {
+		/* Special "image" strokes - only in Image Editor */
+		return (sa->spacetype == SPACE_IMAGE);
+	}
+	else if (gps->flag & GP_STROKE_2DSPACE) {
+		/* 2D strokes (dataspace) - for any 2D view (i.e. everything other than 3D view) */
+		return (sa->spacetype != SPACE_VIEW3D);
+	}
+	else {
+		/* view aligned - anything goes */
+		return true;
+	}
+}
+
+/* Check whether given stroke can be edited in the current context */
+bool ED_gpencil_stroke_can_use(const bContext *C, const bGPDstroke *gps)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	return ED_gpencil_stroke_can_use_direct(sa, gps);
+}
+
+/* ******************************************************** */
+
 /* Init handling for space-conversion function (from passed-in parameters) */
 void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 {

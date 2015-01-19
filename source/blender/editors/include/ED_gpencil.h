@@ -43,6 +43,7 @@ struct Object;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
+struct bGPDstroke;
 struct PointerRNA;
 struct ImBuf;
 struct wmKeyConfig;
@@ -79,6 +80,11 @@ struct bGPdata *ED_gpencil_data_get_active_direct(struct ID *screen_id, struct S
 
 /* 3D View */
 struct bGPdata  *ED_gpencil_data_get_active_v3d(struct Scene *scene, struct View3D *v3d);
+
+/* ----------- Stroke Editing Utilities ---------------- */
+
+bool ED_gpencil_stroke_can_use_direct(const struct ScrArea *sa, const struct bGPDstroke *gps);
+bool ED_gpencil_stroke_can_use(const struct bContext *C, const struct bGPDstroke *gps);
 
 /* ----------- Grease Pencil Operators ----------------- */
 

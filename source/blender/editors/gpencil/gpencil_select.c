@@ -136,11 +136,14 @@ static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 					bGPDspoint *pt;
 					int i;
 					
-					for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-						pt->flag &= ~GP_SPOINT_SELECT;
+					/* only edit strokes that are valid in this view... */
+					if (ED_gpencil_stroke_can_use(C, gps)) {
+						for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+							pt->flag &= ~GP_SPOINT_SELECT;
+						}
+						
+						gps->flag &= ~GP_STROKE_SELECT;
 					}
-					
-					gps->flag &= ~GP_STROKE_SELECT;
 				}
 			}
 		}
