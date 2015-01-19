@@ -518,4 +518,14 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 273, 3)) {
+		ParticleSettings *part;
+		for (part = main->particle.first; part; part = part->id.next) {
+			if (part->clumpcurve)
+				part->child_flag |= PART_CHILD_USE_CLUMP_CURVE;
+			if (part->roughcurve)
+				part->child_flag |= PART_CHILD_USE_ROUGH_CURVE;
+		}
+	}
 }

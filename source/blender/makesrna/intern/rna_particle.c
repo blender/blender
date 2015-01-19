@@ -877,50 +877,30 @@ static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 	return part->type == PART_FLUID;
 }
 
-int rna_ParticleSettings_use_clump_curve_get(PointerRNA *ptr)
-{
-	ParticleSettings *part = ptr->data;
-	return part->clumpcurve != NULL;
-}
-
-void rna_ParticleSettings_use_clump_curve_set(PointerRNA *ptr, int value)
+static void rna_ParticleSettings_use_clump_curve_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ParticleSettings *part = ptr->data;
 	
-	if (!value) {
-		if (part->clumpcurve) {
-			curvemapping_free(part->clumpcurve);
-			part->clumpcurve = NULL;
-		}
-	}
-	else {
+	if (part->child_flag & PART_CHILD_USE_CLUMP_CURVE) {
 		if (!part->clumpcurve) {
 			BKE_particlesettings_clump_curve_init(part);
 		}
 	}
+	
+	rna_Particle_redo_child(bmain, scene, ptr);
 }
 
-int rna_ParticleSettings_use_roughness_curve_get(PointerRNA *ptr)
-{
-	ParticleSettings *part = ptr->data;
-	return part->roughcurve != NULL;
-}
-
-void rna_ParticleSettings_use_roughness_curve_set(PointerRNA *ptr, int value)
+static void rna_ParticleSettings_use_roughness_curve_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ParticleSettings *part = ptr->data;
 	
-	if (!value) {
-		if (part->roughcurve) {
-			curvemapping_free(part->roughcurve);
-			part->roughcurve = NULL;
-		}
-	}
-	else {
+	if (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) {
 		if (!part->roughcurve) {
 			BKE_particlesettings_rough_curve_init(part);
 		}
 	}
+	
+	rna_Particle_redo_child(bmain, scene, ptr);
 }
 
 static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
@@ -2859,9 +2839,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop = RNA_def_property(srna, "use_clump_curve", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_ParticleSettings_use_clump_curve_get", "rna_ParticleSettings_use_clump_curve_set");
+	RNA_def_property_boolean_sdna(prop, NULL, "child_flag", PART_CHILD_USE_CLUMP_CURVE);
 	RNA_def_property_ui_text(prop, "Use Clump Curve", "Use a curve to define clump tapering");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+	RNA_def_property_update(prop, 0, "rna_ParticleSettings_use_clump_curve_update");
 
 	prop = RNA_def_property(srna, "clump_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clumpcurve");
@@ -2979,9 +2959,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop = RNA_def_property(srna, "use_roughness_curve", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_ParticleSettings_use_roughness_curve_get", "rna_ParticleSettings_use_roughness_curve_set");
+	RNA_def_property_boolean_sdna(prop, NULL, "child_flag", PART_CHILD_USE_ROUGH_CURVE);
 	RNA_def_property_ui_text(prop, "Use Roughness Curve", "Use a curve to define roughness");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+	RNA_def_property_update(prop, 0, "rna_ParticleSettings_use_roughness_curve_update");
 
 	prop = RNA_def_property(srna, "roughness_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "roughcurve");

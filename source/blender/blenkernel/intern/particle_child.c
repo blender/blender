@@ -661,6 +661,8 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
                         ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t)
 {
 	ParticleSettings *part = sim->psys->part;
+	CurveMapping *clumpcurve = (part->child_flag & PART_CHILD_USE_CLUMP_CURVE) ? part->clumpcurve : NULL;
+	CurveMapping *roughcurve = (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) ? part->roughcurve : NULL;
 	int i = cpa - sim->psys->child;
 	int guided = 0;
 
@@ -690,7 +692,7 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
 		
 		sub_v3_v3v3(orco_offset, orco, par_orco);
 		clump = do_clump(state, par_co, t, orco_offset, part->clumpfac, part->clumppow, ptex ? ptex->clump : 1.f,
-		                 part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, part->clumpcurve);
+		                 part->child_flag & PART_CHILD_USE_CLUMP_NOISE, part->clump_noise_size, clumpcurve);
 
 		if (kink_freq != 0.f) {
 			kink_amp *= (1.f - kink_amp_clump * clump);
@@ -702,7 +704,7 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
 	}
 
 	if (part->roughcurve) {
-		do_rough_curve(orco, mat, t, rough1, part->rough1_size, part->roughcurve, state);
+		do_rough_curve(orco, mat, t, rough1, part->rough1_size, roughcurve, state);
 	}
 	else {
 		if (rough1 > 0.f)

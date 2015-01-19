@@ -428,9 +428,11 @@ typedef enum eParticleKink {
 	PART_KINK_SPIRAL	= 5,
 } eParticleKink;
 
-/* part->kink_flag */
+/* part->child_flag */
 typedef enum eParticleChildFlag {
-	PART_CHILD_USE_CLUMP_NOISE  = 1,
+	PART_CHILD_USE_CLUMP_NOISE  = (1<<0),
+	PART_CHILD_USE_CLUMP_CURVE  = (1<<1),
+	PART_CHILD_USE_ROUGH_CURVE  = (1<<2),
 } eParticleChildFlag;
 
 /* part->draw_col */
