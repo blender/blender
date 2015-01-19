@@ -856,6 +856,20 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 					break;
 			}
 			break;
+		case NC_CAMERA:
+			switch (wmn->data) {
+				case ND_DRAW_RENDER_VIEWPORT:
+				{
+					if (v3d->camera && (v3d->camera->data == wmn->reference)) {
+						RegionView3D *rv3d = ar->regiondata;
+						if (rv3d->persp == RV3D_CAMOB) {
+							ED_region_tag_redraw(ar);
+						}
+					}
+					break;
+				}
+			}
+			break;
 		case NC_GROUP:
 			/* all group ops for now */
 			ED_region_tag_redraw(ar);

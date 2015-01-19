@@ -239,6 +239,7 @@ typedef struct wmNotifier {
 #define NC_MASK				(21<<24)
 #define NC_GPENCIL			(22<<24)
 #define NC_LINESTYLE			(23<<24)
+#define NC_CAMERA			(24<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -297,6 +298,7 @@ typedef struct wmNotifier {
 #define ND_POINTCACHE		(28<<16)
 #define ND_PARENT			(29<<16)
 #define ND_LOD				(30<<16)
+#define ND_DRAW_RENDER_VIEWPORT	(31<<16)  /* for camera & sequencer viewport update, also /w NC_SCENE */
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)
