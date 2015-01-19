@@ -116,7 +116,6 @@ void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 	unsigned int numverts = cloth->numverts, i;
 	ClothHairRoot *cloth_roots = clmd->roots;
 	Implicit_Data *id = cloth->implicit;
-	const float ZERO[3] = {0.0f, 0.0f, 0.0f};
 	
 	for (i = 0; i < numverts; i++) {
 		ClothHairRoot *root = &cloth_roots[i];
@@ -512,6 +511,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
 	MFace 		*mfaces 	= cloth->mfaces;
 	unsigned int numverts = cloth->numverts;
+	ClothVertex *vert;
 	
 #ifdef CLOTH_FORCE_GRAVITY
 	/* global acceleration (gravitation) */
