@@ -1312,7 +1312,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 	TreeStoreElem *tselem;
 	int totelem = 0;
 
-	if (soops->flag & SO_SKIP_SORTING)
+	if (soops->flag & SO_SKIP_SORT_ALPHA)
 		return;
 
 	te = lb->last;
