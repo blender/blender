@@ -7321,6 +7321,11 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 			bGPDstroke *gps;
 			
 			for (gps = gpf->strokes.first; gps; gps = gps->next) {
+				/* skip strokes that are invalid for current view */
+				if (ED_gpencil_stroke_can_use(C, gps) == false) {
+					continue;
+				}
+				
 				if (propedit) {
 					/* Proportional Editing... */
 					if (propedit_connected) {
@@ -7423,6 +7428,11 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 				TransData *head = td;
 				TransData *tail = td;
 				bool stroke_ok;
+				
+				/* skip strokes that are invalid for current view */
+				if (ED_gpencil_stroke_can_use(C, gps) == false) {
+					continue;
+				}
 				
 				/* What we need to include depends on proportional editing settings... */
 				if (propedit) {

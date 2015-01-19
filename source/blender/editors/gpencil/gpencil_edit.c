@@ -620,6 +620,10 @@ static int gp_duplicate_exec(bContext *C, wmOperator *op)
 		
 		/* make copies of selected strokes, and deselect these once we're done */
 		for (gps = gpf->strokes.first; gps; gps = gps->next) {
+			/* skip strokes that are invalid for current view */
+			if (ED_gpencil_stroke_can_use(C, gps) == false)
+				continue;
+			
 			if (gps->flag & GP_STROKE_SELECT) {
 				if (gps->totpoints == 1) {
 					/* Special Case: If there's just a single point in this stroke... */
@@ -728,6 +732,10 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 		
 		/* make copies of selected strokes, and deselect these once we're done */
 		for (gps = gpf->strokes.first; gps; gps = gps->next) {
+			/* skip strokes that are invalid for current view */
+			if (ED_gpencil_stroke_can_use(C, gps) == false)
+				continue;
+			
 			if (gps->flag & GP_STROKE_SELECT) {
 				if (gps->totpoints == 1) {
 					/* Special Case: If there's just a single point in this stroke... */
@@ -936,6 +944,11 @@ static int gp_delete_selected_strokes(bContext *C)
 		for (gps = gpf->strokes.first; gps; gps = gpsn) {
 			gpsn = gps->next;
 			
+			/* skip strokes that are invalid for current view */
+			if (ED_gpencil_stroke_can_use(C, gps) == false)
+				continue;
+			
+			/* free stroke if selected */
 			if (gps->flag & GP_STROKE_SELECT) {
 				/* free stroke memory arrays, then stroke itself */
 				if (gps->points) MEM_freeN(gps->points);
@@ -974,6 +987,10 @@ static int gp_dissolve_selected_points(bContext *C)
 		 */
 		for (gps = gpf->strokes.first; gps; gps = gpsn) {
 			gpsn = gps->next;
+			
+			/* skip strokes that are invalid for current view */
+			if (ED_gpencil_stroke_can_use(C, gps) == false)
+				continue;
 			
 			if (gps->flag & GP_STROKE_SELECT) {
 				bGPDspoint *pt;
@@ -1049,6 +1066,11 @@ static int gp_delete_selected_points(bContext *C)
 		/* simply delete strokes which are selected */
 		for (gps = gpf->strokes.first; gps; gps = gpsn) {
 			gpsn = gps->next;
+			
+			/* skip strokes that are invalid for current view */
+			if (ED_gpencil_stroke_can_use(C, gps) == false)
+				continue;
+			
 			
 			if (gps->flag & GP_STROKE_SELECT) {
 				bGPDspoint *pt;

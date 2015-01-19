@@ -497,7 +497,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					bGPDstroke *gps;
 					
 					for (gps = gpf->strokes.first; gps; gps = gps->next) {
-						CTX_data_list_add(result, &gpd->id, &RNA_GPencilStroke, gps);
+						if (ED_gpencil_stroke_can_use_direct(sa, gps)) {
+							CTX_data_list_add(result, &gpd->id, &RNA_GPencilStroke, gps);
+						}
 					}
 				}
 			}
