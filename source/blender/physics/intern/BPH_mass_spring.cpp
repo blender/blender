@@ -503,10 +503,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 			for (LinkNode *link = cloth->springs; link; link = link->next) {
 				ClothSpring *spring = (ClothSpring *)link->link;
 				if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
-
 					hair_ij = &hairdata[spring->ij];
 					hair_kl = &hairdata[spring->kl];
-					BPH_mass_spring_force_edge_wind(data, si_ij, si_kl, hair_ij->radius, hair_kl->radius, winvec);
+					BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, hair_ij->radius, hair_kl->radius, winvec);
 			}
 		}
 
