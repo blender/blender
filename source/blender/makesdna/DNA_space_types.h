@@ -273,6 +273,7 @@ typedef enum eSpaceOutliner_Flag {
 	SO_NEWSELECTED          = (1 << 1),
 	SO_HIDE_RESTRICTCOLS    = (1 << 2),
 	SO_HIDE_KEYINGSETINFO   = (1 << 3),
+	SO_SKIP_SORTING         = (1 << 4),
 } eSpaceOutliner_Flag;
 
 /* SpaceOops->outlinevis */

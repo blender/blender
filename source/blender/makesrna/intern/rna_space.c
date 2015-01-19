@@ -1593,7 +1593,12 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "search_flags", SO_FIND_COMPLETE);
 	RNA_def_property_ui_text(prop, "Complete Matches Only", "Only use complete matches of search string");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
-	
+
+	prop = RNA_def_property(srna, "sort_alphabetically", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SO_SKIP_SORTING);
+	RNA_def_property_ui_text(prop, "Sort Alphabetically", "Sort items alphabetically");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
+
 	prop = RNA_def_property(srna, "show_restrict_columns", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SO_HIDE_RESTRICTCOLS);
 	RNA_def_property_ui_text(prop, "Show Restriction Columns", "Show column");
