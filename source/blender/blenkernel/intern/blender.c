@@ -146,10 +146,6 @@ void initglobals(void)
 	else
 		BLI_snprintf(versionstr, sizeof(versionstr), "v%d.%02d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
 
-#ifdef _WIN32
-	G.windowstate = 0;
-#endif
-
 #ifndef WITH_PYTHON_SECURITY /* default */
 	G.f |= G_SCRIPT_AUTOEXEC;
 #else
@@ -291,8 +287,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		CTX_data_scene_set(C, curscene);
 	}
 	else {
-		G.winpos = bfd->winpos;
-		G.displaymode = bfd->displaymode;
 		G.fileflags = bfd->fileflags;
 		CTX_wm_manager_set(C, G.main->wm.first);
 		CTX_wm_screen_set(C, bfd->curscreen);

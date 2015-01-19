@@ -70,7 +70,6 @@ typedef struct Global {
 	bool factory_startup;
 
 	short moving;
-	short winpos, displaymode;  /* used to be in Render */
 
 	/* to indicate render is busy, prevent renderwindow events etc */
 	bool is_rendering;
@@ -89,9 +88,6 @@ typedef struct Global {
 
 	/* this variable is written to / read from FileGlobal->fileflags */
 	int fileflags;
-
-	/* save the allowed windowstate of blender when using -W or -w (GHOST_TWindowState) */
-	int windowstate;
 
 	/* message to use when autoexec fails */
 	char autoexec_fail[200];

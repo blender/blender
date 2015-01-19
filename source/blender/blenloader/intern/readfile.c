@@ -7571,9 +7571,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->main->build_commit_timestamp = fg->build_commit_timestamp;
 	BLI_strncpy(bfd->main->build_hash, fg->build_hash, sizeof(bfd->main->build_hash));
 	
-	bfd->winpos = fg->winpos;
 	bfd->fileflags = fg->fileflags;
-	bfd->displaymode = fg->displaymode;
 	bfd->globalf = fg->globalf;
 	BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
 	

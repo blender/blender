@@ -41,9 +41,9 @@ struct Scene;
  */
 typedef struct FileGlobal {
 	char subvstr[4];		/* needs to be here, for human fileformat recognition */
-	short subversion, pads;
+	short subversion;
 	short minversion, minsubversion;
-	short displaymode, winpos;
+	char pad[6];
 	struct bScreen *curscreen;
 	struct Scene *curscene;
 	int fileflags;

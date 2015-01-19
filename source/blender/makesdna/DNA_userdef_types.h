@@ -461,7 +461,7 @@ typedef struct UserDef {
 
 	int scrollback; /* console scrollback limit */
 	int dpi;		/* range 48-128? */
-	short encoding;
+	char pad2[2];
 	short transopts;
 	short menuthreshold1, menuthreshold2;
 	
