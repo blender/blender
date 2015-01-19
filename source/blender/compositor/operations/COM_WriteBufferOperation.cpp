@@ -25,10 +25,10 @@
 #include <stdio.h>
 #include "COM_OpenCLDevice.h"
 
-WriteBufferOperation::WriteBufferOperation() : NodeOperation()
+WriteBufferOperation::WriteBufferOperation(DataType datatype) : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
-	this->m_memoryProxy = new MemoryProxy();
+	this->addInputSocket(datatype);
+	this->m_memoryProxy = new MemoryProxy(datatype);
 	this->m_memoryProxy->setWriteBufferOperation(this);
 	this->m_memoryProxy->setExecutor(NULL);
 }
@@ -61,6 +61,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
 	float *buffer = memoryBuffer->getBuffer();
+	const int num_channels = memoryBuffer->get_num_channels();
 	if (this->m_input->isComplex()) {
 		void *data = this->m_input->initializeTileData(rect);
 		int x1 = rect->xmin;
@@ -71,10 +72,10 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		int y;
 		bool breaked = false;
 		for (y = y1; y < y2 && (!breaked); y++) {
-			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
+			int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
 			for (x = x1; x < x2; x++) {
 				this->m_input->read(&(buffer[offset4]), x, y, data);
-				offset4 += COM_NUMBER_OF_CHANNELS;
+				offset4 += num_channels;
 			}
 			if (isBreaked()) {
 				breaked = true;
@@ -96,10 +97,10 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		int y;
 		bool breaked = false;
 		for (y = y1; y < y2 && (!breaked); y++) {
-			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
+			int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
 			for (x = x1; x < x2; x++) {
 				this->m_input->readSampled(&(buffer[offset4]), x, y, COM_PS_NEAREST);
-				offset4 += COM_NUMBER_OF_CHANNELS;
+				offset4 += num_channels;
 			}
 			if (isBreaked()) {
 				breaked = true;
@@ -126,12 +127,9 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti *rect,
 	const unsigned int outputBufferWidth = outputBuffer->getWidth();
 	const unsigned int outputBufferHeight = outputBuffer->getHeight();
 
-	const cl_image_format imageFormat = {
-		CL_RGBA,
-		CL_FLOAT
-	};
+	const cl_image_format *imageFormat = device->determineImageFormat(outputBuffer);
 
-	cl_mem clOutputBuffer = clCreateImage2D(device->getContext(), CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
+	cl_mem clOutputBuffer = clCreateImage2D(device->getContext(), CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	// STEP 2

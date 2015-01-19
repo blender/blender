@@ -73,8 +73,9 @@ void SocketBufferNode::convertToOperations(NodeConverter &converter, const Compo
 	NodeOutput *output = this->getOutputSocket(0);
 	NodeInput *input = this->getInputSocket(0);
 	
-	WriteBufferOperation *writeOperation = new WriteBufferOperation();
-	ReadBufferOperation *readOperation = new ReadBufferOperation();
+	DataType datatype = output->getDataType();
+	WriteBufferOperation *writeOperation = new WriteBufferOperation(datatype);
+	ReadBufferOperation *readOperation = new ReadBufferOperation(datatype);
 	readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
 	converter.addOperation(writeOperation);
 	converter.addOperation(readOperation);

@@ -196,7 +196,7 @@ void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber)
 		BLI_thread_queue_push(g_cpuqueue, package);
 	}
 #else
-	BLI_thread_queue_push(cpuqueue, package);
+	BLI_thread_queue_push(g_cpuqueue, package);
 #endif
 #endif
 }

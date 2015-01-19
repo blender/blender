@@ -23,10 +23,11 @@
 #include "COM_MemoryProxy.h"
 
 
-MemoryProxy::MemoryProxy()
+MemoryProxy::MemoryProxy(DataType datatype)
 {
 	this->m_writeBufferOperation = NULL;
 	this->m_executor = NULL;
+	this->m_datatype = datatype;
 }
 
 void MemoryProxy::allocate(unsigned int width, unsigned int height)

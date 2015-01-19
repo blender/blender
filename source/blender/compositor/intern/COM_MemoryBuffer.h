@@ -83,11 +83,6 @@ private:
 	unsigned int m_chunkNumber;
 	
 	/**
-	 * @brief width of the chunk
-	 */
-	unsigned int m_chunkWidth;
-	
-	/**
 	 * @brief state of the buffer
 	 */
 	MemoryBufferState m_state;
@@ -96,6 +91,15 @@ private:
 	 * @brief the actual float buffer/data
 	 */
 	float *m_buffer;
+
+	/**
+	 * @brief the number of channels of a single value in the buffer.
+	 * For value buffers this is 1, vector 3 and color 4
+	 */
+	unsigned int m_num_channels;
+
+	int m_width;
+	int m_height;
 
 public:
 	/**
@@ -107,7 +111,12 @@ public:
 	 * @brief construct new temporarily MemoryBuffer for an area
 	 */
 	MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
-	
+
+	/**
+	 * @brief construct new temporarily MemoryBuffer for an area
+	 */
+	MemoryBuffer(DataType datatype, rcti *rect);
+
 	/**
 	 * @brief destructor
 	 */
@@ -117,7 +126,9 @@ public:
 	 * @brief read the ChunkNumber of this MemoryBuffer
 	 */
 	unsigned int getChunkNumber() { return this->m_chunkNumber; }
-	
+
+	unsigned int get_num_channels() { return this->m_num_channels; }
+
 	/**
 	 * @brief get the data of this MemoryBuffer
 	 * @note buffer should already be available in memory
@@ -134,8 +145,8 @@ public:
 	
 	inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
 	{
-		int w = m_rect.xmax - m_rect.xmin;
-		int h = m_rect.ymax - m_rect.ymin;
+		int w = this->m_width;
+		int h = this->m_height;
 		x = x - m_rect.xmin;
 		y = y - m_rect.ymin;
 		
@@ -164,7 +175,39 @@ public:
 		}
 	}
 	
-	inline void read(float result[4], int x, int y,
+	inline void wrap_pixel(float &x, float &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
+	{
+		float w = (float)this->m_width;
+		float h = (float)this->m_height;
+		x = x - m_rect.xmin;
+		y = y - m_rect.ymin;
+
+		switch (extend_x) {
+			case COM_MB_CLIP:
+				break;
+			case COM_MB_EXTEND:
+				if (x < 0) x = 0.0f;
+				if (x >= w) x = w;
+				break;
+			case COM_MB_REPEAT:
+				x = fmodf(x, w);
+				break;
+		}
+
+		switch (extend_y) {
+			case COM_MB_CLIP:
+				break;
+			case COM_MB_EXTEND:
+				if (y < 0) y = 0.0f;
+				if (y >= h) y = h;
+				break;
+			case COM_MB_REPEAT:
+				y = fmodf(y, h);
+				break;
+		}
+	}
+
+	inline void read(float *result, int x, int y,
 	                 MemoryBufferExtend extend_x = COM_MB_CLIP,
 	                 MemoryBufferExtend extend_y = COM_MB_CLIP)
 	{
@@ -172,81 +215,54 @@ public:
 		bool clip_y = (extend_y == COM_MB_CLIP && (y < m_rect.ymin || y >= m_rect.ymax));
 		if (clip_x || clip_y) {
 			/* clip result outside rect is zero */
-			zero_v4(result);
+			memset(result, 0, this->m_num_channels*sizeof(float));
 		}
 		else {
-			wrap_pixel(x, y, extend_x, extend_y);
-			const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
-			copy_v4_v4(result, &this->m_buffer[offset]);
+			int u = x;
+			int v = y;
+			this->wrap_pixel(u, v, extend_x, extend_y);
+			const int offset = (this->m_width * y + x) * this->m_num_channels;
+			float* buffer = &this->m_buffer[offset];
+			memcpy(result, buffer, sizeof(float)*this->m_num_channels);
 		}
 	}
 
-	inline void readNoCheck(float result[4], int x, int y,
+	inline void readNoCheck(float *result, int x, int y,
 	                        MemoryBufferExtend extend_x = COM_MB_CLIP,
 	                        MemoryBufferExtend extend_y = COM_MB_CLIP)
 	{
-		wrap_pixel(x, y, extend_x, extend_y);
-		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		int u = x;
+		int v = y;
+
+		this->wrap_pixel(u, v, extend_x, extend_y);
+		const int offset = (this->m_width * v + u) * this->m_num_channels;
 
 		BLI_assert(offset >= 0);
-		BLI_assert(offset < this->determineBufferSize() * COM_NUMBER_OF_CHANNELS);
-		BLI_assert(!(extend_x == COM_MB_CLIP && (x < m_rect.xmin || x >= m_rect.xmax)) &&
-		           !(extend_y == COM_MB_CLIP && (y < m_rect.ymin || y >= m_rect.ymax)));
-
+		BLI_assert(offset < this->determineBufferSize() * this->m_num_channels);
+		BLI_assert(!(extend_x == COM_MB_CLIP && (u < m_rect.xmin || u >= m_rect.xmax)) &&
+				   !(extend_y == COM_MB_CLIP && (v < m_rect.ymin || v >= m_rect.ymax)));
 #if 0
 		/* always true */
 		BLI_assert((int)(MEM_allocN_len(this->m_buffer) / sizeof(*this->m_buffer)) ==
 		           (int)(this->determineBufferSize() * COM_NUMBER_OF_CHANNELS));
 #endif
-
-		copy_v4_v4(result, &this->m_buffer[offset]);
+		float* buffer = &this->m_buffer[offset];
+		memcpy(result, buffer, sizeof(float)*this->m_num_channels);
 	}
 	
 	void writePixel(int x, int y, const float color[4]);
 	void addPixel(int x, int y, const float color[4]);
-	inline void readBilinear(float result[4], float x, float y,
+	inline void readBilinear(float *result, float x, float y,
 	                         MemoryBufferExtend extend_x = COM_MB_CLIP,
 	                         MemoryBufferExtend extend_y = COM_MB_CLIP)
 	{
-		int x1 = floor(x);
-		int y1 = floor(y);
-		int x2 = x1 + 1;
-		int y2 = y1 + 1;
-		wrap_pixel(x1, y1, extend_x, extend_y);
-		wrap_pixel(x2, y2, extend_x, extend_y);
-
-		float valuex = x - x1;
-		float valuey = y - y1;
-		float mvaluex = 1.0f - valuex;
-		float mvaluey = 1.0f - valuey;
-
-		float color1[4];
-		float color2[4];
-		float color3[4];
-		float color4[4];
-
-		read(color1, x1, y1);
-		read(color2, x1, y2);
-		read(color3, x2, y1);
-		read(color4, x2, y2);
-
-		color1[0] = color1[0] * mvaluey + color2[0] * valuey;
-		color1[1] = color1[1] * mvaluey + color2[1] * valuey;
-		color1[2] = color1[2] * mvaluey + color2[2] * valuey;
-		color1[3] = color1[3] * mvaluey + color2[3] * valuey;
-
-		color3[0] = color3[0] * mvaluey + color4[0] * valuey;
-		color3[1] = color3[1] * mvaluey + color4[1] * valuey;
-		color3[2] = color3[2] * mvaluey + color4[2] * valuey;
-		color3[3] = color3[3] * mvaluey + color4[3] * valuey;
-
-		result[0] = color1[0] * mvaluex + color3[0] * valuex;
-		result[1] = color1[1] * mvaluex + color3[1] * valuex;
-		result[2] = color1[2] * mvaluex + color3[2] * valuex;
-		result[3] = color1[3] * mvaluex + color3[3] * valuex;
+		float u = x;
+		float v = y;
+		this->wrap_pixel(u, v, extend_x, extend_y);
+		BLI_bilinear_interpolation_fl(this->m_buffer, result, this->m_width, this->m_height, this->m_num_channels, u, v);
 	}
 
-	void readEWA(float result[4], const float uv[2], const float derivatives[2][2], PixelSampler sampler);
+	void readEWA(float *result, const float uv[2], const float derivatives[2][2], PixelSampler sampler);
 	
 	/**
 	 * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
@@ -284,7 +300,6 @@ public:
 	
 	MemoryBuffer *duplicate();
 	
-	float *convertToValueBuffer();
 	float getMaximumValue();
 	float getMaximumValue(rcti *rect);
 private:

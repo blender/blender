@@ -476,7 +476,7 @@ void NodeOperationBuilder::add_input_buffers(NodeOperation *operation, NodeOpera
 	/* check of other end already has write operation, otherwise add a new one */
 	WriteBufferOperation *writeoperation = find_attached_write_buffer_operation(output);
 	if (!writeoperation) {
-		writeoperation = new WriteBufferOperation();
+		writeoperation = new WriteBufferOperation(output->getDataType());
 		writeoperation->setbNodeTree(m_context->getbNodeTree());
 		addOperation(writeoperation);
 		
@@ -486,7 +486,7 @@ void NodeOperationBuilder::add_input_buffers(NodeOperation *operation, NodeOpera
 	}
 	
 	/* add readbuffer op for the input */
-	ReadBufferOperation *readoperation = new ReadBufferOperation();
+	ReadBufferOperation *readoperation = new ReadBufferOperation(output->getDataType());
 	readoperation->setMemoryProxy(writeoperation->getMemoryProxy());
 	this->addOperation(readoperation);
 	
@@ -519,7 +519,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation, NodeOper
 	
 	/* if no write buffer operation exists yet, create a new one */
 	if (!writeOperation) {
-		writeOperation = new WriteBufferOperation();
+		writeOperation = new WriteBufferOperation(operation->getOutputSocket()->getDataType());
 		writeOperation->setbNodeTree(m_context->getbNodeTree());
 		addOperation(writeOperation);
 		
@@ -534,7 +534,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation, NodeOper
 		if (&target->getOperation() == writeOperation)
 			continue; /* skip existing write op links */
 		
-		ReadBufferOperation *readoperation = new ReadBufferOperation();
+		ReadBufferOperation *readoperation = new ReadBufferOperation(operation->getOutputSocket()->getDataType());
 		readoperation->setMemoryProxy(writeOperation->getMemoryProxy());
 		addOperation(readoperation);
 		

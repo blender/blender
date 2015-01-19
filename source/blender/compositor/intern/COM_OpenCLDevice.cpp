@@ -24,6 +24,18 @@
 #include "COM_WorkScheduler.h"
 
 typedef enum COM_VendorID  {NVIDIA = 0x10DE, AMD = 0x1002} COM_VendorID;
+const cl_image_format IMAGE_FORMAT_COLOR = {
+	CL_RGBA,
+	CL_FLOAT
+};
+const cl_image_format IMAGE_FORMAT_VECTOR = {
+	CL_RGB,
+	CL_FLOAT
+};
+const cl_image_format IMAGE_FORMAT_VALUE = {
+	CL_R,
+	CL_FLOAT
+};
 
 OpenCLDevice::OpenCLDevice(cl_context context, cl_device_id device, cl_program program, cl_int vendorId)
 {
@@ -72,6 +84,21 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
 	return COM_clAttachMemoryBufferToKernelParameter(kernel, parameterIndex, offsetIndex, cleanup, inputMemoryBuffers, (ReadBufferOperation *)reader);
 }
 
+const cl_image_format* OpenCLDevice::determineImageFormat(MemoryBuffer *memoryBuffer)
+{
+	const cl_image_format *imageFormat;
+	int num_channels = memoryBuffer->get_num_channels();
+	if (num_channels == 1) {
+		imageFormat = &IMAGE_FORMAT_VALUE;
+	} else if (num_channels == 3) {
+		imageFormat = &IMAGE_FORMAT_VECTOR;
+	} else {
+		imageFormat = &IMAGE_FORMAT_COLOR;
+	}
+
+	return imageFormat;
+}
+
 cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex,
                                                                list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers,
                                                                ReadBufferOperation *reader)
@@ -80,12 +107,9 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
 	
 	MemoryBuffer *result = reader->getInputMemoryBuffer(inputMemoryBuffers);
 
-	const cl_image_format imageFormat = {
-		CL_RGBA,
-		CL_FLOAT
-	};
+	const cl_image_format *imageFormat = determineImageFormat(result);
 
-	cl_mem clBuffer = clCreateImage2D(this->m_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &imageFormat, result->getWidth(),
+	cl_mem clBuffer = clCreateImage2D(this->m_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, imageFormat, result->getWidth(),
 	                                  result->getHeight(), 0, result->getBuffer(), &error);
 
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }

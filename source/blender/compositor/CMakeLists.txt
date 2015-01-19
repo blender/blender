@@ -90,8 +90,6 @@ set(SRC
 	intern/COM_OpenCLDevice.h
 	intern/COM_CompositorContext.cpp
 	intern/COM_CompositorContext.h
-	intern/COM_ChannelInfo.cpp
-	intern/COM_ChannelInfo.h
 	intern/COM_SingleThreadedOperation.cpp
 	intern/COM_SingleThreadedOperation.h
 	intern/COM_Debug.cpp

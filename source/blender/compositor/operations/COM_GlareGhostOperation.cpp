@@ -97,7 +97,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
 	}
 
-	memset(tbuf1->getBuffer(), 0, tbuf1->getWidth() * tbuf1->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+	memset(tbuf1->getBuffer(), 0, tbuf1->getWidth() * tbuf1->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
 	for (n = 1; n < settings->iter && (!breaked); n++) {
 		for (y = 0; y < gbuf->getHeight() && (!breaked); y++) {
 			v = ((float)y + 0.5f) / (float)gbuf->getHeight();
@@ -117,9 +117,9 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 			}
 			if (isBreaked()) breaked = true;
 		}
-		memcpy(gbuf->getBuffer(), tbuf1->getBuffer(), tbuf1->getWidth() * tbuf1->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+		memcpy(gbuf->getBuffer(), tbuf1->getBuffer(), tbuf1->getWidth() * tbuf1->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
 	}
-	memcpy(data, gbuf->getBuffer(), gbuf->getWidth() * gbuf->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+	memcpy(data, gbuf->getBuffer(), gbuf->getWidth() * gbuf->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
 
 	delete gbuf;
 	delete tbuf1;

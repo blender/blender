@@ -77,12 +77,9 @@ void TextureBaseOperation::determineResolution(unsigned int resolution[2], unsig
 
 void TextureAlphaOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	TextureBaseOperation::executePixelSampled(output, x, y, sampler);
-	output[0] = output[3];
-	output[1] = 0.0f;
-	output[2] = 0.0f;
-	output[3] = 0.0f;
-}
+	float color[4];
+	TextureBaseOperation::executePixelSampled(color, x, y, sampler);
+	output[0] = color[3];}
 
 void TextureBaseOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
@@ -124,18 +121,23 @@ MemoryBuffer *TextureBaseOperation::createMemoryBuffer(rcti *rect2)
 {
 	int height = getHeight();
 	int width = getWidth();
+	DataType datatype = this->getOutputSocket()->getDataType();
+	int add = 4;
+	if (datatype == COM_DT_VALUE) {
+		add = 1;
+	}
 
 	rcti rect;
 	rect.xmin = 0;
 	rect.ymin = 0;
 	rect.xmax = width;
 	rect.ymax = height;
-	MemoryBuffer *result = new MemoryBuffer(NULL, &rect);
+	MemoryBuffer *result = new MemoryBuffer(datatype, &rect);
 
 	float *data = result->getBuffer();
 
 	for (int y = 0; y < height; y++) {
-		for (int x = 0; x < width; x++, data += 4) {
+		for (int x = 0; x < width; x++, data += add) {
 			this->executePixelSampled(data, x, y, COM_PS_NEAREST);
 		}
 	}

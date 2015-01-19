@@ -37,15 +37,15 @@ void QualityStepHelper::initExecution(QualityHelper helper)
 				case COM_QUALITY_HIGH:
 				default:
 					this->m_step = 1;
-					this->m_offsetadd = 4;
+					this->m_offsetadd = 1;
 					break;
 				case COM_QUALITY_MEDIUM:
 					this->m_step = 2;
-					this->m_offsetadd = 8;
+					this->m_offsetadd = 2;
 					break;
 				case COM_QUALITY_LOW:
 					this->m_step = 3;
-					this->m_offsetadd = 12;
+					this->m_offsetadd = 3;
 					break;
 			}
 			break;

@@ -62,7 +62,7 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
 	int bufferWidth = inputBuffer->getWidth();
 	int bufferHeight = inputBuffer->getHeight();
 
-	float value = buffer[(y * bufferWidth + x) * 4];
+	float value = buffer[(y * bufferWidth + x)];
 
 	bool ok = false;
 	int start_x = max_ff(0, x - delta + 1),
@@ -83,7 +83,7 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
 				continue;
 			}
 
-			int bufferIndex = (cy * bufferWidth + cx) * 4;
+			int bufferIndex = (cy * bufferWidth + cx);
 			float currentValue = buffer[bufferIndex];
 
 			if (fabsf(currentValue - value) < tolerance) {

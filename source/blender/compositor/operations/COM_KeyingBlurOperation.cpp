@@ -58,7 +58,7 @@ void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data
 		const int start = max(0, x - this->m_size + 1),
 		          end = min(bufferWidth, x + this->m_size);
 		for (int cx = start; cx < end; ++cx) {
-			int bufferIndex = (y * bufferWidth + cx) * 4;
+			int bufferIndex = (y * bufferWidth + cx);
 			average += buffer[bufferIndex];
 			count++;
 		}
@@ -67,7 +67,7 @@ void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data
 		const int start = max(0, y - this->m_size + 1),
 		          end = min(inputBuffer->getHeight(), y + this->m_size);
 		for (int cy = start; cy < end; ++cy) {
-			int bufferIndex = (cy * bufferWidth + x) * 4;
+			int bufferIndex = (cy * bufferWidth + x);
 			average += buffer[bufferIndex];
 			count++;
 		}

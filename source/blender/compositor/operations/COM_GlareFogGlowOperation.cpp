@@ -259,8 +259,8 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	float *kernelBuffer = in2->getBuffer();
 	float *imageBuffer = in1->getBuffer();
 
-	MemoryBuffer *rdst = new MemoryBuffer(NULL, in1->getRect());
-	memset(rdst->getBuffer(), 0, rdst->getWidth() * rdst->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+	MemoryBuffer *rdst = new MemoryBuffer(COM_DT_COLOR, in1->getRect());
+	memset(rdst->getBuffer(), 0, rdst->getWidth() * rdst->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
 
 	// convolution result width & height
 	w2 = 2 * kernelWidth - 1;
@@ -276,7 +276,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	// normalize convolutor
 	wt[0] = wt[1] = wt[2] = 0.f;
 	for (y = 0; y < kernelHeight; y++) {
-		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUMBER_OF_CHANNELS];
+		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
 		for (x = 0; x < kernelWidth; x++)
 			add_v3_v3(wt, colp[x]);
 	}
@@ -284,7 +284,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	if (wt[1] != 0.f) wt[1] = 1.f / wt[1];
 	if (wt[2] != 0.f) wt[2] = 1.f / wt[2];
 	for (y = 0; y < kernelHeight; y++) {
-		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUMBER_OF_CHANNELS];
+		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
 		for (x = 0; x < kernelWidth; x++)
 			mul_v3_v3(colp[x], wt);
 	}
@@ -313,7 +313,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 					// in2, channel ch -> data1
 					for (y = 0; y < kernelHeight; y++) {
 						fp = &data1ch[y * w2];
-						colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUMBER_OF_CHANNELS];
+						colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
 						for (x = 0; x < kernelWidth; x++)
 							fp[x] = colp[x][ch];
 					}
@@ -325,7 +325,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 					int yy = ybl * ybsz + y;
 					if (yy >= imageHeight) continue;
 					fp = &data2[y * w2];
-					colp = (fRGB *)&imageBuffer[yy * imageWidth * COM_NUMBER_OF_CHANNELS];
+					colp = (fRGB *)&imageBuffer[yy * imageWidth * COM_NUM_CHANNELS_COLOR];
 					for (x = 0; x < xbsz; x++) {
 						int xx = xbl * xbsz + x;
 						if (xx >= imageWidth) continue;
@@ -349,7 +349,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 					const int yy = ybl * ybsz + y - hh;
 					if ((yy < 0) || (yy >= imageHeight)) continue;
 					fp = &data2[y * w2];
-					colp = (fRGB *)&rdst->getBuffer()[yy * imageWidth * COM_NUMBER_OF_CHANNELS];
+					colp = (fRGB *)&rdst->getBuffer()[yy * imageWidth * COM_NUM_CHANNELS_COLOR];
 					for (x = 0; x < (int)w2; x++) {
 						const int xx = xbl * xbsz + x - hw;
 						if ((xx < 0) || (xx >= imageWidth)) continue;
@@ -364,7 +364,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 
 	MEM_freeN(data2);
 	MEM_freeN(data1);
-	memcpy(dst, rdst->getBuffer(), sizeof(float) * imageWidth * imageHeight * COM_NUMBER_OF_CHANNELS);
+	memcpy(dst, rdst->getBuffer(), sizeof(float) * imageWidth * imageHeight * COM_NUM_CHANNELS_COLOR);
 	delete(rdst);
 }
 
@@ -381,7 +381,7 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	// make the convolution kernel
 	rcti kernelRect;
 	BLI_rcti_init(&kernelRect, 0, sz, 0, sz);
-	ckrn = new MemoryBuffer(NULL, &kernelRect);
+	ckrn = new MemoryBuffer(COM_DT_COLOR, &kernelRect);
 
 	scale = 0.25f * sqrtf((float)(sz * sz));
 

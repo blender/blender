@@ -29,7 +29,7 @@ class WrapOperation : public ReadBufferOperation {
 private:
 	int m_wrappingType;
 public:
-	WrapOperation();
+	WrapOperation(DataType datetype);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 

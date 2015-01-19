@@ -57,7 +57,7 @@ void VectorBlurOperation::initExecution()
 void VectorBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float *buffer = (float *) data;
-	int index = (y * this->getWidth() + x) * COM_NUMBER_OF_CHANNELS;
+	int index = (y * this->getWidth() + x) * COM_NUM_CHANNELS_COLOR;
 	copy_v4_v4(output, &buffer[index]);
 }
 
@@ -108,14 +108,12 @@ bool VectorBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 
 void VectorBlurOperation::generateVectorBlur(float *data, MemoryBuffer *inputImage, MemoryBuffer *inputSpeed, MemoryBuffer *inputZ)
 {
-	float *zbuf = inputZ->convertToValueBuffer();
 	NodeBlurData blurdata;
 	blurdata.samples = this->m_settings->samples / QualityStepHelper::getStep();
 	blurdata.maxspeed = this->m_settings->maxspeed;
 	blurdata.minspeed = this->m_settings->minspeed;
 	blurdata.curved = this->m_settings->curved;
 	blurdata.fac = this->m_settings->fac;
-	RE_zbuf_accumulate_vecblur(&blurdata, this->getWidth(), this->getHeight(), data, inputImage->getBuffer(), inputSpeed->getBuffer(), zbuf);
-	MEM_freeN((void *)zbuf);
+	RE_zbuf_accumulate_vecblur(&blurdata, this->getWidth(), this->getHeight(), data, inputImage->getBuffer(), inputSpeed->getBuffer(), inputZ->getBuffer());
 	return;
 }

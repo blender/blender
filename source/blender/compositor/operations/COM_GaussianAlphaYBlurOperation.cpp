@@ -108,11 +108,11 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
 	float multiplier_accum = 0.0f;
 
 	/* dilate */
-	float value_max = finv_test(buffer[(x * 4) + (y * 4 * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
+	float value_max = finv_test(buffer[(x) + (y * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
 	float distfacinv_max = 1.0f; /* 0 to 1 */
 
 	for (int ny = ymin; ny < ymax; ny += step) {
-		int bufferindex = ((xmin - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
+		int bufferindex = ((xmin - bufferstartx)) + ((ny - bufferstarty) * bufferwidth);
 
 		const int index = (ny - y) + this->m_filtersize;
 		float value = finv_test(buffer[bufferindex], do_invert);

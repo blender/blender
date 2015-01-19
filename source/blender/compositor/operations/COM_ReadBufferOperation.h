@@ -25,6 +25,7 @@
 
 #include "COM_NodeOperation.h"
 #include "COM_MemoryProxy.h"
+#include "COM_MemoryBuffer.h"
 
 class ReadBufferOperation : public NodeOperation {
 private:
@@ -33,7 +34,7 @@ private:
 	unsigned int m_offset;
 	MemoryBuffer *m_buffer;
 public:
-	ReadBufferOperation();
+	ReadBufferOperation(DataType datetype);
 	void setMemoryProxy(MemoryProxy *memoryProxy) { this->m_memoryProxy = memoryProxy; }
 	MemoryProxy *getMemoryProxy() { return this->m_memoryProxy; }
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);

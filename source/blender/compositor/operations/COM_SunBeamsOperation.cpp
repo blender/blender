@@ -135,7 +135,7 @@ struct BufferLineAccumulator {
 
 		falloff_factor = dist_max > dist_min ? dr / (float)(dist_max - dist_min) : 0.0f;
 
-		float *iter = input->getBuffer() + COM_NUMBER_OF_CHANNELS * (x + input->getWidth() * y);
+		float *iter = input->getBuffer() + COM_NUM_CHANNELS_COLOR * (x + input->getWidth() * y);
 		return iter;
 	}
 
@@ -159,7 +159,7 @@ struct BufferLineAccumulator {
 		zero_v4(output);
 		
 		if ((int)(co[0] - source[0]) == 0 && (int)(co[1] - source[1]) == 0) {
-			copy_v4_v4(output, input->getBuffer() + COM_NUMBER_OF_CHANNELS * ((int)source[0] + input->getWidth() * (int)source[1]));
+			copy_v4_v4(output, input->getBuffer() + COM_NUM_CHANNELS_COLOR * ((int)source[0] + input->getWidth() * (int)source[1]));
 			return;
 		}
 
@@ -198,7 +198,7 @@ struct BufferLineAccumulator {
 			/* decrement u */
 			x -= fxu;
 			y -= fyu;
-			buffer -= (fxu + fyu * buffer_width) * COM_NUMBER_OF_CHANNELS;
+			buffer -= (fxu + fyu * buffer_width) * COM_NUM_CHANNELS_COLOR;
 
 			/* decrement v (in steps of dv < 1) */
 			v_local -= dv;
@@ -207,7 +207,7 @@ struct BufferLineAccumulator {
 
 				x -= fxv;
 				y -= fyv;
-				buffer -= (fxv + fyv * buffer_width) * COM_NUMBER_OF_CHANNELS;
+				buffer -= (fxv + fyv * buffer_width) * COM_NUM_CHANNELS_COLOR;
 			}
 		}
 

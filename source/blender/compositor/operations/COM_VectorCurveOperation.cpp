@@ -51,7 +51,6 @@ void VectorCurveOperation::executePixelSampled(float output[4], float x, float y
 	this->m_inputProgram->readSampled(input, x, y, sampler);
 
 	curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, input);
-	output[3] = input[3];
 }
 
 void VectorCurveOperation::deinitExecution()

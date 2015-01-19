@@ -24,9 +24,9 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
-ReadBufferOperation::ReadBufferOperation() : NodeOperation()
+ReadBufferOperation::ReadBufferOperation(DataType datatype) : NodeOperation()
 {
-	this->addOutputSocket(COM_DT_COLOR);
+	this->addOutputSocket(datatype);
 	this->m_single_value = false;
 	this->m_offset = 0;
 	this->m_buffer = NULL;
@@ -58,11 +58,20 @@ void ReadBufferOperation::executePixelSampled(float output[4], float x, float y,
 		/* write buffer has a single value stored at (0,0) */
 		m_buffer->read(output, 0, 0);
 	}
-	else if (sampler == COM_PS_NEAREST) {
-		m_buffer->read(output, x, y);
-	}
 	else {
-		m_buffer->readBilinear(output, x, y);
+		switch (sampler) {
+		case COM_PS_NEAREST:
+			m_buffer->read(output, x, y);
+			break;
+		case COM_PS_BILINEAR:
+		default:
+			m_buffer->readBilinear(output, x, y);
+			break;
+		case COM_PS_BICUBIC:
+			m_buffer->readBilinear(output, x, y);
+			break;
+		}
+
 	}
 }
 

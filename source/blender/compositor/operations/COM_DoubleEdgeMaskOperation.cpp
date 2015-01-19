@@ -1270,11 +1270,9 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 		MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect);
 		MemoryBuffer *outerMask = (MemoryBuffer *)this->m_inputOuterMask->initializeTileData(rect);
 		float *data = (float *)MEM_mallocN(sizeof(float) * this->getWidth() * this->getHeight(), __func__);
-		float *imask = innerMask->convertToValueBuffer();
-		float *omask = outerMask->convertToValueBuffer();
+		float *imask = innerMask->getBuffer();
+		float *omask = outerMask->getBuffer();
 		doDoubleEdgeMask(imask, omask, data);
-		MEM_freeN(imask);
-		MEM_freeN(omask);
 		this->m_cachedInstance = data;
 	}
 	unlockMutex();

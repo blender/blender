@@ -102,15 +102,14 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
 
 	/* *** this is the main part which is different to 'GaussianXBlurOperation'  *** */
 	int step = getStep();
-	int offsetadd = getOffsetAdd();
-	int bufferindex = ((xmin - bufferstartx) * 4) + ((ymin - bufferstarty) * 4 * bufferwidth);
+	int bufferindex = ((xmin - bufferstartx)) + ((ymin - bufferstarty) * bufferwidth);
 
 	/* gauss */
 	float alpha_accum = 0.0f;
 	float multiplier_accum = 0.0f;
 
 	/* dilate */
-	float value_max = finv_test(buffer[(x * 4) + (y * 4 * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
+	float value_max = finv_test(buffer[(x) + (y * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
 	float distfacinv_max = 1.0f; /* 0 to 1 */
 
 	for (int nx = xmin; nx < xmax; nx += step) {
@@ -134,7 +133,7 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
 				distfacinv_max = multiplier;
 			}
 		}
-		bufferindex += offsetadd;
+		bufferindex += step;
 	}
 
 	/* blend between the max value and gauss blue - gives nice feather */

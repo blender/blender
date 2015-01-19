@@ -23,7 +23,7 @@
 
 #include "COM_WrapOperation.h"
 
-WrapOperation::WrapOperation() : ReadBufferOperation()
+WrapOperation::WrapOperation(DataType datatype) : ReadBufferOperation(datatype)
 {
 	this->m_wrappingType = CMP_NODE_WRAP_NONE;
 }

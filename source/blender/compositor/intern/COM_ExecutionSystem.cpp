@@ -137,16 +137,28 @@ void ExecutionSystem::execute()
 	}
 	unsigned int index;
 
+	// First allocale all write buffer
 	for (index = 0; index < this->m_operations.size(); index++) {
 		NodeOperation *operation = this->m_operations[index];
-		operation->setbNodeTree(this->m_context.getbNodeTree());
-		operation->initExecution();
+		if (operation->isWriteBufferOperation()) {
+			operation->setbNodeTree(this->m_context.getbNodeTree());
+			operation->initExecution();
+		}
 	}
+	// Connect read buffers to their write buffers
 	for (index = 0; index < this->m_operations.size(); index++) {
 		NodeOperation *operation = this->m_operations[index];
 		if (operation->isReadBufferOperation()) {
 			ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
 			readOperation->updateMemoryBuffer();
+		}
+	}
+	// initialize other operations
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
+		if (!operation->isWriteBufferOperation()) {
+			operation->setbNodeTree(this->m_context.getbNodeTree());
+			operation->initExecution();
 		}
 	}
 	for (index = 0; index < this->m_groups.size(); index++) {

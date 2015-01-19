@@ -95,7 +95,7 @@ void *AntiAliasOperation::initializeTileData(rcti *rect)
 		float *input = tile->getBuffer();
 		char *valuebuffer = (char *)MEM_mallocN(sizeof(char) * size, __func__);
 		for (int i = 0; i < size; i++) {
-			float in = input[i * COM_NUMBER_OF_CHANNELS];
+			float in = input[i];
 			valuebuffer[i] = FTOCHAR(in);
 		}
 		antialias_tagbuf(tile->getWidth(), tile->getHeight(), valuebuffer);

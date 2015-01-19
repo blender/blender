@@ -36,7 +36,7 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	bool breaked = false;
 
 	MemoryBuffer *tsrc = inputTile->duplicate();
-	MemoryBuffer *tdst = new MemoryBuffer(NULL, inputTile->getRect());
+	MemoryBuffer *tdst = new MemoryBuffer(COM_DT_COLOR, inputTile->getRect());
 	tdst->clear();
 	memset(data, 0, size4 * sizeof(float));
 
