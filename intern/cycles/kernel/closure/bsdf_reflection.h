@@ -70,8 +70,9 @@ ccl_device int bsdf_reflection_sample(const ShaderClosure *sc, float3 Ng, float3
 			*domega_in_dx = 2 * dot(N, dIdx) * N - dIdx;
 			*domega_in_dy = 2 * dot(N, dIdy) * N - dIdy;
 #endif
-			*pdf = 1;
-			*eval = make_float3(1, 1, 1);
+			/* Some high number for MIS. */
+			*pdf = 1e6f;
+			*eval = make_float3(1e6f, 1e6f, 1e6f);
 		}
 	}
 	return LABEL_REFLECT|LABEL_SINGULAR;

@@ -72,10 +72,11 @@ ccl_device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3
 		dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif
 		&inside);
-	
+
 	if(!inside) {
-		*pdf = 1.0f;
-		*eval = make_float3(1.0f, 1.0f, 1.0f);
+		/* Some high number for MIS. */
+		*pdf = 1e6f;
+		*eval = make_float3(1e6f, 1e6f, 1e6f);
 		*omega_in = T;
 #ifdef __RAY_DIFFERENTIALS__
 		*domega_in_dx = dTdx;
