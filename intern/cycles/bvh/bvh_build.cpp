@@ -268,21 +268,22 @@ BVHNode* BVHBuild::run()
 		if(progress.get_cancel()) {
 			rootnode->deleteSubtree();
 			rootnode = NULL;
+			VLOG(1) << "BVH build cancelled.";
 		}
 		else if(!params.use_spatial_split) {
 			/*rotate(rootnode, 4, 5);*/
 			rootnode->update_visibility();
+			VLOG(1) << "BVH build statistics:\n"
+			        << "  Build time: " << time_dt() - build_start_time << "\n"
+			        << "  Total number of nodes: "
+			        << rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT) << "\n"
+			        << "  Number of inner nodes: "
+			        << rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT)  << "\n"
+			        << "  Number of leaf nodes: "
+			        << rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)  << "\n";
 		}
 	}
 
-	VLOG(1) << "BVH build statistics:\n"
-	        << "  Build time: " << time_dt() - build_start_time << "\n"
-	        << "  Total number of nodes: "
-	        << rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT) << "\n"
-	        << "  Number of inner nodes: "
-	        << rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT)  << "\n"
-	        << "  Number of leaf nodes: "
-	        << rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)  << "\n";
 
 	return rootnode;
 }

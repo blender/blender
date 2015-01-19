@@ -38,6 +38,7 @@ public:
 		sample = 0;
 		start_time = time_dt();
 		total_time = 0.0f;
+		render_time = 0.0f;
 		tile_time = 0.0f;
 		status = "Initializing";
 		substatus = "";
