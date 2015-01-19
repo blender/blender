@@ -271,6 +271,17 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		BKE_userdef_free();
 		
 		U = *bfd->user;
+
+		/* Security issue: any blend file could include a USER block.
+		 *
+		 * Currently we load prefs from BLENDER_STARTUP_FILE and later on load BLENDER_USERPREF_FILE,
+		 * to load the preferences defined in the users home dir.
+		 *
+		 * This means we will never accidentally (or maliciously)
+		 * enable scripts auto-execution by loading a '.blend' file.
+		 */
+		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
+
 		MEM_freeN(bfd->user);
 	}
 	
