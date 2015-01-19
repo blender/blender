@@ -4184,7 +4184,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 		}
 	}
 	
-	if (psys->hair_in_dm || !psys->clmd->roots || realloc_roots) {
+	if (!psys->hair_in_dm || !psys->clmd->roots || realloc_roots) {
 		if (psys->clmd->roots) {
 			MEM_freeN(psys->clmd->roots);
 			psys->clmd->roots = NULL;
