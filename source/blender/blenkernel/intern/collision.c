@@ -85,10 +85,12 @@ static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
 #undef rot
 }
 
+#if 0
 static int hash_vertex(int type, int vertex)
 {
 	return hash_int_2d((unsigned int)type, (unsigned int)vertex);
 }
+#endif
 
 static int hash_collpair(int type, CollPair *collpair)
 {
@@ -1154,7 +1156,7 @@ BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float
 }
 
 static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, int bp1, int bp2, int bp3,
-                                      int index_cloth, int index_coll, float epsilon, CollPair *collpair, SimDebugData *debug_data)
+                                      int index_cloth, int index_coll, float epsilon, CollPair *collpair, SimDebugData *UNUSED(debug_data))
 {
 	float *co1 = mverts[bp1].co, *co2 = mverts[bp2].co, *co3 = mverts[bp3].co;
 	float lambda, distance1, distance2;

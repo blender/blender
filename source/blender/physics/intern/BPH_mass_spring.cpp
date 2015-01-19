@@ -463,7 +463,7 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
 	
 	/* 2.0f is an experimental value that seems to give good results */
 	float smoothfac = 2.0f * parms->velocity_smooth;
-	float collfac = 2.0f * parms->collider_friction;
+	// float collfac = 2.0f * parms->collider_friction;
 	float pressfac = parms->pressure;
 	float minpress = parms->pressure_threshold;
 	float gmin[3], gmax[3];

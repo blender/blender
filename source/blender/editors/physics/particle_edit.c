@@ -4151,7 +4151,7 @@ static void shape_cut(PEData *data, int pa_index)
 	}
 }
 
-static int shape_cut_exec(bContext *C, wmOperator *op)
+static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);

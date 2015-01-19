@@ -1034,7 +1034,7 @@ static unsigned int debug_element_hash(const void *key)
 	return elem->hash;
 }
 
-static int debug_element_compare(const void *a, const void *b)
+static bool debug_element_compare(const void *a, const void *b)
 {
 	const SimDebugElement *elem1 = a;
 	const SimDebugElement *elem2 = b;

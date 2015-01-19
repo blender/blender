@@ -52,6 +52,7 @@ struct SimDebugData;
 struct wmNDOFMotionData;
 struct wmOperatorType;
 struct wmWindowManager;
+struct wmKeyConfig;
 
 /* drawing flags: */
 enum {
