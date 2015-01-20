@@ -104,11 +104,11 @@ void RenderLayersBaseProg::doInterpolation(float output[4], float x, float y, Pi
 		}
 
 		case COM_PS_BILINEAR:
-			BLI_bilinear_interpolation_fl(this->m_inputBuffer, output, width, height, this->m_elementsize, x, y);
+			BLI_bilinear_interpolation_fl(this->m_inputBuffer, output, width, height, this->m_elementsize, x - 0.5f, y - 0.5f);
 			break;
 
 		case COM_PS_BICUBIC:
-			BLI_bicubic_interpolation_fl(this->m_inputBuffer, output, width, height, this->m_elementsize, x, y);
+			BLI_bicubic_interpolation_fl(this->m_inputBuffer, output, width, height, this->m_elementsize, x - 0.5f, y - 0.5f);
 			break;
 	}
 }

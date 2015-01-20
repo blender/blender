@@ -259,7 +259,7 @@ public:
 		float u = x;
 		float v = y;
 		this->wrap_pixel(u, v, extend_x, extend_y);
-		BLI_bilinear_interpolation_fl(this->m_buffer, result, this->m_width, this->m_height, this->m_num_channels, u, v);
+		BLI_bilinear_interpolation_fl(this->m_buffer, result, this->m_width, this->m_height, this->m_num_channels, u - 0.5f, v - 0.5f);
 	}
 
 	void readEWA(float *result, const float uv[2], const float derivatives[2][2], PixelSampler sampler);

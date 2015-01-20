@@ -54,10 +54,10 @@ void MultilayerColorOperation::executePixelSampled(float output[4], float x, flo
 					nearest_interpolation_color(this->m_buffer, NULL, output, x, y);
 					break;
 				case COM_PS_BILINEAR:
-					bilinear_interpolation_color(this->m_buffer, NULL, output, x, y);
+					bilinear_interpolation_color(this->m_buffer, NULL, output, x - 0.5f, y - 0.5f);
 					break;
 				case COM_PS_BICUBIC:
-					bicubic_interpolation_color(this->m_buffer, NULL, output, x, y);
+					bicubic_interpolation_color(this->m_buffer, NULL, output, x - 0.5f, y - 0.5f);
 					break;
 			}
 		}

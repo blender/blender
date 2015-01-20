@@ -119,10 +119,10 @@ static void sampleImageAtLocation(ImBuf *ibuf, float x, float y, PixelSampler sa
 				nearest_interpolation_color(ibuf, NULL, color, x, y);
 				break;
 			case COM_PS_BILINEAR:
-				bilinear_interpolation_color(ibuf, NULL, color, x, y);
+				bilinear_interpolation_color(ibuf, NULL, color, x - 0.5f, y - 0.5f);
 				break;
 			case COM_PS_BICUBIC:
-				bicubic_interpolation_color(ibuf, NULL, color, x, y);
+				bicubic_interpolation_color(ibuf, NULL, color, x - 0.5f, y - 0.5f);
 				break;
 		}
 	}
@@ -133,10 +133,10 @@ static void sampleImageAtLocation(ImBuf *ibuf, float x, float y, PixelSampler sa
 				nearest_interpolation_color(ibuf, byte_color, NULL, x, y);
 				break;
 			case COM_PS_BILINEAR:
-				bilinear_interpolation_color(ibuf, byte_color, NULL, x, y);
+				bilinear_interpolation_color(ibuf, byte_color, NULL, x - 0.5f, y - 0.5f);
 				break;
 			case COM_PS_BICUBIC:
-				bicubic_interpolation_color(ibuf, byte_color, NULL, x, y);
+				bicubic_interpolation_color(ibuf, byte_color, NULL, x - 0.5f, y - 0.5f);
 				break;
 		}
 		rgba_uchar_to_float(color, byte_color);
