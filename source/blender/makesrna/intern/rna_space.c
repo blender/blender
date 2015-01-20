@@ -793,7 +793,6 @@ static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const floa
 
 static void rna_SpaceImageEditor_scopes_update(struct bContext *C, struct PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
 	SpaceImage *sima = (SpaceImage *)ptr->data;
 	ImBuf *ibuf;
 	void *lock;
