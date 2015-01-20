@@ -2726,7 +2726,8 @@ static uiBlock *ui_block_func_PIE(bContext *UNUSED(C), uiPopupBlockHandle *handl
 
 static float ui_pie_menu_title_width(const char *name, int icon)
 {
-	return (UI_fontstyle_string_width(name) +
+	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+	return (UI_fontstyle_string_width(fstyle, name) +
 	         (UI_UNIT_X * (1.50f + (icon ? 0.25f : 0.0f))));
 }
 

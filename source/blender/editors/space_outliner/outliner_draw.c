@@ -1248,8 +1248,9 @@ static void outliner_set_coord_tree_element(SpaceOops *soops, TreeElement *te, i
 }
 
 
-static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops,
-                                       TreeElement *te, int startx, int *starty, TreeElement **te_edit)
+static void outliner_draw_tree_element(
+        bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, ARegion *ar, SpaceOops *soops,
+        TreeElement *te, int startx, int *starty, TreeElement **te_edit)
 {
 	TreeElement *ten;
 	TreeStoreElem *tselem;
@@ -1408,9 +1409,9 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		else if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.75f);
 		else UI_ThemeColor(TH_TEXT);
 		
-		UI_draw_string(startx + offsx, *starty + 5 * ufac, te->name);
+		UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name);
 		
-		offsx += (int)(UI_UNIT_X + UI_fontstyle_string_width(te->name));
+		offsx += (int)(UI_UNIT_X + UI_fontstyle_string_width(fstyle, te->name));
 		
 		/* closed item, we draw the icons, not when it's a scene, or master-server list though */
 		if (!TSELEM_OPEN(tselem, soops)) {
@@ -1448,13 +1449,15 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		
 	if (TSELEM_OPEN(tselem, soops)) {
 		*starty -= UI_UNIT_Y;
-		
-		for (ten = te->subtree.first; ten; ten = ten->next)
-			outliner_draw_tree_element(C, block, scene, ar, soops, ten, startx + UI_UNIT_X, starty, te_edit);
+
+		for (ten = te->subtree.first; ten; ten = ten->next) {
+			outliner_draw_tree_element(C, block, fstyle, scene, ar, soops, ten, startx + UI_UNIT_X, starty, te_edit);
+		}
 	}
 	else {
-		for (ten = te->subtree.first; ten; ten = ten->next)
+		for (ten = te->subtree.first; ten; ten = ten->next) {
 			outliner_set_coord_tree_element(soops, ten, startx, *starty);
+		}
 		
 		*starty -= UI_UNIT_Y;
 	}
@@ -1537,6 +1540,7 @@ static void outliner_draw_selection(ARegion *ar, SpaceOops *soops, ListBase *lb,
 static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegion *ar,
                                SpaceOops *soops, TreeElement **te_edit)
 {
+	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 	TreeElement *te;
 	int starty, startx;
 	float col[3];
@@ -1567,7 +1571,7 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 	startx = 0;
 	for (te = soops->tree.first; te; te = te->next) {
-		outliner_draw_tree_element(C, block, scene, ar, soops, te, startx, &starty, te_edit);
+		outliner_draw_tree_element(C, block, fstyle, scene, ar, soops, te, startx, &starty, te_edit);
 	}
 }
 

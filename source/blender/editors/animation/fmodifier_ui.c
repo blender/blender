@@ -130,6 +130,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	switch (data->mode) {
 		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
 		{
+			const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 			float *cp = NULL;
 			char xval[32];
 			unsigned int i;
@@ -147,11 +148,12 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			/* calculate maximum width of label for "x^n" labels */
 			if (data->arraysize > 2) {
 				BLI_snprintf(xval, sizeof(xval), "x^%u", data->arraysize);
-				maxXWidth = UI_fontstyle_string_width(xval) + 0.5 * UI_UNIT_X; /* XXX: UI_fontstyle_string_width is not accurate */
+				/* XXX: UI_fontstyle_string_width is not accurate */
+				maxXWidth = UI_fontstyle_string_width(fstyle, xval) + 0.5 * UI_UNIT_X;
 			}
 			else {
 				/* basic size (just "x") */
-				maxXWidth = UI_fontstyle_string_width("x") + 0.5 * UI_UNIT_X;
+				maxXWidth = UI_fontstyle_string_width(fstyle, "x") + 0.5 * UI_UNIT_X;
 			}
 			
 			/* draw controls for each coefficient and a + sign at end of row */

@@ -267,7 +267,8 @@ void wm_drags_check_ops(bContext *C, wmEvent *event)
 
 static void wm_drop_operator_draw(const char *name, int x, int y)
 {
-	int width = UI_fontstyle_string_width(name);
+	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+	int width = UI_fontstyle_string_width(fstyle, name);
 	int padding = 4 * UI_DPI_FAC;
 	
 	glColor4ub(0, 0, 0, 50);
@@ -276,7 +277,7 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
 	UI_draw_roundbox(x, y, x + width + 2 * padding, y + 4 * padding, padding);
 	
 	glColor4ub(255, 255, 255, 255);
-	UI_draw_string(x + padding, y + padding, name);
+	UI_fontstyle_draw_simple(fstyle, x + padding, y + padding, name);
 }
 
 static const char *wm_drag_name(wmDrag *drag)
@@ -284,13 +285,12 @@ static const char *wm_drag_name(wmDrag *drag)
 	switch (drag->type) {
 		case WM_DRAG_ID:
 		{
-			ID *id = (ID *)drag->poin;
+			ID *id = drag->poin;
 			return id->name + 2;
 		}
 		case WM_DRAG_PATH:
-			return drag->path;
 		case WM_DRAG_NAME:
-			return (char *)drag->path;
+			return drag->path;
 	}
 	return "";
 }
@@ -311,6 +311,7 @@ static void drag_rect_minmax(rcti *rect, int x1, int y1, int x2, int y2)
 /* if rect set, do not draw */
 void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 {
+	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmDrag *drag;
 	const int winsize_y = WM_window_pixels_y(win);
@@ -362,12 +363,12 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 		}
 		
 		if (rect) {
-			int w =  UI_fontstyle_string_width(wm_drag_name(drag));
+			int w =  UI_fontstyle_string_width(fstyle, wm_drag_name(drag));
 			drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 		}
 		else {
 			glColor4ub(255, 255, 255, 255);
-			UI_draw_string(x, y, wm_drag_name(drag));
+			UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag));
 		}
 		
 		/* operator name with roundbox */
@@ -390,7 +391,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			}
 			
 			if (rect) {
-				int w =  UI_fontstyle_string_width(wm_drag_name(drag));
+				int w =  UI_fontstyle_string_width(fstyle, wm_drag_name(drag));
 				drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 			}
 			else 

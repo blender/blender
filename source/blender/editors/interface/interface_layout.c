@@ -235,9 +235,10 @@ static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool
 	variable = (ui_layout_vary_direction(layout) == UI_ITEM_VARY_X);
 
 	if (variable) {
+		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 		/* it may seem odd that the icon only adds (UI_UNIT_X / 4)
 		 * but taking margins into account its fine */
-		return (UI_fontstyle_string_width(name) +
+		return (UI_fontstyle_string_width(fstyle, name) +
 		        (UI_UNIT_X * ((compact ? 1.25f : 1.50f) +
 		                      (icon    ? 0.25f : 0.0f))));
 	}
@@ -639,7 +640,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	if (name[0]) {
 		/* XXX UI_fontstyle_string_width is not accurate */
 #if 0
-		labelw = UI_fontstyle_string_width(name);
+		labelw = UI_fontstyle_string_width(fstyle, name);
 		CLAMP(labelw, w / 4, 3 * w / 4);
 #endif
 		labelw = w / 3;

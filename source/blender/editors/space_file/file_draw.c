@@ -133,7 +133,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		loadbutton = 0;
 	}
 	else {
-		loadbutton = UI_fontstyle_string_width(params->title) + btn_margin;
+		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+		loadbutton = UI_fontstyle_string_width(fstyle, params->title) + btn_margin;
 		CLAMP_MIN(loadbutton, btn_minw);
 		if (available_w <= loadbutton + separator + input_minw) {
 			loadbutton = 0;

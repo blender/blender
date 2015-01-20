@@ -147,8 +147,9 @@ static uiFont *uifont_to_blfont(int id)
 /* *************** draw ************************ */
 
 
-void UI_fontstyle_draw_ex(uiFontStyle *fs, const rcti *rect, const char *str,
-                        size_t len, float *r_xofs, float *r_yofs)
+void UI_fontstyle_draw_ex(
+        const uiFontStyle *fs, const rcti *rect, const char *str,
+        size_t len, float *r_xofs, float *r_yofs)
 {
 	float height;
 	int xofs = 0, yofs;
@@ -194,15 +195,17 @@ void UI_fontstyle_draw_ex(uiFontStyle *fs, const rcti *rect, const char *str,
 	*r_yofs = yofs;
 }
 
-void UI_fontstyle_draw(uiFontStyle *fs, const rcti *rect, const char *str)
+void UI_fontstyle_draw(const uiFontStyle *fs, const rcti *rect, const char *str)
 {
 	float xofs, yofs;
-	UI_fontstyle_draw_ex(fs, rect, str,
-	                   BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs);
+
+	UI_fontstyle_draw_ex(
+	        fs, rect, str,
+	        BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs);
 }
 
 /* drawn same as above, but at 90 degree angle */
-void UI_fontstyle_draw_rotated(uiFontStyle *fs, const rcti *rect, const char *str)
+void UI_fontstyle_draw_rotated(const uiFontStyle *fs, const rcti *rect, const char *str)
 {
 	float height;
 	int xofs, yofs;
@@ -255,6 +258,25 @@ void UI_fontstyle_draw_rotated(uiFontStyle *fs, const rcti *rect, const char *st
 		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
 }
 
+/**
+ * Similar to #UI_fontstyle_draw
+ * but ignore alignment, shadow & no clipping rect.
+ *
+ * For drawing on-screen labels.
+ */
+void UI_fontstyle_draw_simple(const uiFontStyle *fs, float x, float y, const char *str)
+{
+	if (fs->kerning == 1)
+		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
+
+	UI_fontstyle_set(fs);
+	BLF_position(fs->uifont_id, x, y, 0.0f);
+	BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+
+	if (fs->kerning == 1)
+		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+}
+
 /* ************** helpers ************************ */
 /* XXX: read a style configure */
 uiStyle *UI_style_get(void)
@@ -291,39 +313,20 @@ uiStyle *UI_style_get_dpi(void)
 	return &_style;
 }
 
-/* temporarily, does widget font */
-int UI_fontstyle_string_width(const char *str)
+int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
 {
-	uiStyle *style = UI_style_get();
-	uiFontStyle *fstyle = &style->widget;
 	int width;
 	
-	if (fstyle->kerning == 1) /* for BLF_width */
-		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	if (fs->kerning == 1) /* for BLF_width */
+		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
 	
-	UI_fontstyle_set(fstyle);
-	width = BLF_width(fstyle->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+	UI_fontstyle_set(fs);
+	width = BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 	
-	if (fstyle->kerning == 1)
-		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	if (fs->kerning == 1)
+		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
 	
 	return width;
-}
-
-/* temporarily, does widget font */
-void UI_draw_string(float x, float y, const char *str)
-{
-	uiStyle *style = UI_style_get();
-	
-	if (style->widget.kerning == 1)
-		BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
-
-	UI_fontstyle_set(&style->widget);
-	BLF_position(style->widget.uifont_id, x, y, 0.0f);
-	BLF_draw(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
-
-	if (style->widget.kerning == 1)
-		BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
 }
 
 /* ************** init exit ************************ */
@@ -452,7 +455,7 @@ void uiStyleInit(void)
 	BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72);
 }
 
-void UI_fontstyle_set(uiFontStyle *fs)
+void UI_fontstyle_set(const uiFontStyle *fs)
 {
 	uiFont *font = uifont_to_blfont(fs->uifont_id);
 	
