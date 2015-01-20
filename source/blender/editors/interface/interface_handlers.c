@@ -355,6 +355,12 @@ static enum eSnapType ui_event_to_snap(const wmEvent *event)
 	return (event->ctrl) ? (event->shift) ? SNAP_ON_SMALL : SNAP_ON : SNAP_OFF;
 }
 
+static bool ui_event_is_snap(const wmEvent *event)
+{
+	return (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY) ||
+	        ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY));
+}
+
 static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
 {
 	const float snap_increment = (snap == SNAP_ON_SMALL) ? 24 : 12;
@@ -3706,7 +3712,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				click = 1;
 			}
 		}
-		else if (event->type == MOUSEMOVE) {
+		else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
 			const enum eSnapType snap = ui_event_to_snap(event);
 			float fac;
 
@@ -4003,7 +4009,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				click = 1;
 			}
 		}
-		else if (event->type == MOUSEMOVE) {
+		else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
 #ifdef USE_DRAG_MULTINUM
 			data->multi_data.drag_dir[0] += abs(data->draglastx - mx);
 			data->multi_data.drag_dir[1] += abs(data->draglasty - my);
@@ -4542,8 +4548,8 @@ static int ui_do_but_UNITVEC(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 	}
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
-		if (event->type == MOUSEMOVE) {
-			if (mx != data->draglastx || my != data->draglasty) {
+		if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
+			if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
 				const enum eSnapType snap = ui_event_to_snap(event);
 				if (ui_numedit_but_UNITVEC(but, data, mx, my, snap))
 					ui_numedit_apply(C, block, but, data);
@@ -4862,8 +4868,8 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 		}
-		else if (event->type == MOUSEMOVE) {
-			if (mx != data->draglastx || my != data->draglasty) {
+		else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
+			if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
 				const enum eSnapType snap = ui_event_to_snap(event);
 
 				if (ui_numedit_but_HSVCUBE(but, data, mx, my, snap, event->shift != 0))
@@ -5134,8 +5140,8 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			ui_but_hsv_set(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
-		else if (event->type == MOUSEMOVE) {
-			if (mx != data->draglastx || my != data->draglasty) {
+		else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
+			if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
 				const enum eSnapType snap = ui_event_to_snap(event);
 
 				if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->shift != 0)) {
