@@ -120,8 +120,6 @@ void BKE_cloth_solver_set_positions(ClothModifierData *clmd)
 	Implicit_Data *id = cloth->implicit;
 	
 	for (i = 0; i < numverts; i++) {
-		BPH_mass_spring_set_rest_transform(id, i, root->rot);
-		BPH_mass_spring_set_motion_state(id, i, verts[i].x, verts[i].v);
 		if (cloth_hairdata) {
 			ClothHairData *root = &cloth_hairdata[i];
 			BPH_mass_spring_set_rest_transform(id, i, root->rot);
@@ -511,7 +509,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 			
 			for (LinkNode *link = cloth->springs; link; link = link->next) {
 				ClothSpring *spring = (ClothSpring *)link->link;
-				if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
+				if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL) {
 					if (hairdata) {
 						hair_ij = &hairdata[spring->ij];
 						hair_kl = &hairdata[spring->kl];
@@ -520,15 +518,12 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 					else
 						BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, 1.0f, 1.0f, winvec);
 				}
-		}
+			}
 #else
 			ClothHairData *hairdata = clmd->hairdata;
 			
 			vert = cloth->verts;
 			for (i = 0; i < cloth->numverts; i++, vert++) {
-				if (vert->solver_index < 0)
-					continue;
-				
 				if (hairdata) {
 					ClothHairData *hair = &hairdata[i];
 					BPH_mass_spring_force_vertex_wind(data, i, hair->radius, winvec);
@@ -536,6 +531,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 				else
 					BPH_mass_spring_force_vertex_wind(data, i, 1.0f, winvec);
 			}
+		}
 #endif
 
 		MEM_freeN(winvec);

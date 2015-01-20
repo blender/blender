@@ -218,7 +218,7 @@ typedef struct ParticleSettings {
 	/* kink */
 	float kink_amp, kink_freq, kink_shape, kink_flat;
 	float kink_amp_clump;
-	int kink_extra_steps, pad;
+	int kink_extra_steps, pad4;
 	float kink_axis_random, kink_amp_random;
 	/* rough */
 	float rough1, rough1_size;
@@ -257,7 +257,7 @@ typedef struct ParticleSettings {
 
 	/* modified dm support */
 	short use_modifier_stack;
-	short pad[3];
+	short pad5[3];
 
 } ParticleSettings;
 
