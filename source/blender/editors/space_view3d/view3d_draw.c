@@ -586,20 +586,26 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
 	int bright = - 20 * (10 - U.rvibright); /* axis alpha offset (rvibright has range 0-10) */
 	float vec[3];
-	char axis_text[2] = "x";
 	float dx, dy;
-	int i;
-	
+
+	int axis_order[3] = {0, 1, 2};
+	int axis_i;
+
 	startx += rect->xmin;
 	starty += rect->ymin;
-	
+
+	axis_sort_v3(rv3d->viewinv[2], axis_order);
+
 	/* thickness of lines is proportional to k */
 	glLineWidth(2);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	for (i = 0; i < 3; i++) {
+	for (axis_i = 0; axis_i < 3; axis_i++) {
+		int i = axis_order[axis_i];
+		const char axis_text[2] = {'x' + i, '\0'};
+
 		zero_v3(vec);
 		vec[i] = 1.0f;
 		mul_qt_v3(rv3d->viewquat, vec);
@@ -615,8 +621,6 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 		if (fabsf(dx) > toll || fabsf(dy) > toll) {
 			BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, axis_text, 1);
 		}
-
-		axis_text[0]++;
 
 		/* BLF_draw_default disables blending */
 		glEnable(GL_BLEND);
