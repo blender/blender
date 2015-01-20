@@ -398,10 +398,9 @@ void uiStyleInit(void)
 			if (font->blf_id == -1) {
 				font->blf_id = BLF_load_mem("default", (unsigned char *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 			}
-			else {
-				BLF_default_set(font->blf_id);
-			}
 		}
+
+		BLF_default_set(font->blf_id);
 
 		if (font->blf_id == -1) {
 			if (G.debug & G_DEBUG)

@@ -63,6 +63,9 @@
  */
 #define BLF_MAX_FONT 16
 
+/* call BLF_default_set first! */
+#define ASSERT_DEFAULT_SET BLI_assert(global_font_default != -1)
+
 /* Font array. */
 static FontBLF *global_font[BLF_MAX_FONT] = {NULL};
 
@@ -157,21 +160,6 @@ void BLF_default_set(int fontid)
 	FontBLF *font = blf_get(fontid);
 	if (font || fontid == -1) {
 		global_font_default = fontid;
-	}
-}
-
-static int blf_global_font_init(void)
-{
-	if (global_font_default == -1) {
-		global_font_default = blf_search("default");
-	}
-
-	if (global_font_default == -1) {
-		printf("Warning: Can't find default font!\n");
-		return 0;
-	}
-	else {
-		return 1;
 	}
 }
 
@@ -477,8 +465,7 @@ void BLF_blur(int fontid, int size)
 
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 {
-	if (!blf_global_font_init())
-		return;
+	ASSERT_DEFAULT_SET;
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	BLF_position(global_font_default, x, y, z);
@@ -488,8 +475,7 @@ void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 /* same as above but call 'BLF_draw_ascii' */
 void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len)
 {
-	if (!blf_global_font_init())
-		return;
+	ASSERT_DEFAULT_SET;
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	BLF_position(global_font_default, x, y, z);
@@ -670,10 +656,7 @@ void BLF_width_and_height(int fontid, const char *str, size_t len, float *r_widt
 
 void BLF_width_and_height_default(const char *str, size_t len, float *r_width, float *r_height)
 {
-	if (!blf_global_font_init()) {
-		*r_width = *r_height = 0.0f;
-		return;
-	}
+	ASSERT_DEFAULT_SET;
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	BLF_width_and_height(global_font_default, str, len, r_width, r_height);
@@ -703,8 +686,7 @@ float BLF_fixed_width(int fontid)
 
 float BLF_width_default(const char *str, size_t len)
 {
-	if (!blf_global_font_init())
-		return 0.0f;
+	ASSERT_DEFAULT_SET;
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	return BLF_width(global_font_default, str, len);
@@ -767,8 +749,7 @@ float BLF_ascender(int fontid)
 
 float BLF_height_default(const char *str, size_t len)
 {
-	if (!blf_global_font_init())
-		return 0.0f;
+	ASSERT_DEFAULT_SET;
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 
