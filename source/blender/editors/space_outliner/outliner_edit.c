@@ -73,22 +73,6 @@
 
 /* This is not used anywhere at the moment */
 #if 0
-/* return 1 when levels were opened */
-static int outliner_open_back(SpaceOops *soops, TreeElement *te)
-{
-	TreeStoreElem *tselem;
-	int retval = 0;
-	
-	for (te = te->parent; te; te = te->parent) {
-		tselem = TREESTORE(te);
-		if (tselem->flag & TSE_CLOSED) {
-			tselem->flag &= ~TSE_CLOSED;
-			retval = 1;
-		}
-	}
-	return retval;
-}
-
 static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *teFind, int *found)
 {
 	TreeElement *te;
@@ -601,6 +585,50 @@ void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
 
 /* Show Active --------------------------------------------------- */
 
+static void outliner_set_coordinates_element_recursive(SpaceOops *soops, TreeElement *te, int startx, int *starty)
+{
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	/* store coord and continue, we need coordinates for elements outside view too */
+	te->xs = (float)startx;
+	te->ys = (float)(*starty);
+	*starty -= UI_UNIT_Y;
+
+	if (TSELEM_OPEN(tselem, soops)) {
+		TreeElement *ten;
+		for (ten = te->subtree.first; ten; ten = ten->next) {
+			outliner_set_coordinates_element_recursive(soops, ten, startx + UI_UNIT_X, starty);
+		}
+	}
+}
+
+/* to retrieve coordinates with redrawing the entire tree */
+static void outliner_set_coordinates(ARegion *ar, SpaceOops *soops)
+{
+	TreeElement *te;
+	int starty = (int)(ar->v2d.tot.ymax) - UI_UNIT_Y;
+
+	for (te = soops->tree.first; te; te = te->next) {
+		outliner_set_coordinates_element_recursive(soops, te, 0, &starty);
+	}
+}
+
+/* return 1 when levels were opened */
+static int outliner_open_back(TreeElement *te)
+{
+	TreeStoreElem *tselem;
+	int retval = 0;
+
+	for (te = te->parent; te; te = te->parent) {
+		tselem = TREESTORE(te);
+		if (tselem->flag & TSE_CLOSED) {
+			tselem->flag &= ~TSE_CLOSED;
+			retval = 1;
+		}
+	}
+	return retval;
+}
+
 static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
@@ -617,6 +645,11 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	te = outliner_find_id(so, &so->tree, (ID *)OBACT);
 	if (te) {
+		/* open up tree to active object */
+		if (outliner_open_back(te)) {
+			outliner_set_coordinates(ar, so);
+		}
+
 		/* make te->ys center of view */
 		ytop = te->ys + BLI_rcti_size_y(&v2d->mask) / 2;
 		if (ytop > 0) ytop = 0;
@@ -642,7 +675,7 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Show Active";
 	ot->idname = "OUTLINER_OT_show_active";
-	ot->description = "Adjust the view so that the active Object is shown centered";
+	ot->description = "Open up the tree and adjust the view so that the active Object is shown centered";
 	
 	/* callbacks */
 	ot->exec = outliner_show_active_exec;
@@ -689,37 +722,6 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 // TODO: probably obsolete now with filtering?
 
 #if 0
-
-/* recursive helper for function below */
-static void outliner_set_coordinates_element(SpaceOops *soops, TreeElement *te, int startx, int *starty)
-{
-	TreeStoreElem *tselem = TREESTORE(te);
-	
-	/* store coord and continue, we need coordinates for elements outside view too */
-	te->xs = (float)startx;
-	te->ys = (float)(*starty);
-	*starty -= UI_UNIT_Y;
-	
-	if (TSELEM_OPEN(tselem, soops)) {
-		TreeElement *ten;
-		for (ten = te->subtree.first; ten; ten = ten->next) {
-			outliner_set_coordinates_element(soops, ten, startx + UI_UNIT_X, starty);
-		}
-	}
-	
-}
-
-/* to retrieve coordinates with redrawing the entire tree */
-static void outliner_set_coordinates(ARegion *ar, SpaceOops *soops)
-{
-	TreeElement *te;
-	int starty = (int)(ar->v2d.tot.ymax) - UI_UNIT_Y;
-	int startx = 0;
-	
-	for (te = soops->tree.first; te; te = te->next) {
-		outliner_set_coordinates_element(soops, te, startx, &starty);
-	}
-}
 
 /* find next element that has this name */
 static TreeElement *outliner_find_name(SpaceOops *soops, ListBase *lb, char *name, int flags,
