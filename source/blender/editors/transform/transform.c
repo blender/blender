@@ -969,6 +969,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 {
 	char cmode = constraintModeToChar(t);
 	bool handled = false;
+	const int modifiers_prev = t->modifiers;
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
@@ -1493,6 +1494,13 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				t->state = TRANS_CONFIRM;
 			}
 		}
+	}
+
+	/* if we change snap options, get the unsnapped values back */
+	if ((t->modifiers   & (MOD_SNAP | MOD_SNAP_INVERT)) !=
+	    (modifiers_prev & (MOD_SNAP | MOD_SNAP_INVERT)))
+	{
+	    applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
 	/* Per transform event, if present */
