@@ -185,7 +185,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int maxvert, maxpoly, maxloop, totpart = 0, first_particle = 0;
 	int k, p, p_skip;
 	short track = ob->trackflag % 3, trackneg, axis = pimd->axis;
-	float max_co = 0.0, min_co = 0.0, temp_co[3], cross[3];
+	float max_co = 0.0, min_co = 0.0, temp_co[3];
 	float *size = NULL;
 
 	trackneg = ((ob->trackflag > 2) ? 1 : 0);
@@ -365,6 +365,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					unit_qt(state.rot);
 				}
 				else {
+					float cross[3];
 					float temp[3] = {0.0f, 0.0f, 0.0f};
 					temp[axis] = 1.0f;
 					

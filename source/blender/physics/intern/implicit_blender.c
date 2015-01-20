@@ -326,6 +326,7 @@ static void print_sparse_matrix(fmatrix3x3 *m)
 }
 #endif
 
+#if 0
 static void print_lvector(lfVector *v, int numverts)
 {
 	int i;
@@ -338,7 +339,9 @@ static void print_lvector(lfVector *v, int numverts)
 		printf("%f,\n", v[i][2]);
 	}
 }
+#endif
 
+#if 0
 static void print_bfmatrix(fmatrix3x3 *m)
 {
 	int tot = m[0].vcount + m[0].scount;
@@ -381,6 +384,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 	
 	MEM_freeN(t);
 }
+#endif
 
 /* copy 3x3 matrix */
 DO_INLINE void cp_fmatrix(float to[3][3], float from[3][3])
