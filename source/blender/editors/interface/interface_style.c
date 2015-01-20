@@ -45,6 +45,7 @@
 
 #include "BKE_global.h"
 
+#include "BIF_gl.h"
 
 #include "BLF_api.h"
 #ifdef WITH_INTERNATIONAL
@@ -277,6 +278,47 @@ void UI_fontstyle_draw_simple(const uiFontStyle *fs, float x, float y, const cha
 		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
 }
 
+/**
+ * Same as #UI_fontstyle_draw but draw a colored backdrop.
+ */
+void UI_fontstyle_draw_simple_backdrop(
+        const uiFontStyle *fs, float x, float y, const char *str,
+        const unsigned char fg[4], const unsigned char bg[4])
+{
+	if (fs->kerning == 1)
+		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
+
+	UI_fontstyle_set(fs);
+
+	{
+		const float width = BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+		const float height = BLF_height_max(fs->uifont_id);
+		const float decent = BLF_descender(fs->uifont_id);
+		const float margin = height / 4.0f;
+
+		/* backdrop */
+		glColor4ubv(bg);
+
+		UI_draw_roundbox_corner_set(UI_CNR_ALL | UI_RB_ALPHA);
+		UI_draw_roundbox(
+		        x - margin,
+		        (y + decent) - margin,
+		        x + width + margin,
+		        (y + decent) + height + margin,
+		        margin);
+
+		glColor4ubv(fg);
+	}
+
+
+	BLF_position(fs->uifont_id, x, y, 0.0f);
+	BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+
+	if (fs->kerning == 1)
+		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+}
+
+
 /* ************** helpers ************************ */
 /* XXX: read a style configure */
 uiStyle *UI_style_get(void)
@@ -328,6 +370,13 @@ int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
 	
 	return width;
 }
+
+int UI_fontstyle_height_max(const uiFontStyle *fs)
+{
+	UI_fontstyle_set(fs);
+	return BLF_height_max(fs->uifont_id);
+}
+
 
 /* ************** init exit ************************ */
 

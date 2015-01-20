@@ -268,16 +268,10 @@ void wm_drags_check_ops(bContext *C, wmEvent *event)
 static void wm_drop_operator_draw(const char *name, int x, int y)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-	int width = UI_fontstyle_string_width(fstyle, name);
-	int padding = 4 * UI_DPI_FAC;
-	
-	glColor4ub(0, 0, 0, 50);
-	
-	UI_draw_roundbox_corner_set(UI_CNR_ALL | UI_RB_ALPHA);
-	UI_draw_roundbox(x, y, x + width + 2 * padding, y + 4 * padding, padding);
-	
-	glColor4ub(255, 255, 255, 255);
-	UI_fontstyle_draw_simple(fstyle, x + padding, y + padding, name);
+	const unsigned char fg[4] = {255, 255, 255, 255};
+	const unsigned char bg[4] = {0, 0, 0, 50};
+
+	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, fg, bg);
 }
 
 static const char *wm_drag_name(wmDrag *drag)
@@ -327,7 +321,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 	/* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */
 	glEnable(GL_BLEND);
 	for (drag = wm->drags.first; drag; drag = drag->next) {
-		int iconsize = 16 * UI_DPI_FAC; /* assumed to be 16 pixels */
+		int iconsize = UI_DPI_ICON_SIZE;
 		int padding = 4 * UI_DPI_FAC;
 		
 		/* image or icon */
@@ -384,10 +378,12 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			else {
 				x = cursorx - 2 * padding;
 
-				if (cursory + iconsize + iconsize < winsize_y)
-					y = cursory + iconsize;
-				else
-					y = cursory - iconsize - 2 * UI_DPI_FAC;
+				if (cursory + iconsize + iconsize < winsize_y) {
+					y = (cursory + iconsize) + padding;
+				}
+				else {
+					y = (cursory - iconsize) - padding;
+				}
 			}
 			
 			if (rect) {

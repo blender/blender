@@ -1281,8 +1281,9 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(x1i, y1i - 15, 0.0f, v3d->camera->id.name + 2, sizeof(v3d->camera->id.name) - 2);
-		UI_ThemeColor(TH_WIRE);
+		BLF_draw_default(
+		        x1i, y1i - (0.7f * U.widget_unit), 0.0f,
+		        v3d->camera->id.name + 2, sizeof(v3d->camera->id.name) - 2);
 	}
 }
 
