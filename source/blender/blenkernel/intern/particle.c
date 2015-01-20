@@ -2287,17 +2287,17 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 			par = pcache[cpa->parent];
 		}
 		
-		if (pa)
-			psys_particle_on_emitter(ctx->sim.psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset,
-			                         par_co, NULL, NULL, NULL, par_orco, NULL);
-		else
-			zero_v3(par_orco);
-		
-		{
+		if (pa) {
 			ListBase modifiers;
 			BLI_listbase_clear(&modifiers);
+			
+			psys_particle_on_emitter(ctx->sim.psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset,
+			                         par_co, NULL, NULL, NULL, par_orco, NULL);
+			
 			psys_apply_child_modifiers(ctx, &modifiers, cpa, &ptex, orco, ornor, hairmat, child_keys, par, par_orco);
 		}
+		else
+			zero_v3(par_orco);
 	}
 
 	/* Hide virtual parents */
