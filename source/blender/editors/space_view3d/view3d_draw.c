@@ -3580,9 +3580,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(scene) || clip_border) {
 		view3d_main_area_draw_objects(C, scene, v3d, ar, &grid_unit);
+		
 #ifdef DEBUG_DRAW
 		bl_debug_draw();
 #endif
+		draw_sim_debug_data(scene, v3d, ar);
+		
 		ED_region_pixelspace(ar);
 	}
 

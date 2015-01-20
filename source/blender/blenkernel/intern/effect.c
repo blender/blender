@@ -1029,6 +1029,8 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 
 /* ======== Simulation Debugging ======== */
 
+SimDebugData *_sim_debug_data = NULL;
+
 unsigned int BKE_sim_debug_data_hash(int i)
 {
 	return BLI_ghashutil_uinthash((unsigned int)i);
@@ -1080,12 +1082,31 @@ static void debug_element_free(void *val)
 	MEM_freeN(elem);
 }
 
-SimDebugData *BKE_sim_debug_data_new(void)
+void BKE_sim_debug_data_set_enabled(bool enable)
 {
-	SimDebugData *debug_data = MEM_callocN(sizeof(SimDebugData), "sim debug data");
-	debug_data->gh = BLI_ghash_new(debug_element_hash, debug_element_compare, "sim debug element hash");
-	return debug_data;
-	
+	if (enable) {
+		if (!_sim_debug_data) {
+			_sim_debug_data = MEM_callocN(sizeof(SimDebugData), "sim debug data");
+			_sim_debug_data->gh = BLI_ghash_new(debug_element_hash, debug_element_compare, "sim debug element hash");
+		}
+	}
+	else {
+		BKE_sim_debug_data_free();
+	}
+}
+
+bool BKE_sim_debug_data_get_enabled(void)
+{
+	return _sim_debug_data != NULL;
+}
+
+void BKE_sim_debug_data_free(void)
+{
+	if (_sim_debug_data) {
+		if (_sim_debug_data->gh)
+			BLI_ghash_free(_sim_debug_data->gh, NULL, debug_element_free);
+		MEM_freeN(_sim_debug_data);
+	}
 }
 
 static void debug_data_insert(SimDebugData *debug_data, SimDebugElement *elem)
@@ -1099,11 +1120,11 @@ static void debug_data_insert(SimDebugData *debug_data, SimDebugElement *elem)
 		BLI_ghash_insert(debug_data->gh, elem, elem);
 }
 
-void BKE_sim_debug_data_add_element(SimDebugData *debug_data, int type, const float v1[3], const float v2[3], float r, float g, float b, const char *category, unsigned int hash)
+void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[3], float r, float g, float b, const char *category, unsigned int hash)
 {
 	unsigned int category_hash = BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
-	if (!debug_data)
+	if (!_sim_debug_data)
 		return;
 	
 	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
@@ -1116,54 +1137,44 @@ void BKE_sim_debug_data_add_element(SimDebugData *debug_data, int type, const fl
 	copy_v3_v3(elem->v1, v1);
 	copy_v3_v3(elem->v2, v2);
 	
-	debug_data_insert(debug_data, elem);
+	debug_data_insert(_sim_debug_data, elem);
 }
 
-void BKE_sim_debug_data_remove_element(SimDebugData *debug_data, unsigned int hash)
+void BKE_sim_debug_data_remove_element(unsigned int hash)
 {
 	SimDebugElement dummy;
-	if (!debug_data)
+	if (!_sim_debug_data)
 		return;
 	
 	dummy.hash = hash;
-	BLI_ghash_remove(debug_data->gh, &dummy, NULL, debug_element_free);
+	BLI_ghash_remove(_sim_debug_data->gh, &dummy, NULL, debug_element_free);
 }
 
-void BKE_sim_debug_data_clear(SimDebugData *debug_data)
+void BKE_sim_debug_data_clear(void)
 {
-	if (!debug_data)
+	if (!_sim_debug_data)
 		return;
 	
-	if (debug_data->gh)
-		BLI_ghash_clear(debug_data->gh, NULL, debug_element_free);
+	if (_sim_debug_data->gh)
+		BLI_ghash_clear(_sim_debug_data->gh, NULL, debug_element_free);
 }
 
-void BKE_sim_debug_data_clear_category(SimDebugData *debug_data, const char *category)
+void BKE_sim_debug_data_clear_category(const char *category)
 {
 	int category_hash = (int)BLI_ghashutil_strhash_p(category);
 	
-	if (!debug_data)
+	if (!_sim_debug_data)
 		return;
 	
-	if (debug_data->gh) {
+	if (_sim_debug_data->gh) {
 		GHashIterator iter;
-		BLI_ghashIterator_init(&iter, debug_data->gh);
+		BLI_ghashIterator_init(&iter, _sim_debug_data->gh);
 		while(!BLI_ghashIterator_done(&iter)) {
 			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 			BLI_ghashIterator_step(&iter); /* removing invalidates the current iterator, so step before removing */
 			
 			if (elem->category_hash == category_hash)
-				BLI_ghash_remove(debug_data->gh, elem, NULL, debug_element_free);
+				BLI_ghash_remove(_sim_debug_data->gh, elem, NULL, debug_element_free);
 		}
 	}
-}
-
-void BKE_sim_debug_data_free(SimDebugData *debug_data)
-{
-	if (!debug_data)
-		return;
-	
-	if (debug_data->gh)
-		BLI_ghash_free(debug_data->gh, NULL, debug_element_free);
-	MEM_freeN(debug_data);
 }

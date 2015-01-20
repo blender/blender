@@ -188,36 +188,39 @@ typedef struct SimDebugData {
 	struct GHash *gh;
 } SimDebugData;
 
-struct SimDebugData *BKE_sim_debug_data_new(void);
+extern SimDebugData *_sim_debug_data;
 
-void BKE_sim_debug_data_add_element(struct SimDebugData *debug_data, int type, const float v1[3], const float v2[3],
+void BKE_sim_debug_data_set_enabled(bool enable);
+bool BKE_sim_debug_data_get_enabled(void);
+void BKE_sim_debug_data_free(void);
+
+void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[3],
                                     float r, float g, float b, const char *category, unsigned int hash);
-void BKE_sim_debug_data_remove_element(struct SimDebugData *debug_data, unsigned int hash);
+void BKE_sim_debug_data_remove_element(unsigned int hash);
 
-#define BKE_sim_debug_data_add_dot(debug_data, p, r, g, b, category, ...) { \
+#define BKE_sim_debug_data_add_dot(p, r, g, b, category, ...) { \
 	const float v2[3] = { 0.0f, 0.0f, 0.0f }; \
-	BKE_sim_debug_data_add_element(debug_data, SIM_DEBUG_ELEM_DOT, p, v2, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
+	BKE_sim_debug_data_add_element(SIM_DEBUG_ELEM_DOT, p, v2, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
 }
 
-#define BKE_sim_debug_data_add_circle(debug_data, p, radius, r, g, b, category, ...) { \
+#define BKE_sim_debug_data_add_circle(p, radius, r, g, b, category, ...) { \
 	const float v2[3] = { radius, 0.0f, 0.0f }; \
-	BKE_sim_debug_data_add_element(debug_data, SIM_DEBUG_ELEM_CIRCLE, p, v2, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
+	BKE_sim_debug_data_add_element(SIM_DEBUG_ELEM_CIRCLE, p, v2, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
 }
 
-#define BKE_sim_debug_data_add_line(debug_data, p1, p2, r, g, b, category, ...) { \
-	BKE_sim_debug_data_add_element(debug_data, SIM_DEBUG_ELEM_LINE, p1, p2, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
+#define BKE_sim_debug_data_add_line(p1, p2, r, g, b, category, ...) { \
+	BKE_sim_debug_data_add_element(SIM_DEBUG_ELEM_LINE, p1, p2, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
 }
 
-#define BKE_sim_debug_data_add_vector(debug_data, p, d, r, g, b, category, ...) { \
-	BKE_sim_debug_data_add_element(debug_data, SIM_DEBUG_ELEM_VECTOR, p, d, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
+#define BKE_sim_debug_data_add_vector(p, d, r, g, b, category, ...) { \
+	BKE_sim_debug_data_add_element(SIM_DEBUG_ELEM_VECTOR, p, d, r, g, b, category, SIM_DEBUG_HASH(__VA_ARGS__)); \
 }
 
-#define BKE_sim_debug_data_remove(debug_data, ...) \
-	BKE_sim_debug_data_remove_element(debug_data, SIM_DEBUG_HASH(__VA_ARGS__))
+#define BKE_sim_debug_data_remove(...) \
+	BKE_sim_debug_data_remove_element(SIM_DEBUG_HASH(__VA_ARGS__))
 
-void BKE_sim_debug_data_clear(struct SimDebugData *debug_data);
-void BKE_sim_debug_data_clear_category(struct SimDebugData *debug_data, const char *category);
-void BKE_sim_debug_data_free(struct SimDebugData *debug_data);
+void BKE_sim_debug_data_clear(void);
+void BKE_sim_debug_data_clear_category(const char *category);
 
 #endif
 

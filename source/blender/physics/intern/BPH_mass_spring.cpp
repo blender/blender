@@ -712,7 +712,6 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 	if (smoothfac > 0.0f || density_strength > 0.0f) {
 		HairGrid *grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_cell_size, gmin, gmax);
 		
-		BPH_hair_volume_set_debug_data(grid, clmd->debug_data);
 		BPH_hair_volume_set_debug_value(grid, parms->debug1, parms->debug2, parms->debug3, parms->debug4);
 		
 		cloth_continuum_fill_grid(grid, cloth);
@@ -903,9 +902,7 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	ColliderContacts *contacts = NULL;
 	int totcolliders = 0;
 	
-	BPH_mass_spring_solver_debug_data(id, clmd->debug_data);
-	
-	BKE_sim_debug_data_clear_category(clmd->debug_data, "collision");
+	BKE_sim_debug_data_clear_category("collision");
 	
 	if (!clmd->solver_result)
 		clmd->solver_result = (ClothSolverResult *)MEM_callocN(sizeof(ClothSolverResult), "cloth solver result");
@@ -996,8 +993,6 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 		BPH_mass_spring_get_motion_state(id, i, verts[i].x, verts[i].v);
 		copy_v3_v3(verts[i].txold, verts[i].x);
 	}
-	
-	BPH_mass_spring_solver_debug_data(id, NULL);
 	
 	return 1;
 }

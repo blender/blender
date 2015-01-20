@@ -69,8 +69,6 @@ static void initData(ModifierData *md)
 		return;
 	
 	cloth_init(clmd);
-	
-	clmd->debug_data = NULL;
 }
 
 static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
@@ -180,7 +178,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tclmd->clothObject = NULL;
 	tclmd->hairdata = NULL;
 	tclmd->solver_result = NULL;
-	tclmd->debug_data = NULL;
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
@@ -214,8 +211,6 @@ static void freeData(ModifierData *md)
 		
 		if (clmd->solver_result)
 			MEM_freeN(clmd->solver_result);
-		
-		BKE_sim_debug_data_free(clmd->debug_data);
 	}
 }
 

@@ -7617,12 +7617,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt, dflag);
-
-			/* debug data */
-			if (psys->part->type == PART_HAIR) {
-				if (psys->clmd && psys->clmd->debug_data)
-					draw_sim_debug_data(scene, v3d, ar, base, psys->clmd->debug_data);
-			}
 		}
 		invert_m4_m4(ob->imat, ob->obmat);
 		view3d_cached_text_draw_end(v3d, ar, 0, NULL);

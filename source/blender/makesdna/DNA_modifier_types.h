@@ -573,8 +573,6 @@ typedef struct ClothModifierData {
 	float hair_grid_cellsize;
 	
 	struct ClothSolverResult *solver_result;
-	
-	struct SimDebugData *debug_data;      /* debug info */
 } ClothModifierData;
 
 typedef struct CollisionModifierData {

@@ -445,8 +445,6 @@ struct Implicit_Data {
 	lMatrixCtor iM;				/* masses */
 	lMatrixCtor idFdX, idFdV;	/* force jacobians */
 	lMatrixCtor iS;				/* filtering matrix for constraints */
-	
-	struct SimDebugData *debug_data;
 };
 
 Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
@@ -467,12 +465,6 @@ int BPH_mass_spring_solver_numvert(Implicit_Data *id)
 		return id->numverts;
 	else
 		return 0;
-}
-
-void BPH_mass_spring_solver_debug_data(Implicit_Data *id, struct SimDebugData *debug_data)
-{
-	if (id)
-		id->debug_data = debug_data;
 }
 
 /* ==== Transformation from/to root reference frames ==== */

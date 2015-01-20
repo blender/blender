@@ -147,13 +147,13 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 	glEnd();
 }
 
-void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar, Base *UNUSED(base), SimDebugData *debug_data)
+void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	/*Object *ob = base->object;*/
 	float imat[4][4];
 	
-	if (!debug_data)
+	if (!_sim_debug_data)
 		return;
 	
 	invert_m4_m4(imat, rv3d->viewmatob);
@@ -164,7 +164,7 @@ void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar,
 	glPushMatrix();
 	
 	glLoadMatrixf(rv3d->viewmat);
-	draw_sim_debug_elements(debug_data, imat);
+	draw_sim_debug_elements(_sim_debug_data, imat);
 	
 	glPopMatrix();
 	

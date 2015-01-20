@@ -700,8 +700,6 @@ typedef struct Implicit_Data  {
 	lfVector *z;				/* target velocity in constrained directions */
 	fmatrix3x3 *S;				/* filtering matrix for constraints */
 	fmatrix3x3 *P, *Pinv;		/* pre-conditioning matrix */
-	
-	struct SimDebugData *debug_data;
 } Implicit_Data;
 
 Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
@@ -754,12 +752,6 @@ void BPH_mass_spring_solver_free(Implicit_Data *id)
 	del_lfvector(id->z);
 	
 	MEM_freeN(id);
-}
-
-void BPH_mass_spring_solver_debug_data(Implicit_Data *id, struct SimDebugData *debug_data)
-{
-	if (id)
-		id->debug_data = debug_data;
 }
 
 /* ==== Transformation from/to root reference frames ==== */

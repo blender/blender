@@ -60,7 +60,6 @@ extern "C" {
 
 struct Implicit_Data;
 struct ImplicitSolverInput;
-struct SimDebugData;
 
 typedef struct ImplicitSolverResult {
 	int status;
@@ -73,8 +72,6 @@ BLI_INLINE void implicit_print_matrix_elem(float v)
 {
     printf("%-8.3f", v);
 }
-
-void BPH_mass_spring_solver_debug_data(struct Implicit_Data *id, struct SimDebugData *debug_data);
 
 void BPH_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
 void BPH_mass_spring_set_rest_transform(struct Implicit_Data *data, int index, float rot[3][3]);
@@ -142,7 +139,6 @@ struct VoxelData;
 struct HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize, const float gmin[3], const float gmax[3]);
 void BPH_hair_volume_free_vertex_grid(struct HairGrid *grid);
 void BPH_hair_volume_grid_geometry(struct HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3]);
-void BPH_hair_volume_set_debug_data(struct HairGrid *grid, struct SimDebugData *debug_data);
 void BPH_hair_volume_set_debug_value(struct HairGrid *grid, float debug1, float debug2, int debug3, int debug4);
 
 void BPH_hair_volume_grid_clear(struct HairGrid *grid);
