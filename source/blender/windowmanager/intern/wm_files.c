@@ -561,6 +561,10 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	/* options exclude eachother */
 	BLI_assert((from_memory && custom_file) == 0);
 
+	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
+		BKE_BIT_TEST_SET(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
+	}
+
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
 
 	UI_view2d_zoom_cache_reset();
