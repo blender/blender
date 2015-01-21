@@ -189,7 +189,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my)
 			}
 			else {
 				/* use any area of decent size */
-				sa = BKE_screen_find_big_area(CTX_wm_screen(C), -1, 0);
+				sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
 				if (sa->spacetype != SPACE_IMAGE) {
 					// XXX newspace(sa, SPACE_IMAGE);
 					sima = sa->spacedata.first;

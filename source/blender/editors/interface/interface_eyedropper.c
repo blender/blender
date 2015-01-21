@@ -172,43 +172,42 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 
 	/* we could use some clever */
 	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa;
-	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-		if (BLI_rcti_isect_pt(&sa->totrct, mx, my)) {
-			if (sa->spacetype == SPACE_IMAGE) {
-				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
-					SpaceImage *sima = sa->spacedata.first;
-					int mval[2] = {mx - ar->winrct.xmin,
-					               my - ar->winrct.ymin};
+	ScrArea *sa = BKE_screen_find_area_xy(win->screen, SPACE_TYPE_ANY, mx, my);
 
-					if (ED_space_image_color_sample(CTX_data_scene(C), sima, ar, mval, r_col)) {
-						return;
-					}
+	if (sa) {
+		if (sa->spacetype == SPACE_IMAGE) {
+			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				SpaceImage *sima = sa->spacedata.first;
+				int mval[2] = {mx - ar->winrct.xmin,
+				               my - ar->winrct.ymin};
+
+				if (ED_space_image_color_sample(CTX_data_scene(C), sima, ar, mval, r_col)) {
+					return;
 				}
 			}
-			else if (sa->spacetype == SPACE_NODE) {
-				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
-					SpaceNode *snode = sa->spacedata.first;
-					int mval[2] = {mx - ar->winrct.xmin,
-					               my - ar->winrct.ymin};
+		}
+		else if (sa->spacetype == SPACE_NODE) {
+			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				SpaceNode *snode = sa->spacedata.first;
+				int mval[2] = {mx - ar->winrct.xmin,
+				               my - ar->winrct.ymin};
 
-					if (ED_space_node_color_sample(CTX_data_scene(C), snode, ar, mval, r_col)) {
-						return;
-					}
+				if (ED_space_node_color_sample(CTX_data_scene(C), snode, ar, mval, r_col)) {
+					return;
 				}
 			}
-			else if (sa->spacetype == SPACE_CLIP) {
-				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
-					SpaceClip *sc = sa->spacedata.first;
-					int mval[2] = {mx - ar->winrct.xmin,
-					               my - ar->winrct.ymin};
+		}
+		else if (sa->spacetype == SPACE_CLIP) {
+			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				SpaceClip *sc = sa->spacedata.first;
+				int mval[2] = {mx - ar->winrct.xmin,
+				               my - ar->winrct.ymin};
 
-					if (ED_space_clip_color_sample(CTX_data_scene(C), sc, ar, mval, r_col)) {
-						return;
-					}
+				if (ED_space_clip_color_sample(CTX_data_scene(C), sc, ar, mval, r_col)) {
+					return;
 				}
 			}
 		}
@@ -473,53 +472,49 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
 
 	/* we could use some clever */
 	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa;
+	ScrArea *sa = BKE_screen_find_area_xy(win->screen, -1, mx, my);
 
 	ScrArea *area_prev = CTX_wm_area(C);
 	ARegion *ar_prev = CTX_wm_region(C);
 
 	ddr->name[0] = '\0';
 
-	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-		if (BLI_rcti_isect_pt(&sa->totrct, mx, my)) {
-			if (sa->spacetype == SPACE_VIEW3D) {
-				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
-					const int mval[2] = {
-					    mx - ar->winrct.xmin,
-					    my - ar->winrct.ymin};
-					Base *base;
+	if (sa) {
+		if (sa->spacetype == SPACE_VIEW3D) {
+			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				const int mval[2] = {
+				    mx - ar->winrct.xmin,
+				    my - ar->winrct.ymin};
+				Base *base;
 
-					CTX_wm_area_set(C, sa);
-					CTX_wm_region_set(C, ar);
+				CTX_wm_area_set(C, sa);
+				CTX_wm_region_set(C, ar);
 
-					/* grr, always draw else we leave stale text */
-					ED_region_tag_redraw(ar);
+				/* grr, always draw else we leave stale text */
+				ED_region_tag_redraw(ar);
 
-					base = ED_view3d_give_base_under_cursor(C, mval);
-					if (base) {
-						Object *ob = base->object;
-						ID *id = NULL;
-						if (ddr->idcode == ID_OB) {
-							id = (ID *)ob;
+				base = ED_view3d_give_base_under_cursor(C, mval);
+				if (base) {
+					Object *ob = base->object;
+					ID *id = NULL;
+					if (ddr->idcode == ID_OB) {
+						id = (ID *)ob;
+					}
+					else if (ob->data) {
+						if (GS(((ID *)ob->data)->name) == ddr->idcode) {
+							id = (ID *)ob->data;
 						}
-						else if (ob->data) {
-							if (GS(((ID *)ob->data)->name) == ddr->idcode) {
-								id = (ID *)ob->data;
-							}
-							else {
-								BLI_snprintf(ddr->name, sizeof(ddr->name), "Incompatible, expected a %s",
-								             ddr->idcode_name);
-							}
+						else {
+							BLI_snprintf(ddr->name, sizeof(ddr->name), "Incompatible, expected a %s",
+							             ddr->idcode_name);
 						}
+					}
 
-						if (id) {
-							BLI_snprintf(ddr->name, sizeof(ddr->name), "%s: %s",
-							             ddr->idcode_name, id->name + 2);
-							*r_id = id;
-						}
-
-						break;
+					if (id) {
+						BLI_snprintf(ddr->name, sizeof(ddr->name), "%s: %s",
+						             ddr->idcode_name, id->name + 2);
+						*r_id = id;
 					}
 				}
 			}
@@ -756,7 +751,7 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 
 	/* we could use some clever */
 	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa;
+	ScrArea *sa = BKE_screen_find_area_xy(win->screen, SPACE_TYPE_ANY, mx, my);
 	Scene *scene = win->screen->scene;
 	UnitSettings *unit = &scene->unit;
 	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
@@ -766,47 +761,44 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 
 	ddr->name[0] = '\0';
 
-	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-		if (BLI_rcti_isect_pt(&sa->totrct, mx, my)) {
-			if (sa->spacetype == SPACE_VIEW3D) {
-				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
-					View3D *v3d = sa->spacedata.first;
-					RegionView3D *rv3d = ar->regiondata;
-					/* weak, we could pass in some reference point */
-					const float *view_co = v3d->camera ? v3d->camera->obmat[3] : rv3d->viewinv[3];
-					const int mval[2] = {
-					    mx - ar->winrct.xmin,
-					    my - ar->winrct.ymin};
-					float co[3];
+	if (sa) {
+		if (sa->spacetype == SPACE_VIEW3D) {
+			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			if (ar && BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+				View3D *v3d = sa->spacedata.first;
+				RegionView3D *rv3d = ar->regiondata;
+				/* weak, we could pass in some reference point */
+				const float *view_co = v3d->camera ? v3d->camera->obmat[3] : rv3d->viewinv[3];
+				const int mval[2] = {
+				    mx - ar->winrct.xmin,
+				    my - ar->winrct.ymin};
+				float co[3];
 
-					CTX_wm_area_set(C, sa);
-					CTX_wm_region_set(C, ar);
+				CTX_wm_area_set(C, sa);
+				CTX_wm_region_set(C, ar);
 
-					/* grr, always draw else we leave stale text */
-					ED_region_tag_redraw(ar);
+				/* grr, always draw else we leave stale text */
+				ED_region_tag_redraw(ar);
 
-					view3d_operator_needs_opengl(C);
+				view3d_operator_needs_opengl(C);
 
-					if (ED_view3d_autodist(scene, ar, v3d, mval, co, true, NULL)) {
-						const float mval_center_fl[2] = {
-						    (float)ar->winx / 2,
-						    (float)ar->winy / 2};
-						float co_align[3];
+				if (ED_view3d_autodist(scene, ar, v3d, mval, co, true, NULL)) {
+					const float mval_center_fl[2] = {
+					    (float)ar->winx / 2,
+					    (float)ar->winy / 2};
+					float co_align[3];
 
-						/* quick way to get view-center aligned point */
-						ED_view3d_win_to_3d(ar, co, mval_center_fl, co_align);
+					/* quick way to get view-center aligned point */
+					ED_view3d_win_to_3d(ar, co, mval_center_fl, co_align);
 
-						*r_depth = len_v3v3(view_co, co_align);
+					*r_depth = len_v3v3(view_co, co_align);
 
-						bUnit_AsString(ddr->name, sizeof(ddr->name),
-						               (double)*r_depth,
-						               4, unit->system, B_UNIT_LENGTH, do_split, false);
-					}
-					else {
-						BLI_strncpy(ddr->name, "Nothing under cursor", sizeof(ddr->name));
-					}
-					break;
+					bUnit_AsString(ddr->name, sizeof(ddr->name),
+					               (double)*r_depth,
+					               4, unit->system, B_UNIT_LENGTH, do_split, false);
+				}
+				else {
+					BLI_strncpy(ddr->name, "Nothing under cursor", sizeof(ddr->name));
 				}
 			}
 		}

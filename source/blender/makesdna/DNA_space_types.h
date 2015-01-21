@@ -1202,6 +1202,9 @@ typedef enum eSpace_Type {
 	SPACEICONMAX = SPACE_CLIP
 } eSpace_Type;
 
+/* use for function args */
+#define SPACE_TYPE_ANY -1
+
 // TODO: SPACE_SCRIPT
 #if (DNA_DEPRECATED_GCC_POISON == 1)
 #pragma GCC poison SPACE_IMASEL SPACE_SOUND

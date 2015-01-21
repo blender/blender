@@ -46,6 +46,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
+#include "BLI_rect.h"
 
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
@@ -137,7 +138,7 @@ void BKE_spacetype_register(SpaceType *st)
 	BLI_addtail(&spacetypes, st);
 }
 
-int BKE_spacetype_exists(int spaceid)
+bool BKE_spacetype_exists(int spaceid)
 {
 	return BKE_spacetype_from_id(spaceid) != NULL;
 }
@@ -419,16 +420,17 @@ ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc, SpaceLink *sl)
 	return sa;
 }
 
-/* note, using this function is generally a last resort, you really want to be
+/**
+ * \note Using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
- * -1 for any type */
+ */
 ScrArea *BKE_screen_find_big_area(bScreen *sc, const int spacetype, const short min)
 {
 	ScrArea *sa, *big = NULL;
 	int size, maxsize = 0;
 
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		if ((spacetype == -1) || sa->spacetype == spacetype) {
+		if ((spacetype == SPACE_TYPE_ANY) || (sa->spacetype == spacetype)) {
 			if (min <= sa->winx && min <= sa->winy) {
 				size = sa->winx * sa->winy;
 				if (size > maxsize) {
@@ -441,6 +443,22 @@ ScrArea *BKE_screen_find_big_area(bScreen *sc, const int spacetype, const short 
 
 	return big;
 }
+
+ScrArea *BKE_screen_find_area_xy(bScreen *sc, const int spacetype, int x, int y)
+{
+	ScrArea *sa, *sa_found = NULL;
+
+	for (sa = sc->areabase.first; sa; sa = sa->next) {
+		if (BLI_rcti_isect_pt(&sa->totrct, x, y)) {
+			if ((spacetype == SPACE_TYPE_ANY) || (sa->spacetype == spacetype)) {
+				sa_found = sa;
+			}
+			break;
+		}
+	}
+	return sa_found;
+}
+
 
 /**
  * Utility function to get the active layer to use when adding new objects.

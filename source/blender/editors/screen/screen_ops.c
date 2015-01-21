@@ -598,19 +598,6 @@ typedef struct sActionzoneData {
 	int x, y, gesture_dir, modifier;
 } sActionzoneData;
 
-/* used by other operators too */
-static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
-{
-	ScrArea *sa = NULL;
-	sa = scr->areabase.first;
-	while (sa) {
-		if (BLI_rcti_isect_pt(&sa->totrct, x, y)) break;
-		sa = sa->next;
-	}
-	
-	return sa;
-}
-
 /* quick poll to save operators to be created and handled */
 static int actionzone_area_poll(bContext *C)
 {
@@ -808,7 +795,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			/* gesture is large enough? */
 			if (is_gesture) {
 				/* second area, for join when (sa1 != sa2) */
-				sad->sa2 = screen_areahascursor(sc, event->x, event->y);
+				sad->sa2 = BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, event->x, event->y);
 				/* apply sends event */
 				actionzone_apply(C, op, sad->az->type);
 				actionzone_exit(op);
@@ -929,7 +916,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case MOUSEMOVE:
 			/* second area, for join */
-			sad->sa2 = screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
+			sad->sa2 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->x, event->y);
 			break;
 		case LEFTMOUSE: /* release LMB */
 			if (event->val == KM_RELEASE) {
@@ -1679,7 +1666,8 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					sd->sarea->flag &= ~(AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V);
 					ED_area_tag_redraw(sd->sarea);
 				}
-				sd->sarea = screen_areahascursor(CTX_wm_screen(C), event->x, event->y);  /* area context not set */
+				/* area context not set */
+				sd->sarea = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->x, event->y);
 				
 				if (sd->sarea) {
 					ED_area_tag_redraw(sd->sarea);
@@ -2482,8 +2470,8 @@ static int area_join_init(bContext *C, wmOperator *op)
 	x2 = RNA_int_get(op->ptr, "max_x");
 	y2 = RNA_int_get(op->ptr, "max_y");
 	
-	sa1 = screen_areahascursor(CTX_wm_screen(C), x1, y1);
-	sa2 = screen_areahascursor(CTX_wm_screen(C), x2, y2);
+	sa1 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, x1, y1);
+	sa2 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, x2, y2);
 	if (sa1 == NULL || sa2 == NULL || sa1 == sa2)
 		return 0;
 	
@@ -2616,7 +2604,7 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 		case MOUSEMOVE: 
 		{
-			ScrArea *sa = screen_areahascursor(sc, event->x, event->y);
+			ScrArea *sa = BKE_screen_find_area_xy(sc, SPACE_TYPE_ANY, event->x, event->y);
 			int dir;
 			
 			if (sa) {
