@@ -29,6 +29,7 @@
  *  \ingroup edarmature
  */
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
@@ -99,18 +100,11 @@ static void joined_armature_fix_links_constraints(
 
 		/* action constraint? (pose constraints only) */
 		if (con->type == CONSTRAINT_TYPE_ACTION) {
-			bActionConstraint *data = con->data; // XXX old animation system
-			bAction *act;
-			bActionChannel *achan;
+			bActionConstraint *data = con->data;
 
 			if (data->act) {
-				act = data->act;
-
-				for (achan = act->chanbase.first; achan; achan = achan->next) {
-					if (STREQ(achan->name, pchan->name)) {
-						BLI_strncpy(achan->name, curbone->name, sizeof(achan->name));
-					}
-				}
+				BKE_action_fix_paths_rename(&tarArm->id, data->act, "pose.bones[", 
+				                            pchan->name, curbone->name, 0, 0, false);
 			}
 		}
 
