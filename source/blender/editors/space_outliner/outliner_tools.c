@@ -499,19 +499,29 @@ static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te
 
 /* --------------------------------- */
 
+typedef enum eOutliner_PropDataOps {
+	OL_DOP_INVALID = 0,
+	OL_DOP_SELECT,
+	OL_DOP_DESELECT,
+	OL_DOP_HIDE,
+	OL_DOP_UNHIDE,
+	OL_DOP_SELECT_LINKED,
+	OL_DOP_DELETE
+} eOutliner_PropDataOps;
+
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 	
-	if (event == 1)
+	if (event == OL_DOP_SELECT)
 		pchan->bone->flag |= BONE_SELECTED;
-	else if (event == 2)
+	else if (event == OL_DOP_DESELECT)
 		pchan->bone->flag &= ~BONE_SELECTED;
-	else if (event == 3) {
+	else if (event == OL_DOP_HIDE) {
 		pchan->bone->flag |= BONE_HIDDEN_P;
 		pchan->bone->flag &= ~BONE_SELECTED;
 	}
-	else if (event == 4)
+	else if (event == OL_DOP_UNHIDE)
 		pchan->bone->flag &= ~BONE_HIDDEN_P;
 }
 
@@ -519,15 +529,15 @@ static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), v
 {
 	Bone *bone = (Bone *)te->directdata;
 	
-	if (event == 1)
+	if (event == OL_DOP_SELECT)
 		bone->flag |= BONE_SELECTED;
-	else if (event == 2)
+	else if (event == OL_DOP_DESELECT)
 		bone->flag &= ~BONE_SELECTED;
-	else if (event == 3) {
+	else if (event == OL_DOP_HIDE) {
 		bone->flag |= BONE_HIDDEN_P;
 		bone->flag &= ~BONE_SELECTED;
 	}
-	else if (event == 4)
+	else if (event == OL_DOP_UNHIDE)
 		bone->flag &= ~BONE_HIDDEN_P;
 }
 
@@ -535,22 +545,22 @@ static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), 
 {
 	EditBone *ebone = (EditBone *)te->directdata;
 	
-	if (event == 1)
+	if (event == OL_DOP_SELECT)
 		ebone->flag |= BONE_SELECTED;
-	else if (event == 2)
+	else if (event == OL_DOP_DESELECT)
 		ebone->flag &= ~BONE_SELECTED;
-	else if (event == 3) {
+	else if (event == OL_DOP_HIDE) {
 		ebone->flag |= BONE_HIDDEN_A;
 		ebone->flag &= ~BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL;
 	}
-	else if (event == 4)
+	else if (event == OL_DOP_UNHIDE)
 		ebone->flag &= ~BONE_HIDDEN_A;
 }
 
 static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void *scene_ptr)
 {
 	Sequence *seq = (Sequence *)te->directdata;
-	if (event == 1) {
+	if (event == OL_DOP_SELECT) {
 		Scene *scene = (Scene *)scene_ptr;
 		Editing *ed = BKE_sequencer_editing_get(scene, false);
 		if (BLI_findindex(ed->seqbasep, seq) != -1) {
@@ -563,7 +573,7 @@ static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void 
 
 static void data_select_linked_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *C_v)
 {
-	if (event == 5) {
+	if (event == OL_DOP_SELECT_LINKED) {
 		if (RNA_struct_is_ID(te->rnaptr.type)) {
 			bContext *C = (bContext *) C_v;
 			ID *id = te->rnaptr.data;
@@ -1251,11 +1261,11 @@ void OUTLINER_OT_animdata_operation(wmOperatorType *ot)
 /* **************************************** */
 
 static EnumPropertyItem prop_data_op_types[] = {
-	{1, "SELECT", 0, "Select", ""},
-	{2, "DESELECT", 0, "Deselect", ""},
-	{3, "HIDE", 0, "Hide", ""},
-	{4, "UNHIDE", 0, "Unhide", ""},
-	{5, "SELECT_LINKED", 0, "Select Linked", ""},
+	{OL_DOP_SELECT, "SELECT", 0, "Select", ""},
+	{OL_DOP_DESELECT, "DESELECT", 0, "Deselect", ""},
+	{OL_DOP_HIDE, "HIDE", 0, "Hide", ""},
+	{OL_DOP_UNHIDE, "UNHIDE", 0, "Unhide", ""},
+	{OL_DOP_SELECT_LINKED, "SELECT_LINKED", 0, "Select Linked", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1263,7 +1273,7 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-	int event;
+	eOutliner_PropDataOps event;
 	
 	/* check for invalid states */
 	if (soops == NULL)
@@ -1272,7 +1282,7 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	event = RNA_enum_get(op->ptr, "type");
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 	
-	if (event <= 0)
+	if (event <= OL_DOP_INVALID)
 		return OPERATOR_CANCELLED;
 	
 	switch (datalevel) {
@@ -1308,7 +1318,7 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 			break;
 			
 		case TSE_RNA_STRUCT:
-			if (event == 5) {
+			if (event == OL_DOP_SELECT_LINKED) {
 				outliner_do_data_operation(soops, datalevel, event, &soops->tree, data_select_linked_cb, C);
 			}
 			break;
