@@ -2251,64 +2251,61 @@ bool CcdPhysicsEnvironment::RequestCollisionCallback(PHY_IPhysicsController* ctr
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
 {
-	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE] || (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints)))
+	bool draw_contact_points = m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints);
+
+	if (!m_triggerCallbacks[PHY_OBJECT_RESPONSE] && !draw_contact_points)
+		return;
+
+	//walk over all overlapping pairs, and if one of the involved bodies is registered for trigger callback, perform callback
+	btDispatcher* dispatcher = m_dynamicsWorld->getDispatcher();
+	int numManifolds = dispatcher->getNumManifolds();
+	for (int i=0;i<numManifolds;i++)
 	{
-		//walk over all overlapping pairs, and if one of the involved bodies is registered for trigger callback, perform callback
-		btDispatcher* dispatcher = m_dynamicsWorld->getDispatcher();
-		int numManifolds = dispatcher->getNumManifolds();
-		for (int i=0;i<numManifolds;i++)
+		btPersistentManifold* manifold = dispatcher->getManifoldByIndexInternal(i);
+		int numContacts = manifold->getNumContacts();
+		if (!numContacts) continue;
+
+		const btRigidBody* rb0 = static_cast<const btRigidBody*>(manifold->getBody0());
+		const btRigidBody* rb1 = static_cast<const btRigidBody*>(manifold->getBody1());
+		if (draw_contact_points)
 		{
-			btPersistentManifold* manifold = dispatcher->getManifoldByIndexInternal(i);
-			int numContacts = manifold->getNumContacts();
-			if (numContacts)
+			for (int j=0;j<numContacts;j++)
 			{
-				const btRigidBody* rb0 = static_cast<const btRigidBody*>(manifold->getBody0());
-				const btRigidBody* rb1 = static_cast<const btRigidBody*>(manifold->getBody1());
-				if (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints))
-				{
-					for (int j=0;j<numContacts;j++)
-					{
-						btVector3 color(1,0,0);
-						const btManifoldPoint& cp = manifold->getContactPoint(j);
-						if (m_debugDrawer)
-							m_debugDrawer->drawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.getDistance(),cp.getLifeTime(),color);
-					}
-				}
-				const btRigidBody* obj0 = rb0;
-				const btRigidBody* obj1 = rb1;
-
-				//m_internalOwner is set in 'addPhysicsController'
-				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->getUserPointer());
-				CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(obj1->getUserPointer());
-
-				std::set<CcdPhysicsController*>::const_iterator i = m_triggerControllers.find(ctrl0);
-				if (i == m_triggerControllers.end())
-				{
-					i = m_triggerControllers.find(ctrl1);
-				}
-
-				if (!(i == m_triggerControllers.end()))
-				{
-					m_triggerCallbacks[PHY_OBJECT_RESPONSE](m_triggerCallbacksUserPtrs[PHY_OBJECT_RESPONSE],
-						ctrl0,ctrl1,0);
-				}
-				// Bullet does not refresh the manifold contact point for object without contact response
-				// may need to remove this when a newer Bullet version is integrated
-				if (!dispatcher->needsResponse(rb0, rb1))
-				{
-					// Refresh algorithm fails sometimes when there is penetration 
-					// (usuall the case with ghost and sensor objects)
-					// Let's just clear the manifold, in any case, it is recomputed on each frame.
-					manifold->clearManifold(); //refreshContactPoints(rb0->getCenterOfMassTransform(),rb1->getCenterOfMassTransform());
-				}
+				btVector3 color(1,0,0);
+				const btManifoldPoint& cp = manifold->getContactPoint(j);
+				m_debugDrawer->drawContactPoint(cp.m_positionWorldOnB,
+				                                cp.m_normalWorldOnB,
+				                                cp.getDistance(),
+				                                cp.getLifeTime(),
+				                                color);
 			}
 		}
 
+		//m_internalOwner is set in 'addPhysicsController'
+		CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(rb0->getUserPointer());
+		CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(rb1->getUserPointer());
 
+		std::set<CcdPhysicsController*>::const_iterator iter = m_triggerControllers.find(ctrl0);
+		if (iter == m_triggerControllers.end())
+		{
+			iter = m_triggerControllers.find(ctrl1);
+		}
 
+		if (iter != m_triggerControllers.end())
+		{
+			m_triggerCallbacks[PHY_OBJECT_RESPONSE](m_triggerCallbacksUserPtrs[PHY_OBJECT_RESPONSE],
+				ctrl0,ctrl1,0);
+		}
+		// Bullet does not refresh the manifold contact point for object without contact response
+		// may need to remove this when a newer Bullet version is integrated
+		if (!dispatcher->needsResponse(rb0, rb1))
+		{
+			// Refresh algorithm fails sometimes when there is penetration
+			// (usuall the case with ghost and sensor objects)
+			// Let's just clear the manifold, in any case, it is recomputed on each frame.
+			manifold->clearManifold(); //refreshContactPoints(rb0->getCenterOfMassTransform(),rb1->getCenterOfMassTransform());
+		}
 	}
-
-
 }
 
 // This call back is called before a pair is added in the cache
