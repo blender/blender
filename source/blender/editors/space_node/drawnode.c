@@ -3053,9 +3053,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		/* somehow the offset has to be calculated inverse */
 		
 		glaDefine2DArea(&ar->winrct);
-		/* ortho at pixel level curarea */
-		/* almost #wmOrtho2_region_pixelspace, but no +1 px */
-		wmOrtho2_pixelspace(ar->winx, ar->winy);
+		wmOrtho2_region_pixelspace(ar);
 		
 		x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
 		y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
