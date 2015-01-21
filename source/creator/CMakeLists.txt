@@ -640,9 +640,9 @@ elseif(WIN32)
 				"
 				message(STATUS \"Extracting Python to: \${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python\")
 				if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" MATCHES \"^([Dd][Ee][Bb][Uu][Gg])$\")
-					set(PYTHON_ZIP ${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz)
+					set(PYTHON_ZIP \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz\")
 				else()
-					set(PYTHON_ZIP ${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz)
+					set(PYTHON_ZIP \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz\")
 				endif()
 
 				execute_process(
