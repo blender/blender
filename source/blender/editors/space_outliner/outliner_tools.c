@@ -506,7 +506,6 @@ typedef enum eOutliner_PropDataOps {
 	OL_DOP_HIDE,
 	OL_DOP_UNHIDE,
 	OL_DOP_SELECT_LINKED,
-	OL_DOP_DELETE
 } eOutliner_PropDataOps;
 
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
