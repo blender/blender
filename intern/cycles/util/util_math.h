@@ -1450,6 +1450,20 @@ ccl_device bool ray_quad_intersect(
 }
 
 /* projections */
+ccl_device void map_to_tube(float *r_u, float *r_v,
+                            const float x, const float y, const float z)
+{
+	float len;
+	*r_v = (z + 1.0f) * 0.5f;
+	len = sqrtf(x * x + y * y);
+	if (len > 0.0f) {
+		*r_u = (1.0f - (atan2f(x / len, y / len) / (float)M_PI)) * 0.5f;
+	}
+	else {
+		*r_v = *r_u = 0.0f; /* To avoid un-initialized variables. */
+	}
+}
+
 ccl_device bool map_to_sphere(float *r_u, float *r_v,
                               const float x, const float y, const float z)
 {

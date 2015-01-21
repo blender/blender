@@ -963,6 +963,7 @@ typedef struct NodeSunBeams {
 #define SHD_PROJ_FLAT				0
 #define SHD_PROJ_BOX				1
 #define SHD_PROJ_SPHERE				2
+#define SHD_PROJ_TUBE				3
 
 /* image texture interpolation */
 #define SHD_INTERP_LINEAR		0

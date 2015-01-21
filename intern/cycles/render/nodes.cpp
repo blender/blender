@@ -177,6 +177,7 @@ static ShaderEnum image_projection_init()
 	enm.insert("Flat", NODE_IMAGE_PROJ_FLAT);
 	enm.insert("Box", NODE_IMAGE_PROJ_BOX);
 	enm.insert("Sphere", NODE_IMAGE_PROJ_SPHERE);
+	enm.insert("Tube", NODE_IMAGE_PROJ_TUBE);
 
 	return enm;
 }

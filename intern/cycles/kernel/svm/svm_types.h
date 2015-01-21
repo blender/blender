@@ -338,6 +338,7 @@ typedef enum NodeImageProjection {
 	NODE_IMAGE_PROJ_FLAT   = 0,
 	NODE_IMAGE_PROJ_BOX    = 1,
 	NODE_IMAGE_PROJ_SPHERE = 2,
+	NODE_IMAGE_PROJ_TUBE   = 3,
 } NodeImageProjection;
 
 typedef enum ShaderType {

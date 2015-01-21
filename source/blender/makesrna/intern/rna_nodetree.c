@@ -3437,6 +3437,8 @@ static void def_sh_tex_image(StructRNA *srna)
 		                  "Image is projected using different components for each side of the object space bounding box"},
 		{SHD_PROJ_SPHERE, "SPHERE", 0, "Sphere",
 		                  "Image is projected spherically using the Z axis as central"},
+		{SHD_PROJ_TUBE,   "TUBE", 0, "Tube",
+		                  "Image is projected from the tube using the Z axis as central"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

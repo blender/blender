@@ -17,13 +17,32 @@
 #include "stdosl.h"
 #include "node_color.h"
 
+point texco_remap_square(point co)
+{
+	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+}
+
+point map_to_tube(vector dir)
+{
+	float u, v;
+	v = (dir[2] + 1.0) * 0.5;
+	float len = sqrt(dir[0]*dir[0] + dir[1]*dir[1]);
+	if (len > 0.0) {
+		u = (1.0 - (atan2(dir[0] / len, dir[1] / len) / M_PI)) * 0.5;
+	}
+	else {
+		v = u = 0.0; /* To avoid un-initialized variables. */
+	}
+	return point(u, v, 0.0);
+}
+
 point map_to_sphere(vector dir)
 {
 	float len = length(dir);
 	float v, u;
 	if(len > 0.0) {
 		if(dir[0] == 0.0 && dir[1] == 0.0) {
-			u = 0.0;  /* othwise domain error */
+			u = 0.0;  /* Othwise domain error. */
 		}
 		else {
 			u = (1.0 - atan2(dir[0], dir[1]) / M_PI) / 2.0;
@@ -31,7 +50,7 @@ point map_to_sphere(vector dir)
 		v = 1.0 - acos(dir[2] / len) / M_PI;
 	}
 	else {
-		v = u = 0.0; /* to avoid un-initialized variables */
+		v = u = 0.0;  /* To avoid un-initialized variables. */
 	}
 	return point(u, v, 0.0);
 }
@@ -156,7 +175,13 @@ shader node_image_texture(
 		}
 	}
 	else if (projection == "Sphere") {
-		point projected = map_to_sphere((p - vector(0.5, 0.5, 0.5)) * 2.0);
+		point projected = map_to_sphere(texco_remap_square(p));
+		Color = image_texture_lookup(filename, color_space,
+		                             projected[0], projected[1],
+		                             Alpha, use_alpha, is_float, interpolation);
+	}
+	else if (projection == "Tube") {
+		point projected = map_to_tube(texco_remap_square(p));
 		Color = image_texture_lookup(filename, color_space,
 		                             projected[0], projected[1],
 		                             Alpha, use_alpha, is_float, interpolation);
