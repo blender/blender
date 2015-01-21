@@ -73,6 +73,20 @@ bool BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const bool do_ac
 /* Copy AnimData Actions */
 void BKE_copy_animdata_id_action(struct ID *id);
 
+/* Merge copies of data from source AnimData block */
+typedef enum eAnimData_MergeCopy_Modes {
+	/* Keep destination action */
+	ADT_MERGECOPY_KEEP_DST = 0,
+	
+	/* Use src action (make a new copy) */
+	ADT_MERGECOPY_SRC_COPY = 1,
+	
+	/* Use src action (but just reference the existing version) */
+	ADT_MERGECOPY_SRC_REF  = 2
+} eAnimData_MergeCopy_Modes;
+
+void BKE_animdata_merge_copy(struct ID *dst_id, struct ID *src_id, eAnimData_MergeCopy_Modes action_mode, bool fix_drivers);
+
 /* Make Local */
 void BKE_animdata_make_local(struct AnimData *adt);
 

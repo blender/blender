@@ -40,6 +40,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -199,6 +200,33 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	{
 		if ((base->object->type == OB_ARMATURE) && (base->object != ob)) {
 			bArmature *curarm = base->object->data;
+			
+			/* we assume that each armature datablock is only used in a single place */
+			BLI_assert(ob->data != base->object->data);
+			
+			/* copy over animdata first, so that the link fixing can access and fix the links */
+			if (base->object->adt) {
+				if (ob->adt == NULL) {
+					/* no animdata, so just use a copy of the whole thing */
+					ob->adt = BKE_copy_animdata(base->object->adt, false);
+				}
+				else {
+					/* merge in data - we'll fix the drivers manually */
+					BKE_animdata_merge_copy(&ob->id, &base->object->id, ADT_MERGECOPY_KEEP_DST, false);
+				}
+			}
+			
+			if (curarm->adt) {
+				if (arm->adt == NULL) {
+					/* no animdata, so just use a copy of the whole thing */
+					arm->adt = BKE_copy_animdata(curarm->adt, false);
+				}
+				else {
+					/* merge in data - we'll fix the drivers manually */
+					BKE_animdata_merge_copy(&arm->id, &curarm->id, ADT_MERGECOPY_KEEP_DST, false);
+				}
+			}
+			
 			
 			/* Make a list of editbones in current armature */
 			ED_armature_to_edit(base->object->data);

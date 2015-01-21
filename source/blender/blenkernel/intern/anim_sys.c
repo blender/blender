@@ -318,6 +318,77 @@ void BKE_copy_animdata_id_action(ID *id)
 	}
 }
 
+/* Merge copies of the data from the src AnimData into the destination AnimData */
+void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes action_mode, bool fix_drivers)
+{
+	AnimData *src = BKE_animdata_from_id(src_id);
+	AnimData *dst = BKE_animdata_from_id(dst_id);
+	
+	/* sanity checks */
+	if (ELEM(NULL, dst, src))
+		return;
+		
+	// TODO: we must unset all "tweakmode" flags
+	if ((src->flag & ADT_NLA_EDIT_ON) || (dst->flag & ADT_NLA_EDIT_ON)) {
+		printf("ERROR: Merging AnimData blocks while editing NLA is dangerous as it may cause data corruption\n");
+		return;
+	}
+	
+	/* handle actions... */
+	if (action_mode == ADT_MERGECOPY_SRC_COPY) {
+		/* make a copy of the actions */
+		dst->action = BKE_action_copy(src->action);
+		dst->tmpact = BKE_action_copy(src->tmpact);
+	}
+	else if (action_mode == ADT_MERGECOPY_SRC_REF) {
+		/* make a reference to it */
+		dst->action = src->action;
+		id_us_plus((ID *)dst->action);
+		
+		dst->tmpact = src->tmpact;
+		id_us_plus((ID *)dst->tmpact);
+	}
+	
+	/* duplicate NLA data */
+	if (src->nla_tracks.first) {
+		ListBase tracks = {NULL, NULL};
+		
+		copy_nladata(&tracks, &src->nla_tracks);
+		BLI_movelisttolist(&dst->nla_tracks, &tracks);
+	}
+	
+	/* duplicate drivers (F-Curves) */
+	if (src->drivers.first) {
+		ListBase drivers = {NULL, NULL};
+		
+		copy_fcurves(&drivers, &src->drivers);
+		
+		/* Fix up all driver targets using the old target id
+		 * - This assumes that the src ID is being merged into the dst ID
+		 */
+		if (fix_drivers) {
+			FCurve *fcu;
+			
+			for (fcu = drivers.first; fcu; fcu = fcu->next) {
+				ChannelDriver *driver = fcu->driver;
+				DriverVar *dvar;
+				
+				for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
+					DRIVER_TARGETS_USED_LOOPER(dvar)
+					{
+						if (dtar->id == src_id) {
+							dtar->id = dst_id;
+						}
+					}
+					DRIVER_TARGETS_LOOPER_END
+				}
+			}
+		}
+		
+		BLI_movelisttolist(&dst->drivers, &drivers);
+	}
+}
+
 /* Make Local -------------------------------------------- */
 
 static void make_local_strips(ListBase *strips)
