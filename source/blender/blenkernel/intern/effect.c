@@ -63,6 +63,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -1124,8 +1125,13 @@ void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[
 {
 	unsigned int category_hash = BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
-	if (!_sim_debug_data)
-		return;
+	
+	if (!_sim_debug_data) {
+		if (G.debug & G_DEBUG_SIMDATA)
+			BKE_sim_debug_data_set_enabled(true);
+		else
+			return;
+	}
 	
 	elem = MEM_callocN(sizeof(SimDebugElement), "sim debug data element");
 	elem->type = type;
