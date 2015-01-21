@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/source/blender/makesrna/intern/rna_mesh_utils.h
+/** \file blender/makesrna/intern/rna_mesh_utils.h
  *  \ingroup RNA
  */
  

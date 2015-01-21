@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/implicit_eigen.cpp
+/** \file blender/physics/intern/implicit_eigen.cpp
  *  \ingroup bph
  */
 

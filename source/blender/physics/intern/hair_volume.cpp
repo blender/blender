@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/hair_volume.c
+/** \file blender/physics/intern/hair_volume.cpp
  *  \ingroup bph
  */
 
@@ -620,19 +620,19 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_den
 	HairGridVert *vert;
 	int i, j, k;
 	
-	#define MARGIN_i0 (i < 1)
-	#define MARGIN_j0 (j < 1)
-	#define MARGIN_k0 (k < 1)
-	#define MARGIN_i1 (i >= resA[0]-1)
-	#define MARGIN_j1 (j >= resA[1]-1)
-	#define MARGIN_k1 (k >= resA[2]-1)
-	
-	#define NEIGHBOR_MARGIN_i0 (i < 2)
-	#define NEIGHBOR_MARGIN_j0 (j < 2)
-	#define NEIGHBOR_MARGIN_k0 (k < 2)
-	#define NEIGHBOR_MARGIN_i1 (i >= resA[0]-2)
-	#define NEIGHBOR_MARGIN_j1 (j >= resA[1]-2)
-	#define NEIGHBOR_MARGIN_k1 (k >= resA[2]-2)
+#define MARGIN_i0 (i < 1)
+#define MARGIN_j0 (j < 1)
+#define MARGIN_k0 (k < 1)
+#define MARGIN_i1 (i >= resA[0]-1)
+#define MARGIN_j1 (j >= resA[1]-1)
+#define MARGIN_k1 (k >= resA[2]-1)
+
+#define NEIGHBOR_MARGIN_i0 (i < 2)
+#define NEIGHBOR_MARGIN_j0 (j < 2)
+#define NEIGHBOR_MARGIN_k0 (k < 2)
+#define NEIGHBOR_MARGIN_i1 (i >= resA[0]-2)
+#define NEIGHBOR_MARGIN_j1 (j >= resA[1]-2)
+#define NEIGHBOR_MARGIN_k1 (k >= resA[2]-2)
 	
 	BLI_assert(num_cells >= 1);
 	

@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BPH_IMPLICIT_H__
-#define __BPH_IMPLICIT_H__
+#ifndef __IMPLICIT_H__
+#define __IMPLICIT_H__
 
 /** \file implicit.h
  *  \ingroup bph

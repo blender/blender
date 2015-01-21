@@ -17,7 +17,7 @@
  *
  */
 
-/** \file blender/blenlib/intern/appdir.c
+/** \file blender/blenkernel/intern/appdir.c
  *  \ingroup bke
  *
  * Access to application level directories.

@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file SCA_IController.h
+/** \file SCA_IInputDevice.h
  *  \ingroup gamelogic
  *  \brief Interface for input devices. The defines for keyboard/system/mouse events
  *   here are for internal use in the KX module.

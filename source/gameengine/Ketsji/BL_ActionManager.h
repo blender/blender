@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file BL_ActionManager.cpp
+/** \file BL_ActionManager.h
  *  \ingroup ketsji
  */
 

@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ExportSettings.h
+/** \file ImportSettings.h
  *  \ingroup collada
  */
 

@@ -24,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/** \file SCA_IController.h
+/** \file SCA_LogicManager.h
  *  \ingroup gamelogic
  *  \brief Regulates the top-level logic behavior for one scene.
  */

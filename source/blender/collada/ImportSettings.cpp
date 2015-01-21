@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/collada/ExportSettings.cpp
+/** \file blender/collada/ImportSettings.cpp
  *  \ingroup collada
  */
 
