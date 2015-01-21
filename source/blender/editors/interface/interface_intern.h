@@ -616,6 +616,7 @@ extern void ui_but_active_free(const struct bContext *C, uiBut *but);
 extern bool ui_but_is_active(struct ARegion *ar) ATTR_WARN_UNUSED_RESULT;
 extern int ui_but_menu_direction(uiBut *but);
 extern void ui_but_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, const bool restore);
+extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);
 extern uiBut *ui_but_find_active_in_region(struct ARegion *ar);
 bool ui_but_is_editable(const uiBut *but);
 bool ui_but_is_editable_as_text(const uiBut *but);
