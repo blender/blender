@@ -9129,13 +9129,13 @@ static void ui_region_handler_remove(bContext *C, void *UNUSED(userdata))
 		ui_apply_but_funcs_after(C);
 }
 
+/* handle buttons at the window level, modal, for example while
+ * number sliding, text editing, or when a menu block is open */
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSED(userdata))
 {
 	ARegion *ar;
 	uiBut *but;
 
-	/* here we handle buttons at the window level, modal, for example
-	 * while number sliding, text editing, or when a menu block is open */
 	ar = CTX_wm_menu(C);
 	if (!ar)
 		ar = CTX_wm_region(C);
@@ -9143,13 +9143,32 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
 	but = ui_but_find_active_in_region(ar);
 
 	if (but) {
+		bScreen *screen = CTX_wm_screen(C);
+		ARegion *ar_temp;
 		uiBut *but_other;
 		uiHandleButtonData *data;
+		bool is_inside_menu = false;
+
+		/* look for a popup menu containing the mouse */
+		for (ar_temp = screen->regionbase.first; ar_temp; ar_temp = ar_temp->next) {
+			rcti rect = ar_temp->winrct;
+
+			/* resize region rect to ignore shadow */
+			BLI_rcti_resize(&rect, (BLI_rcti_size_x(&ar_temp->winrct) - UI_ThemeMenuShadowWidth() * 2),
+			                (BLI_rcti_size_y(&ar_temp->winrct) - UI_ThemeMenuShadowWidth() * 2));
+			if (BLI_rcti_isect_pt_v(&rect, &event->x)) {
+				BLI_assert(ar_temp->type->regionid == RGN_TYPE_TEMPORARY);
+
+				is_inside_menu = true;
+				break;
+			}
+		}
 
 		/* handle activated button events */
 		data = but->active;
 
 		if ((data->state == BUTTON_STATE_MENU_OPEN) &&
+		    (is_inside_menu == false) && /* make sure mouse isn't inside another menu (see T43247) */
 		    (but->type == UI_BTYPE_PULLDOWN) &&
 		    (but_other = ui_but_find_mouse_over(ar, event)) &&
 		    (but != but_other) &&
