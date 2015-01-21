@@ -1946,6 +1946,8 @@ void EmissionNode::compile(OSLCompiler& compiler)
 BackgroundNode::BackgroundNode()
 : ShaderNode("background")
 {
+	special_type = SHADER_SPECIAL_TYPE_BACKGROUND;
+
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Strength", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);

@@ -374,6 +374,28 @@ void ShaderGraph::remove_unneeded_nodes()
 			removed[proxy->id] = true;
 			any_node_removed = true;
 		}
+		else if(node->special_type == SHADER_SPECIAL_TYPE_BACKGROUND) {
+			BackgroundNode *bg = static_cast<BackgroundNode*>(node);
+
+			if(bg->outputs[0]->links.size()) {
+				/* Black color or zero strength, remove node */
+				if((!bg->inputs[0]->link && bg->inputs[0]->value == make_float3(0.0f, 0.0f, 0.0f)) ||
+				   (!bg->inputs[1]->link && bg->inputs[1]->value.x == 0.0f)) {
+					vector<ShaderInput*> inputs = bg->outputs[0]->links;
+
+					foreach(ShaderInput *sock, bg->inputs) {
+						if(sock->link)
+							disconnect(sock);
+					}
+
+					foreach(ShaderInput *input, inputs)
+						disconnect(input);
+
+					removed[bg->id] = true;
+					any_node_removed = true;
+				}
+			}
+		}
 		else if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
 			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
 
