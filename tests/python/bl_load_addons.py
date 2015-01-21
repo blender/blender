@@ -20,11 +20,27 @@
 
 # simple script to enable all addons, and disable
 
+"""
+./blender.bin --background -noaudio --factory-startup --python tests/python/bl_load_addons.py
+"""
+
 import bpy
 import addon_utils
 
+import os
 import sys
 import imp
+
+BLACKLIST_DIRS = (
+    os.path.join(bpy.utils.resource_path('USER'), "scripts"),
+    ) + tuple(addon_utils.paths()[1:])
+
+
+def addon_modules_sorted():
+    modules = addon_utils.modules({})
+    modules[:] = [mod for mod in modules if not mod.__file__.startswith(BLACKLIST_DIRS)]
+    modules.sort(key=lambda mod: mod.__name__)
+    return modules
 
 
 def disable_addons():
@@ -36,8 +52,7 @@ def disable_addons():
 
 
 def test_load_addons():
-    modules = addon_utils.modules({})
-    modules.sort(key=lambda mod: mod.__name__)
+    modules = addon_modules_sorted()
 
     disable_addons()
 
@@ -62,8 +77,7 @@ def test_load_addons():
 
 
 def reload_addons(do_reload=True, do_reverse=True):
-    modules = addon_utils.modules({})
-    modules.sort(key=lambda mod: mod.__name__)
+    modules = addon_modules_sorted()
     addons = bpy.context.user_preferences.addons
 
     disable_addons()
@@ -76,7 +90,7 @@ def reload_addons(do_reload=True, do_reverse=True):
             addon_utils.enable(mod_name)
             assert(mod_name in addons)
 
-        for mod in addon_utils.modules({}):
+        for mod in modules:
             mod_name = mod.__name__
             print("\tdisabling:", mod_name)
             addon_utils.disable(mod_name)
@@ -86,9 +100,9 @@ def reload_addons(do_reload=True, do_reverse=True):
             if do_reload:
                 imp.reload(sys.modules[mod_name])
 
-            if do_reverse:
-                # in case order matters when it shouldn't
-                modules.reverse()
+        if do_reverse:
+            # in case order matters when it shouldn't
+            modules.reverse()
 
 
 def main():

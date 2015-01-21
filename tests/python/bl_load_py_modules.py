@@ -20,6 +20,10 @@
 
 # simple script to enable all addons, and disable
 
+"""
+./blender.bin --background -noaudio --factory-startup --python tests/python/bl_load_py_modules.py
+"""
+
 import bpy
 import addon_utils
 
@@ -30,7 +34,19 @@ BLACKLIST = {
     "bl_i18n_utils",
     "cycles",
     "io_export_dxf",  # TODO, check on why this fails
+    'io_import_dxf',  # Because of cydxfentity.so dependency
     }
+
+BLACKLIST_DIRS = (
+    os.path.join(bpy.utils.resource_path('USER'), "scripts"),
+    ) + tuple(addon_utils.paths()[1:])
+
+
+def addon_modules_sorted():
+    modules = addon_utils.modules({})
+    modules[:] = [mod for mod in modules if not mod.__file__.startswith(BLACKLIST_DIRS)]
+    modules.sort(key=lambda mod: mod.__name__)
+    return modules
 
 
 def source_list(path, filename_check=None):
@@ -47,8 +63,7 @@ def source_list(path, filename_check=None):
 
 
 def load_addons():
-    modules = addon_utils.modules({})
-    modules.sort(key=lambda mod: mod.__name__)
+    modules = addon_modules_sorted()
     addons = bpy.context.user_preferences.addons
 
     # first disable all
@@ -79,9 +94,10 @@ def load_modules():
     for script_path in paths:
         for mod_dir in sys.path:
             if mod_dir.startswith(script_path):
-                if mod_dir not in module_paths:
-                    if os.path.exists(mod_dir):
-                        module_paths.append(mod_dir)
+                if not mod_dir.startswith(BLACKLIST_DIRS):
+                    if mod_dir not in module_paths:
+                        if os.path.exists(mod_dir):
+                            module_paths.append(mod_dir)
 
     #
     # collect modules from our paths.
