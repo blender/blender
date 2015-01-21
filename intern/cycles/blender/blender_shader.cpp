@@ -687,6 +687,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		BL::ShaderNodeTexCoord b_tex_coord_node(b_node);
 		TextureCoordinateNode *tex_coord = new TextureCoordinateNode();
 		tex_coord->from_dupli = b_tex_coord_node.from_dupli();
+		if(b_tex_coord_node.object()) {
+			tex_coord->use_transform = true;
+			tex_coord->ob_tfm = get_transform(b_tex_coord_node.object().matrix_world());
+		}
 		node = tex_coord;
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeTexSky)) {

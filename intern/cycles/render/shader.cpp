@@ -151,6 +151,7 @@ Shader::Shader()
 	has_displacement = false;
 	has_bssrdf_bump = false;
 	has_heterogeneous_volume = false;
+	has_object_dependency = false;
 
 	used = false;
 

@@ -106,6 +106,7 @@ public:
 	bool has_converter_blackbody;
 	bool has_bssrdf_bump;
 	bool has_heterogeneous_volume;
+	bool has_object_dependency;
 
 	/* requested mesh attributes */
 	AttributeRequestSet attributes;

@@ -393,6 +393,10 @@ void SVMCompiler::generate_node(ShaderNode *node, set<ShaderNode*>& done)
 	/* detect if we have a blackbody converter, to prepare lookup table */
 	if(node->has_converter_blackbody())
 		current_shader->has_converter_blackbody = true;
+
+	if(node->has_object_dependency()) {
+		current_shader->has_object_dependency = true;
+	}
 }
 
 void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done)
@@ -713,6 +717,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	shader->has_volume = false;
 	shader->has_displacement = false;
 	shader->has_heterogeneous_volume = false;
+	shader->has_object_dependency = false;
 
 	/* generate surface shader */
 	compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);

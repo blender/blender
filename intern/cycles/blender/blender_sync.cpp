@@ -70,10 +70,18 @@ bool BlenderSync::sync_recalc()
 	 * so we can do it later on if doing it immediate is not suitable */
 
 	BL::BlendData::materials_iterator b_mat;
-
-	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat)
-		if(b_mat->is_updated() || (b_mat->node_tree() && b_mat->node_tree().is_updated()))
+	bool has_updated_objects = b_data.objects.is_updated();
+	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat) {
+		if(b_mat->is_updated() || (b_mat->node_tree() && b_mat->node_tree().is_updated())) {
 			shader_map.set_recalc(*b_mat);
+		}
+		else {
+			Shader *shader = shader_map.find(*b_mat);
+			if(has_updated_objects && shader != NULL && shader->has_object_dependency) {
+				shader_map.set_recalc(*b_mat);
+			}
+		}
+	}
 
 	BL::BlendData::lamps_iterator b_lamp;
 

@@ -567,6 +567,10 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 		if(node->has_spatial_varying())
 			current_shader->has_heterogeneous_volume = true;
 	}
+
+	if(node->has_object_dependency()) {
+		current_shader->has_object_dependency = true;
+	}
 }
 
 void OSLCompiler::parameter(const char *name, float f)
@@ -808,6 +812,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 		shader->has_volume = false;
 		shader->has_displacement = false;
 		shader->has_heterogeneous_volume = false;
+		shader->has_object_dependency = false;
 
 		/* generate surface shader */
 		if(shader->used && graph && output->input("Surface")->link) {
