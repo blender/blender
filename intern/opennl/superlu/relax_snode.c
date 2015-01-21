@@ -66,7 +66,7 @@ relax_snode (
 	relax_end[snode_start] = j;		/* Last column is recorded */
 	j++;
 	/* Search for a new leaf */
-	while ( descendants[j] != 0 && j < n ) j++;
+	while ( j < n && descendants[j] != 0 ) j++;
     }
 
     /*printf("No of relaxed snodes: %d; relaxed columns: %d\n", 
