@@ -91,9 +91,6 @@ typedef struct HairGrid {
 	int res[3];
 	float gmin[3], gmax[3];
 	float cellsize, inv_cellsize;
-	
-	float debug1, debug2;
-	int debug3, debug4;
 } HairGrid;
 
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) ( min_ii( max_ii( (int)((vec[axis] - gmin[axis]) * scale), 0), res[axis]-2 ) )
@@ -1021,14 +1018,6 @@ void BPH_hair_volume_free_vertex_grid(HairGrid *grid)
 			MEM_freeN(grid->verts);
 		MEM_freeN(grid);
 	}
-}
-
-void BPH_hair_volume_set_debug_value(HairGrid *grid, float debug1, float debug2, int debug3, int debug4)
-{
-	grid->debug1 = debug1;
-	grid->debug2 = debug2;
-	grid->debug3 = debug3;
-	grid->debug4 = debug4;
 }
 
 void BPH_hair_volume_grid_geometry(HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3])

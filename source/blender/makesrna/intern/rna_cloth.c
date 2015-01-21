@@ -397,26 +397,6 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Target Density Strength", "Influence of target density on the simulation");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "debug1", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 1000000.0f);
-	RNA_def_property_ui_text(prop, "Debug1", "");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
-
-	prop = RNA_def_property(srna, "debug2", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 1000000.0f);
-	RNA_def_property_ui_text(prop, "Debug2", "");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
-
-	prop = RNA_def_property(srna, "debug3", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 1000000.0f);
-	RNA_def_property_ui_text(prop, "Debug3", "");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
-
-	prop = RNA_def_property(srna, "debug4", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 1000000.0f);
-	RNA_def_property_ui_text(prop, "Debug4", "");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
-
 	/* mass */
 
 	prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
