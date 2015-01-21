@@ -174,8 +174,9 @@ static ShaderEnum image_projection_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("Flat", 0);
-	enm.insert("Box", 1);
+	enm.insert("Flat", NODE_IMAGE_PROJ_FLAT);
+	enm.insert("Box", NODE_IMAGE_PROJ_BOX);
+	enm.insert("Sphere", NODE_IMAGE_PROJ_SPHERE);
 
 	return enm;
 }
@@ -266,14 +267,15 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 			tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
 		}
 
-		if(projection == "Flat") {
+		if(projection != "Box") {
 			compiler.add_node(NODE_TEX_IMAGE,
 				slot,
 				compiler.encode_uchar4(
 					vector_offset,
 					color_out->stack_offset,
 					alpha_out->stack_offset,
-					srgb));
+					srgb),
+				projection_enum[projection]);
 		}
 		else {
 			compiler.add_node(NODE_TEX_IMAGE_BOX,
@@ -285,7 +287,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 					srgb),
 				__float_as_int(projection_blend));
 		}
-	
+
 		if(vector_offset != vector_in->stack_offset)
 			compiler.stack_clear_offset(vector_in->type, vector_offset);
 	}

@@ -334,6 +334,12 @@ typedef enum NodeNormalMapSpace {
 	NODE_NORMAL_MAP_BLENDER_WORLD,
 } NodeNormalMapSpace;
 
+typedef enum NodeImageProjection {
+	NODE_IMAGE_PROJ_FLAT   = 0,
+	NODE_IMAGE_PROJ_BOX    = 1,
+	NODE_IMAGE_PROJ_SPHERE = 2,
+} NodeImageProjection;
+
 typedef enum ShaderType {
 	SHADER_TYPE_SURFACE,
 	SHADER_TYPE_VOLUME,

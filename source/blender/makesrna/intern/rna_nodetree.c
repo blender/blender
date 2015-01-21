@@ -3431,10 +3431,12 @@ static void def_sh_tex_image(StructRNA *srna)
 	};
 
 	static const EnumPropertyItem prop_projection_items[] = {
-		{SHD_PROJ_FLAT, "FLAT", 0, "Flat",
-		                "Image is projected flat using the X and Y coordinates of the texture vector"},
-		{SHD_PROJ_BOX,  "BOX", 0, "Box",
-		                "Image is projected using different components for each side of the object space bounding box"},
+		{SHD_PROJ_FLAT,   "FLAT", 0, "Flat",
+		                  "Image is projected flat using the X and Y coordinates of the texture vector"},
+		{SHD_PROJ_BOX,    "BOX", 0, "Box",
+		                  "Image is projected using different components for each side of the object space bounding box"},
+		{SHD_PROJ_SPHERE, "SPHERE", 0, "Sphere",
+		                  "Image is projected spherically using the Z axis as central"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
