@@ -47,8 +47,15 @@ void AUD_SequencerHandle::start()
 	// let's try playing
 	if(m_entry->m_sound.get())
 	{
-		m_handle = m_device.play(m_entry->m_sound, true);
-		m_3dhandle = boost::dynamic_pointer_cast<AUD_I3DHandle>(m_handle);
+		try
+		{
+			m_handle = m_device.play(m_entry->m_sound, true);
+			m_3dhandle = boost::dynamic_pointer_cast<AUD_I3DHandle>(m_handle);
+		}
+		catch(AUD_Exception&)
+		{
+			// handle stays invalid in case we get an exception
+		}
 
 		// after starting we have to set the properties, so let's ensure that
 		m_status--;
