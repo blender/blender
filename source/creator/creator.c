@@ -773,6 +773,7 @@ static int set_engine(int argc, const char **argv, void *data)
 				}
 				else {
 					printf("\nError: engine not found '%s'\n", argv[1]);
+					exit(1);
 				}
 			}
 			else {
