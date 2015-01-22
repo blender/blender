@@ -501,11 +501,12 @@ BVHNode *BVHBuild::create_primitive_leaf_node(const int *p_type,
 
 BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 {
-#define MAX_LEAF_SIZE 8
-	int p_num[PRIMITIVE_NUM_TOTAL] = {0};
-	int p_type[PRIMITIVE_NUM_TOTAL][MAX_LEAF_SIZE];
-	int p_index[PRIMITIVE_NUM_TOTAL][MAX_LEAF_SIZE];
-	int p_object[PRIMITIVE_NUM_TOTAL][MAX_LEAF_SIZE];
+	/* TODO(sergey): Consider writing own allocator which would
+	 * not do heap allocation if number of elements is relatively small.
+	 */
+	vector<int> p_type[PRIMITIVE_NUM_TOTAL];
+	vector<int> p_index[PRIMITIVE_NUM_TOTAL];
+	vector<int> p_object[PRIMITIVE_NUM_TOTAL];
 	uint visibility[PRIMITIVE_NUM_TOTAL] = {0};
 	/* NOTE: Keep initializtion in sync with actual number of primitives. */
 	BoundBox bounds[PRIMITIVE_NUM_TOTAL] = {BoundBox::empty,
@@ -519,11 +520,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 		BVHReference& ref = references[range.start() + i];
 		if(ref.prim_index() != -1) {
 			int type_index = bitscan(ref.prim_type() & PRIMITIVE_ALL);
-			int idx = p_num[type_index];
-			p_type[type_index][idx] = ref.prim_type();
-			p_index[type_index][idx] = ref.prim_index();
-			p_object[type_index][idx] = ref.prim_object();
-			++p_num[type_index];
+			p_type[type_index].push_back(ref.prim_type());
+			p_index[type_index].push_back(ref.prim_index());
+			p_object[type_index].push_back(ref.prim_object());
 
 			bounds[type_index].grow(ref.bounds());
 			visibility[type_index] |= objects[ref.prim_object()]->visibility;
@@ -541,16 +540,19 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 	int num_leaves = 0;
 	int start = range.start();
 	for(int i = 0; i < PRIMITIVE_NUM_TOTAL; ++i) {
-		if(p_num[i] != 0) {
-			leaves[num_leaves] = create_primitive_leaf_node(p_type[i],
-			                                                p_index[i],
-			                                                p_object[i],
+		int num = (int)p_type[i].size();
+		if(num != 0) {
+			assert(p_type[i].size() == p_index[i].size());
+			assert(p_type[i].size() == p_object[i].size());
+			leaves[num_leaves] = create_primitive_leaf_node(&p_type[i][0],
+			                                                &p_index[i][0],
+			                                                &p_object[i][0],
 			                                                bounds[i],
 			                                                visibility[i],
 			                                                start,
-			                                                p_num[i]);
+			                                                num);
 			++num_leaves;
-			start += p_num[i];
+			start += num;
 		}
 	}
 
@@ -587,7 +589,6 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 		BVHNode *inner_b = new InnerNode(inner_bounds_b, leaves[2], leaves[3]);
 		return new InnerNode(range.bounds(), inner_a, inner_b);
 	}
-#undef AMX_LEAF_SIZE
 }
 
 /* Tree Rotations */
