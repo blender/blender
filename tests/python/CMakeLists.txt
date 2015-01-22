@@ -48,6 +48,7 @@ else()
 endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no 
+set(TEST_BLENDER_EXE_BARE ${TEST_BLENDER_EXE})
 set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 
 
@@ -358,3 +359,14 @@ add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
 	--md5_source=${TEST_OUT_DIR}/export_fbx_all_objects.fbx
 	--md5=b35eb2a9d0e73762ecae2278c25a38ac --md5_method=FILE
 )
+
+if(WITH_CYCLES)
+	if(OPENIMAGEIO_IDIFF)
+		add_test(cycles_shaders_test
+			${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+			-blender "${TEST_BLENDER_EXE_BARE}"
+			-testdir "${TEST_SRC_DIR}/cycles/ctests/shader"
+			-idiff "${OPENIMAGEIO_IDIFF}"
+		)
+	endif()
+endif()
