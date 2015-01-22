@@ -491,7 +491,7 @@ typedef struct bAction {
 	ID id;              /* ID-serialisation for relinking */
 	
 	ListBase curves;    /* function-curves (FCurve) */
-	ListBase chanbase;  /* legacy data - Action Channels (bActionChannel) in pre-2.5 animation system */
+	ListBase chanbase DNA_DEPRECATED;  /* legacy data - Action Channels (bActionChannel) in pre-2.5 animation system */
 	ListBase groups;    /* groups of function-curves (bActionGroup) */
 	ListBase markers;   /* markers local to the Action (used to provide Pose-Libraries) */
 	
