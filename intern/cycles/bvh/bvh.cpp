@@ -263,6 +263,7 @@ void BVH::refit(Progress& progress)
 void BVH::pack_triangle(int idx, float4 woop[3])
 {
 	int tob = pack.prim_object[idx];
+	assert(tob >= 0 && tob < objects.size());
 	const Mesh *mesh = objects[tob]->mesh;
 
 	if(mesh->has_motion_blur())
