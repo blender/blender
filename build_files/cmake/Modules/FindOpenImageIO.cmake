@@ -8,6 +8,7 @@
 #                        This can also be an environment variable.
 #  OPENIMAGEIO_FOUND, If false, do not try to use OpenImageIO.
 #  OPENIMAGEIO_PUGIXML_FOUND, Indicates whether OIIO has biltin PuguXML parser.
+#  OPENIMAGEIO_IDIFF, full path to idiff application if found.
 #
 # also defined, but not for general use are
 #  OPENIMAGEIO_LIBRARY, where to find the OpenImageIO library.
@@ -54,6 +55,14 @@ FIND_LIBRARY(OPENIMAGEIO_LIBRARY
   PATH_SUFFIXES
     lib64 lib
   )
+
+FIND_FILE(OPENIMAGEIO_IDIFF
+  NAMES
+    idiff
+  ${OPENIMAGEIO_ROOT_DIR}
+  PATH_SUFFIXES
+    bin
+)
 
 # handle the QUIETLY and REQUIRED arguments and set OPENIMAGEIO_FOUND to TRUE if 
 # all listed variables are TRUE
