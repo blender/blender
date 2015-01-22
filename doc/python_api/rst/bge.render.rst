@@ -8,9 +8,13 @@ Intro
 
 .. module:: bge.render
 
+Example of using a :class:`bge.types.SCA_MouseSensor`, and two :class:`bge.types.KX_ObjectActuator` to implement MouseLook:
+
+.. note::
+   This can also be achieved with the :class:`bge.types.KX_MouseActuator`.
+
 .. code-block:: python
 
-   # Example Uses an L{SCA_MouseSensor}, and two L{KX_ObjectActuator}s to implement MouseLook::
    # To use a mouse movement sensor "Mouse" and a
    # motion actuator to mouse look:
    import bge
