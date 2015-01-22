@@ -120,6 +120,10 @@ void BKE_keyingsets_free(struct ListBase *list);
 /* ************************************* */
 /* Path Fixing API */
 
+/* Get a "fixed" version of the given path (oldPath) */
+char *BKE_animsys_fix_rna_path_rename(ID *owner_id, char *old_path, const char *prefix, const char *oldName,
+                                      const char *newName, int oldSubscript, int newSubscript, bool verify_paths);
+
 /* Fix all the paths for the given ID + Action */
 void BKE_action_fix_paths_rename(struct ID *owner_id, struct bAction *act, const char *prefix, const char *oldName,
                                  const char *newName, int oldSubscript, int newSubscript, bool verify_paths);
