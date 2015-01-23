@@ -150,7 +150,7 @@ def modules_refresh(module_cache=addons_fake_modules):
             force_support = None
 
         for mod_name, mod_path in _bpy.path.module_names(path):
-            modules_stale -= {mod_name}
+            modules_stale.discard(mod_name)
             mod = module_cache.get(mod_name)
             if mod:
                 if mod.__file__ != mod_path:
