@@ -36,6 +36,15 @@ error_encoding = False
 addons_fake_modules = {}
 
 
+# called only once at startup, avoids calling 'reset_all', correct but slower.
+def _initialize():
+    path_list = paths()
+    for path in path_list:
+        _bpy.utils._sys_path_ensure(path)
+    for addon in _user_preferences.addons:
+        enable(addon.module)
+
+
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     addon_paths = _bpy.utils.script_paths("addons")
@@ -182,14 +191,16 @@ def modules_refresh(module_cache=addons_fake_modules):
 
 
 def modules(module_cache=addons_fake_modules, refresh=True):
-    if refresh:
+    if refresh or ((module_cache is addons_fake_modules) and modules._is_first):
         modules_refresh(module_cache)
+        modules._is_first = False
 
     mod_list = list(module_cache.values())
     mod_list.sort(key=lambda mod: (mod.bl_info["category"],
                                    mod.bl_info["name"],
                                    ))
     return mod_list
+modules._is_first = True
 
 
 def check(module_name):

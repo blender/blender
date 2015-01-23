@@ -244,7 +244,14 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                         test_register(mod)
 
     # deal with addons separately
-    _addon_utils.reset_all(reload_scripts)
+    _initialize = getattr(_addon_utils, "_initialize", None)
+    if _initialize is not None:
+        # first time, use fast-path
+        _initialize()
+        del _addon_utils._initialize
+    else:
+        _addon_utils.reset_all(reload_scripts)
+    del _initialize
 
     # run the active integration preset
     filepath = preset_find(_user_preferences.inputs.active_keyconfig,
