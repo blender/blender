@@ -19,9 +19,10 @@
 # <pep8 compliant>
 
 if "bpy" in locals():
-    from imp import reload as _reload
+    from importlib import reload
     for val in _modules_loaded.values():
-        _reload(val)
+        reload(val)
+    del reload
 _modules = [
     "add_mesh_torus",
     "anim",

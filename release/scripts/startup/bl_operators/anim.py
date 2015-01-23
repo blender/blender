@@ -19,9 +19,10 @@
 # <pep8-80 compliant>
 
 if "bpy" in locals():
-    import imp
+    from importlib import reload
     if "anim_utils" in locals():
-        imp.reload(anim_utils)
+        reload(anim_utils)
+    del reload
 
 
 import bpy

@@ -267,11 +267,11 @@ def enable(module_name, default_set=True, persistent=False, handle_error=None):
         mtime_orig = getattr(mod, "__time__", 0)
         mtime_new = os.path.getmtime(mod.__file__)
         if mtime_orig != mtime_new:
-            import imp
+            import importlib
             print("module changed on disk:", mod.__file__, "reloading...")
 
             try:
-                imp.reload(mod)
+                importlib.reload(mod)
             except:
                 handle_error()
                 del sys.modules[module_name]
@@ -384,10 +384,10 @@ def reset_all(reload_scripts=False):
 
             # first check if reload is needed before changing state.
             if reload_scripts:
-                import imp
+                import importlib
                 mod = sys.modules.get(mod_name)
                 if mod:
-                    imp.reload(mod)
+                    importlib.reload(mod)
 
             if is_enabled == is_loaded:
                 pass

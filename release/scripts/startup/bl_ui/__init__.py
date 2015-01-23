@@ -21,9 +21,10 @@
 # note, properties_animviz is a helper module only.
 
 if "bpy" in locals():
-    from imp import reload as _reload
+    from importlib import reload
     for val in _modules_loaded.values():
-        _reload(val)
+        reload(val)
+    del reload
 _modules = [
     "properties_animviz",
     "properties_constraint",

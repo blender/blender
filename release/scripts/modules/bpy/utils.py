@@ -185,7 +185,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 traceback.print_exc()
 
     def test_reload(mod):
-        import imp
+        import importlib
         # reloading this causes internal errors
         # because the classes from this module are stored internally
         # possibly to refresh internal references too but for now, best not to.
@@ -193,7 +193,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             return mod
 
         try:
-            return imp.reload(mod)
+            return importlib.reload(mod)
         except:
             import traceback
             traceback.print_exc()
