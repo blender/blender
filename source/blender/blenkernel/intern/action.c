@@ -1002,8 +1002,12 @@ void BKE_pose_remove_group(bPose *pose, bActionGroup *grp, const int index)
 	/* now, remove it from the pose */
 	BLI_freelinkN(&pose->agroups, grp);
 	if (pose->active_group >= idx) {
+		const bool has_groups = !BLI_listbase_is_empty(&pose->agroups);
 		pose->active_group--;
-		if (pose->active_group < 0 || BLI_listbase_is_empty(&pose->agroups)) {
+		if (pose->active_group == 0 && has_groups) {
+			pose->active_group = 1;
+		}
+		else if (pose->active_group < 0 || !has_groups) {
 			pose->active_group = 0;
 		}
 	}
