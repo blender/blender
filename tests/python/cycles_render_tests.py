@@ -140,6 +140,9 @@ def main():
     ROOT = args.testdir[0]
     IDIFF = args.idiff[0]
 
+    if no os.path.exists(ROOT):
+        sys.exit(0)
+
     TEMP = tempfile.mkdtemp()
     TEMP_FILE_MASK = os.path.join(TEMP, "test")
     TEMP_FILE = TEMP_FILE_MASK + "0001.png"
