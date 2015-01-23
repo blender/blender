@@ -74,7 +74,7 @@ def load_addons():
 
     for mod in modules:
         mod_name = mod.__name__
-        addon_utils.enable(mod_name)
+        addon_utils.enable(mod_name, default_set=True)
         assert(mod_name in addons)
 
 

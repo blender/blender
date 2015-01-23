@@ -251,7 +251,7 @@ def _addon_remove(module_name):
             addons.remove(addon)
 
 
-def enable(module_name, default_set=True, persistent=False, handle_error=None):
+def enable(module_name, default_set=False, persistent=False, handle_error=None):
     """
     Enables an addon by name.
 
@@ -308,7 +308,8 @@ def enable(module_name, default_set=True, persistent=False, handle_error=None):
             mod.__addon_enabled__ = False
         except:
             handle_error()
-            _addon_remove(module_name)
+            if default_set:
+                _addon_remove(module_name)
             return None
 
         # 2) try register collected modules
@@ -322,7 +323,8 @@ def enable(module_name, default_set=True, persistent=False, handle_error=None):
                   getattr(mod, "__file__", module_name))
             handle_error()
             del sys.modules[module_name]
-            _addon_remove(module_name)
+            if default_set:
+                _addon_remove(module_name)
             return None
 
     # * OK loaded successfully! *

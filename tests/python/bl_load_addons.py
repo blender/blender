@@ -63,7 +63,7 @@ def test_load_addons():
     for mod in modules:
         mod_name = mod.__name__
         print("\tenabling:", mod_name)
-        addon_utils.enable(mod_name)
+        addon_utils.enable(mod_name, default_set=True)
         if mod_name not in addons:
             addons_fail.append(mod_name)
 
@@ -87,7 +87,7 @@ def reload_addons(do_reload=True, do_reverse=True):
         for mod in modules:
             mod_name = mod.__name__
             print("\tenabling:", mod_name)
-            addon_utils.enable(mod_name)
+            addon_utils.enable(mod_name, default_set=True)
             assert(mod_name in addons)
 
         for mod in modules:
