@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-vector<float> blackbody_table();
+vector<float> blackbody_table_build();
 
 CCL_NAMESPACE_END
 

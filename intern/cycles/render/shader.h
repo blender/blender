@@ -170,6 +170,9 @@ protected:
 	typedef unordered_map<ustring, uint, ustringHash> AttributeIDMap;
 	AttributeIDMap unique_attribute_id;
 
+	vector<float> blackbody_table;
+	vector<float> beckmann_table;
+
 	size_t blackbody_table_offset;
 	size_t beckmann_table_offset;
 };
