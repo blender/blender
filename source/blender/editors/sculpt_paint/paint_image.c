@@ -158,9 +158,10 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, Cop
 		}
 	}
 	else {
-		if (mode == RESTORE_COPY)
+		if (mode == RESTORE_COPY) {
 			IMB_rectcpy(tmpibuf, ibuf, 0, 0, tile->x * IMAPAINT_TILE_SIZE,
-		                tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+			            tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+		}
 		/* swap to the tmpbuf for easy copying */
 		if (ibuf->rect_float) {
 			SWAP(float *, tmpibuf->rect_float, tile->rect.fp);

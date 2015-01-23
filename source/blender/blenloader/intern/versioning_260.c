@@ -1883,7 +1883,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			SEQ_END
 
 			if (scene->r.bake_samples == 0)
-			scene->r.bake_samples = 256;
+				scene->r.bake_samples = 256;
 
 			if (scene->world) {
 				World *world = blo_do_versions_newlibadr(fd, scene->id.lib, scene->world);

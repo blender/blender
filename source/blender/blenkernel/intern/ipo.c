@@ -161,21 +161,24 @@ static AdrBit2Path ma_mode_bits[] = {
 	{ \
 		*tot = sizeof(items) / sizeof(AdrBit2Path); \
 		return items; \
-	}
+	} (void)0
 
 /* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
 static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *tot)
 {
 	/* Object layers */
-	if ((blocktype == ID_OB) && (adrcode == OB_LAY))
-		RET_ABP(ob_layer_bits)
-	else if ((blocktype == ID_MA) && (adrcode == MA_MODE))
-		RET_ABP(ma_mode_bits)
+	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) {
+		RET_ABP(ob_layer_bits);
+	}
+	else if ((blocktype == ID_MA) && (adrcode == MA_MODE)) {
+		RET_ABP(ma_mode_bits);
+	}
 	// XXX TODO: add other types...
 	
 	/* Normal curve */
 	return NULL;
 }
+#undef RET_ABP
 
 /* *************************************************** */
 /* ADRCODE to RNA-Path Conversion Code  - Standard */

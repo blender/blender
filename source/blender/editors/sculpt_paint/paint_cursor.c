@@ -652,16 +652,12 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		}
 
 		/* set quad color. Colored overlay does not get blending */
-		if (col)
-			glColor4f(1.0,
-				      1.0,
-				      1.0,
-				      overlay_alpha / 100.0f);
-		else
-			glColor4f(U.sculpt_paint_overlay_col[0],
-				      U.sculpt_paint_overlay_col[1],
-				      U.sculpt_paint_overlay_col[2],
-				      overlay_alpha / 100.0f);
+		if (col) {
+			glColor4f(1.0, 1.0, 1.0, overlay_alpha / 100.0f);
+		}
+		else {
+			glColor4f(UNPACK3(U.sculpt_paint_overlay_col), overlay_alpha / 100.0f);
+		}
 
 		/* draw textured quad */
 		glBegin(GL_QUADS);

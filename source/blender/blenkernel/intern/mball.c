@@ -913,7 +913,11 @@ static void docube(PROCESS *process, CUBE *cube, MetaBall *mb)
 	CORNER *c1, *c2;
 	int i, index = 0, count, indexar[8];
 	
-	for (i = 0; i < 8; i++) if (cube->corners[i]->value > 0.0f) index += (1 << i);
+	for (i = 0; i < 8; i++) {
+		if (cube->corners[i]->value > 0.0f) {
+			index += (1 << i);
+		}
+	}
 	
 	for (polys = cubetable[index]; polys; polys = polys->next) {
 		INTLIST *edges;

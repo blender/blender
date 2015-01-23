@@ -687,8 +687,7 @@ void sound_free_waveform(bSound *sound)
 void sound_read_waveform(bSound *sound, short *stop)
 {
 	AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
-	SoundWaveform *waveform = MEM_mallocN(sizeof(SoundWaveform),
-										  "SoundWaveform");
+	SoundWaveform *waveform = MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform");
 
 	if (info.length > 0) {
 		int length = info.length * SOUND_WAVE_SAMPLES_PER_SECOND;

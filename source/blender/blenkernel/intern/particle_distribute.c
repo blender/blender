@@ -651,8 +651,11 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
 			cpa->w[i]=0.0f;
 		}
 		
-		if (totw>0.0f) for (w=0; w<4; w++)
-			cpa->w[w]/=totw;
+		if (totw > 0.0f) {
+			for (w = 0; w < 4; w++) {
+				cpa->w[w] /= totw;
+			}
+		}
 		
 		cpa->parent=cpa->pa[0];
 	}

@@ -2537,10 +2537,14 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, con
 		y -= txt_get_span(text->lines.first, *linep) - st->top;
 		
 		if (y > 0) {
-			while (y-- != 0) if ((*linep)->next) *linep = (*linep)->next;
+			while (y-- != 0) {
+				if ((*linep)->next) *linep = (*linep)->next;
+			}
 		}
 		else if (y < 0) {
-			while (y++ != 0) if ((*linep)->prev) *linep = (*linep)->prev;
+			while (y++ != 0) {
+				if ((*linep)->prev) *linep = (*linep)->prev;
+			}
 		}
 
 		
