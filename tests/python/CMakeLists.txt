@@ -361,12 +361,14 @@ add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
 )
 
 if(WITH_CYCLES)
-	if(OPENIMAGEIO_IDIFF)
+	if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/cycles/ctests/shader")
 		add_test(cycles_shaders_test
 			${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
 			-blender "${TEST_BLENDER_EXE_BARE}"
 			-testdir "${TEST_SRC_DIR}/cycles/ctests/shader"
 			-idiff "${OPENIMAGEIO_IDIFF}"
 		)
+	else()
+		MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
 	endif()
 endif()
