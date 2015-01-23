@@ -373,7 +373,7 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 	bool ok = false;
 	int track;
 
-#pragma omp parallel for if(context->num_tracks > 1)
+#pragma omp parallel for if (context->num_tracks > 1)
 	for (track = 0; track < context->num_tracks; ++track) {
 		AutoTrackOptions *options = &context->options[track];
 		libmv_Marker libmv_current_marker,

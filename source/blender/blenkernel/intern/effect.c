@@ -1175,7 +1175,7 @@ void BKE_sim_debug_data_clear_category(const char *category)
 	if (_sim_debug_data->gh) {
 		GHashIterator iter;
 		BLI_ghashIterator_init(&iter, _sim_debug_data->gh);
-		while(!BLI_ghashIterator_done(&iter)) {
+		while (!BLI_ghashIterator_done(&iter)) {
 			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 			BLI_ghashIterator_step(&iter); /* removing invalidates the current iterator, so step before removing */
 			

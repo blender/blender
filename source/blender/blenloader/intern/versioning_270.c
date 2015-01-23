@@ -479,11 +479,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			for (md = ob->modifiers.first; md; md = md->next) {
 				if (md->type == eModifierType_Cloth) {
-					ClothModifierData *clmd = (ClothModifierData*) md;
+					ClothModifierData *clmd = (ClothModifierData *)md;
 					clmd->sim_parms->bending_damping = 0.5f;
 				}
 				else if (md->type == eModifierType_ParticleSystem) {
-					ParticleSystemModifierData *pmd = (ParticleSystemModifierData*) md;
+					ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
 					if (pmd->psys->clmd) {
 						pmd->psys->clmd->sim_parms->bending_damping = 0.5f;
 					}

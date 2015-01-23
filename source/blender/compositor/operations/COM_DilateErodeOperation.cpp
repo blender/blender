@@ -72,7 +72,7 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
 	const float inset = this->m_inset;
 	float mindist = rd * 2;
 
-	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	rcti *rect = inputBuffer->getRect();
 	const int minx = max(x - this->m_scope, rect->xmin);

@@ -4549,7 +4549,7 @@ static void lib_link_object(FileData *fd, Main *main)
 					steeringa->target = newlibadr(fd, ob->id.lib, steeringa->target);
 					steeringa->navmesh = newlibadr(fd, ob->id.lib, steeringa->navmesh);
 				}
-				else if(act->type == ACT_MOUSE) {
+				else if (act->type == ACT_MOUSE) {
 					/* bMouseActuator *moa= act->data; */
 				}
 			}

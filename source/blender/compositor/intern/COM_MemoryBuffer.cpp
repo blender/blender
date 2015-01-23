@@ -27,15 +27,16 @@
 using std::min;
 using std::max;
 
-static unsigned int determine_num_channels(DataType datatype) {
+static unsigned int determine_num_channels(DataType datatype)
+{
 	switch (datatype) {
-	case COM_DT_VALUE:
-		return COM_NUM_CHANNELS_VALUE;
-	case COM_DT_VECTOR:
-		return COM_NUM_CHANNELS_VECTOR;
-	case COM_DT_COLOR:
-	default:
-		return COM_NUM_CHANNELS_COLOR;
+		case COM_DT_VALUE:
+			return COM_NUM_CHANNELS_VALUE;
+		case COM_DT_VECTOR:
+			return COM_NUM_CHANNELS_VECTOR;
+		case COM_DT_COLOR:
+		default:
+			return COM_NUM_CHANNELS_COLOR;
 	}
 }
 
@@ -226,7 +227,7 @@ static void read_ewa_pixel_sampled(void *userdata, int x, int y, float result[4]
 
 void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2], PixelSampler sampler)
 {
-	BLI_assert(this->m_datatype==COM_DT_COLOR);
+	BLI_assert(this->m_datatype == COM_DT_COLOR);
 	ReadEWAData data;
 	data.buffer = this;
 	data.sampler = sampler;

@@ -611,7 +611,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBSURFACE_COLOR);
 
 #ifdef WITH_CYCLES_DEBUG
-		if(BKE_scene_use_new_shading_nodes(re->scene)) {
+		if (BKE_scene_use_new_shading_nodes(re->scene)) {
 			render_layer_add_debug_pass(rr, rl, 1, SCE_PASS_DEBUG,
 			        RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS);
 		}

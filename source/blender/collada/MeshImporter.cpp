@@ -227,8 +227,7 @@ void MeshImporter::set_vcol(MLoopCol *mlc, VCOLDataWrapper &vob, int loop_index,
 {
 	COLLADAFW::UIntValuesArray& indices =index_list.getIndices();
 	int index;
-	for(index = 0; index < count; index++,mlc++)
-	{
+	for (index = 0; index < count; index++, mlc++) {
 		int v_index = indices[index+loop_index];
 		vob.get_vcol(v_index,mlc);
 	}
@@ -708,8 +707,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 						mpoly->flag |= ME_SMOOTH;
 				}
 
-				for(unsigned int vcolor_index = 0 ; vcolor_index < index_list_array_vcolor.getCount();vcolor_index++)
-				{
+				for (unsigned int vcolor_index = 0 ; vcolor_index < index_list_array_vcolor.getCount();vcolor_index++) {
 					COLLADAFW::IndexList& index_list = *index_list_array_vcolor[vcolor_index];
 					COLLADAFW::String colname = extract_vcolname(index_list.getName());
 					MLoopCol *mloopcol = (MLoopCol  *)CustomData_get_layer_named(&me->ldata, CD_MLOOPCOL, colname.c_str());

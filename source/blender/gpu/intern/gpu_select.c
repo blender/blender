@@ -135,7 +135,7 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, rctf *input, c
 bool GPU_select_load_id(unsigned int id)
 {
 	/* if no selection mode active, ignore */
-	if(!g_query_state.select_is_active)
+	if (!g_query_state.select_is_active)
 		return true;
 
 	if (!g_query_state.use_gpu_select) {
@@ -191,7 +191,7 @@ unsigned int GPU_select_end(void)
 			glGetQueryObjectuivARB(g_query_state.queries[i], GL_QUERY_RESULT_ARB, &result);
 			if (result > 0) {
 				if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
-					if(hits < g_query_state.bufsize) {
+					if (hits < g_query_state.bufsize) {
 						g_query_state.buffer[hits * 4] = 1;
 						g_query_state.buffer[hits * 4 + 1] = 0xFFFF;
 						g_query_state.buffer[hits * 4 + 2] = 0xFFFF;

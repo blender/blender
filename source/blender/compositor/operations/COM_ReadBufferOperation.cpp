@@ -60,18 +60,17 @@ void ReadBufferOperation::executePixelSampled(float output[4], float x, float y,
 	}
 	else {
 		switch (sampler) {
-		case COM_PS_NEAREST:
-			m_buffer->read(output, x, y);
-			break;
-		case COM_PS_BILINEAR:
-		default:
-			m_buffer->readBilinear(output, x, y);
-			break;
-		case COM_PS_BICUBIC:
-			m_buffer->readBilinear(output, x, y);
-			break;
+			case COM_PS_NEAREST:
+				m_buffer->read(output, x, y);
+				break;
+			case COM_PS_BILINEAR:
+			default:
+				m_buffer->readBilinear(output, x, y);
+				break;
+			case COM_PS_BICUBIC:
+				m_buffer->readBilinear(output, x, y);
+				break;
 		}
-
 	}
 }
 

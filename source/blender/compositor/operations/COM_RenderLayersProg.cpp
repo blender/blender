@@ -142,7 +142,8 @@ void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y
 		}
 		else if (elemsize == 3) {
 			zero_v3(output);
-		} else {
+		}
+		else {
 			BLI_assert(elemsize == 4);
 			zero_v4(output);
 		}

@@ -153,7 +153,7 @@ static void joined_armature_fix_animdata_cb(ID *id, AnimData *adt, void *user_da
 				/* only remap if changed; this still means there will be some waste if there aren't many drivers/keys */
 				if (strcmp(old_name, new_name) && strstr(fcu->rna_path, old_name)) {
 					fcu->rna_path = BKE_animsys_fix_rna_path_rename(id, fcu->rna_path, "pose.bones",
-																    old_name, new_name, 0, 0, false);
+					                                                old_name, new_name, 0, 0, false);
 					
 					/* we don't want to apply a second remapping on this driver now, 
 					 * so stop trying names, but keep fixing drivers
@@ -193,7 +193,7 @@ static void joined_armature_fix_animdata_cb(ID *id, AnimData *adt, void *user_da
 								if ((dtar->rna_path) && strstr(dtar->rna_path, old_name)) {
 									/* Fix up path */
 									dtar->rna_path = BKE_animsys_fix_rna_path_rename(id, dtar->rna_path, "pose.bones",
-																                     old_name, new_name, 0, 0, false);
+									                                                 old_name, new_name, 0, 0, false);
 									break; /* no need to try any more names for bone path */
 								}
 								else if (strcmp(dtar->pchan_name, old_name) == 0) {
