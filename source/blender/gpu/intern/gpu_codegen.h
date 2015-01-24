@@ -46,22 +46,6 @@ struct GPUVertexAttribs;
 struct GPUFrameBuffer;
 struct PreviewImage;
 
-#define MAX_FUNCTION_NAME	64
-#define MAX_PARAMETER		32
-
-#define FUNCTION_QUAL_IN	0
-#define FUNCTION_QUAL_OUT	1
-#define FUNCTION_QUAL_INOUT	2
-
-typedef struct GPUFunction {
-	char name[MAX_FUNCTION_NAME];
-	GPUType paramtype[MAX_PARAMETER];
-	int paramqual[MAX_PARAMETER];
-	int totparam;
-} GPUFunction;
-
-GPUFunction *GPU_lookup_function(const char *name);
-
 /* Pass Generation
  *  - Takes a list of nodes and a desired output, and makes a pass. This
  *    will take ownership of the nodes and free them early if unused or

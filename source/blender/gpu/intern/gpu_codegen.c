@@ -64,6 +64,20 @@ static char *glsl_material_library = NULL;
 
 /* structs and defines */
 
+#define MAX_FUNCTION_NAME	64
+#define MAX_PARAMETER		32
+
+#define FUNCTION_QUAL_IN	0
+#define FUNCTION_QUAL_OUT	1
+#define FUNCTION_QUAL_INOUT	2
+
+typedef struct GPUFunction {
+	char name[MAX_FUNCTION_NAME];
+	GPUType paramtype[MAX_PARAMETER];
+	int paramqual[MAX_PARAMETER];
+	int totparam;
+} GPUFunction;
+
 /* Indices match the GPUType enum */
 static const char *GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
 	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"};
@@ -233,7 +247,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 }
 #endif
 
-GPUFunction *GPU_lookup_function(const char *name)
+static GPUFunction *gpu_lookup_function(const char *name)
 {
 	if (!FUNCTION_HASH) {
 		FUNCTION_HASH = BLI_ghash_str_new("GPU_lookup_function gh");
@@ -1245,7 +1259,7 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
 	va_list params;
 	int i;
 
-	function = GPU_lookup_function(name);
+	function = gpu_lookup_function(name);
 	if (!function) {
 		fprintf(stderr, "GPU failed to find function %s\n", name);
 		return 0;
@@ -1279,7 +1293,7 @@ bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNod
 	va_list params;
 	int i, totin, totout;
 
-	function = GPU_lookup_function(name);
+	function = gpu_lookup_function(name);
 	if (!function) {
 		fprintf(stderr, "GPU failed to find function %s\n", name);
 		return 0;
