@@ -88,9 +88,6 @@ typedef struct GPUFunction {
 static const char *GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
 	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"};
 
-#define LINK_IMAGE_BLENDER	1
-#define LINK_IMAGE_PREVIEW	2
-
 /* GLSL code parsing for finding function definitions.
  * These are stored in a hash for lookup when creating a material. */
 
@@ -993,7 +990,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		input->type = GPU_VEC4;
 		input->source = GPU_SOURCE_TEX;
 
-		if (link->image == LINK_IMAGE_PREVIEW)
+		if (link->image == GPU_NODE_LINK_IMAGE_PREVIEW)
 			input->prv = link->ptr1;
 		else {
 			input->ima = link->ptr1;
@@ -1198,7 +1195,7 @@ GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
-	link->image = LINK_IMAGE_BLENDER;
+	link->image = GPU_NODE_LINK_IMAGE_BLENDER;
 	link->ptr1 = ima;
 	link->ptr2 = iuser;
 	link->image_isdata = is_data;
@@ -1210,7 +1207,7 @@ GPUNodeLink *GPU_image_preview(PreviewImage *prv)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 	
-	link->image= LINK_IMAGE_PREVIEW;
+	link->image= GPU_NODE_LINK_IMAGE_PREVIEW;
 	link->ptr1= prv;
 	
 	return link;

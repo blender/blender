@@ -61,6 +61,12 @@ typedef enum GPUDataSource {
 	GPU_SOURCE_ATTRIB
 } GPUDataSource;
 
+typedef enum {
+	GPU_NODE_LINK_IMAGE_NONE = 0,
+	GPU_NODE_LINK_IMAGE_BLENDER = 1,
+	GPU_NODE_LINK_IMAGE_PREVIEW = 2
+} GPUNodeLinkImage;
+
 struct GPUNode {
 	struct GPUNode *next, *prev;
 
@@ -77,7 +83,7 @@ struct GPUNodeLink {
 	CustomDataType attribtype;
 	const char *attribname;
 
-	int image;
+	GPUNodeLinkImage image;
 	int image_isdata;
 
 	int texture;
