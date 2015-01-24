@@ -1011,7 +1011,7 @@ void BKE_image_all_free_anim_ibufs(int cfra)
 
 /* *********** READ AND WRITE ************** */
 
-int BKE_imtype_to_ftype(const char imtype)
+int BKE_image_imtype_to_ftype(const char imtype)
 {
 	if (imtype == R_IMF_IMTYPE_TARGA)
 		return TGA;
@@ -1051,7 +1051,7 @@ int BKE_imtype_to_ftype(const char imtype)
 		return JPG | 90;
 }
 
-char BKE_ftype_to_imtype(const int ftype)
+char BKE_image_ftype_to_imtype(const int ftype)
 {
 	if (ftype == 0)
 		return R_IMF_IMTYPE_TARGA;
@@ -1258,7 +1258,7 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 	else return R_IMF_IMTYPE_INVALID;
 }
 
-static bool do_add_image_extension(char *string, const char imtype, const ImageFormatData *im_format)
+static bool image_path_ensure_ext(char *string, const char imtype, const ImageFormatData *im_format)
 {
 	const char *extension = NULL;
 	const char *extension_test;
@@ -1368,14 +1368,14 @@ static bool do_add_image_extension(char *string, const char imtype, const ImageF
 	}
 }
 
-int BKE_add_image_extension(char *string, const ImageFormatData *im_format)
+bool BKE_image_path_ensure_ext_from_imformat(char *string, const ImageFormatData *im_format)
 {
-	return do_add_image_extension(string, im_format->imtype, im_format);
+	return image_path_ensure_ext(string, im_format->imtype, im_format);
 }
 
-int BKE_add_image_extension_from_type(char *string, const char imtype)
+bool BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype)
 {
-	return do_add_image_extension(string, imtype, NULL);
+	return image_path_ensure_ext(string, imtype, NULL);
 }
 
 void BKE_imformat_defaults(ImageFormatData *im_format)
@@ -1651,7 +1651,9 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 }
 
-void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels)
+void BKE_image_stamp_buf(
+        Scene *scene, Object *camera,
+        unsigned char *rect, float *rectf, int width, int height, int channels)
 {
 	struct StampData stamp_data;
 	float w, h, pad;
@@ -2076,8 +2078,9 @@ int BKE_imbuf_write_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, cons
 }
 
 
-static void do_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype,
-                             const ImageFormatData *im_format, const short use_ext, const short use_frames)
+static void image_path_makepicstring(
+        char *string, const char *base, const char *relbase, int frame, const char imtype,
+        const ImageFormatData *im_format, const short use_ext, const short use_frames)
 {
 	if (string == NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);   /* weak assumption */
@@ -2087,19 +2090,21 @@ static void do_makepicstring(char *string, const char *base, const char *relbase
 		BLI_path_frame(string, frame, 4);
 
 	if (use_ext)
-		do_add_image_extension(string, imtype, im_format);
+		image_path_ensure_ext(string, imtype, im_format);
 }
 
-void BKE_makepicstring(char *string, const char *base, const char *relbase, int frame,
-                       const ImageFormatData *im_format, const bool use_ext, const bool use_frames)
+void BKE_image_path_from_imformat(
+        char *string, const char *base, const char *relbase, int frame,
+        const ImageFormatData *im_format, const bool use_ext, const bool use_frames)
 {
-	do_makepicstring(string, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames);
+	image_path_makepicstring(string, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames);
 }
 
-void BKE_makepicstring_from_type(char *string, const char *base, const char *relbase, int frame,
-                                 const char imtype, const bool use_ext, const bool use_frames)
+void BKE_image_path_from_imtype(
+        char *string, const char *base, const char *relbase, int frame,
+        const char imtype, const bool use_ext, const bool use_frames)
 {
-	do_makepicstring(string, base, relbase, frame, imtype, NULL, use_ext, use_frames);
+	image_path_makepicstring(string, base, relbase, frame, imtype, NULL, use_ext, use_frames);
 }
 
 /* used by sequencer too */

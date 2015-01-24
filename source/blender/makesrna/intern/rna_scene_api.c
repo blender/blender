@@ -121,11 +121,14 @@ static void rna_Scene_update_tagged(Scene *scene)
 
 static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)
 {
-	if (BKE_imtype_is_movie(rd->im_format.imtype))
+	if (BKE_imtype_is_movie(rd->im_format.imtype)) {
 		BKE_movie_filepath_get(name, rd);
-	else
-		BKE_makepicstring(name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame,
-		                  &rd->im_format, (rd->scemode & R_EXTENSION) != 0, true);
+	}
+	else {
+		BKE_image_path_from_imformat(
+		        name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame,
+		        &rd->im_format, (rd->scemode & R_EXTENSION) != 0, true);
+	}
 }
 
 static void rna_Scene_ray_cast(Scene *scene, float ray_start[3], float ray_end[3],

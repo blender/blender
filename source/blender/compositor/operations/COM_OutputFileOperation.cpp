@@ -140,8 +140,9 @@ void OutputSingleLayerOperation::deinitExecution()
 		IMB_colormanagement_imbuf_for_write(ibuf, true, false, m_viewSettings, m_displaySettings,
 		                                    this->m_format);
 
-		BKE_makepicstring(filename, this->m_path, bmain->name, this->m_rd->cfra,
-		                  this->m_format, (this->m_rd->scemode & R_EXTENSION) != 0, true);
+		BKE_image_path_from_imformat(
+		        filename, this->m_path, bmain->name, this->m_rd->cfra,
+		        this->m_format, (this->m_rd->scemode & R_EXTENSION) != 0, true);
 		
 		if (0 == BKE_imbuf_write(ibuf, filename, this->m_format))
 			printf("Cannot save Node File Output to %s\n", filename);
@@ -211,8 +212,9 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		char filename[FILE_MAX];
 		void *exrhandle = IMB_exr_get_handle();
 		
-		BKE_makepicstring_from_type(filename, this->m_path, bmain->name, this->m_rd->cfra, R_IMF_IMTYPE_MULTILAYER,
-		                            (this->m_rd->scemode & R_EXTENSION) != 0, true);
+		BKE_image_path_from_imtype(
+		        filename, this->m_path, bmain->name, this->m_rd->cfra, R_IMF_IMTYPE_MULTILAYER,
+		        (this->m_rd->scemode & R_EXTENSION) != 0, true);
 		BLI_make_existing_file(filename);
 		
 		for (unsigned int i = 0; i < this->m_layers.size(); ++i) {

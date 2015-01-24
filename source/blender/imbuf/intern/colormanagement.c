@@ -1918,7 +1918,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, bool save_as_render, boo
 		 * should be pretty safe since this image buffer is supposed to be used for
 		 * saving only and ftype would be overwritten a bit later by BKE_imbuf_write
 		 */
-		colormanaged_ibuf->ftype = BKE_imtype_to_ftype(image_format_data->imtype);
+		colormanaged_ibuf->ftype = BKE_image_imtype_to_ftype(image_format_data->imtype);
 
 		/* if file format isn't able to handle float buffer itself,
 		 * we need to allocate byte buffer and store color managed

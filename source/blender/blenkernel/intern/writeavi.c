@@ -253,7 +253,7 @@ static void end_avi(void)
 }
 #endif  /* WITH_AVI */
 
-/* similar to BKE_makepicstring() */
+/* similar to BKE_image_path_from_imformat() */
 void BKE_movie_filepath_get(char *string, RenderData *rd)
 {
 	bMovieHandle *mh = BKE_movie_handle_get(rd->im_format.imtype);

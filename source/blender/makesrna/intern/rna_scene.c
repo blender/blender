@@ -942,7 +942,7 @@ static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 	RenderData *rd = (RenderData *)ptr->data;
 	char ext[8];
 	ext[0] = '\0';
-	BKE_add_image_extension(ext, &rd->im_format);
+	BKE_image_path_ensure_ext_from_imformat(ext, &rd->im_format);
 	return strlen(ext);
 }
 
@@ -950,7 +950,7 @@ static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *str)
 {
 	RenderData *rd = (RenderData *)ptr->data;
 	str[0] = '\0';
-	BKE_add_image_extension(str, &rd->im_format);
+	BKE_image_path_ensure_ext_from_imformat(str, &rd->im_format);
 }
 
 #ifdef WITH_QUICKTIME

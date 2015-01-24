@@ -57,19 +57,25 @@ void    BKE_image_free_buffers(struct Image *image);
 void    BKE_image_free(struct Image *image);
 
 void    BKE_imbuf_stamp_info(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf);
-void    BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
+void    BKE_image_stamp_buf(
+        struct Scene *scene, struct Object *camera,
+        unsigned char *rect, float *rectf, int width, int height, int channels);
 bool    BKE_imbuf_alpha_test(struct ImBuf *ibuf);
 int     BKE_imbuf_write_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int     BKE_imbuf_write(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int     BKE_imbuf_write_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const bool is_copy);
-void    BKE_makepicstring(char *string, const char *base, const char *relbase, int frame,
-                          const struct ImageFormatData *im_format, const bool use_ext, const bool use_frames);
-void    BKE_makepicstring_from_type(char *string, const char *base, const char *relbase, int frame,
-                                    const char imtype, const bool use_ext, const bool use_frames);
-int     BKE_add_image_extension(char *string, const struct ImageFormatData *im_format);
-int     BKE_add_image_extension_from_type(char *string, const char imtype);
-char    BKE_ftype_to_imtype(const int ftype);
-int     BKE_imtype_to_ftype(const char imtype);
+
+void    BKE_image_path_from_imformat(
+        char *string, const char *base, const char *relbase, int frame,
+        const struct ImageFormatData *im_format, const bool use_ext, const bool use_frames);
+void    BKE_image_path_from_imtype(
+        char *string, const char *base, const char *relbase, int frame,
+        const char imtype, const bool use_ext, const bool use_frames);
+
+bool    BKE_image_path_ensure_ext_from_imformat(char *string, const struct ImageFormatData *im_format);
+bool    BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype);
+char    BKE_image_ftype_to_imtype(const int ftype);
+int     BKE_image_imtype_to_ftype(const char imtype);
 
 bool    BKE_imtype_is_movie(const char imtype);
 int     BKE_imtype_supports_zbuf(const char imtype);
@@ -91,7 +97,6 @@ void    BKE_image_de_interlace(struct Image *ima, int odd);
 void    BKE_image_make_local(struct Image *ima);
 
 void    BKE_image_tag_time(struct Image *ima);
-void    free_old_images(void);
 
 /* ********************************** NEW IMAGE API *********************** */
 

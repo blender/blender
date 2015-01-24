@@ -2705,7 +2705,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 	if (format == R_IMF_IMTYPE_OPENEXR) format = R_IMF_IMTYPE_PNG;
 #endif
 	BLI_strncpy(output_file, filename, sizeof(output_file));
-	BKE_add_image_extension_from_type(output_file, format);
+	BKE_image_path_ensure_ext_from_imtype(output_file, format);
 
 	/* Validate output file path	*/
 	BLI_path_abs(output_file, G.main->name);

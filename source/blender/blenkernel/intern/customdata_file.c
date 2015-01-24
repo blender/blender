@@ -276,7 +276,7 @@ static int cdf_write_header(CDataFile *cdf)
 	return 1;
 }
 
-int cdf_read_open(CDataFile *cdf, const char *filename)
+bool cdf_read_open(CDataFile *cdf, const char *filename)
 {
 	FILE *f;
 
@@ -299,7 +299,7 @@ int cdf_read_open(CDataFile *cdf, const char *filename)
 	return 1;
 }
 
-int cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
+bool cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
 {
 	size_t offset;
 	int a;
@@ -316,7 +316,7 @@ int cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
 	return (fseek(cdf->readf, offset, SEEK_SET) == 0);
 }
 
-int cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
+bool cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
 {
 	/* read data */
 	if (!fread(data, size, 1, cdf->readf))
@@ -338,7 +338,7 @@ void cdf_read_close(CDataFile *cdf)
 	}
 }
 
-int cdf_write_open(CDataFile *cdf, const char *filename)
+bool cdf_write_open(CDataFile *cdf, const char *filename)
 {
 	CDataFileHeader *header;
 	CDataFileImageHeader *image;
@@ -380,12 +380,12 @@ int cdf_write_open(CDataFile *cdf, const char *filename)
 	return 1;
 }
 
-int cdf_write_layer(CDataFile *UNUSED(cdf), CDataFileLayer *UNUSED(blay))
+bool cdf_write_layer(CDataFile *UNUSED(cdf), CDataFileLayer *UNUSED(blay))
 {
 	return 1;
 }
 
-int cdf_write_data(CDataFile *cdf, unsigned int size, void *data)
+bool cdf_write_data(CDataFile *cdf, unsigned int size, void *data)
 {
 	/* write data */
 	if (!fwrite(data, size, 1, cdf->writef))

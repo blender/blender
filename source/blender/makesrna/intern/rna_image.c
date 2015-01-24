@@ -193,7 +193,7 @@ static int rna_Image_file_format_get(PointerRNA *ptr)
 {
 	Image *image = (Image *)ptr->data;
 	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
-	int imtype = BKE_ftype_to_imtype(ibuf ? ibuf->ftype : 0);
+	int imtype = BKE_image_ftype_to_imtype(ibuf ? ibuf->ftype : 0);
 
 	BKE_image_release_ibuf(image, ibuf, NULL);
 
@@ -204,7 +204,7 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 {
 	Image *image = (Image *)ptr->data;
 	if (BKE_imtype_is_movie(value) == 0) { /* should be able to throw an error here */
-		int ftype = BKE_imtype_to_ftype(value);
+		int ftype = BKE_image_imtype_to_ftype(value);
 		BKE_image_file_format_set(image, ftype);
 	}
 }
