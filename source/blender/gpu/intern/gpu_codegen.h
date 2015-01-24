@@ -124,7 +124,7 @@ typedef struct GPUInput {
 	GPUNode *node;
 
 	GPUType type;			/* datatype */
-	int source;				/* data source */
+	GPUDataSource source;	/* data source */
 
 	int id;					/* unique id as created by code generator */
 	int texid;				/* number for multitexture, starting from zero */
