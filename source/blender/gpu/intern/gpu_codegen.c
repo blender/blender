@@ -62,19 +62,25 @@ extern char datatoc_gpu_shader_vertex_world_glsl[];
 static char *glsl_material_library = NULL;
 
 
-/* structs and defines */
+/* type definitions and constants */
 
-#define MAX_FUNCTION_NAME	64
-#define MAX_PARAMETER		32
+enum {
+	MAX_FUNCTION_NAME = 64
+};
+enum {
+	MAX_PARAMETER = 32
+};
 
-#define FUNCTION_QUAL_IN	0
-#define FUNCTION_QUAL_OUT	1
-#define FUNCTION_QUAL_INOUT	2
+typedef enum {
+	FUNCTION_QUAL_IN,
+	FUNCTION_QUAL_OUT,
+	FUNCTION_QUAL_INOUT
+} GPUFunctionQual;
 
 typedef struct GPUFunction {
 	char name[MAX_FUNCTION_NAME];
 	GPUType paramtype[MAX_PARAMETER];
-	int paramqual[MAX_PARAMETER];
+	GPUFunctionQual paramqual[MAX_PARAMETER];
 	int totparam;
 } GPUFunction;
 
@@ -142,7 +148,8 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 {
 	GPUFunction *function;
 	GPUType type;
-	int i, qual;
+	GPUFunctionQual qual;
+	int i;
 
 	while ((code = strstr(code, "void "))) {
 		function = MEM_callocN(sizeof(GPUFunction), "GPUFunction");
