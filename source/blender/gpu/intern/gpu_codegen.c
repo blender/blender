@@ -1178,7 +1178,7 @@ GPUNodeLink *GPU_uniform(float *num)
 	return link;
 }
 
-GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data)
+GPUNodeLink *GPU_dynamic_uniform(float *num, GPUDynamicType dynamictype, void *data)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
@@ -1225,7 +1225,7 @@ GPUNodeLink *GPU_texture(int size, float *pixels)
 	return link;
 }
 
-GPUNodeLink *GPU_dynamic_texture(GPUTexture *tex, int dynamictype, void *data)
+GPUNodeLink *GPU_dynamic_texture(GPUTexture *tex, GPUDynamicType dynamictype, void *data)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 

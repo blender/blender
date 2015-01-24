@@ -94,7 +94,7 @@ struct GPUNodeLink {
 	void *ptr1, *ptr2;
 
 	bool dynamic;
-	int dynamictype;
+	GPUDynamicType dynamictype;
 
 	GPUType type;
 
@@ -131,7 +131,7 @@ typedef struct GPUInput {
 	int attribid;			/* id for vertex attributes */
 	bool bindtex;			/* input is responsible for binding the texture? */
 	bool definetex;			/* input is responsible for defining the pixel? */
-	int textarget;			/* GL_TEXTURE_* */
+	int textarget;			/* GL texture target, e.g. GL_TEXTURE_2D */
 	GPUType textype;		/* datatype */
 
 	struct Image *ima;		/* image */
@@ -139,7 +139,7 @@ typedef struct GPUInput {
 	struct PreviewImage *prv;	/* preview images & icons */
 	bool image_isdata;		/* image does not contain color data */
 	float *dynamicvec;		/* vector data in case it is dynamic */
-	int dynamictype;		/* origin of the dynamic uniform (GPUDynamicType) */
+	GPUDynamicType dynamictype;	/* origin of the dynamic uniform */
 	void *dynamicdata;		/* data source of the dynamic uniform */
 	struct GPUTexture *tex;	/* input texture, only set at runtime */
 	int shaderloc;			/* id from opengl */
