@@ -161,11 +161,19 @@ ScrArea *render_view_open(bContext *C, int mx, int my)
 	}
 	else if (scene->r.displaymode == R_OUTPUT_SCREEN) {
 		sa = CTX_wm_area(C);
-		if (sa && sa->spacetype == SPACE_IMAGE)
-			area_was_image = true;
 
-		/* this function returns with changed context */
-		sa = ED_screen_full_newspace(C, sa, SPACE_IMAGE);
+		/* if the active screen is already in fullscreen mode, skip this and
+		 * unset the area, so that the fullscreen area is just changed later */
+		if (sa->full) {
+			sa = NULL;
+		}
+		else {
+			if (sa && sa->spacetype == SPACE_IMAGE)
+				area_was_image = true;
+
+			/* this function returns with changed context */
+			sa = ED_screen_full_newspace(C, sa, SPACE_IMAGE);
+		}
 	}
 
 	if (!sa) {

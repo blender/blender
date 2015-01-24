@@ -1765,9 +1765,12 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 	wmWindow *win = CTX_wm_window(C);
 
 	ED_area_prevspace(C, sa);
-	
-	if (sa->full)
-		ED_screen_state_toggle(C, win, sa, SCREENMAXIMIZED);
+
+	if (sa->full) {
+		/* only toggle out of fullscreen if it wasn't set by the user (for stacked fullscreens) */
+		if (sa->flag & AREA_FLAG_TEMP_TYPE)
+			ED_screen_state_toggle(C, win, sa, SCREENMAXIMIZED);
+	}
 }
 
 void ED_screen_retore_temp_type(bContext *C, ScrArea *sa, bool is_screen_change)
