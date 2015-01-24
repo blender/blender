@@ -32,6 +32,7 @@
 #ifndef __GPU_MATERIAL_H__
 #define __GPU_MATERIAL_H__
 
+#include "DNA_customdata_types.h" /* for CustomDataType */
 #include "DNA_listBase.h"
 
 #include "BLI_sys_types.h" /* for bool */
@@ -120,7 +121,7 @@ typedef struct GPUNodeStack {
 	short sockettype;
 } GPUNodeStack;
 
-GPUNodeLink *GPU_attribute(int type, const char *name);
+GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
 GPUNodeLink *GPU_uniform(float *num);
 GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, bool is_data);

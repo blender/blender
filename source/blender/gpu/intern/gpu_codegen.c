@@ -1142,7 +1142,7 @@ static void gpu_nodes_get_builtin_flag(ListBase *nodes, int *builtin)
 
 /* varargs linking  */
 
-GPUNodeLink *GPU_attribute(int type, const char *name)
+GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 {
 	GPUNodeLink *link = GPU_node_link_create(0);
 

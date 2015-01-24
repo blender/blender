@@ -33,6 +33,7 @@
 #ifndef __GPU_CODEGEN_H__
 #define __GPU_CODEGEN_H__
 
+#include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 #include "GPU_material.h"
 #include "GPU_glew.h"
@@ -89,7 +90,7 @@ struct GPUNode {
 struct GPUNodeLink {
 	GPUNodeStack *socket;
 
-	int attribtype;
+	CustomDataType attribtype;
 	const char *attribname;
 
 	int image;
@@ -153,7 +154,7 @@ typedef struct GPUInput {
 	float vec[16];			/* vector data */
 	GPUNodeLink *link;
 	int dynamictex;			/* dynamic? */
-	int attribtype;			/* attribute type */
+	CustomDataType attribtype;	/* attribute type */
 	char attribname[32];	/* attribute name */
 	int attribfirst;		/* this is the first one that is bound */
 	GPUBuiltin builtin;		/* builtin uniform */
