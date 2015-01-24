@@ -127,7 +127,8 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 static void gpu_parse_functions_string(GHash *hash, char *code)
 {
 	GPUFunction *function;
-	int i, type, qual;
+	GPUType type;
+	int i, qual;
 
 	while ((code = strstr(code, "void "))) {
 		function = MEM_callocN(sizeof(GPUFunction), "GPUFunction");
@@ -147,7 +148,7 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 				code = gpu_str_skip_token(code, NULL, 0);
 
 			/* test for type */
-			type= 0;
+			type= GPU_NONE;
 			for (i=1; i<=16; i++) {
 				if (GPU_DATATYPE_STR[i] && gpu_str_prefix(code, GPU_DATATYPE_STR[i])) {
 					type= i;
@@ -321,7 +322,7 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 	}
 }
 
-static void codegen_print_datatype(DynStr *ds, int type, float *data)
+static void codegen_print_datatype(DynStr *ds, const GPUType type, float *data)
 {
 	int i;
 
@@ -639,7 +640,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	return code;
 }
 
-static char *code_generate_vertex(ListBase *nodes, int type)
+static char *code_generate_vertex(ListBase *nodes, const GPUMatType type)
 {
 	DynStr *ds = BLI_dynstr_new();
 	GPUNode *node;
@@ -900,7 +901,7 @@ static void GPU_node_end(GPUNode *UNUSED(node))
 	/* empty */
 }
 
-static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, int type)
+static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType type)
 {
 	GPUInput *input;
 	GPUNode *outnode;
@@ -1027,7 +1028,7 @@ static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
 	}
 }
 
-static void GPU_node_output(GPUNode *node, int type, const char *UNUSED(name), GPUNodeLink **link)
+static void GPU_node_output(GPUNode *node, const GPUType type, const char *UNUSED(name), GPUNodeLink **link)
 {
 	GPUOutput *output = MEM_callocN(sizeof(GPUOutput), "GPUOutput");
 
@@ -1400,7 +1401,9 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 	}
 }
 
-GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttribs *attribs, int *builtins, int type, const char *name)
+GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink,
+						   GPUVertexAttribs *attribs, int *builtins,
+						   const GPUMatType type, const char *name)
 {
 	GPUShader *shader;
 	GPUPass *pass;

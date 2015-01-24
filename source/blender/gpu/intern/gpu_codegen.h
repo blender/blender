@@ -55,7 +55,7 @@ struct PreviewImage;
 
 typedef struct GPUFunction {
 	char name[MAX_FUNCTION_NAME];
-	int paramtype[MAX_PARAMETER];
+	GPUType paramtype[MAX_PARAMETER];
 	int paramqual[MAX_PARAMETER];
 	int totparam;
 } GPUFunction;
@@ -104,7 +104,7 @@ struct GPUNodeLink {
 	int dynamic;
 	int dynamictype;
 
-	int type;
+	GPUType type;
 
 	/* Refcount */
 	int users;
@@ -121,7 +121,7 @@ typedef struct GPUOutput {
 	struct GPUOutput *next, *prev;
 
 	GPUNode *node;
-	int type;				/* data type = length of vector/matrix */
+	GPUType type;			/* data type = length of vector/matrix */
 	GPUNodeLink *link;		/* output link */
 	int id;					/* unique id as created by code generator */
 } GPUOutput;
@@ -131,7 +131,7 @@ typedef struct GPUInput {
 
 	GPUNode *node;
 
-	int type;				/* datatype */
+	GPUType type;			/* datatype */
 	int source;				/* data source */
 
 	int id;					/* unique id as created by code generator */
@@ -140,7 +140,7 @@ typedef struct GPUInput {
 	int bindtex;			/* input is responsible for binding the texture? */
 	int definetex;			/* input is responsible for defining the pixel? */
 	int textarget;			/* GL_TEXTURE_* */
-	int textype;			/* datatype */
+	GPUType textype;		/* datatype */
 
 	struct Image *ima;		/* image */
 	struct ImageUser *iuser;/* image user */
@@ -178,7 +178,8 @@ struct GPUPass {
 typedef struct GPUPass GPUPass;
 
 GPUPass *GPU_generate_pass(ListBase *nodes, struct GPUNodeLink *outlink,
-	struct GPUVertexAttribs *attribs, int *builtin, int type, const char *name);
+						   struct GPUVertexAttribs *attribs, int *builtin,
+						   const GPUMatType type, const char *name);
 
 struct GPUShader *GPU_pass_shader(GPUPass *pass);
 

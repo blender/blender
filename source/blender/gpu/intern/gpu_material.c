@@ -2208,29 +2208,45 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 						glBindTexture(GL_TEXTURE_2D, lastbindcode);
 					}
 					break;
+
+				case GPU_NONE:
+				case GPU_FLOAT:
+				case GPU_VEC2:
+				case GPU_VEC3:
+				case GPU_VEC4:
+				case GPU_MAT3:
+				case GPU_MAT4:
+				case GPU_ATTRIB:
+					break;
 				}
 			}
 			else {
 				uniform->type = input->dynamictype;
 				BLI_strncpy(uniform->varname, input->shadername, sizeof(uniform->varname));
 				switch (input->type) {
-				case 1:
+				case GPU_FLOAT:
 					uniform->datatype = GPU_DATA_1F;
 					break;
-				case 2:
+				case GPU_VEC2:
 					uniform->datatype = GPU_DATA_2F;
 					break;
-				case 3:
+				case GPU_VEC3:
 					uniform->datatype = GPU_DATA_3F;
 					break;
-				case 4:
+				case GPU_VEC4:
 					uniform->datatype = GPU_DATA_4F;
 					break;
-				case 9:
+				case GPU_MAT3:
 					uniform->datatype = GPU_DATA_9F;
 					break;
-				case 16:
+				case GPU_MAT4:
 					uniform->datatype = GPU_DATA_16F;
+					break;
+
+				case GPU_NONE:
+				case GPU_TEX2D:
+				case GPU_SHADOW2D:
+				case GPU_ATTRIB:
 					break;
 				}
 
