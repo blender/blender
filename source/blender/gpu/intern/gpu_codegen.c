@@ -740,7 +740,7 @@ GPUShader *GPU_pass_shader(GPUPass *pass)
 	return pass->shader;
 }
 
-static void GPU_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
+static void gpu_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 {
 	GPUShader *shader = pass->shader;
 	GPUNode *node;
@@ -871,7 +871,7 @@ static GPUNodeLink *GPU_node_link_create(void)
 	return link;
 }
 
-static void GPU_node_link_free(GPUNodeLink *link)
+static void gpu_node_link_free(GPUNodeLink *link)
 {
 	link->users--;
 
@@ -1023,7 +1023,7 @@ static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
 	}
 }
 
-static void GPU_node_output(GPUNode *node, const GPUType type, GPUNodeLink **link)
+static void gpu_node_output(GPUNode *node, const GPUType type, GPUNodeLink **link)
 {
 	GPUOutput *output = MEM_callocN(sizeof(GPUOutput), "GPUOutput");
 
@@ -1043,13 +1043,13 @@ static void GPU_node_output(GPUNode *node, const GPUType type, GPUNodeLink **lin
 	BLI_addtail(&node->outputs, output);
 }
 
-static void GPU_inputs_free(ListBase *inputs)
+static void gpu_inputs_free(ListBase *inputs)
 {
 	GPUInput *input;
 
 	for (input=inputs->first; input; input=input->next) {
 		if (input->link)
-			GPU_node_link_free(input->link);
+			gpu_node_link_free(input->link);
 		else if (input->tex && !input->dynamictex)
 			GPU_texture_free(input->tex);
 	}
@@ -1057,28 +1057,28 @@ static void GPU_inputs_free(ListBase *inputs)
 	BLI_freelistN(inputs);
 }
 
-static void GPU_node_free(GPUNode *node)
+static void gpu_node_free(GPUNode *node)
 {
 	GPUOutput *output;
 
-	GPU_inputs_free(&node->inputs);
+	gpu_inputs_free(&node->inputs);
 
 	for (output=node->outputs.first; output; output=output->next)
 		if (output->link) {
 			output->link->output = NULL;
-			GPU_node_link_free(output->link);
+			gpu_node_link_free(output->link);
 		}
 
 	BLI_freelistN(&node->outputs);
 	MEM_freeN(node);
 }
 
-static void GPU_nodes_free(ListBase *nodes)
+static void gpu_nodes_free(ListBase *nodes)
 {
 	GPUNode *node;
 
 	while ((node = BLI_pophead(nodes))) {
-		GPU_node_free(node);
+		gpu_node_free(node);
 	}
 }
 
@@ -1257,7 +1257,7 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
 	for (i=0; i<function->totparam; i++) {
 		if (function->paramqual[i] != FUNCTION_QUAL_IN) {
 			linkptr= va_arg(params, GPUNodeLink**);
-			GPU_node_output(node, function->paramtype[i], linkptr);
+			gpu_node_output(node, function->paramtype[i], linkptr);
 		}
 		else {
 			link= va_arg(params, GPUNodeLink*);
@@ -1298,7 +1298,7 @@ bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNod
 	
 	if (out) {
 		for (i = 0; out[i].type != GPU_NONE; i++) {
-			GPU_node_output(node, out[i].type, &out[i].link);
+			gpu_node_output(node, out[i].type, &out[i].link);
 			totout++;
 		}
 	}
@@ -1308,7 +1308,7 @@ bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNod
 		if (function->paramqual[i] != FUNCTION_QUAL_IN) {
 			if (totout == 0) {
 				linkptr= va_arg(params, GPUNodeLink**);
-				GPU_node_output(node, function->paramtype[i], linkptr);
+				gpu_node_output(node, function->paramtype[i], linkptr);
 			}
 			else
 				totout--;
@@ -1387,7 +1387,7 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 
 		if (!node->tag) {
 			BLI_remlink(nodes, node);
-			GPU_node_free(node);
+			gpu_node_free(node);
 		}
 	}
 }
@@ -1424,7 +1424,7 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink,
 			MEM_freeN(vertexcode);
 		memset(attribs, 0, sizeof(*attribs));
 		memset(builtins, 0, sizeof(*builtins));
-		GPU_nodes_free(nodes);
+		gpu_nodes_free(nodes);
 		return NULL;
 	}
 	
@@ -1438,8 +1438,8 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink,
 	pass->libcode = glsl_material_library;
 
 	/* extract dynamic inputs and throw away nodes */
-	GPU_nodes_extract_dynamic_inputs(pass, nodes);
-	GPU_nodes_free(nodes);
+	gpu_nodes_extract_dynamic_inputs(pass, nodes);
+	gpu_nodes_free(nodes);
 
 	return pass;
 }
@@ -1447,7 +1447,7 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink,
 void GPU_pass_free(GPUPass *pass)
 {
 	GPU_shader_free(pass->shader);
-	GPU_inputs_free(&pass->inputs);
+	gpu_inputs_free(&pass->inputs);
 	if (pass->fragmentcode)
 		MEM_freeN(pass->fragmentcode);
 	if (pass->vertexcode)
