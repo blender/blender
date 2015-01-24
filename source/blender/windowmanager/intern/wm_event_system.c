@@ -1710,7 +1710,7 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 
 			if (val != EVT_FILESELECT_EXTERNAL_CANCEL) {
 				ScrArea *sa = CTX_wm_area(C);
-				ED_screen_retore_temp_type(C, sa, screen != handler->filescreen);
+				ED_screen_restore_temp_type(C, sa, screen != handler->filescreen);
 			}
 
 			wm_handler_op_context(C, handler);

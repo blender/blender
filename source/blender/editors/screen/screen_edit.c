@@ -1773,7 +1773,7 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 	}
 }
 
-void ED_screen_retore_temp_type(bContext *C, ScrArea *sa, bool is_screen_change)
+void ED_screen_restore_temp_type(bContext *C, ScrArea *sa, bool is_screen_change)
 {
 	/* incase nether functions below run */
 	ED_area_tag_redraw(sa);
