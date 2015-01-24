@@ -861,10 +861,10 @@ void GPU_pass_unbind(GPUPass *pass)
 
 /* Node Link Functions */
 
-static GPUNodeLink *GPU_node_link_create(int type)
+static GPUNodeLink *GPU_node_link_create(void)
 {
 	GPUNodeLink *link = MEM_callocN(sizeof(GPUNodeLink), "GPUNodeLink");
-	link->type = type;
+	link->type = GPU_NONE;
 	link->users++;
 
 	return link;
@@ -1021,7 +1021,7 @@ static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
 		gpu_node_input_link(node, sock->link, sock->type);
 	}
 	else {
-		link = GPU_node_link_create(0);
+		link = GPU_node_link_create();
 		link->ptr1 = sock->vec;
 		gpu_node_input_link(node, link, sock->type);
 	}
@@ -1035,7 +1035,8 @@ static void GPU_node_output(GPUNode *node, int type, const char *UNUSED(name), G
 	output->node = node;
 
 	if (link) {
-		*link = output->link = GPU_node_link_create(type);
+		*link = output->link = GPU_node_link_create();
+		output->link->type = type;
 		output->link->output = output;
 
 		/* note: the caller owns the reference to the linkfer, GPUOutput
@@ -1145,7 +1146,7 @@ static void gpu_nodes_get_builtin_flag(ListBase *nodes, int *builtin)
 
 GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->attribtype= type;
 	link->attribname= name;
@@ -1155,7 +1156,7 @@ GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 
 GPUNodeLink *GPU_uniform(float *num)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->ptr1= num;
 	link->ptr2= NULL;
@@ -1165,7 +1166,7 @@ GPUNodeLink *GPU_uniform(float *num)
 
 GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->ptr1= num;
 	link->ptr2= data;
@@ -1178,7 +1179,7 @@ GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data)
 
 GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->image = LINK_IMAGE_BLENDER;
 	link->ptr1 = ima;
@@ -1190,7 +1191,7 @@ GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
 
 GPUNodeLink *GPU_image_preview(PreviewImage *prv)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 	
 	link->image= LINK_IMAGE_PREVIEW;
 	link->ptr1= prv;
@@ -1201,7 +1202,7 @@ GPUNodeLink *GPU_image_preview(PreviewImage *prv)
 
 GPUNodeLink *GPU_texture(int size, float *pixels)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->texture = 1;
 	link->texturesize = size;
@@ -1212,7 +1213,7 @@ GPUNodeLink *GPU_texture(int size, float *pixels)
 
 GPUNodeLink *GPU_dynamic_texture(GPUTexture *tex, int dynamictype, void *data)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->dynamic = 1;
 	link->dynamictex = tex;
@@ -1224,7 +1225,7 @@ GPUNodeLink *GPU_dynamic_texture(GPUTexture *tex, int dynamictype, void *data)
 
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->builtin= builtin;
 
@@ -1233,7 +1234,7 @@ GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
 
 GPUNodeLink *GPU_opengl_builtin(GPUOpenGLBuiltin builtin)
 {
-	GPUNodeLink *link = GPU_node_link_create(0);
+	GPUNodeLink *link = GPU_node_link_create();
 
 	link->oglbuiltin = builtin;
 
