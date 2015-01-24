@@ -69,6 +69,7 @@ typedef struct GPULamp GPULamp;
 /* Functions to create GPU Materials nodes */
 
 typedef enum GPUType {
+	/* The value indicates the number of elements in each type */
 	GPU_NONE = 0,
 	GPU_FLOAT = 1,
 	GPU_VEC2 = 2,
@@ -76,6 +77,7 @@ typedef enum GPUType {
 	GPU_VEC4 = 4,
 	GPU_MAT3 = 9,
 	GPU_MAT4 = 16,
+
 	GPU_TEX2D = 1002,
 	GPU_SHADOW2D = 1003,
 	GPU_ATTRIB = 3001

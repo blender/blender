@@ -105,6 +105,8 @@ struct GPUNodeLink {
 	int dynamictype;
 
 	int type;
+
+	/* Refcount */
 	int users;
 
 	struct GPUTexture *dynamictex;
@@ -133,7 +135,7 @@ typedef struct GPUInput {
 	int source;				/* data source */
 
 	int id;					/* unique id as created by code generator */
-	int texid;				/* number for multitexture */
+	int texid;				/* number for multitexture, starting from zero */
 	int attribid;			/* id for vertex attributes */
 	int bindtex;			/* input is responsible for binding the texture? */
 	int definetex;			/* input is responsible for defining the pixel? */

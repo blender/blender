@@ -64,6 +64,7 @@ static char *glsl_material_library = NULL;
 
 /* structs and defines */
 
+/* Indices match the GPUType enum */
 static const char *GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
 	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"};
 
@@ -160,7 +161,7 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 				type= GPU_TEX2D;
 
 			if (type) {
-				/* add paramater */
+				/* add parameter */
 				code = gpu_str_skip_token(code, NULL, 0);
 				code = gpu_str_skip_token(code, NULL, 0);
 				function->paramqual[function->totparam]= qual;
