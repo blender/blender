@@ -387,6 +387,22 @@ const char *GPU_builtin_name(GPUBuiltin builtin)
 		return "";
 }
 
+/* assign only one texid per buffer to avoid sampling the same texture twice */
+static void codegen_set_texid(GHash *bindhash, GPUInput *input, int *texid, void *key)
+{
+	if (BLI_ghash_haskey(bindhash, key)) {
+		/* Reuse existing texid */
+		input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, key));
+	}
+	else {
+		/* Allocate new texid */
+		input->texid = *texid;
+		(*texid)++;
+		input->bindtex = true;
+		BLI_ghash_insert(bindhash, key, SET_INT_IN_POINTER(input->texid));
+	}
+}
+
 static void codegen_set_unique_ids(ListBase *nodes)
 {
 	GHash *bindhash, *definehash;
@@ -409,48 +425,23 @@ static void codegen_set_unique_ids(ListBase *nodes)
 			if (codegen_input_has_texture(input) &&
 			    ((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL)))
 			{
+				/* assign only one texid per buffer to avoid sampling
+				 * the same texture twice */
 				if (input->link) {
-					/* input is texture from buffer, assign only one texid per
-					 * buffer to avoid sampling the same texture twice */
-					if (!BLI_ghash_haskey(bindhash, input->link)) {
-						input->texid = texid++;
-						input->bindtex = true;
-						BLI_ghash_insert(bindhash, input->link, SET_INT_IN_POINTER(input->texid));
-					}
-					else
-						input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, input->link));
+					/* input is texture from buffer */
+					codegen_set_texid(bindhash, input, &texid, input->link);
 				}
 				else if (input->ima) {
-					/* input is texture from image, assign only one texid per
-					 * buffer to avoid sampling the same texture twice */
-					if (!BLI_ghash_haskey(bindhash, input->ima)) {
-						input->texid = texid++;
-						input->bindtex = true;
-						BLI_ghash_insert(bindhash, input->ima, SET_INT_IN_POINTER(input->texid));
-					}
-					else
-						input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, input->ima));
+					/* input is texture from image */
+					codegen_set_texid(bindhash, input, &texid, input->ima);
 				}
 				else if (input->prv) {
-					/* input is texture from preview render, assign only one texid per
-					 * buffer to avoid sampling the same texture twice */
-					if (!BLI_ghash_haskey(bindhash, input->prv)) {
-						input->texid = texid++;
-						input->bindtex = true;
-						BLI_ghash_insert(bindhash, input->prv, SET_INT_IN_POINTER(input->texid));
-					}
-					else
-						input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, input->prv));
+					/* input is texture from preview render */
+					codegen_set_texid(bindhash, input, &texid, input->prv);
 				}
-				else {
-					if (!BLI_ghash_haskey(bindhash, input->tex)) {
-						/* input is user created texture, check tex pointer */
-						input->texid = texid++;
-						input->bindtex = true;
-						BLI_ghash_insert(bindhash, input->tex, SET_INT_IN_POINTER(input->texid));
-					}
-					else
-						input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, input->tex));
+				else if (input->tex) {
+					/* input is user created texture, check tex pointer */
+					codegen_set_texid(bindhash, input, &texid, input->tex);
 				}
 
 				/* make sure this pixel is defined exactly once */
