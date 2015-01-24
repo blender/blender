@@ -896,11 +896,6 @@ static GPUNode *GPU_node_begin(const char *name)
 	return node;
 }
 
-static void GPU_node_end(GPUNode *UNUSED(node))
-{
-	/* empty */
-}
-
 static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType type)
 {
 	GPUInput *input;
@@ -1271,8 +1266,6 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
 	}
 	va_end(params);
 
-	GPU_node_end(node);
-
 	gpu_material_add_node(mat, node);
 
 	return 1;
@@ -1333,8 +1326,6 @@ bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNod
 		}
 	}
 	va_end(params);
-
-	GPU_node_end(node);
 
 	gpu_material_add_node(mat, node);
 	
