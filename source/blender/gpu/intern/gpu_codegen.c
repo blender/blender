@@ -402,8 +402,8 @@ static void codegen_set_unique_ids(ListBase *nodes)
 		for (input=node->inputs.first; input; input=input->next) {
 			/* set id for unique names of uniform variables */
 			input->id = id++;
-			input->bindtex = 0;
-			input->definetex = 0;
+			input->bindtex = false;
+			input->definetex = false;
 
 			/* set texid used for settings texture slot with multitexture */
 			if (codegen_input_has_texture(input) &&
@@ -414,7 +414,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 					 * buffer to avoid sampling the same texture twice */
 					if (!BLI_ghash_haskey(bindhash, input->link)) {
 						input->texid = texid++;
-						input->bindtex = 1;
+						input->bindtex = true;
 						BLI_ghash_insert(bindhash, input->link, SET_INT_IN_POINTER(input->texid));
 					}
 					else
@@ -425,7 +425,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 					 * buffer to avoid sampling the same texture twice */
 					if (!BLI_ghash_haskey(bindhash, input->ima)) {
 						input->texid = texid++;
-						input->bindtex = 1;
+						input->bindtex = true;
 						BLI_ghash_insert(bindhash, input->ima, SET_INT_IN_POINTER(input->texid));
 					}
 					else
@@ -436,7 +436,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 					 * buffer to avoid sampling the same texture twice */
 					if (!BLI_ghash_haskey(bindhash, input->prv)) {
 						input->texid = texid++;
-						input->bindtex = 1;
+						input->bindtex = true;
 						BLI_ghash_insert(bindhash, input->prv, SET_INT_IN_POINTER(input->texid));
 					}
 					else
@@ -446,7 +446,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 					if (!BLI_ghash_haskey(bindhash, input->tex)) {
 						/* input is user created texture, check tex pointer */
 						input->texid = texid++;
-						input->bindtex = 1;
+						input->bindtex = true;
 						BLI_ghash_insert(bindhash, input->tex, SET_INT_IN_POINTER(input->texid));
 					}
 					else
@@ -457,13 +457,13 @@ static void codegen_set_unique_ids(ListBase *nodes)
 				if (input->source == GPU_SOURCE_TEX_PIXEL) {
 					if (input->ima) {
 						if (!BLI_ghash_haskey(definehash, input->ima)) {
-							input->definetex = 1;
+							input->definetex = true;
 							BLI_ghash_insert(definehash, input->ima, SET_INT_IN_POINTER(input->texid));
 						}
 					}
 					else {
 						if (!BLI_ghash_haskey(definehash, input->link)) {
-							input->definetex = 1;
+							input->definetex = true;
 							BLI_ghash_insert(definehash, input->link, SET_INT_IN_POINTER(input->texid));
 						}
 					}
@@ -968,7 +968,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		input->tex = link->dynamictex;
 		input->textarget = GL_TEXTURE_2D;
 		input->textype = type;
-		input->dynamictex = 1;
+		input->dynamictex = true;
 		input->dynamicdata = link->ptr2;
 		MEM_freeN(link);
 	}
@@ -1184,7 +1184,7 @@ GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data)
 
 	link->ptr1= num;
 	link->ptr2= data;
-	link->dynamic= 1;
+	link->dynamic= true;
 	link->dynamictype = dynamictype;
 
 
@@ -1218,7 +1218,7 @@ GPUNodeLink *GPU_texture(int size, float *pixels)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
-	link->texture = 1;
+	link->texture = true;
 	link->texturesize = size;
 	link->ptr1= pixels;
 
@@ -1229,7 +1229,7 @@ GPUNodeLink *GPU_dynamic_texture(GPUTexture *tex, int dynamictype, void *data)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
-	link->dynamic = 1;
+	link->dynamic = true;
 	link->dynamictex = tex;
 	link->dynamictype = dynamictype;
 	link->ptr2 = data;
@@ -1385,7 +1385,7 @@ static void gpu_nodes_tag(GPUNodeLink *link)
 	if (node->tag)
 		return;
 	
-	node->tag= 1;
+	node->tag = true;
 	for (input=node->inputs.first; input; input=input->next)
 		if (input->link)
 			gpu_nodes_tag(input->link);
@@ -1396,7 +1396,7 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 	GPUNode *node, *next;
 
 	for (node=nodes->first; node; node=node->next)
-		node->tag= 0;
+		node->tag = false;
 
 	gpu_nodes_tag(outlink);
 

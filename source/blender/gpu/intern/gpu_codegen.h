@@ -71,7 +71,9 @@ struct GPUNode {
 	struct GPUNode *next, *prev;
 
 	const char *name;
-	int tag;
+
+	/* Internal flag to mark nodes during pruning */
+	bool tag;
 
 	ListBase inputs;
 	ListBase outputs;
@@ -84,14 +86,14 @@ struct GPUNodeLink {
 	const char *attribname;
 
 	GPUNodeLinkImage image;
-	int image_isdata;
+	bool image_isdata;
 
-	int texture;
+	bool texture;
 	int texturesize;
 
 	void *ptr1, *ptr2;
 
-	int dynamic;
+	bool dynamic;
 	int dynamictype;
 
 	GPUType type;
@@ -127,15 +129,15 @@ typedef struct GPUInput {
 	int id;					/* unique id as created by code generator */
 	int texid;				/* number for multitexture, starting from zero */
 	int attribid;			/* id for vertex attributes */
-	int bindtex;			/* input is responsible for binding the texture? */
-	int definetex;			/* input is responsible for defining the pixel? */
+	bool bindtex;			/* input is responsible for binding the texture? */
+	bool definetex;			/* input is responsible for defining the pixel? */
 	int textarget;			/* GL_TEXTURE_* */
 	GPUType textype;		/* datatype */
 
 	struct Image *ima;		/* image */
 	struct ImageUser *iuser;/* image user */
 	struct PreviewImage *prv;	/* preview images & icons */
-	int image_isdata;		/* image does not contain color data */
+	bool image_isdata;		/* image does not contain color data */
 	float *dynamicvec;		/* vector data in case it is dynamic */
 	int dynamictype;		/* origin of the dynamic uniform (GPUDynamicType) */
 	void *dynamicdata;		/* data source of the dynamic uniform */
@@ -145,7 +147,7 @@ typedef struct GPUInput {
 
 	float vec[16];			/* vector data */
 	GPUNodeLink *link;
-	int dynamictex;			/* dynamic? */
+	bool dynamictex;		/* dynamic? */
 	CustomDataType attribtype;	/* attribute type */
 	char attribname[32];	/* attribute name */
 	int attribfirst;		/* this is the first one that is bound */
