@@ -3534,6 +3534,8 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0, 0);
 		sound_stop_scene(scene);
+
+		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	}
 	else {
 		int refresh = SPACE_TIME; /* these settings are currently only available from a menu in the TimeLine */
