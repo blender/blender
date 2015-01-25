@@ -973,7 +973,7 @@ bool BKE_object_data_transfer_dm(
 
 	MeshPairRemap geom_map[DATAMAX] = {{0}};
 	bool geom_map_init[DATAMAX] = {0};
-	ListBase lay_map = {0};
+	ListBase lay_map = {NULL};
 	bool changed = false;
 
 	const bool use_delete = false;  /* We never delete data layers from destination here. */

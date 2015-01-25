@@ -1100,7 +1100,7 @@ static void icon_preview_free(void *customdata)
 
 void ED_preview_icon_render(Scene *scene, ID *id, unsigned int *rect, int sizex, int sizey)
 {
-	IconPreview ip = {0};
+	IconPreview ip = {NULL};
 	short stop = false, update = false;
 	float progress = 0.0f;
 
