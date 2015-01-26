@@ -85,7 +85,53 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
             row.prop(unit, "use_separate")
 
 
-class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
+class SceneKeyingSetsPanel():
+    def draw_keyframing_settings(self, context, layout, ks, ksp):
+        self.draw_keyframing_setting(context, layout, ks, ksp, "Needed",
+                                     "use_insertkey_override_needed", "use_insertkey_needed",
+                                     userpref_fallback="use_keyframe_insert_needed")
+
+        self.draw_keyframing_setting(context, layout, ks, ksp, "Visual",
+                                     "use_insertkey_override_visual", "use_insertkey_visual",
+                                     userpref_fallback="use_visual_keying")
+
+        self.draw_keyframing_setting(context, layout, ks, ksp, "XYZ to RGB",
+                                     "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb")
+
+    def draw_keyframing_setting(self, context, layout, ks, ksp, label, toggle_prop, prop, userpref_fallback=None):
+        if ksp:
+            item = ksp
+
+            if getattr(ks, toggle_prop):
+                owner = ks
+                propname = prop
+            else:
+                owner = context.user_preferences.edit
+                if userpref_fallback:
+                    propname = userpref_fallback
+                else:
+                    propname = prop
+        else:
+            item = ks
+
+            owner = context.user_preferences.edit
+            if userpref_fallback:
+                propname = userpref_fallback
+            else:
+                propname = prop
+
+        row = layout.row(align=True)
+        row.prop(item, toggle_prop, text="", icon='STYLUS_PRESSURE', toggle=True) # XXX: needs dedicated icon
+
+        subrow = row.row()
+        subrow.active = getattr(item, toggle_prop)
+        if subrow.active:
+            subrow.prop(item, prop, text=label)
+        else:
+            subrow.prop(owner, propname, text=label)
+
+
+class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
     bl_label = "Keying Sets"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -115,12 +161,10 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ks, "use_insertkey_needed", text="Needed")
-            col.prop(ks, "use_insertkey_visual", text="Visual")
-            col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
+            self.draw_keyframing_settings(context, col, ks, None)
 
 
-class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
+class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
     bl_label = "Active Keying Set"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -173,9 +217,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ksp, "use_insertkey_needed", text="Needed")
-            col.prop(ksp, "use_insertkey_visual", text="Visual")
-            col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
+            self.draw_keyframing_settings(context, col, ks, ksp)
 
 
 class SCENE_PT_color_management(SceneButtonsPanel, Panel):

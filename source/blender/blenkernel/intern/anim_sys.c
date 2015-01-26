@@ -1317,6 +1317,7 @@ KeyingSet *BKE_keyingset_add(ListBase *list, const char idname[], const char nam
 
 	ks->flag = flag;
 	ks->keyingflag = keyingflag;
+	ks->keyingoverride = keyingflag; /* NOTE: assume that if one is set one way, the other should be too, so that it'll work */
 	
 	/* add KeyingSet to list */
 	BLI_addtail(list, ks);
