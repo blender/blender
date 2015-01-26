@@ -84,7 +84,9 @@ class ANIM_OT_keying_set_export(Operator):
             f.write("ks.is_path_absolute = False\n")
         f.write("\n")
 
-        f.write("ks.bl_options = %r\n" % ks.bl_options)
+        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
+        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
+        f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
         f.write("\n")
 
         # --------------------------------------------------------

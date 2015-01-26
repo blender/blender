@@ -115,7 +115,9 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ks, "bl_options")
+            col.prop(ks, "use_insertkey_needed", text="Needed")
+            col.prop(ks, "use_insertkey_visual", text="Visual")
+            col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
@@ -171,7 +173,9 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ksp, "bl_options")
+            col.prop(ksp, "use_insertkey_needed", text="Needed")
+            col.prop(ksp, "use_insertkey_visual", text="Visual")
+            col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_color_management(SceneButtonsPanel, Panel):
