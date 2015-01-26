@@ -2756,7 +2756,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			case VKEY:
 			case XKEY:
 			case CKEY:
-				if (event->ctrl || event->oskey) {
+				if (IS_EVENT_MOD(event, ctrl, oskey)) {
 					if (event->type == VKEY)
 						changed = ui_textedit_copypaste(but, data, UI_TEXTEDIT_PASTE);
 					else if (event->type == CKEY)
@@ -2829,10 +2829,10 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				/* Ctrl + A: Select all */
 #if defined(__APPLE__)
 				/* OSX uses cmd-a systemwide, so add it */
-				if ((event->oskey && !(event->alt || event->shift || event->ctrl)) ||
-				    (event->ctrl  && !(event->alt || event->shift || event->oskey)))
+				if ((event->oskey && !IS_EVENT_MOD(event, shift, alt, ctrl)) ||
+				    (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey)))
 #else
-				if (event->ctrl && !(event->alt || event->shift || event->oskey))
+				if (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey))
 #endif
 				{
 					ui_textedit_move(but, data, STRCUR_DIR_PREV,
@@ -2855,7 +2855,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					update = true;  /* do live update for tab key */
 				}
 				/* the hotkey here is not well defined, was G.qual so we check all */
-				else if (event->shift || event->ctrl || event->alt || event->oskey) {
+				else if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
 					ui_textedit_prev_but(block, but, data);
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
@@ -6293,7 +6293,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
 	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
 		/* handle copy-paste */
-		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS && (event->ctrl || event->oskey)) {
+		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS &&
+		    IS_EVENT_MOD(event, ctrl, oskey))
+		{
 			/* Specific handling for listrows, we try to find their overlapping tex button. */
 			if (but->type == UI_BTYPE_LISTROW) {
 				uiBut *labelbut = ui_but_list_row_text_activate(C, but, data, event, BUTTON_ACTIVATE_OVER);
@@ -6312,7 +6314,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle eyedropper */
 		else if ((event->type == EKEY) && (event->val == KM_PRESS)) {
-			if (event->alt || event->shift || event->ctrl || event->oskey) {
+			if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
 				/* pass */
 			}
 			else {
@@ -6344,7 +6346,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle keyframing */
 		else if ((event->type == IKEY) &&
-		         (event->ctrl + event->oskey == 0) &&
+		         !IS_EVENT_MOD(event, ctrl, oskey) &&
 		         (event->val == KM_PRESS))
 		{
 			if (event->alt) {
@@ -6365,7 +6367,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle drivers */
 		else if ((event->type == DKEY) &&
-		         ((event->ctrl + event->oskey + event->shift) == 0) &&
+		         !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
 		         (event->val == KM_PRESS))
 		{
 			if (event->alt)
@@ -6379,7 +6381,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle keyingsets */
 		else if ((event->type == KKEY) &&
-		         ((event->ctrl + event->oskey + event->shift) == 0) &&
+		         !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
 		         (event->val == KM_PRESS))
 		{
 			if (event->alt)
@@ -6393,7 +6395,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle menu */
 		else if ((event->type == RIGHTMOUSE) &&
-		         ((event->ctrl + event->oskey + event->alt + event->shift) == 0) &&
+		         !IS_EVENT_MOD(event, shift, ctrl, alt, oskey) &&
 		         (event->val == KM_PRESS))
 		{
 			/* RMB has two options now */
@@ -8382,7 +8384,7 @@ static int ui_handle_menu_event(
 				case WHEELDOWNMOUSE:
 				case MOUSEPAN:
 					/* arrowkeys: only handle for block_loop blocks */
-					if (event->alt || event->shift || event->ctrl || event->oskey) {
+					if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
 						/* pass */
 					}
 					else if (inside || (block->flag & UI_BLOCK_LOOP)) {
@@ -8527,9 +8529,7 @@ static int ui_handle_menu_event(
 				case ZKEY:
 				{
 					if ((event->val  == KM_PRESS || event->val == KM_DBL_CLICK) &&
-					    (event->shift == 0) &&
-					    (event->ctrl  == 0) &&
-					    (event->oskey == 0))
+					    !IS_EVENT_MOD(event, shift, ctrl, oskey))
 					{
 						if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval))
 							break;
@@ -9021,9 +9021,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 			case ZKEY:
 			{
 				if ((event->val  == KM_PRESS || event->val == KM_DBL_CLICK) &&
-				    (event->shift == 0) &&
-				    (event->ctrl  == 0) &&
-				    (event->oskey == 0))
+				    !IS_EVENT_MOD(event, shift, ctrl, oskey))
 				{
 					for (but = block->buttons.first; but; but = but->next) {
 						if (but->menu_key == event->type) {
