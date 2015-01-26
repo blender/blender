@@ -2862,7 +2862,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 	/* validate arguments */
 	/* Forbid default UI_UL_DEFAULT_CLASS_NAME list class without a custom list_id! */
-	if (!strcmp(UI_UL_DEFAULT_CLASS_NAME, listtype_name) && !(list_id && list_id[0])) {
+	if (STREQ(UI_UL_DEFAULT_CLASS_NAME, listtype_name) && !(list_id && list_id[0])) {
 		RNA_warning("template_list using default '%s' UIList class must provide a custom list_id",
 		            UI_UL_DEFAULT_CLASS_NAME);
 		return;

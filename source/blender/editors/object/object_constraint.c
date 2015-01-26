@@ -471,7 +471,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 								/* TODO: clear subtarget? */
 								curcon->flag |= CONSTRAINT_DISABLE;
 							}
-							else if (strcmp(pchan->name, ct->subtarget) == 0) {
+							else if (STREQ(pchan->name, ct->subtarget)) {
 								/* cannot target self */
 								ct->subtarget[0] = '\0';
 								curcon->flag |= CONSTRAINT_DISABLE;

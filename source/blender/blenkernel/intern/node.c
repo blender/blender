@@ -2250,7 +2250,7 @@ StructRNA *ntreeInterfaceTypeGet(bNodeTree *ntree, int create)
 		ntree_interface_identifier_base(ntree, base);
 		
 		/* RNA identifier may have a number suffix, but should start with the idbase string */
-		if (strncmp(RNA_struct_identifier(srna), base, sizeof(base)) != 0) {
+		if (!STREQLEN(RNA_struct_identifier(srna), base, sizeof(base))) {
 			/* generate new unique RNA identifier from the ID name */
 			ntree_interface_identifier(ntree, base, identifier, sizeof(identifier), name, description);
 			

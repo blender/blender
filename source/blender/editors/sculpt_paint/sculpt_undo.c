@@ -104,7 +104,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 	if (unode->maxvert) {
 		/* regular mesh restore */
 
-		if (ss->kb && strcmp(ss->kb->name, unode->shapeName)) {
+		if (ss->kb && !STREQ(ss->kb->name, unode->shapeName)) {
 			/* shape key has been changed before calling undo operator */
 
 			Key *key = BKE_key_from_object(ob);
@@ -404,7 +404,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	bool need_mask = false;
 
 	for (unode = lb->first; unode; unode = unode->next) {
-		if (strcmp(unode->idname, ob->id.name) == 0) {
+		if (STREQ(unode->idname, ob->id.name)) {
 			if (unode->type == SCULPT_UNDO_MASK) {
 				/* is possible that we can't do the mask undo (below)
 				 * because of the vertex count */
@@ -423,7 +423,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		return;
 
 	for (unode = lb->first; unode; unode = unode->next) {
-		if (!(strcmp(unode->idname, ob->id.name) == 0))
+		if (!STREQ(unode->idname, ob->id.name))
 			continue;
 
 		/* check if undo data matches current data well enough to
@@ -550,7 +550,7 @@ static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 
 	unode = lb->first;
 
-	if (unode && strcmp(unode->idname, ob->id.name) != 0) {
+	if (unode && !STREQ(unode->idname, ob->id.name)) {
 		if (unode->bm_entry)
 			BM_log_cleanup_entry(unode->bm_entry);
 

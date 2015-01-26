@@ -556,7 +556,7 @@ KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[]
 	
 	/* loop over KeyingSets checking names */
 	for (ks = first; ks; ks = ks->next) {
-		if (strcmp(name, ks->idname) == 0)
+		if (STREQ(name, ks->idname))
 			return ks;
 	}
 
@@ -603,7 +603,7 @@ void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
 		ksn = ks->next;
 
 		/* remove if matching typeinfo name */
-		if (strcmp(ks->typeinfo, ksi->idname) == 0) {
+		if (STREQ(ks->typeinfo, ksi->idname)) {
 			Scene *scene;
 			BKE_keyingset_free(ks);
 			BLI_remlink(&builtin_keyingsets, ks);

@@ -133,7 +133,7 @@ void BLF_free_unifont_mono(void)
 bool BLF_is_default_context(const char *msgctxt)
 {
 	/* We use the "short" test, a more complete one could be:
-	 * return (!msgctxt || !msgctxt[0] || !strcmp(msgctxt == BLF_I18NCONTEXT_DEFAULT_BPYRNA))
+	 * return (!msgctxt || !msgctxt[0] || STREQ(msgctxt, BLF_I18NCONTEXT_DEFAULT_BPYRNA))
 	 */
 	/* Note: trying without the void string check for now, it *should* not be necessary... */
 	return (!msgctxt || msgctxt[0] == BLF_I18NCONTEXT_DEFAULT_BPYRNA[0]);

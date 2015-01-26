@@ -870,7 +870,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot,
 					break;
 
 				/* skip invalid properties */
-				if (strcmp(RNA_property_identifier(prop), otmacro->idname) == 0) {
+				if (STREQ(RNA_property_identifier(prop), otmacro->idname)) {
 					wmOperatorType *otm = WM_operatortype_find(otmacro->idname, 0);
 					PointerRNA someptr = RNA_property_pointer_get(properties, prop);
 					wmOperator *opm = wm_operator_create(wm, otm, &someptr, NULL);

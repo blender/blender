@@ -241,13 +241,13 @@ static IDProperty *rna_idproperty_ui(PropertyRNA *prop)
 	IDProperty *idprop;
 
 	for (idprop = ((IDProperty *)prop)->prev; idprop; idprop = idprop->prev) {
-		if (strcmp(RNA_IDP_UI, idprop->name) == 0)
+		if (STREQ(RNA_IDP_UI, idprop->name))
 			break;
 	}
 
 	if (idprop == NULL) {
 		for (idprop = ((IDProperty *)prop)->next; idprop; idprop = idprop->next) {
-			if (strcmp(RNA_IDP_UI, idprop->name) == 0)
+			if (STREQ(RNA_IDP_UI, idprop->name))
 				break;
 		}
 	}
@@ -511,7 +511,7 @@ StructRNA *RNA_struct_find(const char *identifier)
 	StructRNA *type;
 	if (identifier) {
 		for (type = BLENDER_RNA.structs.first; type; type = type->cont.next)
-			if (strcmp(type->identifier, identifier) == 0)
+			if (STREQ(type->identifier, identifier))
 				return type;
 	}
 	return NULL;
@@ -719,7 +719,7 @@ FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
 
 	RNA_PROP_BEGIN (&tptr, funcptr, iterprop)
 	{
-		if (strcmp(identifier, RNA_function_identifier(funcptr.data)) == 0) {
+		if (STREQ(identifier, RNA_function_identifier(funcptr.data))) {
 			func = funcptr.data;
 			break;
 		}
@@ -3229,7 +3229,7 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 
 				nameptr = RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name), &namelen);
 
-				if ((keylen == namelen) && (strcmp(nameptr, key) == 0)) {
+				if ((keylen == namelen) && STREQ(nameptr, key)) {
 					*r_ptr = iter.ptr;
 					found = 1;
 				}
@@ -5264,7 +5264,7 @@ char *RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
 	{
 		propname = RNA_property_identifier(prop);
 		
-		if (strcmp(propname, "rna_type") == 0)
+		if (STREQ(propname, "rna_type"))
 			continue;
 		
 		if (first_time == 0)
@@ -5335,7 +5335,7 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr,
 
 		arg_name = RNA_property_identifier(prop);
 
-		if (strcmp(arg_name, "rna_type") == 0) {
+		if (STREQ(arg_name, "rna_type")) {
 			continue;
 		}
 
@@ -5632,7 +5632,7 @@ PropertyRNA *RNA_function_find_parameter(PointerRNA *UNUSED(ptr), FunctionRNA *f
 
 	parm = func->cont.properties.first;
 	for (; parm; parm = parm->next)
-		if (strcmp(RNA_property_identifier(parm), identifier) == 0)
+		if (STREQ(RNA_property_identifier(parm), identifier))
 			break;
 
 	return parm;
@@ -5830,7 +5830,7 @@ void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void
 
 	parm = parms->func->cont.properties.first;
 	for (; parm; parm = parm->next)
-		if (strcmp(RNA_property_identifier(parm), identifier) == 0)
+		if (STREQ(RNA_property_identifier(parm), identifier))
 			break;
 
 	if (parm)
@@ -5886,7 +5886,7 @@ void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, cons
 
 	parm = parms->func->cont.properties.first;
 	for (; parm; parm = parm->next)
-		if (strcmp(RNA_property_identifier(parm), identifier) == 0)
+		if (STREQ(RNA_property_identifier(parm), identifier))
 			break;
 
 	if (parm)
@@ -6713,7 +6713,7 @@ bool RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop, eRNAEq
 			int len_a, len_b;
 			char *value_a = RNA_property_string_get_alloc(a, prop, fixed_a, sizeof(fixed_a), &len_a);
 			char *value_b = RNA_property_string_get_alloc(b, prop, fixed_b, sizeof(fixed_b), &len_b);
-			bool equals = strcmp(value_a, value_b) == 0;
+			bool equals = STREQ(value_a, value_b);
 
 			if (value_a != fixed_a) MEM_freeN(value_a);
 			if (value_b != fixed_b) MEM_freeN(value_b);

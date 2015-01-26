@@ -996,7 +996,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq)
 	if (SEQ_HAS_PATH(actseq) && dir) {
 		SEQP_BEGIN (ed, seq)
 		{
-			if (SEQ_HAS_PATH(seq) && seq->strip && strcmp(seq->strip->dir, dir) == 0) {
+			if (SEQ_HAS_PATH(seq) && seq->strip && STREQ(seq->strip->dir, dir)) {
 				seq->flag |= SELECT;
 				changed = true;
 			}

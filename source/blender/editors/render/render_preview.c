@@ -359,7 +359,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					for (base = sce->base.first; base; base = base->next) {
 						if (base->object->type == OB_LAMP) {
 							/* if doesn't match 'Lamp.002' --> main key light */
-							if (strcmp(base->object->id.name + 2, "Lamp.002") != 0) {
+							if (!STREQ(base->object->id.name + 2, "Lamp.002")) {
 								if (mat->material_type == MA_TYPE_VOLUME)
 									base->object->restrictflag |= OB_RESTRICT_RENDER;
 								else

@@ -1160,7 +1160,7 @@ static int need_add_seq_dup(Sequence *seq)
 			continue;
 		}
 
-		if (!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+		if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name))
 			return(2);
 		p = p->prev;
 	}
@@ -1172,7 +1172,7 @@ static int need_add_seq_dup(Sequence *seq)
 			continue;
 		}
 
-		if (!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+		if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name))
 			return(0);
 		p = p->next;
 	}
@@ -1191,7 +1191,7 @@ static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *t
 			continue;
 		}
 
-		if (!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+		if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name))
 			/* ch = */ /* UNUSED */ outliner_add_element(soops, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
 		p = p->next;
 	}

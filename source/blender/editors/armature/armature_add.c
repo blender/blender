@@ -270,7 +270,7 @@ static EditBone *get_named_editbone(ListBase *edbo, const char *name)
 
 	if (name) {
 		for (eBone = edbo->first; eBone; eBone = eBone->next) {
-			if (!strcmp(name, eBone->name))
+			if (STREQ(name, eBone->name))
 				return eBone;
 		}
 	}

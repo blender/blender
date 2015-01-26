@@ -343,7 +343,7 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
 	KeyingSet *ks = (KeyingSet *)ptr->data;
 	
 	/* update names of corresponding groups if name changes */
-	if (strcmp(ks->name, value)) {
+	if (!STREQ(ks->name, value)) {
 		KS_Path *ksp;
 		
 		for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
@@ -359,7 +359,7 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
 					 * conflicts
 					 */
 					for (agrp = adt->action->groups.first; agrp; agrp = agrp->next) {
-						if (strcmp(ks->name, agrp->name) == 0) {
+						if (STREQ(ks->name, agrp->name)) {
 							/* there should only be one of these in the action, so can stop... */
 							BLI_strncpy(agrp->name, value, sizeof(agrp->name));
 							break;

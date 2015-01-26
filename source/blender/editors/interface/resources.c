@@ -1574,7 +1574,7 @@ void init_userdef_do_versions(void)
 		U.tb_rightmouse = 5;
 	}
 	if (U.mixbufsize == 0) U.mixbufsize = 2048;
-	if (strcmp(U.tempdir, "/") == 0) {
+	if (STREQ(U.tempdir, "/")) {
 		BKE_tempdir_system_init(U.tempdir);
 	}
 	if (U.autokey_mode == 0) {
@@ -1907,39 +1907,39 @@ void init_userdef_do_versions(void)
 		wmKeyMap *km;
 		
 		for (km = U.user_keymaps.first; km; km = km->next) {
-			if (strcmp(km->idname, "Armature_Sketch") == 0)
+			if (STREQ(km->idname, "Armature_Sketch"))
 				strcpy(km->idname, "Armature Sketch");
-			else if (strcmp(km->idname, "View3D") == 0)
+			else if (STREQ(km->idname, "View3D"))
 				strcpy(km->idname, "3D View");
-			else if (strcmp(km->idname, "View3D Generic") == 0)
+			else if (STREQ(km->idname, "View3D Generic"))
 				strcpy(km->idname, "3D View Generic");
-			else if (strcmp(km->idname, "EditMesh") == 0)
+			else if (STREQ(km->idname, "EditMesh"))
 				strcpy(km->idname, "Mesh");
-			else if (strcmp(km->idname, "TimeLine") == 0)
+			else if (STREQ(km->idname, "TimeLine"))
 				strcpy(km->idname, "Timeline");
-			else if (strcmp(km->idname, "UVEdit") == 0)
+			else if (STREQ(km->idname, "UVEdit"))
 				strcpy(km->idname, "UV Editor");
-			else if (strcmp(km->idname, "Animation_Channels") == 0)
+			else if (STREQ(km->idname, "Animation_Channels"))
 				strcpy(km->idname, "Animation Channels");
-			else if (strcmp(km->idname, "GraphEdit Keys") == 0)
+			else if (STREQ(km->idname, "GraphEdit Keys"))
 				strcpy(km->idname, "Graph Editor");
-			else if (strcmp(km->idname, "GraphEdit Generic") == 0)
+			else if (STREQ(km->idname, "GraphEdit Generic"))
 				strcpy(km->idname, "Graph Editor Generic");
-			else if (strcmp(km->idname, "Action_Keys") == 0)
+			else if (STREQ(km->idname, "Action_Keys"))
 				strcpy(km->idname, "Dopesheet");
-			else if (strcmp(km->idname, "NLA Data") == 0)
+			else if (STREQ(km->idname, "NLA Data"))
 				strcpy(km->idname, "NLA Editor");
-			else if (strcmp(km->idname, "Node Generic") == 0)
+			else if (STREQ(km->idname, "Node Generic"))
 				strcpy(km->idname, "Node Editor");
-			else if (strcmp(km->idname, "Logic Generic") == 0)
+			else if (STREQ(km->idname, "Logic Generic"))
 				strcpy(km->idname, "Logic Editor");
-			else if (strcmp(km->idname, "File") == 0)
+			else if (STREQ(km->idname, "File"))
 				strcpy(km->idname, "File Browser");
-			else if (strcmp(km->idname, "FileMain") == 0)
+			else if (STREQ(km->idname, "FileMain"))
 				strcpy(km->idname, "File Browser Main");
-			else if (strcmp(km->idname, "FileButtons") == 0)
+			else if (STREQ(km->idname, "FileButtons"))
 				strcpy(km->idname, "File Browser Buttons");
-			else if (strcmp(km->idname, "Buttons Generic") == 0)
+			else if (STREQ(km->idname, "Buttons Generic"))
 				strcpy(km->idname, "Property Editor");
 		}
 	}

@@ -239,7 +239,7 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
 static int get_file_icon(struct direntry *file)
 {
 	if (file->type & S_IFDIR) {
-		if (strcmp(file->relname, "..") == 0) {
+		if (STREQ(file->relname, "..")) {
 			return ICON_FILE_PARENT;
 		}
 		if (file->flags & FILE_TYPE_APPLICATIONBUNDLE) {
@@ -403,7 +403,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
 	BLI_make_file_string(G.main->name, newname, sfile->params->dir, filename);
 
-	if (strcmp(orgname, newname) != 0) {
+	if (!STREQ(orgname, newname)) {
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */

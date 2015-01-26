@@ -183,11 +183,11 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 				retval = FILE_SELECT_DIR;
 			}
 			/* the path is too long and we are not going up! */
-			else if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
+			else if (!STREQ(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
 				// XXX error("Path too long, cannot enter this directory");
 			}
 			else {
-				if (strcmp(file->relname, "..") == 0) {
+				if (STREQ(file->relname, "..")) {
 					/* avoids /../../ */
 					BLI_parent_dir(params->dir);
 				}

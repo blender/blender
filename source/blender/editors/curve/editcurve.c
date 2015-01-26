@@ -999,7 +999,7 @@ static void fcurve_path_rename(AnimData *adt, const char *orig_rna_path, char *r
 
 	for (fcu = orig_curves->first; fcu; fcu = nextfcu) {
 		nextfcu = fcu->next;
-		if (!strncmp(fcu->rna_path, orig_rna_path, len)) {
+		if (STREQLEN(fcu->rna_path, orig_rna_path, len)) {
 			char *spath, *suffix = fcu->rna_path + len;
 			nfcu = copy_fcurve(fcu);
 			spath = nfcu->rna_path;
@@ -1102,10 +1102,10 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 	for (fcu = orig_curves->first; fcu; fcu = next) {
 		next = fcu->next;
 
-		if (!strncmp(fcu->rna_path, "splines", 7)) {
+		if (STREQLEN(fcu->rna_path, "splines", 7)) {
 			const char *ch = strchr(fcu->rna_path, '.');
 
-			if (ch && (!strncmp(ch, ".bezier_points", 14) || !strncmp(ch, ".points", 7)))
+			if (ch && (STREQLEN(ch, ".bezier_points", 14) || STREQLEN(ch, ".points", 7)))
 				fcurve_remove(adt, orig_curves, fcu);
 		}
 	}
@@ -1129,7 +1129,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 	for (fcu = orig_curves->first; fcu; fcu = next) {
 		next = fcu->next;
 
-		if (!strncmp(fcu->rna_path, "splines", 7)) fcurve_remove(adt, orig_curves, fcu);
+		if (STREQLEN(fcu->rna_path, "splines", 7)) fcurve_remove(adt, orig_curves, fcu);
 		else BLI_addtail(&curves, fcu);
 	}
 
@@ -6768,7 +6768,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
-	int clear = (strcmp(op->idname, "CURVE_OT_shade_flat") == 0);
+	int clear = (STREQ(op->idname, "CURVE_OT_shade_flat"));
 	
 	if (obedit->type != OB_CURVE)
 		return OPERATOR_CANCELLED;

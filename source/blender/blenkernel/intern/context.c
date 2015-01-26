@@ -454,7 +454,7 @@ static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
 {
 	LinkData *link;
 	
-	if ((use_all == false) && strcmp(member, "scene") == 0) /* exception */
+	if ((use_all == false) && STREQ(member, "scene")) /* exception */
 		return;
 
 	if (BLI_findstring(lb, member, offsetof(LinkData, data)))
@@ -546,7 +546,7 @@ ListBase CTX_data_dir_get(const bContext *C)
 
 bool CTX_data_equals(const char *member, const char *str)
 {
-	return (strcmp(member, str) == 0);
+	return (STREQ(member, str));
 }
 
 bool CTX_data_dir(const char *member)

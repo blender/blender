@@ -1299,7 +1299,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 
 		for (vf = main->vfont.first; vf; vf = vf->id.next) {
-			if (strcmp(vf->name + strlen(vf->name)-6, ".Bfont") == 0) {
+			if (STREQ(vf->name + strlen(vf->name)-6, ".Bfont")) {
 				strcpy(vf->name, FO_BUILTIN_NAME);
 			}
 		}
@@ -2314,7 +2314,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		if (main->versionfile == 241) {
 			Image *ima;
 			for (ima = main->image.first; ima; ima = ima->id.next)
-				if (strcmp(ima->name, "Compositor") == 0) {
+				if (STREQ(ima->name, "Compositor")) {
 					strcpy(ima->id.name + 2, "Viewer Node");
 					strcpy(ima->name, "Viewer Node");
 				}
@@ -2502,11 +2502,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				ima->gen_x = 256; ima->gen_y = 256;
 				ima->gen_type = 1;
 
-				if (0 == strncmp(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2)) {
+				if (STREQLEN(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2)) {
 					ima->source = IMA_SRC_VIEWER;
 					ima->type = IMA_TYPE_COMPOSITE;
 				}
-				if (0 == strncmp(ima->id.name + 2, "Render Result", sizeof(ima->id.name) - 2)) {
+				if (STREQLEN(ima->id.name + 2, "Render Result", sizeof(ima->id.name) - 2)) {
 					ima->source = IMA_SRC_VIEWER;
 					ima->type = IMA_TYPE_R_RESULT;
 				}

@@ -34,6 +34,8 @@
 
 #include <string.h>
 
+#include "BLI_utildefines.h"
+
 //--------------------------------------------------------------------
 ErrorHandler::ErrorHandler() : mError(false)
 {
@@ -55,13 +57,13 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 
 		// Workaround to avoid wrong error
 		if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_MIN_OCCURS_UNMATCHED) {
-			if (strcmp(parserError.getElement(), "effect") == 0) {
+			if (STREQ(parserError.getElement(), "effect")) {
 				isError = false;
 			}
 		}
 		if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_SEQUENCE_PREVIOUS_SIBLING_NOT_PRESENT) {
-			if (!((strcmp(parserError.getElement(), "extra") == 0) &&
-			      (strcmp(parserError.getAdditionalText().c_str(), "sibling: fx_profile_abstract") == 0)))
+			if (!(STREQ(parserError.getElement(), "extra") &&
+			      STREQ(parserError.getAdditionalText().c_str(), "sibling: fx_profile_abstract")))
 			{
 				isError = false;
 			}

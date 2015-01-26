@@ -474,7 +474,7 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 	for (link = listbase->first; link; link = link->next) {
 		id_iter = ((const char *)link) + offset;
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
+		if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
 			return link;
 		}
 	}
@@ -494,7 +494,7 @@ void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset
 	for (link = listbase->last; link; link = link->prev) {
 		id_iter = ((const char *)link) + offset;
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
+		if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
 			return link;
 		}
 	}
@@ -515,7 +515,7 @@ void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int off
 		/* exact copy of BLI_findstring(), except for this line */
 		id_iter = *((const char **)(((const char *)link) + offset));
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
+		if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
 			return link;
 		}
 	}
@@ -536,7 +536,7 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
 		/* exact copy of BLI_rfindstring(), except for this line */
 		id_iter = *((const char **)(((const char *)link) + offset));
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
+		if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
 			return link;
 		}
 	}
@@ -600,7 +600,7 @@ int BLI_findstringindex(const ListBase *listbase, const char *id, const int offs
 	while (link) {
 		id_iter = ((const char *)link) + offset;
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0)
+		if (id[0] == id_iter[0] && STREQ(id, id_iter))
 			return i;
 		i++;
 		link = link->next;

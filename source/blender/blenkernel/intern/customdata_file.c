@@ -417,7 +417,7 @@ CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, const char *name)
 	for (a = 0; a < cdf->totlayer; a++) {
 		layer = &cdf->layer[a];
 
-		if (layer->type == type && strcmp(layer->name, name) == 0)
+		if (layer->type == type && STREQ(layer->name, name))
 			return layer;
 	}
 	

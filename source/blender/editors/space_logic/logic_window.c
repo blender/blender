@@ -166,7 +166,7 @@ void make_unique_prop_names(bContext *C, char *str)
 	/* now we check for double names, and change them */
 	
 	for (nr=0; nr<propcount; nr++) {
-		if (names[nr]!=str && strcmp( names[nr], str )==0 ) {
+		if (names[nr] != str && STREQ(names[nr], str)) {
 			BLI_newname(str, +1);
 		}
 	}

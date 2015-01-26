@@ -137,7 +137,7 @@ static int blf_search(const char *name)
 
 	for (i = 0; i < BLF_MAX_FONT; i++) {
 		font = global_font[i];
-		if (font && (!strcmp(font->name, name)))
+		if (font && (STREQ(font->name, name)))
 			return i;
 	}
 
@@ -324,7 +324,7 @@ void BLF_unload(const char *name)
 	for (i = 0; i < BLF_MAX_FONT; i++) {
 		font = global_font[i];
 
-		if (font && (!strcmp(font->name, name))) {
+		if (font && (STREQ(font->name, name))) {
 			blf_font_free(font);
 			global_font[i] = NULL;
 		}

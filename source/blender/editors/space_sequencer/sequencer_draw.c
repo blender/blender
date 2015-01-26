@@ -467,7 +467,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		}
 	}
 	else if (seq->type == SEQ_TYPE_MOVIECLIP) {
-		if (seq->clip && strcmp(name, seq->clip->id.name + 2) != 0) {
+		if (seq->clip && !STREQ(name, seq->clip->id.name + 2)) {
 			str_len = BLI_snprintf(str, sizeof(str), "%s: %s | %d",
 			                       name, seq->clip->id.name + 2, seq->len);
 		}
@@ -477,7 +477,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		}
 	}
 	else if (seq->type == SEQ_TYPE_MASK) {
-		if (seq->mask && strcmp(name, seq->mask->id.name + 2) != 0) {
+		if (seq->mask && !STREQ(name, seq->mask->id.name + 2)) {
 			str_len = BLI_snprintf(str, sizeof(str), "%s: %s | %d",
 			                       name, seq->mask->id.name + 2, seq->len);
 		}

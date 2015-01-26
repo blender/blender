@@ -231,7 +231,7 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 
 		BLI_split_file_part(abs_name, fi, sizeof(fi));
 		BLI_snprintf(local_name, sizeof(local_name), "//%s/%s", folder, fi);
-		if (strcmp(abs_name, local_name) != 0) {
+		if (!STREQ(abs_name, local_name)) {
 			switch (checkPackedFile(local_name, pf)) {
 				case PF_NOFILE:
 					BLI_snprintf(line, sizeof(line), IFACE_("Create %s"), local_name);

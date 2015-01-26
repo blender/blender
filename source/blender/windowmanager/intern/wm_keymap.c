@@ -145,21 +145,15 @@ static void wm_keyconfig_properties_update_ot(ListBase *km_lb)
 	}
 }
 
-static int wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
+static bool wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 {
-	if (strcmp(a->idname, b->idname) != 0)
-		return 0;
-	
-	if (!RNA_struct_equals(a->ptr, b->ptr, RNA_EQ_UNSET_MATCH_NONE))
-		return 0;
-	
-	if ((a->flag & KMI_INACTIVE) != (b->flag & KMI_INACTIVE))
-		return 0;
-	
-	return (a->propvalue == b->propvalue);
+	return (STREQ(a->idname, b->idname) &&
+	        RNA_struct_equals(a->ptr, b->ptr, RNA_EQ_UNSET_MATCH_NONE) &&
+	        (a->flag & KMI_INACTIVE) == (b->flag & KMI_INACTIVE) &&
+	        a->propvalue == b->propvalue);
 }
 
-static int wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
+static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
 {
 	return (wm_keymap_item_equals_result(a, b) &&
 	        a->type == b->type &&
@@ -266,7 +260,7 @@ wmKeyConfig *WM_keyconfig_new_user(wmWindowManager *wm, const char *idname)
 bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
 	if (BLI_findindex(&wm->keyconfigs, keyconf) != -1) {
-		if (strncmp(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr)) == 0) {
+		if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
 			BLI_strncpy(U.keyconfigstr, wm->defaultconf->idname, sizeof(U.keyconfigstr));
 			WM_keyconfig_update_tag(NULL, NULL);
 		}
@@ -421,7 +415,7 @@ wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, const char *idname, int ty
 	wmKeyMapItem *kmi;
 	
 	for (kmi = keymap->items.first; kmi; kmi = kmi->next)
-		if (strncmp(kmi->idname, idname, OP_MAX_TYPENAME) == 0)
+		if (STREQLEN(kmi->idname, idname, OP_MAX_TYPENAME))
 			break;
 	if (kmi == NULL) {
 		kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
@@ -728,7 +722,7 @@ wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int
 
 	for (km = lb->first; km; km = km->next)
 		if (km->spaceid == spaceid && km->regionid == regionid)
-			if (0 == strncmp(idname, km->idname, KMAP_MAX_NAME))
+			if (STREQLEN(idname, km->idname, KMAP_MAX_NAME))
 				return km;
 	
 	return NULL;
@@ -787,7 +781,7 @@ wmKeyMap *WM_modalkeymap_get(wmKeyConfig *keyconf, const char *idname)
 	
 	for (km = keyconf->keymaps.first; km; km = km->next)
 		if (km->flag & KEYMAP_MODAL)
-			if (0 == strncmp(idname, km->idname, KMAP_MAX_NAME))
+			if (STREQLEN(idname, km->idname, KMAP_MAX_NAME))
 				break;
 	
 	return km;
@@ -952,7 +946,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 				if (kmi->flag & KMI_INACTIVE)
 					continue;
 				
-				if (strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0]) {
+				if (STREQ(kmi->idname, opname) && WM_key_event_string(kmi->type)[0]) {
 					if (is_hotkey) {
 						if (!ISHOTKEY(kmi->type))
 							continue;
@@ -963,7 +957,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 						/* example of debugging keymaps */
 #if 0
 						if (kmi->ptr) {
-							if (strcmp("MESH_OT_rip_move", opname) == 0) {
+							if (STREQ("MESH_OT_rip_move", opname)) {
 								printf("OPERATOR\n");
 								IDP_spit(properties);
 								printf("KEYMAP\n");
@@ -1353,7 +1347,7 @@ void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapIt
 
 	if (orig) {
 		/* restore to original */
-		if (strcmp(orig->idname, kmi->idname) != 0) {
+		if (!STREQ(orig->idname, kmi->idname)) {
 			BLI_strncpy(kmi->idname, orig->idname, sizeof(kmi->idname));
 			WM_keymap_properties_reset(kmi, NULL);
 		}

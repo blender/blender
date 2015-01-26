@@ -2003,7 +2003,7 @@ void BKE_scene_disable_color_management(Scene *scene)
 
 bool BKE_scene_check_color_management_enabled(const Scene *scene)
 {
-	return strcmp(scene->display_settings.display_device, "None") != 0;
+	return !STREQ(scene->display_settings.display_device, "None");
 }
 
 bool BKE_scene_check_rigidbody_active(const Scene *scene)

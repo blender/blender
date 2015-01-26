@@ -87,24 +87,24 @@ static PyObject *Freestyle_getCurrentScene(PyObject *self)
 
 static int ramp_blend_type(const char *type)
 {
-	if (!strcmp(type, "MIX"))           return MA_RAMP_BLEND;
-	if (!strcmp(type, "ADD"))           return MA_RAMP_ADD;
-	if (!strcmp(type, "MULTIPLY"))      return MA_RAMP_MULT;
-	if (!strcmp(type, "SUBTRACT"))      return MA_RAMP_SUB;
-	if (!strcmp(type, "SCREEN"))        return MA_RAMP_SCREEN;
-	if (!strcmp(type, "DIVIDE"))        return MA_RAMP_DIV;
-	if (!strcmp(type, "DIFFERENCE"))    return MA_RAMP_DIFF;
-	if (!strcmp(type, "DARKEN"))        return MA_RAMP_DARK;
-	if (!strcmp(type, "LIGHTEN"))       return MA_RAMP_LIGHT;
-	if (!strcmp(type, "OVERLAY"))       return MA_RAMP_OVERLAY;
-	if (!strcmp(type, "DODGE"))         return MA_RAMP_DODGE;
-	if (!strcmp(type, "BURN"))          return MA_RAMP_BURN;
-	if (!strcmp(type, "HUE"))           return MA_RAMP_HUE;
-	if (!strcmp(type, "SATURATION"))    return MA_RAMP_SAT;
-	if (!strcmp(type, "VALUE"))         return MA_RAMP_VAL;
-	if (!strcmp(type, "COLOR"))         return MA_RAMP_COLOR;
-	if (!strcmp(type, "SOFT_LIGHT"))    return MA_RAMP_SOFT;
-	if (!strcmp(type, "LINEAR_LIGHT"))  return MA_RAMP_LINEAR;
+	if (STREQ(type, "MIX"))           return MA_RAMP_BLEND;
+	if (STREQ(type, "ADD"))           return MA_RAMP_ADD;
+	if (STREQ(type, "MULTIPLY"))      return MA_RAMP_MULT;
+	if (STREQ(type, "SUBTRACT"))      return MA_RAMP_SUB;
+	if (STREQ(type, "SCREEN"))        return MA_RAMP_SCREEN;
+	if (STREQ(type, "DIVIDE"))        return MA_RAMP_DIV;
+	if (STREQ(type, "DIFFERENCE"))    return MA_RAMP_DIFF;
+	if (STREQ(type, "DARKEN"))        return MA_RAMP_DARK;
+	if (STREQ(type, "LIGHTEN"))       return MA_RAMP_LIGHT;
+	if (STREQ(type, "OVERLAY"))       return MA_RAMP_OVERLAY;
+	if (STREQ(type, "DODGE"))         return MA_RAMP_DODGE;
+	if (STREQ(type, "BURN"))          return MA_RAMP_BURN;
+	if (STREQ(type, "HUE"))           return MA_RAMP_HUE;
+	if (STREQ(type, "SATURATION"))    return MA_RAMP_SAT;
+	if (STREQ(type, "VALUE"))         return MA_RAMP_VAL;
+	if (STREQ(type, "COLOR"))         return MA_RAMP_COLOR;
+	if (STREQ(type, "SOFT_LIGHT"))    return MA_RAMP_SOFT;
+	if (STREQ(type, "LINEAR_LIGHT"))  return MA_RAMP_LINEAR;
 	return -1;
 }
 

@@ -216,7 +216,7 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 		CustomTool *ct;
 		
 		for (ct = st->toolshelf.first; ct; ct = ct->next) {
-			if (0 == strncmp(context, ct->context, OP_MAX_TYPENAME)) {
+			if (STREQLEN(context, ct->context, OP_MAX_TYPENAME)) {
 				col = uiLayoutColumn(pa->layout, true);
 				uiItemFullO(col, ct->opname, NULL, ICON_NONE, NULL, WM_OP_INVOKE_REGION_WIN, 0);
 			}

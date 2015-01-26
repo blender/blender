@@ -640,7 +640,7 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
 		for (a = 0; a < me->pdata.totlayer; a++) {
 			layer = &me->pdata.layers[a];
 
-			if (layer->type == CD_MTEXPOLY && strcmp(layer->name, value) == 0) {
+			if (layer->type == CD_MTEXPOLY && STREQ(layer->name, value)) {
 				BLI_strncpy(result, value, maxlen);
 				return;
 			}
@@ -663,7 +663,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *res
 		for (a = 0; a < me->fdata.totlayer; a++) {
 			layer = &me->fdata.layers[a];
 
-			if (layer->type == CD_MCOL && strcmp(layer->name, value) == 0) {
+			if (layer->type == CD_MCOL && STREQ(layer->name, value)) {
 				BLI_strncpy(result, value, maxlen);
 				return;
 			}

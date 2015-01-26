@@ -777,7 +777,7 @@ static void decode_blender_header(FileData *fd)
 	readsize = fd->read(fd, header, sizeof(header));
 	
 	if (readsize == sizeof(header)) {
-		if (strncmp(header, "BLENDER", 7) == 0) {
+		if (STREQLEN(header, "BLENDER", 7)) {
 			int remove_this_endian_test = 1;
 			
 			fd->flags |= FD_FLAGS_FILE_OK;
@@ -1182,7 +1182,7 @@ bool BLO_is_a_library(const char *path, char *dir, char *group)
 		
 		/* now we know that we are in a blend file and it is safe to 
 		 * assume that gp actually points to a group */
-		if (strcmp("Screen", gp) != 0)
+		if (!STREQ("Screen", gp))
 			BLI_strncpy(group, gp, BLO_GROUP_MAX);
 	}
 	return 1;
@@ -6011,7 +6011,7 @@ typedef enum ePointerUserMode {
 
 static bool restore_pointer(ID *id, ID *newid, ePointerUserMode user)
 {
-	if (strcmp(newid->name + 2, id->name + 2) == 0) {
+	if (STREQ(newid->name + 2, id->name + 2)) {
 		if (newid->lib == id->lib) {
 			if (user == USER_ONE) {
 				if (newid->us == 0) {
@@ -9099,7 +9099,7 @@ static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, cons
 		if (bhead->code == idcode) {
 			const char *idname_test= bhead_id_name(fd, bhead);
 			
-			if (strcmp(idname_test + 2, idname) == 0) {
+			if (STREQ(idname_test + 2, idname)) {
 				found = 1;
 				id = is_yet_read(fd, mainl, bhead);
 				if (id == NULL) {
@@ -9220,7 +9220,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **r_id)
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
 		if (bhead->code == GS(id->name)) {
 			
-			if (strcmp(id->name, bhead_id_name(fd, bhead))==0) {
+			if (STREQ(id->name, bhead_id_name(fd, bhead))) {
 				id->flag &= ~LIB_READ;
 				id->flag |= LIB_NEED_EXPAND;
 //				printf("read lib block %s\n", id->name);

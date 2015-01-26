@@ -295,7 +295,7 @@ static const char *rna_ui_get_enum_name(bContext *C, PointerRNA *ptr, const char
 
 	if (items) {
 		for (item = items; item->identifier; item++) {
-			if (item->identifier[0] && strcmp(item->identifier, identifier) == 0) {
+			if (item->identifier[0] && STREQ(item->identifier, identifier)) {
 				name = item->name;
 				break;
 			}
@@ -326,7 +326,7 @@ static const char *rna_ui_get_enum_description(bContext *C, PointerRNA *ptr, con
 
 	if (items) {
 		for (item = items; item->identifier; item++) {
-			if (item->identifier[0] && strcmp(item->identifier, identifier) == 0) {
+			if (item->identifier[0] && STREQ(item->identifier, identifier)) {
 				desc = item->description;
 				break;
 			}
@@ -356,7 +356,7 @@ static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propna
 
 	if (items) {
 		for (item = items; item->identifier; item++) {
-			if (item->identifier[0] && strcmp(item->identifier, identifier) == 0) {
+			if (item->identifier[0] && STREQ(item->identifier, identifier)) {
 				icon = item->icon;
 				break;
 			}

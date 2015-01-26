@@ -2923,7 +2923,7 @@ static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
 	if (mode != TEXT_FIND && txt_has_sel(text)) {
 		tmp = txt_sel_to_buf(text);
 
-		if (flags & ST_MATCH_CASE) found = strcmp(st->findstr, tmp) == 0;
+		if (flags & ST_MATCH_CASE) found = STREQ(st->findstr, tmp);
 		else found = BLI_strcasecmp(st->findstr, tmp) == 0;
 
 		if (found) {

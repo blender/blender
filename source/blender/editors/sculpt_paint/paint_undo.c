@@ -210,7 +210,7 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 			/* pass */
 		}
 		else {
-			if (!name || strcmp(stack->current->name, name) == 0) {
+			if (!name || STREQ(stack->current->name, name)) {
 				if (G.debug & G_DEBUG_WM) {
 					printf("%s: undo '%s'\n", __func__, stack->current->name);
 				}
@@ -225,7 +225,7 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 			/* pass */
 		}
 		else {
-			if (!name || strcmp(stack->current->name, name) == 0) {
+			if (!name || STREQ(stack->current->name, name)) {
 				undo = (stack->current && stack->current->next) ? stack->current->next : stack->elems.first;
 				undo_restore(C, stack, undo);
 				stack->current = undo;
@@ -394,7 +394,7 @@ int ED_undo_paint_valid(int type, const char *name)
 		/* pass */
 	}
 	else {
-		if (name && strcmp(stack->current->name, name) == 0)
+		if (name && STREQ(stack->current->name, name))
 			return 1;
 		else
 			return stack->elems.first != stack->elems.last;

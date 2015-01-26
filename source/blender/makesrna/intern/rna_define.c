@@ -109,7 +109,7 @@ PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier)
 
 	for (link = listbase->first; link; link = link->next) {
 		PropertyRNA *prop = ((PropertyDefRNA *)link)->prop;
-		if (prop && (strcmp(prop->identifier, identifier) == 0)) {
+		if (prop && (STREQ(prop->identifier, identifier))) {
 			return (PropertyDefRNA *)link;
 		}
 	}
@@ -428,7 +428,7 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 	}
 	
 	for (a = 0; kwlist[a]; a++) {
-		if (strcmp(identifier, kwlist[a]) == 0) {
+		if (STREQ(identifier, kwlist[a])) {
 			strcpy(error, "this keyword is reserved by python");
 			return 0;
 		}
@@ -442,7 +442,7 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 		};
 
 		for (a = 0; kwlist_prop[a]; a++) {
-			if (strcmp(identifier, kwlist_prop[a]) == 0) {
+			if (STREQ(identifier, kwlist_prop[a])) {
 				strcpy(error, "this keyword is reserved by python");
 				return 0;
 			}
@@ -496,7 +496,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 	}
 	
 	for (a = 0; kwlist[a]; a++) {
-		if (strcmp(identifier, kwlist[a]) == 0) {
+		if (STREQ(identifier, kwlist[a])) {
 			/* this keyword is reserved by python.
 			 * just replace the last character by '_' to keep it readable.
 			 */
@@ -513,7 +513,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 		};
 
 		for (a = 0; kwlist_prop[a]; a++) {
-			if (strcmp(identifier, kwlist_prop[a]) == 0) {
+			if (STREQ(identifier, kwlist_prop[a])) {
 				/* this keyword is reserved by python.
 				 * just replace the last character by '_' to keep it readable.
 				 */
@@ -814,7 +814,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	if (from) {
 		/* find struct to derive from */
 		for (srnafrom = brna->structs.first; srnafrom; srnafrom = srnafrom->cont.next)
-			if (strcmp(srnafrom->identifier, from) == 0)
+			if (STREQ(srnafrom->identifier, from))
 				break;
 
 		if (!srnafrom) {
@@ -896,7 +896,7 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
 
 	/* find struct to derive from */
 	for (srnafrom = brna->structs.first; srnafrom; srnafrom = srnafrom->cont.next)
-		if (strcmp(srnafrom->identifier, structname) == 0)
+		if (STREQ(srnafrom->identifier, structname))
 			break;
 
 	if (!srnafrom) {
@@ -1871,15 +1871,15 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 		}
 
 		/* SDNA doesn't pass us unsigned unfortunately .. */
-		if (dp->dnatype && strcmp(dp->dnatype, "char") == 0) {
+		if (dp->dnatype && STREQ(dp->dnatype, "char")) {
 			iprop->hardmin = iprop->softmin = CHAR_MIN;
 			iprop->hardmax = iprop->softmax = CHAR_MAX;
 		}
-		else if (dp->dnatype && strcmp(dp->dnatype, "short") == 0) {
+		else if (dp->dnatype && STREQ(dp->dnatype, "short")) {
 			iprop->hardmin = iprop->softmin = SHRT_MIN;
 			iprop->hardmax = iprop->softmax = SHRT_MAX;
 		}
-		else if (dp->dnatype && strcmp(dp->dnatype, "int") == 0) {
+		else if (dp->dnatype && STREQ(dp->dnatype, "int")) {
 			iprop->hardmin = INT_MIN;
 			iprop->hardmax = INT_MAX;
 
@@ -1923,7 +1923,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 			}
 		}
 
-		if (dp->dnatype && strcmp(dp->dnatype, "char") == 0) {
+		if (dp->dnatype && STREQ(dp->dnatype, "char")) {
 			fprop->hardmin = fprop->softmin = 0.0f;
 			fprop->hardmax = fprop->softmax = 1.0f;
 		}
@@ -2060,7 +2060,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 			}
 		}
 
-		if (dp->dnatype && strcmp(dp->dnatype, "ListBase") == 0) {
+		if (dp->dnatype && STREQ(dp->dnatype, "ListBase")) {
 			cprop->next = (PropCollectionNextFunc)"rna_iterator_listbase_next";
 			cprop->get = (PropCollectionGetFunc)"rna_iterator_listbase_get";
 			cprop->end = (PropCollectionEndFunc)"rna_iterator_listbase_end";
@@ -3427,7 +3427,7 @@ int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *ide
 	PropertyRNA *prop;
 	
 	for (prop = cont->properties.first; prop; prop = prop->next) {
-		if (strcmp(prop->identifier, identifier) == 0) {
+		if (STREQ(prop->identifier, identifier)) {
 			if (prop->flag & PROP_RUNTIME) {
 				rna_def_property_free(cont_, prop);
 				return 1;

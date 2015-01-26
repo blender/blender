@@ -76,7 +76,7 @@ bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, con
 	}
 	info = img->metadata;
 	while (info) {
-		if (strcmp(key, info->key) == 0) {
+		if (STREQ(key, info->key)) {
 			BLI_strncpy(field, info->value, len);
 			retval = true;
 			break;
@@ -123,7 +123,7 @@ bool IMB_metadata_del_field(struct ImBuf *img, const char *key)
 	p = img->metadata;
 	p1 = NULL;
 	while (p) {
-		if (!strcmp(key, p->key)) {
+		if (STREQ(key, p->key)) {
 			if (p1)
 				p1->next = p->next;
 			else
@@ -152,7 +152,7 @@ bool IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *f
 
 	p = img->metadata;
 	while (p) {
-		if (!strcmp(key, p->key)) {
+		if (STREQ(key, p->key)) {
 			MEM_freeN(p->value);
 			p->value = BLI_strdup(field);
 			return true;

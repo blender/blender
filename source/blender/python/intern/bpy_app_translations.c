@@ -260,7 +260,7 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 		return msgid;
 
 	tmp = BLF_lang_get();
-	if (strcmp(tmp, locale) || !_translations_cache) {
+	if (!STREQ(tmp, locale) || !_translations_cache) {
 		PyGILState_STATE _py_state;
 
 		BLI_strncpy(locale, tmp, STATIC_LOCALE_SIZE);

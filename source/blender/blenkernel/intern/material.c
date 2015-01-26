@@ -1027,7 +1027,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 		Group *group;
 
 		for (group = G.main->group.first; group; group = group->id.next) {
-			if (!group->id.lib && strcmp(group->id.name, ma->group->id.name) == 0) {
+			if (!group->id.lib && STREQ(group->id.name, ma->group->id.name)) {
 				ma->group = group;
 			}
 		}

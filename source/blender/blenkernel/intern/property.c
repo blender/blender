@@ -136,7 +136,7 @@ static bProperty *bproperty_get(bProperty *first, bProperty *self, const char *n
 {
 	bProperty *p;
 	for (p = first; p; p = p->next) {
-		if (p != self && (strcmp(p->name, name) == 0))
+		if (p != self && STREQ(p->name, name))
 			return p;
 	}
 	return NULL;

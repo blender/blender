@@ -439,7 +439,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
 
 static int node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
-	if (strcmp(ntree->idname, "CompositorNodeTree") == 0) {
+	if (STREQ(ntree->idname, "CompositorNodeTree")) {
 		Scene *scene;
 		
 		/* XXX ugly: check if ntree is a local scene node tree.

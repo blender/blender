@@ -1919,7 +1919,7 @@ static void ui_update_color_picker_buts_rgb(uiBlock *block, ColorPicker *cpicker
 			ui_but_v3_set(bt, rgb);
 			
 		}
-		else if (strcmp(bt->str, "Hex: ") == 0) {
+		else if (STREQ(bt->str, "Hex: ")) {
 			float rgb_gamma[3];
 			unsigned char rgb_gamma_uchar[3];
 			double intpart;

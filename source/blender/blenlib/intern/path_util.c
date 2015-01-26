@@ -1369,9 +1369,7 @@ bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
 	ssize_t a;
 
 	/* first check the extension is already there */
-	if (    (ext_len <= path_len) &&
-	        (strcmp(path + (path_len - ext_len), ext) == 0))
-	{
+	if ((ext_len <= path_len) && (STREQ(path + (path_len - ext_len), ext))) {
 		return true;
 	}
 

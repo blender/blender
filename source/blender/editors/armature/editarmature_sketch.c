@@ -333,11 +333,11 @@ static void sk_autoname(bContext *C, ReebArc *arc)
 			if (side[0] == '\0') {
 				valid = 1;
 			}
-			else if (strcmp(side, "R") == 0 || strcmp(side, "L") == 0) {
+			else if (STREQ(side, "R") || STREQ(side, "L")) {
 				valid = 1;
 				caps = 1;
 			}
-			else if (strcmp(side, "r") == 0 || strcmp(side, "l") == 0) {
+			else if (STREQ(side, "r") || STREQ(side, "l")) {
 				valid = 1;
 				caps = 0;
 			}

@@ -63,7 +63,7 @@ static void node_shader_exec_geom(void *data, int UNUSED(thread), bNode *node, b
 		if (ngeo->uvname[0]) {
 			/* find uv map by name */
 			for (i = 0; i < shi->totuv; i++) {
-				if (strcmp(shi->uv[i].name, ngeo->uvname) == 0) {
+				if (STREQ(shi->uv[i].name, ngeo->uvname)) {
 					suv = &shi->uv[i];
 					break;
 				}
@@ -84,7 +84,7 @@ static void node_shader_exec_geom(void *data, int UNUSED(thread), bNode *node, b
 
 			if (ngeo->colname[0]) {
 				for (i = 0; i < shi->totcol; i++) {
-					if (strcmp(shi->col[i].name, ngeo->colname) == 0) {
+					if (STREQ(shi->col[i].name, ngeo->colname)) {
 						scol = &shi->col[i];
 						break;
 					}

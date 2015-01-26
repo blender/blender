@@ -304,10 +304,10 @@ static int compare_direntry_generic(const struct direntry *entry1, const struct 
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
 	
 	/* make sure "." and ".." are always first */
-	if (strcmp(entry1->relname, ".") == 0) return (-1);
-	if (strcmp(entry2->relname, ".") == 0) return (1);
-	if (strcmp(entry1->relname, "..") == 0) return (-1);
-	if (strcmp(entry2->relname, "..") == 0) return (1);
+	if (STREQ(entry1->relname, ".")) return (-1);
+	if (STREQ(entry2->relname, ".")) return (1);
+	if (STREQ(entry1->relname, "..")) return (-1);
+	if (STREQ(entry2->relname, "..")) return (1);
 	
 	return 0;
 }
@@ -634,10 +634,10 @@ ImBuf *filelist_geticon(struct FileList *filelist, const int index)
 	fidx = filelist->fidx[index];
 	file = &filelist->filelist[fidx];
 	if (file->type & S_IFDIR) {
-		if (strcmp(filelist->filelist[fidx].relname, "..") == 0) {
+		if (STREQ(filelist->filelist[fidx].relname, "..")) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
 		}
-		else if (strcmp(filelist->filelist[fidx].relname, ".") == 0) {
+		else if (STREQ(filelist->filelist[fidx].relname, ".")) {
 			ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
 		}
 		else {
@@ -773,7 +773,8 @@ int filelist_find(struct FileList *filelist, const char *filename)
 
 	
 	for (i = 0; i < filelist->numfiles; ++i) {
-		if (strcmp(filelist->filelist[i].relname, filename) == 0) {  /* not dealing with user input so don't need BLI_path_cmp */
+		/* not dealing with user input so don't need BLI_path_cmp */
+		if (STREQ(filelist->filelist[i].relname, filename)) {
 			index = i;
 			break;
 		}

@@ -206,7 +206,7 @@ static void undo_clean_stack(bContext *C)
 		
 		/* for when objects are converted, renamed, or global undo changes pointers... */
 		if (uel->type == obedit->type) {
-			if (strcmp(uel->id.name, obedit->id.name) == 0) {
+			if (STREQ(uel->id.name, obedit->id.name)) {
 				if (uel->validate_undo == NULL)
 					is_valid = true;
 				else if (uel->validate_undo(uel->undodata, editdata))
@@ -305,7 +305,7 @@ void undo_editmode_name(bContext *C, const char *undoname)
 	UndoElem *uel;
 	
 	for (uel = undobase.last; uel; uel = uel->prev) {
-		if (strcmp(undoname, uel->name) == 0)
+		if (STREQ(undoname, uel->name))
 			break;
 	}
 	if (uel && uel->prev) {
@@ -321,7 +321,7 @@ int undo_editmode_valid(const char *undoname)
 		UndoElem *uel;
 		
 		for (uel = undobase.last; uel; uel = uel->prev) {
-			if (strcmp(undoname, uel->name) == 0)
+			if (STREQ(undoname, uel->name))
 				break;
 		}
 		return uel != NULL;

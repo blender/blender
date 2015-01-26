@@ -469,8 +469,8 @@ static int ffmpeg_proprty_valid(AVCodecContext *c, const char *prop_name, IDProp
 {
 	int valid = 1;
 
-	if (strcmp(prop_name, "video") == 0) {
-		if (strcmp(curr->name, "bf") == 0) {
+	if (STREQ(prop_name, "video")) {
+		if (STREQ(curr->name, "bf")) {
 			/* flash codec doesn't support b frames */
 			valid &= c->codec_id != AV_CODEC_ID_FLV1;
 		}
@@ -624,9 +624,9 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
 #if 0
-	    || !strcmp(of->oformat->name, "mp4")
-	    || !strcmp(of->oformat->name, "mov")
-	    || !strcmp(of->oformat->name, "3gp")
+	    || STREQ(of->oformat->name, "mp4")
+	    || STREQ(of->oformat->name, "mov")
+	    || STREQ(of->oformat->name, "3gp")
 #endif
 	    )
 	{

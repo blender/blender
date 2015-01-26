@@ -355,7 +355,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 		else {
 			len = gzread(gzfile, header, sizeof(header));
 			gzclose(gzfile);
-			if (len == sizeof(header) && strncmp(header, "BLENDER", 7) == 0) {
+			if (len == sizeof(header) && STREQLEN(header, "BLENDER", 7)) {
 				retval = BKE_READ_EXOTIC_OK_BLEND;
 			}
 			else {

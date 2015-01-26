@@ -230,7 +230,7 @@ FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_
 	/* check paths of curves, then array indices... */
 	for (fcu = list->first; fcu; fcu = fcu->next) {
 		/* simple string-compare (this assumes that they have the same root...) */
-		if (fcu->rna_path && !strcmp(fcu->rna_path, rna_path)) {
+		if (fcu->rna_path && STREQ(fcu->rna_path, rna_path)) {
 			/* now check indices */
 			if (fcu->array_index == array_index)
 				return fcu;
@@ -253,7 +253,7 @@ FCurve *iter_step_fcurve(FCurve *fcu_iter, const char rna_path[])
 	/* check paths of curves, then array indices... */
 	for (fcu = fcu_iter; fcu; fcu = fcu->next) {
 		/* simple string-compare (this assumes that they have the same root...) */
-		if (fcu->rna_path && !strcmp(fcu->rna_path, rna_path)) {
+		if (fcu->rna_path && STREQ(fcu->rna_path, rna_path)) {
 			return fcu;
 		}
 	}
@@ -290,7 +290,7 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 			
 			if (quotedName) {
 				/* check if the quoted name matches the required name */
-				if (strcmp(quotedName, dataName) == 0) {
+				if (STREQ(quotedName, dataName)) {
 					LinkData *ld = MEM_callocN(sizeof(LinkData), __func__);
 					
 					ld->data = fcu;

@@ -390,7 +390,7 @@ void paste_gpdata(Scene *scene)
 		/* find suitable layer from buffer to use to paste from */
 		for (gpls = gpcopybuf.first; gpls; gpls = gpls->next) {
 			/* check if layer name matches */
-			if ((no_name) || (strcmp(gpls->info, gpld->info) == 0))
+			if ((no_name) || STREQ(gpls->info, gpld->info))
 				break;
 		}
 		

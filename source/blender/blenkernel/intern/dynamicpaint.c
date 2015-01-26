@@ -368,7 +368,7 @@ static bool surface_duplicateNameExists(void *arg, const char *name)
 	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
 
 	for (; surface; surface = surface->next) {
-		if (surface != t_surface && !strcmp(name, surface->name)) return true;
+		if (surface != t_surface && STREQ(name, surface->name)) return true;
 	}
 	return false;
 }

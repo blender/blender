@@ -51,7 +51,7 @@ static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNo
 	node->custom1 = SHD_SUBSURFACE_CUBIC;
 
 	/*for (sock = node->inputs.first; sock; sock = sock->next) {
-		if (strcmp(sock->name, "Sharpness") == 0) {
+		if (STREQ(sock->name, "Sharpness")) {
 			bNodeSocketValueFloat *dval = sock->default_value;
 			dval->value = 0.0f;
 		}
@@ -72,7 +72,7 @@ static void node_shader_update_subsurface_scattering(bNodeTree *UNUSED(ntree), b
 	int falloff = node->custom1;
 
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		if (strcmp(sock->name, "Sharpness") == 0) {
+		if (STREQ(sock->name, "Sharpness")) {
 			if (falloff == SHD_SUBSURFACE_CUBIC)
 				sock->flag &= ~SOCK_UNAVAIL;
 			else

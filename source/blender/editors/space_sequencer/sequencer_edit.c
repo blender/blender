@@ -987,13 +987,13 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene *scene)
 // XXX	if (0 == sbutton(to, 0, sizeof(to)-1, "To: "))
 //		return;
 	
-	if (strcmp(to, from) == 0)
+	if (STREQ(to, from))
 		return;
 	
 	SEQP_BEGIN (ed, seq)
 	{
 		if (seq->flag & SELECT) {
-			if (strncmp(seq->strip->dir, from, strlen(from)) == 0) {
+			if (STREQLEN(seq->strip->dir, from, strlen(from))) {
 				printf("found %s\n", seq->strip->dir);
 				
 				/* strip off the beginning */

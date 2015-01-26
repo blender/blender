@@ -108,7 +108,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 	bNodeSocket *sock;
 	
 	for (sock = socklist->first; sock; sock = sock->next) {
-		if (strncmp(sock->name, stemp->name, NODE_MAXSTR) == 0)
+		if (STREQLEN(sock->name, stemp->name, NODE_MAXSTR))
 			break;
 	}
 	if (sock) {

@@ -549,7 +549,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *ar)
 	full_update |= drawcache->tabnumber != st->tabnumber;     /* word-wrapping option was toggled */
 	full_update |= drawcache->lheight != st->lheight_dpi;         /* word-wrapping option was toggled */
 	full_update |= drawcache->cwidth != st->cwidth;           /* word-wrapping option was toggled */
-	full_update |= strncmp(drawcache->text_id, txt->id.name, MAX_ID_NAME); /* text datablock was changed */
+	full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME); /* text datablock was changed */
 
 	if (st->wordwrap) {
 		/* update line heights */

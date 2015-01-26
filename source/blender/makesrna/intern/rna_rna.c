@@ -179,7 +179,7 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 	 * for the second loop where we go over unknown id properties */
 	do {
 		for (prop = ptype->cont.properties.first; prop; prop = prop->next)
-			if ((prop->flag & PROP_BUILTIN) == 0 && strcmp(prop->identifier, idprop->name) == 0)
+			if ((prop->flag & PROP_BUILTIN) == 0 && STREQ(prop->identifier, idprop->name))
 				return 1;
 	} while ((ptype = ptype->base));
 
@@ -386,7 +386,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 		}
 		else {
 			for (prop = srna->cont.properties.first; prop; prop = prop->next) {
-				if (!(prop->flag & PROP_BUILTIN) && strcmp(prop->identifier, key) == 0) {
+				if (!(prop->flag & PROP_BUILTIN) && STREQ(prop->identifier, key)) {
 					propptr.type = &RNA_Property;
 					propptr.data = prop;
 
@@ -408,7 +408,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 
 		if (group) {
 			for (idp = group->data.group.first; idp; idp = idp->next) {
-				if (strcmp(idp->name, key) == 0) {
+				if (STREQ(idp->name, key)) {
 					propptr.type = &RNA_Property;
 					propptr.data = idp;
 
@@ -1002,7 +1002,7 @@ static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key
 {
 	StructRNA *srna = ((BlenderRNA *)ptr->data)->structs.first;
 	for (; srna; srna = srna->cont.next) {
-		if (key[0] == srna->identifier[0] && strcmp(key, srna->identifier) == 0) {
+		if (key[0] == srna->identifier[0] && STREQ(key, srna->identifier)) {
 			RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
 			return true;
 		}

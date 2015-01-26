@@ -81,7 +81,7 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 	
 	for (dm = dropboxes.first; dm; dm = dm->next)
 		if (dm->spaceid == spaceid && dm->regionid == regionid)
-			if (0 == strncmp(idname, dm->idname, KMAP_MAX_NAME))
+			if (STREQLEN(idname, dm->idname, KMAP_MAX_NAME))
 				return &dm->dropboxes;
 	
 	dm = MEM_callocN(sizeof(struct wmDropBoxMap), "dropmap list");

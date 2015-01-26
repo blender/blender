@@ -54,7 +54,7 @@ static EditBone *get_edit_bone(bArmature * armature, char *name) {
 	EditBone  *eBone;
 
 	for (eBone = (EditBone *)armature->edbo->first; eBone; eBone = eBone->next) {
-		if (!strcmp(name, eBone->name))
+		if (STREQ(name, eBone->name))
 			return eBone;
 	}
 

@@ -233,7 +233,7 @@ static Bone *get_named_bone_bonechildren(Bone *bone, const char *name)
 {
 	Bone *curBone, *rbone;
 
-	if (!strcmp(bone->name, name))
+	if (STREQ(bone->name, name))
 		return bone;
 
 	for (curBone = bone->childbase.first; curBone; curBone = curBone->next) {
@@ -2417,7 +2417,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 						/* validate first */
 						if (amod->ob && amod->ob->type == OB_CURVE && amod->channel[0]) {
 
-							if (strcmp(pchan->name, amod->channel) == 0) {
+							if (STREQ(pchan->name, amod->channel)) {
 								float mat4[4][4], mat3[3][3];
 
 								curve_deform_vector(scene, amod->ob, armob, bone->arm_mat[3], pchan->pose_mat[3], mat3, amod->no_rot_axis);
@@ -2430,7 +2430,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 					break;
 					case ACTSTRIP_MOD_NOISE:
 					{
-						if (strcmp(pchan->name, amod->channel) == 0) {
+						if (STREQ(pchan->name, amod->channel)) {
 							float nor[3], loc[3], ofs;
 							float eul[3], size[3], eulo[3], sizeo[3];
 

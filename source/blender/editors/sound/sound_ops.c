@@ -399,7 +399,7 @@ static bool sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
 		if (item->value == container) {
 			const char **ext = snd_ext_sound;
 			while (*ext != NULL) {
-				if (!strcmp(*ext + 1, item->name)) {
+				if (STREQ(*ext + 1, item->name)) {
 					extension = *ext;
 					break;
 				}
@@ -449,9 +449,9 @@ static int sound_mixdown_invoke(bContext *C, wmOperator *op, const wmEvent *even
 static bool sound_mixdown_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
-	return !(strcmp(prop_id, "filepath") == 0 ||
-	         strcmp(prop_id, "directory") == 0 ||
-	         strcmp(prop_id, "filename") == 0);
+	return !(STREQ(prop_id, "filepath") ||
+	         STREQ(prop_id, "directory") ||
+	         STREQ(prop_id, "filename"));
 }
 
 static void sound_mixdown_draw(bContext *C, wmOperator *op)

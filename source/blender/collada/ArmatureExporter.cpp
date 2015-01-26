@@ -181,7 +181,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 			std::list<Object *>::iterator i = child_objects.begin();
 
 			while (i != child_objects.end()) {
-				if ((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name))) {
+				if ((*i)->partype == PARBONE && STREQ((*i)->parsubstr, bone->name)) {
 					float backup_parinv[4][4];
 					copy_m4_m4(backup_parinv, (*i)->parentinv);
 

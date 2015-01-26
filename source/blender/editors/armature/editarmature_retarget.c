@@ -718,7 +718,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 					cti->get_constraint_targets(con, &targets);
 					
 					for (target_index = 0, ct = targets.first; ct; target_index++, ct = ct->next) {
-						if ((ct->tar == rg->ob) && strcmp(ct->subtarget, ctrl->bone->name) == 0) {
+						if ((ct->tar == rg->ob) && STREQ(ct->subtarget, ctrl->bone->name)) {
 							/* SET bone link to bone corresponding to pchan */
 							EditBone *link = BLI_ghash_lookup(rg->bones_map, pchan->name);
 							
@@ -841,7 +841,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 							cti->get_constraint_targets(con, &targets);
 							
 							for (ct = targets.first; ct; ct = ct->next) {
-								if ((ct->tar == rg->ob) && strcmp(ct->subtarget, ctrl->bone->name) == 0) {
+								if ((ct->tar == rg->ob) && STREQ(ct->subtarget, ctrl->bone->name)) {
 									/* SET bone link to ctrl corresponding to pchan */
 									RigControl *link = BLI_ghash_lookup(rg->controls_map, pchan->name);
 
@@ -1160,7 +1160,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 				
 				last_bone = bone;
 				
-				if (strcmp(bone->name, "head") == 0) {
+				if (STREQ(bone->name, "head")) {
 					contain_head = 1;
 				}
 			}

@@ -76,9 +76,9 @@ void AnimationExporter::operator()(Object *ob)
 			else 
 				transformName = extract_transform_name(fcu->rna_path);
 
-			if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
-			    (!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL) ||
-			    (!strcmp(transformName, "rotation_quaternion")))
+			if ((STREQ(transformName, "location") || STREQ(transformName, "scale")) ||
+			    (STREQ(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL) ||
+			    (STREQ(transformName, "rotation_quaternion")))
 			{
 				dae_animation(ob, fcu, transformName, false);
 			}
@@ -98,8 +98,8 @@ void AnimationExporter::operator()(Object *ob)
 		while (fcu) {
 			transformName = extract_transform_name(fcu->rna_path);
 
-			if ((!strcmp(transformName, "color")) || (!strcmp(transformName, "spot_size")) ||
-			    (!strcmp(transformName, "spot_blend")) || (!strcmp(transformName, "distance")))
+			if ((STREQ(transformName, "color")) || (STREQ(transformName, "spot_size")) ||
+			    (STREQ(transformName, "spot_blend")) || (STREQ(transformName, "distance")))
 			{
 				dae_animation(ob, fcu, transformName, true);
 			}
@@ -113,10 +113,10 @@ void AnimationExporter::operator()(Object *ob)
 		while (fcu) {
 			transformName = extract_transform_name(fcu->rna_path);
 
-			if ((!strcmp(transformName, "lens")) ||
-			    (!strcmp(transformName, "ortho_scale")) ||
-			    (!strcmp(transformName, "clip_end")) || 
-				(!strcmp(transformName, "clip_start")))
+			if ((STREQ(transformName, "lens")) ||
+			    (STREQ(transformName, "ortho_scale")) ||
+			    (STREQ(transformName, "clip_end")) || 
+				(STREQ(transformName, "clip_start")))
 			{
 				dae_animation(ob, fcu, transformName, true);
 			}
@@ -134,9 +134,9 @@ void AnimationExporter::operator()(Object *ob)
 			while (fcu) {
 				transformName = extract_transform_name(fcu->rna_path);
 
-				if ((!strcmp(transformName, "specular_hardness")) || (!strcmp(transformName, "specular_color")) ||
-				    (!strcmp(transformName, "diffuse_color")) || (!strcmp(transformName, "alpha")) ||
-				    (!strcmp(transformName, "ior")))
+				if ((STREQ(transformName, "specular_hardness")) || (STREQ(transformName, "specular_color")) ||
+				    (STREQ(transformName, "diffuse_color")) || (STREQ(transformName, "alpha")) ||
+				    (STREQ(transformName, "ior")))
 				{
 					dae_animation(ob, fcu, transformName, true, ma);
 				}
@@ -225,7 +225,7 @@ float *AnimationExporter::get_eul_source_for_quat(Object *ob)
 	while (fcu) {
 		char *transformName = extract_transform_name(fcu->rna_path);
 
-		if (!strcmp(transformName, "rotation_quaternion") ) {
+		if (STREQ(transformName, "rotation_quaternion") ) {
 			for (int i = 0; i < fcu->totvert; i++) {
 				*(quat + (i * 4) + fcu->array_index) = fcu->bezt[i].vec[1][1];
 			}
@@ -278,17 +278,17 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 	bool has_tangents = false;
 	bool quatRotation = false;
 
-	if (!strcmp(transformName, "rotation_quaternion") ) {
+	if (STREQ(transformName, "rotation_quaternion") ) {
 		fprintf(stderr, "quaternion rotation curves are not supported. rotation curve will not be exported\n");
 		quatRotation = true;
 		return;
 	}
 
 	//axis names for colors
-	else if (!strcmp(transformName, "color") ||
-	         !strcmp(transformName, "specular_color") ||
-	         !strcmp(transformName, "diffuse_color") ||
-	         !strcmp(transformName, "alpha"))
+	else if (STREQ(transformName, "color") ||
+	         STREQ(transformName, "specular_color") ||
+	         STREQ(transformName, "diffuse_color") ||
+	         STREQ(transformName, "alpha"))
 	{
 		const char *axis_names[] = {"R", "G", "B"};
 		if (fcu->array_index < 3)
@@ -296,10 +296,10 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 	}
 
 	//axis names for transforms
-	else if (!strcmp(transformName, "location") ||
-	         !strcmp(transformName, "scale") ||
-	         !strcmp(transformName, "rotation_euler") ||
-	         !strcmp(transformName, "rotation_quaternion"))
+	else if (STREQ(transformName, "location") ||
+	         STREQ(transformName, "scale") ||
+	         STREQ(transformName, "rotation_euler") ||
+	         STREQ(transformName, "rotation_quaternion"))
 	{
 		const char *axis_names[] = {"X", "Y", "Z"};
 		if (fcu->array_index < 3)
@@ -357,7 +357,7 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 		MEM_freeN(eul);
 		MEM_freeN(eul_axis);
 	}
-	else if (!strcmp(transformName, "lens") && (ob->type == OB_CAMERA)) {
+	else if (STREQ(transformName, "lens") && (ob->type == OB_CAMERA)) {
 		output_id = create_lens_source_from_fcurve((Camera *) ob->data, COLLADASW::InputSemantic::OUTPUT, fcu, anim_id);
 	}
 	else {
@@ -763,7 +763,7 @@ std::string AnimationExporter::create_source_from_fcurve(COLLADASW::InputSemanti
 {
 	std::string source_id = anim_id + get_semantic_suffix(semantic);
 
-	//bool is_angle = !strcmp(fcu->rna_path, "rotation");
+	//bool is_angle = STREQ(fcu->rna_path, "rotation");
 	bool is_angle = false;
 
 	if (strstr(fcu->rna_path, "rotation") || strstr(fcu->rna_path,"spot_size")) is_angle = true;
@@ -1103,13 +1103,13 @@ std::string AnimationExporter::get_light_param_sid(char *rna_path, int tm_type, 
 	if (rna_path) {
 		char *name = extract_transform_name(rna_path);
 
-		if (!strcmp(name, "color"))
+		if (STREQ(name, "color"))
 			tm_type = 1;
-		else if (!strcmp(name, "spot_size"))
+		else if (STREQ(name, "spot_size"))
 			tm_type = 2;
-		else if (!strcmp(name, "spot_blend"))
+		else if (STREQ(name, "spot_blend"))
 			tm_type = 3;
-		else if (!strcmp(name, "distance"))
+		else if (STREQ(name, "distance"))
 			tm_type = 4;
 		else
 			tm_type = -1;
@@ -1151,13 +1151,13 @@ std::string AnimationExporter::get_camera_param_sid(char *rna_path, int tm_type,
 	if (rna_path) {
 		char *name = extract_transform_name(rna_path);
 
-		if (!strcmp(name, "lens"))
+		if (STREQ(name, "lens"))
 			tm_type = 0;
-		else if (!strcmp(name, "ortho_scale"))
+		else if (STREQ(name, "ortho_scale"))
 			tm_type = 1;
-		else if (!strcmp(name, "clip_end"))
+		else if (STREQ(name, "clip_end"))
 			tm_type = 2;
-		else if (!strcmp(name, "clip_start"))
+		else if (STREQ(name, "clip_start"))
 			tm_type = 3;
 
 		else
@@ -1203,23 +1203,23 @@ std::string AnimationExporter::get_transform_sid(char *rna_path, int tm_type, co
 	if (rna_path) {
 		char *name = extract_transform_name(rna_path);
 
-		if (!strcmp(name, "rotation_euler"))
+		if (STREQ(name, "rotation_euler"))
 			tm_type = 0;
-		else if (!strcmp(name, "rotation_quaternion"))
+		else if (STREQ(name, "rotation_quaternion"))
 			tm_type = 1;
-		else if (!strcmp(name, "scale"))
+		else if (STREQ(name, "scale"))
 			tm_type = 2;
-		else if (!strcmp(name, "location"))
+		else if (STREQ(name, "location"))
 			tm_type = 3;
-		else if (!strcmp(name, "specular_hardness"))
+		else if (STREQ(name, "specular_hardness"))
 			tm_type = 4;
-		else if (!strcmp(name, "specular_color"))
+		else if (STREQ(name, "specular_color"))
 			tm_type = 5;
-		else if (!strcmp(name, "diffuse_color"))
+		else if (STREQ(name, "diffuse_color"))
 			tm_type = 6;
-		else if (!strcmp(name, "alpha"))
+		else if (STREQ(name, "alpha"))
 			tm_type = 7;
-		else if (!strcmp(name, "ior"))
+		else if (STREQ(name, "ior"))
 			tm_type = 8;
 
 		else
@@ -1311,7 +1311,7 @@ void AnimationExporter::enable_fcurves(bAction *act, char *bone_name)
 
 	for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {
 		if (bone_name) {
-			if (!strncmp(fcu->rna_path, prefix, strlen(prefix)))
+			if (STREQLEN(fcu->rna_path, prefix, strlen(prefix)))
 				fcu->flag &= ~FCURVE_DISABLED;
 			else
 				fcu->flag |= FCURVE_DISABLED;
@@ -1378,11 +1378,11 @@ void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra, const c
 		FCurve *fcu = (FCurve *)ob->adt->action->curves.first;
 
 		for (; fcu; fcu = fcu->next) {
-			if (prefix && strncmp(prefix, fcu->rna_path, strlen(prefix)))
+			if (prefix && !STREQLEN(prefix, fcu->rna_path, strlen(prefix)))
 				continue;
 
 			char *name = extract_transform_name(fcu->rna_path);
-			if (!strcmp(name, tm_name)) {
+			if (STREQ(name, tm_name)) {
 				for (unsigned int i = 0; i < fcu->totvert; i++) {
 					float f = fcu->bezt[i].vec[1][0];
 					if (std::find(fra.begin(), fra.end(), f) == fra.end())

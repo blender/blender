@@ -135,10 +135,10 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 
 	/* OK, now we know their S_IFMT fields are the same, go on to a name comparison */
 	/* make sure "." and ".." are always first */
-	if (strcmp(entry1->relname, ".") == 0) return (-1);
-	if (strcmp(entry2->relname, ".") == 0) return (1);
-	if (strcmp(entry1->relname, "..") == 0) return (-1);
-	if (strcmp(entry2->relname, "..") == 0) return (1);
+	if (STREQ(entry1->relname, ".")) return (-1);
+	if (STREQ(entry2->relname, ".")) return (1);
+	if (STREQ(entry1->relname, "..")) return (-1);
+	if (STREQ(entry2->relname, "..")) return (1);
 
 	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }

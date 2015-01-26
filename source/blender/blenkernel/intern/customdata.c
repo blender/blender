@@ -1553,7 +1553,7 @@ int CustomData_get_named_layer_index(const CustomData *data, int type, const cha
 
 	for (i = 0; i < data->totlayer; ++i)
 		if (data->layers[i].type == type)
-			if (strcmp(data->layers[i].name, name) == 0)
+			if (STREQ(data->layers[i].name, name))
 				return i;
 
 	return -1;
@@ -2690,7 +2690,7 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 
 		/* if we found a matching layer, copy the data */
 		if (dest->layers[dest_i].type == source->layers[src_i].type &&
-		    strcmp(dest->layers[dest_i].name, source->layers[src_i].name) == 0)
+		    STREQ(dest->layers[dest_i].name, source->layers[src_i].name))
 		{
 			const char *src_data = (char *)src_block + source->layers[src_i].offset;
 			char *dest_data = (char *)*dest_block + dest->layers[dest_i].offset;
@@ -3163,12 +3163,12 @@ static bool cd_layer_find_dupe(CustomData *data, const char *name, int type, int
 			CustomDataLayer *layer = &data->layers[i];
 			
 			if (CustomData_is_property_layer(type)) {
-				if (CustomData_is_property_layer(layer->type) && strcmp(layer->name, name) == 0) {
+				if (CustomData_is_property_layer(layer->type) && STREQ(layer->name, name)) {
 					return true;
 				}
 			}
 			else {
-				if (i != index && layer->type == type && strcmp(layer->name, name) == 0) {
+				if (i != index && layer->type == type && STREQ(layer->name, name)) {
 					return true;
 				}
 			}

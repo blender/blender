@@ -835,7 +835,7 @@ static void rna_wmKeyMapItem_idname_set(PointerRNA *ptr, const char *value)
 
 	WM_operator_bl_idname(idname, value);
 
-	if (strcmp(idname, kmi->idname) != 0) {
+	if (!STREQ(idname, kmi->idname)) {
 		BLI_strncpy(kmi->idname, idname, sizeof(kmi->idname));
 
 		WM_keymap_properties_reset(kmi, NULL);

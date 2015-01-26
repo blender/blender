@@ -193,7 +193,7 @@ void *image_undo_find_tile(Image *ima, ImBuf *ibuf, int x_tile, int y_tile, unsi
 	for (tile = lb->first; tile; tile = tile->next) {
 		if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source) {
 			if (tile->use_float == use_float) {
-				if (strcmp(tile->idname, ima->id.name) == 0 && strcmp(tile->ibufname, ibuf->name) == 0) {
+				if (STREQ(tile->idname, ima->id.name) && STREQ(tile->ibufname, ibuf->name)) {
 					if (mask) {
 						/* allocate mask if requested */
 						if (!tile->mask) {
@@ -328,7 +328,7 @@ void ED_image_undo_restore(bContext *C, ListBase *lb)
 		short use_float;
 
 		/* find image based on name, pointer becomes invalid with global undo */
-		if (ima && strcmp(tile->idname, ima->id.name) == 0) {
+		if (ima && STREQ(tile->idname, ima->id.name)) {
 			/* ima is valid */
 		}
 		else {
@@ -337,7 +337,7 @@ void ED_image_undo_restore(bContext *C, ListBase *lb)
 
 		ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
-		if (ima && ibuf && strcmp(tile->ibufname, ibuf->name) != 0) {
+		if (ima && ibuf && !STREQ(tile->ibufname, ibuf->name)) {
 			/* current ImBuf filename was changed, probably current frame
 			 * was changed when painting on image sequence, rather than storing
 			 * full image user (which isn't so obvious, btw) try to find ImBuf with

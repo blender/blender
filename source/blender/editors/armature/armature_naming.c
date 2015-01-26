@@ -141,7 +141,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 	char oldname[MAXBONENAME];
 	
 	/* names better differ! */
-	if (strncmp(oldnamep, newnamep, MAXBONENAME)) {
+	if (!STREQLEN(oldnamep, newnamep, MAXBONENAME)) {
 		
 		/* we alter newname string... so make copy */
 		BLI_strncpy(newname, newnamep, MAXBONENAME);
@@ -219,7 +219,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 			if (ob->parent && (ob->parent->data == arm)) {
 				if (ob->partype == PARBONE) {
 					/* bone name in object */
-					if (!strcmp(ob->parsubstr, oldname))
+					if (STREQ(ob->parsubstr, oldname))
 						BLI_strncpy(ob->parsubstr, newname, MAXBONENAME);
 				}
 			}
@@ -285,7 +285,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
 							if (v3d->ob_centre && v3d->ob_centre->data == arm) {
-								if (!strcmp(v3d->ob_centre_bone, oldname)) {
+								if (STREQ(v3d->ob_centre_bone, oldname)) {
 									BLI_strncpy(v3d->ob_centre_bone, newname, MAXBONENAME);
 								}
 							}

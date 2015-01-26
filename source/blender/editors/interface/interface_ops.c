@@ -515,7 +515,7 @@ static bool ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
 	    (but_a->rnaprop == but_b->rnaprop) &&
 	    (but_a->optype == but_b->optype) &&
 	    (but_a->unit_type == but_b->unit_type) &&
-	    (strncmp(but_a->drawstr, but_b->drawstr, UI_MAX_DRAW_STR) == 0))
+	    STREQLEN(but_a->drawstr, but_b->drawstr, UI_MAX_DRAW_STR))
 	{
 		return true;
 	}

@@ -1347,7 +1347,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	ID *data;
 	Curve *cu;
 	Nurb *nu;
-	int clear = (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
+	int clear = (STREQ(op->idname, "OBJECT_OT_shade_flat"));
 	bool done = false, linked_data = false;
 
 	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)

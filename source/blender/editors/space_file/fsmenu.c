@@ -283,10 +283,10 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
 	if (!fp) return;
 
 	while (fgets(line, sizeof(line), fp) != NULL) {       /* read a line */
-		if (strncmp(line, "[Bookmarks]", 11) == 0) {
+		if (STREQLEN(line, "[Bookmarks]", 11)) {
 			category = FS_CATEGORY_BOOKMARKS;
 		}
-		else if (strncmp(line, "[Recent]", 8) == 0) {
+		else if (STREQLEN(line, "[Recent]", 8)) {
 			category = FS_CATEGORY_RECENT;
 		}
 		else {
@@ -359,7 +359,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				continue;
 			
 			FSRefMakePath(&dir, path, FILE_MAX);
-			if (strcmp((char *)path, "/home") && strcmp((char *)path, "/net")) {
+			if (!STREQ((char *)path, "/home") && !STREQ((char *)path, "/net")) {
 				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, FS_INSERT_SORTED);
 			}
@@ -488,7 +488,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			else {
 				while ((mnt = getmntent(fp))) {
 					/* not sure if this is right, but seems to give the relevant mnts */
-					if (strncmp(mnt->mnt_fsname, "/dev", 4))
+					if (!STREQLEN(mnt->mnt_fsname, "/dev", 4))
 						continue;
 
 					len = strlen(mnt->mnt_dir);

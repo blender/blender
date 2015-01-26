@@ -915,7 +915,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		outnode = link->output->node;
 		name = outnode->name;
 
-		if (strcmp(name, "set_value")==0 || strcmp(name, "set_rgb")==0) {
+		if (STREQ(name, "set_value") || STREQ(name, "set_rgb")) {
 			input = MEM_dupallocN(outnode->inputs.first);
 			input->type = type;
 			if (input->link)
@@ -1109,7 +1109,7 @@ static void gpu_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *a
 			if (input->source == GPU_SOURCE_ATTRIB) {
 				for (a=0; a<attribs->totlayer; a++) {
 					if (attribs->layer[a].type == input->attribtype &&
-					    strcmp(attribs->layer[a].name, input->attribname) == 0)
+					    STREQ(attribs->layer[a].name, input->attribname))
 					{
 						break;
 					}
@@ -1351,7 +1351,7 @@ int GPU_link_changed(GPUNodeLink *link)
 		node = link->output->node;
 		name = node->name;
 
-		if (strcmp(name, "set_value")==0 || strcmp(name, "set_rgb")==0) {
+		if (STREQ(name, "set_value") || STREQ(name, "set_rgb")) {
 			input = node->inputs.first;
 			return (input->link != NULL);
 		}

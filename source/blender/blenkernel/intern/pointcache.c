@@ -772,7 +772,7 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 
 	/* version header */
 	ptcache_file_read(pf, version, 4, sizeof(char));
-	if (strncmp(version, SMOKE_CACHE_VERSION, 4))
+	if (!STREQLEN(version, SMOKE_CACHE_VERSION, 4))
 	{
 		/* reset file pointer */
 		fseek(pf->fp, -4, SEEK_CUR);
@@ -954,7 +954,7 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 	
 	/* version header */
 	ptcache_file_read(pf, version, 1, sizeof(char) * 4);
-	if (strncmp(version, DPAINT_CACHE_VERSION, 4)) {
+	if (!STREQLEN(version, DPAINT_CACHE_VERSION, 4)) {
 		printf("Dynamic Paint: Invalid cache version: '%c%c%c%c'!\n", UNPACK4(version));
 		return 0;
 	}
@@ -1716,7 +1716,7 @@ static int ptcache_file_header_begin_read(PTCacheFile *pf)
 	if (fread(bphysics, sizeof(char), 8, pf->fp) != 8)
 		error = 1;
 	
-	if (!error && strncmp(bphysics, "BPHYSICS", 8))
+	if (!error && !STREQLEN(bphysics, "BPHYSICS", 8))
 		error = 1;
 
 	if (!error && !fread(&typeflag, sizeof(unsigned int), 1, pf->fp))
@@ -2588,7 +2588,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 			
 			while ((de = readdir(dir)) != NULL) {
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
-					if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
+					if (STREQLEN(filename, de->d_name, len)) { /* do we have the right prefix */
 						if (mode == PTCACHE_CLEAR_ALL) {
 							pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 							BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
@@ -2794,7 +2794,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 			
 			while ((de = readdir(dir)) != NULL) {
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
-					if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
+					if (STREQLEN(filename, de->d_name, len)) { /* do we have the right prefix */
 						/* read the number of the file */
 						unsigned int frame, len2 = (int)strlen(de->d_name);
 						char num[7];
@@ -2975,7 +2975,7 @@ void BKE_ptcache_remove(void)
 			return;
 		
 		while ((de = readdir(dir)) != NULL) {
-			if ( strcmp(de->d_name, ".")==0 || strcmp(de->d_name, "..")==0) {
+			if (STREQ(de->d_name, ".") || STREQ(de->d_name, "..")) {
 				/* do nothing */
 			}
 			else if (strstr(de->d_name, PTCACHE_EXT)) { /* do we have the right extension?*/
@@ -3532,7 +3532,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
 
 	while ((de = readdir(dir)) != NULL) {
 		if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
-			if (strncmp(old_filename, de->d_name, len ) == 0) { /* do we have the right prefix */
+			if (STREQLEN(old_filename, de->d_name, len)) { /* do we have the right prefix */
 				/* read the number of the file */
 				int frame, len2 = (int)strlen(de->d_name);
 				char num[7];
@@ -3587,7 +3587,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 	
 	while ((de = readdir(dir)) != NULL) {
 		if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
-			if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
+			if (STREQLEN(filename, de->d_name, len)) { /* do we have the right prefix */
 				/* read the number of the file */
 				int frame, len2 = (int)strlen(de->d_name);
 				char num[7];

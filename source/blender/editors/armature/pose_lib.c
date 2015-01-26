@@ -1050,7 +1050,7 @@ static void poselib_preview_get_next(tPoseLib_PreviewData *pld, int step)
 		LinkData *ld, *ldn, *ldc;
 		
 		/* free and rebuild if needed (i.e. if search-str changed) */
-		if (strcmp(pld->searchstr, pld->searchold)) {
+		if (!STREQ(pld->searchstr, pld->searchold)) {
 			/* free list of temporary search matches */
 			BLI_freelistN(&pld->searchp);
 			

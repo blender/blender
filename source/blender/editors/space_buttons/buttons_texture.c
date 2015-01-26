@@ -559,7 +559,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 		char name[UI_MAX_NAME_STR];
 
 		/* add label per category */
-		if (!last_category || strcmp(last_category, user->category) != 0) {
+		if (!last_category || !STREQ(last_category, user->category)) {
 			uiItemL(layout, user->category, ICON_NONE);
 			but = block->buttons.last;
 			but->drawflag = UI_BUT_TEXT_LEFT;

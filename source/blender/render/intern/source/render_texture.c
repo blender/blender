@@ -2249,7 +2249,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 
 					if (mtex->uvname[0] != 0) {
 						for (i = 0; i < shi->totuv; i++) {
-							if (strcmp(shi->uv[i].name, mtex->uvname)==0) {
+							if (STREQ(shi->uv[i].name, mtex->uvname)) {
 								suv= &shi->uv[i];
 								break;
 							}

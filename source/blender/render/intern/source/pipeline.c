@@ -256,7 +256,7 @@ Render *RE_GetRender(const char *name)
 
 	/* search for existing renders */
 	for (re = RenderGlobal.renderlist.first; re; re = re->next)
-		if (strncmp(re->name, name, RE_MAXNAME) == 0)
+		if (STREQLEN(re->name, name, RE_MAXNAME))
 			break;
 
 	return re;

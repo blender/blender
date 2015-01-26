@@ -594,7 +594,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[
 		format = NULL;
 		TIFFGetField(image, TIFFTAG_PIXAR_TEXTUREFORMAT, &format);
 
-		if (format && strcmp(format, "Plain Texture") == 0 && TIFFIsTiled(image)) {
+		if (format && STREQ(format, "Plain Texture") && TIFFIsTiled(image)) {
 			int numlevel = TIFFNumberOfDirectories(image);
 
 			/* create empty mipmap levels in advance */

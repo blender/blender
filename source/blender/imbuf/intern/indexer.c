@@ -1237,7 +1237,7 @@ void IMB_free_indices(struct anim *anim)
 
 void IMB_anim_set_index_dir(struct anim *anim, const char *dir)
 {
-	if (strcmp(anim->index_dir, dir) == 0) {
+	if (STREQ(anim->index_dir, dir)) {
 		return;
 	}
 	BLI_strncpy(anim->index_dir, dir, sizeof(anim->index_dir));

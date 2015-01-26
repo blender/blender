@@ -246,11 +246,11 @@ static void rna_Sensor_Armature_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 		bPoseChannel *pchan;
 		bPose *pose = ob->pose;
 		for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-			if (!strcmp(pchan->name, posechannel)) {
+			if (STREQ(pchan->name, posechannel)) {
 				/* found it, now look for constraint channel */
 				bConstraint *con;
 				for (con = pchan->constraints.first; con; con = con->next) {
-					if (!strcmp(con->name, constraint)) {
+					if (STREQ(con->name, constraint)) {
 						/* found it, all ok */
 						return;
 					}

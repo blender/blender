@@ -775,7 +775,7 @@ static eOLDrawState tree_element_active_sequence_dup(
 			continue;
 		}
 
-//		if (!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+//		if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name))
 // XXX			select_single_seq(p, 0);
 		p = p->next;
 	}

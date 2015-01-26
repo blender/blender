@@ -2740,7 +2740,7 @@ void txt_unindent(Text *text)
 
 	while (true) {
 		bool changed = false;
-		if (strncmp(text->curl->line, remove, indentlen) == 0) {
+		if (STREQLEN(text->curl->line, remove, indentlen)) {
 			if (num == 0)
 				unindented_first = true;
 			text->curl->len -= indentlen;

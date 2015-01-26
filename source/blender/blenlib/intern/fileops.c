@@ -584,7 +584,7 @@ static int recursive_operation(const char *startfrom, const char *startto,
 		for (i = 0; i < n; i++) {
 			const struct dirent * const dirent = dirlist[i];
 
-			if (!strcmp(dirent->d_name, ".") || !strcmp(dirent->d_name, ".."))
+			if (STREQ(dirent->d_name, ".") || STREQ(dirent->d_name, ".."))
 				continue;
 
 			join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
