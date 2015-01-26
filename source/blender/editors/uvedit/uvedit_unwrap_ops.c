@@ -1130,7 +1130,7 @@ void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 	ParamHandle *handle;
 
 	const bool fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0;
-	const bool correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) != 0;
+	const bool correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0;
 	bool use_subsurf;
 
 	modifier_unwrap_state(obedit, scene, &use_subsurf);
