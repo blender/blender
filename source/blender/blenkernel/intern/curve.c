@@ -593,6 +593,10 @@ Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
 	newnu->pntsu = pntsu;
 	newnu->pntsv = pntsv;
 
+	/* caller can manually handle these arrays */
+	newnu->knotsu = NULL;
+	newnu->knotsv = NULL;
+
 	if (src->bezt) {
 		newnu->bezt = (BezTriple *)MEM_mallocN(pntsu * pntsv * sizeof(BezTriple), "copyNurb2");
 	}

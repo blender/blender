@@ -2368,7 +2368,6 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 			}
 			else {
 				/* knots done after duplicate as pntsu may change */
-				nu->knotsu = nu->knotsv = NULL;
 				BKE_nurb_order_clamp_u(nu);
 				BKE_nurb_knot_calc_u(nu);
 
@@ -6543,7 +6542,6 @@ static int curve_delete_segments(Object *obedit, const bool split)
 				}
 			}
 
-			nu->knotsu = nu->knotsv = NULL;
 			BKE_nurb_order_clamp_u(nu);
 			BKE_nurb_knot_calc_u(nu);
 
