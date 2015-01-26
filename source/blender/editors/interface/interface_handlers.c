@@ -6393,7 +6393,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle menu */
 		else if ((event->type == RIGHTMOUSE) &&
-		         ((event->ctrl + event->alt + event->shift) == 0) &&
+		         ((event->ctrl + event->oskey + event->alt + event->shift) == 0) &&
 		         (event->val == KM_PRESS))
 		{
 			/* RMB has two options now */
