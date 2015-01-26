@@ -660,7 +660,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
  */
 static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
                                Object *target_ob, ParticleSystem *target_psys, PTCacheEdit *target_edit,
-                               float from_mat[4][4], float to_mat[4][4])
+                               float from_mat[4][4], float to_mat[4][4], bool from_global, bool to_global)
 {
 	ParticleSystemModifierData *target_psmd = psys_get_modifier(target_ob, target_psys);
 	ParticleData *pa, *tpa;
@@ -732,7 +732,7 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 		float from_co[3];
 		BVHTreeNearest nearest;
 
-		if (psys->flag & PSYS_GLOBAL_HAIR)
+		if (from_global)
 			mul_v3_m4v3(from_co, from_ob_imat, pa->hair[0].co);
 		else
 			mul_v3_m4v3(from_co, from_ob_imat, pa->hair[0].world_co);
@@ -788,7 +788,7 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 			float hairmat[4][4], imat[4][4];
 			float offset[3];
 			
-			if (target_psys->flag & PSYS_GLOBAL_HAIR)
+			if (to_global)
 				copy_m4_m4(imat, target_ob->obmat);
 			else {
 				/* note: using target_dm here, which is in target_ob object space and has full modifiers */
@@ -804,7 +804,7 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 				for (k=0, key=pa->hair, tkey=tpa->hair, ekey = edit_point->keys; k<tpa->totkey; k++, key++, tkey++, ekey++) {
 					float co_orig[3];
 					
-					if (psys->flag & PSYS_GLOBAL_HAIR)
+					if (from_global)
 						mul_v3_m4v3(co_orig, from_ob_imat, key->co);
 					else
 						mul_v3_m4v3(co_orig, from_ob_imat, key->world_co);
@@ -823,7 +823,7 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 				for (k=0, key=pa->hair, tkey=tpa->hair; k<tpa->totkey; k++, key++, tkey++) {
 					float co_orig[3];
 					
-					if (psys->flag & PSYS_GLOBAL_HAIR)
+					if (from_global)
 						mul_v3_m4v3(co_orig, from_ob_imat, key->co);
 					else
 						mul_v3_m4v3(co_orig, from_ob_imat, key->world_co);
@@ -851,13 +851,15 @@ static bool connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	float (*from_mat)[4] = psys->flag & PSYS_GLOBAL_HAIR ? I : ob->obmat;
 	float (*to_mat)[4] = ob->obmat;
+	bool ok;
 	
 	if (!psys)
 		return false;
 	
+	ok = remap_hair_emitter(scene, ob, psys, ob, psys, psys->edit, from_mat, to_mat, psys->flag & PSYS_GLOBAL_HAIR, false);
 	psys->flag &= ~PSYS_GLOBAL_HAIR;
 	
-	return remap_hair_emitter(scene, ob, psys, ob, psys, psys->edit, from_mat, to_mat);
+	return ok;
 }
 
 static int connect_hair_exec(bContext *C, wmOperator *op)
@@ -1099,7 +1101,7 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Parti
 				break;
 		}
 		
-		remap_hair_emitter(scene, ob_from, psys_from, ob_to, psys, psys->edit, from_mat, to_mat);
+		remap_hair_emitter(scene, ob_from, psys_from, ob_to, psys, psys->edit, from_mat, to_mat, psys_from->flag & PSYS_GLOBAL_HAIR, psys->flag & PSYS_GLOBAL_HAIR);
 		
 		/* tag for recalc */
 //		psys->recalc |= PSYS_RECALC_RESET;
