@@ -228,7 +228,7 @@ static int findFileRecursive(char *filename_new,
 
 	while ((de = readdir(dir)) != NULL) {
 
-		if (STREQ(".", de->d_name) || STREQ("..", de->d_name))
+		if (FILENAME_IS_CURRPAR(de->d_name))
 			continue;
 
 		BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);

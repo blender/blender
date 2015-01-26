@@ -165,6 +165,15 @@ void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
 #  define FILE_MAX            1024
 #endif
 
+/* Parent and current dir helpers. */
+#define FILENAME_PARENT ".."
+#define FILENAME_CURRENT "."
+
+/* Avoid calling strcmp on one or two chars! */
+#define FILENAME_IS_PARENT(_n) (((_n)[0] == '.') && ((_n)[1] == '.') && ((_n)[2] == '\0'))
+#define FILENAME_IS_CURRENT(_n) (((_n)[0] == '.') && ((_n)[1] == '\0'))
+#define FILENAME_IS_CURRPAR(_n) (((_n)[0] == '.') && (((_n)[1] == '\0') || (((_n)[1] == '.') && ((_n)[2] == '\0'))))
+
 #ifdef __cplusplus
 }
 #endif

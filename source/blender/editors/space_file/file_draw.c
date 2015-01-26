@@ -239,7 +239,7 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
 static int get_file_icon(struct direntry *file)
 {
 	if (file->type & S_IFDIR) {
-		if (STREQ(file->relname, "..")) {
+		if (FILENAME_IS_PARENT(file->relname)) {
 			return ICON_FILE_PARENT;
 		}
 		if (file->flags & FILE_TYPE_APPLICATIONBUNDLE) {
@@ -529,7 +529,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				int shade = (params->active_file == i) || (file->selflag & FILE_SEL_HIGHLIGHTED) ? 20 : 0;
 
 				/* readonly files (".." and ".") must not be drawn as selected - set color back to normal */
-				if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+				if (FILENAME_IS_CURRPAR(file->relname)) {
 					colorid = TH_BACK;
 				}
 				draw_tile(sx, sy - 1, layout->tile_w + 4, sfile->layout->tile_h + layout->tile_border_y, colorid, shade);
@@ -538,7 +538,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_draw_roundbox_corner_set(UI_CNR_NONE);
 
 		/* don't drag parent or refresh items */
-		do_drag = !(STREQ(file->relname, "..") || STREQ(file->relname, "."));
+		do_drag = !(FILENAME_IS_CURRPAR(file->relname));
 
 		if (FILE_IMGDISPLAY == params->display) {
 			is_icon = 0;

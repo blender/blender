@@ -183,11 +183,11 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 				retval = FILE_SELECT_DIR;
 			}
 			/* the path is too long and we are not going up! */
-			else if (!STREQ(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
+			else if (!FILENAME_IS_PARENT(file->relname) && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
 				// XXX error("Path too long, cannot enter this directory");
 			}
 			else {
-				if (STREQ(file->relname, "..")) {
+				if (FILENAME_IS_PARENT(file->relname)) {
 					/* avoids /../../ */
 					BLI_parent_dir(params->dir);
 				}
@@ -269,7 +269,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 			for (idx = sel.last; idx >= 0; idx--) {
 				struct direntry *file = filelist_file(sfile->files, idx);
 
-				if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+				if (FILENAME_IS_CURRPAR(file->relname)) {
 					file->selflag &= ~FILE_SEL_HIGHLIGHTED;
 				}
 
@@ -362,7 +362,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		if (idx >= 0) {
 			struct direntry *file = filelist_file(sfile->files, idx);
-			if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+			if (FILENAME_IS_CURRPAR(file->relname)) {
 				/* skip - If a readonly file (".." or ".") is selected, skip deselect all! */
 			}
 			else {
@@ -1531,7 +1531,7 @@ static int file_rename_poll(bContext *C)
 
 		if (idx >= 0) {
 			struct direntry *file = filelist_file(sfile->files, idx);
-			if (STREQ(file->relname, "..") || STREQ(file->relname, ".")) {
+			if (FILENAME_IS_CURRPAR(file->relname)) {
 				poll = 0;
 			}
 		}

@@ -1116,9 +1116,9 @@ void BLI_make_exist(char *dir)
 
 	a = strlen(dir);
 
-	for (BLI_join_dirfile(par_path, sizeof(par_path), dir, "..");
+	for (BLI_join_dirfile(par_path, sizeof(par_path), dir, FILENAME_PARENT);
 	     !(BLI_is_dir(dir) && BLI_exists(par_path));
-	     BLI_join_dirfile(par_path, sizeof(par_path), dir, ".."))
+	     BLI_join_dirfile(par_path, sizeof(par_path), dir, FILENAME_PARENT))
 	{
 		a--;
 		while (dir[a] != SEP) {

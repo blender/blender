@@ -2975,7 +2975,7 @@ void BKE_ptcache_remove(void)
 			return;
 		
 		while ((de = readdir(dir)) != NULL) {
-			if (STREQ(de->d_name, ".") || STREQ(de->d_name, "..")) {
+			if (FILENAME_IS_CURRPAR(de->d_name)) {
 				/* do nothing */
 			}
 			else if (strstr(de->d_name, PTCACHE_EXT)) { /* do we have the right extension?*/
