@@ -133,7 +133,7 @@ else:
             z.write("{}.zip".format(builder))
             z.close()
             sys.exit(retcode)
-        except Exception, ex:
+        except Exception as ex:
             sys.stderr.write('Create buildbot_upload.zip failed' + str(ex) + '\n')
             sys.exit(1)
 
@@ -149,7 +149,7 @@ if os.path.exists(release_dir):
 # create release package
 try:
     subprocess.call(['make', 'package_archive'])
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Make package release failed' + str(ex) + '\n')
     sys.exit(1)
 
@@ -180,6 +180,6 @@ try:
     z = zipfile.ZipFile(upload_zip, "w", compression=zipfile.ZIP_STORED)
     z.write(filepath, arcname=file)
     z.close()
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Create buildbot_upload.zip failed' + str(ex) + '\n')
     sys.exit(1)

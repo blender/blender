@@ -93,7 +93,7 @@ if not os.path.exists(filename):
 
 try:
     z = zipfile.ZipFile(filename, "r")
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Failed to open zip file: %s\n' % str(ex))
     sys.exit(1)
 
@@ -129,7 +129,7 @@ try:
 
     zf.close()
     z.close()
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Failed to unzip package: %s\n' % str(ex))
     sys.exit(1)
 
@@ -139,6 +139,6 @@ try:
         if get_platform(f) == platform and get_branch(f) == branch:
             if f != packagename:
                 os.remove(os.path.join(directory, f))
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Failed to remove old packages: %s\n' % str(ex))
     sys.exit(1)
