@@ -6344,7 +6344,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle keyframing */
 		else if ((event->type == IKEY) &&
-		         !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey) &&
+		         (event->ctrl + event->oskey == 0) &&
 		         (event->val == KM_PRESS))
 		{
 			if (event->alt) {
@@ -6365,7 +6365,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle drivers */
 		else if ((event->type == DKEY) &&
-		         !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) &&
+		         ((event->ctrl + event->oskey + event->shift) == 0) &&
 		         (event->val == KM_PRESS))
 		{
 			if (event->alt)
@@ -6379,7 +6379,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle keyingsets */
 		else if ((event->type == KKEY) &&
-		         !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) &&
+		         ((event->ctrl + event->oskey + event->shift) == 0) &&
 		         (event->val == KM_PRESS))
 		{
 			if (event->alt)
@@ -6392,9 +6392,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle menu */
-		else if (event->type == RIGHTMOUSE &&
-		         event->val == KM_PRESS &&
-		         ((event->ctrl + event->alt + event->shift) == 0))
+		else if ((event->type == RIGHTMOUSE) &&
+		         ((event->ctrl + event->alt + event->shift) == 0) &&
+		         (event->val == KM_PRESS))
 		{
 			/* RMB has two options now */
 			if (ui_but_menu(C, but)) {
