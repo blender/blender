@@ -295,6 +295,8 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	bDopeSheet ads = {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
+	float ymin = v2d->tot.ymin;
+	float ymax = v2d->tot.ymax * 0.6f + ymin * 0.4f;
 	
 	/* init binarytree-list for getting keyframes */
 	BLI_dlrbTree_init(&keys);
@@ -302,7 +304,7 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	/* init dopesheet settings */
 	if (onlysel)
 		ads.filterflag |= ADS_FILTER_ONLYSEL;
-	
+
 	/* populate tree with keyframe nodes */
 	switch (GS(id->name)) {
 		case ID_SCE:
@@ -329,8 +331,8 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	     (ak) && (ak->cfra <= v2d->cur.xmax);
 	     ak = ak->next)
 	{
-		glVertex2f(ak->cfra, v2d->tot.ymin);
-		glVertex2f(ak->cfra, v2d->tot.ymax);
+		glVertex2f(ak->cfra, ymin);
+		glVertex2f(ak->cfra, ymax);
 	}
 	glEnd(); // GL_LINES
 		
