@@ -6392,7 +6392,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle menu */
-		else if (event->type == RIGHTMOUSE && event->val == KM_PRESS) {
+		else if (event->type == RIGHTMOUSE &&
+		         event->val == KM_PRESS &&
+		         ((event->ctrl + event->alt + event->shift) == 0))
+		{
 			/* RMB has two options now */
 			if (ui_but_menu(C, but)) {
 				return WM_UI_HANDLER_BREAK;
