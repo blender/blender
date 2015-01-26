@@ -718,7 +718,6 @@ static int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
 		image = self->m_image->getImage();
 	}
 	catch (Exception & exp) {
-		// cannot return -1, this creates a crash in Python, for now we will just return an empty buffer
 		exp.report();
 		return -1;
 	}
