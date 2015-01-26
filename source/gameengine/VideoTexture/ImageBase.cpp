@@ -713,25 +713,19 @@ static int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
 	unsigned int * image;
 	int ret;
 
-	try
-	{
+	try {
 		// can throw in case of resize
 		image = self->m_image->getImage();
 	}
-	catch (Exception & exp)
-	{
+	catch (Exception & exp) {
 		// cannot return -1, this creates a crash in Python, for now we will just return an empty buffer
 		exp.report();
-		//return -1;
-		goto error;
+		return -1;
 	}
 
-	if (!image)
-	{
-		// same remark, see above
-		//PyErr_SetString(PyExc_BufferError, "Image buffer is not available");
-		//return -1;
-		goto error;
+	if (!image) {
+		PyErr_SetString(PyExc_BufferError, "Image buffer is not available");
+		return -1;
 	}
 	if (view == NULL)
 	{
@@ -742,17 +736,6 @@ static int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
 	if (ret >= 0)
 		self->m_image->m_exports++;
 	return ret;
-
-error:
-	// Return a empty buffer to avoid a crash in Python 3.1
-	// The bug is fixed in Python SVN 77916, as soon as the python revision used by Blender is
-	// updated, you can simply return -1 and set the error
-	static char* buf = (char *)"";
-	ret = PyBuffer_FillInfo(view, (PyObject *)self, buf, 0, 0, flags);
-	if (ret >= 0)
-		self->m_image->m_exports++;
-	return ret;
-	
 }
 
 static void Image_releaseBuffer(PyImage *self, Py_buffer *buffer)
