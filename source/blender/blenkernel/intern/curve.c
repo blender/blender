@@ -3351,6 +3351,21 @@ void BKE_nurb_handle_calc_simple(Nurb *nu, BezTriple *bezt)
 	}
 }
 
+void BKE_nurb_handle_calc_simple_auto(Nurb *nu, BezTriple *bezt)
+{
+	if (nu->pntsu > 1) {
+		const char h1_back = bezt->h1, h2_back = bezt->h2;
+
+		bezt->h1 = bezt->h2 = HD_AUTO;
+
+		/* Override handle types to HD_AUTO and recalculate */
+		BKE_nurb_handle_calc_simple(nu, bezt);
+
+		bezt->h1 = h1_back;
+		bezt->h2 = h2_back;
+	}
+}
+
 /**
  * Use when something has changed handle positions.
  *
@@ -3608,24 +3623,12 @@ void BKE_nurbList_handles_recalculate(ListBase *editnurb, const bool calc_length
 
 				if (h1_select || h2_select) {
 
-					/* Override handle types to HD_AUTO and recalculate */
-
-					char h1_back, h2_back;
 					float co1_back[3], co2_back[3];
-
-					h1_back = bezt->h1;
-					h2_back = bezt->h2;
-
-					bezt->h1 = HD_AUTO;
-					bezt->h2 = HD_AUTO;
 
 					copy_v3_v3(co1_back, bezt->vec[0]);
 					copy_v3_v3(co2_back, bezt->vec[2]);
 
-					BKE_nurb_handle_calc_simple(nu, bezt);
-
-					bezt->h1 = h1_back;
-					bezt->h2 = h2_back;
+					BKE_nurb_handle_calc_simple_auto(nu, bezt);
 
 					if (h1_select) {
 						if (!calc_length) {
