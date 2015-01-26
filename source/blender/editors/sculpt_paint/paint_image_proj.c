@@ -3000,145 +3000,9 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 #endif
 }
 
-/* run once per stroke before projection painting */
-static void project_paint_begin(ProjPaintState *ps)
+/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+static void proj_paint_state_non_cddm_init(ProjPaintState *ps)
 {
-	/* Viewport vars */
-	float mat[3][3];
-
-	float no[3];
-
-	float *projScreenCo; /* Note, we could have 4D vectors are only needed for */
-	float projMargin;
-
-	/* Image Vars - keep track of images we have used */
-	LinkNode *image_LinkList = NULL;
-	LinkNode *node;
-
-	ProjPaintImage *projIma;
-	Image *tpage_last = NULL, *tpage;
-	TexPaintSlot *slot_last = NULL, *slot = NULL;
-	TexPaintSlot *slot_last_clone = NULL, *slot_clone;
-
-	/* Face vars */
-	MPoly *mpoly_orig;
-	MFace *mf;
-	MTFace **tf;
-	MTFace *tf_base;
-
-	MTFace **tf_clone;
-	MTFace *tf_clone_base = NULL;
-
-	int a, i; /* generic looping vars */
-	int image_index = -1, face_index;
-
-	/* double lookup */
-	const int *index_mf_to_mpoly = NULL;
-	const int *index_mp_to_orig  = NULL;
-
-	MVert *mv;
-
-	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
-
-	const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
-
-	bool reset_threads = false;
-
-	/* ---- end defines ---- */
-
-	if (ps->source == PROJ_SRC_VIEW)
-		ED_view3d_clipping_local(ps->rv3d, ps->ob->obmat);  /* faster clipping lookups */
-
-	ps->do_face_sel = ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) != 0);
-
-	/* paint onto the derived mesh */
-
-	/* Workaround for subsurf selection, try the display mesh first */
-	if (ps->source == PROJ_SRC_IMAGE_CAM) {
-		/* using render mesh, assume only camera was rendered from */
-		ps->dm = mesh_create_derived_render(ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
-		ps->dm_release = true;
-	}
-	else if (ps->ob->derivedFinal &&
-	         CustomData_has_layer(&ps->ob->derivedFinal->faceData, CD_MTFACE) &&
-	         (ps->do_face_sel == false || CustomData_has_layer(&ps->ob->derivedFinal->polyData, CD_ORIGINDEX)))
-	{
-		ps->dm = ps->ob->derivedFinal;
-		ps->dm_release = false;
-	}
-	else {
-		ps->dm = mesh_get_derived_final(
-		             ps->scene, ps->ob,
-		             ps->scene->customdata_mask | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
-		ps->dm_release = true;
-	}
-
-	if (!CustomData_has_layer(&ps->dm->faceData, CD_MTFACE)) {
-
-		if (ps->dm_release)
-			ps->dm->release(ps->dm);
-
-		ps->dm = NULL;
-		return;
-	}
-
-	DM_update_materials(ps->dm, ps->ob);
-
-	ps->dm_totvert = ps->dm->getNumVerts(ps->dm);
-	ps->dm_totface = ps->dm->getNumTessFaces(ps->dm);
-
-	ps->dm_mvert = ps->dm->getVertArray(ps->dm);
-	ps->dm_mface = ps->dm->getTessFaceArray(ps->dm);
-	ps->dm_mtface = MEM_mallocN(ps->dm_totface * sizeof(MTFace *), "proj_paint_mtfaces");
-
-	if (ps->do_face_sel) {
-		index_mf_to_mpoly = ps->dm->getTessFaceDataArray(ps->dm, CD_ORIGINDEX);
-		index_mp_to_orig  = ps->dm->getPolyDataArray(ps->dm, CD_ORIGINDEX);
-		if (index_mf_to_mpoly == NULL) {
-			index_mp_to_orig = NULL;
-		}
-		else {
-			mpoly_orig = ((Mesh *)ps->ob->data)->mpoly;
-		}
-	}
-	else {
-		mpoly_orig = NULL;
-	}
-
-	/* use clone mtface? */
-	if (ps->do_layer_clone) {
-		ps->dm_mtface_clone = MEM_mallocN(ps->dm_totface * sizeof(MTFace *), "proj_paint_mtfaces");
-	}
-
-	if (ps->do_layer_stencil || ps->do_stencil_brush) {
-		//int layer_num = CustomData_get_stencil_layer(&ps->dm->faceData, CD_MTFACE);
-		int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->pdata, CD_MTEXPOLY);
-		if (layer_num != -1)
-			ps->dm_mtface_stencil = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
-
-		if (ps->dm_mtface_stencil == NULL) {
-			/* get active instead */
-			ps->dm_mtface_stencil = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
-		}
-
-		if (ps->do_stencil_brush)
-			tf_base = ps->dm_mtface_stencil;
-	}
-	
-	if (ps->do_layer_clone) {
-		int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->pdata, CD_MTEXPOLY);
-
-		if (layer_num != -1)
-			tf_clone_base = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
-
-		if (tf_clone_base == NULL) {
-			/* get active instead */
-			tf_clone_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
-		}
-		
-	}
-
-	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
 	if (ps->dm->type != DM_TYPE_CDDM) {
 		ps->dm_mvert = MEM_dupallocN(ps->dm_mvert);
 		ps->dm_mface = MEM_dupallocN(ps->dm_mface);
@@ -3149,97 +3013,105 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->dm_mtface_stencil = MEM_dupallocN(ps->dm_mtface_stencil);
 #endif
 	}
+}
+
+static void proj_paint_state_viewport_init(ProjPaintState *ps)
+{
+	float mat[3][3];
+	float viewmat[4][4];
+	float viewinv[4][4];
 
 	ps->viewDir[0] = 0.0f;
 	ps->viewDir[1] = 0.0f;
 	ps->viewDir[2] = 1.0f;
 
-	{
-		float viewmat[4][4];
-		float viewinv[4][4];
+	invert_m4_m4(ps->ob->imat, ps->ob->obmat);
 
-		invert_m4_m4(ps->ob->imat, ps->ob->obmat);
+	if (ELEM(ps->source, PROJ_SRC_VIEW, PROJ_SRC_VIEW_FILL)) {
+		/* normal drawing */
+		ps->winx = ps->ar->winx;
+		ps->winy = ps->ar->winy;
 
-		if (ELEM(ps->source, PROJ_SRC_VIEW, PROJ_SRC_VIEW_FILL)) {
-			/* normal drawing */
-			ps->winx = ps->ar->winx;
-			ps->winy = ps->ar->winy;
+		copy_m4_m4(viewmat, ps->rv3d->viewmat);
+		copy_m4_m4(viewinv, ps->rv3d->viewinv);
 
-			copy_m4_m4(viewmat, ps->rv3d->viewmat);
-			copy_m4_m4(viewinv, ps->rv3d->viewinv);
+		ED_view3d_ob_project_mat_get(ps->rv3d, ps->ob, ps->projectMat);
 
-			ED_view3d_ob_project_mat_get(ps->rv3d, ps->ob, ps->projectMat);
+		ps->is_ortho = ED_view3d_clip_range_get(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend, true);
+	}
+	else {
+		/* re-projection */
+		float winmat[4][4];
+		float vmat[4][4];
 
-			ps->is_ortho = ED_view3d_clip_range_get(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend, true);
+		ps->winx = ps->reproject_ibuf->x;
+		ps->winy = ps->reproject_ibuf->y;
+
+		if (ps->source == PROJ_SRC_IMAGE_VIEW) {
+			/* image stores camera data, tricky */
+			IDProperty *idgroup = IDP_GetProperties(&ps->reproject_image->id, 0);
+			IDProperty *view_data = IDP_GetPropertyFromGroup(idgroup, PROJ_VIEW_DATA_ID);
+
+			const float *array = (float *)IDP_Array(view_data);
+
+			/* use image array, written when creating image */
+			memcpy(winmat, array, sizeof(winmat)); array += sizeof(winmat) / sizeof(float);
+			memcpy(viewmat, array, sizeof(viewmat)); array += sizeof(viewmat) / sizeof(float);
+			ps->clipsta = array[0];
+			ps->clipend = array[1];
+			ps->is_ortho = array[2] ? 1 : 0;
+
+			invert_m4_m4(viewinv, viewmat);
 		}
-		else {
-			/* re-projection */
-			float winmat[4][4];
-			float vmat[4][4];
+		else if (ps->source == PROJ_SRC_IMAGE_CAM) {
+			Object *cam_ob = ps->scene->camera;
+			CameraParams params;
 
-			ps->winx = ps->reproject_ibuf->x;
-			ps->winy = ps->reproject_ibuf->y;
+			/* viewmat & viewinv */
+			copy_m4_m4(viewinv, cam_ob->obmat);
+			normalize_m4(viewinv);
+			invert_m4_m4(viewmat, viewinv);
 
-			if (ps->source == PROJ_SRC_IMAGE_VIEW) {
-				/* image stores camera data, tricky */
-				IDProperty *idgroup = IDP_GetProperties(&ps->reproject_image->id, 0);
-				IDProperty *view_data = IDP_GetPropertyFromGroup(idgroup, PROJ_VIEW_DATA_ID);
+			/* window matrix, clipping and ortho */
+			BKE_camera_params_init(&params);
+			BKE_camera_params_from_object(&params, cam_ob);
+			BKE_camera_params_compute_viewplane(&params, ps->winx, ps->winy, 1.0f, 1.0f);
+			BKE_camera_params_compute_matrix(&params);
 
-				const float *array = (float *)IDP_Array(view_data);
-
-				/* use image array, written when creating image */
-				memcpy(winmat, array, sizeof(winmat)); array += sizeof(winmat) / sizeof(float);
-				memcpy(viewmat, array, sizeof(viewmat)); array += sizeof(viewmat) / sizeof(float);
-				ps->clipsta = array[0];
-				ps->clipend = array[1];
-				ps->is_ortho = array[2] ? 1 : 0;
-
-				invert_m4_m4(viewinv, viewmat);
-			}
-			else if (ps->source == PROJ_SRC_IMAGE_CAM) {
-				Object *cam_ob = ps->scene->camera;
-				CameraParams params;
-
-				/* viewmat & viewinv */
-				copy_m4_m4(viewinv, cam_ob->obmat);
-				normalize_m4(viewinv);
-				invert_m4_m4(viewmat, viewinv);
-
-				/* window matrix, clipping and ortho */
-				BKE_camera_params_init(&params);
-				BKE_camera_params_from_object(&params, cam_ob);
-				BKE_camera_params_compute_viewplane(&params, ps->winx, ps->winy, 1.0f, 1.0f);
-				BKE_camera_params_compute_matrix(&params);
-
-				copy_m4_m4(winmat, params.winmat);
-				ps->clipsta = params.clipsta;
-				ps->clipend = params.clipend;
-				ps->is_ortho = params.is_ortho;
-			}
-
-			/* same as #ED_view3d_ob_project_mat_get */
-			mul_m4_m4m4(vmat, viewmat, ps->ob->obmat);
-			mul_m4_m4m4(ps->projectMat, winmat, vmat);
+			copy_m4_m4(winmat, params.winmat);
+			ps->clipsta = params.clipsta;
+			ps->clipend = params.clipend;
+			ps->is_ortho = params.is_ortho;
 		}
 
-
-		/* viewDir - object relative */
-		invert_m4_m4(ps->ob->imat, ps->ob->obmat);
-		copy_m3_m4(mat, viewinv);
-		mul_m3_v3(mat, ps->viewDir);
-		copy_m3_m4(mat, ps->ob->imat);
-		mul_m3_v3(mat, ps->viewDir);
-		normalize_v3(ps->viewDir);
-
-		/* viewPos - object relative */
-		copy_v3_v3(ps->viewPos, viewinv[3]);
-		copy_m3_m4(mat, ps->ob->imat);
-		mul_m3_v3(mat, ps->viewPos);
-		add_v3_v3(ps->viewPos, ps->ob->imat[3]);
+		/* same as #ED_view3d_ob_project_mat_get */
+		mul_m4_m4m4(vmat, viewmat, ps->ob->obmat);
+		mul_m4_m4m4(ps->projectMat, winmat, vmat);
 	}
 
-	/* calculate vert screen coords
-	 * run this early so we can calculate the x/y resolution of our bucket rect */
+
+	/* viewDir - object relative */
+	invert_m4_m4(ps->ob->imat, ps->ob->obmat);
+	copy_m3_m4(mat, viewinv);
+	mul_m3_v3(mat, ps->viewDir);
+	copy_m3_m4(mat, ps->ob->imat);
+	mul_m3_v3(mat, ps->viewDir);
+	normalize_v3(ps->viewDir);
+
+	/* viewPos - object relative */
+	copy_v3_v3(ps->viewPos, viewinv[3]);
+	copy_m3_m4(mat, ps->ob->imat);
+	mul_m3_v3(mat, ps->viewPos);
+	add_v3_v3(ps->viewPos, ps->ob->imat[3]);
+}
+
+static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int diameter)
+{
+	MVert *mv;
+	float *projScreenCo;
+	float projMargin;
+	int a;
+
 	INIT_MINMAX2(ps->screenMin, ps->screenMax);
 
 	ps->screenCoords = MEM_mallocN(sizeof(float) * ps->dm_totvert * 4, "ProjectPaint ScreenVerts");
@@ -3305,37 +3177,23 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->screenMin[1] = 0;
 		ps->screenMax[1] = (float)(ps->winy);
 	}
+}
 
-	/* only for convenience */
-	ps->screen_width  = ps->screenMax[0] - ps->screenMin[0];
-	ps->screen_height = ps->screenMax[1] - ps->screenMin[1];
-
-	ps->buckets_x = (int)(ps->screen_width / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
-	ps->buckets_y = (int)(ps->screen_height / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
-
-	/* printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y); */
-
-	if (ps->buckets_x > PROJ_BUCKET_RECT_MAX || ps->buckets_y > PROJ_BUCKET_RECT_MAX) {
-		reset_threads = true;
-	}
-
-	/* really high values could cause problems since it has to allocate a few
-	 * (ps->buckets_x*ps->buckets_y) sized arrays  */
-	CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
-	CLAMP(ps->buckets_y, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
-
-	ps->bucketRect = (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y, "paint-bucketRect");
-	ps->bucketFaces = (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
-
-	ps->bucketFlags = (unsigned char *)MEM_callocN(sizeof(char) * ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
 #ifndef PROJ_DEBUG_NOSEAMBLEED
+static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
+{
 	if (ps->seam_bleed_px > 0.0f) {
 		ps->vertFaces = (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->dm_totvert, "paint-vertFaces");
 		ps->faceSeamFlags = (char *)MEM_callocN(sizeof(char) * ps->dm_totface, "paint-faceSeamFlags");
 		ps->faceWindingFlags = (char *)MEM_callocN(sizeof(char) * ps->dm_totface, "paint-faceWindindFlags");
 		ps->faceSeamUVs = MEM_mallocN(sizeof(float) * ps->dm_totface * 8, "paint-faceSeamUVs");
 	}
+}
 #endif
+
+static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_threads)
+{
+	int a;
 
 	/* Thread stuff
 	 *
@@ -3360,11 +3218,15 @@ static void project_paint_begin(ProjPaintState *ps)
 	for (a = 0; a < ps->thread_tot; a++) {
 		ps->arena_mt[a] = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "project paint arena");
 	}
+}
 
-	arena = ps->arena_mt[0];
-
+static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
+{
 	if (ps->do_backfacecull && ps->do_mask_normal) {
 		float viewDirPersp[3];
+		MVert *mv;
+		float no[3];
+		int a;
 
 		ps->vertFlags = MEM_callocN(sizeof(char) * ps->dm_totvert, "paint-vertFlags");
 
@@ -3385,38 +3247,323 @@ static void project_paint_begin(ProjPaintState *ps)
 			}
 		}
 	}
+	else {
+		ps->vertFlags = NULL;
+	}
+}
+
+#ifndef PROJ_DEBUG_NOSEAMBLEED
+static void project_paint_bleed_add_face_user(const ProjPaintState *ps, MemArena *arena,
+											  const MFace *mf, const int face_index)
+{
+	/* add face user if we have bleed enabled, set the UV seam flags later */
+	/* annoying but we need to add all faces even ones we never use elsewhere */
+	if (ps->seam_bleed_px > 0.0f) {
+		BLI_linklist_prepend_arena(&ps->vertFaces[mf->v1], SET_INT_IN_POINTER(face_index), arena);
+		BLI_linklist_prepend_arena(&ps->vertFaces[mf->v2], SET_INT_IN_POINTER(face_index), arena);
+		BLI_linklist_prepend_arena(&ps->vertFaces[mf->v3], SET_INT_IN_POINTER(face_index), arena);
+		if (mf->v4) {
+			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v4], SET_INT_IN_POINTER(face_index), arena);
+		}
+	}
+}
+#endif
+
+/* Return true if DM can be painted on, false otherwise */
+static bool proj_paint_state_dm_init(ProjPaintState *ps)
+{
+	/* Workaround for subsurf selection, try the display mesh first */
+	if (ps->source == PROJ_SRC_IMAGE_CAM) {
+		/* using render mesh, assume only camera was rendered from */
+		ps->dm = mesh_create_derived_render(ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
+		ps->dm_release = true;
+	}
+	else if (ps->ob->derivedFinal &&
+	         CustomData_has_layer(&ps->ob->derivedFinal->faceData, CD_MTFACE) &&
+	         (ps->do_face_sel == false || CustomData_has_layer(&ps->ob->derivedFinal->polyData, CD_ORIGINDEX)))
+	{
+		ps->dm = ps->ob->derivedFinal;
+		ps->dm_release = false;
+	}
+	else {
+		ps->dm = mesh_get_derived_final(
+										ps->scene, ps->ob,
+										ps->scene->customdata_mask | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
+		ps->dm_release = true;
+	}
+
+	if (!CustomData_has_layer(&ps->dm->faceData, CD_MTFACE)) {
+
+		if (ps->dm_release)
+			ps->dm->release(ps->dm);
+
+		ps->dm = NULL;
+		return false;
+	}
+
+	DM_update_materials(ps->dm, ps->ob);
+
+	ps->dm_totvert = ps->dm->getNumVerts(ps->dm);
+	ps->dm_totface = ps->dm->getNumTessFaces(ps->dm);
+
+	ps->dm_mvert = ps->dm->getVertArray(ps->dm);
+	ps->dm_mface = ps->dm->getTessFaceArray(ps->dm);
+	ps->dm_mtface = MEM_mallocN(ps->dm_totface * sizeof(MTFace *), "proj_paint_mtfaces");
+
+	return true;
+}
+
+typedef struct {
+	MTFace *tf_clone_base;
+	MTFace **tf_clone;
+	TexPaintSlot *slot_last_clone;
+	TexPaintSlot *slot_clone;
+} ProjPaintLayerClone;
+
+static void proj_paint_layer_clone_init(ProjPaintState *ps,
+										ProjPaintLayerClone *layer_clone)
+{
+	MTFace *tf_clone_base = NULL;
+
+	/* use clone mtface? */
+	if (ps->do_layer_clone) {
+		const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->pdata, CD_MTEXPOLY);
+
+		ps->dm_mtface_clone = MEM_mallocN(ps->dm_totface * sizeof(MTFace *), "proj_paint_mtfaces");
+
+		if (layer_num != -1)
+			tf_clone_base = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
+
+		if (tf_clone_base == NULL) {
+			/* get active instead */
+			tf_clone_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
+		}
+		
+	}
+
+	memset(layer_clone, 0, sizeof(*layer_clone));
+	layer_clone->tf_clone_base = tf_clone_base;
+}
+
+/* Return true if face should be skipped, false otherwise */
+static bool project_paint_clone_face_skip(ProjPaintState *ps, 
+											 ProjPaintLayerClone *lc,
+											 const TexPaintSlot *slot,
+											 const int face_index)
+{
+	if (ps->do_layer_clone) {
+		if (ps->do_material_slots) {
+			lc->slot_clone = project_paint_face_clone_slot(ps, face_index);
+			/* all faces should have a valid slot, reassert here */
+			if (ELEM(lc->slot_clone, NULL, slot))
+				return true;
+		}
+		else if (ps->clone_ima == ps->canvas_ima)
+			return true;
+
+		lc->tf_clone = ps->dm_mtface_clone + face_index;
+			
+		if (ps->do_material_slots) {
+			if (lc->slot_clone != lc->slot_last_clone) {
+				if (!slot->uvname || 
+					!(lc->tf_clone_base = CustomData_get_layer_named(&ps->dm->faceData, CD_MTFACE,
+																	 lc->slot_clone->uvname)))
+				{
+					lc->tf_clone_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
+				}
+				lc->slot_last_clone = lc->slot_clone;
+			}
+		}
+
+		*lc->tf_clone = lc->tf_clone_base + face_index;
+	}
+	return false;
+}
+
+typedef struct {
+	MPoly *mpoly_orig;
+
+	/* double lookup */
+	const int *index_mf_to_mpoly;
+	const int *index_mp_to_orig;
+} ProjPaintFaceLookup;
+
+static void proj_paint_face_lookup_init(const ProjPaintState *ps, 
+										ProjPaintFaceLookup *face_lookup)
+{
+	memset(face_lookup, 0, sizeof(*face_lookup));
+	if (ps->do_face_sel) {
+		face_lookup->index_mf_to_mpoly = ps->dm->getTessFaceDataArray(ps->dm, CD_ORIGINDEX);
+		face_lookup->index_mp_to_orig  = ps->dm->getPolyDataArray(ps->dm, CD_ORIGINDEX);
+		if (face_lookup->index_mf_to_mpoly == NULL) {
+			face_lookup->index_mp_to_orig = NULL;
+		}
+		else {
+			face_lookup->mpoly_orig = ((Mesh *)ps->ob->data)->mpoly;
+		}
+	}
+}
+
+/* Return true if face should be considered selected, false otherwise */
+static bool project_paint_check_face_sel(const ProjPaintState *ps,
+										 const ProjPaintFaceLookup *face_lookup,
+										 const MFace *mf, const int face_index)
+{
+	if (ps->do_face_sel) {
+		int orig_index;
+		if (face_lookup->index_mp_to_orig &&
+			((orig_index = DM_origindex_mface_mpoly(face_lookup->index_mf_to_mpoly, face_lookup->index_mp_to_orig, face_index))) != ORIGINDEX_NONE)
+		{
+			MPoly *mp = &face_lookup->mpoly_orig[orig_index];
+			return ((mp->flag & ME_FACE_SEL) != 0);
+		}
+		else {
+			return ((mf->flag & ME_FACE_SEL) != 0);
+		}
+	}
+	else {
+		return true;
+	}
+}
+
+typedef struct {
+	const float *v1;
+	const float *v2;
+	const float *v3;
+	const float *v4;
+} ProjPaintFaceCoSS;
+
+static void proj_paint_face_coSS_init(const ProjPaintState *ps, const MFace *mf,
+									  ProjPaintFaceCoSS *coSS)
+{
+	coSS->v1 = ps->screenCoords[mf->v1];
+	coSS->v2 = ps->screenCoords[mf->v2];
+	coSS->v3 = ps->screenCoords[mf->v3];
+	coSS->v4 = mf->v4 ? ps->screenCoords[mf->v4] : NULL;
+}
+
+/* Return true if face should be culled, false otherwise */
+static bool project_paint_flt_max_cull(const ProjPaintState *ps,
+									   const ProjPaintFaceCoSS *coSS)
+{
+	if (!ps->is_ortho) {
+		if (coSS->v1[0] == FLT_MAX ||
+			coSS->v2[0] == FLT_MAX ||
+			coSS->v3[0] == FLT_MAX ||
+			(coSS->v4 && coSS->v4[0] == FLT_MAX)) 
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+#ifdef PROJ_DEBUG_WINCLIP
+/* Return true if face should be culled, false otherwise */
+static bool project_paint_winclip(const ProjPaintState *ps, const MFace *mf,
+								  const ProjPaintFaceCoSS *coSS)
+{
+	/* ignore faces outside the view */
+	return ((ps->source != PROJ_SRC_VIEW_FILL) &&
+			((coSS->v1[0] < ps->screenMin[0] &&
+			  coSS->v2[0] < ps->screenMin[0] &&
+			  coSS->v3[0] < ps->screenMin[0] &&
+			  (mf->v4 && coSS->v4[0] < ps->screenMin[0])) ||
+
+			 (coSS->v1[0] > ps->screenMax[0] &&
+			  coSS->v2[0] > ps->screenMax[0] &&
+			  coSS->v3[0] > ps->screenMax[0] &&
+			  (mf->v4 && coSS->v4[0] > ps->screenMax[0])) ||
+
+			 (coSS->v1[1] < ps->screenMin[1] &&
+			  coSS->v2[1] < ps->screenMin[1] &&
+			  coSS->v3[1] < ps->screenMin[1] &&
+			  (mf->v4 && coSS->v4[1] < ps->screenMin[1])) ||
+
+			 (coSS->v1[1] > ps->screenMax[1] &&
+			  coSS->v2[1] > ps->screenMax[1] &&
+			  coSS->v3[1] > ps->screenMax[1] &&
+			  (mf->v4 && coSS->v4[1] > ps->screenMax[1]))));
+}
+#endif //PROJ_DEBUG_WINCLIP
+
+/* Return true if face should be culled, false otherwise */
+static bool project_paint_backface_cull(const ProjPaintState *ps, const MFace *mf,
+										const ProjPaintFaceCoSS *coSS)
+{
+	if (ps->do_backfacecull) {
+		if (ps->do_mask_normal) {
+			/* Since we are interpolating the normals of faces, we want to make
+			 * sure all the verts are pointing away from the view,
+			 * not just the face */
+			if ((ps->vertFlags[mf->v1] & PROJ_VERT_CULL) &&
+				(ps->vertFlags[mf->v2] & PROJ_VERT_CULL) &&
+				(ps->vertFlags[mf->v3] & PROJ_VERT_CULL) &&
+				(mf->v4 == 0 || ps->vertFlags[mf->v4] & PROJ_VERT_CULL)) {
+				return true;
+			}
+		}
+		else {
+			if (line_point_side_v2(coSS->v1, coSS->v2, coSS->v3) < 0.0f) {
+				return true;
+			}
+
+		}
+	}
+
+	return false;
+}
+
+static void project_paint_build_proj_ima(ProjPaintState *ps, MemArena *arena,
+										 LinkNode *image_LinkList)
+{
+	ProjPaintImage *projIma;
+	LinkNode *node;
+	int i;
+
+	/* build an array of images we use */
+	projIma = ps->projImages = (ProjPaintImage *)BLI_memarena_alloc(arena, sizeof(ProjPaintImage) * ps->image_tot);
+
+	for (node = image_LinkList, i = 0; node; node = node->next, i++, projIma++) {
+		int size;
+		projIma->ima = node->link;
+		projIma->touch = 0;
+		projIma->ibuf = BKE_image_acquire_ibuf(projIma->ima, NULL, NULL);
+		size = sizeof(void **) * IMAPAINT_TILE_NUMBER(projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(projIma->ibuf->y);
+		projIma->partRedrawRect =  BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+		memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+		projIma->undoRect = (volatile void **) BLI_memarena_alloc(arena, size);
+		memset(projIma->undoRect, 0, size);
+		projIma->maskRect = (unsigned short **) BLI_memarena_alloc(arena, size);
+		memset(projIma->maskRect, 0, size);
+		projIma->valid = (bool **) BLI_memarena_alloc(arena, size);
+		memset(projIma->valid, 0, size);
+	}
+}
+
+static void project_paint_prepare_all_faces(ProjPaintState *ps, MemArena *arena,
+											const ProjPaintFaceLookup *face_lookup,
+											ProjPaintLayerClone *layer_clone,
+											MTFace *tf_base)
+{
+	/* Image Vars - keep track of images we have used */
+	LinkNode *image_LinkList = NULL;
+
+	Image *tpage_last = NULL, *tpage;
+	TexPaintSlot *slot_last = NULL;
+	TexPaintSlot *slot = NULL;
+	MTFace **tf;
+	MFace *mf;
+	int image_index = -1, face_index;
 
 	for (face_index = 0, tf = ps->dm_mtface, mf = ps->dm_mface; face_index < ps->dm_totface; mf++, tf++, face_index++) {
 		bool is_face_sel;
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-		/* add face user if we have bleed enabled, set the UV seam flags later */
-		/* annoying but we need to add all faces even ones we never use elsewhere */
-		if (ps->seam_bleed_px > 0.0f) {
-			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v1], SET_INT_IN_POINTER(face_index), arena);
-			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v2], SET_INT_IN_POINTER(face_index), arena);
-			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v3], SET_INT_IN_POINTER(face_index), arena);
-			if (mf->v4) {
-				BLI_linklist_prepend_arena(&ps->vertFaces[mf->v4], SET_INT_IN_POINTER(face_index), arena);
-			}
-		}
+		project_paint_bleed_add_face_user(ps, arena, mf, face_index);
 #endif
 
-		if (ps->do_face_sel) {
-			int orig_index;
-			if (index_mp_to_orig && ((orig_index = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig,
-			                                                                face_index))) != ORIGINDEX_NONE)
-			{
-				MPoly *mp = &mpoly_orig[orig_index];
-				is_face_sel = ((mp->flag & ME_FACE_SEL) != 0);
-			}
-			else {
-				is_face_sel = ((mf->flag & ME_FACE_SEL) != 0);
-			}
-		}
-		else {
-			is_face_sel = true;
-		}
+		is_face_sel = project_paint_check_face_sel(ps, face_lookup, mf, face_index);
 
 		if (!ps->do_stencil_brush) {
 			slot = project_paint_face_paint_slot(ps, face_index);
@@ -3445,103 +3592,31 @@ static void project_paint_begin(ProjPaintState *ps)
 
 		*tf = tf_base + face_index;
 
-		if (ps->do_layer_clone) {
-			if (ps->do_material_slots) {
-				slot_clone = project_paint_face_clone_slot(ps, face_index);
-				/* all faces should have a valid slot, reassert here */
-				if (ELEM(slot_clone, NULL, slot))
-					continue;
-			}
-			else if (ps->clone_ima == ps->canvas_ima)
-				continue;
-			
-			tf_clone = ps->dm_mtface_clone + face_index;
-			
-			if (ps->do_material_slots) {
-				if (slot_clone != slot_last_clone) {
-					if (!slot->uvname || !(tf_clone_base = CustomData_get_layer_named(&ps->dm->faceData, CD_MTFACE, slot_clone->uvname)))
-						tf_clone_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
-					slot_last_clone = slot_clone;
-				}
-			}
-			
-			*tf_clone = tf_clone_base + face_index;
+		if (project_paint_clone_face_skip(ps, layer_clone, slot, face_index)) {
+			continue;
 		}
-
+		   
 		/* tfbase here should be non-null! */
 		BLI_assert (tf_base != NULL);
 
 		if (is_face_sel && tpage) {
-			const float *v1coSS, *v2coSS, *v3coSS, *v4coSS = NULL;
+			ProjPaintFaceCoSS coSS;
+			proj_paint_face_coSS_init(ps, mf, &coSS);
 
-			v1coSS = ps->screenCoords[mf->v1];
-			v2coSS = ps->screenCoords[mf->v2];
-			v3coSS = ps->screenCoords[mf->v3];
-			if (mf->v4) {
-				v4coSS = ps->screenCoords[mf->v4];
-			}
-
-
-			if (!ps->is_ortho) {
-				if (v1coSS[0] == FLT_MAX ||
-				    v2coSS[0] == FLT_MAX ||
-				    v3coSS[0] == FLT_MAX ||
-				    (mf->v4 && v4coSS[0] == FLT_MAX))
-				{
-					continue;
-				}
+			if (project_paint_flt_max_cull(ps, &coSS)) {
+				continue;
 			}
 
 #ifdef PROJ_DEBUG_WINCLIP
-			/* ignore faces outside the view */
-			if ((ps->source != PROJ_SRC_VIEW_FILL) &&
-			    ((v1coSS[0] < ps->screenMin[0] &&
-			     v2coSS[0] < ps->screenMin[0] &&
-			     v3coSS[0] < ps->screenMin[0] &&
-			     (mf->v4 && v4coSS[0] < ps->screenMin[0])) ||
-
-			    (v1coSS[0] > ps->screenMax[0] &&
-			     v2coSS[0] > ps->screenMax[0] &&
-			     v3coSS[0] > ps->screenMax[0] &&
-			     (mf->v4 && v4coSS[0] > ps->screenMax[0])) ||
-
-			    (v1coSS[1] < ps->screenMin[1] &&
-			     v2coSS[1] < ps->screenMin[1] &&
-			     v3coSS[1] < ps->screenMin[1] &&
-			     (mf->v4 && v4coSS[1] < ps->screenMin[1])) ||
-
-			    (v1coSS[1] > ps->screenMax[1] &&
-			     v2coSS[1] > ps->screenMax[1] &&
-			     v3coSS[1] > ps->screenMax[1] &&
-			     (mf->v4 && v4coSS[1] > ps->screenMax[1])))
-			    )
-			{
+			if (project_paint_winclip(ps, mf, &coSS)) {
 				continue;
 			}
 
 #endif //PROJ_DEBUG_WINCLIP
 
 
-			if (ps->do_backfacecull) {
-				if (ps->do_mask_normal) {
-					/* Since we are interpolating the normals of faces, we want to make
-					 * sure all the verts are pointing away from the view,
-					 * not just the face */
-					if ((ps->vertFlags[mf->v1] & PROJ_VERT_CULL) &&
-					    (ps->vertFlags[mf->v2] & PROJ_VERT_CULL) &&
-					    (ps->vertFlags[mf->v3] & PROJ_VERT_CULL) &&
-					    (mf->v4 == 0 || ps->vertFlags[mf->v4] & PROJ_VERT_CULL)
-					    )
-					{
-						continue;
-					}
-				}
-				else {
-					if (line_point_side_v2(v1coSS, v2coSS, v3coSS) < 0.0f) {
-						continue;
-					}
-
-				}
+			if (project_paint_backface_cull(ps, mf, &coSS)) {
+				continue;
 			}
 
 			if (tpage_last != tpage) {
@@ -3566,26 +3641,96 @@ static void project_paint_begin(ProjPaintState *ps)
 	}
 
 	/* build an array of images we use*/
-	projIma = ps->projImages = (ProjPaintImage *)BLI_memarena_alloc(arena, sizeof(ProjPaintImage) * ps->image_tot);
-
-	for (node = image_LinkList, i = 0; node; node = node->next, i++, projIma++) {
-		int size;
-		projIma->ima = node->link;
-		projIma->touch = 0;
-		projIma->ibuf = BKE_image_acquire_ibuf(projIma->ima, NULL, NULL);
-		size = sizeof(void **) * IMAPAINT_TILE_NUMBER(projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(projIma->ibuf->y);
-		projIma->partRedrawRect =  BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-		memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-		projIma->undoRect = (volatile void **) BLI_memarena_alloc(arena, size);
-		memset(projIma->undoRect, 0, size);
-		projIma->maskRect = (unsigned short **) BLI_memarena_alloc(arena, size);
-		memset(projIma->maskRect, 0, size);
-		projIma->valid = (bool **) BLI_memarena_alloc(arena, size);
-		memset(projIma->valid, 0, size);
-	}
+	project_paint_build_proj_ima(ps, arena, image_LinkList);
 
 	/* we have built the array, discard the linked list */
 	BLI_linklist_free(image_LinkList, NULL);
+}
+
+/* run once per stroke before projection painting */
+static void project_paint_begin(ProjPaintState *ps)
+{
+	ProjPaintLayerClone layer_clone;
+	ProjPaintFaceLookup face_lookup;
+	MTFace *tf_base;
+
+	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
+
+	const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
+
+	bool reset_threads = false;
+
+	/* ---- end defines ---- */
+
+	if (ps->source == PROJ_SRC_VIEW)
+		ED_view3d_clipping_local(ps->rv3d, ps->ob->obmat);  /* faster clipping lookups */
+
+	ps->do_face_sel = ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) != 0);
+
+	/* paint onto the derived mesh */
+	if (!proj_paint_state_dm_init(ps)) {
+		return;
+	}
+
+	proj_paint_face_lookup_init(ps, &face_lookup);
+	proj_paint_layer_clone_init(ps, &layer_clone);
+
+	if (ps->do_layer_stencil || ps->do_stencil_brush) {
+		//int layer_num = CustomData_get_stencil_layer(&ps->dm->faceData, CD_MTFACE);
+		int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->pdata, CD_MTEXPOLY);
+		if (layer_num != -1)
+			ps->dm_mtface_stencil = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
+
+		if (ps->dm_mtface_stencil == NULL) {
+			/* get active instead */
+			ps->dm_mtface_stencil = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
+		}
+
+		if (ps->do_stencil_brush)
+			tf_base = ps->dm_mtface_stencil;
+	}
+
+	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+	proj_paint_state_non_cddm_init(ps);
+
+	proj_paint_state_viewport_init(ps);
+
+	/* calculate vert screen coords
+	 * run this early so we can calculate the x/y resolution of our bucket rect */
+	proj_paint_state_screen_coords_init(ps, diameter);
+
+	/* only for convenience */
+	ps->screen_width  = ps->screenMax[0] - ps->screenMin[0];
+	ps->screen_height = ps->screenMax[1] - ps->screenMin[1];
+
+	ps->buckets_x = (int)(ps->screen_width / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
+	ps->buckets_y = (int)(ps->screen_height / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
+
+	/* printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y); */
+
+	if (ps->buckets_x > PROJ_BUCKET_RECT_MAX || ps->buckets_y > PROJ_BUCKET_RECT_MAX) {
+		reset_threads = true;
+	}
+
+	/* really high values could cause problems since it has to allocate a few
+	 * (ps->buckets_x*ps->buckets_y) sized arrays  */
+	CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
+	CLAMP(ps->buckets_y, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
+
+	ps->bucketRect = (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y, "paint-bucketRect");
+	ps->bucketFaces = (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
+
+	ps->bucketFlags = (unsigned char *)MEM_callocN(sizeof(char) * ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
+#ifndef PROJ_DEBUG_NOSEAMBLEED
+	proj_paint_state_seam_bleed_init(ps);
+#endif
+
+	proj_paint_state_thread_init(ps, reset_threads);
+	arena = ps->arena_mt[0];
+
+	proj_paint_state_vert_flags_init(ps);
+
+	project_paint_prepare_all_faces(ps, arena, &face_lookup, &layer_clone, tf_base);
 }
 
 static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
