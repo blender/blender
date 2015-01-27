@@ -2271,7 +2271,7 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 		{
 			for (int j=0;j<numContacts;j++)
 			{
-				btVector3 color(1,0,0);
+				btVector3 color(1,1,0);
 				const btManifoldPoint& cp = manifold->getContactPoint(j);
 				m_debugDrawer->drawContactPoint(cp.m_positionWorldOnB,
 				                                cp.m_normalWorldOnB,
