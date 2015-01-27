@@ -2996,7 +2996,8 @@ struct	BlenderDebugDraw : public btIDebugDraw
 
 	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,float distance,int lifeTime,const btVector3& color)
 	{
-		//not yet
+		drawLine(PointOnB, PointOnB + normalOnB, color);
+		drawSphere(PointOnB, 0.1, color);
 	}
 
 	virtual void	setDebugMode(int debugMode)
