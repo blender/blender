@@ -109,16 +109,17 @@ void Camera::update()
 {
 	if(!need_update)
 		return;
-	
+
+	/* Full viewport to camera border in the viewport. */
+	Transform fulltoborder = transform_from_viewplane(viewport_camera_border);
+	Transform bordertofull = transform_inverse(fulltoborder);
+
 	/* ndc to raster */
 	Transform screentocamera;
-	Transform ndctoraster = transform_scale(width, height, 1.0f);
+	Transform ndctoraster = transform_scale(width, height, 1.0f) * bordertofull;
 
 	/* raster to screen */
-	Transform screentondc = 
-		transform_scale(1.0f/(viewplane.right - viewplane.left),
-		                1.0f/(viewplane.top - viewplane.bottom), 1.0f) *
-		transform_translate(-viewplane.left, -viewplane.bottom, 0.0f);
+	Transform screentondc = fulltoborder * transform_from_viewplane(viewplane);
 
 	Transform screentoraster = ndctoraster * screentondc;
 	Transform rastertoscreen = transform_inverse(screentoraster);
@@ -398,5 +399,15 @@ BoundBox Camera::viewplane_bounds_get()
 	return bounds;
 }
 
-CCL_NAMESPACE_END
+Transform Camera::transform_from_viewplane(BoundBox2D &viewplane)
+{
+	return
+		transform_scale(1.0f / (viewplane.right - viewplane.left),
+		                1.0f / (viewplane.top - viewplane.bottom),
+		                1.0f) *
+		transform_translate(-viewplane.left,
+		                    -viewplane.bottom,
+		                    0.0f);
+}
 
+CCL_NAMESPACE_END
