@@ -146,11 +146,12 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		struct SeqIndexBuildContext *context = link->data;
 
 		BKE_sequencer_proxy_rebuild(context, stop, do_update, progress);
-	}
-
-	if (*stop) {
-		pj->stop = 1;
-		fprintf(stderr,  "Canceling proxy rebuild on users request...\n");
+		
+		if (*stop) {
+			pj->stop = 1;
+			fprintf(stderr,  "Canceling proxy rebuild on users request...\n");
+			break;
+		}
 	}
 }
 
