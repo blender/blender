@@ -2096,13 +2096,14 @@ int GPU_lamp_shadow_layer(GPULamp *lamp)
 		return -1;
 }
 
-GPUNodeLink *GPU_lamp_get_data(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **col, GPUNodeLink **lv, GPUNodeLink **dist, GPUNodeLink **shadow)
+GPUNodeLink *GPU_lamp_get_data(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **col, GPUNodeLink **lv, GPUNodeLink **dist, GPUNodeLink **shadow, GPUNodeLink **energy)
 {
 	GPUNodeLink *visifac;
 
 	*col = GPU_dynamic_uniform(lamp->dyncol, GPU_DYNAMIC_LAMP_DYNCOL, lamp->ob);
+	*energy = GPU_dynamic_uniform(&lamp->dynenergy, GPU_DYNAMIC_LAMP_DYNENERGY, lamp->ob);
 	visifac = lamp_get_visibility(mat, lamp, lv, dist);
-	/* looks like it's not used? psy-fi */
+
 	shade_light_textures(mat, lamp, col);
 
 	if (GPU_lamp_has_shadow_buffer(lamp)) {
