@@ -849,14 +849,12 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 
 static bool connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
-	float (*from_mat)[4] = psys->flag & PSYS_GLOBAL_HAIR ? I : ob->obmat;
-	float (*to_mat)[4] = ob->obmat;
 	bool ok;
 	
 	if (!psys)
 		return false;
 	
-	ok = remap_hair_emitter(scene, ob, psys, ob, psys, psys->edit, from_mat, to_mat, psys->flag & PSYS_GLOBAL_HAIR, false);
+	ok = remap_hair_emitter(scene, ob, psys, ob, psys, psys->edit, ob->obmat, ob->obmat, psys->flag & PSYS_GLOBAL_HAIR, false);
 	psys->flag &= ~PSYS_GLOBAL_HAIR;
 	
 	return ok;
