@@ -573,8 +573,15 @@ void GHOST_WindowX11::initXInputDevices()
 			XEventClass xevents[10], ev;
 			int dcount = 0;
 
+			/* With modern XInput (xlib 1.6.2 at least and/or evdev 2.9.0) and some 'no-name' tablets
+			 * like 'UC-LOGIC Tablet WP5540U', we also need to 'select' Button1 for motion event,
+			 * otherwise we do not get any tablet motion event once pen is pressed... See T43367.
+			 */
+
 			if (xtablet.StylusDevice) {
 				DeviceMotionNotify(xtablet.StylusDevice, xtablet.MotionEvent, ev);
+				if (ev) xevents[dcount++] = ev;
+				DeviceButton1Motion(xtablet.StylusDevice, xtablet.MotionEvent, ev);
 				if (ev) xevents[dcount++] = ev;
 				ProximityIn(xtablet.StylusDevice, xtablet.ProxInEvent, ev);
 				if (ev) xevents[dcount++] = ev;
@@ -583,6 +590,8 @@ void GHOST_WindowX11::initXInputDevices()
 			}
 			if (xtablet.EraserDevice) {
 				DeviceMotionNotify(xtablet.EraserDevice, xtablet.MotionEvent, ev);
+				if (ev) xevents[dcount++] = ev;
+				DeviceButton1Motion(xtablet.StylusDevice, xtablet.MotionEvent, ev);
 				if (ev) xevents[dcount++] = ev;
 				ProximityIn(xtablet.EraserDevice, xtablet.ProxInEvent, ev);
 				if (ev) xevents[dcount++] = ev;
