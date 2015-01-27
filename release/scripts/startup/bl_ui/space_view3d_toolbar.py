@@ -881,10 +881,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 col.prop(brush, "count")
                 col = layout.column()
                 col.prop(settings, "use_default_interpolate")
-                sub = col.column(align=True)
-                sub.active = settings.use_default_interpolate
-                sub.prop(brush, "steps", slider=True)
-                sub.prop(settings, "default_key_count", slider=True)
+                col.prop(brush, "steps", slider=True)
+                col.prop(settings, "default_key_count", slider=True)
             elif tool == 'LENGTH':
                 layout.prop(brush, "length_mode", expand=True)
             elif tool == 'PUFF':
