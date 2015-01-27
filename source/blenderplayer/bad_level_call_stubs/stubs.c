@@ -239,8 +239,8 @@ bool ED_texture_context_check_linestyle(const struct bContext *C) RET_ZERO
 void FRS_free_view_map_cache(void) RET_NONE
 
 /* texture.c */
-int multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage) RET_ZERO
-int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage) RET_ZERO
+int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image) RET_ZERO
+int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image) RET_ZERO
 int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex, struct ImagePool *pool) RET_ZERO
 
 struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene) RET_NULL
@@ -263,7 +263,7 @@ struct Scene *RE_GetScene(struct Render *re) RET_NULL
 void RE_Database_Free(struct Render *re) RET_NONE
 void RE_FreeRender(struct Render *re) RET_NONE
 void RE_DataBase_GetView(struct Render *re, float mat[4][4]) RET_NONE
-int externtex(struct MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta, const int thread, struct ImagePool *poold) RET_ZERO
+int	externtex(struct MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta, const int thread, struct ImagePool *pool, const bool skip_load_image) RET_ZERO
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype) RET_ZERO
 void texture_rgb_blend(float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype) RET_NONE
 const unsigned char stipple_quarttone[128];
