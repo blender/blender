@@ -1502,7 +1502,7 @@ static void dynamicPaint_setInitialColor(Scene *scene, DynamicPaintSurface *surf
 					uv[0] = tface[i].uv[j][0] * 2.0f - 1.0f;
 					uv[1] = tface[i].uv[j][1] * 2.0f - 1.0f;
 
-					multitex_ext_safe(tex, uv, &texres, pool, scene_color_manage);
+					multitex_ext_safe(tex, uv, &texres, pool, scene_color_manage, false);
 
 					if (texres.tin > pPoint[*vert].alpha) {
 						copy_v3_v3(pPoint[*vert].color, &texres.tr);
@@ -1536,7 +1536,7 @@ static void dynamicPaint_setInitialColor(Scene *scene, DynamicPaintSurface *surf
 				uv_final[0] = uv_final[0] * 2.0f - 1.0f;
 				uv_final[1] = uv_final[1] * 2.0f - 1.0f;
 
-				multitex_ext_safe(tex, uv_final, &texres, NULL, scene_color_manage);
+				multitex_ext_safe(tex, uv_final, &texres, NULL, scene_color_manage, false);
 
 				/* apply color */
 				copy_v3_v3(pPoint[i].color, &texres.tr);

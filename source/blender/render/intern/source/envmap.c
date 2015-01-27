@@ -694,7 +694,7 @@ static void set_dxtdyt(float r_dxt[3], float r_dyt[3], const float dxt[3], const
 
 /* ------------------------------------------------------------------------- */
 
-int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres, struct ImagePool *pool)
+int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres, struct ImagePool *pool, const bool skip_load_image)
 {
 	extern Render R;                /* only in this call */
 	/* texvec should be the already reflected normal */
@@ -750,7 +750,7 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 			mul_mat3_m4_v3(R.viewinv, dyt);
 		}
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
-		imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, texres, pool);
+		imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, texres, pool, skip_load_image);
 		
 		/* edges? */
 		
@@ -767,7 +767,7 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 			if (face != face1) {
 				ibuf = env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr1, pool);
+				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr1, pool, skip_load_image);
 			}
 			else texr1.tr = texr1.tg = texr1.tb = texr1.ta = 0.0;
 			
@@ -780,7 +780,7 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 			if (face != face1) {
 				ibuf = env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr2, pool);
+				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr2, pool, skip_load_image);
 			}
 			else texr2.tr = texr2.tg = texr2.tb = texr2.ta = 0.0;
 			
@@ -796,7 +796,7 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 		}
 	}
 	else {
-		imagewrap(tex, NULL, ibuf, sco, texres, pool);
+		imagewrap(tex, NULL, ibuf, sco, texres, pool, skip_load_image);
 	}
 	
 	return 1;

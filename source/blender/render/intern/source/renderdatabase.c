@@ -954,6 +954,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
                      const float vec[3], const float vec1[3],
                      const float *orco, float hasize, float vectsize, int seed)
 {
+	const bool skip_load_image = (re->r.scemode & R_NO_IMAGE_LOAD) != 0;
 	HaloRen *har;
 	MTex *mtex;
 	float tin, tr, tg, tb, ta;
@@ -1045,7 +1046,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
 				}
 			}
 
-			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0, re->pool);
+			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0, re->pool, skip_load_image);
 
 			yn= tin*mtex->colfac;
 			//zn= tin*mtex->alphafac;
@@ -1065,6 +1066,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
 	}
 
 	har->pool = re->pool;
+	har->skip_load_image = (re->r.scemode & R_NO_IMAGE_LOAD) != 0;
 
 	return har;
 }
@@ -1073,6 +1075,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
                               const float vec[3], const float vec1[3],
                               const float *orco, const float *uvco, float hasize, float vectsize, int seed, const float pa_co[3])
 {
+	const bool skip_load_image = (re->r.scemode & R_NO_IMAGE_LOAD) != 0;
 	HaloRen *har;
 	MTex *mtex;
 	float tin, tr, tg, tb, ta;
@@ -1176,7 +1179,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				copy_v3_v3(texvec, orco);
 			}
 
-			hasrgb = externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0, re->pool);
+			hasrgb = externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0, re->pool, skip_load_image);
 
 			//yn= tin*mtex->colfac;
 			//zn= tin*mtex->alphafac;
@@ -1220,6 +1223,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 		}
 
 	har->pool = re->pool;
+	har->skip_load_image = (re->r.scemode & R_NO_IMAGE_LOAD) != 0;
 
 	return har;
 }

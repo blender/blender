@@ -74,7 +74,7 @@ static void texture_evaluate(struct Tex *tex, float value[3], float r_color[4])
 	TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 
 	/* TODO(sergey): always use color management now.  */
-	multitex_ext(tex, value, NULL, NULL, 1, &texres, NULL, true);
+	multitex_ext(tex, value, NULL, NULL, 1, &texres, NULL, true, false);
 
 	r_color[0] = texres.tr;
 	r_color[1] = texres.tg;

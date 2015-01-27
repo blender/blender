@@ -1634,7 +1634,7 @@ void BKE_texture_get_value(Scene *scene, Tex *texture, float *tex_co, TexResult 
 	}
 
 	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, do_color_manage);
+	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, do_color_manage, false);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
 	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.

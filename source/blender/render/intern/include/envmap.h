@@ -47,7 +47,7 @@ struct TexResult;
 struct ImagePool;
 
 void make_envmaps(struct Render *re);
-int envmaptex(struct Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool);
+int envmaptex(struct Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool, const bool skip_image_load);
 void env_rotate_scene(struct Render *re, float mat[4][4], int do_rotate);
 
 #endif /* __ENVMAP_H__ */

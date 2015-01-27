@@ -103,7 +103,7 @@ static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 	}
 }
 
-int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResult *texres, struct ImagePool *pool)
+int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResult *texres, struct ImagePool *pool, const bool skip_load_image)
 {
 	float fx, fy, val1, val2, val3;
 	int x, y, retval;
@@ -120,7 +120,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	if (ima) {
 		
 		/* hack for icon render */
-		if ((R.r.scemode & R_NO_IMAGE_LOAD) && !BKE_image_has_loaded_ibuf(ima))
+		if (skip_load_image && !BKE_image_has_loaded_ibuf(ima))
 			return retval;
 
 		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
@@ -912,7 +912,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 	
 }
 
-static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[2], float dyt[2], TexResult *texres, struct ImagePool *pool)
+static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[2], float dyt[2], TexResult *texres, struct ImagePool *pool, const bool skip_load_image)
 {
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy;
@@ -942,7 +942,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	if (ibuf==NULL && ima==NULL) return retval;
 
 	if (ima) {	/* hack for icon render */
-		if ((R.r.scemode & R_NO_IMAGE_LOAD) && !BKE_image_has_loaded_ibuf(ima)) {
+		if (skip_load_image && !BKE_image_has_loaded_ibuf(ima)) {
 			return retval;
 		}
 		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
@@ -1338,7 +1338,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 }
 
 
-int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const float DXT[2], const float DYT[2], TexResult *texres, struct ImagePool *pool)
+int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const float DXT[2], const float DYT[2], TexResult *texres, struct ImagePool *pool, const bool skip_load_image)
 {
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy, dxt[2], dyt[2];
@@ -1352,7 +1352,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 
 	/* anisotropic filtering */
 	if (tex->texfilter != TXF_BOX)
-		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres, pool);
+		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres, pool, skip_load_image);
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
 	
@@ -1365,7 +1365,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	if (ima) {
 
 		/* hack for icon render */
-		if ((R.r.scemode & R_NO_IMAGE_LOAD) && !BKE_image_has_loaded_ibuf(ima))
+		if (skip_load_image && !BKE_image_has_loaded_ibuf(ima))
 			return retval;
 		
 		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
