@@ -30,7 +30,6 @@ from freestyle.predicates import (
     )
 from freestyle.shaders import (
     ConstantThicknessShader,
-    StrokeTextureShader,
     py2DCurvatureColorShader,
     )
 from freestyle.types import Operators, Stroke
@@ -39,7 +38,6 @@ from freestyle.types import Operators, Stroke
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = [
-    StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, False),
     ConstantThicknessShader(5),
     py2DCurvatureColorShader()
     ]

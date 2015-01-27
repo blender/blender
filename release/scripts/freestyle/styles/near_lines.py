@@ -33,7 +33,6 @@ from freestyle.predicates import (
 from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
-    TextureAssignerShader,
     )
 from freestyle.types import IntegrationType, Operators
 
@@ -42,7 +41,6 @@ upred = AndUP1D(QuantitativeInvisibilityUP1D(0), pyZSmallerUP1D(0.5, Integration
 Operators.select(upred)
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = [
-    TextureAssignerShader(-1),
     ConstantThicknessShader(5),
     ConstantColorShader(0.0, 0.0, 0.0),
     ]

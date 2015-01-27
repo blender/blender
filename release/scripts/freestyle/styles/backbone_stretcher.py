@@ -30,7 +30,6 @@ from freestyle.predicates import (
 from freestyle.shaders import (
     BackboneStretcherShader,
     ConstantColorShader,
-    TextureAssignerShader,
     )
 from freestyle.types import Operators
 
@@ -38,7 +37,6 @@ from freestyle.types import Operators
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = [
-    TextureAssignerShader(4),
     ConstantColorShader(0.5, 0.5, 0.5),
     BackboneStretcherShader(20),
     ]

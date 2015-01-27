@@ -37,7 +37,6 @@ from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
     SamplingShader,
-    TextureAssignerShader,
     TipRemoverShader,
     pyNonLinearVaryingThicknessShader,
     pySamplingShader,
@@ -62,7 +61,6 @@ shaders_list = [
     SamplingShader(50),
     ConstantThicknessShader(10),
     pyNonLinearVaryingThicknessShader(4, 25, 0.6),
-    TextureAssignerShader(6),
     ConstantColorShader(0.2, 0.2, 0.2,1.0),
     TipRemoverShader(10),
     ]

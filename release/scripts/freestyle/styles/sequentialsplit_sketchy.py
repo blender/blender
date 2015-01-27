@@ -35,7 +35,6 @@ from freestyle.shaders import (
     ConstantColorShader,
     IncreasingThicknessShader,
     SpatialNoiseShader,
-    TextureAssignerShader,
     )
 from freestyle.types import Nature, Operators
 
@@ -51,6 +50,5 @@ shaders_list = [
     SpatialNoiseShader(7, 120, 2, True, True),
     IncreasingThicknessShader(5, 8),
     ConstantColorShader(0.2, 0.2, 0.2, 1),
-    TextureAssignerShader(4),
     ]
 Operators.create(TrueUP1D(), shaders_list)

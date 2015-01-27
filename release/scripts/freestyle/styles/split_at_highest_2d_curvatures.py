@@ -34,7 +34,6 @@ from freestyle.predicates import (
 from freestyle.shaders import (
     ConstantThicknessShader,
     IncreasingColorShader,
-    TextureAssignerShader,
     )
 from freestyle.types import Operators
 
@@ -46,6 +45,5 @@ Operators.recursive_split(func, pyParameterUP0D(0.4, 0.6), NotUP1D(pyHigherLengt
 shaders_list = [
     ConstantThicknessShader(10),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
-    TextureAssignerShader(3),
     ]
 Operators.create(TrueUP1D(), shaders_list)

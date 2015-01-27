@@ -37,7 +37,6 @@ from freestyle.shaders import (
     SamplingShader,
     SmoothingShader,
     SpatialNoiseShader,
-    TextureAssignerShader,
     )
 from freestyle.types import Operators
 
@@ -51,6 +50,5 @@ shaders_list = [
     IncreasingThicknessShader(4, 10),
     SmoothingShader(400, 0.1, 0, 0.2, 0, 0, 0, 1),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
-    TextureAssignerShader(4),
     ]
 Operators.create(TrueUP1D(), shaders_list)

@@ -34,8 +34,7 @@ from freestyle.shaders import (
     SamplingShader,
     SmoothingShader,
     SpatialNoiseShader,
-    TextureAssignerShader,
-    pyBackboneStretcherNoCuspShader
+    pyBackboneStretcherNoCuspShader,
     )
 from freestyle.types import Operators
 
@@ -50,9 +49,6 @@ shaders_list = [
     IncreasingThicknessShader(4, 10),
     SmoothingShader(100, 0.1, 0, 0.2, 0, 0, 0, 1),
     pyBackboneStretcherNoCuspShader(20),
-    #ConstantColorShader(0.0, 0.0, 0.0)
     IncreasingColorShader(0.2, 0.2, 0.2, 1, 0.5, 0.5, 0.5, 1),
-    #IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
-    TextureAssignerShader(4),
     ]
 Operators.create(TrueUP1D(), shaders_list)

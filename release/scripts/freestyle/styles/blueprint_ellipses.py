@@ -34,7 +34,6 @@ from freestyle.predicates import (
 from freestyle.shaders import (
     ConstantThicknessShader,
     IncreasingColorShader,
-    TextureAssignerShader,
     pyBluePrintEllipsesShader,
     pyPerlinNoise1DShader,
     )
@@ -50,7 +49,6 @@ shaders_list = [
     ConstantThicknessShader(5),
     pyBluePrintEllipsesShader(3),
     pyPerlinNoise1DShader(0.1, 10, 8),
-    TextureAssignerShader(4),
     IncreasingColorShader(0.6, 0.3, 0.3, 0.7, 0.3, 0.3, 0.3, 0.1),
     ]
 Operators.create(TrueUP1D(), shaders_list)

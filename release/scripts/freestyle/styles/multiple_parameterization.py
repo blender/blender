@@ -37,7 +37,6 @@ from freestyle.shaders import (
     IncreasingColorShader,
     IncreasingThicknessShader,
     SamplingShader,
-    TextureAssignerShader,
     pyHLRShader,
     )
 from freestyle.types import Operators
@@ -52,7 +51,6 @@ shaders_list = [
     IncreasingThicknessShader(1.5, 30),
     ConstantColorShader(0.0, 0.0, 0.0),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
-    TextureAssignerShader(-1),
     pyHLRShader(),  ## this shader draws only visible portions
     ]
 Operators.create(TrueUP1D(), shaders_list)
