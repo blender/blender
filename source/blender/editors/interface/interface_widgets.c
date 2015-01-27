@@ -610,36 +610,36 @@ static void round_box_shade_col4_r(unsigned char r_col[4], const char col1[4], c
 	r_col[3] = (faci * col1[3] + facm * col2[3]) >> 8;
 }
 
-static void widget_verts_to_quad_strip(uiWidgetBase *wtb, const int totvert, float quad_strip[WIDGET_SIZE_MAX * 2 + 2][2])
+static void widget_verts_to_triangle_strip(uiWidgetBase *wtb, const int totvert, float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2])
 {
 	int a;
 	for (a = 0; a < totvert; a++) {
-		copy_v2_v2(quad_strip[a * 2], wtb->outer_v[a]);
-		copy_v2_v2(quad_strip[a * 2 + 1], wtb->inner_v[a]);
+		copy_v2_v2(triangle_strip[a * 2], wtb->outer_v[a]);
+		copy_v2_v2(triangle_strip[a * 2 + 1], wtb->inner_v[a]);
 	}
-	copy_v2_v2(quad_strip[a * 2], wtb->outer_v[0]);
-	copy_v2_v2(quad_strip[a * 2 + 1], wtb->inner_v[0]);
+	copy_v2_v2(triangle_strip[a * 2], wtb->outer_v[0]);
+	copy_v2_v2(triangle_strip[a * 2 + 1], wtb->inner_v[0]);
 }
 
-static void widget_verts_to_quad_strip_open(uiWidgetBase *wtb, const int totvert, float quad_strip[WIDGET_SIZE_MAX * 2][2])
+static void widget_verts_to_triangle_strip_open(uiWidgetBase *wtb, const int totvert, float triangle_strip[WIDGET_SIZE_MAX * 2][2])
 {
 	int a;
 	for (a = 0; a < totvert; a++) {
-		quad_strip[a * 2][0] = wtb->outer_v[a][0];
-		quad_strip[a * 2][1] = wtb->outer_v[a][1];
-		quad_strip[a * 2 + 1][0] = wtb->outer_v[a][0];
-		quad_strip[a * 2 + 1][1] = wtb->outer_v[a][1] - 1.0f;
+		triangle_strip[a * 2][0] = wtb->outer_v[a][0];
+		triangle_strip[a * 2][1] = wtb->outer_v[a][1];
+		triangle_strip[a * 2 + 1][0] = wtb->outer_v[a][0];
+		triangle_strip[a * 2 + 1][1] = wtb->outer_v[a][1] - 1.0f;
 	}
 }
 
 static void widgetbase_outline(uiWidgetBase *wtb)
 {
-	float quad_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
-	widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
+	float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
+	widget_verts_to_triangle_strip(wtb, wtb->totvert, triangle_strip);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, quad_strip);
-	glDrawArrays(GL_QUAD_STRIP, 0, wtb->totvert * 2 + 2);
+	glVertexPointer(2, GL_FLOAT, 0, triangle_strip);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, wtb->totvert * 2 + 2);
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -733,18 +733,18 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	
 	/* for each AA step */
 	if (wtb->outline) {
-		float quad_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
-		float quad_strip_emboss[WIDGET_SIZE_MAX * 2][2]; /* only for emboss */
+		float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
+		float triangle_strip_emboss[WIDGET_SIZE_MAX * 2][2]; /* only for emboss */
 
 		const unsigned char tcol[4] = {wcol->outline[0],
 		                               wcol->outline[1],
 		                               wcol->outline[2],
 		                               wcol->outline[3] / WIDGET_AA_JITTER};
 
-		widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
+		widget_verts_to_triangle_strip(wtb, wtb->totvert, triangle_strip);
 
 		if (wtb->emboss) {
-			widget_verts_to_quad_strip_open(wtb, wtb->halfwayvert, quad_strip_emboss);
+			widget_verts_to_triangle_strip_open(wtb, wtb->halfwayvert, triangle_strip_emboss);
 		}
 
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -757,8 +757,8 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			/* outline */
 			glColor4ubv(tcol);
 
-			glVertexPointer(2, GL_FLOAT, 0, quad_strip);
-			glDrawArrays(GL_QUAD_STRIP, 0, wtb->totvert * 2 + 2);
+			glVertexPointer(2, GL_FLOAT, 0, triangle_strip);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, wtb->totvert * 2 + 2);
 
 			/* emboss bottom shadow */
 			if (wtb->emboss) {
@@ -766,8 +766,8 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 				if (emboss[3]) {
 					glColor4ubv(emboss);
-					glVertexPointer(2, GL_FLOAT, 0, quad_strip_emboss);
-					glDrawArrays(GL_QUAD_STRIP, 0, wtb->halfwayvert * 2);
+					glVertexPointer(2, GL_FLOAT, 0, triangle_strip_emboss);
+					glDrawArrays(GL_TRIANGLE_STRIP, 0, wtb->halfwayvert * 2);
 				}
 			}
 			
@@ -2098,7 +2098,7 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 	rcti rect1 = *rect;
 	float alphastep;
 	int step, totvert;
-	float quad_strip[WIDGET_SIZE_MAX * 2 + 2][2];
+	float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2];
 	const float radout = UI_ThemeMenuShadowWidth();
 	
 	/* disabled shadow */
@@ -2126,10 +2126,10 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 		
 		glColor4f(0.0f, 0.0f, 0.0f, alphastep * (1.0f - expfac));
 
-		widget_verts_to_quad_strip(&wtb, totvert, quad_strip);
+		widget_verts_to_triangle_strip(&wtb, totvert, triangle_strip);
 
-		glVertexPointer(2, GL_FLOAT, 0, quad_strip);
-		glDrawArrays(GL_QUAD_STRIP, 0, totvert * 2); /* add + 2 for getting a complete soft rect. Now it skips top edge to allow transparent menus */
+		glVertexPointer(2, GL_FLOAT, 0, triangle_strip);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, totvert * 2); /* add + 2 for getting a complete soft rect. Now it skips top edge to allow transparent menus */
 	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);
