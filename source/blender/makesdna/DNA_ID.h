@@ -270,6 +270,8 @@ enum {
 	LIB_ID_RECALC       = 1 << 12,
 	LIB_ID_RECALC_DATA  = 1 << 13,
 	LIB_ANIM_NO_RECALC  = 1 << 14,
+
+	LIB_ID_RECALC_ALL   = (LIB_ID_RECALC|LIB_ID_RECALC_DATA),
 };
 
 #ifdef __cplusplus

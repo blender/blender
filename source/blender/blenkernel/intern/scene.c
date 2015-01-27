@@ -1642,9 +1642,9 @@ static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
 	Object *obedit = scene->obedit;
 	if (obedit) {
 		Mesh *mesh = obedit->data;
-		/* TODO(sergey): Check object recalc flags as well? */
 		if ((obedit->type == OB_MESH) &&
-		    (mesh->id.flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)))
+		    ((obedit->id.flag & LIB_ID_RECALC_ALL) ||
+		     (mesh->id.flag & LIB_ID_RECALC_ALL)))
 		{
 			if (check_rendered_viewport_visible(bmain)) {
 				BMesh *bm = mesh->edit_btmesh->bm;
