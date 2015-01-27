@@ -16,10 +16,13 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import sys
 import bpy
 
-from bpy.props import (BoolProperty, EnumProperty, StringProperty)
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        StringProperty,
+        )
 
 
 class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
@@ -29,11 +32,16 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
     bl_label = "Fill Range by Selection"
     bl_options = {'INTERNAL'}
 
-    type = EnumProperty(name="Type", description="Type of the modifier to work on",
-                        items=(("COLOR", "Color", "Color modifier type"),
-                               ("ALPHA", "Alpha", "Alpha modifier type"),
-                               ("THICKNESS", "Thickness", "Thickness modifier type")))
-    name = StringProperty(name="Name", description="Name of the modifier to work on")
+    type = EnumProperty(
+            name="Type", description="Type of the modifier to work on",
+            items=(("COLOR", "Color", "Color modifier type"),
+                   ("ALPHA", "Alpha", "Alpha modifier type"),
+                   ("THICKNESS", "Thickness", "Thickness modifier type")),
+            )
+    name = StringProperty(
+            name="Name",
+            description="Name of the modifier to work on",
+            )
 
     @classmethod
     def poll(cls, context):
@@ -41,6 +49,8 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
         return rl and rl.freestyle_settings.linesets.active
 
     def execute(self, context):
+        import sys
+
         scene = context.scene
         rl = scene.render.layers.active
         lineset = rl.freestyle_settings.linesets.active

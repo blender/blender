@@ -27,11 +27,12 @@ if "bpy" in locals():
 
 import bpy
 from bpy.types import Operator
-from bpy.props import (IntProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       StringProperty,
-                       )
+from bpy.props import (
+        IntProperty,
+        BoolProperty,
+        EnumProperty,
+        StringProperty,
+        )
 
 
 class ANIM_OT_keying_set_export(Operator):

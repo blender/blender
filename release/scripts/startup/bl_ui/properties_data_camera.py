@@ -230,9 +230,10 @@ class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        cam = context.camera
+        safe_data = context.scene.safe_areas
+        camera = context.camera
 
-        draw_display_safe_settings(layout, cam)
+        draw_display_safe_settings(layout, safe_data, camera)
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
@@ -241,9 +242,7 @@ class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
     _property_type = bpy.types.Camera
 
 
-def draw_display_safe_settings(layout, settings):
-
-    safe_data = bpy.context.scene.safe_areas
+def draw_display_safe_settings(layout, safe_data, settings):
     show_safe_areas = settings.show_safe_areas
     show_safe_center = settings.show_safe_center
 

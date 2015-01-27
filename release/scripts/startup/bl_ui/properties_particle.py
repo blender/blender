@@ -22,11 +22,12 @@ from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 from bpy.app.translations import pgettext_iface as iface_
 
-from bl_ui.properties_physics_common import (point_cache_ui,
-                                             effector_weights_ui,
-                                             basic_force_field_settings_ui,
-                                             basic_force_field_falloff_ui,
-                                             )
+from bl_ui.properties_physics_common import (
+        point_cache_ui,
+        effector_weights_ui,
+        basic_force_field_settings_ui,
+        basic_force_field_falloff_ui,
+        )
 
 
 def particle_panel_enabled(context, psys):

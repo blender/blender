@@ -20,14 +20,16 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 
-from bpy.types import (Brush,
-                       Lamp,
-                       Material,
-                       Object,
-                       ParticleSettings,
-                       FreestyleLineStyle,
-                       Texture,
-                       World)
+from bpy.types import (
+        Brush,
+        FreestyleLineStyle,
+        Lamp,
+        Material,
+        Object,
+        ParticleSettings,
+        Texture,
+        World,
+        )
 
 from rna_prop_ui import PropertyPanel
 

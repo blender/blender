@@ -20,15 +20,17 @@
 
 import bpy
 import nodeitems_utils
-from bpy.types import (Operator,
-                       PropertyGroup,
-                       )
-from bpy.props import (BoolProperty,
-                       CollectionProperty,
-                       EnumProperty,
-                       IntProperty,
-                       StringProperty,
-                       )
+from bpy.types import (
+        Operator,
+        PropertyGroup,
+        )
+from bpy.props import (
+        BoolProperty,
+        CollectionProperty,
+        EnumProperty,
+        IntProperty,
+        StringProperty,
+        )
 
 
 class NodeSetting(PropertyGroup):

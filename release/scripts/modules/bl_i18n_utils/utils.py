@@ -31,9 +31,10 @@ import sys
 import tempfile
 #import time
 
-from bl_i18n_utils import (settings,
-                           utils_rtl,
-                          )
+from bl_i18n_utils import (
+        settings,
+        utils_rtl,
+        )
 
 import bpy
 

@@ -51,12 +51,12 @@ __all__ = (
     )
 
 from _bpy import (
-    escape_identifier,
-    register_class,
-    unregister_class,
-    blend_paths,
-    resource_path,
-    )
+        escape_identifier,
+        register_class,
+        unregister_class,
+        blend_paths,
+        resource_path,
+        )
 from _bpy import script_paths as _bpy_script_paths
 from _bpy import user_resource as _user_resource
 from _bpy import _utils_units as units

@@ -22,9 +22,9 @@ from bpy.types import Panel, UIList
 from rna_prop_ui import PropertyPanel
 
 from bl_ui.properties_physics_common import (
-    point_cache_ui,
-    effector_weights_ui,
-    )
+        point_cache_ui,
+        effector_weights_ui,
+        )
 
 
 class SCENE_UL_keying_set_paths(UIList):

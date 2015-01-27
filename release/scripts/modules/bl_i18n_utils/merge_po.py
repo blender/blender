@@ -30,17 +30,20 @@
 
 import sys
 
-try:
+if __package__ is None:
     import settings
     import utils
-except:
-    from . import (settings, utils)
+else:
+    from . import (
+            settings,
+            utils,
+            )
 
 
 # XXX This is a quick hack to make it work with new I18n... objects! To be reworked!
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description=""
+    parser = argparse.ArgumentParser(description=
                     "Merge one or more .po files into the first dest one.\n"
                     "If a msgkey (msgctxt, msgid) is present in more than one merged po, the one in the first file "
                     "wins, unless it’s marked as fuzzy and one later is not.\n"

@@ -20,9 +20,10 @@
 
 import bpy
 from bpy.types import Operator
-from bpy.props import (BoolProperty,
-                       StringProperty,
-                       )
+from bpy.props import (
+        BoolProperty,
+        StringProperty,
+        )
 
 
 def _lang_module_get(sc):

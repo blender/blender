@@ -43,10 +43,11 @@ __all__ = (
 import bpy as _bpy
 import os as _os
 
-from _bpy_path import (extensions_audio,
-                       extensions_movie,
-                       extensions_image,
-                       )
+from _bpy_path import (
+        extensions_audio,
+        extensions_movie,
+        extensions_image,
+        )
 
 
 def _getattr_bytes(var, attr):
