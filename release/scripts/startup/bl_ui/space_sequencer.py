@@ -929,6 +929,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             row.prop(strip.proxy, "build_50")
             row.prop(strip.proxy, "build_75")
             row.prop(strip.proxy, "build_100")
+            layout.prop(strip.proxy, "use_overwrite");
 
             col = layout.column()
             col.label(text="Build JPEG quality")

@@ -1148,19 +1148,30 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
  * ---------------------------------------------------------------------- */
 
 IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecode_Type tcs_in_use,
-                                                  IMB_Proxy_Size proxy_sizes_in_use, int quality)
+                                                  IMB_Proxy_Size proxy_sizes_in_use, int quality,
+                                                  const bool overwrite)
 {
 	IndexBuildContext *context = NULL;
+	IMB_Proxy_Size proxy_sizes_to_build = proxy_sizes_in_use;
+
+	if (!overwrite) {
+		IMB_Proxy_Size built_proxies = IMB_anim_proxy_get_existing(anim);
+		proxy_sizes_to_build &= ~built_proxies;
+	}
+
+	if (proxy_sizes_to_build == 0) {
+		return NULL;
+	}
 
 	switch (anim->curtype) {
 #ifdef WITH_FFMPEG
 		case ANIM_FFMPEG:
-			context = index_ffmpeg_create_context(anim, tcs_in_use, proxy_sizes_in_use, quality);
+			context = index_ffmpeg_create_context(anim, tcs_in_use, proxy_sizes_to_build, quality);
 			break;
 #endif
 #ifdef WITH_AVI
 		default:
-			context = index_fallback_create_context(anim, tcs_in_use, proxy_sizes_in_use, quality);
+			context = index_fallback_create_context(anim, tcs_in_use, proxy_sizes_to_build, quality);
 			break;
 #endif
 	}
@@ -1304,3 +1315,18 @@ int IMB_anim_index_get_frame_index(struct anim *anim, IMB_Timecode_Type tc,
 	return IMB_indexer_get_frame_index(idx, position);
 }
 
+IMB_Proxy_Size IMB_anim_proxy_get_existing(struct anim *anim)
+{
+	const int num_proxy_sizes = IMB_PROXY_MAX_SLOT;
+	IMB_Proxy_Size existing = 0;
+	int i;
+	for (i = 0; i < num_proxy_sizes; ++i) {
+		IMB_Proxy_Size proxy_size = proxy_sizes[i];
+		char filename[FILE_MAX];
+		get_proxy_filename(anim, proxy_size, filename, false);
+		if (BLI_exists(filename)) {
+			existing |= proxy_size;
+		}
+	}
+	return existing;
+}

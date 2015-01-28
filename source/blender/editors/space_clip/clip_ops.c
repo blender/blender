@@ -1342,7 +1342,8 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (clip->anim) {
 		pj->index_context = IMB_anim_index_rebuild_context(clip->anim, clip->proxy.build_tc_flag,
-		                                                   clip->proxy.build_size_flag, clip->proxy.quality);
+		                                                   clip->proxy.build_size_flag, clip->proxy.quality,
+		                                                   true);
 	}
 
 	WM_jobs_customdata_set(wm_job, pj, proxy_freejob);

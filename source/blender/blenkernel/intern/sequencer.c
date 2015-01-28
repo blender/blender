@@ -1290,6 +1290,7 @@ typedef struct SeqIndexBuildContext {
 	int tc_flags;
 	int size_flags;
 	int quality;
+	bool overwrite;
 
 	Main *bmain;
 	Scene *scene;
@@ -1481,7 +1482,8 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 	}
 }
 
-static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, int cfra, int proxy_render_size)
+static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, int cfra,
+                                  int proxy_render_size, const bool overwrite)
 {
 	char name[PROXY_MAXFILE];
 	int quality;
@@ -1490,6 +1492,10 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 	ImBuf *ibuf_tmp, *ibuf;
 
 	if (!seq_proxy_get_fname(seq, cfra, proxy_render_size, name)) {
+		return;
+	}
+
+	if (!overwrite && BLI_exists(name)) {
 		return;
 	}
 
@@ -1546,6 +1552,7 @@ SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *sc
 	context->tc_flags   = nseq->strip->proxy->build_tc_flags;
 	context->size_flags = nseq->strip->proxy->build_size_flags;
 	context->quality    = nseq->strip->proxy->quality;
+	context->overwrite = (nseq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
 
 	context->bmain = bmain;
 	context->scene = scene;
@@ -1557,7 +1564,8 @@ SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *sc
 
 		if (nseq->anim) {
 			context->index_context = IMB_anim_index_rebuild_context(nseq->anim,
-			        context->tc_flags, context->size_flags, context->quality);
+			        context->tc_flags, context->size_flags, context->quality,
+			        context->overwrite);
 		}
 	}
 
@@ -1566,6 +1574,7 @@ SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *sc
 
 void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, short *do_update, float *progress)
 {
+	const bool overwrite = context->overwrite;
 	SeqRenderData render_context;
 	Sequence *seq = context->seq;
 	Scene *scene = context->scene;
@@ -1602,16 +1611,16 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 
 	for (cfra = seq->startdisp + seq->startstill;  cfra < seq->enddisp - seq->endstill; cfra++) {
 		if (context->size_flags & IMB_PROXY_25) {
-			seq_proxy_build_frame(&render_context, seq, cfra, 25);
+			seq_proxy_build_frame(&render_context, seq, cfra, 25, overwrite);
 		}
 		if (context->size_flags & IMB_PROXY_50) {
-			seq_proxy_build_frame(&render_context, seq, cfra, 50);
+			seq_proxy_build_frame(&render_context, seq, cfra, 50, overwrite);
 		}
 		if (context->size_flags & IMB_PROXY_75) {
-			seq_proxy_build_frame(&render_context, seq, cfra, 75);
+			seq_proxy_build_frame(&render_context, seq, cfra, 75, overwrite);
 		}
 		if (context->size_flags & IMB_PROXY_100) {
-			seq_proxy_build_frame(&render_context, seq, cfra, 100);
+			seq_proxy_build_frame(&render_context, seq, cfra, 100, overwrite);
 		}
 
 		*progress = (float) (cfra - seq->startdisp - seq->startstill) / (seq->enddisp - seq->endstill - seq->startdisp - seq->startstill);
