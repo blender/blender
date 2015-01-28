@@ -144,7 +144,7 @@ BF_REDCODE_LIB = ''
 BF_REDCODE_INC = '${BF_REDCODE}/../' #C files request "libredcode/format.h" which is in "#extern/libredcode/format.h", stupid but compiles for now.
 BF_REDCODE_LIBPATH='${BF_REDCODE}/lib'
 
-# Mesa Libs should go here if your using them as well....
+# Mesa Libs should go here if you're using them as well....
 WITH_BF_STATICOPENGL = False
 BF_OPENGL = '/usr'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
