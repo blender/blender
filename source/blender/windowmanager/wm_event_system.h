@@ -65,9 +65,6 @@ typedef struct wmEventHandler {
 	struct ARegion *ui_region;          /* for derived/modal handlers */
 	struct ARegion *ui_menu;            /* for derived/modal handlers */
 
-	/* fileselect handler re-uses modal operator data */
-	struct bScreen *filescreen;         /* screen it started in, to validate exec */
-
 	/* drop box handler */
 	ListBase *dropboxes;
 

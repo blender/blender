@@ -1762,18 +1762,16 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 
 void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 {
-	wmWindow *win = CTX_wm_window(C);
-
-	ED_area_prevspace(C, sa);
-
-	if (sa->full) {
-		/* only toggle out of fullscreen if it wasn't set by the user (for stacked fullscreens) */
-		if (sa->flag & AREA_FLAG_TEMP_TYPE)
-			ED_screen_state_toggle(C, win, sa, SCREENMAXIMIZED);
+	if (sa->flag & AREA_FLAG_STACKED_FULLSCREEN) {
+		/* stacked fullscreen -> only go back to previous screen and don't toggle out of fullscreen */
+		ED_area_prevspace(C, sa);
+	}
+	else {
+		ED_screen_restore_temp_type(C, sa);
 	}
 }
 
-void ED_screen_restore_temp_type(bContext *C, ScrArea *sa, bool is_screen_change)
+void ED_screen_restore_temp_type(bContext *C, ScrArea *sa)
 {
 	/* incase nether functions below run */
 	ED_area_tag_redraw(sa);
@@ -1783,7 +1781,7 @@ void ED_screen_restore_temp_type(bContext *C, ScrArea *sa, bool is_screen_change
 		sa->flag &= ~AREA_FLAG_TEMP_TYPE;
 	}
 
-	if (is_screen_change && sa->full) {
+	if (sa->full) {
 		ED_screen_state_toggle(C, CTX_wm_window(C), sa, SCREENMAXIMIZED);
 	}
 }
@@ -1796,25 +1794,11 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	bScreen *screen = CTX_wm_screen(C);
 	short state = (screen ? screen->state : SCREENMAXIMIZED);
 	
-	/* if fullscreen area has a secondary space (such as a file browser or fullscreen render 
-	 * overlaid on top of a existing setup) then return to the previous space */
+	/* if fullscreen area has a temporary space (such as a file browser or fullscreen render
+	 * overlaid on top of an existing setup) then return to the previous space */
 	
 	if (sl->next) {
-		/* specific checks for space types */
-
-		/* Special check added for non-render image window (back from fullscreen through "Back to Previous" button) */
-		if (sl->spacetype == SPACE_IMAGE) {
-			SpaceImage *sima = sa->spacedata.first;
-
-			if (sima->flag & (SI_PREVSPACE | SI_FULLWINDOW)) {
-				sima->flag &= ~SI_PREVSPACE;
-				sima->flag &= ~SI_FULLWINDOW;
-				ED_screen_full_prevspace(C, sa);
-			}
-			else
-				ED_screen_state_toggle(C, win, sa, state);
-		}
-		else if (sa->flag & AREA_FLAG_TEMP_TYPE) {
+		if (sa->flag & AREA_FLAG_TEMP_TYPE) {
 			ED_screen_full_prevspace(C, sa);
 		}
 		else {

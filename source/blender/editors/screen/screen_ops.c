@@ -3697,9 +3697,9 @@ static int fullscreen_back_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No fullscreen areas were found");
 		return OPERATOR_CANCELLED;
 	}
-	
-	ED_screen_full_restore(C, sa);
-	
+
+	ED_screen_full_prevspace(C, sa);
+
 	return OPERATOR_FINISHED;
 }
 
