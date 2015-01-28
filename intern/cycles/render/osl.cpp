@@ -189,7 +189,7 @@ void OSLShaderManager::shading_system_init()
 	if(ss_shared_users == 0) {
 		services_shared = new OSLRenderServices();
 
-		ss_shared = OSL::ShadingSystem::create(services_shared, ts_shared, &errhandler);
+		ss_shared = new OSL::ShadingSystem(services_shared, ts_shared, &errhandler);
 		ss_shared->attribute("lockgeom", 1);
 		ss_shared->attribute("commonspace", "world");
 		ss_shared->attribute("searchpath:shader", path_get("shader"));
@@ -238,7 +238,7 @@ void OSLShaderManager::shading_system_free()
 	ss_shared_users--;
 
 	if(ss_shared_users == 0) {
-		OSL::ShadingSystem::destroy(ss_shared);
+		delete ss_shared;
 		ss_shared = NULL;
 
 		delete services_shared;
@@ -270,7 +270,7 @@ bool OSLShaderManager::osl_compile(const string& inputfile, const string& output
 	stdosl_path = path_get("shader/stdosl.h");
 
 	/* compile */
-	OSL::OSLCompiler *compiler = OSL::OSLCompiler::create();
+	OSL::OSLCompiler *compiler = new OSL::OSLCompiler();
 	bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
 	delete compiler;
 
