@@ -310,7 +310,6 @@ struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D 
                                              bool draw_background, int alpha_mode, char err_out[256]);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype,
                                                     bool use_solid_tex, bool use_gpencil, bool draw_background, int alpha_mode, char err_out[256]);
-void ED_view3d_offscreen_sky_color_get(struct Scene *scene, float sky_color[3]);
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip);

@@ -682,6 +682,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_INFO_DEBUG_TEXT:
 					cp = ts->info_debug_text;
 					break;
+				case TH_V3D_CLIPPING_BORDER:
+					cp = ts->clipping_border_3d;
+					break;
 			}
 		}
 	}
@@ -951,6 +954,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.gradients.high_gradient, 58, 58, 58, 255);
 	btheme->tv3d.gradients.show_grad = false;
 
+	rgba_char_args_set(btheme->tv3d.clipping_border_3d, 50, 50, 50, 255);
 	/* space buttons */
 	/* to have something initialized */
 	btheme->tbuts = btheme->tv3d;
@@ -2572,6 +2576,25 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (U.versionfile < 273 || (U.versionfile == 273 && U.subversionfile < 5)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			unsigned char *cp = (unsigned char *)btheme->tv3d.clipping_border_3d;
+			int c;
+			copy_v4_v4_char((char *)cp, btheme->tv3d.back);
+			c = cp[0] - 8;
+			CLAMP(c, 0, 255);
+			cp[0] = c;
+			c = cp[1] - 8;
+			CLAMP(c, 0, 255);
+			cp[1] = c;
+			c = cp[2] - 8;
+			CLAMP(c, 0, 255);
+			cp[2] = c;
+			cp[3] = 255;
+		}
+	}
+		
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	
