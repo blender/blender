@@ -6872,9 +6872,10 @@ static void direct_link_sound(FileData *fd, bSound *sound)
 		sound->waveform = NULL;
 	}
 		
-	if (sound->mutex)
-		sound->mutex = BLI_mutex_alloc();
-	
+	if (sound->spinlock) {
+		sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+		BLI_spin_init(sound->spinlock);
+	}
 	/* clear waveform loading flag */
 	sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
 

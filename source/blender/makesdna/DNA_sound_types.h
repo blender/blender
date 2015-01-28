@@ -95,8 +95,8 @@ typedef struct bSound {
 	 */
 	void *playback_handle;
 
-	/* mutex for asynchronous loading of sounds */
-	void *mutex;
+	/* spinlock for asynchronous loading of sounds */
+	void *spinlock;
 	/* XXX unused currently	(SOUND_TYPE_LIMITER) */
 	/* float start, end; */
 } bSound;

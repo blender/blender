@@ -70,6 +70,7 @@
 
 #include "WM_api.h"
 
+#include "MEM_guardedalloc.h"
 
 /* own include */
 #include "sequencer_intern.h"
@@ -200,23 +201,25 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		
 		SoundWaveform *waveform;
 		
-		if (!sound->mutex)
-			sound->mutex = BLI_mutex_alloc();
+		if (!sound->spinlock) {
+			sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+			BLI_spin_init(sound->spinlock);
+		}
 		
-		BLI_mutex_lock(sound->mutex);
+		BLI_spin_lock(sound->spinlock);
 		if (!seq->sound->waveform) {
 			if (!(sound->flags & SOUND_FLAGS_WAVEFORM_LOADING)) {
 				/* prevent sounds from reloading */
 				seq->sound->flags |= SOUND_FLAGS_WAVEFORM_LOADING;
-				BLI_mutex_unlock(sound->mutex);
+				BLI_spin_unlock(sound->spinlock);
 				sequencer_preview_add_sound(C, seq);
 			}
 			else {
-				BLI_mutex_unlock(sound->mutex);
+				BLI_spin_unlock(sound->spinlock);
 			}
 			return;  /* nothing to draw */
 		}
-		BLI_mutex_unlock(sound->mutex);
+		BLI_spin_unlock(sound->spinlock);
 		
 		waveform = seq->sound->waveform;
 		
