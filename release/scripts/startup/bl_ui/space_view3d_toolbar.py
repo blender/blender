@@ -1126,6 +1126,8 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
                 if mat.texture_paint_slots:
                     slot = mat.texture_paint_slots[mat.paint_active_slot]
+                else:
+                    slot = None
 
                 if (not mat.use_nodes) and context.scene.render.engine in {'BLENDER_RENDER', 'BLENDER_GAME'}:
                     row = col.row(align=True)
