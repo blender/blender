@@ -409,11 +409,10 @@ enum {
 
 /* File select */
 enum {
-	EVT_FILESELECT_OPEN             = 1,
-	EVT_FILESELECT_FULL_OPEN        = 2,
-	EVT_FILESELECT_EXEC             = 3,
-	EVT_FILESELECT_CANCEL           = 4,
-	EVT_FILESELECT_EXTERNAL_CANCEL  = 5,
+	EVT_FILESELECT_FULL_OPEN        = 1,
+	EVT_FILESELECT_EXEC             = 2,
+	EVT_FILESELECT_CANCEL           = 3,
+	EVT_FILESELECT_EXTERNAL_CANCEL  = 4,
 };
 
 /* Gesture */

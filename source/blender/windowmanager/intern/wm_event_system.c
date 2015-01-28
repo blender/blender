@@ -1662,7 +1662,6 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 	int action = WM_HANDLER_CONTINUE;
 
 	switch (val) {
-		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 		{
 			ScrArea *sa;
@@ -1676,13 +1675,11 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 			else {
 				sa = handler->op_area;
 			}
-					
-			if (val == EVT_FILESELECT_OPEN || sa->full) {
+
+			/* we already had a fullscreen here -> mark new space as a stacked fullscreen */
+			if (sa->full) {
 				ED_area_newspace(C, sa, SPACE_FILE);     /* 'sa' is modified in-place */
-				/* we already had a fullscreen here -> mark new space as a stacked fullscreen */
-				if (sa->full) {
-					sa->flag |= AREA_FLAG_STACKED_FULLSCREEN;
-				}
+				sa->flag |= AREA_FLAG_STACKED_FULLSCREEN;
 			}
 			else {
 				sa = ED_screen_full_newspace(C, sa, SPACE_FILE);    /* sets context */
@@ -2459,7 +2456,6 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	wmEventHandler *handler, *handlernext;
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
-	int full = 1;    // XXX preset?
 
 	/* only allow 1 file selector open per window */
 	for (handler = win->modalhandlers.first; handler; handler = handlernext) {
@@ -2503,7 +2499,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 		op->type->check(C, op); /* ignore return value */
 	}
 
-	WM_event_fileselect_event(wm, op, full ? EVT_FILESELECT_FULL_OPEN : EVT_FILESELECT_OPEN);
+	WM_event_fileselect_event(wm, op, EVT_FILESELECT_FULL_OPEN);
 }
 
 #if 0
