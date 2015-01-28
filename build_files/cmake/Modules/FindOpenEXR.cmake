@@ -51,6 +51,7 @@ SET(_openexr_SEARCH_DIRS
   /sw # Fink
   /opt/local # DarwinPorts
   /opt/csw # Blastwave
+  /opt/lib/openexr
 )
 
 FIND_PATH(OPENEXR_INCLUDE_DIR
