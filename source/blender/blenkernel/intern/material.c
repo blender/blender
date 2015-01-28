@@ -1317,6 +1317,26 @@ static bool get_mtex_slot_valid_texpaint(struct MTex *mtex)
 	        mtex->tex->ima);
 }
 
+static bNode *nodetree_uv_node_recursive(bNode *node)
+{
+	bNode *inode;
+	bNodeSocket *sock;
+	
+	for (sock = node->inputs.first; sock; sock = sock->next) {
+		if (sock->link) {
+			inode = sock->link->fromnode;
+			if (inode->typeinfo->nclass == NODE_CLASS_INPUT && inode->typeinfo->type == SH_NODE_UVMAP) {
+				return inode;
+			}
+			else {
+				return nodetree_uv_node_recursive(inode);
+			}
+		}
+	}
+	
+	return NULL;
+}
+
 void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 {
 	MTex **mtex;
@@ -1368,7 +1388,27 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
 				if (active_node == node)
 					ma->paint_active_slot = index;
-				ma->texpaintslot[index++].ima = (Image *)node->id;
+				ma->texpaintslot[index].ima = (Image *)node->id;
+				
+				/* for new renderer, we need to traverse the treeback in search of a UV node */
+				if (use_nodes) {
+					bNode *uvnode = nodetree_uv_node_recursive(node);
+					
+					if (uvnode) {
+						NodeShaderUVMap *storage = (NodeShaderUVMap *)uvnode->storage;
+						ma->texpaintslot[index].uvname = storage->uv_map;
+						/* set a value to index so UI knows that we have a valid pointer for the mesh */
+						ma->texpaintslot[index].index = 0;
+					}
+					else {
+						/* just invalidate the index here so UV map does not get displayed on the UI */
+						ma->texpaintslot[index].index = -1;
+					}
+				}
+				else {
+					ma->texpaintslot[index].index = -1;
+				}
+				index++;
 			}
 		}
 	}
