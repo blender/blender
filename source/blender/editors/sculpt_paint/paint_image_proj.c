@@ -5323,8 +5323,13 @@ static int texture_paint_delete_texture_paint_slot_exec(bContext *C, wmOperator 
 	
 	slot = ma->texpaintslot + ma->paint_active_slot;
 	
-	if (ma->mtex[slot->index]->tex)
+	if (ma->mtex[slot->index]->tex) {
 		id_us_min(&ma->mtex[slot->index]->tex->id);
+		
+		if (ma->mtex[slot->index]->tex->ima) {
+			id_us_min(&ma->mtex[slot->index]->tex->ima->id);
+		}
+	}
 	MEM_freeN(ma->mtex[slot->index]);
 	ma->mtex[slot->index] = NULL;
 	
