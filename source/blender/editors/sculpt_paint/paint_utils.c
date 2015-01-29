@@ -373,15 +373,15 @@ static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, c
 }
 
 /* returns 0 if not found, otherwise 1 */
-static int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *r_index, unsigned int totface)
+static int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *r_index, unsigned int totpoly)
 {
-	if (totface == 0)
+	if (totpoly == 0)
 		return 0;
 
 	/* sample only on the exact position */
 	*r_index = view3d_sample_backbuf(vc, mval[0], mval[1]);
 
-	if ((*r_index) == 0 || (*r_index) > (unsigned int)totface) {
+	if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {
 		return 0;
 	}
 
@@ -456,7 +456,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 			ViewContext vc;
 			const int mval[2] = {x, y};
 			unsigned int faceindex;
-			unsigned int totface = me->totface;
+			unsigned int totpoly = me->totpoly;
 			MTFace *dm_mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
 
 			if (dm_mtface) {
@@ -464,7 +464,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 				view3d_operator_needs_opengl(C);
 
-				if (imapaint_pick_face(&vc, mval, &faceindex, totface)) {
+				if (imapaint_pick_face(&vc, mval, &faceindex, totpoly)) {
 					Image *image;
 					
 					if (use_material) 
