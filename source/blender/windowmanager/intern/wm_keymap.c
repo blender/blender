@@ -953,7 +953,6 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 					}
 
 					if (properties) {
-
 						/* example of debugging keymaps */
 #if 0
 						if (kmi->ptr) {
@@ -969,6 +968,39 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 						if (kmi->ptr && IDP_EqualsProperties_ex(properties, kmi->ptr->data, is_strict)) {
 							if (keymap_r) *keymap_r = keymap;
 							return kmi;
+						}
+						/* Debug only, helps spotting mismatches between menu entries and shortcuts! */
+						else if (G.debug & G_DEBUG_WM) {
+							if (is_strict && kmi->ptr) {
+								wmOperatorType *ot = WM_operatortype_find(opname, true);
+								if (ot) {
+									/* make a copy of the properties and set unset ones to their default values. */
+									PointerRNA opptr;
+									IDProperty *properties_default = IDP_CopyProperty(kmi->ptr->data);
+
+									RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
+									WM_operator_properties_default(&opptr, true);
+
+									if (IDP_EqualsProperties_ex(properties, properties_default, is_strict)) {
+										char kmi_str[128];
+										WM_keymap_item_to_string(kmi, kmi_str, sizeof(kmi_str));
+										/* Note gievn properties could come from other things than menu entry... */
+										printf("%s: Some set values in menu entry match default op values, "
+										       "this might not be desired!\n", opname);
+										printf("\tkm: '%s', kmi: '%s'\n", keymap->idname, kmi_str);
+#ifndef NDEBUG
+										printf("OPERATOR\n");
+										IDP_spit(properties);
+										printf("KEYMAP\n");
+										IDP_spit(kmi->ptr->data);
+#endif
+										printf("\n");
+									}
+
+									IDP_FreeProperty(properties_default);
+									MEM_freeN(properties_default);
+								}
+							}
 						}
 					}
 					else {
@@ -1036,33 +1068,83 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 
 static wmKeyMapItem *wm_keymap_item_find(
         const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const bool is_hotkey, const bool is_strict, wmKeyMap **keymap_r)
+        IDProperty *properties, const bool is_hotkey, bool is_strict, wmKeyMap **keymap_r)
 {
-	wmKeyMapItem *found = wm_keymap_item_find_props(C, opname, opcontext, properties, is_strict, is_hotkey, keymap_r);
+	wmKeyMapItem *found;
 
+	/* XXX Hack! Macro operators in menu entrie have their whole props defined, which is not the case for
+	 *     relevant keymap entries. Could be good to check and harmonize this, but for now allways
+	 *     compare non-strict in this case.
+	 */
+	wmOperatorType *ot = WM_operatortype_find(opname, true);
+	if (ot) {
+		is_strict = is_strict && ((ot->flag & OPTYPE_MACRO) == 0);
+	}
+
+	found = wm_keymap_item_find_props(C, opname, opcontext, properties, is_strict, is_hotkey, keymap_r);
+
+	/* This block is *only* useful in one case: when op uses an enum menu in its prop member
+	 * (then, we want to rerun a comparison with that 'prop' unset). Note this remains brittle,
+	 * since now any enum prop may be used in UI (specified by name), ot->prop is not so much used...
+	 * Otherwise:
+	 *     * If non-strict, unset properties always match set ones in IDP_EqualsProperties_ex.
+	 *     * If strict, unset properties never match set ones in IDP_EqualsProperties_ex,
+	 *       and we do not want that to change (else we get things like T41757)!
+	 * ...so in either case, re-running a comparison with unset props set to default is useless.
+	 */
 	if (!found && properties) {
-		wmOperatorType *ot = WM_operatortype_find(opname, true);
-		if (ot) {
-			/* make a copy of the properties and set any unset props
-			 * to their default values, so the ID property compare function succeeds */
+		if (ot && ot->prop) {  /* XXX Shall we also check ot->prop is actually an enum? */
+			/* make a copy of the properties and unset the 'ot->prop' one if set. */
 			PointerRNA opptr;
-			IDProperty *properties_default = IDP_CopyProperty(properties);
+			IDProperty *properties_temp = IDP_CopyProperty(properties);
 
-			RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
+			RNA_pointer_create(NULL, ot->srna, properties_temp, &opptr);
 
-			if (WM_operator_properties_default(&opptr, true) ||
-			    (!is_strict && ot->prop && RNA_property_is_set(&opptr, ot->prop)))
-			{
-				/* for operator that has enum menu, unset it so it always matches */
-				if (!is_strict && ot->prop) {
-					RNA_property_unset(&opptr, ot->prop);
-				}
+			if (RNA_property_is_set(&opptr, ot->prop)) {
+				/* for operator that has enum menu, unset it so its value does not affect comparison result */
+				RNA_property_unset(&opptr, ot->prop);
 
-				found = wm_keymap_item_find_props(C, opname, opcontext, properties_default, false, is_hotkey, keymap_r);
+				found = wm_keymap_item_find_props(C, opname, opcontext, properties_temp,
+				                                  is_strict, is_hotkey, keymap_r);
 			}
 
-			IDP_FreeProperty(properties_default);
-			MEM_freeN(properties_default);
+			IDP_FreeProperty(properties_temp);
+			MEM_freeN(properties_temp);
+		}
+	}
+
+	/* Debug only, helps spotting mismatches between menu entries and shortcuts! */
+	if (G.debug & G_DEBUG_WM) {
+		if (!found && is_strict && properties) {
+			wmKeyMap *km;
+			wmKeyMapItem *kmi;
+			if (ot) {
+				/* make a copy of the properties and set unset ones to their default values. */
+				PointerRNA opptr;
+				IDProperty *properties_default = IDP_CopyProperty(properties);
+
+				RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
+				WM_operator_properties_default(&opptr, true);
+
+				kmi = wm_keymap_item_find_props(C, opname, opcontext, properties_default, is_strict, is_hotkey, &km);
+				if (kmi) {
+					char kmi_str[128];
+					WM_keymap_item_to_string(kmi, kmi_str, sizeof(kmi_str));
+					printf("%s: Some set values in keymap entry match default op values, "
+					       "this might not be desired!\n", opname);
+					printf("\tkm: '%s', kmi: '%s'\n", km->idname, kmi_str);
+#ifndef NDEBUG
+					printf("OPERATOR\n");
+					IDP_spit(properties);
+					printf("KEYMAP\n");
+					IDP_spit(kmi->ptr->data);
+#endif
+					printf("\n");
+				}
+
+				IDP_FreeProperty(properties_default);
+				MEM_freeN(properties_default);
+			}
 		}
 	}
 
