@@ -1156,6 +1156,17 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecod
 
 	if (!overwrite) {
 		IMB_Proxy_Size built_proxies = IMB_anim_proxy_get_existing(anim);
+		if (built_proxies != 0) {
+			int i;
+			for (i = 0; i < IMB_PROXY_MAX_SLOT; ++i) {
+				IMB_Proxy_Size proxy_size = proxy_sizes[i];
+				if (proxy_size & built_proxies) {
+					char filename[FILE_MAX];
+					get_proxy_filename(anim, proxy_size, filename, false);
+					printf("Skipping proxy: %s\n", filename);
+				}
+			}
+		}
 		proxy_sizes_to_build &= ~built_proxies;
 	}
 
