@@ -351,8 +351,8 @@ PyObject *SCA_JoystickSensor::pyattr_get_axis_values(void *self_v, const KX_PYAT
 	SCA_JoystickSensor* self = static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = ((SCA_JoystickManager *)self->m_eventmgr)->GetJoystickDevice(self->m_joyindex);
 	
-	int axis_index= joy->GetNumberOfAxes();
-	PyObject *list= PyList_New(axis_index);
+	int axis_index = (joy ? joy->GetNumberOfAxes() : 0);
+	PyObject *list = PyList_New(axis_index);
 	
 	while (axis_index--) {
 		PyList_SET_ITEM(list, axis_index, PyLong_FromLong(joy->GetAxisPosition(axis_index)));
@@ -371,7 +371,7 @@ PyObject *SCA_JoystickSensor::pyattr_get_axis_single(void *self_v, const KX_PYAT
 		return NULL;
 	}
 	
-	return PyLong_FromLong(joy->GetAxisPosition(self->m_axis-1));
+	return PyLong_FromLong(joy ? joy->GetAxisPosition(self->m_axis - 1) : 0);
 }
 
 PyObject *SCA_JoystickSensor::pyattr_get_hat_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -379,8 +379,8 @@ PyObject *SCA_JoystickSensor::pyattr_get_hat_values(void *self_v, const KX_PYATT
 	SCA_JoystickSensor* self = static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = ((SCA_JoystickManager *)self->m_eventmgr)->GetJoystickDevice(self->m_joyindex);
 	
-	int hat_index= joy->GetNumberOfHats();
-	PyObject *list= PyList_New(hat_index);
+	int hat_index = (joy ? joy->GetNumberOfHats() : 0);
+	PyObject *list = PyList_New(hat_index);
 	
 	while (hat_index--) {
 		PyList_SET_ITEM(list, hat_index, PyLong_FromLong(joy->GetHat(hat_index)));
@@ -394,7 +394,7 @@ PyObject *SCA_JoystickSensor::pyattr_get_hat_single(void *self_v, const KX_PYATT
 	SCA_JoystickSensor* self = static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = ((SCA_JoystickManager *)self->m_eventmgr)->GetJoystickDevice(self->m_joyindex);
 	
-	return PyLong_FromLong(joy->GetHat(self->m_hat-1));
+	return PyLong_FromLong(joy ? joy->GetHat(self->m_hat - 1) : 0);
 }
 
 PyObject *SCA_JoystickSensor::pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
