@@ -72,22 +72,24 @@ typedef struct BMPHEADER {
 
 #define BMP_FILEHEADER_SIZE 14
 
+#define CHECK_HEADER_FIELD(_mem, _field) ((_mem[0] == _field[0]) && (_mem[1] == _field[1]))
+#define CHECK_HEADER_FIELD_BMP(_mem)  \
+	(CHECK_HEADER_FIELD(_mem, "BM") ||  \
+	 CHECK_HEADER_FIELD(_mem, "BA") ||  \
+	 CHECK_HEADER_FIELD(_mem, "CI") ||  \
+	 CHECK_HEADER_FIELD(_mem, "CP") ||  \
+	 CHECK_HEADER_FIELD(_mem, "IC") ||  \
+	 CHECK_HEADER_FIELD(_mem, "PT"))
+
 static int checkbmp(unsigned char *mem)
 {
-#define CHECK_HEADER_FIELD(mem, field) ((mem[0] == field[0]) && (mem[1] == field[1]))
 
 	int ret_val = 0;
 	BMPINFOHEADER bmi;
 	unsigned int u;
 
 	if (mem) {
-		if (CHECK_HEADER_FIELD(mem, "BM") ||
-		    CHECK_HEADER_FIELD(mem, "BA") ||
-		    CHECK_HEADER_FIELD(mem, "CI") ||
-		    CHECK_HEADER_FIELD(mem, "CP") ||
-		    CHECK_HEADER_FIELD(mem, "IC") ||
-		    CHECK_HEADER_FIELD(mem, "PT"))
-		{
+		if (CHECK_HEADER_FIELD_BMP(mem)) {
 			/* skip fileheader */
 			mem += BMP_FILEHEADER_SIZE;
 		}
@@ -111,8 +113,6 @@ static int checkbmp(unsigned char *mem)
 	}
 
 	return(ret_val);
-
-#undef CHECK_HEADER_FIELD
 }
 
 int imb_is_a_bmp(unsigned char *buf)
@@ -124,10 +124,11 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 {
 	struct ImBuf *ibuf = NULL;
 	BMPINFOHEADER bmi;
-	int x, y, depth, ibuf_depth, skip, i;
+	int x, y, depth, ibuf_depth, skip, i, j;
 	unsigned char *bmp, *rect;
 	unsigned short col;
 	double xppm, yppm;
+	bool top_to_bottom = false;
 	
 	(void)size; /* unused */
 
@@ -135,7 +136,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-	if ((mem[0] == 'B') && (mem[1] == 'M')) {
+	if (CHECK_HEADER_FIELD_BMP(mem)) {
 		/* skip fileheader */
 		mem += BMP_FILEHEADER_SIZE;
 	}
@@ -157,11 +158,14 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 		ibuf_depth = depth;
 	}
 
+	if (y < 0) {
+		/* Negative height means bitmap is stored top-to-bottom... */
+		y = -y;
+		top_to_bottom = true;
+	}
+
 #if 0
-	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y,
-	       depth, bmi.biBitCount);
-	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y,
-	       depth, bmi.biBitCount);
+	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, depth, bmi.biBitCount);
 #endif
 
 	if (flags & IB_test) {
@@ -177,7 +181,9 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 			const char (*palette)[4] = (void *)bmp;
 			bmp += bmi.biClrUsed * 4;
 			for (i = y; i > 0; i--) {
-				int j;
+				if (top_to_bottom) {
+					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
+				}
 				for (j = x; j > 0; j--) {
 					const char *pcol = palette[bmp[0]];
 					rect[0] = pcol[0];
@@ -192,21 +198,27 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 			}
 		}
 		else if (depth == 16) {
-			for (i = x * y; i > 0; i--) {
-				col = bmp[0] + (bmp[1] << 8);
-				rect[0] = ((col >> 10) & 0x1f) << 3;
-				rect[1] = ((col >>  5) & 0x1f) << 3;
-				rect[2] = ((col >>  0) & 0x1f) << 3;
-				
-				rect[3] = 255;
-				rect += 4; bmp += 2;
-			}
+			for (i = y; i > 0; i--) {
+				if (top_to_bottom) {
+					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
+				}
+				for (j = x; j > 0; j--) {
+					col = bmp[0] + (bmp[1] << 8);
+					rect[0] = ((col >> 10) & 0x1f) << 3;
+					rect[1] = ((col >>  5) & 0x1f) << 3;
+					rect[2] = ((col >>  0) & 0x1f) << 3;
 
+					rect[3] = 255;
+					rect += 4; bmp += 2;
+				}
+			}
 		}
 		else if (depth == 24) {
 			const int x_pad = x % 4;
 			for (i = y; i > 0; i--) {
-				int j;
+				if (top_to_bottom) {
+					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
+				}
 				for (j = x; j > 0; j--) {
 					rect[0] = bmp[2];
 					rect[1] = bmp[1];
@@ -220,12 +232,17 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 			}
 		}
 		else if (depth == 32) {
-			for (i = x * y; i > 0; i--) {
-				rect[0] = bmp[2];
-				rect[1] = bmp[1];
-				rect[2] = bmp[0];
-				rect[3] = bmp[3];
-				rect += 4; bmp += 4;
+			for (i = y; i > 0; i--) {
+				if (top_to_bottom) {
+					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
+				}
+				for (j = x; j > 0; j--) {
+					rect[0] = bmp[2];
+					rect[1] = bmp[1];
+					rect[2] = bmp[0];
+					rect[3] = bmp[3];
+					rect += 4; bmp += 4;
+				}
 			}
 		}
 	}
@@ -238,6 +255,9 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 	
 	return(ibuf);
 }
+
+#undef CHECK_HEADER_FIELD_BMP
+#undef CHECK_HEADER_FIELD
 
 /* Couple of helper functions for writing our data */
 static int putIntLSB(unsigned int ui, FILE *ofile)
