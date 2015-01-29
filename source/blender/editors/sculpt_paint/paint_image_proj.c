@@ -1989,8 +1989,8 @@ static void line_rect_clip(
 	
 	tmp = (is_ortho) ? 1.0f : (l1[3] + min * (l2[3] - l1[3]));
 	
-	uv[0] = (uv1[0] + min * (uv2[0] - uv1[0])) / tmp;
-	uv[1] = (uv1[1] + min * (uv2[1] - uv1[1])) / tmp;
+	uv[0] = (uv1[0] + min / tmp * (uv2[0] - uv1[0]));
+	uv[1] = (uv1[1] + min / tmp * (uv2[1] - uv1[1]));
 }
 
 
@@ -2076,8 +2076,8 @@ static void project_bucket_clip_face(
 		/* at this point we have all uv points needed in a row. all that's needed is to invert them if necessary */
 		if (flip) {
 			/* flip only to the middle of the array */
-			int i, max = *tot / 2;
-			for (i = 0; i < max; i++) {
+			int i, max = *tot - 1, mid = *tot / 2;
+			for (i = 0; i < mid; i++) {
 				SWAP(float, bucket_bounds_uv[i][0], bucket_bounds_uv[max - i][0]);
 				SWAP(float, bucket_bounds_uv[i][1], bucket_bounds_uv[max - i][1]);
 			}
