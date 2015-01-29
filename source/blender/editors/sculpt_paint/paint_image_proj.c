@@ -4161,12 +4161,13 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 	float rgb[3];
 	unsigned char rgba_ub[4];
 
-	copy_v3_v3(rgb, ps->paint_color);
-
 	if (ps->is_texbrush) {
-		mul_v3_v3(rgb, texrgb);
+		mul_v3_v3v3(rgb, texrgb, ps->paint_color_linear);
 		/* TODO(sergey): Support texture paint color space. */
 		linearrgb_to_srgb_v3_v3(rgb, rgb);
+	}
+	else {
+		copy_v3_v3(rgb, ps->paint_color);
 	}
 
 	rgb_float_to_uchar(rgba_ub, rgb);
