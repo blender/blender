@@ -38,6 +38,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_translation.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
@@ -236,28 +238,49 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const bool 
 	return roll;
 }
 
-
+/* note, ranges arithmatic is used below */
 typedef enum eCalcRollTypes {
-	CALC_ROLL_X          = 0,
-	CALC_ROLL_Y          = 1,
-	CALC_ROLL_Z          = 2,
-	
-	CALC_ROLL_TAN_X      = 3,
-	CALC_ROLL_TAN_Z      = 4,
+	/* pos */
+	CALC_ROLL_POS_X = 0,
+	CALC_ROLL_POS_Y,
+	CALC_ROLL_POS_Z,
 
-	CALC_ROLL_ACTIVE     = 5,
-	CALC_ROLL_VIEW       = 6,
-	CALC_ROLL_CURSOR     = 7,
+	CALC_ROLL_TAN_POS_X,
+	CALC_ROLL_TAN_POS_Z,
+
+	/* neg */
+	CALC_ROLL_NEG_X,
+	CALC_ROLL_NEG_Y,
+	CALC_ROLL_NEG_Z,
+
+	CALC_ROLL_TAN_NEG_X,
+	CALC_ROLL_TAN_NEG_Z,
+
+	/* no sign */
+	CALC_ROLL_ACTIVE,
+	CALC_ROLL_VIEW,
+	CALC_ROLL_CURSOR,
 } eCalcRollTypes;
 
 static EnumPropertyItem prop_calc_roll_types[] = {
-	{CALC_ROLL_TAN_X, "X", 0, "Local X Tangent", ""},
-	{CALC_ROLL_TAN_Z, "Z", 0, "Local Z Tangent", ""},
+	{0, "", 0, N_("Positive"), ""},
+	{CALC_ROLL_TAN_POS_X, "POS_X", 0, "Local +X Tangent", ""},
+	{CALC_ROLL_TAN_POS_Z, "POS_Z", 0, "Local +Z Tangent", ""},
 
-	{CALC_ROLL_X, "GLOBAL_X", 0, "Global X Axis", ""},
-	{CALC_ROLL_Y, "GLOBAL_Y", 0, "Global Y Axis", ""},
-	{CALC_ROLL_Z, "GLOBAL_Z", 0, "Global Z Axis", ""},
+	{CALC_ROLL_POS_X, "GLOBAL_POS_X", 0, "Global +X Axis", ""},
+	{CALC_ROLL_POS_Y, "GLOBAL_POS_Y", 0, "Global +Y Axis", ""},
+	{CALC_ROLL_POS_Z, "GLOBAL_POS_Z", 0, "Global +Z Axis", ""},
 
+	{0, "", 0, N_("Negative"), ""},
+
+	{CALC_ROLL_TAN_NEG_X, "NEG_X", 0, "Local -X Tangent", ""},
+	{CALC_ROLL_TAN_NEG_Z, "NEG_Z", 0, "Local -Z Tangent", ""},
+
+	{CALC_ROLL_NEG_X, "GLOBAL_NEG_X", 0, "Global -X Axis", ""},
+	{CALC_ROLL_NEG_Y, "GLOBAL_NEG_Y", 0, "Global -Y Axis", ""},
+	{CALC_ROLL_NEG_Z, "GLOBAL_NEG_Z", 0, "Global -Z Axis", ""},
+
+	{0, "", 0, N_("Other"), ""},
 	{CALC_ROLL_ACTIVE, "ACTIVE", 0, "Active Bone", ""},
 	{CALC_ROLL_VIEW, "VIEW", 0, "View Axis", ""},
 	{CALC_ROLL_CURSOR, "CURSOR", 0, "Cursor", ""},
@@ -268,14 +291,21 @@ static EnumPropertyItem prop_calc_roll_types[] = {
 static int armature_calc_roll_exec(bContext *C, wmOperator *op) 
 {
 	Object *ob = CTX_data_edit_object(C);
-	const short type = RNA_enum_get(op->ptr, "type");
+	eCalcRollTypes type = RNA_enum_get(op->ptr, "type");
 	const bool axis_only = RNA_boolean_get(op->ptr, "axis_only");
-	const bool axis_flip = RNA_boolean_get(op->ptr, "axis_flip");
+	/* axis_flip when matching the active bone never makes sense */
+	bool axis_flip = ((type >= CALC_ROLL_ACTIVE) ? RNA_boolean_get(op->ptr, "axis_flip") :
+	                  (type >= CALC_ROLL_TAN_NEG_X) ? true : false);
 
 	float imat[3][3];
 
 	bArmature *arm = ob->data;
 	EditBone *ebone;
+
+	if ((type >= CALC_ROLL_NEG_X) && (type <= CALC_ROLL_TAN_NEG_Z)) {
+		type -= (CALC_ROLL_ACTIVE - CALC_ROLL_NEG_X);
+		axis_flip = true;
+	}
 
 	copy_m3_m4(imat, ob->obmat);
 	invert_m3(imat);
@@ -302,7 +332,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	else if (ELEM(type, CALC_ROLL_TAN_X, CALC_ROLL_TAN_Z)) {
+	else if (ELEM(type, CALC_ROLL_TAN_POS_X, CALC_ROLL_TAN_POS_Z)) {
 		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 			if (ebone->parent) {
 				bool is_edit        = (EBONE_VISIBLE(arm, ebone)         && EBONE_EDITABLE(ebone));
@@ -323,7 +353,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 						sub_v3_v3v3(dir_b, ebone_other->head, ebone_other->tail);
 						normalize_v3(dir_b);
 
-						if (type == CALC_ROLL_TAN_Z) {
+						if (type == CALC_ROLL_TAN_POS_Z) {
 							cross_v3_v3v3(vec, dir_a, dir_b);
 						}
 						else {
@@ -374,7 +404,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			copy_v3_v3(vec, mat[2]);
 		}
 		else { /* Axis */
-			assert(type >= 0 && type <= 5);
+			assert(type <= 5);
 			if (type < 3) vec[type] = 1.0f;
 			else vec[type - 2] = -1.0f;
 			mul_m3_v3(imat, vec);
@@ -423,7 +453,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_calc_roll_types, CALC_ROLL_TAN_X, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_calc_roll_types, CALC_ROLL_TAN_POS_X, "Type", "");
 	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis");
 	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align");
 }
