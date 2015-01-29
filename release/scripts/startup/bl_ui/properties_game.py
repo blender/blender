@@ -519,22 +519,6 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, Panel):
         row.prop(rd, "sample_max_error")
 
 
-class RENDER_PT_game_sound(RenderButtonsPanel, Panel):
-    bl_label = "Sound"
-    COMPAT_ENGINES = {'BLENDER_GAME'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-
-        layout.prop(scene, "audio_distance_model")
-
-        col = layout.column(align=True)
-        col.prop(scene, "audio_doppler_speed", text="Speed")
-        col.prop(scene, "audio_doppler_factor")
-
-
 class WorldButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

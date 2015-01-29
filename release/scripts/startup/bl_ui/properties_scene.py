@@ -263,10 +263,11 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label("Listener:")
+        col.label("Distance Model:")
         col.prop(scene, "audio_distance_model", text="")
-        col.prop(scene, "audio_doppler_speed", text="Speed")
-        col.prop(scene, "audio_doppler_factor", text="Doppler")
+        sub = col.column(align=True)
+        sub.prop(scene, "audio_doppler_speed", text="Speed")
+        sub.prop(scene, "audio_doppler_factor", text="Doppler")
 
         col = split.column()
         col.label("Format:")
