@@ -709,6 +709,11 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "stencil_col");
 	RNA_def_property_ui_text(prop, "Stencil Color", "Stencil color in the viewport");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
+
+	prop = RNA_def_property(srna, "dither", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_ui_text(prop, "Dither", "Amount of dithering when painting on byte images");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	
 	prop = RNA_def_property(srna, "use_clone_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);

@@ -849,7 +849,7 @@ typedef struct ImagePaintSettings {
 	struct Image *clone;       /* clone layer for image mode for projective texture painting */
 	struct Image *canvas;      /* canvas when the explicit system is used for painting */
 	float stencil_col[3];
-	float pad1;
+	float dither;              /* dither amount used when painting on byte images */
 } ImagePaintSettings;
 
 /* ------------------------------------------- */

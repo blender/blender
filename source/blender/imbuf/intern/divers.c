@@ -122,16 +122,6 @@ static void clear_dither_context(DitherContext *di)
 	MEM_freeN(di);
 }
 
-MINLINE float dither_random_value(float s, float t)
-{
-	static float vec[2] = {12.9898f, 78.233f};
-	float st[2];
-	float value;
-	copy_v2_fl2(st, s, t);
-
-	value = sinf(dot_v2v2(st, vec)) * 43758.5453f;
-	return value - floorf(value);
-}
 
 /************************* Generic Buffer Conversion *************************/
 

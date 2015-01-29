@@ -31,6 +31,8 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
+#include "math.h"
+
 #ifndef __MATH_COLOR_INLINE_C__
 #define __MATH_COLOR_INLINE_C__
 
@@ -267,6 +269,24 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3], const unsigned char 
 	}
 
 	return 0;
+}
+
+MINLINE float dither_random_value(float s, float t)
+{
+	static float vec[2] = {12.9898f, 78.233f};
+	float value;
+
+	value = sinf(s * vec[0] + t * vec[1]) * 43758.5453f;
+	return value - floorf(value);
+}
+
+MINLINE void float_to_byte_dither_v3(unsigned char b[3], const float f[3], float dither, float s, float t)
+{
+	float dither_value = dither_random_value(s, t) * 0.005f * dither;
+
+	b[0] = FTOCHAR(dither_value + f[0]);
+	b[1] = FTOCHAR(dither_value + f[1]);
+	b[2] = FTOCHAR(dither_value + f[2]);
 }
 
 /**************** Alpha Transformations *****************/

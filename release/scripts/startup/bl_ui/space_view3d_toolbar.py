@@ -1722,6 +1722,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         sub.prop(ipaint, "normal_angle", text="")
 
         layout.prop(ipaint, "seam_bleed")
+        layout.prop(ipaint, "dither")
         self.unified_paint_settings(layout, context)
 
 
