@@ -5186,17 +5186,17 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 					hasmat = true;
 					if (!ma->texpaintslot) {
 						/* refresh here just in case */
-						BKE_texpaint_slot_refresh_cache(scene, ma);				
+						BKE_texpaint_slot_refresh_cache(scene, ma);
 						
 						/* if still no slots, we have to add */
-						if (ma->texpaintslot) {							
+						if (ma->texpaintslot) {
 							hastex = true;
-							break;						
+							break;
 						}
 					}
 					else {
 						hastex = true;
-						break;						
+						break;
 					}
 				}
 			}
@@ -5205,7 +5205,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 	else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
 		if (imapaint->canvas == NULL) {
 			hastex = false;
-		}		
+		}
 	}
 	
 	me = BKE_mesh_from_object(ob);
@@ -5286,7 +5286,7 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain)
 		RNA_string_get(op->ptr, "name", imagename);
 	}
 	ima = BKE_image_add_generated(bmain, width, height, imagename, alpha ? 32 : 24, use_float,
-	                                               gen_type, color);
+	                              gen_type, color);
 	
 	return ima;
 }
@@ -5366,7 +5366,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ma->id, 0);
 			ED_area_tag_redraw(CTX_wm_area(C));
 			
-			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);			
+			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 			
 			return true;
 		}
@@ -5396,7 +5396,7 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 	if (!ma) {
 		ma = BKE_material_add(CTX_data_main(C), "Material");
 		/* no material found, just assign to first slot */
-		assign_material(ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);		
+		assign_material(ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
 	}
 	
 	type = RNA_enum_from_value(layer_type_items, type);
