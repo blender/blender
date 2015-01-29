@@ -39,6 +39,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"
@@ -298,7 +300,7 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(sens->name, sens_name, sizeof(sens->name));
 	}
 
-	make_unique_prop_names(C, sens->name);
+	BLI_uniquename(&ob->sensors, sens, DATA_("Sensor"), '.', offsetof(bSensor, name), sizeof(sens->name));
 	ob->scaflag |= OB_SHOWSENS;
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
@@ -405,7 +407,8 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(cont->name, cont_name, sizeof(cont->name));
 	}
 
-	make_unique_prop_names(C, cont->name);
+	BLI_uniquename(&ob->controllers, cont, DATA_("Controller"), '.', offsetof(bController, name), sizeof(cont->name));
+
 	/* set the controller state mask from the current object state.
 	 * A controller is always in a single state, so select the lowest bit set
 	 * from the object state */
@@ -523,7 +526,7 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(act->name, act_name, sizeof(act->name));
 	}
 
-	make_unique_prop_names(C, act->name);
+	BLI_uniquename(&ob->actuators, act, DATA_("Actuator"), '.', offsetof(bActuator, name), sizeof(act->name));
 	ob->scaflag |= OB_SHOWACT;
 	
 	WM_event_add_notifier(C, NC_LOGIC, NULL);

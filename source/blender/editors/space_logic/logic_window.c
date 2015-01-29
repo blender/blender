@@ -48,6 +48,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -94,87 +95,6 @@
 /* proto */
 static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisflag);
 
-static int vergname(const void *v1, const void *v2)
-{
-	const char * const *x1 = v1, * const *x2 = v2;
-	return BLI_natstrcmp(*x1, *x2);
-}
-
-void make_unique_prop_names(bContext *C, char *str)
-{
-	Object *ob;
-	bProperty *prop;
-	bSensor *sens;
-	bController *cont;
-	bActuator *act;
-	ID **idar;
-	short a, obcount, propcount=0, nr;
-	const char **names;
-	
-	/* this function is called by a Button, and gives the current
-	 * stringpointer as an argument, this is the one that can change
-	 */
-	
-	idar= get_selected_and_linked_obs(C, &obcount, BUTS_SENS_SEL|BUTS_SENS_ACT|BUTS_ACT_SEL|BUTS_ACT_ACT|BUTS_CONT_SEL|BUTS_CONT_ACT);
-	
-	/* for each object, make properties and sca names unique */
-	
-	/* count total names */
-	for (a=0; a<obcount; a++) {
-		ob= (Object *)idar[a];
-		propcount+= BLI_listbase_count(&ob->prop);
-		propcount+= BLI_listbase_count(&ob->sensors);
-		propcount+= BLI_listbase_count(&ob->controllers);
-		propcount+= BLI_listbase_count(&ob->actuators);
-	}
-	if (propcount==0) {
-		if (idar) MEM_freeN(idar);
-		return;
-	}
-	
-	/* make names array for sorting */
-	names= MEM_callocN(propcount*sizeof(void *), "names");
-	
-	/* count total names */
-	nr= 0;
-	for (a=0; a<obcount; a++) {
-		ob= (Object *)idar[a];
-		prop= ob->prop.first;
-		while (prop) {
-			names[nr++] = prop->name;
-			prop= prop->next;
-		}
-		sens= ob->sensors.first;
-		while (sens) {
-			names[nr++] = sens->name;
-			sens= sens->next;
-		}
-		cont= ob->controllers.first;
-		while (cont) {
-			names[nr++] = cont->name;
-			cont= cont->next;
-		}
-		act= ob->actuators.first;
-		while (act) {
-			names[nr++] = act->name;
-			act= act->next;
-		}
-	}
-	
-	qsort(names, propcount, sizeof(void *), vergname);
-	
-	/* now we check for double names, and change them */
-	
-	for (nr=0; nr<propcount; nr++) {
-		if (names[nr] != str && STREQ(names[nr], str)) {
-			BLI_newname(str, +1);
-		}
-	}
-	
-	MEM_freeN(idar);
-	MEM_freeN(names);
-}
-
 static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 {
 	Main *bmain= CTX_data_main(C);
@@ -206,7 +126,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 				ob->scaflag &= ~OB_ADDSENS;
 				sens= new_sensor(SENS_ALWAYS);
 				BLI_addtail(&(ob->sensors), sens);
-				make_unique_prop_names(C, sens->name);
+				BLI_uniquename(&ob->sensors, sens, DATA_("Sensor"), '.', offsetof(bSensor, name), sizeof(sens->name));
 				ob->scaflag |= OB_SHOWSENS;
 			}
 		}
@@ -248,7 +168,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 			if (ob->scaflag & OB_ADDCONT) {
 				ob->scaflag &= ~OB_ADDCONT;
 				cont= new_controller(CONT_LOGIC_AND);
-				make_unique_prop_names(C, cont->name);
+				BLI_uniquename(&ob->controllers, cont, DATA_("Controller"), '.', offsetof(bController, name), sizeof(cont->name));
 				ob->scaflag |= OB_SHOWCONT;
 				BLI_addtail(&(ob->controllers), cont);
 				/* set the controller state mask from the current object state.
@@ -324,7 +244,7 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 			if (ob->scaflag & OB_ADDACT) {
 				ob->scaflag &= ~OB_ADDACT;
 				act= new_actuator(ACT_OBJECT);
-				make_unique_prop_names(C, act->name);
+				BLI_uniquename(&ob->actuators, act, DATA_("Actuator"), '.', offsetof(bActuator, name), sizeof(act->name));
 				BLI_addtail(&(ob->actuators), act);
 				ob->scaflag |= OB_SHOWACT;
 			}

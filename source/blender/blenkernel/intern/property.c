@@ -131,60 +131,6 @@ bProperty *BKE_bproperty_new(int type)
 	return prop;
 }
 
-/* used by BKE_bproperty_unique() only */
-static bProperty *bproperty_get(bProperty *first, bProperty *self, const char *name)
-{
-	bProperty *p;
-	for (p = first; p; p = p->next) {
-		if (p != self && STREQ(p->name, name))
-			return p;
-	}
-	return NULL;
-}
-void BKE_bproperty_unique(bProperty *first, bProperty *prop, int force)
-{
-	bProperty *p;
-
-	/* set the first if its not set */
-	if (first == NULL) {
-		first = prop;
-		while (first->prev) {
-			first = first->prev;
-		}
-	}
-
-	if (force) {
-		/* change other names to make them unique */
-		while ((p = bproperty_get(first, prop, prop->name))) {
-			BKE_bproperty_unique(first, p, 0);
-		}
-	}
-	else {
-		/* change our own name until its unique */
-		if (bproperty_get(first, prop, prop->name)) {
-			/* there is a collision */
-			char new_name[sizeof(prop->name)];
-			char base_name[sizeof(prop->name)];
-			char num[sizeof(prop->name)];
-			int i = 0;
-
-			/* strip numbers */
-			BLI_strncpy(base_name, prop->name, sizeof(base_name));
-			for (i = strlen(base_name) - 1; (i >= 0 && isdigit(base_name[i])); i--) {
-				base_name[i] = '\0';
-			}
-			i = 0;
-
-			do { /* ensure we have enough chars for the new number in the name */
-				const size_t num_len = BLI_snprintf(num, sizeof(num), "%d", i++);
-				BLI_snprintf(new_name, sizeof(prop->name),
-				             "%.*s%s", (int)(sizeof(prop->name) - num_len), base_name, num);
-			} while (bproperty_get(first, prop, new_name));
-
-			BLI_strncpy(prop->name, new_name, sizeof(prop->name));
-		}
-	}
-}
 
 bProperty *BKE_bproperty_object_get(Object *ob, const char *name)
 {

@@ -120,14 +120,10 @@ static StructRNA *rna_Actuator_refine(struct PointerRNA *ptr)
 
 static void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
 {
-	bActuator *act = (bActuator *)ptr->data;
-
+	Object *ob = ptr->id.data;
+	bActuator *act = ptr->data;
 	BLI_strncpy_utf8(act->name, value, sizeof(act->name));
-
-	if (ptr->id.data) {
-		Object *ob = (Object *)ptr->id.data;
-		BLI_uniquename(&ob->actuators, act, DATA_("Actuator"), '.', offsetof(bActuator, name), sizeof(act->name));
-	}
+	BLI_uniquename(&ob->actuators, act, DATA_("Actuator"), '.', offsetof(bActuator, name), sizeof(act->name));
 }
 
 static void rna_Actuator_type_set(struct PointerRNA *ptr, int value)

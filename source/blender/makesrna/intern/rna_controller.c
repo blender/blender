@@ -85,15 +85,10 @@ static StructRNA *rna_Controller_refine(struct PointerRNA *ptr)
 
 static void rna_Constroller_name_set(PointerRNA *ptr, const char *value)
 {
-	bController *cont = (bController *)ptr->data;
-
+	Object *ob = ptr->id.data;
+	bController *cont = ptr->data;
 	BLI_strncpy_utf8(cont->name, value, sizeof(cont->name));
-
-	if (ptr->id.data) {
-		Object *ob = (Object *)ptr->id.data;
-		BLI_uniquename(&ob->controllers, cont, DATA_("Controller"), '.', offsetof(bController, name),
-		               sizeof(cont->name));
-	}
+	BLI_uniquename(&ob->controllers, cont, DATA_("Controller"), '.', offsetof(bController, name), sizeof(cont->name));
 }
 
 static void rna_Controller_type_set(struct PointerRNA *ptr, int value)
