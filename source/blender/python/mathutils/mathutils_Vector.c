@@ -349,6 +349,9 @@ PyDoc_STRVAR(Vector_normalize_doc,
 "\n"
 "   Normalize the vector, making the length of the vector always 1.0.\n"
 "\n"
+"   :return: the original length of the vector, before normalization\n"
+"   :rtype: float\n"
+"\n"
 "   .. warning:: Normalizing a vector where all values are zero has no effect.\n"
 "\n"
 "   .. note:: Normalize works for vectors of all sizes,\n"
@@ -356,14 +359,15 @@ PyDoc_STRVAR(Vector_normalize_doc,
 );
 static PyObject *Vector_normalize(VectorObject *self)
 {
+	float length;
 	int size = (self->size == 4 ? 3 : self->size);
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	normalize_vn(self->vec, size);
+	length = normalize_vn(self->vec, size);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_RETURN_NONE;
+	return PyFloat_FromDouble(length);
 }
 PyDoc_STRVAR(Vector_normalized_doc,
 ".. method:: normalized()\n"
