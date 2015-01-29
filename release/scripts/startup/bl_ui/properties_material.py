@@ -92,7 +92,7 @@ class MATERIAL_UL_matslots(UIList):
             layout.label(text="", icon_value=icon)
 
 
-class MaterialButtonsPanel():
+class MaterialButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "material"
@@ -875,7 +875,7 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel, Panel):
         layout.prop(mat, "alpha")
 
 
-class VolumeButtonsPanel():
+class VolumeButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "material"

@@ -42,7 +42,7 @@ class NodeSetting(PropertyGroup):
 
 
 # Base class for node 'Add' operators
-class NodeAddOperator():
+class NodeAddOperator:
 
     type = StringProperty(
             name="Node Type",

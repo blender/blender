@@ -1043,7 +1043,8 @@ class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
 
 # --- end mask ---
 
-class ImageScopesPanel():
+
+class ImageScopesPanel:
     @classmethod
     def poll(cls, context):
         sima = context.space_data
@@ -1056,6 +1057,7 @@ class ImageScopesPanel():
         if ob and ob.mode in {'TEXTURE_PAINT'}:
             return False
         return True
+
 
 class IMAGE_PT_view_histogram(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -1149,6 +1151,7 @@ class IMAGE_PT_grease_pencil(GreasePencilDataPanel, Panel):
     bl_region_type = 'UI'
 
     # NOTE: this is just a wrapper around the generic GP Panel
+
 
 # Grease Pencil drawing tools
 class IMAGE_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):

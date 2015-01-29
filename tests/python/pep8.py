@@ -95,13 +95,23 @@ def main():
         print("    %s" % f)
 
     # strict imports
-    print("\n\n\n# running pep8...")
+    print("\n\n\n# checking imports...")
     import re
     import_check = re.compile(r"\s*from\s+[A-z\.]+\s+import \*\s*")
     for f, pep8_type in files:
         for i, l in enumerate(open(f, 'r', encoding='utf8')):
             if import_check.match(l):
                 print("%s:%d:0: global import bad practice" % (f, i + 1))
+    del re, import_check
+
+    print("\n\n\n# checking class definitions...")
+    import re
+    class_check = re.compile(r"\s*class\s+.*\(\):.*")
+    for f, pep8_type in files:
+        for i, l in enumerate(open(f, 'r', encoding='utf8')):
+            if class_check.match(l):
+                print("%s:%d:0: empty class (), remove" % (f, i + 1))
+    del re, class_check
 
     print("\n\n\n# running pep8...")
 

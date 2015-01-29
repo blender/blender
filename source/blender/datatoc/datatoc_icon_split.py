@@ -63,7 +63,7 @@ def image_from_file(filepath):
 
     try:
         import bpy
-    except:
+    except ImportError:
         bpy = None
 
     if bpy is not None:

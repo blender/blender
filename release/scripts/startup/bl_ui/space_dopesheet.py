@@ -134,7 +134,6 @@ class DOPESHEET_HT_header(Header):
         row.operator("action.paste", text="", icon='PASTEFLIPDOWN').flipped = True
 
 
-
 class DOPESHEET_MT_editor_menus(Menu):
     bl_idname = "DOPESHEET_MT_editor_menus"
     bl_label = ""

@@ -7,7 +7,7 @@ A mix-in parent class can be used to share common properties and
 import bpy
 
 
-class View3DPanel():
+class View3DPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 

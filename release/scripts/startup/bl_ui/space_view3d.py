@@ -174,7 +174,7 @@ class VIEW3D_MT_editor_menus(Menu):
 # ********** Utilities **********
 
 
-class ShowHideMenu():
+class ShowHideMenu:
     bl_label = "Show/Hide"
     _operator_name = ""
 
@@ -2722,6 +2722,7 @@ class VIEW3D_MT_edit_armature_roll(Menu):
         layout.operator("transform.transform", text="Set Roll").mode = 'BONE_ROLL'
 
 # ********** Panel **********
+
 
 class VIEW3D_PT_grease_pencil(GreasePencilDataPanel, Panel):
     bl_space_type = 'VIEW_3D'

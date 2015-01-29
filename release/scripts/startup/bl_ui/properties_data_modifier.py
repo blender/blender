@@ -22,7 +22,7 @@ from bpy.types import Panel
 from bpy.app.translations import pgettext_iface as iface_
 
 
-class ModifierButtonsPanel():
+class ModifierButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"

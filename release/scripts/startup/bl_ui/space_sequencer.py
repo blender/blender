@@ -113,7 +113,7 @@ class SEQUENCER_HT_header(Header):
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
                     row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-					
+
         row = layout.row(align=True)
         row.operator("render.opengl", text="", icon='RENDER_STILL').sequencer = True
         props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
@@ -427,7 +427,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.menu("SEQUENCER_MT_change")
 
 
-class SequencerButtonsPanel():
+class SequencerButtonsPanel:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
@@ -440,7 +440,7 @@ class SequencerButtonsPanel():
         return cls.has_sequencer(context) and (act_strip(context) is not None)
 
 
-class SequencerButtonsPanel_Output():
+class SequencerButtonsPanel_Output:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
@@ -929,7 +929,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             row.prop(strip.proxy, "build_50")
             row.prop(strip.proxy, "build_75")
             row.prop(strip.proxy, "build_100")
-            layout.prop(strip.proxy, "use_overwrite");
+            layout.prop(strip.proxy, "use_overwrite")
 
             col = layout.column()
             col.label(text="Build JPEG quality")
@@ -1079,8 +1079,8 @@ class SEQUENCER_PT_grease_pencil_tools(GreasePencilToolsPanel, SequencerButtonsP
     bl_region_type = 'UI'
 
     # NOTE: this is just a wrapper around the generic GP tools panel
-	# It contains access to some essential tools usually found only in
-	# toolbar, which doesn't exist here...
+    # It contains access to some essential tools usually found only in
+    # toolbar, which doesn't exist here...
 
 
 if __name__ == "__main__":  # only for live edit.

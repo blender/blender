@@ -23,7 +23,7 @@ from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
 
-class BoneButtonsPanel():
+class BoneButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "bone"

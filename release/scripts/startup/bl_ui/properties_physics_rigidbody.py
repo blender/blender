@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel
 
 
-class PHYSICS_PT_rigidbody_panel():
+class PHYSICS_PT_rigidbody_panel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"

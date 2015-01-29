@@ -30,7 +30,7 @@ def softbody_panel_enabled(md):
     return (md.point_cache.is_baked is False)
 
 
-class PhysicButtonsPanel():
+class PhysicButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"

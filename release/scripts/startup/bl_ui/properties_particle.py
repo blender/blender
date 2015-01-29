@@ -88,7 +88,7 @@ class PARTICLE_MT_hair_dynamics_presets(Menu):
     draw = Menu.draw_preset
 
 
-class ParticleButtonsPanel():
+class ParticleButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "particle"
@@ -103,6 +103,7 @@ def find_modifier(ob, psys):
         if md.type == 'PARTICLE_SYSTEM':
             if md.particle_system == psys:
                 return md
+
 
 class PARTICLE_UL_particle_systems(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index, flt_flag):

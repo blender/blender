@@ -112,7 +112,7 @@ class MASK_PT_layers:
             row.prop(active_layer, "use_fill_holes", text="Holes")
 
 
-class MASK_PT_spline():
+class MASK_PT_spline:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'UI'
@@ -146,7 +146,7 @@ class MASK_PT_spline():
         col.prop(spline, "use_self_intersection_check")
 
 
-class MASK_PT_point():
+class MASK_PT_point:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'UI'
@@ -201,7 +201,7 @@ class MASK_PT_point():
                                 tracks_list, icon='ANIM_DATA', text="Track:")
 
 
-class MASK_PT_display():
+class MASK_PT_display:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'UI'
@@ -227,7 +227,7 @@ class MASK_PT_display():
         sub.prop(space_data, "mask_overlay_mode", text="")
 
 
-class MASK_PT_transforms():
+class MASK_PT_transforms:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'TOOLS'
@@ -251,7 +251,7 @@ class MASK_PT_transforms():
         col.operator("transform.transform", text="Scale Feather").mode = 'MASK_SHRINKFATTEN'
 
 
-class MASK_PT_tools():
+class MASK_PT_tools:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'TOOLS'
@@ -289,7 +289,7 @@ class MASK_PT_tools():
         col.operator("mask.shape_key_rekey", text="Re-Key Shape Points")
 
 
-class MASK_PT_add():
+class MASK_PT_add:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'TOOLS'

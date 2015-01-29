@@ -20,7 +20,7 @@
 import bpy
 
 
-class NodeCategory():
+class NodeCategory:
     @classmethod
     def poll(cls, context):
         return True
@@ -42,7 +42,7 @@ class NodeCategory():
             self.items = items_gen
 
 
-class NodeItem():
+class NodeItem:
     def __init__(self, nodetype, label=None, settings={}, poll=None):
         self.nodetype = nodetype
         self._label = label
@@ -73,7 +73,7 @@ class NodeItem():
             ops.value = setting[1]
 
 
-class NodeItemCustom():
+class NodeItemCustom:
     def __init__(self, poll=None, draw=None):
         self.poll = poll
         self.draw = draw

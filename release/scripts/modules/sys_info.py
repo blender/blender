@@ -153,7 +153,7 @@ def write_sysinfo(op):
     else:
         output.write("\nOpenGL\n")
         output.write(lilies)
-        version = bgl.glGetString(bgl.GL_RENDERER);
+        version = bgl.glGetString(bgl.GL_RENDERER)
         output.write("renderer:\t%r\n" % version)
         output.write("vendor:\t\t%r\n" % (bgl.glGetString(bgl.GL_VENDOR)))
         output.write("version:\t%r\n" % (bgl.glGetString(bgl.GL_VERSION)))

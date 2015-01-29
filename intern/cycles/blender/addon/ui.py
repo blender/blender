@@ -37,7 +37,7 @@ class CYCLES_MT_integrator_presets(Menu):
     draw = Menu.draw_preset
 
 
-class CyclesButtonsPanel():
+class CyclesButtonsPanel:
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"

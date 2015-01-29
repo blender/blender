@@ -62,6 +62,7 @@ def _gen_check_ctxt(settings):
         "spell_errors": {},
     }
 
+
 def _diff_check_ctxt(check_ctxt, minus_check_ctxt):
     """Returns check_ctxt - minus_check_ctxt"""
     for key in check_ctxt:
@@ -73,6 +74,7 @@ def _diff_check_ctxt(check_ctxt, minus_check_ctxt):
             for warning in minus_check_ctxt[key]:
                 if warning in check_ctxt[key]:
                     del check_ctxt[key][warning]
+
 
 def _gen_reports(check_ctxt):
     return {
@@ -472,7 +474,6 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         bag.append((estr_ls, nds_ls))
 
         return [_extract_string_merge(estr_ls, nds_ls) for estr_ls, nds_ls in bag]
-
 
     i18n_ctxt_ids = {v for v in bpy.app.translations.contexts_C_to_py.values()}
     def _ctxt_to_ctxt(node):

@@ -473,6 +473,7 @@ for p in set(INTERN_PY_SYS_PATHS.split(";")):
 def _do_get(ref, path):
     return os.path.normpath(os.path.join(ref, path))
 
+
 def _do_set(ref, path):
     path = os.path.normpath(path)
     # If given path is absolute, make it relative to current ref one (else we consider it is already the case!)
@@ -484,6 +485,7 @@ def _do_set(ref, path):
             pass
     return path
 
+
 def _gen_get_set_path(ref, name):
     def _get(self):
         return _do_get(getattr(self, ref), getattr(self, name))
@@ -491,12 +493,14 @@ def _gen_get_set_path(ref, name):
         setattr(self, name, _do_set(getattr(self, ref), value))
     return _get, _set
 
+
 def _gen_get_set_paths(ref, name):
     def _get(self):
         return [_do_get(getattr(self, ref), p) for p in getattr(self, name)]
     def _set(self, value):
         setattr(self, name, [_do_set(getattr(self, ref), p) for p in value])
     return _get, _set
+
 
 class I18nSettings:
     """

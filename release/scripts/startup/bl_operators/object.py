@@ -252,7 +252,7 @@ class SubdivisionSet(Operator):
                     if not relative:
                         if level > mod.total_levels:
                             sub = level - mod.total_levels
-                            for i in range (0, sub):
+                            for i in range(sub):
                                 bpy.ops.object.multires_subdivide(modifier="Multires")
 
                         if obj.mode == 'SCULPT':

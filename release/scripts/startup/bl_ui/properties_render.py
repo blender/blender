@@ -43,7 +43,7 @@ class RENDER_MT_framerate_presets(Menu):
     draw = Menu.draw_preset
 
 
-class RenderButtonsPanel():
+class RenderButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"

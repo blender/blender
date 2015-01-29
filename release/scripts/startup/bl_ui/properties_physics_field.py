@@ -26,7 +26,7 @@ from bl_ui.properties_physics_common import (
         )
 
 
-class PhysicButtonsPanel():
+class PhysicButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"

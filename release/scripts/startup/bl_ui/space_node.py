@@ -464,8 +464,8 @@ class NODE_PT_grease_pencil_tools(GreasePencilToolsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     # NOTE: this is just a wrapper around the generic GP tools panel
-	# It contains access to some essential tools usually found only in
-	# toolbar, but which may not necessarily be open
+    # It contains access to some essential tools usually found only in
+    # toolbar, but which may not necessarily be open
 
 
 # Tool Shelf ------------------
@@ -483,6 +483,7 @@ class NODE_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
     bl_region_type = 'TOOLS'
 
 # -----------------------------
+
 
 def node_draw_tree_view(layout, context):
     pass

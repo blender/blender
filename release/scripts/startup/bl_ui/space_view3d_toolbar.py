@@ -31,7 +31,7 @@ from bl_ui.properties_paint_common import (
         )
 
 
-class View3DPanel():
+class View3DPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
@@ -786,6 +786,7 @@ class View3DPaintPanel(UnifiedPaintPanel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
+
 class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
     bl_category = "Tools"
     bl_label = "Missing Data"
@@ -806,14 +807,13 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
             col.label("Missing UVs", icon='INFO')
             col.label("Unwrap the mesh in edit mode or generate a simple UV layer")
             col.operator("paint.add_simple_uvs")
-    
+
         if toolsettings.mode == 'MATERIAL':
             if toolsettings.missing_materials:
                 col.separator()
                 col.label("Missing Materials", icon='INFO')
                 col.label("Add a material and paint slot below")
                 col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
-                   
             elif toolsettings.missing_texture:
                 ob = context.active_object
                 mat = ob.active_material
@@ -827,7 +827,6 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
                     col.label("Missing Materials", icon='INFO')
                     col.label("Add a material and paint slot below")
                     col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
- 
 
         elif toolsettings.mode == 'IMAGE':
             if toolsettings.missing_texture:
@@ -845,6 +844,7 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
             col.label("Stencil Image")
             col.template_ID(toolsettings, "stencil_image")
             col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
+
 
 class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
     bl_category = "Tools"
@@ -1074,6 +1074,7 @@ class TEXTURE_UL_texpaintslots(UIList):
             layout.alignment = 'CENTER'
             layout.label(text="")
 
+
 class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
     bl_label = "Clone Layer"
 
@@ -1137,7 +1138,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                     if slot:
                         col.prop(mat.texture_slots[slot.index], "blend_type")
                         col.separator()
-                
+
                 if slot and slot.index != -1:
                     col.label("UV Map")
                     col.prop_search(slot, "uv_layer", ob.data, "uv_textures", text="")
@@ -1189,7 +1190,6 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         col.template_ID(ipaint, "stencil_image")
         col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
- 
         col.label("Visualization")
         row = col.row(align=True)
         row.prop(ipaint, "stencil_color", text="")

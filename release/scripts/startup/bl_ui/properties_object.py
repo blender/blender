@@ -22,7 +22,7 @@ from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 
 
-class ObjectButtonsPanel():
+class ObjectButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"

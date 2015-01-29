@@ -23,7 +23,7 @@ from bpy.types import Menu, Panel, UIList
 
 # Render properties
 
-class RenderFreestyleButtonsPanel():
+class RenderFreestyleButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -62,7 +62,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
 
 # Render layer properties
 
-class RenderLayerFreestyleButtonsPanel():
+class RenderLayerFreestyleButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render_layer"
@@ -701,7 +701,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
 
 # Material properties
 
-class MaterialFreestyleButtonsPanel():
+class MaterialFreestyleButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "material"

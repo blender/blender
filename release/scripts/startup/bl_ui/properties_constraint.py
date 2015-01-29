@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel
 
 
-class ConstraintButtonsPanel():
+class ConstraintButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "constraint"

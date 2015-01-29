@@ -22,7 +22,7 @@ from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 
 
-class CameraButtonsPanel():
+class CameraButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -109,11 +109,11 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                 elif ccam.panorama_type == 'EQUIRECTANGULAR':
                     row = layout.row()
                     sub = row.column(align=True)
-                    sub.prop(ccam, "latitude_min");
-                    sub.prop(ccam, "latitude_max");
+                    sub.prop(ccam, "latitude_min")
+                    sub.prop(ccam, "latitude_max")
                     sub = row.column(align=True)
-                    sub.prop(ccam, "longitude_min");
-                    sub.prop(ccam, "longitude_max");
+                    sub.prop(ccam, "longitude_min")
+                    sub.prop(ccam, "longitude_max")
             elif engine == 'BLENDER_RENDER':
                 row = col.row()
                 if cam.lens_unit == 'MILLIMETERS':

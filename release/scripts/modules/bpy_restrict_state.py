@@ -29,7 +29,7 @@ __all__ = (
 import bpy as _bpy
 
 
-class _RestrictContext():
+class _RestrictContext:
     __slots__ = ()
     _real_data = _bpy.data
     # safe, the pointer never changes
@@ -44,7 +44,7 @@ class _RestrictContext():
         return self._real_pref
 
 
-class _RestrictData():
+class _RestrictData:
     __slots__ = ()
 
 
@@ -52,7 +52,7 @@ _context_restrict = _RestrictContext()
 _data_restrict = _RestrictData()
 
 
-class RestrictBlend():
+class RestrictBlend:
     __slots__ = ("context", "data")
 
     def __enter__(self):

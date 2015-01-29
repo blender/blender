@@ -176,8 +176,6 @@ class VertexPaintDirt(Operator):
         return (obj and obj.type == 'MESH')
 
     def execute(self, context):
-        import time
-
         obj = context.object
         mesh = obj.data
 

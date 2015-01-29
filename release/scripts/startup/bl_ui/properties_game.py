@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel, Menu
 
 
-class PhysicsButtonsPanel():
+class PhysicsButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
@@ -256,7 +256,7 @@ class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, Panel):
         row.label()
 
 
-class RenderButtonsPanel():
+class RenderButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -455,7 +455,7 @@ class RENDER_PT_game_display(RenderButtonsPanel, Panel):
             col.prop(gs, "frame_color", text="")
 
 
-class SceneButtonsPanel():
+class SceneButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
@@ -535,7 +535,7 @@ class RENDER_PT_game_sound(RenderButtonsPanel, Panel):
         col.prop(scene, "audio_doppler_factor")
 
 
-class WorldButtonsPanel():
+class WorldButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
@@ -691,7 +691,7 @@ class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
             layout.prop(gs, "show_obstacle_simulation")
 
 
-class DataButtonsPanel():
+class DataButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -749,7 +749,7 @@ class DATA_PT_shadow_game(DataButtonsPanel, Panel):
             row.prop(lamp, "shadow_frustum_size", text="Frustum Size")
 
 
-class ObjectButtonsPanel():
+class ObjectButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"

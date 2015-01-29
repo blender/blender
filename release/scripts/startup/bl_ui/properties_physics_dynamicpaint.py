@@ -47,7 +47,7 @@ class PHYSICS_UL_dynapaint_surfaces(UIList):
             row.label(text="", icon_value=sticon)
 
 
-class PhysicButtonsPanel():
+class PhysicButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"

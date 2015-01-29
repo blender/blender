@@ -316,7 +316,7 @@ def main():
 
     try:
         import argparse
-    except:
+    except ImportError:
         print("Old Blender, just dumping")
         api_dump()
         return

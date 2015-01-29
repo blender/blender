@@ -24,7 +24,7 @@ import pickle
 import re
 
 
-class SpellChecker():
+class SpellChecker:
     """
     A basic spell checker.
     """
