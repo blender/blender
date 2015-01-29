@@ -941,6 +941,10 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
 
                 col.prop(strip.proxy, "timecode")
 
+        col = layout.column()
+        col.operator("sequencer.enable_proxies")        
+        col.operator("sequencer.rebuild_proxy")
+
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
     bl_label = "Scene Preview/Render"

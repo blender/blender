@@ -64,6 +64,7 @@
 #include "ED_space_api.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 
 /* own include */
@@ -3396,6 +3397,72 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;
+}
+
+static int sequencer_enable_proxies_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
+}
+
+static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = BKE_sequencer_editing_get(scene, false);
+	Sequence *seq;
+	bool proxy_25 = RNA_boolean_get(op->ptr, "proxy_25");
+	bool proxy_50 = RNA_boolean_get(op->ptr, "proxy_50");
+	bool proxy_75 = RNA_boolean_get(op->ptr, "proxy_75");
+	bool proxy_100 = RNA_boolean_get(op->ptr, "proxy_100");
+
+	if (ed == NULL || 
+	    !(proxy_25 || proxy_50 || proxy_75 || proxy_100)) {
+		return OPERATOR_FINISHED;
+	}
+
+	SEQP_BEGIN(ed, seq)
+	{
+		if ((seq->flag & SELECT)) {
+			if (seq->type == SEQ_TYPE_MOVIE) {
+				if (!seq->strip->proxy) {
+					BKE_sequencer_proxy_set(seq, true);
+				}
+				
+				if (proxy_25)
+					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_25;
+				if (proxy_50)
+					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_50;
+				if (proxy_75)
+					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_75;
+				if (proxy_100)
+					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_100;
+			}
+		}
+	}
+	SEQ_END
+
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Enable Proxies";
+	ot->idname = "SEQUENCER_OT_enable_proxies";
+	ot->description = "Enable selected proxies on all selected Movie strips";
+	
+	/* api callbacks */
+	ot->invoke = sequencer_enable_proxies_invoke;
+	ot->exec = sequencer_enable_proxies_exec;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER;
+	
+	RNA_def_boolean(ot->srna, "proxy_25", false, "25%", "");
+	RNA_def_boolean(ot->srna, "proxy_50", false, "50%", "");
+	RNA_def_boolean(ot->srna, "proxy_75", false, "75%", "");
+	RNA_def_boolean(ot->srna, "proxy_100", false, "100%", "");
 }
 
 /* change ops */

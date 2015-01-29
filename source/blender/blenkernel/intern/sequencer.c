@@ -1644,6 +1644,22 @@ void BKE_sequencer_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop
 	MEM_freeN(context);
 }
 
+void BKE_sequencer_proxy_set(struct Sequence *seq, bool value)
+{
+	if (value) {
+		seq->flag |= SEQ_USE_PROXY;
+		if (seq->strip->proxy == NULL) {
+			seq->strip->proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
+			seq->strip->proxy->quality = 90;
+			seq->strip->proxy->build_tc_flags = SEQ_PROXY_TC_ALL;
+			seq->strip->proxy->build_size_flags = SEQ_PROXY_IMAGE_SIZE_25;
+		}
+	}
+	else {
+		seq->flag ^= SEQ_USE_PROXY;
+	}	
+}
+
 /*********************** color balance *************************/
 
 static StripColorBalance calc_cb(StripColorBalance *cb_)

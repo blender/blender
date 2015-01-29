@@ -240,6 +240,7 @@ struct SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(struct Main *bm
 void BKE_sequencer_proxy_rebuild(struct SeqIndexBuildContext *context, short *stop, short *do_update, float *progress);
 void BKE_sequencer_proxy_rebuild_finish(struct SeqIndexBuildContext *context, bool stop);
 
+void BKE_sequencer_proxy_set(struct Sequence *seq, bool value);
 /* **********************************************************************
  * seqcache.c
  *
