@@ -508,10 +508,14 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	bNodeTree *ntree;
 	bNode *node;
 	Material *mat;
+	Lamp *la;
+	Tex *te;
+	World *wo;
+	FreestyleLineStyle *linestyle;
 	Scene *sce;
 	SceneRenderLayer *srl;
 	FreestyleModuleConfig *module;
-	short update;
+	bool update;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		/* game controllers */
@@ -563,23 +567,97 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	}
 	
 	/* nodes */
+	for (la = bmain->lamp.first; la; la = la->id.next) {
+		ntree = la->nodetree;
+		if (!ntree)
+			continue;
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_FRAME) {
+				if ((Text *)node->id == text) {
+					node->id = NULL;
+				}
+			}
+		}
+	}
+
+	for (linestyle = bmain->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+		ntree = linestyle->nodetree;
+		if (!ntree)
+			continue;
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_FRAME) {
+				if ((Text *)node->id == text) {
+					node->id = NULL;
+				}
+			}
+		}
+	}
+
 	for (mat = bmain->mat.first; mat; mat = mat->id.next) {
 		ntree = mat->nodetree;
 		if (!ntree)
 			continue;
 		for (node = ntree->nodes.first; node; node = node->next) {
-			if (node->type == SH_NODE_SCRIPT) {
+			if (ELEM(node->type, SH_NODE_SCRIPT, NODE_FRAME)) {
+				if ((Text *)node->id == text) {
+					node->id = NULL;
+				}
+			}
+		}
+	}
+
+	for (te = bmain->tex.first; mat; mat = mat->id.next) {
+		ntree = te->nodetree;
+		if (!ntree)
+			continue;
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_FRAME) {
+				if ((Text *)node->id == text) {
+					node->id = NULL;
+				}
+			}
+		}
+	}
+
+	for (wo = bmain->world.first; wo; wo = wo->id.next) {
+		ntree = wo->nodetree;
+		if (!ntree)
+			continue;
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_FRAME) {
+				if ((Text *)node->id == text) {
+					node->id = NULL;
+				}
+			}
+		}
+	}
+
+	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+		ntree = sce->nodetree;
+		if (!ntree)
+			continue;
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == NODE_FRAME) {
 				Text *ntext = (Text *)node->id;
 				if (ntext == text) node->id = NULL;
 			}
 		}
+
+		/* Freestyle (while looping oer the scene) */
+		for (srl = sce->r.layers.first; srl; srl = srl->next) {
+			for (module = srl->freestyleConfig.modules.first; module; module = module->next) {
+				if (module->script == text)
+					module->script = NULL;
+			}
+		}
 	}
-	
+
 	for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next) {
 		for (node = ntree->nodes.first; node; node = node->next) {
-			if (node->type == SH_NODE_SCRIPT) {
-				Text *ntext = (Text *)node->id;
-				if (ntext == text) node->id = NULL;
+			if (ELEM(node->type, SH_NODE_SCRIPT, NODE_FRAME)) {
+				if ((Text *)node->id == text) {
+					node->id = NULL;
+				}
 			}
 		}
 	}
@@ -596,16 +674,6 @@ void BKE_text_unlink(Main *bmain, Text *text)
 						st->top = 0;
 					}
 				}
-			}
-		}
-	}
-
-	/* Freestyle */
-	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-		for (srl = sce->r.layers.first; srl; srl = srl->next) {
-			for (module = srl->freestyleConfig.modules.first; module; module = module->next) {
-				if (module->script == text)
-					module->script = NULL;
 			}
 		}
 	}

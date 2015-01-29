@@ -3038,6 +3038,13 @@ static void def_frame(StructRNA *srna)
 {
 	PropertyRNA *prop; 
 	
+	prop = RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Text");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Text", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
 	RNA_def_struct_sdna_from(srna, "NodeFrame", "storage");
 	
 	prop = RNA_def_property(srna, "shrink", PROP_BOOLEAN, PROP_NONE);

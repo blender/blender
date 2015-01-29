@@ -38,6 +38,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -389,6 +390,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 	float width, ascender;
 	float x, y;
 	const int font_size = data->label_size / aspect;
+	const float margin = NODE_DY / 4;
 
 	nodeLabel(ntree, node, label, sizeof(label));
 
@@ -404,10 +406,41 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 	
 	/* 'x' doesn't need aspect correction */
 	x = BLI_rctf_cent_x(rct) - (0.5f * width);
-	y = rct->ymax - (((NODE_DY / 4) / aspect) + (ascender * aspect));
+	y = rct->ymax - ((margin / aspect) + (ascender * aspect));
 
 	BLF_position(fontid, x, y, 0);
 	BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
+
+	/* draw text body */
+	if (node->id) {
+		Text *text = (Text *)node->id;
+		TextLine *line;
+		const float line_spacing = (BLF_height_max(fontid) * aspect) * 0.7f;
+
+		/* 'x' doesn't need aspect correction */
+		x = rct->xmin + margin;
+		y = rct->ymax - ((margin / aspect) + (ascender * aspect));
+		y -= line_spacing;
+
+		BLF_enable(fontid, BLF_CLIPPING);
+		BLF_clipping(
+		        fontid,
+		        rct->xmin,
+		        rct->ymin,
+		        rct->xmin + ((rct->xmax - rct->xmin) / aspect) - margin,
+		        rct->ymax);
+
+		for (line = text->lines.first; line; line = line->next) {
+			BLF_position(fontid, x, y, 0);
+			BLF_draw(fontid, line->line, line->len);
+			y -= line_spacing;
+			if (y < rct->ymin) {
+				break;
+			}
+		}
+
+		BLF_disable(fontid, BLF_CLIPPING);
+	}
 
 	BLF_disable(fontid, BLF_ASPECT);
 }
