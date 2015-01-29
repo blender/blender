@@ -348,7 +348,7 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.operator("transform.transform", text="Grab/Move").mode = 'TRANSLATION'
         layout.operator("transform.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
-        layout.operator("sequencer.gap_remove")
+        layout.operator("sequencer.gap_remove").all = False
         layout.operator("sequencer.gap_insert")
 
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
@@ -404,7 +404,7 @@ class SEQUENCER_MT_strip(Menu):
         #}
 
         layout.separator()
-        layout.operator("sequencer.reload", text="Reload Strips").adjust_length = False
+        layout.operator("sequencer.reload", text="Reload Strips")
         layout.operator("sequencer.reload", text="Reload Strips and Adjust Length").adjust_length = True
         layout.operator("sequencer.reassign_inputs")
         layout.operator("sequencer.swap_inputs")
@@ -413,7 +413,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
         layout.operator("sequencer.mute").unselected = False
-        layout.operator("sequencer.unmute")
+        layout.operator("sequencer.unmute").unselected = False
 
         layout.operator("sequencer.mute", text="Mute Deselected Strips").unselected = True
 

@@ -3373,7 +3373,8 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_border(ot);
 
-	prop = RNA_def_boolean(ot->srna, "camera_only", 0, "Camera Only", "Set render border for camera view and final render only");
+	prop = RNA_def_boolean(ot->srna, "camera_only", false, "Camera Only",
+	                       "Set render border for camera view and final render only");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

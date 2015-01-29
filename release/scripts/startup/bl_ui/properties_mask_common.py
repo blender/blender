@@ -344,7 +344,7 @@ class MASK_MT_visibility(Menu):
         layout = self.layout
 
         layout.operator("mask.hide_view_clear", text="Show Hidden")
-        layout.operator("mask.hide_view_set", text="Hide Selected")
+        layout.operator("mask.hide_view_set", text="Hide Selected").unselected = False
         layout.operator("mask.hide_view_set", text="Hide Unselected").unselected = True
 
 

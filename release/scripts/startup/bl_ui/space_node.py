@@ -196,7 +196,7 @@ class NODE_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("node.select_border")
+        layout.operator("node.select_border").tweak = False
         layout.operator("node.select_circle")
 
         layout.separator()
@@ -207,7 +207,7 @@ class NODE_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("node.select_grouped")
+        layout.operator("node.select_grouped").extend = False
         layout.operator("node.select_same_type_step").prev = True
         layout.operator("node.select_same_type_step").prev = False
 
@@ -239,14 +239,14 @@ class NODE_MT_node(Menu):
 
         layout.separator()
 
-        layout.operator("node.link_make")
+        layout.operator("node.link_make").replace = False
         layout.operator("node.link_make", text="Make and Replace Links").replace = True
         layout.operator("node.links_cut")
         layout.operator("node.links_detach")
 
         layout.separator()
 
-        layout.operator("node.group_edit")
+        layout.operator("node.group_edit").exit = False
         layout.operator("node.group_ungroup")
         layout.operator("node.group_make")
         layout.operator("node.group_insert")

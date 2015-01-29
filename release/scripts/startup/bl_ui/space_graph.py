@@ -134,9 +134,15 @@ class GRAPH_MT_select(Menu):
         layout.operator("graph.select_all_toggle", text="Invert Selection").invert = True
 
         layout.separator()
-        layout.operator("graph.select_border")
-        layout.operator("graph.select_border", text="Border Axis Range").axis_range = True
-        layout.operator("graph.select_border", text="Border (Include Handles)").include_handles = True
+        props = layout.operator("graph.select_border")
+        props.axis_range = False
+        props.include_handles = False
+        props = layout.operator("graph.select_border", text="Border Axis Range")
+        props.axis_range = True
+        props.include_handles = False
+        props = layout.operator("graph.select_border", text="Border (Include Handles)")
+        props.axis_range = False
+        props.include_handles = True
 
         layout.separator()
         layout.operator("graph.select_column", text="Columns on Selected Keys").mode = 'KEYS'
@@ -146,8 +152,12 @@ class GRAPH_MT_select(Menu):
         layout.operator("graph.select_column", text="Between Selected Markers").mode = 'MARKERS_BETWEEN'
 
         layout.separator()
-        layout.operator("graph.select_leftright", text="Before Current Frame").mode = 'LEFT'
-        layout.operator("graph.select_leftright", text="After Current Frame").mode = 'RIGHT'
+        props = layout.operator("graph.select_leftright", text="Before Current Frame")
+        props.extend = False
+        props.mode = 'LEFT'
+        props = layout.operator("graph.select_leftright", text="After Current Frame")
+        props.extend = False
+        props.mode = 'RIGHT'
 
         layout.separator()
         layout.operator("graph.select_more")
