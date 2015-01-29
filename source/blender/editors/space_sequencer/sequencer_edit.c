@@ -3413,6 +3413,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 	bool proxy_50 = RNA_boolean_get(op->ptr, "proxy_50");
 	bool proxy_75 = RNA_boolean_get(op->ptr, "proxy_75");
 	bool proxy_100 = RNA_boolean_get(op->ptr, "proxy_100");
+	bool override = RNA_boolean_get(op->ptr, "override");
 
 	if (ed == NULL || 
 	    !(proxy_25 || proxy_50 || proxy_75 || proxy_100)) {
@@ -3435,6 +3436,8 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_75;
 				if (proxy_100)
 					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_100;
+				if (!override)
+					seq->strip->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
 			}
 		}
 	}
@@ -3463,6 +3466,7 @@ void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "proxy_50", false, "50%", "");
 	RNA_def_boolean(ot->srna, "proxy_75", false, "75%", "");
 	RNA_def_boolean(ot->srna, "proxy_100", false, "100%", "");
+	RNA_def_boolean(ot->srna, "override", false, "Override", "");
 }
 
 /* change ops */
