@@ -87,14 +87,14 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject *
 		return NULL;
 	}
 
-	if (((mathutils_array_parse(dir, 3, 3, py_ray, error_prefix) != -1) &&
-	     (mathutils_array_parse(orig, 3, 3, py_ray_off, error_prefix) != -1)) == 0)
+	if (((mathutils_array_parse(dir, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_ray, error_prefix) != -1) &&
+	     (mathutils_array_parse(orig, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_ray_off, error_prefix) != -1)) == 0)
 	{
 		return NULL;
 	}
 
 	for (i = 0; i < ARRAY_SIZE(tri); i++) {
-		if (mathutils_array_parse(tri[i], 2, 2 | MU_ARRAY_SPILL, py_tri[i], error_prefix) == -1) {
+		if (mathutils_array_parse(tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1) {
 			return NULL;
 		}
 	}
@@ -183,16 +183,12 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		return NULL;
 	}
 
-	if ((((len = mathutils_array_parse(lines[0], 2, 3, py_lines[0], error_prefix)) != -1) &&
-	     (mathutils_array_parse(lines[1], len, len, py_lines[1], error_prefix) != -1) &&
-	     (mathutils_array_parse(lines[2], len, len, py_lines[2], error_prefix) != -1) &&
-	     (mathutils_array_parse(lines[3], len, len, py_lines[3], error_prefix) != -1)) == 0)
+	if ((((len = mathutils_array_parse(lines[0], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_lines[0], error_prefix)) != -1) &&
+	     (mathutils_array_parse(lines[1], len, len | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_lines[1], error_prefix) != -1) &&
+	     (mathutils_array_parse(lines[2], len, len | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_lines[2], error_prefix) != -1) &&
+	     (mathutils_array_parse(lines[3], len, len | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_lines[3], error_prefix) != -1)) == 0)
 	{
 		return NULL;
-	}
-
-	if (len == 2) {
-		lines[0][2] = lines[1][2] = lines[2][2] = lines[3][2] = 0.0f;
 	}
 
 	result = isect_line_line_v3(UNPACK4(lines), i1, i2);
@@ -745,7 +741,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	/* accept 2d verts */
 	if ((((size = mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix)) != -1) &&
 	     (mathutils_array_parse(line_a, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_a, error_prefix) != -1) &&
-	     (mathutils_array_parse(line_b, 3, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_b, error_prefix) != -1)) == 0)
+	     (mathutils_array_parse(line_b, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_b, error_prefix) != -1)) == 0)
 	{
 		return NULL;
 	}
@@ -791,11 +787,11 @@ static PyObject *M_Geometry_intersect_point_tri(PyObject *UNUSED(self), PyObject
 		return NULL;
 	}
 
-	if (mathutils_array_parse(pt, 3, 3 | MU_ARRAY_SPILL, py_pt, error_prefix) == -1) {
+	if (mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix) == -1) {
 		return NULL;
 	}
 	for (i = 0; i < ARRAY_SIZE(tri); i++) {
-		if (mathutils_array_parse(tri[i], 3, 3 | MU_ARRAY_SPILL, py_tri[i], error_prefix) == -1) {
+		if (mathutils_array_parse(tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1) {
 			return NULL;
 		}
 	}
@@ -1132,7 +1128,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
 
 	for (i = 0; i < 4; i++) {
 		int dims_tmp;
-		if ((((dims_tmp = mathutils_array_parse(data[i], 2, 2 | MU_ARRAY_SPILL, py_data[i], error_prefix)) == -1))) {
+		if ((dims_tmp = mathutils_array_parse(data[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_data[i], error_prefix)) == -1) {
 			return NULL;
 		}
 		dims = max_ii(dims, dims_tmp);
