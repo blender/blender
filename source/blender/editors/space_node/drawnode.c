@@ -531,6 +531,7 @@ static void node_buts_frame_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 {
 	uiItemR(layout, ptr, "label_size", 0, IFACE_("Label Size"), ICON_NONE);
 	uiItemR(layout, ptr, "shrink", 0, IFACE_("Shrink"), ICON_NONE);
+	uiItemR(layout, ptr, "text", 0, NULL, ICON_NONE);
 }
 
 

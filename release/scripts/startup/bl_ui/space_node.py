@@ -299,7 +299,6 @@ class NODE_PT_active_node_generic(Panel):
 
         layout.prop(node, "name", icon='NODE')
         layout.prop(node, "label", icon='NODE')
-        layout.prop(node, "text")
 
 
 class NODE_PT_active_node_color(Panel):
