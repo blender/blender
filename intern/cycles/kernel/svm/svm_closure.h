@@ -402,7 +402,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 						sc->data2 = 0.0f;
 					}
 					else
-						sc->T = sd->dPdu;
+						sc->T = normalize(sd->dPdu);
 
 					if(type == CLOSURE_BSDF_HAIR_REFLECTION_ID) {
 						sd->flag |= bsdf_hair_reflection_setup(sc);
