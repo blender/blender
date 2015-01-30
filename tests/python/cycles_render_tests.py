@@ -65,8 +65,10 @@ def verify_output(filepath):
     try:
         subprocess.check_output(command)
         return True
-    except subprocess.CalledProcessError as grepexc:
-        return grepexc.returncode == 1
+    except subprocess.CalledProcessError as e:
+        if VERBOSE:
+            print(e.output.decode("utf-8"))
+        return e.returncode == 1
 
 
 def run_test(filepath):
@@ -107,6 +109,8 @@ def run_all_tests(dirpath):
                 print('Can not perform tests because blender fails to start.',
                       'Make sure INSTALL target was run.')
                 return False
+            elif error == 'VARIFY':
+                pass
             else:
                 print("Unknown error %r" % error)
             testname = test_get_name(filepath)
