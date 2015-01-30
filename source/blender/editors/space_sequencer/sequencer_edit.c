@@ -3434,7 +3434,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 	SEQP_BEGIN(ed, seq)
 	{
 		if ((seq->flag & SELECT)) {
-			if (seq->type == SEQ_TYPE_MOVIE) {
+			if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE, SEQ_TYPE_MULTICAM)) {
 				BKE_sequencer_proxy_set(seq, turnon);
 				
 				if (proxy_25)
