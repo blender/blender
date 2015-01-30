@@ -1010,6 +1010,7 @@ if env['OURPLATFORM']!='darwin':
             source.append('intern/cycles/util/util_color.h')
             source.append('intern/cycles/util/util_half.h')
             source.append('intern/cycles/util/util_math.h')
+            source.append('intern/cycles/util/util_math_fast.h')
             source.append('intern/cycles/util/util_transform.h')
             source.append('intern/cycles/util/util_types.h')
             scriptinstall.append(env.Install(dir=dir,source=source))

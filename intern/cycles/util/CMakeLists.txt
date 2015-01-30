@@ -47,6 +47,7 @@ set(SRC_HEADERS
 	util_logging.h
 	util_map.h
 	util_math.h
+	util_math_fast.h
 	util_md5.h
 	util_opengl.h
 	util_optimization.h
