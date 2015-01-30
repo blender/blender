@@ -35,6 +35,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_fileops.h"
+#include "BLI_ghash.h"
 
 #include "IMB_indexer.h"
 #include "IMB_anim.h"
@@ -1149,11 +1150,30 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
 
 IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecode_Type tcs_in_use,
                                                   IMB_Proxy_Size proxy_sizes_in_use, int quality,
-                                                  const bool overwrite)
+                                                  const bool overwrite, GSet *file_list)
 {
 	IndexBuildContext *context = NULL;
 	IMB_Proxy_Size proxy_sizes_to_build = proxy_sizes_in_use;
 	int i;
+
+	/* Don't generate the same file twice! */
+	if (file_list) {
+		for (i = 0; i < IMB_PROXY_MAX_SLOT; ++i) {
+			IMB_Proxy_Size proxy_size = proxy_sizes[i];
+			if (proxy_size & proxy_sizes_to_build) {
+				char filename[FILE_MAX];
+				get_proxy_filename(anim, proxy_size, filename, false);
+
+				if (BLI_gset_haskey(file_list, filename)) {
+					proxy_sizes_to_build &= ~proxy_size;
+					printf("Proxy: %s already registered for generation, skipping\n", filename);
+				}
+				else {
+					BLI_gset_insert(file_list, BLI_strdup(filename));
+				}
+			}
+		}
+	}
 	
 	if (!overwrite) {
 		IMB_Proxy_Size built_proxies = IMB_anim_proxy_get_existing(anim);
@@ -1166,26 +1186,12 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecod
 					get_proxy_filename(anim, proxy_size, filename, false);
 					printf("Skipping proxy: %s\n", filename);
 				}
-				/* if file doesn't exist, create it here so subsequent runs won't re-add it for generation */
-				else if (proxy_size & proxy_sizes_to_build) {
-					char filename[FILE_MAX];
-					get_proxy_filename(anim, proxy_size, filename, false);
-					BLI_file_touch(filename);
-				}
-			}
-		}
-		else {
-			for (i = 0; i < IMB_PROXY_MAX_SLOT; ++i) {
-				IMB_Proxy_Size proxy_size = proxy_sizes[i];
-				if (proxy_size & proxy_sizes_to_build) {
-					char filename[FILE_MAX];
-					get_proxy_filename(anim, proxy_size, filename, false);
-					BLI_file_touch(filename);
-				}
 			}
 		}
 		proxy_sizes_to_build &= ~built_proxies;
 	}
+	
+	fflush(stdout);
 
 	if (proxy_sizes_to_build == 0) {
 		return NULL;

@@ -1532,7 +1532,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 	IMB_freeImBuf(ibuf);
 }
 
-SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq)
+SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq, struct GSet *file_list)
 {
 	SeqIndexBuildContext *context;
 	Sequence *nseq;
@@ -1565,7 +1565,7 @@ SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *sc
 		if (nseq->anim) {
 			context->index_context = IMB_anim_index_rebuild_context(nseq->anim,
 			        context->tc_flags, context->size_flags, context->quality,
-			        context->overwrite);
+			        context->overwrite, file_list);
 		}
 	}
 

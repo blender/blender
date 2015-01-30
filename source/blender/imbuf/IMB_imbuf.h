@@ -86,6 +86,7 @@ struct anim;
 
 struct ColorManagedDisplay;
 
+struct GSet;
 /**
  *
  * \attention Defined in allocimbuf.c
@@ -243,7 +244,7 @@ struct IndexBuildContext;
 /* prepare context for proxies/imecodes builder */
 struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecode_Type tcs_in_use,
                                                          IMB_Proxy_Size proxy_sizes_in_use, int quality,
-                                                         const bool overwite);
+                                                         const bool overwite, struct GSet *file_list);
 
 /* will rebuild all used indices and proxies at once */
 void IMB_anim_index_rebuild(struct IndexBuildContext *context,
