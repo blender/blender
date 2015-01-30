@@ -1153,17 +1153,34 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecod
 {
 	IndexBuildContext *context = NULL;
 	IMB_Proxy_Size proxy_sizes_to_build = proxy_sizes_in_use;
-
+	int i;
+	
 	if (!overwrite) {
 		IMB_Proxy_Size built_proxies = IMB_anim_proxy_get_existing(anim);
 		if (built_proxies != 0) {
-			int i;
+
 			for (i = 0; i < IMB_PROXY_MAX_SLOT; ++i) {
 				IMB_Proxy_Size proxy_size = proxy_sizes[i];
 				if (proxy_size & built_proxies) {
 					char filename[FILE_MAX];
 					get_proxy_filename(anim, proxy_size, filename, false);
 					printf("Skipping proxy: %s\n", filename);
+				}
+				/* if file doesn't exist, create it here so subsequent runs won't re-add it for generation */
+				else if (proxy_size & proxy_sizes_to_build) {
+					char filename[FILE_MAX];
+					get_proxy_filename(anim, proxy_size, filename, false);
+					BLI_file_touch(filename);
+				}
+			}
+		}
+		else {
+			for (i = 0; i < IMB_PROXY_MAX_SLOT; ++i) {
+				IMB_Proxy_Size proxy_size = proxy_sizes[i];
+				if (proxy_size & proxy_sizes_to_build) {
+					char filename[FILE_MAX];
+					get_proxy_filename(anim, proxy_size, filename, false);
+					BLI_file_touch(filename);
 				}
 			}
 		}
@@ -1173,6 +1190,7 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecod
 	if (proxy_sizes_to_build == 0) {
 		return NULL;
 	}
+	
 
 	switch (anim->curtype) {
 #ifdef WITH_FFMPEG
