@@ -924,12 +924,23 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             if strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "filepath")
 
+            layout.label("Enabled Proxies:")
+            enabled = ""
             row = layout.row()
-            row.prop(strip.proxy, "build_25")
-            row.prop(strip.proxy, "build_50")
-            row.prop(strip.proxy, "build_75")
-            row.prop(strip.proxy, "build_100")
-            layout.prop(strip.proxy, "use_overwrite")
+            if (strip.proxy.build_25):
+               enabled += "25% "
+            if (strip.proxy.build_50):
+               enabled += "50% "
+            if (strip.proxy.build_75):
+               enabled += "75% "
+            if (strip.proxy.build_100):
+               enabled += "100% "
+
+            row.label(enabled)
+            if (strip.proxy.use_overwrite):
+               layout.label("Overwrite On")
+            else:
+               layout.label("Overwrite Off")
 
             col = layout.column()
             col.label(text="Build JPEG quality")

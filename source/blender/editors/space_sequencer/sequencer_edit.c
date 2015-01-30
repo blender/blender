@@ -3414,30 +3414,43 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 	bool proxy_75 = RNA_boolean_get(op->ptr, "proxy_75");
 	bool proxy_100 = RNA_boolean_get(op->ptr, "proxy_100");
 	bool override = RNA_boolean_get(op->ptr, "override");
+	bool turnon = true;
 
 	if (ed == NULL || 
 	    !(proxy_25 || proxy_50 || proxy_75 || proxy_100)) {
-		return OPERATOR_FINISHED;
+		turnon = false;
 	}
 
 	SEQP_BEGIN(ed, seq)
 	{
 		if ((seq->flag & SELECT)) {
 			if (seq->type == SEQ_TYPE_MOVIE) {
-				if (!seq->strip->proxy) {
-					BKE_sequencer_proxy_set(seq, true);
-				}
+				BKE_sequencer_proxy_set(seq, turnon);
 				
 				if (proxy_25)
 					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_25;
+				else 
+					seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_25;
+				
 				if (proxy_50)
 					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_50;
+				else 
+					seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_50;
+				
 				if (proxy_75)
 					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_75;
+				else 
+					seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_75;
+				
 				if (proxy_100)
 					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_100;
+				else 
+					seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_100;
+				
 				if (!override)
 					seq->strip->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
+				else 
+					seq->strip->proxy->build_flags &= ~SEQ_PROXY_SKIP_EXISTING;
 			}
 		}
 	}
@@ -3451,7 +3464,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Enable Proxies";
+	ot->name = "Set Selected Strip Proxies";
 	ot->idname = "SEQUENCER_OT_enable_proxies";
 	ot->description = "Enable selected proxies on all selected Movie strips";
 	
