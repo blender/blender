@@ -76,12 +76,12 @@ ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, con
 	float3 locy = normalize(I - Tg * Iz);
 	//float3 locx = cross(locy, Tg);
 
-	float theta_r = M_PI_2_F - safe_acosf(Iz);
+	float theta_r = M_PI_2_F - fast_acosf(Iz);
 
 	float omega_in_z = dot(Tg, omega_in);
 	float3 omega_in_y = normalize(omega_in - Tg * omega_in_z);
 
-	float theta_i = M_PI_2_F - safe_acosf(omega_in_z);
+	float theta_i = M_PI_2_F - fast_acosf(omega_in_z);
 	float cosphi_i = dot(omega_in_y, locy);
 
 	if(M_PI_2_F - fabsf(theta_i) < 0.001f || cosphi_i < 0.0f) {
@@ -89,17 +89,19 @@ ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, con
 		return make_float3(*pdf, *pdf, *pdf);
 	}
 
-	float phi_i = safe_acosf(cosphi_i) / roughness2;
+	float roughness1_inv = 1.0f / roughness1;
+	float roughness2_inv = 1.0f / roughness2;
+	float phi_i = fast_acosf(cosphi_i) * roughness2_inv;
 	phi_i = fabsf(phi_i) < M_PI_F ? phi_i : M_PI_F;
-	float costheta_i = cosf(theta_i);
+	float costheta_i = fast_cosf(theta_i);
 
-	float a_R = atan2f(((M_PI_2_F + theta_r) * 0.5f - offset) / roughness1, 1.0f);
-	float b_R = atan2f(((-M_PI_2_F + theta_r) * 0.5f - offset) / roughness1, 1.0f);
+	float a_R = fast_atan2f(((M_PI_2_F + theta_r) * 0.5f - offset) * roughness1_inv, 1.0f);
+	float b_R = fast_atan2f(((-M_PI_2_F + theta_r) * 0.5f - offset) * roughness1_inv, 1.0f);
 
 	float theta_h = (theta_i + theta_r) * 0.5f;
 	float t = theta_h - offset;
 
-	float phi_pdf = cosf(phi_i * 0.5f) * 0.25f / roughness2;
+	float phi_pdf = fast_cosf(phi_i * 0.5f) * 0.25f * roughness2_inv;
 	float theta_pdf = roughness1 / (2 * (t*t + roughness1*roughness1) * (a_R - b_R)* costheta_i);
 	*pdf = phi_pdf * theta_pdf;
 
@@ -132,24 +134,25 @@ ccl_device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, 
 	float3 locy = normalize(I - Tg * Iz);
 	//float3 locx = cross(locy, Tg);
 
-	float theta_r = M_PI_2_F - safe_acosf(Iz);
+	float theta_r = M_PI_2_F - fast_acosf(Iz);
 
 	float omega_in_z = dot(Tg, omega_in);
 	float3 omega_in_y = normalize(omega_in - Tg * omega_in_z);
 
-	float theta_i = M_PI_2_F - safe_acosf(omega_in_z);
-	float phi_i = safe_acosf(dot(omega_in_y, locy));
+	float theta_i = M_PI_2_F - fast_acosf(omega_in_z);
+	float phi_i = fast_acosf(dot(omega_in_y, locy));
 
 	if(M_PI_2_F - fabsf(theta_i) < 0.001f) {
 		*pdf = 0.0f;
 		return make_float3(*pdf, *pdf, *pdf);
 	}
 
-	float costheta_i = cosf(theta_i);
+	float costheta_i = fast_cosf(theta_i);
 
-	float a_TT = atan2f(((M_PI_2_F + theta_r)/2 - offset) / roughness1, 1.0f);
-	float b_TT = atan2f(((-M_PI_2_F + theta_r)/2 - offset) / roughness1, 1.0f);
-	float c_TT = 2 * atan2f(M_PI_2_F / roughness2, 1.0f);
+	float roughness1_inv = 1.0f / roughness1;
+	float a_TT = fast_atan2f(((M_PI_2_F + theta_r)/2 - offset) * roughness1_inv, 1.0f);
+	float b_TT = fast_atan2f(((-M_PI_2_F + theta_r)/2 - offset) * roughness1_inv, 1.0f);
+	float c_TT = 2 * fast_atan2f(M_PI_2_F / roughness2, 1.0f);
 
 	float theta_h = (theta_i + theta_r) / 2;
 	float t = theta_h - offset;
@@ -177,27 +180,31 @@ ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, f
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
 	float3 locx = cross(locy, Tg);
-	float theta_r = M_PI_2_F - safe_acosf(Iz);
+	float theta_r = M_PI_2_F - fast_acosf(Iz);
 
-	float a_R = atan2f(((M_PI_2_F + theta_r) * 0.5f - offset) / roughness1, 1.0f);
-	float b_R = atan2f(((-M_PI_2_F + theta_r) * 0.5f - offset) / roughness1, 1.0f);
+	float roughness1_inv = 1.0f / roughness1;
+	float a_R = fast_atan2f(((M_PI_2_F + theta_r) * 0.5f - offset) * roughness1_inv, 1.0f);
+	float b_R = fast_atan2f(((-M_PI_2_F + theta_r) * 0.5f - offset) * roughness1_inv, 1.0f);
 
 	float t = roughness1 * tanf(randu * (a_R - b_R) + b_R);
 
 	float theta_h = t + offset;
 	float theta_i = 2 * theta_h - theta_r;
-	float costheta_i = cosf(theta_i);
-	float sintheta_i = sinf(theta_i);
+
+	float costheta_i, sintheta_i;
+	fast_sincosf(theta_i, &sintheta_i, &costheta_i);
 
 	float phi = 2 * safe_asinf(1 - 2 * randv) * roughness2;
 
-	float phi_pdf = cosf(phi * 0.5f) * 0.25f / roughness2;
+	float phi_pdf = fast_cosf(phi * 0.5f) * 0.25f / roughness2;
 
 	float theta_pdf = roughness1 / (2 * (t*t + roughness1*roughness1) * (a_R - b_R)*costheta_i);
 
-	*omega_in =(cosf(phi) * costheta_i) * locy -
-			   (sinf(phi) * costheta_i) * locx +
-			   (            sintheta_i) * Tg;
+	float sinphi, cosphi;
+	fast_sincosf(phi, &sinphi, &cosphi);
+	*omega_in =(cosphi * costheta_i) * locy -
+	           (sinphi * costheta_i) * locx +
+	           (         sintheta_i) * Tg;
 
 	//differentials - TODO: find a better approximation for the reflective bounce
 #ifdef __RAY_DIFFERENTIALS__
@@ -228,27 +235,31 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng,
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
 	float3 locx = cross(locy, Tg);
-	float theta_r = M_PI_2_F - safe_acosf(Iz);
+	float theta_r = M_PI_2_F - fast_acosf(Iz);
 
-	float a_TT = atan2f(((M_PI_2_F + theta_r)/2 - offset) / roughness1, 1.0f);
-	float b_TT = atan2f(((-M_PI_2_F + theta_r)/2 - offset) / roughness1, 1.0f);
-	float c_TT = 2 * atan2f(M_PI_2_F / roughness2, 1.0f);
+	float roughness1_inv = 1.0f / roughness1;
+	float a_TT = fast_atan2f(((M_PI_2_F + theta_r)/2 - offset) * roughness1_inv, 1.0f);
+	float b_TT = fast_atan2f(((-M_PI_2_F + theta_r)/2 - offset) * roughness1_inv, 1.0f);
+	float c_TT = 2 * fast_atan2f(M_PI_2_F / roughness2, 1.0f);
 
 	float t = roughness1 * tanf(randu * (a_TT - b_TT) + b_TT);
 
 	float theta_h = t + offset;
 	float theta_i = 2 * theta_h - theta_r;
-	float costheta_i = cosf(theta_i);
-	float sintheta_i = sinf(theta_i);
+
+	float costheta_i, sintheta_i;
+	fast_sincosf(theta_i, &sintheta_i, &costheta_i);
 
 	float p = roughness2 * tanf(c_TT * (randv - 0.5f));
 	float phi = p + M_PI_F;
 	float theta_pdf = roughness1 / (2 * (t*t + roughness1*roughness1) * (a_TT - b_TT) * costheta_i);
 	float phi_pdf = roughness2 / (c_TT * (p * p + roughness2 * roughness2));
 
-	*omega_in =(cosf(phi) * costheta_i) * locy -
-	           (sinf(phi) * costheta_i) * locx +
-	           (            sintheta_i) * Tg;
+	float sinphi, cosphi;
+	fast_sincosf(phi, &sinphi, &cosphi);
+	*omega_in =(cosphi * costheta_i) * locy -
+	           (sinphi * costheta_i) * locx +
+	           (         sintheta_i) * Tg;
 
 	//differentials - TODO: find a better approximation for the transmission bounce
 #ifdef __RAY_DIFFERENTIALS__
