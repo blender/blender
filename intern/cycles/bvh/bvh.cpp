@@ -456,7 +456,7 @@ void BVH::pack_instances(size_t nodes_size)
 			size_t nsize_bbox = (use_qbvh)? 6: 3;
 			int4 *bvh_nodes = &bvh->pack.nodes[0];
 			size_t bvh_nodes_size = bvh->pack.nodes.size(); 
-			int *bvh_is_leaf = (bvh->pack.is_leaf.size() != 0) ? &bvh->pack.is_leaf[0] : NULL;
+			bool *bvh_is_leaf = (bvh->pack.is_leaf.size() != 0) ? &bvh->pack.is_leaf[0] : NULL;
 
 			for(size_t i = 0, j = 0; i < bvh_nodes_size; i+=nsize, j++) {
 				memcpy(pack_nodes + pack_nodes_offset, bvh_nodes + i, nsize_bbox*sizeof(int4));

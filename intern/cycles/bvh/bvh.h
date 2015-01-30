@@ -63,7 +63,7 @@ struct PackedBVH {
 	array<int> prim_object;
 	/* quick array to lookup if a node is a leaf, not used for traversal, only
 	 * for instance BVH merging  */
-	array<int> is_leaf;
+	array<bool> is_leaf;
 
 	/* index of the root node. */
 	int root_index;

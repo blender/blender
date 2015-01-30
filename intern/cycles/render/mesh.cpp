@@ -1124,7 +1124,6 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	}
 
 	pool.wait_work();
-	
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update_attributes = false;
 
