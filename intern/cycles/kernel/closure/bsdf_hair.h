@@ -211,10 +211,6 @@ ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, f
 
 	*eval = make_float3(*pdf, *pdf, *pdf);
 
-	if(dot(locy, *omega_in) < 0.0f) {
-		return LABEL_REFLECT|LABEL_TRANSMIT|LABEL_GLOSSY;
-	}
-	
 	return LABEL_REFLECT|LABEL_GLOSSY;
 }
 
@@ -267,9 +263,8 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng,
 
 	*eval = make_float3(*pdf, *pdf, *pdf);
 
-	if(dot(locy, *omega_in) < 0.0f)
-		return LABEL_TRANSMIT|LABEL_GLOSSY;
-	
+	kernel_assert(dot(locy, *omega_in) < 0.0f);
+
 	return LABEL_GLOSSY;
 }
 
