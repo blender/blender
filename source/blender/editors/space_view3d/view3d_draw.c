@@ -2822,7 +2822,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar, bool 
 {
 	/* clear background */
 	if (scene->world && ((v3d->flag3 & V3D_SHOW_WORLD) || force)) {
-		float alpha = (force) ? 1.0f : 0.0;
+		float alpha = (force) ? 1.0f : 0.0f;
 		bool glsl = GPU_glsl_support() && BKE_scene_use_new_shading_nodes(scene) && scene->world->nodetree && scene->world->use_nodes;
 		
 		if (glsl) {

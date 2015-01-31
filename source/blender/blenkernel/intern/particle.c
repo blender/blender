@@ -4059,8 +4059,8 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 		normalize_v3(nor);
 
 		/* make sure that we get a proper side vector */
-		if (fabsf(dot_v3v3(nor, vec)) > 0.999999) {
-			if (fabsf(dot_v3v3(nor, xvec)) > 0.999999) {
+		if (fabsf(dot_v3v3(nor, vec)) > 0.999999f) {
+			if (fabsf(dot_v3v3(nor, xvec)) > 0.999999f) {
 				nor[0] = 0.0f;
 				nor[1] = 1.0f;
 				nor[2] = 0.0f;

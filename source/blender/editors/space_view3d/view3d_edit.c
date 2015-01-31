@@ -1034,7 +1034,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		 * - of rotation is linearly proportional
 		 * - to the distance that the mouse is
 		 * - dragged. */
-		phi = si * (float)(M_PI / 2.0);
+		phi = si * (float)M_PI_2;
 
 		q1[0] = cosf(phi);
 		mul_v3_fl(q1 + 1, sinf(phi));

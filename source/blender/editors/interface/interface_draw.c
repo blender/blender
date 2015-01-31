@@ -822,8 +822,8 @@ static void vectorscope_draw_target(float centerx, float centery, float diam, co
 	if (u > 0 && v >= 0) tangle = atanf(v / u);
 	else if (u > 0 && v < 0) tangle = atanf(v / u) + 2.0f * (float)M_PI;
 	else if (u < 0) tangle = atanf(v / u) + (float)M_PI;
-	else if (u == 0 && v > 0.0f) tangle = (float)M_PI / 2.0f;
-	else if (u == 0 && v < 0.0f) tangle = -(float)M_PI / 2.0f;
+	else if (u == 0 && v > 0.0f) tangle = M_PI_2;
+	else if (u == 0 && v < 0.0f) tangle = -M_PI_2;
 	tampli = sqrtf(u * u + v * v);
 
 	/* small target vary by 2.5 degree and 2.5 IRE unit */

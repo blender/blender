@@ -608,10 +608,10 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 		else {
 			/* only one face attached to that edge */
-			/* an edge without another attached- the weight on this is
-			 * undefined, M_PI / 2 is 90d in radians and that seems good enough */
+			/* an edge without another attached- the weight on this is undefined,
+			 * M_PI_2 is 90d in radians and that seems good enough */
 			copy_v3_v3(edge_normal, f1->no);
-			mul_v3_fl(edge_normal, M_PI / 2);
+			mul_v3_fl(edge_normal, M_PI_2);
 		}
 
 		add_v3_v3(e->v1->no, edge_normal);

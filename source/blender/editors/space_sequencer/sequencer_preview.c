@@ -117,7 +117,7 @@ static void preview_startjob(void *data, short *stop, short *do_update, float *p
 		BLI_freelinkN(&pj->previews, previewjb);
 		previewjb = preview_next;
 		pj->processed++;		
-		*progress = (pj->total > 0) ? (float)pj->processed / (float)pj->total : 1.0;
+		*progress = (pj->total > 0) ? (float)pj->processed / (float)pj->total : 1.0f;
 		*do_update = true;
 		BLI_mutex_unlock(pj->mutex);
 	}

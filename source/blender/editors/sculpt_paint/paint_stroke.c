@@ -290,7 +290,7 @@ static bool paint_brush_update(bContext *C,
 
 		ups->anchored_size = ups->pixel_radius = sqrtf(dx * dx + dy * dy);
 
-		ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + M_PI;
+		ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + (float)M_PI;
 
 		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
 			halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
@@ -999,7 +999,8 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 	return false;
 }
 
-static void paint_stroke_line_constrain (bContext *C, PaintStroke *stroke, float mouse[2]) {
+static void paint_stroke_line_constrain (bContext *C, PaintStroke *stroke, float mouse[2])
+{
 	if (stroke->constrain_line) {
 		wmWindow *win = CTX_wm_window(C);
 		ARegion *ar = CTX_wm_region(C);
@@ -1011,20 +1012,20 @@ static void paint_stroke_line_constrain (bContext *C, PaintStroke *stroke, float
 		len = len_v2(line);
 		
 		/* divide angle by PI/8 */
-		angle = 4.0 * angle / M_PI;
+		angle = 4.0f * angle / (float)M_PI;
 		
 		/* now take residue, if less than */
-		res = angle - floor(angle);
+		res = angle - floorf(angle);
 		
-		if (res <= 0.5) {
-			angle = floor(angle) * M_PI / 4.0;
+		if (res <= 0.5f) {
+			angle = floorf(angle) * (float)M_PI_4;
 		}
 		else {
-			angle = (floor(angle) + 1.0) * M_PI / 4.0;
+			angle = (floorf(angle) + 1.0f) * (float)M_PI_4;
 		}
 		
-		line[0] = len * cos(angle) + stroke->last_mouse_position[0] + ar->winrct.xmin;
-		line[1] = len * sin(angle) + stroke->last_mouse_position[1] + ar->winrct.ymin;
+		line[0] = len * cosf(angle) + stroke->last_mouse_position[0] + ar->winrct.xmin;
+		line[1] = len * sinf(angle) + stroke->last_mouse_position[1] + ar->winrct.ymin;
 		
 		WM_cursor_warp(win, line[0], line[1]);
 	}

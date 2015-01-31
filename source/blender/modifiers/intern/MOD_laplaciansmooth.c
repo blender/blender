@@ -466,13 +466,13 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
 		if (sys->zerola[i] == 0) {
 			lam = sys->numNeEd[i] == sys->numNeFa[i] ? (lambda >= 0.0f ? 1.0f : -1.0f) : (lambda_border >= 0.0f ? 1.0f : -1.0f);
 			if (flag & MOD_LAPLACIANSMOOTH_X) {
-				sys->vertexCos[i][0] += lam * (nlGetVariable(0, i) - sys->vertexCos[i][0]);
+				sys->vertexCos[i][0] += lam * ((float)nlGetVariable(0, i) - sys->vertexCos[i][0]);
 			}
 			if (flag & MOD_LAPLACIANSMOOTH_Y) {
-				sys->vertexCos[i][1] += lam * (nlGetVariable(1, i) - sys->vertexCos[i][1]);
+				sys->vertexCos[i][1] += lam * ((float)nlGetVariable(1, i) - sys->vertexCos[i][1]);
 			}
 			if (flag & MOD_LAPLACIANSMOOTH_Z) {
-				sys->vertexCos[i][2] += lam * (nlGetVariable(2, i) - sys->vertexCos[i][2]);
+				sys->vertexCos[i][2] += lam * ((float)nlGetVariable(2, i) - sys->vertexCos[i][2]);
 			}
 		}
 	}

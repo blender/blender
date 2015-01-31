@@ -201,7 +201,7 @@ static void dm_mvert_map_doubles(
         const float dist,
         const bool with_follow)
 {
-	const float dist3 = (M_SQRT3 + 0.00005f) * dist;   /* Just above sqrt(3) */
+	const float dist3 = ((float)M_SQRT3 + 0.00005f) * dist;   /* Just above sqrt(3) */
 	int i_source, i_target, i_target_low_bound, target_end, source_end;
 	SortVertsElem *sorted_verts_target, *sorted_verts_source;
 	SortVertsElem *sve_source, *sve_target, *sve_target_low_bound;

@@ -541,7 +541,7 @@ static void bm_isect_tri_tri(
 					if (((1 << i_b_e0) | (1 << i_b_e1)) & b_mask)
 						continue;
 					fac = line_point_factor_v3(fv_a[i_a]->co, fv_b[i_b_e0]->co, fv_b[i_b_e1]->co);
-					if ((fac > 0.0f - s->epsilon.eps) && (fac < 1.0 + s->epsilon.eps)) {
+					if ((fac > 0.0f - s->epsilon.eps) && (fac < 1.0f + s->epsilon.eps)) {
 						float ix[3];
 						interp_v3_v3v3(ix, fv_b[i_b_e0]->co, fv_b[i_b_e1]->co, fac);
 						if (len_squared_v3v3(ix, fv_a[i_a]->co) <= s->epsilon.eps2x_sq) {
@@ -579,7 +579,7 @@ static void bm_isect_tri_tri(
 					if (((1 << i_a_e0) | (1 << i_a_e1)) & a_mask)
 						continue;
 					fac = line_point_factor_v3(fv_b[i_b]->co, fv_a[i_a_e0]->co, fv_a[i_a_e1]->co);
-					if ((fac > 0.0 - s->epsilon.eps) && (fac < 1.0 + s->epsilon.eps)) {
+					if ((fac > 0.0f - s->epsilon.eps) && (fac < 1.0f + s->epsilon.eps)) {
 						float ix[3];
 						interp_v3_v3v3(ix, fv_a[i_a_e0]->co, fv_a[i_a_e1]->co, fac);
 						if (len_squared_v3v3(ix, fv_b[i_b]->co) <= s->epsilon.eps2x_sq) {

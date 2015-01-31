@@ -155,7 +155,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 					x = max_ff(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
 					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 					
-					inpr = 1.0 / (sqrtf(1.0f + x * x));
+					inpr = 1.0f / (sqrtf(1.0f + x * x));
 				}
 				else inpr= 0.0;
 			}
@@ -201,7 +201,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		
 		/* dot product and  reflectivity*/
 		
-		inp = 1.0 - fabsf(dot_v3v3(vn, lv));
+		inp = 1.0f - fabsf(dot_v3v3(vn, lv));
 		
 		/* inp= cos(0.5*M_PI-acos(inp)); */
 		
@@ -361,7 +361,7 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 	else dist= dist/har->radsq;
 
 	if (har->type & HA_FLARECIRC) {
-		dist = 0.5 + fabsf(dist - 0.5f);
+		dist = 0.5f + fabsf(dist - 0.5f);
 	}
 
 	if (har->hard>=30) {

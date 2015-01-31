@@ -1490,7 +1490,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	}
 
 	BLF_enable(fontid, BLF_ROTATION);
-	BLF_rotation(fontid, M_PI / 2);
+	BLF_rotation(fontid, M_PI_2);
 	//UI_fontstyle_set(&style->widget);
 	ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
 	BLF_size(fontid, fstyle_points, U.dpi);

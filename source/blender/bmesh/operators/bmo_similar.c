@@ -412,10 +412,10 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 						/* compute the angle between the two edges */
 						angle = angle_normalized_v3v3(e_ext[i].dir, e_ext[indices[idx]].dir);
 
-						if (angle > (float)(M_PI / 2.0)) /* use the smallest angle between the edges */
+						if (angle > (float)M_PI_2) /* use the smallest angle between the edges */
 							angle = fabsf(angle - (float)M_PI);
 
-						if (angle / (float)(M_PI / 2.0) <= thresh) {
+						if (angle / (float)M_PI_2 <= thresh) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
 							cont = false;
 						}

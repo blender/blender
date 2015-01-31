@@ -941,7 +941,7 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 
 	result->status = conjgrad_loopcount < conjgrad_looplimit ? BPH_SOLVER_SUCCESS : BPH_SOLVER_NO_CONVERGENCE;
 	result->iterations = conjgrad_loopcount;
-	result->error = bnorm2 > 0.0f ? sqrt(delta_new / bnorm2) : 0.0f;
+	result->error = bnorm2 > 0.0f ? sqrtf(delta_new / bnorm2) : 0.0f;
 
 	return conjgrad_loopcount < conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
 }
@@ -1470,8 +1470,8 @@ static void edge_wind_vertex(const float dir[3], float length, float radius, con
 	
 	/* angle of wind direction to edge */
 	cos_alpha = dot_v3v3(wind, dir) / windlen;
-	sin_alpha = sqrt(1.0 - cos_alpha*cos_alpha);
-	cross_section = radius * (M_PI * radius * sin_alpha + length * cos_alpha);
+	sin_alpha = sqrtf(1.0f - cos_alpha * cos_alpha);
+	cross_section = radius * ((float)M_PI * radius * sin_alpha + length * cos_alpha);
 	
 	mul_v3_v3fl(f, wind, density * cross_section);
 }

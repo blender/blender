@@ -138,14 +138,15 @@ static void do_kink_spiral_deform(ParticleKey *state, const float dir[3], const 
 		 * and goes up to the Golden Spiral for 1.0
 		 * http://en.wikipedia.org/wiki/Golden_spiral
 		 */
-		const float b = shape * (1.0f + sqrtf(5.0f)) / M_PI * 0.25f;
+		const float b = shape * (1.0f + sqrtf(5.0f)) / (float)M_PI * 0.25f;
 		/* angle of the spiral against the curve (rotated opposite to make a smooth transition) */
-		const float start_angle = (b != 0.0f ? atanf(1.0f / b) : -M_PI*0.5f) + (b > 0.0f ? -M_PI*0.5f : M_PI*0.5f);
+		const float start_angle = ((b != 0.0f) ? atanf(1.0f / b) :
+		                           (float)-M_PI_2) + (b > 0.0f ? -(float)M_PI_2 : (float)M_PI_2);
 		
 		float spiral_axis[3], rot[3][3];
 		float vec[3];
 		
-		float theta = freq * time * 2.0f*M_PI;
+		float theta = freq * time * 2.0f * (float)M_PI;
 		float radius = amplitude * expf(b * theta);
 		
 		/* a bit more intuitive than using negative frequency for this */
@@ -269,7 +270,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 			normalize_v3(kink);
 			
 			if (kink_axis_random > 0.0f) {
-				float a = kink_axis_random * (psys_frand(ctx->sim.psys, 7112 + seed) * 2.0f - 1.0f) * M_PI;
+				float a = kink_axis_random * (psys_frand(ctx->sim.psys, 7112 + seed) * 2.0f - 1.0f) * (float)M_PI;
 				float rot[3][3];
 				
 				axis_angle_normalized_to_mat3(rot, dir, a);

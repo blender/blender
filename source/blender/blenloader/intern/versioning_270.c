@@ -451,8 +451,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				br->mtex.brush_angle_mode |= MTEX_ANGLE_RANDOM;
 				br->mask_mtex.brush_angle_mode |= MTEX_ANGLE_RANDOM;
 			}
-			br->mtex.random_angle = 2.0f * M_PI;
-			br->mask_mtex.random_angle = 2.0f * M_PI;
+			br->mtex.random_angle = 2.0 * M_PI;
+			br->mask_mtex.random_angle = 2.0 * M_PI;
 		}
 
 #undef BRUSH_RAKE

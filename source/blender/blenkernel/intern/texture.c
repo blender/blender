@@ -760,7 +760,7 @@ void default_mtex(MTex *mtex)
 	mtex->fieldfac = 1.0f;
 	mtex->normapspace = MTEX_NSPACE_TANGENT;
 	mtex->brush_map_mode = MTEX_MAP_MODE_TILED;
-	mtex->random_angle = 2.0f * M_PI;
+	mtex->random_angle = 2.0f * (float)M_PI;
 	mtex->brush_angle_mode = 0;
 }
 

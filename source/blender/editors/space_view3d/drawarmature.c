@@ -1619,7 +1619,7 @@ static void draw_pose_dofs(Object *ob)
 								for (a = -16; a <= 16; a++) {
 									/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
 									float fac = ((float)a) / 16.0f * 0.5f;
-									phi = (float)(0.5 * M_PI) + fac * (pchan->limitmax[0] - pchan->limitmin[0]);
+									phi = (float)M_PI_2 + fac * (pchan->limitmax[0] - pchan->limitmin[0]);
 									
 									i = (a == -16) ? 2 : 3;
 									corner[i][0] = 0.0f;

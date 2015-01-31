@@ -162,14 +162,13 @@ void ED_object_rotation_from_view(bContext *C, float rot[3], const char align_ax
 	BLI_assert(align_axis >= 'X' && align_axis <= 'Z');
 
 	if (rv3d) {
-		const float pi_2 = (float)M_PI / 2.0f;
 		float quat[4];
 
 		switch (align_axis) {
 			case 'X':
 			{
 				float quat_y[4];
-				axis_angle_to_quat(quat_y, rv3d->viewinv[1], -pi_2);
+				axis_angle_to_quat(quat_y, rv3d->viewinv[1], -M_PI_2);
 				mul_qt_qtqt(quat, rv3d->viewquat, quat_y);
 				quat[0] = -quat[0];
 
@@ -182,7 +181,7 @@ void ED_object_rotation_from_view(bContext *C, float rot[3], const char align_ax
 				quat[0] = -quat[0];
 
 				quat_to_eul(rot, quat);
-				rot[0] -= pi_2;
+				rot[0] -= (float)M_PI_2;
 				break;
 			}
 			case 'Z':

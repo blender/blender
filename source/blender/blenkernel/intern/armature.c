@@ -2206,7 +2206,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 							
 							float range = bulge_max - 1.0f;
 							float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
-							float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / (0.5f * M_PI);
+							float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / (float)M_PI_2;
 							
 							bulge = interpf(soft, hard, ikData->bulge_smooth);
 						}
@@ -2218,7 +2218,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 							
 							float range = 1.0f - bulge_min;
 							float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
-							float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / (0.5f * M_PI);
+							float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / (float)M_PI_2;
 							
 							bulge = interpf(soft, hard, ikData->bulge_smooth);
 						}

@@ -2210,7 +2210,7 @@ void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float 
 	float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 	float ang, radius_t;
 	
-	ang = 2.0f * (float)M_PI * hsv[0] + 0.5f * (float)M_PI;
+	ang = 2.0f * (float)M_PI * hsv[0] + (float)M_PI_2;
 	
 	if ((but->flag & UI_BUT_COLOR_CUBIC) && (U.color_picker_type == USER_CP_CIRCLE_HSV))
 		radius_t = (1.0f - pow3f(1.0f - hsv[1]));
@@ -3007,11 +3007,8 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		float height = rect->ymax - rect->ymin;
 		/* find color luminance and change it slightly */
 		float bw = rgb_to_bw(col);
-		
-		if (bw > 0.5)
-			bw -= 0.5;
-		else
-			bw += 0.5;
+
+		bw += (bw < 0.5f) ? 0.5f : -0.5f;
 		
 		glColor4f(bw, bw, bw, 1.0);
 		glBegin(GL_TRIANGLES);
@@ -3947,7 +3944,7 @@ void ui_draw_pie_center(uiBlock *block)
 	int subd = 40;
 
 	float angle = atan2f(pie_dir[1], pie_dir[0]);
-	float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? ((float)M_PI / 2.0f) : ((float)M_PI / 4.0f);
+	float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_2 : M_PI_4;
 
 	glPushMatrix();
 	glTranslatef(cx, cy, 0.0f);

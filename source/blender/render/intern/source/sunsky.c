@@ -254,14 +254,14 @@ void GetSkyXYZRadiance(struct SunSky *sunsky, float theta, float phi, float colo
 	float hfade = 1, nfade = 1;
 
 
-	if (theta > (0.5f * (float)M_PI)) {
+	if (theta > (float)M_PI_2) {
 		hfade = 1.0f - (theta * (float)M_1_PI - 0.5f) * 2.0f;
 		hfade = hfade * hfade * (3.0f - 2.0f * hfade);
-		theta = 0.5 * M_PI;
+		theta = M_PI_2;
 	}
 
-	if (sunsky->theta > (0.5f * (float)M_PI)) {
-		if (theta <= 0.5f * (float)M_PI) {
+	if (sunsky->theta > (float)M_PI_2) {
+		if (theta <= (float)M_PI_2) {
 			nfade = 1.0f - (0.5f - theta * (float)M_1_PI) * 2.0f;
 			nfade *= 1.0f - (sunsky->theta * (float)M_1_PI - 0.5f) * 2.0f;
 			nfade = nfade * nfade * (3.0f - 2.0f * nfade);

@@ -848,11 +848,13 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 		 * NOTE: we need to scale the y-values to be valid for the units
 		 */
 		glBegin(GL_LINES);
+		{
 			t = v2d->cur.xmin;
 			glVertex2f(t, t * unitfac);
 			
 			t = v2d->cur.xmax;
 			glVertex2f(t, t * unitfac); 
+		}
 		glEnd();
 		
 		/* cleanup line drawing */
@@ -875,6 +877,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			setlinestyle(5);
 			
 			glBegin(GL_LINES);
+			{
 				/* x-axis lookup */
 				co[0] = x;
 				
@@ -894,6 +897,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 				
 				co[0] = x;
 				glVertex2fv(co);
+			}
 			glEnd();
 			
 			setlinestyle(0);

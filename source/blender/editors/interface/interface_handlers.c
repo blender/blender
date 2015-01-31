@@ -8906,7 +8906,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				block->pie_data.duration_gesture = duration;
 			}
 
-			if (len_sq < 1.0) {
+			if (len_sq < 1.0f) {
 				uiBut *but = ui_but_find_active_in_region(menu->region);
 
 				if (but) {

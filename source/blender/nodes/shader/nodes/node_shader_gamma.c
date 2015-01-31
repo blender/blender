@@ -48,9 +48,9 @@ static void node_shader_exec_gamma(void *UNUSED(data), int UNUSED(thread), bNode
 	nodestack_get_vec(col, SOCK_VECTOR, in[0]);
 	nodestack_get_vec(&gamma, SOCK_FLOAT, in[1]);
 
-	out[0]->vec[0] = col[0] > 0.0 ? pow(col[0], gamma) : col[0];
-	out[0]->vec[1] = col[1] > 0.0 ? pow(col[1], gamma) : col[1];
-	out[0]->vec[2] = col[2] > 0.0 ? pow(col[2], gamma) : col[2];
+	out[0]->vec[0] = col[0] > 0.0f ? powf(col[0], gamma) : col[0];
+	out[0]->vec[1] = col[1] > 0.0f ? powf(col[1], gamma) : col[1];
+	out[0]->vec[2] = col[2] > 0.0f ? powf(col[2], gamma) : col[2];
 }
 
 static int node_shader_gpu_gamma(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

@@ -475,7 +475,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *einput = BMO_slot_get(op->slots_in, "edges");
 	BMOpSlot *vinput = BMO_slot_get(op->slots_in, "verts");
-	const float angle_max = (float)M_PI / 2.0f;
+	const float angle_max = M_PI_2;
 	const float angle_limit = min_ff(angle_max, BMO_slot_float_get(op->slots_in, "angle_limit"));
 	const bool do_dissolve_boundaries = BMO_slot_bool_get(op->slots_in, "use_dissolve_boundaries");
 	const BMO_Delimit delimit = BMO_slot_int_get(op->slots_in, "delimit");

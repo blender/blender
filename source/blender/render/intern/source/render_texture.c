@@ -220,10 +220,10 @@ static int blend(Tex *tex, const float texvec[3], TexResult *texres)
 		texres->tin= (2.0f+x+y)/4.0f;
 	}
 	else if (tex->stype==TEX_RAD) { /* radial */
-		texres->tin = (atan2f(y, x) / (2 * M_PI) + 0.5f);
+		texres->tin = (atan2f(y, x) / (float)(2 * M_PI) + 0.5f);
 	}
 	else {  /* sphere TEX_SPHERE */
-		texres->tin = 1.0 - sqrtf(x * x + y * y + texvec[2] * texvec[2]);
+		texres->tin = 1.0f - sqrtf(x * x + y * y + texvec[2] * texvec[2]);
 		if (texres->tin<0.0f) texres->tin= 0.0f;
 		if (tex->stype==TEX_HALO) texres->tin*= texres->tin;  /* halo */
 	}
@@ -274,7 +274,7 @@ static int clouds(Tex *tex, const float texvec[3], TexResult *texres)
 /* creates a sine wave */
 static float tex_sin(float a)
 {
-	a = 0.5 + 0.5 * sinf(a);
+	a = 0.5f + 0.5f * sinf(a);
 
 	return a;
 }

@@ -1273,7 +1273,7 @@ static float get_avg_speed(ShadeInput *shi)
 	post_x = (shi->winspeed[2] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[2];
 	post_y = (shi->winspeed[3] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[3];
 	
-	speedavg = (sqrtf(pre_x * pre_x + pre_y * pre_y) + sqrtf(post_x * post_x + post_y * post_y)) / 2.0;
+	speedavg = (sqrtf(pre_x * pre_x + pre_y * pre_y) + sqrtf(post_x * post_x + post_y * post_y)) / 2.0f;
 	
 	return speedavg;
 }

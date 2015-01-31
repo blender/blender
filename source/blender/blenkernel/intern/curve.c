@@ -1742,7 +1742,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 
 			/* half a circle */
 			fp = dl->verts;
-			dangle = (0.5 * M_PI / (dnr - 1));
+			dangle = ((float)M_PI_2 / (dnr - 1));
 			angle = -(nr - 1) * dangle;
 
 			for (a = 0; a < nr; a++) {
@@ -1801,7 +1801,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp,
 			/* half a circle */
 			fp = dl->verts;
 			angle = 0.0;
-			dangle = (0.5 * M_PI / (dnr - 1));
+			dangle = ((float)M_PI_2 / (dnr - 1));
 
 			for (a = 0; a < nr; a++) {
 				fp[0] = 0.0;
@@ -1943,7 +1943,7 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2,
 
 	t02 = x1 * x2 + y1 * y2;
 	if (fabsf(t02) >= 1.0f)
-		t02 = 0.5 * M_PI;
+		t02 = M_PI_2;
 	else
 		t02 = (saacos(t02)) / 2.0f;
 
@@ -2476,7 +2476,7 @@ static void make_bevel_list_2D(BevList *bl)
 
 		/* first */
 		bevp = bl->bevpoints;
-		angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)(M_PI / 2.0f);
+		angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)M_PI_2;
 		bevp->sina = sinf(angle);
 		bevp->cosa = cosf(angle);
 		vec_to_quat(bevp->quat, bevp->dir, 5, 1);
@@ -2484,7 +2484,7 @@ static void make_bevel_list_2D(BevList *bl)
 		/* last */
 		bevp = bl->bevpoints;
 		bevp += (bl->nr - 1);
-		angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)(M_PI / 2.0f);
+		angle = atan2f(bevp->dir[0], bevp->dir[1]) - (float)M_PI_2;
 		bevp->sina = sinf(angle);
 		bevp->cosa = cosf(angle);
 		vec_to_quat(bevp->quat, bevp->dir, 5, 1);

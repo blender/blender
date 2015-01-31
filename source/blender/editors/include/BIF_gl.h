@@ -35,10 +35,6 @@
 
 #include "GPU_glew.h"
 
-/* hacking pointsize and linewidth */
-#define glPointSize(f)	glPointSize(U.pixelsize * (f))
-#define glLineWidth(f)	glLineWidth(U.pixelsize * (f))
-
 /*
  * these should be phased out. cpack should be replaced in
  * code with calls to glColor3ub. - zr
@@ -50,7 +46,6 @@
  * is the same as doing a 'naive' indexing, on big-endian, it is not!
  * */
 void cpack(unsigned int x);
-
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define glMultMatrixf(x)  \
@@ -71,9 +66,14 @@ void cpack(unsigned int x);
 	        float (*)[4]: (float *)(x), \
 	        float [4][4]: (float *)(x)) \
 )
+/* hacking pointsize and linewidth */
+#define glPointSize(f)  glPointSize(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
+#define glLineWidth(f)  glLineWidth(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
 #else
 #  define glMultMatrixf(x)  glMultMatrixf((float *)(x))
 #  define glLoadMatrixf(x)  glLoadMatrixf((float *)(x))
+#define glPointSize(f)  glPointSize(U.pixelsize * (f))
+#define glLineWidth(f)  glLineWidth(U.pixelsize * (f))
 #endif
 
 #define GLA_PIXEL_OFS 0.375f

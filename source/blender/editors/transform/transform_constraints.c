@@ -208,7 +208,7 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 	viewAxisCorrectCenter(t, t_con_center);
 	
 	angle = fabsf(angle_v3v3(axis, t->viewinv[2]));
-	if (angle > (float)M_PI / 2.0f) {
+	if (angle > (float)M_PI_2) {
 		angle = (float)M_PI - angle;
 	}
 	angle = RAD2DEGF(angle);
