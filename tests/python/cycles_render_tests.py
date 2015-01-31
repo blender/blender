@@ -109,7 +109,7 @@ def run_all_tests(dirpath):
                 print('Can not perform tests because blender fails to start.',
                       'Make sure INSTALL target was run.')
                 return False
-            elif error == 'VARIFY':
+            elif error == 'VERIFY':
                 pass
             else:
                 print("Unknown error %r" % error)
