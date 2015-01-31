@@ -36,6 +36,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+#include "BKE_idprop.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"
@@ -47,119 +49,84 @@
 
 void IMB_metadata_free(struct ImBuf *img)
 {
-	ImMetaData *info;
-
 	if (!img)
 		return;
 	if (!img->metadata) {
 		return;
 	}
-	info = img->metadata;
-	while (info) {
-		ImMetaData *next = info->next;
-		MEM_freeN(info->key);
-		MEM_freeN(info->value);
-		MEM_freeN(info);
-		info = next;
-	}
+
+	IDP_FreeProperty(img->metadata);
+	MEM_freeN(img->metadata);
 }
 
 bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, const size_t len)
 {
-	ImMetaData *info;
+	IDProperty *prop;
+
 	bool retval = false;
 
 	if (!img)
 		return false;
-	if (!img->metadata) {
+	if (!img->metadata)
 		return false;
-	}
-	info = img->metadata;
-	while (info) {
-		if (STREQ(key, info->key)) {
-			BLI_strncpy(field, info->value, len);
-			retval = true;
-			break;
-		}
-		info = info->next;
+
+	prop = IDP_GetPropertyFromGroup(img->metadata ,key);
+
+	if(prop && prop->type == IDP_STRING){
+		BLI_strncpy(field, IDP_String(prop), len);
+		retval = true;
 	}
 	return retval;
 }
 
 bool IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value)
 {
-	ImMetaData *info;
-	ImMetaData *last;
+	IDProperty *prop;
 
 	if (!img)
 		return false;
 
 	if (!img->metadata) {
-		img->metadata = MEM_callocN(sizeof(ImMetaData), "ImMetaData");
-		info = img->metadata;
+		IDPropertyTemplate val;
+		img->metadata = IDP_New(IDP_GROUP, &val, "metadata");
 	}
-	else {
-		info = img->metadata;
-		last = info;
-		while (info) {
-			last = info;
-			info = info->next;
-		}
-		info = MEM_callocN(sizeof(ImMetaData), "ImMetaData");
-		last->next = info;
-	}
-	info->key = BLI_strdup(key);
-	info->value = BLI_strdup(value);
-	return true;
+
+	prop = IDP_NewString(value, key, 512);
+	return IDP_AddToGroup(img->metadata, prop);
 }
 
 bool IMB_metadata_del_field(struct ImBuf *img, const char *key)
 {
-	ImMetaData *p, *p1;
+	IDProperty *prop;
 
 	if ((!img) || (!img->metadata))
 		return false;
 
-	p = img->metadata;
-	p1 = NULL;
-	while (p) {
-		if (STREQ(key, p->key)) {
-			if (p1)
-				p1->next = p->next;
-			else
-				img->metadata = p->next;
+	prop = IDP_GetPropertyFromGroup(img->metadata, key);
 
-			MEM_freeN(p->key);
-			MEM_freeN(p->value);
-			MEM_freeN(p);
-			return true;
-		}
-		p1 = p;
-		p = p->next;
+	if (prop) {
+		IDP_FreeFromGroup(img->metadata, prop);
 	}
 	return false;
 }
 
 bool IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field)
 {
-	ImMetaData *p;
+	IDProperty *prop;
 
 	if (!img)
 		return false;
 
-	if (!img->metadata)
+	prop = (img->metadata) ? IDP_GetPropertyFromGroup(img->metadata, key) : NULL;
+
+	if (!prop) {
 		return (IMB_metadata_add_field(img, key, field));
-
-	p = img->metadata;
-	while (p) {
-		if (STREQ(key, p->key)) {
-			MEM_freeN(p->value);
-			p->value = BLI_strdup(field);
-			return true;
-		}
-		p = p->next;
 	}
-
-	return (IMB_metadata_add_field(img, key, field));
+	else if (prop->type == IDP_STRING) {
+		IDP_AssignString(prop, field, 1024);
+		return true;
+	}
+	else {
+		return false;
+	}
 }
-

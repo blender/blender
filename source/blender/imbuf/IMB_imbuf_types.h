@@ -47,8 +47,6 @@
  * contains an Amiga-format file).
  */
 
-struct ImMetaData;
-
 #define IB_MIPMAP_LEVELS	20
 #define IB_FILENAME_SIZE	1024
 
@@ -111,7 +109,7 @@ typedef struct ImBuf {
 	/* externally used data */
 	int index;						/* reference index for ImBuf lists */
 	int	userflags;					/* used to set imbuf to dirty and other stuff */
-	struct ImMetaData *metadata;	/* image metadata */
+	struct IDProperty *metadata;	/* image metadata */
 	void *userdata;					/* temporary storage, only used by baking at the moment */
 
 	/* file information */

@@ -60,6 +60,8 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "BLI_math_color.h"
 #include "BLI_threads.h"
 
+#include "BKE_idprop.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
@@ -305,10 +307,15 @@ static void openexr_header_compression(Header *header, int compression)
 
 static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 {
-	ImMetaData *info;
+	if (ibuf->metadata) {
+		IDProperty *prop;
 
-	for (info = ibuf->metadata; info; info = info->next)
-		header->insert(info->key, StringAttribute(info->value));
+		for (prop = (IDProperty *)ibuf->metadata->data.group.first; prop; prop = prop->next) {
+			if (prop->type == IDP_STRING) {
+				header->insert(prop->name, StringAttribute(IDP_String(prop)));
+			}
+		}
+	}
 
 	if (ibuf->ppm[0] > 0.0)
 		addXDensity(*header, ibuf->ppm[0] / 39.3700787); /* 1 meter = 39.3700787 inches */

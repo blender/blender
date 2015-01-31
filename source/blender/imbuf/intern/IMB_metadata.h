@@ -35,13 +35,6 @@
 
 struct ImBuf;
 
-typedef struct ImMetaData {
-	struct ImMetaData *next, *prev;
-	char *key;
-	char *value;
-	int len;
-} ImMetaData;
-
 /** The metadata is a list of key/value pairs (both char *) that can me
  * saved in the header of several image formats.
  * Apart from some common keys like
