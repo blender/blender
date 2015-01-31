@@ -120,6 +120,14 @@ class USERPREF_MT_splash(Menu):
         row.menu("USERPREF_MT_appconfigs", text="Preset")
 
 
+# only for addons
+class USERPREF_MT_splash_footer(Menu):
+    bl_label = ""
+
+    def draw(self, context):
+        pass
+
+
 class USERPREF_PT_interface(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Interface"
