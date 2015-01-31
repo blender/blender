@@ -403,7 +403,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 		int num_text = 0;
 
 		for (prop = ibuf->metadata->data.group.first; prop; prop = prop->next) {
-			if (prop->type == IDP_STRING){
+			if (prop->type == IDP_STRING) {
 				num_text++;
 			}
 		}
@@ -411,7 +411,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 		metadata = MEM_callocN(num_text * sizeof(png_text), "png_metadata");
 		num_text = 0;
 		for (prop = ibuf->metadata->data.group.first; prop; prop = prop->next) {
-			if (prop->type == IDP_STRING){
+			if (prop->type == IDP_STRING) {
 				metadata[num_text].compression = PNG_TEXT_COMPRESSION_NONE;
 				metadata[num_text].key = prop->name;
 				metadata[num_text].text = IDP_String(prop);

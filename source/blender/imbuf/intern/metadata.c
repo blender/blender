@@ -72,7 +72,7 @@ bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, con
 
 	prop = IDP_GetPropertyFromGroup(img->metadata ,key);
 
-	if(prop && prop->type == IDP_STRING){
+	if (prop && prop->type == IDP_STRING) {
 		BLI_strncpy(field, IDP_String(prop), len);
 		retval = true;
 	}
