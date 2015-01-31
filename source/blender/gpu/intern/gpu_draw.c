@@ -1324,7 +1324,7 @@ void GPU_free_images_old(void)
 {
 	Image *ima;
 	static int lasttime = 0;
-	int ctime = (int)PIL_check_seconds_timer();
+	int ctime = PIL_check_seconds_timer_i();
 
 	/*
 	 * Run garbage collector once for every collecting period of time

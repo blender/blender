@@ -70,6 +70,11 @@ double PIL_check_seconds_timer(void)
 	}
 }
 
+long int PIL_check_seconds_timer_i(void)
+{
+	return (long int)PIL_check_seconds_timer();
+}
+
 void PIL_sleep_ms(int ms)
 {
 	Sleep(ms);
@@ -88,6 +93,16 @@ double PIL_check_seconds_timer(void)
 	gettimeofday(&tv, &tz);
 
 	return ((double) tv.tv_sec + tv.tv_usec / 1000000.0);
+}
+
+long int PIL_check_seconds_timer_i(void)
+{
+	struct timeval tv;
+	struct timezone tz;
+
+	gettimeofday(&tv, &tz);
+
+	return tv.tv_sec;
 }
 
 void PIL_sleep_ms(int ms)
