@@ -334,7 +334,8 @@ static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 }
 
 /* ----------------------------Quaternion.normalize()---------------- */
-/* normalize the axis of rotation of [theta, vector] */
+/* Normalize the quaternion. This may change the angle as well as the
+ * rotation axis, as all of (w, x, y, z) are scaled. */
 PyDoc_STRVAR(Quaternion_normalize_doc,
 ".. function:: normalize()\n"
 "\n"
