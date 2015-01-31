@@ -282,6 +282,10 @@ public:
 		if(experimental)
 			command += " -D__KERNEL_CUDA_EXPERIMENTAL__";
 
+		if(getenv("CYCLES_CUDA_EXTRA_CFLAGS")) {
+			command += string(" ") + getenv("CYCLES_CUDA_EXTRA_CFLAGS");
+		}
+
 #ifdef WITH_CYCLES_DEBUG
 		command += " -D__KERNEL_DEBUG__";
 #endif
