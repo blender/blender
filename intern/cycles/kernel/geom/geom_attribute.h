@@ -40,6 +40,9 @@ ccl_device_inline int find_attribute(KernelGlobals *kg, const ShaderData *sd, ui
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	
 	while(attr_map.x != id) {
+		if(UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
+			return ATTR_STD_NOT_FOUND;
+		}
 		attr_offset += ATTR_PRIM_TYPES;
 		attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	}
