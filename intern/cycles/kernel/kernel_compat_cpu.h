@@ -71,6 +71,14 @@ template<typename T> struct texture  {
 };
 
 template<typename T> struct texture_image  {
+#define SET_CUBIC_SPLINE_WEIGHTS(u, t) \
+			{ \
+				u[0] = (((-1.0f/6.0f)* t + 0.5f) * t - 0.5f) * t + (1.0f/6.0f); \
+				u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
+				u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
+				u[3] = (1.0f / 6.0f) * t * t * t; \
+			} (void)0
+
 	ccl_always_inline float4 read(float4 r)
 	{
 		return r;
@@ -123,7 +131,7 @@ template<typename T> struct texture_image  {
 			}
 			return read(data[ix + iy*width]);
 		}
-		else {
+		else if(interpolation == INTERPOLATION_LINEAR) {
 			float tx = frac(x*(float)width - 0.5f, &ix);
 			float ty = frac(y*(float)height - 0.5f, &iy);
 
@@ -148,6 +156,63 @@ template<typename T> struct texture_image  {
 			r += ty*tx*read(data[nix + niy*width]);
 
 			return r;
+		}
+		else {
+			/* Tricubic b-spline interpolation. */
+			const float tx = frac(x*(float)width - 0.5f, &ix);
+			const float ty = frac(y*(float)height - 0.5f, &iy);
+			int pix, piy, nnix, nniy;
+			if(periodic) {
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+
+				pix = wrap_periodic(ix-1, width);
+				piy = wrap_periodic(iy-1, height);
+
+				nix = wrap_periodic(ix+1, width);
+				niy = wrap_periodic(iy+1, height);
+
+				nnix = wrap_periodic(ix+2, width);
+				nniy = wrap_periodic(iy+2, height);
+			}
+			else {
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+
+				pix = wrap_clamp(ix-1, width);
+				piy = wrap_clamp(iy-1, height);
+
+				nix = wrap_clamp(ix+1, width);
+				niy = wrap_clamp(iy+1, height);
+
+				nnix = wrap_clamp(ix+2, width);
+				nniy = wrap_clamp(iy+2, height);
+			}
+			const int xc[4] = {pix, ix, nix, nnix};
+			const int yc[4] = {width * piy,
+			                   width * iy,
+			                   width * niy,
+			                   width * nniy};
+			float u[4], v[4], w[4];
+			/* Some helper macro to keep code reasonable size,
+			 * let compiler to inline all the matrix multiplications.
+			 */
+#define DATA(x, y) (read(data[xc[x] + yc[y]]))
+#define TERM(col) \
+			(v[col] * (u[0] * DATA(0, col) + \
+			           u[1] * DATA(1, col) + \
+			           u[2] * DATA(2, col) + \
+			           u[3] * DATA(3, col)))
+
+			SET_CUBIC_SPLINE_WEIGHTS(u, tx);
+			SET_CUBIC_SPLINE_WEIGHTS(v, ty);
+			SET_CUBIC_SPLINE_WEIGHTS(w, 0.0f);
+
+			/* Actual interpolation. */
+			return TERM(0) + TERM(1) + TERM(2) + TERM(3);
+
+#undef TERM
+#undef DATA
 		}
 	}
 
@@ -277,13 +342,6 @@ template<typename T> struct texture_image  {
 			/* Some helper macro to keep code reasonable size,
 			 * let compiler to inline all the matrix multiplications.
 			 */
-#define SET_SPLINE_WEIGHTS(u, t) \
-			{ \
-				u[0] = (((-1.0f/6.0f)* t + 0.5f) * t - 0.5f) * t + (1.0f/6.0f); \
-				u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
-				u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
-				u[3] = (1.0f / 6.0f) * t * t * t; \
-			} (void)0
 #define DATA(x, y, z) (read(data[xc[x] + yc[y] + zc[z]]))
 #define COL_TERM(col, row) \
 			(v[col] * (u[0] * DATA(0, col, row) + \
@@ -296,9 +354,9 @@ template<typename T> struct texture_image  {
 			           COL_TERM(2, row) + \
 			           COL_TERM(3, row)))
 
-			SET_SPLINE_WEIGHTS(u, tx);
-			SET_SPLINE_WEIGHTS(v, ty);
-			SET_SPLINE_WEIGHTS(w, tz);
+			SET_CUBIC_SPLINE_WEIGHTS(u, tx);
+			SET_CUBIC_SPLINE_WEIGHTS(v, ty);
+			SET_CUBIC_SPLINE_WEIGHTS(w, tz);
 
 			/* Actual interpolation. */
 			return ROW_TERM(0) + ROW_TERM(1) + ROW_TERM(2) + ROW_TERM(3);
@@ -306,7 +364,6 @@ template<typename T> struct texture_image  {
 #undef COL_TERM
 #undef ROW_TERM
 #undef DATA
-#undef SET_SPLINE_WEIGHTS
 		}
 	}
 
@@ -320,6 +377,7 @@ template<typename T> struct texture_image  {
 	T *data;
 	int interpolation;
 	int width, height, depth;
+#undef SET_CUBIC_SPLINE_WEIGHTS
 };
 
 typedef texture<float4> texture_float4;
