@@ -933,6 +933,28 @@ static BMOpDefine bmo_connect_verts_def = {
 };
 
 /*
+ * Connect Verts to form Convex Faces.
+ *
+ * Ensures all faces are convex **faces**.
+ */
+static BMOpDefine bmo_connect_verts_concave_def = {
+	"connect_verts_concave",
+	/* slots_in */
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
+	 {{'\0'}},
+	},
+	/* slots_out */
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
+	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
+	 {{'\0'}},
+	},
+	bmo_connect_verts_concave_exec,
+	(BMO_OPTYPE_FLAG_UNTAN_MULTIRES |
+	 BMO_OPTYPE_FLAG_NORMALS_CALC |
+	 BMO_OPTYPE_FLAG_SELECT_FLUSH),
+};
+
+/*
  * Connect Verts Across non Planer Faces.
  *
  * Split faces by connecting edges along non planer **faces**.
@@ -1950,6 +1972,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_collapse_def,
 	&bmo_collapse_uvs_def,
 	&bmo_connect_verts_def,
+	&bmo_connect_verts_concave_def,
 	&bmo_connect_verts_nonplanar_def,
 	&bmo_connect_vert_pair_def,
 	&bmo_contextual_create_def,

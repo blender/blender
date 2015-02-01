@@ -2381,6 +2381,7 @@ class VIEW3D_MT_edit_mesh_clean(Menu):
         layout.operator("mesh.dissolve_degenerate")
         layout.operator("mesh.dissolve_limited")
         layout.operator("mesh.vert_connect_nonplanar")
+        layout.operator("mesh.vert_connect_concave")
         layout.operator("mesh.fill_holes")
 
 

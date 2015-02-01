@@ -63,6 +63,8 @@ void  BM_face_triangulate(
         BMesh *bm, BMFace *f,
         BMFace **r_faces_new,
         int     *r_faces_new_tot,
+        BMEdge **r_edges_new,
+        int     *r_edges_new_tot,
         const int quad_method, const int ngon_method,
         const bool use_tag,
         struct MemArena *pf_arena,

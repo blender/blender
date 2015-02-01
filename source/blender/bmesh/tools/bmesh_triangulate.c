@@ -64,7 +64,9 @@ static void bm_face_triangulate_mapping(
 	BLI_assert(face->len > 3);
 
 	BM_face_triangulate(
-	        bm, face, faces_array, &faces_array_tot,
+	        bm, face,
+	        faces_array, &faces_array_tot,
+	        NULL, NULL,
 	        quad_method, ngon_method, use_tag,
 	        pf_arena,
 	        pf_heap, pf_ehash);
@@ -121,7 +123,9 @@ void BM_mesh_triangulate(
 			if (face->len > 3) {
 				if (tag_only == false || BM_elem_flag_test(face, BM_ELEM_TAG)) {
 					BM_face_triangulate(
-					        bm, face, NULL, NULL,
+					        bm, face,
+					        NULL, NULL,
+					        NULL, NULL,
 					        quad_method, ngon_method, tag_only,
 					        pf_arena,
 					        pf_heap, pf_ehash);

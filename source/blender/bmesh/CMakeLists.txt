@@ -43,6 +43,7 @@ set(SRC
 	operators/bmo_bisect_plane.c
 	operators/bmo_bridge.c
 	operators/bmo_connect.c
+	operators/bmo_connect_concave.c
 	operators/bmo_connect_nonplanar.c
 	operators/bmo_connect_pair.c
 	operators/bmo_create.c
