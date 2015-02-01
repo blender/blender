@@ -1016,6 +1016,40 @@ void angle_to_mat2(float mat[2][2], const float angle)
 	mat[1][1] =  angle_cos;
 }
 
+/****************************** Exponential Map ******************************/
+
+void quat_normalized_to_expmap(float expmap[3], const float q[4])
+{
+	float angle;
+	BLI_ASSERT_UNIT_QUAT(q);
+
+	/* Obtain axis/angle representation. */
+	quat_to_axis_angle(expmap, &angle, q);
+
+	/* Convert to exponential map. */
+	mul_v3_fl(expmap, angle);
+}
+
+void quat_to_expmap(float expmap[3], const float q[4])
+{
+	float q_no[4];
+	normalize_qt_qt(q_no, q);
+	quat_normalized_to_expmap(expmap, q_no);
+}
+
+void expmap_to_quat(float r[4], const float expmap[3])
+{
+	float axis[3];
+	float angle;
+
+	/* Obtain axis/angle representation. */
+	angle = normalize_v3_v3(axis, expmap);
+	angle = angle_wrap_rad(angle);
+
+	/* Convert to quaternion. */
+	axis_angle_to_quat(r, axis, angle);
+}
+
 /******************************** XYZ Eulers *********************************/
 
 /* XYZ order */

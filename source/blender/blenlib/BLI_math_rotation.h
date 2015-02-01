@@ -119,6 +119,11 @@ void mat4_to_axis_angle(float axis[3], float *angle, float M[4][4]);
 void axis_angle_to_mat3_single(float R[3][3], const char axis, const float angle);
 void      angle_to_mat2(float R[2][2], const float angle);
 
+/****************************** Exponential Map ******************************/
+void quat_to_expmap(float expmap[3], const float q[4]);
+void quat_normalized_to_expmap(float expmap[3], const float q[4]);
+void expmap_to_quat(float r[4], const float expmap[3]);
+
 /******************************** XYZ Eulers *********************************/
 
 void eul_to_quat(float quat[4], const float eul[3]);

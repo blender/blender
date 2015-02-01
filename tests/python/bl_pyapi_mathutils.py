@@ -2,7 +2,7 @@
 
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py -- --verbose
 import unittest
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Vector, Quaternion
 from mathutils import kdtree
 import math
 
@@ -208,6 +208,35 @@ class VectorTesting(unittest.TestCase):
             v = Vector(v)
             if v.length_squared != 0.0:
                 self.assertAlmostEqual(v.angle(v.orthogonal()), angle_90d)
+
+
+class QuaternionTesting(unittest.TestCase):
+
+    def test_to_expmap(self):
+        q = Quaternion((0, 0, 1), math.radians(90))
+
+        e = q.to_exponential_map()
+        self.assertAlmostEqual(e.x, 0)
+        self.assertAlmostEqual(e.y, 0)
+        self.assertAlmostEqual(e.z, math.radians(90), 6)
+
+    def test_expmap_axis_normalization(self):
+        q = Quaternion((1, 1, 0), 2)
+        e = q.to_exponential_map()
+
+        self.assertAlmostEqual(e.x, 2 * math.sqrt(0.5), 6)
+        self.assertAlmostEqual(e.y, 2 * math.sqrt(0.5), 6)
+        self.assertAlmostEqual(e.z, 0)
+
+    def test_from_expmap(self):
+        e = Vector((1, 1, 0))
+        q = Quaternion(e)
+        axis, angle = q.to_axis_angle()
+
+        self.assertAlmostEqual(angle, math.sqrt(2), 6)
+        self.assertAlmostEqual(axis.x, math.sqrt(0.5), 6)
+        self.assertAlmostEqual(axis.y, math.sqrt(0.5), 6)
+        self.assertAlmostEqual(axis.z, 0)
 
 
 class KDTreeTesting(unittest.TestCase):

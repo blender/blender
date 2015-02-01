@@ -21,3 +21,12 @@ print(quat_out)
 print("%.2f, %.2f, %.2f" % tuple(math.degrees(a) for a in quat_out.to_euler()))
 print("(%.2f, %.2f, %.2f), %.2f" % (quat_out.axis[:] +
                                     (math.degrees(quat_out.angle), )))
+
+# multiple rotations can be interpolated using the exponential map
+quat_c = mathutils.Quaternion((1.0, 0.0, 0.0), math.radians(15.0))
+exp_avg = (quat_a.to_exponential_map() +
+           quat_b.to_exponential_map() +
+           quat_c.to_exponential_map()) / 3.0
+quat_avg = mathutils.Quaternion(exp_avg)
+print("Average rotation:")
+print(quat_avg)
