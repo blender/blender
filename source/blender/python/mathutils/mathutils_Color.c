@@ -811,7 +811,12 @@ static struct PyMethodDef Color_methods[] = {
 
 /* ------------------PY_OBECT DEFINITION-------------------------- */
 PyDoc_STRVAR(color_doc,
-"This object gives access to Colors in Blender."
+".. class:: Color(rgb)\n"
+"\n"
+"   This object gives access to Colors in Blender.\n"
+"\n"
+"   :param rgb: (r, g, b) color values\n"
+"   :type rgb: 3d vector\n"
 );
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
