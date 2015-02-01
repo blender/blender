@@ -153,22 +153,10 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMFace *f;
-	int totface = 0, totloop = 0;
+	bool changed = false;
 	BLI_LINKSTACK_DECLARE(fstack, BMFace *);
 
 	const float angle_limit = BMO_slot_float_get(op->slots_in, "angle_limit");
-
-
-	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
-		if (f->len > 3) {
-			totface += 1;
-			totloop += f->len;
-		}
-	}
-
-	if (totface == 0) {
-		return;
-	}
 
 	BLI_LINKSTACK_INIT(fstack);
 
@@ -188,11 +176,14 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 					BLI_LINKSTACK_PUSH(fstack, f_pair[j]);
 				}
 			}
+			changed = true;
 		}
 	}
 
 	BLI_LINKSTACK_FREE(fstack);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
+	if (changed) {
+		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
+		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
+	}
 }
