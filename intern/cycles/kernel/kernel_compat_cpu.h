@@ -72,12 +72,12 @@ template<typename T> struct texture  {
 
 template<typename T> struct texture_image  {
 #define SET_CUBIC_SPLINE_WEIGHTS(u, t) \
-			{ \
-				u[0] = (((-1.0f/6.0f)* t + 0.5f) * t - 0.5f) * t + (1.0f/6.0f); \
-				u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
-				u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
-				u[3] = (1.0f / 6.0f) * t * t * t; \
-			} (void)0
+	{ \
+		u[0] = (((-1.0f/6.0f)* t + 0.5f) * t - 0.5f) * t + (1.0f/6.0f); \
+		u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
+		u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
+		u[3] = (1.0f / 6.0f) * t * t * t; \
+	} (void)0
 
 	ccl_always_inline float4 read(float4 r)
 	{
