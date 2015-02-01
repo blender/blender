@@ -3869,7 +3869,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_virtual_pixel_update");
 
 	prop = RNA_def_property(srna, "pixel_size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pixelsize");
 	RNA_def_property_ui_text(prop, "Pixel Size", "");
 
