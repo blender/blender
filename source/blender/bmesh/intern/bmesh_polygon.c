@@ -743,7 +743,9 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 void BM_face_triangulate(
         BMesh *bm, BMFace *f,
         BMFace **r_faces_new,
-        int *r_faces_new_tot,
+        int     *r_faces_new_tot,
+        BMEdge **r_edges_new,
+        int     *r_edges_new_tot,
         const int quad_method,
         const int ngon_method,
         const bool use_tag,
@@ -755,6 +757,7 @@ void BM_face_triangulate(
 	BMLoop *l_iter, *l_first, *l_new;
 	BMFace *f_new;
 	int nf_i = 0;
+	int ne_i = 0;
 	bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
 
 	BLI_assert(BM_face_is_normal_valid(f));
@@ -835,6 +838,9 @@ void BM_face_triangulate(
 		if (r_faces_new) {
 			r_faces_new[nf_i++] = f_new;
 		}
+		if (r_edges_new) {
+			r_edges_new[ne_i++] = l_new->e;
+		}
 	}
 	else if (f->len > 4) {
 
@@ -895,8 +901,7 @@ void BM_face_triangulate(
 				}
 			}
 
-			/* we know any edge that we create and _isnt_ */
-			if (use_tag) {
+			if (use_tag || r_edges_new) {
 				/* new faces loops */
 				l_iter = l_first = l_new;
 				do {
@@ -906,7 +911,12 @@ void BM_face_triangulate(
 					bool is_new_edge = (l_iter == l_iter->radial_next);
 
 					if (is_new_edge) {
-						BM_elem_flag_enable(e, BM_ELEM_TAG);
+						if (use_tag) {
+							BM_elem_flag_enable(e, BM_ELEM_TAG);
+						}
+						if (r_edges_new) {
+							r_edges_new[ne_i++] = e;
+						}
 					}
 					/* note, never disable tag's */
 				} while ((l_iter = l_iter->next) != l_first);
@@ -924,6 +934,10 @@ void BM_face_triangulate(
 
 	if (r_faces_new_tot) {
 		*r_faces_new_tot = nf_i;
+	}
+
+	if (r_edges_new_tot) {
+		*r_edges_new_tot = ne_i;
 	}
 }
 
