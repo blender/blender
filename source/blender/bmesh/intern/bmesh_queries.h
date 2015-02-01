@@ -37,8 +37,8 @@ BLI_INLINE bool    BM_edge_in_loop(const BMEdge *e, const BMLoop *l) ATTR_WARN_U
 BLI_INLINE bool    BM_vert_in_edge(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_verts_in_edge(const BMVert *v1, const BMVert *v2, const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-float   BM_edge_calc_length(BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float   BM_edge_calc_length_squared(BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_edge_calc_length(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_edge_calc_length_squared(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb) ATTR_NONNULL();
 bool    BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb) ATTR_NONNULL();
 BLI_INLINE BMVert *BM_edge_other_vert(BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -70,7 +70,7 @@ int     BM_edge_face_count(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL
 int     BM_vert_face_count(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-bool    BM_vert_is_edge_pair(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    BM_vert_is_edge_pair(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_vert_is_wire(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_is_wire(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

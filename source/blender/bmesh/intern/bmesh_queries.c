@@ -663,7 +663,7 @@ BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e_first)
 /**
  * Returns edge length
  */
-float BM_edge_calc_length(BMEdge *e)
+float BM_edge_calc_length(const BMEdge *e)
 {
 	return len_v3v3(e->v1->co, e->v2->co);
 }
@@ -671,7 +671,7 @@ float BM_edge_calc_length(BMEdge *e)
 /**
  * Returns edge length squared (for comparisons)
  */
-float BM_edge_calc_length_squared(BMEdge *e)
+float BM_edge_calc_length_squared(const BMEdge *e)
 {
 	return len_squared_v3v3(e->v1->co, e->v2->co);
 }
@@ -731,9 +731,9 @@ bool BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
 /**
  * Fast alternative to ``(BM_vert_edge_count(v) == 2)``
  */
-bool BM_vert_is_edge_pair(BMVert *v)
+bool BM_vert_is_edge_pair(const BMVert *v)
 {
-	BMEdge *e = v->e;
+	const BMEdge *e = v->e;
 	if (e) {
 		const BMDiskLink *dl = bmesh_disk_edge_link_from_vert(e, v);
 		return (dl->next == dl->prev);
