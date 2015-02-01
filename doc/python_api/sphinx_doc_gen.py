@@ -937,10 +937,16 @@ def pymodule2sphinx(basepath, module_name, module, title):
                 fw(title_string(heading, heading_char))
 
         # May need to be its own function
-        fw(".. class:: %s\n\n" % type_name)
         if value.__doc__:
-            write_indented_lines("   ", fw, value.__doc__, False)
-            fw("\n")
+            if value.__doc__.startswith(".. class::"):
+                fw(value.__doc__)
+            else:
+                fw(".. class:: %s\n\n" % type_name)
+                write_indented_lines("   ", fw, value.__doc__, False)
+        else:
+            fw(".. class:: %s\n\n" % type_name)
+        fw("\n")
+
         write_example_ref("   ", fw, module_name + "." + type_name)
 
         descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("__")]
