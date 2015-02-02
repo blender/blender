@@ -167,6 +167,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 	float tmat[4][4];
 
+	const float falloff_radius_sq = SQUARE(wmd->falloff_radius);
 	float strength = wmd->strength;
 	float fac = 1.0f, weight;
 	int i;
@@ -222,8 +223,8 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 		float *co = vertexCos[i];
 
 		if (wmd->falloff_type == eWarp_Falloff_None ||
-		    ((fac = len_v3v3(co, mat_from[3])) < wmd->falloff_radius &&
-		     (fac = (wmd->falloff_radius - fac) / wmd->falloff_radius)))
+		    ((fac = len_squared_v3v3(co, mat_from[3])) < falloff_radius_sq &&
+		     (fac = (wmd->falloff_radius - sqrtf(fac)) / wmd->falloff_radius)))
 		{
 			/* skip if no vert group found */
 			if (dvert && defgrp_index != -1) {
