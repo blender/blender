@@ -69,7 +69,7 @@ WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR '
-BF_OPENEXR_LIB = ' Iex-2_1 Half IlmImf-2_1 Imath-2_1 IlmThread-2_1 '
+BF_OPENEXR_LIB = ' Iex-2_2 Half IlmImf-2_2 Imath-2_2 IlmThread-2_2 '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
