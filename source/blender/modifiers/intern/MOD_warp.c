@@ -274,27 +274,29 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 				fac *= texres.tin;
 			}
 
-			/* into the 'from' objects space */
-			mul_m4_v3(mat_from_inv, co);
+			if (fac != 0.0f) {
+				/* into the 'from' objects space */
+				mul_m4_v3(mat_from_inv, co);
 
-			if (fac >= 1.0f) {
-				mul_m4_v3(mat_final, co);
-			}
-			else if (fac > 0.0f) {
-				if (wmd->flag & MOD_WARP_VOLUME_PRESERVE) {
-					/* interpolate the matrix for nicer locations */
-					blend_m4_m4m4(tmat, mat_unit, mat_final, fac);
-					mul_m4_v3(tmat, co);
+				if (fac == 1.0f) {
+					mul_m4_v3(mat_final, co);
 				}
 				else {
-					float tvec[3];
-					mul_v3_m4v3(tvec, mat_final, co);
-					interp_v3_v3v3(co, co, tvec, fac);
+					if (wmd->flag & MOD_WARP_VOLUME_PRESERVE) {
+						/* interpolate the matrix for nicer locations */
+						blend_m4_m4m4(tmat, mat_unit, mat_final, fac);
+						mul_m4_v3(tmat, co);
+					}
+					else {
+						float tvec[3];
+						mul_v3_m4v3(tvec, mat_final, co);
+						interp_v3_v3v3(co, co, tvec, fac);
+					}
 				}
-			}
 
-			/* out of the 'from' objects space */
-			mul_m4_v3(mat_from, co);
+				/* out of the 'from' objects space */
+				mul_m4_v3(mat_from, co);
+			}
 		}
 	}
 
