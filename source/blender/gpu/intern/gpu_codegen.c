@@ -383,6 +383,8 @@ const char *GPU_builtin_name(GPUBuiltin builtin)
 		return "unfobcolor";
 	else if (builtin == GPU_AUTO_BUMPSCALE)
 		return "unfobautobumpscale";
+	else if (builtin == GPU_CAMERA_TEXCO_FACTORS)
+		return "unfcameratexfactors";
 	else
 		return "";
 }

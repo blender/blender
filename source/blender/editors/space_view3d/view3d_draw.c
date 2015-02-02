@@ -2573,6 +2573,7 @@ CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
+	rctf cameraborder;
 
 	/* setup window matrices */
 	if (winmat)
@@ -2590,7 +2591,23 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
 	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+	
+	/* calculate GLSL view dependent values */
 
+	/* store window coordinates scaling/offset */
+	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &cameraborder, false);
+		rv3d->viewcamtexcofac[0] = (float)ar->winx / BLI_rctf_size_x(&cameraborder);
+		rv3d->viewcamtexcofac[1] = (float)ar->winy / BLI_rctf_size_y(&cameraborder);
+		
+		rv3d->viewcamtexcofac[2] = -rv3d->viewcamtexcofac[0] * cameraborder.xmin / (float)ar->winx;
+		rv3d->viewcamtexcofac[3] = -rv3d->viewcamtexcofac[1] * cameraborder.ymin / (float)ar->winy;
+	}
+	else {
+		rv3d->viewcamtexcofac[0] = rv3d->viewcamtexcofac[1] = 1.0f;
+		rv3d->viewcamtexcofac[2] = rv3d->viewcamtexcofac[3] = 0.0f;
+	}
+	
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
 		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
@@ -2828,9 +2845,9 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar, bool 
 		if (glsl) {
 			RegionView3D *rv3d = ar->regiondata;
 			GPUMaterial *gpumat = GPU_material_world(scene, scene->world);
-			
+
 			/* calculate full shader for background */
-			GPU_material_bind(gpumat, 1, 1, 1.0, false, rv3d->viewmat, rv3d->viewinv, (v3d->scenelock != 0));
+			GPU_material_bind(gpumat, 1, 1, 1.0, false, rv3d->viewmat, rv3d->viewinv, rv3d->viewcamtexcofac, (v3d->scenelock != 0));
 			
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_ALWAYS);

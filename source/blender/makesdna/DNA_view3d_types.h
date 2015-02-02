@@ -89,11 +89,11 @@ typedef struct RegionView3D {
 	float viewinv[4][4];		/* inverse of viewmat */
 	float persmat[4][4];		/* viewmat*winmat */
 	float persinv[4][4];		/* inverse of persmat */
+	float viewcamtexcofac[4];	/* offset/scale for camera glsl texcoords */
 
 	/* viewmat/persmat multiplied with object matrix, while drawing and selection */
 	float viewmatob[4][4];
 	float persmatob[4][4];
-
 
 	/* user defined clipping planes */
 	float clip[6][4];

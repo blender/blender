@@ -84,14 +84,15 @@ typedef enum GPUType {
 } GPUType;
 
 typedef enum GPUBuiltin {
-	GPU_VIEW_MATRIX = 1,
-	GPU_OBJECT_MATRIX = 2,
-	GPU_INVERSE_VIEW_MATRIX = 4,
-	GPU_INVERSE_OBJECT_MATRIX = 8,
-	GPU_VIEW_POSITION = 16,
-	GPU_VIEW_NORMAL = 32,
-	GPU_OBCOLOR = 64,
-	GPU_AUTO_BUMPSCALE = 128,
+	GPU_VIEW_MATRIX =           (1 << 0),
+	GPU_OBJECT_MATRIX =         (1 << 1),
+	GPU_INVERSE_VIEW_MATRIX =   (1 << 2),
+	GPU_INVERSE_OBJECT_MATRIX = (1 << 3),
+	GPU_VIEW_POSITION =         (1 << 4),
+	GPU_VIEW_NORMAL =           (1 << 5),
+	GPU_OBCOLOR =               (1 << 6),
+	GPU_AUTO_BUMPSCALE =        (1 << 7),
+	GPU_CAMERA_TEXCO_FACTORS =       (1 << 8),
 } GPUBuiltin;
 
 typedef enum GPUOpenGLBuiltin {
@@ -101,7 +102,7 @@ typedef enum GPUOpenGLBuiltin {
 
 typedef enum GPUMatType {
 	GPU_MATERIAL_TYPE_MESH  = 1,
-	GPU_MATERIAL_TYPE_WORLD = 2,	
+	GPU_MATERIAL_TYPE_WORLD = 2,
 } GPUMatType;
 
 
@@ -177,7 +178,7 @@ void GPU_material_free(struct ListBase *gpumaterial);
 void GPU_materials_free(void);
 
 bool GPU_lamp_override_visible(GPULamp *lamp, struct SceneRenderLayer *srl, struct Material *ma);
-void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4], bool scenelock);
+void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4], float cameraborder[4], bool scenelock);
 void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float obcol[4], float autobumpscale);
 void GPU_material_unbind(GPUMaterial *material);
 int GPU_material_bound(GPUMaterial *material);

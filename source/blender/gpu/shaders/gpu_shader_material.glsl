@@ -2368,7 +2368,7 @@ void node_geometry(vec3 I, vec3 N, mat4 toworld,
 	backfacing = (gl_FrontFacing)? 0.0: 1.0;
 }
 
-void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
+void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat, vec4 camerafac,
 	vec3 attr_orco, vec3 attr_uv,
 	out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
 	out vec3 camera, out vec3 window, out vec3 reflection)
@@ -2379,7 +2379,7 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	object = (obinvmat*(viewinvmat*vec4(I, 1.0))).xyz;
 	camera = vec3(I.xy, -I.z);
 	vec4 projvec = gl_ProjectionMatrix * vec4(I, 1.0);
-	window = vec3(mtex_2d_mapping(projvec.xyz/projvec.w).xy, 0.0);
+	window = vec3(mtex_2d_mapping(projvec.xyz/projvec.w).xy * camerafac.xy + camerafac.zw, 0.0);
 
 	vec3 shade_I;
 	shade_view(I, shade_I);
@@ -2387,7 +2387,7 @@ void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	reflection = (viewinvmat*vec4(view_reflection, 0.0)).xyz;
 }
 
-void node_tex_coord_background(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
+void node_tex_coord_background(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat, vec4 camerafac,
 	vec3 attr_orco, vec3 attr_uv,
 	out vec3 generated, out vec3 normal, out vec3 uv, out vec3 object,
 	out vec3 camera, out vec3 window, out vec3 reflection)
@@ -2406,7 +2406,9 @@ void node_tex_coord_background(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat,
 	object = coords;
 
 	camera = vec3(co.xy, -co.z);
-	window = (gl_ProjectionMatrix[3][3] == 0.0) ? vec3(mtex_2d_mapping(I).xy, 0.0) : vec3(0.5, 0.5, 0.0);
+	window = (gl_ProjectionMatrix[3][3] == 0.0) ? 
+	              vec3(mtex_2d_mapping(I).xy * camerafac.xy + camerafac.zw, 0.0) : 
+	              vec3(vec2(0.5) * camerafac.xy + camerafac.zw, 0.0);
 
 	reflection = -coords;
 }
