@@ -50,7 +50,7 @@ typedef struct IsectPrecalc {
 } IsectPrecalc;
 
 /* Workaround for CUDA toolkit 6.5.16. */
-#ifdef __KERNEL_CPU__
+#if defined(__KERNEL_CPU__) || !defined(__KERNEL_CUDA_EXPERIMENTAL__) || __CUDA_ARCH__ < 500
 ccl_device_inline
 #else
 ccl_device_noinline
