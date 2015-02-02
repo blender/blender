@@ -704,7 +704,7 @@ void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, cons
 		}
 	}
 
-	if (part->roughcurve) {
+	if (roughcurve) {
 		do_rough_curve(orco, mat, t, rough1, part->rough1_size, roughcurve, state);
 	}
 	else {
