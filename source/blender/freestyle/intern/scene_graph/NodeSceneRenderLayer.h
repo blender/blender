@@ -29,7 +29,7 @@
 #include "Node.h"
 
 extern "C" {
-#include "DNA_scene_types.h" /* for SceneRenderLayer */
+#include "DNA_scene_types.h" /* for Scene and SceneRenderLayer */
 }
 
 using namespace std;
@@ -39,12 +39,22 @@ namespace Freestyle {
 class NodeSceneRenderLayer : public Node
 {
 public:
-	inline NodeSceneRenderLayer(SceneRenderLayer& srl) : Node(), _SceneRenderLayer(srl) {}
+	inline NodeSceneRenderLayer(Scene& scene, SceneRenderLayer& srl) : Node(), _Scene(scene), _SceneRenderLayer(srl) {}
 	virtual ~NodeSceneRenderLayer() {}
+
+	inline struct Scene& scene() const
+	{
+		return _Scene;
+	}
 
 	inline struct SceneRenderLayer& sceneRenderLayer() const
 	{
 		return _SceneRenderLayer;
+	}
+
+	inline void setSceneRenderLayer(Scene& scene)
+	{
+		_Scene = scene;
 	}
 
 	inline void setSceneRenderLayer(SceneRenderLayer& srl)
@@ -56,6 +66,8 @@ public:
 	virtual void accept(SceneVisitor& v);
 
 protected:
+
+	Scene& _Scene;
 	SceneRenderLayer& _SceneRenderLayer;
 };
 

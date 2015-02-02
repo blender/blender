@@ -295,7 +295,7 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 		}
 		cam->setProjectionMatrix(proj);
 		_RootNode->AddChild(cam);
-		_RootNode->AddChild(new NodeSceneRenderLayer(*srl));
+		_RootNode->AddChild(new NodeSceneRenderLayer(*re->scene, *srl));
 
 		sceneHashFunc.reset();
 		//blenderScene->accept(sceneHashFunc);
