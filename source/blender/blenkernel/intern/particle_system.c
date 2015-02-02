@@ -3116,6 +3116,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 {
 	ParticleSystem *psys = sim->psys;
 	PARTICLE_P;
+	EffectorWeights *clmd_effweights;
 	int totpoint;
 	int totedge;
 	float (*deformedVerts)[3];
@@ -3162,6 +3163,10 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 		psys->hair_out_dm->release(psys->hair_out_dm);
 	
 	psys->clmd->point_cache = psys->pointcache;
+	/* for hair sim we replace the internal cloth effector weights temporarily
+	 * to use the particle settings
+	 */
+	clmd_effweights = psys->clmd->sim_parms->effector_weights;
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 	
 	deformedVerts = MEM_mallocN(sizeof(*deformedVerts) * psys->hair_in_dm->getNumVerts(psys->hair_in_dm), "do_hair_dynamics vertexCos");
@@ -3174,7 +3179,8 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	
 	MEM_freeN(deformedVerts);
 	
-	psys->clmd->sim_parms->effector_weights = NULL;
+	/* restore cloth effector weights */
+	psys->clmd->sim_parms->effector_weights = clmd_effweights;
 }
 static void hair_step(ParticleSimulationData *sim, float cfra)
 {
