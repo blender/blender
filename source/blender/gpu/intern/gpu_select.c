@@ -158,7 +158,7 @@ bool GPU_select_load_id(unsigned int id)
 		g_query_state.active_query++;
 		g_query_state.query_issued = true;
 
-		if (g_query_state.mode == GPU_SELECT_NEAREST_SECOND_PASS) {
+		if (g_query_state.mode == GPU_SELECT_NEAREST_SECOND_PASS && g_query_state.index < g_query_state.oldhits) {
 			if (g_query_state.buffer[g_query_state.index * 4 + 3] == id) {
 				g_query_state.index++;
 				return true;
