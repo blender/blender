@@ -180,6 +180,9 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 		return;
 
 	modifier_get_vgroup(ob, dm, wmd->defgrp_name, &dvert, &defgrp_index);
+	if (dvert == NULL) {
+		defgrp_index = -1;
+	}
 
 	if (wmd->curfalloff == NULL) /* should never happen, but bad lib linking could cause it */
 		wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -227,13 +230,11 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 		     (fac = (wmd->falloff_radius - sqrtf(fac)) / wmd->falloff_radius)))
 		{
 			/* skip if no vert group found */
-			if (dvert && defgrp_index != -1) {
+			if (defgrp_index != -1) {
 				dv = &dvert[i];
-
-				if (dv) {
-					weight = defvert_find_weight(dv, defgrp_index) * strength;
-					if (weight <= 0.0f) /* Should never occure... */
-						continue;
+				weight = defvert_find_weight(dv, defgrp_index) * strength;
+				if (weight <= 0.0f) {
+					continue;
 				}
 			}
 
