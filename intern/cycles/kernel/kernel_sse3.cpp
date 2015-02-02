@@ -29,8 +29,8 @@
 
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
 
-#include "kernel.h"
 #include "kernel_compat_cpu.h"
+#include "kernel.h"
 #include "kernel_math.h"
 #include "kernel_types.h"
 #include "kernel_globals.h"

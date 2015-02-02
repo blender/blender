@@ -19,6 +19,13 @@
 
 #define __KERNEL_CPU__
 
+/* Release kernel has too much false-positive maybe-uninitialzied warnings,
+ * which makes it possible to miss actual warnings.
+ */
+#if defined(__GNUC__) && defined(NDEBUG)
+#  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 #include "util_debug.h"
 #include "util_math.h"
 #include "util_simd.h"
