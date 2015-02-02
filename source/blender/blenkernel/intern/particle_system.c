@@ -473,9 +473,6 @@ void psys_tasks_free(ParticleTask *tasks, int numtasks)
 {
 	int i;
 	
-	if (numtasks == 0)
-		return;
-	
 	/* threads */
 	for (i = 0; i < numtasks; ++i) {
 		if (tasks[i].rng)
