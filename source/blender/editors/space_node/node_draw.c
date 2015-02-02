@@ -1302,12 +1302,10 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		bNodeLinkDrag *nldrag;
 		LinkData *linkdata;
 		
-		BLI_assert(snode->id != NULL);
-		
 		path = snode->treepath.last;
 		
 		/* update tree path name (drawn in the bottom left) */
-		if (UNLIKELY(!STREQ(path->node_name, snode->id->name + 2))) {
+		if (snode->id && UNLIKELY(!STREQ(path->node_name, snode->id->name + 2))) {
 			BLI_strncpy(path->node_name, snode->id->name + 2, sizeof(path->node_name));
 		}
 		
