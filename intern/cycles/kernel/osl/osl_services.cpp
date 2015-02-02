@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/* TODO(sergey): There is a bit of headers dependency hell going on
+ * here, so for now we just put here. In the future it might be better
+ * to have dedicated file for such tweaks.
+ */
+#if defined(__GNUC__) && defined(NDEBUG)
+#  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 #include <string.h>
 
 #include "mesh.h"
