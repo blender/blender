@@ -193,7 +193,7 @@ template<typename T> struct texture_image  {
 			                   width * iy,
 			                   width * niy,
 			                   width * nniy};
-			float u[4], v[4], w[4];
+			float u[4], v[4];
 			/* Some helper macro to keep code reasonable size,
 			 * let compiler to inline all the matrix multiplications.
 			 */
@@ -206,7 +206,6 @@ template<typename T> struct texture_image  {
 
 			SET_CUBIC_SPLINE_WEIGHTS(u, tx);
 			SET_CUBIC_SPLINE_WEIGHTS(v, ty);
-			SET_CUBIC_SPLINE_WEIGHTS(w, 0.0f);
 
 			/* Actual interpolation. */
 			return TERM(0) + TERM(1) + TERM(2) + TERM(3);
