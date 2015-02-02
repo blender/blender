@@ -414,8 +414,7 @@ void free_hair(Object *UNUSED(ob), ParticleSystem *psys, int dynamics)
 	if (psys->clmd) {
 		if (dynamics) {
 			BKE_ptcache_free_list(&psys->ptcaches);
-			psys->clmd->point_cache = psys->pointcache = NULL;
-			BLI_listbase_clear(&psys->clmd->ptcaches);
+			psys->pointcache = NULL;
 
 			modifier_free((ModifierData *)psys->clmd);
 			
