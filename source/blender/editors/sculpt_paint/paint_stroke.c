@@ -165,7 +165,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 	glColor4ub(0, 0, 0, paint->paint_cursor_col[3]);
 	glLineWidth(3.0);
-	if (stroke->constrain_line){
+	if (stroke->constrain_line) {
 		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
 		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
 	}
@@ -176,7 +176,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 	glColor4ub(255, 255, 255, paint->paint_cursor_col[3]);
 	glLineWidth(1.0);
-	if (stroke->constrain_line){
+	if (stroke->constrain_line) {
 		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
 		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
 	}

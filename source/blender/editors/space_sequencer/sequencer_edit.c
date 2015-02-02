@@ -3426,8 +3426,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 	bool override = RNA_boolean_get(op->ptr, "override");
 	bool turnon = true;
 
-	if (ed == NULL || 
-	    !(proxy_25 || proxy_50 || proxy_75 || proxy_100)) {
+	if (ed == NULL || !(proxy_25 || proxy_50 || proxy_75 || proxy_100)) {
 		turnon = false;
 	}
 

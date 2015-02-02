@@ -328,7 +328,7 @@ void BKE_mesh_normals_loop_split(
 {
 	if (!use_split_normals) {
 		/* In this case, we simply fill lnors with vnors, quite simple!
-		 * Note this is done here to keep some logic and consistancy in this quite complex code,
+		 * Note this is done here to keep some logic and consistency in this quite complex code,
 		 * since we may want to use lnors even when mesh's 'autosmooth' is disabled (see e.g. mesh mapping code).
 		 * As usual, we could handle that on case-by-case basis, but simpler to keep it well confined here.
 		 */

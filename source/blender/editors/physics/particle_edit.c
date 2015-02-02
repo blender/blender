@@ -3250,7 +3250,7 @@ static void brush_puff(PEData *data, int point_index)
 
 static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[4][4]), float UNUSED(imat[4][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
 {
-	/* roots have full weight allways */
+	/* roots have full weight always */
 	if (key_index) {
 		PTCacheEdit *edit = data->edit;
 		ParticleSystem *psys = edit->psys;

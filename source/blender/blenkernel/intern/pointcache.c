@@ -2447,7 +2447,7 @@ static int ptcache_write_needed(PTCacheID *pid, int cfra, int *overwrite)
 	PointCache *cache = pid->cache;
 	int ofra = 0, efra = cache->endframe;
 
-	/* allways start from scratch on the first frame */
+	/* always start from scratch on the first frame */
 	if (cfra && cfra == cache->startframe) {
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, cfra);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;

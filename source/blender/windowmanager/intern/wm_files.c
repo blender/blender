@@ -539,7 +539,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
  * called on startup,  (context entirely filled with NULLs)
  * or called for 'New File'
  * both startup.blend and userpref.blend are checked
- * the optional parameter custom_file points to an alterntive startup page
+ * the optional parameter custom_file points to an alternative startup page
  * custom_file can be NULL
  */
 int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const char *custom_file)

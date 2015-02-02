@@ -1072,8 +1072,8 @@ static wmKeyMapItem *wm_keymap_item_find(
 {
 	wmKeyMapItem *found;
 
-	/* XXX Hack! Macro operators in menu entrie have their whole props defined, which is not the case for
-	 *     relevant keymap entries. Could be good to check and harmonize this, but for now allways
+	/* XXX Hack! Macro operators in menu entry have their whole props defined, which is not the case for
+	 *     relevant keymap entries. Could be good to check and harmonize this, but for now always
 	 *     compare non-strict in this case.
 	 */
 	wmOperatorType *ot = WM_operatortype_find(opname, true);

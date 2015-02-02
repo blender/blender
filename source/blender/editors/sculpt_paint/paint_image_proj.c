@@ -3367,8 +3367,9 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
 		if (ps->do_material_slots) {
 			if (lc->slot_clone != lc->slot_last_clone) {
 				if (!slot->uvname || 
-					!(lc->tf_clone_base = CustomData_get_layer_named(&ps->dm->faceData, CD_MTFACE,
-																	 lc->slot_clone->uvname)))
+				    !(lc->tf_clone_base = CustomData_get_layer_named(
+				          &ps->dm->faceData, CD_MTFACE,
+				          lc->slot_clone->uvname)))
 				{
 					lc->tf_clone_base = CustomData_get_layer(&ps->dm->faceData, CD_MTFACE);
 				}
@@ -3413,7 +3414,10 @@ static bool project_paint_check_face_sel(const ProjPaintState *ps,
 	if (ps->do_face_sel) {
 		int orig_index;
 		if (face_lookup->index_mp_to_orig &&
-			((orig_index = DM_origindex_mface_mpoly(face_lookup->index_mf_to_mpoly, face_lookup->index_mp_to_orig, face_index))) != ORIGINDEX_NONE)
+		    ((orig_index = DM_origindex_mface_mpoly(
+		          face_lookup->index_mf_to_mpoly,
+		          face_lookup->index_mp_to_orig,
+		          face_index))) != ORIGINDEX_NONE)
 		{
 			MPoly *mp = &face_lookup->mpoly_orig[orig_index];
 			return ((mp->flag & ME_FACE_SEL) != 0);
@@ -3498,9 +3502,10 @@ static bool project_paint_backface_cull(const ProjPaintState *ps, const MFace *m
 			 * sure all the verts are pointing away from the view,
 			 * not just the face */
 			if ((ps->vertFlags[mf->v1] & PROJ_VERT_CULL) &&
-				(ps->vertFlags[mf->v2] & PROJ_VERT_CULL) &&
-				(ps->vertFlags[mf->v3] & PROJ_VERT_CULL) &&
-				(mf->v4 == 0 || ps->vertFlags[mf->v4] & PROJ_VERT_CULL)) {
+			    (ps->vertFlags[mf->v2] & PROJ_VERT_CULL) &&
+			    (ps->vertFlags[mf->v3] & PROJ_VERT_CULL) &&
+			    (mf->v4 == 0 || ps->vertFlags[mf->v4] & PROJ_VERT_CULL))
+			{
 				return true;
 			}
 		}

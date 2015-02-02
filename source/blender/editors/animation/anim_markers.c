@@ -1057,7 +1057,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, bool exte
 	}
 
 	BLI_LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_first) {
-		/* this way a not-extend select will allways give 1 selected marker */
+		/* this way a not-extend select will always give 1 selected marker */
 		if (marker->frame == frame) {
 			marker->flag ^= SELECT;
 			break;
