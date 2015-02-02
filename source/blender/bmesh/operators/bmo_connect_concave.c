@@ -22,6 +22,14 @@
  *  \ingroup bmesh
  *
  * Connect vertices so all resulting faces are convex.
+ *
+ * Implementation:
+ *
+ * - triangulate all concave face (tagging convex verts),
+ * - rotate edges (beautify) so edges will connect nearby verts.
+ * - sort long edges (longest first),
+ *   put any edges between 2 convex verts last since they often split convex regions.
+ * - merge the sorted edges as long as they don't create convex ngons.
  */
 
 #include "MEM_guardedalloc.h"
@@ -56,11 +64,12 @@ static int bm_edge_length_cmp(const void *a_, const void *b_)
 	else if (e_a_concave > e_b_concave) return  1;
 	else
 	{
+		/* otherwise shortest edges last */
 		const float e_a_len = BM_edge_calc_length_squared(e_a);
 		const float e_b_len = BM_edge_calc_length_squared(e_b);
 		if      (e_a_len < e_b_len) return  1;
 		else if (e_a_len > e_b_len) return -1;
-		else                    return  0;
+		else                        return  0;
 	}
 }
 
