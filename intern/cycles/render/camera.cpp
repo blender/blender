@@ -278,11 +278,20 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->nearclip = nearclip;
 	kcam->cliplength = (farclip == FLT_MAX)? FLT_MAX: farclip - nearclip;
 
-	need_device_update = false;
-	previous_need_motion = need_motion;
-
 	/* Camera in volume. */
 	kcam->is_inside_volume = 0;
+
+	previous_need_motion = need_motion;
+}
+
+void Camera::device_update_volume(Device *device,
+                                  DeviceScene *dscene,
+                                  Scene *scene)
+{
+	if(!need_device_update) {
+		return;
+	}
+	KernelCamera *kcam = &dscene->data.cam;
 	BoundBox viewplane_boundbox = viewplane_bounds_get();
 	for(size_t i = 0; i < scene->objects.size(); ++i) {
 		Object *object = scene->objects[i];
@@ -294,6 +303,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			break;
 		}
 	}
+	need_device_update = false;
 }
 
 void Camera::device_free(Device *device, DeviceScene *dscene)
