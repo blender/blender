@@ -41,6 +41,7 @@
 #include "BLI_listbase.h"
 
 #include "bmesh.h"
+#include "bmesh_structure.h"
 
 static void recount_totsels(BMesh *bm)
 {
@@ -378,28 +379,24 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select)
 		BM_elem_flag_disable(e, BM_ELEM_SELECT);
 
 		if ((bm->selectmode & SCE_SELECT_VERTEX) == 0) {
-			BMIter iter;
-			BMVert *verts[2] = {e->v1, e->v2};
-			BMEdge *e2;
 			int i;
 
 			/* check if the vert is used by a selected edge */
 			for (i = 0; i < 2; i++) {
 				bool deselect = true;
+				BMVert *v = *((&e->v1) + i);
+				BMEdge *e_other = e;
 
-				for (e2 = BM_iter_new(&iter, bm, BM_EDGES_OF_VERT, verts[i]); e2; e2 = BM_iter_step(&iter)) {
-					if (e2 == e) {
-						continue;
-					}
-
-					if (BM_elem_flag_test(e2, BM_ELEM_SELECT)) {
+				/* start by stepping over the current edge */
+				while ((e_other = bmesh_disk_edge_next(e_other, v)) != e) {
+					if (BM_elem_flag_test(e_other, BM_ELEM_SELECT)) {
 						deselect = false;
 						break;
 					}
 				}
 
 				if (deselect) {
-					BM_vert_select_set(bm, verts[i], false);
+					BM_vert_select_set(bm, v, false);
 				}
 			}
 		}
