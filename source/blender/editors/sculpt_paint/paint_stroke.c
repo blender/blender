@@ -123,7 +123,9 @@ typedef struct PaintStroke {
 	float zoom_2d;
 	int pen_flip;
 	
+	/* line constraint */
 	bool constrain_line;
+	float constrained_pos[2];
 
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
@@ -163,13 +165,25 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 	glColor4ub(0, 0, 0, paint->paint_cursor_col[3]);
 	glLineWidth(3.0);
-	sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
-	        x, y);
+	if (stroke->constrain_line){
+		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
+		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
+	}
+	else {
+		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
+		        x, y);
+	}
 
 	glColor4ub(255, 255, 255, paint->paint_cursor_col[3]);
 	glLineWidth(1.0);
-	sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
-	        x, y);
+	if (stroke->constrain_line){
+		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
+		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
+	}
+	else {
+		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
+		        x, y);
+	}
 
 	glDisable(GL_LINE_STIPPLE);
 
@@ -999,11 +1013,9 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 	return false;
 }
 
-static void paint_stroke_line_constrain (bContext *C, PaintStroke *stroke, float mouse[2])
+static void paint_stroke_line_constrain (PaintStroke *stroke, float mouse[2])
 {
 	if (stroke->constrain_line) {
-		wmWindow *win = CTX_wm_window(C);
-		ARegion *ar = CTX_wm_region(C);
 		float line[2];
 		float angle, len, res;
 		
@@ -1011,12 +1023,13 @@ static void paint_stroke_line_constrain (bContext *C, PaintStroke *stroke, float
 		angle = atan2(line[1], line[0]);
 		len = len_v2(line);
 		
-		/* divide angle by PI/8 */
+		/* divide angle by PI/4 */
 		angle = 4.0f * angle / (float)M_PI;
 		
-		/* now take residue, if less than */
+		/* now take residue */
 		res = angle - floorf(angle);
 		
+		/* residue decides how close we are at a certain angle */
 		if (res <= 0.5f) {
 			angle = floorf(angle) * (float)M_PI_4;
 		}
@@ -1024,10 +1037,8 @@ static void paint_stroke_line_constrain (bContext *C, PaintStroke *stroke, float
 			angle = (floorf(angle) + 1.0f) * (float)M_PI_4;
 		}
 		
-		line[0] = len * cosf(angle) + stroke->last_mouse_position[0] + ar->winrct.xmin;
-		line[1] = len * sinf(angle) + stroke->last_mouse_position[1] + ar->winrct.ymin;
-		
-		WM_cursor_warp(win, line[0], line[1]);
+		mouse[0] = stroke->constrained_pos[0] = len * cosf(angle) + stroke->last_mouse_position[0];
+		mouse[1] = stroke->constrained_pos[1] = len * sinf(angle) + stroke->last_mouse_position[1];
 	}
 }
 
@@ -1104,7 +1115,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (event->type == stroke->event_type && !first_modal) {
 		if (event->val == KM_RELEASE) {
 			copy_v2_fl2(mouse, event->mval[0], event->mval[1]);
-			paint_stroke_line_constrain(C, stroke, mouse);
+			paint_stroke_line_constrain(stroke, mouse);
 			paint_stroke_line_end (C, op, stroke, mouse);
 			stroke_done(C, op);
 			return OPERATOR_FINISHED;
@@ -1122,7 +1133,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			stroke->constrain_line = false;
 
 		copy_v2_fl2(mouse, event->mval[0], event->mval[1]);
-		paint_stroke_line_constrain(C, stroke, mouse);
+		paint_stroke_line_constrain(stroke, mouse);
 		
 		if (stroke->stroke_started && (first_modal || (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))))
 		{
