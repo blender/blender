@@ -297,6 +297,10 @@ void math_modulo(float val1, float val2, out float outval)
 		outval = 0.0;
 	else
 		outval = mod(val1, val2);
+
+	/* change sign to match C convention, mod in GLSL will take absolute for negative numbers,
+	 * see https://www.opengl.org/sdk/docs/man/html/mod.xhtml */
+	outval = (val1 > 0) ? outval : -outval;
 }
 
 void math_abs(float val1, out float outval)
