@@ -1494,6 +1494,13 @@ elseif(WIN32)
 			)
 		endif()
 
+		if(WITH_SDL)
+			set(SDL ${LIBDIR}/sdl)
+			set(SDL_INCLUDE_DIR ${SDL}/include)
+			set(SDL_LIBRARY SDL2)
+			set(SDL_LIBPATH ${SDL}/lib)
+		endif()
+
 		# used in many places so include globally, like OpenGL
 		blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
 
@@ -1723,6 +1730,13 @@ elseif(WIN32)
 			set(OPENCOLORIO_DEFINITIONS)
 		endif()
 
+		if(WITH_SDL)
+			set(SDL ${LIBDIR}/sdl)
+			set(SDL_INCLUDE_DIR ${SDL}/include)
+			set(SDL_LIBRARY SDL)
+			set(SDL_LIBPATH ${SDL}/lib)
+		endif()
+
 		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
 
 		## DISABLE - causes linking errors 
@@ -1752,13 +1766,6 @@ elseif(WIN32)
 		set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
 		set(SNDFILE_LIBRARIES libsndfile-1)
 		set(SNDFILE_LIBPATH ${SNDFILE}/lib) # TODO, deprecate
-	endif()
-
-	if(WITH_SDL)
-		set(SDL ${LIBDIR}/sdl)
-		set(SDL_INCLUDE_DIR ${SDL}/include)
-		set(SDL_LIBRARY SDL2)
-		set(SDL_LIBPATH ${SDL}/lib)
 	endif()
 
 	if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
