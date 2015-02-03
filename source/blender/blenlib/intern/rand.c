@@ -33,7 +33,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
+
+#ifdef __MINGW32__
+#  include <time.h>
+#endif
 
 #include "MEM_guardedalloc.h"
 
