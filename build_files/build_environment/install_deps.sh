@@ -209,14 +209,14 @@ OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OPENEXR_VERSION="2.1.0"
+OPENEXR_VERSION="2.2.0"
 OPENEXR_VERSION_MIN="2.0.1"
-ILMBASE_VERSION="2.1.0"
+ILMBASE_VERSION="2.2.0"
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="1.4.11"
+OIIO_VERSION="1.4.16"
 OIIO_VERSION_MIN="1.4.0"
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
@@ -228,7 +228,7 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.5.0"
+OSL_VERSION="1.5.11"
 OSL_VERSION_MIN=$OSL_VERSION
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
@@ -485,25 +485,29 @@ BOOST_SOURCE=( "http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION
 
 OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION" )
 
-#OPENEXR_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz" )
-OPENEXR_SOURCE=( "https://github.com/mont29/openexr.git" )
-OPENEXR_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
+OPENEXR_USE_REPO=false
+OPENEXR_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz" )
+OPENEXR_SOURCE_REPO=( "https://github.com/mont29/openexr.git" )
+OPENEXR_SOURCE_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
 ILMBASE_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz" )
 
-#OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz" )
-OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio.git" )
-OIIO_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
+OPENEXR_USE_REPO=false
+OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz" )
+OIIO_SOURCE_REPO=( "https://github.com/OpenImageIO/oiio.git" )
+OIIO_SOURCE_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
 
 LLVM_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz" )
 LLVM_CLANG_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz" "http://llvm.org/releases/$LLVM_VERSION/cfe-$LLVM_VERSION.src.tar.gz" )
-#OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
-#OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage.git" )
-#OSL_SOURCE=( "https://github.com/mont29/OpenShadingLanguage.git" )
-#OSL_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
-#OSL_REPO_BRANCH="master"
-OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
-OSL_REPO_UID="22ee5ea298fd215430dfbd160b5aefd507f06db0"
-OSL_REPO_BRANCH="blender-fixes"
+OSL_USE_REPO=true
+#~ OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
+OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage/archive/Release-1.5.11.tar.gz" )
+#~ OSL_SOURCE_REPO=( "https://github.com/imageworks/OpenShadingLanguage.git" )
+#~ OSL_SOURCE_REPO=( "https://github.com/mont29/OpenShadingLanguage.git" )
+#~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
+#~ OSL_SOURCE_REPO_BRANCH="master"
+OSL_SOURCE_REPO=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
+OSL_SOURCE_REPO_UID="22ee5ea298fd215430dfbd160b5aefd507f06db0"
+OSL_SOURCE_REPO_BRANCH="blender-fixes"
 
 OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
 OPENCOLLADA_REPO_UID="18da7f4109a8eafaa290a33f5550501cc4c8bae8"
@@ -979,7 +983,7 @@ clean_ILMBASE() {
 
 compile_ILMBASE() {
   # To be changed each time we make edits that would modify the compiled result!
-  ilmbase_magic=9
+  ilmbase_magic=10
   _init_ilmbase
 
   # Clean install if needed!
@@ -1003,8 +1007,7 @@ compile_ILMBASE() {
       download ILMBASE_SOURCE[@] $_src.tar.gz
 
       INFO "Unpacking ILMBase-$ILMBASE_VERSION"
-      tar -C $SRC --transform "s,(.*/?)ilmbase-[^/]*(.*),\1ILMBase-$ILMBASE_VERSION\2,x" \
-          -xf $_src.tar.gz
+      tar -C $SRC --transform "s,(.*/?)ilmbase-[^/]*(.*),\1ILMBase-$ILMBASE_VERSION\2,x" -xf $_src.tar.gz
 
     fi
 
@@ -1020,6 +1023,7 @@ compile_ILMBASE() {
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
+    cmake_d="$cmake_d -D NAMESPACE_VERSIONING=OFF"  # VERY IMPORTANT!!!
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -1092,24 +1096,28 @@ compile_OPENEXR() {
       INFO "Downloading OpenEXR-$OPENEXR_VERSION"
       mkdir -p $SRC
 
-#      download OPENEXR_SOURCE[@] $_src.tar.gz
-
-#      INFO "Unpacking OpenEXR-$OPENEXR_VERSION"
-#      tar -C $SRC --transform "s,(.*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" \
-#          -xf $_src.tar.gz
-
-      git clone ${OPENEXR_SOURCE[0]} $_src
+      if [ $OPENEXR_USE_REPO == true ]; then
+        git clone ${OPENEXR_SOURCE_REPO[0]} $_src
+      else
+        download OPENEXR_SOURCE[@] $_src.tar.gz
+        INFO "Unpacking OpenEXR-$OPENEXR_VERSION"
+        tar -C $SRC --transform "s,(.*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" -xf $_src.tar.gz
+      fi
 
     fi
 
     cd $_src
 
-    # XXX For now, always update from latest repo...
-    git pull origin master
-
-    # Stick to same rev as windows' libs...
-    git checkout $OPENEXR_REPO_UID
-    git reset --hard
+    if [ $OPENEXR_USE_REPO == true ]; then
+      # XXX For now, always update from latest repo...
+      git pull origin master
+      # Stick to same rev as windows' libs...
+      git checkout $OPENEXR_SOURCE_REPO_UID
+      git reset --hard
+      oiio_src_path="../OpenEXR"
+    else
+      oiio_src_path=".."
+    fi
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -1123,6 +1131,7 @@ compile_OPENEXR() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D ILMBASE_PACKAGE_PREFIX=$_ilmbase_inst"
     cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
+    cmake_d="$cmake_d -D NAMESPACE_VERSIONING=OFF"  # VERY IMPORTANT!!!
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -1130,7 +1139,7 @@ compile_OPENEXR() {
       cflags="-fPIC"
     fi
 
-    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ../OpenEXR
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" $oiio_src_path
 
     make -j$THREADS && make install
 
@@ -1194,24 +1203,25 @@ compile_OIIO() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-      #download OIIO_SOURCE[@] "$_src.tar.gz"
-#
-      #INFO "Unpacking OpenImageIO-$OIIO_VERSION"
-      #tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
-          #-xf $_src.tar.gz
 
-      git clone ${OIIO_SOURCE[0]} $_src
-
+      if [ $OIIO_USE_REPO == true ]; then
+        git clone ${OIIO_SOURCE_REPO[0]} $_src
+      else
+        download OIIO_SOURCE[@] "$_src.tar.gz"
+        INFO "Unpacking OpenImageIO-$OIIO_VERSION"
+        tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" -xf $_src.tar.gz
+      fi
     fi
 
     cd $_src
 
-    # XXX For now, always update from latest repo...
-    git pull origin master
-
-    # Stick to same rev as windows' libs...
-    git checkout $OIIO_REPO_UID
-    git reset --hard
+    if [ $OIIO_USE_REPO == true ]; then
+      # XXX For now, always update from latest repo...
+      git pull origin master
+      # Stick to same rev as windows' libs...
+      git checkout $OIIO_SOURCE_REPO_UID
+      git reset --hard
+    fi
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -1233,6 +1243,7 @@ compile_OIIO() {
     if [ $_with_built_openexr == true ]; then
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
       cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
+      INFO "ILMBASE_HOME=$INST/openexr"
     fi
 
     # Optional tests and cmd tools
@@ -1409,15 +1420,15 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=16
+  osl_magic=17
   _init_osl
 
   # Clean install if needed!
   magic_compile_check osl-$OSL_VERSION $osl_magic
-  if [ $? -eq 1 -o $OSL_FORCE_REBUILD == true ]; then
-    rm -Rf $_src  # XXX Radical, but not easy to change remote repo fully automatically
-    clean_OSL
-  fi
+  #~ if [ $? -eq 1 -o $OSL_FORCE_REBUILD == true ]; then
+    #~ rm -Rf $_src  # XXX Radical, but not easy to change remote repo fully automatically
+    #~ clean_OSL
+  #~ fi
 
   if [ ! -d $_inst ]; then
     INFO "Building OpenShadingLanguage-$OSL_VERSION"
@@ -1427,26 +1438,26 @@ compile_OSL() {
     if [ ! -d $_src ]; then
       mkdir -p $SRC
 
-      #download OSL_SOURCE[@] "$_src.tar.gz"
-
-      #INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
-      #tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
-          #-xf $_src.tar.gz
-
-      git clone ${OSL_SOURCE[0]} $_src
-
+      if [ $OSL_USE_REPO == true ]; then
+        git clone ${OSL_SOURCE_REPO[0]} $_src
+      else
+        download OSL_SOURCE[@] "$_src.tar.gz"
+        INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
+        tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
+            -xf $_src.tar.gz
+      fi
     fi
 
     cd $_src
 
-    git remote set-url origin ${OSL_SOURCE[0]}
-
-    # XXX For now, always update from latest repo...
-    git pull --no-edit -X theirs origin $OSL_GIT_BRANCH
-
-    # Stick to same rev as windows' libs...
-    git checkout $OSL_REPO_UID
-    git reset --hard
+    if [ $OSL_USE_REPO == true ]; then
+      git remote set-url origin ${OSL_SOURCE_REPO[0]}
+      # XXX For now, always update from latest repo...
+      git pull --no-edit -X theirs origin $OSL_SOURCE_REPO_BRANCH
+      # Stick to same rev as windows' libs...
+      git checkout $OSL_SOURCE_REPO_UID
+      git reset --hard
+    fi
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -1461,11 +1472,14 @@ compile_OSL() {
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
     cmake_d="$cmake_d -D BUILDSTATIC=OFF"
 
-    cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
+    #~ cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
 
     if [ $_with_built_openexr == true ]; then
       INFO "ILMBASE_HOME=$INST/openexr"
       cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
+      # XXX Temp workaround... sigh, ILMBase really messed the things up by defining their custom names ON by default :(
+      cmake_d="$cmake_d -D ILMBASE_CUSTOM=ON"
+      cmake_d="$cmake_d -D ILMBASE_CUSTOM_LIBRARIES='Half;Iex;Imath;IlmThread'"
     fi
 
     if [ -d $INST/boost ]; then
@@ -1978,7 +1992,7 @@ install_DEB() {
       if [ $? -eq 0 ]; then
         install_packages_DEB libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
                              libboost-regex$boost_version-dev libboost-system$boost_version-dev \
-                             libboost-thread$boost_version-dev
+                             libboost-thread$boost_version-dev libboost-wave$boost_version-dev
         clean_Boost
       else
         compile_Boost
@@ -3039,10 +3053,10 @@ print_info() {
     PRINT "BF_OPENEXR = '$INST/openexr'"
 
     _ilm_libs_ext=""
-    version_ge $OPENEXR_VERSION "2.1.0"
-    if [ $? -eq 0 ]; then
-      _ilm_libs_ext=`echo $OPENEXR_VERSION | sed -r 's/([0-9]+)\.([0-9]+).*/-\1_\2/'`
-    fi
+    #~ version_ge $OPENEXR_VERSION "2.1.0"
+    #~ if [ $? -eq 0 ]; then
+      #~ _ilm_libs_ext=`echo $OPENEXR_VERSION | sed -r 's/([0-9]+)\.([0-9]+).*/-\1_\2/'`
+    #~ fi
     PRINT "BF_OPENEXR_LIB = 'Half IlmImf$_ilm_libs_ext Iex$_ilm_libs_ext Imath$_ilm_libs_ext '"
     # BF_OPENEXR_LIB does not work, things like '-lIlmImf-2_1' do not suit ld.
     # For now, hack around!!!
