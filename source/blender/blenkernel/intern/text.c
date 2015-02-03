@@ -606,7 +606,7 @@ void BKE_text_unlink(Main *bmain, Text *text)
 		}
 	}
 
-	for (te = bmain->tex.first; mat; mat = mat->id.next) {
+	for (te = bmain->tex.first; te; te = te->id.next) {
 		ntree = te->nodetree;
 		if (!ntree)
 			continue;
