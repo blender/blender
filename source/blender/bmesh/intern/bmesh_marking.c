@@ -342,8 +342,8 @@ void BM_vert_select_set(BMesh *bm, BMVert *v, const bool select)
 
 	if (select) {
 		if (!BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-			bm->totvertsel += 1;
 			BM_elem_flag_enable(v, BM_ELEM_SELECT);
+			bm->totvertsel += 1;
 		}
 	}
 	else {
@@ -368,15 +368,18 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select)
 	}
 
 	if (select) {
-		if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel += 1;
-
-		BM_elem_flag_enable(e, BM_ELEM_SELECT);
+		if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			BM_elem_flag_enable(e, BM_ELEM_SELECT);
+			bm->totedgesel += 1;
+		}
 		BM_vert_select_set(bm, e->v1, true);
 		BM_vert_select_set(bm, e->v2, true);
 	}
 	else {
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel -= 1;
-		BM_elem_flag_disable(e, BM_ELEM_SELECT);
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			BM_elem_flag_disable(e, BM_ELEM_SELECT);
+			bm->totedgesel -= 1;
+		}
 
 		if ((bm->selectmode & SCE_SELECT_VERTEX) == 0) {
 			int i;
@@ -427,10 +430,10 @@ void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
 
 	if (select) {
 		if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-			bm->totfacesel++;
+			BM_elem_flag_enable(f, BM_ELEM_SELECT);
+			bm->totfacesel += 1;
 		}
 
-		BM_elem_flag_enable(f, BM_ELEM_SELECT);
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			BM_vert_select_set(bm, l_iter->v, true);
@@ -441,8 +444,10 @@ void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
 		BMIter liter;
 		BMLoop *l;
 
-		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) bm->totfacesel -= 1;
-		BM_elem_flag_disable(f, BM_ELEM_SELECT);
+		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+			BM_elem_flag_disable(f, BM_ELEM_SELECT);
+			bm->totfacesel -= 1;
+		}
 
 		/* flush down to edges */
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
