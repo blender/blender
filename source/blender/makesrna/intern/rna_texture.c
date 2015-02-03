@@ -440,15 +440,13 @@ static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
 	else tex->imaflag &= ~TEX_MIPMAP;
 }
 
-static void rna_Envmap_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Envmap_update_generic(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex = ptr->id.data;
-	
 	if (tex->env) {
 		ED_preview_kill_jobs(bmain->wm.first, bmain);
 		BKE_free_envmapdata(tex->env);
 	}
-	
 	rna_Texture_update(bmain, scene, ptr);
 }
 
@@ -806,7 +804,7 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_source_items);
 	RNA_def_property_ui_text(prop, "Source", "");
-	RNA_def_property_update(prop, 0, "rna_Envmap_source_update");
+	RNA_def_property_update(prop, 0, "rna_Envmap_update_generic");
 
 	prop = RNA_def_property(srna, "viewpoint_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
@@ -1394,7 +1392,7 @@ static void rna_def_texture_environment_map(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "Source image file to read the environment map from");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Envmap_update_generic");
 	
 	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
