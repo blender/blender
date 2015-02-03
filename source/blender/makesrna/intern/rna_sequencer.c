@@ -1178,7 +1178,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_overwrite", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "build_flags", SEQ_PROXY_SKIP_EXISTING);
-	RNA_def_property_ui_text(prop, "Overwite", "Overwrite existing proxy files when building");
+	RNA_def_property_ui_text(prop, "Overwrite", "Overwrite existing proxy files when building");
 
 	prop = RNA_def_property(srna, "build_25", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flags", SEQ_PROXY_IMAGE_SIZE_25);

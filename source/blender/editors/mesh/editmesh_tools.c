@@ -988,7 +988,7 @@ void MESH_OT_vert_connect_concave(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Split Concave Faces";
 	ot->idname = "MESH_OT_vert_connect_concave";
-	ot->description = "Makes all faces convex";
+	ot->description = "Make all faces convex";
 
 	/* api callbacks */
 	ot->exec = edbm_vert_connect_concave_exec;
