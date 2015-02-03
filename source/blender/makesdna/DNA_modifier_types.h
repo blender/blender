@@ -978,6 +978,7 @@ typedef enum {
 	eWarp_Falloff_Linear = 5, /* PROP_LIN */
 	eWarp_Falloff_Const  = 6, /* PROP_CONST */
 	eWarp_Falloff_Sphere = 7, /* PROP_SPHERE */
+	eWarp_Falloff_InvSquare = 8, /* PROP_INVSQUARE */
 	/* PROP_RANDOM not used */
 } WarpModifierFalloff;
 

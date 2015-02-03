@@ -265,6 +265,9 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 				case eWarp_Falloff_Sphere:
 					fac = sqrtf(2 * fac - fac * fac);
 					break;
+				case eWarp_Falloff_InvSquare:
+					fac = fac * (2.0f - fac);
+					break;
 			}
 
 			fac *= weight;

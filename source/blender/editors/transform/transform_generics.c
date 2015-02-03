@@ -1937,6 +1937,9 @@ void calculatePropRatio(TransInfo *t)
 					case PROP_RANDOM:
 						td->factor = BLI_frand() * dist;
 						break;
+					case PROP_INVSQUARE:
+						td->factor = dist * (2.0f - dist);
+						break;
 					default:
 						td->factor = 1;
 						break;
@@ -1964,6 +1967,9 @@ void calculatePropRatio(TransInfo *t)
 				break;
 			case PROP_RANDOM:
 				strcpy(t->proptext, IFACE_("(Random)"));
+				break;
+			case PROP_INVSQUARE:
+				strcpy(t->proptext, IFACE_("(InvSquare)"));
 				break;
 			default:
 				t->proptext[0] = '\0';

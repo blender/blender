@@ -1117,6 +1117,7 @@ static void rna_def_modifier_warp(BlenderRNA *brna)
 		{eWarp_Falloff_Smooth,  "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
 		{eWarp_Falloff_Sphere,  "SPHERE", ICON_SPHERECURVE, "Sphere", ""},
 		{eWarp_Falloff_Root,    "ROOT", ICON_ROOTCURVE, "Root", ""},
+		{eWarp_Falloff_InvSquare, "INVERSE_SQUARE", ICON_ROOTCURVE, "Inverse Square", ""},
 		{eWarp_Falloff_Sharp,   "SHARP", ICON_SHARPCURVE, "Sharp", ""},
 		{eWarp_Falloff_Linear,  "LINEAR", ICON_LINCURVE, "Linear", ""},
 		{eWarp_Falloff_Const,   "CONSTANT", ICON_NOCURVE, "Constant", ""},

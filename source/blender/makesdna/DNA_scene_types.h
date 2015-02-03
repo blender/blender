@@ -1625,7 +1625,8 @@ extern const char *RE_engine_id_CYCLES;
 #define PROP_LIN               4
 #define PROP_CONST             5
 #define PROP_RANDOM            6
-#define PROP_MODE_MAX          7
+#define PROP_INVSQUARE         7
+#define PROP_MODE_MAX          8
 
 /* toolsettings->proportional */
 #define PROP_EDIT_OFF			0
