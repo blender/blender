@@ -503,6 +503,15 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 	
 	unit_m4(pose_mat);
 
+	invert_m4_m4(obedit->imat, obedit->obmat);
+	if (mode == OBJECT_ADDHOOK_NEWOB) {
+		/* pass */
+	}
+	else {
+		/* may overwrite with pose-bone location, below */
+		mul_v3_m4v3(cent, obedit->imat, ob->obmat[3]);
+	}
+
 	if (mode == OBJECT_ADDHOOK_SELOB_BONE) {
 		bArmature *arm = ob->data;
 		BLI_assert(ob->type == OB_ARMATURE);
@@ -514,12 +523,17 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 			pchan_act = BKE_pose_channel_active(ob);
 			if (LIKELY(pchan_act)) {
 				invert_m4_m4(pose_mat, pchan_act->pose_mat);
+				mul_v3_m4v3(cent, ob->obmat, pchan_act->pose_mat[3]);
+				mul_v3_m4v3(cent, obedit->imat, cent);
 			}
 		}
 		else {
 			BKE_report(reports, RPT_WARNING, "Armature has no active object bone");
 		}
 	}
+
+	copy_v3_v3(hmd->cent, cent);
+
 
 	/* matrix calculus */
 	/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
