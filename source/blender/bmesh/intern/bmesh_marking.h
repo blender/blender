@@ -59,6 +59,10 @@ void BM_vert_select_set(BMesh *bm, BMVert *v, const bool select);
 void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select);
 void BM_face_select_set(BMesh *bm, BMFace *f, const bool select);
 
+/* lower level functions which don't do flushing */
+void BM_edge_select_set_noflush(BMesh *bm, BMEdge *e, const bool select);
+void BM_face_select_set_noflush(BMesh *bm, BMFace *e, const bool select);
+
 void BM_mesh_select_mode_clean_ex(BMesh *bm, const short selectmode);
 void BM_mesh_select_mode_clean(BMesh *bm);
 
