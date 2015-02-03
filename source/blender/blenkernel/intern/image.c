@@ -2600,11 +2600,15 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 
 	if (ima->anim == NULL) {
 		char str[FILE_MAX];
+		int flags = IB_rect;
+		if (ima->flag & IMA_DEINTERLACE) {
+			flags |= IB_animdeinterlace;
+		}
 
 		BKE_image_user_file_path(iuser, ima, str);
 
 		/* FIXME: make several stream accessible in image editor, too*/
-		ima->anim = openanim(str, IB_rect, 0, ima->colorspace_settings.name);
+		ima->anim = openanim(str, flags, 0, ima->colorspace_settings.name);
 
 		/* let's initialize this user */
 		if (ima->anim && iuser && iuser->frames == 0)

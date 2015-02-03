@@ -794,6 +794,11 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 						uiItemR(col, &imaptr, "alpha_mode", 0, IFACE_("Alpha"), ICON_NONE);
 					}
 
+					if (ima->source == IMA_SRC_MOVIE) {
+						col = uiLayoutColumn(layout, false);
+						uiItemR(col, &imaptr, "use_deinterlace", 0, IFACE_("Deinterlace"), ICON_NONE);
+					}
+
 					uiItemS(layout);
 
 					split = uiLayoutSplit(layout, 0.0f, false);

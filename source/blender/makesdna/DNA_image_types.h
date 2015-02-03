@@ -143,6 +143,7 @@ enum {
 	IMA_USER_FRAME_IN_RANGE = (1 << 10), /* for image user, but these flags are mixed */
 	IMA_VIEW_AS_RENDER      = (1 << 11),
 	IMA_IGNORE_ALPHA        = (1 << 12),
+	IMA_DEINTERLACE         = (1 << 13),
 };
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)
