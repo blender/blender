@@ -25,6 +25,7 @@ __all__ = (
 import bpy
 
 
+# XXX visual keying is actually always considered as True in this code...
 def bake_action(frame_start,
                 frame_end,
                 frame_step=1,
@@ -85,15 +86,15 @@ def bake_action(frame_start,
 
     if do_parents_clear:
         def obj_frame_info(obj, do_visual_keying):
-            parent = obj.parent
-            matrix = obj.matrix_local if do_visual_keying else obj.matrix_local
-            if parent:
-                return parent.matrix_world * matrix
-            else:
-                return matrix.copy()
+            return obj.matrix_world.copy() if do_visual_keying else obj.matrix_world.copy()
     else:
         def obj_frame_info(obj, do_visual_keying):
-            return obj.matrix_local.copy() if do_visual_keying else obj.matrix_local.copy()
+            parent = obj.parent
+            matrix = obj.matrix_world if do_visual_keying else obj.matrix_world
+            if parent:
+                return parent.matrix_world.inverted_safe() * matrix
+            else:
+                return matrix.copy()
 
     # -------------------------------------------------------------------------
     # Setup the Context
