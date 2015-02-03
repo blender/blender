@@ -1874,9 +1874,12 @@ void calculatePropRatio(TransInfo *t)
 	TransData *td = t->data;
 	int i;
 	float dist;
-	short connected = t->flag & T_PROP_CONNECTED;
+	const bool connected = (t->flag & T_PROP_CONNECTED) != 0;
+
+	t->proptext[0] = '\0';
 
 	if (t->flag & T_PROP_EDIT) {
+		const char *pet_id = NULL;
 		for (i = 0; i < t->total; i++, td++) {
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
@@ -1948,38 +1951,40 @@ void calculatePropRatio(TransInfo *t)
 		}
 		switch (t->prop_mode) {
 			case PROP_SHARP:
-				strcpy(t->proptext, IFACE_("(Sharp)"));
+				pet_id = N_("(Sharp)");
 				break;
 			case PROP_SMOOTH:
-				strcpy(t->proptext, IFACE_("(Smooth)"));
+				pet_id = N_("(Smooth)");
 				break;
 			case PROP_ROOT:
-				strcpy(t->proptext, IFACE_("(Root)"));
+				pet_id = N_("(Root)");
 				break;
 			case PROP_LIN:
-				strcpy(t->proptext, IFACE_("(Linear)"));
+				pet_id = N_("(Linear)");
 				break;
 			case PROP_CONST:
-				strcpy(t->proptext, IFACE_("(Constant)"));
+				pet_id = N_("(Constant)");
 				break;
 			case PROP_SPHERE:
-				strcpy(t->proptext, IFACE_("(Sphere)"));
+				pet_id = N_("(Sphere)");
 				break;
 			case PROP_RANDOM:
-				strcpy(t->proptext, IFACE_("(Random)"));
+				pet_id = N_("(Random)");
 				break;
 			case PROP_INVSQUARE:
-				strcpy(t->proptext, IFACE_("(InvSquare)"));
+				pet_id = N_("(InvSquare)");
 				break;
 			default:
-				t->proptext[0] = '\0';
 				break;
+		}
+
+		if (pet_id) {
+			BLI_strncpy(t->proptext, IFACE_(pet_id), sizeof(t->proptext));
 		}
 	}
 	else {
 		for (i = 0; i < t->total; i++, td++) {
 			td->factor = 1.0;
 		}
-		t->proptext[0] = '\0';
 	}
 }
