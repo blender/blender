@@ -3104,6 +3104,9 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps)
 			ps->clipend = params.clipend;
 			ps->is_ortho = params.is_ortho;
 		}
+		else {
+			BLI_assert(0);
+		}
 
 		/* same as #ED_view3d_ob_project_mat_get */
 		mul_m4_m4m4(vmat, viewmat, ps->ob->obmat);

@@ -164,7 +164,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my)
 
 		/* if the active screen is already in fullscreen mode, skip this and
 		 * unset the area, so that the fullscreen area is just changed later */
-		if (sa->full) {
+		if (sa && sa->full) {
 			sa = NULL;
 		}
 		else {

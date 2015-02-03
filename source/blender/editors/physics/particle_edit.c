@@ -420,8 +420,9 @@ static void PE_create_shape_tree(PEData *data, Object *shapeob)
 	
 	memset(&data->shape_bvh, 0, sizeof(data->shape_bvh));
 	
-	if (!shapeob || !shapeob->derivedFinal)
+	if (!dm) {
 		return;
+	}
 	
 	DM_ensure_tessface(dm);
 	bvhtree_from_mesh_faces(&data->shape_bvh, dm, 0.0f, 4, 8);
