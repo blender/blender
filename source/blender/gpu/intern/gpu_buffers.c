@@ -187,8 +187,10 @@ static void gpu_buffer_pool_free_unused(GPUBufferPool *pool)
 	while (pool->totbuf)
 		gpu_buffer_pool_delete_last(pool);
 
-	glDeleteBuffersARB(pool->totpbvhbufids, pool->pbvhbufids);
-	pool->totpbvhbufids = 0;
+	if (pool->totpbvhbufids > 0) {
+		glDeleteBuffersARB(pool->totpbvhbufids, pool->pbvhbufids);
+		pool->totpbvhbufids = 0;
+	}
 
 	BLI_mutex_unlock(&buffer_mutex);
 }
