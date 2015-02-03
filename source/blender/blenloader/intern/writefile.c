@@ -1485,6 +1485,10 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			
+			if (hmd->curfalloff) {
+				write_curvemapping(wd, hmd->curfalloff);
+			}
+
 			writedata(wd, DATA, sizeof(int)*hmd->totindex, hmd->indexar);
 		}
 		else if (md->type==eModifierType_Cloth) {

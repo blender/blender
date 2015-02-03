@@ -352,6 +352,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Settings are inside the Physics tab")
 
     def HOOK(self, layout, ob, md):
+        use_falloff = (md.falloff_type != 'NONE')
         split = layout.split()
 
         col = split.column()
@@ -366,19 +367,28 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
+        row = layout.row(align=True)
+        if use_falloff:
+            row.prop(md, "falloff_radius")
+        row.prop(md, "strength", slider=True)
+        layout.prop(md, "falloff_type")
+
+        col = layout.column()
+        if use_falloff:
+            if md.falloff_type == 'CURVE':
+                col.template_curve_mapping(md, "falloff_curve")
+
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "falloff")
-        col.prop(md, "force", slider=True)
-
-        col = split.column()
-        col.operator("object.hook_reset", text="Reset")
-        col.operator("object.hook_recenter", text="Recenter")
+        col.prop(md, "use_falloff_uniform")
 
         if ob.mode == 'EDIT':
-            layout.separator()
-            row = layout.row()
+            row = col.row(align=True)
+            row.operator("object.hook_reset", text="Reset")
+            row.operator("object.hook_recenter", text="Recenter")
+
+            row = layout.row(align=True)
             row.operator("object.hook_select", text="Select")
             row.operator("object.hook_assign", text="Assign")
 

@@ -519,6 +519,20 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
+	if (!DNA_struct_elem_find(fd->filesdna, "HookModifierData", "char", "flag")) {
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Hook) {
+					HookModifierData *hmd = (HookModifierData *)md;
+					hmd->falloff_type = eHook_Falloff_InvSquare;
+				}
+			}
+		}
+	}
+
 	if (!MAIN_VERSION_ATLEAST(main, 273, 3)) {
 		ParticleSettings *part;
 		for (part = main->particle.first; part; part = part->id.next) {

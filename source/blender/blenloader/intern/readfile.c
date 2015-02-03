@@ -4840,6 +4840,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 				BLI_endian_switch_int32_array(hmd->indexar, hmd->totindex);
 			}
+
+			hmd->curfalloff = newdataadr(fd, hmd->curfalloff);
+			if (hmd->curfalloff) {
+				direct_link_curvemapping(fd, hmd->curfalloff);
+			}
 		}
 		else if (md->type == eModifierType_ParticleSystem) {
 			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;

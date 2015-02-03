@@ -43,6 +43,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
+#include "BKE_colortools.h"
 
 
 #include "depsgraph_private.h"
@@ -55,6 +56,9 @@ static void initData(ModifierData *md)
 	HookModifierData *hmd = (HookModifierData *) md;
 
 	hmd->force = 1.0;
+	hmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	hmd->falloff_type = eHook_Falloff_Smooth;
+	hmd->flag = 0;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -63,6 +67,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	HookModifierData *thmd = (HookModifierData *) target;
 
 	modifier_copyData_generic(md, target);
+
+	thmd->curfalloff = curvemapping_copy(hmd->curfalloff);
 
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 }
@@ -82,6 +88,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 static void freeData(ModifierData *md)
 {
 	HookModifierData *hmd = (HookModifierData *) md;
+
+	curvemapping_free(hmd->curfalloff);
 
 	if (hmd->indexar) MEM_freeN(hmd->indexar);
 }
@@ -120,32 +128,172 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-static float hook_falloff(const float co_1[3], const float co_2[3], const float falloff_squared, float fac)
+struct HookData_cb {
+	float (*vertexCos)[3];
+
+	MDeformVert *dvert;
+	int defgrp_index;
+
+	struct CurveMapping *curfalloff;
+
+	char  falloff_type;
+	float falloff;
+	float falloff_sq;
+	float fac_orig;
+
+	unsigned int use_falloff        : 1;
+	unsigned int use_uniform        : 1;
+
+	float cent[3];
+
+	float mat_uniform[3][3];
+	float mat[4][4];
+};
+
+static float hook_falloff(
+        const struct HookData_cb *hd,
+        const float len_sq)
 {
-	if (falloff_squared) {
-		float len_squared = len_squared_v3v3(co_1, co_2);
-		if (len_squared > falloff_squared) {
-			return 0.0f;
+	BLI_assert(hd->falloff_sq);
+	if (len_sq > hd->falloff_sq) {
+		return 0.0f;
+	}
+	else if (len_sq > 0.0f) {
+		float fac;
+
+		if (hd->falloff_type == eHook_Falloff_Const) {
+			fac = 1.0f;
+			goto finally;
 		}
-		else if (len_squared > 0.0f) {
-			return fac * (1.0f - (len_squared / falloff_squared));
+		else if (hd->falloff_type == eHook_Falloff_InvSquare) {
+			/* avoid sqrt below */
+			fac = 1.0f - (len_sq / hd->falloff_sq);
+			goto finally;
 		}
+
+		fac = 1.0f - (sqrtf(len_sq) / hd->falloff);
+
+		/* closely match PROP_SMOOTH and similar */
+		switch (hd->falloff_type) {
+#if 0
+			case eHook_Falloff_None:
+				fac = 1.0f;
+				break;
+#endif
+			case eHook_Falloff_Curve:
+				fac = curvemapping_evaluateF(hd->curfalloff, 0, fac);
+				break;
+			case eHook_Falloff_Sharp:
+				fac = fac * fac;
+				break;
+			case eHook_Falloff_Smooth:
+				fac = 3.0f * fac * fac - 2.0f * fac * fac * fac;
+				break;
+			case eHook_Falloff_Root:
+				fac = sqrtf(fac);
+				break;
+			case eHook_Falloff_Linear:
+				/* pass */
+				break;
+#if 0
+			case eHook_Falloff_Const:
+				fac = 1.0f;
+				break;
+#endif
+			case eHook_Falloff_Sphere:
+				fac = sqrtf(2 * fac - fac * fac);
+				break;
+#if 0
+			case eHook_Falloff_InvSquare:
+				fac = fac * (2.0f - fac);
+				break;
+#endif
+		}
+
+finally:
+		return fac * hd->fac_orig;
+	}
+	else {
+		return hd->fac_orig;
+	}
+}
+
+static void hook_co_apply(struct HookData_cb *hd, const int j)
+{
+	float *co = hd->vertexCos[j];
+	float fac;
+
+	if (hd->use_falloff) {
+		float len_sq;
+
+		if (hd->use_uniform) {
+			float co_uniform[3];
+			mul_v3_m3v3(co_uniform, hd->mat_uniform, co);
+			len_sq = len_squared_v3v3(hd->cent, co_uniform);
+		}
+		else {
+			len_sq = len_squared_v3v3(hd->cent, co);
+		}
+
+		fac = hook_falloff(hd, len_sq);
+	}
+	else {
+		fac = hd->fac_orig;
 	}
 
-	return fac;
+	if (fac) {
+		if (hd->dvert) {
+			fac *= defvert_find_weight(&hd->dvert[j], hd->defgrp_index);
+		}
+
+		if (fac) {
+			float co_tmp[3];
+			mul_v3_m4v3(co_tmp, hd->mat, co);
+			interp_v3_v3v3(co, co, co_tmp, fac);
+		}
+	}
 }
 
 static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
                            float (*vertexCos)[3], int numVerts)
 {
 	bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
-	float vec[3], mat[4][4], dmat[4][4];
+	float dmat[4][4];
 	int i, *index_pt;
-	const float falloff_squared = hmd->falloff * hmd->falloff; /* for faster comparisons */
+	struct HookData_cb hd;
 	
-	MDeformVert *dvert;
-	int defgrp_index, max_dvert;
-	
+	if (hmd->curfalloff == NULL) {
+		/* should never happen, but bad lib linking could cause it */
+		hmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	}
+
+	if (hmd->curfalloff) {
+		curvemapping_initialize(hmd->curfalloff);
+	}
+
+	/* Generic data needed for applying per-vertex calculations (initialize all members) */
+	hd.vertexCos = vertexCos;
+	modifier_get_vgroup(ob, dm, hmd->name, &hd.dvert, &hd.defgrp_index);
+
+	hd.curfalloff = hmd->curfalloff;
+
+	hd.falloff_type = hmd->falloff_type;
+	hd.falloff = (hmd->falloff_type == eHook_Falloff_None) ? 0.0f : hmd->falloff;
+	hd.falloff_sq = SQUARE(hd.falloff);
+	hd.fac_orig = hmd->force;
+
+	hd.use_falloff = (hd.falloff_sq != 0.0f);
+	hd.use_uniform = (hmd->flag & MOD_HOOK_UNIFORM_SPACE) != 0;
+
+	if (hd.use_uniform) {
+		copy_m3_m4(hd.mat_uniform, hmd->parentinv);
+		mul_v3_m3v3(hd.cent, hd.mat_uniform, hmd->cent);
+	}
+	else {
+		unit_m3(hd.mat_uniform);  /* unused */
+		copy_v3_v3(hd.cent, hmd->cent);
+	}
+
 	/* get world-space matrix of target, corrected for the space the verts are in */
 	if (hmd->subtarget[0] && pchan) {
 		/* bone target if there's a matching pose-channel */
@@ -156,10 +304,9 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 		copy_m4_m4(dmat, hmd->object->obmat);
 	}
 	invert_m4_m4(ob->imat, ob->obmat);
-	mul_m4_series(mat, ob->imat, dmat, hmd->parentinv);
+	mul_m4_series(hd.mat, ob->imat, dmat, hmd->parentinv);
+	/* --- done with 'hd' init --- */
 
-	modifier_get_vgroup(ob, dm, hmd->name, &dvert, &defgrp_index);
-	max_dvert = (dvert) ? numVerts : 0;
 
 	/* Regarding index range checking below.
 	 *
@@ -168,13 +315,11 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 	 * indices that are out of range because old blender did
 	 * not correct them on exit editmode. - zr
 	 */
-	
+
 	if (hmd->force == 0.0f) {
 		/* do nothing, avoid annoying checks in the loop */
 	}
 	else if (hmd->indexar) { /* vertex indices? */
-		const float fac_orig = hmd->force;
-		float fac;
 		const int *origindex_ar;
 		
 		/* if DerivedMesh is present and has original index data, use it */
@@ -185,16 +330,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 					
 					for (j = 0; j < numVerts; j++) {
 						if (origindex_ar[j] == *index_pt) {
-							float *co = vertexCos[j];
-							if ((fac = hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
-								if (dvert)
-									fac *= defvert_find_weight(dvert + j, defgrp_index);
-								
-								if (fac) {
-									mul_v3_m4v3(vec, mat, co);
-									interp_v3_v3v3(co, co, vec, fac);
-								}
-							}
+							hook_co_apply(&hd, j);
 						}
 					}
 				}
@@ -203,34 +339,14 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 		else { /* missing dm or ORIGINDEX */
 			for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
 				if (*index_pt < numVerts) {
-					float *co = vertexCos[*index_pt];
-					if ((fac = hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
-						if (dvert)
-							fac *= defvert_find_weight(dvert + (*index_pt), defgrp_index);
-						
-						if (fac) {
-							mul_v3_m4v3(vec, mat, co);
-							interp_v3_v3v3(co, co, vec, fac);
-						}
-					}
+					hook_co_apply(&hd, *index_pt);
 				}
 			}
 		}
 	}
-	else if (dvert) {  /* vertex group hook */
-		const float fac_orig = hmd->force;
-		
-		for (i = 0; i < max_dvert; i++, dvert++) {
-			float fac;
-			float *co = vertexCos[i];
-			
-			if ((fac = hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
-				fac *= defvert_find_weight(dvert, defgrp_index);
-				if (fac) {
-					mul_v3_m4v3(vec, mat, co);
-					interp_v3_v3v3(co, co, vec, fac);
-				}
-			}
+	else if (hd.dvert) {  /* vertex group hook */
+		for (i = 0; i < numVerts; i++) {
+			hook_co_apply(&hd, i);
 		}
 	}
 }
