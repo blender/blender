@@ -47,7 +47,8 @@ static bNodeSocketTemplate cmp_node_planetrackdeform_out[] = {
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodePlaneTrackDeformData *data = MEM_callocN(sizeof(NodePlaneTrackDeformData), "node plane track deform data");
-
+	data->motion_blur_samples = 16;
+	data->motion_blur_shutter = 0.5f;
 	node->storage = data;
 }
 

@@ -33,43 +33,68 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#define PLANE_DISTORT_MAX_SAMPLES 64
 
 class PlaneDistortWarpImageOperation : public NodeOperation {
 protected:
+	struct MotionSample {
+		float frameSpaceCorners[4][2];  /* Corners coordinates in pixel space. */
+		float perspectiveMatrix[3][3];
+	};
 	SocketReader *m_pixelReader;
-	float m_frameSpaceCorners[4][2];  /* Corners coordinates in pixel space. */
-	float m_perspectiveMatrix[3][3];
+	MotionSample m_samples[PLANE_DISTORT_MAX_SAMPLES];
+	int m_motion_blur_samples;
+	float m_motion_blur_shutter;
 
 public:
 	PlaneDistortWarpImageOperation();
 
-	void calculateCorners(const float corners[4][2], bool normalized);
-	void calculatePerspectiveMatrix();
+	void calculateCorners(const float corners[4][2],
+	                      bool normalized,
+	                      int sample);
 
 	void initExecution();
 	void deinitExecution();
 
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-	void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2]);
 
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+
+	void setMotionBlurSamples(int samples) {
+		BLI_assert(samples <= PLANE_DISTORT_MAX_SAMPLES);
+		this->m_motion_blur_samples = samples;
+	}
+	void setMotionBlurShutter(float shutter) { this->m_motion_blur_shutter = shutter; }
 };
 
 
 class PlaneDistortMaskOperation : public NodeOperation {
 protected:
+	struct MotionSample {
+		float frameSpaceCorners[4][2];  /* Corners coordinates in pixel space. */
+	};
 	int m_osa;
+	MotionSample m_samples[PLANE_DISTORT_MAX_SAMPLES];
 	float m_jitter[32][2];
-	float m_frameSpaceCorners[4][2];  /* Corners coordinates in pixel space. */
+	int m_motion_blur_samples;
+	float m_motion_blur_shutter;
 
 public:
 	PlaneDistortMaskOperation();
 	
-	void calculateCorners(const float corners[4][2], bool normalized);
+	void calculateCorners(const float corners[4][2],
+	                      bool normalized,
+	                      int sample);
 	
 	void initExecution();
 	
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+
+	void setMotionBlurSamples(int samples) {
+		BLI_assert(samples <= PLANE_DISTORT_MAX_SAMPLES);
+		this->m_motion_blur_samples = samples;
+	}
+	void setMotionBlurShutter(float shutter) { this->m_motion_blur_shutter = shutter; }
 };
 
 #endif

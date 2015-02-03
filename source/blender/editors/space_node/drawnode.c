@@ -2314,6 +2314,7 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
+	NodePlaneTrackDeformData *data = node->storage;
 
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 
@@ -2341,6 +2342,12 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
 		else {
 			uiItemR(layout, ptr, "plane_track_name", 0, "", ICON_ANIM_DATA);
 		}
+	}
+
+	uiItemR(layout, ptr, "use_motion_blur", 0, NULL, ICON_NONE);
+	if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
+		uiItemR(layout, ptr, "motion_blur_samples", 0, NULL, ICON_NONE);
+		uiItemR(layout, ptr, "motion_blur_shutter", 0, NULL, ICON_NONE);
 	}
 }
 

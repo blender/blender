@@ -825,6 +825,10 @@ typedef struct NodeTranslateData {
 typedef struct NodePlaneTrackDeformData {
 	char tracking_object[64];
 	char plane_track_name[64];
+	char flag;
+	char motion_blur_samples;
+	char pad[2];
+	float motion_blur_shutter;
 } NodePlaneTrackDeformData;
 
 typedef struct NodeShaderScript {
@@ -1079,5 +1083,12 @@ enum {
 
 /* viewer and cmposite output */
 #define CMP_NODE_OUTPUT_IGNORE_ALPHA		1
+
+/* Plane track deform node */
+enum {
+	CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR = 1,
+};
+
+#define CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX 64
 
 #endif

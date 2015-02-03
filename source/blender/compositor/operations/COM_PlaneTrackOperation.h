@@ -43,7 +43,7 @@ protected:
 	/* note: this class is not an operation itself (to prevent virtual inheritance issues)
 	 * implementation classes must make wrappers to use these methods, see below.
 	 */
-	void readCornersFromTrack(float corners[4][2]);
+	void readCornersFromTrack(float corners[4][2], float frame);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 public:

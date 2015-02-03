@@ -54,6 +54,10 @@ void PlaneTrackDeformNode::convertToOperations(NodeConverter &converter, const C
 	warp_image_operation->setTrackingObject(data->tracking_object);
 	warp_image_operation->setPlaneTrackName(data->plane_track_name);
 	warp_image_operation->setFramenumber(frame_number);
+	if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
+		warp_image_operation->setMotionBlurSamples(data->motion_blur_samples);
+		warp_image_operation->setMotionBlurShutter(data->motion_blur_shutter);
+	}
 	converter.addOperation(warp_image_operation);
 	
 	converter.mapInputSocket(input_image, warp_image_operation->getInputSocket(0));
@@ -64,6 +68,10 @@ void PlaneTrackDeformNode::convertToOperations(NodeConverter &converter, const C
 	plane_mask_operation->setTrackingObject(data->tracking_object);
 	plane_mask_operation->setPlaneTrackName(data->plane_track_name);
 	plane_mask_operation->setFramenumber(frame_number);
+	if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
+		plane_mask_operation->setMotionBlurSamples(data->motion_blur_samples);
+		plane_mask_operation->setMotionBlurShutter(data->motion_blur_shutter);
+	}
 	converter.addOperation(plane_mask_operation);
 	
 	converter.mapOutputSocket(output_plane, plane_mask_operation->getOutputSocket());

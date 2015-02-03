@@ -542,4 +542,21 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				part->child_flag |= PART_CHILD_USE_ROUGH_CURVE;
 		}
 	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "NodePlaneTrackDeformData", "char", "flag")) {
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				bNode *node;
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (ELEM(node->type, CMP_NODE_PLANETRACKDEFORM)) {
+						NodePlaneTrackDeformData *data = node->storage;
+						data->flag = 0;
+						data->motion_blur_samples = 16;
+						data->motion_blur_shutter = 0.5f;
+					}
+				}
+			}
+		}
+		FOREACH_NODETREE_END
+	}
 }

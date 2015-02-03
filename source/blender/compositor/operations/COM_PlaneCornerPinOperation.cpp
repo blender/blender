@@ -135,7 +135,7 @@ void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
 		                             getInputSocketReader(3) };
 		float corners[4][2];
 		readCornersFromSockets(rect, readers, corners);
-		calculateCorners(corners, true);
+		calculateCorners(corners, true, 0);
 		
 		m_corners_ready = true;
 	}
@@ -194,8 +194,7 @@ void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
 		                             getInputSocketReader(4) };
 		float corners[4][2];
 		readCornersFromSockets(rect, readers, corners);
-		calculateCorners(corners, true);
-		calculatePerspectiveMatrix();
+		calculateCorners(corners, true, 0);
 		
 		m_corners_ready = true;
 	}
