@@ -591,7 +591,7 @@ void GHOST_WindowX11::initXInputDevices()
 			if (xtablet.EraserDevice) {
 				DeviceMotionNotify(xtablet.EraserDevice, xtablet.MotionEvent, ev);
 				if (ev) xevents[dcount++] = ev;
-				DeviceButton1Motion(xtablet.StylusDevice, xtablet.MotionEvent, ev);
+				DeviceButton1Motion(xtablet.EraserDevice, xtablet.MotionEvent, ev);
 				if (ev) xevents[dcount++] = ev;
 				ProximityIn(xtablet.EraserDevice, xtablet.ProxInEvent, ev);
 				if (ev) xevents[dcount++] = ev;
