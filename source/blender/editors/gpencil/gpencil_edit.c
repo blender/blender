@@ -100,7 +100,8 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ID *screen_id, Scene *scene, ScrAr
 		
 		switch (sa->spacetype) {
 			case SPACE_VIEW3D: /* 3D-View */
-			case SPACE_TIME: /* Timeline - XXX: this is a hack to get it to show GP keyframes for 3D view */
+			case SPACE_TIME:   /* Timeline - XXX: this is a hack to get it to show GP keyframes for 3D view */
+			case SPACE_ACTION: /* DepeSheet - XXX: this is a hack to get the keyframe jump operator to take GP Keyframes into account */
 			{
 				BLI_assert(scene && ELEM(scene->toolsettings->gpencil_src,
 				                         GP_TOOL_SOURCE_SCENE, GP_TOOL_SOURCE_OBJECT));
