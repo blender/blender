@@ -1833,13 +1833,13 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				glRotatef(RAD2DEGF(-bgpic->rotation), 0.0f, 0.0f, 1.0f);
 			}
 
-			if(bgpic->flag & V3D_BGPIC_FLIP_V) {
-				zoomy *= -1.0f;
-				y1 = y2;
-			}
-			if(bgpic->flag & V3D_BGPIC_FLIP_H) {
+			if(bgpic->flag & V3D_BGPIC_FLIP_X) {
 				zoomx *= -1.0f;
 				x1 = x2;
+			}
+			if(bgpic->flag & V3D_BGPIC_FLIP_Y) {
+				zoomy *= -1.0f;
+				y1 = y2;
 			}
 			glPixelZoom(zoomx, zoomy);
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f - bgpic->blend);

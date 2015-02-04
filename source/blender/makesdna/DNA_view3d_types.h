@@ -344,8 +344,8 @@ enum {
 	V3D_BGPIC_CAMERA_CROP   = (1 << 6),  /* crop out the image */
 
 	/* Axis flip options */
-	V3D_BGPIC_FLIP_H        = (1 << 7),
-	V3D_BGPIC_FLIP_V        = (1 << 8)
+	V3D_BGPIC_FLIP_X        = (1 << 7),
+	V3D_BGPIC_FLIP_Y        = (1 << 8),
 };
 
 #define V3D_BGPIC_EXPANDED (V3D_BGPIC_EXPANDED | V3D_BGPIC_CAMERACLIP)

@@ -1706,13 +1706,13 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation for the background image");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "flip_h", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_FLIP_H);
+	prop = RNA_def_property(srna, "use_flip_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_FLIP_X);
 	RNA_def_property_ui_text(prop, "Flip Horizontally", "Flip the background image horizontally");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "flip_v", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_FLIP_V);
+	prop = RNA_def_property(srna, "use_flip_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_FLIP_Y);
 	RNA_def_property_ui_text(prop, "Flip Vertically", "Flip the background image vertically");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 

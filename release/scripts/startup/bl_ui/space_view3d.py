@@ -3183,8 +3183,8 @@ class VIEW3D_PT_background_image(Panel):
                     row.prop(bg, "offset_y", text="Y")
 
                     row = box.row()
-                    row.prop(bg, "flip_h")
-                    row.prop(bg, "flip_v")
+                    row.prop(bg, "use_flip_x")
+                    row.prop(bg, "use_flip_y")
 
                     row = box.row()
                     if bg.view_axis != 'CAMERA':
