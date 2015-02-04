@@ -211,8 +211,9 @@ ccl_device_inline void triangle_intersect_subsurface(
 
 	/* Calculate vertices relative to ray origin. */
 	float3 tri[3];
-	int prim = kernel_tex_fetch(__prim_index, triAddr);
-	triangle_vertices(kg, prim, tri);
+	tri[0] = float4_to_float3(kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0));
+	tri[1] = float4_to_float3(kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+1));
+	tri[2] = float4_to_float3(kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+2));
 
 	const float3 A = tri[0] - P;
 	const float3 B = tri[1] - P;
@@ -389,8 +390,9 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 	P = P + D*t;
 
 	float3 tri[3];
-	int prim = kernel_tex_fetch(__prim_index, isect->prim);
-	triangle_vertices(kg, prim, tri);
+	tri[0] = float4_to_float3(kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+0));
+	tri[1] = float4_to_float3(kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+1));
+	tri[2] = float4_to_float3(kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+2));
 
 	float3 edge1 = tri[0] - tri[2];
 	float3 edge2 = tri[1] - tri[2];
