@@ -2107,6 +2107,14 @@ void BKE_image_path_from_imtype(
 	image_path_makepicstring(string, base, relbase, frame, imtype, NULL, use_ext, use_frames);
 }
 
+struct anim *openanim_noload(const char *name, int flags, int streamindex, char colorspace[IMA_MAX_SPACE])
+{
+	struct anim *anim;
+
+	anim = IMB_open_anim(name, flags, streamindex, colorspace);
+	return anim;
+}
+
 /* used by sequencer too */
 struct anim *openanim(const char *name, int flags, int streamindex, char colorspace[IMA_MAX_SPACE])
 {
