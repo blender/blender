@@ -64,7 +64,9 @@ public:
 		BLI_assert(samples <= PLANE_DISTORT_MAX_SAMPLES);
 		this->m_motion_blur_samples = samples;
 	}
-	void setMotionBlurShutter(float shutter) { this->m_motion_blur_shutter = shutter; }
+	void setMotionBlurShutter(float shutter) {
+		this->m_motion_blur_shutter = shutter;
+	}
 };
 
 
@@ -81,20 +83,22 @@ protected:
 
 public:
 	PlaneDistortMaskOperation();
-	
+
 	void calculateCorners(const float corners[4][2],
 	                      bool normalized,
 	                      int sample);
-	
+
 	void initExecution();
-	
+
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
 	void setMotionBlurSamples(int samples) {
 		BLI_assert(samples <= PLANE_DISTORT_MAX_SAMPLES);
 		this->m_motion_blur_samples = samples;
 	}
-	void setMotionBlurShutter(float shutter) { this->m_motion_blur_shutter = shutter; }
+	void setMotionBlurShutter(float shutter) {
+		this->m_motion_blur_shutter = shutter;
+	}
 };
 
 #endif

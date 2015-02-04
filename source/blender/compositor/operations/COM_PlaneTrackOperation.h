@@ -68,7 +68,7 @@ public:
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 	{
 		PlaneTrackCommon::determineResolution(resolution, preferredResolution);
-		
+
 		unsigned int temp[2];
 		NodeOperation::determineResolution(temp, resolution);
 	}
@@ -81,13 +81,12 @@ public:
 	    PlaneDistortWarpImageOperation(),
 	    PlaneTrackCommon()
 	{}
-	
+
 	void initExecution();
-	
+
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 	{
 		PlaneTrackCommon::determineResolution(resolution, preferredResolution);
-		
 		unsigned int temp[2];
 		NodeOperation::determineResolution(temp, resolution);
 	}

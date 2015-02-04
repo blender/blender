@@ -53,15 +53,13 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
 
 	if (!this->m_movieClip)
 		return;
-	
+
 	tracking = &this->m_movieClip->tracking;
-	
+
 	object = BKE_tracking_object_get_named(tracking, this->m_trackingObjectName);
 	if (object) {
 		MovieTrackingPlaneTrack *plane_track;
-		
 		plane_track = BKE_tracking_plane_track_get_named(tracking, object, this->m_planeTrackName);
-		
 		if (plane_track) {
 			MovieTrackingPlaneMarker *plane_marker;
 			float clip_framenr =
@@ -79,14 +77,12 @@ void PlaneTrackCommon::determineResolution(unsigned int resolution[2], unsigned 
 {
 	resolution[0] = 0;
 	resolution[1] = 0;
-	
+
 	if (this->m_movieClip) {
 		int width, height;
 		MovieClipUser user = {0};
-		
 		BKE_movieclip_user_set_frame(&user, this->m_framenumber);
 		BKE_movieclip_get_size(this->m_movieClip, &user, &width, &height);
-		
 		resolution[0] = width;
 		resolution[1] = height;
 	}
