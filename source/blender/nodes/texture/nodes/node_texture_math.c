@@ -195,6 +195,10 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 	}
+
+	if (node->custom2 & SHD_MATH_CLAMP) {
+		CLAMP(*out, 0.0f, 1.0f);
+	}
 }
 
 static void exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out)
