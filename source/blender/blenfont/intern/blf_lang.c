@@ -211,11 +211,14 @@ void BLF_lang_init(void)
 	const char *lang = getenv("LANG");
 	if(lang != NULL) {
 		char *old_locale = setlocale(LC_ALL, NULL);
+		/* Make a copy so subsequenct setlocale() doesn't interfere. */
+		old_locale = BLI_strdup(old_locale);
 		if (setlocale(LC_ALL, lang) == NULL) {
 			setenv("LANG", "C", 1);
 			printf("Warning: Falling back to the standard locale (\"C\")\n");
 		}
 		setlocale(LC_ALL, old_locale);
+		MEM_freeN(old_locale);
 	}
 #endif
 
