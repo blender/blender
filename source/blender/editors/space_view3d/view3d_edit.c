@@ -5004,8 +5004,9 @@ BGpic *ED_view3D_background_image_new(View3D *v3d)
 {
 	BGpic *bgpic = MEM_callocN(sizeof(BGpic), "Background Image");
 
-	bgpic->size = 5.0;
-	bgpic->blend = 0.5;
+	bgpic->rotation = 0.0f;
+	bgpic->size = 5.0f;
+	bgpic->blend = 0.5f;
 	bgpic->iuser.fie_ima = 2;
 	bgpic->iuser.ok = 1;
 	bgpic->view = 0; /* 0 for all */

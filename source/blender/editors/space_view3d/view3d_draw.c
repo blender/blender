@@ -1615,7 +1615,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 		{
 			float image_aspect[2];
 			float fac, asp, zoomx, zoomy;
-			float x1, y1, x2, y2;
+			float x1, y1, x2, y2, centx, centy;
 
 			ImBuf *ibuf = NULL, *freeibuf, *releaseibuf;
 			void *lock;
@@ -1721,6 +1721,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					y2 += yof_scale;
 				}
 
+				centx = (x1 + x2) / 2.0f;
+				centy = (y1 + y2) / 2.0f;
+
 				/* aspect correction */
 				if (bgpic->flag & V3D_BGPIC_CAMERA_ASPECT) {
 					/* apply aspect from clip */
@@ -1738,16 +1741,14 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 						if ((asp_src > asp_dst) == ((bgpic->flag & V3D_BGPIC_CAMERA_CROP) != 0)) {
 							/* fit X */
 							const float div = asp_src / asp_dst;
-							const float cent = (x1 + x2) / 2.0f;
-							x1 = ((x1 - cent) * div) + cent;
-							x2 = ((x2 - cent) * div) + cent;
+							x1 = ((x1 - centx) * div) + centx;
+							x2 = ((x2 - centx) * div) + centx;
 						}
 						else {
 							/* fit Y */
 							const float div = asp_dst / asp_src;
-							const float cent = (y1 + y2) / 2.0f;
-							y1 = ((y1 - cent) * div) + cent;
-							y2 = ((y2 - cent) * div) + cent;
+							y1 = ((y1 - centy) * div) + centy;
+							y2 = ((y2 - centy) * div) + centy;
 						}
 					}
 				}
@@ -1774,6 +1775,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				y1 =  sco[1] + asp * fac * (bgpic->yof - bgpic->size);
 				x2 =  sco[0] + fac * (bgpic->xof + bgpic->size);
 				y2 =  sco[1] + asp * fac * (bgpic->yof + bgpic->size);
+
+				centx = (x1 + x2) / 2.0f;
+				centy = (y1 + y2) / 2.0f;
 			}
 
 			/* complete clip? */
@@ -1824,6 +1828,19 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			glPushMatrix();
 			ED_region_pixelspace(ar);
 
+			glTranslatef(centx, centy, 0.0);
+			if(rv3d->persp != RV3D_CAMOB) {
+				glRotatef(RAD2DEGF(-bgpic->rotation), 0.0f, 0.0f, 1.0f);
+			}
+
+			if(bgpic->flag & V3D_BGPIC_FLIP_V) {
+				zoomy *= -1.0f;
+				y1 = y2;
+			}
+			if(bgpic->flag & V3D_BGPIC_FLIP_H) {
+				zoomx *= -1.0f;
+				x1 = x2;
+			}
 			glPixelZoom(zoomx, zoomy);
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f - bgpic->blend);
 
@@ -1831,7 +1848,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			 * glaDrawPixelsSafe in some cases, which will end up in missing
 			 * alpha transparency for the background image (sergey)
 			 */
-			glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect);
+			glaDrawPixelsTex(x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect);
 
 			glPixelZoom(1.0, 1.0);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);

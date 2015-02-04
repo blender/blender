@@ -3177,12 +3177,19 @@ class VIEW3D_PT_background_image(Panel):
                     if bg.view_axis in {'CAMERA', 'ALL'}:
                         col.row().prop(bg, "frame_method", expand=True)
 
-                    row = col.row(align=True)
+                    box = col.box()
+                    row = box.row()
                     row.prop(bg, "offset_x", text="X")
                     row.prop(bg, "offset_y", text="Y")
 
+                    row = box.row()
+                    row.prop(bg, "flip_h")
+                    row.prop(bg, "flip_v")
+
+                    row = box.row()
                     if bg.view_axis != 'CAMERA':
-                        col.prop(bg, "size")
+                         row.prop(bg, "rotation")
+                         row.prop(bg, "size")
 
 
 class VIEW3D_PT_transform_orientations(Panel):
