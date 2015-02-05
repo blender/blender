@@ -106,15 +106,14 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 			const int old_size = BKE_brush_size_get(scene, brush);
 			int size = (int)(scalar * old_size);
 
-			if (old_size == size) {
+			if (fabs(old_size - size) < U.pixelsize) {
 				if (scalar > 1) {
-					size++;
+					size += U.pixelsize;
 				}
 				else if (scalar < 1) {
-					size--;
+					size -= U.pixelsize;
 				}
 			}
-			CLAMP(size, 1, MAX_BRUSH_PIXEL_RADIUS); // XXX magic number, same as max for RNA
 
 			BKE_brush_size_set(scene, brush, size);
 		}
