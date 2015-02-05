@@ -3198,24 +3198,24 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "object_from", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object_src");
-	RNA_def_property_ui_text(prop, "Target", "Object defining offset");
+	RNA_def_property_ui_text(prop, "Object From", "Object defining offset");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop = RNA_def_property(srna, "bone_from", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "bone_src");
-	RNA_def_property_ui_text(prop, "Sub-Target", "Bone defining offset");
+	RNA_def_property_ui_text(prop, "Bone From", "Bone defining offset");
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop = RNA_def_property(srna, "object_to", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object_dst");
-	RNA_def_property_ui_text(prop, "Target", "Object defining offset");
+	RNA_def_property_ui_text(prop, "Object To", "Object defining offset");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop = RNA_def_property(srna, "bone_to", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "bone_dst");
-	RNA_def_property_ui_text(prop, "Sub-Target", "Bone defining offset");
+	RNA_def_property_ui_text(prop, "Bone To", "Bone defining offset");
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
