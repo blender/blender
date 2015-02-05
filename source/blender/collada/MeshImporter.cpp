@@ -818,7 +818,7 @@ void MeshImporter::bmeshConversion()
 			Mesh *me = (*m).second;
 			BKE_mesh_tessface_clear(me);
 			BKE_mesh_calc_normals(me);
-			//BKE_mesh_validate(me, 1);
+			/* BKE_mesh_validate(me, true, true); */
 		}
 	}
 }

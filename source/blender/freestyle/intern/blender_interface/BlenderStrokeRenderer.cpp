@@ -918,7 +918,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 	BLI_assert(mesh->totedge == edge_index);
 	BLI_assert(mesh->totloop == loop_index);
 	BLI_assert(mesh->totcol == material_index);
-	BKE_mesh_validate(mesh, true);
+	BKE_mesh_validate(mesh, true, true);
 #endif
 }
 

@@ -287,7 +287,7 @@ void BKE_mesh_calc_relative_deform(
 
 /* *** mesh_validate.c *** */
 
-int BKE_mesh_validate(struct Mesh *me, const int do_verbose);
+int BKE_mesh_validate(struct Mesh *me, const int do_verbose, const int cddata_check_mask);
 void BKE_mesh_cd_validate(struct Mesh *me);
 int BKE_mesh_validate_material_indices(struct Mesh *me);
 

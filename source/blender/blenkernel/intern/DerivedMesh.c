@@ -3485,7 +3485,7 @@ bool DM_is_valid(DerivedMesh *dm)
 	        dm->getEdgeDataLayout(dm),
 	        dm->getLoopDataLayout(dm),
 	        dm->getPolyDataLayout(dm),
-	        0,  /* setting mask here isn't useful, gives false positives */
+	        false,  /* setting mask here isn't useful, gives false positives */
 	        do_verbose, do_fixes, &changed);
 
 	is_valid &= BKE_mesh_validate_arrays(

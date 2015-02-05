@@ -963,7 +963,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
  *
  * \returns true if a change is made.
  */
-int BKE_mesh_validate(Mesh *me, const int do_verbose)
+int BKE_mesh_validate(Mesh *me, const int do_verbose, const int cddata_check_mask)
 {
 	bool is_valid = true;
 	bool changed;
@@ -974,7 +974,7 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose)
 
 	is_valid &= BKE_mesh_validate_all_customdata(
 	        &me->vdata, &me->edata, &me->ldata, &me->pdata,
-	        true,
+	        cddata_check_mask,
 	        do_verbose, true,
 	        &changed);
 
