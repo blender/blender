@@ -980,9 +980,11 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 
 	int stack_index = 0, enclosed_index = 0;
 	int enclosed_volumes[VOLUME_STACK_SIZE];
+	int step = 0;
 
 	while(stack_index < VOLUME_STACK_SIZE - 1 &&
-	      enclosed_index < VOLUME_STACK_SIZE - 1)
+	      enclosed_index < VOLUME_STACK_SIZE - 1 &&
+	      step < 2 * VOLUME_STACK_SIZE)
 	{
 		Intersection isect;
 		if(!scene_intersect_volume(kg, &volume_ray, &isect)) {
@@ -1017,6 +1019,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 
 		/* Move ray forward. */
 		volume_ray.P = ray_offset(sd.P, -sd.Ng);
+		++step;
 	}
 	/* stack_index of 0 means quick checks outside of the kernel gave false
 	 * positive, nothing to worry about, just we've wasted quite a few of
