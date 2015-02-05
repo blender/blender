@@ -4255,7 +4255,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 		BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
 		                               (ss->cache->radius /
 		                                (float)ups->pixel_radius) *
-		                               (float)sd->detail_size / 0.4f);
+		                               (float)(sd->detail_size * U.pixelsize)/ 0.4f);
 	}
 
 	if (sculpt_stroke_dynamic_topology(ss, brush)) {
