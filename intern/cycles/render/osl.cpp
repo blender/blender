@@ -264,8 +264,8 @@ bool OSLShaderManager::osl_compile(const string& inputfile, const string& output
 	options.push_back(outputfile);
 
 	/* specify standard include path */
-	options.push_back("-I");
-	options.push_back(shader_path);
+	string include_path_arg = string("-I") + shader_path;
+	options.push_back(include_path_arg);
 
 	stdosl_path = path_get("shader/stdosl.h");
 
