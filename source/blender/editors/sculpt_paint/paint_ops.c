@@ -114,7 +114,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 					size--;
 				}
 			}
-			CLAMP(size, 1, 2000); // XXX magic number
+			CLAMP(size, 1, MAX_BRUSH_PIXEL_RADIUS); // XXX magic number, same as max for RNA
 
 			BKE_brush_size_set(scene, brush, size);
 		}
@@ -128,6 +128,8 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 
 			BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);
 		}
+
+		WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 	}
 
 	return OPERATOR_FINISHED;
