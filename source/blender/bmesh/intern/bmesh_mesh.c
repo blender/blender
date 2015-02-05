@@ -34,10 +34,12 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_stack.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_multires.h"
 
 #include "intern/bmesh_private.h"
@@ -438,7 +440,8 @@ void BM_verts_calc_normal_vcos(BMesh *bm, const float (*fnos)[3], const float (*
 static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], float split_angle,
                                     float (*r_lnos)[3])
 {
-	BMIter eiter;
+	BMIter eiter, viter;
+	BMVert *v;
 	BMEdge *e;
 	int i;
 
@@ -450,13 +453,16 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const flo
 
 	{
 		char htype = BM_LOOP;
-		if (vnos) {
-			htype |= BM_VERT;
-		}
 		if (fnos) {
 			htype |= BM_FACE;
 		}
 		BM_mesh_elem_index_ensure(bm, htype);
+	}
+
+	/* Clear all vertices' tags (means they are all smooth for now). */
+	BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+		BM_elem_index_set(v, i); /* set_inline */
+		BM_elem_flag_disable(v, BM_ELEM_TAG);
 	}
 
 	/* This first loop checks which edges are actually smooth, and pre-populate lnos with vnos (as if they were
@@ -481,13 +487,13 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const flo
 			 * If the angle between both its polys' normals is below split_angle value,
 			 * and it is tagged as such,
 			 * and both its faces are smooth,
-			 * and both its faces have compatible (non-flipped) normals, i.e. both loops on the same edge do not share
-			 *     the same vertex.
+			 * and both its faces have compatible (non-flipped) normals,
+			 * i.e. both loops on the same edge do not share the same vertex.
 			 */
 			if (is_angle_smooth &&
-			    BM_elem_flag_test_bool(e, BM_ELEM_SMOOTH) &&
-			    BM_elem_flag_test_bool(l_a->f, BM_ELEM_SMOOTH) &&
-			    BM_elem_flag_test_bool(l_b->f, BM_ELEM_SMOOTH) &&
+			    BM_elem_flag_test(e, BM_ELEM_SMOOTH) &&
+			    BM_elem_flag_test(l_a->f, BM_ELEM_SMOOTH) &&
+			    BM_elem_flag_test(l_b->f, BM_ELEM_SMOOTH) &&
 			    l_a->v != l_b->v)
 			{
 				const float *no;
@@ -499,20 +505,40 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const flo
 				no = vnos ? vnos[BM_elem_index_get(l_b->v)] : l_b->v->no;
 				copy_v3_v3(r_lnos[BM_elem_index_get(l_b)], no);
 			}
+			else {
+				/* Sharp edge, tag its verts as such. */
+				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
+			}
+		}
+		else {
+			/* Sharp edge, tag its verts as such. */
+			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+			BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
 		}
 	}
 
-	bm->elem_index_dirty &= ~BM_EDGE;
+	bm->elem_index_dirty &= ~(BM_EDGE | BM_VERT);
 }
 
-/* BMesh version of BKE_mesh_normals_loop_split() in mesh_evaluate.c */
-static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const float (*fnos)[3], float (*r_lnos)[3])
+/* BMesh version of BKE_mesh_normals_loop_split() in mesh_evaluate.c
+ * Will use first clnors_data array, and fallback to cd_loop_clnors_offset (use NULL and -1 to not use clnors). */
+static void bm_mesh_loops_calc_normals(
+        BMesh *bm, const float (*vcos)[3], const float (*fnos)[3], float (*r_lnos)[3],
+        MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], const int cd_loop_clnors_offset)
 {
 	BMIter fiter;
 	BMFace *f_curr;
+	const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
+
+	MLoopNorSpaceArray _lnors_spacearr = {NULL};
 
 	/* Temp normal stack. */
 	BLI_SMALLSTACK_DECLARE(normal, float *);
+	/* Temp clnors stack. */
+	BLI_SMALLSTACK_DECLARE(clnors, short *);
+	/* Temp edge vectors stack, only used when computing lnor spacearr. */
+	BLI_Stack *edge_vectors = NULL;
 
 	{
 		char htype = BM_LOOP;
@@ -525,6 +551,15 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 		BM_mesh_elem_index_ensure(bm, htype);
 	}
 
+	if (!r_lnors_spacearr && has_clnors) {
+		/* We need to compute lnor spacearr if some custom lnor data are given to us! */
+		r_lnors_spacearr = &_lnors_spacearr;
+	}
+	if (r_lnors_spacearr) {
+		BKE_lnor_spacearr_init(r_lnors_spacearr, bm->totloop);
+		edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
+	}
+
 	/* We now know edges that can be smoothed (they are tagged), and edges that will be hard (they aren't).
 	 * Now, time to generate the normals.
 	 */
@@ -533,8 +568,10 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 
 		l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
 		do {
-			if (BM_elem_flag_test_bool(l_curr->e, BM_ELEM_TAG)) {
-				/* A smooth edge.
+			if (BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
+			    (!r_lnors_spacearr || BM_elem_flag_test(l_curr->v, BM_ELEM_TAG)))
+			{
+				/* A smooth edge, and we are not generating lnors_spacearr, or the related vertex is sharp.
 				 * We skip it because it is either:
 				 * - in the middle of a 'smooth fan' already computed (or that will be as soon as we hit
 				 *   one of its ends, i.e. one of its two sharp edges), or...
@@ -542,12 +579,45 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 				 *   are just fine!
 				 */
 			}
-			else if (!BM_elem_flag_test_bool(l_curr->prev->e, BM_ELEM_TAG)) {
+			else if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
+			         !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG))
+			{
 				/* Simple case (both edges around that vertex are sharp in related polygon),
 				 * this vertex just takes its poly normal.
 				 */
+				const int l_curr_index = BM_elem_index_get(l_curr);
 				const float *no = fnos ? fnos[BM_elem_index_get(f_curr)] : f_curr->no;
-				copy_v3_v3(r_lnos[BM_elem_index_get(l_curr)], no);
+				copy_v3_v3(r_lnos[l_curr_index], no);
+
+				/* If needed, generate this (simple!) lnor space. */
+				if (r_lnors_spacearr) {
+					float vec_curr[3], vec_prev[3];
+					MLoopNorSpace *lnor_space = BKE_lnor_space_create(r_lnors_spacearr);
+
+					{
+						const BMVert *v_pivot = l_curr->v;
+						const float *co_pivot = vcos ? vcos[BM_elem_index_get(v_pivot)] : v_pivot->co;
+						const BMVert *v_1 = BM_edge_other_vert(l_curr->e, v_pivot);
+						const float *co_1 = vcos ? vcos[BM_elem_index_get(v_1)] : v_1->co;
+						const BMVert *v_2 = BM_edge_other_vert(l_curr->prev->e, v_pivot);
+						const float *co_2 = vcos ? vcos[BM_elem_index_get(v_2)] : v_2->co;
+
+						sub_v3_v3v3(vec_curr, co_1, co_pivot);
+						normalize_v3(vec_curr);
+						sub_v3_v3v3(vec_prev, co_2, co_pivot);
+						normalize_v3(vec_prev);
+					}
+
+					BKE_lnor_space_define(lnor_space, r_lnos[l_curr_index], vec_curr, vec_prev, NULL);
+					/* We know there is only one loop in this space, no need to create a linklist in this case... */
+					BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, l_curr_index, false);
+
+					if (has_clnors) {
+						short (*clnor)[2] = clnors_data ? &clnors_data[l_curr_index] :
+						                                  BM_ELEM_CD_GET_VOID_P(l_curr, cd_loop_clnors_offset);
+						BKE_lnor_space_custom_data_to_normal(lnor_space, *clnor, r_lnos[l_curr_index]);
+					}
+				}
 			}
 			/* We *do not need* to check/tag loops as already computed!
 			 * Due to the fact a loop only links to one of its two edges, a same fan *will never be walked more than
@@ -567,13 +637,26 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 				 */
 				BMVert *v_pivot = l_curr->v;
 				BMEdge *e_next;
+				const BMEdge *e_org = l_curr->e;
 				BMLoop *lfan_pivot, *lfan_pivot_next;
+				int lfan_pivot_index;
 				float lnor[3] = {0.0f, 0.0f, 0.0f};
-				float vec_curr[3], vec_next[3];
+				float vec_curr[3], vec_next[3], vec_org[3];
+
+				/* We validate clnors data on the fly - cheapest way to do! */
+				int clnors_avg[2] = {0, 0};
+				short (*clnor_ref)[2] = NULL;
+				int clnors_nbr = 0;
+				bool clnors_invalid = false;
 
 				const float *co_pivot = vcos ? vcos[BM_elem_index_get(v_pivot)] : v_pivot->co;
 
+				MLoopNorSpace *lnor_space = r_lnors_spacearr ? BKE_lnor_space_create(r_lnors_spacearr) : NULL;
+
+				BLI_assert((edge_vectors == NULL) || BLI_stack_is_empty(edge_vectors));
+
 				lfan_pivot = l_curr;
+				lfan_pivot_index = BM_elem_index_get(lfan_pivot);
 				e_next = lfan_pivot->e;  /* Current edge here, actually! */
 
 				/* Only need to compute previous edge's vector once, then we can just reuse old current one! */
@@ -581,8 +664,13 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 					const BMVert *v_2 = BM_edge_other_vert(e_next, v_pivot);
 					const float *co_2 = vcos ? vcos[BM_elem_index_get(v_2)] : v_2->co;
 
-					sub_v3_v3v3(vec_curr, co_2, co_pivot);
-					normalize_v3(vec_curr);
+					sub_v3_v3v3(vec_org, co_2, co_pivot);
+					normalize_v3(vec_org);
+					copy_v3_v3(vec_curr, vec_org);
+
+					if (r_lnors_spacearr) {
+						BLI_stack_push(edge_vectors, vec_org);
+					}
 				}
 
 				while (true) {
@@ -617,12 +705,38 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 						const float *no = fnos ? fnos[BM_elem_index_get(f)] : f->no;
 						/* Accumulate */
 						madd_v3_v3fl(lnor, no, fac);
+
+						if (has_clnors) {
+							/* Accumulate all clnors, if they are not all equal we have to fix that! */
+							short (*clnor)[2] = clnors_data ? &clnors_data[lfan_pivot_index] :
+							                                  BM_ELEM_CD_GET_VOID_P(lfan_pivot, cd_loop_clnors_offset);
+							if (clnors_nbr) {
+								clnors_invalid |= ((*clnor_ref)[0] != (*clnor)[0] || (*clnor_ref)[1] != (*clnor)[1]);
+							}
+							else {
+								clnor_ref = clnor;
+							}
+							clnors_avg[0] += (*clnor)[0];
+							clnors_avg[1] += (*clnor)[1];
+							clnors_nbr++;
+							/* We store here a pointer to all custom lnors processed. */
+							BLI_SMALLSTACK_PUSH(clnors, (short *)*clnor);
+						}
 					}
 
 					/* We store here a pointer to all loop-normals processed. */
-					BLI_SMALLSTACK_PUSH(normal, (float *)r_lnos[BM_elem_index_get(lfan_pivot)]);
+					BLI_SMALLSTACK_PUSH(normal, (float *)r_lnos[lfan_pivot_index]);
 
-					if (!BM_elem_flag_test_bool(e_next, BM_ELEM_TAG)) {
+					if (r_lnors_spacearr) {
+						/* Assign current lnor space to current 'vertex' loop. */
+						BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, lfan_pivot_index, true);
+						if (e_next != e_org) {
+							/* We store here all edges-normalized vectors processed. */
+							BLI_stack_push(edge_vectors, vec_next);
+						}
+					}
+
+					if (!BM_elem_flag_test(e_next, BM_ELEM_TAG) || (e_next == e_org)) {
 						/* Next edge is sharp, we have finished with this fan of faces around this vert! */
 						break;
 					}
@@ -631,22 +745,73 @@ static void bm_mesh_loops_calc_normals(BMesh *bm, const float (*vcos)[3], const 
 					copy_v3_v3(vec_curr, vec_next);
 					/* Next pivot loop to current one. */
 					lfan_pivot = lfan_pivot_next;
+					lfan_pivot_index = BM_elem_index_get(lfan_pivot);
 				}
 
-				/* In case we get a zero normal here, just use vertex normal already set! */
-				if (LIKELY(normalize_v3(lnor) != 0.0f)) {
-					/* Copy back the final computed normal into all related loop-normals. */
-					float *nor;
-					while ((nor = BLI_SMALLSTACK_POP(normal))) {
-						copy_v3_v3(nor, lnor);
+				{
+					float lnor_len = normalize_v3(lnor);
+
+					/* If we are generating lnor spacearr, we can now define the one for this fan. */
+					if (r_lnors_spacearr) {
+						if (UNLIKELY(lnor_len == 0.0f)) {
+							/* Use vertex normal as fallback! */
+							copy_v3_v3(lnor, r_lnos[lfan_pivot_index]);
+							lnor_len = 1.0f;
+						}
+
+						BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_next, edge_vectors);
+
+						if (has_clnors) {
+							if (clnors_invalid) {
+								short *clnor;
+
+								clnors_avg[0] /= clnors_nbr;
+								clnors_avg[1] /= clnors_nbr;
+								/* Fix/update all clnors of this fan with computed average value. */
+								printf("Invalid clnors in this fan!\n");
+								while ((clnor = BLI_SMALLSTACK_POP(clnors))) {
+									//print_v2("org clnor", clnor);
+									clnor[0] = (short)clnors_avg[0];
+									clnor[1] = (short)clnors_avg[1];
+								}
+								//print_v2("new clnors", clnors_avg);
+							}
+							else {
+								/* We still have to consume the stack! */
+								while (BLI_SMALLSTACK_POP(clnors));
+							}
+							BKE_lnor_space_custom_data_to_normal(lnor_space, *clnor_ref, lnor);
+						}
+					}
+
+					/* In case we get a zero normal here, just use vertex normal already set! */
+					if (LIKELY(lnor_len != 0.0f)) {
+						/* Copy back the final computed normal into all related loop-normals. */
+						float *nor;
+
+						while ((nor = BLI_SMALLSTACK_POP(normal))) {
+							copy_v3_v3(nor, lnor);
+						}
+					}
+					else {
+						/* We still have to consume the stack! */
+						while (BLI_SMALLSTACK_POP(normal));
 					}
 				}
-				else {
-					/* We still have to clear the stack! */
-					while (BLI_SMALLSTACK_POP(normal));
+
+				/* Tag related vertex as sharp, to avoid fanning around it again (in case it was a smooth one). */
+				if (r_lnors_spacearr) {
+					BM_elem_flag_enable(l_curr->v, BM_ELEM_TAG);
 				}
 			}
 		} while ((l_curr = l_curr->next) != l_first);
+	}
+
+	if (r_lnors_spacearr) {
+		BLI_stack_free(edge_vectors);
+		if (r_lnors_spacearr == &_lnors_spacearr) {
+			BKE_lnor_spacearr_free(r_lnors_spacearr);
+		}
 	}
 }
 
@@ -682,16 +847,22 @@ static void bm_mesh_loops_from_vert_normals(BMesh *bm, const float (*vnos)[3], f
  * Updates the loop normals of a mesh. Assumes vertex and face normals are valid (else call BM_mesh_normals_update()
  * first)!
  */
-void BM_mesh_loop_normals_update(BMesh *bm, const bool use_split_normals, const float split_angle, float (*r_lnos)[3])
+void BM_mesh_loop_normals_update(
+        BMesh *bm, const bool use_split_normals, const float split_angle, float (*r_lnos)[3],
+        MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], const int cd_loop_clnors_offset)
 {
-	if (use_split_normals) {
-		/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
-		bm_mesh_edges_sharp_tag(bm, NULL, NULL, split_angle, r_lnos);
+	const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
 
-		/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
-		bm_mesh_loops_calc_normals(bm, NULL, NULL, r_lnos);
+	if (use_split_normals) {
+	        /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
+	         * When using custom loop normals, disable the angle feature! */
+	        bm_mesh_edges_sharp_tag(bm, NULL, NULL, has_clnors ? (float)M_PI : split_angle, r_lnos);
+
+	        /* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+	        bm_mesh_loops_calc_normals(bm, NULL, NULL, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
 	}
 	else {
+		BLI_assert(!r_lnors_spacearr);
 		bm_mesh_loops_from_vert_normals(bm, NULL, r_lnos);
 	}
 }
@@ -703,17 +874,23 @@ void BM_mesh_loop_normals_update(BMesh *bm, const bool use_split_normals, const 
  * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
  */
-void BM_loops_calc_normal_vcos(BMesh *bm, const float (*vcos)[3], const float (*vnos)[3], const float (*fnos)[3],
-                               const bool use_split_normals, const float split_angle, float (*r_lnos)[3])
+void BM_loops_calc_normal_vcos(
+        BMesh *bm, const float (*vcos)[3], const float (*vnos)[3], const float (*fnos)[3],
+        const bool use_split_normals, const float split_angle, float (*r_lnos)[3],
+        MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], const int cd_loop_clnors_offset)
 {
+	const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
+
 	if (use_split_normals) {
-		/* Tag smooth edges and set lnos from vnos when they might be completely smooth... */
-		bm_mesh_edges_sharp_tag(bm, vnos, fnos, split_angle, r_lnos);
+		/* Tag smooth edges and set lnos from vnos when they might be completely smooth...
+		 * When using custom loop normals, disable the angle feature! */
+		bm_mesh_edges_sharp_tag(bm, vnos, fnos, has_clnors ? (float)M_PI : split_angle, r_lnos);
 
 		/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
-		bm_mesh_loops_calc_normals(bm, vcos, fnos, r_lnos);
+		bm_mesh_loops_calc_normals(bm, vcos, fnos, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
 	}
 	else {
+		BLI_assert(!r_lnors_spacearr);
 		bm_mesh_loops_from_vert_normals(bm, vnos, r_lnos);
 	}
 }

@@ -238,6 +238,8 @@ void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
 /* no create_mask yet */
 void MESH_OT_customdata_clear_mask(struct wmOperatorType *ot);
 void MESH_OT_customdata_clear_skin(struct wmOperatorType *ot);
+void MESH_OT_customdata_custom_splitnormals_add(struct wmOperatorType *ot);
+void MESH_OT_customdata_custom_splitnormals_clear(struct wmOperatorType *ot);
 void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
 

@@ -207,6 +207,11 @@ static void rna_MeshAnyLayer_name_set(PointerRNA *ptr, const char *value)
 	rna_cd_layer_name_set(cd, (CustomDataLayer *)ptr->data, value);
 }
 
+static int rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
+{
+	Mesh *me = ptr->data;
+	return (int)BKE_mesh_has_custom_loop_normals(me);
+}
 
 /* -------------------------------------------------------------------- */
 /* Update Callbacks */
@@ -335,6 +340,17 @@ static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
 	}
 	else {
 		copy_v3_v3(values, (const float *)vec);
+	}
+}
+
+static void rna_MeshLoop_normal_set(PointerRNA *ptr, const float *values)
+{
+	Mesh *me = rna_mesh(ptr);
+	MLoop *ml = (MLoop *)ptr->data;
+	float (*vec)[3] = CustomData_get(&me->ldata, (int)(ml - me->mloop), CD_NORMAL);
+
+	if (vec) {
+		normalize_v3_v3(*vec, values);
 	}
 }
 
@@ -1974,8 +1990,7 @@ static void rna_def_mloop(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_float_funcs(prop, "rna_MeshLoop_normal_get", NULL, NULL);
+	RNA_def_property_float_funcs(prop, "rna_MeshLoop_normal_get", "rna_MeshLoop_normal_set", NULL);
 	RNA_def_property_ui_text(prop, "Normal",
 	                         "Local space unit length split normal vector of this vertex for this polygon "
 	                         "(must be computed beforehand using calc_normals_split or calc_tangents)");
@@ -3186,8 +3201,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_AUTOSMOOTH);
 	RNA_def_property_ui_text(prop, "Auto Smooth",
-	                         "Treat all set-smoothed faces with angles less than the specified angle "
-	                         "as 'smooth', unless they are linked by a sharp edge");
+	                         "Auto smooth (based on smooth/sharp faces/edges and angle between faces), "
+	                         "or use custom split normals data if available");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop = RNA_def_property(srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
@@ -3196,8 +3211,18 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_range(prop, DEG2RADF(0.0f), DEG2RADF(180.0f), 1.0, 1);
 	RNA_def_property_ui_text(prop, "Auto Smooth Angle",
-	                         "Maximum angle between face normals that 'Auto Smooth' will operate on");
+	                         "Maximum angle between face normals that will be considered as smooth "
+	                         "(unused if custom split normals data are available)");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	RNA_define_verify_sdna(false);
+	prop = RNA_def_property(srna, "has_custom_normals", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "", 0);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Has Custom Normals",
+	                         "True if there are custom split normals data in this mesh");
+	RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_custom_normals_get", NULL);
+	RNA_define_verify_sdna(true);
 
 	prop = RNA_def_property(srna, "show_double_sided", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_TWOSIDED);

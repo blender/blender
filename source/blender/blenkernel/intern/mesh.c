@@ -414,6 +414,16 @@ void BKE_mesh_update_customdata_pointers(Mesh *me, const bool do_ensure_tess_cd)
 	me->mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
 }
 
+bool BKE_mesh_has_custom_loop_normals(Mesh *me)
+{
+	if (me->edit_btmesh) {
+		return CustomData_has_layer(&me->edit_btmesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
+	}
+	else {
+		return CustomData_has_layer(&me->ldata, CD_CUSTOMLOOPNORMAL);
+	}
+}
+
 /* Note: unlinking is called when me->id.us is 0, question remains how
  * much unlinking of Library data in Mesh should be done... probably
  * we need a more generic method, like the expand() functions in

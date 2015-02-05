@@ -153,6 +153,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_vertex_color_remove);
 	WM_operatortype_append(MESH_OT_customdata_clear_mask);
 	WM_operatortype_append(MESH_OT_customdata_clear_skin);
+	WM_operatortype_append(MESH_OT_customdata_custom_splitnormals_add);
+	WM_operatortype_append(MESH_OT_customdata_custom_splitnormals_clear);
 	WM_operatortype_append(MESH_OT_drop_named_image);
 
 	WM_operatortype_append(MESH_OT_edgering_select);

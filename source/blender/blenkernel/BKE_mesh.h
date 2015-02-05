@@ -36,6 +36,9 @@ struct BoundBox;
 struct DispList;
 struct EdgeHash;
 struct ListBase;
+struct LinkNode;
+struct BLI_Stack;
+struct MemArena;
 struct BMEditMesh;
 struct BMesh;
 struct Main;
@@ -174,17 +177,62 @@ void BKE_mesh_calc_normals_tessface(
         struct MVert *mverts, int numVerts,
         struct MFace *mfaces, int numFaces,
         float (*r_faceNors)[3]);
-void BKE_mesh_normals_loop_split(
-        struct MVert *mverts, const int numVerts, struct MEdge *medges, const int numEdges,
-        struct MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
-        struct MPoly *mpolys, float (*polynors)[3], const int numPolys,
-        const bool use_split_normals, float split_angle);
 void BKE_mesh_loop_tangents_ex(
         struct MVert *mverts, const int numVerts, struct MLoop *mloops, float (*r_looptangent)[4], float (*loopnors)[3],
         struct MLoopUV *loopuv, const int numLoops, struct MPoly *mpolys, const int numPolys,
         struct ReportList *reports);
 void BKE_mesh_loop_tangents(
         struct Mesh *mesh, const char *uvmap, float (*r_looptangents)[4], struct ReportList *reports);
+
+/**
+ * References a contiguous loop-fan with normal offset vars.
+ */
+typedef struct MLoopNorSpace {
+	float vec_lnor[3];      /* Automatically computed loop normal. */
+	float vec_ref[3];       /* Reference vector, orthogonal to vec_lnor. */
+	float vec_ortho[3];     /* Third vector, orthogonal to vec_lnor and vec_ref. */
+	float ref_alpha;        /* Reference angle, around vec_ortho, in ]0, pi] range (0.0 marks that space as invalid). */
+	float ref_beta;         /* Reference angle, around vec_lnor, in ]0, 2pi] range (0.0 marks that space as invalid). */
+	struct LinkNode *loops; /* All indices (uint_in_ptr) of loops using this lnor space (i.e. smooth fan of loops). */
+} MLoopNorSpace;
+/**
+ * Collection of #MLoopNorSpace basic storage & pre-allocation.
+ */
+typedef struct MLoopNorSpaceArray {
+	MLoopNorSpace **lspacearr;    /* MLoop aligned array */
+	struct LinkNode *loops_pool;  /* Allocated once, avoids to call BLI_linklist_prepend_arena() for each loop! */
+	struct MemArena *mem;
+} MLoopNorSpaceArray;
+void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoops);
+void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr);
+void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr);
+MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
+void BKE_lnor_space_define(
+        MLoopNorSpace *lnor_space, const float lnor[3], float vec_ref[3], float vec_other[3],
+        struct BLI_Stack *edge_vectors);
+void BKE_lnor_space_add_loop(
+        MLoopNorSpaceArray *lnors_spacearr, MLoopNorSpace *lnor_space, const int ml_index, const bool add_to_list);
+void BKE_lnor_space_custom_data_to_normal(MLoopNorSpace *lnor_space, const short clnor_data[2], float r_custom_lnor[3]);
+void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space, const float custom_lnor[3], short r_clnor_data[2]);
+
+bool BKE_mesh_has_custom_loop_normals(struct Mesh *me);
+
+void BKE_mesh_normals_loop_split(struct MVert *mverts, const int numVerts, struct MEdge *medges, const int numEdges,
+        struct MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
+        struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
+        const bool use_split_normals, float split_angle,
+        MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], int *r_loop_to_poly);
+
+void BKE_mesh_normals_loop_custom_set(
+        struct MVert *mverts, const int numVerts, struct MEdge *medges, const int numEdges,
+        struct MLoop *mloops, float (*custom_loopnors)[3], const int numLoops,
+        struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
+        short (*r_clnors_data)[2]);
+void BKE_mesh_normals_loop_custom_from_vertices_set(
+        struct MVert *mverts, float (*custom_vertnors)[3], const int numVerts,
+        struct MEdge *medges, const int numEdges, struct MLoop *mloops, const int numLoops,
+        struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
+        short (*r_clnors_data)[2]);
 
 void BKE_mesh_calc_poly_normal(
         struct MPoly *mpoly, struct MLoop *loopstart,

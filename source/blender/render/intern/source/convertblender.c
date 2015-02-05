@@ -3316,7 +3316,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							v2= mface->v2;
 							v3= reverse_verts==0 ? mface->v3 : mface->v1;
 							v4= mface->v4;
-							flag= mface->flag & ME_SMOOTH;
+							flag = do_autosmooth ? ME_SMOOTH : mface->flag & ME_SMOOTH;
 
 							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 							vlr->v1= RE_findOrAddVert(obr, vertofs+v1);

@@ -57,6 +57,7 @@
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
@@ -833,6 +834,71 @@ void MESH_OT_customdata_clear_skin(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = mesh_customdata_clear_skin_exec;
 	ot->poll = mesh_customdata_clear_skin_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Clear custom loop normals */
+static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_context(C);
+	Mesh *me = ob->data;
+
+	if (!BKE_mesh_has_custom_loop_normals(me)) {
+		CustomData *data = GET_CD_DATA(me, ldata);
+
+		if (me->edit_btmesh) {
+			BM_data_layer_add(me->edit_btmesh->bm, data, CD_CUSTOMLOOPNORMAL);
+		}
+		else {
+			CustomData_add_layer(data, CD_CUSTOMLOOPNORMAL, CD_DEFAULT, NULL, me->totloop);
+		}
+
+		DAG_id_tag_update(&me->id, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
+}
+
+void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Custom Split Normals Data";
+	ot->idname = "MESH_OT_customdata_custom_splitnormals_add";
+	ot->description = "Add a custom split normals layer, if none exists yet";
+
+	/* api callbacks */
+	ot->exec = mesh_customdata_custom_splitnormals_add_exec;
+	ot->poll = ED_operator_object_active_editable_mesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int mesh_customdata_custom_splitnormals_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_context(C);
+	Mesh *me = ob->data;
+
+	if (BKE_mesh_has_custom_loop_normals(me)) {
+		return mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_CUSTOMLOOPNORMAL);
+	}
+	return OPERATOR_CANCELLED;
+}
+
+void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Custom Split Normals Data";
+	ot->idname = "MESH_OT_customdata_custom_splitnormals_clear";
+	ot->description = "Remove the custom split normals layer, if it exists";
+
+	/* api callbacks */
+	ot->exec = mesh_customdata_custom_splitnormals_clear_exec;
+	ot->poll = ED_operator_object_active_editable_mesh;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -313,7 +313,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		int n = (vi[3] == 0)? 3: 4;
 		int mi = clamp(f->material_index(), 0, used_shaders.size()-1);
 		int shader = used_shaders[mi];
-		bool smooth = f->use_smooth();
+		bool smooth = f->use_smooth() || use_loop_normals;
 
 		/* split vertices if normal is different
 		 *
