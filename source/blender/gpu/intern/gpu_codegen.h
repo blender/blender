@@ -149,7 +149,7 @@ typedef struct GPUInput {
 	GPUNodeLink *link;
 	bool dynamictex;		/* dynamic? */
 	CustomDataType attribtype;	/* attribute type */
-	char attribname[32];	/* attribute name */
+	char attribname[MAX_CUSTOMDATA_LAYER_NAME];	/* attribute name */
 	int attribfirst;		/* this is the first one that is bound */
 	GPUBuiltin builtin;		/* builtin uniform */
 	GPUOpenGLBuiltin oglbuiltin; /* opengl built in varying */
