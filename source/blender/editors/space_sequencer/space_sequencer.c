@@ -504,6 +504,13 @@ static void sequencer_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa
 					break;
 			}
 			break;
+		case NC_ANIMATION:
+			switch (wmn->data) {
+				case ND_KEYFRAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_SPACE:
 			if (wmn->data == ND_SPACE_SEQUENCER)
 				ED_region_tag_redraw(ar);
@@ -600,6 +607,15 @@ static void sequencer_preview_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED
 				case ND_SEQUENCER:
 				case ND_RENDER_OPTIONS:
 				case ND_DRAW_RENDER_VIEWPORT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_ANIMATION:
+			switch (wmn->data) {
+				case ND_KEYFRAME:
+					/* Otherwise, often prevents seing immediately effects of keyframe editing... */
+					BKE_sequencer_cache_cleanup();
 					ED_region_tag_redraw(ar);
 					break;
 			}
