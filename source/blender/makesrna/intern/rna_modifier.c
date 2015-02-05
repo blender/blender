@@ -4148,6 +4148,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem DT_layer_loop_items[] = {
+		{DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem DT_layer_loop_vcol_items[] = {

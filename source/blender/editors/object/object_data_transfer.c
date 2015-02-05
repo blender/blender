@@ -83,6 +83,7 @@ static EnumPropertyItem DT_layer_items[] = {
 	{DT_TYPE_BWEIGHT_EDGE, "BEVEL_WEIGHT_EDGE", 0, "Bevel Weight", "Transfer bevel weights"},
 	{DT_TYPE_FREESTYLE_EDGE, "FREESTYLE_EDGE", 0, "Freestyle Mark", "Transfer Freestyle edge mark"},
 	{0, "", 0, "Face Corner Data", ""},
+	{DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
 	{DT_TYPE_VCOL, "VCOL", 0, "VCol", "Vertex (face corners) colors"},
 	{DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
 	{0, "", 0, "Face Data", ""},

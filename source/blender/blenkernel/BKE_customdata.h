@@ -397,6 +397,8 @@ enum {
 	CD_FAKE_BWEIGHT     = CD_FAKE | CD_BWEIGHT,  /* *sigh*. */
 	CD_FAKE_UV          = CD_FAKE | CD_MLOOPUV,  /* UV flag, because we handle both loop's UVs and poly's textures. */
 
+	CD_FAKE_LNOR        = CD_FAKE | CD_CUSTOMLOOPNORMAL,  /* Because we play with clnor and temp lnor layers here. */
+
 	CD_FAKE_SHARP       = CD_FAKE | 200,  /* Sharp flag for edges, smooth flag for faces. */
 };
 
