@@ -157,9 +157,46 @@ base class --- :class:`SCA_IObject`
 
    .. attribute:: collisionCallbacks
 
-      A list of callables to be run when a collision occurs.
+      A list of functions to be called when a collision occurs.
 
-      :type: list
+      :type: list of functions and/or methods
+
+      Callbacks should either accept one argument `(object)`, or three
+      arguments `(object, point, normal)`. For simplicity, per
+      colliding object only the first collision point is reported.
+
+      .. code-block:: python
+
+        # Function form
+        def callback_three(object, point, normal):
+            print('Hit by %r at %s with normal %s' % (object.name, point, normal))
+
+        def callback_one(object):
+            print('Hit by %r' % object.name)
+
+        def register_callback(controller):
+            controller.owner.collisionCallbacks.append(callback_three)
+            controller.owner.collisionCallbacks.append(callback_one)
+
+
+        # Method form
+        class YourGameEntity(bge.types.KX_GameObject):
+            def __init__(self, old_owner):
+                self.collisionCallbacks.append(self.on_collision_three)
+                self.collisionCallbacks.append(self.on_collision_one)
+
+            def on_collision_three(self, object, point, normal):
+                print('Hit by %r at %s with normal %s' % (object.name, point, normal))
+
+            def on_collision_one(self, object):
+                print('Hit by %r' % object.name)
+
+      .. note::
+        For backward compatibility, a callback with variable number of
+        arguments (using `*args`) will be passed only the `object`
+        argument. Only when there is more than one fixed argument (not
+        counting `self` for methods) will the three-argument form be
+        used.
 
    .. attribute:: scene
 

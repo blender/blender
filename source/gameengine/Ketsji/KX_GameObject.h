@@ -919,7 +919,7 @@ public:
 
 	void RegisterCollisionCallbacks();
 	void UnregisterCollisionCallbacks();
-	void RunCollisionCallbacks(KX_GameObject *collider);
+	void RunCollisionCallbacks(KX_GameObject *collider, const MT_Vector3 &point, const MT_Vector3 &normal);
 	/**
 	 * Stop making progress
 	 */

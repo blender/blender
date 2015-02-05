@@ -45,7 +45,29 @@ class PHY_IPhysicsEnvironment;
 
 class KX_TouchEventManager : public SCA_EventManager
 {
-	typedef std::pair<PHY_IPhysicsController*, PHY_IPhysicsController*> NewCollision;
+	/**
+	 * Contains two colliding objects and the first contact point.
+	 */
+	class NewCollision {
+	public:
+		PHY_IPhysicsController *first;
+		PHY_IPhysicsController *second;
+		PHY_CollData *colldata;
+
+		/**
+	     * Creates a copy of the given PHY_CollData; freeing that copy should be done by the owner of
+	     * the NewCollision object.
+	     *
+	     * This allows us to efficiently store NewCollision objects in a std::set without creating more
+	     * copies of colldata, as the NewCollision copy constructor reuses the pointer and doesn't clone
+	     * it again. */
+		NewCollision(PHY_IPhysicsController *first,
+		             PHY_IPhysicsController *second,
+		             const PHY_CollData *colldata);
+		NewCollision(const NewCollision &to_copy);
+		bool operator<(const NewCollision &other) const;
+	};
+
 	PHY_IPhysicsEnvironment*	m_physEnv;
 	
 	std::set<NewCollision> m_newCollisions;
