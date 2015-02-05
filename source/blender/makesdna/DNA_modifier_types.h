@@ -83,6 +83,7 @@ typedef enum ModifierType {
 	eModifierType_LaplacianDeform   = 47,
 	eModifierType_Wireframe         = 48,
 	eModifierType_DataTransfer      = 49,
+	eModifierType_NormalEdit        = 50,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1443,5 +1444,37 @@ enum {
 	MOD_DATATRANSFER_USE_POLY         = 1 << 31,
 };
 
+/* Set Split Normals modifier */
+typedef struct NormalEditModifierData {
+	ModifierData modifier;
+	char defgrp_name[64];  /* MAX_VGROUP_NAME */
+	struct Object *target;  /* Source of normals, or center of ellipsoid. */
+	short mode;
+	short flag;
+	short mix_mode;
+	char pad[2];
+	float mix_factor;
+	float offset[3];
+} NormalEditModifierData;
+
+/* NormalEditModifierData.mode */
+enum {
+	MOD_NORMALEDIT_MODE_RADIAL        = 0,
+	MOD_NORMALEDIT_MODE_DIRECTIONAL   = 1,
+};
+
+/* NormalEditModifierData.flags */
+enum {
+	MOD_NORMALEDIT_INVERT_VGROUP            = (1 << 0),
+	MOD_NORMALEDIT_USE_DIRECTION_PARALLEL   = (1 << 1),
+};
+
+/* NormalEditModifierData.mix_mode */
+enum {
+	MOD_NORMALEDIT_MIX_COPY = 0,
+	MOD_NORMALEDIT_MIX_ADD  = 1,
+	MOD_NORMALEDIT_MIX_SUB  = 2,
+	MOD_NORMALEDIT_MIX_MUL  = 3,
+};
 
 #endif  /* __DNA_MODIFIER_TYPES_H__ */

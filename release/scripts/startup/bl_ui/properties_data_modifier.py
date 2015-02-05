@@ -1350,6 +1350,38 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub.active = bool(md.vertex_group)
         sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
+    def NORMAL_EDIT(self, layout, ob, md):
+        has_vgroup = bool(md.vertex_group)
+        needs_object_offset = (((md.mode == 'RADIAL') and not md.target) or
+                               ((md.mode == 'DIRECTIONAL') and md.use_direction_parallel))
+
+        row = layout.row()
+        row.prop(md, "mode", expand=True)
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "target", text="")
+        sub = col.column(align=True)
+        sub.active = needs_object_offset
+        sub.prop(md, "offset")
+        row = col.row(align=True)
+
+        col = split.column()
+        row = col.row()
+        row.active = (md.mode == 'DIRECTIONAL')
+        row.prop(md, "use_direction_parallel")
+
+        subcol = col.column(align=True)
+        subcol.label("Mix Mode:")
+        subcol.prop(md, "mix_mode", text="")
+        subcol.prop(md, "mix_factor")
+        row = subcol.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = row.row(align=True)
+        sub.active = has_vgroup
+        sub.prop(md, "use_invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
