@@ -130,7 +130,7 @@ private:
 
 	T * data;
 	int refcount;
-	typename std::list<MEM_CacheLimiterHandle<T> *, MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator me;
+	int pos;
 	MEM_CacheLimiter<T> * parent;
 };
 
@@ -146,29 +146,32 @@ public:
 	}
 
 	~MEM_CacheLimiter() {
-		for (iterator it = queue.begin(); it != queue.end(); it++) {
-			delete *it;
+		int i;
+		for (i = 0; i < queue.size(); i++) {
+			delete queue[i];
 		}
 	}
 
 	MEM_CacheLimiterHandle<T> *insert(T * elem) {
 		queue.push_back(new MEM_CacheLimiterHandle<T>(elem, this));
-		iterator it = queue.end();
-		--it;
-		queue.back()->me = it;
+		queue.back()->pos = queue.size() - 1;
 		return queue.back();
 	}
 
 	void unmanage(MEM_CacheLimiterHandle<T> *handle) {
-		queue.erase(handle->me);
+		int pos = handle->pos;
+		queue[pos] = queue.back();
+		queue[pos]->pos = pos;
+		queue.pop_back();
 		delete handle;
 	}
 
 	size_t get_memory_in_use() {
 		size_t size = 0;
 		if (data_size_func) {
-			for (iterator it = queue.begin(); it != queue.end(); it++) {
-				size += data_size_func((*it)->get()->get_data());
+			int i;
+			for (i = 0; i < queue.size(); i++) {
+				size += data_size_func(queue[i]->get()->get_data());
 			}
 		}
 		else {
@@ -226,11 +229,11 @@ public:
 		 * least priority element anyway.
 		 */
 		if (item_priority_func == NULL) {
+			queue[handle->pos] = queue.back();
+			queue[handle->pos]->pos = handle->pos;
+			queue.pop_back();
 			queue.push_back(handle);
-			queue.erase(handle->me);
-			iterator it = queue.end();
-			--it;
-			handle->me = it;
+			handle->pos = queue.size() - 1;
 		}
 	}
 
@@ -244,7 +247,7 @@ public:
 
 private:
 	typedef MEM_CacheLimiterHandle<T> *MEM_CacheElementPtr;
-	typedef std::list<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr> > MEM_CacheQueue;
+	typedef std::vector<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr> > MEM_CacheQueue;
 	typedef typename MEM_CacheQueue::iterator iterator;
 
 	/* Check whether element can be destroyed when enforcing cache limits */
@@ -277,11 +280,10 @@ private:
 		}
 		else {
 			int best_match_priority = 0;
-			iterator it;
 			int i;
 
-			for (it = queue.begin(), i = 0; it != queue.end(); it++, i++) {
-				MEM_CacheElementPtr elem = *it;
+			for (i = 0; i < queue.size(); i++) {
+				MEM_CacheElementPtr elem = queue[i];
 
 				if (!can_destroy_element(elem))
 					continue;
