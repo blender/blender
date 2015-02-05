@@ -3469,11 +3469,29 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 			for (sa = window->screen->areabase.first; sa; sa = sa->next) {
 				ARegion *ar;
 				for (ar = sa->regionbase.first; ar; ar = ar->next) {
+					bool redraw = false;
 					if (ar == sad->ar) {
-						ED_region_tag_redraw(ar);
+						redraw = true;
 					}
 					else if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws)) {
+						redraw = true;
+					}
+
+					if (redraw) {
 						ED_region_tag_redraw(ar);
+						/* do follow here if editor type supports it */
+						if ((sad->redraws & TIME_FOLLOW)) {
+							if ((ar->regiontype == RGN_TYPE_WINDOW &&
+							    ELEM (sa->spacetype, SPACE_SEQ, SPACE_TIME, SPACE_IPO, SPACE_ACTION, SPACE_NLA)) ||
+							    (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW))
+							{
+								float w = BLI_rctf_size_x(&ar->v2d.cur);
+								if (scene->r.cfra < ar->v2d.cur.xmin || scene->r.cfra > (ar->v2d.cur.xmax)) {
+									ar->v2d.cur.xmin = scene->r.cfra;
+									ar->v2d.cur.xmax = ar->v2d.cur.xmin + w;
+								}
+							}
+						}
 					}
 				}
 				

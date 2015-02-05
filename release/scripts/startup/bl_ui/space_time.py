@@ -207,6 +207,8 @@ class TIME_MT_playback(Menu):
         layout.prop(screen, "use_play_clip_editors")
 
         layout.separator()
+        layout.prop(screen, "use_follow")
+        layout.separator()
 
         layout.prop(scene, "use_frame_drop", text="Frame Dropping")
         layout.prop(scene, "use_audio_sync", text="AV-sync", icon='SPEAKER')
