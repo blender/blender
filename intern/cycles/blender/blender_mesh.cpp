@@ -28,6 +28,7 @@
 
 #include "util_foreach.h"
 #include "util_logging.h"
+#include "util_math.h"
 
 #include "mikktspace.h"
 
@@ -384,6 +385,68 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				else
 					cdata += 3;
 			}
+		}
+	}
+
+	/* create vertex pointiness attributes */
+	/* TODO(sergey): Consider moving all the attribute creation into own
+	 * functions for clarity.
+	 */
+	{
+		if(mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
+			Attribute *attr = mesh->attributes.add(ATTR_STD_POINTINESS);
+			float *data = attr->data_float();
+			int *counter = new int[numverts];
+			float *raw_data = new float[numverts];
+			float3 *edge_accum = new float3[numverts];
+
+			/* Calculate pointiness using single ring neighborhood. */
+			memset(counter, 0, sizeof(int) * numverts);
+			memset(raw_data, 0, sizeof(float) * numverts);
+			memset(edge_accum, 0, sizeof(float3) * numverts);
+			BL::Mesh::edges_iterator e;
+			i = 0;
+			for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
+				int v0 = b_mesh.edges[i].vertices()[0],
+				    v1 = b_mesh.edges[i].vertices()[1];
+				float3 co0 = get_float3(b_mesh.vertices[v0].co()),
+				       co1 = get_float3(b_mesh.vertices[v1].co());
+				edge_accum[v0] += normalize(co1 - co0);
+				edge_accum[v1] += normalize(co0 - co1);
+				++counter[v0];
+				++counter[v1];
+			}
+			i = 0;
+			for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++i) {
+				if(counter[i] > 0) {
+					float3 normal = get_float3(b_mesh.vertices[i].normal());
+					float angle = safe_acosf(dot(normal, edge_accum[i] / counter[i]));
+					raw_data[i] = angle * M_1_PI_F;
+				}
+				else {
+					raw_data[i] = 0.0f;
+				}
+			}
+
+			/* Blur vertices to approximate 2 ring neighborhood. */
+			memset(counter, 0, sizeof(int) * numverts);
+			memcpy(data, raw_data, sizeof(float) * numverts);
+			i = 0;
+			for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
+				int v0 = b_mesh.edges[i].vertices()[0],
+				    v1 = b_mesh.edges[i].vertices()[1];
+				data[v0] += raw_data[v1];
+				data[v1] += raw_data[v0];
+				++counter[v0];
+				++counter[v1];
+			}
+			for(i = 0; i < numverts; ++i) {
+				data[i] /= counter[i] + 1;
+			}
+
+			delete [] counter;
+			delete [] raw_data;
+			delete [] edge_accum;
 		}
 	}
 

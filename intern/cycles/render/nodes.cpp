@@ -2171,13 +2171,18 @@ GeometryNode::GeometryNode()
 	add_output("Incoming", SHADER_SOCKET_VECTOR);
 	add_output("Parametric", SHADER_SOCKET_POINT);
 	add_output("Backfacing", SHADER_SOCKET_FLOAT);
+	add_output("Pointiness", SHADER_SOCKET_FLOAT);
 }
 
 void GeometryNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	if(shader->has_surface) {
-		if(!output("Tangent")->links.empty())
+		if(!output("Tangent")->links.empty()) {
 			attributes->add(ATTR_STD_GENERATED);
+		}
+		if(!output("Pointiness")->links.empty()) {
+			attributes->add(ATTR_STD_POINTINESS);
+		}
 	}
 
 	ShaderNode::attributes(shader, attributes);
@@ -2233,6 +2238,15 @@ void GeometryNode::compile(SVMCompiler& compiler)
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_backfacing, out->stack_offset);
+	}
+
+	out = output("Pointiness");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_ATTR,
+		                  ATTR_STD_POINTINESS,
+		                  out->stack_offset,
+		                  NODE_ATTR_FLOAT);
 	}
 }
 
