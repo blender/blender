@@ -207,18 +207,16 @@ static GHash *text_autocomplete_build(Text *text)
 		}
 
 		{
-			GHashIterator *iter = BLI_ghashIterator_new(gh);
+			GHashIterator gh_iter;
 
 			/* get the formatter for highlighting */
 			TextFormatType *tft;
 			tft = ED_text_format_get(text);
 
-			for (; !BLI_ghashIterator_done(iter); BLI_ghashIterator_step(iter)) {
-				const char *s = BLI_ghashIterator_getValue(iter);
+			GHASH_ITER (gh_iter, gh) {
+				const char *s = BLI_ghashIterator_getValue(&gh_iter);
 				texttool_suggest_add(s, tft->format_identifier(s));
 			}
-			BLI_ghashIterator_free(iter);
-
 		}
 	}
 

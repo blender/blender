@@ -643,24 +643,19 @@ static void keyData_switchDirectionNurb(Curve *cu, Nurb *nu)
 static GHash *dupli_keyIndexHash(GHash *keyindex)
 {
 	GHash *gh;
-	GHashIterator *hashIter;
+	GHashIterator gh_iter;
 
 	gh = BLI_ghash_ptr_new_ex("dupli_keyIndex gh", BLI_ghash_size(keyindex));
 
-	for (hashIter = BLI_ghashIterator_new(keyindex);
-	     BLI_ghashIterator_done(hashIter) == false;
-	     BLI_ghashIterator_step(hashIter))
-	{
-		void *cv = BLI_ghashIterator_getKey(hashIter);
-		CVKeyIndex *index = BLI_ghashIterator_getValue(hashIter);
-		CVKeyIndex *newIndex = MEM_callocN(sizeof(CVKeyIndex), "dupli_keyIndexHash index");
+	GHASH_ITER (gh_iter, keyindex) {
+		void *cv = BLI_ghashIterator_getKey(&gh_iter);
+		CVKeyIndex *index = BLI_ghashIterator_getValue(&gh_iter);
+		CVKeyIndex *newIndex = MEM_mallocN(sizeof(CVKeyIndex), "dupli_keyIndexHash index");
 
 		memcpy(newIndex, index, sizeof(CVKeyIndex));
 
 		BLI_ghash_insert(gh, cv, newIndex);
 	}
-
-	BLI_ghashIterator_free(hashIter);
 
 	return gh;
 }

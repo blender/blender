@@ -86,7 +86,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	float frac;
 	MPoly *mpoly_dst;
 	MLoop *ml_dst, *ml_src /*, *mloop_dst */;
-	GHashIterator *hashIter;
+	GHashIterator gh_iter;
 	/* maps vert indices in old mesh to indices in new mesh */
 	GHash *vertHash = BLI_ghash_int_new("build ve apply gh");
 	/* maps edge indices in new mesh to indices in old mesh */
@@ -230,15 +230,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	                            BLI_ghash_size(edgeHash), 0, numLoops_dst, numFaces_dst);
 
 	/* copy the vertices across */
-	for (hashIter = BLI_ghashIterator_new(vertHash);
-	     BLI_ghashIterator_done(hashIter) == false;
-	     BLI_ghashIterator_step(hashIter)
-	     )
-	{
+	GHASH_ITER (gh_iter, vertHash) {
 		MVert source;
 		MVert *dest;
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
 
 		source = mvert_src[oldIndex];
 		dest = CDDM_get_vert(result, newIndex);
@@ -246,7 +242,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
 		*dest = source;
 	}
-	BLI_ghashIterator_free(hashIter);
 	
 	/* copy the edges across, remapping indices */
 	for (i = 0; i < BLI_ghash_size(edgeHash); i++) {

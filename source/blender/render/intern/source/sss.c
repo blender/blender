@@ -1031,14 +1031,12 @@ void make_sss_tree(Render *re)
 void free_sss(Render *re)
 {
 	if (re->sss_hash) {
-		GHashIterator *it= BLI_ghashIterator_new(re->sss_hash);
+		GHashIterator gh_iter;
 
-		while (!BLI_ghashIterator_done(it)) {
-			sss_free_tree(BLI_ghashIterator_getValue(it));
-			BLI_ghashIterator_step(it);
+		GHASH_ITER (gh_iter, re->sss_hash) {
+			sss_free_tree(BLI_ghashIterator_getValue(&gh_iter));
 		}
 
-		BLI_ghashIterator_free(it);
 		BLI_ghash_free(re->sss_hash, NULL, NULL);
 		re->sss_hash= NULL;
 	}

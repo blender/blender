@@ -99,7 +99,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const bool found_test = (mmd->flag & MOD_MASK_INV) == 0;
 	DerivedMesh *result = NULL;
 	GHash *vertHash = NULL, *edgeHash, *polyHash;
-	GHashIterator *hashIter;
+	GHashIterator gh_iter;
 	MDeformVert *dvert, *dv;
 	int numPolys = 0, numLoops = 0, numEdges = 0, numVerts = 0;
 	int maxVerts, maxEdges, maxPolys;
@@ -291,14 +291,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	/* using ghash-iterators, map data into new mesh */
 	/* vertices */
-	for (hashIter = BLI_ghashIterator_new(vertHash);
-	     BLI_ghashIterator_done(hashIter) == false;
-	     BLI_ghashIterator_step(hashIter))
-	{
+	GHASH_ITER (gh_iter, vertHash) {
 		MVert source;
 		MVert *dest;
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
 		
 		dm->getVert(dm, oldIndex, &source);
 		dest = &mvert_new[newIndex];
@@ -306,17 +303,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
 		*dest = source;
 	}
-	BLI_ghashIterator_free(hashIter);
 		
 	/* edges */
-	for (hashIter = BLI_ghashIterator_new(edgeHash);
-	     BLI_ghashIterator_done(hashIter) == false;
-	     BLI_ghashIterator_step(hashIter))
-	{
+	GHASH_ITER (gh_iter, edgeHash) {
 		MEdge source;
 		MEdge *dest;
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
 		
 		dm->getEdge(dm, oldIndex, &source);
 		dest = &medge_new[newIndex];
@@ -327,15 +320,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		DM_copy_edge_data(dm, result, oldIndex, newIndex, 1);
 		*dest = source;
 	}
-	BLI_ghashIterator_free(hashIter);
 	
 	/* faces */
-	for (hashIter = BLI_ghashIterator_new(polyHash);
-	     BLI_ghashIterator_done(hashIter) == false;
-	     BLI_ghashIterator_step(hashIter))
-	{
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+	GHASH_ITER (gh_iter, polyHash) {
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
 		MPoly *source = &mpoly[oldIndex];
 		MPoly *dest = &mpoly_new[newIndex];
 		int oldLoopIndex = source->loopstart;
@@ -353,8 +342,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			dest_loop[i].e = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(source_loop[i].e)));
 		}
 	}
-
-	BLI_ghashIterator_free(hashIter);
 
 	MEM_freeN(loop_mapping);
 

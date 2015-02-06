@@ -598,7 +598,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
 		UvEdge *edges;
 		GHash *edgeHash;
-		GHashIterator *ghi;
+		GHashIterator gh_iter;
 
 		bool do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
 		int island_index = 0;
@@ -754,21 +754,15 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 			uv_sculpt_stroke_exit(C, op);
 			return NULL;
 		}
-		ghi = BLI_ghashIterator_new(edgeHash);
-		if (!ghi) {
-			BLI_ghash_free(edgeHash, NULL, NULL);
-			MEM_freeN(edges);
-			uv_sculpt_stroke_exit(C, op);
-			return NULL;
-		}
+
 		/* fill the edges with data */
-		for (i = 0; !BLI_ghashIterator_done(ghi); BLI_ghashIterator_step(ghi)) {
-			data->uvedges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(ghi));
+		i = 0;
+		GHASH_ITER (gh_iter, edgeHash) {
+			data->uvedges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(&gh_iter));
 		}
 		data->totalUvEdges = BLI_ghash_size(edgeHash);
 
 		/* cleanup temporary stuff */
-		BLI_ghashIterator_free(ghi);
 		BLI_ghash_free(edgeHash, NULL, NULL);
 		MEM_freeN(edges);
 

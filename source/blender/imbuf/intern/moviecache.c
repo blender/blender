@@ -142,15 +142,12 @@ static void moviecache_valfree(void *val)
 
 static void check_unused_keys(MovieCache *cache)
 {
-	GHashIterator *iter;
+	GHashIterator gh_iter;
 
-	iter = BLI_ghashIterator_new(cache->hash);
-	while (!BLI_ghashIterator_done(iter)) {
-		MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
-		MovieCacheItem *item = BLI_ghashIterator_getValue(iter);
-		int remove = 0;
-
-		BLI_ghashIterator_step(iter);
+	GHASH_ITER(gh_iter, cache->hash) {
+		MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+		MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
+		bool remove;
 
 		remove = !item->ibuf;
 
@@ -161,8 +158,6 @@ static void check_unused_keys(MovieCache *cache)
 		if (remove)
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 	}
-
-	BLI_ghashIterator_free(iter);
 }
 
 static int compare_int(const void *av, const void *bv)
@@ -473,16 +468,13 @@ void IMB_moviecache_free(MovieCache *cache)
 
 void IMB_moviecache_cleanup(MovieCache *cache, bool (cleanup_check_cb) (ImBuf *ibuf, void *userkey, void *userdata), void *userdata)
 {
-	GHashIterator *iter;
+	GHashIterator gh_iter;
 
 	check_unused_keys(cache);
 
-	iter = BLI_ghashIterator_new(cache->hash);
-	while (!BLI_ghashIterator_done(iter)) {
-		MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
-		MovieCacheItem *item = BLI_ghashIterator_getValue(iter);
-
-		BLI_ghashIterator_step(iter);
+	GHASH_ITER(gh_iter, cache->hash) {
+		MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+		MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
 
 		if (cleanup_check_cb(item->ibuf, key->userkey, userdata)) {
 			PRINT("%s: cache '%s' remove item %p\n", __func__, cache->name, item);
@@ -490,8 +482,6 @@ void IMB_moviecache_cleanup(MovieCache *cache, bool (cleanup_check_cb) (ImBuf *i
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 		}
 	}
-
-	BLI_ghashIterator_free(iter);
 }
 
 /* get segments of cached frames. useful for debugging cache policies */
@@ -518,13 +508,12 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 		int totframe = BLI_ghash_size(cache->hash);
 		int *frames = MEM_callocN(totframe * sizeof(int), "movieclip cache frames");
 		int a, totseg = 0;
-		GHashIterator *iter;
+		GHashIterator gh_iter;
 
-		iter = BLI_ghashIterator_new(cache->hash);
 		a = 0;
-		while (!BLI_ghashIterator_done(iter)) {
-			MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
-			MovieCacheItem *item = BLI_ghashIterator_getValue(iter);
+		GHASH_ITER(gh_iter, cache->hash) {
+			MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+			MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
 			int framenr, curproxy, curflags;
 
 			if (item->ibuf) {
@@ -533,11 +522,7 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 				if (curproxy == proxy && curflags == render_flags)
 					frames[a++] = framenr;
 			}
-
-			BLI_ghashIterator_step(iter);
 		}
-
-		BLI_ghashIterator_free(iter);
 
 		qsort(frames, totframe, sizeof(int), compare_int);
 
