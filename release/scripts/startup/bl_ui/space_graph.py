@@ -41,6 +41,8 @@ class GRAPH_HT_header(Header):
 
         dopesheet_filter(layout, context)
 
+        layout.prop(st, "use_auto_view", text="Auto View")
+
         layout.prop(st, "use_normalization", text="Normalize")
         row = layout.row()
         row.active = st.use_normalization

@@ -370,6 +370,8 @@ typedef enum eGraphEdit_Flag {
 	/* normalize curves on display */
 	SIPO_NORMALIZE            = (1 << 14),
 	SIPO_NORMALIZE_FREEZE     = (1 << 15),
+	/* automatically set view on selection */
+	SIPO_AUTOVIEW             = (1 << 16),
 } eGraphEdit_Flag;
 
 /* SpaceIpo->mode (Graph Editor Mode) */
