@@ -124,13 +124,15 @@ BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/libOpenImageIO.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_JPEG}/lib/libjpeg.a'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
+BF_IS_NEW_OSL = False
 WITH_BF_CYCLES_OSL = True
-WITH_BF_STATICOSL = False
+WITH_BF_STATICOSL = BF_IS_NEW_OSL
 BF_OSL = '/opt/lib/osl'
 BF_OSL_INC = '${BF_OSL}/include'
 # note oslexec would passed via program linkflags, which is needed to
 # make llvm happy with osl_allocate_closure_component
 BF_OSL_LIB = 'oslcomp oslexec oslquery'
+BF_OSL_LIB_STATIC = '${BF_OSL}/lib/liboslcomp.a ${BF_OSL}/lib/liboslexec.a ${BF_OSL}/lib/liboslquery.a'
 BF_OSL_LIBPATH = '${BF_OSL}/lib'
 BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
 
@@ -157,6 +159,8 @@ BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB_STATIC = '${BF_BOOST_LIBPATH}/libboost_filesystem.a ${BF_BOOST_LIBPATH}/libboost_date_time.a ' + \
     '${BF_BOOST_LIBPATH}/libboost_regex.a ${BF_BOOST_LIBPATH}/libboost_locale.a ${BF_BOOST_LIBPATH}/libboost_system.a \
     ${BF_BOOST_LIBPATH}/libboost_thread.a'
+if BF_IS_NEW_OSL:
+    BF_BOOST_LIB_STATIC += ' ${BF_BOOST_LIBPATH}/libboost_wave.a'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 # Ocean Simulation
@@ -166,4 +170,7 @@ WITH_BF_OCEANSIM = True
 BF_DEBUG = False
 REL_CCFLAGS = ['-DNDEBUG', '-O2', '-msse', '-msse2']  # C & C++
 PLATFORM_LINKFLAGS = ['-lrt']
-BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive', '-Wl,--version-script=source/creator/blender.map']
+if BF_IS_NEW_OSL:
+    BF_PROGRAM_LINKFLAGS = ['-Wl,--version-script=source/creator/blender.map']
+else:
+    BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive', '-Wl,--version-script=source/creator/blender.map']
