@@ -2137,14 +2137,12 @@ static ImBuf *input_preprocess(const SeqRenderData *context, Sequence *seq, floa
 		multibuf(ibuf, mul);
 	}
 
-	if (!is_proxy_image) {
-		if (ibuf->x != context->rectx || ibuf->y != context->recty) {
-			if (scene->r.mode & R_OSA) {
-				IMB_scaleImBuf(ibuf, (short)context->rectx, (short)context->recty);
-			}
-			else {
-				IMB_scalefastImBuf(ibuf, (short)context->rectx, (short)context->recty);
-			}
+	if (ibuf->x != context->rectx || ibuf->y != context->recty) {
+		if (scene->r.mode & R_OSA) {
+			IMB_scaleImBuf(ibuf, (short)context->rectx, (short)context->recty);
+		}
+		else {
+			IMB_scalefastImBuf(ibuf, (short)context->rectx, (short)context->recty);
 		}
 	}
 
