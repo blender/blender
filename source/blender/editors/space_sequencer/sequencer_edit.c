@@ -59,6 +59,7 @@
 
 /* for menu/popup icons etc etc*/
 
+#include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_sequencer.h"
@@ -1269,6 +1270,7 @@ typedef struct SlipData {
 	bool slow;
 	int slow_offset; /* offset at the point where offset was turned on */
 	void *draw_handle;
+	NumInput num_input;
 } SlipData;
 
 static void transseq_backup(TransSeq *ts, Sequence *seq)
@@ -1381,6 +1383,13 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 	data->seq_array = MEM_mallocN(num_seq * sizeof(Sequence *), "trimdata_sequences");
 	data->trim = MEM_mallocN(num_seq * sizeof(bool), "trimdata_trim");
 	data->num_seq = num_seq;
+
+	initNumInput(&data->num_input);
+	data->num_input.idx_max = 0;
+	data->num_input.val_flag[0] |= NUM_NO_FRACTION;
+	data->num_input.unit_sys = USER_UNIT_NONE;
+	data->num_input.unit_type[0] = 0;
+
 
 	slip_add_sequences_rec(ed->seqbasep, data->seq_array, data->trim, 0, true);
 
@@ -1507,47 +1516,83 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 	}
 }
 
+
+static void sequencer_slip_update_header(Scene *scene, ScrArea *sa, SlipData *data, int offset)
+{
+#define HEADER_LENGTH 40
+	char msg[HEADER_LENGTH];
+
+	if (sa) {
+		if(hasNumInput(&data->num_input)) {
+			char num_str[NUM_STR_REP_LEN];
+			outputNumInput(&data->num_input, num_str, &scene->unit);
+			BLI_snprintf(msg, HEADER_LENGTH, "Trim offset: %s", num_str);
+		}
+		else {
+			BLI_snprintf(msg, HEADER_LENGTH, "Trim offset: %d", offset);
+		}
+	}
+
+	ED_area_headerprint(sa, msg);
+
+#undef HEADER_LENGTH
+}
+
 static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	SlipData *data = (SlipData *)op->customdata;
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
+	const bool has_numInput = hasNumInput(&data->num_input);
+	bool handled = true;
+
+	/* Modal numinput active, try to handle numeric inputs first... */
+	if (event->val == KM_PRESS && has_numInput && handleNumInput(C, &data->num_input, event)) {
+		float offset;
+		applyNumInput(&data->num_input, &offset);
+
+		sequencer_slip_update_header(scene, sa, data, (int)offset);
+
+		RNA_int_set(op->ptr, "offset", offset);
+
+		if (sequencer_slip_recursively(scene, data, offset)) {
+			WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+		}
+
+		return OPERATOR_RUNNING_MODAL;
+	}
 
 	switch (event->type) {
 		case MOUSEMOVE:
 		{
-			float mouseloc[2];
-			int offset;
-			int mouse_x;
-			View2D *v2d = UI_view2d_fromcontext(C);
+			if (!has_numInput) {
+				float mouseloc[2];
+				int offset;
+				int mouse_x;
+				View2D *v2d = UI_view2d_fromcontext(C);
 
-			if (data->slow) {
-				mouse_x = event->mval[0] - data->slow_offset;
-				mouse_x *= 0.1f;
-				mouse_x += data->slow_offset;
-			}
-			else {
-				mouse_x = event->mval[0];
-			}
+				if (data->slow) {
+					mouse_x = event->mval[0] - data->slow_offset;
+					mouse_x *= 0.1f;
+					mouse_x += data->slow_offset;
+				}
+				else {
+					mouse_x = event->mval[0];
+				}
 
 
-			/* choose the side based on which side of the playhead the mouse is on */
-			UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
-			offset = mouseloc[0] - data->init_mouseloc[0];
+				/* choose the side based on which side of the playhead the mouse is on */
+				UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
+				offset = mouseloc[0] - data->init_mouseloc[0];
 
-			RNA_int_set(op->ptr, "offset", offset);
+				sequencer_slip_update_header(scene, sa, data, offset);
 
-			if (sa) {
-#define HEADER_LENGTH 40
-				char msg[HEADER_LENGTH];
-				BLI_snprintf(msg, HEADER_LENGTH, "Trim offset: %d", offset);
-#undef HEADER_LENGTH
-				ED_area_headerprint(sa, msg);
-			}
+				RNA_int_set(op->ptr, "offset", offset);
 
-			if (sequencer_slip_recursively(scene, data, offset)) {
-				WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+				if (sequencer_slip_recursively(scene, data, offset)) {
+					WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+				}
 			}
 			break;
 		}
@@ -1604,17 +1649,34 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
 		case RIGHTSHIFTKEY:
 		case LEFTSHIFTKEY:
-			if (event->val == KM_PRESS) {
-				data->slow = true;
-				data->slow_offset = event->mval[0];
-			}
-			else if (event->val == KM_RELEASE) {
-				data->slow = false;
+			if (!has_numInput) {
+				if (event->val == KM_PRESS) {
+					data->slow = true;
+					data->slow_offset = event->mval[0];
+				}
+				else if (event->val == KM_RELEASE) {
+					data->slow = false;
+				}
 			}
 			break;
 
 		default:
+			handled = false;
 			break;
+	}
+
+	/* Modal numinput inactive, try to handle numeric inputs last... */
+	if (!handled && event->val == KM_PRESS && handleNumInput(C, &data->num_input, event)) {
+		float offset;
+		applyNumInput(&data->num_input, &offset);
+
+		sequencer_slip_update_header(scene, sa, data, (int)offset);
+
+		RNA_int_set(op->ptr, "offset", offset);
+
+		if (sequencer_slip_recursively(scene, data, offset)) {
+			WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+		}
 	}
 
 	return OPERATOR_RUNNING_MODAL;
