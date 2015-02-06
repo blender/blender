@@ -219,6 +219,43 @@ static int group_object_unlink_internal(Group *group, Object *ob)
 	return removed;
 }
 
+static bool group_object_cyclic_check_internal(Object *object, Group *group) {
+
+	if (object->dup_group) {
+		Group *dup_group = object->dup_group;
+		if ((dup_group->id.flag & LIB_DOIT) == 0) {
+			/* Cycle already exists in groups, let's prevent further crappyness */
+			return true;
+		}
+		/* flag the object to identify cyclic dependencies in further dupli groups */
+		dup_group->id.flag &= ~LIB_DOIT;
+
+		if (dup_group == group)
+			return true;
+		else {
+			GroupObject *gob;
+			for (gob = dup_group->gobject.first; gob; gob = gob->next) {
+				if (group_object_cyclic_check_internal(gob->ob, group)) {
+					return true;
+				}
+			}
+		}
+
+		/* un-flag the object, it's allowed to have the same group multiple times in parallel */
+		dup_group->id.flag |= LIB_DOIT;
+	}
+
+	return false;
+}
+
+bool BKE_group_object_cyclic_check(Main *bmain, Object *object, Group *group)
+{
+	/* first flag all groups */
+	BKE_main_id_tag_listbase(&bmain->group, true);
+
+	return group_object_cyclic_check_internal(object, group);
+}
+
 bool BKE_group_object_unlink(Group *group, Object *object, Scene *scene, Base *base)
 {
 	if (group_object_unlink_internal(group, object)) {

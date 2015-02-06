@@ -237,6 +237,7 @@ void OUTLINER_OT_parent_drop(struct wmOperatorType *ot);
 void OUTLINER_OT_parent_clear(struct wmOperatorType *ot);
 void OUTLINER_OT_scene_drop(struct wmOperatorType *ot);
 void OUTLINER_OT_material_drop(struct wmOperatorType *ot);
+void OUTLINER_OT_group_link(struct wmOperatorType *ot);
 
 /* outliner_tools.c ---------------------------------------------- */
 

@@ -230,6 +230,30 @@ static void outliner_material_drop_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_string_set(drop->ptr, "material", id->name + 2);
 }
 
+static int outliner_group_link_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	float fmval[2];
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	if (drag->type == WM_DRAG_ID) {
+		ID *id = drag->poin;
+		if (GS(id->name) == ID_OB) {
+			/* Ensure item under cursor is valid drop target */
+			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
+			return (te && te->idcode == ID_GR && TREESTORE(te)->type == 0);
+		}
+	}
+	return 0;
+}
+
+static void outliner_group_link_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id = drag->poin;
+	RNA_string_set(drop->ptr, "object", id->name + 2);
+}
+
 /* region dropbox definition */
 static void outliner_dropboxes(void)
 {
@@ -239,6 +263,7 @@ static void outliner_dropboxes(void)
 	WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", outliner_parent_clear_poll, outliner_parent_clear_copy);
 	WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", outliner_scene_drop_poll, outliner_scene_drop_copy);
 	WM_dropbox_add(lb, "OUTLINER_OT_material_drop", outliner_material_drop_poll, outliner_material_drop_copy);
+	WM_dropbox_add(lb, "OUTLINER_OT_group_link", outliner_group_link_poll, outliner_group_link_copy);
 }
 
 static void outliner_main_area_draw(const bContext *C, ARegion *ar)
