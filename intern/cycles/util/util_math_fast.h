@@ -154,7 +154,7 @@ ccl_device float fast_cosf(float x)
 ccl_device void fast_sincosf(float x, float* sine, float* cosine)
 {
 	/* Same argument reduction as fast_sin. */
-	int q = fast_rint(x * float(M_1_PI));
+	int q = fast_rint(x * M_1_PI_F);
 	float qf = q;
 	x = madd(qf, -0.78515625f*4, x);
 	x = madd(qf, -0.00024187564849853515625f*4, x);
