@@ -476,9 +476,13 @@ void IMB_moviecache_cleanup(MovieCache *cache, bool (cleanup_check_cb) (ImBuf *i
 
 	check_unused_keys(cache);
 
-	GHASH_ITER(gh_iter, cache->hash) {
+	BLI_ghashIterator_init(&gh_iter, cache->hash);
+
+	while (!BLI_ghashIterator_done(&gh_iter)) {
 		MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
 		MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
+
+		BLI_ghashIterator_step(&gh_iter);
 
 		if (cleanup_check_cb(item->ibuf, key->userkey, userdata)) {
 			PRINT("%s: cache '%s' remove item %p\n", __func__, cache->name, item);
