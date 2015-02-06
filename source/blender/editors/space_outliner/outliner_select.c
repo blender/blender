@@ -873,6 +873,9 @@ eOLDrawState tree_element_type_active(
 			return tree_element_active_sequence_dup(scene, te, tselem, set);
 		case TSE_KEYMAP_ITEM:
 			return tree_element_active_keymap_item(C, te, tselem, set);
+		case TSE_GP_LAYER:
+			//return tree_element_active_gplayer(C, scene, te, tselem, set);
+			break;
 			
 	}
 	return OL_DRAWSEL_NONE;

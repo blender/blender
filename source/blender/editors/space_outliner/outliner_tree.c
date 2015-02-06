@@ -822,9 +822,10 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			
 			if (outliner_animdata_test(gpd->adt))
 				outliner_add_element(soops, &te->subtree, gpd, te, TSE_ANIM_DATA, 0);
-				
+			
+			// TODO: base element for layers?
 			for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-				// TODO
+				outliner_add_element(soops, &te->subtree, gpl, te, TSE_GP_LAYER, a);
 				a++;
 			}
 		}
@@ -873,6 +874,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		/* pass */
 	}
 	else if (type == TSE_ANIM_DATA) {
+		/* pass */
+	}
+	else if (type == TSE_GP_LAYER) {
 		/* pass */
 	}
 	else if (type == TSE_ID_BASE) {
@@ -956,6 +960,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				}
 			}
 		}
+	}
+	else if (type == TSE_GP_LAYER) {
+		bGPDlayer *gpl = (bGPDlayer *)idv;
+		
+		te->name = gpl->info;
+		te->directdata = gpl;
 	}
 	else if (type == TSE_SEQUENCE) {
 		Sequence *seq = (Sequence *) idv;

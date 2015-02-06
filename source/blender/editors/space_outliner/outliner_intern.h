@@ -104,6 +104,7 @@ typedef struct TreeElement {
 #define TSE_KEYMAP          34
 #define TSE_KEYMAP_ITEM     35
 #define TSE_ID_BASE			36
+#define TSE_GP_LAYER        37
 
 /* button events */
 #define OL_NAMEBUTTON       1

@@ -31,6 +31,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
@@ -547,6 +548,17 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					BLI_uniquename(&ob->pose->agroups, grp, CTX_DATA_(BLF_I18NCONTEXT_ID_ACTION, "Group"), '.',
 					               offsetof(bActionGroup, name), sizeof(grp->name));
 					WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+					break;
+				}
+				case TSE_GP_LAYER:
+				{
+					bGPdata *gpd = (bGPdata *)tselem->id; // id = GP Datablock
+					bGPDlayer *gpl = te->directdata;
+					
+					// XXX: name needs translation stuff
+					BLI_uniquename(&gpd->layers, gpl, "GP Layer", '.',
+					               offsetof(bGPDlayer, info), sizeof(gpl->info));
+					WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, gpd);
 					break;
 				}
 				case TSE_R_LAYER:
@@ -1074,6 +1086,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				else
 					UI_icon_draw(x, y, RNA_struct_ui_icon(te->rnaptr.type));
 				break;
+			case TSE_GP_LAYER:
+				UI_icon_draw(x, y, ICON_DOT); break; // XXX: needs a dedicated icon?
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
 		}
