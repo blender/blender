@@ -1167,6 +1167,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_DIRECT); break;
 			case ID_LS:
 				tselem_draw_icon_uibut(&arg, ICON_LINE_DATA); break;
+			case ID_GD:
+				tselem_draw_icon_uibut(&arg, ICON_GREASEPENCIL); break;
 		}
 	}
 }
