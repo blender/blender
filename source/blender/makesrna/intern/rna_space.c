@@ -2840,7 +2840,8 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_group_colors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NODRAWGCOLORS);
 	RNA_def_property_ui_text(prop, "Show Group Colors",
-	                         "Draw groups and channels with colors matching their corresponding groups");
+	                         "Draw groups and channels with colors matching their corresponding groups "
+	                         "(pose bones only currently)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 	
 	/* editing */
