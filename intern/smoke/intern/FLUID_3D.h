@@ -209,8 +209,9 @@ struct FLUID_3D
 		float *_flame_vorticity; // RNA pointer
 		float *_ignition_temp; // RNA pointer
 		float *_max_temp; // RNA pointer
-		void processBurn(float *fuel, float *smoke, float *react, float *flame, float *heat,
+		void processBurn(float *fuel, float *smoke, float *react, float *heat,
 						 float *r, float *g, float *b, int total_cells, float dt);
+		void updateFlame(float *react, float *flame, int total_cells);
 
 		// boundary setting functions
 		static void copyBorderX(float* field, Vec3Int res, int zBegin, int zEnd);

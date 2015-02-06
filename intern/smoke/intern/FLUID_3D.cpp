@@ -1587,7 +1587,7 @@ void FLUID_3D::advectMacCormackEnd2(int zBegin, int zEnd)
 }
 
 
-void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *flame, float *heat,
+void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *heat,
 						   float *r, float *g, float *b, int total_cells, float dt)
 {
 	float burning_rate = *_burning_rate;
@@ -1600,7 +1600,7 @@ void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *flame
 		float orig_fuel = fuel[index];
 		float orig_smoke = smoke[index];
 		float smoke_emit = 0.0f;
-		float react_coord = 0.0f;
+		float flame = 0.0f;
 
 		/* process fuel */
 		fuel[index] -= burning_rate * dt;
@@ -1608,7 +1608,7 @@ void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *flame
 		/* process reaction coordinate */
 		if (orig_fuel > FLT_EPSILON) {
 			react[index] *= fuel[index]/orig_fuel;
-			react_coord = react[index];
+			flame = pow(react[index], 0.5f);
 		}
 		else {
 			react[index] = 0.0f;
@@ -1620,17 +1620,9 @@ void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *flame
 		smoke[index] += smoke_emit;
 		CLAMP(smoke[index], 0.0f, 1.0f);
 
-		/* model flame temperature curve from the reaction coordinate (fuel) */
-		if (react_coord>0.0f) {
-			/* do a smooth falloff for rest of the values */
-			flame[index] = pow(react_coord, 0.5f);
-		}
-		else
-			flame[index] = 0.0f;
-
 		/* set fluid temperature from the flame temperature profile */
-		if (heat && flame[index])
-			heat[index] = (1.0f-flame[index])*ignition_point + flame[index]*temp_max;
+		if (heat && flame)
+			heat[index] = (1.0f - flame)*ignition_point + flame*temp_max;
 
 		/* mix new color */
 		if (r && smoke_emit > FLT_EPSILON) {
@@ -1639,5 +1631,23 @@ void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *flame
 			g[index] = (g[index] + _flame_smoke_color[1] * smoke_emit) * smoke_factor;
 			b[index] = (b[index] + _flame_smoke_color[2] * smoke_emit) * smoke_factor;
 		}
+	}
+}
+
+void FLUID_3D::updateFlame(float *react, float *flame, int total_cells)
+{
+	for (int index = 0; index < total_cells; index++)
+	{
+		/* model flame temperature curve from the reaction coordinate (fuel)
+		 *	TODO: Would probably be best to get rid of whole "flame" data field.
+		 *		 Currently it's just sqrt mirror of reaction coordinate, and therefore
+		 *		 basically just waste of memory and disk space...
+		 */
+		if (react[index]>0.0f) {
+			/* do a smooth falloff for rest of the values */
+			flame[index] = pow(react[index], 0.5f);
+		}
+		else
+			flame[index] = 0.0f;
 	}
 }

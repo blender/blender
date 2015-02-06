@@ -77,19 +77,27 @@ extern "C" size_t smoke_get_index2d(int x, int max_x, int y /*, int max_y, int z
 extern "C" void smoke_step(FLUID_3D *fluid, float gravity[3], float dtSubdiv)
 {
 	if (fluid->_fuel) {
-		fluid->processBurn(fluid->_fuel, fluid->_density, fluid->_react, fluid->_flame, fluid->_heat,
+		fluid->processBurn(fluid->_fuel, fluid->_density, fluid->_react, fluid->_heat,
 						   fluid->_color_r, fluid->_color_g, fluid->_color_b, fluid->_totalCells, (*fluid->_dtFactor)*dtSubdiv);
 	}
 	fluid->step(dtSubdiv, gravity);
+
+	if (fluid->_fuel) {
+		fluid->updateFlame(fluid->_react, fluid->_flame, fluid->_totalCells);
+	}
 }
 
 extern "C" void smoke_turbulence_step(WTURBULENCE *wt, FLUID_3D *fluid)
 {
 	if (wt->_fuelBig) {
-		fluid->processBurn(wt->_fuelBig, wt->_densityBig, wt->_reactBig, wt->_flameBig, 0,
+		fluid->processBurn(wt->_fuelBig, wt->_densityBig, wt->_reactBig, 0,
 						   wt->_color_rBig, wt->_color_gBig, wt->_color_bBig, wt->_totalCellsBig, fluid->_dt);
 	}
-	wt->stepTurbulenceFull(fluid->_dt/fluid->_dx, fluid->_xVelocity, fluid->_yVelocity, fluid->_zVelocity, fluid->_obstacles); 
+	wt->stepTurbulenceFull(fluid->_dt/fluid->_dx, fluid->_xVelocity, fluid->_yVelocity, fluid->_zVelocity, fluid->_obstacles);
+
+	if (wt->_fuelBig) {
+		fluid->updateFlame(wt->_reactBig, wt->_flameBig, wt->_totalCellsBig);
+	}
 }
 
 extern "C" void smoke_initBlenderRNA(FLUID_3D *fluid, float *alpha, float *beta, float *dt_factor, float *vorticity, int *border_colli, float *burning_rate,
