@@ -164,14 +164,19 @@ static void normalEditModifier_do_radial(
 
 	generate_vert_coordinates(dm, ob, smd->target, smd->offset, num_verts, cos, size);
 
-	/* size gives us our spheroid coefficients (A, B, C).
+	/**
+	 * size gives us our spheroid coefficients ``(A, B, C)``.
 	 * Then, we want to find out for each vert its (a, b, c) triple (proportional to (A, B, C) one).
 	 *
-	 * Ellipsoid basic equation: (x^2/a^2) + (y^2/b^2) + (z^2/c^2) = 1.
+	 * Ellipsoid basic equation: ``(x^2/a^2) + (y^2/b^2) + (z^2/c^2) = 1.``
 	 * Since we want to find (a, b, c) matching this equation and proportional to (A, B, C), we can do:
+	 * <pre>
 	 *     m = B / A
 	 *     n = C / A
+	 * </pre>
+	 *
 	 * hence:
+	 * <pre>
 	 *     (x^2/a^2) + (y^2/b^2) + (z^2/c^2) = 1
 	 *  -> b^2*c^2*x^2 + a^2*c^2*y^2 + a^2*b^2*z^2 = a^2*b^2*c^2
 	 *     b = ma
@@ -181,9 +186,12 @@ static void normalEditModifier_do_radial(
 	 *  -> a^2 = (m^2*n^2*x^2 + n^2y^2 + m^2z^2) / (m^2*n^2) = x^2 + (y^2 / m^2) + (z^2 / n^2)
 	 *  -> b^2 = (m^2*n^2*x^2 + n^2y^2 + m^2z^2) / (n^2)     = (m^2 * x^2) + y^2 + (m^2 * z^2 / n^2)
 	 *  -> c^2 = (m^2*n^2*x^2 + n^2y^2 + m^2z^2) / (m^2)     = (n^2 * x^2) + (n^2 * y^2 / m^2) + z^2
+	 * </pre>
 	 *
 	 * All we have to do now is compute normal of the spheroid at that point:
+	 * <pre>
 	 *     n = (x / a^2, y / b^2, z / c^2)
+	 * </pre>
 	 * And we are done!
 	 */
 	{

@@ -3279,7 +3279,7 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 static void project_paint_bleed_add_face_user(
         const ProjPaintState *ps, MemArena *arena,
-		const MFace *mf, const int face_index)
+        const MFace *mf, const int face_index)
 {
 	/* add face user if we have bleed enabled, set the UV seam flags later */
 	/* annoying but we need to add all faces even ones we never use elsewhere */

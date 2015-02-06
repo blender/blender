@@ -229,7 +229,7 @@ void PlaneDistortMaskOperation::executePixelSampled(float output[4], float x, fl
 				                              sample_data->frameSpaceCorners[2]) ||
 				    isect_point_tri_v2(point, sample_data->frameSpaceCorners[0],
 				                              sample_data->frameSpaceCorners[2],
-			                                  sample_data->frameSpaceCorners[3]))
+				                              sample_data->frameSpaceCorners[3]))
 				{
 					inside_counter++;
 				}

@@ -1768,10 +1768,10 @@ static void gpu_lamp_calc_winmat(GPULamp *lamp)
 		orthographic_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
 	}
 	else {
-		angle= saacos(lamp->spotsi);
-		temp= 0.5f*lamp->size*cosf(angle)/sinf(angle);
-		pixsize= (lamp->d)/temp;
-		wsize= pixsize*0.5f*lamp->size;
+		angle = saacos(lamp->spotsi);
+		temp = 0.5f * lamp->size * cosf(angle) / sinf(angle);
+		pixsize = lamp->d / temp;
+		wsize = pixsize * 0.5f * lamp->size;
 		perspective_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
 	}
 }

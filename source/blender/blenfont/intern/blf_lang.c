@@ -209,7 +209,7 @@ void BLF_lang_init(void)
 	 * Would also be good to find nicer way to check if LANG is correct.
 	 */
 	const char *lang = getenv("LANG");
-	if(lang != NULL) {
+	if (lang != NULL) {
 		char *old_locale = setlocale(LC_ALL, NULL);
 		/* Make a copy so subsequenct setlocale() doesn't interfere. */
 		old_locale = BLI_strdup(old_locale);
