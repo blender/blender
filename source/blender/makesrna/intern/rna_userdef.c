@@ -3535,7 +3535,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	/* Undo */
 	prop = RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "undosteps");
-	RNA_def_property_range(prop, 0, 64);
+	RNA_def_property_range(prop, 0, 256);
 	RNA_def_property_int_funcs(prop, NULL, "rna_userdef_undo_steps_set", NULL);
 	RNA_def_property_ui_text(prop, "Undo Steps", "Number of undo steps available (smaller values conserve memory)");
 
