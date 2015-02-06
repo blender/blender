@@ -1062,18 +1062,33 @@ void BKE_mesh_normals_loop_split(
 {
 
 	/* For now this is not supported. If we do not use split normals, we do not generate anything fancy! */
-	BLI_assert(use_split_normals || !(r_lnors_spacearr || r_loop_to_poly));
+	BLI_assert(use_split_normals || !(r_lnors_spacearr));
 
 	if (!use_split_normals) {
-		/* In this case, we simply fill lnors with vnors, quite simple!
+		/* In this case, we simply fill lnors with vnors (or fnors for flat faces), quite simple!
 		 * Note this is done here to keep some logic and consistency in this quite complex code,
 		 * since we may want to use lnors even when mesh's 'autosmooth' is disabled (see e.g. mesh mapping code).
 		 * As usual, we could handle that on case-by-case basis, but simpler to keep it well confined here.
 		 */
-		int i;
+		int mp_index;
 
-		for (i = 0; i < numLoops; i++) {
-			normal_short_to_float_v3(r_loopnors[i], mverts[mloops[i].v].no);
+		for (mp_index = 0; mp_index < numPolys; mp_index++) {
+			MPoly *mp = &mpolys[mp_index];
+			int ml_index = mp->loopstart;
+			const int ml_index_end = ml_index + mp->totloop;
+			const bool is_poly_flat = ((mp->flag & ME_SMOOTH) == 0);
+
+			for (; ml_index < ml_index_end; ml_index++) {
+				if (r_loop_to_poly) {
+					r_loop_to_poly[ml_index] = mp_index;
+				}
+				if (is_poly_flat) {
+					copy_v3_v3(r_loopnors[ml_index], polynors[mp_index]);
+				}
+				else {
+					normal_short_to_float_v3(r_loopnors[ml_index], mverts[mloops[ml_index].v].no);
+				}
+			}
 		}
 		return;
 	}

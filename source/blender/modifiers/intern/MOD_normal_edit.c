@@ -362,7 +362,7 @@ static void normalEditModifier_do(NormalEditModifierData *smd, Object *ob, Deriv
 
 
 	if (use_current_clnors) {
-		dm->calcLoopNormals(dm, (me->flag & ME_AUTOSMOOTH) != 0, me->smoothresh);
+		dm->calcLoopNormals(dm, true, me->smoothresh);
 		loopnors = dm->getLoopDataArray(dm, CD_NORMAL);
 	}
 

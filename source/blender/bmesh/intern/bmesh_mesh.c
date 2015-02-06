@@ -815,7 +815,8 @@ static void bm_mesh_loops_calc_normals(
 	}
 }
 
-static void bm_mesh_loops_from_vert_normals(BMesh *bm, const float (*vnos)[3], float (*r_lnos)[3])
+static void bm_mesh_loops_calc_normals_no_autosmooth(
+        BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], float (*r_lnos)[3])
 {
 	BMIter fiter;
 	BMFace *f_curr;
@@ -825,15 +826,20 @@ static void bm_mesh_loops_from_vert_normals(BMesh *bm, const float (*vnos)[3], f
 		if (vnos) {
 			htype |= BM_VERT;
 		}
+		if (fnos) {
+			htype |= BM_FACE;
+		}
 		BM_mesh_elem_index_ensure(bm, htype);
 	}
 
 	BM_ITER_MESH (f_curr, &fiter, bm, BM_FACES_OF_MESH) {
 		BMLoop *l_curr, *l_first;
+		const bool is_face_flat = !BM_elem_flag_test(f_curr, BM_ELEM_SMOOTH);
 
 		l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
 		do {
-			const float *no = vnos ? vnos[BM_elem_index_get(l_curr->v)] : l_curr->v->no;
+			const float *no = is_face_flat ? (fnos ? fnos[BM_elem_index_get(f_curr)] : f_curr->no) :
+			                                 (vnos ? vnos[BM_elem_index_get(l_curr->v)] : l_curr->v->no);
 			copy_v3_v3(r_lnos[BM_elem_index_get(l_curr)], no);
 
 		} while ((l_curr = l_curr->next) != l_first);
@@ -863,7 +869,7 @@ void BM_mesh_loop_normals_update(
 	}
 	else {
 		BLI_assert(!r_lnors_spacearr);
-		bm_mesh_loops_from_vert_normals(bm, NULL, r_lnos);
+		bm_mesh_loops_calc_normals_no_autosmooth(bm, NULL, NULL, r_lnos);
 	}
 }
 #endif
@@ -891,7 +897,7 @@ void BM_loops_calc_normal_vcos(
 	}
 	else {
 		BLI_assert(!r_lnors_spacearr);
-		bm_mesh_loops_from_vert_normals(bm, vnos, r_lnos);
+		bm_mesh_loops_calc_normals_no_autosmooth(bm, vnos, fnos, r_lnos);
 	}
 }
 
