@@ -144,10 +144,14 @@ static void check_unused_keys(MovieCache *cache)
 {
 	GHashIterator gh_iter;
 
-	GHASH_ITER(gh_iter, cache->hash) {
+	BLI_ghashIterator_init(&gh_iter, cache->hash);
+
+	while (!BLI_ghashIterator_done(&gh_iter)) {
 		MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
 		MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
 		bool remove;
+
+		BLI_ghashIterator_step(&gh_iter);
 
 		remove = !item->ibuf;
 
