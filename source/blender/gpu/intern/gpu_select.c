@@ -82,7 +82,7 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, rctf *input, c
 	g_query_state.oldhits = oldhits;
 
 	if (!g_query_state.use_gpu_select) {
-		glSelectBuffer( bufsize, (GLuint *)buffer);
+		glSelectBuffer(bufsize, (GLuint *)buffer);
 		glRenderMode(GL_SELECT);
 		glInitNames();
 		glPushName(-1);
@@ -92,8 +92,8 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, rctf *input, c
 
 		g_query_state.num_of_queries = ALLOC_QUERIES;
 
-		g_query_state.queries = MEM_mallocN(g_query_state.num_of_queries * sizeof(*g_query_state.queries) , "gpu selection queries");
-		g_query_state.id = MEM_mallocN(g_query_state.num_of_queries * sizeof(*g_query_state.id) , "gpu selection ids");
+		g_query_state.queries = MEM_mallocN(g_query_state.num_of_queries * sizeof(*g_query_state.queries), "gpu selection queries");
+		g_query_state.id = MEM_mallocN(g_query_state.num_of_queries * sizeof(*g_query_state.id), "gpu selection ids");
 		glGenQueriesARB(g_query_state.num_of_queries, g_query_state.queries);
 
 		glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_VIEWPORT_BIT);

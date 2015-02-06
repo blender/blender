@@ -685,7 +685,7 @@ void BKE_text_clear(Text *text) /* called directly from rna */
 {
 	int oldstate;
 
-	oldstate = txt_get_undostate(  );
+	oldstate = txt_get_undostate();
 	txt_set_undostate(1);
 	txt_sel_all(text);
 	txt_delete_sel(text);

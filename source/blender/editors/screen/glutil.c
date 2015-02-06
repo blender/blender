@@ -1136,9 +1136,9 @@ void glaDrawImBuf_glsl_ctx(const bContext *C, ImBuf *ibuf, float x, float y, int
 
 void cpack(unsigned int x)
 {
-	glColor3ub( ( (x)        & 0xFF),
-	            (((x) >>  8) & 0xFF),
-	            (((x) >> 16) & 0xFF) );
+	glColor3ub(( (x)        & 0xFF),
+	           (((x) >>  8) & 0xFF),
+	           (((x) >> 16) & 0xFF));
 }
 
 void glaDrawBorderCorners(const rcti *border, float zoomx, float zoomy)

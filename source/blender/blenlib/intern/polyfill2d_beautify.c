@@ -238,7 +238,7 @@ static void polyedge_beauty_cost_update_single(
 		/* recalculate edge */
 		const float cost = polyedge_rotate_beauty_calc(coords, tris, e);
 		/* We can get cases where both choices generate very small negative costs, which leads to infinite loop.
-		 * Anyway, costs above that are not worth recomputing, maybe we could even optimze it to a smaller limit?
+		 * Anyway, costs above that are not worth recomputing, maybe we could even optimize it to a smaller limit?
 		 * See T43578. */
 		if (cost < -FLT_EPSILON) {
 			eheap_table[i] = BLI_heap_insert(eheap, cost, e);

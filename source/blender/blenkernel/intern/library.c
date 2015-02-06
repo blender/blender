@@ -1571,7 +1571,7 @@ void test_idbutton(char *name)
 	ID *idtest;
 	
 
-	lb = which_libbase(G.main, GS(name) );
+	lb = which_libbase(G.main, GS(name));
 	if (lb == NULL) return;
 	
 	/* search for id */
@@ -1590,7 +1590,7 @@ void rename_id(ID *id, const char *name)
 	ListBase *lb;
 
 	BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
-	lb = which_libbase(G.main, GS(id->name) );
+	lb = which_libbase(G.main, GS(id->name));
 	
 	new_id(lb, id, name);
 }

@@ -117,7 +117,7 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 		self->at_start = false;
 	else {
 		self->a_it->increment();
-		if (self->a_it->isEnd()){
+		if (self->a_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
 		}

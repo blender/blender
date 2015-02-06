@@ -641,7 +641,7 @@ static void flip_names(tAnimCopybufItem *aci, char **name)
 			str_iter = *name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1), "flipped_path");
 			
 			BLI_strncpy(str_iter, aci->rna_path, prefix_l + 1);
-			str_iter += prefix_l ;
+			str_iter += prefix_l;
 			BLI_strncpy(str_iter, bname_new, length + 1);
 			str_iter += length;
 			BLI_strncpy(str_iter, str_end, postfix_l + 1);

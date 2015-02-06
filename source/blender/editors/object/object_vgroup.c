@@ -1646,7 +1646,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 	BMesh *bm = em ? em->bm : NULL;
 	Mesh  *me = em ? NULL   : ob->data;
 
-	MeshElemMap *emap ;
+	MeshElemMap *emap;
 	int *emap_mem;
 
 	BLI_SMALLSTACK_DECLARE(dv_stack, MDeformVert *);

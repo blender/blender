@@ -1523,7 +1523,7 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *sa, SlipData *da
 	char msg[HEADER_LENGTH];
 
 	if (sa) {
-		if(hasNumInput(&data->num_input)) {
+		if (hasNumInput(&data->num_input)) {
 			char num_str[NUM_STR_REP_LEN];
 			outputNumInput(&data->num_input, num_str, &scene->unit);
 			BLI_snprintf(msg, HEADER_LENGTH, "Trim offset: %s", num_str);

@@ -346,7 +346,7 @@ void BLI_cleanup_path(const char *relabase, char *path)
 	/* Note
 	 *   memmove(start, eind, strlen(eind) + 1);
 	 * is the same as
-	 *   strcpy( start, eind ); 
+	 *   strcpy(start, eind);
 	 * except strcpy should not be used because there is overlap,
 	 * so use memmove's slightly more obscure syntax - Campbell
 	 */

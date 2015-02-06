@@ -309,8 +309,8 @@ int imb_is_a_tiff(unsigned char *mem)
 	char big_endian[IMB_TIFF_NCB] = { 0x4d, 0x4d, 0x00, 0x2a };
 	char lil_endian[IMB_TIFF_NCB] = { 0x49, 0x49, 0x2a, 0x00 };
 
-	return ( (memcmp(big_endian, mem, IMB_TIFF_NCB) == 0) ||
-	         (memcmp(lil_endian, mem, IMB_TIFF_NCB) == 0) );
+	return ((memcmp(big_endian, mem, IMB_TIFF_NCB) == 0) ||
+	        (memcmp(lil_endian, mem, IMB_TIFF_NCB) == 0));
 }
 
 static void scanline_contig_16bit(float *rectf, const unsigned short *sbuf, int scanline_w, int spp)

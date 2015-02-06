@@ -219,8 +219,8 @@ static int group_object_unlink_internal(Group *group, Object *ob)
 	return removed;
 }
 
-static bool group_object_cyclic_check_internal(Object *object, Group *group) {
-
+static bool group_object_cyclic_check_internal(Object *object, Group *group)
+{
 	if (object->dup_group) {
 		Group *dup_group = object->dup_group;
 		if ((dup_group->id.flag & LIB_DOIT) == 0) {

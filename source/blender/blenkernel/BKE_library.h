@@ -107,8 +107,8 @@ void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagg
 struct ID *BKE_libblock_find_name_ex(struct Main *bmain, const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
-void set_free_notifier_reference_cb(void (*func)(const void *) );
+void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *));
+void set_free_notifier_reference_cb(void (*func)(const void *));
 
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME N_("Untitled")

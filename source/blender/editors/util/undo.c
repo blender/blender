@@ -580,7 +580,7 @@ static int undo_history_exec(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		}
 		else if (undosys == UNDOSYSTEM_IMAPAINT) {
-			ED_undo_paint_step_num(C, UNDO_PAINT_IMAGE, item );
+			ED_undo_paint_step_num(C, UNDO_PAINT_IMAGE, item);
 		}
 		else {
 			ED_viewport_render_kill_jobs(CTX_wm_manager(C), CTX_data_main(C), true);

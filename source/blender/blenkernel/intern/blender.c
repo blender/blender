@@ -573,7 +573,7 @@ int BKE_write_file_userdef(const char *filepath, ReportList *reports)
 
 static void (*blender_test_break_cb)(void) = NULL;
 
-void set_blender_test_break_cb(void (*func)(void) )
+void set_blender_test_break_cb(void (*func)(void))
 {
 	blender_test_break_cb = func;
 }

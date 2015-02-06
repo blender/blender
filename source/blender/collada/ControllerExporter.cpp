@@ -473,7 +473,7 @@ static float get_property(Bone *bone, const char *key, float def)
 	if (bone->prop) {
 		IDProperty *property = IDP_GetPropertyFromGroup(bone->prop, key);
 		if (property) {
-			switch(property->type) {
+			switch (property->type) {
 				case IDP_INT:
 					result = (float)(IDP_Int(property));
 					break;

@@ -540,7 +540,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const cha
 	uiItemL(col, str, ICON_NONE);
 
 	/* Display current frame number. */
-	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr) ;
+	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
 	if (framenr <= clip->len)
 		BLI_snprintf(str, sizeof(str), IFACE_("Frame: %d / %d"), framenr, clip->len);
 	else

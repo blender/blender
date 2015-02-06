@@ -74,7 +74,7 @@ static bool dependsOnNormals(ModifierData *UNUSED(md))
 	return true;
 }
 
-static DerivedMesh *WireframeModifier_do( WireframeModifierData *wmd, Object *ob, DerivedMesh *dm)
+static DerivedMesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	BMesh *bm;

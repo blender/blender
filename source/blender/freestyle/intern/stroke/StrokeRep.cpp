@@ -425,7 +425,7 @@ void Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 				Vec2r avP(0.0, 0.0);
 				for (j = i - timeSinceSingu1; j <= i; j++)
 					avP = Vec2r(avP + _vertices[2 * j]->point2d());
-				avP = Vec2r( 1.0 / float(timeSinceSingu1 + 1) * avP);
+				avP = Vec2r(1.0 / float(timeSinceSingu1 + 1) * avP);
 				for (j = i - timeSinceSingu1; j <= i; j++)
 					_vertices[2 * j]->setPoint2d(avP);
 				//_vertex[2 * j] = _vertex[2 * i];
