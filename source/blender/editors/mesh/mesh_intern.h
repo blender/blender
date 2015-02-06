@@ -175,6 +175,7 @@ void MESH_OT_normals_make_consistent(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth_laplacian(struct wmOperatorType *ot);
 void MESH_OT_vert_connect(struct wmOperatorType *ot);
+void MESH_OT_vert_connect_path(struct wmOperatorType *ot);
 void MESH_OT_vert_connect_concave(struct wmOperatorType *ot);
 void MESH_OT_vert_connect_nonplanar(struct wmOperatorType *ot);
 void MESH_OT_edge_split(struct wmOperatorType *ot);

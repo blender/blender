@@ -2218,7 +2218,8 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("mesh.rip_edge_move")
         layout.operator("mesh.split")
         layout.operator_menu_enum("mesh.separate", "type")
-        layout.operator("mesh.vert_connect", text="Connect")
+        layout.operator("mesh.vert_connect_path", text="Connect Vertex Path")
+        layout.operator("mesh.vert_connect", text="Connect Vertices")
         layout.operator("transform.vert_slide", text="Slide")
 
         layout.separator()
