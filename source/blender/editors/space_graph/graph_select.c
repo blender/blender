@@ -70,8 +70,9 @@ static void graphkeys_auto_view(bContext *C)
 {
 	const SpaceIpo *sipo = CTX_wm_space_graph(C);
 
-	if (sipo && sipo->flag & SIPO_AUTOVIEW)
+	if (sipo && sipo->flag & SIPO_AUTO_VIEW_SELECTED) {
 		WM_operator_name_call(C, "GRAPH_OT_view_selected", WM_OP_INVOKE_DEFAULT, NULL);
+	}
 }
 
 /* ******************** Deselect All Operator ***************************** */
@@ -875,7 +876,7 @@ static void select_moreless_graph_keys(bContext *C, bAnimContext *ac, short mode
 		ked.data = NULL;
 		
 		/* only do auto view if a bezier point is selected */
-		if (sipo->flag & SIPO_AUTOVIEW) {
+		if (sipo->flag & SIPO_AUTO_VIEW_SELECTED) {
 			const FCurve *fcu = (FCurve *)ale->key_data;
 			const BezTriple *bezt;
 			unsigned int i;

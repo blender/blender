@@ -3004,9 +3004,9 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Has Ghost Curves", "Graph Editor instance has some ghost curves stored");
 
 	/* auto view */
-	prop = RNA_def_property(srna, "use_auto_view", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_AUTOVIEW);
-	RNA_def_property_ui_text(prop, "Use Auto View", "Automatically adjust view based on selection");
+	prop = RNA_def_property(srna, "use_auto_view_selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_AUTO_VIEW_SELECTED);
+	RNA_def_property_ui_text(prop, "Auto View Selected", "Automatically adjust view based on selection");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
 	/* nromalize curves */
