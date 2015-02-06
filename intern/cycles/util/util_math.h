@@ -71,6 +71,13 @@ CCL_NAMESPACE_BEGIN
 #define M_SQRT2_F	((float)1.41421356237309504880) 					/* sqrt(2) */
 #endif
 
+#ifndef M_LN2_F
+#define M_LN2_F      ((float)0.6931471805599453)        /* ln(2) */
+#endif
+
+#ifndef M_LN10_F
+#define M_LN10_F     ((float)2.3025850929940457)        /* ln(10) */
+#endif
 
 /* Scalar */
 

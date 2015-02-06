@@ -387,7 +387,7 @@ ccl_device_inline float fast_logf(float x)
 	/* Examined 2130706432 values of logf on [1.17549435e-38,3.40282347e+38]:
 	 * 0.313865375 avg ulp diff, 5148137 max ulp, 7.62939e-06 max error.
 	 */
-	return fast_log2f(x) * float(M_LN2);
+	return fast_log2f(x) * M_LN2_F;
 }
 
 ccl_device_inline float fast_log10(float x)
@@ -395,7 +395,7 @@ ccl_device_inline float fast_log10(float x)
 	/* Examined 2130706432 values of log10f on [1.17549435e-38,3.40282347e+38]:
 	 * 0.631237033 avg ulp diff, 4471615 max ulp, 3.8147e-06 max error.
 	 */
-	return fast_log2f(x) * float(M_LN2 / M_LN10);
+	return fast_log2f(x) * M_LN2_F / M_LN10_F;
 }
 
 ccl_device float fast_logb(float x)
@@ -438,7 +438,7 @@ ccl_device_inline float fast_expf(float x)
 	/* Examined 2237485550 values of exp on [-87.3300018,87.3300018]:
 	 * 2.6666452 avg ulp diff, 230 max ulp.
 	 */
-	return fast_exp2f(x * float(1.0 / M_LN2));
+	return fast_exp2f(x / M_LN2_F);
 }
 
 ccl_device_inline float fast_exp10(float x)
@@ -446,7 +446,7 @@ ccl_device_inline float fast_exp10(float x)
 	/* Examined 2217701018 values of exp10 on [-37.9290009,37.9290009]:
 	 * 2.71732409 avg ulp diff, 232 max ulp.
 	 */
-	return fast_exp2f(x * float(M_LN10 / M_LN2));
+	return fast_exp2f(x * M_LN10_F / M_LN2_F);
 }
 
 ccl_device_inline float fast_expm1f(float x)
