@@ -65,15 +65,15 @@ BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1, 1};
 
 /* Duplicated code since we can't link in blenkernel or blenlib */
 
-/* pedantic check for '.', do this since its a hassle for translators */
+/* pedantic check for final '.', note '...' are allowed though. */
 #ifndef NDEBUG
-#  define DESCR_CHECK(description, id1, id2)                                  \
-	if (description && (description)[0]) {                                    \
-		int i = strlen(description);                                          \
-		if ((description)[i - 1] == '.') {                                    \
-			fprintf(stderr, "%s: '%s' '%s' description ends with a '.' !\n",  \
-			        __func__, id1 ? id1 : "", id2 ? id2 : "");                \
-		}                                                                     \
+#  define DESCR_CHECK(description, id1, id2)                                       \
+	if (description && (description)[0]) {                                         \
+		int i = strlen(description);                                               \
+		if (i > 3 && (description)[i - 1] == '.' && (description)[i - 3] != '.') { \
+			fprintf(stderr, "%s: '%s' '%s' description ends with a '.' !\n",       \
+			        __func__, id1 ? id1 : "", id2 ? id2 : "");                     \
+		}                                                                          \
 	} (void)0
 
 #else

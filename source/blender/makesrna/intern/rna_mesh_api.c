@@ -200,7 +200,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh, ReportList *reports, i
 
 	if (normals_len != numloops * 3) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "number of custom normals is not number of loops (%f / %d)",
+		            "Number of custom normals is not number of loops (%f / %d)",
 		            (float)normals_len / 3.0f, numloops);
 		return;
 	}
@@ -216,7 +216,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(
 
 	if (normals_len != numverts * 3) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "number of custom normals is not number of vertices (%f / %d)",
+		            "Number of custom normals is not number of vertices (%f / %d)",
 		            (float)normals_len / 3.0f, numverts);
 		return;
 	}
