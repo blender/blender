@@ -98,10 +98,10 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	if (drag->type == WM_DRAG_ID) {
-		ID *id = (ID *)drag->poin;
+		ID *id = drag->poin;
 		if (GS(id->name) == ID_OB) {
 			/* Ensure item under cursor is valid drop target */
-			TreeElement *te = outliner_dropzone_find(soops, fmval, 1);
+			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
 
 			if (te && te->idcode == ID_OB && TREESTORE(te)->type == 0) {
 				Scene *scene;
@@ -129,7 +129,7 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 
 static void outliner_parent_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = (ID *)drag->poin;
+	ID *id = drag->poin;
 
 	RNA_string_set(drop->ptr, "child", id->name + 2);
 }
@@ -148,10 +148,10 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 	}
 
 	if (drag->type == WM_DRAG_ID) {
-		ID *id = (ID *)drag->poin;
+		ID *id = drag->poin;
 		if (GS(id->name) == ID_OB) {
 			if (((Object *)id)->parent) {
-				if ((te = outliner_dropzone_find(soops, fmval, 1))) {
+				if ((te = outliner_dropzone_find(soops, fmval, true))) {
 					TreeStoreElem *tselem = TREESTORE(te);
 
 					switch (te->idcode) {
@@ -171,7 +171,7 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 
 static void outliner_parent_clear_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = (ID *)drag->poin;
+	ID *id = drag->poin;
 	RNA_string_set(drop->ptr, "dragged_obj", id->name + 2);
 
 	/* Set to simple parent clear type. Avoid menus for drag and drop if possible.
@@ -188,10 +188,10 @@ static int outliner_scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	if (drag->type == WM_DRAG_ID) {
-		ID *id = (ID *)drag->poin;
+		ID *id = drag->poin;
 		if (GS(id->name) == ID_OB) {
 			/* Ensure item under cursor is valid drop target */
-			TreeElement *te = outliner_dropzone_find(soops, fmval, 0);
+			TreeElement *te = outliner_dropzone_find(soops, fmval, false);
 			return (te && te->idcode == ID_SCE && TREESTORE(te)->type == 0);
 		}
 	}
@@ -200,7 +200,7 @@ static int outliner_scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 
 static void outliner_scene_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = (ID *)drag->poin;
+	ID *id = drag->poin;
 
 	RNA_string_set(drop->ptr, "object", id->name + 2);
 }
@@ -213,10 +213,10 @@ static int outliner_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	if (drag->type == WM_DRAG_ID) {
-		ID *id = (ID *)drag->poin;
+		ID *id = drag->poin;
 		if (GS(id->name) == ID_MA) {
 			/* Ensure item under cursor is valid drop target */
-			TreeElement *te = outliner_dropzone_find(soops, fmval, 1);
+			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
 			return (te && te->idcode == ID_OB && TREESTORE(te)->type == 0);
 		}
 	}
@@ -225,7 +225,7 @@ static int outliner_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
 
 static void outliner_material_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = (ID *)drag->poin;
+	ID *id = drag->poin;
 
 	RNA_string_set(drop->ptr, "material", id->name + 2);
 }

@@ -97,7 +97,9 @@ static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *te
 }
 #endif
 
-static TreeElement *outliner_dropzone_element(const SpaceOops *soops, TreeElement *te, const float fmval[2], const int children)
+static TreeElement *outliner_dropzone_element(
+        const SpaceOops *soops, TreeElement *te,
+        const float fmval[2], const bool children)
 {
 	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
 		/* name and first icon */
@@ -116,7 +118,7 @@ static TreeElement *outliner_dropzone_element(const SpaceOops *soops, TreeElemen
 }
 
 /* Used for drag and drop parenting */
-TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float fmval[2], const int children)
+TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float fmval[2], const bool children)
 {
 	TreeElement *te;
 
@@ -1502,7 +1504,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	/* Find object hovered over */
-	te = outliner_dropzone_find(soops, fmval, 1);
+	te = outliner_dropzone_find(soops, fmval, true);
 
 	if (te) {
 		RNA_string_set(op->ptr, "parent", te->name);
@@ -1717,7 +1719,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	/* Find object hovered over */
-	te = outliner_dropzone_find(soops, fmval, 0);
+	te = outliner_dropzone_find(soops, fmval, false);
 
 	if (te) {
 		Base *base;
@@ -1787,7 +1789,7 @@ static int material_drop_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	/* Find object hovered over */
-	te = outliner_dropzone_find(soops, fmval, 1);
+	te = outliner_dropzone_find(soops, fmval, true);
 
 	if (te) {
 		RNA_string_set(op->ptr, "object", te->name);

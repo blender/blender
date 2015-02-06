@@ -858,7 +858,7 @@ int UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(e
 
 void UI_drop_color_copy(wmDrag *drag, wmDropBox *drop)
 {
-	uiDragColorHandle *drag_info = (uiDragColorHandle *)drag->poin;
+	uiDragColorHandle *drag_info = drag->poin;
 
 	RNA_float_set_array(drop->ptr, "color", drag_info->color);
 	RNA_boolean_set(drop->ptr, "gamma", drag_info->gamma_corrected);
