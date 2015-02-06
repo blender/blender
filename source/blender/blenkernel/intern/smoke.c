@@ -2131,6 +2131,9 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 					if (sfs->source == MOD_SMOKE_FLOW_SOURCE_PARTICLES) {
 						/* emit_from_particles() updates timestep internally */
 						emit_from_particles(collob, sds, sfs, &em_temp, scene, sdt);
+						if (!(sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE)) {
+							hires_multiplier = 1;
+						}
 					}
 					else { /* MOD_SMOKE_FLOW_SOURCE_MESH */
 						/* update flow object frame */
