@@ -117,9 +117,11 @@ set(APISRC
 	rna_scene_api.c
 	rna_sensor_api.c
 	rna_sequencer_api.c
+	rna_sound_api.c
 	rna_space_api.c
 	rna_text_api.c
 	rna_ui_api.c
+	rna_vfont_api.c
 	rna_wm_api.c
 )
 

@@ -84,6 +84,8 @@ void RNA_def_vfont(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
 	RNA_def_property_ui_text(prop, "Packed File", "");
+
+	RNA_api_vfont(srna);
 }
 
 #endif
