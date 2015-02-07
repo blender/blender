@@ -52,8 +52,6 @@
 #include "BKE_packedFile.h"
 #include "BKE_main.h"
 
-#include "BKE_global.h" /* grr: G.main->name */
-
 #include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
 
@@ -109,13 +107,13 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 	}
 }
 
-static void rna_Image_save(Image *image, bContext *C, ReportList *reports)
+static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *reports)
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 	if (ibuf) {
 		char filename[FILE_MAX];
 		BLI_strncpy(filename, image->name, sizeof(filename));
-		BLI_path_abs(filename, ID_BLEND_PATH(G.main, &image->id));
+		BLI_path_abs(filename, ID_BLEND_PATH(bmain, &image->id));
 
 		if (image->packedfile) {
 			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {
@@ -144,7 +142,9 @@ static void rna_Image_save(Image *image, bContext *C, ReportList *reports)
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
-static void rna_Image_pack(Image *image, bContext *C, ReportList *reports, int as_png, const char *data, int data_len)
+static void rna_Image_pack(
+        Image *image, Main *bmain, bContext *C, ReportList *reports,
+        int as_png, const char *data, int data_len)
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
@@ -165,7 +165,7 @@ static void rna_Image_pack(Image *image, bContext *C, ReportList *reports, int a
 			image->packedfile = newPackedFileMemory(data_dup, data_len);
 		}
 		else {
-			image->packedfile = newPackedFile(reports, image->name, ID_BLEND_PATH(G.main, &image->id));
+			image->packedfile = newPackedFile(reports, image->name, ID_BLEND_PATH(bmain, &image->id));
 		}
 	}
 
@@ -310,11 +310,11 @@ void RNA_api_image(StructRNA *srna)
 
 	func = RNA_def_function(srna, "save", "rna_Image_save");
 	RNA_def_function_ui_description(func, "Save image to its source path");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 
 	func = RNA_def_function(srna, "pack", "rna_Image_pack");
 	RNA_def_function_ui_description(func, "Pack an image as embedded data into the .blend file");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_boolean(func, "as_png", 0, "as_png", "Pack the image as PNG (needed for generated/dirty images)");
 	parm = RNA_def_property(func, "data", PROP_STRING, PROP_BYTESTRING);
 	RNA_def_property_ui_text(parm, "data", "Raw data (bytes, exact content of the embedded file)");
