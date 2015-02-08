@@ -59,7 +59,7 @@ public:
 	 * Returns the event type.
 	 * \return The event type.
 	 */
-	virtual GHOST_TEventType getType()
+	GHOST_TEventType getType()
 	{ 
 		return m_type;
 	}
@@ -68,7 +68,7 @@ public:
 	 * Returns the time this event was generated.
 	 * \return The event generation time.
 	 */
-	virtual GHOST_TUns64 getTime()
+	GHOST_TUns64 getTime()
 	{
 		return m_time;
 	}
@@ -78,7 +78,7 @@ public:
 	 * or NULL if it is a 'system' event.
 	 * \return The generating window.
 	 */
-	virtual GHOST_IWindow *getWindow()
+	GHOST_IWindow *getWindow()
 	{
 		return m_window;
 	}
@@ -87,7 +87,7 @@ public:
 	 * Returns the event data.
 	 * \return The event data.
 	 */
-	virtual GHOST_TEventDataPtr getData()
+	GHOST_TEventDataPtr getData()
 	{
 		return m_data;
 	}

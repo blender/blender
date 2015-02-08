@@ -68,7 +68,7 @@ public:
 	 * Returns the timer start time.
 	 * \return The timer start time.
 	 */
-	inline virtual GHOST_TUns64 getStart() const
+	inline GHOST_TUns64 getStart() const
 	{
 		return m_start;
 	}
@@ -77,7 +77,7 @@ public:
 	 * Changes the timer start time.
 	 * \param start The timer start time.
 	 */
-	virtual void setStart(GHOST_TUns64 start)
+	void setStart(GHOST_TUns64 start)
 	{ 
 		m_start = start;
 	}
@@ -86,7 +86,7 @@ public:
 	 * Returns the timer interval.
 	 * \return The timer interval.
 	 */
-	inline virtual GHOST_TUns64 getInterval() const
+	inline GHOST_TUns64 getInterval() const
 	{
 		return m_interval;
 	}
@@ -95,7 +95,7 @@ public:
 	 * Changes the timer interval.
 	 * \param interval The timer interval.
 	 */
-	virtual void setInterval(GHOST_TUns64 interval)
+	void setInterval(GHOST_TUns64 interval)
 	{ 
 		m_interval = interval;
 	}
@@ -104,7 +104,7 @@ public:
 	 * Returns the time the timerProc will be called.
 	 * \return The time the timerProc will be called.
 	 */
-	inline virtual GHOST_TUns64 getNext() const
+	inline GHOST_TUns64 getNext() const
 	{
 		return m_next;
 	}
@@ -113,7 +113,7 @@ public:
 	 * Changes the time the timerProc will be called.
 	 * \param next The time the timerProc will be called.
 	 */
-	virtual void setNext(GHOST_TUns64 next)
+	void setNext(GHOST_TUns64 next)
 	{ 
 		m_next = next;
 	}
@@ -122,7 +122,7 @@ public:
 	 * Returns the timer callback.
 	 * \return the timer callback.
 	 */
-	inline virtual GHOST_TimerProcPtr getTimerProc() const
+	inline GHOST_TimerProcPtr getTimerProc() const
 	{
 		return m_timerProc;
 	}
@@ -131,7 +131,7 @@ public:
 	 * Changes the timer callback.
 	 * \param The timer callback.
 	 */
-	inline virtual void setTimerProc(const GHOST_TimerProcPtr timerProc)
+	inline void setTimerProc(const GHOST_TimerProcPtr timerProc)
 	{
 		m_timerProc = timerProc;
 	}
@@ -140,7 +140,7 @@ public:
 	 * Returns the timer user data.
 	 * \return The timer user data.
 	 */
-	inline virtual GHOST_TUserDataPtr getUserData() const
+	inline GHOST_TUserDataPtr getUserData() const
 	{
 		return m_userData;
 	}
@@ -149,7 +149,7 @@ public:
 	 * Changes the time user data.
 	 * \param data The timer user data.
 	 */
-	virtual void setUserData(const GHOST_TUserDataPtr userData)
+	void setUserData(const GHOST_TUserDataPtr userData)
 	{
 		m_userData = userData;
 	}
@@ -158,7 +158,7 @@ public:
 	 * Returns the auxiliary storage room.
 	 * \return The auxiliary storage room.
 	 */
-	inline virtual GHOST_TUns32 getAuxData() const
+	inline GHOST_TUns32 getAuxData() const
 	{
 		return m_auxData;
 	}
@@ -167,7 +167,7 @@ public:
 	 * Changes the auxiliary storage room.
 	 * \param auxData The auxiliary storage room.
 	 */
-	virtual void setAuxData(GHOST_TUns32 auxData)
+	void setAuxData(GHOST_TUns32 auxData)
 	{ 
 		m_auxData = auxData;
 	}

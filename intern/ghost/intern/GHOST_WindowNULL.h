@@ -96,7 +96,7 @@ private:
 	 * \param type	The type of rendering context create.
 	 * \return Indication of success.
 	 */
-	virtual GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) {return NULL;}
+	GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) {return NULL;}
 };
 
 

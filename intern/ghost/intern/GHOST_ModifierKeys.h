@@ -47,7 +47,7 @@ struct GHOST_ModifierKeys {
 	 */
 	GHOST_ModifierKeys();
 
-	virtual ~GHOST_ModifierKeys();
+	~GHOST_ModifierKeys();
 
 	/**
 	 * Returns the modifier key's key code from a modifier key mask.
@@ -62,26 +62,26 @@ struct GHOST_ModifierKeys {
 	 * \param mask. Key state to return.
 	 * \return The state of the key (pressed == true).
 	 */
-	virtual bool get(GHOST_TModifierKeyMask mask) const;
+	bool get(GHOST_TModifierKeyMask mask) const;
 
 	/**
 	 * Updates the state of a single modifier key.
 	 * \param mask. Key state to update.
 	 * \param down. The new state of the key.
 	 */
-	virtual void set(GHOST_TModifierKeyMask mask, bool down);
+	void set(GHOST_TModifierKeyMask mask, bool down);
 
 	/**
 	 * Sets the state of all modifier keys to up.
 	 */
-	virtual void clear();
+	void clear();
 
 	/**
 	 * Determines whether to modifier key states are equal.
 	 * \param keys. The modifier key state to compare to.
 	 * \return Indication of equality.
 	 */
-	virtual bool equals(const GHOST_ModifierKeys& keys) const;
+	bool equals(const GHOST_ModifierKeys& keys) const;
 
 	/** Bitfield that stores the appropriate key state. */
 	GHOST_TUns8 m_LeftShift : 1;

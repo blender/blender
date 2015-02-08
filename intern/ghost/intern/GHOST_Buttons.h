@@ -48,26 +48,26 @@ struct GHOST_Buttons {
 	 */
 	GHOST_Buttons();
 
-	virtual ~GHOST_Buttons();
+	~GHOST_Buttons();
 
 	/**
 	 * Returns the state of a single button.
 	 * \param mask Key button to return.
 	 * \return The state of the button (pressed == true).
 	 */
-	virtual bool get(GHOST_TButtonMask mask) const;
+	bool get(GHOST_TButtonMask mask) const;
 
 	/**
 	 * Updates the state of a single button.
 	 * \param mask Button state to update.
 	 * \param down The new state of the button.
 	 */
-	virtual void set(GHOST_TButtonMask mask, bool down);
+	void set(GHOST_TButtonMask mask, bool down);
 
 	/**
 	 * Sets the state of all buttons to up.
 	 */
-	virtual void clear();
+	void clear();
 
 	GHOST_TUns8 m_ButtonLeft        : 1;
 	GHOST_TUns8 m_ButtonMiddle      : 1;

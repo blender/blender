@@ -49,7 +49,7 @@ public:
 	 * \param event	The event that can be handled or not.
 	 * \return Indication as to whether the event was handled.
 	 */
-	virtual bool processEvent(GHOST_IEvent *event);
+	bool processEvent(GHOST_IEvent *event);
 
 protected:
 	/**

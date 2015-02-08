@@ -97,7 +97,7 @@ public:
 	 * \param userData	Placeholder for user data.
 	 * \return A timer task (0 if timer task installation failed).
 	 */
-	virtual GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
+	GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
 	                                       GHOST_TUns64 interval,
 	                                       GHOST_TimerProcPtr timerProc,
 	                                       GHOST_TUserDataPtr userData = NULL);
@@ -107,7 +107,7 @@ public:
 	 * \param timerTask Timer task to be removed.
 	 * \return Indication of success.
 	 */
-	virtual GHOST_TSuccess removeTimer(GHOST_ITimerTask *timerTask);
+	GHOST_TSuccess removeTimer(GHOST_ITimerTask *timerTask);
 
 	/***************************************************************************************
 	 * Display/window management functionality
@@ -126,14 +126,14 @@ public:
 	 * \param	window Pointer to the window to be disposed.
 	 * \return	Indication of success.
 	 */
-	virtual GHOST_TSuccess disposeWindow(GHOST_IWindow *window);
+	GHOST_TSuccess disposeWindow(GHOST_IWindow *window);
 
 	/**
 	 * Returns whether a window is valid.
 	 * \param	window Pointer to the window to be checked.
 	 * \return	Indication of validity.
 	 */
-	virtual bool validWindow(GHOST_IWindow *window);
+	bool validWindow(GHOST_IWindow *window);
 
 	/**
 	 * Begins full screen mode.
@@ -143,7 +143,7 @@ public:
 	 * This window is invalid after full screen has been ended.
 	 * \return	Indication of success.
 	 */
-	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
+	GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
 	                                       const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0);
 		
 	/**
@@ -153,26 +153,26 @@ public:
 	 *
 	 * \return	Indication of success.
 	 */
-	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window);
+	GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window);
 
 	/**
 	 * Ends full screen mode.
 	 * \return	Indication of success.
 	 */
-	virtual GHOST_TSuccess endFullScreen(void);
+	GHOST_TSuccess endFullScreen(void);
 
 	/**
 	 * Returns current full screen mode status.
 	 * \return The current status.
 	 */
-	virtual bool getFullScreen(void);
+	bool getFullScreen(void);
 
 	
 	/**
 	 * Native pixel size support (MacBook 'retina').
 	 * \return The pixel size in float.
 	 */
-	virtual bool useNativePixel(void);
+	bool useNativePixel(void);
 	bool m_nativePixel;
 
 	/***************************************************************************************
@@ -192,21 +192,21 @@ public:
 	 * The event stack will be empty afterwards.
 	 * \return Indication as to whether any of the consumers handled the events.
 	 */
-	virtual bool dispatchEvents();
+	bool dispatchEvents();
 
 	/**
 	 * Adds the given event consumer to our list.
 	 * \param consumer The event consumer to add.
 	 * \return Indication of success.
 	 */
-	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer *consumer);
+	GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer *consumer);
 
 	/**
 	 * Remove the given event consumer to our list.
 	 * \param consumer The event consumer to remove.
 	 * \return Indication of success.
 	 */
-	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer *consumer);
+	GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer *consumer);
 
 	/***************************************************************************************
 	 * Cursor management functionality
@@ -227,7 +227,7 @@ public:
 	 * \param isDown	The state of a modifier key (true == pressed).
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const;
+	GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const;
 
 	/**
 	 * Returns the state of a mouse button (ouside the message queue).
@@ -235,7 +235,7 @@ public:
 	 * \param isDown	Button state.
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
+	GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
 	
 	/***************************************************************************************
 	 * Other (internal) functionality.
@@ -247,28 +247,28 @@ public:
 	 * Do not delete the event!
 	 * \param event	The event to push on the stack.
 	 */
-	virtual GHOST_TSuccess pushEvent(GHOST_IEvent *event);
+	GHOST_TSuccess pushEvent(GHOST_IEvent *event);
 
 	/**
 	 * \return The timer manager.
 	 */
-	inline virtual GHOST_TimerManager *getTimerManager() const;
+	inline GHOST_TimerManager *getTimerManager() const;
 
 	/**
 	 * \return A pointer to our event manager.
 	 */
-	virtual inline GHOST_EventManager *getEventManager() const;
+	inline GHOST_EventManager *getEventManager() const;
 
 	/**
 	 * \return A pointer to our window manager.
 	 */
-	virtual inline GHOST_WindowManager *getWindowManager() const;
+	inline GHOST_WindowManager *getWindowManager() const;
 
 #ifdef WITH_INPUT_NDOF
 	/**
 	 * \return A pointer to our n-degree of freedom manager.
 	 */
-	virtual inline GHOST_NDOFManager *getNDOFManager() const;
+	inline GHOST_NDOFManager *getNDOFManager() const;
 #endif
 
 	/**
@@ -326,7 +326,7 @@ protected:
 	 * \param window The window created.
 	 * \return Indication of success.
 	 */
-	virtual GHOST_TSuccess createFullScreenWindow(GHOST_Window **window, const GHOST_DisplaySetting &settings,
+	GHOST_TSuccess createFullScreenWindow(GHOST_Window **window, const GHOST_DisplaySetting &settings,
 	                                              const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0);
 
 	/** The display manager (platform dependent). */

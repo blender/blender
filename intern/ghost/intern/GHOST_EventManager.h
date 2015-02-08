@@ -58,27 +58,27 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_EventManager();
+	~GHOST_EventManager();
 
 	/**
 	 * Returns the number of events currently on the stack.
 	 * \return The number of events on the stack.
 	 */
-	virtual GHOST_TUns32 getNumEvents();
+	GHOST_TUns32 getNumEvents();
 
 	/**
 	 * Returns the number of events of a certain type currently on the stack.
 	 * \param type The type of events to be counted.
 	 * \return The number of events on the stack of this type.
 	 */
-	virtual GHOST_TUns32 getNumEvents(GHOST_TEventType type);
+	GHOST_TUns32 getNumEvents(GHOST_TEventType type);
 
 	/**
 	 * Return the event at the top of the stack without removal.
 	 * Do not delete the event!
 	 * \return The event at the top of the stack.
 	 */
-	virtual GHOST_IEvent *peekEvent();
+	GHOST_IEvent *peekEvent();
 
 	/**
 	 * Pushes an event on the stack.
@@ -86,47 +86,47 @@ public:
 	 * Do not delete the event!
 	 * \param event	The event to push on the stack.
 	 */
-	virtual GHOST_TSuccess pushEvent(GHOST_IEvent *event);
+	GHOST_TSuccess pushEvent(GHOST_IEvent *event);
 
 	/**
 	 * Dispatches the given event directly, bypassing the event stack.
 	 * \return Indication as to whether any of the consumers handled the event.
 	 */
-	virtual bool dispatchEvent(GHOST_IEvent *event);
+	bool dispatchEvent(GHOST_IEvent *event);
 
 	/**
 	 * Dispatches the event at the back of the stack.
 	 * The event will be removed from the stack.
 	 * \return Indication as to whether any of the consumers handled the event.
 	 */
-	virtual bool dispatchEvent();
+	bool dispatchEvent();
 
 	/**
 	 * Dispatches all the events on the stack.
 	 * The event stack will be empty afterwards.
 	 * \return Indication as to whether any of the consumers handled the events.
 	 */
-	virtual bool dispatchEvents();
+	bool dispatchEvents();
 
 	/**
 	 * Adds a consumer to the list of event consumers.
 	 * \param consumer The consumer added to the list.
 	 * \return Indication as to whether addition has succeeded.
 	 */
-	virtual GHOST_TSuccess addConsumer(GHOST_IEventConsumer *consumer);
+	GHOST_TSuccess addConsumer(GHOST_IEventConsumer *consumer);
 
 	/**
 	 * Removes a consumer from the list of event consumers.
 	 * \param consumer The consumer removed from the list.
 	 * \return Indication as to whether removal has succeeded.
 	 */
-	virtual GHOST_TSuccess removeConsumer(GHOST_IEventConsumer *consumer);
+	GHOST_TSuccess removeConsumer(GHOST_IEventConsumer *consumer);
 
 	/**
 	 * Removes all events for a window from the stack.
 	 * \param	window	The window to remove events for.
 	 */
-	virtual void
+	void
 	removeWindowEvents(
 	    GHOST_IWindow *window
 	    );
@@ -138,7 +138,7 @@ public:
 	 * \param	type	The type of events to be removed.
 	 * \param	window	The window to remove the events for.
 	 */
-	virtual void
+	void
 	removeTypeEvents(
 	    GHOST_TEventType type,
 	    GHOST_IWindow *window = NULL
@@ -150,12 +150,12 @@ protected:
 	 * Delete the event after use!
 	 * \return The event at the top of the stack.
 	 */
-	virtual GHOST_IEvent *popEvent();
+	GHOST_IEvent *popEvent();
 
 	/**
 	 * Removes all events from the stack.
 	 */
-	virtual void disposeEvents();
+	void disposeEvents();
 
 	/** A stack with events. */
 	typedef std::deque<GHOST_IEvent *> TEventStack;

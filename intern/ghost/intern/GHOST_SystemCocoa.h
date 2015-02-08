@@ -71,7 +71,7 @@ public:
 	 * Based on ANSI clock() routine.
 	 * \return The number of milliseconds.
 	 */
-	virtual GHOST_TUns64 getMilliSeconds() const;
+	GHOST_TUns64 getMilliSeconds() const;
 
 	/***************************************************************************************
 	 * Display/window management functionality
@@ -81,18 +81,18 @@ public:
 	 * Returns the number of displays on this system.
 	 * \return The number of displays.
 	 */
-	virtual GHOST_TUns8 getNumDisplays() const;
+	GHOST_TUns8 getNumDisplays() const;
 
 	/**
 	 * Returns the dimensions of the main display on this system.
 	 * \return The dimension of the main display.
 	 */
-	virtual void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
+	void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
 	
 	/** Returns the combine dimensions of all monitors.
 	 * \return The dimension of the workspace.
 	 */
-	virtual void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
+	void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
 
 	/**
 	 * Create a new window.
@@ -110,7 +110,7 @@ public:
 	 * \param	parentWindow    Parent (embedder) window
 	 * \return	The new window (or 0 if creation failed).
 	 */
-	virtual GHOST_IWindow *createWindow(
+	GHOST_IWindow *createWindow(
 	    const STR_String& title,
 	    GHOST_TInt32 left,
 	    GHOST_TInt32 top,
@@ -133,7 +133,7 @@ public:
 	 * \param waitForEvent Flag to wait for an event (or return immediately).
 	 * \return Indication of the presence of events.
 	 */
-	virtual bool processEvents(bool waitForEvent);
+	bool processEvents(bool waitForEvent);
 	
 	/**
 	 * Handle User request to quit, from Menu bar Quit, and Cmd+Q
@@ -169,7 +169,7 @@ public:
 	 * \param y			The y-coordinate of the cursor.
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const;
+	GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const;
 
 	/**
 	 * Updates the location of the cursor (location in screen coordinates).
@@ -177,7 +177,7 @@ public:
 	 * \param y			The y-coordinate of the cursor.
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
+	GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
 	
 	/***************************************************************************************
 	 * Access to mouse button and keyboard states.
@@ -188,28 +188,28 @@ public:
 	 * \param keys	The state of all modifier keys (true == pressed).
 	 * \return		Indication of success.
 	 */
-	virtual GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys& keys) const;
+	GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys& keys) const;
 
 	/**
 	 * Returns the state of the mouse buttons (ouside the message queue).
 	 * \param buttons	The state of the buttons.
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
+	GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
 
 	/**
 	 * Returns Clipboard data
 	 * \param selection		Indicate which buffer to return
 	 * \return				Returns the selected buffer
 	 */
-	virtual GHOST_TUns8 *getClipboard(bool selection) const;
+	GHOST_TUns8 *getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
 	 * \param buffer	The buffer to be copied
 	 * \param selection	Indicates which buffer to copy too, only used on X11
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
 	 * Handles a window event. Called by GHOST_WindowCocoa window delegate
@@ -268,7 +268,7 @@ protected:
 	 * For now, it just registers the window class (WNDCLASS).
 	 * \return A success value.
 	 */
-	virtual GHOST_TSuccess init();
+	GHOST_TSuccess init();
 
 	/**
 	 * Performs the actual cursor position update (location in screen coordinates).

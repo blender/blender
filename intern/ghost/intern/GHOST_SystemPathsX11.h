@@ -48,7 +48,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_SystemPathsX11();
+	~GHOST_SystemPathsX11();
 
 	/**
 	 * Determine the base dir in which shared resources are located. It will first try to use

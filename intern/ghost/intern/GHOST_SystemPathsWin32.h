@@ -60,7 +60,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_SystemPathsWin32();
+	~GHOST_SystemPathsWin32();
 
 	/**
 	 * Determine the base dir in which shared resources are located. It will first try to use

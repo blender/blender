@@ -72,53 +72,53 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_ContextCGL();
+	~GHOST_ContextCGL();
 
 	/**
 	 * Swaps front and back buffers of a window.
 	 * \return  A boolean success indicator.
 	 */
-	virtual GHOST_TSuccess swapBuffers();
+	GHOST_TSuccess swapBuffers();
 
 	/**
 	 * Activates the drawing context of this window.
 	 * \return  A boolean success indicator.
 	 */
-	virtual GHOST_TSuccess activateDrawingContext();
+	GHOST_TSuccess activateDrawingContext();
 
 	/**
 	 * Call immediately after new to initialize.  If this fails then immediately delete the object.
 	 * \return Indication as to whether initialization has succeeded.
 	 */
-	virtual GHOST_TSuccess initializeDrawingContext();
+	GHOST_TSuccess initializeDrawingContext();
 
 	/**
 	 * Removes references to native handles from this context and then returns
 	 * \return GHOST_kSuccess if it is OK for the parent to release the handles and
 	 * GHOST_kFailure if releasing the handles will interfere with sharing
 	 */
-	virtual GHOST_TSuccess releaseNativeHandles();
+	GHOST_TSuccess releaseNativeHandles();
 
 	/**
 	 * Sets the swap interval for swapBuffers.
 	 * \param interval The swap interval to use.
 	 * \return A boolean success indicator.
 	 */
-	virtual GHOST_TSuccess setSwapInterval(int interval);
+	GHOST_TSuccess setSwapInterval(int interval);
 
 	/**
 	 * Gets the current swap interval for swapBuffers.
 	 * \param intervalOut Variable to store the swap interval if it can be read.
 	 * \return Whether the swap interval can be read.
 	 */
-	virtual GHOST_TSuccess getSwapInterval(int&);
+	GHOST_TSuccess getSwapInterval(int&);
 
 	/**
 	 * Updates the drawing context of this window.
 	 * Needed whenever the window is changed.
 	 * \return Indication of success.
 	 */
-	virtual GHOST_TSuccess updateDrawingContext();
+	GHOST_TSuccess updateDrawingContext();
 
 //protected:
 //	inline void activateCGLEW() const {

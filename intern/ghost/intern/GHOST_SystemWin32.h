@@ -69,7 +69,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_SystemWin32();
+	~GHOST_SystemWin32();
 
 	/***************************************************************************************
 	 ** Time(r) functionality
@@ -81,7 +81,7 @@ public:
 	 * This overloaded method uses the high frequency timer if available.
 	 * \return The number of milliseconds.
 	 */
-	virtual GHOST_TUns64 getMilliSeconds() const;
+	GHOST_TUns64 getMilliSeconds() const;
 
 	/***************************************************************************************
 	 ** Display/window management functionality
@@ -91,19 +91,19 @@ public:
 	 * Returns the number of displays on this system.
 	 * \return The number of displays.
 	 */
-	virtual GHOST_TUns8 getNumDisplays() const;
+	GHOST_TUns8 getNumDisplays() const;
 
 	/**
 	 * Returns the dimensions of the main display on this system.
 	 * \return The dimension of the main display.
 	 */
-	virtual void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
+	void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
 
 	/**
 	 * Returns the dimensions of all displays on this system.
 	 * \return The dimension of the main display.
 	 */
-	virtual void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
+	void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
 
 	/**
 	 * Create a new window.
@@ -121,7 +121,7 @@ public:
 	 * \param	parentWindow    Parent (embedder) window
 	 * \return	The new window (or 0 if creation failed).
 	 */
-	virtual GHOST_IWindow *createWindow(
+	GHOST_IWindow *createWindow(
 	    const STR_String& title,
 	    GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 	    GHOST_TWindowState state, GHOST_TDrawingContextType type,
@@ -139,7 +139,7 @@ public:
 	 * \param waitForEvent Flag to wait for an event (or return immediately).
 	 * \return Indication of the presence of events.
 	 */
-	virtual bool processEvents(bool waitForEvent);
+	bool processEvents(bool waitForEvent);
 	
 
 	/***************************************************************************************
@@ -152,7 +152,7 @@ public:
 	 * \param y			The y-coordinate of the cursor.
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const;
+	GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const;
 
 	/**
 	 * Updates the location of the cursor (location in screen coordinates).
@@ -160,7 +160,7 @@ public:
 	 * \param y			The y-coordinate of the cursor.
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
+	GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
 
 	/***************************************************************************************
 	 ** Access to mouse button and keyboard states.
@@ -171,28 +171,28 @@ public:
 	 * \param keys	The state of all modifier keys (true == pressed).
 	 * \return		Indication of success.
 	 */
-	virtual GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys& keys) const;
+	GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys& keys) const;
 
 	/**
 	 * Returns the state of the mouse buttons (ouside the message queue).
 	 * \param buttons	The state of the buttons.
 	 * \return			Indication of success.
 	 */
-	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
+	GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
 
 	/**
 	 * Returns unsinged char from CUT_BUFFER0
 	 * \param selection		Used by X11 only
 	 * \return				Returns the Clipboard
 	 */
-	virtual GHOST_TUns8 *getClipboard(bool selection) const;
+	GHOST_TUns8 *getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
 	 * \param selection		Used by X11 only
 	 * \return				No return
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
 	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
@@ -210,7 +210,7 @@ public:
  * Confirms quitting he program when there is just one window left open
  * in the application
  */
-	virtual int confirmQuit(GHOST_IWindow *window) const;
+	int confirmQuit(GHOST_IWindow *window) const;
 
 protected:
 	/**
@@ -218,13 +218,13 @@ protected:
 	 * For now, it just registers the window class (WNDCLASS).
 	 * \return A success value.
 	 */
-	virtual GHOST_TSuccess init();
+	GHOST_TSuccess init();
 
 	/**
 	 * Closes the system down.
 	 * \return A success value.
 	 */
-	virtual GHOST_TSuccess exit();
+	GHOST_TSuccess exit();
 	
 	/**
 	 * Converts raw WIN32 key codes from the wndproc to GHOST keys.
@@ -234,7 +234,7 @@ protected:
 	 * \param extend	Flag if key is not primly (left or right)
 	 * \return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
-	virtual GHOST_TKey convertKey(GHOST_IWindow *window, short vKey, short ScanCode, short extend) const;
+	GHOST_TKey convertKey(GHOST_IWindow *window, short vKey, short ScanCode, short extend) const;
 
 	/**
 	 * Catches raw WIN32 key codes from WM_INPUT in the wndproc.
@@ -244,7 +244,7 @@ protected:
 	 * \param vk		Pointer to virtual key
 	 * \return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
-	virtual GHOST_TKey hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int *keyDown, char *vk);
+	GHOST_TKey hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int *keyDown, char *vk);
 
 	/**
 	 * Creates modifier key event(s) and updates the key data stored locally (m_modifierKeys).
@@ -296,7 +296,7 @@ protected:
 	 * \param vKey		The virtual key from hardKey
 	 * \param ScanCode	The ScanCode of pressed key (simular to PS/2 Set 1)
 	 */
-	virtual GHOST_TKey processSpecialKey(GHOST_IWindow *window, short vKey, short scanCode) const;
+	GHOST_TKey processSpecialKey(GHOST_IWindow *window, short vKey, short scanCode) const;
 
 	/** 
 	 * Creates a window event.
@@ -336,19 +336,19 @@ protected:
 	 * Returns the local state of the modifier keys (from the message queue).
 	 * \param keys The state of the keys.
 	 */
-	inline virtual void retrieveModifierKeys(GHOST_ModifierKeys& keys) const;
+	inline void retrieveModifierKeys(GHOST_ModifierKeys& keys) const;
 
 	/**
 	 * Stores the state of the modifier keys locally.
 	 * For internal use only!
 	 * param keys The new state of the modifier keys.
 	 */
-	inline virtual void storeModifierKeys(const GHOST_ModifierKeys& keys);
+	inline void storeModifierKeys(const GHOST_ModifierKeys& keys);
 	
 	/**
 	 * Check current key layout for AltGr
 	 */
-	inline virtual void handleKeyboardChange(void);
+	inline void handleKeyboardChange(void);
 
 	/**
 	 * Windows call back routine for our window class.

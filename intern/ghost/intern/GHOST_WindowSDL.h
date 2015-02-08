@@ -105,7 +105,7 @@ protected:
 	 * \param type	The type of rendering context create.
 	 * \return Indication of success.
 	 */
-	virtual GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
+	GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
 
 	GHOST_TSuccess
 	setWindowCursorGrab(GHOST_TGrabCursorMode mode);

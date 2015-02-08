@@ -51,44 +51,44 @@ public:
 	 * Dummy function
 	 * \return  Always succeeds
 	 */
-	virtual GHOST_TSuccess swapBuffers();
+	GHOST_TSuccess swapBuffers();
 
 	/**
 	 * Dummy function
 	 * \return  Always succeeds
 	 */
-	virtual GHOST_TSuccess activateDrawingContext();
+	GHOST_TSuccess activateDrawingContext();
 
 	/**
 	 * Dummy function
 	 * \return Always succeeds
 	 */
-	virtual GHOST_TSuccess updateDrawingContext();
+	GHOST_TSuccess updateDrawingContext();
 
 	/**
 	 * Dummy function
 	 * \return Always succeeds
 	 */
-	virtual GHOST_TSuccess initializeDrawingContext();
+	GHOST_TSuccess initializeDrawingContext();
 
 	/**
 	 * Dummy function
 	 * \return Always succeeds
 	 */
-	virtual GHOST_TSuccess releaseNativeHandles();
+	GHOST_TSuccess releaseNativeHandles();
 
 	/**
 	 * Dummy function
 	 * \return Always succeeds
 	 */
-	virtual GHOST_TSuccess setSwapInterval(int interval);
+	GHOST_TSuccess setSwapInterval(int interval);
 
 	/**
 	 * Dummy function
 	 * \param intervalOut Gets whatever was set by setSwapInterval
 	 * \return Always succeeds
 	 */
-	virtual GHOST_TSuccess getSwapInterval(int &intervalOut);
+	GHOST_TSuccess getSwapInterval(int &intervalOut);
 
 private:
 	int m_swapInterval;

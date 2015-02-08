@@ -75,7 +75,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_SystemX11();
+	~GHOST_SystemX11();
 
 
 	GHOST_TSuccess
