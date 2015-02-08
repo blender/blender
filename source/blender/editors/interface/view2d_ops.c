@@ -625,6 +625,7 @@ static void view_zoomstep_apply_ex(bContext *C, v2dViewZoomData *vzd, const bool
 {
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
+	const rctf cur_old = v2d->cur;
 	float dx, dy;
 
 	/* calculate amount to move view by, ensuring symmetry so the
@@ -651,17 +652,23 @@ static void view_zoomstep_apply_ex(bContext *C, v2dViewZoomData *vzd, const bool
 				v2d->cur.xmax -= 2 * dx;
 		}
 		else {
+
+			v2d->cur.xmin += dx;
+			v2d->cur.xmax -= dx;
+
 			if (use_mousepos && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
-				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
-				float mval_faci = 1.0f - mval_fac;
-				float ofs = (mval_fac * dx) - (mval_faci * dx);
-				
-				v2d->cur.xmin += ofs + dx;
-				v2d->cur.xmax += ofs - dx;
-			}
-			else {
-				v2d->cur.xmin += dx;
-				v2d->cur.xmax -= dx;
+				/* get zoom fac the same way as in ui_view2d_curRect_validate_resize - better keep in sync! */
+				const float zoomx = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
+
+				/* only move view to mouse if zoom fac is inside minzoom/maxzoom */
+				if (IN_RANGE_INCL(zoomx, v2d->minzoom, v2d->maxzoom)) {
+					float mval_fac = (vzd->mx_2d - cur_old.xmin) / BLI_rctf_size_x(&cur_old);
+					float mval_faci = 1.0f - mval_fac;
+					float ofs = (mval_fac * dx) - (mval_faci * dx);
+
+					v2d->cur.xmin += ofs;
+					v2d->cur.xmax += ofs;
+				}
 			}
 		}
 	}
@@ -676,17 +683,23 @@ static void view_zoomstep_apply_ex(bContext *C, v2dViewZoomData *vzd, const bool
 				v2d->cur.ymax -= 2 * dy;
 		}
 		else {
+
+			v2d->cur.ymin += dy;
+			v2d->cur.ymax -= dy;
+
 			if (use_mousepos && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
-				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
-				float mval_faci = 1.0f - mval_fac;
-				float ofs = (mval_fac * dy) - (mval_faci * dy);
-				
-				v2d->cur.ymin += ofs + dy;
-				v2d->cur.ymax += ofs - dy;
-			}
-			else {
-				v2d->cur.ymin += dy;
-				v2d->cur.ymax -= dy;
+				/* get zoom fac the same way as in ui_view2d_curRect_validate_resize - better keep in sync! */
+				const float zoomy = (float)(BLI_rcti_size_y(&v2d->mask) + 1) / BLI_rctf_size_y(&v2d->cur);
+
+				/* only move view to mouse if zoom fac is inside minzoom/maxzoom */
+				if (IN_RANGE_INCL(zoomy, v2d->minzoom, v2d->maxzoom)) {
+					float mval_fac = (vzd->my_2d - cur_old.ymin) / BLI_rctf_size_y(&cur_old);
+					float mval_faci = 1.0f - mval_fac;
+					float ofs = (mval_fac * dy) - (mval_faci * dy);
+
+					v2d->cur.ymin += ofs;
+					v2d->cur.ymax += ofs;
+				}
 			}
 		}
 	}
