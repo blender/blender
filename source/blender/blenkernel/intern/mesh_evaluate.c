@@ -387,6 +387,7 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space, const float lnor[3],
 			BLI_stack_discard(edge_vectors);
 			nbr++;
 		}
+		BLI_assert(nbr > 2);  /* This piece of code shall only be called for more than one loop... */
 		lnor_space->ref_alpha = alpha / (float)nbr;
 	}
 	else {
@@ -1343,7 +1344,7 @@ static void mesh_normals_loop_custom_set(
 				while (loops) {
 					const int lidx = GET_INT_FROM_POINTER(loops->link);
 					MLoop *ml = &mloops[lidx];
-					const int nidx = use_vertices ? (int)ml->v : lidx;
+					const int nidx = lidx;
 					float *nor = custom_loopnors[nidx];
 
 					if (!org_nor) {
