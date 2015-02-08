@@ -917,6 +917,36 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 
 }
 
+static void tselem_draw_gp_icon_uibut(struct DrawIconArg *arg, ID *id, bGPDlayer *gpl)
+{
+	/* restrict column clip - skip it for now... */
+	if (arg->x >= arg->xmax) {
+		/* pass */
+	}
+	else {
+		PointerRNA ptr;
+		float w = 0.85f * U.widget_unit;
+		float h = 0.85f * UI_UNIT_Y;
+		
+		RNA_pointer_create(id, &RNA_GPencilLayer, gpl, &ptr);
+		
+		UI_block_align_begin(arg->block);
+		
+		UI_block_emboss_set(arg->block, RNA_boolean_get(&ptr, "is_stroke_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
+		uiDefButR(arg->block, UI_BTYPE_COLOR, 1, "", arg->xb, arg->yb, w, h,
+		          &ptr, "color", -1,
+		          0, 0, 0, 0, NULL);
+		
+		UI_block_emboss_set(arg->block, RNA_boolean_get(&ptr, "is_fill_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
+		uiDefButR(arg->block, UI_BTYPE_COLOR, 1, "", arg->xb, arg->yb, w, h,
+		          &ptr, "fill_color", -1,
+		          0, 0, 0, 0, NULL);
+		
+		UI_block_emboss_set(arg->block, UI_EMBOSS_NONE);
+		UI_block_align_end(arg->block);
+	}
+}
+
 static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te,
                              float alpha)
 {
@@ -1115,7 +1145,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					UI_icon_draw(x, y, RNA_struct_ui_icon(te->rnaptr.type));
 				break;
 			case TSE_GP_LAYER:
-				UI_icon_draw(x, y, ICON_DOT); break; // XXX: needs a dedicated icon?
+				tselem_draw_gp_icon_uibut(&arg, tselem->id, te->directdata);
+				break;
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
 		}
