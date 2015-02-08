@@ -347,6 +347,11 @@ static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), 
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
+static void restrictbutton_gp_layer_flag_cb(bContext *C, void *UNUSED(poin), void *UNUSED(poin2))
+{
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+}
+
 static int group_restrict_flag(Group *gr, int flag)
 {
 	GroupObject *gob;
@@ -752,6 +757,29 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				UI_but_func_set(bt, restrictbutton_ebone_select_cb, NULL, ebone);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
+				UI_block_emboss_set(block, UI_EMBOSS);
+			}
+			else if (tselem->type == TSE_GP_LAYER) {
+				bGPDlayer *gpl = (bGPDlayer *)te->directdata;
+				
+				UI_block_emboss_set(block, UI_EMBOSS_NONE);
+				
+				bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_RESTRICT_VIEW_OFF,
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &gpl->flag, 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow visibility in the 3D View"));
+				UI_but_func_set(bt, restrictbutton_gp_layer_flag_cb, NULL, gpl);
+				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				
+				bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_LOCKED, 0, ICON_UNLOCKED,
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &gpl->flag, 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow editing of strokes and keyframes in this layer"));
+				UI_but_func_set(bt, restrictbutton_gp_layer_flag_cb, NULL, gpl);
+				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				
+				/* TODO: visibility in renders */
+				
 				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 		}
