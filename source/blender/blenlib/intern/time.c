@@ -33,6 +33,9 @@
 #include "PIL_time.h"
 
 #ifdef WIN32
+
+#define _WIN32_WINNT 0x501 /* Windows XP or newer */
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 double PIL_check_seconds_timer(void) 
