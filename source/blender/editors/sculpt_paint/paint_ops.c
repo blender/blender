@@ -106,7 +106,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 			const int old_size = BKE_brush_size_get(scene, brush);
 			int size = (int)(scalar * old_size);
 
-			if (fabs(old_size - size) < U.pixelsize) {
+			if (abs(old_size - size) < U.pixelsize) {
 				if (scalar > 1) {
 					size += U.pixelsize;
 				}

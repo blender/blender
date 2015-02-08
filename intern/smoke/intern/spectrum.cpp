@@ -363,7 +363,7 @@ static void spectrum_to_xyz(double (*spec_intens)(double wavelength),
     Calculate, by Planck's radiation law, the emittance of a black body
     of temperature bbTemp at the given wavelength (in metres).  */
 
-double bbTemp = 5000;                 /* Hidden temperature argument
+static double bbTemp = 5000;          /* Hidden temperature argument
                                          to BB_SPECTRUM. */
 static double bb_spectrum(double wavelength)
 {

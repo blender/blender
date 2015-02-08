@@ -28,8 +28,6 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=implicit-function-declaration")
 endif()
 
-# message(STATUS "Configuring makesrna")
-
 # files rna_access.c rna_define.c makesrna.c intentionally excluded.
 set(DEFSRC
 	rna_ID.c
@@ -127,6 +125,21 @@ set(APISRC
 
 string(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
 set_source_files_properties(${GENSRC} PROPERTIES GENERATED TRUE)
+
+# --------------------------
+# CFLAGS for Generated Files
+#
+# less strict flags for generated source
+set(GENSRC_CFLAGS)
+if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+	set(GENSRC_CFLAGS "-Wno-missing-prototypes")
+endif()
+
+if(GENSRC_CFLAGS)
+	set_source_files_properties(${GENSRC} PROPERTIES COMPILE_FLAGS "${GENSRC_CFLAGS}")
+endif()
+unset(GENSRC_CFLAGS)
+
 
 set(SRC_RNA_INC
 	../RNA_access.h
@@ -315,9 +328,6 @@ blender_include_dirs_sys(
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
 target_link_libraries(makesrna bf_dna)
 target_link_libraries(makesrna bf_dna_blenlib)
-
-# too many warnings with clang
-remove_cc_flag("-Wmissing-prototypes")
 
 # Output rna_*_gen.c
 # note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes

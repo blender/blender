@@ -444,7 +444,7 @@ bool RE_bake_pixels_populate_from_objects(
 	size_t i;
 	int primitive_id;
 	float u, v;
-	float imat_low [4][4];
+	float imat_low[4][4];
 	bool is_cage = me_cage != NULL;
 	bool result = true;
 
