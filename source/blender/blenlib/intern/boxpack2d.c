@@ -32,6 +32,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_boxpack2d.h"  /* own include */
 
+#include "BLI_sort.h"  /* qsort_r */
+#define qsort_r  BLI_qsort_r
+
 #include "BLI_strict_flags.h"
 
 #ifdef __GNUC__
@@ -226,18 +229,20 @@ static int box_areasort(const void *p1, const void *p2)
  * sorts from lower left to top right It uses the current box's width and height
  * as offsets when sorting, this has the result of not placing boxes outside
  * the bounds of the existing backed area where possible
- * */
-static float box_width;
-static float box_height;
-static BoxVert *vertarray;
+ */
+struct VertSortContext {
+	BoxVert *vertarray;
+	float box_width, box_height;
+};
 
-static int vertex_sort(const void *p1, const void *p2)
+static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
 {
-	BoxVert *v1, *v2;
+	const struct VertSortContext *vs_ctx = vs_ctx_p;
+	const BoxVert *v1, *v2;
 	float a1, a2;
 
-	v1 = vertarray + ((const int *)p1)[0];
-	v2 = vertarray + ((const int *)p2)[0];
+	v1 = &vs_ctx->vertarray[*((const unsigned int *)p1)];
+	v2 = &vs_ctx->vertarray[*((const unsigned int *)p2)];
 
 #ifdef USE_FREE_STRIP
 	/* push free verts to the end so we can strip */
@@ -246,8 +251,8 @@ static int vertex_sort(const void *p1, const void *p2)
 	else if (UNLIKELY(v2->free == 0))                  return -1;
 #endif
 
-	a1 = max_ff(v1->x + box_width, v1->y + box_height);
-	a2 = max_ff(v2->x + box_width, v2->y + box_height);
+	a1 = max_ff(v1->x + vs_ctx->box_width, v1->y + vs_ctx->box_height);
+	a2 = max_ff(v2->x + vs_ctx->box_width, v2->y + vs_ctx->box_height);
 
 #ifdef USE_PACK_BIAS
 	a1 += v1->bias;
@@ -285,6 +290,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *r_tot_x, 
 	BoxPack *box, *box_test; /*current box and another for intersection tests*/
 	BoxVert *vert; /* the current vert */
 
+	struct VertSortContext vs_ctx;
+
 	if (!len) {
 		*r_tot_x = tot_x;
 		*r_tot_y = tot_y;
@@ -295,8 +302,10 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *r_tot_x, 
 	qsort(boxarray, (size_t)len, sizeof(BoxPack), box_areasort);
 
 	/* add verts to the boxes, these are only used internally  */
-	vert = vertarray = MEM_mallocN((size_t)len * 4 * sizeof(BoxVert), "BoxPack Verts");
+	vert = MEM_mallocN((size_t)len * 4 * sizeof(BoxVert), "BoxPack Verts");
 	vertex_pack_indices = MEM_mallocN((size_t)len * 3 * sizeof(int), "BoxPack Indices");
+
+	vs_ctx.vertarray = vert;
 
 	for (box = boxarray, box_index = 0, i = 0; box_index < len; box_index++, box++) {
 
@@ -371,16 +380,16 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *r_tot_x, 
 	/* Main boxpacking loop */
 	for (box_index = 1; box_index < len; box_index++, box++) {
 
-		/* These static floatds are used for sorting */
-		box_width = box->w;
-		box_height = box->h;
+		/* These floats are used for sorting re-sorting */
+		vs_ctx.box_width = box->w;
+		vs_ctx.box_height = box->h;
 
-		qsort(vertex_pack_indices, (size_t)verts_pack_len, sizeof(int), vertex_sort);
+		qsort_r(vertex_pack_indices, (size_t)verts_pack_len, sizeof(int), vertex_sort, &vs_ctx);
 
 #ifdef USE_FREE_STRIP
 		/* strip free vertices */
 		i = verts_pack_len - 1;
-		while ((i != 0) && vertarray[vertex_pack_indices[i]].free == 0) {
+		while ((i != 0) && vs_ctx.vertarray[vertex_pack_indices[i]].free == 0) {
 			i--;
 		}
 		verts_pack_len = i + 1;
@@ -391,7 +400,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *r_tot_x, 
 		isect = true;
 
 		for (i = 0; i < verts_pack_len && isect; i++) {
-			vert = vertarray + vertex_pack_indices[i];
+			vert = &vs_ctx.vertarray[vertex_pack_indices[i]];
 			/* printf("\ttesting vert %i %i %i %f %f\n", i,
 			 *        vert->free, verts_pack_len, vert->x, vert->y); */
 
@@ -661,5 +670,5 @@ void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *r_tot_x, 
 		box->v[0] = box->v[1] = box->v[2] = box->v[3] = NULL;
 	}
 	MEM_freeN(vertex_pack_indices);
-	MEM_freeN(vertarray);
+	MEM_freeN(vs_ctx.vertarray);
 }
