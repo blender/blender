@@ -458,7 +458,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         if md.mode == 'ARMATURE':
             col.label(text="Armature:")
-            col.prop(md, "armature", text="")
+            row = col.row(align=True)
+            row.prop(md, "armature", text="")
+            sub = row.row(align=True)
+            sub.active = (md.armature is not None)
+            sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
         elif md.mode == 'VERTEX_GROUP':
             col.label(text="Vertex Group:")
             row = col.row(align=True)
