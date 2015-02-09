@@ -191,20 +191,9 @@ PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 	if (PyType_Ready(&TextureType) < 0) 
 		return NULL;
 
-	/* Use existing module where possible
-	 * be careful not to init any runtime vars after this */
-	m = PyImport_ImportModule( "VideoTexture" );
-	if (m) {
-		Py_DECREF(m);
-		return m;
-	}
-	else {
-		PyErr_Clear();
-	
-		m = PyModule_Create(&VideoTexture_module_def);
-		PyDict_SetItemString(PySys_GetObject("modules"), VideoTexture_module_def.m_name, m);
-	}
-	
+	m = PyModule_Create(&VideoTexture_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), VideoTexture_module_def.m_name, m);
+
 	if (m == NULL) 
 		return NULL;
 

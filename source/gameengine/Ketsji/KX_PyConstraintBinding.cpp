@@ -753,19 +753,8 @@ PyMODINIT_FUNC initConstraintPythonBinding()
 	PyObject *d;
 	PyObject *item;
 
-	/* Use existing module where possible
-	 * be careful not to init any runtime vars after this */
-	m = PyImport_ImportModule( "PhysicsConstraints" );
-	if (m) {
-		Py_DECREF(m);
-		return m;
-	}
-	else {
-		PyErr_Clear();
-		
-		m = PyModule_Create(&PhysicsConstraints_module_def);
-		PyDict_SetItemString(PySys_GetObject("modules"), PhysicsConstraints_module_def.m_name, m);
-	}
+	m = PyModule_Create(&PhysicsConstraints_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), PhysicsConstraints_module_def.m_name, m);
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);

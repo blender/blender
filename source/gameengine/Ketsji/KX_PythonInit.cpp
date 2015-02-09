@@ -1577,21 +1577,11 @@ PyMODINIT_FUNC initGameLogicPythonBinding()
 	gUseVisibilityTemp=false;
 
 	PyObjectPlus::ClearDeprecationWarning(); /* Not that nice to call here but makes sure warnings are reset between loading scenes */
-	
-	/* Use existing module where possible
-	 * be careful not to init any runtime vars after this */
-	m = PyImport_ImportModule( "GameLogic" );
-	if (m) {
-		Py_DECREF(m);
-		return m;
-	}
-	else {
-		PyErr_Clear();
-		// Create the module and add the functions
-		m = PyModule_Create(&GameLogic_module_def);
-		PyDict_SetItemString(PySys_GetObject("modules"), GameLogic_module_def.m_name, m);
-	}
-	
+
+	m = PyModule_Create(&GameLogic_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), GameLogic_module_def.m_name, m);
+
+
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
 	
@@ -2116,7 +2106,6 @@ PyMODINIT_FUNC initBGE(void)
 	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
 
-	/* GameTypes is initted *after* in initPyTypes() */
 	PyModule_AddObject(mod, "types", (submodule = initGameTypesPythonBinding()));
 	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
@@ -2196,8 +2185,6 @@ PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 
 	initPySysObjects(maggie);
 
-	PyDict_SetItemString(PyImport_GetModuleDict(), "bge", initBGE());
-
 	/* mathutils types are used by the BGE even if we don't import them */
 	{
 		PyObject *mod = PyImport_ImportModuleLevel("mathutils", NULL, NULL, NULL, 0);
@@ -2212,7 +2199,7 @@ PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 	}
 #endif
 
-	initPyTypes();
+	PyDict_SetItemString(PyImport_GetModuleDict(), "bge", initBGE());
 
 	first_time = false;
 	
@@ -2254,7 +2241,9 @@ PyObject *initGamePythonScripting(Main *maggie)
 {
 	/* no need to Py_SetProgramName, it was already taken care of in BPY_python_start */
 
-	PyDict_SetItemString(PyImport_GetModuleDict(), "bge", initBGE());
+	bpy_import_main_set(maggie);
+
+	initPySysObjects(maggie);
 
 #ifdef WITH_AUDASPACE
 	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
@@ -2264,11 +2253,7 @@ PyObject *initGamePythonScripting(Main *maggie)
 	}
 #endif
 
-	initPyTypes();
-	
-	bpy_import_main_set(maggie);
-	
-	initPySysObjects(maggie);
+	PyDict_SetItemString(PyImport_GetModuleDict(), "bge", initBGE());
 
 	PyObjectPlus::NullDeprecationWarning();
 
@@ -2342,20 +2327,9 @@ PyMODINIT_FUNC initRasterizerPythonBinding()
 	PyObject *m;
 	PyObject *d;
 
-	/* Use existing module where possible
-	 * be careful not to init any runtime vars after this */
-	m = PyImport_ImportModule( "Rasterizer" );
-	if (m) {
-		Py_DECREF(m);
-		return m;
-	}
-	else {
-		PyErr_Clear();
+	m = PyModule_Create(&Rasterizer_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), Rasterizer_module_def.m_name, m);
 
-		// Create the module and add the functions
-		m = PyModule_Create(&Rasterizer_module_def);
-		PyDict_SetItemString(PySys_GetObject("modules"), Rasterizer_module_def.m_name, m);
-	}
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
@@ -2478,19 +2452,8 @@ PyMODINIT_FUNC initGameKeysPythonBinding()
 	PyObject *m;
 	PyObject *d;
 
-	/* Use existing module where possible */
-	m = PyImport_ImportModule( "GameKeys" );
-	if (m) {
-		Py_DECREF(m);
-		return m;
-	}
-	else {
-		PyErr_Clear();
-
-		// Create the module and add the functions
-		m = PyModule_Create(&GameKeys_module_def);
-		PyDict_SetItemString(PySys_GetObject("modules"), GameKeys_module_def.m_name, m);
-	}
+	m = PyModule_Create(&GameKeys_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), GameKeys_module_def.m_name, m);
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);

@@ -34,7 +34,6 @@
 
 #ifdef WITH_PYTHON
 #include <Python.h>
-void initPyTypes(void);
 PyMODINIT_FUNC initGameTypesPythonBinding(void);
 #endif
 
