@@ -703,10 +703,10 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *ptr,
 		uiItemR(col, ptr, "use_auto_refresh", 0, NULL, ICON_NONE);
 	}
 
-	col = uiLayoutColumn(layout, false);
-
-	if (RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER)
+	if (RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER) {
+		col = uiLayoutColumn(layout, false);
 		uiItemR(col, ptr, "layer", 0, NULL, ICON_NONE);
+	}
 }
 
 static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -839,10 +839,11 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
 
 	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
-	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
-	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
 
 	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr);
+
+	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
 }
 
 static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -852,9 +853,14 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
 	Image *ima = imaptr.data;
 
 	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
+	uiTemplateID(layout, C, ptr, "image", ima ? NULL : "IMAGE_OT_new", "IMAGE_OT_open", NULL);
 
-	if (ima && ima->source != IMA_SRC_GENERATED) {
+	if (!ima)
+		return;
+
+	uiItemR(layout, &imaptr, "source", 0, IFACE_("Source"), ICON_NONE);
+
+	if (!(ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER))) {
 		uiLayout *row = uiLayoutRow(layout, true);
 
 		if (ima->packedfile)
@@ -868,10 +874,16 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
 		uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 	}
 
-	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
-	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
+	/* multilayer? */
+	if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
+		uiTemplateImageLayers(layout, C, ima, iuserptr.data);
+	}
+	else if (ima->source != IMA_SRC_GENERATED) {
+		uiTemplateImageInfo(layout, C, ima, iuserptr.data);
+	}
 
-	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr);
+	uiItemR(layout, ptr, "color_space", 0, IFACE_("Color Space"), ICON_NONE);
+	uiItemR(layout, ptr, "projection", 0, IFACE_("Projection"), ICON_NONE);
 }
 
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

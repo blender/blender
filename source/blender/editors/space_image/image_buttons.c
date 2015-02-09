@@ -64,6 +64,7 @@
 #include "image_intern.h"
 
 #define B_NOP -1
+#define MAX_IMAGE_INFO_LEN  128
 
 /* proto */
 
@@ -640,8 +641,6 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 
 void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *userptr, int compact)
 {
-#define MAX_INFO_LEN  128
-
 	PropertyRNA *prop;
 	PointerRNA imaptr;
 	RNAUpdateCb *cb;
@@ -650,7 +649,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	Scene *scene = CTX_data_scene(C);
 	uiLayout *row, *split, *col;
 	uiBlock *block;
-	char str[MAX_INFO_LEN];
+	char str[MAX_IMAGE_INFO_LEN];
 
 	void *lock;
 
@@ -687,14 +686,14 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	uiLayoutSetContextPointer(layout, "edit_image_user", userptr);
 
 	if (!compact)
-		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
+		uiTemplateID(layout, C, ptr, propname, ima ? NULL : "IMAGE_OT_new", "IMAGE_OT_open", NULL);
 
 	if (ima) {
 		UI_block_funcN_set(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 		if (ima->source == IMA_SRC_VIEWER) {
 			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-			image_info(scene, iuser, ima, ibuf, str, MAX_INFO_LEN);
+			image_info(scene, iuser, ima, ibuf, str, MAX_IMAGE_INFO_LEN);
 			BKE_image_release_ibuf(ima, ibuf, lock);
 
 			uiItemL(layout, ima->id.name + 2, ICON_NONE);
@@ -763,10 +762,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 			else if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) {
-					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-					image_info(scene, iuser, ima, ibuf, str, MAX_INFO_LEN);
-					BKE_image_release_ibuf(ima, ibuf, lock);
-					uiItemL(layout, str, ICON_NONE);
+					uiTemplateImageInfo(layout, C, ima, iuser);
 				}
 			}
 
@@ -791,7 +787,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					if (has_alpha) {
 						col = uiLayoutColumn(layout, false);
 						uiItemR(col, &imaptr, "use_alpha", 0, NULL, ICON_NONE);
-						uiItemR(col, &imaptr, "alpha_mode", 0, IFACE_("Alpha"), ICON_NONE);
+						row = uiLayoutRow(col, false);
+						uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_alpha"));
+						uiItemR(row, &imaptr, "alpha_mode", 0, IFACE_("Alpha"), ICON_NONE);
 					}
 
 					if (ima->source == IMA_SRC_MOVIE) {
@@ -861,8 +859,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	}
 
 	MEM_freeN(cb);
-
-#undef MAX_INFO_LEN
 }
 
 void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_management)
@@ -981,6 +977,24 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 		BKE_image_release_renderresult(scene, ima);
 	}
 }
+
+void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)
+{
+	ImBuf *ibuf;
+	char str[MAX_IMAGE_INFO_LEN];
+	void *lock;
+
+	if (!ima || !iuser)
+		return;
+
+	ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+
+	image_info(CTX_data_scene(C), iuser, ima, ibuf, str, MAX_IMAGE_INFO_LEN);
+	BKE_image_release_ibuf(ima, ibuf, lock);
+	uiItemL(layout, str, ICON_NONE);
+}
+
+#undef MAX_IMAGE_INFO_LEN
 
 void image_buttons_register(ARegionType *UNUSED(art))
 {

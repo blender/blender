@@ -3570,8 +3570,7 @@ void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const char 
 
 	colorspace_settings_ptr = RNA_property_pointer_get(ptr, prop);
 
-	uiItemL(layout, IFACE_("Input Color Space:"), ICON_NONE);
-	uiItemR(layout, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
+	uiItemR(layout, &colorspace_settings_ptr, "name", 0, IFACE_("Color Space"), ICON_NONE);
 }
 
 void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr, const char *propname)

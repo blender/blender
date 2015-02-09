@@ -892,6 +892,7 @@ void uiTemplateGameStates(uiLayout *layout, struct PointerRNA *ptr, const char *
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, int color_management);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
+void uiTemplateImageInfo(uiLayout *layout, struct bContext *C, Image *ima, ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void UI_but_func_operator_search(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
