@@ -32,6 +32,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_math.h"
 
 #include "BLF_translation.h"
 
@@ -71,7 +72,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 		*was_editmode = true;
 	}
 
-	*dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, false);
+	*dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 
 	return obedit;
 }
@@ -421,7 +422,9 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
 	BMEditMesh *em;
-	float loc[3], rot[3], mat[4][4], dia;
+	float mat[4][4], scale_mat[4][4];
+	float loc[3], rot[3];
+	float dia;
 	bool enter_editmode;
 	unsigned int layer;
 	bool was_editmode;
@@ -431,9 +434,8 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Suzanne"), &dia, mat, &was_editmode, loc, rot, layer);
 	dia = RNA_float_get(op->ptr, "radius");
-	mat[0][0] *= dia;
-	mat[1][1] *= dia;
-	mat[2][2] *= dia;
+	scale_m4_fl(scale_mat, dia);
+	mul_m4_m4m4(mat, scale_mat, mat);
 
 	em = BKE_editmesh_from_object(obedit);
 

@@ -141,9 +141,9 @@ bool ED_object_editmode_load(struct Object *obedit);
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);
-float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob,
-                                     const float loc[3], const float rot[3], float primmat[4][4],
-                                     bool apply_diameter);
+float ED_object_new_primitive_matrix(
+        struct bContext *C, struct Object *editob,
+        const float loc[3], const float rot[3], float primmat[4][4]);
 
 void ED_object_add_unit_props(struct wmOperatorType *ot);
 void ED_object_add_generic_props(struct wmOperatorType *ot, bool do_editmode);

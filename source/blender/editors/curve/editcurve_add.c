@@ -479,7 +479,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	unsigned int layer;
 	float dia;
 	float loc[3], rot[3];
-	float mat[4][4];
+	float mat[4][4], scale_mat[4][4];
 
 	WM_operator_view3d_unit_defaults(C, op);
 
@@ -529,11 +529,10 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (newob && enter_editmode)
 		ED_undo_push(C, "Enter Editmode");
 
-	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, false);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	dia = RNA_float_get(op->ptr, "radius");
-	mat[0][0] *= dia;
-	mat[1][1] *= dia;
-	mat[2][2] *= dia;
+	scale_m4_fl(scale_mat, dia);
+	mul_m4_m4m4(mat, scale_mat, mat);
 
 	nu = add_nurbs_primitive(C, obedit, mat, type, newob);
 	editnurb = object_editcurve_get(obedit);
