@@ -422,7 +422,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
 	BMEditMesh *em;
-	float mat[4][4], scale_mat[4][4];
+	float mat[4][4];
 	float loc[3], rot[3];
 	float dia;
 	bool enter_editmode;
@@ -434,8 +434,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 
 	obedit = make_prim_init(C, CTX_DATA_(BLF_I18NCONTEXT_ID_MESH, "Suzanne"), &dia, mat, &was_editmode, loc, rot, layer);
 	dia = RNA_float_get(op->ptr, "radius");
-	scale_m4_fl(scale_mat, dia);
-	mul_m4_m4m4(mat, scale_mat, mat);
+	mul_mat3_m4_fl(mat, dia);
 
 	em = BKE_editmesh_from_object(obedit);
 
