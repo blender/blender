@@ -167,6 +167,7 @@ void outliner_free_tree(ListBase *lb);
 void outliner_cleanup_tree(struct SpaceOops *soops);
 
 TreeElement *outliner_find_tse(struct SpaceOops *soops, TreeStoreElem *tse);
+TreeElement *outliner_find_tree_element(ListBase *lb, TreeStoreElem *store_elem);
 TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, struct ID *id);
 struct ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode);
 

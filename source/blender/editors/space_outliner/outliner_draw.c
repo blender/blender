@@ -453,7 +453,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 	TreeStoreElem *tselem = tsep;
 	
 	if (ts && tselem) {
-		TreeElement *te = outliner_find_tse(soops, tselem);
+		TreeElement *te = outliner_find_tree_element(&soops->tree, tselem);
 		
 		if (tselem->type == 0) {
 			test_idbutton(tselem->id->name);  // library.c, unique name and alpha sort
