@@ -803,7 +803,9 @@ Image *BKE_image_add_generated(Main *bmain, unsigned int width, unsigned int hei
 	return ima;
 }
 
-/* creates an image image owns the imbuf passed */
+/* Create an image image from ibuf. The refcount of ibuf is increased,
+ * caller should take care to drop its reference by calling
+ * IMB_freeImBuf if needed. */
 Image *BKE_image_add_from_imbuf(ImBuf *ibuf)
 {
 	/* on save, type is changed to FILE in editsima.c */

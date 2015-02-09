@@ -5136,6 +5136,9 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
 	image = BKE_image_add_from_imbuf(ibuf);
 
+	/* Drop reference to ibuf so that the image owns it */
+	IMB_freeImBuf(ibuf);
+
 	if (image) {
 		/* now for the trickyness. store the view projection here!
 		 * re-projection will reuse this */
