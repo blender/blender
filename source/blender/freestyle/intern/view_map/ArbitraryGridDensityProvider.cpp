@@ -100,22 +100,22 @@ ArbitraryGridDensityProviderFactory::ArbitraryGridDensityProviderFactory(unsigne
 
 ArbitraryGridDensityProviderFactory::~ArbitraryGridDensityProviderFactory() {}
 
-auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source,
-                                                                                          const real proscenium[4])
+AutoPtr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source,
+                                                                                         const real proscenium[4])
 {
-	return auto_ptr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, proscenium, numCells));
+	return AutoPtr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, proscenium, numCells));
 }
 
-auto_ptr<GridDensityProvider>
+AutoPtr<GridDensityProvider>
 ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
                                                             const GridHelpers::Transform& transform)
 {
-	return auto_ptr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, bbox, transform, numCells));
+	return AutoPtr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, bbox, transform, numCells));
 }
 
-auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
+AutoPtr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
 {
-	return auto_ptr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, numCells));
+	return AutoPtr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, numCells));
 }
 
 } /* namespace Freestyle */

@@ -121,22 +121,22 @@ AverageAreaGridDensityProviderFactory::AverageAreaGridDensityProviderFactory(rea
 
 AverageAreaGridDensityProviderFactory::~AverageAreaGridDensityProviderFactory() {}
 
-auto_ptr<GridDensityProvider>
+AutoPtr<GridDensityProvider>
 AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const real proscenium[4])
 {
-	return auto_ptr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, proscenium, sizeFactor));
+	return AutoPtr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, proscenium, sizeFactor));
 }
 
-auto_ptr<GridDensityProvider>
+AutoPtr<GridDensityProvider>
 AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
                                                               const GridHelpers::Transform& transform)
 {
-	return auto_ptr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, bbox, transform, sizeFactor));
+	return AutoPtr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, bbox, transform, sizeFactor));
 }
 
-auto_ptr<GridDensityProvider> AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
+AutoPtr<GridDensityProvider> AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
 {
-	return auto_ptr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, sizeFactor));
+	return AutoPtr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, sizeFactor));
 }
 
 } /* namespace Freestyle */

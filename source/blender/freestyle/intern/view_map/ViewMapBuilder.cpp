@@ -1300,8 +1300,8 @@ void ViewMapBuilder::computeCusps(ViewMap *ioViewMap)
 void ViewMapBuilder::ComputeCumulativeVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox,
                                                  real epsilon, bool cull, GridDensityProviderFactory& factory)
 {
-	auto_ptr<GridHelpers::Transform> transform;
-	auto_ptr<OccluderSource> source;
+	AutoPtr<GridHelpers::Transform> transform;
+	AutoPtr<OccluderSource> source;
 
 	if (_orthographicProjection) {
 		transform.reset(new BoxGrid::Transform);
@@ -1317,7 +1317,7 @@ void ViewMapBuilder::ComputeCumulativeVisibility(ViewMap *ioViewMap, WingedEdge&
 		source.reset(new OccluderSource(*transform, we));
 	}
 
-	auto_ptr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));
+	AutoPtr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));
 
 	if (_orthographicProjection) {
 		BoxGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
@@ -1332,8 +1332,8 @@ void ViewMapBuilder::ComputeCumulativeVisibility(ViewMap *ioViewMap, WingedEdge&
 void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox,
                                                real epsilon, bool cull, GridDensityProviderFactory& factory)
 {
-	auto_ptr<GridHelpers::Transform> transform;
-	auto_ptr<OccluderSource> source;
+	AutoPtr<GridHelpers::Transform> transform;
+	AutoPtr<OccluderSource> source;
 
 	if (_orthographicProjection) {
 		transform.reset(new BoxGrid::Transform);
@@ -1349,7 +1349,7 @@ void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap, WingedEdge& w
 		source.reset(new OccluderSource(*transform, we));
 	}
 
-	auto_ptr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));
+	AutoPtr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));
 
 	if (_orthographicProjection) {
 		BoxGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);

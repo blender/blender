@@ -180,7 +180,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemo
 
 	bool breaked = false;
 	for (offsety = 0; offsety < height && (!breaked); offsety += localSize) {
-		offset.y = offsety;
+		offset.s[1] = offsety;
 		if (offsety + localSize < height) {
 			size[1] = localSize;
 		}
@@ -195,7 +195,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemo
 			else {
 				size[0] = width - offsetx;
 			}
-			offset.x = offsetx;
+			offset.s[0] = offsetx;
 
 			error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
 			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }

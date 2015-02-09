@@ -37,4 +37,16 @@
 #  include <malloc.h>
 #endif
 
+#if defined(__cplusplus) && ((__cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800))
+#  define HAS_CPP11_FEATURES
+#endif
+
+#if (defined(__GNUC__) || defined(__clang__)) && defined(HAS_CPP11_FEATURES)
+extern "C++" {
+	/* Some magic to be sure we don't have reference in the type. */
+	template<typename T> static inline T decltype_helper(T x) { return x; }
+#  define typeof(x) decltype(decltype_helper(x))
+}
+#endif
+
 #endif  /* __BLI_COMPILER_COMPAT_H__ */

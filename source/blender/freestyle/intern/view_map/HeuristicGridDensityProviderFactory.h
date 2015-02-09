@@ -42,10 +42,10 @@ public:
 	HeuristicGridDensityProviderFactory(real sizeFactor, unsigned numFaces);
 	~HeuristicGridDensityProviderFactory();
 
-	auto_ptr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const real proscenium[4]);
-	auto_ptr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
-	                                                     const GridHelpers::Transform& transform);
-	auto_ptr<GridDensityProvider> newGridDensityProvider(OccluderSource& source);
+	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const real proscenium[4]);
+	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+	                                                    const GridHelpers::Transform& transform);
+	AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source);
 
 protected:
 	real sizeFactor;

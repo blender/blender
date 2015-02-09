@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <memory>
 
+#include "AutoPtrHelper.h"
 #include "OccluderSource.h"
 
 #include "../geometry/BBox.h"
@@ -148,12 +149,12 @@ class GridDensityProviderFactory
 public:
 	GridDensityProviderFactory() {}
 
-	virtual auto_ptr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const real proscenium[4]) = 0;
+	virtual AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const real proscenium[4]) = 0;
 
-	virtual auto_ptr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
-	                                                             const GridHelpers::Transform& transform) = 0;
+	virtual AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+	                                                            const GridHelpers::Transform& transform) = 0;
 
-	virtual auto_ptr<GridDensityProvider> newGridDensityProvider(OccluderSource& source) = 0;
+	virtual AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource& source) = 0;
 
 	virtual ~GridDensityProviderFactory () {}
 

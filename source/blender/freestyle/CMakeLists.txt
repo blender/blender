@@ -491,6 +491,7 @@ set(SRC
 	intern/system/TimeUtils.h
 	intern/view_map/ArbitraryGridDensityProvider.cpp
 	intern/view_map/ArbitraryGridDensityProvider.h
+	intern/view_map/AutoPtrHelper.h
 	intern/view_map/AverageAreaGridDensityProvider.cpp
 	intern/view_map/AverageAreaGridDensityProvider.h
 	intern/view_map/BoxGrid.cpp

@@ -440,6 +440,10 @@ if(MSVC)
 	set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
 endif()
 
+# Experimental support of C++11
+option(WITH_CPP11 "Build with C++11 standard enabled, for development use only!" OFF)
+mark_as_advanced(WITH_CPP11)
+
 # avoid using again
 option_defaults_clear()
 
@@ -2660,6 +2664,16 @@ if(WITH_PYTHON)
 		# pass, we have this in lib/python/site-packages
 	elseif(WITH_PYTHON_INSTALL_REQUESTS)
 		find_python_package(requests)
+	endif()
+endif()
+
+if(WITH_CPP11)
+	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	elseif(MSVC12)
+		# Nothing special is needed, C++11 features are available by default.
+	else()
+		message(FATAL_ERROR "Compiler ${CMAKE_C_COMPILER_ID} is not supported for C++11 build yet")
 	endif()
 endif()
 

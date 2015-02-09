@@ -480,6 +480,13 @@ if env['WITH_BF_OPENMP'] == 1:
             else:
                 env.Append(CCFLAGS=['-fopenmp'])
 
+if env['WITH_BF_CPP11']:
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+        # Nothing special is needed, C++11 features are available by default.
+        pass
+    else:
+        env['CXXFLAGS'].append('-std=c++11')
+
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):

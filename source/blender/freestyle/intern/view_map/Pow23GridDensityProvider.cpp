@@ -99,22 +99,22 @@ Pow23GridDensityProviderFactory::Pow23GridDensityProviderFactory(unsigned numFac
 
 Pow23GridDensityProviderFactory::~Pow23GridDensityProviderFactory () {}
 
-auto_ptr<GridDensityProvider>
+AutoPtr<GridDensityProvider>
 Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const real proscenium[4])
 {
-	return auto_ptr<GridDensityProvider>(new Pow23GridDensityProvider(source, proscenium, numFaces));
+	return AutoPtr<GridDensityProvider>(new Pow23GridDensityProvider(source, proscenium, numFaces));
 }
 
-auto_ptr<GridDensityProvider>
+AutoPtr<GridDensityProvider>
 Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
                                                         const GridHelpers::Transform& transform)
 {
-	return auto_ptr<GridDensityProvider>(new Pow23GridDensityProvider(source, bbox, transform, numFaces));
+	return AutoPtr<GridDensityProvider>(new Pow23GridDensityProvider(source, bbox, transform, numFaces));
 }
 
-auto_ptr<GridDensityProvider> Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
+AutoPtr<GridDensityProvider> Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
 {
-	return auto_ptr<GridDensityProvider>(new Pow23GridDensityProvider(source, numFaces));
+	return AutoPtr<GridDensityProvider>(new Pow23GridDensityProvider(source, numFaces));
 }
 
 } /* namespace Freestyle */
