@@ -909,16 +909,39 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		write_node_socket_interface(wd, ntree, sock);
 }
 
-static void current_screen_compat(Main *mainvar, bScreen **screen)
+/**
+ * Take care using 'use_active_win', since we wont want the currently active window
+ * to change which scene renders (currently only used for undo).
+ */
+static void current_screen_compat(Main *mainvar, bScreen **r_screen, bool use_active_win)
 {
 	wmWindowManager *wm;
-	wmWindow *window;
+	wmWindow *window = NULL;
 
 	/* find a global current screen in the first open window, to have
 	 * a reasonable default for reading in older versions */
 	wm = mainvar->wm.first;
-	window = (wm) ? wm->windows.first : NULL;
-	*screen = (window) ? window->screen : NULL;
+
+	if (wm) {
+		if (use_active_win) {
+			/* write the active window into the file, needed for multi-window undo T43424 */
+			for (window = wm->windows.first; window; window = window->next) {
+				if (window->active) {
+					break;
+				}
+			}
+
+			/* fallback */
+			if (window == NULL) {
+				window = wm->windows.first;
+			}
+		}
+		else {
+			window = wm->windows.first;
+		}
+	}
+
+	*r_screen = (window) ? window->screen : NULL;
 }
 
 typedef struct RenderInfo {
@@ -937,7 +960,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
 	RenderInfo data;
 
 	/* XXX in future, handle multiple windows with multiple screens? */
-	current_screen_compat(mainvar, &curscreen);
+	current_screen_compat(mainvar, &curscreen, false);
 	if (curscreen) curscene = curscreen->scene;
 	
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
@@ -3437,6 +3460,7 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
  * - for undofile, curscene needs to be saved */
 static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 {
+	const bool is_undo = (wd->current != NULL);
 	FileGlobal fg;
 	bScreen *screen;
 	char subvstr[8];
@@ -3446,7 +3470,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	memset(fg.filename, 0, sizeof(fg.filename));
 	memset(fg.build_hash, 0, sizeof(fg.build_hash));
 
-	current_screen_compat(mainvar, &screen);
+	current_screen_compat(mainvar, &screen, is_undo);
 
 	/* XXX still remap G */
 	fg.curscreen= screen;
