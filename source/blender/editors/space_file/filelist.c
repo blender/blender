@@ -761,29 +761,20 @@ struct direntry *filelist_file(struct FileList *filelist, int index)
 
 int filelist_find(struct FileList *filelist, const char *filename)
 {
-	int index = -1;
-	int i;
 	int fidx = -1;
 	
 	if (!filelist->fidx) 
 		return fidx;
 
-	
-	for (i = 0; i < filelist->numfiles; ++i) {
-		/* not dealing with user input so don't need BLI_path_cmp */
-		if (STREQ(filelist->filelist[i].relname, filename)) {
-			index = i;
-			break;
+	for (fidx = 0; fidx < filelist->numfiltered; fidx++) {
+		int index = filelist->fidx[fidx];
+
+		if (STREQ(filelist->filelist[index].relname, filename)) {
+			return fidx;
 		}
 	}
 
-	for (i = 0; i < filelist->numfiltered; ++i) {
-		if (filelist->fidx[i] == index) {
-			fidx = i;
-			break;
-		}
-	}
-	return fidx;
+	return -1;
 }
 
 /* would recognize .blend as well */
