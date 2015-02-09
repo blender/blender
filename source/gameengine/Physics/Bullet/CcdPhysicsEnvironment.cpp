@@ -174,26 +174,27 @@ public:
 
 	virtual void	GetWheelPosition(int wheelIndex,float& posX,float& posY,float& posZ) const
 	{
-		btTransform	trans = m_vehicle->getWheelTransformWS(wheelIndex);
-		posX = trans.getOrigin().x();
-		posY = trans.getOrigin().y();
-		posZ = trans.getOrigin().z();
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->getNumWheels()))
+		{
+			btVector3 origin = m_vehicle->getWheelTransformWS(wheelIndex).getOrigin();
+
+			posX = origin.x();
+			posY = origin.y();
+			posZ = origin.z();
+		}
 	}
+
 	virtual void	GetWheelOrientationQuaternion(int wheelIndex,float& quatX,float& quatY,float& quatZ,float& quatW) const
 	{
-		btTransform	trans = m_vehicle->getWheelTransformWS(wheelIndex);
-		btQuaternion quat = trans.getRotation();
-		btMatrix3x3 orn2(quat);
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->getNumWheels()))
+		{
+			btQuaternion quat = m_vehicle->getWheelTransformWS(wheelIndex).getRotation();
 
-		quatX = trans.getRotation().x();
-		quatY = trans.getRotation().y();
-		quatZ = trans.getRotation().z();
-		quatW = trans.getRotation()[3];
-
-
-		//printf("test");
-
-
+			quatX = quat.x();
+			quatY = quat.y();
+			quatZ = quat.z();
+			quatW = quat.w();
+		}
 	}
 
 	virtual float	GetWheelRotation(int wheelIndex) const
@@ -205,8 +206,8 @@ public:
 			btWheelInfo& info = m_vehicle->getWheelInfo(wheelIndex);
 			rotation = info.m_rotation;
 		}
-		return rotation;
 
+		return rotation;
 	}
 
 
@@ -223,12 +224,16 @@ public:
 
 	virtual	void	SetSteeringValue(float steering,int wheelIndex)
 	{
-		m_vehicle->setSteeringValue(steering,wheelIndex);
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->getNumWheels())) {
+			m_vehicle->setSteeringValue(steering,wheelIndex);
+		}
 	}
 
 	virtual	void	ApplyEngineForce(float force,int wheelIndex)
 	{
-		m_vehicle->applyEngineForce(force,wheelIndex);
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->getNumWheels())) {
+			m_vehicle->applyEngineForce(force,wheelIndex);
+		}
 	}
 
 	virtual	void	ApplyBraking(float braking,int wheelIndex)

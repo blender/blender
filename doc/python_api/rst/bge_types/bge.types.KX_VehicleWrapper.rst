@@ -11,22 +11,25 @@ base class --- :class:`PyObjectPlus`
 
    TODO - description
 
-   .. method:: addWheel(wheel, attachPos, attachDir, axleDir, suspensionRestLength, wheelRadius, hasSteering)
+   .. method:: addWheel(wheel, attachPos, downDir, axleDir, suspensionRestLength, wheelRadius, hasSteering)
 
       Add a wheel to the vehicle
 
       :arg wheel: The object to use as a wheel.
-      :type wheel: :class:`KX_GameObject` or a KX_GameObject name
-      :arg attachPos: The position that this wheel will attach to.
+      :type wheel: :class:`KX_GameObject` or a :class:`KX_GameObject` name
+      :arg attachPos: The position to attach the wheel, relative to the chassis object center.
       :type attachPos: vector of 3 floats
-      :arg attachDir: The direction this wheel points.
-      :type attachDir: vector of 3 floats
-      :arg axleDir: The direction of this wheels axle.
+      :arg downDir: The direction vector pointing down to where the vehicle should collide with the floor.
+      :type downDir: vector of 3 floats
+      :arg axleDir: The axis the wheel rotates around, relative to the chassis.
       :type axleDir: vector of 3 floats
-      :arg suspensionRestLength: TODO - Description
+      :arg suspensionRestLength: The length of the suspension when no forces are being applied.
       :type suspensionRestLength: float
-      :arg wheelRadius: The size of the wheel.
+      :arg wheelRadius: The radius of the wheel (half the diameter).
       :type wheelRadius: float
+      :arg hasSteering: True if the wheel should turn with steering, typically used in front wheels.
+      :type hasSteering: boolean
+
 
    .. method:: applyBraking(force, wheelIndex)
 
@@ -38,6 +41,7 @@ base class --- :class:`PyObjectPlus`
       :arg wheelIndex: index of the wheel where the force needs to be applied
       :type wheelIndex: integer
 
+
    .. method:: applyEngineForce(force, wheelIndex)
 
       Apply an engine force to the specified wheel
@@ -47,6 +51,7 @@ base class --- :class:`PyObjectPlus`
 
       :arg wheelIndex: index of the wheel where the force needs to be applied
       :type wheelIndex: integer
+
 
    .. method:: getConstraintId()
 
