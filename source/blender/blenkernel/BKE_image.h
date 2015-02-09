@@ -186,9 +186,6 @@ void BKE_image_walk_all_users(const struct Main *mainp, void *customdata,
 /* ensures an Image exists for viewing nodes or render */
 struct Image *BKE_image_verify_viewer(int type, const char *name);
 
-/* force an ImBuf to become part of Image */
-void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
-
 /* called on frame change or before render */
 void BKE_image_user_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);
 void BKE_image_user_check_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);

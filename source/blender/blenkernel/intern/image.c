@@ -2180,11 +2180,6 @@ Image *BKE_image_verify_viewer(int type, const char *name)
 	return ima;
 }
 
-void BKE_image_assign_ibuf(Image *ima, ImBuf *ibuf)
-{
-	image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-}
-
 void BKE_image_walk_all_users(const Main *mainp, void *customdata,
                               void callback(Image *ima, ImageUser *iuser, void *customdata))
 {
