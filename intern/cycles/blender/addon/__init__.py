@@ -59,7 +59,7 @@ class CyclesRender(bpy.types.RenderEngine):
                               None, None, None, use_osl)
         else:
             if not self.session:
-                engine.create(self, data, scene)
+                engine.create(self, data, scene, background=bpy.app.background)
             else:
                 engine.reset(self, data, scene)
 
