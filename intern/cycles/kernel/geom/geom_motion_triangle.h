@@ -130,6 +130,9 @@ ccl_device_inline float3 motion_triangle_refine(KernelGlobals *kg, ShaderData *s
 
 #ifdef __INTERSECTION_REFINE__
 	if(isect->object != OBJECT_NONE) {
+		if(UNLIKELY(t == 0.0f)) {
+			return P;
+		}
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
