@@ -411,8 +411,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				    v1 = b_mesh.edges[i].vertices()[1];
 				float3 co0 = get_float3(b_mesh.vertices[v0].co()),
 				       co1 = get_float3(b_mesh.vertices[v1].co());
-				edge_accum[v0] += normalize(co1 - co0);
-				edge_accum[v1] += normalize(co0 - co1);
+				float3 edge = normalize(co1 - co0);
+				edge_accum[v0] += edge;
+				edge_accum[v1] += -edge;
 				++counter[v0];
 				++counter[v1];
 			}
