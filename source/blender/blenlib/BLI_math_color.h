@@ -89,9 +89,6 @@ MINLINE float rgb_to_luma_y(const float rgb[3]);
 
 /**************** Profile Transformations *****************/
 
-void gamma_correct(float *c, float gamma);
-float rec709_to_linearrgb(float c);
-float linearrgb_to_rec709(float c);
 float srgb_to_linearrgb(float c);
 float linearrgb_to_srgb(float c);
 

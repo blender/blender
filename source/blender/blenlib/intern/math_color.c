@@ -429,27 +429,6 @@ void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4])
 /* ********************************* color transforms ********************************* */
 
 
-void gamma_correct(float *c, float gamma)
-{
-	*c = powf((*c), gamma);
-}
-
-float rec709_to_linearrgb(float c)
-{
-	if (c < 0.081f)
-		return (c < 0.0f) ? 0.0f : c * (1.0f / 4.5f);
-	else
-		return powf((c + 0.099f) * (1.0f / 1.099f), (1.0f / 0.45f));
-}
-
-float linearrgb_to_rec709(float c)
-{
-	if (c < 0.018f)
-		return (c < 0.0f) ? 0.0f : c * 4.5f;
-	else
-		return 1.099f * powf(c, 0.45f) - 0.099f;
-}
-
 float srgb_to_linearrgb(float c)
 {
 	if (c < 0.04045f)
