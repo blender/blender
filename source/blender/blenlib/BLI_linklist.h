@@ -54,6 +54,8 @@ struct LinkNode *BLI_linklist_find(struct LinkNode *list, int index);
 
 void    BLI_linklist_reverse(struct LinkNode **listp);
 
+void    BLI_linklist_move_item(struct LinkNode **listp, int curr_index, int new_index);
+
 void    BLI_linklist_prepend_nlink(struct LinkNode **listp, void *ptr, struct LinkNode *nlink);
 void    BLI_linklist_prepend(struct LinkNode **listp, void *ptr);
 void    BLI_linklist_prepend_arena(struct LinkNode **listp, void *ptr, struct MemArena *ma);
