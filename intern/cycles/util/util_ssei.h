@@ -288,6 +288,12 @@ __forceinline void store4i_nt(void* ptr, const ssei& v) {
 
 #endif
 
+ccl_device_inline void print_ssei(const char *label, const ssei &a)
+{
+	printf("%s: %df %df %df %d\n",
+	       label, a[0], a[1], a[2], a[3]);
+}
+
 CCL_NAMESPACE_END
 
 #endif
