@@ -999,7 +999,7 @@ static void gp_session_validatebuffer(tGPsdata *p)
 }
 
 /* (re)init new painting data */
-static int gp_session_initdata(bContext *C, tGPsdata *p)
+static bool gp_session_initdata(bContext *C, tGPsdata *p)
 {
 	bGPdata **gpd_ptr = NULL;
 	ScrArea *curarea = CTX_wm_area(C);
@@ -1082,7 +1082,13 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 		case SPACE_CLIP:
 		{
 			SpaceClip *sc = curarea->spacedata.first;
+			MovieClip *clip = ED_space_clip_get_clip(sc);
 			
+			if (clip == NULL) {
+				p->status = GP_STATUS_ERROR;
+				return false;
+			}
+
 			/* set the current area */
 			p->sa = curarea;
 			p->ar = ar;
@@ -1097,13 +1103,18 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 			p->custom_color[3] = 0.9f;
 			
 			if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
-				MovieClip *clip = ED_space_clip_get_clip(sc);
 				int framenr = ED_space_clip_get_clip_frame_number(sc);
 				MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
-				MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-				
-				p->imat[3][0] -= marker->pos[0];
-				p->imat[3][1] -= marker->pos[1];
+				MovieTrackingMarker *marker = track ? BKE_tracking_marker_get(track, framenr) : NULL;
+
+				if (marker) {
+					p->imat[3][0] -= marker->pos[0];
+					p->imat[3][1] -= marker->pos[1];
+				}
+				else {
+					p->status = GP_STATUS_ERROR;
+					return false;
+				}
 			}
 			
 			invert_m4_m4(p->mat, p->imat);
