@@ -51,6 +51,8 @@
 
 #include "depsgraph_private.h"
 
+#include "BLI_strict_flags.h"
+
 static void copyData(ModifierData *md, ModifierData *target)
 {
 #if 0
@@ -105,14 +107,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int maxVerts, maxEdges, maxPolys;
 	int i;
 
-	MPoly *mpoly;
-	MLoop *mloop;
+	const MVert *mvert_src;
+	const MEdge *medge_src;
+	const MPoly *mpoly_src;
+	const MLoop *mloop_src;
 
-	MPoly *mpoly_new;
-	MLoop *mloop_new;
-	MEdge *medge_new;
-	MVert *mvert_new;
-
+	MPoly *mpoly_dst;
+	MLoop *mloop_dst;
+	MEdge *medge_dst;
+	MVert *mvert_dst;
 
 	int *loop_mapping;
 
@@ -158,7 +161,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		 * - each cell is a boolean saying whether bone corresponding to the ith group is selected
 		 * - groups that don't match a bone are treated as not existing (along with the corresponding ungrouped verts)
 		 */
-		bone_select_array = MEM_mallocN(defbase_tot * sizeof(char), "mask array");
+		bone_select_array = MEM_mallocN((size_t)defbase_tot * sizeof(char), "mask array");
 		
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
 			pchan = BKE_pose_channel_find_name(oba->pose, def->name);
@@ -174,7 +177,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* verthash gives mapping from original vertex indices to the new indices (including selected matches only)
 		 * key = oldindex, value = newindex
 		 */
-		vertHash = BLI_ghash_int_new("mask vert gh");
+		vertHash = BLI_ghash_int_new_ex("mask vert gh", (unsigned int)maxVerts);
 		
 		/* add vertices which exist in vertexgroups into vertHash for filtering 
 		 * - dv = for each vertex, what vertexgroups does it belong to
@@ -217,7 +220,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			return dm;
 			
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-		vertHash = BLI_ghash_int_new("mask vert2 bh");
+		vertHash = BLI_ghash_int_new_ex("mask vert2 bh", (unsigned int)maxVerts);
 		
 		/* add vertices which exist in vertexgroup into ghash for filtering */
 		for (i = 0, dv = dvert; i < maxVerts; i++, dv++) {
@@ -233,37 +236,39 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-	edgeHash = BLI_ghash_int_new("mask ed2 gh");
-	polyHash = BLI_ghash_int_new("mask fa2 gh");
-	
-	mpoly = dm->getPolyArray(dm);
-	mloop = dm->getLoopArray(dm);
+	edgeHash = BLI_ghash_int_new_ex("mask ed2 gh", (unsigned int)maxEdges);
+	polyHash = BLI_ghash_int_new_ex("mask fa2 gh", (unsigned int)maxPolys);
 
-	loop_mapping = MEM_callocN(sizeof(int) * maxPolys, "mask loopmap"); /* overalloc, assume all polys are seen */
+	mvert_src = dm->getVertArray(dm);
+	medge_src = dm->getEdgeArray(dm);
+	mpoly_src = dm->getPolyArray(dm);
+	mloop_src = dm->getLoopArray(dm);
+
+	/* overalloc, assume all polys are seen */
+	loop_mapping = MEM_mallocN(sizeof(int) * (size_t)maxPolys, "mask loopmap");
 
 	/* loop over edges and faces, and do the same thing to 
 	 * ensure that they only reference existing verts 
 	 */
 	for (i = 0; i < maxEdges; i++) {
-		MEdge me;
-		dm->getEdge(dm, i, &me);
+		const MEdge *me = &medge_src[i];
 		
 		/* only add if both verts will be in new mesh */
-		if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v1)) &&
-		    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v2)))
+		if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1)) &&
+		    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2)))
 		{
 			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numEdges));
 			numEdges++;
 		}
 	}
 	for (i = 0; i < maxPolys; i++) {
-		MPoly *mp = &mpoly[i];
-		MLoop *ml = mloop + mp->loopstart;
+		const MPoly *mp_src = &mpoly_src[i];
+		const MLoop *ml_src = &mloop_src[mp_src->loopstart];
 		bool ok = true;
 		int j;
 		
-		for (j = 0; j < mp->totloop; j++, ml++) {
-			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(ml->v))) {
+		for (j = 0; j < mp_src->totloop; j++, ml_src++) {
+			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(ml_src->v))) {
 				ok = false;
 				break;
 			}
@@ -274,7 +279,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			BLI_ghash_insert(polyHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numPolys));
 			loop_mapping[numPolys] = numLoops;
 			numPolys++;
-			numLoops += mp->totloop;
+			numLoops += mp_src->totloop;
 		}
 	}
 	
@@ -284,62 +289,62 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	 */
 	result = CDDM_from_template(dm, numVerts, numEdges, 0, numLoops, numPolys);
 	
-	mpoly_new = CDDM_get_polys(result);
-	mloop_new = CDDM_get_loops(result);
-	medge_new = CDDM_get_edges(result);
-	mvert_new = CDDM_get_verts(result);
+	mpoly_dst = CDDM_get_polys(result);
+	mloop_dst = CDDM_get_loops(result);
+	medge_dst = CDDM_get_edges(result);
+	mvert_dst = CDDM_get_verts(result);
 	
 	/* using ghash-iterators, map data into new mesh */
 	/* vertices */
 	GHASH_ITER (gh_iter, vertHash) {
-		MVert source;
-		MVert *dest;
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+		const MVert *v_src;
+		MVert *v_dst;
+		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
 		
-		dm->getVert(dm, oldIndex, &source);
-		dest = &mvert_new[newIndex];
-		
-		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
-		*dest = source;
+		v_src = &mvert_src[i_src];
+		v_dst = &mvert_dst[i_dst];
+
+		*v_dst = *v_src;
+		DM_copy_vert_data(dm, result, i_src, i_dst, 1);
 	}
 		
 	/* edges */
 	GHASH_ITER (gh_iter, edgeHash) {
-		MEdge source;
-		MEdge *dest;
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+		const MEdge *e_src;
+		MEdge *e_dst;
+		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
 		
-		dm->getEdge(dm, oldIndex, &source);
-		dest = &medge_new[newIndex];
+		e_src = &medge_src[i_src];
+		e_dst = &medge_dst[i_dst];
 		
-		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
-		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
+		*e_dst = *e_src;
+		e_dst->v1 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v1)));
+		e_dst->v2 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v2)));
 		
-		DM_copy_edge_data(dm, result, oldIndex, newIndex, 1);
-		*dest = source;
+		DM_copy_edge_data(dm, result, i_src, i_dst, 1);
 	}
 	
 	/* faces */
 	GHASH_ITER (gh_iter, polyHash) {
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
-		MPoly *source = &mpoly[oldIndex];
-		MPoly *dest = &mpoly_new[newIndex];
-		int oldLoopIndex = source->loopstart;
-		int newLoopIndex = loop_mapping[newIndex];
-		MLoop *source_loop = &mloop[oldLoopIndex];
-		MLoop *dest_loop = &mloop_new[newLoopIndex];
+		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+		const MPoly *mp_src = &mpoly_src[i_src];
+		MPoly *mp_dst = &mpoly_dst[i_dst];
+		const int i_ml_src = mp_src->loopstart;
+		const int i_ml_dst = loop_mapping[i_dst];
+		const MLoop *ml_src = &mloop_src[i_ml_src];
+		MLoop *ml_dst = &mloop_dst[i_ml_dst];
 		
-		DM_copy_poly_data(dm, result, oldIndex, newIndex, 1);
-		DM_copy_loop_data(dm, result, oldLoopIndex, newLoopIndex, source->totloop);
+		DM_copy_poly_data(dm, result, i_src, i_dst, 1);
+		DM_copy_loop_data(dm, result, i_ml_src, i_ml_dst, mp_src->totloop);
 
-		*dest = *source;
-		dest->loopstart = newLoopIndex;
-		for (i = 0; i < source->totloop; i++) {
-			dest_loop[i].v = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source_loop[i].v)));
-			dest_loop[i].e = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(source_loop[i].e)));
+		*mp_dst = *mp_src;
+		mp_dst->loopstart = i_ml_dst;
+		for (i = 0; i < mp_src->totloop; i++) {
+			ml_dst[i].v = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(ml_src[i].v)));
+			ml_dst[i].e = GET_UINT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_UINT_IN_POINTER(ml_src[i].e)));
 		}
 	}
 
