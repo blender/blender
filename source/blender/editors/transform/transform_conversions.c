@@ -5615,6 +5615,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					sld->perc = 0.0;
 					projectEdgeSlideData(t, false);
 				}
+				else if (t->mode == TFM_VERT_SLIDE) {
+					VertSlideData *sld = t->customData;
+
+					sld->perc = 0.0;
+					projectVertSlideData(t, false);
+				}
 			}
 		}
 	}
