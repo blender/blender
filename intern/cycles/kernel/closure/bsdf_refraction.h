@@ -67,13 +67,14 @@ ccl_device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3
 	float3 dRdx, dRdy, dTdx, dTdy;
 #endif
 	bool inside;
-	fresnel_dielectric(m_eta, N, I, &R, &T,
+	float fresnel;
+	fresnel = fresnel_dielectric(m_eta, N, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 		dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif
 		&inside);
 
-	if(!inside) {
+	if(!inside && fresnel != 1.0f) {
 		/* Some high number for MIS. */
 		*pdf = 1e6f;
 		*eval = make_float3(1e6f, 1e6f, 1e6f);

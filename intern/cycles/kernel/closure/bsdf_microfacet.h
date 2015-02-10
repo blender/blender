@@ -591,16 +591,16 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 #ifdef __RAY_DIFFERENTIALS__
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
-			float m_eta = sc->data2;
+			float m_eta = sc->data2, fresnel;
 			bool inside;
 
-			fresnel_dielectric(m_eta, m, I, &R, &T,
+			fresnel = fresnel_dielectric(m_eta, m, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 				dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif
 				&inside);
 			
-			if(!inside) {
+			if(!inside && fresnel != 1.0f) {
 
 				*omega_in = T;
 #ifdef __RAY_DIFFERENTIALS__
@@ -945,16 +945,16 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg, const ShaderCl
 #ifdef __RAY_DIFFERENTIALS__
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
-			float m_eta = sc->data2;
+			float m_eta = sc->data2, fresnel;
 			bool inside;
 
-			fresnel_dielectric(m_eta, m, I, &R, &T,
+			fresnel = fresnel_dielectric(m_eta, m, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 				dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif
 				&inside);
 
-			if(!inside) {
+			if(!inside && fresnel != 1.0f) {
 				*omega_in = T;
 
 #ifdef __RAY_DIFFERENTIALS__
