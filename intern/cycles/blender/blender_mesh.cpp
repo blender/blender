@@ -137,7 +137,7 @@ static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const floa
 	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
 }
 
-static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer *b_layer, Mesh *mesh, vector<int>& nverts, bool need_sign, bool active_render)
+static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer *b_layer, Mesh *mesh, const vector<int>& nverts, bool need_sign, bool active_render)
 {
 	/* setup userdata */
 	MikkUserData userdata(b_mesh, b_layer, nverts.size());
@@ -258,6 +258,167 @@ static void create_mesh_volume_attributes(Scene *scene, BL::Object b_ob, Mesh *m
 		create_mesh_volume_attribute(b_ob, mesh, scene->image_manager, ATTR_STD_VOLUME_VELOCITY, frame);
 }
 
+/* Create vertex color attributes. */
+static void attr_create_vertex_color(Scene *scene,
+                                     Mesh *mesh,
+                                     BL::Mesh b_mesh,
+                                     const vector<int>& nverts)
+{
+	BL::Mesh::tessface_vertex_colors_iterator l;
+	for(b_mesh.tessface_vertex_colors.begin(l); l != b_mesh.tessface_vertex_colors.end(); ++l) {
+		if(!mesh->need_attribute(scene, ustring(l->name().c_str())))
+			continue;
+
+		Attribute *attr = mesh->attributes.add(
+			ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER_BYTE);
+
+		BL::MeshColorLayer::data_iterator c;
+		uchar4 *cdata = attr->data_uchar4();
+		size_t i = 0;
+
+		for(l->data.begin(c); c != l->data.end(); ++c, ++i) {
+			cdata[0] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color1())));
+			cdata[1] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color2())));
+			cdata[2] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color3())));
+
+			if(nverts[i] == 4) {
+				cdata[3] = cdata[0];
+				cdata[4] = cdata[2];
+				cdata[5] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color4())));
+				cdata += 6;
+			}
+			else
+				cdata += 3;
+		}
+	}
+}
+
+/* Create uv map attributes. */
+static void attr_create_uv_map(Scene *scene,
+                               Mesh *mesh,
+                               BL::Mesh b_mesh,
+                               const vector<int>& nverts)
+{
+	if (b_mesh.tessface_uv_textures.length() != 0) {
+		BL::Mesh::tessface_uv_textures_iterator l;
+
+		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
+			bool active_render = l->active_render();
+			AttributeStandard std = (active_render)? ATTR_STD_UV: ATTR_STD_NONE;
+			ustring name = ustring(l->name().c_str());
+
+			/* UV map */
+			if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
+				Attribute *attr;
+
+				if(active_render)
+					attr = mesh->attributes.add(std, name);
+				else
+					attr = mesh->attributes.add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+
+				BL::MeshTextureFaceLayer::data_iterator t;
+				float3 *fdata = attr->data_float3();
+				size_t i = 0;
+
+				for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
+					fdata[0] =  get_float3(t->uv1());
+					fdata[1] =  get_float3(t->uv2());
+					fdata[2] =  get_float3(t->uv3());
+					fdata += 3;
+
+					if(nverts[i] == 4) {
+						fdata[0] =  get_float3(t->uv1());
+						fdata[1] =  get_float3(t->uv3());
+						fdata[2] =  get_float3(t->uv4());
+						fdata += 3;
+					}
+				}
+			}
+
+			/* UV tangent */
+			std = (active_render)? ATTR_STD_UV_TANGENT: ATTR_STD_NONE;
+			name = ustring((string(l->name().c_str()) + ".tangent").c_str());
+
+			if(mesh->need_attribute(scene, name) || (active_render && mesh->need_attribute(scene, std))) {
+				std = (active_render)? ATTR_STD_UV_TANGENT_SIGN: ATTR_STD_NONE;
+				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
+				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
+
+				mikk_compute_tangents(b_mesh, &(*l), mesh, nverts, need_sign, active_render);
+			}
+		}
+	}
+	else if(mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
+		bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
+		mikk_compute_tangents(b_mesh, NULL, mesh, nverts, need_sign, true);
+	}
+}
+
+/* Create vertex pointiness attributes. */
+static void attr_create_pointiness(Scene *scene,
+                                   Mesh *mesh,
+                                   BL::Mesh b_mesh)
+{
+	if(mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
+		const int numverts = b_mesh.vertices.length();
+		Attribute *attr = mesh->attributes.add(ATTR_STD_POINTINESS);
+		float *data = attr->data_float();
+		int *counter = new int[numverts];
+		float *raw_data = new float[numverts];
+		float3 *edge_accum = new float3[numverts];
+
+		/* Calculate pointiness using single ring neighborhood. */
+		memset(counter, 0, sizeof(int) * numverts);
+		memset(raw_data, 0, sizeof(float) * numverts);
+		memset(edge_accum, 0, sizeof(float3) * numverts);
+		BL::Mesh::edges_iterator e;
+		int i = 0;
+		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
+			int v0 = b_mesh.edges[i].vertices()[0],
+				v1 = b_mesh.edges[i].vertices()[1];
+			float3 co0 = get_float3(b_mesh.vertices[v0].co()),
+				co1 = get_float3(b_mesh.vertices[v1].co());
+			float3 edge = normalize(co1 - co0);
+			edge_accum[v0] += edge;
+			edge_accum[v1] += -edge;
+			++counter[v0];
+			++counter[v1];
+		}
+		i = 0;
+		BL::Mesh::vertices_iterator v;
+		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++i) {
+			if(counter[i] > 0) {
+				float3 normal = get_float3(b_mesh.vertices[i].normal());
+				float angle = safe_acosf(dot(normal, edge_accum[i] / counter[i]));
+				raw_data[i] = angle * M_1_PI_F;
+			}
+			else {
+				raw_data[i] = 0.0f;
+			}
+		}
+
+		/* Blur vertices to approximate 2 ring neighborhood. */
+		memset(counter, 0, sizeof(int) * numverts);
+		memcpy(data, raw_data, sizeof(float) * numverts);
+		i = 0;
+		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
+			int v0 = b_mesh.edges[i].vertices()[0],
+				v1 = b_mesh.edges[i].vertices()[1];
+			data[v0] += raw_data[v1];
+			data[v1] += raw_data[v0];
+			++counter[v0];
+			++counter[v1];
+		}
+		for(i = 0; i < numverts; ++i) {
+			data[i] /= counter[i] + 1;
+		}
+
+		delete [] counter;
+		delete [] raw_data;
+		delete [] edge_accum;
+	}
+}
+
 /* Create Mesh */
 
 static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<uint>& used_shaders)
@@ -356,155 +517,12 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		nverts[fi] = n;
 	}
 
-	/* create vertex color attributes */
-	{
-		BL::Mesh::tessface_vertex_colors_iterator l;
-
-		for(b_mesh.tessface_vertex_colors.begin(l); l != b_mesh.tessface_vertex_colors.end(); ++l) {
-			if(!mesh->need_attribute(scene, ustring(l->name().c_str())))
-				continue;
-
-			Attribute *attr = mesh->attributes.add(
-				ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER_BYTE);
-
-			BL::MeshColorLayer::data_iterator c;
-			uchar4 *cdata = attr->data_uchar4();
-			size_t i = 0;
-
-			for(l->data.begin(c); c != l->data.end(); ++c, ++i) {
-				cdata[0] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color1())));
-				cdata[1] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color2())));
-				cdata[2] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color3())));
-
-				if(nverts[i] == 4) {
-					cdata[3] = cdata[0];
-					cdata[4] = cdata[2];
-					cdata[5] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color4())));
-					cdata += 6;
-				}
-				else
-					cdata += 3;
-			}
-		}
-	}
-
-	/* create vertex pointiness attributes */
-	/* TODO(sergey): Consider moving all the attribute creation into own
-	 * functions for clarity.
+	/* Create all needed attributes.
+	 * The calculate functions will check whether they're needed or not.
 	 */
-	{
-		if(mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
-			Attribute *attr = mesh->attributes.add(ATTR_STD_POINTINESS);
-			float *data = attr->data_float();
-			int *counter = new int[numverts];
-			float *raw_data = new float[numverts];
-			float3 *edge_accum = new float3[numverts];
-
-			/* Calculate pointiness using single ring neighborhood. */
-			memset(counter, 0, sizeof(int) * numverts);
-			memset(raw_data, 0, sizeof(float) * numverts);
-			memset(edge_accum, 0, sizeof(float3) * numverts);
-			BL::Mesh::edges_iterator e;
-			i = 0;
-			for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
-				int v0 = b_mesh.edges[i].vertices()[0],
-				    v1 = b_mesh.edges[i].vertices()[1];
-				float3 co0 = get_float3(b_mesh.vertices[v0].co()),
-				       co1 = get_float3(b_mesh.vertices[v1].co());
-				float3 edge = normalize(co1 - co0);
-				edge_accum[v0] += edge;
-				edge_accum[v1] += -edge;
-				++counter[v0];
-				++counter[v1];
-			}
-			i = 0;
-			for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++i) {
-				if(counter[i] > 0) {
-					float3 normal = get_float3(b_mesh.vertices[i].normal());
-					float angle = safe_acosf(dot(normal, edge_accum[i] / counter[i]));
-					raw_data[i] = angle * M_1_PI_F;
-				}
-				else {
-					raw_data[i] = 0.0f;
-				}
-			}
-
-			/* Blur vertices to approximate 2 ring neighborhood. */
-			memset(counter, 0, sizeof(int) * numverts);
-			memcpy(data, raw_data, sizeof(float) * numverts);
-			i = 0;
-			for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
-				int v0 = b_mesh.edges[i].vertices()[0],
-				    v1 = b_mesh.edges[i].vertices()[1];
-				data[v0] += raw_data[v1];
-				data[v1] += raw_data[v0];
-				++counter[v0];
-				++counter[v1];
-			}
-			for(i = 0; i < numverts; ++i) {
-				data[i] /= counter[i] + 1;
-			}
-
-			delete [] counter;
-			delete [] raw_data;
-			delete [] edge_accum;
-		}
-	}
-
-	/* create uv map attributes */
-	if (b_mesh.tessface_uv_textures.length() != 0) {
-		BL::Mesh::tessface_uv_textures_iterator l;
-
-		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
-			bool active_render = l->active_render();
-			AttributeStandard std = (active_render)? ATTR_STD_UV: ATTR_STD_NONE;
-			ustring name = ustring(l->name().c_str());
-
-			/* UV map */
-			if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
-				Attribute *attr;
-
-				if(active_render)
-					attr = mesh->attributes.add(std, name);
-				else
-					attr = mesh->attributes.add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
-
-				BL::MeshTextureFaceLayer::data_iterator t;
-				float3 *fdata = attr->data_float3();
-				size_t i = 0;
-
-				for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
-					fdata[0] =  get_float3(t->uv1());
-					fdata[1] =  get_float3(t->uv2());
-					fdata[2] =  get_float3(t->uv3());
-					fdata += 3;
-
-					if(nverts[i] == 4) {
-						fdata[0] =  get_float3(t->uv1());
-						fdata[1] =  get_float3(t->uv3());
-						fdata[2] =  get_float3(t->uv4());
-						fdata += 3;
-					}
-				}
-			}
-
-			/* UV tangent */
-			std = (active_render)? ATTR_STD_UV_TANGENT: ATTR_STD_NONE;
-			name = ustring((string(l->name().c_str()) + ".tangent").c_str());
-
-			if(mesh->need_attribute(scene, name) || (active_render && mesh->need_attribute(scene, std))) {
-				std = (active_render)? ATTR_STD_UV_TANGENT_SIGN: ATTR_STD_NONE;
-				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
-				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
-
-				mikk_compute_tangents(b_mesh, &(*l), mesh, nverts, need_sign, active_render);
-			}
-		}
-	}
-	else if(mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
-		bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
-		mikk_compute_tangents(b_mesh, NULL, mesh, nverts, need_sign, true);
-	}
+	attr_create_vertex_color(scene, mesh, b_mesh, nverts);
+	attr_create_uv_map(scene, mesh, b_mesh, nverts);
+	attr_create_pointiness(scene, mesh, b_mesh);
 
 	/* for volume objects, create a matrix to transform from object space to
 	 * mesh texture space. this does not work with deformations but that can
