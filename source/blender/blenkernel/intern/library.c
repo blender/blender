@@ -379,7 +379,7 @@ bool id_copy(ID *id, ID **newid, bool test)
 			return false;  /* can't be copied from here */
 		case ID_GD:
 			if (!test) *newid = (ID *)gpencil_data_duplicate((bGPdata *)id, false);
-			return false;  /* not implemented */
+			return true;
 		case ID_MSK:
 			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
 			return true;
