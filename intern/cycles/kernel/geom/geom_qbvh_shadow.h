@@ -58,6 +58,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	Transform ob_tfm;
 #endif
 
+#ifndef __KERNEL_SSE41__
+	if(!isfinite(P.x)) {
+		return false;
+	}
+#endif
+
 #if BVH_FEATURE(BVH_INSTANCING)
 	int num_hits_in_instance = 0;
 #endif

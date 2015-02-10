@@ -61,6 +61,12 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	Transform ob_tfm;
 #endif
 
+#ifndef __KERNEL_SSE41__
+	if(!isfinite(P.x)) {
+		return 0;
+	}
+#endif
+
 	ssef tnear(0.0f), tfar(isect_t);
 	sse3f idir4(ssef(idir.x), ssef(idir.y), ssef(idir.z));
 
