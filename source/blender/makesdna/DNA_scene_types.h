@@ -850,6 +850,8 @@ typedef struct ImagePaintSettings {
 	struct Image *canvas;      /* canvas when the explicit system is used for painting */
 	float stencil_col[3];
 	float dither;              /* dither amount used when painting on byte images */
+	float cavity_mul;
+	float pad;
 } ImagePaintSettings;
 
 /* ------------------------------------------- */
@@ -1754,12 +1756,15 @@ typedef enum ImagePaintMode {
 // #define IMAGEPAINT_DRAW_TOOL_DRAWING	4 // deprecated
 
 /* projection painting only */
-#define IMAGEPAINT_PROJECT_XRAY			16
-#define IMAGEPAINT_PROJECT_BACKFACE		32
-#define IMAGEPAINT_PROJECT_FLAT			64
-#define IMAGEPAINT_PROJECT_LAYER_CLONE	128
-#define IMAGEPAINT_PROJECT_LAYER_STENCIL	256
-#define IMAGEPAINT_PROJECT_LAYER_STENCIL_INV	512
+#define IMAGEPAINT_PROJECT_XRAY			(1 << 4)
+#define IMAGEPAINT_PROJECT_BACKFACE		(1 << 5)
+#define IMAGEPAINT_PROJECT_FLAT			(1 << 6)
+#define IMAGEPAINT_PROJECT_LAYER_CLONE	(1 << 7)
+#define IMAGEPAINT_PROJECT_LAYER_STENCIL	(1 << 8)
+#define IMAGEPAINT_PROJECT_LAYER_STENCIL_INV	(1 << 9)
+#define IMAGEPAINT_PROJECT_CAVITY	(1 << 10)
+#define IMAGEPAINT_PROJECT_CAVITY_INV	(1 << 11)
+
 
 #define IMAGEPAINT_MISSING_UVS       (1 << 0)
 #define IMAGEPAINT_MISSING_MATERIAL  (1 << 1)
