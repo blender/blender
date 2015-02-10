@@ -597,7 +597,7 @@ FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *ar)
 	return sfile->layout;
 }
 
-void file_change_dir(bContext *C, int checkdir)
+void ED_file_change_dir(bContext *C, const bool checkdir)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);

@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header
+from bpy.types import Header, Panel, Menu
 
 
 class FILEBROWSER_HT_header(Header):
@@ -79,6 +79,129 @@ class FILEBROWSER_HT_header(Header):
 
             row.separator()
             row.prop(params, "filter_search", text="", icon='VIEWZOOM')
+
+
+
+class FILEBROWSER_UL_dir(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        direntry = item
+        space = context.space_data
+        icon = 'NONE'
+        if active_propname == "system_folders_active":
+            icon = 'DISK_DRIVE'
+        if active_propname == "system_bookmarks_active":
+            icon = 'BOOKMARKS'
+        if active_propname == "bookmarks_active":
+            icon = 'BOOKMARKS'
+        if active_propname == "recent_folders_active":
+            icon = 'FILE_FOLDER'
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row = layout.row(align=True)
+            row.prop(direntry, "name", text="", emboss=False, icon=icon)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.prop(direntry, "path", text="")
+
+
+class FILEBROWSER_PT_system_folders(Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOLS'
+    bl_category = "Bookmarks"
+    bl_label = "System"
+
+    def draw(self, context):
+        layout = self.layout
+        space = context.space_data
+
+        if space.system_folders:
+            row = layout.row()
+            row.template_list("FILEBROWSER_UL_dir", "system_folders", space, "system_folders",
+                              space, "system_folders_active", item_dyntip_propname="path", rows=1, maxrows=6)
+
+
+class FILEBROWSER_PT_system_bookmarks(Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOLS'
+    bl_category = "Bookmarks"
+    bl_label = "System Bookmarks"
+
+    @classmethod
+    def poll(cls, context):
+        return not context.user_preferences.filepaths.hide_system_bookmarks
+
+    def draw(self, context):
+        layout = self.layout
+        space = context.space_data
+
+        if space.system_bookmarks:
+            row = layout.row()
+            row.template_list("FILEBROWSER_UL_dir", "system_bookmarks", space, "system_bookmarks",
+                              space, "system_bookmarks_active", item_dyntip_propname="path", rows=1, maxrows=6)
+
+
+class FILEBROWSER_MT_bookmarks_specials(Menu):
+    bl_label = "Bookmarks Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("file.bookmark_move", icon='TRIA_UP_BAR', text="Move To Top").direction = 'TOP'
+        layout.operator("file.bookmark_move", icon='TRIA_DOWN_BAR', text="Move To Bottom").direction = 'BOTTOM'
+
+
+class FILEBROWSER_PT_bookmarks(Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOLS'
+    bl_category = "Bookmarks"
+    bl_label = "Bookmarks"
+
+    def draw(self, context):
+        layout = self.layout
+        space = context.space_data
+
+        if space.bookmarks:
+            row = layout.row()
+            num_rows = len(space.bookmarks)
+            row.template_list("FILEBROWSER_UL_dir", "bookmarks", space, "bookmarks",
+                              space, "bookmarks_active", item_dyntip_propname="path",
+                              rows=(2 if num_rows < 2 else 4), maxrows=6)
+
+            col = row.column(align=True)
+            col.operator("file.bookmark_add", icon='ZOOMIN', text="")
+            col.operator("file.bookmark_delete", icon='ZOOMOUT', text="")
+            col.menu("FILEBROWSER_MT_bookmarks_specials", icon='DOWNARROW_HLT', text="")
+
+            if num_rows > 1:
+                col.separator()
+                col.operator("file.bookmark_move", icon='TRIA_UP', text="").direction = 'UP'
+                col.operator("file.bookmark_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+        else:
+            layout.operator("file.bookmark_add", icon='ZOOMIN')
+
+
+class FILEBROWSER_PT_recent_folders(Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOLS'
+    bl_category = "Bookmarks"
+    bl_label = "Recent"
+
+    @classmethod
+    def poll(cls, context):
+        return not context.user_preferences.filepaths.hide_recent_locations
+
+    def draw(self, context):
+        layout = self.layout
+        space = context.space_data
+
+        if space.recent_folders:
+            row = layout.row()
+            row.template_list("FILEBROWSER_UL_dir", "recent_folders", space, "recent_folders",
+                              space, "recent_folders_active", item_dyntip_propname="path", rows=1, maxrows=6)
+
+            col = row.column(align=True)
+            col.operator("file.reset_recent", icon='X', text="")
 
 
 if __name__ == "__main__":  # only for live edit.

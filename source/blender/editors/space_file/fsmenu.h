@@ -37,43 +37,23 @@
 /* XXX could become UserPref */
 #define FSMENU_RECENT_MAX 10
 
-typedef enum FSMenuCategory {
-	FS_CATEGORY_SYSTEM,
-	FS_CATEGORY_SYSTEM_BOOKMARKS,
-	FS_CATEGORY_BOOKMARKS,
-	FS_CATEGORY_RECENT
-} FSMenuCategory;
-
-typedef enum FSMenuInsert {
-	FS_INSERT_SORTED = (1 << 0),
-	FS_INSERT_SAVE   = (1 << 1),
-	FS_INSERT_FIRST  = (1 << 2),   /* moves the item to the front of the list when its not already there */
-	FS_APPEND_LAST   = (1 << 3)   /* just append to preseve delivered order */
-} FSMenuInsert;
+enum FSMenuCategory;
+enum FSMenuInsert;
 
 struct FSMenu;
-
-struct FSMenu *fsmenu_get(void);
-
-/** Returns the number of entries in the Fileselect Menu */
-int     fsmenu_get_nentries(struct FSMenu *fsmenu, FSMenuCategory category);
-
-/** Returns the fsmenu entry at \a index (or NULL if a bad index)
- * or a separator.
- */
-char *fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int index);
+struct FSMenuEntry;
 
 /** Inserts a new fsmenu entry with the given \a path.
  * Duplicate entries are not added.
  * \param flag Options for inserting the entry.
  */
-void    fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const char *path, const FSMenuInsert flag);
+void    fsmenu_insert_entry(struct FSMenu *fsmenu, enum FSMenuCategory category, const char *path, const char *name, const enum FSMenuInsert flag);
 
 /** Return whether the entry was created by the user and can be saved and deleted */
-short   fsmenu_can_save(struct FSMenu *fsmenu, FSMenuCategory category, int index);
+short   fsmenu_can_save(struct FSMenu *fsmenu, enum FSMenuCategory category, int index);
 
 /** Removes the fsmenu entry at the given \a index. */
-void    fsmenu_remove_entry(struct FSMenu *fsmenu, FSMenuCategory category, int index);
+void    fsmenu_remove_entry(struct FSMenu *fsmenu, enum FSMenuCategory category, int index);
 
 /** saves the 'bookmarks' to the specified file */
 void    fsmenu_write_file(struct FSMenu *fsmenu, const char *filename);
@@ -89,6 +69,9 @@ void    fsmenu_free(void);
 
 /** Refresh system directory menu */
 void    fsmenu_refresh_system_category(struct FSMenu *fsmenu);
+
+/** Get active index based on given directory. */
+int     fsmenu_get_active_indices(struct FSMenu *fsmenu, enum FSMenuCategory category, const char *dir);
 
 #endif
 

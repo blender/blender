@@ -108,5 +108,40 @@ int ED_file_extension_icon(const char *relname);
 
 void ED_file_read_bookmarks(void);
 
+void ED_file_change_dir(struct bContext *C, const bool checkdir);
+
+/* File menu stuff */
+
+typedef enum FSMenuCategory {
+	FS_CATEGORY_SYSTEM,
+	FS_CATEGORY_SYSTEM_BOOKMARKS,
+	FS_CATEGORY_BOOKMARKS,
+	FS_CATEGORY_RECENT
+} FSMenuCategory;
+
+typedef enum FSMenuInsert {
+	FS_INSERT_SORTED = (1 << 0),
+	FS_INSERT_SAVE   = (1 << 1),
+	FS_INSERT_FIRST  = (1 << 2),  /* moves the item to the front of the list when its not already there */
+	FS_INSERT_LAST   = (1 << 3),  /* just append to preseve delivered order */
+} FSMenuInsert;
+
+struct FSMenu;
+struct FSMenuEntry;
+
+struct FSMenu *ED_fsmenu_get(void);
+struct FSMenuEntry *ED_fsmenu_get_category(struct FSMenu *fsmenu, FSMenuCategory category);
+void ED_fsmenu_set_category(struct FSMenu *fsmenu, FSMenuCategory category, struct FSMenuEntry *fsm_head);
+
+int ED_fsmenu_get_nentries(struct FSMenu *fsmenu, FSMenuCategory category);
+
+struct FSMenuEntry *ED_fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int index);
+
+char *ED_fsmenu_entry_get_path(struct FSMenuEntry *fsentry);
+void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *path);
+
+char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry);
+void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name);
+
 #endif /* __ED_FILESELECT_H__ */
 

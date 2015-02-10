@@ -119,7 +119,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	/* exception to make space for collapsed region icon */
 	for (artmp = CTX_wm_area(C)->regionbase.first; artmp; artmp = artmp->next) {
-		if (artmp->regiontype == RGN_TYPE_CHANNELS && artmp->flag & RGN_FLAG_HIDDEN) {
+		if (artmp->regiontype == RGN_TYPE_TOOLS && artmp->flag & RGN_FLAG_HIDDEN) {
 			chan_offs = 16;
 			min_x += chan_offs;
 			available_w -= chan_offs;

@@ -71,7 +71,7 @@ static SpaceLink *file_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceFile *sfile;
-	
+
 	sfile = MEM_callocN(sizeof(SpaceFile), "initfile");
 	sfile->spacetype = SPACE_FILE;
 
@@ -81,11 +81,17 @@ static SpaceLink *file_new(const bContext *UNUSED(C))
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_TOP;
 
-	/* channel list region */
-	ar = MEM_callocN(sizeof(ARegion), "channel area for file");
+	/* Tools region */
+	ar = MEM_callocN(sizeof(ARegion), "tools area for file");
 	BLI_addtail(&sfile->regionbase, ar);
-	ar->regiontype = RGN_TYPE_CHANNELS;
+	ar->regiontype = RGN_TYPE_TOOLS;
 	ar->alignment = RGN_ALIGN_LEFT;
+
+	/* Tool props (aka operator) region */
+	ar = MEM_callocN(sizeof(ARegion), "tool props area for file");
+	BLI_addtail(&sfile->regionbase, ar);
+	ar->regiontype = RGN_TYPE_TOOL_PROPS;
+	ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 
 	/* ui list region */
 	ar = MEM_callocN(sizeof(ARegion), "ui area for file");
@@ -149,7 +155,7 @@ static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
 
 	/* refresh system directory list */
-	fsmenu_refresh_system_category(fsmenu_get());
+	fsmenu_refresh_system_category(ED_fsmenu_get());
 
 	if (sfile->layout) sfile->layout->dirty = true;
 }
@@ -187,11 +193,12 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sfilen;
 }
 
-static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
+static void file_refresh(const bContext *C, ScrArea *sa)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	struct FSMenu *fsmenu = ED_fsmenu_get();
 
 	if (!sfile->folders_prev) {
 		sfile->folders_prev = folderlist_new();
@@ -207,6 +214,12 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	                                         params->flag & FILE_FILTER ? params->filter : 0,
 	                                         params->filter_glob,
 	                                         params->filter_search);
+
+	/* Update the active indices of bookmarks & co. */
+	sfile->systemnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_SYSTEM, params->dir);
+	sfile->system_bookmarknr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, params->dir);
+	sfile->bookmarknr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir);
+	sfile->recentnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_RECENT, params->dir);
 
 	if (filelist_empty(sfile->files)) {
 		thumbnails_stop(wm, sfile->files);
@@ -245,6 +258,14 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 
 	if (sfile->layout) {
 		sfile->layout->dirty = true;
+	}
+
+	if (BKE_area_find_region_type(sa, RGN_TYPE_TOOLS) == NULL) {
+		/* Create TOOLS/TOOL_PROPS regions. */
+		file_tools_region(sa);
+
+		ED_area_initialize(wm, CTX_wm_window(C), sa);
+		ED_area_tag_redraw(sa);
 	}
 }
 
@@ -382,6 +403,7 @@ static void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_bookmark_toggle);
 	WM_operatortype_append(FILE_OT_bookmark_add);
 	WM_operatortype_append(FILE_OT_bookmark_delete);
+	WM_operatortype_append(FILE_OT_bookmark_move);
 	WM_operatortype_append(FILE_OT_reset_recent);
 	WM_operatortype_append(FILE_OT_hidedot);
 	WM_operatortype_append(FILE_OT_filenum);
@@ -473,7 +495,7 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 }
 
 
-static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
+static void file_tools_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
@@ -485,12 +507,12 @@ static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void file_channel_area_draw(const bContext *C, ARegion *ar)
+static void file_tools_area_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void file_channel_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+static void file_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 #if 0
 	/* context changes */
@@ -616,12 +638,24 @@ void ED_spacetype_file(void)
 
 	/* regions: channels (directories) */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
-	art->regionid = RGN_TYPE_CHANNELS;
+	art->regionid = RGN_TYPE_TOOLS;
 	art->prefsizex = 240;
+	art->prefsizey = 60;
 	art->keymapflag = ED_KEYMAP_UI;
-	art->listener = file_channel_area_listener;
-	art->init = file_channel_area_init;
-	art->draw = file_channel_area_draw;
+	art->listener = file_tools_area_listener;
+	art->init = file_tools_area_init;
+	art->draw = file_tools_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: tool properties */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file operator region");
+	art->regionid = RGN_TYPE_TOOL_PROPS;
+	art->prefsizex = 0;
+	art->prefsizey = 240;
+	art->keymapflag = ED_KEYMAP_UI;
+	art->listener = file_tools_area_listener;
+	art->init = file_tools_area_init;
+	art->draw = file_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	file_panels_register(art);
 
@@ -655,12 +689,12 @@ void ED_file_read_bookmarks(void)
 	
 	fsmenu_free();
 
-	fsmenu_read_system(fsmenu_get(), true);
+	fsmenu_read_system(ED_fsmenu_get(), true);
 
 	if (cfgdir) {
 		char name[FILE_MAX];
 		BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
-		fsmenu_read_bookmarks(fsmenu_get(), name);
+		fsmenu_read_bookmarks(ED_fsmenu_get(), name);
 	}
 }
 
