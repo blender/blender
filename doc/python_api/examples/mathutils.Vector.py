@@ -18,15 +18,15 @@ matrix = mathutils.Matrix()
 
 # Comparison operators can be done on Vector classes:
 
-# greater and less then test vector length.
+# (In)equality operators == and != test component values, e.g. 1,2,3 != 3,2,1
+vec_a == vec_b
+vec_a != vec_b
+
+# Ordering operators >, >=, > and <= test vector length.
 vec_a > vec_b
 vec_a >= vec_b
 vec_a < vec_b
 vec_a <= vec_b
-
-# ==, != test vector values e.g. 1,2,3 != 3,2,1 even if they are the same length
-vec_a == vec_b
-vec_a != vec_b
 
 
 # Math can be performed on Vector classes
