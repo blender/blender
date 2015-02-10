@@ -1598,6 +1598,8 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 		}
 
 		case LEFTMOUSE:
+		case RETKEY:
+		case SPACEKEY:
 		{
 			ED_region_draw_cb_exit(ar->type, data->draw_handle);
 			MEM_freeN(data->seq_array);
