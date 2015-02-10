@@ -58,6 +58,7 @@
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "ED_space_api.h"
 #include "ED_markers.h"
@@ -90,13 +91,12 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
 }
 
-#define CACHE_DRAW_HEIGHT   3.0f
-
 static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 {
 	PTCacheID *pid;
 	ListBase pidlist;
 	SpaceTimeCache *stc = stime->caches.first;
+	const float cache_draw_height = (4.0f * UI_DPI_FAC * U.pixelsize);
 	float yoffs = 0.f;
 	
 	if (!(stime->cache_display & TIME_CACHE_DISPLAY) || (!ob))
@@ -172,7 +172,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 		
 		glPushMatrix();
 		glTranslatef(0.0, (float)V2D_SCROLL_HEIGHT + yoffs, 0.0);
-		glScalef(1.0, CACHE_DRAW_HEIGHT, 0.0);
+		glScalef(1.0, cache_draw_height, 0.0);
 		
 		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
@@ -230,7 +230,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 		
 		glPopMatrix();
 		
-		yoffs += CACHE_DRAW_HEIGHT;
+		yoffs += cache_draw_height;
 
 		stc = stc->next;
 	}
