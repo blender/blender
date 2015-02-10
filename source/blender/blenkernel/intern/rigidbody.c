@@ -438,17 +438,16 @@ static void rigidbody_validate_sim_shape(Object *ob, bool rebuild)
 			new_shape = rigidbody_get_shape_trimesh_from_mesh(ob);
 			break;
 	}
+	/* use box shape if we can't fall back to old shape */
+	if (new_shape == NULL && rbo->physics_shape == NULL) {
+		new_shape = RB_shape_new_box(size[0], size[1], size[2]);
+	}
 	/* assign new collision shape if creation was successful */
 	if (new_shape) {
 		if (rbo->physics_shape)
 			RB_shape_delete(rbo->physics_shape);
 		rbo->physics_shape = new_shape;
 		RB_shape_set_margin(rbo->physics_shape, RBO_GET_MARGIN(rbo));
-	}
-	/* use box shape if we can't fall back to old shape */
-	else if (rbo->physics_shape == NULL) {
-		rbo->shape = RB_SHAPE_BOX;
-		rigidbody_validate_sim_shape(ob, true);
 	}
 }
 
