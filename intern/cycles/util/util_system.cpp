@@ -135,6 +135,29 @@ struct CPUCapabilities {
 	bool bmi2;
 };
 
+static void system_cpu_capabilities_override(CPUCapabilities *caps)
+{
+	/* Only capabilities which affects on cycles kernel. */
+	if(getenv("CYCLES_CPU_NO_AVX2")) {
+		caps->avx2 = false;
+	}
+	if(getenv("CYCLES_CPU_NO_AVX")) {
+		caps->avx = false;
+	}
+	if(getenv("CYCLES_CPU_NO_SSE41")) {
+		caps->sse41 = false;
+	}
+	if(getenv("CYCLES_CPU_NO_SSE3")) {
+		caps->sse3 = false;
+	}
+	if(getenv("CYCLES_CPU_NO_SSE2")) {
+		caps->sse2 = false;
+	}
+	if(getenv("CYCLES_CPU_NO_SSE")) {
+		caps->sse = false;
+	}
+}
+
 static CPUCapabilities& system_cpu_capabilities()
 {
 	static CPUCapabilities caps;
@@ -199,6 +222,8 @@ static CPUCapabilities& system_cpu_capabilities()
 			caps.xop = (result[2] & ((int)1 << 11)) != 0;
 		}
 #endif
+
+		system_cpu_capabilities_override(&caps);
 
 		caps_init = true;
 	}
