@@ -826,6 +826,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_string(func, "active_propname", NULL, 0, "",
 	                      "Identifier of the integer property in active_data, index of the active item");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_string(func, "item_dyntip_propname", NULL, 0, "",
+	               "Identifier of a string property in items, to use as tooltip content");
 	RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Default and minimum number of rows to display", 0, INT_MAX);
 	RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Default maximum number of rows to display", 0, INT_MAX);
 	RNA_def_enum(func, "type", uilist_layout_type_items, UILST_LAYOUT_DEFAULT, "Type", "Type of layout to use");

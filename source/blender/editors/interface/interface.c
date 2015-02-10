@@ -716,6 +716,7 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 		if (oldbut->poin != (char *)oldbut) {
 			SWAP(char *, oldbut->poin, but->poin);
 			SWAP(void *, oldbut->func_argN, but->func_argN);
+			SWAP(void *, oldbut->tip_argN, but->tip_argN);
 		}
 
 		oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
@@ -2440,6 +2441,10 @@ static void ui_but_free(const bContext *C, uiBut *but)
 		MEM_freeN(but->func_argN);
 	}
 
+	if (but->tip_argN) {
+		MEM_freeN(but->tip_argN);
+	}
+
 	if (but->active) {
 		/* XXX solve later, buttons should be free-able without context ideally,
 		 * however they may have open tooltips or popup windows, which need to
@@ -4113,6 +4118,15 @@ void UI_but_func_complete_set(uiBut *but, uiButCompleteFunc func, void *arg)
 	but->autofunc_arg = arg;
 }
 
+void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *argN)
+{
+	but->tip_func = func;
+	if (but->tip_argN) {
+		MEM_freeN(but->tip_argN);
+	}
+	but->tip_argN = argN;
+}
+
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, const char *str, int x, int y, short width, short height, const char *tip)
 {
 	uiBut *but = ui_def_but(block, UI_BTYPE_BLOCK, 0, str, x, y, width, height, arg, 0.0, 0.0, 0.0, 0.0, tip);
@@ -4383,7 +4397,10 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 			}
 		}
 		else if (type == BUT_GET_TIP) {
-			if (but->tip && but->tip[0])
+			if (but->tip_func) {
+				tmp = but->tip_func(C, but->tip_argN, but->tip);
+			}
+			else if (but->tip && but->tip[0])
 				tmp = BLI_strdup(but->tip);
 			else
 				type = BUT_GET_RNA_TIP;  /* Fail-safe solution... */

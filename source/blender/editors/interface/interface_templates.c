@@ -2833,9 +2833,27 @@ static void uilist_resize_update_cb(bContext *UNUSED(C), void *arg1, void *UNUSE
 	}
 }
 
+static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *propname)
+{
+	if (propname && propname[0] && itemptr && itemptr->data) {
+		PropertyRNA *prop = RNA_struct_find_property(itemptr, propname);
+
+		if (prop && (RNA_property_type(prop) == PROP_STRING)) {
+			return RNA_property_string_get_alloc(itemptr, prop, NULL, 0, NULL);
+		}
+	}
+	return NULL;
+}
+
+static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const char *tip)
+{
+	char *dyn_tooltip = argN;
+	return BLI_sprintfN("%s - %s", tip, dyn_tooltip);
+}
+
 void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
                     PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr, const char *active_propname,
-                    int rows, int maxrows, int layout_type, int columns)
+                    const char *item_dyntip_propname, int rows, int maxrows, int layout_type, int columns)
 {
 	uiListType *ui_list_type;
 	uiList *ui_list = NULL;
@@ -3049,6 +3067,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 				/* create list items */
 				for (i = layoutdata.start_idx; i < layoutdata.end_idx; i++) {
 					PointerRNA *itemptr = &items_ptr[i].item;
+					void *dyntip_data;
 					int org_i = items_ptr[i].org_idx;
 					int flt_flag = items_ptr[i].flt_flag;
 					subblock = uiLayoutGetBlock(col);
@@ -3061,7 +3080,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					sub = uiLayoutRow(overlap, false);
 
 					but = uiDefButR_prop(subblock, UI_BTYPE_LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
-					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0, TIP_("Double click to rename"));
+					                     active_dataptr, activeprop, 0, 0, org_i, 0, 0,
+					                     TIP_("Double click to rename"));
+					if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr, item_dyntip_propname))) {
+						UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data);
+					}
 
 					sub = uiLayoutRow(overlap, false);
 
