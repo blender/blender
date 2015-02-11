@@ -182,6 +182,14 @@ static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node,
 		
 		sockdata->pass_index = index;
 		sockdata->pass_flag = rpass->passtype;
+
+		if (STREQ(rpass->chan_id, "RGBA")) {
+			sock = nodeAddStaticSocket(ntree, node, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Alpha", "Alpha");
+			sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
+			sock->storage = sockdata;
+			sockdata->pass_index = index;
+			sockdata->pass_flag = rpass->passtype;
+		}
 	}
 }
 

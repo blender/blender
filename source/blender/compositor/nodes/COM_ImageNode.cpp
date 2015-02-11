@@ -32,6 +32,7 @@
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"
+#include "COM_SeparateColorNode.h"
 
 ImageNode::ImageNode(bNode *editorNode) : Node(editorNode)
 {
@@ -78,7 +79,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 	int numberOfOutputs = this->getNumberOfOutputSockets();
 	bool outputStraightAlpha = (editorNode->custom1 & CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT) != 0;
 	BKE_image_user_frame_calc(imageuser, context.getFramenumber(), 0);
-
+	NodeOperation *combined_operation = NULL;
 	/* force a load, we assume iuser index will be set OK anyway */
 	if (image && image->type == IMA_TYPE_MULTILAYER) {
 		bool is_multilayer_ok = false;
@@ -105,33 +106,48 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 #endif
 					int passindex;
 					RenderPass *rpass;
-					for (rpass = (RenderPass *)rl->passes.first, passindex = 0; rpass; rpass = rpass->next, ++passindex)
-						if (STREQ(rpass->name, bnodeSocket->identifier))
-							break;
-					if (rpass) {
-						imageuser->pass = passindex;
-						switch (rpass->channels) {
-							case 1:
-								operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_VALUE);
+					if (STREQ(bnodeSocket->identifier, "Alpha")) {
+						BLI_assert(combined_operation != NULL);
+						NodeOutput *outputSocket = this->getOutputSocket(index);
+						SeparateChannelOperation *separate_operation;
+						separate_operation = new SeparateChannelOperation();
+						separate_operation->setChannel(3);
+						converter.addOperation(separate_operation);
+						converter.addLink(combined_operation->getOutputSocket(), separate_operation->getInputSocket(0));
+						converter.mapOutputSocket(outputSocket, separate_operation->getOutputSocket());
+						operation = separate_operation;
+					}
+					else {
+						for (rpass = (RenderPass *)rl->passes.first, passindex = 0; rpass; rpass = rpass->next, ++passindex)
+							if (STREQ(rpass->name, bnodeSocket->identifier))
 								break;
-								/* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
-								/* XXX any way to detect actual vector images? */
-							case 3:
-								operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_VECTOR);
-								break;
-							case 4:
-								operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_COLOR);
-								break;
-							default:
-								/* dummy operation is added below */
-								break;
-						}
-						
-						if (index == 0 && operation) {
-							converter.addPreview(operation->getOutputSocket());
+						if (rpass) {
+							imageuser->pass = passindex;
+							switch (rpass->channels) {
+								case 1:
+									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_VALUE);
+									break;
+									/* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
+									/* XXX any way to detect actual vector images? */
+								case 3:
+									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_VECTOR);
+									break;
+								case 4:
+									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_COLOR);
+									break;
+								default:
+									/* dummy operation is added below */
+									break;
+							}
+							if (index == 0 && operation) {
+								converter.addPreview(operation->getOutputSocket());
+							}
+							if (STREQ(rpass->chan_id, "RGBA")) {
+								combined_operation = operation;
+							}
 						}
 					}
-					
+
 					/* incase we can't load the layer */
 					if (operation == NULL)
 						converter.setInvalidOutput(getOutputSocket(index));
