@@ -164,17 +164,12 @@ static CPUCapabilities& system_cpu_capabilities()
 	static bool caps_init = false;
 
 	if(!caps_init) {
-		int result[4], num; //, num_ex;
+		int result[4], num;
 
 		memset(&caps, 0, sizeof(caps));
 
 		__cpuid(result, 0);
 		num = result[0];
-
-#if 0
-		__cpuid(result, 0x80000000);
-		num_ex = result[0];
-#endif
 
 		if(num >= 1) {
 			__cpuid(result, 0x00000001);
@@ -212,16 +207,6 @@ static CPUCapabilities& system_cpu_capabilities()
 			caps.bmi2 = (result[1] & ((int)1 << 8)) != 0;
 			caps.avx2 = (result[1] & ((int)1 << 5)) != 0;
 		}
-
-#if 0
-		if(num_ex >= 0x80000001) {
-			__cpuid(result, 0x80000001);
-			caps.x64 = (result[3] & ((int)1 << 29)) != 0;
-			caps.sse4a = (result[2] & ((int)1 <<  6)) != 0;
-			caps.fma4 = (result[2] & ((int)1 << 16)) != 0;
-			caps.xop = (result[2] & ((int)1 << 11)) != 0;
-		}
-#endif
 
 		system_cpu_capabilities_override(&caps);
 
