@@ -4928,16 +4928,17 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 	ps->clone_ima = (!ps->do_material_slots) ? 
 	                settings->imapaint.clone : NULL;
 
+	ps->do_mask_cavity = (settings->imapaint.paint.flags & PAINT_USE_CAVITY_MASK) ? true : false;
+	ps->cavity_curve = settings->imapaint.paint.cavity_curve;
+
 	/* setup projection painting data */
 	if (ps->tool != PAINT_TOOL_FILL) {
 		ps->do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? false : true;
 		ps->do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? false : true;
 		ps->do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? false : true;
-		ps->do_mask_cavity = (settings->imapaint.paint.flags & PAINT_USE_CAVITY_MASK) ? true : false;
-		ps->cavity_curve = settings->imapaint.paint.cavity_curve;
 	}
 	else {
-		ps->do_backfacecull = ps->do_occlude = ps->do_mask_normal = ps->do_mask_cavity = 0;
+		ps->do_backfacecull = ps->do_occlude = ps->do_mask_normal = 0;
 	}
 	ps->do_new_shading_nodes = BKE_scene_use_new_shading_nodes(scene); /* only cache the value */
 
