@@ -253,25 +253,25 @@ typedef enum {
 	SEQ_STRIPELEM_IBUF_COMP,
 	SEQ_STRIPELEM_IBUF_STARTSTILL,
 	SEQ_STRIPELEM_IBUF_ENDSTILL
-} seq_stripelem_ibuf_t;
+} eSeqStripElemIBuf;
 
 void BKE_sequencer_cache_destruct(void);
 void BKE_sequencer_cache_cleanup(void);
 
 /* returned ImBuf is properly refed and has to be freed */
-struct ImBuf *BKE_sequencer_cache_get(const SeqRenderData *context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type);
+struct ImBuf *BKE_sequencer_cache_get(const SeqRenderData *context, struct Sequence *seq, float cfra, eSeqStripElemIBuf type);
 
 /* passed ImBuf is properly refed, so ownership is *not* 
  * transferred to the cache.
  * you can pass the same ImBuf multiple times to the cache without problems.
  */
 
-void BKE_sequencer_cache_put(const SeqRenderData *context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type, struct ImBuf *nval);
+void BKE_sequencer_cache_put(const SeqRenderData *context, struct Sequence *seq, float cfra, eSeqStripElemIBuf type, struct ImBuf *nval);
 
 void BKE_sequencer_cache_cleanup_sequence(struct Sequence *seq);
 
-struct ImBuf *BKE_sequencer_preprocessed_cache_get(const SeqRenderData *context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type);
-void BKE_sequencer_preprocessed_cache_put(const SeqRenderData *context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type, struct ImBuf *ibuf);
+struct ImBuf *BKE_sequencer_preprocessed_cache_get(const SeqRenderData *context, struct Sequence *seq, float cfra, eSeqStripElemIBuf type);
+void BKE_sequencer_preprocessed_cache_put(const SeqRenderData *context, struct Sequence *seq, float cfra, eSeqStripElemIBuf type, struct ImBuf *ibuf);
 void BKE_sequencer_preprocessed_cache_cleanup(void);
 void BKE_sequencer_preprocessed_cache_cleanup_sequence(struct Sequence *seq);
 
