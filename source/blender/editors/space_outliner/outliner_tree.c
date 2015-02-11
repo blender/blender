@@ -828,6 +828,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 				outliner_add_element(soops, &te->subtree, gpl, te, TSE_GP_LAYER, a);
 				a++;
 			}
+			break;
 		}
 	}
 }

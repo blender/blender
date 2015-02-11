@@ -814,22 +814,26 @@ void free_qtcomponentdata(void)
 void quicktime_verify_image_type(RenderData *rd, ImageFormatData *imf)
 {
 	if (imf->imtype == R_IMF_IMTYPE_QUICKTIME) {
-		if ((rd->qtcodecsettings.codecType<= 0) ||
-			(rd->qtcodecsettings.codecSpatialQuality <0) ||
-			(rd->qtcodecsettings.codecSpatialQuality > 100)) {
-			
+		if ((rd->qtcodecsettings.codecType <= 0) ||
+		    (rd->qtcodecsettings.codecSpatialQuality < 0) ||
+		    (rd->qtcodecsettings.codecSpatialQuality > 100))
+		{
 			rd->qtcodecsettings.codecType = kJPEGCodecType;
-			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality*100)/codecLosslessQuality;
+			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality * 100) / codecLosslessQuality;
 		}
 		if ((rd->qtcodecsettings.audioSampleRate < 21000) ||
-			(rd->qtcodecsettings.audioSampleRate > 193000)) 
+		    (rd->qtcodecsettings.audioSampleRate > 193000))
+		{
 			rd->qtcodecsettings.audioSampleRate = 48000;
+		}
 		
-		if (rd->qtcodecsettings.audioBitDepth == 0)
+		if (rd->qtcodecsettings.audioBitDepth == 0) {
 			rd->qtcodecsettings.audioBitDepth = AUD_FORMAT_S16;
+		}
 		
-		if (rd->qtcodecsettings.audioBitRate == 0)
+		if (rd->qtcodecsettings.audioBitRate == 0) {
 			rd->qtcodecsettings.audioBitRate = 256000;
+		}
 	}
 }
 

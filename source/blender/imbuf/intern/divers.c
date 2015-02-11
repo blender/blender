@@ -169,8 +169,8 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 	float tmp[4];
 	int x, y;
 	DitherContext *di = NULL;
-	float inv_width = 1.0f / width,
-	      inv_height = 1.0f / height;
+	float inv_width = 1.0f / width;
+	float inv_height = 1.0f / height;
 
 	/* we need valid profiles */
 	BLI_assert(profile_to != IB_PROFILE_NONE);

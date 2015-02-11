@@ -2745,7 +2745,7 @@ static void mesh_separate_material_assign_mat_nr(Object *ob, const short mat_nr)
 		}
 
 		if (mat_nr < *totcolp) {
-			 ma_obdata = (*matarar)[mat_nr];
+			ma_obdata = (*matarar)[mat_nr];
 		}
 		else {
 			ma_obdata = NULL;

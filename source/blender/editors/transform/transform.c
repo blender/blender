@@ -1503,7 +1503,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 	if ((t->modifiers   & (MOD_SNAP | MOD_SNAP_INVERT)) !=
 	    (modifiers_prev & (MOD_SNAP | MOD_SNAP_INVERT)))
 	{
-	    applyMouseInput(t, &t->mouse, t->mval, t->values);
+		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
 	/* Per transform event, if present */

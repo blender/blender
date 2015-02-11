@@ -188,7 +188,7 @@ typedef enum eGPdata_Flag {
 	GP_DATA_EXPAND		= (1 << 2),
 	
 	/* is the block overriding all clicks? */
- 	/* GP_DATA_EDITPAINT = (1 << 3), */
+	/* GP_DATA_EDITPAINT = (1 << 3), */
 	
 	/* new strokes are added in viewport space */
 	GP_DATA_VIEWALIGN	= (1 << 4),

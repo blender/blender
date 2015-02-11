@@ -247,8 +247,9 @@ static GPUBuffer *gpu_buffer_alloc_intern(int size, bool use_VBO)
 		bufsize = pool->buffers[i]->size;
 
 		/* only return a buffer that matches the VBO preference */
-		 if (pool->buffers[i]->use_vbo != use_VBO)
+		if (pool->buffers[i]->use_vbo != use_VBO) {
 			 continue;
+		}
 		
 		/* check for an exact size match */
 		if (bufsize == size) {
@@ -653,8 +654,8 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 
 			/* attempt to map the buffer */
 			if (!(varray = glMapBufferARB(target, GL_WRITE_ONLY_ARB))) {
-				 buffer = gpu_try_realloc(pool, buffer, size, true);
-				 
+				buffer = gpu_try_realloc(pool, buffer, size, true);
+
 				/* allocation still failed; fall back
 				 * to legacy mode */
 				if (!buffer) {

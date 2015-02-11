@@ -138,7 +138,7 @@ bool KX_MouseActuator::Update()
 					center_x = ((m_canvas->GetWidth() - 1.0) / 2.0) / (m_canvas->GetWidth());
 				}
 				if ((m_canvas->GetHeight() % 2) != 0) {
-				    center_y = ((m_canvas->GetHeight() - 1.0) / 2.0) / (m_canvas->GetHeight());
+					center_y = ((m_canvas->GetHeight() - 1.0) / 2.0) / (m_canvas->GetHeight());
 				}
 
 				//preventing initial skipping.

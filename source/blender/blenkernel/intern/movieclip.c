@@ -790,10 +790,10 @@ static ImBuf *postprocess_frame(MovieClip *clip, MovieClipUser *user, ImBuf *ibu
 	}
 
 	if (postprocess_flag) {
-		bool disable_red   = (postprocess_flag & MOVIECLIP_DISABLE_RED) != 0,
-			 disable_green = (postprocess_flag & MOVIECLIP_DISABLE_GREEN) != 0,
-			 disable_blue  = (postprocess_flag & MOVIECLIP_DISABLE_BLUE) != 0,
-			 grayscale     = (postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE) != 0;
+		bool disable_red   = (postprocess_flag & MOVIECLIP_DISABLE_RED) != 0;
+		bool disable_green = (postprocess_flag & MOVIECLIP_DISABLE_GREEN) != 0;
+		bool disable_blue  = (postprocess_flag & MOVIECLIP_DISABLE_BLUE) != 0;
+		bool grayscale     = (postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE) != 0;
 
 		if (disable_red || disable_green || disable_blue || grayscale)
 			BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);

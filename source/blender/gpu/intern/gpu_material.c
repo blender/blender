@@ -2128,18 +2128,18 @@ GPUNodeLink *GPU_lamp_get_data(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **co
 
 		if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE) {
 			GPU_link(mat, "shadows_only_vsm",
-				 GPU_builtin(GPU_VIEW_POSITION),
-				 GPU_dynamic_texture(lamp->tex, GPU_DYNAMIC_SAMPLER_2DSHADOW, lamp->ob),
-				 GPU_dynamic_uniform((float*)lamp->dynpersmat, GPU_DYNAMIC_LAMP_DYNPERSMAT, lamp->ob),
-				 GPU_uniform(&lamp->bias), GPU_uniform(&lamp->la->bleedbias),
-				 GPU_uniform(lamp->shadow_color), inp, shadow);
+			         GPU_builtin(GPU_VIEW_POSITION),
+			         GPU_dynamic_texture(lamp->tex, GPU_DYNAMIC_SAMPLER_2DSHADOW, lamp->ob),
+			         GPU_dynamic_uniform((float*)lamp->dynpersmat, GPU_DYNAMIC_LAMP_DYNPERSMAT, lamp->ob),
+			         GPU_uniform(&lamp->bias), GPU_uniform(&lamp->la->bleedbias),
+			         GPU_uniform(lamp->shadow_color), inp, shadow);
 		}
 		else {
 			GPU_link(mat, "shadows_only",
-				 GPU_builtin(GPU_VIEW_POSITION),
-				 GPU_dynamic_texture(lamp->tex, GPU_DYNAMIC_SAMPLER_2DSHADOW, lamp->ob),
-				 GPU_dynamic_uniform((float*)lamp->dynpersmat, GPU_DYNAMIC_LAMP_DYNPERSMAT, lamp->ob),
-				 GPU_uniform(&lamp->bias), GPU_uniform(lamp->shadow_color), inp, shadow);
+			         GPU_builtin(GPU_VIEW_POSITION),
+			         GPU_dynamic_texture(lamp->tex, GPU_DYNAMIC_SAMPLER_2DSHADOW, lamp->ob),
+			         GPU_dynamic_uniform((float*)lamp->dynpersmat, GPU_DYNAMIC_LAMP_DYNPERSMAT, lamp->ob),
+			         GPU_uniform(&lamp->bias), GPU_uniform(lamp->shadow_color), inp, shadow);
 		}
 	}
 	else {

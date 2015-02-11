@@ -1945,7 +1945,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							float dist;
 
 							closest_to_line_segment_v3(ve, opco, nv1, nv2);
-							 sub_v3_v3v3(ve, opco, ve);
+							sub_v3_v3v3(ve, opco, ve);
 							dist = normalize_v3(ve);
 							if ((dist < outerfacethickness)&&(dist < mindistedge )) {
 								copy_v3_v3(coledge, ve);

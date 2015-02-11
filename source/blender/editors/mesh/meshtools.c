@@ -895,7 +895,7 @@ int ED_mesh_mirror_get_vert(Object *ob, int index)
 		index_mirr = eve_mirr ? BM_elem_index_get(eve_mirr) : -1;
 	}
 	else {
-		 index_mirr = mesh_get_x_mirror_vert(ob, index, use_topology);
+		index_mirr = mesh_get_x_mirror_vert(ob, index, use_topology);
 	}
 
 	return index_mirr;

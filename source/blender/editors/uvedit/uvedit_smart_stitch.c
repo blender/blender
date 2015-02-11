@@ -574,11 +574,11 @@ static void stitch_island_calculate_vert_rotation(UvElement *element, StitchStat
 			edgecos = dot_v2v2(normal, state->normals + index_tmp1 * 2);
 			edgesin = cross_v2v2(normal, state->normals + index_tmp1 * 2);
 			if (edgesin > 0.0f) {
-			    rotation += acosf(max_ff(-1.0f, min_ff(1.0f, edgecos)));
+				rotation += acosf(max_ff(-1.0f, min_ff(1.0f, edgecos)));
 				rot_elem++;
 			}
 			else {
-			    rotation_neg += acosf(max_ff(-1.0f, min_ff(1.0f, edgecos)));
+				rotation_neg += acosf(max_ff(-1.0f, min_ff(1.0f, edgecos)));
 				rot_elem_neg++;
 			}
 		}

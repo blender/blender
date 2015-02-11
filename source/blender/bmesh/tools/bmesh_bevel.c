@@ -2896,8 +2896,9 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			nwire++;
 			/* If edge beveling, exclude wire edges from edges array.
 			 * Mark this edge as "chosen" so loop below won't choose it. */
-			 if (!bp->vertex_only)
+			if (!bp->vertex_only) {
 				BM_BEVEL_EDGE_TAG_ENABLE(bme);
+			}
 		}
 	}
 	if (!first_bme)

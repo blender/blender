@@ -211,8 +211,9 @@ bool gts_vertex_gaussian_curvature(WVertex *v, real *Kg)
 	}
 
 	WVertex::incoming_edge_iterator itE;
-	for (itE = v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++)
-		 area += (*itE)->GetaFace()->getArea();
+	for (itE = v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++) {
+		area += (*itE)->GetaFace()->getArea();
+	}
 
 	for (itE = v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++) {
 		WOEdge *e = (*itE)->getPrevOnFace();

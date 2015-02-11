@@ -682,14 +682,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	
 	func = RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Layout . Generates the UI layout for modifiers");
+	RNA_def_function_ui_description(func, "Generates the UI layout for modifiers");
 	parm = RNA_def_pointer(func, "data", "Modifier", "", "Modifier data");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "template_constraint", "uiTemplateConstraint");
-	RNA_def_function_ui_description(func, "Layout . Generates the UI layout for constraints");
+	RNA_def_function_ui_description(func, "Generates the UI layout for constraints");
 	parm = RNA_def_pointer(func, "data", "Constraint", "", "Constraint data");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");

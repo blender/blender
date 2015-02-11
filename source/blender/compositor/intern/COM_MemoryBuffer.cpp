@@ -187,11 +187,11 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
 		const int offset = (this->m_width * (y - this->m_rect.ymin) + x - this->m_rect.xmin) * this->m_num_channels;
-		 float *dst = &this->m_buffer[offset];
-		 const float *src = color;
-		 for (int i = 0; i < this->m_num_channels ; i++, dst++, src++) {
-			 *dst += *src;
-		 }
+		float *dst = &this->m_buffer[offset];
+		const float *src = color;
+		for (int i = 0; i < this->m_num_channels ; i++, dst++, src++) {
+			*dst += *src;
+		}
 	}
 }
 
