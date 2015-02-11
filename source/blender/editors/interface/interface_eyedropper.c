@@ -370,10 +370,11 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 	ot->poll = eyedropper_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 }
+
 /** \} */
 
 
@@ -641,12 +642,13 @@ void UI_OT_eyedropper_id(wmOperatorType *ot)
 	ot->poll = datadropper_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 }
 
 /** \} */
+
 
 /* -------------------------------------------------------------------- */
 /* Depth Dropper
@@ -696,7 +698,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 	/* fallback to the active camera's dof */
 	if (ddr->prop == NULL) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
-		if (rv3d->persp == RV3D_CAMOB) {
+		if (rv3d && rv3d->persp == RV3D_CAMOB) {
 			View3D *v3d = CTX_wm_view3d(C);
 			if (v3d->camera && v3d->camera->data && (((ID *)v3d->camera->data)->lib == NULL)) {
 				RNA_id_pointer_create(v3d->camera->data, &ddr->ptr);
@@ -946,7 +948,7 @@ void UI_OT_eyedropper_depth(wmOperatorType *ot)
 	ot->poll = depthdropper_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 }
