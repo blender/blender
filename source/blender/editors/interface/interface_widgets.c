@@ -1908,6 +1908,23 @@ static void widget_state_blend(char cp[3], const char cpstate[3], const float fa
 	}
 }
 
+/* put all widget colors on half alpha, use local storage */
+static void ui_widget_color_disabled(uiWidgetType *wt)
+{
+	static uiWidgetColors wcol_theme_s;
+
+	wcol_theme_s = *wt->wcol_theme;
+
+	wcol_theme_s.outline[3] *= 0.5;
+	wcol_theme_s.inner[3] *= 0.5;
+	wcol_theme_s.inner_sel[3] *= 0.5;
+	wcol_theme_s.item[3] *= 0.5;
+	wcol_theme_s.text[3] *= 0.5;
+	wcol_theme_s.text_sel[3] *= 0.5;
+
+	wt->wcol_theme = &wcol_theme_s;
+}
+
 /* copy colors from theme, and set changes in it based on state */
 static void widget_state(uiWidgetType *wt, int state)
 {
@@ -1917,6 +1934,10 @@ static void widget_state(uiWidgetType *wt, int state)
 		/* Override default widget's colors. */
 		bTheme *btheme = UI_GetTheme();
 		wt->wcol_theme = &btheme->tui.wcol_list_item;
+
+		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+			ui_widget_color_disabled(wt);
+		}
 	}
 
 	wt->wcol = *(wt->wcol_theme);
@@ -3563,23 +3584,6 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	return roundbox;
 }
 
-/* put all widget colors on half alpha, use local storage */
-static void ui_widget_color_disabled(uiWidgetType *wt)
-{
-	static uiWidgetColors wcol_theme_s;
-	
-	wcol_theme_s = *wt->wcol_theme;
-	
-	wcol_theme_s.outline[3] *= 0.5;
-	wcol_theme_s.inner[3] *= 0.5;
-	wcol_theme_s.inner_sel[3] *= 0.5;
-	wcol_theme_s.item[3] *= 0.5;
-	wcol_theme_s.text[3] *= 0.5;
-	wcol_theme_s.text_sel[3] *= 0.5;
-
-	wt->wcol_theme = &wcol_theme_s;
-}
-
 /* conversion from old to new buttons, so still messy */
 void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
@@ -3819,13 +3823,13 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		
 		if (disabled)
 			ui_widget_color_disabled(wt);
-		
+
 		wt->state(wt, state);
 		if (wt->custom)
 			wt->custom(but, &wt->wcol, rect, state, roundboxalign);
 		else if (wt->draw)
 			wt->draw(&wt->wcol, rect, state, roundboxalign);
-		
+
 		if (disabled)
 			glEnable(GL_BLEND);
 		wt->text(fstyle, &wt->wcol, but, rect);
