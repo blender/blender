@@ -3764,21 +3764,23 @@ Sequence *BKE_sequencer_foreground_frame_get(Scene *scene, int frame)
 }
 
 /* return 0 if there werent enough space */
-bool BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene)
+bool BKE_sequence_base_shuffle_ex(ListBase *seqbasep, Sequence *test, Scene *evil_scene, int channel_delta)
 {
-	int orig_machine = test->machine;
-	test->machine++;
+	const int orig_machine = test->machine;
+	BLI_assert(ELEM(channel_delta, -1, 1));
+
+	test->machine += channel_delta;
 	BKE_sequence_calc(evil_scene, test);
-	while (BKE_sequence_test_overlap(seqbasep, test) ) {
-		if (test->machine >= MAXSEQ) {
+	while (BKE_sequence_test_overlap(seqbasep, test)) {
+		if ((channel_delta > 0) ? (test->machine >= MAXSEQ) : (test->machine <= 1)) {
 			break;
 		}
-		test->machine++;
+
+		test->machine += channel_delta;
 		BKE_sequence_calc(evil_scene, test); // XXX - I don't think this is needed since were only moving vertically, Campbell.
 	}
 
-	
-	if (test->machine >= MAXSEQ) {
+	if ((test->machine < 1) || (test->machine > MAXSEQ)) {
 		/* Blender 2.4x would remove the strip.
 		 * nicer to move it to the end */
 
@@ -3800,6 +3802,11 @@ bool BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_s
 	else {
 		return true;
 	}
+}
+
+bool BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene)
+{
+	return BKE_sequence_base_shuffle_ex(seqbasep, test, evil_scene, 1);
 }
 
 static int shuffle_seq_time_offset_test(ListBase *seqbasep, char dir)

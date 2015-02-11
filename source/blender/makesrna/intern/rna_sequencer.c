@@ -290,11 +290,14 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 	Scene *scene = (Scene *)ptr->id.data;
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	ListBase *seqbase = BKE_sequence_seqbase(&ed->seqbase, seq);
-
-	seq->machine = value;
 	
+	/* check channel increment or decrement */
+	const int channel_delta = (value >= seq->machine) ? 1 : -1;
+	seq->machine = value;
+
 	if (BKE_sequence_test_overlap(seqbase, seq)) {
-		BKE_sequence_base_shuffle(seqbase, seq, scene);  /* XXX - BROKEN!, uses context seqbasep */
+		/* XXX - BROKEN!, uses context seqbasep */
+		BKE_sequence_base_shuffle_ex(seqbase, seq, scene, channel_delta);
 	}
 	BKE_sequencer_sort(scene);
 }

@@ -314,7 +314,11 @@ struct Sequence *BKE_sequence_metastrip(ListBase *seqbase /* = ed->seqbase */, s
 
 void BKE_sequencer_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 void BKE_sequencer_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
-bool BKE_sequence_base_shuffle(struct ListBase *seqbasep, struct Sequence *test, struct Scene *evil_scene);
+bool BKE_sequence_base_shuffle_ex(
+        struct ListBase *seqbasep, struct Sequence *test, struct Scene *evil_scene,
+        int channel_delta);
+bool BKE_sequence_base_shuffle(
+        struct ListBase *seqbasep, struct Sequence *test, struct Scene *evil_scene);
 bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, struct Scene *evil_scene);
 bool BKE_sequence_base_isolated_sel_check(struct ListBase *seqbase);
 void BKE_sequencer_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, bool for_render);
