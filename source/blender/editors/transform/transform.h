@@ -200,9 +200,19 @@ typedef struct TransDataNla {
 struct LinkNode;
 struct GHash;
 
-typedef struct TransDataEdgeSlideVert {
-	struct BMVert *v_a, *v_b;
+/* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */
+typedef struct TransDataGenericSlideVert {
 	struct BMVert *v;
+	struct LinkNode **cd_loop_groups;
+} TransDataGenericSlideVert;
+
+typedef struct TransDataEdgeSlideVert {
+	/* TransDataGenericSlideVert */
+	struct BMVert *v;
+	struct LinkNode **cd_loop_groups;
+	/* end generic */
+
+	struct BMVert *v_a, *v_b;
 	float v_co_orig[3];
 
 	float edge_len;
@@ -220,6 +230,13 @@ typedef struct SlideOrigData {
 	bool use_origfaces;
 	struct GHash    *origfaces;
 	struct BMesh *bm_origfaces;
+
+	struct MemArena *arena;
+	/* number of math BMLoop layers */
+	int  layer_math_map_num;
+	/* array size of 'layer_math_map_num'
+	 * maps TransDataVertSlideVert.cd_group index to absolute CustomData layer index */
+	int *layer_math_map;
 } SlideOrigData;
 
 typedef struct EdgeSlideData {
@@ -241,7 +258,11 @@ typedef struct EdgeSlideData {
 
 
 typedef struct TransDataVertSlideVert {
+	/* TransDataGenericSlideVert */
 	BMVert *v;
+	struct LinkNode **cd_loop_groups;
+	/* end generic */
+
 	float   co_orig_3d[3];
 	float   co_orig_2d[2];
 	float (*co_link_orig_3d)[3];

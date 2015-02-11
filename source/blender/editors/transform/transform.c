@@ -50,6 +50,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
+#include "BLI_memarena.h"
 
 #include "BKE_nla.h"
 #include "BKE_editmesh_bvh.h"
@@ -5132,7 +5133,8 @@ static void slide_origdata_init_flag(
 	if ((t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) &&
 	    /* don't do this at all for non-basis shape keys, too easy to
 	     * accidentally break uv maps or vertex colors then */
-	    (bm->shapenr <= 1))
+	    (bm->shapenr <= 1) &&
+	    CustomData_has_math(&bm->ldata))
 	{
 		sod->use_origfaces = true;
 	}
@@ -5155,25 +5157,88 @@ static void slide_origdata_init_data(
 	}
 }
 
-static void slide_origdata_create_date(
+static void slide_origdata_create_data(
         TransInfo *t, SlideOrigData *sod,
-        BMVert **v_pt, unsigned int v_stride, unsigned int v_num)
+        TransDataGenericSlideVert *sv, unsigned int v_stride, unsigned int v_num)
 {
 	if (sod->use_origfaces) {
 		BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 		BMesh *bm = em->bm;
-
 		unsigned int i;
-		for (i = 0; i < v_num; i++, v_pt = (void *)(((char *)v_pt) + v_stride)) {
+
+		const int *layer_math_map;
+		int layer_index_dst;
+		int layer_groups_array_size;
+		int j;
+
+		/* over alloc, only 'math' layers are indexed */
+		sod->layer_math_map = MEM_mallocN(bm->ldata.totlayer * sizeof(int), __func__);
+		layer_index_dst = 0;
+		for (j = 0; j < bm->ldata.totlayer; j++) {
+			if (CustomData_layer_has_math(&bm->ldata, j)) {
+				sod->layer_math_map[layer_index_dst++] = j;
+			}
+		}
+		BLI_assert(layer_index_dst != 0);
+		layer_math_map = sod->layer_math_map;
+		layer_groups_array_size = layer_index_dst * sizeof(void *);
+		sod->layer_math_map_num = layer_index_dst;
+
+		sod->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
+		for (i = 0; i < v_num; i++, sv = (void *)(((char *)sv) + v_stride)) {
 			BMIter fiter;
 			BMFace *f;
-			BMVert *v = *v_pt;
 
-			BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
+			/* copy face data */
+			BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
 				if (!BLI_ghash_haskey(sod->origfaces, f)) {
 					BMFace *f_copy = BM_face_copy(sod->bm_origfaces, bm, f, true, true);
 					BLI_ghash_insert(sod->origfaces, f, f_copy);
 				}
+			}
+
+			/* store cd_loop_groups */
+			sv->cd_loop_groups = BLI_memarena_alloc(sod->arena, layer_groups_array_size);
+			for (j = 0; j < layer_index_dst; j++) {
+				const int layer_nr = layer_math_map[j];
+				sv->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(bm, sv->v, layer_nr, sod->arena);
+			}
+		}
+	}
+}
+
+static void slide_origdata_interp_data(
+        TransInfo *t, SlideOrigData *sod,
+        TransDataGenericSlideVert *sv, unsigned int v_stride, unsigned int v_num,
+        bool is_final)
+{
+	if (sod->use_origfaces) {
+		BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
+		unsigned int i;
+
+		const int *layer_math_map = sod->layer_math_map;
+
+		for (i = 0; i < v_num; i++, sv = (void *)(((char *)sv) + v_stride)) {
+			BMIter fiter;
+			BMLoop *l;
+			int j;
+
+			BM_ITER_ELEM (l, &fiter, sv->v, BM_LOOPS_OF_VERT) {
+				BMFace *f_copy;  /* the copy of 'f' */
+
+				f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
+
+				/* only loop data, no vertex data since that contains shape keys,
+				 * and we do not want to mess up other shape keys */
+				BM_loop_interp_from_face(em->bm, l, f_copy, false, is_final);
+
+				/* make sure face-attributes are correct (e.g. MTexPoly) */
+				BM_elem_attrs_copy(sod->bm_origfaces, em->bm, f_copy, l->f);
+			}
+
+			for (j = 0; j < sod->layer_math_map_num; j++) {
+				 BM_vert_loop_groups_data_layer_merge(em->bm, sv->cd_loop_groups[j], layer_math_map[j]);
 			}
 		}
 	}
@@ -5192,6 +5257,13 @@ static void slide_origdata_free_date(
 			BLI_ghash_free(sod->origfaces, NULL, NULL);
 			sod->origfaces = NULL;
 		}
+
+		if (sod->arena) {
+			BLI_memarena_free(sod->arena);
+			sod->arena = NULL;
+		}
+
+		MEM_SAFE_FREE(sod->layer_math_map);
 	}
 }
 
@@ -5847,7 +5919,7 @@ static bool createEdgeSlideVerts(TransInfo *t)
 
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 	slide_origdata_init_data(t, &sld->orig_data);
-	slide_origdata_create_date(t, &sld->orig_data, &sld->sv->v, sizeof(*sld->sv), sld->totsv);
+	slide_origdata_create_data(t, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
 	/*create copies of faces for customdata projection*/
 	sv_array = sld->sv;
@@ -5896,147 +5968,12 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 {
 	EdgeSlideData *sld = t->customData;
 	SlideOrigData *sod = &sld->orig_data;
-	TransDataEdgeSlideVert *sv;
-	BMEditMesh *em = sld->em;
-	int i;
 
 	if (sod->use_origfaces == false) {
 		return;
 	}
 
-	for (i = 0, sv = sld->sv; i < sld->totsv; sv++, i++) {
-		BMIter fiter;
-		BMLoop *l;
-
-		BM_ITER_ELEM (l, &fiter, sv->v, BM_LOOPS_OF_VERT) {
-			BMFace *f_copy;      /* the copy of 'f' */
-			BMFace *f_copy_flip; /* the copy of 'f' or detect if we need to flip to the shorter side. */
-			
-			f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
-			
-			/* project onto copied projection face */
-			f_copy_flip = f_copy;
-
-			if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
-				/* the loop is attached of the selected edges that are sliding */
-				BMLoop *l_ed_sel = l;
-
-				if (!BM_elem_flag_test(l->e, BM_ELEM_SELECT))
-					l_ed_sel = l_ed_sel->prev;
-
-				if (sld->perc < 0.0f) {
-					if (BM_vert_in_face(sv->v_b, l_ed_sel->radial_next->f)) {
-						f_copy_flip = BLI_ghash_lookup(sod->origfaces, l_ed_sel->radial_next->f);
-					}
-				}
-				else if (sld->perc > 0.0f) {
-					if (BM_vert_in_face(sv->v_a, l_ed_sel->radial_next->f)) {
-						f_copy_flip = BLI_ghash_lookup(sod->origfaces, l_ed_sel->radial_next->f);
-					}
-				}
-
-				BLI_assert(f_copy_flip != NULL);
-				if (!f_copy_flip) {
-					continue;  /* shouldn't happen, but protection */
-				}
-			}
-			else {
-				/* the loop is attached to only one vertex and not a selected edge,
-				 * this means we have to find a selected edges face going in the right direction
-				 * to copy from else we get bad distortion see: [#31080] */
-				BMIter eiter;
-				BMEdge *e_sel;
-
-				BLI_assert(l->v == sv->v);
-				BM_ITER_ELEM (e_sel, &eiter, sv->v, BM_EDGES_OF_VERT) {
-					if (BM_elem_flag_test(e_sel, BM_ELEM_SELECT)) {
-						break;
-					}
-				}
-
-				if (e_sel) {
-					/* warning if the UV's are not contiguous, this will copy from the _wrong_ UVs
-					 * in fact whenever the face being copied is not 'f_copy' this can happen,
-					 * we could be a lot smarter about this but would need to deal with every UV channel or
-					 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */
-
-					/*
-					 *        +    +----------------+
-					 *         \   |                |
-					 * (this) l_adj|                |
-					 *           \ |                |
-					 *            \|      e_sel     |
-					 *  +----------+----------------+  <- the edge we are sliding.
-					 *            /|sv->v           |
-					 *           / |                |
-					 *   (or) l_adj|                |
-					 *         /   |                |
-					 *        +    +----------------+
-					 * (above)
-					 * 'other connected loops', attached to sv->v slide faces.
-					 *
-					 * NOTE: The faces connected to the edge may not have contiguous UV's
-					 *       so step around the loops to find l_adj.
-					 *       However if the 'other loops' are not cotiguous it will still give problems.
-					 *
-					 *       A full solution to this would have to store
-					 *       per-customdata-layer map of which loops are contiguous
-					 *       and take this into account when interpolating.
-					 *
-					 * NOTE: If l_adj's edge isnt manifold then use then
-					 *       interpolate the loop from its own face.
-					 *       Can happen when 'other connected loops' are disconnected from the face-fan.
-					 */
-
-					BMLoop *l_adj = NULL;
-					if (sld->perc < 0.0f) {
-						if (BM_vert_in_face(sv->v_b, e_sel->l->f)) {
-							l_adj = e_sel->l;
-						}
-						else if (BM_vert_in_face(sv->v_b, e_sel->l->radial_next->f)) {
-							l_adj = e_sel->l->radial_next;
-						}
-					}
-					else if (sld->perc > 0.0f) {
-						if (BM_vert_in_face(sv->v_a, e_sel->l->f)) {
-							l_adj = e_sel->l;
-						}
-						else if (BM_vert_in_face(sv->v_a, e_sel->l->radial_next->f)) {
-							l_adj = e_sel->l->radial_next;
-						}
-					}
-
-					/* step across to the face */
-					if (l_adj) {
-						l_adj = BM_loop_other_edge_loop(l_adj, sv->v);
-						if (!BM_edge_is_boundary(l_adj->e)) {
-							l_adj = l_adj->radial_next;
-						}
-						else {
-							/* disconnected face-fan, fallback to self */
-							l_adj = l;
-						}
-
-						f_copy_flip = BLI_ghash_lookup(sod->origfaces, l_adj->f);
-					}
-				}
-			}
-
-			/* only loop data, no vertex data since that contains shape keys,
-			 * and we do not want to mess up other shape keys */
-			BM_loop_interp_from_face(em->bm, l, f_copy_flip, false, false);
-
-			if (is_final) {
-				BM_loop_interp_multires(em->bm, l, f_copy_flip);
-				if (f_copy != f_copy_flip) {
-					BM_loop_interp_multires(em->bm, l, f_copy);
-				}
-			}
-			
-			/* make sure face-attributes are correct (e.g. MTexPoly) */
-			BM_elem_attrs_copy(sod->bm_origfaces, em->bm, f_copy, l->f);
-		}
-	}
+	slide_origdata_interp_data(t, sod, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv, is_final);
 }
 
 void freeEdgeSlideTempFaces(EdgeSlideData *sld)
@@ -6544,7 +6481,7 @@ static bool createVertSlideVerts(TransInfo *t)
 
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 	slide_origdata_init_data(t, &sld->orig_data);
-	slide_origdata_create_date(t, &sld->orig_data, &sld->sv->v, sizeof(*sld->sv), sld->totsv);
+	slide_origdata_create_data(t, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
 	sld->em = em;
 
@@ -6564,42 +6501,12 @@ void projectVertSlideData(TransInfo *t, bool is_final)
 {
 	VertSlideData *sld = t->customData;
 	SlideOrigData *sod = &sld->orig_data;
-	TransDataVertSlideVert *sv;
-	BMEditMesh *em = sld->em;
-	int i;
 
 	if (sod->use_origfaces == false) {
 		return;
 	}
 
-	for (i = 0, sv = sld->sv; i < sld->totsv; sv++, i++) {
-		BMIter fiter;
-		BMLoop *l;
-
-		BM_ITER_ELEM (l, &fiter, sv->v, BM_LOOPS_OF_VERT) {
-			BMFace *f_copy;      /* the copy of 'f' */
-			BMFace *f_copy_flip; /* the copy of 'f' or detect if we need to flip to the shorter side. */
-
-			f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
-
-			/* project onto copied projection face */
-			f_copy_flip = f_copy;
-
-			/* only loop data, no vertex data since that contains shape keys,
-			 * and we do not want to mess up other shape keys */
-			BM_loop_interp_from_face(em->bm, l, f_copy_flip, false, false);
-
-			if (is_final) {
-				BM_loop_interp_multires(em->bm, l, f_copy_flip);
-				if (f_copy != f_copy_flip) {
-					BM_loop_interp_multires(em->bm, l, f_copy);
-				}
-			}
-
-			/* make sure face-attributes are correct (e.g. MTexPoly) */
-			BM_elem_attrs_copy(sod->bm_origfaces, em->bm, f_copy, l->f);
-		}
-	}
+	slide_origdata_interp_data(t, sod, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv, is_final);
 }
 
 void freeVertSlideTempFaces(VertSlideData *sld)

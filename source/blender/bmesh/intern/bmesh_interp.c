@@ -40,6 +40,8 @@
 
 #include "BKE_customdata.h"
 #include "BKE_multires.h"
+#include "BLI_memarena.h"
+#include "BLI_linklist.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -893,3 +895,179 @@ void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float
 	float *f = CustomData_bmesh_get(cd, ((BMHeader *)element)->data, type);
 	if (f) *f = val;
 }
+
+/** \name Loop interpolation functions: BM_vert_loop_groups_data_layer_***
+ *
+ * Handling loop custom-data such as UV's, while keeping contiguous fans is rather tedious.
+ * Especially when a verts loops can have multiple CustomData layers,
+ * and each layer can have multiple (different) contiguous fans.
+ * Said differently, a single vertices loops may span multiple UV islands.
+ *
+ * These functions snapshot vertices loops, storing each contiguous fan in its own group.
+ * The caller can manipulate the loops, then re-combine the CustomData values.
+ *
+ * While these functions don't explicitly handle multiple layers at once,
+ * the caller can simply store its own list.
+ *
+ * \note Currently they are averaged back together (weighted by loop angle)
+ * but we could copy add other methods to re-combine CustomData-Loop-Fans.
+ *
+ * \{ */
+
+struct LoopWalkCtx {
+	/* same for all groups */
+	int type;
+	int cd_layer_offset;
+	MemArena *arena;
+
+	/* --- Per loop fan vars --- */
+
+	/* reference for this contiguous fan */
+	const void *data_ref;
+	int data_len;
+	/* both arrays the size of the 'BM_vert_face_count(v)'
+	 * each contiguous fan gets a slide of these arrays */
+	void **data_array;
+	float *weight_array;
+	/* accumulate 'LoopGroupCD.weight' to make unit length */
+	float weight_accum;
+};
+
+/* Store vars to pass into 'CustomData_bmesh_interp' */
+struct LoopGroupCD {
+	/* direct customdata pointer array */
+	void **data;
+	/* weights (aligned with 'data') */
+	float *data_weights;
+	/* number of loops in the fan */
+	int data_len;
+};
+
+static void bm_loop_walk_add(struct LoopWalkCtx *lwc, BMLoop *l)
+{
+	const float w = BM_loop_calc_face_angle(l);
+	BM_elem_flag_enable(l, BM_ELEM_INTERNAL_TAG);
+	lwc->data_array[lwc->data_len] = BM_ELEM_CD_GET_VOID_P(l, lwc->cd_layer_offset);
+	lwc->weight_array[lwc->data_len] = w;
+	lwc->weight_accum += w;
+
+	lwc->data_len += 1;
+}
+
+/**
+ * called recursively, keep stack-usage minimal.
+ *
+ * \note called for fan matching so we're pretty much safe not to break the stack
+ */
+static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
+{
+	BLI_assert(CustomData_data_equals(lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)));
+	BLI_assert(BM_elem_flag_test(l_walk, BM_ELEM_INTERNAL_TAG) == false);
+
+	bm_loop_walk_add(lwc, l_walk);
+
+#define WALK_LOOP(l_test) \
+{ \
+	BMLoop *l_other = l_test; \
+	if (l_other->v != l_walk->v) { \
+		l_other = l_other->next; \
+	} \
+	BLI_assert(l_other->v == l_walk->v); \
+	if (!BM_elem_flag_test(l_other, BM_ELEM_INTERNAL_TAG)) { \
+		if (CustomData_data_equals(lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_other, lwc->cd_layer_offset))) { \
+			bm_loop_walk_data(lwc, l_other); \
+		} \
+	} \
+} (void)0
+
+	if (l_walk->radial_next != l_walk) {
+		WALK_LOOP(l_walk->radial_next);
+	}
+
+	if (l_walk->prev->radial_next != l_walk->prev) {
+		WALK_LOOP(l_walk->prev->radial_next);
+	}
+}
+
+LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_n, MemArena *arena)
+{
+	struct LoopWalkCtx lwc;
+	LinkNode *groups = NULL;
+	BMLoop *l;
+	BMIter liter;
+	int loop_num;
+
+
+	lwc.type = bm->ldata.layers[layer_n].type;
+	lwc.cd_layer_offset = bm->ldata.layers[layer_n].offset;
+	lwc.arena = arena;
+
+	loop_num = 0;
+	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+		BM_elem_flag_disable(l, BM_ELEM_INTERNAL_TAG);
+		loop_num++;
+	}
+
+	lwc.data_len = 0;
+	lwc.data_array = BLI_memarena_alloc(lwc.arena, sizeof(void *) * loop_num);
+	lwc.weight_array = BLI_memarena_alloc(lwc.arena, sizeof(float) * loop_num);
+
+	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+		if (!BM_elem_flag_test(l, BM_ELEM_INTERNAL_TAG)) {
+			struct LoopGroupCD *lf = BLI_memarena_alloc(lwc.arena, sizeof(*lf));
+			int len_prev = lwc.data_len;
+
+			lwc.data_ref = BM_ELEM_CD_GET_VOID_P(l, lwc.cd_layer_offset);
+
+			/* assign len-last */
+			lf->data         = &lwc.data_array[lwc.data_len];
+			lf->data_weights = &lwc.weight_array[lwc.data_len];
+			lwc.weight_accum = 0.0f;
+
+			/* new group */
+			bm_loop_walk_data(&lwc, l);
+			lf->data_len = lwc.data_len - len_prev;
+
+			if (LIKELY(lwc.weight_accum != 0.0f)) {
+				mul_vn_fl(lf->data_weights, lf->data_len, 1.0f / lwc.weight_accum);
+			}
+			else {
+				fill_vn_fl(lf->data_weights, lf->data_len, 1.0f / (float)lf->data_len);
+			}
+
+			BLI_linklist_prepend_arena(&groups, lf, lwc.arena);
+		}
+	}
+
+	BLI_assert(lwc.data_len == loop_num);
+
+	return groups;
+}
+
+static void bm_vert_loop_groups_data_layer_merge__single(BMesh *bm, void *lf_p, void *data, int type)
+{
+	struct LoopGroupCD *lf = lf_p;
+	int i;
+
+	CustomData_bmesh_interp(&bm->ldata, lf->data, lf->data_weights, NULL, lf->data_len, data);
+
+	for (i = 0; i < lf->data_len; i++) {
+		CustomData_copy_elements(type, data, lf->data[i], 1);
+	}
+}
+
+/**
+ * Take existing custom data and merge each fan's data.
+ */
+void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, int layer_n)
+{
+	int type = bm->ldata.layers[layer_n].type;
+	int size = CustomData_sizeof(type);
+	void *data = alloca(size);
+
+	do {
+		bm_vert_loop_groups_data_layer_merge__single(bm, groups->link, data, type);
+	} while ((groups = groups->next));
+}
+
+/** \} */
