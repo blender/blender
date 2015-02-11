@@ -573,6 +573,52 @@ void FILE_OT_bookmark_delete(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ScrArea *sa = CTX_wm_area(C);
+	struct FSMenu *fsmenu = ED_fsmenu_get();
+	struct FSMenuEntry *fsme_next, *fsme = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS);
+	int index;
+	bool changed = false;
+
+	for (index = 0; fsme; fsme = fsme_next) {
+		fsme_next = fsme->next;
+
+		if (!BLI_is_dir(fsme->path)) {
+			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
+			changed = true;
+		}
+		else {
+			index++;
+		}
+	}
+
+	if (changed) {
+		char name[FILE_MAX];
+
+		BLI_make_file_string("/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+		fsmenu_write_file(fsmenu, name);
+		ED_area_tag_refresh(sa);
+		ED_area_tag_redraw(sa);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_bookmark_cleanup(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Cleanup Bookmarks";
+	ot->description = "Delete all invalid bookmarks";
+	ot->idname = "FILE_OT_bookmark_cleanup";
+
+	/* api callbacks */
+	ot->exec = bookmark_cleanup_exec;
+	ot->poll = ED_operator_file_active;
+
+	/* properties */
+}
+
 enum {
 	FILE_BOOKMARK_MOVE_TOP = -2,
 	FILE_BOOKMARK_MOVE_UP = -1,

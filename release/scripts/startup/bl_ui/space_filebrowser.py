@@ -98,7 +98,12 @@ class FILEBROWSER_UL_dir(bpy.types.UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
-            row.prop(direntry, "name", text="", emboss=False, icon=icon)
+            row.enabled = direntry.is_valid
+            # Non-editable entries would show grayed-out, which is bad in this specific case, so switch to mere label.
+            if direntry.is_property_readonly('name'):
+                row.label(text=direntry.name, icon=icon)
+            else:
+                row.prop(direntry, "name", text="", emboss=False, icon=icon)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
@@ -146,7 +151,9 @@ class FILEBROWSER_MT_bookmarks_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
+        layout.operator("file.bookmark_cleanup", icon='X', text="Cleanup")
 
+        layout.separator()
         layout.operator("file.bookmark_move", icon='TRIA_UP_BAR', text="Move To Top").direction = 'TOP'
         layout.operator("file.bookmark_move", icon='TRIA_DOWN_BAR', text="Move To Bottom").direction = 'BOTTOM'
 
