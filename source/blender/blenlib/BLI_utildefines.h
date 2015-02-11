@@ -588,6 +588,13 @@ extern "C" {
 /* reusable ELEM macro */
 #define UNUSED_VARS(...) VA_NARGS_CALL_OVERLOAD(_VA_UNUSED_VARS_, __VA_ARGS__)
 
+/* for debug-only variables */
+#ifndef NDEBUG
+#  define UNUSED_VARS_DEBUG(...)
+#else
+#  define UNUSED_VARS_DEBUG UNUSED_VARS
+#endif
+
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
 #  define BLI_INLINE static __forceinline
