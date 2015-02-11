@@ -4343,6 +4343,15 @@ static void do_projectpaint_mask_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 	}
 }
 
+static void image_paint_partial_redraw_expand(ImagePaintPartialRedraw *cell,
+											  const ProjPixel *projPixel)
+{
+	cell->x1 = min_ii(cell->x1, (int)projPixel->x_px);
+	cell->y1 = min_ii(cell->y1, (int)projPixel->y_px);
+
+	cell->x2 = max_ii(cell->x2, (int)projPixel->x_px + 1);
+	cell->y2 = max_ii(cell->y2, (int)projPixel->y_px + 1);
+}
 
 /* run this for single and multithreaded painting */
 static void *do_projectpaint_thread(void *ph_v)
@@ -4496,11 +4505,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					}
 
 					last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
-					last_partial_redraw_cell->x1 = min_ii(last_partial_redraw_cell->x1, (int)projPixel->x_px);
-					last_partial_redraw_cell->y1 = min_ii(last_partial_redraw_cell->y1, (int)projPixel->y_px);
-
-					last_partial_redraw_cell->x2 = max_ii(last_partial_redraw_cell->x2, (int)projPixel->x_px + 1);
-					last_partial_redraw_cell->y2 = max_ii(last_partial_redraw_cell->y2, (int)projPixel->y_px + 1);
+					image_paint_partial_redraw_expand(last_partial_redraw_cell, projPixel);
 				}
 				else {
 					if (is_floatbuf) {
@@ -4634,11 +4639,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							*projPixel->valid = true;
 
 							last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
-							last_partial_redraw_cell->x1 = min_ii(last_partial_redraw_cell->x1, (int)projPixel->x_px);
-							last_partial_redraw_cell->y1 = min_ii(last_partial_redraw_cell->y1, (int)projPixel->y_px);
-
-							last_partial_redraw_cell->x2 = max_ii(last_partial_redraw_cell->x2, (int)projPixel->x_px + 1);
-							last_partial_redraw_cell->y2 = max_ii(last_partial_redraw_cell->y2, (int)projPixel->y_px + 1);
+							image_paint_partial_redraw_expand(last_partial_redraw_cell, projPixel);
 
 							/* texrgb is not used for clone, smear or soften */
 							switch (tool) {
