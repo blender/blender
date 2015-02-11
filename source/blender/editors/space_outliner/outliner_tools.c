@@ -865,15 +865,26 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 
 /* **************************************** */
 
+typedef enum eOutliner_PropGroupOps {
+	OL_GROUPOP_UNLINK = 1,
+	OL_GROUPOP_LOCAL,
+	OL_GROUPOP_LINK,
+	OL_GROUPOP_INSTANCE,
+	OL_GROUPOP_TOGVIS,
+	OL_GROUPOP_TOGSEL,
+	OL_GROUPOP_TOGREN,
+	OL_GROUPOP_RENAME,
+} eOutliner_PropGroupOps;
+
 static EnumPropertyItem prop_group_op_types[] = {
-	{0, "UNLINK",   0, "Unlink Group", ""},
-	{1, "LOCAL",    0, "Make Local Group", ""},
-	{2, "LINK",     0, "Link Group Objects to Scene", ""},
-	{3, "INSTANCE", 0, "Instance Groups in Scene", ""},
-	{4, "TOGVIS",   0, "Toggle Visible Group", ""},
-	{5, "TOGSEL",   0, "Toggle Selectable", ""},
-	{6, "TOGREN",   0, "Toggle Renderable", ""},
-	{7, "RENAME",   0, "Rename", ""},
+	{OL_GROUPOP_UNLINK, "UNLINK",     0, "Unlink Group", ""},
+	{OL_GROUPOP_LOCAL, "LOCAL",       0, "Make Local Group", ""},
+	{OL_GROUPOP_LINK, "LINK",         0, "Link Group Objects to Scene", ""},
+	{OL_GROUPOP_INSTANCE, "INSTANCE", 0, "Instance Groups in Scene", ""},
+	{OL_GROUPOP_TOGVIS, "TOGVIS",     0, "Toggle Visible Group", ""},
+	{OL_GROUPOP_TOGSEL, "TOGSEL",     0, "Toggle Selectable", ""},
+	{OL_GROUPOP_TOGREN, "TOGREN",     0, "Toggle Renderable", ""},
+	{OL_GROUPOP_RENAME, "RENAME",     0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -890,17 +901,32 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	event = RNA_enum_get(op->ptr, "type");
 
 	switch (event) {
-		case 0: outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb); break;
-		case 1: outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb); break;
-		case 2: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb); break;
-		case 3: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_instance_cb); break;
-		case 4: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb); break;
-		case 5: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb); break;
-		case 6: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb); break;
-		case 7: outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb); break;
+		case OL_GROUPOP_UNLINK:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb);
+			break;
+		case OL_GROUPOP_LOCAL:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
+			break;
+		case OL_GROUPOP_LINK:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
+			break;
+		case OL_GROUPOP_INSTANCE:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_instance_cb);
+			break;
+		case OL_GROUPOP_TOGVIS:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb);
+			break;
+		case OL_GROUPOP_TOGSEL:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb);
+			break;
+		case OL_GROUPOP_TOGREN:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb);
+			break;
+		case OL_GROUPOP_RENAME:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
+			break;
 		default:
 			BLI_assert(0);
-			return OPERATOR_CANCELLED;
 	}
 	
 
