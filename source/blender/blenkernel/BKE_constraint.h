@@ -131,6 +131,7 @@ struct bConstraint *BKE_constraints_find_name(struct ListBase *list, const char 
 struct bConstraint *BKE_constraint_add_for_object(struct Object *ob, const char *name, short type);
 struct bConstraint *BKE_constraint_add_for_pose(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
 
+bool                BKE_constraint_remove_ex(ListBase *list, struct Object *ob, struct bConstraint *con, bool clear_dep);
 bool                BKE_constraint_remove(ListBase *list, struct bConstraint *con);
 
 /* Constraints + Proxies function prototypes */

@@ -43,12 +43,15 @@
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
+#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
@@ -69,6 +72,7 @@
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
+#include "UI_resources.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -500,13 +504,24 @@ static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te
 /* --------------------------------- */
 
 typedef enum eOutliner_PropDataOps {
-	OL_DOP_INVALID = 0,
-	OL_DOP_SELECT,
+	OL_DOP_SELECT = 1,
 	OL_DOP_DESELECT,
 	OL_DOP_HIDE,
 	OL_DOP_UNHIDE,
 	OL_DOP_SELECT_LINKED,
 } eOutliner_PropDataOps;
+
+typedef enum eOutliner_PropConstraintOps {
+	OL_CONSTRAINTOP_ENABLE = 1,
+	OL_CONSTRAINTOP_DISABLE,
+	OL_CONSTRAINTOP_DELETE
+} eOutliner_PropConstraintOps;
+
+typedef enum eOutliner_PropModifierOps {
+	OL_MODIFIER_OP_TOGVIS = 1,
+	OL_MODIFIER_OP_TOGREN,
+	OL_MODIFIER_OP_DELETE
+} eOutliner_PropModifierOps;
 
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
@@ -582,6 +597,68 @@ static void data_select_linked_cb(int event, TreeElement *te, TreeStoreElem *UNU
 	}
 }
 
+static void constraint_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *C_v)
+{
+	bContext *C = C_v;
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	bConstraint *constraint = (bConstraint *)te->directdata;
+	Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
+
+	if (event == OL_CONSTRAINTOP_ENABLE) {
+		constraint->flag &= ~CONSTRAINT_OFF;
+		ED_object_constraint_update(ob);
+		WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
+	}
+	else if (event == OL_CONSTRAINTOP_DISABLE) {
+		constraint->flag = CONSTRAINT_OFF;
+		ED_object_constraint_update(ob);
+		WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
+	}
+	else if (event == OL_CONSTRAINTOP_DELETE) {
+		ListBase *lb = NULL;
+
+		if (TREESTORE(te->parent->parent)->type == TSE_POSE_CHANNEL) {
+			lb = &((bPoseChannel *)te->parent->parent->directdata)->constraints;
+		}
+		else {
+			lb = &ob->constraints;
+		}
+
+		if (BKE_constraint_remove_ex(lb, ob, constraint, true)) {
+			/* there's no active constraint now, so make sure this is the case */
+			BKE_constraints_active_set(&ob->constraints, NULL);
+			ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
+			WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
+			te->store_elem->flag &= ~TSE_SELECTED;
+		}
+	}
+}
+
+static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *Carg)
+{
+	bContext *C = (bContext *)Carg;
+	Main *bmain = CTX_data_main(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	ModifierData *md = (ModifierData *)te->directdata;
+	Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
+
+	if (event == OL_MODIFIER_OP_TOGVIS) {
+		md->mode ^= eModifierMode_Realtime;
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+	}
+	else if (event == OL_MODIFIER_OP_TOGREN) {
+		md->mode ^= eModifierMode_Render;
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+	}
+	else if (event == OL_MODIFIER_OP_DELETE) {
+		ED_object_modifier_remove(NULL, bmain, ob, md);
+		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
+		te->store_elem->flag &= ~TSE_SELECTED;
+	}
+}
+
 static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb,
                                        void (*operation_cb)(int, TreeElement *, TreeStoreElem *, void *),
                                        void *arg)
@@ -648,8 +725,7 @@ static void object_delete_hierarchy_cb(
 /* **************************************** */
 
 enum {
-	OL_OP_ENDMARKER = 0,
-	OL_OP_SELECT,
+	OL_OP_SELECT = 1,
 	OL_OP_DESELECT,
 	OL_OP_SELECT_HIERARCHY,
 	OL_OP_DELETE,
@@ -671,7 +747,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 	{OL_OP_TOGSEL, "TOGSEL", 0, "Toggle Selectable", ""},
 	{OL_OP_TOGREN, "TOGREN", 0, "Toggle Renderable", ""},
 	{OL_OP_RENAME, "RENAME", 0, "Rename", ""},
-	{OL_OP_ENDMARKER, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int outliner_object_operation_exec(bContext *C, wmOperator *op)
@@ -1259,6 +1335,98 @@ void OUTLINER_OT_animdata_operation(wmOperatorType *ot)
 
 /* **************************************** */
 
+static EnumPropertyItem prop_constraint_op_types[] = {
+	{OL_CONSTRAINTOP_ENABLE, "ENABLE", ICON_RESTRICT_VIEW_OFF, "Enable", ""},
+	{OL_CONSTRAINTOP_DISABLE, "DISABLE", ICON_RESTRICT_VIEW_ON, "Disable", ""},
+	{OL_CONSTRAINTOP_DELETE, "DELETE", ICON_X, "Delete", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int outliner_constraint_operation_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
+	eOutliner_PropConstraintOps event;
+
+	event = RNA_enum_get(op->ptr, "type");
+	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+
+	outliner_do_data_operation(soops, datalevel, event, &soops->tree, constraint_cb, C);
+
+	if (event == OL_CONSTRAINTOP_DELETE) {
+		outliner_cleanup_tree(soops);
+	}
+
+	ED_undo_push(C, "Constraint operation");
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_constraint_operation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Outliner Constraint Operation";
+	ot->idname = "OUTLINER_OT_constraint_operation";
+	ot->description = "Outliner ContextMenu Constraint Operation";
+
+	/* callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_constraint_operation_exec;
+	ot->poll = ED_operator_outliner_active;
+
+	ot->flag = 0;
+
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_constraint_op_types, 0, "Constraint Operation", "");
+}
+
+/* ******************** */
+
+static EnumPropertyItem prop_modifier_op_types[] = {
+	{OL_MODIFIER_OP_TOGVIS, "TOGVIS", ICON_RESTRICT_VIEW_OFF, "Toggle viewport use", ""},
+	{OL_MODIFIER_OP_TOGREN, "TOGREN", ICON_RESTRICT_RENDER_OFF, "Toggle render use", ""},
+	{OL_MODIFIER_OP_DELETE, "DELETE", ICON_X, "Delete", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int outliner_modifier_operation_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
+	eOutliner_PropModifierOps event;
+
+	event = RNA_enum_get(op->ptr, "type");
+	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+
+	outliner_do_data_operation(soops, datalevel, event, &soops->tree, modifier_cb, C);
+
+	if (event == OL_MODIFIER_OP_DELETE) {
+		outliner_cleanup_tree(soops);
+	}
+
+	ED_undo_push(C, "Modifier operation");
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Outliner Modifier Operation";
+	ot->idname = "OUTLINER_OT_modifier_operation";
+	ot->description = "Outliner ContextMenu Modifier Operation";
+
+	/* callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_modifier_operation_exec;
+	ot->poll = ED_operator_outliner_active;
+
+	ot->flag = 0;
+
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_modifier_op_types, 0, "Modifier Operation", "");
+}
+
+/* ******************** */
+
 static EnumPropertyItem prop_data_op_types[] = {
 	{OL_DOP_SELECT, "SELECT", 0, "Select", ""},
 	{OL_DOP_DESELECT, "DESELECT", 0, "Deselect", ""},
@@ -1280,9 +1448,6 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	
 	event = RNA_enum_get(op->ptr, "type");
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
-	
-	if (event <= OL_DOP_INVALID)
-		return OPERATOR_CANCELLED;
 	
 	switch (datalevel) {
 		case TSE_POSE_CHANNEL:
@@ -1405,6 +1570,12 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 				}
 				else if (ELEM(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS)) {
 					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/
+				}
+				else if (datalevel == TSE_CONSTRAINT) {
+					WM_operator_name_call(C, "OUTLINER_OT_constraint_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+				}
+				else if (datalevel == TSE_MODIFIER) {
+					WM_operator_name_call(C, "OUTLINER_OT_modifier_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
 				else {
 					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);

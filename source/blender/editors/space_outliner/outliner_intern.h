@@ -250,7 +250,8 @@ void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_data_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_animdata_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_action_set(struct wmOperatorType *ot);
-
+void OUTLINER_OT_constraint_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_modifier_operation(struct wmOperatorType *ot);
 /* ---------------------------------------------------------------- */
 
 /* outliner_ops.c */
