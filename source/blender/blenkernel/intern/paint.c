@@ -48,6 +48,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
@@ -395,6 +396,21 @@ bool BKE_paint_select_elem_test(Object *ob)
 	        BKE_paint_select_face_test(ob));
 }
 
+void BKE_paint_cavity_curve_preset(Paint *p, int preset)
+{
+	CurveMap *cm = NULL;
+
+	if (!p->cavity_curve)
+		p->cavity_curve = curvemapping_add(1, 0, 0, 1, 1);
+
+	cm = p->cavity_curve->cm;
+	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+
+	p->cavity_curve->preset = preset;
+	curvemap_reset(cm, &p->cavity_curve->clipr, p->cavity_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+	curvemapping_changed(p->cavity_curve, false);
+}
+
 void BKE_paint_init(UnifiedPaintSettings *ups, Paint *p, const char col[3])
 {
 	Brush *brush;
@@ -410,12 +426,15 @@ void BKE_paint_init(UnifiedPaintSettings *ups, Paint *p, const char col[3])
 	ups->last_stroke_valid = false;
 	zero_v3(ups->average_stroke_accum);
 	ups->average_stroke_counter = 0;
+	if (!p->cavity_curve)
+		BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
 }
 
 void BKE_paint_free(Paint *paint)
 {
 	id_us_min((ID *)paint->brush);
 	id_us_min((ID *)paint->palette);
+	curvemapping_free(paint->cavity_curve);
 }
 
 /* called when copying scene settings, so even if 'src' and 'tar' are the same
@@ -427,6 +446,7 @@ void BKE_paint_copy(Paint *src, Paint *tar)
 	tar->brush = src->brush;
 	id_us_plus((ID *)tar->brush);
 	id_us_plus((ID *)tar->palette);
+	tar->cavity_curve = curvemapping_copy(src->cavity_curve);
 }
 
 void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3])

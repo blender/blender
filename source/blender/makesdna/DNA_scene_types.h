@@ -47,6 +47,7 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_freestyle_types.h"
 
+struct CurveMapping;
 struct Object;
 struct Brush;
 struct World;
@@ -813,6 +814,7 @@ typedef struct TimeMarker {
 typedef struct Paint {
 	struct Brush *brush;
 	struct Palette *palette;
+	struct CurveMapping *cavity_curve; /* cavity curve */
 
 	/* WM Paint cursor */
 	void *paint_cursor;
@@ -850,8 +852,6 @@ typedef struct ImagePaintSettings {
 	struct Image *canvas;      /* canvas when the explicit system is used for painting */
 	float stencil_col[3];
 	float dither;              /* dither amount used when painting on byte images */
-	float cavity_mul;
-	float pad;
 } ImagePaintSettings;
 
 /* ------------------------------------------- */
@@ -1695,7 +1695,8 @@ enum {
 typedef enum {
 	PAINT_SHOW_BRUSH = (1 << 0),
 	PAINT_FAST_NAVIGATE = (1 << 1),
-	PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2)
+	PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
+	PAINT_USE_CAVITY_MASK = (1 << 3)
 } PaintFlags;
 
 /* Paint.symmetry_flags
@@ -1762,8 +1763,6 @@ typedef enum ImagePaintMode {
 #define IMAGEPAINT_PROJECT_LAYER_CLONE	(1 << 7)
 #define IMAGEPAINT_PROJECT_LAYER_STENCIL	(1 << 8)
 #define IMAGEPAINT_PROJECT_LAYER_STENCIL_INV	(1 << 9)
-#define IMAGEPAINT_PROJECT_CAVITY	(1 << 10)
-#define IMAGEPAINT_PROJECT_CAVITY_INV	(1 << 11)
 
 
 #define IMAGEPAINT_MISSING_UVS       (1 << 0)

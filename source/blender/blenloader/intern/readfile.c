@@ -5428,12 +5428,26 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 	}
 }
 
-static void direct_link_paint(FileData *fd, Paint **paint)
+static void direct_link_paint(FileData *fd, Paint *p)
+{
+	if (p->num_input_samples < 1)
+		p->num_input_samples = 1;
+
+	p->cavity_curve = newdataadr(fd, p->cavity_curve);
+	if (p->cavity_curve)
+		direct_link_curvemapping(fd, p->cavity_curve);
+	else
+		BKE_paint_cavity_curve_preset(p, CURVE_PRESET_SHARP);
+}
+
+static void direct_link_paint_helper(FileData *fd, Paint **paint)
 {
 	/* TODO. is this needed */
 	(*paint) = newdataadr(fd, (*paint));
-	if (*paint && (*paint)->num_input_samples < 1)
-		(*paint)->num_input_samples = 1;
+
+	if (*paint) {
+		direct_link_paint(fd, *paint);
+	}
 }
 
 static void direct_link_sequence_modifiers(FileData *fd, ListBase *lb)
@@ -5499,11 +5513,13 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
 	if (sce->toolsettings) {
-		direct_link_paint(fd, (Paint**)&sce->toolsettings->sculpt);
-		direct_link_paint(fd, (Paint**)&sce->toolsettings->vpaint);
-		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
-		direct_link_paint(fd, (Paint**)&sce->toolsettings->uvsculpt);
+		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->sculpt);
+		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->vpaint);
+		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->wpaint);
+		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->uvsculpt);
 		
+		direct_link_paint(fd, &sce->toolsettings->imapaint.paint);
+
 		sce->toolsettings->imapaint.paintcursor = NULL;
 		sce->toolsettings->particle.paintcursor = NULL;
 		sce->toolsettings->particle.scene = NULL;

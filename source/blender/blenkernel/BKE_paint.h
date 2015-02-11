@@ -113,6 +113,8 @@ void BKE_paint_init(struct UnifiedPaintSettings *ups, struct Paint *p, const cha
 void BKE_paint_free(struct Paint *p);
 void BKE_paint_copy(struct Paint *src, struct Paint *tar);
 
+void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
+
 struct Paint *BKE_paint_get_active(struct Scene *sce);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 PaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);

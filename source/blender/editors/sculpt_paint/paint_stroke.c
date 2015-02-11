@@ -651,7 +651,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
 	UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
-	Brush *br = stroke->brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+	Paint *p = BKE_paint_get_active_from_context(C);
+	Brush *br = stroke->brush = BKE_paint_brush(p);
 	float zoomx, zoomy;
 
 	view3d_set_viewcontext(C, &stroke->vc);
@@ -683,10 +684,11 @@ PaintStroke *paint_stroke_new(bContext *C,
 	zero_v3(ups->average_stroke_accum);
 	ups->average_stroke_counter = 0;
 	
-
 	/* initialize here to avoid initialization conflict with threaded strokes */
 	curvemapping_initialize(br->curve);
-	
+	if (p->flags & PAINT_USE_CAVITY_MASK)
+		curvemapping_initialize(p->cavity_curve);
+
 	BKE_paint_set_overlay_override(br->overlay_flags);
 
 	return stroke;
