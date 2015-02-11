@@ -379,7 +379,10 @@ static bool bake_object_check(Object *ob, ReportList *reports)
 
 			if (node) {
 				if (BKE_node_is_connected_to_output(ntree, node)) {
-					BKE_reportf(reports, RPT_ERROR,
+					/* we don't return false since this may be a false positive
+					 * this can't be RPT_ERROR though, otherwise it prevents
+					 * multiple highpoly objects to be baked at once */
+					BKE_reportf(reports, RPT_INFO,
 					            "Circular dependency for image \"%s\" from object \"%s\"",
 					            image->id.name + 2, ob->id.name + 2);
 				}
