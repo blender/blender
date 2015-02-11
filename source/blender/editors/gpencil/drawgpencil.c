@@ -1051,8 +1051,10 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 	/* turn on smooth lines (i.e. anti-aliasing) */
 	glEnable(GL_LINE_SMOOTH);
 	
-	glEnable(GL_POLYGON_SMOOTH);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	/* XXX: turn on some way of ensuring that the polygon edges get smoothed 
+	 *      GL_POLYGON_SMOOTH is nasty and shouldn't be used, as it ends up
+	 *      creating internal white rays due to the ways it accumulates stuff
+	 */
 	
 	/* turn on alpha-blending */
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1064,7 +1066,6 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 	/* turn off alpha blending, then smooth lines */
 	glDisable(GL_BLEND); // alpha blending
 	glDisable(GL_LINE_SMOOTH); // smooth lines
-	glDisable(GL_POLYGON_SMOOTH); // smooth poly lines
 	
 	/* restore initial gl conditions */
 	glLineWidth(1.0);
