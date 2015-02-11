@@ -590,9 +590,9 @@ extern "C" {
 
 /* for debug-only variables */
 #ifndef NDEBUG
-#  define UNUSED_VARS_DEBUG(...)
+#  define UNUSED_VARS_NDEBUG(...)
 #else
-#  define UNUSED_VARS_DEBUG UNUSED_VARS
+#  define UNUSED_VARS_NDEBUG UNUSED_VARS
 #endif
 
 /*little macro so inline keyword works*/
