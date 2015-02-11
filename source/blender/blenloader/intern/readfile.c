@@ -5437,7 +5437,7 @@ static void direct_link_paint(FileData *fd, Paint *p)
 	if (p->cavity_curve)
 		direct_link_curvemapping(fd, p->cavity_curve);
 	else
-		BKE_paint_cavity_curve_preset(p, CURVE_PRESET_SHARP);
+		BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
 }
 
 static void direct_link_paint_helper(FileData *fd, Paint **paint)
