@@ -3486,7 +3486,11 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 							    (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW))
 							{
 								float w = BLI_rctf_size_x(&ar->v2d.cur);
-								if (scene->r.cfra < ar->v2d.cur.xmin || scene->r.cfra > (ar->v2d.cur.xmax)) {
+								if (scene->r.cfra < ar->v2d.cur.xmin) {
+									ar->v2d.cur.xmax = scene->r.cfra;
+									ar->v2d.cur.xmin = ar->v2d.cur.xmin - w;
+								}
+								else if (scene->r.cfra > ar->v2d.cur.xmax) {
 									ar->v2d.cur.xmin = scene->r.cfra;
 									ar->v2d.cur.xmax = ar->v2d.cur.xmin + w;
 								}

@@ -1885,6 +1885,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name + 2, "nonnormal");
 		sc = ED_screen_add(win, oldscreen->scene, newname);
 		sc->state = state;
+		sc->redraws_flag = oldscreen->redraws_flag;
 
 		/* timer */
 		sc->animtimer = oldscreen->animtimer;
