@@ -174,14 +174,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
             if user or pin_id:
                 layout.separator()
 
-                split = layout.split(percentage=0.65)
-                col = split.column()
+                row = layout.row()
 
                 if pin_id:
-                    col.template_ID(space, "pin_id")
+                    row.template_ID(space, "pin_id")
                 else:
                     propname = context.texture_user_property.identifier
-                    col.template_ID(user, propname, new="texture.new")
+                    row.template_ID(user, propname, new="texture.new")
 
                 if tex:
                     split = layout.split(percentage=0.2)
