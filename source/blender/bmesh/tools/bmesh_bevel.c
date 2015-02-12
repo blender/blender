@@ -2710,23 +2710,60 @@ static void bevel_build_quadstrip(BevelParams *bp, BMesh *bm, BevVert *bv)
 	}
 }
 
-/* Special case: there is no vmesh pattern because this has only two boundary verts,
- * and there are no faces in the original mesh at the original vertex.
- * Since there will be no rebuilt face to make the edge between the boundary verts,
+/* Special case: vertex bevel with only two boundary verts.
+ * Want to make a curved edge if seg > 0.
+ * If there are no faces in the original mesh at the original vertex,
+ * there will be no rebuilt face to make the edge between the boundary verts,
  * we have to make it here. */
-static void bevel_build_one_wire(BMesh *bm, BevVert *bv)
+static void bevel_vert_two_edges(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
 	VMesh *vm = bv->vmesh;
 	BMVert *v1, *v2;
 	BMEdge *e_eg;
+	Profile *pro;
+	float co[3];
+	BoundVert *bndv;
+	int ns, k;
 
-	BLI_assert(vm->count == 2);
+	BLI_assert(vm->count == 2 && bp->vertex_only);
 
 	v1 = mesh_vert(vm, 0, 0, 0)->v;
 	v2 = mesh_vert(vm, 1, 0, 0)->v;
-	e_eg = bv->edges[0].e;
-	BLI_assert(v1 != NULL && v2 != NULL && e_eg != NULL);
-	BM_edge_create(bm, v1, v2, e_eg, BM_CREATE_NO_DOUBLE);
+
+	ns = vm->seg;
+	if (ns > 1) {
+		/* Set up profile parameters */
+		bndv = vm->boundstart;
+		pro = &bndv->profile;
+		pro->super_r = bp->pro_super_r;
+		copy_v3_v3(pro->coa, v1->co);
+		copy_v3_v3(pro->cob, v2->co);
+		copy_v3_v3(pro->midco, bv->v->co);
+		/* don't use projection */
+		zero_v3(pro->plane_co);
+		zero_v3(pro->plane_no);
+		zero_v3(pro->proj_dir);
+		calculate_profile(bp, bndv);
+		for (k = 1; k < ns; k++) {
+			get_profile_point(bp, pro, k, ns, co);
+			copy_v3_v3(mesh_vert(vm, 0, 0, k)->co, co);
+			create_mesh_bmvert(bm, vm, 0, 0, k, bv->v);
+		}
+		copy_v3_v3(mesh_vert(vm, 0, 0, ns)->co, v2->co);
+		for (k = 1; k < ns; k++)
+			copy_mesh_vert(vm, 1, 0, ns - k, 0, 0, k);
+	}
+
+	if (BM_vert_face_count(bv->v) == 0) {
+		e_eg = bv->edges[0].e;
+		BLI_assert(e_eg != NULL);
+		for (k = 0; k < ns; k++) {
+			v1 = mesh_vert(vm, 0, 0, k)->v;
+			v2 = mesh_vert(vm, 0, 0, k + 1)->v;
+			BLI_assert(v1 != NULL && v2 != NULL);
+			BM_edge_create(bm, v1, v2, e_eg, BM_CREATE_NO_DOUBLE);
+		}
+	}
 }
 
 /* Given that the boundary is built, now make the actual BMVerts
@@ -2812,8 +2849,8 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 
 	switch (vm->mesh_kind) {
 		case M_NONE:
-			if  (n == 2 && BM_vert_face_count(bv->v) == 0)
-				bevel_build_one_wire(bm, bv);
+			if  (n == 2 && bp->vertex_only)
+				bevel_vert_two_edges(bp, bm, bv);
 			break;
 		case M_POLY:
 			bevel_build_poly(bp, bm, bv);
@@ -3170,7 +3207,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 							BLI_array_append(vv_fix, bmv);
 					}
 				}
-				else if (vm->mesh_kind == M_ADJ && vm->seg > 1 && !e->is_bev && !eprev->is_bev) {
+				else if ((vm->mesh_kind == M_ADJ || bp->vertex_only) && vm->seg > 1 && !e->is_bev && !eprev->is_bev) {
 					BLI_assert(v->prev == vend);
 					i = vend->index;
 					for (k = vm->seg - 1; k > 0; k--) {
