@@ -56,6 +56,7 @@
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"
+#include "GPU_compositing.h"
 
 #include "BIF_gl.h"
 
@@ -418,6 +419,11 @@ static void view3d_free(SpaceLink *sl)
 		BKE_previewimg_free(&vd->defmaterial->preview);
 		MEM_freeN(vd->defmaterial);
 	}
+
+		if (vd->fx_settings.ssao)
+			MEM_freeN(vd->fx_settings.ssao);
+		if (vd->fx_settings.dof)
+			MEM_freeN(vd->fx_settings.dof);
 }
 
 
@@ -459,7 +465,11 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	}
 
 	v3dn->properties_storage = NULL;
-	
+	if (v3dn->fx_settings.dof)
+		v3dn->fx_settings.dof = MEM_dupallocN(v3do->fx_settings.dof);
+	if (v3dn->fx_settings.ssao)
+		v3dn->fx_settings.ssao = MEM_dupallocN(v3do->fx_settings.ssao);
+
 	return (SpaceLink *)v3dn;
 }
 
@@ -558,6 +568,11 @@ static void view3d_main_area_exit(wmWindowManager *wm, ARegion *ar)
 	if (rv3d->gpuoffscreen) {
 		GPU_offscreen_free(rv3d->gpuoffscreen);
 		rv3d->gpuoffscreen = NULL;
+	}
+	
+	if (rv3d->compositor) {
+		GPU_fx_compositor_destroy(rv3d->compositor);
+		rv3d->compositor = NULL;
 	}
 }
 
@@ -713,6 +728,9 @@ static void view3d_main_area_free(ARegion *ar)
 		if (rv3d->gpuoffscreen) {
 			GPU_offscreen_free(rv3d->gpuoffscreen);
 		}
+		if (rv3d->compositor) {
+			GPU_fx_compositor_destroy(rv3d->compositor);
+		}
 
 		MEM_freeN(rv3d);
 		ar->regiondata = NULL;
@@ -736,6 +754,7 @@ static void *view3d_main_area_duplicate(void *poin)
 		new->render_engine = NULL;
 		new->sms = NULL;
 		new->smooth_timer = NULL;
+		new->compositor = NULL;
 		
 		return new;
 	}

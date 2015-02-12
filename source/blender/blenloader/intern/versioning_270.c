@@ -35,6 +35,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_brush_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_sdna_types.h"
@@ -561,6 +562,16 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 			FOREACH_NODETREE_END
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "Camera", "GPUDOFSettings", "gpu_dof")) {
+			Camera *ca;
+			for (ca = main->camera.first; ca; ca = ca->id.next) {
+				ca->gpu_dof.fstop = 128.0f;
+				ca->gpu_dof.focal_length = 1.0f;
+				ca->gpu_dof.focus_distance = 1.0f;
+				ca->gpu_dof.sensor = 1.0f;
+			}
 		}
 	}
 

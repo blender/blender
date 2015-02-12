@@ -761,6 +761,11 @@ if B.targets != ['cudakernels']:
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vertex_world.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_frag.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_vert.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fx_ssao_frag.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fx_dof_frag.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fx_dof_vert.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fx_lib.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fx_vert.glsl")
     data_to_c_simple("intern/opencolorio/gpu_shader_display_transform.glsl")
 
     # --- blender ---

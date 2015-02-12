@@ -284,14 +284,19 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface");
 
 	/* pointers */
-	rna_def_animdata_common(srna);
-
 	prop = RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define the depth of field focal point");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "gpu_dof", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "GPUDOFSettings");
+	RNA_def_property_ui_text(prop, "GPU Depth Of Field", "");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	rna_def_animdata_common(srna);
 
 	/* Camera API */
 	RNA_api_camera(srna);

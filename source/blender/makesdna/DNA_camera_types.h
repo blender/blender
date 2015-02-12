@@ -33,7 +33,7 @@
 #define __DNA_CAMERA_TYPES_H__
 
 #include "DNA_defs.h"
-
+#include "DNA_gpu_types.h"
 #include "DNA_ID.h"
 
 #ifdef __cplusplus
@@ -65,6 +65,7 @@ typedef struct Camera {
 	struct Ipo *ipo  DNA_DEPRECATED; /* old animation system, deprecated for 2.5 */
 	
 	struct Object *dof_ob;
+	struct GPUDOFSettings gpu_dof;
 
 	char sensor_fit;
 	char pad[7];

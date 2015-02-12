@@ -7392,7 +7392,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
 			if (ob->type == OB_MESH) {
 				if (dt < OB_SOLID) {
-					zbufoff = 1;
+					zbufoff = true;
 					dt = OB_SOLID;
 				}
 

@@ -73,6 +73,7 @@ static const char *includefiles[] = {
 	"DNA_key_types.h",
 	"DNA_text_types.h",
 	"DNA_packedFile_types.h",
+	"DNA_gpu_types.h",
 	"DNA_camera_types.h",
 	"DNA_image_types.h",
 	"DNA_texture_types.h",

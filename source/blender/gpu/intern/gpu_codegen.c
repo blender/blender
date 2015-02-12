@@ -972,7 +972,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		input->textype = type;
 
 		//input->tex = GPU_texture_create_2D(link->texturesize, link->texturesize, link->ptr2, NULL);
-		input->tex = GPU_texture_create_2D(link->texturesize, 1, link->ptr1, NULL);
+		input->tex = GPU_texture_create_2D(link->texturesize, 1, link->ptr1, GPU_HDR_NONE, NULL);
 		input->textarget = GL_TEXTURE_2D;
 
 		MEM_freeN(link->ptr1);

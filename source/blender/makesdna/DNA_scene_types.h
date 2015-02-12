@@ -46,6 +46,7 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_freestyle_types.h"
+#include "DNA_gpu_types.h"
 
 struct CurveMapping;
 struct Object;

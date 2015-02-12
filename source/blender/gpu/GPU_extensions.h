@@ -107,11 +107,19 @@ int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);
  *  - if created with from_blender, will not free the texture
  */
 
+typedef enum GPUHDRType {
+	GPU_HDR_NONE =       0,
+	GPU_HDR_HALF_FLOAT = 1,
+	GPU_HDR_FULL_FLOAT = (1 << 1),
+} GPUHDRType;
+
 GPUTexture *GPU_texture_create_1D(int w, float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels, GPUHDRType hdr, char err_out[256]);
 GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, float *fpixels);
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256]);
+GPUTexture *GPU_texture_create_2D_procedural(int w, int h, float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_1D_procedural(int w, float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
 	struct ImageUser *iuser, bool is_data, double time, int mipmap);
 GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
@@ -125,6 +133,8 @@ void GPU_texture_ref(GPUTexture *tex);
 
 void GPU_texture_bind(GPUTexture *tex, int number);
 void GPU_texture_unbind(GPUTexture *tex);
+
+void GPU_depth_texture_mode(GPUTexture *tex, bool compare, bool use_filter);
 
 GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
 
@@ -145,10 +155,12 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex);
 GPUFrameBuffer *GPU_framebuffer_create(void);
 int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, char err_out[256]);
 void GPU_framebuffer_texture_detach(GPUTexture *tex);
-void GPU_framebuffer_slot_bind(GPUFrameBuffer *fb, int slot);
+void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot);
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256]);
+
+void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot);
 
 void GPU_framebuffer_restore(void);
 void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *blurfb, GPUTexture *blurtex);
@@ -159,8 +171,8 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 
 GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256]);
 void GPU_offscreen_free(GPUOffScreen *ofs);
-void GPU_offscreen_bind(GPUOffScreen *ofs);
-void GPU_offscreen_unbind(GPUOffScreen *ofs);
+void GPU_offscreen_bind(GPUOffScreen *ofs, bool save);
+void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore);
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels);
 int GPU_offscreen_width(GPUOffScreen *ofs);
 int GPU_offscreen_height(GPUOffScreen *ofs);
@@ -177,7 +189,7 @@ void GPU_shader_unbind(void);
 
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
-	int arraysize, float *value);
+	int arraysize, const float *value);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex);
 void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 
@@ -190,6 +202,8 @@ typedef enum GPUBuiltinShader {
 } GPUBuiltinShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
+GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp);
+
 void GPU_shader_free_builtin_shaders(void);
 
 /* Vertex attributes for shaders */

@@ -2929,8 +2929,26 @@ class VIEW3D_PT_view3d_shading(Panel):
                 col.prop(view, "show_textured_shadeless")
 
         col.prop(view, "show_backface_culling")
-        if obj and obj.mode == 'EDIT' and view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
-            col.prop(view, "show_occlude_wire")
+
+        if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
+            if obj and obj.mode == 'EDIT':
+                col.prop(view, "show_occlude_wire")
+
+            fx_settings = view.fx_settings
+
+            sub = col.column()
+            sub.active = view.region_3d.view_perspective == 'CAMERA'
+            sub.prop(fx_settings, "use_dof")
+
+            col.prop(fx_settings, "use_ssao", text="Ambient Occlusion")
+            if fx_settings.use_ssao:
+                ssao_settings = fx_settings.ssao
+                subcol = col.column(align=True)
+                subcol.prop(ssao_settings, "factor")
+                subcol.prop(ssao_settings, "distance_max")
+                subcol.prop(ssao_settings, "attenuation")
+                subcol.prop(ssao_settings, "samples")
+                subcol.prop(ssao_settings, "color")
 
 
 class VIEW3D_PT_view3d_motion_tracking(Panel):

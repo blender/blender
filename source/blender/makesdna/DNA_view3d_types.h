@@ -46,6 +46,7 @@ struct bGPdata;
 struct SmoothView3DStore;
 struct wmTimer;
 struct Material;
+struct GPUFX;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -60,6 +61,7 @@ struct Material;
 #include "DNA_listBase.h"
 #include "DNA_image_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_gpu_types.h"
 
 /* ******************************** */
 
@@ -146,6 +148,7 @@ typedef struct RegionView3D {
 	float rot_angle;
 	float rot_axis[3];
 
+	struct GPUFX *compositor;
 } RegionView3D;
 
 /* 3D ViewPort Struct */
@@ -210,10 +213,16 @@ typedef struct View3D {
 	struct ListBase afterdraw_transp;
 	struct ListBase afterdraw_xray;
 	struct ListBase afterdraw_xraytransp;
-	
+
 	/* drawflags, denoting state */
 	char zbuf, transp, xray;
+
+	/* built-in shader effects (eGPUFXFlags) */
 	char pad3[5];
+
+	/* note, 'fx_settings.dof' is currently _not_ allocated,
+	 * instead set (temporarily) from camera */
+	struct GPUFXSettings fx_settings;
 
 	void *properties_storage;		/* Nkey panel stores stuff here (runtime only!) */
 	struct Material *defmaterial;	/* used by matcap now */

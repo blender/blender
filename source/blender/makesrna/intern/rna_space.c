@@ -34,6 +34,7 @@
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
+#include "BKE_screen.h"
 
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
@@ -2128,7 +2129,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-
 	srna = RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -2469,6 +2469,10 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, view3d_matcap_items);
 	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture, active objects only");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_matcap_update");
+
+	prop = RNA_def_property(srna, "fx_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "FX Options", "Options used for real time compositing");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	/* region */
 
