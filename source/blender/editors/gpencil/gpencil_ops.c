@@ -158,6 +158,8 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "entire_strokes", true);
 	
 	/* select linked */
+	/* NOTE: While LKEY is redundant, not having it breaks the mode illusion too much */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* select more/less */
