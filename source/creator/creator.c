@@ -1241,7 +1241,14 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 
 			CTX_wm_manager_set(C, NULL); /* remove wm to force check */
 			WM_check(C);
-			G.relbase_valid = 1;
+			if (bmain->name[0]) {
+				G.save_over = 1;
+				G.relbase_valid = 1;
+			}
+			else {
+				G.save_over = 0;
+				G.relbase_valid = 0;
+			}
 			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm);  /* reset wm */
 
 			/* WM_file_read would call normally */
