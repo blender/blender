@@ -361,7 +361,11 @@ class GreasePencilDataPanel:
         row = layout.row()
 
         col = row.column()
-        col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index", rows=5)
+        if len(gpd.layers) >= 2:
+            layer_rows = 5
+        else:
+            layer_rows = 2
+        col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index", rows=layer_rows)
 
         col = row.column()
 
@@ -373,11 +377,12 @@ class GreasePencilDataPanel:
         if gpl:
             sub.operator("gpencil.layer_duplicate", icon='COPY_ID', text="")  # XXX: needs a dedicated icon
 
-            col.separator()
+            if len(gpd.layers) > 1:
+                col.separator()
 
-            sub = col.column(align=True)
-            sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
-            sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+                sub = col.column(align=True)
+                sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
+                sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
 
         if gpl:
             self.draw_layer(layout, gpl)
