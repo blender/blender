@@ -3499,7 +3499,10 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 		if ((seq->flag & SELECT)) {
 			if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE, SEQ_TYPE_MULTICAM)) {
 				BKE_sequencer_proxy_set(seq, turnon);
-				
+				if (seq->strip->proxy == NULL) {
+					continue;
+				}
+
 				if (proxy_25)
 					seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_25;
 				else 
