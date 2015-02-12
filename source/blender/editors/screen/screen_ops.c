@@ -2042,7 +2042,8 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 
 /* ************** frame change operator ***************************** */
 
-static void areas_do_frame_follow (bContext *C, bool middle) {
+static void areas_do_frame_follow(bContext *C, bool middle)
+{
 	bScreen *scr = CTX_wm_screen(C);
 	Scene *scene = CTX_data_scene(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -2055,15 +2056,15 @@ static void areas_do_frame_follow (bContext *C, bool middle) {
 				/* do follow here if editor type supports it */
 				if ((scr->redraws_flag & TIME_FOLLOW)) {
 					if ((ar->regiontype == RGN_TYPE_WINDOW &&
-					     ELEM (sa->spacetype, SPACE_SEQ, SPACE_TIME, SPACE_IPO, SPACE_ACTION, SPACE_NLA)) ||
-					        (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW))
+					     ELEM(sa->spacetype, SPACE_SEQ, SPACE_TIME, SPACE_IPO, SPACE_ACTION, SPACE_NLA)) ||
+					    (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW))
 					{
 						float w = BLI_rctf_size_x(&ar->v2d.cur);
 
 						if (middle) {
-							if (scene->r.cfra < ar->v2d.cur.xmin || scene->r.cfra > ar->v2d.cur.xmax) {
-								ar->v2d.cur.xmax = scene->r.cfra + w/2;
-								ar->v2d.cur.xmin = scene->r.cfra - w/2;
+							if ((scene->r.cfra < ar->v2d.cur.xmin) || (scene->r.cfra > ar->v2d.cur.xmax)) {
+								ar->v2d.cur.xmax = scene->r.cfra + (w / 2);
+								ar->v2d.cur.xmin = scene->r.cfra - (w / 2);
 							}
 						}
 						else {
@@ -3531,7 +3532,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 						/* do follow here if editor type supports it */
 						if ((sad->redraws & TIME_FOLLOW)) {
 							if ((ar->regiontype == RGN_TYPE_WINDOW &&
-							    ELEM (sa->spacetype, SPACE_SEQ, SPACE_TIME, SPACE_IPO, SPACE_ACTION, SPACE_NLA)) ||
+							     ELEM(sa->spacetype, SPACE_SEQ, SPACE_TIME, SPACE_IPO, SPACE_ACTION, SPACE_NLA)) ||
 							    (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW))
 							{
 								float w = BLI_rctf_size_x(&ar->v2d.cur);

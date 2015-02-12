@@ -19,7 +19,7 @@
 
 #define __KERNEL_CPU__
 
-/* Release kernel has too much false-positive maybe-uninitialzied warnings,
+/* Release kernel has too much false-positive maybe-uninitialized warnings,
  * which makes it possible to miss actual warnings.
  */
 #if defined(__GNUC__) && defined(NDEBUG)
