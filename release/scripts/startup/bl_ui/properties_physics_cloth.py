@@ -92,9 +92,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         sub.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="")
         sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
-        col.label(text="Pre roll:")
-        col.prop(cloth, "pre_roll", text="Frames")
-
         # Disabled for now
         """
         if cloth.vertex_group_mass:

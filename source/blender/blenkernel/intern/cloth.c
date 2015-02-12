@@ -88,7 +88,6 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->sim_parms->stepsPerFrame = 5;
 	clmd->sim_parms->flags = 0;
 	clmd->sim_parms->solver_type = 0;
-	clmd->sim_parms->preroll = 0;
 	clmd->sim_parms->maxspringlen = 10;
 	clmd->sim_parms->vgroup_mass = 0;
 	clmd->sim_parms->vgroup_shrink = 0;
@@ -463,10 +462,7 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
 	clmd->sim_parms->timescale= timescale;
 
-	if (clmd->sim_parms->reset ||
-	    (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0) ||
-	    (clmd->clothObject && dm->getNumVerts(dm) != clmd->clothObject->numverts))
-	{
+	if (clmd->sim_parms->reset || (clmd->clothObject && dm->getNumVerts(dm) != clmd->clothObject->numverts)) {
 		clmd->sim_parms->reset = 0;
 		cache->flag |= PTCACHE_OUTDATED;
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
@@ -477,22 +473,6 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 	
 	// unused in the moment, calculated separately in implicit.c
 	clmd->sim_parms->dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
-
-	/* handle continuous simulation with the play button */
-	if ((clmd->sim_parms->preroll > 0) && (framenr > startframe - clmd->sim_parms->preroll) && (framenr < startframe)) {
-		BKE_ptcache_invalidate(cache);
-
-		/* do simulation */
-		if (!do_init_cloth(ob, clmd, dm, framenr))
-			return;
-
-		do_step_cloth(ob, clmd, dm, framenr);
-		cloth_to_object(ob, clmd, vertexCos);
-
-		clmd->clothObject->last_frame= framenr;
-
-		return;
-	}
 
 	/* simulation is only active during a specific period */
 	if (framenr < startframe) {
@@ -507,7 +487,7 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 	if (!do_init_cloth(ob, clmd, dm, framenr))
 		return;
 
-	if ((framenr == startframe) && (clmd->sim_parms->preroll == 0)) {
+	if (framenr == startframe) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 		do_init_cloth(ob, clmd, dm, framenr);
 		BKE_ptcache_validate(cache, framenr);

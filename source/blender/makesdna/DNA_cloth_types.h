@@ -32,6 +32,8 @@
 #ifndef __DNA_CLOTH_TYPES_H__
 #define __DNA_CLOTH_TYPES_H__
 
+#include "DNA_defs.h"
+
 /**
  * This struct contains all the global data required to run a simulation.
  * At the time of this writing, this structure contains data appropriate
@@ -85,7 +87,7 @@ typedef struct ClothSimSettings {
 
 	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
-	int	preroll;	/* How many frames of simulation to do before we start.	*/
+	int	preroll  DNA_DEPRECATED;	/* How many frames of simulation to do before we start.	*/
 	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
 	short	solver_type; 	/* which solver should be used?		txold	*/
 	short	vgroup_bend;	/* vertex group for scaling bending stiffness */

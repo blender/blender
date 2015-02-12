@@ -68,17 +68,6 @@ static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene),
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
-static void rna_cloth_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	Object *ob = (Object *)ptr->id.data;
-	ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
-
-	settings->reset = 1;
-
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
-}
-
 
 static void rna_ClothSettings_max_bend_set(struct PointerRNA *ptr, float value)
 {
@@ -558,12 +547,6 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "EffectorWeights");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Weights", "");
-
-	prop = RNA_def_property(srna, "pre_roll", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "preroll");
-	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Pre Roll", "Start simulation a number of frames earlier to let the cloth settle in");
-	RNA_def_property_update(prop, 0, "rna_cloth_reset");
 
 	prop = RNA_def_property(srna, "rest_shape_key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
