@@ -258,23 +258,28 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
 		SWAP(ListBase, G.main->script, bfd->main->script);
 		
+		/* we re-use current screen */
 		curscreen = CTX_wm_screen(C);
+		/* but use new Scene pointer */
+		curscene = bfd->curscene;
 
 		track_undo_scene = (mode == LOAD_UNDO && curscreen && bfd->main->wm.first);
-		if (track_undo_scene) {
-			curscene = curscreen->scene;
-		}
-		else {
-			/* but use new Scene pointer */
-			curscene = bfd->curscene;
-		}
 
 		if (curscene == NULL) curscene = bfd->main->scene.first;
 		/* empty file, we add a scene to make Blender work */
 		if (curscene == NULL) curscene = BKE_scene_add(bfd->main, "Empty");
 
-		/* and we enforce curscene to be in current screen */
-		if (curscreen) curscreen->scene = curscene;  /* can run in bgmode */
+		if (track_undo_scene) {
+			/* keep the old (free'd) scene, let 'blo_lib_link_screen_restore'
+			 * replace it with 'curscene' if its needed */
+		}
+		else {
+			/* and we enforce curscene to be in current screen */
+			if (curscreen) {
+				/* can run in bgmode */
+				curscreen->scene = curscene;
+			}
+		}
 
 		/* clear_global will free G.main, here we can still restore pointers */
 		blo_lib_link_screen_restore(bfd->main, curscreen, curscene);
