@@ -1651,6 +1651,9 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
 				nlt = add_nlatrack(adt, NULL);
 				BKE_nlatrack_add_strip(nlt, strip);
 			}
+			
+			/* ensure that strip has a name */
+			BKE_nlastrip_validate_name(adt, strip);
 		}
 		
 		/* modifiers */
