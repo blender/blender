@@ -100,6 +100,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             sub.prop(game, "damping", text="Translation", slider=True)
             sub.prop(game, "rotation_damping", text="Rotation", slider=True)
 
+        if physics_type == 'RIGID_BODY':
             layout.separator()
 
             split = layout.split()
