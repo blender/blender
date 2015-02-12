@@ -306,8 +306,13 @@ def enable(module_name, default_set=False, persistent=False, handle_error=None):
             mod = __import__(module_name)
             mod.__time__ = os.path.getmtime(mod.__file__)
             mod.__addon_enabled__ = False
-        except:
-            handle_error()
+        except Exception as ex:
+            # if the addon doesn't exist, dont print full traceback
+            if type(ex) is ImportError and ex.name == module_name:
+                print("addon not found: %r" % module_name)
+            else:
+                handle_error()
+
             if default_set:
                 _addon_remove(module_name)
             return None
