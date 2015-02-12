@@ -521,22 +521,25 @@ static void initialize_particle_texture(ParticleSimulationData *sim, ParticleDat
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	ParticleTexture ptex;
+	bool has_texture = false;
 
-	psys_get_texture(sim, pa, &ptex, PAMAP_INIT, 0.f);
+	has_texture = psys_get_texture(sim, pa, &ptex, PAMAP_INIT, 0.f);
 	
-	switch (part->type) {
-	case PART_EMITTER:
-		if (ptex.exist < psys_frand(psys, p+125))
-			pa->flag |= PARS_UNEXIST;
-		pa->time = part->sta + (part->end - part->sta)*ptex.time;
-		break;
-	case PART_HAIR:
-		if (ptex.exist < psys_frand(psys, p+125))
-			pa->flag |= PARS_UNEXIST;
-		pa->time = 0.f;
-		break;
-	case PART_FLUID:
-		break;
+	if (has_texture) {
+		switch (part->type) {
+			case PART_EMITTER:
+				if (ptex.exist < psys_frand(psys, p+125))
+					pa->flag |= PARS_UNEXIST;
+				pa->time = part->sta + (part->end - part->sta)*ptex.time;
+				break;
+			case PART_HAIR:
+				if (ptex.exist < psys_frand(psys, p+125))
+					pa->flag |= PARS_UNEXIST;
+				pa->time = 0.f;
+				break;
+			case PART_FLUID:
+				break;
+		}
 	}
 }
 
@@ -969,6 +972,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	ParticleSettings *part;
 	ParticleTexture ptex;
 	int p = pa - psys->particles;
+	
 	part=psys->part;
 	
 	/* get precise emitter matrix if particle is born */

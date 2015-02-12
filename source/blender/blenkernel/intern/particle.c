@@ -3429,7 +3429,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_ROUGH, ptex->rough1);
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_DENS, ptex->exist);
 }
-void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTexture *ptex, int event, float cfra)
+bool psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTexture *ptex, int event, float cfra)
 {
 	Object *ob = sim->ob;
 	Mesh *me = (Mesh *)ob->data;
@@ -3439,6 +3439,7 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 	int m;
 	float value, rgba[4], co[3], texvec[3];
 	int setvars = 0;
+	bool has_texture = false;
 
 	/* initialize ptex */
 	ptex->ivel = ptex->life = ptex->exist = ptex->size = ptex->damp =
@@ -3514,6 +3515,8 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 			SET_PARTICLE_TEXTURE(PAMAP_GRAVITY, ptex->gravity, mtex->gravityfac);
 			SET_PARTICLE_TEXTURE(PAMAP_DAMP, ptex->damp, mtex->dampfac);
 			SET_PARTICLE_TEXTURE(PAMAP_LENGTH, ptex->length, mtex->lengthfac);
+			
+			has_texture = true;
 		}
 	}
 
@@ -3526,6 +3529,8 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 	CLAMP_PARTICLE_TEXTURE_POSNEG(PAMAP_GRAVITY, ptex->gravity);
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_DAMP, ptex->damp);
 	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_LENGTH, ptex->length);
+	
+	return has_texture;
 }
 /************************************************/
 /*			Particle State						*/
