@@ -1816,7 +1816,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ANISOTROPIC_FRICTION);
 	RNA_def_property_ui_text(prop, "Anisotropic Friction", "Enable anisotropic friction");
 
-	prop = RNA_def_property(srna, "friction_coefficients", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "friction_coefficients", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "anisotropicFriction");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Friction Coefficients",
