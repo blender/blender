@@ -142,6 +142,7 @@ EnumPropertyItem transform_mode_types[] =
 	{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
 	{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
 	{TFM_MASK_SHRINKFATTEN, "MASK_SHRINKFATTEN", 0, "Mask_Shrinkfatten", ""},
+	{TFM_GPENCIL_SHRINKFATTEN, "GPENCIL_SHRINKFATTEN", 0, "GPencil_Shrinkfatten", ""},
 	{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
 	{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time_Translate", ""},
 	{TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time_Slide", ""},
@@ -974,7 +975,7 @@ static void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
 
-	Transform_Properties(ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP);
+	Transform_Properties(ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_GPENCIL_EDIT);
 }
 
 void transform_operatortypes(void)

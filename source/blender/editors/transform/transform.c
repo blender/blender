@@ -139,6 +139,9 @@ static void applyCurveShrinkFatten(TransInfo *t, const int mval[2]);
 static void initMaskShrinkFatten(TransInfo *t);
 static void applyMaskShrinkFatten(TransInfo *t, const int mval[2]);
 
+static void initGPShrinkFatten(TransInfo *t);
+static void applyGPShrinkFatten(TransInfo *t, const int mval[2]);
+
 static void initTrackball(TransInfo *t);
 static void applyTrackball(TransInfo *t, const int mval[2]);
 
@@ -2164,6 +2167,9 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			break;
 		case TFM_MASK_SHRINKFATTEN:
 			initMaskShrinkFatten(t);
+			break;
+		case TFM_GPENCIL_SHRINKFATTEN:
+			initGPShrinkFatten(t);
 			break;
 		case TFM_TRACKBALL:
 			initTrackball(t);
@@ -4655,6 +4661,83 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 			else
 				*td->val = td->ival * ratio;
 
+			/* apply PET */
+			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
+			if (*td->val <= 0.0f) *td->val = 0.001f;
+		}
+	}
+
+	recalcData(t);
+
+	ED_area_headerprint(t->sa, str);
+}
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* Transform (GPencil Shrink/Fatten) */
+
+/** \name Transform GPencil Strokes Shrink/Fatten
+ * \{ */
+
+static void initGPShrinkFatten(TransInfo *t)
+{
+	t->mode = TFM_GPENCIL_SHRINKFATTEN;
+	t->transform = applyGPShrinkFatten;
+
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING);
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
+	copy_v3_fl(t->num.val_inc, t->snap[1]);
+	t->num.unit_sys = t->scene->unit.system;
+	t->num.unit_type[0] = B_UNIT_NONE;
+
+	t->flag |= T_NO_ZERO;
+#ifdef USE_NUM_NO_ZERO
+	t->num.val_flag[0] |= NUM_NO_ZERO;
+#endif
+
+	t->flag |= T_NO_CONSTRAINT;
+}
+
+static void applyGPShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
+{
+	TransData *td = t->data;
+	float ratio;
+	int i;
+	char str[MAX_INFO_LEN];
+
+	ratio = t->values[0];
+
+	snapGridIncrement(t, &ratio);
+
+	applyNumInput(&t->num, &ratio);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[NUM_STR_REP_LEN];
+
+		outputNumInput(&(t->num), c, &t->scene->unit);
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Shrink/Fatten: %s"), c);
+	}
+	else {
+		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Shrink/Fatten: %3f"), ratio);
+	}
+
+	for (i = 0; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
+
+		if (td->val) {
+			*td->val = td->ival * ratio;
 			/* apply PET */
 			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
 			if (*td->val <= 0.0f) *td->val = 0.001f;
