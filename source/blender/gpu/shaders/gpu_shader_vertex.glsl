@@ -23,4 +23,4 @@ void main()
 	// graphic cards, while on ATI it can cause a software fallback.
 	gl_ClipVertex = co; 
 #endif 
-
+}
