@@ -189,7 +189,7 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         sub = col.column()
         sub.active = cam.dof_object is None
         sub.prop(cam, "dof_distance", text="Distance")
-        col.prop(dof_options, "fstop", text="GPU fstop")
+        col.prop(dof_options, "fstop", text="Viewport f-stop")
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
