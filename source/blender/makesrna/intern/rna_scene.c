@@ -3873,7 +3873,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "fstop", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "F/Stop", "FStop for dof effect");
+	RNA_def_property_ui_text(prop, "Viewport f-stop", "FStop for dof effect");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.1f, 128.0f, 10, 1);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
