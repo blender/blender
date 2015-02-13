@@ -143,13 +143,14 @@ void modifier_free(ModifierData *md)
 	MEM_freeN(md);
 }
 
-void modifier_unique_name(ListBase *modifiers, ModifierData *md)
+bool modifier_unique_name(ListBase *modifiers, ModifierData *md)
 {
 	if (modifiers && md) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		BLI_uniquename(modifiers, md, DATA_(mti->name), '.', offsetof(ModifierData, name), sizeof(md->name));
+		return BLI_uniquename(modifiers, md, DATA_(mti->name), '.', offsetof(ModifierData, name), sizeof(md->name));
 	}
+	return false;
 }
 
 bool modifier_dependsOnTime(ModifierData *md)

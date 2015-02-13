@@ -290,7 +290,7 @@ static bool uniquename_unique_check(void *arg, const char *name)
 
 /**
  * Ensures that the specified block has a unique name within the containing list,
- * incrementing its numeric suffix as necessary.
+ * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
  *
  * \param list  List containing the block
  * \param vlink  The block to check the name for
@@ -299,7 +299,7 @@ static bool uniquename_unique_check(void *arg, const char *name)
  * \param name_offs  Offset of name within block structure
  * \param name_len  Maximum length of name area
  */
-void BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim, int name_offs, int name_len)
+bool BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim, int name_offs, int name_len)
 {
 	struct {ListBase *lb; void *vlink; int name_offs; } data;
 	data.lb = list;
@@ -310,9 +310,9 @@ void BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim
 
 	/* See if we are given an empty string */
 	if (ELEM(NULL, vlink, defname))
-		return;
+		return false;
 
-	BLI_uniquename_cb(uniquename_unique_check, &data, defname, delim, GIVE_STRADDR(vlink, name_offs), name_len);
+	return BLI_uniquename_cb(uniquename_unique_check, &data, defname, delim, GIVE_STRADDR(vlink, name_offs), name_len);
 }
 
 static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
