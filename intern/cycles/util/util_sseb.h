@@ -153,13 +153,13 @@ __forceinline bool none      ( const sseb& b ) { return _mm_movemask_ps(b) == 0x
 
 __forceinline size_t movemask( const sseb& a ) { return _mm_movemask_ps(a); }
 
-#endif
-
 ccl_device_inline void print_sseb(const char *label, const sseb &a)
 {
 	printf("%s: %df %df %df %d\n",
 	       label, a[0], a[1], a[2], a[3]);
 }
+
+#endif
 
 CCL_NAMESPACE_END
 
