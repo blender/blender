@@ -4514,11 +4514,11 @@ static void lib_link_object(FileData *fd, Main *main)
 				}
 				else if (act->type == ACT_ACTION) {
 					bActionActuator *aa = act->data;
-					aa->act= newlibadr(fd, ob->id.lib, aa->act);
+					aa->act= newlibadr_us(fd, ob->id.lib, aa->act);
 				}
 				else if (act->type == ACT_SHAPEACTION) {
 					bActionActuator *aa = act->data;
-					aa->act= newlibadr(fd, ob->id.lib, aa->act);
+					aa->act= newlibadr_us(fd, ob->id.lib, aa->act);
 				}
 				else if (act->type == ACT_PROPERTY) {
 					bPropertyActuator *pa = act->data;
