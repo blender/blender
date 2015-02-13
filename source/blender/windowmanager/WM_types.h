@@ -94,12 +94,12 @@
  * </pre>
  *
  * A common way to get the space from the ScrArea:
- * <pre>
- *     if (sa->spacetype == SPACE_VIEW3D) {
- *         View3D *v3d = sa->spacedata.first;
- *         ...
- *     }
- * </pre>
+ * \code{.c}
+ * if (sa->spacetype == SPACE_VIEW3D) {
+ *     View3D *v3d = sa->spacedata.first;
+ *     ...
+ * }
+ * \endcode
  */
 
 #ifdef __cplusplus

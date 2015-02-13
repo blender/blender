@@ -45,14 +45,14 @@
  *
  * pixel_array is a Python object storing BakePixel elements:
  *
- * <pre>
+ * \code{.c}
  * struct BakePixel {
  *     int primitive_id;
  *     float uv[2];
  *     float du_dx, du_dy;
  *     float dv_dx, dv_dy;
  * };
- * </pre>
+ * \endcode
  *
  * In python you have access to:
  * - ``primitive_id``, ``uv``, ``du_dx``, ``du_dy``, ``next``

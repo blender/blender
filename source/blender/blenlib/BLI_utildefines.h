@@ -541,14 +541,13 @@ extern "C" {
 /**
  * UNUSED_VARS#(a, ...): quiet unused warnings
  *
- * <pre>
+ * \code{.py}
  * for i in range(16):
  *     args = [(chr(ord('a') + (c % 26)) + (chr(ord('0') + (c // 26)))) for c in range(i + 1)]
  *     print("#define _VA_UNUSED_VARS_%d(%s) \\" % (i + 1, ", ".join(args)))
  *     print("\t((void)(%s)%s)" %
  *             (args[0], ((", _VA_UNUSED_VARS_" + str(i) + "(%s)") if i else "%s") % ", ".join((args[1:]))))
- * </pre>
- *
+ * \endcode
  */
 
 #define _VA_UNUSED_VARS_1(a0) \

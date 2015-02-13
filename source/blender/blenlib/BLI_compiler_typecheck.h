@@ -81,12 +81,12 @@
  * ``CHECK_TYPE_ANY(var, Foo *, Bar *, Baz *)``
  *
  * excuse ridiculously long generated args.
- * <pre>
+ * \code{.py}
  * for i in range(63):
  *     args = [(chr(ord('a') + (c % 26)) + (chr(ord('0') + (c // 26)))) for c in range(i + 1)]
  *     print("#define _VA_CHECK_TYPE_ANY%d(v, %s) \\" % (i + 2, ", ".join(args)))
  *     print("    ((void)_Generic((v), %s))" % (": 0, ".join(args) + ": 0"))
- * </pre>
+ * \endcode
  */
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 

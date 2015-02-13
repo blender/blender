@@ -29,7 +29,7 @@
  * declared in since.
  *
  * Usage examples:
- * \code
+ * \code{.c}
  * BLI_buffer_declare_static(int, my_int_array, BLI_BUFFER_NOP, 32);
  *
  * BLI_buffer_append(my_int_array, int, 42);

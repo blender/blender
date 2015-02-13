@@ -34,7 +34,8 @@
  * current and previous directions of the digit, and returned to the user.
  * 
  * Usage examples:
- * \code
+ *
+ * \code{.c}
  * float start_position[2] = {0.0f, 0.0f};
  * float current_position[2];
  * float threshold = 0.5f;
@@ -46,7 +47,6 @@
  * angle = BLI_dial_angle(dial, curent_position);
  * 
  * MEM_freeN(dial);
- *
  * \endcode
  */
 
