@@ -2890,7 +2890,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "chanshown");
 	RNA_def_property_ui_text(prop, "Display Channel",
 	                         "The channel number shown in the image preview. 0 is the result of all strips combined");
-	RNA_def_property_range(prop, -5, MAXSEQ);
+	RNA_def_property_range(prop, 1, MAXSEQ);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
 	prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);
