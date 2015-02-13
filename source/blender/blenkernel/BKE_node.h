@@ -84,8 +84,9 @@ struct ColorManagedViewSettings;
 struct ColorManagedDisplaySettings;
 struct bNodeInstanceHash;
 
-
-/* ************** NODE TYPE DEFINITIONS ***** */
+/* -------------------------------------------------------------------- */
+/** \name Node Type Definitions
+ * \{ */
 
 /** Compact definition of a node socket.
  * Can be used to quickly define a list of static sockets for a node,
@@ -314,8 +315,11 @@ typedef struct bNodeTreeType {
 	ExtensionRNA ext;
 } bNodeTreeType;
 
+/** \} */
 
-/* ************** GENERIC API, TREES *************** */
+/* -------------------------------------------------------------------- */
+/** \name Generic API, Trees
+ * \{ */
 
 struct bNodeTreeType *ntreeTypeFind(const char *idname);
 void ntreeTypeAdd(struct bNodeTreeType *nt);
@@ -377,8 +381,12 @@ struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
 void            ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
 void            ntreeLocalMerge(struct bNodeTree *localtree, struct bNodeTree *ntree);
 
-/* ************** NODE TREE INTERFACE *************** */
+/** \} */
 
+
+/* -------------------------------------------------------------------- */
+/** \name Node Tree Interface
+ * \{ */
 struct bNodeSocket *ntreeFindSocketInterface(struct bNodeTree *ntree, int in_out, const char *identifier);
 struct bNodeSocket *ntreeAddSocketInterface(struct bNodeTree *ntree, int in_out, const char *idname, const char *name);
 struct bNodeSocket *ntreeInsertSocketInterface(struct bNodeTree *ntree, int in_out, const char *idname,
@@ -392,7 +400,12 @@ struct StructRNA *ntreeInterfaceTypeGet(struct bNodeTree *ntree, int create);
 void ntreeInterfaceTypeFree(struct bNodeTree *ntree);
 void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 
-/* ************** GENERIC API, NODES *************** */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name Generic API, Nodes
+ * \{ */
 
 struct bNodeType *nodeTypeFind(const char *idname);
 void			nodeRegisterType(struct bNodeType *ntype);
@@ -558,8 +571,12 @@ void            BKE_node_preview_merge_tree(struct bNodeTree *to_ntree, struct b
 
 void            BKE_node_preview_set_pixel(struct bNodePreview *preview, const float col[4], int x, int y, bool do_manage);
 
+/** \} */
 
-/* ************** NODE TYPE ACCESS *************** */
+
+/* -------------------------------------------------------------------- */
+/** \name Node Type Access
+ * \{ */
 
 void            nodeLabel(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
 
@@ -586,7 +603,11 @@ void            node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpufu
 void            node_type_internal_links(struct bNodeType *ntype, void (*update_internal_links)(struct bNodeTree *, struct bNode *));
 void            node_type_compatibility(struct bNodeType *ntype, short compatibility);
 
-/* ************** GENERIC NODE FUNCTIONS *************** */
+
+/* -------------------------------------------------------------------- */
+/** \name Node Generic Functions
+ * \{ */
+
 bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node);
 
 /* ************** COMMON NODES *************** */
@@ -603,7 +624,12 @@ bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node
 
 void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
 
-/* Utility macro for visiting every node tree in the library data, including local bNodeTree blocks in other IDs.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Node Tree Iterator
+ *
+ * Utility macro for visiting every node tree in the library data, including local bNodeTree blocks in other IDs.
  * This avoids the need for callback functions and allows executing code in a single inner code block.
  *
  * Variables:
@@ -616,6 +642,7 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
  *
  * Examples:
  *
+ * \code{.c}
  * FOREACH_NODETREE(bmain, nodetree) {
  *     if (id == nodetree)
  *         printf("This is a linkable node tree");
@@ -627,6 +654,9 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
  *     if (GS(id) == ID_MA)
  *         printf(" and it's owned by a material");
  * } FOREACH_NODETREE_END
+ * \endcode
+ *
+ * \{
  */
 
 /* should be an opaque type, only for internal use by BKE_node_tree_iter_*** */
@@ -658,9 +688,11 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 		} \
 	} \
 }
+/** \} */
 
-/* ************** SHADER NODES *************** */
-
+/* -------------------------------------------------------------------- */
+/** \name Shader Nodes
+ */
 struct ShadeInput;
 struct ShadeResult;
 
@@ -783,8 +815,11 @@ void            set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInp
 
 void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat, short compatibility);
 
+/** \} */
 
-/* ************** COMPOSITE NODES *************** */
+/* -------------------------------------------------------------------- */
+/** \name Composite Nodes
+ */
 
 /* output socket defines */
 #define RRES_OUT_IMAGE					0
@@ -964,7 +999,11 @@ void ntreeCompositOutputFileUniqueLayer(struct ListBase *list, struct bNodeSocke
 void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
 void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
 
-/* ************** TEXTURE NODES *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Texture Nodes
+ */
 
 struct TexResult;
 
@@ -1005,11 +1044,9 @@ void ntreeTexEndExecTree(struct bNodeTreeExec *exec);
 int ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target,
                      float coord[3], float dxt[3], float dyt[3], int osatex, const short thread,
                      struct Tex *tex, short which_output, int cfra, int preview, struct ShadeInput *shi, struct MTex *mtex);
-
-
-/*************************************************/
+/** \} */
 
 void init_nodesystem(void);
 void free_nodesystem(void);
 
-#endif
+#endif  /* __BKE_NODE_H__ */
