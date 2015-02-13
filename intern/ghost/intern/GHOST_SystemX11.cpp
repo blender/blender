@@ -1181,7 +1181,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		default:
 		{
 #ifdef WITH_X11_XINPUT
-			if (xe->type == m_xtablet.MotionEvent) {
+			if (xe->type == m_xtablet.MotionEvent ||
+			    xe->type == m_xtablet.MotionEventEraser ||
+			    xe->type == m_xtablet.PressEvent ||
+			    xe->type == m_xtablet.PressEventEraser)
+			{
 				XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
 				const unsigned char axis_first = data->first_axis;
 				const unsigned char axes_end = axis_first + data->axes_count;  /* after the last */

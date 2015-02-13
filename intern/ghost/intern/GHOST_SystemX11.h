@@ -286,6 +286,12 @@ public:
 		int MotionEvent;
 		int ProxInEvent;
 		int ProxOutEvent;
+		int PressEvent;
+
+		int MotionEventEraser;
+		int ProxInEventEraser;
+		int ProxOutEventEraser;
+		int PressEventEraser;
 
 		int PressureLevels;
 		int XtiltLevels, YtiltLevels;
