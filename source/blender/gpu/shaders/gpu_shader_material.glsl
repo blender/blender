@@ -2357,7 +2357,7 @@ void node_uvmap(vec3 attr_uv, out vec3 outvec)
 void node_geometry(vec3 I, vec3 N, mat4 toworld,
 	out vec3 position, out vec3 normal, out vec3 tangent,
 	out vec3 true_normal, out vec3 incoming, out vec3 parametric,
-	out float backfacing)
+	out float backfacing, out float pointiness)
 {
 	position = (toworld*vec4(I, 1.0)).xyz;
 	normal = (toworld*vec4(N, 0.0)).xyz;
@@ -2370,6 +2370,7 @@ void node_geometry(vec3 I, vec3 N, mat4 toworld,
 
 	parametric = vec3(0.0);
 	backfacing = (gl_FrontFacing)? 0.0: 1.0;
+	pointiness = 0.0;
 }
 
 void node_tex_coord(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat, vec4 camerafac,
