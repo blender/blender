@@ -961,31 +961,27 @@ static void bm_loop_walk_add(struct LoopWalkCtx *lwc, BMLoop *l)
  */
 static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
 {
+	int i;
+
 	BLI_assert(CustomData_data_equals(lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)));
 	BLI_assert(BM_elem_flag_test(l_walk, BM_ELEM_INTERNAL_TAG) == false);
 
 	bm_loop_walk_add(lwc, l_walk);
 
-#define WALK_LOOP(l_test) \
-{ \
-	BMLoop *l_other = l_test; \
-	if (l_other->v != l_walk->v) { \
-		l_other = l_other->next; \
-	} \
-	BLI_assert(l_other->v == l_walk->v); \
-	if (!BM_elem_flag_test(l_other, BM_ELEM_INTERNAL_TAG)) { \
-		if (CustomData_data_equals(lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_other, lwc->cd_layer_offset))) { \
-			bm_loop_walk_data(lwc, l_other); \
-		} \
-	} \
-} (void)0
-
-	if (l_walk->radial_next != l_walk) {
-		WALK_LOOP(l_walk->radial_next);
-	}
-
-	if (l_walk->prev->radial_next != l_walk->prev) {
-		WALK_LOOP(l_walk->prev->radial_next);
+	/* recurse around this loop-fan (in both directions) */
+	for (i = 0; i < 2; i++) {
+		BMLoop *l_other = ((i == 0) ? l_walk : l_walk->prev)->radial_next;
+		if (l_other->radial_next != l_other) {
+			if (l_other->v != l_walk->v) {
+				l_other = l_other->next;
+			}
+			BLI_assert(l_other->v == l_walk->v);
+			if (!BM_elem_flag_test(l_other, BM_ELEM_INTERNAL_TAG)) {
+				if (CustomData_data_equals(lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_other, lwc->cd_layer_offset))) {
+					bm_loop_walk_data(lwc, l_other);
+				}
+			}
+		}
 	}
 }
 
