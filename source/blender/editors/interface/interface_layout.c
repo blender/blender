@@ -217,7 +217,7 @@ static int ui_item_fit(int item, int pos, int all, int available, bool is_last, 
 #define UI_ITEM_VARY_X  1
 #define UI_ITEM_VARY_Y  2
 
-static bool ui_layout_vary_direction(uiLayout *layout)
+static int ui_layout_vary_direction(uiLayout *layout)
 {
 	return ((ELEM(layout->root->type, UI_LAYOUT_HEADER, UI_LAYOUT_PIEMENU) ||
 	        (layout->alignment != UI_LAYOUT_ALIGN_EXPAND)) ?
