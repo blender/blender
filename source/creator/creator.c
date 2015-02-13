@@ -195,6 +195,7 @@ static void setCallbacks(void);
 #ifndef WITH_PYTHON_MODULE
 
 static bool use_crash_handler = true;
+static bool use_abort_handler = true;
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
 #if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
@@ -418,6 +419,12 @@ static int disable_crash_handler(int UNUSED(argc), const char **UNUSED(argv), vo
 	return 0;
 }
 
+static int disable_abort_handler(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	use_abort_handler = false;
+	return 0;
+}
+
 static int background_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.background = 1;
@@ -590,6 +597,11 @@ static void blender_crash_handler(int signum)
 #endif
 }
 
+static void blender_abort_handler(int UNUSED(signum))
+{
+	/* Delete content of temp dir! */
+	BKE_tempdir_session_purge();
+}
 
 static int set_factory_startup(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
@@ -1354,6 +1366,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers & startup scripts)" PY_DISABLE_AUTO, disable_python, NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--disable-crash-handler", "\n\tDisable the crash handler", disable_crash_handler, NULL);
+	BLI_argsAdd(ba, 1, NULL, "--disable-abort-handler", "\n\tDisable the abort handler", disable_abort_handler, NULL);
 
 #undef PY_ENABLE_AUTO
 #undef PY_DISABLE_AUTO
@@ -1613,6 +1626,10 @@ int main(
 	if (use_crash_handler) {
 		/* after parsing args */
 		signal(SIGSEGV, blender_crash_handler);
+	}
+
+	if (use_abort_handler) {
+		signal(SIGABRT, blender_abort_handler);
 	}
 #else
 	G.factory_startup = true;  /* using preferences or user startup makes no sense for py-as-module */
