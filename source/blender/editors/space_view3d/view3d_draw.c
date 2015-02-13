@@ -1919,7 +1919,7 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	View3DAfter *v3da, *next;
 	
-	glDepthMask(0);
+	glDepthMask(GL_FALSE);
 	v3d->transp = true;
 	
 	for (v3da = v3d->afterdraw_transp.first; v3da; v3da = next) {
@@ -1930,17 +1930,19 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 	v3d->transp = false;
 	
-	glDepthMask(1);
+	glDepthMask(GL_TRUE);
 	
 }
 
 /* clears zbuffer and draws it over */
-static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, const bool clear)
+static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, bool *clear)
 {
 	View3DAfter *v3da, *next;
 
-	if (clear && v3d->zbuf)
+	if (*clear && v3d->zbuf) {
 		glClear(GL_DEPTH_BUFFER_BIT);
+		*clear = false;
+	}
 
 	v3d->xray = true;
 	for (v3da = v3d->afterdraw_xray.first; v3da; v3da = next) {
@@ -1964,6 +1966,8 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, const
 	v3d->xray = true;
 	v3d->transp = true;
 	
+	glDepthMask(GL_FALSE);
+
 	for (v3da = v3d->afterdraw_xraytransp.first; v3da; v3da = next) {
 		next = v3da->next;
 		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
@@ -1974,6 +1978,7 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, const
 	v3d->transp = false;
 	v3d->xray = false;
 
+	glDepthMask(GL_TRUE);
 }
 
 /* *********************** */
@@ -2669,6 +2674,7 @@ static void view3d_draw_objects(
 	const bool do_camera_frame = !draw_offscreen;
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
+	bool xrayclear = true;
 
 	if (!draw_offscreen) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
@@ -2797,15 +2803,15 @@ static void view3d_draw_objects(
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 
-	/* transp and X-ray afterdraw stuff */
-	if (v3d->afterdraw_transp.first)     view3d_draw_transp(scene, ar, v3d);
-	if (v3d->afterdraw_xray.first)       view3d_draw_xray(scene, ar, v3d, true);
-	if (v3d->afterdraw_xraytransp.first) view3d_draw_xraytransp(scene, ar, v3d, true);
-
 	/* perspective floor goes last to use scene depth and avoid writing to depth buffer */
 	if (draw_grids && draw_floor) {
 		drawfloor(scene, v3d, grid_unit);
 	}
+
+	/* transp and X-ray afterdraw stuff */
+	if (v3d->afterdraw_transp.first)     view3d_draw_transp(scene, ar, v3d);
+	if (v3d->afterdraw_xray.first)       view3d_draw_xray(scene, ar, v3d, &xrayclear);
+	if (v3d->afterdraw_xraytransp.first) view3d_draw_xraytransp(scene, ar, v3d, xrayclear);
 
 	if (!draw_offscreen) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
