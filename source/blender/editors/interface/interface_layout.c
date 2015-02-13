@@ -184,7 +184,7 @@ static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_
 	return name;
 }
 
-static int ui_item_fit(int item, int pos, int all, int available, int last, int alignment, int *offset)
+static int ui_item_fit(int item, int pos, int all, int available, bool is_last, int alignment, int *offset)
 {
 	if (offset)
 		*offset = 0;
@@ -195,7 +195,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int last, int 
 
 	if (all > available) {
 		/* contents is bigger than available space */
-		if (last)
+		if (is_last)
 			return available - pos;
 		else
 			return (item * available) / all;
@@ -203,7 +203,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int last, int 
 	else {
 		/* contents is smaller or equal to available space */
 		if (alignment == UI_LAYOUT_ALIGN_EXPAND) {
-			if (last)
+			if (is_last)
 				return available - pos;
 			else
 				return (item * available) / all;
@@ -217,7 +217,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int last, int 
 #define UI_ITEM_VARY_X  1
 #define UI_ITEM_VARY_Y  2
 
-static int ui_layout_vary_direction(uiLayout *layout)
+static bool ui_layout_vary_direction(uiLayout *layout)
 {
 	return ((ELEM(layout->root->type, UI_LAYOUT_HEADER, UI_LAYOUT_PIEMENU) ||
 	        (layout->alignment != UI_LAYOUT_ALIGN_EXPAND)) ?
@@ -358,7 +358,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 /* create buttons for an item with an RNA array */
 static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, int icon,
                           PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int UNUSED(h),
-                          int expand, int slider, int toggle, int icon_only)
+                          bool expand, bool slider, bool toggle, bool icon_only)
 {
 	uiStyle *style = layout->root->style;
 	uiBut *but;
@@ -502,7 +502,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 
 			/* show checkboxes for rna on a non-emboss block (menu for eg) */
 			if (type == PROP_BOOLEAN && ELEM(layout->root->block->dt, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN)) {
-				boolarr = MEM_callocN(sizeof(int) * len, "ui_item_array");
+				boolarr = MEM_callocN(sizeof(int) * len, __func__);
 				RNA_property_boolean_get_array(ptr, prop, boolarr);
 			}
 
@@ -546,7 +546,7 @@ static void ui_item_enum_expand_handle(bContext *C, void *arg1, void *arg2)
 	}
 }
 static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop,
-                                const char *uiname, int h, int icon_only)
+                                const char *uiname, int h, bool icon_only)
 {
 	/* XXX The way this function currently handles uiname parameter is insane and inconsistent with general UI API:
 	 *     * uiname is the *enum property* label.
@@ -1130,7 +1130,7 @@ void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname)
 /* RNA property items */
 
 static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, PointerRNA *ptr, PropertyRNA *prop,
-                             int index, int icon_only, int *r_w, int *r_h)
+                             int index, bool icon_only, int *r_w, int *r_h)
 {
 	PropertyType type;
 	PropertySubType subtype;
@@ -1200,7 +1200,8 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	uiBut *but = NULL;
 	PropertyType type;
 	char namestr[UI_MAX_NAME_STR];
-	int len, w, h, slider, toggle, expand, icon_only, no_bg;
+	int len, w, h;
+	bool slider, toggle, expand, icon_only, no_bg;
 	bool is_array;
 
 	UI_block_layout_set_current(block, layout);
@@ -1253,10 +1254,10 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		}
 	}
 
-	slider = (flag & UI_ITEM_R_SLIDER);
-	toggle = (flag & UI_ITEM_R_TOGGLE);
-	expand = (flag & UI_ITEM_R_EXPAND);
-	icon_only = (flag & UI_ITEM_R_ICON_ONLY);
+	slider = (flag & UI_ITEM_R_SLIDER) != 0;
+	toggle = (flag & UI_ITEM_R_TOGGLE) != 0;
+	expand = (flag & UI_ITEM_R_EXPAND) != 0;
+	icon_only = (flag & UI_ITEM_R_ICON_ONLY) != 0;
 	no_bg = (flag & UI_ITEM_R_NO_BG);
 
 	/* get size */
@@ -1452,8 +1453,8 @@ typedef struct CollItemSearch {
 
 static int sort_search_items_list(const void *a, const void *b)
 {
-	const CollItemSearch *cis1 = (CollItemSearch *)a;
-	const CollItemSearch *cis2 = (CollItemSearch *)b;
+	const CollItemSearch *cis1 = a;
+	const CollItemSearch *cis2 = b;
 	
 	if (BLI_strcasecmp(cis1->name, cis2->name) > 0)
 		return 1;
@@ -1468,7 +1469,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 	int i = 0, iconid = 0, flag = RNA_property_flag(but->rnaprop);
 	ListBase *items_list = MEM_callocN(sizeof(ListBase), "items_list");
 	CollItemSearch *cis;
-	const int skip_filter = !but->changed;
+	const bool skip_filter = !but->changed;
 
 	/* build a temporary list of relevant items first */
 	RNA_PROP_BEGIN (&but->rnasearchpoin, itemptr, but->rnasearchprop)
