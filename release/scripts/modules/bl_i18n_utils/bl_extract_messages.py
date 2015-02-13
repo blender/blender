@@ -258,7 +258,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                                                bpy.types.Panel.__subclasses__() +
                                                bpy.types.Menu.__subclasses__() +
                                                bpy.types.UIList.__subclasses__()
-                                    if cls.__name__ not in _rna_clss_ids}        
+                                    if cls.__name__ not in _rna_clss_ids}
 
         # Collect internal operators
         # extend with all internal operators
@@ -266,8 +266,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         # XXX Do not skip INTERNAL's anymore, some of those ops show up in UI now!
         # all possible operator names
         #op_ids = (set(cls.bl_rna.identifier for cls in bpy.types.OperatorProperties.__subclasses__()) |
-                  #set(cls.bl_rna.identifier for cls in bpy.types.Operator.__subclasses__()) | 
-                  #set(cls.bl_rna.identifier for cls in bpy.types.OperatorMacro.__subclasses__()))
+        #          set(cls.bl_rna.identifier for cls in bpy.types.Operator.__subclasses__()) |
+        #          set(cls.bl_rna.identifier for cls in bpy.types.OperatorMacro.__subclasses__()))
 
         #get_instance = __import__("_bpy").ops.get_instance
         #path_resolve = type(bpy.context).__base__.path_resolve

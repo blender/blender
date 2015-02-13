@@ -78,7 +78,9 @@ def batch_import(operator="",
     path = os.path.abspath(path)
 
     match_upper = match.upper()
-    pattern_match = lambda a: fnmatch.fnmatchcase(a.upper(), match_upper)
+
+    def pattern_match(a):
+        return fnmatch.fnmatchcase(a.upper(), match_upper)
 
     def file_generator(path):
         for dirpath, dirnames, filenames in os.walk(path):

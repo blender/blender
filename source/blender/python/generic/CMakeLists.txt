@@ -46,6 +46,9 @@ set(SRC
 	bpy_internal_import.h
 	idprop_py_api.h
 	py_capi_utils.h
+
+	# header-only
+	python_utildefines.h
 )
 
 add_definitions(${GL_DEFINITIONS})

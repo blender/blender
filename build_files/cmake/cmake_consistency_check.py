@@ -187,6 +187,8 @@ def cmake_get_src(f):
                                 pass
                             elif new_file.endswith(".osl"):  # open shading language
                                 pass
+                            elif new_file.endswith(".glsl"):
+                                pass
                             else:
                                 raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))
 

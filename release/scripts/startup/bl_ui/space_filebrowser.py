@@ -81,7 +81,6 @@ class FILEBROWSER_HT_header(Header):
             row.prop(params, "filter_search", text="", icon='VIEWZOOM')
 
 
-
 class FILEBROWSER_UL_dir(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         direntry = item

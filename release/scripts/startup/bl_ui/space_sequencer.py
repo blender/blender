@@ -928,19 +928,19 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             enabled = ""
             row = layout.row()
             if (strip.proxy.build_25):
-               enabled += "25% "
+                enabled += "25% "
             if (strip.proxy.build_50):
-               enabled += "50% "
+                enabled += "50% "
             if (strip.proxy.build_75):
-               enabled += "75% "
+                enabled += "75% "
             if (strip.proxy.build_100):
-               enabled += "100% "
+                enabled += "100% "
 
             row.label(enabled)
             if (strip.proxy.use_overwrite):
-               layout.label("Overwrite On")
+                layout.label("Overwrite On")
             else:
-               layout.label("Overwrite Off")
+                layout.label("Overwrite Off")
 
             col = layout.column()
             col.label(text="Build JPEG quality")
@@ -953,7 +953,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
                 col.prop(strip.proxy, "timecode")
 
         col = layout.column()
-        col.operator("sequencer.enable_proxies")        
+        col.operator("sequencer.enable_proxies")
         col.operator("sequencer.rebuild_proxy")
 
 

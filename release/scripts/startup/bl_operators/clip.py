@@ -162,8 +162,8 @@ class CLIP_OT_filter_tracks(bpy.types.Operator):
             # Find tracks with markers in both this frame and the previous one.
             relevant_tracks = [
                     track for track in clip.tracking.tracks
-                    if track.markers.find_frame(frame) and
-                       track.markers.find_frame(frame - 1)]
+                    if (track.markers.find_frame(frame) and
+                        track.markers.find_frame(frame - 1))]
 
             if not relevant_tracks:
                 continue

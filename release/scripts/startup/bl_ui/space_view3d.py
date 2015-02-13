@@ -3206,8 +3206,8 @@ class VIEW3D_PT_background_image(Panel):
 
                     row = box.row()
                     if bg.view_axis != 'CAMERA':
-                         row.prop(bg, "rotation")
-                         row.prop(bg, "size")
+                        row.prop(bg, "rotation")
+                        row.prop(bg, "size")
 
 
 class VIEW3D_PT_transform_orientations(Panel):

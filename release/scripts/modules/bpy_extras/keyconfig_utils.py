@@ -33,7 +33,7 @@ KM_HIERARCHY = [
     ('View2D Buttons List', 'EMPTY', 'WINDOW', []),  # view 2d with buttons navigation
     ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
 
-    ('Grease Pencil', 'EMPTY', 'WINDOW', [ # grease pencil stuff (per region)
+    ('Grease Pencil', 'EMPTY', 'WINDOW', [  # grease pencil stuff (per region)
         ('Grease Pencil Stroke Edit Mode', 'EMPTY', 'WINDOW', []),
         ]),
 
