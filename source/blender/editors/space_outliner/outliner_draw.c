@@ -176,16 +176,20 @@ static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob
 {
 	Main *bmain = CTX_data_main(C);
 	Object *ob;
+
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (BKE_object_is_child_recursive(ob_parent, ob)) {
-			if (state) {
-				ob->restrictflag |= flag;
-				if (deselect) {
-					ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
+			/* only do if child object is selectable */
+			if ((flag == OB_RESTRICT_SELECT) || (ob->restrictflag & OB_RESTRICT_SELECT) == 0) {
+				if (state) {
+					ob->restrictflag |= flag;
+					if (deselect) {
+						ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
+					}
 				}
-			}
-			else {
-				ob->restrictflag &= ~flag;
+				else {
+					ob->restrictflag &= ~flag;
+				}
 			}
 
 			if (rnapropname) {
