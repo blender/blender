@@ -76,6 +76,11 @@ public:
 	}
 #endif
 
+	void free_memory(void) {
+		std::vector<value_type, allocator_type>::resize(0);
+		shrink_to_fit();
+	}
+
 	/* Some external API might demand working with std::vector. */
 	operator std::vector<value_type>()
 	{
