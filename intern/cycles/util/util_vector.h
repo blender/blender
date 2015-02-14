@@ -22,31 +22,12 @@
 #include <string.h>
 #include <vector>
 
+#include "util_aligned_malloc.h"
 #include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 
 using std::vector;
-
-static inline void *malloc_aligned(size_t size, size_t alignment)
-{
-	void *data = (void*)malloc(size + sizeof(void*) + alignment - 1);
-
-	union { void *ptr; size_t offset; } u;
-	u.ptr = (char*)data + sizeof(void*);
-	u.offset = (u.offset + alignment - 1) & ~(alignment - 1);
-	*(((void**)u.ptr) - 1) = data;
-
-	return u.ptr;
-}
-
-static inline void free_aligned(void *ptr)
-{
-	if(ptr) {
-		void *data = *(((void**)ptr) - 1);
-		free(data);
-	}
-}
 
 /* Array
  *
@@ -74,7 +55,7 @@ public:
 			datasize = 0;
 		}
 		else {
-			data = (T*)malloc_aligned(sizeof(T)*newsize, alignment);
+			data = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
 			datasize = newsize;
 		}
 	}
@@ -91,7 +72,7 @@ public:
 			datasize = 0;
 		}
 		else {
-			data = (T*)malloc_aligned(sizeof(T)*from.datasize, alignment);
+			data = (T*)util_aligned_malloc(sizeof(T)*from.datasize, alignment);
 			memcpy(data, from.data, from.datasize*sizeof(T));
 			datasize = from.datasize;
 		}
@@ -105,7 +86,7 @@ public:
 		data = NULL;
 
 		if(datasize > 0) {
-			data = (T*)malloc_aligned(sizeof(T)*datasize, alignment);
+			data = (T*)util_aligned_malloc(sizeof(T)*datasize, alignment);
 			memcpy(data, &from[0], datasize*sizeof(T));
 		}
 
@@ -114,7 +95,7 @@ public:
 
 	~array()
 	{
-		free_aligned(data);
+		util_aligned_free(data);
 	}
 
 	void resize(size_t newsize)
@@ -123,10 +104,10 @@ public:
 			clear();
 		}
 		else if(newsize != datasize) {
-			T *newdata = (T*)malloc_aligned(sizeof(T)*newsize, alignment);
+			T *newdata = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
 			if(data) {
 				memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
-				free_aligned(data);
+				util_aligned_free(data);
 			}
 
 			data = newdata;
@@ -136,7 +117,7 @@ public:
 
 	void clear()
 	{
-		free_aligned(data);
+		util_aligned_free(data);
 		data = NULL;
 		datasize = 0;
 	}

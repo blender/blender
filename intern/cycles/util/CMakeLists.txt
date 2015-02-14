@@ -9,6 +9,7 @@ set(INC_SYS
 )
 
 set(SRC
+	util_aligned_malloc.cpp
 	util_cache.cpp
 	util_logging.cpp
 	util_md5.cpp
@@ -33,6 +34,7 @@ endif()
 
 set(SRC_HEADERS
 	util_algorithm.h
+	util_aligned_malloc.h
 	util_args.h
 	util_atomic.h
 	util_boundbox.h
