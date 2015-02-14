@@ -2051,6 +2051,17 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	}
 }
 
+static Py_hash_t Vector_hash(VectorObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	if (BaseMathObject_Prepare_ForHash(self) == -1)
+		return -1;
+
+	return mathutils_array_hash(self->vec, self->size);
+}
+
 /*-----------------PROTCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Vector_SeqMethods = {
 	(lenfunc) Vector_len,               /* sq_length */
@@ -2927,7 +2938,7 @@ PyTypeObject vector_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,                       /* hashfunc tp_hash; */
+	(hashfunc)Vector_hash,      /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 #ifndef MATH_STANDALONE
 	(reprfunc)Vector_str,       /* reprfunc tp_str; */

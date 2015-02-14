@@ -895,6 +895,19 @@ static void matrix_copy(MatrixObject *mat_dst, const MatrixObject *mat_src)
 	memcpy(mat_dst->matrix, mat_src->matrix, sizeof(float) * (mat_dst->num_col * mat_dst->num_row));
 }
 
+/* transposes memory layout, rol/col's don't have to match */
+static void matrix_transpose_internal(float mat_dst_fl[], const MatrixObject *mat_src)
+{
+	unsigned short col, row;
+	unsigned int i = 0;
+
+	for (row = 0; row < mat_src->num_row; row++) {
+		for (col = 0; col < mat_src->num_col; col++) {
+			mat_dst_fl[i++] = MATRIX_ITEM(mat_src, row, col);
+		}
+	}
+}
+
 /* assumes rowsize == colsize is checked and the read callback has run */
 static float matrix_determinant_internal(const MatrixObject *self)
 {
@@ -2040,6 +2053,21 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 	return Py_INCREF_RET(res);
 }
 
+static Py_hash_t Matrix_hash(MatrixObject *self)
+{
+	float mat[SQUARE(MATRIX_MAX_DIM)];
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	if (BaseMathObject_Prepare_ForHash(self) == -1)
+		return -1;
+
+	matrix_transpose_internal(mat, self);
+
+	return mathutils_array_hash(mat, self->num_row * self->num_col);
+}
+
 /*---------------------SEQUENCE PROTOCOLS------------------------
  * ----------------------------len(object)------------------------
  * sequence length */
@@ -2745,7 +2773,7 @@ PyTypeObject matrix_Type = {
 	&Matrix_NumMethods,                 /*tp_as_number*/
 	&Matrix_SeqMethods,                 /*tp_as_sequence*/
 	&Matrix_AsMapping,                  /*tp_as_mapping*/
-	NULL,                               /*tp_hash*/
+	(hashfunc)Matrix_hash,              /*tp_hash*/
 	NULL,                               /*tp_call*/
 #ifndef MATH_STANDALONE
 	(reprfunc) Matrix_str,              /*tp_str*/

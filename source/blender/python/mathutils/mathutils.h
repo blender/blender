@@ -109,6 +109,7 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index);
 int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 
 void _BaseMathObject_RaiseFrozenExc(const BaseMathObject *self);
+void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
 
 /* since this is called so often avoid where possible */
 #define BaseMath_ReadCallback(_self) \
@@ -133,11 +134,17 @@ void _BaseMathObject_RaiseFrozenExc(const BaseMathObject *self);
 	(UNLIKELY((_self)->flag & BASE_MATH_FLAG_IS_FROZEN) ? \
 	(_BaseMathObject_RaiseFrozenExc((BaseMathObject *)_self), -1) : 0)
 
+#define BaseMathObject_Prepare_ForHash(_self) \
+	(UNLIKELY(((_self)->flag & BASE_MATH_FLAG_IS_FROZEN) == 0) ? \
+	 (_BaseMathObject_RaiseNotFrozenExc((BaseMathObject *)_self), -1) : 0)
+
 /* utility func */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
 int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, const char *error_prefix);
 int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value, const char *error_prefix);
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
+
+Py_hash_t mathutils_array_hash(const float *float_array, size_t array_len);
 
 /* zero remaining unused elements of the array */
 #define MU_ARRAY_ZERO      (1 << 30)

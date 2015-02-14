@@ -192,6 +192,17 @@ static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 	return Py_INCREF_RET(res);
 }
 
+static Py_hash_t Color_hash(ColorObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	if (BaseMathObject_Prepare_ForHash(self) == -1)
+		return -1;
+
+	return mathutils_array_hash(self->col, COLOR_SIZE);
+}
+
 /* ---------------------SEQUENCE PROTOCOLS------------------------ */
 /* ----------------------------len(object)------------------------ */
 /* sequence length */
@@ -843,7 +854,7 @@ PyTypeObject color_Type = {
 	&Color_NumMethods,              /* tp_as_number */
 	&Color_SeqMethods,              /* tp_as_sequence */
 	&Color_AsMapping,               /* tp_as_mapping */
-	NULL,                           /* tp_hash */
+	(hashfunc)Color_hash,           /* tp_hash */
 	NULL,                           /* tp_call */
 #ifndef MATH_STANDALONE
 	(reprfunc) Color_str,           /* tp_str */

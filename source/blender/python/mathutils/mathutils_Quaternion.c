@@ -575,6 +575,17 @@ static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
 	return Py_INCREF_RET(res);
 }
 
+static Py_hash_t Quaternion_hash(QuaternionObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	if (BaseMathObject_Prepare_ForHash(self) == -1)
+		return -1;
+
+	return mathutils_array_hash(self->quat, QUAT_SIZE);
+}
+
 /* ---------------------SEQUENCE PROTOCOLS------------------------ */
 /* ----------------------------len(object)------------------------ */
 /* sequence length */
@@ -1275,7 +1286,7 @@ PyTypeObject quaternion_Type = {
 	&Quaternion_NumMethods,             /* tp_as_number */
 	&Quaternion_SeqMethods,             /* tp_as_sequence */
 	&Quaternion_AsMapping,              /* tp_as_mapping */
-	NULL,                               /* tp_hash */
+	(hashfunc)Quaternion_hash,          /* tp_hash */
 	NULL,                               /* tp_call */
 #ifndef MATH_STANDALONE
 	(reprfunc) Quaternion_str,          /* tp_str */

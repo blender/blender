@@ -79,6 +79,37 @@ static int mathutils_array_parse_fast(float *array,
 	return size;
 }
 
+/**
+ * helper function that returns a Python ``__hash__``.
+ *
+ * \note consistent with the equivalent tuple of floats (CPython's 'tuplehash')
+ */
+Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
+{
+	int i;
+	Py_uhash_t x;  /* Unsigned for defined overflow behavior. */
+	Py_hash_t y;
+	Py_uhash_t mult;
+	Py_ssize_t len;
+
+	mult = _PyHASH_MULTIPLIER;
+	len = array_len;
+	x = 0x345678UL;
+	i = 0;
+	while (--len >= 0) {
+		y = _Py_HashDouble((double)(array[i++]));
+		if (y == -1)
+			return -1;
+		x = (x ^ y) * mult;
+		/* the cast might truncate len; that doesn't change hash stability */
+		mult += (Py_hash_t)(82520UL + len + len);
+	}
+	x += 97531UL;
+	if (x == (Py_uhash_t)-1)
+		x = -2;
+	return x;
+}
+
 /* helper functionm returns length of the 'value', -1 on error */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
@@ -456,6 +487,13 @@ void _BaseMathObject_RaiseFrozenExc(const BaseMathObject *self)
 {
 	PyErr_Format(PyExc_TypeError,
 	             "%s is frozen (immutable)",
+	             Py_TYPE(self)->tp_name);
+}
+
+void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self)
+{
+	PyErr_Format(PyExc_TypeError,
+	             "%s is not frozen (mutable), call freeze first",
 	             Py_TYPE(self)->tp_name);
 }
 

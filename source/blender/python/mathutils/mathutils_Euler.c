@@ -389,6 +389,17 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
 	return Py_INCREF_RET(res);
 }
 
+static Py_hash_t Euler_hash(EulerObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	if (BaseMathObject_Prepare_ForHash(self) == -1)
+		return -1;
+
+	return mathutils_array_hash(self->eul, EULER_SIZE);
+}
+
 /* ---------------------SEQUENCE PROTOCOLS------------------------ */
 /* ----------------------------len(object)------------------------ */
 /* sequence length */
@@ -696,7 +707,7 @@ PyTypeObject euler_Type = {
 	NULL,                           /* tp_as_number */
 	&Euler_SeqMethods,              /* tp_as_sequence */
 	&Euler_AsMapping,               /* tp_as_mapping */
-	NULL,                           /* tp_hash */
+	(hashfunc)Euler_hash,           /* tp_hash */
 	NULL,                           /* tp_call */
 #ifndef MATH_STANDALONE
 	(reprfunc) Euler_str,           /* tp_str */
