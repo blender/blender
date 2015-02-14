@@ -33,6 +33,7 @@ SET(_jemalloc_SEARCH_DIRS
   /sw # Fink
   /opt/local # DarwinPorts
   /opt/csw # Blastwave
+  /opt/lib/jemalloc
 )
 
 FIND_PATH(JEMALLOC_INCLUDE_DIR
