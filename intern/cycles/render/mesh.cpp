@@ -913,6 +913,16 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		foreach(AttributeRequest& req, attributes.requests) {
 			Attribute *triangle_mattr = mesh->attributes.find(req);
 			Attribute *curve_mattr = mesh->curve_attributes.find(req);
+
+			/* todo: get rid of this exception, it's only here for giving some
+			 * working texture coordinate for subdivision as we can't preserve
+			 * any attributes yet */
+			if(!triangle_mattr && req.std == ATTR_STD_GENERATED) {
+				triangle_mattr = mesh->attributes.add(ATTR_STD_GENERATED);
+				if(mesh->verts.size())
+					memcpy(triangle_mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
+			}
+
 			update_attribute_element_size(mesh,
 			                              triangle_mattr,
 			                              &attr_float_size,
@@ -944,15 +954,6 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		foreach(AttributeRequest& req, attributes.requests) {
 			Attribute *triangle_mattr = mesh->attributes.find(req);
 			Attribute *curve_mattr = mesh->curve_attributes.find(req);
-
-			/* todo: get rid of this exception, it's only here for giving some
-			 * working texture coordinate for subdivision as we can't preserve
-			 * any attributes yet */
-			if(!triangle_mattr && req.std == ATTR_STD_GENERATED) {
-				triangle_mattr = mesh->attributes.add(ATTR_STD_GENERATED);
-				if(mesh->verts.size())
-					memcpy(triangle_mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
-			}
 
 			update_attribute_element_offset(mesh,
 			                                attr_float, attr_float_offset,
