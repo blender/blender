@@ -74,6 +74,11 @@ set(SRC_HEADERS
 	util_xml.h
 )
 
+if(WITH_CYCLES_DEBUG)
+	list(APPEND SRC util_guarded_allocator.cpp)
+	list(APPEND SRC_HEADERS util_guarded_allocator.h)
+endif()
+
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 

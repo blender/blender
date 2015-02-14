@@ -25,9 +25,63 @@
 #include "util_aligned_malloc.h"
 #include "util_types.h"
 
+#ifdef WITH_CYCLES_DEBUG
+#  include "util_guarded_allocator.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
-using std::vector;
+/* Vector
+ *
+ * Own subclass-ed vestion of std::vector. Subclass is needed because:
+ *
+ * - When building with WITH_CYCLES_DEBUG we need to use own allocator which
+ *   keeps track of used/peak memory.
+ *
+ * - Have method to ensure capacity is re-set to 0.
+ */
+template<typename value_type>
+class vector : public std::vector<value_type
+#ifdef WITH_CYCLES_DEBUG
+                                  , GuardedAllocator<value_type>
+#endif
+                                  >
+{
+public:
+#ifdef WITH_CYCLES_DEBUG
+	typedef GuardedAllocator<value_type> allocator_type;
+#else
+	typedef std::allocator<value_type> allocator_type;
+#endif
+
+	/* Default constructor. */
+	explicit vector() : std::vector<value_type, allocator_type>() {  }
+
+	/* Fill constructor. */
+	explicit vector(size_t n, const value_type& val = value_type())
+		: std::vector<value_type, allocator_type>(n, val) {  }
+
+	/* Range constructor. */
+	template <class InputIterator>
+	vector (InputIterator first, InputIterator last)
+		: std::vector<value_type, allocator_type>(first, last) {  }
+
+	/* Copy constructor. */
+	vector(const vector &x) : std::vector<value_type, allocator_type>(x) {  }
+
+#if __cplusplus < 201103L
+	void shrink_to_fit(void)
+	{
+		vector<value_type>().swap(*this);
+	}
+#endif
+
+	/* Some external API might demand working with std::vector. */
+	operator std::vector<value_type>()
+	{
+		return std::vector<value_type>(*this);
+	}
+};
 
 /* Array
  *
