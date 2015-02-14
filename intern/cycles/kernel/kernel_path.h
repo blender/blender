@@ -130,9 +130,6 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 						rphase, rscatter, &volume_segment, NULL, true);
 				}
 
-				if(result != VOLUME_PATH_SCATTERED)
-					throughput *= volume_segment.accum_transmittance;
-
 				/* free cached steps */
 				kernel_volume_decoupled_free(kg, &volume_segment);
 
@@ -141,6 +138,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 						continue;
 					else
 						break;
+				}
+				else {
+					throughput *= volume_segment.accum_transmittance;
 				}
 			}
 			else
@@ -575,9 +575,6 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 						rphase, rscatter, &volume_segment, NULL, true);
 				}
 
-				if(result != VOLUME_PATH_SCATTERED)
-					throughput *= volume_segment.accum_transmittance;
-
 				/* free cached steps */
 				kernel_volume_decoupled_free(kg, &volume_segment);
 
@@ -586,6 +583,9 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 						continue;
 					else
 						break;
+				}
+				else {
+					throughput *= volume_segment.accum_transmittance;
 				}
 			}
 			else 
