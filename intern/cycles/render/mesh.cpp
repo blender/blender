@@ -750,8 +750,49 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 	device->tex_alloc("__attributes_map", dscene->attributes_map);
 }
 
-static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_float, vector<float4>& attr_float3, vector<uchar4>& attr_uchar4,
-	Attribute *mattr, TypeDesc& type, int& offset, AttributeElement& element)
+static void update_attribute_element_size(Mesh *mesh,
+                                          Attribute *mattr,
+                                          size_t *attr_float_size,
+                                          size_t *attr_float3_size,
+                                          size_t *attr_uchar4_size)
+{
+	if(mattr) {
+		size_t size = mattr->element_size(
+			mesh->verts.size(),
+			mesh->triangles.size(),
+			mesh->motion_steps,
+			mesh->curves.size(),
+			mesh->curve_keys.size());
+
+		if(mattr->element == ATTR_ELEMENT_VOXEL) {
+			/* pass */
+		}
+		else if(mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
+			*attr_uchar4_size += size;
+		}
+		else if(mattr->type == TypeDesc::TypeFloat) {
+			*attr_float_size += size;
+		}
+		else if(mattr->type == TypeDesc::TypeMatrix) {
+			*attr_float3_size += size * 4;
+		}
+		else {
+			*attr_float3_size += size;
+		}
+	}
+}
+
+static void update_attribute_element_offset(Mesh *mesh,
+                                            vector<float>& attr_float,
+                                            size_t& attr_float_offset,
+                                            vector<float4>& attr_float3,
+                                            size_t& attr_float3_offset,
+                                            vector<uchar4>& attr_uchar4,
+                                            size_t& attr_uchar4_offset,
+                                            Attribute *mattr,
+                                            TypeDesc& type,
+                                            int& offset,
+                                            AttributeElement& element)
 {
 	if(mattr) {
 		/* store element and type */
@@ -773,39 +814,43 @@ static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_floa
 		}
 		else if(mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
 			uchar4 *data = mattr->data_uchar4();
-			offset = attr_uchar4.size();
+			offset = attr_uchar4_offset;
 
-			attr_uchar4.resize(attr_uchar4.size() + size);
-
-			for(size_t k = 0; k < size; k++)
+			assert(attr_uchar4.capacity() >= offset + size);
+			for(size_t k = 0; k < size; k++) {
 				attr_uchar4[offset+k] = data[k];
+			}
+			attr_uchar4_offset += size;
 		}
 		else if(mattr->type == TypeDesc::TypeFloat) {
 			float *data = mattr->data_float();
-			offset = attr_float.size();
+			offset = attr_float_offset;
 
-			attr_float.resize(attr_float.size() + size);
-
-			for(size_t k = 0; k < size; k++)
+			assert(attr_float.capacity() >= offset + size);
+			for(size_t k = 0; k < size; k++) {
 				attr_float[offset+k] = data[k];
+			}
+			attr_float_offset += size;
 		}
 		else if(mattr->type == TypeDesc::TypeMatrix) {
 			Transform *tfm = mattr->data_transform();
-			offset = attr_float3.size();
+			offset = attr_float3_offset;
 
-			attr_float3.resize(attr_float3.size() + size*4);
-
-			for(size_t k = 0; k < size*4; k++)
+			assert(attr_float3.capacity() >= offset + size * 4);
+			for(size_t k = 0; k < size*4; k++) {
 				attr_float3[offset+k] = (&tfm->x)[k];
+			}
+			attr_float3_offset += size * 4;
 		}
 		else {
 			float4 *data = mattr->data_float4();
-			offset = attr_float3.size();
+			offset = attr_float3_offset;
 
-			attr_float3.resize(attr_float3.size() + size);
-
-			for(size_t k = 0; k < size; k++)
+			assert(attr_float3.capacity() >= offset + size);
+			for(size_t k = 0; k < size; k++) {
 				attr_float3[offset+k] = data[k];
+			}
+			attr_float3_offset += size;
 		}
 
 		/* mesh vertex/curve index is global, not per object, so we sneak
@@ -855,10 +900,41 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	/* mesh attribute are stored in a single array per data type. here we fill
 	 * those arrays, and set the offset and element type to create attribute
 	 * maps next */
-	vector<float> attr_float;
-	vector<float4> attr_float3;
-	vector<uchar4> attr_uchar4;
 
+	/* Pre-allocate attributes to avoid arrays re-allocation which would
+	 * take 2x of overall attribute memory usage.
+	 */
+	size_t attr_float_size = 0;
+	size_t attr_float3_size = 0;
+	size_t attr_uchar4_size = 0;
+	for(size_t i = 0; i < scene->meshes.size(); i++) {
+		Mesh *mesh = scene->meshes[i];
+		AttributeRequestSet& attributes = mesh_attributes[i];
+		foreach(AttributeRequest& req, attributes.requests) {
+			Attribute *triangle_mattr = mesh->attributes.find(req);
+			Attribute *curve_mattr = mesh->curve_attributes.find(req);
+			update_attribute_element_size(mesh,
+			                              triangle_mattr,
+			                              &attr_float_size,
+			                              &attr_float3_size,
+			                              &attr_uchar4_size);
+			update_attribute_element_size(mesh,
+			                              curve_mattr,
+			                              &attr_float_size,
+			                              &attr_float3_size,
+			                              &attr_uchar4_size);
+		}
+	}
+
+	vector<float> attr_float(attr_float_size);
+	vector<float4> attr_float3(attr_float3_size);
+	vector<uchar4> attr_uchar4(attr_uchar4_size);
+
+	size_t attr_float_offset = 0;
+	size_t attr_float3_offset = 0;
+	size_t attr_uchar4_offset = 0;
+
+	/* Fill in attributes. */
 	for(size_t i = 0; i < scene->meshes.size(); i++) {
 		Mesh *mesh = scene->meshes[i];
 		AttributeRequestSet& attributes = mesh_attributes[i];
@@ -878,12 +954,24 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 					memcpy(triangle_mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
 			}
 
-			update_attribute_element_offset(mesh, attr_float, attr_float3, attr_uchar4, triangle_mattr,
-				req.triangle_type, req.triangle_offset, req.triangle_element);
+			update_attribute_element_offset(mesh,
+			                                attr_float, attr_float_offset,
+			                                attr_float3, attr_float3_offset,
+			                                attr_uchar4, attr_uchar4_offset,
+			                                triangle_mattr,
+			                                req.triangle_type,
+			                                req.triangle_offset,
+			                                req.triangle_element);
 
-			update_attribute_element_offset(mesh, attr_float, attr_float3, attr_uchar4, curve_mattr,
-				req.curve_type, req.curve_offset, req.curve_element);
-	
+			update_attribute_element_offset(mesh,
+			                                attr_float, attr_float_offset,
+			                                attr_float3, attr_float3_offset,
+			                                attr_uchar4, attr_uchar4_offset,
+			                                curve_mattr,
+			                                req.curve_type,
+			                                req.curve_offset,
+			                                req.curve_element);
+
 			if(progress.get_cancel()) return;
 		}
 	}
