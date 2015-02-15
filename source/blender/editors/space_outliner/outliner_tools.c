@@ -1597,6 +1597,9 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 				else if (ELEM(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS)) {
 					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/
 				}
+				else if (datalevel == TSE_ID_BASE) {
+					/* do nothing... there are no ops needed here yet */
+				}
 				else if (datalevel == TSE_CONSTRAINT) {
 					WM_operator_name_call(C, "OUTLINER_OT_constraint_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
