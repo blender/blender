@@ -234,6 +234,9 @@ BL_ArmatureObject::BL_ArmatureObject(
     // need this to get iTaSC working ok in the BGE
     m_pose->flag |= POSE_GAME_ENGINE;
 	memcpy(m_obmat, m_objArma->obmat, sizeof(m_obmat));
+
+	// The side-effect of this method registers this object as "animatable" with the KX_Scene.
+	GetActionManager();
 }
 
 BL_ArmatureObject::~BL_ArmatureObject()
