@@ -615,11 +615,14 @@ static PyObject *Euler_order_get(EulerObject *self, void *UNUSED(closure))
 
 static int Euler_order_set(EulerObject *self, PyObject *value, void *UNUSED(closure))
 {
-	const char *order_str = _PyUnicode_AsString(value);
-	short order = euler_order_from_string(order_str, "euler.order");
+	const char *order_str;
+	short order;
 
-	if (order == -1)
+	if (((order_str = _PyUnicode_AsString(value)) == NULL) ||
+	    ((order = euler_order_from_string(order_str, "euler.order")) == -1))
+	{
 		return -1;
+	}
 
 	self->order = order;
 	(void)BaseMath_WriteCallback(self); /* order can be written back */
