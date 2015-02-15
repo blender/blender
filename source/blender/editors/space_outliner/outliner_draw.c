@@ -447,7 +447,7 @@ static void restrictbutton_gr_restrict_render(bContext *C, void *poin, void *poi
 	WM_event_add_notifier(C, NC_GROUP, NULL);
 }
 
-static void restrictbutton_id_user_toggle(bContext *C, void *poin, void *UNUSED(poin2))
+static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
 {
 	ID *id = (ID *)poin;
 	

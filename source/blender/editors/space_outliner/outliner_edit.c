@@ -1482,7 +1482,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
 	                                   "Click here to proceed...");
 }
 
-static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
+static int outliner_orphans_purge_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* Firstly, ensure that the file has been saved,
 	 * so that the latest changes since the last save
