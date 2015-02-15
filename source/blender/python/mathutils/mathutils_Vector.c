@@ -1167,9 +1167,8 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 {
 	const int size = self->size;
 	PyObject *value = NULL;
-	float fac, ifac;
-	float *tvec, *vec;
-	int x;
+	float fac;
+	float *tvec;
 
 	if (!PyArg_ParseTuple(args, "Of:lerp", &value, &fac))
 		return NULL;
@@ -1182,23 +1181,9 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 		return NULL;
 	}
 
-	vec = PyMem_Malloc(size * sizeof(float));
-	if (vec == NULL) {
-		PyErr_SetString(PyExc_MemoryError,
-		                "Vector.lerp(): "
-		                "problem allocating pointer space");
-		return NULL;
-	}
+	interp_vn_vn(tvec, self->vec, 1.0f - fac, size);
 
-	ifac = 1.0f - fac;
-
-	for (x = 0; x < size; x++) {
-		vec[x] = (ifac * self->vec[x]) + (fac * tvec[x]);
-	}
-
-	PyMem_Free(tvec);
-
-	return Vector_CreatePyObject_alloc(vec, size, Py_TYPE(self));
+	return Vector_CreatePyObject_alloc(tvec, size, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Vector_slerp_doc,
