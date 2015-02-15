@@ -219,7 +219,6 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 	DIR *dir;
 
 	if ((dir = opendir(dirname)) != NULL) {
-
 		const struct dirent *fname;
 		while ((fname = readdir(dir)) != NULL) {
 			struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
@@ -231,20 +230,19 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 		}
 
 		if (newnum) {
-
 			if (dir_ctx->files) {
-				void * const tmp = realloc(dir_ctx->files, (dir_ctx->nrfiles + newnum) * sizeof(struct direntry));
+				void * const tmp = MEM_reallocN(dir_ctx->files, (dir_ctx->nrfiles + newnum) * sizeof(struct direntry));
 				if (tmp) {
 					dir_ctx->files = (struct direntry *)tmp;
 				}
 				else { /* realloc fail */
-					free(dir_ctx->files);
+					MEM_freeN(dir_ctx->files);
 					dir_ctx->files = NULL;
 				}
 			}
 			
 			if (dir_ctx->files == NULL)
-				dir_ctx->files = (struct direntry *)malloc(newnum * sizeof(struct direntry));
+				dir_ctx->files = (struct direntry *)MEM_mallocN(newnum * sizeof(struct direntry), __func__);
 
 			if (dir_ctx->files) {
 				struct dirlink * dlink = (struct dirlink *) dirbase.first;
@@ -405,7 +403,7 @@ unsigned int BLI_filelist_dir_contents(const char *dirname,  struct direntry **f
 	else {
 		// keep blender happy. Blender stores this in a variable
 		// where 0 has special meaning.....
-		*filelist = malloc(sizeof(struct direntry));
+		*filelist = MEM_mallocN(sizeof(**filelist), __func__);
 	}
 
 	return dir_ctx.nrfiles;
@@ -422,7 +420,7 @@ void BLI_filelist_duplicate(
 {
 	unsigned int i;
 
-	*dest_filelist = malloc(sizeof(**dest_filelist) * (size_t)(nrentries));
+	*dest_filelist = MEM_mallocN(sizeof(**dest_filelist) * (size_t)(nrentries), __func__);
 	for (i = 0; i < nrentries; ++i) {
 		struct direntry * const src = &src_filelist[i];
 		struct direntry *dest = &(*dest_filelist)[i];
@@ -461,7 +459,7 @@ void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (
 			free_poin(entry->poin);
 	}
 
-	free(filelist);
+	MEM_freeN(filelist);
 }
 
 

@@ -37,7 +37,6 @@ extern "C" {
 #endif
 
 struct bScreen;
-struct direntry;
 struct LinkNode;
 struct Main;
 struct MemFile;
