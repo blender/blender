@@ -447,6 +447,20 @@ static void restrictbutton_gr_restrict_render(bContext *C, void *poin, void *poi
 	WM_event_add_notifier(C, NC_GROUP, NULL);
 }
 
+static void restrictbutton_id_user_toggle(bContext *C, void *poin, void *UNUSED(poin2))
+{
+	ID *id = (ID *)poin;
+	
+	BLI_assert(id != NULL);
+	
+	if (id->flag & LIB_FAKEUSER) {
+		id_us_plus(id);
+	}
+	else {
+		id_us_min(id);
+	}
+}
+
 
 static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
@@ -789,6 +803,65 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 		}
 		
 		if (TSELEM_OPEN(tselem, soops)) outliner_draw_restrictbuts(block, scene, ar, soops, &te->subtree);
+	}
+}
+
+static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOops *soops, ListBase *lb)
+{
+	uiBut *bt;
+	TreeElement *te;
+	TreeStoreElem *tselem;
+
+	for (te = lb->first; te; te = te->next) {
+		tselem = TREESTORE(te);
+		if (te->ys + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
+			if (tselem->type == 0) {
+				ID *id = tselem->id;
+				const char *tip = NULL;
+				int icon = ICON_NONE;
+				char buf[16] = "";
+				int but_flag = UI_BUT_DRAG_LOCK;
+
+				if (id->lib)
+					but_flag |= UI_BUT_DISABLED;
+
+				UI_block_emboss_set(block, UI_EMBOSS_NONE);
+
+				if (id->flag & LIB_FAKEUSER) {
+					icon = ICON_FILE_TICK;
+					tip  = TIP_("Datablock will be retained using a fake user");
+				}
+				else {
+					icon = ICON_X;
+					tip  = TIP_("Datablock has no users and will be deleted");
+				}
+				bt = uiDefIconButBitS(block, UI_BTYPE_TOGGLE, LIB_FAKEUSER, 1, icon,
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				                      &id->flag, 0, 0, 0, 0, tip);
+				UI_but_func_set(bt, restrictbutton_id_user_toggle, id, NULL);
+				UI_but_flag_enable(bt, but_flag);
+				
+				
+				BLI_str_format_int_grouped(buf, id->us);
+				bt = uiDefBut(block, UI_BTYPE_BUT, 1, buf, 
+				              (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, 
+				              UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0,
+				              TIP_("Number of users of this datablock"));
+				UI_but_flag_enable(bt, but_flag);
+				
+				
+				bt = uiDefButBitS(block, UI_BTYPE_TOGGLE, LIB_FAKEUSER, 1, (id->flag & LIB_FAKEUSER) ? "F" : " ", 
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y, 
+				                      &id->flag, 0, 0, 0, 0,
+				                      TIP_("Datablock has a 'fake' user which will keep it in the flie even if nothing else uses it"));
+				UI_but_func_set(bt, restrictbutton_id_user_toggle, id, NULL);
+				UI_but_flag_enable(bt, but_flag);
+				
+				UI_block_emboss_set(block, UI_EMBOSS);
+			}
+		}
+		
+		if (TSELEM_OPEN(tselem, soops)) outliner_draw_userbuts(block, ar, soops, &te->subtree);
 	}
 }
 
@@ -1778,6 +1851,11 @@ void draw_outliner(const bContext *C)
 		/* draw rna buttons */
 		outliner_draw_rnacols(ar, sizex_rna);
 		outliner_draw_rnabuts(block, scene, ar, soops, sizex_rna, &soops->tree);
+	}
+	else if ((soops->outlinevis == SO_ID_ORPHANS) && !(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+		/* draw user toggle columns */
+		outliner_draw_restrictcols(ar);
+		outliner_draw_userbuts(block, ar, soops, &soops->tree);
 	}
 	else if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
 		/* draw restriction columns */
