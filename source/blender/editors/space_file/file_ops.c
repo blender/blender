@@ -179,16 +179,18 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 		params->active_file = selected_idx;
 
 		if (S_ISDIR(file->type)) {
+			const bool is_parent_dir = FILENAME_IS_PARENT(file->relname);
+
 			if (do_diropen == false) {
 				params->file[0] = '\0';
 				retval = FILE_SELECT_DIR;
 			}
 			/* the path is too long and we are not going up! */
-			else if (!FILENAME_IS_PARENT(file->relname) && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
+			else if (!is_parent_dir && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
 				// XXX error("Path too long, cannot enter this directory");
 			}
 			else {
-				if (FILENAME_IS_PARENT(file->relname)) {
+				if (is_parent_dir) {
 					/* avoids /../../ */
 					BLI_parent_dir(params->dir);
 				}
