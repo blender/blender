@@ -16,6 +16,8 @@
 
 #include "util_aligned_malloc.h"
 
+#include <cassert>
+
 /* Adopted from Libmv. */
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
