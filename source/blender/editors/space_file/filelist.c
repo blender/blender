@@ -1102,7 +1102,7 @@ static void filelist_from_library(struct FileList *filelist)
 	}
 
 	filelist->numfiles = nnames + 1;
-	filelist->filelist = malloc(filelist->numfiles * sizeof(*filelist->filelist));
+	filelist->filelist = MEM_mallocN(filelist->numfiles * sizeof(*filelist->filelist), __func__);
 	memset(filelist->filelist, 0, filelist->numfiles * sizeof(*filelist->filelist));
 
 	filelist->filelist[0].relname = BLI_strdup(FILENAME_PARENT);
@@ -1173,7 +1173,7 @@ static void filelist_from_main(struct FileList *filelist)
 #else
 		filelist->numfiles = 23;
 #endif
-		filelist->filelist = (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
+		filelist->filelist = (struct direntry *)MEM_mallocN(filelist->numfiles * sizeof(struct direntry), __func__);
 		
 		for (a = 0; a < filelist->numfiles; a++) {
 			memset(&(filelist->filelist[a]), 0, sizeof(struct direntry));
@@ -1227,7 +1227,7 @@ static void filelist_from_main(struct FileList *filelist)
 		
 		/* XXXXX TODO: if databrowse F4 or append/link filelist->hide_parent has to be set */
 		if (!filelist->filter_data.hide_parent) filelist->numfiles += 1;
-		filelist->filelist = filelist->numfiles > 0 ? (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry)) : NULL;
+		filelist->filelist = filelist->numfiles > 0 ? (struct direntry *)MEM_mallocN(filelist->numfiles * sizeof(struct direntry), __func__) : NULL;
 
 		files = filelist->filelist;
 		
