@@ -1123,9 +1123,6 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 	double dot = 0.0f, dot2 = 0.0f;
 	int x;
 
-	if (BaseMath_ReadCallback(self) == -1)
-		return NULL;
-
 	if (mathutils_array_parse(tvec, size, size, value, "Vector.project(other), invalid 'other' arg") == -1)
 		return NULL;
 
