@@ -336,6 +336,9 @@ PyDoc_STRVAR(Vector_zero_doc,
 );
 static PyObject *Vector_zero(VectorObject *self)
 {
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return NULL;
+
 	fill_vn_fl(self->vec, self->size, 0.0f);
 
 	if (BaseMath_WriteCallback(self) == -1)
@@ -357,7 +360,7 @@ PyDoc_STRVAR(Vector_normalize_doc,
 static PyObject *Vector_normalize(VectorObject *self)
 {
 	int size = (self->size == 4 ? 3 : self->size);
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	normalize_vn(self->vec, size);
@@ -1284,7 +1287,7 @@ static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 {
 	float other_rmat[3][3];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (mathutils_any_to_rotmat(other_rmat, value, "Vector.rotate(value)") == -1)
@@ -1402,6 +1405,10 @@ static PyObject *Vector_item(VectorObject *self, int i)
 static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, const bool is_attr)
 {
 	float scalar;
+
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return -1;
+
 	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "vector[index] = x: "
@@ -1463,7 +1470,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
 	int size = 0;
 	float *vec = NULL;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	CLAMP(begin, 0, self->size);
@@ -1556,7 +1563,7 @@ static PyObject *Vector_iadd(PyObject *v1, PyObject *v2)
 		return NULL;
 	}
 
-	if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1)
+	if (BaseMath_ReadCallback_ForWrite(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1)
 		return NULL;
 
 	add_vn_vn(vec1->vec, vec2->vec, vec1->size);
@@ -1627,7 +1634,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 		return NULL;
 	}
 
-	if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1)
+	if (BaseMath_ReadCallback_ForWrite(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1)
 		return NULL;
 
 	sub_vn_vn(vec1->vec, vec2->vec, vec1->size);
@@ -1800,7 +1807,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 	VectorObject *vec = (VectorObject *)v1;
 	float scalar;
 
-	if (BaseMath_ReadCallback(vec) == -1)
+	if (BaseMath_ReadCallback_ForWrite(vec) == -1)
 		return NULL;
 
 	/* only support vec*=float and vec*=mat
@@ -1920,7 +1927,7 @@ static PyObject *Vector_idiv(PyObject *v1, PyObject *v2)
 	float scalar;
 	VectorObject *vec1 = (VectorObject *)v1;
 
-	if (BaseMath_ReadCallback(vec1) == -1)
+	if (BaseMath_ReadCallback_ForWrite(vec1) == -1)
 		return NULL;
 
 	if ((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
@@ -2207,7 +2214,7 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
 {
 	double dot = 0.0f, param;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	if ((param = PyFloat_AsDouble(value)) == -1.0 && PyErr_Occurred()) {
@@ -2313,7 +2320,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 	float tvec[MAX_DIMENSIONS];
 	float vec_assign[MAX_DIMENSIONS];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	/* Check that the closure can be used with this vector: even 2D vectors have
@@ -2871,6 +2878,9 @@ static struct PyMethodDef Vector_methods[] = {
 	{"lerp", (PyCFunction) Vector_lerp, METH_VARARGS, Vector_lerp_doc},
 	{"slerp", (PyCFunction) Vector_slerp, METH_VARARGS, Vector_slerp_doc},
 	{"rotate", (PyCFunction) Vector_rotate, METH_O, Vector_rotate_doc},
+
+	/* base-math methods */
+	{"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, NULL},

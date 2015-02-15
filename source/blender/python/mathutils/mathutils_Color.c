@@ -222,8 +222,12 @@ static PyObject *Color_item(ColorObject *self, int i)
 /* sequence accessor (set) */
 static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 {
-	float f = PyFloat_AsDouble(value);
+	float f;
 
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return -1;
+
+	f = PyFloat_AsDouble(value);
 	if (f == -1 && PyErr_Occurred()) {  /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "color[item] = x: "
@@ -275,7 +279,7 @@ static int Color_ass_slice(ColorObject *self, int begin, int end, PyObject *seq)
 	int i, size;
 	float col[COLOR_SIZE];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	CLAMP(begin, 0, COLOR_SIZE);
@@ -431,7 +435,7 @@ static PyObject *Color_iadd(PyObject *v1, PyObject *v2)
 	color1 = (ColorObject *)v1;
 	color2 = (ColorObject *)v2;
 
-	if (BaseMath_ReadCallback(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
+	if (BaseMath_ReadCallback_ForWrite(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
 		return NULL;
 
 	add_vn_vn(color1->col, color2->col, COLOR_SIZE);
@@ -480,7 +484,7 @@ static PyObject *Color_isub(PyObject *v1, PyObject *v2)
 	color1 = (ColorObject *)v1;
 	color2 = (ColorObject *)v2;
 
-	if (BaseMath_ReadCallback(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
+	if (BaseMath_ReadCallback_ForWrite(color1) == -1 || BaseMath_ReadCallback(color2) == -1)
 		return NULL;
 
 	sub_vn_vn(color1->col, color2->col, COLOR_SIZE);
@@ -579,7 +583,7 @@ static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 	ColorObject *color = (ColorObject *)v1;
 	float scalar;
 
-	if (BaseMath_ReadCallback(color) == -1)
+	if (BaseMath_ReadCallback_ForWrite(color) == -1)
 		return NULL;
 
 	/* only support color *= float */
@@ -605,7 +609,7 @@ static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 	ColorObject *color = (ColorObject *)v1;
 	float scalar;
 
-	if (BaseMath_ReadCallback(color) == -1)
+	if (BaseMath_ReadCallback_ForWrite(color) == -1)
 		return NULL;
 
 	/* only support color /= float */
@@ -728,7 +732,7 @@ static int Color_channel_hsv_set(ColorObject *self, PyObject *value, void *type)
 		return -1;
 	}
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	rgb_to_hsv_v(self->col, hsv);
@@ -769,6 +773,9 @@ static int Color_hsv_set(ColorObject *self, PyObject *value, void *UNUSED(closur
 	if (mathutils_array_parse(hsv, 3, 3, value, "mathutils.Color.hsv = value") == -1)
 		return -1;
 
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return -1;
+
 	CLAMP(hsv[0], 0.0f, 1.0f);
 	CLAMP(hsv[1], 0.0f, 1.0f);
 	CLAMP(hsv[2], 0.0f, 1.0f);
@@ -796,6 +803,7 @@ static PyGetSetDef Color_getseters[] = {
 	{(char *)"hsv", (getter)Color_hsv_get, (setter)Color_hsv_set, (char *)Color_hsv_doc, (void *)0},
 
 	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, BaseMathObject_is_wrapped_doc, NULL},
+	{(char *)"is_frozen",  (getter)BaseMathObject_is_frozen_get,  (setter)NULL, BaseMathObject_is_frozen_doc, NULL},
 	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
@@ -806,6 +814,9 @@ static struct PyMethodDef Color_methods[] = {
 	{"copy", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
 	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
 	{"__deepcopy__", (PyCFunction) Color_deepcopy, METH_VARARGS, Color_copy_doc},
+
+	/* base-math methods */
+	{"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -111,7 +111,7 @@ static int mathutils_matrix_row_set(BaseMathObject *bmo, int row)
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	int col;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 	if (!matrix_row_vector_check(self, (VectorObject *)bmo, row))
 		return -1;
@@ -141,7 +141,7 @@ static int mathutils_matrix_row_set_index(BaseMathObject *bmo, int row, int col)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 	if (!matrix_row_vector_check(self, (VectorObject *)bmo, row))
 		return -1;
@@ -200,7 +200,7 @@ static int mathutils_matrix_col_set(BaseMathObject *bmo, int col)
 	int num_row;
 	int row;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 	if (!matrix_col_vector_check(self, (VectorObject *)bmo, col))
 		return -1;
@@ -233,7 +233,7 @@ static int mathutils_matrix_col_set_index(BaseMathObject *bmo, int col, int row)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 	if (!matrix_col_vector_check(self, (VectorObject *)bmo, col))
 		return -1;
@@ -286,7 +286,7 @@ static int mathutils_matrix_translation_set(BaseMathObject *bmo, int col)
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	int row;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	for (row = 0; row < 3; row++) {
@@ -312,7 +312,7 @@ static int mathutils_matrix_translation_set_index(BaseMathObject *bmo, int col, 
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	MATRIX_ITEM(self, row, col) = bmo->data[row];
@@ -1385,7 +1385,7 @@ PyDoc_STRVAR(Matrix_invert_doc,
 );
 static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (matrix_invert_is_compat(self) == false) {
@@ -1466,7 +1466,7 @@ static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
 
 static PyObject *Matrix_inverted_noargs(MatrixObject *self)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (matrix_invert_is_compat(self) == false) {
@@ -1496,7 +1496,7 @@ PyDoc_STRVAR(Matrix_invert_safe_doc,
 );
 static PyObject *Matrix_invert_safe(MatrixObject *self)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (matrix_invert_is_compat(self) == false) {
@@ -1547,7 +1547,7 @@ PyDoc_STRVAR(Matrix_adjugate_doc,
 );
 static PyObject *Matrix_adjugate(MatrixObject *self)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
@@ -1602,7 +1602,7 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 {
 	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (mathutils_any_to_rotmat(other_rmat, value, "matrix.rotate(value)") == -1)
@@ -1746,7 +1746,7 @@ PyDoc_STRVAR(Matrix_transpose_doc,
 );
 static PyObject *Matrix_transpose(MatrixObject *self)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
@@ -1793,7 +1793,7 @@ PyDoc_STRVAR(Matrix_normalize_doc,
 );
 static PyObject *Matrix_normalize(MatrixObject *self)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
@@ -1842,6 +1842,9 @@ PyDoc_STRVAR(Matrix_zero_doc,
 );
 static PyObject *Matrix_zero(MatrixObject *self)
 {
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return NULL;
+
 	fill_vn_fl(self->matrix, self->num_col * self->num_row, 0.0f);
 
 	if (BaseMath_WriteCallback(self) == -1)
@@ -1878,7 +1881,7 @@ PyDoc_STRVAR(Matrix_identity_doc,
 );
 static PyObject *Matrix_identity(MatrixObject *self)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
@@ -2049,7 +2052,7 @@ static int Matrix_len(MatrixObject *self)
  * the wrapped vector gives direct access to the matrix data */
 static PyObject *Matrix_item_row(MatrixObject *self, int row)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (row < 0 || row >= self->num_row) {
@@ -2063,7 +2066,7 @@ static PyObject *Matrix_item_row(MatrixObject *self, int row)
 /* same but column access */
 static PyObject *Matrix_item_col(MatrixObject *self, int col)
 {
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (col < 0 || col >= self->num_col) {
@@ -2082,7 +2085,7 @@ static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
 {
 	int col;
 	float vec[MATRIX_MAX_DIM];
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	if (row >= self->num_row || row < 0) {
@@ -2107,7 +2110,7 @@ static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
 {
 	int row;
 	float vec[MATRIX_MAX_DIM];
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	if (col >= self->num_col || col < 0) {
@@ -2159,7 +2162,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 {
 	PyObject *value_fast = NULL;
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	CLAMP(begin, 0, self->num_row);
@@ -2525,7 +2528,7 @@ static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNU
 {
 	float tvec[3];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	/*must be 4x4 square matrix*/
@@ -2703,6 +2706,9 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{"__deepcopy__", (PyCFunction) Matrix_deepcopy, METH_VARARGS, Matrix_copy_doc},
+
+	/* base-math methods */
+	{"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
 	/* class methods */
 	{"Identity", (PyCFunction) C_Matrix_Identity, METH_VARARGS | METH_CLASS, C_Matrix_Identity_doc},

@@ -182,6 +182,9 @@ PyDoc_STRVAR(Euler_zero_doc,
 );
 static PyObject *Euler_zero(EulerObject *self)
 {
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return NULL;
+
 	zero_v3(self->eul);
 
 	if (BaseMath_WriteCallback(self) == -1)
@@ -220,7 +223,7 @@ static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
 		return NULL;
 	}
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 
@@ -243,7 +246,7 @@ static PyObject *Euler_rotate(EulerObject *self, PyObject *value)
 {
 	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (mathutils_any_to_rotmat(other_rmat, value, "euler.rotate(value)") == -1)
@@ -270,7 +273,7 @@ static PyObject *Euler_make_compatible(EulerObject *self, PyObject *value)
 {
 	float teul[EULER_SIZE];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return NULL;
 
 	if (mathutils_array_parse(teul, EULER_SIZE, EULER_SIZE, value,
@@ -416,8 +419,12 @@ static PyObject *Euler_item(EulerObject *self, int i)
 /* sequence accessor (set) */
 static int Euler_ass_item(EulerObject *self, int i, PyObject *value)
 {
-	float f = PyFloat_AsDouble(value);
+	float f;
 
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return -1;
+
+	f = PyFloat_AsDouble(value);
 	if (f == -1 && PyErr_Occurred()) {  /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "euler[attribute] = x: "
@@ -470,7 +477,7 @@ static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
 	int i, size;
 	float eul[EULER_SIZE];
 
-	if (BaseMath_ReadCallback(self) == -1)
+	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
 
 	CLAMP(begin, 0, EULER_SIZE);
@@ -618,6 +625,9 @@ static int Euler_order_set(EulerObject *self, PyObject *value, void *UNUSED(clos
 	const char *order_str;
 	short order;
 
+	if (BaseMath_Prepare_ForWrite(self) == -1)
+		return -1;
+
 	if (((order_str = _PyUnicode_AsString(value)) == NULL) ||
 	    ((order = euler_order_from_string(order_str, "euler.order")) == -1))
 	{
@@ -655,6 +665,9 @@ static struct PyMethodDef Euler_methods[] = {
 	{"copy", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
 	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
 	{"__deepcopy__", (PyCFunction) Euler_deepcopy, METH_VARARGS, Euler_copy_doc},
+
+	/* base-math methods */
+	{"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 	{NULL, NULL, 0, NULL}
 };
 
