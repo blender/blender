@@ -1458,6 +1458,62 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+
+/* ************************************************************** */
+/* ORPHANED DATABLOCKS */
+
+static int ed_operator_outliner_id_orphans_active(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
+		SpaceOops *so = CTX_wm_space_outliner(C);
+		return (so->outlinevis == SO_ID_ORPHANS);
+	}
+	return 0;
+}
+
+/* Purge Orphans Operator --------------------------------------- */
+
+static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
+{
+	/* present a prompt to informing users that this change is irreversible */
+	return WM_operator_confirm_message(C, op,
+	                                   "Purging unused datablocks cannot be undone. "
+	                                   "Click here to proceed...");
+}
+
+static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
+{
+	/* Firstly, ensure that the file has been saved,
+	 * so that the latest changes since the last save
+	 * are retained...
+	 */
+	WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL);
+	
+	/* Now, reload the file to get rid of the orphans... */
+	WM_operator_name_call(C, "WM_OT_revert_mainfile", WM_OP_EXEC_DEFAULT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->idname = "OUTLINER_OT_orphans_purge";
+	ot->name = "Purge All";
+	ot->description = "Clears all orphaned datablocks without any users from the file (cannot be undone)";
+	
+	/* callbacks */
+	ot->invoke = outliner_orphans_purge_invoke;
+	ot->exec = outliner_orphans_purge_exec;
+	ot->poll = ed_operator_outliner_id_orphans_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ************************************************************** */
+/* DRAG AND DROP OPERATORS */
+
 /* ******************** Parent Drop Operator *********************** */
 
 static int parent_drop_exec(bContext *C, wmOperator *op)
