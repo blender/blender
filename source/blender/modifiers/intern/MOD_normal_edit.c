@@ -323,7 +323,7 @@ static bool is_valid_target(NormalEditModifierData *smd)
 	return false;
 }
 
-static void normalEditModifier_do(NormalEditModifierData *smd, Object *ob, DerivedMesh *dm)
+static DerivedMesh *normalEditModifier_do(NormalEditModifierData *smd, Object *ob, DerivedMesh *dm)
 {
 	Mesh *me = ob->data;
 
@@ -331,10 +331,10 @@ static void normalEditModifier_do(NormalEditModifierData *smd, Object *ob, Deriv
 	const int num_edges = dm->getNumEdges(dm);
 	const int num_loops = dm->getNumLoops(dm);
 	const int num_polys = dm->getNumPolys(dm);
-	MVert *mvert = dm->getVertArray(dm);
-	MEdge *medge = dm->getEdgeArray(dm);
-	MLoop *mloop = dm->getLoopArray(dm);
-	MPoly *mpoly = dm->getPolyArray(dm);
+	MVert *mvert;
+	MEdge *medge;
+	MLoop *mloop;
+	MPoly *mpoly;
 
 	const bool use_invert_vgroup = ((smd->flag & MOD_NORMALEDIT_INVERT_VGROUP) != 0);
 	const bool use_current_clnors = !((smd->mix_mode == MOD_NORMALEDIT_MIX_COPY) &&
@@ -352,14 +352,24 @@ static void normalEditModifier_do(NormalEditModifierData *smd, Object *ob, Deriv
 
 	/* Do not run that modifier at all if autosmooth is disabled! */
 	if (!is_valid_target(smd) || !num_loops) {
-		return;
+		return dm;
 	}
 
 	if (!(me->flag & ME_AUTOSMOOTH)) {
 		modifier_setError((ModifierData *)smd, "Enable 'Auto Smooth' option in mesh settings");
-		return;
+		return dm;
 	}
 
+	medge = dm->getEdgeArray(dm);
+	if (me->medge == medge) {
+		/* We need to duplicate data here, otherwise setting custom normals (which may also affect sharp edges) could
+		 * modify org mesh, see T43671. */
+		dm = CDDM_copy(dm);
+		medge = dm->getEdgeArray(dm);
+	}
+	mvert = dm->getVertArray(dm);
+	mloop = dm->getLoopArray(dm);
+	mpoly = dm->getPolyArray(dm);
 
 	if (use_current_clnors) {
 		dm->calcLoopNormals(dm, true, me->smoothresh);
@@ -397,6 +407,8 @@ static void normalEditModifier_do(NormalEditModifierData *smd, Object *ob, Deriv
 	if (free_polynors) {
 		MEM_freeN(polynors);
 	}
+
+	return dm;
 }
 
 static void initData(ModifierData *md)
@@ -467,8 +479,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, ModifierApplyFlag UNUSED(flag))
 {
-	normalEditModifier_do((NormalEditModifierData *)md, ob, dm);
-	return dm;
+	return normalEditModifier_do((NormalEditModifierData *)md, ob, dm);
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {
