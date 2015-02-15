@@ -66,15 +66,6 @@
 /* ************************************************************************** */
 /* KEYFRAMES STUFF */
 
-static void graphkeys_auto_view(bContext *C)
-{
-	const SpaceIpo *sipo = CTX_wm_space_graph(C);
-
-	if (sipo && sipo->flag & SIPO_AUTO_VIEW_SELECTED) {
-		WM_operator_name_call(C, "GRAPH_OT_view_selected", WM_OP_INVOKE_DEFAULT, NULL);
-	}
-}
-
 /* ******************** Deselect All Operator ***************************** */
 /* This operator works in one of three ways:
  *	1) (de)select all (AKEY) - test if select all or deselect all
@@ -92,7 +83,7 @@ static void graphkeys_auto_view(bContext *C)
  *		2 = invert
  *	- do_channels: whether to affect selection status of channels
  */
-static short deselect_graph_keys(bAnimContext *ac, short test, short sel, short do_channels)
+static void deselect_graph_keys(bAnimContext *ac, short test, short sel, short do_channels)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -151,8 +142,6 @@ static short deselect_graph_keys(bAnimContext *ac, short test, short sel, short 
 	
 	/* Cleanup */
 	ANIM_animdata_freelist(&anim_data);
-	
-	return sel;
 }
 
 /* ------------------- */
@@ -161,7 +150,6 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	bAnimListElem *ale_active = NULL;
-	short sel;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -175,9 +163,9 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	
 	/* 'standard' behavior - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
-		sel = deselect_graph_keys(&ac, 0, SELECT_INVERT, true);
+		deselect_graph_keys(&ac, 0, SELECT_INVERT, true);
 	else
-		sel = deselect_graph_keys(&ac, 1, SELECT_ADD, true);
+		deselect_graph_keys(&ac, 1, SELECT_ADD, true);
 	
 	/* restore active F-Curve... */
 	if (ale_active) {
@@ -191,9 +179,6 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 		MEM_freeN(ale_active);
 		ale_active = NULL;
 	}
-	
-	if (sel != SELECT_SUBTRACT)
-		graphkeys_auto_view(C);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
@@ -389,8 +374,6 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	/* apply borderselect action */
 	borderselect_graphkeys(&ac, &rect_fl, mode, selectmode, incl_handles, NULL);
 	
-	graphkeys_auto_view(C);
-	
 	/* send notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
 	
@@ -478,8 +461,6 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 	MEM_freeN((void *)data_lasso.mcords);
 
 
-	graphkeys_auto_view(C);
-
 	/* send notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
 
@@ -508,14 +489,6 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
 	RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
 	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
-}
-
-static int graph_circle_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	if (event->type == EVT_MODAL_MAP && event->val == GESTURE_MODAL_NOP)
-		graphkeys_auto_view(C);
-
-	return WM_gesture_circle_modal(C, op, event);
 }
 
 static int graph_circle_select_exec(bContext *C, wmOperator *op)
@@ -579,7 +552,7 @@ void GRAPH_OT_select_circle(wmOperatorType *ot)
 	ot->idname = "GRAPH_OT_select_circle";
 	
 	ot->invoke = WM_gesture_circle_invoke;
-	ot->modal = graph_circle_select_modal;
+	ot->modal = WM_gesture_circle_modal;
 	ot->exec = graph_circle_select_exec;
 	ot->poll = graphop_visible_keyframes_poll;
 	ot->cancel = WM_gesture_circle_cancel;
@@ -752,8 +725,6 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 	else
 		columnselect_graph_keys(&ac, mode);
 	
-	graphkeys_auto_view(C);
-	
 	/* set notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
 	
@@ -812,8 +783,6 @@ static int graphkeys_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	/* Cleanup */
 	ANIM_animdata_freelist(&anim_data);
 	
-	graphkeys_auto_view(C);
-	
 	/* set notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
 	
@@ -838,13 +807,12 @@ void GRAPH_OT_select_linked(wmOperatorType *ot)
 /* ******************** Select More/Less Operators *********************** */
 
 /* Common code to perform selection */
-static void select_moreless_graph_keys(bContext *C, bAnimContext *ac, short mode)
+static void select_moreless_graph_keys(bAnimContext *ac, short mode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
 	
-	const SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 	KeyframeEditData ked;
 	KeyframeEditFunc build_cb;
 	
@@ -874,24 +842,6 @@ static void select_moreless_graph_keys(bContext *C, bAnimContext *ac, short mode
 		/* free the selmap used here */
 		MEM_freeN(ked.data);
 		ked.data = NULL;
-		
-		/* only do auto view if a bezier point is selected */
-		if (sipo->flag & SIPO_AUTO_VIEW_SELECTED) {
-			const FCurve *fcu = (FCurve *)ale->key_data;
-			const BezTriple *bezt;
-			unsigned int i;
-
-			/* only continue if F-Curve has keyframes */
-			if (fcu->bezt == NULL)
-				continue;
-
-			for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
-				if (BEZSELECTED(bezt)) {
-					graphkeys_auto_view(C);
-					break;
-				}
-			}
-		}
 	}
 	
 	/* Cleanup */
@@ -909,7 +859,7 @@ static int graphkeys_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* perform select changes */
-	select_moreless_graph_keys(C, &ac, SELMAP_MORE);
+	select_moreless_graph_keys(&ac, SELMAP_MORE);
 	
 	/* set notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
@@ -943,7 +893,7 @@ static int graphkeys_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* perform select changes */
-	select_moreless_graph_keys(C, &ac, SELMAP_LESS);
+	select_moreless_graph_keys(&ac, SELMAP_LESS);
 	
 	/* set notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
@@ -1057,8 +1007,6 @@ static int graphkeys_select_leftright_exec(bContext *C, wmOperator *op)
 	
 	/* do the selecting now */
 	graphkeys_select_leftright(&ac, leftright, selectmode);
-	
-	graphkeys_auto_view(C);
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | ND_ANIMCHAN | NA_SELECTED, NULL);
