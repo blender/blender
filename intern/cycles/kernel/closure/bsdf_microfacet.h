@@ -338,7 +338,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 {
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
-	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
 	if(m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
@@ -429,7 +429,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, con
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
 	float m_eta = sc->data2;
-	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
 	if(!m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
@@ -486,7 +486,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 {
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
-	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
 	float cosNO = dot(N, I);
@@ -688,7 +688,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc,
 {
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
-	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
+	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
 	if(m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
@@ -782,7 +782,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
 	float m_eta = sc->data2;
-	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
+	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
 	if(!m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
@@ -838,7 +838,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg, const ShaderCl
 {
 	float alpha_x = sc->data0;
 	float alpha_y = sc->data1;
-	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
+	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
 	float cosNO = dot(N, I);
