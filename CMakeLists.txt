@@ -838,17 +838,21 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_SDL)
 		if(WITH_SDL_DYNLOAD)
-			set(SDLMAIN_LIBRARY)
 			set(SDL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/extern/sdlew/include/SDL2")
 			set(SDL_LIBRARY)
-			set(SDL_LIBRARY_TEMP)
 		else()
-			find_package_wrapper(SDL)
+			find_package_wrapper(SDL2)
+			if(SDL2_FOUND)
+				# Use same names for both versions of SDL until we move to 2.x.
+				set(SDL_INCLUDE_DIR "${SDL2_INCLUDE_DIR}")
+				set(SDL_LIBRARY "${SDL2_LIBRARY}")
+				set(SDL_FOUND "${SDL2_FOUND}")
+			else()
+				find_package_wrapper(SDL)
+			endif()
 			mark_as_advanced(
-				SDLMAIN_LIBRARY
 				SDL_INCLUDE_DIR
 				SDL_LIBRARY
-				SDL_LIBRARY_TEMP
 			)
 			# unset(SDLMAIN_LIBRARY CACHE)
 			if(NOT SDL_FOUND)
