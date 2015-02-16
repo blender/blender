@@ -49,6 +49,9 @@ struct FSMenuEntry;
  */
 void    fsmenu_insert_entry(struct FSMenu *fsmenu, enum FSMenuCategory category, const char *path, const char *name, const enum FSMenuInsert flag);
 
+/** Refresh 'valid' status of given menu entry */
+void fsmenu_entry_refresh_valid(struct FSMenuEntry *fsentry);
+
 /** Return whether the entry was created by the user and can be saved and deleted */
 short   fsmenu_can_save(struct FSMenu *fsmenu, enum FSMenuCategory category, int index);
 
@@ -69,6 +72,9 @@ void    fsmenu_free(void);
 
 /** Refresh system directory menu */
 void    fsmenu_refresh_system_category(struct FSMenu *fsmenu);
+
+/** Refresh 'valid' status of all menu entries */
+void    fsmenu_refresh_bookmarks_status(struct FSMenu *fsmenu);
 
 /** Get active index based on given directory. */
 int     fsmenu_get_active_indices(struct FSMenu *fsmenu, enum FSMenuCategory category, const char *dir);

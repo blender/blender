@@ -216,6 +216,16 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name)
 	}
 }
 
+void fsmenu_entry_refresh_valid(struct FSMenuEntry *fsentry)
+{
+	if (fsentry->path && fsentry->path[0]) {
+		fsentry->valid = BLI_is_dir(fsentry->path);
+	}
+	else {
+		fsentry->valid = false;
+	}
+}
+
 short fsmenu_can_save(struct FSMenu *fsmenu, FSMenuCategory category, int idx)
 {
 	FSMenuEntry *fsm_iter;
@@ -272,6 +282,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const c
 	else {
 		fsm_iter->name[0] = '\0';
 	}
+	fsmenu_entry_refresh_valid(fsm_iter);
 
 	if (fsm_prev) {
 		if (flag & FS_INSERT_FIRST) {
@@ -638,6 +649,19 @@ void fsmenu_refresh_system_category(struct FSMenu *fsmenu)
 
 	/* Add all entries to system category */
 	fsmenu_read_system(fsmenu, true);
+}
+
+void fsmenu_refresh_bookmarks_status(struct FSMenu *fsmenu)
+{
+	int categories[] = {FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT};
+	int i;
+
+	for (i = sizeof(categories) / sizeof(*categories); i--; ) {
+		FSMenuEntry *fsm_iter = ED_fsmenu_get_category(fsmenu, categories[i]);
+		for ( ; fsm_iter; fsm_iter = fsm_iter->next) {
+			fsmenu_entry_refresh_valid(fsm_iter);
+		}
+	}
 }
 
 void fsmenu_free(void)

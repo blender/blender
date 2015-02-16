@@ -157,6 +157,12 @@ static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 	/* refresh system directory list */
 	fsmenu_refresh_system_category(ED_fsmenu_get());
 
+	/* Update bookmarks 'valid' state.
+	 * Done here, because it seems BLI_is_dir() can have huge impact on performances
+	 * in some cases, on win systems... See T43684.
+	 */
+	fsmenu_refresh_bookmarks_status(ED_fsmenu_get());
+
 	if (sfile->layout) sfile->layout->dirty = true;
 }
 

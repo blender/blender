@@ -600,6 +600,7 @@ static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
 
 		BLI_make_file_string("/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
+		fsmenu_refresh_bookmarks_status(fsmenu);
 		ED_area_tag_refresh(sa);
 		ED_area_tag_redraw(sa);
 	}

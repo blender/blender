@@ -647,7 +647,8 @@ typedef struct FSMenuEntry {
 	char *path;
 	char name[256];  /* FILE_MAXFILE */
 	short save;
-	short pad[3];
+	short valid;
+	short pad[2];
 } FSMenuEntry;
 
 /* FileSelectParams.display */
