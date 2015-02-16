@@ -5272,6 +5272,7 @@ static void slide_origdata_create_data(
 		for (i = 0; i < v_num; i++, sv = (void *)(((char *)sv) + v_stride)) {
 			BMIter fiter;
 			BMFace *f;
+			bool has_faces = false;
 
 			/* copy face data */
 			BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
@@ -5279,13 +5280,19 @@ static void slide_origdata_create_data(
 					BMFace *f_copy = BM_face_copy(sod->bm_origfaces, bm, f, true, true);
 					BLI_ghash_insert(sod->origfaces, f, f_copy);
 				}
+				has_faces = true;
 			}
 
 			/* store cd_loop_groups */
-			sv->cd_loop_groups = BLI_memarena_alloc(sod->arena, layer_groups_array_size);
-			for (j = 0; j < layer_index_dst; j++) {
-				const int layer_nr = layer_math_map[j];
-				sv->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(bm, sv->v, layer_nr, sod->arena);
+			if (has_faces) {
+				sv->cd_loop_groups = BLI_memarena_alloc(sod->arena, layer_groups_array_size);
+				for (j = 0; j < layer_index_dst; j++) {
+					const int layer_nr = layer_math_map[j];
+					sv->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(bm, sv->v, layer_nr, sod->arena);
+				}
+			}
+			else {
+				sv->cd_loop_groups = NULL;
 			}
 		}
 	}
@@ -5303,25 +5310,28 @@ static void slide_origdata_interp_data(
 		const int *layer_math_map = sod->layer_math_map;
 
 		for (i = 0; i < v_num; i++, sv = (void *)(((char *)sv) + v_stride)) {
-			BMIter fiter;
-			BMLoop *l;
-			int j;
 
-			BM_ITER_ELEM (l, &fiter, sv->v, BM_LOOPS_OF_VERT) {
-				BMFace *f_copy;  /* the copy of 'f' */
+			if (sv->cd_loop_groups) {
+				BMIter fiter;
+				BMLoop *l;
+				int j;
 
-				f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
+				BM_ITER_ELEM (l, &fiter, sv->v, BM_LOOPS_OF_VERT) {
+					BMFace *f_copy;  /* the copy of 'f' */
 
-				/* only loop data, no vertex data since that contains shape keys,
-				 * and we do not want to mess up other shape keys */
-				BM_loop_interp_from_face(em->bm, l, f_copy, false, is_final);
+					f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
 
-				/* make sure face-attributes are correct (e.g. MTexPoly) */
-				BM_elem_attrs_copy(sod->bm_origfaces, em->bm, f_copy, l->f);
-			}
+					/* only loop data, no vertex data since that contains shape keys,
+					 * and we do not want to mess up other shape keys */
+					BM_loop_interp_from_face(em->bm, l, f_copy, false, is_final);
 
-			for (j = 0; j < sod->layer_math_map_num; j++) {
-				 BM_vert_loop_groups_data_layer_merge(em->bm, sv->cd_loop_groups[j], layer_math_map[j]);
+					/* make sure face-attributes are correct (e.g. MTexPoly) */
+					BM_elem_attrs_copy(sod->bm_origfaces, em->bm, f_copy, l->f);
+				}
+
+				for (j = 0; j < sod->layer_math_map_num; j++) {
+					 BM_vert_loop_groups_data_layer_merge(em->bm, sv->cd_loop_groups[j], layer_math_map[j]);
+				}
 			}
 		}
 	}
