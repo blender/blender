@@ -509,7 +509,7 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 
 void ShaderGraph::clean()
 {
-	/* remove proxy and unnecessary mix nodes */
+	/* remove proxy and unnecessary nodes */
 	remove_unneeded_nodes();
 
 	/* we do two things here: find cycles and break them, and remove unused

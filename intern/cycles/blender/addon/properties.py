@@ -116,7 +116,7 @@ enum_volume_sampling = (
 
 enum_volume_interpolation = (
     ('LINEAR', "Linear", "Good smoothness and speed"),
-    ('CUBIC', 'Cubic', 'Smoothed high quality interpolation, but slower')
+    ('CUBIC', "Cubic", "Smoothed high quality interpolation, but slower")
     )
 
 
@@ -652,7 +652,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
 
         cls.volume_interpolation = EnumProperty(
                 name="Volume Interpolation",
-                description="Interpolation method to use for volumes",
+                description="Interpolation method to use for smoke/fire volumes",
                 items=enum_volume_interpolation,
                 default='LINEAR',
                 )
