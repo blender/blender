@@ -237,7 +237,7 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	}
 
 	/* update operator for name change event */
-	file_draw_check_cb(C, NULL, NULL);
+	file_draw_check(C);
 	
 	return retval;
 }
@@ -436,6 +436,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 		const FileCheckType check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_FILES;
 		filelist_select(sfile->files, &sel, FILE_SEL_ADD, FILE_SEL_SELECTED, check_type);
 	}
+	file_draw_check(C);
 	ED_area_tag_redraw(sa);
 	return OPERATOR_FINISHED;
 }
@@ -922,7 +923,7 @@ void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 	/* XXX, files and dirs updates missing, not really so important though */
 }
 
-void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
+void file_draw_check(bContext *C)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	wmOperator *op = sfile->op;
@@ -940,6 +941,12 @@ void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 			}
 		}
 	}
+}
+
+/* for use with; UI_block_func_set */
+void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
+{
+	file_draw_check(C);
 }
 
 bool file_draw_check_exists(SpaceFile *sfile)
@@ -1519,6 +1526,9 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 				}
 			}
 		}
+		else if (matches > 1) {
+			file_draw_check(C);
+		}
 	}
 }
 
@@ -1621,7 +1631,7 @@ static int file_filenum_exec(bContext *C, wmOperator *op)
 	if (sfile->params && (inc != 0)) {
 		BLI_newname(sfile->params->file, inc);
 		ED_area_tag_redraw(sa);
-		file_draw_check_cb(C, NULL, NULL);
+		file_draw_check(C);
 		// WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 	

@@ -620,7 +620,7 @@ void ED_file_change_dir(bContext *C, const bool checkdir)
 
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		file_draw_check_cb(C, NULL, NULL);
+		file_draw_check(C);
 	}
 }
 
