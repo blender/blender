@@ -132,7 +132,7 @@ class CLIP_OT_filter_tracks(bpy.types.Operator):
 
     track_threshold = FloatProperty(
             name="Track Threshold",
-            description="Filter Threshold to select problematic track",
+            description="Filter Threshold to select problematic tracks",
             default=5.0,
             )
 

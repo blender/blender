@@ -290,7 +290,6 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "flac",
     "fps: %.2f",
     "fps: %i",
-    "fStop",
     "gimbal",
     "global",
     "iScale",

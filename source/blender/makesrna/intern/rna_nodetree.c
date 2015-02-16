@@ -4987,7 +4987,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	prop = RNA_def_property(srna, "f_stop", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fstop");
 	RNA_def_property_range(prop, 0.0f, 128.0f);
-	RNA_def_property_ui_text(prop, "fStop",
+	RNA_def_property_ui_text(prop, "F-stop",
 	                         "Amount of focal blur, 128=infinity=perfect focus, half the value doubles "
 	                         "the blur radius");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -5744,7 +5744,7 @@ static void def_cmp_bokehblur(StructRNA *srna)
 	prop = RNA_def_property(srna, "f_stop", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "custom3");
 	RNA_def_property_range(prop, 0.0f, 128.0f);
-	RNA_def_property_ui_text(prop, "fStop",
+	RNA_def_property_ui_text(prop, "F-stop",
 	                         "Amount of focal blur, 128=infinity=perfect focus, half the value doubles "
 	                         "the blur radius");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");

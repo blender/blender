@@ -58,7 +58,7 @@ enum_filter_types = (
 
 enum_aperture_types = (
     ('RADIUS', "Radius", "Directly change the size of the aperture"),
-    ('FSTOP', "F/stop", "Change the size of the aperture by f/stops"),
+    ('FSTOP', "F-stop", "Change the size of the aperture by f-stop"),
     )
 
 enum_panorama_types = (
@@ -522,13 +522,13 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 
         cls.aperture_type = EnumProperty(
                 name="Aperture Type",
-                description="Use F/stop number or aperture radius",
+                description="Use f-stop number or aperture radius",
                 items=enum_aperture_types,
                 default='RADIUS',
                 )
         cls.aperture_fstop = FloatProperty(
-                name="Aperture F/stop",
-                description="F/stop ratio (lower numbers give more defocus, higher numbers give a sharper image)",
+                name="Aperture f-stop",
+                description="F-stop ratio (lower numbers give more defocus, higher numbers give a sharper image)",
                 min=0.0, soft_min=0.1, soft_max=64.0,
                 default=5.6,
                 step=10,

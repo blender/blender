@@ -3861,7 +3861,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_DISTANCE_CAMERA);
-	RNA_def_property_ui_text(prop, "Focal Length", "Foca Length for dof effect");
+	RNA_def_property_ui_text(prop, "Focal Length", "Focal length for dof effect");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 5000.0f, 1, 2);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -3873,7 +3873,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "fstop", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Viewport f-stop", "FStop for dof effect");
+	RNA_def_property_ui_text(prop, "Viewport F-stop", "F-stop for dof effect");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.1f, 128.0f, 10, 1);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -3889,7 +3889,7 @@ static void rna_def_gpu_ssao_fx(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
 
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Strength", "Strength of the ssao effect");
+	RNA_def_property_ui_text(prop, "Strength", "Strength of the SSAO effect");
 	RNA_def_property_range(prop, 0.0f, 250.0f);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
@@ -3906,7 +3906,7 @@ static void rna_def_gpu_ssao_fx(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Samples", "Number of samples. Final number is squared");
+	RNA_def_property_ui_text(prop, "Samples", "Number of samples (final number is squared)");
 	RNA_def_property_range(prop, 1, 30); /* 0 is needed for compression. */	
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 

@@ -217,6 +217,7 @@ class SpellChecker:
         "passepartout",
         "perspectively",
         "pixelate",
+        "pointiness",
         "polycount",
         "polygonization", "polygonalization",  # yuck!
         "selectability",
@@ -510,6 +511,7 @@ class SpellChecker:
         "fov",
         "fft",
         "futura",
+        "fx",
         "gfx",
         "gl",
         "glsl",
@@ -540,6 +542,7 @@ class SpellChecker:
         "sdl",
         "sl",
         "smpte",
+        "ssao",
         "svn",
         "ui",
         "unix",

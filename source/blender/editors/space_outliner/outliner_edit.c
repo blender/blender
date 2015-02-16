@@ -1500,7 +1500,7 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 	/* identifiers */
 	ot->idname = "OUTLINER_OT_orphans_purge";
 	ot->name = "Purge All";
-	ot->description = "Clears all orphaned datablocks without any users from the file (cannot be undone)";
+	ot->description = "Clear all orphaned datablocks without any users from the file (cannot be undone)";
 	
 	/* callbacks */
 	ot->invoke = outliner_orphans_purge_invoke;
