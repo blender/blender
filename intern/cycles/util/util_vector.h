@@ -69,12 +69,14 @@ public:
 	/* Copy constructor. */
 	vector(const vector &x) : std::vector<value_type, allocator_type>(x) {  }
 
-#if __cplusplus < 201103L
 	void shrink_to_fit(void)
 	{
+#if __cplusplus < 201103L
 		vector<value_type>().swap(*this);
-	}
+#else
+		std::vector<value_type, allocator_type>::shrink_to_fit();
 #endif
+	}
 
 	void free_memory(void) {
 		std::vector<value_type, allocator_type>::resize(0);
