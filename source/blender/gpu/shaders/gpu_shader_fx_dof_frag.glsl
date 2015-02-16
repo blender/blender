@@ -186,7 +186,9 @@ void fifth_pass()
 	vec4 color = factors.x * color_orig + factors.y * smallblurred + factors.z * mediumblurred + factors.w * highblurred;
 
 	color /= dot(factors, vec4(1.0));
-	gl_FragColor = vec4(color.rgb, 1.0);
+	/* using original color is not correct, but use that for now because alpha of
+	 * blurred buffers uses CoC instead */
+	gl_FragColor = vec4(color.rgb, color_orig.a);
 }
 
 

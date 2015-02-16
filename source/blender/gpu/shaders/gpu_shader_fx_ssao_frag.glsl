@@ -77,6 +77,7 @@ float calculate_ssao_factor(float depth)
 void main()
 {
 	float depth = texture2D(depthbuffer, uvcoordsvar.xy).r;
-	vec4 color = mix(texture2D(colorbuffer, uvcoordsvar.xy), ssao_color, calculate_ssao_factor(depth));
-	gl_FragColor = vec4(color.rgb, 1.0);
+	vec4 scene_col = texture2D(colorbuffer, uvcoordsvar.xy);
+	vec3 final_color = mix(scene_col.rgb, ssao_color.rgb, calculate_ssao_factor(depth));
+	gl_FragColor = vec4(final_color.rgb, scene_col.a);
 }

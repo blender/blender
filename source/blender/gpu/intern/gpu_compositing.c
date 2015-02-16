@@ -257,7 +257,7 @@ bool GPU_fx_compositor_initialize_passes(
         GPUFX *fx, const rcti *rect, const rcti *scissor_rect,
         const GPUFXSettings *fx_settings)
 {
-	int w = BLI_rcti_size_x(rect) + 1, h = BLI_rcti_size_y(rect) + 1;
+	int w = BLI_rcti_size_x(rect), h = BLI_rcti_size_y(rect);
 	char err_out[256];
 	int num_passes = 0;
 	char fx_flag = fx_settings->fx_flag;
@@ -280,6 +280,12 @@ bool GPU_fx_compositor_initialize_passes(
 	if (!fx_flag) {
 		cleanup_fx_gl_data(fx, true);
 		return false;
+	}
+
+	/* scissor is missing when drawing offscreen, in that case, dimensions match exactly. In opposite case
+	 * add one to match viewport dimensions */
+	if (!scissor_rect) {
+		w++, h++;
 	}
 
 	fx->num_passes = 0;
