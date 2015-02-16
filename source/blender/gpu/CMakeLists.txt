@@ -55,6 +55,7 @@ set(SRC
 	intern/gpu_simple_shader.c
 	intern/gpu_select.c
 	intern/gpu_compositing.c
+	intern/gpu_debug.c
 
 	shaders/gpu_shader_fx_lib.glsl
 	shaders/gpu_shader_fx_ssao_frag.glsl
@@ -73,6 +74,7 @@ set(SRC
 
 	GPU_buffers.h
 	GPU_draw.h
+	GPU_debug.h
 	GPU_extensions.h
 	GPU_glew.h
 	GPU_init_exit.h
@@ -81,7 +83,7 @@ set(SRC
 	GPU_select.h
 	GPU_compositing.h
 	intern/gpu_codegen.h
-	intern/gpu_extensions_private.h
+	intern/gpu_private.h
 )
 
 data_to_c_simple(shaders/gpu_shader_material.glsl SRC)

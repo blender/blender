@@ -22,11 +22,28 @@
  *  \ingroup gpu
  */
 
-#ifndef __GPU_EXTENSIONS_PRIVATE_H__
-#define __GPU_EXTENSIONS_PRIVATE_H__
+#ifndef __GPU_PRIVATE_H__
+#define __GPU_PRIVATE_H__
 
 /* call this before running any of the functions below */
 void gpu_extensions_init(void);
 void gpu_extensions_exit(void);
 
-#endif  /* __GPU_EXTENSIONS_PRIVATE_H__ */
+
+/* gpu_debug.c */
+#ifdef WITH_GPU_DEBUG
+
+void gpu_debug_init(void);
+void gpu_debug_exit(void);
+
+#  define GPU_DEBUG_INIT() gpu_debug_init()
+#  define GPU_DEBUG_EXIT() gpu_debug_exit()
+
+#else
+
+#  define GPU_DEBUG_INIT() ((void)0)
+#  define GPU_DEBUG_EXIT() ((void)0)
+
+#endif
+
+#endif  /* __GPU_PRIVATE_H__ */

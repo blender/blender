@@ -55,7 +55,6 @@ typedef struct GPUShader GPUShader;
 /* GPU extensions support */
 
 void GPU_extensions_disable(void);
-int GPU_print_error(const char *str);
 
 int GPU_glsl_support(void);
 int GPU_non_power_of_two_support(void);

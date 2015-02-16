@@ -403,6 +403,7 @@ option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of th
 option(WITH_GL_PROFILE_COMPAT   "Support using the OpenGL 'compatibility' profile. (deprecated)"                                                    ON )
 option(WITH_GL_PROFILE_CORE     "Support using the OpenGL 3.2+ 'core' profile."                                                                     OFF)
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (thru either EGL or the AGL/WGL/XGL 'es20' profile)"                                  OFF)
+option(WITH_GPU_DEBUG           "Create a debug OpenGL context (allows inserting custom messages and getting notifications for bad GL use)"         OFF)
 
 mark_as_advanced(
 	WITH_GLEW_MX
@@ -411,6 +412,7 @@ mark_as_advanced(
 	WITH_GL_PROFILE_COMPAT
 	WITH_GL_PROFILE_CORE
 	WITH_GL_PROFILE_ES20
+	WITH_GPU_DEBUG
 )
 
 if(WITH_GL_PROFILE_COMPAT)
@@ -2350,6 +2352,10 @@ if(WITH_GL_EGL)
 	list(APPEND GL_DEFINITIONS -DWITH_EGL)
 endif()
 
+if(WITH_GPU_DEBUG)
+	list(APPEND GL_DEFINITIONS -DWITH_GPU_DEBUG)
+endif()
+
 #-----------------------------------------------------------------------------
 # Configure OpenMP.
 if(WITH_OPENMP)
@@ -2832,6 +2838,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_GL_PROFILE_COMPAT)
 	info_cfg_option(WITH_GL_PROFILE_CORE)
 	info_cfg_option(WITH_GL_PROFILE_ES20)
+	info_cfg_option(WITH_GPU_DEBUG)
 	if(WIN32)
 		info_cfg_option(WITH_GL_ANGLE)
 	endif()

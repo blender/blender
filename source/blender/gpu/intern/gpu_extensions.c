@@ -33,8 +33,6 @@
  */
 
 
-#include "GPU_glew.h"
-
 #include "DNA_image_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -45,12 +43,14 @@
 
 #include "BKE_global.h"
 
+#include "GPU_glew.h"
+#include "GPU_debug.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_compositing.h"
 #include "GPU_simple_shader.h"
 
-#include "intern/gpu_extensions_private.h"
+#include "intern/gpu_private.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -271,20 +271,6 @@ int GPU_display_list_support(void)
 int GPU_color_depth(void)
 {
 	return GG.colordepth;
-}
-
-int GPU_print_error(const char *str)
-{
-	GLenum errCode;
-
-	if ((G.debug & G_DEBUG)) {
-		if ((errCode = glGetError()) != GL_NO_ERROR) {
-			fprintf(stderr, "%s opengl error: %s\n", str, gluErrorString(errCode));
-			return 1;
-		}
-	}
-
-	return 0;
 }
 
 static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
@@ -552,7 +538,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, float *
 	tex->number = 0;
 	glBindTexture(tex->target, tex->bindcode);
 
-	GPU_print_error("3D glBindTexture");
+	GPU_ASSERT_NO_GL_ERRORS("3D glBindTexture");
 
 	type = GL_FLOAT;
 	if (channels == 4) {
@@ -569,7 +555,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, float *
 
 	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
 
-	GPU_print_error("3D glTexImage3D");
+	GPU_ASSERT_NO_GL_ERRORS("3D glTexImage3D");
 
 	if (fpixels) {
 		if (!GPU_non_power_of_two_support() && (w != tex->w || h != tex->h || depth != tex->depth)) {
@@ -580,19 +566,19 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, float *
 		}
 
 		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
-		GPU_print_error("3D glTexSubImage3D");
+		GPU_ASSERT_NO_GL_ERRORS("3D glTexSubImage3D");
 	}
 
 
 	glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, vfBorderColor);
-	GPU_print_error("3D GL_TEXTURE_BORDER_COLOR");
+	GPU_ASSERT_NO_GL_ERRORS("3D GL_TEXTURE_BORDER_COLOR");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	GPU_print_error("3D GL_LINEAR");
+	GPU_ASSERT_NO_GL_ERRORS("3D GL_LINEAR");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	GPU_print_error("3D GL_CLAMP_TO_BORDER");
+	GPU_ASSERT_NO_GL_ERRORS("3D GL_CLAMP_TO_BORDER");
 
 	if (pixels)
 		MEM_freeN(pixels);
@@ -629,7 +615,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, bool is_data,
 	ima->gputexture= tex;
 
 	if (!glIsTexture(tex->bindcode)) {
-		GPU_print_error("Blender Texture Not Loaded");
+		GPU_ASSERT_NO_GL_ERRORS("Blender Texture Not Loaded");
 	}
 	else {
 		glBindTexture(GL_TEXTURE_2D, tex->bindcode);
@@ -676,7 +662,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 	prv->gputexture[0]= tex;
 	
 	if (!glIsTexture(tex->bindcode)) {
-		GPU_print_error("Blender Texture Not Loaded");
+		GPU_ASSERT_NO_GL_ERRORS("Blender Texture Not Loaded");
 	}
 	else {
 		glBindTexture(GL_TEXTURE_2D, tex->bindcode);
@@ -813,7 +799,7 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 	GLenum arbnumber;
 
 	if (number >= GG.maxtextures) {
-		GPU_print_error("Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.");
 		return;
 	}
 
@@ -826,7 +812,7 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 	if (number < 0)
 		return;
 
-	GPU_print_error("Pre Texture Bind");
+	GPU_ASSERT_NO_GL_ERRORS("Pre Texture Bind");
 
 	arbnumber = (GLenum)((GLuint)GL_TEXTURE0_ARB + number);
 	if (number != 0) glActiveTextureARB(arbnumber);
@@ -840,7 +826,7 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 
 	tex->number = number;
 
-	GPU_print_error("Post Texture Bind");
+	GPU_ASSERT_NO_GL_ERRORS("Post Texture Bind");
 }
 
 void GPU_texture_unbind(GPUTexture *tex)
@@ -848,14 +834,14 @@ void GPU_texture_unbind(GPUTexture *tex)
 	GLenum arbnumber;
 
 	if (tex->number >= GG.maxtextures) {
-		GPU_print_error("Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.");
 		return;
 	}
 
 	if (tex->number == -1)
 		return;
 	
-	GPU_print_error("Pre Texture Unbind");
+	GPU_ASSERT_NO_GL_ERRORS("Pre Texture Unbind");
 
 	arbnumber = (GLenum)((GLuint)GL_TEXTURE0_ARB + tex->number);
 	if (tex->number != 0) glActiveTextureARB(arbnumber);
@@ -865,7 +851,7 @@ void GPU_texture_unbind(GPUTexture *tex)
 
 	tex->number = -1;
 
-	GPU_print_error("Post Texture Unbind");
+	GPU_ASSERT_NO_GL_ERRORS("Post Texture Unbind");
 }
 
 void GPU_depth_texture_mode(GPUTexture *tex, bool compare, bool use_filter)
@@ -873,19 +859,19 @@ void GPU_depth_texture_mode(GPUTexture *tex, bool compare, bool use_filter)
 	GLenum arbnumber;
 
 	if (tex->number >= GG.maxtextures) {
-		GPU_print_error("Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.");
 		return;
 	}
 
 	if (!tex->depth) {
-		GPU_print_error("Not a depth texture.");
+		fprintf(stderr, "Not a depth texture.");
 		return;
 	}
 
 	if (tex->number == -1)
 		return;
 
-	GPU_print_error("Pre Texture Unbind");
+	GPU_ASSERT_NO_GL_ERRORS("Pre Texture Unbind");
 
 	arbnumber = (GLenum)((GLuint)GL_TEXTURE0_ARB + tex->number);
 	if (tex->number != 0) glActiveTextureARB(arbnumber);
@@ -904,7 +890,7 @@ void GPU_depth_texture_mode(GPUTexture *tex, bool compare, bool use_filter)
 	}
 	if (tex->number != 0) glActiveTextureARB(GL_TEXTURE0_ARB);
 
-	GPU_print_error("Post Texture Unbind");
+	GPU_ASSERT_NO_GL_ERRORS("Post Texture Unbind");
 }
 
 void GPU_texture_free(GPUTexture *tex)
@@ -1606,16 +1592,16 @@ GPUShader *GPU_shader_create_lib(const char *code)
 
 void GPU_shader_bind(GPUShader *shader)
 {
-	GPU_print_error("Pre Shader Bind");
+	GPU_ASSERT_NO_GL_ERRORS("Pre Shader Bind");
 	glUseProgramObjectARB(shader->object);
-	GPU_print_error("Post Shader Bind");
+	GPU_ASSERT_NO_GL_ERRORS("Post Shader Bind");
 }
 
 void GPU_shader_unbind(void)
 {
-	GPU_print_error("Pre Shader Unbind");
+	GPU_ASSERT_NO_GL_ERRORS("Pre Shader Unbind");
 	glUseProgramObjectARB(0);
-	GPU_print_error("Post Shader Unbind");
+	GPU_ASSERT_NO_GL_ERRORS("Post Shader Unbind");
 }
 
 void GPU_shader_free(GPUShader *shader)
@@ -1641,7 +1627,7 @@ void GPU_shader_uniform_vector(GPUShader *UNUSED(shader), int location, int leng
 	if (location == -1)
 		return;
 
-	GPU_print_error("Pre Uniform Vector");
+	GPU_ASSERT_NO_GL_ERRORS("Pre Uniform Vector");
 
 	if (length == 1) glUniform1fvARB(location, arraysize, value);
 	else if (length == 2) glUniform2fvARB(location, arraysize, value);
@@ -1650,7 +1636,7 @@ void GPU_shader_uniform_vector(GPUShader *UNUSED(shader), int location, int leng
 	else if (length == 9) glUniformMatrix3fvARB(location, arraysize, 0, value);
 	else if (length == 16) glUniformMatrix4fvARB(location, arraysize, 0, value);
 
-	GPU_print_error("Post Uniform Vector");
+	GPU_ASSERT_NO_GL_ERRORS("Post Uniform Vector");
 }
 
 void GPU_shader_uniform_int(GPUShader *UNUSED(shader), int location, int value)
@@ -1658,9 +1644,7 @@ void GPU_shader_uniform_int(GPUShader *UNUSED(shader), int location, int value)
 	if (location == -1)
 		return;
 
-	GPU_print_error("Pre Uniform Int");
-	glUniform1iARB(location, value);
-	GPU_print_error("Post Uniform Int");
+	GPU_CHECK_ERRORS_AROUND(glUniform1iARB(location, value));
 }
 
 void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUTexture *tex)
@@ -1668,7 +1652,7 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	GLenum arbnumber;
 
 	if (tex->number >= GG.maxtextures) {
-		GPU_print_error("Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.");
 		return;
 	}
 		
@@ -1678,7 +1662,7 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	if (location == -1)
 		return;
 
-	GPU_print_error("Pre Uniform Texture");
+	GPU_ASSERT_NO_GL_ERRORS("Pre Uniform Texture");
 
 	arbnumber = (GLenum)((GLuint)GL_TEXTURE0_ARB + tex->number);
 
@@ -1691,18 +1675,14 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	glEnable(tex->target);
 	if (tex->number != 0) glActiveTextureARB(GL_TEXTURE0_ARB);
 
-	GPU_print_error("Post Uniform Texture");
+	GPU_ASSERT_NO_GL_ERRORS("Post Uniform Texture");
 }
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
 	int index;
 	
-	GPU_print_error("Pre Get Attribute");
-
-	index = glGetAttribLocationARB(shader->object, name);
-
-	GPU_print_error("Post Get Attribute");
+	GPU_CHECK_ERRORS_AROUND(index = glGetAttribLocationARB(shader->object, name));
 
 	return index;
 }
