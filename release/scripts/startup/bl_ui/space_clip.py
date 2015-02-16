@@ -467,6 +467,7 @@ class CLIP_PT_tools_cleanup(CLIP_PT_tracking_panel, Panel):
         layout.prop(settings, "clean_frames", text="Frames")
         layout.prop(settings, "clean_error", text="Error")
         layout.prop(settings, "clean_action", text="")
+        layout.operator("clip.filter_tracks")
 
 
 class CLIP_PT_tools_geometry(CLIP_PT_tracking_panel, Panel):
