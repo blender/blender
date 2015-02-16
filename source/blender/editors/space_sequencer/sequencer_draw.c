@@ -960,8 +960,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	struct View2D *v2d = &ar->v2d;
 	/* int rectx, recty; */ /* UNUSED */
 	float viewrectx, viewrecty;
-	float render_size = 0.0;
-	float proxy_size = 100.0;
+	float render_size;
+	float proxy_size;
 	float col[3];
 	GLuint texid;
 	GLuint last_texid;
@@ -985,15 +985,36 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		}
 	}
 
-	render_size = sseq->render_size;
-	if (render_size == 0) {
+	if ((!draw_overlay || sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE) && !draw_backdrop) {
+		UI_GetThemeColor3fv(TH_SEQ_PREVIEW, col);
+		glClearColor(col[0], col[1], col[2], 0.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	/* only initialize the preview if a render is in progress */
+	if (G.is_rendering)
+		return;
+
+	if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
+		return;
+	}
+
+	ibuf = sequencer_ibuf_get(bmain, scene, sseq, cfra, frame_ofs);
+	
+	if (ibuf == NULL)
+		return;
+
+	if (ibuf->rect == NULL && ibuf->rect_float == NULL)
+		return;
+
+
+	if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
 		render_size = scene->r.size;
+		proxy_size = 100.0f;
 	}
 	else {
+		render_size = sseq->render_size;
 		proxy_size = render_size;
-	}
-	if (render_size < 0) {
-		return;
 	}
 
 	viewrectx = (render_size * (float)scene->r.xsch) / 100.0f;
@@ -1008,23 +1029,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		viewrecty /= proxy_size / 100.0f;
 	}
 
-	if ((!draw_overlay || sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE) && !draw_backdrop) {
-		UI_GetThemeColor3fv(TH_SEQ_PREVIEW, col);
-		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-
-	/* only initialize the preview if a render is in progress */
-	if (G.is_rendering)
-		return;
-
-	ibuf = sequencer_ibuf_get(bmain, scene, sseq, cfra, frame_ofs);
-	
-	if (ibuf == NULL)
-		return;
-
-	if (ibuf->rect == NULL && ibuf->rect_float == NULL)
-		return;
 
 	if (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0) {
 		SequencerScopes *scopes = &sseq->scopes;
