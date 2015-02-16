@@ -477,6 +477,63 @@ float dist_to_line_v3(const float v1[3], const float l1[3], const float l2[3])
 	return sqrtf(dist_squared_to_line_v3(v1, l1, l2));
 }
 
+/**
+ * Check if \a p is inside the 2x planes defined by ``(v1, v2, v3)``
+ * where the 3x points define 2x planes.
+ *
+ * \param axis_fallback used when v1,v2,v3 form a line.
+ *
+ * \note the distance from \a v1 & \a v3 to \a v2 doesnt matter
+ * (it just defines the planes).
+ *
+ * \return the lowest squared distance to eithe of the planes.
+ * where ``(return < 0.0)`` is outside.
+ *
+ * <pre>
+ *            v1
+ *            +
+ *           /
+ * x - out  /  x - inside
+ *         /
+ *        +----+
+ *        v2   v3
+ *           x - also outside
+ * </pre>
+ */
+float dist_signed_squared_to_corner_v3v3v3(
+        const float p[3],
+        const float v1[3], const float v2[3], const float v3[3],
+        const float axis_fallback[3])
+{
+	float dir_a[3], dir_b[3];
+	float plane_a[4], plane_b[4];
+	float axis[3];
+
+	sub_v3_v3v3(dir_a, v1, v2);
+	sub_v3_v3v3(dir_b, v3, v2);
+
+	cross_v3_v3v3(axis, dir_a, dir_b);
+
+	if ((len_squared_v3(axis) < FLT_EPSILON) && axis_fallback) {
+		copy_v3_v3(axis, axis_fallback);
+	}
+
+	cross_v3_v3v3(plane_a, axis, dir_a);
+	cross_v3_v3v3(plane_b, dir_b, axis);
+
+#if 0
+	plane_from_point_normal_v3(plane_a, center, l1);
+	plane_from_point_normal_v3(plane_b, center, l2);
+#else
+	/* do inline */
+	plane_a[3] = -dot_v3v3(plane_a, v2);
+	plane_b[3] = -dot_v3v3(plane_b, v2);
+#endif
+
+	return min_ff(dist_signed_squared_to_plane_v3(p, plane_a),
+	              dist_signed_squared_to_plane_v3(p, plane_b));
+}
+
 /* Adapted from "Real-Time Collision Detection" by Christer Ericson,
  * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
  * 
