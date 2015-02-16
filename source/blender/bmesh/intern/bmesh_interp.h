@@ -54,5 +54,6 @@ void  BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 void  BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
 struct LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_n, struct MemArena *arena);
 void BM_vert_loop_groups_data_layer_merge(BMesh *bm, struct LinkNode *groups, int layer_n);
+void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm, struct LinkNode *groups, int layer_n, const float *loop_weights);
 
 #endif /* __BMESH_INTERP_H__ */

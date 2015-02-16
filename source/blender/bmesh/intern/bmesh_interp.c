@@ -925,12 +925,15 @@ struct LoopWalkCtx {
 	/* reference for this contiguous fan */
 	const void *data_ref;
 	int data_len;
+
+	/* accumulate 'LoopGroupCD.weight' to make unit length */
+	float weight_accum;
+
 	/* both arrays the size of the 'BM_vert_face_count(v)'
 	 * each contiguous fan gets a slide of these arrays */
 	void **data_array;
+	int *data_index_array;
 	float *weight_array;
-	/* accumulate 'LoopGroupCD.weight' to make unit length */
-	float weight_accum;
 };
 
 /* Store vars to pass into 'CustomData_bmesh_interp' */
@@ -939,6 +942,8 @@ struct LoopGroupCD {
 	void **data;
 	/* weights (aligned with 'data') */
 	float *data_weights;
+	/* index-in-face */
+	int *data_index;
 	/* number of loops in the fan */
 	int data_len;
 };
@@ -948,6 +953,7 @@ static void bm_loop_walk_add(struct LoopWalkCtx *lwc, BMLoop *l)
 	const float w = BM_loop_calc_face_angle(l);
 	BM_elem_flag_enable(l, BM_ELEM_INTERNAL_TAG);
 	lwc->data_array[lwc->data_len] = BM_ELEM_CD_GET_VOID_P(l, lwc->cd_layer_offset);
+	lwc->data_index_array[lwc->data_len] = BM_elem_index_get(l);
 	lwc->weight_array[lwc->data_len] = w;
 	lwc->weight_accum += w;
 
@@ -1001,11 +1007,14 @@ LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_
 	loop_num = 0;
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 		BM_elem_flag_disable(l, BM_ELEM_INTERNAL_TAG);
+		BM_elem_index_set(l, loop_num);  /* set_dirty! */
 		loop_num++;
 	}
+	bm->elem_index_dirty |= BM_LOOP;
 
 	lwc.data_len = 0;
 	lwc.data_array = BLI_memarena_alloc(lwc.arena, sizeof(void *) * loop_num);
+	lwc.data_index_array = BLI_memarena_alloc(lwc.arena, sizeof(int) * loop_num);
 	lwc.weight_array = BLI_memarena_alloc(lwc.arena, sizeof(float) * loop_num);
 
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
@@ -1017,6 +1026,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_
 
 			/* assign len-last */
 			lf->data         = &lwc.data_array[lwc.data_len];
+			lf->data_index   = &lwc.data_index_array[lwc.data_len];
 			lf->data_weights = &lwc.weight_array[lwc.data_len];
 			lwc.weight_accum = 0.0f;
 
@@ -1040,12 +1050,48 @@ LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_
 	return groups;
 }
 
-static void bm_vert_loop_groups_data_layer_merge__single(BMesh *bm, void *lf_p, void *data, int type)
+static void bm_vert_loop_groups_data_layer_merge__single(
+        BMesh *bm, void *lf_p, void *data, int type)
 {
 	struct LoopGroupCD *lf = lf_p;
 	int i;
+	const float *data_weights;
 
-	CustomData_bmesh_interp(&bm->ldata, lf->data, lf->data_weights, NULL, lf->data_len, data);
+	data_weights = lf->data_weights;
+
+	CustomData_bmesh_interp(&bm->ldata, lf->data, data_weights, NULL, lf->data_len, data);
+
+	for (i = 0; i < lf->data_len; i++) {
+		CustomData_copy_elements(type, data, lf->data[i], 1);
+	}
+}
+
+static void bm_vert_loop_groups_data_layer_merge_weights__single(
+        BMesh *bm, void *lf_p, void *data, int type, const float *loop_weights)
+{
+	struct LoopGroupCD *lf = lf_p;
+	int i;
+	const float *data_weights;
+
+	/* re-weight */
+	float *temp_weights = BLI_array_alloca(temp_weights, lf->data_len);
+	float weight_accum = 0.0f;
+
+	for (i = 0; i < lf->data_len; i++) {
+		float w = loop_weights[lf->data_index[i]] * lf->data_weights[i];
+		temp_weights[i] = w;
+		weight_accum += w;
+	}
+
+	if (LIKELY(weight_accum != 0.0f)) {
+		mul_vn_fl(temp_weights, lf->data_len, 1.0f / weight_accum);
+		data_weights = temp_weights;
+	}
+	else {
+		data_weights = lf->data_weights;
+	}
+
+	CustomData_bmesh_interp(&bm->ldata, lf->data, data_weights, NULL, lf->data_len, data);
 
 	for (i = 0; i < lf->data_len; i++) {
 		CustomData_copy_elements(type, data, lf->data[i], 1);
@@ -1063,6 +1109,21 @@ void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, int layer
 
 	do {
 		bm_vert_loop_groups_data_layer_merge__single(bm, groups->link, data, type);
+	} while ((groups = groups->next));
+}
+
+/**
+ * A version of #BM_vert_loop_groups_data_layer_merge
+ * that takes an array of loop-weights (aligned with #BM_LOOPS_OF_VERT iterator)
+ */
+void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm, LinkNode *groups, int layer_n, const float *loop_weights)
+{
+	int type = bm->ldata.layers[layer_n].type;
+	int size = CustomData_sizeof(type);
+	void *data = alloca(size);
+
+	do {
+		bm_vert_loop_groups_data_layer_merge_weights__single(bm, groups->link, data, type, loop_weights);
 	} while ((groups = groups->next));
 }
 

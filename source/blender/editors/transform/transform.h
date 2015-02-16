@@ -204,18 +204,19 @@ struct GHash;
 typedef struct TransDataGenericSlideVert {
 	struct BMVert *v;
 	struct LinkNode **cd_loop_groups;
+	float co_orig_3d[3];
 } TransDataGenericSlideVert;
 
 typedef struct TransDataEdgeSlideVert {
 	/* TransDataGenericSlideVert */
 	struct BMVert *v;
 	struct LinkNode **cd_loop_groups;
+	float v_co_orig[3];
 	/* end generic */
 
-	struct BMVert *v_a, *v_b;
-	float v_co_orig[3];
-
 	float edge_len;
+
+	struct BMVert *v_a, *v_b;
 
 	/* add origvert.co to get the original locations */
 	float dir_a[3], dir_b[3];
@@ -228,6 +229,7 @@ typedef struct TransDataEdgeSlideVert {
 typedef struct SlideOrigData {
 	/* flag that is set when origfaces is initialized */
 	bool use_origfaces;
+	struct GHash    *origverts;  /* map {BMVert: TransDataGenericSlideVert} */
 	struct GHash    *origfaces;
 	struct BMesh *bm_origfaces;
 
@@ -261,9 +263,9 @@ typedef struct TransDataVertSlideVert {
 	/* TransDataGenericSlideVert */
 	BMVert *v;
 	struct LinkNode **cd_loop_groups;
+	float   co_orig_3d[3];
 	/* end generic */
 
-	float   co_orig_3d[3];
 	float   co_orig_2d[2];
 	float (*co_link_orig_3d)[3];
 	float (*co_link_orig_2d)[2];
