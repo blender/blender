@@ -718,14 +718,16 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					/* should never fail */
 					if (LIKELY(v_pair[0] && v_pair[1])) {
 						bool v_pair_swap = false;
-						/* Logic explained:
+						float tvec[3];
+						/**
+						 * Logic explained:
 						 *
 						 * - Edges and vert-pairs treated the same way.
-						 * - Point the Z axis along the edge vector (towards the active vertex).
-						 * - Point the Y axis outwards (the same direction as the normals).
+						 * - Point the Y axis along the edge vector (towards the active vertex).
+						 * - Point the Z axis outwards (the same direction as the normals).
 						 *
-						 * Note that this is at odds a little with face select (and 3 vertices)
-						 * which point the Z axis along the normal, however in both cases Z is the dominant axis.
+						 * \note Z points outwards - along the normal.
+						 * take care making changes here, see: T38592, T43708
 						 */
 
 						/* be deterministic where possible and ensure v_pair[0] is active */
@@ -743,10 +745,15 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 							SWAP(BMVert *, v_pair[0], v_pair[1]);
 						}
 
-						add_v3_v3v3(plane, v_pair[0]->no, v_pair[1]->no);
-						sub_v3_v3v3(normal, v_pair[0]->co, v_pair[1]->co);
+						add_v3_v3v3(normal, v_pair[0]->no, v_pair[1]->no);
+						sub_v3_v3v3(plane, v_pair[0]->co, v_pair[1]->co);
 						/* flip the plane normal so we point outwards */
 						negate_v3(plane);
+
+						/* align normal to edge direction (so normal is perpendicular to the plane).
+						 * 'ORIENTATION_EDGE' will do the other way around */
+						project_v3_v3v3(tvec, normal, plane);
+						sub_v3_v3(normal, tvec);
 					}
 
 					result = ORIENTATION_EDGE;
