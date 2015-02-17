@@ -2656,8 +2656,6 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	}
 }
 
-
-
 /**
  * Shared by #ED_view3d_draw_offscreen and #view3d_main_area_draw_objects
  *
@@ -2673,8 +2671,10 @@ static void view3d_draw_objects(
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	const bool do_camera_frame = !draw_offscreen;
-	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
+	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
+	/* only draw grids after in solid modes, else it hovers over mesh wires */
+	const bool draw_grids_after = draw_grids && draw_floor && (v3d->drawtype > OB_WIRE);
 	bool xrayclear = true;
 
 	if (!draw_offscreen) {
@@ -2721,6 +2721,9 @@ static void view3d_draw_objects(
 			glLoadMatrixf(rv3d->winmat);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixf(rv3d->viewmat);
+		}
+		else {
+			drawfloor(scene, v3d, grid_unit);
 		}
 	}
 
@@ -2796,17 +2799,17 @@ static void view3d_draw_objects(
 		}
 	}
 
+	/* perspective floor goes last to use scene depth and avoid writing to depth buffer */
+	if (draw_grids_after) {
+		drawfloor(scene, v3d, grid_unit);
+	}
+
 	/* must be before xray draw which clears the depth buffer */
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		/* must be before xray draw which clears the depth buffer */
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 		ED_gpencil_draw_view3d(scene, v3d, ar, true);
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-	}
-
-	/* perspective floor goes last to use scene depth and avoid writing to depth buffer */
-	if (draw_grids && draw_floor) {
-		drawfloor(scene, v3d, grid_unit);
 	}
 
 	/* transp and X-ray afterdraw stuff */
