@@ -219,6 +219,7 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name)
 void fsmenu_entry_refresh_valid(struct FSMenuEntry *fsentry)
 {
 	if (fsentry->path && fsentry->path[0]) {
+#ifdef WIN32
 		/* XXX Special case, always consider those as valid.
 		 *     Thanks to Windows, which can spend five seconds to perform a mere stat() call on those paths...
 		 *     See T43684.
@@ -228,11 +229,12 @@ void fsmenu_entry_refresh_valid(struct FSMenuEntry *fsentry)
 		int i;
 
 		for (i = 0; exceptions[i]; i++) {
-			if (STREQLEN(fsentry->path, exceptions[i], exceptions_len[i])) {
+			if (STRCASEEQLEN(fsentry->path, exceptions[i], exceptions_len[i])) {
 				fsentry->valid = true;
 				return;
 			}
 		}
+#endif
 		fsentry->valid = BLI_is_dir(fsentry->path);
 	}
 	else {
