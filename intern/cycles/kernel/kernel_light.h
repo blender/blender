@@ -175,10 +175,10 @@ ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, flo
  * https://www.solidangle.com/research/egsr2013_spherical_rectangle.pdf
  */
 ccl_device float area_light_sample(float3 P,
-                                    float3 *light_p,
-                                    float3 axisu, float3 axisv,
-                                    float randu, float randv,
-                                    bool return_coord)
+                                   float3 *light_p,
+                                   float3 axisu, float3 axisv,
+                                   float randu, float randv,
+                                   bool sample_coord)
 {
 	/* In our name system we're using P for the center,
 	 * which is o in the paper.
@@ -225,7 +225,7 @@ ccl_device float area_light_sample(float3 P,
 	/* Compute solid angle from internal angles. */
 	float S = g0 + g1 - k;
 
-	if(return_coord) {
+	if(sample_coord) {
 		/* Compute cu. */
 		float au = randu * S + k;
 		float fu = (cosf(au) * b0 - b1) / sinf(au);
