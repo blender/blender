@@ -4740,8 +4740,9 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 		/* this may not be an ID at all, check for simple when pointer owns property.
 		 * TODO, more complex nested case */
 		if (!RNA_struct_is_ID(ptr->type)) {
-			if (RNA_struct_find_property(ptr, RNA_property_identifier(prop)) == prop) {
-				data_path = BLI_strdup(RNA_property_identifier(prop));
+			const char *prop_identifier = RNA_property_identifier(prop);
+			if (RNA_struct_find_property(ptr, prop_identifier) == prop) {
+				data_path = BLI_strdup(prop_identifier);
 			}
 		}
 	}

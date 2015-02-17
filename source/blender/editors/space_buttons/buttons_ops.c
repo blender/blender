@@ -205,6 +205,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 	else {
+		PropertyRNA *prop_relpath;
 		const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" : "filepath";
 		fbo = MEM_callocN(sizeof(FileBrowseOp), "FileBrowseOp");
 		fbo->ptr = ptr;
@@ -216,10 +217,10 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		/* normally ED_fileselect_get_params would handle this but we need to because of stupid
 		 * user-prefs exception - campbell */
-		if (RNA_struct_find_property(op->ptr, "relative_path")) {
-			if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
+		if ((prop_relpath = RNA_struct_find_property(op->ptr, "relative_path"))) {
+			if (!RNA_property_is_set(op->ptr, prop_relpath)) {
 				/* annoying exception!, if were dealing with the user prefs, default relative to be off */
-				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS && (ptr.data != &U));
+				RNA_property_boolean_set(op->ptr, prop_relpath, U.flag & USER_RELPATHS && (ptr.data != &U));
 			}
 		}
 		WM_event_add_fileselect(C, op);

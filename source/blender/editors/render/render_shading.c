@@ -1386,11 +1386,15 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 
 static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *path, const char imtype)
 {
+	PropertyRNA *prop;
 	float layout[12];
-	if (RNA_struct_find_property(op->ptr, "layout") )
-		RNA_float_get_array(op->ptr, "layout", layout);
-	else
+
+	if ((prop = RNA_struct_find_property(op->ptr, "layout"))) {
+		RNA_property_float_get_array(op->ptr, prop, layout);
+	}
+	else {
 		memcpy(layout, default_envmap_layout, sizeof(layout));
+	}
 
 	if (RE_WriteEnvmapResult(op->reports, scene, env, path, imtype, layout)) {
 		return OPERATOR_FINISHED;

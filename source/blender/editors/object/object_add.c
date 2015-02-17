@@ -297,18 +297,19 @@ bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	unsigned int _layer;
+	PropertyRNA *prop;
 
-	/* Switch to Edit mode? */
-	if (RNA_struct_find_property(op->ptr, "enter_editmode")) { /* optional */
+	/* Switch to Edit mode? optional prop */
+	if ((prop = RNA_struct_find_property(op->ptr, "enter_editmode"))) {
 		bool _enter_editmode;
 		if (!enter_editmode)
 			enter_editmode = &_enter_editmode;
 
-		if (RNA_struct_property_is_set(op->ptr, "enter_editmode") && enter_editmode)
-			*enter_editmode = RNA_boolean_get(op->ptr, "enter_editmode");
+		if (RNA_property_is_set(op->ptr, prop) && enter_editmode)
+			*enter_editmode = RNA_property_boolean_get(op->ptr, prop);
 		else {
 			*enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
-			RNA_boolean_set(op->ptr, "enter_editmode", *enter_editmode);
+			RNA_property_boolean_set(op->ptr, prop, *enter_editmode);
 		}
 	}
 
@@ -318,8 +319,9 @@ bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view
 		if (!layer)
 			layer = &_layer;
 
-		if (RNA_struct_property_is_set(op->ptr, "layers")) {
-			RNA_boolean_get_array(op->ptr, "layers", layer_values);
+		prop = RNA_struct_find_property(op->ptr, "layers");
+		if (RNA_property_is_set(op->ptr, prop)) {
+			RNA_property_boolean_get_array(op->ptr, prop, layer_values);
 			*layer = 0;
 			for (a = 0; a < 20; a++) {
 				if (layer_values[a])
@@ -332,7 +334,7 @@ bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view
 			for (a = 0; a < 20; a++) {
 				layer_values[a] = *layer & (1 << a);
 			}
-			RNA_boolean_set_array(op->ptr, "layers", layer_values);
+			RNA_property_boolean_set_array(op->ptr, prop, layer_values);
 		}
 
 		/* in local view we additionally add local view layers,
