@@ -1236,6 +1236,16 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 			}
 		}
 	}
+	else {
+		/* disable eraser flags - so that we can switch modes during a session */
+		p->gpd->sbuffer_sflag &= ~GP_STROKE_ERASER;
+		
+		if (p->sa->spacetype == SPACE_VIEW3D) {
+			if (p->gpl->flag & GP_LAYER_NO_XRAY) {
+				p->flags &= ~GP_PAINTFLAG_V3D_ERASER_DEPTH;
+			}
+		}
+	}
 	
 	/* set 'initial run' flag, which is only used to denote when a new stroke is starting */
 	p->flags |= GP_PAINTFLAG_FIRSTRUN;
@@ -1400,7 +1410,7 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 		WM_paint_cursor_end(CTX_wm_manager(C), p->erasercursor);
 		p->erasercursor = NULL;
 	}
-	else if (enable) {
+	else if (enable && !p->erasercursor) {
 		/* enable cursor */
 		p->erasercursor = WM_paint_cursor_activate(CTX_wm_manager(C),
 		                                           NULL, /* XXX */
@@ -1893,6 +1903,27 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* printf("\t\tGP - end stroke only\n"); */
 				gpencil_stroke_end(op);
 				
+				/* If eraser mode is on, turn it off after the stroke finishes
+				 * NOTE: This just makes it nicer to work with drawing sessions
+				 */
+				if (p->paintmode == GP_PAINTMODE_ERASER) {
+					p->paintmode = RNA_enum_get(op->ptr, "mode");
+					
+					/* if the original mode was *still* eraser,
+					 * we'll let it say for now, since this gives
+					 * users an opportunity to have visual feedback
+					 * when adjusting eraser size
+					 */
+					if (p->paintmode != GP_PAINTMODE_ERASER) {	
+						/* turn off cursor...
+						 * NOTE: this should be enough for now
+						 *       Just hiding this makes it seem like
+						 *       you can paint again...
+						 */
+						gpencil_draw_toggle_eraser_cursor(C, p, false);
+					}
+				}
+				
 				/* we've just entered idling state, so this event was processed (but no others yet) */
 				estate = OPERATOR_RUNNING_MODAL;
 				
@@ -1906,6 +1937,23 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 		}
 		else if (event->val == KM_PRESS) {
+			/* Switch paintmode (temporarily if need be) based on which button was used
+			 * NOTE: This is to make it more convenient to erase strokes when using drawing sessions
+			 */
+			if (event->type == LEFTMOUSE) {
+				/* restore drawmode to default */
+				// XXX: no need for this... this should just revert by itself
+				if (p->paintmode == GP_PAINTMODE_ERASER)
+					gpencil_draw_toggle_eraser_cursor(C, p, false);
+					
+				p->paintmode = RNA_enum_get(op->ptr, "mode");
+			}
+			else if (event->type == RIGHTMOUSE) {
+				/* turn on eraser */
+				p->paintmode = GP_PAINTMODE_ERASER;
+				gpencil_draw_toggle_eraser_cursor(C, p, true);
+			}
+			
 			/* not painting, so start stroke (this should be mouse-button down) */
 			p = gpencil_stroke_begin(C, op);
 			
