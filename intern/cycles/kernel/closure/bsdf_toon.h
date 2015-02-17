@@ -46,10 +46,6 @@ ccl_device int bsdf_diffuse_toon_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_diffuse_toon_blur(ShaderClosure *sc, float roughness)
-{
-}
-
 ccl_device float3 bsdf_toon_get_intensity(float max_angle, float smooth, float angle)
 {
 	float is;
@@ -128,10 +124,6 @@ ccl_device int bsdf_glossy_toon_setup(ShaderClosure *sc)
 	sc->data1 = clamp(sc->data1, 0.0f, 1.0f);
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
-}
-
-ccl_device void bsdf_glossy_toon_blur(ShaderClosure *sc, float roughness)
-{
 }
 
 ccl_device float3 bsdf_glossy_toon_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)

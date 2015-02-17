@@ -275,6 +275,8 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, const ShaderData *sd, const Shade
 
 ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 {
+/* ToDo: do we want to blur volume closures? */
+
 #ifdef __OSL__
 	if(kg->osl && sc->prim) {
 		OSLShader::bsdf_blur(sc, roughness);
@@ -282,33 +284,8 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 	}
 #endif
 
-	switch(sc->type) {
-		case CLOSURE_BSDF_DIFFUSE_ID:
-		case CLOSURE_BSDF_BSSRDF_ID:
-			bsdf_diffuse_blur(sc, roughness);
-			break;
 #ifdef __SVM__
-		case CLOSURE_BSDF_OREN_NAYAR_ID:
-			bsdf_oren_nayar_blur(sc, roughness);
-			break;
-		/*case CLOSURE_BSDF_PHONG_RAMP_ID:
-			bsdf_phong_ramp_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
-			bsdf_diffuse_ramp_blur(sc, roughness);
-			break;*/
-		case CLOSURE_BSDF_TRANSLUCENT_ID:
-			bsdf_translucent_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_REFLECTION_ID:
-			bsdf_reflection_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_REFRACTION_ID:
-			bsdf_refraction_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_TRANSPARENT_ID:
-			bsdf_transparent_blur(sc, roughness);
-			break;
+	switch(sc->type) {
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
@@ -323,24 +300,10 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID:
 			bsdf_ashikhmin_shirley_blur(sc, roughness);
 			break;
-		case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
-			bsdf_ashikhmin_velvet_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_DIFFUSE_TOON_ID:
-			bsdf_diffuse_toon_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_GLOSSY_TOON_ID:
-			bsdf_glossy_toon_blur(sc, roughness);
-			break;
-		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
-		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
-			bsdf_hair_reflection_blur(sc, roughness);
-			break;
-#endif
-		/* todo: do we want to blur volume closures? */
 		default:
 			break;
 	}
+#endif
 }
 
 CCL_NAMESPACE_END

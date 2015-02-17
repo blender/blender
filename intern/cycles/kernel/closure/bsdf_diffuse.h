@@ -43,10 +43,6 @@ ccl_device int bsdf_diffuse_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_diffuse_blur(ShaderClosure *sc, float roughness)
-{
-}
-
 ccl_device float3 bsdf_diffuse_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float3 N = sc->N;
@@ -88,10 +84,6 @@ ccl_device int bsdf_translucent_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_TRANSLUCENT_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
-}
-
-ccl_device void bsdf_translucent_blur(ShaderClosure *sc, float roughness)
-{
 }
 
 ccl_device float3 bsdf_translucent_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)

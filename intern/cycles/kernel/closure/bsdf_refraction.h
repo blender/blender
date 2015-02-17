@@ -43,10 +43,6 @@ ccl_device int bsdf_refraction_setup(ShaderClosure *sc)
 	return SD_BSDF;
 }
 
-ccl_device void bsdf_refraction_blur(ShaderClosure *sc, float roughness)
-{
-}
-
 ccl_device float3 bsdf_refraction_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);

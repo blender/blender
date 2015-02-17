@@ -45,10 +45,6 @@ ccl_device int bsdf_ashikhmin_velvet_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_ashikhmin_velvet_blur(ShaderClosure *sc, float roughness)
-{
-}
-
 ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_invsigma2 = sc->data0;

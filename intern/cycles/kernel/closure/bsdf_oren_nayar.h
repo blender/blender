@@ -47,10 +47,6 @@ ccl_device int bsdf_oren_nayar_setup(ShaderClosure *sc)
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)
-{
-}
-
 ccl_device float3 bsdf_oren_nayar_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	if(dot(sc->N, omega_in) > 0.0f) {

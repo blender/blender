@@ -36,14 +36,6 @@
 CCL_NAMESPACE_BEGIN
 
 
-ccl_device void bsdf_hair_reflection_blur(ShaderClosure *sc, float roughness)
-{
-}
-
-ccl_device void bsdf_hair_transmission_blur(ShaderClosure *sc, float roughness)
-{
-}
-
 ccl_device int bsdf_hair_reflection_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;
