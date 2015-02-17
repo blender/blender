@@ -623,13 +623,16 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 	float step_size, random_jitter_offset;
 
 	if(heterogeneous) {
-		max_steps = kernel_data.integrator.volume_max_steps;
+		const int global_max_steps = kernel_data.integrator.volume_max_steps;
 		step_size = kernel_data.integrator.volume_step_size;
-		random_jitter_offset = lcg_step_float(&state->rng_congruential) * step_size;
-
 		/* compute exact steps in advance for malloc */
 		max_steps = max((int)ceilf(ray->t/step_size), 1);
+		if (max_steps > global_max_steps) {
+			max_steps = global_max_steps;
+			step_size = ray->t / (float)max_steps;
+		}
 		segment->steps = (VolumeStep*)malloc(sizeof(VolumeStep)*max_steps);
+		random_jitter_offset = lcg_step_float(&state->rng_congruential) * step_size;
 	}
 	else {
 		max_steps = 1;
