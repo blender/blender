@@ -353,7 +353,7 @@ static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), 
 
 static void restrictbutton_gp_layer_flag_cb(bContext *C, void *UNUSED(poin), void *UNUSED(poin2))
 {
-	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
 static int group_restrict_flag(Group *gr, int flag)
