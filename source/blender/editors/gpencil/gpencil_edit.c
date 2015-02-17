@@ -805,6 +805,30 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Can not paste strokes when active layer is hidden or locked");
 		return OPERATOR_CANCELLED;
 	}
+	else {
+		/* Check that some of the strokes in the buffer can be used */
+		bGPDstroke *gps;
+		bool ok = false;
+		
+		for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+			if (ED_gpencil_stroke_can_use(C, gps)) {
+				ok = true;
+				break;
+			}
+		}
+		
+		if (ok == false) {
+			/* XXX: this check is not 100% accurate (i.e. image editor is incompatible with normal 2D strokes),
+			 * but should be enough to give users a good idea of what's going on
+			 */
+			if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D)
+				BKE_report(op->reports, RPT_ERROR, "Cannot paste 2D strokes in 3D View");
+			else
+				BKE_report(op->reports, RPT_ERROR, "Cannot paste 3D strokes in 2D editors");
+				
+			return OPERATOR_CANCELLED;
+		}
+	}
 	
 	/* Deselect all strokes first */
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
@@ -832,12 +856,14 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 		
 		/* Copy each stroke into the layer */
 		for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
-			bGPDstroke *new_stroke = MEM_dupallocN(gps);
-			
-			new_stroke->points = MEM_dupallocN(gps->points);
-			new_stroke->next = new_stroke->prev = NULL;
-			
-			BLI_addtail(&gpf->strokes, new_stroke);
+			if (ED_gpencil_stroke_can_use(C, gps)) {
+				bGPDstroke *new_stroke = MEM_dupallocN(gps);
+				
+				new_stroke->points = MEM_dupallocN(gps->points);
+				new_stroke->next = new_stroke->prev = NULL;
+				
+				BLI_addtail(&gpf->strokes, new_stroke);
+			}
 		}
 	}
 	
