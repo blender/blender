@@ -174,17 +174,17 @@ ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, flo
  *
  * https://www.solidangle.com/research/egsr2013_spherical_rectangle.pdf
  */
-ccl_device float3 area_light_sample(float3 P,
-                                    float3 light_p,
+ccl_device float area_light_sample(float3 P,
+                                    float3 *light_p,
                                     float3 axisu, float3 axisv,
                                     float randu, float randv,
-                                    float *pdf, bool return_coords)
+                                    bool return_coord)
 {
 	/* In our name system we're using P for the center,
 	 * which is o in the paper.
 	 */
 
-	float3 corner = light_p - axisu * 0.5f - axisv * 0.5f;
+	float3 corner = *light_p - axisu * 0.5f - axisv * 0.5f;
 	float axisu_len, axisv_len;
 	/* Compute local reference system R. */
 	float3 x = normalize_len(axisu, &axisu_len);
@@ -224,12 +224,8 @@ ccl_device float3 area_light_sample(float3 P,
 	float k = M_2PI_F - g2 - g3;
 	/* Compute solid angle from internal angles. */
 	float S = g0 + g1 - k;
-	if(S != 0.0f)
-		*pdf = 1.0f / S;
-	else
-		*pdf = 0.0f;
 
-	if(return_coords) {
+	if(return_coord) {
 		/* Compute cu. */
 		float au = randu * S + k;
 		float fu = (cosf(au) * b0 - b1) / sinf(au);
@@ -249,10 +245,14 @@ ccl_device float3 area_light_sample(float3 P,
 		float yv = (hv2 < 1.0f - 1e-6f) ? (hv * d) / sqrtf(1.0f - hv2) : y1;
 
 		/* Transform (xu, yv, z0) to world coords. */
-		return P + xu * x + yv * y + z0 * z;
+		*light_p = P + xu * x + yv * y + z0 * z;
 	}
+
+	/* return pdf */
+	if(S != 0.0f)
+		return 1.0f / S;
 	else
-		return make_float3(0.0f, 0.0f, 0.0f);
+		return 0.0f;
 }
 
 ccl_device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
@@ -367,10 +367,10 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 			float3 axisv = make_float3(data2.y, data2.z, data2.w);
 			float3 D = make_float3(data3.y, data3.z, data3.w);
 
-			ls->P = area_light_sample(P, ls->P,
+			ls->pdf = area_light_sample(P, &ls->P,
 			                          axisu, axisv,
 			                          randu, randv,
-			                          &ls->pdf, true);
+			                          true);
 
 			ls->Ng = D;
 			ls->D = normalize_len(ls->P - P, &ls->t);
@@ -502,7 +502,7 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 
 		ls->D = D;
 		ls->Ng = Ng;
-		area_light_sample(P, ls->P, axisu, axisv, 0, 0, &ls->pdf, false);
+		ls->pdf = area_light_sample(P, &ls->P, axisu, axisv, 0, 0, false);
 		ls->eval_fac = 0.25f*invarea;
 	}
 	else
