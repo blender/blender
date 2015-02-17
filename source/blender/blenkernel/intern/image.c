@@ -687,8 +687,7 @@ Image *BKE_image_load_exists_ex(const char *filepath, bool *r_exists)
 
 			if (BLI_path_cmp(strtest, str) == 0) {
 				if (ima->anim == NULL || ima->id.us == 0) {
-					BLI_strncpy(ima->name, filepath, sizeof(ima->name));    /* for stringcode */
-					ima->id.us++;                                       /* officially should not, it doesn't link here! */
+					ima->id.us++;  /* officially should not, it doesn't link here! */
 					if (ima->ok == 0)
 						ima->ok = IMA_OK;
 					if (r_exists)
