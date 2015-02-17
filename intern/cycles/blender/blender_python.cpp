@@ -90,10 +90,10 @@ static PyObject *init_func(PyObject *self, PyObject *args)
 static PyObject *create_func(PyObject *self, PyObject *args)
 {
 	PyObject *pyengine, *pyuserpref, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
-	int preview_osl, background;
+	int preview_osl, headless;
 
 	if(!PyArg_ParseTuple(args, "OOOOOOOii", &pyengine, &pyuserpref, &pydata, &pyscene,
-	                     &pyregion, &pyv3d, &pyrv3d, &preview_osl, &background))
+	                     &pyregion, &pyv3d, &pyrv3d, &preview_osl, &headless))
 	{
 		return NULL;
 	}
@@ -146,14 +146,8 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 			RNA_boolean_set(&cscene, "use_progressive_refine", true);
 		}
 
-		/* Use more optimal tile order when rendering from the command line. */
-		if(background) {
-			PointerRNA cscene = RNA_pointer_get(&sceneptr, "cycles");
-			RNA_enum_set(&cscene, "tile_order", (int)TILE_BOTTOM_TO_TOP);
-		}
-
 		/* offline session or preview render */
-		session = new BlenderSession(engine, userpref, data, scene);
+		session = new BlenderSession(engine, userpref, data, scene, headless);
 	}
 
 	python_thread_state_save(&session->python_thread_state);

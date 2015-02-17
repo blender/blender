@@ -28,7 +28,7 @@ def init():
     _cycles.init(path, user_path)
 
 
-def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False, background=False):
+def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False, headless=False):
     import bpy
     import _cycles
 
@@ -42,7 +42,7 @@ def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=Fa
     if rv3d:
         rv3d = rv3d.as_pointer()
 
-    engine.session = _cycles.create(engine.as_pointer(), userpref, data, scene, region, v3d, rv3d, preview_osl, background)
+    engine.session = _cycles.create(engine.as_pointer(), userpref, data, scene, region, v3d, rv3d, preview_osl, headless)
 
 
 def free(engine):

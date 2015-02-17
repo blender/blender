@@ -42,7 +42,7 @@
 CCL_NAMESPACE_BEGIN
 
 BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b_userpref_,
-	BL::BlendData b_data_, BL::Scene b_scene_)
+	BL::BlendData b_data_, BL::Scene b_scene_, bool headless_)
 : b_engine(b_engine_), b_userpref(b_userpref_), b_data(b_data_), b_render(b_engine_.render()), b_scene(b_scene_),
   b_v3d(PointerRNA_NULL), b_rv3d(PointerRNA_NULL), python_thread_state(NULL)
 {
@@ -52,6 +52,7 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b
 	height = render_resolution_y(b_render);
 
 	background = true;
+	headless = headless_;
 	last_redraw_time = 0.0;
 	start_resize_time = 0.0;
 }
@@ -86,7 +87,7 @@ void BlenderSession::create()
 
 void BlenderSession::create_session()
 {
-	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background, headless);
 	bool is_cpu = session_params.device.type == DEVICE_CPU;
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background, is_cpu);
 	bool session_pause = BlenderSync::get_session_pause(b_scene, background);
@@ -143,7 +144,7 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	b_render = b_engine.render();
 	b_scene = b_scene_;
 
-	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background, headless);
 	const bool is_cpu = session_params.device.type == DEVICE_CPU;
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background, is_cpu);
 
@@ -408,7 +409,7 @@ void BlenderSession::render()
 	session->update_render_tile_cb = function_bind(&BlenderSession::update_render_tile, this, _1);
 
 	/* get buffer parameters */
-	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background, headless);
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 
 	/* render each layer */
@@ -540,7 +541,7 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::Bake
 	sync->sync_data(b_v3d, b_engine.camera_override(), &python_thread_state);
 
 	/* get buffer parameters */
-	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background, headless);
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 
 	scene->bake_manager->set_shader_limit((size_t)b_engine.tile_x(), (size_t)b_engine.tile_y());
@@ -643,7 +644,7 @@ void BlenderSession::synchronize()
 		return;
 
 	/* on session/scene parameter changes, we recreate session entirely */
-	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background, headless);
 	const bool is_cpu = session_params.device.type == DEVICE_CPU;
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background, is_cpu);
 	bool session_pause = BlenderSync::get_session_pause(b_scene, background);
@@ -744,7 +745,7 @@ bool BlenderSession::draw(int w, int h)
 
 		/* reset if requested */
 		if(reset) {
-			SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+			SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background, headless);
 			BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 			bool session_pause = BlenderSync::get_session_pause(b_scene, background);
 

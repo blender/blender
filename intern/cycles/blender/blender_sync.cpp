@@ -407,7 +407,11 @@ bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
 	return (background)? false: get_boolean(cscene, "preview_pause");
 }
 
-SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background)
+SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine,
+                                              BL::UserPreferences b_userpref,
+                                              BL::Scene b_scene,
+                                              bool background,
+                                              bool headless)
 {
 	SessionParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -496,8 +500,13 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 
 		params.tile_size = make_int2(tile_x, tile_y);
 	}
-	
-	params.tile_order = (TileOrder)RNA_enum_get(&cscene, "tile_order");
+
+	if(headless == false) {
+		params.tile_order = (TileOrder)RNA_enum_get(&cscene, "tile_order");
+	}
+	else {
+		params.tile_order = TILE_BOTTOM_TO_TOP;
+	}
 
 	params.start_resolution = get_int(cscene, "preview_start_resolution");
 
