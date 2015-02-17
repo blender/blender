@@ -485,7 +485,9 @@ bool mouse_armature(bContext *C, const int mval[2], bool extend, bool deselect, 
 
 	view3d_set_viewcontext(C, &vc);
 	
-	BIF_sk_selectStroke(C, mval, extend);
+	if (BIF_sk_selectStroke(C, mval, extend)) {
+		return true;
+	}
 	
 	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
 	if (nearBone) {

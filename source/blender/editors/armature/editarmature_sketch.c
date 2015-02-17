@@ -1951,7 +1951,7 @@ static void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 /********************************************/
 
 
-static int sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], int extend)
+static bool sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], const bool extend)
 {
 	ViewContext vc;
 	rcti rect;
@@ -2239,15 +2239,19 @@ static int sketch_delete(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNU
 	return OPERATOR_FINISHED;
 }
 
-void BIF_sk_selectStroke(bContext *C, const int mval[2], short extend)
+bool BIF_sk_selectStroke(bContext *C, const int mval[2], const bool extend)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);
 
 	if (sketch != NULL && ts->bone_sketching & BONE_SKETCHING) {
-		if (sk_selectStroke(C, sketch, mval, extend))
+		if (sk_selectStroke(C, sketch, mval, extend)) {
 			ED_area_tag_redraw(CTX_wm_area(C));
+			return true;
+		}
 	}
+
+	return false;
 }
 
 void BIF_convertSketch(bContext *C)
