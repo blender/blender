@@ -68,6 +68,7 @@ sources.extend((
     os.path.join(env['DATA_SOURCES'], "gpu_shader_fx_ssao_frag.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_fx_dof_frag.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_fx_dof_vert.glsl.c"),
+    os.path.join(env['DATA_SOURCES'], "gpu_shader_fx_depth_resolve.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_fx_lib.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_fx_vert.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_material.glsl.c"),

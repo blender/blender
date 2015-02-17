@@ -2666,7 +2666,7 @@ static void view3d_draw_objects(
         const bContext *C,
         Scene *scene, View3D *v3d, ARegion *ar,
         const char **grid_unit,
-        const bool do_bgpic, const bool draw_offscreen, bool do_compositing)
+        const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
@@ -2817,16 +2817,16 @@ static void view3d_draw_objects(
 	if (v3d->afterdraw_transp.first)     view3d_draw_transp(scene, ar, v3d);
 
 	/* always do that here to cleanup depth buffers if none needed */
-	if (do_compositing) {
+	if (fx) {
 		do_composite_xray = v3d->zbuf && (v3d->afterdraw_xray.first || v3d->afterdraw_xraytransp.first);
-		GPU_fx_compositor_setup_XRay_pass(rv3d->compositor, do_composite_xray);
+		GPU_fx_compositor_setup_XRay_pass(fx, do_composite_xray);
 	}
 
 	if (v3d->afterdraw_xray.first)       view3d_draw_xray(scene, ar, v3d, &xrayclear);
 	if (v3d->afterdraw_xraytransp.first) view3d_draw_xraytransp(scene, ar, v3d, xrayclear);
 
-	if (do_compositing && do_composite_xray) {
-		GPU_fx_compositor_XRay_resolve(rv3d->compositor);
+	if (fx && do_composite_xray) {
+		GPU_fx_compositor_XRay_resolve(fx);
 	}
 
 	if (!draw_offscreen) {
@@ -3133,7 +3133,7 @@ void ED_view3d_draw_offscreen(
 	}
 
 	/* main drawing call */
-	view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, do_compositing);
+	view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, fx);
 
 	/* post process */
 	if (do_compositing) {
@@ -3563,7 +3563,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 	}
 
 	/* main drawing call */
-	view3d_draw_objects(C, scene, v3d, ar, grid_unit, true, false, do_compositing);
+	view3d_draw_objects(C, scene, v3d, ar, grid_unit, true, false, do_compositing ? rv3d->compositor : NULL);
 
 	/* post process */
 	if (do_compositing) {
