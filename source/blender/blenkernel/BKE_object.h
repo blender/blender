@@ -69,6 +69,7 @@ void BKE_object_update_base_layer(struct Scene *scene, struct Object *ob);
 void BKE_object_free(struct Object *ob);
 void BKE_object_free_ex(struct Object *ob, bool do_id_user);
 void BKE_object_free_derived_caches(struct Object *ob);
+void BKE_object_free_caches(struct Object *object);
 
 void BKE_object_modifier_hook_reset(struct Object *ob, struct HookModifierData *hmd);
 

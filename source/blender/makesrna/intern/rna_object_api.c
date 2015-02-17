@@ -655,6 +655,9 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Load the objects edit-mode data intp the object data");
 	parm = RNA_def_boolean(func, "result", 0, "", "Success");
 	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "cache_release", "BKE_object_free_caches");
+	RNA_def_function_ui_description(func, "Release memory used by caches associated with this object. Intended to be used by render engines only");
 }
 
 

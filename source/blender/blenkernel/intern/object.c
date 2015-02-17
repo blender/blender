@@ -329,6 +329,45 @@ void BKE_object_free_derived_caches(Object *ob)
 	BKE_object_free_curve_cache(ob);
 }
 
+void BKE_object_free_caches(Object *object)
+{
+	ModifierData *md;
+	short update_flag = 0;
+
+	/* Free particle system caches holding paths. */
+	if (object->particlesystem.first) {
+		ParticleSystem *psys;
+		for (psys = object->particlesystem.first;
+		     psys != NULL;
+		     psys = psys->next)
+		{
+			psys_free_path_cache(psys, psys->edit);
+			update_flag |= PSYS_RECALC;
+		}
+	}
+
+	/* Free memory used by cached derived meshes in the particle system modifiers. */
+	for (md = object->modifiers.first; md != NULL; md = md->next) {
+		if (md->type == eModifierType_ParticleSystem) {
+			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
+			if (psmd->dm != NULL) {
+				psmd->dm->needsFree = 1;
+				psmd->dm->release(psmd->dm);
+				psmd->dm = NULL;
+				update_flag |= OB_RECALC_DATA;
+			}
+		}
+	}
+
+	/* Tag object for update, so once memory critical operation is over and
+	 * scene update routines are back to it's business the object will be
+	 * guaranteed to be in a known state.
+	 */
+	if (update_flag != 0) {
+		DAG_id_tag_update(&object->id, update_flag);
+	}
+}
+
 /* do not free object itself */
 void BKE_object_free_ex(Object *ob, bool do_id_user)
 {
