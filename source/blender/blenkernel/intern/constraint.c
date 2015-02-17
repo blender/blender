@@ -4419,9 +4419,10 @@ bool BKE_constraint_remove(ListBase *list, bConstraint *con)
 
 bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool clear_dep)
 {
+	const short type = con->type;
 	if (BKE_constraint_remove(list, con)) {
 		/* ITASC needs to be rebuilt once a constraint is removed [#26920] */
-		if (clear_dep && ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
+		if (clear_dep && ELEM(type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
 			BIK_clear_data(ob->pose);
 		}
 		return true;
