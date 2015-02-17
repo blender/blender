@@ -81,6 +81,10 @@ void sk_initPoint(SK_Point *pt, SK_DrawData *dd, const float no[3])
 	}
 	pt->p2d[0] = dd->mval[0];
 	pt->p2d[1] = dd->mval[1];
+
+	pt->size = 0.0f;
+	pt->type = PT_CONTINUOUS;
+	pt->mode = PT_SNAP;
 	/* more init code here */
 }
 
