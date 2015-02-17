@@ -466,6 +466,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			generated[i++] = get_float3(v->undeformed_co())*size - loc;
 	}
 
+	/* Create needed vertex attributes. */
+	attr_create_pointiness(scene, mesh, b_mesh);
+
 	/* create faces */
 	vector<int> nverts(numfaces);
 	int fi = 0, ti = 0;
@@ -522,7 +525,6 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	 */
 	attr_create_vertex_color(scene, mesh, b_mesh, nverts);
 	attr_create_uv_map(scene, mesh, b_mesh, nverts);
-	attr_create_pointiness(scene, mesh, b_mesh);
 
 	/* for volume objects, create a matrix to transform from object space to
 	 * mesh texture space. this does not work with deformations but that can
