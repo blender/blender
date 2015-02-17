@@ -376,7 +376,7 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 	BLI_strncpy(name, filename, sizeof(name));
 	BLI_path_abs(name, G.main->name);
 	
-	if (BLI_stat(name, &st)) {
+	if (BLI_stat(name, &st) == -1) {
 		ret_val = PF_NOFILE;
 	}
 	else if (st.st_size != pf->size) {

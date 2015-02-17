@@ -233,7 +233,7 @@ static int findFileRecursive(char *filename_new,
 
 		BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
-		if (BLI_stat(path, &status) != 0)
+		if (BLI_stat(path, &status) == -1)
 			continue;  /* cant stat, don't bother with this file, could print debug info here */
 
 		if (S_ISREG(status.st_mode)) { /* is file */

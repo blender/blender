@@ -253,8 +253,9 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 					file->relname = dlink->name;
 					file->path = BLI_strdupcat(dirname, dlink->name);
 					BLI_join_dirfile(fullname, sizeof(fullname), dirname, dlink->name);
-					BLI_stat(fullname, &file->s);
-					file->type = file->s.st_mode;
+					if (BLI_stat(fullname, &file->s) != -1) {
+						file->type = file->s.st_mode;
+					}
 					file->flags = 0;
 					dir_ctx->nrfiles++;
 					file++;

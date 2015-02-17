@@ -343,8 +343,9 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 				}
 
 				if (img != NULL) {
-					BLI_stat(path, &info);
-					BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+					if (BLI_stat(path, &info) != -1) {
+						BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+					}
 					BLI_snprintf(cwidth, sizeof(cwidth), "%d", img->x);
 					BLI_snprintf(cheight, sizeof(cheight), "%d", img->y);
 				}
@@ -363,8 +364,9 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 					}
 					IMB_free_anim(anim);
 				}
-				BLI_stat(path, &info);
-				BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+				if (BLI_stat(path, &info) != -1) {
+					BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+				}
 			}
 			if (!img) return NULL;
 
@@ -461,7 +463,7 @@ ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
 	BLI_stat_t st;
 	ImBuf *img = NULL;
 	
-	if (BLI_stat(path, &st)) {
+	if (BLI_stat(path, &st) == -1) {
 		return NULL;
 	}
 	if (!uri_from_filename(path, uri)) {

@@ -45,6 +45,8 @@ extern "C" {
 
 #include <limits.h>  /* for PATH_MAX */
 
+#include "BLI_compiler_attrs.h"
+
 #ifndef PATH_MAX
 #  define PATH_MAX 4096
 #endif
@@ -53,12 +55,12 @@ struct gzFile;
 
 /* Common */
 
-int    BLI_exists(const char *path);
-int    BLI_copy(const char *path, const char *to);
-int    BLI_rename(const char *from, const char *to);
-int    BLI_delete(const char *path, bool dir, bool recursive);
-int    BLI_move(const char *path, const char *to);
-int    BLI_create_symlink(const char *path, const char *to);
+int    BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int    BLI_copy(const char *path, const char *to) ATTR_NONNULL();
+int    BLI_rename(const char *from, const char *to) ATTR_NONNULL();
+int    BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
+int    BLI_move(const char *path, const char *to) ATTR_NONNULL();
+int    BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
 
 /* keep in sync with the definition of struct direntry in BLI_fileops_types.h */
 #ifdef WIN32
@@ -73,7 +75,7 @@ typedef struct _stat BLI_stat_t;
 typedef struct stat BLI_stat_t;
 #endif
 
-int    BLI_stat(const char *path, BLI_stat_t *buffer);
+int    BLI_stat(const char *path, BLI_stat_t *buffer) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 #ifdef WIN32
 int    BLI_wstat(const wchar_t *path, BLI_stat_t *buffer);
 #endif
@@ -82,11 +84,11 @@ int    BLI_wstat(const wchar_t *path, BLI_stat_t *buffer);
 
 struct direntry;
 
-bool   BLI_is_dir(const char *path);
-bool   BLI_is_file(const char *path);
-void   BLI_dir_create_recursive(const char *dir);
-double BLI_dir_free_space(const char *dir);
-char  *BLI_current_working_dir(char *dir, const size_t maxlen);
+bool   BLI_is_dir(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool   BLI_is_file(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void   BLI_dir_create_recursive(const char *dir) ATTR_NONNULL();
+double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+char  *BLI_current_working_dir(char *dir, const size_t maxlen) ATTR_NONNULL();
 
 /* Filelist */
 
@@ -98,28 +100,28 @@ void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (
 
 /* Files */
 
-FILE  *BLI_fopen(const char *filename, const char *mode);
-void  *BLI_gzopen(const char *filename, const char *mode);
-int    BLI_open(const char *filename, int oflag, int pmode);
-int    BLI_access(const char *filename, int mode);
+FILE  *BLI_fopen(const char *filename, const char *mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void  *BLI_gzopen(const char *filename, const char *mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int    BLI_open(const char *filename, int oflag, int pmode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int    BLI_access(const char *filename, int mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-bool   BLI_file_is_writable(const char *file);
-bool   BLI_file_touch(const char *file);
+bool   BLI_file_is_writable(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool   BLI_file_touch(const char *file) ATTR_NONNULL();
 
 #if 0  /* UNUSED */
-int    BLI_file_gzip(const char *from, const char *to);
+int    BLI_file_gzip(const char *from, const char *to) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 #endif
-char  *BLI_file_ungzip_to_mem(const char *from_file, int *r_size);
+char  *BLI_file_ungzip_to_mem(const char *from_file, int *r_size) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-size_t BLI_file_descriptor_size(int file);
-size_t BLI_file_size(const char *file);
+size_t BLI_file_descriptor_size(int file) ATTR_WARN_UNUSED_RESULT;
+size_t BLI_file_size(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* compare if one was last modified before the other */
-bool   BLI_file_older(const char *file1, const char *file2);
+bool   BLI_file_older(const char *file1, const char *file2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* read ascii file as lines, empty list if reading fails */
-struct LinkNode *BLI_file_read_as_lines(const char *file);
-void   BLI_file_free_lines(struct LinkNode *lines);
+struct LinkNode *BLI_file_read_as_lines(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void   BLI_file_free_lines(struct LinkNode *lines) ATTR_NONNULL();
 
 /* this weirdo pops up in two places ... */
 #if !defined(WIN32)
