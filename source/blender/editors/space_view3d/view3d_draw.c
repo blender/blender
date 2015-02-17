@@ -3133,7 +3133,7 @@ void ED_view3d_draw_offscreen(
 	}
 
 	/* main drawing call */
-	view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, fx);
+	view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, do_compositing ? fx : NULL);
 
 	/* post process */
 	if (do_compositing) {
