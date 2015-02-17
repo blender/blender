@@ -388,11 +388,8 @@ static void outliner_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 			}
 			break;
 		case NC_GPENCIL:
-			switch (wmn->data) {
-				case ND_DATA:
-					ED_region_tag_redraw(ar);
-					break;
-			}
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
+				ED_region_tag_redraw(ar);
 			break;
 	}
 	
