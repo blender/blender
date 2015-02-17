@@ -266,7 +266,7 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng,
 
 	kernel_assert(dot(locy, *omega_in) < 0.0f);
 
-	return LABEL_GLOSSY;
+	return LABEL_TRANSMIT|LABEL_GLOSSY;
 }
 
 CCL_NAMESPACE_END
