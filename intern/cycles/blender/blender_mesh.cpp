@@ -375,9 +375,9 @@ static void attr_create_pointiness(Scene *scene,
 		int i = 0;
 		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
 			int v0 = b_mesh.edges[i].vertices()[0],
-				v1 = b_mesh.edges[i].vertices()[1];
+			    v1 = b_mesh.edges[i].vertices()[1];
 			float3 co0 = get_float3(b_mesh.vertices[v0].co()),
-				co1 = get_float3(b_mesh.vertices[v1].co());
+			       co1 = get_float3(b_mesh.vertices[v1].co());
 			float3 edge = normalize(co1 - co0);
 			edge_accum[v0] += edge;
 			edge_accum[v1] += -edge;
@@ -403,7 +403,7 @@ static void attr_create_pointiness(Scene *scene,
 		i = 0;
 		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
 			int v0 = b_mesh.edges[i].vertices()[0],
-				v1 = b_mesh.edges[i].vertices()[1];
+			    v1 = b_mesh.edges[i].vertices()[1];
 			data[v0] += raw_data[v1];
 			data[v1] += raw_data[v0];
 			++counter[v0];
