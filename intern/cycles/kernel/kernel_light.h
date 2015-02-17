@@ -178,7 +178,7 @@ ccl_device float3 area_light_sample(float3 P,
                                     float3 light_p,
                                     float3 axisu, float3 axisv,
                                     float randu, float randv,
-                                    float *pdf)
+                                    float *pdf, bool return_coords)
 {
 	/* In our name system we're using P for the center,
 	 * which is o in the paper.
@@ -198,13 +198,10 @@ ccl_device float3 area_light_sample(float3 P,
 		z *= -1.0f;
 		z0 *= -1.0f;
 	}
-	float z0sq = z0 * z0;
 	float x0 = dot(dir, x);
 	float y0 = dot(dir, y);
 	float x1 = x0 + axisu_len;
 	float y1 = y0 + axisv_len;
-	float y0sq = y0 * y0;
-	float y1sq = y1 * y1;
 	/* Create vectors to four vertices. */
 	float3 v00 = make_float3(x0, y0, z0);
 	float3 v01 = make_float3(x0, y1, z0);
@@ -227,83 +224,35 @@ ccl_device float3 area_light_sample(float3 P,
 	float k = M_2PI_F - g2 - g3;
 	/* Compute solid angle from internal angles. */
 	float S = g0 + g1 - k;
-
-	/* Compute cu. */
-	float au = randu * S + k;
-	float fu = (cosf(au) * b0 - b1) / sinf(au);
-	float cu = 1.0f / sqrtf(fu * fu + b0sq) * (fu > 0.0f ? 1.0f : -1.0f);
-	cu = clamp(cu, -1.0f, 1.0f);
-	/* Compute xu. */
-	float xu = -(cu * z0) / sqrtf(1.0f - cu * cu);
-	xu = clamp(xu, x0, x1);
-	/* Compute yv. */
-	float d = sqrtf(xu * xu + z0sq);
-	float h0 = y0 / sqrtf(d * d + y0sq);
-	float h1 = y1 / sqrtf(d * d + y1sq);
-	float hv = h0 + randv * (h1 - h0), hv2 = hv * hv;
-	float yv = (hv2 < 1.0f - 1e-6f) ? (hv * d) / sqrtf(1.0f - hv2) : y1;
-
 	if(S != 0.0f)
 		*pdf = 1.0f / S;
 	else
 		*pdf = 0.0f;
 
-	/* Transform (xu, yv, z0) to world coords. */
-	return P + xu * x + yv * y + z0 * z;
-}
+	if(return_coords) {
+		/* Compute cu. */
+		float au = randu * S + k;
+		float fu = (cosf(au) * b0 - b1) / sinf(au);
+		float cu = 1.0f / sqrtf(fu * fu + b0sq) * (fu > 0.0f ? 1.0f : -1.0f);
+		cu = clamp(cu, -1.0f, 1.0f);
+		/* Compute xu. */
+		float xu = -(cu * z0) / sqrtf(1.0f - cu * cu);
+		xu = clamp(xu, x0, x1);
+		/* Compute yv. */
+		float z0sq = z0 * z0;
+		float y0sq = y0 * y0;
+		float y1sq = y1 * y1;
+		float d = sqrtf(xu * xu + z0sq);
+		float h0 = y0 / sqrtf(d * d + y0sq);
+		float h1 = y1 / sqrtf(d * d + y1sq);
+		float hv = h0 + randv * (h1 - h0), hv2 = hv * hv;
+		float yv = (hv2 < 1.0f - 1e-6f) ? (hv * d) / sqrtf(1.0f - hv2) : y1;
 
-/* TODO(sergey): This is actually a duplicated code from above, but how to avoid
- * this without having some nasty function with loads of parameters?
- */
-ccl_device float area_light_pdf(float3 P,
-                                float3 light_p,
-                                float3 axisu, float3 axisv)
-{
-	/* In our name system we're using P for the center,
-	 * which is o in the paper.
-	 */
-
-	float3 corner = light_p - axisu * 0.5f - axisv * 0.5f;
-	float axisu_len, axisv_len;
-	/* Compute local reference system R. */
-	float3 x = normalize_len(axisu, &axisu_len);
-	float3 y = normalize_len(axisv, &axisv_len);
-	float3 z = cross(x, y);
-	/* Compute rectangle coords in local reference system. */
-	float3 dir = corner - P;
-	float z0 = dot(dir, z);
-	/* Flip 'z' to make it point against Q. */
-	if(z0 > 0.0f) {
-		z *= -1.0f;
-		z0 *= -1.0f;
+		/* Transform (xu, yv, z0) to world coords. */
+		return P + xu * x + yv * y + z0 * z;
 	}
-	float x0 = dot(dir, x);
-	float y0 = dot(dir, y);
-	float x1 = x0 + axisu_len;
-	float y1 = y0 + axisv_len;
-	/* Create vectors to four vertices. */
-	float3 v00 = make_float3(x0, y0, z0);
-	float3 v01 = make_float3(x0, y1, z0);
-	float3 v10 = make_float3(x1, y0, z0);
-	float3 v11 = make_float3(x1, y1, z0);
-	/* Compute normals to edges. */
-	float3 n0 = normalize(cross(v00, v10));
-	float3 n1 = normalize(cross(v10, v11));
-	float3 n2 = normalize(cross(v11, v01));
-	float3 n3 = normalize(cross(v01, v00));
-	/* Compute internal angles (gamma_i). */
-	float g0 = safe_acosf(-dot(n0, n1));
-	float g1 = safe_acosf(-dot(n1, n2));
-	float g2 = safe_acosf(-dot(n2, n3));
-	float g3 = safe_acosf(-dot(n3, n0));
-	/* Compute predefined constants. */
-	float k = M_2PI_F - g2 - g3;
-	/* Compute solid angle from internal angles. */
-	float S = g0 + g1 - k;
-	if(S != 0.0f)
-		return 1.0f / S;
 	else
-		return 0.0f;
+		return make_float3(0.0f, 0.0f, 0.0f);
 }
 
 ccl_device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
@@ -421,7 +370,7 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 			ls->P = area_light_sample(P, ls->P,
 			                          axisu, axisv,
 			                          randu, randv,
-			                          &ls->pdf);
+			                          &ls->pdf, true);
 
 			ls->Ng = D;
 			ls->D = normalize_len(ls->P - P, &ls->t);
@@ -553,7 +502,7 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 
 		ls->D = D;
 		ls->Ng = Ng;
-		ls->pdf = area_light_pdf(P, ls->P, axisu, axisv);
+		area_light_sample(P, ls->P, axisu, axisv, 0, 0, &ls->pdf, false);
 		ls->eval_fac = 0.25f*invarea;
 	}
 	else
