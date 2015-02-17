@@ -268,7 +268,6 @@ static int calc_manipulator_stats(const bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
@@ -305,48 +304,11 @@ static int calc_manipulator_stats(const bContext *C)
 
 				BMIter iter;
 
-				/* do vertices/edges/faces for center depending on selection
-				 * mode. note we can't use just vertex selection flag because
-				 * it is not flush down on changes */
-				if (ts->selectmode & SCE_SELECT_VERTEX) {
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-							if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-								totsel++;
-								calc_tw_center(scene, eve->co);
-							}
-						}
-					}
-				}
-				else if (ts->selectmode & SCE_SELECT_EDGE) {
-					BMIter itersub;
-					BMEdge *eed;
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-							/* check the vertex has a selected edge, only add it once */
-							BM_ITER_ELEM (eed, &itersub, eve, BM_EDGES_OF_VERT) {
-								if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-									totsel++;
-									calc_tw_center(scene, eve->co);
-									break;
-								}
-							}
-						}
-					}
-				}
-				else {
-					BMIter itersub;
-					BMFace *efa;
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-							/* check the vertex has a selected face, only add it once */
-							BM_ITER_ELEM (efa, &itersub, eve, BM_FACES_OF_VERT) {
-								if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-									totsel++;
-									calc_tw_center(scene, eve->co);
-									break;
-								}
-							}
+				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+							totsel++;
+							calc_tw_center(scene, eve->co);
 						}
 					}
 				}
