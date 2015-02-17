@@ -367,16 +367,22 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 				if (ma && draw_col_ma)
 					get_strand_normal(ma, ornor, cur_length, (key-1)->vel);
 			}
-			if (k == totkeys-1) {
-				/* last key */
-				sub_v3_v3v3(key->vel, key->co, (key-1)->co);
-			}
 			
 			if (use_length_check && k > 1) {
 				float dvec[3];
 				/* check if path needs to be cut before actual end of data points */
-				if (!check_path_length(k, keys, key, max_length, step_length, &cur_length, dvec))
+				if (!check_path_length(k, keys, key, max_length, step_length, &cur_length, dvec)) {
+					/* last key */
+					sub_v3_v3v3(key->vel, key->co, (key-1)->co);
+					if (ma && draw_col_ma) {
+						copy_v3_v3(key->col, &ma->r);
+					}
 					break;
+				}
+			}
+			if (k == totkeys-1) {
+				/* last key */
+				sub_v3_v3v3(key->vel, key->co, (key-1)->co);
 			}
 			
 			if (ma && draw_col_ma) {
