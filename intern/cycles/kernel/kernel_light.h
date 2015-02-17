@@ -173,6 +173,8 @@ ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, flo
  * An Area-Preserving Parametrization for Spherical Rectangles.
  *
  * https://www.solidangle.com/research/egsr2013_spherical_rectangle.pdf
+ *
+ * Note: light_p is modified when sample_coord is true.
  */
 ccl_device float area_light_sample(float3 P,
                                    float3 *light_p,
