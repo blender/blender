@@ -459,7 +459,9 @@ void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (
 			free_poin(entry->poin);
 	}
 
-	MEM_freeN(filelist);
+	if (filelist != NULL) {
+		MEM_freeN(filelist);
+	}
 }
 
 
