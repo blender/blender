@@ -1375,7 +1375,7 @@ getEmptyCursor(
         ) {
 	if (!m_empty_cursor) {
 		Pixmap blank;
-		XColor dummy;
+		XColor dummy = {0};
 		char data[1] = {0};
 			
 		/* make a blank cursor */
