@@ -2666,7 +2666,7 @@ static void view3d_draw_objects(
         const bContext *C,
         Scene *scene, View3D *v3d, ARegion *ar,
         const char **grid_unit,
-        const bool do_bgpic, const bool draw_offscreen)
+        const bool do_bgpic, const bool draw_offscreen, bool do_compositing)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
@@ -2675,6 +2675,7 @@ static void view3d_draw_objects(
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
 	/* only draw grids after in solid modes, else it hovers over mesh wires */
 	const bool draw_grids_after = draw_grids && draw_floor && (v3d->drawtype > OB_WIRE);
+	bool do_composite_xray = false;
 	bool xrayclear = true;
 
 	if (!draw_offscreen) {
@@ -2814,8 +2815,19 @@ static void view3d_draw_objects(
 
 	/* transp and X-ray afterdraw stuff */
 	if (v3d->afterdraw_transp.first)     view3d_draw_transp(scene, ar, v3d);
+
+	/* always do that here to cleanup depth buffers if none needed */
+	if (do_compositing) {
+		do_composite_xray = v3d->zbuf && (v3d->afterdraw_xray.first || v3d->afterdraw_xraytransp.first);
+		GPU_fx_compositor_setup_XRay_pass(rv3d->compositor, do_composite_xray);
+	}
+
 	if (v3d->afterdraw_xray.first)       view3d_draw_xray(scene, ar, v3d, &xrayclear);
 	if (v3d->afterdraw_xraytransp.first) view3d_draw_xraytransp(scene, ar, v3d, xrayclear);
+
+	if (do_compositing && do_composite_xray) {
+		GPU_fx_compositor_XRay_resolve(rv3d->compositor);
+	}
 
 	if (!draw_offscreen) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -3117,11 +3129,11 @@ void ED_view3d_draw_offscreen(
 	}
 	else {
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	/* main drawing call */
-	view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true);
+	view3d_draw_objects(NULL, scene, v3d, ar, NULL, do_bgpic, true, do_compositing);
 
 	/* post process */
 	if (do_compositing) {
@@ -3551,7 +3563,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 	}
 
 	/* main drawing call */
-	view3d_draw_objects(C, scene, v3d, ar, grid_unit, true, false);
+	view3d_draw_objects(C, scene, v3d, ar, grid_unit, true, false, do_compositing);
 
 	/* post process */
 	if (do_compositing) {

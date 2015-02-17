@@ -60,10 +60,12 @@ typedef enum GPUFXShaderEffect {
 	GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_THREE = 4,
 	GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FOUR = 5,
 	GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FIVE = 6,
+
+	GPU_SHADER_FX_DEPTH_RESOLVE = 7,
 } GPUFXShaderEffect;
 
 /* keep in synch with enum above! */
-#define MAX_FX_SHADERS 11
+#define MAX_FX_SHADERS 8
 
 /* generate a new FX compositor */
 GPUFX *GPU_fx_compositor_create(void);
@@ -78,6 +80,12 @@ bool GPU_fx_compositor_initialize_passes(
 
 /* do compositing on the fx passes that have been initialized */
 bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, struct Scene *scene, struct GPUOffScreen *ofs);
+
+/* bind new depth buffer for XRay pass */
+void GPU_fx_compositor_setup_XRay_pass(GPUFX *fx, bool do_xray);
+
+/* resolve a final depth buffer by compositing the XRay and normal depth buffers */
+void GPU_fx_compositor_XRay_resolve(GPUFX *fx);
 
 void GPU_fx_compositor_init_dof_settings(struct GPUDOFSettings *dof);
 void GPU_fx_compositor_init_ssao_settings(struct GPUSSAOSettings *ssao);

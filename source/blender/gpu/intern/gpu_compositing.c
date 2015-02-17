@@ -89,6 +89,7 @@ struct GPUFX {
 
 	/* texture bound to the depth attachment of the gbuffer */
 	GPUTexture *depth_buffer;
+	GPUTexture *depth_buffer_xray;
 
 	/* texture used for jittering for various effects */
 	GPUTexture *jitter_buffer;
@@ -211,6 +212,12 @@ static void cleanup_fx_gl_data(GPUFX *fx, bool do_fbo)
 		GPU_framebuffer_texture_detach(fx->depth_buffer);
 		GPU_texture_free(fx->depth_buffer);
 		fx->depth_buffer = NULL;
+	}
+
+	if (fx->depth_buffer_xray) {
+		GPU_framebuffer_texture_detach(fx->depth_buffer_xray);
+		GPU_texture_free(fx->depth_buffer_xray);
+		fx->depth_buffer_xray = NULL;
 	}
 
 	cleanup_fx_dof_buffers(fx);
@@ -451,6 +458,88 @@ static void gpu_fx_bind_render_target(int *passes_left, GPUFX *fx, struct GPUOff
 		GPU_framebuffer_texture_attach(fx->gbuffer, target, 0, NULL);
 	}
 }
+
+void GPU_fx_compositor_setup_XRay_pass(GPUFX *fx, bool do_xray)
+{
+	char err_out[256];
+
+	if (do_xray) {
+		if (!fx->depth_buffer_xray && !(fx->depth_buffer_xray = GPU_texture_create_depth(fx->gbuffer_dim[0], fx->gbuffer_dim[1], err_out))) {
+			printf("%.256s\n", err_out);
+			cleanup_fx_gl_data(fx, true);
+			return;
+		}
+	}
+	else {
+		if (fx->depth_buffer_xray) {
+			GPU_framebuffer_texture_detach(fx->depth_buffer_xray);
+			GPU_texture_free(fx->depth_buffer_xray);
+			fx->depth_buffer_xray = NULL;
+		}
+		return;
+	}
+
+	GPU_framebuffer_texture_detach(fx->depth_buffer);
+
+	/* first depth buffer, because system assumes read/write buffers */
+	if(!GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer_xray, 0, err_out))
+		printf("%.256s\n", err_out);
+}
+
+
+void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
+{
+	GPUShader *depth_resolve_shader;
+	GPU_framebuffer_texture_detach(fx->depth_buffer_xray);
+
+	/* attach regular framebuffer */
+	GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0, NULL);
+
+	/* full screen quad where we will always write to depth buffer */
+	glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_SCISSOR_BIT);
+	glDepthFunc(GL_ALWAYS);
+	/* disable scissor from sculpt if any */
+	glDisable(GL_SCISSOR_TEST);
+	/* disable writing to color buffer, it's depth only pass */
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+	/* set up quad buffer */
+	glVertexPointer(2, GL_FLOAT, 0, fullscreencos);
+	glTexCoordPointer(2, GL_FLOAT, 0, fullscreenuvs);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	depth_resolve_shader = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_RESOLVE, false);
+
+	if (depth_resolve_shader) {
+		int depth_uniform;
+
+		depth_uniform = GPU_shader_get_uniform(depth_resolve_shader, "depthbuffer");
+
+		GPU_shader_bind(depth_resolve_shader);
+
+		GPU_texture_bind(fx->depth_buffer_xray, 0);
+		GPU_depth_texture_mode(fx->depth_buffer_xray, false, true);
+		GPU_shader_uniform_texture(depth_resolve_shader, depth_uniform, fx->depth_buffer_xray);
+
+		/* draw */
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		/* disable bindings */
+		GPU_depth_texture_mode(fx->depth_buffer_xray, true, false);
+		GPU_texture_unbind(fx->depth_buffer_xray);
+
+		GPU_shader_unbind();
+	}
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glPopAttrib();
+}
+
 
 bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, struct Scene *scene, struct GPUOffScreen *ofs)
 {
