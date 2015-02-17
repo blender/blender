@@ -659,7 +659,7 @@ void ED_spacetype_file(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype file operator region");
 	art->regionid = RGN_TYPE_TOOL_PROPS;
 	art->prefsizex = 0;
-	art->prefsizey = 240;
+	art->prefsizey = 360;
 	art->keymapflag = ED_KEYMAP_UI;
 	art->listener = file_tools_area_listener;
 	art->init = file_tools_area_init;
