@@ -196,14 +196,14 @@ void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt)
 
 void sk_insertStrokePoints(SK_Stroke *stk, SK_Point *pts, int len, int start, int end)
 {
-	int size = end - start + 1;
+	int size = end - start;
 
 	sk_growStrokeBufferN(stk, len - size);
 
 	if (len != size) {
-		int tail_size = stk->nb_points - end + 1;
+		int tail_size = stk->nb_points - end;
 
-		memmove(stk->points + start + len, stk->points + end + 1, tail_size * sizeof(SK_Point));
+		memmove(stk->points + start + len, stk->points + end, tail_size * sizeof(SK_Point));
 	}
 
 	memcpy(stk->points + start, pts, len * sizeof(SK_Point));
