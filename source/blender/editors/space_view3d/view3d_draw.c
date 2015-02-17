@@ -42,6 +42,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_brush_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -3576,6 +3577,36 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 
 }
 
+static bool is_cursor_visible(Scene *scene)
+{
+	Object *ob = OBACT;
+
+	/* don't draw cursor in paint modes, but with a few exceptions */
+	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
+		/* exception: object is in weight paint and has deforming armature in pose mode */
+		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+			if (BKE_object_pose_armature_get(ob) != NULL) {
+				return true;
+			}
+		}
+		/* exception: object in texture paint mode, clone brush, use_clone_layer disabled */
+		else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+			const Paint *p = BKE_paint_get_active(scene);
+
+			if (p && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
+				if ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) == 0) {
+					return true;
+				}
+			}
+		}
+
+		/* no exception met? then don't draw cursor! */
+		return false;
+	}
+
+	return true;
+}
+
 static void view3d_main_area_draw_info(const bContext *C, Scene *scene,
                                        ARegion *ar, View3D *v3d,
                                        const char *grid_unit, bool render_border)
@@ -3609,7 +3640,10 @@ static void view3d_main_area_draw_info(const bContext *C, Scene *scene,
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		Object *ob;
 
-		drawcursor(scene, ar, v3d);
+		/* 3d cursor */
+		if (is_cursor_visible(scene)) {
+			drawcursor(scene, ar, v3d);
+		}
 
 		if (U.uiflag & USER_SHOW_ROTVIEWICON)
 			draw_view_axis(rv3d, &rect);

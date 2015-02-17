@@ -292,7 +292,7 @@ static void rna_Paint_brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	Paint *paint = ptr->data;
 	Brush *br = paint->brush;
 	BKE_paint_invalidate_overlay_all();
-	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
+	WM_main_add_notifier(NC_BRUSH | NA_SELECTED, br);
 }
 
 static void rna_ImaPaint_viewport_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -730,7 +730,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);
 	RNA_def_property_ui_text(prop, "Clone Map",
 	                         "Use another UV map as clone source, otherwise use the 3D cursor as the source");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_viewport_update");
 	
 	/* integers */
 	
