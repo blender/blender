@@ -907,11 +907,12 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 			switch (wmn->action) {
 				case NA_EDITED:
 					ED_region_tag_redraw_overlay(ar);
-				/* used on brush changes - needed because 3d cursor
-				 * has to be drawn if clone brush is selected */
+					break;
 				case NA_SELECTED:
+					/* used on brush changes - needed because 3d cursor
+					 * has to be drawn if clone brush is selected */
 					ED_region_tag_redraw(ar);
-				break;
+					break;
 			}
 			break;
 		case NC_MATERIAL:
