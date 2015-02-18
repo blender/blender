@@ -36,7 +36,7 @@ ccl_device int volume_henyey_greenstein_setup(ShaderClosure *sc)
 	/* clamp anisotropy to avoid delta function */
 	sc->data0 = signf(sc->data0) * min(fabsf(sc->data0), 1.0f - 1e-3f);
 
-	return SD_SCATTER|SD_PHASE_HAS_EVAL;
+	return SD_SCATTER;
 }
 
 ccl_device float3 volume_henyey_greenstein_eval_phase(const ShaderClosure *sc, const float3 I, float3 omega_in, float *pdf)

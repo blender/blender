@@ -595,7 +595,6 @@ enum ShaderDataFlag {
 	SD_EMISSION       = (1 << 1),   /* have emissive closure? */
 	SD_BSDF           = (1 << 2),   /* have bsdf closure? */
 	SD_BSDF_HAS_EVAL  = (1 << 3),   /* have non-singular bsdf closure? */
-	SD_PHASE_HAS_EVAL = (1 << 3),   /* have non-singular phase closure? */
 	SD_BSSRDF         = (1 << 4),   /* have bssrdf */
 	SD_HOLDOUT        = (1 << 5),   /* have holdout closure? */
 	SD_ABSORPTION     = (1 << 6),   /* have volume absorption closure? */
