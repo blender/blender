@@ -141,6 +141,11 @@ static void rna_Mesh_free_tangents(Mesh *mesh)
 	CustomData_free_layers(&mesh->ldata, CD_MLOOPTANGENT, mesh->totloop);
 }
 
+static void rna_Mesh_calc_tessface(Mesh *mesh, int free_mpoly)
+{
+	ED_mesh_calc_tessface(mesh, free_mpoly != 0);
+}
+
 static void rna_Mesh_calc_smooth_groups(Mesh *mesh, int use_bitflags, int *r_poly_group_len,
                                         int **r_poly_group, int *r_group_total)
 {
@@ -269,8 +274,12 @@ void RNA_api_mesh(StructRNA *srna)
 	func = RNA_def_function(srna, "free_tangents", "rna_Mesh_free_tangents");
 	RNA_def_function_ui_description(func, "Free tangents");
 
-	func = RNA_def_function(srna, "calc_tessface", "ED_mesh_calc_tessface");
+	func = RNA_def_function(srna, "calc_tessface", "rna_Mesh_calc_tessface");
 	RNA_def_function_ui_description(func, "Calculate face tessellation (supports editmode too)");
+	RNA_def_boolean(func, "free_mpoly", 0, "Free MPoly", "Free data used by polygons and loops. "
+	                "WARNING: This destructive operation removes regular faces, "
+	                "only used on temporary mesh data-blocks to reduce memory footprint of render "
+	                "engines and export scripts.");
 
 	func = RNA_def_function(srna, "calc_smooth_groups", "rna_Mesh_calc_smooth_groups");
 	RNA_def_function_ui_description(func, "Calculate smooth groups from sharp edges");

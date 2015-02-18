@@ -673,7 +673,7 @@ int collada_export(struct Scene *sce,
                    BC_export_transformation_type export_transformation_type,
                    int open_sim) RET_ZERO
 
-void ED_mesh_calc_tessface(struct Mesh *mesh) RET_NONE
+void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly) RET_NONE
 
 /* bpy/python internal api */
 void operator_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE

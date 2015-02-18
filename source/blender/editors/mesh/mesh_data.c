@@ -1235,13 +1235,24 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 	mesh_add_polys(mesh, count);
 }
 
-void ED_mesh_calc_tessface(Mesh *mesh)
+void ED_mesh_calc_tessface(Mesh *mesh, bool free_mpoly)
 {
 	if (mesh->edit_btmesh) {
 		BKE_editmesh_tessface_calc(mesh->edit_btmesh);
 	}
 	else {
 		BKE_mesh_tessface_calc(mesh);
+	}
+	if (free_mpoly) {
+		CustomData_free(&mesh->ldata, mesh->totloop);
+		CustomData_free(&mesh->pdata, mesh->totpoly);
+		mesh->totloop = 0;
+		mesh->totpoly = 0;
+		mesh->mloop = NULL;
+		mesh->mloopcol = NULL;
+		mesh->mloopuv = NULL;
+		mesh->mpoly = NULL;
+		mesh->mtpoly = NULL;
 	}
 }
 

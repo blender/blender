@@ -47,7 +47,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData data, BL::Object object, BL:
 		if (me.use_auto_smooth()) {
 			me.calc_normals_split();
 		}
-		me.calc_tessface();
+		me.calc_tessface(true);
 	}
 	return me;
 }
