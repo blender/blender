@@ -25,12 +25,6 @@ OIIO_NAMESPACE_USING
 
 #include <stdio.h>
 
-#include <boost/version.hpp>
-
-#if (BOOST_VERSION < 104400)
-#  define BOOST_FILESYSTEM_VERSION 2
-#endif
-
 #include <boost/filesystem.hpp> 
 #include <boost/algorithm/string.hpp>
 
@@ -101,11 +95,7 @@ string path_user_get(const string& sub)
 
 string path_filename(const string& path)
 {
-#if (BOOST_FILESYSTEM_VERSION == 2)
-	return to_boost(path).filename();
-#else
 	return from_boost(to_boost(path).filename());
-#endif
 }
 
 string path_dirname(const string& path)
@@ -284,11 +274,7 @@ void path_cache_clear_except(const string& name, const set<string>& except)
 		boost::filesystem::directory_iterator it(dir), it_end;
 
 		for(; it != it_end; it++) {
-#if (BOOST_FILESYSTEM_VERSION == 2)
-			string filename = from_boost(it->path().filename());
-#else
 			string filename = from_boost(it->path().filename().string());
-#endif
 
 			if(boost::starts_with(filename, name))
 				if(except.find(filename) == except.end())

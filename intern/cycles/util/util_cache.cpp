@@ -24,12 +24,6 @@
 #include "util_path.h"
 #include "util_types.h"
 
-#include <boost/version.hpp>
-
-#if (BOOST_VERSION < 104400)
-#  define BOOST_FILESYSTEM_VERSION 2
-#endif
-
 #include <boost/filesystem.hpp> 
 #include <boost/algorithm/string.hpp>
 
