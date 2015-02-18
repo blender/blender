@@ -3358,46 +3358,50 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 			//take relative transform into account!
 			CcdPhysicsController* parentCtrl = (CcdPhysicsController*)parent->GetPhysicsController();
 			assert(parentCtrl);
-			CcdShapeConstructionInfo* parentShapeInfo = parentCtrl->GetShapeInfo();
-			btRigidBody* rigidbody = parentCtrl->GetRigidBody();
-			btCollisionShape* colShape = rigidbody->getCollisionShape();
-			assert(colShape->isCompound());
-			btCompoundShape* compoundShape = (btCompoundShape*)colShape;
 
-			// compute the local transform from parent, this may include several node in the chain
-			SG_Node* gameNode = gameobj->GetSGNode();
-			SG_Node* parentNode = parent->GetSGNode();
-			// relative transform
-			MT_Vector3 parentScale = parentNode->GetWorldScaling();
-			parentScale[0] = MT_Scalar(1.0)/parentScale[0];
-			parentScale[1] = MT_Scalar(1.0)/parentScale[1];
-			parentScale[2] = MT_Scalar(1.0)/parentScale[2];
-			MT_Vector3 relativeScale = gameNode->GetWorldScaling() * parentScale;
-			MT_Matrix3x3 parentInvRot = parentNode->GetWorldOrientation().transposed();
-			MT_Vector3 relativePos = parentInvRot*((gameNode->GetWorldPosition()-parentNode->GetWorldPosition())*parentScale);
-			MT_Matrix3x3 relativeRot = parentInvRot*gameNode->GetWorldOrientation();
+			// only makes compound shape if parent has a physics controller (i.e not an empty, etc)
+			if (parentCtrl) {
+				CcdShapeConstructionInfo* parentShapeInfo = parentCtrl->GetShapeInfo();
+				btRigidBody* rigidbody = parentCtrl->GetRigidBody();
+				btCollisionShape* colShape = rigidbody->getCollisionShape();
+				assert(colShape->isCompound());
+				btCompoundShape* compoundShape = (btCompoundShape*)colShape;
 
-			shapeInfo->m_childScale.setValue(relativeScale[0],relativeScale[1],relativeScale[2]);
-			bm->setLocalScaling(shapeInfo->m_childScale);
-			shapeInfo->m_childTrans.getOrigin().setValue(relativePos[0],relativePos[1],relativePos[2]);
-			float rot[12];
-			relativeRot.getValue(rot);
-			shapeInfo->m_childTrans.getBasis().setFromOpenGLSubMatrix(rot);
+				// compute the local transform from parent, this may include several node in the chain
+				SG_Node* gameNode = gameobj->GetSGNode();
+				SG_Node* parentNode = parent->GetSGNode();
+				// relative transform
+				MT_Vector3 parentScale = parentNode->GetWorldScaling();
+				parentScale[0] = MT_Scalar(1.0)/parentScale[0];
+				parentScale[1] = MT_Scalar(1.0)/parentScale[1];
+				parentScale[2] = MT_Scalar(1.0)/parentScale[2];
+				MT_Vector3 relativeScale = gameNode->GetWorldScaling() * parentScale;
+				MT_Matrix3x3 parentInvRot = parentNode->GetWorldOrientation().transposed();
+				MT_Vector3 relativePos = parentInvRot*((gameNode->GetWorldPosition()-parentNode->GetWorldPosition())*parentScale);
+				MT_Matrix3x3 relativeRot = parentInvRot*gameNode->GetWorldOrientation();
 
-			parentShapeInfo->AddShape(shapeInfo);
-			compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
-			//do some recalc?
-			//recalc inertia for rigidbody
-			if (!rigidbody->isStaticOrKinematicObject())
-			{
-				btVector3 localInertia;
-				float mass = 1.f/rigidbody->getInvMass();
-				compoundShape->calculateLocalInertia(mass,localInertia);
-				rigidbody->setMassProps(mass,localInertia);
+				shapeInfo->m_childScale.setValue(relativeScale[0],relativeScale[1],relativeScale[2]);
+				bm->setLocalScaling(shapeInfo->m_childScale);
+				shapeInfo->m_childTrans.getOrigin().setValue(relativePos[0],relativePos[1],relativePos[2]);
+				float rot[12];
+				relativeRot.getValue(rot);
+				shapeInfo->m_childTrans.getBasis().setFromOpenGLSubMatrix(rot);
+
+				parentShapeInfo->AddShape(shapeInfo);
+				compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
+				//do some recalc?
+				//recalc inertia for rigidbody
+				if (!rigidbody->isStaticOrKinematicObject())
+				{
+					btVector3 localInertia;
+					float mass = 1.f/rigidbody->getInvMass();
+					compoundShape->calculateLocalInertia(mass,localInertia);
+					rigidbody->setMassProps(mass,localInertia);
+				}
+				shapeInfo->Release();
+				// delete motionstate as it's not used
+				delete motionstate;
 			}
-			shapeInfo->Release();
-			// delete motionstate as it's not used
-			delete motionstate;
 			return;
 		}
 
