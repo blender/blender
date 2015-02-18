@@ -54,13 +54,8 @@ ccl_device int bsdf_hair_transmission_setup(ShaderClosure *sc)
 
 ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-#ifdef __HAIR__
 	float offset = sc->data2;
 	float3 Tg = sc->T;
-#else
-	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
-#endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
 
@@ -112,13 +107,8 @@ ccl_device float3 bsdf_hair_reflection_eval_transmit(const ShaderClosure *sc, co
 
 ccl_device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-#ifdef __HAIR__
 	float offset = sc->data2;
 	float3 Tg = sc->T;
-#else
-	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
-#endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
 	float Iz = dot(Tg, I);
@@ -158,13 +148,8 @@ ccl_device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, 
 
 ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-#ifdef __HAIR__
 	float offset = sc->data2;
 	float3 Tg = sc->T;
-#else
-	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
-#endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
 	float Iz = dot(Tg, I);
@@ -213,13 +198,8 @@ ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, f
 
 ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-#ifdef __HAIR__
 	float offset = sc->data2;
 	float3 Tg = sc->T;
-#else
-	float offset = 0.0f;
-	float3 Tg = make_float3(1.0f, 0.0f, 0.0f);
-#endif
 	float roughness1 = sc->data0;
 	float roughness2 = sc->data1;
 	float Iz = dot(Tg, I);

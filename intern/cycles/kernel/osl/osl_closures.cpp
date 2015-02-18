@@ -153,26 +153,16 @@ BSDF_CLOSURE_CLASS_BEGIN(HairReflection, hair_reflection, hair_reflection, LABEL
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
-#ifdef __HAIR__
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.T),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data2),
-#else
-	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
-	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
-#endif
 BSDF_CLOSURE_CLASS_END(HairReflection, hair_reflection)
 
 BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, hair_transmission, LABEL_GLOSSY)
 	CLOSURE_FLOAT3_PARAM(HairTransmissionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(HairTransmissionClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(HairTransmissionClosure, sc.data1),
-#ifdef __HAIR__
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.T),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data2),
-#else
-	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, sc.N),
-	CLOSURE_FLOAT_PARAM(HairReflectionClosure, sc.data1),
-#endif
 BSDF_CLOSURE_CLASS_END(HairTransmission, hair_transmission)
 
 VOLUME_CLOSURE_CLASS_BEGIN(VolumeHenyeyGreenstein, henyey_greenstein, LABEL_VOLUME_SCATTER)
