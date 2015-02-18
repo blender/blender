@@ -33,6 +33,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_linestyle_types.h"
@@ -583,6 +584,20 @@ static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void 
 	}
 
 	(void)tselem;
+}
+
+static void gp_layer_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
+{
+	bGPDlayer *gpl = (bGPDlayer *)te->directdata;
+	
+	if (event == OL_DOP_SELECT)
+		gpl->flag |= GP_LAYER_SELECT;
+	else if (event == OL_DOP_DESELECT)
+		gpl->flag &= ~GP_LAYER_SELECT;
+	else if (event == OL_DOP_HIDE)
+		gpl->flag |= GP_LAYER_HIDE;
+	else if (event == OL_DOP_UNHIDE)
+		gpl->flag &= ~GP_LAYER_HIDE;
 }
 
 static void data_select_linked_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *C_v)
@@ -1453,6 +1468,7 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 
 /* ******************** */
 
+// XXX: select linked is for RNA structs only
 static EnumPropertyItem prop_data_op_types[] = {
 	{OL_DOP_SELECT, "SELECT", 0, "Select", ""},
 	{OL_DOP_DESELECT, "DESELECT", 0, "Deselect", ""},
@@ -1504,6 +1520,14 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 		{
 			Scene *scene = CTX_data_scene(C);
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb, scene);
+		}
+			break;
+			
+		case TSE_GP_LAYER:
+		{
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, gp_layer_cb, NULL);
+			WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+			ED_undo_push(C, "Grease Pencil Layer operation");
 		}
 			break;
 			
