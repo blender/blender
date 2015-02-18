@@ -164,8 +164,7 @@ Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh
 	}
 
 	tmpmesh = BKE_mesh_add(G.main, "ColladaMesh"); // name is not important here
-	DM_to_mesh(dm, tmpmesh, ob, CD_MASK_MESH);
-	dm->release(dm);
+	DM_to_mesh(dm, tmpmesh, ob, CD_MASK_MESH, true);
 
 	if (triangulate) {
 		bc_triangulate_mesh(tmpmesh);

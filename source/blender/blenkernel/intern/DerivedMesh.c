@@ -531,13 +531,26 @@ MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
 	return tf_base;
 }
 
-void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
+void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool take_ownership)
 {
 	/* dm might depend on me, so we need to do everything with a local copy */
 	Mesh tmp = *me;
 	int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
 	int did_shapekeys = 0;
-	
+	int alloctype = CD_DUPLICATE;
+
+	if (take_ownership && dm->type == DM_TYPE_CDDM && dm->needsFree) {
+		bool has_any_referenced_layers =
+		        CustomData_has_referenced(&dm->vertData) ||
+		        CustomData_has_referenced(&dm->edgeData) ||
+		        CustomData_has_referenced(&dm->loopData) ||
+		        CustomData_has_referenced(&dm->faceData) ||
+		        CustomData_has_referenced(&dm->polyData);
+		if (!has_any_referenced_layers) {
+			alloctype = CD_ASSIGN;
+		}
+	}
+
 	CustomData_reset(&tmp.vdata);
 	CustomData_reset(&tmp.edata);
 	CustomData_reset(&tmp.fdata);
@@ -552,10 +565,10 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 	totpoly = tmp.totpoly = dm->getNumPolys(dm);
 	tmp.totface = 0;
 
-	CustomData_copy(&dm->vertData, &tmp.vdata, mask, CD_DUPLICATE, totvert);
-	CustomData_copy(&dm->edgeData, &tmp.edata, mask, CD_DUPLICATE, totedge);
-	CustomData_copy(&dm->loopData, &tmp.ldata, mask, CD_DUPLICATE, totloop);
-	CustomData_copy(&dm->polyData, &tmp.pdata, mask, CD_DUPLICATE, totpoly);
+	CustomData_copy(&dm->vertData, &tmp.vdata, mask, alloctype, totvert);
+	CustomData_copy(&dm->edgeData, &tmp.edata, mask, alloctype, totedge);
+	CustomData_copy(&dm->loopData, &tmp.ldata, mask, alloctype, totloop);
+	CustomData_copy(&dm->polyData, &tmp.pdata, mask, alloctype, totpoly);
 	tmp.cd_flag = dm->cd_flag;
 
 	if (CustomData_has_layer(&dm->vertData, CD_SHAPEKEY)) {
@@ -590,13 +603,19 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 	
 	/* not all DerivedMeshes store their verts/edges/faces in CustomData, so
 	 * we set them here in case they are missing */
-	if (!CustomData_has_layer(&tmp.vdata, CD_MVERT))
-		CustomData_add_layer(&tmp.vdata, CD_MVERT, CD_ASSIGN, dm->dupVertArray(dm), totvert);
-	if (!CustomData_has_layer(&tmp.edata, CD_MEDGE))
-		CustomData_add_layer(&tmp.edata, CD_MEDGE, CD_ASSIGN, dm->dupEdgeArray(dm), totedge);
+	if (!CustomData_has_layer(&tmp.vdata, CD_MVERT)) {
+		CustomData_add_layer(&tmp.vdata, CD_MVERT, CD_ASSIGN,
+		                     (alloctype == CD_ASSIGN) ? dm->getVertArray(dm) : dm->dupVertArray(dm),
+		                     totvert);
+	}
+	if (!CustomData_has_layer(&tmp.edata, CD_MEDGE)) {
+		CustomData_add_layer(&tmp.edata, CD_MEDGE, CD_ASSIGN,
+		                     (alloctype == CD_ASSIGN) ? dm->getEdgeArray(dm) : dm->dupEdgeArray(dm),
+		                     totedge);
+	}
 	if (!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
-		tmp.mloop = dm->dupLoopArray(dm);
-		tmp.mpoly = dm->dupPolyArray(dm);
+		tmp.mloop = (alloctype == CD_ASSIGN) ? dm->getLoopArray(dm) : dm->dupLoopArray(dm);
+		tmp.mpoly = (alloctype == CD_ASSIGN) ? dm->getPolyArray(dm) : dm->dupPolyArray(dm);
 
 		CustomData_add_layer(&tmp.ldata, CD_MLOOP, CD_ASSIGN, tmp.mloop, tmp.totloop);
 		CustomData_add_layer(&tmp.pdata, CD_MPOLY, CD_ASSIGN, tmp.mpoly, tmp.totpoly);
@@ -607,7 +626,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 	if (CustomData_has_layer(&me->ldata, CD_MDISPS)) {
 		if (totloop == me->totloop) {
 			MDisps *mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
-			CustomData_add_layer(&tmp.ldata, CD_MDISPS, CD_DUPLICATE, mdisps, totloop);
+			CustomData_add_layer(&tmp.ldata, CD_MDISPS, alloctype, mdisps, totloop);
 		}
 	}
 
@@ -641,6 +660,16 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask)
 
 	/* skip the listbase */
 	MEMCPY_STRUCT_OFS(me, &tmp, id.prev);
+
+	if (take_ownership) {
+		if (alloctype == CD_ASSIGN) {
+			CustomData_free_typemask(&dm->vertData, dm->numVertData, ~mask);
+			CustomData_free_typemask(&dm->edgeData, dm->numEdgeData, ~mask);
+			CustomData_free_typemask(&dm->loopData, dm->numLoopData, ~mask);
+			CustomData_free_typemask(&dm->polyData, dm->numPolyData, ~mask);
+		}
+		dm->release(dm);
+	}
 }
 
 void DM_to_meshkey(DerivedMesh *dm, Mesh *me, KeyBlock *kb)

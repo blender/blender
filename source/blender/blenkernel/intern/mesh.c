@@ -1501,7 +1501,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 	}
 	else {
 		me = BKE_mesh_add(G.main, "Mesh");
-		DM_to_mesh(dm, me, ob, CD_MASK_MESH);
+		DM_to_mesh(dm, me, ob, CD_MASK_MESH, false);
 	}
 
 	me->totcol = cu->totcol;
@@ -2256,8 +2256,7 @@ Mesh *BKE_mesh_new_from_object(
 					dm = mesh_create_derived_view(sce, ob, mask);
 
 				tmpmesh = BKE_mesh_add(bmain, "Mesh");
-				DM_to_mesh(dm, tmpmesh, ob, mask);
-				dm->release(dm);
+				DM_to_mesh(dm, tmpmesh, ob, mask, true);
 			}
 
 			/* BKE_mesh_add/copy gives us a user count we don't need */
