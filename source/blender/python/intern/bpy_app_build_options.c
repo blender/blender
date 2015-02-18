@@ -57,6 +57,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
 	{(char *)"international", NULL},
 	{(char *)"openal", NULL},
 	{(char *)"sdl", NULL},
+	{(char *)"sdl_dynload", NULL},
 	{(char *)"jack", NULL},
 	{(char *)"libmv", NULL},
 	{(char *)"mod_boolean", NULL},
@@ -225,6 +226,12 @@ static PyObject *make_builtopts_info(void)
 #endif
 
 #ifdef WITH_SDL
+	SetObjIncref(Py_True);
+#else
+	SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_SDL_DYNLOAD
 	SetObjIncref(Py_True);
 #else
 	SetObjIncref(Py_False);

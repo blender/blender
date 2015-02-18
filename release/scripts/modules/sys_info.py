@@ -118,6 +118,18 @@ def write_sysinfo(op):
     else:
         output.write("Blender was built without FFmpeg support\n")
 
+    if bpy.app.build_options.sdl:
+        output.write("\nSDL\n")
+        output.write(lilies)
+        output.write("Version: %s\n" % bpy.app.sdl.version_string)
+        output.write("Loading method: ")
+        if bpy.app.build_options.sdl_dynload:
+            output.write("dynamically loaded by Blender (WITH_SDL_DYNLOAD=ON)\n")
+        else:
+            output.write("linked (WITH_SDL_DYNLOAD=OFF)\n")
+        if not bpy.app.sdl.available:
+            output.write("WARNING: Blender could not load SDL library\n")
+
     output.write("\nOther Libraries:\n")
     output.write(lilies)
     ocio = bpy.app.ocio
@@ -147,6 +159,9 @@ def write_sysinfo(op):
             output.write("Blender was built without OpenShadingLanguage support in Cycles\n")
     else:
         output.write("Blender was built without Cycles support\n")
+
+    if not bpy.app.build_options.sdl:
+        output.write("SDL: Blender was built without SDL support\n")
 
     if bpy.app.background:
         output.write("\nOpenGL: missing, background mode\n")

@@ -52,6 +52,7 @@ set(SRC
 	bpy_app_handlers.c
 	bpy_app_ocio.c
 	bpy_app_oiio.c
+	bpy_app_sdl.c
 	bpy_app_translations.c
 	bpy_driver.c
 	bpy_interface.c
@@ -210,7 +211,17 @@ if(WITH_OPENAL)
 endif()
 
 if(WITH_SDL)
+	list(APPEND INC_SYS
+		${SDL_INCLUDE_DIR}
+	)
 	add_definitions(-DWITH_SDL)
+endif()
+
+if(WITH_SDL_DYNLOAD)
+	list(APPEND INC
+		../../../../extern/sdlew/include
+	)
+    add_definitions(-DWITH_SDL_DYNLOAD)
 endif()
 
 if(WITH_JACK)
