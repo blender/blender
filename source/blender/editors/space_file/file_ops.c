@@ -646,6 +646,10 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
 	const int act_index = sfile->bookmarknr;
 	int new_index;
 
+	if (totitems < 2) {
+		return OPERATOR_CANCELLED;
+	}
+
 	switch (direction) {
 		case FILE_BOOKMARK_MOVE_TOP:
 			new_index = 0;
