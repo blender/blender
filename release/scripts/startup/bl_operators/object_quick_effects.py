@@ -388,7 +388,7 @@ class QuickSmoke(Operator):
             links.new(node_add_shader_1.outputs["Shader"],
                     node_out.inputs["Volume"])
 
-            if self.style in {'SMOKE', 'BOTH'}:
+            if self.style in {'SMOKE', 'FIRE', 'BOTH'}:
                 # Smoke
 
                 # Add shader 2
