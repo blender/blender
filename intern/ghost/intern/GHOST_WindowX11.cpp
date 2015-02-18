@@ -306,8 +306,6 @@ GHOST_WindowX11(
 		exit(EXIT_FAILURE);
 	}
 
-	int natom;
-
 	unsigned int xattributes_valuemask = 0;
 
 	XSetWindowAttributes xattributes;
@@ -354,7 +352,6 @@ GHOST_WindowX11(
 		        &xattributes);
 	}
 	else {
-
 		Window root_return;
 		int x_return, y_return;
 		unsigned int w_return, h_return, border_w_return, depth_return;
@@ -429,36 +426,43 @@ GHOST_WindowX11(
 		m_post_state = GHOST_kWindowStateNormal;
 	}
 
+
 	/* Create some hints for the window manager on how
 	 * we want this window treated. */
+	{
+		XSizeHints *xsizehints = XAllocSizeHints();
+		xsizehints->flags = PPosition | PSize | PMinSize | PMaxSize;
+		xsizehints->x = left;
+		xsizehints->y = top;
+		xsizehints->width = width;
+		xsizehints->height = height;
+		xsizehints->min_width = 320;     /* size hints, could be made apart of the ghost api */
+		xsizehints->min_height = 240;    /* limits are also arbitrary, but should not allow 1x1 window */
+		xsizehints->max_width = 65535;
+		xsizehints->max_height = 65535;
+		XSetWMNormalHints(m_display, m_window, xsizehints);
+		XFree(xsizehints);
+	}
 
-	XSizeHints *xsizehints = XAllocSizeHints();
-	xsizehints->flags = PPosition | PSize | PMinSize | PMaxSize;
-	xsizehints->x = left;
-	xsizehints->y = top;
-	xsizehints->width = width;
-	xsizehints->height = height;
-	xsizehints->min_width = 320;     /* size hints, could be made apart of the ghost api */
-	xsizehints->min_height = 240;    /* limits are also arbitrary, but should not allow 1x1 window */
-	xsizehints->max_width = 65535;
-	xsizehints->max_height = 65535;
-	XSetWMNormalHints(m_display, m_window, xsizehints);
-	XFree(xsizehints);
 
-	XClassHint *xclasshint = XAllocClassHint();
-	const int len = title.Length() + 1;
-	char *wmclass = (char *)malloc(sizeof(char) * len);
-	strncpy(wmclass, (const char *)title, sizeof(char) * len);
-	xclasshint->res_name = wmclass;
-	xclasshint->res_class = wmclass;
-	XSetClassHint(m_display, m_window, xclasshint);
-	free(wmclass);
-	XFree(xclasshint);
+	/* XClassHint, title */
+	{
+		XClassHint *xclasshint = XAllocClassHint();
+		const int len = title.Length() + 1;
+		char *wmclass = (char *)malloc(sizeof(char) * len);
+		memcpy(wmclass, title.ReadPtr(), len * sizeof(char));
+		xclasshint->res_name = wmclass;
+		xclasshint->res_class = wmclass;
+		XSetClassHint(m_display, m_window, xclasshint);
+		free(wmclass);
+		XFree(xclasshint);
+	}
+
 
 	/* The basic for a good ICCCM "work" */
 	if (m_system->m_atom.WM_PROTOCOLS) {
 		Atom atoms[2];
-		natom = 0;
+		int natom = 0;
 
 		if (m_system->m_atom.WM_DELETE_WINDOW) {
 			atoms[natom] = m_system->m_atom.WM_DELETE_WINDOW;
@@ -480,27 +484,32 @@ GHOST_WindowX11(
 	m_xic = NULL;
 #endif
 
+
 	/* Set the window hints */
-	XWMHints *xwmhints = XAllocWMHints();
-	xwmhints->initial_state = NormalState;
-	xwmhints->input = True;
-	xwmhints->flags = InputHint | StateHint;
-	XSetWMHints(display, m_window, xwmhints);
-	XFree(xwmhints);
-	/* done setting the hints */
+	{
+		XWMHints *xwmhints = XAllocWMHints();
+		xwmhints->initial_state = NormalState;
+		xwmhints->input = True;
+		xwmhints->flags = InputHint | StateHint;
+		XSetWMHints(display, m_window, xwmhints);
+		XFree(xwmhints);
+	}
+
 
 	/* set the icon */
-	Atom _NET_WM_ICON     = XInternAtom(m_display, "_NET_WM_ICON", False);
-	XChangeProperty(m_display, m_window, _NET_WM_ICON, XA_CARDINAL,
-	                32, PropModeReplace, (unsigned char *)BLENDER_ICON_48x48x32,
-	                BLENDER_ICON_48x48x32[0] * BLENDER_ICON_48x48x32[1] + 2);
-	/* done setting the icon */
+	{
+		Atom _NET_WM_ICON     = XInternAtom(m_display, "_NET_WM_ICON", False);
+		XChangeProperty(m_display, m_window, _NET_WM_ICON, XA_CARDINAL,
+		                32, PropModeReplace, (unsigned char *)BLENDER_ICON_48x48x32,
+		                BLENDER_ICON_48x48x32[0] * BLENDER_ICON_48x48x32[1] + 2);
+	}
 
 #ifdef WITH_X11_XINPUT
 	initXInputDevices();
 
 	m_tabletData.Active = GHOST_kTabletModeNone;
 #endif
+
 
 	/* now set up the rendering context. */
 	if (setDrawingContextType(type) == GHOST_kSuccess) {
