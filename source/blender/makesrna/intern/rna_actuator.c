@@ -2056,6 +2056,11 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_NORMALUP);
 	RNA_def_property_ui_text(prop, "N", "Use normal of the navmesh to set \"UP\" vector");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "lock_z_velocity", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_LOCKZVEL);
+	RNA_def_property_ui_text(prop, "Lock Z velocity", "Disable simulation of linear motion along Z axis");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
 static void rna_def_mouse_actuator(BlenderRNA *brna)

@@ -570,6 +570,7 @@ typedef struct bActuator {
 #define ACT_STEERING_ENABLEVISUALIZATION   2
 #define ACT_STEERING_AUTOMATICFACING   4
 #define ACT_STEERING_NORMALUP  8
+#define ACT_STEERING_LOCKZVEL  16
 
 /* mouseactuator->type */
 #define ACT_MOUSE_VISIBILITY	0

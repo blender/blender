@@ -2105,11 +2105,14 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	}
 
 	row = uiLayoutRow(layout, false);
-	uiItemR(row, ptr, "self_terminated", 0, NULL, ICON_NONE);
+	col = uiLayoutColumn(row, false);
+	uiItemR(col, ptr, "self_terminated", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING) {
-		uiItemR(row, ptr, "update_period", 0, NULL, ICON_NONE);
-		row = uiLayoutRow(layout, false);
+		col = uiLayoutColumn(row, false);
+		uiItemR(col, ptr, "update_period", 0, NULL, ICON_NONE);
 	}
+	row = uiLayoutRow(layout, false);
+	uiItemR(row, ptr, "lock_z_velocity", 1, NULL, ICON_NONE);
 	row = uiLayoutRow(layout, false);
 	uiItemR(row, ptr, "show_visualization", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "mode") != ACT_STEERING_PATHFOLLOWING) {

@@ -62,6 +62,7 @@ class KX_SteeringActuator : public SCA_IActuator
 	int m_pathLen;
 	int m_pathUpdatePeriod;
 	double m_pathUpdateTime;
+	bool m_lockzvel;
 	int m_wayPointIdx;
 	MT_Matrix3x3 m_parentlocalmat;
 	MT_Vector3 m_steerVec;
@@ -89,7 +90,8 @@ public:
 						KX_ObstacleSimulation* simulation,
 						short facingmode,
 						bool normalup,
-						bool enableVisualization);
+						bool enableVisualization,
+	                    bool lockzvel);
 	virtual ~KX_SteeringActuator();
 	virtual bool Update(double curtime, bool frame);
 

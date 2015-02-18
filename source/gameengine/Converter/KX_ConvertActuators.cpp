@@ -1087,11 +1087,12 @@ void BL_ConvertActuators(const char* maggiename,
 				bool enableVisualization = (stAct->flag & ACT_STEERING_ENABLEVISUALIZATION) !=0;
 				short facingMode = (stAct->flag & ACT_STEERING_AUTOMATICFACING) ? stAct->facingaxis : 0;
 				bool normalup = (stAct->flag & ACT_STEERING_NORMALUP) !=0;
+				bool lockzvel = (stAct->flag & ACT_STEERING_LOCKZVEL) !=0;
 				KX_SteeringActuator *tmpstact
 					= new KX_SteeringActuator(gameobj, mode, targetob, navmeshob,stAct->dist, 
 					stAct->velocity, stAct->acceleration, stAct->turnspeed, 
 					selfTerminated, stAct->updateTime,
-					scene->GetObstacleSimulation(), facingMode, normalup, enableVisualization);
+					scene->GetObstacleSimulation(), facingMode, normalup, enableVisualization, lockzvel);
 				baseact = tmpstact;
 				break;
 			}
