@@ -25,10 +25,10 @@ def init():
     path = os.path.dirname(__file__)
     user_path = os.path.dirname(os.path.abspath(bpy.utils.user_resource('CONFIG', '')))
 
-    _cycles.init(path, user_path)
+    _cycles.init(path, user_path, bpy.app.background)
 
 
-def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False, headless=False):
+def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False):
     import bpy
     import _cycles
 
@@ -42,7 +42,7 @@ def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=Fa
     if rv3d:
         rv3d = rv3d.as_pointer()
 
-    engine.session = _cycles.create(engine.as_pointer(), userpref, data, scene, region, v3d, rv3d, preview_osl, headless)
+    engine.session = _cycles.create(engine.as_pointer(), userpref, data, scene, region, v3d, rv3d, preview_osl)
 
 
 def free(engine):

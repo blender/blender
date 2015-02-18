@@ -30,6 +30,7 @@
 #include "device.h"
 
 #include "blender_sync.h"
+#include "blender_session.h"
 #include "blender_util.h"
 
 #include "util_debug.h"
@@ -410,8 +411,7 @@ bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
 SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine,
                                               BL::UserPreferences b_userpref,
                                               BL::Scene b_scene,
-                                              bool background,
-                                              bool headless)
+                                              bool background)
 {
 	SessionParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -501,7 +501,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine,
 		params.tile_size = make_int2(tile_x, tile_y);
 	}
 
-	if(headless == false) {
+	if(BlenderSession::headless == false) {
 		params.tile_order = (TileOrder)RNA_enum_get(&cscene, "tile_order");
 	}
 	else {

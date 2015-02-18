@@ -34,7 +34,7 @@ class RenderTile;
 class BlenderSession {
 public:
 	BlenderSession(BL::RenderEngine b_engine, BL::UserPreferences b_userpref,
-		BL::BlendData b_data, BL::Scene b_scene, bool is_headless);
+		BL::BlendData b_data, BL::Scene b_scene);
 	BlenderSession(BL::RenderEngine b_engine, BL::UserPreferences b_userpref,
 		BL::BlendData b_data, BL::Scene b_scene,
 		BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height);
@@ -76,7 +76,7 @@ public:
 	void update_bake_progress();
 
 	bool background;
-	bool headless;
+	static bool headless;
 	Session *session;
 	Scene *scene;
 	BlenderSync *sync;
