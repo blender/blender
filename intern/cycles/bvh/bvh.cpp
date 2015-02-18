@@ -226,8 +226,7 @@ void BVH::build(Progress& progress)
 
 	/* pack nodes */
 	progress.set_substatus("Packing BVH nodes");
-	array<int> tmp_prim_object = pack.prim_object;
-	pack_nodes(tmp_prim_object, root);
+	pack_nodes(root);
 	
 	/* free build nodes */
 	root->deleteSubtree();
@@ -539,7 +538,7 @@ void RegularBVH::pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int 
 	memcpy(&pack.nodes[idx * BVH_NODE_SIZE], data, sizeof(int4)*BVH_NODE_SIZE);
 }
 
-void RegularBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
+void RegularBVH::pack_nodes(const BVHNode *root)
 {
 	size_t node_size = root->getSubtreeSize(BVH_STAT_NODE_COUNT);
 
@@ -755,7 +754,7 @@ void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
 
 /* Quad SIMD Nodes */
 
-void QBVH::pack_nodes(const array<int>& prims, const BVHNode *root)
+void QBVH::pack_nodes(const BVHNode *root)
 {
 	size_t node_size = root->getSubtreeSize(BVH_STAT_QNODE_COUNT);
 

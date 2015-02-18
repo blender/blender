@@ -111,7 +111,7 @@ protected:
 	void pack_instances(size_t nodes_size);
 
 	/* for subclasses to implement */
-	virtual void pack_nodes(const array<int>& prims, const BVHNode *root) = 0;
+	virtual void pack_nodes(const BVHNode *root) = 0;
 	virtual void refit_nodes() = 0;
 };
 
@@ -126,7 +126,7 @@ protected:
 	RegularBVH(const BVHParams& params, const vector<Object*>& objects);
 
 	/* pack */
-	void pack_nodes(const array<int>& prims, const BVHNode *root);
+	void pack_nodes(const BVHNode *root);
 	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
 	void pack_inner(const BVHStackEntry& e, const BVHStackEntry& e0, const BVHStackEntry& e1);
 	void pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int c0, int c1, uint visibility0, uint visibility1);
@@ -147,7 +147,7 @@ protected:
 	QBVH(const BVHParams& params, const vector<Object*>& objects);
 
 	/* pack */
-	void pack_nodes(const array<int>& prims, const BVHNode *root);
+	void pack_nodes(const BVHNode *root);
 	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
 	void pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num);
 
