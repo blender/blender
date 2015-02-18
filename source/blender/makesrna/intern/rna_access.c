@@ -1826,18 +1826,23 @@ int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 	IDProperty *idprop;
+	int value;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == false);
 
 	if ((idprop = rna_idproperty_check(&prop, ptr)))
-		return IDP_Int(idprop);
+		value = IDP_Int(idprop);
 	else if (bprop->get)
-		return bprop->get(ptr);
+		value = bprop->get(ptr);
 	else if (bprop->get_ex)
-		return bprop->get_ex(ptr, prop);
+		value = bprop->get_ex(ptr, prop);
 	else
-		return bprop->defaultvalue;
+		value = bprop->defaultvalue;
+
+	BLI_assert(ELEM(value, false, true));
+
+	return value;
 }
 
 void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
@@ -1847,6 +1852,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == false);
+	BLI_assert(ELEM(value, false, true));
 
 	/* just in case other values are passed */
 	if (value) value = 1;
@@ -1903,6 +1909,7 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 {
 	int tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
+	int value;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != false);
@@ -1911,18 +1918,20 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_array(ptr, prop, tmp);
-		return tmp[index];
+		value = tmp[index];
 	}
 	else {
-		int *tmparray, value;
+		int *tmparray;
 
 		tmparray = MEM_callocN(sizeof(int) * len, __func__);
 		RNA_property_boolean_get_array(ptr, prop, tmparray);
 		value = tmparray[index];
 		MEM_freeN(tmparray);
-
-		return value;
 	}
+
+	BLI_assert(ELEM(value, false, true));
+
+	return value;
 }
 
 void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values)
@@ -1972,6 +1981,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 	BLI_assert(RNA_property_array_check(prop) != false);
 	BLI_assert(index >= 0);
 	BLI_assert(index < len);
+	BLI_assert(ELEM(value, false, true));
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_array(ptr, prop, tmp);
@@ -1995,6 +2005,7 @@ int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == false);
+	BLI_assert(ELEM(bprop->defaultvalue, false, true));
 
 	return bprop->defaultvalue;
 }
