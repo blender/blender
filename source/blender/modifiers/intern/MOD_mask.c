@@ -293,7 +293,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	mloop_dst = CDDM_get_loops(result);
 	medge_dst = CDDM_get_edges(result);
 	mvert_dst = CDDM_get_verts(result);
-	
+
 	/* using ghash-iterators, map data into new mesh */
 	/* vertices */
 	GHASH_ITER (gh_iter, vertHash) {
@@ -318,12 +318,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		
 		e_src = &medge_src[i_src];
 		e_dst = &medge_dst[i_dst];
-		
+
+		DM_copy_edge_data(dm, result, i_src, i_dst, 1);
 		*e_dst = *e_src;
 		e_dst->v1 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v1)));
 		e_dst->v2 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v2)));
-		
-		DM_copy_edge_data(dm, result, i_src, i_dst, 1);
 	}
 	
 	/* faces */
