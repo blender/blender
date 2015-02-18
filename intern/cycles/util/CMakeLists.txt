@@ -75,8 +75,12 @@ set(SRC_HEADERS
 )
 
 if(WITH_CYCLES_DEBUG)
-	list(APPEND SRC util_guarded_allocator.cpp)
-	list(APPEND SRC_HEADERS util_guarded_allocator.h)
+	list(APPEND SRC
+		util_guarded_allocator.cpp
+	)
+	list(APPEND SRC_HEADERS
+		util_guarded_allocator.h
+	)
 endif()
 
 include_directories(${INC})
