@@ -56,6 +56,9 @@
 #include <cstring>
 #include <cstdio>
 
+/* gethostname */
+#include <unistd.h>
+
 #include <algorithm>
 #include <string>
 
@@ -71,6 +74,9 @@ typedef struct {
 
 #define MWM_HINTS_DECORATIONS         (1L << 1)
 
+#ifndef HOST_NAME_MAX
+#  define HOST_NAME_MAX 64
+#endif
 
 // #define GHOST_X11_GRAB
 
@@ -502,6 +508,30 @@ GHOST_WindowX11(
 		XChangeProperty(m_display, m_window, _NET_WM_ICON, XA_CARDINAL,
 		                32, PropModeReplace, (unsigned char *)BLENDER_ICON_48x48x32,
 		                BLENDER_ICON_48x48x32[0] * BLENDER_ICON_48x48x32[1] + 2);
+	}
+
+	/* set the process ID (_NET_WM_PID) */
+	{
+		Atom _NET_WM_PID = XInternAtom(m_display, "_NET_WM_PID", False);
+		pid_t pid = getpid();
+		XChangeProperty(m_display, m_window, _NET_WM_PID, XA_CARDINAL,
+		                32, PropModeReplace, (unsigned char *)&pid, 1);
+	}
+
+
+	/* set the hostname (WM_CLIENT_MACHINE) */
+	{
+		char  hostname[HOST_NAME_MAX];
+		char *text_array[1];
+		XTextProperty text_prop;
+
+		gethostname(hostname, sizeof(hostname));
+		hostname[sizeof(hostname) - 1] = '\0';
+		text_array[0] = hostname;
+
+		XStringListToTextProperty(text_array, 1, &text_prop);
+		XSetWMClientMachine(m_display, m_window, &text_prop);
+		XFree(text_prop.value);
 	}
 
 #ifdef WITH_X11_XINPUT
