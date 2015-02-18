@@ -495,11 +495,7 @@ static PyObject *gPyCreateConstraint(PyObject *self,
                                      PyObject *kwds)
 {
 	/* FIXME - physicsid is a long being cast to a pointer, should at least use PyCapsule */
-#if defined(_WIN64)
-	__int64 physicsid=0,physicsid2 = 0;
-#else
-	long physicsid=0,physicsid2 = 0;
-#endif
+	unsigned long long physicsid = 0, physicsid2 = 0;
 	int constrainttype=0, extrainfo=0;
 	int len = PyTuple_Size(args);
 	int success = 1;
@@ -508,51 +504,28 @@ static PyObject *gPyCreateConstraint(PyObject *self,
 	float pivotX=1,pivotY=1,pivotZ=1,axisX=0,axisY=0,axisZ=1;
 	if (len == 3)
 	{
-#if defined(_WIN64)
-		success = PyArg_ParseTuple(args,"LLi",&physicsid,&physicsid2,&constrainttype);
-#else
-		success = PyArg_ParseTuple(args,"lli",&physicsid,&physicsid2,&constrainttype);
-#endif
+		success = PyArg_ParseTuple(args, "KKi", &physicsid, &physicsid2, &constrainttype);
 	}
 	else if (len == 6)
 	{
-#if defined(_WIN64)
-		success = PyArg_ParseTuple(args,"LLifff",&physicsid,&physicsid2,&constrainttype,
-		                           &pivotX,&pivotY,&pivotZ);
-#else
-		success = PyArg_ParseTuple(args,"llifff",&physicsid,&physicsid2,&constrainttype,
-		                           &pivotX,&pivotY,&pivotZ);
-#endif
+		success = PyArg_ParseTuple(args, "KKifff", &physicsid, &physicsid2, &constrainttype,
+		                           &pivotX, &pivotY, &pivotZ);
 	}
 	else if (len == 9)
 	{
-#if defined(_WIN64)
-		success = PyArg_ParseTuple(args,"LLiffffff",&physicsid,&physicsid2,&constrainttype,
-		                           &pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ);
-#else
-		success = PyArg_ParseTuple(args,"lliffffff",&physicsid,&physicsid2,&constrainttype,
-		                           &pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ);
-#endif
+		success = PyArg_ParseTuple(args, "KKiffffff", &physicsid, &physicsid2, &constrainttype,
+		                           &pivotX, &pivotY, &pivotZ, &axisX, &axisY, &axisZ);
 	}
 	else if (len == 10)
 	{
-#if defined(_WIN64)
-		success = PyArg_ParseTuple(args,"LLiffffffi",&physicsid,&physicsid2,&constrainttype,
-		                           &pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ,&flag);
-#else
-		success = PyArg_ParseTuple(args,"lliffffffi",&physicsid,&physicsid2,&constrainttype,
-		                           &pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ,&flag);
-#endif
+		success = PyArg_ParseTuple(args, "KKiffffffi", &physicsid, &physicsid2, &constrainttype,
+		                           &pivotX, &pivotY, &pivotZ, &axisX, &axisY, &axisZ, &flag);
 	}
 
 	/* XXX extrainfo seems to be nothing implemented. right now it works as a pivot with [X,0,0] */
 	else if (len == 4)
 	{
-#if defined(_WIN64)
-		success = PyArg_ParseTuple(args,"LLii",&physicsid,&physicsid2,&constrainttype,&extrainfo);
-#else
-		success = PyArg_ParseTuple(args,"llii",&physicsid,&physicsid2,&constrainttype,&extrainfo);
-#endif
+		success = PyArg_ParseTuple(args,"KKii", &physicsid, &physicsid2, &constrainttype, &extrainfo);
 		pivotX=extrainfo;
 	}
 

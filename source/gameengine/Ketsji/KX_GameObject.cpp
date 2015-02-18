@@ -36,14 +36,6 @@
 #  pragma warning( disable:4786 )
 #endif
 
-#if defined(_WIN64) && !defined(FREE_WINDOWS64)
-typedef unsigned __int64 uint_ptr;
-#elif defined(FREE_WINDOWS64)
-typedef unsigned long long uint_ptr;
-#else
-typedef unsigned long uint_ptr;
-#endif
-
 #include "RAS_IPolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_GameObject.h"
@@ -3294,12 +3286,12 @@ PyObject *KX_GameObject::PyGetAxisVect(PyObject *value)
 PyObject *KX_GameObject::PyGetPhysicsId()
 {
 	PHY_IPhysicsController* ctrl = GetPhysicsController();
-	uint_ptr physid=0;
+	unsigned long long physid = 0;
 	if (ctrl)
 	{
-		physid= (uint_ptr)ctrl;
+		physid = (unsigned long long)ctrl;
 	}
-	return PyLong_FromLong((long)physid);
+	return PyLong_FromUnsignedLongLong(physid);
 }
 
 PyObject *KX_GameObject::PyGetPropertyNames()
