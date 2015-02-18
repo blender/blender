@@ -537,7 +537,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BLI_threadapi_exit();
 
 	if (MEM_get_memory_blocks_in_use() != 0) {
-		printf("Error: Not freed memory blocks: %d\n", MEM_get_memory_blocks_in_use());
+		size_t mem_in_use = MEM_get_memory_in_use() + MEM_get_memory_in_use();
+		printf("Error: Not freed memory blocks: %d, total unfreed memory %f MB\n",
+		       MEM_get_memory_blocks_in_use(),
+		       (double)mem_in_use / 1024 / 1024);
 		MEM_printmemlist();
 	}
 	wm_autosave_delete();
