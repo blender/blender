@@ -577,6 +577,6 @@ if(WIN32)
 	list(APPEND INC_SYS
 		${PTHREADS_INC}
 	)
-endif(WIN32)
+endif()
 
 blender_add_lib(bf_freestyle "${SRC}" "${INC}" "${INC_SYS}")
