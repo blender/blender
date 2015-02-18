@@ -515,6 +515,11 @@ extern "C" {
 
 
 /* generic strcmp macros */
+#if defined(_MSC_VER)
+#  define strcasecmp _stricmp
+#  define strncasecmp _strnicmp
+#endif
+
 #define STREQ(a, b) (strcmp(a, b) == 0)
 #define STRCASEEQ(a, b) (strcasecmp(a, b) == 0)
 #define STREQLEN(a, b, n) (strncmp(a, b, n) == 0)
