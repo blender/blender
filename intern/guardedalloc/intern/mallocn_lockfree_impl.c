@@ -134,6 +134,14 @@ void MEM_lockfree_freeN(void *vmemh)
 	MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
 	size_t len = MEM_lockfree_allocN_len(vmemh);
 
+	if (vmemh == NULL) {
+		print_error("Attempt to free NULL pointer\n");
+#ifdef WITH_ASSERT_ABORT
+		abort();
+#endif
+		return;
+	}
+
 	atomic_sub_u(&totblock, 1);
 	atomic_sub_z(&mem_in_use, len);
 

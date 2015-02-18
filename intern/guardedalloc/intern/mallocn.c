@@ -17,6 +17,7 @@
  *
  * Contributor(s): Brecht Van Lommel
  *                 Campbell Barton
+ *                 Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
