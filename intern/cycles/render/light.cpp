@@ -82,6 +82,8 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	device->mem_free(d_input);
 	device->mem_free(d_output);
 
+	d_input.clear();
+
 	float4 *d_output_data = reinterpret_cast<float4*>(d_output.data_pointer);
 
 	pixels.resize(width*height);
