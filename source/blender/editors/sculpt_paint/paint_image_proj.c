@@ -2044,8 +2044,7 @@ static void project_bucket_clip_face(
 {
 	int inside_bucket_flag = 0;
 	int inside_face_flag = 0;
-	const int flip = ((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) !=
-	                  (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
+	int flip;
 	bool colinear = false;
 	
 	float bucket_bounds_ss[4][2];
@@ -2062,6 +2061,9 @@ static void project_bucket_clip_face(
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v3coSS) << 2;
 	
 	if (inside_bucket_flag == ISECT_ALL3) {
+		flip = ((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) !=
+		        (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
+
 		/* all screenspace points are inside the bucket bounding box,
 		 * this means we don't need to clip and can simply return the UVs */
 		if (flip) { /* facing the back? */
@@ -2142,6 +2144,9 @@ static void project_bucket_clip_face(
 	bucket_bounds_ss[3][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[3][1] = bucket_bounds->ymin;
 	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS, 1 + PROJ_GEOM_TOLERANCE) ? ISECT_4 : 0);
+
+	flip = ((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) !=
+	        (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
 
 	if (inside_face_flag == ISECT_ALL4) {
 		/* bucket is totally inside the screenspace face, we can safely use weights */
