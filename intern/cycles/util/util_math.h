@@ -1457,38 +1457,37 @@ ccl_device bool ray_quad_intersect(
 }
 
 /* projections */
-ccl_device void map_to_tube(float *r_u, float *r_v,
-                            const float x, const float y, const float z)
+ccl_device_inline float2 map_to_tube(const float3 co)
 {
-	float len;
-	*r_v = (z + 1.0f) * 0.5f;
-	len = sqrtf(x * x + y * y);
+	float len, u, v;
+	len = sqrtf(co.x * co.x + co.y * co.y);
 	if (len > 0.0f) {
-		*r_u = (1.0f - (atan2f(x / len, y / len) / M_PI_F)) * 0.5f;
+		u = (1.0f - (atan2f(co.x / len, co.y / len) / M_PI_F)) * 0.5f;
+		v = (co.x + 1.0f) * 0.5f;
 	}
 	else {
-		*r_v = *r_u = 0.0f; /* To avoid un-initialized variables. */
+		u = v = 0.0f;
 	}
+	return make_float2(u, v);
 }
 
-ccl_device bool map_to_sphere(float *r_u, float *r_v,
-                              const float x, const float y, const float z)
+ccl_device_inline float2 map_to_sphere(const float3 co)
 {
-	float len = sqrtf(x * x + y * y + z * z);
-	if(len > 0.0f) {
-		if(UNLIKELY(x == 0.0f && y == 0.0f)) {
-			*r_u = 0.0f;  /* othwise domain error */
+	float l = len(co);
+	float u, v;
+	if(l > 0.0f) {
+		if(UNLIKELY(co.x == 0.0f && co.y == 0.0f)) {
+			u = 0.0f;  /* othwise domain error */
 		}
 		else {
-			*r_u = (1.0f - atan2f(x, y) / M_PI_F) / 2.0f;
+			u = (1.0f - atan2f(co.x, co.y) / M_PI_F) / 2.0f;
 		}
-		*r_v = 1.0f - safe_acosf(z / len) / M_PI_F;
-		return true;
+		v = 1.0f - safe_acosf(co.z / l) / M_PI_F;
 	}
 	else {
-		*r_v = *r_u = 0.0f; /* to avoid un-initialized variables */
-		return false;
+		u = v = 0.0f;
 	}
+	return make_float2(u, v);
 }
 
 ccl_device_inline int util_max_axis(float3 vec)

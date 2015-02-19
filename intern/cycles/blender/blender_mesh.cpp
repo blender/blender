@@ -106,7 +106,9 @@ static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float
 		int vert_idx = userdata->mesh.tessfaces[face_num].vertices()[vert_num];
 		float3 orco =
 			get_float3(userdata->mesh.vertices[vert_idx].undeformed_co());
-		map_to_sphere(&uv[0], &uv[1], orco[0], orco[1], orco[2]);
+		float2 tmp = map_to_sphere(make_float3(orco[0], orco[1], orco[2]));
+		uv[0] = tmp.x;
+		uv[1] = tmp.y;
 	}
 }
 

@@ -368,16 +368,20 @@ ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *sta
 	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
 
 	float3 co = stack_load_float3(stack, co_offset);
+	float2 tex_co;
 	uint use_alpha = stack_valid(alpha_offset);
 	if(node.w == NODE_IMAGE_PROJ_SPHERE) {
 		co = texco_remap_square(co);
-		map_to_sphere(&co.x, &co.y, co.x, co.y, co.z);
+		tex_co = map_to_sphere(co);
 	}
 	else if(node.w == NODE_IMAGE_PROJ_TUBE) {
 		co = texco_remap_square(co);
-		map_to_tube(&co.x, &co.y, co.x, co.y, co.z);
+		tex_co = map_to_tube(co);
 	}
-	float4 f = svm_image_texture(kg, id, co.x, co.y, srgb, use_alpha);
+	else {
+		tex_co = make_float2(co.x, co.y);
+	}
+	float4 f = svm_image_texture(kg, id, tex_co.x, tex_co.y, srgb, use_alpha);
 
 	if(stack_valid(out_offset))
 		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
