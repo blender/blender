@@ -1148,7 +1148,7 @@ size_t MEM_guarded_get_peak_memory(void)
 void MEM_guarded_reset_peak_memory(void)
 {
 	mem_lock_thread();
-	peak_mem = 0;
+	peak_mem = mem_in_use;
 	mem_unlock_thread();
 }
 

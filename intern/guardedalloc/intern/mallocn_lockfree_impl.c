@@ -478,7 +478,7 @@ unsigned int MEM_lockfree_get_memory_blocks_in_use(void)
 /* dummy */
 void MEM_lockfree_reset_peak_memory(void)
 {
-	peak_mem = 0;
+	peak_mem = mem_in_use;
 }
 
 size_t MEM_lockfree_get_peak_memory(void)
