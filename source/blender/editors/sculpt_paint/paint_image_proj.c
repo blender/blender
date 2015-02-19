@@ -2122,16 +2122,6 @@ static void project_bucket_clip_face(
 			return;
 		}
 
-		/* at this point we have all uv points needed in a row. all that's needed is to invert them if necessary */
-		if (flip) {
-			/* flip only to the middle of the array */
-			int i, max = *tot - 1, mid = *tot / 2;
-			for (i = 0; i < mid; i++) {
-				SWAP(float, bucket_bounds_uv[i][0], bucket_bounds_uv[max - i][0]);
-				SWAP(float, bucket_bounds_uv[i][1], bucket_bounds_uv[max - i][1]);
-			}
-		}
-		
 		return;
 	}
 
