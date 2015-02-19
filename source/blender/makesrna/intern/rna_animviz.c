@@ -66,33 +66,33 @@ static void rna_AnimViz_ghost_start_frame_set(PointerRNA *ptr, int value)
 {
 	bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
 	
-	CLAMP(value, 1, data->ghost_ef);
 	data->ghost_sf = value;
+	CLAMP(data->ghost_ef, data->ghost_sf, MAXFRAME / 2);
 }
 
 static void rna_AnimViz_ghost_end_frame_set(PointerRNA *ptr, int value)
 {
 	bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
 	
-	CLAMP(value, data->ghost_sf, (int)(MAXFRAMEF / 2));
 	data->ghost_ef = value;
+	CLAMP(data->ghost_sf, 1, data->ghost_ef);
 }
 
 static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)
 {
 	bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
 	
-	CLAMP(value, 1, data->path_ef - 1);
+	/* XXX: watchit! Path Start > MAXFRAME/2 could be a problem... */
 	data->path_sf = value;
+	CLAMP(data->path_ef, data->path_sf + 1, MAXFRAME / 2);
 }
 
 static void rna_AnimViz_path_end_frame_set(PointerRNA *ptr, int value)
 {
 	bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
 	
-	/* XXX: watchit! Path Start > MAXFRAME/2 could be a problem... */
-	CLAMP(value, data->path_sf + 1, (int)(MAXFRAMEF / 2));
 	data->path_ef = value;
+	CLAMP(data->path_sf, 1, data->path_ef - 1);
 }
 
 #else
