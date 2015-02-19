@@ -362,7 +362,7 @@ ccl_device float fast_log2f(float x)
 	 * negative values/nans. */
 	clamp(x, FLT_MIN, FLT_MAX);
 	unsigned bits = __float_as_uint(x);
-	int exponent = int(bits >> 23) - 127;
+	int exponent = (int)(bits >> 23) - 127;
 	float f = __uint_as_float((bits & 0x007FFFFF) | 0x3f800000) - 1.0f;
 	/* Examined 2130706432 values of log2 on [1.17549435e-38,3.40282347e+38]:
 	 * 0.0797524457 avg ulp diff, 3713596 max ulp, 7.62939e-06 max error.
@@ -404,7 +404,7 @@ ccl_device float fast_logb(float x)
 	x = fabsf(x);
 	clamp(x, FLT_MIN, FLT_MAX);
 	unsigned bits = __float_as_uint(x);
-	return int(bits >> 23) - 127;
+	return (int)(bits >> 23) - 127;
 }
 
 ccl_device float fast_exp2f(float x)
@@ -412,7 +412,7 @@ ccl_device float fast_exp2f(float x)
 	/* Clamp to safe range for final addition. */
 	clamp(x, -126.0f, 126.0f);
 	/* Range reduction. */
-	int m = int(x); x -= m;
+	int m = (int)x; x -= m;
 	x = 1.0f - (1.0f - x); /* Crush denormals (does not affect max ulps!). */
 	/* 5th degree polynomial generated with sollya
 	 * Examined 2247622658 values of exp2 on [-126,126]: 2.75764912 avg ulp diff,
@@ -430,7 +430,7 @@ ccl_device float fast_exp2f(float x)
 	r = madd(x, r, 1.0f);
 	/* Multiply by 2 ^ m by adding in the exponent. */
 	/* NOTE: left-shift of negative number is undefined behavior. */
-	return __uint_as_float(__float_as_uint(r) + (unsigned(m) << 23));
+	return __uint_as_float(__float_as_uint(r) + ((unsigned)m << 23));
 }
 
 ccl_device_inline float fast_expf(float x)
