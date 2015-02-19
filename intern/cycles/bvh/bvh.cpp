@@ -205,6 +205,9 @@ void BVH::build(Progress& progress)
 	pack.prim_type = prim_type;
 	pack.prim_index = prim_index;
 	pack.prim_object = prim_object;
+	prim_type.free_memory();
+	prim_index.free_memory();
+	prim_object.free_memory();
 
 	/* compute SAH */
 	if(!params.top_level)
@@ -227,7 +230,7 @@ void BVH::build(Progress& progress)
 	/* pack nodes */
 	progress.set_substatus("Packing BVH nodes");
 	pack_nodes(root);
-	
+
 	/* free build nodes */
 	root->deleteSubtree();
 
