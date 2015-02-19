@@ -801,30 +801,38 @@ void BlenderSync::sync_curve_settings()
 	curve_system_manager->subdivisions = get_int(csscene, "subdivisions");
 	curve_system_manager->use_backfacing = !get_boolean(csscene, "cull_backfacing");
 
-	if(curve_system_manager->primitive == CURVE_TRIANGLES && curve_system_manager->curve_shape == CURVE_RIBBON) {
+	/* Triangles */
+	if(curve_system_manager->primitive == CURVE_TRIANGLES) {
 		/* camera facing planes */
-		curve_system_manager->triangle_method = CURVE_CAMERA_TRIANGLES;
-		curve_system_manager->resolution = 1;
+		if(curve_system_manager->curve_shape == CURVE_RIBBON) {
+			curve_system_manager->triangle_method = CURVE_CAMERA_TRIANGLES;
+			curve_system_manager->resolution = 1;
+		}
+		else if(curve_system_manager->curve_shape == CURVE_THICK) {
+			curve_system_manager->triangle_method = CURVE_TESSELATED_TRIANGLES;
+		}
 	}
-	else if(curve_system_manager->primitive == CURVE_TRIANGLES && curve_system_manager->curve_shape == CURVE_THICK) {
-		/* camera facing planes */
-		curve_system_manager->triangle_method = CURVE_TESSELATED_TRIANGLES;
+	/* Line Segments */
+	else if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS) {
+		if(curve_system_manager->curve_shape == CURVE_RIBBON) {
+			/* tangent shading */
+			curve_system_manager->line_method = CURVE_UNCORRECTED;
+			curve_system_manager->use_encasing = true;
+			curve_system_manager->use_backfacing = false;
+			curve_system_manager->use_tangent_normal_geometry = true;
+		}
+		else if(curve_system_manager->curve_shape == CURVE_THICK) {
+			curve_system_manager->line_method = CURVE_ACCURATE;
+			curve_system_manager->use_encasing = false;
+			curve_system_manager->use_tangent_normal_geometry = false;
+		}
 	}
-	else if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS && curve_system_manager->curve_shape == CURVE_RIBBON) {
-		/* tangent shading */
-		curve_system_manager->line_method = CURVE_UNCORRECTED;
-		curve_system_manager->use_encasing = true;
-		curve_system_manager->use_backfacing = false;
-		curve_system_manager->use_tangent_normal_geometry = true;
-	}
-	else if(curve_system_manager->primitive == CURVE_LINE_SEGMENTS && curve_system_manager->curve_shape == CURVE_THICK) {
-		curve_system_manager->line_method = CURVE_ACCURATE;
-		curve_system_manager->use_encasing = false;
-		curve_system_manager->use_tangent_normal_geometry = false;
-	}
-	else if(curve_system_manager->primitive == CURVE_SEGMENTS && curve_system_manager->curve_shape == CURVE_RIBBON) {
-		curve_system_manager->primitive = CURVE_RIBBONS;
-		curve_system_manager->use_backfacing = false;
+	/* Curve Segments */
+	else if(curve_system_manager->primitive == CURVE_SEGMENTS) {
+		if(curve_system_manager->curve_shape == CURVE_RIBBON) {
+			curve_system_manager->primitive = CURVE_RIBBONS;
+			curve_system_manager->use_backfacing = false;
+		}
 	}
 
 	if(curve_system_manager->modified_mesh(prev_curve_system_manager)) {
