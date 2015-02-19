@@ -167,7 +167,7 @@ static int rigidbody_world_export_exec(bContext *C, wmOperator *op)
 static int rigidbody_world_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	if (!RNA_struct_property_is_set(op->ptr, "relative_path"))
-		RNA_boolean_set(op->ptr, "relative_path", (U.flag & USER_RELPATHS));
+		RNA_boolean_set(op->ptr, "relative_path", (U.flag & USER_RELPATHS) != 0);
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return rigidbody_world_export_exec(C, op);

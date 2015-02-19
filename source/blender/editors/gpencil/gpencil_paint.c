@@ -1642,7 +1642,7 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event)
 	mousef[1] = p->mval[1];
 	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "pressure", p->pressure);
-	RNA_boolean_set(&itemptr, "is_start", (p->flags & GP_PAINTFLAG_FIRSTRUN));
+	RNA_boolean_set(&itemptr, "is_start", (p->flags & GP_PAINTFLAG_FIRSTRUN) != 0);
 	
 	RNA_float_set(&itemptr, "time", p->curtime - p->inittime);
 	

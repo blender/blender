@@ -1220,7 +1220,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 				}
 			}
 			else {
-				RNA_property_boolean_set(op->ptr, prop, t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT);
+				RNA_property_boolean_set(op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) != 0);
 			}
 		}
 
