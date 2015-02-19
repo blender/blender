@@ -1997,7 +1997,7 @@ static int float_z_sort(const void *p1, const void *p2)
 }
 
 /* assumes one point is within the rectangle */
-static void line_rect_clip(
+static bool line_rect_clip(
         const rctf *rect,
         const float l1[4], const float l2[4],
         const float uv1[2], const float uv2[2],
@@ -2021,10 +2021,16 @@ static void line_rect_clip(
 		min = min_ff((tmp - l1[1]) / (l2[1] - l1[1]), min);
 	}
 	
+	/* it's rare but it can happen if l1 == l2 */
+	if (min == FLT_MAX)
+		return false;
+
 	tmp = (is_ortho) ? 1.0f : (l1[3] + min * (l2[3] - l1[3]));
-	
+
 	uv[0] = (uv1[0] + min / tmp * (uv2[0] - uv1[0]));
 	uv[1] = (uv1[1] + min / tmp * (uv2[1] - uv1[1]));
+
+	return true;
 }
 
 
@@ -2045,8 +2051,9 @@ static void project_bucket_clip_face(
 	float bucket_bounds_ss[4][2];
 
 	/* detect pathological case where face the three vertices are almost colinear in screen space.
-	 * mostly those will be culled but when flood filling or with smooth shading */
-	if (dist_squared_to_line_v2(v1coSS, v2coSS, v3coSS) < PROJ_PIXEL_TOLERANCE)
+	 * mostly those will be culled but when flood filling or with smooth shading it's a possibility */
+	if (dist_squared_to_line_v2(v1coSS, v2coSS, v3coSS) < 0.5f ||
+		dist_squared_to_line_v2(v2coSS, v3coSS, v1coSS) < 0.5f)
 		colinear = true;
 	
 	/* get the UV space bounding box */
@@ -2084,28 +2091,34 @@ static void project_bucket_clip_face(
 
 		flag = inside_bucket_flag & (ISECT_1 | ISECT_2);
 		if (flag && flag != (ISECT_1 | ISECT_2)) {
-			line_rect_clip(bucket_bounds, v1coSS, v2coSS, uv1co, uv2co, bucket_bounds_uv[*tot], is_ortho);
-			(*tot)++;
+			if (line_rect_clip(bucket_bounds, v1coSS, v2coSS, uv1co, uv2co, bucket_bounds_uv[*tot], is_ortho))
+				(*tot)++;
 		}
 		
 		if (inside_bucket_flag & ISECT_2) { copy_v2_v2(bucket_bounds_uv[*tot], uv2co); (*tot)++; }
 		
 		flag = inside_bucket_flag & (ISECT_2 | ISECT_3);
 		if (flag && flag != (ISECT_2 | ISECT_3)) {
-			line_rect_clip(bucket_bounds, v2coSS, v3coSS, uv2co, uv3co, bucket_bounds_uv[*tot], is_ortho);
-			(*tot)++;
+			if (line_rect_clip(bucket_bounds, v2coSS, v3coSS, uv2co, uv3co, bucket_bounds_uv[*tot], is_ortho))
+				(*tot)++;
 		}
 
 		if (inside_bucket_flag & ISECT_3) { copy_v2_v2(bucket_bounds_uv[*tot], uv3co); (*tot)++; }
 
 		flag = inside_bucket_flag & (ISECT_3 | ISECT_1);
 		if (flag && flag != (ISECT_3 | ISECT_1)) {
-			line_rect_clip(bucket_bounds, v3coSS, v1coSS, uv3co, uv1co, bucket_bounds_uv[*tot], is_ortho);
-			(*tot)++;
+			if (line_rect_clip(bucket_bounds, v3coSS, v1coSS, uv3co, uv1co, bucket_bounds_uv[*tot], is_ortho))
+				(*tot)++;
 		}
 		
-		if ((*tot) < 3) { /* no intersections to speak of */
+		if ((*tot) < 3) {
+			/* no intersections to speak of, but more probable is that all face is just outside the
+			 * rectangle and culled due to float precision issues. Since above teste have failed,
+			 * just dump triangle as is for painting */
 			*tot = 0;
+			copy_v2_v2(bucket_bounds_uv[*tot], uv1co); (*tot)++;
+			copy_v2_v2(bucket_bounds_uv[*tot], uv2co); (*tot)++;
+			copy_v2_v2(bucket_bounds_uv[*tot], uv3co); (*tot)++;
 			return;
 		}
 
