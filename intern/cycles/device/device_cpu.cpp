@@ -206,24 +206,23 @@ public:
 			int start_sample = tile.start_sample;
 			int end_sample = tile.start_sample + tile.num_samples;
 
-				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.canceled()) {
-						if(task.need_finish_queue == false)
-							break;
-					}
-
-					for(int y = tile.y; y < tile.y + tile.h; y++) {
-						for(int x = tile.x; x < tile.x + tile.w; x++) {
-							path_trace_kernel(&kg, render_buffer, rng_state,
-								sample, x, y, tile.offset, tile.stride);
-						}
-					}
-
-					tile.sample = sample + 1;
-
-					task.update_progress(&tile);
+			for(int sample = start_sample; sample < end_sample; sample++) {
+				if (task.get_cancel() || task_pool.canceled()) {
+					if(task.need_finish_queue == false)
+						break;
 				}
 
+				for(int y = tile.y; y < tile.y + tile.h; y++) {
+					for(int x = tile.x; x < tile.x + tile.w; x++) {
+						path_trace_kernel(&kg, render_buffer, rng_state,
+						                  sample, x, y, tile.offset, tile.stride);
+					}
+				}
+
+				tile.sample = sample + 1;
+
+				task.update_progress(&tile);
+			}
 
 			task.release_tile(tile);
 
