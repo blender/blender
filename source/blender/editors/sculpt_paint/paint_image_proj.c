@@ -4299,7 +4299,12 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 		copy_v3_v3(rgb, ps->paint_color);
 	}
 
-	float_to_byte_dither_v3(rgba_ub, rgb, dither, u, v);
+	if (dither > 0.0f) {
+		float_to_byte_dither_v3(rgba_ub, rgb, dither, u, v);
+	}
+	else {
+		F3TOCHAR3(rgb, rgba_ub);
+	}
 	rgba_ub[3] = f_to_char(mask);
 
 	if (ps->do_masking) {
@@ -4489,7 +4494,13 @@ static void *do_projectpaint_thread(void *ph_v)
 						}
 						else {
 							linearrgb_to_srgb_v3_v3(color_f, color_f);
-							float_to_byte_dither_v3(projPixel->newColor.ch, color_f, ps->dither, projPixel->x_px, projPixel->y_px);
+
+							if (ps->dither > 0.0f) {
+								float_to_byte_dither_v3(projPixel->newColor.ch, color_f, ps->dither, projPixel->x_px, projPixel->y_px);
+							}
+							else {
+								F3TOCHAR3(color_f, projPixel->newColor.ch);
+							}
 							projPixel->newColor.ch[3] = FTOCHAR(color_f[3]);
 							IMB_blend_color_byte(projPixel->pixel.ch_pt,  projPixel->origColor.ch_pt,
 							                     projPixel->newColor.ch, ps->blend);
