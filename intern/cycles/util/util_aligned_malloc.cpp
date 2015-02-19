@@ -40,7 +40,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void *util_aligned_malloc(int size, int alignment)
+void *util_aligned_malloc(size_t size, int alignment)
 {
 #ifdef WITH_BLENDER_GUARDEDALLOC
 	return MEM_mallocN_aligned(size, alignment, "Cycles Aligned Alloc");

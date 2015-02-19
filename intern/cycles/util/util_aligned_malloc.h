@@ -17,10 +17,12 @@
 #ifndef __UTIL_ALIGNED_MALLOC_H__
 #define __UTIL_ALIGNED_MALLOC_H__
 
+#include "util_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Allocate block of size bytes at least aligned to a given value. */
-void *util_aligned_malloc(int size, int alignment);
+void *util_aligned_malloc(size_t size, int alignment);
 
 /* Free memory allocated by util_aligned_malloc. */
 void util_aligned_free(void *ptr);
