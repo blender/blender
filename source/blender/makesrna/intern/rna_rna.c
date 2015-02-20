@@ -545,7 +545,7 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 	 * data for introspection we only need to know if it can be edited so the
 	 * flag is better for this */
 /*	return RNA_property_editable(ptr, prop); */
-	return prop->flag & PROP_EDITABLE ? 0 : 1;
+	return (prop->flag & PROP_EDITABLE) == 0;
 }
 
 static int rna_Property_animatable_get(PointerRNA *ptr)
@@ -558,50 +558,50 @@ static int rna_Property_animatable_get(PointerRNA *ptr)
 static int rna_Property_use_output_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_OUTPUT ? 1 : 0;
+	return (prop->flag & PROP_OUTPUT) != 0;
 }
 
 static int rna_Property_is_required_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_REQUIRED ? 1 : 0;
+	return (prop->flag & PROP_REQUIRED) != 0;
 }
 
 static int rna_Property_is_argument_optional_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_PYFUNC_OPTIONAL ? 1 : 0;
+	return (prop->flag & PROP_PYFUNC_OPTIONAL) != 0;
 }
 
 static int rna_Property_is_never_none_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_NEVER_NULL ? 1 : 0;
+	return (prop->flag & PROP_NEVER_NULL) != 0;
 }
 
 static int rna_Property_is_hidden_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_HIDDEN ? 1 : 0;
+	return (prop->flag & PROP_HIDDEN) != 0;
 }
 
 static int rna_Property_is_skip_save_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_SKIP_SAVE ? 1 : 0;
+	return (prop->flag & PROP_SKIP_SAVE) != 0;
 }
 
 
 static int rna_Property_is_enum_flag_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_ENUM_FLAG ? 1 : 0;
+	return (prop->flag & PROP_ENUM_FLAG) != 0;
 }
 
 static int rna_Property_is_library_editable_flag_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_LIB_EXCEPTION ? 1 : 0;
+	return (prop->flag & PROP_LIB_EXCEPTION) != 0;
 }
 
 static int rna_Property_array_length_get(PointerRNA *ptr)
@@ -611,22 +611,22 @@ static int rna_Property_array_length_get(PointerRNA *ptr)
 	return prop->totarraylength;
 }
 
-static int rna_Property_registered_get(PointerRNA *ptr)
+static int rna_Property_is_registered_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_REGISTER;
+	return (prop->flag & PROP_REGISTER) != 0;
 }
 
-static int rna_Property_registered_optional_get(PointerRNA *ptr)
+static int rna_Property_is_registered_optional_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_REGISTER_OPTIONAL;
+	return (prop->flag & PROP_REGISTER_OPTIONAL) != 0;
 }
 
-static int rna_Property_runtime_get(PointerRNA *ptr)
+static int rna_Property_is_runtime_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return prop->flag & PROP_RUNTIME;
+	return (prop->flag & PROP_RUNTIME) != 0;
 }
 
 
@@ -1210,18 +1210,18 @@ static void rna_def_property(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "is_registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_registered_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered", "Property is registered as part of type registration");
 
 	prop = RNA_def_property(srna, "is_registered_optional", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_optional_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally",
 	                         "Property is optionally registered as part of type registration");
 	
 	prop = RNA_def_property(srna, "is_runtime", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Property_runtime_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_runtime_get", NULL);
 	RNA_def_property_ui_text(prop, "Runtime", "Property has been dynamically created at runtime");
 
 	prop = RNA_def_property(srna, "is_enum_flag", PROP_BOOLEAN, PROP_NONE);

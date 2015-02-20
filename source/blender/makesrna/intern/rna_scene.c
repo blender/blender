@@ -1245,7 +1245,7 @@ static int rna_RenderSettings_use_game_engine_get(PointerRNA *ptr)
 
 	for (type = R_engines.first; type; type = type->next)
 		if (STREQ(type->idname, rd->engine))
-			return (type->flag & RE_GAME);
+			return (type->flag & RE_GAME) != 0;
 	
 	return 0;
 }
@@ -1376,7 +1376,7 @@ static void rna_Scene_use_persistent_data_update(Main *UNUSED(bmain), Scene *UNU
 static int rna_Scene_use_audio_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->data;
-	return scene->audio.flag & AUDIO_MUTE;
+	return (scene->audio.flag & AUDIO_MUTE) != 0;
 }
 
 static void rna_Scene_use_audio_set(PointerRNA *ptr, int value)
@@ -1418,10 +1418,7 @@ static void rna_Scene_sync_mode_set(PointerRNA *ptr, int value)
 
 static int rna_GameSettings_auto_start_get(PointerRNA *UNUSED(ptr))
 {
-	if (G.fileflags & G_FILE_AUTOPLAY)
-		return 1;
-
-	return 0;
+	return (G.fileflags & G_FILE_AUTOPLAY) != 0;
 }
 
 static void rna_GameSettings_auto_start_set(PointerRNA *UNUSED(ptr), int value)

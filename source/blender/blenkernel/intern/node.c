@@ -955,7 +955,7 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 	ntree->update |= NTREE_UPDATE_LINKS;
 }
 
-int nodeLinkIsHidden(bNodeLink *link)
+bool nodeLinkIsHidden(bNodeLink *link)
 {
 	return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
 }

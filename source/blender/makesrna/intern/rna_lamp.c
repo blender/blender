@@ -93,10 +93,12 @@ static int rna_use_shadow_get(PointerRNA *ptr)
 {
 	Lamp *la = (Lamp *)ptr->data;
 
-	if (la->type == LA_SPOT)
-		return la->mode & LA_SHAD_BUF;
-	else
-		return la->mode & LA_SHAD_RAY;
+	if (la->type == LA_SPOT) {
+		return (la->mode & LA_SHAD_BUF) != 0;
+	}
+	else {
+		return (la->mode & LA_SHAD_RAY) != 0;
+	}
 }
 
 static void rna_use_shadow_set(PointerRNA *ptr, int value)

@@ -734,33 +734,33 @@ static void rna_Main_movieclips_tag(Main *bmain, int value) { BKE_main_id_tag_li
 static void rna_Main_masks_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->mask, value); }
 static void rna_Main_linestyle_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->linestyle, value); }
 
-static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA); }
-static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE); }
-static int rna_Main_objects_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_OB); }
-static int rna_Main_materials_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_MA); }
-static int rna_Main_node_groups_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_NT); }
-static int rna_Main_meshes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_ME); }
-static int rna_Main_lamps_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LA); }
-static int rna_Main_libraries_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LI); }
-static int rna_Main_screens_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCR); }
-static int rna_Main_window_managers_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_WM); }
-static int rna_Main_images_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_IM); }
-static int rna_Main_lattices_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LT); }
-static int rna_Main_curves_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CU); }
-static int rna_Main_metaballs_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_MB); }
-static int rna_Main_fonts_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_VF); }
-static int rna_Main_textures_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_TE); }
-static int rna_Main_brushes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_BR); }
-static int rna_Main_worlds_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_WO); }
-static int rna_Main_groups_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_GR); }
-static int rna_Main_texts_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_TXT); }
-static int rna_Main_speakers_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SPK); }
-static int rna_Main_sounds_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SO); }
-static int rna_Main_armatures_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_AR); }
-static int rna_Main_actions_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_AC); }
-static int rna_Main_particles_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_PA); }
-static int rna_Main_gpencil_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_GD); }
-static int rna_Main_linestyle_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LS); }
+static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA) != 0; }
+static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE) != 0; }
+static int rna_Main_objects_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_OB) != 0; }
+static int rna_Main_materials_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_MA) != 0; }
+static int rna_Main_node_groups_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_NT) != 0; }
+static int rna_Main_meshes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_ME) != 0; }
+static int rna_Main_lamps_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LA) != 0; }
+static int rna_Main_libraries_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LI) != 0; }
+static int rna_Main_screens_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCR) != 0; }
+static int rna_Main_window_managers_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_WM) != 0; }
+static int rna_Main_images_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_IM) != 0; }
+static int rna_Main_lattices_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LT) != 0; }
+static int rna_Main_curves_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CU) != 0; }
+static int rna_Main_metaballs_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_MB) != 0; }
+static int rna_Main_fonts_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_VF) != 0; }
+static int rna_Main_textures_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_TE) != 0; }
+static int rna_Main_brushes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_BR) != 0; }
+static int rna_Main_worlds_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_WO) != 0; }
+static int rna_Main_groups_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_GR) != 0; }
+static int rna_Main_texts_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_TXT) != 0; }
+static int rna_Main_speakers_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SPK) != 0; }
+static int rna_Main_sounds_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SO) != 0; }
+static int rna_Main_armatures_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_AR) != 0; }
+static int rna_Main_actions_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_AC) != 0; }
+static int rna_Main_particles_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_PA) != 0; }
+static int rna_Main_gpencil_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_GD) != 0; }
+static int rna_Main_linestyle_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LS) != 0; }
 
 #else
 

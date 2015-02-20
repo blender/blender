@@ -1550,6 +1550,7 @@ void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
 		case PROP_BOOLEAN:
 		{
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
+			BLI_assert(ELEM(value, false, true));
 			bprop->defaultvalue = value;
 			break;
 		}

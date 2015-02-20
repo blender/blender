@@ -468,7 +468,7 @@ struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void            nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void            nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
-int             nodeLinkIsHidden(struct bNodeLink *link);
+bool            nodeLinkIsHidden(struct bNodeLink *link);
 void            nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void            nodeToView(struct bNode *node, float x, float y, float *rx, float *ry);

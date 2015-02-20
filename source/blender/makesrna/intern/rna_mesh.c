@@ -712,7 +712,7 @@ static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
 		copy_v3_v3(values, mvert->co);
 }
 
-static int rna_CustomDataLayer_active_get(PointerRNA *ptr, CustomData *data, int type, int render)
+static int rna_CustomDataLayer_active_get(PointerRNA *ptr, CustomData *data, int type, bool render)
 {
 	int n = ((CustomDataLayer *)ptr->data) - data->layers;
 

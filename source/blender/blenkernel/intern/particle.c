@@ -272,11 +272,11 @@ void psys_enable_all(Object *ob)
 	for (; psys; psys = psys->next)
 		psys->flag &= ~PSYS_DISABLED;
 }
-int psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
+bool psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
 {
 	return (scene->basact && (scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys == psys_get_current((scene->basact)->object) && (psys->edit || psys->pointcache->edit) && !psys->renderdata);
 }
-int psys_check_enabled(Object *ob, ParticleSystem *psys)
+bool psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
 
@@ -294,7 +294,7 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 	return 1;
 }
 
-int psys_check_edited(ParticleSystem *psys)
+bool psys_check_edited(ParticleSystem *psys)
 {
 	if (psys->part && psys->part->type == PART_HAIR)
 		return (psys->flag & PSYS_EDITED || (psys->edit && psys->edit->edited));

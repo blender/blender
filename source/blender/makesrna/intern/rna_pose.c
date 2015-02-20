@@ -183,7 +183,7 @@ int rna_ActionGroup_is_custom_colorset_get(PointerRNA *ptr)
 {
 	bActionGroup *grp = ptr->data;
 	
-	return (bool)(grp->customCol < 0);
+	return (grp->customCol < 0);
 }
 
 static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)

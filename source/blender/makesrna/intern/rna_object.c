@@ -1185,7 +1185,7 @@ static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
 	int i;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		values[i] = (ob->col_group & (1 << i));
+		values[i] = (ob->col_group & (1 << i)) != 0;
 	}
 }
 
@@ -1214,7 +1214,7 @@ static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
 	int i;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		values[i] = (ob->col_mask & (1 << i));
+		values[i] = (ob->col_mask & (1 << i)) != 0;
 	}
 }
 
