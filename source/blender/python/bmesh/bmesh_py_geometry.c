@@ -43,13 +43,13 @@
 PyDoc_STRVAR(bpy_bm_geometry_intersect_face_point_doc,
 ".. method:: intersect_face_point(face, point)\n"
 "\n"
-"   Tests if a point is inside a face (using the faces normal).\n"
+"   Tests if the projection of a point is inside a face (using the face's normal).\n"
 "\n"
 "   :arg face: The face to test.\n"
 "   :type face: :class:`bmesh.types.BMFace`\n"
 "   :arg point: The point to test.\n"
 "   :type point: float triplet\n"
-"   :return: True when the point is in the face.\n"
+"   :return: True when the projection of the point is in the face.\n"
 "   :rtype: bool\n"
 );
 static PyObject *bpy_bm_geometry_intersect_face_point(BPy_BMFace *UNUSED(self), PyObject *args)
