@@ -60,5 +60,11 @@ shader node_geometry(
 	}
 
 	getattribute("geom:pointiness", Pointiness);
+	if (bump_offset == "dx") {
+		Pointiness += Dx(Pointiness);
+	}
+	else if (bump_offset == "dy") {
+		Pointiness += Dy(Pointiness);
+	}
 }
 
