@@ -267,7 +267,7 @@ bool GPU_fx_compositor_initialize_passes(
 	int w = BLI_rcti_size_x(rect), h = BLI_rcti_size_y(rect);
 	char err_out[256];
 	int num_passes = 0;
-	char fx_flag = fx_settings->fx_flag;
+	char fx_flag;
 
 	fx->effects = 0;
 
@@ -275,6 +275,8 @@ bool GPU_fx_compositor_initialize_passes(
 		cleanup_fx_gl_data(fx, true);
 		return false;
 	}
+
+	fx_flag = fx_settings->fx_flag;
 
 	/* disable effects if no options passed for them */
 	if (!fx_settings->dof) {

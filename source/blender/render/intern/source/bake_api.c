@@ -928,7 +928,6 @@ bool RE_bake_internal(
 		case SCE_PASS_UV:
 		{
 			return bake_uv(pixel_array, num_pixels, depth, result);
-			break;
 		}
 		default:
 			break;
