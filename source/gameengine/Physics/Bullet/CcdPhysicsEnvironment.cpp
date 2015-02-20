@@ -509,11 +509,13 @@ bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctr
 	btRigidBody* body = ctrl->GetRigidBody();
 	if (body)
 	{
-		for (int i = m_dynamicsWorld->getNumConstraints()-1;i>=0;i--)
+		for (int i = ctrl->getNumCcdConstraintRefs() - 1; i >= 0; i--)
 		{
-			btTypedConstraint *con = m_dynamicsWorld->getConstraint(i);
+			btTypedConstraint* con = ctrl->getCcdConstraintRef(i);
+			con->getRigidBodyA().activate();
+			con->getRigidBodyB().activate();
 			m_dynamicsWorld->removeConstraint(con);
-			body->removeConstraintRef(con);
+			ctrl->removeCcdConstraintRef(con);
 			//delete con; //might be kept by python KX_ConstraintWrapper
 		}
 		m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
@@ -2667,6 +2669,8 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA);
 			}
 
+			c0->addCcdConstraintRef(p2p);
+			c1->addCcdConstraintRef(p2p);
 			m_dynamicsWorld->addConstraint(p2p,disableCollisionBetweenLinkedBodies);
 //			m_constraints.push_back(p2p);
 
@@ -2737,6 +2741,8 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 			if (genericConstraint)
 			{
 				//m_constraints.push_back(genericConstraint);
+				c0->addCcdConstraintRef(genericConstraint);
+				c1->addCcdConstraintRef(genericConstraint);
 				m_dynamicsWorld->addConstraint(genericConstraint,disableCollisionBetweenLinkedBodies);
 				genericConstraint->setUserConstraintId(gConstraintUid++);
 				genericConstraint->setUserConstraintType(type);
@@ -2803,6 +2809,8 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 			if (coneTwistContraint)
 			{
 				//m_constraints.push_back(genericConstraint);
+				c0->addCcdConstraintRef(coneTwistContraint);
+				c1->addCcdConstraintRef(coneTwistContraint);
 				m_dynamicsWorld->addConstraint(coneTwistContraint,disableCollisionBetweenLinkedBodies);
 				coneTwistContraint->setUserConstraintId(gConstraintUid++);
 				coneTwistContraint->setUserConstraintType(type);
@@ -2876,6 +2884,8 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 			hinge->setAngularOnly(angularOnly);
 
 			//m_constraints.push_back(hinge);
+			c0->addCcdConstraintRef(hinge);
+			c1->addCcdConstraintRef(hinge);
 			m_dynamicsWorld->addConstraint(hinge,disableCollisionBetweenLinkedBodies);
 			hinge->setUserConstraintId(gConstraintUid++);
 			hinge->setUserConstraintType(type);

@@ -154,6 +154,28 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	CreateRigidbody();
 }
 
+void CcdPhysicsController::addCcdConstraintRef(btTypedConstraint* c)
+{
+	int index = m_ccdConstraintRefs.findLinearSearch(c);
+	if (index == m_ccdConstraintRefs.size())
+		m_ccdConstraintRefs.push_back(c);
+}
+
+void CcdPhysicsController::removeCcdConstraintRef(btTypedConstraint* c)
+{
+	m_ccdConstraintRefs.remove(c);
+}
+
+btTypedConstraint* CcdPhysicsController::getCcdConstraintRef(int index)
+{
+	return m_ccdConstraintRefs[index];
+}
+
+int CcdPhysicsController::getNumCcdConstraintRefs() const
+{
+	return m_ccdConstraintRefs.size();
+}
+
 btTransform&	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
 {
 	static btTransform trans;
