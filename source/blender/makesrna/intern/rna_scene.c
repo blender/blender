@@ -1245,7 +1245,7 @@ static int rna_RenderSettings_use_game_engine_get(PointerRNA *ptr)
 
 	for (type = R_engines.first; type; type = type->next)
 		if (STREQ(type->idname, rd->engine))
-			return (type->flag & RE_GAME);
+			return !!(type->flag & RE_GAME);
 	
 	return 0;
 }
