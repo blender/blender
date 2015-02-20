@@ -332,7 +332,7 @@ bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view
 			Scene *scene = CTX_data_scene(C);
 			*layer = BKE_screen_view3d_layer_active_ex(v3d, scene, false);
 			for (a = 0; a < 20; a++) {
-				layer_values[a] = *layer & (1 << a);
+				layer_values[a] = (*layer & (1 << a)) != 0;
 			}
 			RNA_property_boolean_set_array(op->ptr, prop, layer_values);
 		}
