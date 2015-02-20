@@ -724,8 +724,8 @@ bool BKE_mesh_calc_islands_loop_poly_uv(
 	MeshElemMap *edge_poly_map;
 	int *edge_poly_mem;
 
-	int *poly_indices = MEM_mallocN(sizeof(*poly_indices) * (size_t)totpoly, __func__);
-	int *loop_indices = MEM_mallocN(sizeof(*loop_indices) * (size_t)totloop, __func__);
+	int *poly_indices;
+	int *loop_indices;
 	int num_pidx, num_lidx;
 
 	/* Those are used to detect 'inner cuts', i.e. edges that are borders, and yet have two or more polys of
@@ -757,6 +757,9 @@ bool BKE_mesh_calc_islands_loop_poly_uv(
 		edge_border_count = MEM_mallocN(sizeof(*edge_border_count) * (size_t)totedge, __func__);
 		edge_innercut_indices = MEM_mallocN(sizeof(*edge_innercut_indices) * (size_t)num_edge_borders, __func__);
 	}
+
+	poly_indices = MEM_mallocN(sizeof(*poly_indices) * (size_t)totpoly, __func__);
+	loop_indices = MEM_mallocN(sizeof(*loop_indices) * (size_t)totloop, __func__);
 
 	/* Note: here we ignore '0' invalid group - this should *never* happen in this case anyway? */
 	for (grp_idx = 1; grp_idx <= num_poly_groups; grp_idx++) {
