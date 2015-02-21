@@ -32,6 +32,9 @@
 
 CCL_NAMESPACE_BEGIN
 
+vector<float> ShaderManager::blackbody_table;
+vector<float> ShaderManager::beckmann_table;
+
 /* Beckmann sampling precomputed table, see bsdf_microfacet.h */
 
 /* 2D slope distribution (alpha = 1.0) */
@@ -394,7 +397,10 @@ void ShaderManager::device_update_common(Device *device,
 	
 	if(has_converter_blackbody && blackbody_table_offset == TABLE_OFFSET_INVALID) {
 		if(blackbody_table.size() == 0) {
-			blackbody_table = blackbody_table_build();
+			thread_scoped_lock lock(lookup_table_mutex);
+			if(blackbody_table.size() == 0) {
+				blackbody_table = blackbody_table_build();
+			}
 		}
 		blackbody_table_offset = scene->lookup_tables->add_table(dscene, blackbody_table);
 		
@@ -408,7 +414,10 @@ void ShaderManager::device_update_common(Device *device,
 	/* beckmann lookup table */
 	if(beckmann_table_offset == TABLE_OFFSET_INVALID) {
 		if(beckmann_table.size() == 0) {
-			beckmann_table_build(beckmann_table);
+			thread_scoped_lock lock(lookup_table_mutex);
+			if(beckmann_table.size() == 0) {
+				beckmann_table_build(beckmann_table);
+			}
 		}
 		beckmann_table_offset = scene->lookup_tables->add_table(dscene, beckmann_table);
 		ktables->beckmann_offset = (int)beckmann_table_offset;

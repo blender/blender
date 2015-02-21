@@ -179,7 +179,13 @@ static bool is_output_node(BL::Node b_node)
 		    || b_node.is_a(&RNA_ShaderNodeOutputLamp));
 }
 
-static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, BL::ShaderNode b_node)
+static ShaderNode *add_node(Scene *scene,
+                            BL::RenderEngine b_engine,
+                            BL::BlendData b_data,
+                            BL::Scene b_scene,
+                            ShaderGraph *graph,
+                            BL::ShaderNodeTree b_ntree,
+                            BL::ShaderNode b_node)
 {
 	ShaderNode *node = NULL;
 
@@ -558,7 +564,8 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			 */
 			bool is_builtin = b_image.packed_file() ||
 			                  b_image.source() == BL::Image::source_GENERATED ||
-			                  b_image.source() == BL::Image::source_MOVIE;
+			                  b_image.source() == BL::Image::source_MOVIE ||
+			                  b_engine.is_preview();
 
 			if(is_builtin) {
 				/* for builtin images we're using image datablock name to find an image to
@@ -601,7 +608,8 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		if(b_image) {
 			bool is_builtin = b_image.packed_file() ||
 			                  b_image.source() == BL::Image::source_GENERATED ||
-			                  b_image.source() == BL::Image::source_MOVIE;
+			                  b_image.source() == BL::Image::source_MOVIE ||
+			                  b_engine.is_preview();
 
 			if(is_builtin) {
 				int scene_frame = b_scene.frame_current();
@@ -805,8 +813,14 @@ static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::Node b_node,
 	return node->output(name.c_str());
 }
 
-static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree,
-                      const ProxyMap &proxy_input_map, const ProxyMap &proxy_output_map)
+static void add_nodes(Scene *scene,
+                      BL::RenderEngine b_engine,
+                      BL::BlendData b_data,
+                      BL::Scene b_scene,
+                      ShaderGraph *graph,
+                      BL::ShaderNodeTree b_ntree,
+                      const ProxyMap &proxy_input_map,
+                      const ProxyMap &proxy_output_map)
 {
 	/* add nodes */
 	BL::ShaderNodeTree::nodes_iterator b_node;
@@ -883,8 +897,16 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				output_map[b_output->ptr.data] = proxy->outputs[0];
 			}
 			
-			if(b_group_ntree)
-				add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_proxy_input_map, group_proxy_output_map);
+			if (b_group_ntree) {
+				add_nodes(scene,
+				          b_engine,
+				          b_data,
+				          b_scene,
+				          graph,
+				          b_group_ntree,
+				          group_proxy_input_map,
+				          group_proxy_output_map);
+			}
 		}
 		else if(b_node->is_a(&RNA_NodeGroupInput)) {
 			/* map each socket to a proxy node */
@@ -923,7 +945,13 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				}
 			}
 			else {
-				node = add_node(scene, b_data, b_scene, graph, b_ntree, BL::ShaderNode(*b_node));
+				node = add_node(scene,
+				                b_engine,
+				                b_data,
+				                b_scene,
+				                graph,
+				                b_ntree,
+				                BL::ShaderNode(*b_node));
 			}
 
 			if(node) {
@@ -979,10 +1007,22 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 	}
 }
 
-static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree)
+static void add_nodes(Scene *scene,
+                      BL::RenderEngine b_engine,
+                      BL::BlendData b_data,
+                      BL::Scene b_scene,
+                      ShaderGraph *graph,
+                      BL::ShaderNodeTree b_ntree)
 {
 	static const ProxyMap empty_proxy_map;
-	add_nodes(scene, b_data, b_scene, graph, b_ntree, empty_proxy_map, empty_proxy_map);
+	add_nodes(scene,
+	          b_engine,
+	          b_data,
+	          b_scene,
+	          graph,
+	          b_ntree,
+	          empty_proxy_map,
+	          empty_proxy_map);
 }
 
 /* Sync Materials */
@@ -1008,7 +1048,7 @@ void BlenderSync::sync_materials(bool update_all)
 			if(b_mat->use_nodes() && b_mat->node_tree()) {
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
-				add_nodes(scene, b_data, b_scene, graph, b_ntree);
+				add_nodes(scene, b_engine, b_data, b_scene, graph, b_ntree);
 			}
 			else {
 				ShaderNode *closure, *out;
@@ -1051,7 +1091,7 @@ void BlenderSync::sync_world(bool update_all)
 		if(b_world && b_world.use_nodes() && b_world.node_tree()) {
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-			add_nodes(scene, b_data, b_scene, graph, b_ntree);
+			add_nodes(scene, b_engine, b_data, b_scene, graph, b_ntree);
 
 			/* volume */
 			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
@@ -1137,7 +1177,7 @@ void BlenderSync::sync_lamps(bool update_all)
 
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
-				add_nodes(scene, b_data, b_scene, graph, b_ntree);
+				add_nodes(scene, b_engine, b_data, b_scene, graph, b_ntree);
 			}
 			else {
 				ShaderNode *closure, *out;

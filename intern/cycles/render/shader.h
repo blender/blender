@@ -36,6 +36,7 @@
 #include "util_map.h"
 #include "util_param.h"
 #include "util_string.h"
+#include "util_thread.h"
 #include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -171,8 +172,9 @@ protected:
 	typedef unordered_map<ustring, uint, ustringHash> AttributeIDMap;
 	AttributeIDMap unique_attribute_id;
 
-	vector<float> blackbody_table;
-	vector<float> beckmann_table;
+	thread_mutex lookup_table_mutex;
+	static vector<float> blackbody_table;
+	static vector<float> beckmann_table;
 
 	size_t blackbody_table_offset;
 	size_t beckmann_table_offset;

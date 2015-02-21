@@ -385,7 +385,8 @@ void BlenderSync::sync_images()
 		 */
 		const bool is_builtin = b_image->packed_file() ||
 		                        b_image->source() == BL::Image::source_GENERATED ||
-		                        b_image->source() == BL::Image::source_MOVIE;
+		                        b_image->source() == BL::Image::source_MOVIE ||
+		                        b_engine.is_preview();
 		if(is_builtin == false) {
 			b_image->buffers_free();
 		}
