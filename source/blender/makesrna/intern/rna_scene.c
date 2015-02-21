@@ -754,7 +754,7 @@ static int rna_RenderSettings_save_buffers_get(PointerRNA *ptr)
 	else if (!BKE_scene_use_new_shading_nodes(scene))
 		return (rd->scemode & (R_EXR_TILE_FILE | R_FULL_SAMPLE)) != 0;
 	else 
-		return (rd->scemode & R_EXR_TILE_FILE);
+		return (rd->scemode & R_EXR_TILE_FILE) != 0;
 }
 
 static int rna_RenderSettings_full_sample_get(PointerRNA *ptr)
