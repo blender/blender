@@ -2192,11 +2192,16 @@ void GeometryNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *out;
 	NodeType geom_node = NODE_GEOMETRY;
+	NodeType attr_node = NODE_ATTR;
 
-	if(bump == SHADER_BUMP_DX)
+	if(bump == SHADER_BUMP_DX) {
 		geom_node = NODE_GEOMETRY_BUMP_DX;
-	else if(bump == SHADER_BUMP_DY)
+		attr_node = NODE_ATTR_BUMP_DX;
+	}
+	else if(bump == SHADER_BUMP_DY) {
 		geom_node = NODE_GEOMETRY_BUMP_DY;
+		attr_node = NODE_ATTR_BUMP_DY;
+	}
 	
 	out = output("Position");
 	if(!out->links.empty()) {
@@ -2242,13 +2247,6 @@ void GeometryNode::compile(SVMCompiler& compiler)
 
 	out = output("Pointiness");
 	if(!out->links.empty()) {
-		NodeType attr_node = NODE_ATTR;
-		if(bump == SHADER_BUMP_DX) {
-			attr_node = NODE_ATTR_BUMP_DX;
-		}
-		else if(bump == SHADER_BUMP_DY) {
-			attr_node = NODE_ATTR_BUMP_DY;
-		}
 		compiler.stack_assign(out);
 		compiler.add_node(attr_node,
 		                  ATTR_STD_POINTINESS,
