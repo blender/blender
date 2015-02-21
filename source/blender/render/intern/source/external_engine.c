@@ -440,7 +440,7 @@ bool RE_bake_engine(
 {
 	RenderEngineType *type = RE_engines_find(re->r.engine);
 	RenderEngine *engine;
-	int persistent_data = re->r.mode & R_PERSISTENT_DATA;
+	bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 
 	/* set render info */
 	re->i.cfra = re->scene->r.cfra;
@@ -532,7 +532,7 @@ int RE_engine_render(Render *re, int do_all)
 {
 	RenderEngineType *type = RE_engines_find(re->r.engine);
 	RenderEngine *engine;
-	int persistent_data = re->r.mode & R_PERSISTENT_DATA;
+	bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 
 	/* verify if we can render */
 	if (!type->render)
