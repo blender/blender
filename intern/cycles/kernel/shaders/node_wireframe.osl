@@ -24,6 +24,10 @@ shader node_wireframe(
 	output float Fac = 0.0)
 {
 	Fac = wireframe("triangles", Size, use_pixel_size);
+	/* TODO(sergey): Since we can't use autodiff here we do algebraic
+	 * calculation of derivatives by definition. We could probably
+	 * optimize this a bit by doing some extra calculation in wireframe().
+	 */
 	if (bump_offset == "dx") {
 		point dx = Dx(P);
 		P -= dx;
@@ -35,4 +39,3 @@ shader node_wireframe(
 		Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dy);
 	}
 }
-
