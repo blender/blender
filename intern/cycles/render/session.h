@@ -59,6 +59,7 @@ public:
 	double cancel_timeout;
 	double reset_timeout;
 	double text_timeout;
+	double progressive_update_timeout;
 
 	ShadingSystem shadingsystem;
 
@@ -80,6 +81,7 @@ public:
 		cancel_timeout = 0.1;
 		reset_timeout = 0.1;
 		text_timeout = 1.0;
+		progressive_update_timeout = 1.0;
 
 		shadingsystem = SHADINGSYSTEM_SVM;
 		tile_order = TILE_CENTER;
@@ -101,6 +103,7 @@ public:
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
 		&& text_timeout == params.text_timeout
+		&& progressive_update_timeout == params.progressive_update_timeout
 		&& tile_order == params.tile_order
 		&& shadingsystem == params.shadingsystem); }
 

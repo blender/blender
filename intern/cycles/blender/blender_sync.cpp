@@ -554,6 +554,13 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine,
 		                               b_engine.support_display_space_shader(b_scene);
 	}
 
+	if(b_engine.is_preview()) {
+		/* For preview rendering we're using same timeout as
+		 * blender's job update.
+		 */
+		params.progressive_update_timeout = 0.1;
+	}
+
 	return params;
 }
 
