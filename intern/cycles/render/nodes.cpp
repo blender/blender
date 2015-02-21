@@ -3577,14 +3577,34 @@ void WireframeNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *size_in = input("Size");
 	ShaderOutput *fac_out = output("Fac");
-
+	NodeBumpOffset bump_offset = NODE_BUMP_OFFSET_CENTER;
+	if(bump == SHADER_BUMP_DX) {
+		bump_offset = NODE_BUMP_OFFSET_DX;
+	}
+	else if(bump == SHADER_BUMP_DY) {
+		bump_offset = NODE_BUMP_OFFSET_DY;
+	}
 	compiler.stack_assign(size_in);
 	compiler.stack_assign(fac_out);
-	compiler.add_node(NODE_WIREFRAME, size_in->stack_offset, fac_out->stack_offset, use_pixel_size);
+	compiler.add_node(NODE_WIREFRAME,
+	                  size_in->stack_offset,
+	                  fac_out->stack_offset,
+	                  compiler.encode_uchar4(use_pixel_size,
+	                                         bump_offset,
+	                                         0, 0));
 }
 
 void WireframeNode::compile(OSLCompiler& compiler)
 {
+	if(bump == SHADER_BUMP_DX) {
+		compiler.parameter("bump_offset", "dx");
+	}
+	else if(bump == SHADER_BUMP_DY) {
+		compiler.parameter("bump_offset", "dy");
+	}
+	else {
+		compiler.parameter("bump_offset", "center");
+	}
 	compiler.parameter("use_pixel_size", use_pixel_size);
 	compiler.add(this, "node_wireframe");
 }

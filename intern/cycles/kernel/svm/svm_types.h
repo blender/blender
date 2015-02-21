@@ -341,6 +341,12 @@ typedef enum NodeImageProjection {
 	NODE_IMAGE_PROJ_TUBE   = 3,
 } NodeImageProjection;
 
+typedef enum NodeBumpOffset {
+	NODE_BUMP_OFFSET_CENTER,
+	NODE_BUMP_OFFSET_DX,
+	NODE_BUMP_OFFSET_DY,
+} NodeBumpOffset;
+
 typedef enum ShaderType {
 	SHADER_TYPE_SURFACE,
 	SHADER_TYPE_VOLUME,

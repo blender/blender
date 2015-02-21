@@ -361,7 +361,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 				break;
 #ifdef __EXTRA_NODES__
 			case NODE_WIREFRAME:
-				svm_node_wireframe(kg, sd, stack, node.y, node.z, node.w);
+				svm_node_wireframe(kg, sd, stack, node);
 				break;
 			case NODE_WAVELENGTH:
 				svm_node_wavelength(sd, stack, node.y, node.z);
