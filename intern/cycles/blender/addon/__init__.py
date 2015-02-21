@@ -50,20 +50,17 @@ class CyclesRender(bpy.types.RenderEngine):
 
     # final render
     def update(self, data, scene):
-        if self.is_preview:
-            if not self.session:
+        if not self.session:
+            if self.is_preview:
                 cscene = bpy.context.scene.cycles
                 use_osl = cscene.shading_system and cscene.device == 'CPU'
 
                 engine.create(self, data, scene,
                               None, None, None, use_osl)
-        else:
-            if not self.session:
-                engine.create(self, data, scene)
             else:
-                engine.reset(self, data, scene)
-
-        engine.update(self, data, scene)
+                engine.create(self, data, scene)
+        else:
+            engine.reset(self, data, scene)
 
     def render(self, scene):
         engine.render(self)
