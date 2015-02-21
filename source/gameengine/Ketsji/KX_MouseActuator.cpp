@@ -316,7 +316,7 @@ void KX_MouseActuator::ProcessReplica()
 
 void KX_MouseActuator::getMousePosition(float* pos)
 {
-	MT_assert(!m_mouse);
+	MT_assert(m_mouse);
 	const SCA_InputEvent & xevent = m_mouse->GetEventValue(SCA_IInputDevice::KX_MOUSEX);
 	const SCA_InputEvent & yevent = m_mouse->GetEventValue(SCA_IInputDevice::KX_MOUSEY);
 
