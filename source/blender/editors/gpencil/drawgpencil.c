@@ -363,6 +363,9 @@ static void gp_draw_stroke_fill(bGPDspoint *points, int totpoints, short UNUSED(
 static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dflag, short sflag,
                                  int offsx, int offsy, int winx, int winy)
 {
+	/* set point thickness (since there's only one of these) */
+	glPointSize((float)(thickness + 2) * points->pressure);
+	
 	/* draw point */
 	if (sflag & GP_STROKE_3DSPACE) {
 		glBegin(GL_POINTS);
@@ -966,9 +969,8 @@ static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, in
 		if (gpf == NULL)
 			continue;
 		
-		/* set color, stroke thickness, and point size */
+		/* set basic stroke thickness */
 		glLineWidth(lthick);
-		glPointSize((float)(gpl->thickness + 2));
 		
 		/* Add layer drawing settings to the set of "draw flags"
 		 * NOTE: If the setting doesn't apply, it *must* be cleared,
