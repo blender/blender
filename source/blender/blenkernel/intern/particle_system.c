@@ -1191,7 +1191,7 @@ void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra
 	ParticleSettings *part = psys->part;
 
 	*sfra = MAX2(1, (int)part->sta);
-	*efra = MIN2((int)(part->end + part->lifetime + 1.0f), scene->r.efra);
+	*efra = MIN2((int)(part->end + part->lifetime + 1.0f), MAX2(scene->r.pefra, scene->r.efra));
 }
 
 /************************************************/
