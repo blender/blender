@@ -832,8 +832,12 @@ Tex *BKE_texture_copy(Tex *tex)
 	Tex *texn;
 	
 	texn = BKE_libblock_copy(&tex->id);
-	if (texn->type == TEX_IMAGE) id_us_plus((ID *)texn->ima);
-	else texn->ima = NULL;
+	if (BKE_texture_is_image_user(tex)) {
+		id_us_plus((ID *)texn->ima);
+	}
+	else {
+		texn->ima = NULL;
+	}
 	
 	if (texn->coba) texn->coba = MEM_dupallocN(texn->coba);
 	if (texn->env) texn->env = BKE_copy_envmap(texn->env);
@@ -1604,6 +1608,29 @@ void BKE_free_oceantex(struct OceanTex *ot)
 	MEM_freeN(ot);
 }
 
+/**
+ * \returns true if this texture can use its #Texture.ima (even if its NULL)
+ */
+bool BKE_texture_is_image_user(const struct Tex *tex)
+{
+	switch (tex->type) {
+		case TEX_IMAGE:
+		{
+			return true;
+		}
+		case TEX_ENVMAP:
+		{
+			if (tex->env) {
+				if (tex->env->stype == ENV_LOAD) {
+					return true;
+				}
+			}
+			break;
+		}
+	}
+
+	return false;
+}
 
 /* ------------------------------------------------------------------------- */
 bool BKE_texture_dependsOnTime(const struct Tex *texture)
