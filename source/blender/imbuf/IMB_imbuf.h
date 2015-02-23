@@ -126,6 +126,13 @@ struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
                              unsigned char d, unsigned int flags);
 
 /**
+ * Create a copy of a pixel buffer and wrap it to a new ImBuf
+ * \attention Defined in allocimbuf.c
+ */
+struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect, const float *rectf,
+                                  unsigned int w, unsigned int h);
+
+/**
  *
  * Increase reference count to imbuf
  * (to delete an imbuf you have to call freeImBuf as many times as it
@@ -351,13 +358,6 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1);
  * \attention Defined in scaling.c
  */
 struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
-
-/**
- * Create a copy of a pixel buffer and wrap it to a new ImBuf
- * \attention Defined in scaling.c
- */
-struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect, const float *frect,
-                                  unsigned int w, unsigned int h);
 
 /**
  *
