@@ -2408,7 +2408,7 @@ void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, voi
 	return ptr;
 }
 
-void CustomData_set(const CustomData *data, int index, int type, void *source)
+void CustomData_set(const CustomData *data, int index, int type, const void *source)
 {
 	void *dest = CustomData_get(data, index, type);
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -2573,8 +2573,9 @@ void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 	}
 }
 
-bool CustomData_bmesh_merge(CustomData *source, CustomData *dest,
-                            CustomDataMask mask, int alloctype, BMesh *bm, const char htype)
+bool CustomData_bmesh_merge(
+        const CustomData *source, CustomData *dest,
+        CustomDataMask mask, int alloctype, BMesh *bm, const char htype)
 {
 	BMHeader *h;
 	BMIter iter;
@@ -2944,7 +2945,7 @@ void CustomData_data_add(int type, void *data1, const void *data2)
 		typeInfo->add(data1, data2);
 }
 
-void CustomData_bmesh_set(const CustomData *data, void *block, int type, void *source)
+void CustomData_bmesh_set(const CustomData *data, void *block, int type, const void *source)
 {
 	void *dest = CustomData_bmesh_get(data, block, type);
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -2957,7 +2958,7 @@ void CustomData_bmesh_set(const CustomData *data, void *block, int type, void *s
 		memcpy(dest, source, typeInfo->size);
 }
 
-void CustomData_bmesh_set_n(CustomData *data, void *block, int type, int n, void *source)
+void CustomData_bmesh_set_n(CustomData *data, void *block, int type, int n, const void *source)
 {
 	void *dest = CustomData_bmesh_get_n(data, block, type, n);
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -2970,7 +2971,7 @@ void CustomData_bmesh_set_n(CustomData *data, void *block, int type, int n, void
 		memcpy(dest, source, typeInfo->size);
 }
 
-void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, void *source)
+void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, const void *source)
 {
 	void *dest = CustomData_bmesh_get_layer_n(data, block, n);
 	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);

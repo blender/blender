@@ -30,12 +30,12 @@
 struct LinkNode;
 struct MemArena;
 
-void  BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
-void  BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
+void  BM_loop_interp_multires(BMesh *bm, BMLoop *l_dst, const BMFace *f_src);
+void  BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src);
 
-void  BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac);
-void  BM_data_interp_from_edges(BMesh *bm, BMEdge *e1, BMEdge *e2, BMEdge *e, const float fac);
-void  BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, BMEdge *e1, const float fac);
+void  BM_data_interp_from_verts(BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v_dst, const float fac);
+void  BM_data_interp_from_edges(BMesh *bm, const BMEdge *e_src_1, const BMEdge *e_src_2, BMEdge *e_dst, const float fac);
+void  BM_data_interp_face_vert_edge(BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v, BMEdge *e, const float fac);
 void  BM_data_layer_add(BMesh *bm, CustomData *data, int type);
 void  BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
 void  BM_data_layer_free(BMesh *bm, CustomData *data, int type);
@@ -46,12 +46,15 @@ float BM_elem_float_data_get(CustomData *cd, void *element, int type);
 void  BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val);
 
 void BM_face_interp_from_face_ex(
-        BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex,
+        BMesh *bm, BMFace *f_dst, const BMFace *f_src, const bool do_vertex,
         const void **blocks, const void **blocks_v,
         float (*cos_2d)[2], float axis_mat[3][3]);
-void  BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex);
-void  BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
-                               const bool do_vertex, const bool do_multires);
+void  BM_face_interp_from_face(
+        BMesh *bm, BMFace *f_dst, const BMFace *f_src,
+        const bool do_vertex);
+void  BM_loop_interp_from_face(
+        BMesh *bm, BMLoop *l_dst, const BMFace *f_src,
+        const bool do_vertex, const bool do_multires);
 
 void  BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
 

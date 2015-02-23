@@ -130,8 +130,9 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 /* bmesh version of CustomData_merge; merges the layouts of source and dest,
  * then goes through the mesh and makes sure all the customdata blocks are
  * consistent with the new layout.*/
-bool CustomData_bmesh_merge(struct CustomData *source, struct CustomData *dest,
-                            CustomDataMask mask, int alloctype, struct BMesh *bm, const char htype);
+bool CustomData_bmesh_merge(
+        const struct CustomData *source, struct CustomData *dest,
+        CustomDataMask mask, int alloctype, struct BMesh *bm, const char htype);
 
 /** NULL's all members and resets the typemap. */
 void CustomData_reset(struct CustomData *data);
@@ -285,19 +286,23 @@ int CustomData_get_stencil_layer(const struct CustomData *data, int type);
  * layer of type
  * no effect if there is no layer of type
  */
-void CustomData_set(const struct CustomData *data, int index, int type,
-                    void *source);
+void CustomData_set(
+        const struct CustomData *data, int index, int type,
+        const void *source);
 
-void CustomData_bmesh_set(const struct CustomData *data, void *block, int type, 
-                          void *source);
+void CustomData_bmesh_set(
+        const struct CustomData *data, void *block, int type,
+        const void *source);
 
-void CustomData_bmesh_set_n(struct CustomData *data, void *block, int type, int n, 
-                            void *source);
+void CustomData_bmesh_set_n(
+        struct CustomData *data, void *block, int type, int n,
+        const void *source);
 /* sets the data of the block at physical layer n.  no real type checking
  * is performed.
  */
-void CustomData_bmesh_set_layer_n(struct CustomData *data, void *block, int n,
-                                  void *source);
+void CustomData_bmesh_set_layer_n(
+        struct CustomData *data, void *block, int n,
+        const void *source);
 
 /* set the pointer of to the first layer of type. the old data is not freed.
  * returns the value of ptr if the layer is found, NULL otherwise
