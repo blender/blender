@@ -689,11 +689,10 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 }
 
 /* Image *ima can be NULL */
-void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int rectw, int recth,
+void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int rectw, int recth,
                        bool mipmap, bool use_high_bit_depth, Image *ima)
 {
-	unsigned int *scalerect = NULL;
-	float *fscalerect = NULL;
+	ImBuf *ibuf = NULL;
 
 	int tpx = rectw;
 	int tpy = recth;
@@ -703,20 +702,20 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
 	if ((!GPU_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth)) ||
 		is_over_resolution_limit(rectw, recth)) {
-		rectw= smaller_power_of_2_limit(rectw);
-		recth= smaller_power_of_2_limit(recth);
+		rectw = smaller_power_of_2_limit(rectw);
+		recth = smaller_power_of_2_limit(recth);
 		
 		if (use_high_bit_depth) {
-			fscalerect= MEM_mallocN(rectw*recth*sizeof(*fscalerect)*4, "fscalerect");
-			gluScaleImage(GL_RGBA, tpx, tpy, GL_FLOAT, frect, rectw, recth, GL_FLOAT, fscalerect);
+			ibuf = IMB_allocFromBuffer(NULL, frect, tpx, tpy);
+			IMB_scaleImBuf(ibuf, rectw, recth);
 
-			frect = fscalerect;
+			frect = ibuf->rect_float;
 		}
 		else {
-			scalerect= MEM_mallocN(rectw*recth*sizeof(*scalerect), "scalerect");
-			gluScaleImage(GL_RGBA, tpx, tpy, GL_UNSIGNED_BYTE, pix, rectw, recth, GL_UNSIGNED_BYTE, scalerect);
+			ibuf = IMB_allocFromBuffer(rect, NULL, tpx, tpy);
+			IMB_scaleImBuf(ibuf, rectw, recth);
 
-			pix= scalerect;
+			rect = ibuf->rect;
 		}
 	}
 
@@ -732,7 +731,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 		}
 		else
-			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix);
+			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 	}
@@ -745,7 +744,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 					glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 			}
 			else
-				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix);
+				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 
 			gpu_generate_mipmap(GL_TEXTURE_2D);
 		}
@@ -753,7 +752,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 			if (use_high_bit_depth)
 				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA16, rectw, recth, GL_RGBA, GL_FLOAT, frect);
 			else
-				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, pix);
+				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
@@ -767,10 +766,8 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int 
 	/* set to modulate with vertex color */
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	if (scalerect)
-		MEM_freeN(scalerect);
-	if (fscalerect)
-		MEM_freeN(fscalerect);
+	if (ibuf)
+		IMB_freeImBuf(ibuf);
 }
 
 /**
@@ -988,14 +985,14 @@ static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 
 		/* float rectangles are already continuous in memory so we can use gluScaleImage */
 		if (frect) {
-			float *fscalerect = MEM_mallocN(rectw*recth*sizeof(*fscalerect)*4, "fscalerect");
-			gluScaleImage(GL_RGBA, w, h, GL_FLOAT, frect, rectw, recth, GL_FLOAT, fscalerect);
+			ImBuf *ibuf = IMB_allocFromBuffer(NULL, frect, w, h);
+			IMB_scaleImBuf(ibuf, rectw, recth);
 
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
-			                GL_FLOAT, fscalerect);
+			                GL_FLOAT, ibuf->rect_float);
 
-			MEM_freeN(fscalerect);
+			IMB_freeImBuf(ibuf);
 		}
 		/* byte images are not continuous in memory so do manual interpolation */
 		else {
