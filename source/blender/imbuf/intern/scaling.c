@@ -1545,6 +1545,39 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int
 	return(ibuf);
 }
 
+struct ImBuf *IMB_scaleArray(const unsigned int *rect, const float *frect,
+                             unsigned int oldw, unsigned int oldh,
+                             unsigned int neww, unsigned int newh)
+{
+	ImBuf *ibuf = NULL;
+	ImBuf *tmpibuf = IMB_allocImBuf(oldw, oldh, 32, 0);
+
+	if (frect) {
+		/* allocate new image buffer and set the temporary buffer float buffer correctly */
+		ibuf = IMB_allocImBuf(oldw, oldh, 32, IB_rectfloat);
+		tmpibuf->rect_float = (float *)frect;
+
+		IMB_rectcpy(ibuf, tmpibuf, 0, 0, 0, 0, oldw, oldh);
+
+		IMB_scaleImBuf(ibuf, neww, newh);
+	}
+	else if (rect) {
+		ibuf = IMB_allocImBuf(oldw, oldh, 32, IB_rect);
+		tmpibuf->rect = (unsigned int *)rect;
+
+		IMB_rectcpy(ibuf, tmpibuf, 0, 0, 0, 0, oldw, oldh);
+
+		IMB_scaleImBuf(ibuf, neww, newh);
+	}
+
+	/* important, else we clean the source image imbufs! */
+	tmpibuf->rect_float = NULL;
+	tmpibuf->rect = NULL;
+	IMB_freeImBuf(tmpibuf);
+
+	return ibuf;
+}
+
 struct imbufRGBA {
 	float r, g, b, a;
 };
