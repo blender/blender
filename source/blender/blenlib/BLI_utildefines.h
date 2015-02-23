@@ -443,42 +443,42 @@ extern "C" {
 #  define ARRAY_SIZE(arr)  (sizeof(arr) / sizeof(*(arr)))
 #endif
 
-/* ELEM#(v, ...): is the first arg equal any others? */
-/* internal helpers*/
+/* ARRAY_SET_ITEMS#(v, ...): set indices of array 'v'  */
+/* internal helpers */
 #define _VA_ARRAY_SET_ITEMS2(v, a) \
-       ((v)[0] = (a))
+        ((v)[0] = (a))
 #define _VA_ARRAY_SET_ITEMS3(v, a, b) \
-       _VA_ARRAY_SET_ITEMS2(v, a); ((v)[1] = (b))
+        _VA_ARRAY_SET_ITEMS2(v, a); ((v)[1] = (b))
 #define _VA_ARRAY_SET_ITEMS4(v, a, b, c) \
-       _VA_ARRAY_SET_ITEMS3(v, a, b); ((v)[2] = (c))
+        _VA_ARRAY_SET_ITEMS3(v, a, b); ((v)[2] = (c))
 #define _VA_ARRAY_SET_ITEMS5(v, a, b, c, d) \
-       _VA_ARRAY_SET_ITEMS4(v, a, b, c); ((v)[3] = (d))
+        _VA_ARRAY_SET_ITEMS4(v, a, b, c); ((v)[3] = (d))
 #define _VA_ARRAY_SET_ITEMS6(v, a, b, c, d, e) \
-       _VA_ARRAY_SET_ITEMS5(v, a, b, c, d); ((v)[4] = (e))
+        _VA_ARRAY_SET_ITEMS5(v, a, b, c, d); ((v)[4] = (e))
 #define _VA_ARRAY_SET_ITEMS7(v, a, b, c, d, e, f) \
-       _VA_ARRAY_SET_ITEMS6(v, a, b, c, d, e); ((v)[5] = (f))
+        _VA_ARRAY_SET_ITEMS6(v, a, b, c, d, e); ((v)[5] = (f))
 #define _VA_ARRAY_SET_ITEMS8(v, a, b, c, d, e, f, g) \
-       _VA_ARRAY_SET_ITEMS7(v, a, b, c, d, e, f); ((v)[6] = (g))
+        _VA_ARRAY_SET_ITEMS7(v, a, b, c, d, e, f); ((v)[6] = (g))
 #define _VA_ARRAY_SET_ITEMS9(v, a, b, c, d, e, f, g, h) \
-       _VA_ARRAY_SET_ITEMS8(v, a, b, c, d, e, f, g); ((v)[7] = (h))
+        _VA_ARRAY_SET_ITEMS8(v, a, b, c, d, e, f, g); ((v)[7] = (h))
 #define _VA_ARRAY_SET_ITEMS10(v, a, b, c, d, e, f, g, h, i) \
-       _VA_ARRAY_SET_ITEMS9(v, a, b, c, d, e, f, g, h); ((v)[8] = (i))
+        _VA_ARRAY_SET_ITEMS9(v, a, b, c, d, e, f, g, h); ((v)[8] = (i))
 #define _VA_ARRAY_SET_ITEMS11(v, a, b, c, d, e, f, g, h, i, j) \
-       _VA_ARRAY_SET_ITEMS10(v, a, b, c, d, e, f, g, h, i); ((v)[9] = (j))
+        _VA_ARRAY_SET_ITEMS10(v, a, b, c, d, e, f, g, h, i); ((v)[9] = (j))
 #define _VA_ARRAY_SET_ITEMS12(v, a, b, c, d, e, f, g, h, i, j, k) \
-       _VA_ARRAY_SET_ITEMS11(v, a, b, c, d, e, f, g, h, i, j); ((v)[10] = (k))
+        _VA_ARRAY_SET_ITEMS11(v, a, b, c, d, e, f, g, h, i, j); ((v)[10] = (k))
 #define _VA_ARRAY_SET_ITEMS13(v, a, b, c, d, e, f, g, h, i, j, k, l) \
-       _VA_ARRAY_SET_ITEMS12(v, a, b, c, d, e, f, g, h, i, j, k); ((v)[11] = (l))
+        _VA_ARRAY_SET_ITEMS12(v, a, b, c, d, e, f, g, h, i, j, k); ((v)[11] = (l))
 #define _VA_ARRAY_SET_ITEMS14(v, a, b, c, d, e, f, g, h, i, j, k, l, m) \
-       _VA_ARRAY_SET_ITEMS13(v, a, b, c, d, e, f, g, h, i, j, k, l); ((v)[12] = (m))
+        _VA_ARRAY_SET_ITEMS13(v, a, b, c, d, e, f, g, h, i, j, k, l); ((v)[12] = (m))
 #define _VA_ARRAY_SET_ITEMS15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) \
-       _VA_ARRAY_SET_ITEMS14(v, a, b, c, d, e, f, g, h, i, j, k, l, m); ((v)[13] = (n))
+        _VA_ARRAY_SET_ITEMS14(v, a, b, c, d, e, f, g, h, i, j, k, l, m); ((v)[13] = (n))
 #define _VA_ARRAY_SET_ITEMS16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) \
-       _VA_ARRAY_SET_ITEMS15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n); ((v)[14] = (o))
+        _VA_ARRAY_SET_ITEMS15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n); ((v)[14] = (o))
 #define _VA_ARRAY_SET_ITEMS17(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) \
-       _VA_ARRAY_SET_ITEMS16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o); ((v)[15] = (p))
+        _VA_ARRAY_SET_ITEMS16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o); ((v)[15] = (p))
 
-/* reusable ELEM macro */
+/* reusable ARRAY_SET_ITEMS macro */
 #define ARRAY_SET_ITEMS(...) { VA_NARGS_CALL_OVERLOAD(_VA_ARRAY_SET_ITEMS, __VA_ARGS__); } (void)0
 
 #if defined(__GNUC__) || defined(__clang__)
