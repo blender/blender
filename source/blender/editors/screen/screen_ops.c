@@ -391,7 +391,7 @@ int ED_operator_editarmature(bContext *C)
  * \brief check for pose mode (no mixed modes)
  *
  * We want to enable most pose operations in weight paint mode,
- * when it comes to transforming bones, but managing bomes layers/groups
+ * when it comes to transforming bones, but managing bones layers/groups
  * can be left for pose mode only. (not weight paint mode)
  */
 int ED_operator_posemode_exclusive(bContext *C)
