@@ -481,6 +481,14 @@ extern "C" {
 /* reusable ELEM macro */
 #define ARRAY_SET_ITEMS(...) { VA_NARGS_CALL_OVERLOAD(_VA_ARRAY_SET_ITEMS, __VA_ARGS__); } (void)0
 
+#if defined(__GNUC__) || defined(__clang__)
+#define POINTER_OFFSET(v, ofs) \
+	((typeof(v))((char *)(v) + ofs))
+#else
+#define POINTER_OFFSET(v, ofs) \
+	((void *)((char *)(v) + ofs))
+#endif
+
 /* Like offsetof(typeof(), member), for non-gcc compilers */
 #define OFFSETOF_STRUCT(_struct, _member) \
 	((((char *)&((_struct)->_member)) - ((char *)(_struct))) + sizeof((_struct)->_member))
