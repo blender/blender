@@ -1790,7 +1790,8 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data, int typ
                                                        int totelem, const char *name)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
-	int size = typeInfo->size * totelem, flag = 0, index = data->totlayer;
+	const int size = totelem * typeInfo->size;
+	int flag = 0, index = data->totlayer;
 	void *newlayerdata = NULL;
 
 	/* Passing a layerdata to copy from with an alloctype that won't copy is
@@ -2003,7 +2004,7 @@ static void *customData_duplicate_referenced_layer_index(CustomData *data, const
 		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
 
 		if (typeInfo->copy) {
-			void *dst_data = MEM_mallocN(typeInfo->size * totelem, "CD duplicate ref layer");
+			void *dst_data = MEM_mallocN(totelem * typeInfo->size, "CD duplicate ref layer");
 			typeInfo->copy(layer->data, dst_data, totelem);
 			layer->data = dst_data;
 		}
@@ -2104,14 +2105,14 @@ void CustomData_set_only_copy(const struct CustomData *data,
 			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 
-void CustomData_copy_elements(int type, void *source, void *dest, int count)
+void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
 	if (typeInfo->copy)
-		typeInfo->copy(source, dest, count);
+		typeInfo->copy(src_data_ofs, dst_data_ofs, count);
 	else
-		memcpy(dest, source, typeInfo->size * count);
+		memcpy(dst_data_ofs, src_data_ofs, count * typeInfo->size);
 }
 
 static void CustomData_copy_data_layer(
@@ -2123,28 +2124,28 @@ static void CustomData_copy_data_layer(
 	int dst_offset;
 
 	const void *src_data = source->layers[src_i].data;
-	void *dest_data = dest->layers[dst_i].data;
+	void *dst_data = dest->layers[dst_i].data;
 
 	typeInfo = layerType_getInfo(source->layers[src_i].type);
 
 	src_offset = src_index * typeInfo->size;
 	dst_offset = dst_index * typeInfo->size;
 
-	if (!src_data || !dest_data) {
-		if (!(src_data == NULL && dest_data == NULL)) {
+	if (!src_data || !dst_data) {
+		if (!(src_data == NULL && dst_data == NULL)) {
 			printf("%s: warning null data for %s type (%p --> %p), skipping\n",
 				   __func__, layerType_getName(source->layers[src_i].type),
-				   (void *)src_data, (void *)dest_data);
+				   (void *)src_data, (void *)dst_data);
 		}
 		return;
 	}
 
 	if (typeInfo->copy)
 		typeInfo->copy(POINTER_OFFSET(src_data, src_offset),
-		               POINTER_OFFSET(dest_data, dst_offset),
+		               POINTER_OFFSET(dst_data, dst_offset),
 		               count);
 	else
-		memcpy(POINTER_OFFSET(dest_data, dst_offset),
+		memcpy(POINTER_OFFSET(dst_data, dst_offset),
 		       POINTER_OFFSET(src_data, src_offset),
 		       count * typeInfo->size);
 }
@@ -2208,7 +2209,7 @@ void CustomData_free_elem(CustomData *data, int index, int count)
 			typeInfo = layerType_getInfo(data->layers[i].type);
 
 			if (typeInfo->free) {
-				int offset = typeInfo->size * index;
+				int offset = index * typeInfo->size;
 
 				typeInfo->free(POINTER_OFFSET(data->layers[i].data, offset), count, typeInfo->size);
 			}
@@ -2223,7 +2224,6 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
                        int count, int dest_index)
 {
 	int src_i, dest_i;
-	int dest_offset;
 	int j;
 	const void *source_buf[SOURCE_BUF_SIZE];
 	const void **sources = source_buf;
@@ -2255,13 +2255,11 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 			void *src_data = source->layers[src_i].data;
 
 			for (j = 0; j < count; ++j) {
-				sources[j] = POINTER_OFFSET(src_data, typeInfo->size * src_indices[j]);
+				sources[j] = POINTER_OFFSET(src_data, src_indices[j] * typeInfo->size);
 			}
 
-			dest_offset = dest_index * typeInfo->size;
-
 			typeInfo->interp(sources, weights, sub_weights, count,
-			                 POINTER_OFFSET(dest->layers[dest_i].data, dest_offset));
+			                 POINTER_OFFSET(dest->layers[dest_i].data, dest_index * typeInfo->size));
 
 			/* if there are multiple source & dest layers of the same type,
 			 * we don't want to copy all source layers to the same dest, so
@@ -2283,7 +2281,7 @@ void CustomData_swap(struct CustomData *data, int index, const int *corner_indic
 		typeInfo = layerType_getInfo(data->layers[i].type);
 
 		if (typeInfo->swap) {
-			int offset = typeInfo->size * index;
+			const int offset = index * typeInfo->size;
 
 			typeInfo->swap(POINTER_OFFSET(data->layers[i].data, offset), corner_indices);
 		}
@@ -2986,24 +2984,24 @@ void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, void *so
 }
 
 /**
- * \param src_blocks must be pointers to the data, offset by layer->offset already.
+ * \note src_blocks_ofs & dst_block_ofs
+ * must be pointers to the data, offset by layer->offset already.
  */
 void CustomData_bmesh_interp_n(
-        CustomData *data, const void **src_blocks,
+        CustomData *data, const void **src_blocks_ofs,
         const float *weights, const float *sub_weights,
-        int count, void *dest_block, int n)
+        int count, void *dst_block_ofs, int n)
 {
 	CustomDataLayer *layer = &data->layers[n];
 	const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
 
-	typeInfo->interp(src_blocks, weights, sub_weights, count,
-	                 POINTER_OFFSET(dest_block, layer->offset));
+	typeInfo->interp(src_blocks_ofs, weights, sub_weights, count, dst_block_ofs);
 }
 
 void CustomData_bmesh_interp(
         CustomData *data, const void **src_blocks,
         const float *weights, const float *sub_weights,
-        int count, void *dest_block)
+        int count, void *dst_block)
 {
 	int i, j;
 	void *source_buf[SOURCE_BUF_SIZE];
@@ -3023,7 +3021,10 @@ void CustomData_bmesh_interp(
 			for (j = 0; j < count; ++j) {
 				sources[j] = POINTER_OFFSET(src_blocks[j], layer->offset);
 			}
-			CustomData_bmesh_interp_n(data, sources, weights, sub_weights, count, dest_block, i);
+			CustomData_bmesh_interp_n(
+			        data, sources,
+			        weights, sub_weights, count,
+			        POINTER_OFFSET(dst_block, layer->offset), i);
 		}
 	}
 

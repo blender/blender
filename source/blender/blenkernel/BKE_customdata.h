@@ -204,7 +204,7 @@ void CustomData_copy_data(const struct CustomData *source,
 void CustomData_copy_data_named(const struct CustomData *source,
                           struct CustomData *dest, int source_index,
                           int dest_index, int count);
-void CustomData_copy_elements(int type, void *source, void *dest, int count);
+void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
 void CustomData_bmesh_copy_data(const struct CustomData *source, 
                                 struct CustomData *dest, void *src_block, 
                                 void **dest_block);
@@ -232,11 +232,11 @@ void CustomData_interp(
         int count, int dest_index);
 void CustomData_bmesh_interp_n(
         struct CustomData *data, const void **src_blocks, const float *weights,
-        const float *sub_weights, int count, void *dest_block_ofs, int n);
+        const float *sub_weights, int count, void *dst_block_ofs, int n);
 void CustomData_bmesh_interp(
         struct CustomData *data, const void **src_blocks,
         const float *weights, const float *sub_weights, int count,
-        void *dest_block);
+        void *dst_block);
 
 
 /* swaps the data in the element corners, to new corners with indices as

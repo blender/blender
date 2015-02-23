@@ -202,8 +202,8 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source, const b
 	BMLoop *l_iter;
 	BMLoop *l_first;
 
-	void **blocks_l    = BLI_array_alloca(blocks_l, source->len);
-	void **blocks_v    = do_vertex ? BLI_array_alloca(blocks_v, source->len) : NULL;
+	const void **blocks_l    = BLI_array_alloca(blocks_l, source->len);
+	const void **blocks_v    = do_vertex ? BLI_array_alloca(blocks_v, source->len) : NULL;
 	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
 	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
 	int i;
@@ -220,10 +220,8 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source, const b
 		if (do_vertex) blocks_v[i] = l_iter->v->head.data;
 	} while (i++, (l_iter = l_iter->next) != l_first);
 
-	BM_face_interp_from_face_ex(
-	        bm, target, source, do_vertex,
-	        (const void **)blocks_l, (const void **)blocks_v,
-	        cos_2d, axis_mat);
+	BM_face_interp_from_face_ex(bm, target, source, do_vertex,
+	                            blocks_l, blocks_v, cos_2d, axis_mat);
 }
 
 /**
@@ -1056,25 +1054,31 @@ LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_
 }
 
 static void bm_vert_loop_groups_data_layer_merge__single(
-        BMesh *bm, void *lf_p, void *data, int type)
+        BMesh *bm, void *lf_p, int layer_n,
+        void *data_tmp)
 {
 	struct LoopGroupCD *lf = lf_p;
+	const int type = bm->ldata.layers[layer_n].type;
 	int i;
 	const float *data_weights;
 
 	data_weights = lf->data_weights;
 
-	CustomData_bmesh_interp(&bm->ldata, (const void **)lf->data, data_weights, NULL, lf->data_len, data);
+	CustomData_bmesh_interp_n(
+	        &bm->ldata, (const void **)lf->data,
+	        data_weights, NULL, lf->data_len, data_tmp, layer_n);
 
 	for (i = 0; i < lf->data_len; i++) {
-		CustomData_copy_elements(type, data, lf->data[i], 1);
+		CustomData_copy_elements(type, data_tmp, lf->data[i], 1);
 	}
 }
 
 static void bm_vert_loop_groups_data_layer_merge_weights__single(
-        BMesh *bm, void *lf_p, void *data, int type, const float *loop_weights)
+        BMesh *bm, void *lf_p, const int layer_n, void *data_tmp,
+        const float *loop_weights)
 {
 	struct LoopGroupCD *lf = lf_p;
+	const int type = bm->ldata.layers[layer_n].type;
 	int i;
 	const float *data_weights;
 
@@ -1096,25 +1100,28 @@ static void bm_vert_loop_groups_data_layer_merge_weights__single(
 		data_weights = lf->data_weights;
 	}
 
-	CustomData_bmesh_interp(&bm->ldata, (const void **)lf->data, data_weights, NULL, lf->data_len, data);
+	CustomData_bmesh_interp_n(
+	        &bm->ldata, (const void **)lf->data,
+	        data_weights, NULL, lf->data_len, data_tmp, layer_n);
 
 	for (i = 0; i < lf->data_len; i++) {
-		CustomData_copy_elements(type, data, lf->data[i], 1);
+		CustomData_copy_elements(type, data_tmp, lf->data[i], 1);
 	}
 }
 
 /**
  * Take existing custom data and merge each fan's data.
  */
-void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, int layer_n)
+void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, const int layer_n)
 {
-	int type = bm->ldata.layers[layer_n].type;
-	int size = CustomData_sizeof(type);
-	void *data = alloca(size);
+	const int type = bm->ldata.layers[layer_n].type;
+	const int size = CustomData_sizeof(type);
+	void *data_tmp = malloc(size);
 
 	do {
-		bm_vert_loop_groups_data_layer_merge__single(bm, groups->link, data, type);
+		bm_vert_loop_groups_data_layer_merge__single(bm, groups->link, layer_n, data_tmp);
 	} while ((groups = groups->next));
+	free(data_tmp);
 }
 
 /**
@@ -1123,13 +1130,14 @@ void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, int layer
  */
 void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm, LinkNode *groups, int layer_n, const float *loop_weights)
 {
-	int type = bm->ldata.layers[layer_n].type;
-	int size = CustomData_sizeof(type);
-	void *data = alloca(size);
+	const int type = bm->ldata.layers[layer_n].type;
+	const int size = CustomData_sizeof(type);
+	void *data_tmp = malloc(size);
 
 	do {
-		bm_vert_loop_groups_data_layer_merge_weights__single(bm, groups->link, data, type, loop_weights);
+		bm_vert_loop_groups_data_layer_merge_weights__single(bm, groups->link, layer_n, data_tmp, loop_weights);
 	} while ((groups = groups->next));
+	free(data_tmp);
 }
 
 /** \} */

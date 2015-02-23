@@ -527,7 +527,9 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 
 					/* detect seams */
 					if (CustomData_data_equals(type, cd_src[0], cd_iter)) {
-						CustomData_bmesh_interp_n(&bm->ldata, cd_src, w, NULL, 2, l_iter->head.data, i);
+						CustomData_bmesh_interp_n(
+						        &bm->ldata, cd_src, w, NULL, ARRAY_SIZE(cd_src),
+						        POINTER_OFFSET(l_iter->head.data, offset), i);
 #ifdef USE_SEAM
 						is_seam = false;
 #endif

@@ -5317,16 +5317,17 @@ static void slide_origdata_interp_data_vert(
         TransDataGenericSlideVert *sv)
 {
 	BMIter liter;
-	BMLoop *l;
-	int j;
+	int j, l_num;
 	float *loop_weights;
 	const bool do_loop_weight = (len_squared_v3v3(sv->v->co, sv->co_orig_3d) > FLT_EPSILON);
 
 	// BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
-	l = BM_iter_new(&liter, bm, BM_LOOPS_OF_VERT, sv->v);
-	loop_weights = do_loop_weight ? BLI_array_alloca(loop_weights, liter.count) : NULL;
-	for (j = 0 ; l; l = BM_iter_step(&liter), j++) {
+	BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, sv->v);
+	l_num = liter.count;
+	loop_weights = do_loop_weight ? BLI_array_alloca(loop_weights, l_num) : NULL;
+	for (j = 0; j < l_num; j++) {
 		BMFace *f_copy;  /* the copy of 'f' */
+		BMLoop *l = BM_iter_step(&liter);
 
 		f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
 
