@@ -136,7 +136,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	int sizey = oglrender->sizey;
 	const short view_context = (v3d != NULL);
 	bool draw_bgpic = true;
-	bool draw_sky = (scene->r.alphamode == R_ADDSKY);
+	bool draw_sky = (scene->r.alphamode == R_ADDSKY) && v3d && (v3d->flag3 & V3D_SHOW_WORLD);
 	unsigned char *rect = NULL;
 
 	rr = RE_AcquireResultRead(oglrender->re);
