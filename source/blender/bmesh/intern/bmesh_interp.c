@@ -1116,12 +1116,11 @@ void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, const int
 {
 	const int type = bm->ldata.layers[layer_n].type;
 	const int size = CustomData_sizeof(type);
-	void *data_tmp = malloc(size);
+	void *data_tmp = alloca(size);
 
 	do {
 		bm_vert_loop_groups_data_layer_merge__single(bm, groups->link, layer_n, data_tmp);
 	} while ((groups = groups->next));
-	free(data_tmp);
 }
 
 /**
@@ -1132,12 +1131,11 @@ void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm, LinkNode *groups, i
 {
 	const int type = bm->ldata.layers[layer_n].type;
 	const int size = CustomData_sizeof(type);
-	void *data_tmp = malloc(size);
+	void *data_tmp = alloca(size);
 
 	do {
 		bm_vert_loop_groups_data_layer_merge_weights__single(bm, groups->link, layer_n, data_tmp, loop_weights);
 	} while ((groups = groups->next));
-	free(data_tmp);
 }
 
 /** \} */
