@@ -1316,7 +1316,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 
 		for (a = 0; a < 20; a++)
-			values[a] = (lay & (1 << a));
+			values[a] = (lay & (1 << a)) != 0;
 
 		RNA_boolean_set_array(op->ptr, "layers", values);
 	}
