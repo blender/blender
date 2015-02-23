@@ -2232,7 +2232,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 	 * elements
 	 */
 	if (count > SOURCE_BUF_SIZE)
-		sources = MEM_callocN(sizeof(*sources) * count, __func__);
+		sources = MEM_mallocN(sizeof(*sources) * count, __func__);
 
 	/* interpolates a layer at a time */
 	dest_i = 0;
@@ -3013,7 +3013,7 @@ void CustomData_bmesh_interp(
 	 * elements
 	 */
 	if (count > SOURCE_BUF_SIZE)
-		sources = MEM_callocN(sizeof(*sources) * count, __func__);
+		sources = MEM_mallocN(sizeof(*sources) * count, __func__);
 
 	/* interpolates a layer at a time */
 	for (i = 0; i < data->totlayer; ++i) {
