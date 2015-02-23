@@ -353,12 +353,11 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1);
 struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
- * Scales an array of pixels and returns the result to a new ImBuf
+ * Create a copy of a pixel buffer and wrap it to a new ImBuf
  * \attention Defined in scaling.c
  */
-struct ImBuf *IMB_scaleArray(const unsigned int *rect, const float *frect,
-                             unsigned int oldw, unsigned int oldh,
-                             unsigned int neww, unsigned int newh);
+struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect, const float *frect,
+                                  unsigned int w, unsigned int h);
 
 /**
  *
