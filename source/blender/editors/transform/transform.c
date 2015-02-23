@@ -5241,6 +5241,43 @@ static void slide_origdata_init_data(
 	}
 }
 
+static void slide_origdata_create_data_vert(
+        BMesh *bm, SlideOrigData *sod,
+        TransDataGenericSlideVert *sv)
+{
+	BMIter liter;
+	int j, l_num;
+	float *loop_weights;
+
+	/* copy face data */
+	// BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
+	BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, sv->v);
+	l_num = liter.count;
+	loop_weights = BLI_array_alloca(loop_weights, l_num);
+	for (j = 0; j < l_num; j++) {
+		BMLoop *l = BM_iter_step(&liter);
+		if (!BLI_ghash_haskey(sod->origfaces, l->f)) {
+			BMFace *f_copy = BM_face_copy(sod->bm_origfaces, bm, l->f, true, true);
+			BLI_ghash_insert(sod->origfaces, l->f, f_copy);
+		}
+		loop_weights[j] = BM_loop_calc_face_angle(l);
+	}
+
+	/* store cd_loop_groups */
+	if (l_num != 0) {
+		sv->cd_loop_groups = BLI_memarena_alloc(sod->arena, sod->layer_math_map_num * sizeof(void *));
+		for (j = 0; j < sod->layer_math_map_num; j++) {
+			const int layer_nr = sod->layer_math_map[j];
+			sv->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(bm, sv->v, layer_nr, loop_weights, sod->arena);
+		}
+	}
+	else {
+		sv->cd_loop_groups = NULL;
+	}
+
+	BLI_ghash_insert(sod->origverts, sv->v, sv);
+}
+
 static void slide_origdata_create_data(
         TransInfo *t, SlideOrigData *sod,
         TransDataGenericSlideVert *sv, unsigned int v_stride, unsigned int v_num)
@@ -5250,9 +5287,7 @@ static void slide_origdata_create_data(
 		BMesh *bm = em->bm;
 		unsigned int i;
 
-		const int *layer_math_map;
 		int layer_index_dst;
-		int layer_groups_array_size;
 		int j;
 
 		/* over alloc, only 'math' layers are indexed */
@@ -5264,41 +5299,14 @@ static void slide_origdata_create_data(
 			}
 		}
 		BLI_assert(layer_index_dst != 0);
-		layer_math_map = sod->layer_math_map;
-		layer_groups_array_size = layer_index_dst * sizeof(void *);
 		sod->layer_math_map_num = layer_index_dst;
 
 		sod->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
 		sod->origverts = BLI_ghash_ptr_new_ex(__func__, v_num);
 
-		for (i = 0; i < v_num; i++, sv = (void *)(((char *)sv) + v_stride)) {
-			BMIter fiter;
-			BMFace *f;
-			bool has_faces = false;
-
-			/* copy face data */
-			BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
-				if (!BLI_ghash_haskey(sod->origfaces, f)) {
-					BMFace *f_copy = BM_face_copy(sod->bm_origfaces, bm, f, true, true);
-					BLI_ghash_insert(sod->origfaces, f, f_copy);
-				}
-				has_faces = true;
-			}
-
-			/* store cd_loop_groups */
-			if (has_faces) {
-				sv->cd_loop_groups = BLI_memarena_alloc(sod->arena, layer_groups_array_size);
-				for (j = 0; j < layer_index_dst; j++) {
-					const int layer_nr = layer_math_map[j];
-					sv->cd_loop_groups[j] = BM_vert_loop_groups_data_layer_create(bm, sv->v, layer_nr, sod->arena);
-				}
-			}
-			else {
-				sv->cd_loop_groups = NULL;
-			}
-
-			BLI_ghash_insert(sod->origverts, sv->v, sv);
+		for (i = 0; i < v_num; i++, sv = POINTER_OFFSET(sv, v_stride)) {
+			slide_origdata_create_data_vert(bm, sod, sv);
 		}
 	}
 }
@@ -5370,7 +5378,7 @@ static void slide_origdata_interp_data(
 		BMesh *bm = em->bm;
 		unsigned int i;
 
-		for (i = 0; i < v_num; i++, sv = (void *)(((char *)sv) + v_stride)) {
+		for (i = 0; i < v_num; i++, sv = POINTER_OFFSET(sv, v_stride)) {
 
 			if (sv->cd_loop_groups) {
 				slide_origdata_interp_data_vert(sod, bm, is_final, sv);

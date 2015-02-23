@@ -921,6 +921,7 @@ struct LoopWalkCtx {
 	/* same for all groups */
 	int type;
 	int cd_layer_offset;
+	const float *loop_weights;
 	MemArena *arena;
 
 	/* --- Per loop fan vars --- */
@@ -953,10 +954,11 @@ struct LoopGroupCD {
 
 static void bm_loop_walk_add(struct LoopWalkCtx *lwc, BMLoop *l)
 {
-	const float w = BM_loop_calc_face_angle(l);
+	const int i = BM_elem_index_get(l);
+	const float w = lwc->loop_weights[i];
 	BM_elem_flag_enable(l, BM_ELEM_INTERNAL_TAG);
 	lwc->data_array[lwc->data_len] = BM_ELEM_CD_GET_VOID_P(l, lwc->cd_layer_offset);
-	lwc->data_index_array[lwc->data_len] = BM_elem_index_get(l);
+	lwc->data_index_array[lwc->data_len] = i;
 	lwc->weight_array[lwc->data_len] = w;
 	lwc->weight_accum += w;
 
@@ -994,7 +996,8 @@ static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
 	}
 }
 
-LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_n, MemArena *arena)
+LinkNode *BM_vert_loop_groups_data_layer_create(
+        BMesh *bm, BMVert *v, int layer_n, const float *loop_weights, MemArena *arena)
 {
 	struct LoopWalkCtx lwc;
 	LinkNode *groups = NULL;
@@ -1005,6 +1008,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(BMesh *bm, BMVert *v, int layer_
 
 	lwc.type = bm->ldata.layers[layer_n].type;
 	lwc.cd_layer_offset = bm->ldata.layers[layer_n].offset;
+	lwc.loop_weights = loop_weights;
 	lwc.arena = arena;
 
 	loop_num = 0;
