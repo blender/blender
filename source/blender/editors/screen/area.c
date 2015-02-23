@@ -1631,7 +1631,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 
 void ED_area_prevspace(bContext *C, ScrArea *sa)
 {
-	SpaceLink *sl = (sa) ? sa->spacedata.first : CTX_wm_space_data(C);
+	SpaceLink *sl = sa->spacedata.first;
 
 	if (sl && sl->next) {
 		/* workaround for case of double prevspace, render window
