@@ -33,11 +33,13 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
+#include "DNA_meta_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -53,9 +55,11 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_object.h"
 #include "ED_transverts.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
+#include "ED_curve.h"
 
 #include "view3d_intern.h"
 
@@ -600,38 +604,34 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 
 /* ********************************************** */
 
+/* this could be exported to be a generic function
+ * see: calculateCenterActive */
+
 static bool snap_calc_active_center(bContext *C, float r_center[3])
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Object *obact = CTX_data_active_object(C);
 
 	if (obedit) {
-		if (obedit->type == OB_MESH) {
-			BMEditMesh *em = BKE_editmesh_from_object(obedit);
-			/* check active */
-			BMEditSelection ese;
-
-			if (BM_select_history_active_get(em->bm, &ese)) {
-				BM_editselection_center(&ese, r_center);
-				return true;
-			}
-
+		if (ED_object_editmode_calc_active_center(obedit, false, r_center)) {
 			mul_m4_v3(obedit->obmat, r_center);
-		}
-		else if (obedit->type == OB_LATTICE) {
-			BPoint *actbp = BKE_lattice_active_point_get(obedit->data);
-
-			if (actbp) {
-				copy_v3_v3(r_center, actbp->vec);
-				mul_m4_v3(obedit->obmat, r_center);
-				return true;
-			}
 		}
 	}
 	else {
-		if (obact) {
-			copy_v3_v3(r_center, obact->obmat[3]);
-			return true;
+		Object *ob = CTX_data_active_object(C);
+
+		if (ob) {
+			if (ob->mode & OB_MODE_POSE) {
+				bPoseChannel *pchan = BKE_pose_channel_active(ob);
+				if (pchan) {
+					copy_v3_v3(r_center, pchan->pose_head);
+					mul_m4_v3(ob->obmat, r_center);
+					return true;
+				}
+			}
+			else {
+				copy_v3_v3(r_center, ob->obmat[3]);
+				return true;
+			}
 		}
 	}
 

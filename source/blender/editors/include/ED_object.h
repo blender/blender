@@ -138,6 +138,8 @@ void ED_object_editmode_exit(struct bContext *C, int flag);
 void ED_object_editmode_enter(struct bContext *C, int flag);
 bool ED_object_editmode_load(struct Object *obedit);
 
+bool ED_object_editmode_calc_active_center(struct Object *obedit, const bool select_only, float r_center[3]);
+
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);

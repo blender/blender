@@ -66,6 +66,7 @@
 #include "BKE_effect.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
+#include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1998,4 +1999,68 @@ void OBJECT_OT_game_physics_copy(struct wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* generic utility function */
+
+bool ED_object_editmode_calc_active_center(Object *obedit, const bool select_only, float r_center[3])
+{
+	switch (obedit->type) {
+		case OB_MESH:
+		{
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
+			BMEditSelection ese;
+
+			if (BM_select_history_active_get(em->bm, &ese)) {
+				BM_editselection_center(&ese, r_center);
+				return true;
+			}
+			break;
+		}
+		case OB_ARMATURE:
+		{
+			bArmature *arm = obedit->data;
+			EditBone *ebo = arm->act_edbone;
+
+			if (ebo && (!select_only || (ebo->flag & (BONE_SELECTED | BONE_ROOTSEL)))) {
+				copy_v3_v3(r_center, ebo->head);
+				return true;
+			}
+
+			break;
+		}
+		case OB_CURVE:
+		case OB_SURF:
+		{
+			Curve *cu = obedit->data;
+
+			if (ED_curve_active_center(cu, r_center)) {
+				return true;
+			}
+			break;
+		}
+		case OB_MBALL:
+		{
+			MetaBall *mb = obedit->data;
+			MetaElem *ml_act = mb->lastelem;
+
+			if (ml_act && (!select_only || (ml_act->flag & SELECT))) {
+				copy_v3_v3(r_center, &ml_act->x);
+				return true;
+			}
+			break;
+		}
+		case OB_LATTICE:
+		{
+			BPoint *actbp = BKE_lattice_active_point_get(obedit->data);
+
+			if (actbp) {
+				copy_v3_v3(r_center, actbp->vec);
+				return true;
+			}
+			break;
+		}
+	}
+
+	return false;
 }

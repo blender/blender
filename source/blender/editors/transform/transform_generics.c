@@ -87,6 +87,7 @@
 #include "ED_keyframing.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
@@ -1682,63 +1683,8 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 	bool ok = false;
 
 	if (t->obedit) {
-		switch (t->obedit->type) {
-			case OB_MESH:
-			{
-				BMEditSelection ese;
-				BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
-
-				if (BM_select_history_active_get(em->bm, &ese)) {
-					BM_editselection_center(&ese, r_center);
-					ok = true;
-				}
-				break;
-			}
-			case OB_ARMATURE:
-			{
-				bArmature *arm = t->obedit->data;
-				EditBone *ebo = arm->act_edbone;
-
-				if (ebo && (!select_only || (ebo->flag & (BONE_SELECTED | BONE_ROOTSEL)))) {
-					copy_v3_v3(r_center, ebo->head);
-					ok = true;
-				}
-
-				break;
-			}
-			case OB_CURVE:
-			case OB_SURF:
-			{
-				float center[3];
-				Curve *cu = (Curve *)t->obedit->data;
-
-				if (ED_curve_active_center(cu, center)) {
-					copy_v3_v3(r_center, center);
-					ok = true;
-				}
-				break;
-			}
-			case OB_MBALL:
-			{
-				MetaBall *mb = (MetaBall *)t->obedit->data;
-				MetaElem *ml_act = mb->lastelem;
-
-				if (ml_act && (!select_only || (ml_act->flag & SELECT))) {
-					copy_v3_v3(r_center, &ml_act->x);
-					ok = true;
-				}
-				break;
-			}
-			case OB_LATTICE:
-			{
-				BPoint *actbp = BKE_lattice_active_point_get(t->obedit->data);
-
-				if (actbp) {
-					copy_v3_v3(r_center, actbp->vec);
-					ok = true;
-				}
-				break;
-			}
+		if (ED_object_editmode_calc_active_center(t->obedit, select_only, r_center)) {
+			ok = true;
 		}
 	}
 	else if (t->flag & T_POSE) {
