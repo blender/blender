@@ -1066,8 +1066,9 @@ void BKE_defvert_extract_vgroup_to_polyweights(
 
 /*********** Data Transfer **********/
 
-static void vgroups_datatransfer_interp(const CustomDataTransferLayerMap *laymap, void *dest,
-                                        void **sources, const float *weights, const int count, const float mix_factor)
+static void vgroups_datatransfer_interp(
+        const CustomDataTransferLayerMap *laymap, void *dest,
+        const void **sources, const float *weights, const int count, const float mix_factor)
 {
 	MDeformVert **data_src = (MDeformVert **)sources;
 	MDeformVert *data_dst = (MDeformVert *)dest;

@@ -70,7 +70,7 @@ static void bm_data_interp_from_elem(CustomData *data_layer, BMElem *ele1, BMEle
 			}
 		}
 		else {
-			void *src[2];
+			const void *src[2];
 			float w[2];
 
 			src[0] = ele1->head.data;
@@ -125,7 +125,6 @@ static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNU
  */
 void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, const float fac)
 {
-	void *src[2];
 	float w[2];
 	BMLoop *l_v1 = NULL, *l_v = NULL, *l_v2 = NULL;
 	BMLoop *l_iter = NULL;
@@ -150,13 +149,16 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
 			l_v2 = l_iter->prev;
 		}
 		
-		if (!l_v1 || !l_v2)
+		if (!l_v1 || !l_v2) {
 			return;
-		
-		src[0] = l_v1->head.data;
-		src[1] = l_v2->head.data;
+		}
+		else {
+			const void *src[2];
+			src[0] = l_v1->head.data;
+			src[1] = l_v2->head.data;
 
-		CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, l_v->head.data);
+			CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, l_v->head.data);
+		}
 	} while ((l_iter = l_iter->radial_next) != e1->l);
 }
 
@@ -168,8 +170,9 @@ void BM_data_interp_face_vert_edge(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BM
  *
  * \note Only handles loop customdata. multires is handled.
  */
-void BM_face_interp_from_face_ex(BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex,
-                                 void **blocks_l, void **blocks_v, float (*cos_2d)[2], float axis_mat[3][3])
+void BM_face_interp_from_face_ex(
+        BMesh *bm, BMFace *target, BMFace *source, const bool do_vertex,
+        const void **blocks_l, const void **blocks_v, float (*cos_2d)[2], float axis_mat[3][3])
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -217,8 +220,10 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source, const b
 		if (do_vertex) blocks_v[i] = l_iter->v->head.data;
 	} while (i++, (l_iter = l_iter->next) != l_first);
 
-	BM_face_interp_from_face_ex(bm, target, source, do_vertex,
-	                            blocks_l, blocks_v, cos_2d, axis_mat);
+	BM_face_interp_from_face_ex(
+	        bm, target, source, do_vertex,
+	        (const void **)blocks_l, (const void **)blocks_v,
+	        cos_2d, axis_mat);
 }
 
 /**
@@ -627,8 +632,8 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	void **vblocks  = do_vertex ? BLI_array_alloca(vblocks, source->len) : NULL;
-	void **blocks   = BLI_array_alloca(blocks, source->len);
+	const void **vblocks  = do_vertex ? BLI_array_alloca(vblocks, source->len) : NULL;
+	const void **blocks   = BLI_array_alloca(blocks, source->len);
 	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
 	float *w        = BLI_array_alloca(w, source->len);
 	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
@@ -669,7 +674,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	void **blocks   = BLI_array_alloca(blocks, source->len);
+	const void **blocks   = BLI_array_alloca(blocks, source->len);
 	float (*cos_2d)[2] = BLI_array_alloca(cos_2d, source->len);
 	float *w        = BLI_array_alloca(w,      source->len);
 	float axis_mat[3][3];  /* use normal to transform into 2d xy coords */
@@ -1059,7 +1064,7 @@ static void bm_vert_loop_groups_data_layer_merge__single(
 
 	data_weights = lf->data_weights;
 
-	CustomData_bmesh_interp(&bm->ldata, lf->data, data_weights, NULL, lf->data_len, data);
+	CustomData_bmesh_interp(&bm->ldata, (const void **)lf->data, data_weights, NULL, lf->data_len, data);
 
 	for (i = 0; i < lf->data_len; i++) {
 		CustomData_copy_elements(type, data, lf->data[i], 1);
@@ -1091,7 +1096,7 @@ static void bm_vert_loop_groups_data_layer_merge_weights__single(
 		data_weights = lf->data_weights;
 	}
 
-	CustomData_bmesh_interp(&bm->ldata, lf->data, data_weights, NULL, lf->data_len, data);
+	CustomData_bmesh_interp(&bm->ldata, (const void **)lf->data, data_weights, NULL, lf->data_len, data);
 
 	for (i = 0; i < lf->data_len; i++) {
 		CustomData_copy_elements(type, data, lf->data[i], 1);

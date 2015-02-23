@@ -79,7 +79,7 @@ extern const CustomDataMask CD_MASK_EVERYTHING;
 
 void customData_mask_layers__print(CustomDataMask mask);
 
-typedef void (*cd_interp)(void **sources, const float *weights, const float *sub_weights, int count, void *dest);
+typedef void (*cd_interp)(const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
 typedef void (*cd_copy)(const void *source, void *dest, int count);
 
 /**
@@ -226,14 +226,17 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
  * count gives the number of source elements to interpolate from
  * dest_index gives the dest element to write the interpolated value to
  */
-void CustomData_interp(const struct CustomData *source, struct CustomData *dest,
-                       int *src_indices, float *weights, float *sub_weights,
-                       int count, int dest_index);
-void CustomData_bmesh_interp_n(struct CustomData *data, void **src_blocks, const float *weights,
-                               const float *sub_weights, int count, void *dest_block, int n);
-void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks,
-                             const float *weights, const float *sub_weights, int count,
-                             void *dest_block);
+void CustomData_interp(
+        const struct CustomData *source, struct CustomData *dest,
+        int *src_indices, float *weights, float *sub_weights,
+        int count, int dest_index);
+void CustomData_bmesh_interp_n(
+        struct CustomData *data, const void **src_blocks, const float *weights,
+        const float *sub_weights, int count, void *dest_block_ofs, int n);
+void CustomData_bmesh_interp(
+        struct CustomData *data, const void **src_blocks,
+        const float *weights, const float *sub_weights, int count,
+        void *dest_block);
 
 
 /* swaps the data in the element corners, to new corners with indices as
@@ -377,7 +380,7 @@ struct CustomDataTransferLayerMap;
 
 typedef void (*cd_datatransfer_interp)(
         const struct CustomDataTransferLayerMap *laymap, void *dest,
-        void **sources, const float *weights, const int count, const float mix_factor);
+        const void **sources, const float *weights, const int count, const float mix_factor);
 
 /**
  * Fake CD_LAYERS (those are actually 'real' data stored directly into elements' structs, or otherwise not (directly)
@@ -432,7 +435,7 @@ typedef struct CustomDataTransferLayerMap {
 	float mix_factor;
 	const float *mix_weights;  /* If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
 
-	void *data_src;      /* Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
+	const void *data_src;  /* Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
 	void *data_dst;      /* Data dest array (same type as dat_src). */
 	int   data_src_n;    /* Index to affect in data_src (used e.g. for vgroups). */
 	int   data_dst_n;    /* Index to affect in data_dst (used e.g. for vgroups). */

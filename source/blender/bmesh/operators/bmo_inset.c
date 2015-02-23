@@ -390,8 +390,10 @@ static void bmo_face_inset_individual(
 
 
 	if (use_interpolate) {
-		BM_face_interp_from_face_ex(bm, iface->f, iface->f, true,
-		                            iface->blocks_l, iface->blocks_v, iface->cos_2d, iface->axis_mat);
+		BM_face_interp_from_face_ex(
+		        bm, iface->f, iface->f, true,
+		        (const void **)iface->blocks_l, (const void **)iface->blocks_v,
+		        iface->cos_2d, iface->axis_mat);
 
 		/* build rim faces */
 		l_iter = l_first;
@@ -993,8 +995,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 		for (i = 0; i < iface_array_len; i++) {
 			if (iface_array[i]) {
 				InterpFace *iface = iface_array[i];
-				BM_face_interp_from_face_ex(bm, iface->f, iface->f, true,
-				                            iface->blocks_l, iface->blocks_v, iface->cos_2d, iface->axis_mat);
+				BM_face_interp_from_face_ex(
+				        bm, iface->f, iface->f, true,
+				        (const void **)iface->blocks_l, (const void **)iface->blocks_v,
+				        iface->cos_2d, iface->axis_mat);
 			}
 		}
 	}

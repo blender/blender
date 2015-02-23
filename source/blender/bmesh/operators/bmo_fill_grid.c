@@ -159,7 +159,7 @@ static void bm_loop_pair_test_copy(BMLoop *l_pair_a[2], BMLoop *l_pair_b[2])
  */
 static void bm_loop_interp_from_grid_boundary_4(BMesh *bm, BMLoop *l, BMLoop *l_bound[4], const float w[4])
 {
-	void *l_cdata[4] = {
+	const void *l_cdata[4] = {
 	    l_bound[0]->head.data,
 	    l_bound[1]->head.data,
 	    l_bound[2]->head.data,
@@ -170,8 +170,7 @@ static void bm_loop_interp_from_grid_boundary_4(BMesh *bm, BMLoop *l, BMLoop *l_
 
 static void bm_loop_interp_from_grid_boundary_2(BMesh *bm, BMLoop *l, BMLoop *l_bound[2], const float t)
 {
-
-	void *l_cdata[2] = {
+	const void *l_cdata[2] = {
 	    l_bound[0]->head.data,
 	    l_bound[1]->head.data};
 
@@ -346,7 +345,7 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const unsigned int xt
 			if (use_vert_interp) {
 				const float *w = weight_table[XY(x, y)];
 
-				void *v_cdata[4] = {
+				const void *v_cdata[4] = {
 				    v_grid[XY(x,        0)]->head.data,
 				    v_grid[XY(0,        y)]->head.data,
 				    v_grid[XY(x, ytot - 1)]->head.data,

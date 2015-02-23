@@ -519,9 +519,11 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 				if (CustomData_layer_has_math(&bm->ldata, i)) {
 					const int offset = bm->ldata.layers[i].offset;
 					const int type = bm->ldata.layers[i].type;
-					void *cd_src[2] = {(char *)src[0] + offset,
-					                   (char *)src[1] + offset};
-					void *cd_iter = (char *)l_iter->head.data + offset;
+					const void *cd_src[2] = {
+					    POINTER_OFFSET(src[0], offset),
+					    POINTER_OFFSET(src[1], offset),
+					};
+					void *cd_iter = POINTER_OFFSET(l_iter->head.data, offset);
 
 					/* detect seams */
 					if (CustomData_data_equals(type, cd_src[0], cd_iter)) {
