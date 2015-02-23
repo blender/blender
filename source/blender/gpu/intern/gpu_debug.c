@@ -38,6 +38,7 @@
 #include "intern/gpu_private.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define CASE_CODE_RETURN_STR(code) case code: return #code;
