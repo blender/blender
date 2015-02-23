@@ -60,6 +60,7 @@
 #include "view3d_intern.h"
 
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3]);
+static bool snap_calc_active_center(bContext *C, float r_center[3]);
 
 
 /* *********************** operators ******************** */
@@ -221,7 +222,14 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 	cursor_global = ED_view3d_cursor3d_get(scene, v3d);
 
 	if (use_offset) {
-		snap_curs_to_sel_ex(C, center_global);
+		if ((v3d && v3d->around == V3D_ACTIVE) &&
+		    snap_calc_active_center(C, center_global))
+		{
+			/* pass */
+		}
+		else {
+			snap_curs_to_sel_ex(C, center_global);
+		}
 		sub_v3_v3v3(offset_global, cursor_global, center_global);
 	}
 
@@ -592,45 +600,59 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 
 /* ********************************************** */
 
-static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
+static bool snap_calc_active_center(bContext *C, float r_center[3])
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	float *curs;
-	
-	curs = ED_view3d_cursor3d_get(scene, v3d);
 
 	if (obedit) {
 		if (obedit->type == OB_MESH) {
 			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 			/* check active */
 			BMEditSelection ese;
-			
+
 			if (BM_select_history_active_get(em->bm, &ese)) {
-				BM_editselection_center(&ese, curs);
+				BM_editselection_center(&ese, r_center);
+				return true;
 			}
-			
-			mul_m4_v3(obedit->obmat, curs);
+
+			mul_m4_v3(obedit->obmat, r_center);
 		}
 		else if (obedit->type == OB_LATTICE) {
 			BPoint *actbp = BKE_lattice_active_point_get(obedit->data);
 
 			if (actbp) {
-				copy_v3_v3(curs, actbp->vec);
-				mul_m4_v3(obedit->obmat, curs);
+				copy_v3_v3(r_center, actbp->vec);
+				mul_m4_v3(obedit->obmat, r_center);
+				return true;
 			}
 		}
 	}
 	else {
 		if (obact) {
-			copy_v3_v3(curs, obact->obmat[3]);
+			copy_v3_v3(r_center, obact->obmat[3]);
+			return true;
 		}
 	}
+
+	return false;
+}
+
+static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	float *curs;
 	
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-	return OPERATOR_FINISHED;
+	curs = ED_view3d_cursor3d_get(scene, v3d);
+
+	if (snap_calc_active_center(C, curs)) {
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
