@@ -723,6 +723,7 @@ static bool bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_
 		BLI_assert(ok == true);
 		BLI_assert(l_a->f->len == 3);
 		BLI_assert(l_b->f->len == 3);
+		UNUSED_VARS_NDEBUG(ok);
 
 		/* keep 'v_clear' 0th */
 		if (BM_vert_in_edge(l_a->prev->e, v_clear)) {

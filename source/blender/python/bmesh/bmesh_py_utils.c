@@ -255,6 +255,7 @@ static PyObject *bpy_bm_utils_vert_splice(PyObject *UNUSED(self), PyObject *args
 	/* should always succeed */
 	ok = BM_vert_splice(bm, py_vert->v, py_vert_target->v);
 	BLI_assert(ok == true);
+	UNUSED_VARS_NDEBUG(ok);
 
 	Py_RETURN_NONE;
 }

@@ -2178,6 +2178,7 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 		}
 
 		BLI_assert(ok == true);
+		UNUSED_VARS_NDEBUG(ok);
 
 		/* manage arrays */
 		if (group_index_len == group_curr) {
@@ -2332,6 +2333,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 		}
 
 		BLI_assert(ok == true);
+		UNUSED_VARS_NDEBUG(ok);
 
 		/* manage arrays */
 		if (group_index_len == group_curr) {

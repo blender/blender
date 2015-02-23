@@ -821,6 +821,7 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 	has_layer = CustomData_free_layer_active(data, type, 0);
 	/* assert because its expensive to realloc - better not do if layer isnt present */
 	BLI_assert(has_layer != false);
+	UNUSED_VARS_NDEBUG(has_layer);
 
 	update_data_blocks(bm, &olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);
@@ -840,7 +841,8 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 	has_layer = CustomData_free_layer(data, type, 0, CustomData_get_layer_index_n(data, type, n));
 	/* assert because its expensive to realloc - better not do if layer isnt present */
 	BLI_assert(has_layer != false);
-	
+	UNUSED_VARS_NDEBUG(has_layer);
+
 	update_data_blocks(bm, &olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }
@@ -1001,7 +1003,7 @@ static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
 }
 
 LinkNode *BM_vert_loop_groups_data_layer_create(
-        BMesh *bm, BMVert *v, int layer_n, const float *loop_weights, MemArena *arena)
+        BMesh *bm, BMVert *v, const int layer_n, const float *loop_weights, MemArena *arena)
 {
 	struct LoopWalkCtx lwc;
 	LinkNode *groups = NULL;
@@ -1135,7 +1137,8 @@ void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, const int
  * A version of #BM_vert_loop_groups_data_layer_merge
  * that takes an array of loop-weights (aligned with #BM_LOOPS_OF_VERT iterator)
  */
-void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm, LinkNode *groups, int layer_n, const float *loop_weights)
+void BM_vert_loop_groups_data_layer_merge_weights(
+        BMesh *bm, LinkNode *groups, const int layer_n, const float *loop_weights)
 {
 	const int type = bm->ldata.layers[layer_n].type;
 	const int size = CustomData_sizeof(type);
