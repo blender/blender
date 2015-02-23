@@ -1522,10 +1522,10 @@ void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
 
 void ED_area_data_swap(ScrArea *sa_dst, ScrArea *sa_src)
 {
-	sa_dst->headertype = sa_src->headertype;
-	sa_dst->spacetype = sa_src->spacetype;
-	sa_dst->type = sa_src->type;
-	sa_dst->butspacetype = sa_src->butspacetype;
+	SWAP(short, sa_dst->headertype, sa_src->headertype);
+	SWAP(char, sa_dst->spacetype, sa_src->spacetype);
+	SWAP(SpaceType *, sa_dst->type, sa_src->type);
+	SWAP(char, sa_dst->butspacetype, sa_src->butspacetype);
 
 
 	SWAP(ListBase, sa_dst->spacedata, sa_src->spacedata);
