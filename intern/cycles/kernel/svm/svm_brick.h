@@ -95,10 +95,7 @@ ccl_device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *sta
 	
 	if(f != 1.0f) {
 		float facm = 1.0f - tint;
-
-		color1.x = facm * (color1.x) + tint * color2.x;
-		color1.y = facm * (color1.y) + tint * color2.y;
-		color1.z = facm * (color1.z) + tint * color2.z;
+		color1 = facm * color1 + tint * color2;
 	}
 
 	if(stack_valid(color_offset))
