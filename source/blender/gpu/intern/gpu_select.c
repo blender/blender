@@ -59,6 +59,7 @@ typedef struct GPUQueryState {
 	bool use_gpu_select;
 	/* cache on initialization */
 	unsigned int *buffer;
+	/* buffer size (stores number of integers, for actual size multiply by sizeof integer)*/
 	unsigned int bufsize;
 	/* mode of operation */
 	char mode;
@@ -191,7 +192,9 @@ unsigned int GPU_select_end(void)
 			glGetQueryObjectuivARB(g_query_state.queries[i], GL_QUERY_RESULT_ARB, &result);
 			if (result > 0) {
 				if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
-					if (hits < g_query_state.bufsize) {
+					int maxhits = g_query_state.bufsize / 4;
+
+					if (hits < maxhits) {
 						g_query_state.buffer[hits * 4] = 1;
 						g_query_state.buffer[hits * 4 + 1] = 0xFFFF;
 						g_query_state.buffer[hits * 4 + 2] = 0xFFFF;

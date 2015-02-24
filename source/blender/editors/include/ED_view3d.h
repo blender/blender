@@ -275,7 +275,8 @@ bool ED_view3d_autodist_depth(struct ARegion *ar, const int mval[2], int margin,
 bool ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
 /* select */
-#define MAXPICKBUF      10000
+#define MAXPICKELEMS    2500
+#define MAXPICKBUF      (4 * MAXPICKELEMS)
 short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const struct rcti *input, bool do_nearest);
 
 /* view3d_select.c */
