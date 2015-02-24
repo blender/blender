@@ -921,6 +921,7 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 	ot->description = "Drop colors to buttons";
 
 	ot->invoke = drop_color_invoke;
+	ot->flag = OPTYPE_INTERNAL;
 
 	RNA_def_float_color(ot->srna, "color", 3, NULL, 0.0, FLT_MAX, "Color", "Source color", 0.0, 1.0);
 	RNA_def_boolean(ot->srna, "gamma", 0, "Gamma Corrected", "The source color is gamma corrected ");
