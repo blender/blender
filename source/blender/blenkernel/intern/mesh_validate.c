@@ -222,11 +222,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                               const bool do_verbose, const bool do_fixes,
                               bool *r_changed)
 {
-#   define REMOVE_EDGE_TAG(_me) { _me->v2 = _me->v1; do_edge_free = true; } (void)0
+#   define REMOVE_EDGE_TAG(_me) { _me->v2 = _me->v1; free_flag.edges = do_fixes; } (void)0
 #   define IS_REMOVED_EDGE(_me) (_me->v2 == _me->v1)
 
-#   define REMOVE_LOOP_TAG(_ml) { _ml->e = INVALID_LOOP_EDGE_MARKER; do_polyloop_free = true; } (void)0
-#   define REMOVE_POLY_TAG(_mp) { _mp->totloop *= -1; do_polyloop_free = true; } (void)0
+#   define REMOVE_LOOP_TAG(_ml) { _ml->e = INVALID_LOOP_EDGE_MARKER; free_flag.polyloops = do_fixes; } (void)0
+#   define REMOVE_POLY_TAG(_mp) { _mp->totloop *= -1; free_flag.polyloops = do_fixes; } (void)0
 
 	MVert *mv = mverts;
 	MEdge *me;
@@ -237,26 +237,46 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 	bool is_valid = true;
 
-	bool do_edge_free = false;
-	bool do_face_free = false;
-	bool do_polyloop_free = false; /* This regroups loops and polys! */
+	union {
+		struct {
+			int verts : 1;
+			int verts_weight : 1;
+		};
+		int as_flag;
+	} fix_flag;
 
-	bool verts_fixed = false;
-	bool vert_weights_fixed = false;
-	bool msel_fixed = false;
+	union {
+		struct {
+			int edges : 1;
+			int faces : 1;
+			/* This regroups loops and polys! */
+			int polyloops : 1;
+			int mselect : 1;
+		};
+		int as_flag;
+	} free_flag;
 
-	bool do_edge_recalc = false;
+	union {
+		struct {
+			int edges : 1;
+		};
+		int as_flag;
+	} recalc_flag;
 
 	EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, totedge);
 
 	BLI_assert(!(do_fixes && mesh == NULL));
+
+	fix_flag.as_flag = 0;
+	free_flag.as_flag = 0;
+	recalc_flag.as_flag = 0;
 
 	PRINT_MSG("%s: verts(%u), edges(%u), loops(%u), polygons(%u)\n",
 	          __func__, totvert, totedge, totloop, totpoly);
 
 	if (totedge == 0 && totpoly != 0) {
 		PRINT_ERR("\tLogical error, %u polygons and 0 edges\n", totpoly);
-		do_edge_recalc = do_fixes;
+		recalc_flag.edges = do_fixes;
 	}
 
 	for (i = 0; i < totvert; i++, mv++) {
@@ -269,7 +289,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 				if (do_fixes) {
 					zero_v3(mv->co);
 
-					verts_fixed = true;
+					fix_flag.verts = true;
 				}
 			}
 
@@ -281,7 +301,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 			PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal\n", i);
 			if (do_fixes) {
 				mv->no[2] = SHRT_MAX;
-				verts_fixed = true;
+				fix_flag.verts = true;
 			}
 		}
 	}
@@ -316,7 +336,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 	}
 
 	if (mfaces && !mpolys) {
-#		define REMOVE_FACE_TAG(_mf) { _mf->v3 = 0; do_face_free = true; } (void)0
+#		define REMOVE_FACE_TAG(_mf) { _mf->v3 = 0; free_flag.faces = do_fixes; } (void)0
 #		define CHECK_FACE_VERT_INDEX(a, b) \
 					if (mf->a == mf->b) { \
 						PRINT_ERR("    face %u: verts invalid, " STRINGIFY(a) "/" STRINGIFY(b) " both %u\n", i, mf->a); \
@@ -326,7 +346,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 					if (!BLI_edgehash_haskey(edge_hash, mf->a, mf->b)) { \
 						PRINT_ERR("    face %u: edge " STRINGIFY(a) "/" STRINGIFY(b) \
 						          " (%u,%u) is missing edge data\n", i, mf->a, mf->b); \
-						do_edge_recalc = true; \
+						recalc_flag.edges = do_fixes; \
 					} (void)0
 
 		MFace *mf;
@@ -531,7 +551,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 						/* Edge not existing. */
 						PRINT_ERR("\tPoly %u needs missing edge (%u, %u)\n", sp->index, v1, v2);
 						if (do_fixes)
-							do_edge_recalc = true;
+							recalc_flag.edges = true;
 						else
 							sp->invalid = true;
 					}
@@ -760,14 +780,14 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 					PRINT_ERR("\tVertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
 					if (do_fixes) {
 						dw->weight = 0.0f;
-						vert_weights_fixed = true;
+						fix_flag.verts_weight = true;
 					}
 				}
 				else if (dw->weight < 0.0f || dw->weight > 1.0f) {
 					PRINT_ERR("\tVertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
 					if (do_fixes) {
 						CLAMP(dw->weight, 0.0f, 1.0f);
-						vert_weights_fixed = true;
+						fix_flag.verts_weight = true;
 					}
 				}
 
@@ -775,13 +795,14 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 					PRINT_ERR("\tVertex deform %u, has invalid group %d\n", i, dw->def_nr);
 					if (do_fixes) {
 						defvert_remove_group(dv, dw);
+						fix_flag.verts_weight = true;
+
 						if (dv->dw) {
 							/* re-allocated, the new values compensate for stepping
 							 * within the for loop and may not be valid */
 							j--;
 							dw = dv->dw + j;
 
-							vert_weights_fixed = true;
 						}
 						else { /* all freed */
 							break;
@@ -798,26 +819,25 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 #   undef REMOVE_POLY_TAG
 
 	if (mesh) {
-		if (do_face_free) {
+		if (free_flag.faces) {
 			BKE_mesh_strip_loose_faces(mesh);
 		}
 
-		if (do_polyloop_free) {
+		if (free_flag.polyloops) {
 			BKE_mesh_strip_loose_polysloops(mesh);
 		}
 
-		if (do_edge_free) {
+		if (free_flag.edges) {
 			BKE_mesh_strip_loose_edges(mesh);
 		}
 
-		if (do_edge_recalc) {
+		if (recalc_flag.edges) {
 			BKE_mesh_calc_edges(mesh, true, false);
 		}
 	}
 
 	if (mesh && mesh->mselect) {
 		MSelect *msel;
-		bool free_msel = false;
 
 		for (i = 0, msel = mesh->mselect; i < mesh->totselect; i++, msel++) {
 			int tot_elem = 0;
@@ -825,7 +845,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 			if (msel->index < 0) {
 				PRINT_ERR("\tMesh select element %d type %d index is negative, "
 				          "resetting selection stack.\n", i, msel->type);
-				free_msel = true;
+				free_flag.mselect = do_fixes;
 				break;
 			}
 
@@ -845,12 +865,12 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 				PRINT_ERR("\tMesh select element %d type %d index %d is larger than data array size %d, "
 				          "resetting selection stack.\n", i, msel->type, msel->index, tot_elem);
 
-				free_msel = true;
+				free_flag.mselect = do_fixes;
 				break;
 			}
 		}
 
-		if (free_msel) {
+		if (free_flag.mselect) {
 			MEM_freeN(mesh->mselect);
 			mesh->mselect = NULL;
 			mesh->totselect = 0;
@@ -859,7 +879,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 	PRINT_MSG("%s: finished\n\n", __func__);
 
-	*r_changed = (verts_fixed || vert_weights_fixed || do_polyloop_free || do_edge_free || do_edge_recalc || msel_fixed);
+	*r_changed = (fix_flag.as_flag || free_flag.as_flag || recalc_flag.as_flag);
+
+	if (do_fixes == false) {
+		BLI_assert(*r_changed == false);
+	}
 
 	return is_valid;
 }
