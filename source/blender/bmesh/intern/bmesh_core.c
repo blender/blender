@@ -493,17 +493,17 @@ int bmesh_elem_check(void *element, const char htype)
 	int err = 0;
 
 	if (!element)
-		return 1;
+		return (1 << 0);
 
 	if (head->htype != htype)
-		return 2;
+		return (1 << 1);
 	
 	switch (htype) {
 		case BM_VERT:
 		{
 			BMVert *v = element;
 			if (v->e && v->e->head.htype != BM_EDGE) {
-				err |= 4;
+				err |= (1 << 2);
 			}
 			break;
 		}
@@ -511,20 +511,20 @@ int bmesh_elem_check(void *element, const char htype)
 		{
 			BMEdge *e = element;
 			if (e->l && e->l->head.htype != BM_LOOP)
-				err |= 8;
+				err |= (1 << 3);
 			if (e->l && e->l->f->head.htype != BM_FACE)
-				err |= 16;
+				err |= (1 << 4);
 			if (e->v1_disk_link.prev == NULL ||
 			    e->v2_disk_link.prev == NULL ||
 			    e->v1_disk_link.next == NULL ||
 			    e->v2_disk_link.next == NULL)
 			{
-				err |= 32;
+				err |= (1 << 5);
 			}
 			if (e->l && (e->l->radial_next == NULL || e->l->radial_prev == NULL))
-				err |= 64;
+				err |= (1 << 6);
 			if (e->l && e->l->f->len <= 0)
-				err |= 128;
+				err |= (1 << 7);
 			break;
 		}
 		case BM_LOOP:
@@ -533,14 +533,14 @@ int bmesh_elem_check(void *element, const char htype)
 			int i;
 
 			if (l->f->head.htype != BM_FACE)
-				err |= 256;
+				err |= (1 << 8);
 			if (l->e->head.htype != BM_EDGE)
-				err |= 512;
+				err |= (1 << 9);
 			if (l->v->head.htype != BM_VERT)
-				err |= 1024;
+				err |= (1 << 10);
 			if (!BM_vert_in_edge(l->e, l->v)) {
 				fprintf(stderr, "%s: fatal bmesh error (vert not in edge)! (bmesh internal error)\n", __func__);
-				err |= 2048;
+				err |= (1 << 11);
 			}
 
 			if (l->radial_next == NULL || l->radial_prev == NULL)
