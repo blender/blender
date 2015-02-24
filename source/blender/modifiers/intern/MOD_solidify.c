@@ -659,7 +659,7 @@ static DerivedMesh *applyModifier(
 		}
 
 		if (do_clamp) {
-			float *vert_lens_sq = MEM_callocN(sizeof(float) * numVerts, "vert_lens");
+			float *vert_lens_sq = MEM_mallocN(sizeof(float) * numVerts, "vert_lens");
 			const float offset    = fabsf(smd->offset) * smd->offset_clamp;
 			const float offset_sq = offset * offset;
 			fill_vn_fl(vert_lens_sq, (int)numVerts, FLT_MAX);
