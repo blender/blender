@@ -185,7 +185,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			int input_x = x + dx, input_y = y + dy;
+			float input_x = (float)x + dx + 0.5f, input_y = (float)y + dy + 0.5f;
 
 			this->m_imageInput->readSampled(color, input_x, input_y, COM_PS_NEAREST);
 			if (this->m_useAlphaInput) {
