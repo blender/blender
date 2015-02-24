@@ -281,6 +281,11 @@ ccl_device_inline bool kernel_path_surface_bounce(KernelGlobals *kg, RNG *rng,
 		/* update path state, count as transparent */
 		path_state_next(kg, state, LABEL_TRANSPARENT);
 
+		if(state->bounce == 0)
+			ray->t -= sd->ray_length; /* clipping works through transparent */
+		else
+			ray->t = FLT_MAX;
+
 		/* setup ray position, direction stays unchanged */
 		ray->P = ray_offset(sd->P, -sd->Ng);
 #ifdef __RAY_DIFFERENTIALS__
