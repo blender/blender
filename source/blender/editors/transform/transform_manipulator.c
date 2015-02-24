@@ -1679,9 +1679,9 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	mul_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
 	if (do_passes)
-		GPU_select_begin(buffer, 16, &selrect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
+		GPU_select_begin(buffer, 64, &selrect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
 	else
-		GPU_select_begin(buffer, 16, &selrect, GPU_SELECT_ALL, 0);
+		GPU_select_begin(buffer, 64, &selrect, GPU_SELECT_ALL, 0);
 
 	/* do the drawing */
 	if (v3d->twtype & V3D_MANIP_ROTATE) {
@@ -1696,7 +1696,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	hits = GPU_select_end();
 
 	if (do_passes) {
-		GPU_select_begin(buffer, 16, &selrect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
+		GPU_select_begin(buffer, 64, &selrect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
 		/* do the drawing */
 		if (v3d->twtype & V3D_MANIP_ROTATE) {
