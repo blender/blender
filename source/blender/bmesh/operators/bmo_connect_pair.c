@@ -96,6 +96,62 @@ typedef struct PathLinkState {
 	float co_prev[3];
 } PathLinkState;
 
+/**
+  \name Min Dist Dir Util
+
+ * Simply getting the closest intersecting vert/edge is _not_ good enough. see T43792
+ * we need to get the closest in both directions since the absolute closest may be a dead-end.
+ *
+ * Logic is simple:
+ *
+ * - first intersection, store the direction.
+ * - successive intersections will update the first distance if its aligned with the first hit.
+ *   otherwise update the opposite distance.
+ * - caller stores best outcome in both directions.
+ *
+ * \{ */
+
+typedef struct MinDistDir {
+	/* distance in both directions (FLT_MAX == uninitialized) */
+	float dist_min[2];
+	/* direction of the first intersection found */
+	float dir[3];
+} MinDistDir;
+
+#define MIN_DIST_DIR_INIT {{FLT_MAX, FLT_MAX}}
+
+static int min_dist_dir_test(MinDistDir *mddir, const float dist_dir[3], const float dist_sq)
+{
+
+	if (mddir->dist_min[0] == FLT_MAX) {
+		return 0;
+	}
+	else {
+		if (dot_v3v3(dist_dir, mddir->dir) > 0.0f) {
+			if (dist_sq < mddir->dist_min[0]) {
+				return 0;
+			}
+		}
+		else {
+			if (dist_sq < mddir->dist_min[1]) {
+				return 1;
+			}
+		}
+	}
+
+	return -1;
+}
+
+static void min_dist_dir_update(MinDistDir *dist, const float dist_dir[3])
+{
+	if (dist->dist_min[0] == FLT_MAX) {
+		copy_v3_v3(dist->dir, dist_dir);
+	}
+}
+
+/** \} */
+
+
 static int state_isect_co_pair(const PathContext *pc,
                                const float co_a[3], const float co_b[3])
 {
@@ -143,7 +199,7 @@ static void state_calc_co_pair(const PathContext *pc,
  * Ideally we wouldn't need this and for most cases we don't.
  * But when a face has vertices that are on the boundary more than once this becomes tricky.
  */
-static bool state_link_find(PathLinkState *state, BMElem *ele)
+static bool state_link_find(const PathLinkState *state, BMElem *ele)
 {
 	PathLink *link = state->link_last;
 	BLI_assert(ELEM(ele->head.htype, BM_VERT, BM_EDGE, BM_FACE));
@@ -231,43 +287,49 @@ static PathLinkState *state_step__face_edges(
         PathContext *pc,
         PathLinkState *state, const PathLinkState *state_orig,
         BMLoop *l_iter, BMLoop *l_last,
-        float *r_dist_best)
+        MinDistDir *mddir)
 {
-	BMLoop *l_iter_best = NULL;
-	float dist_best = *r_dist_best;
+
+	BMLoop *l_iter_best[2] = {NULL, NULL};
+	int i;
 
 	do {
 		if (state_isect_co_pair(pc, l_iter->v->co, l_iter->next->v->co)) {
 			float dist_test;
 			float co_isect[3];
+			float dist_dir[3];
+			int index;
 
 			state_calc_co_pair(pc, l_iter->v->co, l_iter->next->v->co, co_isect);
-			dist_test = len_squared_v3v3(state->co_prev, co_isect);
-			if (dist_test < dist_best) {
+
+			sub_v3_v3v3(dist_dir, co_isect, state_orig->co_prev);
+			dist_test = len_squared_v3(dist_dir);
+			if ((index = min_dist_dir_test(mddir, dist_dir, dist_test)) != -1) {
 				BMElem *ele_next      = (BMElem *)l_iter->e;
 				BMElem *ele_next_from = (BMElem *)l_iter->f;
 
 				if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-				    (state_link_find(state, ele_next) == false))
+				    (state_link_find(state_orig, ele_next) == false))
 				{
-					dist_best = dist_test;
-					l_iter_best = l_iter;
+					min_dist_dir_update(mddir, dist_dir);
+					mddir->dist_min[index] = dist_test;
+					l_iter_best[index] = l_iter;
 				}
 			}
 		}
 	} while ((l_iter = l_iter->next) != l_last);
 
-	if ((l_iter = l_iter_best)) {
-		BMElem *ele_next      = (BMElem *)l_iter->e;
-		BMElem *ele_next_from = (BMElem *)l_iter->f;
+	for (i = 0; i < 2; i++) {
+		if ((l_iter = l_iter_best[i])) {
+			BMElem *ele_next      = (BMElem *)l_iter->e;
+			BMElem *ele_next_from = (BMElem *)l_iter->f;
 
-		if (state_orig->link_last != state->link_last) {
-			state = state_dupe_add(pc, state, state_orig);
+			if (state_orig->link_last != state->link_last) {
+				state = state_dupe_add(pc, state, state_orig);
+			}
+			state_link_add(pc, state, ele_next, ele_next_from);
 		}
-		state_link_add(pc, state, ele_next, ele_next_from);
 	}
-
-	*r_dist_best = dist_best;
 
 	return state;
 }
@@ -276,39 +338,47 @@ static PathLinkState *state_step__face_edges(
 static PathLinkState *state_step__face_verts(
         PathContext *pc,
         PathLinkState *state, const PathLinkState *state_orig,
-        BMLoop *l_iter, BMLoop *l_last, float *r_dist_best)
+        BMLoop *l_iter, BMLoop *l_last,
+        MinDistDir *mddir)
 {
-	BMLoop *l_iter_best = NULL;
-	float dist_best = *r_dist_best;
+	BMLoop *l_iter_best[2] = {NULL, NULL};
+	int i;
 
 	do {
 		if (state_isect_co_exact(pc, l_iter->v->co)) {
-			const float dist_test = len_squared_v3v3(state->co_prev, l_iter->v->co);
-			if (dist_test < dist_best) {
+			float dist_test;
+			const float *co_isect = l_iter->v->co;
+			float dist_dir[3];
+			int index;
+
+			sub_v3_v3v3(dist_dir, co_isect, state_orig->co_prev);
+			dist_test = len_squared_v3(dist_dir);
+			if ((index = min_dist_dir_test(mddir, dist_dir, dist_test)) != -1) {
 				BMElem *ele_next      = (BMElem *)l_iter->v;
 				BMElem *ele_next_from = (BMElem *)l_iter->f;
 
 				if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-				    state_link_find(state, ele_next) == false)
+				    (state_link_find(state_orig, ele_next) == false))
 				{
-					dist_best = dist_test;
-					l_iter_best = l_iter;
+					min_dist_dir_update(mddir, dist_dir);
+					mddir->dist_min[index] = dist_test;
+					l_iter_best[index] = l_iter;
 				}
 			}
 		}
 	} while ((l_iter = l_iter->next) != l_last);
 
-	if ((l_iter = l_iter_best)) {
-		BMElem *ele_next      = (BMElem *)l_iter->v;
-		BMElem *ele_next_from = (BMElem *)l_iter->f;
+	for (i = 0; i < 2; i++) {
+		if ((l_iter = l_iter_best[i])) {
+			BMElem *ele_next      = (BMElem *)l_iter->v;
+			BMElem *ele_next_from = (BMElem *)l_iter->f;
 
-		if (state_orig->link_last != state->link_last) {
-			state = state_dupe_add(pc, state, state_orig);
+			if (state_orig->link_last != state->link_last) {
+				state = state_dupe_add(pc, state, state_orig);
+			}
+			state_link_add(pc, state, ele_next, ele_next_from);
 		}
-		state_link_add(pc, state, ele_next, ele_next_from);
 	}
-
-	*r_dist_best = dist_best;
 
 	return state;
 }
@@ -329,12 +399,12 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 			if ((l_start->f != ele_from) &&
 			    FACE_WALK_TEST(l_start->f))
 			{
-				float dist_best = FLT_MAX;
+				MinDistDir mddir = MIN_DIST_DIR_INIT;
 				/* very similar to block below */
 				state = state_step__face_edges(pc, state, &state_orig,
-				                               l_start->next, l_start, &dist_best);
+				                               l_start->next, l_start, &mddir);
 				state = state_step__face_verts(pc, state, &state_orig,
-				                               l_start->next->next, l_start, &dist_best);
+				                               l_start->next->next, l_start, &mddir);
 			}
 		}
 	}
@@ -350,14 +420,14 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 				if ((l_start->f != ele_from) &&
 				    FACE_WALK_TEST(l_start->f))
 				{
-					float dist_best = FLT_MAX;
+					MinDistDir mddir = MIN_DIST_DIR_INIT;
 					/* very similar to block above */
 					state = state_step__face_edges(pc, state, &state_orig,
-					                               l_start->next, l_start->prev, &dist_best);
+					                               l_start->next, l_start->prev, &mddir);
 					if (l_start->f->len > 3) {
 						/* adjacent verts are handled in state_step__vert_edges */
 						state = state_step__face_verts(pc, state, &state_orig,
-						                               l_start->next->next, l_start->prev, &dist_best);
+						                               l_start->next->next, l_start->prev, &mddir);
 					}
 				}
 			}
