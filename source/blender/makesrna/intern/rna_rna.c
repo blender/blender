@@ -813,7 +813,7 @@ static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA 
 
 	/* incompatible default attributes */
 	if ((prop_parent->flag & PROP_ENUM_FLAG) != (prop->flag & PROP_ENUM_FLAG)) {
-		return NULL;
+		return DummyRNA_NULL_items;
 	}
 
 	if ((eprop->itemf == NULL) ||
