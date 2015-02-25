@@ -1197,7 +1197,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
 				const bool use_island = transdata_check_local_islands(t, t->around);
 
-				if (!use_island) {
+				if (obedit && !use_island) {
 					t->options |= CTX_NO_PET;
 				}
 			}
