@@ -3903,8 +3903,8 @@ static void rna_def_gpu_ssao_fx(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Samples", "Number of samples (final number is squared)");
-	RNA_def_property_range(prop, 1, 30); /* 0 is needed for compression. */	
+	RNA_def_property_ui_text(prop, "Samples", "Number of samples");
+	RNA_def_property_range(prop, 1, 500);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
