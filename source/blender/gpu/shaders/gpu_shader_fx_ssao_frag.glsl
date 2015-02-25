@@ -56,6 +56,9 @@ float calculate_ssao_factor(float depth)
 
 		vec2 uvcoords = uvcoordsvar.xy + dir_jittered * offset;
 
+		if (uvcoords.x > 1.0 || uvcoords.x < 0.0 || uvcoords.y > 1.0 || uvcoords.y < 0.0)
+			continue;
+
 		float depth_new = texture2D(depthbuffer, uvcoords).r;
 		if (depth_new != 1.0) {
 			vec3 pos_new = get_view_space_from_depth(uvcoords, viewvecs[0].xyz, viewvecs[1].xyz, depth_new);
