@@ -56,8 +56,8 @@ typedef struct {
 } GHOST_GLSettings;
 
 typedef enum {
-	GHOST_glStereoVisual = 0,
-	GHOST_glWarnSupport
+	GHOST_glStereoVisual = (1 << 0),
+	GHOST_glWarnSupport  = (1 << 1)
 } GHOST_GLFlags;
 
 
