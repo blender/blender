@@ -879,12 +879,12 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		    strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[0] == '1')
 		{
 			MessageBox(m_hWnd, "Your system does not use 3D hardware acceleration.\n"
-			                   "Such systems can cause stability problems in blender and they are unsupported.\n\n"
-			                   "This may is caused by:\n"
+			                   "Such systems can cause stability problems in Blender and they are unsupported.\n\n"
+			                   "This may be caused by:\n"
 			                   "* A missing or faulty graphics driver installation.\n"
 			                   "  Blender needs a graphics card driver to work correctly.\n"
-			                   "* Accessing blender through a remote connection.\n"
-			                   "* Using blender through a virtual machine.\n\n"
+			                   "* Accessing Blender through a remote connection.\n"
+			                   "* Using Blender through a virtual machine.\n\n"
 			                   "Disable this message in <User Preferences - Interface - Warn On Deprecated OpenGL>",
 			                   "Blender - Can't detect 3D hardware accelerated Driver!", MB_OK | MB_ICONWARNING);
 		}
