@@ -878,7 +878,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		if ((strcmp(vendor, "Microsoft Corporation") == 0 ||
 		    strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[0] == '1')
 		{
-			MessageBox(m_hWnd, "Your system does not use GPU acceleration.\n"
+			MessageBox(m_hWnd, "Your system does not use 3D hardware acceleration.\n"
 			                   "Such systems can cause stability problems in blender and they are unsupported.\n\n"
 			                   "This may is caused by:\n"
 			                   "* A missing or faulty graphics driver installation.\n"
@@ -886,7 +886,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 			                   "* Accessing blender through a remote connection.\n"
 			                   "* Using blender through a virtual machine.\n\n"
 			                   "Disable this message in <User Preferences - Interface - Warn On Deprecated OpenGL>",
-			                   "Blender - Can't detect GPU accelerated Driver!", MB_OK | MB_ICONWARNING);
+			                   "Blender - Can't detect 3D hardware accelerated Driver!", MB_OK | MB_ICONWARNING);
 		}
 		else if (version[0] == '1' && version[2] < '4') {
 			MessageBox(m_hWnd, "The OpenGL version provided by your graphics driver version is too low\n"
