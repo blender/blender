@@ -1071,8 +1071,8 @@ function(get_blender_version)
 
 	# output vars
 	set(BLENDER_VERSION "${_out_version_major}.${_out_version_minor}" PARENT_SCOPE)
-	set(BLENDER_VERSION_MAJOR "${_out_subversion}" PARENT_SCOPE)
-	set(BLENDER_VERSION_MINOR "${_out_subversion}" PARENT_SCOPE)
+	set(BLENDER_VERSION_MAJOR "${_out_version_major}" PARENT_SCOPE)
+	set(BLENDER_VERSION_MINOR "${_out_version_minor}" PARENT_SCOPE)
 	set(BLENDER_SUBVERSION "${_out_subversion}" PARENT_SCOPE)
 	set(BLENDER_VERSION_CHAR "${_out_version_char}" PARENT_SCOPE)
 	set(BLENDER_VERSION_CHAR_INDEX "${_out_version_char_index}" PARENT_SCOPE)
