@@ -113,6 +113,7 @@ struct GPUFX {
 	bool restore_stencil;
 };
 
+#if 0
 /* concentric mapping, see "A Low Distortion Map Between Disk and Square" and
  * http://psgraphics.blogspot.nl/2011/01/improved-code-for-concentric-map.html */
 static GPUTexture * create_concentric_sample_texture(int side)
@@ -139,6 +140,27 @@ static GPUTexture * create_concentric_sample_texture(int side)
 			texels[index] = r * cos(phi);
 			texels[index + 1] = r * sin(phi);
 		}
+	}
+
+	tex = GPU_texture_create_1D_procedural(side * side, texels, NULL);
+	MEM_freeN(texels);
+	return tex;
+}
+#endif
+
+static GPUTexture * create_spiral_sample_texture(int side)
+{
+	GPUTexture *tex;
+	int numsaples = side * side;
+	float *texels = (float *)MEM_mallocN(sizeof(float) * 2 * numsaples, "concentric_tex");
+	int i;
+	const int spirals = 8;
+
+	for (i = 0; i < numsaples; i++) {
+		float r = (i + 0.5f) / (float) numsaples;
+		float phi = 2.0f * M_PI * r * spirals;
+		texels[i * 2] = r * cos(phi);
+		texels[i * 2 + 1] = r * sin(phi);
 	}
 
 	tex = GPU_texture_create_1D_procedural(side * side, texels, NULL);
@@ -343,7 +365,7 @@ bool GPU_fx_compositor_initialize_passes(
 				GPU_texture_free(fx->ssao_concentric_samples_tex);
 			}
 
-			fx->ssao_concentric_samples_tex = create_concentric_sample_texture(fx_settings->ssao->samples);
+			fx->ssao_concentric_samples_tex = create_spiral_sample_texture(fx_settings->ssao->samples);
 		}
 	}
 	else {
