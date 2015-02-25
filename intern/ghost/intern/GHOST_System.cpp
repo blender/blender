@@ -350,6 +350,12 @@ GHOST_TSuccess GHOST_System::exit()
 GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const GHOST_DisplaySetting &settings,
                                                     const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
 {
+	GHOST_GLSettings glSettings = {0};
+
+	if (stereoVisual)
+		glSettings.flags |= GHOST_glStereoVisual;
+	glSettings.numOfAASamples = numOfAASamples;
+
 	/* note: don't use getCurrentDisplaySetting() because on X11 we may
 	 * be zoomed in and the desktop may be bigger then the viewport. */
 	GHOST_ASSERT(m_displayManager, "GHOST_System::createFullScreenWindow(): invalid display manager");
@@ -359,9 +365,8 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const
 	    0, 0, settings.xPixels, settings.yPixels,
 	    GHOST_kWindowStateNormal,
 	    GHOST_kDrawingContextTypeOpenGL,
-	    stereoVisual,
-	    true,  /* exclusive */
-	    numOfAASamples);
+	    glSettings,
+	    true  /* exclusive */);
 	return (*window == NULL) ? GHOST_kFailure : GHOST_kSuccess;
 }
 

@@ -48,6 +48,7 @@ HGLRC GHOST_ContextWGL::s_sharedHGLRC = NULL;
 int   GHOST_ContextWGL::s_sharedCount = 0;
 
 bool GHOST_ContextWGL::s_singleContextMode = false;
+bool GHOST_ContextWGL::s_warn_old = false;
 
 
 /* Intel video-cards don't work fine with multiple contexts and
@@ -863,11 +864,38 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	initClearGL();
 	::SwapBuffers(m_hDC);
 
+	const char *vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+	const char *renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	const char *version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+
 #ifndef NDEBUG
-	reportContextString("Vendor",   m_dummyVendor,   reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
-	reportContextString("Renderer", m_dummyRenderer, reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
-	reportContextString("Version",  m_dummyVersion,  reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+	reportContextString("Vendor",   m_dummyVendor,   vendor);
+	reportContextString("Renderer", m_dummyRenderer, renderer);
+	reportContextString("Version",  m_dummyVersion,  version);
 #endif
+
+	if (!s_warn_old) {
+		if ((strcmp(vendor, "Microsoft Corporation") == 0 ||
+		    strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[0] == '1')
+		{
+			MessageBox(m_hWnd, "Your system does not use GPU acceleration.\n"
+			                   "Such systems can cause stability problems in blender and they are unsupported.\n\n"
+			                   "This may is caused by:\n"
+			                   "* A missing or faulty graphics driver installation.\n"
+			                   "  Blender needs a graphics card driver to work correctly.\n"
+			                   "* Accessing blender through a remote connection.\n"
+			                   "* Using blender through a virtual machine.\n\n"
+			                   "Disable this message in <User Preferences - Interface - Warn On Deprecated OpenGL>",
+			                   "Blender - Can't detect GPU accelerated Driver!", MB_OK | MB_ICONWARNING);
+		}
+		else if (version[0] == '1' && version[2] < '4') {
+			MessageBox(m_hWnd, "The OpenGL version provided by your graphics driver version is too low\n"
+			                   "Blender requires version 1.4 and may not work correctly\n\n"
+			                   "Disable this message in <User Preferences - Interface - Warn On Deprecated OpenGL>",
+			                   "Blender - Unsupported Graphics Driver!", MB_OK | MB_ICONWARNING);
+		}
+		s_warn_old = true;
+	}
 
 	return GHOST_kSuccess;
 

@@ -50,6 +50,17 @@ typedef unsigned short GHOST_TUns16;
 typedef int GHOST_TInt32;
 typedef unsigned int GHOST_TUns32;
 
+typedef struct {
+	GHOST_TUns16 numOfAASamples;
+	int flags;
+} GHOST_GLSettings;
+
+typedef enum {
+	GHOST_glStereoVisual = 0,
+	GHOST_glWarnSupport
+} GHOST_GLFlags;
+
+
 #ifdef _MSC_VER
 typedef __int64 GHOST_TInt64;
 typedef unsigned __int64 GHOST_TUns64;

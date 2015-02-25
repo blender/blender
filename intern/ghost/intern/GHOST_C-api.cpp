@@ -140,14 +140,12 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       GHOST_TUns32 height,
                                       GHOST_TWindowState state,
                                       GHOST_TDrawingContextType type,
-                                      const int stereoVisual,
-                                      const GHOST_TUns16 numOfAASamples)
+                                      GHOST_GLSettings glSettings)
 {
 	GHOST_ISystem *system = (GHOST_ISystem *) systemhandle;
 
 	return (GHOST_WindowHandle) system->createWindow(title, left, top, width, height,
-	                                                 state, type, stereoVisual != 0, false,
-	                                                 numOfAASamples);
+	                                                 state, type, glSettings, false);
 }
 
 GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandle)

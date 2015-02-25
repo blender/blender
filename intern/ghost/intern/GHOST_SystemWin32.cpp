@@ -231,9 +231,8 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(
         GHOST_TInt32 left, GHOST_TInt32 top,
         GHOST_TUns32 width, GHOST_TUns32 height,
         GHOST_TWindowState state, GHOST_TDrawingContextType type,
-        bool wantStereoVisual,
+        GHOST_GLSettings glSettings,
         const bool exclusive,
-        const GHOST_TUns16 wantNumOfAASamples,
         const GHOST_TEmbedderWindowID parentWindow)
 {
 	GHOST_Window *window =
@@ -246,8 +245,9 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(
 		        height,
 		        state,
 		        type,
-		        wantStereoVisual,
-		        wantNumOfAASamples,
+		        ((glSettings.flags & GHOST_glStereoVisual) != 0),
+	            ((glSettings.flags & GHOST_glWarnSupport) != 0),
+		        glSettings.numOfAASamples,
 		        parentWindow);
 
 	if (window->getValid()) {

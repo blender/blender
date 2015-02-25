@@ -186,8 +186,7 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_TUns32 height,
                                              GHOST_TWindowState state,
                                              GHOST_TDrawingContextType type,
-                                             const int stereoVisual,
-                                             const GHOST_TUns16 numOfAASamples);
+                                             GHOST_GLSettings glSettings);
 
 /**
  * Returns the window user data.

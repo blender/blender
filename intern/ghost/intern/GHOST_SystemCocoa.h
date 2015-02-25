@@ -118,9 +118,8 @@ public:
 	    GHOST_TUns32 height,
 	    GHOST_TWindowState state,
 	    GHOST_TDrawingContextType type,
-	    const bool stereoVisual = false,
-		const bool exclusive = false,
-	    const GHOST_TUns16 numOfAASamples = 0,
+	    GHOST_GLSettings glSettings,
+	    const bool exclusive = false,
 	    const GHOST_TEmbedderWindowID parentWindow = 0
 	    );
 	

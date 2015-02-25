@@ -75,12 +75,12 @@ public:
 			GHOST_TUns32 height,
 			GHOST_TWindowState state,
 			GHOST_TDrawingContextType type,
-			bool stereoVisual,
+			GHOST_GLSettings glSettings,
 			bool exclusive,
-			const GHOST_TUns16 numOfAASamples,
 			const GHOST_TEmbedderWindowID parentWindow)
 	{
-		return new GHOST_WindowNULL(this, title, left, top, width, height, state, parentWindow, type, stereoVisual, 1);
+		return new GHOST_WindowNULL(this, title, left, top, width, height, state, parentWindow, type,
+		                            ((glSettings.flags & GHOST_glStereoVisual) != 0), 1);
 	}
 };
 

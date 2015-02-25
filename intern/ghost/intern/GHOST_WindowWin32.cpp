@@ -62,8 +62,7 @@ extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
-GHOST_WindowWin32::GHOST_WindowWin32(
-        GHOST_SystemWin32 *system,
+GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
         const STR_String &title,
         GHOST_TInt32 left,
         GHOST_TInt32 top,
@@ -71,7 +70,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
         GHOST_TUns32 height,
         GHOST_TWindowState state,
         GHOST_TDrawingContextType type,
-        bool wantStereoVisual,
+        bool wantStereoVisual, bool warnOld,
         GHOST_TUns16 wantNumOfAASamples,
         GHOST_TEmbedderWindowID parentwindowhwnd)
     : GHOST_Window(width, height, state,
@@ -97,6 +96,13 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	
 	versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 	
+#if !defined(WITH_GL_EGL)
+	if (!warnOld)
+		GHOST_ContextWGL::unSetWarningOld();
+#else
+	(void)(warnOld);
+#endif
+
 	if (!GetVersionEx((OSVERSIONINFO *)&versionInfo)) {
 		versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 		if (GetVersionEx((OSVERSIONINFO *)&versionInfo)) {

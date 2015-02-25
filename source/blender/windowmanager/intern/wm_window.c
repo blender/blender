@@ -356,14 +356,18 @@ float wm_window_pixelsize(wmWindow *win)
 static void wm_window_add_ghostwindow(wmWindowManager *wm, const char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
+	GHOST_GLSettings glSettings = {0};
 	static int multisamples = -1;
 	int scr_w, scr_h, posy;
 	
 	/* force setting multisamples only once, it requires restart - and you cannot 
 	 * mix it, either all windows have it, or none (tested in OSX opengl) */
 	if (multisamples == -1)
-		multisamples = U.ogl_multisamples;
-	
+		glSettings.numOfAASamples = U.ogl_multisamples;
+
+	if (!(U.uiflag2 & USER_OPENGL_NO_WARN_SUPPORT))
+		glSettings.flags |= GHOST_glWarnSupport;
+
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 	
@@ -371,8 +375,7 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, const char *title, wm
 	                              win->posx, posy, win->sizex, win->sizey,
 	                              (GHOST_TWindowState)win->windowstate,
 	                              GHOST_kDrawingContextTypeOpenGL,
-	                              0 /* no stereo */,
-	                              multisamples /* AA */);
+	                              glSettings);
 	
 	if (ghostwin) {
 		GHOST_RectangleHandle bounds;
