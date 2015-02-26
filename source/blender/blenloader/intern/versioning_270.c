@@ -629,4 +629,28 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 273, 9)) {
+		bScreen *scr;
+		ScrArea *sa;
+		SpaceLink *sl;
+		ARegion *ar;
+
+		/* Make sure sequencer preview area limits zoom */
+		for (scr = main->screen.first; scr; scr = scr->id.next) {
+			for (sa = scr->areabase.first; sa; sa = sa->next) {
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_SEQ) {
+						for (ar = sl->regionbase.first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_PREVIEW) {
+								ar->v2d.keepzoom |= V2D_LIMITZOOM;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 }

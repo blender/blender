@@ -144,7 +144,7 @@ static SpaceLink *sequencer_new(const bContext *C)
 	ar->alignment = RGN_ALIGN_TOP;
 	ar->flag |= RGN_FLAG_HIDDEN;
 	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-	ar->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM;
+	ar->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM | V2D_LIMITZOOM;
 	ar->v2d.minzoom = 0.00001f;
 	ar->v2d.maxzoom = 100000.0f;
 	ar->v2d.tot.xmin = -960.0f; /* 1920 width centered */
