@@ -30,6 +30,7 @@
  *  \ingroup GHOST
  */
 
+#ifdef WITH_INPUT_IME
 
 #include "GHOST_C-api.h"
 #include "GHOST_ImeWin32.h"
@@ -515,3 +516,5 @@ void GHOST_ImeWin32::UpdateInfo(HWND window_handle)
 		eventImeData.target_end = -1;
 	}
 }
+
+#endif // WITH_INPUT_IME

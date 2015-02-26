@@ -970,47 +970,51 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				////////////////////////////////////////////////////////////////////////
 				case WM_IME_SETCONTEXT:
 				{
-					window->getImeInput()->SetInputLanguage();
-					window->getImeInput()->CreateImeWindow(window->getHWND());
-					window->getImeInput()->CleanupComposition(window->getHWND());
-					window->getImeInput()->CheckFirst(window->getHWND());
+					GHOST_ImeWin32 *ime = window->getImeInput();
+					ime->SetInputLanguage();
+					ime->CreateImeWindow(hwnd);
+					ime->CleanupComposition(hwnd);
+					ime->CheckFirst(hwnd);
 					break;
 				}
 				case WM_IME_STARTCOMPOSITION:
 				{
+					GHOST_ImeWin32 *ime = window->getImeInput();
 					eventHandled = true;
 					/* remove input event before start comp event, avoid redundant input */
 					eventManager->removeTypeEvents(GHOST_kEventKeyDown, window);
-					window->getImeInput()->CreateImeWindow(window->getHWND());
-					window->getImeInput()->ResetComposition(window->getHWND());
+					ime->CreateImeWindow(hwnd);
+					ime->ResetComposition(hwnd);
 					event = processImeEvent(
 					        GHOST_kEventImeCompositionStart,
 					        window,
-					        &window->getImeInput()->eventImeData);
+					        &ime->eventImeData);
 					break;
 				}
 				case WM_IME_COMPOSITION:
 				{
+					GHOST_ImeWin32 *ime = window->getImeInput();
 					eventHandled = true;
-					window->getImeInput()->UpdateImeWindow(window->getHWND());
-					window->getImeInput()->UpdateInfo(window->getHWND());
+					ime->UpdateImeWindow(hwnd);
+					ime->UpdateInfo(hwnd);
 					event = processImeEvent(
 					        GHOST_kEventImeComposition,
 					        window,
-					        &window->getImeInput()->eventImeData);
+					        &ime->eventImeData);
 					break;
 				}
 				case WM_IME_ENDCOMPOSITION:
 				{
+					GHOST_ImeWin32 *ime = window->getImeInput();
 					eventHandled = true;
 					/* remove input event after end comp event, avoid redundant input */
 					eventManager->removeTypeEvents(GHOST_kEventKeyDown, window);
-					window->getImeInput()->ResetComposition(window->getHWND());
-					window->getImeInput()->DestroyImeWindow(window->getHWND());
+					ime->ResetComposition(hwnd);
+					ime->DestroyImeWindow(hwnd);
 					event = processImeEvent(
 					        GHOST_kEventImeCompositionEnd,
 					        window,
-					        &window->getImeInput()->eventImeData);
+					        &ime->eventImeData);
 					break;
 				}
 #endif /* WITH_INPUT_IME */

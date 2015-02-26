@@ -32,6 +32,9 @@
 #ifndef __GHOST_IME_H__
 #define __GHOST_IME_H__
 
+#ifdef WITH_INPUT_IME
+
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include <string>
@@ -398,4 +401,5 @@ private:
 	bool is_first, is_enable;
 };
 
-#endif   * __GHOST_IME_H__
+#endif // WITH_INPUT_IME
+#endif // __GHOST_IME_H__
