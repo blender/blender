@@ -245,12 +245,20 @@ ccl_device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float 
 /* Common */
 
 ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v,
-	float lens_u, float lens_v, Ray *ray)
+	float lens_u, float lens_v, float time, Ray *ray)
 {
 	/* pixel filter */
 	int filter_table_offset = kernel_data.film.filter_table_offset;
 	float raster_x = x + lookup_table_read(kg, filter_u, filter_table_offset, FILTER_TABLE_SIZE);
 	float raster_y = y + lookup_table_read(kg, filter_v, filter_table_offset, FILTER_TABLE_SIZE);
+
+#ifdef __CAMERA_MOTION__
+	/* motion blur */
+	if(kernel_data.cam.shuttertime == -1.0f)
+		ray->time = TIME_INVALID;
+	else
+		ray->time = time;
+#endif
 
 	/* sample */
 	if(kernel_data.cam.type == CAMERA_PERSPECTIVE)

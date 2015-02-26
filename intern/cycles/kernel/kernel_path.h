@@ -1191,15 +1191,14 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg, ccl_global uin
 	if(kernel_data.cam.aperturesize > 0.0f)
 		path_rng_2D(kg, rng, sample, num_samples, PRNG_LENS_U, &lens_u, &lens_v);
 
+	float time = 0.0f;
+
 #ifdef __CAMERA_MOTION__
-	/* motion blur */
-	if(kernel_data.cam.shuttertime == -1.0f)
-		ray->time = TIME_INVALID;
-	else
-		ray->time = path_rng_1D(kg, rng, sample, num_samples, PRNG_TIME);
+	if(kernel_data.cam.shuttertime != -1.0f)
+		time = path_rng_1D(kg, rng, sample, num_samples, PRNG_TIME);
 #endif
 
-	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, ray);
+	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, ray);
 }
 
 ccl_device void kernel_path_trace(KernelGlobals *kg,
