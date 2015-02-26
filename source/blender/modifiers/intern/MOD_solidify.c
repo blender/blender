@@ -220,7 +220,7 @@ static DerivedMesh *applyModifier(
 	const unsigned int numEdges = (unsigned int)dm->getNumEdges(dm);
 	const unsigned int numFaces = (unsigned int)dm->getNumPolys(dm);
 	const unsigned int numLoops = (unsigned int)dm->getNumLoops(dm);
-	unsigned int newLoops = 0, newFaces = 0, newEdges = 0, newVerts = 0;
+	unsigned int newLoops = 0, newFaces = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
 
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max = ob->totcol > 1 ? ob->totcol - 1 : 0;
@@ -343,7 +343,7 @@ static DerivedMesh *applyModifier(
 			if (BLI_BITMAP_TEST(orig_mvert_tag, i)) {
 				old_vert_arr[i] = STACK_SIZE(new_vert_arr);
 				STACK_PUSH(new_vert_arr, i);
-				newEdges++;
+				rimVerts++;
 			}
 			else {
 				old_vert_arr[i] = INVALID_UNUSED;
@@ -353,16 +353,26 @@ static DerivedMesh *applyModifier(
 		MEM_freeN(orig_mvert_tag);
 	}
 
+	if (do_shell == false) {
+		/* only add rim vertices */
+		newVerts = rimVerts;
+		/* each extruded face needs an opposite edge */
+		newEdges = newFaces;
+	}
+	else {
+		/* (stride == 2) in this case, so no need to add newVerts/newEdges */
+		BLI_assert(newVerts == 0);
+		BLI_assert(newEdges == 0);
+	}
+
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
 		vert_nors = MEM_callocN(sizeof(float) * (size_t)numVerts * 3, "mod_solid_vno_hq");
 		dm_calc_normal(dm, face_nors, vert_nors);
 	}
 
-	newVerts = do_shell ? 0 : newEdges;
-
 	result = CDDM_from_template(dm,
 	                            (int)((numVerts * stride) + newVerts),
-	                            (int)((numEdges * stride) + newEdges + newVerts), 0,
+	                            (int)((numEdges * stride) + newEdges + rimVerts), 0,
 	                            (int)((numLoops * stride) + newLoops),
 	                            (int)((numFaces * stride) + newFaces));
 
@@ -759,9 +769,9 @@ static DerivedMesh *applyModifier(
 
 		/* add faces & edges */
 		origindex_edge = result->getEdgeDataArray(result, CD_ORIGINDEX);
-		ed = &medge[(numEdges * stride) + newVerts];  /* start after copied edges */
-		orig_ed = &origindex_edge[(numEdges * stride) + newVerts];
-		for (i = 0; i < newEdges; i++, ed++, orig_ed++) {
+		ed = &medge[(numEdges * stride) + newEdges];  /* start after copied edges */
+		orig_ed = &origindex_edge[(numEdges * stride) + newEdges];
+		for (i = 0; i < rimVerts; i++, ed++, orig_ed++) {
 			ed->v1 = new_vert_arr[i];
 			ed->v2 = (do_shell ? new_vert_arr[i] : i) + numVerts;
 			ed->flag |= ME_EDGEDRAW;
@@ -816,26 +826,26 @@ static DerivedMesh *applyModifier(
 				ml[j++].e = eidx;
 
 				ml[j].v = ed->v2;
-				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v2] + newVerts;
+				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v2] + newEdges;
 
 				ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + numVerts;
 				ml[j++].e = (do_shell ? eidx : i) + numEdges;
 
 				ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + numVerts;
-				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v1] + newVerts;
+				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v1] + newEdges;
 			}
 			else {
 				ml[j].v = ed->v2;
 				ml[j++].e = eidx;
 
 				ml[j].v = ed->v1;
-				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v1] + newVerts;
+				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v1] + newEdges;
 
 				ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + numVerts;
 				ml[j++].e = (do_shell ? eidx : i) + numEdges;
 
 				ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + numVerts;
-				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v2] + newVerts;
+				ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v2] + newEdges;
 			}
 
 			origindex_edge[ml[j - 3].e] = ORIGINDEX_NONE;
@@ -877,7 +887,7 @@ static DerivedMesh *applyModifier(
 #ifdef SOLIDIFY_SIDE_NORMALS
 		if (do_side_normals) {
 			ed = medge + (numEdges * stride);
-			for (i = 0; i < newEdges; i++, ed++) {
+			for (i = 0; i < rimVerts; i++, ed++) {
 				float nor_cpy[3];
 				short *nor_short;
 				int k;
