@@ -342,16 +342,16 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 								dep = 2;
 						}
 						else {
-							dep = 2;
+							dep = 1;
 						}
 					}
 					else {
 						/* bone found */
 						if (findunsel) {
 							if ((ebone->flag & BONE_SELECTED) == 0)
-								dep = 2;
-							else
 								dep = 3;
+							else
+								dep = 4;
 						}
 						else {
 							dep = 3;
