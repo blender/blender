@@ -538,31 +538,24 @@ static PyObject *gPyCreateConstraint(PyObject *self,
 			PHY_IPhysicsController* physctrl2 = (PHY_IPhysicsController*) physicsid2;
 			if (physctrl) //TODO:check for existence of this pointer!
 			{
-				PHY_ConstraintType ct = (PHY_ConstraintType) constrainttype;
 				int constraintid =0;
 
-				if (ct == PHY_GENERIC_6DOF_CONSTRAINT)
-				{
-					//convert from euler angle into axis
-					float radsPerDeg = 6.283185307179586232f / 360.f;
+				//convert from euler angle into axis
+				float radsPerDeg = 6.283185307179586232f / 360.f;
 
-					//we need to pass a full constraint frame, not just axis
-					//localConstraintFrameBasis
-					MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*axisX,radsPerDeg*axisY,radsPerDeg*axisZ));
-					MT_Vector3 axis0 = localCFrame.getColumn(0);
-					MT_Vector3 axis1 = localCFrame.getColumn(1);
-					MT_Vector3 axis2 = localCFrame.getColumn(2);
+				//we need to pass a full constraint frame, not just axis
+				//localConstraintFrameBasis
+				MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*axisX,radsPerDeg*axisY,radsPerDeg*axisZ));
+				MT_Vector3 axis0 = localCFrame.getColumn(0);
+				MT_Vector3 axis1 = localCFrame.getColumn(1);
+				MT_Vector3 axis2 = localCFrame.getColumn(2);
 
-					constraintid = PHY_GetActiveEnvironment()->CreateConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,
-					                                                            pivotX,pivotY,pivotZ,
-					                                                            (float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
-					                                                            (float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
-					                                                            (float)axis2.x(),(float)axis2.y(),(float)axis2.z(),flag);
-				}
-				else {
-					constraintid = PHY_GetActiveEnvironment()->CreateConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ,0);
-				}
-				
+				constraintid = PHY_GetActiveEnvironment()->CreateConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,
+				                                                            pivotX,pivotY,pivotZ,
+				                                                            (float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
+				                                                            (float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
+				                                                            (float)axis2.x(),(float)axis2.y(),(float)axis2.z(),flag);
+
 				KX_ConstraintWrapper* wrap = new KX_ConstraintWrapper((enum PHY_ConstraintType)constrainttype,constraintid,PHY_GetActiveEnvironment());
 
 				return wrap->NewProxy(true);
