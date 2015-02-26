@@ -2977,6 +2977,16 @@ static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *r_frame, 
 				ima->tpageflag |= IMA_TPAGE_REFRESH;
 			}
 			ima->lastframe = frame;
+
+			/* counter the fact that image is set as invalid when loading a frame
+			 * that is not in the cache (through image_acquire_ibuf for instance),
+			 * yet we have valid frames in the cache loaded */
+			if (ibuf) {
+				ima->ok = IMA_OK_LOADED;
+
+				if (iuser)
+					iuser->ok = ima->ok;
+			}
 		}
 		else if (ima->type == IMA_TYPE_MULTILAYER) {
 			frame = iuser ? iuser->framenr : ima->lastframe;
