@@ -255,7 +255,7 @@ bool GPG_Application::startScreenSaverPreview(
 		if (stereoVisual) {
 			glSettings.flags |= GHOST_glStereoVisual;
 		}
-		glSettings.numOfAASamples = numOfAASamples;
+		glSettings.numOfAASamples = samples;
 
 		m_mainWindow = fSystem->createWindow(title, 0, 0, windowWidth, windowHeight, GHOST_kWindowStateMinimized,
 		                                     GHOST_kDrawingContextTypeOpenGL, glSettings);
