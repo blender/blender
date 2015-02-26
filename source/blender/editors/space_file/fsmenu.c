@@ -437,6 +437,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #ifdef WIN32
 	/* Add the drive names to the listing */
 	{
+		wchar_t wline[FILE_MAXDIR];
 		__int64 tmp;
 		char tmps[4];
 		int i;
@@ -456,9 +457,11 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
 		/* Adding Desktop and My Documents */
 		if (read_bookmarks) {
-			SHGetSpecialFolderPath(0, line, CSIDL_PERSONAL, 0);
+			SHGetSpecialFolderPathW(0, wline, CSIDL_PERSONAL, 0);
+			BLI_strncpy_wchar_as_utf8(line, wline, FILE_MAXDIR);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
-			SHGetSpecialFolderPath(0, line, CSIDL_DESKTOPDIRECTORY, 0);
+			SHGetSpecialFolderPathW(0, wline, CSIDL_DESKTOPDIRECTORY, 0);
+			BLI_strncpy_wchar_as_utf8(line, wline, FILE_MAXDIR);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
 		}
 	}
