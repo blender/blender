@@ -1128,7 +1128,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * until it finds a window that processes it.
 					 */
 
-					/* Get the winow under the mouse and send event to it's queue. */
+					/* Get the window under the mouse and send event to its queue. */
 					POINT mouse_pos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 					HWND mouse_hwnd = ChildWindowFromPoint(HWND_DESKTOP, mouse_pos);
 					GHOST_WindowWin32 *mouse_window = (GHOST_WindowWin32 *)::GetWindowLongPtr(mouse_hwnd, GWLP_USERDATA);
@@ -1136,7 +1136,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						event = processWheelEvent(mouse_window, wParam, lParam);
 					}
 					else {
-						/* Happens when wmouse is not over of any of blender windows. */
+						/* Happens when mouse is not over any of blender's windows. */
 						event = processWheelEvent(window, wParam, lParam);
 					}
 

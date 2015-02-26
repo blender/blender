@@ -6781,7 +6781,7 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 #endif
 				case MOUSEMOVE:
 				{
-					/* don't recalculat the best edge */
+					/* don't recalculate the best edge */
 					const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 					if (is_clamp) {
 						calcVertSlideMouseActiveEdges(t, event->mval);

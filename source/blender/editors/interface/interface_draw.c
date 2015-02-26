@@ -65,7 +65,7 @@ static int roundboxtype = UI_CNR_ALL;
 void UI_draw_roundbox_corner_set(int type)
 {
 	/* Not sure the roundbox function is the best place to change this
-	 * if this is undone, its not that big a deal, only makes curves edges
+	 * if this is undone, it's not that big a deal, only makes curves edges
 	 * square for the  */
 	roundboxtype = type;
 	

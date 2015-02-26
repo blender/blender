@@ -140,7 +140,7 @@ private:
 	const int m_contextFlags;
 	const int m_contextResetNotificationStrategy;
 
-	/** The opgnGL drawing context */
+	/** The OpenGL drawing context */
 	NSOpenGLContext *m_openGLContext;
 
 	//static CGLEWContext *s_cglewContext;

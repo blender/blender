@@ -839,7 +839,7 @@ void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *r_sc_x
 }
 
 /**
- * Translate the \a world point from world coordiantes into screen space.
+ * Translate the \a world point from world coordinates into screen space.
  */
 void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int screen_r[2])
 {
@@ -848,7 +848,7 @@ void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int screen_r[2])
 }
 
 /**
- * Restores the previous OpenGL state and free's the auxilary gla data.
+ * Restores the previous OpenGL state and frees the auxiliary gla data.
  */
 void glaEnd2DDraw(gla2DDrawInfo *di)
 {
