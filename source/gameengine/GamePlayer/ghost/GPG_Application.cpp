@@ -250,9 +250,15 @@ bool GPG_Application::startScreenSaverPreview(
 		int windowWidth = rc.right - rc.left;
 		int windowHeight = rc.bottom - rc.top;
 		STR_String title = "";
-							
+		GHOST_GLSettings glSettings = {0};
+
+		if (stereoVisual) {
+			glSettings.flags |= GHOST_glStereoVisual;
+		}
+		glSettings.numOfAASamples = numOfAASamples;
+
 		m_mainWindow = fSystem->createWindow(title, 0, 0, windowWidth, windowHeight, GHOST_kWindowStateMinimized,
-			GHOST_kDrawingContextTypeOpenGL, stereoVisual, samples);
+		                                     GHOST_kDrawingContextTypeOpenGL, glSettings);
 		if (!m_mainWindow) {
 			printf("error: could not create main window\n");
 			exit(-1);
