@@ -249,6 +249,7 @@ char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t 
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict src, const size_t maxncpy)
 {
 	const size_t maxlen = maxncpy - 1;
+	const size_t maxlen_secured = ((int)maxlen - 6) < 0 ? 0 : maxlen - 6;  /* 6 is max utf8 length of an unicode char. */
 	size_t len = 0;
 
 	BLI_assert(maxncpy != 0);
@@ -257,8 +258,21 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict
 	memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-	while (*src && len < maxlen) { /* XXX can still run over the buffer because utf8 size isn't known :| */
+	while (*src && len < maxlen_secured) {
 		len += BLI_str_utf8_from_unicode((unsigned int)*src++, dst + len);
+	}
+
+	/* We have to be more careful for the last six bytes, to avoid buffer overflow in case utf8-encoded char
+	 * would be too long for our dst buffer. */
+	while (*src) {
+		char t[6];
+		size_t l = BLI_str_utf8_from_unicode((unsigned int)*src++, t);
+		BLI_assert(l <= 6);
+		if (len + l >= maxlen) {
+			break;
+		}
+		memcpy(dst + len, t, l);
+		len += l;
 	}
 
 	dst[len] = '\0';
