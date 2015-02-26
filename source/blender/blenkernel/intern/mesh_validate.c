@@ -308,6 +308,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 	for (i = 0, me = medges; i < totedge; i++, me++) {
 		bool remove = false;
+
 		if (me->v1 == me->v2) {
 			PRINT_ERR("\tEdge %u: has matching verts, both %u\n", i, me->v1);
 			remove = do_fixes;
@@ -321,14 +322,16 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 			remove = do_fixes;
 		}
 
-		if (BLI_edgehash_haskey(edge_hash, me->v1, me->v2)) {
+		if ((me->v1 != me->v2) && BLI_edgehash_haskey(edge_hash, me->v1, me->v2)) {
 			PRINT_ERR("\tEdge %u: is a duplicate of %d\n", i,
 			          GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, me->v1, me->v2)));
 			remove = do_fixes;
 		}
 
 		if (remove == false) {
-			BLI_edgehash_insert(edge_hash, me->v1, me->v2, SET_INT_IN_POINTER(i));
+			if (me->v1 != me->v2) {
+				BLI_edgehash_insert(edge_hash, me->v1, me->v2, SET_INT_IN_POINTER(i));
+			}
 		}
 		else {
 			REMOVE_EDGE_TAG(me);
