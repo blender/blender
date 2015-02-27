@@ -83,6 +83,26 @@
 /* ************************************************************************** */
 /* ACTION MANAGEMENT */
 
+/* Helper function to find the active AnimData block from the Action Editor context */
+static AnimData *actedit_animdata_from_context(bContext *C)
+{
+	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+	Object *ob = CTX_data_active_object(C);
+	AnimData *adt = NULL;
+	
+	/* Get AnimData block to use */
+	if (saction->mode == SACTCONT_ACTION) {
+		/* Currently, "Action Editor" means object-level only... */
+		adt = ob->adt;
+	}
+	else if (saction->mode == SACTCONT_SHAPEKEY) {
+		Key *key = BKE_key_from_object(ob);
+		adt = key->adt;
+	}
+	
+	return adt;
+}
+
 /* Create new action */
 static bAction *action_create_new(bContext *C, bAction *oldact)
 {
@@ -230,18 +250,7 @@ static int action_pushdown_poll(bContext *C)
 static int action_pushdown_exec(bContext *C, wmOperator *op)
 {
 	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-	Object *ob = CTX_data_active_object(C);
-	AnimData *adt = NULL;
-	
-	/* Get AnimData block to use */
-	if (saction->mode == SACTCONT_ACTION) {
-		/* Currently, "Action Editor" means object-level only... */
-		adt = ob->adt;
-	}
-	else if (saction->mode == SACTCONT_SHAPEKEY) {
-		Key *key = BKE_key_from_object(ob);
-		adt = key->adt;
-	}
+	AnimData *adt = actedit_animdata_from_context(C);
 	
 	/* Do the deed... */
 	if (adt) {
@@ -289,18 +298,7 @@ void ACTION_OT_push_down(wmOperatorType *ot)
 static int action_stash_exec(bContext *C, wmOperator *op)
 {
 	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-	Object *ob = CTX_data_active_object(C);
-	AnimData *adt = NULL;
-	
-	/* Get AnimData block to use */
-	if (saction->mode == SACTCONT_ACTION) {
-		/* Currently, "Action Editor" means object-level only... */
-		adt = ob->adt;
-	}
-	else if (saction->mode == SACTCONT_SHAPEKEY) {
-		Key *key = BKE_key_from_object(ob);
-		adt = key->adt;
-	}
+	AnimData *adt = actedit_animdata_from_context(C);
 	
 	/* Perform stashing operation */
 	if (adt) {
