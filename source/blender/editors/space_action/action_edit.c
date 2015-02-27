@@ -83,13 +83,73 @@
 /* ************************************************************************** */
 /* ACTION MANAGEMENT */
 
+/* Create new action */
+static bAction *action_create_new(bContext *C, bAction *oldact)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	bAction *action;
+	
+	/* create action - the way to do this depends on whether we've got an
+	 * existing one there already, in which case we make a copy of it
+	 * (which is useful for "versioning" actions within the same file)
+	 */
+	if (oldact && GS(oldact->id.name) == ID_AC) {
+		/* make a copy of the existing action */
+		action = BKE_action_copy(oldact);
+	}
+	else {
+		/* just make a new (empty) action */
+		action = add_empty_action(CTX_data_main(C), "Action");
+	}
+	
+	/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 
+	 * but the RNA pointer code will assign all the proper users instead, so we compensate
+	 * for that here
+	 */
+	BLI_assert(action->id.us == 1);
+	action->id.us--;
+	
+	/* set ID-Root type */
+	if (sa->spacetype == SPACE_ACTION) {
+		SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+		
+		if (saction->mode == SACTCONT_SHAPEKEY)
+			action->idroot = ID_KE;
+		else
+			action->idroot = ID_OB;
+	}
+	
+	return action;
+}
+
+/* Change the active action used by the action editor */
+static void actedit_change_action(bContext *C, bAction *act)
+{
+	bScreen *screen = CTX_wm_screen(C);
+	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+	
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
+	
+	/* create RNA pointers and get the property */
+	RNA_pointer_create(&screen->id, &RNA_SpaceDopeSheetEditor, saction, &ptr);
+	prop = RNA_struct_find_property(&ptr, "action");
+	
+	/* NOTE: act may be NULL here, so better to just use a cast here */
+	RNA_id_pointer_create((ID *)act, &idptr);
+	
+	/* set the new pointer, and force a refresh */
+	RNA_property_pointer_set(&ptr, prop, idptr);
+	RNA_property_update(C, &ptr, prop);
+}
+
 /* ******************** New Action Operator *********************** */
 
-static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
+static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
-
+	
 	/* hook into UI */
 	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 	
@@ -97,31 +157,15 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 		bAction *action = NULL, *oldact = NULL;
 		PointerRNA oldptr;
 		
-		/* create action - the way to do this depends on whether we've got an
-		 * existing one there already, in which case we make a copy of it
-		 * (which is useful for "versioning" actions within the same file)
-		 */
+		/* create action */
 		oldptr = RNA_property_pointer_get(&ptr, prop);
 		oldact = (bAction *)oldptr.id.data;
 		
-		if (oldact && GS(oldact->id.name) == ID_AC) {
-			/* make a copy of the existing action */
-			action = BKE_action_copy(oldact);
-		}
-		else {
-			Main *bmain = CTX_data_main(C);
-			
-			/* just make a new (empty) action */
-			action = add_empty_action(bmain, "Action");
-		}
+		action = action_create_new(C, oldact);
 		
-		/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 
-		 * but the RNA pointer code will assign all the proper users instead, so we compensate
-		 * for that here
+		/* set this new action
+		 * NOTE: we can't use actedit_change_action, as this function is also called from the NLA
 		 */
-		BLI_assert(action->id.us == 1);
-		action->id.us--;
-		
 		RNA_id_pointer_create(&action->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);
 		RNA_property_update(C, &ptr, prop);
@@ -141,7 +185,7 @@ void ACTION_OT_new(wmOperatorType *ot)
 	ot->description = "Create new action";
 	
 	/* api callbacks */
-	ot->exec = act_new_exec;
+	ot->exec = action_new_exec;
 	// TODO: add a new invoke() callback to catch cases where users unexpectedly delete their data
 	
 	/* NOTE: this is used in the NLA too... */
@@ -259,7 +303,6 @@ static int action_stash_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* Perform stashing operation */
-	// TODO: abstract this out to an API call
 	if (adt) {
 		/* don't do anything if this action is empty... */
 		if (action_has_motion(adt->action) == 0) {
@@ -268,48 +311,23 @@ static int action_stash_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 		else {
-			
-			
-			/* stash the action 
-			 * NOTE: this operation will remove the user already,
-			 * so the flushing step later shouldn't double up
-			 * the usercount fixes
-			 */
+			/* stash the action */
 			if (BKE_nla_action_stash(adt)) {
 				bAction *new_action = NULL;
 				
-				PointerRNA ptr, idptr;
-				PropertyRNA *prop;
-				
-				saction->action = NULL;
-				
 				/* create new action (if required) */
+				// XXX: maybe this should be a separate operator?
 				if (RNA_boolean_get(op->ptr, "create_new")) {
-					new_action = add_empty_action(CTX_data_main(C), "New Action");
-					
-					/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 
-					 * but the RNA pointer code will assign all the proper users instead, so we compensate
-					 * for that here
-					 */
-					BLI_assert(new_action->id.us == 1);
-					new_action->id.us--;
-					
-					/* set ID-Root type */
-					if (saction->mode == SACTCONT_SHAPEKEY)
-						new_action->idroot = ID_KE;
-					else
-						new_action->idroot = ID_OB;
+					new_action = action_create_new(C, saction->action);
 				}
 				
-				/* update pointers
-				 * NOTE: this will clear the user from whatever it is using now
+				/* The stash operation will remove the user already,
+				 * so the flushing step later shouldn't double up
+				 * the usercount fixes. Hence, we must unset this ref
+				 * first before setting the new action.
 				 */
-				RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_SpaceDopeSheetEditor, saction, &ptr);
-				prop = RNA_struct_find_property(&ptr, "action");
-				RNA_id_pointer_create((ID *)new_action, &idptr);
-				
-				RNA_property_pointer_set(&ptr, prop, idptr);
-				RNA_property_update(C, &ptr, prop);
+				saction->action = NULL;
+				actedit_change_action(C, new_action);
 			}
 		}
 	}
