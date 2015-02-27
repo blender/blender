@@ -160,8 +160,8 @@ private:
 
 	void initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD);
 
-	HDC  m_hDC;
 	HWND m_hWnd;
+	HDC  m_hDC;
 
 	const int m_contextProfileMask;
 	const int m_contextMajorVersion;

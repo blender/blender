@@ -733,13 +733,17 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
 	iPixelFormat = choose_pixel_format(m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, sRGB);
 
-	if (iPixelFormat == 0)
-		goto error;
+	if (iPixelFormat == 0) {
+		::wglMakeCurrent(prevHDC, prevHGLRC);
+		return GHOST_kFailure;
+	}
 
 	lastPFD = ::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD);
 
-	if (!WIN32_CHK(lastPFD != 0))
-		goto error;
+	if (!WIN32_CHK(lastPFD != 0)) {
+		::wglMakeCurrent(prevHDC, prevHGLRC);
+		return GHOST_kFailure;
+	}
 
 	if (needAlpha && chosenPFD.cAlphaBits == 0)
 		fprintf(stderr, "Warning! Unable to find a pixel format with an alpha channel.\n");
@@ -747,8 +751,10 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	if (needStencil && chosenPFD.cStencilBits == 0)
 		fprintf(stderr, "Warning! Unable to find a pixel format with a stencil buffer.\n");
 
-	if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD)))
-		goto error;
+	if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD))) {
+		::wglMakeCurrent(prevHDC, prevHGLRC);
+		return GHOST_kFailure;
+	}
 
 	activateWGLEW();
 
@@ -845,19 +851,25 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 			m_hGLRC = s_sharedHGLRC;
 	}
 
-	if (!WIN32_CHK(m_hGLRC != NULL))
-		goto error;
+	if (!WIN32_CHK(m_hGLRC != NULL)) {
+		::wglMakeCurrent(prevHDC, prevHGLRC);
+		return GHOST_kFailure;
+	}
 
 	if (s_sharedHGLRC == NULL)
 		s_sharedHGLRC = m_hGLRC;
 
 	s_sharedCount++;
 
-	if (!s_singleContextMode && s_sharedHGLRC != m_hGLRC && !WIN32_CHK(::wglShareLists(s_sharedHGLRC, m_hGLRC)))
-		goto error;
+	if (!s_singleContextMode && s_sharedHGLRC != m_hGLRC && !WIN32_CHK(::wglShareLists(s_sharedHGLRC, m_hGLRC))) {
+		::wglMakeCurrent(prevHDC, prevHGLRC);
+		return GHOST_kFailure;
+	}
 
-	if (!WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC)))
-		goto error;
+	if (!WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC))) {
+		::wglMakeCurrent(prevHDC, prevHGLRC);
+		return GHOST_kFailure;
+	}
 
 	initContextGLEW();
 
@@ -898,11 +910,6 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	}
 
 	return GHOST_kSuccess;
-
-error:
-	::wglMakeCurrent(prevHDC, prevHGLRC);
-
-	return GHOST_kFailure;
 }
 
 
