@@ -1523,6 +1523,45 @@ void BKE_nla_validate_state(AnimData *adt)
 	}
 }
 
+/* Action Stashing -------------------------------------- */
+
+/* "Stash" an action (i.e. store it as a track/layer in the NLA, but non-contributing)
+ * to retain it in the file for future uses
+ */
+bool BKE_nla_action_stash(AnimData *adt)
+{
+	const char *STASH_TRACK_NAME = DATA_("[Action Stash]");
+	
+	NlaTrack *prev_track = NULL;
+	NlaTrack *nlt;
+	NlaStrip *strip;
+	
+	/* create a new track, and add this immediately above the previous stashing track */
+	for (prev_track = adt->nla_tracks.last; prev_track; prev_track = prev_track->prev) {
+		if (strstr(prev_track->name, STASH_TRACK_NAME)) {
+			break;
+		}
+	}
+	
+	nlt = add_nlatrack(adt, prev_track);
+	nlt->flag |= NLATRACK_MUTED; /* so that stash track doesn't disturb the stack animation */
+	
+	BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
+	BLI_uniquename(&adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
+	
+	/* add the action as a strip in this new track
+	 * NOTE: a new user is created here
+	 */
+	strip = add_nlastrip(adt->action);
+	
+	BKE_nlatrack_add_strip(nlt, strip);
+	BKE_nlastrip_validate_name(adt, strip);
+	BKE_nlastrip_set_active(adt, strip);
+	
+	/* succeeded */
+	return true;
+}
+
 /* Core Tools ------------------------------------------- */
 
 /* For the given AnimData block, add the active action to the NLA
@@ -1574,44 +1613,6 @@ void BKE_nla_action_pushdown(AnimData *adt)
 		BKE_nlastrip_set_active(adt, strip);
 	}
 }
-
-/* "Stash" an action (i.e. store it as a track/layer in the NLA, but non-contributing)
- * to retain it in the file for future uses
- */
-bool BKE_nla_action_stash(AnimData *adt)
-{
-	const char *STASH_TRACK_NAME = DATA_("[Action Stash]");
-	
-	NlaTrack *prev_track = NULL;
-	NlaTrack *nlt;
-	NlaStrip *strip;
-	
-	/* create a new track, and add this immediately above the previous stashing track */
-	for (prev_track = adt->nla_tracks.last; prev_track; prev_track = prev_track->prev) {
-		if (strstr(prev_track->name, STASH_TRACK_NAME)) {
-			break;
-		}
-	}
-	
-	nlt = add_nlatrack(adt, prev_track);
-	nlt->flag |= NLATRACK_MUTED; /* so that stash track doesn't disturb the stack animation */
-	
-	BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
-	BLI_uniquename(&adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
-	
-	/* add the action as a strip in this new track
-	 * NOTE: a new user is created here
-	 */
-	strip = add_nlastrip(adt->action);
-	
-	BKE_nlatrack_add_strip(nlt, strip);
-	BKE_nlastrip_validate_name(adt, strip);
-	BKE_nlastrip_set_active(adt, strip);
-	
-	/* succeeded */
-	return true;
-}
-
 
 /* Find the active strip + track combo, and set them up as the tweaking track,
  * and return if successful or not.
