@@ -53,6 +53,8 @@ class GHOST_EventWheel;
 class GHOST_EventWindow;
 class GHOST_EventDragnDrop;
 
+class GHOST_WindowWin32;
+
 /**
  * WIN32 Implementation of GHOST_System class.
  * \see GHOST_System.
@@ -203,7 +205,7 @@ public:
 	 * \param window The window on which the event occurred
 	 * \return Indication whether the event was handled.
 	 */
-	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_IWindow *window, int mouseX, int mouseY, void *data);
+	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_WindowWin32 *window, int mouseX, int mouseY, void *data);
 	
 /**
  * Confirms quitting he program when there is just one window left open
@@ -227,32 +229,21 @@ protected:
 	
 	/**
 	 * Converts raw WIN32 key codes from the wndproc to GHOST keys.
-	 * \param window->	The window for this handling
 	 * \param vKey		The virtual key from hardKey
-	 * \param ScanCode	The ScanCode of pressed key (simular to PS/2 Set 1)
+	 * \param ScanCode	The ScanCode of pressed key (similar to PS/2 Set 1)
 	 * \param extend	Flag if key is not primly (left or right)
 	 * \return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
-	GHOST_TKey convertKey(GHOST_IWindow *window, short vKey, short ScanCode, short extend) const;
+	GHOST_TKey convertKey(short vKey, short ScanCode, short extend) const;
 
 	/**
 	 * Catches raw WIN32 key codes from WM_INPUT in the wndproc.
-	 * \param window	The window for this handling
 	 * \param raw		RawInput structure with detailed info about the key event
 	 * \param keyDown	Pointer flag that specify if a key is down
 	 * \param vk		Pointer to virtual key
 	 * \return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
-	GHOST_TKey hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int *keyDown, char *vk);
-
-	/**
-	 * Creates modifier key event(s) and updates the key data stored locally (m_modifierKeys).
-	 * With the modifier keys, we want to distinguish left and right keys.
-	 * Sometimes this is not possible (Windows ME for instance). Then, we want
-	 * events generated for both keys.
-	 * \param window	The window receiving the event (the active window).
-	 */
-	GHOST_EventKey *processModifierKeys(GHOST_IWindow *window);
+	GHOST_TKey hardKey(RAWINPUT const& raw, int *keyDown, char *vk);
 
 	/**
 	 * Creates mouse button event.
@@ -261,7 +252,7 @@ protected:
 	 * \param mask		The button mask of this event.
 	 * \return The event created.
 	 */
-	static GHOST_EventButton *processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask);
+	static GHOST_EventButton *processButtonEvent(GHOST_TEventType type, GHOST_WindowWin32 *window, GHOST_TButtonMask mask);
 
 	/**
 	 * Creates cursor event.
@@ -269,7 +260,7 @@ protected:
 	 * \param window	The window receiving the event (the active window).
 	 * \return The event created.
 	 */
-	static GHOST_EventCursor *processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow);
+	static GHOST_EventCursor *processCursorEvent(GHOST_TEventType type, GHOST_WindowWin32 *window);
 
 	/**
 	 * Creates a mouse wheel event.
@@ -277,7 +268,7 @@ protected:
 	 * \param wParam	The wParam from the wndproc
 	 * \param lParam	The lParam from the wndproc
 	 */
-	static GHOST_EventWheel *processWheelEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam);
+	static GHOST_EventWheel *processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam);
 
 	/**
 	 * Creates a key event and updates the key data stored locally (m_modifierKeys).
@@ -286,16 +277,15 @@ protected:
 	 * \param window	The window receiving the event (the active window).
 	 * \param raw		RawInput structure with detailed info about the key event
 	 */
-	static GHOST_EventKey *processKeyEvent(GHOST_IWindow *window, RAWINPUT const& raw);
+	static GHOST_EventKey *processKeyEvent(GHOST_WindowWin32 *window, RAWINPUT const& raw);
 
 	/**
 	 * Process special keys (VK_OEM_*), to see if current key layout
 	 * gives us anything special, like ! on french AZERTY.
-	 * \param window	The window receiving the event (the active window).
 	 * \param vKey		The virtual key from hardKey
 	 * \param ScanCode	The ScanCode of pressed key (simular to PS/2 Set 1)
 	 */
-	GHOST_TKey processSpecialKey(GHOST_IWindow *window, short vKey, short scanCode) const;
+	GHOST_TKey processSpecialKey(short vKey, short scanCode) const;
 
 	/** 
 	 * Creates a window event.
@@ -303,7 +293,7 @@ protected:
 	 * \param window	The window receiving the event (the active window).
 	 * \return The event created.
 	 */
-	static GHOST_Event *processWindowEvent(GHOST_TEventType type, GHOST_IWindow *window);
+	static GHOST_Event *processWindowEvent(GHOST_TEventType type, GHOST_WindowWin32 *window);
 
 #ifdef WITH_INPUT_IME
 	/**
@@ -313,7 +303,7 @@ protected:
 	 * \param data		IME data.
 	 * \return The event created.
 	 */
-	static GHOST_Event *processImeEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TEventImeData *data);
+	static GHOST_Event *processImeEvent(GHOST_TEventType type, GHOST_WindowWin32 *window, GHOST_TEventImeData *data);
 #endif // WITH_INPUT_IME
 
 	/**

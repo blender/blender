@@ -235,7 +235,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(
         const bool exclusive,
         const GHOST_TEmbedderWindowID parentWindow)
 {
-	GHOST_Window *window =
+	GHOST_WindowWin32 *window =
 		new GHOST_WindowWin32(
 		        this,
 		        title,
@@ -432,7 +432,7 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
 	return GHOST_System::exit();
 }
 
-GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, RAWINPUT const &raw, int *keyDown, char *vk)
+GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, int *keyDown, char *vk)
 {
 	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 	GHOST_TKey key = GHOST_kKeyUnknown;
@@ -444,7 +444,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, RAWINPUT const &raw
 	unsigned int msg = raw.data.keyboard.Message;
 	*keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
 
-	key = this->convertKey(window, raw.data.keyboard.VKey, raw.data.keyboard.MakeCode, (raw.data.keyboard.Flags & (RI_KEY_E1 | RI_KEY_E0)));
+	key = this->convertKey(raw.data.keyboard.VKey, raw.data.keyboard.MakeCode, (raw.data.keyboard.Flags & (RI_KEY_E1 | RI_KEY_E0)));
 	
 	// extra handling of modifier keys: don't send repeats out from GHOST
 	if (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt) {
@@ -509,7 +509,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, RAWINPUT const &raw
 //! note: this function can be extended to include other exotic cases as they arise.
 // This function was added in response to bug [#25715]
 // This is going to be a long list [T42426]
-GHOST_TKey GHOST_SystemWin32::processSpecialKey(GHOST_IWindow *window, short vKey, short scanCode) const
+GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
 {
 	GHOST_TKey key = GHOST_kKeyUnknown;
 	switch (PRIMARYLANGID(m_langId)) {
@@ -525,7 +525,7 @@ GHOST_TKey GHOST_SystemWin32::processSpecialKey(GHOST_IWindow *window, short vKe
 	return key;
 }
 
-GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, short vKey, short scanCode, short extend) const
+GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short extend) const
 {
 	GHOST_TKey key;
 
@@ -633,7 +633,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, short vKey, shor
 			case VK_SCROLL: key = GHOST_kKeyScrollLock; break;
 			case VK_CAPITAL: key = GHOST_kKeyCapsLock; break;
 			case VK_OEM_8:
-				key = ((GHOST_SystemWin32 *)getSystem())->processSpecialKey(window, vKey, scanCode);
+				key = ((GHOST_SystemWin32 *)getSystem())->processSpecialKey(vKey, scanCode);
 				break;
 			case VK_MEDIA_PLAY_PAUSE: key = GHOST_kKeyMediaPlay; break;
 			case VK_MEDIA_STOP: key = GHOST_kKeyMediaStop; break;
@@ -650,18 +650,17 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, short vKey, shor
 
 GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(
         GHOST_TEventType type,
-        GHOST_IWindow *window,
+        GHOST_WindowWin32 *window,
         GHOST_TButtonMask mask)
 {
 	return new GHOST_EventButton(getSystem()->getMilliSeconds(), type, window, mask);
 }
 
 
-GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow)
+GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_WindowWin32 *window)
 {
 	GHOST_TInt32 x_screen, y_screen;
 	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *) getSystem();
-	GHOST_WindowWin32 *window = (GHOST_WindowWin32 *) Iwindow;
 	
 	system->getCursorPosition(x_screen, y_screen);
 
@@ -713,7 +712,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 }
 
 
-GHOST_EventWheel *GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam)
+GHOST_EventWheel *GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
 {
 	// short fwKeys = LOWORD(wParam);			// key flags
 	int zDelta = (short) HIWORD(wParam);    // wheel rotation
@@ -728,12 +727,12 @@ GHOST_EventWheel *GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 }
 
 
-GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINPUT const &raw)
+GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RAWINPUT const &raw)
 {
 	int keyDown = 0;
 	char vk;
 	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-	GHOST_TKey key = system->hardKey(window, raw, &keyDown, &vk);
+	GHOST_TKey key = system->hardKey(raw, &keyDown, &vk);
 	GHOST_EventKey *event;
 
 	if (key != GHOST_kKeyUnknown) {
@@ -780,22 +779,22 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 }
 
 
-GHOST_Event *GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_IWindow *window)
+GHOST_Event *GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_WindowWin32 *window)
 {
-	GHOST_System *system = (GHOST_System *)getSystem();
+	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
 	if (type == GHOST_kEventWindowActivate) {
 		system->getWindowManager()->setActiveWindow(window);
-		((GHOST_WindowWin32 *)window)->bringTabletContextToFront();
+		window->bringTabletContextToFront();
 	}
 
 	return new GHOST_Event(system->getMilliSeconds(), type, window);
 }
 
 #ifdef WITH_INPUT_IME
-GHOST_Event *GHOST_SystemWin32::processImeEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TEventImeData *data)
+GHOST_Event *GHOST_SystemWin32::processImeEvent(GHOST_TEventType type, GHOST_WindowWin32 *window, GHOST_TEventImeData *data)
 {
-	GHOST_System *system = (GHOST_System *)getSystem();
+	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 	return new GHOST_EventIME(system->getMilliSeconds(), type, window, data);
 }
 #endif
@@ -804,11 +803,11 @@ GHOST_Event *GHOST_SystemWin32::processImeEvent(GHOST_TEventType type, GHOST_IWi
 GHOST_TSuccess GHOST_SystemWin32::pushDragDropEvent(
         GHOST_TEventType eventType,
         GHOST_TDragnDropTypes draggedObjectType,
-        GHOST_IWindow *window,
+        GHOST_WindowWin32 *window,
         int mouseX, int mouseY,
         void *data)
 {
-	GHOST_SystemWin32 *system = ((GHOST_SystemWin32 *)getSystem());
+	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 	return system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
 	                                                  eventType,
 	                                                  draggedObjectType,
@@ -912,7 +911,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	bool eventHandled = false;
 
 	LRESULT lResult = 0;
-	GHOST_SystemWin32 *system = ((GHOST_SystemWin32 *)getSystem());
+	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 	GHOST_EventManager *eventManager = system->getEventManager();
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized");
 
@@ -1068,11 +1067,11 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				// Tablet events, processed
 				////////////////////////////////////////////////////////////////////////
 				case WT_PACKET:
-					((GHOST_WindowWin32 *)window)->processWin32TabletEvent(wParam, lParam);
+					window->processWin32TabletEvent(wParam, lParam);
 					break;
 				case WT_CSRCHANGE:
 				case WT_PROXIMITY:
-					((GHOST_WindowWin32 *)window)->processWin32TabletInitEvent();
+					window->processWin32TabletInitEvent();
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Mouse events, processed
