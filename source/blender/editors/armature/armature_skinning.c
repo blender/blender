@@ -166,9 +166,15 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 			else
 				segments = 1;
 			
-			if (!wpmode || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED)))
-				if (!(defgroup = defgroup_find_name(ob, bone->name)))
+			if (!wpmode || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))) {
+				if (!(defgroup = defgroup_find_name(ob, bone->name))) {
 					defgroup = BKE_object_defgroup_add_name(ob, bone->name);
+				}
+				else if (defgroup->flag & DG_LOCK_WEIGHT) {
+					/* In case vgroup already exists and is locked, do not modify it here. See T43814. */
+					defgroup = NULL;
+				}
+			}
 			
 			if (data->list != NULL) {
 				hgroup = (bDeformGroup ***) &data->list;
