@@ -40,6 +40,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
@@ -54,6 +56,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
@@ -107,7 +110,7 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		else {
 			Main *bmain = CTX_data_main(C);
-
+			
 			/* just make a new (empty) action */
 			action = add_empty_action(bmain, "Action");
 		}
@@ -235,6 +238,121 @@ void ACTION_OT_push_down(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ******************* Action Stash Operator ******************** */
+
+static int action_stash_exec(bContext *C, wmOperator *op)
+{
+	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+	Object *ob = CTX_data_active_object(C);
+	AnimData *adt = NULL;
+	
+	/* Get AnimData block to use */
+	if (saction->mode == SACTCONT_ACTION) {
+		/* Currently, "Action Editor" means object-level only... */
+		adt = ob->adt;
+	}
+	else if (saction->mode == SACTCONT_SHAPEKEY) {
+		Key *key = BKE_key_from_object(ob);
+		adt = key->adt;
+	}
+	
+	/* Perform stashing operation */
+	// TODO: abstract this out to an API call
+	if (adt) {
+		/* don't do anything if this action is empty... */
+		if (action_has_motion(adt->action) == 0) {
+			/* action may not be suitable... */
+			BKE_report(op->reports, RPT_WARNING, "Action needs have at least a keyframe or some FModifiers");
+			return OPERATOR_CANCELLED;
+		}
+		else {
+			const char *STASH_TRACK_NAME = DATA_("[Action Stash]");
+			
+			NlaTrack *prev_track = NULL;
+			NlaTrack *nlt;
+			NlaStrip *strip;
+			
+			bAction *new_action = NULL;
+			
+			PointerRNA ptr, idptr;
+			PropertyRNA *prop;
+			
+			/* create a new track, and add this immediately above the previous stashing track */
+			for (prev_track = adt->nla_tracks.last; prev_track; prev_track = prev_track->prev) {
+				if (strstr(prev_track->name, STASH_TRACK_NAME)) {
+					break;
+				}
+			}
+			
+			nlt = add_nlatrack(adt, prev_track);
+			nlt->flag |= NLATRACK_MUTED; /* so that stash track doesn't disturb the stack animation */
+			
+			BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
+			BLI_uniquename(&adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
+			
+			/* add the action as a strip in this new track
+			 * NOTE: a new user is created here
+			 */
+			strip = add_nlastrip(adt->action);
+			
+			BKE_nlatrack_add_strip(nlt, strip);
+			BKE_nlastrip_validate_name(adt, strip);
+			BKE_nlastrip_set_active(adt, strip);
+			
+			/* create new action (if required) */
+			if (RNA_boolean_get(op->ptr, "create_new")) {
+				new_action = add_empty_action(CTX_data_main(C), "New Action");
+				
+				/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 
+				 * but the RNA pointer code will assign all the proper users instead, so we compensate
+				 * for that here
+				 */
+				BLI_assert(new_action->id.us == 1);
+				new_action->id.us--;
+				
+				/* set ID-Root type */
+				if (saction->mode == SACTCONT_SHAPEKEY)
+					new_action->idroot = ID_KE;
+				else
+					new_action->idroot = ID_OB;
+			}
+			
+			/* update pointers
+			 * NOTE: this will clear the user from whatever it is using now
+			 */
+			RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_SpaceDopeSheetEditor, saction, &ptr);
+			prop = RNA_struct_find_property(&ptr, "action");
+			RNA_id_pointer_create((ID *)new_action, &idptr);
+			
+			RNA_property_pointer_set(&ptr, prop, idptr);
+			RNA_property_update(C, &ptr, prop);
+		}
+	}
+	
+	/* Send notifiers that stuff has changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_stash(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Stash Action";
+	ot->idname = "ACTION_OT_stash";
+	ot->description = "Store this action in the NLA stack as a non-contributing strip for later use";
+	
+	/* callbacks */
+	ot->exec = action_stash_exec;
+	ot->poll = action_pushdown_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_boolean(ot->srna, "create_new", true, "Create New Action", 
+	                           "Create a new action once the existing one has been safely stored");
 }
 
 /* ************************************************************************** */

@@ -102,6 +102,7 @@ void ACTION_OT_mirror(struct wmOperatorType *ot);
 
 void ACTION_OT_new(struct wmOperatorType *ot);
 void ACTION_OT_push_down(struct wmOperatorType *ot);
+void ACTION_OT_stash(struct wmOperatorType *ot);
 
 void ACTION_OT_markers_make_local(struct wmOperatorType *ot);
 
