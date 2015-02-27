@@ -1575,8 +1575,8 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 			change_status[i] = 1; /* can be altered while redistributing */
 		}
 	}
-	/* if there was any change, redistribute it */
-	if (total_changed) {
+	/* if there was any change, and somewhere to redistribute it, do it */
+	if (total_changed && total_valid) {
 		/* auto normalize will allow weights to temporarily go above 1 in redistribution */
 		if (vgroup_validmap && total_changed < 0 && total_valid) {
 			totchange_allowed = total_valid;
@@ -1740,7 +1740,8 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 	}
 	clamp_weights(dv);
 
-	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags, wpi->vgroup_validmap, wpi->do_auto_normalize, wpi->do_multipaint);
+	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags, wpi->vgroup_validmap,
+	              wpi->do_auto_normalize, wpi->do_multipaint);
 
 	if (wpi->do_auto_normalize) {
 		/* XXX - should we pass the active group? - currently '-1' */
