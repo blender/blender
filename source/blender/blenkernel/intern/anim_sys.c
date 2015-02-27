@@ -2465,13 +2465,19 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED))
 			break;
 			
-		/* skip if we're only considering a track tagged 'solo' */
-		if ((adt->flag & ADT_NLA_SOLO_TRACK) && (nlt->flag & NLATRACK_SOLO) == 0)
-			continue;
-		/* skip if track is muted */
-		if (nlt->flag & NLATRACK_MUTED) 
-			continue;
-			
+		/* solo and muting are mutually exclusive... */
+		if (adt->flag & ADT_NLA_SOLO_TRACK) {
+			/* skip if there is a solo track, but this isn't it */
+			if ((nlt->flag & NLATRACK_SOLO) == 0)
+				continue;
+			/* else - mute doesn't matter */
+		}
+		else {
+			/* no solo tracks - skip track if muted */
+			if (nlt->flag & NLATRACK_MUTED) 
+				continue;
+		}
+		
 		/* if this track has strips (but maybe they won't be suitable), set has_strips 
 		 *	- used for mainly for still allowing normal action evaluation...
 		 */
