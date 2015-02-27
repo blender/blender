@@ -299,13 +299,12 @@ NlaStrip *add_nlastrip(bAction *act)
 	
 	/* generic settings 
 	 *	- selected flag to highlight this to the user
-	 *	- auto-blends to ensure that blend in/out values are automatically 
-	 *	  determined by overlaps of strips
+	 *	- (XXX) disabled Auto-Blends, as this was often causing some unwanted effects
 	 *	- (XXX) synchronization of strip-length in accordance with changes to action-length
 	 *	  is not done though, since this should only really happens in editmode for strips now
 	 *	  though this decision is still subject to further review...
 	 */
-	strip->flag = NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_AUTO_BLENDS;
+	strip->flag = NLASTRIP_FLAG_SELECT;
 	
 	/* assign the action reference */
 	strip->act = act;
