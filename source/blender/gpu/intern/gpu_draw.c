@@ -983,7 +983,7 @@ static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 		if (rectw + x > x_limit) rectw--;
 		if (recth + y > y_limit) recth--;
 
-		/* float rectangles are already continuous in memory so we can use gluScaleImage */
+		/* float rectangles are already continuous in memory so we can use IMB_scaleImBuf */
 		if (frect) {
 			ImBuf *ibuf = IMB_allocFromBuffer(NULL, frect, w, h);
 			IMB_scaleImBuf(ibuf, rectw, recth);

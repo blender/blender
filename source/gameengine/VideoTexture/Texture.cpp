@@ -57,6 +57,9 @@
 #include <memory.h>
 #include "glew-mx.h"
 
+extern "C" {
+	#include "IMB_imbuf.h"
+}
 
 // macro for exception handling and logging
 #define CATCH_EXCP catch (Exception & exp) \
@@ -163,8 +166,7 @@ static PyObject *Texture_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	self->m_imgTexture = NULL;
 	self->m_matTexture = NULL;
 	self->m_mipmap = false;
-	self->m_scaledImg = NULL;
-	self->m_scaledImgSize = 0;
+	self->m_scaledImBuf = NULL;
 	self->m_source = NULL;
 	self->m_lastClock = 0.0;
 	// return allocated object
@@ -186,7 +188,7 @@ static void Texture_dealloc(Texture *self)
 	PyObject *ret = Texture_close(self);
 	Py_DECREF(ret);
 	// release scaled image buffer
-	delete [] self->m_scaledImg;
+	IMB_freeImBuf(self->m_scaledImBuf);
 	// release object
 	Py_TYPE((PyObject *)self)->tp_free((PyObject *)self);
 }
@@ -370,20 +372,12 @@ static PyObject *Texture_refresh(Texture *self, PyObject *args)
 					// scale texture if needed
 					if (size[0] != orgSize[0] || size[1] != orgSize[1])
 					{
-						// if scaled image buffer is smaller than needed
-						if (self->m_scaledImgSize < (unsigned int)(size[0] * size[1]))
-						{
-							// new size
-							self->m_scaledImgSize = size[0] * size[1];
-							// allocate scaling image
-							delete [] self->m_scaledImg;
-							self->m_scaledImg = new unsigned int[self->m_scaledImgSize];
-						}
-						// scale texture
-						gluScaleImage(GL_RGBA, orgSize[0], orgSize[1], GL_UNSIGNED_BYTE, texture,
-							size[0], size[1], GL_UNSIGNED_BYTE, self->m_scaledImg);
+						IMB_freeImBuf(self->m_scaledImBuf);
+						self->m_scaledImBuf = IMB_allocFromBuffer(texture, NULL, orgSize[0], orgSize[1]);
+						IMB_scaleImBuf(self->m_scaledImBuf, size[0], size[1]);
+
 						// use scaled image instead original
-						texture = self->m_scaledImg;
+						texture = self->m_scaledImBuf->rect;
 					}
 					// load texture for rendering
 					loadTexture(self->m_actTex, texture, size, self->m_mipmap);

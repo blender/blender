@@ -71,9 +71,7 @@ struct Texture
 	bool m_mipmap;
 
 	// scaled image buffer
-	unsigned int * m_scaledImg;
-	// scaled image buffer size
-	unsigned int m_scaledImgSize;
+	ImBuf * m_scaledImBuf;
 	// last refresh
 	double m_lastClock;
 
