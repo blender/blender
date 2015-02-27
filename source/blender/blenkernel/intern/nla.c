@@ -1525,16 +1525,44 @@ void BKE_nla_validate_state(AnimData *adt)
 
 /* Action Stashing -------------------------------------- */
 
+/* name of stashed tracks - the translation stuff is included here to save extra work */
+#define STASH_TRACK_NAME  DATA_("[Action Stash]")
+
+/* Check if an action is "stashed" in the NLA already
+ *
+ * The criteria for this are:
+ *   1) The action in question lives in a "stash" track
+ *   2) We only check first-level strips. That is, we will not check inside meta strips.
+ */
+bool BKE_nla_action_is_stashed(AnimData *adt, bAction *act)
+{
+	NlaTrack *nlt;
+	NlaStrip *strip;
+	
+	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+		if (strstr(nlt->name, STASH_TRACK_NAME)) {
+			for (strip = nlt->strips.first; strip; strip = strip->next) {
+				if (strip->act == act)
+					return true;
+			}
+		}
+	}
+	
+	return false;
+}
+
 /* "Stash" an action (i.e. store it as a track/layer in the NLA, but non-contributing)
  * to retain it in the file for future uses
  */
 bool BKE_nla_action_stash(AnimData *adt)
 {
-	const char *STASH_TRACK_NAME = DATA_("[Action Stash]");
-	
 	NlaTrack *prev_track = NULL;
 	NlaTrack *nlt;
 	NlaStrip *strip;
+	
+	/* do not add if it is already stashed */
+	if (BKE_nla_action_is_stashed(adt, adt->action))
+		return false;
 	
 	/* create a new track, and add this immediately above the previous stashing track */
 	for (prev_track = adt->nla_tracks.last; prev_track; prev_track = prev_track->prev) {

@@ -327,6 +327,11 @@ static int action_stash_exec(bContext *C, wmOperator *op)
 				saction->action = NULL;
 				actedit_change_action(C, new_action);
 			}
+			else {
+				/* action has already been added - simply warn about this, and clear */
+				BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+				actedit_change_action(C, NULL);
+			}
 		}
 	}
 	
