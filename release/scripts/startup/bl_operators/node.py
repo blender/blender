@@ -124,7 +124,7 @@ class NodeAddOperator:
         result = self.execute(context)
 
         if self.use_transform and ('FINISHED' in result):
-            # removes the node again if transform is cancelled
+            # removes the node again if transform is canceled
             bpy.ops.transform.translate('INVOKE_DEFAULT', remove_on_cancel=True)
 
         return result

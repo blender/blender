@@ -19,7 +19,7 @@
 #  Filename : anisotropic_diffusion.py
 #  Author   : Fredo Durand
 #  Date     : 12/08/2004
-#  Purpose  : Smoothes lines using an anisotropic diffusion scheme
+#  Purpose  : Smooth lines using an anisotropic diffusion scheme
 
 from freestyle.chainingiterators import ChainPredicateIterator
 from freestyle.predicates import (

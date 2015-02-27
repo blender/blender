@@ -275,7 +275,7 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 
 class pySketchyChainingIterator(ChainingIterator):
     """
-    Chaining iterator designed for sketchy style.  It chaines the same
+    Chaining iterator designed for sketchy style. It chains the same
     ViewEdge several times in order to produce multiple strokes per
     ViewEdge.
     """
@@ -320,7 +320,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 
        Builds a pyFillOcclusionsRelativeChainingIterator object.
 
-       :arg percent: The maximul length of the occluded part, expressed
+       :arg percent: The maximal length of the occluded part, expressed
            in a percentage of the total chain length.
        :type percent: float
     """
@@ -454,7 +454,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 
        Builds a pyFillOcclusionsAbsoluteAndRelativeChainingIterator object.
 
-       :arg percent: The maximul length of the occluded part as a
+       :arg percent: The maximal length of the occluded part as a
            percentage of the total chain length.
        :type percent: float
        :arg l: Absolute length.
@@ -524,7 +524,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 
        Builds a pyFillQi0AbsoluteAndRelativeChainingIterator object.
 
-       :arg percent: The maximul length of the occluded part as a
+       :arg percent: The maximal length of the occluded part as a
            percentage of the total chain length.
        :type percent: float
        :arg l: Absolute length.

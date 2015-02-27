@@ -221,7 +221,7 @@ def iter_material_value(stroke, func, attribute):
             value = rgb_to_bw(*material.diffuse[0:3])
         elif attribute == 'SPEC':
             value = rgb_to_bw(*material.specular[0:3])
-        # line seperate
+        # line separate
         elif attribute == 'LINE_R':
             value = material.line[0]
         elif attribute == 'LINE_G':
@@ -230,7 +230,7 @@ def iter_material_value(stroke, func, attribute):
             value = material.line[2]
         elif attribute == 'LINE_A':
             value = material.line[3]
-        # diffuse seperate
+        # diffuse separate
         elif attribute == 'DIFF_R':
             value = material.diffuse[0]
         elif attribute == 'DIFF_G':
@@ -239,7 +239,7 @@ def iter_material_value(stroke, func, attribute):
             value = material.diffuse[2]
         elif attribute == 'ALPHA':
             value = material.diffuse[3]
-        # specular seperate
+        # specular separate
         elif attribute == 'SPEC_R':
             value = material.specular[0]
         elif attribute == 'SPEC_G':
@@ -262,7 +262,7 @@ def iter_distance_along_stroke(stroke):
         distance += (prev - curr).length
         yield distance
 
-# -- mathmatical operations -- #
+# -- mathematical operations -- #
 
 
 def stroke_curvature(it):

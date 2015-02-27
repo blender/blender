@@ -20,7 +20,7 @@
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Draws colored lines. The color is automatically 
-#             infered from each object's material in a cartoon-like
+#             inferred from each object's material in a cartoon-like
 #             fashion.
 
 from freestyle.chainingiterators import ChainSilhouetteIterator

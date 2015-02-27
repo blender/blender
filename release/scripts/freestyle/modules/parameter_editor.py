@@ -280,7 +280,7 @@ class ColorAlongStrokeShader(ColorRampModifier):
 
 
 class AlphaAlongStrokeShader(CurveMappingModifier):
-    """Maps a curve to the alpha/transparancy of the stroke, using the curvilinear abscissa (t)."""
+    """Maps a curve to the alpha/transparency of the stroke, using the curvilinear abscissa (t)."""
     def shade(self, stroke):
         for svert, t in zip(stroke, iter_t2d_along_stroke(stroke)):
             a = svert.attribute.alpha

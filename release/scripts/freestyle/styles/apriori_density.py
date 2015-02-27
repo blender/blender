@@ -19,7 +19,7 @@
 #  Filename : apriori_density.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : Draws lines having a high a priori density
+#  Purpose  : Draws lines having a high a prior density
 
 from freestyle.chainingiterators import ChainPredicateIterator
 from freestyle.predicates import (

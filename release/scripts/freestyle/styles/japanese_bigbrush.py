@@ -47,7 +47,7 @@ from freestyle.types import IntegrationType, Operators
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
-## Splits strokes at points of highest 2D curavture 
+## Splits strokes at points of highest 2D curvature
 ## when there are too many abrupt turns in it
 func = pyInverseCurvature2DAngleF0D()
 Operators.recursive_split(func, pyParameterUP0D(0.2, 0.8), NotUP1D(pyHigherNumberOfTurnsUP1D(3, 0.5)), 2)

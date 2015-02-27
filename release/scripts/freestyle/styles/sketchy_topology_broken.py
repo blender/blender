@@ -20,7 +20,7 @@
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : The topology of the strokes is, first, built
-#             independantly from the 3D topology of objects, 
+#             independently from the 3D topology of objects,
 #             and, second, so as to chain several times the same ViewEdge.
 
 from freestyle.chainingiterators import pySketchyChainingIterator
@@ -41,7 +41,7 @@ from freestyle.types import Operators
 
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-## Chain 3 times each ViewEdge indpendantly from the 
+## Chain 3 times each ViewEdge independently from the
 ## initial objects topology
 Operators.bidirectional_chain(pySketchyChainingIterator(3))
 shaders_list = [

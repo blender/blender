@@ -173,8 +173,8 @@ class MASK_PT_point:
         parent = point.parent
 
         col = layout.column()
-        # Currently only parenting yo movie clip is allowed, so do not
-        # ver-oplicate things for now and use single template_ID
+        # Currently only parenting the movie-clip is allowed,
+        # so do not over-complicate things for now by using single template_ID
         #col.template_any_ID(parent, "id", "id_type", text="")
 
         col.label("Parent:")
