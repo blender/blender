@@ -109,9 +109,11 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 			action = add_empty_action(bmain, "Action");
 		}
 		
-		/* when creating new ID blocks, use is already 1 (fake user), 
-		 * but RNA pointer use also increases user, so this compensates it 
+		/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 
+		 * but the RNA pointer code will assign all the proper users instead, so we compensate
+		 * for that here
 		 */
+		BLI_assert(action->id.us == 1);
 		action->id.us--;
 		
 		RNA_id_pointer_create(&action->id, &idptr);
@@ -134,6 +136,8 @@ void ACTION_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = act_new_exec;
+	// TODO: add a new invoke() callback to catch cases where users unexpectedly delete their data
+	
 	/* NOTE: this is used in the NLA too... */
 	//ot->poll = ED_operator_action_active;
 	
