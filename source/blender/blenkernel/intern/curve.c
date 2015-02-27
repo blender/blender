@@ -1247,6 +1247,7 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array,
                         int resolu, int stride)
 {
+	const float eps = 1e-6f;
 	BPoint *bp;
 	float u, ustart, uend, ustep, sumdiv;
 	float *basisu, *sum, *fp;
@@ -1305,7 +1306,7 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 			*fp = basisu[i] * bp->vec[3];
 			sumdiv += *fp;
 		}
-		if ((sumdiv != 0.0f) && (sumdiv < 0.999f || sumdiv > 1.001f)) {
+		if ((sumdiv != 0.0f) && (sumdiv < 1.0f - eps || sumdiv > 1.0f + eps)) {
 			/* is normalizing needed? */
 			fp = sum;
 			for (i = istart; i <= iend; i++, fp++) {
