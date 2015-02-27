@@ -4340,17 +4340,6 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 	const bool render_only = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool solid = (dt > OB_WIRE);
 
-	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == false) {
-		return false;
-	}
-
-	if (ob->type == OB_MBALL) {
-		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
-	}
-	else {
-		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CCW : GL_CW);
-	}
-
 	switch (ob->type) {
 		case OB_FONT:
 		case OB_CURVE:
@@ -4478,7 +4467,28 @@ static bool drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *ba
 	ensure_curve_cache(scene, base->object);
 #endif
 
-	retval = drawDispList_nobackface(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == false) {
+		return false;
+	}
+	else {
+		Object *ob = base->object;
+		GLenum mode;
+
+		if (ob->type == OB_MBALL) {
+			mode = (ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW;
+		}
+		else {
+			mode = (ob->transflag & OB_NEG_SCALE) ? GL_CCW : GL_CW;
+		}
+
+		glFrontFace(mode);
+
+		retval = drawDispList_nobackface(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+
+		if (mode != GL_CCW) {
+			glFrontFace(GL_CCW);
+		}
+	}
 
 	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
 		glDisable(GL_CULL_FACE);
