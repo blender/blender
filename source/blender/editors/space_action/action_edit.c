@@ -42,6 +42,8 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_key_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 
@@ -52,6 +54,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
@@ -140,6 +143,87 @@ void ACTION_OT_new(wmOperatorType *ot)
 	
 	/* NOTE: this is used in the NLA too... */
 	//ot->poll = ED_operator_action_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ******************* Action Push-Down Operator ******************** */
+
+/* Criteria:
+ *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions 
+ *  2) There must be an action active
+ *  3) The associated AnimData block must not be in tweakmode
+ */
+static int action_pushdown_poll(bContext *C)
+{
+	if (ED_operator_action_active(C)) {
+		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+		Scene *scene = CTX_data_scene(C);
+		Object *ob = CTX_data_active_object(C);
+		
+		/* Check for actions and that tweakmode is off */
+		if ((saction->action) && !(scene->flag & SCE_NLA_EDIT_ON)) {
+			/* For now, actions are only for the active object, and on object and shapekey levels... */
+			if (saction->mode == SACTCONT_ACTION) {
+				return (ob->adt != NULL);
+			}
+			else if (saction->mode == SACTCONT_SHAPEKEY) {
+				Key *key = BKE_key_from_object(ob);
+				
+				return (key && key->adt);
+			}
+		}	
+	}
+	
+	/* something failed... */
+	return false;
+}
+
+static int action_pushdown_exec(bContext *C, wmOperator *op)
+{
+	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+	Object *ob = CTX_data_active_object(C);
+	AnimData *adt = NULL;
+	
+	/* Get AnimData block to use */
+	if (saction->mode == SACTCONT_ACTION) {
+		/* Currently, "Action Editor" means object-level only... */
+		adt = ob->adt;
+	}
+	else if (saction->mode == SACTCONT_SHAPEKEY) {
+		Key *key = BKE_key_from_object(ob);
+		adt = key->adt;
+	}
+	
+	/* Do the deed... */
+	if (adt) {
+		/* Perform the pushdown operation
+		 * - This will deal with all the AnimData-side usercounts
+		 */
+		BKE_nla_action_pushdown(adt);
+		
+		/* Stop displaying this action in this editor
+		 * NOTE: The editor itself doesn't set a user...
+		 */
+		saction->action = NULL;
+	}
+	
+	/* Send notifiers that stuff has changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_push_down(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Push Down Action";
+	ot->idname = "ACTION_OT_push_down";
+	ot->description = "Push action down on to the NLA stack as a new strip";
+	
+	/* callbacks */
+	ot->exec = action_pushdown_exec;
+	ot->poll = action_pushdown_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

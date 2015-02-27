@@ -124,6 +124,10 @@ class DOPESHEET_HT_header(Header):
         if st.mode in {'ACTION', 'SHAPEKEY'}:
             layout.template_ID(st, "action", new="action.new")
 
+            row = layout.row(align=True)
+            row.operator("action.push_down", text="", icon='NLA_PUSHDOWN')
+            row.operator("action.push_down", text="", icon='FREEZE') # XXX: "stash"
+
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':
             layout.prop(st, "auto_snap", text="")

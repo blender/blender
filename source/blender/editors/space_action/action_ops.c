@@ -77,7 +77,9 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_keyframe_insert);
 	WM_operatortype_append(ACTION_OT_copy);
 	WM_operatortype_append(ACTION_OT_paste);
+	
 	WM_operatortype_append(ACTION_OT_new);
+	WM_operatortype_append(ACTION_OT_push_down);
 	
 	WM_operatortype_append(ACTION_OT_previewrange_set);
 	WM_operatortype_append(ACTION_OT_view_all);
