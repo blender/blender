@@ -31,11 +31,6 @@
  * \author	Maarten Gribnau
  */
 
-#ifdef WITH_GHOST_DEBUG
-#  include <iostream>
-#endif
-
-#include <stdio.h> // [mce] temporary debug, remove soon!
 
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
@@ -152,7 +147,7 @@ static void initRawInput()
 	if (RegisterRawInputDevices(devices, DEVICE_COUNT, sizeof(RAWINPUTDEVICE)))
 		;  // yay!
 	else
-		printf("could not register for RawInput: %d\n", (int)GetLastError());
+		GHOST_PRINTF("could not register for RawInput: %d\n", (int)GetLastError());
 
 #undef DEVICE_COUNT
 }
@@ -767,10 +762,8 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
 		}
 
 		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, window, key, ascii, utf8_char);
-		
-#ifdef GHOST_DEBUG
-		std::cout << ascii << std::endl;
-#endif
+
+		// GHOST_PRINTF("%c\n", ascii); // we already get this info via EventPrinter
 	}
 	else {
 		event = 0;
@@ -837,7 +830,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
 		if (info.dwType == RIM_TYPEHID)
 			m_ndofManager->setDevice(info.hid.dwVendorId, info.hid.dwProductId);
 		else
-			puts("<!> not a HID device... mouse/kb perhaps?");
+			GHOST_PRINT("<!> not a HID device... mouse/kb perhaps?\n");
 
 		firstEvent = false;
 	}
@@ -882,7 +875,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
 				m_ndofManager->updateRotation(r, now);
 
 				// I've never gotten one of these, has anyone else?
-				puts("ndof: combined T + R");
+				GHOST_PRINT("ndof: combined T + R\n");
 			}
 			break;
 		}
