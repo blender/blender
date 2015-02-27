@@ -185,7 +185,7 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 		case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float> *values = mVData->getFloatValues();
-			if (values->empty()) return;
+			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return;  // xxx need to create an eror instead
 
 			mloopcol->r = FTOCHAR((*values)[v_index * stride]);
 			mloopcol->g = FTOCHAR((*values)[v_index * stride + 1]);
@@ -196,7 +196,7 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 		case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
 		{
 			COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
-			if (values->empty()) return;
+			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return; // xxx need to create an eror instead
 
 			mloopcol->r = FTOCHAR((*values)[v_index * stride]);
 			mloopcol->g = FTOCHAR((*values)[v_index * stride + 1]);
@@ -225,10 +225,9 @@ void MeshImporter::set_poly_indices(MPoly *mpoly, MLoop *mloop, int loop_index, 
 
 void MeshImporter::set_vcol(MLoopCol *mlc, VCOLDataWrapper &vob, int loop_index, COLLADAFW::IndexList &index_list, int count)
 {
-	COLLADAFW::UIntValuesArray& indices =index_list.getIndices();
 	int index;
 	for (index = 0; index < count; index++, mlc++) {
-		int v_index = indices[index+loop_index];
+		int v_index = index_list.getIndex(index + loop_index);
 		vob.get_vcol(v_index,mlc);
 	}
 }
@@ -627,6 +626,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 		unsigned int *position_indices                = mp->getPositionIndices().getData();
 		unsigned int *normal_indices                  = mp->getNormalIndices().getData();
 
+
 		bool mp_has_normals = primitive_has_useable_normals(mp);
 		bool mp_has_faces   = primitive_has_faces(mp);
 
@@ -707,15 +707,21 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 						mpoly->flag |= ME_SMOOTH;
 				}
 
-				for (unsigned int vcolor_index = 0 ; vcolor_index < index_list_array_vcolor.getCount();vcolor_index++) {
-					COLLADAFW::IndexList& index_list = *index_list_array_vcolor[vcolor_index];
-					COLLADAFW::String colname = extract_vcolname(index_list.getName());
-					MLoopCol *mloopcol = (MLoopCol  *)CustomData_get_layer_named(&me->ldata, CD_MLOOPCOL, colname.c_str());
-					if (mloopcol == NULL) {
-						fprintf(stderr, "Collada import: Mesh [%s] : Unknown reference to VCOLOR [#%s].\n", me->id.name, index_list.getName().c_str() );
-					}
-					else {
-						set_vcol(mloopcol+loop_index, vcol, start_index, *index_list_array_vcolor[vcolor_index], vcount);
+
+				if (mp->hasColorIndices()) {
+					int vcolor_count = index_list_array_vcolor.getCount();
+
+					for (unsigned int vcolor_index = 0; vcolor_index < vcolor_count; vcolor_index++) {
+
+						COLLADAFW::IndexList& color_index_list = *mp->getColorIndices(vcolor_index);
+						COLLADAFW::String colname = extract_vcolname(color_index_list.getName());
+						MLoopCol *mloopcol = (MLoopCol  *)CustomData_get_layer_named(&me->ldata, CD_MLOOPCOL, colname.c_str());
+						if (mloopcol == NULL) {
+							fprintf(stderr, "Collada import: Mesh [%s] : Unknown reference to VCOLOR [#%s].\n", me->id.name, color_index_list.getName().c_str());
+						}
+						else {
+							set_vcol(mloopcol + loop_index, vcol, start_index, color_index_list, vcount);
+						}
 					}
 				}
 
