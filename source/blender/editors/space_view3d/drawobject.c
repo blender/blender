@@ -4468,7 +4468,7 @@ static bool drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *ba
 #endif
 
 	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == false) {
-		return false;
+		retval = false;
 	}
 	else {
 		Object *ob = base->object;
