@@ -2882,7 +2882,10 @@ static void knifetool_free_bmbvh(KnifeTool_OpData *kcd)
 		kcd->bmbvh = NULL;
 	}
 
-	MEM_SAFE_FREE(kcd->cagecos);
+	if (kcd->cagecos) {
+		MEM_freeN((void *)kcd->cagecos);
+		kcd->cagecos = NULL;
+	}
 }
 
 /* called when modal loop selection gets set up... */
