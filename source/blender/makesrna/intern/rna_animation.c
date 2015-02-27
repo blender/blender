@@ -574,8 +574,8 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
 	prop = RNA_def_property(srna, "use_insertkey_override_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "keyingoverride", INSERTKEY_XYZ2RGB);
 	RNA_def_property_ui_text(prop, "Override F-Curve Colors - XYZ to RGB",
-	                        "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) "
-							"to be based on the transform axis");
+	                        "Override default setting to set color for newly added transformation F-Curves "
+	                        "(Location, Rotation, Scale) to be based on the transform axis");
 	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	
 	

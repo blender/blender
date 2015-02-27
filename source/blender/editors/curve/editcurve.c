@@ -234,6 +234,7 @@ static int isNurbsel_count(Curve *cu, Nurb *nu)
 
 /* ******************* PRINTS ********************* */
 
+#if 0
 void printknots(Object *obedit)
 {
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -253,6 +254,7 @@ void printknots(Object *obedit)
 		}
 	}
 }
+#endif
 
 /* ********************* Shape keys *************** */
 
