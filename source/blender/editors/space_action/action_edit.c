@@ -268,66 +268,49 @@ static int action_stash_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 		else {
-			const char *STASH_TRACK_NAME = DATA_("[Action Stash]");
 			
-			NlaTrack *prev_track = NULL;
-			NlaTrack *nlt;
-			NlaStrip *strip;
 			
-			bAction *new_action = NULL;
-			
-			PointerRNA ptr, idptr;
-			PropertyRNA *prop;
-			
-			/* create a new track, and add this immediately above the previous stashing track */
-			for (prev_track = adt->nla_tracks.last; prev_track; prev_track = prev_track->prev) {
-				if (strstr(prev_track->name, STASH_TRACK_NAME)) {
-					break;
+			/* stash the action 
+			 * NOTE: this operation will remove the user already,
+			 * so the flushing step later shouldn't double up
+			 * the usercount fixes
+			 */
+			if (BKE_nla_action_stash(adt)) {
+				bAction *new_action = NULL;
+				
+				PointerRNA ptr, idptr;
+				PropertyRNA *prop;
+				
+				saction->action = NULL;
+				
+				/* create new action (if required) */
+				if (RNA_boolean_get(op->ptr, "create_new")) {
+					new_action = add_empty_action(CTX_data_main(C), "New Action");
+					
+					/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 
+					 * but the RNA pointer code will assign all the proper users instead, so we compensate
+					 * for that here
+					 */
+					BLI_assert(new_action->id.us == 1);
+					new_action->id.us--;
+					
+					/* set ID-Root type */
+					if (saction->mode == SACTCONT_SHAPEKEY)
+						new_action->idroot = ID_KE;
+					else
+						new_action->idroot = ID_OB;
 				}
-			}
-			
-			nlt = add_nlatrack(adt, prev_track);
-			nlt->flag |= NLATRACK_MUTED; /* so that stash track doesn't disturb the stack animation */
-			
-			BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
-			BLI_uniquename(&adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
-			
-			/* add the action as a strip in this new track
-			 * NOTE: a new user is created here
-			 */
-			strip = add_nlastrip(adt->action);
-			
-			BKE_nlatrack_add_strip(nlt, strip);
-			BKE_nlastrip_validate_name(adt, strip);
-			BKE_nlastrip_set_active(adt, strip);
-			
-			/* create new action (if required) */
-			if (RNA_boolean_get(op->ptr, "create_new")) {
-				new_action = add_empty_action(CTX_data_main(C), "New Action");
 				
-				/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 
-				 * but the RNA pointer code will assign all the proper users instead, so we compensate
-				 * for that here
+				/* update pointers
+				 * NOTE: this will clear the user from whatever it is using now
 				 */
-				BLI_assert(new_action->id.us == 1);
-				new_action->id.us--;
+				RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_SpaceDopeSheetEditor, saction, &ptr);
+				prop = RNA_struct_find_property(&ptr, "action");
+				RNA_id_pointer_create((ID *)new_action, &idptr);
 				
-				/* set ID-Root type */
-				if (saction->mode == SACTCONT_SHAPEKEY)
-					new_action->idroot = ID_KE;
-				else
-					new_action->idroot = ID_OB;
+				RNA_property_pointer_set(&ptr, prop, idptr);
+				RNA_property_update(C, &ptr, prop);
 			}
-			
-			/* update pointers
-			 * NOTE: this will clear the user from whatever it is using now
-			 */
-			RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_SpaceDopeSheetEditor, saction, &ptr);
-			prop = RNA_struct_find_property(&ptr, "action");
-			RNA_id_pointer_create((ID *)new_action, &idptr);
-			
-			RNA_property_pointer_set(&ptr, prop, idptr);
-			RNA_property_update(C, &ptr, prop);
 		}
 	}
 	
