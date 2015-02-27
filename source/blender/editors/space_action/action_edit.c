@@ -201,7 +201,15 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
 		/* Perform the pushdown operation
 		 * - This will deal with all the AnimData-side usercounts
 		 */
-		BKE_nla_action_pushdown(adt);
+		if (action_has_motion(adt->action) == 0) {
+			/* action may not be suitable... */
+			BKE_report(op->reports, RPT_WARNING, "Action needs have at least a keyframe or some FModifiers");
+			return OPERATOR_CANCELLED;
+		}
+		else {
+			/* action can be safely added */
+			BKE_nla_action_pushdown(adt);
+		}
 		
 		/* Stop displaying this action in this editor
 		 * NOTE: The editor itself doesn't set a user...
