@@ -351,7 +351,8 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
 
 				data = dl->verts;
 
-				if (nu->flagu & CU_NURB_CYCLIC) {
+				/* check that (len != 2) so we don't immediately loop back on ourselves */
+				if (nu->flagu & CU_NURB_CYCLIC && (dl->nr != 2)) {
 					dl->type = DL_POLY;
 					a = nu->pntsu;
 				}
@@ -421,8 +422,12 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
 				dl->charidx = nu->charidx;
 
 				data = dl->verts;
-				if (nu->flagu & CU_NURB_CYCLIC) dl->type = DL_POLY;
-				else dl->type = DL_SEGM;
+				if ((nu->flagu & CU_NURB_CYCLIC) && (dl->nr != 2)) {
+					dl->type = DL_POLY;
+				}
+				else {
+					dl->type = DL_SEGM;
+				}
 
 				a = len;
 				bp = nu->bp;
@@ -1621,8 +1626,12 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							dl->type = DL_SURF;
 
 							dl->flag = dlb->flag & (DL_FRONT_CURVE | DL_BACK_CURVE);
-							if (dlb->type == DL_POLY) dl->flag |= DL_CYCL_U;
-							if (bl->poly >= 0) dl->flag |= DL_CYCL_V;
+							if (dlb->type == DL_POLY) {
+								dl->flag |= DL_CYCL_U;
+							}
+							if ((bl->poly >= 0) && (steps != 2)) {
+								dl->flag |= DL_CYCL_V;
+							}
 
 							dl->parts = steps;
 							dl->nr = dlb->nr;
