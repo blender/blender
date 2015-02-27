@@ -2600,7 +2600,7 @@ PyDoc_STRVAR(BPy_EnumProperty_doc,
 ".. function:: EnumProperty(items, "
                            "name=\"\", "
                            "description=\"\", "
-                           "default=\"\", "
+                           "default=None, "
                            "options={'ANIMATABLE'}, "
                            "update=None, "
                            "get=None, "
@@ -2625,6 +2625,8 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg default: The default value for this enum, a string from the identifiers used in *items*.\n"
 "      If the *ENUM_FLAG* option is used this must be a set of such string identifiers instead.\n"
+"      WARNING: It shall not be specified (or specified to its default *None* value) for dynamic enums\n"
+"      (i.e. if a callback function is given as *items* parameter).\n"
 "   :type default: string or set\n"
 BPY_PROPDEF_OPTIONS_ENUM_DOC
 BPY_PROPDEF_UPDATE_DOC
@@ -2674,6 +2676,12 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		}
 		if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
 			return NULL;
+		}
+
+		if (def == Py_None) {
+			/* This allows to get same behavior when explicitely passing None as default value,
+			 * and not defining a default value at all! */
+			def = NULL;
 		}
 
 		/* items can be a list or a callable */
