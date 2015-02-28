@@ -122,7 +122,7 @@ class DOPESHEET_HT_header(Header):
             dopesheet_filter(layout, context, genericFiltersOnly=True)
 
         if st.mode in {'ACTION', 'SHAPEKEY'}:
-            layout.template_ID(st, "action", new="action.stash_and_create")
+            layout.template_ID(st, "action", new="action.new")
 
             row = layout.row(align=True)
             row.operator("action.push_down", text="Push Down", icon='NLA_PUSHDOWN')

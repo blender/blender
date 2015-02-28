@@ -165,6 +165,34 @@ static void actedit_change_action(bContext *C, bAction *act)
 
 /* ******************** New Action Operator *********************** */
 
+/* Criteria:
+ *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions...
+ *        OR
+ *     The NLA Editor is active (i.e. Animation Data panel -> new action)
+ *  2) The associated AnimData block must not be in tweakmode
+ */
+static int action_new_poll(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	
+	/* Check tweakmode is off (as you don't want to be tampering with the action in that case) */
+	/* NOTE: unlike for pushdown, this operator needs to be run when creating an action from nothing... */
+	if (!(scene->flag & SCE_NLA_EDIT_ON)) {
+		if (ED_operator_action_active(C)) {
+			SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+			
+			/* For now, actions are only for the active object, and on object and shapekey levels... */
+			return ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY);
+		}
+		else if (ED_operator_nla_active(C)) {
+			return true;
+		}
+	}
+	
+	/* something failed... */
+	return false;
+}
+
 static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr, idptr;
@@ -175,12 +203,42 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (prop) {
 		bAction *action = NULL, *oldact = NULL;
+		AnimData *adt = NULL;
 		PointerRNA oldptr;
 		
-		/* create action */
 		oldptr = RNA_property_pointer_get(&ptr, prop);
 		oldact = (bAction *)oldptr.id.data;
 		
+		/* stash the old action to prevent it from being lost */
+		if (ptr.type == &RNA_AnimData) {
+			adt = ptr.data;
+		}
+		else if (ptr.type == &RNA_SpaceDopeSheetEditor) {
+			adt = actedit_animdata_from_context(C);
+		}
+		
+		/* Perform stashing operation */
+		if (adt) {
+			/* stash the action */
+			if (BKE_nla_action_stash(adt)) {
+				/* The stash operation will remove the user already
+				 * (and unlink the action from the AnimData action slot).
+				 * Hence, we must unset the ref to the action in the
+				 * action editor too (if this is where we're being called from)
+				 * first before setting the new action once it is created,
+				 * or else the user gets decremented twice!
+				 */
+				if (ptr.type == &RNA_SpaceDopeSheetEditor) {
+					SpaceAction *saction = (SpaceAction *)ptr.data;
+					saction->action = NULL;
+				}
+			}
+			else {
+				//printf("WARNING: Failed to stash %s. It may already exist in the NLA stack though\n", oldact->id.name);
+			}
+		}
+		
+		/* create action */
 		action = action_create_new(C, oldact);
 		
 		/* set this new action
@@ -206,9 +264,7 @@ void ACTION_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = action_new_exec;
-	
-	/* NOTE: this is used in the NLA too... */
-	//ot->poll = ED_operator_action_active;
+	ot->poll = action_new_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -398,8 +454,8 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
 			if (BKE_nla_action_stash(adt)) {
 				bAction *new_action = NULL;
 				
-				/* create new action based on the old one */
-				new_action = action_create_new(C, saction->action);
+				/* create new action not based on the old one (since the "new" operator already does that) */
+				new_action = action_create_new(C, NULL);
 				
 				/* The stash operation will remove the user already,
 				 * so the flushing step later shouldn't double up
