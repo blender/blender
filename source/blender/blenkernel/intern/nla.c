@@ -1020,6 +1020,10 @@ bool BKE_nlatrack_add_strip(NlaTrack *nlt, NlaStrip *strip)
 	if (ELEM(NULL, nlt, strip))
 		return false;
 		
+	/* do not allow adding strips if this track is locked */
+	if (nlt->flag & NLATRACK_PROTECTED)
+		return false;
+	
 	/* try to add the strip to the track using a more generic function */
 	return BKE_nlastrips_add_strip(&nlt->strips, strip);
 }
@@ -1572,7 +1576,6 @@ bool BKE_nla_action_stash(AnimData *adt)
 	}
 	
 	nlt = add_nlatrack(adt, prev_track);
-	nlt->flag |= NLATRACK_MUTED; /* so that stash track doesn't disturb the stack animation */
 	
 	BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
 	BLI_uniquename(&adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
@@ -1584,7 +1587,15 @@ bool BKE_nla_action_stash(AnimData *adt)
 	
 	BKE_nlatrack_add_strip(nlt, strip);
 	BKE_nlastrip_validate_name(adt, strip);
-	BKE_nlastrip_set_active(adt, strip);
+	
+	/* mark the stash track and strip so that they doesn't disturb the stack animation,
+	 * and are unlikely to draw attention to itself (or be accidentally bumped around)
+	 * 
+	 * NOTE: this must be done *after* adding the strip to the track, or else
+	 *       the strip locking will prevent the strip from getting added
+	 */
+	nlt->flag = (NLATRACK_MUTED | NLATRACK_PROTECTED);
+	strip->flag &= ~(NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_ACTIVE);
 	
 	/* succeeded */
 	return true;
