@@ -81,6 +81,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_new);
 	WM_operatortype_append(ACTION_OT_push_down);
 	WM_operatortype_append(ACTION_OT_stash);
+	WM_operatortype_append(ACTION_OT_stash_and_create);
 	
 	WM_operatortype_append(ACTION_OT_previewrange_set);
 	WM_operatortype_append(ACTION_OT_view_all);

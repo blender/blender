@@ -206,7 +206,6 @@ void ACTION_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = action_new_exec;
-	// TODO: add a new invoke() callback to catch cases where users unexpectedly delete their data
 	
 	/* NOTE: this is used in the NLA too... */
 	//ot->poll = ED_operator_action_active;
@@ -311,27 +310,20 @@ static int action_stash_exec(bContext *C, wmOperator *op)
 		else {
 			/* stash the action */
 			if (BKE_nla_action_stash(adt)) {
-				bAction *new_action = NULL;
-				
-				/* create new action (if required) */
-				// XXX: maybe this should be a separate operator?
-				if (RNA_boolean_get(op->ptr, "create_new")) {
-					new_action = action_create_new(C, saction->action);
-				}
-				
 				/* The stash operation will remove the user already,
 				 * so the flushing step later shouldn't double up
 				 * the usercount fixes. Hence, we must unset this ref
 				 * first before setting the new action.
 				 */
 				saction->action = NULL;
-				actedit_change_action(C, new_action);
 			}
 			else {
 				/* action has already been added - simply warn about this, and clear */
 				BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
-				actedit_change_action(C, NULL);
 			}
+			
+			/* clear action refs from editor, and then also the backing data (not necessary) */
+			actedit_change_action(C, NULL);
 		}
 	}
 	
@@ -357,6 +349,92 @@ void ACTION_OT_stash(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_boolean(ot->srna, "create_new", true, "Create New Action", 
 	                           "Create a new action once the existing one has been safely stored");
+}
+
+/* ----------------- */
+
+/* Criteria:
+ *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions 
+ *  2) The associated AnimData block must not be in tweakmode
+ */
+static int action_stash_create_poll(bContext *C)
+{
+	if (ED_operator_action_active(C)) {
+		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+		Scene *scene = CTX_data_scene(C);
+		
+		/* Check tweakmode is off (as you don't want to be tampering with the action in that case) */
+		/* NOTE: unlike for pushdown, this operator needs to be run when creating an action from nothing... */
+		if (!(scene->flag & SCE_NLA_EDIT_ON)) {
+			/* For now, actions are only for the active object, and on object and shapekey levels... */
+			return ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY);
+		}
+	}
+	
+	/* something failed... */
+	return false;
+}
+
+static int action_stash_create_exec(bContext *C, wmOperator *op)
+{
+	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+	AnimData *adt = actedit_animdata_from_context(C);
+	
+	/* Check for no action... */
+	if (saction->action == NULL) {
+		/* just create a new action */
+		bAction *action = action_create_new(C, NULL);
+		actedit_change_action(C, action);
+	}
+	else if (adt) {
+		/* Perform stashing operation */
+		if (action_has_motion(adt->action) == 0) {
+			/* don't do anything if this action is empty... */
+			BKE_report(op->reports, RPT_WARNING, "Action needs have at least a keyframe or some FModifiers");
+			return OPERATOR_CANCELLED;
+		}
+		else {
+			/* stash the action */
+			if (BKE_nla_action_stash(adt)) {
+				bAction *new_action = NULL;
+				
+				/* create new action based on the old one */
+				new_action = action_create_new(C, saction->action);
+				
+				/* The stash operation will remove the user already,
+				 * so the flushing step later shouldn't double up
+				 * the usercount fixes. Hence, we must unset this ref
+				 * first before setting the new action.
+				 */
+				saction->action = NULL;
+				actedit_change_action(C, new_action);
+			}
+			else {
+				/* action has already been added - simply warn about this, and clear */
+				BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
+				actedit_change_action(C, NULL);
+			}
+		}
+	}
+	
+	/* Send notifiers that stuff has changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_stash_and_create(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Stash Action";
+	ot->idname = "ACTION_OT_stash_and_create";
+	ot->description = "Store this action in the NLA stack as a non-contributing strip for later use, and create a new action";
+	
+	/* callbacks */
+	ot->exec = action_stash_create_exec;
+	ot->poll = action_stash_create_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */
