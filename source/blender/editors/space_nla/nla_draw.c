@@ -374,7 +374,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	}
 	
 	/* - line style: dotted for muted */
-	if (strip->flag & NLASTRIP_FLAG_MUTED)
+	if ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED))
 		setlinestyle(4);
 		
 	/* draw outline */
