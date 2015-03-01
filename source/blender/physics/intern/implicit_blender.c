@@ -1225,6 +1225,16 @@ void BPH_mass_spring_get_position(struct Implicit_Data *data, int index, float x
 	root_to_world_v3(data, index, x, data->X[index]);
 }
 
+void BPH_mass_spring_get_new_position(struct Implicit_Data *data, int index, float x[3])
+{
+	root_to_world_v3(data, index, x, data->Xnew[index]);
+}
+
+void BPH_mass_spring_set_new_position(struct Implicit_Data *data, int index, const float x[3])
+{
+	world_to_root_v3(data, index, data->Xnew[index], x);
+}
+
 void BPH_mass_spring_get_new_velocity(struct Implicit_Data *data, int index, float v[3])
 {
 	root_to_world_v3(data, index, v, data->Vnew[index]);

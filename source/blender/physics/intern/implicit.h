@@ -82,7 +82,9 @@ void BPH_mass_spring_set_velocity(struct Implicit_Data *data, int index, const f
 void BPH_mass_spring_get_motion_state(struct Implicit_Data *data, int index, float x[3], float v[3]);
 void BPH_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3]);
 
-/* modified velocity during solver step */
+/* access to modified motion state during solver step */
+void BPH_mass_spring_get_new_position(struct Implicit_Data *data, int index, float x[3]);
+void BPH_mass_spring_set_new_position(struct Implicit_Data *data, int index, const float x[3]);
 void BPH_mass_spring_get_new_velocity(struct Implicit_Data *data, int index, float v[3]);
 void BPH_mass_spring_set_new_velocity(struct Implicit_Data *data, int index, const float v[3]);
 
