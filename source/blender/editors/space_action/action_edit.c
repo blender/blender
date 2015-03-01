@@ -217,8 +217,8 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
 			adt = actedit_animdata_from_context(C);
 		}
 		
-		/* Perform stashing operation */
-		if (adt) {
+		/* Perform stashing operation - But only if there is an action */
+		if (adt && oldact) {
 			/* stash the action */
 			if (BKE_nla_action_stash(adt)) {
 				/* The stash operation will remove the user already

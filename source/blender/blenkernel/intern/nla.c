@@ -1564,6 +1564,12 @@ bool BKE_nla_action_stash(AnimData *adt)
 	NlaTrack *nlt;
 	NlaStrip *strip;
 	
+	/* sanity check */
+	if (ELEM(NULL, adt, adt->action)) {
+		printf("%s: Invalid argument - %p %p\n", __func__, adt, adt->action);
+		return false;
+	}
+	
 	/* do not add if it is already stashed */
 	if (BKE_nla_action_is_stashed(adt, adt->action))
 		return false;
@@ -1576,6 +1582,7 @@ bool BKE_nla_action_stash(AnimData *adt)
 	}
 	
 	nlt = add_nlatrack(adt, prev_track);
+	BLI_assert(nlt != NULL);
 	
 	BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
 	BLI_uniquename(&adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
@@ -1584,6 +1591,7 @@ bool BKE_nla_action_stash(AnimData *adt)
 	 * NOTE: a new user is created here
 	 */
 	strip = add_nlastrip(adt->action);
+	BLI_assert(strip != NULL);
 	
 	BKE_nlatrack_add_strip(nlt, strip);
 	BKE_nlastrip_validate_name(adt, strip);
