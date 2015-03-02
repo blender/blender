@@ -884,14 +884,13 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 		KnifeLineHit *lh;
 		/* was "in face" but now we have a KnifeVert it is snapped to */
 		lh = &kcd->linehits[kcd->totlinehit - 1];
-
-		if (kcd->is_drag_hold) {
-			linehit_to_knifepos(&kcd->prev, lh);
-		}
-		else {
-			kcd->prev.vert = lh->v;
-		}
+		kcd->prev.vert = lh->v;
 		kcd->prev.bmface = NULL;
+	}
+
+	if (kcd->is_drag_hold) {
+		lh = &kcd->linehits[kcd->totlinehit - 1];
+		linehit_to_knifepos(&kcd->prev, lh);
 	}
 
 	BLI_ghash_free(facehits, NULL, NULL);
