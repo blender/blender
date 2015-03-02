@@ -266,7 +266,7 @@ void BKE_camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView
 		/* camera view */
 		BKE_camera_params_from_object(params, v3d->camera);
 
-		params->zoom = BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom);
+		params->zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
 
 		params->offsetx = 2.0f * rv3d->camdx * params->zoom;
 		params->offsety = 2.0f * rv3d->camdy * params->zoom;

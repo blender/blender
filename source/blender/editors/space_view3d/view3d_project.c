@@ -497,7 +497,7 @@ void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float
 		float dy = (2.0f * mval[1] / (float)ar->winy) - 1.0f;
 		if (rv3d->persp == RV3D_CAMOB) {
 			/* ortho camera needs offset applied */
-			const float zoomfac = BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom) * 4.0f;
+			const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 4.0f;
 			dx += rv3d->camdx * zoomfac;
 			dy += rv3d->camdy * zoomfac;
 		}

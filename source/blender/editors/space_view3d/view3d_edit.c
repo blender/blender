@@ -1926,7 +1926,7 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 		vod->rv3d->ofs_lock[1] -= ((vod->oldy - y) * 2.0f) / (float)vod->ar->winy;
 	}
 	else if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
-		const float zoomfac = BKE_screen_view3d_zoom_to_fac((float)vod->rv3d->camzoom) * 2.0f;
+		const float zoomfac = BKE_screen_view3d_zoom_to_fac(vod->rv3d->camzoom) * 2.0f;
 		vod->rv3d->camdx += (vod->oldx - x) / (vod->ar->winx * zoomfac);
 		vod->rv3d->camdy += (vod->oldy - y) / (vod->ar->winy * zoomfac);
 		CLAMP(vod->rv3d->camdx, -1.0f, 1.0f);

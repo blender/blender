@@ -719,14 +719,14 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 		/* we want radius here for the aperture number  */
 		float aperture = 0.5f * scale_camera * fx_dof->focal_length / fx_dof->fstop;
 
-		dof_params[0] = aperture * fabs(scale_camera * fx_dof->focal_length / ((fx_dof->focus_distance / scale) - scale_camera * fx_dof->focal_length));
+		dof_params[0] = aperture * fabsf(scale_camera * fx_dof->focal_length / ((fx_dof->focus_distance / scale) - scale_camera * fx_dof->focal_length));
 		dof_params[1] = fx_dof->focus_distance / scale;
 		dof_params[2] = fx->gbuffer_dim[0] / (scale_camera * fx_dof->sensor);
 		dof_params[3] = 0.0f;
 
 		/* DOF effect has many passes but most of them are performed on a texture whose dimensions are 4 times less than the original
-			 * (16 times lower than original screen resolution). Technique used is not very exact but should be fast enough and is based
-			 * on "Practical Post-Process Depth of Field" see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch28.html */
+		 * (16 times lower than original screen resolution). Technique used is not very exact but should be fast enough and is based
+		 * on "Practical Post-Process Depth of Field" see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch28.html */
 		dof_shader_pass1 = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_ONE, is_persp);
 		dof_shader_pass2 = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_TWO, is_persp);
 		dof_shader_pass3 = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_THREE, is_persp);
