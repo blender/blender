@@ -1175,15 +1175,10 @@ bool BPH_mass_spring_solve_positions(Implicit_Data *data, float dt)
 	return true;
 }
 
-void BPH_mass_spring_apply_positions(Implicit_Data *data)
+void BPH_mass_spring_apply_result(Implicit_Data *data)
 {
 	int numverts = data->M[0].vcount;
 	cp_lfvector(data->X, data->Xnew, numverts);
-}
-
-void BPH_mass_spring_apply_velocities(Implicit_Data *data)
-{
-	int numverts = data->M[0].vcount;
 	cp_lfvector(data->V, data->Vnew, numverts);
 }
 
