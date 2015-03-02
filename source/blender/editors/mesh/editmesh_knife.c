@@ -699,6 +699,34 @@ static void add_hit_to_facehits(KnifeTool_OpData *kcd, GHash *facehits, BMFace *
 	knife_append_list_no_dup(kcd, lst, hit);
 }
 
+/**
+ * special purpose function, if the linehit is connected to a real edge/vert
+ * return true if \a co is outside the face.
+ */
+static bool knife_add_single_cut__is_linehit_outside_face(BMFace *f, const KnifeLineHit *lh, const float co[3])
+{
+
+	if (lh->v && lh->v->v) {
+		BMLoop *l;  /* side-of-loop */
+		if ((l = BM_face_vert_share_loop(f, lh->v->v)) &&
+		    (BM_loop_point_side_of_loop_test(l, co) < 0.0f))
+		{
+			return true;
+		}
+	}
+	else if ((lh->kfe && lh->kfe->e)) {
+		BMLoop *l;  /* side-of-edge */
+		if ((l = BM_face_edge_share_loop(f, lh->kfe->e)) &&
+		    (BM_loop_point_side_of_edge_test(l, co) < 0.0f))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, KnifeLineHit *lh2, BMFace *f)
 {
 	KnifeEdge *kfe, *kfe2;
@@ -720,8 +748,17 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd, KnifeLineHit *lh1, Knife
 		kfe->e = e_base;
 		return;
 	}
+	else {
+		if (knife_add_single_cut__is_linehit_outside_face(f, lh1, lh2->hit) ||
+		    knife_add_single_cut__is_linehit_outside_face(f, lh2, lh1->hit))
+		{
+			return;
+		}
+	}
+
+
 	/* Check if edge actually lies within face (might not, if this face is concave) */
-	else if ((lh1->v && !lh1->kfe) && (lh2->v && !lh2->kfe)) {
+	if ((lh1->v && !lh1->kfe) && (lh2->v && !lh2->kfe)) {
 		if (!knife_verts_edge_in_face(lh1->v, lh2->v, f)) {
 			return;
 		}
