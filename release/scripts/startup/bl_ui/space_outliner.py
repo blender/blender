@@ -57,7 +57,7 @@ class OUTLINER_HT_header(Header):
             else:
                 row = layout.row()
                 row.label(text="No Keying Set active")
-        elif space.display_mode == 'ORPHANED_DATABLOCKS':
+        elif space.display_mode == 'ORPHAN_DATA':
             layout.operator("outliner.orphans_purge")
 
 
