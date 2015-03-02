@@ -59,10 +59,12 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 {
 	float cent[3], tvec[3];
 	float (*faces_center)[3] = MEM_mallocN(sizeof(*faces_center) * faces_len, __func__);
+	float *faces_area = MEM_mallocN(sizeof(*faces_area) * faces_len, __func__);
 	const float cent_fac = 1.0f / (float)faces_len;
 	int i, f_start_index;
 	const short oflag_flip = oflag | FACE_FLIP;
 
+	float cent_area_accum = 0.0f;
 	float f_len_best_sq;
 	BMFace *f;
 
@@ -73,11 +75,18 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 	/* first calculate the center */
 	for (i = 0; i < faces_len; i++) {
 		float *f_cent = faces_center[i];
+		const float f_area = BM_face_calc_area(faces[i]);
 		BM_face_calc_center_mean_weighted(faces[i], f_cent);
-		madd_v3_v3fl(cent, f_cent, cent_fac);
+		madd_v3_v3fl(cent, f_cent, cent_fac * f_area);
+		cent_area_accum += f_area;
+		faces_area[i] = f_area;
 
 		BLI_assert(BMO_elem_flag_test(bm, faces[i], FACE_TEMP) == 0);
 		BLI_assert(BM_face_is_normal_valid(faces[i]));
+	}
+
+	if (cent_area_accum != 0.0f) {
+		mul_v3_fl(cent, 1.0f / cent_area_accum);
 	}
 
 	f_len_best_sq = -FLT_MAX;
@@ -87,19 +96,23 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 	for (i = 0; i < faces_len; i++) {
 		float f_len_test_sq;
 
-		if ((f_len_test_sq = len_squared_v3v3(faces_center[i], cent)) > f_len_best_sq) {
-			f_len_best_sq = f_len_test_sq;
-			f_start_index = i;
+		if (faces_area[i] > FLT_EPSILON) {
+			if ((f_len_test_sq = len_squared_v3v3(faces_center[i], cent)) > f_len_best_sq) {
+				f_len_best_sq = f_len_test_sq;
+				f_start_index = i;
+			}
 		}
 	}
 
+
 	/* make sure the starting face has the correct winding */
 	sub_v3_v3v3(tvec, faces_center[f_start_index], cent);
+	MEM_freeN(faces_center);
+	MEM_freeN(faces_area);
+
 	if (dot_v3v3(tvec, faces[f_start_index]->no) < 0.0f) {
 		BMO_elem_flag_enable(bm, faces[f_start_index], FACE_FLIP);
 	}
-
-	MEM_freeN(faces_center);
 
 	/* now that we've found our starting face, make all connected faces
 	 * have the same winding.  this is done recursively, using a manual
