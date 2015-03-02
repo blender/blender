@@ -70,7 +70,6 @@ static bool bmo_recalc_normal_edge_filter_cb(BMElem *ele, void *UNUSED(user_data
  * which would end up flipping the normals inwards.
  *
  * To take these spikes into account, use the normals of the faces edges.
- * (weight by dot product & edge-length).
  */
  #define USE_FACE_EDGE_NORMAL_TEST
 
