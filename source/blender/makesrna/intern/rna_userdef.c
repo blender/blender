@@ -3341,7 +3341,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_gl_warn_support", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag2", USER_OPENGL_NO_WARN_SUPPORT);
 	RNA_def_property_ui_text(prop, "Warn On Deprecated OpenGL",
-							 "Pops up a warning when an old OpenGL version is detected");
+	                         "Pops up a warning when an old OpenGL version is detected");
 
 	/* Toolbox click-hold delay */
 	prop = RNA_def_property(srna, "open_left_mouse_delay", PROP_INT, PROP_NONE);

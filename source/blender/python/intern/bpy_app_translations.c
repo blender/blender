@@ -427,11 +427,11 @@ static PyObject *app_translations_contexts_make(void)
 /***** Main BlenderAppTranslations Py object definition *****/
 
 PyDoc_STRVAR(app_translations_contexts_doc,
-	"A named tuple containing all pre-defined translation contexts.\n"
-	"\n"
-	".. warning::\n"
-	"    Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPYRNA "\", it would be internally \n"
-	"    assimilated as the default one!\n"
+"A named tuple containing all pre-defined translation contexts.\n"
+"\n"
+".. warning::\n"
+"    Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPYRNA "\", it would be internally \n"
+"    assimilated as the default one!\n"
 );
 
 PyDoc_STRVAR(app_translations_contexts_C_to_py_doc,
@@ -447,8 +447,8 @@ static PyMemberDef app_translations_members[] = {
 };
 
 PyDoc_STRVAR(app_translations_locale_doc,
-	"The actual locale currently in use (will always return a void string when Blender is built without "
-	"internationalization support)."
+"The actual locale currently in use (will always return a void string when Blender is built without "
+"internationalization support)."
 );
 static PyObject *app_translations_locale_get(PyObject *UNUSED(self), void *UNUSED(userdata))
 {
