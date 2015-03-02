@@ -1321,6 +1321,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if ((re->r.scemode & R_VIEWPORT_PREVIEW) && (ob->mode & OB_MODE_PARTICLE_EDIT))
 		return 0;
 
+	if (part->ren_as == PART_DRAW_BB && part->bb_ob == NULL && RE_GetCamera(re) == NULL)
+		return 0;
+
 /* 2. start initializing things */
 
 	/* last possibility to bail out! */
