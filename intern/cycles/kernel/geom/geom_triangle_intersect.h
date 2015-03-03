@@ -73,7 +73,7 @@ void triangle_intersect_precalc(float3 dir,
 	if(IDX(dir, kz) < 0.0f) {
 		int tmp = kx;
 		kx = ky;
-		kx = tmp;
+		ky = tmp;
 	}
 
 	/* Calculate the shear constants. */
