@@ -38,6 +38,8 @@ typedef struct GPUDOFSettings {
 	float fstop;
 	float focal_length;
 	float sensor;
+	int num_blades;
+	int high_quality;
 } GPUDOFSettings;
 
 /* properties for SSAO effect */

@@ -61,11 +61,16 @@ typedef enum GPUFXShaderEffect {
 	GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FOUR = 5,
 	GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FIVE = 6,
 
-	GPU_SHADER_FX_DEPTH_RESOLVE = 7,
+	/* high quality */
+	GPU_SHADER_FX_DEPTH_OF_FIELD_HQ_PASS_ONE = 7,
+	GPU_SHADER_FX_DEPTH_OF_FIELD_HQ_PASS_TWO = 8,
+	GPU_SHADER_FX_DEPTH_OF_FIELD_HQ_PASS_THREE = 9,
+
+	GPU_SHADER_FX_DEPTH_RESOLVE = 10,
 } GPUFXShaderEffect;
 
 /* keep in synch with enum above! */
-#define MAX_FX_SHADERS 8
+#define MAX_FX_SHADERS 11
 
 /* generate a new FX compositor */
 GPUFX *GPU_fx_compositor_create(void);

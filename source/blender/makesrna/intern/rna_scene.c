@@ -1745,6 +1745,19 @@ static void rna_GPUFXSettings_fx_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	BKE_screen_gpu_fx_validate(fx_settings);
 }
 
+static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
+{
+	GPUDOFSettings *dofsettings = (GPUDOFSettings *)ptr->data;
+
+	if (value < 3 && dofsettings->num_blades > 2)
+		dofsettings->num_blades = 0;
+	else if (value > 0 && dofsettings->num_blades == 0)
+		dofsettings->num_blades = 3;
+	else
+		dofsettings->num_blades = value;
+}
+
+
 #else
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -3907,6 +3920,17 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Viewport F-stop", "F-stop for dof effect");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.1f, 128.0f, 10, 1);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "num_blades", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Viewport Camera Blades", "Blades for dof effect");
+	RNA_def_property_range(prop, 0, 16);
+	RNA_def_property_int_funcs(prop, NULL, "rna_GPUDOFSettings_blades_set", NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "high_quality", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "high_quality", 1);
+	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
