@@ -37,7 +37,16 @@ typedef struct LightSample {
 
 #ifdef __BACKGROUND_MIS__
 
-ccl_device float3 background_light_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
+/* TODO(sergey): In theory it should be all fine to use noinline for all
+ * devices, but we're so close to the release so better not screw things
+ * up for CPU at least.
+ */
+#ifdef __KERNEL_GPU__
+ccl_device_noinline
+#else
+ccl_device
+#endif
+float3 background_light_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
 {
 	/* for the following, the CDF values are actually a pair of floats, with the
 	 * function value as X and the actual CDF as Y.  The last entry's function
@@ -113,7 +122,15 @@ ccl_device float3 background_light_sample(KernelGlobals *kg, float randu, float 
 	return -equirectangular_to_direction(u, v);
 }
 
-ccl_device float background_light_pdf(KernelGlobals *kg, float3 direction)
+/* TODO(sergey): Same as above, after the release we should consider using
+ * 'noinline' for all devices.
+ */
+#ifdef __KERNEL_GPU__
+ccl_device_noinline
+#else
+ccl_device
+#endif
+float background_light_pdf(KernelGlobals *kg, float3 direction)
 {
 	float2 uv = direction_to_equirectangular(direction);
 	int res = kernel_data.integrator.pdf_background_res;
