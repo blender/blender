@@ -263,6 +263,11 @@ int GPU_non_power_of_two_support(void)
 	return GLEW_ARB_texture_non_power_of_two;
 }
 
+int GPU_vertex_buffer_support(void)
+{
+	return GLEW_ARB_vertex_buffer_object || GLEW_VERSION_1_5;
+}
+
 int GPU_display_list_support(void)
 {
 	return !GG.dlistsdisabled;

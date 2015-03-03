@@ -83,8 +83,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-
 #include "GPU_buffers.h"
+#include "GPU_extensions.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -4650,6 +4650,10 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 
+	if (!GPU_vertex_buffer_support()) {
+		return OPERATOR_CANCELLED;
+	}
+
 	if (ss->bm) {
 		sculpt_undo_push_begin("Dynamic topology disable");
 		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_END);
@@ -4666,32 +4670,44 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 }
 
 
-static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, bool vdata, bool modifiers)
+static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, bool vdata, bool modifiers, bool novertexbuf)
 {
-	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Warning!"), ICON_ERROR);
-	uiLayout *layout = UI_popup_menu_layout(pup);
+	if (novertexbuf) {
+		uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Error!"), ICON_ERROR);
+		uiLayout *layout = UI_popup_menu_layout(pup);
 
-	if (vdata) {
-		const char *msg_error = TIP_("Vertex Data Detected!");
-		const char *msg = TIP_("Dyntopo will not preserve vertex colors, UVs, or other customdata");
-		uiItemL(layout, msg_error, ICON_INFO);
-		uiItemL(layout, msg, ICON_NONE);
-		uiItemS(layout);
+		uiItemL(layout, "Dyntopo is not supported on this system", ICON_INFO);
+		uiItemL(layout, "No vertex buffer support detected", ICON_NONE);
+
+		uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0);
+
+		UI_popup_menu_end(C, pup);
 	}
+	else {
+		uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Warning!"), ICON_ERROR);
+		uiLayout *layout = UI_popup_menu_layout(pup);
 
-	if (modifiers) {
-		const char *msg_error = TIP_("Generative Modifiers Detected!");
-		const char *msg = TIP_("Keeping the modifiers will increase polycount when returning to object mode");
+		if (vdata) {
+			const char *msg_error = TIP_("Vertex Data Detected!");
+			const char *msg = TIP_("Dyntopo will not preserve vertex colors, UVs, or other customdata");
+			uiItemL(layout, msg_error, ICON_INFO);
+			uiItemL(layout, msg, ICON_NONE);
+			uiItemS(layout);
+		}
 
-		uiItemL(layout, msg_error, ICON_INFO);
-		uiItemL(layout, msg, ICON_NONE);
-		uiItemS(layout);
+		if (modifiers) {
+			const char *msg_error = TIP_("Generative Modifiers Detected!");
+			const char *msg = TIP_("Keeping the modifiers will increase polycount when returning to object mode");
+
+			uiItemL(layout, msg_error, ICON_INFO);
+			uiItemL(layout, msg, ICON_NONE);
+			uiItemS(layout);
+		}
+
+		uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0);
+
+		UI_popup_menu_end(C, pup);
 	}
-
-	uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0);
-
-	UI_popup_menu_end(C, pup);
-
 	return OPERATOR_INTERFACE;
 }
 
@@ -4701,6 +4717,10 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, co
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = ob->data;
 	SculptSession *ss = ob->sculpt;
+
+	if (!GPU_vertex_buffer_support()) {
+		dyntopo_warning_popup(C, op->type, false, false, true);
+	}
 
 	if (!ss->bm) {
 		Scene *scene = CTX_data_scene(C);
@@ -4736,7 +4756,7 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, co
 
 		if (vdata || modifiers) {
 			/* The mesh has customdata that will be lost, let the user confirm this is OK */
-			return dyntopo_warning_popup(C, op->type, vdata, modifiers);
+			return dyntopo_warning_popup(C, op->type, vdata, modifiers, false);
 		}
 	}
 
