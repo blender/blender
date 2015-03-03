@@ -1168,7 +1168,7 @@ elseif(WIN32)
 		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
 		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 
-		list(APPEND PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi)
+		list(APPEND PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp)
 
 		if(WITH_INPUT_IME)
 			list(APPEND PLATFORM_LINKLIBS imm32)
@@ -1541,7 +1541,7 @@ elseif(WIN32)
 			endif()
 		endif()
 		
-		list(APPEND PLATFORM_LINKLIBS -lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi)
+		list(APPEND PLATFORM_LINKLIBS -lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi -ldbghelp)
 
 		if(WITH_INPUT_IME)
 			list(APPEND PLATFORM_LINKLIBS -limm32)

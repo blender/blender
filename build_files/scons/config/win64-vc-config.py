@@ -244,7 +244,7 @@ C_WARN = []
 CC_WARN = []
 CXX_WARN = []
 
-LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid', 'psapi']
+LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid', 'psapi', 'Dbghelp']
 
 if WITH_BF_IME:
     LLIBS.append('imm32')
