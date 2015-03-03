@@ -808,22 +808,6 @@ bool MeshImporter::is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& n
 	return true;
 }
 
-
-void MeshImporter::bmeshConversion()
-{
-	for (std::map<COLLADAFW::UniqueId, Mesh *>::iterator m = uid_mesh_map.begin();
-	     m != uid_mesh_map.end(); ++m)
-	{
-		if ((*m).second) {
-			Mesh *me = (*m).second;
-			BKE_mesh_tessface_clear(me);
-			BKE_mesh_calc_normals(me);
-			/* BKE_mesh_validate(me, true, true); */
-		}
-	}
-}
-
-
 Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid)
 {
 	if (uid_object_map.find(geom_uid) != uid_object_map.end())

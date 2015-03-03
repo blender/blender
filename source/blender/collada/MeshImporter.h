@@ -161,8 +161,6 @@ public:
 
 	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce);
 
-	void bmeshConversion();
-
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
 
 	virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
