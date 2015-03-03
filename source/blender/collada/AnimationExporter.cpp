@@ -24,8 +24,6 @@
 #include "AnimationExporter.h"
 #include "MaterialExporter.h"
 
-Global G;
-
 template<class Functor>
 void forEachObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 {

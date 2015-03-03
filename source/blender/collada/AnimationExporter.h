@@ -51,7 +51,6 @@ extern "C"
 #include "BKE_object.h"
 #include "BKE_constraint.h"
 #include "BIK_api.h"
-#include "BKE_global.h"
 #include "ED_object.h"
 }
 
