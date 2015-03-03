@@ -327,11 +327,11 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	                "Only export deforming bones with armatures");
 
 
-	RNA_def_boolean(ot->srna, "active_uv_only", 0, "Only Active UV layer",
-	                "Export textures assigned to the object UV maps");
+	RNA_def_boolean(ot->srna, "active_uv_only", 0, "Only Selected UV Map",
+	                "Export only the selected UV Map");
 
 	RNA_def_boolean(ot->srna, "include_uv_textures", 0, "Include UV Textures",
-	                "Export textures assigned to the object UV maps");
+	                "Export textures assigned to the object UV Maps");
 
 	RNA_def_boolean(ot->srna, "include_material_textures", 0, "Include Material Textures",
 	                "Export textures assigned to the object Materials");
