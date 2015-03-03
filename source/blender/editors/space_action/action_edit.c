@@ -360,7 +360,7 @@ static int action_stash_exec(bContext *C, wmOperator *op)
 		/* don't do anything if this action is empty... */
 		if (action_has_motion(adt->action) == 0) {
 			/* action may not be suitable... */
-			BKE_report(op->reports, RPT_WARNING, "Action needs have at least a keyframe or some FModifiers");
+			BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
 			return OPERATOR_CANCELLED;
 		}
 		else {
@@ -446,7 +446,7 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
 		/* Perform stashing operation */
 		if (action_has_motion(adt->action) == 0) {
 			/* don't do anything if this action is empty... */
-			BKE_report(op->reports, RPT_WARNING, "Action needs have at least a keyframe or some FModifiers");
+			BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
 			return OPERATOR_CANCELLED;
 		}
 		else {
