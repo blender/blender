@@ -189,6 +189,7 @@ bool ED_view3d_camera_autokey(
         struct bContext *C, const bool do_rotate, const bool do_translate)
 {
 	if (autokeyframe_cfra_can_key(scene, id_key)) {
+		const float cfra = (float)CFRA;
 		ListBase dsources = {NULL, NULL};
 
 		/* add data-source override for the camera object */
@@ -200,12 +201,12 @@ bool ED_view3d_camera_autokey(
 		 *    TODO: need to check in future that frame changed before doing this
 		 */
 		if (do_rotate) {
-			struct KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
-			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
+			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
 		if (do_translate) {
-			struct KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
-			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+			struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
 
 		/* free temp data */
