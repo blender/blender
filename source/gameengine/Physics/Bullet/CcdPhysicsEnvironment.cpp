@@ -2644,7 +2644,9 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 	if (!rb0)
 		return 0;
 
-	
+	// If either of the controllers is missing, we can't do anything.
+	if (!c0 || !c1) return 0;
+
 	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : 
 		rb0->getCenterOfMassTransform() * pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
