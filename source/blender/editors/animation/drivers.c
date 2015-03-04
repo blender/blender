@@ -494,8 +494,11 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
 	if (ptr.id.data && ptr.data && prop) {
 		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
 		
-		success = ANIM_remove_driver(op->reports, ptr.id.data, path, index, 0);
-		MEM_freeN(path);
+		if (path) {
+			success = ANIM_remove_driver(op->reports, ptr.id.data, path, index, 0);
+
+			MEM_freeN(path);
+		}
 	}
 	
 	if (success) {
