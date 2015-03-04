@@ -317,8 +317,8 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Validate geometry, return True when the mesh has had "
 	                                "invalid geometry corrected/removed");
 	RNA_def_boolean(func, "verbose", false, "Verbose", "Output information about the errors found");
-	RNA_def_boolean(func, "cleanup_cddata", true, "Cleanup CDData",
-	                "Remove temp/cached cdlayers, like e.g. normals...");
+	RNA_def_boolean(func, "clean_customdata", true, "Clean Custom Data",
+	                "Remove temp/cached custom-data layers, like e.g. normals...");
 	parm = RNA_def_boolean(func, "result", 0, "Result", "");
 	RNA_def_function_return(func, parm);
 
