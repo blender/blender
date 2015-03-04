@@ -614,6 +614,7 @@ static bool snap_calc_active_center(bContext *C, float r_center[3])
 	if (obedit) {
 		if (ED_object_editmode_calc_active_center(obedit, false, r_center)) {
 			mul_m4_v3(obedit->obmat, r_center);
+			return true;
 		}
 	}
 	else {
