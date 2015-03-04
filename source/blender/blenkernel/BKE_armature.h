@@ -87,6 +87,8 @@ int bone_autoside_name(char name[64], int strip_number, short axis, float head, 
 
 struct Bone *BKE_armature_find_bone_name(struct bArmature *arm, const char *name);
 
+bool         BKE_armature_bone_flag_test_recursive(const struct Bone *bone, int flag);
+
 float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3], float r1, float r2, float rdist);
 
 void BKE_armature_where_is(struct bArmature *arm);

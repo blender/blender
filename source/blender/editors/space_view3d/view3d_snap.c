@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
 #include "BKE_editmesh.h"
@@ -210,8 +211,9 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	Object *obact = CTX_data_active_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	TransVertStore tvs = {NULL};
 	TransVert *tv;
@@ -272,59 +274,98 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 		ED_transverts_update_obedit(&tvs, obedit);
 		ED_transverts_free(&tvs);
 	}
-	else {
+	else if (obact && (obact->mode & OB_MODE_POSE)) {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
-		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
-		{
-			if (ob->mode & OB_MODE_POSE) {
-				bPoseChannel *pchan;
-				bArmature *arm = ob->data;
-				float cursor_local[3];
-				
-				invert_m4_m4(ob->imat, ob->obmat);
-				mul_v3_m4v3(cursor_local, ob->imat, cursor_global);
+		bPoseChannel *pchan;
+		bArmature *arm = obact->data;
+		float cursor_local[3];
 
-				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-					if (pchan->bone->flag & BONE_SELECTED) {
-						if (PBONE_VISIBLE(arm, pchan->bone)) {
-							if ((pchan->bone->flag & BONE_CONNECTED) == 0) {
-								/* Get position in pchan (pose) space. */
-								float cursor_pose[3];
+		invert_m4_m4(obact->imat, obact->obmat);
+		mul_v3_m4v3(cursor_local, obact->imat, cursor_global);
 
-								if (use_offset) {
-									mul_v3_m4v3(cursor_pose, ob->obmat, pchan->pose_mat[3]);
-									add_v3_v3(cursor_pose, offset_global);
-
-									mul_m4_v3(ob->imat, cursor_pose);
-									BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
-								}
-								else {
-									BKE_armature_loc_pose_to_bone(pchan, cursor_local, cursor_pose);
-								}
-
-								/* copy new position */
-								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
-									pchan->loc[0] = cursor_pose[0];
-								if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
-									pchan->loc[1] = cursor_pose[1];
-								if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
-									pchan->loc[2] = cursor_pose[2];
-
-								/* auto-keyframing */
-								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
-							}
-							/* if the bone has a parent and is connected to the parent,
-							 * don't do anything - will break chain unless we do auto-ik.
-							 */
-						}
-					}
-				}
-				ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
-				
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
+			if ((pchan->bone->flag & BONE_SELECTED) &&
+			    (PBONE_VISIBLE(arm, pchan->bone)) &&
+			    /* if the bone has a parent and is connected to the parent,
+			     * don't do anything - will break chain unless we do auto-ik.
+			     */
+			    (pchan->bone->flag & BONE_CONNECTED) == 0)
+			{
+				pchan->bone->flag |= BONE_TRANSFORM;
 			}
 			else {
+				pchan->bone->flag &= ~BONE_TRANSFORM;
+			}
+		}
+
+		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
+			if ((pchan->bone->flag & BONE_TRANSFORM) &&
+			    /* check that our parents not transformed (if we have one) */
+			    ((pchan->bone->parent &&
+			      BKE_armature_bone_flag_test_recursive(pchan->bone->parent, BONE_TRANSFORM)) == 0))
+			{
+				/* Get position in pchan (pose) space. */
+				float cursor_pose[3];
+
+				if (use_offset) {
+					mul_v3_m4v3(cursor_pose, obact->obmat, pchan->pose_mat[3]);
+					add_v3_v3(cursor_pose, offset_global);
+
+					mul_m4_v3(obact->imat, cursor_pose);
+					BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
+				}
+				else {
+					BKE_armature_loc_pose_to_bone(pchan, cursor_local, cursor_pose);
+				}
+
+				/* copy new position */
+				if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
+					pchan->loc[0] = cursor_pose[0];
+				if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
+					pchan->loc[1] = cursor_pose[1];
+				if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
+					pchan->loc[2] = cursor_pose[2];
+
+				/* auto-keyframing */
+				ED_autokeyframe_pchan(C, scene, obact, pchan, ks);
+			}
+		}
+
+		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
+			pchan->bone->flag &= ~BONE_TRANSFORM;
+		}
+
+		obact->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
+
+		DAG_id_tag_update(&obact->id, OB_RECALC_DATA);
+	}
+	else {
+		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+		Main *bmain = CTX_data_main(C);
+
+		ListBase ctx_data_list;
+		CollectionPointerLink *ctx_ob;
+		Object *ob;
+
+		CTX_data_selected_editable_objects(C, &ctx_data_list);
+
+		/* reset flags */
+		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+			ob->flag &= ~OB_DONE;
+		}
+
+		/* tag objects we're transforming */
+		for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
+			ob = ctx_ob->ptr.data;
+			ob->flag |= OB_DONE;
+		}
+
+		for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
+			ob = ctx_ob->ptr.data;
+
+			if ((ob->parent && BKE_object_flag_test_recursive(ob->parent, OB_DONE)) == 0) {
+
 				float cursor_parent[3];  /* parent-relative */
 
 				if (use_offset) {
@@ -335,11 +376,11 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 				}
 
 				sub_v3_v3(cursor_parent, ob->obmat[3]);
-				
+
 				if (ob->parent) {
 					float originmat[3][3];
 					BKE_object_where_is_calc_ex(scene, NULL, ob, originmat);
-					
+
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, cursor_parent);
 				}
@@ -356,7 +397,8 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
-		CTX_DATA_END;
+
+		BLI_freelistN(&ctx_data_list);
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);

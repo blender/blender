@@ -3478,6 +3478,19 @@ KeyBlock *BKE_object_insert_shape_key(Object *ob, const char *name, const bool f
 
 }
 
+bool BKE_object_flag_test_recursive(const Object *ob, short flag)
+{
+	if (ob->flag & flag) {
+		return true;
+	}
+	else if (ob->parent) {
+		return BKE_object_flag_test_recursive(ob->parent, flag);
+	}
+	else {
+		return false;
+	}
+}
+
 bool BKE_object_is_child_recursive(Object *ob_parent, Object *ob_child)
 {
 	for (ob_child = ob_child->parent; ob_child; ob_child = ob_child->parent) {

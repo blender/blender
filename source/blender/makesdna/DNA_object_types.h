@@ -510,7 +510,7 @@ enum {
 
 
 #define OB_FROMDUPLI        (1 << 9)
-#define OB_DONE             (1 << 10)
+#define OB_DONE             (1 << 10)  /* unknown state, clear before use */
 /* #define OB_RADIO            (1 << 11) */  /* deprecated */
 #define OB_FROMGROUP        (1 << 12)
 

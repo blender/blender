@@ -188,7 +188,7 @@ typedef enum eBone_Flag {
 	BONE_SELECTED               = (1 << 0),
 	BONE_ROOTSEL                = (1 << 1),
 	BONE_TIPSEL                 = (1 << 2),
-	BONE_TRANSFORM              = (1 << 3),   /* Used instead of BONE_SELECTED during transform */
+	BONE_TRANSFORM              = (1 << 3),   /* Used instead of BONE_SELECTED during transform (clear before use) */
 	BONE_CONNECTED              = (1 << 4),   /* when bone has a parent, connect head of bone to parent's tail*/
 	/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
 	BONE_HIDDEN_P               = (1 << 6),   /* hidden Bones when drawing PoseChannels */
