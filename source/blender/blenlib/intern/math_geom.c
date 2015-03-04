@@ -257,14 +257,22 @@ void plane_from_point_normal_v3(float r_plane[4], const float plane_co[3], const
 }
 
 /**
- * Get a point and a normal from a plane.
+ * Get a point and a direction from a plane.
  */
-void plane_to_point_normal_v3(const float plane[4], float r_plane_co[3], float r_plane_no[3])
+void plane_to_point_vector_v3(const float plane[4], float r_plane_co[3], float r_plane_no[3])
 {
-	const float length = normalize_v3_v3(r_plane_no, plane);
-	madd_v3_v3v3fl(r_plane_co, r_plane_no, r_plane_no, (-plane[3] / length) - 1.0f);
+	mul_v3_v3fl(r_plane_co, plane, (-plane[3] / len_squared_v3(plane)));
+	copy_v3_v3(r_plane_no, plane);
 }
 
+/**
+ * version of #plane_to_point_vector_v3 that gets a unit length vector.
+ */
+void plane_to_point_vector_v3_normalized(const float plane[4], float r_plane_co[3], float r_plane_no[3])
+{
+	const float length = normalize_v3_v3(r_plane_no, plane);
+	mul_v3_v3fl(r_plane_co, r_plane_no, (-plane[3] / length));
+}
 
 /********************************* Volume **********************************/
 

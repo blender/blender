@@ -74,7 +74,9 @@ float cross_poly_v2(const float verts[][2], unsigned int nr);
 /********************************* Planes **********************************/
 
 void  plane_from_point_normal_v3(float r_plane[4], const float plane_co[3], const float plane_no[3]);
-void  plane_to_point_normal_v3(const float plane[4], float r_plane_co[3], float r_plane_no[3]);
+void  plane_to_point_vector_v3(const float plane[4], float r_plane_co[3], float r_plane_no[3]);
+void  plane_to_point_vector_v3_normalized(const float plane[4], float r_plane_co[3], float r_plane_no[3]);
+
 MINLINE float plane_point_side_v3(const float plane[4], const float co[3]);
 
 /********************************* Volume **********************************/
