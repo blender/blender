@@ -64,7 +64,7 @@
 #include "view3d_intern.h"
 
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3]);
-static bool snap_calc_active_center(bContext *C, float r_center[3]);
+static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3]);
 
 
 /* *********************** operators ******************** */
@@ -227,7 +227,7 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 
 	if (use_offset) {
 		if ((v3d && v3d->around == V3D_ACTIVE) &&
-		    snap_calc_active_center(C, center_global))
+		    snap_calc_active_center(C, true, center_global))
 		{
 			/* pass */
 		}
@@ -607,12 +607,12 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 /* this could be exported to be a generic function
  * see: calculateCenterActive */
 
-static bool snap_calc_active_center(bContext *C, float r_center[3])
+static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3])
 {
 	Object *obedit = CTX_data_edit_object(C);
 
 	if (obedit) {
-		if (ED_object_editmode_calc_active_center(obedit, false, r_center)) {
+		if (ED_object_editmode_calc_active_center(obedit, select_only, r_center)) {
 			mul_m4_v3(obedit->obmat, r_center);
 			return true;
 		}
@@ -624,14 +624,18 @@ static bool snap_calc_active_center(bContext *C, float r_center[3])
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan = BKE_pose_channel_active(ob);
 				if (pchan) {
-					copy_v3_v3(r_center, pchan->pose_head);
-					mul_m4_v3(ob->obmat, r_center);
-					return true;
+					if (!select_only || (pchan->bone->flag & BONE_SELECTED)) {
+						copy_v3_v3(r_center, pchan->pose_head);
+						mul_m4_v3(ob->obmat, r_center);
+						return true;
+					}
 				}
 			}
 			else {
-				copy_v3_v3(r_center, ob->obmat[3]);
-				return true;
+				if (!select_only || (ob->flag & SELECT)) {
+					copy_v3_v3(r_center, ob->obmat[3]);
+					return true;
+				}
 			}
 		}
 	}
@@ -647,7 +651,7 @@ static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	curs = ED_view3d_cursor3d_get(scene, v3d);
 
-	if (snap_calc_active_center(C, curs)) {
+	if (snap_calc_active_center(C, false, curs)) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 		return OPERATOR_FINISHED;
 	}
