@@ -525,23 +525,28 @@ static void bev_merge_uvs(BMesh *bm, BMVert *v)
 	BMLoop *l;
 	float uv[2];
 	int n;
-	int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	int num_of_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+	int i;
 
-	if (cd_loop_uv_offset == -1)
-		return;
+	for (i = 0; i < num_of_uv_layers; i++) {
+		int cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_MLOOPUV, i);
 
-	n = 0;
-	zero_v2(uv);
-	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-		luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-		add_v2_v2(uv, luv->uv);
-		n++;
-	}
-	if (n > 1) {
-		mul_v2_fl(uv, 1.0f / (float)n);
+		if (cd_loop_uv_offset == -1)
+			return;
+
+		n = 0;
+		zero_v2(uv);
 		BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			copy_v2_v2(luv->uv, uv);
+			add_v2_v2(uv, luv->uv);
+			n++;
+		}
+		if (n > 1) {
+			mul_v2_fl(uv, 1.0f / (float)n);
+			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+				copy_v2_v2(luv->uv, uv);
+			}
 		}
 	}
 }
