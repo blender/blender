@@ -135,6 +135,27 @@ void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y
 	int iy = y - dy;
 #endif
 
+#ifndef NDEBUG
+	{
+		const DataType data_type = this->getOutputSocket()->getDataType();
+		int actual_element_size = this->m_elementsize;
+		int expected_element_size;
+		if (data_type == COM_DT_VALUE) {
+			expected_element_size = 1;
+		}
+		else if (data_type == COM_DT_VECTOR) {
+			expected_element_size = 3;
+		}
+		else if (data_type == COM_DT_COLOR) {
+			expected_element_size = 4;
+		}
+		else {
+			BLI_assert(!"Something horribly wrong just happened");
+		}
+		BLI_assert(expected_element_size == actual_element_size);
+	}
+#endif
+
 	if (this->m_inputBuffer == NULL) {
 		int elemsize = this->m_elementsize;
 		if (elemsize == 1) {
