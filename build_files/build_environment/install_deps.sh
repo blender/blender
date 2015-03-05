@@ -1493,7 +1493,7 @@ compile_OSL() {
     if [ ! -z $LLVM_VERSION_FOUND ]; then
       cmake_d="$cmake_d -D LLVM_VERSION=$LLVM_VERSION_FOUND"
       if [ -d $INST/llvm ]; then
-        cmake_d="$cmake_d -D LLVM_DIRECTORY=$INST/llvm"
+        cmake_d="$cmake_d -D LLVM_ROOT_DIR=$INST/llvm"
         cmake_d="$cmake_d -D LLVM_STATIC=ON"
       fi
     fi
@@ -2997,7 +2997,7 @@ print_info() {
       _buildargs="$_buildargs $_1"
     fi
     if [ -d $INST/llvm ]; then
-      _1="-D LLVM_DIRECTORY=$INST/llvm"
+      _1="-D LLVM_ROOT_DIR=$INST/llvm"
       _2="-D LLVM_STATIC=ON"
       PRINT "  $_1"
       PRINT "  $_2"
