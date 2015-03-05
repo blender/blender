@@ -193,6 +193,19 @@ RenderLayersAOOperation::RenderLayersAOOperation() : RenderLayersBaseProg(SCE_PA
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
+
+void RenderLayersAOOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+{
+	float *inputBuffer = this->getInputBuffer();
+	if (inputBuffer == NULL) {
+		zero_v3(output);
+	}
+	else {
+		doInterpolation(output, x, y, sampler);
+	}
+	output[3] = 1.0f;
+}
+
 /* ******** Render Layers Alpha Operation ******** */
 
 RenderLayersAlphaProg::RenderLayersAlphaProg() : RenderLayersBaseProg(SCE_PASS_COMBINED, 4)
