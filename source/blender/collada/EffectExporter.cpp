@@ -173,37 +173,44 @@ void EffectsExporter::writeTextures(COLLADASW::EffectProfile &ep,
 
 void EffectsExporter::operator()(Material *ma, Object *ob)
 {
+	bool is_shadeless = ma->mode & MA_SHLESS;
 	// create a list of indices to textures of type TEX_IMAGE
 	std::vector<int> tex_indices;
 	if (this->export_settings->include_material_textures)
 		createTextureIndices(ma, tex_indices);
 
 	openEffect(translate_id(id_name(ma)) + "-effect");
-	
+
 	COLLADASW::EffectProfile ep(mSW);
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
-	// set shader type - one of three blinn, phong or lambert
-	if (ma->spec > 0.0f) {
-		if (ma->spec_shader == MA_SPEC_BLINN) {
-			writeBlinn(ep, ma);
-		}
-		else {
-			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
-			// for now set phong in case spec shader is not blinn
-			writePhong(ep, ma);
-		}
+
+	/* set shader type */
+	if (is_shadeless)	{
+		ep.setShaderType(COLLADASW::EffectProfile::CONSTANT);
 	}
 	else {
-		if (ma->diff_shader == MA_DIFF_LAMBERT) {
-			writeLambert(ep, ma);
+		if (ma->spec > 0.0f) {
+			if (ma->spec_shader == MA_SPEC_BLINN) {
+				writeBlinn(ep, ma);
+			}
+			else {
+				// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+				// for now set phong in case spec shader is not blinn
+				writePhong(ep, ma);
+			}
 		}
 		else {
-			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
-			writePhong(ep, ma);
+			if (ma->diff_shader == MA_DIFF_LAMBERT) {
+				writeLambert(ep, ma);
+			}
+			else {
+				// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+				writePhong(ep, ma);
+			}
 		}
 	}
-	
+
 	// index of refraction
 	if (ma->mode & MA_RAYTRANSP) {
 		ep.setIndexOfRefraction(ma->ang, false, "index_of_refraction");
@@ -216,28 +223,40 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	// transparency
 	if (ma->mode & MA_TRANSP) {
-		// Tod: because we are in A_ONE mode transparency is calculated like this:
+		// Todo: because we are in A_ONE mode transparency is calculated like this:
 		ep.setTransparency(ma->alpha, false, "transparency");
 		// cot = getcol(1.0f, 1.0f, 1.0f, 1.0f);
 		// ep.setTransparent(cot);
 	}
 
 	// emission
-	cot = getcol(ma->emit, ma->emit, ma->emit, 1.0f);
+	if (is_shadeless)	{
+		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
+	}
+	else	{
+		cot = getcol(ma->emit, ma->emit, ma->emit, 1.0f);
+	}
 	ep.setEmission(cot, false, "emission");
 
 	// diffuse multiplied by diffuse intensity
-	cot = getcol(ma->r * ma->ref, ma->g * ma->ref, ma->b * ma->ref, 1.0f);
-	ep.setDiffuse(cot, false, "diffuse");
+	if (!is_shadeless)	{
+		cot = getcol(ma->r * ma->ref, ma->g * ma->ref, ma->b * ma->ref, 1.0f);
+		ep.setDiffuse(cot, false, "diffuse");
+	}
+
 
 	// ambient
 	/* ma->ambX is calculated only on render, so lets do it here manually and not rely on ma->ambX. */
-	if (this->scene->world)
-		cot = getcol(this->scene->world->ambr * ma->amb, this->scene->world->ambg * ma->amb, this->scene->world->ambb * ma->amb, 1.0f);
-	else
+	if (is_shadeless)
 		cot = getcol(ma->amb, ma->amb, ma->amb, 1.0f);
+	else	{
+		if (this->scene->world)
+			cot = getcol(this->scene->world->ambr * ma->amb,
+								this->scene->world->ambg * ma->amb,
+								this->scene->world->ambb * ma->amb, 1.0f);
+		ep.setAmbient(cot, false, "ambient");
+	}
 
-	ep.setAmbient(cot, false, "ambient");
 
 	// reflective, reflectivity
 	if (ma->mode & MA_RAYMIRROR) {
@@ -253,8 +272,10 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	// specular
 	if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
-		cot = getcol(ma->specr * ma->spec, ma->specg * ma->spec, ma->specb * ma->spec, 1.0f);
-		ep.setSpecular(cot, false, "specular");
+		if (!is_shadeless)	{
+			cot = getcol(ma->specr * ma->spec, ma->specg * ma->spec, ma->specb * ma->spec, 1.0f);
+			ep.setSpecular(cot, false, "specular");
+		}
 	}
 
 	// XXX make this more readable if possible

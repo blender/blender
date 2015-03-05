@@ -800,10 +800,13 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 	else if (shader == COLLADAFW::EffectCommon::SHADER_LAMBERT) {
 		ma->diff_shader = MA_DIFF_LAMBERT;
 	}
+	else if (shader == COLLADAFW::EffectCommon::SHADER_CONSTANT) {
+		ma->mode = MA_SHLESS;
+	}
 	// default - lambert
 	else {
 		ma->diff_shader = MA_DIFF_LAMBERT;
-		fprintf(stderr, "Current shader type is not supported, default to lambert.\n");
+		fprintf(stderr, "Shader type %d is not supported, default to lambert.\n", shader);
 	}
 	// reflectivity
 	ma->ray_mirror = ef->getReflectivity().getFloatValue();
@@ -899,7 +902,7 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 		COLLADAFW::Texture ctex = ef->getEmission().getTexture(); 
 		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 		if (mtex != NULL) {
-			mtex->mapto = MAP_EMIT; 
+			mtex->mapto = (shader == COLLADAFW::EffectCommon::SHADER_CONSTANT) ? MAP_COL : MAP_EMIT;
 			i++;
 		}
 	}
@@ -930,6 +933,21 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 		}
 	}
 #endif
+
+/**
+ * <constant> cannot have diffuse, ambient, specular, shininnes as its child.
+ * So color is solely based on
+ * the emission color, so we map emission color to material's color
+ */
+	if (shader == COLLADAFW::EffectCommon::SHADER_CONSTANT) {
+		COLLADAFW::Color col_emmission;
+		if (ef->getEmission().isValid()) {
+			col_emmission = ef->getEmission().getColor();
+			ma->r = col_emmission.getRed();
+			ma->g = col_emmission.getGreen();
+			ma->b = col_emmission.getBlue();
+		}
+	}
 	material_texture_mapping_map[ma] = texindex_texarray_map;
 }
 
