@@ -287,7 +287,7 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
 	unsigned int hitresult, besthitresult = BONESEL_NOSEL;
-	int i, mindep = 4;
+	int i, mindep = 5;
 	short hits;
 
 	/* find the bone after the current active bone, so as to bump up its chances in selection.
