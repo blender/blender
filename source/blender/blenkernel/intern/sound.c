@@ -617,6 +617,7 @@ void sound_seek_scene(struct Main *bmain, struct Scene *scene)
 	for (screen = bmain->screen.first; screen; screen = screen->id.next) {
 		if (screen->animtimer) {
 			animation_playing = 1;
+			break;
 		}
 	}
 
