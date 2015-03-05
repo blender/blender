@@ -89,8 +89,8 @@ class AddBox(bpy.types.Operator):
         for v_co in verts_loc:
             bm.verts.new(v_co)
 
+        bm.verts.ensure_lookup_table()
         for f_idx in faces:
-            bm.verts.ensure_lookup_table()
             bm.faces.new([bm.verts[i] for i in f_idx])
 
         bm.to_mesh(mesh)
