@@ -73,8 +73,6 @@ GHOST_SystemSDL::createWindow(const STR_String& title,
                               )
 {
 	GHOST_WindowSDL *window = NULL;
-	
-	(void) warnOld;
 
 	window = new GHOST_WindowSDL(this, title,
 	                             left, top, width, height,
