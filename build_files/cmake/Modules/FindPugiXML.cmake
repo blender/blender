@@ -1,7 +1,7 @@
 # - Find PugiXML library
 # Find the native PugiXML includes and library
 # This module defines
-#  PUGIXML_INCLUDE_DIRS, where to find pugixml.h, Set when
+#  PUGIXML_INCLUDE_DIRS, where to find pugixml.hpp, Set when
 #                        PugiXML is found.
 #  PUGIXML_LIBRARIES, libraries to link against to use PugiiXML.
 #  PUGIXML_ROOT_DIR, The base directory to search for PugiXML.
@@ -38,7 +38,7 @@ SET(_pugixml_SEARCH_DIRS
 
 FIND_PATH(PUGIXML_INCLUDE_DIR
   NAMES
-    pugixml.h
+    pugixml.hpp
   HINTS
     ${_pugixml_SEARCH_DIRS}
   PATH_SUFFIXES
