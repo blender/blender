@@ -61,11 +61,9 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
 		MovieTrackingPlaneTrack *plane_track;
 		plane_track = BKE_tracking_plane_track_get_named(tracking, object, this->m_planeTrackName);
 		if (plane_track) {
-			MovieTrackingPlaneMarker *plane_marker;
 			float clip_framenr =
 				BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip,
 				                                        frame);
-			plane_marker = BKE_tracking_plane_marker_get(plane_track, clip_framenr);
 			BKE_tracking_plane_marker_get_subframe_corners(plane_track,
 			                                               clip_framenr,
 			                                               corners);
