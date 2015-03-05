@@ -1034,12 +1034,12 @@ if(UNIX AND NOT APPLE)
 	# XXX Maybe most of this section should go into an llvm module?
 	if(WITH_LLVM)
 
-		if(LLVM_DIRECTORY)
+		if(LLVM_ROOT_DIR)
 			if(NOT DEFINED LLVM_VERSION)
-				find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION} HINTS ${LLVM_DIRECTORY}/bin NO_CMAKE_PATH)
+				find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION} HINTS ${LLVM_ROOT_DIR}/bin NO_CMAKE_PATH)
 			endif()
 			if(NOT LLVM_CONFIG)
-				find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_DIRECTORY}/bin NO_CMAKE_PATH)
+				find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_ROOT_DIR}/bin NO_CMAKE_PATH)
 			endif()
 		else()
 			if(NOT DEFINED LLVM_VERSION)
@@ -1056,11 +1056,11 @@ if(UNIX AND NOT APPLE)
 							OUTPUT_STRIP_TRAILING_WHITESPACE)
 			set(LLVM_VERSION ${LLVM_VERSION} CACHE STRING "Version of LLVM to use")
 		endif()
-		if(NOT DEFINED LLVM_DIRECTORY)
+		if(NOT DEFINED LLVM_ROOT_DIR)
 			execute_process(COMMAND ${LLVM_CONFIG} --prefix
-							OUTPUT_VARIABLE LLVM_DIRECTORY
+							OUTPUT_VARIABLE LLVM_ROOT_DIR
 							OUTPUT_STRIP_TRAILING_WHITESPACE)
-			set(LLVM_DIRECTORY ${LLVM_DIRECTORY} CACHE PATH "Path to the LLVM installation")
+			set(LLVM_ROOT_DIR ${LLVM_ROOT_DIR} CACHE PATH "Path to the LLVM installation")
 		endif()
 		if(NOT DEFINED LLVM_LIBPATH)
 			execute_process(COMMAND ${LLVM_CONFIG} --libdir
@@ -1081,7 +1081,7 @@ if(UNIX AND NOT APPLE)
 		endif()
 
 
-		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIBPATH)
+		if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
@@ -1459,16 +1459,16 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_LLVM)
-			set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
-			file(GLOB LLVM_LIBRARY_OPTIMIZED ${LLVM_DIRECTORY}/lib/*.lib)
+			set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+			file(GLOB LLVM_LIBRARY_OPTIMIZED ${LLVM_ROOT_DIR}/lib/*.lib)
 
-			if(EXISTS ${LLVM_DIRECTORY}/debug/lib)
+			if(EXISTS ${LLVM_ROOT_DIR}/debug/lib)
 				foreach(LLVM_OPTIMIZED_LIB ${LLVM_LIBRARY_OPTIMIZED})
 					get_filename_component(LIBNAME ${LLVM_OPTIMIZED_LIB} ABSOLUTE)
 					list(APPEND LLVM_LIBS optimized ${LIBNAME})
 				endforeach(LLVM_OPTIMIZED_LIB)
 			
-				file(GLOB LLVM_LIBRARY_DEBUG ${LLVM_DIRECTORY}/debug/lib/*.lib)
+				file(GLOB LLVM_LIBRARY_DEBUG ${LLVM_ROOT_DIR}/debug/lib/*.lib)
 
 				foreach(LLVM_DEBUG_LIB ${LLVM_LIBRARY_DEBUG})
 					get_filename_component(LIBNAME ${LLVM_DEBUG_LIB} ABSOLUTE)
@@ -1705,8 +1705,8 @@ elseif(WIN32)
 		endif()
 		
 		if(WITH_LLVM)
-			set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
-			set(LLVM_LIBPATH ${LLVM_DIRECTORY}/lib)
+			set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+			set(LLVM_LIBPATH ${LLVM_ROOT_DIR}/lib)
 			# Explicitly set llvm lib order.
 			#---- WARNING ON GCC ORDER OF LIBS IS IMPORTANT, DO NOT CHANGE! ---------
 			set(LLVM_LIBRARY LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMAnalysis LLVMArchive
@@ -2041,10 +2041,10 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_LLVM)
-		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+		set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
 		set(LLVM_VERSION "3.4" CACHE STRING	"Version of LLVM to use")
-		if(EXISTS "${LLVM_DIRECTORY}/bin/llvm-config")
-			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
+		if(EXISTS "${LLVM_ROOT_DIR}/bin/llvm-config")
+			set(LLVM_CONFIG "${LLVM_ROOT_DIR}/bin/llvm-config")
 		else()
 			set(LLVM_CONFIG llvm-config)
 		endif()
@@ -2052,7 +2052,7 @@ elseif(APPLE)
 		                OUTPUT_VARIABLE LLVM_VERSION
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		execute_process(COMMAND ${LLVM_CONFIG} --prefix
-		                OUTPUT_VARIABLE LLVM_DIRECTORY
+		                OUTPUT_VARIABLE LLVM_ROOT_DIR
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		execute_process(COMMAND ${LLVM_CONFIG} --libdir
 		                OUTPUT_VARIABLE LLVM_LIBPATH
@@ -2061,7 +2061,7 @@ elseif(APPLE)
 		             NAMES LLVMAnalysis # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIBPATH})
 
-		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIBPATH)
+		if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
@@ -2670,7 +2670,7 @@ mark_as_advanced(
 
 mark_as_advanced(
 	LLVM_CONFIG
-	LLVM_DIRECTORY
+	LLVM_ROOT_DIR
 	LLVM_LIBRARY
 	LLVM_VERSION
 )
