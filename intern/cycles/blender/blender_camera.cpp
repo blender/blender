@@ -623,10 +623,12 @@ BufferParams BlenderSync::get_buffer_params(BL::RenderSettings b_render, BL::Sce
 
 	if(use_border) {
 		/* border render */
-		params.full_x = (int)(cam->border.left * (float)width);
-		params.full_y = (int)(cam->border.bottom * (float)height);
-		params.width = (int)(cam->border.right * (float)width) - params.full_x;
-		params.height = (int)(cam->border.top * (float)height) - params.full_y;
+		/* the viewport may offset the border outside the view */
+		BoundBox2D border = cam->border.clamp();
+		params.full_x = (int)(border.left * (float)width);
+		params.full_y = (int)(border.bottom * (float)height);
+		params.width = (int)(border.right * (float)width) - params.full_x;
+		params.height = (int)(border.top * (float)height) - params.full_y;
 
 		/* survive in case border goes out of view or becomes too small */
 		params.width = max(params.width, 1);
