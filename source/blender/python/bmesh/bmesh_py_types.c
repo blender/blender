@@ -1422,17 +1422,44 @@ static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *ar
 
 
 PyDoc_STRVAR(bpy_bmvert_calc_edge_angle_doc,
-".. method:: calc_vert_angle()\n"
+".. method:: calc_edge_angle(fallback=None)\n"
 "\n"
 "   Return the angle between this vert's two connected edges.\n"
 "\n"
+"   :arg fallback: return this when the vert doesn't have 2 edges\n"
+"      (instead of raising a :exc:`ValueError`).\n"
+"   :type fallback: any\n"
 "   :return: Angle between edges in radians.\n"
 "   :rtype: float\n"
 );
-static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self)
+static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self, PyObject *args)
 {
+	const float angle_invalid = -1.0f;
+	float angle;
+	PyObject *fallback = NULL;
+
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_vert_calc_edge_angle(self->v));
+
+	if (!PyArg_ParseTuple(args, "|O:calc_edge_angle", &fallback))
+		return NULL;
+
+	angle = BM_vert_calc_edge_angle_ex(self->v, angle_invalid);
+
+	if (angle == angle_invalid) {
+		/* avoid exception */
+		if (fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError,
+			                "BMVert.calc_edge_angle(): "
+			                "vert doesn't use 2 edges");
+			return NULL;
+		}
+	}
+
+	return PyFloat_FromDouble(angle);
 }
 
 PyDoc_STRVAR(bpy_bmvert_calc_shell_factor_doc,
@@ -2554,7 +2581,7 @@ static struct PyMethodDef bpy_bmvert_methods[] = {
 	{"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_VARARGS, bpy_bmvert_copy_from_face_interp_doc},
 	{"copy_from_vert_interp", (PyCFunction)bpy_bmvert_copy_from_vert_interp, METH_VARARGS, bpy_bmvert_copy_from_vert_interp_doc},
 
-	{"calc_vert_angle",   (PyCFunction)bpy_bmvert_calc_edge_angle,   METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
+	{"calc_edge_angle",   (PyCFunction)bpy_bmvert_calc_edge_angle,   METH_VARARGS, bpy_bmvert_calc_edge_angle_doc},
 	{"calc_shell_factor", (PyCFunction)bpy_bmvert_calc_shell_factor, METH_NOARGS, bpy_bmvert_calc_shell_factor_doc},
 
 	{"normal_update",  (PyCFunction)bpy_bmvert_normal_update,  METH_NOARGS,  bpy_bmvert_normal_update_doc},
