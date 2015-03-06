@@ -363,7 +363,8 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, const char *title, wm
 	/* force setting multisamples only once, it requires restart - and you cannot 
 	 * mix it, either all windows have it, or none (tested in OSX opengl) */
 	if (multisamples == -1)
-		glSettings.numOfAASamples = U.ogl_multisamples;
+		multisamples = U.ogl_multisamples;
+		glSettings.numOfAASamples = multisamples;
 
 	if (!(U.uiflag2 & USER_OPENGL_NO_WARN_SUPPORT))
 		glSettings.flags |= GHOST_glWarnSupport;
