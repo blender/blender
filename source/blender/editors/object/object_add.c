@@ -1605,18 +1605,30 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 	/* don't forget multiple users! */
 
-	/* reset flags */
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
-		ob = base->object;
-		ob->flag &= ~OB_DONE;
+		Base *base;
 
-		/* flag data thats not been edited (only needed for !keep_original) */
-		if (ob->data) {
-			((ID *)ob->data)->flag |= LIB_DOIT;
+		for (base = scene->base.first; base; base = base->next) {
+			ob = base->object;
+			ob->flag &= ~OB_DONE;
+
+			/* flag data thats not been edited (only needed for !keep_original) */
+			if (ob->data) {
+				((ID *)ob->data)->flag |= LIB_DOIT;
+			}
+
+			/* possible metaball basis is not in this scene */
+			if (ob->type == OB_MBALL && target == OB_MESH) {
+				if (BKE_mball_is_basis(ob) == false) {
+					Object *ob_basis;
+					ob_basis = BKE_mball_basis_find(scene, ob);
+					if (ob_basis) {
+						ob_basis->flag &= ~OB_DONE;
+					}
+				}
+			}
 		}
 	}
-	CTX_DATA_END;
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
@@ -1856,14 +1868,21 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 	if (!keep_original) {
 		if (mballConverted) {
-			Base *base = scene->base.first, *tmpbase;
-			while (base) {
-				ob = base->object;
-				tmpbase = base;
-				base = base->next;
+			Base *base, *base_next;
 
+			for (base = scene->base.first; base; base = base_next) {
+				base_next = base->next;
+
+				ob = base->object;
 				if (ob->type == OB_MBALL) {
-					ED_base_object_free_and_unlink(bmain, scene, tmpbase);
+					if (ob->flag & OB_DONE) {
+						Object *ob_basis = NULL;
+						if (BKE_mball_is_basis(ob) ||
+						    ((ob_basis = BKE_mball_basis_find(scene, ob)) && (ob_basis->flag & OB_DONE)))
+						{
+							ED_base_object_free_and_unlink(bmain, scene, base);
+						}
+					}
 				}
 			}
 		}
