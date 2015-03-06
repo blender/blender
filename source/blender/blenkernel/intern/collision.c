@@ -947,7 +947,8 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 	float inv_dt = 1.0f / dt;
 	Cloth *cloth1 = clmd->clothObject;
 	
-	float w1, w2, u1, u2, u3;
+	// float w1, w2;
+	float u1, u2, u3;
 	float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
 	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
 
@@ -966,8 +967,8 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 			continue;
 
 		/* compute barycentric coordinates for both collision points */
-		w1 = 1.0f - collpair->time;
-		w2 = collpair->time;
+		// w1 = 1.0f - collpair->time;
+		// w2 = collpair->time;
 
 		/* was: txold */
 		collision_compute_barycentric ( collpair->pb,
@@ -1107,7 +1108,7 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
                                       int index_cloth, int index_coll, float epsilon, CollPair *collpair)
 {
 	float *co1 = mverts[bp1].co, *co2 = mverts[bp2].co, *co3 = mverts[bp3].co;
-	float lambda, distance1, distance2;
+	float lambda /*, distance1 */, distance2;
 	float facenor[3], v1p1[3], v1p2[3];
 	float w[4];
 
@@ -1115,7 +1116,7 @@ static CollPair *cloth_point_collpair(float p1[3], float p2[3], MVert *mverts, i
 		return collpair;
 	
 	sub_v3_v3v3(v1p1, p1, co1);
-	distance1 = dot_v3v3(v1p1, facenor);
+//	distance1 = dot_v3v3(v1p1, facenor);
 	sub_v3_v3v3(v1p2, p2, co1);
 	distance2 = dot_v3v3(v1p2, facenor);
 //	if (distance2 > epsilon || (distance1 < 0.0f && distance2 < 0.0f))
