@@ -1951,8 +1951,8 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 		}
 	}
 	
-	glPointSize(1.0);
 	bglEnd();
+	glPointSize(1.0);
 }
 
 static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, int actdef_wcol)
