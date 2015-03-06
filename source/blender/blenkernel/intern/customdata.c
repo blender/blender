@@ -1810,7 +1810,13 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data, int typ
 		newlayerdata = layerdata;
 	}
 	else if (size > 0) {
-		newlayerdata = MEM_callocN(size, layerType_getName(type));
+		if (alloctype == CD_DUPLICATE && layerdata) {
+			newlayerdata = MEM_mallocN(size, layerType_getName(type));
+		}
+		else {
+			newlayerdata = MEM_callocN(size, layerType_getName(type));
+		}
+
 		if (!newlayerdata)
 			return NULL;
 	}
