@@ -4370,7 +4370,7 @@ static void con_unlink_refs_cb(bConstraint *UNUSED(con), ID **idpoin, bool is_re
  * be sure to run BIK_clear_data() when freeing an IK constraint,
  * unless DAG_relations_tag_update is called. 
  */
-void BKE_constraint_free_data(bConstraint *con)
+void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)
 {
 	if (con->data) {
 		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
@@ -4381,7 +4381,7 @@ void BKE_constraint_free_data(bConstraint *con)
 				cti->free_data(con);
 				
 			/* unlink the referenced resources it uses */
-			if (cti->id_looper)
+			if (do_id_user && cti->id_looper)
 				cti->id_looper(con, con_unlink_refs_cb, NULL);
 		}
 		
@@ -4390,19 +4390,28 @@ void BKE_constraint_free_data(bConstraint *con)
 	}
 }
 
+void BKE_constraint_free_data(bConstraint *con)
+{
+	BKE_constraint_free_data_ex(con, true);
+}
+
 /* Free all constraints from a constraint-stack */
-void BKE_constraints_free(ListBase *list)
+void BKE_constraints_free_ex(ListBase *list, bool do_id_user)
 {
 	bConstraint *con;
 	
 	/* Free constraint data and also any extra data */
 	for (con = list->first; con; con = con->next)
-		BKE_constraint_free_data(con);
+		BKE_constraint_free_data_ex(con, do_id_user);
 	
 	/* Free the whole list */
 	BLI_freelistN(list);
 }
 
+void BKE_constraints_free(ListBase *list)
+{
+	BKE_constraints_free_ex(list, true);
+}
 
 /* Remove the specified constraint from the given constraint stack */
 bool BKE_constraint_remove(ListBase *list, bConstraint *con)
