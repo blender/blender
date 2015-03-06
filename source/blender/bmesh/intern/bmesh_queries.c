@@ -1356,7 +1356,7 @@ void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_ta
  *
  * \returns the angle in radians
  */
-float BM_vert_calc_edge_angle(BMVert *v)
+float BM_vert_calc_edge_angle_ex(BMVert *v, const float fallback)
 {
 	BMEdge *e1, *e2;
 
@@ -1374,8 +1374,13 @@ float BM_vert_calc_edge_angle(BMVert *v)
 		return (float)M_PI - angle_v3v3v3(v1->co, v->co, v2->co);
 	}
 	else {
-		return DEG2RADF(90.0f);
+		return fallback;
 	}
+}
+
+float BM_vert_calc_edge_angle(BMVert *v)
+{
+	return BM_vert_calc_edge_angle_ex(v, DEG2RADF(90.0f));
 }
 
 /**

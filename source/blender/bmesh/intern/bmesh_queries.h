@@ -98,6 +98,7 @@ float   BM_edge_calc_face_angle_signed(const BMEdge *e) ATTR_WARN_UNUSED_RESULT 
 void    BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3]) ATTR_NONNULL();
 
 float   BM_vert_calc_edge_angle(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_vert_calc_edge_angle_ex(BMVert *v, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_vert_calc_shell_factor(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_vert_calc_shell_factor_ex(BMVert *v, const float no[3], const char hflag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_vert_calc_mean_tagged_edge_length(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
