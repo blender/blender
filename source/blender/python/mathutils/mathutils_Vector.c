@@ -957,13 +957,11 @@ PyDoc_STRVAR(Vector_angle_doc,
 "\n"
 "   :arg other: another vector to compare the angle with\n"
 "   :type other: :class:`Vector`\n"
-"   :arg fallback: return this value when the angle can't be calculated\n"
-"      (zero length vector)\n"
+"   :arg fallback: return this when the angle can't be calculated (zero length vector),\n"
+"      (instead of raising a :exc:`ValueError`).\n"
 "   :type fallback: any\n"
 "   :return: angle in radians or fallback when given\n"
 "   :rtype: float\n"
-"\n"
-"   .. note:: Zero length vectors raise an :exc:`ValueError`.\n"
 );
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
@@ -1021,13 +1019,11 @@ PyDoc_STRVAR(Vector_angle_signed_doc,
 "\n"
 "   :arg other: another vector to compare the angle with\n"
 "   :type other: :class:`Vector`\n"
-"   :arg fallback: return this value when the angle can't be calculated\n"
-"      (zero length vector)\n"
+"   :arg fallback: return this when the angle can't be calculated (zero length vector),\n"
+"      (instead of raising a :exc:`ValueError`).\n"
 "   :type fallback: any\n"
 "   :return: angle in radians or fallback when given\n"
 "   :rtype: float\n"
-"\n"
-"   .. note:: Zero length vectors raise an :exc:`ValueError`.\n"
 );
 static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
 {
@@ -1195,8 +1191,8 @@ PyDoc_STRVAR(Vector_slerp_doc,
 "   :type other: :class:`Vector`\n"
 "   :arg factor: The interpolation value typically in [0.0, 1.0].\n"
 "   :type factor: float\n"
-"   :arg fallback: return this value when the vector can't be calculated\n"
-"      (zero length vector or direct opposites)\n"
+"   :arg fallback: return this when the vector can't be calculated (zero length vector or direct opposites),\n"
+"      (instead of raising a :exc:`ValueError`).\n"
 "   :type fallback: any\n"
 "   :return: The interpolated vector.\n"
 "   :rtype: :class:`Vector`\n"
