@@ -119,6 +119,9 @@ __forceinline const ssef operator^(const ssef& a, const ssei& b) { return _mm_xo
 __forceinline const ssef operator&(const ssef& a, const ssef& b) { return _mm_and_ps(a.m128,b.m128); }
 __forceinline const ssef operator&(const ssef& a, const ssei& b) { return _mm_and_ps(a.m128,_mm_castsi128_ps(b.m128)); }
 
+__forceinline const ssef operator|(const ssef& a, const ssef& b) { return _mm_or_ps(a.m128,b.m128); }
+__forceinline const ssef operator|(const ssef& a, const ssei& b) { return _mm_or_ps(a.m128,_mm_castsi128_ps(b.m128)); }
+
 __forceinline const ssef andnot(const ssef& a, const ssef& b) { return _mm_andnot_ps(a.m128,b.m128); }
 
 __forceinline const ssef min(const ssef& a, const ssef& b) { return _mm_min_ps(a.m128,b.m128); }
@@ -267,8 +270,28 @@ template<size_t i0, size_t i1, size_t i2, size_t i3> __forceinline const ssef sh
 	return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
 }
 
+template<> __forceinline const ssef shuffle<0, 1, 0, 1>(const ssef& a) {
+	return _mm_movelh_ps(a, a);
+}
+
+template<> __forceinline const ssef shuffle<2, 3, 2, 3>(const ssef& a) {
+	return _mm_movehl_ps(a, a);
+}
+
 template<size_t i0, size_t i1, size_t i2, size_t i3> __forceinline const ssef shuffle(const ssef& a, const ssef& b) {
 	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
+}
+
+template<size_t i0> __forceinline const ssef shuffle(const ssef& a, const ssef& b) {
+	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i0, i0, i0, i0));
+}
+
+template<> __forceinline const ssef shuffle<0, 1, 0, 1>(const ssef& a, const ssef& b) {
+	return _mm_movelh_ps(a, b);
+}
+
+template<> __forceinline const ssef shuffle<2, 3, 2, 3>(const ssef& a, const ssef& b) {
+	return _mm_movehl_ps(b, a);
 }
 
 #if defined(__KERNEL_SSSE3__)
@@ -280,18 +303,19 @@ __forceinline const ssef shuffle8(const ssef& a, const ssei& shuf) {
 #if defined(__KERNEL_SSE3__)
 template<> __forceinline const ssef shuffle<0, 0, 2, 2>(const ssef& b) { return _mm_moveldup_ps(b); }
 template<> __forceinline const ssef shuffle<1, 1, 3, 3>(const ssef& b) { return _mm_movehdup_ps(b); }
-template<> __forceinline const ssef shuffle<0, 1, 0, 1>(const ssef& b) { return _mm_castpd_ps(_mm_movedup_pd(_mm_castps_pd(b))); }
 #endif
 
 template<size_t i0> __forceinline const ssef shuffle(const ssef& b) {
 	return shuffle<i0,i0,i0,i0>(b);
 }
 
-#if defined(__KERNEL_SSE41__) && !defined(__GNUC__)
-template<size_t i> __forceinline float extract  (const ssef& a) { return _mm_cvtss_f32(_mm_extract_ps(a,i)); }
-#else
-template<size_t i> __forceinline float extract  (const ssef& a) { return _mm_cvtss_f32(shuffle<i,i,i,i>(a)); }
+#if defined(__KERNEL_AVX__)
+__forceinline const ssef shuffle(const ssef& a, const ssei& shuf) {
+	return _mm_permutevar_ps(a, shuf);
+}
 #endif
+
+template<size_t i> __forceinline float extract   (const ssef& a) { return _mm_cvtss_f32(shuffle<i,i,i,i>(a)); }
 template<>         __forceinline float extract<0>(const ssef& a) { return _mm_cvtss_f32(a); }
 
 #if defined(__KERNEL_SSE41__)
@@ -346,6 +370,8 @@ __forceinline size_t select_max(const ssef& v) { return __bsf(movemask(v == vred
 
 __forceinline size_t select_min(const sseb& valid, const ssef& v) { const ssef a = select(valid,v,ssef(pos_inf)); return __bsf(movemask(valid &(a == vreduce_min(a)))); }
 __forceinline size_t select_max(const sseb& valid, const ssef& v) { const ssef a = select(valid,v,ssef(neg_inf)); return __bsf(movemask(valid &(a == vreduce_max(a)))); }
+
+__forceinline size_t movemask( const ssef& a ) { return _mm_movemask_ps(a); }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Memory load and store operations
