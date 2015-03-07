@@ -127,7 +127,7 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 		
 		m_joynum = SDL_NumJoysticks();
 		
-		for (i=0; i<JOYINDEX_MAX; i++) {
+		for (i = 0; i < m_joynum; i++) {
 			m_instance[i] = new SCA_Joystick(i);
 			m_instance[i]->CreateJoystickDevice();
 		}
@@ -149,7 +149,7 @@ void SCA_Joystick::ReleaseInstance()
 		if (!SDL_CHECK(SDL_QuitSubSystem)) {
 			return;
 		}
-		for (int i=0; i<JOYINDEX_MAX; i++) {
+		for (int i = 0; i < m_joynum; i++) {
 			if (m_instance[i]) {
 				m_instance[i]->DestroyJoystickDevice();
 				delete m_instance[i];
