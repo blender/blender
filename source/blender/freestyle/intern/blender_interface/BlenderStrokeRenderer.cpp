@@ -730,7 +730,6 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 	     it != itend; ++it)
 	{
 		mesh->mat[material_index] = (*it)->getMaterial();
-		material_index++;
 
 		vector<Strip*>& strips = (*it)->getStrips();
 		for (vector<Strip*>::const_iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
@@ -811,6 +810,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 					// poly
 					polys->loopstart = loop_index;
 					polys->totloop = 3;
+					polys->mat_nr = material_index;
 					++polys;
 
 					// Even and odd loops connect triangles vertices differently
@@ -909,6 +909,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 				}
 			} // loop over strip vertices
 		} // loop over strips
+		material_index++;
 	} // loop over strokes
 
 	test_object_materials(freestyle_bmain, (ID *)mesh);
