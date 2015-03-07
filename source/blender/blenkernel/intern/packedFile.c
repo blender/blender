@@ -429,9 +429,6 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 	char *newname = NULL;
 	const char *temp = NULL;
 	
-	// char newabs[FILE_MAX];
-	// char newlocal[FILE_MAX];
-	
 	if (pf != NULL) {
 		switch (how) {
 			case -1:
@@ -480,17 +477,54 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 	return newname;
 }
 
+static void unpack_generate_paths(
+        const char *name, ID *id, char *abspath_r, char *relpath_r, size_t abspathlen, size_t relpathlen)
+{
+	char tempname[FILE_MAX];
+	char tempdir[FILE_MAXDIR];
+
+	BLI_split_dirfile(name, tempdir, tempname, sizeof(tempdir), sizeof(tempname));
+
+	if (tempname[0] == '\0') {
+		/* Note: we do not have any real way to re-create extension out of data... */
+		BLI_strncpy(tempname, id->name + 2, sizeof(tempname));
+		printf("%s\n", tempname);
+		BLI_filename_make_safe(tempname);
+		printf("%s\n", tempname);
+	}
+
+	if (tempdir[0] == '\0') {
+		/* Fallback to relative dir. */
+		BLI_strncpy(tempdir, "//", sizeof(tempdir));
+	}
+
+	switch (GS(id->name)) {
+		case ID_VF:
+			BLI_snprintf(relpath_r, relpathlen, "//fonts/%s", tempname);
+			break;
+		case ID_SO:
+			BLI_snprintf(relpath_r, relpathlen, "//sounds/%s", tempname);
+			break;
+		case ID_IM:
+			BLI_snprintf(relpath_r, relpathlen, "//textures/%s", tempname);
+			break;
+	}
+
+	{
+		size_t len = BLI_strncpy_rlen(abspath_r, tempdir, abspathlen);
+		BLI_strncpy(abspath_r + len, tempname, abspathlen - len);
+	}
+}
 
 int unpackVFont(ReportList *reports, VFont *vfont, int how)
 {
-	char localname[FILE_MAX], fi[FILE_MAXFILE];
+	char localname[FILE_MAX], absname[FILE_MAX];
 	char *newname;
 	int ret_value = RET_ERROR;
 	
 	if (vfont != NULL) {
-		BLI_split_file_part(vfont->name, fi, sizeof(fi));
-		BLI_snprintf(localname, sizeof(localname), "//fonts/%s", fi);
-		newname = unpackFile(reports, vfont->name, localname, vfont->packedfile, how);
+		unpack_generate_paths(vfont->name, (ID *)vfont, absname, localname, sizeof(absname), sizeof(localname));
+		newname = unpackFile(reports, absname, localname, vfont->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(vfont->packedfile);
@@ -505,14 +539,13 @@ int unpackVFont(ReportList *reports, VFont *vfont, int how)
 
 int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 {
-	char localname[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
+	char localname[FILE_MAX], absname[FILE_MAX];
 	char *newname;
 	int ret_value = RET_ERROR;
 
 	if (sound != NULL) {
-		BLI_split_file_part(sound->name, fi, sizeof(fi));
-		BLI_snprintf(localname, sizeof(localname), "//sounds/%s", fi);
-		newname = unpackFile(reports, sound->name, localname, sound->packedfile, how);
+		unpack_generate_paths(sound->name, (ID *)sound, absname, localname, sizeof(absname), sizeof(localname));
+		newname = unpackFile(reports, absname, localname, sound->packedfile, how);
 		if (newname != NULL) {
 			BLI_strncpy(sound->name, newname, sizeof(sound->name));
 			MEM_freeN(newname);
@@ -531,14 +564,13 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 
 int unpackImage(ReportList *reports, Image *ima, int how)
 {
-	char localname[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
+	char localname[FILE_MAX], absname[FILE_MAX];
 	char *newname;
 	int ret_value = RET_ERROR;
 	
 	if (ima != NULL && ima->name[0]) {
-		BLI_split_file_part(ima->name, fi, sizeof(fi));
-		BLI_snprintf(localname, sizeof(localname), "//textures/%s", fi);
-		newname = unpackFile(reports, ima->name, localname, ima->packedfile, how);
+		unpack_generate_paths(ima->name, (ID *)ima, absname, localname, sizeof(absname), sizeof(localname));
+		newname = unpackFile(reports, absname, localname, ima->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(ima->packedfile);
