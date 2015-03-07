@@ -491,7 +491,7 @@ OPENEXR_SOURCE_REPO=( "https://github.com/mont29/openexr.git" )
 OPENEXR_SOURCE_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
 ILMBASE_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz" )
 
-OPENEXR_USE_REPO=false
+OIIO_USE_REPO=false
 OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz" )
 OIIO_SOURCE_REPO=( "https://github.com/OpenImageIO/oiio.git" )
 OIIO_SOURCE_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
