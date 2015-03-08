@@ -108,7 +108,7 @@ PyDoc_STRVAR(bpy_bm_update_edit_mesh_doc,
 "   :type mesh: :class:`bpy.types.Mesh`\n"
 "   :arg tessface: Option to recalculate n-gon tessellation.\n"
 "   :type tessface: boolean\n"
-"   :arg destructive: Use when grometry has been added or removed.\n"
+"   :arg destructive: Use when geometry has been added or removed.\n"
 "   :type destructive: boolean\n"
 );
 static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
