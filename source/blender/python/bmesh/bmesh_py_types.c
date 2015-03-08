@@ -1509,27 +1509,81 @@ static PyObject *bpy_bmedge_calc_length(BPy_BMEdge *self)
 }
 
 PyDoc_STRVAR(bpy_bmedge_calc_face_angle_doc,
-".. method:: calc_face_angle()\n"
+".. method:: calc_face_angle(fallback=None)\n"
 "\n"
+"   :arg fallback: return this when the edge doesn't have 2 faces\n"
+"      (instead of raising a :exc:`ValueError`).\n"
+"   :type fallback: any\n"
 "   :return: The angle between 2 connected faces in radians.\n"
 "   :rtype: float\n"
 );
-static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self)
+static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self, PyObject *args)
 {
+	const float angle_invalid = -1.0f;
+	float angle;
+	PyObject *fallback = NULL;
+
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_edge_calc_face_angle(self->e));
+
+	if (!PyArg_ParseTuple(args, "|O:calc_face_angle", &fallback))
+		return NULL;
+
+	angle = BM_edge_calc_face_angle_ex(self->e, angle_invalid);
+
+	if (angle == angle_invalid) {
+		/* avoid exception */
+		if (fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError,
+			                "BMEdge.calc_face_angle(): "
+			                "edge doesn't use 2 faces");
+			return NULL;
+		}
+	}
+
+	return PyFloat_FromDouble(angle);
 }
 
 PyDoc_STRVAR(bpy_bmedge_calc_face_angle_signed_doc,
-".. method:: calc_face_angle_signed()\n"
+".. method:: calc_face_angle_signed(fallback=None)\n"
 "\n"
+"   :arg fallback: return this when the edge doesn't have 2 faces\n"
+"      (instead of raising a :exc:`ValueError`).\n"
+"   :type fallback: any\n"
 "   :return: The angle between 2 connected faces in radians (negative for concave join).\n"
 "   :rtype: float\n"
 );
-static PyObject *bpy_bmedge_calc_face_angle_signed(BPy_BMEdge *self)
+static PyObject *bpy_bmedge_calc_face_angle_signed(BPy_BMEdge *self, PyObject *args)
 {
+	const float angle_invalid = -FLT_MAX;
+	float angle;
+	PyObject *fallback = NULL;
+
 	BPY_BM_CHECK_OBJ(self);
-	return PyFloat_FromDouble(BM_edge_calc_face_angle_signed(self->e));
+
+	if (!PyArg_ParseTuple(args, "|O:calc_face_angle_signed", &fallback))
+		return NULL;
+
+	angle = BM_edge_calc_face_angle_signed_ex(self->e, angle_invalid);
+
+	if (angle == angle_invalid) {
+		/* avoid exception */
+		if (fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError,
+			                "BMEdge.calc_face_angle_signed(): "
+			                "edge doesn't use 2 faces");
+			return NULL;
+		}
+	}
+
+	return PyFloat_FromDouble(angle);
 }
 
 PyDoc_STRVAR(bpy_bmedge_calc_tangent_doc,
@@ -2597,8 +2651,8 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
 	{"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
 
 	{"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS,  bpy_bmedge_calc_length_doc},
-	{"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS,  bpy_bmedge_calc_face_angle_doc},
-	{"calc_face_angle_signed", (PyCFunction)bpy_bmedge_calc_face_angle_signed, METH_NOARGS,  bpy_bmedge_calc_face_angle_signed_doc},
+	{"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_VARARGS,  bpy_bmedge_calc_face_angle_doc},
+	{"calc_face_angle_signed", (PyCFunction)bpy_bmedge_calc_face_angle_signed, METH_VARARGS,  bpy_bmedge_calc_face_angle_signed_doc},
 	{"calc_tangent",    (PyCFunction)bpy_bmedge_calc_tangent,    METH_VARARGS, bpy_bmedge_calc_tangent_doc},
 
 	{"normal_update",  (PyCFunction)bpy_bmedge_normal_update,  METH_NOARGS,  bpy_bmedge_normal_update_doc},
