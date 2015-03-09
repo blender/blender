@@ -3412,7 +3412,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventImeCompositionEnd:
 		{
 			event.val = KM_PRESS;
-			win->ime_data->is_ime_composing = false;
+			if (win->ime_data) {
+				win->ime_data->is_ime_composing = false;
+			}
 			event.type = WM_IME_COMPOSITE_END;
 			wm_event_add(win, &event);
 			break;
