@@ -100,12 +100,12 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2; x++) {
-			this->m_imageInput->readSampled(&(buffer[offset4]), (float)x + 0.5f, (float)y + 0.5f, COM_PS_NEAREST);
+			this->m_imageInput->readSampled(&(buffer[offset4]), x, y, COM_PS_NEAREST);
 			if (this->m_useAlphaInput) {
-				this->m_alphaInput->readSampled(alpha, (float)x + 0.5f, (float)y + 0.5f, COM_PS_NEAREST);
+				this->m_alphaInput->readSampled(alpha, x, y, COM_PS_NEAREST);
 				buffer[offset4 + 3] = alpha[0];
 			}
-			this->m_depthInput->readSampled(depth, (float)x + 0.5f, (float)y + 0.5f, COM_PS_NEAREST);
+			this->m_depthInput->readSampled(depth, x, y, COM_PS_NEAREST);
 			depthbuffer[offset] = depth[0];
 
 			offset ++;
