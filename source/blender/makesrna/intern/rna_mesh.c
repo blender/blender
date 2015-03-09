@@ -1693,15 +1693,15 @@ static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, ReportList
 	return ptr;
 }
 
-#define DEFINE_CUSTOMDATA_PROPERTY_API(elemname, datatype, cdata, countvar, layertype) \
+#define DEFINE_CUSTOMDATA_PROPERTY_API(elemname, datatype, cd_prop_type, cdata, countvar, layertype) \
 static PointerRNA rna_Mesh_##elemname##_##datatype##_property_new(struct Mesh *me, const char *name) \
 { \
 	PointerRNA ptr; \
 	CustomDataLayer *cdl = NULL; \
 	int index; \
  \
-	CustomData_add_layer_named(&me->cdata, CD_PROP_FLT, CD_DEFAULT, NULL, me->countvar, name); \
-	index = CustomData_get_named_layer_index(&me->cdata, CD_PROP_FLT, name); \
+	CustomData_add_layer_named(&me->cdata, cd_prop_type, CD_DEFAULT, NULL, me->countvar, name); \
+	index = CustomData_get_named_layer_index(&me->cdata, cd_prop_type, name); \
  \
 	cdl = (index == -1) ? NULL : &(me->cdata.layers[index]); \
  \
@@ -1709,12 +1709,12 @@ static PointerRNA rna_Mesh_##elemname##_##datatype##_property_new(struct Mesh *m
 	return ptr; \
 }
 
-DEFINE_CUSTOMDATA_PROPERTY_API(vertex, float, vdata, totvert, MeshVertexFloatPropertyLayer)
-DEFINE_CUSTOMDATA_PROPERTY_API(vertex, int, vdata, totvert, MeshVertexIntPropertyLayer)
-DEFINE_CUSTOMDATA_PROPERTY_API(vertex, string, vdata, totvert, MeshVertexStringPropertyLayer)
-DEFINE_CUSTOMDATA_PROPERTY_API(polygon, float, pdata, totpoly, MeshPolygonFloatPropertyLayer)
-DEFINE_CUSTOMDATA_PROPERTY_API(polygon, int, pdata, totpoly, MeshPolygonIntPropertyLayer)
-DEFINE_CUSTOMDATA_PROPERTY_API(polygon, string, pdata, totpoly, MeshPolygonStringPropertyLayer)
+DEFINE_CUSTOMDATA_PROPERTY_API(vertex, float, CD_PROP_FLT, vdata, totvert, MeshVertexFloatPropertyLayer)
+DEFINE_CUSTOMDATA_PROPERTY_API(vertex, int, CD_PROP_INT, vdata, totvert, MeshVertexIntPropertyLayer)
+DEFINE_CUSTOMDATA_PROPERTY_API(vertex, string, CD_PROP_STR, vdata, totvert, MeshVertexStringPropertyLayer)
+DEFINE_CUSTOMDATA_PROPERTY_API(polygon, float, CD_PROP_FLT, pdata, totpoly, MeshPolygonFloatPropertyLayer)
+DEFINE_CUSTOMDATA_PROPERTY_API(polygon, int, CD_PROP_INT, pdata, totpoly, MeshPolygonIntPropertyLayer)
+DEFINE_CUSTOMDATA_PROPERTY_API(polygon, string, CD_PROP_STR, pdata, totpoly, MeshPolygonStringPropertyLayer)
 #undef DEFINE_CUSTOMDATA_PROPERTY_API
 
 static PointerRNA rna_Mesh_uv_texture_new(struct Mesh *me, const char *name)
