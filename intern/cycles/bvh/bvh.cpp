@@ -268,9 +268,6 @@ void BVH::pack_triangle(int idx, float4 woop[3])
 	assert(tob >= 0 && tob < objects.size());
 	const Mesh *mesh = objects[tob]->mesh;
 
-	if(mesh->has_motion_blur())
-		return;
-
 	int tidx = pack.prim_index[idx];
 	const int *vidx = mesh->triangles[tidx].v;
 	const float3* vpos = &mesh->verts[0];
@@ -299,9 +296,14 @@ void BVH::pack_primitives()
 		if(pack.prim_index[i] != -1) {
 			float4 woop[3];
 
-			if(pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE)
+			if(pack.prim_type[i] & PRIMITIVE_TRIANGLE) {
 				pack_triangle(i, woop);
-			
+			}
+			else {
+				/* Avoid use of uninitialized memory. */
+				memset(&woop, 0, sizeof(woop));
+			}
+
 			memcpy(&pack.tri_woop[i * nsize], woop, sizeof(float4)*3);
 
 			int tob = pack.prim_object[i];
