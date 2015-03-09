@@ -200,8 +200,8 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 	const float max_dim = max(m_width, m_height);
 	cl_float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
-	maxBlur = (cl_int)sizeMemoryBuffer->getMaximumValue() * scalar;
-	maxBlur = min(maxBlur, this->m_maxBlur);
+	maxBlur = (cl_int)min_ff(sizeMemoryBuffer->getMaximumValue() * scalar,
+	                         (float)this->m_maxBlur);
 
 	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
 	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 1,  -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputBokehProgram);
