@@ -1165,7 +1165,17 @@ void ED_object_constraint_dependency_update(Main *bmain, Object *ob)
 {
 	ED_object_constraint_update(ob);
 
-	if (ob->pose) ob->pose->flag |= POSE_RECALC;    // checks & sorts pose channels
+	if (ob->pose) {
+		ob->pose->flag |= POSE_RECALC;    /* Checks & sort pose channels. */
+		if (ob->proxy && ob->adt) {
+			/* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
+			 * after calling `BKE_pose_rebuild()`, which causes T43872.
+			 * Note that this is a bit wide here, since we cannot be sure whether there are some locked proxy bones
+			 * or not...
+			 * XXX Temp hack until new depsgraph hopefully solves this. */
+			ob->adt->recalc |= ADT_RECALC_ANIM;
+		}
+	}
 	DAG_relations_tag_update(bmain);
 }
 
@@ -1725,6 +1735,12 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	
 	if ((ob->type == OB_ARMATURE) && (pchan)) {
 		ob->pose->flag |= POSE_RECALC;  /* sort pose channels */
+		if (BKE_constraints_proxylocked_owner(ob, pchan) && ob->adt) {
+			/* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
+			 * after calling `BKE_pose_rebuild()`, which causes T43872.
+			 * XXX Temp hack until new depsgraph hopefully solves this. */
+			ob->adt->recalc |= ADT_RECALC_ANIM;
+		}
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	}
 	else
