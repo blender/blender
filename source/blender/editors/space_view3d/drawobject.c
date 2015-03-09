@@ -7830,10 +7830,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 	if ((dt <= OB_SOLID) && !render_override) {
 		if (((ob->gameflag & OB_DYNAMIC) &&
-		     !ELEM(ob->collision_boundtype, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL)) ||
+		     ((ob->gameflag & OB_BOUNDS) == 0)) ||
 
 		    ((ob->gameflag & OB_BOUNDS) &&
-		     (ob->boundtype == OB_BOUND_SPHERE)))
+		     (ob->collision_boundtype == OB_BOUND_SPHERE)))
 		{
 			float imat[4][4], vec[3] = {0.0f, 0.0f, 0.0f};
 
