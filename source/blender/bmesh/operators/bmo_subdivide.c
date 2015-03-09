@@ -319,13 +319,9 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *par
 	for (i = 0; i < numcuts; i++) {
 		v = subdivideedgenum(bm, eed, &e_tmp, i, params->numcuts, params, &e_new, vsta, vend);
 
-		BMO_elem_flag_enable(bm, v, SUBD_SPLIT);
-		BMO_elem_flag_enable(bm, eed, SUBD_SPLIT);
-		BMO_elem_flag_enable(bm, e_new, SUBD_SPLIT);
-
-		BMO_elem_flag_enable(bm, v, ELE_SPLIT);
-		BMO_elem_flag_enable(bm, eed, ELE_SPLIT);
-		BMO_elem_flag_enable(bm, e_new, SUBD_SPLIT);
+		BMO_elem_flag_enable(bm, v, SUBD_SPLIT | ELE_SPLIT);
+		BMO_elem_flag_enable(bm, eed, SUBD_SPLIT | ELE_SPLIT);
+		BMO_elem_flag_enable(bm, e_new, SUBD_SPLIT | ELE_SPLIT);
 
 		BM_CHECK_ELEMENT(v);
 		if (v->e) BM_CHECK_ELEMENT(v->e);
