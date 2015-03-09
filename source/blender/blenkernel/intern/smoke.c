@@ -730,7 +730,8 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 		BVHTreeFromMesh treeData = {NULL};
 		int numverts, i, z;
 
-		float surface_distance = 0.6;
+		/* slightly rounded-up sqrt(3 * (0.5)^2) == max. distance of cell boundary along the diagonal */
+		const float surface_distance = 0.867f;
 
 		float *vert_vel = NULL;
 		int has_velocity = 0;
