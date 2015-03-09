@@ -1345,7 +1345,7 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 {
 	glDisable(GL_SCISSOR_TEST);
 	if (save)
-		GPU_framebuffer_slots_bind(ofs->fb, 0);
+		GPU_texture_bind_as_framebuffer(ofs->color);
 	else {
 		GPU_framebuffer_bind_no_save(ofs->fb, 0);
 	}
