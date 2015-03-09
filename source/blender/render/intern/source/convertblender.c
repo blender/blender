@@ -1258,7 +1258,7 @@ static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int 
 	/* get mcol */
 	if (sd->mcol && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 		for (i=0; i<sd->totcol; i++) {
-			if (num != DMCACHE_NOTFOUND) {
+			if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
 				MFace *mface = dm->getTessFaceData(dm, num, CD_MFACE);
 				MCol *mc = (MCol*)CustomData_get_layer_n(&dm->faceData, CD_MCOL, i);
 				mc += num * 4;
