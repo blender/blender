@@ -2493,6 +2493,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	wmWindow *win = CTX_wm_window(C);
 	int len;
+	const bool is_num_but = ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER);
 
 	if (data->str) {
 		MEM_freeN(data->str);
@@ -2520,7 +2521,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 		BLI_str_rstrip_float_zero(data->str, '\0');
 	}
 
-	if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) {
+	if (is_num_but) {
 		ui_but_convert_to_unit_alt_name(but, data->str, data->maxlen);
 	}
 
@@ -2551,7 +2552,9 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	WM_cursor_modal_set(win, BC_TEXTEDITCURSOR);
 
 #ifdef WITH_INPUT_IME
-	ui_textedit_ime_begin(win, but);
+	if (is_num_but == false) {
+		ui_textedit_ime_begin(win, but);
+	}
 #endif
 }
 
