@@ -1601,17 +1601,22 @@ PyMODINIT_FUNC initGameLogicPythonBinding()
 
 	PyObject* joylist = PyList_New(JOYINDEX_MAX);
 	for (int i=0; i<JOYINDEX_MAX; ++i) {
-		SCA_Joystick* joy = SCA_Joystick::GetInstance(i);
+		SCA_Joystick *joy = SCA_Joystick::GetInstance(i);
+		PyObject *item;
+
 		if (joy && joy->Connected()) {
 			gp_PythonJoysticks[i] = new SCA_PythonJoystick(joy);
-			PyObject* tmp = gp_PythonJoysticks[i]->NewProxy(true);
-			Py_INCREF(tmp);
-			PyList_SET_ITEM(joylist, i, tmp);
-		} else 	{
-			joy->ReleaseInstance();
-			Py_INCREF(Py_None);
-			PyList_SET_ITEM(joylist, i, Py_None);
+			item = gp_PythonJoysticks[i]->NewProxy(true);
 		}
+		else {
+			if (joy) {
+				joy->ReleaseInstance();
+			}
+			item = Py_None;
+		}
+
+		Py_INCREF(item);
+		PyList_SET_ITEM(joylist, i, item);
 	}
 	PyDict_SetItemString(d, "joysticks", joylist);
 
