@@ -693,7 +693,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	/* put scene context variable in iuser */
 	if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
 		/* for render result, try to use the currently rendering scene */
-		Scene *render_scene = ED_render_job_get_scene(C);
+		Scene *render_scene = ED_render_job_get_current_scene(C);
 		if (render_scene)
 			sima->iuser.scene = render_scene;
 		else

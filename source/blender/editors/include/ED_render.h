@@ -55,6 +55,7 @@ void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated
 
 void ED_viewport_render_kill_jobs(struct wmWindowManager *wm, struct Main *bmain, bool free_database);
 struct Scene *ED_render_job_get_scene(const struct bContext *C);
+struct Scene *ED_render_job_get_current_scene(const struct bContext *C);
 
 /* Render the preview
  *
