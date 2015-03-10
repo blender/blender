@@ -34,6 +34,10 @@ RANDOM_SEED = [1]  # so we can redo crashes
 RANDOM_RESET = 0.1  # 10% chance of resetting on each new operator
 RANDOM_MULTIPLY = 10
 
+STATE = {
+    "counter": 0,
+    }
+
 
 op_blacklist = (
     "script.reload",
@@ -75,6 +79,7 @@ op_blacklist = (
     "wm.properties_context_change",
     "wm.operator_cheat_sheet",
     "wm.interface_theme_*",
+    "wm.previews_ensure",       # slow - but harmless
     "wm.appconfig_*",           # just annoying - but harmless
     "wm.keyitem_add",           # just annoying - but harmless
     "wm.keyconfig_activate",    # just annoying - but harmless
@@ -248,7 +253,8 @@ def run_ops(operators, setup_func=None, reset=True):
     # first invoke
     for op_id, op in operators:
         if op.poll():
-            print("    operator:", op_id)
+            print("    operator: %4d, %s" % (STATE["counter"], op_id))
+            STATE["counter"] += 1
             sys.stdout.flush()  # in case of crash
 
             # disable will get blender in a bad state and crash easy!
