@@ -299,7 +299,7 @@ static bool data_transfer_exec_is_object_valid(
         wmOperator *op, Object *ob_src, Object *ob_dst, const bool reverse_transfer)
 {
 	Mesh *me;
-	if ((ob_dst == ob_src) || !ELEM(OB_MESH, ob_src->type, ob_dst->type)) {
+	if ((ob_dst == ob_src) || (ob_src->type != OB_MESH) || (ob_dst->type != OB_MESH)) {
 		return false;
 	}
 
