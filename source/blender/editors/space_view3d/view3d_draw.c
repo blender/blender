@@ -2879,11 +2879,9 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 /*
  * Function to clear the view
  */
-static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar, bool force)
+static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 {
-	/* clear background */
-	if (scene->world && ((v3d->flag3 & V3D_SHOW_WORLD) || force)) {
-		float alpha = (force) ? 1.0f : 0.0f;
+	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {
 		bool glsl = GPU_glsl_support() && BKE_scene_use_new_shading_nodes(scene) && scene->world->nodetree && scene->world->use_nodes;
 		
 		if (glsl) {
@@ -2996,7 +2994,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar, bool 
 					interp_v3_v3v3(col_fl, col_hor, col_zen, col_fac);
 
 					rgb_float_to_uchar(col_ub, col_fl);
-					col_ub[3] = alpha * 255;
+					col_ub[3] = 255;
 				}
 			}
 
@@ -3031,7 +3029,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar, bool 
 			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
 			                                              &scene->display_settings);
 
-			glClearColor(col_hor[0], col_hor[1], col_hor[2], alpha);
+			glClearColor(col_hor[0], col_hor[1], col_hor[2], 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 	}
@@ -3067,7 +3065,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar, bool 
 			glPopMatrix();
 		}
 		else {
-			UI_ThemeClearColor(TH_HIGH_GRAD);
+			UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 	}
@@ -3125,7 +3123,7 @@ void ED_view3d_draw_offscreen(
 
 	/* clear opengl buffers */
 	if (do_sky) {
-		view3d_main_area_clear(scene, v3d, ar, true);
+		view3d_main_area_clear(scene, v3d, ar);
 	}
 	else {
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -3555,7 +3553,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 	}
 	
 	/* clear the background */
-	view3d_main_area_clear(scene, v3d, ar, false);
+	view3d_main_area_clear(scene, v3d, ar);
 
 	/* enables anti-aliasing for 3D view drawing */
 	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
