@@ -1942,18 +1942,15 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			 */
 			if (event->type == LEFTMOUSE) {
 				/* restore drawmode to default */
-				// XXX: no need for this... this should just revert by itself
-				if (p->paintmode == GP_PAINTMODE_ERASER)
-					gpencil_draw_toggle_eraser_cursor(C, p, false);
-					
 				p->paintmode = RNA_enum_get(op->ptr, "mode");
 			}
 			else if (event->type == RIGHTMOUSE) {
 				/* turn on eraser */
 				p->paintmode = GP_PAINTMODE_ERASER;
-				gpencil_draw_toggle_eraser_cursor(C, p, true);
 			}
-			
+
+			gpencil_draw_toggle_eraser_cursor(C, p, p->paintmode == GP_PAINTMODE_ERASER);
+
 			/* not painting, so start stroke (this should be mouse-button down) */
 			p = gpencil_stroke_begin(C, op);
 			
