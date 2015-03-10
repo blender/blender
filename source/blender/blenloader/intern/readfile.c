@@ -206,6 +206,9 @@
  * - initialize FileGlobal and copy pointers to Global
  */
 
+/* use GHash for BHead name-based lookups (speeds up linking) */
+#define USE_GHASH_BHEAD
+
 /***/
 
 typedef struct OldNew {
@@ -225,6 +228,8 @@ typedef struct OldNewMap {
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static void direct_link_modifiers(FileData *fd, ListBase *lb);
 static void convert_tface_mt(FileData *fd, Main *main);
+static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
+static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
 /* this function ensures that reports are printed,
  * in the case of libraray linking errors this is important!
@@ -501,6 +506,44 @@ static void read_file_version(FileData *fd, Main *main)
 		}
 	}
 }
+
+#ifdef USE_GHASH_BHEAD
+static void read_file_bhead_idname_map_create(FileData *fd)
+{
+	BHead *bhead;
+
+	/* dummy values */
+	bool is_link = false;
+	int code_prev = ENDB;
+	unsigned int reserve = 0;
+
+	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+		if (code_prev != bhead->code) {
+			code_prev = bhead->code;
+			is_link = BKE_idcode_is_valid(code_prev) ? BKE_idcode_is_linkable(code_prev) : false;
+		}
+
+		if (is_link) {
+			reserve += 1;
+		}
+	}
+
+	BLI_assert(fd->bhead_idname_hash == NULL);
+
+	fd->bhead_idname_hash = BLI_ghash_str_new_ex(__func__, reserve);
+
+	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+		if (code_prev != bhead->code) {
+			code_prev = bhead->code;
+			is_link = BKE_idcode_is_valid(code_prev) ? BKE_idcode_is_linkable(code_prev) : false;
+		}
+
+		if (is_link) {
+			BLI_ghash_insert(fd->bhead_idname_hash, (void *)bhead_id_name(fd, bhead), bhead);
+		}
+	}
+}
+#endif
 
 
 static Main *blo_find_main(FileData *fd, const char *filepath, const char *relabase)
@@ -1127,6 +1170,12 @@ void blo_freefiledata(FileData *fd)
 		if (fd->bheadmap)
 			MEM_freeN(fd->bheadmap);
 		
+#ifdef USE_GHASH_BHEAD
+		if (fd->bhead_idname_hash) {
+			BLI_ghash_free(fd->bhead_idname_hash, NULL, NULL);
+		}
+#endif
+
 		MEM_freeN(fd);
 	}
 }
@@ -8031,6 +8080,16 @@ static BHead *find_bhead(FileData *fd, void *old)
 
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name)
 {
+#ifdef USE_GHASH_BHEAD
+
+	char idname_full[MAX_ID_NAME];
+
+	*((short *)idname_full) = idcode;
+	BLI_strncpy(idname_full + 2, name, sizeof(idname_full) - 2);
+
+	return BLI_ghash_lookup(fd->bhead_idname_hash, idname_full);
+
+#else
 	BHead *bhead;
 
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
@@ -8046,11 +8105,16 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 	}
 
 	return NULL;
+#endif
 }
 
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
 {
+#ifdef USE_GHASH_BHEAD
+	return BLI_ghash_lookup(fd->bhead_idname_hash, idname);
+#else
 	return find_bhead_from_code_name(fd, GS(idname), idname + 2);
+#endif
 }
 
 const char *bhead_id_name(const FileData *fd, const BHead *bhead)
@@ -9285,6 +9349,9 @@ static Main *library_append_begin(Main *mainvar, FileData **fd, const char *file
 	/* needed for do_version */
 	mainl->versionfile = (*fd)->fileversion;
 	read_file_version(*fd, mainl);
+#ifdef USE_GHASH_BHEAD
+	read_file_bhead_idname_map_create(*fd);
+#endif
 	
 	return mainl;
 }
@@ -9491,6 +9558,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						
 						/* subversion */
 						read_file_version(fd, mainptr);
+#ifdef USE_GHASH_BHEAD
+						read_file_bhead_idname_map_create(fd);
+#endif
+
 					}
 					else {
 						mainptr->curlib->filedata = NULL;

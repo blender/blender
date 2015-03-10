@@ -93,6 +93,9 @@ typedef struct FileData {
 	
 	struct BHeadSort *bheadmap;
 	int tot_bheadmap;
+
+	/* see: USE_GHASH_BHEAD */
+	struct GHash *bhead_idname_hash;
 	
 	ListBase *mainlist;
 	
