@@ -56,6 +56,7 @@
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -4650,7 +4651,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 
-	if (!GPU_vertex_buffer_support()) {
+	if (!G.background && !GPU_vertex_buffer_support()) {
 		return OPERATOR_CANCELLED;
 	}
 
