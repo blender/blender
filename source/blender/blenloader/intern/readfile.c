@@ -736,7 +736,7 @@ BHead *blo_firstbhead(FileData *fd)
 
 BHead *blo_prevbhead(FileData *UNUSED(fd), BHead *thisblock)
 {
-	BHeadN *bheadn = (BHeadN *) (((char *) thisblock) - offsetof(BHeadN, bhead));
+	BHeadN *bheadn = (BHeadN *)POINTER_OFFSET(thisblock, -offsetof(BHeadN, bhead));
 	BHeadN *prev = bheadn->prev;
 	
 	return (prev) ? &prev->bhead : NULL;
@@ -750,7 +750,7 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	if (thisblock) {
 		/* bhead is actually a sub part of BHeadN
 		 * We calculate the BHeadN pointer from the BHead pointer below */
-		new_bhead = (BHeadN *) (((char *) thisblock) - offsetof(BHeadN, bhead));
+		new_bhead = (BHeadN *)POINTER_OFFSET(thisblock, -offsetof(BHeadN, bhead));
 		
 		/* get the next BHeadN. If it doesn't exist we read in the next one */
 		new_bhead = new_bhead->next;
@@ -920,7 +920,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, unsigned int s
 			if (chunkoffset+readsize > chunk->size)
 				readsize= chunk->size-chunkoffset;
 			
-			memcpy((char *)buffer + totread, chunk->buf + chunkoffset, readsize);
+			memcpy(POINTER_OFFSET(buffer, totread), chunk->buf + chunkoffset, readsize);
 			totread += readsize;
 			filedata->seek += readsize;
 			seek += readsize;
@@ -5607,7 +5607,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* link metastack, slight abuse of structs here, have to restore pointer to internal part in struct */
 		{
 			Sequence temp;
-			char *poin;
+			void *poin;
 			intptr_t offset;
 			
 			offset = ((intptr_t)&(temp.seqbase)) - ((intptr_t)&temp);
@@ -5617,12 +5617,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				ed->seqbasep = &ed->seqbase;
 			}
 			else {
-				poin = (char *)ed->seqbasep;
-				poin -= offset;
+				poin = POINTER_OFFSET(ed->seqbasep, -offset);
 				
 				poin = newdataadr(fd, poin);
 				if (poin)
-					ed->seqbasep = (ListBase *)(poin+offset);
+					ed->seqbasep = (ListBase *)POINTER_OFFSET(poin, offset);
 				else
 					ed->seqbasep = &ed->seqbase;
 			}
@@ -5635,11 +5634,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				if (ms->oldbasep == old_seqbasep)
 					ms->oldbasep= &ed->seqbase;
 				else {
-					poin = (char *)ms->oldbasep;
-					poin -= offset;
+					poin = POINTER_OFFSET(ms->oldbasep, -offset);
 					poin = newdataadr(fd, poin);
 					if (poin) 
-						ms->oldbasep = (ListBase *)(poin+offset);
+						ms->oldbasep = (ListBase *)POINTER_OFFSET(poin, offset);
 					else 
 						ms->oldbasep = &ed->seqbase;
 				}
@@ -8037,9 +8035,9 @@ static BHead *find_bhead(FileData *fd, void *old)
 	return NULL;
 }
 
-char *bhead_id_name(FileData *fd, BHead *bhead)
+const char *bhead_id_name(const FileData *fd, const BHead *bhead)
 {
-	return ((char *)(bhead+1)) + fd->id_name_offs;
+	return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offs);
 }
 
 static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
