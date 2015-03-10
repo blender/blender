@@ -1234,7 +1234,6 @@ static void do_material_tex(GPUShadeInput *shi)
 						float imag_tspace_dimension_x = 1024.0f;		// only used for texture space variant
 						float aspect = 1.0f;
 						
-						GPUNodeLink *surf_pos = GPU_builtin(GPU_VIEW_POSITION);
 						GPUNodeLink *vR1, *vR2;
 						GPUNodeLink *dBs, *dBt, *fDet;
 
@@ -1291,7 +1290,8 @@ static void do_material_tex(GPUShadeInput *shi)
 						
 						// re-initialize if bump space changed
 						if ( iBumpSpacePrev != iBumpSpace ) {
-							
+							GPUNodeLink *surf_pos = GPU_builtin(GPU_VIEW_POSITION);
+
 							if ( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
 								GPU_link(mat, "mtex_bump_init_objspace",
 								         surf_pos, vNorg,
