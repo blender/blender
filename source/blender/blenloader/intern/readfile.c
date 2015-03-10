@@ -8035,6 +8035,30 @@ static BHead *find_bhead(FileData *fd, void *old)
 	return NULL;
 }
 
+static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name)
+{
+	BHead *bhead;
+
+	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+		if (bhead->code == idcode) {
+			const char *idname_test = bhead_id_name(fd, bhead);
+			if (STREQ(idname_test + 2, name)) {
+				return bhead;
+			}
+		}
+		else if (bhead->code == ENDB) {
+			break;
+		}
+	}
+
+	return NULL;
+}
+
+static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
+{
+	return find_bhead_from_code_name(fd, GS(idname), idname + 2);
+}
+
 const char *bhead_id_name(const FileData *fd, const BHead *bhead)
 {
 	return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offs);
@@ -9123,50 +9147,40 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
  * but it may already have already been appended/linked */
 static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
 {
-	BHead *bhead;
-	ID *id = NULL;
-	int found = 0;
+	BHead *bhead = find_bhead_from_code_name(fd, idcode, idname);
+	ID *id;
 
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
-		if (bhead->code == idcode) {
-			const char *idname_test= bhead_id_name(fd, bhead);
-			
-			if (STREQ(idname_test + 2, idname)) {
-				found = 1;
-				id = is_yet_read(fd, mainl, bhead);
-				if (id == NULL) {
-					/* not read yet */
-					read_libblock(fd, mainl, bhead, LIB_TESTEXT, &id);
-					
-					if (id) {
-						/* sort by name in list */
-						ListBase *lb = which_libbase(mainl, idcode);
-						id_sort_by_name(lb, id);
-					}
-				}
-				else {
-					/* already linked */
-					if (G.debug)
-						printf("append: already linked\n");
-					oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
-					if (id->flag & LIB_INDIRECT) {
-						id->flag -= LIB_INDIRECT;
-						id->flag |= LIB_EXTERN;
-					}
-				}
-				
-				break;
+	if (bhead) {
+		id = is_yet_read(fd, mainl, bhead);
+		if (id == NULL) {
+			/* not read yet */
+			read_libblock(fd, mainl, bhead, LIB_TESTEXT, &id);
+
+			if (id) {
+				/* sort by name in list */
+				ListBase *lb = which_libbase(mainl, idcode);
+				id_sort_by_name(lb, id);
 			}
 		}
-		else if (bhead->code == ENDB) {
-			break;
+		else {
+			/* already linked */
+			if (G.debug)
+				printf("append: already linked\n");
+			oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
+			if (id->flag & LIB_INDIRECT) {
+				id->flag -= LIB_INDIRECT;
+				id->flag |= LIB_EXTERN;
+			}
 		}
+	}
+	else {
+		id = NULL;
 	}
 	
 	/* if we found the id but the id is NULL, this is really bad */
-	BLI_assert((found != 0) == (id != NULL));
+	BLI_assert((bhead != NULL) == (id != NULL));
 	
-	return (found) ? id : NULL;
+	return id;
 }
 
 /* simple reader for copy/paste buffers */
@@ -9247,22 +9261,13 @@ ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **r_id)
 {
-	BHead *bhead;
-	
-	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
-		if (bhead->code == GS(id->name)) {
-			
-			if (STREQ(id->name, bhead_id_name(fd, bhead))) {
-				id->flag &= ~LIB_READ;
-				id->flag |= LIB_NEED_EXPAND;
-//				printf("read lib block %s\n", id->name);
-				read_libblock(fd, mainvar, bhead, id->flag, r_id);
-				
-				break;
-			}
-		}
-		else if (bhead->code==ENDB)
-			break;
+	BHead *bhead = find_bhead_from_idname(fd, id->name);
+
+	if (bhead) {
+		id->flag &= ~LIB_READ;
+		id->flag |= LIB_NEED_EXPAND;
+		// printf("read lib block %s\n", id->name);
+		read_libblock(fd, mainvar, bhead, id->flag, r_id);
 	}
 }
 
