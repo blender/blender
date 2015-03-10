@@ -4901,6 +4901,10 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb)
 		void      *p;
 	} cu_actvert;
 
+	if (BLI_listbase_is_empty(&editnurb->nurbs)) {
+		return changed;
+	}
+
 	BKE_curve_nurb_vert_active_get(cu, &cu_actnu, &cu_actvert.p);
 	BKE_curve_nurb_vert_active_set(cu, NULL, NULL);
 
