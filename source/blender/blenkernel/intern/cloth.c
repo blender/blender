@@ -780,17 +780,15 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 							}
 						}
 
-					if (clmd->sim_parms->vgroup_shrink > 0 )
-					{
-						if ( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_shrink-1))
-						{
-							verts->shrink_factor = clmd->sim_parms->shrink_min*(1.0f-dvert->dw[j].weight)+clmd->sim_parms->shrink_max*dvert->dw [j].weight; // linear interpolation between min and max shrink factor based on weight
+						if (clmd->sim_parms->vgroup_shrink > 0) {
+							if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_shrink - 1)) {
+								/* linear interpolation between min and max shrink factor based on weight */
+								verts->shrink_factor = clmd->sim_parms->shrink_min * (1.0f - dvert->dw[j].weight) + clmd->sim_parms->shrink_max * dvert->dw [j].weight;
+							}
 						}
-					}
-					else {
-						verts->shrink_factor = clmd->sim_parms->shrink_min;
-					}
-
+						else {
+							verts->shrink_factor = clmd->sim_parms->shrink_min;
+						}
 					}
 				}
 			}

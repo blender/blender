@@ -364,7 +364,8 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, const char *title, wm
 	 * mix it, either all windows have it, or none (tested in OSX opengl) */
 	if (multisamples == -1)
 		multisamples = U.ogl_multisamples;
-		glSettings.numOfAASamples = multisamples;
+
+	glSettings.numOfAASamples = multisamples;
 
 	if (!(U.uiflag2 & USER_OPENGL_NO_WARN_SUPPORT))
 		glSettings.flags |= GHOST_glWarnSupport;

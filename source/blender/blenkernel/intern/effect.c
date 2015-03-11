@@ -231,7 +231,7 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src
 		for (base = scene->base.first; base; base= base->next) {
 			if ( (base->lay & layer) ) {
 				if ( base->object->pd && base->object->pd->forcefield )
-				add_object_to_effectors(&effectors, scene, weights, base->object, ob_src);
+					add_object_to_effectors(&effectors, scene, weights, base->object, ob_src);
 
 				if ( base->object->particlesystem.first ) {
 					ParticleSystem *psys= base->object->particlesystem.first;

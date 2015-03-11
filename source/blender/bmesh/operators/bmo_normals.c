@@ -71,7 +71,7 @@ static bool bmo_recalc_normal_edge_filter_cb(BMElem *ele, void *UNUSED(user_data
  *
  * To take these spikes into account, use the normals of the faces edges.
  */
- #define USE_FACE_EDGE_NORMAL_TEST
+#define USE_FACE_EDGE_NORMAL_TEST
 
 /**
  * The center of the entire island is't necessarily well placed,

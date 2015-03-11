@@ -62,7 +62,6 @@ static float dist_to_crns(float co[2], float pos[2], float crns[4][2]);
 static int mouse_on_side(float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
 {
 	if (x1 > x2)
-
 		SWAP(float, x1, x2);
 
 	if (y1 > y2)

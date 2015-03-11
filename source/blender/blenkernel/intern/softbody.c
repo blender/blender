@@ -522,10 +522,8 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 			mima->maxz = max_ff(mima->maxz, v[2] + hull);
 		}
 
-
-	mima++;
-	mface++;
-
+		mima++;
+		mface++;
 	}
 	return;
 }
@@ -707,7 +705,7 @@ static void add_2nd_order_roller(Object *ob, float UNUSED(stiffness), int *count
 						}
 					}
 					if ((bs2->v2 !=notthis)&&(bs2->v2 > v0)) {
-					(*counter)++;/*hit */
+						(*counter)++;  /* hit */
 						if (addsprings) {
 							bs3->v1= v0;
 							bs3->v2= bs2->v2;

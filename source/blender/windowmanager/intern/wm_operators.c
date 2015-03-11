@@ -4326,9 +4326,9 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 	float delta[2], ret = OPERATOR_RUNNING_MODAL;
 	bool snap;
 	float angle_precision = 0.0f;
-    const bool has_numInput = hasNumInput(&rc->num_input);
-    bool handled = false;
-    float numValue;
+	const bool has_numInput = hasNumInput(&rc->num_input);
+	bool handled = false;
+	float numValue;
 	/* TODO: fix hardcoded events */
 
 	snap = event->ctrl != 0;

@@ -420,10 +420,10 @@ static void view3d_free(SpaceLink *sl)
 		MEM_freeN(vd->defmaterial);
 	}
 
-		if (vd->fx_settings.ssao)
-			MEM_freeN(vd->fx_settings.ssao);
-		if (vd->fx_settings.dof)
-			MEM_freeN(vd->fx_settings.dof);
+	if (vd->fx_settings.ssao)
+		MEM_freeN(vd->fx_settings.ssao);
+	if (vd->fx_settings.dof)
+		MEM_freeN(vd->fx_settings.dof);
 }
 
 
