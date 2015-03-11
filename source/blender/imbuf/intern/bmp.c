@@ -186,9 +186,10 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 				}
 				for (j = x; j > 0; j--) {
 					const char *pcol = palette[bmp[0]];
-					rect[0] = pcol[0];
+					/* intentionally BGR -> RGB */
+					rect[0] = pcol[2];
 					rect[1] = pcol[1];
-					rect[2] = pcol[2];
+					rect[2] = pcol[0];
 
 					rect[3] = 255;
 					rect += 4; bmp += 1;
