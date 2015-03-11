@@ -557,7 +557,7 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "shape_key_add", "rna_Object_shape_key_add");
 	RNA_def_function_ui_description(func, "Add shape key to an object");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-	RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keylock"); /* optional */
+	RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keyblock"); /* optional */
 	RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes");
 	parm = RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock");
 	RNA_def_property_flag(parm, PROP_RNAPTR);
