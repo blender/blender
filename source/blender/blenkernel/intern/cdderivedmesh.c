@@ -1085,9 +1085,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 						elementsize = GPU_attrib_element_size(datatypes, numdata);
 						buffer = GPU_buffer_alloc(elementsize * dm->drawObject->tot_triangle_point, false);
 						if (buffer == NULL) {
-							GPU_buffer_unbind();
 							buffer = GPU_buffer_alloc(elementsize * dm->drawObject->tot_triangle_point, true);
-							return;
 						}
 						varray = GPU_buffer_lock_stream(buffer);
 						if (varray == NULL) {
