@@ -105,7 +105,7 @@ static int checkbmp(unsigned char *mem)
 		if (u >= sizeof(BMPINFOHEADER)) {
 			if (bmi.biCompression == 0) {
 				u = LITTLE_SHORT(bmi.biBitCount);
-				if (u >= 8) {
+				if (u > 0 && u <= 32) {
 					ret_val = 1;
 				}
 			}
@@ -136,9 +136,14 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
+	bmp = mem + LITTLE_LONG(*(int*)(mem + 10));
+
 	if (CHECK_HEADER_FIELD_BMP(mem)) {
 		/* skip fileheader */
 		mem += BMP_FILEHEADER_SIZE;
+	}
+	else {
+		return 0;
 	}
 
 	/* for systems where an int needs to be 4 bytes aligned */
@@ -173,29 +178,43 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 	}
 	else {
 		ibuf = IMB_allocImBuf(x, y, ibuf_depth, IB_rect);
-		bmp = mem + skip;
 		rect = (unsigned char *) ibuf->rect;
 
-		if (depth == 8) {
-			const int x_pad = (4 - (x % 4)) % 4;
-			const char (*palette)[4] = (void *)bmp;
-			bmp += bmi.biClrUsed * 4;
+		if (depth <= 8) {
+			const int rowsize = (depth * x + 31) / 32 * 4;
+			const char (*palette)[4] = (void *)(mem + skip);
+			const int startmask = ((1 << depth) - 1) << 8;
 			for (i = y; i > 0; i--) {
+				int index;
+				int bitoffs = 8;
+				int bitmask = startmask;
+				int nbytes = 0;
+				const char *pcol;
 				if (top_to_bottom) {
 					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
 				}
 				for (j = x; j > 0; j--) {
-					const char *pcol = palette[bmp[0]];
+					bitoffs -= depth;
+					bitmask >>= depth;
+					index = (bmp[0] & bitmask) >> bitoffs;
+					pcol = palette[index];
 					/* intentionally BGR -> RGB */
 					rect[0] = pcol[2];
 					rect[1] = pcol[1];
 					rect[2] = pcol[0];
 
 					rect[3] = 255;
-					rect += 4; bmp += 1;
+					rect += 4;
+					if (bitoffs == 0) {
+						/* Advance to the next byte */
+						bitoffs = 8;
+						bitmask = startmask;
+						nbytes += 1;
+						bmp += 1;
+					}
 				}
-				/* rows are padded to multiples of 4 */
-				bmp += x_pad;
+				/* Advance to the next row */
+				bmp += (rowsize - nbytes);
 			}
 		}
 		else if (depth == 16) {
