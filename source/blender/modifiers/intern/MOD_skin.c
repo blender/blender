@@ -996,13 +996,13 @@ static void connect_frames(
 		float dot = 0.0f;
 
 		for (i = 0; i < 4; i++) {
-			mid_v3_v3v3v3v3(cent_sides[i], UNPACK4_EX(,q[i],->co));
+			mid_v3_v3v3v3v3(cent_sides[i], UNPACK4_EX(, q[i], ->co));
 		}
 		mid_v3_v3v3v3v3(cent, UNPACK4(cent_sides));
 
 		for (i = 0; i < 4; i++) {
 			float p[3], no[3];
-			normal_quad_v3(no, UNPACK4_EX(,q[i],->co));
+			normal_quad_v3(no, UNPACK4_EX(, q[i], ->co));
 			sub_v3_v3v3(p, cent, cent_sides[i]);
 			dot += dot_v3v3(no, p);
 		}

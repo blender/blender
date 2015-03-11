@@ -885,7 +885,7 @@ static void cloth_collision_solve_extra(Object *ob, ClothModifierData *clmd, Lis
 	
 	// call collision function
 	// TODO: check if "step" or "step+dt" is correct - dg
-	do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
+	do_extra_solve = cloth_bvh_objcollision(ob, clmd, step / clmd->sim_parms->timescale, dt / clmd->sim_parms->timescale);
 	
 	// copy corrected positions back to simulation
 	for (i = 0; i < numverts; i++) {

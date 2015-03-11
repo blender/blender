@@ -74,5 +74,4 @@ void gpu_string_marker     (size_t size, const char *str);
 }
 #endif
 
-
 #endif /* __GPU_DEBUG_H__ */

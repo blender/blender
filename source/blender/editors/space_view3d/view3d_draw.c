@@ -3192,7 +3192,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	/* render 3d view */
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 		CameraParams params;
-		GPUFXSettings fx_settings = {0};
+		GPUFXSettings fx_settings = {NULL};
 		Object *camera = v3d->camera;
 
 		BKE_camera_params_init(&params);

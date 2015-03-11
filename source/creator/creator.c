@@ -598,10 +598,9 @@ static void blender_crash_handler(int signum)
 }
 
 #ifdef WIN32
-LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
+LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 {
-	switch(ExceptionInfo->ExceptionRecord->ExceptionCode)
-	{
+	switch (ExceptionInfo->ExceptionRecord->ExceptionCode) {
 		case EXCEPTION_ACCESS_VIOLATION:
 			fputs("Error: EXCEPTION_ACCESS_VIOLATION\n", stderr);
 			break;
@@ -671,8 +670,7 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 
 	/* If this is a stack overflow then we can't walk the stack, so just show
 	 * where the error happened */
-	if (EXCEPTION_STACK_OVERFLOW != ExceptionInfo->ExceptionRecord->ExceptionCode)
-	{
+	if (EXCEPTION_STACK_OVERFLOW != ExceptionInfo->ExceptionRecord->ExceptionCode) {
 		blender_crash_handler(SIGSEGV);
 	}
 
