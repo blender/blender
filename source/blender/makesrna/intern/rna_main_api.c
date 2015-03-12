@@ -69,6 +69,7 @@
 #include "BKE_mball.h"
 #include "BKE_world.h"
 #include "BKE_particle.h"
+#include "BKE_paint.h"
 #include "BKE_font.h"
 #include "BKE_node.h"
 #include "BKE_depsgraph.h"
@@ -631,6 +632,25 @@ static void rna_Main_particles_remove(Main *bmain, ReportList *reports, PointerR
 	}
 }
 
+static Palette *rna_Main_palettes_new(Main *bmain, const char *name)
+{
+	Palette *palette = BKE_palette_add(bmain, name);
+	id_us_min(&palette->id);
+	return (Palette *)palette;
+}
+static void rna_Main_palettes_remove(Main *bmain, ReportList *reports, PointerRNA *palette_ptr)
+{
+	Palette *palette = palette_ptr->data;
+	if (ID_REAL_USERS(palette) <= 0) {
+		BKE_libblock_free(bmain, palette);
+		RNA_POINTER_INVALIDATE(palette_ptr);
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "Palette settings '%s' must have zero users to be removed, found %d",
+		            palette->id.name + 2, ID_REAL_USERS(palette));
+	}
+}
+
 static MovieClip *rna_Main_movieclip_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	MovieClip *clip;
@@ -729,6 +749,7 @@ static void rna_Main_sounds_tag(Main *bmain, int value) { BKE_main_id_tag_listba
 static void rna_Main_armatures_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->armature, value); }
 static void rna_Main_actions_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->action, value); }
 static void rna_Main_particles_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->particle, value); }
+static void rna_Main_palettes_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->palettes, value); }
 static void rna_Main_gpencil_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->gpencil, value); }
 static void rna_Main_movieclips_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->movieclip, value); }
 static void rna_Main_masks_tag(Main *bmain, int value) { BKE_main_id_tag_listbase(&bmain->mask, value); }
@@ -759,6 +780,7 @@ static int rna_Main_sounds_is_updated_get(PointerRNA *ptr) { return DAG_id_type_
 static int rna_Main_armatures_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_AR) != 0; }
 static int rna_Main_actions_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_AC) != 0; }
 static int rna_Main_particles_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_PA) != 0; }
+static int rna_Main_palettes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_PAL) != 0; }
 static int rna_Main_gpencil_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_GD) != 0; }
 static int rna_Main_linestyle_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_LS) != 0; }
 
@@ -1678,7 +1700,41 @@ void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_particles_is_updated_get", NULL);
 }
+void RNA_def_main_palettes(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	PropertyRNA *prop;
 
+	RNA_def_property_srna(cprop, "BlendDataPalettes");
+	srna = RNA_def_struct(brna, "BlendDataPalettes", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Palettes", "Collection of palettes");
+
+	func = RNA_def_function(srna, "new", "rna_Main_palettes_new");
+	RNA_def_function_ui_description(func, "Add a new palette to the main database");
+	parm = RNA_def_string(func, "name", "Palette", 0, "", "New name for the datablock");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "palette", "Palette", "", "New palette datablock");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_Main_palettes_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a palette from the current blendfile");
+	parm = RNA_def_pointer(func, "palette", "Palette", "", "Palette to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+
+	func = RNA_def_function(srna, "tag", "rna_Main_palettes_tag");
+	parm = RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_palettes_is_updated_get", NULL);
+}
 void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
