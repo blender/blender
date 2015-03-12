@@ -202,7 +202,7 @@ typedef struct ImBuf {
 
 #define OPENEXR			(1 << 22)
 #define OPENEXR_HALF	(1 << 8 )
-#define OPENEXR_COMPRESS (7)	
+#define OPENEXR_COMPRESS (15)
 
 #ifdef WITH_CINEON
 #define CINEON			(1 << 21)

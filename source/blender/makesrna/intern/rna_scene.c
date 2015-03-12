@@ -82,6 +82,11 @@ EnumPropertyItem exr_codec_items[] = {
 	{R_IMF_EXR_CODEC_ZIP, "ZIP", 0, "ZIP (lossless)", ""},
 	{R_IMF_EXR_CODEC_PIZ, "PIZ", 0, "PIZ (lossless)", ""},
 	{R_IMF_EXR_CODEC_RLE, "RLE", 0, "RLE (lossless)", ""},
+	{R_IMF_EXR_CODEC_ZIPS, "ZIPS", 0, "ZIPS (lossless)", ""},
+	{R_IMF_EXR_CODEC_B44, "B44", 0, "B44 (lossy)", ""},
+	{R_IMF_EXR_CODEC_B44A, "B44A", 0, "B44A (lossy)", ""},
+	{R_IMF_EXR_CODEC_DWAA, "DWAA", 0, "DWAA (lossy)", ""},
+	{R_IMF_EXR_CODEC_DWAB, "DWAB", 0, "DWAB (lossy)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 #endif
@@ -938,6 +943,34 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *UNU
 	}
 }
 
+#ifdef WITH_OPENEXR
+	/* OpenEXR */
+
+static EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	ImageFormatData *imf = (ImageFormatData *)ptr->data;
+
+	EnumPropertyItem *item = NULL;
+	int i = 1, totitem = 0;
+
+	if(imf->depth == 16)
+		return exr_codec_items; /* All compression types are defined for halfs */
+
+	for (i = 0; i < R_IMF_EXR_CODEC_MAX; i++) {
+		if((i == R_IMF_EXR_CODEC_B44 || i == R_IMF_EXR_CODEC_B44A))
+			continue; /* B44 and B44A are not defined for 32 bit floats */
+
+		RNA_enum_item_add(&item, &totitem, &exr_codec_items[i]);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+#endif
 static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 {
 	RenderData *rd = (RenderData *)ptr->data;
@@ -4101,6 +4134,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "exr_codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "exr_codec");
 	RNA_def_property_enum_items(prop, exr_codec_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageFormatSettings_exr_codec_itemf");
 	RNA_def_property_ui_text(prop, "Codec", "Codec settings for OpenEXR");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 

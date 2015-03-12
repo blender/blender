@@ -350,6 +350,12 @@ typedef struct ImageFormatData {
 #define R_IMF_EXR_CODEC_ZIP   2
 #define R_IMF_EXR_CODEC_PIZ   3
 #define R_IMF_EXR_CODEC_RLE   4
+#define R_IMF_EXR_CODEC_ZIPS  5
+#define R_IMF_EXR_CODEC_B44   6
+#define R_IMF_EXR_CODEC_B44A  7
+#define R_IMF_EXR_CODEC_DWAA  8
+#define R_IMF_EXR_CODEC_DWAB  9
+#define R_IMF_EXR_CODEC_MAX  10
 
 /* ImageFormatData.jp2_flag */
 #define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */

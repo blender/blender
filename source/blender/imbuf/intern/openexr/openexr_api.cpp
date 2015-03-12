@@ -38,6 +38,8 @@
 #include <errno.h>
 #include <algorithm>
 
+#include "DNA_scene_types.h" /* For OpenEXR compression constants */
+
 #include <openexr_api.h>
 
 #if defined (WIN32) && !defined(FREE_WINDOWS)
@@ -284,21 +286,38 @@ int imb_is_a_openexr(unsigned char *mem)
 static void openexr_header_compression(Header *header, int compression)
 {
 	switch (compression) {
-		case 0:
+		case R_IMF_EXR_CODEC_NONE:
 			header->compression() = NO_COMPRESSION;
 			break;
-		case 1:
+		case R_IMF_EXR_CODEC_PXR24:
 			header->compression() = PXR24_COMPRESSION;
 			break;
-		case 2:
+		case R_IMF_EXR_CODEC_ZIP:
 			header->compression() = ZIP_COMPRESSION;
 			break;
-		case 3:
+		case R_IMF_EXR_CODEC_PIZ:
 			header->compression() = PIZ_COMPRESSION;
 			break;
-		case 4:
+		case R_IMF_EXR_CODEC_RLE:
 			header->compression() = RLE_COMPRESSION;
 			break;
+		case R_IMF_EXR_CODEC_ZIPS:
+			header->compression() = ZIPS_COMPRESSION;
+			break;
+		case R_IMF_EXR_CODEC_B44:
+			header->compression() = B44_COMPRESSION;
+			break;
+		case R_IMF_EXR_CODEC_B44A:
+			header->compression() = B44A_COMPRESSION;
+			break;
+#if OPENEXR_VERSION_MAJOR >= 2 && OPENEXR_VERSION_MINOR >= 2
+		case R_IMF_EXR_CODEC_DWAA:
+			header->compression() = DWAA_COMPRESSION;
+			break;
+		case R_IMF_EXR_CODEC_DWAB:
+			header->compression() = DWAB_COMPRESSION;
+			break;
+#endif
 		default:
 			header->compression() = ZIP_COMPRESSION;
 			break;
