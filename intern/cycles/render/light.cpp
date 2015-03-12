@@ -26,6 +26,7 @@
 
 #include "util_foreach.h"
 #include "util_progress.h"
+#include "util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -377,6 +378,45 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	}
 }
 
+static void background_cdf(int start,
+                           int end,
+                           int res,
+                           int cdf_count,
+                           const vector<float3> *pixels,
+                           float2 *cond_cdf)
+{
+	/* Conditional CDFs (rows, U direction). */
+	for(int i = start; i < end; i++) {
+		float sin_theta = sinf(M_PI_F * (i + 0.5f) / res);
+		float3 env_color = (*pixels)[i * res];
+		float ave_luminamce = average(env_color);
+
+		cond_cdf[i * cdf_count].x = ave_luminamce * sin_theta;
+		cond_cdf[i * cdf_count].y = 0.0f;
+
+		for(int j = 1; j < res; j++) {
+			env_color = (*pixels)[i * res + j];
+			ave_luminamce = average(env_color);
+
+			cond_cdf[i * cdf_count + j].x = ave_luminamce * sin_theta;
+			cond_cdf[i * cdf_count + j].y = cond_cdf[i * cdf_count + j - 1].y + cond_cdf[i * cdf_count + j - 1].x / res;
+		}
+
+		float cdf_total = cond_cdf[i * cdf_count + res - 1].y + cond_cdf[i * cdf_count + res - 1].x / res;
+		float cdf_total_inv = 1.0f / cdf_total;
+
+		/* stuff the total into the brightness value for the last entry, because
+		 * we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
+		cond_cdf[i * cdf_count + res].x = cdf_total;
+
+		if(cdf_total > 0.0f)
+			for(int j = 1; j < res; j++)
+				cond_cdf[i * cdf_count + j].y *= cdf_total_inv;
+
+		cond_cdf[i * cdf_count + res].y = 1.0f;
+	}
+}
+
 void LightManager::device_update_background(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
@@ -417,34 +457,28 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 	float2 *marg_cdf = dscene->light_background_marginal_cdf.resize(cdf_count);
 	float2 *cond_cdf = dscene->light_background_conditional_cdf.resize(cdf_count * cdf_count);
 
-	/* conditional CDFs (rows, U direction) */
-	for(int i = 0; i < res; i++) {
-		float sin_theta = sinf(M_PI_F * (i + 0.5f) / res);
-		float3 env_color = pixels[i * res];
-		float ave_luminamce = average(env_color);
-
-		cond_cdf[i * cdf_count].x = ave_luminamce * sin_theta;
-		cond_cdf[i * cdf_count].y = 0.0f;
-
-		for(int j = 1; j < res; j++) {
-			env_color = pixels[i * res + j];
-			ave_luminamce = average(env_color);
-
-			cond_cdf[i * cdf_count + j].x = ave_luminamce * sin_theta;
-			cond_cdf[i * cdf_count + j].y = cond_cdf[i * cdf_count + j - 1].y + cond_cdf[i * cdf_count + j - 1].x / res;
+	double time_start = time_dt();
+	if(res < 512) {
+		/* Small enough resolution, faster to do single-threaded. */
+		background_cdf(0, res, res, cdf_count, &pixels, cond_cdf);
+	}
+	else {
+		/* Threaded evaluation for large resolution. */
+		const int num_blocks = TaskScheduler::num_threads();
+		const int chunk_size = res / num_blocks;
+		TaskPool pool;
+		for(int i = 0; i < num_blocks; ++i) {
+			const int current_chunk_size =
+				(i != num_blocks - 1) ? chunk_size
+			                          : (res - i * chunk_size);
+			pool.push(function_bind(&background_cdf,
+			                        i, i + current_chunk_size,
+			                        res,
+			                        cdf_count,
+			                        &pixels,
+			                        cond_cdf));
 		}
-
-		float cdf_total = cond_cdf[i * cdf_count + res - 1].y + cond_cdf[i * cdf_count + res - 1].x / res;
-
-		/* stuff the total into the brightness value for the last entry, because
-		 * we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
-		cond_cdf[i * cdf_count + res].x = cdf_total;
-
-		if(cdf_total > 0.0f)
-			for(int j = 1; j < res; j++)
-				cond_cdf[i * cdf_count + j].y /= cdf_total;
-
-		cond_cdf[i * cdf_count + res].y = 1.0f;
+		pool.wait_work();
 	}
 
 	/* marginal CDFs (column, V direction, sum of rows) */
@@ -464,6 +498,8 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 			marg_cdf[i].y /= cdf_total;
 
 	marg_cdf[res].y = 1.0f;
+
+	VLOG(2) << "Background MIS build time " << time_dt() - time_start << "\n";
 
 	/* update device */
 	device->tex_alloc("__light_background_marginal_cdf", dscene->light_background_marginal_cdf);
