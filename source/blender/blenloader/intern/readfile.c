@@ -291,15 +291,9 @@ static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int n
 	
 	if (oldaddr==NULL || newaddr==NULL) return;
 	
-	if (onm->nentries == onm->entriessize) {
-		int osize = onm->entriessize;
-		OldNew *oentries = onm->entries;
-		
+	if (UNLIKELY(onm->nentries == onm->entriessize)) {
 		onm->entriessize *= 2;
-		onm->entries = MEM_mallocN(sizeof(*onm->entries)*onm->entriessize, "OldNewMap.entries");
-		
-		memcpy(onm->entries, oentries, sizeof(*oentries)*osize);
-		MEM_freeN(oentries);
+		onm->entries = MEM_reallocN(onm->entries, sizeof(*onm->entries) * onm->entriessize);
 	}
 
 	entry = &onm->entries[onm->nentries++];
