@@ -92,13 +92,18 @@ def test_language_coverage():
 
 
 def test_urls():
+    import os
     import sys
     import rna_wiki_reference
 
     import urllib.error
     from urllib.request import urlopen
 
-    prefix = rna_wiki_reference.url_manual_prefix
+    # avoid URL lookups if possible
+    LOCAL_PREFIX = os.environ.get("LOCAL_PREFIX")
+    if LOCAL_PREFIX is None:
+        prefix = rna_wiki_reference.url_manual_prefix
+
     urls = {suffix for (rna_id, suffix) in rna_wiki_reference.url_manual_mapping}
 
     urls_len = "%d" % len(urls)
@@ -113,16 +118,26 @@ def test_urls():
 
     urls_fail = []
 
-    for url in sorted(urls):
-        url_full = prefix + url
-        print("  %s ... " % url_full, end="")
-        sys.stdout.flush()
-        try:
-            urlopen(url_full)
-            print(color_green + "OK" + color_normal)
-        except urllib.error.HTTPError:
-            print(color_red + "FAIL!" + color_normal)
-            urls_fail.append(url)
+    if LOCAL_PREFIX:
+        for url in sorted(urls):
+            url_full = os.path.join(LOCAL_PREFIX, url.partition("#")[0])
+            print("  %s ... " % url_full, end="")
+            if os.path.exists(url_full):
+                print(color_green + "OK" + color_normal)
+            else:
+                print(color_red + "FAIL!" + color_normal)
+                urls_fail.append(url)
+    else:
+        for url in sorted(urls):
+            url_full = prefix + url
+            print("  %s ... " % url_full, end="")
+            sys.stdout.flush()
+            try:
+                urlopen(url_full)
+                print(color_green + "OK" + color_normal)
+            except urllib.error.HTTPError:
+                print(color_red + "FAIL!" + color_normal)
+                urls_fail.append(url)
 
     if urls_fail:
         urls_len = "%d" % len(urls_fail)
