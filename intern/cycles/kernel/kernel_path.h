@@ -117,7 +117,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 
 					/* direct light sampling */
 					kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
-						throughput, &state, L, 1.0f, all, &volume_ray, &volume_segment);
+						throughput, &state, L, all, &volume_ray, &volume_segment);
 
 					/* indirect sample. if we use distance sampling and take just
 					 * one sample for direct and indirect light, we could share
@@ -562,7 +562,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 					/* direct light sampling */
 					kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
-						throughput, &state, &L, 1.0f, all, &volume_ray, &volume_segment);
+						throughput, &state, &L, all, &volume_ray, &volume_segment);
 
 					/* indirect sample. if we use distance sampling and take just
 					 * one sample for direct and indirect light, we could share
@@ -937,7 +937,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				bool all = kernel_data.integrator.sample_all_lights_direct;
 
 				kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,
-					throughput, &state, &L, 1.0f, all, &volume_ray, &volume_segment);
+					throughput, &state, &L, all, &volume_ray, &volume_segment);
 
 				/* indirect light sampling */
 				int num_samples = kernel_data.integrator.volume_samples;

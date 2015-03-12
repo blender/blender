@@ -107,7 +107,7 @@ bool kernel_path_volume_bounce(KernelGlobals *kg, RNG *rng,
 
 ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
 	ShaderData *sd, float3 throughput, PathState *state, PathRadiance *L,
-	float num_samples_adjust, bool sample_all_lights, Ray *ray, const VolumeSegment *segment)
+	bool sample_all_lights, Ray *ray, const VolumeSegment *segment)
 {
 #ifdef __EMISSION__
 	if(!kernel_data.integrator.use_direct_light)
@@ -127,8 +127,8 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 			if(UNLIKELY(light_select_reached_max_bounces(kg, i, state->bounce)))
 				continue;
 
-			int num_samples = ceil_to_int(num_samples_adjust*light_select_num_samples(kg, i));
-			float num_samples_inv = num_samples_adjust/(num_samples*kernel_data.integrator.num_all_lights);
+			int num_samples = light_select_num_samples(kg, i);
+			float num_samples_inv = 1.0f/(num_samples*kernel_data.integrator.num_all_lights);
 			RNG lamp_rng = cmj_hash(*rng, i);
 
 			if(kernel_data.integrator.pdf_triangles != 0.0f)
@@ -174,8 +174,8 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 
 		/* mesh light sampling */
 		if(kernel_data.integrator.pdf_triangles != 0.0f) {
-			int num_samples = ceil_to_int(num_samples_adjust*kernel_data.integrator.mesh_light_samples);
-			float num_samples_inv = num_samples_adjust/num_samples;
+			int num_samples = kernel_data.integrator.mesh_light_samples;
+			float num_samples_inv = 1.0f/num_samples;
 
 			if(kernel_data.integrator.num_all_lights)
 				num_samples_inv *= 0.5f;
