@@ -278,7 +278,10 @@ bool KX_MouseActuator::Update()
 					setposition[1] = center_y;
 				}
 
-				setMousePosition(setposition[0], setposition[1]);
+				// only trigger mouse event when it is necessary
+				if (m_oldposition[0] != position[0] || m_oldposition[1] != position[1]) {
+					setMousePosition(setposition[0], setposition[1]);
+				}
 
 				m_oldposition[0] = position[0];
 				m_oldposition[1] = position[1];
