@@ -3703,22 +3703,6 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 	}
 
 	if (align_active == false) {
-		/* normal operation */
-		if (rv3d->viewlock & RV3D_LOCKED) {
-			/* only pass on if */
-
-			/* nice confusing if-block */
-			if (!((rv3d->view == RV3D_VIEW_FRONT  && view == RV3D_VIEW_BACK)  ||
-			      (rv3d->view == RV3D_VIEW_BACK   && view == RV3D_VIEW_FRONT) ||
-			      (rv3d->view == RV3D_VIEW_RIGHT  && view == RV3D_VIEW_LEFT)  ||
-			      (rv3d->view == RV3D_VIEW_LEFT   && view == RV3D_VIEW_RIGHT) ||
-			      (rv3d->view == RV3D_VIEW_BOTTOM && view == RV3D_VIEW_TOP)   ||
-			      (rv3d->view == RV3D_VIEW_TOP    && view == RV3D_VIEW_BOTTOM)))
-			{
-				return;
-			}
-		}
-
 		rv3d->view = view;
 	}
 
@@ -3764,10 +3748,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	viewnum = RNA_enum_get(op->ptr, "type");
 	align_active = RNA_boolean_get(op->ptr, "align_active");
-
-	/* set this to zero, gets handled in axis_set_view */
-	if (rv3d->viewlock & RV3D_LOCKED)
-		align_active = false;
 
 	/* Use this to test if we started out with a camera */
 
