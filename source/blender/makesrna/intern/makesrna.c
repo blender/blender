@@ -3372,7 +3372,9 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 	fprintf(f, "#include \"RNA_types.h\"\n");
 	fprintf(f, "#include \"rna_internal.h\"\n\n");
 
-	rna_generate_prototypes(brna, f);
+
+	/* include the generated prototypes header */
+	fprintf(f, "#include \"rna_prototypes_gen.h\"\n\n");
 
 	fprintf(f, "#include \"%s\"\n", filename);
 	if (api_filename)
@@ -3966,6 +3968,26 @@ static int rna_preprocess(const char *outfile)
 	rna_auto_types();
 
 	status = (DefRNA.error != 0);
+
+	/* create rna prototype header file */
+	strcpy(deffile, outfile);
+	strcat(deffile, "rna_prototypes_gen.h");
+	if (status) {
+		make_bad_file(deffile, __LINE__);
+	}
+	file = fopen(deffile, "w");
+	if (!file) {
+		fprintf(stderr, "Unable to open file: %s\n", deffile);
+		status = 1;
+	}
+	else {
+		fprintf(file,
+		    "/* Automatically generated function declarations for the Data API.\n"
+		    " * Do not edit manually, changes will be overwritten.              */\n\n");
+		rna_generate_prototypes(brna, file);
+		fclose(file);
+		status = (DefRNA.error != 0);
+	}
 
 	/* create rna_gen_*.c files */
 	for (i = 0; PROCESS_ITEMS[i].filename; i++) {
