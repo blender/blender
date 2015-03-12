@@ -21,10 +21,8 @@ import bpy
 from bpy.app.handlers import persistent
 
 
-def check_is_new_shading_material(material):
-    if not material.node_tree:
-        return False
-    for node in material.node_tree.nodes:
+def check_is_new_shading_ntree(node_tree):
+    for node in node_tree.nodes:
         # If material has any node with ONLY new shading system
         # compatibility then it's considered a Cycles material
         # and versioning code would need to perform on it.
@@ -44,6 +42,24 @@ def check_is_new_shading_material(material):
     return False
 
 
+def check_is_new_shading_material(material):
+    if not material.node_tree:
+        return False
+    return check_is_new_shading_ntree(material.node_tree)
+
+
+def check_is_new_shading_world(world):
+    if not world.node_tree:
+        return False
+    return check_is_new_shading_ntree(world.node_tree)
+
+
+def check_is_new_shading_lamp(lamp):
+    if not lamp.node_tree:
+        return False
+    return check_is_new_shading_ntree(lamp.node_tree)
+
+
 def foreach_notree_node(nodetree, callback, traversed):
     if nodetree in traversed:
         return
@@ -59,6 +75,16 @@ def foreach_cycles_node(callback):
     for material in bpy.data.materials:
         if check_is_new_shading_material(material):
                 foreach_notree_node(material.node_tree,
+                                    callback,
+                                    traversed)
+    for world in bpy.data.worlds:
+        if check_is_new_shading_world(world):
+                foreach_notree_node(world.node_tree,
+                                    callback,
+                                    traversed)
+    for lamp in bpy.data.lamps:
+        if check_is_new_shading_world(lamp):
+                foreach_notree_node(lamp.node_tree,
                                     callback,
                                     traversed)
 
