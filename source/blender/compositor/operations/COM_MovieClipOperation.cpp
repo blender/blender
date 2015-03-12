@@ -124,9 +124,7 @@ MovieClipAlphaOperation::MovieClipAlphaOperation() : MovieClipBaseOperation()
 
 void MovieClipAlphaOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	MovieClipBaseOperation::executePixelSampled(output, x, y, sampler);
-	output[0] = output[3];
-	output[1] = 0.0f;
-	output[2] = 0.0f;
-	output[3] = 0.0f;
+	float result[4];
+	MovieClipBaseOperation::executePixelSampled(result, x, y, sampler);
+	output[0] = result[3];
 }
