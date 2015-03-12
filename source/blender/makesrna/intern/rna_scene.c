@@ -954,12 +954,13 @@ PropertyRNA *UNUSED(prop), bool *r_free)
 	EnumPropertyItem *item = NULL;
 	int i = 1, totitem = 0;
 
-	if(imf->depth == 16)
+	if (imf->depth == 16)
 		return exr_codec_items; /* All compression types are defined for halfs */
 
 	for (i = 0; i < R_IMF_EXR_CODEC_MAX; i++) {
-		if((i == R_IMF_EXR_CODEC_B44 || i == R_IMF_EXR_CODEC_B44A))
+		if ((i == R_IMF_EXR_CODEC_B44 || i == R_IMF_EXR_CODEC_B44A)) {
 			continue; /* B44 and B44A are not defined for 32 bit floats */
+		}
 
 		RNA_enum_item_add(&item, &totitem, &exr_codec_items[i]);
 	}

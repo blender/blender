@@ -222,7 +222,7 @@ public:
 			int v = y;
 			this->wrap_pixel(u, v, extend_x, extend_y);
 			const int offset = (this->m_width * y + x) * this->m_num_channels;
-			float* buffer = &this->m_buffer[offset];
+			float *buffer = &this->m_buffer[offset];
 			memcpy(result, buffer, sizeof(float) * this->m_num_channels);
 		}
 	}
