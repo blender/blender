@@ -896,6 +896,21 @@ char ED_view3d_lock_view_from_index(int index)
 
 }
 
+char ED_view3d_axis_view_opposite(char view)
+{
+	switch (view) {
+		case RV3D_VIEW_FRONT:   return RV3D_VIEW_BACK;
+		case RV3D_VIEW_BACK:    return RV3D_VIEW_FRONT;
+		case RV3D_VIEW_LEFT:    return RV3D_VIEW_RIGHT;
+		case RV3D_VIEW_RIGHT:   return RV3D_VIEW_LEFT;
+		case RV3D_VIEW_TOP:     return RV3D_VIEW_BOTTOM;
+		case RV3D_VIEW_BOTTOM:  return RV3D_VIEW_TOP;
+	}
+
+	return RV3D_VIEW_USER;
+}
+
+
 bool ED_view3d_lock(RegionView3D *rv3d)
 {
 	return ED_view3d_quat_from_axis_view(rv3d->view, rv3d->viewquat);

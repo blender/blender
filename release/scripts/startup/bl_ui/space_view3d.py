@@ -446,6 +446,9 @@ class VIEW3D_MT_view_navigation(Menu):
         layout = self.layout
 
         layout.operator_enum("view3d.view_orbit", "type")
+        props = layout.operator("view3d.view_orbit", "Orbit Opposite")
+        props.type = 'ORBITRIGHT'
+        props.angle = pi
 
         layout.separator()
 
