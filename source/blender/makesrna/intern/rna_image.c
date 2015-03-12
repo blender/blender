@@ -709,13 +709,13 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twsta");
-	RNA_def_property_range(prop, 0, 128);
+	RNA_def_property_range(prop, 0, 255);
 	RNA_def_property_ui_text(prop, "Animation Start", "Start frame of an animated texture");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_animated_update");
 
 	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twend");
-	RNA_def_property_range(prop, 0, 128);
+	RNA_def_property_range(prop, 0, 255);
 	RNA_def_property_ui_text(prop, "Animation End", "End frame of an animated texture");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_animated_update");
 
