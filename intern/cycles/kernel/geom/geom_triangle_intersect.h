@@ -154,15 +154,10 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	 * the hit distance.
 	 */
 	const float T = (U * A_kz + V * B_kz + W * C_kz) * Sz;
-
-	/* Perform "near clipping". */
-	const float abs_T = xor_signmast(T, sign_mask);
-	if(abs_T < 0.0f) {
-		return false;
-	}
-	/* Perform "far clipping". */
-	const float abs_det = xor_signmast(det, sign_mask);
-	if(abs_T > isect->t * abs_det) {
+	const float sign_T = xor_signmast(T, sign_mask);
+	if ((sign_T < 0.0f) ||
+	    (sign_T > isect->t * xor_signmast(det, sign_mask)))
+	{
 		return false;
 	}
 
@@ -174,37 +169,12 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	{
 		/* Normalize U, V, W, and T. */
 		const float inv_det = 1.0f / det;
-		const float t = T * inv_det;
-
-#ifdef __INTERSECTION_REFINE__
-		/* TODO(sergey): When intersection refine is enabled ray is being
-		 * pushed by quite small epsilon from the surface, which causes
-		 * numerical issues of watertight Woop intersection check with
-		 * huge triangles.
-		 *
-		 * Here we're working this around by checking distance in Pleucker
-		 * coordinates if intersection is suspiciously close to the point
-		 * in order to eliminate self-shadowing.
-		 *
-		 * Ideally we need to solve this in Woop intersection code but
-		 * it's quite tricky.
-		 */
-		if(UNLIKELY(abs_det > 100000.0f && t < 1e-3f)) {
-			const float3 Ng = cross(A - B, C - A);
-			const float pleucker_den = dot(Ng, dir);
-			const float pleucker_T = dot(A, Ng);
-			if(UNLIKELY(pleucker_T * pleucker_den < 0.0f)) {
-				return false;
-			}
-		}
-#endif
-
 		isect->prim = triAddr;
 		isect->object = object;
 		isect->type = PRIMITIVE_TRIANGLE;
 		isect->u = U * inv_det;
 		isect->v = V * inv_det;
-		isect->t = t;
+		isect->t = T * inv_det;
 		return true;
 	}
 	return false;
