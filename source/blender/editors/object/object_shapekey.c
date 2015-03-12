@@ -120,9 +120,16 @@ static bool ED_object_shape_key_remove(Main *bmain, Object *ob)
 	kb = BLI_findlink(&key->block, ob->shapenr - 1);
 
 	if (kb) {
-		for (rkb = key->block.first; rkb; rkb = rkb->next)
-			if (rkb->relative == ob->shapenr - 1)
+		for (rkb = key->block.first; rkb; rkb = rkb->next) {
+			if (rkb->relative == ob->shapenr - 1) {
+				/* remap to the 'Basis' */
 				rkb->relative = 0;
+			}
+			else if (rkb->relative >= ob->shapenr) {
+				/* Fix positional shift of the keys when kb is deleted from the list */
+			    rkb->relative -= 1;
+		    }
+		}
 
 		BLI_remlink(&key->block, kb);
 		key->totkey--;
