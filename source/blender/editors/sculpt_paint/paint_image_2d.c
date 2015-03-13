@@ -345,8 +345,8 @@ static unsigned short *brush_painter_curve_mask_new(BrushPainter *painter, int d
 {
 	Brush *brush = painter->brush;
 
-	int xoff = -diameter * 0.5f + 0.5f;
-	int yoff = -diameter * 0.5f + 0.5f;
+	int xoff = -radius;
+	int yoff = -radius;
 
 	unsigned short *mask, *m;
 	int x, y;
