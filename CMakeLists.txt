@@ -310,7 +310,7 @@ endif()
 option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
 option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 if(UNIX AND NOT APPLE)
-	option(WITH_SYSTEM_LZO    "Use the system LZO library" ON)
+	option(WITH_SYSTEM_LZO    "Use the system LZO library" OFF)
 endif()
 
 # Camera/motion tracking
