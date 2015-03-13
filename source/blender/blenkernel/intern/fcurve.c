@@ -386,7 +386,7 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 			}
 			
 			/* if we still haven't found anything, check whether it's a "special" property */
-			if ((fcu == NULL) && (adt->nla_tracks.first)) {
+			if ((fcu == NULL) && (adt && adt->nla_tracks.first)) {
 				NlaTrack *nlt;
 				const char *propname = RNA_property_identifier(prop);
 				

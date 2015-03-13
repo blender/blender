@@ -198,11 +198,11 @@ static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob
 				ID *id;
 				bAction *action;
 				FCurve *fcu;
-				bool driven;
+				bool driven, special;
 
 				RNA_id_pointer_create(&ob->id, &ptr);
 				prop = RNA_struct_find_property(&ptr, rnapropname);
-				fcu = rna_get_fcurve_context_ui(C, &ptr, prop, 0, NULL, &action, &driven, NULL);
+				fcu = rna_get_fcurve_context_ui(C, &ptr, prop, 0, NULL, &action, &driven, &special);
 
 				if (fcu && !driven) {
 					id = ptr.id.data;
