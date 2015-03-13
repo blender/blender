@@ -84,8 +84,12 @@
 #endif
 
 #ifdef WITH_LZO
-#include "minilzo.h"
-#define LZO_HEAP_ALLOC(var,size) \
+#  ifdef WITH_SYSTEM_LZO
+#    include <lzo/lzo1x.h>
+#  else
+#    include "minilzo.h"
+#  endif
+#  define LZO_HEAP_ALLOC(var,size) \
 	lzo_align_t __LZO_MMODEL var [ ((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ]
 #endif
 

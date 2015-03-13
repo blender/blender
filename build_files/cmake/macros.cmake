@@ -321,6 +321,9 @@ macro(setup_liblinks
 		endif()
 	endif()
 
+	if(WITH_LZO AND WITH_SYSTEM_LZO)
+		target_link_libraries(${target} ${LZO_LIBRARIES})
+	endif()
 	if(WITH_SYSTEM_GLEW)
 		target_link_libraries(${target} ${BLENDER_GLEW_LIBRARIES})
 	endif()
@@ -539,7 +542,6 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 		ge_phys_dummy
 		ge_phys_bullet
 		bf_intern_smoke
-		extern_minilzo
 		extern_lzma
 		extern_colamd
 		ge_logic_ketsji
@@ -591,6 +593,10 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
+	endif()
+
+	if(NOT WITH_SYSTEM_LZO)
+		list(APPEND BLENDER_SORTED_LIBS extern_minilzo)
 	endif()
 
 	if(NOT WITH_SYSTEM_GLEW)

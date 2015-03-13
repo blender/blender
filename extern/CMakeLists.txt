@@ -66,7 +66,7 @@ if(WITH_IMAGE_REDCODE)
 	add_subdirectory(libredcode)
 endif()
 
-if(WITH_LZO)
+if(WITH_LZO AND NOT WITH_SYSTEM_LZO)
 	add_subdirectory(lzo)
 endif()
 
