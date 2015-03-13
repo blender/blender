@@ -47,7 +47,6 @@
 
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -175,6 +174,7 @@ static void update_depsgraph_field_source_object(DagForest *forest,
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
+                           struct Main *bmain,
                            struct Scene *scene, struct Object *ob,
                            DagNode *obNode)
 {
@@ -212,7 +212,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 				}
 		}
 		else {
-			BKE_main_id_tag_listbase(&G.main->object, true);
+			BKE_main_id_tag_listbase(&bmain->object, true);
 			base = scene->base.first;
 			for (; base; base = base->next) {
 				update_depsgraph_flow_coll_object(forest, obNode, base->object);
@@ -220,7 +220,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		}
 		/* add relation to all "smoke flow" force fields */
 		base = scene->base.first;
-		BKE_main_id_tag_listbase(&G.main->object, true);
+		BKE_main_id_tag_listbase(&bmain->object, true);
 		for (; base; base = base->next) {
 			update_depsgraph_field_source_object(forest, obNode, ob, base->object);
 		}

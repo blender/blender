@@ -112,6 +112,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
+                           struct Main *UNUSED(bmain),
                            struct Scene *scene,
                            Object *ob,
                            DagNode *obNode)

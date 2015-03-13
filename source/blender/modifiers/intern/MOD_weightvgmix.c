@@ -191,7 +191,9 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
 	walk(userData, ob, md, "mask_texture");
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+                           struct Main *UNUSED(bmain),
+                           struct Scene *UNUSED(scene),
                            Object *UNUSED(ob), DagNode *obNode)
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;

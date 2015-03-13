@@ -41,6 +41,7 @@ struct Scene;
 struct ListBase;
 struct LinkNode;
 struct bArmature;
+struct Main;
 struct ModifierData;
 struct BMEditMesh;
 
@@ -256,7 +257,8 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Scene *scene,
+	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest,
+	                       struct Main *bmain, struct Scene *scene,
 	                       struct Object *ob, struct DagNode *obNode);
 
 	/* Should return true if the modifier needs to be recalculated on time

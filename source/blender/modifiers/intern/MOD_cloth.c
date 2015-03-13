@@ -118,7 +118,9 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 	dm->release(dm);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+                           struct Main *UNUSED(bmain),
+                           Scene *scene, Object *ob, DagNode *obNode)
 {
 	ClothModifierData *clmd = (ClothModifierData *) md;
 	

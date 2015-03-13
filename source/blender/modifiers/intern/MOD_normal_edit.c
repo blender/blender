@@ -465,7 +465,9 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return !is_valid_target(smd);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+                           struct Main *UNUSED(bmain),
+                           struct Scene *UNUSED(scene),
                            Object *UNUSED(ob), DagNode *obNode)
 {
 	NormalEditModifierData *smd = (NormalEditModifierData *) md;

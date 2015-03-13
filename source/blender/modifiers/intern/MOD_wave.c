@@ -131,6 +131,7 @@ static void foreachTexLink(ModifierData *md, Object *ob,
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
+                           struct Main *UNUSED(bmain),
                            Scene *UNUSED(scene),
                            Object *UNUSED(ob),
                            DagNode *obNode)
