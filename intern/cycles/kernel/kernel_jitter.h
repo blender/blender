@@ -47,6 +47,8 @@ ccl_device_inline int cmj_fast_div_pow2(int a, int b)
 #  else
 	return a >> __builtin_ctz(b);
 #  endif
+#elif defined(__KERNEL_CUDA__)
+	return a >> (__ffs(b) - 1);
 #else
 	return a/b;
 #endif
@@ -63,6 +65,8 @@ ccl_device_inline uint cmj_w_mask(uint w)
 #  else
 	return ((1 << (32 - __builtin_clz(w))) - 1);
 #  endif
+#elif defined(__KERNEL_CUDA__)
+	return ((1 << (32 - __clz(w))) - 1);
 #else
 	w |= w >> 1;
 	w |= w >> 2;
@@ -167,7 +171,11 @@ ccl_device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
 {
 	kernel_assert(s < N);
 
+#if defined(__KERNEL_CUDA__)
+	int m = float_to_int(__fsqrt_ru(N));
+#else
 	int m = float_to_int(sqrtf(N));
+#endif
 	int n = (N + m - 1)/m;
 	float invN = 1.0f/N;
 	float invm = 1.0f/m;
