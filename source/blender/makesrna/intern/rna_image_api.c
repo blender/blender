@@ -72,7 +72,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 	}
 
 	if (scene) {
-		ImageUser iuser = {0};
+		ImageUser iuser = {NULL};
 		void *lock;
 
 		iuser.scene = scene;

@@ -143,7 +143,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 		mem += BMP_FILEHEADER_SIZE;
 	}
 	else {
-		return 0;
+		return NULL;
 	}
 
 	/* for systems where an int needs to be 4 bytes aligned */

@@ -4293,7 +4293,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
 {
 	RadialControl *rc = op->customdata;
 	wmWindowManager *wm = CTX_wm_manager(C);
-    ScrArea *sa = CTX_wm_area(C);
+	ScrArea *sa = CTX_wm_area(C);
 
 	if (rc->dial) {
 		MEM_freeN(rc->dial);

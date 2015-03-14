@@ -101,7 +101,7 @@ void RNA_api_space_text(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_int(func, "column", 0, INT_MIN, INT_MAX, "Column", "Column index", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int_array(func, "result", 2, 0, -1, INT_MAX, "", "Region coordinates", -1, INT_MAX);
+	parm = RNA_def_int_array(func, "result", 2, NULL, -1, INT_MAX, "", "Region coordinates", -1, INT_MAX);
 	RNA_def_function_output(func, parm);
 }
 

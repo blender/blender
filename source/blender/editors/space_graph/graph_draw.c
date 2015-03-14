@@ -908,7 +908,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			glPointSize(7.0);
 			
 			glBegin(GL_POINTS);
-				glVertex2f(x, y);
+			glVertex2f(x, y);
 			glEnd();
 			
 			/* inner frame */
@@ -916,7 +916,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			glPointSize(3.0);
 			
 			glBegin(GL_POINTS);
-				glVertex2f(x, y);
+			glVertex2f(x, y);
 			glEnd();
 			
 			glPointSize(1.0f);
