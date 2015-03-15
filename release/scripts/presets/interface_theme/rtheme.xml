@@ -981,7 +981,7 @@
     <clip_editor>
       <ThemeClipEditor gp_vertex="#000000"
                        gp_vertex_select="#000000"
-                       gp_vertex_size="0"
+                       gp_vertex_size="1"
                        marker_outline="#000000"
                        marker="#7f7f00"
                        active_marker="#ffffff"
