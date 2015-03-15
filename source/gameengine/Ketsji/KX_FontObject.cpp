@@ -118,7 +118,6 @@ CValue* KX_FontObject::GetReplica()
 void KX_FontObject::ProcessReplica()
 {
 	KX_GameObject::ProcessReplica();
-	KX_GetActiveScene()->AddFont(this);
 }
 
 int GetFontId(VFont *vfont)

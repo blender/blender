@@ -221,6 +221,7 @@ public:
 		OBJ_ARMATURE=0,
 		OBJ_CAMERA=1,
 		OBJ_LIGHT=2,
+		OBJ_FONT=3,
 	} ObjectTypes;
 
 };
