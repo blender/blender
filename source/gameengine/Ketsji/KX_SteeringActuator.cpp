@@ -281,7 +281,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 					KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(0.0, 1.0, 0.0));
 			}
 
-			HandleActorFace(newvel);
+			HandleActorFace(m_steerVec);
 			if (isdyna)
 			{
 				//TODO: Take into account angular velocity on turns
