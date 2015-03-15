@@ -100,7 +100,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 			char *enum_str = BPy_enum_as_string(operator_context_items);
 			PyErr_Format(PyExc_TypeError,
 			             "Calling operator \"bpy.ops.%s.poll\" error, "
-			             "expected a string enum in (%.200s)",
+			             "expected a string enum in (%s)",
 			             opname, enum_str);
 			MEM_freeN(enum_str);
 			return NULL;
@@ -186,7 +186,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			char *enum_str = BPy_enum_as_string(operator_context_items);
 			PyErr_Format(PyExc_TypeError,
 			             "Calling operator \"bpy.ops.%s\" error, "
-			             "expected a string enum in (%.200s)",
+			             "expected a string enum in (%s)",
 			             opname, enum_str);
 			MEM_freeN(enum_str);
 			return NULL;
