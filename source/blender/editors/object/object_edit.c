@@ -571,8 +571,8 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	ToolSettings *toolsettings =  CTX_data_tool_settings(C);
 
 	if (!is_mode_set) {
-		Scene *scene = CTX_data_scene(C);
-		if (!ED_object_mode_compat_set(C, scene->basact->object, mode_flag, op->reports)) {
+		Object *ob = CTX_data_active_object(C);
+		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
