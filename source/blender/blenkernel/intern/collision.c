@@ -953,7 +953,7 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
 
 	for ( ; collpair != collision_end; collpair++ ) {
-		float margin_distance = collpair->distance - epsilon2;
+		float margin_distance = (float)(collpair->distance - (double)epsilon2);
 		float impulse[3];
 		float mag_v_rel;
 

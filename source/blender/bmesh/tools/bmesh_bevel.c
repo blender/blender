@@ -913,7 +913,7 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 {
 	EdgeHalf *e;
 	Profile *pro;
-	float co1[3], co2[3], co3[3], d1[3], d2[3], d3[3], l;
+	float co1[3], co2[3], co3[3], d1[3], d2[3], l;
 	bool do_linear_interp;
 
 	copy_v3_v3(co1, bndv->nv.co);

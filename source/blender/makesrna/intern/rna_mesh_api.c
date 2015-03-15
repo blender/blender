@@ -279,7 +279,7 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_boolean(func, "free_mpoly", 0, "Free MPoly", "Free data used by polygons and loops. "
 	                "WARNING: This destructive operation removes regular faces, "
 	                "only used on temporary mesh data-blocks to reduce memory footprint of render "
-	                "engines and export scripts.");
+	                "engines and export scripts");
 
 	func = RNA_def_function(srna, "calc_smooth_groups", "rna_Mesh_calc_smooth_groups");
 	RNA_def_function_ui_description(func, "Calculate smooth groups from sharp edges");
