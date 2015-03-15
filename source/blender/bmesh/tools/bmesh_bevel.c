@@ -909,7 +909,7 @@ static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3],
 /* If there is a bndv->ebev edge, find the mid control point if necessary.
  * It is the closest point on the beveled edge to the line segment between
  * bndv and bndv->next.  */
-static void set_profile_params(BevelParams *bp, BoundVert *bndv)
+static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 {
 	EdgeHalf *e;
 	Profile *pro;
@@ -947,18 +947,37 @@ static void set_profile_params(BevelParams *bp, BoundVert *bndv)
 		cross_v3_v3v3(pro->plane_no, d1, d2);
 		l = normalize_v3(pro->plane_no);
 		if (l  <= BEVEL_EPSILON_BIG) {
-			/* co1 - midco -co2 are collinear - project plane that contains that line
-			 * and is perpendicular to the plane containing it and the beveled edge */
-			cross_v3_v3v3(d3, d1, pro->proj_dir);
-			normalize_v3(d3);
-			cross_v3_v3v3(pro->plane_no, d1, d3);
-			l = normalize_v3(pro->plane_no);
-			if (l <= BEVEL_EPSILON_BIG) {
-				/* whole profile is collinear with edge: just interpolate */
+			/* co1 - midco -co2 are collinear.
+			 * Should be case that beveled edge is coplanar with two boundary verts.
+			 * If the profile is going to lead into unbeveled edges on each side
+			 * (that is, both BoundVerts are "on-edge" points on non-beveled edges)
+			 * then in order to get curve in multi-segment case, change projection plane
+			 * to be that common plane, projection dir to be the plane normal,
+			 * and mid to be the original vertex.
+			 * Otherwise, we just want to linearly interpolate between co1 and co2.
+			 */
+			if (e->prev->is_bev || e->next->is_bev) {
 				do_linear_interp = true;
 			}
-			/* signal to weld that this is linear */
-			pro->super_r = PRO_LINE_R;
+			else {
+				copy_v3_v3(pro->coa, co1);
+				copy_v3_v3(pro->midco, bv->v->co);
+				copy_v3_v3(pro->cob, co2);
+				sub_v3_v3v3(d1, pro->midco, co1);
+				normalize_v3(d1);
+				sub_v3_v3v3(d2, pro->midco, co2);
+				normalize_v3(d2);
+				cross_v3_v3v3(pro->plane_no, d1, d2);
+				l = normalize_v3(pro->plane_no);
+				if (l <= BEVEL_EPSILON_BIG) {
+					/* whole profile is collinear with edge: just interpolate */
+					do_linear_interp = true;
+				}
+				else {
+					copy_v3_v3(pro->plane_co, bv->v->co);
+					copy_v3_v3(pro->proj_dir, pro->plane_no);
+				}
+			}
 		}
 		copy_v3_v3(pro->plane_co, co1);
 	}
@@ -1474,7 +1493,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		else {
 			adjust_bound_vert(e->next->leftv, co);
 		}
-		set_profile_params(bp, vm->boundstart);
+		set_profile_params(bp, bv, vm->boundstart);
 		calculate_profile(bp, vm->boundstart);
 		return;
 	}
@@ -1580,7 +1599,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 
 	v = vm->boundstart;
 	do {
-		set_profile_params(bp, v);
+		set_profile_params(bp, bv, v);
 		calculate_profile(bp, v);
 	} while ((v = v->next) != vm->boundstart);
 
