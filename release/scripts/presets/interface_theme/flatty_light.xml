@@ -241,9 +241,6 @@
       <ThemeView3D grid="#414141"
                    wire="#000000"
                    wire_edit="#808080"
-                   gp_vertex="#000000"
-                   gp_vertex_select="#000000"
-                   gp_vertex_size="1"
                    lamp="#00000028"
                    speaker="#000000"
                    camera="#000000"
@@ -545,10 +542,7 @@
       </ThemeDopeSheet>
     </dopesheet_editor>
     <image_editor>
-      <ThemeImageEditor gp_vertex="#000000"
-                        gp_vertex_select="#000000"
-                        gp_vertex_size="1"
-                        vertex="#000000"
+      <ThemeImageEditor vertex="#000000"
                         vertex_select="#ff8500"
                         vertex_size="3"
                         vertex_unreferenced="#000000"
@@ -611,10 +605,7 @@
       </ThemeImageEditor>
     </image_editor>
     <sequence_editor>
-      <ThemeSequenceEditor gp_vertex="#000000"
-                           gp_vertex_select="#000000"
-                           gp_vertex_size="1"
-                           grid="#404040"
+      <ThemeSequenceEditor grid="#404040"
                            window_sliders="#a0a0a0"
                            movie_strip="#516987"
                            movieclip_strip="#20208f"
@@ -725,9 +716,7 @@
     </text_editor>
     <timeline>
       <ThemeTimeline grid="#5b5b5b"
-                     frame_current="#60c040"
-                     time_keyframe="#000000"
-                     time_grease_pencil="#000000">
+                     frame_current="#60c040">
         <space>
           <ThemeSpaceGeneric back="#727272"
                              title="#000000"
@@ -756,10 +745,7 @@
       </ThemeTimeline>
     </timeline>
     <node_editor>
-      <ThemeNodeEditor gp_vertex="#000000"
-                       gp_vertex_select="#000000"
-                       gp_vertex_size="1"
-                       node_selected="#f15800"
+      <ThemeNodeEditor node_selected="#f15800"
                        node_active="#f15800"
                        wire="#a7a7a7"
                        wire_inner="#999999"
@@ -978,10 +964,7 @@
       </ThemeConsole>
     </console>
     <clip_editor>
-      <ThemeClipEditor gp_vertex="#000000"
-                       gp_vertex_select="#000000"
-                       gp_vertex_size="1"
-                       marker_outline="#000000"
+      <ThemeClipEditor marker_outline="#000000"
                        marker="#7f7f00"
                        active_marker="#ffffff"
                        selected_marker="#ffff00"
