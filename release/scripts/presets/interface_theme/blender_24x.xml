@@ -241,6 +241,9 @@
       <ThemeView3D grid="#4c4c4c"
                    wire="#000000"
                    wire_edit="#000000"
+                   gp_vertex="#000000"
+                   gp_vertex_select="#ff8500"
+                   gp_vertex_size="3"
                    lamp="#00000028"
                    speaker="#000000"
                    camera="#000000"
@@ -296,6 +299,7 @@
                    bundle_solid="#c8c8c8"
                    camera_path="#000000"
                    skin_root="#b44d4d"
+                   clipping_border_3d="#313131ff"
                    paint_curve_handle="#7fff7f7f"
                    paint_curve_pivot="#ff7f7f7f">
         <space>
@@ -542,7 +546,10 @@
       </ThemeDopeSheet>
     </dopesheet_editor>
     <image_editor>
-      <ThemeImageEditor vertex="#000000"
+      <ThemeImageEditor gp_vertex="#000000"
+                        gp_vertex_select="#ff8500"
+                        gp_vertex_size="3"
+                        vertex="#000000"
                         vertex_select="#ff8500"
                         vertex_size="3"
                         vertex_unreferenced="#000000"
@@ -605,7 +612,10 @@
       </ThemeImageEditor>
     </image_editor>
     <sequence_editor>
-      <ThemeSequenceEditor grid="#404040"
+      <ThemeSequenceEditor gp_vertex="#000000"
+                           gp_vertex_select="#ff8500"
+                           gp_vertex_size="3"
+                           grid="#404040"
                            window_sliders="#a0a0a0"
                            movie_strip="#516987"
                            movieclip_strip="#20208f"
@@ -716,7 +726,9 @@
     </text_editor>
     <timeline>
       <ThemeTimeline grid="#5b5b5b"
-                     frame_current="#60c040">
+                     frame_current="#60c040"
+                     time_keyframe="#ddd700"
+                     time_grease_pencil="#b5e61d">
         <space>
           <ThemeSpaceGeneric back="#999999"
                              title="#000000"
@@ -745,7 +757,10 @@
       </ThemeTimeline>
     </timeline>
     <node_editor>
-      <ThemeNodeEditor node_selected="#ffffff"
+      <ThemeNodeEditor gp_vertex="#000000"
+                       gp_vertex_select="#ff8500"
+                       gp_vertex_size="3"
+                       node_selected="#ffffff"
                        node_active="#ffffff"
                        wire="#000000"
                        wire_inner="#737373"
@@ -964,7 +979,10 @@
       </ThemeConsole>
     </console>
     <clip_editor>
-      <ThemeClipEditor marker_outline="#000000"
+      <ThemeClipEditor gp_vertex="#000000"
+                       gp_vertex_select="#000000"
+                       gp_vertex_size="1"
+                       marker_outline="#000000"
                        marker="#7f7f00"
                        active_marker="#ffffff"
                        selected_marker="#ffff00"
