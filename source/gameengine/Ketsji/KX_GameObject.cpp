@@ -91,6 +91,7 @@ KX_GameObject::KX_GameObject(
     : SCA_IObject(),
       m_bDyna(false),
       m_layer(0),
+      m_currentLodLevel(0),
       m_pBlenderObject(NULL),
       m_pBlenderGroupObject(NULL),
       m_bSuspendDynamics(false),
@@ -794,7 +795,7 @@ void KX_GameObject::UpdateLod(MT_Vector3 &cam_pos)
 	}
 
 	RAS_MeshObject *mesh = this->m_lodmeshes[level];
-
+	this->m_currentLodLevel = level;
 	if (mesh != this->m_meshes[0]) {
 		this->GetScene()->ReplaceMesh(this, mesh, true, false);
 	}
@@ -1927,6 +1928,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 };
 
 PyAttributeDef KX_GameObject::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RO("currentLodLevel", KX_GameObject, m_currentLodLevel),
 	KX_PYATTRIBUTE_RO_FUNCTION("name",		KX_GameObject, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("parent",	KX_GameObject, pyattr_get_parent),
 	KX_PYATTRIBUTE_RO_FUNCTION("groupMembers",	KX_GameObject, pyattr_get_group_members),

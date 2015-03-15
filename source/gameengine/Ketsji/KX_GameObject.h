@@ -88,6 +88,7 @@ protected:
 	int									m_layer;
 	std::vector<RAS_MeshObject*>		m_meshes;
 	std::vector<RAS_MeshObject*>		m_lodmeshes;
+	int                                 m_currentLodLevel;
 	SG_QList							m_meshSlots;	// head of mesh slots of this 
 	struct Object*						m_pBlenderObject;
 	struct Object*						m_pBlenderGroupObject;
