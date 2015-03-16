@@ -2301,7 +2301,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
 	BMEdge *e;
 	int i;
 
-	STACK_INIT(group_array, bm->totface);
+	STACK_INIT(group_array, bm->totedge);
 
 	/* init the array */
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
