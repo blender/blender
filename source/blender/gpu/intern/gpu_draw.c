@@ -723,42 +723,55 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 	glGenTextures(1, (GLuint *)bind);
 	glBindTexture(GL_TEXTURE_2D, *bind);
 
-	if (!(GPU_get_mipmap() && mipmap)) {
-		if (use_high_bit_depth) {
-			if (GLEW_ARB_texture_float)
-				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16F,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
-			else
-				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
-		}
+	if (use_high_bit_depth) {
+		if (GLEW_ARB_texture_float)
+			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16F,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 		else
-			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 	}
-	else {
-		if (GTS.gpu_mipmap) {
-			if (use_high_bit_depth) {
-				if (GLEW_ARB_texture_float)
-					glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16F,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
-				else
-					glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
-			}
-			else
-				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+
+	if (GPU_get_mipmap() && mipmap) {
+		if (GTS.gpu_mipmap) {
 			gpu_generate_mipmap(GL_TEXTURE_2D);
 		}
 		else {
-			if (use_high_bit_depth)
-				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA16, rectw, recth, GL_RGBA, GL_FLOAT, frect);
-			else
-				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+			int i;
+
+			if (!ibuf) {
+				if (use_high_bit_depth) {
+					ibuf = IMB_allocFromBuffer(NULL, frect, tpx, tpy);
+				}
+				else {
+					ibuf = IMB_allocFromBuffer(rect, NULL, tpx, tpy);
+				}
+			}
+
+			IMB_makemipmap(ibuf, true);
+
+			for (i = 1; i < ibuf->miptot; i++) {
+				ImBuf *mip = ibuf->mipmap[i - 1];
+				if (use_high_bit_depth) {
+					if (GLEW_ARB_texture_float)
+						glTexImage2D(GL_TEXTURE_2D, i,  GL_RGBA16F,  mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
+					else
+						glTexImage2D(GL_TEXTURE_2D, i,  GL_RGBA16,  mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
+				}
+				else {
+					glTexImage2D(GL_TEXTURE_2D, i,  GL_RGBA,  mip->x, mip->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
+				}
+			}
 		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
 		if (ima)
 			ima->tpageflag |= IMA_MIPMAP_COMPLETE;
+	}
+	else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 
 	if (GLEW_EXT_texture_filter_anisotropic)
