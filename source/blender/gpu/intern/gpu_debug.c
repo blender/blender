@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file source/blender/gpu/GPU_debug.h
+/** \file source/blender/gpu/intern/gpu_debug.c
  *  \ingroup gpu
  */
 

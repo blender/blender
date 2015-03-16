@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file gpu_extensions_private.h
+/** \file gpu_private.h
  *  \ingroup gpu
  */
 

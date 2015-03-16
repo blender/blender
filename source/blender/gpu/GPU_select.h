@@ -27,8 +27,8 @@
  *  \ingroup gpu
  */
 
-#ifndef __GPU_SELECT__
-#define __GPU_SELECT__
+#ifndef __GPU_SELECT_H__
+#define __GPU_SELECT_H__
 
 #include "DNA_vec_types.h"  /* rcft */
 #include "BLI_sys_types.h"
