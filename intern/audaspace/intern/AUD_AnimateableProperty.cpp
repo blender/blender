@@ -119,13 +119,11 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 	{
 		m_unknown.push_back(Unknown(pos, position - 1));
 
+		// if the buffer was not animated before, we copy the previous static value
 		if(pos == 0)
-		{
-			for(int i = 0; i < position; i++)
-				memcpy(buf + i * m_count, data, m_count * sizeof(float));
-		}
-		else
-			updateUnknownCache(pos, position - 1);
+			pos = 1;
+
+		updateUnknownCache(pos, position - 1);
 	}
 	// otherwise it's not at the end, let's check if some unknown part got filled
 	else
