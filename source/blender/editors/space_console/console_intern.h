@@ -66,6 +66,7 @@ void CONSOLE_OT_history_cycle(struct wmOperatorType *ot);
 void CONSOLE_OT_copy(struct wmOperatorType *ot);
 void CONSOLE_OT_paste(struct wmOperatorType *ot);
 void CONSOLE_OT_select_set(struct wmOperatorType *ot);
+void CONSOLE_OT_select_word(struct wmOperatorType *ot);
 
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD };
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_NEXT_WORD, DEL_PREV_WORD, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };

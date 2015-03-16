@@ -262,6 +262,40 @@ static int console_line_insert(ConsoleLine *ci, char *str)
 	return len;
 }
 
+/**
+ * Take an absolute index and give the line/column info.
+ *
+ * \note be sure to call console_scrollback_prompt_begin first
+ */
+static bool console_line_column_from_index(
+        SpaceConsole *sc, const int pos,
+        ConsoleLine **r_cl, int *r_cl_offset, int *r_col)
+{
+	ConsoleLine *cl;
+	int offset = 0;
+
+	for (cl = sc->scrollback.last; cl; cl = cl->prev) {
+		offset += cl->len + 1;
+		if (offset >= pos) {
+			break;
+		}
+	}
+
+	if (cl) {
+		offset -= 1;
+		*r_cl = cl;
+		*r_cl_offset = offset;
+		*r_col = offset - pos;
+		return true;
+	}
+	else {
+		*r_cl = NULL;
+		*r_cl_offset = -1;
+		*r_col = -1;
+		return false;
+	}
+}
+
 /* static funcs for text editing */
 
 /* similar to the text editor, with some not used. keep compatible */
@@ -1132,5 +1166,59 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
 	ot->invoke = console_modal_select_invoke;
 	ot->modal = console_modal_select;
 	ot->cancel = console_modal_select_cancel;
+	ot->poll = ED_operator_console_active;
+}
+
+static int console_selectword_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	SpaceConsole *sc = CTX_wm_space_console(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	ConsoleLine cl_dummy = {NULL};
+	ConsoleLine *cl;
+	int ret = OPERATOR_CANCELLED;
+	int pos, offset, n;
+
+	pos = console_char_pick(sc, ar, event->mval);
+
+	console_scrollback_prompt_begin(sc, &cl_dummy);
+
+	if (console_line_column_from_index(sc, pos, &cl, &offset, &n)) {
+		int sel[2] = {n, n};
+
+		BLI_str_cursor_step_utf8(
+		        cl->line, cl->len,
+		        &sel[0], STRCUR_DIR_NEXT,
+		        STRCUR_JUMP_DELIM, true);
+
+		BLI_str_cursor_step_utf8(
+		        cl->line, cl->len,
+		        &sel[1], STRCUR_DIR_PREV,
+		        STRCUR_JUMP_DELIM, true);
+
+		sel[0] = offset - sel[0];
+		sel[1] = offset - sel[1];
+
+		if ((sel[0] != sc->sel_start) || (sel[1] != sc->sel_end)) {
+			sc->sel_start = sel[0];
+			sc->sel_end   = sel[1];
+			ED_area_tag_redraw(CTX_wm_area(C));
+			ret = OPERATOR_FINISHED;
+		}
+	}
+
+	console_scrollback_prompt_end(sc, &cl_dummy);
+	return ret;
+}
+
+void CONSOLE_OT_select_word(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Word";
+	ot->description = "Select word at cursor position";
+	ot->idname = "CONSOLE_OT_select_word";
+
+	/* api callbacks */
+	ot->invoke = console_selectword_invoke;
 	ot->poll = ED_operator_console_active;
 }

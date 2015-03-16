@@ -270,6 +270,7 @@ static void console_operatortypes(void)
 	WM_operatortype_append(CONSOLE_OT_copy);
 	WM_operatortype_append(CONSOLE_OT_paste);
 	WM_operatortype_append(CONSOLE_OT_select_set);
+	WM_operatortype_append(CONSOLE_OT_select_word);
 }
 
 static void console_keymap(struct wmKeyConfig *keyconf)
@@ -348,6 +349,7 @@ static void console_keymap(struct wmKeyConfig *keyconf)
 #endif
 	
 	WM_keymap_add_item(keymap, "CONSOLE_OT_select_set", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CONSOLE_OT_select_word", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 
 	RNA_string_set(WM_keymap_add_item(keymap, "CONSOLE_OT_insert", TABKEY, KM_PRESS, KM_CTRL, 0)->ptr, "text", "\t"); /* fake tabs */
 
