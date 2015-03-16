@@ -576,6 +576,8 @@ class SpellChecker:
         "btx",
         "cineon",
         "dpx",
+        "dwaa",
+        "dwab",
         "dxf",
         "eps",
         "exr",
