@@ -466,17 +466,19 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 		/* Threaded evaluation for large resolution. */
 		const int num_blocks = TaskScheduler::num_threads();
 		const int chunk_size = res / num_blocks;
+		int start_row = 0;
 		TaskPool pool;
 		for(int i = 0; i < num_blocks; ++i) {
 			const int current_chunk_size =
-				(i != num_blocks - 1) ? chunk_size
+			    (i != num_blocks - 1) ? chunk_size
 			                          : (res - i * chunk_size);
 			pool.push(function_bind(&background_cdf,
-			                        i, i + current_chunk_size,
+			                        start_row, start_row + current_chunk_size,
 			                        res,
 			                        cdf_count,
 			                        &pixels,
 			                        cond_cdf));
+			start_row += current_chunk_size;
 		}
 		pool.wait_work();
 	}
