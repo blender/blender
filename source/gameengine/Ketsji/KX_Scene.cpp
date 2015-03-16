@@ -532,7 +532,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	m_objectlist->Add(newobj->AddRef());
 	if (newobj->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		m_lightlist->Add(newobj->AddRef());
-	else if (newobj->GetGameObjectType()==SCA_IObject::OBJ_FONT)
+	else if (newobj->GetGameObjectType()==SCA_IObject::OBJ_TEXT)
 		AddFont((KX_FontObject*)newobj);
 	newobj->AddMeshUser();
 
