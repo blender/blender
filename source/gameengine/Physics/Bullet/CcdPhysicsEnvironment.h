@@ -22,6 +22,8 @@ subject to the following restrictions:
 #define __CCDPHYSICSENVIRONMENT_H__
 
 #include "PHY_IPhysicsEnvironment.h"
+#include "KX_KetsjiEngine.h"
+
 #include <vector>
 #include <set>
 #include <map>
@@ -131,8 +133,7 @@ protected:
 
 		virtual	void		SetFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)
 		{
-			//based on DEFAULT_PHYSICS_TIC_RATE of 60 hertz
-			SetNumTimeSubSteps((int)(fixedTimeStep / 60.f));
+			SetNumTimeSubSteps((int)(fixedTimeStep / KX_KetsjiEngine::GetTicRate()));
 		}
 		//returns 0.f if no fixed timestep is used
 

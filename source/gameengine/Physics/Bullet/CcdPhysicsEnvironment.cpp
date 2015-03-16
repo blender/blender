@@ -752,8 +752,8 @@ public:
 void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 {
 	std::set<CcdPhysicsController*>::iterator it;
-	// dynamic of Fh spring is based on a timestep of 1/60
-	int numIter = (int)(interval*60.0001f);
+	// Add epsilon to the tick rate for numerical stability
+	int numIter = (int)(interval*(KX_KetsjiEngine::GetTicRate() + 0.001f));
 	
 	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
 	{
