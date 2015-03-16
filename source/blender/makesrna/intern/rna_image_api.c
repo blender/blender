@@ -35,6 +35,7 @@
 #include <time.h>
 
 #include "DNA_packedFile_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
@@ -57,6 +58,7 @@
 
 #include "BIF_gl.h"
 #include "GPU_draw.h"
+#include "GPU_debug.h"
 
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
@@ -232,31 +234,23 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame, int f
 
 	ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
+	/* clean glError buffer */
+	while (glGetError() != GL_NO_ERROR) {}
+
 	if (ibuf == NULL || ibuf->rect == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 		BKE_image_release_ibuf(image, ibuf, NULL);
 		return (int)GL_INVALID_OPERATION;
 	}
 
-	/* could be made into a function? */
-	glGenTextures(1, (GLuint *)bind);
-	glBindTexture(GL_TEXTURE_2D, *bind);
+	GPU_create_gl_tex(bind, ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y,
+	                  (filter != GL_NEAREST && filter != GL_LINEAR), false, image);
 
-	if (filter != GL_NEAREST && filter != GL_LINEAR)
-		error = (int)gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)mag);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	if (!error) {
-		/* clean glError buffer */
-		while (glGetError() != GL_NO_ERROR) {}
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, image->tpageflag & IMA_CLAMP_U ? GL_CLAMP : GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, image->tpageflag & IMA_CLAMP_V ? GL_CLAMP : GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)filter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)mag);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-		error = (int)glGetError();
-	}
+	error = glGetError();
 
 	if (error) {
 		glDeleteTextures(1, (GLuint *)bind);
