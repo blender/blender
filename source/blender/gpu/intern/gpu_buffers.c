@@ -1364,6 +1364,7 @@ void GPU_buffer_unbind(void)
 		else
 			break;
 	}
+	attribData[0].index = -1;
 
 	/* not guaranteed we used VBOs but in that case it's just a no-op */
 	if (GLEW_ARB_vertex_buffer_object)
