@@ -387,7 +387,9 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space, const float lnor[3],
 			BLI_stack_discard(edge_vectors);
 			nbr++;
 		}
-		BLI_assert(nbr > 2);  /* This piece of code shall only be called for more than one loop... */
+		/* Note: In theory, this could be 'nbr > 2', but there is one case where we only have two edges for
+		 *       two loops: a smooth vertex with only two edges and two faces (our Monkey's nose has that, e.g.). */
+		BLI_assert(nbr >= 2);  /* This piece of code shall only be called for more than one loop... */
 		lnor_space->ref_alpha = alpha / (float)nbr;
 	}
 	else {
