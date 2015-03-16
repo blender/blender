@@ -203,9 +203,21 @@ void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 
 	glBindTexture(GL_TEXTURE_2D, mTexture );
 	if ( mipmap ) {
+		int i;
+		ImBuf *ibuf;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, x, y, GL_RGBA, GL_UNSIGNED_BYTE, pix );
+
+		ibuf = IMB_allocFromBuffer(pix, NULL, x, y);
+
+		IMB_makemipmap(ibuf, true);
+
+		for (i = 0; i < ibuf->miptot; i++) {
+			ImBuf *mip = IMB_getmipmap(ibuf, i);
+
+			glTexImage2D(GL_TEXTURE_2D, i,  GL_RGBA,  mip->x, mip->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
+		}
+		IMB_freeImBuf(ibuf);
 	} 
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -245,9 +257,17 @@ void BL_Texture::InitNonPow2Tex(unsigned int *pix,int x,int y,bool mipmap)
 	glBindTexture(GL_TEXTURE_2D, mTexture );
 
 	if ( mipmap ) {
+		int i;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, nx, ny, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect );
+
+		IMB_makemipmap(ibuf, true);
+
+		for (i = 0; i < ibuf->miptot; i++) {
+			ImBuf *mip = IMB_getmipmap(ibuf, i);
+
+			glTexImage2D(GL_TEXTURE_2D, i,  GL_RGBA,  mip->x, mip->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
+		}
 	}
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

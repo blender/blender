@@ -79,9 +79,21 @@ void loadTexture(unsigned int texId, unsigned int *texture, short *size,
 	glBindTexture(GL_TEXTURE_2D, texId);
 	if (mipmap)
 	{
+		int i;
+		ImBuf *ibuf;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, size[0], size[1], GL_RGBA, GL_UNSIGNED_BYTE, texture);
+
+		ibuf = IMB_allocFromBuffer(texture, NULL, size[0], size[1]);
+
+		IMB_makemipmap(ibuf, true);
+
+		for (i = 0; i < ibuf->miptot; i++) {
+			ImBuf *mip = IMB_getmipmap(ibuf, i);
+
+			glTexImage2D(GL_TEXTURE_2D, i,  GL_RGBA,  mip->x, mip->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
+		}
+		IMB_freeImBuf(ibuf);
 	} 
 	else
 	{
