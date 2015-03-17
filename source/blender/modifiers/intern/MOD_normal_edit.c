@@ -60,7 +60,8 @@ static void generate_vert_coordinates(
 
 	/* Get size (i.e. deformation of the spheroid generating normals), either from target object, or own geometry. */
 	if (ob_center) {
-		copy_v3_v3(r_size, ob_center->size);
+		/* Not we are not interested in signs here - they are even troublesome actually, due to security clamping! */
+		abs_v3_v3(r_size, ob_center->size);
 	}
 	else {
 		minmax_v3v3_v3_array(min_co, max_co, r_cos, num_verts);
@@ -80,12 +81,10 @@ static void generate_vert_coordinates(
 
 	if (ob_center) {
 		/* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
-		float mat[4][4];
-
-		/* Get ob_center coordinates in ob local coordinates. */
-		invert_m4_m4(mat, ob_center->obmat);
-		mul_m4_m4m4(mat, mat, ob->obmat);
-		copy_v3_v3(diff, mat[3]);
+		/* Get ob_center (world) coordinates in ob local coordinates.
+		 * No need to take into accound ob_center's space here, see T44027. */
+		mul_v3_m4v3(diff, ob->obmat, ob_center->obmat[3]);
+		negate_v3(diff);
 
 		do_diff = true;
 	}
