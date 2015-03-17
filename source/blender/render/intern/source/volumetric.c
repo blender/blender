@@ -41,6 +41,8 @@
 
 #include "RE_shader_ext.h"
 
+#include "IMB_colormanagement.h"
+
 #include "DNA_material_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -504,7 +506,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 		
 		if (shi->mat->vol.shadeflag & MA_VOL_RECV_EXT_SHADOW) {
 			mul_v3_fl(lacol, vol_get_shadow(shi, lar, co));
-			if (rgb_to_luma_y(lacol) < 0.001f) return;
+			if (IMB_colormanagement_get_luminance(lacol) < 0.001f) return;
 		}
 		
 		/* find minimum of volume bounds, or lamp coord */
@@ -538,7 +540,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 		}
 	}
 	
-	if (rgb_to_luma_y(lacol) < 0.001f) return;
+	if (IMB_colormanagement_get_luminance(lacol) < 0.001f) return;
 	
 	normalize_v3(lv);
 	p = vol_get_phasefunc(shi, shi->mat->vol.asymmetry, view, lv);
@@ -620,7 +622,7 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 			
 			if (t0 > t1 * 0.25f) {
 				/* only use depth cutoff after we've traced a little way into the volume */
-				if (rgb_to_luma_y(tr) < shi->mat->vol.depth_cutoff) break;
+				if (IMB_colormanagement_get_luminance(tr) < shi->mat->vol.depth_cutoff) break;
 			}
 			
 			vol_get_emission(shi, emit_col, p);
@@ -649,7 +651,7 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 	add_v3_v3(col, radiance);
 	
 	/* alpha <-- transmission luminance */
-	col[3] = 1.0f - rgb_to_luma_y(tr);
+	col[3] = 1.0f - IMB_colormanagement_get_luminance(tr);
 }
 
 /* the main entry point for volume shading */
@@ -790,7 +792,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 
 	
 	copy_v3_v3(shr->combined, tr);
-	shr->combined[3] = 1.0f - rgb_to_luma_y(tr);
+	shr->combined[3] = 1.0f - IMB_colormanagement_get_luminance(tr);
 	shr->alpha = shr->combined[3];
 }
 

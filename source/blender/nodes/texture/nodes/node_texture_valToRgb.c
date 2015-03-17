@@ -32,6 +32,7 @@
 
 #include "node_texture_util.h"
 #include "NOD_texture.h"
+#include "IMB_colormanagement.h"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate valtorgb_in[] = {
@@ -91,7 +92,7 @@ static void rgbtobw_valuefn(float *out, TexParams *p, bNode *UNUSED(node), bNode
 {
 	float cin[4];
 	tex_input_rgba(cin, in[0], p, thread);
-	*out = rgb_to_bw(cin);
+	*out = IMB_colormanagement_get_luminance(cin);
 }
 
 static void rgbtobw_exec(void *data, int UNUSED(thread), bNode *node, bNodeExecData *execdata, bNodeStack **in, bNodeStack **out)

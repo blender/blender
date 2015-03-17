@@ -23,6 +23,10 @@
 #include "COM_ColorCorrectionOperation.h"
 #include "BLI_math.h"
 
+extern "C" {
+#include "IMB_colormanagement.h"
+}
+
 ColorCorrectionOperation::ColorCorrectionOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
@@ -90,7 +94,7 @@ void ColorCorrectionOperation::executePixelSampled(float output[4], float x, flo
 	lift += (levelShadows * this->m_data->shadows.lift) + (levelMidtones * this->m_data->midtones.lift) + (levelHighlights * this->m_data->highlights.lift);
 	
 	float invgamma = 1.0f / gamma;
-	float luma = rgb_to_luma_y(inputImageColor);
+	float luma = IMB_colormanagement_get_luminance(inputImageColor);
 
 	r = inputImageColor[0];
 	g = inputImageColor[1];

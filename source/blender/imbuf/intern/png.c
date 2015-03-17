@@ -312,7 +312,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 							rgb[0] = chanel_colormanage_cb(from_straight[0]);
 							rgb[1] = chanel_colormanage_cb(from_straight[1]);
 							rgb[2] = chanel_colormanage_cb(from_straight[2]);
-							to16[0] = ftoshort(rgb_to_bw(rgb));
+							to16[0] = ftoshort(IMB_colormanagement_get_luminance(rgb));
 							to16++; from_float += 4;
 						}
 					}
@@ -321,7 +321,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 							rgb[0] = chanel_colormanage_cb(from_float[0]);
 							rgb[1] = chanel_colormanage_cb(from_float[1]);
 							rgb[2] = chanel_colormanage_cb(from_float[2]);
-							to16[0] = ftoshort(rgb_to_bw(rgb));
+							to16[0] = ftoshort(IMB_colormanagement_get_luminance(rgb));
 							to16++; from_float += 3;
 						}
 					}

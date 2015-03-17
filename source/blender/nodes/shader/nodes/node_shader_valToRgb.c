@@ -31,6 +31,7 @@
 
 
 #include "node_shader_util.h"
+#include "IMB_colormanagement.h"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate sh_node_valtorgb_in[] = {
@@ -106,7 +107,7 @@ static void node_shader_exec_rgbtobw(void *UNUSED(data), int UNUSED(thread), bNo
 	float col[3];
 	nodestack_get_vec(col, SOCK_VECTOR, in[0]);
 
-	out[0]->vec[0] = rgb_to_bw(col);
+	out[0]->vec[0] = IMB_colormanagement_get_luminance(col);
 }
 
 static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

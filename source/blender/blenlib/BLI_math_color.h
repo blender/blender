@@ -80,13 +80,6 @@ void rgb_to_xyz(float r, float g, float b, float *x, float *y, float *z);
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
-MINLINE float rgb_to_bw(const float rgb[3]);
-MINLINE float rgb_to_grayscale(const float rgb[3]);
-MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
-MINLINE float rgb_to_luma(const float rgb[3]);
-MINLINE unsigned char rgb_to_luma_byte(const unsigned char rgb[3]);
-MINLINE float rgb_to_luma_y(const float rgb[3]);
-
 /**************** Profile Transformations *****************/
 
 float srgb_to_linearrgb(float c);

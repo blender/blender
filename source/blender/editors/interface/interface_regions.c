@@ -237,8 +237,8 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 
 	/* find the brightness difference between background and text colors */
 	
-	tone_bg = rgb_to_grayscale(background_color);
-	/* tone_fg = rgb_to_grayscale(main_color); */
+	tone_bg = IMB_colormanagement_get_luminance(background_color);
+	/* tone_fg = IMB_colormanagement_get_luminance(main_color); */
 
 	/* mix the colors */
 	rgb_tint(value_color,  0.0f, 0.0f, tone_bg, 0.2f);  /* light grey */
@@ -261,7 +261,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 
 			/* override text-style */
 			fstyle_header.shadow = 1;
-			fstyle_header.shadowcolor = rgb_to_luma(tip_colors[UI_TIP_LC_MAIN]);
+			fstyle_header.shadowcolor = IMB_colormanagement_get_luminance(tip_colors[UI_TIP_LC_MAIN]);
 			fstyle_header.shadx = fstyle_header.shady = 0;
 			fstyle_header.shadowalpha = 1.0f;
 

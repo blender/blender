@@ -1453,7 +1453,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 			glEnd();
 		}
 		else if (cumap->cur == 3) {
-			float lum = rgb_to_bw(cumap->sample);
+			float lum = IMB_colormanagement_get_luminance(cumap->sample);
 			glColor3ub(240, 240, 240);
 			
 			glBegin(GL_LINES);

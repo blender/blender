@@ -775,12 +775,12 @@ void IMB_color_to_bw(ImBuf *ibuf)
 
 	if (rct_fl) {
 		for (i = ibuf->x * ibuf->y; i > 0; i--, rct_fl += 4)
-			rct_fl[0] = rct_fl[1] = rct_fl[2] = rgb_to_grayscale(rct_fl);
+			rct_fl[0] = rct_fl[1] = rct_fl[2] = IMB_colormanagement_get_luminance(rct_fl);
 	}
 
 	if (rct) {
 		for (i = ibuf->x * ibuf->y; i > 0; i--, rct += 4)
-			rct[0] = rct[1] = rct[2] = rgb_to_grayscale_byte(rct);
+			rct[0] = rct[1] = rct[2] = IMB_colormanagement_get_luminance_byte(rct);
 	}
 }
 

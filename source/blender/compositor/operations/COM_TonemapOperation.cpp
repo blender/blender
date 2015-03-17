@@ -24,6 +24,10 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+extern "C" {
+#include "IMB_colormanagement.h"
+}
+
 TonemapOperation::TonemapOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
@@ -69,7 +73,7 @@ void PhotoreceptorTonemapOperation::executePixel(float output[4], int x, int y, 
 
 	this->m_imageReader->read(output, x, y, NULL);
 
-	const float L = rgb_to_luma_y(output);
+	const float L = IMB_colormanagement_get_luminance(output);
 	float I_l = output[0] + ic * (L - output[0]);
 	float I_g = avg->cav[0] + ic * (avg->lav - avg->cav[0]);
 	float I_a = I_l + ia * (I_g - I_l);
@@ -125,7 +129,7 @@ void *TonemapOperation::initializeTileData(rcti *rect)
 		float Lav = 0.f;
 		float cav[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		while (p--) {
-			float L = rgb_to_luma_y(bc);
+			float L = IMB_colormanagement_get_luminance(bc);
 			Lav += L;
 			add_v3_v3(cav, bc);
 			lsum += logf(MAX2(L, 0.0f) + 1e-5f);

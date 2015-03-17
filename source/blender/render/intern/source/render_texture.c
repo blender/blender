@@ -1982,14 +1982,14 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 		/* use texres for the center sample, set rgbnor */
 		rgbnor = multitex_mtex(shi, mtex, STll, dxt, dyt, texres, pool, skip_load_image);
-		Hll = (fromrgb) ? rgb_to_grayscale(&texres->tr) : texres->tin;
+		Hll = (fromrgb) ? IMB_colormanagement_get_luminance(&texres->tr) : texres->tin;
 
 		/* use ttexr for the other 2 taps */
 		multitex_mtex(shi, mtex, STlr, dxt, dyt, &ttexr, pool, skip_load_image);
-		Hlr = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
+		Hlr = (fromrgb) ? IMB_colormanagement_get_luminance(&ttexr.tr) : ttexr.tin;
 
 		multitex_mtex(shi, mtex, STul, dxt, dyt, &ttexr, pool, skip_load_image);
-		Hul = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
+		Hul = (fromrgb) ? IMB_colormanagement_get_luminance(&ttexr.tr) : ttexr.tin;
 
 		dHdx = Hscale*(Hlr - Hll);
 		dHdy = Hscale*(Hul - Hll);
@@ -2020,17 +2020,17 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 		/* use texres for the center sample, set rgbnor */
 		rgbnor = multitex_mtex(shi, mtex, STc, dxt, dyt, texres, pool, skip_load_image);
-		/* Hc = (fromrgb) ? rgb_to_grayscale(&texres->tr) : texres->tin; */ /* UNUSED */
+		/* Hc = (fromrgb) ? IMB_colormanagement_get_luminance(&texres->tr) : texres->tin; */ /* UNUSED */
 
 		/* use ttexr for the other taps */
 		multitex_mtex(shi, mtex, STl, dxt, dyt, &ttexr, pool, skip_load_image);
-		Hl = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
+		Hl = (fromrgb) ? IMB_colormanagement_get_luminance(&ttexr.tr) : ttexr.tin;
 		multitex_mtex(shi, mtex, STr, dxt, dyt, &ttexr, pool, skip_load_image);
-		Hr = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
+		Hr = (fromrgb) ? IMB_colormanagement_get_luminance(&ttexr.tr) : ttexr.tin;
 		multitex_mtex(shi, mtex, STd, dxt, dyt, &ttexr, pool, skip_load_image);
-		Hd = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
+		Hd = (fromrgb) ? IMB_colormanagement_get_luminance(&ttexr.tr) : ttexr.tin;
 		multitex_mtex(shi, mtex, STu, dxt, dyt, &ttexr, pool, skip_load_image);
-		Hu = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
+		Hu = (fromrgb) ? IMB_colormanagement_get_luminance(&ttexr.tr) : ttexr.tin;
 
 		dHdx = Hscale*(Hr - Hl);
 		dHdy = Hscale*(Hu - Hd);
@@ -2328,7 +2328,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			/* texture output */
 
 			if ((rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin = rgb_to_grayscale(&texres.tr);
+				texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				rgbnor -= TEX_RGB;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
@@ -2568,7 +2568,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 				}
 				
 				if (rgbnor & TEX_RGB) {
-					texres.tin = rgb_to_grayscale(&texres.tr);
+					texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				}
 
 				factt= (0.5f-texres.tin)*mtex->dispfac*stencilTin; facmm= 1.0f-factt;
@@ -2596,7 +2596,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 				
 				if (rgbnor & TEX_RGB) {
 					if (texres.talpha) texres.tin = texres.ta;
-					else               texres.tin = rgb_to_grayscale(&texres.tr);
+					else               texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				}
 
 				if (mtex->mapto & MAP_REF) {
@@ -2767,7 +2767,7 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_
 			/* texture output */
 
 			if ((rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin = rgb_to_grayscale(&texres.tr);
+				texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				rgbnor -= TEX_RGB;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
@@ -2836,7 +2836,7 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_
 				/* convert RGB to intensity if intensity info isn't provided */
 				if (rgbnor & TEX_RGB) {
 					if (texres.talpha)  texres.tin = texres.ta;
-					else                texres.tin = rgb_to_grayscale(&texres.tr);
+					else                texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				}
 				
 				if ((mapto_flag & MAP_EMISSION) && (mtex->mapto & MAP_EMISSION)) {
@@ -2934,7 +2934,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 
 	/* texture output */
 	if (rgb && (mtex->texflag & MTEX_RGBTOINT)) {
-		texres.tin = rgb_to_bw(&texres.tr);
+		texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 		rgb= 0;
 	}
 	if (mtex->texflag & MTEX_NEGATIVE) {
@@ -3006,7 +3006,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 				texres.tin = texres.ta;
 			}
 			else {
-				texres.tin = rgb_to_bw(&texres.tr);
+				texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 			}
 		}
 
@@ -3140,7 +3140,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 			
 			/* texture output */
 			if (rgb && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin = rgb_to_bw(&texres.tr);
+				texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				rgb= 0;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
@@ -3215,7 +3215,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 				}
 			}
 			if (mtex->mapto & WOMAP_BLEND) {
-				if (rgb) texres.tin = rgb_to_bw(&texres.tr);
+				if (rgb) texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				
 				*blend= texture_value_blend(mtex->def_var, *blend, texres.tin, mtex->blendfac, mtex->blendtype);
 			}
@@ -3356,7 +3356,7 @@ void do_lamp_tex(LampRen *la, const float lavec[3], ShadeInput *shi, float col_r
 
 			/* texture output */
 			if (rgb && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin = rgb_to_bw(&texres.tr);
+				texres.tin = IMB_colormanagement_get_luminance(&texres.tr);
 				rgb= 0;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
@@ -3455,7 +3455,7 @@ int externtex(MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, 
 	rgb = multitex(tex, texvec, dxt, dyt, 0, &texr, thread, mtex->which_output, pool, skip_load_image);
 	
 	if (rgb) {
-		texr.tin = rgb_to_bw(&texr.tr);
+		texr.tin = IMB_colormanagement_get_luminance(&texr.tr);
 	}
 	else {
 		texr.tr= mtex->r;

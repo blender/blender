@@ -90,6 +90,11 @@ static int global_tot_display = 0;
 static int global_tot_view = 0;
 static int global_tot_looks = 0;
 
+/* Set to ITU-BT.709 / sRGB primaries weight. Brute force stupid, but only
+ * option with no colormanagement in place.
+ */
+static float luma_coefficients[3] = { 0.2126729f, 0.7151522f, 0.0721750f };
+
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
  * LOCK_COLORMANAGE can not be used since this mutex could be needed to
@@ -545,6 +550,9 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 
 		colormanage_look_add(name, process_space, false);
 	}
+
+	/* Load luminance coefficients. */
+	OCIO_configGetDefaultLumaCoefs(config, luma_coefficients);
 }
 
 static void colormanage_free_config(void)
@@ -1220,6 +1228,34 @@ const char *IMB_colormanagement_get_float_colorspace(ImBuf *ibuf)
 const char *IMB_colormanagement_get_rect_colorspace(ImBuf *ibuf)
 {
 	return ibuf->rect_colorspace->name;
+}
+
+/* Convert a float RGB triplet to the correct luminance weighted average.
+ *
+ * Grayscale, or Luma is a distillation of RGB data values down to a weighted average
+ * based on the luminance positions of the red, green, and blue primaries.
+ * Given that the internal reference space may be arbitrarily set, any
+ * effort to glean the luminance coefficients must be aware of the reference
+ * space primaries.
+ *
+ * See http://wiki.blender.org/index.php/User:Nazg-gul/ColorManagement#Luminance
+ */
+
+float IMB_colormanagement_get_luminance(const float rgb[3])
+{
+ return dot_v3v3(luma_coefficients, rgb);
+}
+
+/* Byte equivalent of IMB_colormanagement_get_luminance(). */
+unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char rgb[3])
+{
+ float rgbf[3];
+
+ rgbf[0] = (float) rgb[0] / 255.0f;
+ rgbf[1] = (float) rgb[1] / 255.0f;
+ rgbf[2] = (float) rgb[2] / 255.0f;
+
+ return FTOCHAR(dot_v3v3(luma_coefficients, rgbf));
 }
 
 /*********************** Threaded display buffer transform routines *************************/

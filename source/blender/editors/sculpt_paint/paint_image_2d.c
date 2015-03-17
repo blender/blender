@@ -889,7 +889,7 @@ static void paint_2d_lift_soften(ImagePaintState *s, ImBuf *ibuf, ImBuf *ibufb, 
 
 					/* now rgba_ub contains the edge result, but this should be converted to luminance to avoid
 					 * colored speckles appearing in final image, and also to check for threshold */
-					outrgb[0] = outrgb[1] = outrgb[2] = rgb_to_grayscale(outrgb);
+					outrgb[0] = outrgb[1] = outrgb[2] = IMB_colormanagement_get_luminance(outrgb);
 					if (fabsf(outrgb[0]) > threshold) {
 						float mask = BKE_brush_alpha_get(s->scene, s->brush);
 						float alpha = rgba[3];

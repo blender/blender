@@ -23,6 +23,10 @@
 #include "COM_GlareThresholdOperation.h"
 #include "BLI_math.h"
 
+extern "C" {
+#include "IMB_colormanagement.h"
+}
+
 GlareThresholdOperation::GlareThresholdOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_FIT);
@@ -47,7 +51,7 @@ void GlareThresholdOperation::executePixelSampled(float output[4], float x, floa
 	const float threshold = this->m_settings->threshold;
 	
 	this->m_inputProgram->readSampled(output, x, y, sampler);
-	if (rgb_to_luma_y(output) >= threshold) {
+	if (IMB_colormanagement_get_luminance(output) >= threshold) {
 		output[0] -= threshold, output[1] -= threshold, output[2] -= threshold;
 		output[0] = max(output[0], 0.0f);
 		output[1] = max(output[1], 0.0f);

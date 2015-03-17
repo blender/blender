@@ -32,6 +32,7 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -167,7 +168,7 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			const unsigned char *rgb = src + 4 * (ibuf->x * y + x);
-			float v = (float)rgb_to_luma_byte(rgb) / 255.0f;
+			float v = (float)IMB_colormanagement_get_luminance_byte(rgb) / 255.0f;
 			unsigned char *p = tgt;
 			p += 4 * (w * ((int) (v * (h - 3)) + 1) + x + 1);
 
@@ -207,7 +208,7 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			const float *rgb = src + 4 * (ibuf->x * y + x);
-			float v = rgb_to_luma(rgb);
+			float v = IMB_colormanagement_get_luminance(rgb);
 			unsigned char *p = tgt;
 
 			CLAMP(v, 0.0f, 1.0f);

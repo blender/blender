@@ -22,6 +22,9 @@
 
 #include "COM_ConvertOperation.h"
 
+extern "C" {
+#include "IMB_colormanagement.h"
+}
 
 ConvertBaseOperation::ConvertBaseOperation()
 {
@@ -84,7 +87,7 @@ void ConvertColorToBWOperation::executePixelSampled(float output[4], float x, fl
 {
 	float inputColor[4];
 	this->m_inputOperation->readSampled(inputColor, x, y, sampler);
-	output[0] = rgb_to_bw(inputColor);
+	output[0] = IMB_colormanagement_get_luminance(inputColor);
 }
 
 

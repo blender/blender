@@ -24,7 +24,9 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
+extern "C" {
+#include "IMB_colormanagement.h"
+}
 
 CalculateMeanOperation::CalculateMeanOperation() : NodeOperation()
 {
@@ -96,7 +98,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 			switch (this->m_setting) {
 				case 1:
 				{
-					sum += rgb_to_bw(&buffer[offset]);
+					sum += IMB_colormanagement_get_luminance(&buffer[offset]);
 					break;
 				}
 				case 2:
