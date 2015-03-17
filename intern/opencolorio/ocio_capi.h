@@ -140,6 +140,8 @@ int         OCIO_configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *di
 const char *OCIO_configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
 const char *OCIO_configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view);
 
+void        OCIO_configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
+
 int                  OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config);
 const char          *OCIO_configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
 OCIO_ConstLookRcPtr *OCIO_configGetLook(OCIO_ConstConfigRcPtr *config, const char *name);

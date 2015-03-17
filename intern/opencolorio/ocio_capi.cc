@@ -132,6 +132,11 @@ const char *OCIO_configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, c
 	return impl->configGetDisplayColorSpaceName(config, display, view);
 }
 
+void OCIO_configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb)
+{
+	impl->configGetDefaultLumaCoefs(config, rgb);
+}
+
 int OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config)
 {
 	return impl->configGetNumLooks(config);

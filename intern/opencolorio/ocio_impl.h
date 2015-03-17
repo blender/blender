@@ -58,6 +58,8 @@ public:
 	virtual const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index) = 0;
 	virtual const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view) = 0;
 
+	virtual void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb) = 0;
+
 	virtual int                  configGetNumLooks(OCIO_ConstConfigRcPtr *config) = 0;
 	virtual const char          *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index) = 0;
 	virtual OCIO_ConstLookRcPtr *configGetLook(OCIO_ConstConfigRcPtr *config, const char *name) = 0;
@@ -144,6 +146,8 @@ public:
 	int         configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display);
 	const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
 	const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view);
+
+	void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
 
 	int                  configGetNumLooks(OCIO_ConstConfigRcPtr *config);
 	const char          *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
@@ -232,6 +236,8 @@ public:
 	int         configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display);
 	const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
 	const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view);
+
+	void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
 
 	int                  configGetNumLooks(OCIO_ConstConfigRcPtr *config);
 	const char          *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
