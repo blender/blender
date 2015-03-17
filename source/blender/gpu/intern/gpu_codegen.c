@@ -719,11 +719,6 @@ static char *code_generate_vertex(ListBase *nodes, const GPUMatType type)
 	return code;
 }
 
-int GPU_bicubic_bump_support(void)
-{
-	return GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0;
-}
-
 void GPU_code_generate_glsl_lib(void)
 {
 	DynStr *ds;

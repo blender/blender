@@ -123,7 +123,7 @@ struct GPUFrameBuffer {
 
 /* GPU Types */
 
-int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
+bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 {
 	return (GG.device & device) && (GG.os & os) && (GG.driver & driver);
 }
@@ -250,27 +250,32 @@ void gpu_extensions_exit(void)
 	GPU_invalid_tex_free();
 }
 
-int GPU_glsl_support(void)
+bool GPU_glsl_support(void)
 {
 	return !GG.extdisabled && GG.glslsupport;
 }
 
-int GPU_non_power_of_two_support(void)
+bool GPU_non_power_of_two_support(void)
 {
 	if (GG.npotdisabled)
-		return 0;
+		return false;
 
 	return GLEW_ARB_texture_non_power_of_two;
 }
 
-int GPU_vertex_buffer_support(void)
+bool GPU_vertex_buffer_support(void)
 {
 	return GLEW_ARB_vertex_buffer_object || GLEW_VERSION_1_5;
 }
 
-int GPU_display_list_support(void)
+bool GPU_display_list_support(void)
 {
 	return !GG.dlistsdisabled;
+}
+
+bool GPU_bicubic_bump_support(void)
+{
+	return GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0;
 }
 
 int GPU_color_depth(void)
@@ -333,17 +338,16 @@ struct GPUTexture {
 
 	GPUFrameBuffer *fb;		/* GPUFramebuffer this texture is attached to */
 	int fb_attachment;		/* slot the texture is attached to */
-	int depth;				/* is a depth texture? */
+	int depth;				/* is a depth texture? if 3D how deep? */
 };
 
-static unsigned char *GPU_texture_convert_pixels(int length, float *fpixels)
+static unsigned char *GPU_texture_convert_pixels(int length, const float *fpixels)
 {
 	unsigned char *pixels, *p;
-	const float *fp;
-	int a, len;
+	const float *fp = fpixels;
+	const int len = 4*length;
+	int a;
 
-	len = 4*length;
-	fp = fpixels;
 	p = pixels = MEM_callocN(sizeof(unsigned char)*len, "GPUTexturePixels");
 
 	for (a=0; a<len; a++, p++, fp++)
@@ -365,7 +369,7 @@ static void GPU_glTexSubImageEmpty(GLenum target, GLenum format, int x, int y, i
 }
 
 static GPUTexture *GPU_texture_create_nD(
-        int w, int h, int n, float *fpixels, int depth, GPUHDRType hdr_type, int components,
+        int w, int h, int n, const float *fpixels, int depth, GPUHDRType hdr_type, int components,
         char err_out[256])
 {
 	GPUTexture *tex;
@@ -507,12 +511,12 @@ static GPUTexture *GPU_texture_create_nD(
 }
 
 
-GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, float *fpixels)
+GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const float *fpixels)
 {
 	GPUTexture *tex;
 	GLenum type, format, internalformat;
 	void *pixels = NULL;
-	float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	const float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if (!GLEW_VERSION_1_2)
 		return NULL;
@@ -684,7 +688,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 
 }
 
-GPUTexture *GPU_texture_create_1D(int w, float *fpixels, char err_out[256])
+GPUTexture *GPU_texture_create_1D(int w, const float *fpixels, char err_out[256])
 {
 	GPUTexture *tex = GPU_texture_create_nD(w, 1, 1, fpixels, 0, GPU_HDR_NONE, 4, err_out);
 
@@ -694,7 +698,7 @@ GPUTexture *GPU_texture_create_1D(int w, float *fpixels, char err_out[256])
 	return tex;
 }
 
-GPUTexture *GPU_texture_create_2D(int w, int h, float *fpixels, GPUHDRType hdr, char err_out[256])
+GPUTexture *GPU_texture_create_2D(int w, int h, const float *fpixels, GPUHDRType hdr, char err_out[256])
 {
 	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, fpixels, 0, hdr, 4, err_out);
 
@@ -732,7 +736,7 @@ GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256])
 	return tex;
 }
 
-GPUTexture *GPU_texture_create_2D_procedural(int w, int h, float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_2D_procedural(int w, int h, const float *pixels, char err_out[256])
 {
 	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, pixels, 0, GPU_HDR_HALF_FLOAT, 2, err_out);
 
@@ -749,7 +753,7 @@ GPUTexture *GPU_texture_create_2D_procedural(int w, int h, float *pixels, char e
 	return tex;
 }
 
-GPUTexture *GPU_texture_create_1D_procedural(int w, float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_1D_procedural(int w, const float *pixels, char err_out[256])
 {
 	GPUTexture *tex = GPU_texture_create_nD(w, 0, 1, pixels, 0, GPU_HDR_HALF_FLOAT, 2, err_out);
 
@@ -767,7 +771,7 @@ GPUTexture *GPU_texture_create_1D_procedural(int w, float *pixels, char err_out[
 
 void GPU_invalid_tex_init(void)
 {
-	float color[4] = {1.0f, 0.0f, 1.0f, 1.0};
+	const float color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
 	GG.invalid_tex_1D = GPU_texture_create_1D(1, color, NULL);
 	GG.invalid_tex_2D = GPU_texture_create_2D(1, 1, color, GPU_HDR_NONE, NULL);
 	GG.invalid_tex_3D = GPU_texture_create_3D(1, 1, 1, 4, color);
@@ -920,22 +924,22 @@ void GPU_texture_ref(GPUTexture *tex)
 	tex->refcount++;
 }
 
-int GPU_texture_target(GPUTexture *tex)
+int GPU_texture_target(const GPUTexture *tex)
 {
 	return tex->target;
 }
 
-int GPU_texture_opengl_width(GPUTexture *tex)
+int GPU_texture_opengl_width(const GPUTexture *tex)
 {
 	return tex->w;
 }
 
-int GPU_texture_opengl_height(GPUTexture *tex)
+int GPU_texture_opengl_height(const GPUTexture *tex)
 {
 	return tex->h;
 }
 
-int GPU_texture_opengl_bindcode(GPUTexture *tex)
+int GPU_texture_opengl_bindcode(const GPUTexture *tex)
 {
 	return tex->bindcode;
 }
@@ -1364,12 +1368,12 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 	glReadPixels(0, 0, ofs->color->w, ofs->color->h, GL_RGBA, type, pixels);
 }
 
-int GPU_offscreen_width(GPUOffScreen *ofs)
+int GPU_offscreen_width(const GPUOffScreen *ofs)
 {
 	return ofs->color->w;
 }
 
-int GPU_offscreen_height(GPUOffScreen *ofs)
+int GPU_offscreen_height(const GPUOffScreen *ofs)
 {
 	return ofs->color->h;
 }
