@@ -611,6 +611,48 @@ MINLINE void negate_v3_short(short r[3])
 	r[2] = (short)-r[2];
 }
 
+MINLINE void abs_v2(float r[2])
+{
+	r[0] = fabs(r[0]);
+	r[1] = fabs(r[1]);
+}
+
+MINLINE void abs_v2_v2(float r[2], const float a[2])
+{
+	r[0] = fabs(a[0]);
+	r[1] = fabs(a[1]);
+}
+
+MINLINE void abs_v3(float r[3])
+{
+	r[0] = fabs(r[0]);
+	r[1] = fabs(r[1]);
+	r[2] = fabs(r[2]);
+}
+
+MINLINE void abs_v3_v3(float r[3], const float a[3])
+{
+	r[0] = fabs(a[0]);
+	r[1] = fabs(a[1]);
+	r[2] = fabs(a[2]);
+}
+
+MINLINE void abs_v4(float r[4])
+{
+	r[0] = fabs(r[0]);
+	r[1] = fabs(r[1]);
+	r[2] = fabs(r[2]);
+	r[3] = fabs(r[3]);
+}
+
+MINLINE void abs_v4_v4(float r[4], const float a[4])
+{
+	r[0] = fabs(a[0]);
+	r[1] = fabs(a[1]);
+	r[2] = fabs(a[2]);
+	r[3] = fabs(a[3]);
+}
+
 MINLINE float dot_v2v2(const float a[2], const float b[2])
 {
 	return a[0] * b[0] + a[1] * b[1];

@@ -146,6 +146,13 @@ MINLINE void negate_v4_v4(float r[4], const float a[3]);
 
 MINLINE void negate_v3_short(short r[3]);
 
+MINLINE void abs_v2(float r[2]);
+MINLINE void abs_v2_v2(float r[2], const float a[2]);
+MINLINE void abs_v3(float r[3]);
+MINLINE void abs_v3_v3(float r[3], const float a[3]);
+MINLINE void abs_v4(float r[4]);
+MINLINE void abs_v4_v4(float r[4], const float a[4]);
+
 MINLINE float dot_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_v3v3v3(const float p[3], const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
