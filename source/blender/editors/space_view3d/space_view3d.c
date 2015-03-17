@@ -266,7 +266,7 @@ void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d)
 }
 #endif
 
-static void view3d_stop_render_preview(wmWindowManager *wm, ARegion *ar)
+void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -297,7 +297,7 @@ void ED_view3d_shade_update(Main *bmain, Scene *scene, View3D *v3d, ScrArea *sa)
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->regiondata)
-				view3d_stop_render_preview(wm, ar);
+				ED_view3d_stop_render_preview(wm, ar);
 		}
 	}
 	else if (scene->obedit != NULL && scene->obedit->type == OB_MESH) {
@@ -563,7 +563,7 @@ static void view3d_main_area_exit(wmWindowManager *wm, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
-	view3d_stop_render_preview(wm, ar);
+	ED_view3d_stop_render_preview(wm, ar);
 
 	if (rv3d->gpuoffscreen) {
 		GPU_offscreen_free(rv3d->gpuoffscreen);
