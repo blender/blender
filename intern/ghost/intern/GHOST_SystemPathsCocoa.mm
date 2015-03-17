@@ -24,14 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#import <Cocoa/Cocoa.h>
-
-/*For the currently not ported to Cocoa keyboard layout functions (64bit & 10.6 compatible)*/
-#include <Carbon/Carbon.h>
-
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
+#import <Foundation/Foundation.h>
 
 #include "GHOST_SystemPathsCocoa.h"
 
