@@ -698,22 +698,7 @@ void mix_linear(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
 	fac = clamp(fac, 0.0, 1.0);
 
-	outcol = col1;
-
-	if(col2.r > 0.5)
-		outcol.r= col1.r + fac*(2.0*(col2.r - 0.5));
-	else
-		outcol.r= col1.r + fac*(2.0*(col2.r) - 1.0);
-
-	if(col2.g > 0.5)
-		outcol.g= col1.g + fac*(2.0*(col2.g - 0.5));
-	else
-		outcol.g= col1.g + fac*(2.0*(col2.g) - 1.0);
-
-	if(col2.b > 0.5)
-		outcol.b= col1.b + fac*(2.0*(col2.b - 0.5));
-	else
-		outcol.b= col1.b + fac*(2.0*(col2.b) - 1.0);
+	outcol = col1 + fac*(2.0*(col2 - vec4(0.5)));
 }
 
 void valtorgb(float fac, sampler2D colormap, out vec4 outcol, out float outalpha)
