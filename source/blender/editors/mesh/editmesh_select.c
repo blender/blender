@@ -2552,7 +2552,7 @@ static bool bm_edge_is_select_isolated(BMEdge *e)
 /* Walk all reachable elements of the same type as h_act in breadth-first
  * order, starting from h_act. Deselects elements if the depth when they
  * are reached is not a multiple of "nth". */
-static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h_act)
+static void walker_deselect_nth(BMEditMesh *em, int nth, int skip, int offset, BMHeader *h_act)
 {
 	BMElem *ele;
 	BMesh *bm = em->bm;
@@ -2618,7 +2618,8 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	for (ele = BMW_begin(&walker, h_act); ele != NULL; ele = BMW_step(&walker)) {
 		if (!BM_elem_flag_test(ele, BM_ELEM_TAG)) {
 			/* Deselect elements that aren't at "nth" depth from active */
-			if ((offset + BMW_current_depth(&walker)) % nth) {
+			const int depth = BMW_current_depth(&walker) - 1;
+			if ((offset + depth) % (skip + nth) >= skip) {
 				BM_elem_select_set(bm, ele, false);
 			}
 			BM_elem_flag_enable(ele, BM_ELEM_TAG);
@@ -2685,7 +2686,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 	}
 }
 
-static bool edbm_deselect_nth(BMEditMesh *em, int nth, int offset)
+static bool edbm_deselect_nth(BMEditMesh *em, int nth, int skip, int offset)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -2694,15 +2695,15 @@ static bool edbm_deselect_nth(BMEditMesh *em, int nth, int offset)
 	deselect_nth_active(em, &v, &e, &f);
 
 	if (v) {
-		walker_deselect_nth(em, nth, offset, &v->head);
+		walker_deselect_nth(em, nth, skip, offset, &v->head);
 		return true;
 	}
 	else if (e) {
-		walker_deselect_nth(em, nth, offset, &e->head);
+		walker_deselect_nth(em, nth, skip, offset, &e->head);
 		return true;
 	}
 	else if (f) {
-		walker_deselect_nth(em, nth, offset, &f->head);
+		walker_deselect_nth(em, nth, skip, offset, &f->head);
 		return true;
 	}
 
@@ -2713,15 +2714,14 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const int nth = RNA_int_get(op->ptr, "nth");
+	const int nth = RNA_int_get(op->ptr, "nth") - 1;
+	const int skip = RNA_int_get(op->ptr, "skip");
 	int offset = RNA_int_get(op->ptr, "offset");
 
 	/* so input of offset zero ends up being (nth - 1) */
-	offset = mod_i(offset, nth);
-	/* depth starts at 1, this keeps active item selected */
-	offset -= 1;
+	offset = mod_i(offset, nth + skip);
 
-	if (edbm_deselect_nth(em, nth, offset) == false) {
+	if (edbm_deselect_nth(em, nth, skip, offset) == false) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
 		return OPERATOR_CANCELLED;
 	}
@@ -2747,6 +2747,7 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "nth", 2, 2, INT_MAX, "Nth Selection", "", 2, 100);
+	RNA_def_int(ot->srna, "skip", 1, 1, INT_MAX, "Skip", "", 1, 100);
 	RNA_def_int(ot->srna, "offset", 0, INT_MIN, INT_MAX, "Offset", "", -100, 100);
 }
 
