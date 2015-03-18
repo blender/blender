@@ -531,15 +531,11 @@ static void maskmodifier_apply_threaded(int width, int height, unsigned char *re
 	}
 }
 
-static void maskmodifier_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void maskmodifier_apply(struct SequenceModifierData *UNUSED(smd), ImBuf *ibuf, ImBuf *mask)
 {
-	BrightContrastModifierData *bcmd = (BrightContrastModifierData *) smd;
-	BrightContrastThreadData data;
+	// SequencerMaskModifierData *bcmd = (SequencerMaskModifierData *)smd;
 
-	data.bright = bcmd->bright;
-	data.contrast = bcmd->contrast;
-
-	modifier_apply_threaded(ibuf, mask, maskmodifier_apply_threaded, &data);
+	modifier_apply_threaded(ibuf, mask, maskmodifier_apply_threaded, NULL);
 }
 
 static SequenceModifierTypeInfo seqModifier_Mask = {
