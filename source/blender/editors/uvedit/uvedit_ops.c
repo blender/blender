@@ -1114,7 +1114,7 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 
 /*********************** linked select ***********************/
 
-static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float limit[2], NearestHit *hit, bool extend)
+static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float limit[2], NearestHit *hit, bool extend, bool select_faces)
 {
 	BMFace *efa;
 	BMLoop *l;
@@ -1131,7 +1131,7 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
-	vmap = BM_uv_vert_map_create(em->bm, 1, limit);
+	vmap = BM_uv_vert_map_create(em->bm, !select_faces, limit);
 
 	if (vmap == NULL)
 		return;
@@ -1144,15 +1144,24 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-					if (luv->flag & MLOOPUV_VERTSEL) {
+				if (select_faces) {
+					if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 						stack[stacksize] = a;
 						stacksize++;
 						flag[a] = 1;
+					}
+				}
+				else {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-						break;
+						if (luv->flag & MLOOPUV_VERTSEL) {
+							stack[stacksize] = a;
+							stacksize++;
+							flag[a] = 1;
+
+							break;
+						}
 					}
 				}
 			}
@@ -1204,13 +1213,21 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 
 	if (!extend) {
 		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				
+			if (select_faces) {
 				if (flag[a])
-					luv->flag |= MLOOPUV_VERTSEL;
+					BM_face_select_set(em->bm, efa, true);
 				else
-					luv->flag &= ~MLOOPUV_VERTSEL;
+					BM_face_select_set(em->bm, efa, false);
+			}
+			else {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+					if (flag[a])
+						luv->flag |= MLOOPUV_VERTSEL;
+					else
+						luv->flag &= ~MLOOPUV_VERTSEL;
+				}
 			}
 		}
 	}
@@ -1219,17 +1236,23 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 			if (!flag[a]) {
 				continue;
 			}
-			
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-						
-				if (luv->flag & MLOOPUV_VERTSEL) {
+
+			if (select_faces) {
+				if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+					break;
+			}
+			else {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+					if (luv->flag & MLOOPUV_VERTSEL) {
+						break;
+					}
+				}
+
+				if (l) {
 					break;
 				}
-			}
-			
-			if (l) {
-				break;
 			}
 		}
 
@@ -1239,10 +1262,15 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 					continue;
 				}
 
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					
-					luv->flag &= ~MLOOPUV_VERTSEL;
+				if (select_faces) {
+					BM_face_select_set(em->bm, efa, false);
+				}
+				else {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+						luv->flag &= ~MLOOPUV_VERTSEL;
+					}
 				}
 			}
 		}
@@ -1252,10 +1280,15 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 					continue;
 				}
 
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					
-					luv->flag |= MLOOPUV_VERTSEL;
+				if (select_faces) {
+					BM_face_select_set(em->bm, efa, true);
+				}
+				else {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+						luv->flag |= MLOOPUV_VERTSEL;
+					}
 				}
 			}
 		}
@@ -2154,7 +2187,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		flush = uv_select_edgeloop(scene, ima, em, &hit, limit, extend);
 	}
 	else if (selectmode == UV_SELECT_ISLAND) {
-		uv_select_linked(scene, ima, em, limit, &hit, extend);
+		uv_select_linked(scene, ima, em, limit, &hit, extend, false);
 	}
 	else if (extend) {
 		if (selectmode == UV_SELECT_VERTEX) {
@@ -2375,11 +2408,12 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	float limit[2];
 	int extend;
+	bool select_faces = (ts->uv_flag & UV_SYNC_SELECTION) && (ts->selectmode & SCE_SELECT_FACE);
 
 	NearestHit hit, *hit_p = NULL;
 
-	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot select linked when sync selection is enabled");
+	if ((ts->uv_flag & UV_SYNC_SELECTION) && !(ts->selectmode & SCE_SELECT_FACE)) {
+		BKE_report(op->reports, RPT_ERROR, "Select linked only works in face select mode when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2405,7 +2439,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 		hit_p = &hit;
 	}
 
-	uv_select_linked(scene, ima, em, limit, hit_p, extend);
+	uv_select_linked(scene, ima, em, limit, hit_p, extend, select_faces);
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
