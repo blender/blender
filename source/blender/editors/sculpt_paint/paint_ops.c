@@ -196,7 +196,10 @@ static int palette_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Brush *brush = paint->brush;
 	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 	Palette *palette = paint->palette;
-	PaletteColor *color = BKE_palette_color_add(palette);
+	PaletteColor *color;
+
+	color = BKE_palette_color_add(palette);
+	palette->active_color = BLI_listbase_count(&palette->colors) - 1;
 
 	if (ELEM(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX)) {
 		copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
@@ -231,7 +234,9 @@ static int palette_color_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	Palette *palette = paint->palette;
 	PaletteColor *color = BLI_findlink(&palette->colors, palette->active_color);
 
-	BKE_palette_color_remove(palette, color);
+	if (color) {
+		BKE_palette_color_remove(palette, color);
+	}
 
 	return OPERATOR_FINISHED;
 }

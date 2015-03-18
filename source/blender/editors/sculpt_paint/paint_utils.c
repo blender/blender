@@ -439,6 +439,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 		}
 
 		color = BKE_palette_color_add(palette);
+		palette->active_color = BLI_listbase_count(&palette->colors) - 1;
 	}
 
 
