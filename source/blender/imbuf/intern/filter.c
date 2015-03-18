@@ -526,7 +526,7 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 		hbuf = ibuf->mipmap[curmap];
 		hbuf->miplevel = curmap + 1;
 
-		if (hbuf->x <= 2 && hbuf->y <= 2)
+		if (hbuf->x < 2 && hbuf->y < 2)
 			break;
 
 		curmap++;
