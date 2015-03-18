@@ -67,6 +67,7 @@ set(DEFSRC
 	rna_object.c
 	rna_object_force.c
 	rna_packedfile.c
+	rna_palette.c
 	rna_particle.c
 	rna_pose.c
 	rna_property.c
