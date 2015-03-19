@@ -26,10 +26,13 @@
 # Otherwise we get warnings here that we cant fix in external projects
 remove_strict_flags()
 
-add_subdirectory(colamd)
 add_subdirectory(rangetree)
 add_subdirectory(wcwidth)
 add_subdirectory(libmv)
+
+if(WITH_OPENNL)
+	add_subdirectory(colamd)
+endif()
 
 if(WITH_BULLET)
 	if(NOT WITH_SYSTEM_BULLET)
