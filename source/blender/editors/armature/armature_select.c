@@ -962,75 +962,78 @@ void ARMATURE_OT_select_similar(wmOperatorType *ot)
 
 /* ********************* select hierarchy operator ************** */
 
-/* Get the first available child of an editbone */
-static EditBone *editbone_get_child(bArmature *arm, EditBone *pabone, short use_visibility)
-{
-	EditBone *curbone, *chbone = NULL;
-	
-	for (curbone = arm->edbo->first; curbone; curbone = curbone->next) {
-		if (curbone->parent == pabone) {
-			if (use_visibility) {
-				if ((arm->layer & curbone->layer) && !(pabone->flag & BONE_HIDDEN_A)) {
-					chbone = curbone;
-				}
-			}
-			else
-				chbone = curbone;
-		}
-	}
-	
-	return chbone;
-}
-
 static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Object *ob;
 	bArmature *arm;
-	EditBone *curbone, *pabone, *chbone;
+	EditBone *ebone_active;
 	int direction = RNA_enum_get(op->ptr, "direction");
 	const bool add_to_sel = RNA_boolean_get(op->ptr, "extend");
+	bool changed = false;
 	
 	ob = obedit;
 	arm = (bArmature *)ob->data;
-	
-	for (curbone = arm->edbo->first; curbone; curbone = curbone->next) {
-		/* only work on bone if it is visible and its selection can change */
-		if (EBONE_SELECTABLE(arm, curbone)) {
-			if (curbone == arm->act_edbone) {
-				if (direction == BONE_SELECT_PARENT) {
-					if (curbone->parent == NULL) continue;
-					else pabone = curbone->parent;
-					
-					if (EBONE_VISIBLE(arm, pabone)) {
-						pabone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-						arm->act_edbone = pabone;
-						if (pabone->parent) pabone->parent->flag |= BONE_TIPSEL;
-						
-						if (!add_to_sel) curbone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-						break;
-					}
-					
+
+	 ebone_active = arm->act_edbone;
+	if (ebone_active == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
+	if (direction == BONE_SELECT_PARENT) {
+		if (ebone_active->parent) {
+			EditBone *ebone_parent;
+
+			ebone_parent = ebone_active->parent;
+
+			if (EBONE_SELECTABLE(arm, ebone_parent)) {
+				arm->act_edbone = ebone_parent;
+
+				if (!add_to_sel) {
+					ED_armature_ebone_select_set(ebone_active, false);
 				}
-				else { // BONE_SELECT_CHILD
-					chbone = editbone_get_child(arm, curbone, 1);
-					if (chbone == NULL) continue;
-					
-					if (EBONE_SELECTABLE(arm, chbone)) {
-						chbone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-						arm->act_edbone = chbone;
-						
-						if (!add_to_sel) {
-							curbone->flag &= ~(BONE_SELECTED | BONE_ROOTSEL);
-							if (curbone->parent) curbone->parent->flag &= ~BONE_TIPSEL;
+				ED_armature_ebone_select_set(ebone_parent, true);
+
+				changed = true;
+			}
+		}
+
+	}
+	else {  /* BONE_SELECT_CHILD */
+		EditBone *ebone_iter, *ebone_child = NULL;
+		int pass;
+
+		/* first pass, only connected bones (the logical direct child) */
+		for (pass = 0; pass < 2 && (ebone_child == NULL); pass++) {
+			for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
+				/* possible we have multiple children, some invisible */
+				if (EBONE_SELECTABLE(arm, ebone_iter)) {
+					if (ebone_iter->parent == ebone_active) {
+						if ((pass == 1) || (ebone_iter->flag & BONE_CONNECTED)) {
+							ebone_child = ebone_iter;
+							break;
 						}
-						break;
 					}
 				}
 			}
 		}
+
+		if (ebone_child) {
+			arm->act_edbone = ebone_child;
+
+			if (!add_to_sel) {
+				ED_armature_ebone_select_set(ebone_active, false);
+			}
+			ED_armature_ebone_select_set(ebone_child, true);
+
+			changed = true;
+		}
 	}
 	
+	if (changed == false) {
+		return OPERATOR_CANCELLED;
+	}
+
 	ED_armature_sync_selection(arm->edbo);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
