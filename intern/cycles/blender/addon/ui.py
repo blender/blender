@@ -459,7 +459,7 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         col.prop(dof_options, "fstop")
         col.prop(dof_options, "high_quality")
         if dof_options.high_quality:
-            col.prop(dof_options, "num_blades")
+            col.prop(dof_options, "blades")
  
         col = split.column()
 
