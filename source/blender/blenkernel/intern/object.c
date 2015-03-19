@@ -3012,8 +3012,12 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 {
 	if (ob->recalc & OB_RECALC_ALL) {
 		/* speed optimization for animation lookups */
-		if (ob->pose)
+		if (ob->pose) {
 			BKE_pose_channels_hash_make(ob->pose);
+			if (ob->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
+				BKE_pose_update_constraint_flags(ob->pose);
+			}
+		}
 
 		if (ob->recalc & OB_RECALC_DATA) {
 			if (ob->type == OB_ARMATURE) {

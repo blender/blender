@@ -271,12 +271,12 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 
 static void rna_Constraint_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	ED_object_constraint_update(ptr->id.data);
+	ED_object_constraint_tag_update(ptr->id.data, ptr->data);
 }
 
 static void rna_Constraint_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	ED_object_constraint_dependency_update(bmain, ptr->id.data);
+	ED_object_constraint_dependency_tag_update(bmain, ptr->id.data, ptr->data);
 }
 
 static void rna_Constraint_influence_update(Main *bmain, Scene *scene, PointerRNA *ptr)

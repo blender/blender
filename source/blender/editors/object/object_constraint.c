@@ -260,17 +260,221 @@ static void set_constraint_nth_target(bConstraint *con, Object *target, const ch
 
 /* ------------- Constraint Sanity Testing ------------------- */
 
-/* checks validity of object pointers, and NULLs,
- * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag.
- */
-static void test_constraints(Object *owner, bPoseChannel *pchan)
+static void test_constraint(Object *owner, bPoseChannel *pchan, bConstraint *con, int type)
 {
-	bConstraint *curcon;
-	ListBase *conlist = NULL;
+	bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+	ListBase targets = {NULL, NULL};
+	bConstraintTarget *ct;
+	bool check_targets = true;
+
+	/* clear disabled-flag first */
+	con->flag &= ~CONSTRAINT_DISABLE;
+
+	if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+		bKinematicConstraint *data = con->data;
+
+		/* bad: we need a separate set of checks here as poletarget is
+		 *		optional... otherwise poletarget must exist too or else
+		 *		the constraint is deemed invalid
+		 */
+		/* default IK check ... */
+		if (BKE_object_exists_check(data->tar) == 0) {
+			data->tar = NULL;
+			con->flag |= CONSTRAINT_DISABLE;
+		}
+		else if (data->tar == owner) {
+			if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->subtarget)) {
+				con->flag |= CONSTRAINT_DISABLE;
+			}
+		}
+
+		if (data->poletar) {
+			if (BKE_object_exists_check(data->poletar) == 0) {
+				data->poletar = NULL;
+				con->flag |= CONSTRAINT_DISABLE;
+			}
+			else if (data->poletar == owner) {
+				if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->polesubtarget)) {
+					con->flag |= CONSTRAINT_DISABLE;
+				}
+			}
+		}
+		/* ... can be overwritten here */
+		BIK_test_constraint(owner, con);
+		/* targets have already been checked for this */
+		check_targets = false;
+	}
+	else if (con->type == CONSTRAINT_TYPE_PIVOT) {
+		bPivotConstraint *data = con->data;
+
+		/* target doesn't have to exist, but if it is non-null, it must exist! */
+		if (data->tar && BKE_object_exists_check(data->tar) == 0) {
+			data->tar = NULL;
+			con->flag |= CONSTRAINT_DISABLE;
+		}
+		else if (data->tar == owner) {
+			if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->subtarget)) {
+				con->flag |= CONSTRAINT_DISABLE;
+			}
+		}
+
+		/* targets have already been checked for this */
+		check_targets = false;
+	}
+	else if (con->type == CONSTRAINT_TYPE_ACTION) {
+		bActionConstraint *data = con->data;
+
+		/* validate action */
+		if (data->act == NULL) {
+			/* must have action */
+			con->flag |= CONSTRAINT_DISABLE;
+		}
+		else if (data->act->idroot != ID_OB) {
+			/* only object-rooted actions can be used */
+			data->act = NULL;
+			con->flag |= CONSTRAINT_DISABLE;
+		}
+	}
+	else if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
+		bFollowPathConstraint *data = con->data;
+
+		/* don't allow track/up axes to be the same */
+		if (data->upflag == data->trackflag)
+			con->flag |= CONSTRAINT_DISABLE;
+		if (data->upflag + 3 == data->trackflag)
+			con->flag |= CONSTRAINT_DISABLE;
+	}
+	else if (con->type == CONSTRAINT_TYPE_TRACKTO) {
+		bTrackToConstraint *data = con->data;
+
+		/* don't allow track/up axes to be the same */
+		if (data->reserved2 == data->reserved1)
+			con->flag |= CONSTRAINT_DISABLE;
+		if (data->reserved2 + 3 == data->reserved1)
+			con->flag |= CONSTRAINT_DISABLE;
+	}
+	else if (con->type == CONSTRAINT_TYPE_LOCKTRACK) {
+		bLockTrackConstraint *data = con->data;
+
+		if (data->lockflag == data->trackflag)
+			con->flag |= CONSTRAINT_DISABLE;
+		if (data->lockflag + 3 == data->trackflag)
+			con->flag |= CONSTRAINT_DISABLE;
+	}
+	else if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
+		bSplineIKConstraint *data = con->data;
+
+		/* if the number of points does not match the amount required by the chain length,
+		 * free the points array and request a rebind...
+		 */
+		if ((data->points == NULL) || (data->numpoints != data->chainlen + 1)) {
+			/* free the points array */
+			if (data->points) {
+				MEM_freeN(data->points);
+				data->points = NULL;
+			}
+
+			/* clear the bound flag, forcing a rebind next time this is evaluated */
+			data->flag &= ~CONSTRAINT_SPLINEIK_BOUND;
+		}
+	}
+	else if (con->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+		bFollowTrackConstraint *data = con->data;
+
+		if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0) {
+			if (data->clip != NULL && data->track[0]) {
+				MovieTracking *tracking = &data->clip->tracking;
+				MovieTrackingObject *tracking_object;
+
+				if (data->object[0])
+					tracking_object = BKE_tracking_object_get_named(tracking, data->object);
+				else
+					tracking_object = BKE_tracking_object_get_camera(tracking);
+
+				if (!tracking_object) {
+					con->flag |= CONSTRAINT_DISABLE;
+				}
+				else {
+					if (!BKE_tracking_track_get_named(tracking, tracking_object, data->track))
+						con->flag |= CONSTRAINT_DISABLE;
+				}
+			}
+			else {
+				con->flag |= CONSTRAINT_DISABLE;
+			}
+		}
+	}
+	else if (con->type == CONSTRAINT_TYPE_CAMERASOLVER) {
+		bCameraSolverConstraint *data = con->data;
+
+		if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && (data->clip == NULL))
+			con->flag |= CONSTRAINT_DISABLE;
+	}
+	else if (con->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+		bObjectSolverConstraint *data = con->data;
+
+		if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && (data->clip == NULL))
+			con->flag |= CONSTRAINT_DISABLE;
+	}
+
+	/* Check targets for constraints */
+	if (check_targets && cti && cti->get_constraint_targets) {
+		cti->get_constraint_targets(con, &targets);
+
+		/* disable and clear constraints targets that are incorrect */
+		for (ct = targets.first; ct; ct = ct->next) {
+			/* general validity checks (for those constraints that need this) */
+			if (BKE_object_exists_check(ct->tar) == 0) {
+				/* object doesn't exist, but constraint requires target */
+				ct->tar = NULL;
+				con->flag |= CONSTRAINT_DISABLE;
+			}
+			else if (ct->tar == owner) {
+				if (type == CONSTRAINT_OBTYPE_BONE) {
+					if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), ct->subtarget)) {
+						/* bone must exist in armature... */
+						/* TODO: clear subtarget? */
+						con->flag |= CONSTRAINT_DISABLE;
+					}
+					else if (STREQ(pchan->name, ct->subtarget)) {
+						/* cannot target self */
+						ct->subtarget[0] = '\0';
+						con->flag |= CONSTRAINT_DISABLE;
+					}
+				}
+				else {
+					/* cannot use self as target */
+					ct->tar = NULL;
+					con->flag |= CONSTRAINT_DISABLE;
+				}
+			}
+
+			/* target checks for specific constraints */
+			if (ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) {
+				if (ct->tar) {
+					if (ct->tar->type != OB_CURVE) {
+						ct->tar = NULL;
+						con->flag |= CONSTRAINT_DISABLE;
+					}
+					else {
+						Curve *cu = ct->tar->data;
+
+						/* auto-set 'Path' setting on curve so this works  */
+						cu->flag |= CU_PATH;
+					}
+				}
+			}
+		}
+
+		/* free any temporary targets */
+		if (cti->flush_constraint_targets)
+			cti->flush_constraint_targets(con, &targets, 0);
+	}
+}
+
+static int constraint_type_get(Object *owner, bPoseChannel *pchan)
+{
 	int type;
-	
-	if (owner == NULL) return;
-	
 	/* Check parents */
 	if (pchan) {
 		switch (owner->type) {
@@ -284,7 +488,22 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 	}
 	else
 		type = CONSTRAINT_OBTYPE_OBJECT;
+	return type;
+}
+
+/* checks validity of object pointers, and NULLs,
+ * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag.
+ */
+static void test_constraints(Object *owner, bPoseChannel *pchan)
+{
+	bConstraint *curcon;
+	ListBase *conlist = NULL;
+	int type;
 	
+	if (owner == NULL) return;
+
+	type = constraint_type_get(owner, pchan);
+
 	/* Get the constraint list for this object */
 	switch (type) {
 		case CONSTRAINT_OBTYPE_OBJECT:
@@ -298,213 +517,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 	/* Check all constraints - is constraint valid? */
 	if (conlist) {
 		for (curcon = conlist->first; curcon; curcon = curcon->next) {
-			bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
-			ListBase targets = {NULL, NULL};
-			bConstraintTarget *ct;
-			
-			/* clear disabled-flag first */
-			curcon->flag &= ~CONSTRAINT_DISABLE;
-			
-			if (curcon->type == CONSTRAINT_TYPE_KINEMATIC) {
-				bKinematicConstraint *data = curcon->data;
-				
-				/* bad: we need a separate set of checks here as poletarget is 
-				 *		optional... otherwise poletarget must exist too or else
-				 *		the constraint is deemed invalid
-				 */
-				/* default IK check ... */
-				if (BKE_object_exists_check(data->tar) == 0) {
-					data->tar = NULL;
-					curcon->flag |= CONSTRAINT_DISABLE;
-				}
-				else if (data->tar == owner) {
-					if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->subtarget)) {
-						curcon->flag |= CONSTRAINT_DISABLE;
-					}
-				}
-				
-				if (data->poletar) {
-					if (BKE_object_exists_check(data->poletar) == 0) {
-						data->poletar = NULL;
-						curcon->flag |= CONSTRAINT_DISABLE;
-					}
-					else if (data->poletar == owner) {
-						if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->polesubtarget)) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-						}
-					}
-				}
-				/* ... can be overwritten here */
-				BIK_test_constraint(owner, curcon);
-				/* targets have already been checked for this */
-				continue;
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_PIVOT) {
-				bPivotConstraint *data = curcon->data;
-				
-				/* target doesn't have to exist, but if it is non-null, it must exist! */
-				if (data->tar && BKE_object_exists_check(data->tar) == 0) {
-					data->tar = NULL;
-					curcon->flag |= CONSTRAINT_DISABLE;
-				}
-				else if (data->tar == owner) {
-					if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->subtarget)) {
-						curcon->flag |= CONSTRAINT_DISABLE;
-					}
-				}
-				
-				/* targets have already been checked for this */
-				continue;
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_ACTION) {
-				bActionConstraint *data = curcon->data;
-				
-				/* validate action */
-				if (data->act == NULL) {
-					/* must have action */
-					curcon->flag |= CONSTRAINT_DISABLE;
-				}
-				else if (data->act->idroot != ID_OB) {
-					/* only object-rooted actions can be used */
-					data->act = NULL;
-					curcon->flag |= CONSTRAINT_DISABLE;
-				}
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_FOLLOWPATH) {
-				bFollowPathConstraint *data = curcon->data;
-				
-				/* don't allow track/up axes to be the same */
-				if (data->upflag == data->trackflag)
-					curcon->flag |= CONSTRAINT_DISABLE;
-				if (data->upflag + 3 == data->trackflag)
-					curcon->flag |= CONSTRAINT_DISABLE;
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
-				bTrackToConstraint *data = curcon->data;
-				
-				/* don't allow track/up axes to be the same */
-				if (data->reserved2 == data->reserved1)
-					curcon->flag |= CONSTRAINT_DISABLE;
-				if (data->reserved2 + 3 == data->reserved1)
-					curcon->flag |= CONSTRAINT_DISABLE;
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_LOCKTRACK) {
-				bLockTrackConstraint *data = curcon->data;
-				
-				if (data->lockflag == data->trackflag)
-					curcon->flag |= CONSTRAINT_DISABLE;
-				if (data->lockflag + 3 == data->trackflag)
-					curcon->flag |= CONSTRAINT_DISABLE;
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_SPLINEIK) {
-				bSplineIKConstraint *data = curcon->data;
-				
-				/* if the number of points does not match the amount required by the chain length,
-				 * free the points array and request a rebind...
-				 */
-				if ((data->points == NULL) || (data->numpoints != data->chainlen + 1)) {
-					/* free the points array */
-					if (data->points) {
-						MEM_freeN(data->points);
-						data->points = NULL;
-					}
-					
-					/* clear the bound flag, forcing a rebind next time this is evaluated */
-					data->flag &= ~CONSTRAINT_SPLINEIK_BOUND;
-				}
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
-				bFollowTrackConstraint *data = curcon->data;
-
-				if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0) {
-					if (data->clip != NULL && data->track[0]) {
-						MovieTracking *tracking = &data->clip->tracking;
-						MovieTrackingObject *tracking_object;
-						
-						if (data->object[0])
-							tracking_object = BKE_tracking_object_get_named(tracking, data->object);
-						else
-							tracking_object = BKE_tracking_object_get_camera(tracking);
-						
-						if (!tracking_object) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-						}
-						else {
-							if (!BKE_tracking_track_get_named(tracking, tracking_object, data->track))
-								curcon->flag |= CONSTRAINT_DISABLE;
-						}
-					}
-					else {
-						curcon->flag |= CONSTRAINT_DISABLE;
-					}
-				}
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {
-				bCameraSolverConstraint *data = curcon->data;
-				
-				if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && (data->clip == NULL))
-					curcon->flag |= CONSTRAINT_DISABLE;
-			}
-			else if (curcon->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
-				bObjectSolverConstraint *data = curcon->data;
-				
-				if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && (data->clip == NULL))
-					curcon->flag |= CONSTRAINT_DISABLE;
-			}
-			
-			/* Check targets for constraints */
-			if (cti && cti->get_constraint_targets) {
-				cti->get_constraint_targets(curcon, &targets);
-				
-				/* disable and clear constraints targets that are incorrect */
-				for (ct = targets.first; ct; ct = ct->next) {
-					/* general validity checks (for those constraints that need this) */
-					if (BKE_object_exists_check(ct->tar) == 0) {
-						/* object doesn't exist, but constraint requires target */
-						ct->tar = NULL;
-						curcon->flag |= CONSTRAINT_DISABLE;
-					}
-					else if (ct->tar == owner) {
-						if (type == CONSTRAINT_OBTYPE_BONE) {
-							if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), ct->subtarget)) {
-								/* bone must exist in armature... */
-								/* TODO: clear subtarget? */
-								curcon->flag |= CONSTRAINT_DISABLE;
-							}
-							else if (STREQ(pchan->name, ct->subtarget)) {
-								/* cannot target self */
-								ct->subtarget[0] = '\0';
-								curcon->flag |= CONSTRAINT_DISABLE;
-							}
-						}
-						else {
-							/* cannot use self as target */
-							ct->tar = NULL;
-							curcon->flag |= CONSTRAINT_DISABLE;
-						}
-					}
-					
-					/* target checks for specific constraints */
-					if (ELEM(curcon->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) {
-						if (ct->tar) {
-							if (ct->tar->type != OB_CURVE) {
-								ct->tar = NULL;
-								curcon->flag |= CONSTRAINT_DISABLE;
-							}
-							else {
-								Curve *cu = ct->tar->data;
-								
-								/* auto-set 'Path' setting on curve so this works  */
-								cu->flag |= CU_PATH;
-							}
-						}
-					}
-				}
-				
-				/* free any temporary targets */
-				if (cti->flush_constraint_targets)
-					cti->flush_constraint_targets(curcon, &targets, 0);
-			}
+			test_constraint(owner, pchan, curcon, type);
 		}
 	}
 }
@@ -524,6 +537,26 @@ void object_test_constraints(Object *owner)
 	}
 }
 
+static void object_test_constraint(Object *owner, bConstraint *con)
+{
+	if (owner->type == OB_ARMATURE && owner->pose) {
+		if (BLI_findindex(&owner->constraints, con) != -1) {
+			test_constraint(owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
+		}
+		else {
+			bPoseChannel *pchan;
+			for (pchan = owner->pose->chanbase.first; pchan; pchan = pchan->next) {
+				if (BLI_findindex(&pchan->constraints, con) != -1) {
+					test_constraint(owner, pchan, con, CONSTRAINT_OBTYPE_BONE);
+					break;
+				}
+			}
+		}
+	}
+	else {
+		test_constraint(owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
+	}
+}
 
 /************************ generic functions for operators using constraint names and data context *********************/
 
@@ -1161,20 +1194,49 @@ void ED_object_constraint_update(Object *ob)
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
+static void object_pose_tag_update(Object *ob)
+{
+	ob->pose->flag |= POSE_RECALC;    /* Checks & sort pose channels. */
+	if (ob->proxy && ob->adt) {
+		/* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
+		 * after calling `BKE_pose_rebuild()`, which causes T43872.
+		 * Note that this is a bit wide here, since we cannot be sure whether there are some locked proxy bones
+		 * or not...
+		 * XXX Temp hack until new depsgraph hopefully solves this. */
+		ob->adt->recalc |= ADT_RECALC_ANIM;
+	}
+}
+
 void ED_object_constraint_dependency_update(Main *bmain, Object *ob)
 {
 	ED_object_constraint_update(ob);
 
 	if (ob->pose) {
-		ob->pose->flag |= POSE_RECALC;    /* Checks & sort pose channels. */
-		if (ob->proxy && ob->adt) {
-			/* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
-			 * after calling `BKE_pose_rebuild()`, which causes T43872.
-			 * Note that this is a bit wide here, since we cannot be sure whether there are some locked proxy bones
-			 * or not...
-			 * XXX Temp hack until new depsgraph hopefully solves this. */
-			ob->adt->recalc |= ADT_RECALC_ANIM;
-		}
+		object_pose_tag_update(ob);
+	}
+	DAG_relations_tag_update(bmain);
+}
+
+void ED_object_constraint_tag_update(Object *ob, bConstraint *con)
+{
+	if (ob->pose) {
+		BKE_pose_tag_update_constraint_flags(ob->pose);
+	}
+
+	object_test_constraint(ob, con);
+
+	if (ob->type == OB_ARMATURE)
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+	else
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+}
+
+void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstraint *con)
+{
+	ED_object_constraint_tag_update(ob, con);
+
+	if (ob->pose) {
+		object_pose_tag_update(ob);
 	}
 	DAG_relations_tag_update(bmain);
 }

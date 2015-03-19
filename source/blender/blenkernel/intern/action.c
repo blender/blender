@@ -929,6 +929,12 @@ void BKE_pose_update_constraint_flags(bPose *pose)
 				pchan->constflag |= PCHAN_HAS_CONST;
 		}
 	}
+	pose->flag &= ~POSE_CONSTRAINTS_NEED_UPDATE_FLAGS;
+}
+
+void BKE_pose_tag_update_constraint_flags(bPose *pose)
+{
+	pose->flag |= POSE_CONSTRAINTS_NEED_UPDATE_FLAGS;
 }
 
 /* Clears all BONE_UNKEYED flags for every pose channel in every pose 
