@@ -200,6 +200,37 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
 	r_col[2] = ((pack) >> 16) & 0xFF;
 }
 
+
+/** \name RGB/Grayscale Functions
+ *
+ * \warning
+ * These are only an approximation,
+ * in almost _all_ cases, #IMB_colormanagement_get_luminance should be used instead.
+ * however for screen-only colors which don't depend on the currently loaded profile - this is preferred.
+ * Checking theme colors for contrast, etc. Basically anything outside the render pipeline.
+ *
+ * \{ */
+
+/* non-linear luma from ITU-R BT.601-2
+ * see: http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html#RTFToC11
+ * note: the values used for are not exact matches to those documented above,
+ * but they are from the same */
+MINLINE float rgb_to_grayscale(const float rgb[3])
+{
+	return 0.3f * rgb[0] + 0.58f * rgb[1] + 0.12f * rgb[2];
+}
+
+MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3])
+{
+	return (unsigned char)(((76  * (unsigned short)rgb[0]) +
+	                        (148 * (unsigned short)rgb[1]) +
+	                        (31  * (unsigned short)rgb[2])) / 255);
+}
+
+/** \} */
+
+
+
 MINLINE int compare_rgb_uchar(const unsigned char col_a[3], const unsigned char col_b[3], const int limit)
 {
 	const int r = (int)col_a[0] - (int)col_b[0];
