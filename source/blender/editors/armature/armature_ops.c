@@ -66,6 +66,7 @@ void ED_operatortypes_armature(void)
 
 	WM_operatortype_append(ARMATURE_OT_delete);
 	WM_operatortype_append(ARMATURE_OT_duplicate);
+	WM_operatortype_append(ARMATURE_OT_symmetrize);
 	WM_operatortype_append(ARMATURE_OT_extrude);
 	WM_operatortype_append(ARMATURE_OT_hide);
 	WM_operatortype_append(ARMATURE_OT_reveal);

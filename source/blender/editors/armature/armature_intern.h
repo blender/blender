@@ -72,6 +72,7 @@ void ARMATURE_OT_shortest_path_pick(struct wmOperatorType *ot);
 
 void ARMATURE_OT_delete(struct wmOperatorType *ot);
 void ARMATURE_OT_duplicate(struct wmOperatorType *ot);
+void ARMATURE_OT_symmetrize(struct wmOperatorType *ot);
 void ARMATURE_OT_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_hide(struct wmOperatorType *ot);
 void ARMATURE_OT_reveal(struct wmOperatorType *ot);
