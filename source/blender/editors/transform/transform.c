@@ -888,8 +888,12 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
+	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_PROPSIZE_UP);
+	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_PROPSIZE_DOWN);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_PROPSIZE_UP);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_PROPSIZE_DOWN);
 	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, TFM_MODAL_PROPSIZE);
 
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_ALT, 0, TFM_MODAL_EDGESLIDE_UP);
@@ -1230,7 +1234,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 			case TFM_MODAL_PROPSIZE_UP:
 				if (t->flag & T_PROP_EDIT) {
-					t->prop_size *= 1.1f;
+					t->prop_size *= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
 						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
@@ -1240,7 +1244,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 			case TFM_MODAL_PROPSIZE_DOWN:
 				if (t->flag & T_PROP_EDIT) {
-					t->prop_size *= 0.90909090f;
+					t->prop_size /= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
 					calculatePropRatio(t);
 					t->redraw |= TREDRAW_HARD;
 					handled = true;
@@ -1413,7 +1417,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 			case PADPLUSKEY:
 				if (event->alt && t->flag & T_PROP_EDIT) {
-					t->prop_size *= 1.1f;
+					t->prop_size *= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
 						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
@@ -1434,7 +1438,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				break;
 			case PADMINUS:
 				if (event->alt && t->flag & T_PROP_EDIT) {
-					t->prop_size *= 0.90909090f;
+					t->prop_size /= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
 					calculatePropRatio(t);
 					t->redraw = TREDRAW_HARD;
 					handled = true;
