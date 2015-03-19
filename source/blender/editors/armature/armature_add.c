@@ -639,6 +639,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 				 * Set the duplicate->parent to NULL
 				 */
 				ebone->parent = NULL;
+				ebone->flag &= ~BONE_CONNECTED;
 			}
 			else {
 				/* the parent may have been duplicated, if not lookup the mirror parent */
@@ -652,6 +653,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 					 * So just use the same parent for both.
 					 */
 					ebone_parent = ebone_iter->parent;
+					ebone->flag &= ~BONE_CONNECTED;
 				}
 
 				ebone->parent = ebone_parent;
