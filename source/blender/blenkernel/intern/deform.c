@@ -649,7 +649,7 @@ void BKE_deform_flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[
 	BLI_strncpy(prefix, name, sizeof(prefix));
 
 	/* first case; separator . - _ with extensions r R l L  */
-	if (is_char_sep(name[len - 2])) {
+	if ((len > 1) && is_char_sep(name[len - 2])) {
 		is_set = true;
 		switch (name[len - 1]) {
 			case 'l':
