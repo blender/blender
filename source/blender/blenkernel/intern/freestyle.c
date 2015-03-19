@@ -179,7 +179,7 @@ static FreestyleLineSet *alloc_lineset(void)
 	return (FreestyleLineSet *)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
 }
 
-FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config, const char *name)
+FreestyleLineSet *BKE_freestyle_lineset_add(struct Main *bmain, FreestyleConfig *config, const char *name)
 {
 	int lineset_index = BLI_listbase_count(&config->linesets);
 
@@ -187,7 +187,7 @@ FreestyleLineSet *BKE_freestyle_lineset_add(FreestyleConfig *config, const char 
 	BLI_addtail(&config->linesets, (void *)lineset);
 	BKE_freestyle_lineset_set_active_index(config, lineset_index);
 
-	lineset->linestyle = BKE_linestyle_new("LineStyle", NULL);
+	lineset->linestyle = BKE_linestyle_new(bmain, "LineStyle");
 	lineset->flags |= FREESTYLE_LINESET_ENABLED;
 	lineset->selection = FREESTYLE_SEL_VISIBILITY | FREESTYLE_SEL_EDGE_TYPES | FREESTYLE_SEL_IMAGE_BORDER;
 	lineset->qi = FREESTYLE_QI_VISIBLE;

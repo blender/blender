@@ -384,7 +384,7 @@ bool id_copy(ID *id, ID **newid, bool test)
 			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
 			return true;
 		case ID_LS:
-			if (!test) *newid = (ID *)BKE_linestyle_copy((FreestyleLineStyle *)id);
+			if (!test) *newid = (ID *)BKE_linestyle_copy(G.main, (FreestyleLineStyle *)id);
 			return true;
 	}
 	

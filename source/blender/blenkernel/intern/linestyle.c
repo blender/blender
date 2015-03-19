@@ -107,14 +107,11 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->caps = LS_CAPS_BUTT;
 }
 
-FreestyleLineStyle *BKE_linestyle_new(const char *name, struct Main *main)
+FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name)
 {
 	FreestyleLineStyle *linestyle;
 
-	if (!main)
-		main = G.main;
-
-	linestyle = (FreestyleLineStyle *)BKE_libblock_alloc(main, ID_LS, name);
+	linestyle = (FreestyleLineStyle *)BKE_libblock_alloc(bmain, ID_LS, name);
 
 	default_linestyle_settings(linestyle);
 
@@ -149,13 +146,13 @@ void BKE_linestyle_free(FreestyleLineStyle *linestyle)
 		BKE_linestyle_geometry_modifier_remove(linestyle, m);
 }
 
-FreestyleLineStyle *BKE_linestyle_copy(FreestyleLineStyle *linestyle)
+FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, FreestyleLineStyle *linestyle)
 {
 	FreestyleLineStyle *new_linestyle;
 	LineStyleModifier *m;
 	int a;
 
-	new_linestyle = BKE_linestyle_new(linestyle->id.name + 2, NULL);
+	new_linestyle = BKE_linestyle_new(bmain, linestyle->id.name + 2);
 	BKE_linestyle_free(new_linestyle);
 
 	for (a = 0; a < MAX_MTEX; a++) {
