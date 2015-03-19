@@ -4494,6 +4494,12 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 			BKE_palette_color_remove(palette, color);
 
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
+
+			/* this is risky. it works OK for now,
+			 * but if it gives trouble we should delay execution */
+			but->rnapoin = PointerRNA_NULL;
+			but->rnaprop = NULL;
+
 			return WM_UI_HANDLER_BREAK;
 		}
 	}

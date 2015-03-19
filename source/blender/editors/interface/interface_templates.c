@@ -2398,9 +2398,6 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
 
 	palette = cptr.data;
 
-	/* first delete any pending colors */
-	BKE_palette_cleanup(palette);
-
 	color = palette->colors.first;
 
 	col = uiLayoutColumn(layout, true);

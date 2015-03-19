@@ -151,7 +151,6 @@ typedef struct Palette
 
 	/* pointer to individual colours */
 	ListBase colors;
-	ListBase deleted;
 
 	int active_color;
 	int pad;
