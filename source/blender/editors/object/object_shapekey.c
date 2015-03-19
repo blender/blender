@@ -127,8 +127,8 @@ static bool ED_object_shape_key_remove(Main *bmain, Object *ob)
 			}
 			else if (rkb->relative >= ob->shapenr) {
 				/* Fix positional shift of the keys when kb is deleted from the list */
-			    rkb->relative -= 1;
-		    }
+				rkb->relative -= 1;
+			}
 		}
 
 		BLI_remlink(&key->block, kb);

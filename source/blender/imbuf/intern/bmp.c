@@ -136,7 +136,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-	bmp = mem + LITTLE_LONG(*(int*)(mem + 10));
+	bmp = mem + LITTLE_LONG(*(int *)(mem + 10));
 
 	if (CHECK_HEADER_FIELD_BMP(mem)) {
 		/* skip fileheader */

@@ -40,7 +40,6 @@ FIND_PATH(PCRE_INCLUDE_DIR pcre.h
     ${_pcre_SEARCH_DIRS}
   PATH_SUFFIXES
     include
-    include
 )
 
 FIND_LIBRARY(PCRE_LIBRARY
