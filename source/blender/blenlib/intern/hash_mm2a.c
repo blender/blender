@@ -49,6 +49,13 @@
 	(h) = ((h) * MM2A_M) ^ (k);  \
 } (void)0
 
+#define MM2A_MIX_FINALIZE(h)     \
+{                                \
+	(h) ^= (h) >> 13;            \
+	(h) *= MM2A_M;               \
+	(h) ^= (h) >> 15;            \
+} (void)0
+
 static void mm2a_mix_tail(BLI_HashMurmur2A *mm2, const unsigned char **data, size_t *len)
 {
 	while (*len && ((*len < 4) || mm2->count)) {
@@ -99,9 +106,40 @@ uint32_t BLI_hash_mm2a_end(BLI_HashMurmur2A *mm2)
 	MM2A_MIX(mm2->hash, mm2->tail);
 	MM2A_MIX(mm2->hash, mm2->size);
 
-	mm2->hash ^= mm2->hash >> 13;
-	mm2->hash *= MM2A_M;
-	mm2->hash ^= mm2->hash >> 15;
+	MM2A_MIX_FINALIZE(mm2->hash);
 
 	return mm2->hash;
 }
+
+/* Non-incremental version, quicker for small keys. */
+uint32_t BLI_hash_mm2(const unsigned char *data, size_t len, uint32_t seed)
+{
+	/* Initialize the hash to a 'random' value */
+	uint32_t h = seed ^ len;
+
+	/* Mix 4 bytes at a time into the hash */
+	for (; len >= 4; data += 4, len -= 4) {
+		uint32_t k = *(uint32_t *)data;
+
+		MM2A_MIX(h, k);
+	}
+
+	/* Handle the last few bytes of the input array */
+	switch (len) {
+		case 3:
+			h ^= data[2] << 16;
+			/* fall through */
+		case 2:
+			h ^= data[1] << 8;
+			/* fall through */
+		case 1:
+			h ^= data[0];
+			h *= MM2A_M;
+	};
+
+	/* Do a few final mixes of the hash to ensure the last few bytes are well-incorporated. */
+	MM2A_MIX_FINALIZE(h);
+
+	return h;
+}
+

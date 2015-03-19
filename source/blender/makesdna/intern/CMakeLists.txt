@@ -97,6 +97,7 @@ set(SRC
 	../../blenlib/intern/BLI_mempool.c
 	../../blenlib/intern/listbase.c
 	../../blenlib/intern/BLI_ghash.c
+	../../blenlib/intern/hash_mm2a.c
 )
 
 blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}")

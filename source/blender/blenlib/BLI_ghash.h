@@ -44,6 +44,8 @@ typedef unsigned int  (*GHashHashFP)     (const void *key);
 typedef bool          (*GHashCmpFP)      (const void *a, const void *b);
 typedef void          (*GHashKeyFreeFP)  (void *key);
 typedef void          (*GHashValFreeFP)  (void *val);
+typedef void         *(*GHashKeyCopyFP)  (void *key);
+typedef void         *(*GHashValCopyFP)  (void *val);
 
 typedef struct GHash GHash;
 
@@ -54,7 +56,13 @@ typedef struct GHashIterator {
 } GHashIterator;
 
 enum {
-	GHASH_FLAG_ALLOW_DUPES = (1 << 0),  /* only checked for in debug mode */
+	GHASH_FLAG_ALLOW_DUPES  = (1 << 0),  /* Only checked for in debug mode */
+	GHASH_FLAG_ALLOW_SHRINK = (1 << 1),  /* Allow to shrink buckets' size. */
+
+#ifdef GHASH_INTERNAL_API
+	/* Internal usage only */
+	GHASH_FLAG_IS_GSET      = (1 << 16),  /* Whether the GHash is actually used as GSet (no value storage). */
+#endif
 };
 
 /* *** */
@@ -62,7 +70,10 @@ enum {
 GHash *BLI_ghash_new_ex(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
                         const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+GHash *BLI_ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp,
+                      GHashValCopyFP valcopyfp) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void   BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
+void   BLI_ghash_reserve(GHash *gh, const unsigned int nentries_reserve);
 void   BLI_ghash_insert(GHash *gh, void *key, void *val);
 bool   BLI_ghash_reinsert(GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void  *BLI_ghash_lookup(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
@@ -127,23 +138,37 @@ unsigned int    BLI_ghashutil_strhash_n(const char *key, size_t n);
                 CHECK_TYPE_ANY(key, char *, const char *, const char * const), \
                 BLI_ghashutil_strhash_p(key))
 unsigned int    BLI_ghashutil_strhash_p(const void *key);
+unsigned int    BLI_ghashutil_strhash_p_murmur(const void *key);
 bool            BLI_ghashutil_strcmp(const void *a, const void *b);
 
 #define         BLI_ghashutil_inthash(key) ( \
                 CHECK_TYPE_ANY(&(key), int *, const int *), \
                 BLI_ghashutil_uinthash((unsigned int)key))
 unsigned int    BLI_ghashutil_uinthash(unsigned int key);
+unsigned int    BLI_ghashutil_inthash_p(const void *ptr);
+unsigned int    BLI_ghashutil_inthash_p_murmur(const void *ptr);
+bool            BLI_ghashutil_intcmp(const void *a, const void *b);
+
+
+unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
 #define         BLI_ghashutil_inthash_v4(key) ( \
                 CHECK_TYPE_ANY(key, int *, const int *), \
                 BLI_ghashutil_uinthash_v4((const unsigned int *)key))
-unsigned int    BLI_ghashutil_uinthash_v4(const unsigned int key[4]);
 #define         BLI_ghashutil_inthash_v4_p \
    ((GSetHashFP)BLI_ghashutil_uinthash_v4)
+#define         BLI_ghashutil_uinthash_v4_p \
+   ((GSetHashFP)BLI_ghashutil_uinthash_v4)
+unsigned int    BLI_ghashutil_uinthash_v4_murmur(const unsigned int key[4]);
+#define         BLI_ghashutil_inthash_v4_murmur(key) ( \
+                CHECK_TYPE_ANY(key, int *, const int *), \
+                BLI_ghashutil_uinthash_v4_murmur((const unsigned int *)key))
+#define         BLI_ghashutil_inthash_v4_p_murmur \
+   ((GSetHashFP)BLI_ghashutil_uinthash_v4_murmur)
+#define         BLI_ghashutil_uinthash_v4_p_murmur \
+   ((GSetHashFP)BLI_ghashutil_uinthash_v4_murmur)
 bool            BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b);
 #define         BLI_ghashutil_inthash_v4_cmp \
                 BLI_ghashutil_uinthash_v4_cmp
-unsigned int    BLI_ghashutil_inthash_p(const void *ptr);
-bool            BLI_ghashutil_intcmp(const void *a, const void *b);
 
 /** \} */
 
@@ -178,6 +203,7 @@ typedef struct GSet GSet;
 typedef GHashHashFP GSetHashFP;
 typedef GHashCmpFP GSetCmpFP;
 typedef GHashKeyFreeFP GSetKeyFreeFP;
+typedef GHashKeyCopyFP GSetKeyCopyFP;
 
 /* so we can cast but compiler sees as different */
 typedef struct GSetIterator {
@@ -191,6 +217,7 @@ typedef struct GSetIterator {
 GSet  *BLI_gset_new_ex(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info,
                        const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 GSet  *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+GSet  *BLI_gset_copy(GSet *gs, GSetKeyCopyFP keycopyfp) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 int    BLI_gset_size(GSet *gs) ATTR_WARN_UNUSED_RESULT;
 void   BLI_gset_flag_set(GSet *gs, unsigned int flag);
 void   BLI_gset_flag_clear(GSet *gs, unsigned int flag);
@@ -202,7 +229,7 @@ bool   BLI_gset_haskey(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_gset_remove(GSet *gs, void *key, GSetKeyFreeFP keyfreefp);
 void   BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp,
                          const unsigned int nentries_reserve);
-void  BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp);
+void   BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp);
 
 GSet *BLI_gset_ptr_new_ex(const char *info,
                           const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
@@ -229,10 +256,22 @@ BLI_INLINE bool BLI_gsetIterator_done(GSetIterator *gsi) { return BLI_ghashItera
 	     BLI_gsetIterator_done(&gs_iter_) == false;                           \
 	     BLI_gsetIterator_step(&gs_iter_), i_++)
 
-#ifdef DEBUG
+
+/* For testing, debugging only */
+#ifdef GHASH_INTERNAL_API
+int BLI_ghash_buckets_size(GHash *gh);
+int BLI_gset_buckets_size(GSet *gs);
+
+double BLI_ghash_calc_quality_ex(
+        GHash *gh, double *r_load, double *r_variance,
+        double *r_prop_empty_buckets, double *r_prop_overloaded_buckets, int *r_biggest_bucket);
+double BLI_gset_calc_quality_ex(
+        GSet *gs, double *r_load, double *r_variance,
+        double *r_prop_empty_buckets, double *r_prop_overloaded_buckets, int *r_biggest_bucket);
 double BLI_ghash_calc_quality(GHash *gh);
 double BLI_gset_calc_quality(GSet *gs);
-#endif
+#endif  /* GHASH_INTERNAL_API */
+
 
 #ifdef __cplusplus
 }
