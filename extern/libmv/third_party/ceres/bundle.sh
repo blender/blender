@@ -129,7 +129,7 @@ set(INC
 )
 
 set(INC_SYS
-	../../../Eigen3
+	${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC

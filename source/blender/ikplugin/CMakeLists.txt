@@ -59,7 +59,7 @@ if(WITH_IK_ITASC)
 		../../../intern/itasc
 	)
 	list(APPEND INC_SYS
-		../../../extern/Eigen3
+		${EIGEN3_INCLUDE_DIRS}
 	)
 	list(APPEND SRC
 		intern/itasc_plugin.cpp

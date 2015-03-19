@@ -56,7 +56,7 @@ set(INC
 set(INC_SYS
 	../../../intern/moto/include
 	../../../extern/recastnavigation/Detour/Include
-	../../../extern/Eigen3
+	${EIGEN3_INCLUDE_DIRS}
 	${PTHREADS_INCLUDE_DIRS}
 	${BOOST_INCLUDE_DIR}
 )
