@@ -1243,19 +1243,19 @@ const char *IMB_colormanagement_get_rect_colorspace(ImBuf *ibuf)
 
 float IMB_colormanagement_get_luminance(const float rgb[3])
 {
- return dot_v3v3(luma_coefficients, rgb);
+	return dot_v3v3(luma_coefficients, rgb);
 }
 
 /* Byte equivalent of IMB_colormanagement_get_luminance(). */
 unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char rgb[3])
 {
- float rgbf[3];
+	float rgbf[3];
+	float val;
 
- rgbf[0] = (float) rgb[0] / 255.0f;
- rgbf[1] = (float) rgb[1] / 255.0f;
- rgbf[2] = (float) rgb[2] / 255.0f;
+	rgb_uchar_to_float(rgbf, rgb);
+	val = dot_v3v3(luma_coefficients, rgbf);
 
- return FTOCHAR(dot_v3v3(luma_coefficients, rgbf));
+	return FTOCHAR(val);
 }
 
 /*********************** Threaded display buffer transform routines *************************/
