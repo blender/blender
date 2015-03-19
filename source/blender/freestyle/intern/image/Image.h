@@ -134,7 +134,7 @@ public:
 		return _height;
 	}
 
-	/*! Returns the grey value for pixel x,y */
+	/*! Returns the gray value for pixel x,y */
 	virtual float pixel(unsigned x, unsigned y) const = 0;
 
 	/*! Sets the array.

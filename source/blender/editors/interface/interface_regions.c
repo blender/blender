@@ -241,10 +241,10 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	/* tone_fg = rgb_to_grayscale(main_color); */
 
 	/* mix the colors */
-	rgb_tint(value_color,  0.0f, 0.0f, tone_bg, 0.2f);  /* light grey */
+	rgb_tint(value_color,  0.0f, 0.0f, tone_bg, 0.2f);  /* light gray */
 	rgb_tint(active_color, 0.6f, 0.2f, tone_bg, 0.2f);  /* light blue */
-	rgb_tint(normal_color, 0.0f, 0.0f, tone_bg, 0.4f);  /* grey       */
-	rgb_tint(python_color, 0.0f, 0.0f, tone_bg, 0.5f);  /* dark grey  */
+	rgb_tint(normal_color, 0.0f, 0.0f, tone_bg, 0.4f);  /* gray       */
+	rgb_tint(python_color, 0.0f, 0.0f, tone_bg, 0.5f);  /* dark gray  */
 	rgb_tint(alert_color,  0.0f, 0.8f, tone_bg, 0.1f);  /* red        */
 
 	/* draw text */

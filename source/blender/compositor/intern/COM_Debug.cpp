@@ -356,7 +356,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 			std::string color;
 			switch (from->getDataType()) {
 				case COM_DT_VALUE:
-					color = "grey";
+					color = "gray";
 					break;
 				case COM_DT_VECTOR:
 					color = "blue";

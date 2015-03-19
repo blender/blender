@@ -513,7 +513,7 @@ static void ui_draw_links(uiBlock *block)
 	uiBut *but;
 	uiLinkLine *line;
 
-	/* Draw the grey out lines. Do this first so they appear at the
+	/* Draw the gray out lines. Do this first so they appear at the
 	 * bottom of inactive or active lines.
 	 * As we go, remember if we see any active or selected lines. */
 	bool found_selectline = false;
@@ -548,7 +548,7 @@ static void ui_draw_links(uiBlock *block)
 	}
 
 	/* Draw any active lines (lines with either button being hovered over).
-	 * Do this last so they appear on top of inactive and grey out lines. */
+	 * Do this last so they appear on top of inactive and gray out lines. */
 	if (found_activeline) {
 		for (but = block->buttons.first; but; but = but->next) {
 			if (but->type == UI_BTYPE_LINK && but->link) {

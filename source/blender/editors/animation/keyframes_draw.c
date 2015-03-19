@@ -528,7 +528,7 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 		}
 		
 		/* NOTE: we don't use the straight alpha from the theme, or else effects such as 
-		 * greying out protected/muted channels doesn't work correctly! 
+		 * graying out protected/muted channels doesn't work correctly!
 		 */
 		inner_col[3] *= alpha;
 		glColor4fv(inner_col);
