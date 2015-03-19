@@ -577,6 +577,10 @@ static void initSnappingMode(TransInfo *t)
 			t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
 		}
 	}
+	else if (t->spacetype == SPACE_SEQ) {
+		/* We do our own snapping currently, so nothing here */
+		t->tsnap.mode = SCE_SNAP_MODE_GRID;  /* Dummy, should we rather add a NOP mode? */
+	}
 	else {
 		/* Always grid outside of 3D view */
 		t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
@@ -2431,15 +2435,16 @@ void snapGridIncrement(TransInfo *t, float *val)
 	snapGridIncrementAction(t, val, action);
 }
 
-int snapSequenceBounds(TransInfo *t, const int mval[2])
+void snapSequenceBounds(TransInfo *t, const int mval[2])
 {
 	float xmouse, ymouse;
 	int frame;
 	int mframe;
+	TransData *td = t->data;
 	TransSeq *ts = t->customData;
 	/* reuse increment, strictly speaking could be another snap mode, but leave as is */
 	if (!(t->modifiers & MOD_SNAP_INVERT))
-		return 0;
+		return;
 
 	/* convert to frame range */
 	UI_view2d_region_to_view(&t->ar->v2d, mval[0], mval[1], &xmouse, &ymouse);
@@ -2450,7 +2455,7 @@ int snapSequenceBounds(TransInfo *t, const int mval[2])
 	if (!ts->snap_left)
 		frame = frame - (ts->max - ts->min);
 
-	return frame;
+	t->values[0] = frame - ts->min;
 }
 
 static void applyGridIncrement(TransInfo *t, float *val, int max_index, const float fac[3], GearsType action)

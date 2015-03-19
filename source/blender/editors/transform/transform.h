@@ -626,7 +626,7 @@ typedef enum {
 void snapGridIncrement(TransInfo *t, float *val);
 void snapGridIncrementAction(TransInfo *t, float *val, GearsType action);
 
-int snapSequenceBounds(TransInfo *t, const int mval[2]);
+void snapSequenceBounds(TransInfo *t, const int mval[2]);
 
 bool activeSnap(TransInfo *t);
 bool validSnap(TransInfo *t);
