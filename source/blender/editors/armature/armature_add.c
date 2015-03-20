@@ -90,7 +90,7 @@ EditBone *ED_armature_edit_bone_add_primitive(Object *obedit_arm, float length, 
 	bArmature *arm = obedit_arm->data;
 	EditBone *bone;
 
-	ED_armature_deselect_all(obedit_arm, 0);
+	ED_armature_deselect_all(obedit_arm);
 	
 	/* Create a bone */
 	bone = ED_armature_edit_bone_add(arm, "Bone");
@@ -145,7 +145,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		to_root = 1;
 	}
 	
-	ED_armature_deselect_all(obedit, 0);
+	ED_armature_deselect_all(obedit);
 	
 	/* we re-use code for mirror editing... */
 	flipbone = NULL;
@@ -914,7 +914,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselect_all(obedit, 0);
+	ED_armature_deselect_all(obedit);
 	
 	/*	Create a bone	*/
 	bone = ED_armature_edit_bone_add(obedit->data, name);

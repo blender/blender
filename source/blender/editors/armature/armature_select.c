@@ -388,61 +388,14 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 	return NULL;
 }
 
-
-
-/* toggle==0: deselect
- * toggle==1: swap (based on test)
- * toggle==2: swap (no test), CURRENTLY UNUSED
- */
-void ED_armature_deselect_all(Object *obedit, int toggle)
+void ED_armature_deselect_all(Object *obedit)
 {
 	bArmature *arm = obedit->data;
-	EditBone    *eBone;
-	int sel = 1;
-	
-	if (toggle == 1) {
-		/* Determine if there are any selected bones
-		 * and therefore whether we are selecting or deselecting */
-		for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
-			//			if (arm->layer & eBone->layer) {
-			if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) {
-				sel = 0;
-				break;
-			}
-			//			}
-		}
-	}
-	else {
-		sel = toggle;
-	}
+	EditBone *ebone;
 
-	/*	Set the flags */
-	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
-		if (sel == 2) {
-			/* invert selection of bone */
-			if (EBONE_VISIBLE(arm, eBone)) {
-				eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				if (arm->act_edbone == eBone)
-					arm->act_edbone = NULL;
-			}
-		}
-		else if (sel == 1) {
-			/* select bone */
-			if (EBONE_VISIBLE(arm, eBone)) {
-				eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				if (eBone->parent)
-					eBone->parent->flag |= (BONE_TIPSEL);
-			}
-		}
-		else {
-			/* deselect bone */
-			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			if (arm->act_edbone == eBone)
-				arm->act_edbone = NULL;
-		}
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 	}
-	
-	ED_armature_sync_selection(arm->edbo);
 }
 
 void ED_armature_deselect_all_visible(Object *obedit)
@@ -489,8 +442,9 @@ bool mouse_armature(bContext *C, const int mval[2], bool extend, bool deselect, 
 	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
 	if (nearBone) {
 
-		if (!extend && !deselect && !toggle)
-			ED_armature_deselect_all(obedit, 0);
+		if (!extend && !deselect && !toggle) {
+			ED_armature_deselect_all(obedit);
+		}
 		
 		/* by definition the non-root connected bones have no root point drawn,
 		 * so a root selection needs to be delivered to the parent tip */

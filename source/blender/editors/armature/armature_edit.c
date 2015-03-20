@@ -714,7 +714,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 	}
 
 	if (newbone) {
-		ED_armature_deselect_all(obedit, 0);
+		ED_armature_deselect_all(obedit);
 		arm->act_edbone = newbone;
 		newbone->flag |= BONE_TIPSEL;
 	}

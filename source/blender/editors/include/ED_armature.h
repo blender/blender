@@ -119,7 +119,7 @@ void ED_keymap_armature(struct wmKeyConfig *keyconf);
 void ED_armature_from_edit(struct bArmature *arm);
 void ED_armature_to_edit(struct bArmature *arm);
 void ED_armature_edit_free(struct bArmature *arm);
-void ED_armature_deselect_all(struct Object *obedit, int toggle);
+void ED_armature_deselect_all(struct Object *obedit);
 void ED_armature_deselect_all_visible(struct Object *obedit);
 
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
