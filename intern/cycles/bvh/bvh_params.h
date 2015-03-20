@@ -113,7 +113,9 @@ public:
 	__forceinline int prim_type() const { return type; }
 
 	BVHReference& operator=(const BVHReference &arg) {
-		memcpy(this, &arg, sizeof(BVHReference));
+		if(&arg != this) {
+			memcpy(this, &arg, sizeof(BVHReference));
+		}
 		return *this;
 	}
 
