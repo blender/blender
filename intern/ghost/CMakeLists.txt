@@ -297,11 +297,6 @@ elseif(WIN32)
 			intern/GHOST_NDOFManagerWin32.h
 		)
 	endif()
-
-	list(APPEND INC
-		../utfconv
-	)
-
 endif()
 
 if(WITH_GL_EGL AND NOT (WITH_HEADLESS OR WITH_GHOST_SDL))
@@ -332,6 +327,10 @@ elseif(WIN32)
 	list(APPEND SRC
 		intern/GHOST_SystemPathsWin32.cpp
 		intern/GHOST_SystemPathsWin32.h
+	)
+
+	list(APPEND INC
+		../utfconv
 	)
 
 endif()
