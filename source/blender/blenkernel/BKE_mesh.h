@@ -130,6 +130,9 @@ bool BKE_mesh_uv_cdlayer_rename(struct Mesh *me, const char *old_name, const cha
 
 float (*BKE_mesh_vertexCos_get(struct Mesh *me, int *r_numVerts))[3];
 
+void BKE_mesh_calc_normals_split(struct Mesh *mesh);
+void BKE_mesh_split_faces(struct Mesh *mesh);
+
 struct Mesh *BKE_mesh_new_from_object(struct Main *bmain, struct Scene *sce, struct Object *ob,
                                       int apply_modifiers, int settings, int calc_tessface, int calc_undeformed);
 

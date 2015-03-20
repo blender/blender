@@ -69,47 +69,6 @@ static void rna_Mesh_create_normals_split(Mesh *mesh)
 	}
 }
 
-static void rna_Mesh_calc_normals_split(Mesh *mesh)
-{
-	float (*r_loopnors)[3];
-	float (*polynors)[3];
-	short (*clnors)[2] = NULL;
-	bool free_polynors = false;
-
-	if (CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
-		r_loopnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
-		memset(r_loopnors, 0, sizeof(float[3]) * mesh->totloop);
-	}
-	else {
-		r_loopnors = CustomData_add_layer(&mesh->ldata, CD_NORMAL, CD_CALLOC, NULL, mesh->totloop);
-		CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-	}
-
-	/* may be NULL */
-	clnors = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
-
-	if (CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
-		/* This assume that layer is always up to date, not sure this is the case (esp. in Edit mode?)... */
-		polynors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
-		free_polynors = false;
-	}
-	else {
-		polynors = MEM_mallocN(sizeof(float[3]) * mesh->totpoly, __func__);
-		BKE_mesh_calc_normals_poly(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-		                           polynors, false);
-		free_polynors = true;
-	}
-
-	BKE_mesh_normals_loop_split(
-	        mesh->mvert, mesh->totvert, mesh->medge, mesh->totedge,
-	        mesh->mloop, r_loopnors, mesh->totloop, mesh->mpoly, (const float (*)[3])polynors, mesh->totpoly,
-	        (mesh->flag & ME_AUTOSMOOTH) != 0, mesh->smoothresh, NULL, clnors, NULL);
-
-	if (free_polynors) {
-		MEM_freeN(polynors);
-	}
-}
-
 static void rna_Mesh_free_normals_split(Mesh *mesh)
 {
 	CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
@@ -130,7 +89,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
 
 	/* Compute loop normals if needed. */
 	if (!CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
-		rna_Mesh_calc_normals_split(mesh);
+		BKE_mesh_calc_normals_split(mesh);
 	}
 
 	BKE_mesh_loop_tangents(mesh, uvmap, r_looptangents, reports);
@@ -256,7 +215,7 @@ void RNA_api_mesh(StructRNA *srna)
 	func = RNA_def_function(srna, "create_normals_split", "rna_Mesh_create_normals_split");
 	RNA_def_function_ui_description(func, "Empty split vertex normals");
 
-	func = RNA_def_function(srna, "calc_normals_split", "rna_Mesh_calc_normals_split");
+	func = RNA_def_function(srna, "calc_normals_split", "BKE_mesh_calc_normals_split");
 	RNA_def_function_ui_description(func, "Calculate split vertex normals, which preserve sharp edges");
 
 	func = RNA_def_function(srna, "free_normals_split", "rna_Mesh_free_normals_split");
