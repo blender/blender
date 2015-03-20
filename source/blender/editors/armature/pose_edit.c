@@ -862,7 +862,7 @@ static int pose_bone_layers_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
 		for (bit = 0; bit < 32; bit++) {
-			layers[bit] = (pchan->bone->layer & (1 << bit)) != 0;
+			layers[bit] = (pchan->bone->layer & (1u << bit)) != 0;
 		}
 	}
 	CTX_DATA_END;
@@ -936,8 +936,9 @@ static int armature_bone_layers_invoke(bContext *C, wmOperator *op, const wmEven
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
 		for (bit = 0; bit < 32; bit++) {
-			if (ebone->layer & (1 << bit))
+			if (ebone->layer & (1u << bit)) {
 				layers[bit] = 1;
+			}
 		}
 	}
 	CTX_DATA_END;

@@ -120,7 +120,7 @@ static int rna_Controller_state_number_get(struct PointerRNA *ptr)
 	int bit;
 
 	for (bit = 0; bit < 32; bit++) {
-		if (cont->state_mask & (1 << bit))
+		if (cont->state_mask & (1u << bit))
 			return bit + 1;
 	}
 	return 0;

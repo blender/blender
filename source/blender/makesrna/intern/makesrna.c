@@ -936,7 +936,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 
 					if (dp->dnaarraylength == 1) {
 						if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
-							fprintf(f, "		if (%svalues[i]) data->%s |= (%d<<i);\n",
+							fprintf(f, "		if (%svalues[i]) data->%s |= (%du << i);\n",
 							        (dp->booleannegative) ? "!" : "", dp->dnaname, dp->booleanbit);
 							fprintf(f, "		else data->%s &= ~(%du << i);\n", dp->dnaname, dp->booleanbit);
 						}

@@ -510,8 +510,8 @@ void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
 
 		if ((v3d->lay & v3d->layact) == 0) {
 			for (bit = 0; bit < 32; bit++) {
-				if (v3d->lay & (1 << bit)) {
-					v3d->layact = 1 << bit;
+				if (v3d->lay & (1u << bit)) {
+					v3d->layact = (1u << bit);
 					break;
 				}
 			}

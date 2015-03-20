@@ -247,8 +247,8 @@ static void rna_bone_layer_set(int *layer, const int *values)
 		return;
 
 	for (i = 0; i < 32; i++) {
-		if (values[i]) *layer |= (1 << i);
-		else *layer &= ~(1 << i);
+		if (values[i]) *layer |= (1u << i);
+		else *layer &= ~(1u << i);
 	}
 }
 
@@ -272,8 +272,8 @@ static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
 		return;
 
 	for (i = 0; i < 32; i++) {
-		if (values[i]) arm->layer |= (1 << i);
-		else arm->layer &= ~(1 << i);
+		if (values[i]) arm->layer |= (1u << i);
+		else arm->layer &= ~(1u << i);
 	}
 }
 

@@ -413,8 +413,8 @@ static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, int valu
 		/* seek for layact */
 		bit = 0;
 		while (bit < 32) {
-			if (v3d->lay & (1 << bit)) {
-				v3d->layact = 1 << bit;
+			if (v3d->lay & (1u << bit)) {
+				v3d->layact = (1u << bit);
 				break;
 			}
 			bit++;

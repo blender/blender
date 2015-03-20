@@ -105,8 +105,8 @@ static void view3d_layers_editmode_ensure(Scene *scene, View3D *v3d)
 	if (scene->obedit && (scene->obedit->lay & v3d->lay) == 0) {
 		int bit;
 		for (bit = 0; bit < 32; bit++) {
-			if (scene->obedit->lay & (1 << bit)) {
-				v3d->lay |= 1 << bit;
+			if (scene->obedit->lay & (1u << bit)) {
+				v3d->lay |= (1u << bit);
 				break;
 			}
 		}
@@ -161,8 +161,8 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 			v3d->layact = 1 << nr;
 		else if ((v3d->lay & v3d->layact) == 0) {
 			for (bit = 0; bit < 32; bit++) {
-				if (v3d->lay & (1 << bit)) {
-					v3d->layact = 1 << bit;
+				if (v3d->lay & (1u << bit)) {
+					v3d->layact = (1u << bit);
 					break;
 				}
 			}
