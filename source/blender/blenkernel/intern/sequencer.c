@@ -1920,7 +1920,10 @@ static void *color_balance_do_thread(void *thread_data_v)
 	return NULL;
 }
 
-ImBuf *BKE_sequencer_render_mask_input(const SeqRenderData *context, int mask_input_type, Sequence *mask_sequence, Mask *mask_id, int cfra, bool make_float)
+/* cfra is offset by fra_offset only in case we are using a real mask. */
+ImBuf *BKE_sequencer_render_mask_input(
+        const SeqRenderData *context, int mask_input_type, Sequence *mask_sequence, Mask *mask_id,
+        int cfra, int fra_offset, bool make_float)
 {
 	ImBuf *mask_input = NULL;
 
@@ -1939,7 +1942,7 @@ ImBuf *BKE_sequencer_render_mask_input(const SeqRenderData *context, int mask_in
 		}
 	}
 	else if (mask_input_type == SEQUENCE_MASK_INPUT_ID) {
-		mask_input = seq_render_mask(context, mask_id, cfra, make_float);
+		mask_input = seq_render_mask(context, mask_id, cfra - fra_offset, make_float);
 	}
 
 	return mask_input;

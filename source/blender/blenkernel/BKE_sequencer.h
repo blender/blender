@@ -449,7 +449,9 @@ void BKE_sequence_modifier_list_copy(struct Sequence *seqn, struct Sequence *seq
 int BKE_sequence_supports_modifiers(struct Sequence *seq);
 
 /* internal filters */
-struct ImBuf *BKE_sequencer_render_mask_input(const SeqRenderData *context, int mask_input_type, struct Sequence *mask_sequence, struct Mask *mask_id, int cfra, bool make_float);
+struct ImBuf *BKE_sequencer_render_mask_input(
+        const SeqRenderData *context, int mask_input_type, struct Sequence *mask_sequence, struct Mask *mask_id,
+        int cfra, int fra_offset, bool make_float);
 void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb, struct ImBuf *ibuf, float mul, bool make_float, struct ImBuf *mask_input);
 
 #endif  /* __BKE_SEQUENCER_H__ */
