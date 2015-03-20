@@ -332,6 +332,8 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 
 	ED_object_shape_key_add(C, ob, from_mix);
 
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
 	return OPERATOR_FINISHED;
 }
 
