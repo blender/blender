@@ -50,7 +50,7 @@
 #include "GPU_extensions.h"
 #include "GPU_compositing.h"
 
-#include "GL/glew.h"
+#include "GPU_glew.h"
 
 #include "MEM_guardedalloc.h"
 
