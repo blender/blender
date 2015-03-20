@@ -368,26 +368,31 @@ void RE_engine_set_error_message(RenderEngine *engine, const char *msg)
 	}
 }
 
-void RE_engine_get_current_tiles(Render *re, int *total_tiles_r, rcti **tiles_r)
+rcti* RE_engine_get_current_tiles(Render *re, int *total_tiles_r, bool *needs_free_r)
 {
+	static rcti tiles_static[BLENDER_MAX_THREADS];
+	const int allocation_step = BLENDER_MAX_THREADS;
 	RenderPart *pa;
 	int total_tiles = 0;
-	rcti *tiles = NULL;
-	int allocation_size = 0, allocation_step = BLENDER_MAX_THREADS;
+	rcti *tiles = tiles_static;
+	int allocation_size = BLENDER_MAX_THREADS;
 
 	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_READ);
 
 	if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
 		*total_tiles_r = 0;
-		*tiles_r = NULL;
 		BLI_rw_mutex_unlock(&re->partsmutex);
-		return;
+		needs_free_r = false;
+		return NULL;
 	}
 
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->status == PART_STATUS_IN_PROGRESS) {
 			if (total_tiles >= allocation_size) {
-				if (tiles == NULL)
+				/* Just in case we're using crazy network rendering with more
+				 * slaves as BLENDER_MAX_THREADS.
+				 */
+				if (tiles == tiles_static)
 					tiles = MEM_mallocN(allocation_step * sizeof(rcti), "current engine tiles");
 				else
 					tiles = MEM_reallocN(tiles, (total_tiles + allocation_step) * sizeof(rcti));
@@ -409,7 +414,7 @@ void RE_engine_get_current_tiles(Render *re, int *total_tiles_r, rcti **tiles_r)
 	}
 	BLI_rw_mutex_unlock(&re->partsmutex);
 	*total_tiles_r = total_tiles;
-	*tiles_r = tiles;
+	return tiles;
 }
 
 RenderData *RE_engine_get_render_data(Render *re)

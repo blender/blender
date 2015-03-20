@@ -106,9 +106,10 @@ static void draw_render_info(const bContext *C,
 
 	if (re) {
 		int total_tiles;
+		bool need_free_tiles;
 		rcti *tiles;
 
-		RE_engine_get_current_tiles(re, &total_tiles, &tiles);
+		tiles = RE_engine_get_current_tiles(re, &total_tiles, &need_free_tiles);
 
 		if (total_tiles) {
 			int i, x, y;
@@ -133,7 +134,9 @@ static void draw_render_info(const bContext *C,
 				glaDrawBorderCorners(tile, zoomx, zoomy);
 			}
 
-			MEM_freeN(tiles);
+			if (need_free_tiles) {
+				MEM_freeN(tiles);
+			}
 
 			glPopMatrix();
 		}
