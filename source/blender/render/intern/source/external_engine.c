@@ -375,9 +375,12 @@ void RE_engine_get_current_tiles(Render *re, int *total_tiles_r, rcti **tiles_r)
 	rcti *tiles = NULL;
 	int allocation_size = 0, allocation_step = BLENDER_MAX_THREADS;
 
+	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_READ);
+
 	if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
 		*total_tiles_r = 0;
 		*tiles_r = NULL;
+		BLI_rw_mutex_unlock(&re->partsmutex);
 		return;
 	}
 
@@ -404,7 +407,7 @@ void RE_engine_get_current_tiles(Render *re, int *total_tiles_r, rcti **tiles_r)
 			total_tiles++;
 		}
 	}
-
+	BLI_rw_mutex_unlock(&re->partsmutex);
 	*total_tiles_r = total_tiles;
 	*tiles_r = tiles;
 }
@@ -478,6 +481,8 @@ bool RE_bake_engine(
 	engine->tile_y = 0;
 	engine->flag &= ~RE_ENGINE_RENDERING;
 
+	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
+
 	/* re->engine becomes zero if user changed active render engine during render */
 	if (!persistent_data || !re->engine) {
 		RE_engine_free(engine);
@@ -485,6 +490,7 @@ bool RE_bake_engine(
 	}
 
 	RE_parts_free(re);
+	BLI_rw_mutex_unlock(&re->partsmutex);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
 		G.is_break = true;
@@ -663,6 +669,8 @@ int RE_engine_render(Render *re, int do_all)
 
 	render_result_free_list(&engine->fullresult, engine->fullresult.first);
 
+	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
+
 	/* re->engine becomes zero if user changed active render engine during render */
 	if (!persistent_data || !re->engine) {
 		RE_engine_free(engine);
@@ -682,6 +690,7 @@ int RE_engine_render(Render *re, int do_all)
 	}
 
 	RE_parts_free(re);
+	BLI_rw_mutex_unlock(&re->partsmutex);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
 		G.is_break = true;

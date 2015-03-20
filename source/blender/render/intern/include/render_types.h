@@ -194,6 +194,7 @@ struct Render
 	struct Object *camera_override;
 	unsigned int lay, layer_override;
 	
+	ThreadRWMutex partsmutex;
 	ListBase parts;
 	
 	/* render engine */
