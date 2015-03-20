@@ -60,7 +60,8 @@ if(EXISTS ${SOURCE_DIR}/.git)
 			execute_process(COMMAND git log HEAD..@{u}
 			                WORKING_DIRECTORY ${SOURCE_DIR}
 			                OUTPUT_VARIABLE _git_below_check
-			                OUTPUT_STRIP_TRAILING_WHITESPACE)
+			                OUTPUT_STRIP_TRAILING_WHITESPACE
+			                ERROR_QUIET)
 			if(NOT _git_below_check STREQUAL "")
 				# If there're commits between HEAD and upstream this means
 				# that we're reset-ed to older revision. Use it's hash then.
