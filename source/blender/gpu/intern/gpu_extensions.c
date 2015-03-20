@@ -289,7 +289,7 @@ bool GPU_geometry_shader_support(void)
 
 bool GPU_instanced_drawing_support(void)
 {
-	return GLEW_EXT_draw_instanced;
+	return GLEW_ARB_draw_instanced;
 }
 
 int GPU_color_depth(void)
@@ -1456,7 +1456,7 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
 
 	if (GPU_instanced_drawing_support()) {
 		strcat(defines, "#extension GL_EXT_gpu_shader4: enable\n");
-		strcat(defines, "#extension GL_EXT_draw_instanced: enable\n");
+		strcat(defines, "#extension GL_ARB_draw_instanced: enable\n");
 	}
 }
 
@@ -1478,7 +1478,7 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
 	return;
 }
 
-GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *geocode, const char *libcode, const char *defines)
+GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *geocode, const char *libcode, const char *defines, int input, int output, int number)
 {
 	GLint status;
 	GLcharARB log[5000];
@@ -1577,7 +1577,6 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 		source[num_source++] = standard_defines;
 
 		if (defines) source[num_source++] = defines;
-		if (libcode) source[num_source++] = libcode;
 		source[num_source++] = geocode;
 
 		glAttachObjectARB(shader->object, shader->geometry);
@@ -1593,6 +1592,8 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 			GPU_shader_free(shader);
 			return NULL;
 		}
+		
+		GPU_shader_geometry_stage_primitive_io(shader, input, output, number);
 	}
 
 
@@ -1732,9 +1733,6 @@ void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int ou
 	glProgramParameteriEXT(shader->object, GL_GEOMETRY_INPUT_TYPE_EXT, input);
 	glProgramParameteriEXT(shader->object, GL_GEOMETRY_OUTPUT_TYPE_EXT, output);
 	glProgramParameteriEXT(shader->object, GL_GEOMETRY_VERTICES_OUT_EXT, number);
-
-	/* relink so settings can take effect (sucks but should only be done right after compilation so...) */
-	glLinkProgramARB(shader->object);
 }
 
 void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUTexture *tex)
@@ -1784,12 +1782,12 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 	switch (shader) {
 		case GPU_SHADER_VSM_STORE:
 			if (!GG.shaders.vsm_store)
-				GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL, NULL, NULL);
+				GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.vsm_store;
 			break;
 		case GPU_SHADER_SEP_GAUSSIAN_BLUR:
 			if (!GG.shaders.sep_gaussian_blur)
-				GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL, NULL, NULL);
+				GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.sep_gaussian_blur;
 			break;
 	}
@@ -1822,56 +1820,53 @@ GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp)
 
 		switch(effects) {
 			case GPU_SHADER_FX_SSAO:
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_vert_glsl, datatoc_gpu_shader_fx_ssao_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_vert_glsl, datatoc_gpu_shader_fx_ssao_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_ONE:
 				strcat(defines, "#define FIRST_PASS\n");
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_TWO:
 				strcat(defines, "#define SECOND_PASS\n");
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_THREE:
 				strcat(defines, "#define THIRD_PASS\n");
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FOUR:
 				strcat(defines, "#define FOURTH_PASS\n");
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_FIVE:
 				strcat(defines, "#define FIFTH_PASS\n");
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_vert_glsl, datatoc_gpu_shader_fx_dof_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_HQ_PASS_ONE:
 				strcat(defines, "#define FIRST_PASS\n");
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_hq_vert_glsl, datatoc_gpu_shader_fx_dof_hq_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_hq_vert_glsl, datatoc_gpu_shader_fx_dof_hq_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_HQ_PASS_TWO:
 				strcat(defines, "#define SECOND_PASS\n");
-				shader = GPU_shader_create(datatoc_gpu_shader_fx_dof_hq_vert_glsl, datatoc_gpu_shader_fx_dof_hq_frag_glsl, datatoc_gpu_shader_fx_dof_hq_geo_glsl, datatoc_gpu_shader_fx_lib_glsl, defines);
-
-				if (shader) {
-					GG.shaders.fx_shaders[offset] = shader;
-					GPU_shader_geometry_stage_primitive_io(shader, GL_POINTS, GL_TRIANGLE_STRIP, 4);
-				}
+				shader = GPU_shader_create(datatoc_gpu_shader_fx_dof_hq_vert_glsl, datatoc_gpu_shader_fx_dof_hq_frag_glsl, datatoc_gpu_shader_fx_dof_hq_geo_glsl, datatoc_gpu_shader_fx_lib_glsl,
+										   defines, GL_POINTS, GL_TRIANGLE_STRIP, 4);
+				GG.shaders.fx_shaders[offset] = shader;
 				break;
 
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_HQ_PASS_THREE:
 				strcat(defines, "#define THIRD_PASS\n");
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_hq_vert_glsl, datatoc_gpu_shader_fx_dof_hq_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_dof_hq_vert_glsl, datatoc_gpu_shader_fx_dof_hq_frag_glsl, NULL, datatoc_gpu_shader_fx_lib_glsl, defines, 0, 0, 0);
 				break;
 
 			case GPU_SHADER_FX_DEPTH_RESOLVE:
-				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_vert_glsl, datatoc_gpu_shader_fx_depth_resolve_glsl, NULL, NULL, defines);
+				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_vert_glsl, datatoc_gpu_shader_fx_depth_resolve_glsl, NULL, NULL, defines, 0, 0, 0);
 		}
 	}
 

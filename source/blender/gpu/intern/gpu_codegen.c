@@ -1419,7 +1419,7 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink,
 	/* generate code and compile with opengl */
 	fragmentcode = code_generate_fragment(nodes, outlink->output);
 	vertexcode = code_generate_vertex(nodes, type);
-	shader = GPU_shader_create(vertexcode, fragmentcode, NULL, glsl_material_library, NULL);
+	shader = GPU_shader_create(vertexcode, fragmentcode, NULL, glsl_material_library, NULL, 0, 0, 0);
 
 	/* failed? */
 	if (!shader) {

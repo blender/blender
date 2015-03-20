@@ -114,6 +114,8 @@ struct GPUFX {
 
 	/* we have a stencil, restore the previous state */
 	bool restore_stencil;
+
+	unsigned int vbuffer;
 };
 
 #if 0
@@ -177,6 +179,12 @@ GPUFX *GPU_fx_compositor_create(void)
 {
 	GPUFX *fx = MEM_callocN(sizeof(GPUFX), "GPUFX compositor");
 
+	glGenBuffersARB(1, &fx->vbuffer);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, fx->vbuffer);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, 16 * sizeof(float), NULL, GL_STATIC_DRAW);
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 0, 8 * sizeof(float), fullscreencos);
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 8 * sizeof(float), 8 * sizeof(float), fullscreenuvs);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	return fx;
 }
 
@@ -583,8 +591,9 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	/* set up quad buffer */
-	glVertexPointer(2, GL_FLOAT, 0, fullscreencos);
-	glTexCoordPointer(2, GL_FLOAT, 0, fullscreenuvs);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, fx->vbuffer);
+	glVertexPointer(2, GL_FLOAT, 0, NULL);
+	glTexCoordPointer(2, GL_FLOAT, 0, ((GLubyte *)NULL + 8 * sizeof(float)));
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -613,6 +622,7 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -649,8 +659,9 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 	target = fx->color_buffer_sec;
 
 	/* set up quad buffer */
-	glVertexPointer(2, GL_FLOAT, 0, fullscreencos);
-	glTexCoordPointer(2, GL_FLOAT, 0, fullscreenuvs);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, fx->vbuffer);
+	glVertexPointer(2, GL_FLOAT, 0, NULL);
+	glTexCoordPointer(2, GL_FLOAT, 0, ((GLubyte *)NULL + 8 * sizeof(float)));
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -793,6 +804,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 				GPU_shader_unbind();
+				glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 				return false;
 			}
 
@@ -862,7 +874,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				color_uniform = GPU_shader_get_uniform(dof_shader_pass2, "colorbuffer");
 				coc_uniform = GPU_shader_get_uniform(dof_shader_pass2, "cocbuffer");
 				select_uniform = GPU_shader_get_uniform(dof_shader_pass2, "layerselection");
-				dof_uniform = GPU_shader_get_uniform(dof_shader_pass1, "dof_params");
+				dof_uniform = GPU_shader_get_uniform(dof_shader_pass2, "dof_params");
 
 				GPU_shader_bind(dof_shader_pass2);
 
@@ -882,13 +894,14 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_far_blur, 0, NULL);
 				GPU_texture_bind_as_framebuffer(fx->dof_far_blur);
 
+				glDisable(GL_DEPTH_TEST);
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
 				/* have to clear the buffer unfortunately */
 				glClearColor(0.0, 0.0, 0.0, 0.0);
 				glClear(GL_COLOR_BUFFER_BIT);
 				/* the draw call we all waited for, draw a point per pixel, scaled per circle of confusion */
-				glDrawArraysInstancedEXT(GL_POINTS, 0, 1, fx->dof_downsampled_w * fx->dof_downsampled_h);
+				glDrawArraysInstancedARB(GL_POINTS, 0, 1, fx->dof_downsampled_w * fx->dof_downsampled_h);
 
 				GPU_texture_unbind(fx->dof_half_downsampled_far);
 				GPU_framebuffer_texture_detach(fx->dof_far_blur);
@@ -905,7 +918,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				/* have to clear the buffer unfortunately */
 				glClear(GL_COLOR_BUFFER_BIT);
 				/* the draw call we all waited for, draw a point per pixel, scaled per circle of confusion */
-				glDrawArraysInstancedEXT(GL_POINTS, 0, 1, fx->dof_downsampled_w * fx->dof_downsampled_h);
+				glDrawArraysInstancedARB(GL_POINTS, 0, 1, fx->dof_downsampled_w * fx->dof_downsampled_h);
 
 				/* disable bindings */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -931,8 +944,8 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				color_uniform = GPU_shader_get_uniform(dof_shader_pass3, "colorbuffer");
 				far_uniform = GPU_shader_get_uniform(dof_shader_pass3, "farbuffer");
 				near_uniform = GPU_shader_get_uniform(dof_shader_pass3, "nearbuffer");
-				viewvecs_uniform = GPU_shader_get_uniform(dof_shader_pass1, "viewvecs");
-				depth_uniform = GPU_shader_get_uniform(dof_shader_pass1, "depthbuffer");
+				viewvecs_uniform = GPU_shader_get_uniform(dof_shader_pass3, "viewvecs");
+				depth_uniform = GPU_shader_get_uniform(dof_shader_pass3, "depthbuffer");
 
 				GPU_shader_bind(dof_shader_pass3);
 
@@ -951,7 +964,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 
 				GPU_texture_bind(fx->depth_buffer, numslots++);
 				GPU_texture_filter_mode(fx->depth_buffer, false, false);
-				GPU_shader_uniform_texture(dof_shader_pass1, depth_uniform, fx->depth_buffer);
+				GPU_shader_uniform_texture(dof_shader_pass3, depth_uniform, fx->depth_buffer);
 
 				GPU_texture_bind(src, numslots++);
 				GPU_shader_uniform_texture(dof_shader_pass3, color_uniform, src);
@@ -1002,6 +1015,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 				GPU_shader_unbind();
+				glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 				return false;
 			}
 
@@ -1230,6 +1244,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	GPU_shader_unbind();
 

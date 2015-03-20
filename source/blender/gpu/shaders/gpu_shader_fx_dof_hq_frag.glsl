@@ -102,7 +102,7 @@ void accumulate_pass(void) {
 	if (dof_params.w == 0.0)
 		r = 1.0;
 	else
-		r = cos(M_PI / dof_params.w) / (cos(theta - (2.0 * M_PI / dof_params.w) * floor((dof_params.w * theta + M_PI) / (2 * M_PI))));
+		r = cos(M_PI / dof_params.w) / (cos(theta - (2.0 * M_PI / dof_params.w) * floor((dof_params.w * theta + M_PI) / (2.0 * M_PI))));
 
 	if (dot(particlecoord, particlecoord) > r * r)
 		discard;
@@ -124,7 +124,7 @@ void final_pass(void) {
 
 	vec4 farcolor = texture2D(farbuffer, uvcoord);
 	float farweight = farcolor.a;
-	if (farweight > 0)
+	if (farweight > 0.0)
 		farcolor /= farweight;
 	vec4 nearcolor = texture2D(nearbuffer, uvcoord);
 
@@ -138,7 +138,7 @@ void final_pass(void) {
 	farweight = mix(1.0, farweight, mixfac);
 
 	float nearweight = nearcolor.a;
-	if (nearweight > 0) {
+	if (nearweight > 0.0) {
 		nearcolor /= nearweight;
 	}
 

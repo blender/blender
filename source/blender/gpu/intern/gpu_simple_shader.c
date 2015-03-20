@@ -152,7 +152,7 @@ static GPUShader *gpu_simple_shader(int options)
 			datatoc_gpu_shader_simple_vert_glsl,
 			datatoc_gpu_shader_simple_frag_glsl,
 			NULL,
-			NULL, defines);
+			NULL, defines, 0, 0, 0);
 		
 		if (shader) {
 			/* set texture map to first texture unit */

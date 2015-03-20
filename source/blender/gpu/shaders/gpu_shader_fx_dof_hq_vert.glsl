@@ -27,11 +27,11 @@ void vert_dof_downsample()
 /* geometry shading pass, calculate a texture coordinate based on the indexed id */
 void vert_dof_coc_scatter_pass()
 {
-	vec2 pixel = vec2(1.0 / float(rendertargetdim.x), 1.0 / float(rendertargetdim.y));
+	vec2 pixel = vec2(rendertargetdim.x, rendertargetdim.y);
 	/* some math to get the target pixel */
 	int row = gl_InstanceID / rendertargetdim.x;
 	int column = gl_InstanceID % rendertargetdim.x;
-	uvcoord = vec2(column, row) * pixel + 0.5 * pixel;
+	uvcoord = (vec2(column, row) + vec2(0.5)) / pixel;
 
 	vec2 pos = uvcoord * 2.0 - vec2(1.0);
 	gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);
