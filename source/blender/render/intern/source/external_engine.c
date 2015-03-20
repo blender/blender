@@ -368,7 +368,7 @@ void RE_engine_set_error_message(RenderEngine *engine, const char *msg)
 	}
 }
 
-rcti* RE_engine_get_current_tiles(Render *re, int *total_tiles_r, bool *needs_free_r)
+rcti* RE_engine_get_current_tiles(Render *re, int *total_tiles_r, bool *r_needs_free)
 {
 	static rcti tiles_static[BLENDER_MAX_THREADS];
 	const int allocation_step = BLENDER_MAX_THREADS;
@@ -382,7 +382,7 @@ rcti* RE_engine_get_current_tiles(Render *re, int *total_tiles_r, bool *needs_fr
 	if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
 		*total_tiles_r = 0;
 		BLI_rw_mutex_unlock(&re->partsmutex);
-		needs_free_r = false;
+		*r_needs_free = false;
 		return NULL;
 	}
 
