@@ -179,12 +179,14 @@ GPUFX *GPU_fx_compositor_create(void)
 {
 	GPUFX *fx = MEM_callocN(sizeof(GPUFX), "GPUFX compositor");
 
-	glGenBuffersARB(1, &fx->vbuffer);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, fx->vbuffer);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, 16 * sizeof(float), NULL, GL_STATIC_DRAW);
-	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 0, 8 * sizeof(float), fullscreencos);
-	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 8 * sizeof(float), 8 * sizeof(float), fullscreenuvs);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	if (GLEW_ARB_vertex_buffer_object) {
+		glGenBuffersARB(1, &fx->vbuffer);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, fx->vbuffer);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, 16 * sizeof(float), NULL, GL_STATIC_DRAW);
+		glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 0, 8 * sizeof(float), fullscreencos);
+		glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 8 * sizeof(float), 8 * sizeof(float), fullscreenuvs);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	}
 	return fx;
 }
 
@@ -273,6 +275,8 @@ static void cleanup_fx_gl_data(GPUFX *fx, bool do_fbo)
 void GPU_fx_compositor_destroy(GPUFX *fx)
 {
 	cleanup_fx_gl_data(fx, true);
+	if (GLEW_ARB_vertex_buffer_object)
+		glDeleteBuffersARB(1, &fx->vbuffer);
 	MEM_freeN(fx);
 }
 
