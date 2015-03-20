@@ -379,10 +379,11 @@ rcti* RE_engine_get_current_tiles(Render *re, int *total_tiles_r, bool *r_needs_
 
 	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_READ);
 
+	*r_needs_free = false;
+
 	if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
 		*total_tiles_r = 0;
 		BLI_rw_mutex_unlock(&re->partsmutex);
-		*r_needs_free = false;
 		return NULL;
 	}
 
@@ -398,6 +399,7 @@ rcti* RE_engine_get_current_tiles(Render *re, int *total_tiles_r, bool *r_needs_
 					tiles = MEM_reallocN(tiles, (total_tiles + allocation_step) * sizeof(rcti));
 
 				allocation_size += allocation_step;
+				*r_needs_free = true;
 			}
 
 			tiles[total_tiles] = pa->disprect;
