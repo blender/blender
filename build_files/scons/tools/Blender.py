@@ -441,7 +441,7 @@ def buildinfo(lenv, build_type):
             no_upstream = False
 
             try :
-                build_hash = btools.get_command_output(['git', 'rev-parse', '--short', '@{u}']).strip()
+                build_hash = btools.get_command_output(['git', 'rev-parse', '--short', '@{u}'], stderr=subprocess.STDOUT).strip()
             except subprocess.CalledProcessError:
                 # assume branch has no upstream configured
                 build_hash = btools.get_command_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
