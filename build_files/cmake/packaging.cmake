@@ -27,7 +27,8 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/.git/)
 		execute_process(COMMAND git rev-parse --short @{u}
 		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_HASH
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		                OUTPUT_STRIP_TRAILING_WHITESPACE
+		                ERROR_QUIET)
 	endif()
 endif()
 set(BUILD_REV ${MY_WC_HASH})
