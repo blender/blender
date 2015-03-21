@@ -616,18 +616,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-
-		if (!DNA_struct_elem_find(fd->filesdna, "bSteeringActuator", "float", "acceleration")) {
-			for (ob = main->object.first; ob; ob = ob->id.next) {
-				bActuator *act;
-				for (act = ob->actuators.first; act; act = act->next) {
-					if (act->type == ACT_STEERING) {
-						bSteeringActuator *sact = act->data;
-						sact->acceleration = 1000.f;
-					}
-				}
-			}
-		}
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 273, 9)) {

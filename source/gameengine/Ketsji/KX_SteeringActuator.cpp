@@ -263,12 +263,12 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 
 		if (apply_steerforce)
 		{
-			MT_Vector3 newvel;
 			bool isdyna = obj->IsDynamic();
 			if (isdyna)
 				m_steerVec.z() = 0;
 			if (!m_steerVec.fuzzyZero())
 				m_steerVec.normalize();
+			MT_Vector3 newvel = m_velocity * m_steerVec;
 
 			//adjust velocity to avoid obstacles
 			if (m_simulation && m_obstacle /*&& !newvel.fuzzyZero()*/)
@@ -281,15 +281,12 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 					KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(0.0, 1.0, 0.0));
 			}
 
-			HandleActorFace(m_steerVec);
+			HandleActorFace(newvel);
 			if (isdyna)
 			{
-				//TODO: Take into account angular velocity on turns
+				//temporary solution: set 2D steering velocity directly to obj
+				//correct way is to apply physical force
 				MT_Vector3 curvel = obj->GetLinearVelocity();
-
-				newvel = (curvel.length() * m_steerVec) + (m_acceleration * delta) * m_steerVec;
-				if (newvel.length2() >= (m_velocity * m_velocity))
-					newvel = m_velocity * m_steerVec;
 
 				if (m_lockzvel)
 					newvel.z() = 0.0f;
