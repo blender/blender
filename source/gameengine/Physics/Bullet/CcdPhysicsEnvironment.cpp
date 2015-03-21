@@ -2644,9 +2644,6 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 	if (!rb0)
 		return 0;
 
-	// If either of the controllers is missing, we can't do anything.
-	if (!c0 || !c1) return 0;
-
 	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : 
 		rb0->getCenterOfMassTransform() * pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
@@ -2658,6 +2655,8 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 	{
 	case PHY_POINT2POINT_CONSTRAINT:
 		{
+			// If either of the controllers is missing, we can't do anything.
+			if (!c0 || !c1) return 0;
 
 			btPoint2PointConstraint* p2p = 0;
 
@@ -2686,6 +2685,9 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 
 	case PHY_GENERIC_6DOF_CONSTRAINT:
 		{
+			// If either of the controllers is missing, we can't do anything.
+			if (!c0 || !c1) return 0;
+
 			btGeneric6DofConstraint* genericConstraint = 0;
 
 			if (rb1)
@@ -2739,7 +2741,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 					*rb0,s_fixedObject2,
 					frameInA,frameInB,useReferenceFrameA);
 			}
-			
+
 			if (genericConstraint)
 			{
 				//m_constraints.push_back(genericConstraint);
@@ -2756,6 +2758,9 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 		}
 	case PHY_CONE_TWIST_CONSTRAINT:
 		{
+			// If either of the controllers is missing, we can't do anything.
+			if (!c0 || !c1) return 0;
+
 			btConeTwistConstraint* coneTwistContraint = 0;
 
 			
@@ -2807,7 +2812,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 					*rb0,s_fixedObject2,
 					frameInA,frameInB);
 			}
-			
+
 			if (coneTwistContraint)
 			{
 				//m_constraints.push_back(genericConstraint);
@@ -2830,6 +2835,9 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 
 	case PHY_LINEHINGE_CONSTRAINT:
 		{
+			// If either of the controllers is missing, we can't do anything.
+			if (!c0 || !c1) return 0;
+
 			btHingeConstraint* hinge = 0;
 
 			if (rb1)
