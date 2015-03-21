@@ -908,6 +908,106 @@ static bAnimChannelType ACF_GROUP =
 	acf_group_setting_ptr           /* pointer for setting */
 };
 
+/* NLA Control FCurves Expander ----------------------- */
+
+/* get backdrop color for nla controls widget */
+static void acf_nla_controls_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+{
+	// TODO: give this its own theme setting?
+	UI_GetThemeColorShade3fv(TH_GROUP, 55, r_color);
+}
+
+/* backdrop for nla controls expander widget */
+static void acf_nla_controls_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+{
+	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	View2D *v2d = &ac->ar->v2d;
+	short expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
+	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+	float color[3];
+	
+	/* set backdrop drawing color */
+	acf->get_backdrop_color(ac, ale, color);
+	glColor3fv(color);
+	
+	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
+	UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
+	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 5);
+}
+
+/* name for nla controls expander entries */
+static void acf_nla_controls_name(bAnimListElem *ale, char *name)
+{
+	BLI_strncpy(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
+}
+
+/* check if some setting exists for this channel */
+static bool acf_nla_controls_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
+{
+	/* for now, all settings are supported, though some are only conditionally */
+	switch (setting) {
+		/* supported */
+		case ACHANNEL_SETTING_EXPAND:
+			return true;
+		
+		// TOOD: selected?
+		
+		default: /* unsupported */
+			return false;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_nla_controls_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
+{
+	/* clear extra return data first */
+	*neg = false;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			*neg = true;
+			return ADT_NLA_SKEYS_COLLAPSED;
+		
+		default:
+			/* this shouldn't happen */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_nla_controls_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
+{
+	AnimData *adt = (AnimData *)ale->data;
+	
+	/* all flags are just in adt->flag for now... */
+	return GET_ACF_FLAG_PTR(adt->flag, type);
+}
+
+static int acf_nla_controls_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_NLA;
+}
+
+/* NLA Control FCurves Expander type define */
+static bAnimChannelType ACF_NLACONTROLS = 
+{
+	"NLA Controls Expander",        /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
+	
+	acf_nla_controls_color,         /* backdrop color */
+	acf_nla_controls_backdrop,      /* backdrop */
+	acf_generic_indention_0,        /* indent level */
+	acf_generic_group_offset,       /* offset */
+
+	acf_nla_controls_name,          /* name */
+	NULL,                           /* name prop */
+	acf_nla_controls_icon,          /* icon */
+
+	acf_nla_controls_setting_valid, /* has setting */
+	acf_nla_controls_setting_flag,  /* flag for setting */
+	acf_nla_controls_setting_ptr    /* pointer for setting */
+};
+
 /* F-Curve ------------------------------------------- */
 
 /* name for fcurve entries */
@@ -3221,6 +3321,8 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_OBJECT;       /* Object */
 		animchannelTypeInfo[type++] = &ACF_GROUP;        /* Group */
 		animchannelTypeInfo[type++] = &ACF_FCURVE;       /* F-Curve */
+		
+		animchannelTypeInfo[type++] = &ACF_NLACONTROLS;  /* NLA Control FCurve Expander */
 		
 		animchannelTypeInfo[type++] = &ACF_FILLACTD;     /* Object Action Expander */
 		animchannelTypeInfo[type++] = &ACF_FILLDRIVERS;  /* Drivers Expander */

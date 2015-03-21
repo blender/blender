@@ -423,6 +423,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  *  - adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
  *  - nlaOk: line or block of code to execute for NLA tracks+strips case
  *  - driversOk: line or block of code to execute for Drivers case
+ *  - nlaKeysOk: line or block of code for NLA Strip Keyframes case
  *  - keysOk: line or block of code for Keyframes case
  *
  * The checks for the various cases are as follows:
@@ -433,9 +434,10 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  *		converted to a new NLA strip, and the filtering options allow this
  *	2C) allow non-animated datablocks to be included so that datablocks can be added
  *	3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
- *	4) normal keyframes: only when there is an active action
+ *  4A) nla strip keyframes: these are the per-strip controls for time and influence
+ *	4B) normal keyframes: only when there is an active action
  */
-#define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, keysOk) \
+#define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, nlaKeysOk, keysOk) \
 	{ \
 		if ((id)->adt) { \
 			if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !((id)->adt->flag & ADT_CURVES_NOT_VISIBLE)) { \
@@ -456,6 +458,9 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 					} \
 				} \
 				else { \
+					if (ANIMDATA_HAS_NLA(id)) { \
+						nlaKeysOk \
+					} \
 					if (ANIMDATA_HAS_KEYS(id)) { \
 						keysOk \
 					} \
@@ -784,6 +789,16 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				ale->datatype = ALE_ACT;
 				
 				ale->adt = BKE_animdata_from_id(data);
+				break;
+			}
+			case ANIMTYPE_NLACONTROLS:
+			{
+				AnimData *adt = (AnimData *)data;
+				
+				ale->flag = adt->flag;
+				
+				ale->key_data = NULL;
+				ale->datatype = ALE_NONE;
 				break;
 			}
 			case ANIMTYPE_GROUP:
@@ -1305,6 +1320,52 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 	return items;
 }
 
+/* Include the control FCurves per NLA Strip in the channel list
+ * NOTE: This is includes the expander too...
+ */
+static size_t animfilter_nla_controls(ListBase *anim_data, bDopeSheet *ads, AnimData *adt, int filter_mode, ID *owner_id)
+{
+	ListBase tmp_data = {NULL, NULL};
+	size_t tmp_items = 0;
+	size_t items = 0;
+	
+	/* add control curves from each NLA strip... */
+	BEGIN_ANIMFILTER_SUBCHANNELS(((adt->flag & ADT_NLA_SKEYS_COLLAPSED) == 0))
+	{
+		NlaTrack *nlt;
+		NlaStrip *strip;
+		
+		/* for now, we only go one level deep - so controls on grouped FCurves are not handled */
+		for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+			for (strip = nlt->strips.first; strip; strip = strip->next) {
+				tmp_items += animfilter_fcurves(&tmp_data, ads, strip->fcurves.first, NULL, filter_mode, owner_id);
+			}
+		}
+	}
+	END_ANIMFILTER_SUBCHANNELS;
+	
+	/* did we find anything? */
+	if (tmp_items) {
+		/* TODO: apply extra tags to indicate the NLA mapping does not apply here! */
+		
+		/* add the expander as a channel first */
+		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+			/* currently these channels cannot be selected, so they should be skipped */
+			if ((filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL)) == 0) {
+				ANIMCHANNEL_NEW_CHANNEL(adt, ANIMTYPE_NLACONTROLS, owner_id);
+			}
+		}
+		
+		/* now add the list of collected channels */
+		BLI_movelisttolist(anim_data, &tmp_data);
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
+		items += tmp_items;
+	}
+	
+	/* return the numebr of items added ot the list */
+	return items;
+}
+
 /* determine what animation data from AnimData block should get displayed */
 static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *id, int filter_mode)
 {
@@ -1331,6 +1392,9 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 			},
 			{ /* Drivers */
 				items += animfilter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, id);
+			},
+			{ /* NLA Control Keyframes */
+				items += animfilter_nla_controls(anim_data, ads, adt, filter_mode, id);
 			},
 			{ /* Keyframes */
 				items += animfilter_action(ac, anim_data, ads, adt->action, filter_mode, id);
@@ -2214,6 +2278,7 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 			cdata = adt;
 			expanded = EXPANDED_DRVD(adt);
 		},
+		{ /* NLA Strip Controls - no dedicated channel for now (XXX) */ },
 		{ /* Keyframes */
 			type = ANIMTYPE_FILLACTD;
 			cdata = adt->action;
@@ -2385,6 +2450,7 @@ static size_t animdata_filter_ds_scene(bAnimContext *ac, ListBase *anim_data, bD
 			cdata = adt;
 			expanded = EXPANDED_DRVD(adt);
 		},
+		{ /* NLA Strip Controls - no dedicated channel for now (XXX) */ },
 		{ /* Keyframes */
 			type = ANIMTYPE_FILLACTD;
 			cdata = adt->action;
