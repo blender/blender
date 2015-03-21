@@ -59,7 +59,7 @@
 #include "BLI_threads.h"
 #endif
 
-void modifier_init_texture(Scene *scene, Tex *tex)
+void modifier_init_texture(const Scene *scene, Tex *tex)
 {
 	if (!tex)
 		return;

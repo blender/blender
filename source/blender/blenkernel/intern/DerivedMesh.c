@@ -1131,7 +1131,7 @@ typedef struct DMWeightColorInfo {
 } DMWeightColorInfo;
 
 
-static int dm_drawflag_calc(ToolSettings *ts)
+static int dm_drawflag_calc(const ToolSettings *ts)
 {
 	return ((ts->multipaint ? CALC_WP_MULTIPAINT :
 	                          /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
@@ -1368,7 +1368,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	}
 }
 
-static void DM_update_statvis_color(Scene *scene, Object *ob, DerivedMesh *dm)
+static void DM_update_statvis_color(const Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 
@@ -2340,7 +2340,7 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 	BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS));
 }
 
-static CustomDataMask object_get_datamask(Scene *scene, Object *ob)
+static CustomDataMask object_get_datamask(const Scene *scene, Object *ob)
 {
 	Object *actob = scene->basact ? scene->basact->object : NULL;
 	CustomDataMask mask = ob->customdata_mask;

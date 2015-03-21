@@ -134,7 +134,9 @@ struct OceanTex *BKE_copy_oceantex(struct OceanTex *ot);
 bool    BKE_texture_dependsOnTime(const struct Tex *texture);
 bool    BKE_texture_is_image_user(const struct Tex *tex);
 
-void BKE_texture_get_value(struct Scene *scene, struct Tex *texture, float *tex_co, struct TexResult *texres, bool use_color_management);
+void BKE_texture_get_value(
+        const struct Scene *scene, struct Tex *texture,
+        float *tex_co, struct TexResult *texres, bool use_color_management);
 
 #ifdef __cplusplus
 }

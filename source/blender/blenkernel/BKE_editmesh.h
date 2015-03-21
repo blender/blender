@@ -97,7 +97,7 @@ void        BKE_editmesh_color_ensure(BMEditMesh *em, const char htype);
 /* editderivedmesh.c */
 /* should really be defined in editmesh.c, but they use 'EditDerivedBMesh' */
 void        BKE_editmesh_statvis_calc(BMEditMesh *em, struct DerivedMesh *dm,
-                                      struct MeshStatVis *statvis);
+                                      const struct MeshStatVis *statvis);
 
 float (*BKE_editmesh_vertexCos_get(struct BMEditMesh *em, struct Scene *scene, int *r_numVerts))[3];
 

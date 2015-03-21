@@ -1651,7 +1651,9 @@ bool BKE_texture_dependsOnTime(const struct Tex *texture)
 
 /* ------------------------------------------------------------------------- */
 
-void BKE_texture_get_value(Scene *scene, Tex *texture, float *tex_co, TexResult *texres, bool use_color_management)
+void BKE_texture_get_value(
+        const Scene *scene, Tex *texture,
+        float *tex_co, TexResult *texres, bool use_color_management)
 {
 	int result_type;
 	bool do_color_manage = false;

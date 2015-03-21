@@ -2253,7 +2253,7 @@ static void statvis_calc_sharp(
 }
 
 void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
-                               MeshStatVis *statvis)
+                               const MeshStatVis *statvis)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BLI_assert(dm == NULL || dm->type == DM_TYPE_EDITBMESH);
