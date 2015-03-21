@@ -547,7 +547,7 @@ bool BKE_tracking_track_has_enabled_marker_at_frame(MovieTrackingTrack *track, i
  * - If action is TRACK_CLEAR_UPTO path from the beginning up to
  *   ref_frame-1 will be clear.
  *
- * - If action is TRACK_CLEAR_ALL only mareker at frame ref_frame will remain.
+ * - If action is TRACK_CLEAR_ALL only marker at frame ref_frame will remain.
  *
  * NOTE: frame number should be in clip space, not scene space
  */

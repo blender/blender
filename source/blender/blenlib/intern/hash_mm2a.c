@@ -135,7 +135,7 @@ uint32_t BLI_hash_mm2(const unsigned char *data, size_t len, uint32_t seed)
 		case 1:
 			h ^= data[0];
 			h *= MM2A_M;
-	};
+	}
 
 	/* Do a few final mixes of the hash to ensure the last few bytes are well-incorporated. */
 	MM2A_MIX_FINALIZE(h);

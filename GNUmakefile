@@ -65,7 +65,7 @@ ifneq "$(findstring cycles, $(MAKECMDGOALS))" ""
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/cycles_standalone.cmake"
 endif
 ifneq "$(findstring headless, $(MAKECMDGOALS))" ""
-	BUILD_DIR:=$(BUILD_DIR)_bpy
+	BUILD_DIR:=$(BUILD_DIR)_headless
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake"
 endif
 ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
