@@ -83,7 +83,7 @@
 
 #include "view3d_intern.h"  /* own include */
 
-bool ED_view3d_offset_lock_check(struct View3D *v3d, struct RegionView3D *rv3d)
+bool ED_view3d_offset_lock_check(const  View3D *v3d, const  RegionView3D *rv3d)
 {
 	return (rv3d->persp != RV3D_CAMOB) && (v3d->ob_centre_cursor || v3d->ob_centre);
 }
@@ -103,7 +103,7 @@ static bool view3d_operator_offset_lock_check(bContext *C, wmOperator *op)
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
-bool ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
+bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
 	return ((v3d->camera) &&
 	        (v3d->camera->id.lib == NULL) &&

@@ -688,7 +688,7 @@ static bool view3d_boundbox_clip_m4(const BoundBox *bb, float persmatob[4][4])
 	return false;
 }
 
-bool ED_view3d_boundbox_clip_ex(RegionView3D *rv3d, const BoundBox *bb, float obmat[4][4])
+bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, float obmat[4][4])
 {
 	/* return 1: draw */
 
@@ -697,7 +697,7 @@ bool ED_view3d_boundbox_clip_ex(RegionView3D *rv3d, const BoundBox *bb, float ob
 	if (bb == NULL) return true;
 	if (bb->flag & BOUNDBOX_DISABLED) return true;
 
-	mul_m4_m4m4(persmatob, rv3d->persmat, obmat);
+	mul_m4_m4m4(persmatob, (float(*)[4])rv3d->persmat, obmat);
 
 	return view3d_boundbox_clip_m4(bb, persmatob);
 }
@@ -710,7 +710,7 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
 	return view3d_boundbox_clip_m4(bb, rv3d->persmatob);
 }
 
-float ED_view3d_depth_read_cached(ViewContext *vc, int x, int y)
+float ED_view3d_depth_read_cached(const ViewContext *vc, int x, int y)
 {
 	ViewDepths *vd = vc->rv3d->depths;
 		
@@ -729,16 +729,19 @@ void ED_view3d_depth_tag_update(RegionView3D *rv3d)
 		rv3d->depths->damaged = true;
 }
 
-void ED_view3d_dist_range_get(struct View3D *v3d,
-                              float r_dist_range[2])
+void ED_view3d_dist_range_get(
+        const View3D *v3d,
+        float r_dist_range[2])
 {
 	r_dist_range[0] = v3d->grid * 0.001f;
 	r_dist_range[1] = v3d->far * 10.0f;
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
-bool ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *r_clipsta, float *r_clipend,
-                              const bool use_ortho_factor)
+bool ED_view3d_clip_range_get(
+        const View3D *v3d, const RegionView3D *rv3d,
+        float *r_clipsta, float *r_clipend,
+        const bool use_ortho_factor)
 {
 	CameraParams params;
 
@@ -758,8 +761,9 @@ bool ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *r_clipsta,
 }
 
 /* also exposed in previewrender.c */
-bool ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
-                             rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize)
+bool ED_view3d_viewplane_get(
+        const View3D *v3d, const RegionView3D *rv3d, int winx, int winy,
+        rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize)
 {
 	CameraParams params;
 
@@ -797,7 +801,7 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 /**
  * \param rect optional for picking (can be NULL).
  */
-void view3d_winmatrix_set(ARegion *ar, View3D *v3d, const rctf *rect)
+void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rctf *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
@@ -917,7 +921,7 @@ bool ED_view3d_lock(RegionView3D *rv3d)
 }
 
 /* don't set windows active in here, is used by renderwin too */
-void view3d_viewmatrix_set(Scene *scene, View3D *v3d, RegionView3D *rv3d)
+void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
@@ -956,7 +960,7 @@ void view3d_viewmatrix_set(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 		}
 		else if (v3d->ob_centre_cursor) {
 			float vec[3];
-			copy_v3_v3(vec, ED_view3d_cursor3d_get(scene, v3d));
+			copy_v3_v3(vec, ED_view3d_cursor3d_get(scene, (View3D *)v3d));
 			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
 			use_lock_ofs = true;
 		}
@@ -1708,9 +1712,9 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 
 /* ************************************** */
 
-float ED_view3d_pixel_size(RegionView3D *rv3d, const float co[3])
+float ED_view3d_pixel_size(const RegionView3D *rv3d, const float co[3])
 {
-	return mul_project_m4_v3_zfac(rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
+	return mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
 }
 
 float ED_view3d_radius_to_dist_persp(const float angle, const float radius)

@@ -725,8 +725,9 @@ static bool calc_curve_deform(Scene *scene, Object *par, float co[3],
 	return false;
 }
 
-void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
-                        int numVerts, const char *vgroup, short defaxis)
+void curve_deform_verts(
+        Scene *scene, Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
+        int numVerts, const char *vgroup, short defaxis)
 {
 	Curve *cu;
 	int a;

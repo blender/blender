@@ -207,7 +207,7 @@ void ED_view3d_clipping_enable(void)
 	}
 }
 
-static bool view3d_clipping_test(const float co[3], float clip[6][4])
+static bool view3d_clipping_test(const float co[3], const float clip[6][4])
 {
 	if (plane_point_side_v3(clip[0], co) > 0.0f)
 		if (plane_point_side_v3(clip[1], co) > 0.0f)
@@ -220,7 +220,7 @@ static bool view3d_clipping_test(const float co[3], float clip[6][4])
 
 /* for 'local' ED_view3d_clipping_local must run first
  * then all comparisons can be done in localspace */
-bool ED_view3d_clipping_test(RegionView3D *rv3d, const float co[3], const bool is_local)
+bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const bool is_local)
 {
 	return view3d_clipping_test(co, is_local ? rv3d->clip_local : rv3d->clip);
 }
@@ -949,8 +949,9 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	BLF_draw_default(offset, 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
 }
 
-static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
-                                 rctf *r_viewborder, const bool no_shift, const bool no_zoom)
+static void view3d_camera_border(
+        const Scene *scene, const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
+        rctf *r_viewborder, const bool no_shift, const bool no_zoom)
 {
 	CameraParams params;
 	rctf rect_view, rect_camera;
@@ -983,7 +984,9 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	r_viewborder->ymax = ((rect_camera.ymax - rect_view.ymin) / BLI_rctf_size_y(&rect_view)) * ar->winy;
 }
 
-void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, float r_size[2])
+void ED_view3d_calc_camera_border_size(
+        const Scene *scene, const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
+        float r_size[2])
 {
 	rctf viewborder;
 
@@ -992,8 +995,9 @@ void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, R
 	r_size[1] = BLI_rctf_size_y(&viewborder);
 }
 
-void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
-                                  rctf *r_viewborder, const bool no_shift)
+void ED_view3d_calc_camera_border(
+        const Scene *scene, const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
+        rctf *r_viewborder, const bool no_shift)
 {
 	view3d_camera_border(scene, ar, v3d, rv3d, r_viewborder, no_shift, false);
 }
@@ -2554,7 +2558,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 
 /* *********************** customdata **************** */
 
-CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
+CustomDataMask ED_view3d_datamask(const Scene *scene, const View3D *v3d)
 {
 	CustomDataMask mask = 0;
 
@@ -2580,16 +2584,16 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 }
 
 /* goes over all modes and view3d settings */
-CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
+CustomDataMask ED_view3d_screen_datamask(const bScreen *screen)
 {
-	Scene *scene = screen->scene;
+	const Scene *scene = screen->scene;
 	CustomDataMask mask = CD_MASK_BAREMESH;
-	ScrArea *sa;
+	const ScrArea *sa;
 	
 	/* check if we need tfaces & mcols due to view mode */
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		if (sa->spacetype == SPACE_VIEW3D) {
-			mask |= ED_view3d_datamask(scene, (View3D *)sa->spacedata.first);
+			mask |= ED_view3d_datamask(scene, sa->spacedata.first);
 		}
 	}
 

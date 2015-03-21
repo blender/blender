@@ -131,7 +131,7 @@ static void rna_Object_calc_matrix_camera(
 static void rna_Object_camera_fit_coords(
         Object *ob, Scene *scene, int num_cos, float *cos, float co_ret[3], float *scale_ret)
 {
-	BKE_camera_view_frame_fit_to_coords(scene, (float (*)[3])cos, num_cos / 3, ob, co_ret, scale_ret);
+	BKE_camera_view_frame_fit_to_coords(scene, (const float (*)[3])cos, num_cos / 3, ob, co_ret, scale_ret);
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */

@@ -208,7 +208,7 @@ void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 
 
-bool ED_view3d_boundbox_clip_ex(RegionView3D *rv3d, const struct BoundBox *bb, float obmat[4][4]);
+bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const struct BoundBox *bb, float obmat[4][4]);
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
 
 void ED_view3d_smooth_view_ex(
@@ -225,8 +225,8 @@ void ED_view3d_smooth_view(
         const float *ofs, const float *quat, const float *dist, const float *lens,
         const int smooth_viewtx);
 
-void view3d_winmatrix_set(ARegion *ar, View3D *v3d, const rctf *rect);
-void view3d_viewmatrix_set(Scene *scene, View3D *v3d, RegionView3D *rv3d);
+void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rctf *rect);
+void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d);
 
 void fly_modal_keymap(struct wmKeyConfig *keyconf);
 void walk_modal_keymap(struct wmKeyConfig *keyconf);

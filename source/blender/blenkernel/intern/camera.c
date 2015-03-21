@@ -213,7 +213,7 @@ void BKE_camera_params_init(CameraParams *params)
 	params->clipend = 100.0f;
 }
 
-void BKE_camera_params_from_object(CameraParams *params, Object *ob)
+void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
 {
 	if (!ob)
 		return;
@@ -255,7 +255,7 @@ void BKE_camera_params_from_object(CameraParams *params, Object *ob)
 	}
 }
 
-void BKE_camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *rv3d)
+void BKE_camera_params_from_view3d(CameraParams *params, const View3D *v3d, const RegionView3D *rv3d)
 {
 	/* common */
 	params->lens = v3d->lens;
@@ -384,8 +384,10 @@ void BKE_camera_params_compute_matrix(CameraParams *params)
 
 /***************************** Camera View Frame *****************************/
 
-void BKE_camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const bool do_clip, const float scale[3],
-                              float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3])
+void BKE_camera_view_frame_ex(
+        const Scene *scene, const Camera *camera,
+        const float drawsize, const bool do_clip, const float scale[3],
+        float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3])
 {
 	float facx, facy;
 	float depth;
@@ -456,7 +458,7 @@ void BKE_camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, cons
 	r_vec[3][0] = r_shift[0] - facx; r_vec[3][1] = r_shift[1] + facy; r_vec[3][2] = depth;
 }
 
-void BKE_camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
+void BKE_camera_view_frame(const Scene *scene, const Camera *camera, float r_vec[4][3])
 {
 	float dummy_asp[2];
 	float dummy_shift[2];
@@ -502,7 +504,9 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 	data->tot++;
 }
 
-static void camera_frame_fit_data_init(Scene *scene, Object *ob, CameraParams *params, CameraViewFrameData *data)
+static void camera_frame_fit_data_init(
+        const Scene *scene, const Object *ob,
+        CameraParams *params, CameraViewFrameData *data)
 {
 	float camera_rotmat_transposed_inversed[4][4];
 	unsigned int i;
@@ -521,7 +525,7 @@ static void camera_frame_fit_data_init(Scene *scene, Object *ob, CameraParams *p
 	BKE_camera_params_compute_matrix(params);
 
 	/* initialize callback data */
-	copy_m3_m4(data->camera_rotmat, ob->obmat);
+	copy_m3_m4(data->camera_rotmat, (float (*)[4])ob->obmat);
 	normalize_m3(data->camera_rotmat);
 	/* To transform a plane which is in its homogeneous representation (4d vector),
 	 * we need the inverse of the transpose of the transform matrix... */
@@ -672,7 +676,8 @@ bool BKE_camera_view_frame_fit_to_scene(
 }
 
 bool BKE_camera_view_frame_fit_to_coords(
-        Scene *scene, float (*cos)[3], int num_cos, Object *camera_ob, float r_co[3], float *r_scale)
+        const Scene *scene, const float (*cos)[3], int num_cos, const Object *camera_ob,
+        float r_co[3], float *r_scale)
 {
 	CameraParams params;
 	CameraViewFrameData data_cb;
