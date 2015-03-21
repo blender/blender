@@ -104,6 +104,10 @@ typedef struct CameraParams {
 	float winmat[4][4];
 } CameraParams;
 
+/* values for CameraParams.zoom, need to be taken into account for some operations */
+#define CAMERA_PARAM_ZOOM_INIT_CAMOB 1.0f
+#define CAMERA_PARAM_ZOOM_INIT_PERSP 2.0f
+
 void BKE_camera_params_init(CameraParams *params);
 void BKE_camera_params_from_object(CameraParams *params, struct Object *camera);
 void BKE_camera_params_from_view3d(CameraParams *params, struct View3D *v3d, struct RegionView3D *rv3d);
