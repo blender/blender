@@ -334,6 +334,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 error:
 
 	[m_openGLView setOpenGLContext:prev_openGLContext];
+	[pixelFormat release];
 
 	[pool drain];
 
