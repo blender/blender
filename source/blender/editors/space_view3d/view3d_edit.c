@@ -2748,29 +2748,15 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 	size = max_fff(afm[0], afm[1], afm[2]);
 
 	if (ok_dist) {
-		/* fix up zoom distance if needed */
+		char persp;
 
 		if (rv3d->is_persp) {
-			float lens, sensor_size;
-			/* offset the view based on the lens */
 			if (rv3d->persp == RV3D_CAMOB && ED_view3d_camera_lock_check(v3d, rv3d)) {
-				CameraParams params;
-				BKE_camera_params_init(&params);
-				params.clipsta = v3d->near;
-				params.clipend = v3d->far;
-				BKE_camera_params_from_object(&params, v3d->camera);
-
-				lens = params.lens;
-				sensor_size = BKE_camera_sensor_size(params.sensor_fit, params.sensor_x, params.sensor_y);
+				persp = RV3D_CAMOB;
 			}
 			else {
-				lens = v3d->lens;
-				sensor_size = DEFAULT_SENSOR_WIDTH;
+				persp = RV3D_PERSP;
 			}
-			size = ED_view3d_radius_to_persp_dist(focallength_to_fov(lens, sensor_size), size / 2.0f) * VIEW3D_MARGIN;
-
-			/* do not zoom closer than the near clipping plane */
-			size = max_ff(size, v3d->near * 1.5f);
 		}
 		else { /* ortho */
 			if (size < 0.0001f) {
@@ -2779,22 +2765,21 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 			}
 			else {
 				/* adjust zoom so it looks nicer */
-				size = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f) * VIEW3D_MARGIN;
+				persp = RV3D_ORTHO;
+			}
+		}
+
+		if (ok_dist) {
+			new_dist = ED_view3d_radius_to_dist(v3d, ar, persp, true, (size / 2) * VIEW3D_MARGIN);
+			if (rv3d->is_persp) {
+				/* don't zoom closer than the near clipping plane */
+				new_dist = max_ff(new_dist, v3d->near * 1.5f);
 			}
 		}
 	}
 
 	mid_v3_v3v3(new_ofs, min, max);
 	negate_v3(new_ofs);
-
-	new_dist = size;
-
-	/* correction for window aspect ratio */
-	if (ar->winy > 2 && ar->winx > 2) {
-		size = (float)ar->winx / (float)ar->winy;
-		if (size < 1.0f) size = 1.0f / size;
-		new_dist *= size;
-	}
 
 	if (rv3d->persp == RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 		rv3d->persp = RV3D_PERSP;

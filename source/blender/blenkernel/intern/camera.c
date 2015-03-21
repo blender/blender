@@ -283,7 +283,7 @@ void BKE_camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView
 		params->clipsta = -params->clipend;
 
 		params->is_ortho = true;
-		/* make sure any changes to this match ED_view3d_radius_to_ortho_dist() */
+		/* make sure any changes to this match ED_view3d_radius_to_dist_ortho() */
 		params->ortho_scale = rv3d->dist * sensor_size / v3d->lens;
 		params->zoom = CAMERA_PARAM_ZOOM_INIT_PERSP;
 	}
