@@ -1185,19 +1185,24 @@ static int set_skip_frame(int argc, const char **argv, void *data)
 #define BPY_CTX_SETUP(_cmd)                                                   \
 	{                                                                         \
 		wmWindowManager *wm = CTX_wm_manager(C);                              \
-		wmWindow *prevwin = CTX_wm_window(C);                                 \
-		Scene *prevscene = CTX_data_scene(C);                                 \
-		if (wm->windows.first) {                                              \
+		Scene *scene_prev = CTX_data_scene(C);                                \
+		wmWindow *win_prev;                                                   \
+		const bool has_win = !BLI_listbase_is_empty(&wm->windows);            \
+		if (has_win) {                                                        \
+			win_prev = CTX_wm_window(C);                                      \
 			CTX_wm_window_set(C, wm->windows.first);                          \
-			_cmd;                                                             \
-			CTX_wm_window_set(C, prevwin);                                    \
 		}                                                                     \
 		else {                                                                \
 			fprintf(stderr, "Python script \"%s\" "                           \
 			        "running with missing context data.\n", argv[1]);         \
+		}                                                                     \
+		{                                                                     \
 			_cmd;                                                             \
 		}                                                                     \
-		CTX_data_scene_set(C, prevscene);                                     \
+		if (has_win) {                                                        \
+			CTX_wm_window_set(C, win_prev);                                   \
+		}                                                                     \
+		CTX_data_scene_set(C, scene_prev);                                    \
 	} (void)0                                                                 \
 
 #endif /* WITH_PYTHON */
