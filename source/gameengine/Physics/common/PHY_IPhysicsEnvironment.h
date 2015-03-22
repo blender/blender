@@ -55,6 +55,7 @@ class KX_Scene;
 struct PHY_ShapeProps;
 struct PHY_MaterialProps;
 class PHY_IMotionState;
+struct bRigidBodyJointConstraint;
 
 /**
  * pass back information from rayTest
@@ -213,6 +214,9 @@ class PHY_IPhysicsEnvironment
 							bool isCompoundChild,
 							bool hasCompoundChildren) = 0;
 
+		/* Set the rigid body joints constraints values for converted objects and replicated group instances. */
+		virtual void SetupObjectConstraints(KX_GameObject *obj_src, KX_GameObject *obj_dest,
+		                                    bRigidBodyJointConstraint *dat) {}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_IPhysicsEnvironment")

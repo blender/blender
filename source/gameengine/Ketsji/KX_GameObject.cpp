@@ -292,6 +292,21 @@ void KX_GameObject::SetDupliGroupObject(KX_GameObject* obj)
 	m_pDupliGroupObject = obj;
 }
 
+void KX_GameObject::AddConstraint(bRigidBodyJointConstraint *cons)
+{
+	m_constraints.push_back(cons);
+}
+
+std::vector<bRigidBodyJointConstraint*> KX_GameObject::GetConstraints()
+{
+	return m_constraints;
+}
+
+void KX_GameObject::ClearConstraints()
+{
+	m_constraints.clear();
+}
+
 KX_GameObject* KX_GameObject::GetParent()
 {
 	KX_GameObject* result = NULL;

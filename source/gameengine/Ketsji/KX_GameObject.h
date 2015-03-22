@@ -49,6 +49,7 @@
 #include "CTR_HashedPtr.h"
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h" /* for m_anim_framerate */
+#include "DNA_constraint_types.h" /* for constraint replication */
 #include "DNA_object_types.h"
 #include "SCA_LogicManager.h" /* for ConvertPythonToGameObject to search object names */
 
@@ -117,6 +118,7 @@ protected:
 	SG_Node*							m_pSGNode;
 
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
+	std::vector<bRigidBodyJointConstraint*>	m_constraints;
 
 	KX_ObstacleSimulation*				m_pObstacleSimulation;
 
@@ -192,6 +194,14 @@ public:
 	 */
 		void
 	UpdateBlenderObjectMatrix(Object* blendobj=NULL);
+
+	/**
+	 * Used for constraint replication for group instances.
+	 * The list of constraints is filled during data conversion.
+	 */
+	void AddConstraint(bRigidBodyJointConstraint *cons);
+	std::vector<bRigidBodyJointConstraint*> GetConstraints();
+	void ClearConstraints();
 
 	/** 
 	 * Get a pointer to the game object that is the parent of 

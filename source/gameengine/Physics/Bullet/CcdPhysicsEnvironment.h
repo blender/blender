@@ -275,6 +275,10 @@ protected:
 							bool isCompoundChild,
 							bool hasCompoundChildren);
 
+		/* Set the rigid body joints constraints values for converted objects and replicated group instances. */
+		virtual void SetupObjectConstraints(KX_GameObject *obj_src, KX_GameObject *obj_dest,
+		                                    bRigidBodyJointConstraint *dat);
+
 	protected:
 		
 		
