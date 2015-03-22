@@ -523,7 +523,27 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, Panel):
         row.prop(rd, "sample_max_error")
 
 
-class WorldButtonsPanel:
+class SCENE_PT_game_hysteresis(SceneButtonsPanel, Panel):
+    bl_label = "Level of Detail"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return (scene and scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        gs = context.scene.game_settings
+
+        row = layout.row()
+        row.prop(gs, "use_scene_hysteresis", text="Hysteresis")
+        row = layout.row()
+        row.active = gs.use_scene_hysteresis
+        row.prop(gs, "scene_hysteresis_percentage", text="")
+
+
+class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
@@ -765,6 +785,7 @@ class OBJECT_PT_levels_of_detail(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         ob = context.object
+        gs = context.scene.game_settings
 
         col = layout.column()
 
@@ -781,6 +802,13 @@ class OBJECT_PT_levels_of_detail(ObjectButtonsPanel, Panel):
             row = row.row(align=True)
             row.prop(level, "use_mesh", text="")
             row.prop(level, "use_material", text="")
+
+            row = box.row()
+            row.active = gs.use_scene_hysteresis
+            row.prop(level, "use_object_hysteresis", text="Hysteresis Override")
+            row = box.row()
+            row.active = gs.use_scene_hysteresis and level.use_object_hysteresis
+            row.prop(level, "object_hysteresis_percentage", text="")
 
         row = col.row(align=True)
         row.operator("object.lod_add", text="Add", icon='ZOOMIN')

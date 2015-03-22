@@ -109,7 +109,8 @@ typedef struct LodLevel {
 	struct LodLevel *next, *prev;
 	struct Object *source;
 	int flags;
-	float distance;
+	float distance, pad;
+	int obhysteresis;
 } LodLevel;
 
 typedef struct Object {
@@ -484,6 +485,7 @@ enum {
 enum {
 	OB_LOD_USE_MESH		= 1 << 0,
 	OB_LOD_USE_MAT		= 1 << 1,
+	OB_LOD_USE_HYST		= 1 << 2,
 };
 
 

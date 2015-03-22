@@ -677,6 +677,9 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->gm.recastData.detailsampledist = 6.0f;
 	sce->gm.recastData.detailsamplemaxerror = 1.0f;
 
+	sce->gm.lodflag = SCE_LOD_USE_HYST;
+	sce->gm.scehysteresis = 10;
+
 	sce->gm.exitkey = 218; // Blender key code for ESC
 
 	sound_create_scene(sce);

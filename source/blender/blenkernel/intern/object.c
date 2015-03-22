@@ -1098,10 +1098,12 @@ void BKE_object_lod_add(Object *ob)
 		BLI_addtail(&ob->lodlevels, base);
 		base->flags = OB_LOD_USE_MESH | OB_LOD_USE_MAT;
 		base->source = ob;
+		base->obhysteresis = 10;
 		last = ob->currentlod = base;
 	}
 	
 	lod->distance = last->distance + 25.0f;
+	lod->obhysteresis = 10;
 	lod->flags = OB_LOD_USE_MESH | OB_LOD_USE_MAT;
 
 	BLI_addtail(&ob->lodlevels, lod);

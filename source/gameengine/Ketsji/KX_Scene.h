@@ -295,6 +295,11 @@ protected:
 
 	KX_ObstacleSimulation* m_obstacleSimulation;
 
+	/**
+	 * Does this scene active the LoD Hysteresis?
+	 */
+	bool m_isActivedHysteresis;
+
 public:
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
@@ -546,6 +551,10 @@ public:
 
 	// Update the mesh for objects based on level of detail settings
 	void UpdateObjectLods(void);
+
+	// Enable/disable LoD Hysteresis
+	void SetLodHysteresis(bool active);
+	bool IsActivedLodHysteresis();
 	
 	// Update the activity box settings for objects in this scene, if needed.
 	void UpdateObjectActivity(void);

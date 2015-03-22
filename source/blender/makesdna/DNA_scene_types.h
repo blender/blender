@@ -718,7 +718,12 @@ typedef struct GameData {
 	short obstacleSimulation;
 	short raster_storage;
 	float levelHeight;
-	float deactivationtime, lineardeactthreshold, angulardeactthreshold, pad2;
+	float deactivationtime, lineardeactthreshold, angulardeactthreshold;
+
+	/* Scene LoD */
+	short lodflag, pad2;
+	int scehysteresis, pad5;
+
 } GameData;
 
 #define STEREO_NOSTEREO		1
@@ -790,6 +795,9 @@ enum {
 #if (DNA_DEPRECATED_GCC_POISON == 1)
 #pragma GCC poison GAME_MAT_TEXFACE
 #endif
+
+/* GameData.lodflag */
+#define SCE_LOD_USE_HYST		(1 << 0)
 
 /* UV Paint */
 #define UV_SCULPT_LOCK_BORDERS				1

@@ -1554,6 +1554,10 @@ static KX_GameObject *gameobject_from_blenderobject(
 				}
 				gameobj->AddLodMesh(BL_ConvertMesh(lodmesh, lodmatob, kxscene, converter, libloading));
 			}
+			if (blenderscene->gm.lodflag & SCE_LOD_USE_HYST) {
+				kxscene->SetLodHysteresis(true);
+				gameobj->SetLodHysteresisValue(blenderscene->gm.scehysteresis);
+			}
 		}
 	
 		// for all objects: check whether they want to

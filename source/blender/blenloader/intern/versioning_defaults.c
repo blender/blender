@@ -92,6 +92,9 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 				sculpt->detail_size = 12;
 			}
 		}
+
+		scene->gm.lodflag |= SCE_LOD_USE_HYST;
+		scene->gm.scehysteresis = 10;
 	}
 
 	for (linestyle = bmain->linestyle.first; linestyle; linestyle = linestyle->id.next) {
