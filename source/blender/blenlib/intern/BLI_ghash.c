@@ -1004,7 +1004,7 @@ unsigned int BLI_ghashutil_uinthash_v4(const unsigned int key[4])
 }
 unsigned int BLI_ghashutil_uinthash_v4_murmur(const unsigned int key[4])
 {
-	return BLI_hash_mm2((const unsigned char *)key, sizeof(key), 0);
+	return BLI_hash_mm2((const unsigned char *)key, sizeof(int) * 4  /* sizeof(key) */, 0);
 }
 
 bool BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b)
