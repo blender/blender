@@ -1606,6 +1606,27 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 				ANIM_fcurve_delete_from_animdata(&ac, adt, fcu);
 				break;
 			}
+			case ANIMTYPE_NLACURVE:
+			{
+				/* NLA Control Curve - Deleting it should disable the corresponding setting... */
+				NlaStrip *strip = (NlaStrip *)ale->owner;
+				FCurve *fcu = (FCurve *)ale->data;
+				
+				if (STREQ(fcu->rna_path, "strip_time")) {
+					strip->flag &= ~NLASTRIP_FLAG_USR_TIME;
+				}
+				else if (STREQ(fcu->rna_path, "influence")) {
+					strip->flag &= ~NLASTRIP_FLAG_USR_INFLUENCE;
+				}
+				else {
+					printf("ERROR: Trying to delete NLA Control Curve for unknown property '%s'\n", fcu->rna_path);
+				}
+				
+				/* unlink and free the F-Curve */
+				BLI_remlink(&strip->fcurves, fcu);
+				free_fcurve(fcu);
+				break;
+			}
 			case ANIMTYPE_GPLAYER:
 			{
 				/* Grease Pencil layer */
@@ -2770,6 +2791,19 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			}
 				
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
+			break;
+		}
+		case ANIMTYPE_NLACONTROLS:
+		{
+			AnimData *adt = (AnimData *)ale->data;
+			
+			/* toggle expand
+			 *   - Although the triangle widget already allows this, since there's nothing else that can be done here now,
+			 *     let's just use it for easier expand/collapse for now
+			 */
+			adt->flag ^= ADT_NLA_SKEYS_COLLAPSED;
+			
+			notifierFlags |= (ND_ANIMCHAN | NA_EDITED);
 			break;
 		}
 		case ANIMTYPE_GPDATABLOCK:
