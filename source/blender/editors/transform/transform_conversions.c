@@ -3584,7 +3584,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		else
 			cfra = (float)CFRA;
 		
-		if (ale->type == ANIMTYPE_FCURVE)
+		if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE))
 			count += count_fcurve_keys(ale->key_data, t->frame_side, cfra);
 		else if (ale->type == ANIMTYPE_GPLAYER)
 			count += count_gplayer_frames(ale->data, t->frame_side, cfra);

@@ -1330,6 +1330,7 @@ static size_t animfilter_nla_controls(ListBase *anim_data, bDopeSheet *ads, Anim
 	size_t items = 0;
 	
 	/* add control curves from each NLA strip... */
+	/* NOTE: ANIMTYPE_FCURVES are created here, to avoid duplicating the code needed */
 	BEGIN_ANIMFILTER_SUBCHANNELS(((adt->flag & ADT_NLA_SKEYS_COLLAPSED) == 0))
 	{
 		NlaTrack *nlt;
@@ -1338,7 +1339,36 @@ static size_t animfilter_nla_controls(ListBase *anim_data, bDopeSheet *ads, Anim
 		/* for now, we only go one level deep - so controls on grouped FCurves are not handled */
 		for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
 			for (strip = nlt->strips.first; strip; strip = strip->next) {
-				tmp_items += animfilter_fcurves(&tmp_data, ads, strip->fcurves.first, NULL, filter_mode, owner_id);
+				ListBase strip_curves = {NULL, NULL};
+				size_t strip_items = 0;
+				
+				/* create the raw items */
+				strip_items += animfilter_fcurves(&strip_curves, ads, strip->fcurves.first, NULL, filter_mode, owner_id);
+				
+				/* change their types and add extra data
+				 * - There is no point making a separate copy of animfilter_fcurves for this now/yet,
+				 *   unless we later get per-element control curves for other stuff too
+				 */
+				if (strip_items) {
+					bAnimListElem *ale, *ale_n = NULL;
+					
+					for (ale = strip_curves.first; ale; ale = ale_n) {
+						ale_n = ale->next;
+						
+						/* change the type to being a FCurve for editing NLA strip controls */
+						BLI_assert(ale->type == ANIMTYPE_FCURVE);
+						
+						ale->type = ANIMTYPE_NLACURVE;
+						ale->owner = strip;
+						
+						ale->adt  = NULL; /* XXX: This way, there are no problems with time mapping errors */
+					}
+				}
+				
+				/* add strip curves to the set of channels inside the group being collected */
+				BLI_movelisttolist(&tmp_data, &strip_curves);
+				BLI_assert(BLI_listbase_is_empty(&strip_curves));
+				tmp_items += strip_items;
 			}
 		}
 	}
@@ -1346,8 +1376,6 @@ static size_t animfilter_nla_controls(ListBase *anim_data, bDopeSheet *ads, Anim
 	
 	/* did we find anything? */
 	if (tmp_items) {
-		/* TODO: apply extra tags to indicate the NLA mapping does not apply here! */
-		
 		/* add the expander as a channel first */
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* currently these channels cannot be selected, so they should be skipped */

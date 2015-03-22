@@ -1156,7 +1156,7 @@ static void duplicate_action_keys(bAnimContext *ac)
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale = anim_data.first; ale; ale = ale->next) {
-		if (ale->type == ANIMTYPE_FCURVE)
+		if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE))
 			duplicate_fcurve_keys((FCurve *)ale->key_data);
 		else if (ale->type == ANIMTYPE_GPLAYER)
 			ED_gplayer_frames_duplicate((bGPDlayer *)ale->data);

@@ -101,6 +101,7 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, eAnimCont_Types datat
 				break;
 			}
 			case ANIMTYPE_FCURVE:
+			case ANIMTYPE_NLACURVE:
 			{
 				FCurve *fcu = (FCurve *)ale->data;
 				
@@ -157,6 +158,7 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, eAnimCont_Types datat
 				break;
 			}
 			case ANIMTYPE_FCURVE:
+			case ANIMTYPE_NLACURVE:
 			{
 				FCurve *fcu = (FCurve *)channel_data;
 				fcu->flag |= FCURVE_ACTIVE;
@@ -255,6 +257,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types d
 						sel = ACHANNEL_SETFLAG_CLEAR;
 					break;
 				case ANIMTYPE_FCURVE:
+				case ANIMTYPE_NLACURVE:
 					if (ale->flag & FCURVE_SELECTED)
 						sel = ACHANNEL_SETFLAG_CLEAR;
 					break;
@@ -339,6 +342,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types d
 				break;
 			}
 			case ANIMTYPE_FCURVE:
+			case ANIMTYPE_NLACURVE:
 			{
 				FCurve *fcu = (FCurve *)ale->data;
 				
@@ -2727,7 +2731,8 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 			break;
 		}
-		case ANIMTYPE_FCURVE: 
+		case ANIMTYPE_FCURVE:
+		case ANIMTYPE_NLACURVE:
 		{
 			FCurve *fcu = (FCurve *)ale->data;
 			
@@ -2744,7 +2749,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			
 			/* if F-Curve is selected now, make F-Curve the 'active' one in the visible list */
 			if (fcu->flag & FCURVE_SELECTED)
-				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ale->type);
 				
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 			break;

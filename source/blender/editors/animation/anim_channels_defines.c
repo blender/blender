@@ -908,106 +908,6 @@ static bAnimChannelType ACF_GROUP =
 	acf_group_setting_ptr           /* pointer for setting */
 };
 
-/* NLA Control FCurves Expander ----------------------- */
-
-/* get backdrop color for nla controls widget */
-static void acf_nla_controls_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
-{
-	// TODO: give this its own theme setting?
-	UI_GetThemeColorShade3fv(TH_GROUP, 55, r_color);
-}
-
-/* backdrop for nla controls expander widget */
-static void acf_nla_controls_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
-{
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-	View2D *v2d = &ac->ar->v2d;
-	short expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
-	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
-	float color[3];
-	
-	/* set backdrop drawing color */
-	acf->get_backdrop_color(ac, ale, color);
-	glColor3fv(color);
-	
-	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-	UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 5);
-}
-
-/* name for nla controls expander entries */
-static void acf_nla_controls_name(bAnimListElem *ale, char *name)
-{
-	BLI_strncpy(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
-}
-
-/* check if some setting exists for this channel */
-static bool acf_nla_controls_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
-{
-	/* for now, all settings are supported, though some are only conditionally */
-	switch (setting) {
-		/* supported */
-		case ACHANNEL_SETTING_EXPAND:
-			return true;
-		
-		// TOOD: selected?
-		
-		default: /* unsupported */
-			return false;
-	}
-}
-
-/* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_nla_controls_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
-{
-	/* clear extra return data first */
-	*neg = false;
-	
-	switch (setting) {
-		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			*neg = true;
-			return ADT_NLA_SKEYS_COLLAPSED;
-		
-		default:
-			/* this shouldn't happen */
-			return 0;
-	}
-}
-
-/* get pointer to the setting */
-static void *acf_nla_controls_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
-{
-	AnimData *adt = (AnimData *)ale->data;
-	
-	/* all flags are just in adt->flag for now... */
-	return GET_ACF_FLAG_PTR(adt->flag, type);
-}
-
-static int acf_nla_controls_icon(bAnimListElem *UNUSED(ale))
-{
-	return ICON_NLA;
-}
-
-/* NLA Control FCurves Expander type define */
-static bAnimChannelType ACF_NLACONTROLS = 
-{
-	"NLA Controls Expander",        /* type name */
-	ACHANNEL_ROLE_EXPANDER,         /* role */
-	
-	acf_nla_controls_color,         /* backdrop color */
-	acf_nla_controls_backdrop,      /* backdrop */
-	acf_generic_indention_0,        /* indent level */
-	acf_generic_group_offset,       /* offset */
-
-	acf_nla_controls_name,          /* name */
-	NULL,                           /* name prop */
-	acf_nla_controls_icon,          /* icon */
-
-	acf_nla_controls_setting_valid, /* has setting */
-	acf_nla_controls_setting_flag,  /* flag for setting */
-	acf_nla_controls_setting_ptr    /* pointer for setting */
-};
-
 /* F-Curve ------------------------------------------- */
 
 /* name for fcurve entries */
@@ -1109,6 +1009,149 @@ static bAnimChannelType ACF_FCURVE =
 	acf_generic_group_offset,       /* offset */
 
 	acf_fcurve_name,                /* name */
+	acf_fcurve_name_prop,           /* name prop */
+	NULL,                           /* icon */
+
+	acf_fcurve_setting_valid,       /* has setting */
+	acf_fcurve_setting_flag,        /* flag for setting */
+	acf_fcurve_setting_ptr          /* pointer for setting */
+};
+
+/* NLA Control FCurves Expander ----------------------- */
+
+/* get backdrop color for nla controls widget */
+static void acf_nla_controls_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+{
+	// TODO: give this its own theme setting?
+	UI_GetThemeColorShade3fv(TH_GROUP, 55, r_color);
+}
+
+/* backdrop for nla controls expander widget */
+static void acf_nla_controls_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+{
+	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	View2D *v2d = &ac->ar->v2d;
+	short expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
+	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+	float color[3];
+	
+	/* set backdrop drawing color */
+	acf->get_backdrop_color(ac, ale, color);
+	glColor3fv(color);
+	
+	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
+	UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
+	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 5);
+}
+
+/* name for nla controls expander entries */
+static void acf_nla_controls_name(bAnimListElem *ale, char *name)
+{
+	BLI_strncpy(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
+}
+
+/* check if some setting exists for this channel */
+static bool acf_nla_controls_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
+{
+	/* for now, all settings are supported, though some are only conditionally */
+	switch (setting) {
+		/* supported */
+		case ACHANNEL_SETTING_EXPAND:
+			return true;
+		
+		// TOOD: selected?
+		
+		default: /* unsupported */
+			return false;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_nla_controls_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
+{
+	/* clear extra return data first */
+	*neg = false;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			*neg = true;
+			return ADT_NLA_SKEYS_COLLAPSED;
+		
+		default:
+			/* this shouldn't happen */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_nla_controls_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings UNUSED(setting), short *type)
+{
+	AnimData *adt = (AnimData *)ale->data;
+	
+	/* all flags are just in adt->flag for now... */
+	return GET_ACF_FLAG_PTR(adt->flag, type);
+}
+
+static int acf_nla_controls_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_NLA;
+}
+
+/* NLA Control FCurves Expander type define */
+static bAnimChannelType ACF_NLACONTROLS = 
+{
+	"NLA Controls Expander",        /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
+	
+	acf_nla_controls_color,         /* backdrop color */
+	acf_nla_controls_backdrop,      /* backdrop */
+	acf_generic_indention_0,        /* indent level */
+	acf_generic_group_offset,       /* offset */
+
+	acf_nla_controls_name,          /* name */
+	NULL,                           /* name prop */
+	acf_nla_controls_icon,          /* icon */
+
+	acf_nla_controls_setting_valid, /* has setting */
+	acf_nla_controls_setting_flag,  /* flag for setting */
+	acf_nla_controls_setting_ptr    /* pointer for setting */
+};
+
+
+/* NLA Control F-Curve -------------------------------- */
+
+/* name for nla control fcurve entries */
+static void acf_nla_curve_name(bAnimListElem *ale, char *name)
+{
+	NlaStrip *strip = ale->owner;
+	FCurve *fcu = ale->data;
+	PropertyRNA *prop;
+	
+	/* try to get RNA property that this shortened path (relative to the strip) refers to */
+	prop = RNA_struct_type_find_property(&RNA_NlaStrip, fcu->rna_path);
+	if (prop) {
+		/* "name" of this strip displays the UI identifier + the name of the NlaStrip */
+		BLI_snprintf(name, 256, "%s (%s)", RNA_property_ui_name(prop), strip->name);
+	}
+	else {
+		/* unknown property... */
+		BLI_snprintf(name, 256, "%s[%d]", fcu->rna_path, fcu->array_index);
+	}
+}
+
+
+/* NLA Control F-Curve type define */
+static bAnimChannelType ACF_NLACURVE = 
+{
+	"NLA Control F-Curve",          /* type name */
+	ACHANNEL_ROLE_CHANNEL,          /* role */
+	
+	acf_generic_channel_color,      /* backdrop color */
+	acf_generic_channel_backdrop,   /* backdrop */
+	acf_generic_indention_1,        /* indent level */
+	acf_generic_group_offset,       /* offset */
+
+	acf_nla_curve_name,             /* name */
 	acf_fcurve_name_prop,           /* name prop */
 	NULL,                           /* icon */
 
@@ -3323,6 +3366,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_FCURVE;       /* F-Curve */
 		
 		animchannelTypeInfo[type++] = &ACF_NLACONTROLS;  /* NLA Control FCurve Expander */
+		animchannelTypeInfo[type++] = &ACF_NLACURVE;     /* NLA Control FCurve Channel */
 		
 		animchannelTypeInfo[type++] = &ACF_FILLACTD;     /* Object Action Expander */
 		animchannelTypeInfo[type++] = &ACF_FILLDRIVERS;  /* Drivers Expander */
@@ -3593,7 +3637,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	if (ac->sl) {
 		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
 			/* for F-Curves, draw color-preview of curve behind checkbox */
-			if (ale->type == ANIMTYPE_FCURVE) {
+			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
 				FCurve *fcu = (FCurve *)ale->data;
 				
 				/* F-Curve channels need to have a special 'color code' box drawn, which is colored with whatever 
@@ -3639,7 +3683,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		UI_fontstyle_draw_simple(fstyle, offset, ytext, name);
 		
 		/* draw red underline if channel is disabled */
-		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) {
+		if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE) && (ale->flag & FCURVE_DISABLED)) {
 			/* FIXME: replace hardcoded color here, and check on extents! */
 			glColor3f(1.0f, 0.0f, 0.0f);
 			glLineWidth(2.0);
@@ -3706,7 +3750,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		 *	  (only only F-Curves really can support them for now)
 		 *	- slider should start before the toggles (if they're visible) to keep a clean line down the side
 		 */
-		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_SHAPEKEY)) {
+		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY)) {
 			/* adjust offset */
 			offset += SLIDER_WIDTH;
 		}
@@ -3895,7 +3939,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			//icon = ((enabled) ? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
 			icon = ICON_VISIBLE_IPO_OFF;
 			
-			if (ale->type == ANIMTYPE_FCURVE)
+			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE))
 				tooltip = TIP_("F-Curve is visible in Graph Editor for editing");
 			else
 				tooltip = TIP_("Channels are visible in Graph Editor for editing");
@@ -3930,7 +3974,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			//icon = ((enabled) ? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
 			icon = ICON_MUTE_IPO_OFF;
 			
-			if (ale->type == ANIMTYPE_FCURVE) {
+			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
 				tooltip = TIP_("Does F-Curve contribute to result");
 			}
 			else if ((ac) && (ac->spacetype == SPACE_NLA) && (ale->type != ANIMTYPE_NLATRACK)) {
@@ -4199,7 +4243,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 		 *	  and wouldn't be able to auto-keyframe...
 		 *	- slider should start before the toggles (if they're visible) to keep a clean line down the side
 		 */
-		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_SHAPEKEY)) {
+		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY)) {
 			/* adjust offset */
 			// TODO: make slider width dynamic, so that they can be easier to use when the view is wide enough
 			offset += SLIDER_WIDTH;
@@ -4207,7 +4251,12 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 			/* need backdrop behind sliders... */
 			UI_block_emboss_set(block, UI_EMBOSS);
 			
-			if (ale->id) { /* Slider using RNA Access -------------------- */
+			if (ale->owner) { /* Slider using custom RNA Access ---------- */
+				if (ale->type == ANIMTYPE_NLACURVE) {
+					// TODO...
+				}
+			}
+			else if (ale->id) { /* Slider using RNA Access --------------- */
 				PointerRNA id_ptr, ptr;
 				PropertyRNA *prop;
 				char *rna_path = NULL;
