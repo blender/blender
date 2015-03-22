@@ -112,6 +112,7 @@ public:
 				for (i = 0; i < strArray->count; i++)
 					free(strArray->strings[i]);
 				
+				free(strArray->strings);
 				free(strArray);
 			}
 			break;

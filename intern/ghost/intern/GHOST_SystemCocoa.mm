@@ -882,7 +882,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					if (!strArray) return GHOST_kFailure;
 					
 					strArray->count = [droppedArray count];
-					if (strArray->count == 0) return GHOST_kFailure;
+					if (strArray->count == 0) {
+						free(strArray);
+						return GHOST_kFailure;
+					}
 					
 					strArray->strings = (GHOST_TUns8**) malloc(strArray->count*sizeof(GHOST_TUns8*));
 					
