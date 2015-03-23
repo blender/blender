@@ -211,20 +211,30 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
  *
  * \{ */
 
-/* non-linear luma from ITU-R BT.601-2
- * see: http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html#RTFToC11
- * note: the values used for are not exact matches to those documented above,
- * but they are from the same */
+/**
+ * ITU-R BT.709 primaries
+ * http://en.wikipedia.org/wiki/Relative_luminance
+ *
+ * Real values are:
+ * ``Y = 0.2126390059(R) + 0.7151686788(G) + 0.0721923154(B)``
+ * according to: "Derivation of Basic Television Color Equations", RP 177-1993
+ *
+ * But this is sums slightly above 1.0, the document recommends to use:
+ * ``0.2126(R) + 0.7152(G) + 0.0722(B)``, as used here.
+ *
+ * The high precision values are used to calculate the rounded byte weights so they add up to 255:
+ * ``54(R) + 182(G) + 19(B)``
+ */
 MINLINE float rgb_to_grayscale(const float rgb[3])
 {
-	return 0.3f * rgb[0] + 0.58f * rgb[1] + 0.12f * rgb[2];
+	return  (0.2126f * rgb[0]) + (0.7152f * rgb[1]) + (0.0722f * rgb[2]);
 }
 
 MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3])
 {
-	return (unsigned char)(((76  * (unsigned short)rgb[0]) +
-	                        (148 * (unsigned short)rgb[1]) +
-	                        (31  * (unsigned short)rgb[2])) / 255);
+	return (unsigned char)(((54  * (unsigned short)rgb[0]) +
+	                        (182 * (unsigned short)rgb[1]) +
+	                        (19  * (unsigned short)rgb[2])) / 255);
 }
 
 /** \} */
