@@ -469,7 +469,7 @@ bool GPU_fx_compositor_initialize_passes(
 			}
 		}
 
-		fx->dof_high_quality = dof_high_quality  && GPU_geometry_shader_support() && GPU_instanced_drawing_support();
+		fx->dof_high_quality = dof_high_quality && GPU_geometry_shader_support() && GPU_instanced_drawing_support();
 	}
 	else {
 		/* cleanup unnecessary buffers */
@@ -478,7 +478,7 @@ bool GPU_fx_compositor_initialize_passes(
 
 	/* we need to pass data between shader stages, allocate an extra color buffer */
 	if (num_passes > 1) {
-		if(!fx->color_buffer_sec) {
+		if (!fx->color_buffer_sec) {
 			if (!(fx->color_buffer_sec = GPU_texture_create_2D(w, h, NULL, GPU_HDR_NONE, err_out))) {
 				printf(".256%s\n", err_out);
 				cleanup_fx_gl_data(fx, true);
@@ -497,13 +497,13 @@ bool GPU_fx_compositor_initialize_passes(
 	/* bind the buffers */
 
 	/* first depth buffer, because system assumes read/write buffers */
-	if(!GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0, err_out))
+	if (!GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0, err_out))
 		printf("%.256s\n", err_out);
 
-	if(!GPU_framebuffer_texture_attach(fx->gbuffer, fx->color_buffer, 0, err_out))
+	if (!GPU_framebuffer_texture_attach(fx->gbuffer, fx->color_buffer, 0, err_out))
 		printf("%.256s\n", err_out);
 
-	if(!GPU_framebuffer_check_valid(fx->gbuffer, err_out))
+	if (!GPU_framebuffer_check_valid(fx->gbuffer, err_out))
 		printf("%.256s\n", err_out);
 
 	GPU_texture_bind_as_framebuffer(fx->color_buffer);
@@ -573,7 +573,7 @@ void GPU_fx_compositor_setup_XRay_pass(GPUFX *fx, bool do_xray)
 	GPU_framebuffer_texture_detach(fx->depth_buffer);
 
 	/* first depth buffer, because system assumes read/write buffers */
-	if(!GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer_xray, 0, err_out))
+	if (!GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer_xray, 0, err_out))
 		printf("%.256s\n", err_out);
 }
 

@@ -42,11 +42,11 @@ extern "C" {
 
 typedef enum GPUSimpleShaderOption {
 	GPU_SHADER_OVERRIDE_DIFFUSE = (1<<0),   /* replace diffuse with glcolor */
-	GPU_SHADER_LIGHTING = (1<<1),           /* use lighting */
-	GPU_SHADER_TWO_SIDED = (1<<2),          /* flip normals towards viewer */
-	GPU_SHADER_TEXTURE_2D = (1<<3),         /* use 2D texture to replace diffuse color */
+	GPU_SHADER_LIGHTING =         (1<<1),   /* use lighting */
+	GPU_SHADER_TWO_SIDED =        (1<<2),   /* flip normals towards viewer */
+	GPU_SHADER_TEXTURE_2D =       (1<<3),   /* use 2D texture to replace diffuse color */
 
-	GPU_SHADER_SOLID_LIGHTING = (1<<4),     /* use faster lighting (set automatically) */
+	GPU_SHADER_SOLID_LIGHTING =   (1<<4),   /* use faster lighting (set automatically) */
 	GPU_SHADER_OPTIONS_NUM = 5,
 	GPU_SHADER_OPTION_COMBINATIONS = (1<<GPU_SHADER_OPTIONS_NUM)
 } GPUSimpleShaderOption;

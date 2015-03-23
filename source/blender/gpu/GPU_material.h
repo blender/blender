@@ -92,7 +92,7 @@ typedef enum GPUBuiltin {
 	GPU_VIEW_NORMAL =           (1 << 5),
 	GPU_OBCOLOR =               (1 << 6),
 	GPU_AUTO_BUMPSCALE =        (1 << 7),
-	GPU_CAMERA_TEXCO_FACTORS =       (1 << 8),
+	GPU_CAMERA_TEXCO_FACTORS =  (1 << 8),
 } GPUBuiltin;
 
 typedef enum GPUOpenGLBuiltin {
@@ -213,7 +213,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr);
 
 typedef enum GPUDataType {
 	GPU_DATA_NONE = 0,
-	GPU_DATA_1I = 1,	// 1 integer
+	GPU_DATA_1I = 1,   /* 1 integer */
 	GPU_DATA_1F = 2,
 	GPU_DATA_2F = 3,
 	GPU_DATA_3F = 4,
@@ -226,23 +226,23 @@ typedef enum GPUDataType {
 /* this structure gives information of each uniform found in the shader */
 typedef struct GPUInputUniform {
 	struct GPUInputUniform *next, *prev;
-	char varname[32];		/* name of uniform in shader */
-	GPUDynamicType type;	/* type of uniform, data format and calculation derive from it */
-	GPUDataType datatype;	/* type of uniform data */
-	struct Object *lamp;	/* when type=GPU_DYNAMIC_LAMP_... or GPU_DYNAMIC_SAMPLER_2DSHADOW */
-	struct Image *image;	/* when type=GPU_DYNAMIC_SAMPLER_2DIMAGE */
-	int texnumber;			/* when type=GPU_DYNAMIC_SAMPLER, texture number: 0.. */
-	unsigned char *texpixels;	/* for internally generated texture, pixel data in RGBA format */
-	int texsize;			/* size in pixel of the texture in texpixels buffer: for 2D textures, this is S and T size (square texture) */
+	char varname[32];         /* name of uniform in shader */
+	GPUDynamicType type;      /* type of uniform, data format and calculation derive from it */
+	GPUDataType datatype;     /* type of uniform data */
+	struct Object *lamp;      /* when type=GPU_DYNAMIC_LAMP_... or GPU_DYNAMIC_SAMPLER_2DSHADOW */
+	struct Image *image;      /* when type=GPU_DYNAMIC_SAMPLER_2DIMAGE */
+	int texnumber;            /* when type=GPU_DYNAMIC_SAMPLER, texture number: 0.. */
+	unsigned char *texpixels; /* for internally generated texture, pixel data in RGBA format */
+	int texsize;              /* size in pixel of the texture in texpixels buffer: for 2D textures, this is S and T size (square texture) */
 } GPUInputUniform;
 
 typedef struct GPUInputAttribute {
 	struct GPUInputAttribute *next, *prev;
-	char varname[32];	/* name of attribute in shader */
-	int type;			/* from CustomData.type, data type derives from it */
-	GPUDataType datatype;	/* type of attribute data */
-	const char *name;	/* layer name */
-	int number;			/* generic attribute number */
+	char varname[32];     /* name of attribute in shader */
+	int type;             /* from CustomData.type, data type derives from it */
+	GPUDataType datatype; /* type of attribute data */
+	const char *name;     /* layer name */
+	int number;           /* generic attribute number */
 } GPUInputAttribute;
 
 typedef struct GPUShaderExport {

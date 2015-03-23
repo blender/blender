@@ -52,7 +52,7 @@ enum eGPUFXFlags;
 
 typedef enum GPUFXShaderEffect {
 	/* Screen space ambient occlusion shader */
-	GPU_SHADER_FX_SSAO           = 1,
+	GPU_SHADER_FX_SSAO = 1,
 
 	/* depth of field passes. Yep, quite a complex effect */
 	GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_ONE = 2,
