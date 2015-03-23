@@ -960,11 +960,11 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 
 				GPU_texture_bind(fx->dof_near_blur, numslots++);
 				GPU_shader_uniform_texture(dof_shader_pass3, near_uniform, fx->dof_near_blur);
-				GPU_texture_filter_mode(fx->dof_near_blur, false, false);
+				GPU_texture_filter_mode(fx->dof_near_blur, false, true);
 
 				GPU_texture_bind(fx->dof_far_blur, numslots++);
 				GPU_shader_uniform_texture(dof_shader_pass3, far_uniform, fx->dof_far_blur);
-				GPU_texture_filter_mode(fx->dof_far_blur, false, false);
+				GPU_texture_filter_mode(fx->dof_far_blur, false, true);
 
 				GPU_texture_bind(fx->depth_buffer, numslots++);
 				GPU_texture_filter_mode(fx->depth_buffer, false, false);
