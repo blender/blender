@@ -80,8 +80,6 @@
 
 #include "KX_NavMeshObject.h"
 
-#include "GPU_material.h"
-
 #define DEFAULT_LOGIC_TIC_RATE 60.0
 //#define DEFAULT_PHYSICS_TIC_RATE 60.0
 
@@ -317,7 +315,7 @@ void KX_KetsjiEngine::RenderDome()
 			KX_Camera* cam = scene->GetActiveCamera();
 
 			// pass the scene's worldsettings to the rasterizer
-			SetWorldSettings(scene->GetWorldInfo());
+			scene->GetWorldInfo()->UpdateWorldSettings();
 
 			// shadow buffers
 			if (i == 0) {
@@ -477,7 +475,7 @@ void KX_KetsjiEngine::ClearFrame()
 
 	if (doclear) {
 		KX_Scene* firstscene = *m_scenes.begin();
-		SetBackGround(firstscene->GetWorldInfo());
+		firstscene->GetWorldInfo()->UpdateBackGround();
 
 		m_canvas->SetViewPort(clearvp.GetLeft(), clearvp.GetBottom(),
 			clearvp.GetRight(), clearvp.GetTop());
@@ -827,7 +825,7 @@ void KX_KetsjiEngine::Render()
 		KX_Scene* scene = *sceneit;
 		KX_Camera* cam = scene->GetActiveCamera();
 		// pass the scene's worldsettings to the rasterizer
-		SetWorldSettings(scene->GetWorldInfo());
+		scene->GetWorldInfo()->UpdateWorldSettings();
 
 		// this is now done incrementatlly in KX_Scene::CalculateVisibleMeshes
 		//scene->UpdateMeshTransformations();
@@ -884,7 +882,7 @@ void KX_KetsjiEngine::Render()
 			KX_Camera* cam = scene->GetActiveCamera();
 
 			// pass the scene's worldsettings to the rasterizer
-			SetWorldSettings(scene->GetWorldInfo());
+			scene->GetWorldInfo()->UpdateWorldSettings();
 		
 			if (scene->IsClearingZBuffer())
 				m_rasterizer->ClearDepthBuffer();
@@ -964,77 +962,6 @@ const STR_String& KX_KetsjiEngine::GetExitString()
 	return m_exitstring;
 }
 
-
-void KX_KetsjiEngine::SetBackGround(KX_WorldInfo* wi)
-{
-	if (wi->hasWorld())
-	{
-		if (m_rasterizer->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED)
-		{
-			m_rasterizer->SetBackColor(
-				wi->getBackColorRed(),
-				wi->getBackColorGreen(),
-				wi->getBackColorBlue(),
-				0.0
-			);
-
-			float horicolor[] = {wi->getBackColorRed(), wi->getBackColorGreen(), wi->getBackColorBlue()};
-			GPU_horizon_update_color(horicolor);
-		}
-	}
-}
-
-
-
-void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
-{
-	if (wi->hasWorld())
-	{
-		if (m_rasterizer->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID)
-		{
-			m_rasterizer->SetAmbientColor(
-				wi->getAmbientColorRed(),
-				wi->getAmbientColorGreen(),
-				wi->getAmbientColorBlue()
-				);
-
-			float ambcolor[] = {wi->getAmbientColorRed(), wi->getAmbientColorGreen(), wi->getAmbientColorBlue()};
-			GPU_ambient_update_color(ambcolor);
-
-			if (wi->hasMist())
-			{
-				m_rasterizer->SetFog(
-					wi->getMistType(),
-					wi->getMistStart(),
-					wi->getMistDistance(),
-					wi->getMistIntensity(),
-					wi->getMistColorRed(),
-					wi->getMistColorGreen(),
-					wi->getMistColorBlue()
-				);
-
-				float mistcolor[] = {wi->getMistColorRed(), wi->getMistColorGreen(), wi->getMistColorBlue()};
-				GPU_mist_update_values(
-					wi->getMistType(),
-					wi->getMistStart(),
-					wi->getMistDistance(),
-					wi->getMistIntensity(),
-					mistcolor
-				);
-
-				m_rasterizer->EnableFog(true);
-				GPU_mist_update_enable(true);
-			}
-			else {
-				m_rasterizer->EnableFog(false);
-				GPU_mist_update_enable(false);
-			}
-		}
-	}
-}
-
-
-	
 void KX_KetsjiEngine::EnableCameraOverride(const STR_String& forscene)
 {
 	m_overrideCam = true;

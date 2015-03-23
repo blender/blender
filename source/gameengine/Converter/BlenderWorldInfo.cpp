@@ -33,6 +33,8 @@
 #include <stdio.h>  // printf()
 
 #include "BlenderWorldInfo.h"
+#include "KX_PythonInit.h"
+#include "GPU_material.h"
 
 /* This little block needed for linking to Blender... */
 #ifdef WIN32
@@ -40,23 +42,7 @@
 #endif
 
 /* This list includes only data type definitions */
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
-#include "DNA_image_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_group_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_property_types.h"
-#include "DNA_text_types.h"
-#include "DNA_sensor_types.h"
-#include "DNA_controller_types.h"
-#include "DNA_actuator_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
-#include "DNA_screen_types.h"
 
 #include "BLI_math.h"
 
@@ -65,7 +51,7 @@
 /* end of blender include block */
 
 
-BlenderWorldInfo::BlenderWorldInfo(struct Scene *blenderscene, struct World *blenderworld)
+BlenderWorldInfo::BlenderWorldInfo(Scene *blenderscene, World *blenderworld)
 {
 	if (blenderworld) {
 		m_hasworld = true;
@@ -211,4 +197,39 @@ void BlenderWorldInfo::setAmbientColor(float r, float g, float b)
 	m_ambientcolor[0] = r;
 	m_ambientcolor[1] = g;
 	m_ambientcolor[2] = b;
+}
+
+void BlenderWorldInfo::UpdateBackGround()
+{
+	if (m_hasworld) {
+		RAS_IRasterizer *m_rasterizer = KX_GetActiveEngine()->GetRasterizer();
+
+		if (m_rasterizer->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID) {
+			m_rasterizer->SetBackColor(m_backgroundcolor);
+			GPU_horizon_update_color(m_backgroundcolor);
+		}
+	}
+}
+
+void BlenderWorldInfo::UpdateWorldSettings()
+{
+	if (m_hasworld) {
+		RAS_IRasterizer *m_rasterizer = KX_GetActiveEngine()->GetRasterizer();
+
+		if (m_rasterizer->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID) {
+			m_rasterizer->SetAmbientColor(m_ambientcolor);
+			GPU_ambient_update_color(m_ambientcolor);
+
+			if (m_hasmist) {
+				m_rasterizer->SetFog(m_misttype, m_miststart, m_mistdistance, m_mistintensity, m_mistcolor);
+				GPU_mist_update_values(m_misttype, m_miststart, m_mistdistance, m_mistintensity, m_mistcolor);
+				m_rasterizer->EnableFog(true);
+				GPU_mist_update_enable(true);
+			}
+			else {
+				m_rasterizer->EnableFog(false);
+				GPU_mist_update_enable(false);
+			}
+		}
+	}
 }

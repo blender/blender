@@ -57,9 +57,6 @@ public:
 
 	virtual bool hasWorld() = 0;
 	virtual bool hasMist() = 0;
-	virtual float getBackColorRed() = 0;
-	virtual float getBackColorGreen() = 0;
-	virtual float getBackColorBlue() = 0;
 	virtual short getMistType() = 0;
 	virtual float getMistStart() = 0;
 	virtual float getMistDistance() = 0;
@@ -67,11 +64,12 @@ public:
 	virtual float getMistColorRed() = 0;
 	virtual float getMistColorGreen() = 0;
 	virtual float getMistColorBlue() = 0;
-
+	virtual float getBackColorRed() = 0;
+	virtual float getBackColorGreen() = 0;
+	virtual float getBackColorBlue() = 0;
 	virtual float getAmbientColorRed() = 0;
 	virtual float getAmbientColorGreen() = 0;
 	virtual float getAmbientColorBlue() = 0;
-
 	virtual void setUseMist(bool enable) = 0;
 	virtual void setMistType(short) = 0;
 	virtual void setMistStart(float) = 0;
@@ -80,7 +78,8 @@ public:
 	virtual void setMistColor(float, float, float) = 0;
 	virtual void setBackColor(float, float, float) = 0;
 	virtual void setAmbientColor(float,float,float) = 0;
-
+	virtual void UpdateBackGround() = 0;
+	virtual void UpdateWorldSettings() = 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_WorldInfo")

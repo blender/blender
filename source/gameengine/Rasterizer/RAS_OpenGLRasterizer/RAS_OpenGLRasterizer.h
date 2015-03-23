@@ -80,14 +80,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	
 	/* fogging vars */
 	bool m_fogenabled;
-	short m_fogtype;
-	float m_fogstart;
-	float m_fogdist;
-	float m_fogintensity;
-	float m_fogr;
-	float m_fogg;
-	float m_fogb;
-	
+
 	float m_redback;
 	float m_greenback;
 	float m_blueback;
@@ -200,16 +193,12 @@ public:
 	virtual const MT_Point3& GetCameraPosition();
 	virtual bool GetCameraOrtho();
 	
-	virtual void SetFog(short type, float start, float dist, float intensity, float r, float g, float b);
-	virtual void SetFogColor(float r, float g, float b);
-	virtual void SetFogStart(float fogstart);
-	virtual void SetFogEnd(float fogend);
+	virtual void SetFog(short type, float start, float dist, float intensity, float color[3]);
 	virtual void EnableFog(bool enable);
 	virtual void DisplayFog();
-	virtual bool IsFogEnabled();
 
-	virtual void SetBackColor(float red, float green, float blue, float alpha);
-	
+	virtual void SetBackColor(float color[3]);
+
 	virtual void SetDrawingMode(int drawingmode);
 	virtual int GetDrawingMode();
 
@@ -229,7 +218,7 @@ public:
 	virtual void SetDiffuse(float difX, float difY, float difZ, float diffuse);
 	virtual void SetEmissive(float eX, float eY, float eZ, float e);
 
-	virtual void SetAmbientColor(float red, float green, float blue);
+	virtual void SetAmbientColor(float color[3]);
 	virtual void SetAmbient(float factor);
 
 	virtual void SetPolygonOffset(float mult, float add);

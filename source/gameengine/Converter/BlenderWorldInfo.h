@@ -31,37 +31,33 @@
 
 #ifndef __BLENDERWORLDINFO_H__
 #define __BLENDERWORLDINFO_H__
-#include "MT_CmMatrix4x4.h"
 #include "KX_WorldInfo.h"
+#include "KX_KetsjiEngine.h"
+#include "RAS_IRasterizer.h"
+
+struct Scene;
+struct World;
+const class KX_KetsjiEngine;
+const class RAS_IRasterizer;
 
 class BlenderWorldInfo : public KX_WorldInfo
 {
 	bool m_hasworld;
-	float m_backgroundcolor[3];
-
 	bool m_hasmist;
 	short m_misttype;
 	float m_miststart;
 	float m_mistdistance;
 	float m_mistintensity;
 	float m_mistcolor[3];
-
+	float m_backgroundcolor[3];
 	float m_ambientcolor[3];
 
 public:
-	BlenderWorldInfo(struct Scene *blenderscene, struct World *blenderworld);
+	BlenderWorldInfo(Scene *blenderscene, World *blenderworld);
 	~BlenderWorldInfo();
 
 	bool hasWorld();
 	bool hasMist();
-	float getBackColorRed();
-	float getBackColorGreen();
-	float getBackColorBlue();
-
-	float getAmbientColorRed();
-	float getAmbientColorGreen();
-	float getAmbientColorBlue();
-
 	short getMistType();
 	float getMistStart();
 	float getMistDistance();
@@ -69,7 +65,12 @@ public:
 	float getMistColorRed();
 	float getMistColorGreen();
 	float getMistColorBlue();
-
+	float getBackColorRed();
+	float getBackColorGreen();
+	float getBackColorBlue();
+	float getAmbientColorRed();
+	float getAmbientColorGreen();
+	float getAmbientColorBlue();
 	void setBackColor(float r, float g, float b);
 	void setUseMist(bool enable);
 	void setMistType(short type);
@@ -78,7 +79,8 @@ public:
 	void setMistIntensity(float intensity);
 	void setMistColor(float r, float g, float b);
 	void setAmbientColor(float r, float g, float b);
-
+	void UpdateBackGround();
+	void UpdateWorldSettings();
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BlenderWorldInfo")

@@ -200,7 +200,7 @@ void ImageRender::Render()
 	m_canvas->ClearColor(m_background[0], m_background[1], m_background[2], m_background[3]);
 	m_canvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER|RAS_ICanvas::DEPTH_BUFFER);
 	m_rasterizer->BeginFrame(m_engine->GetClockTime());
-	m_engine->SetWorldSettings(m_scene->GetWorldInfo());
+	m_scene->GetWorldInfo()->UpdateWorldSettings();
 	m_rasterizer->SetAuxilaryClientInfo(m_scene);
 	m_rasterizer->DisplayFog();
 	// matrix calculation, don't apply any of the stereo mode

@@ -205,14 +205,12 @@ private:
 	void					PostRenderScene(KX_Scene* scene);
 	void					RenderDebugProperties();
 	void					RenderShadowBuffers(KX_Scene *scene);
-	void					SetBackGround(KX_WorldInfo* worldinfo);
 
 public:
 	KX_KetsjiEngine(class KX_ISystem* system);
 	virtual ~KX_KetsjiEngine();
 
 	// set the devices and stuff. the client must take care of creating these
-	void			SetWorldSettings(KX_WorldInfo* worldinfo);
 	void			SetKeyboardDevice(SCA_IInputDevice* keyboarddevice);
 	void			SetMouseDevice(SCA_IInputDevice* mousedevice);
 	void			SetNetworkDevice(NG_NetworkDeviceInterface* networkdevice);

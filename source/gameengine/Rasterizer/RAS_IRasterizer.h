@@ -297,15 +297,11 @@ public:
 	/**
 	 * Fog
 	 */
-	virtual void SetFog(short type, float start, float dist, float intensity, float r, float g, float b) = 0;
-	virtual void SetFogColor(float r, float g,float b) = 0;
-	virtual void SetFogStart(float start) = 0;
-	virtual void SetFogEnd(float end) = 0;
+	virtual void SetFog(short type, float start, float dist, float intensity, float color[3]) = 0;
 	virtual void DisplayFog() = 0;
 	virtual void EnableFog(bool enable) = 0;
-	virtual bool IsFogEnabled() = 0;
 
-	virtual void SetBackColor(float red, float green, float blue, float alpha) = 0;
+	virtual void SetBackColor(float color[3]) = 0;
 	
 	/**
 	 * \param drawingmode = KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
@@ -380,7 +376,7 @@ public:
 	 */ 
 	virtual void SetEmissive(float eX, float eY, float eZ, float e) = 0;
 	
-	virtual void SetAmbientColor(float red, float green, float blue) = 0;
+	virtual void SetAmbientColor(float color[3]) = 0;
 	virtual void SetAmbient(float factor) = 0;
 
 	/**
