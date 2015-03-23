@@ -851,7 +851,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				/* binding takes care of setting the viewport to the downsampled size */
 				GPU_framebuffer_slots_bind(fx->gbuffer, 0);
 
-				GPU_framebuffer_check_valid(fx->gbuffer);
+				GPU_framebuffer_check_valid(fx->gbuffer, NULL);
 
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 				/* disable bindings */
