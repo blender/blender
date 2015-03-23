@@ -320,7 +320,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bo
 	if (selOnly)
 		paste_ok = ((pchan) && (pchan->bone->flag & BONE_SELECTED));
 	else
-		paste_ok = ((pchan != NULL));
+		paste_ok = (pchan != NULL);
 	
 	/* continue? */
 	if (paste_ok) {

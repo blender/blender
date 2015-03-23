@@ -1790,7 +1790,7 @@ float ED_view3d_radius_to_dist(
 		angle = focallength_to_fov(lens, sensor_size);
 
 		/* zoom influences lens, correct this by scaling the angle as a distance (by the zoom-level) */
-		angle = ((atanf(tanf(angle / 2.0f) * zoom) * 2.0f));
+		angle = atanf(tanf(angle / 2.0f) * zoom) * 2.0f;
 
 		dist = ED_view3d_radius_to_dist_persp(angle, radius);
 	}

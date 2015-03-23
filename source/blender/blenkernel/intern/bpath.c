@@ -393,7 +393,7 @@ static bool rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *a
 	}
 
 	if (visit_cb(userdata, path_dst, path_src)) {
-		MEM_freeN((*path));
+		MEM_freeN(*path);
 		(*path) = BLI_strdup(path_dst);
 		return true;
 	}

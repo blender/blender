@@ -2093,8 +2093,8 @@ static void rna_def_object_lodlevel(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "obhysteresis");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_range(prop, 0, 100, 10, 1);
-	RNA_def_property_ui_text(prop, "Hysteresis %", "Minimum distance change required to transition to the previous"
-								   " level of detail");
+	RNA_def_property_ui_text(prop, "Hysteresis %",
+	                         "Minimum distance change required to transition to the previous level of detail");
 	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
 
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);

@@ -219,7 +219,7 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
  * ``Y = 0.2126390059(R) + 0.7151686788(G) + 0.0721923154(B)``
  * according to: "Derivation of Basic Television Color Equations", RP 177-1993
  *
- * But this is sums slightly above 1.0, the document recommends to use:
+ * As this sums slightly above 1.0, the document recommends to use:
  * ``0.2126(R) + 0.7152(G) + 0.0722(B)``, as used here.
  *
  * The high precision values are used to calculate the rounded byte weights so they add up to 255:

@@ -230,7 +230,7 @@ void *BLI_linklist_pop(struct LinkNode **listp)
 	void *link = (*listp)->link;
 	void *next = (*listp)->next;
 
-	MEM_freeN((*listp));
+	MEM_freeN(*listp);
 
 	*listp = next;
 	return link;

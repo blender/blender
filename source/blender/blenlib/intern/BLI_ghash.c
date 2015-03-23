@@ -298,14 +298,14 @@ static void ghash_buckets_contract(
 
 #ifdef GHASH_USE_MODULO_BUCKETS
 	while ((nentries    < gh->limit_shrink) &&
-		   (gh->cursize > gh->size_min))
+	       (gh->cursize > gh->size_min))
 	{
 		new_nbuckets = hashsizes[--gh->cursize];
 		gh->limit_shrink = GHASH_LIMIT_SHRINK(new_nbuckets);
 	}
 #else
 	while ((nentries       < gh->limit_shrink) &&
-		   (gh->bucket_bit > gh->bucket_bit_min))
+	       (gh->bucket_bit > gh->bucket_bit_min))
 	{
 		new_nbuckets = 1u << --gh->bucket_bit;
 		gh->limit_shrink = GHASH_LIMIT_SHRINK(new_nbuckets);
@@ -525,7 +525,7 @@ static Entry *ghash_remove_ex(
 	Entry *e_prev;
 	Entry *e = ghash_lookup_entry_prev_ex(gh, key, &e_prev, bucket_index);
 
-	BLI_assert(!valfreefp|| !(gh->flag & GHASH_FLAG_IS_GSET));
+	BLI_assert(!valfreefp || !(gh->flag & GHASH_FLAG_IS_GSET));
 
 	if (e) {
 		if (keyfreefp) keyfreefp(e->key);
