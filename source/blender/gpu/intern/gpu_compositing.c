@@ -469,7 +469,7 @@ bool GPU_fx_compositor_initialize_passes(
 			}
 		}
 
-		fx->dof_high_quality = dof_high_quality;
+		fx->dof_high_quality = dof_high_quality  && GPU_geometry_shader_support() && GPU_instanced_drawing_support();
 	}
 	else {
 		/* cleanup unnecessary buffers */
@@ -850,6 +850,8 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_nearfar_coc, 2, NULL);
 				/* binding takes care of setting the viewport to the downsampled size */
 				GPU_framebuffer_slots_bind(fx->gbuffer, 0);
+
+				GPU_framebuffer_check_valid(fx->gbuffer);
 
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 				/* disable bindings */
