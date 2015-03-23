@@ -42,7 +42,7 @@ extern "C" {
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION         274
-#define BLENDER_SUBVERSION      1
+#define BLENDER_SUBVERSION      2
 /* Several breakages with 270, e.g. constraint deg vs rad */
 #define BLENDER_MINVERSION      270
 #define BLENDER_MINSUBVERSION   5
