@@ -1556,7 +1556,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 			}
 			if (blenderscene->gm.lodflag & SCE_LOD_USE_HYST) {
 				kxscene->SetLodHysteresis(true);
-				gameobj->SetLodHysteresisValue(blenderscene->gm.scehysteresis);
+				kxscene->SetLodHysteresisValue(blenderscene->gm.scehysteresis);
 			}
 		}
 	

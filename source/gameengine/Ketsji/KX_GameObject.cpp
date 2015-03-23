@@ -93,7 +93,6 @@ KX_GameObject::KX_GameObject(
       m_layer(0),
       m_currentLodLevel(0),
       m_previousLodLevel(0),
-      m_lodHysteresis(0),
       m_pBlenderObject(NULL),
       m_pBlenderGroupObject(NULL),
       m_bSuspendDynamics(false),
@@ -786,11 +785,6 @@ void KX_GameObject::AddLodMesh(RAS_MeshObject* mesh)
 	m_lodmeshes.push_back(mesh);
 }
 
-void KX_GameObject::SetLodHysteresisValue(int hysteresis)
-{
-	m_lodHysteresis = hysteresis;
-}
-
 void KX_GameObject::UpdateLod(MT_Vector3 &cam_pos)
 {
 	// Handle dupligroups
@@ -811,20 +805,20 @@ void KX_GameObject::UpdateLod(MT_Vector3 &cam_pos)
 	int level = 0;
 	Object *bob = this->GetBlenderObject();
 	LodLevel *lod = (LodLevel*) bob->lodlevels.first;
-	KX_Scene *sce = this->GetScene();
+	KX_Scene *kxscene = this->GetScene();
 
 	for (; lod; lod = lod->next, level++) {
 		if (!lod->source || lod->source->type != OB_MESH) level--;
 		if (!lod->next) break;
 		if (level == (this->m_previousLodLevel) || (level == (this->m_previousLodLevel + 1))) {
 			short hysteresis = 0;
-			if (sce->IsActivedLodHysteresis()) {
+			if (kxscene->IsActivedLodHysteresis()) {
 				// if exists, LoD level hysteresis will override scene hysteresis
 				if (lod->next->flags & OB_LOD_USE_HYST) {
 					hysteresis = lod->next->obhysteresis;
 				}
-				else if (this->m_lodHysteresis != 0) {
-					hysteresis = m_lodHysteresis;
+				else {
+					hysteresis = kxscene->GetLodHysteresisValue();
 				}
 			}
 			float hystvariance = MT_abs(lod->next->distance - lod->distance) * hysteresis / 100;
@@ -833,13 +827,13 @@ void KX_GameObject::UpdateLod(MT_Vector3 &cam_pos)
 		}
 		else if (level == (this->m_previousLodLevel - 1)) {
 			short hysteresis = 0;
-			if (sce->IsActivedLodHysteresis()) {
+			if (kxscene->IsActivedLodHysteresis()) {
 				// if exists, LoD level hysteresis will override scene hysteresis
 				if (lod->next->flags & OB_LOD_USE_HYST) {
 					hysteresis = lod->next->obhysteresis;
 				}
-				else if (this->m_lodHysteresis != 0) {
-					hysteresis = m_lodHysteresis;
+				else {
+					hysteresis = kxscene->GetLodHysteresisValue();
 				}
 			}
 			float hystvariance = MT_abs(lod->next->distance - lod->distance) * hysteresis / 100;

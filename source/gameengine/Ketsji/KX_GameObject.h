@@ -91,7 +91,6 @@ protected:
 	std::vector<RAS_MeshObject*>		m_lodmeshes;
 	int                                 m_currentLodLevel;
 	short								m_previousLodLevel;
-	int									m_lodHysteresis;
 	SG_QList							m_meshSlots;	// head of mesh slots of this 
 	struct Object*						m_pBlenderObject;
 	struct Object*						m_pBlenderGroupObject;
@@ -804,14 +803,6 @@ public:
 		void
 	AddLodMesh(
 		RAS_MeshObject* mesh
-	);
-
-	/**
-	 * Set lod hysteresis value
-	 */
-		void
-	SetLodHysteresisValue(
-		int hysteresis
 	);
 
 	/**
