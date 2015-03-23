@@ -40,6 +40,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device int bsdf_diffuse_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_DIFFUSE_ID;
+	sc->data0 = 0.0f;
+	sc->data1 = 0.0f;
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
@@ -83,6 +85,8 @@ ccl_device int bsdf_diffuse_sample(const ShaderClosure *sc, float3 Ng, float3 I,
 ccl_device int bsdf_translucent_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_TRANSLUCENT_ID;
+	sc->data0 = 0.0f;
+	sc->data1 = 0.0f;
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
