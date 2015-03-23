@@ -643,4 +643,32 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 274, 3)) {
+		FOREACH_NODETREE(main, ntree, id)
+		{
+			bNode *node;
+			bNodeSocket *sock;
+
+			for (node = ntree->nodes.first; node; node = node->next) {
+				if (node->type == SH_NODE_MATERIAL) {
+					for (sock = node->inputs.first; sock; sock = sock->next) {
+						if (STREQ(sock->name, "Refl")) {
+							BLI_strncpy(sock->name, "DiffuseIntensity", sizeof(sock->name));
+						}
+					}
+				}
+				else if (node->type == SH_NODE_MATERIAL_EXT) {
+					for (sock = node->outputs.first; sock; sock = sock->next) {
+						if (STREQ(sock->name, "Refl")) {
+							BLI_strncpy(sock->name, "DiffuseIntensity", sizeof(sock->name));
+						}
+						else if (STREQ(sock->name, "Ray Mirror")) {
+							BLI_strncpy(sock->name, "Reflectivity", sizeof(sock->name));
+						}
+					}
+				}
+			}
+		}
+		FOREACH_NODETREE_END
+	}
 }
