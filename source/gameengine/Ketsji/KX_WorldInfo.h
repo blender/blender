@@ -81,20 +81,6 @@ public:
 
 	const STR_String &GetName();
 	bool hasWorld();
-	bool hasMist();
-	short getMistType();
-	float getMistStart();
-	float getMistDistance();
-	float getMistIntensity();
-	float getMistColorRed();
-	float getMistColorGreen();
-	float getMistColorBlue();
-	float getBackColorRed();
-	float getBackColorGreen();
-	float getBackColorBlue();
-	float getAmbientColorRed();
-	float getAmbientColorGreen();
-	float getAmbientColorBlue();
 	void setUseMist(bool enable);
 	void setMistType(short type);
 	void setMistStart(float d);

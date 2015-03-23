@@ -87,18 +87,6 @@ Constants
 
    Right eye being used during stereoscopic rendering.
 
-.. data:: KX_MIST_QUADRATIC
-
-   Type of quadratic attenuation used to fade mist. (Deprecated: use KX_WorldInfo.KX_MIST_QUADRATIC)
-
-.. data:: KX_MIST_LINEAR
-
-   Type of linear attenuation used to fade mist. (Deprecated: use KX_WorldInfo.KX_MIST_LINEAR)
-
-.. data:: KX_MIST_INV_QUADRATIC
-
-   Type of inverse quadratic attenuation used to fade mist. (Deprecated: use KX_WorldInfo.KX_MIST_INV_QUADRATIC)
-
 
 *********
 Functions
@@ -176,64 +164,6 @@ Functions
    Sets the window background color. (Deprecated: use KX_WorldInfo.background_color)
 
    :type rgba: list [r, g, b, a]
-
-
-.. function:: setAmbientColor(rgb)
-
-   Sets the color of ambient light. (Deprecated: use KX_WorldInfo.ambient_color)
-
-   :type rgb: list [r, g, b]
-
-
-.. function:: setMistColor(rgb)
-
-   Sets the mist color. (Deprecated: use KX_WorldInfo.mist_color)
-
-   :type rgb: list [r, g, b]
-
-
-.. function:: setMistType(mode)
-
-   Sets the mist attenuation type. (Deprecated: use KX_WorldInfo.mist_type)
-
-   :type mode: KX_MIST_QUADRATIC, KX_MIST_LINEAR, KX_MIST_INV_QUADRATIC
-
-
-.. function:: setMistStart(start)
-
-   Sets the mist start value. Objects further away than start will have mist applied to them.
-   (Deprecated: use KX_WorldInfo.mist_start)
-
-   :type start: float
-
-
-.. function:: setMistEnd(end)
-
-   Sets the mist end value.  Objects further away from this will be colored solid with
-   the color set by setMistColor(). (Deprecated: use KX_WorldInfo.mist_distance)
-
-   :type end: float
-
-
-.. function:: setMistIntensity(intensity)
-
-   Sets the mist intensity value. (Deprecated: use KX_WorldInfo.mist_intensity)
-
-   :type start: float
-
-.. function:: disableMist()
-
-
-   Disables mist.
-   
-   .. note:: Deprecated: use KX_WorldInfo.mist_enable.
-
-   
-.. function:: setUseMist(enable)
-
-   Disable or enable the mist. (Deprecated: use KX_WorldInfo.mist_enable)
-
-   :type enable: boolean
 
 
 .. function:: setEyeSeparation(eyesep)
