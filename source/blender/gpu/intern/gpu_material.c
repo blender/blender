@@ -452,7 +452,7 @@ bool GPU_material_do_color_management(GPUMaterial *mat)
 	if (!BKE_scene_check_color_management_enabled(mat->scene))
 		return false;
 
-	return !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT));
+	return true;
 }
 
 bool GPU_material_use_new_shading_nodes(GPUMaterial *mat)

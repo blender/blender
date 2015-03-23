@@ -51,11 +51,15 @@ class BlenderWorldInfo : public KX_WorldInfo
 	float m_mistcolor[3];
 	float m_backgroundcolor[3];
 	float m_ambientcolor[3];
+	float m_con_mistcolor[3];
+	float m_con_backgroundcolor[3];
+	float m_con_ambientcolor[3];
 
 public:
 	BlenderWorldInfo(Scene *blenderscene, World *blenderworld);
 	~BlenderWorldInfo();
 
+	bool m_do_color_management;
 	bool hasWorld();
 	bool hasMist();
 	short getMistType();

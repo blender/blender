@@ -54,21 +54,16 @@
 BlenderWorldInfo::BlenderWorldInfo(Scene *blenderscene, World *blenderworld)
 {
 	if (blenderworld) {
+		m_do_color_management = BKE_scene_check_color_management_enabled(blenderscene);
 		m_hasworld = true;
 		m_hasmist = ((blenderworld->mode) & WO_MIST ? true : false);
 		m_misttype = blenderworld->mistype;
 		m_miststart = blenderworld->miststa;
 		m_mistdistance = blenderworld->mistdist;
 		m_mistintensity = blenderworld->misi;
-		copy_v3_v3(m_mistcolor, &blenderworld->horr);
-		copy_v3_v3(m_backgroundcolor, &blenderworld->horr);
-		copy_v3_v3(m_ambientcolor, &blenderworld->ambr);
-
-		if (BKE_scene_check_color_management_enabled(blenderscene)) {
-			linearrgb_to_srgb_v3_v3(m_mistcolor, m_mistcolor);
-			linearrgb_to_srgb_v3_v3(m_backgroundcolor, m_backgroundcolor);
-			linearrgb_to_srgb_v3_v3(m_ambientcolor, m_ambientcolor);
-		}
+		setMistColor(blenderworld->horr, blenderworld->horg, blenderworld->horb);
+		setBackColor(blenderworld->horr, blenderworld->horg, blenderworld->horb);
+		setAmbientColor(blenderworld->ambr, blenderworld->ambg, blenderworld->ambb);
 	}
 	else {
 		m_hasworld = false;
@@ -159,6 +154,13 @@ void BlenderWorldInfo::setBackColor(float r, float g, float b)
 	m_backgroundcolor[0] = r;
 	m_backgroundcolor[1] = g;
 	m_backgroundcolor[2] = b;
+
+	if (m_do_color_management) {
+		linearrgb_to_srgb_v3_v3(m_con_backgroundcolor, m_backgroundcolor);
+	}
+	else {
+		copy_v3_v3(m_con_backgroundcolor, m_backgroundcolor);
+	}
 }
 
 void BlenderWorldInfo::setMistType(short type)
@@ -190,6 +192,13 @@ void BlenderWorldInfo::setMistColor(float r, float g, float b)
 	m_mistcolor[0] = r;
 	m_mistcolor[1] = g;
 	m_mistcolor[2] = b;
+
+	if (m_do_color_management) {
+		linearrgb_to_srgb_v3_v3(m_con_mistcolor, m_mistcolor);
+	}
+	else {
+		copy_v3_v3(m_con_mistcolor, m_mistcolor);
+	}
 }
 
 void BlenderWorldInfo::setAmbientColor(float r, float g, float b)
@@ -197,6 +206,13 @@ void BlenderWorldInfo::setAmbientColor(float r, float g, float b)
 	m_ambientcolor[0] = r;
 	m_ambientcolor[1] = g;
 	m_ambientcolor[2] = b;
+
+	if (m_do_color_management) {
+		linearrgb_to_srgb_v3_v3(m_con_ambientcolor, m_ambientcolor);
+	}
+	else {
+		copy_v3_v3(m_con_ambientcolor, m_ambientcolor);
+	}
 }
 
 void BlenderWorldInfo::UpdateBackGround()
@@ -205,7 +221,7 @@ void BlenderWorldInfo::UpdateBackGround()
 		RAS_IRasterizer *m_rasterizer = KX_GetActiveEngine()->GetRasterizer();
 
 		if (m_rasterizer->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID) {
-			m_rasterizer->SetBackColor(m_backgroundcolor);
+			m_rasterizer->SetBackColor(m_con_backgroundcolor);
 			GPU_horizon_update_color(m_backgroundcolor);
 		}
 	}
@@ -217,11 +233,11 @@ void BlenderWorldInfo::UpdateWorldSettings()
 		RAS_IRasterizer *m_rasterizer = KX_GetActiveEngine()->GetRasterizer();
 
 		if (m_rasterizer->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID) {
-			m_rasterizer->SetAmbientColor(m_ambientcolor);
+			m_rasterizer->SetAmbientColor(m_con_ambientcolor);
 			GPU_ambient_update_color(m_ambientcolor);
 
 			if (m_hasmist) {
-				m_rasterizer->SetFog(m_misttype, m_miststart, m_mistdistance, m_mistintensity, m_mistcolor);
+				m_rasterizer->SetFog(m_misttype, m_miststart, m_mistdistance, m_mistintensity, m_con_mistcolor);
 				GPU_mist_update_values(m_misttype, m_miststart, m_mistdistance, m_mistintensity, m_mistcolor);
 				m_rasterizer->EnableFog(true);
 				GPU_mist_update_enable(true);

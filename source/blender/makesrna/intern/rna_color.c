@@ -447,6 +447,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(b
 
 		IMB_colormanagement_validate_settings(&scene->display_settings, &scene->view_settings);
 
+		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 	}
 }
