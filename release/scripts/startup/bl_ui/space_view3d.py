@@ -2568,10 +2568,6 @@ class VIEW3D_MT_edit_font(Menu):
         layout.operator("font.style_toggle", text="Toggle Underline").style = 'UNDERLINE'
         layout.operator("font.style_toggle", text="Toggle Small Caps").style = 'SMALL_CAPS'
 
-        layout.separator()
-
-        layout.operator("font.insert_lorem")
-
 
 class VIEW3D_MT_edit_text_chars(Menu):
     bl_label = "Special Characters"

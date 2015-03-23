@@ -275,57 +275,6 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
 
-/********************** insert lorem operator *********************/
-
-static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *obedit = CTX_data_edit_object(C);
-	const char *p, *p2;
-	int i;
-	static const char *lastlorem = NULL;
-	
-	if (lastlorem)
-		p = lastlorem;
-	else
-		p = ED_lorem;
-	
-	i = rand() / (RAND_MAX / 6) + 4;
-		
-	for (p2 = p; *p2 && i; p2++) {
-		insert_into_textbuf(obedit, *p2);
-
-		if (*p2 == '.')
-			i--;
-	}
-
-	lastlorem = p2 + 1;
-	if (strlen(lastlorem) < 5)
-		lastlorem = ED_lorem;
-	
-	insert_into_textbuf(obedit, '\n');
-	insert_into_textbuf(obedit, '\n');
-
-	DAG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-
-	return OPERATOR_FINISHED;
-}
-
-void FONT_OT_insert_lorem(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Insert Lorem";
-	ot->description = "Insert placeholder text";
-	ot->idname = "FONT_OT_insert_lorem";
-	
-	/* api callbacks */
-	ot->exec = insert_lorem_exec;
-	ot->poll = ED_operator_editfont;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 /* -------------------------------------------------------------------- */
 /* Generic Paste Functions */
 

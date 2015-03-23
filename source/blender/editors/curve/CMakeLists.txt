@@ -38,7 +38,6 @@ set(SRC
 	editcurve.c
 	editcurve_add.c
 	editfont.c
-	lorem.c
 
 	curve_intern.h
 )
