@@ -12,9 +12,9 @@ blender_version_char=$(sed -ne 's/.*BLENDER_VERSION_CHAR.*\([a-z]\)$/\1/p' $blen
 # map the version a -> 1
 # not to be confused with blender's internal subversions
 if [ "$blender_version_char" ]; then
-    blender_version_full=${blender_version}.$(expr index abcdefghijklmnopqrstuvwxyz $blender_version_char)
+  blender_version_full=${blender_version}.$(expr index abcdefghijklmnopqrstuvwxyz $blender_version_char)
 else
-	blender_version_full=${blender_version}
+  blender_version_full=${blender_version}
 fi
 
 blender_ver_string=$blender_version+git$blender_version_full
@@ -60,7 +60,7 @@ package() {
   cd $srcdir/build
   make DESTDIR="$pkgdir" install
   python -m compileall \
-	$pkgdir/usr/share/blender/$blender_version/scripts/startup \
-	$pkgdir/usr/share/blender/$blender_version/scripts/modules \
-	$pkgdir/usr/share/blender/$blender_version/scripts/addons
+  $pkgdir/usr/share/blender/$blender_version/scripts/startup \
+  $pkgdir/usr/share/blender/$blender_version/scripts/modules \
+  $pkgdir/usr/share/blender/$blender_version/scripts/addons
 }

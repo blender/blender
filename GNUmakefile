@@ -171,7 +171,7 @@ help: FORCE
 	@echo ""
 	@echo "Package Targets"
 	@echo "  * package_debian  - build a debian package"
-	@echo "  * package_pacman  - build an arch linux pacmanpackage"
+	@echo "  * package_pacman  - build an arch linux pacman package"
 	@echo "  * package_archive - build an archive package"
 	@echo ""
 	@echo "Testing Targets (not associated with building blender)"
@@ -218,7 +218,7 @@ package_debian: FORCE
 	cd build_files/package_spec ; DEB_BUILD_OPTIONS="parallel=$(NPROCS)" sh ./build_debian.sh
 
 package_pacman: FORCE
-	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg --asroot
+	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg
 
 package_archive: FORCE
 	make -C "$(BUILD_DIR)" -s package_archive
