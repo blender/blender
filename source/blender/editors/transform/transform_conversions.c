@@ -1972,17 +1972,19 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 		int i;
 
 		BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+			float dist;
 			BM_elem_index_set(v, i); /* set_inline */
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT) == 0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
-				dists[i] = FLT_MAX;
+				dist = FLT_MAX;
 			}
 			else {
 				BLI_LINKSTACK_PUSH(queue, v);
-
-				dists[i] = 0.0f;
+				dist = 0.0f;
 			}
+
+			dists[i] = dists_prev[i] = dist;
 		}
 		bm->elem_index_dirty &= ~BM_VERT;
 	}
@@ -1991,55 +1993,77 @@ static void editmesh_set_connectivity_distance(BMesh *bm, float mtx[3][3], float
 		BMVert *v;
 		LinkNode *lnk;
 
+		/* this is correct but slow to do each iteration,
+		 * instead sync the dist's while clearing BM_ELEM_TAG (below) */
+#if 0
 		memcpy(dists_prev, dists, sizeof(float) * bm->totvert);
+#endif
 
 		while ((v = BLI_LINKSTACK_POP(queue))) {
-			/* quick checks */
-			bool has_edges = (v->e != NULL);
-			bool has_faces = false;
+			BLI_assert(dists[BM_elem_index_get(v)] != FLT_MAX);
 
 			/* connected edge-verts */
-			if (has_edges) {
-				BMIter iter;
-				BMEdge *e;
+			if (v->e != NULL) {
+				BMEdge *e_iter, *e_first;
 
-				BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-					has_faces |= (BM_edge_is_wire(e) == false);
+				e_iter = e_first = v->e;
 
-					if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == 0) {
-						BMVert *v_other = BM_edge_other_vert(e, v);
+				/* would normally use BM_EDGES_OF_VERT, but this runs so often,
+				 * its faster to iterate on the data directly */
+				do {
+
+					if (BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == 0) {
+
+						/* edge distance */
+						BMVert *v_other = BM_edge_other_vert(e_iter, v);
 						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
 							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
 								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
 								BLI_LINKSTACK_PUSH(queue_next, v_other);
 							}
 						}
-					}
-				}
-			}
-			
-			/* imaginary edge diagonally across quad */
-			if (has_faces) {
-				BMIter iter;
-				BMLoop *l;
 
-				BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-					if ((BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0) && (l->f->len == 4)) {
-						BMVert *v_other = l->next->next->v;
-						if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
-							if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
-								BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-								BLI_LINKSTACK_PUSH(queue_next, v_other);
-							}
+						/* face distance */
+						if (e_iter->l) {
+							BMLoop *l_iter_radial, *l_first_radial;
+							/**
+							 * imaginary edge diagonally across quad,
+							 * \note, this takes advantage of the rules of winding that we
+							 * know 2 or more of a verts edges wont reference the same face twice.
+							 * Also, if the edge is hidden, the face will be hidden too.
+							 */
+							l_iter_radial = l_first_radial = e_iter->l;
+
+							do {
+								if ((l_iter_radial->v == v) &&
+								    (l_iter_radial->f->len == 4) &&
+								    (BM_elem_flag_test(l_iter_radial->f, BM_ELEM_HIDDEN) == 0))
+								{
+									BMVert *v_other = l_iter_radial->next->next->v;
+									if (bmesh_test_dist_add(v, v_other, dists, dists_prev, mtx)) {
+										if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
+											BM_elem_flag_enable(v_other, BM_ELEM_TAG);
+											BLI_LINKSTACK_PUSH(queue_next, v_other);
+										}
+									}
+								}
+							} while ((l_iter_radial = l_iter_radial->radial_next) != l_first_radial);
 						}
 					}
-				}
+				} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
 			}
 		}
 
+
 		/* clear for the next loop */
 		for (lnk = queue_next; lnk; lnk = lnk->next) {
-			BM_elem_flag_disable((BMVert *)lnk->link, BM_ELEM_TAG);
+			BMVert *v = lnk->link;
+			const int i = BM_elem_index_get(v);
+
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
+
+			/* keep in sync, avoid having to do full memcpy each iteration */
+			dists_prev[i] = dists[i];
 		}
 
 		BLI_LINKSTACK_SWAP(queue, queue_next);
