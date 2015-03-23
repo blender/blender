@@ -202,7 +202,7 @@ public:
 	virtual void SetFogColor(float r, float g, float b);
 	virtual void SetFogStart(float fogstart);
 	virtual void SetFogEnd(float fogend);
-	void DisableFog();
+	virtual void EnableFog(bool enable);
 	virtual void DisplayFog();
 	virtual bool IsFogEnabled();
 

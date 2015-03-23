@@ -61,12 +61,12 @@ public:
 	virtual float getAmbientColorGreen() = 0;
 	virtual float getAmbientColorBlue() = 0;
 
-	virtual void setBackColor(float, float, float) = 0;
+	virtual void setUseMist(bool enable) = 0;
 	virtual void setMistStart(float) = 0;
 	virtual void setMistDistance(float) = 0;
-	virtual void setMistColorRed(float) = 0;
-	virtual void setMistColorGreen(float) = 0;
-	virtual void setMistColorBlue(float) = 0;
+	virtual void setMistColor(float, float, float) = 0;
+	virtual void setBackColor(float, float, float) = 0;
+	virtual void setAmbientColor(float,float,float) = 0;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

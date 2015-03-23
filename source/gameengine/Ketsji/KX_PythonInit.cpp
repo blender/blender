@@ -1029,108 +1029,118 @@ static PyObject *gPyGetStereoEye(PyObject *, PyObject *, PyObject *)
 
 static PyObject *gPySetBackgroundColor(PyObject *, PyObject *value)
 {
-	
 	MT_Vector4 vec;
 	if (!PyVecTo(value, vec))
 		return NULL;
-	
-	if (gp_Canvas)
-	{
-		gp_Rasterizer->SetBackColor((float)vec[0], (float)vec[1], (float)vec[2], (float)vec[3]);
-	}
 
 	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
-	if (wi->hasWorld())
-		wi->setBackColor((float)vec[0], (float)vec[1], (float)vec[2]);
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.SetBackgroundColor(color), World not available");
+		return NULL;
+	}
+
+	wi->setBackColor((float)vec[0], (float)vec[1], (float)vec[2]);
 
 	Py_RETURN_NONE;
 }
 
-
-
 static PyObject *gPySetMistColor(PyObject *, PyObject *value)
 {
-	
 	MT_Vector3 vec;
 	if (!PyVecTo(value, vec))
 		return NULL;
-	
-	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistColor(color), Rasterizer not available");
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.setMistColor(color), World not available");
 		return NULL;
 	}
-	gp_Rasterizer->SetFogColor((float)vec[0], (float)vec[1], (float)vec[2]);
-	
+
+	wi->setMistColor((float)vec[0], (float)vec[1], (float)vec[2]);
+
 	Py_RETURN_NONE;
 }
 
 static PyObject *gPyDisableMist(PyObject *)
 {
-	
-	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistColor(color), Rasterizer not available");
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.DisableMist(), World not available");
 		return NULL;
 	}
-	gp_Rasterizer->DisableFog();
-	
+	ShowDeprecationWarning("DisableMist()", "setUseMist(false)");
+	wi->setUseMist(false);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPySetUseMist(PyObject *, PyObject *args)
+{
+	int enable;
+	if (!PyArg_ParseTuple(args,"i:setUseMist",&enable))
+		return NULL;
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.setUseMist(enable), World not available");
+		return NULL;
+	}
+
+	wi->setUseMist(enable);
+
 	Py_RETURN_NONE;
 }
 
 static PyObject *gPySetMistStart(PyObject *, PyObject *args)
 {
-
 	float miststart;
 	if (!PyArg_ParseTuple(args,"f:setMistStart",&miststart))
 		return NULL;
-	
-	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistStart(float), Rasterizer not available");
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.setMistStart(float), World not available");
 		return NULL;
 	}
-	
-	gp_Rasterizer->SetFogStart(miststart);
-	
+
+	wi->setMistStart(miststart);
+
 	Py_RETURN_NONE;
 }
-
-
 
 static PyObject *gPySetMistEnd(PyObject *, PyObject *args)
 {
-
-	float mistend;
-	if (!PyArg_ParseTuple(args,"f:setMistEnd",&mistend))
+	float mistdist;
+	if (!PyArg_ParseTuple(args,"f:setMistEnd",&mistdist))
 		return NULL;
-	
-	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistEnd(float), Rasterizer not available");
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.setMistEnd(float), World not available");
 		return NULL;
 	}
-	
-	gp_Rasterizer->SetFogEnd(mistend);
-	
+
+	wi->setMistDistance(mistdist);
+
 	Py_RETURN_NONE;
 }
-
 
 static PyObject *gPySetAmbientColor(PyObject *, PyObject *value)
 {
-	
 	MT_Vector3 vec;
 	if (!PyVecTo(value, vec))
 		return NULL;
-	
-	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setAmbientColor(color), Rasterizer not available");
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.setAmbientColor(color), World not available");
 		return NULL;
 	}
-	gp_Rasterizer->SetAmbientColor((float)vec[0], (float)vec[1], (float)vec[2]);
-	
+
+	wi->setAmbientColor((float)vec[0], (float)vec[1], (float)vec[2]);
+
 	Py_RETURN_NONE;
 }
-
-
-
 
 static PyObject *gPyMakeScreenshot(PyObject *, PyObject *args)
 {
@@ -1510,9 +1520,10 @@ static struct PyMethodDef rasterizer_methods[] = {
 	{"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_O,"set Background Color (rgb)"},
 	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_O,"set Ambient Color (rgb)"},
 	{"disableMist",(PyCFunction)gPyDisableMist,METH_NOARGS,"turn off mist"},
+	{"setUseMist",(PyCFunction)gPySetUseMist,METH_VARARGS,"enable or disable mist"},
 	{"setMistColor",(PyCFunction)gPySetMistColor,METH_O,"set Mist Color (rgb)"},
-	{"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
-	{"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
+	{"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start"},
+	{"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End"},
 	{"enableMotionBlur",(PyCFunction)gPyEnableMotionBlur,METH_VARARGS,"enable motion blur"},
 	{"disableMotionBlur",(PyCFunction)gPyDisableMotionBlur,METH_NOARGS,"disable motion blur"},
 

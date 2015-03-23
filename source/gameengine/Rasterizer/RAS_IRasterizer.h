@@ -302,7 +302,7 @@ public:
 	virtual void SetFogStart(float start) = 0;
 	virtual void SetFogEnd(float end) = 0;
 	virtual void DisplayFog() = 0;
-	virtual void DisableFog() = 0;
+	virtual void EnableFog(bool enable) = 0;
 	virtual bool IsFogEnabled() = 0;
 
 	virtual void SetBackColor(float red, float green, float blue, float alpha) = 0;

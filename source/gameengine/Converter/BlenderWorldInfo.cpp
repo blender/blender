@@ -69,21 +69,10 @@ BlenderWorldInfo::BlenderWorldInfo(struct Scene *blenderscene, struct World *ble
 {
 	if (blenderworld) {
 		m_hasworld = true;
-
-		// do we have mist?
-		if ((blenderworld->mode) & WO_MIST) {
-			m_hasmist = true;
-			m_miststart = blenderworld->miststa;
-			m_mistdistance = blenderworld->mistdist;
-			copy_v3_v3(m_mistcolor, &blenderworld->horr);
-		}
-		else {
-			m_hasmist = false;
-			m_miststart = 0.0;
-			m_mistdistance = 0.0;
-			zero_v3(m_mistcolor);
-		}
-
+		m_hasmist = ((blenderworld->mode) & WO_MIST ? true : false);
+		m_miststart = blenderworld->miststa;
+		m_mistdistance = blenderworld->mistdist;
+		copy_v3_v3(m_mistcolor, &blenderworld->horr);
 		copy_v3_v3(m_backgroundcolor, &blenderworld->horr);
 		copy_v3_v3(m_ambientcolor, &blenderworld->ambr);
 
@@ -174,6 +163,11 @@ void BlenderWorldInfo::setBackColor(float r, float g, float b)
 	m_backgroundcolor[2] = b;
 }
 
+void BlenderWorldInfo::setUseMist(bool enable)
+{
+	m_hasmist = enable;
+}
+
 void BlenderWorldInfo::setMistStart(float d)
 {
 	m_miststart = d;
@@ -184,17 +178,16 @@ void BlenderWorldInfo::setMistDistance(float d)
 	m_mistdistance = d;
 }
 
-void BlenderWorldInfo::setMistColorRed(float d)
+void BlenderWorldInfo::setMistColor(float r, float g, float b)
 {
-	m_mistcolor[0] = d;
+	m_mistcolor[0] = r;
+	m_mistcolor[1] = g;
+	m_mistcolor[2] = b;
 }
 
-void BlenderWorldInfo::setMistColorGreen(float d)
+void BlenderWorldInfo::setAmbientColor(float r, float g, float b)
 {
-	m_mistcolor[1] = d;
-}
-
-void BlenderWorldInfo::setMistColorBlue(float d)
-{
-	m_mistcolor[2] = d;
+	m_ambientcolor[0] = r;
+	m_ambientcolor[1] = g;
+	m_ambientcolor[2] = b;
 }

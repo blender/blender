@@ -67,11 +67,11 @@ public:
 	float getMistColorBlue();
 
 	void setBackColor(float r, float g, float b);
+	void setUseMist(bool enable);
 	void setMistStart(float d);
 	void setMistDistance(float d);
-	void setMistColorRed(float d);
-	void setMistColorGreen(float d);
-	void setMistColorBlue(float d);
+	void setMistColor(float r, float g, float b);
+	void setAmbientColor(float r, float g, float b);
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

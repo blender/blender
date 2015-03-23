@@ -985,15 +985,14 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 {
 	if (wi->hasWorld())
 	{
-		// ...
-		m_rasterizer->SetAmbientColor(
-			wi->getAmbientColorRed(),
-			wi->getAmbientColorGreen(),
-			wi->getAmbientColorBlue()
-		);
-
 		if (m_rasterizer->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID)
 		{
+			m_rasterizer->SetAmbientColor(
+				wi->getAmbientColorRed(),
+				wi->getAmbientColorGreen(),
+				wi->getAmbientColorBlue()
+				);
+
 			if (wi->hasMist())
 			{
 				m_rasterizer->SetFog(
@@ -1003,6 +1002,10 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 					wi->getMistColorGreen(),
 					wi->getMistColorBlue()
 				);
+				m_rasterizer->EnableFog(true);
+			}
+			else {
+				m_rasterizer->EnableFog(false);
 			}
 		}
 	}

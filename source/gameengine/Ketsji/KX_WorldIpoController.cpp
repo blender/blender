@@ -57,9 +57,7 @@ bool KX_WorldIpoController::Update(double currentTime)
 		}
 
 		if (m_modify_mist_color) {
-			world->setMistColorRed(m_mist_rgb[0]);
-			world->setMistColorGreen(m_mist_rgb[1]);
-			world->setMistColorBlue(m_mist_rgb[2]);
+			world->setMistColor(m_mist_rgb[0], m_mist_rgb[1], m_mist_rgb[2]);
 		}
 
 		if (m_modify_mist_dist) {

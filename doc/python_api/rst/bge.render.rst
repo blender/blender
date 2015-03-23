@@ -198,9 +198,16 @@ Functions
 
    Disables mist.
    
-   .. note:: Set any of the mist properties to enable mist.
+   .. note:: Deprecated use setUseMist().
 
    
+.. function:: setUseMist(enable)
+
+   Disable or enable the mist.
+
+   :type enable: boolean
+
+
 .. function:: setEyeSeparation(eyesep)
 
    Sets the eye separation for stereo mode. Usually Focal Length/30 provides a confortable value.

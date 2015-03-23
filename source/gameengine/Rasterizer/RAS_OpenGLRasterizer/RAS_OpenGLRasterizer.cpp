@@ -229,7 +229,6 @@ void RAS_OpenGLRasterizer::SetFogColor(float r,
 	m_fogr = r;
 	m_fogg = g;
 	m_fogb = b;
-	m_fogenabled = true;
 }
 
 
@@ -237,7 +236,6 @@ void RAS_OpenGLRasterizer::SetFogColor(float r,
 void RAS_OpenGLRasterizer::SetFogStart(float start)
 {
 	m_fogstart = start;
-	m_fogenabled = true;
 }
 
 
@@ -245,7 +243,6 @@ void RAS_OpenGLRasterizer::SetFogStart(float start)
 void RAS_OpenGLRasterizer::SetFogEnd(float fogend)
 {
 	m_fogdist = fogend;
-	m_fogenabled = true;
 }
 
 
@@ -261,14 +258,13 @@ void RAS_OpenGLRasterizer::SetFog(float start,
 	m_fogr = r;
 	m_fogg = g;
 	m_fogb = b;
-	m_fogenabled = true;
 }
 
 
 
-void RAS_OpenGLRasterizer::DisableFog()
+void RAS_OpenGLRasterizer::EnableFog(bool enable)
 {
-	m_fogenabled = false;
+	m_fogenabled = enable;
 }
 
 bool RAS_OpenGLRasterizer::IsFogEnabled()
@@ -281,16 +277,12 @@ void RAS_OpenGLRasterizer::DisplayFog()
 {
 	if ((m_drawingmode >= KX_SOLID) && m_fogenabled)
 	{
-		float params[5];
+		float params[4] = {m_fogr, m_fogg, m_fogb, 1.0f};
 		glFogi(GL_FOG_MODE, GL_LINEAR);
 		glFogf(GL_FOG_DENSITY, 0.1f);
 		glFogf(GL_FOG_START, m_fogstart);
 		glFogf(GL_FOG_END, m_fogstart + m_fogdist);
-		params[0] = m_fogr;
-		params[1] = m_fogg;
-		params[2] = m_fogb;
-		params[3] = 0.0;
-		glFogfv(GL_FOG_COLOR, params); 
+		glFogfv(GL_FOG_COLOR, params);
 		glEnable(GL_FOG);
 	} 
 	else
