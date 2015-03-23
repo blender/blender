@@ -403,13 +403,13 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_MIST);
 	RNA_def_property_ui_text(prop, "Use Mist", "Occlude objects with the environment color as they are further away");
-	RNA_def_property_update(prop, 0, "rna_World_draw_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 
 	prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "misi");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Minimum", "Overall minimum intensity of the mist effect");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 
 	prop = RNA_def_property(srna, "start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "miststa");
@@ -435,7 +435,7 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mistype");
 	RNA_def_property_enum_items(prop, falloff_items);
 	RNA_def_property_ui_text(prop, "Falloff", "Type of transition used to fade mist");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 }
 
 void RNA_def_world(BlenderRNA *brna)
@@ -460,8 +460,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Horizon Color", "Color at the horizon");
 	/* RNA_def_property_update(prop, 0, "rna_World_update"); */
 	/* render-only uses this */
-	RNA_def_property_update(prop, NC_WORLD | ND_WORLD_DRAW, "rna_World_update");
-
+	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 	
 	prop = RNA_def_property(srna, "zenith_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "zenr");
@@ -473,7 +472,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Ambient Color", "Ambient color of the world");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 
 	/* exp, range */
 	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_NONE);
