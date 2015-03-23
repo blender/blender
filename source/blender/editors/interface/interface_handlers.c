@@ -4705,8 +4705,8 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 
 	switch ((int)but->a1) {
 		case UI_GRAD_SV:
-			hsv[2] = x;
-			hsv[1] = y;
+			hsv[1] = x;
+			hsv[2] = y;
 			break;
 		case UI_GRAD_HV:
 			hsv[0] = x;
@@ -4783,8 +4783,8 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 
 	switch ((int)but->a1) {
 		case UI_GRAD_SV:
-			hsv[2] += ndof->rvec[2] * sensitivity;
-			hsv[1] += ndof->rvec[0] * sensitivity;
+			hsv[1] += ndof->rvec[2] * sensitivity;
+			hsv[2] += ndof->rvec[0] * sensitivity;
 			break;
 		case UI_GRAD_HV:
 			hsv[0] += ndof->rvec[2] * sensitivity;
