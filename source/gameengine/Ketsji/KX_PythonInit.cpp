@@ -1091,6 +1091,29 @@ static PyObject *gPySetUseMist(PyObject *, PyObject *args)
 	Py_RETURN_NONE;
 }
 
+static PyObject *gPySetMistType(PyObject *, PyObject *args)
+{
+	short type;
+
+	if (!PyArg_ParseTuple(args,"i:setMistType",&type))
+		return NULL;
+
+	if (type < 0 || type > 2) {
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMistType(int): Mist type is not known");
+		return NULL;
+	}
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.setMistType(int), World not available");
+		return NULL;
+	}
+
+	wi->setMistType(type);
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *gPySetMistStart(PyObject *, PyObject *args)
 {
 	float miststart;
@@ -1121,6 +1144,24 @@ static PyObject *gPySetMistEnd(PyObject *, PyObject *args)
 	}
 
 	wi->setMistDistance(mistdist);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPySetMistIntensity(PyObject *, PyObject *args)
+{
+
+	float intensity;
+	if (!PyArg_ParseTuple(args,"f:setMistIntensity",&intensity))
+		return NULL;
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (!wi->hasWorld()) {
+		PyErr_SetString(PyExc_RuntimeError, "bge.render.setMistIntensity(float), World not available");
+		return NULL;
+	}
+
+	wi->setMistIntensity(intensity);
 
 	Py_RETURN_NONE;
 }
@@ -1522,8 +1563,10 @@ static struct PyMethodDef rasterizer_methods[] = {
 	{"disableMist",(PyCFunction)gPyDisableMist,METH_NOARGS,"turn off mist"},
 	{"setUseMist",(PyCFunction)gPySetUseMist,METH_VARARGS,"enable or disable mist"},
 	{"setMistColor",(PyCFunction)gPySetMistColor,METH_O,"set Mist Color (rgb)"},
+	{"setMistType",(PyCFunction)gPySetMistType,METH_VARARGS,"set mist type (short type)"},
 	{"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start"},
 	{"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End"},
+	{"setMistIntensity",(PyCFunction)gPySetMistIntensity,METH_VARARGS,"set mist intensity (float intensity)"},
 	{"enableMotionBlur",(PyCFunction)gPyEnableMotionBlur,METH_VARARGS,"enable motion blur"},
 	{"disableMotionBlur",(PyCFunction)gPyDisableMotionBlur,METH_NOARGS,"disable motion blur"},
 
@@ -2369,6 +2412,11 @@ PyMODINIT_FUNC initRasterizerPythonBinding()
 	/* stereoscopy */
 	KX_MACRO_addTypesToDict(d, LEFT_EYE, RAS_IRasterizer::RAS_STEREO_LEFTEYE);
 	KX_MACRO_addTypesToDict(d, RIGHT_EYE, RAS_IRasterizer::RAS_STEREO_RIGHTEYE);
+
+	/* KX_WorldInfo mist types */
+	KX_MACRO_addTypesToDict(d, KX_MIST_QUADRATIC, KX_WorldInfo::KX_MIST_QUADRATIC);
+	KX_MACRO_addTypesToDict(d, KX_MIST_LINEAR, KX_WorldInfo::KX_MIST_LINEAR);
+	KX_MACRO_addTypesToDict(d, KX_MIST_INV_QUADRATIC, KX_WorldInfo::KX_MIST_INV_QUADRATIC);
 
 	// XXXX Add constants here
 

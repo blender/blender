@@ -297,7 +297,7 @@ public:
 	/**
 	 * Fog
 	 */
-	virtual void SetFog(float start, float dist, float r, float g, float b) = 0;
+	virtual void SetFog(short type, float start, float dist, float intensity, float r, float g, float b) = 0;
 	virtual void SetFogColor(float r, float g,float b) = 0;
 	virtual void SetFogStart(float start) = 0;
 	virtual void SetFogEnd(float end) = 0;

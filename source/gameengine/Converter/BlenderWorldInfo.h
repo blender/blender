@@ -40,8 +40,10 @@ class BlenderWorldInfo : public KX_WorldInfo
 	float m_backgroundcolor[3];
 
 	bool m_hasmist;
+	short m_misttype;
 	float m_miststart;
 	float m_mistdistance;
+	float m_mistintensity;
 	float m_mistcolor[3];
 
 	float m_ambientcolor[3];
@@ -60,16 +62,20 @@ public:
 	float getAmbientColorGreen();
 	float getAmbientColorBlue();
 
+	short getMistType();
 	float getMistStart();
 	float getMistDistance();
+	float getMistIntensity();
 	float getMistColorRed();
 	float getMistColorGreen();
 	float getMistColorBlue();
 
 	void setBackColor(float r, float g, float b);
 	void setUseMist(bool enable);
+	void setMistType(short type);
 	void setMistStart(float d);
 	void setMistDistance(float d);
+	void setMistIntensity(float intensity);
 	void setMistColor(float r, float g, float b);
 	void setAmbientColor(float r, float g, float b);
 

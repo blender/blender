@@ -247,14 +247,18 @@ void RAS_OpenGLRasterizer::SetFogEnd(float fogend)
 
 
 
-void RAS_OpenGLRasterizer::SetFog(float start,
+void RAS_OpenGLRasterizer::SetFog(short type,
+								  float start,
 								  float dist,
+								  float intensity,
 								  float r,
 								  float g,
 								  float b)
 {
+	m_fogtype = type;
 	m_fogstart = start;
 	m_fogdist = dist;
+	m_fogintensity = intensity;
 	m_fogr = r;
 	m_fogg = g;
 	m_fogb = b;
@@ -279,7 +283,7 @@ void RAS_OpenGLRasterizer::DisplayFog()
 	{
 		float params[4] = {m_fogr, m_fogg, m_fogb, 1.0f};
 		glFogi(GL_FOG_MODE, GL_LINEAR);
-		glFogf(GL_FOG_DENSITY, 0.1f);
+		glFogf(GL_FOG_DENSITY, m_fogintensity / 10.0f);
 		glFogf(GL_FOG_START, m_fogstart);
 		glFogf(GL_FOG_END, m_fogstart + m_fogdist);
 		glFogfv(GL_FOG_COLOR, params);

@@ -87,6 +87,19 @@ Constants
 
    Right eye being used during stereoscopic rendering.
 
+.. data:: KX_MIST_QUADRATIC
+
+   Type of quadratic attenuation used to fade mist.
+
+.. data:: KX_MIST_LINEAR
+
+   Type of linear attenuation used to fade mist.
+
+.. data:: KX_MIST_INV_QUADRATIC
+
+   Type of inverse quadratic attenuation used to fade mist.
+
+
 *********
 Functions
 *********
@@ -165,18 +178,25 @@ Functions
    :type rgba: list [r, g, b, a]
 
 
+.. function:: setAmbientColor(rgb)
+
+   Sets the color of ambient light.
+   
+   :type rgb: list [r, g, b]
+
+
 .. function:: setMistColor(rgb)
 
    Sets the mist color.
    
    :type rgb: list [r, g, b]
 
-   
-.. function:: setAmbientColor(rgb)
 
-   Sets the color of ambient light.
-   
-   :type rgb: list [r, g, b]
+.. function:: setMistType(mode)
+
+   Sets the mist attenuation type.
+
+   :type mode: KX_MIST_QUADRATIC, KX_MIST_LINEAR, KX_MIST_INV_QUADRATIC
 
 
 .. function:: setMistStart(start)
@@ -193,8 +213,15 @@ Functions
    
    :type end: float
 
-   
+
+.. function:: setMistIntensity(intensity)
+
+   Sets the mist intensity value.
+
+   :type start: float
+
 .. function:: disableMist()
+
 
    Disables mist.
    

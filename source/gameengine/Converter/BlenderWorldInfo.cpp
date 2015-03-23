@@ -70,8 +70,10 @@ BlenderWorldInfo::BlenderWorldInfo(struct Scene *blenderscene, struct World *ble
 	if (blenderworld) {
 		m_hasworld = true;
 		m_hasmist = ((blenderworld->mode) & WO_MIST ? true : false);
+		m_misttype = blenderworld->mistype;
 		m_miststart = blenderworld->miststa;
 		m_mistdistance = blenderworld->mistdist;
+		m_mistintensity = blenderworld->misi;
 		copy_v3_v3(m_mistcolor, &blenderworld->horr);
 		copy_v3_v3(m_backgroundcolor, &blenderworld->horr);
 		copy_v3_v3(m_ambientcolor, &blenderworld->ambr);
@@ -131,6 +133,11 @@ float BlenderWorldInfo::getAmbientColorBlue()
 	return m_ambientcolor[2];
 }
 
+short BlenderWorldInfo::getMistType()
+{
+	return m_misttype;
+}
+
 float BlenderWorldInfo::getMistStart()
 {
 	return m_miststart;
@@ -139,6 +146,11 @@ float BlenderWorldInfo::getMistStart()
 float BlenderWorldInfo::getMistDistance()
 {
 	return m_mistdistance;
+}
+
+float BlenderWorldInfo::getMistIntensity()
+{
+	return m_mistintensity;
 }
 
 float BlenderWorldInfo::getMistColorRed()
@@ -163,6 +175,11 @@ void BlenderWorldInfo::setBackColor(float r, float g, float b)
 	m_backgroundcolor[2] = b;
 }
 
+void BlenderWorldInfo::setMistType(short type)
+{
+	m_misttype = type;
+}
+
 void BlenderWorldInfo::setUseMist(bool enable)
 {
 	m_hasmist = enable;
@@ -178,6 +195,10 @@ void BlenderWorldInfo::setMistDistance(float d)
 	m_mistdistance = d;
 }
 
+void BlenderWorldInfo::setMistIntensity(float intensity)
+{
+	m_mistintensity = intensity;
+}
 void BlenderWorldInfo::setMistColor(float r, float g, float b)
 {
 	m_mistcolor[0] = r;

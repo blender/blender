@@ -43,6 +43,15 @@ class MT_CmMatrix4x4;
 class KX_WorldInfo
 {
 public:
+	/**
+	 * Mist options
+	 */
+	enum MistType {
+		KX_MIST_QUADRATIC,
+		KX_MIST_LINEAR,
+		KX_MIST_INV_QUADRATIC,
+	};
+
 	KX_WorldInfo() {}
 	virtual ~KX_WorldInfo();
 
@@ -51,8 +60,10 @@ public:
 	virtual float getBackColorRed() = 0;
 	virtual float getBackColorGreen() = 0;
 	virtual float getBackColorBlue() = 0;
+	virtual short getMistType() = 0;
 	virtual float getMistStart() = 0;
 	virtual float getMistDistance() = 0;
+	virtual float getMistIntensity() = 0;
 	virtual float getMistColorRed() = 0;
 	virtual float getMistColorGreen() = 0;
 	virtual float getMistColorBlue() = 0;
@@ -62,8 +73,10 @@ public:
 	virtual float getAmbientColorBlue() = 0;
 
 	virtual void setUseMist(bool enable) = 0;
+	virtual void setMistType(short) = 0;
 	virtual void setMistStart(float) = 0;
 	virtual void setMistDistance(float) = 0;
+	virtual void setMistIntensity(float) = 0;
 	virtual void setMistColor(float, float, float) = 0;
 	virtual void setBackColor(float, float, float) = 0;
 	virtual void setAmbientColor(float,float,float) = 0;

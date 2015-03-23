@@ -996,8 +996,10 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 			if (wi->hasMist())
 			{
 				m_rasterizer->SetFog(
+					wi->getMistType(),
 					wi->getMistStart(),
 					wi->getMistDistance(),
+					wi->getMistIntensity(),
 					wi->getMistColorRed(),
 					wi->getMistColorGreen(),
 					wi->getMistColorBlue()
