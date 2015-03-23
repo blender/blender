@@ -239,28 +239,13 @@ if(WITH_BUILDINFO)
 	add_dependencies(blender buildinfo)
 endif()
 
-# Post build steps for bundling/packaging.
-
-function(install_text_files_patch path)
-	install(
-		CODE
-		"
-		set(DATA_FILE \"${path}/readme.html\")
-		file(READ \"\${DATA_FILE}\" DATA_SRC)
-		string(REGEX REPLACE \"BLENDER_VERSION\" \"${BLENDER_VERSION}\" DATA_DST \"\${DATA_SRC}\")
-		file(WRITE \"\${DATA_FILE}\" \"\${DATA_DST}\")
-		unset(DATA_FILE)
-		unset(DATA_SRC)
-		unset(DATA_DST)
-		"
-	)
-endfunction()
 
 set(BLENDER_TEXT_FILES
 	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
 	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
 	${CMAKE_SOURCE_DIR}/release/text/copyright.txt
-	${CMAKE_SOURCE_DIR}/release/text/readme.html
+	# generate this file
+	# ${CMAKE_SOURCE_DIR}/release/text/readme.html
 	${CMAKE_SOURCE_DIR}/release/datafiles/LICENSE-bfont.ttf.txt
 )
 
@@ -972,12 +957,25 @@ endif()
 # Generic Install, for all targets
 
 if(DEFINED BLENDER_TEXT_FILES_DESTINATION)
+
+	install(
+		CODE
+		"
+		file(READ \"${CMAKE_SOURCE_DIR}/release/text/readme.html\" DATA_SRC)
+		string(REGEX REPLACE \"BLENDER_VERSION\" \"${BLENDER_VERSION}\" DATA_DST \"\${DATA_SRC}\")
+		file(WRITE \"\${CMAKE_BINARY_DIR}/release/text/readme.html\" \"\${DATA_DST}\")
+		unset(DATA_SRC)
+		unset(DATA_DST)
+		"
+	)
+	list(APPEND BLENDER_TEXT_FILES
+		${CMAKE_BINARY_DIR}/release/text/readme.html
+	)
+
 	install(
 		FILES ${BLENDER_TEXT_FILES}
 		DESTINATION "${BLENDER_TEXT_FILES_DESTINATION}"
 	)
-
-	install_text_files_patch("\${CMAKE_INSTALL_PREFIX}/${BLENDER_TEXT_FILES_DESTINATION}")
 endif()
 
 # install more files specified elsewhere
