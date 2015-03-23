@@ -39,6 +39,7 @@ ccl_device int bsdf_ashikhmin_velvet_setup(ShaderClosure *sc)
 {
 	float sigma = fmaxf(sc->data0, 0.01f);
 	sc->data0 = 1.0f/(sigma * sigma); /* m_invsigma2 */
+	sc->data1 = 0.0f;
 	
 	sc->type = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 

@@ -35,6 +35,7 @@ ccl_device int volume_henyey_greenstein_setup(ShaderClosure *sc)
 	
 	/* clamp anisotropy to avoid delta function */
 	sc->data0 = signf(sc->data0) * min(fabsf(sc->data0), 1.0f - 1e-3f);
+	sc->data1 = 0.0f;
 
 	return SD_SCATTER;
 }
