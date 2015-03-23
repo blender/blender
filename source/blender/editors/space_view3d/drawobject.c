@@ -7232,8 +7232,11 @@ static void draw_object_matcap_check(View3D *v3d, Object *ob)
 		v3d->defmaterial->preview = NULL;
 	}
 	/* first time users */
-	if (v3d->matcap_icon == 0)
+	if (v3d->matcap_icon < ICON_MATCAP_01 ||
+	    v3d->matcap_icon > ICON_MATCAP_24)
+	{
 		v3d->matcap_icon = ICON_MATCAP_01;
+	}
 
 	if (v3d->defmaterial->preview == NULL)
 		v3d->defmaterial->preview = UI_icon_to_preview(v3d->matcap_icon);
