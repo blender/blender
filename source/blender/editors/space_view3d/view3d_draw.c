@@ -1834,9 +1834,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			ED_region_pixelspace(ar);
 
 			glTranslatef(centx, centy, 0.0);
-			if (rv3d->persp != RV3D_CAMOB) {
-				glRotatef(RAD2DEGF(-bgpic->rotation), 0.0f, 0.0f, 1.0f);
-			}
+			glRotatef(RAD2DEGF(-bgpic->rotation), 0.0f, 0.0f, 1.0f);
 
 			if (bgpic->flag & V3D_BGPIC_FLIP_X) {
 				zoomx *= -1.0f;
