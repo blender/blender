@@ -170,9 +170,9 @@ void FallbackImpl::configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr * /*config*/,
  * system in place.
  */
 
- rgb[0] = 0.2126729f;
- rgb[1] = 0.7151522f;
- rgb[2] = 0.0721750f;
+	rgb[0] = 0.2126f;
+	rgb[1] = 0.7152f;
+	rgb[2] = 0.0722f;
 }
 
 int FallbackImpl::configGetNumLooks(OCIO_ConstConfigRcPtr * /*config*/)

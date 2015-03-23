@@ -93,7 +93,7 @@ static int global_tot_looks = 0;
 /* Set to ITU-BT.709 / sRGB primaries weight. Brute force stupid, but only
  * option with no colormanagement in place.
  */
-static float luma_coefficients[3] = { 0.2126729f, 0.7151522f, 0.0721750f };
+static float luma_coefficients[3] = { 0.2126f, 0.7152f, 0.0722f };
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
