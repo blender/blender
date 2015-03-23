@@ -2099,18 +2099,23 @@ void shade_exposure_correct(vec3 col, float linfac, float logfac, out vec3 outco
 	outcol = linfac*(1.0 - exp(col*logfac));
 }
 
-void shade_mist_factor(vec3 co, float miststa, float mistdist, float misttype, float misi, out float outfac)
+void shade_mist_factor(vec3 co, float enable, float miststa, float mistdist, float misttype, float misi, out float outfac)
 {
-	float fac, zcor;
+	if(enable == 1.0) {
+		float fac, zcor;
 
-	zcor = (gl_ProjectionMatrix[3][3] == 0.0)? length(co): -co[2];
-	
-	fac = clamp((zcor-miststa)/mistdist, 0.0, 1.0);
-	if(misttype == 0.0) fac *= fac;
-	else if(misttype == 1.0);
-	else fac = sqrt(fac);
+		zcor = (gl_ProjectionMatrix[3][3] == 0.0)? length(co): -co[2];
+		
+		fac = clamp((zcor - miststa) / mistdist, 0.0, 1.0);
+		if(misttype == 0.0) fac *= fac;
+		else if(misttype == 1.0);
+		else fac = sqrt(fac);
 
-	outfac = 1.0 - (1.0-fac)*(1.0-misi);
+		outfac = 1.0 - (1.0 - fac) * (1.0 - misi);
+	}
+	else {
+		outfac = 0.0;
+	}
 }
 
 void shade_world_mix(vec3 hor, vec4 col, out vec4 outcol)

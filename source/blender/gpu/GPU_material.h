@@ -149,6 +149,14 @@ typedef enum GPUDynamicType {
 	GPU_DYNAMIC_LAMP_ATT2 = 18,
 	GPU_DYNAMIC_LAMP_SPOTSIZE = 19,
 	GPU_DYNAMIC_LAMP_SPOTBLEND = 20,
+	GPU_DYNAMIC_MIST_ENABLE = 21,
+	GPU_DYNAMIC_MIST_START = 22,
+	GPU_DYNAMIC_MIST_DISTANCE = 23,
+	GPU_DYNAMIC_MIST_INTENSITY = 24,
+	GPU_DYNAMIC_MIST_TYPE = 25,
+	GPU_DYNAMIC_MIST_COLOR = 26,
+	GPU_DYNAMIC_HORIZON_COLOR = 27,
+	GPU_DYNAMIC_AMBIENT_COLOR = 28,
 } GPUDynamicType;
 
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
@@ -272,6 +280,12 @@ void GPU_lamp_update_distance(GPULamp *lamp, float distance, float att1, float a
 void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend);
 int GPU_lamp_shadow_layer(GPULamp *lamp);
 GPUNodeLink *GPU_lamp_get_data(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **col, GPUNodeLink **lv, GPUNodeLink **dist, GPUNodeLink **shadow, GPUNodeLink **energy);
+
+/* World */
+void GPU_mist_update_enable(short enable);
+void GPU_mist_update_values(int type, float start, float dist, float inten, float color[3]);
+void GPU_horizon_update_color(float color[3]);
+void GPU_ambient_update_color(float color[3]);
 
 #ifdef __cplusplus
 }

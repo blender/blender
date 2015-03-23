@@ -76,6 +76,16 @@ typedef enum DynMatProperty {
 	DYN_LAMP_PERSMAT = 8,
 } DynMatProperty;
 
+static struct GPUWorld {
+	float mistenabled;
+	float mistype;
+	float miststart;
+	float mistdistance;
+	float mistintensity;
+	float mistcol[4];
+	float horicol[3];
+	float ambcol[4];
+} GPUWorld;
 
 struct GPUMaterial {
 	Scene *scene;
@@ -1469,13 +1479,39 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 	GPU_link(mat, "texco_refl", shi->vn, shi->view, &shi->ref);
 }
 
+void GPU_mist_update_enable(short enable)
+{
+	GPUWorld.mistenabled = (float)enable;
+}
+
+void GPU_mist_update_values(int type, float start, float dist, float inten, float color[3])
+{
+	GPUWorld.mistype = (float)type;
+	GPUWorld.miststart = start;
+	GPUWorld.mistdistance = dist;
+	GPUWorld.mistintensity = inten;
+	copy_v3_v3(GPUWorld.mistcol, color);
+	GPUWorld.mistcol[3] = 1.0f;
+}
+
+void GPU_horizon_update_color(float color[3])
+{
+	copy_v3_v3(GPUWorld.horicol, color);
+}
+
+void GPU_ambient_update_color(float color[3])
+{
+	copy_v3_v3(GPUWorld.ambcol, color);
+	GPUWorld.ambcol[3] = 1.0f;
+}
+
 void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 {
 	GPUMaterial *mat = shi->gpumat;
 	GPUNodeLink *emit, *ulinfac, *ulogfac, *mistfac;
 	Material *ma = shi->mat;
 	World *world = mat->scene->world;
-	float linfac, logfac, misttype;
+	float linfac, logfac;
 
 	memset(shr, 0, sizeof(*shr));
 
@@ -1526,10 +1562,10 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 			}
 
 			/* ambient color */
-			if (world->ambr != 0.0f || world->ambg != 0.0f || world->ambb != 0.0f) {
-				if (GPU_link_changed(shi->amb) || ma->amb != 0.0f)
-					GPU_link(mat, "shade_maddf", shr->combined, GPU_uniform(&ma->amb),
-						GPU_uniform(&world->ambr), &shr->combined);
+			if (GPU_link_changed(shi->amb) || ma->amb != 0.0f) {
+				GPU_link(mat, "shade_maddf", shr->combined, GPU_uniform(&ma->amb),
+				         GPU_dynamic_uniform(GPUWorld.ambcol, GPU_DYNAMIC_AMBIENT_COLOR, NULL),
+				         &shr->combined);
 			}
 		}
 
@@ -1551,21 +1587,22 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 	if (ma->shade_flag & MA_OBCOLOR)
 		GPU_link(mat, "shade_obcolor", shr->combined, GPU_builtin(GPU_OBCOLOR), &shr->combined);
 
-	if (world && (world->mode & WO_MIST) && !(ma->mode & MA_NOMIST)) {
-		misttype = world->mistype;
-
+	if (!(ma->mode & MA_NOMIST)) {
 		GPU_link(mat, "shade_mist_factor", GPU_builtin(GPU_VIEW_POSITION),
-			GPU_uniform(&world->miststa), GPU_uniform(&world->mistdist),
-			GPU_uniform(&misttype), GPU_uniform(&world->misi), &mistfac);
+		         GPU_dynamic_uniform(&GPUWorld.mistenabled, GPU_DYNAMIC_MIST_ENABLE, NULL),
+		         GPU_dynamic_uniform(&GPUWorld.miststart, GPU_DYNAMIC_MIST_START, NULL),
+		         GPU_dynamic_uniform(&GPUWorld.mistdistance, GPU_DYNAMIC_MIST_DISTANCE, NULL),
+		         GPU_dynamic_uniform(&GPUWorld.mistype, GPU_DYNAMIC_MIST_TYPE, NULL),
+		         GPU_dynamic_uniform(&GPUWorld.mistintensity, GPU_DYNAMIC_MIST_INTENSITY, NULL), &mistfac);
 
 		GPU_link(mat, "mix_blend", mistfac, shr->combined,
-			GPU_uniform(&world->horr), &shr->combined);
+		         GPU_dynamic_uniform(GPUWorld.mistcol, GPU_DYNAMIC_MIST_COLOR, NULL), &shr->combined);
 	}
 
 	if (!mat->alpha) {
 		if (world && (GPU_link_changed(shr->alpha) || ma->alpha != 1.0f))
-			GPU_link(mat, "shade_world_mix", GPU_uniform(&world->horr),
-				shr->combined, &shr->combined);
+			GPU_link(mat, "shade_world_mix", GPU_dynamic_uniform(GPUWorld.horicol, GPU_DYNAMIC_HORIZON_COLOR, NULL),
+			         shr->combined, &shr->combined);
 
 		GPU_link(mat, "shade_alpha_opaque", shr->combined, &shr->combined);
 	}

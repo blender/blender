@@ -2481,13 +2481,14 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object
 	}
 }
 
-static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
+static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 {
 	ListBase shadows;
 	View3DShadow *shadow;
 	Scene *sce_iter;
 	Base *base;
 	Object *ob;
+	World *world = scene->world;
 	SceneRenderLayer *srl = v3d->scenelock ? BLI_findlink(&scene->r.layers, scene->r.actlay) : NULL;
 	
 	BLI_listbase_clear(&shadows);
@@ -2552,6 +2553,14 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	}
 	
 	BLI_freelistN(&shadows);
+
+	/* update world values */
+	if (world) {
+		GPU_mist_update_enable(world->mode & WO_MIST);
+		GPU_mist_update_values(world->mistype, world->miststa, world->mistdist, world->misi, &world->horr);
+		GPU_horizon_update_color(&world->horr);
+		GPU_ambient_update_color(&world->ambr);
+	}
 }
 
 /* *********************** customdata **************** */
@@ -2875,7 +2884,7 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 {
 	/* shadow buffers, before we setup matrices */
 	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
-		gpu_update_lamps_shadows(scene, v3d);
+		gpu_update_lamps_shadows_world(scene, v3d);
 }
 
 /*
@@ -3527,8 +3536,8 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 	
 	/* shadow buffers, before we setup matrices */
 	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
-		gpu_update_lamps_shadows(scene, v3d);
-	
+		gpu_update_lamps_shadows_world(scene, v3d);
+
 	/* reset default OpenGL lights if needed (i.e. after preferences have been altered) */
 	if (rv3d->rflag & RV3D_GPULIGHT_UPDATE) {
 		rv3d->rflag &= ~RV3D_GPULIGHT_UPDATE;

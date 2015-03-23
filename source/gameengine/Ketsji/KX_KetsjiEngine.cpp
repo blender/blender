@@ -80,6 +80,8 @@
 
 #include "KX_NavMeshObject.h"
 
+#include "GPU_material.h"
+
 #define DEFAULT_LOGIC_TIC_RATE 60.0
 //#define DEFAULT_PHYSICS_TIC_RATE 60.0
 
@@ -975,6 +977,9 @@ void KX_KetsjiEngine::SetBackGround(KX_WorldInfo* wi)
 				wi->getBackColorBlue(),
 				0.0
 			);
+
+			float horicolor[] = {wi->getBackColorRed(), wi->getBackColorGreen(), wi->getBackColorBlue()};
+			GPU_horizon_update_color(horicolor);
 		}
 	}
 }
@@ -993,6 +998,9 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 				wi->getAmbientColorBlue()
 				);
 
+			float ambcolor[] = {wi->getAmbientColorRed(), wi->getAmbientColorGreen(), wi->getAmbientColorBlue()};
+			GPU_ambient_update_color(ambcolor);
+
 			if (wi->hasMist())
 			{
 				m_rasterizer->SetFog(
@@ -1004,10 +1012,22 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 					wi->getMistColorGreen(),
 					wi->getMistColorBlue()
 				);
+
+				float mistcolor[] = {wi->getMistColorRed(), wi->getMistColorGreen(), wi->getMistColorBlue()};
+				GPU_mist_update_values(
+					wi->getMistType(),
+					wi->getMistStart(),
+					wi->getMistDistance(),
+					wi->getMistIntensity(),
+					mistcolor
+				);
+
 				m_rasterizer->EnableFog(true);
+				GPU_mist_update_enable(true);
 			}
 			else {
 				m_rasterizer->EnableFog(false);
+				GPU_mist_update_enable(false);
 			}
 		}
 	}
