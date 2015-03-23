@@ -269,52 +269,80 @@ SG_Controller *BL_CreateCameraIPO(struct bAction *action, KX_GameObject*  camera
 	return ipocontr;
 }
 
-void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *converter)
+
+SG_Controller * BL_CreateWorldIPO( bAction *action, struct World *blenderworld, KX_BlenderSceneConverter *converter )
 {
+	KX_WorldIpoController *ipocontr = NULL;
 
-	if (blenderworld->adt) {
+	if (blenderworld) {
+		BL_InterpolatorList *adtList = GetAdtList(action, converter);
 
-		KX_WorldIpoController* ipocontr = new KX_WorldIpoController();
-
-// Erwin, hook up the world ipo controller here
-// Gino: hook it up to what ?
-// is there a userinterface element for that ?
-// for now, we have some new python hooks to access the data, for a work-around
-		
-		ipocontr->m_mist_start  = blenderworld->miststa;
-		ipocontr->m_mist_dist   = blenderworld->mistdist;
-		ipocontr->m_mist_rgb[0] = blenderworld->horr;
-		ipocontr->m_mist_rgb[1] = blenderworld->horg;
-		ipocontr->m_mist_rgb[2] = blenderworld->horb;
-
-		BL_InterpolatorList *adtList= GetAdtList(blenderworld->adt->action, converter);
-
-		// For each active channel in the adtList add an
-		// interpolator to the game object.
-		
+		// For each active channel in the adtList add an interpolator to the game object.
 		KX_IInterpolator *interpolator;
 		KX_IScalarInterpolator *interp;
-		
+
 		for (int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("horizon_color", i))) {
-				interpolator= new KX_ScalarInterpolator(&ipocontr->m_mist_rgb[i], interp);
+			if ((interp = adtList->GetScalarInterpolator("ambient_color", i))) {
+				if (!ipocontr) {
+					ipocontr = new KX_WorldIpoController();
+				}
+				interpolator = new KX_ScalarInterpolator(&ipocontr->m_ambi_rgb[i], interp);
 				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetModifyMistColor(true);
+				ipocontr->SetModifyAmbientColor(true);
 			}
 		}
 
-		if ((interp = adtList->GetScalarInterpolator("mist.depth", 0))) {
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_mist_dist, interp);
+		for (int i=0; i<3; i++) {
+			if ((interp = adtList->GetScalarInterpolator("horizon_color", i))) {
+				if (!ipocontr) {
+					ipocontr = new KX_WorldIpoController();
+				}
+				interpolator = new KX_ScalarInterpolator(&ipocontr->m_hori_rgb[i], interp);
+				ipocontr->AddInterpolator(interpolator);
+				ipocontr->SetModifyHorizonColor(true);
+			}
+		}
+
+		if ((interp = adtList->GetScalarInterpolator("mist_settings.start", 0))) {
+			if (!ipocontr) {
+				ipocontr = new KX_WorldIpoController();
+			}
+			interpolator = new KX_ScalarInterpolator(&ipocontr->m_mist_start, interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetModifyMistStart(true);
+		}
+
+		if ((interp = adtList->GetScalarInterpolator("mist_settings.depth", 0))) {
+			if (!ipocontr) {
+				ipocontr = new KX_WorldIpoController();
+			}
+			interpolator = new KX_ScalarInterpolator(&ipocontr->m_mist_dist, interp);
 			ipocontr->AddInterpolator(interpolator);
 			ipocontr->SetModifyMistDist(true);
 		}
 
-		if ((interp = adtList->GetScalarInterpolator("mist.start", 0))) {
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_mist_start, interp);
+		if ((interp = adtList->GetScalarInterpolator("mist_settings.intensity", 0))) {
+			if (!ipocontr) {
+				ipocontr = new KX_WorldIpoController();
+			}
+			interpolator = new KX_ScalarInterpolator(&ipocontr->m_mist_intensity, interp);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyMistStart(true);
+			ipocontr->SetModifyMistIntensity(true);
+		}
+
+		if (ipocontr) {
+			ipocontr->m_mist_start = blenderworld->miststa;
+			ipocontr->m_mist_dist = blenderworld->mistdist;
+			ipocontr->m_mist_intensity = blenderworld->misi;
+			ipocontr->m_hori_rgb[0] = blenderworld->horr;
+			ipocontr->m_hori_rgb[1] = blenderworld->horg;
+			ipocontr->m_hori_rgb[2] = blenderworld->horb;
+			ipocontr->m_ambi_rgb[0] = blenderworld->ambr;
+			ipocontr->m_ambi_rgb[1] = blenderworld->ambg;
+			ipocontr->m_ambi_rgb[2] = blenderworld->ambb;
 		}
 	}
+	return ipocontr;
 }
 
 SG_Controller *BL_CreateMaterialIpo(

@@ -33,6 +33,8 @@
 #include "KX_WorldIpoController.h"
 #include "KX_ScalarInterpolator.h"
 #include "KX_WorldInfo.h"
+#include "KX_PythonInit.h"
+#include "KX_Scene.h"
 
 #if defined(_WIN64)
 typedef unsigned __int64 uint_ptr;
@@ -42,29 +44,36 @@ typedef unsigned long uint_ptr;
 
 bool KX_WorldIpoController::Update(double currentTime)
 {
-	if (m_modified)
-	{
+	if (m_modified) {
 		T_InterpolatorList::iterator i;
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
-			(*i)->Execute(m_ipotime);//currentTime);
+			(*i)->Execute(m_ipotime);
 		}
 
-		/* TODO, this will crash! */
-		KX_WorldInfo *world = NULL;
+		KX_WorldInfo *world = KX_GetActiveScene()->GetWorldInfo();
 
 		if (m_modify_mist_start) {
 			world->setMistStart(m_mist_start);
-		}
-
-		if (m_modify_mist_color) {
-			world->setMistColor(m_mist_rgb[0], m_mist_rgb[1], m_mist_rgb[2]);
 		}
 
 		if (m_modify_mist_dist) {
 			world->setMistDistance(m_mist_dist);
 		}
 
-		m_modified=false;
+		if (m_modify_mist_intensity) {
+			world->setMistIntensity(m_mist_intensity);
+		}
+
+		if (m_modify_horizon_color) {
+			world->setBackColor(m_hori_rgb[0], m_hori_rgb[1], m_hori_rgb[2]);
+			world->setMistColor(m_hori_rgb[0], m_hori_rgb[1], m_hori_rgb[2]);
+		}
+
+		if (m_modify_ambient_color) {
+			world->setAmbientColor(m_ambi_rgb[0], m_ambi_rgb[1], m_ambi_rgb[2]);
+		}
+
+		m_modified = false;
 	}
 	return false;
 }

@@ -50,7 +50,8 @@ SG_Controller *BL_CreateLampIPO(bAction *action,
 	KX_GameObject* lightobj,
 	KX_BlenderSceneConverter *converter);
 
-void BL_ConvertWorldIpos(struct World* blenderworld, 
+SG_Controller *BL_CreateWorldIPO(bAction *action,
+	struct World *blenderworld,
 	KX_BlenderSceneConverter *converter);
 
 SG_Controller *BL_CreateCameraIPO(bAction *action,

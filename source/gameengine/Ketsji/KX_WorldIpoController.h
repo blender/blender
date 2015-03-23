@@ -39,24 +39,30 @@
 class KX_WorldIpoController : public SG_Controller
 {
 public:
-	MT_Scalar           m_mist_rgb[3];
 	MT_Scalar           m_mist_start;
 	MT_Scalar           m_mist_dist;
+	MT_Scalar           m_mist_intensity;
+	MT_Scalar           m_hori_rgb[3];
+	MT_Scalar           m_ambi_rgb[3];
 
 private:
 	T_InterpolatorList	m_interpolators;
-	unsigned short		m_modify_mist_color  : 1;
 	unsigned short		m_modify_mist_start	 : 1;
 	unsigned short  	m_modify_mist_dist 	 : 1;
+	unsigned short		m_modify_mist_intensity	: 1;
+	unsigned short		m_modify_horizon_color	: 1;
+	unsigned short		m_modify_ambient_color	: 1;
 	bool				m_modified;
 
 	double		        m_ipotime;
 
 public:
 	KX_WorldIpoController() : 
-				m_modify_mist_color(false),
 				m_modify_mist_start(false),
 				m_modify_mist_dist(false),
+				m_modify_mist_intensity(false),
+				m_modify_horizon_color(false),
+				m_modify_ambient_color(false),
 				m_modified(true),
 				m_ipotime(0.0)
 		{}
@@ -76,12 +82,20 @@ public:
 		m_modify_mist_start = modify;
 	}
 
-	void	SetModifyMistColor(bool modify) {
-		m_modify_mist_color = modify;
-	}
-
 	void	SetModifyMistDist(bool modify) {
 		m_modify_mist_dist = modify;
+	}
+
+	void	SetModifyMistIntensity(bool modify) {
+		m_modify_mist_intensity = modify;
+	}
+
+	void	SetModifyHorizonColor(bool modify) {
+		m_modify_horizon_color = modify;
+	}
+
+	void	SetModifyAmbientColor(bool modify) {
+		m_modify_ambient_color = modify;
 	}
 
 		void
