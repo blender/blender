@@ -98,7 +98,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 
-#include "BlenderWorldInfo.h"
+#include "KX_WorldInfo.h"
 
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderSceneConverter.h"
@@ -2342,7 +2342,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	sumolist->Release();
 
 	// convert world
-	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene, blenderscene->world);
+	KX_WorldInfo* worldinfo = new KX_WorldInfo(blenderscene, blenderscene->world);
 	converter->RegisterWorldInfo(worldinfo);
 	kxscene->SetWorldInfo(worldinfo);
 

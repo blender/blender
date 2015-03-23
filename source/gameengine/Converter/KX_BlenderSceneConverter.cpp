@@ -58,7 +58,7 @@
 #include "KX_LibLoadStatus.h"
 #include "KX_BlenderScalarInterpolator.h"
 #include "BL_BlenderDataConversion.h"
-#include "BlenderWorldInfo.h"
+#include "KX_WorldInfo.h"
 
 /* This little block needed for linking to Blender... */
 #ifdef WIN32

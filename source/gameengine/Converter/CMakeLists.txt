@@ -74,7 +74,6 @@ set(SRC
 	BL_ShapeActionActuator.cpp
 	BL_ShapeDeformer.cpp
 	BL_SkinDeformer.cpp
-	BlenderWorldInfo.cpp
 	KX_BlenderScalarInterpolator.cpp
 	KX_BlenderSceneConverter.cpp
 	KX_ConvertActuators.cpp
@@ -96,7 +95,6 @@ set(SRC
 	BL_ShapeActionActuator.h
 	BL_ShapeDeformer.h
 	BL_SkinDeformer.h
-	BlenderWorldInfo.h
 	KX_BlenderScalarInterpolator.h
 	KX_BlenderSceneConverter.h
 	KX_ConvertActuators.h

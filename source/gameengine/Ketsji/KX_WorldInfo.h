@@ -33,15 +33,34 @@
 #define __KX_WORLDINFO_H__
 
 #include "MT_Scalar.h"
+#include "KX_KetsjiEngine.h"
+#include "RAS_IRasterizer.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
 
-class MT_CmMatrix4x4;
+struct Scene;
+struct World;
+const class KX_KetsjiEngine;
+const class RAS_IRasterizer;
 
 class KX_WorldInfo
 {
+	bool m_do_color_management;
+	bool m_hasworld;
+	bool m_hasmist;
+	short m_misttype;
+	float m_miststart;
+	float m_mistdistance;
+	float m_mistintensity;
+	float m_mistcolor[3];
+	float m_backgroundcolor[3];
+	float m_ambientcolor[3];
+	float m_con_mistcolor[3];
+	float m_con_backgroundcolor[3];
+	float m_con_ambientcolor[3];
+
 public:
 	/**
 	 * Mist options
@@ -52,34 +71,34 @@ public:
 		KX_MIST_INV_QUADRATIC,
 	};
 
-	KX_WorldInfo() {}
-	virtual ~KX_WorldInfo();
+	KX_WorldInfo(Scene *blenderscene, World *blenderworld);
+	~KX_WorldInfo();
 
-	virtual bool hasWorld() = 0;
-	virtual bool hasMist() = 0;
-	virtual short getMistType() = 0;
-	virtual float getMistStart() = 0;
-	virtual float getMistDistance() = 0;
-	virtual float getMistIntensity() = 0;
-	virtual float getMistColorRed() = 0;
-	virtual float getMistColorGreen() = 0;
-	virtual float getMistColorBlue() = 0;
-	virtual float getBackColorRed() = 0;
-	virtual float getBackColorGreen() = 0;
-	virtual float getBackColorBlue() = 0;
-	virtual float getAmbientColorRed() = 0;
-	virtual float getAmbientColorGreen() = 0;
-	virtual float getAmbientColorBlue() = 0;
-	virtual void setUseMist(bool enable) = 0;
-	virtual void setMistType(short) = 0;
-	virtual void setMistStart(float) = 0;
-	virtual void setMistDistance(float) = 0;
-	virtual void setMistIntensity(float) = 0;
-	virtual void setMistColor(float, float, float) = 0;
-	virtual void setBackColor(float, float, float) = 0;
-	virtual void setAmbientColor(float,float,float) = 0;
-	virtual void UpdateBackGround() = 0;
-	virtual void UpdateWorldSettings() = 0;
+	bool hasWorld();
+	bool hasMist();
+	short getMistType();
+	float getMistStart();
+	float getMistDistance();
+	float getMistIntensity();
+	float getMistColorRed();
+	float getMistColorGreen();
+	float getMistColorBlue();
+	float getBackColorRed();
+	float getBackColorGreen();
+	float getBackColorBlue();
+	float getAmbientColorRed();
+	float getAmbientColorGreen();
+	float getAmbientColorBlue();
+	void setUseMist(bool enable);
+	void setMistType(short type);
+	void setMistStart(float d);
+	void setMistDistance(float d);
+	void setMistIntensity(float intensity);
+	void setMistColor(float r, float g, float b);
+	void setBackColor(float r, float g, float b);
+	void setAmbientColor(float r, float g, float b);
+	void UpdateBackGround();
+	void UpdateWorldSettings();
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_WorldInfo")
