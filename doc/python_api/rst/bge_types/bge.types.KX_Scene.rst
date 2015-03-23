@@ -83,6 +83,12 @@ base class --- :class:`PyObjectPlus`
          
          This can be set directly from python to avoid using the :class:`KX_SceneActuator`.
 
+   .. attribute:: world
+
+      The current active world, (read-only).
+
+      :type: :class:`KX_WorldInfo`
+
    .. attribute:: suspended
 
       True if the scene is suspended, (read-only).

@@ -1039,6 +1039,7 @@ static PyObject *gPySetBackgroundColor(PyObject *, PyObject *value)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setBackgroundColor()", "KX_WorldInfo.background_color");
 	wi->setBackColor((float)vec[0], (float)vec[1], (float)vec[2]);
 
 	Py_RETURN_NONE;
@@ -1056,6 +1057,7 @@ static PyObject *gPySetMistColor(PyObject *, PyObject *value)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setMistColor()", "KX_WorldInfo.mist_color");
 	wi->setMistColor((float)vec[0], (float)vec[1], (float)vec[2]);
 
 	Py_RETURN_NONE;
@@ -1068,7 +1070,7 @@ static PyObject *gPyDisableMist(PyObject *)
 		PyErr_SetString(PyExc_RuntimeError, "bge.render.DisableMist(), World not available");
 		return NULL;
 	}
-	ShowDeprecationWarning("DisableMist()", "setUseMist(false)");
+	ShowDeprecationWarning("DisableMist()", "KX_WorldInfo.mist_enable = False");
 	wi->setUseMist(false);
 
 	Py_RETURN_NONE;
@@ -1086,6 +1088,7 @@ static PyObject *gPySetUseMist(PyObject *, PyObject *args)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setUseMist()", "KX_WorldInfo.mist_enable");
 	wi->setUseMist(enable);
 
 	Py_RETURN_NONE;
@@ -1109,6 +1112,7 @@ static PyObject *gPySetMistType(PyObject *, PyObject *args)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setMistType()", "KX_WorldInfo.mist_type");
 	wi->setMistType(type);
 
 	Py_RETURN_NONE;
@@ -1126,6 +1130,7 @@ static PyObject *gPySetMistStart(PyObject *, PyObject *args)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setMistStart()", "KX_WorldInfo.mist_start");
 	wi->setMistStart(miststart);
 
 	Py_RETURN_NONE;
@@ -1143,6 +1148,7 @@ static PyObject *gPySetMistEnd(PyObject *, PyObject *args)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setMistEnd()", "KX_WorldInfo.mist_distance");
 	wi->setMistDistance(mistdist);
 
 	Py_RETURN_NONE;
@@ -1161,6 +1167,7 @@ static PyObject *gPySetMistIntensity(PyObject *, PyObject *args)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setMistIntensity()", "KX_WorldInfo.mist_intensity");
 	wi->setMistIntensity(intensity);
 
 	Py_RETURN_NONE;
@@ -1178,6 +1185,7 @@ static PyObject *gPySetAmbientColor(PyObject *, PyObject *value)
 		return NULL;
 	}
 
+	ShowDeprecationWarning("setAmbientColor()", "KX_WorldInfo.ambient_color");
 	wi->setAmbientColor((float)vec[0], (float)vec[1], (float)vec[2]);
 
 	Py_RETURN_NONE;

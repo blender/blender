@@ -34,19 +34,24 @@
 
 #include "MT_Scalar.h"
 #include "KX_KetsjiEngine.h"
-#include "RAS_IRasterizer.h"
+#include "PyObjectPlus.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif
 
+#ifdef USE_MATHUTILS
+void KX_WorldInfo_Mathutils_Callback_Init(void);
+#endif
+
 struct Scene;
 struct World;
-const class KX_KetsjiEngine;
-const class RAS_IRasterizer;
 
-class KX_WorldInfo
+class KX_WorldInfo : public PyObjectPlus
 {
+	Py_Header
+
+	STR_String m_name;
 	bool m_do_color_management;
 	bool m_hasworld;
 	bool m_hasmist;
@@ -74,6 +79,7 @@ public:
 	KX_WorldInfo(Scene *blenderscene, World *blenderworld);
 	~KX_WorldInfo();
 
+	const STR_String &GetName();
 	bool hasWorld();
 	bool hasMist();
 	short getMistType();
@@ -99,6 +105,18 @@ public:
 	void setAmbientColor(float r, float g, float b);
 	void UpdateBackGround();
 	void UpdateWorldSettings();
+
+#ifdef WITH_PYTHON
+	/* attributes */
+	static PyObject *pyattr_get_mist_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_mist_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_mist_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_back_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_back_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_ambient_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_ambient_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	virtual PyObject *py_repr(void);
+#endif
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_WorldInfo")
