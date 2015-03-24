@@ -2118,7 +2118,7 @@ static void rna_def_object_lodlevel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_object_hysteresis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", OB_LOD_USE_HYST);
-	RNA_def_property_ui_text(prop, "Hysteresis Override", "Override LoD Hysteresis scene setting for this Lod Level");
+	RNA_def_property_ui_text(prop, "Hysteresis Override", "Override LoD Hysteresis scene setting for this LoD level");
 	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
 }
 
