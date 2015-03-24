@@ -40,8 +40,6 @@ CCL_NAMESPACE_BEGIN
 ccl_device int bsdf_refraction_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_REFRACTION_ID;
-	sc->data0 = 0.0f;
-	sc->data1 = 0.0f;
 	return SD_BSDF;
 }
 
