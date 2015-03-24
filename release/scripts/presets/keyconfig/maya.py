@@ -1137,8 +1137,6 @@ kmi = km.keymap_items.new('anim.channels_move', 'PAGE_UP', 'PRESS', shift=True)
 kmi.properties.direction = 'TOP'
 kmi = km.keymap_items.new('anim.channels_move', 'PAGE_DOWN', 'PRESS', shift=True)
 kmi.properties.direction = 'BOTTOM'
-kmi = km.keymap_items.new('anim.channels_visibility_set', 'V', 'PRESS')
-kmi = km.keymap_items.new('anim.channels_visibility_toggle', 'V', 'PRESS', shift=True)
 
 # Map UV Editor
 km = kc.keymaps.new('UV Editor', space_type='EMPTY', region_type='WINDOW', modal=False)

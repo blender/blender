@@ -754,8 +754,6 @@ kmi = km.keymap_items.new('anim.channels_move', 'PAGE_DOWN', 'PRESS', shift=True
 kmi.properties.direction = 'BOTTOM'
 kmi = km.keymap_items.new('anim.channels_group', 'G', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('anim.channels_ungroup', 'G', 'PRESS', alt=True)
-kmi = km.keymap_items.new('anim.channels_visibility_set', 'V', 'PRESS')
-kmi = km.keymap_items.new('anim.channels_visibility_toggle', 'V', 'PRESS', shift=True)
 
 # Map UV Editor
 km = kc.keymaps.new('UV Editor', space_type='EMPTY', region_type='WINDOW', modal=False)
@@ -1055,7 +1053,6 @@ kmi.properties.name = 'NODE_MT_add'
 kmi = km.keymap_items.new('node.duplicate_move', 'D', 'PRESS', shift=True)
 kmi = km.keymap_items.new('node.duplicate_move_keep_inputs', 'D', 'PRESS', shift=True, ctrl=True)
 kmi = km.keymap_items.new('node.parent_set', 'P', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('node.parent_clear', 'P', 'PRESS', alt=True)
 kmi = km.keymap_items.new('node.join', 'J', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.hide_toggle', 'H', 'PRESS')
 kmi = km.keymap_items.new('node.mute_toggle', 'M', 'PRESS')
