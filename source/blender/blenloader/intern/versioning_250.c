@@ -797,13 +797,17 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						BLI_path_abs(str, main->name);
 						seq->sound = sound_new_file(main, str);
 					}
+#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
+#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
 					/* don't know, if anybody used that this way, but just in case, upgrade to new way... */
 					if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) &&
 					   !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR))
 					{
 						BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s/BL_proxy", seq->strip->dir);
 					}
-				}
+#undef SEQ_USE_PROXY_CUSTOM_DIR
+#undef SEQ_USE_PROXY_CUSTOM_FILE
+			}
 				SEQ_END
 			}
 		}

@@ -1222,6 +1222,15 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Timecode", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_tcindex_update");
 
+	prop = RNA_def_property(srna, "use_proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "storage", SEQ_STORAGE_PROXY_CUSTOM_DIR);
+	RNA_def_property_ui_text(prop, "Proxy Custom Directory", "Use a custom directory to store data");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
+	prop = RNA_def_property(srna, "use_proxy_custom_file", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "storage", SEQ_STORAGE_PROXY_CUSTOM_FILE);
+	RNA_def_property_ui_text(prop, "Proxy Custom File", "Use a custom file to read proxy data from");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 }
 
 static void rna_def_color_balance(BlenderRNA *brna)
@@ -1702,16 +1711,6 @@ static void rna_def_proxy(StructRNA *srna)
 	prop = RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->proxy");
 	RNA_def_property_ui_text(prop, "Proxy", "");
-
-	prop = RNA_def_property(srna, "use_proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY_CUSTOM_DIR);
-	RNA_def_property_ui_text(prop, "Proxy Custom Directory", "Use a custom directory to store data");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-
-	prop = RNA_def_property(srna, "use_proxy_custom_file", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY_CUSTOM_FILE);
-	RNA_def_property_ui_text(prop, "Proxy Custom File", "Use a custom file to read proxy data from");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 }
 
 static void rna_def_input(StructRNA *srna)

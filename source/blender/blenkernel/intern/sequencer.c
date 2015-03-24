@@ -1362,7 +1362,7 @@ static void seq_open_anim_file(Sequence *seq, bool openfile)
 		return;
 	}
 
-	if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
 		char dir[FILE_MAX];
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
 		BLI_path_abs(dir, G.main->name);
@@ -1377,7 +1377,8 @@ static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *
 	int frameno;
 	char dir[PROXY_MAXFILE];
 
-	if (!seq->strip->proxy) {
+	StripProxy *proxy = seq->strip->proxy;
+	if (!proxy) {
 		return false;
 	}
 
@@ -1389,7 +1390,7 @@ static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *
 	 * have both, a directory full of jpeg files and proxy avis, so
 	 * sorry folks, please rebuild your proxies... */
 
-	if (seq->flag & (SEQ_USE_PROXY_CUSTOM_DIR | SEQ_USE_PROXY_CUSTOM_FILE)) {
+	if (proxy->storage & (SEQ_STORAGE_PROXY_CUSTOM_DIR | SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
 	}
 	else if (seq->type == SEQ_TYPE_IMAGE) {
@@ -1399,7 +1400,7 @@ static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *
 		return false;
 	}
 
-	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
 		BLI_join_dirfile(name, PROXY_MAXFILE,
 		                 dir, seq->strip->proxy->file);
 		BLI_path_abs(name, G.main->name);
@@ -1433,6 +1434,7 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 	IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
 	int size_flags;
 	int render_size = context->preview_render_size;
+	StripProxy *proxy = seq->strip->proxy;
 
 	/* dirty hack to distinguish 100% render size from PROXY_100 */
 	if (render_size == 99) {
@@ -1443,32 +1445,31 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 		return NULL;
 	}
 
-	size_flags = seq->strip->proxy->build_size_flags;
+	size_flags = proxy->build_size_flags;
 
 	/* only use proxies, if they are enabled (even if present!) */
 	if (psize == IMB_PROXY_NONE || ((size_flags & psize) != psize)) {
 		return NULL;
 	}
 
-	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
 		int frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
-		if (seq->strip->proxy->anim == NULL) {
+		if (proxy->anim == NULL) {
 			if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
 				return NULL;
 			}
 
-			seq->strip->proxy->anim = openanim(name, IB_rect, 0,
-			        seq->strip->colorspace_settings.name);
+			proxy->anim = openanim(name, IB_rect, 0, seq->strip->colorspace_settings.name);
 		}
-		if (seq->strip->proxy->anim == NULL) {
+		if (proxy->anim == NULL) {
 			return NULL;
 		}
  
 		seq_open_anim_file(seq, true);
 
-		frameno = IMB_anim_index_get_frame_index(seq->anim, seq->strip->proxy->tc, frameno);
+		frameno = IMB_anim_index_get_frame_index(seq->anim, proxy->tc, frameno);
 
-		return IMB_anim_absolute(seq->strip->proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
+		return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 	}
  
 	if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
@@ -1600,7 +1601,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 	}
 
 	/* that's why it is called custom... */
-	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+	if (seq->strip->proxy && seq->strip->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
 		return;
 	}
 

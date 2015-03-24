@@ -95,7 +95,8 @@ typedef struct StripProxy {
 	short build_tc_flags;  // time code flags (see below) of all tc indices
 	                       // to build
 	short build_flags;
-	char pad[6];
+	char storage;
+	char pad[5];
 } StripProxy;
 
 typedef struct Strip {
@@ -354,9 +355,9 @@ enum {
 	SEQ_USE_TRANSFORM           = (1 << 16),
 	SEQ_USE_CROP                = (1 << 17),
 	/* SEQ_USE_COLOR_BALANCE       = (1 << 18), */ /* DEPRECATED */
-	SEQ_USE_PROXY_CUSTOM_DIR    = (1 << 19),
+	/* SEQ_USE_PROXY_CUSTOM_DIR    = (1 << 19), */ /* DEPRECATED */
 
-	SEQ_USE_PROXY_CUSTOM_FILE   = (1 << 21),
+	/* SEQ_USE_PROXY_CUSTOM_FILE   = (1 << 21), */ /* DEPRECATED */
 	SEQ_USE_EFFECT_DEFAULT_FADE = (1 << 22),
 	SEQ_USE_LINEAR_MODIFIERS    = (1 << 23),
 
@@ -370,6 +371,12 @@ enum {
 	SEQ_SCENE_NO_GPENCIL        = (1 << 28),
 
 	SEQ_INVALID_EFFECT          = (1 << 31),
+};
+
+/* StripProxy->storage */
+enum {
+	SEQ_STORAGE_PROXY_CUSTOM_FILE   = (1 << 1), /* store proxy in custom directory */
+	SEQ_STORAGE_PROXY_CUSTOM_DIR    = (1 << 2)  /* store proxy in custom file */
 };
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)

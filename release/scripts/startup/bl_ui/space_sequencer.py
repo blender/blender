@@ -915,42 +915,45 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
 
         strip = act_strip(context)
 
-        flow = layout.column_flow()
-        flow.prop(strip, "use_proxy_custom_directory")
-        flow.prop(strip, "use_proxy_custom_file")
         if strip.proxy:
-            if strip.use_proxy_custom_directory and not strip.use_proxy_custom_file:
-                flow.prop(strip.proxy, "directory")
-            if strip.use_proxy_custom_file:
-                flow.prop(strip.proxy, "filepath")
+            proxy = strip.proxy
+
+            flow = layout.column_flow()
+            flow.prop(proxy, "use_proxy_custom_directory")
+            flow.prop(proxy, "use_proxy_custom_file")
+
+            if proxy.use_proxy_custom_directory and not proxy.use_proxy_custom_file:
+                flow.prop(proxy, "directory")
+            if proxy.use_proxy_custom_file:
+                flow.prop(proxy, "filepath")
 
             layout.label("Enabled Proxies:")
             enabled = ""
             row = layout.row()
-            if (strip.proxy.build_25):
+            if (proxy.build_25):
                 enabled += "25% "
-            if (strip.proxy.build_50):
+            if (proxy.build_50):
                 enabled += "50% "
-            if (strip.proxy.build_75):
+            if (proxy.build_75):
                 enabled += "75% "
-            if (strip.proxy.build_100):
+            if (proxy.build_100):
                 enabled += "100% "
 
             row.label(enabled)
-            if (strip.proxy.use_overwrite):
+            if (proxy.use_overwrite):
                 layout.label("Overwrite On")
             else:
                 layout.label("Overwrite Off")
 
             col = layout.column()
             col.label(text="Build JPEG quality")
-            col.prop(strip.proxy, "quality")
+            col.prop(proxy, "quality")
 
             if strip.type == 'MOVIE':
                 col = layout.column()
                 col.label(text="Use timecode index:")
 
-                col.prop(strip.proxy, "timecode")
+                col.prop(proxy, "timecode")
 
         col = layout.column()
         col.operator("sequencer.enable_proxies")
