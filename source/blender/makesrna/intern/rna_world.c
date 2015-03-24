@@ -92,6 +92,7 @@ static void rna_World_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	WM_main_add_notifier(NC_WORLD | ND_WORLD, wo);
 }
 
+#if 0
 static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	World *wo = ptr->id.data;
@@ -99,6 +100,7 @@ static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 	DAG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, wo);
 }
+#endif
 
 /* so camera mist limits redraw */
 static void rna_World_draw_mist_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
