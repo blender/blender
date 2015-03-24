@@ -394,7 +394,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->totline++;
 	}
 
-	if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+	if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
 		/* better not show the value of a password */
 		if ((but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD)) == 0) {
 			/* full string */
@@ -815,7 +815,7 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 		}
 		else {
 			/* only let users step into an 'unset' state for unlink buttons */
-			data->active = (but->type == UI_BTYPE_SEARCH_MENU_UNLINK) ? -1 : 0;
+			data->active = (but->flag & UI_BUT_SEARCH_UNLINK) ? -1 : 0;
 		}
 	}
 	
@@ -886,7 +886,7 @@ bool ui_searchbox_apply(uiBut *but, ARegion *ar)
 
 		return true;
 	}
-	else if (but->type == UI_BTYPE_SEARCH_MENU_UNLINK) {
+	else if (but->flag & UI_BUT_SEARCH_UNLINK) {
 		/* It is valid for _UNLINK flavor to have no active element (it's a valid way to unlink). */
 		but->editstr[0] = '\0';
 

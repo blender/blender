@@ -1573,11 +1573,14 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 
 	/* turn button into search button */
 	if (searchprop) {
-		but->type = RNA_property_is_unlink(prop) ? UI_BTYPE_SEARCH_MENU_UNLINK : UI_BTYPE_SEARCH_MENU;
+		but->type = UI_BTYPE_SEARCH_MENU;
 		but->hardmax = MAX2(but->hardmax, 256.0f);
 		but->rnasearchpoin = *searchptr;
 		but->rnasearchprop = searchprop;
 		but->drawflag |= UI_BUT_ICON_LEFT | UI_BUT_TEXT_LEFT;
+		if (RNA_property_is_unlink(prop)) {
+			but->flag |= UI_BUT_SEARCH_UNLINK;
+		}
 
 		if (RNA_property_type(prop) == PROP_ENUM) {
 			/* XXX, this will have a menu string,

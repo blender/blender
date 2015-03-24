@@ -413,7 +413,7 @@ bool ui_but_is_editable_as_text(const uiBut *but)
 {
 	return  ELEM(but->type,
 	             UI_BTYPE_TEXT, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER,
-	             UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK);
+	             UI_BTYPE_SEARCH_MENU);
 
 }
 
@@ -1629,7 +1629,6 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			ui_apply_but_BUT(C, but, data);
 			break;
 		case UI_BTYPE_TEXT:
-		case UI_BTYPE_SEARCH_MENU_UNLINK:
 		case UI_BTYPE_SEARCH_MENU:
 			ui_apply_but_TEX(C, but, data);
 			break;
@@ -1732,13 +1731,13 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
 	for (wmd = drags->first; wmd; wmd = wmd->next) {
 		if (wmd->type == WM_DRAG_ID) {
 			/* align these types with UI_but_active_drop_name */
-			if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+			if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
 				ID *id = (ID *)wmd->poin;
 				
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				BLI_strncpy(data->str, id->name + 2, data->maxlen);
 
-				if (ELEM(but->type, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+				if (ELEM(but->type, UI_BTYPE_SEARCH_MENU)) {
 					but->changed = true;
 					ui_searchbox_update(C, data->searchbox, but, true);
 				}
@@ -1879,7 +1878,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 
 	/* text/string and ID data */
-	else if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+	else if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
 		uiHandleButtonData *active_data = but->active;
 
 		if (but->poin == NULL && but->rnapoin.data == NULL) {
@@ -1899,7 +1898,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			else
 				BLI_strncpy(active_data->str, buf_paste, active_data->maxlen);
 
-			if (ELEM(but->type, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+			if (but->type == UI_BTYPE_SEARCH_MENU) {
 				/* else uiSearchboxData.active member is not updated [#26856] */
 				but->changed = true;
 				ui_searchbox_update(C, data->searchbox, but, true);
@@ -2092,7 +2091,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 	BLI_strncpy(origstr, but->editstr, data->maxlen);
 
-	if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+	if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
 		if (but->flag & UI_HAS_ICON) {
 			startx += UI_DPI_ICON_SIZE / aspect;
 		}
@@ -2539,7 +2538,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	but->selend = len;
 
 	/* optional searchbox */
-	if (ELEM(but->type, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+	if (but->type ==  UI_BTYPE_SEARCH_MENU) {
 		data->searchbox = ui_searchbox_create(C, data->region, but);
 		ui_searchbox_update(C, data->searchbox, but, true); /* true = reset */
 	}
@@ -6331,7 +6330,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 					WM_operator_name_call(C, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, NULL);
 					return WM_UI_HANDLER_BREAK;
 				}
-				else if (but->type == UI_BTYPE_SEARCH_MENU_UNLINK) {
+				else if ((but->type == UI_BTYPE_SEARCH_MENU) &&
+				         (but->flag & UI_BUT_SEARCH_UNLINK))
+				{
 					if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_POINTER) {
 						StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
 						const short idcode = RNA_type_to_ID_code(type);
@@ -6488,10 +6489,15 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			break;
 		case UI_BTYPE_TEXT:
 		case UI_BTYPE_SEARCH_MENU:
+			if ((but->type == UI_BTYPE_SEARCH_MENU) &&
+			    (but->flag & UI_BUT_SEARCH_UNLINK))
+			{
+				retval = ui_do_but_SEARCH_UNLINK(C, block, but, data, event);
+				if (retval & WM_UI_HANDLER_BREAK) {
+					break;
+				}
+			}
 			retval = ui_do_but_TEX(C, block, but, data, event);
-			break;
-		case UI_BTYPE_SEARCH_MENU_UNLINK:
-			retval = ui_do_but_SEARCH_UNLINK(C, block, but, data, event);
 			break;
 		case UI_BTYPE_MENU:
 		case UI_BTYPE_BLOCK:
@@ -6731,7 +6737,7 @@ bool UI_but_active_drop_name(bContext *C)
 	uiBut *but = ui_but_find_active_in_region(ar);
 
 	if (but) {
-		if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK))
+		if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU))
 			return 1;
 	}
 	
@@ -6848,9 +6854,10 @@ static bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 
 bool ui_but_is_search_unlink_visible(const uiBut *but)
 {
-	BLI_assert(but->type == UI_BTYPE_SEARCH_MENU_UNLINK);
+	BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
 	return ((but->editstr == NULL) &&
-	        (but->drawstr[0] != '\0'));
+	        (but->drawstr[0] != '\0') &&
+	        (but->flag & UI_BUT_SEARCH_UNLINK));
 }
 
 /* x and y are only used in case event is NULL... */
@@ -7131,7 +7138,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	copy_v2_fl(data->ungrab_mval, FLT_MAX);
 #endif
 
-	if (ELEM(but->type, UI_BTYPE_CURVE, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK)) {
+	if (ELEM(but->type, UI_BTYPE_CURVE, UI_BTYPE_SEARCH_MENU)) {
 		/* XXX curve is temp */
 	}
 	else {
@@ -9106,7 +9113,7 @@ static int ui_handle_menus_recursive(
 
 	/* now handle events for our own menu */
 	if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
-		const bool do_but_search = (but && ELEM(but->type, UI_BTYPE_SEARCH_MENU, UI_BTYPE_SEARCH_MENU_UNLINK));
+		const bool do_but_search = (but && (but->type == UI_BTYPE_SEARCH_MENU));
 		if (submenu && submenu->menuretval) {
 			const bool do_ret_out_parent = (submenu->menuretval & UI_RETURN_OUT_PARENT) != 0;
 			retval = ui_handle_menu_return_submenu(C, event, menu);
