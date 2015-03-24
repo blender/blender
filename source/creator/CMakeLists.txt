@@ -262,7 +262,11 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	if(WITH_PYTHON_MODULE)
-		set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/${BLENDER_VERSION})
+		if(WITH_INSTALL_PORTABLE)
+			set(TARGETDIR_VER ${BLENDER_VERSION})
+		else()
+			set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/${BLENDER_VERSION})
+		endif()
 	else()
 		if(WITH_INSTALL_PORTABLE)
 			set(TARGETDIR_VER ${BLENDER_VERSION})
@@ -408,10 +412,17 @@ if(UNIX AND NOT APPLE)
 
 	# there are a few differences between portable and system install
 	if(WITH_PYTHON_MODULE)
-		install(
-			TARGETS blender
-			LIBRARY DESTINATION ${PYTHON_SITE_PACKAGES}
-		)
+		if(WITH_INSTALL_PORTABLE)
+			install(
+				TARGETS blender
+				DESTINATION "."
+			)
+		else()
+			install(
+				TARGETS blender
+				LIBRARY DESTINATION ${PYTHON_SITE_PACKAGES}
+			)
+		endif()
 		# none of the other files are needed currently
 	elseif(WITH_INSTALL_PORTABLE)
 		install(

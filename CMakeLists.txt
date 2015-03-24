@@ -201,7 +201,7 @@ set(WITH_PYTHON_SECURITY ON CACHE BOOL "ON" FORCE) # temp force on.
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 mark_as_advanced(WITH_PYTHON_SAFETY)
-option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development), installs to PYTHON_SITE_PACKAGES" OFF)
+option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development), installs to PYTHON_SITE_PACKAGES (or CMAKE_INSTALL_PREFIX if WITH_INSTALL_PORTABLE is enabled)." OFF)
 if(APPLE)
 	option(WITH_PYTHON_FRAMEWORK "Enable building using the Python available in the framework (OSX only)" OFF)
 endif()
@@ -617,8 +617,6 @@ endif()
 # may as well build python module without a UI
 if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
-	# building as a Python module wont use /usr/shared
-	set(WITH_INSTALL_PORTABLE ON)
 endif()
 
 if(NOT WITH_PYTHON)
