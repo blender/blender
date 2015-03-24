@@ -261,11 +261,11 @@ endif()
 # Platform Specific Var: TARGETDIR_VER
 
 if(UNIX AND NOT APPLE)
-	if(WITH_INSTALL_PORTABLE)
-		set(TARGETDIR_VER ${BLENDER_VERSION})
+	if(WITH_PYTHON_MODULE)
+		set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/${BLENDER_VERSION})
 	else()
-		if(WITH_PYTHON_MODULE)
-			set(TARGETDIR_VER ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${BLENDER_VERSION})
+		if(WITH_INSTALL_PORTABLE)
+			set(TARGETDIR_VER ${BLENDER_VERSION})
 		else()
 			set(TARGETDIR_VER share/blender/${BLENDER_VERSION})
 		endif()
@@ -407,22 +407,24 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	# there are a few differences between portable and system install
-	if(WITH_INSTALL_PORTABLE)
-		if(WITH_PYTHON_MODULE)
-			# pass
-		else()
-			if(WITH_DOC_MANPAGE)
-				install(
-					FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-					DESTINATION "."
-				)
-			endif()
-		endif()
+	if(WITH_PYTHON_MODULE)
+		install(
+			TARGETS blender
+			LIBRARY DESTINATION ${PYTHON_SITE_PACKAGES}
+		)
+		# none of the other files are needed currently
+	elseif(WITH_INSTALL_PORTABLE)
 		install(
 			TARGETS blender
 			DESTINATION "."
 		)
 
+		if(WITH_DOC_MANPAGE)
+			install(
+				FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+				DESTINATION "."
+			)
+		endif()
 		install(
 			FILES
 				${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
@@ -437,26 +439,18 @@ if(UNIX AND NOT APPLE)
 		)
 
 		set(BLENDER_TEXT_FILES_DESTINATION ".")
-
 	else()
 		# main blender binary
-		if(WITH_PYTHON_MODULE)
+		install(
+			TARGETS blender
+			DESTINATION bin
+		)
+		if(WITH_DOC_MANPAGE)
+			# manpage only with 'blender' binary
 			install(
-				TARGETS blender
-				LIBRARY	DESTINATION ${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages
+				FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+				DESTINATION share/man/man1
 			)
-		else()
-			install(
-				TARGETS blender
-				DESTINATION bin
-			)
-			if(WITH_DOC_MANPAGE)
-				# manpage only with 'blender' binary
-				install(
-					FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-					DESTINATION share/man/man1
-				)
-			endif()
 		endif()
 
 		# misc files

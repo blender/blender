@@ -14,6 +14,7 @@
 #  PYTHON_INCLUDE_CONFIG_DIRS
 #  PYTHON_LIBRARIES
 #  PYTHON_LIBPATH, Used for installation
+#  PYTHON_SITE_PACKAGES, Used for installation (as a Python module)
 #  PYTHON_LINKFLAGS
 #  PYTHON_ROOT_DIR, The base directory to search for Python.
 #                   This can also be an environment variable.
@@ -187,6 +188,15 @@ IF(PYTHONLIBSUNIX_FOUND)
   SET(PYTHON_INCLUDE_DIRS ${PYTHON_INCLUDE_DIR} ${PYTHON_INCLUDE_CONFIG_DIR})
   SET(PYTHON_LIBRARIES ${PYTHON_LIBRARY})
 
+  FIND_FILE(PYTHON_SITE_PACKAGES
+    NAMES
+      # debian specific
+      dist-packages
+      site-packages
+    HINTS
+      ${PYTHON_LIBPATH}/python${PYTHON_VERSION}
+  )
+
   # we need this for installation
   # XXX No more valid with debian-like py3.4 packages...
 #  GET_FILENAME_COMPONENT(PYTHON_LIBPATH ${PYTHON_LIBRARY} PATH)
@@ -200,4 +210,5 @@ MARK_AS_ADVANCED(
   PYTHON_INCLUDE_CONFIG_DIR
   PYTHON_LIBRARY
   PYTHON_LIBPATH
+  PYTHON_SITE_PACKAGES
 )
