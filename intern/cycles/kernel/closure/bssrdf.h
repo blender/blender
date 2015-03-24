@@ -30,7 +30,6 @@ ccl_device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
 		return flag;
 	}
 	else {
-		sc->data0 = 0.0f;
 		sc->data1 = clamp(sc->data1, 0.0f, 1.0f); /* texture blur */
 		sc->T.x = clamp(sc->T.x, 0.0f, 1.0f); /* sharpness */
 		sc->type = type;

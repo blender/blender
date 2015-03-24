@@ -267,6 +267,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 						if(fabsf(weight.x) > 0.0f) {
 							sc.weight = make_float3(weight.x, 0.0f, 0.0f);
 							sc.data0 = bssrdf->radius.x;
+							sc.data1 = 0.0f;
 							sd->flag |= bssrdf_setup(&sc, sc.type);
 							sd->closure[sd->num_closure++] = sc;
 						}
@@ -274,6 +275,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 						if(fabsf(weight.y) > 0.0f) {
 							sc.weight = make_float3(0.0f, weight.y, 0.0f);
 							sc.data0 = bssrdf->radius.y;
+							sc.data1 = 0.0f;
 							sd->flag |= bssrdf_setup(&sc, sc.type);
 							sd->closure[sd->num_closure++] = sc;
 						}
@@ -281,6 +283,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 						if(fabsf(weight.z) > 0.0f) {
 							sc.weight = make_float3(0.0f, 0.0f, weight.z);
 							sc.data0 = bssrdf->radius.z;
+							sc.data1 = 0.0f;
 							sd->flag |= bssrdf_setup(&sc, sc.type);
 							sd->closure[sd->num_closure++] = sc;
 						}
