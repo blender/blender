@@ -88,7 +88,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_view_ghost_border);
 
 	WM_operatortype_append(SEQUENCER_OT_rebuild_proxy);
-	WM_operatortype_append(SEQUENCER_OT_enable_proxies);
+	WM_operatortype_append(SEQUENCER_OT_copy_proxy_settings);
 	WM_operatortype_append(SEQUENCER_OT_change_effect_input);
 	WM_operatortype_append(SEQUENCER_OT_change_effect_type);
 	WM_operatortype_append(SEQUENCER_OT_change_path);
