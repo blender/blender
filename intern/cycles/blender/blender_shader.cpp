@@ -951,6 +951,10 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 	BL::NodeTree::links_iterator b_link;
 
 	for(b_ntree.links.begin(b_link); b_link != b_ntree.links.end(); ++b_link) {
+		/* Ignore invalid links to avoid unwanted cycles created in graph. */
+		if(!b_link->is_valid()) {
+			continue;
+		}
 		/* get blender link data */
 		BL::NodeSocket b_from_sock = b_link->from_socket();
 		BL::NodeSocket b_to_sock = b_link->to_socket();
