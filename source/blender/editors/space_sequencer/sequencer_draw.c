@@ -1079,7 +1079,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		/* future files may have new scopes we don't catch above */
 		if (scope) {
 			scopes->reference_ibuf = ibuf;
-			if (!scopes->zebra_ibuf) { /* zebra uses viewrect from orig ibuf */
+			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+				/* scopes drawn in image preview use viewrect from orig ibuf - currently that's only zebra */
+			}
+			else {
 				viewrect[0] = scope->x;
 				viewrect[1] = scope->y;
 			}
