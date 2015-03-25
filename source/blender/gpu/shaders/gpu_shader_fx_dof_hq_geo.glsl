@@ -6,7 +6,7 @@ uniform vec2 layerselection;
 uniform sampler2D cocbuffer;
 
 /* initial uv coordinate */
-varying in vec2 uvcoord[];
+varying in vec2 uvcoord[1];
 varying out vec2 particlecoord;
 varying out vec4 color;
 
