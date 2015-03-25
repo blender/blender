@@ -593,12 +593,14 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 	const float cent[2] = {BLI_rctf_cent_x(src), BLI_rctf_cent_y(src)};
 	float corner[2], corner_rot[2], corder_max[2];
 
-	ARRAY_SET_ITEMS(corner, src->xmin - cent[0], src->ymax - cent[1]);
+	/* x is same for both corners */
+	corner[0] = src->xmax - cent[0];
+	corner[1] = src->ymax - cent[1];
 	ROTATE_SINCOS(corner_rot, mat2, corner);
 	corder_max[0] = fabsf(corner_rot[0]);
 	corder_max[1] = fabsf(corner_rot[1]);
 
-	ARRAY_SET_ITEMS(corner, src->xmax - cent[0], src->ymax - cent[1]);
+	corner[1] *= -1;
 	ROTATE_SINCOS(corner_rot, mat2, corner);
 	corder_max[0] = MAX2(corder_max[0], fabsf(corner_rot[0]));
 	corder_max[1] = MAX2(corder_max[1], fabsf(corner_rot[1]));
