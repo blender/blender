@@ -1620,6 +1620,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 
 			ImBuf *ibuf = NULL, *freeibuf, *releaseibuf;
 			void *lock;
+			rctf clip_rect;
 
 			Image *ima = NULL;
 			MovieClip *clip = NULL;
@@ -1782,8 +1783,12 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			}
 
 			/* complete clip? */
+			BLI_rctf_init(&clip_rect, x1, x2, y1, y2);
+			if (bgpic->rotation) {
+				BLI_rctf_rotate_expand(&clip_rect, &clip_rect, bgpic->rotation);
+			}
 
-			if (x2 < 0 || y2 < 0 || x1 > ar->winx || y1 > ar->winy) {
+			if (clip_rect.xmax < 0 || clip_rect.ymax < 0 || clip_rect.xmin > ar->winx || clip_rect.ymin > ar->winy) {
 				if (freeibuf)
 					IMB_freeImBuf(freeibuf);
 				if (releaseibuf)

@@ -571,3 +571,44 @@ void print_rcti(const char *str, const rcti *rect)
 	printf("%s: xmin %d, xmax %d, ymin %d, ymax %d (%dx%d)\n", str,
 	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 }
+
+
+/* -------------------------------------------------------------------- */
+/* Comprehensive math (float only) */
+
+/** \name Rect math functions
+ * \{ */
+
+#define ROTATE_SINCOS(r_vec, mat2, vec) { \
+	(r_vec)[0] = (mat2)[1] * (vec)[0] + (+(mat2)[0]) * (vec)[1]; \
+	(r_vec)[1] = (mat2)[0] * (vec)[0] + (-(mat2)[1]) * (vec)[1]; \
+} ((void)0)
+
+/**
+ * Expand the rectangle to fit a rotated \a src.
+ */
+void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
+{
+	const float mat2[2] = {sinf(angle), cosf(angle)};
+	const float cent[2] = {BLI_rctf_cent_x(src), BLI_rctf_cent_y(src)};
+	float corner[2], corner_rot[2], corder_max[2];
+
+	ARRAY_SET_ITEMS(corner, src->xmin - cent[0], src->ymax - cent[1]);
+	ROTATE_SINCOS(corner_rot, mat2, corner);
+	corder_max[0] = fabsf(corner_rot[0]);
+	corder_max[1] = fabsf(corner_rot[1]);
+
+	ARRAY_SET_ITEMS(corner, src->xmax - cent[0], src->ymax - cent[1]);
+	ROTATE_SINCOS(corner_rot, mat2, corner);
+	corder_max[0] = MAX2(corder_max[0], fabsf(corner_rot[0]));
+	corder_max[1] = MAX2(corder_max[1], fabsf(corner_rot[1]));
+
+	dst->xmin = cent[0] - corder_max[0];
+	dst->xmax = cent[0] + corder_max[0];
+	dst->ymin = cent[1] - corder_max[1];
+	dst->ymax = cent[1] + corder_max[1];
+}
+
+#undef ROTATE_SINCOS
+
+/** \} */
