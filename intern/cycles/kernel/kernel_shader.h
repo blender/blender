@@ -798,8 +798,8 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 #else
 		sd->closure->weight = make_float3(0.8f, 0.8f, 0.8f);
 		sd->closure->N = sd->N;
-		sd->closyre->data0 = 0.0f;
-		sd->closyre->data1 = 0.0f;
+		sd->closure->data0 = 0.0f;
+		sd->closure->data1 = 0.0f;
 		sd->flag |= bsdf_diffuse_setup(&sd->closure);
 #endif
 	}
