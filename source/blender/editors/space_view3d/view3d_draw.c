@@ -3636,7 +3636,7 @@ static bool is_cursor_visible(Scene *scene)
 		else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 			const Paint *p = BKE_paint_get_active(scene);
 
-			if (p && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
+			if (p && p->brush && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
 				if ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) == 0) {
 					return true;
 				}
