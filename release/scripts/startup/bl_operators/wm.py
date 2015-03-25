@@ -1296,9 +1296,13 @@ class WM_OT_properties_remove(Operator):
     property = rna_property
 
     def execute(self, context):
+        from rna_prop_ui import rna_idprop_ui_prop_clear
         data_path = self.data_path
         item = eval("context.%s" % data_path)
-        del item[self.property]
+        prop = self.property
+        del item[prop]
+        rna_idprop_ui_prop_clear(item, prop)
+
         return {'FINISHED'}
 
 

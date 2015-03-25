@@ -32,6 +32,13 @@ def rna_idprop_ui_get(item, create=True):
             return None
 
 
+def rna_idprop_ui_del(item):
+    try:
+        del item['_RNA_UI']
+    except KeyError:
+        pass
+
+
 def rna_idprop_ui_prop_get(item, prop, create=True):
 
     rna_ui = rna_idprop_ui_get(item, create)
@@ -46,7 +53,7 @@ def rna_idprop_ui_prop_get(item, prop, create=True):
         return rna_ui[prop]
 
 
-def rna_idprop_ui_prop_clear(item, prop):
+def rna_idprop_ui_prop_clear(item, prop, remove=True):
     rna_ui = rna_idprop_ui_get(item, False)
 
     if rna_ui is None:
@@ -54,8 +61,10 @@ def rna_idprop_ui_prop_clear(item, prop):
 
     try:
         del rna_ui[prop]
-    except:
+    except KeyError:
         pass
+    if remove and len(item.keys()) == 1:
+        rna_idprop_ui_del(item)
 
 
 def rna_idprop_context_value(context, context_member, property_type):
