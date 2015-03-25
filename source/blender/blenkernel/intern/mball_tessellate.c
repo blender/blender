@@ -33,31 +33,25 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <float.h>
+
 #include "MEM_guardedalloc.h"
 
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
-
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
-#include "BKE_main.h"
 
-/*  #include "BKE_object.h" */
-#include "BKE_animsys.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_scene.h"
-#include "BKE_library.h"
 #include "BKE_displist.h"
 #include "BKE_mball.h"
-#include "BKE_object.h"
-#include "BKE_material.h"
+#include "BKE_mball_tessellate.h"  /* own include */
 
 /* Data types */
 

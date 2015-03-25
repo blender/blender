@@ -53,6 +53,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
 #include "BKE_mball.h"
+#include "BKE_mball_tessellate.h"
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_anim.h"

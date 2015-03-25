@@ -39,13 +39,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <float.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
-
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -54,7 +54,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-/*  #include "BKE_object.h" */
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
