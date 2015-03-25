@@ -1364,7 +1364,11 @@ static void seq_open_anim_file(Sequence *seq, bool openfile)
 
 	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
 		char dir[FILE_MAX];
+		char fname[FILE_MAXFILE];
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+		IMB_anim_get_fname(seq->anim, fname, FILE_MAXFILE);
+		BLI_path_append(dir, sizeof(dir), fname);
+
 		BLI_path_abs(dir, G.main->name);
 
 		IMB_anim_set_index_dir(seq->anim, dir);
@@ -1390,8 +1394,14 @@ static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *
 	 * have both, a directory full of jpeg files and proxy avis, so
 	 * sorry folks, please rebuild your proxies... */
 
-	if (proxy->storage & (SEQ_STORAGE_PROXY_CUSTOM_DIR | SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
+	if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+	}
+	else if (seq->anim && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR)) {
+		char fname[FILE_MAXFILE];
+		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+		IMB_anim_get_fname(seq->anim, fname, FILE_MAXFILE);
+		BLI_path_append(dir, sizeof(dir), fname);
 	}
 	else if (seq->type == SEQ_TYPE_IMAGE) {
 		BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
@@ -1402,7 +1412,7 @@ static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *
 
 	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
 		BLI_join_dirfile(name, PROXY_MAXFILE,
-		                 dir, seq->strip->proxy->file);
+		                 dir, proxy->file);
 		BLI_path_abs(name, G.main->name);
 
 		return true;
@@ -1436,13 +1446,13 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 	int render_size = context->preview_render_size;
 	StripProxy *proxy = seq->strip->proxy;
 
+	if (!(seq->flag & SEQ_USE_PROXY)) {
+		return NULL;
+	}
+
 	/* dirty hack to distinguish 100% render size from PROXY_100 */
 	if (render_size == 99) {
 		render_size = 100;
-	}
-
-	if (!(seq->flag & SEQ_USE_PROXY)) {
-		return NULL;
 	}
 
 	size_flags = proxy->build_size_flags;

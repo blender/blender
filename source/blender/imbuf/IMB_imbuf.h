@@ -240,6 +240,7 @@ typedef enum IMB_Proxy_Size {
 
 /* defaults to BL_proxy within the directory of the animation */
 void IMB_anim_set_index_dir(struct anim *anim, const char *dir);
+void IMB_anim_get_fname(struct anim *anim, char *file, int size);
 
 int IMB_anim_index_get_frame_index(struct anim *anim, IMB_Timecode_Type tc,
                                    int position);

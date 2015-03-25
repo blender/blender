@@ -376,7 +376,7 @@ enum {
 /* StripProxy->storage */
 enum {
 	SEQ_STORAGE_PROXY_CUSTOM_FILE   = (1 << 1), /* store proxy in custom directory */
-	SEQ_STORAGE_PROXY_CUSTOM_DIR    = (1 << 2)  /* store proxy in custom file */
+	SEQ_STORAGE_PROXY_CUSTOM_DIR    = (1 << 2), /* store proxy in custom file */
 };
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)
