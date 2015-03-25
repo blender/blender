@@ -390,7 +390,12 @@ bool GPU_fx_compositor_initialize_passes(
 
 	/* create textures for dof effect */
 	if (fx_flag & GPU_FX_FLAG_DOF) {
-		bool dof_high_quality = (fx_settings->dof->high_quality != 0);
+		bool dof_high_quality = (fx_settings->dof->high_quality != 0) &&
+								GPU_geometry_shader_support() && GPU_instanced_drawing_support();
+
+		/* cleanup buffers if quality setting has changed (no need to keep more buffers around than necessary ) */
+		if (dof_high_quality != fx->dof_high_quality)
+			cleanup_fx_dof_buffers(fx);
 
 		if (dof_high_quality) {
 			fx->dof_downsampled_w = w / 2;
@@ -469,7 +474,7 @@ bool GPU_fx_compositor_initialize_passes(
 			}
 		}
 
-		fx->dof_high_quality = dof_high_quality && GPU_geometry_shader_support() && GPU_instanced_drawing_support();
+		fx->dof_high_quality = dof_high_quality;
 	}
 	else {
 		/* cleanup unnecessary buffers */
