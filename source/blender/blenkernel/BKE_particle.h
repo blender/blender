@@ -361,7 +361,7 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim, struct Pa
 
 void psys_thread_context_init(struct ParticleThreadContext *ctx, struct ParticleSimulationData *sim);
 void psys_thread_context_free(struct ParticleThreadContext *ctx);
-void psys_tasks_create(struct ParticleThreadContext *ctx, int totpart, struct ParticleTask **r_tasks, int *r_numtasks);
+void psys_tasks_create(struct ParticleThreadContext *ctx, int startpart, int endpart, struct ParticleTask **r_tasks, int *r_numtasks);
 void psys_tasks_free(struct ParticleTask *tasks, int numtasks);
 
 void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);

@@ -1121,7 +1121,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 	task_pool = BLI_task_pool_create(task_scheduler, &ctx);
 	
 	totpart = (from == PART_FROM_CHILD ? sim->psys->totchild : sim->psys->totpart);
-	psys_tasks_create(&ctx, totpart, &tasks, &numtasks);
+	psys_tasks_create(&ctx, 0, totpart, &tasks, &numtasks);
 	for (i = 0; i < numtasks; ++i) {
 		ParticleTask *task = &tasks[i];
 		
