@@ -154,6 +154,7 @@ bool AutoTrack::TrackMarker(Marker* tracked_marker,
                                                      frame_accessor_,
                                                      &tracked_image);
   if (!tracked_key) {
+    frame_accessor_->ReleaseImage(reference_key);
     LG << "Couldn't get frame for tracked marker: " << tracked_marker;
     return false;
   }
