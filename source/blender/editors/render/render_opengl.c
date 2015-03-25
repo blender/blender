@@ -223,7 +223,12 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			/*int is_ortho = scene->r.mode & R_ORTHO;*/
 			camera = v3d->camera;
 			RE_GetCameraWindow(oglrender->re, camera, scene->r.cfra, winmat);
-			is_persp = true;
+			if (camera->type == OB_CAMERA) {
+				Camera *cam = camera->data;
+				is_persp = cam->type == CAM_PERSP;
+			}
+			else
+				is_persp = true;
 			BKE_camera_to_gpu_dof(camera, &fx_settings);
 		}
 		else {
