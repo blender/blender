@@ -89,6 +89,8 @@ void BLI_rctf_union(struct rctf *rctf1, const struct rctf *rctf2);
 void BLI_rcti_rctf_copy(struct rcti *dst, const struct rctf *src);
 void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 
+void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle);
+
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);
 
