@@ -52,6 +52,7 @@
 #include "BKE_anim.h"  /* for the where_on_path function */
 #include "BKE_armature.h"
 #include "BKE_camera.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"  /* for the get_constraint_target function */
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
@@ -4761,6 +4762,12 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if (draw_as == PART_DRAW_NOT)
 		return;
+
+	/* prepare curvemapping tables */
+	if ((psys->part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && psys->part->clumpcurve)
+		curvemapping_changed_all(psys->part->clumpcurve);
+	if ((psys->part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && psys->part->roughcurve)
+		curvemapping_changed_all(psys->part->roughcurve);
 
 /* 2. */
 	sim.scene = scene;
