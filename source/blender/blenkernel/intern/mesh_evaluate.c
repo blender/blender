@@ -226,7 +226,7 @@ void BKE_mesh_calc_normals_poly(MVert *mverts, int numVerts, MLoop *mloop, MPoly
 	MPoly *mp;
 
 	if (only_face_normals) {
-		BLI_assert(pnors != NULL);
+		BLI_assert((pnors != NULL) || (numPolys == 0));
 
 #pragma omp parallel for if (numPolys > BKE_MESH_OMP_LIMIT)
 		for (i = 0; i < numPolys; i++) {
@@ -252,12 +252,12 @@ void BKE_mesh_calc_normals_poly(MVert *mverts, int numVerts, MLoop *mloop, MPoly
 		}
 	}
 
-	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 	for (i = 0; i < numVerts; i++) {
 		MVert *mv = &mverts[i];
 		float *no = tnorms[i];
 
 		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
+			/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 			normalize_v3_v3(no, mv->co);
 		}
 
