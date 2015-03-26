@@ -210,9 +210,10 @@ typedef struct Editing {
 	Sequence *act_seq;
 	char act_imagedir[1024]; /* 1024 = FILE_MAX */
 	char act_sounddir[1024]; /* 1024 = FILE_MAX */
+	char proxy_dir[1024]; /* 1024 = FILE_MAX */
 
 	int over_ofs, over_cfra;
-	int over_flag, pad;
+	int over_flag, proxy_storage;
 	rctf over_border;
 } Editing;
 
@@ -326,6 +327,10 @@ typedef struct SequencerScopes {
 
 #define SEQ_STRIP_OFSBOTTOM     0.2f
 #define SEQ_STRIP_OFSTOP        0.8f
+
+/* Editor->proxy_storage */
+/* store proxies in project directory */
+#define SEQ_EDIT_PROXY_DIR_STORAGE 1
 
 /* SpeedControlVars->flags */
 #define SEQ_SPEED_INTEGRATE      1

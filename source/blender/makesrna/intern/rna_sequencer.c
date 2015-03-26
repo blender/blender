@@ -134,6 +134,14 @@ static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *i
 	rna_iterator_listbase_begin(iter, &ed->seqbase, NULL);
 }
 
+static void rna_SequenceEditor_update_cache(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+{
+	Editing *ed = (Editing *) ptr->id.data;
+
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
+}
+
+
 static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal = &iter->internal.listbase;
@@ -1568,7 +1576,12 @@ static void rna_def_editor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
+	static const EnumPropertyItem editing_storage_items[] = {
+		{0, "PER_STRIP", 0, "Per Strip", "Store proxies using per strip settings"},
+		{SEQ_EDIT_PROXY_DIR_STORAGE, "PROJECT", 0, "Project", "Store proxies using project directory"},
+		{0, NULL, 0, NULL, NULL}
+	};
 	srna = RNA_def_struct(brna, "SequenceEditor", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene datablock");
 	RNA_def_struct_ui_icon(srna, ICON_SEQUENCE);
@@ -1616,6 +1629,16 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_overlay_frame_get",
 	                           "rna_SequenceEditor_overlay_frame_set", NULL);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+	prop = RNA_def_property(srna, "proxy_storage", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, editing_storage_items);
+	RNA_def_property_ui_text(prop, "Proxy Storage", "How to store proxies for this project");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
+
+	prop = RNA_def_property(srna, "proxy_dir", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "proxy_dir");
+	RNA_def_property_ui_text(prop, "Proxy Directory", "");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 }
 
 static void rna_def_filter_video(StructRNA *srna)

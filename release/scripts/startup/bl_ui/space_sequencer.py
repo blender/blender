@@ -913,19 +913,25 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        sequencer = context.scene.sequence_editor
+
         strip = act_strip(context)
 
         if strip.proxy:
             proxy = strip.proxy
 
             flow = layout.column_flow()
-            flow.prop(proxy, "use_proxy_custom_directory")
-            flow.prop(proxy, "use_proxy_custom_file")
+            flow.prop(sequencer, "proxy_storage")
+            if sequencer.proxy_storage == 'PROJECT':
+                flow.prop(sequencer, "proxy_dir")
+            else:
+                flow.prop(proxy, "use_proxy_custom_directory")
+                flow.prop(proxy, "use_proxy_custom_file")
 
-            if proxy.use_proxy_custom_directory and not proxy.use_proxy_custom_file:
-                flow.prop(proxy, "directory")
-            if proxy.use_proxy_custom_file:
-                flow.prop(proxy, "filepath")
+                if proxy.use_proxy_custom_directory and not proxy.use_proxy_custom_file:
+                    flow.prop(proxy, "directory")
+                if proxy.use_proxy_custom_file:
+                    flow.prop(proxy, "filepath")
 
             layout.label("Enabled Proxies:")
             enabled = ""

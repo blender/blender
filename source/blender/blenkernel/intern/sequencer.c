@@ -1330,7 +1330,7 @@ static double seq_rendersize_to_scale_factor(int size)
 	return 0.25;
 }
 
-static void seq_open_anim_file(Sequence *seq, bool openfile)
+static void seq_open_anim_file(Editing *ed, Sequence *seq, bool openfile)
 {
 	char name[FILE_MAX];
 	StripProxy *proxy;
@@ -1362,10 +1362,22 @@ static void seq_open_anim_file(Sequence *seq, bool openfile)
 		return;
 	}
 
-	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
+	if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) ||
+	    (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE))
+	{
 		char dir[FILE_MAX];
 		char fname[FILE_MAXFILE];
-		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+
+		if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
+			if (ed->proxy_dir[0] == 0)
+				BLI_strncpy(dir, "//", sizeof(dir));
+			else
+				BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
+		}
+		else {
+			BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+		}
+
 		IMB_anim_get_fname(seq->anim, fname, FILE_MAXFILE);
 		BLI_path_append(dir, sizeof(dir), fname);
 
@@ -1376,7 +1388,7 @@ static void seq_open_anim_file(Sequence *seq, bool openfile)
 }
 
 
-static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *name)
+static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render_size, char *name)
 {
 	int frameno;
 	char dir[PROXY_MAXFILE];
@@ -1394,7 +1406,17 @@ static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *
 	 * have both, a directory full of jpeg files and proxy avis, so
 	 * sorry folks, please rebuild your proxies... */
 
-	if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
+	if (seq->anim && ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
+		char fname[FILE_MAXFILE];
+		if (ed->proxy_dir[0] == 0)
+			BLI_strncpy(dir, "//", sizeof(dir));
+		else
+			BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
+		IMB_anim_get_fname(seq->anim, fname, FILE_MAXFILE);
+		BLI_path_append(dir, sizeof(dir), fname);
+		BLI_path_abs(name, G.main->name);
+	}
+	else if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
 	}
 	else if (seq->anim && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR)) {
@@ -1410,7 +1432,9 @@ static bool seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *
 		return false;
 	}
 
-	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
+	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE && seq->anim &&
+	    ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE)
+	{
 		BLI_join_dirfile(name, PROXY_MAXFILE,
 		                 dir, proxy->file);
 		BLI_path_abs(name, G.main->name);
@@ -1445,6 +1469,7 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 	int size_flags;
 	int render_size = context->preview_render_size;
 	StripProxy *proxy = seq->strip->proxy;
+	Editing *ed = context->scene->ed;
 
 	if (!(seq->flag & SEQ_USE_PROXY)) {
 		return NULL;
@@ -1465,7 +1490,7 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
 		int frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		if (proxy->anim == NULL) {
-			if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
+			if (seq_proxy_get_fname(ed, seq, cfra, render_size, name) == 0) {
 				return NULL;
 			}
 
@@ -1475,14 +1500,14 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
 			return NULL;
 		}
  
-		seq_open_anim_file(seq, true);
+		seq_open_anim_file(context->scene->ed, seq, true);
 
 		frameno = IMB_anim_index_get_frame_index(seq->anim, proxy->tc, frameno);
 
 		return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 	}
  
-	if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
+	if (seq_proxy_get_fname(ed, seq, cfra, render_size, name) == 0) {
 		return NULL;
 	}
 
@@ -1507,8 +1532,9 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 	int rectx, recty;
 	int ok;
 	ImBuf *ibuf_tmp, *ibuf;
+	Editing *ed = context->scene->ed;
 
-	if (!seq_proxy_get_fname(seq, cfra, proxy_render_size, name)) {
+	if (!seq_proxy_get_fname(ed, seq, cfra, proxy_render_size, name)) {
 		return;
 	}
 
@@ -1577,7 +1603,7 @@ SeqIndexBuildContext *BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *sc
 	context->seq = nseq;
 
 	if (nseq->type == SEQ_TYPE_MOVIE) {
-		seq_open_anim_file(nseq, true);
+		seq_open_anim_file(scene->ed, nseq, true);
 
 		if (nseq->anim) {
 			context->index_context = IMB_anim_index_rebuild_context(nseq->anim,
@@ -2800,7 +2826,7 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context, Sequence *s
 
 		case SEQ_TYPE_MOVIE:
 		{
-			seq_open_anim_file(seq, false);
+			seq_open_anim_file(context->scene->ed, seq, false);
 
 			if (seq->anim) {
 				IMB_Proxy_Size proxy_size = seq_rendersize_to_proxysize(context->preview_render_size);
