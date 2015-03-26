@@ -989,6 +989,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					eventHandled = true;
 					ime->UpdateImeWindow(hwnd);
 					ime->UpdateInfo(hwnd);
+					if (ime->eventImeData.result_len) {
+						/* remove redundant IME event */
+						eventManager->removeTypeEvents(GHOST_kEventImeComposition, window);
+					}
 					event = processImeEvent(
 					        GHOST_kEventImeComposition,
 					        window,
