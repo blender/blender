@@ -231,7 +231,7 @@ void BKE_sound_exit_once(void)
 
 /* XXX unused currently */
 #if 0
-bSound *sound_new_buffer(struct Main *bmain, bSound *source)
+bSound *BKE_sound_new_buffer(struct Main *bmain, bSound *source)
 {
 	bSound *sound = NULL;
 
@@ -255,7 +255,7 @@ bSound *sound_new_buffer(struct Main *bmain, bSound *source)
 	return sound;
 }
 
-bSound *sound_new_limiter(struct Main *bmain, bSound *source, float start, float end)
+bSound *BKE_sound_new_limiter(struct Main *bmain, bSound *source, float start, float end)
 {
 	bSound *sound = NULL;
 
@@ -386,7 +386,7 @@ void BKE_sound_load(struct Main *bmain, bSound *sound)
 	}
 }
 
-AUD_Device *sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
+AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
 	return AUD_openMixdownDevice(specs, scene->sound_scene, volume, start / FPS);
 }

@@ -1111,7 +1111,7 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 		}
 
 		specs.rate = rd->ffcodecdata.audio_mixrate;
-		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
+		audio_mixdown_device = BKE_sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
 #ifdef FFMPEG_CODEC_TIME_BASE
 		c->time_base.den = specs.rate;
 		c->time_base.num = 1;

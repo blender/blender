@@ -62,9 +62,9 @@ struct bSound *BKE_sound_new_file(struct Main *main, const char *filename);
 
 // XXX unused currently
 #if 0
-struct bSound *sound_new_buffer(struct Main *bmain, struct bSound *source);
+struct bSound *BKE_sound_new_buffer(struct Main *bmain, struct bSound *source);
 
-struct bSound *sound_new_limiter(struct Main *bmain, struct bSound *source, float start, float end);
+struct bSound *BKE_sound_new_limiter(struct Main *bmain, struct bSound *source, float start, float end);
 #endif
 
 void BKE_sound_delete(struct Main *bmain, struct bSound *sound);
@@ -78,7 +78,7 @@ void BKE_sound_load(struct Main *main, struct bSound *sound);
 void BKE_sound_free(struct bSound *sound);
 
 #ifdef __AUD_C_API_H__
-AUD_Device *sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
+AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 
 void BKE_sound_create_scene(struct Scene *scene);
