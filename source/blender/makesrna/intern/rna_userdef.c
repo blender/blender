@@ -548,7 +548,7 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 #endif
 
 #ifdef WITH_JACK
-	if (sound_is_jack_supported()) {
+	if (BKE_sound_is_jack_supported()) {
 		RNA_enum_item_add(&item, &totitem, &audio_device_items[index]);
 	}
 	index++;

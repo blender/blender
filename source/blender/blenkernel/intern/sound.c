@@ -141,9 +141,9 @@ static void sound_sync_callback(void *data, int mode, float time)
 	while (scene) {
 		if (scene->audio.flag & AUDIO_SYNC) {
 			if (mode)
-				sound_play_scene(scene);
+				BKE_sound_play_scene(scene);
 			else
-				sound_stop_scene(scene);
+				BKE_sound_stop_scene(scene);
 			if (scene->sound_scene_handle)
 				AUD_seek(scene->sound_scene_handle, time);
 		}
