@@ -2446,6 +2446,18 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 }
 
 #ifdef WITH_INPUT_IME
+/* test if the translation context allows IME input - used to
+ * avoid weird character drawing if IME inputs non-ascii chars */
+static bool ui_ime_is_lang_supported(void)
+{
+	const char *uilng = BLF_lang_get();
+	const bool is_lang_supported = STREQ(uilng, "zh_CN") ||
+	                               STREQ(uilng, "zh_TW") ||
+	                               STREQ(uilng, "ja_JP");
+
+	return ((U.transopts & USER_DOTRANSLATE) && is_lang_supported);
+}
+
 /* enable ime, and set up uibut ime data */
 static void ui_textedit_ime_begin(wmWindow *win, uiBut *UNUSED(but))
 {
@@ -2550,7 +2562,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	WM_cursor_modal_set(win, BC_TEXTEDITCURSOR);
 
 #ifdef WITH_INPUT_IME
-	if (is_num_but == false) {
+	if (is_num_but == false && ui_ime_is_lang_supported()) {
 		ui_textedit_ime_begin(win, but);
 	}
 #endif
