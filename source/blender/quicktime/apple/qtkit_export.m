@@ -219,10 +219,21 @@ static NSString *stringWithCodecType(int codecType)
 	return [NSString stringWithCString:str encoding:NSASCIIStringEncoding];
 }
 
-void makeqtstring(RenderData *rd, char *string)
+void makeqtstring(RenderData *rd, char *string, bool preview)
 {
+	int sfra, efra;
+
 	char txt[64];
 
+	if (preview) {
+		sfra = rd->psfra;
+		efra = rd->pefra;
+	}
+	else {
+		sfra = rd->sfra;
+		efra = rd->efra;
+	}
+	
 	strcpy(string, rd->pic);
 	BLI_path_abs(string, G.main->name);
 
@@ -234,10 +245,21 @@ void makeqtstring(RenderData *rd, char *string)
 	}
 }
 
-void filepath_qt(char *string, RenderData *rd)
+void filepath_qt(char *string, RenderData *rd, bool preview)
 {
+	int sfra, efra;
+
 	if (string == NULL) return;
 	
+	if (preview) {
+		sfra = rd->psfra;
+		efra = rd->pefra;
+	}
+	else {
+		sfra = rd->sfra;
+		efra = rd->efra;
+	}
+
 	strcpy(string, rd->pic);
 	BLI_path_abs(string, G.main->name);
 	
@@ -245,13 +267,13 @@ void filepath_qt(char *string, RenderData *rd)
 
 	if (rd->scemode & R_EXTENSION) {
 		if (!BLI_testextensie(string, ".mov")) {
-			BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
+			BLI_path_frame_range(string, sfra, efra, 4);
 			strcat(string, ".mov");
 		}
 	}
 	else {
 		if (BLI_path_frame_check_chars(string)) {
-			BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
+			BLI_path_frame_range(string, sfra, efra, 4);
 		}
 	}
 }
@@ -312,15 +334,25 @@ static OSStatus AudioConverterInputCallback(AudioConverterRef inAudioConverter,
 
 #pragma mark export functions
 
-int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports)
+int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports, bool preview)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSError *error;
 	char name[1024];
 	int success = 1;
 	OSStatus err = noErr;
+	int sfra, efra;
 
 	if (qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
+	
+	if (preview) {
+		sfra = rd->psfra;
+		efra = rd->pefra;
+	}
+	else {
+		sfra = rd->sfra;
+		efra = rd->efra;
+	}
 	
 	[QTMovie enterQTKitOnThread];
 	
@@ -330,7 +362,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 		success = 0;
 	}
 	else {
-		makeqtstring(rd, name);
+		makeqtstring(rd, name, preview);
 		qtexport->filename = [[NSString alloc] initWithCString:name
 		                                                       encoding:[NSString defaultCStringEncoding]];
 		qtexport->movie = nil;
@@ -591,13 +623,13 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 				specs.format = U.audioformat;
 				specs.rate = U.audiorate;
 				qtexport->audioInputDevice = AUD_openReadDevice(specs);
-				AUD_playDevice(qtexport->audioInputDevice, scene->sound_scene, rd->sfra * rd->frs_sec_base / rd->frs_sec);
+				AUD_playDevice(qtexport->audioInputDevice, scene->sound_scene, sfra * rd->frs_sec_base / rd->frs_sec);
 
 				qtexport->audioOutputPktPos = 0;
 				qtexport->audioTotalExportedFrames = 0;
 				qtexport->audioTotalSavedFrames = 0;
 				
-				qtexport->audioLastFrame = (rd->efra - rd->sfra) * qtexport->audioInputFormat.mSampleRate * rd->frs_sec_base / rd->frs_sec;
+				qtexport->audioLastFrame = (efra - sfra) * qtexport->audioInputFormat.mSampleRate * rd->frs_sec_base / rd->frs_sec;
 			}
 		}
 	}
@@ -654,7 +686,7 @@ int append_qt(struct RenderData *rd, int start_frame, int frame, int *pixels, in
 		UInt32 audioPacketsConverted;
 
 		// Upper limit on total exported audio frames for this particular video frame
-		const UInt64 exportedAudioFrameLimit = (frame - rd->sfra) * qtexport->audioInputFormat.mSampleRate * rd->frs_sec_base / rd->frs_sec;
+		const UInt64 exportedAudioFrameLimit = (frame - start_frame) * qtexport->audioInputFormat.mSampleRate * rd->frs_sec_base / rd->frs_sec;
 
 		/* Append audio */
 		while (qtexport->audioTotalExportedFrames < exportedAudioFrameLimit) {

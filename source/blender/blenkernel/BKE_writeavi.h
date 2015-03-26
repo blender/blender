@@ -43,12 +43,12 @@ struct ReportList;
 struct Scene;
 
 typedef struct bMovieHandle {
-	int (*start_movie)(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
+	int (*start_movie)(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports, bool preview);
 	int (*append_movie)(struct RenderData *rd, int start_frame, int frame, int *pixels,
 	                    int rectx, int recty, struct ReportList *reports);
 	void (*end_movie)(void);
 	int (*get_next_frame)(struct RenderData *rd, struct ReportList *reports); /* optional */
-	void (*get_movie_path)(char *string, struct RenderData *rd); /* optional */
+	void (*get_movie_path)(char *string, struct RenderData *rd, bool preview); /* optional */
 } bMovieHandle;
 
 bMovieHandle *BKE_movie_handle_get(const char imtype);

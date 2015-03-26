@@ -110,7 +110,7 @@ static int closesocket(int fd)
 }
 #endif
 
-int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports)
+int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports, bool UNUSED(preview))
 {
 	struct sockaddr_in addr;
 	int arg = 1;

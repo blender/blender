@@ -344,7 +344,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	rd.frs_sec_base = 1.0f;
 	
 	if (BKE_imtype_is_movie(rd.im_format.imtype)) {
-		if (!mh->start_movie(sj->scene, &rd, sj->dumpsx, sj->dumpsy, &sj->reports)) {
+		if (!mh->start_movie(sj->scene, &rd, sj->dumpsx, sj->dumpsy, &sj->reports, false)) {
 			printf("screencast job stopped\n");
 			return;
 		}

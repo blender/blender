@@ -3025,7 +3025,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			height = re->recty;
 		}
 
-		if (!mh->start_movie(scene, &re->r, width, height, re->reports))
+		/* last argument here depends on users really, but no users using preview have been found so far */
+		if (!mh->start_movie(scene, &re->r, width, height, re->reports, false))
 			G.is_break = true;
 	}
 

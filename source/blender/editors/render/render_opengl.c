@@ -556,7 +556,7 @@ static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 	oglrender->reports = op->reports;
 	oglrender->mh = BKE_movie_handle_get(scene->r.im_format.imtype);
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		if (!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports)) {
+		if (!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports, PRVRANGEON != 0)) {
 			screen_opengl_render_end(C, oglrender);
 			return 0;
 		}
