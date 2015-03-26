@@ -328,7 +328,7 @@ bool WM_init_game(bContext *C)
 
 		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
 
-		sound_exit();
+		BKE_sound_exit();
 
 		return true;
 	}
@@ -398,7 +398,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 {
 	wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
 
-	sound_exit();
+	BKE_sound_exit();
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */

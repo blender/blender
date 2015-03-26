@@ -222,7 +222,7 @@ static PyMethodDef meth_getcdevice[] = {
 };
 
 extern "C" {
-extern void *sound_get_factory(void *sound);
+extern void *BKE_sound_get_factory(void *sound);
 }
 
 static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
@@ -231,7 +231,7 @@ static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
 
 	if (PyArg_Parse(args, "l:_sound_from_pointer", &lptr)) {
 		if (lptr) {
-			boost::shared_ptr<AUD_IFactory>* factory = (boost::shared_ptr<AUD_IFactory>*) sound_get_factory((void *) lptr);
+			boost::shared_ptr<AUD_IFactory>* factory = (boost::shared_ptr<AUD_IFactory>*) BKE_sound_get_factory((void *) lptr);
 
 			if (factory) {
 				Factory *obj = (Factory *)Factory_empty();

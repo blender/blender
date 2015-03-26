@@ -517,7 +517,7 @@ int main(int argc, char** argv)
 	// enable fast mipmap generation
 	U.use_gpu_mipmap = 1;
 
-	sound_init_once();
+	BKE_sound_init_once();
 
 	set_free_windowmanager_cb(wm_free);
 

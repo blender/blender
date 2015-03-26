@@ -42,7 +42,7 @@
 
 static void rna_Sound_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	sound_load(bmain, (bSound *)ptr->data);
+	BKE_sound_load(bmain, (bSound *)ptr->data);
 }
 
 static int rna_Sound_caching_get(PointerRNA *ptr)
@@ -55,9 +55,9 @@ static void rna_Sound_caching_set(PointerRNA *ptr, const int value)
 {
 	bSound *sound = (bSound *)(ptr->data);
 	if (value)
-		sound_cache(sound);
+		BKE_sound_cache(sound);
 	else
-		sound_delete_cache(sound);
+		BKE_sound_delete_cache(sound);
 }
 
 static void rna_Sound_caching_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)

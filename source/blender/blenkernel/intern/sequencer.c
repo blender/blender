@@ -205,7 +205,7 @@ static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const bool do_cach
 			ed->act_seq = NULL;
 
 		if (seq->scene_sound && ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE))
-			sound_remove_scene_sound(scene, seq->scene_sound);
+			BKE_sound_remove_scene_sound(scene, seq->scene_sound);
 
 		seq_free_animdata(scene, seq);
 	}
@@ -316,7 +316,7 @@ static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
 				{
 					id_restore = BLI_findstring(lb, ((bSound *)ID_PT)->name, offsetof(bSound, name));
 					if (id_restore == NULL) {
-						id_restore = sound_new_file(bmain, ((bSound *)ID_PT)->name);
+						id_restore = BKE_sound_new_file(bmain, ((bSound *)ID_PT)->name);
 						(ID_PT)->newid = id_restore;  /* reuse next time */
 					}
 					break;
@@ -652,7 +652,7 @@ static void seq_update_sound_bounds_recursive_rec(Scene *scene, Sequence *metase
 				if (seq->start + seq->len - seq->endofs > end)
 					endofs = seq->start + seq->len - end;
 
-				sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs,
+				BKE_sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs,
 				                       seq->start + seq->len - endofs, startofs + seq->anim_startofs);
 			}
 		}
@@ -3747,10 +3747,10 @@ void BKE_sequence_sound_init(Scene *scene, Sequence *seq)
 	}
 	else {
 		if (seq->sound) {
-			seq->scene_sound = sound_add_scene_sound_defaults(scene, seq);
+			seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
 		}
 		if (seq->scene) {
-			seq->scene_sound = sound_scene_add_scene_sound_defaults(scene, seq);
+			seq->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene, seq);
 		}
 	}
 }
@@ -3962,11 +3962,11 @@ void BKE_sequencer_update_sound_bounds(Scene *scene, Sequence *seq)
 			/* We have to take into account start frame of the sequence's scene! */
 			int startofs = seq->startofs + seq->anim_startofs + seq->scene->r.sfra;
 
-			sound_move_scene_sound(scene, seq->scene_sound, seq->startdisp, seq->enddisp, startofs);
+			BKE_sound_move_scene_sound(scene, seq->scene_sound, seq->startdisp, seq->enddisp, startofs);
 		}
 	}
 	else {
-		sound_move_scene_sound_defaults(scene, seq);
+		BKE_sound_move_scene_sound_defaults(scene, seq);
 	}
 	/* mute is set in seq_update_muting_recursive */
 }
@@ -3991,7 +3991,7 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
 		}
 		else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
 			if (seq->scene_sound) {
-				sound_mute_scene_sound(seq->scene_sound, seqmute);
+				BKE_sound_mute_scene_sound(seq->scene_sound, seqmute);
 			}
 		}
 	}
@@ -4020,7 +4020,7 @@ static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound 
 		}
 		else if (seq->type == SEQ_TYPE_SOUND_RAM) {
 			if (seq->scene_sound && sound == seq->sound) {
-				sound_update_scene_sound(seq->scene_sound, sound);
+				BKE_sound_update_scene_sound(seq->scene_sound, sound);
 			}
 		}
 	}
@@ -4353,7 +4353,7 @@ static void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 
 		if (seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
 			if (seq->sound)
-				sound_cache(seq->sound);
+				BKE_sound_cache(seq->sound);
 		}
 
 		seq_load->tot_success++;
@@ -4459,7 +4459,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	AUD_SoundInfo info;
 
-	sound = sound_new_file(bmain, seq_load->path); /* handles relative paths */
+	sound = BKE_sound_new_file(bmain, seq_load->path); /* handles relative paths */
 
 	if (sound == NULL || sound->playback_handle == NULL) {
 #if 0
@@ -4473,7 +4473,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
-		sound_delete(bmain, sound);
+		BKE_sound_delete(bmain, sound);
 #if 0
 		if (op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
@@ -4498,7 +4498,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	BLI_split_dirfile(seq_load->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
-	seq->scene_sound = sound_add_scene_sound(scene, seq, seq_load->start_frame, seq_load->start_frame + seq->len, 0);
+	seq->scene_sound = BKE_sound_add_scene_sound(scene, seq, seq_load->start_frame, seq_load->start_frame + seq->len, 0);
 
 	BKE_sequence_calc_disp(scene, seq);
 
@@ -4620,7 +4620,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	else if (seq->type == SEQ_TYPE_SCENE) {
 		seqn->strip->stripdata = NULL;
 		if (seq->scene_sound)
-			seqn->scene_sound = sound_scene_add_scene_sound_defaults(sce_audio, seqn);
+			seqn->scene_sound = BKE_sound_scene_add_scene_sound_defaults(sce_audio, seqn);
 	}
 	else if (seq->type == SEQ_TYPE_MOVIECLIP) {
 		/* avoid assert */
@@ -4637,7 +4637,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 		seqn->strip->stripdata =
 		        MEM_dupallocN(seq->strip->stripdata);
 		if (seq->scene_sound)
-			seqn->scene_sound = sound_add_scene_sound_defaults(sce_audio, seqn);
+			seqn->scene_sound = BKE_sound_add_scene_sound_defaults(sce_audio, seqn);
 
 		id_us_plus((ID *)seqn->sound);
 	}

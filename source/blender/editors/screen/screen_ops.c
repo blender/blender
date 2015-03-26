@@ -2099,7 +2099,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	
 	areas_do_frame_follow(C, false);
 
-	sound_seek_scene(bmain, scene);
+	BKE_sound_seek_scene(bmain, scene);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	
@@ -2151,7 +2151,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 		
 		areas_do_frame_follow(C, true);
 
-		sound_seek_scene(bmain, scene);
+		BKE_sound_seek_scene(bmain, scene);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	}
@@ -2257,7 +2257,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	else {
 		areas_do_frame_follow(C, true);
 
-		sound_seek_scene(bmain, scene);
+		BKE_sound_seek_scene(bmain, scene);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -2319,7 +2319,7 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 
 		areas_do_frame_follow(C, true);
 
-		sound_seek_scene(bmain, scene);
+		BKE_sound_seek_scene(bmain, scene);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -3435,7 +3435,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 		
 		if ((scene->audio.flag & AUDIO_SYNC) &&
 		    (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
-		    finite(time = sound_sync_scene(scene)))
+		    finite(time = BKE_sound_sync_scene(scene)))
 		{
 			double newfra = (double)time * FPS;
 			/* give some space here to avoid jumps */
@@ -3510,7 +3510,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 		}
 		
 		if (sad->flag & ANIMPLAY_FLAG_JUMPED)
-			sound_seek_scene(bmain, scene);
+			BKE_sound_seek_scene(bmain, scene);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(bmain, scene, 1);
@@ -3610,7 +3610,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 	if (ED_screen_animation_playing(CTX_wm_manager(C))) {
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0, 0);
-		sound_stop_scene(scene);
+		BKE_sound_stop_scene(scene);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	}
@@ -3618,7 +3618,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		int refresh = SPACE_TIME; /* these settings are currently only available from a menu in the TimeLine */
 		
 		if (mode == 1)  /* XXX only play audio forwards!? */
-			sound_play_scene(scene);
+			BKE_sound_play_scene(scene);
 		
 		ED_screen_animation_timer(C, screen->redraws_flag, refresh, sync, mode);
 		

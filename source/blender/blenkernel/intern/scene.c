@@ -293,7 +293,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 	}
 	
 	/* before scene copy */
-	sound_create_scene(scen);
+	BKE_sound_create_scene(scen);
 
 	/* world */
 	if (type == SCE_COPY_FULL) {
@@ -426,7 +426,7 @@ void BKE_scene_free(Scene *sce)
 	if (sce->fps_info)
 		MEM_freeN(sce->fps_info);
 
-	sound_destroy_scene(sce);
+	BKE_sound_destroy_scene(sce);
 
 	BKE_color_managed_view_settings_free(&sce->view_settings);
 }
@@ -682,7 +682,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->gm.exitkey = 218; // Blender key code for ESC
 
-	sound_create_scene(sce);
+	BKE_sound_create_scene(sce);
 
 	/* color management */
 	colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
@@ -1690,7 +1690,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	 * only objects and scenes. - brecht */
 	scene_update_tagged_recursive(eval_ctx, bmain, scene, scene);
 	/* update sound system animation (TODO, move to depsgraph) */
-	sound_update_scene(bmain, scene);
+	BKE_sound_update_scene(bmain, scene);
 
 	/* extra call here to recalc scene animation (for sequencer) */
 	{
@@ -1769,7 +1769,7 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	 */
 	scene_rebuild_rbw_recursive(sce, ctime);
 
-	sound_set_cfra(sce->r.cfra);
+	BKE_sound_set_cfra(sce->r.cfra);
 	
 	/* clear animation overrides */
 	/* XXX TODO... */
@@ -1814,7 +1814,7 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(eval_ctx, bmain, sce, sce);
 	/* update sound system animation (TODO, move to depsgraph) */
-	sound_update_scene(bmain, sce);
+	BKE_sound_update_scene(bmain, sce);
 
 	scene_depsgraph_hack(eval_ctx, sce, sce);
 

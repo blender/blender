@@ -331,7 +331,7 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 
 static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	sound_init(bmain);
+	BKE_sound_init(bmain);
 }
 
 static void rna_Userdef_memcache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))

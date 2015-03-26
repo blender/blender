@@ -577,8 +577,8 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 		PointerRNA id_ptr;
 		RNA_id_pointer_create((ID *)seq->sound, &id_ptr);
 		RNA_string_set(&id_ptr, "filepath", value);
-		sound_load(G.main, seq->sound);
-		sound_update_scene_sound(seq->scene_sound, seq->sound);
+		BKE_sound_load(G.main, seq->sound);
+		BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
 	}
 
 	BLI_split_dirfile(value, seq->strip->dir, seq->strip->stripdata->name, sizeof(seq->strip->dir),
@@ -633,7 +633,7 @@ static void rna_Sequence_volume_set(PointerRNA *ptr, float value)
 
 	seq->volume = value;
 	if (seq->scene_sound)
-		sound_set_scene_sound_volume(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
+		BKE_sound_set_scene_sound_volume(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
 }
 
 static void rna_Sequence_pitch_set(PointerRNA *ptr, float value)
@@ -642,7 +642,7 @@ static void rna_Sequence_pitch_set(PointerRNA *ptr, float value)
 
 	seq->pitch = value;
 	if (seq->scene_sound)
-		sound_set_scene_sound_pitch(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+		BKE_sound_set_scene_sound_pitch(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
 }
 
 static void rna_Sequence_pan_set(PointerRNA *ptr, float value)
@@ -651,7 +651,7 @@ static void rna_Sequence_pan_set(PointerRNA *ptr, float value)
 
 	seq->pan = value;
 	if (seq->scene_sound)
-		sound_set_scene_sound_pan(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
+		BKE_sound_set_scene_sound_pan(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
 }
 
 

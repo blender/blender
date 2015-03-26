@@ -5333,7 +5333,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if (seq->scene) {
 					seq->scene = newlibadr(fd, sce->id.lib, seq->scene);
 					if (seq->scene) {
-						seq->scene_sound = sound_scene_add_scene_sound_defaults(sce, seq);
+						seq->scene_sound = BKE_sound_scene_add_scene_sound_defaults(sce, seq);
 					}
 				}
 				if (seq->clip) {
@@ -5361,7 +5361,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 					}
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->scene_sound = sound_add_scene_sound_defaults(sce, seq);
+						seq->scene_sound = BKE_sound_add_scene_sound_defaults(sce, seq);
 					}
 				}
 				seq->anim = NULL;
@@ -5536,7 +5536,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->customdata_mask_modal = 0;
 	sce->lay_updated = 0;
 	
-	sound_create_scene(sce);
+	BKE_sound_create_scene(sce);
 	
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us = 1;
@@ -6963,7 +6963,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->id.flag -= LIB_NEED_LINK;
 			sound->ipo = newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX deprecated - old animation system
 			
-			sound_load(main, sound);
+			BKE_sound_load(main, sound);
 		}
 	}
 }

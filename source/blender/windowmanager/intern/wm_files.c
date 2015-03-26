@@ -301,7 +301,7 @@ static void wm_init_userdef(bContext *C, const bool from_memory)
 	UI_init_userdef();
 	
 	MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
-	sound_init(bmain);
+	BKE_sound_init(bmain);
 
 	/* needed so loading a file from the command line respects user-pref [#26156] */
 	BKE_BIT_TEST_SET(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);

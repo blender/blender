@@ -107,7 +107,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	SUBFRA = 0.0f;
 	
 	/* do updates */
-	sound_seek_scene(bmain, scene);
+	BKE_sound_seek_scene(bmain, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

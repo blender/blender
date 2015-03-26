@@ -88,7 +88,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
 	 */
 	CFRA = RNA_int_get(op->ptr, "frame");
 	SUBFRA = 0.f;
-	sound_seek_scene(bmain, scene);
+	BKE_sound_seek_scene(bmain, scene);
 	
 	/* set the cursor value */
 	sipo->cursorVal = RNA_float_get(op->ptr, "value");

@@ -636,7 +636,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if (!m_networkdevice)
 			goto initFailed;
 			
-		sound_init(m_maggie);
+		BKE_sound_init(m_maggie);
 
 		// create a ketsjisystem (only needed for timing and stuff)
 		m_kxsystem = new GPG_System (m_system);
@@ -672,7 +672,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 	return m_engineInitialized;
 initFailed:
-	sound_exit();
+	BKE_sound_exit();
 	delete m_kxsystem;
 	delete m_networkdevice;
 	delete m_mouse;
@@ -847,7 +847,7 @@ void GPG_Application::exitEngine()
 	if (!m_engineInitialized)
 		return;
 
-	sound_exit();
+	BKE_sound_exit();
 	if (m_ketsjiengine)
 	{
 		stopEngine();

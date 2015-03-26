@@ -158,7 +158,7 @@ static Sequence *rna_Sequences_new_scene(ID *id, Editing *ed,
 	seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_SCENE, NULL);
 	seq->scene = sce_seq;
 	seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
-	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, frame_start, frame_start + seq->len, 0);
+	seq->scene_sound = BKE_sound_scene_add_scene_sound(scene, seq, frame_start, frame_start + seq->len, 0);
 	id_us_plus((ID *)sce_seq);
 
 	BKE_sequence_calc_disp(scene, seq);
@@ -225,7 +225,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 
-	bSound *sound = sound_new_file(bmain, file);
+	bSound *sound = BKE_sound_new_file(bmain, file);
 
 	if (sound == NULL || sound->playback_handle == NULL) {
 		BKE_report(reports, RPT_ERROR, "Sequences.new_sound: unable to open sound file");
@@ -234,9 +234,9 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 
 	seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_SOUND_RAM, sound->name);
 	seq->sound = sound;
-	seq->len = ceil((double)sound_get_length(sound) * FPS);
+	seq->len = ceil((double)BKE_sound_get_length(sound) * FPS);
 
-	seq->scene_sound = sound_add_scene_sound(scene, seq, frame_start, frame_start + seq->len, 0);
+	seq->scene_sound = BKE_sound_add_scene_sound(scene, seq, frame_start, frame_start + seq->len, 0);
 
 	BKE_sequence_calc_disp(scene, seq);
 

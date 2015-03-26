@@ -2223,7 +2223,7 @@ void wm_event_do_handlers(bContext *C)
 			Scene *scene = win->screen->scene;
 			
 			if (scene) {
-				int is_playing_sound = sound_scene_playing(win->screen->scene);
+				int is_playing_sound = BKE_sound_scene_playing(win->screen->scene);
 				
 				if (is_playing_sound != -1) {
 					bool is_playing_screen;
@@ -2240,7 +2240,7 @@ void wm_event_do_handlers(bContext *C)
 					}
 					
 					if (is_playing_sound == 0) {
-						const float time = sound_sync_scene(scene);
+						const float time = BKE_sound_sync_scene(scene);
 						if (finite(time)) {
 							int ncfra = time * (float)FPS + 0.5f;
 							if (ncfra != scene->r.cfra) {

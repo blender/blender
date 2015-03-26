@@ -538,13 +538,13 @@ static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	sound_update_fps(scene);
+	BKE_sound_update_fps(scene);
 	BKE_sequencer_update_sound_bounds_all(scene);
 }
 
 static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	sound_update_scene_listener(scene);
+	BKE_sound_update_scene_listener(scene);
 }
 
 static void rna_Scene_volume_set(PointerRNA *ptr, float value)
@@ -553,7 +553,7 @@ static void rna_Scene_volume_set(PointerRNA *ptr, float value)
 
 	scene->audio.volume = value;
 	if (scene->sound_scene)
-		sound_set_scene_volume(scene, value);
+		BKE_sound_set_scene_volume(scene, value);
 }
 
 static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -654,7 +654,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 static void rna_Scene_frame_update(Main *bmain, Scene *UNUSED(current_scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	sound_seek_scene(bmain, scene);
+	BKE_sound_seek_scene(bmain, scene);
 }
 
 static PointerRNA rna_Scene_active_keying_set_get(PointerRNA *ptr)
@@ -1422,7 +1422,7 @@ static void rna_Scene_use_audio_set(PointerRNA *ptr, int value)
 	else
 		scene->audio.flag &= ~AUDIO_MUTE;
 
-	sound_mute_scene(scene, value);
+	BKE_sound_mute_scene(scene, value);
 }
 
 static int rna_Scene_sync_mode_get(PointerRNA *ptr)

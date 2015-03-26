@@ -100,7 +100,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 
 	RNA_string_get(op->ptr, "filepath", path);
-	sound = sound_new_file(bmain, path);
+	sound = BKE_sound_new_file(bmain, path);
 
 	if (!op->customdata)
 		sound_open_init(C, op);
@@ -114,7 +114,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
-		sound_delete(bmain, sound);
+		BKE_sound_delete(bmain, sound);
 		if (op->customdata) MEM_freeN(op->customdata);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
@@ -122,11 +122,11 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "mono")) {
 		sound->flags |= SOUND_FLAGS_MONO;
-		sound_load(bmain, sound);
+		BKE_sound_load(bmain, sound);
 	}
 
 	if (RNA_boolean_get(op->ptr, "cache")) {
-		sound_cache(sound);
+		BKE_sound_cache(sound);
 	}
 
 	/* hook into UI */
@@ -690,7 +690,7 @@ static int sound_pack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	sound->packedfile = newPackedFile(op->reports, sound->name, ID_BLEND_PATH(bmain, &sound->id));
-	sound_load(bmain, sound);
+	BKE_sound_load(bmain, sound);
 
 	return OPERATOR_FINISHED;
 }
