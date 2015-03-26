@@ -1318,7 +1318,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 #ifdef WITH_INPUT_IME
 			/* FIXME, IME is modifying 'const char *drawstr! */
-			ime_data = ui_but_get_ime_data(but);
+			ime_data = ui_but_ime_data_get(but);
 
 			if (ime_data && ime_data->composite_len) {
 				/* insert composite string into cursor pos */

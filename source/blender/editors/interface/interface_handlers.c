@@ -2476,8 +2476,7 @@ void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete)
 	wm_window_IME_begin(but->active->window, x, y - 4, 0, 0, complete);
 }
 
-/* should be ui_but_ime_data_get */
-wmIMEData *ui_but_get_ime_data(uiBut *but)
+wmIMEData *ui_but_ime_data_get(uiBut *but)
 {
 	if (but->active && but->active->window) {
 		return but->active->window->ime_data;
