@@ -828,47 +828,47 @@ bool BKE_sound_is_jack_supported(void)
 
 #include "BLI_utildefines.h"
 
-int sound_define_from_str(const char *UNUSED(str)) { return -1; }
-void sound_force_device(int UNUSED(device)) {}
-void sound_init_once(void) {}
-void sound_init(struct Main *UNUSED(bmain)) {}
-void sound_exit(void) {}
-void sound_exit_once(void) {}
-void sound_cache(struct bSound *UNUSED(sound)) {}
-void sound_delete_cache(struct bSound *UNUSED(sound)) {}
-void sound_load(struct Main *UNUSED(bmain), struct bSound *UNUSED(sound)) {}
-void sound_create_scene(struct Scene *UNUSED(scene)) {}
-void sound_destroy_scene(struct Scene *UNUSED(scene)) {}
-void sound_mute_scene(struct Scene *UNUSED(scene), int UNUSED(muted)) {}
-void *sound_scene_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence),
-                                  int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
-void *sound_scene_add_scene_sound_defaults(struct Scene *UNUSED(scene),
-                                           struct Sequence *UNUSED(sequence)) { return NULL; }
-void *sound_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence), int UNUSED(startframe),
-                            int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
-void *sound_add_scene_sound_defaults(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence)) { return NULL; }
-void sound_remove_scene_sound(struct Scene *UNUSED(scene), void *UNUSED(handle)) {}
-void sound_mute_scene_sound(void *UNUSED(handle), char UNUSED(mute)) {}
-void sound_move_scene_sound(struct Scene *UNUSED(scene), void *UNUSED(handle), int UNUSED(startframe),
-                            int UNUSED(endframe), int UNUSED(frameskip)) {}
-void sound_move_scene_sound_defaults(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence)) {}
-void sound_play_scene(struct Scene *UNUSED(scene)) {}
-void sound_stop_scene(struct Scene *UNUSED(scene)) {}
-void sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
-float sound_sync_scene(struct Scene *UNUSED(scene)) { return NAN_FLT; }
-int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
-void sound_read_waveform(struct bSound *sound, short *stop) { UNUSED_VARS(sound, stop); }
-void sound_init_main(struct Main *UNUSED(bmain)) {}
-void sound_set_cfra(int UNUSED(cfra)) {}
-void sound_update_sequencer(struct Main *UNUSED(main), struct bSound *UNUSED(sound)) {}
-void sound_update_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
-void sound_update_scene_sound(void *UNUSED(handle), struct bSound *UNUSED(sound)) {}
-void sound_update_scene_listener(struct Scene *UNUSED(scene)) {}
-void sound_update_fps(struct Scene *UNUSED(scene)) {}
-void sound_set_scene_sound_volume(void *UNUSED(handle), float UNUSED(volume), char UNUSED(animated)) {}
-void sound_set_scene_sound_pan(void *UNUSED(handle), float UNUSED(pan), char UNUSED(animated)) {}
-void sound_set_scene_volume(struct Scene *UNUSED(scene), float UNUSED(volume)) {}
-void sound_set_scene_sound_pitch(void *UNUSED(handle), float UNUSED(pitch), char UNUSED(animated)) {}
-float sound_get_length(struct bSound *UNUSED(sound)) { return 0; }
-bool sound_is_jack_supported(void) { return false; }
+int BKE_sound_define_from_str(const char *UNUSED(str)) { return -1; }
+void BKE_sound_force_device(int UNUSED(device)) {}
+void BKE_sound_init_once(void) {}
+void BKE_sound_init(struct Main *UNUSED(bmain)) {}
+void BKE_sound_exit(void) {}
+void BKE_sound_exit_once(void) {}
+void BKE_sound_cache(struct bSound *UNUSED(sound)) {}
+void BKE_sound_delete_cache(struct bSound *UNUSED(sound)) {}
+void BKE_sound_load(struct Main *UNUSED(bmain), struct bSound *UNUSED(sound)) {}
+void BKE_sound_create_scene(struct Scene *UNUSED(scene)) {}
+void BKE_sound_destroy_scene(struct Scene *UNUSED(scene)) {}
+void BKE_sound_mute_scene(struct Scene *UNUSED(scene), int UNUSED(muted)) {}
+void *BKE_sound_scene_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence),
+                                      int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
+void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *UNUSED(scene),
+                                              struct Sequence *UNUSED(sequence)) { return NULL; }
+void *BKE_sound_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence), int UNUSED(startframe),
+                                int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
+void *BKE_sound_add_scene_sound_defaults(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence)) { return NULL; }
+void BKE_sound_remove_scene_sound(struct Scene *UNUSED(scene), void *UNUSED(handle)) {}
+void BKE_sound_mute_scene_sound(void *UNUSED(handle), char UNUSED(mute)) {}
+void BKE_sound_move_scene_sound(struct Scene *UNUSED(scene), void *UNUSED(handle), int UNUSED(startframe),
+                                int UNUSED(endframe), int UNUSED(frameskip)) {}
+void BKE_sound_move_scene_sound_defaults(struct Scene *UNUSED(scene), struct Sequence *UNUSED(sequence)) {}
+void BKE_sound_play_scene(struct Scene *UNUSED(scene)) {}
+void BKE_sound_stop_scene(struct Scene *UNUSED(scene)) {}
+void BKE_sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
+float BKE_sound_sync_scene(struct Scene *UNUSED(scene)) { return NAN_FLT; }
+int BKE_sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
+void BKE_sound_read_waveform(struct bSound *sound, short *stop) { UNUSED_VARS(sound, stop); }
+void BKE_sound_init_main(struct Main *UNUSED(bmain)) {}
+void BKE_sound_set_cfra(int UNUSED(cfra)) {}
+void BKE_sound_update_sequencer(struct Main *UNUSED(main), struct bSound *UNUSED(sound)) {}
+void BKE_sound_update_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
+void BKE_sound_update_scene_sound(void *UNUSED(handle), struct bSound *UNUSED(sound)) {}
+void BKE_sound_update_scene_listener(struct Scene *UNUSED(scene)) {}
+void BKE_sound_update_fps(struct Scene *UNUSED(scene)) {}
+void BKE_sound_set_scene_sound_volume(void *UNUSED(handle), float UNUSED(volume), char UNUSED(animated)) {}
+void BKE_sound_set_scene_sound_pan(void *UNUSED(handle), float UNUSED(pan), char UNUSED(animated)) {}
+void BKE_sound_set_scene_volume(struct Scene *UNUSED(scene), float UNUSED(volume)) {}
+void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle), float UNUSED(pitch), char UNUSED(animated)) {}
+float BKE_sound_get_length(struct bSound *UNUSED(sound)) { return 0; }
+bool BKE_sound_is_jack_supported(void) { return false; }
 #endif  /* WITH_AUDASPACE */
