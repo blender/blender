@@ -926,14 +926,24 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
                 flow.prop(proxy, "directory")
             if proxy.use_proxy_custom_file:
                 flow.prop(proxy, "filepath")
-          
+
             layout.label("Enabled Proxies:")
-            col = layout.column()
-            col.prop(proxy, "build_25")
-            col.prop(proxy, "build_50")
-            col.prop(proxy, "build_75")
-            col.prop(proxy, "build_100")
-            col.prop(proxy, "use_overwrite")
+            enabled = ""
+            row = layout.row()
+            if (proxy.build_25):
+                enabled += "25% "
+            if (proxy.build_50):
+                enabled += "50% "
+            if (proxy.build_75):
+                enabled += "75% "
+            if (proxy.build_100):
+                enabled += "100% "
+
+            row.label(enabled)
+            if (proxy.use_overwrite):
+                layout.label("Overwrite On")
+            else:
+                layout.label("Overwrite Off")
 
             col = layout.column()
             col.label(text="Build JPEG quality")
@@ -946,7 +956,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
                 col.prop(proxy, "timecode")
 
         col = layout.column()
-        col.operator("sequencer.copy_proxy_settings")
+        col.operator("sequencer.enable_proxies")
         col.operator("sequencer.rebuild_proxy")
 
 
