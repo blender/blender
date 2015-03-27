@@ -29,7 +29,7 @@ BrightnessNode::BrightnessNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void BrightnessNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void BrightnessNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	BrightnessOperation *operation = new BrightnessOperation();
 	converter.addOperation(operation);

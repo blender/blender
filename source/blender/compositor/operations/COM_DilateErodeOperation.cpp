@@ -56,7 +56,7 @@ void DilateErodeThresholdOperation::initExecution()
 	}
 }
 
-void *DilateErodeThresholdOperation::initializeTileData(rcti *rect)
+void *DilateErodeThresholdOperation::initializeTileData(rcti * /*rect*/)
 {
 	void *buffer = this->m_inputProgram->initializeTileData(NULL);
 	return buffer;
@@ -180,7 +180,7 @@ void DilateDistanceOperation::initExecution()
 	}
 }
 
-void *DilateDistanceOperation::initializeTileData(rcti *rect)
+void *DilateDistanceOperation::initializeTileData(rcti * /*rect*/)
 {
 	void *buffer = this->m_inputProgram->initializeTileData(NULL);
 	return buffer;
@@ -238,7 +238,7 @@ bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input, Read
 void DilateDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                             MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                             MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
-                                            list<cl_kernel> *clKernelsToCleanUp)
+                                            list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
 	cl_kernel dilateKernel = device->COM_clCreateKernel("dilateKernel", NULL);
 
@@ -295,7 +295,7 @@ void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *d
 void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                            MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                            MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
-                                           list<cl_kernel> *clKernelsToCleanUp)
+                                           list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
 	cl_kernel erodeKernel = device->COM_clCreateKernel("erodeKernel", NULL);
 
@@ -446,7 +446,7 @@ void DilateStepOperation::deinitExecution()
 	this->m_inputProgram = NULL;
 }
 
-void DilateStepOperation::deinitializeTileData(rcti *rect, void *data)
+void DilateStepOperation::deinitializeTileData(rcti * /*rect*/, void *data)
 {
 	tile_info *tile = (tile_info *)data;
 	MEM_freeN(tile->buffer);

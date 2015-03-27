@@ -72,17 +72,17 @@ void CombineColorNode::convertToOperations(NodeConverter &converter, const Compo
 }
 
 
-NodeOperation *CombineRGBANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *CombineRGBANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	return NULL; /* no conversion needed */
 }
 
-NodeOperation *CombineHSVANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *CombineHSVANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	return new ConvertHSVToRGBOperation();
 }
 
-NodeOperation *CombineYCCANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *CombineYCCANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	ConvertYCCToRGBOperation *operation = new ConvertYCCToRGBOperation();
 	bNode *editorNode = this->getbNode();
@@ -90,7 +90,7 @@ NodeOperation *CombineYCCANode::getColorConverter(const CompositorContext &conte
 	return operation;
 }
 
-NodeOperation *CombineYUVANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *CombineYUVANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	return new ConvertYUVToRGBOperation();
 }

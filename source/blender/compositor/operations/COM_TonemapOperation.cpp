@@ -97,7 +97,7 @@ void TonemapOperation::deinitExecution()
 	NodeOperation::deinitMutex();
 }
 
-bool TonemapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool TonemapOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti imageInput;
 
@@ -150,7 +150,7 @@ void *TonemapOperation::initializeTileData(rcti *rect)
 	return this->m_cachedInstance;
 }
 
-void TonemapOperation::deinitializeTileData(rcti *rect, void *data)
+void TonemapOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
 {
 	/* pass */
 }

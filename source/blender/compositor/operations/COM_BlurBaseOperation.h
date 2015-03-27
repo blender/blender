@@ -39,7 +39,7 @@ protected:
 	BlurBaseOperation(DataType data_type);
 	float *make_gausstab(float rad, int size);
 #ifdef __SSE2__
-	__m128 *convert_gausstab_sse(const float *gaustab, float rad, int size);
+	__m128 *convert_gausstab_sse(const float *gaustab, int size);
 #endif
 	float *make_dist_fac_inverse(float rad, int size, int falloff);
 

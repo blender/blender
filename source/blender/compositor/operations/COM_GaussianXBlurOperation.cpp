@@ -38,7 +38,7 @@ GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLO
 	this->m_filtersize = 0;
 }
 
-void *GaussianXBlurOperation::initializeTileData(rcti *rect)
+void *GaussianXBlurOperation::initializeTileData(rcti * /*rect*/)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
@@ -63,7 +63,6 @@ void GaussianXBlurOperation::initExecution()
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 #ifdef __SSE2__
 		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
-		                                                               rad,
 		                                                               m_filtersize);
 #endif
 	}
@@ -79,7 +78,6 @@ void GaussianXBlurOperation::updateGauss()
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 #ifdef __SSE2__
 		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
-		                                                               rad,
 		                                                               m_filtersize);
 #endif
 	}
@@ -128,7 +126,7 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 void GaussianXBlurOperation::executeOpenCL(OpenCLDevice *device,
                                            MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                            MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
-                                           list<cl_kernel> *clKernelsToCleanUp)
+                                           list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
 	cl_kernel gaussianXBlurOperationKernel = device->COM_clCreateKernel("gaussianXBlurOperationKernel", NULL);
 	cl_int filter_size = this->m_filtersize;

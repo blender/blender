@@ -85,7 +85,7 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 	}
 	return insideBokeh;
 }
-void BokehImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void BokehImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	float shift = this->m_data->lensshift;
 	float shift2 = shift / 2.0f;
@@ -116,7 +116,7 @@ void BokehImageOperation::deinitExecution()
 	}
 }
 
-void BokehImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void BokehImageOperation::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	resolution[0] = COM_BLUR_BOKEH_PIXELS;
 	resolution[1] = COM_BLUR_BOKEH_PIXELS;

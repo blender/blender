@@ -44,7 +44,9 @@ void CalculateMeanOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void CalculateMeanOperation::executePixel(float output[4], int x, int y, void *data)
+void CalculateMeanOperation::executePixel(float output[4],
+                                          int /*x*/, int /*y*/,
+                                          void */*data*/)
 {
 	output[0] = this->m_result;
 }
@@ -55,7 +57,7 @@ void CalculateMeanOperation::deinitExecution()
 	NodeOperation::deinitMutex();
 }
 
-bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti imageInput;
 	if (this->m_iscalculated) {

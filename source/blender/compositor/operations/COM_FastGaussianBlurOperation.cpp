@@ -37,7 +37,7 @@ void FastGaussianBlurOperation::executePixel(float output[4], int x, int y, void
 	newData->read(output, x, y);
 }
 
-bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
 	rcti sizeInput;
@@ -257,7 +257,7 @@ void FastGaussianBlurValueOperation::executePixel(float output[4], int x, int y,
 	newData->read(output, x, y);
 }
 
-bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
 	

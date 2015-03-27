@@ -267,7 +267,7 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
 	return tile_data;
 }
 
-void KeyingScreenOperation::deinitializeTileData(rcti *rect, void *data)
+void KeyingScreenOperation::deinitializeTileData(rcti * /*rect*/, void *data)
 {
 	TileData *tile_data = (TileData *) data;
 
@@ -278,7 +278,7 @@ void KeyingScreenOperation::deinitializeTileData(rcti *rect, void *data)
 	MEM_freeN(tile_data);
 }
 
-void KeyingScreenOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void KeyingScreenOperation::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	resolution[0] = 0;
 	resolution[1] = 0;

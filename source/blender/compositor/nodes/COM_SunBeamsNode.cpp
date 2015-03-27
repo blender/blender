@@ -27,7 +27,7 @@ SunBeamsNode::SunBeamsNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void SunBeamsNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void SunBeamsNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeOutput *outputSocket = this->getOutputSocket(0);

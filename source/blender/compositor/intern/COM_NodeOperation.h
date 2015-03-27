@@ -161,7 +161,7 @@ public:
 	 *
 	 * @return bool the result of this method
 	 */
-	virtual bool isOutputOperation(bool rendering) const { return false; }
+	virtual bool isOutputOperation(bool /*rendering*/) const { return false; }
 
 	virtual int isSingleThreaded() { return false; }
 
@@ -175,7 +175,8 @@ public:
 	 * @param chunkNumber the chunkNumber to be calculated
 	 * @param memoryBuffers all input MemoryBuffer's needed
 	 */
-	virtual void executeRegion(rcti *rect, unsigned int chunkNumber) {}
+	virtual void executeRegion(rcti * /*rect*/,
+	                           unsigned int /*chunkNumber*/) {}
 
 	/**
 	 * @brief when a chunk is executed by an OpenCLDevice, this method is called
@@ -189,8 +190,11 @@ public:
 	 * @param memoryBuffers all input MemoryBuffer's needed
 	 * @param outputBuffer the outputbuffer to write to
 	 */
-	virtual void executeOpenCLRegion(OpenCLDevice *device, rcti *rect,
-	                                 unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer) {}
+	virtual void executeOpenCLRegion(OpenCLDevice * /*device*/,
+	                                 rcti * /*rect*/,
+	                                 unsigned int /*chunkNumber*/,
+	                                 MemoryBuffer ** /*memoryBuffers*/,
+	                                 MemoryBuffer * /*outputBuffer*/) {}
 
 	/**
 	 * @brief custom handle to add new tasks to the OpenCL command queue in order to execute a chunk on an GPUDevice
@@ -204,10 +208,12 @@ public:
 	 * @param clMemToCleanUp all created cl_mem references must be added to this list. Framework will clean this after execution
 	 * @param clKernelsToCleanUp all created cl_kernel references must be added to this list. Framework will clean this after execution
 	 */
-	virtual void executeOpenCL(OpenCLDevice *device,
-	                           MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
-	                           MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
-	                           list<cl_kernel> *clKernelsToCleanUp) {}
+	virtual void executeOpenCL(OpenCLDevice * /*device*/,
+	                           MemoryBuffer * /*outputMemoryBuffer*/,
+	                           cl_mem /*clOutputBuffer*/,
+	                           MemoryBuffer ** /*inputMemoryBuffers*/,
+	                           list<cl_mem> * /*clMemToCleanUp*/,
+	                           list<cl_kernel> * /*clKernelsToCleanUp*/) {}
 	virtual void deinitExecution();
 
 	bool isResolutionSet() {

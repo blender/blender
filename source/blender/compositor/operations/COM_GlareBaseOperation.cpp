@@ -55,7 +55,7 @@ MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
 	return result;
 }
 
-bool GlareBaseOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool GlareBaseOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (isCached()) {
 		return false;

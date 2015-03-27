@@ -32,7 +32,7 @@ ColorRampNode::ColorRampNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorRampNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ColorRampNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeOutput *outputSocket = this->getOutputSocket(0);

@@ -32,7 +32,7 @@ GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(COM
 	this->m_gausstab = NULL;
 }
 
-void *GaussianBokehBlurOperation::initializeTileData(rcti *rect)
+void *GaussianBokehBlurOperation::initializeTileData(rcti * /*rect*/)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
@@ -205,7 +205,7 @@ GaussianBlurReferenceOperation::GaussianBlurReferenceOperation() : BlurBaseOpera
 	this->m_maintabs = NULL;
 }
 
-void *GaussianBlurReferenceOperation::initializeTileData(rcti *rect)
+void *GaussianBlurReferenceOperation::initializeTileData(rcti * /*rect*/)
 {
 	void *buffer = getInputOperation(0)->initializeTileData(NULL);
 	return buffer;

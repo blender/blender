@@ -100,7 +100,7 @@ void PlaneDistortWarpImageOperation::deinitExecution()
 	this->m_pixelReader = NULL;
 }
 
-void PlaneDistortWarpImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void PlaneDistortWarpImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	float uv[2];
 	float deriv[2][2];
@@ -194,7 +194,7 @@ void PlaneDistortMaskOperation::initExecution()
 	BLI_jitter_init(m_jitter, m_osa);
 }
 
-void PlaneDistortMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void PlaneDistortMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	float point[2];
 	int inside_counter = 0;

@@ -179,7 +179,7 @@ void RenderLayersBaseProg::deinitExecution()
 	this->m_inputBuffer = NULL;
 }
 
-void RenderLayersBaseProg::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void RenderLayersBaseProg::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	Scene *sce = this->getScene();
 	Render *re = (sce) ? RE_GetRender(sce->id.name) : NULL;
@@ -269,7 +269,7 @@ RenderLayersDepthProg::RenderLayersDepthProg() : RenderLayersBaseProg(SCE_PASS_Z
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void RenderLayersDepthProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void RenderLayersDepthProg::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	int ix = x;
 	int iy = y;

@@ -276,7 +276,10 @@ bool WorkScheduler::hasGPUDevices()
 #endif
 }
 
-static void CL_CALLBACK clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
+static void CL_CALLBACK clContextError(const char *errinfo,
+                                       const void * /*private_info*/,
+                                       size_t /*cb*/,
+                                       void * /*user_data*/)
 {
 	printf("OPENCL error: %s\n", errinfo);
 }

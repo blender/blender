@@ -27,7 +27,7 @@ SwitchNode::SwitchNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void SwitchNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void SwitchNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bool condition = this->getbNode()->custom1;
 	

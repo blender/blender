@@ -30,7 +30,7 @@ LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void LuminanceMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void LuminanceMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bNode *editorsnode = getbNode();
 	NodeInput *inputSocket = this->getInputSocket(0);

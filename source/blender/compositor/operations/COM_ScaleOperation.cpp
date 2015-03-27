@@ -279,7 +279,7 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, Read
 	return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	unsigned int nr[2];
 	nr[0] = this->m_newWidth;

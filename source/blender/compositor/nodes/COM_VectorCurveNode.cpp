@@ -29,7 +29,7 @@ VectorCurveNode::VectorCurveNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void VectorCurveNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void VectorCurveNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	VectorCurveOperation *operation = new VectorCurveOperation();
 	operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);

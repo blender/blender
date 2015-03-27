@@ -29,7 +29,7 @@ ColorCorrectionNode::ColorCorrectionNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorCorrectionNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ColorCorrectionNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bNode *editorNode = getbNode();
 	

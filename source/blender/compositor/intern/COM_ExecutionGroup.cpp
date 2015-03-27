@@ -433,7 +433,8 @@ void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumb
 	determineChunkRect(rect, xChunk, yChunk);
 }
 
-MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti *rect)
+MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int /*chunkNumber*/,
+                                                   rcti *rect)
 {
 	// we asume that this method is only called from complex execution groups.
 	NodeOperation *operation = this->getOutputOperation();

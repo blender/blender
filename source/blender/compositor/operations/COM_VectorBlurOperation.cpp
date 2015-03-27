@@ -91,7 +91,7 @@ void *VectorBlurOperation::initializeTileData(rcti *rect)
 	return this->m_cachedInstance;
 }
 
-bool VectorBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool VectorBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this->m_cachedInstance == NULL) {
 		rcti newInput;

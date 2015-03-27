@@ -30,7 +30,7 @@ MapRangeNode::MapRangeNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void MapRangeNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void MapRangeNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *valueSocket = this->getInputSocket(0);
 	NodeInput *sourceMinSocket = this->getInputSocket(1);

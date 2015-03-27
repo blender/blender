@@ -57,7 +57,7 @@ void WriteBufferOperation::deinitExecution()
 	this->m_memoryProxy->free();
 }
 
-void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
+void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 {
 	MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
 	float *buffer = memoryBuffer->getBuffer();
@@ -110,7 +110,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	memoryBuffer->setCreatedState();
 }
 
-void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti *rect, unsigned int chunkNumber,
+void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti * /*rect*/, unsigned int /*chunkNumber*/,
                                                MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
 {
 	float *outputFloatBuffer = outputBuffer->getBuffer();

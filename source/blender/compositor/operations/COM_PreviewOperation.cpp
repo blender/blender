@@ -85,7 +85,7 @@ void PreviewOperation::deinitExecution()
 	this->m_input = NULL;
 }
 
-void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber)
+void PreviewOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 {
 	int offset;
 	float color[4];

@@ -32,7 +32,7 @@ ReadBufferOperation::ReadBufferOperation(DataType datatype) : NodeOperation()
 	this->m_buffer = NULL;
 }
 
-void *ReadBufferOperation::initializeTileData(rcti *rect)
+void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
 {
 	return m_buffer;
 }

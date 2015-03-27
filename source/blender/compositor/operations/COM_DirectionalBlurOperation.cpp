@@ -66,7 +66,7 @@ void DirectionalBlurOperation::initExecution()
 
 }
 
-void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
 	const int iterations = pow(2.0f, this->m_data->iter);
 	float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -104,7 +104,7 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
 void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
-                                       list<cl_kernel> *clKernelsToCleanUp) 
+                                       list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
 	cl_kernel directionalBlurKernel = device->COM_clCreateKernel("directionalBlurKernel", NULL);
 
@@ -132,7 +132,7 @@ void DirectionalBlurOperation::deinitExecution()
 	this->m_inputProgram = NULL;
 }
 
-bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
 

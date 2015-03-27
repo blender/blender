@@ -31,7 +31,7 @@ InpaintNode::InpaintNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void InpaintNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void InpaintNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	
 	bNode *editorNode = this->getbNode();

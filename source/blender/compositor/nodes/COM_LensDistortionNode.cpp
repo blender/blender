@@ -30,7 +30,7 @@ LensDistortionNode::LensDistortionNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void LensDistortionNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void LensDistortionNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bNode *editorNode = this->getbNode();
 	NodeLensDist *data = (NodeLensDist *)editorNode->storage;

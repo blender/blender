@@ -31,7 +31,7 @@ NormalNode::NormalNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void NormalNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void NormalNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *inputSocket = this->getInputSocket(0);
 	NodeOutput *outputSocket = this->getOutputSocket(0);

@@ -36,7 +36,7 @@ GaussianAlphaXBlurOperation::GaussianAlphaXBlurOperation() : BlurBaseOperation(C
 	this->m_falloff = -1;  /* intentionally invalid, so we can detect uninitialized values */
 }
 
-void *GaussianAlphaXBlurOperation::initializeTileData(rcti *rect)
+void *GaussianAlphaXBlurOperation::initializeTileData(rcti * /*rect*/)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {

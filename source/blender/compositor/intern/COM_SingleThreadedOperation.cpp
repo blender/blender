@@ -33,7 +33,7 @@ void SingleThreadedOperation::initExecution()
 	initMutex();
 }
 
-void SingleThreadedOperation::executePixel(float output[4], int x, int y, void *data)
+void SingleThreadedOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
 	this->m_cachedInstance->readNoCheck(output, x, y);
 }

@@ -71,7 +71,7 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
 	}
 }
 
-void PlaneTrackCommon::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void PlaneTrackCommon::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	resolution[0] = 0;
 	resolution[1] = 0;

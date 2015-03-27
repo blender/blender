@@ -71,7 +71,7 @@ void MovieClipBaseOperation::deinitExecution()
 	}
 }
 
-void MovieClipBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void MovieClipBaseOperation::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	resolution[0] = 0;
 	resolution[1] = 0;

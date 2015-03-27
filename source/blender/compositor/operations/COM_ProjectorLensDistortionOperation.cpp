@@ -40,7 +40,7 @@ void ProjectorLensDistortionOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void *ProjectorLensDistortionOperation::initializeTileData(rcti *rect)
+void *ProjectorLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 {
 	updateDispersion();
 	void *buffer = this->m_inputProgram->initializeTileData(NULL);

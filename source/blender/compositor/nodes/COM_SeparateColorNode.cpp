@@ -96,17 +96,17 @@ void SeparateColorNode::convertToOperations(NodeConverter &converter, const Comp
 }
 
 
-NodeOperation *SeparateRGBANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *SeparateRGBANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	return NULL; /* no conversion needed */
 }
 
-NodeOperation *SeparateHSVANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *SeparateHSVANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	return new ConvertRGBToHSVOperation();
 }
 
-NodeOperation *SeparateYCCANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *SeparateYCCANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	ConvertRGBToYCCOperation *operation = new ConvertRGBToYCCOperation();
 	bNode *editorNode = this->getbNode();
@@ -114,7 +114,7 @@ NodeOperation *SeparateYCCANode::getColorConverter(const CompositorContext &cont
 	return operation;
 }
 
-NodeOperation *SeparateYUVANode::getColorConverter(const CompositorContext &context) const
+NodeOperation *SeparateYUVANode::getColorConverter(const CompositorContext &/*context*/) const
 {
 	return new ConvertRGBToYUVOperation();
 }

@@ -29,7 +29,7 @@ GammaNode::GammaNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void GammaNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void GammaNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	GammaOperation *operation = new GammaOperation();
 	converter.addOperation(operation);

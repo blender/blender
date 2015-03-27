@@ -23,7 +23,7 @@
 #include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void ConvertAlphaNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ConvertAlphaNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeOperation *operation = NULL;
 	bNode *node = this->getbNode();

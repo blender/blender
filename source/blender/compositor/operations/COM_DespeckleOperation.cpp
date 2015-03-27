@@ -52,7 +52,7 @@ BLI_INLINE int color_diff(const float a[3], const float b[3], const float thresh
 	        (fabsf(a[2] - b[2]) > threshold));
 }
 
-void DespeckleOperation::executePixel(float output[4], int x, int y, void *data)
+void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
 	float w = 0.0f;
 	float color_org[4];

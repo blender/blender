@@ -29,7 +29,7 @@ DoubleEdgeMaskNode::DoubleEdgeMaskNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void DoubleEdgeMaskNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void DoubleEdgeMaskNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	DoubleEdgeMaskOperation *operation;
 	bNode *bnode = this->getbNode();

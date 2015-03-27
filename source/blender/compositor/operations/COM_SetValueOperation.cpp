@@ -27,7 +27,9 @@ SetValueOperation::SetValueOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void SetValueOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void SetValueOperation::executePixelSampled(float output[4],
+                                            float /*x*/, float /*y*/,
+                                            PixelSampler /*sampler*/)
 {
 	output[0] = this->m_value;
 }

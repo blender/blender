@@ -30,7 +30,7 @@ ChromaMatteNode::ChromaMatteNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ChromaMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ChromaMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bNode *editorsnode = getbNode();
 	

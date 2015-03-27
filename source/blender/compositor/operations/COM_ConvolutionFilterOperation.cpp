@@ -69,7 +69,7 @@ void ConvolutionFilterOperation::deinitExecution()
 }
 
 
-void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, void *data)
+void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
 	float in1[4];
 	float in2[4];

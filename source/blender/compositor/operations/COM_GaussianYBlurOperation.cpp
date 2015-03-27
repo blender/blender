@@ -38,7 +38,7 @@ GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLO
 	this->m_filtersize = 0;
 }
 
-void *GaussianYBlurOperation::initializeTileData(rcti *rect)
+void *GaussianYBlurOperation::initializeTileData(rcti * /*rect*/)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
@@ -62,7 +62,6 @@ void GaussianYBlurOperation::initExecution()
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 #ifdef __SSE2__
 		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
-		                                                               rad,
 		                                                               m_filtersize);
 #endif
 	}
@@ -78,7 +77,6 @@ void GaussianYBlurOperation::updateGauss()
 		this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
 #ifdef __SSE2__
 		this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab,
-		                                                               rad,
 		                                                               m_filtersize);
 #endif
 	}
@@ -130,7 +128,7 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 void GaussianYBlurOperation::executeOpenCL(OpenCLDevice *device,
                                            MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                            MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
-                                           list<cl_kernel> *clKernelsToCleanUp)
+                                           list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
 	cl_kernel gaussianYBlurOperationKernel = device->COM_clCreateKernel("gaussianYBlurOperationKernel", NULL);
 	cl_int filter_size = this->m_filtersize;

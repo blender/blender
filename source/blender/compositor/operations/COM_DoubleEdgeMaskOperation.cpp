@@ -1237,7 +1237,7 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation() : NodeOperation()
 	this->setComplex(true);
 }
 
-bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this->m_cachedInstance == NULL) {
 		rcti newInput;

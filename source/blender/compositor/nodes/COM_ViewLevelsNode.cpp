@@ -31,7 +31,7 @@ ViewLevelsNode::ViewLevelsNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ViewLevelsNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ViewLevelsNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *input = this->getInputSocket(0);
 	if (input->isLinked()) {

@@ -29,7 +29,7 @@ ColorSpillNode::ColorSpillNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorSpillNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ColorSpillNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bNode *editorsnode = getbNode();
 	

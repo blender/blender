@@ -459,7 +459,8 @@ WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation
 	return NULL;
 }
 
-void NodeOperationBuilder::add_input_buffers(NodeOperation *operation, NodeOperationInput *input)
+void NodeOperationBuilder::add_input_buffers(NodeOperation * /*operation*/,
+                                             NodeOperationInput *input)
 {
 	if (!input->isConnected())
 		return;

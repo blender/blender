@@ -117,7 +117,7 @@ void TextureBaseOperation::executePixelSampled(float output[4], float x, float y
 	}
 }
 
-MemoryBuffer *TextureBaseOperation::createMemoryBuffer(rcti *rect2)
+MemoryBuffer *TextureBaseOperation::createMemoryBuffer(rcti * /*rect2*/)
 {
 	int height = getHeight();
 	int width = getWidth();

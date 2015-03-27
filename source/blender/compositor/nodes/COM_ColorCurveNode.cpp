@@ -29,7 +29,7 @@ ColorCurveNode::ColorCurveNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorCurveNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ColorCurveNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	if (this->getInputSocket(2)->isLinked() || this->getInputSocket(3)->isLinked()) {
 		ColorCurveOperation *operation = new ColorCurveOperation();

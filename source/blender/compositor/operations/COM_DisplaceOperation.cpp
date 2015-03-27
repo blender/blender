@@ -49,7 +49,7 @@ void DisplaceOperation::initExecution()
 	this->m_height_x4 = this->getHeight() * 4;
 }
 
-void DisplaceOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void DisplaceOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	float xy[2] = { x, y };
 	float uv[2], deriv[2][2];

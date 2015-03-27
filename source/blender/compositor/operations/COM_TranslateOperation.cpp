@@ -52,7 +52,7 @@ void TranslateOperation::deinitExecution()
 }
 
 
-void TranslateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void TranslateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	ensureDelta();
 

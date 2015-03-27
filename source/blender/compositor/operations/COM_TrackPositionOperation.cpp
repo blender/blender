@@ -102,7 +102,9 @@ void TrackPositionOperation::initExecution()
 	}
 }
 
-void TrackPositionOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void TrackPositionOperation::executePixelSampled(float output[4],
+                                                 float /*x*/, float /*y*/,
+                                                 PixelSampler /*sampler*/)
 {
 	output[0] = this->m_markerPos[this->m_axis] - this->m_relativePos[this->m_axis];
 

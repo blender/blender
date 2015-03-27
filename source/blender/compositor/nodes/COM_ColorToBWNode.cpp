@@ -30,7 +30,7 @@ ColorToBWNode::ColorToBWNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ColorToBWNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ColorToBWNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *colorSocket = this->getInputSocket(0);
 	NodeOutput *valueSocket = this->getOutputSocket(0);

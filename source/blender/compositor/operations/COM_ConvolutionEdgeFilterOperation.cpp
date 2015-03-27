@@ -28,7 +28,7 @@ ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation() : ConvolutionFi
 	/* pass */
 }
 
-void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y, void *data)
+void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
 	float in1[4], in2[4], res1[4] = {0.0}, res2[4] = {0.0};
 

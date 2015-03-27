@@ -63,7 +63,10 @@ protected:
 	 * @param y the y-coordinate of the pixel to calculate in image space
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) {}
+	virtual void executePixelSampled(float /*output*/[4],
+	                                 float /*x*/,
+	                                 float /*y*/,
+	                                 PixelSampler /*sampler*/) { }
 
 	/**
 	 * @brief calculate a single pixel
@@ -74,7 +77,7 @@ protected:
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 * @param chunkData chunk specific data a during execution time.
 	 */
-	virtual void executePixel(float output[4], int x, int y, void *chunkData) {
+	virtual void executePixel(float output[4], int x, int y, void * /*chunkData*/) {
 		executePixelSampled(output, x, y, COM_PS_NEAREST);
 	}
 
@@ -88,7 +91,10 @@ protected:
 	 * @param dy
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2], PixelSampler sampler) {}
+	virtual void executePixelFiltered(float /*output*/[4],
+	                                  float /*x*/, float /*y*/,
+	                                  float /*dx*/[2], float /*dy*/[2],
+	                                  PixelSampler /*sampler*/) {}
 
 public:
 	inline void readSampled(float result[4], float x, float y, PixelSampler sampler) {
@@ -101,12 +107,12 @@ public:
 		executePixelFiltered(result, x, y, dx, dy, sampler);
 	}
 
-	virtual void *initializeTileData(rcti *rect) { return 0; }
-	virtual void deinitializeTileData(rcti *rect, void *data) {}
+	virtual void *initializeTileData(rcti * /*rect*/) { return 0; }
+	virtual void deinitializeTileData(rcti * /*rect*/, void * /*data*/) {}
 
 	virtual ~SocketReader() {}
 
-	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return 0; }
+	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer ** /*memoryBuffers*/) { return 0; }
 
 	inline const unsigned int getWidth() const { return this->m_width; }
 	inline const unsigned int getHeight() const { return this->m_height; }

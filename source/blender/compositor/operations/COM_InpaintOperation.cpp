@@ -241,7 +241,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 	return this->m_cached_buffer;
 }
 
-void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void *data)
+void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
 	this->clamp_xy(x, y);
 	copy_v4_v4(output, this->get_pixel(x, y));
@@ -268,7 +268,7 @@ void InpaintSimpleOperation::deinitExecution()
 	this->m_cached_buffer_ready = false;
 }
 
-bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this->m_cached_buffer_ready) {
 		return false;

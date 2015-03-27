@@ -96,7 +96,7 @@ void BaseImageOperation::deinitExecution()
 	BKE_image_release_ibuf(this->m_image, this->m_buffer, NULL);
 }
 
-void BaseImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+void BaseImageOperation::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	ImBuf *stackbuf = getImBuf();
 
@@ -170,7 +170,7 @@ void ImageAlphaOperation::executePixelSampled(float output[4], float x, float y,
 	}
 }
 
-void ImageDepthOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void ImageDepthOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	if (this->m_depthBuffer == NULL) {
 		output[0] = 0.0f;

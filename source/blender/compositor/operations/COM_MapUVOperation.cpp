@@ -41,7 +41,7 @@ void MapUVOperation::initExecution()
 	this->m_inputUVProgram = this->getInputSocketReader(1);
 }
 
-void MapUVOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MapUVOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	float xy[2] = { x, y };
 	float uv[2], deriv[2][2], alpha;

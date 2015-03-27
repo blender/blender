@@ -33,7 +33,9 @@ MovieClipAttributeOperation::MovieClipAttributeOperation() : NodeOperation()
 	this->m_attribute = MCA_X;
 }
 
-void MovieClipAttributeOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MovieClipAttributeOperation::executePixelSampled(float output[4],
+                                                      float /*x*/, float /*y*/,
+                                                      PixelSampler /*sampler*/)
 {
 	if (!this->m_valueSet) {
 		float loc[2], scale, angle;

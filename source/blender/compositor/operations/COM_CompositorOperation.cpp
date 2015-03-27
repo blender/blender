@@ -125,7 +125,7 @@ void CompositorOperation::deinitExecution()
 }
 
 
-void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
+void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 {
 	float color[8]; // 7 is enough
 	float *buffer = this->m_outputBuffer;

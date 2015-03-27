@@ -30,7 +30,7 @@ MapValueNode::MapValueNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void MapValueNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void MapValueNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	TexMapping *storage =  (TexMapping *)this->getbNode()->storage;
 	

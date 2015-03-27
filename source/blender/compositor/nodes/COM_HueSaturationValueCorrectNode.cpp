@@ -36,7 +36,7 @@ HueSaturationValueCorrectNode::HueSaturationValueCorrectNode(bNode *editorNode) 
 	/* pass */
 }
 
-void HueSaturationValueCorrectNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void HueSaturationValueCorrectNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *valueSocket = this->getInputSocket(0);
 	NodeInput *colorSocket = this->getInputSocket(1);

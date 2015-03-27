@@ -45,7 +45,7 @@ BokehBlurOperation::BokehBlurOperation() : NodeOperation()
 	this->m_inputBoundingBoxReader = NULL;
 }
 
-void *BokehBlurOperation::initializeTileData(rcti *rect)
+void *BokehBlurOperation::initializeTileData(rcti * /*rect*/)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
@@ -194,7 +194,7 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 void BokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
-                                       list<cl_kernel> *clKernelsToCleanUp) 
+                                       list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
 	cl_kernel kernel = device->COM_clCreateKernel("bokehBlurKernel", NULL);
 	if (!this->m_sizeavailable) {

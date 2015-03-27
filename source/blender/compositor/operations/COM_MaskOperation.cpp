@@ -1,4 +1,5 @@
 /*
+
  * Copyright 2012, Blender Foundation.
  *
  * This program is free software; you can redistribute it and/or
@@ -127,7 +128,7 @@ void MaskOperation::determineResolution(unsigned int resolution[2], unsigned int
 	}
 }
 
-void MaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	const float xy[2] = {
 	    (x * this->m_maskWidthInv)  + this->m_mask_px_ofs[0],

@@ -293,7 +293,7 @@ static void accumulate_line(MemoryBuffer *input, float output[4], const float co
 	}
 }
 
-void *SunBeamsOperation::initializeTileData(rcti *rect)
+void *SunBeamsOperation::initializeTileData(rcti * /*rect*/)
 {
 	void *buffer = getInputOperation(0)->initializeTileData(NULL);
 	return buffer;

@@ -121,7 +121,7 @@ void MovieDistortionOperation::deinitExecution()
 }
 
 
-void MovieDistortionOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MovieDistortionOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
 {
 	
 	if (this->m_cache != NULL) {

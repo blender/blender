@@ -53,7 +53,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 	void executeRegion(rcti *rect, unsigned int tileNumber);
-	bool isOutputOperation(bool rendering) const { if (G.background) return false; return isActiveViewerOutput(); }
+	bool isOutputOperation(bool /*rendering*/) const { if (G.background) return false; return isActiveViewerOutput(); }
 	void setImage(Image *image) { this->m_image = image; }
 	void setImageUser(ImageUser *imageUser) { this->m_imageUser = imageUser; }
 	const bool isActiveViewerOutput() const { return this->m_active; }

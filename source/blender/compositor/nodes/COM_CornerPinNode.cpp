@@ -28,7 +28,7 @@ CornerPinNode::CornerPinNode(bNode *editorNode) : Node(editorNode)
 {
 }
 
-void CornerPinNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void CornerPinNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	NodeInput *input_image = this->getInputSocket(0);
 	/* note: socket order differs between UI node and operations:

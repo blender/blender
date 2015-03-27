@@ -30,7 +30,7 @@ ChannelMatteNode::ChannelMatteNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-void ChannelMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
+void ChannelMatteNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
 	bNode *node = this->getbNode();
 	
