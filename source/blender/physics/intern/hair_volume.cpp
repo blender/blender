@@ -594,7 +594,7 @@ BLI_INLINE float hair_volume_density_divergence(float density, float target_dens
 		return 0.0f;
 }
 
-bool BPH_hair_volume_solve_divergence(HairGrid *grid, float dt, float target_density, float target_strength)
+bool BPH_hair_volume_solve_divergence(HairGrid *grid, float /*dt*/, float target_density, float target_strength)
 {
 	const float flowfac = grid->cellsize;
 	const float inv_flowfac = 1.0f / grid->cellsize;
