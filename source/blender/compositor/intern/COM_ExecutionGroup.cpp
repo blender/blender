@@ -238,7 +238,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 				chunkOrders[index].determineDistance(hotspots, 1);
 			}
 
-			sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks - 1]);
+			std::sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks - 1]);
 			for (index = 0; index < this->m_numberOfChunks; index++) {
 				chunkOrder[index] = chunkOrders[index].getChunkNumber();
 			}
@@ -277,7 +277,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 				chunkOrders[index].determineDistance(hotspots, 9);
 			}
 
-			sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks]);
+			std::sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks]);
 
 			for (index = 0; index < this->m_numberOfChunks; index++) {
 				chunkOrder[index] = chunkOrders[index].getChunkNumber();
