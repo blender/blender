@@ -35,28 +35,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_lasso.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_library.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
 
 #include "UI_interface.h"
 
@@ -69,8 +58,6 @@
 #include "UI_view2d.h"
 
 #include "ED_gpencil.h"
-#include "ED_view3d.h"
-#include "ED_keyframing.h"
 
 #include "gpencil_intern.h"
 

@@ -34,8 +34,6 @@
 
 #include "BLI_sys_types.h"
 
-#include "BLI_blenlib.h"
-
 #include "BKE_context.h"
 
 #include "DNA_gpencil_types.h"
