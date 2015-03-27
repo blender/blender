@@ -28,7 +28,6 @@
  *  \ingroup spview3d
  */
 
-
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -38,7 +37,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_camera_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -75,7 +73,6 @@
 #include "ED_transform.h"
 #include "ED_mesh.h"
 #include "ED_view3d.h"
-#include "ED_sculpt.h"
 
 #include "UI_resources.h"
 

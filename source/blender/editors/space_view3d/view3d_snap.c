@@ -31,9 +31,7 @@
 
 
 #include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_meta_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -43,11 +41,9 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
-#include "BKE_editmesh.h"
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
@@ -60,7 +56,6 @@
 #include "ED_transverts.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
-#include "ED_curve.h"
 
 #include "view3d_intern.h"
 

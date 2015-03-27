@@ -68,7 +68,6 @@
 #include "RNA_access.h"
 
 #include "ED_armature.h"
-#include "ED_gpencil.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 

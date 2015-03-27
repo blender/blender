@@ -48,8 +48,6 @@
 
 #include "GPU_extensions.h"
 
-#include "ED_mesh.h"
-
 #include "view3d_intern.h"  // own include
 
 struct GPUTexture;
