@@ -4,7 +4,7 @@ This source is published under the following 3-clause BSD license.
 Copyright (c) 2012 - 2013, Lukas Hosek and Alexander Wilkie
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
+Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
     * Redistributions of source code must retain the above copyright
@@ -12,8 +12,8 @@ modification, are permitted provided that the following conditions are met:
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * None of the names of the contributors may be used to endorse or promote 
-      products derived from this software without specific prior written 
+    * None of the names of the contributors may be used to endorse or promote
+      products derived from this software without specific prior written
       permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -41,24 +41,24 @@ and the 2013 IEEE CG&A paper
 
        "Adding a Solar Radiance Function to the Hosek Skylight Model"
 
-                                   both by 
+                                   both by
 
                        Lukas Hosek and Alexander Wilkie
                 Charles University in Prague, Czech Republic
 
 
                         Version: 1.4a, February 22nd, 2013
-                        
+
 Version history:
 
 1.4a  February 22nd, 2013
-      Removed unnecessary and counter-intuitive solar radius parameters 
+      Removed unnecessary and counter-intuitive solar radius parameters
       from the interface of the colourspace sky dome initialisation functions.
 
 1.4   February 11th, 2013
       Fixed a bug which caused the relative brightness of the solar disc
-      and the sky dome to be off by a factor of about 6. The sun was too 
-      bright: this affected both normal and alien sun scenarios. The 
+      and the sky dome to be off by a factor of about 6. The sun was too
+      bright: this affected both normal and alien sun scenarios. The
       coefficients of the solar radiance function were changed to fix this.
 
 1.3   January 21st, 2013 (not released to the public)
@@ -82,7 +82,7 @@ Version history:
       the result of a simple conversion from spectral data via the CIE 2 degree
       standard observer matching functions. Therefore, after multiplication
       with 683 lm / W, the Y channel now corresponds to luminance in lm.
-     
+
 1.0   May 11th, 2012
       Initial release.
 
@@ -96,15 +96,14 @@ CCL_NAMESPACE_BEGIN
 
 /*
 
-This file contains the coefficient data for the XYZ colour space version of 
+This file contains the coefficient data for the XYZ colour space version of
 the model.
 
 */
 
 // Uses Sep 9 pattern / Aug 23 mean dataset
 
-static const double datasetXYZ1[] =
-{
+static const double datasetXYZ1[] = {
 	// albedo 0, turbidity 1
 	-1.117001e+000,
 	-1.867262e-001,
@@ -3849,15 +3848,13 @@ static const double datasetXYZRad3[] =
 
 
 
-static const double* datasetsXYZ[] =
-{
+static const double* datasetsXYZ[] = {
 	datasetXYZ1,
 	datasetXYZ2,
 	datasetXYZ3
 };
 
-static const double* datasetsXYZRad[] =
-{
+static const double* datasetsXYZRad[] = {
 	datasetXYZRad1,
 	datasetXYZRad2,
 	datasetXYZRad3
