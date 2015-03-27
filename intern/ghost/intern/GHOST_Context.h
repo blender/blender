@@ -99,7 +99,7 @@ public:
 	 * \param interval The swap interval to use.
 	 * \return A boolean success indicator.
 	 */
-	virtual GHOST_TSuccess setSwapInterval(int interval) {
+	virtual GHOST_TSuccess setSwapInterval(int /*interval*/) {
 		return GHOST_kFailure;
 	}
 

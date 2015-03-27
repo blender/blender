@@ -182,7 +182,7 @@ public:
 	 * Sets the progress bar value displayed in the window/application icon
 	 * \param progress The progress % (0.0 to 1.0)
 	 */
-	virtual GHOST_TSuccess setProgressBar(float progress) {
+	virtual GHOST_TSuccess setProgressBar(float /*progress*/) {
 		return GHOST_kFailure;
 	}
 	
@@ -329,7 +329,7 @@ protected:
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) {
+	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode /*mode*/) {
 		return GHOST_kSuccess;
 	}
 	

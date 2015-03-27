@@ -561,7 +561,7 @@ GHOST_WindowX11(
 }
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-static void destroyICCallback(XIC xic, XPointer ptr, XPointer data)
+static void destroyICCallback(XIC /*xic*/, XPointer ptr, XPointer /*data*/)
 {
 	GHOST_PRINT("XIM input context destroyed\n");
 
@@ -1536,8 +1536,8 @@ setWindowCustomCursorShape(
 		int sizey,
 		int hotX,
 		int hotY,
-		int fg_color,
-		int bg_color)
+		int /*fg_color*/,
+		int /*bg_color*/)
 {
 	Colormap colormap = DefaultColormap(m_display, m_visualInfo->screen);
 	Pixmap bitmap_pix, mask_pix;

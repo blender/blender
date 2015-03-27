@@ -329,7 +329,7 @@ createWindow(const STR_String& title,
 }
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-static void destroyIMCallback(XIM xim, XPointer ptr, XPointer data)
+static void destroyIMCallback(XIM /*xim*/, XPointer ptr, XPointer /*data*/)
 {
 	GHOST_PRINT("XIM server died\n");
 
@@ -1882,7 +1882,7 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
  * Basically it will not crash blender now if you have a X device that
  * is configured but not plugged in.
  */
-int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent)
+int GHOST_X11_ApplicationErrorHandler(Display * /*display*/, XErrorEvent *theEvent)
 {
 	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
 	        theEvent->error_code, theEvent->request_code);
@@ -1891,7 +1891,7 @@ int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent)
 	return 0;
 }
 
-int GHOST_X11_ApplicationIOErrorHandler(Display *display)
+int GHOST_X11_ApplicationIOErrorHandler(Display * /*display*/)
 {
 	fprintf(stderr, "Ignoring Xlib error: error IO\n");
 

@@ -121,7 +121,7 @@ GHOST_IWindow *GHOST_WindowManager::getFullScreenWindow(void) const
 
 
 GHOST_TSuccess GHOST_WindowManager::beginFullScreen(GHOST_IWindow *window,
-		bool stereoVisual)
+		bool /*stereoVisual*/)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 	GHOST_ASSERT(window, "GHOST_WindowManager::beginFullScreen(): invalid window");

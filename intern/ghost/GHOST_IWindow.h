@@ -323,7 +323,9 @@ public:
 	 * \param   grab The new grab state of the cursor.
 	 * \return  Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds, GHOST_TInt32 mouse_ungrab_xy[2]) { return GHOST_kSuccess; }
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode /*mode*/,
+	                                     GHOST_Rect * /*bounds*/,
+	                                     GHOST_TInt32 /*mouse_ungrab_xy*/[2]) { return GHOST_kSuccess; }
 
 	/** */
 	virtual GHOST_TSuccess beginFullScreen() const = 0;

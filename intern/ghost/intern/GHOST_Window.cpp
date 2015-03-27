@@ -46,7 +46,7 @@ GHOST_Window::GHOST_Window(
         GHOST_TUns32 width, GHOST_TUns32 height,
         GHOST_TWindowState state,
         const bool wantStereoVisual,
-        const bool exclusive,
+        const bool /*exclusive*/,
         const GHOST_TUns16 wantNumOfAASamples)
     : m_drawingContextType(GHOST_kDrawingContextTypeNone),
       m_cursorVisible(true),

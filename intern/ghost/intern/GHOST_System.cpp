@@ -169,7 +169,7 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting
 }
 
 
-GHOST_TSuccess GHOST_System::updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window)
+GHOST_TSuccess GHOST_System::updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow ** /*window*/)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 	GHOST_ASSERT(m_windowManager, "GHOST_System::updateFullScreen(): invalid window manager");
@@ -371,7 +371,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const
 }
 
 
-int GHOST_System::confirmQuit(GHOST_IWindow *window) const
+int GHOST_System::confirmQuit(GHOST_IWindow * /*window*/) const
 {
 	return 1;
 }

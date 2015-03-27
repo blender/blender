@@ -271,7 +271,7 @@ public:
 	/**
 	 * \see GHOST_ISystem
 	 */
-	int toggleConsole(int action) {
+	int toggleConsole(int /*action*/) {
 		return 0;
 	}
 

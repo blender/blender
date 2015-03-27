@@ -171,7 +171,7 @@ getCurrentDisplaySetting(
 GHOST_TSuccess
 GHOST_DisplayManagerX11::
 setCurrentDisplaySetting(
-		GHOST_TUns8 display,
+		GHOST_TUns8 /*display*/,
 		const GHOST_DisplaySetting& setting)
 {
 #ifdef WITH_X11_XF86VMODE
