@@ -47,7 +47,7 @@ extern "C" {
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-int imb_save_dds(struct ImBuf *ibuf, const char *name, int flags)
+int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
 {
 	return(0); /* todo: finish this function */
 

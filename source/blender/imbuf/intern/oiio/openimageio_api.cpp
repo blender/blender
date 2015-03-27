@@ -182,7 +182,7 @@ int imb_is_a_photoshop(const char *filename)
 	return BLI_testextensie_array(filename, photoshop_extension);
 }
 
-int imb_save_photoshop(struct ImBuf *ibuf, const char *name, int flags)
+int imb_save_photoshop(struct ImBuf *ibuf, const char * /*name*/, int flags)
 {
 	if (flags & IB_mem) {
 		std::cerr << __func__ << ": Photoshop PSD-save: Create PSD in memory"
