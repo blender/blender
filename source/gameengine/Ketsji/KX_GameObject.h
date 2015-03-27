@@ -1040,7 +1040,7 @@ public:
 	static PyObject*	pyattr_get_life(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	static PyObject*	pyattr_get_dynamics_suspended(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_is_suspend_dynamics(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

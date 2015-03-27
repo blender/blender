@@ -78,7 +78,7 @@ base class --- :class:`SCA_IObject`
 
          The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0.
 
-   .. attribute:: isDynamicsSuspended
+   .. attribute:: isSuspendDynamics
 
       The object's dynamic state (read-only).
 
