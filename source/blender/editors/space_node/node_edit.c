@@ -162,13 +162,12 @@ static int compo_breakjob(void *cjv)
 	        );
 }
 
-/* called by compo, wmJob sends notifier, old compositor system only */
+/* called by compo, wmJob sends notifier */
 static void compo_statsdrawjob(void *cjv, char *UNUSED(str))
 {
 	CompoJob *cj = cjv;
 	
 	*(cj->do_update) = true;
-	cj->need_sync = true;
 }
 
 /* called by compo, wmJob sends notifier */
