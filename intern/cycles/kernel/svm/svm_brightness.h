@@ -32,7 +32,7 @@ ccl_device void svm_node_brightness(ShaderData *sd, float *stack, uint in_color,
 	color.y = max(a*color.y + b, 0.0f);
 	color.z = max(a*color.z + b, 0.0f);
 
-	if (stack_valid(out_color))
+	if(stack_valid(out_color))
 		stack_store_float3(stack, out_color, color);
 }
 

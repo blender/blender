@@ -109,8 +109,8 @@ public:
 		evalctrl.EvalLimitSample<OsdCpuVertexBuffer,OsdCpuVertexBuffer>(coords, evalctx, 0);
 
 		*P_ = make_float3(P[0], P[1], P[2]);
-		if (dPdu_) *dPdu_ = make_float3(dPdv[0], dPdv[1], dPdv[2]);
-		if (dPdv_) *dPdv_ = make_float3(dPdu[0], dPdu[1], dPdu[2]);
+		if(dPdu_) *dPdu_ = make_float3(dPdv[0], dPdv[1], dPdv[2]);
+		if(dPdv_) *dPdv_ = make_float3(dPdu[0], dPdu[1], dPdu[2]);
 
 		/* optimize: skip evaluating derivatives when not needed */
 		/* todo: swapped derivatives, different winding convention? */
@@ -234,7 +234,7 @@ bool OpenSubdMesh::finish()
 
 void OpenSubdMesh::tessellate(DiagSplit *split)
 {
-	if (num_ptex_faces == 0)
+	if(num_ptex_faces == 0)
 		return;
 
 	const int level = 3;

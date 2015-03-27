@@ -77,7 +77,7 @@ ccl_device void svm_node_wavelength(ShaderData *sd, float *stack, uint wavelengt
 	int i = float_to_int(ii);
 	float3 color;
 	
-	if (i < 0 || i >= 80) {
+	if(i < 0 || i >= 80) {
 		color = make_float3(0.0f, 0.0f, 0.0f);
 	}
 	else {

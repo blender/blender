@@ -42,11 +42,11 @@ ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *sta
 	/* Input */
 	float temperature = stack_load_float(stack, temperature_offset);
 
-	if (temperature < BB_DRAPER) {
+	if(temperature < BB_DRAPER) {
 		/* just return very very dim red */
 		color_rgb = make_float3(1.0e-6f,0.0f,0.0f);
 	}
-	else if (temperature <= BB_MAX_TABLE_RANGE) {
+	else if(temperature <= BB_MAX_TABLE_RANGE) {
 		/* This is the overall size of the table */
 		const int lookuptablesize = 956;
 		const float lookuptablenormalize = 1.0f/956.0f;
@@ -74,10 +74,10 @@ ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *sta
 
 	/* Luminance */
 	float l = linear_rgb_to_gray(color_rgb);
-	if (l != 0.0f)
+	if(l != 0.0f)
 		color_rgb /= l;
 
-	if (stack_valid(col_offset))
+	if(stack_valid(col_offset))
 		stack_store_float3(stack, col_offset, color_rgb);
 }
 

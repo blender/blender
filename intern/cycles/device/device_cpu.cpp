@@ -209,7 +209,7 @@ public:
 			int end_sample = tile.start_sample + tile.num_samples;
 
 			for(int sample = start_sample; sample < end_sample; sample++) {
-				if (task.get_cancel() || task_pool.canceled()) {
+				if(task.get_cancel() || task_pool.canceled()) {
 					if(task.need_finish_queue == false)
 						break;
 				}
@@ -370,7 +370,7 @@ public:
 
 	int get_split_task_count(DeviceTask& task)
 	{
-		if (task.type == DeviceTask::SHADER)
+		if(task.type == DeviceTask::SHADER)
 			return task.get_subtask_count(TaskScheduler::num_threads(), 256);
 		else
 			return task.get_subtask_count(TaskScheduler::num_threads());

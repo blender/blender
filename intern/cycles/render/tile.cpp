@@ -235,7 +235,7 @@ bool TileManager::next_tile(Tile& tile, int device)
 {
 	list<Tile>::iterator tile_it;
 	
-	if (background)
+	if(background)
 		tile_it = next_background_tile(device, tile_order);
 	else
 		tile_it = next_viewport_tile(device);

@@ -133,7 +133,7 @@ __forceinline int clz(const int x)
 #if defined(__KERNEL_AVX2__)
   return _lzcnt_u32(x);
 #else
-  if (UNLIKELY(x == 0)) return 32;
+  if(UNLIKELY(x == 0)) return 32;
   return 31 - __bsr(x);    
 #endif
 }
@@ -286,7 +286,7 @@ __forceinline int clz(const int x)
 #if defined(__KERNEL_AVX2__)
   return _lzcnt_u32(x);
 #else
-  if (UNLIKELY(x == 0)) return 32;
+  if(UNLIKELY(x == 0)) return 32;
   return 31 - __bsr(x);    
 #endif
 }
@@ -358,7 +358,7 @@ __forceinline __m128i _mm_mullo_epi32( __m128i value, __m128i input ) {
   char* _r = (char*)(&rvalue + 1);
   char* _v = (char*)(& value + 1);
   char* _i = (char*)(& input + 1);
-  for ( ssize_t i = -16 ; i != 0 ; i += 4 ) *((int32*)(_r + i)) = *((int32*)(_v + i))*  *((int32*)(_i + i));
+  for( ssize_t i = -16 ; i != 0 ; i += 4 ) *((int32*)(_r + i)) = *((int32*)(_v + i))*  *((int32*)(_i + i));
   return rvalue;
 }
 

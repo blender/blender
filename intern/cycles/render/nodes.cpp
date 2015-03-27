@@ -227,7 +227,7 @@ void ImageTextureNode::attributes(Shader *shader, AttributeRequestSet *attribute
 #ifdef WITH_PTEX
 	/* todo: avoid loading other texture coordinates when using ptex,
 	 * and hide texture coordinate socket in the UI */
-	if (shader->has_surface && string_endswith(filename, ".ptx")) {
+	if(shader->has_surface && string_endswith(filename, ".ptx")) {
 		/* ptex */
 		attributes->add(ATTR_STD_PTEX_FACE_ID);
 		attributes->add(ATTR_STD_PTEX_UV);
@@ -417,7 +417,7 @@ ShaderNode *EnvironmentTextureNode::clone() const
 void EnvironmentTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 #ifdef WITH_PTEX
-	if (shader->has_surface && string_endswith(filename, ".ptx")) {
+	if(shader->has_surface && string_endswith(filename, ".ptx")) {
 		/* ptex */
 		attributes->add(ATTR_STD_PTEX_FACE_ID);
 		attributes->add(ATTR_STD_PTEX_UV);
@@ -632,7 +632,7 @@ static void sky_texture_precompute_new(SunSky *sunsky, float3 dir, float turbidi
 	sky_state = arhosek_xyz_skymodelstate_alloc_init(turbidity, ground_albedo, solarElevation);
 
 	/* Copy values from sky_state to SunSky */
-	for (int i = 0; i < 9; ++i) {
+	for(int i = 0; i < 9; ++i) {
 		sunsky->config_x[i] = (float)sky_state->configs[0][i];
 		sunsky->config_y[i] = (float)sky_state->configs[1][i];
 		sunsky->config_z[i] = (float)sky_state->configs[2][i];
@@ -2442,7 +2442,7 @@ void UVMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 	if(shader->has_surface) {
 		if(!from_dupli) {
 			if(!output("UV")->links.empty()) {
-				if (attribute != "")
+				if(attribute != "")
 					attributes->add(attribute);
 				else
 					attributes->add(ATTR_STD_UV);
@@ -2475,7 +2475,7 @@ void UVMapNode::compile(SVMCompiler& compiler)
 			compiler.add_node(texco_node, NODE_TEXCO_DUPLI_UV, out->stack_offset);
 		}
 		else {
-			if (attribute != "")
+			if(attribute != "")
 				attr = compiler.attribute(attribute);
 			else
 				attr = compiler.attribute(ATTR_STD_UV);
@@ -3987,7 +3987,7 @@ void RGBCurvesNode::compile(OSLCompiler& compiler)
 {
 	float ramp[RAMP_TABLE_SIZE][3];
 
-	for (int i = 0; i < RAMP_TABLE_SIZE; ++i) {
+	for(int i = 0; i < RAMP_TABLE_SIZE; ++i) {
 		ramp[i][0] = curves[i].x;
 		ramp[i][1] = curves[i].y;
 		ramp[i][2] = curves[i].z;
@@ -4025,7 +4025,7 @@ void VectorCurvesNode::compile(OSLCompiler& compiler)
 {
 	float ramp[RAMP_TABLE_SIZE][3];
 
-	for (int i = 0; i < RAMP_TABLE_SIZE; ++i) {
+	for(int i = 0; i < RAMP_TABLE_SIZE; ++i) {
 		ramp[i][0] = curves[i].x;
 		ramp[i][1] = curves[i].y;
 		ramp[i][2] = curves[i].z;
@@ -4075,7 +4075,7 @@ void RGBRampNode::compile(OSLCompiler& compiler)
 	float ramp_color[RAMP_TABLE_SIZE][3];
 	float ramp_alpha[RAMP_TABLE_SIZE];
 
-	for (int i = 0; i < RAMP_TABLE_SIZE; ++i) {
+	for(int i = 0; i < RAMP_TABLE_SIZE; ++i) {
 		ramp_color[i][0] = ramp[i].x;
 		ramp_color[i][1] = ramp[i].y;
 		ramp_color[i][2] = ramp[i].z;

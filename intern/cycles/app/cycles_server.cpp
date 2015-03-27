@@ -66,7 +66,7 @@ int main(int argc, const char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (debug) {
+	if(debug) {
 		util_logging_start();
 		util_logging_verbosity_set(verbosity);
 	}

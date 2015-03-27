@@ -269,7 +269,7 @@ public:
 				lock.unlock();
 
 				TileList::iterator it = tile_list_find(the_tiles, tile);
-				if (it != the_tiles.end()) {
+				if(it != the_tiles.end()) {
 					tile.buffers = it->buffers;
 					the_tiles.erase(it);
 				}

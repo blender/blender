@@ -331,9 +331,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 				sc->data2 = 0.0f;
 
-				if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID)
+				if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID)
 					sd->flag |= bsdf_microfacet_beckmann_aniso_setup(sc);
-				else if (type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID)
+				else if(type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID)
 					sd->flag |= bsdf_microfacet_ggx_aniso_setup(sc);
 				else
 					sd->flag |= bsdf_ashikhmin_shirley_aniso_setup(sc);
@@ -365,7 +365,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				sc->data1 = param2;
 				sc->data2 = 0.0f;
 				
-				if (type == CLOSURE_BSDF_DIFFUSE_TOON_ID)
+				if(type == CLOSURE_BSDF_DIFFUSE_TOON_ID)
 					sd->flag |= bsdf_diffuse_toon_setup(sc);
 				else
 					sd->flag |= bsdf_glossy_toon_setup(sc);

@@ -124,7 +124,7 @@ static void scene_init()
 	xml_read_file(options.scene, options.filepath.c_str());
 
 	/* Camera width/height override? */
-	if (!(options.width == 0 || options.height == 0)) {
+	if(!(options.width == 0 || options.height == 0)) {
 		options.scene->camera->width = options.width;
 		options.scene->camera->height = options.height;
 	}
@@ -367,7 +367,7 @@ static void options_parse(int argc, const char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (debug) {
+	if(debug) {
 		util_logging_start();
 		util_logging_verbosity_set(verbosity);
 	}

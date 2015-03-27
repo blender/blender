@@ -638,7 +638,7 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 							size_t steps = mesh->motion_steps - 1;
 							float4 *key_steps = attr->data_float4();
 
-							for (size_t i = 0; i < steps; i++)
+							for(size_t i = 0; i < steps; i++)
 								curve.bounds_grow(k, key_steps + i*mesh_size, bbox);
 						}
 					}
@@ -660,7 +660,7 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 							size_t steps = mesh->motion_steps - 1;
 							float3 *vert_steps = attr->data_float3();
 
-							for (size_t i = 0; i < steps; i++)
+							for(size_t i = 0; i < steps; i++)
 								triangle.bounds_grow(vert_steps + i*mesh_size, bbox);
 						}
 					}
@@ -877,7 +877,7 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 							size_t steps = mesh->motion_steps - 1;
 							float4 *key_steps = attr->data_float4();
 
-							for (size_t i = 0; i < steps; i++)
+							for(size_t i = 0; i < steps; i++)
 								curve.bounds_grow(k, key_steps + i*mesh_size, bbox);
 						}
 					}
@@ -899,7 +899,7 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 							size_t steps = mesh->motion_steps - 1;
 							float3 *vert_steps = attr->data_float3();
 
-							for (size_t i = 0; i < steps; i++)
+							for(size_t i = 0; i < steps; i++)
 								triangle.bounds_grow(vert_steps + i*mesh_size, bbox);
 						}
 					}

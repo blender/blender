@@ -210,11 +210,11 @@ void Mesh::compute_bounds()
 			bnds.grow(float4_to_float3(curve_keys[i]), curve_keys[i].w);
 
 		Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-		if (use_motion_blur && attr) {
+		if(use_motion_blur && attr) {
 			size_t steps_size = verts.size() * (motion_steps - 1);
 			float3 *vert_steps = attr->data_float3();
 	
-			for (size_t i = 0; i < steps_size; i++)
+			for(size_t i = 0; i < steps_size; i++)
 				bnds.grow(vert_steps[i]);
 		}
 
@@ -223,7 +223,7 @@ void Mesh::compute_bounds()
 			size_t steps_size = curve_keys.size() * (motion_steps - 1);
 			float3 *key_steps = curve_attr->data_float3();
 	
-			for (size_t i = 0; i < steps_size; i++)
+			for(size_t i = 0; i < steps_size; i++)
 				bnds.grow(key_steps[i]);
 		}
 
@@ -237,19 +237,19 @@ void Mesh::compute_bounds()
 			for(size_t i = 0; i < curve_keys_size; i++)
 				bnds.grow_safe(float4_to_float3(curve_keys[i]), curve_keys[i].w);
 			
-			if (use_motion_blur && attr) {
+			if(use_motion_blur && attr) {
 				size_t steps_size = verts.size() * (motion_steps - 1);
 				float3 *vert_steps = attr->data_float3();
 		
-				for (size_t i = 0; i < steps_size; i++)
+				for(size_t i = 0; i < steps_size; i++)
 					bnds.grow_safe(vert_steps[i]);
 			}
 
-			if (use_motion_blur && curve_attr) {
+			if(use_motion_blur && curve_attr) {
 				size_t steps_size = curve_keys.size() * (motion_steps - 1);
 				float3 *key_steps = curve_attr->data_float3();
 		
-				for (size_t i = 0; i < steps_size; i++)
+				for(size_t i = 0; i < steps_size; i++)
 					bnds.grow_safe(key_steps[i]);
 			}
 		}

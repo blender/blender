@@ -30,7 +30,7 @@ ccl_device void svm_node_invert(ShaderData *sd, float *stack, uint in_fac, uint 
 	color.y = invert(color.y, factor);
 	color.z = invert(color.z, factor);
 
-	if (stack_valid(out_color))
+	if(stack_valid(out_color))
 		stack_store_float3(stack, out_color, color);
 }
 

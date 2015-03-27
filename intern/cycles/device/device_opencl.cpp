@@ -423,7 +423,7 @@ public:
 		int num_base = 0;
 		int total_devices = 0;
 
-		for (int platform = 0; platform < num_platforms; platform++) {
+		for(int platform = 0; platform < num_platforms; platform++) {
 			cl_uint num_devices;
 
 			if(opencl_error(clGetDeviceIDs(platforms[platform], opencl_device_type(), 0, NULL, &num_devices)))
@@ -1125,7 +1125,7 @@ bool device_opencl_init(void) {
 	static bool initialized = false;
 	static bool result = false;
 
-	if (initialized)
+	if(initialized)
 		return result;
 
 	initialized = true;
@@ -1160,7 +1160,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	/* devices are numbered consecutively across platforms */
 	int num_base = 0;
 
-	for (int platform = 0; platform < num_platforms; platform++, num_base += num_devices) {
+	for(int platform = 0; platform < num_platforms; platform++, num_base += num_devices) {
 		num_devices = 0;
 		if(clGetDeviceIDs(platform_ids[platform], opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
 			continue;

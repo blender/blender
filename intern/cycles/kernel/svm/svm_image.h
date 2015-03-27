@@ -65,7 +65,7 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 
 	float4 r;
 	int ix, iy, nix, niy;
-	if (interpolation == INTERPOLATION_CLOSEST) {
+	if(interpolation == INTERPOLATION_CLOSEST) {
 		svm_image_texture_frac(x*width, &ix);
 		svm_image_texture_frac(y*height, &iy);
 

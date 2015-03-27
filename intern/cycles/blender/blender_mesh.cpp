@@ -302,7 +302,7 @@ static void attr_create_uv_map(Scene *scene,
                                BL::Mesh b_mesh,
                                const vector<int>& nverts)
 {
-	if (b_mesh.tessface_uv_textures.length() != 0) {
+	if(b_mesh.tessface_uv_textures.length() != 0) {
 		BL::Mesh::tessface_uv_textures_iterator l;
 
 		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {

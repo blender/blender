@@ -41,9 +41,9 @@ ccl_device float wireframe(KernelGlobals *kg,
                            float3 *P)
 {
 #ifdef __HAIR__
-	if (sd->prim != PRIM_NONE && sd->type & PRIMITIVE_ALL_TRIANGLE)
+	if(sd->prim != PRIM_NONE && sd->type & PRIMITIVE_ALL_TRIANGLE)
 #else
-	if (sd->prim != PRIM_NONE)
+	if(sd->prim != PRIM_NONE)
 #endif
 	{
 		float3 Co[3];
@@ -76,7 +76,7 @@ ccl_device float wireframe(KernelGlobals *kg,
 		// other half. And take the square for fast comparison
 		pixelwidth *= 0.5f * size;
 		pixelwidth *= pixelwidth;
-		for (int i = 0; i < np; i++) {
+		for(int i = 0; i < np; i++) {
 			int i2 = i ? i - 1 : np - 1;
 			float3 dir = *P - Co[i];
 			float3 edge = Co[i] - Co[i2];
@@ -84,7 +84,7 @@ ccl_device float wireframe(KernelGlobals *kg,
 			// At this point dot(crs, crs) / dot(edge, edge) is
 			// the square of area / length(edge) == square of the
 			// distance to the edge.
-			if (dot(crs, crs) < (dot(edge, edge) * pixelwidth))
+			if(dot(crs, crs) < (dot(edge, edge) * pixelwidth))
 				return 1.0f;
 		}
 	}
@@ -113,12 +113,12 @@ ccl_device void svm_node_wireframe(KernelGlobals *kg,
 		float3 Px = sd->P - sd->dP.dx;
 		f += (f - wireframe(kg, sd, size, pixel_size, &Px)) / len(sd->dP.dx);
 	}
-	else if (bump_offset == NODE_BUMP_OFFSET_DY) {
+	else if(bump_offset == NODE_BUMP_OFFSET_DY) {
 		float3 Py = sd->P - sd->dP.dy;
 		f += (f - wireframe(kg, sd, size, pixel_size, &Py)) / len(sd->dP.dy);
 	}
 
-	if (stack_valid(out_fac))
+	if(stack_valid(out_fac))
 		stack_store_float(stack, out_fac, f);
 }
 

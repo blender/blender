@@ -152,7 +152,7 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 					continue;
 
 				int ren_step = (1 << draw_step) + 1;
-				if (b_part.kink() == BL::ParticleSettings::kink_SPIRAL)
+				if(b_part.kink() == BL::ParticleSettings::kink_SPIRAL)
 					ren_step += b_part.kink_extra_steps();
 
 				PointerRNA cpsys = RNA_pointer_get(&b_part.ptr, "cycles");
@@ -233,10 +233,10 @@ bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Parti
 				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.draw_percentage() / 100.0f);
 				int totcurves = totchild;
 				
-				if (b_part.child_type() == 0)
+				if(b_part.child_type() == 0)
 					totcurves += totparts;
 
-				if (totcurves == 0)
+				if(totcurves == 0)
 					continue;
 
 				int pa_no = 0;
@@ -287,10 +287,10 @@ bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.draw_percentage() / 100.0f);
 				int totcurves = totchild;
 				
-				if (b_part.child_type() == 0)
+				if(b_part.child_type() == 0)
 					totcurves += totparts;
 
-				if (totcurves == 0)
+				if(totcurves == 0)
 					continue;
 
 				int pa_no = 0;
@@ -326,7 +326,7 @@ static void set_resolution(BL::Object *b_ob, BL::Scene *scene, bool render)
 {
 	BL::Object::modifiers_iterator b_mod;
 	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
-		if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) && ((b_mod->show_viewport()) || (b_mod->show_render()))) {
+		if((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) && ((b_mod->show_viewport()) || (b_mod->show_render()))) {
 			BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
 			BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
 			b_psys.set_resolution(*scene, *b_ob, (render)? 2: 1);
@@ -513,7 +513,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resol
 
 				ybasis = normalize(cross(xbasis, v2));
 
-				for (; subv <= 1; subv++) {
+				for(; subv <= 1; subv++) {
 					float3 ickey_loc = make_float3(0.0f,0.0f,0.0f);
 					float time = 0.0f;
 
@@ -581,7 +581,7 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 		}
 	}
 
-	if (num_curves > 0) {
+	if(num_curves > 0) {
 		VLOG(1) << "Exporting curve segments for mesh " << mesh->name;
 	}
 

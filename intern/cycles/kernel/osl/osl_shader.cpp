@@ -146,11 +146,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 	/* OSL gives us a closure tree, we flatten it into arrays per
 	 * closure type, for evaluation, sampling, etc later on. */
 
-	if (closure->type == OSL::ClosureColor::COMPONENT) {
+	if(closure->type == OSL::ClosureColor::COMPONENT) {
 		OSL::ClosureComponent *comp = (OSL::ClosureComponent *)closure;
 		CClosurePrimitive *prim = (CClosurePrimitive *)comp->data();
 
-		if (prim) {
+		if(prim) {
 			ShaderClosure sc;
 
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
@@ -296,11 +296,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 			}
 		}
 	}
-	else if (closure->type == OSL::ClosureColor::MUL) {
+	else if(closure->type == OSL::ClosureColor::MUL) {
 		OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
 		flatten_surface_closure_tree(sd, path_flag, mul->closure, TO_FLOAT3(mul->weight) * weight);
 	}
-	else if (closure->type == OSL::ClosureColor::ADD) {
+	else if(closure->type == OSL::ClosureColor::ADD) {
 		OSL::ClosureAdd *add = (OSL::ClosureAdd *)closure;
 		flatten_surface_closure_tree(sd, path_flag, add->closureA, weight);
 		flatten_surface_closure_tree(sd, path_flag, add->closureB, weight);
@@ -319,11 +319,11 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, int path_flag, S
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 	int shader = sd->shader & SHADER_MASK;
 
-	if (kg->osl->surface_state[shader])
+	if(kg->osl->surface_state[shader])
 		ss->execute(*octx, *(kg->osl->surface_state[shader]), *globals);
 
 	/* flatten closure tree */
-	if (globals->Ci)
+	if(globals->Ci)
 		flatten_surface_closure_tree(sd, path_flag, globals->Ci);
 }
 
@@ -335,23 +335,23 @@ static float3 flatten_background_closure_tree(const OSL::ClosureColor *closure)
 	 * is only one supported closure type at the moment, which has no evaluation
 	 * functions, so we just sum the weights */
 
-	if (closure->type == OSL::ClosureColor::COMPONENT) {
+	if(closure->type == OSL::ClosureColor::COMPONENT) {
 		OSL::ClosureComponent *comp = (OSL::ClosureComponent *)closure;
 		CClosurePrimitive *prim = (CClosurePrimitive *)comp->data();
 
-		if (prim && prim->category == CClosurePrimitive::Background)
+		if(prim && prim->category == CClosurePrimitive::Background)
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
 			return TO_FLOAT3(comp->w);
 #else
 			return make_float3(1.0f, 1.0f, 1.0f);
 #endif
 	}
-	else if (closure->type == OSL::ClosureColor::MUL) {
+	else if(closure->type == OSL::ClosureColor::MUL) {
 		OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
 
 		return TO_FLOAT3(mul->weight) * flatten_background_closure_tree(mul->closure);
 	}
-	else if (closure->type == OSL::ClosureColor::ADD) {
+	else if(closure->type == OSL::ClosureColor::ADD) {
 		OSL::ClosureAdd *add = (OSL::ClosureAdd *)closure;
 
 		return flatten_background_closure_tree(add->closureA) +
@@ -372,11 +372,11 @@ float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_fl
 	OSL::ShaderGlobals *globals = &tdata->globals;
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 
-	if (kg->osl->background_state)
+	if(kg->osl->background_state)
 		ss->execute(*octx, *(kg->osl->background_state), *globals);
 
 	/* return background color immediately */
-	if (globals->Ci)
+	if(globals->Ci)
 		return flatten_background_closure_tree(globals->Ci);
 
 	return make_float3(0.0f, 0.0f, 0.0f);
@@ -390,11 +390,11 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 	/* OSL gives us a closure tree, we flatten it into arrays per
 	 * closure type, for evaluation, sampling, etc later on. */
 
-	if (closure->type == OSL::ClosureColor::COMPONENT) {
+	if(closure->type == OSL::ClosureColor::COMPONENT) {
 		OSL::ClosureComponent *comp = (OSL::ClosureComponent *)closure;
 		CClosurePrimitive *prim = (CClosurePrimitive *)comp->data();
 
-		if (prim) {
+		if(prim) {
 			ShaderClosure sc;
 
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
@@ -451,11 +451,11 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 			}
 		}
 	}
-	else if (closure->type == OSL::ClosureColor::MUL) {
+	else if(closure->type == OSL::ClosureColor::MUL) {
 		OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
 		flatten_volume_closure_tree(sd, mul->closure, TO_FLOAT3(mul->weight) * weight);
 	}
-	else if (closure->type == OSL::ClosureColor::ADD) {
+	else if(closure->type == OSL::ClosureColor::ADD) {
 		OSL::ClosureAdd *add = (OSL::ClosureAdd *)closure;
 		flatten_volume_closure_tree(sd, add->closureA, weight);
 		flatten_volume_closure_tree(sd, add->closureB, weight);
@@ -474,11 +474,11 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, int path_flag, Sh
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 	int shader = sd->shader & SHADER_MASK;
 
-	if (kg->osl->volume_state[shader])
+	if(kg->osl->volume_state[shader])
 		ss->execute(*octx, *(kg->osl->volume_state[shader]), *globals);
 	
 	/* flatten closure tree */
-	if (globals->Ci)
+	if(globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);
 }
 
@@ -496,7 +496,7 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderConte
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 	int shader = sd->shader & SHADER_MASK;
 
-	if (kg->osl->displacement_state[shader])
+	if(kg->osl->displacement_state[shader])
 		ss->execute(*octx, *(kg->osl->displacement_state[shader]), *globals);
 
 	/* get back position */
@@ -523,7 +523,7 @@ float3 OSLShader::bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, const
 	CBSDFClosure *bsdf = (CBSDFClosure *)sc->prim;
 	float3 bsdf_eval;
 
-	if (dot(sd->Ng, omega_in) >= 0.0f)
+	if(dot(sd->Ng, omega_in) >= 0.0f)
 		bsdf_eval = bsdf->eval_reflect(sd->I, omega_in, pdf);
 	else
 		bsdf_eval = bsdf->eval_transmit(sd->I, omega_in, pdf);
@@ -551,7 +551,7 @@ int OSLShader::find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, 
 	ustring stdname(std::string("geom:") + std::string(Attribute::standard_name((AttributeStandard)id)));
 	OSLGlobals::AttributeMap::const_iterator it = attr_map.find(stdname);
 
-	if (it != attr_map.end()) {
+	if(it != attr_map.end()) {
 		const OSLGlobals::Attribute &osl_attr = it->second;
 		*elem = osl_attr.elem;
 

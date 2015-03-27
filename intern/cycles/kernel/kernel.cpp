@@ -55,7 +55,7 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 		int id = atoi(name + strlen("__tex_image_float_"));
 		int array_index = id;
 
-		if (array_index >= 0 && array_index < MAX_FLOAT_IMAGES) {
+		if(array_index >= 0 && array_index < MAX_FLOAT_IMAGES) {
 			tex = &kg->texture_float_images[array_index];
 		}
 
@@ -70,7 +70,7 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 		int id = atoi(name + strlen("__tex_image_"));
 		int array_index = id - MAX_FLOAT_IMAGES;
 
-		if (array_index >= 0 && array_index < MAX_BYTE_IMAGES) {
+		if(array_index >= 0 && array_index < MAX_BYTE_IMAGES) {
 			tex = &kg->texture_byte_images[array_index];
 		}
 

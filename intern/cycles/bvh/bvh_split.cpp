@@ -253,7 +253,7 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 	Object *ob = builder->objects[ref.prim_object()];
 	const Mesh *mesh = ob->mesh;
 
-	if (ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
+	if(ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
 		const int *inds = mesh->triangles[ref.prim_index()].v;
 		const float3 *verts = &mesh->verts[0];
 		const float3* v1 = &verts[inds[2]];

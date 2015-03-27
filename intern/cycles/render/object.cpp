@@ -104,11 +104,11 @@ void Object::apply_transform(bool apply_to_motion)
 		if(apply_to_motion) {
 			Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
-			if (attr) {
+			if(attr) {
 				size_t steps_size = mesh->verts.size() * (mesh->motion_steps - 1);
 				float3 *vert_steps = attr->data_float3();
 
-				for (size_t i = 0; i < steps_size; i++)
+				for(size_t i = 0; i < steps_size; i++)
 					vert_steps[i] = transform_point(&tfm, vert_steps[i]);
 			}
 
@@ -119,7 +119,7 @@ void Object::apply_transform(bool apply_to_motion)
 				size_t steps_size = mesh->verts.size() * (mesh->motion_steps - 1);
 				float3 *normal_steps = attr_N->data_float3();
 
-				for (size_t i = 0; i < steps_size; i++)
+				for(size_t i = 0; i < steps_size; i++)
 					normal_steps[i] = normalize(transform_direction(&ntfm, normal_steps[i]));
 			}
 		}
@@ -146,12 +146,12 @@ void Object::apply_transform(bool apply_to_motion)
 		if(apply_to_motion) {
 			Attribute *curve_attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
-			if (curve_attr) {
+			if(curve_attr) {
 				/* apply transform to motion curve keys */
 				size_t steps_size = mesh->curve_keys.size() * (mesh->motion_steps - 1);
 				float4 *key_steps = curve_attr->data_float4();
 
-				for (size_t i = 0; i < steps_size; i++) {
+				for(size_t i = 0; i < steps_size; i++) {
 					float3 co = transform_point(&tfm, float4_to_float3(key_steps[i]));
 					float radius = key_steps[i].w * scalar;
 

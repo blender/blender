@@ -414,7 +414,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
 	
 	/* if output exists with the same name, add "In" suffix */
 	foreach(ShaderOutput *output, node->outputs) {
-		if (strcmp(input->name, output->name)==0) {
+		if(strcmp(input->name, output->name)==0) {
 			sname += "In";
 			break;
 		}
@@ -434,7 +434,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
 	
 	/* if input exists with the same name, add "Out" suffix */
 	foreach(ShaderInput *input, node->inputs) {
-		if (strcmp(input->name, output->name)==0) {
+		if(strcmp(input->name, output->name)==0) {
 			sname += "Out";
 			break;
 		}

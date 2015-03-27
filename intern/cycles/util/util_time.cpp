@@ -71,7 +71,7 @@ void time_sleep(double t)
 
 	/* get microseconds */
 	int us = (int)(t * 1e6);
-	if (us > 0)
+	if(us > 0)
 		usleep(us);
 }
 

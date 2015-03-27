@@ -23,8 +23,8 @@
 ATOMIC_INLINE void atomic_update_max_z(size_t *maximum_value, size_t value)
 {
 	size_t prev_value = *maximum_value;
-	while (prev_value < value) {
-		if (atomic_cas_z(maximum_value, prev_value, value) != prev_value) {
+	while(prev_value < value) {
+		if(atomic_cas_z(maximum_value, prev_value, value) != prev_value) {
 			break;
 		}
 	}

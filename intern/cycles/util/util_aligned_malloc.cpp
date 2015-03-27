@@ -55,7 +55,7 @@ void *util_aligned_malloc(size_t size, int alignment)
 	return malloc(size);
 #elif defined(__FreeBSD__) || defined(__NetBSD__)
 	void *result;
-	if (posix_memalign(&result, alignment, size)) {
+	if(posix_memalign(&result, alignment, size)) {
 		/* Non-zero means allocation error
 		 * either no allocation or bad alignment value.
 		 */

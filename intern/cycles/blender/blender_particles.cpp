@@ -76,7 +76,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object b_ob, BL::DupliObject b_dup, Ob
 
 	psys->particles.push_back(pa);
 
-	if (object->particle_index != psys->particles.size() - 1)
+	if(object->particle_index != psys->particles.size() - 1)
 		scene->object_manager->tag_update(scene);
 	object->particle_system = psys;
 	object->particle_index = psys->particles.size() - 1;

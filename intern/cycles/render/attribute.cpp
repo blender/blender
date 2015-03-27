@@ -52,7 +52,7 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 
 void Attribute::reserve(int numverts, int numtris, int numsteps, int numcurves, int numkeys, bool resize)
 {
-	if (resize) {
+	if(resize) {
 		buffer.resize(buffer_size(numverts, numtris, numsteps, numcurves, numkeys), 0);
 	}
 	else {

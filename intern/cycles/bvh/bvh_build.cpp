@@ -42,7 +42,7 @@ ccl_device_inline int bitscan(int value)
 {
 	assert(value != 0);
 	int bit = 0;
-	while (value >>= 1) {
+	while(value >>= 1) {
 		++bit;
 	}
 	return bit;
@@ -136,7 +136,7 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 				size_t steps = mesh->motion_steps - 1;
 				float4 *key_steps = curve_attr_mP->data_float4();
 
-				for (size_t i = 0; i < steps; i++)
+				for(size_t i = 0; i < steps; i++)
 					curve.bounds_grow(k, key_steps + i*mesh_size, bounds);
 
 				type = PRIMITIVE_MOTION_CURVE;

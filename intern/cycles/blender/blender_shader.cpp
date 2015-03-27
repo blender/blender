@@ -184,48 +184,48 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 	ShaderNode *node = NULL;
 
 	/* existing blender nodes */
-	if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {
+	if(b_node.is_a(&RNA_ShaderNodeRGBCurve)) {
 		BL::ShaderNodeRGBCurve b_curve_node(b_node);
 		RGBCurvesNode *curves = new RGBCurvesNode();
 		curvemapping_color_to_array(b_curve_node.mapping(), curves->curves, RAMP_TABLE_SIZE, true);
 		node = curves;
 	}
-	if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {
+	if(b_node.is_a(&RNA_ShaderNodeVectorCurve)) {
 		BL::ShaderNodeVectorCurve b_curve_node(b_node);
 		VectorCurvesNode *curves = new VectorCurvesNode();
 		curvemapping_color_to_array(b_curve_node.mapping(), curves->curves, RAMP_TABLE_SIZE, false);
 		node = curves;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeValToRGB)) {
+	else if(b_node.is_a(&RNA_ShaderNodeValToRGB)) {
 		RGBRampNode *ramp = new RGBRampNode();
 		BL::ShaderNodeValToRGB b_ramp_node(b_node);
 		colorramp_to_array(b_ramp_node.color_ramp(), ramp->ramp, RAMP_TABLE_SIZE);
 		ramp->interpolate = b_ramp_node.color_ramp().interpolation() != BL::ColorRamp::interpolation_CONSTANT;
 		node = ramp;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeRGB)) {
+	else if(b_node.is_a(&RNA_ShaderNodeRGB)) {
 		ColorNode *color = new ColorNode();
 		color->value = get_node_output_rgba(b_node, "Color");
 		node = color;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeValue)) {
+	else if(b_node.is_a(&RNA_ShaderNodeValue)) {
 		ValueNode *value = new ValueNode();
 		value->value = get_node_output_value(b_node, "Value");
 		node = value;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeCameraData)) {
+	else if(b_node.is_a(&RNA_ShaderNodeCameraData)) {
 		node = new CameraNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeInvert)) {
+	else if(b_node.is_a(&RNA_ShaderNodeInvert)) {
 		node = new InvertNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeGamma)) {
+	else if(b_node.is_a(&RNA_ShaderNodeGamma)) {
 		node = new GammaNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBrightContrast)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBrightContrast)) {
 		node = new BrightContrastNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeMixRGB)) {
+	else if(b_node.is_a(&RNA_ShaderNodeMixRGB)) {
 		BL::ShaderNodeMixRGB b_mix_node(b_node);
 		MixNode *mix = new MixNode();
 		mix->type = MixNode::type_enum[b_mix_node.blend_type()];
@@ -236,44 +236,44 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		mix->use_clamp = b_mix_node.use_clamp();
 		node = mix;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeSeparateRGB)) {
+	else if(b_node.is_a(&RNA_ShaderNodeSeparateRGB)) {
 		node = new SeparateRGBNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeCombineRGB)) {
+	else if(b_node.is_a(&RNA_ShaderNodeCombineRGB)) {
 		node = new CombineRGBNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeSeparateHSV)) {
+	else if(b_node.is_a(&RNA_ShaderNodeSeparateHSV)) {
 		node = new SeparateHSVNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeCombineHSV)) {
+	else if(b_node.is_a(&RNA_ShaderNodeCombineHSV)) {
 		node = new CombineHSVNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeSeparateXYZ)) {
+	else if(b_node.is_a(&RNA_ShaderNodeSeparateXYZ)) {
 		node = new SeparateXYZNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeCombineXYZ)) {
+	else if(b_node.is_a(&RNA_ShaderNodeCombineXYZ)) {
 		node = new CombineXYZNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeHueSaturation)) {
+	else if(b_node.is_a(&RNA_ShaderNodeHueSaturation)) {
 		node = new HSVNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeRGBToBW)) {
+	else if(b_node.is_a(&RNA_ShaderNodeRGBToBW)) {
 		node = new ConvertNode(SHADER_SOCKET_COLOR, SHADER_SOCKET_FLOAT);
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeMath)) {
+	else if(b_node.is_a(&RNA_ShaderNodeMath)) {
 		BL::ShaderNodeMath b_math_node(b_node);
 		MathNode *math = new MathNode();
 		math->type = MathNode::type_enum[b_math_node.operation()];
 		math->use_clamp = b_math_node.use_clamp();
 		node = math;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeVectorMath)) {
+	else if(b_node.is_a(&RNA_ShaderNodeVectorMath)) {
 		BL::ShaderNodeVectorMath b_vector_math_node(b_node);
 		VectorMathNode *vmath = new VectorMathNode();
 		vmath->type = VectorMathNode::type_enum[b_vector_math_node.operation()];
 		node = vmath;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeVectorTransform)) {
+	else if(b_node.is_a(&RNA_ShaderNodeVectorTransform)) {
 		BL::ShaderNodeVectorTransform b_vector_transform_node(b_node);
 		VectorTransformNode *vtransform = new VectorTransformNode();
 		vtransform->type = VectorTransformNode::type_enum[b_vector_transform_node.type()];
@@ -281,7 +281,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		vtransform->convert_to = VectorTransformNode::convert_space_enum[b_vector_transform_node.convert_to()];
 		node = vtransform;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeNormal)) {
+	else if(b_node.is_a(&RNA_ShaderNodeNormal)) {
 		BL::Node::outputs_iterator out_it;
 		b_node.outputs.begin(out_it);
 
@@ -289,7 +289,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		norm->direction = get_node_output_vector(b_node, "Normal");
 		node = norm;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeMapping)) {
+	else if(b_node.is_a(&RNA_ShaderNodeMapping)) {
 		BL::ShaderNodeMapping b_mapping_node(b_node);
 		MappingNode *mapping = new MappingNode();
 
@@ -297,31 +297,31 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 		node = mapping;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeFresnel)) {
+	else if(b_node.is_a(&RNA_ShaderNodeFresnel)) {
 		node = new FresnelNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeLayerWeight)) {
+	else if(b_node.is_a(&RNA_ShaderNodeLayerWeight)) {
 		node = new LayerWeightNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeAddShader)) {
+	else if(b_node.is_a(&RNA_ShaderNodeAddShader)) {
 		node = new AddClosureNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeMixShader)) {
+	else if(b_node.is_a(&RNA_ShaderNodeMixShader)) {
 		node = new MixClosureNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeAttribute)) {
+	else if(b_node.is_a(&RNA_ShaderNodeAttribute)) {
 		BL::ShaderNodeAttribute b_attr_node(b_node);
 		AttributeNode *attr = new AttributeNode();
 		attr->attribute = b_attr_node.attribute_name();
 		node = attr;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBackground)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBackground)) {
 		node = new BackgroundNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeHoldout)) {
+	else if(b_node.is_a(&RNA_ShaderNodeHoldout)) {
 		node = new HoldoutNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfAnisotropic)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfAnisotropic)) {
 		BL::ShaderNodeBsdfAnisotropic b_aniso_node(b_node);
 		AnisotropicBsdfNode *aniso = new AnisotropicBsdfNode();
 
@@ -340,10 +340,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 		node = aniso;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfDiffuse)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfDiffuse)) {
 		node = new DiffuseBsdfNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeSubsurfaceScattering)) {
+	else if(b_node.is_a(&RNA_ShaderNodeSubsurfaceScattering)) {
 		BL::ShaderNodeSubsurfaceScattering b_subsurface_node(b_node);
 
 		SubsurfaceScatteringNode *subsurface = new SubsurfaceScatteringNode();
@@ -359,7 +359,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 		node = subsurface;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfGlossy)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfGlossy)) {
 		BL::ShaderNodeBsdfGlossy b_glossy_node(b_node);
 		GlossyBsdfNode *glossy = new GlossyBsdfNode();
 		
@@ -379,7 +379,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		node = glossy;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfGlass)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfGlass)) {
 		BL::ShaderNodeBsdfGlass b_glass_node(b_node);
 		GlassBsdfNode *glass = new GlassBsdfNode();
 		switch(b_glass_node.distribution()) {
@@ -395,7 +395,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		node = glass;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfRefraction)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfRefraction)) {
 		BL::ShaderNodeBsdfRefraction b_refraction_node(b_node);
 		RefractionBsdfNode *refraction = new RefractionBsdfNode();
 		switch(b_refraction_node.distribution()) {
@@ -411,7 +411,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		node = refraction;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfToon)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfToon)) {
 		BL::ShaderNodeBsdfToon b_toon_node(b_node);
 		ToonBsdfNode *toon = new ToonBsdfNode();
 		switch(b_toon_node.component()) {
@@ -424,7 +424,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		node = toon;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfHair)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfHair)) {
 		BL::ShaderNodeBsdfHair b_hair_node(b_node);
 		HairBsdfNode *hair = new HairBsdfNode();
 		switch(b_hair_node.component()) {
@@ -437,64 +437,64 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		node = hair;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfTranslucent)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfTranslucent)) {
 		node = new TranslucentBsdfNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfTransparent)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfTransparent)) {
 		node = new TransparentBsdfNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBsdfVelvet)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBsdfVelvet)) {
 		node = new VelvetBsdfNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeEmission)) {
+	else if(b_node.is_a(&RNA_ShaderNodeEmission)) {
 		node = new EmissionNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeAmbientOcclusion)) {
+	else if(b_node.is_a(&RNA_ShaderNodeAmbientOcclusion)) {
 		node = new AmbientOcclusionNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeVolumeScatter)) {
+	else if(b_node.is_a(&RNA_ShaderNodeVolumeScatter)) {
 		node = new ScatterVolumeNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeVolumeAbsorption)) {
+	else if(b_node.is_a(&RNA_ShaderNodeVolumeAbsorption)) {
 		node = new AbsorptionVolumeNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeNewGeometry)) {
+	else if(b_node.is_a(&RNA_ShaderNodeNewGeometry)) {
 		node = new GeometryNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeWireframe)) {
+	else if(b_node.is_a(&RNA_ShaderNodeWireframe)) {
 		BL::ShaderNodeWireframe b_wireframe_node(b_node);
 		WireframeNode *wire = new WireframeNode();
 		wire->use_pixel_size = b_wireframe_node.use_pixel_size();
 		node = wire;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeWavelength)) {
+	else if(b_node.is_a(&RNA_ShaderNodeWavelength)) {
 		node = new WavelengthNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBlackbody)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBlackbody)) {
 		node = new BlackbodyNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeLightPath)) {
+	else if(b_node.is_a(&RNA_ShaderNodeLightPath)) {
 		node = new LightPathNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeLightFalloff)) {
+	else if(b_node.is_a(&RNA_ShaderNodeLightFalloff)) {
 		node = new LightFalloffNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeObjectInfo)) {
+	else if(b_node.is_a(&RNA_ShaderNodeObjectInfo)) {
 		node = new ObjectInfoNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeParticleInfo)) {
+	else if(b_node.is_a(&RNA_ShaderNodeParticleInfo)) {
 		node = new ParticleInfoNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeHairInfo)) {
+	else if(b_node.is_a(&RNA_ShaderNodeHairInfo)) {
 		node = new HairInfoNode();
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeBump)) {
+	else if(b_node.is_a(&RNA_ShaderNodeBump)) {
 		BL::ShaderNodeBump b_bump_node(b_node);
 		BumpNode *bump = new BumpNode();
 		bump->invert = b_bump_node.invert();
 		node = bump;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeScript)) {
+	else if(b_node.is_a(&RNA_ShaderNodeScript)) {
 #ifdef WITH_OSL
 		if(scene->shader_manager->use_osl()) {
 			/* create script node */
@@ -510,7 +510,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			 * Socket names must be stored in the extra lists instead. */
 			BL::Node::inputs_iterator b_input;
 
-			for (b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
+			for(b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
 				script_node->input_names.push_back(ustring(b_input->name()));
 				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(),
 				                                            convert_socket_type(*b_input));
@@ -519,7 +519,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 			BL::Node::outputs_iterator b_output;
 
-			for (b_script_node.outputs.begin(b_output); b_output != b_script_node.outputs.end(); ++b_output) {
+			for(b_script_node.outputs.begin(b_output); b_output != b_script_node.outputs.end(); ++b_output) {
 				script_node->output_names.push_back(ustring(b_output->name()));
 				script_node->add_output(script_node->output_names.back().c_str(),
 				                        convert_socket_type(*b_output));
@@ -548,7 +548,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		(void)b_ntree;
 #endif
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexImage)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexImage)) {
 		BL::ShaderNodeTexImage b_image_node(b_node);
 		BL::Image b_image(b_image_node.image());
 		ImageTextureNode *image = new ImageTextureNode();
@@ -581,7 +581,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			image->use_alpha = b_image.use_alpha();
 
 			/* TODO(sergey): Does not work properly when we change builtin type. */
-			if (b_image.is_updated()) {
+			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(image->filename,
 				                                       image->builtin_data,
 				                                       (InterpolationType)b_image_node.interpolation());
@@ -594,7 +594,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 		node = image;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexEnvironment)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexEnvironment)) {
 		BL::ShaderNodeTexEnvironment b_env_node(b_node);
 		BL::Image b_image(b_env_node.image());
 		EnvironmentTextureNode *env = new EnvironmentTextureNode();
@@ -618,7 +618,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			env->use_alpha = b_image.use_alpha();
 
 			/* TODO(sergey): Does not work properly when we change builtin type. */
-			if (b_image.is_updated()) {
+			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(env->filename,
 				                                       env->builtin_data,
 				                                       INTERPOLATION_LINEAR);
@@ -629,41 +629,41 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
 		node = env;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexGradient)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexGradient)) {
 		BL::ShaderNodeTexGradient b_gradient_node(b_node);
 		GradientTextureNode *gradient = new GradientTextureNode();
 		gradient->type = GradientTextureNode::type_enum[(int)b_gradient_node.gradient_type()];
 		get_tex_mapping(&gradient->tex_mapping, b_gradient_node.texture_mapping());
 		node = gradient;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexVoronoi)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexVoronoi)) {
 		BL::ShaderNodeTexVoronoi b_voronoi_node(b_node);
 		VoronoiTextureNode *voronoi = new VoronoiTextureNode();
 		voronoi->coloring = VoronoiTextureNode::coloring_enum[(int)b_voronoi_node.coloring()];
 		get_tex_mapping(&voronoi->tex_mapping, b_voronoi_node.texture_mapping());
 		node = voronoi;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexMagic)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexMagic)) {
 		BL::ShaderNodeTexMagic b_magic_node(b_node);
 		MagicTextureNode *magic = new MagicTextureNode();
 		magic->depth = b_magic_node.turbulence_depth();
 		get_tex_mapping(&magic->tex_mapping, b_magic_node.texture_mapping());
 		node = magic;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexWave)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexWave)) {
 		BL::ShaderNodeTexWave b_wave_node(b_node);
 		WaveTextureNode *wave = new WaveTextureNode();
 		wave->type = WaveTextureNode::type_enum[(int)b_wave_node.wave_type()];
 		get_tex_mapping(&wave->tex_mapping, b_wave_node.texture_mapping());
 		node = wave;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexChecker)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexChecker)) {
 		BL::ShaderNodeTexChecker b_checker_node(b_node);
 		CheckerTextureNode *checker = new CheckerTextureNode();
 		get_tex_mapping(&checker->tex_mapping, b_checker_node.texture_mapping());
 		node = checker;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexBrick)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexBrick)) {
 		BL::ShaderNodeTexBrick b_brick_node(b_node);
 		BrickTextureNode *brick = new BrickTextureNode();
 		brick->offset = b_brick_node.offset();
@@ -673,20 +673,20 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		get_tex_mapping(&brick->tex_mapping, b_brick_node.texture_mapping());
 		node = brick;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexNoise)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexNoise)) {
 		BL::ShaderNodeTexNoise b_noise_node(b_node);
 		NoiseTextureNode *noise = new NoiseTextureNode();
 		get_tex_mapping(&noise->tex_mapping, b_noise_node.texture_mapping());
 		node = noise;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexMusgrave)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexMusgrave)) {
 		BL::ShaderNodeTexMusgrave b_musgrave_node(b_node);
 		MusgraveTextureNode *musgrave = new MusgraveTextureNode();
 		musgrave->type = MusgraveTextureNode::type_enum[(int)b_musgrave_node.musgrave_type()];
 		get_tex_mapping(&musgrave->tex_mapping, b_musgrave_node.texture_mapping());
 		node = musgrave;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexCoord)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexCoord)) {
 		BL::ShaderNodeTexCoord b_tex_coord_node(b_node);
 		TextureCoordinateNode *tex_coord = new TextureCoordinateNode();
 		tex_coord->from_dupli = b_tex_coord_node.from_dupli();
@@ -696,7 +696,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		node = tex_coord;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTexSky)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTexSky)) {
 		BL::ShaderNodeTexSky b_sky_node(b_node);
 		SkyTextureNode *sky = new SkyTextureNode();
 		sky->type = SkyTextureNode::type_enum[(int)b_sky_node.sky_type()];
@@ -706,14 +706,14 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		get_tex_mapping(&sky->tex_mapping, b_sky_node.texture_mapping());
 		node = sky;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeNormalMap)) {
+	else if(b_node.is_a(&RNA_ShaderNodeNormalMap)) {
 		BL::ShaderNodeNormalMap b_normal_map_node(b_node);
 		NormalMapNode *nmap = new NormalMapNode();
 		nmap->space = NormalMapNode::space_enum[(int)b_normal_map_node.space()];
 		nmap->attribute = b_normal_map_node.uv_map();
 		node = nmap;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeTangent)) {
+	else if(b_node.is_a(&RNA_ShaderNodeTangent)) {
 		BL::ShaderNodeTangent b_tangent_node(b_node);
 		TangentNode *tangent = new TangentNode();
 		tangent->direction_type = TangentNode::direction_type_enum[(int)b_tangent_node.direction_type()];
@@ -721,7 +721,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		tangent->attribute = b_tangent_node.uv_map();
 		node = tangent;
 	}
-	else if (b_node.is_a(&RNA_ShaderNodeUVMap)) {
+	else if(b_node.is_a(&RNA_ShaderNodeUVMap)) {
 		BL::ShaderNodeUVMap b_uvmap_node(b_node);
 		UVMapNode *uvm = new UVMapNode();
 		uvm->attribute = b_uvmap_node.uv_map();
@@ -737,7 +737,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 static bool node_use_modified_socket_name(ShaderNode *node)
 {
-	if (node->special_type == SHADER_SPECIAL_TYPE_SCRIPT)
+	if(node->special_type == SHADER_SPECIAL_TYPE_SCRIPT)
 		return false;
 
 	return true;
@@ -747,14 +747,14 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::Node b_node, B
 {
 	string name = b_socket.name();
 	
-	if (node_use_modified_socket_name(node)) {
+	if(node_use_modified_socket_name(node)) {
 		BL::Node::inputs_iterator b_input;
 		bool found = false;
 		int counter = 0, total = 0;
 
-		for (b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
-			if (b_input->name() == name) {
-				if (!found)
+		for(b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
+			if(b_input->name() == name) {
+				if(!found)
 					counter++;
 				total++;
 			}
@@ -764,10 +764,10 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::Node b_node, B
 		}
 
 		/* rename if needed */
-		if (name == "Shader")
+		if(name == "Shader")
 			name = "Closure";
 
-		if (total > 1)
+		if(total > 1)
 			name = string_printf("%s%d", name.c_str(), counter);
 	}
 
@@ -778,14 +778,14 @@ static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::Node b_node,
 {
 	string name = b_socket.name();
 
-	if (node_use_modified_socket_name(node)) {
+	if(node_use_modified_socket_name(node)) {
 		BL::Node::outputs_iterator b_output;
 		bool found = false;
 		int counter = 0, total = 0;
 
-		for (b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
-			if (b_output->name() == name) {
-				if (!found)
+		for(b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
+			if(b_output->name() == name) {
+				if(!found)
 					counter++;
 				total++;
 			}
@@ -795,10 +795,10 @@ static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::Node b_node,
 		}
 
 		/* rename if needed */
-		if (name == "Shader")
+		if(name == "Shader")
 			name = "Closure";
 
-		if (total > 1)
+		if(total > 1)
 			name = string_printf("%s%d", name.c_str(), counter);
 	}
 
@@ -821,7 +821,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 	BL::ShaderNode output_node(PointerRNA_NULL);
 
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
-		if (is_output_node(*b_node)) {
+		if(is_output_node(*b_node)) {
 			BL::ShaderNodeOutputMaterial b_output_node(*b_node);
 
 			if(b_output_node.is_active_output()) {
@@ -837,10 +837,10 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 
 	/* add nodes */
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
-		if (b_node->mute() || b_node->is_a(&RNA_NodeReroute)) {
+		if(b_node->mute() || b_node->is_a(&RNA_NodeReroute)) {
 			/* replace muted node with internal links */
 			BL::Node::internal_links_iterator b_link;
-			for (b_node->internal_links.begin(b_link); b_link != b_node->internal_links.end(); ++b_link) {
+			for(b_node->internal_links.begin(b_link); b_link != b_node->internal_links.end(); ++b_link) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(b_link->to_socket()));
 
 				input_map[b_link->from_socket().ptr.data] = proxy->inputs[0];
@@ -849,10 +849,10 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				graph->add(proxy);
 			}
 		}
-		else if (b_node->is_a(&RNA_ShaderNodeGroup) || b_node->is_a(&RNA_NodeCustomGroup)) {
+		else if(b_node->is_a(&RNA_ShaderNodeGroup) || b_node->is_a(&RNA_NodeCustomGroup)) {
 			
 			BL::ShaderNodeTree b_group_ntree(PointerRNA_NULL);
-			if (b_node->is_a(&RNA_ShaderNodeGroup))
+			if(b_node->is_a(&RNA_ShaderNodeGroup))
 				b_group_ntree = BL::ShaderNodeTree(((BL::NodeGroup)(*b_node)).node_tree());
 			else
 				b_group_ntree = BL::ShaderNodeTree(((BL::NodeCustomGroup)(*b_node)).node_tree());
@@ -883,28 +883,28 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				output_map[b_output->ptr.data] = proxy->outputs[0];
 			}
 			
-			if (b_group_ntree)
+			if(b_group_ntree)
 				add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_proxy_input_map, group_proxy_output_map);
 		}
-		else if (b_node->is_a(&RNA_NodeGroupInput)) {
+		else if(b_node->is_a(&RNA_NodeGroupInput)) {
 			/* map each socket to a proxy node */
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 				ProxyMap::const_iterator proxy_it = proxy_input_map.find(b_output->identifier());
-				if (proxy_it != proxy_input_map.end()) {
+				if(proxy_it != proxy_input_map.end()) {
 					ProxyNode *proxy = proxy_it->second;
 
 					output_map[b_output->ptr.data] = proxy->outputs[0];
 				}
 			}
 		}
-		else if (b_node->is_a(&RNA_NodeGroupOutput)) {
+		else if(b_node->is_a(&RNA_NodeGroupOutput)) {
 			BL::NodeGroupOutput b_output_node(*b_node);
 			/* only the active group output is used */
-			if (b_output_node.is_active_output()) {
+			if(b_output_node.is_active_output()) {
 				/* map each socket to a proxy node */
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 					ProxyMap::const_iterator proxy_it = proxy_output_map.find(b_input->identifier());
-					if (proxy_it != proxy_output_map.end()) {
+					if(proxy_it != proxy_output_map.end()) {
 						ProxyNode *proxy = proxy_it->second;
 
 						input_map[b_input->ptr.data] = proxy->inputs[0];
@@ -917,8 +917,8 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 		else {
 			ShaderNode *node = NULL;
 
-			if (is_output_node(*b_node)) {
-				if (b_node->ptr.data == output_node.ptr.data) {
+			if(is_output_node(*b_node)) {
+				if(b_node->ptr.data == output_node.ptr.data) {
 					node = graph->output();
 				}
 			}
@@ -930,7 +930,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				/* map node sockets for linking */
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 					ShaderInput *input = node_find_input_by_name(node, *b_node, *b_input);
-					if (!input) {
+					if(!input) {
 						/* XXX should not happen, report error? */
 						continue;
 					}
@@ -940,7 +940,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				}
 				for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 					ShaderOutput *output = node_find_output_by_name(node, *b_node, *b_output);
-					if (!output) {
+					if(!output) {
 						/* XXX should not happen, report error? */
 						continue;
 					}
@@ -966,10 +966,10 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 		ShaderInput *input = 0;
 
 		PtrOutputMap::iterator output_it = output_map.find(b_from_sock.ptr.data);
-		if (output_it != output_map.end())
+		if(output_it != output_map.end())
 			output = output_it->second;
 		PtrInputMap::iterator input_it = input_map.find(b_to_sock.ptr.data);
-		if (input_it != input_map.end())
+		if(input_it != input_map.end())
 			input = input_it->second;
 
 		/* either node may be NULL when the node was not exported, typically

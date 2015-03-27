@@ -51,7 +51,7 @@ ccl_device void svm_node_hsv(KernelGlobals *kg, ShaderData *sd, float *stack, ui
 	color.y = max(color.y, 0.0f);
 	color.z = max(color.z, 0.0f);
 
-	if (stack_valid(out_color_offset))
+	if(stack_valid(out_color_offset))
 		stack_store_float3(stack, out_color_offset, color);
 }
 

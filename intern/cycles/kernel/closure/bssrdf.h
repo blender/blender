@@ -157,7 +157,7 @@ ccl_device float bssrdf_cubic_quintic_root_find(float xi)
 	float x = 0.25f;
 	int i;
 
-	for (i = 0; i < max_iteration_count; i++) {
+	for(i = 0; i < max_iteration_count; i++) {
 		float x2 = x*x;
 		float x3 = x2*x;
 		float nx = (1.0f - x);

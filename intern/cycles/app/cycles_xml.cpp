@@ -225,21 +225,21 @@ static ShaderSocketType xml_read_socket_type(pugi::xml_node node, const char *na
 
 	if(attr) {
 		string value = attr.value();
-		if (string_iequals(value, "float"))
+		if(string_iequals(value, "float"))
 			return SHADER_SOCKET_FLOAT;
-		else if (string_iequals(value, "int"))
+		else if(string_iequals(value, "int"))
 			return SHADER_SOCKET_INT;
-		else if (string_iequals(value, "color"))
+		else if(string_iequals(value, "color"))
 			return SHADER_SOCKET_COLOR;
-		else if (string_iequals(value, "vector"))
+		else if(string_iequals(value, "vector"))
 			return SHADER_SOCKET_VECTOR;
-		else if (string_iequals(value, "point"))
+		else if(string_iequals(value, "point"))
 			return SHADER_SOCKET_POINT;
-		else if (string_iequals(value, "normal"))
+		else if(string_iequals(value, "normal"))
 			return SHADER_SOCKET_NORMAL;
-		else if (string_iequals(value, "closure color"))
+		else if(string_iequals(value, "closure color"))
 			return SHADER_SOCKET_CLOSURE;
-		else if (string_iequals(value, "string"))
+		else if(string_iequals(value, "string"))
 			return SHADER_SOCKET_STRING;
 		else
 			fprintf(stderr, "Unknown shader socket type \"%s\" for attribute \"%s\".\n", value.c_str(), name);
@@ -419,25 +419,25 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			 * Socket names must be stored in the extra lists instead. */
 			/* read input values */
 			for(pugi::xml_node param = node.first_child(); param; param = param.next_sibling()) {
-				if (string_iequals(param.name(), "input")) {
+				if(string_iequals(param.name(), "input")) {
 					string name;
-					if (!xml_read_string(&name, param, "name"))
+					if(!xml_read_string(&name, param, "name"))
 						continue;
 					
 					ShaderSocketType type = xml_read_socket_type(param, "type");
-					if (type == SHADER_SOCKET_UNDEFINED)
+					if(type == SHADER_SOCKET_UNDEFINED)
 						continue;
 					
 					osl->input_names.push_back(ustring(name));
 					osl->add_input(osl->input_names.back().c_str(), type);
 				}
-				else if (string_iequals(param.name(), "output")) {
+				else if(string_iequals(param.name(), "output")) {
 					string name;
-					if (!xml_read_string(&name, param, "name"))
+					if(!xml_read_string(&name, param, "name"))
 						continue;
 					
 					ShaderSocketType type = xml_read_socket_type(param, "type");
-					if (type == SHADER_SOCKET_UNDEFINED)
+					if(type == SHADER_SOCKET_UNDEFINED)
 						continue;
 					
 					osl->output_names.push_back(ustring(name));

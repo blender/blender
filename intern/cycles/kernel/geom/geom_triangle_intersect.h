@@ -155,8 +155,8 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	 */
 	const float T = (U * A_kz + V * B_kz + W * C_kz) * Sz;
 	const float sign_T = xor_signmast(T, sign_mask);
-	if ((sign_T < 0.0f) ||
-	    (sign_T > isect->t * xor_signmast(det, sign_mask)))
+	if((sign_T < 0.0f) ||
+	   (sign_T > isect->t * xor_signmast(det, sign_mask)))
 	{
 		return false;
 	}
@@ -254,8 +254,8 @@ ccl_device_inline void triangle_intersect_subsurface(
 	const float Cz = Sz * C_kz;
 	const float T = U * Az + V * Bz + W * Cz;
 
-	if ((xor_signmast(T, sign_mask) < 0.0f) ||
-	    (xor_signmast(T, sign_mask) > tmax * xor_signmast(det, sign_mask)))
+	if((xor_signmast(T, sign_mask) < 0.0f) ||
+	   (xor_signmast(T, sign_mask) > tmax * xor_signmast(det, sign_mask)))
 	{
 		return;
 	}

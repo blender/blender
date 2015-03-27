@@ -356,7 +356,7 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 			object->random_id ^= hash_int(hash_string(b_parent.name().c_str()));
 
 		/* dupli texture coordinates */
-		if (b_dupli_ob) {
+		if(b_dupli_ob) {
 			object->dupli_generated = 0.5f*get_float3(b_dupli_ob.orco()) - make_float3(0.5f, 0.5f, 0.5f);
 			object->dupli_uv = get_float2(b_dupli_ob.uv());
 		}

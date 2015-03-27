@@ -99,14 +99,14 @@ vector<float> blackbody_table_build()
 	float X, Y, Z;
 
 	/* ToDo: bring this back to what OSL does with the lastTemperature limit ? */
-	for (int i = 0;  i <= 317;  ++i) {
+	for(int i = 0;  i <= 317;  ++i) {
 		double Temperature = pow((double)i, (double)BB_TABLE_XPOWER) * (double)BB_TABLE_SPACING + (double)BB_DRAPER;
 		X = 0;
 		Y = 0;
 		Z = 0;
 
 		/* from OSL "spectrum_to_XYZ" */
-		for (int n = 0; n < 81; ++n) {
+		for(int n = 0; n < 81; ++n) {
 			float lambda = 380.0f + 5.0f * n;
 			double wlm = lambda * 1e-9f;   // Wavelength in meters
 			// N.B. spec_intens returns result in W/m^2 but it's a differential,

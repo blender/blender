@@ -179,7 +179,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	update();
 
-	if (previous_need_motion != need_motion) {
+	if(previous_need_motion != need_motion) {
 		/* scene's motion model could have been changed since previous device
 		 * camera update this could happen for example in case when one render
 		 * layer has got motion pass and another not */
@@ -368,7 +368,7 @@ float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
 		 */
 		P += nearclip * D / Pclip.z;
 	}
-	else if (type == CAMERA_ORTHOGRAPHIC) {
+	else if(type == CAMERA_ORTHOGRAPHIC) {
 		D = make_float3(0.0f, 0.0f, 1.0f);
 		/* TODO(sergey): Aperture support? */
 		P = transform_perspective(&rastertocamera,

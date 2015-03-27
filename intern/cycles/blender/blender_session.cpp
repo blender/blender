@@ -353,7 +353,7 @@ void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_upda
 	BL::RenderResult b_rr = begin_render_result(b_engine, x, y, w, h, b_rlay_name.c_str());
 
 	/* can happen if the intersected rectangle gives 0 width or height */
-	if (b_rr.ptr.data == NULL) {
+	if(b_rr.ptr.data == NULL) {
 		return;
 	}
 
@@ -366,10 +366,10 @@ void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_upda
 
 	BL::RenderLayer b_rlay = *b_single_rlay;
 
-	if (do_update_only) {
+	if(do_update_only) {
 		/* update only needed */
 
-		if (rtile.sample != 0) {
+		if(rtile.sample != 0) {
 			/* sample would be zero at initial tile update, which is only needed
 			 * to tag tile form blender side as IN PROGRESS for proper highlight
 			 * no buffers should be sent to blender yet
@@ -397,7 +397,7 @@ void BlenderSession::update_render_tile(RenderTile& rtile)
 	 * be updated in blender side
 	 * would need to be investigated a bit further, but for now shall be fine
 	 */
-	if (!b_engine.is_preview())
+	if(!b_engine.is_preview())
 		do_write_update_render_tile(rtile, true);
 	else
 		do_write_update_render_tile(rtile, false);
@@ -601,7 +601,7 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 
 	vector<float> pixels(params.width*params.height*4);
 
-	if (!do_update_only) {
+	if(!do_update_only) {
 		/* copy each pass */
 		BL::RenderLayer::passes_iterator b_iter;
 
@@ -869,7 +869,7 @@ void BlenderSession::update_status_progress()
 		last_progress = progress;
 	}
 
-	if (session->progress.get_error()) {
+	if(session->progress.get_error()) {
 		string error = session->progress.get_error_message();
 		if(error != last_error) {
 			/* TODO(sergey): Currently C++ RNA API doesn't let us to

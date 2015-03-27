@@ -129,9 +129,9 @@ ccl_device float voronoi_F1_distance(float3 p)
 #ifndef __KERNEL_SSE2__
 	int ix = floor_to_int(p.x), iy = floor_to_int(p.y), iz = floor_to_int(p.z);
 
-	for (int xx = -1; xx <= 1; xx++) {
-		for (int yy = -1; yy <= 1; yy++) {
-			for (int zz = -1; zz <= 1; zz++) {
+	for(int xx = -1; xx <= 1; xx++) {
+		for(int yy = -1; yy <= 1; yy++) {
+			for(int zz = -1; zz <= 1; zz++) {
 				float3 ip = make_float3(ix + xx, iy + yy, iz + zz);
 				float3 vp = ip + cellnoise_color(ip);
 				float d = len_squared(p - vp);
@@ -143,9 +143,9 @@ ccl_device float voronoi_F1_distance(float3 p)
 	ssef vec_p = load4f(p);
 	ssei xyzi = quick_floor_sse(vec_p);
 
-	for (int xx = -1; xx <= 1; xx++) {
-		for (int yy = -1; yy <= 1; yy++) {
-			for (int zz = -1; zz <= 1; zz++) {
+	for(int xx = -1; xx <= 1; xx++) {
+		for(int yy = -1; yy <= 1; yy++) {
+			for(int zz = -1; zz <= 1; zz++) {
 				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
 				ssef vp = ip + cellnoise_color(ip);
 				float d = len_squared<1, 1, 1, 0>(vec_p - vp);
@@ -167,9 +167,9 @@ ccl_device float3 voronoi_F1_color(float3 p)
 	float3 pa;
 	int ix = floor_to_int(p.x), iy = floor_to_int(p.y), iz = floor_to_int(p.z);
 
-	for (int xx = -1; xx <= 1; xx++) {
-		for (int yy = -1; yy <= 1; yy++) {
-			for (int zz = -1; zz <= 1; zz++) {
+	for(int xx = -1; xx <= 1; xx++) {
+		for(int yy = -1; yy <= 1; yy++) {
+			for(int zz = -1; zz <= 1; zz++) {
 				float3 ip = make_float3(ix + xx, iy + yy, iz + zz);
 				float3 vp = ip + cellnoise_color(ip);
 				float d = len_squared(p - vp);
@@ -187,9 +187,9 @@ ccl_device float3 voronoi_F1_color(float3 p)
 	ssef pa, vec_p = load4f(p);
 	ssei xyzi = quick_floor_sse(vec_p);
 
-	for (int xx = -1; xx <= 1; xx++) {
-		for (int yy = -1; yy <= 1; yy++) {
-			for (int zz = -1; zz <= 1; zz++) {
+	for(int xx = -1; xx <= 1; xx++) {
+		for(int yy = -1; yy <= 1; yy++) {
+			for(int zz = -1; zz <= 1; zz++) {
 				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
 				ssef vp = ip + cellnoise_color(ip);
 				float d = len_squared<1, 1, 1, 0>(vec_p - vp);

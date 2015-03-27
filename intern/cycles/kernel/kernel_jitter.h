@@ -128,7 +128,7 @@ ccl_device_inline uint cmj_permute(uint i, uint l, uint p)
 			i *= 0xc860a3df;
 			i &= w;
 			i ^= i >> 5;
-		} while (i >= l);
+		} while(i >= l);
 
 		return (i + p) % l;
 	}
