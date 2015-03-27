@@ -5668,7 +5668,7 @@ static bool createEdgeSlideVerts(TransInfo *t)
 	float projectMat[4][4];
 	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
 	float mval_start[2], mval_end[2];
-	float mval_dir[3], maxdist, (*loop_dir)[3], *loop_maxdist;
+	float mval_dir[3], dist_best_sq, (*loop_dir)[3], *loop_maxdist;
 	int numsel, i, j, loop_nr, l_nr;
 	int use_btree_disp;
 
@@ -5995,7 +5995,7 @@ static bool createEdgeSlideVerts(TransInfo *t)
 	/* find mouse vectors, the global one, and one per loop in case we have
 	 * multiple loops selected, in case they are oriented different */
 	zero_v3(mval_dir);
-	maxdist = -1.0f;
+	dist_best_sq = -1.0f;
 
 	loop_dir = MEM_callocN(sizeof(float) * 3 * loop_nr, "sv loop_dir");
 	loop_maxdist = MEM_mallocN(sizeof(float) * loop_nr, "sv loop_maxdist");
@@ -6005,7 +6005,7 @@ static bool createEdgeSlideVerts(TransInfo *t)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
-			float d;
+			float dist_sq;
 
 			/* search cross edges for visible edge to the mouse cursor,
 			 * then use the shared vertex to calculate screen vector*/
@@ -6043,19 +6043,19 @@ static bool createEdgeSlideVerts(TransInfo *t)
 					}
 					
 					/* global direction */
-					d = dist_to_line_segment_v2(mval, sco_b, sco_a);
-					if ((maxdist == -1.0f) ||
+					dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
+					if ((dist_best_sq == -1.0f) ||
 					    /* intentionally use 2d size on 3d vector */
-					    (d < maxdist && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
+					    (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
 					{
-						maxdist = d;
+						dist_best_sq = dist_sq;
 						sub_v3_v3v3(mval_dir, sco_b, sco_a);
 					}
 
 					/* per loop direction */
 					l_nr = sv_array[j].loop_nr;
-					if (loop_maxdist[l_nr] == -1.0f || d < loop_maxdist[l_nr]) {
-						loop_maxdist[l_nr] = d;
+					if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
+						loop_maxdist[l_nr] = dist_sq;
 						sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
 					}
 				}

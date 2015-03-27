@@ -72,7 +72,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 	MaskLayer *masklay, *point_masklay;
 	MaskSpline *point_spline;
 	MaskSplinePoint *point = NULL;
-	float dist = FLT_MAX, co[2];
+	float dist_best_sq = FLT_MAX, co[2];
 	int width, height;
 	float u;
 	float scalex, scaley;
@@ -123,7 +123,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 					}
 
 					for (j = 0; j < tot_point - 1; j++) {
-						float cur_dist, a[2], b[2];
+						float dist_sq, a[2], b[2];
 
 						a[0] = points[2 * j] * scalex;
 						a[1] = points[2 * j + 1] * scaley;
@@ -131,16 +131,16 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 						b[0] = points[2 * j + 2] * scalex;
 						b[1] = points[2 * j + 3] * scaley;
 
-						cur_dist = dist_to_line_segment_v2(co, a, b);
+						dist_sq = dist_squared_to_line_segment_v2(co, a, b);
 
-						if (cur_dist < dist) {
+						if (dist_sq < dist_best_sq) {
 							if (tangent)
 								sub_v2_v2v2(tangent, &diff_points[2 * j + 2], &diff_points[2 * j]);
 
 							point_masklay = masklay;
 							point_spline = spline;
 							point = use_deform ? &spline->points[(cur_point - spline->points_deform)] : cur_point;
-							dist = cur_dist;
+							dist_best_sq = dist_sq;
 							u = (float)j / tot_point;
 						}
 					}
@@ -154,7 +154,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 		}
 	}
 
-	if (point && dist < threshold) {
+	if (point && dist_best_sq < threshold) {
 		if (masklay_r)
 			*masklay_r = point_masklay;
 
@@ -174,7 +174,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 		}
 
 		if (score_r) {
-			*score_r = dist;
+			*score_r = dist_best_sq;
 		}
 
 		return true;
