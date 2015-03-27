@@ -383,7 +383,7 @@ typedef struct bNodeTree {
 	
 	/* callbacks */
 	void (*progress)(void *, float progress);
-	void (*stats_draw)(void *, char *str);
+	void (*stats_draw)(void *, const char *str);
 	int (*test_break)(void *);
 	void (*update_draw)(void *);
 	void *tbh, *prh, *sdh, *udh;

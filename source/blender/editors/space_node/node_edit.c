@@ -162,7 +162,7 @@ static int compo_breakjob(void *cjv)
 }
 
 /* called by compo, wmJob sends notifier */
-static void compo_statsdrawjob(void *cjv, char *UNUSED(str))
+static void compo_statsdrawjob(void *cjv, const char *UNUSED(str))
 {
 	CompoJob *cj = cjv;
 	

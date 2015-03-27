@@ -76,7 +76,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editin
 	                         viewer_border->xmin < viewer_border->xmax &&
 	                         viewer_border->ymin < viewer_border->ymax;
 
-	editingtree->stats_draw(editingtree->sdh, (char*)"Compositing | Determining resolution");
+	editingtree->stats_draw(editingtree->sdh, "Compositing | Determining resolution");
 
 	for (index = 0; index < this->m_groups.size(); index++) {
 		resolution[0] = 0;
