@@ -213,7 +213,7 @@ int DebugInfo::graphviz_legend_color(const char *name, const char *color, char *
 	return len;
 }
 
-int DebugInfo::graphviz_legend_line(const char *name, const char *color, const char *style, char *str, int maxlen)
+int DebugInfo::graphviz_legend_line(const char * /*name*/, const char * /*color*/, const char * /*style*/, char *str, int maxlen)
 {
 	/* XXX TODO */
 	int len = 0;
@@ -221,7 +221,7 @@ int DebugInfo::graphviz_legend_line(const char *name, const char *color, const c
 	return len;
 }
 
-int DebugInfo::graphviz_legend_group(const char *name, const char *color, const char *style, char *str, int maxlen)
+int DebugInfo::graphviz_legend_group(const char *name, const char *color, const char * /*style*/, char *str, int maxlen)
 {
 	int len = 0;
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<TR><TD>%s</TD><TD CELLPADDING=\"4\"><TABLE BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\"><TR><TD BGCOLOR=\"%s\"></TD></TR></TABLE></TD></TR>\r\n", name, color);
