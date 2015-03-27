@@ -256,6 +256,7 @@ void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1
 		}
 	}
 	BLI_assert(k == 2 + numTris);
+	(void)numTris;  /* Ignored in release builds. */
 }
 
 void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
