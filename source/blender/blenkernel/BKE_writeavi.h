@@ -52,7 +52,7 @@ typedef struct bMovieHandle {
 } bMovieHandle;
 
 bMovieHandle *BKE_movie_handle_get(const char imtype);
-void BKE_movie_filepath_get(char *string, struct RenderData *rd);
+void BKE_movie_filepath_get(char *string, struct RenderData *rd, bool preview);
 
 #ifdef __cplusplus
 }

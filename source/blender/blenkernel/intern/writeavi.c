@@ -263,11 +263,11 @@ static void end_avi(void)
 #endif  /* WITH_AVI */
 
 /* similar to BKE_image_path_from_imformat() */
-void BKE_movie_filepath_get(char *string, RenderData *rd)
+void BKE_movie_filepath_get(char *string, RenderData *rd, bool preview)
 {
 	bMovieHandle *mh = BKE_movie_handle_get(rd->im_format.imtype);
 	if (mh->get_movie_path)
-		mh->get_movie_path(string, rd, false);
+		mh->get_movie_path(string, rd, preview);
 	else
 		string[0] = '\0';
 }

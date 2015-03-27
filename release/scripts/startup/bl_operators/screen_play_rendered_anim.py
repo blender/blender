@@ -107,11 +107,21 @@ class PlayRenderedAnim(Operator):
             del file_a, file_b, frame_tmp
             file = bpy.path.abspath(file)  # expand '//'
         else:
+            path_valid = True
             # works for movies and images
-            file = rd.frame_path(frame=scene.frame_start)
+            file = rd.frame_path(frame=scene.frame_start, preview=scene.use_preview_range)
             file = bpy.path.abspath(file)  # expand '//'
             if not os.path.exists(file):
                 self.report({'WARNING'}, "File %r not found" % file)
+                path_valid = False
+
+            #one last try for full range if we used preview range
+            if scene.use_preview_range and not path_valid:
+                file = rd.frame_path(frame=scene.frame_start, preview=False)
+                file = bpy.path.abspath(file)  # expand '//'
+                if not os.path.exists(file):
+                    self.report({'WARNING'}, "File %r not found" % file)
+
 
         cmd = [player_path]
         # extra options, fps controls etc.
