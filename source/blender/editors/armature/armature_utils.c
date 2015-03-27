@@ -488,7 +488,7 @@ static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
 		
 		/* Find the associated editbone */
 		for (ebone = editbonelist->first; ebone; ebone = ebone->next)
-			if ((Bone *)ebone->temp == curBone)
+			if (ebone->temp.bone == curBone)
 				break;
 		
 		if (ebone) {
@@ -548,7 +548,7 @@ void ED_armature_from_edit(bArmature *arm)
 	/*	Copy the bones from the editData into the armature */
 	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
 		newBone = MEM_callocN(sizeof(Bone), "bone");
-		eBone->temp = newBone;   /* Associate the real Bones with the EditBones */
+		eBone->temp.bone = newBone;   /* Associate the real Bones with the EditBones */
 		
 		BLI_strncpy(newBone->name, eBone->name, sizeof(newBone->name));
 		copy_v3_v3(newBone->arm_head, eBone->head);
@@ -584,9 +584,9 @@ void ED_armature_from_edit(bArmature *arm)
 	/* Fix parenting in a separate pass to ensure ebone->bone connections
 	 * are valid at this point */
 	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
-		newBone = (Bone *)eBone->temp;
+		newBone = eBone->temp.bone;
 		if (eBone->parent) {
-			newBone->parent = (Bone *)eBone->parent->temp;
+			newBone->parent = eBone->parent->temp.bone;
 			BLI_addtail(&newBone->parent->childbase, newBone);
 			
 			{
@@ -695,24 +695,24 @@ static void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
 		if (ebone_dst->prop) {
 			ebone_dst->prop = IDP_CopyProperty(ebone_dst->prop);
 		}
-		ebone_src->temp = ebone_dst;
+		ebone_src->temp.ebone = ebone_dst;
 		BLI_addtail(lb_dst, ebone_dst);
 	}
 
 	/* set pointers */
 	for (ebone_dst = lb_dst->first; ebone_dst; ebone_dst = ebone_dst->next) {
 		if (ebone_dst->parent) {
-			ebone_dst->parent = ebone_dst->parent->temp;
+			ebone_dst->parent = ebone_dst->parent->temp.ebone;
 		}
 	}
 }
 
-static void ED_armature_ebone_listbase_temp_clear(ListBase *lb)
+void ED_armature_ebone_listbase_temp_clear(ListBase *lb)
 {
 	EditBone *ebone;
 	/* be sure they don't hang ever */
 	for (ebone = lb->first; ebone; ebone = ebone->next) {
-		ebone->temp = NULL;
+		ebone->temp.p = NULL;
 	}
 }
 
@@ -733,7 +733,7 @@ static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
 	/* active bone */
 	if (uarm->act_edbone) {
 		ebone = uarm->act_edbone;
-		arm->act_edbone = ebone->temp;
+		arm->act_edbone = ebone->temp.ebone;
 	}
 	else {
 		arm->act_edbone = NULL;
@@ -755,7 +755,7 @@ static void *editBones_to_undoBones(void *armv, void *UNUSED(obdata))
 	/* active bone */
 	if (arm->act_edbone) {
 		ebone = arm->act_edbone;
-		uarm->act_edbone = ebone->temp;
+		uarm->act_edbone = ebone->temp.ebone;
 	}
 
 	ED_armature_ebone_listbase_temp_clear(&uarm->lb);

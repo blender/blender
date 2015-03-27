@@ -548,7 +548,7 @@ static void separate_armature_bones(Object *ob, short sel)
 			for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
 				if (ebo->parent == curbone) {
 					ebo->parent = NULL;
-					ebo->temp = NULL; /* this is needed to prevent random crashes with in ED_armature_from_edit */
+					ebo->temp.p = NULL; /* this is needed to prevent random crashes with in ED_armature_from_edit */
 					ebo->flag &= ~BONE_CONNECTED;
 				}
 			}

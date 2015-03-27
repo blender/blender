@@ -59,8 +59,6 @@ typedef struct EditBone {
 	struct EditBone *parent; /* Editbones have a one-way link  (i.e. children refer
 	                          * to parents.  This is converted to a two-way link for
 	                          * normal bones when leaving editmode. */
-	void    *temp;          /* Used to store temporary data */
-
 	char    name[64];       /* MAXBONENAME */
 	float   roll;           /* Roll along axis.  We'll ultimately use the axis/angle method
 	                         * for determining the transformation matrix of the bone.  The axis
@@ -83,6 +81,14 @@ typedef struct EditBone {
 	float oldlength;        /* for envelope scaling */
 	
 	short segments;
+
+	/* Used to store temporary data */
+	union {
+		struct EditBone *ebone;
+		struct Bone     *bone;
+		void            *p;
+		int              i;
+	} temp;
 } EditBone;
 
 #define BONESEL_ROOT    (1 << 28)
@@ -119,10 +125,12 @@ void ED_keymap_armature(struct wmKeyConfig *keyconf);
 void ED_armature_from_edit(struct bArmature *arm);
 void ED_armature_to_edit(struct bArmature *arm);
 void ED_armature_edit_free(struct bArmature *arm);
+void ED_armature_ebone_listbase_temp_clear(struct ListBase *lb);
+
 void ED_armature_deselect_all(struct Object *obedit);
 void ED_armature_deselect_all_visible(struct Object *obedit);
 
-int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
+int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer,
                             short hits, bool extend, bool deselect, bool toggle, bool do_nearest);
 bool mouse_armature(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);

@@ -55,8 +55,8 @@
 #include "armature_intern.h"
 
 /* utility macros fro storing a temp int in the bone (selection flag) */
-#define EBONE_PREV_FLAG_GET(ebone) ((void)0, (GET_INT_FROM_POINTER((ebone)->temp)))
-#define EBONE_PREV_FLAG_SET(ebone, val) ((ebone)->temp = SET_INT_IN_POINTER(val))
+#define EBONE_PREV_FLAG_GET(ebone) ((void)0, (ebone)->temp.i)
+#define EBONE_PREV_FLAG_SET(ebone, val) ((ebone)->temp.i = val)
 
 /* **************** PoseMode & EditMode Selection Buffer Queries *************************** */
 
@@ -685,7 +685,7 @@ static void armature_select_more_less(Object *ob, bool more)
 				}
 			}
 		}
-		ebone->temp = NULL;
+		ebone->temp.p = NULL;
 	}
 
 	ED_armature_sync_selection(arm->edbo);

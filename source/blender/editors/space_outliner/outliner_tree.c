@@ -769,16 +769,16 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 					ten = outliner_add_element(soops, &te->subtree, id, te, TSE_EBONE, a);
 					ten->directdata = ebone;
 					ten->name = ebone->name;
-					ebone->temp = ten;
+					ebone->temp.p = ten;
 				}
 				/* make hierarchy */
-				ten = arm->edbo->first ? ((EditBone *)arm->edbo->first)->temp : NULL;
+				ten = arm->edbo->first ? ((EditBone *)arm->edbo->first)->temp.p : NULL;
 				while (ten) {
 					TreeElement *nten = ten->next, *par;
 					ebone = (EditBone *)ten->directdata;
 					if (ebone->parent) {
 						BLI_remlink(&te->subtree, ten);
-						par = ebone->parent->temp;
+						par = ebone->parent->temp.p;
 						BLI_addtail(&par->subtree, ten);
 						ten->parent = par;
 					}
