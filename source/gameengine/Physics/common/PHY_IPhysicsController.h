@@ -133,6 +133,7 @@ class PHY_IPhysicsController : public PHY_IController
 
 		virtual bool IsDynamic() = 0;
 		virtual bool IsCompound() = 0;
+		virtual bool IsSuspended() const = 0;
 
 		virtual bool ReinstancePhysicsShape(KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj) = 0;
 

@@ -712,6 +712,11 @@ protected:
 			return GetConstructionInfo().m_bDyna;
 		}
 
+		virtual bool IsSuspended() const
+		{
+			return m_suspended;
+		}
+
 		virtual bool IsCompound()
 		{
 			return GetConstructionInfo().m_shapeInfo->m_shapeType == PHY_SHAPE_COMPOUND;

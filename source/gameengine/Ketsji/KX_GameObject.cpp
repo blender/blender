@@ -95,7 +95,6 @@ KX_GameObject::KX_GameObject(
       m_previousLodLevel(0),
       m_pBlenderObject(NULL),
       m_pBlenderGroupObject(NULL),
-      m_bSuspendDynamics(false),
       m_bUseObjectColor(false),
       m_bIsNegativeScaling(false),
       m_objectColor(1.0, 1.0, 1.0, 1.0),
@@ -584,6 +583,13 @@ CValue* KX_GameObject::GetReplica()
 	replica->ProcessReplica();
 
 	return replica;
+}
+
+bool KX_GameObject::IsDynamicsSuspended() const
+{
+	if (m_pPhysicsController)
+		return m_pPhysicsController->IsSuspended();
+	return false;
 }
 
 float KX_GameObject::getLinearDamping() const
@@ -1985,6 +1991,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("scene",		KX_GameObject, pyattr_get_scene),
 	KX_PYATTRIBUTE_RO_FUNCTION("life",		KX_GameObject, pyattr_get_life),
 	KX_PYATTRIBUTE_RW_FUNCTION("mass",		KX_GameObject, pyattr_get_mass,		pyattr_set_mass),
+	KX_PYATTRIBUTE_RO_FUNCTION("isDynamicsSuspended",		KX_GameObject, pyattr_get_dynamics_suspended),
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMin",		KX_GameObject, pyattr_get_lin_vel_min, pyattr_set_lin_vel_min),
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMax",		KX_GameObject, pyattr_get_lin_vel_max, pyattr_set_lin_vel_max),
 	KX_PYATTRIBUTE_RW_FUNCTION("visible",	KX_GameObject, pyattr_get_visible,	pyattr_set_visible),
@@ -2396,6 +2403,19 @@ int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 		spc->SetMass(val);
 
 	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_GameObject::pyattr_get_dynamics_suspended(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+
+	// Only objects with a physics controller can be suspended
+	if (!self->GetPhysicsController()) {
+			PyErr_SetString(PyExc_AttributeError, "This object has not Physics Controller");
+			return NULL;
+	}
+
+	return PyBool_FromLong(self->IsDynamicsSuspended());
 }
 
 PyObject *KX_GameObject::pyattr_get_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
