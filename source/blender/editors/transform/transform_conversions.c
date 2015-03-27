@@ -3786,6 +3786,27 @@ static bool graph_edit_use_local_center(TransInfo *t)
 	return (t->around == V3D_LOCAL) && !graph_edit_is_translation_mode(t);
 }
 
+
+static void graph_key_shortest_dist(FCurve *fcu, TransData *td_start, TransData *td, bool use_handle)
+{
+	int j = 0;
+	TransData *td_iter = td_start;
+
+	td->dist = FLT_MAX;
+	for (; j < fcu->totvert; j++) {
+		BezTriple *bezt = fcu->bezt + j;
+		const bool sel2 = (bezt->f2 & SELECT) != 0;
+		const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
+		const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
+
+		if (sel1 || sel2 || sel3) {
+			td->dist = min_ff(td->dist, fabs(td_iter->center[0] - td->center[0]));
+		}
+
+		td_iter += 3;
+	}
+}
+
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
@@ -3808,6 +3829,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	const bool is_translation_mode = graph_edit_is_translation_mode(t);
 	const bool use_handle = !(sipo->flag & SIPO_NOHANDLES);
 	const bool use_local_center = graph_edit_use_local_center(t);
+	const bool propedit = (t->flag & T_PROP_EDIT) != 0;
 	short anim_map_flag = ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS;
 	
 	/* determine what type of data we are operating on */
@@ -3839,6 +3861,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
 		float cfra;
+		int curvecount = 0;
+		bool selected = false;
 
 		/* F-Curve may not have any keyframes */
 		if (fcu->bezt == NULL)
@@ -3859,20 +3883,34 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
 				const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
 
-				if (!is_translation_mode || !(sel2)) {
-					if (sel1) {
-						count++;
+				if (propedit) {
+					curvecount += 3;
+					if (sel2 || sel1 || sel3)
+						selected = true;
+				}
+				else {
+					if (!is_translation_mode || !(sel2)) {
+						if (sel1) {
+							count++;
+						}
+
+						if (sel3) {
+							count++;
+						}
 					}
 
-					if (sel3) {
+					/* only include main vert if selected */
+					if (sel2 && !use_local_center) {
 						count++;
 					}
 				}
+			}
+		}
 
-				/* only include main vert if selected */
-				if (sel2 && !use_local_center) {
-					count++;
-				}
+		if (propedit) {
+			if (selected) {
+				count += curvecount;
+				ale->tag = true;
 			}
 		}
 	}
@@ -3925,7 +3963,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		float cfra;
 
 		/* F-Curve may not have any keyframes */
-		if (fcu->bezt == NULL)
+		if (fcu->bezt == NULL || (propedit && ale->tag == 0))
 			continue;
 
 		/* convert current-frame to action-time (slightly less accurate, especially under
@@ -3948,57 +3986,69 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				TransDataCurveHandleFlags *hdata = NULL;
 				/* short h1=1, h2=1; */ /* UNUSED */
 				
-				/* only include handles if selected, irrespective of the interpolation modes.
-				 * also, only treat handles specially if the center point isn't selected. 
-				 */
-				if (!is_translation_mode || !(sel2)) {
-					if (sel1) {
-						hdata = initTransDataCurveHandles(td, bezt);
-						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, sel1, true, intvals, mtx, smtx, unit_scale);
-					}
-					else {
-						/* h1 = 0; */ /* UNUSED */
-					}
-					
-					if (sel3) {
-						if (hdata == NULL)
-							hdata = initTransDataCurveHandles(td, bezt);
-						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, sel3, true, intvals, mtx, smtx, unit_scale);
-					}
-					else {
-						/* h2 = 0; */ /* UNUSED */
-					}
+				if (propedit) {
+					bool is_sel = (sel2 || sel1 || sel3);
+					/* we always select all handles for proportional editing if central handle is selected */
+					initTransDataCurveHandles(td, bezt);
+					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, is_sel, true, intvals, mtx, smtx, unit_scale);
+					initTransDataCurveHandles(td, bezt);
+					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, is_sel, false, intvals, mtx, smtx, unit_scale);
+					initTransDataCurveHandles(td, bezt);
+					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, is_sel, true, intvals, mtx, smtx, unit_scale);
 				}
-				
-				/* only include main vert if selected */
-				if (sel2 && !use_local_center) {
-					/* move handles relative to center */
-					if (is_translation_mode) {
-						if (sel1) td->flag |= TD_MOVEHANDLE1;
-						if (sel3) td->flag |= TD_MOVEHANDLE2;
-					}
-					
-					/* if handles were not selected, store their selection status */
-					if (!(sel1) || !(sel3)) {
-						if (hdata == NULL)
+				else {
+					/* only include handles if selected, irrespective of the interpolation modes.
+					 * also, only treat handles specially if the center point isn't selected.
+					 */
+					if (!is_translation_mode || !(sel2)) {
+						if (sel1) {
 							hdata = initTransDataCurveHandles(td, bezt);
+							bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, sel1, true, intvals, mtx, smtx, unit_scale);
+						}
+						else {
+							/* h1 = 0; */ /* UNUSED */
+						}
+
+						if (sel3) {
+							if (hdata == NULL)
+								hdata = initTransDataCurveHandles(td, bezt);
+							bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, sel3, true, intvals, mtx, smtx, unit_scale);
+						}
+						else {
+							/* h2 = 0; */ /* UNUSED */
+						}
 					}
-					
-					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, sel2, false, intvals, mtx, smtx, unit_scale);
-					
-				}
-				/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
-				 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
-				 *	  then check if we're using auto-handles.
-				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
-				 */
-				if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
-				    ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
-				    ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
-				{
-					if (hdata && (sel1) && (sel3)) {
-						bezt->h1 = HD_ALIGN;
-						bezt->h2 = HD_ALIGN;
+
+					/* only include main vert if selected */
+					if (sel2 && !use_local_center) {
+						/* move handles relative to center */
+						if (is_translation_mode) {
+							if (sel1) td->flag |= TD_MOVEHANDLE1;
+							if (sel3) td->flag |= TD_MOVEHANDLE2;
+						}
+
+						/* if handles were not selected, store their selection status */
+						if (!(sel1) || !(sel3)) {
+							if (hdata == NULL)
+								hdata = initTransDataCurveHandles(td, bezt);
+						}
+
+						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, sel2, false, intvals, mtx, smtx, unit_scale);
+
+					}
+					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
+					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
+					 *	  then check if we're using auto-handles.
+					 *	- If so, change them auto-handles to aligned handles so that handles get affected too
+					 */
+					if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
+					    ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
+					    ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+					{
+						if (hdata && (sel1) && (sel3)) {
+							bezt->h1 = HD_ALIGN;
+							bezt->h2 = HD_ALIGN;
+						}
 					}
 				}
 			}
@@ -4007,7 +4057,64 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* Sets handles based on the selection */
 		testhandles_fcurve(fcu, use_handle);
 	}
-	
+
+	if (propedit) {
+		/* loop 2: build transdata arrays */
+		td = t->data;
+
+		for (ale = anim_data.first; ale; ale = ale->next) {
+			AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
+			FCurve *fcu = (FCurve *)ale->key_data;
+			TransData *td_start = td;
+			float cfra;
+
+			/* F-Curve may not have any keyframes */
+			if (fcu->bezt == NULL || (ale->tag == 0))
+				continue;
+
+			/* convert current-frame to action-time (slightly less accurate, especially under
+			 * higher scaling ratios, but is faster than converting all points)
+			 */
+			if (adt)
+				cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+			else
+				cfra = (float)CFRA;
+
+			/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
+			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+				if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
+					const bool sel2 = (bezt->f2 & SELECT) != 0;
+					const bool sel1 = use_handle ? (bezt->f1 & SELECT) != 0 : sel2;
+					const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
+
+					if (sel1 || sel2) {
+						td->dist = 0.0f;
+					}
+					else {
+						graph_key_shortest_dist(fcu, td_start, td, use_handle);
+					}
+					td++;
+
+					if (sel2) {
+						td->dist = 0.0f;
+					}
+					else {
+						graph_key_shortest_dist(fcu, td_start, td, use_handle);
+					}
+					td++;
+
+					if (sel3 || sel2) {
+						td->dist = 0.0f;
+					}
+					else {
+						graph_key_shortest_dist(fcu, td_start, td, use_handle);
+					}
+					td++;
+				}
+			}
+		}
+	}
+
 	/* cleanup temp list */
 	ANIM_animdata_freelist(&anim_data);
 }
@@ -7631,13 +7738,14 @@ void createTransData(bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_IPO) {
 		t->flag |= T_POINTS | T_2D_EDIT;
 		createTransGraphEditData(C, t);
-#if 0
+
 		if (t->data && (t->flag & T_PROP_EDIT)) {
+			t->flag |= T_PROP_CONNECTED;
+			t->flag &= ~T_PROP_PROJECTED;
 			sort_trans_data(t); // makes selected become first in array
-			set_prop_dist(t, 1);
+			set_prop_dist(t, false);
 			sort_trans_data_dist(t);
 		}
-#endif
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		t->flag |= T_POINTS | T_2D_EDIT;

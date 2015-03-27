@@ -114,8 +114,9 @@ typedef struct bAnimListElem {
 	int     flag;           /* copy of elem's flags for quick access */
 	int     index;          /* for un-named data, the index of the data in its collection */
 	
-	short   update;         /* (eAnim_Update_Flags)  tag the element for updating */
-	
+	char    update;         /* (eAnim_Update_Flags)  tag the element for updating */
+	char    tag;            /* tag the included data. Temporary always */
+
 	short   datatype;       /* (eAnim_KeyType) type of motion data to expect */
 	void   *key_data;       /* motion data - mostly F-Curves, but can be other types too */
 	

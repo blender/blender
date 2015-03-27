@@ -46,6 +46,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 
@@ -757,12 +758,22 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 				ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			}
 			else if (t->options & CTX_PAINT_CURVE) {
-				aspx = aspy = 1.0;
+				aspx = aspy = 1.0f;
 			}
 			else {
 				ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			}
-			glScalef(1.0f / aspx, 1.0f / aspy, 1.0);
+			glScalef(1.0f / aspx, 1.0f / aspy, 1.0f);
+		}
+		else if (t->spacetype == SPACE_IPO) {
+			/* only scale y */
+			rcti *mask = &t->ar->v2d.mask;
+			rctf *datamask = &t->ar->v2d.cur;
+			float xsize = BLI_rctf_size_x(datamask);
+			float ysize = BLI_rctf_size_y(datamask);
+			float xmask = BLI_rcti_size_x(mask);
+			float ymask = BLI_rcti_size_y(mask);
+			glScalef(1.0f, (ysize / xsize) * (xmask / ymask), 1.0f);
 		}
 
 		depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);

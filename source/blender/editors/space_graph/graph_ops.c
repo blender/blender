@@ -562,7 +562,6 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_easing_type", EKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* destructive */
-	WM_keymap_add_item(keymap, "GRAPH_OT_clean", OKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_smooth", OKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
 	
@@ -608,6 +607,11 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_IPO);
 	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit");
+	RNA_string_set(kmi->ptr, "value_1", "DISABLED");
+	RNA_string_set(kmi->ptr, "value_2", "ENABLED");
+
 	/* pivot point settings */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");

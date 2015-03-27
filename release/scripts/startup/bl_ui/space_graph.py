@@ -29,6 +29,7 @@ class GRAPH_HT_header(Header):
         from bl_ui.space_dopesheet import dopesheet_filter
 
         layout = self.layout
+        toolsettings = context.tool_settings
 
         st = context.space_data
 
@@ -45,6 +46,11 @@ class GRAPH_HT_header(Header):
         row = layout.row()
         row.active = st.use_normalization
         row.prop(st, "use_auto_normalization", text="Auto")
+
+        row = layout.row(align=True)
+        row.prop(toolsettings, "proportional_edit", icon_only=True)
+        if toolsettings.proportional_edit != 'DISABLED':
+            row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
         layout.prop(st, "auto_snap", text="")
         layout.prop(st, "pivot_point", icon_only=True)
