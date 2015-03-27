@@ -19,6 +19,8 @@
 #
 # ***** END LGPL LICENSE BLOCK *****
 
+remove_extra_strict_flags()
+
 set(INC
 	.
 	FX

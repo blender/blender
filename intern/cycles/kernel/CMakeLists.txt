@@ -1,3 +1,5 @@
+remove_extra_strict_flags()
+
 set(INC
 	.
 	../util

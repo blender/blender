@@ -23,6 +23,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+remove_extra_strict_flags()
+
 # there are too many inter-includes so best define here
 if(WITH_PYTHON)
 	blender_include_dirs_sys("${PYTHON_INCLUDE_DIRS}")

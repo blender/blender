@@ -961,6 +961,20 @@ macro(remove_strict_flags)
 
 endmacro()
 
+macro(remove_extra_strict_flags)
+	if(CMAKE_COMPILER_IS_GNUCC)
+		remove_cc_flag("-Wunused-parameter")
+	endif()
+
+	if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+		remove_cc_flag("-Wunused-parameter")
+	endif()
+
+	if(MSVC)
+		# TODO
+	endif()
+endmacro()
+
 # note, we can only append flags on a single file so we need to negate the options.
 # at the moment we cant shut up ffmpeg deprecations, so use this, but will
 # probably add more removals here.

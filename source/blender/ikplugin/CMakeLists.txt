@@ -23,6 +23,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+remove_extra_strict_flags()
+
 set(INC 
 	.
 	../blenkernel
