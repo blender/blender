@@ -58,7 +58,7 @@ extern "C" {
 
 namespace Freestyle {
 
-AppView::AppView(const char *iName)
+AppView::AppView(const char * /*iName*/)
 {
 	_Fovy = DEG2RADF(30.0f);
 	_ModelRootNode = new NodeDrawingStyle;

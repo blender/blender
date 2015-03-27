@@ -87,7 +87,7 @@ int freestyle_viewport[4];
 // current scene
 Scene *freestyle_scene;
 
-static void load_post_callback(struct Main *main, struct ID *id, void *arg)
+static void load_post_callback(struct Main * /*main*/, struct ID * /*id*/, void * /*arg*/)
 {
 	lineset_copied = false;
 }
@@ -645,7 +645,7 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 	return freestyle_render;
 }
 
-void FRS_finish_stroke_rendering(Render *re)
+void FRS_finish_stroke_rendering(Render * /*re*/)
 {
 	// clear canvas
 	controller->Clear();

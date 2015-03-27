@@ -752,12 +752,12 @@ Interface0DIterator Stroke::verticesEnd()
 	return ret;
 }
 
-Interface0DIterator Stroke::pointsBegin(float t)
+Interface0DIterator Stroke::pointsBegin(float /*t*/)
 {
 	return verticesBegin(); // FIXME
 }
 
-Interface0DIterator Stroke::pointsEnd(float t)
+Interface0DIterator Stroke::pointsEnd(float /*t*/)
 {
 	return verticesEnd();
 }

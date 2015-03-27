@@ -221,7 +221,7 @@ void WingedEdgeBuilder::buildWVertices(WShape& shape, const real *vertices, unsi
 	}
 }
 
-void WingedEdgeBuilder::buildTriangleStrip(const real *vertices, const real *normals, vector<FrsMaterial>& iMaterials,
+void WingedEdgeBuilder::buildTriangleStrip(const real * /*vertices*/, const real *normals, vector<FrsMaterial>& /*iMaterials*/,
                                            const real *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
                                            const unsigned *vindices, const unsigned *nindices, const unsigned *mindices,
                                            const unsigned *tindices, const unsigned nvertices)
@@ -296,15 +296,15 @@ void WingedEdgeBuilder::buildTriangleStrip(const real *vertices, const real *nor
 	}
 }
 
-void WingedEdgeBuilder::buildTriangleFan(const real *vertices, const real *normals, vector<FrsMaterial>&  iMaterials,
-                                         const real *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                                         const unsigned *vindices, const unsigned *nindices, const unsigned *mindices,
-                                         const unsigned *tindices, const unsigned nvertices)
+void WingedEdgeBuilder::buildTriangleFan(const real * /*vertices*/, const real * /*normals*/, vector<FrsMaterial>& /*iMaterials*/,
+                                         const real * /*texCoords*/, const IndexedFaceSet::FaceEdgeMark * /*iFaceEdgeMarks*/,
+                                         const unsigned * /*vindices*/, const unsigned * /*nindices*/, const unsigned * /*mindices*/,
+                                         const unsigned * /*tindices*/, const unsigned /*nvertices*/)
 {
 	// Nothing to be done
 }
 
-void WingedEdgeBuilder::buildTriangles(const real *vertices, const real *normals, vector<FrsMaterial>&  iMaterials,
+void WingedEdgeBuilder::buildTriangles(const real * /*vertices*/, const real *normals, vector<FrsMaterial>& /*iMaterials*/,
                                        const real *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
                                        const unsigned *vindices, const unsigned *nindices, const unsigned *mindices,
                                        const unsigned *tindices, const unsigned nvertices)

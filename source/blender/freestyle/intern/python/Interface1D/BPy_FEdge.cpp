@@ -100,7 +100,7 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 
 /*----------------------FEdge sequence protocol ----------------------------*/
 
-static Py_ssize_t FEdge_sq_length(BPy_FEdge *self)
+static Py_ssize_t FEdge_sq_length(BPy_FEdge * /*self*/)
 {
 	return 2;
 }

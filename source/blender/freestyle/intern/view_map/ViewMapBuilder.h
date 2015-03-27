@@ -145,7 +145,7 @@ public:
 	 *      The viewport. 4 real array: origin.x, origin.y, width, length
 	 */
 	inline void setTransform(const real iModelViewMatrix[4][4], const real iProjectionMatrix[4][4],
-	                         const int iViewport[4], real iFocalLength, real iAspect, real iFovy)
+	                         const int iViewport[4], real iFocalLength, real /*iAspect*/, real /*iFovy*/)
 	{
 		_orthographicProjection = (iProjectionMatrix[3][3] != 0.0);
 		SilhouetteGeomEngine::setTransform(iModelViewMatrix, iProjectionMatrix, iViewport, iFocalLength);

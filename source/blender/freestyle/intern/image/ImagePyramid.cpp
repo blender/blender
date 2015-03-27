@@ -42,7 +42,7 @@ ImagePyramid::ImagePyramid(const GrayImage& level0, unsigned nbLevels)
 }
 #endif
 
-ImagePyramid::ImagePyramid(const ImagePyramid& iBrother)
+ImagePyramid::ImagePyramid(const ImagePyramid& /*iBrother*/)
 {
 	if (!_levels.empty()) {
 		for (vector<GrayImage*>::iterator im = _levels.begin(), imend = _levels.end(); im != imend; ++im) {

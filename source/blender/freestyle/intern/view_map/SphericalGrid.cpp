@@ -72,7 +72,7 @@ void SphericalGrid::Cell::indexPolygons()
 // Iterator
 //////////////////
 
-SphericalGrid::Iterator::Iterator(SphericalGrid& grid, Vec3r& center, real epsilon)
+SphericalGrid::Iterator::Iterator(SphericalGrid& grid, Vec3r& center, real /*epsilon*/)
 : _target(SphericalGrid::Transform::sphericalProjection(center)), _foundOccludee(false)
 {
 	// Find target cell
@@ -120,7 +120,7 @@ SphericalGrid::SphericalGrid(OccluderSource& source, GridDensityProvider& densit
 
 SphericalGrid::~SphericalGrid() {}
 
-void SphericalGrid::assignCells(OccluderSource& source, GridDensityProvider& density, ViewMap *viewMap)
+void SphericalGrid::assignCells(OccluderSource& /*source*/, GridDensityProvider& density, ViewMap *viewMap)
 {
 	_cellSize = density.cellSize();
 	_cellsX = density.cellsX();

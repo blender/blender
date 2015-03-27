@@ -42,13 +42,13 @@ Interface0DIterator Interface1D::verticesEnd()
 	return Interface0DIterator();
 }
 
-Interface0DIterator Interface1D::pointsBegin(float t)
+Interface0DIterator Interface1D::pointsBegin(float /*t*/)
 {
 	PyErr_SetString(PyExc_TypeError, "method pointsBegin() not properly overridden");
 	return Interface0DIterator();
 }
 
-Interface0DIterator Interface1D::pointsEnd(float t)
+Interface0DIterator Interface1D::pointsEnd(float /*t*/)
 {
 	PyErr_SetString(PyExc_TypeError, "method pointsEnd() not properly overridden");
 	return Interface0DIterator();

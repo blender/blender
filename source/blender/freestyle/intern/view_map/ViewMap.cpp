@@ -701,12 +701,12 @@ Interface0DIterator ViewEdge::verticesEnd()
 	return ret;
 }
 
-Interface0DIterator ViewEdge::pointsBegin(float t)
+Interface0DIterator ViewEdge::pointsBegin(float /*t*/)
 {
 	return verticesBegin();
 }
 
-Interface0DIterator ViewEdge::pointsEnd(float t)
+Interface0DIterator ViewEdge::pointsEnd(float /*t*/)
 {
 	return verticesEnd();
 }

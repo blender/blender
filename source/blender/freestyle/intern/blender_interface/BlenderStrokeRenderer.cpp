@@ -950,7 +950,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	return ob;
 }
 
-Render *BlenderStrokeRenderer::RenderScene(Render *re, bool render)
+Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
 {
 	Camera *camera = (Camera *)freestyle_scene->camera->data;
 	if (camera->clipend < _z)

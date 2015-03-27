@@ -471,7 +471,7 @@ public:
 	}
 
 	/*! The () operator. */
-	int operator()(Interface1D& i1, Interface1D& i2)
+	int operator()(Interface1D& /*i1*/, Interface1D& /*i2*/)
 	{
 		result = true;
 		return 0;
@@ -490,7 +490,7 @@ public:
 	}
 
 	/*! The () operator. */
-	int operator()(Interface1D& i1, Interface1D& i2)
+	int operator()(Interface1D& /*i1*/, Interface1D& /*i2*/)
 	{
 		result = false;
 		return 0;

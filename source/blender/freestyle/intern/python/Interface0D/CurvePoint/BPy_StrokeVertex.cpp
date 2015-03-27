@@ -166,7 +166,7 @@ static int StrokeVertex_mathutils_check(BaseMathObject *bmo)
 	return 0;
 }
 
-static int StrokeVertex_mathutils_get(BaseMathObject *bmo, int subtype)
+static int StrokeVertex_mathutils_get(BaseMathObject *bmo, int /*subtype*/)
 {
 	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
 	bmo->data[0] = (float)self->sv->x();
@@ -174,7 +174,7 @@ static int StrokeVertex_mathutils_get(BaseMathObject *bmo, int subtype)
 	return 0;
 }
 
-static int StrokeVertex_mathutils_set(BaseMathObject *bmo, int subtype)
+static int StrokeVertex_mathutils_set(BaseMathObject *bmo, int /*subtype*/)
 {
 	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
 	self->sv->setX((real)bmo->data[0]);
@@ -182,7 +182,7 @@ static int StrokeVertex_mathutils_set(BaseMathObject *bmo, int subtype)
 	return 0;
 }
 
-static int StrokeVertex_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+static int StrokeVertex_mathutils_get_index(BaseMathObject *bmo, int /*subtype*/, int index)
 {
 	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
 	switch (index) {
@@ -194,7 +194,7 @@ static int StrokeVertex_mathutils_get_index(BaseMathObject *bmo, int subtype, in
 	return 0;
 }
 
-static int StrokeVertex_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+static int StrokeVertex_mathutils_set_index(BaseMathObject *bmo, int /*subtype*/, int index)
 {
 	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
 	switch (index) {

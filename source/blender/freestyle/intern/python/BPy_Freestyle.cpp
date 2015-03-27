@@ -72,7 +72,7 @@ static char Freestyle_getCurrentScene___doc__[] =
 "   :return: The current scene.\n"
 "   :rtype: :class:`bpy.types.Scene`\n";
 
-static PyObject *Freestyle_getCurrentScene(PyObject *self)
+static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
 {
 	if (!freestyle_scene) {
 		PyErr_SetString(PyExc_TypeError, "current scene not available");
@@ -126,7 +126,7 @@ static char Freestyle_blendRamp___doc__[] =
 "   :return: Blended color in RGB format.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static PyObject *Freestyle_blendRamp(PyObject *self, PyObject *args)
+static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
 {
 	PyObject *obj1, *obj2;
 	char *s;
@@ -170,7 +170,7 @@ static char Freestyle_evaluateColorRamp___doc__[] =
 "   :return: color in RGBA format.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static PyObject *Freestyle_evaluateColorRamp(PyObject *self, PyObject *args)
+static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args)
 {
 	BPy_StructRNA *py_srna;
 	ColorBand *coba;
@@ -207,7 +207,7 @@ static char Freestyle_evaluateCurveMappingF___doc__[] =
 "   :return: Mapped output value.\n"
 "   :rtype: float\n";
 
-static PyObject *Freestyle_evaluateCurveMappingF(PyObject *self, PyObject *args)
+static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *args)
 {
 	BPy_StructRNA *py_srna;
 	CurveMapping *cumap;

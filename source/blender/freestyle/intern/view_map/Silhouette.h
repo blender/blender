@@ -1122,12 +1122,12 @@ Interface0DIterator FEdge::verticesEnd()
 	return ret;
 }
 
-Interface0DIterator FEdge::pointsBegin(float t)
+Interface0DIterator FEdge::pointsBegin(float /*t*/)
 {
 	return verticesBegin();
 }
 
-Interface0DIterator FEdge::pointsEnd(float t)
+Interface0DIterator FEdge::pointsEnd(float /*t*/)
 {
 	return verticesEnd();
 }

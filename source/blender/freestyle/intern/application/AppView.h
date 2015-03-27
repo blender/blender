@@ -100,12 +100,12 @@ public:
 		_SilhouetteRootNode->AddChild(iSilhouette);
 	}
 
-	inline void Add2DSilhouette(NodeGroup *iSilhouette)
+	inline void Add2DSilhouette(NodeGroup * /*iSilhouette*/)
 	{
 		//_pFENode->AddChild(iSilhouette);
 	}
 
-	inline void Add2DVisibleSilhouette(NodeGroup *iVSilhouette)
+	inline void Add2DVisibleSilhouette(NodeGroup * /*iVSilhouette*/)
 	{
 		//_pVisibleSilhouetteNode->AddChild(iVSilhouette);
 	}

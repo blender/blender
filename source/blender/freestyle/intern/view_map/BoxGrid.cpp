@@ -71,7 +71,7 @@ void BoxGrid::Cell::indexPolygons()
 // Iterator
 //////////////////
 
-BoxGrid::Iterator::Iterator (BoxGrid& grid, Vec3r& center, real epsilon)
+BoxGrid::Iterator::Iterator (BoxGrid& grid, Vec3r& center, real /*epsilon*/)
 : _target(grid.transform(center)), _foundOccludee(false)
 {
 	// Find target cell
@@ -122,7 +122,7 @@ BoxGrid::BoxGrid(OccluderSource& source, GridDensityProvider& density, ViewMap *
 
 BoxGrid::~BoxGrid() {}
 
-void BoxGrid::assignCells (OccluderSource& source, GridDensityProvider& density, ViewMap *viewMap)
+void BoxGrid::assignCells (OccluderSource& /*source*/, GridDensityProvider& density, ViewMap *viewMap)
 {
 	_cellSize = density.cellSize();
 	_cellsX = density.cellsX();

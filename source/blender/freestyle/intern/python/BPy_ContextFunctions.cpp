@@ -46,7 +46,7 @@ static char ContextFunctions_get_time_stamp___doc__[] =
 "   :rtype: int\n";
 
 static PyObject *
-ContextFunctions_get_time_stamp(PyObject *self)
+ContextFunctions_get_time_stamp(PyObject * /*self*/)
 {
 	return PyLong_FromLong(ContextFunctions::GetTimeStampCF());
 }
@@ -60,7 +60,7 @@ static char ContextFunctions_get_canvas_width___doc__[] =
 "   :rtype: int\n";
 
 static PyObject *
-ContextFunctions_get_canvas_width(PyObject *self)
+ContextFunctions_get_canvas_width(PyObject * /*self*/)
 {
 	return PyLong_FromLong(ContextFunctions::GetCanvasWidthCF());
 }
@@ -74,7 +74,7 @@ static char ContextFunctions_get_canvas_height___doc__[] =
 "   :rtype: int\n";
 
 static PyObject *
-ContextFunctions_get_canvas_height(PyObject *self)
+ContextFunctions_get_canvas_height(PyObject * /*self*/)
 {
 	return PyLong_FromLong(ContextFunctions::GetCanvasHeightCF());
 }
@@ -88,7 +88,7 @@ static char ContextFunctions_get_border___doc__[] =
 "   :rtype: tuple\n";
 
 static PyObject *
-ContextFunctions_get_border(PyObject *self)
+ContextFunctions_get_border(PyObject * /*self*/)
 {
 	BBox<Vec2i> border(ContextFunctions::GetBorderCF());
 	PyObject *v = PyTuple_New(4);
@@ -117,7 +117,7 @@ static char ContextFunctions_load_map___doc__[] =
 "   :type sigma: float\n";
 
 static PyObject *
-ContextFunctions_load_map(PyObject *self, PyObject *args, PyObject *kwds)
+ContextFunctions_load_map(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"file_name", "map_name", "num_levels", "sigma", NULL};
 	char *fileName, *mapName;
@@ -150,7 +150,7 @@ static char ContextFunctions_read_map_pixel___doc__[] =
 "   :rtype: float\n";
 
 static PyObject *
-ContextFunctions_read_map_pixel(PyObject *self, PyObject *args, PyObject *kwds)
+ContextFunctions_read_map_pixel(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"map_name", "level", "x", "y", NULL};
 	char *mapName;
@@ -180,7 +180,7 @@ static char ContextFunctions_read_complete_view_map_pixel___doc__[] =
 "   :rtype: float\n";
 
 static PyObject *
-ContextFunctions_read_complete_view_map_pixel(PyObject *self, PyObject *args, PyObject *kwds)
+ContextFunctions_read_complete_view_map_pixel(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"level", "x", "y", NULL};
 	int level;
@@ -212,7 +212,7 @@ static char ContextFunctions_read_directional_view_map_pixel___doc__[] =
 "   :rtype: float\n";
 
 static PyObject *
-ContextFunctions_read_directional_view_map_pixel(PyObject *self, PyObject *args, PyObject *kwds)
+ContextFunctions_read_directional_view_map_pixel(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"orientation", "level", "x", "y", NULL};
 	int orientation, level;
@@ -232,7 +232,7 @@ static char ContextFunctions_get_selected_fedge___doc__[] =
 "   :rtype: :class:`FEdge`\n";
 
 static PyObject *
-ContextFunctions_get_selected_fedge(PyObject *self)
+ContextFunctions_get_selected_fedge(PyObject * /*self*/)
 {
 	FEdge *fe = ContextFunctions::GetSelectedFEdgeCF();
 	if (fe)

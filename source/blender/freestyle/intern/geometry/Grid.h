@@ -97,11 +97,11 @@ class GridVisitor
 public:
 	virtual ~GridVisitor() {}; //soc
 
-	virtual void discoverCell(Cell *cell) {}
+	virtual void discoverCell(Cell * /*cell*/) {}
 
-	virtual void examineOccluder(Polygon3r *occ) {}
+	virtual void examineOccluder(Polygon3r * /*occ*/) {}
 
-	virtual void finishCell(Cell *cell) {}
+	virtual void finishCell(Cell * /*cell*/) {}
 
 	virtual bool stop() {
 		return false;

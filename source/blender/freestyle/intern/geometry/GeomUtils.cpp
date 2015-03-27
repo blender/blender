@@ -495,7 +495,7 @@ bool intersectRayBBox(const Vec3r& orig, const Vec3r& dir,      // ray origin an
                       real t0, real t1,
                       real& tmin,                               // I0 = orig + tmin * dir is the first intersection
                       real& tmax,                               // I1 = orig + tmax * dir is the second intersection
-                      real epsilon)
+                      real /*epsilon*/)
 {
 	float tymin, tymax, tzmin, tzmax;
 	Vec3r inv_direction(1.0 / dir[0], 1.0 / dir[1], 1.0 / dir[2]);
