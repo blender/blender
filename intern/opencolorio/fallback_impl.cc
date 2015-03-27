@@ -190,7 +190,7 @@ OCIO_ConstLookRcPtr *FallbackImpl::configGetLook(OCIO_ConstConfigRcPtr * /*confi
 	return NULL;
 }
 
-const char *FallbackImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr *look)
+const char *FallbackImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr * /*look*/)
 {
 	return NULL;
 }
