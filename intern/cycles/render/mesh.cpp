@@ -653,6 +653,10 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 			}
 		}
 	}
+#else
+	(void)device;
+	(void)scene;
+	(void)mesh_attributes;
 #endif
 }
 

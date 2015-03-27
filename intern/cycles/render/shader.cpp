@@ -252,6 +252,8 @@ ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
 {
 	ShaderManager *manager;
 
+	(void)shadingsystem;  /* Ignored when built without OSL. */
+
 #ifdef WITH_OSL
 	if(shadingsystem == SHADINGSYSTEM_OSL)
 		manager = new OSLShaderManager();

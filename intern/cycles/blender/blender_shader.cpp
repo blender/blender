@@ -543,6 +543,9 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 			node = script_node;
 		}
+#else
+		(void)b_data;
+		(void)b_ntree;
 #endif
 	}
 	else if (b_node.is_a(&RNA_ShaderNodeTexImage)) {
