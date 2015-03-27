@@ -76,6 +76,8 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editin
 	                         viewer_border->xmin < viewer_border->xmax &&
 	                         viewer_border->ymin < viewer_border->ymax;
 
+	editingtree->stats_draw(editingtree->sdh, (char*)"Compositing | Determining resolution");
+
 	for (index = 0; index < this->m_groups.size(); index++) {
 		resolution[0] = 0;
 		resolution[1] = 0;
@@ -124,6 +126,9 @@ void ExecutionSystem::set_operations(const Operations &operations, const Groups 
 
 void ExecutionSystem::execute()
 {
+	const bNodeTree *editingtree = this->m_context.getbNodeTree();
+	editingtree->stats_draw(editingtree->sdh, (char*)"Compositing | Initializing execution");
+
 	DebugInfo::execute_started(this);
 	
 	unsigned int order = 0;
@@ -178,6 +183,7 @@ void ExecutionSystem::execute()
 	WorkScheduler::finish();
 	WorkScheduler::stop();
 
+	editingtree->stats_draw(editingtree->sdh, (char*)"Compositing | Deinitializing execution");
 	for (index = 0; index < this->m_operations.size(); index++) {
 		NodeOperation *operation = this->m_operations[index];
 		operation->deinitExecution();

@@ -377,35 +377,6 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 	return result;
 }
 
-void ExecutionGroup::printBackgroundStats(void)
-{
-	uintptr_t mem_in_use, mmap_in_use, peak_memory;
-	float megs_used_memory, mmap_used_memory, megs_peak_memory;
-	double execution_time;
-	char timestr[64];
-
-	execution_time = PIL_check_seconds_timer() - this->m_executionStartTime;
-
-	mem_in_use = MEM_get_memory_in_use();
-	mmap_in_use = MEM_get_mapped_memory_in_use();
-	peak_memory = MEM_get_peak_memory();
-
-	megs_used_memory = (mem_in_use - mmap_in_use) / (1024.0 * 1024.0);
-	mmap_used_memory = (mmap_in_use) / (1024.0 * 1024.0);
-	megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
-
-	fprintf(stdout, "Mem:%.2fM (%.2fM, Peak %.2fM) ",
-	        megs_used_memory, mmap_used_memory, megs_peak_memory);
-
-	BLI_timestr(execution_time, timestr, sizeof(timestr));
-	printf("| Elapsed %s ", timestr);
-	printf("| Tree %s, Tile %u-%u ", this->m_bTree->id.name + 2,
-	       this->m_chunksFinished, this->m_numberOfChunks);
-
-	fputc('\n', stdout);
-	fflush(stdout);
-}
-
 void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers)
 {
 	if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED)
@@ -430,8 +401,11 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 		progress /= this->m_numberOfChunks;
 		this->m_bTree->progress(this->m_bTree->prh, progress);
 
-		if (G.background)
-			printBackgroundStats();
+		char buf[128];
+		BLI_snprintf(buf, sizeof(buf), "Compositing | Tile %d-%d",
+		             this->m_chunksFinished,
+		             this->m_numberOfChunks);
+		this->m_bTree->stats_draw(this->m_bTree->sdh, buf);
 	}
 }
 
