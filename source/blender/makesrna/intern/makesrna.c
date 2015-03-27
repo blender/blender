@@ -3763,7 +3763,7 @@ static const char *cpp_classes = ""
 "\n"
 "class DefaultCollectionFunctions {\n"
 "public:\n"
-"	DefaultCollectionFunctions(const PointerRNA &p) {}\n"
+"	DefaultCollectionFunctions(const PointerRNA & /*p*/) {}\n"
 "};\n"
 "\n"
 "\n";
