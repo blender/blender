@@ -44,8 +44,8 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData);
 void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
                                float3 RotCam, bool is_ortho);
 void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int resolution);
-void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, float3 *uvdata);
-void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, uchar4 *cdata);
+void ExportCurveTriangleUV(ParticleCurveData *CData, int vert_offset, int resol, float3 *uvdata);
+void ExportCurveTriangleVcol(ParticleCurveData *CData, int vert_offset, int resol, uchar4 *cdata);
 
 ParticleCurveData::ParticleCurveData()
 {
@@ -322,7 +322,7 @@ bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 	return true;
 }
 
-static void set_resolution(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, BL::Scene *scene, bool render)
+static void set_resolution(BL::Object *b_ob, BL::Scene *scene, bool render)
 {
 	BL::Object::modifiers_iterator b_mod;
 	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
@@ -629,7 +629,7 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 	}
 }
 
-static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveData *CData, int time_index)
+static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int time_index)
 {
 	VLOG(1) << "Exporting curve motion segments for mesh " << mesh->name
 	        << ", time index " << time_index;
@@ -705,7 +705,7 @@ static void ExportCurveSegmentsMotion(Scene *scene, Mesh *mesh, ParticleCurveDat
 	}
 }
 
-void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, float3 *uvdata)
+void ExportCurveTriangleUV(ParticleCurveData *CData, int vert_offset, int resol, float3 *uvdata)
 {
 	if(uvdata == NULL)
 		return;
@@ -750,7 +750,7 @@ void ExportCurveTriangleUV(Mesh *mesh, ParticleCurveData *CData, int vert_offset
 	}
 }
 
-void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int vert_offset, int resol, uchar4 *cdata)
+void ExportCurveTriangleVcol(ParticleCurveData *CData, int vert_offset, int resol, uchar4 *cdata)
 {
 	if(cdata == NULL)
 		return;
@@ -886,7 +886,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	ParticleCurveData CData;
 
 	if(!preview)
-		set_resolution(mesh, &b_mesh, &b_ob, &b_scene, true);
+		set_resolution(&b_ob, &b_scene, true);
 
 	ObtainCacheParticleData(mesh, &b_mesh, &b_ob, &CData, !preview);
 
@@ -917,7 +917,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	}
 	else {
 		if(motion)
-			ExportCurveSegmentsMotion(scene, mesh, &CData, time_index);
+			ExportCurveSegmentsMotion(mesh, &CData, time_index);
 		else
 			ExportCurveSegments(scene, mesh, &CData);
 	}
@@ -966,7 +966,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 
 				uchar4 *cdata = attr_vcol->data_uchar4();
 
-				ExportCurveTriangleVcol(mesh, &CData, tri_num * 3, used_res, cdata);
+				ExportCurveTriangleVcol(&CData, tri_num * 3, used_res, cdata);
 			}
 			else {
 				Attribute *attr_vcol = mesh->curve_attributes.add(
@@ -1009,7 +1009,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 
 					float3 *uv = attr_uv->data_float3();
 
-					ExportCurveTriangleUV(mesh, &CData, tri_num * 3, used_res, uv);
+					ExportCurveTriangleUV(&CData, tri_num * 3, used_res, uv);
 				}
 				else {
 					if(active_render)
@@ -1032,7 +1032,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	}
 
 	if(!preview)
-		set_resolution(mesh, &b_mesh, &b_ob, &b_scene, false);
+		set_resolution(&b_ob, &b_scene, false);
 
 	mesh->compute_bounds();
 }

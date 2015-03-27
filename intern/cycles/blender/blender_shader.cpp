@@ -106,7 +106,7 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket b_socket)
 	}
 }
 
-static void set_default_value(ShaderInput *input, BL::Node b_node, BL::NodeSocket b_sock, BL::BlendData b_data, BL::ID b_id)
+static void set_default_value(ShaderInput *input, BL::NodeSocket b_sock, BL::BlendData b_data, BL::ID b_id)
 {
 	/* copy values for non linked inputs */
 	switch(input->type) {
@@ -514,7 +514,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 				script_node->input_names.push_back(ustring(b_input->name()));
 				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(),
 				                                            convert_socket_type(*b_input));
-				set_default_value(input, b_node, *b_input, b_data, b_ntree);
+				set_default_value(input, *b_input, b_data, b_ntree);
 			}
 
 			BL::Node::outputs_iterator b_output;
@@ -868,7 +868,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 
 				input_map[b_input->ptr.data] = proxy->inputs[0];
 
-				set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
+				set_default_value(proxy->inputs[0], *b_input, b_data, b_ntree);
 			}
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_output));
@@ -906,7 +906,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 
 						input_map[b_input->ptr.data] = proxy->inputs[0];
 
-						set_default_value(proxy->inputs[0], *b_node, *b_input, b_data, b_ntree);
+						set_default_value(proxy->inputs[0], *b_input, b_data, b_ntree);
 					}
 				}
 			}
@@ -933,7 +933,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 					}
 					input_map[b_input->ptr.data] = input;
 
-					set_default_value(input, *b_node, *b_input, b_data, b_ntree);
+					set_default_value(input, *b_input, b_data, b_ntree);
 				}
 				for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 					ShaderOutput *output = node_find_output_by_name(node, *b_node, *b_output);

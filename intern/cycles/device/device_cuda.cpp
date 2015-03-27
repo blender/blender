@@ -185,7 +185,7 @@ public:
 		cuda_assert(cuCtxDestroy(cuContext));
 	}
 
-	bool support_device(bool experimental)
+	bool support_device(bool /*experimental*/)
 	{
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
@@ -344,7 +344,7 @@ public:
 		return (result == CUDA_SUCCESS);
 	}
 
-	void mem_alloc(device_memory& mem, MemoryType type)
+	void mem_alloc(device_memory& mem, MemoryType /*type*/)
 	{
 		cuda_push_context();
 		CUdeviceptr device_pointer;
@@ -999,7 +999,7 @@ public:
 		}
 	};
 
-	int get_split_task_count(DeviceTask& task)
+	int get_split_task_count(DeviceTask& /*task*/)
 	{
 		return 1;
 	}

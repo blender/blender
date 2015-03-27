@@ -402,8 +402,10 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	}
 }
 
-void ObjectManager::device_update_flags(Device *device, DeviceScene *dscene,
-                                        Scene *scene, Progress& progress)
+void ObjectManager::device_update_flags(Device *device,
+                                        DeviceScene *dscene,
+                                        Scene *scene,
+                                        Progress& /*progress*/)
 {
 	if(!need_update && !need_flags_update)
 		return;

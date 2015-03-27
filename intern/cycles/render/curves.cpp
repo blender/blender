@@ -103,7 +103,10 @@ CurveSystemManager::~CurveSystemManager()
 {
 }
 
-void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void CurveSystemManager::device_update(Device *device,
+                                       DeviceScene *dscene,
+                                       Scene * /*scene*/,
+                                       Progress& progress)
 {
 	if(!need_update)
 		return;
@@ -144,7 +147,8 @@ void CurveSystemManager::device_update(Device *device, DeviceScene *dscene, Scen
 	need_update = false;
 }
 
-void CurveSystemManager::device_free(Device *device, DeviceScene *dscene)
+void CurveSystemManager::device_free(Device * /*device*/,
+                                     DeviceScene * /*dscene*/)
 {
 
 }
@@ -174,7 +178,7 @@ bool CurveSystemManager::modified_mesh(const CurveSystemManager& CurveSystemMana
 		use_curves == CurveSystemManager.use_curves);
 }
 
-void CurveSystemManager::tag_update(Scene *scene)
+void CurveSystemManager::tag_update(Scene * /*scene*/)
 {
 	need_update = true;
 }

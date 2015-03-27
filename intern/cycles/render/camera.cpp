@@ -284,7 +284,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	previous_need_motion = need_motion;
 }
 
-void Camera::device_update_volume(Device *device,
+void Camera::device_update_volume(Device * /*device*/,
                                   DeviceScene *dscene,
                                   Scene *scene)
 {
@@ -306,7 +306,7 @@ void Camera::device_update_volume(Device *device,
 	need_device_update = false;
 }
 
-void Camera::device_free(Device *device, DeviceScene *dscene)
+void Camera::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
 	/* nothing to free, only writing to constant memory */
 }

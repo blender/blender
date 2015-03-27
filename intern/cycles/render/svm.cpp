@@ -39,7 +39,7 @@ SVMShaderManager::~SVMShaderManager()
 {
 }
 
-void SVMShaderManager::reset(Scene *scene)
+void SVMShaderManager::reset(Scene * /*scene*/)
 {
 }
 
@@ -354,7 +354,7 @@ uint SVMCompiler::attribute(AttributeStandard std)
 	return shader_manager->get_attribute_id(std);
 }
 
-bool SVMCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
+bool SVMCompiler::node_skip_input(ShaderNode * /*node*/, ShaderInput *input)
 {
 	/* nasty exception .. */
 	if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->name == ustring("bump"))

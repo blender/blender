@@ -72,7 +72,7 @@ struct BlenderCamera {
 	Transform matrix;
 };
 
-static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings b_render, BL::Scene b_scene)
+static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings b_render)
 {
 	memset(bcam, 0, sizeof(BlenderCamera));
 
@@ -380,7 +380,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override, int width, int height)
 {
 	BlenderCamera bcam;
-	blender_camera_init(&bcam, b_render, b_scene);
+	blender_camera_init(&bcam, b_render);
 
 	/* pixel aspect */
 	bcam.pixelaspect.x = b_render.pixel_aspect_x();
@@ -501,7 +501,7 @@ static void blender_camera_view_subset(BL::RenderSettings b_render, BL::Scene b_
 
 	/* get viewport viewplane */
 	BlenderCamera view_bcam;
-	blender_camera_init(&view_bcam, b_render, b_scene);
+	blender_camera_init(&view_bcam, b_render);
 	blender_camera_from_view(&view_bcam, b_scene, b_v3d, b_rv3d, width, height, true);
 
 	blender_camera_viewplane(&view_bcam, width, height,
@@ -509,7 +509,7 @@ static void blender_camera_view_subset(BL::RenderSettings b_render, BL::Scene b_
 
 	/* get camera viewplane */
 	BlenderCamera cam_bcam;
-	blender_camera_init(&cam_bcam, b_render, b_scene);
+	blender_camera_init(&cam_bcam, b_render);
 	blender_camera_from_object(&cam_bcam, b_ob, true);
 
 	blender_camera_viewplane(&cam_bcam, cam_bcam.full_width, cam_bcam.full_height,
@@ -601,14 +601,14 @@ static void blender_camera_border(BlenderCamera *bcam, BL::RenderSettings b_rend
 void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height)
 {
 	BlenderCamera bcam;
-	blender_camera_init(&bcam, b_scene.render(), b_scene);
+	blender_camera_init(&bcam, b_scene.render());
 	blender_camera_from_view(&bcam, b_scene, b_v3d, b_rv3d, width, height);
 	blender_camera_border(&bcam, b_scene.render(), b_scene, b_v3d, b_rv3d, width, height);
 
 	blender_camera_sync(scene->camera, &bcam, width, height);
 }
 
-BufferParams BlenderSync::get_buffer_params(BL::RenderSettings b_render, BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height)
+BufferParams BlenderSync::get_buffer_params(BL::RenderSettings b_render, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height)
 {
 	BufferParams params;
 	bool use_border = false;

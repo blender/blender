@@ -67,7 +67,7 @@ OSLShaderManager::~OSLShaderManager()
 	texture_system_free();
 }
 
-void OSLShaderManager::reset(Scene *scene)
+void OSLShaderManager::reset(Scene * /*scene*/)
 {
 	shading_system_free();
 	shading_system_init();

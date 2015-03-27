@@ -791,7 +791,9 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 	need_update = false;
 }
 
-void ImageManager::device_pack_images(Device *device, DeviceScene *dscene, Progress& progess)
+void ImageManager::device_pack_images(Device *device,
+                                      DeviceScene *dscene,
+                                      Progress& /*progess*/)
 {
 	/* for OpenCL, we pack all image textures inside a single big texture, and
 	 * will do our own interpolation in the kernel */

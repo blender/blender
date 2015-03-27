@@ -133,7 +133,7 @@ void BlenderSession::create_session()
 	}
 
 	/* set buffer parameters */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
 
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
@@ -186,7 +186,7 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	sync->sync_integrator();
 	sync->sync_camera(b_render, b_engine.camera_override(), width, height);
 
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, PointerRNA_NULL, PointerRNA_NULL, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, PointerRNA_NULL, PointerRNA_NULL, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
 
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
@@ -411,7 +411,7 @@ void BlenderSession::render()
 
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
 	/* render each layer */
 	BL::RenderSettings r = b_scene.render();
@@ -511,7 +511,7 @@ static void populate_bake_data(BakeData *data, BL::BakePixel pixel_array, const 
 	}
 }
 
-void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::BakePixel pixel_array, const size_t num_pixels, const int depth, float result[])
+void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::BakePixel pixel_array, const size_t num_pixels, const int /*depth*/, float result[])
 {
 	ShaderEvalType shader_type = get_shader_type(pass_type);
 	size_t object_index = OBJECT_NONE;
@@ -543,7 +543,7 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, BL::Bake
 
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
 	scene->bake_manager->set_shader_limit((size_t)b_engine.tile_x(), (size_t)b_engine.tile_y());
 	scene->bake_manager->set_baking(true);
@@ -692,7 +692,7 @@ void BlenderSession::synchronize()
 
 	/* reset if needed */
 	if(scene->need_reset()) {
-		BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+		BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 		session->reset(buffer_params, session_params.samples);
 
 		/* reset time */
@@ -747,7 +747,7 @@ bool BlenderSession::draw(int w, int h)
 		/* reset if requested */
 		if(reset) {
 			SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-			BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+			BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 			bool session_pause = BlenderSync::get_session_pause(b_scene, background);
 
 			if(session_pause == false) {
@@ -764,7 +764,7 @@ bool BlenderSession::draw(int w, int h)
 	update_status_progress();
 
 	/* draw */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_scene, b_v3d, b_rv3d, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 	DeviceDrawParams draw_params;
 
 	if(session->params.display_buffer_linear) {

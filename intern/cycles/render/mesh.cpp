@@ -1124,7 +1124,10 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	dscene->data.bvh.use_qbvh = scene->params.use_qbvh;
 }
 
-void MeshManager::device_update_flags(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void MeshManager::device_update_flags(Device * /*device*/,
+                                      DeviceScene * /*dscene*/,
+                                      Scene * scene,
+                                      Progress& /*progress*/)
 {
 	if(!need_update && !need_flags_update) {
 		return;

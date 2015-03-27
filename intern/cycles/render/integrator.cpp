@@ -216,7 +216,7 @@ bool Integrator::modified(const Integrator& integrator)
 		sample_all_lights_indirect == integrator.sample_all_lights_indirect);
 }
 
-void Integrator::tag_update(Scene *scene)
+void Integrator::tag_update(Scene * /*scene*/)
 {
 	need_update = true;
 }

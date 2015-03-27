@@ -321,7 +321,10 @@ void ShaderManager::device_update_shaders_used(Scene *scene)
 		scene->shaders[light->shader]->used = true;
 }
 
-void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void ShaderManager::device_update_common(Device *device,
+                                         DeviceScene *dscene,
+                                         Scene *scene,
+                                         Progress& /*progress*/)
 {
 	device->tex_free(dscene->shader_flag);
 	dscene->shader_flag.clear();

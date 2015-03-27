@@ -75,19 +75,21 @@ public:
 		task_pool.stop();
 	}
 
-	void mem_alloc(device_memory& mem, MemoryType type)
+	void mem_alloc(device_memory& mem, MemoryType /*type*/)
 	{
 		mem.device_pointer = mem.data_pointer;
 		mem.device_size = mem.memory_size();
 		stats.mem_alloc(mem.device_size);
 	}
 
-	void mem_copy_to(device_memory& mem)
+	void mem_copy_to(device_memory& /*mem*/)
 	{
 		/* no-op */
 	}
 
-	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
+	void mem_copy_from(device_memory& /*mem*/,
+	                   int /*y*/, int /*w*/, int /*h*/,
+	                   int /*elem*/)
 	{
 		/* no-op */
 	}
@@ -111,7 +113,7 @@ public:
 		kernel_const_copy(&kernel_globals, name, host, size);
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
+	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool /*periodic*/)
 	{
 		kernel_tex_copy(&kernel_globals, name, mem.data_pointer, mem.data_width, mem.data_height, mem.data_depth, interpolation);
 		mem.device_pointer = mem.data_pointer;

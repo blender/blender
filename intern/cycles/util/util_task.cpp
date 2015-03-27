@@ -237,7 +237,7 @@ bool TaskScheduler::thread_wait_pop(Entry& entry)
 	return true;
 }
 
-void TaskScheduler::thread_run(int thread_id)
+void TaskScheduler::thread_run(int /*thread_id*/)
 {
 	Entry entry;
 

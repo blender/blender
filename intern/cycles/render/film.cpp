@@ -187,7 +187,7 @@ bool Pass::contains(const vector<Pass>& passes, PassType type)
 
 /* Pixel Filter */
 
-static float filter_func_box(float v, float width)
+static float filter_func_box(float /*v*/, float /*width*/)
 {
 	return 1.0f;
 }
@@ -424,7 +424,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	need_update = false;
 }
 
-void Film::device_free(Device *device, DeviceScene *dscene, Scene *scene)
+void Film::device_free(Device * /*device*/,
+                       DeviceScene * /*dscene*/,
+                       Scene *scene)
 {
 	if(filter_table_offset != TABLE_OFFSET_INVALID) {
 		scene->lookup_tables->remove_table(filter_table_offset);
@@ -459,7 +461,7 @@ void Film::tag_passes_update(Scene *scene, const vector<Pass>& passes_)
 	passes = passes_;
 }
 
-void Film::tag_update(Scene *scene)
+void Film::tag_update(Scene * /*scene*/)
 {
 	need_update = true;
 }

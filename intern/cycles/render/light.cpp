@@ -699,7 +699,7 @@ void LightManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->light_background_conditional_cdf.clear();
 }
 
-void LightManager::tag_update(Scene *scene)
+void LightManager::tag_update(Scene * /*scene*/)
 {
 	need_update = true;
 }

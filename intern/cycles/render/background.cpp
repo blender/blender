@@ -93,7 +93,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	need_update = false;
 }
 
-void Background::device_free(Device *device, DeviceScene *dscene)
+void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
 }
 

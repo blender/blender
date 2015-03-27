@@ -111,7 +111,7 @@ void ParticleSystemManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->particles.clear();
 }
 
-void ParticleSystemManager::tag_update(Scene *scene)
+void ParticleSystemManager::tag_update(Scene * /*scene*/)
 {
 	need_update = true;
 }

@@ -1507,11 +1507,11 @@ ProxyNode::ProxyNode(ShaderSocketType type_)
 	add_output("Output", type);
 }
 
-void ProxyNode::compile(SVMCompiler& compiler)
+void ProxyNode::compile(SVMCompiler& /*compiler*/)
 {
 }
 
-void ProxyNode::compile(OSLCompiler& compiler)
+void ProxyNode::compile(OSLCompiler& /*compiler*/)
 {
 }
 
@@ -1587,7 +1587,7 @@ void BsdfNode::compile(SVMCompiler& compiler)
 	compile(compiler, NULL, NULL);
 }
 
-void BsdfNode::compile(OSLCompiler& compiler)
+void BsdfNode::compile(OSLCompiler& /*compiler*/)
 {
 	assert(0);
 }
@@ -2078,7 +2078,7 @@ void VolumeNode::compile(SVMCompiler& compiler)
 	compile(compiler, NULL, NULL);
 }
 
-void VolumeNode::compile(OSLCompiler& compiler)
+void VolumeNode::compile(OSLCompiler& /*compiler*/)
 {
 	assert(0);
 }
@@ -2916,7 +2916,7 @@ AddClosureNode::AddClosureNode()
 	add_output("Closure",  SHADER_SOCKET_CLOSURE);
 }
 
-void AddClosureNode::compile(SVMCompiler& compiler)
+void AddClosureNode::compile(SVMCompiler& /*compiler*/)
 {
 	/* handled in the SVM compiler */
 }
@@ -2939,7 +2939,7 @@ MixClosureNode::MixClosureNode()
 	add_output("Closure",  SHADER_SOCKET_CLOSURE);
 }
 
-void MixClosureNode::compile(SVMCompiler& compiler)
+void MixClosureNode::compile(SVMCompiler& /*compiler*/)
 {
 	/* handled in the SVM compiler */
 }
@@ -2977,7 +2977,7 @@ void MixClosureWeightNode::compile(SVMCompiler& compiler)
 			weight1_out->stack_offset, weight2_out->stack_offset));
 }
 
-void MixClosureWeightNode::compile(OSLCompiler& compiler)
+void MixClosureWeightNode::compile(OSLCompiler& /*compiler*/)
 {
 	assert(0);
 }
@@ -4122,7 +4122,7 @@ OSLScriptNode::OSLScriptNode()
 	special_type = SHADER_SPECIAL_TYPE_SCRIPT;
 }
 
-void OSLScriptNode::compile(SVMCompiler& compiler)
+void OSLScriptNode::compile(SVMCompiler& /*compiler*/)
 {
 	/* doesn't work for SVM, obviously ... */
 }

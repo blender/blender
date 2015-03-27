@@ -221,7 +221,10 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 	return true;
 }
 
-void BakeManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void BakeManager::device_update(Device * /*device*/,
+                                DeviceScene * /*dscene*/,
+                                Scene * /*scene*/,
+                                Progress& progress)
 {
 	if(!need_update)
 		return;
@@ -231,7 +234,7 @@ void BakeManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	need_update = false;
 }
 
-void BakeManager::device_free(Device *device, DeviceScene *dscene)
+void BakeManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
 }
 
