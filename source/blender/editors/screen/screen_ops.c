@@ -3413,9 +3413,16 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 	return 0;
 }
 
+//#define PROFILE_AUDIO_SYNCH
+
 static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	bScreen *screen = CTX_wm_screen(C);
+
+#ifdef PROFILE_AUDIO_SYNCH
+	static int old_frame = 0;
+	int newfra_int;
+#endif
 
 	if (screen->animtimer && screen->animtimer == event->customdata) {
 		Main *bmain = CTX_data_main(C);
@@ -3438,11 +3445,24 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 		    finite(time = BKE_sound_sync_scene(scene)))
 		{
 			double newfra = (double)time * FPS;
+
 			/* give some space here to avoid jumps */
 			if (newfra + 0.5 > scene->r.cfra && newfra - 0.5 < scene->r.cfra)
 				scene->r.cfra++;
 			else
 				scene->r.cfra = newfra + 0.5;
+
+#ifdef PROFILE_AUDIO_SYNCH
+			newfra_int = scene->r.cfra;
+			if (newfra_int < old_frame) {
+				printf("back jump detected, frame %d!\n", newfra_int);
+			}
+			else if (newfra_int > old_frame + 1) {
+				printf("forward jump detected, frame %d!\n", newfra_int);
+			}
+			fflush(stdout);
+			old_frame = newfra_int;
+#endif
 		}
 		else {
 			if (sync) {
