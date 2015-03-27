@@ -93,7 +93,6 @@ typedef struct CompoJob {
 	const short *stop;
 	short *do_update;
 	float *progress;
-	short need_sync;
 	int recalc_flags;
 } CompoJob;
 
@@ -201,17 +200,8 @@ static void compo_initjob(void *cjv)
 }
 
 /* called before redraw notifiers, it moves finished previews over */
-static void compo_updatejob(void *cjv)
+static void compo_updatejob(void *UNUSED(cjv))
 {
-	CompoJob *cj = cjv;
-
-	if (cj->need_sync) {
-		/* was used by old compositor system only */
-		ntreeLocalSync(cj->localtree, cj->ntree);
-
-		cj->need_sync = false;
-	}
-
 	WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, NULL);
 }
 
