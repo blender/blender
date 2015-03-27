@@ -851,6 +851,7 @@ static void rearrange_animchannel_add_to_islands(ListBase *islands, ListBase *sr
 			break;
 		}
 		case ANIMTYPE_FCURVE:
+		case ANIMTYPE_NLACURVE:
 		{
 			FCurve *fcu = (FCurve *)channel;
 			
@@ -1195,6 +1196,40 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
 
 /* ------------------- */
 
+static void rearrange_nla_control_channels(bAnimContext *ac, AnimData *adt, eRearrangeAnimChan_Mode mode)
+{
+	ListBase anim_data_visible = {NULL, NULL};
+	
+	NlaTrack *nlt;
+	NlaStrip *strip;
+	
+	/* get rearranging function */
+	AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
+	
+	if (rearrange_func == NULL)
+		return;
+		
+	/* skip if these curves aren't being shown */
+	if (adt->flag & ADT_NLA_SKEYS_COLLAPSED)
+		return;
+	
+	/* Filter visible data. */
+	rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_NLACURVE);
+	
+	/* we cannot rearrange between strips, but within each strip, we can rearrange those curves */
+	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+		for (strip = nlt->strips.first; strip; strip = strip->next) {
+			rearrange_animchannel_islands(&strip->fcurves, rearrange_func, mode, ANIMTYPE_NLACURVE,
+				                          &anim_data_visible);
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data_visible);
+}
+
+/* ------------------- */
+
 static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode mode)
 {
 	ListBase anim_data = {NULL, NULL};
@@ -1282,13 +1317,29 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 					rearrange_driver_channels(&ac, adt, mode);
 					break;
 				
+				case ANIMCONT_ACTION: /* Single Action only... */
 				case ANIMCONT_SHAPEKEY: // DOUBLE CHECK ME...
-				default: /* some collection of actions */
+				{
 					if (adt->action)
 						rearrange_action_channels(&ac, adt->action, mode);
 					else if (G.debug & G_DEBUG)
 						printf("Animdata has no action\n");
 					break;
+				}
+				
+				default: /* DopeSheet/Graph Editor - Some Actions + NLA Control Curves */
+				{
+					/* NLA Control Curves */
+					if (adt->nla_tracks.first)
+						rearrange_nla_control_channels(&ac, adt, mode);
+					
+					/* Action */
+					if (adt->action)
+						rearrange_action_channels(&ac, adt->action, mode);
+					else if (G.debug & G_DEBUG)
+						printf("Animdata has no action\n");
+					break;
+				}
 			}
 		}
 		
