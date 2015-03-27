@@ -423,6 +423,7 @@ void tracking_cameraIntrinscisOptionsFromTracking(MovieTracking *tracking,
 			break;
 		default:
 			BLI_assert(!"Unknown distortion model");
+			break;
 	}
 
 	camera_intrinsics_options->image_width = calibration_width;
@@ -454,6 +455,7 @@ void tracking_trackingCameraFromIntrinscisOptions(MovieTracking *tracking,
 			break;
 		default:
 			BLI_assert(!"Unknown distortion model");
+			break;
 	}
 }
 
