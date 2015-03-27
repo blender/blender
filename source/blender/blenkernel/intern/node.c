@@ -1418,7 +1418,7 @@ static void node_preview_sync(bNodePreview *to, bNodePreview *from)
 	if (to->rect && from->rect) {
 		int xsize = to->xsize;
 		int ysize = to->ysize;
-		memcpy(to->rect, from->rect, 4 * xsize + xsize * ysize * sizeof(char) * 4);
+		memcpy(to->rect, from->rect, xsize * ysize * sizeof(char) * 4);
 	}
 }
 
