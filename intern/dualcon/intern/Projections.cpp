@@ -158,7 +158,7 @@ static void create_projection_axes(int64_t axes[NUM_AXES][3], const int64_t tri[
 /**
  * Construction from a cube (axes aligned) and triangle
  */
-CubeTriangleIsect::CubeTriangleIsect(int64_t cube[2][3], int64_t tri[3][3], int64_t error, int triind)
+CubeTriangleIsect::CubeTriangleIsect(int64_t cube[2][3], int64_t tri[3][3], int64_t /*error*/, int triind)
 {
 	int i;
 	inherit = new TriangleProjection;

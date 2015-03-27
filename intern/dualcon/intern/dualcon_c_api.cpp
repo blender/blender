@@ -174,7 +174,7 @@ float getBoundingBox(float origin[3])
 }
 
 /* output */
-void getNextVertex(float v[3])
+void getNextVertex(float /*v*/[3])
 {
 	/* not used */
 }

@@ -1448,7 +1448,7 @@ Node *Octree::locateCell(InternalNode *node, int st[3], int len, int ori[3], int
 	return (Node *)node;
 }
 
-void Octree::checkElement(PathElement *ele)
+void Octree::checkElement(PathElement * /*ele*/)
 {
 	/*
 	   if(ele != NULL && locateLeafCheck(ele->pos) != ele->node) {
@@ -1797,7 +1797,7 @@ void Octree::clearProcessBits(Node *node, int height)
 	}
 }
 
-int Octree::floodFill(LeafNode *leaf, int st[3], int len, int height, int threshold)
+int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int threshold)
 {
 	int i, j;
 	int maxtotal = 0;
@@ -2317,7 +2317,7 @@ void Octree::generateMinimizer(Node *node, int st[3], int len, int height, int& 
 	}
 }
 
-void Octree::processEdgeWrite(Node *node[4], int depth[4], int maxdep, int dir)
+void Octree::processEdgeWrite(Node *node[4], int /*depth*/[4], int /*maxdep*/, int dir)
 {
 	//int color = 0;
 
@@ -2553,7 +2553,7 @@ void Octree::cellProcContour(Node *node, int leaf, int depth)
 
 }
 
-void Octree::processEdgeParity(LeafNode *node[4], int depth[4], int maxdep, int dir)
+void Octree::processEdgeParity(LeafNode *node[4], int /*depth*/[4], int /*maxdep*/, int dir)
 {
 	int con = 0;
 	for (int i = 0; i < 4; i++) {
