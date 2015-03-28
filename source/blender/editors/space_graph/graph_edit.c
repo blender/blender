@@ -498,12 +498,17 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 		else 
 			cfra = (float)CFRA;
 			
-		/* if there's an id */
-		if (ale->id)
+		/* read value from property the F-Curve represents, or from the curve only?
+		 * - ale->id != NULL:    Typically, this means that we have enough info to try resolving the path
+		 * - ale->owner != NULL: If this is set, then the path may not be resolvable from the ID alone,
+		 *                       so it's easier for now to just read the F-Curve directly.
+		 *                       (TODO: add the full-blown PointerRNA relative parsing case here...)
+		 */
+		if (ale->id && !ale->owner)
 			insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		else
 			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
-
+		
 		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
 	
@@ -596,12 +601,12 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 		
 		/* insert keyframe on the specified frame + value */
 		insert_vert_fcurve(fcu, frame, val, 0);
-
+		
 		ale->update |= ANIM_UPDATE_DEPS;
-
+		
 		BLI_listbase_clear(&anim_data);
 		BLI_addtail(&anim_data, ale);
-
+		
 		ANIM_animdata_update(&ac, &anim_data);
 	}
 	else {

@@ -210,13 +210,18 @@ int graphop_active_fcurve_poll(bContext *C)
 	if (ale == NULL)
 		return 0;
 		
-	/* free temp data... */
-	has_fcurve = ((ale->data) && (ale->type == ANIMTYPE_FCURVE));
+	/* do we have a suitable F-Curves?
+	 * - For most cases, NLA Control Curves are sufficiently similar to NLA curves to serve this role too.
+	 *   Under the hood, they are F-Curves too. The only problems which will arise here are if these need to be
+	 *   in an Action too (but drivers would then also be affected!)
+	 */
+	has_fcurve = ((ale->data) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE));
 	if (has_fcurve) {
 		FCurve *fcu = (FCurve *)ale->data;
 		has_fcurve = (fcu->flag & FCURVE_VISIBLE) != 0;
 	}
 	
+	/* free temp data... */
 	MEM_freeN(ale);
 	
 	/* return success */
