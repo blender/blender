@@ -165,9 +165,28 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
 	
 	/* user-friendly 'name' for F-Curve */
-	/* TODO: only show the path if this is invalid? */
 	col = uiLayoutColumn(layout, false);
-	icon = getname_anim_fcurve(name, ale->id, fcu);
+	if (ale->type == ANIMTYPE_FCURVE) {
+		/* get user-friendly name for F-Curve */
+		icon = getname_anim_fcurve(name, ale->id, fcu);
+	}
+	else {
+		/* NLA Control Curve, etc. */
+		bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+		
+		/* get name */
+		if (acf && acf->name) {
+			acf->name(ale, name);
+		}
+		else {
+			strcpy(name, IFACE_("<invalid>"));
+			icon = ICON_ERROR;
+		}
+		
+		/* icon */
+		if (ale->type == ANIMTYPE_NLACURVE)
+			icon = ICON_NLA;
+	}
 	uiItemL(col, name, icon);
 		
 	/* RNA-Path Editing - only really should be enabled when things aren't working */
