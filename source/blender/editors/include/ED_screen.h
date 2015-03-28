@@ -42,7 +42,6 @@ struct wmNotifier;
 struct wmEvent;
 struct wmKeyConfig;
 struct bContext;
-struct SpaceType;
 struct Scene;
 struct bScreen;
 struct ARegion;

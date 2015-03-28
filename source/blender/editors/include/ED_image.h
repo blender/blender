@@ -31,13 +31,11 @@
 #define __ED_IMAGE_H__
 
 struct SpaceImage;
-struct Main;
 struct bContext;
 struct Image;
 struct ImageUser;
 struct ImBuf;
 struct ToolSettings;
-struct uiBlock;
 struct wmWindowManager;
 struct ARegion;
 struct Scene;

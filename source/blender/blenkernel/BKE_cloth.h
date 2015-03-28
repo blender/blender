@@ -36,15 +36,11 @@
 #include "BLI_math_inline.h"
 
 struct Object;
-struct ListBase;
 struct Scene;
 struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
 struct CollisionModifierData;
-struct CollisionTree;
-struct VoxelData;
-struct PartDeflect;
 
 #define DO_INLINE MALWAYS_INLINE
 

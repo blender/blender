@@ -40,8 +40,6 @@ extern "C" {
 struct VFont;
 struct Object;
 struct Curve;
-struct objfnt;
-struct TmpFont;
 struct CharInfo;
 struct Main;
 

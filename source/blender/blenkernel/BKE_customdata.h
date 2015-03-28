@@ -46,7 +46,6 @@ extern "C" {
 struct BMesh;
 struct ID;
 struct CustomData;
-struct CustomDataLayer;
 typedef uint64_t CustomDataMask;
 
 /*a data type large enough to hold 1 element from any customdata layer type*/

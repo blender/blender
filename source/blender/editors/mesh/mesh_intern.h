@@ -34,14 +34,9 @@
 #ifndef __MESH_INTERN_H__
 #define __MESH_INTERN_H__
 
-struct BMEdge;
 struct BMEditMesh;
-struct BMFace;
-struct BMHeader;
 struct BMOperator;
-struct BMesh;
 struct EnumPropertyItem;
-struct ViewContext;
 struct bContext;
 struct wmKeyConfig;
 struct wmKeyMap;

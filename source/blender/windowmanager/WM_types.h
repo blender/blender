@@ -109,7 +109,6 @@ extern "C" {
 struct bContext;
 struct wmEvent;
 struct wmWindowManager;
-struct uiLayout;
 struct wmOperator;
 struct ImBuf;
 

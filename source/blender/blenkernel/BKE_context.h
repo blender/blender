@@ -53,7 +53,6 @@ struct StructRNA;
 struct ToolSettings;
 struct Image;
 struct Text;
-struct ImBuf;
 struct EditBone;
 struct bPoseChannel;
 struct bGPdata;

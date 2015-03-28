@@ -36,6 +36,7 @@
 extern "C" {
 #endif
 
+struct ImBuf;
 struct Image;
 struct ImageUser;
 struct MTFace;

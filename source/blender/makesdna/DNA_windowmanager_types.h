@@ -49,12 +49,9 @@ struct wmKeyConfig;
 
 /* forwards */
 struct bContext;
-struct wmLocal;
 struct bScreen;
-struct uiBlock;
 struct wmSubWindow;
 struct wmTimer;
-struct StructRNA;
 struct PointerRNA;
 struct ReportList;
 struct Report;

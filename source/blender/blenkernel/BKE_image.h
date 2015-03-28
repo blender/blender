@@ -39,7 +39,6 @@ extern "C" {
 
 struct Image;
 struct ImBuf;
-struct Tex;
 struct anim;
 struct Scene;
 struct Object;

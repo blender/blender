@@ -32,8 +32,6 @@
 #define __SCREEN_INTERN_H__
 
 /* internal exports only */
-struct wmWindow;
-struct Scene;
 
 #define AZONESPOT       (0.6f * U.widget_unit)
 #define AZONEFADEIN     (5.0f * U.widget_unit) /* when azone is totally visible */

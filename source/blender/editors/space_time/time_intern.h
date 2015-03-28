@@ -34,7 +34,6 @@
 
 /* internal exports only */
 
-struct wmWindowManager;
 
 /* time_ops.c */
 void time_operatortypes(void);

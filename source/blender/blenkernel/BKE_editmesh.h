@@ -32,7 +32,6 @@
 
 struct BMesh;
 struct BMLoop;
-struct BMFace;
 struct Mesh;
 struct Scene;
 struct DerivedMesh;

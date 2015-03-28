@@ -43,7 +43,6 @@ struct GPUShader;
 struct GPUOutput;
 struct GPUNode;
 struct GPUVertexAttribs;
-struct GPUFrameBuffer;
 struct PreviewImage;
 
 /* Pass Generation

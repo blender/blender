@@ -40,7 +40,6 @@
 
 struct ID;
 struct ListBase;
-struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
 struct bNodeTreeExec;

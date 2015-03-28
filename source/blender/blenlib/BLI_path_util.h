@@ -38,7 +38,6 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 
 struct ListBase;
-struct direntry;
 
 #ifdef WIN32
 #define SEP '\\'

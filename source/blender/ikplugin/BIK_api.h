@@ -41,7 +41,6 @@ extern "C" {
 struct Object;
 struct bPoseChannel;
 struct bPose;
-struct bArmature;
 struct Scene;
 struct bConstraint;
 

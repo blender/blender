@@ -34,14 +34,11 @@
 
 #include "render_types.h"
 
-struct HaloRen;
 struct ShadeInput;
 struct ShadeResult;
 struct World;
 struct RenderPart;
 struct RenderLayer;
-struct ObjectRen;
-struct ListBase;
 struct RayObject;
 
 /* ------------------------------------------------------------------------- */

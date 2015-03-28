@@ -34,7 +34,6 @@ struct ARegion;
 struct bContext;
 struct Object;
 struct RegionView3D;
-struct Scene;
 struct ViewContext;
 struct rcti;
 

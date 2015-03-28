@@ -97,7 +97,6 @@ struct ColorBand;
 struct GPUVertexAttribs;
 struct GPUDrawObject;
 struct BMEditMesh;
-struct ListBase;
 struct PBVH;
 
 /* number of sub-elements each mesh element has (for interpolation) */

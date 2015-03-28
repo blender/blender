@@ -29,11 +29,9 @@
 
 //#define RIGID_DEFORM
 
-struct Scene;
 struct Object;
 struct Mesh;
 struct bDeformGroup;
-struct MeshDeformModifierData;
 
 #ifdef RIGID_DEFORM
 struct EditMesh;

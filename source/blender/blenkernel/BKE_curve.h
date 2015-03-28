@@ -33,7 +33,6 @@
  *  \author nzc
  */
 
-struct BevList;
 struct BezTriple;
 struct Curve;
 struct EditNurb;

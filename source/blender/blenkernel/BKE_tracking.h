@@ -41,7 +41,6 @@ struct MovieTrackingMarker;
 struct MovieTrackingPlaneTrack;
 struct MovieTrackingPlaneMarker;
 struct MovieTracking;
-struct MovieTrackingContext;
 struct MovieTrackingObject;
 struct MovieClipUser;
 struct MovieDistortion;

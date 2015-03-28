@@ -38,12 +38,10 @@
 
 struct OldNewMap;
 struct MemFile;
-struct bheadsort;
 struct ReportList;
 struct Object;
 struct PartEff;
 struct View3D;
-struct bNodeTree;
 struct Key;
 
 typedef struct FileData {

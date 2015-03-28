@@ -64,7 +64,6 @@ enum {
 	FFMPEG_PRESET_XVID      = 7,
 };
 
-struct IDProperty;
 struct RenderData;
 struct ReportList;
 struct Scene;

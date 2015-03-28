@@ -29,7 +29,6 @@
 #define __DNA_DYNAMICPAINT_TYPES_H__
 
 #include "DNA_listBase.h"
-struct CurveMapping;
 struct PaintSurfaceData;
 
 /* surface format */

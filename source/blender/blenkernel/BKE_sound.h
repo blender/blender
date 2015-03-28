@@ -35,9 +35,7 @@
 
 #define SOUND_WAVE_SAMPLES_PER_SECOND 250
 
-struct PackedFile;
 struct bSound;
-struct ListBase;
 struct Main;
 struct Sequence;
 

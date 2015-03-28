@@ -31,15 +31,9 @@
 #ifndef __ED_UTIL_H__
 #define __ED_UTIL_H__
 
-struct Scene;
-struct Object;
 struct bContext;
-struct ARegion;
-struct uiBlock;
 struct wmOperator;
 struct wmOperatorType;
-struct BMEditMesh;
-struct Mesh;
 
 /* ed_util.c */
 

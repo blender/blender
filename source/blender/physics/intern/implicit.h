@@ -59,7 +59,6 @@ extern "C" {
 //#define IMPLICIT_ENABLE_EIGEN_DEBUG
 
 struct Implicit_Data;
-struct ImplicitSolverInput;
 
 typedef struct ImplicitSolverResult {
 	int status;
@@ -133,7 +132,6 @@ bool BPH_mass_spring_force_spring_goal(struct Implicit_Data *data, int i, const 
 
 struct HairGrid;
 
-struct Object;
 struct VoxelData;
 
 #define MAX_HAIR_GRID_RES 256

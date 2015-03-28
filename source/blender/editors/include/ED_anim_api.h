@@ -49,7 +49,6 @@ struct Object;
 struct bDopeSheet;
 
 struct bAction;
-struct bActionGroup;
 struct FCurve;
 struct FModifier;
 

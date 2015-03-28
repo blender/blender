@@ -32,7 +32,6 @@
  *  \since March 2001
  *  \author nzc
  */
-struct EvaluationContext;
 struct Main;
 struct MetaBall;
 struct Object;

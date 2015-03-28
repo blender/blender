@@ -41,7 +41,6 @@ struct SpaceLink;
 struct ARegion;
 struct ARegionType;
 struct PanelType;
-struct HeaderType;
 struct Scene;
 struct uiLayout;
 struct wmTimer;

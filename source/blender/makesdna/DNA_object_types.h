@@ -48,7 +48,6 @@ struct Ipo;
 struct BoundBox;
 struct Path;
 struct Material;
-struct bConstraintChannel;
 struct PartDeflect;
 struct SoftBody;
 struct FluidsimSettings;

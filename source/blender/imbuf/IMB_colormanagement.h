@@ -47,10 +47,6 @@ struct ColormanageProcessor;
 struct EnumPropertyItem;
 struct ImBuf;
 struct Main;
-struct rcti;
-struct PartialBufferUpdateContext;
-struct wmWindow;
-struct Scene;
 struct ImageFormatData;
 
 struct ColorSpace;

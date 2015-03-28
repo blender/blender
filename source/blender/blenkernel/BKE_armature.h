@@ -36,13 +36,10 @@
 struct Bone;
 struct Main;
 struct bArmature;
-struct bPose;
 struct bPoseChannel;
 struct bConstraint;
 struct Scene;
 struct Object;
-struct MDeformVert;
-struct Mesh;
 struct PoseTree;
 struct ListBase;
 

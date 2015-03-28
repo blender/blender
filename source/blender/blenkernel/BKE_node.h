@@ -62,24 +62,20 @@ struct bNodeTreeExec;
 struct bNodeExecContext;
 struct bNodeExecData;
 struct GPUMaterial;
-struct GPUNode;
 struct GPUNodeStack;
 struct ID;
 struct ImBuf;
 struct ImageFormatData;
 struct ListBase;
 struct Main;
-struct uiBlock;
 struct uiLayout;
 struct MTex;
 struct PointerRNA;
-struct rctf;
 struct RenderData;
 struct Scene;
 struct Tex;
 struct SpaceNode;
 struct ARegion;
-struct Object;
 struct ColorManagedViewSettings;
 struct ColorManagedDisplaySettings;
 struct bNodeInstanceHash;
@@ -978,7 +974,6 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_TRACKPOS_ABSOLUTE_FRAME	3
 
 /* API */
-struct CompBuf;
 void ntreeCompositExecTree(struct Scene *scene, struct bNodeTree *ntree, struct RenderData *rd, int rendering, int do_previews,
                            const struct ColorManagedViewSettings *view_settings, const struct ColorManagedDisplaySettings *display_settings);
 void ntreeCompositTagRender(struct Scene *sce);

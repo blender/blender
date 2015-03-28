@@ -40,7 +40,6 @@ struct bContext;
 
 struct EditBone;
 
-struct RigJoint;
 struct RigGraph;
 struct RigNode;
 struct RigArc;

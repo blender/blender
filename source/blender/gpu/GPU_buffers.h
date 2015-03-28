@@ -42,10 +42,8 @@
 struct BMesh;
 struct CCGElem;
 struct CCGKey;
-struct CustomData;
 struct DMFlagMat;
 struct DerivedMesh;
-struct GHash;
 struct GSet;
 struct GPUVertPointLink;
 struct PBVH;

@@ -39,7 +39,6 @@ struct DagNode;
 struct Object;
 struct Scene;
 struct ListBase;
-struct LinkNode;
 struct bArmature;
 struct Main;
 struct ModifierData;

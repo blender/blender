@@ -54,7 +54,6 @@ struct ImageFormatData;
 struct RenderData;
 struct ReportList;
 struct Scene;
-struct wmOperatorType;
 
 int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports, bool preview);	//for movie handle (BKE writeavi.c now)
 int append_qt(struct RenderData *rd, int start_frame, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);

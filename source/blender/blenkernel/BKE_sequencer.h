@@ -38,11 +38,9 @@ struct GSet;
 struct ImBuf;
 struct Main;
 struct Mask;
-struct MovieClip;
 struct Scene;
 struct Sequence;
 struct SequenceModifierData;
-struct Strip;
 struct StripElem;
 struct bSound;
 

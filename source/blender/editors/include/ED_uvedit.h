@@ -37,13 +37,11 @@ struct BMFace;
 struct BMLoop;
 struct Image;
 struct ImageUser;
-struct MTFace;
 struct MTexPoly;
 struct Main;
 struct Object;
 struct Scene;
 struct SpaceImage;
-struct bContext;
 struct bNode;
 struct wmKeyConfig;
 

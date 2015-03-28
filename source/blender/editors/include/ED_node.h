@@ -33,7 +33,6 @@
 
 struct ID;
 struct Main;
-struct Material;
 struct Scene;
 struct Tex;
 struct bContext;

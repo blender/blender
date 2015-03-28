@@ -31,7 +31,6 @@
  *  \ingroup bke
  */
 
-struct Text;
 struct bSensor;
 struct Object;
 struct bController;

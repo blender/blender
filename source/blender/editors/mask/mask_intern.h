@@ -34,7 +34,6 @@
 
 struct bContext;
 struct Mask;
-struct wmEvent;
 struct wmOperatorType;
 
 /* internal exports only */

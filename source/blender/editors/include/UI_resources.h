@@ -301,7 +301,6 @@ enum {
 /* specific defines per space should have higher define values */
 
 struct bTheme;
-struct PointerRNA;
 
 struct bThemeState {
 	struct bTheme *theme;

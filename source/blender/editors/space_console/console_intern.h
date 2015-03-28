@@ -31,7 +31,6 @@
 
 struct ConsoleLine;
 struct wmOperatorType;
-struct ReportList;
 struct bContext;
 
 /* console_draw.c */

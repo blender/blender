@@ -32,7 +32,6 @@
 #ifndef __SOUND_INTERN_H__
 #define __SOUND_INTERN_H__
 
-struct wmOperatorType;
 
 #endif /* __SOUND_INTERN_H__ */
 

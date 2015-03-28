@@ -48,7 +48,6 @@ struct ID;
 struct Main;
 struct Object;
 struct Scene;
-struct ListBase;
 
 /* Dependency graph evaluation context
  *

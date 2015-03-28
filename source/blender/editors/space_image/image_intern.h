@@ -38,11 +38,7 @@ struct ARegion;
 struct ARegionType;
 struct ScrArea;
 struct SpaceImage;
-struct Object;
-struct Image;
-struct ImBuf;
 struct wmOperatorType;
-struct Scene;
 struct bNodeTree;
 
 /* space_image.c */

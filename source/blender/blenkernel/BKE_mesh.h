@@ -33,13 +33,11 @@
 
 struct ID;
 struct BoundBox;
-struct DispList;
 struct EdgeHash;
 struct ListBase;
 struct LinkNode;
 struct BLI_Stack;
 struct MemArena;
-struct BMEditMesh;
 struct BMesh;
 struct Main;
 struct Mesh;
@@ -49,18 +47,11 @@ struct MFace;
 struct MEdge;
 struct MVert;
 struct MDeformVert;
-struct MCol;
 struct Object;
-struct MTFace;
-struct VecNor;
 struct CustomData;
 struct DerivedMesh;
 struct Scene;
 struct MLoopUV;
-struct UvVertMap;
-struct UvMapVert;
-struct UvElementMap;
-struct UvElement;
 struct ReportList;
 
 #ifdef __cplusplus

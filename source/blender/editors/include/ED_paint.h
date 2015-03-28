@@ -26,7 +26,6 @@
 #define __ED_PAINT_H__
 
 struct bContext;
-struct RegionView3D;
 struct wmKeyConfig;
 struct wmOperator;
 

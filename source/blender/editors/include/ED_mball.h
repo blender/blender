@@ -32,7 +32,6 @@
 #define __ED_MBALL_H__
 
 struct bContext;
-struct MetaBall;
 struct Object;
 struct wmKeyConfig;
 

@@ -37,7 +37,6 @@ struct Main;
 struct MovieClip;
 struct MovieClipScopes;
 struct MovieClipUser;
-struct MovieTrackingTrack;
 struct MovieDistortion;
 
 void BKE_movieclip_free(struct MovieClip *clip);

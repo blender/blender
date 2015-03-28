@@ -27,8 +27,6 @@
  *  \ingroup bke
  */
 
-struct bContext;
-struct wmOperator;
 struct Scene;
 
 /* Actual surface point	*/

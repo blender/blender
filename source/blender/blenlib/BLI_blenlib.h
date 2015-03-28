@@ -58,7 +58,6 @@
 #ifndef __BLI_BLENLIB_H__
 #define __BLI_BLENLIB_H__
 
-struct ListBase;
 
 #include <stdlib.h>
 

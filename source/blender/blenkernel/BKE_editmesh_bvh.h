@@ -39,7 +39,6 @@ struct BMVert;
 struct BMLoop;
 struct BMBVHTree;
 struct BVHTree;
-struct Scene;
 
 typedef struct BMBVHTree BMBVHTree;
 

@@ -34,7 +34,6 @@
 
 struct bAnimContext;
 struct AnimData;
-struct BezTriple;
 struct FCurve;
 struct bDopeSheet;
 struct bAction;

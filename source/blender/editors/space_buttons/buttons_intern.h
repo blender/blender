@@ -34,7 +34,6 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
-struct ARegion;
 struct ARegionType;
 struct ID;
 struct SpaceButs;

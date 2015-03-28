@@ -37,10 +37,8 @@ extern "C" {
 struct ParameterList;
 struct FunctionRNA;
 struct PropertyRNA;
-struct EnumPropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
-struct IDProperty;
 struct bContext;
 struct Main;
 struct ReportList;

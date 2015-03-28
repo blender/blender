@@ -39,7 +39,6 @@ struct RigidBodyOb;
 
 struct Scene;
 struct Object;
-struct Group;
 
 /* -------------- */
 /* Memory Management */

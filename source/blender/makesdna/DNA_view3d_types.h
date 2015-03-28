@@ -35,9 +35,7 @@
 struct ViewDepths;
 struct Object;
 struct Image;
-struct Tex;
 struct SpaceLink;
-struct Base;
 struct BoundBox;
 struct MovieClip;
 struct MovieClipUser;

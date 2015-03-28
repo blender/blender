@@ -34,18 +34,13 @@
 
 struct MTexPoly;
 struct Image;
-struct MTFace;
 struct Object;
 struct Scene;
 struct SpaceImage;
-struct UvElementMap;
 struct wmOperatorType;
 struct BMEditMesh;
-struct BMesh;
 struct BMFace;
 struct BMLoop;
-struct BMEdge;
-struct BMVert;
 
 /* visibility and selection */
 bool uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);

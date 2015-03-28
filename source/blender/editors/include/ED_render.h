@@ -37,9 +37,6 @@ struct MTex;
 struct Render;
 struct Scene;
 struct ScrArea;
-struct RegionView3D;
-struct RenderEngine;
-struct View3D;
 struct wmWindowManager;
 
 /* render_ops.c */

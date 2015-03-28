@@ -39,11 +39,8 @@
 
 struct Object;
 struct Scene;
-struct Effect;
 struct ListBase;
-struct Particle;
 struct Group;
-struct RNG;
 struct ParticleSimulationData;
 struct ParticleData;
 struct ParticleKey;

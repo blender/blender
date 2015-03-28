@@ -32,9 +32,9 @@
 #ifndef __RENDER_INTERN_H__
 #define __RENDER_INTERN_H__
 
+struct bContext;
+struct RenderEngine;
 struct wmOperatorType;
-struct RenderResult;
-struct Scene;
 struct ScrArea;
 
 /* render_shading.c */

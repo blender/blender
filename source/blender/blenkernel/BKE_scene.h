@@ -39,16 +39,13 @@ extern "C" {
 
 struct AviCodecData;
 struct Base;
-struct DisplaySafeAreas;
 struct EvaluationContext;
-struct bglMats;
 struct Main;
 struct Object;
 struct QuicktimeCodecData;
 struct RenderData;
 struct SceneRenderLayer;
 struct Scene;
-struct Text;
 struct UnitSettings;
 struct Main;
 

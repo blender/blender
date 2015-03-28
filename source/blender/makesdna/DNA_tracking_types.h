@@ -43,11 +43,9 @@
 /* match-moving data */
 
 struct bGPdata;
-struct ImBuf;
 struct Image;
 struct MovieReconstructedCamera;
 struct MovieTrackingCamera;
-struct MovieTrackingBundle;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;
 struct MovieTracking;

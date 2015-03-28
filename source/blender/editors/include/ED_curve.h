@@ -31,13 +31,10 @@
 #ifndef __ED_CURVE_H__
 #define __ED_CURVE_H__
 
-struct Base;
 struct bContext;
 struct Nurb;
 struct Object;
-struct Scene;
 struct Text;
-struct View3D;
 struct wmOperator;
 struct wmKeyConfig;
 struct Curve;

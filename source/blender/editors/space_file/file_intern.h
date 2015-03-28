@@ -59,7 +59,6 @@ bool file_draw_check_exists(SpaceFile *sfile);
 /* file_ops.h */
 struct wmOperatorType;
 struct wmOperator;
-struct wmEvent;
 void FILE_OT_highlight(struct wmOperatorType *ot);
 void FILE_OT_select(struct wmOperatorType *ot);
 void FILE_OT_select_all_toggle(struct wmOperatorType *ot);

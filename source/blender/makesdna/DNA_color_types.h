@@ -133,7 +133,6 @@ typedef struct Histogram {
 	float co[2][2];
 } Histogram;
 
-struct ImBuf;
 
 typedef struct Scopes {
 	int ok;

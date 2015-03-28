@@ -36,7 +36,6 @@
 struct RenderPart;
 struct RenderLayer;
 struct LampRen;
-struct VlakRen;
 struct ListBase;
 struct ZSpan;
 struct APixstrand;

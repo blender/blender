@@ -42,7 +42,6 @@ struct Main;
 struct MemFile;
 struct ReportList;
 struct Scene;
-struct SpaceFile;
 struct UserDef;
 struct bContext;
 struct BHead;

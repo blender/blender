@@ -31,7 +31,6 @@
 extern "C" {
 #include "BLI_utildefines.h" // BLI_assert()
 
-struct Scene;
 struct Text;
 }
 

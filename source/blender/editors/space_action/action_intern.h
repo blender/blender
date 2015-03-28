@@ -35,10 +35,7 @@ struct bContext;
 struct bAnimContext;
 struct SpaceAction;
 struct ARegion;
-struct wmWindowManager;
 struct wmOperatorType;
-struct ActKeysInc;
-struct bAnimListElem;
 
 /* internal exports only */
 

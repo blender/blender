@@ -46,8 +46,6 @@ struct bItasc;
 struct bPoseChannel;
 struct Main;
 struct Object;
-struct Scene;
-struct ID;
 
 /* Kernel prototypes */
 #ifdef __cplusplus

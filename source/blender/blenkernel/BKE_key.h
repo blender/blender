@@ -38,7 +38,6 @@ struct ID;
 struct ListBase;
 struct Curve;
 struct Object;
-struct Scene;
 struct Lattice;
 struct Mesh;
 struct WeightsArrayCache;

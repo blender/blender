@@ -39,7 +39,6 @@
 struct PackedFile;
 struct Scene;
 struct anim;
-struct ImBuf;
 struct MovieCache;
 struct RenderResult;
 struct GPUTexture;

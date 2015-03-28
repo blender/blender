@@ -32,17 +32,12 @@
 #define __OBJECT_INTERN_H__
 
 struct wmOperatorType;
-struct KeyBlock;
-struct Lattice;
-struct Curve;
 struct Object;
-struct Mesh;
 struct bContext;
 struct StructRNA;
 struct wmOperator;
 
 struct ModifierData;
-struct HookModifierData;
 
 /* add hook menu */
 enum eObject_Hook_Add_Mode {

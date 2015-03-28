@@ -43,7 +43,6 @@
 
 struct bNodeTree;
 struct bNode;
-struct bNodeStack;
 
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp, int in_out);
 

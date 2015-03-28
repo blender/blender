@@ -33,7 +33,6 @@ struct RenderLayer;
 struct PixStr;
 struct LampRen;
 struct VlakRen;
-struct StrandSegment;
 struct StrandPoint;
 struct ObjectInstanceRen;
 struct Isect;

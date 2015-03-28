@@ -43,16 +43,12 @@
 
 #include "BLI_kdopbvh.h"
 
-struct Cloth;
-struct ClothModifierData;
 struct CollisionModifierData;
-struct DerivedMesh;
 struct Group;
 struct MFace;
 struct MVert;
 struct Object;
 struct Scene;
-struct LinkNode;
 
 ////////////////////////////////////////
 // used for collisions in collision.c

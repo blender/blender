@@ -33,19 +33,15 @@
 struct ID;
 struct ListBase;
 struct bContext;
-struct bScreen;
 struct ScrArea;
 struct ARegion;
 struct View3D;
-struct SpaceNode;
-struct SpaceSeq;
 struct Object;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
 struct bGPDstroke;
 struct PointerRNA;
-struct ImBuf;
 struct wmKeyConfig;
 
 

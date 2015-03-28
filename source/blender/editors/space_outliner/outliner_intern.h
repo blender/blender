@@ -36,12 +36,10 @@
 
 /* internal exports only */
 
-struct wmWindowManager;
 struct wmOperatorType;
 struct TreeStoreElem;
 struct bContext;
 struct Scene;
-struct ARegion;
 struct ID;
 struct Object;
 

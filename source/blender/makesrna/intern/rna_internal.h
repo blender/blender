@@ -35,16 +35,13 @@
 
 #define RNA_MAGIC ((int)~0)
 
-struct ColorBand;
 struct ID;
 struct IDProperty;
 struct Main;
 struct Mesh;
 struct Object;
-struct RenderEngine;
 struct ReportList;
 struct SDNA;
-struct Sequence;
 
 /* Data structures used during define */
 

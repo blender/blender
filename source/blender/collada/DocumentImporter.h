@@ -51,7 +51,6 @@
 
 
 
-struct Main;
 struct bContext;
 
 /** Importer class. */

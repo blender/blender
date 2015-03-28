@@ -31,14 +31,12 @@
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
 
-struct CustomData;
 struct DerivedMesh;
 struct MDeformVert;
 struct ModifierData;
 struct Object;
 struct Scene;
 struct Tex;
-struct TexResult;
 
 void modifier_init_texture(const struct Scene *scene, struct Tex *texture);
 void get_texture_coords(struct MappingInfoModifierData *dmd, struct Object *ob, struct DerivedMesh *dm,

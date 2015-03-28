@@ -45,7 +45,6 @@ extern "C" {
 
 /* forwards */
 struct Main;
-struct Object;
 
 typedef struct Global {
 

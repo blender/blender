@@ -37,7 +37,6 @@
 #include "DNA_customdata_types.h"
 
 struct AnimData;
-struct DerivedMesh;
 struct Ipo;
 struct Key;
 struct MCol;
@@ -47,13 +46,11 @@ struct MLoop;
 struct MLoopCol;
 struct MLoopUV;
 struct MPoly;
-struct MSticky;
 struct MTexPoly;
 struct MVert;
 struct Material;
 struct Mesh;
 struct Multires;
-struct OcInfo;
 
 typedef struct Mesh {
 	ID id;

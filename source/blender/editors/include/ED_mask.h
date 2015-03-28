@@ -34,7 +34,6 @@
 struct wmKeyConfig;
 struct MaskLayer;
 struct MaskLayerShape;
-struct wmEvent;
 
 /* mask_edit.c */
 void ED_mask_get_size(struct ScrArea *sa, int *width, int *height);

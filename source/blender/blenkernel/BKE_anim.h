@@ -35,7 +35,6 @@
 struct EvaluationContext;
 struct Path;
 struct Object;
-struct PartEff;
 struct Scene;
 struct ListBase;
 struct bAnimVizSettings;

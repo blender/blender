@@ -35,11 +35,8 @@
 
 struct Render;
 struct ShadeInput;
-struct ShadeResult;
 struct RenderPart;
 struct ShadeSample;
-struct DerivedMesh;
-struct ObjectRen;
 
 void make_occ_tree(struct Render *re);
 void free_occ(struct Render *re);

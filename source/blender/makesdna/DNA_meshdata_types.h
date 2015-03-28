@@ -35,7 +35,6 @@
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
-struct Bone;
 struct Image;
 
 /*tessellation face, see MLoop/MPoly for the real face data*/
@@ -216,7 +215,6 @@ typedef struct MultiresEdge {
 	unsigned int mid;
 } MultiresEdge;
 
-struct MultiresMapNode;
 typedef struct MultiresLevel {
 	struct MultiresLevel *next, *prev;
 

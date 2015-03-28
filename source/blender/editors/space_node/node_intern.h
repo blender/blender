@@ -42,12 +42,9 @@ struct ARegionType;
 struct View2D;
 struct bContext;
 struct wmWindow;
-struct wmWindowManager;
-struct wmEvent;
 struct bNode;
 struct bNodeSocket;
 struct bNodeLink;
-struct Main;
 struct wmKeyConfig;
 
 /* temp data to pass on to modal */

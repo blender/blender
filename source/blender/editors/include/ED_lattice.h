@@ -32,7 +32,6 @@
 #define __ED_LATTICE_H__
 
 struct Object;
-struct Lattice;
 
 void free_editLatt(struct Object *ob);
 void make_editLatt(struct Object *obedit);

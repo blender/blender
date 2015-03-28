@@ -34,14 +34,11 @@
 
 struct ARegion;
 struct bContext;
-struct bglMats;
 struct Brush;
 struct ImagePool;
 struct ColorSpace;
 struct ColorManagedDisplay;
 struct ListBase;
-struct Material;
-struct Mesh;
 struct MTex;
 struct Object;
 struct PaintStroke;
@@ -55,7 +52,6 @@ struct ViewContext;
 struct wmEvent;
 struct wmOperator;
 struct wmOperatorType;
-struct ImagePaintState;
 struct wmWindowManager;
 struct DMCoNo;
 enum PaintMode;

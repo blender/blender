@@ -47,7 +47,6 @@ struct bContextDataResult;
 struct bScreen;
 struct uiLayout;
 struct uiList;
-struct uiMenuItem;
 struct wmKeyConfig;
 struct wmNotifier;
 struct wmWindow;

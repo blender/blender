@@ -55,7 +55,6 @@ extern "C" {
 
 extern char versionstr[]; /* from blender.c */
 
-struct ListBase;
 struct MemFile;
 struct bContext;
 struct ReportList;

@@ -32,7 +32,6 @@
 #ifndef __WM_WINDOW_H__
 #define __WM_WINDOW_H__
 
-struct bScreen;
 struct wmOperator;
 
 /* *************** internal api ************** */

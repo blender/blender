@@ -34,7 +34,6 @@
 
 #include "render_types.h"
 
-struct ObjectRen;
 
 /**
  * Calculates shadowbuffers for a vector of shadow-giving lamps

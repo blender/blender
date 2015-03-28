@@ -41,14 +41,8 @@
 #include "BKE_pbvh.h"
 
 struct bContext;
-struct Brush;
 struct KeyBlock;
-struct Mesh;
-struct MultiresModifierData;
 struct Object;
-struct Scene;
-struct Sculpt;
-struct SculptStroke;
 struct SculptUndoNode;
 
 int sculpt_mode_poll(struct bContext *C);

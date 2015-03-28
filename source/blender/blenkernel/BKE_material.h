@@ -40,8 +40,6 @@ struct Main;
 struct Material;
 struct ID;
 struct Object;
-struct Mesh;
-struct MTFace;
 struct Scene;
 
 /* materials */

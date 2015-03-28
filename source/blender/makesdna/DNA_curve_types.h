@@ -46,7 +46,6 @@ struct Key;
 struct Material;
 struct VFont;
 struct AnimData;
-struct SelBox;
 struct EditFont;
 struct GHash;
 

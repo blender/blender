@@ -32,6 +32,7 @@
 #ifndef __RE_BAKE_H__
 #define __RE_BAKE_H__
 
+struct ImBuf;
 struct Render;
 struct Mesh;
 

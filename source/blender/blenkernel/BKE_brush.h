@@ -27,14 +27,11 @@
  * General operations for brushes.
  */
 
-struct ID;
 struct Brush;
 struct ImBuf;
 struct ImagePool;
 struct Main;
-struct rctf;
 struct Scene;
-struct wmOperator;
 // enum CurveMappingPreset;
 
 

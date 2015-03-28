@@ -35,7 +35,6 @@ struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
 struct DMGridAdjacency;
-struct GHash;
 struct MFace;
 struct MVert;
 struct PBVH;

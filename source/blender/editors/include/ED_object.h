@@ -35,33 +35,17 @@
 extern "C" {
 #endif
 
-struct BMEdge;
-struct BMFace;
-struct BMVert;
-struct BPoint;
 struct Base;
-struct BezTriple;
-struct Curve;
-struct EditBone;
 struct EnumPropertyItem;
 struct ID;
-struct KeyBlock;
-struct Lattice;
 struct Main;
-struct Mesh;
-struct MetaElem;
 struct ModifierData;
-struct HookModifierData;
-struct Nurb;
 struct Object;
 struct ReportList;
 struct Scene;
-struct View3D;
-struct ViewContext;
 struct bConstraint;
 struct bContext;
 struct bPoseChannel;
-struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;

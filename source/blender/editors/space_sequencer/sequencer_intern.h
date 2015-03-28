@@ -45,7 +45,6 @@ struct ARegion;
 struct ARegionType;
 struct Scene;
 struct Main;
-struct SequencePreview;
 
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);

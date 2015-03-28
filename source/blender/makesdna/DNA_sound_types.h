@@ -41,7 +41,6 @@
 
 struct Ipo;
 struct PackedFile;
-struct SpaceLink;
 
 typedef struct bSound {
 	ID id;

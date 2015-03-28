@@ -34,15 +34,12 @@
 /* internal exports only */
 
 struct ARegion;
-struct ARegionType;
 struct bContext;
-struct ReportList;
 struct ScrArea;
 struct SpaceText;
 struct Text;
 struct TextLine;
 struct wmOperatorType;
-struct wmWindowManager;
 
 /* text_draw.c */
 void draw_text_main(struct SpaceText *st, struct ARegion *ar);

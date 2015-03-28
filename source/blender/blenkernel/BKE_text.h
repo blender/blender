@@ -40,7 +40,6 @@ extern "C" {
 struct Main;
 struct Text;
 struct TextLine;
-struct SpaceText;
 
 void			BKE_text_free		(struct Text *text);
 void 			txt_set_undostate	(int u);

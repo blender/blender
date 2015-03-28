@@ -42,10 +42,8 @@ struct GPUDOFSettings;
 struct GPUSSAOSettings;
 struct GPUOffScreen;
 struct GPUFXSettings;
-struct RegionView3D;
 struct rcti;
 struct Scene;
-struct View3D;
 enum eGPUFXFlags;
 
 /**** Public API *****/

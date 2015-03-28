@@ -37,12 +37,10 @@ struct BMesh;
 struct BMFace;
 struct Brush;
 struct CurveMapping;
-struct MDisps;
 struct MeshElemMap;
 struct GridPaintMask;
 struct Main;
 struct MFace;
-struct MultireModifierData;
 struct MVert;
 struct Object;
 struct Paint;
@@ -57,7 +55,6 @@ struct StrokeCache;
 struct Tex;
 struct ImagePool;
 struct UnifiedPaintSettings;
-struct wmOperator;
 
 enum OverlayFlags;
 

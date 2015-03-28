@@ -34,9 +34,7 @@
 
 enum MultiresModifiedFlags;
 struct DerivedMesh;
-struct GridHidden;
 struct MDisps;
-struct MFace;
 struct Mesh;
 struct ModifierData;
 struct Multires;

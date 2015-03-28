@@ -51,7 +51,6 @@ extern "C" {
 #  define PATH_MAX 4096
 #endif
 
-struct gzFile;
 
 /* Common */
 

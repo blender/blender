@@ -35,10 +35,7 @@
 struct bContext;
 struct Object;
 struct ParticleEditSettings;
-struct ParticleSystem;
-struct RadialControl;
 struct rcti;
-struct wmKeyConfig;
 struct PTCacheEdit;
 struct Scene;
 

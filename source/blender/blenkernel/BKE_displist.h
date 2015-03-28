@@ -53,14 +53,9 @@
 
 /* prototypes */
 
-struct Base;
 struct Scene;
 struct Object;
-struct Curve;
 struct ListBase;
-struct Material;
-struct Bone;
-struct Mesh;
 struct DerivedMesh;
 struct EvaluationContext;
 

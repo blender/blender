@@ -36,10 +36,8 @@
 struct Base;
 struct EvaluationContext;
 struct Group;
-struct GroupObject;
 struct Main;
 struct Object;
-struct bAction;
 struct Scene;
 
 void          BKE_group_free(struct Group *group);

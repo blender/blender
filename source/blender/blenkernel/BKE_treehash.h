@@ -27,7 +27,6 @@
  */
 
 struct ID;
-struct GHash;
 struct BLI_mempool;
 struct TreeStoreElem;
 

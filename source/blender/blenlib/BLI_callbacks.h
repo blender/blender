@@ -25,7 +25,6 @@
 #ifndef __BLI_CALLBACKS_H__
 #define __BLI_CALLBACKS_H__
 
-struct bContext;
 struct Main;
 struct ID;
 

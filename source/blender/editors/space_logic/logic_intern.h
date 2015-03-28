@@ -35,12 +35,8 @@
 /* internal exports only */
 struct bContext;
 struct ARegion;
-struct ARegionType;
 struct ScrArea;
-struct SpaceLogic;
-struct Object;
 struct wmOperatorType;
-struct Scene;
 
 /* space_logic.c */
 struct ARegion *logic_has_buttons_region(struct ScrArea *sa);

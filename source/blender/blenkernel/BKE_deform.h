@@ -39,7 +39,6 @@ struct Object;
 struct ListBase;
 struct bDeformGroup;
 struct MDeformVert;
-struct MVert;
 struct MEdge;
 struct MLoop;
 struct MPoly;

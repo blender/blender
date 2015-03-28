@@ -32,11 +32,8 @@
 #define __GRAPH_INTERN_H__
 
 struct bContext;
-struct wmWindowManager;
 struct bAnimContext;
 struct bAnimListElem;
-struct FCurve;
-struct FModifier;
 struct SpaceIpo;
 struct ScrArea;
 struct ARegion;

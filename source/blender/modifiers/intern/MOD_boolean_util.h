@@ -33,9 +33,7 @@
 #ifndef __MOD_BOOLEAN_UTIL_H__
 #define __MOD_BOOLEAN_UTIL_H__
 
-struct Scene;
 struct Object;
-struct Base;
 struct DerivedMesh;
 
 /* Performs a boolean between two mesh objects, it is assumed that both objects

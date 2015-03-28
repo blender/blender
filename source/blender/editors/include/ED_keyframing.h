@@ -46,10 +46,8 @@ struct FCurve;
 struct BezTriple;
 
 struct bPoseChannel;
-struct bConstraint;
 
 struct bContext;
-struct wmOperatorType;
 struct ReportList;
 
 struct PointerRNA;
