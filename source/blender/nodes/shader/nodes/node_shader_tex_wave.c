@@ -47,8 +47,8 @@ static bNodeSocketTemplate sh_node_tex_wave_out[] = {
 static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexWave *tex = MEM_callocN(sizeof(NodeTexWave), "NodeTexWave");
-	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
-	default_color_mapping(&tex->base.color_mapping);
+	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+	BKE_texture_colormapping_default(&tex->base.color_mapping);
 	tex->wave_type = SHD_WAVE_BANDS;
 
 	node->storage = tex;

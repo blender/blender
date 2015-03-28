@@ -70,7 +70,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	BLI_lock_thread(LOCK_IMAGE);
 	if (env->cube[1] == NULL) {
 
-		BKE_free_envmapdata(env);
+		BKE_texture_envmap_free_data(env);
 	
 		dx = ibuf->y;
 		dx /= 2;
@@ -511,7 +511,7 @@ static void render_envmap(Render *re, EnvMap *env)
 
 	}
 	
-	if (re->test_break(re->tbh)) BKE_free_envmapdata(env);
+	if (re->test_break(re->tbh)) BKE_texture_envmap_free_data(env);
 	else {
 		if (envre->r.mode & R_OSA) env->ok = ENV_OSA;
 		else env->ok = ENV_NORMAL;
@@ -572,13 +572,13 @@ void make_envmaps(Render *re)
 								if (env->ok) {
 									/* free when OSA, and old one isn't OSA */
 									if ((re->r.mode & R_OSA) && env->ok == ENV_NORMAL)
-										BKE_free_envmapdata(env);
+										BKE_texture_envmap_free_data(env);
 									/* free when size larger */
 									else if (env->lastsize < re->r.size)
-										BKE_free_envmapdata(env);
+										BKE_texture_envmap_free_data(env);
 									/* free when env is in recalcmode */
 									else if (env->recalc)
-										BKE_free_envmapdata(env);
+										BKE_texture_envmap_free_data(env);
 								}
 								
 								if (env->ok == 0 && depth == 0) env->recalc = 1;

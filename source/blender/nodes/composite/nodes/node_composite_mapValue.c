@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_map_value_out[] = {
 
 static void node_composit_init_map_value(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage = add_tex_mapping(TEXMAP_TYPE_POINT);
+	node->storage = BKE_texture_mapping_add(TEXMAP_TYPE_POINT);
 }
 
 void register_node_type_cmp_map_value(void)

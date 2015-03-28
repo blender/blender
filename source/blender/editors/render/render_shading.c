@@ -450,7 +450,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 		tex = BKE_texture_copy(tex);
 	}
 	else {
-		tex = add_texture(bmain, DATA_("Texture"));
+		tex = BKE_texture_add(bmain, DATA_("Texture"));
 	}
 
 	/* hook into UI */
@@ -1492,7 +1492,7 @@ static int envmap_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 	
-	BKE_free_envmapdata(tex->env);
+	BKE_texture_envmap_free_data(tex->env);
 	
 	WM_event_add_notifier(C, NC_TEXTURE | NA_EDITED, tex);
 	
@@ -1535,7 +1535,7 @@ static int envmap_clear_all_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for (tex = bmain->tex.first; tex; tex = tex->id.next)
 		if (tex->env)
-			BKE_free_envmapdata(tex->env);
+			BKE_texture_envmap_free_data(tex->env);
 	
 	WM_event_add_notifier(C, NC_TEXTURE | NA_EDITED, tex);
 	

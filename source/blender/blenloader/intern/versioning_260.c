@@ -2096,7 +2096,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 	if (!MAIN_VERSION_ATLEAST(main, 266, 4)) {
 		Brush *brush;
 		for (brush = main->brush.first; brush; brush = brush->id.next) {
-			default_mtex(&brush->mask_mtex);
+			BKE_texture_mtex_default(&brush->mask_mtex);
 
 			if (brush->ob_mode & OB_MODE_TEXTURE_PAINT) {
 				brush->spacing /= 2;

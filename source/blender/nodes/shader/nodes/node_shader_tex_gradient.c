@@ -43,8 +43,8 @@ static bNodeSocketTemplate sh_node_tex_gradient_out[] = {
 static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexGradient *tex = MEM_callocN(sizeof(NodeTexGradient), "NodeTexGradient");
-	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
-	default_color_mapping(&tex->base.color_mapping);
+	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+	BKE_texture_colormapping_default(&tex->base.color_mapping);
 	tex->gradient_type = SHD_BLEND_LINEAR;
 
 	node->storage = tex;

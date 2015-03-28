@@ -60,7 +60,7 @@ static void clear_envmap(struct EnvMap *env, bContext *C)
 	Main *bmain = CTX_data_main(C);
 	Tex *tex;
 
-	BKE_free_envmapdata(env);
+	BKE_texture_envmap_free_data(env);
 	
 	for (tex = bmain->tex.first; tex; tex = tex->id.next)
 		if (tex->env == env) {

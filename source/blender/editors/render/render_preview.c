@@ -423,7 +423,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			Tex *tex = NULL, *origtex = (Tex *)id;
 			
 			if (origtex) {
-				tex = localize_texture(origtex);
+				tex = BKE_texture_localize(origtex);
 				sp->texcopy = tex;
 				BLI_addtail(&pr_main->tex, tex);
 			}

@@ -2701,7 +2701,7 @@ static void rna_Image_Node_update_id(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static void rna_Mapping_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
-	init_tex_mapping(node->storage);
+	BKE_texture_mapping_init(node->storage);
 	rna_Node_update(bmain, scene, ptr);
 }
 

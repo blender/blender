@@ -286,7 +286,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
 	Tex *tex = MEM_callocN(sizeof(Tex), "Tex");
 	node->storage = tex;
 	
-	default_tex(tex);
+	BKE_texture_default(tex);
 	tex->type = node->type - TEX_NODE_PROC;
 	
 	if (tex->type == TEX_WOOD)

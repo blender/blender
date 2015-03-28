@@ -71,7 +71,7 @@ static void node_shader_exec_mapping(void *UNUSED(data), int UNUSED(thread), bNo
 
 static void node_shader_init_mapping(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage = add_tex_mapping(TEXMAP_TYPE_POINT);
+	node->storage = BKE_texture_mapping_add(TEXMAP_TYPE_POINT);
 }
 
 static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

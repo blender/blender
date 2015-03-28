@@ -377,7 +377,7 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED
 
 MTex *rna_mtex_texture_slots_add(ID *self_id, struct bContext *C, ReportList *reports)
 {
-	MTex *mtex = add_mtex_id(self_id, -1);
+	MTex *mtex = BKE_texture_mtex_add_id(self_id, -1);
 	if (mtex == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Maximum number of textures added %d", MAX_MTEX);
 		return NULL;
@@ -398,7 +398,7 @@ MTex *rna_mtex_texture_slots_create(ID *self_id, struct bContext *C, ReportList 
 		return NULL;
 	}
 
-	mtex = add_mtex_id(self_id, index);
+	mtex = BKE_texture_mtex_add_id(self_id, index);
 
 	/* for redraw only */
 	WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));

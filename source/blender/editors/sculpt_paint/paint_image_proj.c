@@ -5487,7 +5487,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			ntreeUpdateTree(CTX_data_main(C), ntree);
 		}
 		else {
-			MTex *mtex = add_mtex_id(&ma->id, -1);
+			MTex *mtex = BKE_texture_mtex_add_id(&ma->id, -1);
 
 			/* successful creation of mtex layer, now create set */
 			if (mtex) {
@@ -5506,7 +5506,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 					}
 				}
 
-				mtex->tex = add_texture(bmain, DATA_(layer_type_items[type_id].name));
+				mtex->tex = BKE_texture_add(bmain, DATA_(layer_type_items[type_id].name));
 				mtex->mapto = type;
 
 				if (mtex->tex) {

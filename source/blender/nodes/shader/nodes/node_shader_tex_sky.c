@@ -42,8 +42,8 @@ static bNodeSocketTemplate sh_node_tex_sky_out[] = {
 static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexSky *tex = MEM_callocN(sizeof(NodeTexSky), "NodeTexSky");
-	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
-	default_color_mapping(&tex->base.color_mapping);
+	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+	BKE_texture_colormapping_default(&tex->base.color_mapping);
 	tex->sun_direction[0] = 0.0f;
 	tex->sun_direction[1] = 0.0f;
 	tex->sun_direction[2] = 1.0f;

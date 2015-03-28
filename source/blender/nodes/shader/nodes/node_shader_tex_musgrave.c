@@ -49,8 +49,8 @@ static bNodeSocketTemplate sh_node_tex_musgrave_out[] = {
 static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexMusgrave *tex = MEM_callocN(sizeof(NodeTexMusgrave), "NodeTexMusgrave");
-	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
-	default_color_mapping(&tex->base.color_mapping);
+	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+	BKE_texture_colormapping_default(&tex->base.color_mapping);
 	tex->musgrave_type = SHD_MUSGRAVE_FBM;
 
 	node->storage = tex;

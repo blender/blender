@@ -103,8 +103,8 @@ static void brush_defaults(Brush *brush)
 	brush->jitter = 0.0f;
 
 	/* BRUSH TEXTURE SETTINGS */
-	default_mtex(&brush->mtex);
-	default_mtex(&brush->mask_mtex);
+	BKE_texture_mtex_default(&brush->mtex);
+	BKE_texture_mtex_default(&brush->mask_mtex);
 
 	brush->texture_sample_bias = 0; /* value to added to texture samples */
 	brush->texture_overlay_alpha = 33;
@@ -469,7 +469,7 @@ int BKE_brush_texture_set_nr(Brush *brush, int nr)
 	idtest = (ID *)BLI_findlink(&G.main->tex, nr - 1);
 	if (idtest == NULL) { /* new tex */
 		if (id) idtest = (ID *)BKE_texture_copy((Tex *)id);
-		else idtest = (ID *)add_texture(G.main, "Tex");
+		else idtest = (ID *)BKE_texture_add(G.main, "Tex");
 		idtest->us--;
 	}
 	if (idtest != id) {

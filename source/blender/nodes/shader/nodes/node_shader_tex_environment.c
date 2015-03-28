@@ -42,8 +42,8 @@ static bNodeSocketTemplate sh_node_tex_environment_out[] = {
 static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	NodeTexEnvironment *tex = MEM_callocN(sizeof(NodeTexEnvironment), "NodeTexEnvironment");
-	default_tex_mapping(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
-	default_color_mapping(&tex->base.color_mapping);
+	BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+	BKE_texture_colormapping_default(&tex->base.color_mapping);
 	tex->color_space = SHD_COLORSPACE_COLOR;
 	tex->projection = SHD_PROJ_EQUIRECTANGULAR;
 	tex->iuser.frames = 1;

@@ -116,7 +116,7 @@ static void init_render_texture(Render *re, Tex *tex)
 			if (G.is_rendering && re) {
 				if (re->r.mode & R_ENVMAP)
 					if (tex->env->stype==ENV_ANIM)
-						BKE_free_envmapdata(tex->env);
+						BKE_texture_envmap_free_data(tex->env);
 			}
 		}
 	}
@@ -3493,7 +3493,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 		if (firsttime) {
 			for (a=0; a<BLENDER_MAX_THREADS; a++) {
 				memset(&imatex[a], 0, sizeof(Tex));
-				default_tex(&imatex[a]);
+				BKE_texture_default(&imatex[a]);
 				imatex[a].type= TEX_IMAGE;
 			}
 
@@ -3614,7 +3614,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 			}
 
 			/* copy texture */
-			tex= mtex->tex = localize_texture(cur_tex);
+			tex= mtex->tex = BKE_texture_localize(cur_tex);
 
 			/* update texture anims */
 			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
