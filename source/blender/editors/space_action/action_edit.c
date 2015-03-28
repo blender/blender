@@ -93,11 +93,15 @@ static AnimData *actedit_animdata_from_context(bContext *C)
 	/* Get AnimData block to use */
 	if (saction->mode == SACTCONT_ACTION) {
 		/* Currently, "Action Editor" means object-level only... */
-		adt = ob->adt;
+		if (ob) {
+			adt = ob->adt;
+		}
 	}
 	else if (saction->mode == SACTCONT_SHAPEKEY) {
 		Key *key = BKE_key_from_object(ob);
-		adt = key->adt;
+		if (key) {
+			adt = key->adt;
+		}
 	}
 	
 	return adt;
@@ -180,9 +184,19 @@ static int action_new_poll(bContext *C)
 	if (!(scene->flag & SCE_NLA_EDIT_ON)) {
 		if (ED_operator_action_active(C)) {
 			SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+			Object *ob = CTX_data_active_object(C);
 			
 			/* For now, actions are only for the active object, and on object and shapekey levels... */
-			return ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY);
+			if (saction->mode == SACTCONT_ACTION) {
+				/* XXX: This assumes that actions are assigned to the active object */
+				if (ob)
+					return true;
+			}
+			else if (saction->mode == SACTCONT_SHAPEKEY) {
+				Key *key = BKE_key_from_object(ob);
+				if (key)
+					return true;
+			}
 		}
 		else if (ED_operator_nla_active(C)) {
 			return true;
