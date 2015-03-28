@@ -111,14 +111,20 @@ static void alloc_point_data(PointDensity *pd, int total_particles, int point_da
 	}
 }
 
-static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, ParticleSystem *psys)
+static void pointdensity_cache_psys(Scene *scene,
+                                    PointDensity *pd,
+                                    Object *ob,
+                                    ParticleSystem *psys,
+                                    float viewmat[4][4],
+                                    float winmat[4][4],
+                                    int winx, int winy)
 {
 	DerivedMesh *dm;
 	ParticleKey state;
 	ParticleCacheKey *cache;
 	ParticleSimulationData sim = {NULL};
 	ParticleData *pa = NULL;
-	float cfra = BKE_scene_frame_get(re->scene);
+	float cfra = BKE_scene_frame_get(scene);
 	int i /*, childexists*/ /* UNUSED */;
 	int total_particles, offset = 0;
 	int data_used = point_data_used(pd);
@@ -130,16 +136,16 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	}
 
 	/* Just to create a valid rendering context for particles */
-	psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, 0);
+	psys_render_set(ob, psys, viewmat, winmat, winx, winy, 0);
 
-	dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
+	dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
 
 	if ( !psys_check_enabled(ob, psys)) {
 		psys_render_restore(ob, psys);
 		return;
 	}
 
-	sim.scene = re->scene;
+	sim.scene = scene;
 	sim.ob = ob;
 	sim.psys = psys;
 
@@ -275,7 +281,11 @@ static void pointdensity_cache_object(Scene *scene, PointDensity *pd, Object *ob
 
 }
 
-void cache_pointdensity(Render *re, PointDensity *pd)
+static void cache_pointdensity_ex(Scene *scene,
+                                  PointDensity *pd,
+                                  float viewmat[4][4],
+                                  float winmat[4][4],
+                                  int winx, int winy)
 {
 	if (pd == NULL) {
 		return;
@@ -299,13 +309,18 @@ void cache_pointdensity(Render *re, PointDensity *pd)
 			return;
 		}
 
-		pointdensity_cache_psys(re, pd, ob, psys);
+		pointdensity_cache_psys(scene, pd, ob, psys, viewmat, winmat, winx, winy);
 	}
 	else if (pd->source == TEX_PD_OBJECT) {
 		Object *ob = pd->object;
 		if (ob && ob->type == OB_MESH)
-			pointdensity_cache_object(re->scene, pd, ob);
+			pointdensity_cache_object(scene, pd, ob);
 	}
+}
+
+void cache_pointdensity(Render *re, PointDensity *pd)
+{
+	cache_pointdensity_ex(re->scene, pd, re->viewmat, re->winmat, re->winx, re->winy);
 }
 
 void free_pointdensity(PointDensity *pd)
