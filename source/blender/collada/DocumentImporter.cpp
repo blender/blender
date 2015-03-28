@@ -771,9 +771,9 @@ MTex *DocumentImporter::create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::T
 		return NULL;
 	}
 	
-	ma->mtex[i] = add_mtex();
+	ma->mtex[i] = BKE_texture_mtex_add();
 	ma->mtex[i]->texco = TEXCO_UV;
-	ma->mtex[i]->tex = add_texture(G.main, "Texture");
+	ma->mtex[i]->tex = BKE_texture_add(G.main, "Texture");
 	ma->mtex[i]->tex->type = TEX_IMAGE;
 	ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
 	
