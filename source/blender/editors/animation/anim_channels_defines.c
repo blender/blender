@@ -3917,6 +3917,44 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 		MEM_freeN(rna_path);
 }
 
+/* callback for NLA Control Curve widget sliders - insert keyframes */
+static void achannel_setting_slider_nla_curve_cb(bContext *C, void *UNUSED(id_poin), void *fcu_poin)
+{
+	/* ID *id = (ID *)id_poin; */
+	FCurve *fcu = (FCurve *)fcu_poin;
+	
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+	
+	ReportList *reports = CTX_wm_reports(C);
+	Scene *scene = CTX_data_scene(C);
+	short flag = 0;
+	bool done = false;
+	float cfra;
+	
+	/* get current frame - *no* NLA mapping should be done */
+	cfra = (float)CFRA;
+	
+	/* get flags for keyframing */
+	flag = ANIM_get_keyframing_flags(scene, 1);
+	
+	/* get pointer and property from the slider - this should all match up with the NlaStrip required... */
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+	
+	if (fcu && prop) {
+		/* set the special 'replace' flag if on a keyframe */
+		if (fcurve_frame_has_keyframe(fcu, cfra, 0))
+			flag |= INSERTKEY_REPLACE;
+		
+		/* insert a keyframe for this F-Curve */
+		done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, flag);
+		
+		if (done)
+			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	}
+}
+
 /* Draw a widget for some setting */
 static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf,
                                 uiBlock *block, int xpos, int ypos, int setting)
@@ -4253,7 +4291,23 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 			
 			if (ale->owner) { /* Slider using custom RNA Access ---------- */
 				if (ale->type == ANIMTYPE_NLACURVE) {
-					// TODO...
+					NlaStrip *strip = (NlaStrip *)ale->owner;
+					FCurve *fcu = (FCurve *)ale->data;
+					PointerRNA ptr;
+					PropertyRNA *prop;
+					
+					/* create RNA pointers */
+					RNA_pointer_create(ale->id, &RNA_NlaStrip, strip, &ptr);
+					prop = RNA_struct_find_property(&ptr, fcu->rna_path);
+					
+					/* create property slider */
+					if (prop) {
+						uiBut *but;
+						
+						/* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
+						but = uiDefAutoButR(block, &ptr, prop, fcu->array_index, "", ICON_NONE, (int)v2d->cur.xmax - offset, ymid, SLIDER_WIDTH, (int)ymaxc - yminc);
+						UI_but_func_set(but, achannel_setting_slider_nla_curve_cb, ale->id, ale->data);
+					}
 				}
 			}
 			else if (ale->id) { /* Slider using RNA Access --------------- */
