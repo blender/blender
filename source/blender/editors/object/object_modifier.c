@@ -1815,6 +1815,73 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
+/************************ delta mush bind operator *********************/
+
+static int correctivesmooth_poll(bContext *C)
+{
+	return edit_modifier_poll_generic(C, &RNA_CorrectiveSmoothModifier, 0);
+}
+
+static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = ED_object_active_context(C);
+	CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)edit_modifier_property_get(op, ob, eModifierType_CorrectiveSmooth);
+	bool is_bind;
+
+	if (!csmd) {
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!modifier_isEnabled(scene, &csmd->modifier, eModifierMode_Realtime)) {
+		BKE_report(op->reports, RPT_ERROR, "Modifier is disabled");
+		return OPERATOR_CANCELLED;
+	}
+
+	is_bind = (csmd->bind_coords != NULL);
+
+	MEM_SAFE_FREE(csmd->bind_coords);
+	MEM_SAFE_FREE(csmd->delta_cache);
+
+	if (is_bind) {
+		/* toggle off */
+		csmd->bind_coords_num = 0;
+	}
+	else {
+		/* signal to modifier to recalculate */
+		csmd->bind_coords_num = (unsigned int)-1;
+	}
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+static int correctivesmooth_bind_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	if (edit_modifier_invoke_properties(C, op))
+		return correctivesmooth_bind_exec(C, op);
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_correctivesmooth_bind(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Corrective Smooth Bind";
+	ot->description = "Bind base pose in delta mush modifier";
+	ot->idname = "OBJECT_OT_correctivesmooth_bind";
+
+	/* api callbacks */
+	ot->poll = correctivesmooth_poll;
+	ot->invoke = correctivesmooth_bind_invoke;
+	ot->exec = correctivesmooth_bind_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+	edit_modifier_properties(ot);
+}
 
 /************************ mdef bind operator *********************/
 

@@ -202,6 +202,7 @@ extern StructRNA RNA_DampedTrackConstraint;
 extern StructRNA RNA_DataTransferModifier;
 extern StructRNA RNA_DecimateModifier;
 extern StructRNA RNA_DelaySensor;
+extern StructRNA RNA_CorrectiveSmoothModifier;
 extern StructRNA RNA_DisplaceModifier;
 extern StructRNA RNA_DisplaySafeAreas;
 extern StructRNA RNA_DistortedNoiseTexture;

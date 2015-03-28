@@ -1805,7 +1805,7 @@ void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth)
  * Return a newly MEM_malloc'd array of all the mesh vertex locations
  * \note \a r_numVerts may be NULL
  */
-float (*BKE_mesh_vertexCos_get(Mesh *me, int *r_numVerts))[3]
+float (*BKE_mesh_vertexCos_get(const Mesh *me, int *r_numVerts))[3]
 {
 	int i, numVerts = me->totvert;
 	float (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "vertexcos1");

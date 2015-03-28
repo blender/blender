@@ -119,7 +119,7 @@ bool BKE_mesh_uv_cdlayer_rename_index(struct Mesh *me, const int poly_index, con
                                       const char *new_name, const bool do_tessface);
 bool BKE_mesh_uv_cdlayer_rename(struct Mesh *me, const char *old_name, const char *new_name, bool do_tessface);
 
-float (*BKE_mesh_vertexCos_get(struct Mesh *me, int *r_numVerts))[3];
+float (*BKE_mesh_vertexCos_get(const struct Mesh *me, int *r_numVerts))[3];
 
 void BKE_mesh_calc_normals_split(struct Mesh *mesh);
 void BKE_mesh_split_faces(struct Mesh *mesh);

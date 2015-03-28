@@ -84,6 +84,7 @@ typedef enum ModifierType {
 	eModifierType_Wireframe         = 48,
 	eModifierType_DataTransfer      = 49,
 	eModifierType_NormalEdit        = 50,
+	eModifierType_CorrectiveSmooth  = 51,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1286,6 +1287,48 @@ enum {
 	MOD_LAPLACIANSMOOTH_Z               = (1 << 3),
 	MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME = (1 << 4),
 	MOD_LAPLACIANSMOOTH_NORMALIZED      = (1 << 5),
+};
+
+
+typedef struct CorrectiveSmoothModifierData {
+	ModifierData modifier;
+
+	/* positions set during 'bind' operator
+	 * use for MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND */
+	float (*bind_coords)[3];
+
+	/* note: -1 is used to bind */
+	unsigned int bind_coords_num;
+
+	float lambda;
+	short repeat, flag;
+	char smooth_type, rest_source;
+	char pad[2];
+
+	char defgrp_name[64];  /* MAX_VGROUP_NAME */
+
+	/* runtime-only cache (delta's between),
+	 * delta's between the original positions and the smoothed positions */
+	float (*delta_cache)[3];
+	unsigned int delta_cache_num;
+	char pad2[4];
+} CorrectiveSmoothModifierData;
+
+enum {
+	MOD_CORRECTIVESMOOTH_SMOOTH_SIMPLE         = 0,
+	MOD_CORRECTIVESMOOTH_SMOOTH_LENGTH_WEIGHT    = 1,
+};
+
+enum {
+	MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO       = 0,
+	MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND       = 1,
+};
+
+/* Corrective Smooth modifier flags */
+enum {
+	MOD_CORRECTIVESMOOTH_INVERT_VGROUP         = (1 << 0),
+	MOD_CORRECTIVESMOOTH_ONLY_SMOOTH           = (1 << 1),
+	MOD_CORRECTIVESMOOTH_PIN_BOUNDARY          = (1 << 2),
 };
 
 typedef struct UVWarpModifierData {

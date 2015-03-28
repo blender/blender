@@ -1620,6 +1620,13 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 
 			writedata(wd, DATA, sizeof(float)*lmd->total_verts * 3, lmd->vertexco);
 		}
+		else if (md->type == eModifierType_CorrectiveSmooth) {
+			CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+
+			if (csmd->bind_coords) {
+				writedata(wd, DATA, sizeof(float[3]) * csmd->bind_coords_num, csmd->bind_coords);
+			}
+		}
 	}
 }
 

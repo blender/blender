@@ -92,6 +92,7 @@ void        BKE_editmesh_update_linked_customdata(BMEditMesh *em);
 
 void        BKE_editmesh_color_free(BMEditMesh *em);
 void        BKE_editmesh_color_ensure(BMEditMesh *em, const char htype);
+float     (*BKE_editmesh_vertexCos_get_orco(BMEditMesh *em, int *r_numVerts))[3];
 
 /* editderivedmesh.c */
 /* should really be defined in editmesh.c, but they use 'EditDerivedBMesh' */

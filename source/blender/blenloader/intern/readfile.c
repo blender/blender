@@ -4949,6 +4949,20 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			}
 			lmd->cache_system = NULL;
 		}
+		else if (md->type == eModifierType_CorrectiveSmooth) {
+			CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData*)md;
+
+			if (csmd->bind_coords) {
+				csmd->bind_coords = newdataadr(fd, csmd->bind_coords);
+				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+					BLI_endian_switch_float_array((float *)csmd->bind_coords, csmd->bind_coords_num * 3);
+				}
+			}
+
+			/* runtime only */
+			csmd->delta_cache = NULL;
+			csmd->delta_cache_num = 0;
+		}
 	}
 }
 
