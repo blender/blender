@@ -1045,13 +1045,13 @@ static void acf_nla_controls_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 }
 
 /* name for nla controls expander entries */
-static void acf_nla_controls_name(bAnimListElem *ale, char *name)
+static void acf_nla_controls_name(bAnimListElem *UNUSED(ale), char *name)
 {
 	BLI_strncpy(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
-static bool acf_nla_controls_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
+static bool acf_nla_controls_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting)
 {
 	/* for now, all settings are supported, though some are only conditionally */
 	switch (setting) {
@@ -1067,7 +1067,7 @@ static bool acf_nla_controls_setting_valid(bAnimContext *ac, bAnimListElem *UNUS
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_nla_controls_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
+static int acf_nla_controls_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
 	/* clear extra return data first */
 	*neg = false;
