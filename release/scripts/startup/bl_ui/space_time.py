@@ -30,6 +30,7 @@ class TIME_HT_header(Header):
         scene = context.scene
         toolsettings = context.tool_settings
         screen = context.screen
+        userprefs = context.user_preferences
 
         row = layout.row(align=True)
         row.template_header()
@@ -82,7 +83,7 @@ class TIME_HT_header(Header):
         if toolsettings.use_keyframe_insert_auto:
             row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
 
-            if screen.is_animation_playing:
+            if screen.is_animation_playing and not userprefs.edit.use_keyframe_insert_available:
                 subsub = row.row(align=True)
                 subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
 
