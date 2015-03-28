@@ -37,10 +37,12 @@
  * Make point density kd-trees for all point density textures in the scene
  */
 
+struct PointDensity;
 struct Render;
 struct TexResult;
 
-void cache_pointdensity(struct Render *re, struct Tex *tex);
+void free_pointdensity(struct PointDensity *pd);
+void cache_pointdensity(struct Render *re, struct PointDensity *pd);
 void make_pointdensities(struct Render *re);
 void free_pointdensities(struct Render *re);
 int pointdensitytex(struct Tex *tex, const float texvec[3], struct TexResult *texres);

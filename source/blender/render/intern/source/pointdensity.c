@@ -233,13 +233,13 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 }
 
 
-static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
+static void pointdensity_cache_object(Scene *scene, PointDensity *pd, Object *ob)
 {
 	int i;
 	DerivedMesh *dm;
 	MVert *mvert = NULL;
 
-	dm = mesh_create_derived_render(re->scene, ob,	CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
+	dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
 	mvert = dm->getVertArray(dm);	/* local object space */
 
 	pd->totpoints = dm->getNumVerts(dm);
@@ -274,12 +274,12 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 	dm->release(dm);
 
 }
-void cache_pointdensity(Render *re, Tex *tex)
-{
-	PointDensity *pd = tex->pd;
 
-	if (!pd)
+void cache_pointdensity(Render *re, PointDensity *pd)
+{
+	if (pd == NULL) {
 		return;
+	}
 
 	if (pd->point_tree) {
 		BLI_bvhtree_free(pd->point_tree);
@@ -304,15 +304,15 @@ void cache_pointdensity(Render *re, Tex *tex)
 	else if (pd->source == TEX_PD_OBJECT) {
 		Object *ob = pd->object;
 		if (ob && ob->type == OB_MESH)
-			pointdensity_cache_object(re, pd, ob);
+			pointdensity_cache_object(re->scene, pd, ob);
 	}
 }
 
-static void free_pointdensity(Render *UNUSED(re), Tex *tex)
+void free_pointdensity(PointDensity *pd)
 {
-	PointDensity *pd = tex->pd;
-
-	if (!pd) return;
+	if (pd == NULL) {
+		return;
+	}
 
 	if (pd->point_tree) {
 		BLI_bvhtree_free(pd->point_tree);
@@ -325,8 +325,6 @@ static void free_pointdensity(Render *UNUSED(re), Tex *tex)
 	}
 	pd->totpoints = 0;
 }
-
-
 
 void make_pointdensities(Render *re)
 {
@@ -341,7 +339,7 @@ void make_pointdensities(Render *re)
 
 	for (tex = re->main->tex.first; tex != NULL; tex = tex->id.next) {
 		if (tex->id.us && tex->type == TEX_POINTDENSITY) {
-			cache_pointdensity(re, tex);
+			cache_pointdensity(re, tex->pd);
 		}
 	}
 
@@ -358,7 +356,7 @@ void free_pointdensities(Render *re)
 
 	for (tex = re->main->tex.first; tex != NULL; tex = tex->id.next) {
 		if (tex->id.us && tex->type == TEX_POINTDENSITY) {
-			free_pointdensity(re, tex);
+			free_pointdensity(tex->pd);
 		}
 	}
 }

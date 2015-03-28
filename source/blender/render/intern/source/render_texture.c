@@ -3631,7 +3631,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 				unit_m4(dummy_re.viewmat);
 				unit_m4(dummy_re.winmat);
 				dummy_re.winx = dummy_re.winy = 128;
-				cache_pointdensity(&dummy_re, tex);
+				cache_pointdensity(&dummy_re, tex->pd);
 			}
 
 			/* update image sequences and movies */
