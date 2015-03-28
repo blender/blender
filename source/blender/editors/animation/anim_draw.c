@@ -173,10 +173,14 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 	if (G.is_rendering) return NULL;
 	
 	/* handling depends on the type of animation-context we've got */
-	if (ale)
-		return ale->adt;
-	else
-		return NULL;
+	if (ale) {
+		/* NLA Control Curves occur on NLA strips, and shouldn't be subjected to this kind of mapping */
+		if (ale->type != ANIMTYPE_NLACURVE)
+			return ale->adt;
+	}
+	
+	/* cannot handle... */
+	return NULL;
 }
 
 /* ------------------- */
