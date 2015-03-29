@@ -24,6 +24,7 @@
 #include "util_stats.h"
 #include "util_string.h"
 #include "util_task.h"
+#include "util_logging.h"
 
 using namespace ccl;
 
