@@ -72,8 +72,8 @@ public:
 /* Device */
 
 struct DeviceDrawParams {
-	boost::function<void(void)> bind_display_space_shader_cb;
-	boost::function<void(void)> unbind_display_space_shader_cb;
+	function<void(void)> bind_display_space_shader_cb;
+	function<void(void)> unbind_display_space_shader_cb;
 };
 
 class Device {

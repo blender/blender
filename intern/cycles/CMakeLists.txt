@@ -152,6 +152,27 @@ add_definitions(
 	-DWITH_MULTI
 )
 
+TEST_UNORDERED_MAP_SUPPORT()
+if(HAVE_STD_UNORDERED_MAP_HEADER)
+    if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
+        add_definitions(-DCYCLES_STD_UNORDERED_MAP)
+    else()
+        if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+            add_definitions(-DCYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
+        else()
+            add_definitions(-DCYCLES_NO_UNORDERED_MAP)
+            message(STATUS "Replacing unordered_map/set with map/set (warning: slower!)")
+        endif()
+    endif()
+else()
+    if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+        add_definitions(-DCYCLES_TR1_UNORDERED_MAP)
+    else()
+        add_definitions(-DCYCLES_NO_UNORDERED_MAP)
+        message(STATUS "Replacing unordered_map/set with map/set (warning: slower!)")
+    endif()
+endif()
+
 # Logging capabilities using GLog library.
 if(WITH_CYCLES_LOGGING)
 	add_definitions(-DWITH_CYCLES_LOGGING)

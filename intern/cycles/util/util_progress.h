@@ -110,7 +110,7 @@ public:
 		return cancel_message;
 	}
 
-	void set_cancel_callback(boost::function<void(void)> function)
+	void set_cancel_callback(function<void(void)> function)
 	{
 		cancel_cb = function;
 	}
@@ -275,7 +275,7 @@ public:
 		}
 	}
 
-	void set_update_callback(boost::function<void(void)> function)
+	void set_update_callback(function<void(void)> function)
 	{
 		update_cb = function;
 	}
@@ -283,8 +283,8 @@ public:
 protected:
 	thread_mutex progress_mutex;
 	thread_mutex update_mutex;
-	boost::function<void(void)> update_cb;
-	boost::function<void(void)> cancel_cb;
+	function<void(void)> update_cb;
+	function<void(void)> cancel_cb;
 
 	int tile;    /* counter for rendered tiles */
 	int sample;  /* counter of rendered samples, global for all tiles */

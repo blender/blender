@@ -57,11 +57,11 @@ public:
 
 	void update_progress(RenderTile *rtile);
 
-	boost::function<bool(Device *device, RenderTile&)> acquire_tile;
-	boost::function<void(void)> update_progress_sample;
-	boost::function<void(RenderTile&)> update_tile_sample;
-	boost::function<void(RenderTile&)> release_tile;
-	boost::function<bool(void)> get_cancel;
+	function<bool(Device *device, RenderTile&)> acquire_tile;
+	function<void(void)> update_progress_sample;
+	function<void(RenderTile&)> update_tile_sample;
+	function<void(RenderTile&)> release_tile;
+	function<bool(void)> get_cancel;
 
 	bool need_finish_queue;
 	bool integrator_branched;

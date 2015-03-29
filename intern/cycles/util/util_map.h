@@ -18,13 +18,38 @@
 #define __UTIL_MAP_H__
 
 #include <map>
-#include <boost/tr1/unordered_map.hpp>
+
+#if defined(CYCLES_TR1_UNORDERED_MAP)
+#  include <tr1/unordered_map>
+#endif
+
+#if defined(CYCLES_STD_UNORDERED_MAP) || defined(CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
+#  include <unordered_map>
+#endif
+
+#if !defined(CYCLES_NO_UNORDERED_MAP) && !defined(CYCLES_TR1_UNORDERED_MAP) && \
+	!defined(CYCLES_STD_UNORDERED_MAP) && !defined(CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)  // NOLINT
+#  error One of: CYCLES_NO_UNORDERED_MAP, CYCLES_TR1_UNORDERED_MAP,\
+ CYCLES_STD_UNORDERED_MAP, CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE must be defined!  // NOLINT
+#endif
+
 
 CCL_NAMESPACE_BEGIN
 
 using std::map;
 using std::pair;
+
+#if defined(CYCLES_NO_UNORDERED_MAP)
+typedef std::map unordered_map;
+#endif
+
+#if defined(CYCLES_TR1_UNORDERED_MAP) || defined(CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
 using std::tr1::unordered_map;
+#endif
+
+#if defined(CYCLES_STD_UNORDERED_MAP)
+using std::unordered_map;
+#endif
 
 CCL_NAMESPACE_END
 

@@ -125,8 +125,8 @@ public:
 	TileManager tile_manager;
 	Stats stats;
 
-	boost::function<void(RenderTile&)> write_render_tile_cb;
-	boost::function<void(RenderTile&)> update_render_tile_cb;
+	function<void(RenderTile&)> write_render_tile_cb;
+	function<void(RenderTile&)> update_render_tile_cb;
 
 	Session(const SessionParams& params);
 	~Session();

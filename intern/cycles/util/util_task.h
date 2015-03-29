@@ -27,7 +27,7 @@ class Task;
 class TaskPool;
 class TaskScheduler;
 
-typedef boost::function<void(void)> TaskRunFunction;
+typedef function<void(void)> TaskRunFunction;
 
 /* Task
  *

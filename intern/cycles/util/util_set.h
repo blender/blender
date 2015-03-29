@@ -18,13 +18,19 @@
 #define __UTIL_SET_H__
 
 #include <set>
-#include <boost/tr1/unordered_set.hpp>
-
+#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#  include <unordered_set>
+#else
+#  include <boost/tr1/unordered_set.hpp>
+#endif
 CCL_NAMESPACE_BEGIN
 
 using std::set;
+#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+using std::unordered_set;
+#else
 using std::tr1::unordered_set;
-
+#endif
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_SET_H__ */
