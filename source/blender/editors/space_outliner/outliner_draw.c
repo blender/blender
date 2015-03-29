@@ -290,8 +290,7 @@ static void restrictbutton_modifier_cb(bContext *C, void *UNUSED(poin), void *po
 	Object *ob = (Object *)poin2;
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 }
 
 static void restrictbutton_bone_visibility_cb(bContext *C, void *poin, void *poin2)
