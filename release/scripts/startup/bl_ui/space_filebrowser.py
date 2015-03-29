@@ -44,10 +44,10 @@ class FILEBROWSER_HT_header(Header):
         row.separator()
 
         row = layout.row(align=True)
-        layout.operator_context = "EXEC_DEFAULT"
+        layout.operator_context = 'EXEC_DEFAULT'
         row.operator("file.directory_new", icon='NEWFOLDER')
 
-        layout.operator_context = "INVOKE_DEFAULT"
+        layout.operator_context = 'INVOKE_DEFAULT'
         params = st.params
 
         # can be None when save/reload with a file selector open

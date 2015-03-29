@@ -924,7 +924,7 @@ class LodGenerate(Operator):
             lod.location.y = ob.location.y + 3.0 * i
 
             if i == 1:
-                modifier = lod.modifiers.new("lod_decimate", "DECIMATE")
+                modifier = lod.modifiers.new("lod_decimate", 'DECIMATE')
             else:
                 modifier = lod.modifiers[-1]
 

@@ -1277,8 +1277,8 @@ class CLIP_MT_reconstruction(Menu):
         layout.operator("clip.set_plane", text="Set Floor").plane = 'FLOOR'
         layout.operator("clip.set_plane", text="Set Wall").plane = 'WALL'
 
-        layout.operator("clip.set_axis", text="Set X Axis").axis = "X"
-        layout.operator("clip.set_axis", text="Set Y Axis").axis = "Y"
+        layout.operator("clip.set_axis", text="Set X Axis").axis = 'X'
+        layout.operator("clip.set_axis", text="Set Y Axis").axis = 'Y'
 
         layout.operator("clip.set_scale")
 
