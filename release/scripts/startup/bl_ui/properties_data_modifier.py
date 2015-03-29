@@ -1384,7 +1384,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = row.row(align=True)
         sub.active = has_vgroup
-        sub.prop(md, "use_invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+        sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
 
 if __name__ == "__main__":  # only for live edit.
