@@ -632,7 +632,7 @@ void UI_OT_eyedropper_id(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Eyedropper Datablock";
 	ot->idname = "UI_OT_eyedropper_id";
-	ot->description = "Sample a color from the Blender Window to store in a property";
+	ot->description = "Sample a datablock from the Blender Window to store in a property";
 
 	/* api callbacks */
 	ot->invoke = datadropper_invoke;
