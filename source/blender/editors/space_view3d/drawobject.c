@@ -1876,8 +1876,6 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D *UNUSED(rv3d),
                         Object *UNUSED(ob), int UNUSED(flag))
 {
-	//Speaker *spk = ob->data;
-
 	float vec[3];
 	int i, j;
 
@@ -2334,7 +2332,6 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, const char sel, BMVer
 static DMDrawOption draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed;
-	//unsigned char **cols = userData, *col;
 	drawDMEdgesSel_userData *data = userData;
 	unsigned char *col;
 
@@ -3098,8 +3095,6 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 			BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 		}
 
-		// invert_m4_m4(ob->imat, ob->obmat);  // this is already called
-
 		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 			BMLoop *l_a, *l_b;
 			if (BM_edge_loop_pair(eed, &l_a, &l_b)) {
@@ -3713,7 +3708,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		draw_wire = OBDRAW_WIRE_ON_DEPTH; /* draw wire after solid using zoffset and depth buffer adjusment */
 	}
 	
-	/* totvert = dm->getNumVerts(dm); */ /*UNUSED*/
 	totedge = dm->getNumEdges(dm);
 	totface = dm->getNumTessFaces(dm);
 	
@@ -5137,7 +5131,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if (draw_as == PART_DRAW_PATH) {
 		ParticleCacheKey **cache, *path;
-		float /* *cd2=NULL, */ /* UNUSED */ *cdata2 = NULL;
+		float *cdata2 = NULL;
 
 		/* setup gl flags */
 		if (1) { //ob_dt > OB_WIRE) {
@@ -5336,7 +5330,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			glDrawArrays(GL_LINE_STRIP, 0, path->segments + 1);
 		}
 
-
 		/* restore & clean up */
 		if (1) { //ob_dt > OB_WIRE) {
 			if (part->draw_col == PART_DRAW_COL_MAT)
@@ -5344,9 +5337,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			glDisable(GL_COLOR_MATERIAL);
 		}
 
-		if (cdata2)
+		if (cdata2) {
 			MEM_freeN(cdata2);
-		/* cd2 = */ /* UNUSED */ cdata2 = NULL;
+			cdata2 = NULL;
+		}
 
 		glLineWidth(1.0f);
 
@@ -5642,7 +5636,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	glLineWidth(1.0f);
 	glPointSize(1.0f);
 }
-//static void ob_draw_RE_motion(float com[3],float rotscale[3][3],float tw,float th)
+
 static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, float ith, float drw_size)
 {
 	float tr[3][3];
@@ -6688,17 +6682,10 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 #endif
 	
 	if (pd->forcefield == PFIELD_WIND) {
-		float force_val;
+		float force_val = pd->f_strength;
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
-		}
-
-		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-		//else
-		{
-			force_val = pd->f_strength;
 		}
 
 		unit_m4(tmat);
@@ -6714,14 +6701,7 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 		
 	}
 	else if (pd->forcefield == PFIELD_FORCE) {
-		float ffall_val;
-
-		//if (has_ipo_code(ob->ipo, OB_PD_FFALL))
-		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
-		//else
-		{
-			ffall_val = pd->f_power;
-		}
+		float ffall_val = pd->f_power;
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
 		drawcircball(GL_LINE_LOOP, vec, size, imat);
@@ -6731,20 +6711,9 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 		drawcircball(GL_LINE_LOOP, vec, size * 2.0f, imat);
 	}
 	else if (pd->forcefield == PFIELD_VORTEX) {
-		float /*ffall_val,*/ force_val;
+		float force_val = pd->f_strength;
 
 		unit_m4(tmat);
-		//if (has_ipo_code(ob->ipo, OB_PD_FFALL))
-		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
-		//else
-		//	ffall_val = pd->f_power;
-
-		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-		//else
-		{
-			force_val = pd->f_strength;
-		}
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.7f);
@@ -6762,25 +6731,19 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	else if (pd->forcefield == PFIELD_GUIDE && ob->type == OB_CURVE) {
 		Curve *cu = ob->data;
 		if ((cu->flag & CU_PATH) && ob->curve_cache->path && ob->curve_cache->path->data) {
-			float mindist, guidevec1[4], guidevec2[3];
-
-			//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-			//	mindist = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-			//else
-			{
-				mindist = pd->f_strength;
-			}
+			float guidevec1[4], guidevec2[3];
+			float mindist = pd->f_strength;
 
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
 				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
 			}
 
-			/*path end*/
+			/* path end */
 			setlinestyle(3);
 			where_on_path(ob, 1.0f, guidevec1, guidevec2, NULL, NULL, NULL);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
 
-			/*path beginning*/
+			/* path beginning */
 			setlinestyle(0);
 			where_on_path(ob, 0.0f, guidevec1, guidevec2, NULL, NULL, NULL);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
@@ -7508,10 +7471,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
 					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-#if 0 /* XXX old animsys */
-				if (cu->path)
-					curve_draw_speed(scene, ob);
-#endif
 				}
 				break;
 			case OB_MBALL:
@@ -7679,9 +7638,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	if ((md = modifiers_findByType(ob, eModifierType_Smoke)) && (modifier_isEnabled(scene, md, eModifierMode_Realtime))) {
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 
+#if 0
 		/* draw collision objects */
 		if ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll) {
-#if 0
 			SmokeCollSettings *scs = smd->coll;
 			if (scs->points) {
 				size_t i;
@@ -7709,8 +7668,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				glDepthMask(GL_TRUE);
 				if (col) cpack(col);
 			}
-#endif
 		}
+#endif
 
 		/* only draw domains */
 		if (smd->domain) {
@@ -7831,7 +7790,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					view3d_cached_text_draw_add(zero, ob->id.name + 2, strlen(ob->id.name + 2), 10, 0, ob_wire_col);
 				}
 			}
-			/*if (dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
 			if ((dtx & OB_DRAWWIRE) && dt >= OB_SOLID) {
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					draw_wire_extra(scene, rv3d, ob, ob_wire_col);
