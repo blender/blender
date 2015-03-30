@@ -54,19 +54,20 @@ KX_VehicleWrapper::~KX_VehicleWrapper()
 #ifdef WITH_PYTHON
 
 
-static bool raise_exc_wheel(PHY_IVehicle* vehicle, int i, const char *method)
+static bool raise_exc_wheel(PHY_IVehicle *vehicle, int i, const char *method)
 {
-	if ( i < 0 || i >= vehicle->GetNumWheels() ) {
+	if (i < 0 || i >= vehicle->GetNumWheels()) {
 		PyErr_Format(PyExc_ValueError,
-		             "%s(...): wheel index %d out of range (0 to %d).", method, i, vehicle->GetNumWheels()-1);
-		return -1;
-	} else {
-		return 0;
+		             "%s(...): wheel index %d out of range (0 to %d).", method, i, vehicle->GetNumWheels() - 1);
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
 #define WHEEL_INDEX_CHECK_OR_RETURN(i, method) \
-	if (raise_exc_wheel(m_vehicle, i, method) == -1) { return NULL; } (void)0
+	if (raise_exc_wheel(m_vehicle, i, method)) {return NULL;} (void)0
 
 
 PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
