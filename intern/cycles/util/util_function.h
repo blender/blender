@@ -28,6 +28,11 @@ CCL_NAMESPACE_BEGIN
 
 #if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 #  define function_bind std::bind
+#  ifdef _MSC_VER
+#    define function_null nullptr
+#  else
+#    define function_null NULL
+#endif
 using std::function;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -41,6 +46,7 @@ using std::placeholders::_9;
 #else
 using boost::function;
 #  define function_bind boost::bind
+#  define function_null NULL
 #endif
 CCL_NAMESPACE_END
 

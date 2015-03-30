@@ -487,8 +487,8 @@ void BlenderSession::render()
 	}
 
 	/* clear callback */
-	session->write_render_tile_cb = NULL;
-	session->update_render_tile_cb = NULL;
+	session->write_render_tile_cb = function_null;
+	session->update_render_tile_cb = function_null;
 
 	/* free all memory used (host and device), so we wouldn't leave render
 	 * engine with extra memory allocated
