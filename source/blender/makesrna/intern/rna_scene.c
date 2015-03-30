@@ -45,6 +45,8 @@
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 
+#include "GPU_extensions.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -1757,6 +1759,11 @@ static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
 		dofsettings->num_blades = value;
 }
 
+
+static int rna_gpu_is_hq_supported_get(PointerRNA *UNUSED(ptr))
+{
+	return GPU_instanced_drawing_support() && GPU_geometry_shader_support();
+}
 
 #else
 
@@ -3945,6 +3952,12 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_high_quality", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "high_quality", 1);
+	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "is_hq_supported", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_gpu_is_hq_supported_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }

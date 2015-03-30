@@ -456,11 +456,15 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         sub = col.row()
         sub.active = cam.dof_object is None
         sub.prop(cam, "dof_distance", text="Distance")
+
+        hq_support = dof_options.is_hq_supported
         sub = col.column(align=True)
         sub.label("Viewport:")
-        sub.prop(dof_options, "use_high_quality")
+        subhq = sub.column()
+        subhq.active = hq_support;
+        subhq.prop(dof_options, "use_high_quality")
         sub.prop(dof_options, "fstop")
-        if dof_options.use_high_quality:
+        if dof_options.use_high_quality and hq_support:
             sub.prop(dof_options, "blades")
  
         col = split.column()
