@@ -786,7 +786,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		if (tottri == 0) {
 			/* avoid buffer problems in following code */
 		}
-		if (setDrawOptions == NULL) {
+		else if (setDrawOptions == NULL) {
 			/* just draw the entire face array */
 			glDrawArrays(GL_TRIANGLES, 0, (tottri) * 3);
 		}
