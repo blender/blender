@@ -648,9 +648,6 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
-	/* Make sure we are drawing at the origin */
-	glTranslatef(0.0f,  0.0f,  0.0f);
-
 	/* Calculate Image scale */
 	scale = (ob->empty_drawsize / max_ff((float)ima_x * sca_x, (float)ima_y * sca_y));
 
@@ -6431,15 +6428,13 @@ static void draw_empty_sphere(float size)
 /* draw a cone for use as an empty drawtype */
 static void draw_empty_cone(float size)
 {
-	float cent = 0;
-	float radius;
+	const float radius = size;
+
 	GLUquadricObj *qobj = gluNewQuadric();
 	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
 	
 	glPushMatrix();
 	
-	radius = size;
-	glTranslatef(cent, cent, cent);
 	glScalef(radius, size * 2.0f, radius);
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
@@ -6668,11 +6663,8 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	PartDeflect *pd = ob->pd;
 	float imat[4][4], tmat[4][4];
 	float vec[3] = {0.0, 0.0, 0.0};
-	float size;
-	
 	/* scale size of circle etc with the empty drawsize */
-	if (ob->type == OB_EMPTY) size = ob->empty_drawsize;
-	else size = 1.0;
+	const float size = (ob->type == OB_EMPTY) ? ob->empty_drawsize : 1.0f;
 	
 	/* calculus here, is reused in PFIELD_FORCE */
 	invert_m4_m4(imat, rv3d->viewmatob);
