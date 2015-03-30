@@ -268,7 +268,7 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 	// get the persistent pose structure
 	bPoseChannel* pchan;
 	bConstraint* pcon;
-	bConstraintTypeInfo* cti;
+	const bConstraintTypeInfo* cti;
 	Object* blendtarget;
 	KX_GameObject* gametarget;
 	KX_GameObject* gamesubtarget;
