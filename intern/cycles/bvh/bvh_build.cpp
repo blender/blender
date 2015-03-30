@@ -577,17 +577,22 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 		return new InnerNode(range.bounds(), leaves[0], leaves[1]);
 	}
 	else if(num_leaves == 3) {
-		BoundBox inner_bounds = merge(bounds[1], bounds[2]);
+		BoundBox inner_bounds = merge(leaves[1]->m_bounds, leaves[2]->m_bounds);
 		BVHNode *inner = new InnerNode(inner_bounds, leaves[1], leaves[2]);
 		return new InnerNode(range.bounds(), leaves[0], inner);
-	} else /*if(num_leaves == 4)*/ {
+	} else {
 		/* Shpuld be doing more branches if more primitive types added. */
-		assert(num_leaves == 4);
-		BoundBox inner_bounds_a = merge(bounds[0], bounds[1]);
-		BoundBox inner_bounds_b = merge(bounds[2], bounds[3]);
+		assert(num_leaves <= 5);
+		BoundBox inner_bounds_a = merge(leaves[0]->m_bounds, leaves[1]->m_bounds);
+		BoundBox inner_bounds_b = merge(leaves[2]->m_bounds, leaves[3]->m_bounds);
 		BVHNode *inner_a = new InnerNode(inner_bounds_a, leaves[0], leaves[1]);
 		BVHNode *inner_b = new InnerNode(inner_bounds_b, leaves[2], leaves[3]);
-		return new InnerNode(range.bounds(), inner_a, inner_b);
+		BoundBox inner_bounds_c = merge(inner_a->m_bounds, inner_b->m_bounds);
+		BVHNode *inner_c = new InnerNode(inner_bounds_c, inner_a, inner_b);
+		if(num_leaves == 5) {
+			return new InnerNode(range.bounds(), inner_c, leaves[4]);
+		}
+		return inner_c;
 	}
 }
 
