@@ -44,6 +44,18 @@ defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
 defs.append('CCL_NAMESPACE_END=}')
 defs.append('WITH_OSL')
 
+if env['WITH_UNORDERED_MAP_SUPPORT']:
+    if env['UNORDERED_MAP_HEADER'] == 'unordered_map':
+        if env['UNORDERED_MAP_NAMESPACE'] == 'std':
+            defs.append('CYCLES_STD_UNORDERED_MAP')
+        elif env['UNORDERED_MAP_NAMESPACE'] == 'std::tr1':
+            defs.append('CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE')
+    elif env['UNORDERED_MAP_NAMESPACE'] == 'std::tr1':
+        defs.append('CYCLES_TR1_UNORDERED_MAP')
+else:
+    print("-- Replacing unordered_map/set with map/set (warning: slower!)")
+    defs.append('CYCLES_NO_UNORDERED_MAP')
+
 if env['WITH_BF_CYCLES_DEBUG']:
     defs.append('WITH_CYCLES_DEBUG')
 
