@@ -110,7 +110,7 @@ static void acf_generic_root_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUS
 /* backdrop for top-level widgets (Scene and Object only) */
 static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	short expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
@@ -136,7 +136,7 @@ static void acf_generic_dataexpand_color(bAnimContext *UNUSED(ac), bAnimListElem
 /* backdrop for data expanders under top-level Scene/Object */
 static void acf_generic_dataexpand_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
 	float color[3];
@@ -177,7 +177,7 @@ static bool acf_show_channel_colors(bAnimContext *ac)
 /* get backdrop color for generic channels */
 static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	bActionGroup *grp = NULL;
 	short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
 	bool showGroupColors = acf_show_channel_colors(ac);
@@ -217,7 +217,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 /* backdrop for generic channels */
 static void acf_generic_channel_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
 	float color[3];
@@ -269,7 +269,7 @@ static short acf_generic_indention_flexible(bAnimContext *UNUSED(ac), bAnimListE
 /* basic offset for channels derived from indention */
 static short acf_generic_basic_offset(bAnimContext *ac, bAnimListElem *ale)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	
 	if (acf && acf->get_indent_level)
 		return acf->get_indent_level(ac, ale) * INDENT_STEP_SIZE;
@@ -409,7 +409,7 @@ static void acf_summary_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(al
 /* backdrop for summary widget */
 static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	float color[3];
 	
@@ -790,7 +790,7 @@ static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float r_color[
 /* backdrop for group widget */
 static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	short expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
@@ -1029,7 +1029,7 @@ static void acf_nla_controls_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUS
 /* backdrop for nla controls expander widget */
 static void acf_nla_controls_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	short expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
@@ -3206,7 +3206,7 @@ static void acf_nlaaction_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, fl
 /* backdrop for nla action channel */
 static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	AnimData *adt = ale->adt;
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
@@ -3402,7 +3402,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 } 
 
 /* Get type info from given channel type */
-bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
+const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
 {
 	/* santiy checks */
 	if (ale == NULL)
@@ -3423,7 +3423,7 @@ bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
 /* Print debug info string for the given channel */
 void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	
 	/* print indents */
 	for (; indent_level > 0; indent_level--)
@@ -3455,7 +3455,7 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
  */
 short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
 	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
@@ -3528,7 +3528,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChanne
  */
 void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	
 	/* 1) check that the setting exists for the current context */
 	if ((acf) && (!acf->has_setting || acf->has_setting(ac, ale, setting))) {
@@ -3579,7 +3579,7 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel
 /* Draw the given channel */
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	short selected, offset;
 	float y, ymid, ytext;
@@ -3956,7 +3956,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void *UNUSED(id_po
 }
 
 /* Draw a widget for some setting */
-static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf,
+static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAnimChannelType *acf,
                                 uiBlock *block, int xpos, int ypos, int setting)
 {
 	short ptrsize, butType;
@@ -4096,7 +4096,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 /* Draw UI widgets the given channel */
 void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc, size_t channel_index)
 {
-	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
 	float y, ymid /*, ytext*/;
 	short offset;

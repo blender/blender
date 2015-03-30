@@ -448,7 +448,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 		return;
 	}
 	else {
-		bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale_setting);
+		const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale_setting);
 		
 		if (acf == NULL) {
 			printf("ERROR: no channel info for the changed channel\n");
@@ -477,7 +477,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 	{
 		/* go backwards in the list, until the highest-ranking element (by indention has been covered) */
 		for (ale = match->prev; ale; ale = ale->prev) {
-			bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+			const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 			int level;
 			
 			/* if no channel info was found, skip, since this type might not have any useful info */
@@ -521,7 +521,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 	{
 		/* go forwards in the list, until the lowest-ranking element (by indention has been covered) */
 		for (ale = match->next; ale; ale = ale->next) {
-			bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+			const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 			int level;
 			
 			/* if no channel info was found, skip, since this type might not have any useful info */
@@ -2499,7 +2499,7 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 static void rename_anim_channels(bAnimContext *ac, int channel_index)
 {
 	ListBase anim_data = {NULL, NULL};
-	bAnimChannelType *acf;
+	const bAnimChannelType *acf;
 	bAnimListElem *ale;
 	int filter;
 	

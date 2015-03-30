@@ -992,7 +992,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 static bool skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, ID *owner_id)
 {
 	bAnimListElem ale_dummy = {NULL};
-	bAnimChannelType *acf;
+	const bAnimChannelType *acf;
 	
 	/* create a dummy wrapper for the F-Curve */
 	ale_dummy.type = ANIMTYPE_FCURVE;

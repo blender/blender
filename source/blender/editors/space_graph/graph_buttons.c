@@ -172,7 +172,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	}
 	else {
 		/* NLA Control Curve, etc. */
-		bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+		const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 		
 		/* get name */
 		if (acf && acf->name) {

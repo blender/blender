@@ -210,7 +210,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) )
 		{
-			bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+			const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 			int sel = 0;
 			
 			/* determine if any need to draw channel */

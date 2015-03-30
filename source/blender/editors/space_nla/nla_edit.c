@@ -382,7 +382,7 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
 	y = (float)NLACHANNEL_FIRST;
 	
 	for (ale = anim_data.first; ale; ale = ale->next) {
-		bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+		const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 		
 		/* must be selected... */
 		if (acf && acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT) && 
