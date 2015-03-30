@@ -107,7 +107,7 @@ void accumulate_pass(void) {
 	if (dot(particlecoord, particlecoord) > r * r)
 		discard;
 
-	gl_FragColor = color;
+	gl_FragData[0] = color;
 }
 #define MERGE_THRESHOLD 4.0
 
@@ -151,7 +151,7 @@ void final_pass(void) {
 		finalcolor = mix(finalcolor, nearcolor, nearweight / totalweight);
 	}
 
-	gl_FragColor = finalcolor;
+	gl_FragData[0] = finalcolor;
 }
 
 void main()
