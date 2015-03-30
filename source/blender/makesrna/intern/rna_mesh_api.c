@@ -206,6 +206,8 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh, ReportList *reports, i
 	}
 
 	rna_Mesh_normals_split_custom_do(mesh, loopnors, false);
+
+	DAG_id_tag_update(&mesh->id, 0);
 }
 
 static void rna_Mesh_normals_split_custom_set_from_vertices(
@@ -222,6 +224,8 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(
 	}
 
 	rna_Mesh_normals_split_custom_do(mesh, vertnors, true);
+
+	DAG_id_tag_update(&mesh->id, 0);
 }
 
 static void rna_Mesh_transform(Mesh *mesh, float *mat, int shape_keys)
