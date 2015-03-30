@@ -1086,7 +1086,7 @@ void wm_autosave_location(char *filepath)
 	if (G.main && G.relbase_valid) {
 		const char *basename = BLI_path_basename(G.main->name);
 		int len = strlen(basename) - 6;
-		BLI_snprintf(path, sizeof(path), "%.*s-%d.blend", len, basename, pid);
+		BLI_snprintf(path, sizeof(path), "%.*s.blend", len, basename);
 	}
 	else {
 		BLI_snprintf(path, sizeof(path), "%d.blend", pid);
