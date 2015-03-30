@@ -3529,8 +3529,12 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 			sad->flag |= ANIMPLAY_FLAG_JUMPED;
 		}
 		
-		if (sad->flag & ANIMPLAY_FLAG_JUMPED)
+		if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
 			BKE_sound_seek_scene(bmain, scene);
+			#ifdef PROFILE_AUDIO_SYNCH
+			old_frame = CFRA;
+			#endif
+		}
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(bmain, scene, 1);
