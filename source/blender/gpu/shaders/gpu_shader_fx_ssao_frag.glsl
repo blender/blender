@@ -23,6 +23,14 @@ uniform vec4 ssao_color;
  * see http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
 uniform vec4 viewvecs[3];
 
+vec3 calculate_view_space_normal(in vec3 viewposition)
+{
+	vec3 normal = cross(normalize(dFdx(viewposition)),
+	                    ssao_params.w * normalize(dFdy(viewposition)));
+	normalize(normal);
+	return normal;
+}
+
 float calculate_ssao_factor(float depth)
 {
 	/* take the normalized ray direction here */

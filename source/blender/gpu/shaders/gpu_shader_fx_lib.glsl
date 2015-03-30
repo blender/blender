@@ -1,11 +1,3 @@
-vec3 calculate_view_space_normal(in vec3 viewposition)
-{
-	vec3 normal = cross(normalize(dFdx(viewposition)),
-	                    normalize(dFdy(viewposition)));
-	normalize(normal);
-	return normal;
-}
-
 /* simple depth reconstruction, see http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer
  * we change the factors from the article to fit the OpennGL model.  */
 #ifdef PERSP_MATRIX

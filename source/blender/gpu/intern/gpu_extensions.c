@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_global.h"
 
@@ -113,6 +114,9 @@ static struct GPUGlobal {
 	GPUTexture *invalid_tex_1D; /* texture used in place of invalid textures (not loaded correctly, missing) */
 	GPUTexture *invalid_tex_2D;
 	GPUTexture *invalid_tex_3D;
+	float dfdyfactors[2]; /* workaround for different calculation of dfdy factors on GPUs. Some GPUs/drivers
+	                         calculate dfdy in shader differently when drawing to an offscreen buffer. First
+	                         number is factor on screen and second is off-screen */
 } GG = {1, 0};
 
 /* Number of maximum output slots. We support 4 outputs for now (usually we wouldn't need more to preserve fill rate) */
@@ -144,10 +148,15 @@ int GPU_max_texture_size(void)
 	return GG.maxtexsize;
 }
 
+void GPU_get_dfdy_factors(float fac[2])
+{
+	copy_v2_v2(fac, GG.dfdyfactors);
+}
+
 void gpu_extensions_init(void)
 {
 	GLint r, g, b;
-	const char *vendor, *renderer;
+	const char *vendor, *renderer, *version;
 
 	/* glewIsSupported("GL_VERSION_2_0") */
 
@@ -168,6 +177,7 @@ void gpu_extensions_init(void)
 
 	vendor = (const char *)glGetString(GL_VENDOR);
 	renderer = (const char *)glGetString(GL_RENDERER);
+	version = (const char *)glGetString(GL_VERSION);
 
 	if (strstr(vendor, "ATI")) {
 		GG.device = GPU_DEVICE_ATI;
@@ -242,6 +252,23 @@ void gpu_extensions_init(void)
 #else
 	GG.os = GPU_OS_UNIX;
 #endif
+
+
+	/* df/dy calculation factors, those are dependent on driver */
+	if ((strstr(vendor, "ATI") && strstr(version, "3.3.10750"))) {
+		GG.dfdyfactors[0] = 1.0;
+		GG.dfdyfactors[1] = -1.0;
+	}
+	/*
+	if ((strstr(vendor, "Intel"))) {
+		GG.dfdyfactors[0] = -1.0;
+		GG.dfdyfactors[1] = 1.0;
+	}
+	*/
+	else {
+		GG.dfdyfactors[0] = 1.0;
+		GG.dfdyfactors[1] = 1.0;
+	}
 
 
 	GPU_invalid_tex_init();

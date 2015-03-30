@@ -66,6 +66,7 @@ bool GPU_instanced_drawing_support(void);
 
 int GPU_max_texture_size(void);
 int GPU_color_depth(void);
+void GPU_get_dfdy_factors(float fac[2]);
 
 void GPU_code_generate_glsl_lib(void);
 
