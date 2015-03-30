@@ -323,7 +323,7 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), 
                                                            PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	bConstraint *con = (bConstraint *)ptr->data;
-	bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 	ListBase targets = {NULL, NULL};
 	bConstraintTarget *ct;
 	

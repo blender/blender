@@ -563,7 +563,7 @@ static void sequence_modifier_type_info_init(void)
 #undef INIT_TYPE
 }
 
-SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
+const SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
 {
 	if (!modifierTypesInit) {
 		sequence_modifier_type_info_init();
@@ -576,7 +576,7 @@ SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
 SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name, int type)
 {
 	SequenceModifierData *smd;
-	SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(type);
+	const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(type);
 
 	smd = MEM_callocN(smti->struct_size, "sequence modifier");
 
@@ -623,7 +623,7 @@ void BKE_sequence_modifier_clear(Sequence *seq)
 
 void BKE_sequence_modifier_free(SequenceModifierData *smd)
 {
-	SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+	const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
 	if (smti && smti->free_data) {
 		smti->free_data(smd);
@@ -634,7 +634,7 @@ void BKE_sequence_modifier_free(SequenceModifierData *smd)
 
 void BKE_sequence_modifier_unique_name(Sequence *seq, SequenceModifierData *smd)
 {
-	SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+	const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
 	BLI_uniquename(&seq->modifiers, smd, CTX_DATA_(BLF_I18NCONTEXT_ID_SEQUENCE, smti->name), '.',
 	               offsetof(SequenceModifierData, name), sizeof(smd->name));
@@ -656,7 +656,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context, Sequence 
 	}
 
 	for (smd = seq->modifiers.first; smd; smd = smd->next) {
-		SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+		const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
 		/* could happen if modifier is being removed or not exists in current version of blender */
 		if (!smti)
@@ -692,7 +692,7 @@ void BKE_sequence_modifier_list_copy(Sequence *seqn, Sequence *seq)
 
 	for (smd = seq->modifiers.first; smd; smd = smd->next) {
 		SequenceModifierData *smdn;
-		SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+		const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
 		smdn = MEM_dupallocN(smd);
 

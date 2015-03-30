@@ -972,7 +972,7 @@ static bool subframe_updateObject(Scene *scene, Object *ob, int update_mesh, int
 
 		/* also update constraint targets */
 		for (con = ob->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 
 			if (cti && cti->get_constraint_targets) {

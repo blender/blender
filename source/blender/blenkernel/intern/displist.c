@@ -764,7 +764,7 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob,
 
 	pretessellatePoint = NULL;
 	for (; md; md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!modifier_isEnabled(scene, md, required_mode))
 			continue;
@@ -833,7 +833,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, ListBase *nurb,
 
 	if (pretessellatePoint) {
 		for (; md; md = md->next) {
-			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			md->scene = scene;
 
@@ -934,7 +934,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *nurb,
 	}
 
 	for (; md; md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		ModifierApplyFlag appf = app_flag;
 
 		md->scene = scene;
@@ -1165,7 +1165,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *dm_final,
 	orcodm = create_orco_dm(scene, ob);
 
 	for (; md; md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		md->scene = scene;
 

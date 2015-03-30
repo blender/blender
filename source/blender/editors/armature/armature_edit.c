@@ -1264,7 +1264,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 			else {
 				for (con = pchan->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
 					

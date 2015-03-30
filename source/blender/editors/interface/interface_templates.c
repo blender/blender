@@ -823,7 +823,7 @@ static int modifier_is_simulation(ModifierData *md)
 static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
                                ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
@@ -1095,7 +1095,7 @@ static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
 static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
 	bPoseChannel *pchan = BKE_pose_channel_active(ob);
-	bConstraintTypeInfo *cti;
+	const bConstraintTypeInfo *cti;
 	uiBlock *block;
 	uiLayout *result = NULL, *col, *box, *row;
 	PointerRNA ptr;

@@ -234,7 +234,7 @@ void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)
 
 bool BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 {
-	ModifierTypeInfo *mti;
+	const ModifierTypeInfo *mti;
 
 	mti = modifierType_getInfo(modifier_type);
 
@@ -531,7 +531,7 @@ void BKE_object_unlink(Object *ob)
 			bPoseChannel *pchan;
 			for (pchan = obt->pose->chanbase.first; pchan; pchan = pchan->next) {
 				for (con = pchan->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
 					
@@ -562,7 +562,7 @@ void BKE_object_unlink(Object *ob)
 		sca_remove_ob_poin(obt, ob);
 		
 		for (con = obt->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
@@ -1408,7 +1408,7 @@ static void copy_object_pose(Object *obn, Object *ob)
 		chan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE);
 		
 		for (con = chan->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
@@ -2221,7 +2221,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 					     md != NULL;
 					     md = md->next)
 					{
-						ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+						const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 						/* TODO(sergey): Check for disabled modifiers. */
 						if (mti->type != eModifierTypeType_OnlyDeform && md->next != NULL) {
 							use_special_ss_case = false;
@@ -3674,7 +3674,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 	     md && (flag != (eModifierMode_Render | eModifierMode_Realtime));
 	     md = md->next)
 	{
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		bool can_deform = mti->type == eModifierTypeType_OnlyDeform ||
 		                  is_modifier_animated;
 

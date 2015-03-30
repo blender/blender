@@ -4318,7 +4318,7 @@ static void constraints_init_typeinfo(void)
 /* This function should be used for getting the appropriate type-info when only
  * a constraint type is known
  */
-bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type)
+const bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type)
 {
 	/* initialize the type-info list? */
 	if (CTI_INIT) {
@@ -4343,7 +4343,7 @@ bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type)
 /* This function should always be used to get the appropriate type-info, as it
  * has checks which prevent segfaults in some weird cases.
  */
-bConstraintTypeInfo *BKE_constraint_typeinfo_get(bConstraint *con)
+const bConstraintTypeInfo *BKE_constraint_typeinfo_get(bConstraint *con)
 {
 	/* only return typeinfo for valid constraints */
 	if (con)
@@ -4373,7 +4373,7 @@ static void con_unlink_refs_cb(bConstraint *UNUSED(con), ID **idpoin, bool is_re
 void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)
 {
 	if (con->data) {
-		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 		
 		if (cti) {
 			/* perform any special freeing constraint may have */
@@ -4447,7 +4447,7 @@ bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool
 static bConstraint *add_new_constraint_internal(const char *name, short type)
 {
 	bConstraint *con = MEM_callocN(sizeof(bConstraint), "Constraint");
-	bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(type);
+	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(type);
 	const char *newName;
 
 	/* Set up a generic constraint datablock */
@@ -4574,7 +4574,7 @@ void BKE_constraints_id_loop(ListBase *conlist, ConstraintIDFunc func, void *use
 	bConstraint *con;
 	
 	for (con = conlist->first; con; con = con->next) {
-		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 		
 		if (cti) {
 			if (cti->id_looper)
@@ -4609,7 +4609,7 @@ void BKE_constraints_copy(ListBase *dst, const ListBase *src, bool do_extern)
 	BLI_duplicatelist(dst, src);
 	
 	for (con = dst->first, srccon = src->first; con && srccon; srccon = srccon->next, con = con->next) {
-		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 		
 		/* make a new copy of the constraint's data */
 		con->data = MEM_dupallocN(con->data);
@@ -4724,7 +4724,7 @@ bool BKE_constraints_proxylocked_owner(Object *ob, bPoseChannel *pchan)
  */
 void BKE_constraint_target_matrix_get(Scene *scene, bConstraint *con, int index, short ownertype, void *ownerdata, float mat[4][4], float ctime)
 {
-	bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 	ListBase targets = {NULL, NULL};
 	bConstraintOb *cob;
 	bConstraintTarget *ct;
@@ -4791,7 +4791,7 @@ void BKE_constraint_target_matrix_get(Scene *scene, bConstraint *con, int index,
 /* Get the list of targets required for solving a constraint */
 void BKE_constraint_targets_for_solving_get(bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
 {
-	bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 	
 	if (cti && cti->get_constraint_targets) {
 		bConstraintTarget *ct;
@@ -4836,7 +4836,7 @@ void BKE_constraints_solve(ListBase *conlist, bConstraintOb *cob, float ctime)
 	
 	/* loop over available constraints, solving and blending them */
 	for (con = conlist->first; con; con = con->next) {
-		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 		ListBase targets = {NULL, NULL};
 		
 		/* these we can skip completely (invalid constraints...) */

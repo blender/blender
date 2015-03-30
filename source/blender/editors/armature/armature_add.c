@@ -308,7 +308,7 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Obj
 				/* does this constraint have a subtarget in
 				 * this armature?
 				 */
-				bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
+				const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				

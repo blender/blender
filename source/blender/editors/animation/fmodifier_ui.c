@@ -78,7 +78,7 @@
 static void validate_fmodifier_cb(bContext *UNUSED(C), void *fcm_v, void *UNUSED(arg))
 {
 	FModifier *fcm = (FModifier *)fcm_v;
-	FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+	const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 	
 	/* call the verify callback on the modifier if applicable */
 	if (fmi && fmi->verify_data)
@@ -555,7 +555,7 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 
 void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
-	FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+	const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 	uiLayout *box, *row, *sub, *col;
 	uiBlock *block;
 	uiBut *but;

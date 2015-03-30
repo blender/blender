@@ -931,7 +931,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
                                               ModifierData *md, int build_shapekey_layers)
 {
 	Mesh *me = ob->data;
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	DerivedMesh *dm;
 	KeyBlock *kb;
 
@@ -1585,7 +1585,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		
 		/* Apply all leading deforming modifiers */
 		for (; md; md = md->next, curr = curr->next) {
-			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			md->scene = scene;
 			
@@ -1639,7 +1639,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	clothorcodm = NULL;
 
 	for (; md; md = md->next, curr = curr->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		md->scene = scene;
 
@@ -2000,7 +2000,7 @@ float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *r_numVerts))[3]
 
 bool editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
 {
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
 	if (!modifier_isEnabled(scene, md, required_mode)) return 0;
@@ -2059,7 +2059,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 	curr = datamasks;
 	for (i = 0; md; i++, md = md->next, curr = curr->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		md->scene = scene;
 		

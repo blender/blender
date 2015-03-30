@@ -266,7 +266,7 @@ int editbmesh_get_first_deform_matrices(Scene *scene, Object *ob, BMEditMesh *em
 	 * modifiers with on cage editing that are enabled and support computing
 	 * deform matrices */
 	for (i = 0; md && i <= cageIndex; i++, md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!editbmesh_modifier_is_enabled(scene, md, dm))
 			continue;
@@ -322,7 +322,7 @@ int BKE_sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**defo
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	for (; md; md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 
@@ -343,7 +343,7 @@ int BKE_sculpt_get_first_deform_matrices(Scene *scene, Object *ob, float (**defo
 	}
 
 	for (; md; md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 
@@ -377,7 +377,7 @@ void BKE_crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[
 		Mesh *me = (Mesh *)ob->data;
 
 		for (; md; md = md->next) {
-			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 

@@ -512,7 +512,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 			
 			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 				for (con = pchan->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
 					
@@ -574,7 +574,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 		ModifierData *md;
 		
 		for (md = ob->modifiers.first; md; md = md->next) {
-			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 			
 			if (mti->updateDepgraph) mti->updateDepgraph(md, dag, bmain, scene, ob, node);
 		}
@@ -823,7 +823,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 	
 	/* object constraints */
 	for (con = ob->constraints.first; con; con = con->next) {
-		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 		ListBase targets = {NULL, NULL};
 		bConstraintTarget *ct;
 		
@@ -2011,7 +2011,7 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 	if (ob->constraints.first) {
 		bConstraint *con;
 		for (con = ob->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
@@ -2532,7 +2532,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 			for (obt = bmain->object.first; obt; obt = obt->id.next) {
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 					if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER,
 					          CONSTRAINT_TYPE_OBJECTSOLVER))
 					{
@@ -2916,7 +2916,7 @@ void DAG_pose_sort(Object *ob)
 			addtoroot = 0;
 		}
 		for (con = pchan->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			

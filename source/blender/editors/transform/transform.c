@@ -2516,8 +2516,8 @@ static void protectedQuaternionBits(short protectflag, float quat[4], const floa
 static void constraintTransLim(TransInfo *t, TransData *td)
 {
 	if (td->con) {
-		bConstraintTypeInfo *ctiLoc = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_LOCLIMIT);
-		bConstraintTypeInfo *ctiDist = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_DISTLIMIT);
+		const bConstraintTypeInfo *ctiLoc = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_LOCLIMIT);
+		const bConstraintTypeInfo *ctiDist = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_DISTLIMIT);
 		
 		bConstraintOb cob = {NULL};
 		bConstraint *con;
@@ -2532,7 +2532,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		
 		/* Evaluate valid constraints */
 		for (con = td->con; con; con = con->next) {
-			bConstraintTypeInfo *cti = NULL;
+			const bConstraintTypeInfo *cti = NULL;
 			ListBase targets = {NULL, NULL};
 			
 			/* only consider constraint if enabled */
@@ -2619,7 +2619,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 {
 	if (td->con) {
-		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_ROTLIMIT);
+		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_ROTLIMIT);
 		bConstraintOb cob;
 		bConstraint *con;
 		bool do_limit = false;
@@ -2686,7 +2686,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 static void constraintSizeLim(TransInfo *t, TransData *td)
 {
 	if (td->con && td->ext) {
-		bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_SIZELIMIT);
+		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_SIZELIMIT);
 		bConstraintOb cob = {NULL};
 		bConstraint *con;
 		float size_sign[3], size_abs[3];

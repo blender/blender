@@ -108,8 +108,8 @@ typedef struct bConstraintTypeInfo {
 } bConstraintTypeInfo;
 
 /* Function Prototypes for bConstraintTypeInfo's */
-bConstraintTypeInfo *BKE_constraint_typeinfo_get(struct bConstraint *con);
-bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type);
+const bConstraintTypeInfo *BKE_constraint_typeinfo_get(struct bConstraint *con);
+const bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type);
 
 
 /* ---------------------------------------------------------------------------- */

@@ -1531,7 +1531,7 @@ static DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
 };
 
 /* Get driver variable typeinfo */
-static DriverVarTypeInfo *get_dvar_typeinfo(int type)
+static const DriverVarTypeInfo *get_dvar_typeinfo(int type)
 {
 	/* check if valid type */
 	if ((type >= 0) && (type < MAX_DVAR_TYPES))
@@ -1575,7 +1575,7 @@ void driver_free_variable(ChannelDriver *driver, DriverVar *dvar)
 /* Change the type of driver variable */
 void driver_change_variable_type(DriverVar *dvar, int type)
 {
-	DriverVarTypeInfo *dvti = get_dvar_typeinfo(type);
+	const DriverVarTypeInfo *dvti = get_dvar_typeinfo(type);
 	
 	/* sanity check */
 	if (ELEM(NULL, dvar, dvti))
@@ -1699,7 +1699,7 @@ ChannelDriver *fcurve_copy_driver(ChannelDriver *driver)
 /* Evaluate a Driver Variable to get a value that contributes to the final */
 float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
 {
-	DriverVarTypeInfo *dvti;
+	const DriverVarTypeInfo *dvti;
 
 	/* sanity check */
 	if (ELEM(NULL, driver, dvar))

@@ -1040,7 +1040,7 @@ static void fmods_init_typeinfo(void)
 /* This function should be used for getting the appropriate type-info when only
  * a F-Curve modifier type is known
  */
-FModifierTypeInfo *get_fmodifier_typeinfo(int type)
+const FModifierTypeInfo *get_fmodifier_typeinfo(int type)
 {
 	/* initialize the type-info list? */
 	if (FMI_INIT) {
@@ -1065,7 +1065,7 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type)
 /* This function should always be used to get the appropriate type-info, as it
  * has checks which prevent segfaults in some weird cases.
  */
-FModifierTypeInfo *fmodifier_get_typeinfo(FModifier *fcm)
+const FModifierTypeInfo *fmodifier_get_typeinfo(FModifier *fcm)
 {
 	/* only return typeinfo for valid modifiers */
 	if (fcm)
@@ -1079,7 +1079,7 @@ FModifierTypeInfo *fmodifier_get_typeinfo(FModifier *fcm)
 /* Add a new F-Curve Modifier to the given F-Curve of a certain type */
 FModifier *add_fmodifier(ListBase *modifiers, int type)
 {
-	FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
+	const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
 	FModifier *fcm;
 	
 	/* sanity checks */
@@ -1119,7 +1119,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type)
 /* Make a copy of the specified F-Modifier */
 FModifier *copy_fmodifier(FModifier *src)
 {
-	FModifierTypeInfo *fmi = fmodifier_get_typeinfo(src);
+	const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(src);
 	FModifier *dst;
 	
 	/* sanity check */
@@ -1153,7 +1153,7 @@ void copy_fmodifiers(ListBase *dst, ListBase *src)
 	BLI_duplicatelist(dst, src);
 	
 	for (fcm = dst->first, srcfcm = src->first; fcm && srcfcm; srcfcm = srcfcm->next, fcm = fcm->next) {
-		FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+		const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 		
 		/* make a new copy of the F-Modifier's data */
 		fcm->data = MEM_dupallocN(fcm->data);
@@ -1167,7 +1167,7 @@ void copy_fmodifiers(ListBase *dst, ListBase *src)
 /* Remove and free the given F-Modifier from the given stack  */
 bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 {
-	FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+	const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 	
 	/* sanity check */
 	if (fcm == NULL)
@@ -1266,7 +1266,7 @@ bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 		
 	/* find the first mdifier fitting these criteria */
 	for (fcm = modifiers->first; fcm; fcm = fcm->next) {
-		FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+		const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 		short mOk = 1, aOk = 1; /* by default 1, so that when only one test, won't fail */
 		
 		/* check if applicable ones are fullfilled */
@@ -1296,7 +1296,7 @@ FModifierStackStorage *evaluate_fmodifiers_storage_new(ListBase *modifiers)
 	}
 
 	for (fcm = modifiers->last; fcm; fcm = fcm->prev) {
-		FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+		const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
 		if (fmi == NULL) {
 			continue;
@@ -1410,7 +1410,7 @@ float evaluate_time_fmodifiers(FModifierStackStorage *storage, ListBase *modifie
 	 * (such as multiple 'stepped' modifiers in sequence, causing different stepping rates)
 	 */
 	for (fcm = modifiers->last; fcm; fcm = fcm->prev) {
-		FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+		const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 		
 		if (fmi == NULL) 
 			continue;
@@ -1458,7 +1458,7 @@ void evaluate_value_fmodifiers(FModifierStackStorage *storage, ListBase *modifie
 	
 	/* evaluate modifiers */
 	for (fcm = modifiers->first; fcm; fcm = fcm->next) {
-		FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+		const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 		
 		if (fmi == NULL) 
 			continue;

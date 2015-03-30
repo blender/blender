@@ -96,7 +96,7 @@ static void modifier_skin_customdata_delete(struct Object *ob);
 ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
 {
 	ModifierData *md = NULL, *new_md = NULL;
-	ModifierTypeInfo *mti = modifierType_getInfo(type);
+	const ModifierTypeInfo *mti = modifierType_getInfo(type);
 	
 	/* only geometry objects should be able to get modifiers [#25291] */
 	if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
@@ -368,10 +368,10 @@ void ED_object_modifier_clear(Main *bmain, Object *ob)
 int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
 {
 	if (md->prev) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (mti->type != eModifierTypeType_OnlyDeform) {
-			ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
+			const ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
 
 			if (nmti->flags & eModifierTypeFlag_RequiresOriginalData) {
 				BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data");
@@ -389,10 +389,10 @@ int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md
 int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *md)
 {
 	if (md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-			ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
+			const ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
 
 			if (nmti->type != eModifierTypeType_OnlyDeform) {
 				BKE_report(reports, RPT_WARNING, "Cannot move beyond a non-deforming modifier");
@@ -518,7 +518,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 
 static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	md->scene = scene;
 
@@ -578,7 +578,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 
 static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
-	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	md->scene = scene;
 
@@ -742,7 +742,7 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 {	
 	Object *ob = ED_object_active_context(C);
 	EnumPropertyItem *item = NULL, *md_item, *group_item = NULL;
-	ModifierTypeInfo *mti;
+	const ModifierTypeInfo *mti;
 	int totitem = 0, a;
 	
 	if (!ob)

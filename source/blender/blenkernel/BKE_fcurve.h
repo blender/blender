@@ -172,8 +172,8 @@ typedef enum eFMI_Requirement_Flags {
 } eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */
-FModifierTypeInfo *fmodifier_get_typeinfo(struct FModifier *fcm);
-FModifierTypeInfo *get_fmodifier_typeinfo(int type);
+const FModifierTypeInfo *fmodifier_get_typeinfo(struct FModifier *fcm);
+const FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 
 /* ---------------------- */
 

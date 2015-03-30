@@ -2189,7 +2189,7 @@ static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
-		FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
+		const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
 		
 		/* check if modifier is valid for this context */
 		if (fmi == NULL)

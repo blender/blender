@@ -720,7 +720,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 
 	/* exception for shape keys because we can edit those */
 	for (; md; md = md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 		if (ELEM(md->type, eModifierType_ShapeKey, eModifierType_Multires)) continue;
 

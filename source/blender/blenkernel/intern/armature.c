@@ -1700,7 +1700,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			
 			/* constraints - set target ob pointer to own object */
 			for (con = pchanw.constraints.first; con; con = con->next) {
-				bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+				const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				

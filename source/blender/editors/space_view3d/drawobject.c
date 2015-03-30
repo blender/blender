@@ -7922,7 +7922,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					}
 				}
 				else {
-					bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
+					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
 
 					if ((cti && cti->get_constraint_targets) && (curcon->flag & CONSTRAINT_EXPAND)) {
 						ListBase targets = {NULL, NULL};

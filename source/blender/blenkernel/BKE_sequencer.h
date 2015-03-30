@@ -433,7 +433,7 @@ typedef struct SequenceModifierTypeInfo {
 	void (*apply) (struct SequenceModifierData *smd, struct ImBuf *ibuf, struct ImBuf *mask);
 } SequenceModifierTypeInfo;
 
-struct SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type);
+const struct SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type);
 
 struct SequenceModifierData *BKE_sequence_modifier_new(struct Sequence *seq, const char *name, int type);
 bool BKE_sequence_modifier_remove(struct Sequence *seq, struct SequenceModifierData *smd);

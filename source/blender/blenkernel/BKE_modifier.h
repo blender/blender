@@ -312,7 +312,7 @@ typedef struct ModifierTypeInfo {
 /* Initialize modifier's global data (type info and some common global storages). */
 void BKE_modifier_init(void);
 
-ModifierTypeInfo *modifierType_getInfo(ModifierType type);
+const ModifierTypeInfo *modifierType_getInfo(ModifierType type);
 
 /* Modifier utility calls, do call through type pointer and return
  * default values if pointer is optional.

@@ -4746,7 +4746,7 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, co
 
 		/* exception for shape keys because we can edit those */
 		for (; md; md = md->next) {
-			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 			if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 
 			if (mti->type == eModifierTypeType_Constructive) {

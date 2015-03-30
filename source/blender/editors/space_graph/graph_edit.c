@@ -2248,7 +2248,7 @@ static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(p
 
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
-		FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
+		const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
 		int index;
 
 		/* check if modifier is valid for this context */
