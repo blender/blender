@@ -2169,7 +2169,7 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "CorrectiveSmoothModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SMOOTH);
 
-	prop = RNA_def_property(srna, "lambda_factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lambda");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 5, 3);

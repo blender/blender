@@ -1389,8 +1389,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def CORRECTIVE_SMOOTH(self, layout, ob, md):
         is_bind = md.is_bind
 
+        layout.prop(md, "factor", text="Factor")
         layout.prop(md, "iterations")
-        layout.prop(md, "lambda_factor", text="Factor")
 
         row = layout.row()
         row.prop(md, "smooth_type")
