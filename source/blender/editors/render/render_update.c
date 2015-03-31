@@ -300,7 +300,7 @@ static void material_changed(Main *bmain, Material *ma)
 	}
 
 	/* find textured objects */
-	if (texture_draw && !(U.gameflags & USER_DISABLE_VBO)) {
+	if (texture_draw) {
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			DerivedMesh *dm = ob->derivedFinal;
 			Material ***material = give_matarar(ob);
@@ -423,7 +423,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	}
 
 	/* find textured objects */
-	if (texture_draw && !(U.gameflags & USER_DISABLE_VBO)) {
+	if (texture_draw) {
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			DerivedMesh *dm = ob->derivedFinal;
 			Material ***material = give_matarar(ob);
