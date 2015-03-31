@@ -259,12 +259,10 @@ void gpu_extensions_init(void)
 		GG.dfdyfactors[0] = 1.0;
 		GG.dfdyfactors[1] = -1.0;
 	}
-	/*
-	if ((strstr(vendor, "Intel"))) {
+	else if (GG.device == GPU_DEVICE_INTEL && GG.os == GPU_OS_WIN) {
 		GG.dfdyfactors[0] = -1.0;
 		GG.dfdyfactors[1] = 1.0;
 	}
-	*/
 	else {
 		GG.dfdyfactors[0] = 1.0;
 		GG.dfdyfactors[1] = 1.0;
