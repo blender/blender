@@ -155,11 +155,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					++stackPtr;
 					kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 					traversalStack[stackPtr].addr = c1;
-					traversalStack[stackPtr].dist = c1;
+					traversalStack[stackPtr].dist = d1;
 					++stackPtr;
 					kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 					traversalStack[stackPtr].addr = c0;
-					traversalStack[stackPtr].dist = c0;
+					traversalStack[stackPtr].dist = d0;
 
 					/* Three children are hit, push all onto stack and sort 3
 					 * stack items, continue with closest child.
