@@ -694,23 +694,26 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 	}
 }
 
-static void outline_delete_hierarchy(bContext *C, Scene *scene, Base *base)
+static Base *outline_delete_hierarchy(bContext *C, Scene *scene, Base *base)
 {
-	Base *child_base;
+	Base *child_base, *base_next;
 	Object *parent;
 
 	if (!base) {
-	    return;
+	    return NULL;
 	}
 
-	for (child_base = scene->base.first; child_base; child_base = child_base->next) {
+	for (child_base = scene->base.first; child_base; child_base = base_next) {
+		base_next = child_base->next;
 		for (parent = child_base->object->parent; parent && (parent != base->object); parent = parent->parent);
 		if (parent) {
-			outline_delete_hierarchy(C, scene, child_base);
+			base_next = outline_delete_hierarchy(C, scene, child_base);
 		}
 	}
 
+	base_next = base->next;
 	ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
+	return base_next;
 }
 
 static void object_delete_hierarchy_cb(
