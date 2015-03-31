@@ -1765,6 +1765,7 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 	if (sa->flag & AREA_FLAG_STACKED_FULLSCREEN) {
 		/* stacked fullscreen -> only go back to previous screen and don't toggle out of fullscreen */
 		ED_area_prevspace(C, sa);
+		sa->flag &= ~AREA_FLAG_TEMP_TYPE;
 	}
 	else {
 		ED_screen_restore_temp_type(C, sa);
@@ -1804,8 +1805,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 		else {
 			ED_screen_state_toggle(C, win, sa, state);
 		}
-
-		sa->flag &= ~AREA_FLAG_TEMP_TYPE;
+		/* warning: 'sa' may be freed */
 	}
 	/* otherwise just tile the area again */
 	else {
@@ -1813,7 +1813,11 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	}
 }
 
-/* this function toggles: if area is maximized/full then the parent will be restored */
+/**
+ * this function toggles: if area is maximized/full then the parent will be restored
+ *
+ * \warning \a sa may be freed.
+ */
 ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const short state)
 {
 	bScreen *sc, *oldscreen;
