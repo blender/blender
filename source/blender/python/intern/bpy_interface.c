@@ -61,6 +61,8 @@
 #include "bpy_traceback.h"
 #include "bpy_intern_string.h"
 
+#include "bpy_app_translations.h"
+
 #include "DNA_text_types.h"
 
 #include "BKE_appdir.h"
@@ -357,6 +359,9 @@ void BPY_python_end(void)
 	/* clear all python data from structs */
 
 	bpy_intern_string_exit();
+
+	/* bpy.app modules that need cleanup */
+	BPY_app_translations_end();
 
 #ifndef WITH_PYTHON_MODULE
 	BPY_atexit_unregister(); /* without this we get recursive calls to WM_exit */
