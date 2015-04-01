@@ -69,6 +69,9 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 
 	float out = 0.0f;
 
+	if(fmaxf(sc->data0, sc->data1) <= 1e-4f)
+		return make_float3(0, 0, 0);
+
 	if(NdotI > 0.0f && NdotO > 0.0f) {
 		NdotI = fmaxf(NdotI, 1e-6f);
 		NdotO = fmaxf(NdotO, 1e-6f);
@@ -190,8 +193,15 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 		/* reflect I on H to get omega_in */
 		*omega_in = -I + (2.0f * HdotI) * H;
 
-		/* leave the rest to eval_reflect */
-		*eval = bsdf_ashikhmin_shirley_eval_reflect(sc, I, *omega_in, pdf);
+		if(fmaxf(sc->data0, sc->data1) <= 1e-4f) {
+			/* Some high number for MIS. */
+			*pdf = 1e6f;
+			*eval = make_float3(1e6f, 1e6f, 1e6f);
+		}
+		else {
+			/* leave the rest to eval_reflect */
+			*eval = bsdf_ashikhmin_shirley_eval_reflect(sc, I, *omega_in, pdf);
+		}
 
 #ifdef __RAY_DIFFERENTIALS__
 		/* just do the reflection thing for now */
