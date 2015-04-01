@@ -210,7 +210,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
 								if(tri_object != subsurface_object)
 									continue;
-								triangle_intersect_subsurface(kg, &isect_precalc, isect_array, P, dir, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								triangle_intersect_subsurface(kg, &isect_precalc, isect_array, P, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
 							}
 							break;
 						}

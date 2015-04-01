@@ -234,7 +234,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									continue;
 								}
 								/* Intersect ray against primitive. */
-								triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr);
+								triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr);
 							}
 							break;
 						}

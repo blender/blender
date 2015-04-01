@@ -226,7 +226,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 						switch(p_type) {
 							case PRIMITIVE_TRIANGLE: {
-								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr);
+								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, PATH_RAY_SHADOW, object, primAddr);
 								break;
 							}
 #if BVH_FEATURE(BVH_MOTION)

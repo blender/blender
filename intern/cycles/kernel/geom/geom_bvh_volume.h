@@ -213,7 +213,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
 									continue;
 								}
-								triangle_intersect(kg, &isect_precalc, isect, P, dir, visibility, object, primAddr);
+								triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr);
 							}
 							break;
 						}

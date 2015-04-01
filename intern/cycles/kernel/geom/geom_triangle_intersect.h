@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* Triangle/Ray intersections .
+/* Triangle/Ray intersections.
  *
  * For BVH ray intersection we use a precomputed triangle storage to accelerate
  * intersection at the cost of more memory usage.
@@ -98,7 +98,6 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
                                           const IsectPrecalc *isect_precalc,
                                           Intersection *isect,
                                           float3 P,
-                                          float3 dir,
                                           uint visibility,
                                           int object,
                                           int triAddr)
@@ -191,7 +190,6 @@ ccl_device_inline void triangle_intersect_subsurface(
         const IsectPrecalc *isect_precalc,
         Intersection *isect_array,
         float3 P,
-        float3 dir,
         int object,
         int triAddr,
         float tmax,
