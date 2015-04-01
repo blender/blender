@@ -946,16 +946,15 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 		default:
 			BLI_assert(0);
 	}
-	
 
 	if (event == 3) { /* instance */
 		/* works without this except if you try render right after, see: 22027 */
 		DAG_relations_tag_update(CTX_data_main(C));
 	}
-	
-	ED_undo_push(C, prop_group_op_types[event].name);
+
+	ED_undo_push(C, prop_group_op_types[event - 1].name);
 	WM_event_add_notifier(C, NC_GROUP, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
