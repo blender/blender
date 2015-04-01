@@ -283,7 +283,10 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 		/* clear_global will free G.main, here we can still restore pointers */
 		blo_lib_link_screen_restore(bfd->main, curscreen, curscene);
-		curscene = curscreen->scene;
+		/* curscreen might not be set when loading without ui (see T44217) so only re-assign if available */
+		if (curscreen) {
+			curscene = curscreen->scene;
+		}
 
 		if (track_undo_scene) {
 			wmWindowManager *wm = bfd->main->wm.first;
