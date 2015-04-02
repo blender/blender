@@ -189,6 +189,8 @@ typedef struct Sequence {
 	char alpha_mode;
 	char pad[3];
 
+	struct IDProperty *prop;
+
 	/* modifiers */
 	ListBase modifiers;
 } Sequence;

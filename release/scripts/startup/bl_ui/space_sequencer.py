@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from rna_prop_ui import PropertyPanel
 from bl_ui.properties_grease_pencil_common import GreasePencilDataPanel, GreasePencilToolsPanel
 from bpy.app.translations import pgettext_iface as iface_
 
@@ -1105,6 +1106,12 @@ class SEQUENCER_PT_grease_pencil_tools(GreasePencilToolsPanel, SequencerButtonsP
     # NOTE: this is just a wrapper around the generic GP tools panel
     # It contains access to some essential tools usually found only in
     # toolbar, which doesn't exist here...
+
+
+class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "scene.sequence_editor.active_strip"
+    _property_type = (bpy.types.Sequence,)
 
 
 if __name__ == "__main__":  # only for live edit.

@@ -72,6 +72,7 @@ EnumPropertyItem sequence_modifier_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_report.h"
+#include "BKE_idprop.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -562,6 +563,18 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	else {
 		return BLI_strdup("");
 	}
+}
+
+static IDProperty *rna_Sequence_idprops(PointerRNA *ptr, bool create)
+{
+	Sequence *seq = ptr->data;
+
+	if (create && !seq->prop) {
+		IDPropertyTemplate val = {0};
+		seq->prop = IDP_New(IDP_GROUP, &val, "Sequence ID properties");
+	}
+
+	return seq->prop;
 }
 
 static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *iter)
@@ -1397,6 +1410,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor");
 	RNA_def_struct_refine_func(srna, "rna_Sequence_refine");
 	RNA_def_struct_path_func(srna, "rna_Sequence_path");
+	RNA_def_struct_idprops_func(srna, "rna_Sequence_idprops");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Sequence_name_get", "rna_Sequence_name_length", "rna_Sequence_name_set");

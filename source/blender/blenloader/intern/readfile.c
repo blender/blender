@@ -5618,7 +5618,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				SpeedControlVars *s = seq->effectdata;
 				s->frameMap = NULL;
 			}
-			
+
+			seq->prop = newdataadr(fd, seq->prop);
+			IDP_DirectLinkGroup_OrFree(&seq->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+
 			seq->strip = newdataadr(fd, seq->strip);
 			if (seq->strip && seq->strip->done==0) {
 				seq->strip->done = true;

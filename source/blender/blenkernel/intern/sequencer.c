@@ -66,6 +66,7 @@
 #include "BKE_scene.h"
 #include "BKE_mask.h"
 #include "BKE_library.h"
+#include "BKE_idprop.h"
 
 #include "RNA_access.h"
 
@@ -208,6 +209,11 @@ static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const bool do_cach
 			BKE_sound_remove_scene_sound(scene, seq->scene_sound);
 
 		seq_free_animdata(scene, seq);
+	}
+
+	if (seq->prop) {
+		IDP_FreeProperty(seq->prop);
+		MEM_freeN(seq->prop);
 	}
 
 	/* free modifiers */
@@ -4628,6 +4634,10 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	if (seq->strip->proxy) {
 		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
 		seqn->strip->proxy->anim = NULL;
+	}
+
+	if (seq->prop) {
+		seqn->prop = IDP_CopyProperty(seq->prop);
 	}
 
 	if (seqn->modifiers.first) {
