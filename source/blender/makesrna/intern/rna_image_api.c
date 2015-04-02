@@ -288,6 +288,11 @@ static void rna_Image_filepath_from_user(Image *image, ImageUser *image_user, ch
 	BKE_image_user_file_path(image_user, image, filepath);
 }
 
+static void rna_Image_buffers_free(Image *image)
+{
+	BKE_image_free_buffers(image);
+}
+
 #else
 
 void RNA_api_image(StructRNA *srna)
@@ -373,6 +378,9 @@ void RNA_api_image(StructRNA *srna)
 	                                "The resulting filepath from the image and it's user");
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);  /* needed for string return value */
 	RNA_def_function_output(func, parm);
+
+	func = RNA_def_function(srna, "buffers_free", "rna_Image_buffers_free");
+	RNA_def_function_ui_description(func, "Free the image buffers from memory");
 
 	/* TODO, pack/unpack, maybe should be generic functions? */
 }

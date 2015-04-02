@@ -95,6 +95,9 @@ private:
 	/* particles */
 	bool sync_dupli_particle(BL::Object b_ob, BL::DupliObject b_dup, Object *object);
 
+	/* Images. */
+	void sync_images();
+
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);
 	bool BKE_object_is_modified(BL::Object b_ob);
