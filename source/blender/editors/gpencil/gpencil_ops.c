@@ -181,7 +181,18 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 #ifdef __APPLE__
 	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "GPENCIL_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
-#endif	
+#endif
+	
+	/* Show/Hide */
+	/* NOTE: These are available only in EditMode now, since they clash with general-purpose hotkeys */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
+	
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_hide", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", false);
+	
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", true);
+	
 	
 	/* Transform Tools */
 	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
@@ -259,6 +270,9 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_layer_remove);
 	WM_operatortype_append(GPENCIL_OT_layer_move);
 	WM_operatortype_append(GPENCIL_OT_layer_duplicate);
+	
+	WM_operatortype_append(GPENCIL_OT_hide);
+	WM_operatortype_append(GPENCIL_OT_reveal);
 	
 	WM_operatortype_append(GPENCIL_OT_active_frame_delete);
 	

@@ -350,4 +350,98 @@ void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* *********************** Hide Layers ******************************** */
+
+static int gp_hide_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *layer = gpencil_layer_getactive(gpd);
+	bool unselected = RNA_boolean_get(op->ptr, "unselected");
+	
+	/* sanity checks */
+	if (ELEM(NULL, gpd, layer))
+		return OPERATOR_CANCELLED;
+	
+	if (unselected) {
+		bGPDlayer *gpl;
+		
+		/* hide unselected */
+		for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			if (gpl != layer) {
+				gpl->flag |= GP_LAYER_HIDE;
+			}
+		}
+	}
+	else {
+		/* hide selected/active */
+		layer->flag |= GP_LAYER_HIDE;
+	}
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_hide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Hide Layer(s)";
+	ot->idname = "GPENCIL_OT_hide";
+	ot->description = "Hide selected/unselected Grease Pencil layers";
+	
+	/* callbacks */
+	ot->exec = gp_hide_exec;
+	ot->poll = gp_active_layer_poll; /* NOTE: we need an active layer to play with */
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected layers");
+}
+
+/* ********************** Show All Layers ***************************** */
+
+/* poll callback for showing layers */
+static int gp_reveal_poll(bContext *C)
+{
+	return ED_gpencil_data_get_active(C) != NULL;
+}
+
+static int gp_reveal_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl;
+	
+	/* sanity checks */
+	if (gpd == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* make all layers visible */
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		gpl->flag &= ~GP_LAYER_HIDE;
+	}
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_reveal(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Show All Layers";
+	ot->idname = "GPENCIL_OT_reveal";
+	ot->description = "Show all Grease Pencil layers";
+	
+	/* callbacks */
+	ot->exec = gp_reveal_exec;
+	ot->poll = gp_reveal_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ************************************************ */
