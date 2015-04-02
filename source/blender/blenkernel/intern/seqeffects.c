@@ -52,9 +52,6 @@
 
 #include "RNA_access.h"
 
-/* TODO(sergey): Could be considered a bad level call, but
- * need this for gaussian table.
- */
 #include "RE_pipeline.h"
 
 static void slice_get_byte_buffers(const SeqRenderData *context, const ImBuf *ibuf1, const ImBuf *ibuf2,
