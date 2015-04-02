@@ -365,5 +365,5 @@ void ED_operatormacros_sequencer(void)
 	                                  "Duplicate selected strips and move them", OPTYPE_UNDO | OPTYPE_REGISTER);
 
 	WM_operatortype_macro_define(ot, "SEQUENCER_OT_duplicate");
-	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	WM_operatortype_macro_define(ot, "TRANSFORM_OT_seq_slide");
 }
