@@ -791,6 +791,33 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 	need_update = false;
 }
 
+void ImageManager::device_update_slot(Device *device,
+                                      DeviceScene *dscene,
+                                      int slot,
+                                      Progress *progress)
+{
+	Image *image;
+	if(slot >= tex_image_byte_start) {
+		int byte_slot = slot - tex_image_byte_start;
+		assert(images[byte_slot] != NULL);
+		image = images[byte_slot];
+	}
+	else {
+		assert(float_images[slot] != NULL);
+		image = float_images[slot];
+	}
+	if(image->users == 0) {
+		device_free_image(device, dscene, slot);
+	}
+	else if(image->need_load) {
+		if(!osl_texture_system || float_images[slot]->builtin_data)
+			device_load_image(device,
+			                  dscene,
+			                  slot,
+			                  progress);
+	}
+}
+
 void ImageManager::device_pack_images(Device *device,
                                       DeviceScene *dscene,
                                       Progress& /*progess*/)

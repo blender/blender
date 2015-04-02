@@ -55,13 +55,28 @@ public:
 
 /* Nodes */
 
+/* Any node which uses image manager's slot should be a subclass of this one. */
+class ImageSlotNode : public ShaderNode {
+public:
+	ImageSlotNode(const char *name_) : ShaderNode(name_) {
+		special_type = SHADER_SPECIAL_TYPE_IMAGE_SLOT;
+	}
+	int slot;
+};
+
 class TextureNode : public ShaderNode {
 public:
 	TextureNode(const char *name_) : ShaderNode(name_) {}
 	TextureMapping tex_mapping;
 };
 
-class ImageTextureNode : public TextureNode {
+class ImageSlotTextureNode : public ImageSlotNode {
+public:
+	ImageSlotTextureNode(const char *name_) : ImageSlotNode(name_) {}
+	TextureMapping tex_mapping;
+};
+
+class ImageTextureNode : public ImageSlotTextureNode {
 public:
 	SHADER_NODE_NO_CLONE_CLASS(ImageTextureNode)
 	~ImageTextureNode();
@@ -69,7 +84,6 @@ public:
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 
 	ImageManager *image_manager;
-	int slot;
 	int is_float;
 	bool is_linear;
 	bool use_alpha;
@@ -85,7 +99,7 @@ public:
 	static ShaderEnum projection_enum;
 };
 
-class EnvironmentTextureNode : public TextureNode {
+class EnvironmentTextureNode : public ImageSlotTextureNode {
 public:
 	SHADER_NODE_NO_CLONE_CLASS(EnvironmentTextureNode)
 	~EnvironmentTextureNode();
@@ -93,7 +107,6 @@ public:
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 
 	ImageManager *image_manager;
-	int slot;
 	int is_float;
 	bool is_linear;
 	bool use_alpha;
