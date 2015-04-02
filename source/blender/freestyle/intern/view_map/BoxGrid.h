@@ -303,11 +303,11 @@ inline void BoxGrid::Iterator::reportDepth(Vec3r origin, Vec3r u, real t)
 	// The reported depth is the length of a ray in camera space
 	// We need to convert it into a Z-value in grid space
 	real depth = -(origin + (u * t))[2];
-	#if BOX_GRID_LOGGING
+#if BOX_GRID_LOGGING
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			std::cout << "\t\tReporting depth of occluder/ee: " << depth;
 		}
-	#endif
+#endif
 	if (depth > _target[2]) {
 #if BOX_GRID_LOGGING
 		if (G.debug & G_DEBUG_FREESTYLE) {

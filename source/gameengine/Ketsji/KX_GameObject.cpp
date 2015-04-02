@@ -1550,7 +1550,7 @@ void KX_GameObject::RegisterCollisionCallbacks()
 }
 void KX_GameObject::RunCollisionCallbacks(KX_GameObject *collider, const MT_Vector3 &point, const MT_Vector3 &normal)
 {
-	#ifdef WITH_PYTHON
+#ifdef WITH_PYTHON
 	Py_ssize_t len;
 	PyObject* collision_callbacks = m_collisionCallbacks;
 
@@ -1613,7 +1613,7 @@ void KX_GameObject::RunCollisionCallbacks(KX_GameObject *collider, const MT_Vect
 		if (args_3) Py_DECREF(args_3);
 		if (args_1) Py_DECREF(args_1);
 	}
-	#endif
+#endif
 }
 
 /* Suspend/ resume: for the dynamic behavior, there is a simple

@@ -2057,14 +2057,14 @@ PyObject *initGamePlayerPythonScripting(Main *maggie, int argc, char** argv)
 	Py_SetProgramName(program_path_wchar);
 
 	/* Update, Py3.3 resolves attempting to parse non-existing header */
-	#if 0
+#if 0
 	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
 	 * parse from the 'sysconfig' module which is used by 'site',
 	 * so for now disable site. alternatively we could copy the file. */
 	if (py_path_bundle != NULL) {
 		Py_NoSiteFlag = 1; /* inhibits the automatic importing of 'site' */
 	}
-	#endif
+#endif
 
 	Py_FrozenFlag = 1;
 

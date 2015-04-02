@@ -1738,7 +1738,8 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				BKE_report(op->reports, RPT_WARNING, 
-						   "Failed to resolve path to property, try manually specifying this using a Keying Set instead");
+				           "Failed to resolve path to property, "
+				           "try manually specifying this using a Keying Set instead");
 			}
 		}
 	}
