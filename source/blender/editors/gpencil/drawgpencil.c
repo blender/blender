@@ -40,6 +40,9 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+#include "BLF_translation.h"
+
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -59,6 +62,7 @@
 #include "ED_gpencil.h"
 #include "ED_view3d.h"
 
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 
 /* ************************************************** */
@@ -1042,6 +1046,42 @@ static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, in
 	}
 }
 
+/* draw a short status message in the top-right corner */
+static void gp_draw_status_text(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
+{
+	/* for now, this should only be used to indicate when we are in stroke editmode */
+	if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
+		const char *printable = IFACE_("GPencil Stroke Editing");
+		float       printable_size[2];
+		int xco, yco;
+		
+		BLF_width_and_height_default(printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
+		
+		xco = offsx + (winx - U.widget_unit) - (int)printable_size[0];
+		yco = offsy + (winy - U.widget_unit);
+		
+		/* text label */
+		UI_ThemeColor(TH_TEXT_HI);
+#ifdef WITH_INTERNATIONAL
+		BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
+#else
+		BLF_draw_default_ascii(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
+#endif
+		
+		/* grease pencil icon... */
+		// XXX: is this too intrusive?
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		xco -= U.widget_unit;
+		yco -= (int)printable_size[1] / 2;
+
+		UI_icon_draw(xco, yco, ICON_GREASEPENCIL);
+		
+		glDisable(GL_BLEND);
+	}
+}
+
 /* draw grease-pencil datablock */
 static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
@@ -1066,6 +1106,16 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 	/* turn off alpha blending, then smooth lines */
 	glDisable(GL_BLEND); // alpha blending
 	glDisable(GL_LINE_SMOOTH); // smooth lines
+	
+	/* Draw status text:
+	 * - This cannot be drawn when doing OpenGL "renders" and also when "only render" is enabled
+	 * - NOSTATUS should also catch all the other cases where the we are drawing into the "wrong" 
+	 *   coordinate space (e.g. 3D, View 2D, etc.)
+	 */
+	/* XXX: Reinstate the "draw info" flag into the UI? */
+	if ((dflag & GP_DRAWDATA_NOSTATUS) == 0 && (G.f & G_RENDER_OGL) == 0) {
+		gp_draw_status_text(gpd, offsx, offsy, winx, winy, cfra, dflag);
+	}
 	
 	/* restore initial gl conditions */
 	glLineWidth(1.0);
@@ -1227,9 +1277,21 @@ void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 		winy  = ar->winy;
 	}
 	
-	/* draw it! */
-	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
+	/* set flags */
+	if (only3d) {
+		/* 3D strokes/3D space:
+		 * - only 3D space points
+		 * - don't status text either (as it's the wrong space)
+		 */
+		dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
+	}
 	
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		/* don't draw status text when "only render" flag is set */
+		dflag |= GP_DRAWDATA_NOSTATUS;
+	}
+	
+	/* draw it! */
 	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
 }
 
