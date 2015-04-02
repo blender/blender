@@ -3800,7 +3800,7 @@ static void graph_key_shortest_dist(FCurve *fcu, TransData *td_start, TransData 
 		const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
 
 		if (sel1 || sel2 || sel3) {
-			td->dist = min_ff(td->dist, fabs(td_iter->center[0] - td->center[0]));
+			td->dist = td->rdist = min_ff(td->dist, fabs(td_iter->center[0] - td->center[0]));
 		}
 
 		td_iter += 3;
@@ -4088,7 +4088,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					const bool sel3 = use_handle ? (bezt->f3 & SELECT) != 0 : sel2;
 
 					if (sel1 || sel2) {
-						td->dist = 0.0f;
+						td->dist = td->rdist =  0.0f;
 					}
 					else {
 						graph_key_shortest_dist(fcu, td_start, td, use_handle);
@@ -4096,7 +4096,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					td++;
 
 					if (sel2) {
-						td->dist = 0.0f;
+						td->dist = td->rdist = 0.0f;
 					}
 					else {
 						graph_key_shortest_dist(fcu, td_start, td, use_handle);
@@ -4104,7 +4104,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					td++;
 
 					if (sel3 || sel2) {
-						td->dist = 0.0f;
+						td->dist = td->rdist = 0.0f;
 					}
 					else {
 						graph_key_shortest_dist(fcu, td_start, td, use_handle);
@@ -7740,10 +7740,8 @@ void createTransData(bContext *C, TransInfo *t)
 		createTransGraphEditData(C, t);
 
 		if (t->data && (t->flag & T_PROP_EDIT)) {
-			t->flag |= T_PROP_CONNECTED;
-			t->flag &= ~T_PROP_PROJECTED;
 			sort_trans_data(t); // makes selected become first in array
-			set_prop_dist(t, false);
+			//set_prop_dist(t, false); /* don't do that, distance has been set in createTransGraphEditData already */
 			sort_trans_data_dist(t);
 		}
 	}
