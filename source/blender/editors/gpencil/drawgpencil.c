@@ -1047,7 +1047,7 @@ static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, in
 }
 
 /* draw a short status message in the top-right corner */
-static void gp_draw_status_text(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
+static void gp_draw_status_text(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int UNUSED(cfra), int UNUSED(dflag))
 {
 	/* for now, this should only be used to indicate when we are in stroke editmode */
 	if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
