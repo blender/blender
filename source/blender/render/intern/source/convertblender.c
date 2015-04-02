@@ -5002,7 +5002,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 				 * system need to have render settings set for dupli particles */
 				dupli_render_particle_set(re, ob, timeoffset, 0, 1);
 				duplilist = object_duplilist(re->eval_ctx, re->scene, ob);
-				duplilist_apply_data = duplilist_apply(ob, duplilist);
+				duplilist_apply_data = duplilist_apply(ob, NULL, duplilist);
 				dupli_render_particle_set(re, ob, timeoffset, 0, 0);
 
 				for (dob= duplilist->first, i = 0; dob; dob= dob->next, ++i) {

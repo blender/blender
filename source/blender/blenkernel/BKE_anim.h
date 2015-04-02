@@ -80,7 +80,7 @@ typedef struct DupliApplyData {
 	DupliExtraData *extra;
 } DupliApplyData;
 
-DupliApplyData *duplilist_apply(struct Object *ob, struct ListBase *duplilist);
+DupliApplyData *duplilist_apply(struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
 void duplilist_restore(struct ListBase *duplilist, DupliApplyData *apply_data);
 void duplilist_free_apply_data(DupliApplyData *apply_data);
 
