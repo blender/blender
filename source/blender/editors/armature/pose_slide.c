@@ -898,6 +898,8 @@ typedef enum ePosePropagate_Termination {
 	/* stop when we run out of keyframes */
 	POSE_PROPAGATE_BEFORE_END,
 	
+	/* only do on keyframes that are selected */
+	POSE_PROPAGATE_SELECTED_KEYS,
 	/* only do on the frames where markers are selected */
 	POSE_PROPAGATE_SELECTED_MARKERS
 } ePosePropagate_Termination;
@@ -1137,6 +1139,11 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 			if (ce == NULL)
 				continue;
 		}
+		else if (mode == POSE_PROPAGATE_SELECTED_KEYS) {
+			/* only allow if this keyframe is already selected - skip otherwise */
+			if (BEZSELECTED(bezt) == 0)
+				continue;
+		}
 		
 		/* just flatten handles, since values will now be the same either side... */
 		/* TODO: perhaps a fade-out modulation of the value is required here (optional once again)? */
@@ -1224,6 +1231,7 @@ void POSE_OT_propagate(wmOperatorType *ot)
 		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "To Last Keyframe", "Propagate pose to the last keyframe only (i.e. making action cyclic)"},
 		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
 		{POSE_PROPAGATE_BEFORE_END, "BEFORE_END", 0, "Before Last Keyframe", "Propagate pose to all keyframes from current frame until no more are found"},
+		{POSE_PROPAGATE_SELECTED_KEYS, "SELECTED_KEYS", 0, "On Selected Keyframes", "Propagate pose to all keyframes that are selected"},
 		{POSE_PROPAGATE_SELECTED_MARKERS, "SELECTED_MARKERS", 0, "On Selected Markers", "Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame"},
 		{0, NULL, 0, NULL, NULL}};
 		

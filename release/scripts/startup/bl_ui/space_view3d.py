@@ -1933,6 +1933,10 @@ class VIEW3D_MT_pose_propagate(Menu):
 
         layout.separator()
 
+        layout.operator("pose.propagate", text="On Selected Keyframes").mode = 'SELECTED_KEYS'
+
+        layout.separator()
+
         layout.operator("pose.propagate", text="On Selected Markers").mode = 'SELECTED_MARKERS'
 
 
