@@ -53,6 +53,7 @@ public:
 	{
 		util_guarded_mem_alloc(n * sizeof(T));
 #ifdef WITH_BLENDER_GUARDEDALLOC
+		(void)hint;
 		return (T*)MEM_mallocN(n * sizeof(T), "Cycles Alloc");
 #else
 		return std::allocator<T>::allocate(n, hint);
