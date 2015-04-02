@@ -266,8 +266,20 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
 {
 	TimeMarker *marker;
 	
-	if (markers == NULL)
+	if (lb) {
+		/* Clear the list first, since callers have no way of knowing
+		 * whether this terminated early otherwise. This may lead
+		 * to crashes if the user didn't clear the memory first.
+		 */
+		lb->first = lb->last = NULL;
+	}
+	else {
 		return;
+	}
+	
+	if (markers == NULL) {
+		return;
+	}
 	
 	for (marker = markers->first; marker; marker = marker->next)
 		add_marker_to_cfra_elem(lb, marker, only_sel);
