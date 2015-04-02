@@ -758,6 +758,10 @@ class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
         row.operator("pose.copy", text="Copy")
         row.operator("pose.paste", text="Paste")
 
+        row = layout.row(align=True)
+        row.operator("pose.propagate", text="Propagate")
+        row.menu("VIEW3D_MT_pose_propagate", icon='TRIA_RIGHT', text="")
+
         col = layout.column(align=True)
         col.operator("poselib.pose_add", text="Add To Library")
 
