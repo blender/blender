@@ -96,6 +96,12 @@ void gp_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
 void gp_point_to_xy(GP_SpaceConversion *settings, struct bGPDstroke *gps, struct bGPDspoint *pt,
                     int *r_x, int *r_y);
 
+/* Poll Callbacks ------------------------------------ */
+/* gpencil_utils.c */
+
+int gp_add_poll(struct bContext *C);
+int gp_active_layer_poll(struct bContext *C);
+
 /* ***************************************************** */
 /* Operator Defines */
 
