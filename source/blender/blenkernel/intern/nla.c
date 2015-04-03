@@ -1584,6 +1584,12 @@ bool BKE_nla_action_stash(AnimData *adt)
 	nlt = add_nlatrack(adt, prev_track);
 	BLI_assert(nlt != NULL);
 	
+	/* we need to ensure that if there wasn't any previous instance, it must go to tbe bottom of the stack */
+	if (prev_track == NULL) {
+		BLI_remlink(&adt->nla_tracks, nlt);
+		BLI_addhead(&adt->nla_tracks, nlt);
+	}
+	
 	BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
 	BLI_uniquename(&adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
 	
