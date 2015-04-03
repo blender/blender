@@ -4206,7 +4206,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 			UI_block_emboss_set(block, UI_EMBOSS);
 			
 			but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
-							&ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
+			                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
 			
 			/* copy what outliner does here, see outliner_buttons */
 			if (UI_but_active_only(C, ac->ar, block, but) == false) {

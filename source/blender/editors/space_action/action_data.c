@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_action/action_edit.c
+/** \file blender/editors/space_action/action_data.c
  *  \ingroup spaction
  */
 
@@ -544,8 +544,8 @@ void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act,
 	 */
 	if (act->id.us == 1) {
 		BKE_reportf(reports, RPT_ERROR,
-					"Action '%s' will not be saved, create Fake User or Stash in NLA Stack to retain",
-					act->id.name + 2);
+		            "Action '%s' will not be saved, create Fake User or Stash in NLA Stack to retain",
+		            act->id.name + 2);
 	}
 	
 	/* If in Tweak Mode, don't unlink. Instead, this 
