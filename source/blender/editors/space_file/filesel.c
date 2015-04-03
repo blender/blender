@@ -642,8 +642,8 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 	 */
 	for (i = 0; i < n; i++) {
 		file = filelist_file(sfile->files, i);
-		/* use same rule as 'FileCheckType.CHECK_FILES' */
-		if (S_ISREG(file->type) && (fnmatch(pattern, file->relname, 0) == 0)) {
+		/* Do not check wether file is a file or dir here! Causes T44243 (we do accept dirs at this stage). */
+		if (fnmatch(pattern, file->relname, 0) == 0) {
 			file->selflag |= FILE_SEL_SELECTED;
 			if (!match) {
 				BLI_strncpy(matched_file, file->relname, FILE_MAX);
@@ -694,13 +694,8 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 			closedir(dir);
 
 			match = UI_autocomplete_end(autocpl, str);
-			if (match) {
-				if (match == AUTOCOMPLETE_FULL_MATCH) {
-					BLI_add_slash(str);
-				}
-				else {
-					BLI_strncpy(sfile->params->dir, str, sizeof(sfile->params->dir));
-				}
+			if (match == AUTOCOMPLETE_FULL_MATCH) {
+				BLI_add_slash(str);
 			}
 		}
 	}
