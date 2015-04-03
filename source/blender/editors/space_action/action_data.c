@@ -726,7 +726,7 @@ void ACTION_OT_layer_next(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Next Layer";
 	ot->idname = "ACTION_OT_layer_next";
-	ot->description = "Edit action in animation layer above the current action in the NLA Stack";
+	ot->description = "Switch to editing action in animation layer above the current action in the NLA Stack";
 	
 	/* callbacks */
 	ot->exec = action_layer_next_exec;
@@ -823,7 +823,7 @@ void ACTION_OT_layer_prev(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Previous Layer";
 	ot->idname = "ACTION_OT_layer_prev";
-	ot->description = "Edit action in animation layer below the current action in the NLA Stack";
+	ot->description = "Switch to editing action in animation layer below the current action in the NLA Stack";
 	
 	/* callbacks */
 	ot->exec = action_layer_prev_exec;
