@@ -355,6 +355,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 
         col = split.column()
 
+        col.active = (lamp.shadow_method != 'BUFFER_SHADOW' or lamp.shadow_buffer_type != 'DEEP')
         col.prop(lamp, "use_halo")
         sub = col.column(align=True)
         sub.active = lamp.use_halo
