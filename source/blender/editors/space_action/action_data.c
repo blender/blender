@@ -595,6 +595,19 @@ static void action_layer_switch_strip(AnimData *adt,
 			nlt->flag |= NLATRACK_SOLO;
 		}
 	}
+	else {
+		/* NLA muting <==> Solo Tracks */
+		if (adt->flag & ADT_NLA_EVAL_OFF) {
+			/* disable NLA muting */
+			adt->flag &= ~ADT_NLA_EVAL_OFF;
+			
+			/* mark this track as being solo */
+			adt->flag |= ADT_NLA_SOLO_TRACK;
+			nlt->flag |= NLATRACK_SOLO;
+			
+			// TODO: Needs restpose flushing (when we get reference track)
+		}
+	}
 	
 	/* Enter tweakmode again - hopefully we're now "it" */
 	BKE_nla_tweakmode_enter(adt);
@@ -670,15 +683,24 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		/* No more actions - Go back to editing the original active action
+		/* No more actions (strips) - Go back to editing the original active action
 		 * NOTE: This will mean exiting tweakmode...
 		 */
 		BKE_nla_tweakmode_exit(adt);
 		
-		/* Deal with solo flags... */
-		// XXX: if solo, turn off NLA while we edit this action?
-		act_track->flag &= ~NLATRACK_SOLO;
-		adt->flag &= ~ADT_NLA_SOLO_TRACK;
+		/* Deal with solo flags...
+		 * Assume: Solo Track == NLA Muting
+		 */
+		if (adt->flag & ADT_NLA_SOLO_TRACK) {
+			/* turn off solo flags on tracks */
+			act_track->flag &= ~NLATRACK_SOLO;
+			adt->flag &= ~ADT_NLA_SOLO_TRACK;
+			
+			/* turn on NLA muting (to keep same effect) */
+			adt->flag |= ADT_NLA_EVAL_OFF;
+			
+			// TODO: Needs restpose flushing (when we get reference track)
+		}
 	}
 	
 	/* Update the action that this editor now uses
