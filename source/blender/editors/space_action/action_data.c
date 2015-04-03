@@ -567,6 +567,40 @@ static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
 	return NULL;
 }
 
+/* Switch NLA Strips/Actions  */
+static void action_layer_switch_strip(AnimData *adt,
+                                      NlaTrack *old_track, NlaStrip *old_strip,
+                                      NlaTrack *nlt, NlaStrip *strip)
+{
+	/* Exit tweakmode on old strip
+	 * NOTE: We need to manually clear this stuff ourselves, as tweakmode exit doesn't do it
+	 */
+	BKE_nla_tweakmode_exit(adt);
+	
+	if (old_strip) {
+		old_strip->flag &= ~(NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
+	}
+	if (old_track) {
+		old_track->flag &= ~(NLATRACK_ACTIVE | NLATRACK_SELECTED);
+	}
+	
+	/* Make this one the active one instead */
+	strip->flag |= (NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
+	nlt->flag |= NLATRACK_ACTIVE;
+	
+	/* Copy over "solo" flag - This is useful for stashed actions... */
+	if (old_track) {
+		if (old_track->flag & NLATRACK_SOLO) {
+			old_track->flag &= ~NLATRACK_SOLO;
+			nlt->flag |= NLATRACK_SOLO;
+		}
+	}
+	
+	/* Enter tweakmode again - hopefully we're now "it" */
+	BKE_nla_tweakmode_enter(adt);
+	BLI_assert(adt->actstrip == strip);
+}
+
 /* ********************** One Layer Up Operator ************************** */
 
 static int action_layer_next_poll(bContext *C)
@@ -630,30 +664,7 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
 			NlaStrip *strip = action_layer_get_nlastrip(&nlt->strips, ctime);
 			
 			if (strip) {
-				NlaStrip *old_strip = adt->actstrip;
-				
-				/* Exit tweakmode on old strip
-				 * NOTE: We need to manually clear this stuff ourselves, as tweakmode exit doesn't do it
-				 */
-				BKE_nla_tweakmode_exit(adt);
-				
-				old_strip->flag &= ~(NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
-				act_track->flag &= ~(NLATRACK_ACTIVE | NLATRACK_SELECTED);
-				
-				/* Make this one the active one instead */
-				strip->flag |= (NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
-				nlt->flag |= NLATRACK_ACTIVE;
-				
-				/* Copy over "solo" flag - This is useful for stashed actions... */
-				if (act_track->flag & NLATRACK_SOLO) {
-					act_track->flag &= ~NLATRACK_SOLO;
-					nlt->flag |= NLATRACK_SOLO;
-				}
-				
-				/* Enter tweakmode again - hopefully we're now "it" */
-				BKE_nla_tweakmode_enter(adt);
-				BLI_assert(adt->actstrip == strip);
-				
+				action_layer_switch_strip(adt, act_track, adt->actstrip, nlt, strip);
 				break;
 			}
 		}
@@ -762,36 +773,7 @@ static int action_layer_prev_exec(bContext *C, wmOperator *op)
 		NlaStrip *strip = action_layer_get_nlastrip(&nlt->strips, ctime);
 		
 		if (strip) {
-			NlaStrip *old_strip = adt->actstrip;
-			
-			/* Exit tweakmode on old strip
-			 * NOTE: We need to manually clear this stuff ourselves, as tweakmode exit doesn't do it
-			 */
-			BKE_nla_tweakmode_exit(adt);
-			
-			if (old_strip) {
-				old_strip->flag &= ~(NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
-			}
-			if (act_track) {
-				act_track->flag &= ~(NLATRACK_ACTIVE | NLATRACK_SELECTED);
-			}
-			
-			/* Make this one the active one instead */
-			strip->flag |= (NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
-			nlt->flag |= NLATRACK_ACTIVE;
-			
-			/* Copy over "solo" flag - This is useful for stashed actions... */
-			if (act_track) {
-				if (act_track->flag & NLATRACK_SOLO) {
-					act_track->flag &= ~NLATRACK_SOLO;
-					nlt->flag |= NLATRACK_SOLO;
-				}
-			}
-			
-			/* Enter tweakmode again - hopefully we're now "it" */
-			BKE_nla_tweakmode_enter(adt);
-			BLI_assert(adt->actstrip == strip);
-			
+			action_layer_switch_strip(adt, act_track, adt->actstrip, nlt, strip);
 			break;
 		}
 	}
