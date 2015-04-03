@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from bpy.app.translations import pgettext_iface as iface_
 from bl_ui.properties_grease_pencil_common import (
         GreasePencilDrawingToolsPanel,
         GreasePencilStrokeEditPanel,
@@ -358,7 +359,7 @@ class NODE_PT_active_node_properties(Panel):
             layout.label("Inputs:")
             for socket in value_inputs:
                 row = layout.row()
-                socket.draw(context, row, node, socket.name)
+                socket.draw(context, row, node, iface_(socket.name, socket.bl_rna.translation_context))
 
 
 # Node Backdrop options
