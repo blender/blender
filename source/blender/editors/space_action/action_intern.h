@@ -102,6 +102,9 @@ void ACTION_OT_push_down(struct wmOperatorType *ot);
 void ACTION_OT_stash(struct wmOperatorType *ot);
 void ACTION_OT_stash_and_create(struct wmOperatorType *ot);
 
+void ACTION_OT_layer_next(struct wmOperatorType *ot);
+void ACTION_OT_layer_prev(struct wmOperatorType *ot);
+
 void ACTION_OT_markers_make_local(struct wmOperatorType *ot);
 
 /* defines for snap keyframes 

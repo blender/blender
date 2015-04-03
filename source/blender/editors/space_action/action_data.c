@@ -51,6 +51,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -58,6 +59,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
+#include "BKE_scene.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
 
@@ -507,3 +509,323 @@ void ACTION_OT_stash_and_create(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ************************************************************************** */
+/* ACTION BROWSING */
+
+/* Get the NLA Track that the active action comes from, since this is not stored in AnimData */
+/* TODO: Move this to blenkernel/nla.c */
+static NlaTrack *nla_tweak_track_get(AnimData *adt)
+{
+	NlaTrack *nlt;
+	
+	/* sanity check */
+	if (adt == NULL)
+		return NULL;
+	
+	/* Since the track itself gets disabled, we want the first disabled... */
+	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+		if (nlt->flag & (NLATRACK_ACTIVE | NLATRACK_DISABLED)) {
+			/* For good measure, make sure that strip actually exists there */
+			if (BLI_findindex(&nlt->strips, adt->actstrip) != -1) {
+				return nlt;
+			}
+			else if (G.debug & G_DEBUG) {
+				printf("%s: Active strip (%p, %s) not in NLA track found (%p, %s)\n",
+				       __func__, 
+				       adt->actstrip, (adt->actstrip) ? adt->actstrip->name : "<None>",
+					   nlt,           (nlt) ? nlt->name : "<None>");
+			}
+		}
+	}
+	
+	/* Not found! */
+	return NULL;
+}
+
+/* ********************** One Layer Up Operator ************************** */
+
+static int action_layer_next_poll(bContext *C)
+{
+	/* Action Editor's action editing modes only */
+	if (ED_operator_action_active(C)) {
+		AnimData *adt = actedit_animdata_from_context(C);
+		if (adt) {
+			/* only allow if we're in tweakmode, and there's something above us... */
+			if (adt->flag & ADT_NLA_EDIT_ON) {
+				/* We need to check if there are any tracks above the active one
+				 * since the track the action comes from is not stored in AnimData
+				 */
+				if (adt->nla_tracks.last) {
+					NlaTrack *nlt = (NlaTrack *)adt->nla_tracks.last;
+					
+					if (nlt->flag & NLATRACK_DISABLED) {
+						/* A disabled track will either be the track itself,
+						 * or one of the ones above it.
+						 *
+						 * If this is the top-most one, there is the possibility
+						 * that there is no active action. For now, we let this
+						 * case return true too, so that there is a natural way
+						 * to "move to an empty layer", even though this means
+						 * that we won't actually have an action.
+						 */
+						// return (adt->tmpact != NULL);
+						return true;
+					}
+				}
+			}
+		}
+	}
+	
+	/* something failed... */
+	return false;
+}
+
+static int action_layer_next_exec(bContext *C, wmOperator *op)
+{
+	AnimData *adt = actedit_animdata_from_context(C);
+	NlaTrack *act_track;
+	
+	Scene *scene = CTX_data_scene(C);
+	float ctime = BKE_scene_frame_get(scene);
+	
+	/* Get active track */
+	act_track = nla_tweak_track_get(adt);
+	
+	if (act_track == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Could not find current NLA Track");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* Find next action, and hook it up */
+	if (act_track->next) {
+		NlaTrack *nlt;
+		NlaStrip *strip;
+		bool found = false;
+		
+		/* Find next action to use */
+		for (nlt = act_track->next; nlt && !found; nlt = nlt->next) {
+			for (strip = nlt->strips.first; strip; strip = strip->next) {
+				/* Can we use this? */
+				if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
+					/* in range - use this one */
+					found = true;
+				}
+				else if ((ctime < strip->start) && (strip->prev == NULL)) {
+					/* before first - use this one */
+					found = true;
+				}
+				else if ((ctime > strip->end) && (strip->next == NULL)) {
+					/* after last - use this one */
+					found = true;
+				}
+				
+				/* Apply... */
+				if (found) {
+					NlaStrip *old_strip = adt->actstrip;
+					
+					/* Exit tweakmode on old strip
+					 * NOTE: We need to manually clear this stuff ourselves, as tweakmode exit doesn't do it
+					 */
+					BKE_nla_tweakmode_exit(adt);
+					
+					old_strip->flag &= ~(NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
+					act_track->flag &= ~(NLATRACK_ACTIVE | NLATRACK_SELECTED);
+					
+					/* Make this one the active one instead */
+					strip->flag |= (NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
+					nlt->flag |= NLATRACK_ACTIVE;
+					
+					/* Copy over "solo" flag - This is useful for stashed actions... */
+					if (act_track->flag & NLATRACK_SOLO) {
+						act_track->flag &= ~NLATRACK_SOLO;
+						nlt->flag |= NLATRACK_SOLO;
+					}
+					
+					/* Enter tweakmode again - hopefully we're now "it" */
+					BKE_nla_tweakmode_enter(adt);
+					BLI_assert(adt->actstrip == strip);
+					
+					break;
+				}
+			}
+		}
+	}
+	else {
+		/* No more actions - Go back to editing the original active action
+		 * NOTE: This will mean exiting tweakmode...
+		 */
+		BKE_nla_tweakmode_exit(adt);
+		
+		/* Deal with solo flags... */
+		// XXX: if solo, turn off NLA while we edit this action?
+		act_track->flag &= ~NLATRACK_SOLO;
+		adt->flag &= ~ADT_NLA_SOLO_TRACK;
+	}
+	
+	/* Update the action that this editor now uses
+	 * NOTE: The calls above have already handled the usercount/animdata side of things
+	 */
+	actedit_change_action(C, adt->action);
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_layer_next(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Next Layer";
+	ot->idname = "ACTION_OT_layer_next";
+	ot->description = "Edit action in animation layer above the current action in the NLA Stack";
+	
+	/* callbacks */
+	ot->exec = action_layer_next_exec;
+	ot->poll = action_layer_next_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ********************* One Layer Down Operator ************************* */
+
+static int action_layer_prev_poll(bContext *C)
+{
+	/* Action Editor's action editing modes only */
+	if (ED_operator_action_active(C)) {
+		AnimData *adt = actedit_animdata_from_context(C);
+		if (adt) {
+			if (adt->flag & ADT_NLA_EDIT_ON) {
+				/* Tweak Mode: We need to check if there are any tracks below the active one that we can move to */
+				if (adt->nla_tracks.first) {
+					NlaTrack *nlt = (NlaTrack *)adt->nla_tracks.first;
+					
+					/* Since the first disabled track is the track being tweaked/edited,
+					 * we can simplify things by only checking the first track:
+					 *    - If it is disabled, this is the track being tweaked,
+					 *      so there can't be anything below it
+					 *    - Otherwise, there is at least 1 track below the tweaking
+					 *      track that we can descend to
+					 */
+					if ((nlt->flag & NLATRACK_DISABLED) == 0) {
+						/* not disabled = there are actions below the one being tweaked */
+						return true;
+					}
+				}
+			}
+			else {
+				/* Normal Mode: If there are any tracks, we can try moving to those */
+				return (adt->nla_tracks.first != NULL);
+			}
+		}
+	}
+	
+	/* something failed... */
+	return false;
+}
+
+static int action_layer_prev_exec(bContext *C, wmOperator *op)
+{
+	AnimData *adt = actedit_animdata_from_context(C);
+	NlaTrack *act_track;
+	
+	NlaTrack *nlt;
+	NlaStrip *strip;
+	bool found = false;
+	
+	Scene *scene = CTX_data_scene(C);
+	float ctime = BKE_scene_frame_get(scene);
+	
+	/* Sanity Check */
+	if (adt == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Internal Error: Could not find Animation Data/NLA Stack to use");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* Get active track */
+	act_track = nla_tweak_track_get(adt);
+	
+	/* If there is no active track, that means we are using the active action... */
+	if (act_track) {
+		/* Active Track - Start from the one below it */
+		nlt = act_track->prev;
+	}
+	else {
+		/* Active Action - Use the top-most track */
+		nlt = adt->nla_tracks.last;
+	}
+	
+	/* Find previous action and hook it up */
+	for (; nlt && !found; nlt = nlt->prev) {
+		for (strip = nlt->strips.first; strip; strip = strip->next) {
+			/* Can we use this? */
+			if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
+				/* in range - use this one */
+				found = true;
+			}
+			else if ((ctime < strip->start) && (strip->prev == NULL)) {
+				/* before first - use this one */
+				found = true;
+			}
+			else if ((ctime > strip->end) && (strip->next == NULL)) {
+				/* after last - use this one */
+				found = true;
+			}
+			
+			/* Apply... */
+			if (found) {
+				NlaStrip *old_strip = adt->actstrip;
+				
+				/* Exit tweakmode on old strip
+				 * NOTE: We need to manually clear this stuff ourselves, as tweakmode exit doesn't do it
+				 */
+				BKE_nla_tweakmode_exit(adt);
+				
+				if (old_strip) {
+					old_strip->flag &= ~(NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
+				}
+				if (act_track) {
+					act_track->flag &= ~(NLATRACK_ACTIVE | NLATRACK_SELECTED);
+				}
+				
+				/* Make this one the active one instead */
+				strip->flag |= (NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
+				nlt->flag |= NLATRACK_ACTIVE;
+				
+				/* Copy over "solo" flag - This is useful for stashed actions... */
+				if (act_track) {
+					if (act_track->flag & NLATRACK_SOLO) {
+						act_track->flag &= ~NLATRACK_SOLO;
+						nlt->flag |= NLATRACK_SOLO;
+					}
+				}
+				
+				/* Enter tweakmode again - hopefully we're now "it" */
+				BKE_nla_tweakmode_enter(adt);
+				BLI_assert(adt->actstrip == strip);
+				
+				break;
+			}
+		}
+	}
+	
+	/* Update the action that this editor now uses
+	 * NOTE: The calls above have already handled the usercount/animdata side of things
+	 */
+	actedit_change_action(C, adt->action);
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_layer_prev(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Previous Layer";
+	ot->idname = "ACTION_OT_layer_prev";
+	ot->description = "Edit action in animation layer below the current action in the NLA Stack";
+	
+	/* callbacks */
+	ot->exec = action_layer_prev_exec;
+	ot->poll = action_layer_prev_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ************************************************************************** */
