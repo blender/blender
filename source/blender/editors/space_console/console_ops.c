@@ -1144,6 +1144,7 @@ static int console_modal_select(bContext *C, wmOperator *op, const wmEvent *even
 				console_cursor_set_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
+			break;
 		case MOUSEMOVE:
 			console_modal_select_apply(C, op, event);
 			break;
