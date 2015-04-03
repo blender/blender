@@ -3576,8 +3576,24 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel
 // width of rename textboxes
 #define RENAME_TEXT_WIDTH (5 * U.widget_unit)
 
+
+/* Helper - Check if a channel needs renaming */
+static bool achannel_is_being_renamed(const bAnimContext *ac, const bAnimChannelType *acf, size_t channel_index)
+{
+	if (acf->name_prop && ac->ads) {
+		/* if rename index matches, this channel is being renamed */
+		if (ac->ads->renameIndex == channel_index + 1) {
+			return true;
+		}
+	}
+	
+	/* not being renamed */
+	return false;
+}
+
+
 /* Draw the given channel */
-void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc, size_t channel_index)
 {
 	const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 	View2D *v2d = &ac->ar->v2d;
@@ -3664,8 +3680,8 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	}
 
 	/* step 5) draw name ............................................... */
-	/* TODO: when renaming, we might not want to draw this, especially if name happens to be longer than channel */
-	if (acf->name) {
+	/* Don't draw this if renaming... */	
+	if (acf->name && !achannel_is_being_renamed(ac, acf, channel_index)) {
 		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
 		
@@ -4175,36 +4191,32 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 	}
 	
 	/* step 4) draw text - check if renaming widget is in use... */
-	if (acf->name_prop && ac->ads) {
-		float channel_height = ymaxc - yminc;
+	if (achannel_is_being_renamed(ac, acf, channel_index)) {
+		PointerRNA ptr = {{NULL}};
+		PropertyRNA *prop = NULL;
 		
-		/* if rename index matches, add widget for this */
-		if (ac->ads->renameIndex == channel_index + 1) {
-			PointerRNA ptr = {{NULL}};
-			PropertyRNA *prop = NULL;
+		/* draw renaming widget if we can get RNA pointer for it 
+		 * NOTE: property may only be available in some cases, even if we have 
+		 *       a callback available (e.g. broken F-Curve rename)
+		 */
+		if (acf->name_prop(ale, &ptr, &prop)) {
+			const float channel_height = ymaxc - yminc;
+			uiBut *but;
 			
-			/* draw renaming widget if we can get RNA pointer for it 
-			 * NOTE: property may only be available in some cases, even if we have 
-			 *       a callback available (e.g. broken F-Curve rename)
-			 */
-			if (acf->name_prop(ale, &ptr, &prop)) {
-				uiBut *but;
+			UI_block_emboss_set(block, UI_EMBOSS);
+			
+			but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
+							&ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
+			
+			/* copy what outliner does here, see outliner_buttons */
+			if (UI_but_active_only(C, ac->ar, block, but) == false) {
+				ac->ads->renameIndex = 0;
 				
-				UI_block_emboss_set(block, UI_EMBOSS);
-				
-				but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
-				                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
-				
-				/* copy what outliner does here, see outliner_buttons */
-				if (UI_but_active_only(C, ac->ar, block, but) == false) {
-					ac->ads->renameIndex = 0;
-					
-					/* send notifiers */
-					WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
-				}
-				
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
+				/* send notifiers */
+				WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
 			}
+			
+			UI_block_emboss_set(block, UI_EMBOSS_NONE);
 		}
 	}
 	

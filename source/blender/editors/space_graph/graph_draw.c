@@ -1137,6 +1137,8 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	/* loop through channels, and set up drawing depending on their type  */
 	{   /* first pass: just the standard GL-drawing for backdrop + text */
+		size_t channel_index = 0;
+		
 		y = (float)ACHANNEL_FIRST;
 		
 		for (ale = anim_data.first, i = 0; ale; ale = ale->next, i++) {
@@ -1148,11 +1150,12 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 			    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) )
 			{
 				/* draw all channels using standard channel-drawing API */
-				ANIM_channel_draw(ac, ale, yminc, ymaxc);
+				ANIM_channel_draw(ac, ale, yminc, ymaxc, channel_index);
 			}
 			
 			/* adjust y-position for next one */
 			y -= ACHANNEL_STEP;
+			channel_index++;
 		}
 	}
 	{   /* second pass: widgets */

@@ -462,7 +462,7 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
 void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level);
 
 /* Draw the given channel */
-void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
+void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc, size_t channel_index);
 /* Draw the widgets for the given channel */
 void ANIM_channel_draw_widgets(const struct bContext *C, bAnimContext *ac, bAnimListElem *ale, struct uiBlock *block, float yminc, float ymaxc, size_t channel_index);
 

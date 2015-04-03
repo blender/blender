@@ -650,6 +650,8 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	/* draw channels */
 	{   /* first pass: just the standard GL-drawing for backdrop + text */
+		size_t channel_index = 0;
+		
 		y = (float)(-NLACHANNEL_HEIGHT(snla));
 		
 		for (ale = anim_data.first; ale; ale = ale->next) {
@@ -661,11 +663,12 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 			    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) )
 			{
 				/* draw all channels using standard channel-drawing API */
-				ANIM_channel_draw(ac, ale, yminc, ymaxc);
+				ANIM_channel_draw(ac, ale, yminc, ymaxc, channel_index);
 			}
 			
 			/* adjust y-position for next one */
 			y -= NLACHANNEL_STEP(snla);
+			channel_index++;
 		}
 	}
 	{   /* second pass: UI widgets */
