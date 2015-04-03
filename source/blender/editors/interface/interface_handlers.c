@@ -2864,8 +2864,6 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 					if (autocomplete == AUTOCOMPLETE_FULL_MATCH)
 						button_activate_state(C, but, BUTTON_STATE_EXIT);
-
-					update = true;  /* do live update for tab key */
 				}
 				/* the hotkey here is not well defined, was G.qual so we check all */
 				else if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
@@ -2944,7 +2942,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 #endif
 
 	if (changed) {
-		/* only update when typing for TAB key */
+		/* only do live update when but flag request it (UI_BUT_TEXTEDIT_UPDATE). */
 		if (update && data->interactive) {
 			ui_apply_but(C, block, but, data, true);
 		}
