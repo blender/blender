@@ -180,9 +180,11 @@ enum {
 #define KM_NOTHING	0
 #define KM_PRESS	1
 #define KM_RELEASE	2
-#define KM_CLICK	3
-#define KM_DBL_CLICK	4
 
+/* clicktype */
+#define KM_CLICK     3 /* clicked key (click_time <= U.click_timeout) */
+#define KM_DBL_CLICK 4 /* double click - keep at 4 to avoid breakage with older key configs */
+#define KM_HOLD      5 /* held key    (click_time >  U.click_timeout) */
 
 /* ************** UI Handler ***************** */
 
@@ -427,7 +429,9 @@ typedef struct wmEvent {
 	
 	short type;			/* event code itself (short, is also in keymap) */
 	short val;			/* press, release, scrollvalue */
+	short click_type;	/* click, hold or double click */
 	int x, y;			/* mouse pointer position, screen coord */
+	double click_time;	/* the time since keypress started */
 	int mval[2];		/* region mouse position, name convention pre 2.5 :) */
 	char utf8_buf[6];	/* from, ghost if utf8 is enabled for the platform,
 						 * BLI_str_utf8_size() must _always_ be valid, check
@@ -435,19 +439,18 @@ typedef struct wmEvent {
 	char ascii;			/* from ghost, fallback if utf8 isn't set */
 	char pad;
 
-	/* previous state, used for double click and the 'click' */
+	bool is_key_pressed; /* is a (non-modifier) key is pressed? (keyboard, mouse, NDOF, ...) */
+
+	/* previous state, used for clicktype */
 	short prevtype;
 	short prevval;
 	int prevx, prevy;
-	double prevclicktime;
+	double prevclick_time;
 	int prevclickx, prevclicky;
 	
 	/* modifier states */
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
-	
-	/* set in case a KM_PRESS went by unhandled */
-	short check_click;
 	
 	/* keymap item, set by handler (weak?) */
 	const char *keymap_idname;

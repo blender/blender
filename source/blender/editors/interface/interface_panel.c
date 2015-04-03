@@ -1865,7 +1865,7 @@ static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
 	uiHandlePanelData *data = panel->activedata;
 
 	/* verify if we can stop */
-	if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+	if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
 		ScrArea *sa = CTX_wm_area(C);
 		ARegion *ar = CTX_wm_region(C);
 		int align = panel_aligned(sa, ar);

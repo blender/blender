@@ -2602,7 +2602,12 @@ void init_userdef_do_versions(void)
 			cp[3] = 255;
 		}
 	}
-		
+
+	if (U.versionfile < 274 || (U.versionfile == 274 && U.subversionfile < 3)) {
+		if (U.click_timeout == 0)
+			U.click_timeout = 250;
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

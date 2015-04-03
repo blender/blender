@@ -386,7 +386,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	
 	/* drawtype */
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_CLICK, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shade");
 	RNA_string_set(kmi->ptr, "value_1", "SOLID");
 	RNA_string_set(kmi->ptr, "value_2", "WIREFRAME");

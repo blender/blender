@@ -633,11 +633,14 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
 		{
-			node_link_exit(C, op, true);
-			
-			ED_area_headerprint(CTX_wm_area(C), NULL);
-			ED_region_tag_redraw(ar);
-			return OPERATOR_FINISHED;
+			if (event->val != KM_NOTHING) {
+				node_link_exit(C, op, true);
+				
+				ED_area_headerprint(CTX_wm_area(C), NULL);
+				ED_region_tag_redraw(ar);
+				return OPERATOR_FINISHED;
+			}
+			break;
 		}
 	}
 	

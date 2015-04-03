@@ -4324,11 +4324,15 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_FLY_HELICOPTER);
 	RNA_def_property_ui_text(prop, "Helicopter Mode", "Device up/down directly controls your Z position");
 
-
-	prop = RNA_def_property(srna, "mouse_double_click_time", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "double_click_time", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dbl_click_time");
 	RNA_def_property_range(prop, 1, 1000);
 	RNA_def_property_ui_text(prop, "Double Click Timeout", "Time/delay (in ms) for a double click");
+
+	prop = RNA_def_property(srna, "click_timeout", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "click_timeout");
+	RNA_def_property_range(prop, 0, 10000);
+	RNA_def_property_ui_text(prop, "Click Timeout", "Time (in ms) to determine if a key is clicked or held");
 
 	prop = RNA_def_property(srna, "use_mouse_emulate_3_button", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);

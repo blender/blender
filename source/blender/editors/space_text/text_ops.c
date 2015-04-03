@@ -2163,6 +2163,11 @@ static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
+			/* don't exit on dummy events */
+			if (event->val == KM_NOTHING) {
+				return OPERATOR_RUNNING_MODAL;
+			}
+
 			if (ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
 				txt_screen_skip(st, ar, st->viewlines * (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1));
 
@@ -2667,8 +2672,10 @@ static int text_set_selection_modal(bContext *C, wmOperator *op, const wmEvent *
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			text_cursor_set_exit(C, op);
-			return OPERATOR_FINISHED;
+			if (event->val != KM_NOTHING) {
+				text_cursor_set_exit(C, op);
+				return OPERATOR_FINISHED;
+			}
 		case TIMER:
 		case MOUSEMOVE:
 			text_cursor_set_apply(C, op, event);

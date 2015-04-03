@@ -2749,8 +2749,8 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
 	pie->block_radial->puphash = ui_popup_menu_hash(title);
 	pie->block_radial->flag |= UI_BLOCK_RADIAL;
 
-	/* if pie is spawned by a left click, it is always assumed to be click style */
-	if (event->type == LEFTMOUSE) {
+	/* if pie is spawned by a left click or on release, it is always assumed to be click style */
+	if ((event->type == LEFTMOUSE) || (event->val == KM_RELEASE)) {
 		pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
 		pie->block_radial->pie_data.event = EVENT_NONE;
 		win->lock_pie_event = EVENT_NONE;
