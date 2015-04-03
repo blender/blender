@@ -182,25 +182,29 @@ static int action_new_poll(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	
 	/* Check tweakmode is off (as you don't want to be tampering with the action in that case) */
-	/* NOTE: unlike for pushdown, this operator needs to be run when creating an action from nothing... */
-	if (!(scene->flag & SCE_NLA_EDIT_ON)) {
-		if (ED_operator_action_active(C)) {
-			SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-			Object *ob = CTX_data_active_object(C);
-			
-			/* For now, actions are only for the active object, and on object and shapekey levels... */
-			if (saction->mode == SACTCONT_ACTION) {
-				/* XXX: This assumes that actions are assigned to the active object */
-				if (ob)
-					return true;
-			}
-			else if (saction->mode == SACTCONT_SHAPEKEY) {
-				Key *key = BKE_key_from_object(ob);
-				if (key)
+	/* NOTE: unlike for pushdown, this operator needs to be run when creating an action from nothing... */	
+	if (ED_operator_action_active(C)) {
+		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+		Object *ob = CTX_data_active_object(C);
+		
+		/* For now, actions are only for the active object, and on object and shapekey levels... */
+		if (saction->mode == SACTCONT_ACTION) {
+			/* XXX: This assumes that actions are assigned to the active object in this mode */
+			if (ob) {
+				if ((ob->adt == NULL) || (ob->adt->flag & ADT_NLA_EDIT_ON) == 0)
 					return true;
 			}
 		}
-		else if (ED_operator_nla_active(C)) {
+		else if (saction->mode == SACTCONT_SHAPEKEY) {
+			Key *key = BKE_key_from_object(ob);
+			if (key) {
+				if ((key->adt == NULL) || (key->adt->flag & ADT_NLA_EDIT_ON) == 0)
+					return true;
+			}
+		}
+	}
+	else if (ED_operator_nla_active(C)) {
+		if (!(scene->flag & SCE_NLA_EDIT_ON)) {
 			return true;
 		}
 	}
@@ -297,21 +301,16 @@ static int action_pushdown_poll(bContext *C)
 {
 	if (ED_operator_action_active(C)) {
 		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-		Scene *scene = CTX_data_scene(C);
-		Object *ob = CTX_data_active_object(C);
+		AnimData *adt = actedit_animdata_from_context(C);
 		
-		/* Check for actions and that tweakmode is off */
-		if ((saction->action) && !(scene->flag & SCE_NLA_EDIT_ON)) {
-			/* For now, actions are only for the active object, and on object and shapekey levels... */
-			if (saction->mode == SACTCONT_ACTION) {
-				return (ob->adt != NULL);
-			}
-			else if (saction->mode == SACTCONT_SHAPEKEY) {
-				Key *key = BKE_key_from_object(ob);
-				
-				return (key && key->adt);
-			}
-		}	
+		/* Check for AnimData, Actions, and that tweakmode is off */
+		if (adt && saction->action) {
+			/* NOTE: We check this for the AnimData block in question and not the global flag,
+			 *       as the global flag may be left dirty by some of the browsing ops here.
+			 */
+			if (!(adt->flag & ADT_NLA_EDIT_ON))
+				return true;
+		}
 	}
 	
 	/* something failed... */
@@ -432,14 +431,26 @@ void ACTION_OT_stash(wmOperatorType *ot)
 static int action_stash_create_poll(bContext *C)
 {
 	if (ED_operator_action_active(C)) {
-		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-		Scene *scene = CTX_data_scene(C);
+		AnimData *adt = actedit_animdata_from_context(C);
 		
 		/* Check tweakmode is off (as you don't want to be tampering with the action in that case) */
 		/* NOTE: unlike for pushdown, this operator needs to be run when creating an action from nothing... */
-		if (!(scene->flag & SCE_NLA_EDIT_ON)) {
-			/* For now, actions are only for the active object, and on object and shapekey levels... */
-			return ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY);
+		if (adt) {
+			if (!(adt->flag & ADT_NLA_EDIT_ON))
+				return true;
+		}
+		else {
+			/* There may not be any action/animdata yet, so, just fallback to the global setting
+			 * (which may not be totally valid yet if the action editor was used and things are 
+			 * now in an inconsistent state)
+			 */
+			SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+			Scene *scene = CTX_data_scene(C);
+			
+			if (!(scene->flag & SCE_NLA_EDIT_ON)) {
+				/* For now, actions are only for the active object, and on object and shapekey levels... */
+				return ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY);
+			}
 		}
 	}
 	
