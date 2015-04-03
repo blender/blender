@@ -81,10 +81,10 @@
 #include "action_intern.h"
 
 /* ************************************************************************** */
-/* ACTION MANAGEMENT */
+/* ACTION CREATION */
 
 /* Helper function to find the active AnimData block from the Action Editor context */
-static AnimData *actedit_animdata_from_context(bContext *C)
+AnimData *ED_actedit_animdata_from_context(bContext *C)
 {
 	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
 	Object *ob = CTX_data_active_object(C);
@@ -234,7 +234,7 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
 			adt = ptr.data;
 		}
 		else if (ptr.type == &RNA_SpaceDopeSheetEditor) {
-			adt = actedit_animdata_from_context(C);
+			adt = ED_actedit_animdata_from_context(C);
 		}
 		
 		/* Perform stashing operation - But only if there is an action */
@@ -301,7 +301,7 @@ static int action_pushdown_poll(bContext *C)
 {
 	if (ED_operator_action_active(C)) {
 		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-		AnimData *adt = actedit_animdata_from_context(C);
+		AnimData *adt = ED_actedit_animdata_from_context(C);
 		
 		/* Check for AnimData, Actions, and that tweakmode is off */
 		if (adt && saction->action) {
@@ -320,7 +320,7 @@ static int action_pushdown_poll(bContext *C)
 static int action_pushdown_exec(bContext *C, wmOperator *op)
 {
 	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-	AnimData *adt = actedit_animdata_from_context(C);
+	AnimData *adt = ED_actedit_animdata_from_context(C);
 	
 	/* Do the deed... */
 	if (adt) {
@@ -368,7 +368,7 @@ void ACTION_OT_push_down(wmOperatorType *ot)
 static int action_stash_exec(bContext *C, wmOperator *op)
 {
 	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-	AnimData *adt = actedit_animdata_from_context(C);
+	AnimData *adt = ED_actedit_animdata_from_context(C);
 	
 	/* Perform stashing operation */
 	if (adt) {
@@ -431,7 +431,7 @@ void ACTION_OT_stash(wmOperatorType *ot)
 static int action_stash_create_poll(bContext *C)
 {
 	if (ED_operator_action_active(C)) {
-		AnimData *adt = actedit_animdata_from_context(C);
+		AnimData *adt = ED_actedit_animdata_from_context(C);
 		
 		/* Check tweakmode is off (as you don't want to be tampering with the action in that case) */
 		/* NOTE: unlike for pushdown, this operator needs to be run when creating an action from nothing... */
@@ -461,7 +461,7 @@ static int action_stash_create_poll(bContext *C)
 static int action_stash_create_exec(bContext *C, wmOperator *op)
 {
 	SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-	AnimData *adt = actedit_animdata_from_context(C);
+	AnimData *adt = ED_actedit_animdata_from_context(C);
 	
 	/* Check for no action... */
 	if (saction->action == NULL) {
@@ -518,6 +518,108 @@ void ACTION_OT_stash_and_create(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ************************************************************************** */
+/* ACTION UNLINK */
+
+/* ******************* Action Unlink Operator ******************** */
+/* We use a custom unlink operator here, as there are some technicalities which need special care:
+ * 1) When in Tweak Mode, it shouldn't be possible to unlink the active action,
+ *    or else, everything turns to custard.
+ * 2) If the Action doesn't have any other users, the user should at least get
+ *    a warning that it is going to get lost.
+ * 3) We need a convenient way to exit Tweak Mode from the Action Editor
+ */
+
+void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act, ReportList *reports)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	
+	/* If the old action only has a single user (that it's about to lose),
+	 * warn user about it
+	 *
+	 * TODO: Maybe we should just save it for them? But then, there's the problem of
+	 *       trying to get rid of stuff that's actually unwanted!
+	 */
+	if (act->id.us == 1) {
+		BKE_reportf(reports, RPT_ERROR,
+					"Action '%s' will not be saved, create Fake User or Stash in NLA Stack to retain",
+					act->id.name + 2);
+	}
+	
+	/* If in Tweak Mode, don't unlink. Instead, this 
+	 * becomes a shortcut to exit Tweak Mode instead
+	 */
+	if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
+		/* Exit Tweak Mode */
+		BKE_nla_tweakmode_exit(adt);
+		
+		/* Flush this to the Action Editor (if that's where this change was initiated) */
+		if (sa->spacetype == SPACE_ACTION) {
+			actedit_change_action(C, NULL);
+		}
+	}
+	else {
+		/* Unlink normally - Setting it to NULL should be enough to get the old one unlinked */
+		if (sa->spacetype == SPACE_ACTION) {
+			/* clear action editor -> action */
+			actedit_change_action(C, NULL);
+		}
+		else {
+			/* clear AnimData -> action */
+			PointerRNA ptr;
+			PropertyRNA *prop;
+			
+			/* create AnimData RNA pointers */
+			RNA_pointer_create(id, &RNA_AnimData, adt, &ptr);
+			prop = RNA_struct_find_property(&ptr, "action");
+			
+			/* clear... */
+			RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL);
+			RNA_property_update(C, &ptr, prop);
+		}
+	}
+}
+
+/* -------------------------- */
+
+static int action_unlink_poll(bContext *C)
+{
+	if (ED_operator_action_active(C)) {
+		SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+		AnimData *adt = ED_actedit_animdata_from_context(C);
+		
+		/* Only when there's an active action, in the right modes... */
+		if (saction->action && adt)
+			return true;
+	}
+	
+	/* something failed... */
+	return false;
+}
+
+static int action_unlink_exec(bContext *C, wmOperator *op)
+{
+	AnimData *adt = ED_actedit_animdata_from_context(C);
+	
+	if (adt && adt->action) {
+		ED_animedit_unlink_action(C, NULL, adt, adt->action, op->reports);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_unlink(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unlink Action";
+	ot->idname = "ACTION_OT_unlink";
+	ot->description = "Unlink this action from the active action slot (and/or exit Tweak Mode)";
+	
+	/* callbacks */
+	ot->exec = action_unlink_exec;
+	ot->poll = action_unlink_poll;
 }
 
 /* ************************************************************************** */
@@ -631,7 +733,7 @@ static int action_layer_next_poll(bContext *C)
 {
 	/* Action Editor's action editing modes only */
 	if (ED_operator_action_active(C)) {
-		AnimData *adt = actedit_animdata_from_context(C);
+		AnimData *adt = ED_actedit_animdata_from_context(C);
 		if (adt) {
 			/* only allow if we're in tweakmode, and there's something above us... */
 			if (adt->flag & ADT_NLA_EDIT_ON) {
@@ -665,7 +767,7 @@ static int action_layer_next_poll(bContext *C)
 
 static int action_layer_next_exec(bContext *C, wmOperator *op)
 {
-	AnimData *adt = actedit_animdata_from_context(C);
+	AnimData *adt = ED_actedit_animdata_from_context(C);
 	NlaTrack *act_track;
 	
 	Scene *scene = CTX_data_scene(C);
@@ -742,7 +844,7 @@ static int action_layer_prev_poll(bContext *C)
 {
 	/* Action Editor's action editing modes only */
 	if (ED_operator_action_active(C)) {
-		AnimData *adt = actedit_animdata_from_context(C);
+		AnimData *adt = ED_actedit_animdata_from_context(C);
 		if (adt) {
 			if (adt->flag & ADT_NLA_EDIT_ON) {
 				/* Tweak Mode: We need to check if there are any tracks below the active one that we can move to */
@@ -775,7 +877,7 @@ static int action_layer_prev_poll(bContext *C)
 
 static int action_layer_prev_exec(bContext *C, wmOperator *op)
 {
-	AnimData *adt = actedit_animdata_from_context(C);
+	AnimData *adt = ED_actedit_animdata_from_context(C);
 	NlaTrack *act_track;
 	NlaTrack *nlt;
 	

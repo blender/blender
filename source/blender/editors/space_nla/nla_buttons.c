@@ -159,7 +159,9 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 					}
 					
 					/* AnimData pointer */
-					RNA_pointer_create(id, &RNA_AnimData, ale->adt, adt_ptr);
+					if (adt_ptr) {
+						RNA_pointer_create(id, &RNA_AnimData, ale->adt, adt_ptr);
+					}
 					
 					/* set found status to -1, since setting to 1 would break the loop 
 					 * and potentially skip an active NLA-Track in some cases...
@@ -282,7 +284,7 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row = uiLayoutRow(layout, true);
-	uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, NULL /*"ACTION_OT_unlink"*/);     // XXX: need to make these operators
+	uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, "NLA_OT_action_unlink");
 	
 	/* extrapolation */
 	row = uiLayoutRow(layout, true);

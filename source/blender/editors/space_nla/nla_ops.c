@@ -114,6 +114,7 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_channels_click);
 	
 	WM_operatortype_append(NLA_OT_action_pushdown);
+	WM_operatortype_append(NLA_OT_action_unlink);
 	
 	WM_operatortype_append(NLA_OT_tracks_add);
 	WM_operatortype_append(NLA_OT_tracks_delete);

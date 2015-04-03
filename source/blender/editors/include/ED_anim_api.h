@@ -676,6 +676,14 @@ void ED_operatormacros_graph(void);
 void ED_operatormacros_action(void);
 
 /* ************************************************ */
+/* Animation Editor Exports */
+/* XXX: Should we be doing these here, or at all? */
+
+/* Action Editor - Action Management */
+struct AnimData *ED_actedit_animdata_from_context(struct bContext *C);
+void ED_animedit_unlink_action(struct bContext *C, struct ID *id, struct AnimData *adt, struct bAction *act, struct ReportList *reports);
+
+/* ************************************************ */
 
 #endif /* __ED_ANIM_API_H__ */
 
