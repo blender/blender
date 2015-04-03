@@ -114,11 +114,11 @@ class DOPESHEET_HT_header(Header):
         layout.prop(st, "mode", text="")
 
         if st.mode in {'ACTION', 'SHAPEKEY'}:
-            layout.template_ID(st, "action", new="action.new")
-
             row = layout.row(align=True)
             row.operator("action.layer_prev", text="", icon='TRIA_DOWN')
             row.operator("action.layer_next", text="", icon='TRIA_UP')
+
+            layout.template_ID(st, "action", new="action.new")
 
             row = layout.row(align=True)
             row.operator("action.push_down", text="Push Down", icon='NLA_PUSHDOWN')
