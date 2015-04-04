@@ -1460,8 +1460,8 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	if (kmitype != KM_ANY)
 		if (winevent->type != kmitype) return 0;
 
-	/* KM_ANY excludes click_type events - filter them out */
-	if (kmi->val == KM_ANY && winevent->click_type) return 0;
+	/* KM_ANY excludes KM_HOLD since it's time based and not a real input - filter it out */
+	if (kmi->val == KM_ANY && winevent->click_type == KM_HOLD) return 0;
 
 	if (kmi->val != KM_ANY)
 		if (!ELEM(kmi->val, winevent->val, winevent->click_type)) return 0;
