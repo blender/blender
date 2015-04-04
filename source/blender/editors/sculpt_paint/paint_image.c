@@ -1393,7 +1393,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 			if (ma && ma->texpaintslot)
 				ima = ma->texpaintslot[ma->paint_active_slot].ima;
 		}
-		else if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+		else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
 			ima = imapaint->canvas;
 		}	
 		
