@@ -1022,7 +1022,7 @@ static void paint_stroke_line_constrain (PaintStroke *stroke, float mouse[2])
 		float angle, len, res;
 		
 		sub_v2_v2v2(line, mouse, stroke->last_mouse_position);
-		angle = atan2(line[1], line[0]);
+		angle = atan2f(line[1], line[0]);
 		len = len_v2(line);
 		
 		/* divide angle by PI/4 */

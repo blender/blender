@@ -2238,7 +2238,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 					}
 					
 					/* compute scale factor for xz axes from this value */
-					final_scale = sqrt(bulge);
+					final_scale = sqrtf(bulge);
 				}
 				else {
 					/* no scaling, so scale factor is simple */
