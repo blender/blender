@@ -888,7 +888,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
 	if (!s_warn_old) {
 		if ((strcmp(vendor, "Microsoft Corporation") == 0 ||
-		    strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[0] == '1')
+		    strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[2] == '1')
 		{
 			MessageBox(m_hWnd, "Your system does not use 3D hardware acceleration.\n"
 			                   "Such systems can cause stability problems in Blender and they are unsupported.\n\n"
