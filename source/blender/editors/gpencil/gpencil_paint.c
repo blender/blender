@@ -1885,8 +1885,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	 *  - LEFTMOUSE  = standard drawing (all) / straight line drawing (all) / polyline (toolbox only)
 	 *  - RIGHTMOUSE = polyline (hotkey) / eraser (all)
 	 *    (Disabling RIGHTMOUSE case here results in bugs like [#32647])
+	 * also making sure we have a valid event value, to not exit too early
 	 */
-	if (ELEM(event->type, LEFTMOUSE, RIGHTMOUSE)) {
+	if (ELEM(event->type, LEFTMOUSE, RIGHTMOUSE) && event->val != 0) {
 		/* if painting, end stroke */
 		if (p->status == GP_STATUS_PAINTING) {
 			int sketch = 0;
