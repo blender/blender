@@ -434,7 +434,7 @@ void BKE_object_free_ex(Object *ob, bool do_id_user)
 	if (ob->bsoft) bsbFree(ob->bsoft);
 	if (ob->gpulamp.first) GPU_lamp_free(ob);
 
-	BKE_free_sculptsession(ob);
+	BKE_sculptsession_free(ob);
 
 	if (ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
 
@@ -3244,7 +3244,7 @@ void BKE_object_sculpt_modifiers_changed(Object *ob)
 				ss->pbvh = NULL;
 			}
 
-			BKE_free_sculptsession_deformMats(ob->sculpt);
+			BKE_sculptsession_free_deformMats(ob->sculpt);
 		}
 		else {
 			PBVHNode **nodes;

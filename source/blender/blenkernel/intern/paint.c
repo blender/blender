@@ -559,7 +559,7 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, cons
 	}
 }
 
-void BKE_free_sculptsession_deformMats(SculptSession *ss)
+void BKE_sculptsession_free_deformMats(SculptSession *ss)
 {
 	if (ss->orig_cos) MEM_freeN(ss->orig_cos);
 	if (ss->deform_cos) MEM_freeN(ss->deform_cos);
@@ -626,7 +626,7 @@ void BKE_sculptsession_bm_to_me_for_render(Object *object)
 	}
 }
 
-void BKE_free_sculptsession(Object *ob)
+void BKE_sculptsession_free(Object *ob)
 {
 	if (ob && ob->sculpt) {
 		SculptSession *ss = ob->sculpt;
@@ -804,7 +804,7 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		if (!ss->orig_cos) {
 			int a;
 
-			BKE_free_sculptsession_deformMats(ss);
+			BKE_sculptsession_free_deformMats(ss);
 
 			ss->orig_cos = (ss->kb) ? BKE_keyblock_convert_to_vertcos(ob, ss->kb) : BKE_mesh_vertexCos_get(me, NULL);
 
@@ -817,7 +817,7 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		}
 	}
 	else {
-		BKE_free_sculptsession_deformMats(ss);
+		BKE_sculptsession_free_deformMats(ss);
 	}
 
 	if (ss->kb != NULL && ss->deform_cos == NULL) {

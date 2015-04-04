@@ -194,8 +194,8 @@ typedef struct SculptSession {
 	struct StrokeCache *cache;
 } SculptSession;
 
-void BKE_free_sculptsession(struct Object *ob);
-void BKE_free_sculptsession_deformMats(struct SculptSession *ss);
+void BKE_sculptsession_free(struct Object *ob);
+void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 void BKE_sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob,

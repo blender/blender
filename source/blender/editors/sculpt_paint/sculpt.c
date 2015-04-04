@@ -4912,7 +4912,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		/* Leave sculptmode */
 		ob->mode &= ~mode_flag;
 
-		BKE_free_sculptsession(ob);
+		BKE_sculptsession_free(ob);
 
 		paint_cursor_delete_textures();
 	}
@@ -4950,7 +4950,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
 		/* Create sculpt mode session data */
 		if (ob->sculpt)
-			BKE_free_sculptsession(ob);
+			BKE_sculptsession_free(ob);
 
 		sculpt_init_session(scene, ob);
 
