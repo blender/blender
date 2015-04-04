@@ -44,6 +44,7 @@ set(SRC
 	intern/BLI_array.c
 	intern/BLI_dial.c
 	intern/BLI_dynstr.c
+	intern/BLI_filelist.c
 	intern/BLI_ghash.c
 	intern/BLI_heap.c
 	intern/BLI_kdopbvh.c
