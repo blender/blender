@@ -1451,7 +1451,7 @@ int BM_mesh_region_match(
 		BMFace **faces_result;
 		unsigned int faces_result_len_out;
 
-		if (BM_elem_flag_test(e_dst, BM_ELEM_TAG)) {
+		if (BM_elem_flag_test(e_dst, BM_ELEM_TAG) || BM_edge_is_wire(e_dst)) {
 			continue;
 		}
 
