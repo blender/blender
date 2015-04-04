@@ -1202,7 +1202,7 @@ static int wm_window_timer(const bContext *C)
 					wm_event_init_from_window(win, &event);
 					
 					event.type = wt->event_type;
-					event.val = 0;
+					event.val = KM_NOTHING;
 					event.keymodifier = 0;
 					event.custom = EVT_DATA_TIMER;
 					event.customdata = wt;

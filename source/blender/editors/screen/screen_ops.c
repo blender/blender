@@ -717,7 +717,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 	else
 		event.type = EVT_ACTIONZONE_REGION;
 
-	event.val = 0;
+	event.val = KM_NOTHING;
 	event.customdata = op->customdata;
 	event.customdatafree = true;
 	op->customdata = NULL;

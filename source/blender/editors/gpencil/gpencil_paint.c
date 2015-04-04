@@ -1887,7 +1887,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	 *    (Disabling RIGHTMOUSE case here results in bugs like [#32647])
 	 * also making sure we have a valid event value, to not exit too early
 	 */
-	if (ELEM(event->type, LEFTMOUSE, RIGHTMOUSE) && event->val != 0) {
+	if (ELEM(event->type, LEFTMOUSE, RIGHTMOUSE) && (event->val != KM_NOTHING)) {
 		/* if painting, end stroke */
 		if (p->status == GP_STATUS_PAINTING) {
 			int sketch = 0;
