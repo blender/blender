@@ -1251,7 +1251,7 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 	}
 
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename(NULL, "render.layers", oldname, rl->name);
+	BKE_animdata_fix_paths_rename_all(NULL, "render.layers", oldname, rl->name);
 }
 
 static char *rna_SceneRenderLayer_path(PointerRNA *ptr)

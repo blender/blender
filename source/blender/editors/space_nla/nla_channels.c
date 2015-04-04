@@ -771,7 +771,7 @@ static int nlaedit_objects_add_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		/* ensure that object has AnimData... that's all */
-		BKE_id_add_animdata(&ob->id);
+		BKE_animdata_add_id(&ob->id);
 	}
 	CTX_DATA_END;
 	

@@ -467,7 +467,7 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 static void clear_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
                               TreeStoreElem *tselem, void *UNUSED(arg))
 {
-	BKE_free_animdata(tselem->id);
+	BKE_animdata_free(tselem->id);
 }
 
 

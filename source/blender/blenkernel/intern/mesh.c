@@ -463,7 +463,7 @@ void BKE_mesh_free(Mesh *me, int unlink)
 	CustomData_free(&me->pdata, me->totpoly);
 
 	if (me->adt) {
-		BKE_free_animdata(&me->id);
+		BKE_animdata_free(&me->id);
 		me->adt = NULL;
 	}
 	

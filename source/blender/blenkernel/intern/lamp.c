@@ -221,7 +221,7 @@ void BKE_lamp_free(Lamp *la)
 		if (mtex) MEM_freeN(mtex);
 	}
 	
-	BKE_free_animdata((ID *)la);
+	BKE_animdata_free((ID *)la);
 
 	curvemapping_free(la->curfalloff);
 

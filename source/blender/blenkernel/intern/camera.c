@@ -138,7 +138,7 @@ void BKE_camera_make_local(Camera *cam)
 
 void BKE_camera_free(Camera *ca)
 {
-	BKE_free_animdata((ID *)ca);
+	BKE_animdata_free((ID *)ca);
 }
 
 /******************************** Camera Usage *******************************/

@@ -127,7 +127,7 @@ void BKE_armature_free(bArmature *arm)
 
 		/* free animation data */
 		if (arm->adt) {
-			BKE_free_animdata(&arm->id);
+			BKE_animdata_free(&arm->id);
 			arm->adt = NULL;
 		}
 	}

@@ -63,7 +63,7 @@ void BKE_world_free_ex(World *wrld, bool do_id_user)
 	}
 	BKE_previewimg_free(&wrld->preview);
 
-	BKE_free_animdata((ID *)wrld);
+	BKE_animdata_free((ID *)wrld);
 
 	/* is no lib link block, but world extension */
 	if (wrld->nodetree) {

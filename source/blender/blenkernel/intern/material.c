@@ -99,7 +99,7 @@ void BKE_material_free_ex(Material *ma, bool do_id_user)
 	if (ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if (ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 	
-	BKE_free_animdata((ID *)ma);
+	BKE_animdata_free((ID *)ma);
 	
 	if (ma->preview)
 		BKE_previewimg_free(&ma->preview);

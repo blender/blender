@@ -119,7 +119,7 @@ void BKE_gpencil_free(bGPdata *gpd)
 	
 	/* free animation data */
 	if (gpd->adt) {
-		BKE_free_animdata(&gpd->id);
+		BKE_animdata_free(&gpd->id);
 		gpd->adt = NULL;
 	}
 }

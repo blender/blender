@@ -147,7 +147,7 @@ void BKE_curve_free(Curve *cu)
 
 	BKE_curve_editNurb_free(cu);
 	BKE_curve_unlink(cu);
-	BKE_free_animdata((ID *)cu);
+	BKE_animdata_free((ID *)cu);
 
 	if (cu->mat)
 		MEM_freeN(cu->mat);

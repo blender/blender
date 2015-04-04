@@ -380,7 +380,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			if (base->object->adt) {
 				if (ob->adt == NULL) {
 					/* no animdata, so just use a copy of the whole thing */
-					ob->adt = BKE_copy_animdata(base->object->adt, false);
+					ob->adt = BKE_animdata_copy(base->object->adt, false);
 				}
 				else {
 					/* merge in data - we'll fix the drivers manually */
@@ -391,7 +391,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			if (curarm->adt) {
 				if (arm->adt == NULL) {
 					/* no animdata, so just use a copy of the whole thing */
-					arm->adt = BKE_copy_animdata(curarm->adt, false);
+					arm->adt = BKE_animdata_copy(curarm->adt, false);
 				}
 				else {
 					/* merge in data - we'll fix the drivers manually */

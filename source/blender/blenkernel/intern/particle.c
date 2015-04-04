@@ -375,7 +375,7 @@ void BKE_particlesettings_free(ParticleSettings *part)
 {
 	MTex *mtex;
 	int a;
-	BKE_free_animdata(&part->id);
+	BKE_animdata_free(&part->id);
 	
 	if (part->clumpcurve)
 		curvemapping_free(part->clumpcurve);

@@ -224,7 +224,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		            sizeof(scen->sequencer_colorspace_settings.name));
 
 		/* copy action and remove animation used by sequencer */
-		BKE_copy_animdata_id_action(&scen->id);
+		BKE_animdata_copy_id_action(&scen->id);
 
 		if (type != SCE_COPY_FULL)
 			remove_sequencer_fcurves(scen);
@@ -300,7 +300,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		if (scen->world) {
 			id_us_plus((ID *)scen->world);
 			scen->world = BKE_world_copy(scen->world);
-			BKE_copy_animdata_id_action((ID *)scen->world);
+			BKE_animdata_copy_id_action((ID *)scen->world);
 		}
 
 		if (sce->ed) {
@@ -361,7 +361,7 @@ void BKE_scene_free(Scene *sce)
 	BLI_freelistN(&sce->base);
 	BKE_sequencer_editing_free(sce);
 
-	BKE_free_animdata((ID *)sce);
+	BKE_animdata_free((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);
 	
 	if (sce->rigidbody_world)

@@ -1051,7 +1051,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 	 */
 	{
 		/* create new data for NLA hierarchy */
-		AnimData *adt = BKE_id_add_animdata(&ob->id);
+		AnimData *adt = BKE_animdata_add_id(&ob->id);
 		NlaTrack *nlt = add_nlatrack(adt, NULL);
 		NlaStrip *strip = add_nla_soundstrip(scene, ob->data);
 		strip->start = CFRA;
@@ -1358,7 +1358,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		basen->object = ob;
 
 		/* make sure apply works */
-		BKE_free_animdata(&ob->id);
+		BKE_animdata_free(&ob->id);
 		ob->adt = NULL;
 
 		/* Proxies are not to be copied. */
@@ -1976,7 +1976,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 
 		/* duplicates using userflags */
 		if (dupflag & USER_DUP_ACT) {
-			BKE_copy_animdata_id_action(&obn->id);
+			BKE_animdata_copy_id_action(&obn->id);
 		}
 
 		if (dupflag & USER_DUP_MAT) {
@@ -1989,7 +1989,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					id->us--;
 
 					if (dupflag & USER_DUP_ACT) {
-						BKE_copy_animdata_id_action(&obn->mat[a]->id);
+						BKE_animdata_copy_id_action(&obn->mat[a]->id);
 					}
 				}
 			}
@@ -2004,7 +2004,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						psys->part = BKE_particlesettings_copy(psys->part);
 
 					if (dupflag & USER_DUP_ACT) {
-						BKE_copy_animdata_id_action(&psys->part->id);
+						BKE_animdata_copy_id_action(&psys->part->id);
 					}
 
 					id->us--;
@@ -2132,9 +2132,9 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 			if (dupflag & USER_DUP_ACT) {
 				bActuator *act;
 
-				BKE_copy_animdata_id_action((ID *)obn->data);
+				BKE_animdata_copy_id_action((ID *)obn->data);
 				if (key) {
-					BKE_copy_animdata_id_action((ID *)key);
+					BKE_animdata_copy_id_action((ID *)key);
 				}
 
 				/* Update the duplicated action in the action actuators */

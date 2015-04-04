@@ -564,7 +564,7 @@ void BKE_texture_free(Tex *tex)
 	if (tex->pd) BKE_texture_pointdensity_free(tex->pd);
 	if (tex->vd) BKE_texture_voxeldata_free(tex->vd);
 	if (tex->ot) BKE_texture_ocean_free(tex->ot);
-	BKE_free_animdata((struct ID *)tex);
+	BKE_animdata_free((struct ID *)tex);
 	
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID *)tex);

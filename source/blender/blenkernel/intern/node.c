@@ -1733,7 +1733,7 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const bool do_id_user)
 	/* unregister associated RNA types */
 	ntreeInterfaceTypeFree(ntree);
 	
-	BKE_free_animdata((ID *)ntree);
+	BKE_animdata_free((ID *)ntree);
 	
 	id_us_min((ID *)ntree->gpd);
 

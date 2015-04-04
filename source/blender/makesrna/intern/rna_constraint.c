@@ -241,7 +241,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 	}
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename(NULL, "constraints", oldname, con->name);
+	BKE_animdata_fix_paths_rename_all(NULL, "constraints", oldname, con->name);
 }
 
 static char *rna_Constraint_path(PointerRNA *ptr)

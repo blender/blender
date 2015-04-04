@@ -307,7 +307,7 @@ void BKE_lattice_free(Lattice *lt)
 	
 	/* free animation data */
 	if (lt->adt) {
-		BKE_free_animdata(&lt->id);
+		BKE_animdata_free(&lt->id);
 		lt->adt = NULL;
 	}
 }

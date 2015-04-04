@@ -130,7 +130,7 @@ bAction *verify_adt_action(ID *id, short add)
 	/* init animdata if none available yet */
 	adt = BKE_animdata_from_id(id);
 	if ((adt == NULL) && (add))
-		adt = BKE_id_add_animdata(id);
+		adt = BKE_animdata_add_id(id);
 	if (adt == NULL) {
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
 		printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");

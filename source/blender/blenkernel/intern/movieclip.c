@@ -1168,7 +1168,7 @@ static void free_buffers(MovieClip *clip)
 		clip->anim = NULL;
 	}
 
-	BKE_free_animdata((ID *) clip);
+	BKE_animdata_free((ID *) clip);
 }
 
 void BKE_movieclip_clear_cache(MovieClip *clip)

@@ -83,7 +83,7 @@ void BKE_mball_free(MetaBall *mb)
 	BKE_mball_unlink(mb);
 	
 	if (mb->adt) {
-		BKE_free_animdata((ID *)mb);
+		BKE_animdata_free((ID *)mb);
 		mb->adt = NULL;
 	}
 	if (mb->mat) MEM_freeN(mb->mat);

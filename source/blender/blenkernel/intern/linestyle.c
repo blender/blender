@@ -135,7 +135,7 @@ void BKE_linestyle_free(FreestyleLineStyle *linestyle)
 		MEM_freeN(linestyle->nodetree);
 	}
 
-	BKE_free_animdata(&linestyle->id);
+	BKE_animdata_free(&linestyle->id);
 	while ((m = (LineStyleModifier *)linestyle->color_modifiers.first))
 		BKE_linestyle_color_modifier_remove(linestyle, m);
 	while ((m = (LineStyleModifier *)linestyle->alpha_modifiers.first))

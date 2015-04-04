@@ -432,7 +432,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 		if (RNA_property_editable(ptr, prop)) {
 			if (id_copy(id, &newid, false) && newid) {
 				/* copy animation actions too */
-				BKE_copy_animdata_id_action(id);
+				BKE_animdata_copy_id_action(id);
 				/* us is 1 by convention, but RNA_property_pointer_set
 				 * will also increment it, so set it to zero */
 				newid->us = 0;
@@ -785,7 +785,7 @@ static void id_copy_animdata(ID *id, const bool do_action)
 	
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
-		iat->adt = BKE_copy_animdata(iat->adt, do_action); /* could be set to false, need to investigate */
+		iat->adt = BKE_animdata_copy(iat->adt, do_action); /* could be set to false, need to investigate */
 	}
 }
 

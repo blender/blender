@@ -130,5 +130,5 @@ void BKE_speaker_free(Speaker *spk)
 	if (spk->sound)
 		spk->sound->id.us--;
 
-	BKE_free_animdata((ID *)spk);
+	BKE_animdata_free((ID *)spk);
 }

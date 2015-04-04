@@ -408,7 +408,7 @@ void BKE_object_free_ex(Object *ob, bool do_id_user)
 	ob->iuser = NULL;
 	if (ob->bb) MEM_freeN(ob->bb); 
 	ob->bb = NULL;
-	if (ob->adt) BKE_free_animdata((ID *)ob);
+	if (ob->adt) BKE_animdata_free((ID *)ob);
 	if (ob->poselib) ob->poselib->id.us--;
 	if (ob->gpd) ((ID *)ob->gpd)->us--;
 	if (ob->defbase.first)
@@ -1707,7 +1707,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 		
 		/* add new animdata block */
 		if (!ob->adt)
-			ob->adt = BKE_id_add_animdata(&ob->id);
+			ob->adt = BKE_animdata_add_id(&ob->id);
 		
 		/* make a copy of all the drivers (for now), then correct any links that need fixing */
 		free_fcurves(&ob->adt->drivers);
@@ -3731,7 +3731,7 @@ void BKE_object_relink(Object *ob)
 	modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
 
 	if (ob->adt)
-		BKE_relink_animdata(ob->adt);
+		BKE_animdata_relink(ob->adt);
 	
 	if (ob->rigidbody_constraint)
 		BKE_rigidbody_relink_constraint(ob->rigidbody_constraint);
