@@ -675,7 +675,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 			if (blenderObject && blenderObject->parent==NULL && gameObj->IsRecordAnimation()) {
 
 				if (blenderObject->adt==NULL)
-					BKE_id_add_animdata(&blenderObject->id);
+					BKE_animdata_add_id(&blenderObject->id);
 
 				if (blenderObject->adt)
 				{
