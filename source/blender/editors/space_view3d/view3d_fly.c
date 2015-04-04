@@ -806,7 +806,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
 					/* Rotate about the relative up vec */
-					axis_angle_to_quat(tmp_quat, upvec, (float)moffset[1] * time_redraw * -FLY_ROTATE_FAC);
+					axis_angle_to_quat(tmp_quat, upvec, moffset[1] * time_redraw * -FLY_ROTATE_FAC);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock != FLY_AXISLOCK_STATE_OFF)
@@ -836,7 +836,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					}
 
 					/* Rotate about the relative up vec */
-					axis_angle_to_quat(tmp_quat, upvec, (float)moffset[0] * time_redraw * FLY_ROTATE_FAC);
+					axis_angle_to_quat(tmp_quat, upvec, moffset[0] * time_redraw * FLY_ROTATE_FAC);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock != FLY_AXISLOCK_STATE_OFF)

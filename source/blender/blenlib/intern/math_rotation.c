@@ -1043,11 +1043,12 @@ void expmap_to_quat(float r[4], const float expmap[3])
 	float angle;
 
 	/* Obtain axis/angle representation. */
-	angle = normalize_v3_v3(axis, expmap);
-	angle = angle_wrap_rad(angle);
-
-	/* Convert to quaternion. */
-	axis_angle_to_quat(r, axis, angle);
+	if (LIKELY((angle = normalize_v3_v3(axis, expmap)) != 0.0f)) {
+		axis_angle_normalized_to_quat(r, axis, angle_wrap_rad(angle));
+	}
+	else {
+		unit_qt(r);
+	}
 }
 
 /******************************** XYZ Eulers *********************************/
