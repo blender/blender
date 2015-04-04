@@ -74,13 +74,14 @@ typedef struct OceanCache {
 #define OCEAN_CACHING       1
 #define OCEAN_CACHED        2
 
-struct Ocean *BKE_add_ocean(void);
-void BKE_free_ocean_data(struct Ocean *oc);
-void BKE_free_ocean(struct Ocean *oc);
+struct Ocean *BKE_ocean_add(void);
+void BKE_ocean_free_data(struct Ocean *oc);
+void BKE_ocean_free(struct Ocean *oc);
 
-void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
-                    float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed);
-void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount);
+void BKE_ocean_init(
+        struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
+        float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed);
+void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount);
 
 /* sampling the ocean surface */
 float BKE_ocean_jminus_to_foam(float jminus, float coverage);
@@ -92,16 +93,17 @@ void  BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 
 
 /* ocean cache handling */
-struct OceanCache *BKE_init_ocean_cache(const char *bakepath, const char *relbase,
-                                        int start, int end, float wave_scale,
-                                        float chop_amount, float foam_coverage, float foam_fade, int resolution);
-void BKE_simulate_ocean_cache(struct OceanCache *och, int frame);
+struct OceanCache *BKE_ocean_init_cache(
+        const char *bakepath, const char *relbase,
+        int start, int end, float wave_scale,
+        float chop_amount, float foam_coverage, float foam_fade, int resolution);
+void BKE_ocean_simulate_cache(struct OceanCache *och, int frame);
 	
-void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(void *, float progress, int *cancel), void *update_cb_data);
+void BKE_ocean_bake(struct Ocean *o, struct OceanCache *och, void (*update_cb)(void *, float progress, int *cancel), void *update_cb_data);
 void BKE_ocean_cache_eval_uv(struct OceanCache *och, struct OceanResult *ocr, int f, float u, float v);
 void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, int f, int i, int j);
 
-void BKE_free_ocean_cache(struct OceanCache *och);
+void BKE_ocean_free_cache(struct OceanCache *och);
 #ifdef __cplusplus
 }
 #endif

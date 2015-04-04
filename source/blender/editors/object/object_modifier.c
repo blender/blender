@@ -2045,7 +2045,7 @@ static void init_ocean_modifier_bake(struct Ocean *oc, struct OceanModifierData 
 	do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
 	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
 	
-	BKE_init_ocean(oc, omd->resolution * omd->resolution, omd->resolution * omd->resolution, omd->spatial_size, omd->spatial_size,
+	BKE_ocean_init(oc, omd->resolution * omd->resolution, omd->resolution * omd->resolution, omd->spatial_size, omd->spatial_size,
 	               omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
 	               omd->depth, omd->time,
 	               do_heightfield, do_chop, do_normals, do_jacobian,
@@ -2103,7 +2103,7 @@ static void oceanbake_startjob(void *customdata, short *stop, short *do_update, 
 	
 	G.is_break = false;   /* XXX shared with render - replace with job 'stop' switch */
 	
-	BKE_bake_ocean(oj->ocean, oj->och, oceanbake_update, (void *)oj);
+	BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 	
 	*do_update = true;
 	*stop = 0;
@@ -2114,7 +2114,7 @@ static void oceanbake_endjob(void *customdata)
 	OceanBakeJob *oj = customdata;
 	
 	if (oj->ocean) {
-		BKE_free_ocean(oj->ocean);
+		BKE_ocean_free(oj->ocean);
 		oj->ocean = NULL;
 	}
 	
@@ -2145,7 +2145,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 
-	och = BKE_init_ocean_cache(omd->cachepath, modifier_path_relbase(ob),
+	och = BKE_ocean_init_cache(omd->cachepath, modifier_path_relbase(ob),
 	                           omd->bakestart, omd->bakeend, omd->wave_scale,
 	                           omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 	
@@ -2179,11 +2179,11 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* make a copy of ocean to use for baking - threadsafety */
-	ocean = BKE_add_ocean();
+	ocean = BKE_ocean_add();
 	init_ocean_modifier_bake(ocean, omd);
 	
 #if 0
-	BKE_bake_ocean(ocean, och);
+	BKE_ocean_bake(ocean, och);
 	
 	omd->oceancache = och;
 	omd->cached = true;

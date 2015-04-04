@@ -48,14 +48,14 @@ static void init_cache_data(Object *ob, struct OceanModifierData *omd)
 {
 	const char *relbase = modifier_path_relbase(ob);
 
-	omd->oceancache = BKE_init_ocean_cache(omd->cachepath, relbase,
+	omd->oceancache = BKE_ocean_init_cache(omd->cachepath, relbase,
 	                                       omd->bakestart, omd->bakeend, omd->wave_scale,
 	                                       omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 }
 
 static void clear_cache_data(struct OceanModifierData *omd)
 {
-	BKE_free_ocean_cache(omd->oceancache);
+	BKE_ocean_free_cache(omd->oceancache);
 	omd->oceancache = NULL;
 	omd->cached = false;
 }
@@ -72,8 +72,8 @@ static void init_ocean_modifier(struct OceanModifierData *omd)
 	do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
 	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
 
-	BKE_free_ocean_data(omd->ocean);
-	BKE_init_ocean(omd->ocean, omd->resolution * omd->resolution, omd->resolution * omd->resolution,
+	BKE_ocean_free_data(omd->ocean);
+	BKE_ocean_init(omd->ocean, omd->resolution * omd->resolution, omd->resolution * omd->resolution,
 	               omd->spatial_size, omd->spatial_size,
 	               omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
 	               omd->depth, omd->time,
@@ -85,7 +85,7 @@ static void simulate_ocean_modifier(struct OceanModifierData *omd)
 {
 	if (!omd || !omd->ocean) return;
 
-	BKE_simulate_ocean(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
+	BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
 }
 #endif /* WITH_OCEANSIM */
 
@@ -133,7 +133,7 @@ static void initData(ModifierData *md)
 	omd->foam_fade = 0.98;
 	omd->foamlayername[0] = '\0';   /* layer name empty by default */
 
-	omd->ocean = BKE_add_ocean();
+	omd->ocean = BKE_ocean_add();
 	init_ocean_modifier(omd);
 	simulate_ocean_modifier(omd);
 #else  /* WITH_OCEANSIM */
@@ -147,9 +147,9 @@ static void freeData(ModifierData *md)
 #ifdef WITH_OCEANSIM
 	OceanModifierData *omd = (OceanModifierData *) md;
 
-	BKE_free_ocean(omd->ocean);
+	BKE_ocean_free(omd->ocean);
 	if (omd->oceancache)
-		BKE_free_ocean_cache(omd->oceancache);
+		BKE_ocean_free_cache(omd->oceancache);
 #else /* WITH_OCEANSIM */
 	/* unused */
 	(void)md;
@@ -195,7 +195,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tomd->bakeend = omd->bakeend;
 	tomd->oceancache = NULL;
 
-	tomd->ocean = BKE_add_ocean();
+	tomd->ocean = BKE_ocean_add();
 	init_ocean_modifier(tomd);
 	simulate_ocean_modifier(tomd);
 #else /* WITH_OCEANSIM */
@@ -426,7 +426,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 
 	/* update modifier */
 	if (omd->refresh & MOD_OCEAN_REFRESH_ADD)
-		omd->ocean = BKE_add_ocean();
+		omd->ocean = BKE_ocean_add();
 	if (omd->refresh & MOD_OCEAN_REFRESH_RESET)
 		init_ocean_modifier(omd);
 	if (omd->refresh & MOD_OCEAN_REFRESH_CLEAR_CACHE)
@@ -437,7 +437,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	/* do ocean simulation */
 	if (omd->cached == true) {
 		if (!omd->oceancache) init_cache_data(ob, omd);
-		BKE_simulate_ocean_cache(omd->oceancache, md->scene->r.cfra);
+		BKE_ocean_simulate_cache(omd->oceancache, md->scene->r.cfra);
 	}
 	else {
 		simulate_ocean_modifier(omd);

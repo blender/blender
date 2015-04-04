@@ -494,7 +494,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 	BLI_rw_mutex_unlock(&oc->oceanmutex);
 }
 
-void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount)
+void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount)
 {
 	int i, j;
 
@@ -732,7 +732,7 @@ static void set_height_normalize_factor(struct Ocean *oc)
 
 	oc->normalize_factor = 1.0;
 
-	BKE_simulate_ocean(oc, 0.0, 1.0, 0);
+	BKE_ocean_simulate(oc, 0.0, 1.0, 0);
 
 	BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
 
@@ -754,7 +754,7 @@ static void set_height_normalize_factor(struct Ocean *oc)
 	oc->normalize_factor = res;
 }
 
-struct Ocean *BKE_add_ocean(void)
+struct Ocean *BKE_ocean_add(void)
 {
 	Ocean *oc = MEM_callocN(sizeof(Ocean), "ocean sim data");
 
@@ -763,7 +763,7 @@ struct Ocean *BKE_add_ocean(void)
 	return oc;
 }
 
-void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
+void BKE_ocean_init(struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
                     float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals,
                     short do_jacobian, int seed)
 {
@@ -900,7 +900,7 @@ void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, 
 	BLI_rng_free(rng);
 }
 
-void BKE_free_ocean_data(struct Ocean *oc)
+void BKE_ocean_free_data(struct Ocean *oc)
 {
 	if (!oc) return;
 
@@ -962,11 +962,11 @@ void BKE_free_ocean_data(struct Ocean *oc)
 	BLI_rw_mutex_unlock(&oc->oceanmutex);
 }
 
-void BKE_free_ocean(struct Ocean *oc)
+void BKE_ocean_free(struct Ocean *oc)
 {
 	if (!oc) return;
 
-	BKE_free_ocean_data(oc);
+	BKE_ocean_free_data(oc);
 	BLI_rw_mutex_end(&oc->oceanmutex);
 
 	MEM_freeN(oc);
@@ -1021,7 +1021,7 @@ MINLINE void value_to_rgba_unit_alpha(float r_rgba[4], const float value)
 	r_rgba[3] = 1.0f;
 }
 
-void BKE_free_ocean_cache(struct OceanCache *och)
+void BKE_ocean_free_cache(struct OceanCache *och)
 {
 	int i, f = 0;
 
@@ -1111,7 +1111,7 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, in
 	}
 }
 
-struct OceanCache *BKE_init_ocean_cache(const char *bakepath, const char *relbase, int start, int end, float wave_scale,
+struct OceanCache *BKE_ocean_init_cache(const char *bakepath, const char *relbase, int start, int end, float wave_scale,
                                         float chop_amount, float foam_coverage, float foam_fade, int resolution)
 {
 	OceanCache *och = MEM_callocN(sizeof(OceanCache), "ocean cache data");
@@ -1138,7 +1138,7 @@ struct OceanCache *BKE_init_ocean_cache(const char *bakepath, const char *relbas
 	return och;
 }
 
-void BKE_simulate_ocean_cache(struct OceanCache *och, int frame)
+void BKE_ocean_simulate_cache(struct OceanCache *och, int frame)
 {
 	char string[FILE_MAX];
 	int f = frame;
@@ -1182,7 +1182,7 @@ void BKE_simulate_ocean_cache(struct OceanCache *och, int frame)
 }
 
 
-void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(void *, float progress, int *cancel),
+void BKE_ocean_bake(struct Ocean *o, struct OceanCache *och, void (*update_cb)(void *, float progress, int *cancel),
                     void *update_cb_data)
 {
 	/* note: some of these values remain uninitialized unless certain options
@@ -1221,7 +1221,7 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 		ibuf_disp = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
 		ibuf_normal = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
 
-		BKE_simulate_ocean(o, och->time[i], och->wave_scale, och->chop_amount);
+		BKE_ocean_simulate(o, och->time[i], och->wave_scale, och->chop_amount);
 
 		/* add new foam */
 		for (y = 0; y < res_y; y++) {
@@ -1371,29 +1371,29 @@ void BKE_ocean_eval_ij(struct Ocean *UNUSED(oc), struct OceanResult *UNUSED(ocr)
 {
 }
 
-void BKE_simulate_ocean(struct Ocean *UNUSED(o), float UNUSED(t), float UNUSED(scale), float UNUSED(chop_amount))
+void BKE_ocean_simulate(struct Ocean *UNUSED(o), float UNUSED(t), float UNUSED(scale), float UNUSED(chop_amount))
 {
 }
 
-struct Ocean *BKE_add_ocean(void)
+struct Ocean *BKE_ocean_add(void)
 {
 	Ocean *oc = MEM_callocN(sizeof(Ocean), "ocean sim data");
 
 	return oc;
 }
 
-void BKE_init_ocean(struct Ocean *UNUSED(o), int UNUSED(M), int UNUSED(N), float UNUSED(Lx), float UNUSED(Lz),
+void BKE_ocean_init(struct Ocean *UNUSED(o), int UNUSED(M), int UNUSED(N), float UNUSED(Lx), float UNUSED(Lz),
                     float UNUSED(V), float UNUSED(l), float UNUSED(A), float UNUSED(w), float UNUSED(damp),
                     float UNUSED(alignment), float UNUSED(depth), float UNUSED(time), short UNUSED(do_height_field),
                     short UNUSED(do_chop), short UNUSED(do_normals), short UNUSED(do_jacobian), int UNUSED(seed))
 {
 }
 
-void BKE_free_ocean_data(struct Ocean *UNUSED(oc))
+void BKE_ocean_free_data(struct Ocean *UNUSED(oc))
 {
 }
 
-void BKE_free_ocean(struct Ocean *oc)
+void BKE_ocean_free(struct Ocean *oc)
 {
 	if (!oc) return;
 	MEM_freeN(oc);
@@ -1403,7 +1403,7 @@ void BKE_free_ocean(struct Ocean *oc)
 /* ********* Baking/Caching ********* */
 
 
-void BKE_free_ocean_cache(struct OceanCache *och)
+void BKE_ocean_free_cache(struct OceanCache *och)
 {
 	if (!och) return;
 
@@ -1420,7 +1420,7 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *UNUSED(och), struct OceanResult 
 {
 }
 
-OceanCache *BKE_init_ocean_cache(const char *UNUSED(bakepath), const char *UNUSED(relbase), int UNUSED(start),
+OceanCache *BKE_ocean_init_cache(const char *UNUSED(bakepath), const char *UNUSED(relbase), int UNUSED(start),
                                  int UNUSED(end), float UNUSED(wave_scale), float UNUSED(chop_amount),
                                  float UNUSED(foam_coverage), float UNUSED(foam_fade), int UNUSED(resolution))
 {
@@ -1429,11 +1429,11 @@ OceanCache *BKE_init_ocean_cache(const char *UNUSED(bakepath), const char *UNUSE
 	return och;
 }
 
-void BKE_simulate_ocean_cache(struct OceanCache *UNUSED(och), int UNUSED(frame))
+void BKE_ocean_simulate_cache(struct OceanCache *UNUSED(och), int UNUSED(frame))
 {
 }
 
-void BKE_bake_ocean(struct Ocean *UNUSED(o), struct OceanCache *UNUSED(och),
+void BKE_ocean_bake(struct Ocean *UNUSED(o), struct OceanCache *UNUSED(och),
                     void (*update_cb)(void *, float progress, int *cancel), void *UNUSED(update_cb_data))
 {
 	/* unused */
