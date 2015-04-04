@@ -31,42 +31,6 @@
 
 #include "BLI_strict_flags.h"
 
-/* WARNING: MSVC compiling hack for double_round() */
-#if (defined(WIN32) || defined(WIN64)) && !(defined(FREE_WINDOWS))
-
-/* from python 3.1 pymath.c */
-double copysign(double x, double y)
-{
-	/* use atan2 to distinguish -0.0 from 0.0 */
-	if (y > 0.0 || (y == 0.0 && atan2(y, -1.0) > 0.0)) {
-		return fabs(x);
-	}
-	else {
-		return -fabs(x);
-	}
-}
-
-/* from python 3.1 pymath.c */
-double round(double x)
-{
-	double absx, y;
-	absx = fabs(x);
-	y = floor(absx);
-	if (absx - y >= 0.5)
-		y += 1.0;
-	return copysign(y, x);
-}
-#else /* OpenSuse 11.1 seems to need this. */
-#  ifdef __GNUC__
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wredundant-decls"
-#  endif
-double round(double x);
-#  ifdef __GNUC__
-#    pragma GCC diagnostic pop
-#  endif
-#endif
-
 /* from python 3.1 floatobject.c
  * ndigits must be between 0 and 21 */
 double double_round(double x, int ndigits)
