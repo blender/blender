@@ -448,6 +448,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 
 int main(int argc, char **argv)
 {
+	GHOST_GLSettings glSettings = {0};
 	char *title1 = "gears - main window";
 	char *title2 = "gears - secondary window";
 	GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(processEvent, NULL);
@@ -459,16 +460,12 @@ int main(int argc, char **argv)
 	if (shSystem)
 	{
 		/* Create the main window */
-		sMainWindow = GHOST_CreateWindow(shSystem,
-		                                 title1,
-		                                 10,
-		                                 64,
-		                                 320,
-		                                 200,
-		                                 GHOST_kWindowStateNormal,
-		                                 GHOST_kDrawingContextTypeOpenGL,
-		                                 FALSE,
-		                                 FALSE);
+		sMainWindow = GHOST_CreateWindow(
+		        shSystem, title1,
+		        10, 64, 320, 200,
+		        GHOST_kWindowStateNormal,
+		        GHOST_kDrawingContextTypeOpenGL,
+		        glSettings);
 		if (!sMainWindow)
 		{
 			printf("could not create main window\n");
@@ -476,16 +473,13 @@ int main(int argc, char **argv)
 		}
 		
 		/* Create a secondary window */
-		sSecondaryWindow = GHOST_CreateWindow(shSystem,
-		                                      title2,
-		                                      340,
-		                                      64,
-		                                      320,
-		                                      200,
-		                                      GHOST_kWindowStateNormal,
-		                                      GHOST_kDrawingContextTypeOpenGL,
-		                                      FALSE,
-		                                      FALSE);
+		sSecondaryWindow = GHOST_CreateWindow(
+		        shSystem,
+		        title2,
+		        340, 64, 320, 200,
+		        GHOST_kWindowStateNormal,
+		        GHOST_kDrawingContextTypeOpenGL,
+		        glSettings);
 		if (!sSecondaryWindow)
 		{
 			printf("could not create secondary window\n");

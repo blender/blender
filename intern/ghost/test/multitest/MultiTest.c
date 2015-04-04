@@ -309,13 +309,18 @@ static void mainwindow_timer_proc(GHOST_TimerTaskHandle task, GHOST_TUns64 time)
 	mainwindow_log(mw, buf);
 }
 
-MainWindow *mainwindow_new(MultiTestApp *app) {
+MainWindow *mainwindow_new(MultiTestApp *app)
+{
 	GHOST_SystemHandle sys = multitestapp_get_system(app);
 	GHOST_WindowHandle win;
+	GHOST_GLSettings glSettings = {0};
 	
-	win = GHOST_CreateWindow(sys, "MultiTest:Main", 40, 40, 400, 400,
-	                         GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL,
-	                         FALSE, FALSE);
+	win = GHOST_CreateWindow(
+	        sys, "MultiTest:Main",
+	        40, 40, 400, 400,
+	        GHOST_kWindowStateNormal,
+	        GHOST_kDrawingContextTypeOpenGL,
+	        glSettings);
 	
 	if (win) {
 		MainWindow *mw = MEM_callocN(sizeof(*mw), "mainwindow_new");
@@ -577,15 +582,20 @@ static void loggerwindow_handle(void *priv, GHOST_EventHandle evt)
 
 /**/
 
-LoggerWindow *loggerwindow_new(MultiTestApp *app) {
+LoggerWindow *loggerwindow_new(MultiTestApp *app)
+{
+	GHOST_GLSettings glSettings = {0};
 	GHOST_SystemHandle sys = multitestapp_get_system(app);
 	GHOST_TUns32 screensize[2];
 	GHOST_WindowHandle win;
 	
 	GHOST_GetMainDisplayDimensions(sys, &screensize[0], &screensize[1]);
-	win = GHOST_CreateWindow(sys, "MultiTest:Logger", 40, screensize[1] - 432,
-	                         800, 300, GHOST_kWindowStateNormal,
-	                         GHOST_kDrawingContextTypeOpenGL, FALSE, FALSE);
+	win = GHOST_CreateWindow(
+	        sys, "MultiTest:Logger",
+	        40, screensize[1] - 432, 800, 300,
+	        GHOST_kWindowStateNormal,
+	        GHOST_kDrawingContextTypeOpenGL,
+	        glSettings);
 	
 	if (win) {
 		LoggerWindow *lw = MEM_callocN(sizeof(*lw), "loggerwindow_new");
@@ -775,13 +785,18 @@ static void extrawindow_handle(void *priv, GHOST_EventHandle evt)
 
 /**/
 
-ExtraWindow *extrawindow_new(MultiTestApp *app) {
+ExtraWindow *extrawindow_new(MultiTestApp *app)
+{
+	GHOST_GLSettings glSettings = {0};
 	GHOST_SystemHandle sys = multitestapp_get_system(app);
 	GHOST_WindowHandle win;
 	
-	win = GHOST_CreateWindow(sys, "MultiTest:Extra", 500, 40, 400, 400,
-	                         GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL,
-	                         FALSE, FALSE);
+	win = GHOST_CreateWindow(
+	        sys, "MultiTest:Extra",
+	        500, 40, 400, 400,
+	        GHOST_kWindowStateNormal,
+	        GHOST_kDrawingContextTypeOpenGL,
+	        glSettings);
 	
 	if (win) {
 		ExtraWindow *ew = MEM_callocN(sizeof(*ew), "mainwindow_new");
