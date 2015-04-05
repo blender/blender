@@ -104,10 +104,7 @@ ccl_device_inline float approx_erfinvf(float x)
 	}
 }
 
-/* Beckmann and GGX microfacet importance sampling from:
- * 
- * Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals.
- * E. Heitz and E. d'Eon, EGSR 2014 */
+/* Beckmann and GGX microfacet importance sampling. */
 
 ccl_device_inline void microfacet_beckmann_sample_slopes(
 	KernelGlobals *kg,
@@ -128,23 +125,70 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(
 	/* precomputations */
 	const float tan_theta_i = sin_theta_i/cos_theta_i;
 	const float inv_a = tan_theta_i;
-	const float a = 1.0f/inv_a;
-	const float erf_a = approx_erff(a);
-	const float exp_a2 = expf(-a*a);
+	const float cot_theta_i = 1.0f/tan_theta_i;
+	const float erf_a = approx_erff(cot_theta_i);
+	const float exp_a2 = expf(-cot_theta_i*cot_theta_i);
 	const float SQRT_PI_INV = 0.56418958354f;
 	const float Lambda = 0.5f*(erf_a - 1.0f) + (0.5f*SQRT_PI_INV)*(exp_a2*inv_a);
 	const float G1 = 1.0f/(1.0f + Lambda); /* masking */
 
 	*G1i = G1;
 
-	/* use precomputed table, because it better preserves stratification
-	 * of the random number pattern */
+#if defined(__KERNEL_GPU__)
+	/* Based on paper from Wenzel Jakob
+	 * An Improved Visible Normal Sampling Routine for the Beckmann Distribution
+	 *
+	 * http://www.mitsuba-renderer.org/~wenzel/files/visnormal.pdf
+	 *
+	 * Reformulation from OpenShadingLanguage which avoids using inverse
+	 * trigonometric functions.
+	 */
+
+	/* Sample slope X.
+	 *
+	 * Compute a coarse approximation using the approximation:
+	 *   exp(-ierf(x)^2) ~= 1 - x * x
+	 *   solve y = 1 + b + K * (1 - b * b)
+	 */
+	float K = tan_theta_i * SQRT_PI_INV;
+	float y_approx = randu * (1.0f + erf_a + K * (1 - erf_a * erf_a));
+	float y_exact  = randu * (1.0f + erf_a + K * exp_a2);
+	float b = K > 0 ? (0.5f - sqrtf(K * (K - y_approx + 1.0f) + 0.25f)) / K : y_approx - 1.0f;
+
+	/* Perform newton step to refine toward the true root. */
+	float inv_erf = approx_erfinvf(b);
+	float value  = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
+	/* Check if we are close enough already,
+	 * this also avoids NaNs as we get close to the root.
+	 */
+	if(fabsf(value) > 1e-6f) {
+		b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 1. */
+		inv_erf = approx_erfinvf(b);
+		value  = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
+		b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 2. */
+		/* Compute the slope from the refined value. */
+		*slope_x = approx_erfinvf(b);
+	}
+	else {
+		/* We are close enough already. */
+		*slope_x = inv_erf;
+	}
+	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
+#else
+	/* Use precomputed table on CPU, it gives better perfomance. */
 	int beckmann_table_offset = kernel_data.tables.beckmann_offset;
 
 	*slope_x = lookup_table_read_2D(kg, randu, cos_theta_i,
 		beckmann_table_offset, BECKMANN_TABLE_SIZE, BECKMANN_TABLE_SIZE);
 	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
+#endif
 }
+
+/* GGX microfacet importance sampling from:
+ *
+ * Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals.
+ * E. Heitz and E. d'Eon, EGSR 2014
+ */
 
 ccl_device_inline void microfacet_ggx_sample_slopes(
 	const float cos_theta_i, const float sin_theta_i,
