@@ -162,7 +162,7 @@ BLI_INLINE unsigned int ghash_bucket_index(GHash *gh, const unsigned int hash)
 #ifdef GHASH_USE_MODULO_BUCKETS
 	return hash % gh->nbuckets;
 #else
-	return full_hash & gh->bucket_mask;
+	return hash & gh->bucket_mask;
 #endif
 }
 
@@ -450,14 +450,14 @@ BLI_INLINE void ghash_insert_ex(
 BLI_INLINE void ghash_insert_ex_keyonly(
         GHash *gh, void *key, const unsigned int bucket_index)
 {
-	GSetEntry *e = BLI_mempool_alloc(gh->entrypool);
+	Entry *e = BLI_mempool_alloc(gh->entrypool);
 
 	BLI_assert((gh->flag & GHASH_FLAG_ALLOW_DUPES) || (BLI_ghash_haskey(gh, key) == 0));
 	BLI_assert((gh->flag & GHASH_FLAG_IS_GSET) != 0);
 
 	e->next = gh->buckets[bucket_index];
 	e->key = key;
-	gh->buckets[bucket_index] = (Entry *)e;
+	gh->buckets[bucket_index] = e;
 
 	ghash_buckets_expand(gh, ++gh->nentries, false);
 }
@@ -498,7 +498,7 @@ BLI_INLINE bool ghash_insert_safe_keyonly(GHash *gh, void *key, const bool overr
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
-	GSetEntry *e = ghash_lookup_entry_ex(gh, key, bucket_index);
+	Entry *e = ghash_lookup_entry_ex(gh, key, bucket_index);
 
 	BLI_assert((gh->flag & GHASH_FLAG_IS_GSET) != 0);
 
