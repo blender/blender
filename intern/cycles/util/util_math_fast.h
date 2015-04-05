@@ -539,7 +539,7 @@ ccl_device float fast_safe_powf(float x, float y)
  * bsdf_microfaset.h.
  */
 
-ccl_device float fast_erff(float x)
+ccl_device_inline float fast_erff(float x)
 {
 	/* Examined 1082130433 values of erff on [0,4]: 1.93715e-06 max error. */
 	/* Abramowitz and Stegun, 7.1.28. */
@@ -570,7 +570,7 @@ ccl_device_inline float fast_erfcf(float x)
 	return 1.0f - fast_erff(x);
 }
 
-ccl_device float fast_ierff(float x)
+ccl_device_inline float fast_ierff(float x)
 {
 	/* From: Approximating the erfinv function by Mike Giles. */
 	/* To avoid trouble at the limit, clamp input to 1-eps. */

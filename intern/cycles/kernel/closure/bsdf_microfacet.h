@@ -35,75 +35,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Approximate erf and erfinv implementations.
- * Implementation comes straight from Wikipedia:
- *
- * http://en.wikipedia.org/wiki/Error_function
- *
- * Some constants are baked into the code.
- */
-
-ccl_device_inline float approx_erff_do(float x)
-{
-	/* Such a clamp doesn't give much distortion to the output value
-	 * and gives quite a few of the speedup.
-	 */
-	if(x > 3.0f) {
-		return 1.0f;
-	}
-	float t = 1.0f / (1.0f + 0.47047f*x);
-	return  (1.0f -
-	         t*(0.3480242f + t*(-0.0958798f + t*0.7478556f)) * expf(-x*x));
-}
-
-ccl_device_inline float approx_erff(float x)
-{
-	if(x >= 0.0f) {
-		return approx_erff_do(x);
-	}
-	else {
-		return -approx_erff_do(-x);
-	}
-}
-
-ccl_device_inline float approx_erfinvf_do(float x)
-{
-	if(x <= 0.7f) {
-		const float x2 = x * x;
-		const float a1 =  0.886226899f;
-		const float a2 = -1.645349621f;
-		const float a3 =  0.914624893f;
-		const float a4 = -0.140543331f;
-		const float b1 = -2.118377725f;
-		const float b2 =  1.442710462f;
-		const float b3 = -0.329097515f;
-		const float b4 =  0.012229801f;
-		return x * (((a4 * x2 + a3) * x2 + a2) * x2 + a1) /
-		          ((((b4 * x2 + b3) * x2 + b2) * x2 + b1) * x2 + 1.0f);
-	}
-	else {
-		const float c1 = -1.970840454f;
-		const float c2 = -1.624906493f;
-		const float c3 =  3.429567803f;
-		const float c4 =  1.641345311f;
-		const float d1 =  3.543889200f;
-		const float d2 =  1.637067800f;
-		const float z = sqrtf(-logf((1.0f - x) * 0.5f));
-		return (((c4 * z + c3) * z + c2) * z + c1) /
-		        ((d2 * z + d1) * z + 1.0f);
-	}
-}
-
-ccl_device_inline float approx_erfinvf(float x)
-{
-	if(x >= 0.0f) {
-		return approx_erfinvf_do(x);
-	}
-	else {
-		return -approx_erfinvf_do(-x);
-	}
-}
-
 /* Beckmann and GGX microfacet importance sampling. */
 
 ccl_device_inline void microfacet_beckmann_sample_slopes(
@@ -126,7 +57,7 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(
 	const float tan_theta_i = sin_theta_i/cos_theta_i;
 	const float inv_a = tan_theta_i;
 	const float cot_theta_i = 1.0f/tan_theta_i;
-	const float erf_a = approx_erff(cot_theta_i);
+	const float erf_a = fast_erff(cot_theta_i);
 	const float exp_a2 = expf(-cot_theta_i*cot_theta_i);
 	const float SQRT_PI_INV = 0.56418958354f;
 	const float Lambda = 0.5f*(erf_a - 1.0f) + (0.5f*SQRT_PI_INV)*(exp_a2*inv_a);
@@ -156,31 +87,31 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(
 	float b = K > 0 ? (0.5f - sqrtf(K * (K - y_approx + 1.0f) + 0.25f)) / K : y_approx - 1.0f;
 
 	/* Perform newton step to refine toward the true root. */
-	float inv_erf = approx_erfinvf(b);
+	float inv_erf = fast_ierff(b);
 	float value  = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
 	/* Check if we are close enough already,
 	 * this also avoids NaNs as we get close to the root.
 	 */
 	if(fabsf(value) > 1e-6f) {
 		b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 1. */
-		inv_erf = approx_erfinvf(b);
+		inv_erf = fast_ierff(b);
 		value  = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
 		b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 2. */
 		/* Compute the slope from the refined value. */
-		*slope_x = approx_erfinvf(b);
+		*slope_x = fast_ierff(b);
 	}
 	else {
 		/* We are close enough already. */
 		*slope_x = inv_erf;
 	}
-	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
+	*slope_y = fast_ierff(2.0f*randv - 1.0f);
 #else
 	/* Use precomputed table on CPU, it gives better perfomance. */
 	int beckmann_table_offset = kernel_data.tables.beckmann_offset;
 
 	*slope_x = lookup_table_read_2D(kg, randu, cos_theta_i,
 		beckmann_table_offset, BECKMANN_TABLE_SIZE, BECKMANN_TABLE_SIZE);
-	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
+	*slope_y = fast_ierff(2.0f*randv - 1.0f);
 #endif
 }
 
