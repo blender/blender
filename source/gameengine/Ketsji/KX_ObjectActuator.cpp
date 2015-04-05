@@ -223,6 +223,11 @@ bool KX_ObjectActuator::Update()
 		else if (m_bitLocalFlag.CharacterMotion) {
 			MT_Vector3 dir = m_dloc;
 
+			if (m_bitLocalFlag.DLoc) {
+				MT_Matrix3x3 basis = parent->GetPhysicsController()->GetOrientation();
+				dir = basis * dir;
+			}
+
 			if (m_bitLocalFlag.AddOrSetCharLoc) {
 				MT_Vector3 old_dir = character->GetWalkDirection();
 
@@ -236,11 +241,6 @@ bool KX_ObjectActuator::Update()
 			}
 
 			// We always want to set the walk direction since a walk direction of (0, 0, 0) should stop the character
-			if (m_bitLocalFlag.DLoc)
-			{
-				MT_Matrix3x3 basis = parent->GetPhysicsController()->GetOrientation();
-				dir = basis*dir;
-			}
 			character->SetWalkDirection(dir/parent->GetScene()->GetPhysicsEnvironment()->GetNumTimeSubSteps());
 
 			if (!m_bitLocalFlag.ZeroDRot)
