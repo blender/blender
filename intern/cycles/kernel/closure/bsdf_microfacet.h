@@ -137,44 +137,6 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(
 
 	*G1i = G1;
 
-#if 0
-	const float C = 1.0f - G1 * erf_a;
-
-	/* sample slope X */
-	if(randu < C) {
-		/* rescale randu */
-		randu = randu / C;
-		const float w_1 = 0.5f * SQRT_PI_INV * sin_theta_i * exp_a2;
-		const float w_2 = cos_theta_i * (0.5f - 0.5f*erf_a);
-		const float p = w_1 / (w_1 + w_2);
-
-		if(randu < p) {
-			randu = randu / p;
-			*slope_x = -sqrtf(-logf(randu*exp_a2));
-		}
-		else {
-			randu = (randu - p) / (1.0f - p);
-			*slope_x = approx_erfinvf(randu - 1.0f - randu*erf_a);
-		}
-	}
-	else {
-		/* rescale randu */
-		randu = (randu - C) / (1.0f - C);
-		*slope_x = approx_erfinvf((-1.0f + 2.0f*randu)*erf_a);
-
-		const float p = (-(*slope_x)*sin_theta_i + cos_theta_i) / (2.0f*cos_theta_i);
-
-		if(randv > p) {
-			*slope_x = -(*slope_x);
-			randv = (randv - p) / (1.0f - p);
-		}
-		else
-			randv = randv / p;
-	}
-
-	/* sample slope Y */
-	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
-#else
 	/* use precomputed table, because it better preserves stratification
 	 * of the random number pattern */
 	int beckmann_table_offset = kernel_data.tables.beckmann_offset;
@@ -182,8 +144,6 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(
 	*slope_x = lookup_table_read_2D(kg, randu, cos_theta_i,
 		beckmann_table_offset, BECKMANN_TABLE_SIZE, BECKMANN_TABLE_SIZE);
 	*slope_y = approx_erfinvf(2.0f*randv - 1.0f);
-#endif
-
 }
 
 ccl_device_inline void microfacet_ggx_sample_slopes(
