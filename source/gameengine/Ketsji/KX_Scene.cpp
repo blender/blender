@@ -945,7 +945,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	{
 		// this will also relink the actuators in the hierarchy
 		(*git)->Relink(&m_map_gameobject_to_replica);
-		// add the object in the layer of the parent
+		// add the object in the layer of the reference object
 		(*git)->SetLayer(referenceobj->GetLayer());
 		// If the object was a light, we need to update it's RAS_LightObject as well
 		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
@@ -2493,23 +2493,23 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 "addObject(object, other, time=0)\n"
 "Returns the added object.\n")
 {
-	PyObject *pyob, *pyother;
-	KX_GameObject *ob, *other;
+	PyObject *pyob, *pyreference;
+	KX_GameObject *ob, *reference;
 
 	int time = 0;
 
-	if (!PyArg_ParseTuple(args, "OO|i:addObject", &pyob, &pyother, &time))
+	if (!PyArg_ParseTuple(args, "OO|i:addObject", &pyob, &pyreference, &time))
 		return NULL;
 
-	if (	!ConvertPythonToGameObject(pyob, &ob, false, "scene.addObject(object, other, time): KX_Scene (first argument)") ||
-			!ConvertPythonToGameObject(pyother, &other, false, "scene.addObject(object, other, time): KX_Scene (second argument)") )
+	if (	!ConvertPythonToGameObject(pyob, &ob, false, "scene.addObject(object, reference, time): KX_Scene (first argument)") ||
+			!ConvertPythonToGameObject(pyreference, &reference, false, "scene.addObject(object, reference, time): KX_Scene (second argument)") )
 		return NULL;
 
 	if (!m_inactivelist->SearchValue(ob)) {
-		PyErr_Format(PyExc_ValueError, "scene.addObject(object, other, time): KX_Scene (first argument): object must be in an inactive layer");
+		PyErr_Format(PyExc_ValueError, "scene.addObject(object, reference, time): KX_Scene (first argument): object must be in an inactive layer");
 		return NULL;
 	}
-	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
+	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, reference, time);
 	
 	// release here because AddReplicaObject AddRef's
 	// the object is added to the scene so we don't want python to own a reference
