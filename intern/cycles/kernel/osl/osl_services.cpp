@@ -887,7 +887,7 @@ bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
 #endif
 	bool status;
 
-	if(filename[0] == '@' && filename.find('.') == -1) {
+	if(filename[0] == '@') {
 		int slot = atoi(filename.c_str() + 1);
 		float4 rgba = kernel_tex_image_interp(slot, s, 1.0f - t);
 
@@ -940,7 +940,7 @@ bool OSLRenderServices::texture3d(ustring filename, TextureOpt &options,
 	ShaderData *sd = (ShaderData *)(sg->renderstate);
 	KernelGlobals *kg = sd->osl_globals;
 	bool status;
-	if(filename[0] == '@' && filename.find('.') == -1) {
+	if(filename[0] == '@') {
 		int slot = atoi(filename.c_str() + 1);
 		float4 rgba = kernel_tex_image_interp_3d(slot, P.x, P.y, P.z);
 
