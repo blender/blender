@@ -205,6 +205,7 @@ static int sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				sample_exit(C, op);
 				return OPERATOR_CANCELLED;
 			}
+			break;
 		case MOUSEMOVE:
 			sample_apply(C, op, event);
 			break;
