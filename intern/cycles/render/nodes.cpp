@@ -2248,10 +2248,15 @@ void GeometryNode::compile(SVMCompiler& compiler)
 	out = output("Pointiness");
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
-		compiler.add_node(attr_node,
-		                  ATTR_STD_POINTINESS,
-		                  out->stack_offset,
-		                  NODE_ATTR_FLOAT);
+		if(compiler.output_type() != SHADER_TYPE_VOLUME) {
+			compiler.add_node(attr_node,
+			                  ATTR_STD_POINTINESS,
+			                  out->stack_offset,
+			                  NODE_ATTR_FLOAT);
+		}
+		else {
+			compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), out->stack_offset);
+		}
 	}
 }
 
