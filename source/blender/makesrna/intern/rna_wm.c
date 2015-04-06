@@ -1758,7 +1758,7 @@ static void rna_def_window_stereo3d(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Stereo3dDisplay", NULL);
 	RNA_def_struct_sdna(srna, "Stereo3dFormat");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
-	RNA_def_struct_ui_text(srna, "Stereo 3d Display", "Settings for stereo 3d display");
+	RNA_def_struct_ui_text(srna, "Stereo 3D Display", "Settings for stereo 3D display");
 
 	prop = RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, stereo3d_display_items);

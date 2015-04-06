@@ -125,6 +125,7 @@ class SpellChecker:
         "multisampling",
         "multitexture",
         "multiuser",
+        "multiview",
         "namespace",
         "keyconfig",
         "online",

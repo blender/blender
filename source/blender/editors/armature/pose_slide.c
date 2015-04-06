@@ -1226,13 +1226,20 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
 void POSE_OT_propagate(wmOperatorType *ot)
 {
 	static EnumPropertyItem terminate_items[] = {
-		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behavior)"},
-		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "To Next Keyframe", "Propagate pose to first keyframe following the current frame only"},
-		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "To Last Keyframe", "Propagate pose to the last keyframe only (i.e. making action cyclic)"},
-		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
-		{POSE_PROPAGATE_BEFORE_END, "BEFORE_END", 0, "Before Last Keyframe", "Propagate pose to all keyframes from current frame until no more are found"},
-		{POSE_PROPAGATE_SELECTED_KEYS, "SELECTED_KEYS", 0, "On Selected Keyframes", "Propagate pose to all keyframes that are selected"},
-		{POSE_PROPAGATE_SELECTED_MARKERS, "SELECTED_MARKERS", 0, "On Selected Markers", "Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame"},
+		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held",
+	     "Propagate pose to all keyframes after current frame that don't change (Default behavior)"},
+		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "To Next Keyframe",
+	     "Propagate pose to first keyframe following the current frame only"},
+		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "To Last Keyframe",
+	     "Propagate pose to the last keyframe only (i.e. making action cyclic)"},
+		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame",
+	     "Propagate pose to all keyframes between current frame and 'Frame' property"},
+		{POSE_PROPAGATE_BEFORE_END, "BEFORE_END", 0, "Before Last Keyframe",
+	     "Propagate pose to all keyframes from current frame until no more are found"},
+		{POSE_PROPAGATE_SELECTED_KEYS, "SELECTED_KEYS", 0, "On Selected Keyframes",
+	     "Propagate pose to all selected keyframes"},
+		{POSE_PROPAGATE_SELECTED_MARKERS, "SELECTED_MARKERS", 0, "On Selected Markers",
+	     "Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* identifiers */

@@ -338,8 +338,10 @@ EnumPropertyItem bake_save_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-#define R_IMF_VIEWS_ENUM_IND      {R_IMF_VIEWS_INDIVIDUAL, "INDIVIDUAL", 0, "Individual", "Individual files for each view with the prefix as defined by the scene views"},
-#define R_IMF_VIEWS_ENUM_S3D      {R_IMF_VIEWS_STEREO_3D, "STEREO_3D", 0, "Stereo 3D", "Single file with an encoded stereo pair"},
+#define R_IMF_VIEWS_ENUM_IND      {R_IMF_VIEWS_INDIVIDUAL, "INDIVIDUAL", 0, "Individual", \
+                                   "Individual files for each view with the prefix as defined by the scene views"},
+#define R_IMF_VIEWS_ENUM_S3D      {R_IMF_VIEWS_STEREO_3D, "STEREO_3D", 0, "Stereo 3D", \
+                                   "Single file with an encoded stereo pair"},
 #define R_IMF_VIEWS_ENUM_MV       {R_IMF_VIEWS_MULTIVIEW, "MULTIVIEW", 0, "Multi-View", "Single file with all the views"},
 
 EnumPropertyItem views_format_items[] = {
@@ -366,13 +368,17 @@ EnumPropertyItem views_format_multiview_items[] = {
 #undef R_IMF_VIEWS_ENUM_MV
 
 EnumPropertyItem stereo3d_display_items[] = {
-	{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph", "Render two differently filtered colored images for each eye. Anaglyph glasses are required"},
-	{S3D_DISPLAY_INTERLACE, "INTERLACE", 0, "Interlace", "Render two images for each eye into one interlaced image. 3D-ready monitor is requiered"},
+	{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph",
+     "Render views for left and right eyes as two differently filtered colors in a single image "
+     "(anaglyph glasses are required)"},
+	{S3D_DISPLAY_INTERLACE, "INTERLACE", 0, "Interlace",
+     "Render views for left and right eyes interlaced in a single image (3D-ready monitor is required)"},
 #ifdef DEBUG /* MULTIVIEW_TODO: quadbuffer mode not fully working */
-	{S3D_DISPLAY_PAGEFLIP, "TIMESEQUENTIAL", 0, "Time Sequential", "Renders alternate eyes (also known as pageflip). It requires Quadbuffer support in the graphic card"},
+	{S3D_DISPLAY_PAGEFLIP, "TIMESEQUENTIAL", 0, "Time Sequential",
+     "Render alternate eyes (also known as page flip, quad buffer support in the graphic card is required)"},
 #endif
-	{S3D_DISPLAY_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-Side", "Render images for left and right eye side-by-side"},
-	{S3D_DISPLAY_TOPBOTTOM, "TOPBOTTOM", 0, "Top-Bottom", "Render images for left and right eye one above another"},
+	{S3D_DISPLAY_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-Side", "Render views for left and right eyes side-by-side"},
+	{S3D_DISPLAY_TOPBOTTOM, "TOPBOTTOM", 0, "Top-Bottom", "Render views for left and right eyes one above another"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -899,8 +905,8 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                                   PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ID *id = ptr->id.data;
 	if (id && GS(id->name) == ID_SCE) {
@@ -911,8 +917,8 @@ static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext *UNU
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                                  PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
 	ID *id = ptr->id.data;
@@ -956,8 +962,8 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *UNUS
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                                   PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
 
@@ -1019,8 +1025,8 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *UNU
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_views_format_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static EnumPropertyItem *rna_ImageFormatSettings_views_format_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
 
@@ -1041,8 +1047,8 @@ PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 #ifdef WITH_OPENEXR
 	/* OpenEXR */
 
-static EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
 
@@ -1098,8 +1104,8 @@ static void rna_RenderSettings_qtcodecsettings_codecType_set(PointerRNA *ptr, in
 	settings->codecType = quicktime_videocodecType_from_rnatmpvalue(value);
 }
 
-static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                                            PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -1136,8 +1142,8 @@ static void rna_RenderSettings_qtcodecsettings_audiocodecType_set(PointerRNA *pt
 	settings->audiocodecType = quicktime_audiocodecType_from_rnatmpvalue(value);
 }
 
-static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                                                 PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -1197,8 +1203,8 @@ static void rna_RenderSettings_active_layer_index_set(PointerRNA *ptr, int value
 	rd->actlay = min_ff(value, num_layers - 1);
 }
 
-static void rna_RenderSettings_active_layer_index_range(PointerRNA *ptr, int *min, int *max,
-                                                        int *UNUSED(softmin), int *UNUSED(softmax))
+static void rna_RenderSettings_active_layer_index_range(
+        PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	RenderData *rd = (RenderData *)ptr->data;
 
@@ -1233,8 +1239,8 @@ static SceneRenderLayer *rna_RenderLayer_new(ID *id, RenderData *UNUSED(rd), con
 	return srl;
 }
 
-static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, ReportList *reports,
-                                   PointerRNA *srl_ptr)
+static void rna_RenderLayer_remove(
+        ID *id, RenderData *UNUSED(rd), Main *bmain, ReportList *reports, PointerRNA *srl_ptr)
 {
 	SceneRenderLayer *srl = srl_ptr->data;
 	Scene *scene = (Scene *)id;
@@ -1263,7 +1269,8 @@ static void rna_RenderSettings_active_view_index_set(PointerRNA *ptr, int value)
 	rd->actview = value;
 }
 
-static void rna_RenderSettings_active_view_index_range(PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+static void rna_RenderSettings_active_view_index_range(
+        PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	RenderData *rd = (RenderData *)ptr->data;
 
@@ -1297,8 +1304,8 @@ static SceneRenderView *rna_RenderView_new(ID *id, RenderData *UNUSED(rd), const
 	return srv;
 }
 
-static void rna_RenderView_remove(ID *id, RenderData *UNUSED(rd), Main *UNUSED(bmain), ReportList *reports,
-                                   PointerRNA *srv_ptr)
+static void rna_RenderView_remove(
+        ID *id, RenderData *UNUSED(rd), Main *UNUSED(bmain), ReportList *reports, PointerRNA *srv_ptr)
 {
 	SceneRenderView *srv = srv_ptr->data;
 	Scene *scene = (Scene *)id;
@@ -1323,8 +1330,8 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 		BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
 }
 
-static EnumPropertyItem *rna_RenderSettings_engine_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                         PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *rna_RenderSettings_engine_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	RenderEngineType *type;
 	EnumPropertyItem *item = NULL;
@@ -1822,7 +1829,8 @@ static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value
 	lineset->linestyle->id.us++;
 }
 
-static FreestyleLineSet *rna_FreestyleSettings_lineset_add(ID *id, FreestyleSettings *config, Main *bmain, const char *name)
+static FreestyleLineSet *rna_FreestyleSettings_lineset_add(
+        ID *id, FreestyleSettings *config, Main *bmain, const char *name)
 {
 	Scene *scene = (Scene *)id;
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_add(bmain, (FreestyleConfig *)config, name);
@@ -1833,8 +1841,8 @@ static FreestyleLineSet *rna_FreestyleSettings_lineset_add(ID *id, FreestyleSett
 	return lineset;
 }
 
-static void rna_FreestyleSettings_lineset_remove(ID *id, FreestyleSettings *config, ReportList *reports,
-                                                 PointerRNA *lineset_ptr)
+static void rna_FreestyleSettings_lineset_remove(
+        ID *id, FreestyleSettings *config, ReportList *reports, PointerRNA *lineset_ptr)
 {
 	FreestyleLineSet *lineset = lineset_ptr->data;
 	Scene *scene = (Scene *)id;
@@ -1857,8 +1865,8 @@ static PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_FreestyleLineSet, lineset);
 }
 
-static void rna_FreestyleSettings_active_lineset_index_range(PointerRNA *ptr, int *min, int *max,
-                                                             int *UNUSED(softmin), int *UNUSED(softmax))
+static void rna_FreestyleSettings_active_lineset_index_range(
+        PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
 
@@ -1889,8 +1897,8 @@ static FreestyleModuleConfig *rna_FreestyleSettings_module_add(ID *id, Freestyle
 	return module;
 }
 
-static void rna_FreestyleSettings_module_remove(ID *id, FreestyleSettings *config, ReportList *reports,
-                                                PointerRNA *module_ptr)
+static void rna_FreestyleSettings_module_remove(
+        ID *id, FreestyleSettings *config, ReportList *reports, PointerRNA *module_ptr)
 {
 	Scene *scene = (Scene *)id;
 	FreestyleModuleConfig *module = module_ptr->data;
@@ -2054,9 +2062,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	
 	static EnumPropertyItem gpencil_source_3d_items[] = {
 		{GP_TOOL_SOURCE_SCENE, "SCENE", 0, "Scene", 
-		 "Grease Pencil data attached to the current scene is used, unless the active object already has Grease Pencil data (i.e. for old files)"},
+		 "Grease Pencil data attached to the current scene is used, "
+	     "unless the active object already has Grease Pencil data (i.e. for old files)"},
 		{GP_TOOL_SOURCE_OBJECT, "OBJECT", 0, "Object",
-		 "Grease Pencil datablocks attached to the active object are used (required using pre 2.73 add-ons, e.g. BSurfaces)"},
+		 "Grease Pencil datablocks attached to the active object are used "
+	     "(required using pre 2.73 add-ons, e.g. BSurfaces)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2338,7 +2348,8 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	
 	prop = RNA_def_property(srna, "use_etch_autoname", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skgen_retarget_options", SK_RETARGET_AUTONAME);
-	RNA_def_property_ui_text(prop, "Autoname Bones", "Automatically generate values to replace &N and &S suffix placeholders in template names");
+	RNA_def_property_ui_text(prop, "Autoname Bones",
+	                         "Automatically generate values to replace &N and &S suffix placeholders in template names");
 
 	prop = RNA_def_property(srna, "etch_number", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "skgen_num_string");
@@ -3226,12 +3237,14 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "face_mark_condition", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
 	RNA_def_property_enum_items(prop, face_mark_condition_items);
-	RNA_def_property_ui_text(prop, "Face Mark Condition", "Specify a feature edge selection condition based on face marks");
+	RNA_def_property_ui_text(prop, "Face Mark Condition",
+	                         "Specify a feature edge selection condition based on face marks");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "select_silhouette", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_SILHOUETTE);
-	RNA_def_property_ui_text(prop, "Silhouette", "Select silhouettes (edges at the boundary of visible and hidden faces)");
+	RNA_def_property_ui_text(prop, "Silhouette",
+	                         "Select silhouettes (edges at the boundary of visible and hidden faces)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "select_border", PROP_BOOLEAN, PROP_NONE);
@@ -3241,12 +3254,14 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "select_crease", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_CREASE);
-	RNA_def_property_ui_text(prop, "Crease", "Select crease edges (those between two faces making an angle smaller than the Crease Angle)");
+	RNA_def_property_ui_text(prop, "Crease",
+	                         "Select crease edges (those between two faces making an angle smaller than the Crease Angle)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "select_ridge_valley", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_RIDGE_VALLEY);
-	RNA_def_property_ui_text(prop, "Ridge & Valley", "Select ridges and valleys (boundary lines between convex and concave areas of surface)");
+	RNA_def_property_ui_text(prop, "Ridge & Valley",
+	                         "Select ridges and valleys (boundary lines between convex and concave areas of surface)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "select_suggestive_contour", PROP_BOOLEAN, PROP_NONE);
@@ -3266,7 +3281,8 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "select_external_contour", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_EXTERNAL_CONTOUR);
-	RNA_def_property_ui_text(prop, "External Contour", "Select external contours (outer silhouettes of occluding and occluded objects)");
+	RNA_def_property_ui_text(prop, "External Contour",
+	                         "Select external contours (outer silhouettes of occluding and occluded objects)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "select_edge_mark", PROP_BOOLEAN, PROP_NONE);
@@ -3415,7 +3431,8 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_view_map_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_VIEW_MAP_CACHE);
-	RNA_def_property_ui_text(prop, "View Map Cache", "Keep the computed view map and avoid re-calculating it if mesh geometry is unchanged");
+	RNA_def_property_ui_text(prop, "View Map Cache",
+	                         "Keep the computed view map and avoid re-calculating it if mesh geometry is unchanged");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_use_view_map_cache_update");
 
 	prop = RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
@@ -4223,7 +4240,8 @@ static void rna_def_gpu_fx(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_dof", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "fx_flag", GPU_FX_FLAG_DOF);
-	RNA_def_property_ui_text(prop, "Depth Of Field", "Use depth of field on viewport using the values from active camera");
+	RNA_def_property_ui_text(prop, "Depth Of Field",
+	                         "Use depth of field on viewport using the values from active camera");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUFXSettings_fx_update");
 
 
@@ -4331,7 +4349,8 @@ static void rna_def_scene_render_view(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "camera_suffix", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "suffix");
-	RNA_def_property_ui_text(prop, "Camera Suffix", "Suffix to identify the cameras to use, and added to the render images for this view");
+	RNA_def_property_ui_text(prop, "Camera Suffix",
+	                         "Suffix to identify the cameras to use, and added to the render images for this view");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
@@ -4391,10 +4410,13 @@ static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem stereo3d_display_items[] = {
-		{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph", "Render two differently filtered colored images for each eye. Anaglyph glasses are required"},
-		{S3D_DISPLAY_INTERLACE, "INTERLACE", 0, "Interlace", "Render two images for each eye into one interlaced image. 3D-ready monitor is requiered"},
-		{S3D_DISPLAY_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-Side", "Render images for left and right eye side-by-side"},
-		{S3D_DISPLAY_TOPBOTTOM, "TOPBOTTOM", 0, "Top-Bottom", "Render images for left and right eye one above another"},
+		{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph",
+	     "Render views for left and right eyes as two differently filtered colors in a single image "
+	     "(anaglyph glasses are required)"},
+		{S3D_DISPLAY_INTERLACE, "INTERLACE", 0, "Interlace",
+	     "Render views for left and right eyes interlaced in a single image (3D-ready monitor is required)"},
+		{S3D_DISPLAY_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-Side", "Render views for left and right eyes side-by-side"},
+		{S3D_DISPLAY_TOPBOTTOM, "TOPBOTTOM", 0, "Top-Bottom", "Render views for left and right eyes one above another"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -3732,7 +3732,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 			break;
 
 	if (rpass == NULL)
-		BKE_reportf(reports, RPT_ERROR, "RE_layer_load_from_file: no Combined pass found in the render layer '%s'", filename);
+		BKE_reportf(reports, RPT_ERROR, "%s: no Combined pass found in the render layer '%s'", __func__, filename);
 
 	if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 		if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {

@@ -1870,7 +1870,7 @@ void OBJECT_OT_correctivesmooth_bind(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Corrective Smooth Bind";
-	ot->description = "Bind base pose in delta mush modifier";
+	ot->description = "Bind base pose in Corrective Smooth modifier";
 	ot->idname = "OBJECT_OT_correctivesmooth_bind";
 
 	/* api callbacks */

@@ -95,7 +95,7 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem convergence_mode_items[] = {
-		{CAM_S3D_OFFAXIS, "OFFAXIS", 0, "Off-Axis", "Off-axis frustrums converging in a plane"},
+		{CAM_S3D_OFFAXIS, "OFFAXIS", 0, "Off-Axis", "Off-axis frustums converging in a plane"},
 		{CAM_S3D_PARALLEL, "PARALLEL", 0, "Parallel", "Parallel cameras with no convergence"},
 		{CAM_S3D_TOE, "TOE", 0, "Toe-in", "Rotated cameras, looking at the convergence distance"},
 		{0, NULL, 0, NULL, NULL}
@@ -126,20 +126,25 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "interocular_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Interocular Distance", "Set the distance between the eyes - the stereo plane distance / 30 should be fine");
+	RNA_def_property_ui_text(prop, "Interocular Distance",
+	                         "Set the distance between the eyes - the stereo plane distance / 30 should be fine");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "convergence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.00001f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 15.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Convergence Plane Distance", "The converge point for the stereo cameras (often the distance between a projector and the projection screen)");
+	RNA_def_property_ui_text(prop, "Convergence Plane Distance",
+	                         "The converge point for the stereo cameras "
+	                         "(often the distance between a projector and the projection screen)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "viewport_convergence", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "convergence_distance");
 	RNA_def_property_range(prop, 0.00001f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 15.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Viewport Convergence", "Preview convergence distance for the stereo effect in the viewport. It doesn't affect the render!");
+	RNA_def_property_ui_text(prop, "Viewport Convergence",
+	                         "Preview convergence distance for the stereo effect in the viewport "
+	                         "(it does not affect the render!)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 }
 
@@ -326,7 +331,8 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_safe_center", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOW_SAFE_CENTER);
-	RNA_def_property_ui_text(prop, "Show Center-cut safe areas", "Show safe areas to fit content in a different aspect ratio");
+	RNA_def_property_ui_text(prop, "Show Center-cut safe areas",
+	                         "Show safe areas to fit content in a different aspect ratio");
 	RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
 	prop = RNA_def_property(srna, "show_name", PROP_BOOLEAN, PROP_NONE);

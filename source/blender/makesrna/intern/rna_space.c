@@ -2592,7 +2592,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "stereo_3d_volume_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "stereo3d_volume_alpha");
-	RNA_def_property_ui_text(prop, "Volume Alpha", "Opacity (alpha) of the cameras frustum volume");
+	RNA_def_property_ui_text(prop, "Volume Alpha", "Opacity (alpha) of the cameras' frustum volume");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	/* *** Animated *** */
