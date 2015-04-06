@@ -1107,9 +1107,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 }
 
 /**
- * #KM_DBL_CLICK and #KM_CLICK are set in wm_event_clicktype_init (wm_event_system.c)
- * Normally, #KM_HOLD should be there too, but we need a time precision of a few
- * milliseconds for it, which we can't get from there
+ * #KM_DBL_CLICK is set in wm_event_clicktype_init (wm_event_system.c)
+ * Normally, this should be there too, but for #KM_CLICK/#KM_HOLD, we need a
+ * time precision of a few milliseconds, which we can't get from there
  */
 static void wm_window_event_clicktype_init(const bContext *C)
 {
@@ -1150,7 +1150,14 @@ static void wm_window_event_clicktype_init(const bContext *C)
 
 		/* the actual test */
 		if ((PIL_check_seconds_timer() - event->click_time) * 1000 <= U.click_timeout) {
-			/* sending of KM_CLICK is handled in wm_event_clicktype_init (wm_event_system.c) */
+			/* for any reason some X11 systems send two release events triggering two KM_CLICK
+			 * events - making the rules more strict by checking for prevval resolves this */
+			if (event->val == KM_RELEASE && event->prevval != KM_RELEASE) {
+				click_type = KM_CLICK;
+				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS)) {
+					printf("%s Send click event\n", __func__);
+				}
+			}
 		}
 		else if (event->is_key_pressed) {
 			click_type = KM_HOLD;

@@ -2994,7 +2994,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
  * - #KM_PRESS && time since first #KM_PRESS > U.click_timeout --> send #KM_HOLD
  * - #KM_PRESS after a #KM_RELEASE && time since previous #KM_PRESS < U.dbl_click_time --> send #KM_DBL_CLICK
  *
- * \note: only #KM_DBL_CLICK and #KM_CLICK are handled here, #KM_HOLD in #wm_window_event_clicktype_init (wm_window.c)
+ * \note: only #KM_DBL_CLICK is handled here, rest in #wm_window_event_clicktype_init (wm_window.c)
  */
 static void wm_event_clicktype_init(wmWindow *win, wmEvent *event, wmEvent *event_state)
 {
@@ -3021,16 +3021,6 @@ static void wm_event_clicktype_init(wmWindow *win, wmEvent *event, wmEvent *even
 				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS)) {
 					printf("%s Send double click event\n", __func__);
 				}
-			}
-		}
-	}
-
-	/* click */
-	if ((PIL_check_seconds_timer() - event->click_time) * 1000 <= U.click_timeout) {
-		if (event->val == KM_RELEASE) {
-			click_type = KM_CLICK;
-			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS)) {
-				printf("%s Send click event\n", __func__);
 			}
 		}
 	}

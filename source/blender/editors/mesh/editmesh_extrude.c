@@ -511,6 +511,10 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 	bool done = false;
 	bool use_proj;
 
+	if (ELEM(event->click_type, KM_CLICK, KM_HOLD)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	em_setup_viewcontext(C, &vc);
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);

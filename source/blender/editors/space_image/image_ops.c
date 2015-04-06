@@ -2950,11 +2950,11 @@ static int image_sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case LEFTMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded
-		if (event->val == KM_RELEASE) {
-			image_sample_exit(C, op);
-			return OPERATOR_CANCELLED;
-		}
-		break;
+			if (event->val == KM_RELEASE) {
+				image_sample_exit(C, op);
+				return OPERATOR_CANCELLED;
+			}
+			break;
 		case MOUSEMOVE:
 			image_sample_apply(C, op, event);
 			break;

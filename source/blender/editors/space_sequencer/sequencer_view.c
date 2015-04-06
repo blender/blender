@@ -201,8 +201,10 @@ static int sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case LEFTMOUSE:
 		case RIGHTMOUSE: /* XXX hardcoded */
-			sample_exit(C, op);
-			return OPERATOR_CANCELLED;
+			if (event->val == KM_RELEASE) {
+				sample_exit(C, op);
+				return OPERATOR_CANCELLED;
+			}
 		case MOUSEMOVE:
 			sample_apply(C, op, event);
 			break;
