@@ -869,7 +869,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 
 
 SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
-										class CValue* parentobject,
+										class CValue* referenceobject,
 										int lifespan)
 {
 
@@ -878,7 +878,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	m_groupGameObjects.clear();
 
 	KX_GameObject* originalobj = (KX_GameObject*) originalobject;
-	KX_GameObject* parentobj = (KX_GameObject*) parentobject;
+	KX_GameObject* referenceobj = (KX_GameObject*) referenceobject;
 
 	m_ueberExecutionPriority++;
 
@@ -916,14 +916,14 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	// At this stage all the objects in the hierarchy have been duplicated,
 	// we can update the scenegraph, we need it for the duplication of logic
-	MT_Point3 newpos = ((KX_GameObject*) parentobject)->NodeGetWorldPosition();
+	MT_Point3 newpos = referenceobj->NodeGetWorldPosition();
 	replica->NodeSetLocalPosition(newpos);
 
-	MT_Matrix3x3 newori = ((KX_GameObject*) parentobject)->NodeGetWorldOrientation();
+	MT_Matrix3x3 newori = referenceobj->NodeGetWorldOrientation();
 	replica->NodeSetLocalOrientation(newori);
 	
 	// get the rootnode's scale
-	MT_Vector3 newscale = parentobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
+	MT_Vector3 newscale = referenceobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
 	// set the replica's relative scale with the rootnode's scale
 	replica->NodeSetRelativeScale(newscale);
 
@@ -946,12 +946,12 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// this will also relink the actuators in the hierarchy
 		(*git)->Relink(&m_map_gameobject_to_replica);
 		// add the object in the layer of the parent
-		(*git)->SetLayer(parentobj->GetLayer());
+		(*git)->SetLayer(referenceobj->GetLayer());
 		// If the object was a light, we need to update it's RAS_LightObject as well
 		if ((*git)->GetGameObjectType()==SCA_IObject::OBJ_LIGHT)
 		{
 			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
-			lightobj->SetLayer(parentobj->GetLayer());
+			lightobj->SetLayer(referenceobj->GetLayer());
 		}
 	}
 
