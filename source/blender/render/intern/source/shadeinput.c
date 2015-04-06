@@ -633,7 +633,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float v
 					dyco[2] = 0.0f;
 				
 				if (dxyview) {
-					if (co[2] != 0.0f) fac = 1.0f / co[2]; else fac = 0.0f;
+					fac = (co[2] != 0.0f) ? (1.0f / co[2]) : 0.0f;
 					dxyview[0] = -R.viewdx * fac;
 					dxyview[1] = -R.viewdy * fac;
 				}

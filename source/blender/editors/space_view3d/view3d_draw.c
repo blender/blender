@@ -1482,14 +1482,15 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	short xminc, yminc, xmaxc, ymaxc, xs, ys;
 	
 	/* clip */
-	if (xmin < 0) xminc = 0; else xminc = xmin;
-	if (xmax >= vc->ar->winx) xmaxc = vc->ar->winx - 1; else xmaxc = xmax;
-	if (xminc > xmaxc) return NULL;
+	xminc = max_ii(xmin, 0);
+	yminc = max_ii(ymin, 0);
+	xmaxc = min_ii(xmax, vc->ar->winx - 1);
+	ymaxc = min_ii(ymax, vc->ar->winy - 1);
 
-	if (ymin < 0) yminc = 0; else yminc = ymin;
-	if (ymax >= vc->ar->winy) ymaxc = vc->ar->winy - 1; else ymaxc = ymax;
-	if (yminc > ymaxc) return NULL;
-	
+	if (UNLIKELY((xminc > xmaxc) || (yminc > ymaxc))) {
+		return NULL;
+	}
+
 	ibuf = IMB_allocImBuf((xmaxc - xminc + 1), (ymaxc - yminc + 1), 32, IB_rect);
 
 	view3d_validate_backbuf(vc);

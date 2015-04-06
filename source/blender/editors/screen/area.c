@@ -773,7 +773,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 	
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
-			if (ar->winrct.ymax == sa->totrct.ymin) add = 1; else add = 0;
+			add = (ar->winrct.ymax == sa->totrct.ymin) ? 1 : 0;
 			az->x1 = ar->winrct.xmax - 2.5f * AZONEPAD_TAB_PLUSW;
 			az->y1 = ar->winrct.ymax - add;
 			az->x2 = ar->winrct.xmax - 1.5f * AZONEPAD_TAB_PLUSW;
@@ -818,7 +818,7 @@ static void region_azone_tab(ScrArea *sa, AZone *az, ARegion *ar)
 	
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
-			if (ar->winrct.ymax == sa->totrct.ymin) add = 1; else add = 0;
+			add = (ar->winrct.ymax == sa->totrct.ymin) ? 1 : 0;
 			az->x1 = ar->winrct.xmax - 2 * AZONEPAD_TABW;
 			az->y1 = ar->winrct.ymax - add;
 			az->x2 = ar->winrct.xmax - AZONEPAD_TABW;
@@ -863,7 +863,7 @@ static void region_azone_tria(ScrArea *sa, AZone *az, ARegion *ar)
 	
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
-			if (ar->winrct.ymax == sa->totrct.ymin) add = 1; else add = 0;
+			add = (ar->winrct.ymax == sa->totrct.ymin) ? 1 : 0;
 			az->x1 = ar->winrct.xmax - 2 * AZONEPAD_TRIAW;
 			az->y1 = ar->winrct.ymax - add;
 			az->x2 = ar->winrct.xmax - AZONEPAD_TRIAW;
