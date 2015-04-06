@@ -956,7 +956,7 @@ bool OSLRenderServices::texture3d(ustring filename, TextureOpt &options,
 	else {
 		OSLThreadData *tdata = kg->osl_tdata;
 		OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
-		OIIO::TextureSystem::TextureHandle *th =  ts->get_texture_handle(filename, thread_info);
+		OIIO::TextureSystem::TextureHandle *th = ts->get_texture_handle(filename, thread_info);
 #if OIIO_VERSION < 10500
 		status = ts->texture3d(th, thread_info,
 		                       options, P, dPdx, dPdy, dPdz, result);
@@ -993,7 +993,7 @@ bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
 	OSLThreadData *tdata = kg->osl_tdata;
 	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
 
-	OIIO::TextureSystem::TextureHandle *th =  ts->get_texture_handle(filename, thread_info);
+	OIIO::TextureSystem::TextureHandle *th = ts->get_texture_handle(filename, thread_info);
 
 #if OIIO_VERSION < 10500
 	bool status = ts->environment(th, thread_info,

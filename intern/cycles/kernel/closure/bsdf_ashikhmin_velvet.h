@@ -114,7 +114,7 @@ ccl_device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc, float3 Ng, 
 
 			float sinNH2 = 1 - cosNH * cosNH;
 			float sinNH4 = sinNH2 * sinNH2;
-			float cotangent2 =  (cosNH * cosNH) / sinNH2;
+			float cotangent2 = (cosNH * cosNH) / sinNH2;
 
 			float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
 			float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically

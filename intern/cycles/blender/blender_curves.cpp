@@ -621,7 +621,7 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 	}
 
 	/* check allocation */
-	if((mesh->curve_keys.size() !=  num_keys) || (mesh->curves.size() !=  num_curves)) {
+	if((mesh->curve_keys.size() != num_keys) || (mesh->curves.size() != num_curves)) {
 		VLOG(1) << "Allocation failed, clearing data";
 		mesh->curve_keys.clear();
 		mesh->curves.clear();

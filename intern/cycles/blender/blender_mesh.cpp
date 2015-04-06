@@ -324,15 +324,15 @@ static void attr_create_uv_map(Scene *scene,
 				size_t i = 0;
 
 				for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
-					fdata[0] =  get_float3(t->uv1());
-					fdata[1] =  get_float3(t->uv2());
-					fdata[2] =  get_float3(t->uv3());
+					fdata[0] = get_float3(t->uv1());
+					fdata[1] = get_float3(t->uv2());
+					fdata[2] = get_float3(t->uv3());
 					fdata += 3;
 
 					if(nverts[i] == 4) {
-						fdata[0] =  get_float3(t->uv1());
-						fdata[1] =  get_float3(t->uv3());
-						fdata[2] =  get_float3(t->uv4());
+						fdata[0] = get_float3(t->uv1());
+						fdata[1] = get_float3(t->uv3());
+						fdata[2] = get_float3(t->uv4());
 						fdata += 3;
 					}
 				}
