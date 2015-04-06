@@ -120,9 +120,9 @@ GHOST_ContextWGL::~GHOST_ContextWGL()
 #endif
 
 #ifndef NDEBUG
-	free(m_dummyRenderer);
-	free(m_dummyVendor);
-	free(m_dummyVersion);
+	free((void*)m_dummyRenderer);
+	free((void*)m_dummyVendor);
+	free((void*)m_dummyVersion);
 #endif
 }
 
@@ -393,9 +393,9 @@ void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 	// the following are not technially WGLEW, but they also require a context to work
 
 #ifndef NDEBUG
-	free(m_dummyRenderer);
-	free(m_dummyVendor);
-	free(m_dummyVersion);
+	free((void*)m_dummyRenderer);
+	free((void*)m_dummyVendor);
+	free((void*)m_dummyVersion);
 
 	m_dummyRenderer = _strdup(reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
 	m_dummyVendor   = _strdup(reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
