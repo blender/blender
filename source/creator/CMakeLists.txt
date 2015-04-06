@@ -843,7 +843,7 @@ elseif(APPLE)
 	)
 
 	# install release and app files
-	set(BLENDER_TEXT_FILES_DESTINATION blender.app/Contents)
+	set(BLENDER_TEXT_FILES_DESTINATION ".")
 
 	install(
 		FILES ${OSX_APP_SOURCEDIR}/Contents/PkgInfo
@@ -859,6 +859,11 @@ elseif(APPLE)
 		install(
 			FILES ${LIBDIR}/openmp/lib/libiomp5.dylib
 			DESTINATION blender.app/Contents/Resources/lib/
+		)
+		install(
+			FILES ${LIBDIR}/openmp/LICENSE.txt
+			DESTINATION "."
+			RENAME LICENSE-libiomp5.txt
 		)
 	endif()
 
