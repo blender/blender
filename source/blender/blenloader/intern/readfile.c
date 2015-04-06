@@ -1533,9 +1533,15 @@ void blo_make_packed_pointer_map(FileData *fd, Main *oldmain)
 	
 	fd->packedmap = oldnewmap_new();
 	
-	for (ima = oldmain->image.first; ima; ima = ima->id.next)
+	for (ima = oldmain->image.first; ima; ima = ima->id.next) {
+		ImagePackedFile *imapf;
 		if (ima->packedfile)
 			insert_packedmap(fd, ima->packedfile);
+
+		for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next)
+			if (imapf->packedfile)
+				insert_packedmap(fd, imapf->packedfile);
+	}
 			
 	for (vfont = oldmain->vfont.first; vfont; vfont = vfont->id.next)
 		if (vfont->packedfile)
@@ -1568,8 +1574,13 @@ void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
 			entry->newp = NULL;
 	}
 	
-	for (ima = oldmain->image.first; ima; ima = ima->id.next)
+	for (ima = oldmain->image.first; ima; ima = ima->id.next) {
+		ImagePackedFile *imapf;
 		ima->packedfile = newpackedadr(fd, ima->packedfile);
+
+		for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next)
+			imapf->packedfile = newpackedadr(fd, imapf->packedfile);
+	}
 	
 	for (vfont = oldmain->vfont.first; vfont; vfont = vfont->id.next)
 		vfont->packedfile = newpackedadr(fd, vfont->packedfile);
@@ -3391,6 +3402,8 @@ static void lib_link_image(FileData *fd, Main *main)
 
 static void direct_link_image(FileData *fd, Image *ima)
 {
+	ImagePackedFile *imapf;
+
 	/* for undo system, pointers could be restored */
 	if (fd->imamap)
 		ima->cache = newimaadr(fd, ima->cache);
@@ -3404,8 +3417,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 		ima->gputexture = NULL;
 		ima->rr = NULL;
 	}
-	
-	ima->anim = NULL;
+
 	ima->repbind = NULL;
 	
 	/* undo system, try to restore render buffers */
@@ -3419,9 +3431,18 @@ static void direct_link_image(FileData *fd, Image *ima)
 		memset(ima->renders, 0, sizeof(ima->renders));
 		ima->last_render_slot = ima->render_slot;
 	}
-	
+
+	link_list(fd, &(ima->views));
+	link_list(fd, &(ima->packedfiles));
+
+	for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
+		imapf->packedfile = direct_link_packedfile(fd, imapf->packedfile);
+	}
+
+	ima->anims.first = ima->anims.last = NULL;
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
+	ima->stereo3d_format = newdataadr(fd, ima->stereo3d_format);
 	ima->ok = 1;
 }
 
@@ -5378,7 +5399,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 						seq->scene_sound = BKE_sound_add_scene_sound_defaults(sce, seq);
 					}
 				}
-				seq->anim = NULL;
+				seq->anims.first = seq->anims.last = NULL;
 
 				lib_link_sequence_modifiers(fd, sce, &seq->modifiers);
 			}
@@ -5610,6 +5631,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			if (seq->seq3 == NULL) seq->seq3 = seq->seq2;
 			
 			seq->effectdata = newdataadr(fd, seq->effectdata);
+			seq->stereo3d_format = newdataadr(fd, seq->stereo3d_format);
 			
 			if (seq->type & SEQ_TYPE_EFFECT)
 				seq->flag |= SEQ_EFFECT_NOT_LOADED;
@@ -5722,6 +5744,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->markers));
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
+	link_list(fd, &(sce->r.views));
 
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		link_list(fd, &(srl->freestyleConfig.modules));
@@ -5785,8 +5808,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		BLI_listbase_clear(&win->modalhandlers);
 		BLI_listbase_clear(&win->subwindows);
 		BLI_listbase_clear(&win->gesture);
+		BLI_listbase_clear(&win->drawdata);
 		
-		win->drawdata = NULL;
 		win->drawmethod = -1;
 		win->drawfail = 0;
 		win->active = 0;
@@ -5794,6 +5817,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->cursor      = 0;
 		win->lastcursor  = 0;
 		win->modalcursor = 0;
+		win->stereo3d_format = newdataadr(fd, win->stereo3d_format);
 	}
 	
 	BLI_listbase_clear(&wm->timers);
@@ -7765,7 +7789,6 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 		user->walk_navigation.jump_height = 0.4f;      /* m */
 		user->walk_navigation.teleport_time = 0.2f; /* s */
 	}
-
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -7888,7 +7911,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	link_list(fd, &user->user_keymaps);
 	link_list(fd, &user->addons);
 	link_list(fd, &user->autoexec_paths);
-	
+
 	for (keymap=user->user_keymaps.first; keymap; keymap=keymap->next) {
 		keymap->modal_items= NULL;
 		keymap->poll = NULL;

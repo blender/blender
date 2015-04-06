@@ -40,11 +40,14 @@ struct RenderData;
 struct ReportList;
 struct Scene;
 
-int BKE_frameserver_start(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports, bool preview);
-void BKE_frameserver_end(void);
-int BKE_frameserver_append(struct RenderData *rd, int start_frame, int frame, int *pixels,
-                           int rectx, int recty, struct ReportList *reports);
-int BKE_frameserver_loop(struct RenderData *rd, struct ReportList *reports);
+int BKE_frameserver_start(void *context_v, struct Scene *scene, struct RenderData *rd, int rectx, int recty,
+                          struct ReportList *reports, bool preview, const char *suffix);
+void BKE_frameserver_end(void *context_v);
+int BKE_frameserver_append(void *context_v, struct RenderData *rd, int start_frame, int frame, int *pixels,
+                           int rectx, int recty, const char*suffix, struct ReportList *reports);
+int BKE_frameserver_loop(void *context_v, struct RenderData *rd, struct ReportList *reports);
+void *BKE_frameserver_context_create(void);
+void BKE_frameserver_context_free(void *context_v);
 
 #ifdef __cplusplus
 }

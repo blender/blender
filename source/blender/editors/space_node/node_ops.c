@@ -123,6 +123,8 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_viewer_border);
 	WM_operatortype_append(NODE_OT_clear_viewer_border);
 
+	WM_operatortype_append(NODE_OT_switch_view_update);
+
 	WM_operatortype_append(NODE_OT_tree_socket_add);
 	WM_operatortype_append(NODE_OT_tree_socket_remove);
 	WM_operatortype_append(NODE_OT_tree_socket_move);

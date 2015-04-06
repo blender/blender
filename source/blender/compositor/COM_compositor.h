@@ -316,7 +316,8 @@ extern "C" {
  *            generation in display space
  */
 void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rendering,
-                 const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
+                 const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings,
+                 const char *viewName);
 
 /**
  * @brief Deinitialize the compositor caches and allocated memory.

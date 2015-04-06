@@ -18,7 +18,7 @@
 
 import bpy
 
-from bpy.types import Panel, Menu, Operator
+from bpy.types import Panel, Menu, Operator, UIList
 
 
 class CYCLES_MT_sampling_presets(Menu):
@@ -411,6 +411,49 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.separator()
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
+
+
+class CyclesRender_PT_views(CyclesButtonsPanel, Panel):
+    bl_label = "Views"
+    bl_context = "render_layer"
+
+    def draw_header(self, context):
+        rd = context.scene.render
+        self.layout.prop(rd, "use_multiview", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rv = rd.views.active
+
+
+        layout.active = rd.use_multiview
+        basic_stereo = (rd.views_format == 'STEREO_3D')
+
+        row = layout.row()
+        row.prop(rd, "views_format", expand=True)
+
+        if basic_stereo:
+            row = layout.row()
+            row.template_list("RENDERLAYER_UL_renderviews", "name", rd, "stereo_views", rd.views, "active_index", rows=2)
+
+            row = layout.row()
+            row.label(text="File Suffix:")
+            row.prop(rv, "file_suffix", text="")
+
+        else:
+            row = layout.row()
+            row.template_list("RENDERLAYER_UL_renderviews", "name", rd, "views", rd.views, "active_index", rows=2)
+
+            col = row.column(align=True)
+            col.operator("scene.render_view_add", icon='ZOOMIN', text="")
+            col.operator("scene.render_view_remove", icon='ZOOMOUT', text="")
+
+            row = layout.row()
+            row.label(text="Camera Suffix:")
+            row.prop(rv, "camera_suffix", text="")
 
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
@@ -1428,6 +1471,7 @@ def get_panels():
         "DATA_PT_vertex_colors",
         "DATA_PT_camera",
         "DATA_PT_camera_display",
+        "DATA_PT_camera_stereoscopy",
         "DATA_PT_camera_safe_areas",
         "DATA_PT_lens",
         "DATA_PT_speaker",

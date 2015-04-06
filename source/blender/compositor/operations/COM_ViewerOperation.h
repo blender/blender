@@ -40,7 +40,9 @@ private:
 	bool m_doDepthBuffer;
 	ImBuf *m_ibuf;
 	bool m_useAlphaInput;
-	
+	const RenderData *m_rd;
+	const char *m_viewName;
+
 	const ColorManagedViewSettings *m_viewSettings;
 	const ColorManagedDisplaySettings *m_displaySettings;
 	
@@ -67,6 +69,8 @@ public:
 	const CompositorPriority getRenderPriority() const;
 	bool isViewerOperation() const { return true; }
 	void setUseAlphaInput(bool value) { this->m_useAlphaInput = value; }
+	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
+	void setViewName(const char *viewName) { this->m_viewName = viewName; }
 
 	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }
 	void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings) { this->m_displaySettings = displaySettings; }

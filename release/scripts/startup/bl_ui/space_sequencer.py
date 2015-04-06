@@ -659,6 +659,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        scene = context.scene
 
         strip = act_strip(context)
 
@@ -672,7 +673,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
 
             # Current element for the filename
 
-            elem = strip.strip_elem_from_frame(context.scene.frame_current)
+            elem = strip.strip_elem_from_frame(scene.frame_current)
             if elem:
                 split = layout.split(percentage=0.2)
                 split.label(text="File:")
@@ -717,6 +718,19 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
         col.label(text="Trim Duration (soft):")
         col.prop(strip, "frame_offset_start", text="Start")
         col.prop(strip, "frame_offset_end", text="End")
+
+        if scene.render.use_multiview and seq_type in {'IMAGE', 'MOVIE'}:
+            layout.prop(strip, "use_multiview")
+
+            col = layout.column()
+            col.active = strip.use_multiview
+
+            col.label(text="Views Format:")
+            col.row().prop(strip, "views_format", expand=True)
+
+            box = col.box()
+            box.active = strip.views_format == 'STEREO_3D'
+            box.template_image_stereo_3d(strip.stereo_3d_format)
 
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):

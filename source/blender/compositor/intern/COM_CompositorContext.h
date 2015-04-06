@@ -87,6 +87,11 @@ private:
 	const ColorManagedViewSettings *m_viewSettings;
 	const ColorManagedDisplaySettings *m_displaySettings;
 
+	/**
+	 * @brief active rendering view name
+	 */
+	const char *m_viewName;
+
 public:
 	/**
 	 * @brief constructor initializes the context with default values.
@@ -180,7 +185,17 @@ public:
 	 * @brief set has this system active openclDevices?
 	 */
 	void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices) { this->m_hasActiveOpenCLDevices = hasAvtiveOpenCLDevices; }
-	
+
+	/**
+	 * @brief get the active rendering view
+	 */
+	const char *getViewName() const { return this->m_viewName; }
+
+	/**
+	 * @brief set the active rendering view
+	 */
+	void setViewName(const char *viewName) { this->m_viewName = viewName; }
+
 	int getChunksize() const { return this->getbNodeTree()->chunksize; }
 	
 	void setFastCalculation(bool fastCalculation) {this->m_fastCalculation = fastCalculation;}

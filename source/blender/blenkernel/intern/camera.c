@@ -30,16 +30,19 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_ID.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
@@ -47,6 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "GPU_compositing.h"
@@ -70,6 +74,10 @@ void *BKE_camera_add(Main *bmain, const char *name)
 	cam->passepartalpha = 0.5f;
 
 	GPU_fx_compositor_init_dof_settings(&cam->gpu_dof);
+
+	/* stereoscopy 3d */
+	cam->stereo.interocular_distance = 0.065f;
+	cam->stereo.convergence_distance = 30.f * 0.065f;
 
 	return cam;
 }
@@ -693,6 +701,250 @@ bool BKE_camera_view_frame_fit_to_coords(
 	}
 
 	return camera_frame_fit_calc_from_data(&params, &data_cb, r_co, r_scale);
+}
+
+/******************* multiview matrix functions ***********************/
+
+static void camera_model_matrix(Object *camera, float r_modelmat[4][4])
+{
+	copy_m4_m4(r_modelmat, camera->obmat);
+}
+
+static void camera_stereo3d_model_matrix(Object *camera, const bool is_left, float r_modelmat[4][4])
+{
+	Camera *data = (Camera *)camera->data;
+	float interocular_distance, convergence_distance;
+	short convergence_mode, pivot;
+	float sizemat[4][4];
+
+	float fac = 1.0f;
+	float fac_signed;
+
+	interocular_distance = data->stereo.interocular_distance;
+	convergence_distance = data->stereo.convergence_distance;
+	convergence_mode = data->stereo.convergence_mode;
+	pivot = data->stereo.pivot;
+
+	if (((pivot == CAM_S3D_PIVOT_LEFT) && is_left) ||
+	    ((pivot == CAM_S3D_PIVOT_RIGHT) && !is_left))
+	{
+		return camera_model_matrix(camera, r_modelmat);
+	}
+	else {
+		float size[3];
+		mat4_to_size(size, camera->obmat);
+		size_to_mat4(sizemat, size);
+	}
+
+	if (pivot == CAM_S3D_PIVOT_CENTER)
+		fac = 0.5f;
+
+	fac_signed = is_left ? fac : -fac;
+
+	/* rotation */
+	if (convergence_mode == CAM_S3D_TOE) {
+		float angle;
+		float angle_sin, angle_cos;
+		float toeinmat[4][4];
+		float rotmat[4][4];
+
+		unit_m4(rotmat);
+
+		if (pivot == CAM_S3D_PIVOT_CENTER) {
+			fac = -fac;
+			fac_signed = -fac_signed;
+		}
+
+		angle = atanf((interocular_distance * 0.5f) / convergence_distance) / fac;
+
+		angle_cos = cosf(angle * fac_signed);
+		angle_sin = sinf(angle * fac_signed);
+
+		rotmat[0][0] =  angle_cos;
+		rotmat[2][0] = -angle_sin;
+		rotmat[0][2] =  angle_sin;
+		rotmat[2][2] =  angle_cos;
+
+		if (pivot == CAM_S3D_PIVOT_CENTER) {
+			/* set the rotation */
+			copy_m4_m4(toeinmat, rotmat);
+			/* set the translation */
+			toeinmat[3][0] = interocular_distance * fac_signed;
+
+			/* transform */
+			normalize_m4_m4(r_modelmat, camera->obmat);
+			mul_m4_m4m4(r_modelmat, r_modelmat, toeinmat);
+
+			/* scale back to the original size */
+			mul_m4_m4m4(r_modelmat, r_modelmat, sizemat);
+		}
+		else { /* CAM_S3D_PIVOT_LEFT, CAM_S3D_PIVOT_RIGHT */
+			/* rotate perpendicular to the interocular line */
+			normalize_m4_m4(r_modelmat, camera->obmat);
+			mul_m4_m4m4(r_modelmat, r_modelmat, rotmat);
+
+			/* translate along the interocular line */
+			unit_m4(toeinmat);
+			toeinmat[3][0] = -interocular_distance * fac_signed;
+			mul_m4_m4m4(r_modelmat, r_modelmat, toeinmat);
+
+			/* rotate to toe-in angle */
+			mul_m4_m4m4(r_modelmat, r_modelmat, rotmat);
+
+			/* scale back to the original size */
+			mul_m4_m4m4(r_modelmat, r_modelmat, sizemat);
+		}
+	}
+	else {
+		normalize_m4_m4(r_modelmat, camera->obmat);
+
+		/* translate - no rotation in CAM_S3D_OFFAXIS, CAM_S3D_PARALLEL */
+		translate_m4(r_modelmat, -interocular_distance * fac_signed, 0.0f, 0.0f);
+
+		/* scale back to the original size */
+		mul_m4_m4m4(r_modelmat, r_modelmat, sizemat);
+	}
+}
+
+/* the view matrix is used by the viewport drawing, it is basically the inverted model matrix */
+void BKE_camera_multiview_view_matrix(RenderData *rd, Object *camera, const bool is_left, float r_viewmat[4][4])
+{
+	BKE_camera_multiview_model_matrix(rd, camera, is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME, r_viewmat);
+	invert_m4(r_viewmat);
+}
+
+/* left is the default */
+static bool camera_is_left(const char *viewname)
+{
+	if (viewname && viewname[0] != '\0') {
+		return !STREQ(viewname, STEREO_RIGHT_NAME);
+	}
+	return true;
+}
+
+void BKE_camera_multiview_model_matrix(RenderData *rd, Object *camera, const char *viewname, float r_modelmat[4][4])
+{
+	const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
+
+	if (!is_multiview) {
+		camera_model_matrix(camera, r_modelmat);
+	}
+	else if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW) {
+		camera_model_matrix(camera, r_modelmat);
+	}
+	else { /* SCE_VIEWS_SETUP_BASIC */
+		const bool is_left = camera_is_left(viewname);
+		camera_stereo3d_model_matrix(camera, is_left, r_modelmat);
+	}
+	normalize_m4(r_modelmat);
+}
+
+static Object *camera_multiview_advanced(Scene *scene, Object *camera, const char *suffix)
+{
+	SceneRenderView *srv;
+	char name[MAX_NAME];
+	const char *camera_name = camera->id.name + 2;
+	const int len_name = strlen(camera_name);
+
+	name[0] = '\0';
+
+	for (srv = scene->r.views.first; srv; srv = srv->next) {
+		const int len_suffix = strlen(srv->suffix);
+
+		if (len_name < len_suffix)
+			continue;
+
+		if (STREQ(camera_name + (len_name - len_suffix), srv->suffix)) {
+			BLI_snprintf(name, sizeof(name), "%.*s%s", (len_name - len_suffix), camera_name, suffix);
+			break;
+		}
+	}
+
+	if (name[0] != '\0') {
+		Base *base = BKE_scene_base_find_by_name(scene, name);
+		if (base) {
+			return base->object;
+		}
+	}
+
+	return camera;
+}
+
+/* returns the camera to be used for render */
+Object *BKE_camera_multiview_render(Scene *scene, Object *camera, const char *viewname)
+{
+	const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
+
+	if (!is_multiview) {
+		return camera;
+	}
+	else if (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D) {
+		return camera;
+	}
+	else { /* SCE_VIEWS_FORMAT_MULTIVIEW */
+		const char *suffix = BKE_scene_multiview_view_suffix_get(&scene->r, viewname);
+		return camera_multiview_advanced(scene, camera, suffix);
+	}
+}
+
+static float camera_stereo3d_shift_x(Object *camera, const char *viewname)
+{
+	Camera *data = camera->data;
+	float shift = data->shiftx;
+	float interocular_distance, convergence_distance;
+	short convergence_mode, pivot;
+	bool is_left = true;
+
+	float fac = 1.0f;
+	float fac_signed;
+
+	if (viewname && viewname[0]) {
+		is_left = STREQ(viewname, STEREO_LEFT_NAME);
+	}
+
+	interocular_distance = data->stereo.interocular_distance;
+	convergence_distance = data->stereo.convergence_distance;
+	convergence_mode = data->stereo.convergence_mode;
+	pivot = data->stereo.pivot;
+
+	if (((pivot == CAM_S3D_PIVOT_LEFT) && is_left) ||
+	    ((pivot == CAM_S3D_PIVOT_RIGHT) && !is_left))
+	{
+		return shift;
+	}
+
+	if (pivot == CAM_S3D_PIVOT_CENTER)
+		fac = 0.5f;
+
+	fac_signed = is_left ? fac : -fac;
+
+	/* Note: in viewport, parallel renders as offaxis, but in render it does parallel */
+	if (ELEM(convergence_mode, CAM_S3D_OFFAXIS, CAM_S3D_PARALLEL)) {
+		shift += ((interocular_distance / data->sensor_x) * (data->lens / convergence_distance)) * fac_signed;
+	}
+
+	return shift;
+}
+
+float BKE_camera_multiview_shift_x(RenderData *rd, Object *camera, const char *viewname)
+{
+	const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
+	Camera *data = camera->data;
+
+	if (!is_multiview) {
+		return data->shiftx;
+	}
+	else if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW) {
+		return data->shiftx;
+	}
+	else { /* SCE_VIEWS_SETUP_BASIC */
+		return camera_stereo3d_shift_x(camera, viewname);
+	}
+}
+
+void BKE_camera_multiview_params(RenderData *rd, CameraParams *params, Object *camera, const char *viewname)
+{
+	params->shiftx = BKE_camera_multiview_shift_x(rd, camera, viewname);
 }
 
 void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_settings)

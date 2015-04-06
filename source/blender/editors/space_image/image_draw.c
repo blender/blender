@@ -783,7 +783,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	Image *ima;
 	ImBuf *ibuf;
 	float zoomx, zoomy;
-	bool show_viewer, show_render, show_paint;
+	bool show_viewer, show_render, show_paint, show_stereo3d, show_multilayer;
 	void *lock;
 
 	/* XXX can we do this in refresh? */
@@ -813,6 +813,8 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	show_viewer = (ima && ima->source == IMA_SRC_VIEWER) != 0;
 	show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT) != 0;
 	show_paint = (ima && (sima->mode == SI_MODE_PAINT) && (show_viewer == false) && (show_render == false));
+	show_stereo3d = (ima && (ima->flag & IMA_IS_STEREO) && (sima->iuser.flag & IMA_SHOW_STEREO));
+	show_multilayer = ima && BKE_image_is_multilayer(ima);
 
 	if (show_viewer) {
 		/* use locked draw for drawing viewer image buffer since the compositor
@@ -821,6 +823,14 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		 * lock (sergey)
 		 */
 		BLI_lock_thread(LOCK_DRAW_IMAGE);
+	}
+
+	if (show_stereo3d) {
+		if (show_multilayer)
+			/* update multiindex and pass for the current eye */
+			BKE_image_multilayer_index(ima->rr, &sima->iuser);
+		else
+			BKE_image_multiview_index(ima, &sima->iuser);
 	}
 
 	ibuf = ED_space_image_acquire_buffer(sima, &lock);

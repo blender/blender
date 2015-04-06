@@ -35,6 +35,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -135,6 +136,23 @@ static void rna_Image_colormanage_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 	DAG_id_tag_update(&ima->id, 0);
 	WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
+}
+
+static void rna_Image_views_format_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+{
+	Image *ima = ptr->id.data;
+	ImBuf *ibuf;
+	void *lock;
+
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if (ibuf) {
+		ImageUser iuser = {NULL};
+		iuser.scene = scene;
+		BKE_image_signal(ima, &iuser, IMA_SIGNAL_FREE);
+	}
+
+	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
 static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -295,15 +313,14 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
 	Image *ima = ptr->id.data;
 	int duration = 1;
 
-	if (!ima->anim) {
+	if (BKE_image_has_anim(ima)) {
+		duration = IMB_anim_get_duration(((ImageAnim *)ima->anims.first)->anim, IMB_TC_RECORD_RUN);
+	}
+	else {
 		/* acquire ensures ima->anim is set, if possible! */
 		void *lock;
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 		BKE_image_release_ibuf(ima, ibuf, lock);
-	}
-
-	if (ima->anim) {
-		duration = IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN);
 	}
 
 	return duration;
@@ -409,6 +426,19 @@ static int rna_Image_is_float_get(PointerRNA *ptr)
 	return is_float;
 }
 
+static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
+{
+	Image *ima = (Image *)ptr->id.data;
+
+	if (BKE_image_has_packedfile(ima)) {
+		ImagePackedFile *imapf = ima->packedfiles.first;
+		return rna_pointer_inherit_refine(ptr, &RNA_PackedFile, imapf->packedfile);
+	}
+	else {
+		return PointerRNA_NULL;
+	}
+}
+
 static void rna_Image_render_slots_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Image *image = (Image *)ptr->id.data;
@@ -512,6 +542,32 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "pass");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */
 	RNA_def_property_ui_text(prop, "Pass", "Pass in multilayer image");
+
+	prop = RNA_def_property(srna, "multilayer_view", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "view");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */
+	RNA_def_property_ui_text(prop, "View", "View in multilayer image");
+}
+
+/* image.packed_files */
+static void rna_def_image_packed_files(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ImagePackedFile", NULL);
+	RNA_def_struct_sdna(srna, "ImagePackedFile");
+
+	prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
+	RNA_def_property_ui_text(prop, "Packed File", "");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "filepath");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_render_slot(BlenderRNA *brna)
@@ -613,15 +669,23 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "PackedFile");
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
-	RNA_def_property_ui_text(prop, "Packed File", "");
-	
+	RNA_def_property_pointer_funcs(prop, "rna_Image_packed_file_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Packed File", "First packed file of the image");
+
+	prop = RNA_def_property(srna, "packed_files", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "packedfiles", NULL);
+	RNA_def_property_struct_type(prop, "ImagePackedFile");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Packed Files", "Collection of packed images");
+
 	prop = RNA_def_property(srna, "field_order", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_field_order_items);
 	RNA_def_property_ui_text(prop, "Field Order", "Order of video fields (select which lines are displayed first)");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
-	
+
 	/* booleans */
 	prop = RNA_def_property(srna, "use_fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
@@ -644,6 +708,21 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DEINTERLACE);
 	RNA_def_property_ui_text(prop, "Deinterlace", "Deinterlace movie file on load");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_reload_update");
+
+	prop = RNA_def_property(srna, "use_multiview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_USE_VIEWS);
+	RNA_def_property_ui_text(prop, "Use Multi-View", "Use Multiple Views (when available)");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_views_format_update");
+
+	prop = RNA_def_property(srna, "is_stereo_3d", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_IS_STEREO);
+	RNA_def_property_ui_text(prop, "Stereo 3D", "Image has left and right views");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "is_multiview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_IS_MULTIVIEW);
+	RNA_def_property_ui_text(prop, "Multiple Views", "Image has more than one view");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
@@ -825,6 +904,19 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Alpha Mode", "Representation of alpha information in the RGBA pixels");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_colormanage_update");
 
+	/* multiview */
+	prop = RNA_def_property(srna, "views_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "views_format");
+	RNA_def_property_enum_items(prop, views_format_items);
+	RNA_def_property_ui_text(prop, "Views Format", "Mode to load image views");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_views_format_update");
+
+	prop = RNA_def_property(srna, "stereo_3d_format", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "stereo3d_format");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "Stereo3dFormat");
+	RNA_def_property_ui_text(prop, "Stereo 3D Format", "Settings for stereo 3d");
+
 	RNA_api_image(srna);
 }
 
@@ -834,6 +926,7 @@ void RNA_def_image(BlenderRNA *brna)
 	rna_def_render_slots(brna);
 	rna_def_image(brna);
 	rna_def_imageuser(brna);
+	rna_def_image_packed_files(brna);
 }
 
 #endif

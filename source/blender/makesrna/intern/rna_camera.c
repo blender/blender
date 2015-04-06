@@ -89,6 +89,60 @@ static void rna_Camera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointer
 
 #else
 
+static void rna_def_camera_stereo_data(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem convergence_mode_items[] = {
+		{CAM_S3D_OFFAXIS, "OFFAXIS", 0, "Off-Axis", "Off-axis frustrums converging in a plane"},
+		{CAM_S3D_PARALLEL, "PARALLEL", 0, "Parallel", "Parallel cameras with no convergence"},
+		{CAM_S3D_TOE, "TOE", 0, "Toe-in", "Rotated cameras, looking at the convergence distance"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem pivot_items[] = {
+		{CAM_S3D_PIVOT_LEFT, "LEFT", 0, "Left", ""},
+		{CAM_S3D_PIVOT_RIGHT, "RIGHT", 0, "Right", ""},
+		{CAM_S3D_PIVOT_CENTER, "CENTER", 0, "Center", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "CameraStereoData", NULL);
+	RNA_def_struct_sdna(srna, "CameraStereoSettings");
+	RNA_def_struct_nested(brna, srna, "Camera");
+	RNA_def_struct_ui_text(srna, "Stereo", "Stereoscopy settings for a Camera datablock");
+
+	prop = RNA_def_property(srna, "convergence_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, convergence_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "pivot", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot", "");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "interocular_distance", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.f, 1, 2);
+	RNA_def_property_ui_text(prop, "Interocular Distance", "Set the distance between the eyes - the stereo plane distance / 30 should be fine");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "convergence_distance", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_range(prop, 0.00001f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 15.f, 1, 2);
+	RNA_def_property_ui_text(prop, "Convergence Plane Distance", "The converge point for the stereo cameras (often the distance between a projector and the projection screen)");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "viewport_convergence", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "convergence_distance");
+	RNA_def_property_range(prop, 0.00001f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 15.f, 1, 2);
+	RNA_def_property_ui_text(prop, "Viewport Convergence", "Preview convergence distance for the stereo effect in the viewport. It doesn't affect the render!");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+}
+
 void RNA_def_camera(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -241,6 +295,13 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "DOF Distance", "Distance to the focus point for depth of field");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
+	/* Stereo Settings */
+	prop = RNA_def_property(srna, "stereo", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "stereo");
+	RNA_def_property_struct_type(prop, "CameraStereoData");
+	RNA_def_property_ui_text(prop, "Stereo", "");
+
 	/* flag */
 	prop = RNA_def_property(srna, "show_limits", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWLIMITS);
@@ -297,6 +358,12 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	rna_def_animdata_common(srna);
+
+	/* Nested Data  */
+	RNA_define_animate_sdna(true);
+
+	/* *** Animated *** */
+	rna_def_camera_stereo_data(brna);
 
 	/* Camera API */
 	RNA_api_camera(srna);

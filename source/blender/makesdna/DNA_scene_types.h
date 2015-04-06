@@ -47,6 +47,7 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_gpu_types.h"
+#include "DNA_userdef_types.h"
 
 struct CurveMapping;
 struct Object;
@@ -249,6 +250,73 @@ typedef enum ScenePassType {
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
+/* View - MultiView */
+typedef struct SceneRenderView {
+	struct SceneRenderView *next, *prev;
+
+	char name[64];	/* MAX_NAME */
+	char suffix[64];	/* MAX_NAME */
+
+	int viewflag;
+	int pad[2];
+	char pad2[4];
+
+} SceneRenderView;
+
+/* srv->viewflag */
+#define SCE_VIEW_DISABLE		(1<<0)
+
+/* scene.render.views_format */
+enum {
+	SCE_VIEWS_FORMAT_STEREO_3D = 0,
+	SCE_VIEWS_FORMAT_MULTIVIEW = 1,
+};
+
+/* ImageFormatData.views_output */
+enum {
+	R_IMF_VIEWS_INDIVIDUAL = 0,
+	R_IMF_VIEWS_STEREO_3D  = 1,
+	R_IMF_VIEWS_MULTIVIEW  = 2,
+};
+
+typedef struct Stereo3dFormat {
+	short flag;
+	char display_mode; /* encoding mode */
+	char anaglyph_type; /* anaglyph scheme for the user display */
+	char interlace_type;  /* interlace type for the user display */
+	char pad[3];
+} Stereo3dFormat;
+
+/* Stereo3dFormat.display_mode */
+typedef enum eStereoDisplayMode {
+	S3D_DISPLAY_ANAGLYPH    = 0,
+	S3D_DISPLAY_INTERLACE   = 1,
+	S3D_DISPLAY_PAGEFLIP    = 2,
+	S3D_DISPLAY_SIDEBYSIDE  = 3,
+	S3D_DISPLAY_TOPBOTTOM   = 4,
+} eStereoDisplayMode;
+
+/* Stereo3dFormat.flag */
+typedef enum eStereo3dFlag {
+	S3D_INTERLACE_SWAP        = (1 << 0),
+	S3D_SIDEBYSIDE_CROSSEYED  = (1 << 1),
+	S3D_SQUEEZED_FRAME        = (1 << 2),
+} eStereo3dFlag;
+
+/* Stereo3dFormat.anaglyph_type */
+typedef enum eStereo3dAnaglyphType {
+	S3D_ANAGLYPH_REDCYAN      = 0,
+	S3D_ANAGLYPH_GREENMAGENTA = 1,
+	S3D_ANAGLYPH_YELLOWBLUE   = 2,
+} eStereo3dAnaglyphType;
+
+/* Stereo3dFormat.interlace_type */
+typedef enum eStereo3dInterlaceType {
+	S3D_INTERLACE_ROW          = 0,
+	S3D_INTERLACE_COLUMN       = 1,
+	S3D_INTERLACE_CHECKERBOARD = 2,
+} eStereo3dInterlaceType;
+
 /* *************************************************************** */
 
 /* Generic image format settings,
@@ -286,7 +354,11 @@ typedef struct ImageFormatData {
 	char  jp2_flag;
 	char jp2_codec;
 
-	char pad[6];
+	char pad[5];
+
+	/* Multiview */
+	char views_format;
+	Stereo3dFormat stereo3d_format;
 
 	/* color management */
 	ColorManagedViewSettings view_settings;
@@ -616,6 +688,12 @@ typedef struct RenderData {
 
 	int preview_start_resolution;
 	int pad;
+
+	/* MultiView */
+	ListBase views;
+	short actview;
+	short views_format;
+	short pad8[2];
 } RenderData;
 
 /* *************************************************************** */
@@ -809,6 +887,19 @@ enum {
 
 #define UV_SCULPT_TOOL_RELAX_LAPLACIAN	1
 #define UV_SCULPT_TOOL_RELAX_HC			2
+
+/* Stereo Flags */
+#define STEREO_RIGHT_NAME "right"
+#define STEREO_LEFT_NAME "left"
+#define STEREO_RIGHT_SUFFIX "_R"
+#define STEREO_LEFT_SUFFIX "_L"
+
+typedef enum StereoViews {
+	STEREO_LEFT_ID = 0,
+	STEREO_RIGHT_ID = 1,
+	STEREO_3D_ID = 2,
+	STEREO_MONO_ID = 3,
+} StereoViews;
 
 /* Markers */
 
@@ -1440,6 +1531,7 @@ typedef struct Scene {
 #define R_TEXNODE_PREVIEW	0x40000
 #define R_VIEWPORT_PREVIEW	0x80000
 #define R_EXR_CACHE_FILE	0x100000
+#define R_MULTIVIEW			0x200000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001

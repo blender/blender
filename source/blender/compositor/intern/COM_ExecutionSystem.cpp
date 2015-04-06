@@ -43,8 +43,10 @@ extern "C" {
 #endif
 
 ExecutionSystem::ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editingtree, bool rendering, bool fastcalculation,
-                                 const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
+                                 const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings,
+                                 const char *viewName)
 {
+	this->m_context.setViewName(viewName);
 	this->m_context.setScene(scene);
 	this->m_context.setbNodeTree(editingtree);
 	this->m_context.setPreviewHash(editingtree->previews);

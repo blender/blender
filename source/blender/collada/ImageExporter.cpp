@@ -74,7 +74,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
 		short image_source = image->source;
 		bool  is_generated = image_source == IMA_SRC_GENERATED;
-		bool  is_packed    = image->packedfile != NULL;
+		bool  is_packed    = BKE_image_has_packedfile(image);
 
 		char export_path[FILE_MAX];
 		char source_path[FILE_MAX];

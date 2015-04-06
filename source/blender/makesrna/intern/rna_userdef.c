@@ -4124,8 +4124,8 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag2", USER_REGION_OVERLAP);
 	RNA_def_property_ui_text(prop, "Region Overlap",
 	                         "Draw tool/property regions over the main region, when using Triple Buffer");
-	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
-	
+	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");	
+
 #ifdef WITH_CYCLES
 	prop = RNA_def_property(srna, "compute_device_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);

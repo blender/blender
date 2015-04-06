@@ -167,7 +167,7 @@ static void rna_Image_pack(
 			image->packedfile = newPackedFileMemory(data_dup, data_len);
 		}
 		else {
-			image->packedfile = newPackedFile(reports, image->name, ID_BLEND_PATH(bmain, &image->id));
+			BKE_image_packfiles(reports, image, ID_BLEND_PATH(bmain, &image->id));
 		}
 	}
 

@@ -42,7 +42,8 @@ void RenderLayersNode::testSocketLink(NodeConverter &converter, const Compositor
 	operation->setScene(scene);
 	operation->setLayerId(layerId);
 	operation->setRenderData(context.getRenderData());
-	
+	operation->setViewName(context.getViewName());
+
 	converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
 	converter.addOperation(operation);
 	

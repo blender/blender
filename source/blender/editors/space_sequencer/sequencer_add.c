@@ -60,6 +60,7 @@
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 
+#include "UI_interface.h"
 
 #include "BKE_sound.h"
 
@@ -69,6 +70,10 @@
 
 /* own include */
 #include "sequencer_intern.h"
+
+typedef struct SequencerAddData {
+	ImageFormatData im_format;
+} SequencerAddData;
 
 /* Generic functions, reused by add strip operators */
 
@@ -221,6 +226,19 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 			break;
 		}
 		RNA_PROP_END;
+	}
+
+	if ((prop = RNA_struct_find_property(op->ptr, "use_multiview")) && RNA_property_boolean_get(op->ptr, prop)) {
+		if (op->customdata) {
+			SequencerAddData *sad = op->customdata;
+			ImageFormatData *imf = &sad->im_format;
+
+			seq_load->views_format = imf->views_format;
+			seq_load->flag |= SEQ_USE_VIEWS;
+
+			/* operator custom data is always released after the SeqLoadInfo, no need to handle the memory here */
+			seq_load->stereo3d_format = &imf->stereo3d_format;
+		}
 	}
 }
 
@@ -573,6 +591,9 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 		return OPERATOR_CANCELLED;
 	}
 
+	if (op->customdata)
+		MEM_freeN(op->customdata);
+
 	BKE_sequencer_sort(scene);
 	BKE_sequencer_update_muting(ed);
 
@@ -581,15 +602,40 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	return OPERATOR_FINISHED;
 }
 
+/* add sequencer operators */
+static void sequencer_add_init(bContext *UNUSED(C), wmOperator *op)
+{
+	op->customdata = MEM_callocN(sizeof(SequencerAddData), __func__);
+}
+
+static void sequencer_add_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	if (op->customdata)
+		MEM_freeN(op->customdata);
+	op->customdata = NULL;
+}
+
+static bool sequencer_add_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+
+	return !(STREQ(prop_id, "filepath") ||
+	         STREQ(prop_id, "directory") ||
+	         STREQ(prop_id, "filename")
+	         );
+}
+
 /* add movie operator */
 static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 {
 	return sequencer_add_generic_strip_exec(C, op, BKE_sequencer_add_movie_strip);
 }
 
-
 static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	PropertyRNA *prop;
+	Scene *scene = CTX_data_scene(C);
+
 	/* This is for drag and drop */
 	if ((RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) ||
 	    RNA_struct_property_is_set(op->ptr, "filepath"))
@@ -599,13 +645,37 @@ static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, const w
 	}
 	
 	sequencer_generic_invoke_xy__internal(C, op, 0, SEQ_TYPE_MOVIE);
-	
+
+	sequencer_add_init(C, op);
+
+	/* show multiview save options only if scene has multiviews */
+	prop = RNA_struct_find_property(op->ptr, "show_multiview");
+	RNA_property_boolean_set(op->ptr, prop, (scene->r.scemode & R_MULTIVIEW) != 0);
+
 	WM_event_add_fileselect(C, op);
 	return OPERATOR_RUNNING_MODAL;
 
 	//return sequencer_add_movie_strip_exec(C, op);
 }
 
+static void sequencer_add_draw(bContext *UNUSED(C), wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	SequencerAddData *sad = op->customdata;
+	ImageFormatData *imf = &sad->im_format;
+	PointerRNA imf_ptr, ptr;
+
+	/* main draw call */
+	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+	uiDefAutoButsRNA(layout, &ptr, sequencer_add_draw_check_prop, '\0');
+
+	/* image template */
+	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, imf, &imf_ptr);
+
+	/* multiview template */
+	if (RNA_boolean_get(op->ptr, "show_multiview"))
+		uiTemplateImageFormatViews(layout, &imf_ptr, op->ptr);
+}
 
 void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 {
@@ -618,9 +688,11 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = sequencer_add_movie_strip_invoke;
 	ot->exec = sequencer_add_movie_strip_exec;
+	ot->cancel = sequencer_add_cancel;
+	ot->ui = sequencer_add_draw;
 
 	ot->poll = ED_operator_sequencer_active_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
@@ -735,6 +807,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 	sequencer_add_apply_overlap(C, op, seq);
 
+	if (op->customdata)
+		MEM_freeN(op->customdata);
+
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -742,6 +817,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	PropertyRNA *prop;
+	Scene *scene = CTX_data_scene(C);
+
 	/* drag drop has set the names */
 	if (RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) {
 		sequencer_generic_invoke_xy__internal(C, op, SEQPROP_ENDFRAME | SEQPROP_NOPATHS, SEQ_TYPE_IMAGE);
@@ -749,6 +827,12 @@ static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, const w
 	}
 	
 	sequencer_generic_invoke_xy__internal(C, op, SEQPROP_ENDFRAME, SEQ_TYPE_IMAGE);
+
+	sequencer_add_init(C, op);
+
+	/* show multiview save options only if scene has multiviews */
+	prop = RNA_struct_find_property(op->ptr, "show_multiview");
+	RNA_property_boolean_set(op->ptr, prop, (scene->r.scemode & R_MULTIVIEW) != 0);
 
 	WM_event_add_fileselect(C, op);
 	return OPERATOR_RUNNING_MODAL;
@@ -766,6 +850,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = sequencer_add_image_strip_invoke;
 	ot->exec = sequencer_add_image_strip_exec;
+	ot->cancel = sequencer_add_cancel;
+	ot->ui = sequencer_add_draw;
 
 	ot->poll = ED_operator_sequencer_active_editable;
 	

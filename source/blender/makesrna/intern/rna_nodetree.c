@@ -2616,6 +2616,70 @@ static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), Pointer
 	return item;
 }
 
+static int rna_Node_image_has_layers_get(PointerRNA *ptr)
+{
+	bNode *node = (bNode *)ptr->data;
+	Image *ima = (Image *)node->id;
+
+	if (!ima || !(ima->rr)) return 0;
+
+	return RE_layers_have_name(ima->rr);
+}
+
+static int rna_Node_image_has_views_get(PointerRNA *ptr)
+{
+	bNode *node = (bNode *)ptr->data;
+	Image *ima = (Image *)node->id;
+
+	if (!ima || !(ima->rr)) return 0;
+
+	return BLI_listbase_count_ex(&ima->rr->views, 2) > 1;
+}
+
+static EnumPropertyItem *renderresult_views_add_enum(RenderView *rv)
+{
+	EnumPropertyItem *item = NULL;
+	EnumPropertyItem tmp = {0, "ALL", 0, "All", ""};
+	int i = 1, totitem = 0;
+
+	/* option to use all views */
+	RNA_enum_item_add(&item, &totitem, &tmp);
+
+	while (rv) {
+		tmp.identifier = rv->name;
+		/* little trick: using space char instead empty string makes the item selectable in the dropdown */
+		if (rv->name[0] == '\0')
+			tmp.name = " ";
+		else
+			tmp.name = rv->name;
+		tmp.value = i++;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+		rv = rv->next;
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	return item;
+}
+
+static EnumPropertyItem *rna_Node_image_view_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+                                                   PropertyRNA *UNUSED(prop), bool *free)
+{
+	bNode *node = (bNode *)ptr->data;
+	Image *ima = (Image *)node->id;
+	EnumPropertyItem *item = NULL;
+	RenderView *rv;
+
+	if (!ima || !(ima->rr)) return NULL;
+
+	rv = ima->rr->views.first;
+	item = renderresult_views_add_enum(rv);
+
+	*free = true;
+
+	return item;
+}
+
 static EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                     PropertyRNA *UNUSED(prop), bool *r_free)
 {
@@ -2904,6 +2968,11 @@ static void rna_CompositorNodeScale_update(Main *bmain, Scene *scene, PointerRNA
 
 static EnumPropertyItem prop_image_layer_items[] = {
 	{ 0, "PLACEHOLDER",          0, "Placeholder",          ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static EnumPropertyItem prop_image_view_items[] = {
+	{ 0, "ALL", 0, "All", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -4263,6 +4332,24 @@ static void def_node_image_user(StructRNA *srna)
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	RNA_def_property_ui_text(prop, "Layer", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_image_layer_update");
+
+	prop = RNA_def_property(srna, "has_layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Node_image_has_layers_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Has Layers", "True if this image has any named layer");
+
+	prop = RNA_def_property(srna, "view", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "view");
+	RNA_def_property_enum_items(prop, prop_image_view_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_image_view_itemf");
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
+	RNA_def_property_ui_text(prop, "View", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "has_views", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Node_image_has_views_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Has View", "True if this image has multiple views");
 }
 
 static void def_cmp_image(StructRNA *srna)
@@ -5802,6 +5889,16 @@ static void def_cmp_bokehimage(StructRNA *srna)
 }
 
 static void def_cmp_switch(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "check", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
+	RNA_def_property_ui_text(prop, "Switch", "Off: first socket, On: second socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_switch_view(StructRNA *srna)
 {
 	PropertyRNA *prop;
 

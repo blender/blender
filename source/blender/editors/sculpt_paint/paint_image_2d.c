@@ -1109,7 +1109,7 @@ static int paint_2d_canvas_set(ImagePaintState *s, Image *ima)
 	if (ima == NULL) {
 		return 0;
 	}
-	else if (ima->packedfile && ima->rr) {
+	else if (BKE_image_has_packedfile(ima) && ima->rr) {
 		s->warnpackedfile = ima->id.name + 2;
 		return 0;
 	}

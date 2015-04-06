@@ -198,6 +198,7 @@ static Sequence *rna_Sequences_new_movie(ID *id, Editing *ed, ReportList *report
 {
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
+	StripAnim *sanim;
 
 	struct anim *an = openanim(file, IB_rect, 0, NULL);
 
@@ -207,7 +208,11 @@ static Sequence *rna_Sequences_new_movie(ID *id, Editing *ed, ReportList *report
 	}
 
 	seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_MOVIE, file);
-	seq->anim = an;
+
+	sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
+	BLI_addtail(&seq->anims, sanim);
+	sanim->anim = an;
+
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
 

@@ -5171,8 +5171,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		 * above call to BKE_scene_update_for_newframe, fixes bug. [#22702].
 		 * following calls don't depend on 'RE_SetCamera' */
 		RE_SetCamera(re, camera);
-
-		normalize_m4_m4(mat, camera->obmat);
+		RE_GetCameraModelMatrix(re, camera, mat);
 		invert_m4(mat);
 		RE_SetView(re, mat);
 
@@ -5342,7 +5341,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* if no camera, viewmat should have been set! */
 	if (camera) {
-		normalize_m4_m4(mat, camera->obmat);
+		RE_GetCameraModelMatrix(re, camera, mat);
+		normalize_m4(mat);
 		invert_m4(mat);
 		RE_SetView(re, mat);
 	}

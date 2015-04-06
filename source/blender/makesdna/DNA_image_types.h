@@ -43,7 +43,6 @@ struct MovieCache;
 struct RenderResult;
 struct GPUTexture;
 
-
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */
 typedef struct ImageUser {
@@ -53,15 +52,33 @@ typedef struct ImageUser {
 	int frames;					/* total amount of frames to use */
 	int offset, sfra;			/* offset within movie, start frame in global time */
 	char fie_ima, cycl;		/* fields/image in movie, cyclic flag */
-	char ok, pad;
+	char ok;
 
-	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
+	char multiview_eye;			/* multiview current eye - for internal use of drawing routines */
+
+	short multi_index, view, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
 
 	short flag;
-	
-	int pad2;
+	short passtype;
 
 } ImageUser;
+
+typedef struct ImageAnim {
+	struct ImageAnim *next, *prev;
+	struct anim *anim;
+} ImageAnim;
+
+typedef struct ImageView {
+	struct ImageView *next, *prev;
+	char name[64];			/* MAX_NAME */
+	char filepath[1024];	/* 1024 = FILE_MAX */
+} ImageView;
+
+typedef struct ImagePackedFile {
+	struct ImagePackedFile *next, *prev;
+	struct PackedFile *packedfile;
+	char filepath[1024];	/* 1024 = FILE_MAX */
+} ImagePackedFile;
 
 typedef struct RenderSlot {
 	char name[64];  /* 64 = MAX_NAME */
@@ -72,6 +89,7 @@ typedef struct RenderSlot {
 #define IMA_ANIM_REFRESHED	2
 /* #define IMA_DO_PREMUL	4 */
 #define IMA_NEED_FRAME_RECALC	8
+#define IMA_SHOW_STEREO		16
 
 typedef struct Image {
 	ID id;
@@ -82,13 +100,13 @@ typedef struct Image {
 	struct GPUTexture *gputexture;	/* not written in file */
 	
 	/* sources from: */
-	struct anim *anim;
+	ListBase anims;
 	struct RenderResult *rr;
 
 	struct RenderResult *renders[8]; /* IMA_MAX_RENDER_SLOT */
 	short render_slot, last_render_slot;
-	
-	short ok, flag;
+
+	int flag;
 	short source, type;
 	int lastframe;
 
@@ -99,14 +117,16 @@ typedef struct Image {
 	unsigned int bindcode;	/* only for current image... */
 	unsigned int *repbind;	/* for repeat of parts of images */
 	
-	struct PackedFile *packedfile;
+	struct PackedFile *packedfile; /* deprecated */
+	struct ListBase packedfiles;
 	struct PreviewImage *preview;
 
 	/* game engine tile animation */
 	float lastupdate;
 	int lastused;
 	short animspeed;
-	short pad2;
+
+	short ok;
 	
 	/* for generated images */
 	int gen_x, gen_y;
@@ -121,7 +141,14 @@ typedef struct Image {
 	ColorManagedColorspaceSettings colorspace_settings;
 	char alpha_mode;
 
-	char pad[7];
+	char pad[5];
+
+	/* Multiview */
+	char eye; /* for viewer node stereoscopy */
+	char views_format;
+	ListBase views;
+	struct Stereo3dFormat *stereo3d_format;
+
 	RenderSlot render_slots[8];  /* 8 = IMA_MAX_RENDER_SLOT */
 } Image;
 
@@ -143,6 +170,9 @@ enum {
 	IMA_VIEW_AS_RENDER      = (1 << 11),
 	IMA_IGNORE_ALPHA        = (1 << 12),
 	IMA_DEINTERLACE         = (1 << 13),
+	IMA_USE_VIEWS           = (1 << 14),
+	IMA_IS_STEREO           = (1 << 15),
+	IMA_IS_MULTIVIEW        = (1 << 16), /* similar to stereo, but a more general case */
 };
 
 #if (DNA_DEPRECATED_GCC_POISON == 1)

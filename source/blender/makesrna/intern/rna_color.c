@@ -620,10 +620,8 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 			}
 
 			if (seq_found) {
-				if (seq->anim) {
-					IMB_free_anim(seq->anim);
-					seq->anim = NULL;
-				}
+				BKE_sequence_free_anim(seq);
+
 				if (seq->strip->proxy && seq->strip->proxy->anim) {
 					IMB_free_anim(seq->strip->proxy->anim);
 					seq->strip->proxy->anim = NULL;
@@ -635,10 +633,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 			else {
 				SEQ_BEGIN(scene->ed, seq);
 				{
-					if (seq->anim) {
-						IMB_free_anim(seq->anim);
-						seq->anim = NULL;
-					}
+					BKE_sequence_free_anim(seq);
 				}
 				SEQ_END;
 

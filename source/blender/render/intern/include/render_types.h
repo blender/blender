@@ -275,6 +275,9 @@ struct Render
 
 	struct ImagePool *pool;
 	struct EvaluationContext *eval_ctx;
+
+	void **movie_ctx_arr;
+	char viewname[MAX_NAME];
 };
 
 /* ------------------------------------------------------------------------- */

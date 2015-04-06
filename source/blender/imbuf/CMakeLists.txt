@@ -62,6 +62,7 @@ set(SRC
 	intern/rectop.c
 	intern/rotate.c
 	intern/scaling.c
+	intern/stereoimbuf.c
 	intern/targa.c
 	intern/thumbs.c
 	intern/thumbs_blend.c

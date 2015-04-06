@@ -53,6 +53,11 @@ struct MovieClip;
 
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 
+typedef struct StripAnim {
+	struct StripAnim *next, *prev;
+	struct anim *anim;
+} StripAnim;
+
 typedef struct StripElem {
 	char name[256];
 	int orig_width, orig_height;
@@ -156,8 +161,7 @@ typedef struct Sequence {
 	struct Object    *scene_camera;  /* override scene camera */
 	struct MovieClip *clip;          /* for MOVIECLIP strips */
 	struct Mask      *mask;          /* for MASK strips */
-
-	struct anim *anim;      /* for MOVIE strips */
+	ListBase anims;                  /* for MOVIE strips */
 
 	float effect_fader;
 	float speed_fader;
@@ -187,7 +191,11 @@ typedef struct Sequence {
 	int sfra;  /* starting frame according to the timeline of the scene. */
 
 	char alpha_mode;
-	char pad[3];
+	char pad[2];
+
+	/* Multiview */
+	char views_format;
+	struct Stereo3dFormat *stereo3d_format;
 
 	struct IDProperty *prop;
 
@@ -376,6 +384,7 @@ enum {
 	
 	/* don't include Grease Pencil in OpenGL previews of Scene strips */
 	SEQ_SCENE_NO_GPENCIL        = (1 << 28),
+	SEQ_USE_VIEWS               = (1 << 29),
 
 	SEQ_INVALID_EFFECT          = (1 << 31),
 };

@@ -72,6 +72,13 @@ extern EnumPropertyItem normal_space_items[];
 extern EnumPropertyItem normal_swizzle_items[];
 extern EnumPropertyItem bake_save_mode_items[];
 
+extern EnumPropertyItem views_format_items[];
+extern EnumPropertyItem views_format_multilayer_items[];
+extern EnumPropertyItem views_format_multiview_items[];
+extern EnumPropertyItem stereo3d_display_items[];
+extern EnumPropertyItem stereo3d_anaglyph_type_items[];
+extern EnumPropertyItem stereo3d_interlace_type_items[];
+
 extern EnumPropertyItem exr_codec_items[];
 extern EnumPropertyItem color_sets_items[];
 

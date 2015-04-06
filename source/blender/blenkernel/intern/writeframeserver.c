@@ -66,12 +66,15 @@
 #include "BKE_report.h"
 
 #include "DNA_scene_types.h"
+#include "MEM_guardedalloc.h"
 
-static int sock;
-static int connsock;
-static int write_ppm;
-static int render_width;
-static int render_height;
+typedef struct FrameserverContext {
+	int sock;
+	int connsock;
+	int write_ppm;
+	int render_width;
+	int render_height;
+} FrameserverContext;
 
 
 #if defined(_WIN32)
@@ -110,10 +113,11 @@ static int closesocket(int fd)
 }
 #endif
 
-int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports, bool UNUSED(preview))
+int BKE_frameserver_start(void *context_v, struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports, bool UNUSED(preview), const char *UNUSED(suffix))
 {
 	struct sockaddr_in addr;
 	int arg = 1;
+	FrameserverContext *context = context_v;
 	
 	(void)scene; /* unused */
 
@@ -122,33 +126,33 @@ int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx
 		return 0;
 	}
 
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	if ((context->sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		shutdown_socket_system();
 		BKE_report(reports, RPT_ERROR, "Cannot open socket");
 		return 0;
 	}
 
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &arg, sizeof(arg));
+	setsockopt(context->sock, SOL_SOCKET, SO_REUSEADDR, (char *) &arg, sizeof(arg));
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(U.frameserverport);
 	addr.sin_addr.s_addr = INADDR_ANY;
 
-	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	if (bind(context->sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		shutdown_socket_system();
 		BKE_report(reports, RPT_ERROR, "Cannot bind to socket");
 		return 0;
 	}
 
-	if (listen(sock, SOMAXCONN) < 0) {
+	if (listen(context->sock, SOMAXCONN) < 0) {
 		shutdown_socket_system();
 		BKE_report(reports, RPT_ERROR, "Cannot establish listen backlog");
 		return 0;
 	}
-	connsock = -1;
+	context->connsock = -1;
 
-	render_width = rectx;
-	render_height = recty;
+	context->render_width = rectx;
+	context->render_height = recty;
 
 	return 1;
 }
@@ -177,7 +181,7 @@ static char good_bye[] =
 "<body><pre>\n"
 "Render stopped. Goodbye</pre></body></html>";
 
-static int safe_write(char *s, int tosend)
+static int safe_write(const int connsock, char *s, int tosend)
 {
 	int total = tosend;
 	do {
@@ -192,12 +196,12 @@ static int safe_write(char *s, int tosend)
 	return total;
 }
 
-static int safe_puts(char *s)
+static int safe_puts(const int connsock, char *s)
 {
-	return safe_write(s, strlen(s));
+	return safe_write(connsock, s, strlen(s));
 }
 
-static int handle_request(RenderData *rd, char *req)
+static int handle_request(FrameserverContext *context, RenderData *rd, char *req)
 {
 	char *p;
 	char *path;
@@ -214,16 +218,16 @@ static int handle_request(RenderData *rd, char *req)
 
 	*p = 0;
 
-	if (STREQ(path, "/index.html") || STREQ(path, "/")) {
-		safe_puts(index_page);
+	if (STREQ(path, "/index.html") || strcmp(path, "/")) {
+		safe_puts(context->connsock, index_page);
 		return -1;
 	}
 
-	write_ppm = 0;
+	context->write_ppm = 0;
 	pathlen = strlen(path);
 
 	if (pathlen > 12 && memcmp(path, "/images/ppm/", 12) == 0) {
-		write_ppm = 1;
+		context->write_ppm = 1;
 		return atoi(path + 12);
 	}
 	if (STREQ(path, "/info.txt")) {
@@ -241,24 +245,24 @@ static int handle_request(RenderData *rd, char *req)
 		        "ratescale %d\n",
 		        rd->sfra,
 		        rd->efra,
-		        render_width,
-		        render_height,
+		        context->render_width,
+		        context->render_height,
 		        rd->frs_sec,
 		        1
 		        );
 
-		safe_puts(buf);
+		safe_puts(context->connsock, buf);
 		return -1;
 	}
 	if (STREQ(path, "/close.txt")) {
-		safe_puts(good_bye);
+		safe_puts(context->connsock, good_bye);
 		G.is_break = true;  /* Abort render */
 		return -1;
 	}
 	return -1;
 }
 
-int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
+int BKE_frameserver_loop(void *context_v, RenderData *rd, ReportList *UNUSED(reports))
 {
 	fd_set readfds;
 	struct timeval tv;
@@ -271,18 +275,20 @@ int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 #endif
 	char buf[4096];
 
-	if (connsock != -1) {
-		closesocket(connsock);
-		connsock = -1;
+	FrameserverContext *context = context_v;
+
+	if (context->connsock != -1) {
+		closesocket(context->connsock);
+		context->connsock = -1;
 	}
 
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
 
 	FD_ZERO(&readfds);
-	FD_SET(sock, &readfds);
+	FD_SET(context->sock, &readfds);
 
-	rval = select(sock + 1, &readfds, NULL, NULL, &tv);
+	rval = select(context->sock + 1, &readfds, NULL, NULL, &tv);
 	if (rval < 0) {
 		return -1;
 	}
@@ -293,19 +299,19 @@ int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 
 	socklen = sizeof(addr);
 
-	if ((connsock = accept(sock, (struct sockaddr *)&addr, &socklen)) < 0) {
+	if ((context->connsock = accept(context->sock, (struct sockaddr *)&addr, &socklen)) < 0) {
 		return -1;
 	}
 
 	FD_ZERO(&readfds);
-	FD_SET(connsock, &readfds);
+	FD_SET(context->connsock, &readfds);
 
 	for (;;) {
 		/* give 10 seconds for telnet testing... */
 		tv.tv_sec = 10;
 		tv.tv_usec = 0;
 
-		rval = select(connsock + 1, &readfds, NULL, NULL, &tv);
+		rval = select(context->connsock + 1, &readfds, NULL, NULL, &tv);
 		if (rval > 0) {
 			break;
 		}
@@ -319,7 +325,7 @@ int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 		}
 	}
 
-	len = recv(connsock, buf, sizeof(buf) - 1, 0);
+	len = recv(context->connsock, buf, sizeof(buf) - 1, 0);
 
 	if (len < 0) {
 		return -1;
@@ -327,13 +333,13 @@ int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 
 	buf[len] = 0;
 
-	return handle_request(rd, buf);
+	return handle_request(context, rd, buf);
 }
 
-static void serve_ppm(int *pixels, int rectx, int recty)
+static void serve_ppm(FrameserverContext *context, int *pixels, int rectx, int recty)
 {
 	unsigned char *rendered_frame;
-	unsigned char *row = (unsigned char *) malloc(render_width * 3);
+	unsigned char *row = (unsigned char *) malloc(context->render_width * 3);
 	int y;
 	char header[1024];
 
@@ -348,7 +354,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	        "255\n",
 	        rectx, recty);
 
-	safe_puts(header);
+	safe_puts(context->connsock, header);
 
 	rendered_frame = (unsigned char *)pixels;
 
@@ -364,36 +370,54 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 			target += 3;
 			src += 4;
 		}
-		safe_write((char *)row, 3 * rectx);
+		safe_write(context->connsock, (char *)row, 3 * rectx);
 	}
 	free(row);
-	closesocket(connsock);
-	connsock = -1;
+	closesocket(context->connsock);
+	context->connsock = -1;
 }
 
-int BKE_frameserver_append(RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
-                           int rectx, int recty, ReportList *UNUSED(reports))
+int BKE_frameserver_append(void *context_v, RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
+                           int rectx, int recty, const char *UNUSED(suffix), ReportList *UNUSED(reports))
 {
+	FrameserverContext *context = context_v;
+
 	fprintf(stderr, "Serving frame: %d\n", frame);
-	if (write_ppm) {
-		serve_ppm(pixels, rectx, recty);
+	if (context->write_ppm) {
+		serve_ppm(context, pixels, rectx, recty);
 	}
-	if (connsock != -1) {
-		closesocket(connsock);
-		connsock = -1;
+	if (context->connsock != -1) {
+		closesocket(context->connsock);
+		context->connsock = -1;
 	}
 
 	return 1;
 }
 
-void BKE_frameserver_end(void)
+void BKE_frameserver_end(void *context_v)
 {
-	if (connsock != -1) {
-		closesocket(connsock);
-		connsock = -1;
+	FrameserverContext *context = context_v;
+
+	if (context->connsock != -1) {
+		closesocket(context->connsock);
+		context->connsock = -1;
 	}
-	closesocket(sock);
+	closesocket(context->sock);
 	shutdown_socket_system();
+}
+
+void *BKE_frameserver_context_create(void)
+{
+	FrameserverContext *context = MEM_mallocN(sizeof(FrameserverContext), "Frameserver Context");
+	return context;
+}
+
+void BKE_frameserver_context_free(void *context_v)
+{
+	FrameserverContext *context = context_v;
+	if (context) {
+		MEM_freeN(context);
+	}
 }
 
 #endif /* WITH_FRAMESERVER */

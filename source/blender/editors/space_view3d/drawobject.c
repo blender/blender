@@ -1741,6 +1741,238 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 		GPU_select_load_id(base->selcol);
 }
 
+static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], const GLenum mode)
+{
+	glBegin(mode);
+	glVertex3fv(near_plane[0]);
+	glVertex3fv(far_plane[0]);
+	glVertex3fv(far_plane[1]);
+	glVertex3fv(near_plane[1]);
+	glEnd();
+
+	glBegin(mode);
+	glVertex3fv(near_plane[1]);
+	glVertex3fv(far_plane[1]);
+	glVertex3fv(far_plane[2]);
+	glVertex3fv(near_plane[2]);
+	glEnd();
+
+	glBegin(mode);
+	glVertex3fv(near_plane[2]);
+	glVertex3fv(near_plane[1]);
+	glVertex3fv(far_plane[1]);
+	glVertex3fv(far_plane[2]);
+	glEnd();
+
+	glBegin(mode);
+	glVertex3fv(far_plane[0]);
+	glVertex3fv(near_plane[0]);
+	glVertex3fv(near_plane[3]);
+	glVertex3fv(far_plane[3]);
+	glEnd();
+}
+
+/* camera frame */
+static void drawcamera_frame(float vec[4][3], const GLenum mode)
+{
+	glBegin(mode);
+	glVertex3fv(vec[0]);
+	glVertex3fv(vec[1]);
+	glVertex3fv(vec[2]);
+	glVertex3fv(vec[3]);
+	glEnd();
+}
+
+/* center point to camera frame */
+static void drawcamera_framelines(float vec[4][3], float origin[3])
+{
+	glBegin(GL_LINE_STRIP);
+	glVertex3fv(vec[1]);
+	glVertex3fv(origin);
+	glVertex3fv(vec[0]);
+	glVertex3fv(vec[3]);
+	glVertex3fv(origin);
+	glVertex3fv(vec[2]);
+	glEnd();
+}
+
+static bool drawcamera_is_stereo3d(Scene *scene, View3D *v3d, Object *ob)
+{
+	return (ob == v3d->camera) &&
+	        (scene->r.scemode & R_MULTIVIEW) != 0 &&
+	        (v3d->stereo3d_flag);
+}
+
+static void drawcamera_stereo3d(
+        Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const Camera *cam,
+        float vec[4][3], float drawsize, const float scale[3])
+{
+	int i, j;
+	float obmat[4][4];
+	float vec_lr[2][4][3];
+	const float fac = (cam->stereo.pivot == CAM_S3D_PIVOT_CENTER) ? 2.0f : 1.0f;
+	float origin[2][3] = {{0}};
+	float tvec[3];
+	const Camera *cam_lr[2];
+	const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
+
+	const bool is_stereo3d_cameras = (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS) && (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D);
+	const bool is_stereo3d_plane = (v3d->stereo3d_flag & V3D_S3D_DISPPLANE) && (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D);
+	const bool is_stereo3d_volume = (v3d->stereo3d_flag & V3D_S3D_DISPVOLUME);
+
+	zero_v3(tvec);
+
+	glPushMatrix();
+
+	for (i = 0; i < 2; i++) {
+		ob = BKE_camera_multiview_render(scene, ob, names[i]);
+		cam_lr[i] = ob->data;
+
+		glLoadMatrixf(rv3d->viewmat);
+		BKE_camera_multiview_model_matrix(&scene->r, ob, names[i], obmat);
+		glMultMatrixf(obmat);
+
+		copy_m3_m3(vec_lr[i], vec);
+		copy_v3_v3(vec_lr[i][3], vec[3]);
+
+		if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
+			const float shift_x =
+			        ((BKE_camera_multiview_shift_x(&scene->r, ob, names[i]) - cam->shiftx) *
+			         (drawsize * scale[0] * fac));
+
+			for (j = 0; j < 4; j++) {
+				vec_lr[i][j][0] += shift_x;
+			}
+		}
+
+		if (is_stereo3d_cameras) {
+			/* camera frame */
+			drawcamera_frame(vec_lr[i], GL_LINE_LOOP);
+
+			/* center point to camera frame */
+			drawcamera_framelines(vec_lr[i], tvec);
+		}
+
+		/* connecting line */
+		mul_m4_v3(obmat, origin[i]);
+
+		/* convergence plane */
+		if (is_stereo3d_plane || is_stereo3d_volume) {
+			for (j = 0; j < 4; j++) {
+				mul_m4_v3(obmat, vec_lr[i][j]);
+			}
+		}
+	}
+
+
+	/* the remaining drawing takes place in the view space */
+	glLoadMatrixf(rv3d->viewmat);
+
+	if (is_stereo3d_cameras) {
+		/* draw connecting lines */
+		glPushAttrib(GL_ENABLE_BIT);
+
+		glLineStipple(2, 0xAAAA);
+		glEnable(GL_LINE_STIPPLE);
+
+		glBegin(GL_LINES);
+		glVertex3fv(origin[0]);
+		glVertex3fv(origin[1]);
+		glEnd();
+		glPopAttrib();
+	}
+
+	/* draw convergence plane*/
+	if (is_stereo3d_plane) {
+		float axis_center[3], screen_center[3];
+		float world_plane[4][3];
+		float local_plane[4][3];
+		float offset;
+
+		mid_v3_v3v3(axis_center, origin[0], origin[1]);
+
+		for (i = 0; i < 4; i++) {
+			mid_v3_v3v3(world_plane[i], vec_lr[0][i], vec_lr[1][i]);
+			sub_v3_v3v3(local_plane[i], world_plane[i], axis_center);
+		}
+
+		mid_v3_v3v3(screen_center, world_plane[0], world_plane[2]);
+		offset = cam->stereo.convergence_distance / len_v3v3(screen_center, axis_center);
+
+		for (i = 0; i < 4; i++) {
+			mul_v3_fl(local_plane[i], offset);
+			add_v3_v3(local_plane[i], axis_center);
+		}
+
+		glColor3f(0.0f, 0.0f, 0.0f);
+
+		/* camera frame */
+		drawcamera_frame(local_plane, GL_LINE_LOOP);
+
+		if (v3d->stereo3d_convergence_alpha > 0.0f) {
+			glEnable(GL_BLEND);
+			glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+
+			glColor4f(0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha);
+
+			drawcamera_frame(local_plane, GL_QUADS);
+
+			glDisable(GL_BLEND);
+			glDepthMask(1);  /* restore write in zbuffer */
+		}
+	}
+
+	/* draw convergence plane*/
+	if (is_stereo3d_volume) {
+		float screen_center[3];
+		float near_plane[4][3], far_plane[4][3];
+		float offset;
+		int j;
+
+		for (i = 0; i < 2; i++) {
+			mid_v3_v3v3(screen_center, vec_lr[i][0], vec_lr[i][2]);
+
+			offset = len_v3v3(screen_center, origin[i]);
+
+			for (j = 0; j < 4; j++) {
+				sub_v3_v3v3(near_plane[j], vec_lr[i][j], origin[i]);
+				mul_v3_fl(near_plane[j], cam_lr[i]->clipsta / offset);
+				add_v3_v3(near_plane[j], origin[i]);
+
+				sub_v3_v3v3(far_plane[j], vec_lr[i][j], origin[i]);
+				mul_v3_fl(far_plane[j], cam_lr[i]->clipend / offset);
+				add_v3_v3(far_plane[j], origin[i]);
+			}
+
+			/* camera frame */
+			glColor3f(0.0f, 0.0f, 0.0f);
+
+			drawcamera_frame(near_plane, GL_LINE_LOOP);
+			drawcamera_frame(far_plane, GL_LINE_LOOP);
+			drawcamera_volume(near_plane, far_plane, GL_LINE_LOOP);
+
+			if (v3d->stereo3d_volume_alpha > 0.0f) {
+				glEnable(GL_BLEND);
+				glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+
+				if (i == 0)
+					glColor4f(0.0f, 1.0f, 1.0f, v3d->stereo3d_volume_alpha);
+				else
+					glColor4f(1.0f, 0.0f, 0.0f, v3d->stereo3d_volume_alpha);
+
+				drawcamera_frame(near_plane, GL_QUADS);
+				drawcamera_frame(far_plane, GL_QUADS);
+				drawcamera_volume(near_plane, far_plane, GL_QUADS);
+
+				glDisable(GL_BLEND);
+				glDepthMask(1);  /* restore write in zbuffer */
+			}
+		}
+	}
+
+	glPopMatrix();
+}
+
 /* flag similar to draw_object() */
 static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                        const short dflag, const unsigned char ob_wire_col[4])
@@ -1754,6 +1986,12 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	float drawsize;
 	const bool is_view = (rv3d->persp == RV3D_CAMOB && ob == v3d->camera);
 	MovieClip *clip = BKE_object_movieclip_get(scene, base->object, false);
+
+	const bool is_stereo3d = drawcamera_is_stereo3d(scene, v3d, ob);
+	const bool is_stereo3d_cameras = (ob == scene->camera) &&
+	                                 (scene->r.scemode & R_MULTIVIEW) &&
+	                                 (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D) &&
+	                                 (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS);
 
 	/* draw data for movie clip set as active for scene */
 	if (clip) {
@@ -1791,12 +2029,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	glDisable(GL_CULL_FACE);
 
 	/* camera frame */
-	glBegin(GL_LINE_LOOP);
-	glVertex3fv(vec[0]);
-	glVertex3fv(vec[1]);
-	glVertex3fv(vec[2]);
-	glVertex3fv(vec[3]);
-	glEnd();
+	if (!is_stereo3d_cameras)
+		drawcamera_frame(vec, GL_LINE_LOOP);
 
 	if (is_view)
 		return;
@@ -1804,19 +2038,11 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	zero_v3(tvec);
 
 	/* center point to camera frame */
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(vec[1]);
-	glVertex3fv(tvec);
-	glVertex3fv(vec[0]);
-	glVertex3fv(vec[3]);
-	glVertex3fv(tvec);
-	glVertex3fv(vec[2]);
-	glEnd();
-
+	if (!is_stereo3d_cameras)
+		drawcamera_framelines(vec, tvec);
 
 	/* arrow on top */
 	tvec[2] = vec[1][2]; /* copy the depth */
-
 
 	/* draw an outline arrow for inactive cameras and filled
 	 * for active cameras. We actually draw both outline+filled
@@ -1866,6 +2092,11 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			}
 			glPopMatrix();
 		}
+	}
+
+	/* stereo cameras drawing */
+	if (is_stereo3d) {
+		drawcamera_stereo3d(scene, v3d, rv3d, ob, cam, vec, drawsize, scale);
 	}
 }
 

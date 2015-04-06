@@ -494,13 +494,14 @@ void FRS_composite_result(Render *re, SceneRenderLayer *srl, Render *freestyle_r
 		return;
 
 	rl = render_get_active_layer( freestyle_render, freestyle_render->result );
-	if (!rl || rl->rectf == NULL) {
+	if (!rl) {
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "No Freestyle result image to composite" << endl;
 		}
 		return;
 	}
-	src  = rl->rectf;
+
+	src = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, re->viewname);
 #if 0
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "src: " << rl->rectx << " x " << rl->recty << endl;
@@ -508,13 +509,13 @@ void FRS_composite_result(Render *re, SceneRenderLayer *srl, Render *freestyle_r
 #endif
 
 	rl = RE_GetRenderLayer(re->result, srl->name);
-	if (!rl || rl->rectf == NULL) {
+	if (!rl || src == NULL) {
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "No layer to composite to" << endl;
 		}
 		return;
 	}
-	dest = rl->rectf;
+	dest = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, re->viewname);
 #if 0
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "dest: " << rl->rectx << " x " << rl->recty << endl;

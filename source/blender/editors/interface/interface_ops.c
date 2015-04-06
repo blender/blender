@@ -613,6 +613,7 @@ static int editsource_exec(bContext *C, wmOperator *op)
 
 		/* redraw and get active button python info */
 		ED_region_do_draw(C, ar);
+		ar->do_draw = false;
 
 		for (BLI_ghashIterator_init(&ghi, ui_editsource_info->hash);
 		     BLI_ghashIterator_done(&ghi) == false;

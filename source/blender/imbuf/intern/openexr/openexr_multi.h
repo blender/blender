@@ -39,8 +39,9 @@
 /* This api also supports max 8 channels per pass now. easy to fix! */
 #define EXR_LAY_MAXNAME     64
 #define EXR_PASS_MAXNAME    64
+#define EXR_VIEW_MAXNAME    64
 #define EXR_TOT_MAXNAME     64
-#define EXR_PASS_MAXCHAN    8
+#define EXR_PASS_MAXCHAN    24
 
 
 #ifdef __cplusplus
@@ -48,24 +49,48 @@ extern "C" {
 #endif
 
 void *IMB_exr_get_handle(void);
-void    IMB_exr_add_channel(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect);
+void *IMB_exr_get_handle_name(const char *name);
+void    IMB_exr_add_channel(void *handle, const char *layname, const char *passname, const char *view, int xstride, int ystride, float *rect);
 
 int     IMB_exr_begin_read(void *handle, const char *filename, int *width, int *height);
 int     IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress);
 void    IMB_exrtile_begin_write(void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley);
 
 void    IMB_exr_set_channel(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect);
+float  *IMB_exr_channel_rect(void *handle, const char *layname, const char *passname, const char *view);
 
 void    IMB_exr_read_channels(void *handle);
 void    IMB_exr_write_channels(void *handle);
-void    IMB_exrtile_write_channels(void *handle, int partx, int party, int level);
-void    IMB_exrtile_clear_channels(void *handle);
+void    IMB_exrtile_write_channels(void *handle, int partx, int party, int level, const char *viewname);
+void    IMB_exrmultiview_write_channels(void *handle, const char *viewname);
+void    IMB_exr_clear_channels(void *handle);
 
-void    IMB_exr_multilayer_convert(void *handle, void *base,
-                                   void * (*addlayer)(void *base, const char *str),
-                                   void (*addpass)(void *base, void *lay, const char *str, float *rect, int totchan, const char *chan_id));
+void    IMB_exr_multilayer_convert(
+        void *handle, void *base,
+        void * (*addview)(void *base, const char *str),
+        void * (*addlayer)(void *base, const char *str),
+        void (*addpass)(void *base, void *lay, const char *str, float *rect, int totchan,
+                        const char *chan_id, const char *view));
+
+void    IMB_exr_multiview_convert(
+        void *handle, void *base,
+        void (*addview)(void *base, const char *str),
+        void (*addbuffer)(void *base, const char *str, struct ImBuf *ibuf, const int frame),
+        const int frame);
+
+bool    IMB_exr_multiview_save(
+        struct ImBuf *ibuf, const char *name, const int flags, const size_t totviews,
+        const char * (*getview)(void *base, size_t view_id),
+        struct ImBuf * (*getbuffer)(void *base, const size_t view_id));
 
 void    IMB_exr_close(void *handle);
+
+void    IMB_exr_add_view(void *handle, const char *name);
+
+int IMB_exr_split_token(const char *str, const char *end, const char **token);
+
+bool IMB_exr_has_multilayer(void *handle);
+bool IMB_exr_has_singlelayer_multiview(void *handle);
 
 #ifdef __cplusplus
 } // extern "C"

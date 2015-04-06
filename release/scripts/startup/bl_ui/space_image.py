@@ -458,6 +458,10 @@ class IMAGE_HT_header(Header):
             layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")
 
         if ima:
+            if ima.is_stereo_3d:
+                row = layout.row()
+                row.prop(sima, "show_stereo_3d", text="")
+
             # layers
             layout.template_image_layers(ima, iuser)
 

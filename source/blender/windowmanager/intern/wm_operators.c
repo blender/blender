@@ -1268,6 +1268,13 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	if (flag & WM_FILESEL_RELPATH)
 		RNA_def_boolean(ot->srna, "relative_path", true, "Relative Path", "Select the file relative to the blend file");
 
+	if ((filter & FILE_TYPE_IMAGE) || (filter & FILE_TYPE_MOVIE)) {
+		prop = RNA_def_boolean(ot->srna, "show_multiview", 0, "Enable Multi-View", "");
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+		prop = RNA_def_boolean(ot->srna, "use_multiview", 0, "Use Multi-View", "");
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	}
+
 	prop = RNA_def_enum(ot->srna, "display_type", file_display_items, display, "Display Type", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
@@ -4592,8 +4599,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
 	for (a = 0; a < iter; a++) {
 		if (type == 0) {
-			if (ar)
+			if (ar) {
 				ED_region_do_draw(C, ar);
+				ar->do_draw = false;
+			}
 		}
 		else if (type == 1) {
 			wmWindow *win = CTX_wm_window(C);
@@ -4621,6 +4630,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 					if (ar_iter->swinid) {
 						CTX_wm_region_set(C, ar_iter);
 						ED_region_do_draw(C, ar_iter);
+						ar->do_draw = false;
 					}
 				}
 			}
@@ -4832,6 +4842,36 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
 }
 
 /* ******************************************************* */
+/* toggle 3D for current window, turning it fullscreen if needed */
+static void WM_OT_stereo3d_set(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	ot->name = "Set Stereo 3D";
+	ot->idname = "WM_OT_set_stereo_3d";
+	ot->description = "Toggle 3D stereo support for current window (or change the display mode)";
+
+	ot->exec = wm_stereo3d_set_exec;
+	ot->invoke = wm_stereo3d_set_invoke;
+	ot->poll = WM_operator_winactive;
+	ot->ui = wm_stereo3d_set_draw;
+	ot->cancel = wm_stereo3d_set_cancel;
+
+	prop = RNA_def_enum(ot->srna, "display_mode", stereo3d_display_items, S3D_DISPLAY_ANAGLYPH, "Display Mode", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_enum(ot->srna, "anaglyph_type", stereo3d_anaglyph_type_items, S3D_ANAGLYPH_REDCYAN, "Anaglyph Type", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_enum(ot->srna, "interlace_type", stereo3d_interlace_type_items, S3D_INTERLACE_ROW, "Interlace Type", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "use_interlace_swap", false, "Swap Left/Right",
+	                       "Swap left and right stereo channels");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "use_sidebyside_crosseyed", false, "Cross-Eyed",
+	                       "Right eye should see left image and vice-versa");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/* ******************************************************* */
 /* called on initialize WM_exit() */
 void wm_operatortype_free(void)
 {
@@ -4873,6 +4913,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_call_menu);
 	WM_operatortype_append(WM_OT_call_menu_pie);
 	WM_operatortype_append(WM_OT_radial_control);
+	WM_operatortype_append(WM_OT_stereo3d_set);
 #if defined(WIN32)
 	WM_operatortype_append(WM_OT_console_toggle);
 #endif

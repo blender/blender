@@ -128,8 +128,8 @@ int countPackedFiles(Main *bmain)
 	
 	/* let's check if there are packed files... */
 	for (ima = bmain->image.first; ima; ima = ima->id.next)
-		if (ima->packedfile)
-			count++;
+		if (BKE_image_has_packedfile(ima))
+			count ++;
 
 	for (vf = bmain->vfont.first; vf; vf = vf->id.next)
 		if (vf->packedfile)
@@ -232,9 +232,9 @@ void packAll(Main *bmain, ReportList *reports)
 	int tot = 0;
 	
 	for (ima = bmain->image.first; ima; ima = ima->id.next) {
-		if (ima->packedfile == NULL && ima->id.lib == NULL) {
+		if (BKE_image_has_packedfile(ima) == false && ima->id.lib == NULL) {
 			if (ima->source == IMA_SRC_FILE) {
-				ima->packedfile = newPackedFile(reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
+				BKE_image_packfiles(reports, ima, ID_BLEND_PATH(bmain, &ima->id));
 				tot ++;
 			}
 			else if (BKE_image_is_animated(ima)) {
@@ -564,23 +564,47 @@ int unpackSound(Main *bmain, ReportList *reports, bSound *sound, int how)
 
 int unpackImage(ReportList *reports, Image *ima, int how)
 {
-	char localname[FILE_MAX], absname[FILE_MAX];
-	char *newname;
 	int ret_value = RET_ERROR;
-	
+
 	if (ima != NULL && ima->name[0]) {
-		unpack_generate_paths(ima->name, (ID *)ima, absname, localname, sizeof(absname), sizeof(localname));
-		newname = unpackFile(reports, absname, localname, ima->packedfile, how);
-		if (newname != NULL) {
-			ret_value = RET_OK;
-			freePackedFile(ima->packedfile);
-			ima->packedfile = NULL;
-			BLI_strncpy(ima->name, newname, sizeof(ima->name));
-			MEM_freeN(newname);
-			BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		while (ima->packedfiles.last) {
+			char localname[FILE_MAX], absname[FILE_MAX];
+			char *newname;
+			ImagePackedFile *imapf = ima->packedfiles.last;
+
+			unpack_generate_paths(imapf->filepath, (ID *)ima, absname, localname, sizeof(absname), sizeof(localname));
+			newname = unpackFile(reports, absname, localname, imapf->packedfile, how);
+
+			if (newname != NULL) {
+				ImageView *iv;
+
+				ret_value = ret_value == RET_ERROR ? RET_ERROR : RET_OK;
+				freePackedFile(imapf->packedfile);
+				imapf->packedfile = NULL;
+
+				/* update the new corresponding view filepath */
+				iv = BLI_findstring(&ima->views, imapf->filepath, offsetof(ImageView, filepath));
+				if (iv) {
+					BLI_strncpy(iv->filepath, newname, sizeof(imapf->filepath));
+				}
+
+				/* keep the new name in the image for non-pack specific reasons */
+				BLI_strncpy(ima->name, newname, sizeof(imapf->filepath));
+				MEM_freeN(newname);
+			}
+			else {
+				ret_value = RET_ERROR;
+			}
+
+			BLI_remlink(&ima->packedfiles, imapf);
+			MEM_freeN(imapf);
 		}
 	}
-	
+
+	if (ret_value == RET_OK) {
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+	}
+
 	return(ret_value);
 }
 
@@ -636,7 +660,7 @@ void unpackAll(Main *bmain, ReportList *reports, int how)
 	bSound *sound;
 
 	for (ima = bmain->image.first; ima; ima = ima->id.next)
-		if (ima->packedfile)
+		if (BKE_image_has_packedfile(ima))
 			unpackImage(reports, ima, how);
 
 	for (vf = bmain->vfont.first; vf; vf = vf->id.next)
@@ -655,7 +679,7 @@ bool BKE_pack_check(ID *id)
 		case ID_IM:
 		{
 			Image *ima = (Image *)id;
-			return ima->packedfile != NULL;
+			return BKE_image_has_packedfile(ima);
 		}
 		case ID_VF:
 		{
@@ -683,7 +707,7 @@ void BKE_unpack_id(Main *bmain, ID *id, ReportList *reports, int how)
 		case ID_IM:
 		{
 			Image *ima = (Image *)id;
-			if (ima->packedfile) {
+			if (BKE_image_has_packedfile(ima)) {
 				unpackImage(reports, ima, how);
 			}
 			break;

@@ -95,7 +95,7 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings b_render
 	bcam->full_height = render_resolution_y(b_render);
 }
 
-static float blender_camera_focal_distance(BL::Object b_ob, BL::Camera b_camera)
+static float blender_camera_focal_distance(BL::RenderEngine b_engine, BL::Object b_ob, BL::Camera b_camera)
 {
 	BL::Object b_dof_object = b_camera.dof_object();
 
@@ -103,14 +103,16 @@ static float blender_camera_focal_distance(BL::Object b_ob, BL::Camera b_camera)
 		return b_camera.dof_distance();
 	
 	/* for dof object, return distance along camera Z direction */
-	Transform obmat = transform_clear_scale(get_transform(b_ob.matrix_world()));
+	BL::Array<float, 16> b_ob_matrix;
+	b_engine.camera_model_matrix(b_ob, b_ob_matrix);
+	Transform obmat = get_transform(b_ob_matrix);
 	Transform dofmat = get_transform(b_dof_object.matrix_world());
 	Transform mat = transform_inverse(obmat) * dofmat;
 
 	return fabsf(transform_get_column(&mat, 3).z);
 }
 
-static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob, bool skip_panorama = false)
+static void blender_camera_from_object(BlenderCamera *bcam, BL::RenderEngine b_engine, BL::Object b_ob, bool skip_panorama = false)
 {
 	BL::ID b_ob_data = b_ob.data();
 
@@ -181,10 +183,10 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob, boo
 
 		bcam->apertureblades = RNA_int_get(&ccamera, "aperture_blades");
 		bcam->aperturerotation = RNA_float_get(&ccamera, "aperture_rotation");
-		bcam->focaldistance = blender_camera_focal_distance(b_ob, b_camera);
+		bcam->focaldistance = blender_camera_focal_distance(b_engine, b_ob, b_camera);
 		bcam->aperture_ratio = RNA_float_get(&ccamera, "aperture_ratio");
 
-		bcam->shift.x = b_camera.shift_x();
+		bcam->shift.x = b_engine.camera_shift_x(b_ob);
 		bcam->shift.y = b_camera.shift_y();
 
 		bcam->sensor_width = b_camera.sensor_width();
@@ -402,8 +404,10 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 		b_ob = b_override;
 
 	if(b_ob) {
-		blender_camera_from_object(&bcam, b_ob);
-		bcam.matrix = get_transform(b_ob.matrix_world());
+		BL::Array<float, 16> b_ob_matrix;
+		blender_camera_from_object(&bcam, b_engine, b_ob);
+		b_engine.camera_model_matrix(b_ob, b_ob_matrix);
+		bcam.matrix = get_transform(b_ob_matrix);
 	}
 
 	/* sync */
@@ -414,8 +418,9 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 void BlenderSync::sync_camera_motion(BL::Object b_ob, float motion_time)
 {
 	Camera *cam = scene->camera;
-
-	Transform tfm = get_transform(b_ob.matrix_world());
+	BL::Array<float, 16> b_ob_matrix;
+	b_engine.camera_model_matrix(b_ob, b_ob_matrix);
+	Transform tfm = get_transform(b_ob_matrix);
 	tfm = blender_camera_matrix(tfm, cam->type);
 
 	if(tfm != cam->matrix) {
@@ -433,10 +438,10 @@ void BlenderSync::sync_camera_motion(BL::Object b_ob, float motion_time)
 
 /* Sync 3D View Camera */
 
-static void blender_camera_view_subset(BL::RenderSettings b_render, BL::Scene b_scene, BL::Object b_ob, BL::SpaceView3D b_v3d,
+static void blender_camera_view_subset(BL::RenderEngine b_engine, BL::RenderSettings b_render, BL::Scene b_scene, BL::Object b_ob, BL::SpaceView3D b_v3d,
 	BL::RegionView3D b_rv3d, int width, int height, BoundBox2D *view_box, BoundBox2D *cam_box);
 
-static void blender_camera_from_view(BlenderCamera *bcam, BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height, bool skip_panorama = false)
+static void blender_camera_from_view(BlenderCamera *bcam, BL::RenderEngine b_engine, BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height, bool skip_panorama = false)
 {
 	/* 3d view parameters */
 	bcam->nearclip = b_v3d.clip_start();
@@ -449,13 +454,13 @@ static void blender_camera_from_view(BlenderCamera *bcam, BL::Scene b_scene, BL:
 		BL::Object b_ob = (b_v3d.lock_camera_and_layers())? b_scene.camera(): b_v3d.camera();
 
 		if(b_ob) {
-			blender_camera_from_object(bcam, b_ob, skip_panorama);
+			blender_camera_from_object(bcam, b_engine, b_ob, skip_panorama);
 
 			if(!skip_panorama && bcam->type == CAMERA_PANORAMA) {
 				/* in panorama camera view, we map viewplane to camera border */
 				BoundBox2D view_box, cam_box;
 
-				blender_camera_view_subset(b_scene.render(), b_scene, b_ob, b_v3d, b_rv3d, width, height,
+				blender_camera_view_subset(b_engine, b_scene.render(), b_scene, b_ob, b_v3d, b_rv3d, width, height,
 					&view_box, &cam_box);
 
 				bcam->pano_viewplane = view_box.make_relative_to(cam_box);
@@ -493,7 +498,7 @@ static void blender_camera_from_view(BlenderCamera *bcam, BL::Scene b_scene, BL:
 	bcam->matrix = transform_inverse(get_transform(b_rv3d.view_matrix()));
 }
 
-static void blender_camera_view_subset(BL::RenderSettings b_render, BL::Scene b_scene, BL::Object b_ob, BL::SpaceView3D b_v3d,
+static void blender_camera_view_subset(BL::RenderEngine b_engine, BL::RenderSettings b_render, BL::Scene b_scene, BL::Object b_ob, BL::SpaceView3D b_v3d,
 	BL::RegionView3D b_rv3d, int width, int height, BoundBox2D *view_box, BoundBox2D *cam_box)
 {
 	BoundBox2D cam, view;
@@ -502,7 +507,7 @@ static void blender_camera_view_subset(BL::RenderSettings b_render, BL::Scene b_
 	/* get viewport viewplane */
 	BlenderCamera view_bcam;
 	blender_camera_init(&view_bcam, b_render);
-	blender_camera_from_view(&view_bcam, b_scene, b_v3d, b_rv3d, width, height, true);
+	blender_camera_from_view(&view_bcam, b_engine, b_scene, b_v3d, b_rv3d, width, height, true);
 
 	blender_camera_viewplane(&view_bcam, width, height,
 		&view, &view_aspect, &sensor_size);
@@ -510,7 +515,7 @@ static void blender_camera_view_subset(BL::RenderSettings b_render, BL::Scene b_
 	/* get camera viewplane */
 	BlenderCamera cam_bcam;
 	blender_camera_init(&cam_bcam, b_render);
-	blender_camera_from_object(&cam_bcam, b_ob, true);
+	blender_camera_from_object(&cam_bcam, b_engine, b_ob, true);
 
 	blender_camera_viewplane(&cam_bcam, cam_bcam.full_width, cam_bcam.full_height,
 		&cam, &cam_aspect, &sensor_size);
@@ -520,7 +525,8 @@ static void blender_camera_view_subset(BL::RenderSettings b_render, BL::Scene b_
 	*cam_box = cam * (1.0f/cam_aspect);
 }
 
-static void blender_camera_border_subset(BL::RenderSettings b_render,
+static void blender_camera_border_subset(BL::RenderEngine b_engine,
+                                         BL::RenderSettings b_render,
                                          BL::Scene b_scene,
                                          BL::SpaceView3D b_v3d,
                                          BL::RegionView3D b_rv3d,
@@ -531,7 +537,7 @@ static void blender_camera_border_subset(BL::RenderSettings b_render,
 {
 	/* Determine camera viewport subset. */
 	BoundBox2D view_box, cam_box;
-	blender_camera_view_subset(b_render, b_scene, b_ob, b_v3d, b_rv3d, width, height,
+	blender_camera_view_subset(b_engine, b_render, b_scene, b_ob, b_v3d, b_rv3d, width, height,
 	                           &view_box, &cam_box);
 
 	/* Determine viewport subset matching given border. */
@@ -539,7 +545,7 @@ static void blender_camera_border_subset(BL::RenderSettings b_render,
 	*result = cam_box.subset(border);
 }
 
-static void blender_camera_border(BlenderCamera *bcam, BL::RenderSettings b_render, BL::Scene b_scene, BL::SpaceView3D b_v3d,
+static void blender_camera_border(BlenderCamera *bcam, BL::RenderEngine b_engine, BL::RenderSettings b_render, BL::Scene b_scene, BL::SpaceView3D b_v3d,
 	BL::RegionView3D b_rv3d, int width, int height)
 {
 	bool is_camera_view;
@@ -568,7 +574,8 @@ static void blender_camera_border(BlenderCamera *bcam, BL::RenderSettings b_rend
 
 	/* Determine camera border inside the viewport. */
 	BoundBox2D full_border;
-	blender_camera_border_subset(b_render,
+	blender_camera_border_subset(b_engine,
+	                             b_render,
 	                             b_scene,
 	                             b_v3d,
 	                             b_rv3d,
@@ -587,7 +594,8 @@ static void blender_camera_border(BlenderCamera *bcam, BL::RenderSettings b_rend
 	bcam->border.top = b_render.border_max_y();
 
 	/* Determine viewport subset matching camera border. */
-	blender_camera_border_subset(b_render,
+	blender_camera_border_subset(b_engine,
+	                             b_render,
 	                             b_scene,
 	                             b_v3d,
 	                             b_rv3d,
@@ -602,8 +610,8 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 {
 	BlenderCamera bcam;
 	blender_camera_init(&bcam, b_scene.render());
-	blender_camera_from_view(&bcam, b_scene, b_v3d, b_rv3d, width, height);
-	blender_camera_border(&bcam, b_scene.render(), b_scene, b_v3d, b_rv3d, width, height);
+	blender_camera_from_view(&bcam, b_engine, b_scene, b_v3d, b_rv3d, width, height);
+	blender_camera_border(&bcam, b_engine, b_scene.render(), b_scene, b_v3d, b_rv3d, width, height);
 
 	blender_camera_sync(scene->camera, &bcam, width, height);
 }

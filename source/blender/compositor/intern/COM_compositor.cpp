@@ -45,7 +45,8 @@ static void intern_freeCompositorCaches()
 
 void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rendering,
                  const ColorManagedViewSettings *viewSettings,
-                 const ColorManagedDisplaySettings *displaySettings)
+                 const ColorManagedDisplaySettings *displaySettings,
+                 const char *viewName)
 {
 	/* initialize mutex, TODO this mutex init is actually not thread safe and
 	 * should be done somewhere as part of blender startup, all the other
@@ -82,7 +83,7 @@ void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rende
 	bool twopass = (editingtree->flag & NTREE_TWO_PASS) > 0 && !rendering;
 	/* initialize execution system */
 	if (twopass) {
-		ExecutionSystem *system = new ExecutionSystem(rd, scene, editingtree, rendering, twopass, viewSettings, displaySettings);
+		ExecutionSystem *system = new ExecutionSystem(rd, scene, editingtree, rendering, twopass, viewSettings, displaySettings, viewName);
 		system->execute();
 		delete system;
 		
@@ -95,7 +96,7 @@ void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rende
 	}
 
 	ExecutionSystem *system = new ExecutionSystem(rd, scene, editingtree, rendering, false,
-	                                              viewSettings, displaySettings);
+	                                              viewSettings, displaySettings, viewName);
 	system->execute();
 	delete system;
 

@@ -168,14 +168,21 @@ static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node,
 	NodeImageLayer *sockdata;
 	RenderPass *rpass;
 	int index;
+	int passflag = 0;
 	for (rpass = rl->passes.first, index = 0; rpass; rpass = rpass->next, ++index) {
 		int type;
 		if (rpass->channels == 1)
 			type = SOCK_FLOAT;
 		else
 			type = SOCK_RGBA;
-		
-		sock = nodeAddStaticSocket(ntree, node, SOCK_OUT, type, PROP_NONE, rpass->name, rpass->name);
+
+		/* we only need one socket per type */
+		if (passflag & rpass->passtype)
+			continue;
+
+		passflag |= rpass->passtype;
+
+		sock = nodeAddStaticSocket(ntree, node, SOCK_OUT, type, PROP_NONE, rpass->internal_name, rpass->internal_name);
 		/* extra socket info */
 		sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
 		sock->storage = sockdata;

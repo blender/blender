@@ -2124,7 +2124,8 @@ static void write_images(WriteData *wd, ListBase *idbase)
 {
 	Image *ima;
 	PackedFile * pf;
-
+	ImageView *iv;
+	ImagePackedFile *imapf;
 
 	ima= idbase->first;
 	while (ima) {
@@ -2133,13 +2134,20 @@ static void write_images(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_IM, "Image", 1, ima);
 			if (ima->id.properties) IDP_WriteProperty(ima->id.properties, wd);
 
-			if (ima->packedfile) {
-				pf = ima->packedfile;
-				writestruct(wd, DATA, "PackedFile", 1, pf);
-				writedata(wd, DATA, pf->size, pf->data);
+			for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
+				writestruct(wd, DATA, "ImagePackedFile", 1, imapf);
+				if (imapf->packedfile) {
+					pf = imapf->packedfile;
+					writestruct(wd, DATA, "PackedFile", 1, pf);
+					writedata(wd, DATA, pf->size, pf->data);
+				}
 			}
 
 			write_previews(wd, ima->preview);
+
+			for (iv = ima->views.first; iv; iv = iv->next)
+				writestruct(wd, DATA, "ImageView", 1, iv);
+			writestruct(wd, DATA, "Stereo3dFormat", 1, ima->stereo3d_format);
 		}
 		ima= ima->id.next;
 	}
@@ -2340,6 +2348,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TimeMarker *marker;
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
+	SceneRenderView *srv;
 	ToolSettings *tos;
 	FreestyleModuleConfig *fmc;
 	FreestyleLineSet *fls;
@@ -2421,7 +2430,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 							break;
 						}
 					}
-					
+
+					writestruct(wd, DATA, "Stereo3dFormat", 1, seq->stereo3d_format);
+
 					strip= seq->strip;
 					writestruct(wd, DATA, "Strip", 1, strip);
 					if (seq->flag & SEQ_USE_CROP && strip->crop) {
@@ -2486,6 +2497,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				writestruct(wd, DATA, "FreestyleLineSet", 1, fls);
 			}
 		}
+
+		/* writing MultiView to the blend file */
+		for (srv = sce->r.views.first; srv; srv = srv->next)
+			writestruct(wd, DATA, "SceneRenderView", 1, srv);
 		
 		if (sce->nodetree) {
 			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);
@@ -2548,8 +2563,10 @@ static void write_windowmanagers(WriteData *wd, ListBase *lb)
 	for (wm= lb->first; wm; wm= wm->id.next) {
 		writestruct(wd, ID_WM, "wmWindowManager", 1, wm);
 		
-		for (win= wm->windows.first; win; win= win->next)
+		for (win= wm->windows.first; win; win= win->next) {
 			writestruct(wd, DATA, "wmWindow", 1, win);
+			writestruct(wd, DATA, "Stereo3dFormat", 1, win->stereo3d_format);
+		}
 	}
 }
 

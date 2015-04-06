@@ -92,6 +92,7 @@
 #include "PIL_time.h"
 
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
 
 #include "bmesh.h"
 
@@ -157,14 +158,16 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 	Base *base, *obase;
 	
 	if (type == SCE_COPY_EMPTY) {
-		ListBase lb;
+		ListBase rl, rv;
 		/* XXX. main should become an arg */
 		scen = BKE_scene_add(G.main, sce->id.name + 2);
 		
-		lb = scen->r.layers;
+		rl = scen->r.layers;
+		rv = scen->r.views;
 		scen->r = sce->r;
-		scen->r.layers = lb;
+		scen->r.layers = rl;
 		scen->r.actlay = 0;
+		scen->r.views = rv;
 		scen->unit = sce->unit;
 		scen->physics_settings = sce->physics_settings;
 		scen->gm = sce->gm;
@@ -197,6 +200,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		BLI_duplicatelist(&(scen->markers), &(sce->markers));
 		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
 		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		BLI_duplicatelist(&(scen->r.views), &(sce->r.views));
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
 
 		if (sce->nodetree) {
@@ -390,6 +394,7 @@ void BKE_scene_free(Scene *sce)
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
+	BLI_freelistN(&sce->r.views);
 	
 	if (sce->toolsettings) {
 		if (sce->toolsettings->vpaint) {
@@ -437,6 +442,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	ParticleEditSettings *pset;
 	int a;
 	const char *colorspace_name;
+	SceneRenderView *srv;
 
 	sce = BKE_libblock_alloc(bmain, ID_SCE, name);
 	sce->lay = sce->layact = 1;
@@ -628,7 +634,16 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	BKE_scene_add_render_layer(sce, NULL);
-	
+
+	/* multiview - stereo */
+	BKE_scene_add_render_view(sce, STEREO_LEFT_NAME);
+	srv = sce->r.views.first;
+	BLI_strncpy(srv->suffix, STEREO_LEFT_SUFFIX, sizeof(srv->suffix));
+
+	BKE_scene_add_render_view(sce, STEREO_RIGHT_NAME);
+	srv = sce->r.views.last;
+	BLI_strncpy(srv->suffix, STEREO_RIGHT_SUFFIX, sizeof(srv->suffix));
+
 	/* game data */
 	sce->gm.stereoflag = STEREO_NOSTEREO;
 	sce->gm.stereomode = STEREO_ANAGLYPH;
@@ -699,6 +714,19 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	copy_v2_fl2(sce->safe_areas.action_center, 15.0f / 100.0f, 5.0f / 100.0f);
 
 	return sce;
+}
+
+Base *BKE_scene_base_find_by_name(struct Scene *scene, const char *name)
+{
+	Base *base;
+
+	for (base = scene->base.first; base; base = base->next) {
+		if (STREQ(base->object->id.name + 2, name)) {
+			break;
+		}
+	}
+
+	return base;
 }
 
 Base *BKE_scene_base_find(Scene *scene, Object *ob)
@@ -1892,6 +1920,42 @@ bool BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *
 	return true;
 }
 
+/* return default view */
+SceneRenderView *BKE_scene_add_render_view(Scene *sce, const char *name)
+{
+	SceneRenderView *srv;
+
+	if (!name)
+		name = DATA_("RenderView");
+
+	srv = MEM_callocN(sizeof(SceneRenderView), "new render view");
+	BLI_strncpy(srv->name, name, sizeof(srv->name));
+	BLI_uniquename(&sce->r.views, srv, DATA_("RenderView"), '.', offsetof(SceneRenderView, name), sizeof(srv->name));
+	BLI_addtail(&sce->r.views, srv);
+
+	return srv;
+}
+
+bool BKE_scene_remove_render_view(Scene *scene, SceneRenderView *srv)
+{
+	const int act = BLI_findindex(&scene->r.views, srv);
+
+	if (act == -1) {
+		return false;
+	}
+	else if (scene->r.views.first == scene->r.views.last) {
+		/* ensure 1 view is kept */
+		return false;
+	}
+
+	BLI_remlink(&scene->r.views, srv);
+	MEM_freeN(srv);
+
+	scene->r.actview = 0;
+
+	return true;
+}
+
 /* render simplification */
 
 int get_render_subsurf_level(const RenderData *r, int lvl)
@@ -2060,5 +2124,283 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
 		case B_UNIT_CAMERA:  /* *Do not* use scene's unit scale for camera focal lens! See T42026. */
 		default:
 			return value;
+	}
+}
+
+/******************** multiview *************************/
+
+size_t BKE_scene_multiview_num_views_get(const RenderData *rd)
+{
+	SceneRenderView *srv;
+	size_t totviews	= 0;
+
+	if ((rd->scemode & R_MULTIVIEW) == 0)
+		return 1;
+
+	if (rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) {
+		if (BLI_findstring(&rd->views, STEREO_LEFT_NAME, offsetof(SceneRenderView, name))) {
+			totviews++;
+		}
+
+		if (BLI_findstring(&rd->views, STEREO_RIGHT_NAME, offsetof(SceneRenderView, name))) {
+			totviews++;
+		}
+	}
+	else {
+		for (srv = rd->views.first; srv; srv = srv->next) {
+			if ((srv->viewflag & SCE_VIEW_DISABLE) == 0) {
+				totviews++;
+			}
+		}
+	}
+	return totviews;
+}
+
+bool BKE_scene_multiview_is_stereo3d(const RenderData *rd)
+{
+	SceneRenderView *srv[2];
+
+	if ((rd->scemode & R_MULTIVIEW) == 0)
+		return false;
+
+	srv[0] = (SceneRenderView *)BLI_findstring(&rd->views, STEREO_LEFT_NAME, offsetof(SceneRenderView, name));
+	srv[1] = (SceneRenderView *)BLI_findstring(&rd->views, STEREO_RIGHT_NAME, offsetof(SceneRenderView, name));
+
+	return (srv[0] && ((srv[0]->viewflag & SCE_VIEW_DISABLE) == 0) &&
+	        srv[1] && ((srv[1]->viewflag & SCE_VIEW_DISABLE) == 0));
+}
+
+/* return whether to render this SceneRenderView */
+bool BKE_scene_multiview_is_render_view_active(const RenderData *rd, const SceneRenderView *srv)
+{
+	if (srv == NULL)
+		return false;
+
+	if ((rd->scemode & R_MULTIVIEW) == 0)
+		return false;
+
+	if ((srv->viewflag & SCE_VIEW_DISABLE))
+		return false;
+
+	if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW)
+		return true;
+
+	/* SCE_VIEWS_SETUP_BASIC */
+	if (STREQ(srv->name, STEREO_LEFT_NAME) ||
+	    STREQ(srv->name, STEREO_RIGHT_NAME))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/* return true if viewname is the first or if the name is NULL or not found */
+bool BKE_scene_multiview_is_render_view_first(const RenderData *rd, const char *viewname)
+{
+	SceneRenderView *srv;
+
+	if ((rd->scemode & R_MULTIVIEW) == 0)
+		return true;
+
+	if ((!viewname) || (!viewname[0]))
+		return true;
+
+	for (srv = rd->views.first; srv; srv = srv->next) {
+		if (BKE_scene_multiview_is_render_view_active(rd, srv)) {
+			return STREQ(viewname, srv->name);
+		}
+	}
+
+	return true;
+}
+
+/* return true if viewname is the last or if the name is NULL or not found */
+bool BKE_scene_multiview_is_render_view_last(const RenderData *rd, const char *viewname)
+{
+	SceneRenderView *srv;
+
+	if ((rd->scemode & R_MULTIVIEW) == 0)
+		return true;
+
+	if ((!viewname) || (!viewname[0]))
+		return true;
+
+	for (srv = rd->views.last; srv; srv = srv->prev) {
+		if (BKE_scene_multiview_is_render_view_active(rd, srv)) {
+			return STREQ(viewname, srv->name);
+		}
+	}
+
+	return true;
+}
+
+SceneRenderView *BKE_scene_multiview_render_view_findindex(const RenderData *rd, const int view_id)
+{
+	SceneRenderView *srv;
+	size_t nr;
+
+	if ((rd->scemode & R_MULTIVIEW) == 0)
+		return NULL;
+
+	nr = 0;
+	for (srv = rd->views.first, nr = 0; srv; srv = srv->next) {
+		if (BKE_scene_multiview_is_render_view_active(rd, srv)) {
+			if (nr++ == view_id)
+				return srv;
+		}
+	}
+	return srv;
+}
+
+const char *BKE_scene_multiview_render_view_name_get(const RenderData *rd, const int view_id)
+{
+	SceneRenderView *srv = BKE_scene_multiview_render_view_findindex(rd, view_id);
+
+	if (srv)
+		return srv->name;
+	else
+		return "";
+}
+
+size_t BKE_scene_multiview_view_id_get(const RenderData *rd, const char *viewname)
+{
+	SceneRenderView *srv;
+	size_t nr;
+
+	if ((!rd) || ((rd->scemode & R_MULTIVIEW) == 0))
+		return 0;
+
+	if ((!viewname) || (!viewname[0]))
+		return 0;
+
+	nr = 0;
+	for (srv = rd->views.first, nr = 0; srv; srv = srv->next) {
+		if (BKE_scene_multiview_is_render_view_active(rd, srv)) {
+			if (STREQ(viewname, srv->name)) {
+				return nr;
+			}
+			else {
+				nr += 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+void BKE_scene_multiview_filepath_get(
+        SceneRenderView *srv, const char *filepath,
+        char *r_filepath)
+{
+	BLI_strncpy(r_filepath, filepath, FILE_MAX);
+	BLI_path_suffix(r_filepath, FILE_MAX, srv->suffix, "");
+}
+
+/**
+ * When multiview is not used the filepath is as usual (e.g., ``Image.jpg``).
+ * When multiview is on, even if only one view is enabled the view is incorporated
+ * into the file name (e.g., ``Image_L.jpg``). That allows for the user to re-render
+ * individual views.
+ */
+void BKE_scene_multiview_view_filepath_get(
+        const RenderData *rd, const char *filepath, const char *viewname,
+        char *r_filepath)
+{
+	SceneRenderView *srv;
+	char suffix[FILE_MAX];
+
+	srv = BLI_findstring(&rd->views, viewname, offsetof(SceneRenderView, name));
+	if (srv)
+		BLI_strncpy(suffix, srv->suffix, sizeof(suffix));
+	else
+		BLI_strncpy(suffix, viewname, sizeof(suffix));
+
+	BLI_strncpy(r_filepath, filepath, FILE_MAX);
+	BLI_path_suffix(r_filepath, FILE_MAX, suffix, "");
+}
+
+const char *BKE_scene_multiview_view_suffix_get(const RenderData *rd, const char *viewname)
+{
+	SceneRenderView *srv;
+
+	if ((viewname == NULL) || (viewname[0] == '\0'))
+		return viewname;
+
+	srv = BLI_findstring(&rd->views, viewname, offsetof(SceneRenderView, name));
+	if (srv)
+		return srv->suffix;
+	else
+		return viewname;
+}
+
+const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, const size_t view_id)
+{
+	if ((rd->scemode & R_MULTIVIEW) == 0) {
+		return "";
+	}
+	else {
+		const char *viewname = BKE_scene_multiview_render_view_name_get(rd, view_id);
+		return BKE_scene_multiview_view_suffix_get(rd, viewname);
+	}
+}
+
+void BKE_scene_multiview_view_prefix_get(Scene *scene, const char *name, char *rprefix, char **rext)
+{
+	SceneRenderView *srv;
+	size_t index_act;
+	char *suf_act;
+	const char delims[] = {'.', '\0'};
+
+	rprefix[0] = '\0';
+
+	/* begin of extension */
+	index_act = BLI_str_rpartition(name, delims, rext, &suf_act);
+	BLI_assert(index_act > 0);
+
+	for (srv = scene->r.views.first; srv; srv = srv->next) {
+		if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+			size_t len = strlen(srv->suffix);
+			if (STREQLEN(*rext - len, srv->suffix, len)) {
+				BLI_strncpy(rprefix, name, strlen(name) - strlen(*rext) - len + 1);
+				break;
+			}
+		}
+	}
+}
+
+void BKE_scene_multiview_videos_dimensions_get(
+        const RenderData *rd, const size_t width, const size_t height,
+        size_t *r_width, size_t *r_height)
+{
+	if ((rd->scemode & R_MULTIVIEW) &&
+	    rd->im_format.views_format == R_IMF_VIEWS_STEREO_3D)
+	{
+		IMB_stereo3d_write_dimensions(
+		        rd->im_format.stereo3d_format.display_mode,
+		        (rd->im_format.stereo3d_format.flag & S3D_SQUEEZED_FRAME) != 0,
+		        width, height,
+		        r_width, r_height);
+	}
+	else {
+		*r_width = width;
+		*r_height = height;
+	}
+}
+
+size_t BKE_scene_multiview_num_videos_get(const RenderData *rd)
+{
+	if (BKE_imtype_is_movie(rd->im_format.imtype) == false)
+		return 0;
+
+	if ((rd->scemode & R_MULTIVIEW) == 0)
+		return 1;
+
+	if (rd->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
+		return 1;
+	}
+	else {
+		/* R_IMF_VIEWS_INDIVIDUAL */
+		return BKE_scene_multiview_num_views_get(rd);
 	}
 }

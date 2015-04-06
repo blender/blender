@@ -122,6 +122,7 @@ static pthread_mutex_t _nodes_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _movieclip_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
 static int thread_levels = 0;  /* threads can be invoked inside threads */
 static int num_threads_override = 0;
@@ -402,6 +403,8 @@ void BLI_lock_thread(int type)
 		pthread_mutex_lock(&_colormanage_lock);
 	else if (type == LOCK_FFTW)
 		pthread_mutex_lock(&_fftw_lock);
+	else if (type == LOCK_VIEW3D)
+		pthread_mutex_lock(&_view3d_lock);
 }
 
 void BLI_unlock_thread(int type)
@@ -426,6 +429,8 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_colormanage_lock);
 	else if (type == LOCK_FFTW)
 		pthread_mutex_unlock(&_fftw_lock);
+	else if (type == LOCK_VIEW3D)
+		pthread_mutex_unlock(&_view3d_lock);
 }
 
 /* Mutex Locks */

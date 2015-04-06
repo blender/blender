@@ -3959,7 +3959,7 @@ static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf
 	float *fp, *col;
 	int a;
 	
-	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
+	fp = RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR, R.viewname);
 	if (fp==NULL) return;
 	col= rectf+3;
 	
@@ -4052,9 +4052,10 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 
 	/* zero alpha pixels get speed vector max again */
 	if (addpassflag & SCE_PASS_VECTOR)
-		if (rl->layflag & SCE_LAY_SOLID)
-			reset_sky_speedvectors(pa, rl, rl->acolrect?rl->acolrect:rl->rectf);	/* if acolrect is set we use it */
-
+		if (rl->layflag & SCE_LAY_SOLID) {
+			float *rect = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, R.viewname);
+			reset_sky_speedvectors(pa, rl, rl->acolrect ? rl->acolrect : rect);	/* if acolrect is set we use it */
+		}
 	/* filtered render, for now we assume only 1 filter size */
 	if (pa->crop) {
 		crop= 1;
@@ -4239,8 +4240,9 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 							alpha= samp_shr[a].combined[3];
 							if (alpha!=0.0f) {
 								RenderLayer *rl= ssamp.rlpp[a];
-								
-								addAlphaOverFloat(rl->rectf + 4*od, samp_shr[a].combined);
+
+								float *rect = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, R.viewname);
+								addAlphaOverFloat(rect + 4 * od, samp_shr[a].combined);
 				
 								add_transp_passes(rl, od, &samp_shr[a], alpha);
 								if (addpassflag & SCE_PASS_VECTOR)

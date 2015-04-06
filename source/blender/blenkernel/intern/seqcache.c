@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_sequence_types.h"
+#include "DNA_scene_types.h"
 
 #include "IMB_moviecache.h"
 #include "IMB_imbuf.h"
@@ -41,6 +42,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_sequencer.h"
+#include "BKE_scene.h"
 
 typedef struct SeqCacheKey {
 	struct Sequence *seq;
@@ -77,7 +79,9 @@ static bool seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
 	        (a->bmain != b->bmain) ||
 	        (a->scene != b->scene) ||
 	        (a->motion_blur_shutter != b->motion_blur_shutter) ||
-	        (a->motion_blur_samples != b->motion_blur_samples));
+	        (a->motion_blur_samples != b->motion_blur_samples) ||
+	        (a->scene->r.views_format != b->scene->r.views_format) ||
+	        (a->view_id != b->view_id));
 }
 
 static unsigned int seq_hash_render_data(const SeqRenderData *a)
@@ -89,6 +93,7 @@ static unsigned int seq_hash_render_data(const SeqRenderData *a)
 	rval ^= ((intptr_t) a->scene) << 6;
 	rval ^= (int)(a->motion_blur_shutter * 100.0f) << 10;
 	rval ^= a->motion_blur_samples << 24;
+	rval ^= ((a->scene->r.views_format * 2) + a->view_id) << 32;
 
 	return rval;
 }

@@ -404,6 +404,8 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         col.prop(rd, "use_render_cache")
 
         layout.template_image_settings(image_settings, color_management=False)
+        if rd.use_multiview:
+            layout.template_image_views(image_settings)
 
         if file_format == 'QUICKTIME':
             quicktime = rd.quicktime

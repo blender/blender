@@ -40,19 +40,19 @@ ImageNode::ImageNode(bNode *editorNode) : Node(editorNode)
 
 }
 NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter, RenderLayer *rl, Image *image, ImageUser *user,
-                                            int framenumber, int outputsocketIndex, int passindex, DataType datatype) const
+                                            int framenumber, int outputsocketIndex, int passtype, int view, DataType datatype) const
 {
 	NodeOutput *outputSocket = this->getOutputSocket(outputsocketIndex);
 	MultilayerBaseOperation *operation = NULL;
 	switch (datatype) {
 		case COM_DT_VALUE:
-			operation = new MultilayerValueOperation(passindex);
+			operation = new MultilayerValueOperation(passtype, view);
 			break;
 		case COM_DT_VECTOR:
-			operation = new MultilayerVectorOperation(passindex);
+			operation = new MultilayerVectorOperation(passtype, view);
 			break;
 		case COM_DT_COLOR:
-			operation = new MultilayerColorOperation(passindex);
+			operation = new MultilayerColorOperation(passtype, view);
 			break;
 		default:
 			break;
@@ -96,6 +96,10 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 					NodeOperation *operation = NULL;
 					socket = this->getOutputSocket(index);
 					bNodeSocket *bnodeSocket = socket->getbNodeSocket();
+					RenderPass *rpass = (RenderPass *)BLI_findstring(&rl->passes, bnodeSocket->identifier, offsetof(RenderPass, internal_name));
+
+					int view = (rpass ? rpass->view_id : 0);
+
 					/* Passes in the file can differ from passes stored in sockets (#36755).
 					 * Look up the correct file pass using the socket identifier instead.
 					 */
@@ -104,8 +108,22 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 					int passindex = storage->pass_index;*/
 					RenderPass *rpass = (RenderPass *)BLI_findlink(&rl->passes, passindex);
 #endif
-					int passindex;
-					RenderPass *rpass;
+
+					/* returns the image view to use for the current active view */
+					if (BLI_listbase_count_ex(&image->rr->views, 2) > 1) {
+						const int view_image = imageuser->view;
+						const bool is_allview = (view_image == 0); /* if view selected == All (0) */
+
+						if (is_allview) {
+							/* heuristic to match image name with scene names
+							 * check if the view name exists in the image */
+							view = BLI_findstringindex(&image->rr->views, context.getViewName(), offsetof(RenderView, name));
+						}
+						else {
+							view = view_image - 1;
+						}
+					}
+
 					if (STREQ(bnodeSocket->identifier, "Alpha")) {
 						BLI_assert(combined_operation != NULL);
 						NodeOutput *outputSocket = this->getOutputSocket(index);
@@ -118,22 +136,21 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 						operation = separate_operation;
 					}
 					else {
-						for (rpass = (RenderPass *)rl->passes.first, passindex = 0; rpass; rpass = rpass->next, ++passindex)
-							if (STREQ(rpass->name, bnodeSocket->identifier))
-								break;
 						if (rpass) {
-							imageuser->pass = passindex;
 							switch (rpass->channels) {
 								case 1:
-									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_VALUE);
+									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index,
+									                              rpass->passtype, view, COM_DT_VALUE);
 									break;
 									/* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
 									/* XXX any way to detect actual vector images? */
 								case 3:
-									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_VECTOR);
+									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index,
+									                              rpass->passtype, view, COM_DT_VECTOR);
 									break;
 								case 4:
-									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index, passindex, COM_DT_COLOR);
+									operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index,
+									                              rpass->passtype, view, COM_DT_COLOR);
 									break;
 								default:
 									/* dummy operation is added below */
@@ -168,6 +185,8 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			operation->setImage(image);
 			operation->setImageUser(imageuser);
 			operation->setFramenumber(framenumber);
+			operation->setRenderData(context.getRenderData());
+			operation->setViewName(context.getViewName());
 			converter.addOperation(operation);
 			
 			if (outputStraightAlpha) {
@@ -190,6 +209,8 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			alphaOperation->setImage(image);
 			alphaOperation->setImageUser(imageuser);
 			alphaOperation->setFramenumber(framenumber);
+			alphaOperation->setRenderData(context.getRenderData());
+			alphaOperation->setViewName(context.getViewName());
 			converter.addOperation(alphaOperation);
 			
 			converter.mapOutputSocket(alphaImage, alphaOperation->getOutputSocket());
@@ -200,6 +221,8 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			depthOperation->setImage(image);
 			depthOperation->setImageUser(imageuser);
 			depthOperation->setFramenumber(framenumber);
+			depthOperation->setRenderData(context.getRenderData());
+			depthOperation->setViewName(context.getViewName());
 			converter.addOperation(depthOperation);
 			
 			converter.mapOutputSocket(depthImage, depthOperation->getOutputSocket());
@@ -239,6 +262,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 				}
 
 				if (operation) {
+					/* not supporting multiview for this generic case */
 					converter.addOperation(operation);
 					converter.mapOutputSocket(output, operation->getOutputSocket());
 				}

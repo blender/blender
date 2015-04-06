@@ -495,9 +495,11 @@ static void render_envmap(Render *re, EnvMap *env)
 			RenderLayer *rl = envre->result->layers.first;
 			int y;
 			float *alpha;
-			
+			float *rect;
+
+			rect = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, re->viewname);
 			ibuf = IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect | IB_rectfloat);
-			memcpy(ibuf->rect_float, rl->rectf, ibuf->channels * ibuf->x * ibuf->y * sizeof(float));
+			memcpy(ibuf->rect_float, rect, ibuf->channels * ibuf->x * ibuf->y * sizeof(float));
 			
 			/* envmap renders without alpha */
 			alpha = ibuf->rect_float + 3;

@@ -439,3 +439,15 @@ bool IMB_isanim(const char *filename)
 	
 	return (type && type != ANIM_SEQUENCE);
 }
+
+bool IMB_isfloat(ImBuf *ibuf)
+{
+	ImFileType *type;
+
+	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+		if (type->ftype(type, ibuf)) {
+			return (type->flag & IM_FTYPE_FLOAT) != 0;
+		}
+	}
+	return false;
+}

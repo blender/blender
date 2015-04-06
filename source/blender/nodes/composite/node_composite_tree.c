@@ -226,12 +226,13 @@ void *COM_linker_hack = NULL;
 
 void ntreeCompositExecTree(Scene *scene, bNodeTree *ntree, RenderData *rd, int rendering, int do_preview,
                            const ColorManagedViewSettings *view_settings,
-                           const ColorManagedDisplaySettings *display_settings)
+                           const ColorManagedDisplaySettings *display_settings,
+                           const char *view_name)
 {
 #ifdef WITH_COMPOSITOR
-	COM_execute(rd, scene, ntree, rendering, view_settings, display_settings);
+	COM_execute(rd, scene, ntree, rendering, view_settings, display_settings, view_name);
 #else
-	UNUSED_VARS(scene, ntree, rd, rendering, view_settings, display_settings);
+	UNUSED_VARS(scene, ntree, rd, rendering, view_settings, display_settings, view_name);
 #endif
 
 	UNUSED_VARS(do_preview);

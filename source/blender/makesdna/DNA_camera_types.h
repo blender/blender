@@ -44,6 +44,16 @@ struct Object;
 struct AnimData;
 struct Ipo;
 
+/* ------------------------------------------- */
+/* Stereo Settings */
+typedef struct CameraStereoSettings {
+	float interocular_distance;
+	float convergence_distance;
+	short convergence_mode;
+	short pivot;
+	short pad, pad2;
+} CameraStereoSettings;
+
 typedef struct Camera {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -69,6 +79,9 @@ typedef struct Camera {
 
 	char sensor_fit;
 	char pad[7];
+
+	 /* Stereo settings */
+	 struct CameraStereoSettings stereo;
 } Camera;
 
 /* **************** CAMERA ********************* */
@@ -122,6 +135,20 @@ enum {
 
 #define DEFAULT_SENSOR_WIDTH	32.0f
 #define DEFAULT_SENSOR_HEIGHT	18.0f
+
+/* stereo->convergence_mode */
+enum {
+	CAM_S3D_OFFAXIS    = 0,
+	CAM_S3D_PARALLEL   = 1,
+	CAM_S3D_TOE        = 2,
+};
+
+/* stereo->pivot */
+enum {
+	CAM_S3D_PIVOT_LEFT      = 0,
+	CAM_S3D_PIVOT_RIGHT     = 1,
+	CAM_S3D_PIVOT_CENTER    = 2,
+};
 
 #ifdef __cplusplus
 }

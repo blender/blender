@@ -122,6 +122,7 @@ set(SRC
 	composite/nodes/node_composite_boxmask.c
 	composite/nodes/node_composite_ellipsemask.c
 	composite/nodes/node_composite_switch.c
+	composite/nodes/node_composite_switchview.c
 	composite/nodes/node_composite_colorcorrection.c
 	composite/nodes/node_composite_pixelate.c
 

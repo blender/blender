@@ -151,7 +151,8 @@ public:
 	 * @param rendering [true false]
 	 */
 	ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editingtree, bool rendering, bool fastcalculation,
-	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
+	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings,
+	                const char *viewName);
 
 	/**
 	 * Destructor

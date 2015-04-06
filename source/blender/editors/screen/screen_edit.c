@@ -59,6 +59,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_clip.h"
+#include "ED_node.h"
 #include "ED_render.h"
 
 #include "UI_interface.h"
@@ -2122,4 +2123,85 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
 	
 }
 
+/*
+ * return true if any active area requires to see in 3D
+ */
+bool ED_screen_stereo3d_required(bScreen *screen)
+{
+	ScrArea *sa;
+	Scene *sce = screen->scene;
+	const bool is_multiview = (sce->r.scemode & R_MULTIVIEW) != 0;
 
+	for (sa = screen->areabase.first; sa; sa = sa->next) {
+		switch (sa->spacetype) {
+			case SPACE_VIEW3D:
+			{
+				View3D *v3d;
+
+				if (!is_multiview)
+					continue;
+
+				v3d = sa->spacedata.first;
+				if (v3d->camera && v3d->stereo3d_camera == STEREO_3D_ID) {
+					ARegion *ar;
+					for (ar = sa->regionbase.first; ar; ar = ar->next) {
+						if (ar->regiondata && ar->regiontype == RGN_TYPE_WINDOW) {
+							RegionView3D *rv3d = ar->regiondata;
+							if (rv3d->persp == RV3D_CAMOB) {
+								return true;
+							}
+						}
+					}
+				}
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima;
+
+				/* images should always show in stereo, even if
+				 * the file doesn't have views enabled */
+				sima = sa->spacedata.first;
+				if (sima->image && (sima->image->flag & IMA_IS_STEREO) &&
+				    (sima->iuser.flag & IMA_SHOW_STEREO))
+				{
+					return true;
+				}
+				break;
+			}
+			case SPACE_NODE:
+			{
+				SpaceNode *snode;
+
+				if (!is_multiview)
+					continue;
+
+				snode = sa->spacedata.first;
+				if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
+					return true;
+				}
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				SpaceSeq *sseq;
+
+				if (!is_multiview)
+					continue;
+
+				sseq = sa->spacedata.first;
+				if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
+					return true;
+				}
+
+				if (sseq->draw_flag & SEQ_DRAW_BACKDROP) {
+					return true;
+				}
+
+				break;
+			}
+		}
+	}
+
+	return false;
+}

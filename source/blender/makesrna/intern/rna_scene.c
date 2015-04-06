@@ -36,6 +36,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
 
+#include "IMB_imbuf_types.h"
+
 #include "BLI_math.h"
 
 #include "BLF_translation.h"
@@ -217,13 +219,13 @@ EnumPropertyItem snap_uv_element_items[] = {
 #endif
 
 #ifdef WITH_OPENEXR
-#  define R_IMF_ENUM_EXR_MULTI  {R_IMF_IMTYPE_MULTILAYER, "OPEN_EXR_MULTILAYER", ICON_FILE_IMAGE, \
+#  define R_IMF_ENUM_EXR_MULTILAYER  {R_IMF_IMTYPE_MULTILAYER, "OPEN_EXR_MULTILAYER", ICON_FILE_IMAGE, \
                                                           "OpenEXR MultiLayer", \
                                                           "Output image in multilayer OpenEXR format"},
 #  define R_IMF_ENUM_EXR        {R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", \
                                                        "Output image in OpenEXR format"},
 #else
-#  define R_IMF_ENUM_EXR_MULTI
+#  define R_IMF_ENUM_EXR_MULTILAYER
 #  define R_IMF_ENUM_EXR
 #endif
 
@@ -252,7 +254,7 @@ EnumPropertyItem snap_uv_element_items[] = {
 	{0, "", 0, " ", NULL},                                                    \
 	R_IMF_ENUM_CINEON                                                         \
 	R_IMF_ENUM_DPX                                                            \
-	R_IMF_ENUM_EXR_MULTI                                                      \
+	R_IMF_ENUM_EXR_MULTILAYER                                                 \
 	R_IMF_ENUM_EXR                                                            \
 	R_IMF_ENUM_HDR                                                            \
 	R_IMF_ENUM_TIFF                                                           \
@@ -333,6 +335,58 @@ EnumPropertyItem normal_swizzle_items[] = {
 EnumPropertyItem bake_save_mode_items[] = {
 	{R_BAKE_SAVE_INTERNAL, "INTERNAL", 0, "Internal", "Save the baking map in an internal image datablock"},
 	{R_BAKE_SAVE_EXTERNAL, "EXTERNAL", 0, "External", "Save the baking map in an external file"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+#define R_IMF_VIEWS_ENUM_IND      {R_IMF_VIEWS_INDIVIDUAL, "INDIVIDUAL", 0, "Individual", "Individual files for each view with the prefix as defined by the scene views"},
+#define R_IMF_VIEWS_ENUM_S3D      {R_IMF_VIEWS_STEREO_3D, "STEREO_3D", 0, "Stereo 3D", "Single file with an encoded stereo pair"},
+#define R_IMF_VIEWS_ENUM_MV       {R_IMF_VIEWS_MULTIVIEW, "MULTIVIEW", 0, "Multi-View", "Single file with all the views"},
+
+EnumPropertyItem views_format_items[] = {
+	R_IMF_VIEWS_ENUM_IND
+	R_IMF_VIEWS_ENUM_S3D
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem views_format_multilayer_items[] = {
+	R_IMF_VIEWS_ENUM_IND
+	R_IMF_VIEWS_ENUM_MV
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem views_format_multiview_items[] = {
+	R_IMF_VIEWS_ENUM_IND
+	R_IMF_VIEWS_ENUM_S3D
+	R_IMF_VIEWS_ENUM_MV
+	{0, NULL, 0, NULL, NULL}
+};
+
+#undef R_IMF_VIEWS_ENUM_IND
+#undef R_IMF_VIEWS_ENUM_S3D
+#undef R_IMF_VIEWS_ENUM_MV
+
+EnumPropertyItem stereo3d_display_items[] = {
+	{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph", "Render two differently filtered colored images for each eye. Anaglyph glasses are required"},
+	{S3D_DISPLAY_INTERLACE, "INTERLACE", 0, "Interlace", "Render two images for each eye into one interlaced image. 3D-ready monitor is requiered"},
+#ifdef DEBUG /* MULTIVIEW_TODO: quadbuffer mode not fully working */
+	{S3D_DISPLAY_PAGEFLIP, "TIMESEQUENTIAL", 0, "Time Sequential", "Renders alternate eyes (also known as pageflip). It requires Quadbuffer support in the graphic card"},
+#endif
+	{S3D_DISPLAY_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-Side", "Render images for left and right eye side-by-side"},
+	{S3D_DISPLAY_TOPBOTTOM, "TOPBOTTOM", 0, "Top-Bottom", "Render images for left and right eye one above another"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem stereo3d_anaglyph_type_items[] = {
+	{S3D_ANAGLYPH_REDCYAN, "RED_CYAN", 0, "Red-Cyan", ""},
+	{S3D_ANAGLYPH_GREENMAGENTA, "GREEN_MAGENTA", 0, "Green-Magenta", ""},
+	{S3D_ANAGLYPH_YELLOWBLUE, "YELLOW_BLUE", 0, "Yellow-Blue", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem stereo3d_interlace_type_items[] = {
+	{S3D_INTERLACE_ROW, "ROW_INTERLEAVED", 0, "Row Interleaved", ""},
+	{S3D_INTERLACE_COLUMN, "COLUMN_INTERLEAVED", 0, "Column Interleaved", ""},
+	{S3D_INTERLACE_CHECKERBOARD, "CHECKERBOARD_INTERLEAVED", 0, "Checkerboard Interleaved", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -723,6 +777,26 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 	iter->valid = (internal->link != NULL);
 }
 
+static int rna_RenderSettings_stereoViews_skip(CollectionPropertyIterator *iter, void *UNUSED(data))
+{
+	ListBaseIterator *internal = &iter->internal.listbase;
+	SceneRenderView *srv = (SceneRenderView *)internal->link;
+
+	if ((STREQ(srv->name, STEREO_LEFT_NAME)) ||
+	    (STREQ(srv->name, STEREO_RIGHT_NAME)))
+	{
+		return 0;
+	}
+
+	return 1;
+};
+
+static void rna_RenderSettings_stereoViews_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	RenderData *rd = (RenderData *)ptr->data;
+	rna_iterator_listbase_begin(iter, &rd->views, rna_RenderSettings_stereoViews_skip);
+}
+
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
@@ -945,6 +1019,25 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *UNU
 	}
 }
 
+static EnumPropertyItem *rna_ImageFormatSettings_views_format_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+{
+	ImageFormatData *imf = (ImageFormatData *)ptr->data;
+
+	if (imf == NULL) {
+		return views_format_items;
+	}
+	else if (imf->imtype == R_IMF_IMTYPE_OPENEXR) {
+		return views_format_multiview_items;
+	}
+	else if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
+		return views_format_multilayer_items;
+	}
+	else {
+		return views_format_items;
+	}
+}
+
 #ifdef WITH_OPENEXR
 	/* OpenEXR */
 
@@ -1158,6 +1251,69 @@ static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, 
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 
+static int rna_RenderSettings_active_view_index_get(PointerRNA *ptr)
+{
+	RenderData *rd = (RenderData *)ptr->data;
+	return rd->actview;
+}
+
+static void rna_RenderSettings_active_view_index_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd = (RenderData *)ptr->data;
+	rd->actview = value;
+}
+
+static void rna_RenderSettings_active_view_index_range(PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+{
+	RenderData *rd = (RenderData *)ptr->data;
+
+	*min = 0;
+	*max = max_ii(0, BLI_listbase_count(&rd->views) - 1);
+}
+
+static PointerRNA rna_RenderSettings_active_view_get(PointerRNA *ptr)
+{
+	RenderData *rd = (RenderData *)ptr->data;
+	SceneRenderView *srv = BLI_findlink(&rd->views, rd->actview);
+
+	return rna_pointer_inherit_refine(ptr, &RNA_SceneRenderView, srv);
+}
+
+static void rna_RenderSettings_active_view_set(PointerRNA *ptr, PointerRNA value)
+{
+	RenderData *rd = (RenderData *)ptr->data;
+	SceneRenderView *srv = (SceneRenderView *)value.data;
+	const int index = BLI_findindex(&rd->views, srv);
+	if (index != -1) rd->actview = index;
+}
+
+static SceneRenderView *rna_RenderView_new(ID *id, RenderData *UNUSED(rd), const char *name)
+{
+	Scene *scene = (Scene *)id;
+	SceneRenderView *srv = BKE_scene_add_render_view(scene, name);
+
+	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	return srv;
+}
+
+static void rna_RenderView_remove(ID *id, RenderData *UNUSED(rd), Main *UNUSED(bmain), ReportList *reports,
+                                   PointerRNA *srv_ptr)
+{
+	SceneRenderView *srv = srv_ptr->data;
+	Scene *scene = (Scene *)id;
+
+	if (!BKE_scene_remove_render_view(scene, srv)) {
+		BKE_reportf(reports, RPT_ERROR, "Render view '%s' could not be removed from scene '%s'",
+		            srv->name, scene->id.name + 2);
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(srv_ptr);
+
+	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
+}
+
 static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd = (RenderData *)ptr->data;
@@ -1261,6 +1417,34 @@ static char *rna_SceneRenderLayer_path(PointerRNA *ptr)
 
 	BLI_strescape(name_esc, srl->name, sizeof(name_esc));
 	return BLI_sprintfN("render.layers[\"%s\"]", name_esc);
+}
+
+static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	SceneRenderView *rv = (SceneRenderView *)ptr->data;
+	BLI_strncpy_utf8(rv->name, value, sizeof(rv->name));
+	BLI_uniquename(&scene->r.views, rv, DATA_("RenderView"), '.', offsetof(SceneRenderView, name), sizeof(rv->name));
+}
+
+static char *rna_SceneRenderView_path(PointerRNA *ptr)
+{
+	SceneRenderView *srv = (SceneRenderView *)ptr->data;
+	return BLI_sprintfN("render.views[\"%s\"]", srv->name);
+}
+
+static void rna_RenderSettings_views_format_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd = (RenderData *)ptr->data;
+
+	if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW &&
+	    value == SCE_VIEWS_FORMAT_STEREO_3D)
+	{
+		/* make sure the actview is visible */
+		if (rd->actview > 1) rd->actview = 1;
+	}
+
+	rd->views_format = value;
 }
 
 static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
@@ -1759,6 +1943,26 @@ static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
 		dofsettings->num_blades = value;
 }
 
+static void rna_Stereo3dFormat_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	if (id && GS(id->name) == ID_IM) {
+		Image *ima = (Image *)id;
+		ImBuf *ibuf;
+		void *lock;
+
+		if ((ima->flag & IMA_IS_STEREO) == 0)
+			return;
+
+		ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+		if (ibuf) {
+			BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+		}
+		BKE_image_release_ibuf(ima, ibuf, lock);
+	}
+}
 
 static int rna_gpu_is_hq_supported_get(PointerRNA *UNUSED(ptr))
 {
@@ -4103,6 +4307,134 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
+/* Render Views - MultiView */
+static void rna_def_scene_render_view(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "SceneRenderView", NULL);
+	RNA_def_struct_ui_text(srna, "Scene Render View", "Render viewpoint for 3D stereo and multiview rendering");
+	RNA_def_struct_ui_icon(srna, ICON_RESTRICT_RENDER_OFF);
+	RNA_def_struct_path_func(srna, "rna_SceneRenderView_path");
+
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SceneRenderView_name_set");
+	RNA_def_property_ui_text(prop, "Name", "Render view name");
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "file_suffix", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "suffix");
+	RNA_def_property_ui_text(prop, "File Suffix", "Suffix added to the render images for this view");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "camera_suffix", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "suffix");
+	RNA_def_property_ui_text(prop, "Camera Suffix", "Suffix to identify the cameras to use, and added to the render images for this view");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "viewflag", SCE_VIEW_DISABLE);
+	RNA_def_property_ui_text(prop, "Enabled", "Disable or enable the render view");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+}
+
+static void rna_def_render_views(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "RenderViews");
+	srna = RNA_def_struct(brna, "RenderViews", NULL);
+	RNA_def_struct_sdna(srna, "RenderData");
+	RNA_def_struct_ui_text(srna, "Render Views", "Collection of render views");
+
+	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "actview");
+	RNA_def_property_int_funcs(prop, "rna_RenderSettings_active_view_index_get",
+	                           "rna_RenderSettings_active_view_index_set",
+	                           "rna_RenderSettings_active_view_index_range");
+	RNA_def_property_ui_text(prop, "Active View Index", "Active index in render view array");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "SceneRenderView");
+	RNA_def_property_pointer_funcs(prop, "rna_RenderSettings_active_view_get",
+	                               "rna_RenderSettings_active_view_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Active Render View", "Active Render View");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	func = RNA_def_function(srna, "new", "rna_RenderView_new");
+	RNA_def_function_ui_description(func, "Add a render view to scene");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_string(func, "name", "RenderView", 0, "", "New name for the marker (not unique)");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "result", "SceneRenderView", "", "Newly created render view");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_RenderView_remove");
+	RNA_def_function_ui_description(func, "Remove a render view");
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "view", "SceneRenderView", "", "Render view to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+}
+
+static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem stereo3d_display_items[] = {
+		{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph", "Render two differently filtered colored images for each eye. Anaglyph glasses are required"},
+		{S3D_DISPLAY_INTERLACE, "INTERLACE", 0, "Interlace", "Render two images for each eye into one interlaced image. 3D-ready monitor is requiered"},
+		{S3D_DISPLAY_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-Side", "Render images for left and right eye side-by-side"},
+		{S3D_DISPLAY_TOPBOTTOM, "TOPBOTTOM", 0, "Top-Bottom", "Render images for left and right eye one above another"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "Stereo3dFormat", NULL);
+	RNA_def_struct_sdna(srna, "Stereo3dFormat");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Stereo Output", "Settings for stereo output");
+
+	prop = RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "display_mode");
+	RNA_def_property_enum_items(prop, stereo3d_display_items);
+	RNA_def_property_ui_text(prop, "Stereo Mode", "");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Stereo3dFormat_update");
+
+	prop = RNA_def_property(srna, "anaglyph_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, stereo3d_anaglyph_type_items);
+	RNA_def_property_ui_text(prop, "Anaglyph Type", "");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Stereo3dFormat_update");
+
+	prop = RNA_def_property(srna, "interlace_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, stereo3d_interlace_type_items);
+	RNA_def_property_ui_text(prop, "Interlace Type", "");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Stereo3dFormat_update");
+
+	prop = RNA_def_property(srna, "use_interlace_swap", PROP_BOOLEAN, PROP_BOOLEAN);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", S3D_INTERLACE_SWAP);
+	RNA_def_property_ui_text(prop, "Swap Left/Right", "Swap left and right stereo channels");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Stereo3dFormat_update");
+
+	prop = RNA_def_property(srna, "use_sidebyside_crosseyed", PROP_BOOLEAN, PROP_BOOLEAN);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", S3D_SIDEBYSIDE_CROSSEYED);
+	RNA_def_property_ui_text(prop, "Cross-Eyed", "Right eye should see left image and vice-versa");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Stereo3dFormat_update");
+
+	prop = RNA_def_property(srna, "use_squeezed_frame", PROP_BOOLEAN, PROP_BOOLEAN);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", S3D_SQUEEZED_FRAME);
+	RNA_def_property_ui_text(prop, "Squeezed Frame", "Combine both views in a squeezed image");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Stereo3dFormat_update");
+}
+
 /* use for render output and image save operator,
  * note: there are some cases where the members act differently when this is
  * used from a scene, video formats can only be selected for render output
@@ -4121,6 +4453,8 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	rna_def_image_format_stereo3d_format(brna);
 
 	srna = RNA_def_struct(brna, "ImageFormatSettings", NULL);
 	RNA_def_struct_sdna(srna, "ImageFormatData");
@@ -4190,7 +4524,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageFormatSettings_exr_codec_itemf");
 	RNA_def_property_ui_text(prop, "Codec", "Codec settings for OpenEXR");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
 #endif
 
 #ifdef WITH_OPENJPEG
@@ -4241,6 +4574,20 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "G", "Log conversion gamma");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	/* multiview */
+	prop = RNA_def_property(srna, "views_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "views_format");
+	RNA_def_property_enum_items(prop, views_format_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageFormatSettings_views_format_itemf");
+	RNA_def_property_ui_text(prop, "Views Format", "Format of multiview media");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "stereo_3d_format", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "stereo3d_format");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "Stereo3dFormat");
+	RNA_def_property_ui_text(prop, "Stereo 3D Format", "Settings for stereo 3d");
 
 	/* color management */
 	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
@@ -4643,6 +4990,16 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		                            "Unit line thickness is scaled by the proportion of the present vertical image "
 		                            "resolution to 480 pixels"},
 		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem views_format_items[] = {
+		{SCE_VIEWS_FORMAT_STEREO_3D, "STEREO_3D", 0, "Stereo 3D",
+		                        "Single stereo camera system, adjust the stereo settings in the camera panel"},
+		{SCE_VIEWS_FORMAT_MULTIVIEW, "MULTIVIEW", 0, "Multi-View",
+		                        "Multi camera system, adjust the cameras individually"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+
 
 	rna_def_scene_ffmpeg_settings(brna);
 #ifdef WITH_QUICKTIME
@@ -5325,6 +5682,32 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Single Layer", "Only render the active layer");
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	/* views (stereoscopy et al) */
+	prop = RNA_def_property(srna, "views", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "SceneRenderView");
+	RNA_def_property_ui_text(prop, "Render Views", "");
+	rna_def_render_views(brna, prop);
+
+	prop = RNA_def_property(srna, "stereo_views", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "views", NULL);
+	RNA_def_property_collection_funcs(prop, "rna_RenderSettings_stereoViews_begin", "rna_iterator_listbase_next",
+	                                        "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+	                                        NULL, NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "SceneRenderView");
+	RNA_def_property_ui_text(prop, "Render Views", "");
+
+	prop = RNA_def_property(srna, "use_multiview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_MULTIVIEW);
+	RNA_def_property_ui_text(prop, "Multiple Views", "Use multiple views in the scene");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "views_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, views_format_items);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Setup Stereo Mode", "");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_RenderSettings_views_format_set", NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	/* engine */
 	prop = RNA_def_property(srna, "engine", PROP_ENUM, PROP_NONE);
@@ -6076,8 +6459,8 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* *** Animated *** */
 	rna_def_scene_render_data(brna);
 	rna_def_scene_render_layer(brna);
-
 	rna_def_gpu_fx(brna);
+	rna_def_scene_render_view(brna);
 
 	/* Scene API */
 	RNA_api_scene(srna);

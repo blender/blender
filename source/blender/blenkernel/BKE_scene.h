@@ -70,6 +70,7 @@ void BKE_scene_free(struct Scene *sce);
 struct Scene *BKE_scene_add(struct Main *bmain, const char *name);
 
 /* base functions */
+struct Base *BKE_scene_base_find_by_name(struct Scene *scene, const char *name);
 struct Base *BKE_scene_base_find(struct Scene *scene, struct Object *ob);
 struct Base *BKE_scene_base_add(struct Scene *sce, struct Object *ob);
 void         BKE_scene_base_unlink(struct Scene *sce, struct Base *base);
@@ -122,6 +123,9 @@ void BKE_scene_update_for_newframe_ex(struct EvaluationContext *eval_ctx, struct
 struct SceneRenderLayer *BKE_scene_add_render_layer(struct Scene *sce, const char *name);
 bool BKE_scene_remove_render_layer(struct Main *main, struct Scene *scene, struct SceneRenderLayer *srl);
 
+struct SceneRenderView *BKE_scene_add_render_view(struct Scene *sce, const char *name);
+bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *srv);
+
 /* render profile */
 int get_render_subsurf_level(const struct RenderData *r, int level);
 int get_render_child_particle_number(const struct RenderData *r, int num);
@@ -141,6 +145,23 @@ int BKE_scene_num_threads(const struct Scene *scene);
 int BKE_render_num_threads(const struct RenderData *r);
 
 double BKE_scene_unit_scale(const struct UnitSettings *unit, const int unit_type, double value);
+
+/* multiview */
+bool        BKE_scene_multiview_is_stereo3d(const struct RenderData *rd);
+bool        BKE_scene_multiview_is_render_view_active(const struct RenderData *rd, const struct SceneRenderView *srv);
+bool        BKE_scene_multiview_is_render_view_first(const struct RenderData *rd, const char *viewname);
+bool        BKE_scene_multiview_is_render_view_last(const struct RenderData *rd, const char *viewname);
+size_t      BKE_scene_multiview_num_views_get(const struct RenderData *rd);
+struct SceneRenderView *BKE_scene_multiview_render_view_findindex(const struct RenderData *rd, const int view_id);
+const char *BKE_scene_multiview_render_view_name_get(const struct RenderData *rd, const int view_id);
+size_t      BKE_scene_multiview_view_id_get(const struct RenderData *rd, const char *viewname);
+void        BKE_scene_multiview_filepath_get(struct SceneRenderView *srv, const char *filepath, char *r_filepath);
+void        BKE_scene_multiview_view_filepath_get(const struct RenderData *rd, const char *filepath, const char *view, char *r_filepath);
+const char *BKE_scene_multiview_view_suffix_get(const struct RenderData *rd, const char *viewname);
+const char *BKE_scene_multiview_view_id_suffix_get(const struct RenderData *rd, const size_t view_id);
+void        BKE_scene_multiview_view_prefix_get(struct Scene *scene, const char *name, char *rprefix, char **rext);
+void        BKE_scene_multiview_videos_dimensions_get(const struct RenderData *rd, const size_t width, const size_t height, size_t *r_width, size_t *r_height);
+size_t      BKE_scene_multiview_num_videos_get(const struct RenderData *rd);
 
 #ifdef __cplusplus
 }

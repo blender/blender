@@ -338,7 +338,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 						img = IMB_loadblend_thumb(path);
 					}
 					else {
-						img = IMB_loadiffname(path, IB_rect | IB_metadata, NULL);
+						img = IMB_loadiffname(path, IB_rect | IB_metadata | IB_thumbnail, NULL);
 					}
 				}
 

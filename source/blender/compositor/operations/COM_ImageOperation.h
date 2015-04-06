@@ -49,7 +49,9 @@ protected:
 	int m_imagewidth;
 	int m_framenumber;
 	int m_numberOfChannels;
-	
+	const RenderData *m_rd;
+	const char *m_viewName;
+
 	BaseImageOperation();
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -64,7 +66,8 @@ public:
 	void deinitExecution();
 	void setImage(Image *image) { this->m_image = image; }
 	void setImageUser(ImageUser *imageuser) { this->m_imageUser = imageuser; }
-
+	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
+	void setViewName(const char *viewName) { this->m_viewName = viewName; }
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 };
 class ImageOperation : public BaseImageOperation {

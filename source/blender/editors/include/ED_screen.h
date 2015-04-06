@@ -112,6 +112,7 @@ void    ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
 void    ED_screen_full_restore(struct bContext *C, ScrArea *sa);
 struct ScrArea *ED_screen_state_toggle(struct bContext *C, struct wmWindow *win, struct ScrArea *sa, const short state);
 void    ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
+bool    ED_screen_stereo3d_required(struct bScreen *screen);
 
 /* anim */
 void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, int mute);

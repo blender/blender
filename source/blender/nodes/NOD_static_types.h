@@ -202,6 +202,7 @@ DefNode( CompositorNode, CMP_NODE_MASK_ELLIPSE,   def_cmp_ellipsemask,    "ELLIP
 DefNode( CompositorNode, CMP_NODE_BOKEHIMAGE,     def_cmp_bokehimage,     "BOKEHIMAGE",     BokehImage,       "Bokeh Image",       ""              )
 DefNode( CompositorNode, CMP_NODE_BOKEHBLUR,      def_cmp_bokehblur,      "BOKEHBLUR",      BokehBlur,        "Bokeh Blur",        ""              )
 DefNode( CompositorNode, CMP_NODE_SWITCH,         def_cmp_switch,         "SWITCH",         Switch,           "Switch",            ""              )
+DefNode( CompositorNode, CMP_NODE_SWITCH_VIEW,    def_cmp_switch_view,    "VIEWSWITCH",    SwitchView,       "View Switch",       ""              )
 DefNode( CompositorNode, CMP_NODE_COLORCORRECTION,def_cmp_colorcorrection,"COLORCORRECTION",ColorCorrection,  "Color Correction",  ""              )
 DefNode( CompositorNode, CMP_NODE_MASK,           def_cmp_mask,           "MASK",           Mask,             "Mask",              ""              )
 DefNode( CompositorNode, CMP_NODE_KEYINGSCREEN,   def_cmp_keyingscreen,   "KEYINGSCREEN",   KeyingScreen,     "Keying Screen",     ""              )

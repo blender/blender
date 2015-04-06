@@ -29,6 +29,7 @@
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 
 #include "DNA_color_types.h"
 
@@ -39,7 +40,60 @@ extern "C" {
 #  include "IMB_imbuf_types.h"
 }
 
-static int get_datatype_size(DataType datatype)
+void add_exr_channels(void *exrhandle, const char *layerName, const DataType datatype, const char *viewName, const size_t width, float *buf)
+{
+	/* create channels */
+	switch (datatype) {
+		case COM_DT_VALUE:
+			IMB_exr_add_channel(exrhandle, layerName, "V", viewName, 1, width, buf ? buf : NULL);
+			break;
+		case COM_DT_VECTOR:
+			IMB_exr_add_channel(exrhandle, layerName, "X", viewName, 3, 3 * width, buf ? buf : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "Y", viewName, 3, 3 * width, buf ? buf + 1 : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "Z", viewName, 3, 3 * width, buf ? buf + 2 : NULL);
+			break;
+		case COM_DT_COLOR:
+			IMB_exr_add_channel(exrhandle, layerName, "R", viewName, 4, 4 * width, buf ? buf : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "G", viewName, 4, 4 * width, buf ? buf + 1 : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "B", viewName, 4, 4 * width, buf ? buf + 2 : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "A", viewName, 4, 4 * width, buf ? buf + 3 : NULL);
+			break;
+		default:
+			break;
+	}
+}
+
+void free_exr_channels(void *exrhandle, const RenderData *rd, const char *layerName, const DataType datatype)
+{
+	SceneRenderView *srv;
+
+	/* check renderdata for amount of views */
+	for (srv = (SceneRenderView *) rd->views.first; srv; srv = srv->next) {
+		float *rect = NULL;
+
+		if (BKE_scene_multiview_is_render_view_active(rd, srv) == false)
+			continue;
+
+		/* the pointer is stored in the first channel of each datatype */
+		switch (datatype) {
+			case COM_DT_VALUE:
+				rect = IMB_exr_channel_rect(exrhandle, layerName, "V", srv->name);
+				break;
+			case COM_DT_VECTOR:
+				rect = IMB_exr_channel_rect(exrhandle, layerName, "X", srv->name);
+				break;
+			case COM_DT_COLOR:
+				rect = IMB_exr_channel_rect(exrhandle, layerName, "R", srv->name);
+				break;
+			default:
+				break;
+		}
+		if (rect)
+			MEM_freeN(rect);
+	}
+}
+
+int get_datatype_size(DataType datatype)
 {
 	switch (datatype) {
 		case COM_DT_VALUE:  return 1;
@@ -94,7 +148,7 @@ static void write_buffer_rect(rcti *rect, const bNodeTree *tree,
 
 OutputSingleLayerOperation::OutputSingleLayerOperation(
         const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
-        const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
+        const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings, const char *viewName)
 {
 	this->m_rd = rd;
 	this->m_tree = tree;
@@ -110,6 +164,7 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
 
 	this->m_viewSettings = viewSettings;
 	this->m_displaySettings = displaySettings;
+	this->m_viewName = viewName;
 }
 
 void OutputSingleLayerOperation::initExecution()
@@ -131,6 +186,7 @@ void OutputSingleLayerOperation::deinitExecution()
 		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), this->m_format->planes, 0);
 		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
+		const char *suffix;
 		
 		ibuf->channels = size;
 		ibuf->rect_float = this->m_outputBuffer;
@@ -140,10 +196,12 @@ void OutputSingleLayerOperation::deinitExecution()
 		IMB_colormanagement_imbuf_for_write(ibuf, true, false, m_viewSettings, m_displaySettings,
 		                                    this->m_format);
 
+		suffix = BKE_scene_multiview_view_suffix_get(this->m_rd, this->m_viewName);
+
 		BKE_image_path_from_imformat(
-		        filename, this->m_path, bmain->name, this->m_rd->cfra,
-		        this->m_format, (this->m_rd->scemode & R_EXTENSION) != 0, true);
-		
+		        filename, this->m_path, bmain->name, this->m_rd->cfra, this->m_format,
+		        (this->m_rd->scemode & R_EXTENSION) != 0, true, suffix);
+
 		if (0 == BKE_imbuf_write(ibuf, filename, this->m_format))
 			printf("Cannot save Node File Output to %s\n", filename);
 		else
@@ -155,6 +213,7 @@ void OutputSingleLayerOperation::deinitExecution()
 	this->m_imageInput = NULL;
 }
 
+/******************************* MultiLayer *******************************/
 
 OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bool use_layer_)
 {
@@ -168,13 +227,14 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bo
 }
 
 OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(
-        const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec)
+        const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec, const char *viewName)
 {
 	this->m_rd = rd;
 	this->m_tree = tree;
 	
 	BLI_strncpy(this->m_path, path, sizeof(this->m_path));
 	this->m_exr_codec = exr_codec;
+	this->m_viewName = viewName;
 }
 
 void OutputOpenExrMultiLayerOperation::add_layer(const char *name, DataType datatype, bool use_layer)
@@ -210,52 +270,21 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 	if (width != 0 && height != 0) {
 		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
+		const char *suffix;
 		void *exrhandle = IMB_exr_get_handle();
-		
+
+		suffix = BKE_scene_multiview_view_suffix_get(this->m_rd, this->m_viewName);
 		BKE_image_path_from_imtype(
 		        filename, this->m_path, bmain->name, this->m_rd->cfra, R_IMF_IMTYPE_MULTILAYER,
-		        (this->m_rd->scemode & R_EXTENSION) != 0, true);
+		        (this->m_rd->scemode & R_EXTENSION) != 0, true, suffix);
 		BLI_make_existing_file(filename);
-		
+
 		for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
 			OutputOpenExrLayer &layer = this->m_layers[i];
 			if (!layer.imageInput)
 				continue; /* skip unconnected sockets */
 			
-			char channelname[EXR_TOT_MAXNAME];
-			BLI_strncpy(channelname, this->m_layers[i].name, sizeof(channelname) - 2);
-			char *channelname_ext = channelname + strlen(channelname);
-			
-			float *buf = this->m_layers[i].outputBuffer;
-			
-			/* create channels */
-			switch (this->m_layers[i].datatype) {
-				case COM_DT_VALUE:
-					strcpy(channelname_ext, ".V");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 1, width, buf);
-					break;
-				case COM_DT_VECTOR:
-					strcpy(channelname_ext, ".X");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3 * width, buf);
-					strcpy(channelname_ext, ".Y");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3 * width, buf + 1);
-					strcpy(channelname_ext, ".Z");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3 * width, buf + 2);
-					break;
-				case COM_DT_COLOR:
-					strcpy(channelname_ext, ".R");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf);
-					strcpy(channelname_ext, ".G");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf + 1);
-					strcpy(channelname_ext, ".B");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf + 2);
-					strcpy(channelname_ext, ".A");
-					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf + 3);
-					break;
-				default:
-					break;
-			}
-			
+			add_exr_channels(exrhandle, this->m_layers[i].name, this->m_layers[i].datatype, "", width, this->m_layers[i].outputBuffer);
 		}
 		
 		/* when the filename has no permissions, this can fail */
@@ -279,3 +308,4 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		}
 	}
 }
+

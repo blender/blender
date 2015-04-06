@@ -119,15 +119,15 @@ static void rna_Scene_update_tagged(Scene *scene)
 #endif
 }
 
-static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int preview, char *name)
+static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int preview, const char *view, char *name)
 {
 	if (BKE_imtype_is_movie(rd->im_format.imtype)) {
-		BKE_movie_filepath_get(name, rd, preview != 0);
+		BKE_movie_filepath_get(name, rd, preview != 0, view);
 	}
 	else {
 		BKE_image_path_from_imformat(
 		        name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame,
-		        &rd->im_format, (rd->scemode & R_EXTENSION) != 0, true);
+		        &rd->im_format, (rd->scemode & R_EXTENSION) != 0, true, view);
 	}
 }
 
@@ -288,6 +288,8 @@ void RNA_api_scene_render(StructRNA *srna)
 	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "",
 	            "Frame number to use, if unset the current frame will be used", MINAFRAME, MAXFRAME);
 	parm = RNA_def_boolean(func, "preview", 0, "Preview", "Use preview range");
+	parm = RNA_def_string_file_path(func, "view", NULL, FILE_MAX, "View",
+	                                "The name of the view to use to replace the \"%\" chars");
 
 	parm = RNA_def_string_file_path(func, "filepath", NULL, FILE_MAX, "File Path",
 	                                "The resulting filepath from the scenes render settings");

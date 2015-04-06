@@ -194,6 +194,7 @@ struct anim {
 	struct anim_index *curr_idx[IMB_TC_MAX_SLOT];
 
 	char colorspace[64];
+	char suffix[64]; /* MAX_NAME - multiview */
 };
 
 #endif

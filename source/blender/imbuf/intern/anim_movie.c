@@ -288,6 +288,11 @@ struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex, char
 	return(anim);
 }
 
+void IMB_suffix_anim(struct anim *anim, const char *suffix)
+{
+	BLI_strncpy(anim->suffix, suffix, sizeof(anim->suffix));
+}
+
 #ifdef WITH_AVI
 static int startavi(struct anim *anim)
 {

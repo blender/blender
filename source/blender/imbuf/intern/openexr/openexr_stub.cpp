@@ -31,27 +31,55 @@
 
 #include "openexr_api.h"
 #include "openexr_multi.h"
-
+#include "BLI_utildefines.h"  /* UNUSED_VARS */
 
 void   *IMB_exr_get_handle          (void) {return NULL;}
-void    IMB_exr_add_channel         (void *handle, const char *layname, const char *channame, int xstride, int ystride, float *rect) {  (void)handle; (void)layname; (void)channame; (void)xstride; (void)ystride; (void)rect; }
+void   *IMB_exr_get_handle_name     (const char *name) {(void)name; return NULL;}
+void    IMB_exr_add_channel         (void *handle, const char *layname, const char *passname, const char *view, int xstride, int ystride, float *rect) {  (void)handle; (void)layname; (void)passname; (void)xstride; (void)ystride; (void)rect; }
 
 int     IMB_exr_begin_read          (void *handle, const char *filename, int *width, int *height) { (void)handle; (void)filename; (void)width; (void)height; return 0;}
 int     IMB_exr_begin_write         (void *handle, const char *filename, int width, int height, int compress) { (void)handle; (void)filename; (void)width; (void)height; (void)compress; return 0;}
 void    IMB_exrtile_begin_write     (void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley) { (void)handle; (void)filename; (void)mipmap; (void)width; (void)height; (void)tilex; (void)tiley; }
 
-void    IMB_exr_set_channel         (void *handle, const char *layname, const char *channame, int xstride, int ystride, float *rect) { (void)handle; (void)layname; (void)channame; (void)xstride; (void)ystride; (void)rect; }
+void    IMB_exr_set_channel         (void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect) { (void)handle; (void)layname; (void)passname; (void)xstride; (void)ystride; (void)rect; }
+float  *IMB_exr_channel_rect        (void *handle, const char *layname, const char *passname, const char *view) { (void)handle; (void)layname; (void)passname; (void)view; return NULL; }
 
 void    IMB_exr_read_channels       (void *handle) { (void)handle; }
 void    IMB_exr_write_channels      (void *handle) { (void)handle; }
-void    IMB_exrtile_write_channels  (void *handle, int partx, int party, int level) { (void)handle; (void)partx; (void)party; (void)level; }
-void    IMB_exrtile_clear_channels  (void *handle) { (void)handle; }
+void    IMB_exrtile_write_channels  (void *handle, int partx, int party, int level, const char *viewname) { UNUSED_VARS(handle, partx, party, level, viewname); }
+void    IMB_exrmultiview_write_channels(void *handle, const char *viewname) { UNUSED_VARS(handle, viewname); }
+void    IMB_exr_clear_channels  (void *handle) { (void)handle; }
 
-void    IMB_exr_multilayer_convert  (void *handle, void *base,
-                                     void * (*addlayer)(void *base, const char *str),
-                                     void (*addpass)(void *base, void *lay, const char *str, float *rect, int totchan, const char *chan_id))
+void    IMB_exr_multilayer_convert(
+        void *handle, void *base,
+        void * (*addview)(void *base, const char *str),
+        void * (*addlayer)(void *base, const char *str),
+        void (*addpass)(void *base, void *lay, const char *str, float *rect, int totchan,
+                        const char *chan_id, const char *view))
 {
-	(void)handle; (void)base; (void)addlayer; (void)addpass;
+	UNUSED_VARS(handle, base, addview, addlayer, addpass);
+}
+
+void    IMB_exr_multiview_convert(
+        void *handle, void *base,
+        void (*addview)(void *base, const char *str),
+        void (*addbuffer)(void *base, const char *str, struct ImBuf *ibuf, const int frame), const int frame)
+{
+	UNUSED_VARS(handle, base, addview, addbuffer, frame);
+}
+
+bool    IMB_exr_multiview_save(
+        struct ImBuf *ibuf, const char *name, const int flags, const size_t totviews,
+        const char * (*getview)(void *base, size_t view_id),
+        struct ImBuf * (*getbuffer)(void *base, const size_t view_id))
+{
+	UNUSED_VARS(ibuf, name, flags, totviews, getview, getbuffer);
+	return false;
 }
 
 void    IMB_exr_close               (void *handle) { (void)handle; }
+
+void    IMB_exr_add_view(void *handle, const char *name) { UNUSED_VARS(handle, name); }
+int     IMB_exr_split_token(const char *str, const char *end, const char **token) { UNUSED_VARS(str, end, token); return 1; }
+bool    IMB_exr_has_multilayer(void *handle) { UNUSED_VARS(handle); return false; }
+bool    IMB_exr_has_singlelayer_multiview(void *handle) { UNUSED_VARS(handle); return false; }

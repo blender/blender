@@ -25,6 +25,7 @@
 #include "BLI_listbase.h"
 #include "DNA_image_types.h"
 #include "BKE_image.h"
+#include "BKE_scene.h"
 #include "BLI_math.h"
 
 extern "C" {
@@ -48,6 +49,8 @@ BaseImageOperation::BaseImageOperation() : NodeOperation()
 	this->m_framenumber = 0;
 	this->m_depthBuffer = NULL;
 	this->m_numberOfChannels = 0;
+	this->m_rd = NULL;
+	this->m_viewName = NULL;
 }
 ImageOperation::ImageOperation() : BaseImageOperation()
 {
@@ -65,8 +68,12 @@ ImageDepthOperation::ImageDepthOperation() : BaseImageOperation()
 ImBuf *BaseImageOperation::getImBuf()
 {
 	ImBuf *ibuf;
-	
-	ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, NULL);
+	ImageUser iuser = *this->m_imageUser;
+
+	/* local changes to the original ImageUser */
+	iuser.multi_index = BKE_scene_multiview_view_id_get(this->m_rd, this->m_viewName);
+
+	ibuf = BKE_image_acquire_ibuf(this->m_image, &iuser, NULL);
 	if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
 		BKE_image_release_ibuf(this->m_image, ibuf, NULL);
 		return NULL;

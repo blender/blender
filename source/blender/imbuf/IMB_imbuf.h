@@ -89,6 +89,13 @@ struct ColorManagedDisplay;
 struct GSet;
 /**
  *
+ * \attention defined in DNA_scene_types.h
+ */
+struct ImageFormatData;
+struct Stereo3dFormat;
+
+/**
+ *
  * \attention Defined in allocimbuf.c
  */
 void IMB_init(void);
@@ -279,9 +286,9 @@ bool IMB_anim_get_fps(struct anim *anim,
  * \attention Defined in anim_movie.c
  */
 struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex, char colorspace[IM_MAX_SPACE]);
+void IMB_suffix_anim(struct anim *anim, const char *suffix);
 void IMB_close_anim(struct anim *anim);
 void IMB_close_anim_proxies(struct anim *anim);
-
 
 /**
  *
@@ -377,6 +384,7 @@ void IMB_scaleImBuf_threaded(struct ImBuf *ibuf, unsigned int newx, unsigned int
  * \attention Defined in writeimage.c
  */
 short IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
+struct ImBuf *IMB_prepare_write_ImBuf(const bool isfloat, struct ImBuf *ibuf);
 
 /**
  *
@@ -396,6 +404,12 @@ bool IMB_isanim(const char *name);
  * \attention Defined in util.c
  */
 int imb_get_anim_type(const char *name);
+
+/**
+ *
+ * \attention Defined in util.c
+ */
+bool IMB_isfloat(struct ImBuf *ibuf);
 
 /**
  *
@@ -557,5 +571,27 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
 void IMB_ffmpeg_init(void);
 const char *IMB_ffmpeg_last_error(void);
 
-#endif
+/**
+ *
+ * \attention defined in stereoimbuf.c
+ */
+void IMB_stereo3d_write_dimensions(
+        const char mode, const bool is_squeezed, const size_t width, const size_t height,
+        size_t *r_width, size_t *r_height);
+void IMB_stereo3d_read_dimensions(
+        const char mode, const bool is_squeezed, const size_t width, const size_t height,
+        size_t *r_width, size_t *r_height);
+int *IMB_stereo3d_from_rect(
+        struct ImageFormatData *im_format, const size_t x, const size_t y, const size_t channels,
+        int *rect_left, int *rect_right);
+float *IMB_stereo3d_from_rectf(
+        struct ImageFormatData *im_format, const size_t x, const size_t y, const size_t channels,
+        float *rectf_left, float *rectf_right);
+struct ImBuf *IMB_stereo3d_ImBuf(
+        struct ImageFormatData *im_format,
+        struct ImBuf *ibuf_left, struct ImBuf *ibuf_right);
+void IMB_ImBufFromStereo3d(
+        struct Stereo3dFormat *s3d, struct ImBuf *ibuf_stereo,
+        struct ImBuf **r_ibuf_left, struct ImBuf **r_ibuf_right);
 
+#endif
