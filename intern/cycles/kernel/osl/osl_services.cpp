@@ -939,19 +939,33 @@ bool OSLRenderServices::texture3d(ustring filename, TextureOpt &options,
 	OSL::TextureSystem *ts = osl_ts;
 	ShaderData *sd = (ShaderData *)(sg->renderstate);
 	KernelGlobals *kg = sd->osl_globals;
-	OSLThreadData *tdata = kg->osl_tdata;
-	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
+	bool status;
+	if(filename[0] == '@' && filename.find('.') == -1) {
+		int slot = atoi(filename.c_str() + 1);
+		float4 rgba = kernel_tex_image_interp_3d(slot, P.x, P.y, P.z);
 
-	OIIO::TextureSystem::TextureHandle *th =  ts->get_texture_handle(filename, thread_info);
-
+		result[0] = rgba[0];
+		if(nchannels > 1)
+			result[1] = rgba[1];
+		if(nchannels > 2)
+			result[2] = rgba[2];
+		if(nchannels > 3)
+			result[3] = rgba[3];
+		status = true;
+	}
+	else {
+		OSLThreadData *tdata = kg->osl_tdata;
+		OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
+		OIIO::TextureSystem::TextureHandle *th =  ts->get_texture_handle(filename, thread_info);
 #if OIIO_VERSION < 10500
-	bool status = ts->texture3d(th, thread_info,
-	                            options, P, dPdx, dPdy, dPdz, result);
+		status = ts->texture3d(th, thread_info,
+		                       options, P, dPdx, dPdy, dPdz, result);
 #else
-	bool status = ts->texture3d(th, thread_info,
-	                            options, P, dPdx, dPdy, dPdz,
-	                            nchannels, result);
+		status = ts->texture3d(th, thread_info,
+		                       options, P, dPdx, dPdy, dPdz,
+		                       nchannels, result);
 #endif
+	}
 
 	if(!status) {
 		if(nchannels == 3 || nchannels == 4) {
