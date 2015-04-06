@@ -3025,12 +3025,9 @@ static void wm_event_clicktype_init(wmWindow *win, wmEvent *event, wmEvent *even
 		}
 	}
 
+	/* click */
 	if ((PIL_check_seconds_timer() - event->click_time) * 1000 <= U.click_timeout) {
-		/* for any reason some X11 systems send two release events triggering two KM_CLICK events
-		 * - making the rules more strict by checking for prevval resolves this (not needed for mouse) */
-		if (event->val == KM_RELEASE &&
-		    (ISMOUSE(event->type) || event->prevval != KM_RELEASE))
-		{
+		if (event->val == KM_RELEASE) {
 			click_type = KM_CLICK;
 			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS)) {
 				printf("%s Send click event\n", __func__);
