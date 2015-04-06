@@ -445,6 +445,22 @@ BLI_INLINE void ghash_insert_ex(
 }
 
 /**
+ * Insert function that takes a pre-allocated entry.
+ */
+BLI_INLINE void ghash_insert_ex_keyonly_entry(
+        GHash *gh, void *key, const unsigned int bucket_index,
+        Entry *e)
+{
+	BLI_assert((gh->flag & GHASH_FLAG_ALLOW_DUPES) || (BLI_ghash_haskey(gh, key) == 0));
+
+	e->next = gh->buckets[bucket_index];
+	e->key = key;
+	gh->buckets[bucket_index] = e;
+
+	ghash_buckets_expand(gh, ++gh->nentries, false);
+}
+
+/**
  * Insert function that doesn't set the value (use for GSet)
  */
 BLI_INLINE void ghash_insert_ex_keyonly(
@@ -718,6 +734,36 @@ void **BLI_ghash_lookup_p(GHash *gh, const void *key)
 	GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
 	BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
 	return e ? &e->val : NULL;
+}
+
+/**
+ * Ensure \a key is exists in \a gh.
+ *
+ * This handles the common situation where the caller needs ensure a key is added to \a gh,
+ * constructing a new value in the case the key isn't found.
+ * Otherwise use the existing value.
+ *
+ * Such situations typically incur multiple lookups, however this function
+ * avoids them by ensuring the key is added,
+ * returning a pointer to the value so it can be used or initialized by the caller.
+ *
+ * \returns true when the value didn't need to be added.
+ * (when false, the caller _must_ initialize the value).
+ */
+bool BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val)
+{
+	const unsigned int hash = ghash_keyhash(gh, key);
+	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
+	GHashEntry *e = (GHashEntry *)ghash_lookup_entry_ex(gh, key, bucket_index);
+	const bool haskey = (e != NULL);
+
+	if (!haskey) {
+		e = BLI_mempool_alloc(gh->entrypool);
+		ghash_insert_ex_keyonly_entry(gh, key, bucket_index, (Entry *)e);
+	}
+
+	*r_val = &e->val;
+	return haskey;
 }
 
 /**
