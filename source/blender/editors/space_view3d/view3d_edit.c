@@ -4709,8 +4709,8 @@ bool ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d,
 	depth_close = view_autodist_depth_margin(ar, mval, 4);
 
 	if (depth_close != FLT_MAX) {
-		cent[0] = (double)mval[0];
-		cent[1] = (double)mval[1];
+		cent[0] = (double)mval[0] + 0.5;
+		cent[1] = (double)mval[1] + 0.5;
 
 		if (gluUnProject(cent[0], cent[1], depth_close,
 		                 mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
@@ -4761,8 +4761,8 @@ bool ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_world
 	if (depth == FLT_MAX)
 		return false;
 
-	cent[0] = (double)mval[0];
-	cent[1] = (double)mval[1];
+	cent[0] = (double)mval[0] + 0.5;
+	cent[1] = (double)mval[1] + 0.5;
 
 	bgl_get_mats(&mats);
 
