@@ -3264,7 +3264,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 		BKE_camera_to_gpu_dof(camera, &fx_settings);
 
 		ED_view3d_draw_offscreen(
-            scene, v3d, ar, sizex, sizey, NULL, params.winmat,
+		        scene, v3d, ar, sizex, sizey, NULL, params.winmat,
 		        draw_background, draw_sky, !params.is_ortho,
 		        ofs, NULL, &fx_settings, viewname);
 	}

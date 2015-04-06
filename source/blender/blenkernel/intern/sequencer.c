@@ -867,7 +867,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
 
 						seq_multiview_name(scene, i, prefix, ext, str, FILE_MAX);
 						anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-										seq->streamindex, seq->strip->colorspace_settings.name);
+						                seq->streamindex, seq->strip->colorspace_settings.name);
 						seq_anim_add_suffix(scene, anim, i);
 
 						if (anim) {

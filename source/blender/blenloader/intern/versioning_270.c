@@ -730,8 +730,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 #undef SEQ_USE_PROXY_CUSTOM_FILE
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 274, 4))
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 274, 4)) {
 		SceneRenderView *srv;
 		wmWindowManager *wm;
 		bScreen *screen;

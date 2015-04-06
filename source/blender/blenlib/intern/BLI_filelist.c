@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/filelist.c
+/** \file blender/blenlib/intern/BLI_filelist.c
  *  \ingroup bli
  */
 
