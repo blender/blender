@@ -60,6 +60,7 @@
 #include "BIF_glutil.h"
 
 #include "ED_gpencil.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "UI_interface_icons.h"
@@ -1047,8 +1048,17 @@ static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, in
 }
 
 /* draw a short status message in the top-right corner */
-static void gp_draw_status_text(bGPdata *gpd, int offsx, int offsy, int winx, int winy, int UNUSED(cfra), int UNUSED(dflag))
+static void gp_draw_status_text(bGPdata *gpd, ARegion *ar)
 {
+	rcti rect;
+	
+	/* Cannot draw any status text when drawing OpenGL Renders */
+	if (G.f & G_RENDER_OGL)
+		return;
+	
+	/* Get bounds of region - Necessary to avoid problems with region overlap */
+	ED_region_visible_rect(ar, &rect);
+	
 	/* for now, this should only be used to indicate when we are in stroke editmode */
 	if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
 		const char *printable = IFACE_("GPencil Stroke Editing");
@@ -1057,8 +1067,8 @@ static void gp_draw_status_text(bGPdata *gpd, int offsx, int offsy, int winx, in
 		
 		BLF_width_and_height_default(printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
 		
-		xco = offsx + (winx - U.widget_unit) - (int)printable_size[0];
-		yco = offsy + (winy - U.widget_unit);
+		xco = (rect.xmax - U.widget_unit) - (int)printable_size[0];
+		yco = (rect.ymax - U.widget_unit);
 		
 		/* text label */
 		UI_ThemeColor(TH_TEXT_HI);
@@ -1106,16 +1116,6 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 	/* turn off alpha blending, then smooth lines */
 	glDisable(GL_BLEND); // alpha blending
 	glDisable(GL_LINE_SMOOTH); // smooth lines
-	
-	/* Draw status text:
-	 * - This cannot be drawn when doing OpenGL "renders" and also when "only render" is enabled
-	 * - NOSTATUS should also catch all the other cases where the we are drawing into the "wrong" 
-	 *   coordinate space (e.g. 3D, View 2D, etc.)
-	 */
-	/* XXX: Reinstate the "draw info" flag into the UI? */
-	if ((dflag & GP_DRAWDATA_NOSTATUS) == 0 && (G.f & G_RENDER_OGL) == 0) {
-		gp_draw_status_text(gpd, offsx, offsy, winx, winy, cfra, dflag);
-	}
 	
 	/* restore initial gl conditions */
 	glLineWidth(1.0);
@@ -1243,6 +1243,11 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 	/* draw it! */
 	if (onlyv2d) dflag |= (GP_DRAWDATA_ONLYV2D | GP_DRAWDATA_NOSTATUS);
 	gp_draw_data_all(scene, gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag, sa->spacetype);
+	
+	/* draw status text (if in screen/pixel-space) */
+	if (onlyv2d == false) {
+		gp_draw_status_text(gpd, ar);
+	}
 }
 
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly
@@ -1293,6 +1298,11 @@ void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 	
 	/* draw it! */
 	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
+	
+	/* draw status text (if in screen/pixel-space) */
+	if (only3d == false) {
+		gp_draw_status_text(gpd, ar);
+	}
 }
 
 void ED_gpencil_draw_ex(Scene *scene, bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)
