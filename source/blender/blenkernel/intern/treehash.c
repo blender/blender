@@ -129,11 +129,13 @@ void *BKE_treehash_rebuild_from_treestore(void *treehash, BLI_mempool *treestore
 
 void BKE_treehash_add_element(void *treehash, TreeStoreElem *elem)
 {
-	TseGroup *group = BLI_ghash_lookup(treehash, elem);
-	if (!group) {
-		group = tse_group_create();
-		BLI_ghash_insert(treehash, elem, group);
+	TseGroup *group;
+	void **val_p;
+
+	if (!BLI_ghash_ensure_p(treehash, elem, &val_p)) {
+		*val_p = tse_group_create();
 	}
+	group = *val_p;
 	tse_group_add(group, elem);
 }
 

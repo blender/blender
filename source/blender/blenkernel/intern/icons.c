@@ -311,16 +311,14 @@ Icon *BKE_icon_get(int icon_id)
 
 void BKE_icon_set(int icon_id, struct Icon *icon)
 {
-	Icon *old_icon = NULL;
+	void **val_p;
 
-	old_icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
-
-	if (old_icon) {
+	if (BLI_ghash_ensure_p(gIcons, SET_INT_IN_POINTER(icon_id), &val_p)) {
 		printf("BKE_icon_set: Internal error, icon already set: %d\n", icon_id);
 		return;
 	}
 
-	BLI_ghash_insert(gIcons, SET_INT_IN_POINTER(icon_id), icon);
+	*val_p = icon;
 }
 
 void BKE_icon_delete(struct ID *id)

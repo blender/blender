@@ -534,12 +534,13 @@ static void bm_uuidwalk_pass_add(
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			/* fill verts_new */
+			void **val_p;
 			if (!BLI_ghash_haskey(uuidwalk->verts_uuid, l_iter->v) &&
-			    !BLI_ghash_haskey(verts_uuid_pass,      l_iter->v) &&
+			    !BLI_ghash_ensure_p(verts_uuid_pass,    l_iter->v, &val_p) &&
 			    (bm_vert_is_uuid_connect(uuidwalk, l_iter->v) == true))
 			{
 				const UUID_Int uuid = bm_uuidwalk_calc_vert_uuid(uuidwalk, l_iter->v);
-				BLI_ghash_insert(verts_uuid_pass, l_iter->v, (void *)uuid);
+				*val_p = (void *)uuid;
 			}
 
 			/* fill faces_step_next */
@@ -667,13 +668,15 @@ static bool bm_uuidwalk_facestep_begin(
 		if (!BLI_ghash_haskey(uuidwalk->faces_uuid, f)) {
 			const UUID_Int uuid = bm_uuidwalk_calc_face_uuid(uuidwalk, f);
 			UUIDFaceStepItem *fstep_item;
+			void **val_p;
 
 			ok = true;
 
-			fstep_item = BLI_ghash_lookup(uuidwalk->cache.faces_from_uuid, (void *)uuid);
-			if (UNLIKELY(fstep_item == NULL)) {
-				fstep_item = BLI_mempool_alloc(uuidwalk->step_pool_items);
-				BLI_ghash_insert(uuidwalk->cache.faces_from_uuid, (void *)uuid, fstep_item);
+			if (BLI_ghash_ensure_p(uuidwalk->cache.faces_from_uuid, (void *)uuid, &val_p)) {
+				fstep_item = *val_p;
+			}
+			else {
+				fstep_item = *val_p = BLI_mempool_alloc(uuidwalk->step_pool_items);
 
 				/* add to start, so its handled on the next round of passes */
 				BLI_addhead(&fstep->items, fstep_item);
@@ -1111,9 +1114,10 @@ static BMEdge *bm_face_region_pivot_edge_find(
 			if (bm_edge_is_region_boundary(e)) {
 				unsigned int j;
 				for (j = 0; j < 2; j++) {
-					if (!BLI_ghash_haskey(gh, (&e->v1)[j])) {
+					void **val_p;
+					if (!BLI_ghash_ensure_p(gh, (&e->v1)[j], &val_p)) {
 						SUID_Int v_id = bm_face_region_vert_boundary_id((&e->v1)[j]);
-						BLI_ghash_insert(gh, (&e->v1)[j], (void *)v_id);
+						*val_p = (void *)v_id;
 						BLI_LINKSTACK_PUSH(vert_queue_prev, (&e->v1)[j]);
 						vert_queue_used += 1;
 					}
@@ -1137,10 +1141,11 @@ static BMEdge *bm_face_region_pivot_edge_find(
 				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 					BMVert *v_other = BM_edge_other_vert(e, v);
 					if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-						if (!BLI_ghash_haskey(gh, v_other)) {
+						void **val_p;
+						if (!BLI_ghash_ensure_p(gh, v_other, &val_p)) {
 							/* add as negative, so we know not to read from them this pass */
 							const SUID_Int v_id_other = -bm_face_region_vert_pass_id(gh, v_other);
-							BLI_ghash_insert(gh, v_other, (void *)v_id_other);
+							*val_p = (void *)v_id_other;
 							BLI_LINKSTACK_PUSH(vert_queue_next, v_other);
 							vert_queue_used += 1;
 						}

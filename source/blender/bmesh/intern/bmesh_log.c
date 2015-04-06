@@ -836,14 +836,15 @@ void BM_log_vert_before_modified(BMLog *log, BMVert *v, const int cd_vert_mask_o
 	BMLogVert *lv;
 	unsigned int v_id = bm_log_vert_id_get(log, v);
 	void *key = SET_UINT_IN_POINTER(v_id);
+	void **val_p;
 
 	/* Find or create the BMLogVert entry */
 	if ((lv = BLI_ghash_lookup(entry->added_verts, key))) {
 		bm_log_vert_bmvert_copy(lv, v, cd_vert_mask_offset);
 	}
-	else if (!BLI_ghash_haskey(entry->modified_verts, key)) {
+	else if (!BLI_ghash_ensure_p(entry->modified_verts, key, &val_p)) {
 		lv = bm_log_vert_alloc(log, v, cd_vert_mask_offset);
-		BLI_ghash_insert(entry->modified_verts, key, lv);
+		*val_p = lv;
 	}
 }
 

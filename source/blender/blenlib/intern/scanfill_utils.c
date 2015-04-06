@@ -112,11 +112,13 @@ void BLI_scanfill_view3d_dump(ScanFillContext *sf_ctx)
 static ListBase *edge_isect_ls_ensure(GHash *isect_hash, ScanFillEdge *eed)
 {
 	ListBase *e_ls;
-	e_ls = BLI_ghash_lookup(isect_hash, eed);
-	if (e_ls == NULL) {
-		e_ls = MEM_callocN(sizeof(ListBase), __func__);
-		BLI_ghash_insert(isect_hash, eed, e_ls);
+	void **val_p;
+
+	if (!BLI_ghash_ensure_p(isect_hash, eed, &val_p)) {
+		*val_p = MEM_callocN(sizeof(ListBase), __func__);
 	}
+	e_ls = *val_p;
+
 	return e_ls;
 }
 
