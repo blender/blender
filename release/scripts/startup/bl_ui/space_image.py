@@ -625,6 +625,8 @@ class IMAGE_PT_view_properties(Panel):
 
         sima = context.space_data
         ima = sima.image
+
+        show_render = sima.show_render
         show_uvedit = sima.show_uvedit
         show_maskedit = sima.show_maskedit
         uvedit = sima.uv_editor
@@ -669,7 +671,7 @@ class IMAGE_PT_view_properties(Panel):
             sub.active = uvedit.show_stretch
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
 
-        if ima:
+        if show_render and ima:
             layout.separator()
             render_slot = ima.render_slots.active
             layout.prop(render_slot, "name", text="Slot Name")
