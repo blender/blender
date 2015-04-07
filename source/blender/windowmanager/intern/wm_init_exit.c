@@ -60,7 +60,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_mball.h"
+#include "BKE_mball_tessellate.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 

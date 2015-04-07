@@ -31,4 +31,6 @@ void BKE_mball_polygonize(
         struct EvaluationContext *eval_ctx, struct Scene *scene,
         struct Object *ob, struct ListBase *dispbase);
 
+void BKE_mball_cubeTable_free(void);
+
 #endif  /* __BKE_MBALL_TESSELLATE_H__ */

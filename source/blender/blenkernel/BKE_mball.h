@@ -45,8 +45,6 @@ struct MetaBall *BKE_mball_copy(struct MetaBall *mb);
 
 void BKE_mball_make_local(struct MetaBall *mb);
 
-void BKE_mball_cubeTable_free(void);
-
 bool BKE_mball_is_basis_for(struct Object *ob1, struct Object *ob2);
 bool BKE_mball_is_basis(struct Object *ob);
 struct Object *BKE_mball_basis_find(struct Scene *scene, struct Object *ob);
