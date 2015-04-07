@@ -135,9 +135,9 @@ static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *i
 	rna_iterator_listbase_begin(iter, &ed->seqbase, NULL);
 }
 
-static void rna_SequenceEditor_update_cache(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_SequenceEditor_update_cache(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Editing *ed = (Editing *) ptr->id.data;
+	Editing *ed = scene->ed;
 
 	BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
 }

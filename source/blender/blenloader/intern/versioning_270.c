@@ -708,28 +708,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		} FOREACH_NODETREE_END
 	}
 
-	if (!DNA_struct_elem_find(fd->filesdna, "Sequence", "char", "storage")) {
-		Scene *scene;
-		Sequence *seq;
-
-#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
-#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
-
-		for (scene = main->scene.first; scene; scene = scene->id.next) {
-			SEQ_BEGIN (scene->ed, seq) {
-				if (seq->strip && seq->strip->proxy) {
-					if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)
-						seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
-					if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)
-						seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
-				}
-			}
-			SEQ_END
-		}
-#undef SEQ_USE_PROXY_CUSTOM_DIR
-#undef SEQ_USE_PROXY_CUSTOM_FILE
-	}
-
 	if (!MAIN_VERSION_ATLEAST(main, 274, 4)) {
 		SceneRenderView *srv;
 		wmWindowManager *wm;
@@ -753,6 +731,18 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			SEQ_BEGIN (scene->ed, seq)
 			{
 				seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format");
+
+#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
+#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
+				if (seq->strip && seq->strip->proxy && !seq->strip->proxy->storage) {
+					if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)
+						seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
+					if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)
+						seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
+				}
+#undef SEQ_USE_PROXY_CUSTOM_DIR
+#undef SEQ_USE_PROXY_CUSTOM_FILE
+
 			}
 			SEQ_END
 		}
