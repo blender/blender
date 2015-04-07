@@ -237,6 +237,8 @@ public:
 		const char* filename
 	)=0;
 
+	virtual void GetDisplayDimensions(int &width, int &height) = 0;
+
 	virtual
 		void 
 	ResizeWindow(

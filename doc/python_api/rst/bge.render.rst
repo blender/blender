@@ -123,6 +123,12 @@ Functions
 
    :rtype: bool
 
+.. function:: getDisplayDimensions()
+
+   Get the actual display dimensions, in pixels, of the physical display (e.g., the monitor).
+   
+   :type dimension: list [width,heigh] 
+
 .. function:: makeScreenshot(filename)
 
    Writes an image file with the current displayed frame.

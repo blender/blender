@@ -63,6 +63,8 @@ public:
 	virtual float GetMouseNormalizedX(int x);
 	virtual float GetMouseNormalizedY(int y);
 
+	virtual void GetDisplayDimensions(int &width, int &height);
+
 	virtual void ResizeWindow(int width, int height);
 	virtual void SetFullScreen(bool enable);
 	virtual bool GetFullScreen();

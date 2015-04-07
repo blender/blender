@@ -1403,6 +1403,20 @@ static PyObject *gPyClearDebugList(PyObject *)
 	Py_RETURN_NONE;
 }
 
+static PyObject *gPyGetDisplayDimensions(PyObject *)
+{
+	PyObject *list = PyList_New(0);
+	int width;
+	int height;
+
+	gp_Canvas->GetDisplayDimensions(width, height);
+
+	PyList_Append(list, PyLong_FromLong(width));
+	PyList_Append(list, PyLong_FromLong(height));
+
+	return list;
+}
+
 PyDoc_STRVAR(Rasterizer_module_documentation,
 "This is the Python API for the game engine of Rasterizer"
 );
@@ -1446,6 +1460,8 @@ static struct PyMethodDef rasterizer_methods[] = {
 	{"setWindowSize", (PyCFunction) gPySetWindowSize, METH_VARARGS, ""},
 	{"setFullScreen", (PyCFunction) gPySetFullScreen, METH_O, ""},
 	{"getFullScreen", (PyCFunction) gPyGetFullScreen, METH_NOARGS, ""},
+	{"getDisplayDimensions", (PyCFunction) gPyGetDisplayDimensions, METH_NOARGS,
+	 "Get the actual dimensions, in pixels, of the physical display (e.g., the monitor)."},
 	{"setMipmapping", (PyCFunction) gPySetMipmapping, METH_VARARGS, ""},
 	{"getMipmapping", (PyCFunction) gPyGetMipmapping, METH_NOARGS, ""},
 	{"setVsync", (PyCFunction) gPySetVsync, METH_VARARGS, ""},

@@ -121,6 +121,18 @@ bool GPG_Canvas::GetSwapInterval(int& intervalOut)
 	return false;
 }
 
+void GPG_Canvas::GetDisplayDimensions(int &width, int &height)
+ {
+	unsigned int uiwidth;
+	unsigned int uiheight;
+
+	GHOST_ISystem *system = GHOST_ISystem::getSystem();
+	system->getMainDisplayDimensions(uiwidth, uiheight);
+
+	width = uiwidth;
+	height = uiheight;
+}
+
 void GPG_Canvas::ResizeWindow(int width, int height)
 {
 	if (m_window->getState() == GHOST_kWindowStateFullScreen)
