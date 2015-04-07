@@ -617,13 +617,14 @@ static unsigned int bm_uuidwalk_init_from_edge(
 	 * elsewhere using LinkNode's makes more sense */
 	for (i = 0; i < f_arr_len; ) {
 		LinkNode *faces_pass = NULL;
+		const unsigned int i_init = i;
 		const int f_len = f_arr[i]->len;
 
 		do {
 			BLI_linklist_prepend_pool(&faces_pass, f_arr[i++], uuidwalk->link_pool);
 		} while (i < f_arr_len && (f_len == f_arr[i]->len));
 
-		bm_uuidwalk_pass_add(uuidwalk, faces_pass, i);
+		bm_uuidwalk_pass_add(uuidwalk, faces_pass, i - i_init);
 		BLI_linklist_free_pool(faces_pass, NULL, uuidwalk->link_pool);
 		fstep_num += 1;
 	}
