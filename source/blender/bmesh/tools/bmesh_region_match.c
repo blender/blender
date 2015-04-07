@@ -615,7 +615,7 @@ static unsigned int bm_uuidwalk_init_from_edge(
 	/* turning an array into LinkNode's seems odd,
 	 * but this is just for initialization,
 	 * elsewhere using LinkNode's makes more sense */
-	for (i = 0; i < f_arr_len; i++) {
+	for (i = 0; i < f_arr_len; ) {
 		LinkNode *faces_pass = NULL;
 		const int f_len = f_arr[i]->len;
 
