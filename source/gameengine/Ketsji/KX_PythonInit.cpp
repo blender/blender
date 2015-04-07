@@ -51,6 +51,8 @@
 #  include <Python.h>
 
 extern "C" {
+	#  include "BLI_utildefines.h"
+	#  include "python_utildefines.h"
 	#  include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#  include "py_capi_utils.h"
 	#  include "mathutils.h" // 'mathutils' module copied here so the blenderlayer can use.
@@ -1405,16 +1407,17 @@ static PyObject *gPyClearDebugList(PyObject *)
 
 static PyObject *gPyGetDisplayDimensions(PyObject *)
 {
-	PyObject *list = PyList_New(0);
-	int width;
-	int height;
+	PyObject *result;
+	int width, height;
 
 	gp_Canvas->GetDisplayDimensions(width, height);
 
-	PyList_Append(list, PyLong_FromLong(width));
-	PyList_Append(list, PyLong_FromLong(height));
+	result = PyTuple_New(2);
+	PyTuple_SET_ITEMS(result,
+	        PyLong_FromLong(width),
+	        PyLong_FromLong(height));
 
-	return list;
+	return result;
 }
 
 PyDoc_STRVAR(Rasterizer_module_documentation,
