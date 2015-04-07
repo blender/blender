@@ -232,6 +232,31 @@ BLI_INLINE void edgehash_insert_ex_keyonly(EdgeHash *eh, unsigned int v0, unsign
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
 	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
+	IS_EDGEHASH_ASSERT(eh);
+
+	/* this helps to track down errors with bad edge data */
+	BLI_assert(v0 < v1);
+	BLI_assert(v0 != v1);
+
+	e->next = eh->buckets[hash];
+	e->v0 = v0;
+	e->v1 = v1;
+	eh->buckets[hash] = e;
+
+	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
+		edgehash_resize_buckets(eh, _ehash_hashsizes[++eh->cursize]);
+	}
+}
+
+/**
+ * Insert function that doesn't set the value (use for EdgeSet)
+ */
+BLI_INLINE void edgehash_insert_ex_keyonly_entry(
+        EdgeHash *eh, unsigned int v0, unsigned int v1,
+        unsigned int hash,
+        EdgeEntry *e)
+{
+	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
 
 	/* this helps to track down errors with bad edge data */
 	BLI_assert(v0 < v1);
@@ -370,6 +395,40 @@ void **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1)
 	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
 	IS_EDGEHASH_ASSERT(eh);
 	return e ? &e->val : NULL;
+}
+
+/**
+ * Ensure \a (v0, v1) is exists in \a eh.
+ *
+ * This handles the common situation where the caller needs ensure a key is added to \a eh,
+ * constructing a new value in the case the key isn't found.
+ * Otherwise use the existing value.
+ *
+ * Such situations typically incur multiple lookups, however this function
+ * avoids them by ensuring the key is added,
+ * returning a pointer to the value so it can be used or initialized by the caller.
+ *
+ * \returns true when the value didn't need to be added.
+ * (when false, the caller _must_ initialize the value).
+ */
+bool BLI_edgehash_ensure_p(EdgeHash *eh, unsigned int v0, unsigned int v1, void ***r_val)
+{
+	unsigned int hash;
+	EdgeEntry *e;
+	bool haskey;
+
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+	hash = edgehash_keyhash(eh, v0, v1);
+	e = edgehash_lookup_entry_ex(eh, v0, v1, hash);
+	haskey = (e != NULL);
+
+	if (!haskey) {
+		e = BLI_mempool_alloc(eh->epool);
+		edgehash_insert_ex_keyonly_entry(eh, v0, v1, hash, e);
+	}
+
+	*r_val = &e->val;
+	return haskey;
 }
 
 /**
