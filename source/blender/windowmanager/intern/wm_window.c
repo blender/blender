@@ -1106,76 +1106,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 	return 1;
 }
 
-/**
- * #KM_DBL_CLICK is set in wm_event_clicktype_init (wm_event_system.c)
- * Normally, this should be there too, but for #KM_CLICK/#KM_HOLD, we need a
- * time precision of a few milliseconds, which we can't get from there
- */
-static void wm_window_event_clicktype_init(const bContext *C)
-{
-	wmWindowManager *wm = CTX_wm_manager(C);
-
-	if (wm->winactive) {
-		wmWindow *win = wm->winactive;
-		wmEvent *event = win->eventstate;
-		short click_type = event->click_type;
-
-		BLI_assert(event != NULL);
-
-		if ((event->type == EVENT_NONE) ||
-		    ((event->val == KM_NOTHING) && (event->is_key_pressed == false)))
-		{
-			/* nothing needs to be done here */
-			return;
-		}
-
-		/* we always want click_type of last clicked button (to enable
-		 * use with modifier keys) - unnecessary for mouse though */
-		if (!ISMOUSE(event->type) &&
-		    event->val == KM_PRESS &&
-		    event->type != event->keymodifier)
-		{
-			event->is_key_pressed = false;
-		}
-		else if (event->val == KM_PRESS && !event->is_key_pressed) {
-			event->is_key_pressed = true;
-			event->click_time = PIL_check_seconds_timer();
-		}
-		else if (event->val == KM_RELEASE && event->is_key_pressed) {
-			event->is_key_pressed = false;
-		}
-		else if (event->is_key_pressed == false) {
-			return;
-		}
-
-		/* the actual test */
-		if ((PIL_check_seconds_timer() - event->click_time) * 1000 <= U.click_timeout) {
-			/* for any reason some X11 systems send two release events triggering two KM_CLICK
-			 * events - making the rules more strict by checking for prevval resolves this */
-			if (event->val == KM_RELEASE && event->prevval != KM_RELEASE) {
-				click_type = KM_CLICK;
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS)) {
-					printf("%s Send click event\n", __func__);
-				}
-			}
-		}
-		else if (event->is_key_pressed) {
-			click_type = KM_HOLD;
-			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS)) {
-				printf("%s Send hold event\n", __func__);
-			}
-
-			/* the event we send in this case is a "dummy" event - don't send value */
-			event->val = KM_NOTHING;
-		}
-
-		/* send event with new click_type */
-		if (event->click_type != click_type) {
-			event->click_type = click_type;
-			wm_event_add(win, event);
-		}
-	}
-}
 
 /* This timer system only gives maximum 1 timer event per redraw cycle,
  * to prevent queues to get overloaded.
@@ -1235,11 +1165,7 @@ void wm_window_process_events(const bContext *C)
 
 	if (hasevent)
 		GHOST_DispatchEvents(g_system);
-
-	/* not nice to have this here, but it's the only place
-	 * that can call it with the needed time precision */
-	wm_window_event_clicktype_init(C);
-
+	
 	hasevent |= wm_window_timer(C);
 
 	/* no event, we sleep 5 milliseconds */

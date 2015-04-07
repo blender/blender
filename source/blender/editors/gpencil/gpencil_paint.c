@@ -1931,7 +1931,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* stroke could be smoothed, send notifier to refresh screen */
 				WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 			}
-			else if (event->val == KM_RELEASE) {
+			else {
 				/* printf("\t\tGP - end of stroke + op\n"); */
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;

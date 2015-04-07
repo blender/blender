@@ -447,9 +447,7 @@ typedef struct UserDef {
 	
 	short versions;
 	short dbl_click_time;
-	short click_timeout;
-	short pad3;
-
+	
 	short gameflags;
 	short wheellinescroll;
 	int uiflag, uiflag2;
@@ -467,8 +465,7 @@ typedef struct UserDef {
 	char pad2[2];
 	short transopts;
 	short menuthreshold1, menuthreshold2;
-	int pad4;
-
+	
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;

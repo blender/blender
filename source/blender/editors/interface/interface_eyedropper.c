@@ -277,10 +277,6 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			eyedropper_cancel(C, op);
 			return OPERATOR_CANCELLED;
 		case LEFTMOUSE:
-			/* two release events are sent on KM_CLICK, so ignore second one */
-			if (event->click_type == KM_CLICK) {
-				break;
-			}
 			if (event->val == KM_RELEASE) {
 				if (eye->accum_tot == 0) {
 					eyedropper_color_sample(C, eye, event->x, event->y);

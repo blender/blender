@@ -295,7 +295,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_CLICK, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
 	RNA_boolean_set(kmi->ptr, "toggle", true);
 

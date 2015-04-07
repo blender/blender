@@ -444,27 +444,27 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "need_active", true);
 
 	/* left mouse selects and opens */
-	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", true);
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_CTRL | KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", true);
 	RNA_boolean_set(kmi->ptr, "fill", true);
 
 	/* right mouse selects without opening */
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_CLICK, 0, 0);
 	RNA_boolean_set(kmi->ptr, "open", false);
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_CLICK, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", true);
 	RNA_boolean_set(kmi->ptr, "open", false);
-	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", RIGHTMOUSE, KM_CLICK, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", true);
 	RNA_boolean_set(kmi->ptr, "fill", true);
 	RNA_boolean_set(kmi->ptr, "open", false);
 
 	/* front and back mouse folder navigation */
-	WM_keymap_add_item(keymap, "FILE_OT_previous", BUTTON4MOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_next", BUTTON5MOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_previous", BUTTON4MOUSE, KM_CLICK, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_next", BUTTON5MOUSE, KM_CLICK, 0, 0);
 
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_refresh", PADPERIOD, KM_PRESS, 0, 0);

@@ -1140,11 +1140,8 @@ static int console_modal_select(bContext *C, wmOperator *op, const wmEvent *even
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if (event->val == KM_RELEASE) {
-				console_cursor_set_exit(C, op);
-				return OPERATOR_FINISHED;
-			}
-			break;
+			console_cursor_set_exit(C, op);
+			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
 			console_modal_select_apply(C, op, event);
 			break;

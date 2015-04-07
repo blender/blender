@@ -253,8 +253,7 @@ typedef struct wmKeyMapItem {
 
 	/* event */
 	short type;                     /* event code itself */
-	short val;                      /* NOTE: other than event->val this can be the value itself
-	                                 * (KM_ANY, KM_PRESS, etc) AND the clicktype (KM_DBL_CLICK, KM_HOLD, etc) */
+	short val;                      /* KM_ANY, KM_PRESS, KM_NOTHING etc */
 	short shift, ctrl, alt, oskey;  /* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;              /* rawkey modifier */
 

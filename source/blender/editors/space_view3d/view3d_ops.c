@@ -237,7 +237,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_navigate", FKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* value is set to KM_NOTHING to avoid conflicts with click type (see T44251) */
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_NOTHING, KM_ANY, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEROTATE, 0, 0, 0);
@@ -387,7 +387,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	
 	/* drawtype */
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_CLICK, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shade");
 	RNA_string_set(kmi->ptr, "value_1", "SOLID");
 	RNA_string_set(kmi->ptr, "value_2", "WIREFRAME");
