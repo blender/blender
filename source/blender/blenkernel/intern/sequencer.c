@@ -1581,13 +1581,19 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 
 	sanim = BLI_findlink(&seq->anims, view_id);
 
-	if (sanim && sanim->anim && ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
+	if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
 		char fname[FILE_MAXFILE];
 		if (ed->proxy_dir[0] == 0)
 			BLI_strncpy(dir, "//BL_proxy", sizeof(dir));
 		else
 			BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
-		IMB_anim_get_fname(sanim->anim, fname, FILE_MAXFILE);
+
+		if (sanim && sanim->anim) {
+			IMB_anim_get_fname(sanim->anim, fname, FILE_MAXFILE);
+		}
+		else if (seq->type == SEQ_TYPE_IMAGE) {
+			fname[0] = 0;
+		}
 		BLI_path_append(dir, sizeof(dir), fname);
 		BLI_path_abs(name, G.main->name);
 	}
