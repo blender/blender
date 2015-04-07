@@ -335,7 +335,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 				/* only load if we didnt give an image */
 				if (img == NULL) {
 					if (THB_SOURCE_BLEND == source) {
-						img = IMB_loadblend_thumb(path);
+						img = IMB_thumb_load_blend(path);
 					}
 					else {
 						img = IMB_loadiffname(path, IB_rect | IB_metadata | IB_thumbnail, NULL);

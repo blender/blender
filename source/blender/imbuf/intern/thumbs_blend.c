@@ -121,7 +121,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	return NULL;
 }
 
-ImBuf *IMB_loadblend_thumb(const char *path)
+ImBuf *IMB_thumb_load_blend(const char *path)
 {
 	gzFile gzfile;
 	/* not necessarily a gzip */
@@ -143,7 +143,7 @@ ImBuf *IMB_loadblend_thumb(const char *path)
 /* add a fake passepartout overlay to a byte buffer, use for blend file thumbnails */
 #define MARGIN 2
 
-void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float aspect)
+void IMB_thumb_overlay_blend(unsigned int *thumb, int width, int height, float aspect)
 {
 	unsigned char *px = (unsigned char *)thumb;
 	int margin_l = MARGIN;
