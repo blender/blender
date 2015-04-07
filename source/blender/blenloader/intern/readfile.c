@@ -139,7 +139,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
-#include "BKE_treehash.h"
+#include "BKE_outliner_treehash.h"
 #include "BKE_sound.h"
 
 
@@ -6041,7 +6041,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 							}
 							if (so->treehash) {
 								/* rebuild hash table, because it depends on ids too */
-								BKE_treehash_rebuild_from_treestore(so->treehash, so->treestore);
+								BKE_outliner_treehash_rebuild_from_treestore(so->treehash, so->treestore);
 							}
 						}
 					}
@@ -6392,7 +6392,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 						}
 						if (so->treehash) {
 							/* rebuild hash table, because it depends on ids too */
-							BKE_treehash_rebuild_from_treestore(so->treehash, so->treestore);
+							BKE_outliner_treehash_rebuild_from_treestore(so->treehash, so->treestore);
 						}
 					}
 				}

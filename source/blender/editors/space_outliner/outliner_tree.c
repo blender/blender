@@ -66,7 +66,7 @@
 #include "BKE_modifier.h"
 #include "BKE_sequencer.h"
 #include "BKE_idcode.h"
-#include "BKE_treehash.h"
+#include "BKE_outliner_treehash.h"
 
 #include "ED_armature.h"
 #include "ED_screen.h"
@@ -114,7 +114,7 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 					BLI_mempool_destroy(ts);
 					soops->treestore = NULL;
 					if (soops->treehash) {
-						BKE_treehash_free(soops->treehash);
+						BKE_outliner_treehash_free(soops->treehash);
 						soops->treehash = NULL;
 					}
 				}
@@ -133,7 +133,7 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 					soops->treestore = new_ts;
 					if (soops->treehash) {
 						/* update hash table to fix broken pointers */
-						BKE_treehash_rebuild_from_treestore(soops->treehash, soops->treestore);
+						BKE_outliner_treehash_rebuild_from_treestore(soops->treehash, soops->treestore);
 					}
 				}
 			}
@@ -151,12 +151,12 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 		
 	}
 	if (soops->treehash == NULL) {
-		soops->treehash = BKE_treehash_create_from_treestore(soops->treestore);
+		soops->treehash = BKE_outliner_treehash_create_from_treestore(soops->treestore);
 	}
 
 	/* find any unused tree element in treestore and mark it as used
 	 * (note that there may be multiple unused elements in case of linked objects) */
-	tselem = BKE_treehash_lookup_unused(soops->treehash, type, nr, id);
+	tselem = BKE_outliner_treehash_lookup_unused(soops->treehash, type, nr, id);
 	if (tselem) {
 		te->store_elem = tselem;
 		tselem->used = 1;
@@ -171,7 +171,7 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	tselem->used = 0;
 	tselem->flag = TSE_CLOSED;
 	te->store_elem = tselem;
-	BKE_treehash_add_element(soops->treehash, tselem);
+	BKE_outliner_treehash_add_element(soops->treehash, tselem);
 }
 
 /* ********************************************************* */
@@ -216,7 +216,7 @@ TreeElement *outliner_find_tse(SpaceOops *soops, TreeStoreElem *tse)
 	if (tse->id == NULL) return NULL;
 	
 	/* check if 'tse' is in treestore */
-	tselem = BKE_treehash_lookup_any(soops->treehash, tse->type, tse->nr, tse->id);
+	tselem = BKE_outliner_treehash_lookup_any(soops->treehash, tse->type, tse->nr, tse->id);
 	if (tselem) 
 		return outliner_find_tree_element(&soops->tree, tselem);
 	

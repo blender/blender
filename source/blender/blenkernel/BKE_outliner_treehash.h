@@ -19,10 +19,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef __BKE_TREEHASH_H__
-#define __BKE_TREEHASH_H__
+#ifndef __BKE_OUTLINER_TREEHASH_H__
+#define __BKE_OUTLINER_TREEHASH_H__
 
-/** \file BKE_treehash.h
+/** \file BKE_outliner_treehash.h
  *  \ingroup bke
  */
 
@@ -31,21 +31,21 @@ struct BLI_mempool;
 struct TreeStoreElem;
 
 /* create and fill hashtable with treestore elements */
-void *BKE_treehash_create_from_treestore(struct BLI_mempool *treestore);
+void *BKE_outliner_treehash_create_from_treestore(struct BLI_mempool *treestore);
 
 /* full rebuild for already allocated hashtable */
-void *BKE_treehash_rebuild_from_treestore(void *treehash, struct BLI_mempool *treestore);
+void *BKE_outliner_treehash_rebuild_from_treestore(void *treehash, struct BLI_mempool *treestore);
 
 /* full rebuild for already allocated hashtable */
-void BKE_treehash_add_element(void *treehash, struct TreeStoreElem *elem);
+void BKE_outliner_treehash_add_element(void *treehash, struct TreeStoreElem *elem);
 
 /* find first unused element with specific type, nr and id */
-struct TreeStoreElem *BKE_treehash_lookup_unused(void *treehash, short type, short nr, struct ID *id);
+struct TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash, short type, short nr, struct ID *id);
 
 /* find user or unused element with specific type, nr and id */
-struct TreeStoreElem *BKE_treehash_lookup_any(void *treehash, short type, short nr, struct ID *id);
+struct TreeStoreElem *BKE_outliner_treehash_lookup_any(void *treehash, short type, short nr, struct ID *id);
 
 /* free treehash structure */
-void BKE_treehash_free(void *treehash);
+void BKE_outliner_treehash_free(void *treehash);
 
 #endif

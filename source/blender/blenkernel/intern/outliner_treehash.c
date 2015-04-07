@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file treehash.c
+/** \file outliner_treehash.c
  *  \ingroup bke
  *
  * Tree hash for the outliner space.
@@ -28,7 +28,7 @@
 
 #include <stdlib.h>
 
-#include "BKE_treehash.h"
+#include "BKE_outliner_treehash.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -104,11 +104,11 @@ static void fill_treehash(void *treehash, BLI_mempool *treestore)
 	BLI_mempool_iter iter;
 	BLI_mempool_iternew(treestore, &iter);
 	while ((tselem = BLI_mempool_iterstep(&iter))) {
-		BKE_treehash_add_element(treehash, tselem);
+		BKE_outliner_treehash_add_element(treehash, tselem);
 	}
 }
 
-void *BKE_treehash_create_from_treestore(BLI_mempool *treestore)
+void *BKE_outliner_treehash_create_from_treestore(BLI_mempool *treestore)
 {
 	GHash *treehash = BLI_ghash_new_ex(tse_hash, tse_cmp, "treehash", BLI_mempool_count(treestore));
 	fill_treehash(treehash, treestore);
@@ -120,14 +120,14 @@ static void free_treehash_group(void *key)
 	tse_group_free(key);
 }
 
-void *BKE_treehash_rebuild_from_treestore(void *treehash, BLI_mempool *treestore)
+void *BKE_outliner_treehash_rebuild_from_treestore(void *treehash, BLI_mempool *treestore)
 {
 	BLI_ghash_clear_ex(treehash, NULL, free_treehash_group, BLI_mempool_count(treestore));
 	fill_treehash(treehash, treestore);
 	return treehash;
 }
 
-void BKE_treehash_add_element(void *treehash, TreeStoreElem *elem)
+void BKE_outliner_treehash_add_element(void *treehash, TreeStoreElem *elem)
 {
 	TseGroup *group;
 	void **val_p;
@@ -139,7 +139,7 @@ void BKE_treehash_add_element(void *treehash, TreeStoreElem *elem)
 	tse_group_add(group, elem);
 }
 
-static TseGroup *BKE_treehash_lookup_group(GHash *th, short type, short nr, struct ID *id)
+static TseGroup *BKE_outliner_treehash_lookup_group(GHash *th, short type, short nr, struct ID *id)
 {
 	TreeStoreElem tse_template;
 	tse_template.type = type;
@@ -148,9 +148,9 @@ static TseGroup *BKE_treehash_lookup_group(GHash *th, short type, short nr, stru
 	return BLI_ghash_lookup(th, &tse_template);
 }
 
-TreeStoreElem *BKE_treehash_lookup_unused(void *treehash, short type, short nr, struct ID *id)
+TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash, short type, short nr, struct ID *id)
 {
-	TseGroup *group = BKE_treehash_lookup_group(treehash, type, nr, id);
+	TseGroup *group = BKE_outliner_treehash_lookup_group(treehash, type, nr, id);
 	if (group) {
 		int i;
 		for (i = 0; i < group->size; i++) {
@@ -162,13 +162,13 @@ TreeStoreElem *BKE_treehash_lookup_unused(void *treehash, short type, short nr, 
 	return NULL;
 }
 
-TreeStoreElem *BKE_treehash_lookup_any(void *treehash, short type, short nr, struct ID *id)
+TreeStoreElem *BKE_outliner_treehash_lookup_any(void *treehash, short type, short nr, struct ID *id)
 {
-	TseGroup *group = BKE_treehash_lookup_group(treehash, type, nr, id);
+	TseGroup *group = BKE_outliner_treehash_lookup_group(treehash, type, nr, id);
 	return group ? group->elems[0] : NULL;
 }
 
-void BKE_treehash_free(void *treehash)
+void BKE_outliner_treehash_free(void *treehash)
 {
 	BLI_ghash_free(treehash, NULL, free_treehash_group);
 }
