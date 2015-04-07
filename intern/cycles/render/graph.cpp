@@ -892,7 +892,7 @@ void ShaderGraph::dump_graph(const char *filename)
 				        input,
 				        output->name, input->name);
 				fprintf(fd,
-				        "\"\%p\":\"OUT_%p\":e -> \"%p\":\"IN_%p\":w [label=\"\"]\n",
+				        "\"%p\":\"OUT_%p\":e -> \"%p\":\"IN_%p\":w [label=\"\"]\n",
 				        output->parent,
 				        output,
 				        input->parent,
