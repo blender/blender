@@ -430,17 +430,19 @@ void BLI_polyfill_beautify(
 			}
 
 			if (!is_boundary_edge(e_pair[0], e_pair[1], coord_last)) {
-				struct PolyEdge *e = BLI_edgehash_lookup(ehash, e_pair[0], e_pair[1]);
-				if (e == NULL) {
+				struct PolyEdge *e;
+				void **val_p;
+
+				if (!BLI_edgehash_ensure_p(ehash, e_pair[0], e_pair[1], &val_p)) {
 					e = &edges[edges_tot_used++];
-					BLI_edgehash_insert(ehash, e_pair[0], e_pair[1], e);
+					*val_p = e;
 					memcpy(e->verts, e_pair, sizeof(e->verts));
 #ifndef NDEBUG
 					e->faces[!e_index] = (unsigned int)-1;
 #endif
 				}
 				else {
-
+					e = *val_p;
 					/* ensure each edge only ever has 2x users */
 #ifndef NDEBUG
 					BLI_assert(e->faces[e_index] == (unsigned int)-1);

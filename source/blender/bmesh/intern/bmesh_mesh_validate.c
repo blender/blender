@@ -86,20 +86,19 @@ bool BM_mesh_validate(BMesh *bm)
 
 	/* check edges */
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
-		BMEdge *e_other;
+		void **val_p;
 
 		if (e->v1 == e->v2) {
 			ERRMSG("edge %d: duplicate index: %d", i, BM_elem_index_get(e->v1));
 		}
 
-
 		/* build edgehash at the same time */
-		e_other = BLI_edgehash_lookup(edge_hash, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2));
-		if (e_other) {
+		if (BLI_edgehash_ensure_p(edge_hash, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2), &val_p)) {
+			BMEdge *e_other = *val_p;
 			ERRMSG("edge %d, %d: are duplicates", i, BM_elem_index_get(e_other));
 		}
 		else {
-			BLI_edgehash_insert(edge_hash, BM_elem_index_get(e->v1), BM_elem_index_get(e->v2), e);
+			*val_p = e;
 		}
 	}
 

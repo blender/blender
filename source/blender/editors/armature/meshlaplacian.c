@@ -127,12 +127,12 @@ struct LaplacianSystem {
 
 static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
 {
-	void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
+	void **p;
 
-	if (p)
+	if (BLI_edgehash_ensure_p(edgehash, v1, v2, &p))
 		*p = (void *)((intptr_t)*p + (intptr_t)1);
 	else
-		BLI_edgehash_insert(edgehash, v1, v2, (void *)(intptr_t)1);
+		*p = (void *)((intptr_t)1);
 }
 
 static int laplacian_edge_count(EdgeHash *edgehash, int v1, int v2)

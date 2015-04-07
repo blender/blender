@@ -2545,16 +2545,16 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		const unsigned int v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
 		const unsigned int v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
 		if (LIKELY(v1 != v2)) {
-			void **eh_p = BLI_edgehash_lookup_p(ehash, v1, v2);
+			void **val_p;
 
-			if (eh_p) {
-				newe[i] = GET_INT_FROM_POINTER(*eh_p);
+			if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
+				newe[i] = GET_INT_FROM_POINTER(*val_p);
 			}
 			else {
 				STACK_PUSH(olde, i);
 				STACK_PUSH(medge, *med);
 				newe[i] = c;
-				BLI_edgehash_insert(ehash, v1, v2, SET_INT_IN_POINTER(c));
+				*val_p = SET_INT_IN_POINTER(c);
 				c++;
 			}
 		}
