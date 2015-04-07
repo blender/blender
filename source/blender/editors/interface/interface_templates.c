@@ -273,8 +273,11 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			RNA_property_pointer_set(&template->ptr, template->prop, idptr);
 			RNA_property_update(C, &template->ptr, template->prop);
 
-			if (id && CTX_wm_window(C)->eventstate->shift) /* useful hidden functionality, */
+			if (id && CTX_wm_window(C)->eventstate->shift) {
+				/* only way to force-remove data (on save) */
+				id->flag &= ~LIB_FAKEUSER;
 				id->us = 0;
+			}
 
 			break;
 		case UI_ID_FAKE_USER:
