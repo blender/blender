@@ -239,9 +239,14 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	// XXX BIF_store_spare();
 	/* 1 is do_previews */
 
-	for (srv = scene->r.views.first; srv; srv = srv->next) {
-		if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) continue;
-		ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, &scene->view_settings, &scene->display_settings, srv->name);
+	if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
+		ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, &scene->view_settings, &scene->display_settings, "");
+	}
+	else {
+		for (srv = scene->r.views.first; srv; srv = srv->next) {
+			if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) continue;
+			ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, &scene->view_settings, &scene->display_settings, srv->name);
+		}
 	}
 
 	ntree->test_break = NULL;
