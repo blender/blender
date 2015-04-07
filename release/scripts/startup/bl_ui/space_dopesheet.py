@@ -105,6 +105,7 @@ class DOPESHEET_HT_header(Header):
         layout = self.layout
 
         st = context.space_data
+        toolsettings = context.tool_settings
 
         row = layout.row(align=True)
         row.template_header()
@@ -132,6 +133,11 @@ class DOPESHEET_HT_header(Header):
             # 'genericFiltersOnly' limits the options to only the relevant 'generic' subset of
             # filters which will work here and are useful (especially for character animation)
             dopesheet_filter(layout, context, genericFiltersOnly=True)
+
+        row = layout.row(align=True)
+        row.prop(toolsettings, "proportional_edit", icon_only=True)
+        if toolsettings.proportional_edit != 'DISABLED':
+            row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':
