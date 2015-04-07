@@ -30,8 +30,7 @@
 #ifndef __STREAM_H__
 #define __STREAM_H__
 
-struct Stream
-{
+struct Stream {
 	unsigned char *mem; // location in memory
 	unsigned int size;  // size
 	unsigned int pos;   // current position

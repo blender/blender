@@ -52,8 +52,7 @@ enum format {
 	format_Cineon
 };
 
-typedef struct LogImageElement
-{
+typedef struct LogImageElement {
 	int             depth;
 	int             bitsPerSample;
 	int             dataOffset;
@@ -67,8 +66,7 @@ typedef struct LogImageElement
 	float           maxValue; /* = 2^bitsPerSample - 1 (used internally, doesn't come from the file header) */
 } LogImageElement;
 
-typedef struct LogImageFile
-{
+typedef struct LogImageFile {
 	/* specified in header */
 	int width;
 	int height;

@@ -41,8 +41,7 @@
 #include <Image.h>
 
 /// Uncompressed 4x4 color block.
-struct ColorBlock
-{
+struct ColorBlock {
 	ColorBlock();
 	ColorBlock(const uint * linearImage);
 	ColorBlock(const ColorBlock & block);

@@ -47,8 +47,7 @@
 
 #include "../generic/python_utildefines.h"
 
-typedef struct
-{
+typedef struct {
 	PyObject_HEAD
 	/* The string used to separate context from actual message in PY_TRANSLATE RNA props. */
 	const char *context_separator;

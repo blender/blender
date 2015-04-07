@@ -496,8 +496,7 @@ void mem_read(Stream & mem, DDSHeader & header)
 
 namespace
 {
-struct FormatDescriptor
-{
+struct FormatDescriptor {
 	uint format;
 	uint bitcount;
 	uint rmask;

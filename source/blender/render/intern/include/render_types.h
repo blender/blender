@@ -122,8 +122,7 @@ enum {
 };
 
 /* controls state of render, everything that's read-only during render stage */
-struct Render
-{
+struct Render {
 	struct Render *next, *prev;
 	char name[RE_MAXNAME];
 	int slot;

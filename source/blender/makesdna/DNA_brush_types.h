@@ -137,16 +137,14 @@ typedef struct Brush {
 	float mask_stencil_dimension[2];
 } Brush;
 
-typedef struct PaletteColor
-{
+typedef struct PaletteColor {
 	struct PaletteColor *next, *prev;
 	/* two values, one to store rgb, other to store values for sculpt/weight */
 	float rgb[3];
 	float value;
 } PaletteColor;
 
-typedef struct Palette
-{
+typedef struct Palette {
 	ID id;
 
 	/* pointer to individual colours */
@@ -156,14 +154,12 @@ typedef struct Palette
 	int pad;
 } Palette;
 
-typedef struct PaintCurvePoint
-{
+typedef struct PaintCurvePoint {
 	BezTriple bez; /* bezier handle */
 	float pressure; /* pressure on that point */
 } PaintCurvePoint;
 
-typedef struct PaintCurve
-{
+typedef struct PaintCurve {
 	ID id;
 	PaintCurvePoint *points; /* points of curve */
 	int tot_points;

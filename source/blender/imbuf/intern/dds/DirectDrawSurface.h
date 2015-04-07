@@ -63,8 +63,7 @@
 #include <ColorBlock.h>
 #include <Image.h>
 
-struct DDSPixelFormat
-{
+struct DDSPixelFormat {
 	uint size;
 	uint flags;
 	uint fourcc;
@@ -75,8 +74,7 @@ struct DDSPixelFormat
 	uint amask;
 };
 
-struct DDSCaps
-{
+struct DDSCaps {
 	uint caps1;
 	uint caps2;
 	uint caps3;
@@ -84,8 +82,7 @@ struct DDSCaps
 };
 
 /// DDS file header for DX10.
-struct DDSHeader10
-{
+struct DDSHeader10 {
 	uint dxgiFormat;
 	uint resourceDimension;
 	uint miscFlag;
@@ -94,8 +91,7 @@ struct DDSHeader10
 };
 
 /// DDS file header.
-struct DDSHeader
-{
+struct DDSHeader {
 	uint fourcc;
 	uint size;
 	uint flags;

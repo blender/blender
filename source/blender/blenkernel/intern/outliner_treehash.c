@@ -38,8 +38,7 @@
 
 #include "MEM_guardedalloc.h"
 
-typedef struct TseGroup
-{
+typedef struct TseGroup {
 	TreeStoreElem **elems;
 	int size;
 	int allocated;

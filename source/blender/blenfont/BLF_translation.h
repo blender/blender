@@ -180,8 +180,7 @@ const char *BLF_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLF_I18NCONTEXT_ID_MASK                 "Mask"
 
 /* Helper for bpy.app.i18n object... */
-typedef struct
-{
+typedef struct {
 	const char *c_id;
 	const char *py_id;
 	const char *value;

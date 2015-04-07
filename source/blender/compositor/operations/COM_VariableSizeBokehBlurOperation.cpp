@@ -62,8 +62,7 @@ void VariableSizeBokehBlurOperation::initExecution()
 #endif
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
-struct VariableSizeBokehBlurTileData
-{
+struct VariableSizeBokehBlurTileData {
 	MemoryBuffer *color;
 	MemoryBuffer *bokeh;
 	MemoryBuffer *size;

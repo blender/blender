@@ -268,8 +268,7 @@ typedef struct bNode {
 /* Unique hash key for identifying node instances
  * Defined as a struct because DNA does not support other typedefs.
  */
-typedef struct bNodeInstanceKey
-{
+typedef struct bNodeInstanceKey {
 	unsigned int value;
 } bNodeInstanceKey;
 

@@ -507,8 +507,7 @@ VChar *BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 
 /* Freetype2 Outline struct */
 
-typedef struct  FT_Outline_
-{
+typedef struct  FT_Outline_ {
 	short       n_contours;      /* number of contours in glyph        */
 	short       n_points;        /* number of points in the glyph      */
 

@@ -89,8 +89,7 @@ struct IK_Target;
 typedef void (*ErrorCallback)(const iTaSC::ConstraintValues *values, unsigned int nvalues, IK_Target *iktarget);
 
 // one structure for each target in the scene
-struct IK_Target
-{
+struct IK_Target {
 	struct Scene			*blscene;
 	iTaSC::MovingFrame*		target;
 	iTaSC::ConstraintSet*	constraint;

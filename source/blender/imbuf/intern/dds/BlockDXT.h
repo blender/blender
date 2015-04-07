@@ -64,8 +64,7 @@
 #include <Stream.h>
 
 /// DXT1 block.
-struct BlockDXT1
-{
+struct BlockDXT1 {
 	Color16 col0;
 	Color16 col1;
 	union {
@@ -98,8 +97,7 @@ inline bool BlockDXT1::isFourColorMode() const
 
 
 /// DXT3 alpha block with explicit alpha.
-struct AlphaBlockDXT3
-{
+struct AlphaBlockDXT3 {
 	union {
 		struct {
 			uint alpha0 : 4;
@@ -130,8 +128,7 @@ struct AlphaBlockDXT3
 
 
 /// DXT3 block.
-struct BlockDXT3
-{
+struct BlockDXT3 {
 	AlphaBlockDXT3 alpha;
 	BlockDXT1 color;
 	
@@ -144,8 +141,7 @@ struct BlockDXT3
 
 
 /// DXT5 alpha block.
-struct AlphaBlockDXT5
-{
+struct AlphaBlockDXT5 {
 	// uint64 unions do not compile on all platforms
 #if 0
 	union {
@@ -208,8 +204,7 @@ struct AlphaBlockDXT5
 
 
 /// DXT5 block.
-struct BlockDXT5
-{
+struct BlockDXT5 {
 	AlphaBlockDXT5 alpha;
 	BlockDXT1 color;
 	
@@ -221,8 +216,7 @@ struct BlockDXT5
 };
 
 /// ATI1 block.
-struct BlockATI1
-{
+struct BlockATI1 {
 	AlphaBlockDXT5 alpha;
 	
 	void decodeBlock(ColorBlock * block) const;
@@ -232,8 +226,7 @@ struct BlockATI1
 };
 
 /// ATI2 block.
-struct BlockATI2
-{
+struct BlockATI2 {
 	AlphaBlockDXT5 x;
 	AlphaBlockDXT5 y;
 	
@@ -244,8 +237,7 @@ struct BlockATI2
 };
 
 /// CTX1 block.
-struct BlockCTX1
-{
+struct BlockCTX1 {
 	uint8 col0[2];
 	uint8 col1[2];
 	union {

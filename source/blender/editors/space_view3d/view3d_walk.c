@@ -220,8 +220,7 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 }
 
 
-typedef struct WalkTeleport
-{
+typedef struct WalkTeleport {
 	eWalkTeleportState state;
 	float duration; /* from user preferences */
 	float origin[3];

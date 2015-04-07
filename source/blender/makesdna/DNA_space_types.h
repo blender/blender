@@ -554,8 +554,7 @@ typedef enum eSpaceSeq_Proxy_RenderSize {
 	SEQ_PROXY_RENDER_SIZE_FULL      = 100
 } eSpaceSeq_Proxy_RenderSize;
 
-typedef struct MaskSpaceInfo
-{
+typedef struct MaskSpaceInfo {
 	/* **** mask editing **** */
 	struct Mask *mask;
 	/* draw options */
