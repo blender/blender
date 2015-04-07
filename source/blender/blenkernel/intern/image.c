@@ -2357,11 +2357,16 @@ Image *BKE_image_verify_viewer(int type, const char *name)
 
 static void image_viewer_create_views(const RenderData *rd, Image *ima)
 {
-	SceneRenderView *srv;
-	for (srv = rd->views.first; srv; srv = srv->next) {
-		if (BKE_scene_multiview_is_render_view_active(rd, srv) == false)
-			continue;
-		image_add_view(ima, srv->name, "");
+	if ((rd->scemode & R_MULTIVIEW) == 0) {
+		image_add_view(ima, "", "");
+	}
+	else {
+		SceneRenderView *srv;
+		for (srv = rd->views.first; srv; srv = srv->next) {
+			if (BKE_scene_multiview_is_render_view_active(rd, srv) == false)
+				continue;
+			image_add_view(ima, srv->name, "");
+		}
 	}
 }
 
