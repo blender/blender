@@ -564,7 +564,7 @@ class AndBP1D(BinaryPredicate1D):
     def __init__(self, *predicates):
         BinaryPredicate1D.__init__(self)
         self._predicates = predicates
-        if len(self.predicates) < 2:
+        if len(predicates) < 2:
             raise ValueError("Expected two or more BinaryPredicate1D, got ", len(predictates))
 
     def __call__(self, i1, i2):
@@ -575,7 +575,7 @@ class OrBP1D(BinaryPredicate1D):
     def __init__(self, *predicates):
         BinaryPredicate1D.__init__(self)
         self._predicates = predicates
-        if len(self.predicates) < 2:
+        if len(predicates) < 2:
             raise ValueError("Expected two or more BinaryPredicate1D, got ", len(predictates))
 
     def __call__(self, i1, i2):
