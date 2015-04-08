@@ -712,7 +712,7 @@ typedef enum eFileSel_File_Types {
 	FILE_TYPE_FTFONT            = (1 << 7),
 	FILE_TYPE_SOUND             = (1 << 8),
 	FILE_TYPE_TEXT              = (1 << 9),
-	FILE_TYPE_MOVIE_ICON        = (1 << 10), /* movie file that preview can't load */
+	/* 1 << 10 was FILE_TYPE_MOVIE_ICON, got rid of this so free slot for future type... */
 	FILE_TYPE_FOLDER            = (1 << 11), /* represents folders for filtering */
 	FILE_TYPE_BTX               = (1 << 12),
 	FILE_TYPE_COLLADA           = (1 << 13),
