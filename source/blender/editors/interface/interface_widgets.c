@@ -602,10 +602,10 @@ static void round_box_shade_col4_r(unsigned char r_col[4], const char col1[4], c
 	const int faci = FTOCHAR(fac);
 	const int facm = 255 - faci;
 
-	r_col[0] = (faci * col1[0] + facm * col2[0]) >> 8;
-	r_col[1] = (faci * col1[1] + facm * col2[1]) >> 8;
-	r_col[2] = (faci * col1[2] + facm * col2[2]) >> 8;
-	r_col[3] = (faci * col1[3] + facm * col2[3]) >> 8;
+	r_col[0] = (faci * col1[0] + facm * col2[0]) / 256;
+	r_col[1] = (faci * col1[1] + facm * col2[1]) / 256;
+	r_col[2] = (faci * col1[2] + facm * col2[2]) / 256;
+	r_col[3] = (faci * col1[3] + facm * col2[3]) / 256;
 }
 
 static void widget_verts_to_triangle_strip(uiWidgetBase *wtb, const int totvert, float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2])

@@ -795,22 +795,14 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				nr = me->totface;
 				tface = me->tface;
 				while (nr--) {
-					cp = (char *)&tface->col[0];
-					if (cp[1] > 126) cp[1] = 255; else cp[1] *= 2;
-					if (cp[2] > 126) cp[2] = 255; else cp[2] *= 2;
-					if (cp[3] > 126) cp[3] = 255; else cp[3] *= 2;
-					cp = (char *)&tface->col[1];
-					if (cp[1] > 126) cp[1] = 255; else cp[1] *= 2;
-					if (cp[2] > 126) cp[2] = 255; else cp[2] *= 2;
-					if (cp[3] > 126) cp[3] = 255; else cp[3] *= 2;
-					cp = (char *)&tface->col[2];
-					if (cp[1] > 126) cp[1] = 255; else cp[1] *= 2;
-					if (cp[2] > 126) cp[2] = 255; else cp[2] *= 2;
-					if (cp[3] > 126) cp[3] = 255; else cp[3] *= 2;
-					cp = (char *)&tface->col[3];
-					if (cp[1] > 126) cp[1] = 255; else cp[1] *= 2;
-					if (cp[2] > 126) cp[2] = 255; else cp[2] *= 2;
-					if (cp[3] > 126) cp[3] = 255; else cp[3] *= 2;
+					int j;
+					for (j = 0; j < 4; j++) {
+						int k;
+						cp = ((char *)&tface->col[j]) + 1;
+						for (k = 0; k < 3; k++) {
+							cp[k] = (cp[k] > 126) ? 255 : cp[k] * 2;
+						}
+					}
 
 					tface++;
 				}

@@ -65,7 +65,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 	if (isBreaked()) breaked = true;
 	if (!breaked) FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 2, 3);
 
-	if (settings->iter & 1) ofs = 0.5f; else ofs = 0.f;
+	ofs = (settings->iter & 1) ? 0.5f : 0.0f;
 	for (x = 0; x < (settings->iter * 4); x++) {
 		y = x & 3;
 		cm[x][0] = cm[x][1] = cm[x][2] = 1;

@@ -714,8 +714,8 @@ GHOST_EventWheel *GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window
 	
 	// zDelta /= WHEEL_DELTA;
 	// temporary fix below: microsoft now has added more precision, making the above division not work
-	if (zDelta <= 0) zDelta = -1; else zDelta = 1;
-	
+	zDelta = (zDelta <= 0) ? -1 : 1;
+
 	// short xPos = (short) LOWORD(lParam);	// horizontal position of pointer
 	// short yPos = (short) HIWORD(lParam);	// vertical position of pointer
 	return new GHOST_EventWheel(getSystem()->getMilliSeconds(), window, zDelta);

@@ -648,13 +648,13 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 		wtable[x] = (unsigned char) (pow(((float) x + 1) / 256, scope_gamma) * 255);
 	}
 
-	for (x = 0; x <= 255; x++) {
-		vectorscope_put_cross(255,     0, 255 - x, tgt, w, h, 1);
-		vectorscope_put_cross(255,     x,      0, tgt, w, h, 1);
-		vectorscope_put_cross(255 - x,   255,      0, tgt, w, h, 1);
-		vectorscope_put_cross(0,        255,      x, tgt, w, h, 1);
-		vectorscope_put_cross(0,    255 - x,    255, tgt, w, h, 1);
-		vectorscope_put_cross(x,          0,    255, tgt, w, h, 1);
+	for (x = 0; x < 256; x++) {
+		vectorscope_put_cross(255,       0, 255 - x, tgt, w, h, 1);
+		vectorscope_put_cross(255,       x,       0, tgt, w, h, 1);
+		vectorscope_put_cross(255 - x, 255,       0, tgt, w, h, 1);
+		vectorscope_put_cross(0,       255,       x, tgt, w, h, 1);
+		vectorscope_put_cross(0,   255 - x,     255, tgt, w, h, 1);
+		vectorscope_put_cross(x,         0,     255, tgt, w, h, 1);
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
@@ -695,12 +695,12 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 	}
 
 	for (x = 0; x <= 255; x++) {
-		vectorscope_put_cross(255,     0, 255 - x, tgt, w, h, 1);
-		vectorscope_put_cross(255,     x,      0, tgt, w, h, 1);
-		vectorscope_put_cross(255 - x,   255,      0, tgt, w, h, 1);
-		vectorscope_put_cross(0,        255,      x, tgt, w, h, 1);
-		vectorscope_put_cross(0,    255 - x,    255, tgt, w, h, 1);
-		vectorscope_put_cross(x,          0,    255, tgt, w, h, 1);
+		vectorscope_put_cross(255,       0, 255 - x, tgt, w, h, 1);
+		vectorscope_put_cross(255,       x,       0, tgt, w, h, 1);
+		vectorscope_put_cross(255 - x, 255,       0, tgt, w, h, 1);
+		vectorscope_put_cross(0,       255,       x, tgt, w, h, 1);
+		vectorscope_put_cross(0,   255 - x,     255, tgt, w, h, 1);
+		vectorscope_put_cross(x,         0,     255, tgt, w, h, 1);
 	}
 
 	for (y = 0; y < ibuf->y; y++) {
