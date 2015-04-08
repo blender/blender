@@ -58,6 +58,7 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_string.h"
 #include "BLI_bitmap.h"
+#include "BLI_rect.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
@@ -3402,13 +3403,14 @@ static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, boo
 
 
 /* This function assigns the information to transdata */
-static void TimeToTransData(TransData *td, float *time, AnimData *adt)
+static void TimeToTransData(TransData *td, float *time, AnimData *adt, float ypos)
 {
 	/* memory is calloc'ed, so that should zero everything nicely for us */
 	td->val = time;
 	td->ival = *(time);
 
 	td->center[0] = td->ival;
+	td->center[1] = ypos;
 
 	/* store the AnimData where this keyframe exists as a keyframe of the
 	 * active action as td->extra.
@@ -3423,7 +3425,7 @@ static void TimeToTransData(TransData *td, float *time, AnimData *adt)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used.
  */
-static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FCurve *fcu, AnimData *adt, char side, float cfra, bool propedit)
+static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FCurve *fcu, AnimData *adt, char side, float cfra, bool propedit, float ypos)
 {
 	BezTriple *bezt;
 	TransData2D *td2d = *td2dv;
@@ -3437,7 +3439,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 		if (propedit || (bezt->f2 & SELECT)) { /* note this MUST match count_fcurve_keys(), so can't use BEZSELECTED() macro */
 			/* only add if on the right 'side' of the current frame */
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-				TimeToTransData(td, bezt->vec[1], adt);
+				TimeToTransData(td, bezt->vec[1], adt, ypos);
 				
 				if (bezt->f2 & SELECT)
 					td->flag |= TD_SELECTED;
@@ -3492,7 +3494,7 @@ void flushTransIntFrameActionData(TransInfo *t)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used.
  */
-static int GPLayerToTransData(TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, char side, float cfra, bool propedit)
+static int GPLayerToTransData(TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, char side, float cfra, bool propedit, float ypos)
 {
 	bGPDframe *gpf;
 	int count = 0;
@@ -3506,6 +3508,7 @@ static int GPLayerToTransData(TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl,
 				td->ival = (float)gpf->framenum;
 				
 				td->center[0] = td->ival;
+				td->center[1] = ypos;
 
 				tfd->val = (float)gpf->framenum;
 				tfd->sdata = &gpf->framenum;
@@ -3522,7 +3525,7 @@ static int GPLayerToTransData(TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl,
 }
 
 /* refer to comment above #GPLayerToTransData, this is the same but for masks */
-static int MaskLayerToTransData(TransData *td, tGPFtransdata *tfd, MaskLayer *masklay, char side, float cfra, bool propedit)
+static int MaskLayerToTransData(TransData *td, tGPFtransdata *tfd, MaskLayer *masklay, char side, float cfra, bool propedit, float ypos)
 {
 	MaskLayerShape *masklay_shape;
 	int count = 0;
@@ -3536,6 +3539,7 @@ static int MaskLayerToTransData(TransData *td, tGPFtransdata *tfd, MaskLayer *ma
 				td->ival = (float)masklay_shape->frame;
 
 				td->center[0] = td->ival;
+				td->center[1] = ypos;
 
 				tfd->val = (float)masklay_shape->frame;
 				tfd->sdata = &masklay_shape->frame;
@@ -3559,6 +3563,14 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	TransData2D *td2d = NULL;
 	tGPFtransdata *tfd = NULL;
 
+	rcti *mask = &t->ar->v2d.mask;
+	rctf *datamask = &t->ar->v2d.cur;
+
+	float xsize = BLI_rctf_size_x(datamask);
+	float ysize = BLI_rctf_size_y(datamask);
+	float xmask = BLI_rcti_size_x(mask);
+	float ymask = BLI_rcti_size_y(mask);
+
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -3567,6 +3579,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
 	int count = 0;
 	float cfra;
+	float ypos = 1.0f / ((ysize / xsize) * (xmask / ymask)) * BLI_rctf_cent_y(&t->ar->v2d.cur);
 
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -3668,7 +3681,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			bGPDlayer *gpl = (bGPDlayer *)ale->data;
 			int i;
 			
-			i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra, propedit);
+			i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra, propedit, ypos);
 			td += i;
 			tfd += i;
 		}
@@ -3676,7 +3689,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			MaskLayer *masklay = (MaskLayer *)ale->data;
 			int i;
 
-			i = MaskLayerToTransData(td, tfd, masklay, t->frame_side, cfra, propedit);
+			i = MaskLayerToTransData(td, tfd, masklay, t->frame_side, cfra, propedit, ypos);
 			td += i;
 			tfd += i;
 		}
@@ -3684,7 +3697,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
 			FCurve *fcu = (FCurve *)ale->key_data;
 			
-			td = ActionFCurveToTransData(td, &td2d, fcu, adt, t->frame_side, cfra, propedit);
+			td = ActionFCurveToTransData(td, &td2d, fcu, adt, t->frame_side, cfra, propedit, ypos);
 		}
 	}
 	
