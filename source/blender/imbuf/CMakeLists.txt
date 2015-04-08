@@ -66,6 +66,7 @@ set(SRC
 	intern/targa.c
 	intern/thumbs.c
 	intern/thumbs_blend.c
+	intern/thumbs_font.c
 	intern/util.c
 	intern/writeimage.c
 

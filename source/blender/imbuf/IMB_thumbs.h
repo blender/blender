@@ -54,7 +54,8 @@ typedef enum ThumbSize {
 typedef enum ThumbSource {
 	THB_SOURCE_IMAGE,
 	THB_SOURCE_MOVIE,
-	THB_SOURCE_BLEND
+	THB_SOURCE_BLEND,
+	THB_SOURCE_FONT,
 } ThumbSource;
 
 /* don't generate thumbs for images bigger then this (100mb) */
@@ -78,6 +79,11 @@ void IMB_thumb_makedirs(void);
 /* special function for loading a thumbnail embedded into a blend file */
 ImBuf *IMB_thumb_load_blend(const char *path);
 void   IMB_thumb_overlay_blend(unsigned int *thumb, int width, int height, float aspect);
+
+/* special function for previewing fonts */
+ImBuf *IMB_thumb_load_font(
+        const char *filename,
+        unsigned int x, unsigned int y);
 
 #ifdef __cplusplus
 }

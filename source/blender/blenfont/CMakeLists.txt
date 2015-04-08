@@ -47,6 +47,7 @@ set(SRC
 	intern/blf_font.c
 	intern/blf_glyph.c
 	intern/blf_lang.c
+	intern/blf_thumbs.c
 	intern/blf_translation.c
 	intern/blf_util.c
 

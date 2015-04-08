@@ -186,6 +186,12 @@ char **BLF_dir_get(int *ndir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /* Free the data return by BLF_dir_get. */
 void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
 
+/* blf_thumbs.c */
+void BLF_thumb_preview(
+        const char *filename, const char **draw_str, const unsigned char draw_str_lines,
+        const float font_color[4], const int font_size,
+        unsigned char *buf, int w, int h, int channels) ATTR_NONNULL();
+
 #ifdef DEBUG
 void BLF_state_print(int fontid);
 #endif

@@ -330,15 +330,22 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 			if (!img) return NULL;
 		}
 		else {
-			if (THB_SOURCE_IMAGE == source || THB_SOURCE_BLEND == source) {
+			if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
 				
 				/* only load if we didnt give an image */
 				if (img == NULL) {
-					if (THB_SOURCE_BLEND == source) {
-						img = IMB_thumb_load_blend(path);
-					}
-					else {
-						img = IMB_loadiffname(path, IB_rect | IB_metadata | IB_thumbnail, NULL);
+					switch (source) {
+						case THB_SOURCE_IMAGE:
+							img = IMB_loadiffname(path, IB_rect | IB_metadata, NULL);
+							break;
+						case THB_SOURCE_BLEND:
+							img = IMB_thumb_load_blend(path);
+							break;
+						case THB_SOURCE_FONT:
+							img = IMB_thumb_load_font(path, tsize, tsize);
+							break;
+						default:
+							BLI_assert(0); /* This should never happen */
 					}
 				}
 

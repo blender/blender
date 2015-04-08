@@ -1348,6 +1348,9 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float 
 				limg->flags |= FILE_TYPE_MOVIE_ICON;
 			}
 		}
+		else if (limg->flags & FILE_TYPE_FTFONT) {
+			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_FONT);
+		}
 		*do_update = true;
 		PIL_sleep_ms(10);
 		limg = limg->next;
@@ -1363,7 +1366,7 @@ static void thumbnails_update(void *tjv)
 		while (limg) {
 			if (!limg->done && limg->img) {
 				tj->filelist->filelist[limg->index].image = IMB_dupImBuf(limg->img);
-				/* update flag for movie files where thumbnail can't be created */
+				/* update flag for movie and font files where thumbnail can't be created */
 				if (limg->flags & FILE_TYPE_MOVIE_ICON) {
 					tj->filelist->filelist[limg->index].flags &= ~FILE_TYPE_MOVIE;
 					tj->filelist->filelist[limg->index].flags |= FILE_TYPE_MOVIE_ICON;
@@ -1408,7 +1411,7 @@ void thumbnails_start(FileList *filelist, const bContext *C)
 			continue;
 		}
 		if (!filelist->filelist[idx].image) {
-			if (filelist->filelist[idx].flags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE |
+			if (filelist->filelist[idx].flags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
 			                                     FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))
 			{
 				FileImage *limg = MEM_callocN(sizeof(*limg), __func__);
