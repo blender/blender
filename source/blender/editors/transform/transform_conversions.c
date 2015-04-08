@@ -3339,13 +3339,14 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra, bool propedit)
 
 	/* only include points that occur on the right side of cfra */
 	for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-		if (bezt->f2 & SELECT) {
+		if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 			/* no need to adjust the handle selection since they are assumed
 			 * selected (like graph editor with SIPO_NOHANDLES) */
-			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))
+			if (bezt->f2 & SELECT)
 				count++;
+
+			count_all++;
 		}
-		count_all++;
 	}
 
 	if (propedit && count > 0)
@@ -3364,11 +3365,11 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool prop
 	
 	/* only include points that occur on the right side of cfra */
 	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-		if (gpf->flag & GP_FRAME_SELECT) {
-			if (FrameOnMouseSide(side, (float)gpf->framenum, cfra))
+		if (FrameOnMouseSide(side, (float)gpf->framenum, cfra)) {
+			if (gpf->flag & GP_FRAME_SELECT)
 				count++;
+			count_all++;
 		}
-		count_all++;
 	}
 	
 	if (propedit && count > 0)
@@ -3388,11 +3389,11 @@ static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, boo
 
 	/* only include points that occur on the right side of cfra */
 	for (masklayer_shape = masklay->splines_shapes.first; masklayer_shape; masklayer_shape = masklayer_shape->next) {
-		if (masklayer_shape->flag & MASK_SHAPE_SELECT) {
-			if (FrameOnMouseSide(side, (float)masklayer_shape->frame, cfra))
+		if (FrameOnMouseSide(side, (float)masklayer_shape->frame, cfra)) {
+			if (masklayer_shape->flag & MASK_SHAPE_SELECT)
 				count++;
+			count_all++;
 		}
-		count_all++;
 	}
 
 	if (propedit && count > 0)
