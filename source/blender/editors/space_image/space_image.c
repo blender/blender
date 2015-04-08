@@ -157,6 +157,7 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->iuser.fie_ima = 2;
 	simage->iuser.frames = 100;
 	simage->iuser.flag = IMA_SHOW_STEREO;
+	simage->iuser.passtype = SCE_PASS_COMBINED;
 
 	scopes_new(&simage->scopes);
 	simage->sample_line_hist.height = 100;
