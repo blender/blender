@@ -202,7 +202,7 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
 	eVal = evaluate_fcurve(fcu, (float)pso->nextFrame);
 	
 	/* if both values are equal, don't do anything */
-	if (IS_EQ(sVal, eVal)) {
+	if (IS_EQF(sVal, eVal)) {
 		(*val) = sVal;
 		return;
 	}
