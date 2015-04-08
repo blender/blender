@@ -112,10 +112,40 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 
 	if ((dir = opendir(dirname)) != NULL) {
 		const struct dirent *fname;
+		bool has_current = false, has_parent = false;
+
 		while ((fname = readdir(dir)) != NULL) {
 			struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 			if (dlink != NULL) {
 				dlink->name = BLI_strdup(fname->d_name);
+				if (FILENAME_IS_PARENT(dlink->name)) {
+					has_parent = true;
+				}
+				else if (FILENAME_IS_CURRENT(dlink->name)) {
+					has_current = true;
+				}
+				BLI_addhead(&dirbase, dlink);
+				newnum++;
+			}
+		}
+
+		if (!has_parent) {
+			char pardir[FILE_MAXDIR];
+
+			BLI_strncpy(pardir, dirname, sizeof(pardir));
+			if (BLI_parent_dir(pardir) && (BLI_access(pardir, R_OK) == 0)) {
+				struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+				if (dlink != NULL) {
+					dlink->name = BLI_strdup(FILENAME_PARENT);
+					BLI_addhead(&dirbase, dlink);
+					newnum++;
+				}
+			}
+		}
+		if (!has_current) {
+			struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+			if (dlink != NULL) {
+				dlink->name = BLI_strdup(FILENAME_CURRENT);
 				BLI_addhead(&dirbase, dlink);
 				newnum++;
 			}
@@ -147,6 +177,10 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 					BLI_join_dirfile(fullname, sizeof(fullname), dirname, dlink->name);
 					if (BLI_stat(fullname, &file->s) != -1) {
 						file->type = file->s.st_mode;
+					}
+					else if (FILENAME_IS_CURRPAR(file->relname)) {
+						/* Hack around for UNC paths on windows - does not support stat on '\\SERVER\foo\..', sigh... */
+						file->type |= S_IFDIR;
 					}
 					file->flags = 0;
 					dir_ctx->nrfiles++;

@@ -900,7 +900,6 @@ static void filelist_setfiletypes(struct FileList *filelist)
 	file = filelist->filelist;
 
 	for (num = 0; num < filelist->numfiles; num++, file++) {
-		file->type = file->s.st_mode;  /* restore the mess below */
 #ifndef __APPLE__
 		/* Don't check extensions for directories, allow in OSX cause bundles have extensions*/
 		if (file->type & S_IFDIR) {
