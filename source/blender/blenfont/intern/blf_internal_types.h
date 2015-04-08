@@ -48,7 +48,7 @@ typedef struct GlyphCacheBLF {
 	struct GlyphBLF *glyph_ascii_table[256];
 
 	/* texture array, to draw the glyphs. */
-	GLuint *textures;
+	unsigned int *textures;
 
 	/* size of the array. */
 	unsigned int ntex;
@@ -103,7 +103,7 @@ typedef struct GlyphBLF {
 	int advance_i;
 
 	/* texture id where this glyph is store. */
-	GLuint tex;
+	unsigned int tex;
 
 	/* position inside the texture where this glyph is store. */
 	int xoff;
