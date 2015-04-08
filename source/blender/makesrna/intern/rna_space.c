@@ -118,11 +118,13 @@ static EnumPropertyItem multiview_camera_items[] = {
 #undef V3D_S3D_CAMERA_S3D
 #undef V3D_S3D_CAMERA_VIEWS
 
+#ifndef RNA_RUNTIME
 static EnumPropertyItem stereo3d_eye_items[] = {
     {STEREO_LEFT_ID, "LEFT_EYE", ICON_NONE, "Left Eye"},
     {STEREO_RIGHT_ID, "RIGHT_EYE", ICON_NONE, "Right Eye"},
     {0, NULL, 0, NULL, NULL}
 };
+#endif
 
 static EnumPropertyItem pivot_items_full[] = {
 	{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center",
