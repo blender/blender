@@ -365,8 +365,9 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
 	if ((skip_stereo3d_check == false) && (ED_screen_stereo3d_required(screen) == false))
 		return false;
 
-	if (wm_stereo3d_is_fullscreen_required(win->stereo3d_format->display_mode))
-		return WM_window_is_fullscreen(win);
+	if (wm_stereo3d_is_fullscreen_required(win->stereo3d_format->display_mode)) {
+		return (GHOST_GetWindowState(win->ghostwin) == GHOST_kWindowStateFullScreen);
+	}
 
 	return true;
 }
@@ -457,7 +458,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 
 	if (wm_stereo3d_is_fullscreen_required(win->stereo3d_format->display_mode)) {
 		if (!is_fullscreen) {
-			wm_window_fullscreen_toggle_exec(C, op);
+			BKE_reportf(op->reports, RPT_INFO, "Stereo 3D Mode requires the window to be fullscreen");
 		}
 	}
 
