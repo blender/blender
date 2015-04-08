@@ -463,6 +463,7 @@ bool KX_Camera::GetFrustumCulling() const
  
 void KX_Camera::EnableViewport(bool viewport)
 {
+	InvalidateProjectionMatrix(false); // We need to reset projection matrix
 	m_camdata.m_viewport = viewport;
 }
 
