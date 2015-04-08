@@ -6449,10 +6449,20 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 {
 	VertSlideData *sld = t->customData;
 	TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
-	const float *co_orig = sv->co_orig_2d;
-	const float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
-	const int mval_start[2] = {co_orig[0], co_orig[1]};
-	const int mval_end[2]   = {co_curr[0], co_curr[1]};
+
+	const float *co_orig_3d = sv->co_orig_3d;
+	const float *co_curr_3d = sv->co_link_orig_3d[sv->co_link_curr];
+
+	float co_curr_2d[2], co_orig_2d[2];
+
+	int mval_ofs[2], mval_start[2], mval_end[2];
+
+	ED_view3d_project_float_v2_m4(t->ar, co_orig_3d, co_orig_2d, sld->proj_mat);
+	ED_view3d_project_float_v2_m4(t->ar, co_curr_3d, co_curr_2d, sld->proj_mat);
+
+	ARRAY_SET_ITEMS(mval_ofs, t->imval[0] - co_orig_2d[0], t->imval[1] - co_orig_2d[1]);
+	ARRAY_SET_ITEMS(mval_start, co_orig_2d[0] + mval_ofs[0], co_orig_2d[1] + mval_ofs[1]);
+	ARRAY_SET_ITEMS(mval_end, co_curr_2d[0] + mval_ofs[0], co_curr_2d[1] + mval_ofs[1]);
 
 	if (sld->flipped_vtx && sld->is_proportional == false) {
 		setCustomPoints(t, &t->mouse, mval_start, mval_end);
@@ -6460,6 +6470,11 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 	else {
 		setCustomPoints(t, &t->mouse, mval_end, mval_start);
 	}
+
+	/* setCustomPoints isn't normally changing as the mouse moves,
+	 * in this case apply mouse input immediatly so we don't refresh
+	 * with the value from the previous points */
+	applyMouseInput(t, &t->mouse, t->mval, t->values);
 }
 
 /**
@@ -6477,28 +6492,35 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 	int i;
 
 	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
-		dist_sq = len_squared_v2v2(mval_fl, sv->co_orig_2d);
+		float co_2d[2];
+
+		ED_view3d_project_float_v2_m4(t->ar, sv->co_orig_3d, co_2d, sld->proj_mat);
+
+		dist_sq = len_squared_v2v2(mval_fl, co_2d);
 		if (dist_sq < dist_min_sq) {
 			dist_min_sq = dist_sq;
 			sld->curr_sv_index = i;
 		}
 	}
 }
+
 /**
  * Run while moving the mouse to slide along the edge matching the mouse direction
  */
 static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2])
 {
 	VertSlideData *sld = t->customData;
-	float mval_fl[2] = {UNPACK2(mval)};
+	float imval_fl[2] = {UNPACK2(t->imval)};
+	float  mval_fl[2] = {UNPACK2(mval)};
 
-	float dir[2];
+	float dir[3];
 	TransDataVertSlideVert *sv;
 	int i;
 
-	/* first get the direction of the original vertex */
-	sub_v2_v2v2(dir, sld->sv[sld->curr_sv_index].co_orig_2d, mval_fl);
-	normalize_v2(dir);
+	/* first get the direction of the original mouse position */
+	sub_v2_v2v2(dir, imval_fl, mval_fl);
+	ED_view3d_win_to_delta(t->ar, dir, dir, t->zfac);
+	normalize_v3(dir);
 
 	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
 		if (sv->co_link_tot > 1) {
@@ -6507,11 +6529,14 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
 			int j;
 
 			for (j = 0; j < sv->co_link_tot; j++) {
-				float tdir[2];
+				float tdir[3];
 				float dir_dot;
-				sub_v2_v2v2(tdir, sv->co_orig_2d, sv->co_link_orig_2d[j]);
-				normalize_v2(tdir);
-				dir_dot = dot_v2v2(dir, tdir);
+
+				sub_v3_v3v3(tdir, sv->co_orig_3d, sv->co_link_orig_3d[j]);
+				project_plane_v3_v3v3(tdir, tdir, t->viewinv[2]);
+
+				normalize_v3(tdir);
+				dir_dot = dot_v3v3(dir, tdir);
 				if (dir_dot > dir_dot_best) {
 					dir_dot_best = dir_dot;
 					co_link_curr_best = j;
@@ -6535,31 +6560,13 @@ static bool createVertSlideVerts(TransInfo *t)
 	BMVert *v;
 	TransDataVertSlideVert *sv_array;
 	VertSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-//	View3D *v3d = NULL;
-	RegionView3D *rv3d = NULL;
-	ARegion *ar = t->ar;
-	float projectMat[4][4];
 	int j;
-
-	if (t->spacetype == SPACE_VIEW3D) {
-		/* background mode support */
-//		v3d = t->sa ? t->sa->spacedata.first : NULL;
-		rv3d = ar ? ar->regiondata : NULL;
-	}
 
 	slide_origdata_init_flag(t, &sld->orig_data);
 
 	sld->is_proportional = true;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = false;
-
-	if (!rv3d) {
-		/* ok, let's try to survive this */
-		unit_m4(projectMat);
-	}
-	else {
-		ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
-	}
 
 	j = 0;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -6604,7 +6611,6 @@ static bool createVertSlideVerts(TransInfo *t)
 			}
 
 			sv_array[j].co_link_orig_3d = MEM_mallocN(sizeof(*sv_array[j].co_link_orig_3d) * k, __func__);
-			sv_array[j].co_link_orig_2d = MEM_mallocN(sizeof(*sv_array[j].co_link_orig_2d) * k, __func__);
 			sv_array[j].co_link_tot = k;
 
 			k = 0;
@@ -6612,31 +6618,9 @@ static bool createVertSlideVerts(TransInfo *t)
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 					BMVert *v_other = BM_edge_other_vert(e, v);
 					copy_v3_v3(sv_array[j].co_link_orig_3d[k], v_other->co);
-					if (ar) {
-						ED_view3d_project_float_v2_m4(ar,
-						                              sv_array[j].co_link_orig_3d[k],
-						                              sv_array[j].co_link_orig_2d[k],
-						                              projectMat);
-					}
-					else {
-						copy_v2_v2(sv_array[j].co_link_orig_2d[k],
-						           sv_array[j].co_link_orig_3d[k]);
-					}
 					k++;
 				}
 			}
-
-			if (ar) {
-				ED_view3d_project_float_v2_m4(ar,
-				                              sv_array[j].co_orig_3d,
-				                              sv_array[j].co_orig_2d,
-				                              projectMat);
-			}
-			else {
-				copy_v2_v2(sv_array[j].co_orig_2d,
-				           sv_array[j].co_orig_3d);
-			}
-
 			j++;
 		}
 	}
@@ -6654,7 +6638,19 @@ static bool createVertSlideVerts(TransInfo *t)
 
 	t->customData = sld;
 
-	if (rv3d) {
+	/* most likely will be set below */
+	unit_m4(sld->proj_mat);
+
+	if (t->spacetype == SPACE_VIEW3D) {
+		/* view vars */
+		RegionView3D *rv3d = NULL;
+		ARegion *ar = t->ar;
+
+		rv3d = ar ? ar->regiondata : NULL;
+		if (rv3d) {
+			ED_view3d_ob_project_mat_get(rv3d, t->obedit, sld->proj_mat);
+		}
+
 		calcVertSlideMouseActiveVert(t, t->mval);
 		calcVertSlideMouseActiveEdges(t, t->mval);
 	}
@@ -6694,7 +6690,6 @@ void freeVertSlideVerts(TransInfo *t)
 		TransDataVertSlideVert *sv = sld->sv;
 		int i = 0;
 		for (i = 0; i < sld->totsv; i++, sv++) {
-			MEM_freeN(sv->co_link_orig_2d);
 			MEM_freeN(sv->co_link_orig_3d);
 		}
 	}
@@ -6874,10 +6869,35 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			             curr_sv->co_orig_3d);
 			bglEnd();
 
+			glDisable(GL_BLEND);
+
+			/* direction from active vertex! */
+			if ((t->mval[0] != t->imval[0]) ||
+			    (t->mval[1] != t->imval[1]))
+			{
+				float zfac = ED_view3d_calc_zfac(t->ar->regiondata, curr_sv->co_orig_3d, NULL);
+				float mval_ofs[2];
+				float co_dest_3d[3];
+
+				mval_ofs[0] = t->mval[0] - t->imval[0];
+				mval_ofs[1] = t->mval[1] - t->imval[1];
+
+				ED_view3d_win_to_delta(t->ar, mval_ofs, co_dest_3d, zfac);
+				add_v3_v3(co_dest_3d, curr_sv->co_orig_3d);
+
+				glLineWidth(1);
+				setlinestyle(1);
+
+				cpack(0xffffff);
+				glBegin(GL_LINES);
+				glVertex3fv(curr_sv->co_orig_3d);
+				glVertex3fv(co_dest_3d);
+
+				glEnd();
+			}
+
 			glPopMatrix();
 			glPopAttrib();
-
-			glDisable(GL_BLEND);
 
 			if (v3d && v3d->zbuf)
 				glEnable(GL_DEPTH_TEST);
