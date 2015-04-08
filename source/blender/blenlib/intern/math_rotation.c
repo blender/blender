@@ -1323,12 +1323,21 @@ static const RotOrderInfo rotOrders[] = {
  * NOTE: since we start at 1 for the values, but arrays index from 0,
  *		 there is -1 factor involved in this process...
  */
-#define GET_ROTATIONORDER_INFO(order) (assert(order >= 0 && order <= 6), (order < 1) ? &rotOrders[0] : &rotOrders[(order) - 1])
+static const RotOrderInfo *get_rotation_order_info(const short order)
+{
+	assert(order >= 0 && order <= 6);
+	if (order < 1)
+		return &rotOrders[0];
+	else if (order < 6)
+		return &rotOrders[order - 1];
+	else
+		return &rotOrders[5];
+}
 
 /* Construct quaternion from Euler angles (in radians). */
 void eulO_to_quat(float q[4], const float e[3], const short order)
 {
-	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = get_rotation_order_info(order);
 	short i = R->axis[0], j = R->axis[1], k = R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	double a[3];
@@ -1373,7 +1382,7 @@ void quat_to_eulO(float e[3], short const order, const float q[4])
 /* Construct 3x3 matrix from Euler angles (in radians). */
 void eulO_to_mat3(float M[3][3], const float e[3], const short order)
 {
-	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = get_rotation_order_info(order);
 	short i = R->axis[0], j = R->axis[1], k = R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 
@@ -1414,7 +1423,7 @@ void eulO_to_mat3(float M[3][3], const float e[3], const short order)
 /* returns two euler calculation methods, so we can pick the best */
 static void mat3_to_eulo2(float M[3][3], float eul1[3], float eul2[3], const short order)
 {
-	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = get_rotation_order_info(order);
 	short i = R->axis[0], j = R->axis[1], k = R->axis[2];
 	float mat[3][3];
 	float cy;
@@ -1550,7 +1559,7 @@ void rotate_eulO(float beul[3], const short order, char axis, float ang)
 /* the matrix is written to as 3 axis vectors */
 void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], const short order)
 {
-	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = get_rotation_order_info(order);
 
 	float mat[3][3];
 	float teul[3];
