@@ -51,8 +51,8 @@ static void node_shader_init_anisotropic(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	if (!in[3].link)
-		in[3].link = GPU_builtin(GPU_VIEW_NORMAL);
+	if (!in[4].link)
+		in[4].link = GPU_builtin(GPU_VIEW_NORMAL);
 
 	return GPU_stack_link(mat, "node_bsdf_anisotropic", in, out);
 }
