@@ -493,6 +493,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	RenderResult *rr;
 	RenderView *rv;
 	int view_id;
+	ImBuf *ibuf;
+	void *lock;
 
 	rr = RE_AcquireResultRead(oglrender->re);
 	for (rv = rr->views.first, view_id = 0; rv; rv = rv->next, view_id++) {
@@ -502,6 +504,12 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	}
 
 	RE_ReleaseResult(oglrender->re);
+
+	ibuf = BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
+	if (ibuf) {
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+	}
+	BKE_image_release_ibuf(oglrender->ima, ibuf, lock);
 
 	if (oglrender->write_still) {
 		screen_opengl_render_write(oglrender);
