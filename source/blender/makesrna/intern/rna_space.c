@@ -118,6 +118,11 @@ static EnumPropertyItem multiview_camera_items[] = {
 #undef V3D_S3D_CAMERA_S3D
 #undef V3D_S3D_CAMERA_VIEWS
 
+static EnumPropertyItem stereo3d_eye_items[] = {
+    {STEREO_LEFT_ID, "LEFT_EYE", ICON_NONE, "Left Eye"},
+    {STEREO_RIGHT_ID, "RIGHT_EYE", ICON_NONE, "Right Eye"},
+    {0, NULL, 0, NULL, NULL}
+};
 
 static EnumPropertyItem pivot_items_full[] = {
 	{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center",
@@ -2563,6 +2568,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	/* Stereo Settings */
+	prop = RNA_def_property(srna, "stereo_3d_eye", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "multiview_eye");
+	RNA_def_property_enum_items(prop, stereo3d_eye_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceView3D_stereo3d_camera_itemf");
+	RNA_def_property_ui_text(prop, "Stereo Eye", "Current stereo eye being drawn");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop = RNA_def_property(srna, "stereo_3d_camera", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stereo3d_camera");
 	RNA_def_property_enum_items(prop, stereo3d_camera_items);
