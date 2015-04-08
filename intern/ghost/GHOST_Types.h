@@ -126,12 +126,8 @@ typedef enum {
 	GHOST_kWindowStateMinimized,
 	GHOST_kWindowStateFullScreen,
 	GHOST_kWindowStateEmbedded,
-	GHOST_kWindowState8Normal = 8,
-	GHOST_kWindowState8Maximized,
-	GHOST_kWindowState8Minimized,
-	GHOST_kWindowState8FullScreen,
-	GHOST_kWindowStateModified,
-	GHOST_kWindowStateUnModified
+	// GHOST_kWindowStateModified,
+	// GHOST_kWindowStateUnModified,
 } GHOST_TWindowState;
 
 
