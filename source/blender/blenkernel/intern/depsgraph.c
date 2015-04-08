@@ -960,6 +960,10 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 
 			/* also flush custom data mask */
 			((Object *)node->ob)->customdata_mask = node->customdata_mask;
+
+			if (node->parent == NULL) {
+				dag_add_relation(dag, scenenode, node, DAG_RL_SCENE, "Scene Relation");
+			}
 		}
 	}
 	/* now set relations equal, so that when only one parent changes, the correct recalcs are found */
