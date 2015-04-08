@@ -47,7 +47,10 @@ static bNodeSocketTemplate sh_node_bump_out[] = {
 
 static int gpu_shader_bump(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_bump", in, out, GPU_builtin(GPU_VIEW_NORMAL));
+	if (!in[3].link)
+		in[3].link = GPU_builtin(GPU_VIEW_NORMAL);
+
+	return GPU_stack_link(mat, "node_bump", in, out);
 }
 
 /* node type definition */
