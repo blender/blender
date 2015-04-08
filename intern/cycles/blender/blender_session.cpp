@@ -632,7 +632,7 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 	}
 	else {
 		/* copy combined pass */
-		 BL::RenderPass b_combined_pass(b_rlay.passes.find_by_type(BL::RenderPass::type_COMBINED, b_rview_name.c_str()));
+		BL::RenderPass b_combined_pass(b_rlay.passes.find_by_type(BL::RenderPass::type_COMBINED, b_rview_name.c_str()));
 		if(buffers->get_pass_rect(PASS_COMBINED, exposure, rtile.sample, 4, &pixels[0]))
 			b_combined_pass.rect(&pixels[0]);
 	}
