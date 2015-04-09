@@ -232,7 +232,6 @@ BLI_INLINE void edgehash_insert_ex_keyonly(EdgeHash *eh, unsigned int v0, unsign
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
 	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
-	IS_EDGEHASH_ASSERT(eh);
 
 	/* this helps to track down errors with bad edge data */
 	BLI_assert(v0 < v1);
