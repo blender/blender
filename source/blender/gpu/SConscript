@@ -63,6 +63,8 @@ if env['WITH_BF_DDS']:
 # generated data files
 import os
 sources.extend((
+    os.path.join(env['DATA_SOURCES'], "gpu_program_smoke_frag.glsl.c"),
+    os.path.join(env['DATA_SOURCES'], "gpu_program_smoke_color_frag.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_simple_frag.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_simple_vert.glsl.c"),
     os.path.join(env['DATA_SOURCES'], "gpu_shader_fx_ssao_frag.glsl.c"),

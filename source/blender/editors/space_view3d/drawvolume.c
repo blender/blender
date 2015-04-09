@@ -135,76 +135,8 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	unsigned char *spec_data;
 	float *spec_pixels;
 	GPUTexture *tex_spec;
-
-	/* Fragment program to calculate the view3d of smoke */
-	/* using 4 textures, density, shadow, flame and flame spectrum */
-	const char *shader_basic =
-	        "!!ARBfp1.0\n"
-	        "PARAM dx = program.local[0];\n"
-	        "PARAM darkness = program.local[1];\n"
-	        "PARAM render = program.local[2];\n"
-	        "PARAM f = {1.442695041, 1.442695041, 1.442695041, 0.01};\n"
-	        "TEMP temp, shadow, flame, spec, value;\n"
-	        "TEX temp, fragment.texcoord[0], texture[0], 3D;\n"
-	        "TEX shadow, fragment.texcoord[0], texture[1], 3D;\n"
-	        "TEX flame, fragment.texcoord[0], texture[2], 3D;\n"
-	        "TEX spec, flame.r, texture[3], 1D;\n"
-	        /* calculate shading factor from density */
-	        "MUL value.r, temp.a, darkness.a;\n"
-	        "MUL value.r, value.r, dx.r;\n"
-	        "MUL value.r, value.r, f.r;\n"
-	        "EX2 temp, -value.r;\n"
-	        /* alpha */
-	        "SUB temp.a, 1.0, temp.r;\n"
-	        /* shade colors */
-	        "MUL temp.r, temp.r, shadow.r;\n"
-	        "MUL temp.g, temp.g, shadow.r;\n"
-	        "MUL temp.b, temp.b, shadow.r;\n"
-	        "MUL temp.r, temp.r, darkness.r;\n"
-	        "MUL temp.g, temp.g, darkness.g;\n"
-	        "MUL temp.b, temp.b, darkness.b;\n"
-	        /* for now this just replace smoke shading if rendering fire */
-	        "CMP result.color, render.r, temp, spec;\n"
-	        "END\n";
-
-	/* color shader */
-	const char *shader_color =
-	        "!!ARBfp1.0\n"
-	        "PARAM dx = program.local[0];\n"
-	        "PARAM darkness = program.local[1];\n"
-	        "PARAM render = program.local[2];\n"
-	        "PARAM f = {1.442695041, 1.442695041, 1.442695041, 1.442695041};\n"
-	        "TEMP temp, shadow, flame, spec, value;\n"
-	        "TEX temp, fragment.texcoord[0], texture[0], 3D;\n"
-	        "TEX shadow, fragment.texcoord[0], texture[1], 3D;\n"
-	        "TEX flame, fragment.texcoord[0], texture[2], 3D;\n"
-	        "TEX spec, flame.r, texture[3], 1D;\n"
-	        /* unpremultiply volume texture */
-	        "RCP value.r, temp.a;\n"
-	        "MUL temp.r, temp.r, value.r;\n"
-	        "MUL temp.g, temp.g, value.r;\n"
-	        "MUL temp.b, temp.b, value.r;\n"
-	        /* calculate shading factor from density */
-	        "MUL value.r, temp.a, darkness.a;\n"
-	        "MUL value.r, value.r, dx.r;\n"
-	        "MUL value.r, value.r, f.r;\n"
-	        "EX2 value.r, -value.r;\n"
-	        /* alpha */
-	        "SUB temp.a, 1.0, value.r;\n"
-	        /* shade colors */
-	        "MUL temp.r, temp.r, shadow.r;\n"
-	        "MUL temp.g, temp.g, shadow.r;\n"
-	        "MUL temp.b, temp.b, shadow.r;\n"
-	        "MUL temp.r, temp.r, value.r;\n"
-	        "MUL temp.g, temp.g, value.r;\n"
-	        "MUL temp.b, temp.b, value.r;\n"
-	        /* for now this just replace smoke shading if rendering fire */
-	        "CMP result.color, render.r, temp, spec;\n"
-	        "END\n";
-
-	GLuint prog;
-
-	
+	GPUProgram *smoke_program;
+	int progtype = (sds->active_fields & SM_ACTIVE_COLORS) ? GPU_PROGRAM_SMOKE_COLORED : GPU_PROGRAM_SMOKE;
 	float size[3];
 
 	if (!tex) {
@@ -349,24 +281,17 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	// printf("i: %d\n", i);
 	// printf("point %f, %f, %f\n", cv[i][0], cv[i][1], cv[i][2]);
 
-	if (GL_TRUE == glewIsSupported("GL_ARB_fragment_program")) {
-		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-		glGenProgramsARB(1, &prog);
-
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, prog);
-		/* set shader */
-		if (sds->active_fields & SM_ACTIVE_COLORS)
-			glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(shader_color), shader_color);
-		else
-			glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(shader_basic), shader_basic);
+	smoke_program = GPU_shader_get_builtin_program(progtype);
+	if (smoke_program) {
+		GPU_program_bind(smoke_program);
 
 		/* cell spacing */
-		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0, dx, dx, dx, 1.0);
+		GPU_program_parameter_4f(smoke_program, 0, dx, dx, dx, 1.0);
 		/* custom parameter for smoke style (higher = thicker) */
 		if (sds->active_fields & SM_ACTIVE_COLORS)
-			glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1, 1.0, 1.0, 1.0, 10.0);
+			GPU_program_parameter_4f(smoke_program, 1, 1.0, 1.0, 1.0, 10.0);
 		else
-			glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1, sds->active_color[0], sds->active_color[1], sds->active_color[2], 10.0);
+			GPU_program_parameter_4f(smoke_program, 1, sds->active_color[0], sds->active_color[1], sds->active_color[2], 10.0);
 	}
 	else
 		printf("Your gfx card does not support 3D View smoke drawing.\n");
@@ -446,7 +371,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 				else
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-				glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2, 1.0, 0.0, 0.0, 0.0);
+				GPU_program_parameter_4f(smoke_program, 2, 1.0, 0.0, 0.0, 0.0);
 				glBegin(GL_POLYGON);
 				glColor3f(1.0, 1.0, 1.0);
 				for (i = 0; i < numpoints; i++) {
@@ -466,7 +391,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 			else
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 2, -1.0, 0.0, 0.0, 0.0);
+			GPU_program_parameter_4f(smoke_program, 2, -1.0, 0.0, 0.0, 0.0);
 			glBegin(GL_POLYGON);
 			glColor3f(1.0, 1.0, 1.0);
 			for (i = 0; i < numpoints; i++) {
@@ -499,10 +424,8 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	free(spec_data);
 	free(spec_pixels);
 
-	if (GLEW_ARB_fragment_program) {
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
-		glDeleteProgramsARB(1, &prog);
-	}
+	if (smoke_program)
+		GPU_program_unbind(smoke_program);
 
 
 	MEM_freeN(points);
