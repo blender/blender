@@ -2877,30 +2877,45 @@ static void wm_filepath_default(char *filepath)
 
 static void save_set_compress(wmOperator *op)
 {
-	if (!RNA_struct_property_is_set(op->ptr, "compress")) {
-		if (G.save_over) /* keep flag for existing file */
-			RNA_boolean_set(op->ptr, "compress", (G.fileflags & G_FILE_COMPRESS) != 0);
-		else /* use userdef for new file */
-			RNA_boolean_set(op->ptr, "compress", (U.flag & USER_FILECOMPRESS) != 0);
+	PropertyRNA *prop;
+
+	prop = RNA_struct_find_property(op->ptr, "compress");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		if (G.save_over) {  /* keep flag for existing file */
+			RNA_property_boolean_set(op->ptr, prop, (G.fileflags & G_FILE_COMPRESS) != 0);
+		}
+		else {  /* use userdef for new file */
+			RNA_property_boolean_set(op->ptr, prop, (U.flag & USER_FILECOMPRESS) != 0);
+		}
+	}
+}
+
+static void save_set_filepath(wmOperator *op)
+{
+	PropertyRNA *prop;
+	char name[FILE_MAX];
+
+	prop = RNA_struct_find_property(op->ptr, "filepath");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		/* if not saved before, get the name of the most recently used .blend file */
+		if (G.main->name[0] == 0 && G.recent_files.first) {
+			struct RecentFile *recent = G.recent_files.first;
+			BLI_strncpy(name, recent->filepath, FILE_MAX);
+		}
+		else {
+			BLI_strncpy(name, G.main->name, FILE_MAX);
+		}
+
+		wm_filepath_default(name);
+		RNA_property_string_set(op->ptr, prop, name);
 	}
 }
 
 static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	char name[FILE_MAX];
 
 	save_set_compress(op);
-	
-	/* if not saved before, get the name of the most recently used .blend file */
-	if (G.main->name[0] == 0 && G.recent_files.first) {
-		struct RecentFile *recent = G.recent_files.first;
-		BLI_strncpy(name, recent->filepath, FILE_MAX);
-	}
-	else
-		BLI_strncpy(name, G.main->name, FILE_MAX);
-	
-	wm_filepath_default(name);
-	RNA_string_set(op->ptr, "filepath", name);
+	save_set_filepath(op);
 	
 	WM_event_add_fileselect(C, op);
 
@@ -2999,7 +3014,6 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	char name[FILE_MAX];
 	int ret;
 	
 	/* cancel if no active window */
@@ -3007,18 +3021,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 		return OPERATOR_CANCELLED;
 
 	save_set_compress(op);
-
-	/* if not saved before, get the name of the most recently used .blend file */
-	if (G.main->name[0] == 0 && G.recent_files.first) {
-		struct RecentFile *recent = G.recent_files.first;
-		BLI_strncpy(name, recent->filepath, FILE_MAX);
-	}
-	else
-		BLI_strncpy(name, G.main->name, FILE_MAX);
-
-	wm_filepath_default(name);
-	
-	RNA_string_set(op->ptr, "filepath", name);
+	save_set_filepath(op);
 
 	/* if we're saving for the first time and prefer relative paths - any existing paths will be absolute,
 	 * enable the option to remap paths to avoid confusion [#37240] */
@@ -3030,8 +3033,11 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	}
 
 	if (G.save_over) {
-		if (BLI_exists(name)) {
-			ret = WM_operator_confirm_message_ex(C, op, IFACE_("Save Over?"), ICON_QUESTION, name);
+		char path[FILE_MAX];
+
+		RNA_string_get(op->ptr, "filepath", path);
+		if (BLI_exists(path)) {
+			ret = WM_operator_confirm_message_ex(C, op, IFACE_("Save Over?"), ICON_QUESTION, path);
 		}
 		else {
 			ret = wm_save_as_mainfile_exec(C, op);
