@@ -4533,8 +4533,8 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
 			}
 			else {
 				iv = iv->prev;
+				close(file);
 			}
-			close(file);
 		}
 
 		/* all good */
