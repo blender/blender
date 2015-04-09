@@ -764,11 +764,12 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         - preset_operator_defaults (dict of keyword args)
         """
         import bpy
-        ext = getattr(self, "preset_extensions", {".py", ".xml"})
-        ext = getattr(self, "preset_operator_defaults", None)
+        ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
+        props_default = getattr(self, "preset_operator_defaults", None)
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir),
                        self.preset_operator,
-                       filter_ext=lambda ext: ext.lower() in ext)
+                       props_default=props_default,
+                       filter_ext=lambda ext: ext.lower() in ext_valid)
 
     @classmethod
     def draw_collapsible(cls, context, layout):
