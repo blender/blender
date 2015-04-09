@@ -868,9 +868,9 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
 						seq_multiview_name(scene, i, prefix, ext, str, FILE_MAX);
 						anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
 						                seq->streamindex, seq->strip->colorspace_settings.name);
-						seq_anim_add_suffix(scene, anim, i);
 
 						if (anim) {
+							seq_anim_add_suffix(scene, anim, i);
 							sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
 							BLI_addtail(&seq->anims, sanim);
 							sanim->anim = anim;
@@ -5065,9 +5065,9 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 				seq_multiview_name(scene, i, prefix, ext, str, FILE_MAX);
 				anim_arr[j] = openanim(str, IB_rect, 0, colorspace);
-				seq_anim_add_suffix(scene, anim_arr[j], i);
 
 				if (anim_arr[j]) {
+					seq_anim_add_suffix(scene, anim_arr[j], i);
 					j++;
 				}
 			}
