@@ -80,7 +80,7 @@
 	    }                                                                     \
 	} (void)0
 #else  // GHOST_DEBUG
-#  define GHOST_ASSERT(x, info) (void)(x)
+#  define GHOST_ASSERT(x, info) ((void)0)
 #endif // GHOST_DEBUG
 
 #endif // __GHOST_DEBUG_H__
