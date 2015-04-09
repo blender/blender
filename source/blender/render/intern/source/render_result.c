@@ -1512,10 +1512,7 @@ void render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBu
 
 		/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
 		 * can hang around when sequence render has rendered a 32 bits one before */
-		if (rv->rect32) {
-			MEM_freeN(rv->rect32);
-			rv->rect32 = NULL;
-		}
+		MEM_SAFE_FREE(rv->rect32);
 	}
 	else if (ibuf->rect) {
 		if (!rv->rect32)
@@ -1524,24 +1521,12 @@ void render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBu
 		memcpy(rv->rect32, ibuf->rect, 4 * rr->rectx * rr->recty);
 
 		/* Same things as above, old rectf can hang around from previous render. */
-		if (rv->rectf) {
-			MEM_freeN(rv->rectf);
-			rv->rectf = NULL;
-		}
+		MEM_SAFE_FREE(rv->rectf);
 	}
 
 	/* clean up non-view buffers */
-	if (rr) {
-		if (rr->rectf) {
-			MEM_freeN(rr->rectf);
-			rr->rectf = NULL;
-		}
-
-		if (rr->rect32) {
-			MEM_freeN(rr->rect32);
-			rr->rect32 = NULL;
-		}
-	}
+	MEM_SAFE_FREE(rr->rect32);
+	MEM_SAFE_FREE(rr->rectf);
 }
 
 void render_result_rect_fill_zero(RenderResult *rr, const int view_id)

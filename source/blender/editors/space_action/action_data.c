@@ -646,7 +646,7 @@ static NlaTrack *nla_tweak_track_get(AnimData *adt)
 				printf("%s: Active strip (%p, %s) not in NLA track found (%p, %s)\n",
 				       __func__, 
 				       adt->actstrip, (adt->actstrip) ? adt->actstrip->name : "<None>",
-					   nlt,           (nlt) ? nlt->name : "<None>");
+				       nlt,           nlt->name);
 			}
 		}
 	}
