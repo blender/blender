@@ -1215,7 +1215,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			                        &progress,
 			                        i,
 			                        num_bvh));
-			i++;
+			if(!mesh->transform_applied) {
+				i++;
+			}
 		}
 	}
 
