@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_alloca.h"
+#include "BLI_buffer.h"
 #include "BLI_listbase.h"
 
 #include "BKE_DerivedMesh.h"
@@ -625,11 +626,14 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 	/* MTexPoly *tf; */ /* UNUSED */
 	MLoopUV *luv;
 	unsigned int a;
-	int totverts, i, totuv;
+	int totverts, i, totuv, totfaces;
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	bool *winding;
+	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 	
+	totfaces = bm->totface;
 	totverts = bm->totvert;
 	totuv = 0;
 
@@ -650,17 +654,18 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 
 	vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
 	buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
+	winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
 
 	if (!vmap->vert || !vmap->buf) {
 		BKE_mesh_uv_vert_map_free(vmap);
 		return NULL;
 	}
 	
-	a = 0;
-	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
 		if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			i = 0;
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, efa->len);
+
+			BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 				buf->tfindex = i;
 				buf->f = a;
 				buf->separate = 0;
@@ -668,17 +673,18 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 				buf->next = vmap->vert[BM_elem_index_get(l->v)];
 				vmap->vert[BM_elem_index_get(l->v)] = buf;
 				
-				buf++;
-				i++;
-			}
-		}
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+				copy_v2_v2(tf_uv[i], luv->uv);
 
-		a++;
+				buf++;
+			}
+
+			winding[a] = cross_poly_v2((const float (*)[2])tf_uv, efa->len) > 0;
+		}
 	}
 	
 	/* sort individual uvs for each vert */
-	a = 0;
-	BM_ITER_MESH (ev, &iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, a) {
 		UvMapVert *newvlist = NULL, *vlist = vmap->vert[a];
 		UvMapVert *iterv, *v, *lastv, *next;
 		float *uv, *uv2, uvdiff[2];
@@ -710,7 +716,9 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 				
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
-				if (fabsf(uvdiff[0]) < limit[0] && fabsf(uvdiff[1]) < limit[1]) {
+				if (fabsf(uvdiff[0]) < limit[0] && fabsf(uvdiff[1]) < limit[1] &&
+				    winding[iterv->f] == winding[v->f])
+				{
 					if (lastv) lastv->next = next;
 					else vlist = next;
 					iterv->next = newvlist;
@@ -727,8 +735,10 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 		}
 
 		vmap->vert[a] = newvlist;
-		a++;
 	}
+
+	MEM_freeN(winding);
+	BLI_buffer_free(&tf_uv_buf);
 
 	return vmap;
 }
@@ -755,9 +765,11 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 	UvElement *islandbuf;
 	/* island number for faces */
 	int *island_number;
+	bool *winding;
+	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
 	MLoopUV *luv;
-	int totverts, i, totuv, j, nislands = 0, islandbufsize = 0;
+	int totverts, totfaces, i, totuv, j, nislands = 0, islandbufsize = 0;
 
 	unsigned int *map;
 	BMFace **stack;
@@ -767,13 +779,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 
+	totfaces = bm->totface;
 	totverts = bm->totvert;
 	totuv = 0;
 
-	island_number = MEM_mallocN(sizeof(*stack) * bm->totface, "uv_island_number_face");
-	if (!island_number) {
-		return NULL;
-	}
+	island_number = MEM_mallocN(sizeof(*stack) * totfaces, "uv_island_number_face");
+	winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
 
 	/* generate UvElement array */
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -801,10 +812,11 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 		return NULL;
 	}
 
-	j = 0;
-	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		island_number[j++] = INVALID_ISLAND;
+	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, j) {
+		island_number[j] = INVALID_ISLAND;
 		if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+			float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, efa->len);
+
 			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 				buf->l = l;
 				buf->separate = 0;
@@ -814,14 +826,18 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 				buf->next = element_map->vert[BM_elem_index_get(l->v)];
 				element_map->vert[BM_elem_index_get(l->v)] = buf;
 
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+				copy_v2_v2(tf_uv[i], luv->uv);
+
 				buf++;
 			}
+
+			winding[j] = cross_poly_v2((const float (*)[2])tf_uv, efa->len) > 0;
 		}
 	}
 
 	/* sort individual uvs for each vert */
-	i = 0;
-	BM_ITER_MESH (ev, &iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, i) {
 		UvElement *newvlist = NULL, *vlist = element_map->vert[i];
 		UvElement *iterv, *v, *lastv, *next;
 		float *uv, *uv2, uvdiff[2];
@@ -848,7 +864,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
-				if (fabsf(uvdiff[0]) < STD_UV_CONNECT_LIMIT && fabsf(uvdiff[1]) < STD_UV_CONNECT_LIMIT) {
+				if (fabsf(uvdiff[0]) < STD_UV_CONNECT_LIMIT && fabsf(uvdiff[1]) < STD_UV_CONNECT_LIMIT &&
+				    winding[BM_elem_index_get(iterv->l->f)] == winding[BM_elem_index_get(v->l->f)]) {
 					if (lastv) lastv->next = next;
 					else vlist = next;
 					iterv->next = newvlist;
@@ -865,7 +882,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 		}
 
 		element_map->vert[i] = newvlist;
-		i++;
 	}
 
 	if (do_islands) {
@@ -958,7 +974,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 		MEM_freeN(stack);
 		MEM_freeN(map);
 	}
+
 	MEM_freeN(island_number);
+	MEM_freeN(winding);
+	BLI_buffer_free(&tf_uv_buf);
 
 	return element_map;
 }

@@ -30,7 +30,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
+#include "DNA_vec_types.h"
 
+#include "BLI_buffer.h"
 #include "BLI_utildefines.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
@@ -62,6 +64,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 	int i, totuv, nverts;
 
 	totuv = 0;
+	bool *winding;
+	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, 32);
 
 	/* generate UvMapVert array */
 	mp = mpoly;
@@ -72,7 +76,9 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 	if (totuv == 0)
 		return NULL;
 
+	winding = MEM_callocN(sizeof(*winding) * totpoly, "winding");
 	vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
+
 	if (!vmap)
 		return NULL;
 
@@ -87,6 +93,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 	mp = mpoly;
 	for (a = 0; a < totpoly; a++, mp++) {
 		if (!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL))) {
+			float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, mp->totloop);
+
 			nverts = mp->totloop;
 
 			for (i = 0; i < nverts; i++) {
@@ -95,8 +103,12 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 				buf->separate = 0;
 				buf->next = vmap->vert[mloop[mp->loopstart + i].v];
 				vmap->vert[mloop[mp->loopstart + i].v] = buf;
+
+				copy_v2_v2(tf_uv[i], mloopuv[mpoly[a].loopstart + i].uv);
 				buf++;
 			}
+
+			winding[a] = cross_poly_v2((const float (*)[2])tf_uv, (unsigned int)nverts) > 0;
 		}
 	}
 
@@ -123,7 +135,9 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 
-				if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1]) {
+				if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1] &&
+				    winding[iterv->f] == winding[v->f])
+				{
 					if (lastv) lastv->next = next;
 					else vlist = next;
 					iterv->next = newvlist;
@@ -140,6 +154,9 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 
 		vmap->vert[a] = newvlist;
 	}
+
+	MEM_freeN(winding);
+	BLI_buffer_free(&tf_uv_buf);
 
 	return vmap;
 }
