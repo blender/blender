@@ -1782,6 +1782,9 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, con
 			BLI_path_abs(path, G.main->name);
 			BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
 		}
+		else {
+			prefix[0] = '\0';
+		}
 
 		if (prefix[0] == '\0')
 			return view_id != 0;
@@ -2738,6 +2741,9 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context, Sequence *seq
 			if (prefix[0] == '\0') {
 				goto monoview_image;
 			}
+		}
+		else {
+			prefix[0] = '\0';
 		}
 
 		totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
