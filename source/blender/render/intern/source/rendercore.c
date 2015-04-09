@@ -413,7 +413,7 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 					}
 					else {
 						fac= ((float)R.osa-totsamp)/(float)R.osa;
-						pass = RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_COMBINED, R.viewname);
+						pass = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, R.viewname);
 						pass += od * 4;
 						pass[0]+= fac*col[0];
 						pass[1]+= fac*col[1];
