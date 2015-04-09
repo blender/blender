@@ -795,7 +795,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 	if (is_movie) {
 		ok = RE_WriteRenderViewsMovie(oglrender->reports, rr, scene, &scene->r, oglrender->mh, oglrender->sizex,
-		                              oglrender->sizey, oglrender->movie_ctx_arr, oglrender->totvideos);
+		                              oglrender->sizey, oglrender->movie_ctx_arr, oglrender->totvideos, PRVRANGEON != 0);
 		if (ok) {
 			printf("Append frame %d", scene->r.cfra);
 			BKE_reportf(op->reports, RPT_INFO, "Appended frame: %d", scene->r.cfra);

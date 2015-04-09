@@ -264,7 +264,7 @@ void RE_TileProcessor(struct Render *re);
 bool RE_WriteRenderViewsImage(struct ReportList *reports, struct RenderResult *rr, struct Scene *scene, struct Object *camera, const bool stamp, char *name);
 bool RE_WriteRenderViewsMovie(struct ReportList *reports, struct RenderResult *rr, struct Scene *scene, struct RenderData *rd,
                               struct bMovieHandle *mh, const size_t width, const size_t height, void **movie_ctx_arr,
-                              const size_t totvideos);
+                              const size_t totvideos, bool preview);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene,
