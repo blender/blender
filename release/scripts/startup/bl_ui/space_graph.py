@@ -48,9 +48,12 @@ class GRAPH_HT_header(Header):
         row.prop(st, "use_auto_normalization", text="Auto")
 
         row = layout.row(align=True)
-        row.prop(toolsettings, "proportional_edit", icon_only=True)
-        if toolsettings.proportional_edit != 'DISABLED':
-            row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
+        row.prop(toolsettings, "use_proportional_ipo",
+                 text="", icon_only=True)
+        if toolsettings.use_proportional_ipo:
+            row.prop(toolsettings, "proportional_edit_falloff",
+                     text="", icon_only=True)
 
         layout.prop(st, "auto_snap", text="")
         layout.prop(st, "pivot_point", icon_only=True)

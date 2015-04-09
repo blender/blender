@@ -135,9 +135,11 @@ class DOPESHEET_HT_header(Header):
             dopesheet_filter(layout, context, genericFiltersOnly=True)
 
         row = layout.row(align=True)
-        row.prop(toolsettings, "proportional_edit", icon_only=True)
-        if toolsettings.proportional_edit != 'DISABLED':
-            row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+        row.prop(toolsettings, "use_proportional_action",
+                 text="", icon_only=True)
+        if toolsettings.use_proportional_action:
+            row.prop(toolsettings, "proportional_edit_falloff",
+                     text="", icon_only=True)
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':

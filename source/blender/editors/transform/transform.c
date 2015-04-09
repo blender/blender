@@ -1938,7 +1938,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			if ((prop = RNA_struct_find_property(op->ptr, "proportional")) &&
 			    !RNA_property_is_set(op->ptr, prop))
 			{
-				if (t->obedit)
+				if (t->spacetype == SPACE_IPO)
+					ts->proportional_ipo = proportional;
+				else if (t->spacetype == SPACE_ACTION)
+					ts->proportional_action = proportional;
+				else if (t->obedit)
 					ts->proportional = proportional;
 				else if (t->options & CTX_MASK)
 					ts->proportional_mask = (proportional != PROP_EDIT_OFF);
