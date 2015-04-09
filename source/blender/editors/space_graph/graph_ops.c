@@ -440,6 +440,7 @@ void ED_operatormacros_graph(void)
 	WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
 	RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
+	RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 }
 
 
