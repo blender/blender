@@ -63,9 +63,10 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 	unsigned int a;
 	int i, totuv, nverts;
 
-	totuv = 0;
 	bool *winding;
 	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, 32);
+
+	totuv = 0;
 
 	/* generate UvMapVert array */
 	mp = mpoly;
