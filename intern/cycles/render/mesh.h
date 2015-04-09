@@ -71,8 +71,13 @@ public:
 	ustring name;
 
 	/* Mesh Data */
-	bool geometry_synced;  /* used to distinguish meshes with no verts
-	                          and meshed for which geometry is not created */
+	enum GeometryFlags {
+		GEOMETRY_NONE      = 0,
+		GEOMETRY_TRIANGLES = (1 << 0),
+		GEOMETRY_CURVES    = (1 << 1),
+	};
+	int geometry_flags;  /* used to distinguish meshes with no verts
+	                        and meshed for which geometry is not created */
 
 	vector<float3> verts;
 	vector<Triangle> triangles;

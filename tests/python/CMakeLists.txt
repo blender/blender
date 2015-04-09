@@ -395,6 +395,12 @@ if(WITH_CYCLES)
 			-testdir "${TEST_SRC_DIR}/cycles/ctests/reports"
 			-idiff "${OPENIMAGEIO_IDIFF}"
 		)
+		add_test(cycles_render_test
+			${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+			-blender "${TEST_BLENDER_EXE_BARE}"
+			-testdir "${TEST_SRC_DIR}/cycles/ctests/render"
+			-idiff "${OPENIMAGEIO_IDIFF}"
+		)
 		add_test(cycles_shaders_test
 			${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
 			-blender "${TEST_BLENDER_EXE_BARE}"

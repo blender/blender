@@ -135,7 +135,7 @@ void Mesh::clear()
 	transform_applied = false;
 	transform_negative_scaled = false;
 	transform_normal = transform_identity();
-	geometry_synced = false;
+	geometry_flags = GEOMETRY_NONE;
 }
 
 int Mesh::split_vertex(int vertex)
