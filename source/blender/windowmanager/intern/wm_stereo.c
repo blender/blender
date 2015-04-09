@@ -79,6 +79,8 @@ static void wm_method_draw_stereo3d_pageflip(wmWindow *win)
 
 		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
 	}
+
+	glDrawBuffer(GL_BACK);
 }
 
 static GLuint left_interlace_mask[32];
