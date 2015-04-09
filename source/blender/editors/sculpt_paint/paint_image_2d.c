@@ -996,8 +996,8 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 
 static void paint_2d_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[2])
 {
-	ipos[0] = (int)floorf((pos[0] - ibufb->x / 2) + 1.0f);
-	ipos[1] = (int)floorf((pos[1] - ibufb->y / 2) + 1.0f);
+	ipos[0] = (int)floorf((pos[0] - ibufb->x / 2));
+	ipos[1] = (int)floorf((pos[1] - ibufb->y / 2));
 }
 
 static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsigned short *texmaskb, const float lastpos[2], const float pos[2])
