@@ -1505,9 +1505,15 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 					        seq->streamindex, seq->strip->colorspace_settings.name);
 				}
 
-				seq_anim_add_suffix(scene, sanim->anim, i);
-
-				if (sanim->anim == NULL) {
+				if (sanim->anim) {
+#if 0
+					seq_anim_add_suffix(scene, sanim->anim, i);
+#else
+					/* we already have the suffix */
+					IMB_suffix_anim(sanim->anim, suffix);
+#endif
+				}
+				else {
 					if (openfile) {
 						sanim->anim = openanim(
 						        name, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
