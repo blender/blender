@@ -588,15 +588,19 @@ static DMDrawOption draw_tface__set_draw(MTFace *tface, const bool UNUSED(has_mc
 	return DM_DRAW_OPTION_NORMAL;
 }
 
-static void update_tface_color_layer(DerivedMesh *dm)
+static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 {
 	MTFace *tface = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	MFace *mface = dm->getTessFaceArray(dm);
 	MCol *finalCol;
 	int i, j;
-	MCol *mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
-	if (!mcol)
-		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
+	MCol *mcol = NULL;
+
+	if (use_mcol) {
+		mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
+		if (!mcol)
+			mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
+	}
 
 	if (CustomData_has_layer(&dm->faceData, CD_TEXTURE_MCOL)) {
 		finalCol = CustomData_get_layer(&dm->faceData, CD_TEXTURE_MCOL);
@@ -937,7 +941,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	else {		
 		drawTFace_userData userData;
 		
-		update_tface_color_layer(dm);
+		update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
 		
 		userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
 		userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
