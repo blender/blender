@@ -790,6 +790,29 @@ static void rna_KeyMapItem_any_set(PointerRNA *ptr, int value)
 	}
 }
 
+static int rna_KeyMapItem_shift_get(PointerRNA *ptr)
+{
+	wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
+	return kmi->shift != 0;
+}
+
+static int rna_KeyMapItem_ctrl_get(PointerRNA *ptr)
+{
+	wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
+	return kmi->ctrl != 0;
+}
+
+static int rna_KeyMapItem_alt_get(PointerRNA *ptr)
+{
+	wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
+	return kmi->alt != 0;
+}
+
+static int rna_KeyMapItem_oskey_get(PointerRNA *ptr)
+{
+	wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
+	return kmi->oskey != 0;
+}
 
 static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
 {
@@ -2073,6 +2096,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "shift", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shift", 0);
+	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_shift_get", NULL);
 /*	RNA_def_property_enum_sdna(prop, NULL, "shift"); */
 /*	RNA_def_property_enum_items(prop, keymap_modifiers_items); */
 	RNA_def_property_ui_text(prop, "Shift", "Shift key pressed");
@@ -2080,6 +2104,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "ctrl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ctrl", 0);
+	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_ctrl_get", NULL);
 /*	RNA_def_property_enum_sdna(prop, NULL, "ctrl"); */
 /*	RNA_def_property_enum_items(prop, keymap_modifiers_items); */
 	RNA_def_property_ui_text(prop, "Ctrl", "Control key pressed");
@@ -2087,6 +2112,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "alt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "alt", 0);
+	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_alt_get", NULL);
 /*	RNA_def_property_enum_sdna(prop, NULL, "alt"); */
 /*	RNA_def_property_enum_items(prop, keymap_modifiers_items); */
 	RNA_def_property_ui_text(prop, "Alt", "Alt key pressed");
@@ -2094,6 +2120,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "oskey", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "oskey", 0);
+	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_oskey_get", NULL);
 /*	RNA_def_property_enum_sdna(prop, NULL, "oskey"); */
 /*	RNA_def_property_enum_items(prop, keymap_modifiers_items); */
 	RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed");
