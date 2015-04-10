@@ -85,8 +85,16 @@ private:
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tris);
 	void sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool motion, int time_index = 0);
-	Object *sync_object(BL::Object b_parent, int persistent_id[OBJECT_PERSISTENT_ID_SIZE], BL::DupliObject b_dupli_ob,
-	                                 Transform& tfm, uint layer_flag, float motion_time, bool hide_tris, bool *use_portal);
+	Object *sync_object(BL::Object b_parent,
+	                    int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
+	                    BL::DupliObject b_dupli_ob,
+	                    Transform& tfm,
+	                    uint layer_flag,
+	                    float motion_time,
+	                    bool hide_tris,
+	                    bool use_camera_cull,
+	                    float camera_cull_margin,
+	                    bool *use_portal);
 	void sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSISTENT_ID_SIZE], BL::Object b_ob, Transform& tfm, bool *use_portal);
 	void sync_background_light(bool use_portal);
 	void sync_mesh_motion(BL::Object b_ob, Object *object, float motion_time);

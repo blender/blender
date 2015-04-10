@@ -511,6 +511,19 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 ),
             )
 
+        cls.use_camera_cull = BoolProperty(
+                name="Use Camera Cull",
+                description="Allow objects to be culled based on the camera frustum",
+                default=False,
+                )
+
+        cls.camera_cull_margin = FloatProperty(
+                name="Camera Cull Margin",
+                description="Margin for the camera space culling",
+                default=0.1,
+                min=0.0, max=5.0
+                )
+
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles
@@ -894,6 +907,12 @@ class CyclesObjectBlurSettings(bpy.types.PropertyGroup):
                 description="Control accuracy of deformation motion blur, more steps gives more memory usage (actual number of steps is 2^(steps - 1))",
                 min=1, soft_max=8,
                 default=1,
+                )
+
+        cls.use_camera_cull = BoolProperty(
+                name="Use Camera Cull",
+                description="Allow this object and it's duplicators to be culled by camera space culling",
+                default=False,
                 )
 
     @classmethod
