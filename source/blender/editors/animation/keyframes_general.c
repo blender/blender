@@ -199,13 +199,17 @@ void clean_fcurve(FCurve *fcu, float thresh)
 	/* now insert first keyframe, as it should be ok */
 	bezt = old_bezts;
 	insert_vert_fcurve(fcu, bezt->vec[1][0], bezt->vec[1][1], 0);
+	if (!(bezt->f2 & SELECT)) {
+		lastb = fcu->bezt;
+		lastb->f1 = lastb->f2 = lastb->f3 = 0;
+	}
 	
 	/* Loop through BezTriples, comparing them. Skip any that do 
 	 * not fit the criteria for "ok" points.
 	 */
 	for (i = 1; i < totCount; i++) {
 		float prev[2], cur[2], next[2];
-		
+
 		/* get BezTriples and their values */
 		if (i < (totCount - 1)) {
 			beztn = (old_bezts + (i + 1));
@@ -217,10 +221,17 @@ void clean_fcurve(FCurve *fcu, float thresh)
 		}
 		lastb = (fcu->bezt + (fcu->totvert - 1));
 		bezt = (old_bezts + i);
-		
+
 		/* get references for quicker access */
 		prev[0] = lastb->vec[1][0]; prev[1] = lastb->vec[1][1];
 		cur[0] = bezt->vec[1][0]; cur[1] = bezt->vec[1][1];
+
+		if (!(bezt->f2 & SELECT)) {
+			insert_vert_fcurve(fcu, cur[0], cur[1], 0);
+			lastb = (fcu->bezt + (fcu->totvert - 1));
+			lastb->f1 = lastb->f2 = lastb->f3 = 0;
+			continue;
+		}
 		
 		/* check if current bezt occurs at same time as last ok */
 		if (IS_EQT(cur[0], prev[0], thresh)) {
@@ -228,7 +239,7 @@ void clean_fcurve(FCurve *fcu, float thresh)
 			 * if there is a considerable distance between the points, and also if the 
 			 * current is further away than the next one is to the previous.
 			 */
-			if (beztn && (IS_EQT(cur[0], next[0], thresh)) && 
+			if (beztn && (IS_EQT(cur[0], next[0], thresh)) &&
 			    (IS_EQT(next[1], prev[1], thresh) == 0))
 			{
 				/* only add if current is further away from previous */
