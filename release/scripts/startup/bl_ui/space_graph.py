@@ -51,7 +51,7 @@ class GRAPH_HT_header(Header):
 
         row.prop(toolsettings, "use_proportional_fcurve",
                  text="", icon_only=True)
-        if toolsettings.use_proportional_ipo:
+        if toolsettings.use_proportional_fcurve:
             row.prop(toolsettings, "proportional_edit_falloff",
                      text="", icon_only=True)
 
