@@ -19,6 +19,15 @@
 
 /* So ImathMath is included before our kernel_cpu_compat. */
 #ifdef WITH_OSL
+#  if defined(_MSC_VER)
+/* Prevent OSL from polluting the context with weird macros from windows.h.
+ * TODO(sergey): Ideally it's only enough to have class/struct declarations in
+ * the header and skip header include here.
+ */
+#    define NOGDI
+#    define NOMINMAX
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  include <OSL/oslexec.h>
 #endif
 
