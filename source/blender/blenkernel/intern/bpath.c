@@ -80,7 +80,9 @@
 
 #include "BKE_bpath.h"  /* own include */
 
-#include "BLI_strict_flags.h"
+#ifndef _MSC_VER
+#  include "BLI_strict_flags.h"
+#endif
 
 static bool checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
