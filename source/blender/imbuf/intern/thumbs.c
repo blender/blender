@@ -483,18 +483,22 @@ void IMB_thumb_delete(const char *path, ThumbSize size)
 
 
 /* create the thumb if necessary and manage failed and old thumbs */
-ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
+ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source)
 {
 	char thumb_path[FILE_MAX];
 	char thumb_name[40];
 	char uri[URI_MAX];
 	const char *file_path;
+	const char *path;
 	char path_buff[FILE_MAX];
 	BLI_stat_t st;
 	ImBuf *img = NULL;
 
-	file_path = path;
-	UNUSED_VARS(path_buff);
+	path = file_path = org_path;
+	if (source == THB_SOURCE_FONT) {
+		BLI_snprintf(path_buff, sizeof(path_buff), "%s.%s", org_path, IMB_thumb_load_font_get_language());
+		path = path_buff;
+	}
 
 	if (BLI_stat(file_path, &st) == -1) {
 		return NULL;

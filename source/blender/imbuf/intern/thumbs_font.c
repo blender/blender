@@ -34,18 +34,19 @@
 
 /* XXX, bad level call */
 #include "../../blenfont/BLF_api.h"
+#include "../../blenfont/BLF_translation.h"  /* 'N_' macro and BLF_lang_get()... */
 
 
 struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y)
 {
 	const int font_size = y / 4;
 	const char *thumb_str[] = {
-	    "AaBbCc",
+	    N_("AaBbCc"),
 
-	    "The quick",
-	    "brown fox",
-	    "jumps over",
-	    "the lazy dog",
+	    N_("The quick"),
+	    N_("brown fox"),
+	    N_("jumps over"),
+	    N_("the lazy dog"),
 	};
 
 	struct ImBuf *ibuf;
@@ -71,3 +72,7 @@ struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned
 	return ibuf;
 }
 
+const char *IMB_thumb_load_font_get_language(void)
+{
+	return BLF_lang_get();
+}
