@@ -138,19 +138,9 @@ def handle_args():
     parser.add_argument("-T", "--sphinx-theme",
                         dest="sphinx_theme",
                         type=str,
-                        default='default',
-                        help=
-                        # see SPHINX_THEMES below
-                        "Sphinx theme (default='default')\n"
-                        "Available themes\n"
-                        "----------------\n"
-                        "(Blender Foundation) blender-org\n"    # naiad
-                        "(Sphinx) agogo, basic, epub, haiku, nature, "
-                        "scrolls, sphinxdoc, traditional\n",
-#                        choices=['naiad', 'blender-org'] +      # bf
-#                                ['agogo', 'basic', 'epub',
-#                                 'haiku', 'nature', 'scrolls',
-#                                 'sphinxdoc', 'traditional'],   # sphinx
+                        default="classic",
+                        help="Sphinx theme (default='classic'), "
+                        "see: http://sphinx-doc.org/theming.html",
                         required=False)
 
     parser.add_argument("-N", "--sphinx-named-output",
@@ -419,23 +409,7 @@ BLENDER_ZIP_FILENAME = "%s.zip" % REFERENCE_NAME
 
 # -------------------------------SPHINX-----------------------------------------
 
-SPHINX_THEMES = {'bf': ['blender-org'],  # , 'naiad',
-                 'sphinx': ['agogo',
-                            'basic',
-                            'default',
-                            'epub',
-                            'haiku',
-                            'nature',
-                            'scrolls',
-                            'sphinxdoc',
-                            'traditional']}
-
-available_themes = SPHINX_THEMES['bf'] + SPHINX_THEMES['sphinx']
-if ARGS.sphinx_theme not in available_themes:
-    print("Please choose a theme among: %s" % ', '.join(available_themes))
-    sys.exit()
-
-if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+if ARGS.sphinx_theme == "blender-org":
     SPHINX_THEME_DIR = os.path.join(ARGS.output_dir, ARGS.sphinx_theme)
     SPHINX_THEME_SVN_DIR = os.path.join(SCRIPT_DIR, ARGS.sphinx_theme)
 
@@ -1572,7 +1546,7 @@ def write_sphinx_conf_py(basepath):
     if ARGS.sphinx_theme != 'default':
         fw("html_theme = '%s'\n" % ARGS.sphinx_theme)
 
-    if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+    if ARGS.sphinx_theme == "blender-org":
         fw("html_theme_path = ['../']\n")
         # copied with the theme, exclude else we get an error [#28873]
         fw("html_favicon = 'favicon.ico'\n")    # in <theme>/static/
@@ -1987,7 +1961,7 @@ def main():
                         copy_function=shutil.copy)
 
         # eventually, copy the theme dir
-        if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
+        if ARGS.sphinx_theme == "blender-org":
             if os.path.exists(SPHINX_THEME_DIR):
                 shutil.rmtree(SPHINX_THEME_DIR, True)
             shutil.copytree(SPHINX_THEME_SVN_DIR,
