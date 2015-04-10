@@ -192,7 +192,7 @@ public:
 	void				InvalidateProjectionMatrix(bool valid = false);
 	
 	/** Gets the modelview matrix that is used by the rasterizer. 
-	 *  \warning If the Camera is a dynamic object then this method may return garbage.  Use GetCameraToWorld() instead.
+	 *  \warning If the Camera is a dynamic object then this method may return garbage.  Use GetWorldToCamera() instead.
 	 */
 	const MT_Matrix4x4&		GetModelviewMatrix() const;
 

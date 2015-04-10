@@ -886,7 +886,7 @@ int KX_Camera::pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_D
 PyObject *KX_Camera::pyattr_get_modelview_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Camera* self = static_cast<KX_Camera*>(self_v);
-	return PyObjectFrom(self->GetModelviewMatrix()); 
+	return PyObjectFrom(self->GetWorldToCamera());
 }
 
 PyObject *KX_Camera::pyattr_get_camera_to_world(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -995,7 +995,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 	GLdouble modelmatrix[16];
 	GLdouble projmatrix[16];
 
-	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_modelmatrix = this->GetWorldToCamera();
 	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
 
 	m_modelmatrix.getValue(modelmatrix);
@@ -1038,7 +1038,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
 	GLdouble modelmatrix[16];
 	GLdouble projmatrix[16];
 
-	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_modelmatrix = this->GetWorldToCamera();
 	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
 
 	m_modelmatrix.getValue(modelmatrix);
