@@ -125,7 +125,6 @@ public:
 
 	BoundBox viewplane_bounds_get();
 	float3 transform_raster_to_world(float raster_x, float raster_y);
-	Transform transform_from_viewplane(BoundBox2D &viewplane);
 };
 
 CCL_NAMESPACE_END

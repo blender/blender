@@ -449,6 +449,8 @@ ccl_device void transform_motion_interpolate(Transform *tfm, const DecompMotionT
 
 #ifndef __KERNEL_GPU__
 
+class BoundBox2D;
+
 ccl_device_inline bool operator==(const MotionTransform& A, const MotionTransform& B)
 {
 	return (A.pre == B.pre && A.post == B.post);
@@ -456,6 +458,7 @@ ccl_device_inline bool operator==(const MotionTransform& A, const MotionTransfor
 
 float4 transform_to_quat(const Transform& tfm);
 void transform_motion_decompose(DecompMotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
+Transform transform_from_viewplane(BoundBox2D& viewplane);
 
 #endif
 

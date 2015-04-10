@@ -409,15 +409,4 @@ BoundBox Camera::viewplane_bounds_get()
 	return bounds;
 }
 
-Transform Camera::transform_from_viewplane(BoundBox2D &viewplane)
-{
-	return
-		transform_scale(1.0f / (viewplane.right - viewplane.left),
-		                1.0f / (viewplane.top - viewplane.bottom),
-		                1.0f) *
-		transform_translate(-viewplane.left,
-		                    -viewplane.bottom,
-		                    0.0f);
-}
-
 CCL_NAMESPACE_END

@@ -46,8 +46,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "util_math.h"
 #include "util_transform.h"
+
+#include "util_boundbox.h"
+#include "util_math.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -271,5 +273,15 @@ void transform_motion_decompose(DecompMotionTransform *decomp, const MotionTrans
 	decomp->post_y = post.y;
 }
 
-CCL_NAMESPACE_END
+Transform transform_from_viewplane(BoundBox2D& viewplane)
+{
+	return
+		transform_scale(1.0f / (viewplane.right - viewplane.left),
+		                1.0f / (viewplane.top - viewplane.bottom),
+		                1.0f) *
+		transform_translate(-viewplane.left,
+		                    -viewplane.bottom,
+		                    0.0f);
+}
 
+CCL_NAMESPACE_END
