@@ -218,19 +218,16 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 	const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	/* symbolic display, indexed by mode field value */
 	int num;
-#ifdef WIN32
-	__int64 st_size;
-#else
 	off_t st_size;
-	int mode;
-#endif
-
 	struct direntry *file;
 	struct tm *tm;
 	time_t zero = 0;
 
-	for (num = 0, file = dir_ctx->files; num < dir_ctx->nrfiles; num++, file++) {
+#ifndef WIN32
+	int mode;
+#endif
 
+	for (num = 0, file = dir_ctx->files; num < dir_ctx->nrfiles; num++, file++) {
 
 		/* Mode */
 #ifdef WIN32
