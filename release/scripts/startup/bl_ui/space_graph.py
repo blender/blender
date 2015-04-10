@@ -49,7 +49,7 @@ class GRAPH_HT_header(Header):
 
         row = layout.row(align=True)
 
-        row.prop(toolsettings, "use_proportional_ipo",
+        row.prop(toolsettings, "use_proportional_fcurve",
                  text="", icon_only=True)
         if toolsettings.use_proportional_ipo:
             row.prop(toolsettings, "proportional_edit_falloff",

@@ -1321,7 +1321,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			if (t->flag & T_MODAL) {
 				if ((t->options & CTX_NO_PET) == 0) {
 					if (t->spacetype == SPACE_IPO) {
-						t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_ipo);
+						t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_fcurve);
 					}
 					else if (t->spacetype == SPACE_ACTION) {
 						t->flag |= initTransInfo_edit_pet_to_flag(ts->proportional_action);

@@ -1939,7 +1939,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			    !RNA_property_is_set(op->ptr, prop))
 			{
 				if (t->spacetype == SPACE_IPO)
-					ts->proportional_ipo = proportional;
+					ts->proportional_fcurve = proportional;
 				else if (t->spacetype == SPACE_ACTION)
 					ts->proportional_action = proportional;
 				else if (t->obedit)

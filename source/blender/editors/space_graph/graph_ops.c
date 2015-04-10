@@ -609,7 +609,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	transform_keymap_for_space(keyconf, keymap, SPACE_IPO);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_ipo");
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_fcurve");
 
 	/* pivot point settings */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);

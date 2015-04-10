@@ -352,7 +352,7 @@ void wm_method_draw_stereo3d(const bContext *UNUSED(C), wmWindow *win)
 	}
 }
 
-static bool wm_stereo3d_quadbuffer_supported()
+static bool wm_stereo3d_quadbuffer_supported(void)
 {
 	int gl_stereo = 0;
 	glGetBooleanv(GL_STEREO, (GLboolean *)&gl_stereo);
