@@ -19,6 +19,7 @@
 #include "scene.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_map.h"
 #include "util_progress.h"
 #include "util_vector.h"
@@ -92,6 +93,9 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 
 void ParticleSystemManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
+	VLOG(1) << "Total " << scene->particle_systems.size()
+	        << " particle systems.";
+
 	if(!need_update)
 		return;
 	

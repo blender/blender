@@ -23,6 +23,7 @@
 #include "scene.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_map.h"
 #include "util_progress.h"
 #include "util_vector.h"
@@ -377,6 +378,8 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
+	VLOG(1) << "Total " << scene->objects.size() << " objects.";
+
 	if(!need_update)
 		return;
 	

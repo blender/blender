@@ -25,6 +25,7 @@
 
 #include "util_foreach.h"
 #include "util_list.h"
+#include "util_logging.h"
 #include "util_map.h"
 #include "util_time.h"
 
@@ -170,6 +171,8 @@ public:
 
 	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
+		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
+
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = 0;
 			sub.device->tex_alloc(name, mem, interpolation, periodic);

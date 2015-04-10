@@ -419,6 +419,7 @@ public:
 	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
 		/* todo: support 3D textures, only CPU for now */
+		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
 
 		/* determine format */
 		CUarray_format_enum format;

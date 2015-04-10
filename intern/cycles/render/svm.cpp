@@ -24,6 +24,7 @@
 #include "svm.h"
 
 #include "util_debug.h"
+#include "util_logging.h"
 #include "util_foreach.h"
 #include "util_progress.h"
 
@@ -45,6 +46,8 @@ void SVMShaderManager::reset(Scene * /*scene*/)
 
 void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
+	VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
+
 	if(!need_update)
 		return;
 

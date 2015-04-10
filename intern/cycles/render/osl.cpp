@@ -75,6 +75,8 @@ void OSLShaderManager::reset(Scene * /*scene*/)
 
 void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
+	VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
+
 	if(!need_update)
 		return;
 

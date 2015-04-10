@@ -19,6 +19,7 @@
 #include "tables.h"
 
 #include "util_debug.h"
+#include "util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -36,6 +37,8 @@ LookupTables::~LookupTables()
 
 void LookupTables::device_update(Device *device, DeviceScene *dscene)
 {
+	VLOG(1) << "Total " << lookup_tables.size() << " lookup tables.";
+
 	if(!need_update)
 		return;
 

@@ -164,6 +164,8 @@ public:
 
 	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
 	{
+		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
+
 		thread_scoped_lock lock(rpc_lock);
 
 		mem.device_pointer = ++mem_counter;

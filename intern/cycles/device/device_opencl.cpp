@@ -28,6 +28,7 @@
 #include "buffers.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_map.h"
 #include "util_math.h"
 #include "util_md5.h"
@@ -859,6 +860,7 @@ public:
 	               InterpolationType /*interpolation*/,
 	               bool /*periodic*/)
 	{
+		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
 		mem_alloc(mem, MEM_READ_ONLY);
 		mem_copy_to(mem);
 		assert(mem_map.find(name) == mem_map.end());
