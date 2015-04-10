@@ -280,5 +280,18 @@ class GRAPH_MT_key_transform(Menu):
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
 
+class GRAPH_MT_delete(Menu):
+    bl_label = "Delete"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("graph.delete")
+
+        layout.separator()
+
+        layout.operator("graph.clean")
+
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

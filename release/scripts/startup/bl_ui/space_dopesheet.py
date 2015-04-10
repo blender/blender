@@ -403,5 +403,18 @@ class DOPESHEET_MT_gpencil_frame(Menu):
         #layout.operator("action.copy")
         #layout.operator("action.paste")
 
+
+class DOPESHEET_MT_delete(Menu):
+    bl_label = "Delete"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("action.delete")
+
+        layout.separator()
+
+        layout.operator("action.clean")
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
