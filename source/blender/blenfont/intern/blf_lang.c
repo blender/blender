@@ -284,12 +284,15 @@ void BLF_lang_set(const char *str)
 const char *BLF_lang_get(void)
 {
 #ifdef WITH_INTERNATIONAL
-	const char *locale = LOCALE(ULANGUAGE);
-	if (locale[0] == '\0') {
-		/* Default locale, we have to find which one we are actually using! */
-		locale = bl_locale_get();
+	if (BLF_translate()) {
+		const char *locale = LOCALE(ULANGUAGE);
+		if (locale[0] == '\0') {
+			/* Default locale, we have to find which one we are actually using! */
+			locale = bl_locale_get();
+		}
+		return locale;
 	}
-	return locale;
+	return "en_US";  /* Kind of default locale in Blender when no translation enabled. */
 #else
 	return "";
 #endif

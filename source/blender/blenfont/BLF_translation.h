@@ -79,9 +79,11 @@ bool BLF_is_default_context(const char *msgctxt);
 const char *BLF_pgettext(const char *msgctxt, const char *msgid);
 
 /* translation */
+bool BLF_translate(void);
 bool BLF_translate_iface(void);
 bool BLF_translate_tooltips(void);
 bool BLF_translate_new_dataname(void);
+const char *BLF_translate_do(const char *msgctxt, const char *msgid);
 const char *BLF_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 const char *BLF_translate_do_new_dataname(const char *msgctxt, const char *msgid);
