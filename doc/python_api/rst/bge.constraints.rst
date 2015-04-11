@@ -11,14 +11,14 @@ Physics Constraints (bge.constraints)
 .. literalinclude:: ../examples/bge.constraints.py
    :lines: 6-
 
-.. function:: createConstraint(physicsid, physicsid2, constrainttype, [pivotX, pivotY, pivotZ, [axisX, axisY, axisZ, [flag]]]])
+.. function:: createConstraint(physicsid_1, physicsid_2, constraint_type, pivot_X, pivot_y, pivot_z, axis_x, axis_y, axis_z, flag)
 
    Creates a constraint.
 
-   :arg physicsid: the physics id of the first object in constraint
+   :arg physicsid_1: the physics id of the first object in constraint
    :type physicsid: int
 
-   :arg physicsid2: the physics id of the second object in constraint
+   :arg physicsid_2: the physics id of the second object in constraint
    :type physicsid2: int
 
    :arg constrainttype: the type of the constraint. The constraint types are:
@@ -32,26 +32,26 @@ Physics Constraints (bge.constraints)
 
    :type constrainttype: int
 
-   :arg pivotX: pivot X position
-   :type pivotX: float
+   :arg pivot_X: pivot X position
+   :type pivot_X: float (optional)
 
-   :arg pivotY: pivot Y position
-   :type pivotY: float
+   :arg pivot_Y: pivot Y position
+   :type pivot_Y: float (optional)
 
-   :arg pivotZ: pivot Z position
-   :type pivotZ: float
+   :arg pivot_Z: pivot Z position
+   :type pivot_Z: float (optional)
 
-   :arg axisX: X axis
-   :type axisX: float
+   :arg axis_X: X axis angle in degrees
+   :type axis_X: float (optional)
 
-   :arg axisY: Y axis
-   :type axisY: float
+   :arg axis_Y: Y axis angle in degrees
+   :type axis_Y: float (optional)
 
-   :arg axisZ: Z axis
-   :type axisZ: float
+   :arg axis_Z: Z axis angle in degrees
+   :type axis_Z: float (optional)
 
    :arg flag: 128 to disable collision between linked bodies
-   :type flag: int
+   :type flag: int (optional)
 
 .. attribute:: error
 
