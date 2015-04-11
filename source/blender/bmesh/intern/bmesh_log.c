@@ -126,6 +126,10 @@ typedef struct {
 
 /************************* Get/set element IDs ************************/
 
+/* bypass actual hashing, the keys don't overlap */
+#define logkey_hash BLI_ghashutil_inthash_p_simple
+#define logkey_cmp BLI_ghashutil_intcmp
+
 /* Get the vertex's unique ID from the log */
 static unsigned int bm_log_vert_id_get(BMLog *log, BMVert *v)
 {
@@ -386,12 +390,12 @@ static BMLogEntry *bm_log_entry_create(void)
 {
 	BMLogEntry *entry = MEM_callocN(sizeof(BMLogEntry), __func__);
 
-	entry->deleted_verts = BLI_ghash_ptr_new(__func__);
-	entry->deleted_faces = BLI_ghash_ptr_new(__func__);
-	entry->added_verts = BLI_ghash_ptr_new(__func__);
-	entry->added_faces = BLI_ghash_ptr_new(__func__);
-	entry->modified_verts = BLI_ghash_ptr_new(__func__);
-	entry->modified_faces = BLI_ghash_ptr_new(__func__);
+	entry->deleted_verts = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
+	entry->deleted_faces = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
+	entry->added_verts = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
+	entry->added_faces = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
+	entry->modified_verts = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
+	entry->modified_faces = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
 
 	entry->pool_verts = BLI_mempool_create(sizeof(BMLogVert), 0, 64, BLI_MEMPOOL_NOP);
 	entry->pool_faces = BLI_mempool_create(sizeof(BMLogFace), 0, 64, BLI_MEMPOOL_NOP);

@@ -1091,6 +1091,11 @@ unsigned int BLI_ghashutil_inthash_p_murmur(const void *ptr)
 	return BLI_hash_mm2((const unsigned char *)&key, sizeof(key), 0);
 }
 
+unsigned int BLI_ghashutil_inthash_p_simple(const void *ptr)
+{
+	return GET_UINT_FROM_POINTER(ptr);
+}
+
 bool BLI_ghashutil_intcmp(const void *a, const void *b)
 {
 	return (a != b);

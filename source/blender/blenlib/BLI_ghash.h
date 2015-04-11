@@ -148,6 +148,7 @@ bool            BLI_ghashutil_strcmp(const void *a, const void *b);
 unsigned int    BLI_ghashutil_uinthash(unsigned int key);
 unsigned int    BLI_ghashutil_inthash_p(const void *ptr);
 unsigned int    BLI_ghashutil_inthash_p_murmur(const void *ptr);
+unsigned int    BLI_ghashutil_inthash_p_simple(const void *ptr);
 bool            BLI_ghashutil_intcmp(const void *a, const void *b);
 
 
