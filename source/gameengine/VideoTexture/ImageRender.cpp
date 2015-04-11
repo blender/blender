@@ -272,6 +272,12 @@ void ImageRender::Render()
 	// restore the stereo mode now that the matrix is computed
 	m_rasterizer->SetStereoMode(stereomode);
 
+    if (stereomode == RAS_IRasterizer::RAS_STEREO_QUADBUFFERED) {
+        // In QUAD buffer stereo mode, the GE render pass ends with the right eye on the right buffer
+        // but we need to draw on the left buffer to capture the render
+        // TODO: implement an explicit function in rasterizer to restore the left buffer.
+        m_rasterizer->SetEye(RAS_IRasterizer::RAS_STEREO_LEFTEYE);
+    }
 	m_scene->CalculateVisibleMeshes(m_rasterizer,m_camera);
 
 	m_scene->RenderBuckets(camtrans, m_rasterizer);
