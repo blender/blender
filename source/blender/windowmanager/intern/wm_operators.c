@@ -1997,8 +1997,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	split = uiLayoutSplit(layout, 0.0f, false);
 	col = uiLayoutColumn(split, false);
 	uiItemL(col, IFACE_("Links"), ICON_NONE);
+#if 0
 	uiItemStringO(col, IFACE_("Support an Open Animation Movie"), ICON_URL, "WM_OT_url_open", "url",
 	              "https://cloud.blender.org/join");
+#endif
 	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url",
 	              "http://www.blender.org/foundation/donation-payment/");
 	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url",
