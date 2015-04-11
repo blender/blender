@@ -804,7 +804,7 @@ bool BM_mesh_intersect(
 	s.edgetri_cache = BLI_ghash_new(BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, __func__);
 
 	s.edge_verts = BLI_ghash_ptr_new(__func__);
-	s.face_edges = BLI_ghash_ptr_new(__func__);
+	s.face_edges = BLI_ghash_int_new(__func__);
 	s.wire_edges = BLI_gset_ptr_new(__func__);
 	s.vert_dissolve = NULL;
 
