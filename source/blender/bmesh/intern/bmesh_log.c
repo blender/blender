@@ -480,10 +480,11 @@ static void bm_log_id_ghash_release(BMLog *log, GHash *id_ghash)
 BMLog *BM_log_create(BMesh *bm)
 {
 	BMLog *log = MEM_callocN(sizeof(*log), __func__);
+	const unsigned int reserve_num = (unsigned int)(bm->totvert + bm->totface);
 
 	log->unused_ids = range_tree_uint_alloc(0, (unsigned)-1);
-	log->id_to_elem = BLI_ghash_ptr_new_ex(__func__, (unsigned int)(bm->totvert + bm->totface));
-	log->elem_to_id = BLI_ghash_ptr_new_ex(__func__, (unsigned int)(bm->totvert + bm->totface));
+	log->id_to_elem = BLI_ghash_new_ex(logkey_hash, logkey_cmp, __func__, reserve_num);
+	log->elem_to_id = BLI_ghash_ptr_new_ex(__func__, reserve_num);
 
 	/* Assign IDs to all existing vertices and faces */
 	bm_log_assign_ids(bm, log);
