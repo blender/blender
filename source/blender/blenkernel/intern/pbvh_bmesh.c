@@ -862,8 +862,14 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
+		/* At the moment edges never get shorter (subdiv will make new edges)
+		 * unlike collapse where edges can become longer. */
+#if 0
 		if (len_squared_v3v3(v1->co, v2->co) <= eq_ctx->q->limit_len_squared)
 			continue;
+#else
+		BLI_assert(len_squared_v3v3(v1->co, v2->co) > eq_ctx->q->limit_len_squared);
+#endif
 
 		/* Check that the edge still exists */
 		if (!(e = BM_edge_exists(v1, v2))) {
