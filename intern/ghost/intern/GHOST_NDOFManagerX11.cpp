@@ -43,7 +43,7 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 #define MAX_LINE_LENGTH 100
 
 		/* look for USB devices with Logitech or 3Dconnexion's vendor ID */
-		FILE *command_output = popen("lsusb | grep '046d:\|256f:'", "r");
+		FILE *command_output = popen("lsusb | grep '046d:\\|256f:'", "r");
 		if (command_output) {
 			char line[MAX_LINE_LENGTH] = {0};
 			while (fgets(line, MAX_LINE_LENGTH, command_output)) {
