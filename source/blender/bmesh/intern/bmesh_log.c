@@ -993,6 +993,15 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
 	BMVert *v;
 	BMFace *f;
 
+	/* avoid unnecessary resizing on initialization */
+	if (BLI_ghash_size(log->current_entry->added_verts) == 0) {
+		BLI_ghash_reserve(log->current_entry->added_verts, (unsigned int)bm->totvert);
+	}
+
+	if (BLI_ghash_size(log->current_entry->added_faces) == 0) {
+		BLI_ghash_reserve(log->current_entry->added_faces, (unsigned int)bm->totface);
+	}
+
 	/* Log all vertices as newly created */
 	BM_ITER_MESH (v, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		BM_log_vert_added(log, v, cd_vert_mask_offset);
