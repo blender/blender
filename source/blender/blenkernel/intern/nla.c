@@ -926,6 +926,40 @@ NlaTrack *BKE_nlatrack_find_active(ListBase *tracks)
 	return NULL;
 }
 
+/* Get the NLA Track that the active action/action strip comes from,
+ * since this info is not stored in AnimData. It also isn't as simple
+ * as just using the active track, since multiple tracks may have been
+ * entered at the same time.
+ */
+// TODO: Store this info in AnimData... Old files would still need to use this function for version patching though
+NlaTrack *BKE_nlatrack_find_tweaked(AnimData *adt)
+{
+	NlaTrack *nlt;
+	
+	/* sanity check */
+	if (adt == NULL)
+		return NULL;
+	
+	/* Since the track itself gets disabled, we want the first disabled... */
+	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+		if (nlt->flag & (NLATRACK_ACTIVE | NLATRACK_DISABLED)) {
+			/* For good measure, make sure that strip actually exists there */
+			if (BLI_findindex(&nlt->strips, adt->actstrip) != -1) {
+				return nlt;
+			}
+			else if (G.debug & G_DEBUG) {
+				printf("%s: Active strip (%p, %s) not in NLA track found (%p, %s)\n",
+				       __func__, 
+				       adt->actstrip, (adt->actstrip) ? adt->actstrip->name : "<None>",
+				       nlt,           nlt->name);
+			}
+		}
+	}
+	
+	/* Not found! */
+	return NULL;
+}
+
 /* Toggle the 'solo' setting for the given NLA-track, making sure that it is the only one
  * that has this status in its AnimData block.
  */

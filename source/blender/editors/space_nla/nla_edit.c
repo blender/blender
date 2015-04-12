@@ -111,6 +111,8 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	
+	const bool do_solo = RNA_boolean_get(op->ptr, "isolate_action");
 	bool ok = false;
 	
 	/* get editor data */
@@ -133,6 +135,15 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 		
 		/* try entering tweakmode if valid */
 		ok |= BKE_nla_tweakmode_enter(adt);
+		
+		/* mark the active track as being "solo"? */
+		if (do_solo && adt->actstrip) {
+			NlaTrack *nlt = BKE_nlatrack_find_tweaked(adt);
+			
+			if (nlt && !(nlt->flag & NLATRACK_SOLO)) {
+				BKE_nlatrack_solo_toggle(adt, nlt);
+			}
+		}
 	}
 	
 	/* free temp data */
@@ -159,6 +170,8 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
  
 void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Enter Tweak Mode";
 	ot->idname = "NLA_OT_tweakmode_enter";
@@ -170,16 +183,22 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "isolate_action", 0, "Isolate Action",
+	                       "Enable 'solo' on the NLA Track containing the active strip, "
+	                       "to edit it without seeing the effects of the NLA stack");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ------------- */
 
 /* NLA Editor internal API function for exiting tweakmode */
-bool nlaedit_disable_tweakmode(bAnimContext *ac)
+bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter;
+	int filter;	
 	
 	/* get a list of the AnimData blocks being shown in the NLA */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
@@ -195,7 +214,14 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ale->data;
 		
-		/* to be sure, just exit tweakmode... */
+		/* clear solo flags */
+		if ((do_solo) & (adt->flag & ADT_NLA_SOLO_TRACK) &&
+		    (adt->flag & ADT_NLA_EDIT_ON)) 
+		{
+			BKE_nlatrack_solo_toggle(adt, NULL);
+		}
+		
+		/* to be sure that we're doing everything right, just exit tweakmode... */
 		BKE_nla_tweakmode_exit(adt);
 	}
 	
@@ -218,9 +244,11 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac)
 }
 
 /* exit tweakmode operator callback */
-static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *UNUSED(op))
+static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	
+	const bool do_solo = RNA_boolean_get(op->ptr, "isolate_action");
 	bool ok = false;
 	
 	/* get editor data */
@@ -228,7 +256,7 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 		
 	/* perform operation */
-	ok = nlaedit_disable_tweakmode(&ac);
+	ok = nlaedit_disable_tweakmode(&ac, do_solo);
 	
 	/* success? */
 	if (ok)
@@ -239,6 +267,8 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *UNUSED(op))
  
 void NLA_OT_tweakmode_exit(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Exit Tweak Mode";
 	ot->idname = "NLA_OT_tweakmode_exit";
@@ -250,6 +280,12 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "isolate_action", 0, "Isolate Action",
+	                       "Disable 'solo' on any of the NLA Tracks after exiting tweak mode "
+	                       "to get things back to normal");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* *********************************************** */

@@ -291,10 +291,12 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 				 *   the case of users trying to use this to change actions
 				 * - in tweakmode, clicking here gets us out of tweakmode, as changing selection
 				 *   while in tweakmode is really evil!
+				 * - we disable "solo" flags too, to make it easier to work with stashed actions
+				 *   with less trouble
 				 */
 				if (nlaedit_is_tweakmode_on(ac)) {
 					/* exit tweakmode immediately */
-					nlaedit_disable_tweakmode(ac);
+					nlaedit_disable_tweakmode(ac, true);
 					
 					/* changes to NLA-Action occurred */
 					notifierFlags |= ND_NLA_ACTCHANGE;

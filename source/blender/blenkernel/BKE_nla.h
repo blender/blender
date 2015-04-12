@@ -76,6 +76,8 @@ void BKE_nlameta_flush_transforms(struct NlaStrip *mstrip);
 struct NlaTrack *BKE_nlatrack_find_active(ListBase *tracks);
 void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt);
 
+struct NlaTrack *BKE_nlatrack_find_tweaked(struct AnimData *adt);
+
 void BKE_nlatrack_solo_toggle(struct AnimData *adt, struct NlaTrack *nlt);
 
 bool BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);

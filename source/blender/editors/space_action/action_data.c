@@ -625,36 +625,6 @@ void ACTION_OT_unlink(wmOperatorType *ot)
 /* ************************************************************************** */
 /* ACTION BROWSING */
 
-/* Get the NLA Track that the active action comes from, since this is not stored in AnimData */
-/* TODO: Move this to blenkernel/nla.c */
-static NlaTrack *nla_tweak_track_get(AnimData *adt)
-{
-	NlaTrack *nlt;
-	
-	/* sanity check */
-	if (adt == NULL)
-		return NULL;
-	
-	/* Since the track itself gets disabled, we want the first disabled... */
-	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
-		if (nlt->flag & (NLATRACK_ACTIVE | NLATRACK_DISABLED)) {
-			/* For good measure, make sure that strip actually exists there */
-			if (BLI_findindex(&nlt->strips, adt->actstrip) != -1) {
-				return nlt;
-			}
-			else if (G.debug & G_DEBUG) {
-				printf("%s: Active strip (%p, %s) not in NLA track found (%p, %s)\n",
-				       __func__, 
-				       adt->actstrip, (adt->actstrip) ? adt->actstrip->name : "<None>",
-				       nlt,           nlt->name);
-			}
-		}
-	}
-	
-	/* Not found! */
-	return NULL;
-}
-
 /* Try to find NLA Strip to use for action layer up/down tool */
 static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
 {
@@ -774,7 +744,7 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
 	float ctime = BKE_scene_frame_get(scene);
 	
 	/* Get active track */
-	act_track = nla_tweak_track_get(adt);
+	act_track = BKE_nlatrack_find_tweaked(adt);
 	
 	if (act_track == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Could not find current NLA Track");
@@ -891,7 +861,7 @@ static int action_layer_prev_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* Get active track */
-	act_track = nla_tweak_track_get(adt);
+	act_track = BKE_nlatrack_find_tweaked(adt);
 	
 	/* If there is no active track, that means we are using the active action... */
 	if (act_track) {

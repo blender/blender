@@ -306,6 +306,7 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 void nla_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 	
 	/* keymap for all regions ------------------------------------------- */
 	keymap = WM_keymap_find(keyconf, "NLA Generic", SPACE_NLA, 0);
@@ -319,6 +320,16 @@ void nla_keymap(wmKeyConfig *keyconf)
 	 */
 	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
+	
+	/* tweakmode for stashed actions
+	 * - similar to normal tweakmode, except we mark the tracks as being "solo"
+	 *   too so that the action can be edited in isolation
+	 */
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_tweakmode_enter", TABKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "isolate_action", true);
+	
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_tweakmode_exit", TABKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "isolate_action", true);
 	
 	/* find (i.e. a shortcut for setting the name filter) */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_find", FKEY, KM_PRESS, KM_CTRL, 0);
