@@ -206,6 +206,22 @@ int bmesh_disk_count(const BMVert *v)
 	return count;
 }
 
+int bmesh_disk_count_ex(const BMVert *v, const int count_max)
+{
+	int count = 0;
+	if (v->e) {
+		BMEdge *e_first, *e_iter;
+		e_iter = e_first = v->e;
+		do {
+			count++;
+			if (count == count_max) {
+				break;
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+	}
+	return count;
+}
+
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 {
 	BMEdge *e_iter;
@@ -236,9 +252,9 @@ bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 int bmesh_disk_facevert_count(const BMVert *v)
 {
 	/* is there an edge on this vert at all */
+	int count = 0;
 	if (v->e) {
 		BMEdge *e_first, *e_iter;
-		int count = 0;
 
 		/* first, loop around edge */
 		e_first = e_iter = v->e;
@@ -247,11 +263,29 @@ int bmesh_disk_facevert_count(const BMVert *v)
 				count += bmesh_radial_facevert_count(e_iter->l, v);
 			}
 		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-		return count;
 	}
-	else {
-		return 0;
+	return count;
+}
+
+int bmesh_disk_facevert_count_ex(const BMVert *v, const int count_max)
+{
+	/* is there an edge on this vert at all */
+	int count = 0;
+	if (v->e) {
+		BMEdge *e_first, *e_iter;
+
+		/* first, loop around edge */
+		e_first = e_iter = v->e;
+		do {
+			if (e_iter->l) {
+				count += bmesh_radial_facevert_count_ex(e_iter->l, v, count_max - count);
+				if (count == count_max) {
+					break;
+				}
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 	}
+	return count;
 }
 
 /**
@@ -450,6 +484,23 @@ int bmesh_radial_facevert_count(const BMLoop *l, const BMVert *v)
 	do {
 		if (l_iter->v == v) {
 			count++;
+		}
+	} while ((l_iter = l_iter->radial_next) != l);
+
+	return count;
+}
+
+int bmesh_radial_facevert_count_ex(const BMLoop *l, const BMVert *v, const int count_max)
+{
+	const BMLoop *l_iter;
+	int count = 0;
+	l_iter = l;
+	do {
+		if (l_iter->v == v) {
+			count++;
+			if (count == count_max) {
+				break;
+			}
 		}
 	} while ((l_iter = l_iter->radial_next) != l);
 

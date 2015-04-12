@@ -2042,7 +2042,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 
 		ok = true;
 		BM_ITER_ELEM (eed, &eiter, efa, BM_EDGES_OF_FACE) {
-			if (BM_edge_face_count(eed) < 3) {
+			if (!BM_edge_face_count_is_over(eed, 2)) {
 				ok = false;
 				break;
 			}
@@ -2938,7 +2938,7 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 				if ((use_wire && BM_edge_is_wire(e)) ||
 				    (use_boundary && BM_edge_is_boundary(e)) ||
 				    (use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
-				    (use_multi_face && (BM_edge_face_count(e) > 2)))
+				    (use_multi_face && (BM_edge_face_count_is_over(e, 2))))
 				{
 					/* check we never select perfect edge (in test above) */
 					BLI_assert(!(BM_edge_is_manifold(e) && BM_edge_is_contiguous(e)));

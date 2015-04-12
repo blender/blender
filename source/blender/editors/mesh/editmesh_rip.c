@@ -587,8 +587,8 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 
 		/* if we are ripping a single vertex from 3 faces,
 		 * then measure the distance to the face corner as well as the edge */
-		if (BM_vert_face_count(v) == 3 &&
-		    BM_vert_edge_count(v) == 3)
+		if (BM_vert_face_count_is_equal(v, 3) &&
+		    BM_vert_edge_count_is_equal(v, 3))
 		{
 			BMEdge *e_all[3];
 			BMLoop *l_all[3];
@@ -735,7 +735,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	 * but both allocate fill */
 
 	/* rip two adjacent edges */
-	if (BM_edge_is_boundary(e2) || BM_vert_face_count(v) == 2) {
+	if (BM_edge_is_boundary(e2) || BM_vert_face_count_is_equal(v, 2)) {
 		/* Don't run the edge split operator in this case */
 		BMVert *v_rip;
 

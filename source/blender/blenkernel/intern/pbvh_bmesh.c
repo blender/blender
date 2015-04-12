@@ -369,6 +369,7 @@ static BMFace *pbvh_bmesh_face_create(
 }
 
 /* Return the number of faces in 'node' that use vertex 'v' */
+#if 0
 static int pbvh_bmesh_node_vert_use_count(PBVH *bvh, PBVHNode *node, BMVert *v)
 {
 	BMIter bm_iter;
@@ -376,12 +377,33 @@ static int pbvh_bmesh_node_vert_use_count(PBVH *bvh, PBVHNode *node, BMVert *v)
 	int count = 0;
 
 	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
-		PBVHNode *f_node;
-
-		f_node = pbvh_bmesh_node_lookup(bvh, f);
-
-		if (f_node == node)
+		PBVHNode *f_node = pbvh_bmesh_node_lookup(bvh, f);
+		if (f_node == node) {
 			count++;
+		}
+	}
+
+	return count;
+}
+#endif
+
+#define pbvh_bmesh_node_vert_use_count_is_equal(bvh, node, v, n) \
+	(pbvh_bmesh_node_vert_use_count_ex(bvh, node, v, (n) + 1) == n)
+
+static int pbvh_bmesh_node_vert_use_count_ex(PBVH *bvh, PBVHNode *node, BMVert *v, const int count_max)
+{
+	BMIter bm_iter;
+	BMFace *f;
+	int count = 0;
+
+	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
+		PBVHNode *f_node = pbvh_bmesh_node_lookup(bvh, f);
+		if (f_node == node) {
+			count++;
+			if (count == count_max) {
+				break;
+			}
+		}
 	}
 
 	return count;
@@ -484,13 +506,13 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		v = l_iter->v;
-		if (pbvh_bmesh_node_vert_use_count(bvh, f_node, v) == 1) {
+		if (pbvh_bmesh_node_vert_use_count_is_equal(bvh, f_node, v, 1)) {
 			if (BLI_gset_haskey(f_node->bm_unique_verts, v)) {
 				/* Find a different node that uses 'v' */
 				PBVHNode *new_node;
 
 				new_node = pbvh_bmesh_vert_other_node_find(bvh, v);
-				BLI_assert(new_node || BM_vert_face_count(v) == 1);
+				BLI_assert(new_node || BM_vert_face_count_is_equal(v, 1));
 
 				if (new_node) {
 					pbvh_bmesh_vert_ownership_transfer(bvh, new_node, v);
@@ -810,13 +832,11 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		BM_face_kill(bvh->bm, f_adj);
 
 		/* Ensure new vertex is in the node */
-		if (!BLI_gset_haskey(bvh->nodes[ni].bm_unique_verts, v_new) &&
-		    !BLI_gset_haskey(bvh->nodes[ni].bm_other_verts, v_new))
-		{
-			BLI_gset_insert(bvh->nodes[ni].bm_other_verts, v_new);
+		if (!BLI_gset_haskey(bvh->nodes[ni].bm_unique_verts, v_new)) {
+			BLI_gset_add(bvh->nodes[ni].bm_other_verts, v_new);
 		}
 
-		if (BM_vert_edge_count(v_opp) >= 9) {
+		if (BM_vert_edge_count_is_over(v_opp, 8)) {
 			BMIter bm_iter;
 			BMEdge *e2;
 
@@ -945,10 +965,8 @@ static void pbvh_bmesh_collapse_edge(
 			pbvh_bmesh_face_create(bvh, ni, v_tri, e_tri, f);
 
 			/* Ensure that v_conn is in the new face's node */
-			if (!BLI_gset_haskey(n->bm_unique_verts, v_conn) &&
-			    !BLI_gset_haskey(n->bm_other_verts,  v_conn))
-			{
-				BLI_gset_insert(n->bm_other_verts, v_conn);
+			if (!BLI_gset_haskey(n->bm_unique_verts, v_conn)) {
+				BLI_gset_add(n->bm_other_verts, v_conn);
 			}
 		}
 
@@ -973,7 +991,7 @@ static void pbvh_bmesh_collapse_edge(
 		/* Check if any of the face's vertices are now unused, if so
 		 * remove them from the PBVH */
 		for (j = 0; j < 3; j++) {
-			if (v_tri[j] != v_del && BM_vert_face_count(v_tri[j]) == 1) {
+			if (v_tri[j] != v_del && BM_vert_face_count_is_equal(v_tri[j], 1)) {
 				BLI_gset_insert(deleted_verts, v_tri[j]);
 				pbvh_bmesh_vert_remove(bvh, v_tri[j]);
 			}
@@ -1010,7 +1028,7 @@ static void pbvh_bmesh_collapse_edge(
 	}
 
 	/* Delete v_del */
-	BLI_assert(BM_vert_face_count(v_del) == 0);
+	BLI_assert(!BM_vert_face_check(v_del));
 	BLI_gset_insert(deleted_verts, v_del);
 	BM_log_vert_removed(bvh->bm_log, v_del, eq_ctx->cd_vert_mask_offset);
 	BM_vert_kill(bvh->bm, v_del);
@@ -1641,7 +1659,7 @@ static void pbvh_bmesh_verify(PBVH *bvh)
 
 			GSET_ITER (gs_iter, n->bm_other_verts) {
 				BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-				BLI_assert(BM_vert_face_count(v) > 0);
+				BLI_assert(!BM_vert_face_check(v));
 				BLI_assert(BLI_gset_haskey(verts_all, v));
 			}
 		}

@@ -2778,7 +2778,7 @@ static void bevel_vert_two_edges(BevelParams *bp, BMesh *bm, BevVert *bv)
 			copy_mesh_vert(vm, 1, 0, ns - k, 0, 0, k);
 	}
 
-	if (BM_vert_face_count(bv->v) == 0) {
+	if (BM_vert_face_check(bv->v) == false) {
 		e_eg = bv->edges[0].e;
 		BLI_assert(e_eg != NULL);
 		for (k = 0; k < ns; k++) {

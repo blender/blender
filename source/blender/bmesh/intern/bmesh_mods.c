@@ -72,7 +72,8 @@
  */
 bool BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
-	const int len = BM_vert_edge_count(v);
+	/* logic for 3 or more is identical */
+	const int len = BM_vert_edge_count_ex(v, 3);
 	
 	if (len == 1) {
 		BM_vert_kill(bm, v); /* will kill edges too */
@@ -97,7 +98,7 @@ bool BM_vert_dissolve(BMesh *bm, BMVert *v)
 			return false;
 		}
 	}
-	else if (len == 2 && BM_vert_face_count(v) == 1) {
+	else if (len == 2 && BM_vert_face_count_is_equal(v, 1)) {
 		/* boundary vertex on a face */
 		return (BM_vert_collapse_edge(bm, v->e, v, true, true) != NULL);
 	}

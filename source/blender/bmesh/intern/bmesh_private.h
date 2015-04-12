@@ -54,6 +54,7 @@ int bmesh_elem_check(void *element, const char htype);
 #endif
 
 int bmesh_radial_length(const BMLoop *l);
+int bmesh_disk_count_ex(const BMVert *v, const int count_max);
 int bmesh_disk_count(const BMVert *v);
 
 /**

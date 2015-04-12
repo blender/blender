@@ -65,12 +65,22 @@ BMFace *BM_vert_pair_share_face_by_angle(
         const bool allow_adjacent) ATTR_NONNULL();
 
 int     BM_vert_edge_count_nonwire(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+#define BM_vert_edge_count_is_equal(v, n) (BM_vert_edge_count_ex(v, (n) + 1) == n)
+#define BM_vert_edge_count_is_over(v, n) (BM_vert_edge_count_ex(v, (n) + 1) == (n) + 1)
+int     BM_vert_edge_count_ex(const BMVert *v, const int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int     BM_vert_edge_count(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+#define BM_edge_face_count_is_equal(e, n) (BM_edge_face_count_ex(e, (n) + 1) == n)
+#define BM_edge_face_count_is_over(e, n) (BM_edge_face_count_ex(e, (n) + 1) == (n) + 1)
+int     BM_edge_face_count_ex(const BMEdge *e, const int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int     BM_edge_face_count(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+#define BM_vert_face_count_is_equal(v, n) (BM_vert_face_count_ex(v, (n) + 1) == n)
+#define BM_vert_face_count_is_over(v, n) (BM_vert_face_count_ex(v, (n) + 1) == (n) + 1)
+int     BM_vert_face_count_ex(const BMVert *v, int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int     BM_vert_face_count(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 bool    BM_vert_is_edge_pair(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    BM_vert_face_check(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_vert_is_wire(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_is_wire(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

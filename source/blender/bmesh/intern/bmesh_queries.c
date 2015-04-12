@@ -750,6 +750,11 @@ int BM_vert_edge_count(const BMVert *v)
 	return bmesh_disk_count(v);
 }
 
+int BM_vert_edge_count_ex(const BMVert *v, const int count_max)
+{
+	return bmesh_disk_count_ex(v, count_max);
+}
+
 int BM_vert_edge_count_nonwire(const BMVert *v)
 {
 	int count = 0;
@@ -770,13 +775,30 @@ int BM_edge_face_count(const BMEdge *e)
 	int count = 0;
 
 	if (e->l) {
-		BMLoop *l_iter;
-		BMLoop *l_first;
+		BMLoop *l_iter, *l_first;
 
 		l_iter = l_first = e->l;
-
 		do {
 			count++;
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+
+	return count;
+}
+
+int BM_edge_face_count_ex(const BMEdge *e, const int count_max)
+{
+	int count = 0;
+
+	if (e->l) {
+		BMLoop *l_iter, *l_first;
+
+		l_iter = l_first = e->l;
+		do {
+			count++;
+			if (count == count_max) {
+				break;
+			}
 		} while ((l_iter = l_iter->radial_next) != l_first);
 	}
 
@@ -790,6 +812,21 @@ int BM_edge_face_count(const BMEdge *e)
 int BM_vert_face_count(const BMVert *v)
 {
 	return bmesh_disk_facevert_count(v);
+}
+
+int BM_vert_face_count_ex(const BMVert *v, int count_max)
+{
+	return bmesh_disk_facevert_count_ex(v, count_max);
+}
+
+/**
+ * Return true if the vertex is connected to _any_ faces.
+ *
+ * same as ``BM_vert_face_count(v) != 0`` or ``BM_vert_find_first_loop(v) == NULL``
+ */
+bool BM_vert_face_check(BMVert *v)
+{
+	return v->e && (bmesh_disk_faceedge_find_first(v->e, v) != NULL);
 }
 
 /**

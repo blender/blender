@@ -68,7 +68,7 @@
 #include <float.h>
 #include <math.h>
 
-// #define DEBUG_TIME
+#define DEBUG_TIME
 
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
