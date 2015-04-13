@@ -41,6 +41,12 @@
 
 #include <assert.h>
 
+/* Avoid skinny faces */
+#define USE_EDGEQUEUE_EVEN_SUBDIV
+#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
+#  include "BKE_global.h"
+#endif
+
 // #define USE_VERIFY
 
 #ifdef USE_VERIFY
@@ -570,6 +576,9 @@ typedef struct {
 	const float *center;
 	float radius_squared;
 	float limit_len_squared;
+#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
+	float limit_len;
+#endif
 } EdgeQueue;
 
 typedef struct {
@@ -633,6 +642,57 @@ static void long_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
 		edge_queue_insert(eq_ctx, e, -len_sq);
 }
 
+#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
+static void long_edge_queue_edge_add_recursive(
+        EdgeQueueContext *eq_ctx,
+        BMLoop *l_edge, BMLoop *l_end,
+        const float len_sq, float limit_len)
+{
+	BLI_assert(len_sq > SQUARE(limit_len));
+	edge_queue_insert(eq_ctx, l_edge->e, -len_sq);
+
+	/* temp support previous behavior! */
+	if (UNLIKELY(G.debug_value == 1234)) {
+		return;
+	}
+
+	if ((l_edge->radial_next != l_edge)) {
+		/* how much longer we need to be to consider for subdividing
+		 * (avoids subdividing faces which are only *slightly* skinny) */
+#define EVEN_EDGELEN_THRESHOLD  1.2f
+		/* how much the limit increases per recursion
+		 * (avoids performing subdvisions too far away) */
+#define EVEN_GENERATION_SCALE   1.6f
+
+		const float len_sq_cmp = len_sq * EVEN_EDGELEN_THRESHOLD;
+		float limit_len_sq;
+		BMLoop *l_iter;
+
+		limit_len *= EVEN_GENERATION_SCALE;
+		limit_len_sq = SQUARE(limit_len);
+
+		l_iter = l_edge;
+		do {
+			float len_sq_other;
+			BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
+			int i;
+			for (i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
+				len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
+				if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
+//					edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
+					long_edge_queue_edge_add_recursive(
+					        eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i],
+					        len_sq_other, limit_len);
+				}
+			}
+		} while ((l_iter = l_iter->radial_next) != l_end);
+
+#undef EVEN_EDGELEN_THRESHOLD
+#undef EVEN_GENERATION_SCALE
+	}
+}
+#endif  /* USE_EDGEQUEUE_EVEN_SUBDIV */
+
 static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
                                       BMEdge *e)
 {
@@ -651,7 +711,16 @@ static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
 		/* Check each edge of the face */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
+#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
+			const float len_sq = BM_edge_calc_length_squared(l_iter->e);
+			if (len_sq > eq_ctx->q->limit_len_squared) {
+				long_edge_queue_edge_add_recursive(
+				        eq_ctx, l_iter->radial_next, l_iter,
+				        len_sq, eq_ctx->q->limit_len_squared);
+			}
+#else
 			long_edge_queue_edge_add(eq_ctx, l_iter->e);
+#endif
 		} while ((l_iter = l_iter->next) != l_first);
 	}
 }
@@ -690,6 +759,9 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
 	eq_ctx->q->center = center;
 	eq_ctx->q->radius_squared = radius * radius;
 	eq_ctx->q->limit_len_squared = bvh->bm_max_edge_len * bvh->bm_max_edge_len;
+#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
+	eq_ctx->q->limit_len = bvh->bm_max_edge_len;
+#endif
 
 	for (n = 0; n < bvh->totnode; n++) {
 		PBVHNode *node = &bvh->nodes[n];
@@ -730,6 +802,9 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 	eq_ctx->q->center = center;
 	eq_ctx->q->radius_squared = radius * radius;
 	eq_ctx->q->limit_len_squared = bvh->bm_min_edge_len * bvh->bm_min_edge_len;
+#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
+	eq_ctx->q->limit_len = bvh->bm_min_edge_len;
+#endif
 
 	for (n = 0; n < bvh->totnode; n++) {
 		PBVHNode *node = &bvh->nodes[n];
