@@ -66,7 +66,7 @@ void BLF_thumb_preview(
 	/* shrink 1/th each line */
 	int font_shrink = 4;
 
-	FontBLF* font;
+	FontBLF *font;
 	int i;
 
 	/* Create a new blender font obj and fill it with default values */

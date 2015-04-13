@@ -400,7 +400,7 @@ BoundBox Camera::viewplane_bounds_get()
 		bounds.grow(transform_raster_to_world((float)width, (float)height));
 		bounds.grow(transform_raster_to_world((float)width, 0.0f));
 		if(type == CAMERA_PERSPECTIVE) {
-			/* Center point has the most distancei in local Z axis,
+			/* Center point has the most distance in local Z axis,
 			 * use it to construct bounding box/
 			 */
 			bounds.grow(transform_raster_to_world(0.5f*width, 0.5f*height));

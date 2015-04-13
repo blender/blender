@@ -660,7 +660,7 @@ extern GHOST_TSuccess GHOST_SetWindowOrder(GHOST_WindowHandle windowhandle,
 /**
  * Swaps front and back buffers of a window.
  * \param windowhandle The handle to the window
- * \return An intean success indicator.
+ * \return A success indicator.
  */
 extern GHOST_TSuccess GHOST_SwapWindowBuffers(GHOST_WindowHandle windowhandle);
 
@@ -688,7 +688,7 @@ extern GHOST_TUns16 GHOST_GetNumOfAASamples(GHOST_WindowHandle windowhandle);
 /**
  * Activates the drawing context of this window.
  * \param windowhandle The handle to the window
- * \return An intean success indicator.
+ * \return A success indicator.
  */
 extern GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandle);
 
@@ -752,7 +752,7 @@ extern void GHOST_SetRectangle(GHOST_RectangleHandle rectanglehandle,
  * Returns whether this rectangle is empty.
  * Empty rectangles are rectangles that have width==0 and/or height==0.
  * \param rectanglehandle The handle to the rectangle
- * \return intean value (true == empty rectangle)
+ * \return Success value (true == empty rectangle)
  */
 extern GHOST_TSuccess GHOST_IsEmptyRectangle(GHOST_RectangleHandle rectanglehandle);
 
@@ -760,7 +760,7 @@ extern GHOST_TSuccess GHOST_IsEmptyRectangle(GHOST_RectangleHandle rectanglehand
  * Returns whether this rectangle is valid.
  * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b. Thus, empty rectangles are valid.
  * \param rectanglehandle The handle to the rectangle
- * \return intean value (true == valid rectangle)
+ * \return Success value (true == valid rectangle)
  */
 extern GHOST_TSuccess GHOST_IsValidRectangle(GHOST_RectangleHandle rectanglehandle);
 
@@ -798,7 +798,7 @@ extern void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle,
  * \param rectanglehandle The handle to the rectangle
  * \param x x-coordinate of point to test.
  * \param y y-coordinate of point to test.
- * \return intean value (true if point is inside).
+ * \return Success value (true if point is inside).
  */
 extern GHOST_TSuccess GHOST_IsInsideRectangle(GHOST_RectangleHandle rectanglehandle,
                                               GHOST_TInt32 x,

@@ -865,7 +865,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 				if (fabsf(uvdiff[0]) < STD_UV_CONNECT_LIMIT && fabsf(uvdiff[1]) < STD_UV_CONNECT_LIMIT &&
-				    winding[BM_elem_index_get(iterv->l->f)] == winding[BM_elem_index_get(v->l->f)]) {
+				    winding[BM_elem_index_get(iterv->l->f)] == winding[BM_elem_index_get(v->l->f)])
+				{
 					if (lastv) lastv->next = next;
 					else vlist = next;
 					iterv->next = newvlist;
