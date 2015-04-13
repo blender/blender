@@ -657,7 +657,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glEnable(GL_POINT_SMOOTH);
 	glDepthMask(0);  /* don't overwrite zbuf */
 
-	if (rv3d->rot_angle != 0.f) {
+	if (rv3d->rot_angle != 0.0f) {
 		/* -- draw rotation axis -- */
 		float scaled_axis[3];
 		const float scale = rv3d->dist;
@@ -665,19 +665,21 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 
 
 		glBegin(GL_LINE_STRIP);
-		color[3] = 0.f;  /* more transparent toward the ends */
+		color[3] = 0.0f;  /* more transparent toward the ends */
 		glColor4fv(color);
 		add_v3_v3v3(end, o, scaled_axis);
 		glVertex3fv(end);
 
-		// color[3] = 0.2f + fabsf(rv3d->rot_angle);  /* modulate opacity with angle */
-		// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
+#if 0
+		color[3] = 0.2f + fabsf(rv3d->rot_angle);  /* modulate opacity with angle */
+		/* ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2 */
+#endif
 
 		color[3] = 0.5f;  /* more opaque toward the center */
 		glColor4fv(color);
 		glVertex3fv(o);
 
-		color[3] = 0.f;
+		color[3] = 0.0f;
 		glColor4fv(color);
 		sub_v3_v3v3(end, o, scaled_axis);
 		glVertex3fv(end);
@@ -688,14 +690,14 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 #define     ROT_AXIS_DETAIL 13
 
 			const float s = 0.05f * scale;
-			const float step = 2.f * (float)(M_PI / ROT_AXIS_DETAIL);
+			const float step = 2.0f * (float)(M_PI / ROT_AXIS_DETAIL);
 			float angle;
 			int i;
 
 			float q[4];  /* rotate ring so it's perpendicular to axis */
 			const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
 			if (!upright) {
-				const float up[3] = {0.f, 0.f, 1.f};
+				const float up[3] = {0.0f, 0.0f, 1.0f};
 				float vis_angle, vis_axis[3];
 
 				cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
@@ -706,7 +708,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			color[3] = 0.25f;  /* somewhat faint */
 			glColor4fv(color);
 			glBegin(GL_LINE_LOOP);
-			for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
+			for (i = 0, angle = 0.0f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
 				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
 				if (!upright) {
@@ -732,12 +734,12 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glVertex3fv(o);
 	glEnd();
 
-	/* find screen coordinates for rotation center, then draw pretty icon */
 #if 0
+	/* find screen coordinates for rotation center, then draw pretty icon */
 	mul_m4_v3(rv3d->persinv, rot_center);
 	UI_icon_draw(rot_center[0], rot_center[1], ICON_NDOF_TURN);
-#endif
 	/* ^^ just playing around, does not work */
+#endif
 
 	glDisable(GL_BLEND);
 	glDisable(GL_POINT_SMOOTH);

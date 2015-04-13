@@ -70,7 +70,7 @@
  * - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
  *
  * - draw black box with alpha 0 on exact button boundbox
- * - for ever AA step:
+ * - for every AA step:
  *    - draw the inner part for a round filled box, with color blend codes or texture coords
  *    - draw outline in outline color
  *    - draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
@@ -547,12 +547,12 @@ static void widget_menu_trias(uiWidgetTrias *tria, const rcti *rect)
 {
 	float centx, centy, size;
 	int a;
-		
+
 	/* center position and size */
 	centx = rect->xmax - 0.32f * BLI_rcti_size_y(rect);
 	centy = rect->ymin + 0.50f * BLI_rcti_size_y(rect);
-	size = 0.4f * (float)BLI_rcti_size_y(rect);
-	
+	size = 0.4f * BLI_rcti_size_y(rect);
+
 	for (a = 0; a < 6; a++) {
 		tria->vec[a][0] = size * menu_tria_vert[a][0] + centx;
 		tria->vec[a][1] = size * menu_tria_vert[a][1] + centy;
@@ -585,7 +585,6 @@ static void widget_check_trias(uiWidgetTrias *tria, const rcti *rect)
 /* prepares shade colors */
 static void shadecolors4(char coltop[4], char coldown[4], const char *color, short shadetop, short shadedown)
 {
-	
 	coltop[0] = CLAMPIS(color[0] + shadetop, 0, 255);
 	coltop[1] = CLAMPIS(color[1] + shadetop, 0, 255);
 	coltop[2] = CLAMPIS(color[2] + shadetop, 0, 255);
@@ -781,6 +780,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		                               wcol->item[1],
 		                               wcol->item[2],
 		                               (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER)};
+
 		/* for each AA step */
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
 			glTranslatef(jit[j][0], jit[j][1], 0.0f);
@@ -799,7 +799,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	}
 
 	glDisable(GL_BLEND);
-	
 }
 
 /* *********************** text/icon ************************************** */
@@ -1215,7 +1214,6 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
 			if (but->strwidth < 10) break;
 		}
-		
 	}
 
 
@@ -1382,7 +1380,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 				t = 0;
 			}
 
-			glColor3f(0.20, 0.6, 0.9);
+			glColor3f(0.2, 0.6, 0.9);
 
 			tx = rect->xmin + t + 2;
 			ty = rect->ymin + 2;
@@ -2188,7 +2186,6 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 
 static void ui_hsv_cursor(float x, float y)
 {
-	
 	glPushMatrix();
 	glTranslatef(x, y, 0.0f);
 	
@@ -2203,7 +2200,6 @@ static void ui_hsv_cursor(float x, float y)
 	glDisable(GL_LINE_SMOOTH);
 	
 	glPopMatrix();
-	
 }
 
 void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
@@ -2278,12 +2274,12 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	 * Useful for color correction tools where you're only interested in hue. */
 	if (but->flag & UI_BUT_COLOR_LOCK) {
 		if (U.color_picker_type == USER_CP_CIRCLE_HSV)
-			hsv[2] = 1.f;
+			hsv[2] = 1.0f;
 		else
 			hsv[2] = 0.5f;
 	}
 	
-	ui_color_picker_to_rgb(0.f, 0.f, hsv[2], colcent, colcent + 1, colcent + 2);
+	ui_color_picker_to_rgb(0.0f, 0.0f, hsv[2], colcent, colcent + 1, colcent + 2);
 
 	glShadeModel(GL_SMOOTH);
 
@@ -2329,7 +2325,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha)
 {
 	/* allows for 4 steps (red->yellow) */
-	const float color_step = (1.0 / 48.0);
+	const float color_step = 1.0f / 48.0f;
 	int a;
 	float h = hsv[0], s = hsv[1], v = hsv[2];
 	float dx, dy, sx1, sx2, sy;
@@ -2359,26 +2355,26 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 			hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
 			break;
 		case UI_GRAD_H:
-			hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(0.0, 1.0, 1.0, &col1[0][0], &col1[0][1], &col1[0][2]);
 			copy_v3_v3(col1[1], col1[0]);
 			copy_v3_v3(col1[2], col1[0]);
 			copy_v3_v3(col1[3], col1[0]);
 			break;
 		case UI_GRAD_S:
-			hsv_to_rgb(1.0, 0.0, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(1.0, 0.0, 1.0, &col1[1][0], &col1[1][1], &col1[1][2]);
 			copy_v3_v3(col1[0], col1[1]);
 			copy_v3_v3(col1[2], col1[1]);
 			copy_v3_v3(col1[3], col1[1]);
 			break;
 		case UI_GRAD_V:
-			hsv_to_rgb(1.0, 1.0, 0.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(1.0, 1.0, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
 			copy_v3_v3(col1[0], col1[2]);
 			copy_v3_v3(col1[1], col1[2]);
 			copy_v3_v3(col1[3], col1[2]);
 			break;
 		default:
 			assert(!"invalid 'type' argument");
-			hsv_to_rgb(1.0, 1.0, 1.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(1.0, 1.0, 1.0, &col1[2][0], &col1[2][1], &col1[2][2]);
 			copy_v3_v3(col1[0], col1[2]);
 			copy_v3_v3(col1[1], col1[2]);
 			copy_v3_v3(col1[3], col1[2]);
@@ -2417,23 +2413,21 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 				hsv_to_rgb(dx_next, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
 				break;
 			case UI_GRAD_H:
-			{
 				/* annoying but without this the color shifts - could be solved some other way
 				 * - campbell */
-				hsv_to_rgb(dx_next, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(dx_next, 1.0, 1.0, &col1[0][0], &col1[0][1], &col1[0][2]);
 				copy_v3_v3(col1[1], col1[0]);
 				copy_v3_v3(col1[2], col1[0]);
 				copy_v3_v3(col1[3], col1[0]);
 				break;
-			}
 			case UI_GRAD_S:
-				hsv_to_rgb(h, dx, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+				hsv_to_rgb(h, dx, 1.0, &col1[1][0], &col1[1][1], &col1[1][2]);
 				copy_v3_v3(col1[0], col1[1]);
 				copy_v3_v3(col1[2], col1[1]);
 				copy_v3_v3(col1[3], col1[1]);
 				break;
 			case UI_GRAD_V:
-				hsv_to_rgb(h, 1.0, dx,   &col1[2][0], &col1[2][1], &col1[2][2]);
+				hsv_to_rgb(h, 1.0, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
 				copy_v3_v3(col1[0], col1[2]);
 				copy_v3_v3(col1[1], col1[2]);
 				copy_v3_v3(col1[3], col1[2]);
@@ -2462,9 +2456,8 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 		}
 		glEnd();
 	}
-	
+
 	glShadeModel(GL_FLAT);
-	
 }
 
 bool ui_but_is_colorpicker_display_space(uiBut *but)
@@ -2507,11 +2500,10 @@ void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *x
 			y = (hsv[2] - but->softmin) / (but->softmax - but->softmin);
 			break;
 	}
-	
+
 	/* cursor */
 	*xp = rect->xmin + x * BLI_rcti_size_x(rect);
 	*yp = rect->ymin + y * BLI_rcti_size_y(rect);
-
 }
 
 static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
@@ -2592,9 +2584,8 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	x = rect->xmin + 0.5f * BLI_rcti_size_x(rect);
 	y = rect->ymin + v    * BLI_rcti_size_y(rect);
 	CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
-	
+
 	ui_hsv_cursor(x, y);
-	
 }
 
 
@@ -2679,7 +2670,8 @@ bool ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
 	BKE_curve_forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], &coord_array[0][0], resol, sizeof(float[2]));
 	BKE_curve_forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], &coord_array[0][1], resol, sizeof(float[2]));
 
-	return 1;
+	/* TODO: why return anything if always true? */
+	return true;
 }
 
 #define LINK_RESOL  24
@@ -2688,9 +2680,10 @@ void ui_draw_link_bezier(const rcti *rect)
 	float coord_array[LINK_RESOL + 1][2];
 
 	if (ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
+#if 0 /* unused */
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
-		// const float dist = 1.0f / (float)LINK_RESOL; // UNUSED
-
+		const float dist = 1.0f / (float)LINK_RESOL;
+#endif
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 
@@ -2701,7 +2694,6 @@ void ui_draw_link_bezier(const rcti *rect)
 
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
-
 	}
 }
 
@@ -2965,7 +2957,6 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		rect->xmax -= toffs;
 		rect->xmin += toffs;
 	}
-
 }
 
 /* I think 3 is sufficient border to indicate keyed status */
@@ -3080,7 +3071,6 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
-
 }
 
 
@@ -3276,7 +3266,6 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state),
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
-
 }
 
 static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
@@ -3317,7 +3306,6 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int 
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
-
 }
 
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
@@ -3361,7 +3349,6 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	wtb.outline = 1;
 	wtb.inner = 0;
 	widgetbase_draw(&wtb, &wt->wcol);
-	
 }
 
 static uiWidgetType *widget_type(uiWidgetTypeEnum type)
@@ -3928,7 +3915,6 @@ static void draw_disk_shaded(
 		glVertex2f(c * radius_ext, s * radius_ext);
 	}
 	glEnd();
-
 }
 
 void ui_draw_pie_center(uiBlock *block)
@@ -4017,7 +4003,6 @@ void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 		wt->draw(&wt->wcol, rect, block->flag, UI_CNR_ALL);
 	else
 		wt->draw(&wt->wcol, rect, 0, UI_CNR_ALL);
-	
 }
 
 

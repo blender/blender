@@ -403,13 +403,13 @@ static const float cosval[CIRCLE_RESOL] = {
 
 static void draw_xyz_wire(const float c[3], float size, int axis)
 {
-	float v1[3] = {0.f, 0.f, 0.f}, v2[3] = {0.f, 0.f, 0.f};
+	float v1[3] = {0.0f, 0.0f, 0.0f}, v2[3] = {0.0f, 0.0f, 0.0f};
 	float dim = size * 0.1f;
 	float dx[3], dy[3], dz[3];
 
-	dx[0] = dim; dx[1] = 0.f; dx[2] = 0.f;
-	dy[0] = 0.f; dy[1] = dim; dy[2] = 0.f;
-	dz[0] = 0.f; dz[1] = 0.f; dz[2] = dim;
+	dx[0] = dim;  dx[1] = 0.0f; dx[2] = 0.0f;
+	dy[0] = 0.0f; dy[1] = dim;  dy[2] = 0.0f;
+	dz[0] = 0.0f; dz[1] = 0.0f; dz[2] = dim;
 
 	switch (axis) {
 		case 0:     /* x axis */
@@ -425,7 +425,7 @@ static void draw_xyz_wire(const float c[3], float size, int axis)
 			glVertex3fv(v2);
 			
 			/* top left to bottom right */
-			mul_v3_fl(dy, 2.f);
+			mul_v3_fl(dy, 2.0f);
 			add_v3_v3(v1, dy);
 			sub_v3_v3(v2, dy);
 			
@@ -448,7 +448,7 @@ static void draw_xyz_wire(const float c[3], float size, int axis)
 			glVertex3fv(v2);
 			
 			/* top left to center */
-			mul_v3_fl(dy, 2.f);
+			mul_v3_fl(dy, 2.0f);
 			add_v3_v3(v1, dy);
 			copy_v3_v3(v2, c);
 			
@@ -466,12 +466,12 @@ static void draw_xyz_wire(const float c[3], float size, int axis)
 			
 			glVertex3fv(v1);
 			
-			mul_v3_fl(dx, 2.f);
+			mul_v3_fl(dx, 2.0f);
 			add_v3_v3(v1, dx);
 
 			glVertex3fv(v1);
 			
-			mul_v3_fl(dz, 2.f);
+			mul_v3_fl(dz, 2.0f);
 			sub_v3_v3(v1, dx);
 			sub_v3_v3(v1, dz);
 			
@@ -484,7 +484,6 @@ static void draw_xyz_wire(const float c[3], float size, int axis)
 			glEnd();
 			break;
 	}
-	
 }
 
 void drawaxes(float size, char drawtype)
@@ -1619,7 +1618,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 						glColor3ubv(ob_wire_col);
 					}
 
-					glLineWidth(2.f);
+					glLineWidth(2.0f);
 					glDisable(GL_LIGHTING);
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -1627,7 +1626,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 					glEnable(GL_LIGHTING);
-					glLineWidth(1.f);
+					glLineWidth(1.0f);
 				}
 
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
@@ -5240,7 +5239,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 								BLI_assert(0);
 								break;
 						}
-						CLAMP(intensity, 0.f, 1.f);
+						CLAMP(intensity, 0.0f, 1.0f);
 						weight_to_rgb(ma_col, intensity);
 					}
 				}
