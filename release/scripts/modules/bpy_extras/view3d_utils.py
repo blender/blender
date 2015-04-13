@@ -160,7 +160,7 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
                                     )[0]
 
 
-def location_3d_to_region_2d(region, rv3d, coord):
+def location_3d_to_region_2d(region, rv3d, coord, default=None):
     """
     Return the *region* relative 2d location of a 3d position.
 
@@ -170,8 +170,10 @@ def location_3d_to_region_2d(region, rv3d, coord):
     :type rv3d: :class:`bpy.types.RegionView3D`
     :arg coord: 3d worldspace location.
     :type coord: 3d vector
+    :arg default: Return this value if ``coord``
+       is behind the origin of a perspective view.
     :return: 2d location
-    :rtype: :class:`mathutils.Vector`
+    :rtype: :class:`mathutils.Vector` or ``default`` argument.
     """
     from mathutils import Vector
 
@@ -184,4 +186,4 @@ def location_3d_to_region_2d(region, rv3d, coord):
                        height_half + height_half * (prj.y / prj.w),
                        ))
     else:
-        return None
+        return default
