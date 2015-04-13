@@ -99,8 +99,7 @@ void BLI_system_backtrace(FILE *fp)
 	/* Windows  */
 #elif defined(_MSC_VER)
 
-	(void)fp;
-#if defined WIN32
+#ifndef NDEBUG
 #define MAXSYMBOL 256
 #define SIZE 100
 	unsigned short i;
@@ -127,11 +126,12 @@ void BLI_system_backtrace(FILE *fp)
 	MEM_freeN(symbolinfo);
 #undef MAXSYMBOL
 #undef SIZE
-#endif
-
+#else
+	fprintf(fp, "Not supported on release builds\n");
+#endif /* NDEBUG */
+#else /* _MSC_VER */
 	/* ------------------ */
 	/* non msvc/osx/linux */
-#else
 	(void)fp;
 #endif
 
