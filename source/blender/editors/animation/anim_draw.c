@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_timecode.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -266,7 +267,7 @@ short ANIM_get_normalization_flags(bAnimContext *ac)
 	return 0;
 }
 
-static float normalzation_factor_get(FCurve *fcu, short flag)
+static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag)
 {
 	float factor = 1.0f;
 
@@ -292,10 +293,21 @@ static float normalzation_factor_get(FCurve *fcu, short flag)
 			return 1.0f;
 		}
 
-		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-			max_coord = max_ff(max_coord, fabsf(bezt->vec[0][1]));
-			max_coord = max_ff(max_coord, fabsf(bezt->vec[1][1]));
-			max_coord = max_ff(max_coord, fabsf(bezt->vec[2][1]));
+		if (PRVRANGEON) {
+			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+				if (IN_RANGE_INCL(bezt->vec[1][0], scene->r.psfra, scene->r.pefra)) {
+					max_coord = max_ff(max_coord, fabsf(bezt->vec[0][1]));
+					max_coord = max_ff(max_coord, fabsf(bezt->vec[1][1]));
+					max_coord = max_ff(max_coord, fabsf(bezt->vec[2][1]));
+				}
+			}
+		}
+		else {
+			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+				max_coord = max_ff(max_coord, fabsf(bezt->vec[0][1]));
+				max_coord = max_ff(max_coord, fabsf(bezt->vec[1][1]));
+				max_coord = max_ff(max_coord, fabsf(bezt->vec[2][1]));
+			}
 		}
 
 		if (max_coord > FLT_EPSILON) {
@@ -310,7 +322,7 @@ static float normalzation_factor_get(FCurve *fcu, short flag)
 float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag)
 {
 	if (flag & ANIM_UNITCONV_NORMALIZE) {
-		return normalzation_factor_get(fcu, flag);
+		return normalization_factor_get(scene, fcu, flag);
 	}
 
 	/* sanity checks */
