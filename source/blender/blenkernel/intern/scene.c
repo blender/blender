@@ -1373,13 +1373,13 @@ typedef struct ThreadedObjectUpdateState {
 	Scene *scene_parent;
 	double base_time;
 
-	/* Execution statistics */
-	ListBase statistics[BLENDER_MAX_THREADS];
-	bool has_updated_objects;
-
 #ifdef MBALL_SINGLETHREAD_HACK
 	bool has_mballs;
 #endif
+
+	/* Execution statistics */
+	bool has_updated_objects;
+	ListBase *statistics;
 } ThreadedObjectUpdateState;
 
 static void scene_update_object_add_task(void *node, void *user_data);
@@ -1447,6 +1447,8 @@ static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadi
 		/* Calculate statistics. */
 		if (add_to_stats) {
 			StatisicsEntry *entry;
+
+			BLI_assert(threadid < BLI_pool_get_num_threads(pool));
 
 			entry = MEM_mallocN(sizeof(StatisicsEntry), "update thread statistics");
 			entry->object = object;
@@ -1576,7 +1578,9 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 
 	/* Those are only needed when blender is run with --debug argument. */
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
-		memset(state.statistics, 0, sizeof(state.statistics));
+		const int tot_thread = BLI_task_scheduler_num_threads(task_scheduler);
+		state.statistics = MEM_callocN(tot_thread * sizeof(*state.statistics),
+		                               "scene update objects stats");
 		state.has_updated_objects = false;
 		state.base_time = PIL_check_seconds_timer();
 	}
@@ -1593,6 +1597,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		print_threads_statistics(&state);
+		MEM_freeN(state.statistics);
 	}
 
 	/* We do single thread pass to update all the objects which are in cyclic dependency.

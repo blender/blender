@@ -417,6 +417,16 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 	BLI_mutex_unlock(&pool->num_mutex);
 }
 
+int BLI_pool_get_num_threads(TaskPool *pool)
+{
+	if (pool->num_threads != 0) {
+		return pool->num_threads;
+	}
+	else {
+		return BLI_task_scheduler_num_threads(pool->scheduler);
+	}
+}
+
 void BLI_pool_set_num_threads(TaskPool *pool, int num_threads)
 {
 	/* NOTE: Don't try to modify threads while tasks are running! */
