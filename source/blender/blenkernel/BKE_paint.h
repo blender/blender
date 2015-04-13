@@ -120,6 +120,7 @@ void BKE_paint_brush_set(struct Paint *paint, struct Brush *br);
 struct Palette *BKE_paint_palette(struct Paint *paint);
 void BKE_paint_palette_set(struct Paint *p, struct Palette *palette);
 void BKE_paint_curve_set(struct Brush *br, struct PaintCurve *pc);
+void BKE_paint_curve_clamp_endpoint_add_index(struct PaintCurve *pc, const int add_index);
 
 void BKE_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool tex, bool stencil);
 bool BKE_paint_proj_mesh_data_check(struct Scene *scene, struct Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil);
