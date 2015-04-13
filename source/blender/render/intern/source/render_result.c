@@ -1025,7 +1025,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 	RenderPass *rpass;
 	RenderView *rview;
 	void *exrhandle = IMB_exr_get_handle();
-	bool success = false;
+	bool success;
 	int a, nr;
 	const char *chan_view = NULL;
 	int compress = (imf ? imf->exr_codec : 0);
@@ -1111,6 +1111,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 
 	if (IMB_exr_begin_write(exrhandle, filename, width, height, compress)) {
 		IMB_exr_write_channels(exrhandle);
+		success = true;
 	}
 	else {
 		/* TODO, get the error from openexr's exception */
