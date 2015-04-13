@@ -4549,12 +4549,12 @@ void flushTransGraphData(TransInfo *t)
 		
 		if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
 			td2d->h1[0] = td2d->ih1[0] + td->loc[0] - td->iloc[0];
-			td2d->h1[1] = td2d->ih1[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale - tdg->offset;
+			td2d->h1[1] = td2d->ih1[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
 		}
 		
 		if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
 			td2d->h2[0] = td2d->ih2[0] + td->loc[0] - td->iloc[0];
-			td2d->h2[1] = td2d->ih2[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale - tdg->offset;
+			td2d->h2[1] = td2d->ih2[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
 		}
 	}
 }

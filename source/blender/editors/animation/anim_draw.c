@@ -330,7 +330,7 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 		range = max_coord - min_coord;
 
 		if (range > FLT_EPSILON) {
-			factor = 1.0f / range;
+			factor = 2.0f / range;
 		}
 		offset = -min_coord - range / 2.0f;
 	}
