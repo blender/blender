@@ -810,6 +810,32 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		if (ni != node_index && i == 0)
 			pbvh_bmesh_vert_ownership_transfer(bvh, &bvh->nodes[ni], v_new);
 
+		/**
+		 * The 2 new faces created and assigned to ``f_new`` have their
+		 * verts & edges shuffled around.
+		 *
+		 * - faces wind anticlockwise in this example.
+		 * - original edge is (v1, v2)
+		 * - oroginal face is (v1, v2, v3)
+		 *
+		 * <pre>
+		 *         + v3(v_opp)
+		 *        /|\
+		 *       / | \
+		 *      /  |  \
+		 *   e4/   |   \e3
+		 *    /    |e5  \
+		 *   /     |     \
+		 *  /  e1  |  e2  \
+		 * +-------+-------+
+		 * v1      v4(v_new) v2
+		 *  (first) (second)
+		 *
+		 * - f_new (first):  v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)
+		 * - f_new (second): v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)
+		 * </pre>
+		 */
+
 		/* Create two new faces */
 		v_tri[0] = v1;
 		v_tri[1] = v_new;
