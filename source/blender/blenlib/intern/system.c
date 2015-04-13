@@ -127,7 +127,7 @@ void BLI_system_backtrace(FILE *fp)
 #undef MAXSYMBOL
 #undef SIZE
 #else
-	fprintf(fp, "Not supported on release builds\n");
+	fprintf(fp, "Crash backtrace not supported on release builds\n");
 #endif /* NDEBUG */
 #else /* _MSC_VER */
 	/* ------------------ */
