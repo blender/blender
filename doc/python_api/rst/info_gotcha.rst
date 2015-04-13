@@ -86,9 +86,15 @@ Consider the calculations that might go into working out the object's final tran
 To avoid expensive recalculations every time a property is modified, Blender defers making the actual calculations until they are needed.
 
 However, while the script runs you may want to access the updated values.
+In this case you need to call :class:`bpy.types.Scene.update` after modifying values, for example:
 
-This can be done by calling :class:`bpy.types.Scene.update` after modifying values which recalculates all data that is tagged to be updated.
+.. code-block:: python
 
+   bpy.context.object.location = 1, 2, 3
+   bpy.context.scene.update()
+
+
+Now all dependent data (child objects, modifiers, drivers... etc) has been recalculated and is available to the script.
 
 Can I redraw during the script?
 -------------------------------
