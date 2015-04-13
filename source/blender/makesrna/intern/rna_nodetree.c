@@ -1578,7 +1578,7 @@ static bNodeSocket *rna_Node_outputs_new(ID *id, bNode *node, ReportList *report
 	sock = nodeAddSocket(ntree, node, SOCK_OUT, type, identifier, name);
 	
 	if (sock == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to create socket");
+		BKE_report(reports, RPT_ERROR, "Unable to create socket");
 	}
 	else {
 		ntreeUpdateTree(G.main, ntree);

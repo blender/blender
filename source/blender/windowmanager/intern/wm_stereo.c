@@ -464,8 +464,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	/* pageflip requires a new window to be created with the proper OS flags */
 	if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
 		if (wm_stereo3d_quadbuffer_supported() == false) {
-			BKE_reportf(op->reports, RPT_ERROR,
-			            "Quadbuffer not supported by the system");
+			BKE_report(op->reports, RPT_ERROR, "Quad-buffer not supported by the system");
 			win->stereo3d_format->display_mode = display_mode;
 			return OPERATOR_CANCELLED;
 		}
@@ -474,8 +473,8 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 			win = wm->windows.last;
 		}
 		else {
-			BKE_reportf(op->reports, RPT_ERROR,
-			            "Fail to create a window compatible with time sequential (page-flip) display method");
+			BKE_report(op->reports, RPT_ERROR,
+			           "Fail to create a window compatible with time sequential (page-flip) display method");
 			win->stereo3d_format->display_mode = display_mode;
 			return OPERATOR_CANCELLED;
 		}
@@ -483,7 +482,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 
 	if (wm_stereo3d_is_fullscreen_required(win->stereo3d_format->display_mode)) {
 		if (!is_fullscreen) {
-			BKE_reportf(op->reports, RPT_INFO, "Stereo 3D Mode requires the window to be fullscreen");
+			BKE_report(op->reports, RPT_INFO, "Stereo 3D Mode requires the window to be fullscreen");
 		}
 	}
 

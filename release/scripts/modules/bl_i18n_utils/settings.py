@@ -324,6 +324,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "y",
     # Sub-strings.
     "available with",
+    "brown fox",
     "can't save image while rendering",
     "expected a timeline/animation area to be active",
     "expected a view3d region",
@@ -332,6 +333,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "image file not found",
     "image path can't be written to",
     "in memory to enable editing!",
+    "jumps over",
+    "the lazy dog",
     "unable to load movie clip",
     "unable to load text",
     "unable to open the file",
