@@ -617,7 +617,7 @@ typedef enum eAnimUnitConv_Flags {
 short ANIM_get_normalization_flags(bAnimContext *ac);
 
 /* Get unit conversion factor for given ID + F-Curve */
-float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short flag);
+float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short flag, float *r_offset);
 
 /* ------------- Utility macros ----------------------- */
 

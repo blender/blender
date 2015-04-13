@@ -3836,6 +3836,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
 typedef struct TransDataGraph {
 	float unit_scale;
+	float offset;
 } TransDataGraph;
 
 /* Helper function for createTransGraphEditData, which is responsible for associating
@@ -3844,7 +3845,7 @@ typedef struct TransDataGraph {
 static void bezt_to_transdata(TransData *td, TransData2D *td2d, TransDataGraph *tdg,
                               AnimData *adt, BezTriple *bezt,
                               int bi, bool selected, bool ishandle, bool intvals,
-                              float mtx[3][3], float smtx[3][3], float unit_scale)
+                              float mtx[3][3], float smtx[3][3], float unit_scale, float offset)
 {
 	float *loc = bezt->vec[bi];
 	const float *cent = bezt->vec[1];
@@ -3858,26 +3859,26 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, TransDataGraph *
 	
 	if (adt) {
 		td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], NLATIME_CONVERT_MAP);
-		td2d->loc[1] = loc[1] * unit_scale;
+		td2d->loc[1] = (loc[1] + offset) * unit_scale;
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
 		td->loc = td2d->loc;
 		td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], NLATIME_CONVERT_MAP);
-		td->center[1] = cent[1] * unit_scale;
+		td->center[1] = (cent[1] + offset) * unit_scale;
 		td->center[2] = 0.0f;
 		
 		copy_v3_v3(td->iloc, td->loc);
 	}
 	else {
 		td2d->loc[0] = loc[0];
-		td2d->loc[1] = loc[1] * unit_scale;
+		td2d->loc[1] = (loc[1] + offset) * unit_scale;
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
 		td->loc = td2d->loc;
 		copy_v3_v3(td->center, cent);
-		td->center[1] *= unit_scale;
+		td->center[1] = (td->center[1] + offset) * unit_scale;
 		copy_v3_v3(td->iloc, td->loc);
 	}
 
@@ -3917,6 +3918,7 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, TransDataGraph *
 	copy_m3_m3(td->smtx, smtx);
 
 	tdg->unit_scale = unit_scale;
+	tdg->offset = offset;
 }
 
 static bool graph_edit_is_translation_mode(TransInfo *t)
@@ -4104,7 +4106,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
 		bool intvals = (fcu->flag & FCURVE_INT_VALUES) != 0;
-		float unit_scale;
+		float unit_scale, offset;
 		float cfra;
 
 		/* F-Curve may not have any keyframes */
@@ -4119,7 +4121,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		else
 			cfra = (float)CFRA;
 
-		unit_scale = ANIM_unit_mapping_get_factor(ac.scene, ale->id, ale->key_data, anim_map_flag);
+		unit_scale = ANIM_unit_mapping_get_factor(ac.scene, ale->id, ale->key_data, anim_map_flag, &offset);
 
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -4135,11 +4137,11 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					bool is_sel = (sel2 || sel1 || sel3);
 					/* we always select all handles for proportional editing if central handle is selected */
 					initTransDataCurveHandles(td, bezt);
-					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, is_sel, true, intvals, mtx, smtx, unit_scale);
+					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, is_sel, true, intvals, mtx, smtx, unit_scale, offset);
 					initTransDataCurveHandles(td, bezt);
-					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, is_sel, false, intvals, mtx, smtx, unit_scale);
+					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, is_sel, false, intvals, mtx, smtx, unit_scale, offset);
 					initTransDataCurveHandles(td, bezt);
-					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, is_sel, true, intvals, mtx, smtx, unit_scale);
+					bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, is_sel, true, intvals, mtx, smtx, unit_scale, offset);
 				}
 				else {
 					/* only include handles if selected, irrespective of the interpolation modes.
@@ -4148,7 +4150,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					if (!is_translation_mode || !(sel2)) {
 						if (sel1) {
 							hdata = initTransDataCurveHandles(td, bezt);
-							bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, sel1, true, intvals, mtx, smtx, unit_scale);
+							bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 0, sel1, true, intvals, mtx, smtx, unit_scale, offset);
 						}
 						else {
 							/* h1 = 0; */ /* UNUSED */
@@ -4157,7 +4159,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						if (sel3) {
 							if (hdata == NULL)
 								hdata = initTransDataCurveHandles(td, bezt);
-							bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, sel3, true, intvals, mtx, smtx, unit_scale);
+							bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 2, sel3, true, intvals, mtx, smtx, unit_scale, offset);
 						}
 						else {
 							/* h2 = 0; */ /* UNUSED */
@@ -4178,7 +4180,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 								hdata = initTransDataCurveHandles(td, bezt);
 						}
 
-						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, sel2, false, intvals, mtx, smtx, unit_scale);
+						bezt_to_transdata(td++, td2d++, tdg++, adt, bezt, 1, sel2, false, intvals, mtx, smtx, unit_scale, offset);
 
 					}
 					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
@@ -4543,16 +4545,16 @@ void flushTransGraphData(TransInfo *t)
 		if (td->flag & TD_INTVALUES)
 			td2d->loc2d[1] = floorf(td2d->loc[1] + 0.5f);
 		else
-			td2d->loc2d[1] = td2d->loc[1] * inv_unit_scale;
+			td2d->loc2d[1] = td2d->loc[1] * inv_unit_scale - tdg->offset;
 		
 		if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
 			td2d->h1[0] = td2d->ih1[0] + td->loc[0] - td->iloc[0];
-			td2d->h1[1] = td2d->ih1[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
+			td2d->h1[1] = td2d->ih1[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale - tdg->offset;
 		}
 		
 		if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
 			td2d->h2[0] = td2d->ih2[0] + td->loc[0] - td->iloc[0];
-			td2d->h2[1] = td2d->ih2[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
+			td2d->h2[1] = td2d->ih2[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale - tdg->offset;
 		}
 	}
 }

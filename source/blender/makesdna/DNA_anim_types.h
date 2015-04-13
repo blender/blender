@@ -459,7 +459,7 @@ typedef struct FCurve {
 	int color_mode;			/* coloring method to use (eFCurve_Coloring) */
 	float color[3];			/* the last-color this curve took */
 
-	float prev_norm_factor, pad;
+	float prev_norm_factor, prev_offset;
 } FCurve;
 
 

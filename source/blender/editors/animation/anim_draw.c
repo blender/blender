@@ -267,19 +267,26 @@ short ANIM_get_normalization_flags(bAnimContext *ac)
 	return 0;
 }
 
-static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag)
+static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, float *r_offset)
 {
-	float factor = 1.0f;
+	float factor = 1.0f, offset = 0.0f;
 
 	if (flag & ANIM_UNITCONV_RESTORE) {
+		if (r_offset)
+			*r_offset = fcu->prev_offset;
+
 		return 1.0f / fcu->prev_norm_factor;
 	}
 
 	if (flag & ANIM_UNITCONV_NORMALIZE_FREEZE) {
+		if (r_offset)
+			*r_offset = fcu->prev_offset;
 		return fcu->prev_norm_factor;
 	}
 
 	if (G.moving & G_TRANSFORM_FCURVES) {
+		if (r_offset)
+			*r_offset = fcu->prev_offset;
 		return fcu->prev_norm_factor;
 	}
 
@@ -288,6 +295,8 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag)
 		BezTriple *bezt;
 		int i;
 		float max_coord = -FLT_MAX;
+		float min_coord = FLT_MAX;
+		float range;
 
 		if (fcu->totvert < 1) {
 			return 1.0f;
@@ -296,34 +305,54 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag)
 		if (PRVRANGEON) {
 			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 				if (IN_RANGE_INCL(bezt->vec[1][0], scene->r.psfra, scene->r.pefra)) {
-					max_coord = max_ff(max_coord, fabsf(bezt->vec[0][1]));
-					max_coord = max_ff(max_coord, fabsf(bezt->vec[1][1]));
-					max_coord = max_ff(max_coord, fabsf(bezt->vec[2][1]));
+					max_coord = max_ff(max_coord, bezt->vec[0][1]);
+					max_coord = max_ff(max_coord, bezt->vec[1][1]);
+					max_coord = max_ff(max_coord, bezt->vec[2][1]);
+
+					min_coord = min_ff(min_coord, bezt->vec[0][1]);
+					min_coord = min_ff(min_coord, bezt->vec[1][1]);
+					min_coord = min_ff(min_coord, bezt->vec[2][1]);
 				}
 			}
 		}
 		else {
 			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-				max_coord = max_ff(max_coord, fabsf(bezt->vec[0][1]));
-				max_coord = max_ff(max_coord, fabsf(bezt->vec[1][1]));
-				max_coord = max_ff(max_coord, fabsf(bezt->vec[2][1]));
+				max_coord = max_ff(max_coord, bezt->vec[0][1]);
+				max_coord = max_ff(max_coord, bezt->vec[1][1]);
+				max_coord = max_ff(max_coord, bezt->vec[2][1]);
+
+				min_coord = min_ff(min_coord, bezt->vec[0][1]);
+				min_coord = min_ff(min_coord, bezt->vec[1][1]);
+				min_coord = min_ff(min_coord, bezt->vec[2][1]);
 			}
 		}
 
-		if (max_coord > FLT_EPSILON) {
-			factor = 1.0f / max_coord;
+		range = max_coord - min_coord;
+
+		if (range > FLT_EPSILON) {
+			factor = 1.0f / range;
 		}
+		offset = -min_coord - range / 2.0f;
 	}
+
+	if (r_offset) {
+		*r_offset = offset;
+	}
+
 	fcu->prev_norm_factor = factor;
+	fcu->prev_offset = offset;
 	return factor;
 }
 
 /* Get unit conversion factor for given ID + F-Curve */
-float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag)
+float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag, float *r_offset)
 {
 	if (flag & ANIM_UNITCONV_NORMALIZE) {
-		return normalization_factor_get(scene, fcu, flag);
+		return normalization_factor_get(scene, fcu, flag, r_offset);
 	}
+
+	if (r_offset)
+		*r_offset = 0.0f;
 
 	/* sanity checks */
 	if (id && fcu && fcu->rna_path) {
