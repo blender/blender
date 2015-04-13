@@ -293,6 +293,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 			if (wm_scene_is_visible(wm, bfd->curscene) == false) {
 				curscene = bfd->curscene;
 				curscreen->scene = curscene;
+				BKE_screen_view3d_scene_sync(curscreen);
 			}
 		}
 	}
