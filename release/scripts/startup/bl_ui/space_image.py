@@ -1060,7 +1060,7 @@ class ImageScopesPanel:
         if sima.mode in {'PAINT'}:
             return False
         ob = context.active_object
-        if ob and ob.mode in {'TEXTURE_PAINT'}:
+        if ob and ob.mode in {'TEXTURE_PAINT', 'EDIT'}:
             return False
         return True
 
