@@ -1101,6 +1101,10 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 		dscene->bvh_nodes.reference((float4*)&pack.nodes[0], pack.nodes.size());
 		device->tex_alloc("__bvh_nodes", dscene->bvh_nodes);
 	}
+	if(pack.leaf_nodes.size()) {
+		dscene->bvh_leaf_nodes.reference((float4*)&pack.leaf_nodes[0], pack.leaf_nodes.size());
+		device->tex_alloc("__bvh_leaf_nodes", dscene->bvh_leaf_nodes);
+	}
 	if(pack.object_node.size()) {
 		dscene->object_node.reference((uint*)&pack.object_node[0], pack.object_node.size());
 		device->tex_alloc("__object_node", dscene->object_node);
@@ -1315,6 +1319,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 void MeshManager::device_free(Device *device, DeviceScene *dscene)
 {
 	device->tex_free(dscene->bvh_nodes);
+	device->tex_free(dscene->bvh_leaf_nodes);
 	device->tex_free(dscene->object_node);
 	device->tex_free(dscene->tri_woop);
 	device->tex_free(dscene->prim_type);

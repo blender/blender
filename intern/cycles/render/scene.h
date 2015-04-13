@@ -62,6 +62,7 @@ class DeviceScene {
 public:
 	/* BVH */
 	device_vector<float4> bvh_nodes;
+	device_vector<float4> bvh_leaf_nodes;
 	device_vector<uint> object_node;
 	device_vector<float4> tri_woop;
 	device_vector<uint> prim_type;

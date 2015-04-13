@@ -24,6 +24,7 @@
 
 /* bvh */
 KERNEL_TEX(float4, texture_float4, __bvh_nodes)
+KERNEL_TEX(float4, texture_float4, __bvh_leaf_nodes)
 KERNEL_TEX(float4, texture_float4, __tri_woop)
 KERNEL_TEX(uint, texture_uint, __prim_type)
 KERNEL_TEX(uint, texture_uint, __prim_visibility)

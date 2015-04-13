@@ -36,7 +36,9 @@ class Object;
 class Progress;
 
 #define BVH_NODE_SIZE	4
+#define BVH_NODE_LEAF_SIZE	1
 #define BVH_QNODE_SIZE	7
+#define BVH_QNODE_LEAF_SIZE	1
 #define BVH_ALIGN		4096
 #define TRI_NODE_SIZE	3
 
@@ -47,7 +49,9 @@ class Progress;
 struct PackedBVH {
 	/* BVH nodes storage, one node is 4x int4, and contains two bounding boxes,
 	 * and child, triangle or object indexes depending on the node type */
-	array<int4> nodes; 
+	array<int4> nodes;
+	/* BVH leaf nodes storage. */
+	array<int4> leaf_nodes;
 	/* object index to BVH node index mapping for instances */
 	array<int> object_node; 
 	/* precomputed triangle intersection data, one triangle is 4x float4 */
@@ -61,9 +65,6 @@ struct PackedBVH {
 	array<int> prim_index;
 	/* mapping from BVH primitive index, to the object id of that primitive. */
 	array<int> prim_object;
-	/* quick array to lookup if a node is a leaf, not used for traversal, only
-	 * for instance BVH merging  */
-	array<bool> is_leaf;
 
 	/* index of the root node. */
 	int root_index;
@@ -108,7 +109,7 @@ protected:
 	void pack_triangle(int idx, float4 woop[3]);
 
 	/* merge instance BVH's */
-	void pack_instances(size_t nodes_size);
+	void pack_instances(size_t nodes_size, size_t leaf_nodes_size);
 
 	/* for subclasses to implement */
 	virtual void pack_nodes(const BVHNode *root) = 0;

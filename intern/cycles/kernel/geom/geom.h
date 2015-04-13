@@ -22,7 +22,9 @@
 #define BVH_STACK_SIZE 192
 #define BVH_QSTACK_SIZE 384
 #define BVH_NODE_SIZE 4
+#define BVH_NODE_LEAF_SIZE 1
 #define BVH_QNODE_SIZE 7
+#define BVH_QNODE_LEAF_SIZE 1
 #define TRI_NODE_SIZE 3
 
 /* silly workaround for float extended precision that happens when compiling
