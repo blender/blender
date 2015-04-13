@@ -664,9 +664,9 @@ void BLI_ghash_reserve(GHash *gh, const unsigned int nentries_reserve)
 /**
  * \return size of the GHash.
  */
-int BLI_ghash_size(GHash *gh)
+unsigned int BLI_ghash_size(GHash *gh)
 {
-	return (int)gh->nentries;
+	return gh->nentries;
 }
 
 /**
@@ -1243,9 +1243,9 @@ GSet *BLI_gset_copy(GSet *gs, GHashKeyCopyFP keycopyfp)
 	return (GSet *)ghash_copy((GHash *)gs, keycopyfp, NULL);
 }
 
-int BLI_gset_size(GSet *gs)
+unsigned int BLI_gset_size(GSet *gs)
 {
-	return (int)((GHash *)gs)->nentries;
+	return ((GHash *)gs)->nentries;
 }
 
 /**
