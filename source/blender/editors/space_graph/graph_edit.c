@@ -883,13 +883,6 @@ static int graphkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	graphkeys_duplicate_exec(C, op);
-
-	return OPERATOR_FINISHED;
-}
- 
 void GRAPH_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -898,7 +891,6 @@ void GRAPH_OT_duplicate(wmOperatorType *ot)
 	ot->description = "Make a copy of all selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke = graphkeys_duplicate_invoke;
 	ot->exec = graphkeys_duplicate_exec;
 	ot->poll = graphop_editable_keyframes_poll;
 	

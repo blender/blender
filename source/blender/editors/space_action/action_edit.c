@@ -792,13 +792,6 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	return OPERATOR_FINISHED;
 }
-
-static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	actkeys_duplicate_exec(C, op);
-	
-	return OPERATOR_FINISHED;
-}
  
 void ACTION_OT_duplicate(wmOperatorType *ot)
 {
@@ -808,7 +801,6 @@ void ACTION_OT_duplicate(wmOperatorType *ot)
 	ot->description = "Make a copy of all selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke = actkeys_duplicate_invoke;
 	ot->exec = actkeys_duplicate_exec;
 	ot->poll = ED_operator_action_active;
 	
