@@ -65,6 +65,7 @@ typedef struct bNodeTreeExec {
 	int stacksize;
 	struct bNodeStack *stack;		/* socket data stack */
 	/* only used by material and texture trees to keep one stack for each thread */
+	int tot_thread;
 	ListBase *threadstack;			/* one instance of the stack for each thread */
 } bNodeTreeExec;
 

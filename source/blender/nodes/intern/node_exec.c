@@ -29,6 +29,7 @@
  *  \ingroup nodes
  */
 
+#include <stdlib.h>  /* for abort() */
 
 #include "DNA_node_types.h"
 
@@ -262,7 +263,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 {
 	ListBase *lb = &exec->threadstack[thread];
 	bNodeThreadStack *nts;
-	
+	BLI_assert(thread < exec->tot_thread);
 	for (nts = lb->first; nts; nts = nts->next) {
 		if (!nts->used) {
 			nts->used = true;
