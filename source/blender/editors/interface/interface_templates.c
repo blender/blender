@@ -1561,6 +1561,7 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 			row = uiLayoutRow(split, false);
 			uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
 			bt = block->buttons.last;
+			bt->a1 = 1.0f; /* gives a bit more precision for modifying position */
 			UI_but_func_set(bt, colorband_update_cb, bt, coba);
 
 			row = uiLayoutRow(layout, false);
@@ -1578,6 +1579,7 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 			row = uiLayoutRow(subsplit, false);
 			uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
 			bt = block->buttons.last;
+			bt->a1 = 1.0f; /* gives a bit more precision for modifying position */
 			UI_but_func_set(bt, colorband_update_cb, bt, coba);
 
 			row = uiLayoutRow(split, false);
