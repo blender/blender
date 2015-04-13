@@ -928,7 +928,7 @@ void psys_get_birth_coords(ParticleSimulationData *sim, ParticleData *pa, Partic
 			/* rotation phase */
 			phasefac = part->phasefac;
 			if (part->randphasefac != 0.0f)
-				phasefac += part->randphasefac * psys_frand(psys, p + 20) * 2.0f;
+				phasefac += part->randphasefac * psys_frand(psys, p + 20);
 			axis_angle_to_quat( q_phase,x_vec, phasefac*(float)M_PI);
 
 			/* combine base rotation & phase */

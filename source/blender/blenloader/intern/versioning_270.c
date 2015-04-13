@@ -799,12 +799,4 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
-
-	if (!MAIN_VERSION_ATLEAST(main, 274, 5)) {
-		/* Particle random phase range doubled. */
-		ParticleSettings *part;
-		for (part = main->particle.first; part; part = part->id.next) {
-			part->randphasefac *= 0.5f;
-		}
-	}
 }
