@@ -931,6 +931,8 @@ float BKE_camera_multiview_shift_x(RenderData *rd, Object *camera, const char *v
 	const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
 	Camera *data = camera->data;
 
+	BLI_assert(camera->type == OB_CAMERA);
+
 	if (!is_multiview) {
 		return data->shiftx;
 	}
@@ -944,7 +946,9 @@ float BKE_camera_multiview_shift_x(RenderData *rd, Object *camera, const char *v
 
 void BKE_camera_multiview_params(RenderData *rd, CameraParams *params, Object *camera, const char *viewname)
 {
-	params->shiftx = BKE_camera_multiview_shift_x(rd, camera, viewname);
+	if (camera->type == OB_CAMERA) {
+		params->shiftx = BKE_camera_multiview_shift_x(rd, camera, viewname);
+	}
 }
 
 void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_settings)
