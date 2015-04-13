@@ -425,7 +425,15 @@ static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 	/* only selected */
 	return actkeys_viewall(C, true);
 }
- 
+
+static int actkeys_view_frame_exec(bContext *C, wmOperator *op)
+{
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+	UI_view2d_center_frame(C, smooth_viewtx);
+
+	return OPERATOR_FINISHED;
+}
+
 void ACTION_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -452,6 +460,21 @@ void ACTION_OT_view_selected(wmOperatorType *ot)
 	ot->exec = actkeys_viewsel_exec;
 	ot->poll = ED_operator_action_active;
 	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void ACTION_OT_view_frame(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Frame";
+	ot->idname = "ACTION_OT_view_frame";
+	ot->description = "Reset viewable area to show range around current frame";
+
+	/* api callbacks */
+	ot->exec = actkeys_view_frame_exec;
+	ot->poll = ED_operator_action_active; /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier... */
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

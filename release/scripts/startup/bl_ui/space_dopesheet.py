@@ -203,6 +203,7 @@ class DOPESHEET_MT_view(Menu):
         layout.separator()
         layout.operator("action.view_all")
         layout.operator("action.view_selected")
+        layout.operator("action.view_frame")
 
         layout.separator()
         layout.operator("screen.area_dupli")

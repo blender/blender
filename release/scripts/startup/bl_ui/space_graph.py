@@ -125,6 +125,7 @@ class GRAPH_MT_view(Menu):
         layout.separator()
         layout.operator("graph.view_all")
         layout.operator("graph.view_selected")
+        layout.operator("graph.view_frame")
 
         layout.separator()
         layout.operator("screen.area_dupli")

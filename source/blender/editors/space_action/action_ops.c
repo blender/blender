@@ -91,7 +91,8 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_previewrange_set);
 	WM_operatortype_append(ACTION_OT_view_all);
 	WM_operatortype_append(ACTION_OT_view_selected);
-	
+	WM_operatortype_append(ACTION_OT_view_frame);
+
 	WM_operatortype_append(ACTION_OT_markers_make_local);
 }
 
@@ -228,6 +229,8 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_view_frame", PAD0, KM_PRESS, 0, 0);
+
 	
 	/* animation module */
 	/* channels list

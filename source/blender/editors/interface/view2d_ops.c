@@ -1462,6 +1462,21 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 	}
 }
 
+void UI_view2d_center_frame(struct bContext *C, int smooth_viewtx)
+{
+	ARegion *ar = CTX_wm_region(C);
+	Scene *scene = CTX_data_scene(C);
+	float w = BLI_rctf_size_x(&ar->v2d.cur);
+	rctf newrct;
+
+	newrct.xmax = scene->r.cfra + (w / 2);
+	newrct.xmin = scene->r.cfra - (w / 2);
+	newrct.ymax = ar->v2d.cur.ymax;
+	newrct.ymin = ar->v2d.cur.ymin;
+
+	UI_view2d_smooth_view(C, ar, &newrct, smooth_viewtx);
+}
+
 /* only meant for timer usage */
 static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
