@@ -4100,7 +4100,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 			float q_phase[4];
 			float phasefac = psys->part->phasefac;
 			if (psys->part->randphasefac != 0.0f)
-				phasefac += psys->part->randphasefac * psys_frand(psys, (pa - psys->particles) + 20);
+				phasefac += psys->part->randphasefac * psys_frand(psys, (pa - psys->particles) + 20) * 2.0f;
 			axis_angle_to_quat(q_phase, vec, phasefac * (float)M_PI);
 
 			mul_qt_v3(q_phase, side);
