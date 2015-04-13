@@ -1011,8 +1011,9 @@ static float (*get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *fr
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 			KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob), clmd->sim_parms->shapekey_rest);
 
-			if (kb->data)
+			if (kb && kb->data) {
 				return kb->data;
+			}
 		}
 
 		return NULL;

@@ -98,7 +98,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 	if (derivedData == NULL && clmd->sim_parms->shapekey_rest) {
 		KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob),
 		                                     clmd->sim_parms->shapekey_rest);
-		if (kb->data != NULL) {
+		if (kb && kb->data != NULL) {
 			float (*layerorco)[3];
 			if (!(layerorco = DM_get_vert_data_layer(dm, CD_CLOTH_ORCO))) {
 				DM_add_vert_layer(dm, CD_CLOTH_ORCO, CD_CALLOC, NULL);
