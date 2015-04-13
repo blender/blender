@@ -673,7 +673,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 
 	if (stroke->stroke_mode == BRUSH_STROKE_INVERT)
 	{
-		if (br->flag & (BRUSH_CURVE | BRUSH_LINE)) {
+		if (br->flag & (BRUSH_CURVE)) {
 			RNA_enum_set(op->ptr, "mode", BRUSH_STROKE_NORMAL);
 		}
 	}
@@ -1129,7 +1129,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_FINISHED;
 	}
 	else if (br->flag & BRUSH_LINE) {
-		if (event->ctrl)
+		if (event->alt)
 			stroke->constrain_line = true;
 		else 
 			stroke->constrain_line = false;
