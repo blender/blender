@@ -1349,6 +1349,10 @@ static void mesh_normals_loop_custom_set(
 					const int nidx = lidx;
 					float *nor = custom_loopnors[nidx];
 
+					if (is_zero_v3(nor)) {
+						nor = lnors[nidx];
+					}
+
 					if (!org_nor) {
 						org_nor = nor;
 					}
@@ -1407,6 +1411,10 @@ static void mesh_normals_loop_custom_set(
 					const int lidx = GET_INT_FROM_POINTER(loops->link);
 					const int nidx = use_vertices ? (int)mloops[lidx].v : lidx;
 					float *nor = custom_loopnors[nidx];
+
+					if (is_zero_v3(nor)) {
+						nor = lnors[nidx];
+					}
 
 					nbr_nors++;
 					add_v3_v3(avg_nor, nor);
