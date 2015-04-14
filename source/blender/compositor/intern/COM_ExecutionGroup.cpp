@@ -402,7 +402,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 		this->m_bTree->progress(this->m_bTree->prh, progress);
 
 		char buf[128];
-		BLI_snprintf(buf, sizeof(buf), "Compositing | Tile %d-%d",
+		BLI_snprintf(buf, sizeof(buf), "Compositing | Tile %u-%u",
 		             this->m_chunksFinished,
 		             this->m_numberOfChunks);
 		this->m_bTree->stats_draw(this->m_bTree->sdh, buf);

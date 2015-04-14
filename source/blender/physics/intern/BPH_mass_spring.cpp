@@ -140,7 +140,7 @@ static bool collision_response(ClothModifierData *clmd, CollisionModifierData *c
 	float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
 	float epsilon2 = BLI_bvhtree_getepsilon(collmd->bvhtree);
 
-	float margin_distance = collpair->distance - epsilon2;
+	float margin_distance = (float)collpair->distance - epsilon2;
 	float mag_v_rel;
 	
 	zero_v3(r_impulse);

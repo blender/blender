@@ -607,7 +607,7 @@ static void correctivesmooth_modifier_do(
 	/* If the number of verts has changed, the bind is invalid, so we do nothing */
 	if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
 		if (csmd->bind_coords_num != numVerts) {
-			modifier_setError(md, "Bind vertex count mismatch: %d to %d", csmd->bind_coords_num, numVerts);
+			modifier_setError(md, "Bind vertex count mismatch: %u to %u", csmd->bind_coords_num, numVerts);
 			goto error;
 		}
 	}
@@ -618,10 +618,10 @@ static void correctivesmooth_modifier_do(
 			goto error;
 		}
 		else {
-			int me_numVerts = (em) ? em->bm->totvert : ((Mesh *)ob->data)->totvert;
+			unsigned int me_numVerts = (unsigned int)((em) ? em->bm->totvert : ((Mesh *)ob->data)->totvert);
 
-			if ((unsigned int)me_numVerts != numVerts) {
-				modifier_setError(md, "Original vertex count mismatch: %d to %d", me_numVerts, numVerts);
+			if (me_numVerts != numVerts) {
+				modifier_setError(md, "Original vertex count mismatch: %u to %u", me_numVerts, numVerts);
 				goto error;
 			}
 		}

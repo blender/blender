@@ -776,8 +776,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		for (cam = main->camera.first; cam; cam = cam->id.next) {
-			cam->stereo.interocular_distance = 0.065;
-			cam->stereo.convergence_distance = 30.f * 0.065;
+			cam->stereo.interocular_distance = 0.065f;
+			cam->stereo.convergence_distance = 30.0f * 0.065f;
 		}
 
 		for (ima = main->image.first; ima; ima = ima->id.next) {

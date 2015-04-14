@@ -3758,7 +3758,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 						for (gpf_iter = gpl->frames.first; gpf_iter; gpf_iter = gpf->next) {
 							if (gpf_iter->flag & GP_FRAME_SELECT) {
 								if (FrameOnMouseSide(t->frame_side, (float)gpf_iter->framenum, cfra)) {
-									float val = fabs(gpf->framenum - gpf_iter->framenum);
+									float val = fabsf(gpf->framenum - gpf_iter->framenum);
 									if (val < min)
 										min = val;
 								}
@@ -3784,7 +3784,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 							for (masklay_iter = masklay->splines_shapes.first; masklay_iter; masklay_iter = masklay_iter->next) {
 								if (masklay_iter->flag & MASK_SHAPE_SELECT) {
 									if (FrameOnMouseSide(t->frame_side, (float)masklay_iter->frame, cfra)) {
-										float val = fabs(masklay_shape->frame - masklay_iter->frame);
+										float val = fabsf(masklay_shape->frame - masklay_iter->frame);
 										if (val < min)
 											min = val;
 									}

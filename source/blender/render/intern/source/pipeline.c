@@ -2248,9 +2248,9 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 				
 				for (x = 0; x < re->rectx; x++, rf += 4, col += 4) {
 					/* clamping to 1.0 is needed for correct AA */
-					CLAMP(col[0], 0.0, 1.0f);
-					CLAMP(col[1], 0.0, 1.0f);
-					CLAMP(col[2], 0.0, 1.0f);
+					CLAMP(col[0], 0.0f, 1.0f);
+					CLAMP(col[1], 0.0f, 1.0f);
+					CLAMP(col[2], 0.0f, 1.0f);
 					
 					add_filt_fmask_coord(filt, col, rf, re->rectx, re->recty, x, y);
 				}

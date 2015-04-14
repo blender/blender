@@ -1289,7 +1289,7 @@ static bool view3d_localview_init(
 				}
 
 				if (rv3d->persp == RV3D_ORTHO) {
-					if (size < 0.0001) {
+					if (size < 0.0001f) {
 						ok_dist = false;
 					}
 				}
