@@ -331,6 +331,19 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "F-Curve Name Filter", "F-Curve live filtering string");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
+	/* NLA Name Search Settings (Shared with FCurve setting, but with different labels) */
+	prop = RNA_def_property(srna, "use_filter_text", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_BY_FCU_NAME);
+	RNA_def_property_ui_text(prop, "Only Matching Channels",
+	                         "Only include channels with names containing search text");
+	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
+	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
+	prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "searchstr");
+	RNA_def_property_ui_text(prop, "Name Filter", "Live filtering string");
+	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
 	/* NLA Specific Settings */
 	prop = RNA_def_property(srna, "show_missing_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NLA_NOACT);

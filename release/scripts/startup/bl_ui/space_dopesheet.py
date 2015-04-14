@@ -51,6 +51,11 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
         row.prop(dopesheet, "show_only_matching_fcurves", text="")
         if dopesheet.show_only_matching_fcurves:
             row.prop(dopesheet, "filter_fcurve_name", text="")
+    else:
+        row = layout.row(align=True)
+        row.prop(dopesheet, "use_filter_text", text="")
+        if dopesheet.use_filter_text:
+            row.prop(dopesheet, "filter_text", text="")
 
     if not genericFiltersOnly:
         row = layout.row(align=True)
