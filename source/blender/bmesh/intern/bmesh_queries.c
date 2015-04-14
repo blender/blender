@@ -1637,85 +1637,59 @@ BMEdge *BM_edge_find_double(BMEdge *e)
  */
 bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 {
-	BMVert *v_search = varr[0];  /* we can search any of the verts in the array */
-	BMIter liter;
-	BMLoop *l_search;
+	if (varr[0]->e) {
+		BMEdge *e_iter, *e_first;
+		e_iter = e_first = varr[0]->e;
 
+		/* would normally use BM_LOOPS_OF_VERT, but this runs so often,
+		 * its faster to iterate on the data directly */
+		do {
+			if (e_iter->l) {
+				BMLoop *l_iter_radial, *l_first_radial;
+				l_iter_radial = l_first_radial = e_iter->l;
 
-#if 0
-	BM_ITER_ELEM (f, &viter, v_search, BM_FACES_OF_VERT) {
-		if (f->len == len) {
-			if (BM_verts_in_face(varr, len, f)) {
-				if (r_existface) {
-					*r_existface = f;
-				}
-				return true;
+				do {
+					if ((l_iter_radial->v == varr[0]) &&
+					    (l_iter_radial->f->len == len))
+					{
+						/* the fist 2 verts match, now check the remaining (len - 2) faces do too
+						 * winding isn't known, so check in both directions */
+						int i_walk = 2;
+
+						if (l_iter_radial->next->v == varr[1]) {
+							BMLoop *l_walk = l_iter_radial->next->next;
+							do {
+								if (l_walk->v != varr[i_walk]) {
+									break;
+								}
+							} while ((l_walk = l_walk->next), ++i_walk != len);
+						}
+						else if (l_iter_radial->prev->v == varr[1]) {
+							BMLoop *l_walk = l_iter_radial->prev->prev;
+							do {
+								if (l_walk->v != varr[i_walk]) {
+									break;
+								}
+							} while ((l_walk = l_walk->prev), ++i_walk != len);
+						}
+
+						if (i_walk == len) {
+							if (r_existface) {
+								*r_existface = l_iter_radial->f;
+							}
+							return true;
+						}
+					}
+				} while ((l_iter_radial = l_iter_radial->radial_next) != l_first_radial);
+
 			}
-		}
+		} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, varr[0])) != e_first);
 	}
 
 	if (r_existface) {
 		*r_existface = NULL;
 	}
 	return false;
-
-#else
-
-	/* faster to do the flagging once, and inline */
-	bool is_init = false;
-	bool is_found = false;
-	int i;
-
-
-	BM_ITER_ELEM (l_search, &liter, v_search, BM_LOOPS_OF_VERT) {
-		if (l_search->f->len == len) {
-			if (is_init == false) {
-				is_init = true;
-				for (i = 0; i < len; i++) {
-					BLI_assert(!BM_ELEM_API_FLAG_TEST(varr[i], _FLAG_OVERLAP));
-					BM_ELEM_API_FLAG_ENABLE(varr[i], _FLAG_OVERLAP);
-				}
-			}
-
-			is_found = true;
-
-			{
-				BMLoop *l_iter;
-
-				/* skip ourselves */
-				l_iter  = l_search->next;
-
-				do {
-					if (!BM_ELEM_API_FLAG_TEST(l_iter->v, _FLAG_OVERLAP)) {
-						is_found = false;
-						break;
-					}
-				} while ((l_iter = l_iter->next) != l_search);
-			}
-
-			if (is_found) {
-				if (r_existface) {
-					*r_existface = l_search->f;
-				}
-				break;
-			}
-		}
-	}
-
-	if (is_found == false) {
-		if (r_existface) {
-			*r_existface = NULL;
-		}
-	}
-
-	if (is_init == true) {
-		for (i = 0; i < len; i++) {
-			BM_ELEM_API_FLAG_DISABLE(varr[i], _FLAG_OVERLAP);
-		}
-	}
-
-	return is_found;
-#endif
 }
 
 
