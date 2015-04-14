@@ -358,7 +358,7 @@ static BMFace *pbvh_bmesh_face_create(
 	/* ensure we never add existing face */
 	BLI_assert(BM_face_exists(v_tri, 3, NULL) == false);
 
-	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
+	f = BM_face_create(bvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NO_DOUBLE);
 	f->head.hflag = f_example->head.hflag;
 
 	BLI_gset_insert(node->bm_faces, f);
