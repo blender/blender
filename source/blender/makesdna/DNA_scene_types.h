@@ -1272,7 +1272,8 @@ typedef struct ToolSettings {
 	char proportional_mask; /* proportional edit, mask editing */
 	char proportional_action; /* proportional edit, action editor */
 	char proportional_fcurve; /* proportional edit, graph editor */
-	char pad4[6];
+	char marker_lock; /* lock marker editing */
+	char pad4[5];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */

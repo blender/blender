@@ -499,6 +499,23 @@ static int ed_markers_poll_selected_markers(bContext *C)
 	return ED_markers_get_first_selected(markers) != NULL;
 }
 
+static int ed_markers_poll_selected_no_locked_markers(bContext *C)
+{
+	ListBase *markers = ED_context_get_markers(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+
+	if (ts->marker_lock)
+		return 0;
+
+	/* first things first: markers can only exist in timeline views */
+	if (ED_operator_animview_active(C) == 0)
+		return 0;
+
+	/* check if some marker is selected */
+	return ED_markers_get_first_selected(markers) != NULL;
+}
+
+
 /* special poll() which checks if there are any markers at all first */
 static int ed_markers_poll_markers_exist(bContext *C)
 {
@@ -941,7 +958,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->exec = ed_marker_move_exec;
 	ot->invoke = ed_marker_move_invoke_wrapper;
 	ot->modal = ed_marker_move_modal;
-	ot->poll = ed_markers_poll_selected_markers;
+	ot->poll = ed_markers_poll_selected_no_locked_markers;
 	ot->cancel = ed_marker_move_cancel;
 	
 	/* flags */
@@ -1034,7 +1051,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 	ot->exec = ed_marker_duplicate_exec;
 	ot->invoke = ed_marker_duplicate_invoke_wrapper;
 	ot->modal = ed_marker_move_modal;
-	ot->poll = ed_markers_poll_selected_markers;
+	ot->poll = ed_markers_poll_selected_no_locked_markers;
 	ot->cancel = ed_marker_move_cancel;
 	
 	/* flags */
@@ -1364,7 +1381,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = ed_marker_delete_invoke_wrapper;
 	ot->exec = ed_marker_delete_exec;
-	ot->poll = ed_markers_poll_selected_markers;
+	ot->poll = ed_markers_poll_selected_no_locked_markers;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1412,7 +1429,7 @@ static void MARKER_OT_rename(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = ed_marker_rename_invoke_wrapper;
 	ot->exec = ed_marker_rename_exec;
-	ot->poll = ed_markers_poll_selected_markers;
+	ot->poll = ed_markers_poll_selected_no_locked_markers;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1437,6 +1454,11 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 
 	if (scene_to == CTX_data_scene(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot re-link markers into the same scene");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (scene_to->toolsettings->marker_lock) {
+		BKE_report(op->reports, RPT_ERROR, "Target scene has locked markers");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1521,7 +1543,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = ed_marker_camera_bind_exec;
 	ot->invoke = ed_markers_opwrap_invoke;
-	ot->poll = ed_markers_poll_selected_markers;
+	ot->poll = ed_markers_poll_selected_no_locked_markers;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
