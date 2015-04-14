@@ -331,10 +331,14 @@ static BMVert *pbvh_bmesh_vert_create(
         const BMVert *example,
         const int cd_vert_mask_offset)
 {
-	BMVert *v = BM_vert_create(bvh->bm, co, example, BM_CREATE_NOP);
 	PBVHNode *node = &bvh->nodes[node_index];
+	BMVert *v;
 
 	BLI_assert((bvh->totnode == 1 || node_index) && node_index <= bvh->totnode);
+
+	/* avoid initializing customdata because its quite involved */
+	v = BM_vert_create(bvh->bm, co, example, BM_CREATE_SKIP_CD);
+	CustomData_bmesh_set_default(&bvh->bm->vdata, &v->head.data);
 
 	BLI_gset_insert(node->bm_unique_verts, v);
 	BM_ELEM_CD_SET_INT(v, bvh->cd_vert_node_offset, node_index);
@@ -1167,13 +1171,13 @@ static bool pbvh_bmesh_collapse_short_edges(
 			continue;
 		}
 
-		if (len_squared_v3v3(v1->co, v2->co) >= min_len_squared)
-			continue;
-
 		/* Check that the edge still exists */
 		if (!(e = BM_edge_exists(v1, v2))) {
 			continue;
 		}
+
+		if (len_squared_v3v3(v1->co, v2->co) >= min_len_squared)
+			continue;
 
 		/* Check that the edge's vertices are still in the PBVH. It's
 		 * possible that an edge collapse has deleted adjacent faces
