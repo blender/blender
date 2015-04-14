@@ -183,8 +183,8 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 		node = (HeapNode *)BLI_memarena_alloc(heap->arena, sizeof(*node));
 	}
 
-	node->value = value;
 	node->ptr = ptr;
+	node->value = value;
 	node->index = heap->size;
 
 	heap->tree[node->index] = node;

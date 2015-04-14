@@ -213,8 +213,8 @@ static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
 	BM_elem_index_set(l, -1); /* set_ok_invalid */
 #endif
 
-	l->head.hflag = 0;
 	l->head.htype = BM_LOOP;
+	l->head.hflag = 0;
 	l->head.api_flag = 0;
 
 	l->v = v;
