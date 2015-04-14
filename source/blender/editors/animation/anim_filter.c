@@ -1301,8 +1301,22 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 		 *	- active track should still get shown though (even though it has disabled flag set)
 		 */
 		// FIXME: the channels after should still get drawn, just 'differently', and after an active-action channel
-		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED) && !(nlt->flag & NLATRACK_ACTIVE))
-			continue;
+		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED)) {
+			/* NOTE: The tweaking track may not be active, if strips from different AnimData blocks
+			 *       entered tweakmode at the same time. Since this loop works both ways, we can't
+			 *       just stop on the first disabled track we encounter...
+			 */
+			if (nlt->flag & NLATRACK_ACTIVE) {
+				/* OK = "the" active track */
+			}
+			else if (BLI_findindex(&nlt->strips, adt->actstrip) != -1) {
+				/* OK = this is the one containing the active strip */
+			}
+			else {
+				/* Not OK - neither of the previous two were met, so it must be one of the "later" ones */
+				continue;
+			}
+		}
 		
 		/* only work with this channel and its subchannels if it is editable */
 		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_NLT(nlt)) {
