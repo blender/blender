@@ -97,8 +97,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 					socket = this->getOutputSocket(index);
 					bNodeSocket *bnodeSocket = socket->getbNodeSocket();
 					RenderPass *rpass = (RenderPass *)BLI_findstring(&rl->passes, bnodeSocket->identifier, offsetof(RenderPass, internal_name));
-
-					int view = (rpass ? rpass->view_id : 0);
+					int view = 0;
 
 					/* Passes in the file can differ from passes stored in sockets (#36755).
 					 * Look up the correct file pass using the socket identifier instead.
@@ -118,6 +117,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 							/* heuristic to match image name with scene names
 							 * check if the view name exists in the image */
 							view = BLI_findstringindex(&image->rr->views, context.getViewName(), offsetof(RenderView, name));
+							if (view == -1) view = 0;
 						}
 						else {
 							view = view_image - 1;
