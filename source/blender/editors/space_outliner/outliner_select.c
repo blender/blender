@@ -554,10 +554,12 @@ static eOLDrawState tree_element_active_bone(
 			Object *ob = OBACT;
 			if (ob) {
 				if (set != OL_SETSEL_EXTEND) {
-					bPoseChannel *pchannel;
 					/* single select forces all other bones to get unselected */
-					for (pchannel = ob->pose->chanbase.first; pchannel; pchannel = pchannel->next)
-						pchannel->bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+					Bone *bone;
+					for (bone = arm->bonebase.first; bone != NULL; bone = bone->next) {
+						bone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+						do_outliner_bone_select_recursive(arm, bone, false);
+					}
 				}
 			}
 			
