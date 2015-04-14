@@ -543,7 +543,7 @@ void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act,
 	 *       trying to get rid of stuff that's actually unwanted!
 	 */
 	if (act->id.us == 1) {
-		BKE_reportf(reports, RPT_ERROR,
+		BKE_reportf(reports, RPT_WARNING,
 		            "Action '%s' will not be saved, create Fake User or Stash in NLA Stack to retain",
 		            act->id.name + 2);
 	}
