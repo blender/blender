@@ -853,6 +853,8 @@ typedef struct AnimData {
 
 		/* nla-tracks */
 	ListBase    nla_tracks;
+		/* active NLA-track (only set/used during tweaking, so no need to worry about dangling pointers) */
+	NlaTrack	*act_track;
 		/* active NLA-strip (only set/used during tweaking, so no need to worry about dangling pointers) */
 	NlaStrip    *actstrip;
 

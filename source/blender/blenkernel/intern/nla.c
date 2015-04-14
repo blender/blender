@@ -535,9 +535,14 @@ float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
 	/* if the active-strip info has been stored already, access this, otherwise look this up
 	 * and store for (very probable) future usage
 	 */
+	if (adt->act_track == NULL) {
+		if (adt->actstrip)
+			adt->act_track = BKE_nlatrack_find_tweaked(adt);
+		else
+			adt->act_track = BKE_nlatrack_find_active(&adt->nla_tracks);
+	}
 	if (adt->actstrip == NULL) {
-		NlaTrack *nlt = BKE_nlatrack_find_active(&adt->nla_tracks);
-		adt->actstrip = BKE_nlastrip_find_active(nlt);
+		adt->actstrip = BKE_nlastrip_find_active(adt->act_track);
 	}
 	strip = adt->actstrip;
 	
@@ -931,7 +936,6 @@ NlaTrack *BKE_nlatrack_find_active(ListBase *tracks)
  * as just using the active track, since multiple tracks may have been
  * entered at the same time.
  */
-// TODO: Store this info in AnimData... Old files would still need to use this function for version patching though
 NlaTrack *BKE_nlatrack_find_tweaked(AnimData *adt)
 {
 	NlaTrack *nlt;
@@ -1796,6 +1800,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 	 */
 	adt->tmpact = adt->action;
 	adt->action = activeStrip->act;
+	adt->act_track = activeTrack;
 	adt->actstrip = activeStrip;
 	id_us_plus(&activeStrip->act->id);
 	adt->flag |= ADT_NLA_EDIT_ON;
@@ -1855,6 +1860,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 	if (adt->action) adt->action->id.us--;
 	adt->action = adt->tmpact;
 	adt->tmpact = NULL;
+	adt->act_track = NULL;
 	adt->actstrip = NULL;
 	adt->flag &= ~ADT_NLA_EDIT_ON;
 }
