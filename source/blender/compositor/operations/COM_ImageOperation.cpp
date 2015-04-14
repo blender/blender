@@ -70,8 +70,12 @@ ImBuf *BaseImageOperation::getImBuf()
 	ImBuf *ibuf;
 	ImageUser iuser = *this->m_imageUser;
 
+	if (this->m_image == NULL)
+		return NULL;
+
 	/* local changes to the original ImageUser */
-	iuser.multi_index = BKE_scene_multiview_view_id_get(this->m_rd, this->m_viewName);
+	if (BKE_image_is_multilayer(this->m_image) == false)
+		iuser.multi_index = BKE_scene_multiview_view_id_get(this->m_rd, this->m_viewName);
 
 	ibuf = BKE_image_acquire_ibuf(this->m_image, &iuser, NULL);
 	if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
