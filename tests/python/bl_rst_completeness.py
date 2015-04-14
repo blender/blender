@@ -62,7 +62,7 @@ def is_directive_pydata(filepath, directive):
         return True
     elif directive.type in {"module", "note", "warning", "code-block", "hlist", "seealso"}:
         return False
-    elif directive.type in {"literalinclude"}:  # TODO
+    elif directive.type == "literalinclude":  # TODO
         return False
     else:
         print(directive_to_str(filepath, directive), end=" ")

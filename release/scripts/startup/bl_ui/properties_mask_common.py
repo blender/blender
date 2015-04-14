@@ -36,7 +36,7 @@ class MASK_UL_layers(UIList):
             row.prop(mask, "hide", text="", emboss=False)
             row.prop(mask, "hide_select", text="", emboss=False)
             row.prop(mask, "hide_render", text="", emboss=False)
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
 

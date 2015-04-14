@@ -40,7 +40,7 @@ class PHYSICS_UL_dynapaint_surfaces(UIList):
                 row.prop(surf, "show_preview", text="", emboss=False,
                          icon='RESTRICT_VIEW_OFF' if surf.show_preview else 'RESTRICT_VIEW_ON')
             row.prop(surf, "is_active", text="")
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             row = layout.row(align=True)
             row.label(text="", icon_value=icon)

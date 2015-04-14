@@ -104,7 +104,7 @@ class FILEBROWSER_UL_dir(bpy.types.UIList):
             else:
                 row.prop(direntry, "name", text="", emboss=False, icon=icon)
 
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.prop(direntry, "path", text="")
 

@@ -1057,7 +1057,7 @@ class ImageScopesPanel:
         if not (sima and sima.image):
             return False
         # scopes are not updated in paint modes, hide
-        if sima.mode in {'PAINT'}:
+        if sima.mode == 'PAINT':
             return False
         ob = context.active_object
         if ob and ob.mode in {'TEXTURE_PAINT', 'EDIT'}:

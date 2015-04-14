@@ -118,7 +118,7 @@ class PARTICLE_UL_particle_systems(bpy.types.UIList):
                 layout.prop(md, "show_render", emboss=False, icon_only=True, icon='RESTRICT_RENDER_OFF' if md.show_render else 'RESTRICT_RENDER_ON')
                 layout.prop(md, "show_viewport", emboss=False, icon_only=True, icon='RESTRICT_VIEW_OFF' if md.show_viewport else 'RESTRICT_VIEW_ON')
 
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
 
@@ -1243,7 +1243,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         split = layout.split()
         split.active = part.kink != 'NO'
 
-        if part.kink in {'SPIRAL'}:
+        if part.kink == 'SPIRAL':
             col = split.column()
             sub = col.column(align=True)
             sub.prop(part, "kink_amplitude", text="Radius")

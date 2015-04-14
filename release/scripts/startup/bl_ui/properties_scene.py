@@ -35,7 +35,7 @@ class SCENE_UL_keying_set_paths(UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             # Do not make this one editable in uiList for now...
             layout.label(text=kspath.data_path, translate=False, icon_value=icon)
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
 

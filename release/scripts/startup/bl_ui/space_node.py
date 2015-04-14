@@ -441,7 +441,7 @@ class NODE_UL_interface_sockets(bpy.types.UIList):
             if socket.is_output:
                 row.template_node_socket(color)
 
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.template_node_socket(color)
 

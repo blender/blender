@@ -40,7 +40,7 @@ class RENDERLAYER_UL_renderlayers(UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(layer, "name", text="", icon_value=icon, emboss=False)
             layout.prop(layer, "use", text="", index=index)
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label("", icon_value=icon)
 
