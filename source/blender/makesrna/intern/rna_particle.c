@@ -2720,7 +2720,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "phase_factor_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randphasefac");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Random Phase", "Randomize rotation around the chosen orientation axis");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
