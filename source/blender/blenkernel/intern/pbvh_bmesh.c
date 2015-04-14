@@ -47,6 +47,9 @@
 #  include "BKE_global.h"
 #endif
 
+/* don't add edges into the queue multiple times */
+#define USE_EDGEQUEUE_TAG
+
 // #define USE_VERIFY
 
 #ifdef USE_VERIFY
@@ -594,6 +597,13 @@ typedef struct {
 	int cd_face_node_offset;
 } EdgeQueueContext;
 
+/* only tag'd edges are in the queue */
+#ifdef USE_EDGEQUEUE_TAG
+#  define EDGE_QUEUE_TEST(e)   (BM_elem_flag_test((CHECK_TYPE_INLINE(e, BMEdge *),    e), BM_ELEM_TAG))
+#  define EDGE_QUEUE_ENABLE(e)  BM_elem_flag_enable((CHECK_TYPE_INLINE(e, BMEdge *),  e), BM_ELEM_TAG)
+#  define EDGE_QUEUE_DISABLE(e) BM_elem_flag_disable((CHECK_TYPE_INLINE(e, BMEdge *), e), BM_ELEM_TAG)
+#endif
+
 static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
 	BMVert *v_tri[3];
@@ -635,15 +645,25 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
 		pair[0] = e->v1;
 		pair[1] = e->v2;
 		BLI_heap_insert(eq_ctx->q->heap, priority, pair);
+#ifdef USE_EDGEQUEUE_TAG
+		BLI_assert(EDGE_QUEUE_TEST(e) == false);
+		EDGE_QUEUE_ENABLE(e);
+#endif
 	}
 }
 
 static void long_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
                                      BMEdge *e)
 {
-	const float len_sq = BM_edge_calc_length_squared(e);
-	if (len_sq > eq_ctx->q->limit_len_squared)
-		edge_queue_insert(eq_ctx, e, -len_sq);
+#ifdef USE_EDGEQUEUE_TAG
+	if (EDGE_QUEUE_TEST(e) == false)
+#endif
+	{
+		const float len_sq = BM_edge_calc_length_squared(e);
+		if (len_sq > eq_ctx->q->limit_len_squared) {
+			edge_queue_insert(eq_ctx, e, -len_sq);
+		}
+	}
 }
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
@@ -681,12 +701,17 @@ static void long_edge_queue_edge_add_recursive(
 			BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
 			int i;
 			for (i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
-				len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
-				if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
-//					edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
-					long_edge_queue_edge_add_recursive(
-					        eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i],
-					        len_sq_other, limit_len);
+#ifdef USE_EDGEQUEUE_TAG
+				if (EDGE_QUEUE_TEST(l_adjacent[i]->e) == false)
+#endif
+				{
+					len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
+					if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
+//						edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
+						long_edge_queue_edge_add_recursive(
+						        eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i],
+						        len_sq_other, limit_len);
+					}
 				}
 			}
 		} while ((l_iter = l_iter->radial_next) != l_end);
@@ -700,9 +725,15 @@ static void long_edge_queue_edge_add_recursive(
 static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
                                       BMEdge *e)
 {
-	const float len_sq = BM_edge_calc_length_squared(e);
-	if (len_sq < eq_ctx->q->limit_len_squared)
-		edge_queue_insert(eq_ctx, e, len_sq);
+#ifdef USE_EDGEQUEUE_TAG
+	if (EDGE_QUEUE_TEST(e) == false)
+#endif
+	{
+		const float len_sq = BM_edge_calc_length_squared(e);
+		if (len_sq < eq_ctx->q->limit_len_squared) {
+			edge_queue_insert(eq_ctx, e, len_sq);
+		}
+	}
 }
 
 static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
@@ -715,16 +746,21 @@ static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
 		/* Check each edge of the face */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-			const float len_sq = BM_edge_calc_length_squared(l_iter->e);
-			if (len_sq > eq_ctx->q->limit_len_squared) {
-				long_edge_queue_edge_add_recursive(
-				        eq_ctx, l_iter->radial_next, l_iter,
-				        len_sq, eq_ctx->q->limit_len_squared);
-			}
-#else
-			long_edge_queue_edge_add(eq_ctx, l_iter->e);
+#ifdef USE_EDGEQUEUE_TAG
+			if (EDGE_QUEUE_TEST(l_iter->e) == false)
 #endif
+			{
+#ifdef USE_EDGEQUEUE_EVEN_SUBDIV
+				const float len_sq = BM_edge_calc_length_squared(l_iter->e);
+				if (len_sq > eq_ctx->q->limit_len_squared) {
+					long_edge_queue_edge_add_recursive(
+					        eq_ctx, l_iter->radial_next, l_iter,
+					        len_sq, eq_ctx->q->limit_len_squared);
+				}
+#else
+				long_edge_queue_edge_add(eq_ctx, l_iter->e);
+#endif
+			}
 		} while ((l_iter = l_iter->next) != l_first);
 	}
 }
@@ -959,6 +995,12 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 {
 	bool any_subdivided = false;
 
+#if defined(USE_EDGEQUEUE_TAG) && !defined(NDEBUG)
+#  define USE_EDGEQUEUE_TAG_VALIDATE
+	int heap_tot = 0, heap_overlap = 0;
+#endif
+
+
 	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
 		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
 		BMVert *v1 = pair[0], *v2 = pair[1];
@@ -966,6 +1008,21 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
+
+#ifdef USE_EDGEQUEUE_TAG_VALIDATE
+		heap_tot += 1;
+#endif
+
+		/* Check that the edge still exists */
+		if (!(e = BM_edge_exists(v1, v2))) {
+#ifdef USE_EDGEQUEUE_TAG_VALIDATE
+			heap_overlap += 1;
+#endif
+			continue;
+		}
+#ifdef USE_EDGEQUEUE_TAG
+		EDGE_QUEUE_DISABLE(e);
+#endif
 
 		/* At the moment edges never get shorter (subdiv will make new edges)
 		 * unlike collapse where edges can become longer. */
@@ -975,11 +1032,6 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 #else
 		BLI_assert(len_squared_v3v3(v1->co, v2->co) > eq_ctx->q->limit_len_squared);
 #endif
-
-		/* Check that the edge still exists */
-		if (!(e = BM_edge_exists(v1, v2))) {
-			continue;
-		}
 
 		/* Check that the edge's vertices are still in the PBVH. It's
 		 * possible that an edge collapse has deleted adjacent faces
@@ -996,6 +1048,11 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		pbvh_bmesh_split_edge(eq_ctx, bvh, e, edge_loops);
 	}
 
+#ifdef USE_EDGEQUEUE_TAG_VALIDATE
+	// printf("%d %d\n", heap_total, heap_overlap);
+	BLI_assert(heap_overlap == 0);
+#undef USE_EDGEQUEUE_TAG_VALIDATE
+#endif
 	return any_subdivided;
 }
 
@@ -1175,6 +1232,9 @@ static bool pbvh_bmesh_collapse_short_edges(
 		if (!(e = BM_edge_exists(v1, v2))) {
 			continue;
 		}
+#ifdef USE_EDGEQUEUE_TAG
+		EDGE_QUEUE_DISABLE(e);
+#endif
 
 		if (len_squared_v3v3(v1->co, v2->co) >= min_len_squared)
 			continue;
