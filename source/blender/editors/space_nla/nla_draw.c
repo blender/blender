@@ -186,7 +186,7 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
 	}
 	else {
 		/* Action Clip (default/normal type of strip) */
-		if ((strip->flag & NLASTRIP_FLAG_ACTIVE) && (adt && (adt->flag & ADT_NLA_EDIT_ON))) {
+		if (adt && (adt->flag & ADT_NLA_EDIT_ON) && (adt->actstrip == strip)) {
 			/* active strip should be drawn green when it is acting as the tweaking strip.
 			 * however, this case should be skipped for when not in EditMode...
 			 */
