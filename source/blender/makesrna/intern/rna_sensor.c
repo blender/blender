@@ -402,8 +402,8 @@ static void rna_def_mouse_sensor(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem prop_mouse_type_items[] = {
-		{SENS_COLLISION_PROPERTY, "PROPERTY", ICON_LOGIC, "Property", "Use a material for ray intersections"},
-		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a property for ray intersections"},
+		{SENS_COLLISION_PROPERTY, "PROPERTY", ICON_LOGIC, "Property", "Use a property for ray intersections"},
+		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a material for ray intersections"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -736,8 +736,8 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 	};
 	
 	static const EnumPropertyItem prop_ray_type_items[] = {
-		{SENS_COLLISION_PROPERTY, "PROPERTY", ICON_LOGIC, "Property", "Use a material for ray intersections"},
-		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a property for ray intersections"},
+		{SENS_COLLISION_PROPERTY, "PROPERTY", ICON_LOGIC, "Property", "Use a property for ray intersections"},
+		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a material for ray intersections"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
