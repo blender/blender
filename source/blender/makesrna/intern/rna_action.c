@@ -329,6 +329,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "filter_fcurve_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "searchstr");
 	RNA_def_property_ui_text(prop, "F-Curve Name Filter", "F-Curve live filtering string");
+	RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* NLA Name Search Settings (Shared with FCurve setting, but with different labels) */
@@ -342,6 +343,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "searchstr");
 	RNA_def_property_ui_text(prop, "Name Filter", "Live filtering string");
+	RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* NLA Specific Settings */
