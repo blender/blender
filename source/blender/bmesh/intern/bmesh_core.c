@@ -88,7 +88,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3],
 	else {
 		zero_v3(v->co);
 	}
-	zero_v3(v->no);
+	/* 'v->no' set below */
 
 	v->e = NULL;
 	/* --- done --- */
@@ -107,6 +107,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3],
 		if (v_example) {
 			int *keyi;
 
+			/* handles 'v->no' too */
 			BM_elem_attrs_copy(bm, bm, v_example, v);
 
 			/* exception: don't copy the original shapekey index */
@@ -117,6 +118,15 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3],
 		}
 		else {
 			CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
+			zero_v3(v->no);
+		}
+	}
+	else {
+		if (v_example) {
+			copy_v3_v3(v->no, v_example->no);
+		}
+		else {
+			zero_v3(v->no);
 		}
 	}
 
@@ -362,7 +372,8 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 	f->l_first = NULL;
 #endif
 	f->len = 0;
-	zero_v3(f->no);
+	/* caller must initialize */
+	// zero_v3(f->no);
 	f->mat_nr = 0;
 	/* --- done --- */
 
@@ -443,6 +454,15 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 		}
 		else {
 			CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
+			zero_v3(f->no);
+		}
+	}
+	else {
+		if (f_example) {
+			copy_v3_v3(f->no, f_example->no);
+		}
+		else {
+			zero_v3(f->no);
 		}
 	}
 
