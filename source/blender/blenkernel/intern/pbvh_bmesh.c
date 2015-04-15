@@ -116,7 +116,7 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index, const int cd_ver
 }
 
 /* Recursively split the node if it exceeds the leaf_limit */
-static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
+static void pbvh_bmesh_node_split(PBVH *bvh, const BBC *bbc_array, int node_index)
 {
 	GSet *empty, *other;
 	GSetIterator gs_iter;
@@ -138,7 +138,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 	BB_reset(&cb);
 	GSET_ITER (gs_iter, n->bm_faces) {
 		const BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
-		const BBC *bbc = BLI_ghash_lookup(prim_bbc, f);
+		const BBC *bbc = &bbc_array[BM_elem_index_get(f)];
 
 		BB_expand(&cb, bbc->bcentroid);
 	}
@@ -166,7 +166,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 	/* Partition the parent node's faces between the two children */
 	GSET_ITER (gs_iter, n->bm_faces) {
 		BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
-		const BBC *bbc = BLI_ghash_lookup(prim_bbc, f);
+		const BBC *bbc = &bbc_array[BM_elem_index_get(f)];
 
 		if (bbc->bcentroid[axis] < mid)
 			BLI_gset_insert(c1->bm_faces, f);
@@ -230,8 +230,8 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 	
 	/* Recurse */
 	c1 = c2 = NULL;
-	pbvh_bmesh_node_split(bvh, prim_bbc, children);
-	pbvh_bmesh_node_split(bvh, prim_bbc, children + 1);
+	pbvh_bmesh_node_split(bvh, bbc_array, children);
+	pbvh_bmesh_node_split(bvh, bbc_array, children + 1);
 
 	/* Array maybe reallocated, update current node pointer */
 	n = &bvh->nodes[node_index];
@@ -246,7 +246,6 @@ static void pbvh_bmesh_node_split(PBVH *bvh, GHash *prim_bbc, int node_index)
 /* Recursively split the node if it exceeds the leaf_limit */
 static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 {
-	GHash *prim_bbc;
 	GSet *bm_faces;
 	int bm_faces_size;
 	GSetIterator gs_iter;
@@ -261,8 +260,7 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 	}
 
 	/* For each BMFace, store the AABB and AABB centroid */
-	prim_bbc = BLI_ghash_ptr_new_ex("prim_bbc", bm_faces_size);
-	bbc_array = MEM_callocN(sizeof(BBC) * bm_faces_size, "BBC");
+	bbc_array = MEM_mallocN(sizeof(BBC) * bm_faces_size, "BBC");
 
 	GSET_ITER_INDEX (gs_iter, bm_faces, i) {
 		BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
@@ -277,12 +275,14 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 		} while ((l_iter = l_iter->next) != l_first);
 		BBC_update_centroid(bbc);
 
-		BLI_ghash_insert(prim_bbc, f, bbc);
+		/* so we can do direct lookups on 'bbc_array' */
+		BM_elem_index_set(f, i);  /* set_dirty! */
 	}
+	/* likely this is already dirty */
+	bvh->bm->elem_index_dirty |= BM_FACE;
 
-	pbvh_bmesh_node_split(bvh, prim_bbc, node_index);
+	pbvh_bmesh_node_split(bvh, bbc_array, node_index);
 
-	BLI_ghash_free(prim_bbc, NULL, NULL);
 	MEM_freeN(bbc_array);
 
 	return true;
