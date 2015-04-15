@@ -123,7 +123,7 @@ void wm_event_free(wmEvent *event)
 	}
 
 	if (event->tablet_data) {
-		MEM_freeN(event->tablet_data);
+		MEM_freeN((void *)event->tablet_data);
 	}
 
 	MEM_freeN(event);
@@ -3504,7 +3504,7 @@ float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2])
 		zero_v2(tilt);
 
 	if (event->tablet_data) {
-		wmTabletData *wmtab = event->tablet_data;
+		const wmTabletData *wmtab = event->tablet_data;
 
 		erasor = (wmtab->Active == EVT_TABLET_ERASER);
 		if (wmtab->Active != EVT_TABLET_NONE) {

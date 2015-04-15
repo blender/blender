@@ -1608,7 +1608,7 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event)
 	
 	/* handle pressure sensitivity (which is supplied by tablets) */
 	if (event->tablet_data) {
-		wmTabletData *wmtab = event->tablet_data;
+		const wmTabletData *wmtab = event->tablet_data;
 		
 		tablet = (wmtab->Active != EVT_TABLET_NONE);
 		p->pressure = wmtab->Pressure;

@@ -453,7 +453,7 @@ typedef struct wmEvent {
 	const char *keymap_idname;
 
 	/* tablet info, only use when the tablet is active */
-	struct wmTabletData *tablet_data;
+	const struct wmTabletData *tablet_data;
 
 	/* custom data */
 	short custom;		/* custom data type, stylus, 6dof, see wm_event_types.h */
