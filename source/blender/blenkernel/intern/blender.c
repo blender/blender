@@ -263,7 +263,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		/* but use new Scene pointer */
 		curscene = bfd->curscene;
 
-		track_undo_scene = (mode == LOAD_UNDO && curscreen && bfd->main->wm.first);
+		track_undo_scene = (mode == LOAD_UNDO && curscreen && curscene && bfd->main->wm.first);
 
 		if (curscene == NULL) curscene = bfd->main->scene.first;
 		/* empty file, we add a scene to make Blender work */
