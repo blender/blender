@@ -148,10 +148,15 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 PyObject *PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyTypeObject *base_type;
-	PyObjectPlus_Proxy *base = NULL;
 
-	if (!PyArg_ParseTuple(args, "O:Base PyObjectPlus", &base))
+	/* one or more args is needed */
+	if (!PyTuple_GET_SIZE(args)) {
+		PyErr_SetString(PyExc_TypeError,
+		                "Expected at least one argument");
 		return NULL;
+	}
+
+	PyObjectPlus_Proxy *base = (PyObjectPlus_Proxy *)PyTuple_GET_ITEM(args, 0);
 
 	/* the 'base' PyObject may be subclassed (multiple times even)
 	 * we need to find the first C++ defined class to check 'type'
