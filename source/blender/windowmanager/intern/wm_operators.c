@@ -2454,18 +2454,18 @@ static void wm_open_mainfile_ui(bContext *UNUSED(C), wmOperator *op)
 	struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
 	uiLayout *layout = op->layout;
 	uiLayout *col = op->layout;
-	const char *autoexec_text = NULL;
+	const char *autoexec_text;
 
 	uiItemR(layout, op->ptr, "load_ui", 0, NULL, ICON_NONE);
 
 	col = uiLayoutColumn(layout, false);
 	if (file_info->is_untrusted) {
-		autoexec_text = "Trusted Source [Untrusted Path]";
+		autoexec_text = IFACE_("Trusted Source [Untrusted Path]");
 		uiLayoutSetActive(col, false);
 		uiLayoutSetEnabled(col, false);
 	}
 	else {
-		autoexec_text = "Trusted Source";
+		autoexec_text = IFACE_("Trusted Source");
 	}
 
 	uiItemR(col, op->ptr, "use_scripts", 0, autoexec_text, ICON_NONE);
