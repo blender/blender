@@ -479,7 +479,7 @@ typedef enum eFCurve_Flags {
 		/* fcurve uses 'auto-handles', which stay horizontal... */
 		// DEPRECATED
 	FCURVE_AUTO_HANDLES	= (1<<5),
-	
+	FCURVE_MOD_OFF		= (1<<6),
 		/* skip evaluation, as RNA-path cannot be resolved (similar to muting, but cannot be set by user) */
 	FCURVE_DISABLED			= (1<<10),
 		/* curve can only have whole-number values (integer types) */

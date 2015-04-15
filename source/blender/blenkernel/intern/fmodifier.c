@@ -1398,7 +1398,10 @@ float evaluate_time_fmodifiers(FModifierStackStorage *storage, ListBase *modifie
 	/* sanity checks */
 	if (ELEM(NULL, modifiers, modifiers->last))
 		return evaltime;
-		
+
+	if (fcu->flag & FCURVE_MOD_OFF)
+		return evaltime;
+
 	/* Starting from the end of the stack, calculate the time effects of various stacked modifiers 
 	 * on the time the F-Curve should be evaluated at. 
 	 *
@@ -1454,6 +1457,9 @@ void evaluate_value_fmodifiers(FModifierStackStorage *storage, ListBase *modifie
 	
 	/* sanity checks */
 	if (ELEM(NULL, modifiers, modifiers->first))
+		return;
+
+	if (fcu->flag & FCURVE_MOD_OFF)
 		return;
 	
 	/* evaluate modifiers */

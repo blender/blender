@@ -471,6 +471,9 @@ typedef enum eActionGroup_Flag {
 	AGRP_NOTVISIBLE = (1 << 5),
 	/* for UI (Graph Editor), sub-channels are shown */
 	AGRP_EXPANDED_G = (1 << 6),
+
+	/* sub channel modifiers off */
+	AGRP_MODIFIERS_OFF = (1 << 7),
 	
 	AGRP_TEMP       = (1 << 30),
 	AGRP_MOVED      = (1 << 31)

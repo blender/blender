@@ -883,6 +883,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	FModifier *fcm;
 	uiLayout *col, *row;
 	uiBlock *block;
+	bool active;
 	
 	if (!graph_panel_context(C, &ale, &fcu))
 		return;
@@ -907,9 +908,11 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
 	}
 	
+	active = !(fcu->flag & FCURVE_MOD_OFF);
 	/* draw each modifier */
 	for (fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
 		col = uiLayoutColumn(pa->layout, true);
+		uiLayoutSetActive(col, active);
 		
 		ANIM_uiTemplate_fmodifier_draw(col, ale->id, &fcu->modifiers, fcm);
 	}
