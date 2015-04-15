@@ -297,7 +297,7 @@ typedef struct SoftBody {
 	char  namedVG_Softgoal[64]; /* MAX_VGROUP_NAME */
 	                            /* starting to fix old bug .. nastiness that VG are indexes
 	                             * rather find them by name tag to find it -> jow20090613 */
-  
+
 	short fuzzyness;      /* */
 	
 	/* springs */

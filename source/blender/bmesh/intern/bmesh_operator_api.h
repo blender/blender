@@ -483,9 +483,6 @@ bool  BMO_iter_map_value_bool(BMOIter *iter);
 	     ele; \
 	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter))
 
-/******************* Inlined Functions********************/
-typedef void (*opexec)(BMesh *bm, BMOperator *op);
-
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 
 int BMO_opcode_from_opname(const char *opname);

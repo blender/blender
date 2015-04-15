@@ -296,7 +296,7 @@ int BKE_sequence_effect_get_supports_mask(int seq_type);
  * Sequencer editing functions
  * **********************************************************************
  */
-   
+
 /* for transform but also could use elsewhere */
 int BKE_sequence_tx_get_final_left(struct Sequence *seq, bool metaclip);
 int BKE_sequence_tx_get_final_right(struct Sequence *seq, bool metaclip);

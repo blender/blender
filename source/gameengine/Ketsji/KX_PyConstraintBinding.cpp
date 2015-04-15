@@ -497,7 +497,6 @@ static PyObject *gPyCreateConstraint(PyObject *self,
 	/* FIXME - physicsid is a long being cast to a pointer, should at least use PyCapsule */
 	unsigned long long physicsid = 0, physicsid2 = 0;
 	int constrainttype = 0;
-	int len = PyTuple_Size(args);
 	int flag = 0;
 	float pivotX = 0.0f, pivotY = 0.0f, pivotZ = 0.0f, axisX = 0.0f, axisY = 0.0f, axisZ = 0.0f;
 
