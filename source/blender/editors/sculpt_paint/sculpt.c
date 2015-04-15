@@ -1699,6 +1699,16 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	float brush_alpha;
 	int n;
 
+	/* vars for handling projection when calculating the pinch vector.
+	 * Use surface normal for 'v_proj',s o the vertices are pinched towards a line instead of a single point.
+	 * Without this we get a 'flat' surface surrounding the pinch */
+	const float  *pinch_proj = ss->cache->sculpt_normal_symm;
+	const float   pinch_proj_len_sq = len_squared_v3(pinch_proj);
+	const bool do_pinch_proj = (pinch_proj_len_sq > FLT_EPSILON);
+	/* simplifies projection calc below */
+	const float pinch_proj_len_sq_inv_neg = do_pinch_proj ? -1.0f / pinch_proj_len_sq : 0.0f;
+
+
 	/* offset with as much as possible factored in already */
 	mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
 	mul_v3_v3(offset, ss->cache->scale);
@@ -1738,6 +1748,15 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				/* first we pinch */
 				sub_v3_v3v3(val1, test.location, vd.co);
 				mul_v3_fl(val1, fade * flippedbstrength);
+
+				if (do_pinch_proj) {
+#if 0
+					project_plane_v3_v3v3(val1, val1, v_proj);
+#else
+					/* inline the projection, cache `-1.0 / dot_v3_v3(v_proj, v_proj)` */
+					madd_v3_v3fl(val1, pinch_proj, dot_v3v3(val1, pinch_proj) * pinch_proj_len_sq_inv_neg);
+#endif
+				}
 
 				/* then we draw */
 				mul_v3_v3fl(val2, offset, fade);
