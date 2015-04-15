@@ -328,7 +328,7 @@ static int sculpt_stroke_dynamic_topology(const SculptSession *ss,
 	         * dynamic-topology */
 	        !(brush->flag & BRUSH_ANCHORED) &&
 	        !(brush->flag & BRUSH_DRAG_DOT) &&
-        
+
 	        (!ELEM(brush->sculpt_tool,
 	               /* These brushes, as currently coded, cannot
 	                * support dynamic topology */
@@ -1700,7 +1700,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	int n;
 
 	/* vars for handling projection when calculating the pinch vector.
-	 * Use surface normal for 'v_proj',s o the vertices are pinched towards a line instead of a single point.
+	 * Use surface normal for 'pinch_proj', so the vertices are pinched towards a line instead of a single point.
 	 * Without this we get a 'flat' surface surrounding the pinch */
 	const float  *pinch_proj = ss->cache->sculpt_normal_symm;
 	const float   pinch_proj_len_sq = len_squared_v3(pinch_proj);
