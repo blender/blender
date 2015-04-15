@@ -295,7 +295,7 @@ typedef enum BlurKernelType {
 	KERNEL_BOX
 } BlurKernelType;
 
-#define MAX_BRUSH_PIXEL_RADIUS 200
+#define MAX_BRUSH_PIXEL_RADIUS 500
 
 #endif
 
