@@ -1272,7 +1272,7 @@ typedef struct ToolSettings {
 	char proportional_mask; /* proportional edit, mask editing */
 	char proportional_action; /* proportional edit, action editor */
 	char proportional_fcurve; /* proportional edit, graph editor */
-	char marker_lock; /* lock marker editing */
+	char lock_markers; /* lock marker editing */
 	char pad4[5];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/

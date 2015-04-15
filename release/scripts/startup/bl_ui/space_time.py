@@ -256,7 +256,7 @@ def marker_menu_generic(layout):
 
     layout.separator()
     ts = bpy.context.tool_settings
-    layout.prop(ts, "marker_lock")
+    layout.prop(ts, "lock_markers")
 
 
 if __name__ == "__main__":  # only for live edit.

@@ -504,7 +504,7 @@ static int ed_markers_poll_selected_no_locked_markers(bContext *C)
 	ListBase *markers = ED_context_get_markers(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
-	if (ts->marker_lock)
+	if (ts->lock_markers)
 		return 0;
 
 	/* first things first: markers can only exist in timeline views */
@@ -1457,7 +1457,7 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (scene_to->toolsettings->marker_lock) {
+	if (scene_to->toolsettings->lock_markers) {
 		BKE_report(op->reports, RPT_ERROR, "Target scene has locked markers");
 		return OPERATOR_CANCELLED;
 	}
