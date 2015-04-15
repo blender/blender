@@ -121,6 +121,7 @@ typedef enum {
 } PBVHType;
 
 PBVHType BKE_pbvh_type(const PBVH *bvh);
+bool     BKE_pbvh_has_faces(const PBVH *bvh);
 
 /* Get the PBVH root's bounding box */
 void BKE_pbvh_bounding_box(const PBVH *bvh, float min[3], float max[3]);

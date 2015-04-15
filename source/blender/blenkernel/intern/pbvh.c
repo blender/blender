@@ -943,6 +943,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	int n;
 
 	if (bvh->type == PBVH_BMESH) {
+		BLI_assert(face_nors == NULL);
 		pbvh_bmesh_normals_update(nodes, totnode);
 		return;
 	}
@@ -1278,6 +1279,16 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***r_gridfaces, int *r
 PBVHType BKE_pbvh_type(const PBVH *bvh)
 {
 	return bvh->type;
+}
+
+bool BKE_pbvh_has_faces(const PBVH *bvh)
+{
+	if (bvh->type == PBVH_BMESH) {
+		return (bvh->bm->totface != 0);
+	}
+	else {
+		return (bvh->totprim != 0);
+	}
 }
 
 void BKE_pbvh_bounding_box(const PBVH *bvh, float min[3], float max[3])

@@ -566,13 +566,9 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, cons
 
 void BKE_sculptsession_free_deformMats(SculptSession *ss)
 {
-	if (ss->orig_cos) MEM_freeN(ss->orig_cos);
-	if (ss->deform_cos) MEM_freeN(ss->deform_cos);
-	if (ss->deform_imats) MEM_freeN(ss->deform_imats);
-
-	ss->orig_cos = NULL;
-	ss->deform_cos = NULL;
-	ss->deform_imats = NULL;
+	MEM_SAFE_FREE(ss->orig_cos);
+	MEM_SAFE_FREE(ss->deform_cos);
+	MEM_SAFE_FREE(ss->deform_imats);
 }
 
 /* Write out the sculpt dynamic-topology BMesh to the Mesh */
@@ -772,7 +768,12 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 	}
 
 	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
-	BKE_mesh_tessface_ensure(me);
+	if (ss->bm) {
+		BKE_mesh_tessface_clear(me);
+	}
+	else {
+		BKE_mesh_tessface_ensure(me);
+	}
 
 	if (!mmd) ss->kb = BKE_keyblock_from_object(ob);
 	else ss->kb = NULL;
