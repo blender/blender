@@ -787,12 +787,12 @@ PyDoc_STRVAR(bpy_bmlayeritem_type_doc,
 );
 
 
-PyTypeObject BPy_BMLayerAccessVert_Type     = {{{0}}}; /* bm.verts.layers */
-PyTypeObject BPy_BMLayerAccessEdge_Type     = {{{0}}}; /* bm.edges.layers */
-PyTypeObject BPy_BMLayerAccessFace_Type     = {{{0}}}; /* bm.faces.layers */
-PyTypeObject BPy_BMLayerAccessLoop_Type     = {{{0}}}; /* bm.loops.layers */
-PyTypeObject BPy_BMLayerCollection_Type     = {{{0}}}; /* bm.loops.layers.uv */
-PyTypeObject BPy_BMLayerItem_Type           = {{{0}}}; /* bm.loops.layers.uv["UVMap"] */
+PyTypeObject BPy_BMLayerAccessVert_Type; /* bm.verts.layers */
+PyTypeObject BPy_BMLayerAccessEdge_Type; /* bm.edges.layers */
+PyTypeObject BPy_BMLayerAccessFace_Type; /* bm.faces.layers */
+PyTypeObject BPy_BMLayerAccessLoop_Type; /* bm.loops.layers */
+PyTypeObject BPy_BMLayerCollection_Type; /* bm.loops.layers.uv */
+PyTypeObject BPy_BMLayerItem_Type;       /* bm.loops.layers.uv["UVMap"] */
 
 
 PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, const char htype)

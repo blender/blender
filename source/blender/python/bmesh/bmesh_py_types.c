@@ -3251,17 +3251,17 @@ static PyObject *bpy_bmloop_repr(BPy_BMLoop *self)
 /* Types
  * ===== */
 
-PyTypeObject BPy_BMesh_Type     = {{{0}}};
-PyTypeObject BPy_BMVert_Type    = {{{0}}};
-PyTypeObject BPy_BMEdge_Type    = {{{0}}};
-PyTypeObject BPy_BMFace_Type    = {{{0}}};
-PyTypeObject BPy_BMLoop_Type    = {{{0}}};
-PyTypeObject BPy_BMElemSeq_Type = {{{0}}};
-PyTypeObject BPy_BMVertSeq_Type = {{{0}}};
-PyTypeObject BPy_BMEdgeSeq_Type = {{{0}}};
-PyTypeObject BPy_BMFaceSeq_Type = {{{0}}};
-PyTypeObject BPy_BMLoopSeq_Type = {{{0}}};
-PyTypeObject BPy_BMIter_Type    = {{{0}}};
+PyTypeObject BPy_BMesh_Type;
+PyTypeObject BPy_BMVert_Type;
+PyTypeObject BPy_BMEdge_Type;
+PyTypeObject BPy_BMFace_Type;
+PyTypeObject BPy_BMLoop_Type;
+PyTypeObject BPy_BMElemSeq_Type;
+PyTypeObject BPy_BMVertSeq_Type;
+PyTypeObject BPy_BMEdgeSeq_Type;
+PyTypeObject BPy_BMFaceSeq_Type;
+PyTypeObject BPy_BMLoopSeq_Type;
+PyTypeObject BPy_BMIter_Type;
 
 
 

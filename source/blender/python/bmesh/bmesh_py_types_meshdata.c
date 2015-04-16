@@ -99,7 +99,7 @@ static PyGetSetDef bpy_bmtexpoly_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static PyTypeObject BPy_BMTexPoly_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+static PyTypeObject BPy_BMTexPoly_Type; /* bm.loops.layers.uv.active */
 
 static void bm_init_types_bmtexpoly(void)
 {
@@ -212,7 +212,7 @@ static PyGetSetDef bpy_bmloopuv_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-PyTypeObject BPy_BMLoopUV_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+PyTypeObject BPy_BMLoopUV_Type; /* bm.loops.layers.uv.active */
 
 static void bm_init_types_bmloopuv(void)
 {
@@ -321,7 +321,7 @@ static PyGetSetDef bpy_bmvertskin_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static PyTypeObject BPy_BMVertSkin_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+static PyTypeObject BPy_BMVertSkin_Type; /* bm.loops.layers.uv.active */
 
 static void bm_init_types_bmvertskin(void)
 {
@@ -750,7 +750,7 @@ static struct PyMethodDef bpy_bmdeformvert_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-PyTypeObject BPy_BMDeformVert_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+PyTypeObject BPy_BMDeformVert_Type; /* bm.loops.layers.uv.active */
 
 static void bm_init_types_bmdvert(void)
 {

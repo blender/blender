@@ -342,8 +342,8 @@ static PyObject *bpy_bmeditseliter_next(BPy_BMEditSelIter *self)
 	}
 }
 
-PyTypeObject BPy_BMEditSelSeq_Type  = {{{0}}};
-PyTypeObject BPy_BMEditSelIter_Type = {{{0}}};
+PyTypeObject BPy_BMEditSelSeq_Type;
+PyTypeObject BPy_BMEditSelIter_Type;
 
 
 PyObject *BPy_BMEditSel_CreatePyObject(BMesh *bm)

@@ -836,7 +836,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
 
 static void dealloc_obj_dealloc(PyObject *self);
 
-static PyTypeObject dealloc_obj_Type = {{{0}}};
+static PyTypeObject dealloc_obj_Type;
 
 /* use our own dealloc so we can free a property if we use one */
 static void dealloc_obj_dealloc(PyObject *self)
