@@ -68,6 +68,9 @@ RNG *BLI_rng_new(unsigned int seed)
 	return rng;
 }
 
+/**
+ * A version of #BLI_rng_new that hashes the seed.
+ */
 RNG *BLI_rng_new_srandom(unsigned int seed)
 {
 	RNG *rng = MEM_mallocN(sizeof(*rng), "rng");
@@ -87,6 +90,9 @@ void BLI_rng_seed(RNG *rng, unsigned int seed)
 	rng->X = (((uint64_t) seed) << 16) | LOWSEED;
 }
 
+/**
+ * Use a hash table to create better seed.
+ */
 void BLI_rng_srandom(RNG *rng, unsigned int seed)
 {
 	BLI_rng_seed(rng, seed + hash[seed & 255]);
@@ -113,11 +119,17 @@ unsigned int BLI_rng_get_uint(RNG *rng)
 	return (unsigned int) (rng->X >> 17);
 }
 
+/**
+ * \return Random value (0..1), but never 1.0.
+ */
 double BLI_rng_get_double(RNG *rng)
 {
 	return (double) BLI_rng_get_int(rng) / 0x80000000;
 }
 
+/**
+ * \return Random value (0..1), but never 1.0.
+ */
 float BLI_rng_get_float(RNG *rng)
 {
 	return (float) BLI_rng_get_int(rng) / 0x80000000;
@@ -172,7 +184,7 @@ void BLI_rng_get_tri_sample_float_v2(
 
 void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot)
 {
-	const size_t elem_size = (unsigned int)elem_size_i;
+	const size_t elem_size = (size_t)elem_size_i;
 	unsigned int i = elem_tot;
 	void *temp;
 
@@ -196,6 +208,11 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsig
 	free(temp);
 }
 
+/**
+ * Simulate getting \a n random values.
+ *
+ * \note Useful when threaded code needs consistent values, independent of task division.
+ */
 void BLI_rng_skip(RNG *rng, int n)
 {
 	while (n--) {
@@ -208,7 +225,6 @@ void BLI_rng_skip(RNG *rng, int n)
 /* initialize with some non-zero seed */
 static RNG theBLI_rng = {611330372042337130};
 
-/* using hash table to create better seed */
 void BLI_srandom(unsigned int seed)
 {
 	BLI_rng_srandom(&theBLI_rng, seed);
