@@ -7501,7 +7501,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool is_picking = (G.f & G_PICKSEL) != 0;
 	const bool has_particles = (ob->particlesystem.first != NULL);
-	bool particle_skip_object = false;  /* Draw particles but not their emitter object. */
+	bool skip_object = false;  /* Draw particles but not their emitter object. */
+	SmokeModifierData *smd = NULL;
 
 	if (ob != scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW)
@@ -7525,16 +7526,36 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (ob->mode == OB_MODE_OBJECT) {
 			ParticleSystem *psys;
 
-			particle_skip_object = render_override;
+			skip_object = render_override;
 			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 				/* Once we have found a psys which renders its emitter object, we are done. */
 				if (psys->part->draw & PART_DRAW_EMITTER) {
-					particle_skip_object = false;
+					skip_object = false;
 					break;
 				}
 			}
 		}
 	}
+
+	if ((md = modifiers_findByType(ob, eModifierType_Smoke)) && (modifier_isEnabled(scene, md, eModifierMode_Realtime))) {
+		smd = (SmokeModifierData *)md;
+
+		if (smd->domain) {
+			if (!v3d->transp && (dflag & DRAW_PICKING) == 0) {
+				if (!v3d->xray && !(ob->dtx & OB_DRAWXRAY)) {
+					/* object has already been drawn so skip drawing it */
+					ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
+					return;
+				}
+				else if (v3d->xray) {
+					/* object has already been drawn so skip drawing it */
+					ED_view3d_after_add(&v3d->afterdraw_xraytransp, base, dflag);
+					return;
+				}
+			}
+		}
+	}
+
 
 	/* xray delay? */
 	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0 && (v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
@@ -7639,7 +7660,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 	}
 
-	if (!particle_skip_object) {
+	if (!skip_object) {
 		/* draw outline for selected objects, mesh does itself */
 		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
 			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
@@ -7858,9 +7879,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* draw code for smoke */
-	if ((md = modifiers_findByType(ob, eModifierType_Smoke)) && (modifier_isEnabled(scene, md, eModifierMode_Realtime))) {
-		SmokeModifierData *smd = (SmokeModifierData *)md;
-
+	if (smd) {
 #if 0
 		/* draw collision objects */
 		if ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll) {
@@ -7920,7 +7939,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 			/* don't show smoke before simulation starts, this could be made an option in the future */
 			if (smd->domain->fluid && CFRA >= smd->domain->point_cache[0]->startframe) {
-
 				/* get view vector */
 				copy_v3_v3(viewnormal, rv3d->viewinv[2]);
 				invert_m4_m4(ob->imat, ob->obmat);
