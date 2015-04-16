@@ -1225,7 +1225,9 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 		/* set action */
 		if (adt) {
 			/* fix id-count of action we're replacing */
-			id_us_min(&adt->action->id);
+			if (adt->action) {
+				id_us_min(&adt->action->id);
+			}
 			
 			/* assign new action, and adjust the usercounts accordingly */
 			adt->action = saction->action;
