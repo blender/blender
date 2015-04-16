@@ -1160,18 +1160,6 @@ static void pbvh_bmesh_collapse_edge(
 		v_tri[1] = l_iter->v; e_tri[1] = l_iter->e; l_iter = l_iter->next;
 		v_tri[2] = l_iter->v; e_tri[2] = l_iter->e;
 
-		/* Check if any of the face's vertices are now unused, if so
-		 * remove them from the PBVH */
-		for (j = 0; j < 3; j++) {
-			if (v_tri[j] != v_del && BM_vert_face_count_is_equal(v_tri[j], 1)) {
-				BLI_gset_insert(deleted_verts, v_tri[j]);
-				pbvh_bmesh_vert_remove(bvh, v_tri[j]);
-			}
-			else {
-				v_tri[j] = NULL;
-			}
-		}
-
 		/* Remove the face */
 		pbvh_bmesh_face_remove(bvh, f_del);
 		BM_face_kill(bvh->bm, f_del);
@@ -1183,9 +1171,13 @@ static void pbvh_bmesh_collapse_edge(
 				BM_edge_kill(bvh->bm, e_tri[j]);
 		}
 
-		/* Delete unused vertices */
+		/* Check if any of the face's vertices are now unused, if so
+		 * remove them from the PBVH */
 		for (j = 0; j < 3; j++) {
-			if (v_tri[j]) {
+			if ((v_tri[j] != v_del) && (v_tri[j]->e == NULL)) {
+				BLI_gset_insert(deleted_verts, v_tri[j]);
+				pbvh_bmesh_vert_remove(bvh, v_tri[j]);
+
 				BM_log_vert_removed(bvh->bm_log, v_tri[j], eq_ctx->cd_vert_mask_offset);
 				BM_vert_kill(bvh->bm, v_tri[j]);
 			}
