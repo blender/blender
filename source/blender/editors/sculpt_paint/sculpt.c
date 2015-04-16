@@ -705,10 +705,10 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
 /* Return modified brush strength. Includes the direction of the brush, positive
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor. */
-static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather, UnifiedPaintSettings *ups)
+static float brush_strength(const Sculpt *sd, const StrokeCache *cache, const float feather, const UnifiedPaintSettings *ups)
 {
 	const Scene *scene = cache->vc->scene;
-	Brush *brush = BKE_paint_brush(&sd->paint);
+	const Brush *brush = BKE_paint_brush((Paint *)&sd->paint);
 
 	/* Primary strength input; square it to make lower values more sensitive */
 	const float root_alpha = BKE_brush_alpha_get(scene, brush);
@@ -2450,20 +2450,24 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 }
 
 /* Projects a point onto a plane along the plane's normal */
-static void point_plane_project(float intr[3], float co[3], float plane_normal[3], float plane_center[3])
+static void point_plane_project(
+        float intr[3],
+        const float co[3], const float plane_normal[3], const float plane_center[3])
 {
 	sub_v3_v3v3(intr, co, plane_center);
 	mul_v3_v3fl(intr, plane_normal, dot_v3v3(plane_normal, intr));
 	sub_v3_v3v3(intr, co, intr);
 }
 
-static int plane_trim(StrokeCache *cache, Brush *brush, float val[3])
+static int plane_trim(const StrokeCache *cache, const Brush *brush, const float val[3])
 {
 	return (!(brush->flag & BRUSH_PLANE_TRIM) ||
 	        ((dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared)));
 }
 
-static int plane_point_side_flip(float co[3], float plane_normal[3], float plane_center[3], int flip)
+static bool plane_point_side_flip(
+        const float co[3], const float plane_normal[3], const float plane_center[3],
+        const bool flip)
 {
 	float delta[3];
 	float d;
@@ -2476,7 +2480,7 @@ static int plane_point_side_flip(float co[3], float plane_normal[3], float plane
 	return d <= 0.0f;
 }
 
-static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3])
+static int plane_point_side(const float co[3], const float plane_normal[3], const float plane_center[3])
 {
 	float delta[3];
 
@@ -2577,7 +2581,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 	float temp[3];
 
-	int flip;
+	bool flip;
 
 	calc_sculpt_plane(sd, ob, nodes, totnode, an, fc);
 
@@ -2655,7 +2659,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 	float scale[4][4];
 	float tmat[4][4];
 
-	int flip;
+	bool flip;
 
 	calc_sculpt_plane(sd, ob, nodes, totnode, sn, fc);
 
