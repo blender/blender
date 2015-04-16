@@ -845,7 +845,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache is outdated", "");
 
-	prop = RNA_def_property(srna, "frames_skipped", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "is_frame_skip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_FRAMES_SKIPPED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 

@@ -903,7 +903,7 @@ static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 	sub = uiLayoutRow(row, false);
 	uiLayoutSetActive(sub, (RNA_boolean_get(ptr, "use_pulse_true_level") ||
 	                        RNA_boolean_get(ptr, "use_pulse_false_level")));
-	uiItemR(sub, ptr, "skipped_ticks", 0, IFACE_("Skip"), ICON_NONE);
+	uiItemR(sub, ptr, "tick_skip", 0, IFACE_("Skip"), ICON_NONE);
 	
 	row = uiLayoutRow(split, true);
 	uiItemR(row, ptr, "use_level", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);

@@ -325,7 +325,7 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pulse False Level", "Activate FALSE level triggering (pulse mode)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
-	prop = RNA_def_property(srna, "skipped_ticks", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "tick_skip", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "freq");
 	RNA_def_property_ui_text(prop, "Skip",
 	                         "Number of logic ticks skipped between 2 active pulses "
