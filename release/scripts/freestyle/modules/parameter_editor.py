@@ -960,11 +960,11 @@ def process(layer_name, lineset_name):
         if lineset.select_external_contour:
             upred = ExternalContourUP1D()
             edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_external_contour else upred)
-        if lineset.edge_type_combination == 'OR':
-            upred = OrUP1D(*edge_type_criteria)
-        else:
-            upred = AndUP1D(*edge_type_criteria)
-        if upred is not None:
+        if edge_type_criteria:
+            if lineset.edge_type_combination == 'OR':
+                upred = OrUP1D(*edge_type_criteria)
+            else:
+                upred = AndUP1D(*edge_type_criteria)
             if lineset.edge_type_negation == 'EXCLUSIVE':
                 upred = NotUP1D(upred)
             selection_criteria.append(upred)
@@ -989,8 +989,9 @@ def process(layer_name, lineset_name):
         upred = WithinImageBoundaryUP1D(*ContextFunctions.get_border())
         selection_criteria.append(upred)
     # select feature edges
-    upred = AndUP1D(*selection_criteria)
-    if upred is None:
+    if selection_criteria:
+        upred = AndUP1D(*selection_criteria)
+    else:
         upred = TrueUP1D()
     Operators.select(upred)
     # join feature edges to form chains
