@@ -1197,6 +1197,8 @@ static void pbvh_bmesh_collapse_edge(
 	if (!BLI_gset_haskey(deleted_verts, v_conn)) {
 		BM_log_vert_before_modified(bvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset);
 		mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
+		add_v3_v3(v_conn->no, v_del->no);
+		normalize_v3(v_conn->no);
 	}
 
 	/* Delete v_del */
