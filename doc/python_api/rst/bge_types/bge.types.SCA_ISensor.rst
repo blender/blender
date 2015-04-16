@@ -23,8 +23,14 @@ base class --- :class:`SCA_ILogicBrick`
 
    .. attribute:: frequency
 
-      The frequency for pulse mode sensors.
-      
+      The frequency for pulse mode sensors. (Deprecated: use SCA_ISensor.skippedTicks)
+
+      :type: integer
+
+   .. attribute:: skippedTicks
+
+      Number of logic ticks skipped between 2 active pulses
+
       :type: integer
 
    .. attribute:: level

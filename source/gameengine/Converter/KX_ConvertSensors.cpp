@@ -105,7 +105,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	bSensor* sens = (bSensor*)blenderobject->sensors.first;
 	bool pos_pulsemode = false;
 	bool neg_pulsemode = false;
-	int frequency = 0;
+	int skipped_ticks = 0;
 	bool invert = false;
 	bool level = false;
 	bool tap = false;
@@ -120,13 +120,13 @@ void BL_ConvertSensors(struct Object* blenderobject,
 
 	while (sens) {
 		SCA_ISensor* gamesensor=NULL;
-		/* All sensors have a pulse toggle, frequency, and invert field.     */
+		/* All sensors have a pulse toggle, skipped ticks parameter, and invert field.     */
 		/* These are extracted here, and set when the sensor is added to the */
 		/* list.                                                             */
 		pos_pulsemode = (sens->pulse & SENS_PULSE_REPEAT)!=0;
 		neg_pulsemode = (sens->pulse & SENS_NEG_PULSE_MODE)!=0;
 		
-		frequency = sens->freq;
+		skipped_ticks = sens->freq;
 		invert    = !(sens->invert == 0);
 		level     = !(sens->level == 0);
 		tap       = !(sens->tap == 0);
@@ -602,7 +602,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			/* Conversion succeeded, so we can set the generic props here.   */
 			gamesensor->SetPulseMode(pos_pulsemode,
 			                         neg_pulsemode,
-			                         frequency);
+			                         skipped_ticks);
 			gamesensor->SetInvert(invert);
 			gamesensor->SetLevel(level);
 			gamesensor->SetTap(tap);

@@ -107,7 +107,7 @@ bool SCA_RandomSensor::Evaluate()
 
 	bool evaluateResult = false;
 
-	if (++m_interval > m_pulse_frequency) {
+	if (++m_interval > m_skipped_ticks) {
 		bool drawResult = false;
 		m_interval = 0;
 		if (m_iteration > 31) {

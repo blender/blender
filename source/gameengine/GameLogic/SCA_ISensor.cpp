@@ -67,7 +67,7 @@ SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
 	m_neg_ticks = 0;
 	m_pos_pulsemode = false;
 	m_neg_pulsemode = false;
-	m_pulse_frequency = 0;
+	m_skipped_ticks = 0;
 	m_state = false;
 	m_prev_state = false;
 	
@@ -102,11 +102,11 @@ bool SCA_ISensor::IsPositiveTrigger()
 
 void SCA_ISensor::SetPulseMode(bool posmode, 
                                bool negmode,
-                               int freq)
+                               int skippedticks)
 {
 	m_pos_pulsemode = posmode;
 	m_neg_pulsemode = negmode;
-	m_pulse_frequency = freq;
+	m_skipped_ticks = skippedticks;
 }
 
 void SCA_ISensor::SetInvert(bool inv)
@@ -263,7 +263,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 			 * not set :( */
 			if (m_pos_pulsemode) {
 				m_pos_ticks++;
-				if (m_pos_ticks > m_pulse_frequency) {
+				if (m_pos_ticks > m_skipped_ticks) {
 					if ( m_state )
 					{
 						ActivateControllers(logicmgr);
@@ -276,7 +276,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 			if (m_neg_pulsemode && !m_tap)
 			{
 				m_neg_ticks++;
-				if (m_neg_ticks > m_pulse_frequency) {
+				if (m_neg_ticks > m_skipped_ticks) {
 					if (!m_state )
 					{
 						ActivateControllers(logicmgr);
@@ -367,7 +367,7 @@ PyMethodDef SCA_ISensor::Methods[] = {
 PyAttributeDef SCA_ISensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("usePosPulseMode",SCA_ISensor,m_pos_pulsemode),
 	KX_PYATTRIBUTE_BOOL_RW("useNegPulseMode",SCA_ISensor,m_neg_pulsemode),
-	KX_PYATTRIBUTE_INT_RW("frequency",0,100000,true,SCA_ISensor,m_pulse_frequency),
+	KX_PYATTRIBUTE_INT_RW("skippedTicks",0,100000,true,SCA_ISensor,m_skipped_ticks),
 	KX_PYATTRIBUTE_BOOL_RW("invert",SCA_ISensor,m_invert),
 	KX_PYATTRIBUTE_BOOL_RW_CHECK("level",SCA_ISensor,m_level,pyattr_check_level),
 	KX_PYATTRIBUTE_BOOL_RW_CHECK("tap",SCA_ISensor,m_tap,pyattr_check_tap),
@@ -376,6 +376,7 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("status", SCA_ISensor, pyattr_get_status),
 	KX_PYATTRIBUTE_RO_FUNCTION("pos_ticks", SCA_ISensor, pyattr_get_posTicks),
 	KX_PYATTRIBUTE_RO_FUNCTION("neg_ticks", SCA_ISensor, pyattr_get_negTicks),
+	KX_PYATTRIBUTE_RW_FUNCTION("frequency", SCA_ISensor, pyattr_get_frequency, pyattr_set_frequency),
 	{ NULL }	//Sentinel
 };
 
@@ -443,6 +444,27 @@ int SCA_ISensor::pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrde
 	if (self->m_tap)
 		self->m_level = false;
 	return 0;
+}
+
+PyObject *SCA_ISensor::pyattr_get_frequency(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor *self = static_cast<SCA_ISensor*>(self_v);
+	ShowDeprecationWarning("SCA_ISensor.frequency", "SCA_ISensor.skippedTicks");
+	return PyLong_FromLong(self->m_skipped_ticks);
+}
+
+int SCA_ISensor::pyattr_set_frequency(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	SCA_ISensor *self = static_cast<SCA_ISensor*>(self_v);
+	ShowDeprecationWarning("SCA_ISensor.frequency", "SCA_ISensor.skippedTicks");
+	if (PyLong_Check(value)) {
+		self->m_skipped_ticks = PyLong_AsLong(value);
+		return PY_SET_ATTR_SUCCESS;
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "sensor.frequency = int: Sensor, expected an integer");
+		return PY_SET_ATTR_FAIL;
+	}
 }
 #endif // WITH_PYTHON
 

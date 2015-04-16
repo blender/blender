@@ -57,8 +57,8 @@ protected:
 	/** Pulse negative pulses? */
 	bool m_neg_pulsemode;
 
-	/** Repeat frequency in pulse mode. */
-	int m_pulse_frequency;
+	/** Number of skipped ticks between two active pulses. */
+	int m_skipped_ticks;
 
 	/** Number of ticks since the last positive pulse. */
 	int m_pos_ticks;
@@ -125,7 +125,7 @@ public:
 	 */
 	void SetPulseMode(bool posmode,
 					  bool negmode,
-					  int freq);
+					  int skippedticks);
 	
 	/** Set inversion of pulses on or off. */
 	void SetInvert(bool inv);
@@ -201,6 +201,8 @@ public:
 	static PyObject*	pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_posTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_negTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_frequency(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_frequency(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	static int          pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

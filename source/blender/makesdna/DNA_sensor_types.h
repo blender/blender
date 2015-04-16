@@ -164,7 +164,7 @@ typedef struct bSensor {
 	struct bSensor *next, *prev;
 	/* pulse and freq are the bool toggle and frame count for pulse mode */
 	short type, otype, flag, pulse;
-	short freq, totlinks, pad1, pad2;
+	short freq, totlinks, pad1, pad2; /* freq makes reference to skipped ticks between 2 active pulses */
 	char name[64];	/* MAX_NAME */
 	void *data;
 	
