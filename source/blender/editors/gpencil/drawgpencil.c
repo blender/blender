@@ -121,7 +121,7 @@ static void gp_draw_stroke_buffer(tGPspoint *points, int totpoints, short thickn
 		/* draw stroke curve */
 		if (G.debug & G_DEBUG) setlinestyle(2);
 		
-		glLineWidth(oldpressure * thickness);
+		glLineWidth(max_ff(oldpressure * thickness, 1.0));
 		glBegin(GL_LINE_STRIP);
 		
 		for (i = 0, pt = points; i < totpoints && pt; i++, pt++) {
@@ -130,7 +130,7 @@ static void gp_draw_stroke_buffer(tGPspoint *points, int totpoints, short thickn
 			 */
 			if (fabsf(pt->pressure - oldpressure) > 0.2f) {
 				glEnd();
-				glLineWidth(pt->pressure * thickness);
+				glLineWidth(max_ff(pt->pressure * thickness, 1.0f));
 				glBegin(GL_LINE_STRIP);
 				
 				/* need to roll-back one point to ensure that there are no gaps in the stroke */
@@ -415,7 +415,7 @@ static void gp_draw_stroke_3d(bGPDspoint *points, int totpoints, short thickness
 	int i;
 	
 	/* draw stroke curve */
-	glLineWidth(curpressure * thickness);
+	glLineWidth(max_ff(curpressure * thickness, 1.0f));
 	glBegin(GL_LINE_STRIP);
 	for (i = 0, pt = points; i < totpoints && pt; i++, pt++) {
 		/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
@@ -425,7 +425,7 @@ static void gp_draw_stroke_3d(bGPDspoint *points, int totpoints, short thickness
 		if (fabsf(pt->pressure - curpressure) > 0.2f / (float)thickness) {
 			glEnd();
 			curpressure = pt->pressure;
-			glLineWidth(curpressure * thickness);
+			glLineWidth(max_ff(curpressure * thickness, 1.0f));
 			glBegin(GL_LINE_STRIP);
 			
 			/* need to roll-back one point to ensure that there are no gaps in the stroke */
