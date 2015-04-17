@@ -788,7 +788,6 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		ss->mvert = NULL;
 		ss->mpoly = NULL;
 		ss->mloop = NULL;
-		ss->face_normals = NULL;
 	}
 	else {
 		ss->totvert = me->totvert;
@@ -796,7 +795,6 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		ss->mvert = me->mvert;
 		ss->mpoly = me->mpoly;
 		ss->mloop = me->mloop;
-		ss->face_normals = NULL;
 		ss->multires = NULL;
 		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}

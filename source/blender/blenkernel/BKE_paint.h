@@ -156,7 +156,6 @@ typedef struct SculptSession {
 	struct MPoly *mpoly;
 	struct MLoop *mloop;
 	int totvert, totpoly;
-	float (*face_normals)[3];
 	struct KeyBlock *kb;
 	float *vmask;
 	

@@ -182,8 +182,6 @@ typedef struct StrokeCache {
 	ViewContext *vc;
 	Brush *brush;
 
-	float (*face_norms)[3]; /* Copy of the mesh faces' normals */
-
 	float special_rotation;
 	float grab_delta[3], grab_delta_symmetry[3];
 	float old_grab_location[3], orig_grab_location[3];
@@ -345,9 +343,7 @@ static int sculpt_stroke_dynamic_topology(const SculptSession *ss,
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
-	StrokeCache *cache = ss->cache;
 	const Brush *brush = BKE_paint_brush(&sd->paint);
-	int i;
 
 	PBVHNode **nodes;
 	int n, totnode;
@@ -397,12 +393,6 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 			BKE_pbvh_vertex_iter_end;
 
 			BKE_pbvh_node_mark_update(nodes[n]);
-		}
-	}
-
-	if (ss->face_normals) {
-		for (i = 0; i < ss->totpoly; i++) {
-			copy_v3_v3(ss->face_normals[i], cache->face_norms[i]);
 		}
 	}
 
@@ -505,7 +495,7 @@ static void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 	}
 }
 
-BLI_INLINE bool sculpt_brush_test_clipping(SculptBrushTest *test, const float co[3])
+BLI_INLINE bool sculpt_brush_test_clipping(const SculptBrushTest *test, const float co[3])
 {
 	RegionView3D *rv3d = test->clip_rv3d;
 	return (rv3d && (ED_view3d_clipping_test(rv3d, co, true)));
@@ -543,7 +533,7 @@ static bool sculpt_brush_test_sq(SculptBrushTest *test, const float co[3])
 	}
 }
 
-static bool sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
+static bool sculpt_brush_test_fast(const SculptBrushTest *test, const float co[3])
 {
 	if (sculpt_brush_test_clipping(test, co)) {
 		return 0;
@@ -551,7 +541,7 @@ static bool sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
 	return len_squared_v3v3(co, test->location) <= test->radius_squared;
 }
 
-static bool sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float local[4][4])
+static bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float local[4][4])
 {
 	float side = M_SQRT1_2;
 	float local_co[3];
@@ -3503,8 +3493,6 @@ static const char *sculpt_tool_name(Sculpt *sd)
 
 static void sculpt_cache_free(StrokeCache *cache)
 {
-	if (cache->face_norms)
-		MEM_freeN(cache->face_norms);
 	if (cache->dial)
 		MEM_freeN(cache->dial);
 	MEM_freeN(cache);
@@ -3764,13 +3752,6 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 
 	/* Make copies of the mesh vertex locations and normals for some tools */
 	if (brush->flag & BRUSH_ANCHORED) {
-		if (ss->face_normals) {
-			cache->face_norms = MEM_mallocN(sizeof(float) * 3 * ss->totpoly, "Sculpt face norms");
-			for (i = 0; i < ss->totpoly; ++i) {
-				copy_v3_v3(cache->face_norms[i], ss->face_normals[i]);
-			}
-		}
-
 		cache->original = 1;
 	}
 

@@ -14,8 +14,8 @@
    02110-1301, USA.
 */
 
-#ifndef RANGE_TREE_C_API_H
-#define RANGE_TREE_C_API_H
+#ifndef __RANGE_TREE_C_API_H__
+#define __RANGE_TREE_C_API_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,4 +59,4 @@ unsigned int range_tree_uint_allocation_lower_bound(const RangeTreeUInt *rt);
 }
 #endif
 
-#endif /* __DUALCON_H__ */
+#endif /* __RANGE_TREE_C_API_H__ */
