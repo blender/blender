@@ -115,8 +115,8 @@ struct BMLog {
 typedef struct {
 	float co[3];
 	short no[3];
-	float mask;
 	char hflag;
+	float mask;
 } BMLogVert;
 
 typedef struct {
