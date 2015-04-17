@@ -55,6 +55,11 @@ void BakeData::set(int i, int prim, float uv[2], float dudx, float dudy, float d
 	m_dvdy[i] = dvdy;
 }
 
+void BakeData::set_null(int i)
+{
+	m_primitive[i] = -1;
+}
+
 int BakeData::object()
 {
 	return m_object;

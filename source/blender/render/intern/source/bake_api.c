@@ -30,10 +30,11 @@
  *
  * The Bake API is fully implemented with Python rna functions. The operator expects/call a function:
  *
- * ``def bake(scene, object, pass_type, pixel_array, num_pixels, depth, result)``
+ * ``def bake(scene, object, pass_type, object_id, pixel_array, num_pixels, depth, result)``
  * - scene: current scene (Python object)
  * - object: object to render (Python object)
  * - pass_type: pass to render (string, e.g., "COMBINED", "AO", "NORMAL", ...)
+ * - object_id: index of object to bake (to use with the pixel_array)
  * - pixel_array: list of primitive ids and barycentric coordinates to bake(Python object, see bake_pixel)
  * - num_pixels: size of pixel_array, number of pixels to bake (int)
  * - depth: depth of pixels to return (int, assuming always 4 now)
@@ -47,7 +48,7 @@
  *
  * \code{.c}
  * struct BakePixel {
- *     int primitive_id;
+ *     int primitive_id, object_id;
  *     float uv[2];
  *     float du_dx, du_dy;
  *     float dv_dx, dv_dy;
@@ -55,7 +56,7 @@
  * \endcode
  *
  * In python you have access to:
- * - ``primitive_id``, ``uv``, ``du_dx``, ``du_dy``, ``next``
+ * - ``primitive_id``, ``object_id``,  ``uv``, ``du_dx``, ``du_dy``, ``next``
  * - ``next()`` is a function that returns the next #BakePixel in the array.
  *
  * \note Pixels that should not be baked have ``primitive_id == -1``
@@ -126,12 +127,16 @@ static void store_bake_pixel(void *handle, int x, int y, float u, float v)
 	pixel = &bd->pixel_array[i];
 	pixel->primitive_id = bd->primitive_id;
 
+	/* At this point object_id is always 0, since this function runs for the
+	 * lowpoly mesh only. The object_id lookup indices are set afterwards. */
+
 	copy_v2_fl2(pixel->uv, u, v);
 
 	pixel->du_dx = bd->du_dx;
 	pixel->du_dy = bd->du_dy;
 	pixel->dv_dx = bd->dv_dx;
 	pixel->dv_dy = bd->dv_dy;
+	pixel->object_id = 0;
 }
 
 void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t num_pixels, char *mask)
@@ -271,7 +276,7 @@ static void calc_barycentric_from_point(
  * This function populates pixel_array and returns TRUE if things are correct
  */
 static bool cast_ray_highpoly(
-        BVHTreeFromMesh *treeData, TriTessFace *triangles[], BakeHighPolyData *highpoly,
+        BVHTreeFromMesh *treeData, TriTessFace *triangles[], BakePixel *pixel_array, BakeHighPolyData *highpoly,
         const float co[3], const float dir[3], const int pixel_id, const int tot_highpoly,
         const float du_dx, const float du_dy, const float dv_dx, const float dv_dy)
 {
@@ -322,22 +327,22 @@ static bool cast_ray_highpoly(
 		}
 	}
 
-	for (i = 0; i < tot_highpoly; i++) {
-		if (hit_mesh == i) {
-			calc_barycentric_from_point(triangles[i], hits[i].index, hits[i].co, &primitive_id, uv);
-			highpoly[i].pixel_array[pixel_id].primitive_id = primitive_id;
-			copy_v2_v2(highpoly[i].pixel_array[pixel_id].uv, uv);
+	if (hit_mesh != -1) {
+		calc_barycentric_from_point(triangles[hit_mesh], hits[hit_mesh].index, hits[hit_mesh].co, &primitive_id, uv);
+		pixel_array[pixel_id].primitive_id = primitive_id;
+		pixel_array[pixel_id].object_id = hit_mesh;
+		copy_v2_v2(pixel_array[pixel_id].uv, uv);
 
-			/* the differentials are relative to the UV/image space, so the highpoly differentials
-			 * are the same as the low poly differentials */
-			highpoly[i].pixel_array[pixel_id].du_dx = du_dx;
-			highpoly[i].pixel_array[pixel_id].du_dy = du_dy;
-			highpoly[i].pixel_array[pixel_id].dv_dx = dv_dx;
-			highpoly[i].pixel_array[pixel_id].dv_dy = dv_dy;
-		}
-		else {
-			highpoly[i].pixel_array[pixel_id].primitive_id = -1;
-		}
+		/* the differentials are relative to the UV/image space, so the highpoly differentials
+		 * are the same as the low poly differentials */
+		pixel_array[pixel_id].du_dx = du_dx;
+		pixel_array[pixel_id].du_dy = du_dy;
+		pixel_array[pixel_id].dv_dx = dv_dx;
+		pixel_array[pixel_id].dv_dy = dv_dy;
+	}
+	else {
+		pixel_array[pixel_id].primitive_id = -1;
+		pixel_array[pixel_id].object_id = -1;
 	}
 
 	MEM_freeN(hits);
@@ -437,7 +442,7 @@ static void mesh_calc_tri_tessface(
 }
 
 bool RE_bake_pixels_populate_from_objects(
-        struct Mesh *me_low, BakePixel pixel_array_from[],
+        struct Mesh *me_low, BakePixel pixel_array_from[],  BakePixel pixel_array_to[],
         BakeHighPolyData highpoly[], const int tot_highpoly, const size_t num_pixels, const bool is_custom_cage,
         const float cage_extrusion, float mat_low[4][4], float mat_cage[4][4], struct Mesh *me_cage)
 {
@@ -508,10 +513,7 @@ bool RE_bake_pixels_populate_from_objects(
 		primitive_id = pixel_array_from[i].primitive_id;
 
 		if (primitive_id == -1) {
-			int j;
-			for (j = 0; j < tot_highpoly; j++) {
-				highpoly[j].pixel_array[i].primitive_id = -1;
-			}
+			pixel_array_to[i].primitive_id = -1;
 			continue;
 		}
 
@@ -530,7 +532,7 @@ bool RE_bake_pixels_populate_from_objects(
 		}
 
 		/* cast ray */
-		if (!cast_ray_highpoly(treeData, tris_high, highpoly, co, dir, i, tot_highpoly,
+		if (!cast_ray_highpoly(treeData, tris_high, pixel_array_to, highpoly, co, dir, i, tot_highpoly,
 		                       pixel_array_from[i].du_dx, pixel_array_from[i].du_dy,
 		                       pixel_array_from[i].dv_dx, pixel_array_from[i].dv_dy)) {
 			/* if it fails mask out the original pixel array */

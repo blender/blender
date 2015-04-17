@@ -574,6 +574,7 @@ static int bake(
 	float *result = NULL;
 
 	BakePixel *pixel_array_low = NULL;
+	BakePixel *pixel_array_high = NULL;
 
 	const bool is_save_internal = (save_mode == R_BAKE_SAVE_INTERNAL);
 	const bool is_noncolor = is_noncolor_pass(pass_type);
@@ -682,6 +683,7 @@ static int bake(
 	}
 
 	pixel_array_low = MEM_mallocN(sizeof(BakePixel) * num_pixels, "bake pixels low poly");
+	pixel_array_high = MEM_mallocN(sizeof(BakePixel) * num_pixels, "bake pixels high poly");
 	result = MEM_callocN(sizeof(float) * depth * num_pixels, "bake return pixels");
 
 	/* get the mesh as it arrives in the renderer */
@@ -755,8 +757,6 @@ static int bake(
 			/* initialize highpoly_data */
 			highpoly[i].ob = ob_iter;
 			highpoly[i].restrict_flag = ob_iter->restrictflag;
-			highpoly[i].pixel_array = MEM_mallocN(sizeof(BakePixel) * num_pixels, "bake pixels high poly");
-
 
 			/* triangulating so BVH returns the primitive_id that will be used for rendering */
 			highpoly[i].tri_mod = ED_object_modifier_add(
@@ -790,7 +790,7 @@ static int bake(
 
 		/* populate the pixel arrays with the corresponding face data for each high poly object */
 		if (!RE_bake_pixels_populate_from_objects(
-		            me_low, pixel_array_low, highpoly, tot_highpoly, num_pixels, ob_cage != NULL,
+		            me_low, pixel_array_low, pixel_array_high, highpoly, tot_highpoly, num_pixels, ob_cage != NULL,
 		            cage_extrusion, ob_low->obmat, (ob_cage ? ob_cage->obmat : ob_low->obmat), me_cage))
 		{
 			BKE_report(reports, RPT_ERROR, "Error handling selected objects");
@@ -799,8 +799,8 @@ static int bake(
 
 		/* the baking itself */
 		for (i = 0; i < tot_highpoly; i++) {
-			ok = RE_bake_engine(re, highpoly[i].ob, highpoly[i].pixel_array, num_pixels,
-			                    depth, pass_type, result);
+			ok = RE_bake_engine(re, highpoly[i].ob, i, pixel_array_high,
+			                    num_pixels, depth, pass_type, result);
 			if (!ok) {
 				BKE_reportf(reports, RPT_ERROR, "Error baking from object \"%s\"", highpoly[i].ob->id.name + 2);
 				goto cage_cleanup;
@@ -826,7 +826,7 @@ cage_cleanup:
 		ob_low->restrictflag &= ~OB_RESTRICT_RENDER;
 
 		if (RE_bake_has_engine(re)) {
-			ok = RE_bake_engine(re, ob_low, pixel_array_low, num_pixels, depth, pass_type, result);
+			ok = RE_bake_engine(re, ob_low, 0, pixel_array_low, num_pixels, depth, pass_type, result);
 		}
 		else {
 			BKE_report(reports, RPT_ERROR, "Current render engine does not support baking");
@@ -990,9 +990,6 @@ cleanup:
 		for (i = 0; i < tot_highpoly; i++) {
 			highpoly[i].ob->restrictflag = highpoly[i].restrict_flag;
 
-			if (highpoly[i].pixel_array)
-				MEM_freeN(highpoly[i].pixel_array);
-
 			if (highpoly[i].tri_mod)
 				ED_object_modifier_remove(reports, bmain, highpoly[i].ob, highpoly[i].tri_mod);
 
@@ -1009,6 +1006,9 @@ cleanup:
 
 	if (pixel_array_low)
 		MEM_freeN(pixel_array_low);
+
+	if (pixel_array_high)
+		MEM_freeN(pixel_array_high);
 
 	if (bake_images.data)
 		MEM_freeN(bake_images.data);

@@ -31,6 +31,7 @@ public:
 	~BakeData();
 
 	void set(int i, int prim, float uv[2], float dudx, float dudy, float dvdx, float dvdy);
+	void set_null(int i);
 	int object();
 	size_t size();
 	uint4 data(int i);
