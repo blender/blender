@@ -129,7 +129,7 @@ void BKE_gpencil_free(bGPdata *gpd)
 /* add a new gp-frame to the given layer */
 bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 {
-	bGPDframe *gpf, *gf;
+	bGPDframe *gpf = NULL, *gf = NULL;
 	short state = 0;
 	
 	/* error checking (neg frame only if they are not allowed in Blender!) */
@@ -160,8 +160,14 @@ bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 	
 	/* check whether frame was added successfully */
 	if (state == -1) {
+		printf("Error: Frame (%d) existed already for this layer. Using existing frame\n", cframe);
+		
+		/* free the newly created one, and use the old one instead */
 		MEM_freeN(gpf);
-		printf("Error: frame (%d) existed already for this layer\n", cframe);
+		
+		/* return existing frame instead... */
+		BLI_assert(gf != NULL);
+		gpf = gf;
 	}
 	else if (state == 0) {
 		/* add to end then! */
