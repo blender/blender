@@ -545,46 +545,61 @@ static void image_multi_declay_cb(bContext *C, void *rr_v, void *iuser_v)
 }
 static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
-	/* this wasn't working before multiview, it needs to be fixed, but it wasn't working anyways --dfelinto */
-#if 0
 	RenderResult *rr = rr_v;
 	ImageUser *iuser = iuser_v;
-	RenderLayer *rl = BLI_findlink(&rr->layers, iuser->layer);
+	RenderLayer *rl;
+	RenderPass *rp;
+	RenderPass *next = NULL;
+	int layer = iuser->layer;
+
+	if (RE_HasFakeLayer(rr)) layer -= 1;
+	rl = BLI_findlink(&rr->layers, layer);
 
 	if (rl) {
-		int tot = BLI_listbase_count(&rl->passes);
+		for (rp = rl->passes.first; rp; rp = rp->next) {
+			if (rp->passtype == iuser->passtype) {
+				next = rp->next;
+				if (next && (next->passtype == rp->passtype))
+					next = next->next;
+				break;
+			}
+		}
 
-		if (RE_HasFakeLayer(rr))
-			tot++;  /* fake compo/sequencer layer */
-
-		if (iuser->pass < tot - 1) {
-			iuser->pass++;
-			BKE_image_multilayer_index(rr, iuser); 
+		if (next != NULL && iuser->passtype != next->passtype) {
+			iuser->passtype = next->passtype;
+			BKE_image_multilayer_index(rr, iuser);
 			WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 		}
 	}
-#else
-	(void)C;
-	(void)rr_v;
-	(void)iuser_v;
-#endif
 }
 static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
-	/* this wasn't working before multiview, it needs to be fixed, but it wasn't working anyways --dfelinto */
-#if 0
+	RenderResult *rr = rr_v;
 	ImageUser *iuser = iuser_v;
+	RenderLayer *rl;
+	RenderPass *rp;
+	RenderPass *prev= NULL;
+	int layer = iuser->layer;
 
-	if (iuser->pass > 0) {
-		iuser->pass--;
-		BKE_image_multilayer_index(rr_v, iuser); 
-		WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+	if (RE_HasFakeLayer(rr)) layer -= 1;
+	rl = BLI_findlink(&rr->layers, layer);
+
+	if (rl) {
+		for (rp = rl->passes.last; rp; rp = rp->prev) {
+			if (rp->passtype == iuser->passtype) {
+				prev = rp->prev;
+				if (prev && (prev->passtype == rp->passtype))
+					prev = prev->prev;
+				break;
+			}
+		}
+
+		if (prev != NULL && iuser->passtype != prev->passtype) {
+			iuser->passtype = prev->passtype;
+			BKE_image_multilayer_index(rr, iuser);
+			WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+		}
 	}
-#else
-	(void)C;
-	(void)rr_v;
-	(void)iuser_v;
-#endif
 }
 
 /* 5 view button callbacks... */
