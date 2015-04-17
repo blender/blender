@@ -34,6 +34,8 @@
 
 #include "KX_GameObject.h"
 
+#define MAX_LIGHT_LAYERS ((1 << 20) - 1)
+
 struct GPULamp;
 struct Scene;
 struct Base;

@@ -166,27 +166,31 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 
 PyObject *KX_LightObject::pyattr_get_layer(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
 	return PyLong_FromLong(self->m_lightobj->m_layer);
 }
 
 int KX_LightObject::pyattr_set_layer(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	int layer = PyLong_AsLong(value);
 
-	if (PyLong_Check(value)) {
-		int val = PyLong_AsLong(value);
-		if (val < 1)
-			val = 1;
-		else if (val > 20)
-			val = 20;
-
-		self->m_lightobj->m_layer = val;
-		return PY_SET_ATTR_SUCCESS;
+	if (layer == -1 && PyErr_Occurred()) {
+		PyErr_Format(PyExc_TypeError, "expected an integer for attribute \"%s\"", attrdef->m_name);
+		return PY_SET_ATTR_FAIL;
 	}
 
-	PyErr_Format(PyExc_TypeError, "expected an integer for attribute \"%s\"", attrdef->m_name);
-	return PY_SET_ATTR_FAIL;
+	if (layer < 1) {
+		PyErr_Format(PyExc_TypeError, "expected an integer greater than 1 for attribute \"%s\"", attrdef->m_name);
+		return PY_SET_ATTR_FAIL;
+	}
+	else if(layer > MAX_LIGHT_LAYERS) {
+		PyErr_Format(PyExc_TypeError, "expected an integer less than %i for attribute \"%s\"", MAX_LIGHT_LAYERS, attrdef->m_name);
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->SetLayer(layer);
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject *KX_LightObject::pyattr_get_energy(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
