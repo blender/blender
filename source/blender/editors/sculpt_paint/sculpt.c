@@ -285,26 +285,22 @@ static void sculpt_orig_vert_data_update(SculptOrigVertData *orig_data,
                                          PBVHVertexIter *iter)
 {
 	if (orig_data->unode->type == SCULPT_UNDO_COORDS) {
-		if (orig_data->coords) {
+		if (orig_data->bm_log) {
+			BM_log_original_vert_data(
+			        orig_data->bm_log, iter->bm_vert,
+			        &orig_data->co, &orig_data->no);
+		}
+		else {
 			orig_data->co = orig_data->coords[iter->i];
-		}
-		else {
-			orig_data->co = BM_log_original_vert_co(orig_data->bm_log, iter->bm_vert);
-		}
-
-		if (orig_data->normals) {
 			orig_data->no = orig_data->normals[iter->i];
-		}
-		else {
-			orig_data->no = BM_log_original_vert_no(orig_data->bm_log, iter->bm_vert);
 		}
 	}
 	else if (orig_data->unode->type == SCULPT_UNDO_MASK) {
-		if (orig_data->vmasks) {
-			orig_data->mask = orig_data->vmasks[iter->i];
+		if (orig_data->bm_log) {
+			orig_data->mask = BM_log_original_mask(orig_data->bm_log, iter->bm_vert);
 		}
 		else {
-			orig_data->mask = BM_log_original_mask(orig_data->bm_log, iter->bm_vert);
+			orig_data->mask = orig_data->vmasks[iter->i];
 		}
 	}
 }

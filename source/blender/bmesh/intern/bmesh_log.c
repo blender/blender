@@ -1086,6 +1086,24 @@ float BM_log_original_mask(BMLog *log, BMVert *v)
 	return lv->mask;
 }
 
+void BM_log_original_vert_data(
+        BMLog *log, BMVert *v,
+        const float **r_co, const short **r_no)
+{
+	BMLogEntry *entry = log->current_entry;
+	const BMLogVert *lv;
+	unsigned v_id = bm_log_vert_id_get(log, v);
+	void *key = SET_UINT_IN_POINTER(v_id);
+
+	BLI_assert(entry);
+
+	BLI_assert(BLI_ghash_haskey(entry->modified_verts, key));
+
+	lv = BLI_ghash_lookup(entry->modified_verts, key);
+	*r_co = lv->co;
+	*r_no = lv->no;
+}
+
 /************************ Debugging and Testing ***********************/
 
 /* For internal use only (unit testing) */
