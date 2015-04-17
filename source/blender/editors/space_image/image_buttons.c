@@ -552,14 +552,16 @@ static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v)
 	RenderPass *next = NULL;
 	int layer = iuser->layer;
 
-	if (RE_HasFakeLayer(rr)) layer -= 1;
+	if (RE_HasFakeLayer(rr))
+		layer -= 1;
+
 	rl = BLI_findlink(&rr->layers, layer);
 
 	if (rl) {
 		for (rp = rl->passes.first; rp; rp = rp->next) {
 			if (rp->passtype == iuser->passtype) {
 				next = rp->next;
-				if (next && (next->passtype == rp->passtype))
+				if (next != NULL && next->passtype == rp->passtype)
 					next = next->next;
 				break;
 			}
@@ -581,14 +583,16 @@ static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v)
 	RenderPass *prev= NULL;
 	int layer = iuser->layer;
 
-	if (RE_HasFakeLayer(rr)) layer -= 1;
+	if (RE_HasFakeLayer(rr))
+		layer -= 1;
+
 	rl = BLI_findlink(&rr->layers, layer);
 
 	if (rl) {
 		for (rp = rl->passes.last; rp; rp = rp->prev) {
 			if (rp->passtype == iuser->passtype) {
 				prev = rp->prev;
-				if (prev && (prev->passtype == rp->passtype))
+				if (prev != NULL && prev->passtype == rp->passtype)
 					prev = prev->prev;
 				break;
 			}
