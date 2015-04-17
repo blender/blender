@@ -1533,41 +1533,6 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
-/* returns the pass index for the view_id */
-static int get_multiview_pass_id(RenderResult *rr, ImageUser *iuser, const int view_id)
-{
-	RenderLayer *rl;
-	RenderPass *rpass;
-	int passtype;
-	short rl_index = 0, rp_index;
-
-	if (rr == NULL || iuser == NULL)
-		return 0;
-
-	if (BLI_listbase_count_ex(&rr->views, 2) < 2)
-		return iuser->pass;
-
-	if (RE_HasFakeLayer(rr))
-		rl_index ++; /* fake compo/sequencer layer */
-
-	rl = BLI_findlink(&rr->layers, rl_index);
-	if (!rl) return iuser->pass;
-
-	rpass = BLI_findlink(&rl->passes, iuser->pass);
-	passtype = rpass->passtype;
-
-	rp_index = 0;
-	for (rpass = rl->passes.first; rpass; rpass = rpass->next, rp_index++) {
-		if (rpass->passtype == passtype &&
-		    rpass->view_id == view_id)
-		{
-			return rp_index;
-		}
-	}
-
-	return iuser->pass;
-}
-
 static void save_image_post(wmOperator *op, ImBuf *ibuf, Image *ima, int ok, int save_copy, const char *relbase, int relative, int do_newpath, const char *filepath)
 {
 	if (ok) {
@@ -1761,13 +1726,10 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 					iuser.view = i;
 					iuser.flag &= ~IMA_SHOW_STEREO;
 
-					if (rr) {
-						iuser.pass = get_multiview_pass_id(rr, &sima->iuser, i);
+					if (rr)
 						BKE_image_multilayer_index(rr, &iuser);
-					}
-					else {
+					else
 						BKE_image_multiview_index(ima, &iuser);
-					}
 
 					ibuf = BKE_image_acquire_ibuf(sima->image, &iuser, &lock);
 					ibuf->planes = planes;
@@ -1810,9 +1772,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 
 					if (rr) {
 						int id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
-						iuser.pass = get_multiview_pass_id(rr, &sima->iuser, id);
 						iuser.view = id;
-
 						BKE_image_multilayer_index(rr, &iuser);
 					}
 					else {

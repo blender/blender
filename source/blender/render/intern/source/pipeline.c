@@ -3856,4 +3856,14 @@ bool RE_layers_have_name(struct RenderResult *rr)
 	return false;
 }
 
-
+RenderPass *RE_pass_find_by_type(RenderLayer *rl, int passtype, const char *viewname)
+{
+	RenderPass *rp;
+	for (rp = rl->passes.first; rp; rp = rp->next) {
+		if (rp->passtype == passtype) {
+			if (STREQ(rp->view, viewname))
+				return rp;
+		}
+	}
+	return NULL;
+}

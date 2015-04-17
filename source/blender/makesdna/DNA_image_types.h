@@ -55,12 +55,10 @@ typedef struct ImageUser {
 	char ok;
 
 	char multiview_eye;			/* multiview current eye - for internal use of drawing routines */
+	int passtype;
 
-	short multi_index, view, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
-
+	short multi_index, view, layer;	 /* listbase indices, for menu browsing or retrieve buffer */
 	short flag;
-	short passtype;
-
 } ImageUser;
 
 typedef struct ImageAnim {

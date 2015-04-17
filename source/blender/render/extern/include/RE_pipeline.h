@@ -315,6 +315,8 @@ int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 
 bool RE_layers_have_name(struct RenderResult *result);
 
+struct RenderPass *RE_pass_find_by_type(struct RenderLayer *rl, int passtype, const char *viewname);
+
 /* shaded view or baking options */
 #define RE_BAKE_LIGHT				0	/* not listed in rna_scene.c -> can't be enabled! */
 #define RE_BAKE_ALL					1

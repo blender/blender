@@ -538,11 +538,6 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */
 	RNA_def_property_ui_text(prop, "Layer", "Layer in multilayer image");
 
-	prop = RNA_def_property(srna, "multilayer_pass", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_sdna(prop, NULL, "pass");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */
-	RNA_def_property_ui_text(prop, "Pass", "Pass in multilayer image");
-
 	prop = RNA_def_property(srna, "multilayer_view", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "view");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */

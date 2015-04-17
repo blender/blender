@@ -384,14 +384,7 @@ static PointerRNA rna_BakePixel_next_get(PointerRNA *ptr)
 
 static RenderPass *rna_RenderPass_find_by_type(RenderLayer *rl, int passtype, const char *view)
 {
-	RenderPass *rp;
-	for (rp = rl->passes.first; rp; rp = rp->next) {
-		if (rp->passtype == passtype) {
-			if (STREQ(rp->view, view))
-				return rp;
-		}
-	}
-	return NULL;
+	return RE_pass_find_by_type(rl, passtype, view);
 }
 
 #else /* RNA_RUNTIME */

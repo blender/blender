@@ -435,7 +435,7 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 		passflag |= rpass->passtype;
 
 final:
-		uiDefButS(block, UI_BTYPE_BUT_MENU, B_NOP, IFACE_(rpass->internal_name), 0, 0,
+		uiDefButI(block, UI_BTYPE_BUT_MENU, B_NOP, IFACE_(rpass->internal_name), 0, 0,
 		          UI_UNIT_X * 5, UI_UNIT_X, &iuser->passtype, (float) rpass->passtype, 0.0, 0, -1, "");
 	}
 
@@ -545,6 +545,8 @@ static void image_multi_declay_cb(bContext *C, void *rr_v, void *iuser_v)
 }
 static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
+	/* this wasn't working before multiview, it needs to be fixed, but it wasn't working anyways --dfelinto */
+#if 0
 	RenderResult *rr = rr_v;
 	ImageUser *iuser = iuser_v;
 	RenderLayer *rl = BLI_findlink(&rr->layers, iuser->layer);
@@ -561,9 +563,16 @@ static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v)
 			WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 		}
 	}
+#else
+	(void)C;
+	(void)rr_v;
+	(void)iuser_v;
+#endif
 }
 static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
+	/* this wasn't working before multiview, it needs to be fixed, but it wasn't working anyways --dfelinto */
+#if 0
 	ImageUser *iuser = iuser_v;
 
 	if (iuser->pass > 0) {
@@ -571,6 +580,11 @@ static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v)
 		BKE_image_multilayer_index(rr_v, iuser); 
 		WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 	}
+#else
+	(void)C;
+	(void)rr_v;
+	(void)iuser_v;
+#endif
 }
 
 /* 5 view button callbacks... */
@@ -657,7 +671,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 
 		/* pass */
 		fake_name = ui_imageuser_pass_fake_name(rl);
-		rpass = (rl ? BLI_findlink(&rl->passes, iuser->pass  - (fake_name ? 1 : 0)) : NULL);
+		rpass = (rl ? RE_pass_find_by_type(rl, iuser->passtype, ((RenderView *)rr->views.first)->name) : NULL);
 
 		display_name = rpass ? rpass->internal_name : (fake_name ? fake_name : "");
 		but = uiDefMenuBut(block, ui_imageuser_pass_menu, rnd_pt, display_name, 0, 0, wmenu3, UI_UNIT_Y, TIP_("Select Pass"));
