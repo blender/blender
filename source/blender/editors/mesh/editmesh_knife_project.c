@@ -166,7 +166,7 @@ void MESH_OT_knife_project(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = knifeproject_exec;
-	ot->poll = ED_operator_editmesh_view3d;
+	ot->poll = ED_operator_editmesh_region_view3d;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
