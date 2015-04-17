@@ -133,7 +133,7 @@ bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 	short state = 0;
 	
 	/* error checking (neg frame only if they are not allowed in Blender!) */
-	if ((gpl == NULL) || ((U.flag & USER_NONEGFRAMES) && (cframe <= 0)))
+	if (gpl == NULL)
 		return NULL;
 		
 	/* allocate memory for this frame */
@@ -388,8 +388,6 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 	
 	/* error checking */
 	if (gpl == NULL) return NULL;
-	/* No reason to forbid negative frames when they are allowed in Blender! */
-	if ((U.flag & USER_NONEGFRAMES) && cframe <= 0) cframe = 1;
 	
 	/* check if there is already an active frame */
 	if (gpl->actframe) {

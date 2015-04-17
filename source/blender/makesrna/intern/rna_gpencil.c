@@ -568,7 +568,7 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "frame_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "framenum");
 	/* XXX note: this cannot occur on the same frame as another sketch */
-	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
+	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Frame Number", "The frame on which this sketch appears");
 	
 	/* Flags */
@@ -579,7 +579,9 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_FRAME_SELECT);
 	RNA_def_property_ui_text(prop, "Select", "Frame is selected for editing in the Dope Sheet");
-
+	
+	
+	/* API */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_frame_clear");
 	RNA_def_function_ui_description(func, "Remove all the grease pencil frame data");
 }
