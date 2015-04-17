@@ -235,6 +235,9 @@ void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Objec
 float RE_engine_get_camera_shift_x(struct RenderEngine *engine, struct Object *camera) RET_ZERO
 void RE_SetActiveRenderView(struct Render *re, const char *viewname) {STUB_ASSERT(0);}
 
+struct RenderPass *RE_pass_find_by_type(struct RenderLayer *rl, int passtype, const char *viewname) RET_NULL
+bool RE_HasFakeLayer(RenderResult *res) RET_ZERO
+
 /* zbuf.c stub */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove) RET_NONE
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) RET_NONE
