@@ -2263,88 +2263,66 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 		PBVHVertexIter vd;
 		SculptBrushTest test;
 		SculptUndoNode *unode;
-		float private_an[3] = {0.0f, 0.0f, 0.0f};
-		float private_out_flip[3] = {0.0f, 0.0f, 0.0f};
-		float private_fc[3] = {0.0f, 0.0f, 0.0f};
-		float private_fc_flip[3] = {0.0f, 0.0f, 0.0f};
-		int private_count = 0;
-		int private_count_flip = 0;
+		/* 0=towards view, 1=flipped */
+		float private_co[2][3] = {{0.0f}};
+		float private_no[2][3] = {{0.0f}};
+		int  private_count[2] = {0, 0};
+		bool use_original;
 
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
-		if (ss->cache->original && unode->co) {
-			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
-			{
-				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
-					/* for area normal */
-					float fno[3];
+		use_original = (ss->cache->original && unode->co);
 
-					normal_short_to_float_v3(fno, unode->no[vd.i]);
+		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
+			const float *co;
 
-					if (dot_v3v3(ss->cache->view_normal, fno) > 0) {
-						add_v3_v3(private_an, fno);
-						add_v3_v3(private_fc, unode->co[vd.i]);
-						private_count++;
-					}
-					else {
-						add_v3_v3(private_out_flip, fno);
-						add_v3_v3(private_fc_flip, unode->co[vd.i]);
-						private_count_flip++;
-					}
-				}
+			if (use_original) {
+				co = unode->co[vd.i];
 			}
-			BKE_pbvh_vertex_iter_end;
-		}
-		else {
-			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
-			{
-				if (sculpt_brush_test_fast(&test, vd.co)) {
-					/* for area normal */
+			else {
+				co = vd.co;
+			}
+
+			if (sculpt_brush_test_fast(&test, co)) {
+				float no_buf[3];
+				const float *no;
+				int flip_index;
+
+				if (use_original) {
+					normal_short_to_float_v3(no_buf, unode->no[vd.i]);
+					no = no_buf;
+				}
+				else {
 					if (vd.no) {
-						float fno[3];
-
-						normal_short_to_float_v3(fno, vd.no);
-
-						if (dot_v3v3(ss->cache->view_normal, fno) > 0) {
-							add_v3_v3(private_an, fno);
-							add_v3_v3(private_fc, vd.co);
-							private_count++;
-						}
-						else {
-							add_v3_v3(private_out_flip, fno);
-							add_v3_v3(private_fc_flip, vd.co);
-							private_count_flip++;
-						}
+						normal_short_to_float_v3(no_buf, vd.no);
+						no = no_buf;
 					}
 					else {
-						if (dot_v3v3(ss->cache->view_normal, vd.fno) > 0) {
-							add_v3_v3(private_an, vd.fno);
-							add_v3_v3(private_fc, vd.co);
-							private_count++;
-						}
-						else {
-							add_v3_v3(private_out_flip, vd.fno);
-							add_v3_v3(private_fc_flip, vd.co);
-							private_count_flip++;
-						}
+						no = vd.fno;
 					}
 				}
+
+				flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
+				add_v3_v3(private_co[flip_index], co);
+				add_v3_v3(private_no[flip_index], no);
+				private_count[flip_index] += 1;
 			}
-			BKE_pbvh_vertex_iter_end;
 		}
+		BKE_pbvh_vertex_iter_end;
 
 #pragma omp critical
 		{
 			/* for area normal */
-			add_v3_v3(an, private_an);
-			add_v3_v3(out_flip, private_out_flip);
+			add_v3_v3(an,       private_no[0]);
+			add_v3_v3(out_flip, private_no[1]);
 
 			/* for flatten center */
-			add_v3_v3(fc, private_fc);
-			add_v3_v3(fc_flip, private_fc_flip);
-			count += private_count;
-			count_flipped += private_count_flip;
+			add_v3_v3(fc,      private_co[0]);
+			add_v3_v3(fc_flip, private_co[1]);
+			count         += private_count[0];
+			count_flipped += private_count[1];
 		}
 	}
 
