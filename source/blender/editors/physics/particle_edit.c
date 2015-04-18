@@ -4445,7 +4445,7 @@ void PE_undo_step(Scene *scene, int step)
 	DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 }
 
-int PE_undo_valid(Scene *scene)
+bool PE_undo_is_valid(Scene *scene)
 {
 	PTCacheEdit *edit= PE_get_current(scene, OBACT);
 	
@@ -4496,18 +4496,19 @@ void PE_undo_number(Scene *scene, int nr)
 
 /* get name of undo item, return null if no item with this index */
 /* if active pointer, set it to 1 if true */
-const char *PE_undo_get_name(Scene *scene, int nr, int *active)
+const char *PE_undo_get_name(Scene *scene, int nr, bool *r_active)
 {
 	PTCacheEdit *edit= PE_get_current(scene, OBACT);
 	PTCacheUndo *undo;
 	
-	if (active) *active= 0;
+	if (r_active) *r_active = false;
 	
 	if (edit) {
 		undo= BLI_findlink(&edit->undo, nr);
 		if (undo) {
-			if (active && undo==edit->curundo)
-				*active= 1;
+			if (r_active && (undo == edit->curundo)) {
+				*r_active = true;
+			}
 			return undo->name;
 		}
 	}

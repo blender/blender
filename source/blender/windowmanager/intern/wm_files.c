@@ -506,13 +506,13 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		}
 #endif
 
-		BKE_reset_undo();
-		BKE_write_undo(C, "original");  /* save current state */
+		BKE_undo_reset();
+		BKE_undo_write(C, "original");  /* save current state */
 
 		success = true;
 	}
 	else if (retval == BKE_READ_EXOTIC_OK_OTHER)
-		BKE_write_undo(C, "Import file");
+		BKE_undo_write(C, "Import file");
 	else if (retval == BKE_READ_EXOTIC_FAIL_OPEN) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot read file '%s': %s", filepath,
 		            errno ? strerror(errno) : TIP_("unable to open the file"));
@@ -660,8 +660,8 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 //	refresh_interface_font();
 	
 //	undo_editmode_clear();
-	BKE_reset_undo();
-	BKE_write_undo(C, "original");  /* save current state */
+	BKE_undo_reset();
+	BKE_undo_write(C, "original");  /* save current state */
 
 	ED_editors_init(C);
 	DAG_on_visible_update(CTX_data_main(C), true);

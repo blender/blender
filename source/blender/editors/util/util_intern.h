@@ -35,12 +35,12 @@
 /* internal exports only */
 
 /* editmode_undo.c */
-void	undo_editmode_name			(struct bContext *C, const char *undoname);
-int		undo_editmode_valid			(const char *undoname);
-const char *undo_editmode_get_name	(struct bContext *C, int nr, int *active);
-void	*undo_editmode_get_prev		(struct Object *ob);
-void	undo_editmode_step			(struct bContext *C, int step);
-void	undo_editmode_number		(struct bContext *C, int nr);
+void        undo_editmode_name(struct bContext *C, const char *undoname);
+bool        undo_editmode_is_valid(const char *undoname);
+const char *undo_editmode_get_name(struct bContext *C, int nr, bool *r_active);
+void       *undo_editmode_get_prev(struct Object *ob);
+void        undo_editmode_step(struct bContext *C, int step);
+void        undo_editmode_number(struct bContext *C, int nr);
 
 #endif /* __UTIL_INTERN_H__ */
 

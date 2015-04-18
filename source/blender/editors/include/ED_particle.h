@@ -66,9 +66,9 @@ void PE_undo_push(struct Scene *scene, const char *str);
 void PE_undo_step(struct Scene *scene, int step);
 void PE_undo(struct Scene *scene);
 void PE_redo(struct Scene *scene);
-int PE_undo_valid(struct Scene *scene);
+bool PE_undo_is_valid(struct Scene *scene);
 void PE_undo_number(struct Scene *scene, int nr);
-const char *PE_undo_get_name(struct Scene *scene, int nr, int *active);
+const char *PE_undo_get_name(struct Scene *scene, int nr, bool *r_active);
 
 #endif /* __ED_PARTICLE_H__ */
 

@@ -315,7 +315,7 @@ void undo_editmode_name(bContext *C, const char *undoname)
 }
 
 /* undoname optionally, if NULL it just checks for existing undo steps */
-int undo_editmode_valid(const char *undoname)
+bool undo_editmode_is_valid(const char *undoname)
 {
 	if (undoname) {
 		UndoElem *uel;
@@ -332,19 +332,20 @@ int undo_editmode_valid(const char *undoname)
 
 /* get name of undo item, return null if no item with this index */
 /* if active pointer, set it to 1 if true */
-const char *undo_editmode_get_name(bContext *C, int nr, int *active)
+const char *undo_editmode_get_name(bContext *C, int nr, bool *r_active)
 {
 	UndoElem *uel;
 	
 	/* prevent wrong numbers to be returned */
 	undo_clean_stack(C);
 	
-	if (active) *active = 0;
+	if (r_active) *r_active = false;
 	
 	uel = BLI_findlink(&undobase, nr);
 	if (uel) {
-		if (active && uel == curundo)
-			*active = 1;
+		if (r_active && (uel == curundo)) {
+			*r_active = true;
+		}
 		return uel->name;
 	}
 	return NULL;

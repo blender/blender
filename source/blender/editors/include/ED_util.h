@@ -60,7 +60,7 @@ int     ED_undo_operator_repeat(struct bContext *C, struct wmOperator *op);
 void    ED_undo_operator_repeat_cb(struct bContext *C, void *arg_op, void *arg_unused);
 void    ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg_unused);
 
-int     ED_undo_valid(const struct bContext *C, const char *undoname);
+bool    ED_undo_is_valid(const struct bContext *C, const char *undoname);
 
 /* undo_editmode.c */
 void undo_editmode_push(struct bContext *C, const char *name, 

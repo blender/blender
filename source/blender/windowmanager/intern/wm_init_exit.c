@@ -407,7 +407,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		wmWindow *win;
 
 		if (!G.background) {
-			if ((U.uiflag2 & USER_KEEP_SESSION) || BKE_undo_valid(NULL)) {
+			if ((U.uiflag2 & USER_KEEP_SESSION) || BKE_undo_is_valid(NULL)) {
 				/* save the undo state as quit.blend */
 				char filename[FILE_MAX];
 				bool has_edited;
@@ -517,7 +517,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		GPU_exit();
 	}
 
-	BKE_reset_undo(); 
+	BKE_undo_reset();
 	
 	ED_file_exit(); /* for fsmenu */
 

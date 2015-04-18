@@ -1369,8 +1369,8 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
 		/* happens for the UI on file reading too (huh? (ton))*/
-		// XXX		BKE_reset_undo();
-		//			BKE_write_undo("original");	/* save current state */
+		// XXX		BKE_undo_reset();
+		//			BKE_undo_write("original");	/* save current state */
 	}
 	else {
 		/* we are not running in background mode here, but start blender in UI mode with
