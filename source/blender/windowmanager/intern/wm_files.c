@@ -1137,8 +1137,6 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 		}
 	}
 
-	ED_editors_flush_edits(C, false);
-
 	wm_autosave_location(filepath);
 
 	if (U.uiflag & USER_GLOBALUNDO) {
@@ -1148,6 +1146,8 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 	else {
 		/*  save as regular blend file */
 		int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN | G_FILE_HISTORY);
+
+		ED_editors_flush_edits(C, false);
 
 		/* no error reporting to console */
 		BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
