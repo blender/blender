@@ -46,7 +46,7 @@
 /* **************** support for memory-write, for undo buffers *************** */
 
 /* not memfile itself */
-void BLO_free_memfile(MemFile *memfile)
+void BLO_memfile_free(MemFile *memfile)
 {
 	MemFileChunk *chunk;
 	
@@ -60,7 +60,7 @@ void BLO_free_memfile(MemFile *memfile)
 
 /* to keep list of memfiles consistent, 'first' is always first in list */
 /* result is that 'first' is being freed */
-void BLO_merge_memfile(MemFile *first, MemFile *second)
+void BLO_memfile_merge(MemFile *first, MemFile *second)
 {
 	MemFileChunk *fc, *sc;
 	
@@ -77,7 +77,7 @@ void BLO_merge_memfile(MemFile *first, MemFile *second)
 		if (sc) sc = sc->next;
 	}
 	
-	BLO_free_memfile(first);
+	BLO_memfile_free(first);
 }
 
 static int my_memcmp(const int *mem1, const int *mem2, const int len)
@@ -94,7 +94,7 @@ static int my_memcmp(const int *mem1, const int *mem2, const int len)
 	return 0;
 }
 
-void add_memfilechunk(MemFile *compare, MemFile *current, const char *buf, unsigned int size)
+void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsigned int size)
 {
 	static MemFileChunk *compchunk = NULL;
 	MemFileChunk *curchunk;

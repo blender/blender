@@ -333,7 +333,7 @@ static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 
 	/* memory based save */
 	if (wd->current) {
-		add_memfilechunk(NULL, wd->current, mem, memlen);
+		memfile_chunk_add(NULL, wd->current, mem, memlen);
 	}
 	else {
 		if (wd->ww->write(wd->ww, mem, memlen) != memlen) {
@@ -421,7 +421,7 @@ static WriteData *bgnwrite(WriteWrap *ww, MemFile *compare, MemFile *current)
 	wd->compare= compare;
 	wd->current= current;
 	/* this inits comparing */
-	add_memfilechunk(compare, NULL, NULL, 0);
+	memfile_chunk_add(compare, NULL, NULL, 0);
 	
 	return wd;
 }

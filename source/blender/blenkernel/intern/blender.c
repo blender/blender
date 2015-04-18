@@ -705,7 +705,7 @@ void BKE_write_undo(bContext *C, const char *name)
 	while (undobase.last != curundo) {
 		uel = undobase.last;
 		BLI_remlink(&undobase, uel);
-		BLO_free_memfile(&uel->memfile);
+		BLO_memfile_free(&uel->memfile);
 		MEM_freeN(uel);
 	}
 	
@@ -727,7 +727,7 @@ void BKE_write_undo(bContext *C, const char *name)
 			UndoElem *first = undobase.first;
 			BLI_remlink(&undobase, first);
 			/* the merge is because of compression */
-			BLO_merge_memfile(&first->memfile, &first->next->memfile);
+			BLO_memfile_merge(&first->memfile, &first->next->memfile);
 			MEM_freeN(first);
 		}
 	}
@@ -782,7 +782,7 @@ void BKE_write_undo(bContext *C, const char *name)
 				UndoElem *first = undobase.first;
 				BLI_remlink(&undobase, first);
 				/* the merge is because of compression */
-				BLO_merge_memfile(&first->memfile, &first->next->memfile);
+				BLO_memfile_merge(&first->memfile, &first->next->memfile);
 				MEM_freeN(first);
 			}
 		}
@@ -827,7 +827,7 @@ void BKE_reset_undo(void)
 	
 	uel = undobase.first;
 	while (uel) {
-		BLO_free_memfile(&uel->memfile);
+		BLO_memfile_free(&uel->memfile);
 		uel = uel->next;
 	}
 	

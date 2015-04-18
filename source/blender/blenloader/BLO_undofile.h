@@ -47,11 +47,11 @@ typedef struct MemFile {
 } MemFile;
 
 /* actually only used writefile.c */
-extern void add_memfilechunk(MemFile *compare, MemFile *current, const char *buf, unsigned int size);
+extern void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsigned int size);
 
 /* exports */
-extern void BLO_free_memfile(MemFile *memfile);
-extern void BLO_merge_memfile(MemFile *first, MemFile *second);
+extern void BLO_memfile_free(MemFile *memfile);
+extern void BLO_memfile_merge(MemFile *first, MemFile *second);
 
 #endif
 
