@@ -1347,8 +1347,8 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	if (!(blenderobject->gameflag & OB_COLLISION)) {
 		// Respond to all collisions so that Near sensors work on No Collision
 		// objects.
-		gameobj->SetUserCollisionGroup(0xff);
-		gameobj->SetUserCollisionMask(0xff);
+		gameobj->SetUserCollisionGroup(0xffff);
+		gameobj->SetUserCollisionMask(0xffff);
 		return;
 	}
 

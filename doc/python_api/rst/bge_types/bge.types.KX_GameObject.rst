@@ -161,6 +161,18 @@ base class --- :class:`SCA_IObject`
 
       :type: :class:`KX_GameObject` or None
 
+   .. attribute:: collisionGroup
+
+      The object's collision group.
+
+      :type: bitfield
+
+   .. attribute:: collisionMask
+
+      The object's collision mask.
+
+      :type: bitfield
+
    .. attribute:: collisionCallbacks
 
       A list of functions to be called when a collision occurs.

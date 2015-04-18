@@ -47,6 +47,7 @@
 #include "KX_MeshProxy.h"
 #include "KX_PolyProxy.h"
 #include <stdio.h> // printf
+#include <climits> // USHRT_MAX
 #include "SG_Controller.h"
 #include "PHY_IGraphicController.h"
 #include "SG_Node.h"
@@ -561,13 +562,26 @@ void KX_GameObject::ActivateGraphicController(bool recurse)
 	}
 }
 
-void KX_GameObject::SetUserCollisionGroup(short group)
+void KX_GameObject::SetUserCollisionGroup(unsigned short group)
 {
 	m_userCollisionGroup = group;
+	if (m_pPhysicsController)
+		m_pPhysicsController->RefreshCollisions();
 }
-void KX_GameObject::SetUserCollisionMask(short mask)
+void KX_GameObject::SetUserCollisionMask(unsigned short mask)
 {
 	m_userCollisionMask = mask;
+	if (m_pPhysicsController)
+		m_pPhysicsController->RefreshCollisions();
+}
+
+unsigned short KX_GameObject::GetUserCollisionGroup()
+{
+	return m_userCollisionGroup;
+}
+unsigned short KX_GameObject::GetUserCollisionMask()
+{
+	return m_userCollisionMask;
 }
 
 bool KX_GameObject::CheckCollision(KX_GameObject* other)
@@ -2003,6 +2017,8 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_worldScaling,	pyattr_set_localScaling),
 	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
 	KX_PYATTRIBUTE_RW_FUNCTION("collisionCallbacks",		KX_GameObject, pyattr_get_collisionCallbacks,	pyattr_set_collisionCallbacks),
+	KX_PYATTRIBUTE_RW_FUNCTION("collisionGroup",			KX_GameObject, pyattr_get_collisionGroup, pyattr_set_collisionGroup),
+	KX_PYATTRIBUTE_RW_FUNCTION("collisionMask",				KX_GameObject, pyattr_get_collisionMask, pyattr_set_collisionMask),
 	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
 	KX_PYATTRIBUTE_RO_FUNCTION("meshes",	KX_GameObject, pyattr_get_meshes),
 	KX_PYATTRIBUTE_RW_FUNCTION("localOrientation",KX_GameObject,pyattr_get_localOrientation,pyattr_set_localOrientation),
@@ -2346,6 +2362,56 @@ int KX_GameObject::pyattr_set_collisionCallbacks(void *self_v, const KX_PYATTRIB
 
 	self->m_collisionCallbacks = value;
 
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_GameObject::pyattr_get_collisionGroup(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	return PyLong_FromLong(self->GetUserCollisionGroup());
+}
+
+int KX_GameObject::pyattr_set_collisionGroup(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	int val = PyLong_AsLong(value);
+
+	if (val == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "gameOb.collisionGroup = int: KX_GameObject, expected an int bit field");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	if (val < 0 || val > USHRT_MAX) {
+		PyErr_Format(PyExc_AttributeError, "gameOb.collisionGroup = int: KX_GameObject, expected a int bit field between 0 and %i", USHRT_MAX);
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->SetUserCollisionGroup(val);
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_GameObject::pyattr_get_collisionMask(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	return PyLong_FromLong(self->GetUserCollisionMask());
+}
+
+int KX_GameObject::pyattr_set_collisionMask(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
+	int val = PyLong_AsLong(value);
+
+	if (val == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "gameOb.collisionMask = int: KX_GameObject, expected an int bit field");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	if (val < 0 || val > USHRT_MAX) {
+		PyErr_Format(PyExc_AttributeError, "gameOb.collisionMask = int: KX_GameObject, expected a int bit field between 0 and %i", USHRT_MAX);
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->SetUserCollisionMask(val);
 	return PY_SET_ATTR_SUCCESS;
 }
 

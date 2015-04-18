@@ -509,6 +509,13 @@ bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctr
 	btRigidBody* body = ctrl->GetRigidBody();
 	if (body)
 	{
+		btBroadphaseProxy *proxy = ctrl->GetCollisionObject()->getBroadphaseHandle();
+		btDispatcher *dispatcher = m_dynamicsWorld->getDispatcher();
+		btOverlappingPairCache *pairCache = m_dynamicsWorld->getPairCache();
+
+		CleanPairCallback cleanPairs(proxy, pairCache, dispatcher);
+		pairCache->processAllOverlappingPairs(&cleanPairs, dispatcher);
+
 		for (int i = ctrl->getNumCcdConstraintRefs() - 1; i >= 0; i--)
 		{
 			btTypedConstraint* con = ctrl->getCcdConstraintRef(i);
@@ -3525,12 +3532,14 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 	if (isbulletdyna)
 		gameobj->SetRecordAnimation(true);
 
+	physicscontroller->SetNewClientInfo(gameobj->getClientInfo());
+
 	// don't add automatically sensor object, they are added when a collision sensor is registered
 	if (!isbulletsensor && (blenderobject->lay & activeLayerBitInfo) != 0)
 	{
 		this->AddCcdPhysicsController( physicscontroller);
 	}
-	physicscontroller->SetNewClientInfo(gameobj->getClientInfo());
+
 	{
 		btRigidBody* rbody = physicscontroller->GetRigidBody();
 

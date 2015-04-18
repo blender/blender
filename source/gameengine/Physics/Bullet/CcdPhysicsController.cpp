@@ -65,7 +65,6 @@ extern bool gDisableDeactivation;
 float gLinearSleepingTreshold;
 float gAngularSleepingTreshold;
 
-
 BlenderBulletCharacterController::BlenderBulletCharacterController(btMotionState *motionState, btPairCachingGhostObject *ghost, btConvexShape* shape, float stepHeight)
 	: btKinematicCharacterController(ghost,shape,stepHeight,2),
 		m_motionState(motionState),
@@ -116,6 +115,20 @@ void BlenderBulletCharacterController::jump()
 const btVector3& BlenderBulletCharacterController::getWalkDirection()
 {
 	return m_walkDirection;
+}
+
+bool CleanPairCallback::processOverlap(btBroadphasePair &pair)
+{
+	if ((pair.m_pProxy0 == m_cleanProxy) || (pair.m_pProxy1 == m_cleanProxy)) {
+		m_pairCache->cleanOverlappingPair(pair, m_dispatcher);
+		CcdPhysicsController *ctrl0 = (CcdPhysicsController*)(((btCollisionObject*)pair.m_pProxy0->m_clientObject)->getUserPointer());
+		CcdPhysicsController *ctrl1 = (CcdPhysicsController*)(((btCollisionObject*)pair.m_pProxy1->m_clientObject)->getUserPointer());
+		if (ctrl0 && ctrl1) {
+			ctrl0->GetRigidBody()->activate(true);
+			ctrl1->GetRigidBody()->activate(true);
+		}
+	}
+	return false;
 }
 
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
@@ -1080,6 +1093,19 @@ void CcdPhysicsController::ForceWorldTransform(const btMatrix3x3& mat, const btV
 
 void		CcdPhysicsController::ResolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
+}
+
+void CcdPhysicsController::RefreshCollisions()
+{
+	btSoftRigidDynamicsWorld *dw = GetPhysicsEnvironment()->GetDynamicsWorld();
+	btBroadphaseProxy *proxy = m_object->getBroadphaseHandle();
+	btDispatcher *dispatcher = dw->getDispatcher();
+	btOverlappingPairCache *pairCache = dw->getPairCache();
+
+	CleanPairCallback cleanPairs(proxy, pairCache, dispatcher);
+	pairCache->processAllOverlappingPairs(&cleanPairs, dispatcher);
+	// Forcibly recreate the physics object
+	GetPhysicsEnvironment()->UpdateCcdPhysicsController(this, m_cci.m_mass, m_cci.m_collisionFlags, m_cci.m_collisionFilterGroup, m_cci.m_collisionFilterMask);
 }
 
 void	CcdPhysicsController::SuspendDynamics(bool ghost)
