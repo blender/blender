@@ -214,6 +214,7 @@ static void drawcube_size(float size);
 static void drawcircle_size(float size);
 static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
+static void draw_box(float vec[8][3], bool solid);
 
 static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac)
 {
@@ -1144,6 +1145,52 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 	glCullFace(GL_BACK);
 }
 
+#ifdef WITH_GAMEENGINE
+static void draw_transp_sun_volume(Lamp *la)
+{
+	float box[8][3];
+
+	/* construct box */
+	box[0][0] = box[1][0] = box[2][0] = box[3][0] = -la->shadow_frustum_size;
+	box[4][0] = box[5][0] = box[6][0] = box[7][0] = +la->shadow_frustum_size;
+	box[0][1] = box[1][1] = box[4][1] = box[5][1] = -la->shadow_frustum_size;
+	box[2][1] = box[3][1] = box[6][1] = box[7][1] = +la->shadow_frustum_size;
+	box[0][2] = box[3][2] = box[4][2] = box[7][2] = -la->clipend;
+	box[1][2] = box[2][2] = box[5][2] = box[6][2] = -la->clipsta;
+
+	/* draw edges */
+	draw_box(box, false);
+
+	/* draw faces */
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glDepthMask(0);
+
+	/* draw backside darkening */
+	glCullFace(GL_FRONT);
+
+	glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+
+	draw_box(box, true);
+
+	/* draw front side lighting */
+	glCullFace(GL_BACK);
+
+	glBlendFunc(GL_ONE, GL_ONE);
+	glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+
+	draw_box(box, true);
+
+	/* restore state */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+	glDepthMask(1);
+	glDisable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+}
+#endif
+
 static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
                      const char dt, const short dflag, const unsigned char ob_wire_col[4], const bool is_obact)
 {
@@ -1166,7 +1213,22 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	                       !(base->flag & OB_FROMDUPLI) &&
 	                       !is_view);
 
-	if (drawcone && !v3d->transp) {
+#ifdef WITH_GAMEENGINE
+	const bool drawshadowbox = (
+	        (rv3d->rflag & RV3D_IS_GAME_ENGINE) &&
+	        (dt > OB_WIRE) &&
+	        !(G.f & G_PICKSEL) &&
+	        (la->type == LA_SUN) &&
+	        ((la->mode & LA_SHAD_BUF) || 
+	        (la->mode & LA_SHAD_RAY)) &&
+	        (la->mode & LA_SHOW_SHADOW_BOX) &&
+	        !(base->flag & OB_FROMDUPLI) &&
+	        !is_view);
+#else
+	const bool drawshadowbox = false;
+#endif
+
+	if ((drawcone || drawshadowbox) && !v3d->transp) {
 		/* in this case we need to draw delayed */
 		ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
 		return;
@@ -1411,6 +1473,13 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 				dir = -dir;
 			}
 		}
+
+#ifdef WITH_GAMEENGINE
+		if (drawshadowbox) {
+			draw_transp_sun_volume(la);
+		}
+#endif
+
 	}
 	else if (la->type == LA_AREA) {
 		setlinestyle(3);
@@ -7037,19 +7106,31 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	setlinestyle(0);
 }
 
-static void draw_box(float vec[8][3])
+static void draw_box(float vec[8][3], bool solid)
 {
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(vec[0]); glVertex3fv(vec[1]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
-	glVertex3fv(vec[0]); glVertex3fv(vec[4]); glVertex3fv(vec[5]); glVertex3fv(vec[6]);
-	glVertex3fv(vec[7]); glVertex3fv(vec[4]);
-	glEnd();
+	if (!solid) {
+		glBegin(GL_LINE_STRIP);
+		glVertex3fv(vec[0]); glVertex3fv(vec[1]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
+		glVertex3fv(vec[0]); glVertex3fv(vec[4]); glVertex3fv(vec[5]); glVertex3fv(vec[6]);
+		glVertex3fv(vec[7]); glVertex3fv(vec[4]);
+		glEnd();
 
-	glBegin(GL_LINES);
-	glVertex3fv(vec[1]); glVertex3fv(vec[5]);
-	glVertex3fv(vec[2]); glVertex3fv(vec[6]);
-	glVertex3fv(vec[3]); glVertex3fv(vec[7]);
-	glEnd();
+		glBegin(GL_LINES);
+		glVertex3fv(vec[1]); glVertex3fv(vec[5]);
+		glVertex3fv(vec[2]); glVertex3fv(vec[6]);
+		glVertex3fv(vec[3]); glVertex3fv(vec[7]);
+		glEnd();
+	}
+	else {
+		glBegin(GL_QUADS);
+		glVertex3fv(vec[0]); glVertex3fv(vec[1]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
+		glVertex3fv(vec[7]); glVertex3fv(vec[6]); glVertex3fv(vec[5]); glVertex3fv(vec[4]);
+		glVertex3fv(vec[4]); glVertex3fv(vec[5]); glVertex3fv(vec[1]); glVertex3fv(vec[0]);
+		glVertex3fv(vec[3]); glVertex3fv(vec[2]); glVertex3fv(vec[6]); glVertex3fv(vec[7]);
+		glVertex3fv(vec[3]); glVertex3fv(vec[7]); glVertex3fv(vec[4]); glVertex3fv(vec[0]);
+		glVertex3fv(vec[1]); glVertex3fv(vec[5]); glVertex3fv(vec[6]); glVertex3fv(vec[2]);
+		glEnd();
+	}
 }
 
 static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
@@ -7143,7 +7224,7 @@ static void draw_bounding_volume(Object *ob, char type)
 			vec[0][2] = vec[3][2] = vec[4][2] = vec[7][2] = -size[2];
 			vec[1][2] = vec[2][2] = vec[5][2] = vec[6][2] = +size[2];
 			
-			draw_box(vec);
+			draw_box(vec, false);
 		}
 		else {
 			draw_bb_quadric(bb, type, true);
@@ -7151,7 +7232,7 @@ static void draw_bounding_volume(Object *ob, char type)
 	}
 	else {
 		if (type == OB_BOUND_BOX)
-			draw_box(bb->vec);
+			draw_box(bb->vec, false);
 		else
 			draw_bb_quadric(bb, type, false);
 	}
@@ -7187,7 +7268,7 @@ static void drawtexspace(Object *ob)
 	
 	setlinestyle(2);
 
-	draw_box(vec);
+	draw_box(vec, false);
 
 	setlinestyle(0);
 }
@@ -7464,7 +7545,7 @@ static void draw_rigidbody_shape(Object *ob)
 			vec[0][2] = vec[3][2] = vec[4][2] = vec[7][2] = -size[2];
 			vec[1][2] = vec[2][2] = vec[5][2] = vec[6][2] = +size[2];
 			
-			draw_box(vec);
+			draw_box(vec, false);
 			break;
 		case RB_SHAPE_SPHERE:
 			draw_bb_quadric(bb, OB_BOUND_SPHERE, true);
@@ -7928,7 +8009,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
 				VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
 				BKE_boundbox_init_from_minmax(&bb, p0, p1);
-				draw_box(bb.vec);
+				draw_box(bb.vec, false);
 
 #if 0
 				/* draw base resolution bounds */

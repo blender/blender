@@ -825,6 +825,11 @@ static void rna_def_sun_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.001, 100.0, 2, 1);
 	RNA_def_property_ui_text(prop, "Frustum Size", "Size of the frustum used for creating the shadow map");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
+
+	prop = RNA_def_property(srna, "show_shadow_box", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SHOW_SHADOW_BOX);
+	RNA_def_property_ui_text(prop, "Show Shadow Box", "Draw box in 3D view to visualize which object are contained in it");
+	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 }
 
 static void rna_def_hemi_lamp(BlenderRNA *brna)
