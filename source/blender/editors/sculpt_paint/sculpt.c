@@ -2134,28 +2134,28 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 	}
 }
 
-static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float fc[3])
+static void calc_flatten_center(
+        Sculpt *sd, Object *ob,
+        PBVHNode **nodes, int totnode,
+        float r_area_co[3])
 {
 	SculptSession *ss = ob->sculpt;
 	int n;
 
-	int count = 0;
-	int count_flip = 0;
+	/* 0=towards view, 1=flipped */
+	float area_co[2][3] = {{0.0f}};
 
-	float fc_flip[3] = {0.0, 0.0, 0.0};
+	int count[2] = {0};
 
 	(void)sd; /* unused w/o openmp */
-
-	zero_v3(fc);
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
 		SculptUndoNode *unode;
-		/* 0=towards view, 1=flipped */
 		float private_co[2][3] = {{0.0f}};
-		int  private_count[2] = {0, 0};
+		int   private_count[2] = {0};
 		bool use_original;
 
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
@@ -2189,7 +2189,7 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 					float no[3];
 					int flip_index;
 
-					normal_tri_v3(no, UNPACK3(co_tri));
+					cross_tri_v3(no, UNPACK3(co_tri));
 
 					flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
 					add_v3_v3(private_co[flip_index], co);
@@ -2232,60 +2232,60 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 					add_v3_v3(private_co[flip_index], co);
 					private_count[flip_index] += 1;
 				}
-				BKE_pbvh_vertex_iter_end;
 			}
+			BKE_pbvh_vertex_iter_end;
 		}
 
 #pragma omp critical
 		{
-			add_v3_v3(fc,      private_co[0]);
-			add_v3_v3(fc_flip, private_co[1]);
-			count      += private_count[0];
-			count_flip += private_count[1];
+			/* for flatten center */
+			add_v3_v3(area_co[0], private_co[0]);
+			add_v3_v3(area_co[1], private_co[1]);
+
+			/* weights */
+			count[0] += private_count[0];
+			count[1] += private_count[1];
 		}
 	}
-	if (count != 0)
-		mul_v3_fl(fc, 1.0f / count);
-	else if (count_flip != 0)
-		mul_v3_v3fl(fc, fc_flip, 1.0f / count_flip);
-	else
-		zero_v3(fc);
+
+	/* for flatten center */
+	for (n = 0; n < ARRAY_SIZE(area_co); n++) {
+		if (count[n] != 0) {
+			mul_v3_v3fl(r_area_co, area_co[n], 1.0f / count[n]);
+			break;
+		}
+	}
+	if (n == 2) {
+		zero_v3(r_area_co);
+	}
 }
 
 /* this calculates flatten center and area normal together, 
  * amortizing the memory bandwidth and loop overhead to calculate both at the same time */
-static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
-                                                PBVHNode **nodes, int totnode,
-                                                float an[3], float fc[3])
+static void calc_area_normal_and_flatten_center(
+        Sculpt *sd, Object *ob,
+        PBVHNode **nodes, int totnode,
+        float r_area_no[3], float r_area_co[3])
 {
 	SculptSession *ss = ob->sculpt;
 	int n;
 
-	/* for area normal */
-	float out_flip[3] = {0.0f, 0.0f, 0.0f};
-	float fc_flip[3] = {0.0f, 0.0f, 0.0f};
+	/* 0=towards view, 1=flipped */
+	float area_co[2][3] = {{0.0f}};
+	float area_no[2][3] = {{0.0f}};
 
-	/* for flatten center */
-	int count = 0;
-	int count_flipped = 0;
+	int count[2] = {0};
 
 	(void)sd; /* unused w/o openmp */
-	
-	/* for area normal */
-	zero_v3(an);
-
-	/* for flatten center */
-	zero_v3(fc);
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
 		SculptUndoNode *unode;
-		/* 0=towards view, 1=flipped */
 		float private_co[2][3] = {{0.0f}};
 		float private_no[2][3] = {{0.0f}};
-		int  private_count[2] = {0, 0};
+		int   private_count[2] = {0};
 		bool use_original;
 
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
@@ -2370,31 +2370,37 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 
 #pragma omp critical
 		{
-			/* for area normal */
-			add_v3_v3(an,       private_no[0]);
-			add_v3_v3(out_flip, private_no[1]);
-
 			/* for flatten center */
-			add_v3_v3(fc,      private_co[0]);
-			add_v3_v3(fc_flip, private_co[1]);
-			count         += private_count[0];
-			count_flipped += private_count[1];
+			add_v3_v3(area_co[0], private_co[0]);
+			add_v3_v3(area_co[1], private_co[1]);
+
+			/* for area normal */
+			add_v3_v3(area_no[0], private_no[0]);
+			add_v3_v3(area_no[1], private_no[1]);
+
+			/* weights */
+			count[0] += private_count[0];
+			count[1] += private_count[1];
 		}
 	}
 
-	/* for area normal */
-	if (is_zero_v3(an))
-		copy_v3_v3(an, out_flip);
-
-	normalize_v3(an);
-
 	/* for flatten center */
-	if (count != 0)
-		mul_v3_fl(fc, 1.0f / count);
-	else if (count_flipped != 0)
-		mul_v3_v3fl(fc, fc_flip, 1.0f / count_flipped);
-	else
-		zero_v3(fc);
+	for (n = 0; n < ARRAY_SIZE(area_co); n++) {
+		if (count[n] != 0) {
+			mul_v3_v3fl(r_area_co, area_co[n], 1.0f / count[n]);
+			break;
+		}
+	}
+	if (n == 2) {
+		zero_v3(r_area_co);
+	}
+
+	/* for area normal */
+	for (n = 0; n < ARRAY_SIZE(area_no); n++) {
+		if (normalize_v3_v3(r_area_no, area_no[n]) != 0.0f) {
+			break;
+		}
+	}
 }
 
 static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float an[3], float fc[3])
