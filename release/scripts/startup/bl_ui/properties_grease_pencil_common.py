@@ -414,9 +414,7 @@ class GreasePencilDataPanel:
 
         col = split.column(align=True)
         col.prop(gpl, "show_x_ray")
-
-        # if debug:
-        #     layout.prop(gpl, "show_points")
+        col.prop(gpl, "show_points", text="Points")
 
         layout.separator()
 

@@ -775,8 +775,8 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_points", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_DRAWDEBUG);
 	RNA_def_property_ui_text(prop, "Show Points", "Draw the points which make up the strokes (for debugging purposes)");
-	RNA_def_property_update_runtime(prop, "rna_GPencil_update");
-
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+	
 	/* X-Ray */
 	prop = RNA_def_property(srna, "show_x_ray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_NO_XRAY);
