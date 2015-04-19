@@ -389,10 +389,6 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 	PBVHNode **nodes;
 	int n, totnode;
 
-#ifndef _OPENMP
-	(void)sd; /* quied unused warning */
-#endif
-
 	BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
 	/* Disable OpenMP when dynamic-topology is enabled. Otherwise, new
@@ -747,15 +743,15 @@ static void calc_area_center(
         PBVHNode **nodes, int totnode,
         float r_area_co[3])
 {
+	const Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
+	const bool has_bm_orco = ss->bm && sculpt_stroke_dynamic_topology(ss, brush);
 	int n;
 
 	/* 0=towards view, 1=flipped */
 	float area_co[2][3] = {{0.0f}};
 
 	int count[2] = {0};
-
-	(void)sd; /* unused w/o openmp */
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
@@ -773,7 +769,7 @@ static void calc_area_center(
 
 		/* when the mesh is edited we can't rely on original coords
 		 * (original mesh may not even have verts in brush radius) */
-		if (use_original && unode->bm_entry) {
+		if (use_original && has_bm_orco) {
 			float (*orco_coords)[3];
 			int   (*orco_tris)[3];
 			int     orco_tris_num;
@@ -809,9 +805,16 @@ static void calc_area_center(
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				const float *co;
+				const short *no_s;  /* bm_vert only */
 
 				if (use_original) {
-					co = unode->co[vd.i];
+					if (unode->bm_entry) {
+						BM_log_original_vert_data(ss->bm_log, vd.bm_vert, &co, &no_s);
+					}
+					else {
+						co = unode->co[vd.i];
+						no_s = unode->no[vd.i];
+					}
 				}
 				else {
 					co = vd.co;
@@ -823,7 +826,7 @@ static void calc_area_center(
 					int flip_index;
 
 					if (use_original) {
-						normal_short_to_float_v3(no_buf, unode->no[vd.i]);
+						normal_short_to_float_v3(no_buf, no_s);
 						no = no_buf;
 					}
 					else {
@@ -876,6 +879,7 @@ static void calc_area_normal(
 {
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
+	const bool has_bm_orco = ss->bm && sculpt_stroke_dynamic_topology(ss, brush);
 	int n;
 
 	/* 0=towards view, 1=flipped */
@@ -915,7 +919,7 @@ static void calc_area_normal(
 
 		/* when the mesh is edited we can't rely on original coords
 		 * (original mesh may not even have verts in brush radius) */
-		if (use_original && unode->bm_entry) {
+		if (use_original && has_bm_orco) {
 			float (*orco_coords)[3];
 			int   (*orco_tris)[3];
 			int     orco_tris_num;
@@ -951,9 +955,16 @@ static void calc_area_normal(
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				const float *co;
+				const short *no_s;  /* bm_vert only */
 
 				if (use_original) {
-					co = unode->co[vd.i];
+					if (unode->bm_entry) {
+						BM_log_original_vert_data(ss->bm_log, vd.bm_vert, &co, &no_s);
+					}
+					else {
+						co = unode->co[vd.i];
+						no_s = unode->no[vd.i];
+					}
 				}
 				else {
 					co = vd.co;
@@ -965,7 +976,7 @@ static void calc_area_normal(
 					int flip_index;
 
 					if (use_original) {
-						normal_short_to_float_v3(no_buf, unode->no[vd.i]);
+						normal_short_to_float_v3(no_buf, no_s);
 						no = no_buf;
 					}
 					else {
@@ -1013,7 +1024,9 @@ static void calc_area_normal_and_center(
         PBVHNode **nodes, int totnode,
         float r_area_no[3], float r_area_co[3])
 {
+	const Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
+	const bool has_bm_orco = ss->bm && sculpt_stroke_dynamic_topology(ss, brush);
 	int n;
 
 	/* 0=towards view, 1=flipped */
@@ -1021,8 +1034,6 @@ static void calc_area_normal_and_center(
 	float area_no[2][3] = {{0.0f}};
 
 	int count[2] = {0};
-
-	(void)sd; /* unused w/o openmp */
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
@@ -1041,7 +1052,7 @@ static void calc_area_normal_and_center(
 
 		/* when the mesh is edited we can't rely on original coords
 		 * (original mesh may not even have verts in brush radius) */
-		if (use_original && unode->bm_entry) {
+		if (use_original && has_bm_orco) {
 			float (*orco_coords)[3];
 			int   (*orco_tris)[3];
 			int     orco_tris_num;
@@ -1078,9 +1089,16 @@ static void calc_area_normal_and_center(
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				const float *co;
+				const short *no_s;  /* bm_vert only */
 
 				if (use_original) {
-					co = unode->co[vd.i];
+					if (unode->bm_entry) {
+						BM_log_original_vert_data(ss->bm_log, vd.bm_vert, &co, &no_s);
+					}
+					else {
+						co = unode->co[vd.i];
+						no_s = unode->no[vd.i];
+					}
 				}
 				else {
 					co = vd.co;
@@ -1092,7 +1110,7 @@ static void calc_area_normal_and_center(
 					int flip_index;
 
 					if (use_original) {
-						normal_short_to_float_v3(no_buf, unode->no[vd.i]);
+						normal_short_to_float_v3(no_buf, no_s);
 						no = no_buf;
 					}
 					else {
