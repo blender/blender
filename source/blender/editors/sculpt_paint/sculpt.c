@@ -635,7 +635,7 @@ static float frontface(Brush *br, const float sculpt_normal[3],
 
 #if 0
 
-static bool sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float location[3], float an[3])
+static bool sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float location[3], const float area_no[3])
 {
 	if (sculpt_brush_test_fast(test, co)) {
 		float t1[3], t2[3], t3[3], dist;
@@ -643,7 +643,7 @@ static bool sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float loca
 		sub_v3_v3v3(t1, location, co);
 		sub_v3_v3v3(t2, x2, location);
 
-		cross_v3_v3v3(t3, an, t1);
+		cross_v3_v3v3(t3, area_no, t1);
 
 		dist = len_v3(t3) / len_v3(t2);
 
@@ -1378,38 +1378,33 @@ static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float 
 }
 
 /* Calculate primary direction of movement for many brushes */
-static void calc_sculpt_normal(Sculpt *sd, Object *ob,
-                               PBVHNode **nodes, int totnode,
-                               float an[3])
+static void calc_sculpt_normal(
+        Sculpt *sd, Object *ob,
+        PBVHNode **nodes, int totnode,
+        float r_area_no[3])
 {
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	const SculptSession *ss = ob->sculpt;
 
 	switch (brush->sculpt_plane) {
 		case SCULPT_DISP_DIR_VIEW:
-			copy_v3_v3(an, ss->cache->true_view_normal);
+			copy_v3_v3(r_area_no, ss->cache->true_view_normal);
 			break;
 
 		case SCULPT_DISP_DIR_X:
-			an[1] = 0.0;
-			an[2] = 0.0;
-			an[0] = 1.0;
+			ARRAY_SET_ITEMS(r_area_no, 1, 0, 0);
 			break;
 
 		case SCULPT_DISP_DIR_Y:
-			an[0] = 0.0;
-			an[2] = 0.0;
-			an[1] = 1.0;
+			ARRAY_SET_ITEMS(r_area_no, 0, 1, 0);
 			break;
 
 		case SCULPT_DISP_DIR_Z:
-			an[0] = 0.0;
-			an[1] = 0.0;
-			an[2] = 1.0;
+			ARRAY_SET_ITEMS(r_area_no, 0, 0, 1);
 			break;
 
 		case SCULPT_DISP_DIR_AREA:
-			calc_area_normal(sd, ob, nodes, totnode, an);
+			calc_area_normal(sd, ob, nodes, totnode, r_area_no);
 			break;
 
 		default:
@@ -2494,7 +2489,10 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 	}
 }
 
-static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float an[3], float fc[3])
+static void calc_sculpt_plane(
+        Sculpt *sd, Object *ob,
+        PBVHNode **nodes, int totnode,
+        float r_area_no[3], float r_area_co[3])
 {
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
@@ -2505,29 +2503,23 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
-				copy_v3_v3(an, ss->cache->true_view_normal);
+				copy_v3_v3(r_area_no, ss->cache->true_view_normal);
 				break;
 
 			case SCULPT_DISP_DIR_X:
-				an[1] = 0.0;
-				an[2] = 0.0;
-				an[0] = 1.0;
+				ARRAY_SET_ITEMS(r_area_no, 1, 0, 0);
 				break;
 
 			case SCULPT_DISP_DIR_Y:
-				an[0] = 0.0;
-				an[2] = 0.0;
-				an[1] = 1.0;
+				ARRAY_SET_ITEMS(r_area_no, 0, 1, 0);
 				break;
 
 			case SCULPT_DISP_DIR_Z:
-				an[0] = 0.0;
-				an[1] = 0.0;
-				an[2] = 1.0;
+				ARRAY_SET_ITEMS(r_area_no, 0, 0, 1);
 				break;
 
 			case SCULPT_DISP_DIR_AREA:
-				calc_area_normal_and_center(sd, ob, nodes, totnode, an, fc);
+				calc_area_normal_and_center(sd, ob, nodes, totnode, r_area_no, r_area_co);
 				break;
 
 			default:
@@ -2537,32 +2529,32 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 		/* for flatten center */
 		/* flatten center has not been calculated yet if we are not using the area normal */
 		if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA)
-			calc_area_center(sd, ob, nodes, totnode, fc);
+			calc_area_center(sd, ob, nodes, totnode, r_area_co);
 
 		/* for area normal */
-		copy_v3_v3(ss->cache->sculpt_normal, an);
+		copy_v3_v3(ss->cache->sculpt_normal, r_area_no);
 
 		/* for flatten center */
-		copy_v3_v3(ss->cache->last_center, fc);
+		copy_v3_v3(ss->cache->last_center, r_area_co);
 	}
 	else {
 		/* for area normal */
-		copy_v3_v3(an, ss->cache->sculpt_normal);
+		copy_v3_v3(r_area_no, ss->cache->sculpt_normal);
 
 		/* for flatten center */
-		copy_v3_v3(fc, ss->cache->last_center);
+		copy_v3_v3(r_area_co, ss->cache->last_center);
 
 		/* for area normal */
-		flip_v3(an, ss->cache->mirror_symmetry_pass);
+		flip_v3(r_area_no, ss->cache->mirror_symmetry_pass);
 
 		/* for flatten center */
-		flip_v3(fc, ss->cache->mirror_symmetry_pass);
+		flip_v3(r_area_co, ss->cache->mirror_symmetry_pass);
 
 		/* for area normal */
-		mul_m4_v3(ss->cache->symm_rot_mat, an);
+		mul_m4_v3(ss->cache->symm_rot_mat, r_area_no);
 
 		/* for flatten center */
-		mul_m4_v3(ss->cache->symm_rot_mat, fc);
+		mul_m4_v3(ss->cache->symm_rot_mat, r_area_co);
 	}
 }
 
@@ -2626,8 +2618,8 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 	float bstrength = ss->cache->bstrength;
 	const float radius = ss->cache->radius;
 
-	float an[3];
-	float fc[3];
+	float area_no[3];
+	float area_co[3];
 
 	float offset = get_offset(sd, ss);
 
@@ -2637,13 +2629,13 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
 	float temp[3];
 
-	calc_sculpt_plane(sd, ob, nodes, totnode, an, fc);
+	calc_sculpt_plane(sd, ob, nodes, totnode, area_no, area_co);
 
 	displace = radius * offset;
 
-	mul_v3_v3v3(temp, an, ss->cache->scale);
+	mul_v3_v3v3(temp, area_no, ss->cache->scale);
 	mul_v3_fl(temp, displace);
-	add_v3_v3(fc, temp);
+	add_v3_v3(area_co, temp);
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
@@ -2661,7 +2653,7 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 				float intr[3];
 				float val[3];
 
-				point_plane_project(intr, vd.co, an, fc);
+				point_plane_project(intr, vd.co, area_no, area_co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
@@ -2691,8 +2683,8 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	
 	float displace;
 
-	float an[3];
-	float fc[3];
+	float area_no[3];
+	float area_co[3];
 
 	int n;
 
@@ -2700,7 +2692,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 	bool flip;
 
-	calc_sculpt_plane(sd, ob, nodes, totnode, an, fc);
+	calc_sculpt_plane(sd, ob, nodes, totnode, area_no, area_co);
 
 	flip = bstrength < 0;
 
@@ -2711,11 +2703,11 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 	displace = radius * (0.25f + offset);
 
-	mul_v3_v3v3(temp, an, ss->cache->scale);
+	mul_v3_v3v3(temp, area_no, ss->cache->scale);
 	mul_v3_fl(temp, displace);
-	add_v3_v3(fc, temp);
+	add_v3_v3(area_co, temp);
 
-	/* add_v3_v3v3(p, ss->cache->location, an); */
+	/* add_v3_v3v3(p, ss->cache->location, area_no); */
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
@@ -2730,11 +2722,11 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 		{
 			if (sculpt_brush_test_sq(&test, vd.co)) {
-				if (plane_point_side_flip(vd.co, an, fc, flip)) {
+				if (plane_point_side_flip(vd.co, area_no, area_co, flip)) {
 					float intr[3];
 					float val[3];
 
-					point_plane_project(intr, vd.co, an, fc);
+					point_plane_project(intr, vd.co, area_no, area_co);
 
 					sub_v3_v3v3(val, intr, vd.co);
 
@@ -2742,7 +2734,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 						/* note, the normal from the vertices is ignored,
 						 * causes glitch with planes, see: T44390 */
 						const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrtf(test.dist),
-						                                            NULL, an, vd.mask ? *vd.mask : 0.0f);
+						                                            NULL, area_no, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2767,9 +2759,9 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 	
 	float displace;
 
-	float sn[3];
-	float an[3];
-	float fc[3];
+	float area_no_sp[3];  /* the sculpt-plane normal (whatever its set to) */
+	float area_no[3];     /* geometry normal */
+	float area_co[3];
 
 	int n;
 
@@ -2780,12 +2772,12 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
 	bool flip;
 
-	calc_sculpt_plane(sd, ob, nodes, totnode, sn, fc);
+	calc_sculpt_plane(sd, ob, nodes, totnode, area_no_sp, area_co);
 
 	if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL))
-		calc_area_normal(sd, ob, nodes, totnode, an);
+		calc_area_normal(sd, ob, nodes, totnode, area_no);
 	else
-		copy_v3_v3(an, sn);
+		copy_v3_v3(area_no, area_no_sp);
 
 	/* delay the first daub because grab delta is not setup */
 	if (ss->cache->first_time)
@@ -2800,16 +2792,16 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
 	displace = radius * (0.25f + offset);
 
-	mul_v3_v3v3(temp, sn, ss->cache->scale);
+	mul_v3_v3v3(temp, area_no_sp, ss->cache->scale);
 	mul_v3_fl(temp, displace);
-	add_v3_v3(fc, temp);
+	add_v3_v3(area_co, temp);
 
 	/* init mat */
-	cross_v3_v3v3(mat[0], an, ss->cache->grab_delta_symmetry);
+	cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
 	mat[0][3] = 0;
-	cross_v3_v3v3(mat[1], an, mat[0]);
+	cross_v3_v3v3(mat[1], area_no, mat[0]);
 	mat[1][3] = 0;
-	copy_v3_v3(mat[2], an);
+	copy_v3_v3(mat[2], area_no);
 	mat[2][3] = 0;
 	copy_v3_v3(mat[3], ss->cache->location);
 	mat[3][3] = 1;
@@ -2833,11 +2825,11 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 		{
 			if (sculpt_brush_test_cube(&test, vd.co, mat)) {
-				if (plane_point_side_flip(vd.co, sn, fc, flip)) {
+				if (plane_point_side_flip(vd.co, area_no_sp, area_co, flip)) {
 					float intr[3];
 					float val[3];
 
-					point_plane_project(intr, vd.co, sn, fc);
+					point_plane_project(intr, vd.co, area_no_sp, area_co);
 
 					sub_v3_v3v3(val, intr, vd.co);
 
@@ -2846,7 +2838,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 						 * causes glitch with planes, see: T44390 */
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            ss->cache->radius * test.dist,
-						                                            NULL, an, vd.mask ? *vd.mask : 0.0f);
+						                                            NULL, area_no, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2868,8 +2860,8 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	float bstrength = ss->cache->bstrength;
 	const float radius = ss->cache->radius;
 
-	float an[3];
-	float fc[3];
+	float area_no[3];
+	float area_co[3];
 	float offset = get_offset(sd, ss);
 
 	float displace;
@@ -2878,13 +2870,13 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 	float temp[3];
 
-	calc_sculpt_plane(sd, ob, nodes, totnode, an, fc);
+	calc_sculpt_plane(sd, ob, nodes, totnode, area_no, area_co);
 
 	displace = radius * offset;
 
-	mul_v3_v3v3(temp, an, ss->cache->scale);
+	mul_v3_v3v3(temp, area_no, ss->cache->scale);
 	mul_v3_fl(temp, displace);
-	add_v3_v3(fc, temp);
+	add_v3_v3(area_co, temp);
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
@@ -2899,11 +2891,11 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 		{
 			if (sculpt_brush_test_sq(&test, vd.co)) {
-				if (plane_point_side(vd.co, an, fc)) {
+				if (plane_point_side(vd.co, area_no, area_co)) {
 					float intr[3];
 					float val[3];
 
-					point_plane_project(intr, vd.co, an, fc);
+					point_plane_project(intr, vd.co, area_no, area_co);
 
 					sub_v3_v3v3(val, intr, vd.co);
 
@@ -2932,8 +2924,8 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	float bstrength = ss->cache->bstrength;
 	const float radius = ss->cache->radius;
 
-	float an[3];
-	float fc[3];
+	float area_no[3];
+	float area_co[3];
 	float offset = get_offset(sd, ss);
 
 	float displace;
@@ -2942,13 +2934,13 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 	float temp[3];
 
-	calc_sculpt_plane(sd, ob, nodes, totnode, an, fc);
+	calc_sculpt_plane(sd, ob, nodes, totnode, area_no, area_co);
 
 	displace = -radius * offset;
 
-	mul_v3_v3v3(temp, an, ss->cache->scale);
+	mul_v3_v3v3(temp, area_no, ss->cache->scale);
 	mul_v3_fl(temp, displace);
-	add_v3_v3(fc, temp);
+	add_v3_v3(area_co, temp);
 
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
@@ -2963,11 +2955,11 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 		{
 			if (sculpt_brush_test_sq(&test, vd.co)) {
-				if (!plane_point_side(vd.co, an, fc)) {
+				if (!plane_point_side(vd.co, area_no, area_co)) {
 					float intr[3];
 					float val[3];
 
-					point_plane_project(intr, vd.co, an, fc);
+					point_plane_project(intr, vd.co, area_no, area_co);
 
 					sub_v3_v3v3(val, intr, vd.co);
 
@@ -2993,7 +2985,7 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
-	float offset[3]/*, an[3]*/;
+	float offset[3]/*, area_no[3]*/;
 	int n;
 	float gravity_vector[3];
 
