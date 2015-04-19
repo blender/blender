@@ -53,7 +53,7 @@
  * Ensure we don't have dirty tags for the edge queue, and that they are left cleared.
  * (slow, even for debug mode, so leave disabled for now).
  */
-#if defined(USE_EDGEQUEUE_TAG)
+#if defined(USE_EDGEQUEUE_TAG) && 0
 #  if !defined(NDEBUG)
 #    define USE_EDGEQUEUE_TAG_VERIFY
 #  endif
