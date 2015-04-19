@@ -1169,11 +1169,11 @@ static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 	const MVert *mvert = ss->mvert;
 	float (*deform_co)[3] = ss->deform_cos;
 
-	zero_v3(avg);
-		
 	/* Don't modify corner vertices */
 	if (vert_map->count > 1) {
 		int i, total = 0;
+
+		zero_v3(avg);
 
 		for (i = 0; i < vert_map->count; i++) {
 			const MPoly *p = &ss->mpoly[vert_map->indices[i]];
@@ -1234,20 +1234,21 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
 {
 	const int vfcount = BM_vert_face_count(v);
 
-	zero_v3(avg);
-		
 	/* Don't modify corner vertices */
 	if (vfcount > 1) {
 		BMIter liter;
 		BMLoop *l;
 		int i, total = 0;
 
+		zero_v3(avg);
+
 		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-			BMVert *adj_v[2] = {l->prev->v, l->next->v};
+			const BMVert *adj_v[2] = {l->prev->v, l->next->v};
 
 			for (i = 0; i < ARRAY_SIZE(adj_v); i++) {
-				if (vfcount != 2 || BM_vert_face_count(adj_v[i]) <= 2) {
-					add_v3_v3(avg, adj_v[i]->co);
+				const BMVert *v_other = adj_v[i];
+				if (vfcount != 2 || BM_vert_face_count(v_other) <= 2) {
+					add_v3_v3(avg, v_other->co);
 					total++;
 				}
 			}
@@ -1263,7 +1264,7 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
 }
 
 /* Same logic as neighbor_average_mask(), but for bmesh rather than mesh */
-static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
+static float bmesh_neighbor_average_mask(BMVert *v, const int cd_vert_mask_offset)
 {
 	BMIter liter;
 	BMLoop *l;
@@ -1272,13 +1273,11 @@ static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
 
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
 		/* skip this vertex */
-		BMVert *adj_v[2] = {l->prev->v, l->next->v};
+		const BMVert *adj_v[2] = {l->prev->v, l->next->v};
 
 		for (i = 0; i < ARRAY_SIZE(adj_v); i++) {
-			BMVert *v2 = adj_v[i];
-			float *vmask = CustomData_bmesh_get(&bm->vdata,
-			                                    v2->head.data,
-			                                    CD_PAINT_MASK);
+			const BMVert *v_other = adj_v[i];
+			const float *vmask = BM_ELEM_CD_GET_VOID_P(v_other, cd_vert_mask_offset);
 			avg += (*vmask);
 			total++;
 		}
@@ -1288,9 +1287,7 @@ static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
 		return avg / (float)total;
 	}
 	else {
-		float *vmask = CustomData_bmesh_get(&bm->vdata,
-			                                v->head.data,
-			                                CD_PAINT_MASK);
+		const float *vmask = BM_ELEM_CD_GET_VOID_P(v, cd_vert_mask_offset);
 		return (*vmask);
 	}
 }
@@ -1353,7 +1350,7 @@ static void do_bmesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node,
 			                                            vd.no, vd.fno,
 			                                            smooth_mask ? 0 : *vd.mask);
 			if (smooth_mask) {
-				float val = bmesh_neighbor_average_mask(ss->bm, vd.bm_vert) - *vd.mask;
+				float val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset) - *vd.mask;
 				val *= fade * bstrength;
 				*vd.mask += val;
 				CLAMP(*vd.mask, 0, 1);
@@ -1389,7 +1386,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	float *tmpgrid_mask, *tmprow_mask;
 	int v1, v2, v3, v4;
 	int thread_num;
-	BLI_bitmap **grid_hidden;
+	BLI_bitmap * const *grid_hidden;
 	int *grid_indices, totgrid, gridsize, i, x, y;
 
 	sculpt_brush_test_init(ss, &test);
@@ -1414,7 +1411,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 
 	for (i = 0; i < totgrid; ++i) {
 		int gi = grid_indices[i];
-		BLI_bitmap *gh = grid_hidden[gi];
+		const BLI_bitmap *gh = grid_hidden[gi];
 		data = griddata[gi];
 		adj = &gridadj[gi];
 
