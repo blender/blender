@@ -49,6 +49,15 @@
 
 /* don't add edges into the queue multiple times */
 #define USE_EDGEQUEUE_TAG
+/**
+ * Ensure we don't have dirty tags for the edge queue, and that they are left cleared.
+ * (slow, even for debug mode, so leave disabled for now).
+ */
+#if defined(USE_EDGEQUEUE_TAG)
+#  if !defined(NDEBUG)
+#    define USE_EDGEQUEUE_TAG_VERIFY
+#  endif
+#endif
 
 // #define USE_VERIFY
 
@@ -606,6 +615,37 @@ typedef struct {
 #  define EDGE_QUEUE_DISABLE(e) BM_elem_flag_disable((CHECK_TYPE_INLINE(e, BMEdge *), e), BM_ELEM_TAG)
 #endif
 
+#ifdef USE_EDGEQUEUE_TAG_VERIFY
+/* simply check no edges are tagged
+ * (it's a requirement that edges enter and leave a clean tag state) */
+static void pbvh_bmesh_edge_tag_verify(PBVH *bvh)
+{
+	int n;
+
+	for (n = 0; n < bvh->totnode; n++) {
+		PBVHNode *node = &bvh->nodes[n];
+		GSetIterator gs_iter;
+		if (node->bm_faces) {
+			GSET_ITER (gs_iter, node->bm_faces) {
+				BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
+				BMEdge *e_tri[3];
+				BMLoop *l_iter;
+
+				BLI_assert(f->len == 3);
+				l_iter = BM_FACE_FIRST_LOOP(f);
+				e_tri[0] = l_iter->e; l_iter = l_iter->next;
+				e_tri[1] = l_iter->e; l_iter = l_iter->next;
+				e_tri[2] = l_iter->e;
+
+				BLI_assert((EDGE_QUEUE_TEST(e_tri[0]) == false) &&
+				           (EDGE_QUEUE_TEST(e_tri[1]) == false) &&
+				           (EDGE_QUEUE_TEST(e_tri[2]) == false));
+			}
+		}
+	}
+}
+#endif
+
 static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
 	BMVert *v_tri[3];
@@ -675,7 +715,13 @@ static void long_edge_queue_edge_add_recursive(
         const float len_sq, float limit_len)
 {
 	BLI_assert(len_sq > SQUARE(limit_len));
-	edge_queue_insert(eq_ctx, l_edge->e, -len_sq);
+
+#ifdef USE_EDGEQUEUE_TAG
+	if (EDGE_QUEUE_TEST(l_edge->e) == false)
+#endif
+	{
+		edge_queue_insert(eq_ctx, l_edge->e, -len_sq);
+	}
 
 	/* temp support previous behavior! */
 	if (UNLIKELY(G.debug_value == 1234)) {
@@ -703,17 +749,12 @@ static void long_edge_queue_edge_add_recursive(
 			BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
 			int i;
 			for (i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
-#ifdef USE_EDGEQUEUE_TAG
-				if (EDGE_QUEUE_TEST(l_adjacent[i]->e) == false)
-#endif
-				{
-					len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
-					if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
-//						edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
-						long_edge_queue_edge_add_recursive(
-						        eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i],
-						        len_sq_other, limit_len);
-					}
+				len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
+				if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
+//					edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
+					long_edge_queue_edge_add_recursive(
+					        eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i],
+					        len_sq_other, limit_len);
 				}
 			}
 		} while ((l_iter = l_iter->radial_next) != l_end);
@@ -748,9 +789,6 @@ static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
 		/* Check each edge of the face */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-#ifdef USE_EDGEQUEUE_TAG
-			if (EDGE_QUEUE_TEST(l_iter->e) == false)
-#endif
 			{
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 				const float len_sq = BM_edge_calc_length_squared(l_iter->e);
@@ -804,6 +842,11 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 	eq_ctx->q->limit_len = bvh->bm_max_edge_len;
 #endif
+
+#ifdef USE_EDGEQUEUE_TAG_VERIFY
+	pbvh_bmesh_edge_tag_verify(bvh);
+#endif
+
 
 	for (n = 0; n < bvh->totnode; n++) {
 		PBVHNode *node = &bvh->nodes[n];
@@ -999,9 +1042,8 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 {
 	bool any_subdivided = false;
 
-#if defined(USE_EDGEQUEUE_TAG) && !defined(NDEBUG)
-#  define USE_EDGEQUEUE_TAG_VALIDATE
-	int heap_tot = 0, heap_overlap = 0;
+#ifdef USE_EDGEQUEUE_TAG_VERIFY
+	pbvh_bmesh_edge_tag_verify(bvh);
 #endif
 
 
@@ -1013,15 +1055,8 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
-#ifdef USE_EDGEQUEUE_TAG_VALIDATE
-		heap_tot += 1;
-#endif
-
 		/* Check that the edge still exists */
 		if (!(e = BM_edge_exists(v1, v2))) {
-#ifdef USE_EDGEQUEUE_TAG_VALIDATE
-			heap_overlap += 1;
-#endif
 			continue;
 		}
 #ifdef USE_EDGEQUEUE_TAG
@@ -1052,11 +1087,10 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
 		pbvh_bmesh_split_edge(eq_ctx, bvh, e, edge_loops);
 	}
 
-#ifdef USE_EDGEQUEUE_TAG_VALIDATE
-	// printf("%d %d\n", heap_total, heap_overlap);
-	BLI_assert(heap_overlap == 0);
-#undef USE_EDGEQUEUE_TAG_VALIDATE
+#ifdef USE_EDGEQUEUE_TAG_VERIFY
+	pbvh_bmesh_edge_tag_verify(bvh);
 #endif
+
 	return any_subdivided;
 }
 
