@@ -303,6 +303,47 @@ static void sculpt_orig_vert_data_update(SculptOrigVertData *orig_data,
 	}
 }
 
+/** \name SculptProjectVector
+ *
+ * Fast-path for #project_plane_v3_v3v3
+ *
+ * \{ */
+
+typedef struct SculptProjectVector {
+	float plane[3];
+	float len_sq;
+	float len_sq_inv_neg;
+	bool  is_valid;
+
+} SculptProjectVector;
+
+/**
+ * \param plane  Direction, can be any length.
+ */
+static void sculpt_project_v3_cache_init(
+        SculptProjectVector *spvc, const float plane[3])
+{
+	copy_v3_v3(spvc->plane, plane);
+	spvc->len_sq = len_squared_v3(spvc->plane);
+	spvc->is_valid = (spvc->len_sq > FLT_EPSILON);
+	spvc->len_sq_inv_neg = (spvc->is_valid) ? -1.0f / spvc->len_sq : 0.0f;
+}
+
+static void sculpt_project_v3(
+        const SculptProjectVector *spvc, const float vec[3],
+        float r_vec[3])
+{
+#if 0
+	project_plane_v3_v3v3(r_vec, vec, spvc->plane);
+#else
+	/* inline the projection, cache `-1.0 / dot_v3_v3(v_proj, v_proj)` */
+	madd_v3_v3fl(r_vec, spvc->plane, dot_v3v3(vec, spvc->plane) * spvc->len_sq_inv_neg);
+#endif
+}
+
+/** \} */
+
+
 /**********************************************************************/
 
 /* Returns true if the stroke will use dynamic topology, false
@@ -1682,15 +1723,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	float brush_alpha;
 	int n;
 
-	/* vars for handling projection when calculating the pinch vector.
-	 * Use surface normal for 'pinch_proj', so the vertices are pinched towards a line instead of a single point.
-	 * Without this we get a 'flat' surface surrounding the pinch */
-	const float  *pinch_proj = ss->cache->sculpt_normal_symm;
-	const float   pinch_proj_len_sq = len_squared_v3(pinch_proj);
-	const bool do_pinch_proj = (pinch_proj_len_sq > FLT_EPSILON);
-	/* simplifies projection calc below */
-	const float pinch_proj_len_sq_inv_neg = do_pinch_proj ? -1.0f / pinch_proj_len_sq : 0.0f;
-
+	SculptProjectVector spvc;
 
 	/* offset with as much as possible factored in already */
 	mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
@@ -1707,6 +1740,10 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	flippedbstrength = (bstrength < 0) ? -crease_correction * bstrength : crease_correction * bstrength;
 
 	if (brush->sculpt_tool == SCULPT_TOOL_BLOB) flippedbstrength *= -1.0f;
+
+	/* Use surface normal for 'spvc', so the vertices are pinched towards a line instead of a single point.
+	 * Without this we get a 'flat' surface surrounding the pinch */
+	sculpt_project_v3_cache_init(&spvc, ss->cache->sculpt_normal_symm);
 
 	/* threaded loop over nodes */
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
@@ -1732,14 +1769,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				sub_v3_v3v3(val1, test.location, vd.co);
 				mul_v3_fl(val1, fade * flippedbstrength);
 
-				if (do_pinch_proj) {
-#if 0
-					project_plane_v3_v3v3(val1, val1, v_proj);
-#else
-					/* inline the projection, cache `-1.0 / dot_v3_v3(v_proj, v_proj)` */
-					madd_v3_v3fl(val1, pinch_proj, dot_v3v3(val1, pinch_proj) * pinch_proj_len_sq_inv_neg);
-#endif
-				}
+				sculpt_project_v3(&spvc, val1, val1);
 
 				/* then we draw */
 				mul_v3_v3fl(val2, offset, fade);
