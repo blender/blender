@@ -43,6 +43,7 @@
 #include "KX_FontObject.h"
 #include "RAS_IPolygonMaterial.h"
 #include "ListValue.h"
+#include "KX_PythonCallBack.h"
 #include "SCA_LogicManager.h"
 #include "SCA_TimeEventManager.h"
 //#include "SCA_AlwaysEventManager.h"
@@ -2132,30 +2133,10 @@ void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 
 void KX_Scene::RunDrawingCallbacks(PyObject *cb_list)
 {
-	Py_ssize_t len;
+	if (!cb_list || PyList_GET_SIZE(cb_list) == 0)
+		return;
 
-	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
-	{
-		PyObject *args = PyTuple_New(0); // save python creating each call
-		PyObject *func;
-		PyObject *ret;
-
-		// Iterate the list and run the callbacks
-		for (Py_ssize_t pos=0; pos < len; pos++)
-		{
-			func= PyList_GET_ITEM(cb_list, pos);
-			ret= PyObject_Call(func, args, NULL);
-			if (ret==NULL) {
-				PyErr_Print();
-				PyErr_Clear();
-			}
-			else {
-				Py_DECREF(ret);
-			}
-		}
-
-		Py_DECREF(args);
-	}
+	RunPythonCallBackList(cb_list, NULL, 0, 0);
 }
 
 //----------------------------------------------------------------------------

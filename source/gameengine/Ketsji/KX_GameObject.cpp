@@ -69,6 +69,7 @@
 #include "BL_ActionManager.h"
 #include "BL_Action.h"
 
+#include "KX_PythonCallBack.h"
 #include "PyObjectPlus.h" /* python stuff */
 #include "BLI_utildefines.h"
 #include "python_utildefines.h"
@@ -1565,67 +1566,14 @@ void KX_GameObject::RegisterCollisionCallbacks()
 void KX_GameObject::RunCollisionCallbacks(KX_GameObject *collider, const MT_Vector3 &point, const MT_Vector3 &normal)
 {
 #ifdef WITH_PYTHON
-	Py_ssize_t len;
-	PyObject* collision_callbacks = m_collisionCallbacks;
+	if (!m_collisionCallbacks || PyList_GET_SIZE(m_collisionCallbacks) == 0)
+		return;
 
-	if (collision_callbacks && (len=PyList_GET_SIZE(collision_callbacks)))
-	{
-		// Argument tuples are created lazily, only when they are needed.
-		PyObject *args_3 = NULL;
-		PyObject *args_1 = NULL; // Only for compatibility with pre-2.74 callbacks that take 1 argument.
+	PyObject *args[] = {collider->GetProxy(), PyObjectFrom(point), PyObjectFrom(normal)};
+	RunPythonCallBackList(m_collisionCallbacks, args, 1, ARRAY_SIZE(args));
 
-		PyObject *func;
-		PyObject *ret;
-		int co_argcount;
-
-		// Iterate the list and run the callbacks
-		for (Py_ssize_t pos=0; pos < len; pos++)
-		{
-			func = PyList_GET_ITEM(collision_callbacks, pos);
-
-			// Get the number of arguments, supporting functions, methods and generic callables.
-			if (PyMethod_Check(func)) {
-				// Take away the 'self' argument for methods.
-				co_argcount = ((PyCodeObject *)PyFunction_GET_CODE(PyMethod_GET_FUNCTION(func)))->co_argcount - 1;
-			} else if (PyFunction_Check(func)) {
-				co_argcount = ((PyCodeObject *)PyFunction_GET_CODE(func))->co_argcount;
-			} else {
-				// We'll just assume the callable takes the correct number of arguments.
-				co_argcount = 3;
-			}
-
-			// Check whether the function expects the colliding object only,
-			// or also the point and normal.
-			if (co_argcount <= 1) {
-				// One argument, or *args (which gives co_argcount == 0)
-				if (args_1 == NULL) {
-					args_1 = PyTuple_New(1);
-					PyTuple_SET_ITEMS(args_1, collider->GetProxy());
-				}
-				ret = PyObject_Call(func, args_1, NULL);
-			} else {
-				// More than one argument, assume we can give point & normal.
-				if (args_3 == NULL) {
-					args_3 = PyTuple_New(3);
-					PyTuple_SET_ITEMS(args_3,
-					                  collider->GetProxy(),
-					                  PyObjectFrom(point),
-					                  PyObjectFrom(normal));
-				}
-				ret = PyObject_Call(func, args_3, NULL);
-			}
-
-			if (ret == NULL) {
-				PyErr_Print();
-				PyErr_Clear();
-			}
-			else {
-				Py_DECREF(ret);
-			}
-		}
-
-		if (args_3) Py_DECREF(args_3);
-		if (args_1) Py_DECREF(args_1);
+	for (unsigned int i = 0; i < ARRAY_SIZE(args); ++i) {
+		Py_DECREF(args[i]);
 	}
 #endif
 }

@@ -55,6 +55,7 @@ set(SRC
 	StringValue.cpp
 	Value.cpp
 	VectorValue.cpp
+	KX_PythonCallBack.cpp
 
 	BoolValue.h
 	ConstExpr.h
@@ -77,6 +78,7 @@ set(SRC
 	Value.h
 	VectorValue.h
 	VoidValue.h
+	KX_PythonCallBack.h
 )
 
 blender_add_lib(ge_logic_expressions "${SRC}" "${INC}" "${INC_SYS}")
