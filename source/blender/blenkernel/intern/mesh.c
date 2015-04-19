@@ -1821,8 +1821,9 @@ float (*BKE_mesh_vertexCos_get(const Mesh *me, int *r_numVerts))[3]
  * Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found
  */
-int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
-                             unsigned vert)
+int poly_find_loop_from_vert(
+        const MPoly *poly, const MLoop *loopstart,
+        unsigned vert)
 {
 	int j;
 	for (j = 0; j < poly->totloop; j++, loopstart++) {
@@ -1838,20 +1839,22 @@ int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
  * vertex. Returns the index of the loop matching vertex, or -1 if the
  * vertex is not in \a poly
  */
-int poly_get_adj_loops_from_vert(unsigned r_adj[3], const MPoly *poly,
-                                 const MLoop *mloop, unsigned vert)
+int poly_get_adj_loops_from_vert(
+        unsigned r_adj[2], const MPoly *poly,
+        const MLoop *mloop, unsigned vert)
 {
 	int corner = poly_find_loop_from_vert(poly,
 	                                      &mloop[poly->loopstart],
 	                                      vert);
 		
 	if (corner != -1) {
+#if 0	/* unused - this loop */
 		const MLoop *ml = &mloop[poly->loopstart + corner];
+#endif
 
 		/* vertex was found */
 		r_adj[0] = ME_POLY_LOOP_PREV(mloop, poly, corner)->v;
-		r_adj[1] = ml->v;
-		r_adj[2] = ME_POLY_LOOP_NEXT(mloop, poly, corner)->v;
+		r_adj[1] = ME_POLY_LOOP_NEXT(mloop, poly, corner)->v;
 	}
 
 	return corner;

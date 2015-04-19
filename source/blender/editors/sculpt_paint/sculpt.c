@@ -1177,12 +1177,11 @@ static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 
 		for (i = 0; i < vert_map->count; i++) {
 			const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-			unsigned f_adj_v[3];
+			unsigned f_adj_v[2];
 
 			if (poly_get_adj_loops_from_vert(f_adj_v, p, ss->mloop, vert) != -1) {
 				int j;
-			
-				for (j = 0; j < 3; j++) {
+				for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
 					if (vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2) {
 						add_v3_v3(avg, deform_co ? deform_co[f_adj_v[j]] :
 						          mvert[f_adj_v[j]].co);
@@ -1213,12 +1212,11 @@ static float neighbor_average_mask(SculptSession *ss, unsigned vert)
 
 	for (i = 0; i < ss->pmap[vert].count; i++) {
 		const MPoly *p = &ss->mpoly[ss->pmap[vert].indices[i]];
-		unsigned f_adj_v[3];
+		unsigned f_adj_v[2];
 
 		if (poly_get_adj_loops_from_vert(f_adj_v, p, ss->mloop, vert) != -1) {
 			int j;
-			
-			for (j = 0; j < 3; j++) {
+			for (j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
 				avg += vmask[f_adj_v[j]];
 				total++;
 			}
@@ -1245,9 +1243,9 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
 		int i, total = 0;
 
 		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-			BMVert *adj_v[3] = {l->prev->v, v, l->next->v};
+			BMVert *adj_v[2] = {l->prev->v, l->next->v};
 
-			for (i = 0; i < 3; i++) {
+			for (i = 0; i < ARRAY_SIZE(adj_v); i++) {
 				if (vfcount != 2 || BM_vert_face_count(adj_v[i]) <= 2) {
 					add_v3_v3(avg, adj_v[i]->co);
 					total++;
@@ -1273,9 +1271,10 @@ static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
 	int i, total = 0;
 
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		BMVert *adj_v[3] = {l->prev->v, v, l->next->v};
+		/* skip this vertex */
+		BMVert *adj_v[2] = {l->prev->v, l->next->v};
 
-		for (i = 0; i < 3; i++) {
+		for (i = 0; i < ARRAY_SIZE(adj_v); i++) {
 			BMVert *v2 = adj_v[i];
 			float *vmask = CustomData_bmesh_get(&bm->vdata,
 			                                    v2->head.data,
