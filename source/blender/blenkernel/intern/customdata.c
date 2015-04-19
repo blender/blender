@@ -2294,7 +2294,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 		}
 	}
 
-	if (count > SOURCE_BUF_SIZE) MEM_freeN(sources);
+	if (count > SOURCE_BUF_SIZE) MEM_freeN((void *)sources);
 }
 
 void CustomData_swap(struct CustomData *data, int index, const int *corner_indices)
@@ -3852,7 +3852,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, const CustomDataTra
 		if (tmp_data_src) {
 			if (UNLIKELY(sources_num > tmp_buff_size)) {
 				tmp_buff_size = (size_t)sources_num;
-				tmp_data_src = MEM_reallocN(tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size);
+				tmp_data_src = MEM_reallocN((void *)tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size);
 			}
 
 			for (j = 0; j < sources_num; j++) {

@@ -728,7 +728,8 @@ static void camera_stereo3d_model_matrix(Object *camera, const bool is_left, flo
 	if (((pivot == CAM_S3D_PIVOT_LEFT) && is_left) ||
 	    ((pivot == CAM_S3D_PIVOT_RIGHT) && !is_left))
 	{
-		return camera_model_matrix(camera, r_modelmat);
+		camera_model_matrix(camera, r_modelmat);
+		return;
 	}
 	else {
 		float size[3];

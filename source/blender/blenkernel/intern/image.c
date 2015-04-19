@@ -960,8 +960,10 @@ void BKE_image_memorypack(Image *ima)
 {
 	ImBuf *ibuf;
 
-	if ((ima->flag & IMA_IS_MULTIVIEW))
-		return image_memorypack_multiview(ima);
+	if ((ima->flag & IMA_IS_MULTIVIEW)) {
+		image_memorypack_multiview(ima);
+		return;
+	}
 
 	ibuf = image_get_cached_ibuf_for_index_frame(ima, IMA_NO_INDEX, 0);
 
@@ -2494,7 +2496,7 @@ static void image_init_imageuser(Image *ima, ImageUser *iuser)
 
 void BKE_image_init_imageuser(Image *ima, ImageUser *iuser)
 {
-	return image_init_imageuser(ima, iuser);
+	image_init_imageuser(ima, iuser);
 }
 
 void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
