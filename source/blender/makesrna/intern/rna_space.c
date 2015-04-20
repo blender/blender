@@ -1240,9 +1240,26 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 					id_us_plus((ID *)adt->action);
 				}
 				else {
-					/* fix id-count of action we're replacing */
+					/* Handle old action... */
 					if (adt->action) {
+						/* Fix id-count of action we're replacing */
 						id_us_min(&adt->action->id);
+						
+						/* To prevent data loss (i.e. if users flip between actions using the Browse menu),
+						 * stash this action if nothing else uses it.
+						 *
+						 * EXCEPTION:
+						 * This callback runs when unlinking actions. In that case, we don't want to
+						 * stash the action, as the user is signalling that they want to detach it.
+						 * This can be reviewed again later, but it could get annoying if we keep these instead.
+						 */
+						if ((adt->action->id.us <= 0) && (saction->action != NULL)) {
+							/* XXX: Things here get dodgy if this action is only partially completed,
+							 *      and the user then uses the browse menu to get back to this action,
+							 *      assigning it as the active action (i.e. the stash strip gets out of sync)
+							 */
+							BKE_nla_action_stash(adt);
+						}
 					}
 					
 					/* Assign new action, and adjust the usercounts accordingly */
