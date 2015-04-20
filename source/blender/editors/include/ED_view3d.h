@@ -271,8 +271,7 @@ void          ED_view3d_backbuf_validate(struct ViewContext *vc);
 struct ImBuf *ED_view3d_backbuf_read(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 unsigned int  ED_view3d_backbuf_sample_rect(
         struct ViewContext *vc, const int mval[2], int size,
-        unsigned int min, unsigned int max, float *dist, const bool is_strict,
-        void *handle, bool (*indextest)(void *handle, unsigned int index));
+        unsigned int min, unsigned int max, float *dist);
 int          ED_view3d_backbuf_sample_size_clamp(struct ARegion *ar, const float dist);
 unsigned int ED_view3d_backbuf_sample(struct ViewContext *vc, int x, int y);
 

@@ -1082,7 +1082,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 		 * on an edge in the backbuf, we can still select a face */
 
 		float dummy_dist;
-		*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totpoly + 1, &dummy_dist, 0, NULL, NULL);
+		*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totpoly + 1, &dummy_dist);
 	}
 	else {
 		/* sample only on the exact position */
@@ -1248,7 +1248,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 			 * on an face in the backbuf, we can still select a vert */
 
 			float dummy_dist;
-			*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist, 0, NULL, NULL);
+			*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist);
 		}
 		else {
 			/* sample only on the exact position */

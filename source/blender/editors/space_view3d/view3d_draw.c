@@ -1552,16 +1552,14 @@ ImBuf *ED_view3d_backbuf_read(ViewContext *vc, short xmin, short ymin, short xma
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 unsigned int ED_view3d_backbuf_sample_rect(
         ViewContext *vc, const int mval[2], int size,
-        unsigned int min, unsigned int max, float *r_dist, const bool is_strict,
-        void *handle, bool (*indextest)(void *handle, unsigned int index))
+        unsigned int min, unsigned int max, float *r_dist)
 {
 	struct ImBuf *buf;
-	unsigned int *bufmin, *bufmax, *tbuf;
+	const unsigned int *bufmin, *bufmax, *tbuf;
 	int minx, miny;
 	int a, b, rc, nr, amount, dirvec[4][2];
 	int distance = 0;
 	unsigned int index = 0;
-	bool indexok = false;
 
 	amount = (size - 1) / 2;
 
@@ -1586,20 +1584,20 @@ unsigned int ED_view3d_backbuf_sample_rect(
 		
 		for (a = 0; a < 2; a++) {
 			for (b = 0; b < nr; b++, distance++) {
-				if (*tbuf && *tbuf >= min && *tbuf < max) {  /* we got a hit */
-					if (is_strict) {
-						indexok =  indextest(handle, *tbuf - min + 1);
-						if (indexok) {
-							*r_dist = sqrtf((float)distance);
-							index = *tbuf - min + 1;
-							goto exit; 
-						}
-					}
-					else {
-						*r_dist = sqrtf((float)distance);  /* XXX, this distance is wrong - */
-						index = *tbuf - min + 1;  /* messy yah, but indices start at 1 */
-						goto exit;
-					}
+				if (*tbuf && *tbuf >= min && *tbuf < max) {
+					/* we got a hit */
+
+					/* get x,y pixel coords from the offset */
+					const float delta[2] = {
+					    ((tbuf - buf->rect) % size) - (size / 2),
+					    ((tbuf - buf->rect) / size) - (size / 2),
+					};
+
+					*r_dist = len_v2(delta);
+
+					/* indices start at 1 here */
+					index = (*tbuf - min) + 1;
+					goto exit;
 				}
 				
 				tbuf += (dirvec[rc][0] + dirvec[rc][1]);

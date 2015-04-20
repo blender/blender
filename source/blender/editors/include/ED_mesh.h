@@ -139,10 +139,13 @@ bool EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short 
 
 struct BMVert *EDBM_vert_find_nearest_ex(
         struct ViewContext *vc, float *r_dist,
-        const bool use_select_bias, const bool is_strict);
+        const bool use_select_bias);
 struct BMVert *EDBM_vert_find_nearest(
         struct ViewContext *vc, float *r_dist);
 
+struct BMEdge *EDBM_edge_find_nearest_ex(
+        struct ViewContext *vc, float *r_dist,
+        const bool use_select_bias);
 struct BMEdge *EDBM_edge_find_nearest(
         struct ViewContext *vc, float *r_dist);
 
