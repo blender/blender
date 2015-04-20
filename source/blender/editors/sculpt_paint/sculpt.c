@@ -116,6 +116,13 @@ static int system_physical_thread_count(void)
 }
 #endif  /* __APPLE__ */
 
+/** \name Tool Capabilities
+ *
+ * Avoid duplicate checks, internal logic only,
+ * share logic with #rna_def_sculpt_capabilities where possible.
+ *
+ * \{ */
+
 /* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
 static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
@@ -133,6 +140,43 @@ static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 	return 0;
 }
 
+static bool sculpt_tool_needs_original(const char sculpt_tool)
+{
+	return ELEM(sculpt_tool,
+	            SCULPT_TOOL_GRAB,
+	            SCULPT_TOOL_ROTATE,
+	            SCULPT_TOOL_THUMB,
+	            SCULPT_TOOL_LAYER);
+}
+
+static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
+{
+	return ELEM(sculpt_tool,
+	            SCULPT_TOOL_SMOOTH,
+	            SCULPT_TOOL_LAYER);
+}
+
+/**
+ * Test whether the #StrokeCache.sculpt_normal needs update in #do_brush_action
+ */
+static int sculpt_brush_needs_normal(const Brush *brush)
+{
+	return ((SCULPT_TOOL_HAS_NORMAL_WEIGHT(brush->sculpt_tool) &&
+	         (brush->normal_weight > 0)) ||
+
+	        ELEM(brush->sculpt_tool,
+	             SCULPT_TOOL_BLOB,
+	             SCULPT_TOOL_CREASE,
+	             SCULPT_TOOL_DRAW,
+	             SCULPT_TOOL_LAYER,
+	             SCULPT_TOOL_NUDGE,
+	             SCULPT_TOOL_ROTATE,
+	             SCULPT_TOOL_THUMB) ||
+
+	        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
+}
+
+/** \} */
 
 
 typedef enum StrokeFlags {
@@ -352,8 +396,8 @@ static void sculpt_project_v3(
  * Factors: some brushes like grab cannot do dynamic topology.
  * Others, like smooth, are better without. Same goes for alt-
  * key smoothing. */
-static int sculpt_stroke_dynamic_topology(const SculptSession *ss,
-                                          const Brush *brush)
+static bool sculpt_stroke_is_dynamic_topology(
+        const SculptSession *ss, const Brush *brush)
 {
 	return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
 
@@ -364,19 +408,7 @@ static int sculpt_stroke_dynamic_topology(const SculptSession *ss,
 	        !(brush->flag & BRUSH_ANCHORED) &&
 	        !(brush->flag & BRUSH_DRAG_DOT) &&
 
-	        (!ELEM(brush->sculpt_tool,
-	               /* These brushes, as currently coded, cannot
-	                * support dynamic topology */
-	               SCULPT_TOOL_GRAB,
-	               SCULPT_TOOL_ROTATE,
-	               SCULPT_TOOL_THUMB,
-	               SCULPT_TOOL_LAYER,
-
-	               /* These brushes could handle dynamic topology,
-	                * but user feedback indicates it's better not
-	                * to */
-	               SCULPT_TOOL_SMOOTH,
-	               SCULPT_TOOL_MASK)));
+	        SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
 /*** paint mesh ***/
@@ -745,7 +777,7 @@ static void calc_area_center(
 {
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
-	const bool has_bm_orco = ss->bm && sculpt_stroke_dynamic_topology(ss, brush);
+	const bool has_bm_orco = ss->bm && sculpt_stroke_is_dynamic_topology(ss, brush);
 	int n;
 
 	/* 0=towards view, 1=flipped */
@@ -879,7 +911,7 @@ static void calc_area_normal(
 {
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
-	const bool has_bm_orco = ss->bm && sculpt_stroke_dynamic_topology(ss, brush);
+	const bool has_bm_orco = ss->bm && sculpt_stroke_is_dynamic_topology(ss, brush);
 	int n;
 
 	/* 0=towards view, 1=flipped */
@@ -1026,7 +1058,7 @@ static void calc_area_normal_and_center(
 {
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
-	const bool has_bm_orco = ss->bm && sculpt_stroke_dynamic_topology(ss, brush);
+	const bool has_bm_orco = ss->bm && sculpt_stroke_is_dynamic_topology(ss, brush);
 	int n;
 
 	/* 0=towards view, 1=flipped */
@@ -1521,27 +1553,6 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 		calc_brush_local_mat(BKE_paint_brush(&sd->paint), ob,
 		                     cache->brush_local_mat);
 	}
-}
-
-/* Test whether the StrokeCache.sculpt_normal needs update in
- * do_brush_action() */
-static int brush_needs_sculpt_normal(const Brush *brush)
-{
-	return ((ELEM(brush->sculpt_tool,
-	              SCULPT_TOOL_GRAB,
-	              SCULPT_TOOL_SNAKE_HOOK) &&
-	         (brush->normal_weight > 0)) ||
-
-	        ELEM(brush->sculpt_tool,
-	             SCULPT_TOOL_BLOB,
-	             SCULPT_TOOL_CREASE,
-	             SCULPT_TOOL_DRAW,
-	             SCULPT_TOOL_LAYER,
-	             SCULPT_TOOL_NUDGE,
-	             SCULPT_TOOL_ROTATE,
-	             SCULPT_TOOL_THUMB) ||
-
-	        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
 }
 
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
@@ -3100,11 +3111,7 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush, Unified
 	radius = ss->cache->radius * 1.25f;
 
 	data.radius_squared = radius * radius;
-	data.original = ELEM(brush->sculpt_tool,
-	                     SCULPT_TOOL_GRAB,
-	                     SCULPT_TOOL_ROTATE,
-	                     SCULPT_TOOL_THUMB,
-	                     SCULPT_TOOL_LAYER) ? true : ss->cache->original;
+	data.original = sculpt_tool_needs_original(brush->sculpt_tool) ? true : ss->cache->original;
 
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
@@ -3159,11 +3166,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 	data.ss = ss;
 	data.sd = sd;
 	data.radius_squared = ss->cache->radius_squared;
-	data.original = ELEM(brush->sculpt_tool,
-	                     SCULPT_TOOL_GRAB,
-	                     SCULPT_TOOL_ROTATE,
-	                     SCULPT_TOOL_THUMB,
-	                     SCULPT_TOOL_LAYER) ? true : ss->cache->original;
+	data.original = sculpt_tool_needs_original(brush->sculpt_tool) ? true : ss->cache->original;
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
 	/* Only act if some verts are inside the brush area */
@@ -3178,7 +3181,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 			BKE_pbvh_node_mark_update(nodes[n]);
 		}
 
-		if (brush_needs_sculpt_normal(brush))
+		if (sculpt_brush_needs_normal(brush))
 			update_sculpt_normal(sd, ob, nodes, totnode);
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)
@@ -3298,8 +3301,8 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 	BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
 
 	/* first line is tools that don't support proxies */
-	if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER) ||
-	    ss->cache->supports_gravity)
+	if (ss->cache->supports_gravity ||
+	    (sculpt_tool_is_proxy_used(brush->sculpt_tool) == false))
 	{
 		/* these brushes start from original coordinates */
 		const bool use_orco = ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB,
@@ -3377,7 +3380,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
-	if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
+	if (sculpt_tool_is_proxy_used(brush->sculpt_tool)) {
 		/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
 		 * propagate needed deformation to original base */
 
@@ -3900,11 +3903,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 		cache->original = 1;
 	}
 
-	if (ELEM(brush->sculpt_tool,
-	         SCULPT_TOOL_DRAW, SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB,
-	         SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
-	         SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_ROTATE, SCULPT_TOOL_FLATTEN))
-	{
+	if (SCULPT_TOOL_HAS_ACCUMULATE(brush->sculpt_tool)) {
 		if (!(brush->flag & BRUSH_ACCUMULATE)) {
 			cache->original = 1;
 		}
@@ -4404,7 +4403,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 		        (float)(sd->detail_size * U.pixelsize) / 0.4f);
 	}
 
-	if (sculpt_stroke_dynamic_topology(ss, brush)) {
+	if (sculpt_stroke_is_dynamic_topology(ss, brush)) {
 		do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
 	}
 

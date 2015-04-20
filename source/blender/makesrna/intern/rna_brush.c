@@ -125,9 +125,7 @@ EnumPropertyItem brush_image_tool_items[] = {
 static int rna_SculptToolCapabilities_has_accumulate_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->sculpt_tool,
-	            SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CREASE,
-	            SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_LAYER);
+	return SCULPT_TOOL_HAS_ACCUMULATE(br->sculpt_tool);
 }
 
 static int rna_SculptToolCapabilities_has_auto_smooth_get(PointerRNA *ptr)
@@ -155,7 +153,7 @@ static int rna_SculptToolCapabilities_has_jitter_get(PointerRNA *ptr)
 static int rna_SculptToolCapabilities_has_normal_weight_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK);
+	return SCULPT_TOOL_HAS_NORMAL_WEIGHT(br->sculpt_tool);
 }
 
 static int rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
