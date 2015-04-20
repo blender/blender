@@ -919,22 +919,6 @@ static void calc_area_normal(
 
 	int count[2] = {0};
 
-	/* Grab brush requires to test on original data (see T25371) */
-	bool original;
-
-	original = (brush->sculpt_tool == SCULPT_TOOL_GRAB) ? true : ss->cache->original;
-	/* In general the original coords are not available with dynamic
-	 * topology
-	 *
-	 * Mask tool could not use undo nodes to get coordinates from
-	 * since the coordinates are not stored in those nodes.
-	 * And mask tool is not gonna to modify vertex coordinates,
-	 * so we don't actually need to use modified coords.
-	 */
-	if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-		original = false;
-	}
-
 #pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
 	for (n = 0; n < totnode; n++) {
 		PBVHVertexIter vd;
@@ -947,7 +931,7 @@ static void calc_area_normal(
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
-		use_original = (original && (unode->co || unode->bm_entry));
+		use_original = (ss->cache->original && (unode->co || unode->bm_entry));
 
 		/* when the mesh is edited we can't rely on original coords
 		 * (original mesh may not even have verts in brush radius) */
