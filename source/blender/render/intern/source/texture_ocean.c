@@ -73,7 +73,7 @@ int ocean_texture(Tex *tex, const float texvec[2], TexResult *texres)
 		return 0;
 	}
 	else {
-		const int do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
+		const bool do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS) != 0;
 		int cfra = R.r.cfra;
 		int retval = TEX_INT;
 

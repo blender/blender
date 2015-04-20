@@ -338,7 +338,9 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 
 		/* render 3d view */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
-			/*int is_ortho = scene->r.mode & R_ORTHO;*/
+#if 0
+			const bool is_ortho = (scene->r.mode & R_ORTHO) != 0;
+#endif
 			camera = BKE_camera_multiview_render(oglrender->scene, v3d->camera, viewname);
 			RE_GetCameraWindow(oglrender->re, camera, scene->r.cfra, winmat);
 			if (camera->type == OB_CAMERA) {

@@ -456,8 +456,8 @@ static int node_group_separate_selected(bNodeTree *ntree, bNodeTree *ngroup, flo
 	
 	/* add internal links to the ntree */
 	for (link = ngroup->links.first; link; link = link_next) {
-		int fromselect = (link->fromnode && (link->fromnode->flag & NODE_SELECT));
-		int toselect = (link->tonode && (link->tonode->flag & NODE_SELECT));
+		const bool fromselect = (link->fromnode && (link->fromnode->flag & NODE_SELECT));
+		const bool toselect = (link->tonode && (link->tonode->flag & NODE_SELECT));
 		link_next = link->next;
 		
 		if (make_copy) {

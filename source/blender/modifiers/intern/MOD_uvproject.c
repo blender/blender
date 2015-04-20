@@ -139,7 +139,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	Image *image = umd->image;
 	MPoly *mpoly, *mp;
 	MLoop *mloop;
-	int override_image = ((umd->flags & MOD_UVPROJECT_OVERRIDEIMAGE) != 0);
+	const bool override_image = (umd->flags & MOD_UVPROJECT_OVERRIDEIMAGE) != 0;
 	Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
 	int num_projectors = 0;
 	char uvname[MAX_CUSTOMDATA_LAYER_NAME];

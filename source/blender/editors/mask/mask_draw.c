@@ -253,7 +253,7 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 		return;
 
 	if (sc)
-		undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
+		undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT);
 
 	/* TODO, add this to sequence editor */
 	handle_size = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
@@ -422,7 +422,7 @@ static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*
 	float (*points)[2] = orig_points;
 
 	if (sc) {
-		int undistort = sc->clip && sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
+		const bool undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT);
 
 		if (undistort) {
 			int i;

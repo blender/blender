@@ -127,9 +127,13 @@ typedef struct {
 
 static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],const int face_num, const int vert_index)
 {
-	unsigned int indices[] = {data->mface[face_num].v1, data->mface[face_num].v2,
-	                          data->mface[face_num].v3, data->mface[face_num].v4};
-	const int smoothnormal = (data->mface[face_num].flag & ME_SMOOTH);
+	const unsigned int indices[] = {
+	    data->mface[face_num].v1,
+	    data->mface[face_num].v2,
+	    data->mface[face_num].v3,
+	    data->mface[face_num].v4,
+	};
+	const bool smoothnormal = (data->mface[face_num].flag & ME_SMOOTH) != 0;
 
 	if (!smoothnormal) { /* flat */
 		if (data->precomputed_normals) {

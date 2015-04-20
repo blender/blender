@@ -1265,7 +1265,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 
 	dl = dispbase->first;
 	while (dl) {
-		int smooth = dl->rt & CU_SMOOTH ? 1 : 0;
+		const bool is_smooth = (dl->rt & CU_SMOOTH) != 0;
 
 		if (dl->type == DL_SEGM) {
 			startvert = vertcount;
@@ -1344,7 +1344,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 					}
 				}
 
-				if (smooth) mpoly->flag |= ME_SMOOTH;
+				if (is_smooth) mpoly->flag |= ME_SMOOTH;
 				mpoly++;
 				mloop += 3;
 				index += 3;
@@ -1423,7 +1423,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 						}
 					}
 
-					if (smooth) mpoly->flag |= ME_SMOOTH;
+					if (is_smooth) mpoly->flag |= ME_SMOOTH;
 					mpoly++;
 					mloop += 4;
 

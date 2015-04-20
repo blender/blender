@@ -775,7 +775,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 	for (a = 0, mp = mface; a < totpoly; a++, mtpoly++, mp++) {
 		short matnr = mp->mat_nr;
-		int mf_smooth = mp->flag & ME_SMOOTH;
+		const bool mf_smooth = (mp->flag & ME_SMOOTH) != 0;
 		Material *mat = (me->mat) ? me->mat[matnr] : NULL;
 		int mode = mat ? mat->game.flag : GEMAT_INVISIBLE;
 
@@ -1107,7 +1107,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		Mesh *me = ob->data;
 		TexMatCallback data = {scene, ob, me, dm};
 		bool (*set_face_cb)(void *, int);
-		int glsl, picking = (G.f & G_PICKSEL);
+		bool glsl, picking = (G.f & G_PICKSEL) != 0;
 		
 		/* face hiding callback depending on mode */
 		if (ob == scene->obedit)

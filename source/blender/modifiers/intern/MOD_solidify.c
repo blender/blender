@@ -255,7 +255,7 @@ static DerivedMesh *applyModifier(
 
 	/* weights */
 	MDeformVert *dvert;
-	const int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
+	const bool defgrp_invert = (smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0;
 	int defgrp_index;
 
 	/* array size is doubled in case of using a shell */

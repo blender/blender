@@ -341,7 +341,9 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				 * */
 				if (op->opm->type->flag & OPTYPE_BLOCKING) {
 					int bounds[4] = {-1, -1, -1, -1};
-					int wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) && ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+					const bool wrap = (
+					        (U.uiflag & USER_CONTINUOUS_MOUSE) &&
+					        ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER)));
 
 					if (wrap) {
 						ARegion *ar = CTX_wm_region(C);

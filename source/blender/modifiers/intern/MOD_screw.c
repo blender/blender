@@ -138,14 +138,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *dm = derivedData;
 	DerivedMesh *result;
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
-	const int useRenderParams = flag & MOD_APPLY_RENDER;
+	const bool use_render_params = (flag & MOD_APPLY_RENDER) != 0;
 	
 	int *origindex;
 	int mpoly_index = 0;
 	unsigned int step;
 	unsigned int i, j;
 	unsigned int i1, i2;
-	unsigned int step_tot = useRenderParams ? ltmd->render_steps : ltmd->steps;
+	unsigned int step_tot = use_render_params ? ltmd->render_steps : ltmd->steps;
 	const bool do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
 
 	const int quad_ord[4] = {

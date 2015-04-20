@@ -3098,9 +3098,10 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const int use_face_center = (ts->uv_flag & UV_SYNC_SELECTION) ?
-	                            (ts->selectmode == SCE_SELECT_FACE) :
-	                            (ts->uv_selectmode == UV_SELECT_FACE);
+	const bool use_face_center = (
+	        (ts->uv_flag & UV_SYNC_SELECTION) ?
+	        (ts->selectmode == SCE_SELECT_FACE) :
+	        (ts->uv_selectmode == UV_SELECT_FACE));
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);

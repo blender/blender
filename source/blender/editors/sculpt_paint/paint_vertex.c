@@ -209,7 +209,7 @@ static void do_shared_vertex_tesscol(Mesh *me, bool *mfacetag)
 {
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
-	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
+	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 	MFace *mface;
 	int a;
 	short *scolmain, *scol;
@@ -280,7 +280,7 @@ static void do_shared_vertex_tesscol(Mesh *me, bool *mfacetag)
 
 static void do_shared_vertexcol(Mesh *me, bool *mlooptag, bool *mfacetag, const bool do_tessface)
 {
-	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
+	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 	MPoly *mp;
 	int (*scol)[4];
 	int i, j;
@@ -1091,7 +1091,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	me = BKE_mesh_from_object(vc.obact);
 
 	if (me && me->dvert && vc.v3d && vc.rv3d) {
-		const int use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 		int v_idx_best = -1;
 		unsigned int index;
 
@@ -1177,7 +1177,7 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 
 			if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
 				const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
-				const int use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+				const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 				int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
 				bool found = false;
 				unsigned int index;

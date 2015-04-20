@@ -269,9 +269,10 @@ void drawcircball(int mode, const float cent[3], float rad, float tmat[4][4]);
 /* backbuffer select and draw support */
 void view3d_validate_backbuf(struct ViewContext *vc);
 struct ImBuf *view3d_read_backbuf(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
-unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, const int mval[2], int size,
-                                        unsigned int min, unsigned int max, float *dist, short strict,
-                                        void *handle, bool (*indextest)(void *handle, unsigned int index));
+unsigned int view3d_sample_backbuf_rect(
+        struct ViewContext *vc, const int mval[2], int size,
+        unsigned int min, unsigned int max, float *dist, const bool is_strict,
+        void *handle, bool (*indextest)(void *handle, unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
 /* draws and does a 4x4 sample */

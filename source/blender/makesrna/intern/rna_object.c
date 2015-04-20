@@ -1009,7 +1009,7 @@ static int rna_GameObjectSettings_physics_type_get(PointerRNA *ptr)
 static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 {
 	Object *ob = (Object *)ptr->id.data;
-	const int was_navmesh = (ob->gameflag & OB_NAVMESH);
+	const int gameflag_prev = ob->gameflag;
 	ob->body_type = value;
 
 	switch (ob->body_type) {
@@ -1067,7 +1067,7 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 			break;
 	}
 
-	if (was_navmesh != (ob->gameflag & OB_NAVMESH)) {
+	if ((gameflag_prev & OB_NAVMESH) != (ob->gameflag & OB_NAVMESH)) {
 		if (ob->type == OB_MESH) {
 			/* this is needed to refresh the derived meshes draw func */
 			DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);

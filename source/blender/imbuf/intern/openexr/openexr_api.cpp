@@ -111,8 +111,8 @@ extern "C"
 static struct ExrPass *imb_exr_get_pass(ListBase *lb, char *passname);
 static bool exr_has_multiview(MultiPartInputFile& file);
 static bool exr_has_multipart_file(MultiPartInputFile& file);
-static int exr_has_alpha(MultiPartInputFile& file);
-static int exr_has_zbuffer(MultiPartInputFile& file);
+static bool exr_has_alpha(MultiPartInputFile& file);
+static bool exr_has_zbuffer(MultiPartInputFile& file);
 static void exr_printf(const char *__restrict format, ...);
 static void imb_exr_type_by_channels(ChannelList& channels, StringVector& views,
                                      bool *r_singlelayer, bool *r_multilayer, bool *r_multiview);
@@ -368,8 +368,8 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
                                   ImBuf * (*getbuffer)(void *base, const size_t view_id))
 {
 	const int channels = ibuf->channels;
-	const int is_alpha = (channels >= 4) && (ibuf->planes == 32);
-	const int is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
+	const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
+	const bool is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
 	const int width = ibuf->x;
 	const int height = ibuf->y;
 	const bool is_multiview = (flags & IB_multiview) && ibuf->userdata;
@@ -485,8 +485,8 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
                                    ImBuf * (*getbuffer)(void *base, const size_t view_id))
 {
 	const int channels = ibuf->channels;
-	const int is_alpha = (channels >= 4) && (ibuf->planes == 32);
-	const int is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
+	const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
+	const bool is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
 	const int width = ibuf->x;
 	const int height = ibuf->y;
 	const bool is_multiview = (flags & IB_multiview) && ibuf->userdata;
@@ -1266,7 +1266,7 @@ void IMB_exr_multiview_convert(void *handle, void *base,
 	ExrLayer *lay;
 	ExrPass *pass;
 	ImBuf *ibuf = NULL;
-	const int is_alpha = exr_has_alpha(*file);
+	const bool is_alpha = exr_has_alpha(*file);
 	Box2i dw = file->header(0).dataWindow();
 	const size_t width  = dw.max.x - dw.min.x + 1;
 	const size_t height = dw.max.y - dw.min.y + 1;
@@ -1691,12 +1691,12 @@ static bool exr_has_chroma(MultiPartInputFile& file)
 	       file.header(0).channels().findChannel("RY") != NULL;
 }
 
-static int exr_has_zbuffer(MultiPartInputFile& file)
+static bool exr_has_zbuffer(MultiPartInputFile& file)
 {
 	return !(file.header(0).channels().findChannel("Z") == NULL);
 }
 
-static int exr_has_alpha(MultiPartInputFile& file)
+static bool exr_has_alpha(MultiPartInputFile& file)
 {
 	return !(file.header(0).channels().findChannel("A") == NULL);
 }

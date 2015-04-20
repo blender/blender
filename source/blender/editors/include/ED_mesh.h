@@ -137,7 +137,9 @@ bool EDBM_backbuf_border_mask_init(struct ViewContext *vc, const int mcords[][2]
                                    short xmin, short ymin, short xmax, short ymax);
 bool EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short rads);
 
-struct BMVert *EDBM_vert_find_nearest(struct ViewContext *vc, float *r_dist, const bool sel, const bool strict);
+struct BMVert *EDBM_vert_find_nearest(
+        struct ViewContext *vc, float *r_dist,
+        const bool use_select_bias, const bool is_strict);
 struct BMEdge *EDBM_edge_find_nearest(struct ViewContext *vc, float *r_dist);
 struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, float *r_dist);
 

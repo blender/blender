@@ -390,28 +390,32 @@ static bool findnearestvert__backbufIndextest(void *handle, unsigned int index)
 	return !(eve && BM_elem_flag_test(eve, BM_ELEM_SELECT));
 }
 /**
- * findnearestvert
- * 
- * dist (in/out): minimal distance to the nearest and at the end, actual distance
- * sel: selection bias
- *      if SELECT, selected vertice are given a 5 pixel bias to make them further than unselect verts
- *      if 0, unselected vertice are given the bias
- * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
+ * Nearest vertex under the cursor.
+ *
+ * \param r_dist (in/out), minimal distance to the nearest and at the end, actual distance
+ * \param use_select_bias
+ * - When true, selected vertice are given a 5 pixel bias to make them further than unselect verts.
+ * - When false, unselected vertice are given the bias.
+ * \param is_strict When true, the vertice corresponding to the sel parameter are ignored and not just biased
  */
-BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const bool sel, const bool strict)
+BMVert *EDBM_vert_find_nearest(
+        ViewContext *vc, float *r_dist,
+        const bool use_select_bias, const bool is_strict)
 {
 	if (vc->v3d->drawtype > OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		float distance;
 		unsigned int index;
 		BMVert *eve;
 		
-		if (strict) {
-			index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance,
-			                                   strict, vc->em, findnearestvert__backbufIndextest);
+		if (is_strict) {
+			index = view3d_sample_backbuf_rect(
+			        vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance,
+			        is_strict, vc->em, findnearestvert__backbufIndextest);
 		}
 		else {
-			index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance,
-			                                   0, NULL, NULL);
+			index = view3d_sample_backbuf_rect(
+			        vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance,
+			        0, NULL, NULL);
 		}
 		
 		eve = index ? BM_vert_at_index_find(vc->em->bm, index - 1) : NULL;
@@ -438,9 +442,9 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const bool sel, c
 		data.lastIndex = lastSelectedIndex;
 		data.mval_fl[0] = vc->mval[0];
 		data.mval_fl[1] = vc->mval[1];
-		data.select = sel ? BM_ELEM_SELECT : 0;
+		data.select = use_select_bias ? BM_ELEM_SELECT : 0;
 		data.dist = *r_dist;
-		data.strict = strict;
+		data.strict = is_strict;
 		data.closest = NULL;
 		data.closestIndex = 0;
 
@@ -653,7 +657,7 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 	view3d_validate_backbuf(vc);
 	
 	if (em->selectmode & SCE_SELECT_VERTEX)
-		*r_eve = EDBM_vert_find_nearest(vc, &dist, BM_ELEM_SELECT, 0);
+		*r_eve = EDBM_vert_find_nearest(vc, &dist, true, false);
 	if (em->selectmode & SCE_SELECT_FACE)
 		*r_efa = EDBM_face_find_nearest(vc, &dist);
 

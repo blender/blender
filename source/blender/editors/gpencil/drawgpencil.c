@@ -761,7 +761,7 @@ static void gp_draw_strokes_edit(bGPDframe *gpf, int offsx, int offsy, int winx,
 {
 	bGPDstroke *gps;
 	
-	const int no_xray = (dflag & GP_DRAWDATA_NO_XRAY);
+	const bool no_xray = (dflag & GP_DRAWDATA_NO_XRAY) != 0;
 	int mask_orig = 0;
 	
 	/* set up depth masks... */

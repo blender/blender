@@ -121,7 +121,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 	const float grid = 1.0f;
 	const int cutype = (type & CU_TYPE); // poly, bezier, nurbs, etc
 	const int stype = (type & CU_PRIMITIVE);
-	const int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
+	const bool force_3d = (((Curve *)obedit->data)->flag & CU_3D) != 0; /* could be adding to an existing 3D curve */
 
 	unit_m4(umat);
 	unit_m4(viewmat);

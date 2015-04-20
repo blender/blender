@@ -105,7 +105,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	float cor[3] = {1.0f, 1.0f, 1.0f};
 	int gl_depth = 0, gl_blend = 0;
 
-	int use_fire = (sds->active_fields & SM_ACTIVE_FIRE);
+	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) != 0;
 
 	/* draw slices of smoke is adapted from c++ code authored
 	 * by: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
