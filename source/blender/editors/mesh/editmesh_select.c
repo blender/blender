@@ -196,7 +196,7 @@ bool EDBM_backbuf_border_init(ViewContext *vc, short xmin, short ymin, short xma
 	unsigned int *dr;
 	int a;
 	
-	if (vc->obedit == NULL || vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) {
+	if (vc->obedit == NULL || !V3D_IS_ZBUF(vc->v3d)) {
 		return false;
 	}
 	
@@ -271,7 +271,7 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 			return false;
 		}
 	}
-	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) {
+	else if (!V3D_IS_ZBUF(vc->v3d)) {
 		return false;
 	}
 
@@ -320,7 +320,7 @@ bool EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 			return false;
 		}
 	}
-	else if (vc->v3d->drawtype < OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT) == 0) {
+	else if (!V3D_IS_ZBUF(vc->v3d)) {
 		return false;
 	}
 
@@ -402,7 +402,7 @@ BMVert *EDBM_vert_find_nearest(
         ViewContext *vc, float *r_dist,
         const bool use_select_bias, const bool is_strict)
 {
-	if (vc->v3d->drawtype > OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
+	if (V3D_IS_ZBUF(vc->v3d)) {
 		float distance;
 		unsigned int index;
 		BMVert *eve;
@@ -502,7 +502,7 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float 
 BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 {
 
-	if (vc->v3d->drawtype > OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
+	if (V3D_IS_ZBUF(vc->v3d)) {
 		float distance;
 		unsigned int index;
 		BMEdge *eed;
@@ -576,7 +576,7 @@ static void findnearestface__doClosest(void *userData, BMFace *efa, const float 
 BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 {
 
-	if (vc->v3d->drawtype > OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
+	if (V3D_IS_ZBUF(vc->v3d)) {
 		unsigned int index;
 		BMFace *efa;
 

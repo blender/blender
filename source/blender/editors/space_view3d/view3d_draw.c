@@ -1327,12 +1327,12 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		/* do nothing */
 	}
 	else if ((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) &&
-	         v3d->drawtype > OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT))
+	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
 	}
-	else if (scene->obedit && v3d->drawtype > OB_WIRE &&
-	         (v3d->flag & V3D_ZBUF_SELECT))
+	else if (scene->obedit &&
+	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
 	}

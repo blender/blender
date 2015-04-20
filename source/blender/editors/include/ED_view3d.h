@@ -344,8 +344,6 @@ bool ED_view3d_lock(struct RegionView3D *rv3d);
 uint64_t ED_view3d_datamask(const struct Scene *scene, const struct View3D *v3d);
 uint64_t ED_view3d_screen_datamask(const struct bScreen *screen);
 
-bool ED_view3d_view_lock_check(const struct View3D *v3d, const struct RegionView3D *rv3d);
-
 bool ED_view3d_offset_lock_check(const struct View3D *v3d, const struct RegionView3D *rv3d);
 
 /* camera lock functions */
@@ -391,5 +389,8 @@ void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op, int *winx,
 /* render */
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *ar);
 void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View3D *v3d, struct ScrArea *sa);
+
+#define V3D_IS_ZBUF(v3d) \
+	(((v3d)->flag & V3D_ZBUF_SELECT) && ((v3d)->drawtype > OB_WIRE))
 
 #endif /* __ED_VIEW3D_H__ */
