@@ -84,9 +84,8 @@ static PyObject *CreatePythonTuple(unsigned int argcount, PyObject **arglist)
 void RunPythonCallBackList(PyObject *functionlist, PyObject **arglist, unsigned int minargcount, unsigned int maxargcount)
 {
 	unsigned int size = PyList_Size(functionlist);
-	PyObject *argTuples[(maxargcount - minargcount) + 1];
-
-	argTuples[0] = NULL;
+	PyObject *argTuples[maxargcount - minargcount + 1];
+	memset(argTuples, 0, sizeof(PyObject *) * (maxargcount - minargcount + 1));
 
 	for (unsigned int i = 0; i < size; ++i) {
 		unsigned int funcargcount = 0;
