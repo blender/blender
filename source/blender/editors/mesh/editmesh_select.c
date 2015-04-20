@@ -200,7 +200,7 @@ bool EDBM_backbuf_border_init(ViewContext *vc, short xmin, short ymin, short xma
 		return false;
 	}
 	
-	buf = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
 	if (buf == NULL) return false;
 	if (bm_vertoffs == 0) return false;
 
@@ -275,7 +275,7 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 		return false;
 	}
 
-	buf = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
 	if (buf == NULL) return false;
 	if (bm_vertoffs == 0) return false;
 
@@ -326,7 +326,7 @@ bool EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 
 	xmin = xs - rads; xmax = xs + rads;
 	ymin = ys - rads; ymax = ys + rads;
-	buf = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
 	if (bm_vertoffs == 0) return false;
 	if (buf == NULL) return false;
 
@@ -424,18 +424,18 @@ BMVert *EDBM_vert_find_nearest_ex(
 	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
-		const int dist_px = view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
+		const int dist_px = ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		float distance;
 		unsigned int index;
 		BMVert *eve;
 		
 		if (is_strict) {
-			index = view3d_sample_backbuf_rect(
+			index = ED_view3d_backbuf_sample_rect(
 			        vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &distance,
 			        is_strict, vc->em, findnearestvert__backbufIndextest);
 		}
 		else {
-			index = view3d_sample_backbuf_rect(
+			index = ED_view3d_backbuf_sample_rect(
 			        vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &distance,
 			        0, NULL, NULL);
 		}
@@ -538,14 +538,14 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
-		const int dist_px = view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
+		const int dist_px = ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		float distance;
 		unsigned int index;
 		BMEdge *eed;
 		
-		view3d_validate_backbuf(vc);
+		ED_view3d_backbuf_validate(vc);
 
-		index = view3d_sample_backbuf_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
+		index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
 		eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
 		
 		if (eed && distance < *r_dist) {
@@ -637,9 +637,9 @@ BMFace *EDBM_face_find_nearest_ex(
 		unsigned int index;
 		BMFace *efa;
 
-		view3d_validate_backbuf(vc);
+		ED_view3d_backbuf_validate(vc);
 
-		index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
+		index = ED_view3d_backbuf_sample(vc, vc->mval[0], vc->mval[1]);
 		efa = index ? BM_face_at_index_find_or_table(bm, index - 1) : NULL;
 		
 		if (r_efa_zbuf) {
@@ -726,7 +726,7 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 	BMFace *efa = NULL;
 	
 	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
-	view3d_validate_backbuf(vc);
+	ED_view3d_backbuf_validate(vc);
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		eve = EDBM_vert_find_nearest_ex(vc, &dist, true, false);
@@ -1383,7 +1383,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	em = vc.em;
 
 	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
-	view3d_validate_backbuf(&vc);
+	ED_view3d_backbuf_validate(&vc);
 
 	eed = EDBM_edge_find_nearest(&vc, &dist);
 	if (eed == NULL) {

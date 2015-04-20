@@ -878,7 +878,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	 * brushes with size > 64, why is this here? */
 	/*if (size > 64.0) size = 64.0;*/
 	
-	ibuf = view3d_read_backbuf(vc, x - size, y - size, x + size, y + size);
+	ibuf = ED_view3d_backbuf_read(vc, x - size, y - size, x + size, y + size);
 	if (ibuf) {
 		unsigned int *rt = ibuf->rect;
 

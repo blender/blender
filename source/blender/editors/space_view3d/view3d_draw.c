@@ -1454,7 +1454,7 @@ static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h,
 	glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
 }
 
-void view3d_validate_backbuf(ViewContext *vc)
+void ED_view3d_backbuf_validate(ViewContext *vc)
 {
 	if (vc->v3d->flag & V3D_INVALID_BACKBUF)
 		backdrawview3d(vc->scene, vc->ar, vc->v3d);
@@ -1464,13 +1464,13 @@ void view3d_validate_backbuf(ViewContext *vc)
  * allow for small values [0.5 - 2.5],
  * and large values, FLT_MAX by clamping by the area size
  */
-int view3d_backbuf_sample_size_clamp(ARegion *ar, const float dist)
+int ED_view3d_backbuf_sample_size_clamp(ARegion *ar, const float dist)
 {
 	return (int)min_ff(ceilf(dist), (float)max_ii(ar->winx, ar->winx));
 }
 
 /* samples a single pixel (copied from vpaint) */
-unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
+unsigned int ED_view3d_backbuf_sample(ViewContext *vc, int x, int y)
 {
 	unsigned int col;
 	
@@ -1478,7 +1478,7 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 		return 0;
 	}
 
-	view3d_validate_backbuf(vc);
+	ED_view3d_backbuf_validate(vc);
 
 	view3d_opengl_read_pixels(vc->ar, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
 	glReadBuffer(GL_BACK);
@@ -1491,7 +1491,7 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 }
 
 /* reads full rect, converts indices */
-ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, short ymax)
+ImBuf *ED_view3d_backbuf_read(ViewContext *vc, short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *rd;
 	struct ImBuf *ibuf, *ibuf1;
@@ -1510,7 +1510,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 
 	ibuf = IMB_allocImBuf((xmaxc - xminc + 1), (ymaxc - yminc + 1), 32, IB_rect);
 
-	view3d_validate_backbuf(vc);
+	ED_view3d_backbuf_validate(vc);
 
 	view3d_opengl_read_pixels(vc->ar,
 	             xminc, yminc,
@@ -1550,7 +1550,8 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int size,
+unsigned int ED_view3d_backbuf_sample_rect(
+        ViewContext *vc, const int mval[2], int size,
         unsigned int min, unsigned int max, float *r_dist, const bool is_strict,
         void *handle, bool (*indextest)(void *handle, unsigned int index))
 {
@@ -1566,7 +1567,7 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 
 	minx = mval[0] - (amount + 1);
 	miny = mval[1] - (amount + 1);
-	buf = view3d_read_backbuf(vc, minx, miny, minx + size - 1, miny + size - 1);
+	buf = ED_view3d_backbuf_read(vc, minx, miny, minx + size - 1, miny + size - 1);
 	if (!buf) return 0;
 
 	rc = 0;

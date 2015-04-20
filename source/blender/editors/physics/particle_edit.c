@@ -405,7 +405,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 			/* needed or else the draw matrix can be incorrect */
 			view3d_operator_needs_opengl(C);
 
-			view3d_validate_backbuf(&data->vc);
+			ED_view3d_backbuf_validate(&data->vc);
 			/* we may need to force an update here by setting the rv3d as dirty
 			 * for now it seems ok, but take care!:
 			 * rv3d->depths->dirty = 1; */
