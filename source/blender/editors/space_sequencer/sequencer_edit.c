@@ -3694,12 +3694,21 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq = BKE_sequencer_active_get(scene);
 	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
+	const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
+	int minframe;
 
 	if (seq->type == SEQ_TYPE_IMAGE) {
 		char directory[FILE_MAX];
-		const int len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+		int len;
 		StripElem *se;
 
+		/* need to find min/max frame for placeholders */
+		if (use_placeholders) {
+			len = sequencer_image_seq_get_minmax_frame(op, seq->sfra, &minframe);
+		}
+		else {
+			len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+		}
 		if (len == 0)
 			return OPERATOR_CANCELLED;
 
@@ -3717,14 +3726,19 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		}
 		seq->strip->stripdata = se = MEM_callocN(len * sizeof(StripElem), "stripelem");
 
-		RNA_BEGIN (op->ptr, itemptr, "files")
-		{
-			char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
-			BLI_strncpy(se->name, filename, sizeof(se->name));
-			MEM_freeN(filename);
-			se++;
+		if (use_placeholders) {
+			sequencer_image_seq_reserve_frames(op, se, len, minframe);
 		}
-		RNA_END;
+		else {
+			RNA_BEGIN (op->ptr, itemptr, "files")
+			{
+				char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+				BLI_strncpy(se->name, filename, sizeof(se->name));
+				MEM_freeN(filename);
+				se++;
+			}
+			RNA_END;
+		}
 
 		/* reset these else we wont see all the images */
 		seq->anim_startofs = seq->anim_endofs = 0;
@@ -3799,4 +3813,5 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILEPATH | WM_FILESEL_FILES,
 	                               FILE_DEFAULTDISPLAY);
+	RNA_def_boolean(ot->srna, "use_placeholders", false, "Use Placeholders", "Use placeholders for missing frames of the strip");
 }

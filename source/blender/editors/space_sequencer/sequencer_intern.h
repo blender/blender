@@ -45,6 +45,8 @@ struct ARegion;
 struct ARegionType;
 struct Scene;
 struct Main;
+struct wmOperator;
+struct StripElem;
 
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
@@ -201,6 +203,10 @@ void SEQUENCER_OT_sample(struct wmOperatorType *ot);
 
 /* sequencer_preview.c */
 void sequencer_preview_add_sound(const struct bContext *C, struct Sequence *seq);
+
+/* sequencer_add */
+int sequencer_image_seq_get_minmax_frame(struct wmOperator *op, int sfra, int *r_minframe);
+void sequencer_image_seq_reserve_frames(struct wmOperator *op, struct StripElem *se, int len, int minframe);
 
 #endif /* __SEQUENCER_INTERN_H__ */
 

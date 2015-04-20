@@ -752,11 +752,94 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "cache", false, "Cache", "Cache the sound in memory");
 }
 
+int sequencer_image_seq_get_minmax_frame(wmOperator *op, int sfra, int *r_minframe)
+{
+	int minframe = INT32_MAX, maxframe = INT32_MIN;
+
+	RNA_BEGIN (op->ptr, itemptr, "files")
+	{
+		char *filename = NULL, *filename_stripped;
+		int frame;
+		/* just get the first filename */
+		filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+
+		if (filename) {
+			bool is_numeric;
+
+			filename_stripped = filename;
+
+			/* strip numeric extensions */
+			while (*filename_stripped && isdigit(*filename_stripped)) {
+				filename_stripped++;
+			}
+
+			is_numeric = (filename_stripped != filename && *filename_stripped == '.');
+
+			if (is_numeric) {
+				/* was the number really an extension? */
+				*filename_stripped = 0;
+				frame = atoi(filename);
+				minframe = min_ii(minframe, frame);
+				maxframe = max_ii(maxframe, frame);
+			}
+
+			MEM_freeN(filename);
+		}
+	}
+	RNA_END;
+
+	if (minframe == INT32_MAX) {
+		minframe = sfra;
+		maxframe = minframe + 1;
+	}
+
+	*r_minframe = minframe;
+
+	return maxframe - minframe + 1;
+}
+
+void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, int minframe)
+{
+	int i;
+	char *filename = NULL, *filename_stripped;
+	RNA_BEGIN (op->ptr, itemptr, "files")
+	{
+		/* just get the first filename */
+		filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+		break;
+	}
+	RNA_END;
+
+	filename_stripped = filename;
+
+	if (filename_stripped) {
+
+		/* strip numeric extensions */
+		while (*filename_stripped && isdigit(*filename_stripped)) {
+			filename_stripped++;
+		}
+
+		/* was the number really an extension? */
+		if (*filename_stripped == '.')
+			filename_stripped++;
+		else {
+			filename_stripped = filename;
+		}
+
+		for (i = 0; i < len; i++, se++) {
+			BLI_snprintf(se->name, sizeof(se->name), "%04d.%s", minframe + i, filename_stripped);
+		}
+
+		MEM_freeN(filename);
+	}
+}
+
+
 /* add image operator */
 static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
+	int minframe;
 	/* cant use the generic function for this */
-	int minframe = INT32_MAX, maxframe = INT32_MIN;
 	Scene *scene = CTX_data_scene(C); /* only for sound */
 	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	SeqLoadInfo seq_load;
@@ -764,52 +847,13 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 	Strip *strip;
 	StripElem *se;
-	int i;
-	bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
+	const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
 
 	seq_load_operator_info(&seq_load, op);
 
 	/* images are unique in how they handle this - 1 per strip elem */
 	if (use_placeholders) {
-
-		RNA_BEGIN (op->ptr, itemptr, "files")
-		{
-			char *filename = NULL, *filename_stripped;
-			int frame;
-			/* just get the first filename */
-			filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
-
-			if (filename) {
-				bool is_numeric;
-
-				filename_stripped = filename;
-
-				/* strip numeric extensions */
-				while (*filename_stripped && isdigit(*filename_stripped)) {
-					filename_stripped++;
-				}
-
-				is_numeric = (filename_stripped != filename && *filename_stripped == '.');
-
-				if (is_numeric) {
-					/* was the number really an extension? */
-					*filename_stripped = 0;
-					frame = atoi(filename);
-					minframe = min_ii(minframe, frame);
-					maxframe = max_ii(maxframe, frame);
-				}
-
-				MEM_freeN(filename);
-			}
-		}
-		RNA_END;
-
-		if (minframe == INT32_MAX) {
-			minframe = seq_load.start_frame;
-			maxframe = minframe + 1;
-		}
-
-		seq_load.len = 	maxframe - minframe + 1;
+		seq_load.len = sequencer_image_seq_get_minmax_frame(op, seq_load.start_frame, &minframe);
 	}
 	else {
 		seq_load.len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
@@ -827,37 +871,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	se = strip->stripdata;
 
 	if (use_placeholders) {
-		char *filename = NULL, *filename_stripped;
-		RNA_BEGIN (op->ptr, itemptr, "files")
-		{
-			/* just get the first filename */
-			filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
-			break;
-		}
-		RNA_END;
-
-		filename_stripped = filename;
-
-		if (filename_stripped) {
-
-			/* strip numeric extensions */
-			while (*filename_stripped && isdigit(*filename_stripped)) {
-				filename_stripped++;
-			}
-
-			/* was the number really an extension? */
-			if (*filename_stripped == '.')
-				filename_stripped++;
-			else {
-				filename_stripped = filename;
-			}
-
-			for (i = 0; i < seq_load.len; i++, se++) {
-				BLI_snprintf(se->name, sizeof(se->name), "%04d.%s", minframe + i, filename_stripped);
-			}
-
-			MEM_freeN(filename);
-		}
+		sequencer_image_seq_reserve_frames(op, se, seq_load.len, minframe);
 	}
 	else {
 		RNA_BEGIN (op->ptr, itemptr, "files")
