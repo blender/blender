@@ -756,7 +756,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
 	/* cant use the generic function for this */
-
+	int minframe = INT32_MAX, maxframe = INT32_MIN;
 	Scene *scene = CTX_data_scene(C); /* only for sound */
 	Editing *ed = BKE_sequencer_editing_get(scene, true);
 	SeqLoadInfo seq_load;
@@ -771,7 +771,45 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 	/* images are unique in how they handle this - 1 per strip elem */
 	if (use_placeholders) {
-		seq_load.len = 	seq_load.end_frame - seq_load.start_frame;
+
+		RNA_BEGIN (op->ptr, itemptr, "files")
+		{
+			char *filename = NULL, *filename_stripped;
+			int frame;
+			/* just get the first filename */
+			filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+
+			if (filename) {
+				bool is_numeric;
+
+				filename_stripped = filename;
+
+				/* strip numeric extensions */
+				while (*filename_stripped && isdigit(*filename_stripped)) {
+					filename_stripped++;
+				}
+
+				is_numeric = (filename_stripped != filename && *filename_stripped == '.');
+
+				if (is_numeric) {
+					/* was the number really an extension? */
+					*filename_stripped = 0;
+					frame = atoi(filename);
+					minframe = min_ii(minframe, frame);
+					maxframe = max_ii(maxframe, frame);
+				}
+
+				MEM_freeN(filename);
+			}
+		}
+		RNA_END;
+
+		if (minframe == INT32_MAX) {
+			minframe = seq_load.start_frame;
+			maxframe = minframe + 1;
+		}
+
+		seq_load.len = 	maxframe - minframe + 1;
 	}
 	else {
 		seq_load.len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
@@ -815,7 +853,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 			}
 
 			for (i = 0; i < seq_load.len; i++, se++) {
-				BLI_snprintf(se->name, sizeof(se->name), "%04d.%s", seq_load.start_frame + i, filename_stripped);
+				BLI_snprintf(se->name, sizeof(se->name), "%04d.%s", minframe + i, filename_stripped);
 			}
 
 			MEM_freeN(filename);
