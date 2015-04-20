@@ -28,6 +28,8 @@
 #include <iostream>
 #include <stdarg.h>
 
+#include "BLI_alloca.h"
+
 /** Check if a python value is a function and have the correct number of arguments.
  * \param value The python value to check.
  * \param minargcount The minimum of arguments possible.
@@ -84,7 +86,7 @@ static PyObject *CreatePythonTuple(unsigned int argcount, PyObject **arglist)
 void RunPythonCallBackList(PyObject *functionlist, PyObject **arglist, unsigned int minargcount, unsigned int maxargcount)
 {
 	unsigned int size = PyList_Size(functionlist);
-	PyObject *argTuples[maxargcount - minargcount + 1];
+	PyObject **argTuples = (PyObject **)BLI_array_alloca(argTuples, maxargcount - minargcount + 1);
 	memset(argTuples, 0, sizeof(PyObject *) * (maxargcount - minargcount + 1));
 
 	for (unsigned int i = 0; i < size; ++i) {
