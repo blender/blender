@@ -547,8 +547,21 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
                        const float col[4], struct ColorManagedDisplay *display,
                        int x1, int y1, int x2, int y2);
 
-/* defined in metadata.c */
+/**
+ *
+ * \attention Defined in metadata.c
+ */
+/** read the field from the image info into the field 
+ *  \param img - the ImBuf that contains the image data
+ *  \param key - the key of the field
+ *  \param value - the data in the field, first one found with key is returned, 
+ *                 memory has to be allocated by user.
+ *  \param len - length of value buffer allocated by user.
+ *  \return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
+ */
+bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *value, const size_t len);
 bool IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field);
+void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb);
 
 /* exported for image tools in blender, to quickly allocate 32 bits rect */
 bool imb_addrectImBuf(struct ImBuf *ibuf);

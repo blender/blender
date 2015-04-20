@@ -47,16 +47,6 @@ struct ImBuf;
 /* free blender ImMetaData struct */
 void IMB_metadata_free(struct ImBuf *img);
 
-/** read the field from the image info into the field 
- *  \param img - the ImBuf that contains the image data
- *  \param key - the key of the field
- *  \param value - the data in the field, first one found with key is returned, 
- *                 memory has to be allocated by user.
- *  \param len - length of value buffer allocated by user.
- *  \return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
- */
-bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *value, const size_t len);
-
 /** set user data in the ImMetaData struct, which has to be allocated with IMB_metadata_create
  *  before calling this function.
  *  \param img - the ImBuf that contains the image data

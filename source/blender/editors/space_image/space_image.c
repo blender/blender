@@ -683,7 +683,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	//View2DScrollers *scrollers;
 	float col[3];
-	
+
 	/* XXX not supported yet, disabling for now */
 	scene->r.scemode &= ~R_COMP_CROP;
 	

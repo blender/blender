@@ -1672,6 +1672,12 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 					goto cleanup;
 				}
 			}
+			if (1) {
+				Scene *scene = CTX_data_scene(C);
+				if (scene && scene->camera) {
+					BKE_imbuf_stamp_info(scene, scene->camera, ibuf);
+				}
+			}
 		}
 
 		/* fancy multiview OpenEXR */
@@ -1693,6 +1699,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 			else {
 				colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
+				IMB_metadata_copy(colormanaged_ibuf, ibuf);
 				ok = BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, imf, save_copy);
 				save_imbuf_post(ibuf, colormanaged_ibuf);
 			}
