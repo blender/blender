@@ -1237,7 +1237,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 					
 					/* Assign new action, and adjust the usercounts accordingly */
 					adt->action = saction->action;
-					id_us_plus(&adt->action->id);
+					id_us_plus((ID *)adt->action);
 				}
 				else {
 					/* fix id-count of action we're replacing */
@@ -1247,7 +1247,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 					
 					/* Assign new action, and adjust the usercounts accordingly */
 					adt->action = saction->action;
-					id_us_plus(&adt->action->id);
+					id_us_plus((ID *)adt->action);
 				}
 			}
 			
