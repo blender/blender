@@ -273,6 +273,7 @@ unsigned int view3d_sample_backbuf_rect(
         struct ViewContext *vc, const int mval[2], int size,
         unsigned int min, unsigned int max, float *dist, const bool is_strict,
         void *handle, bool (*indextest)(void *handle, unsigned int index));
+int          view3d_backbuf_sample_size_clamp(struct ARegion *ar, const float dist);
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
 /* draws and does a 4x4 sample */

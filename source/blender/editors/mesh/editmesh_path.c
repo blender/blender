@@ -94,7 +94,7 @@ static bool mouse_mesh_shortest_path_vert(ViewContext *vc)
 	float dist = ED_view3d_select_dist_px();
 	const bool use_length = true;
 
-	v_dst = EDBM_vert_find_nearest(vc, &dist, false, false);
+	v_dst = EDBM_vert_find_nearest(vc, &dist);
 	if (v_dst) {
 		struct UserData user_data = {bm, vc->obedit->data, vc->scene};
 		LinkNode *path = NULL;

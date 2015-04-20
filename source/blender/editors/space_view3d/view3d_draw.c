@@ -1460,6 +1460,15 @@ void view3d_validate_backbuf(ViewContext *vc)
 		backdrawview3d(vc->scene, vc->ar, vc->v3d);
 }
 
+/**
+ * allow for small values [0.5 - 2.5],
+ * and large values, FLT_MAX by clamping by the area size
+ */
+int view3d_backbuf_sample_size_clamp(ARegion *ar, const float dist)
+{
+	return (int)min_ff(ceilf(dist), (float)max_ii(ar->winx, ar->winx));
+}
+
 /* samples a single pixel (copied from vpaint) */
 unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 {

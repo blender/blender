@@ -417,25 +417,26 @@ static bool findnearestvert__backbufIndextest(void *handle, unsigned int index)
  * - When false, unselected vertice are given the bias.
  * \param is_strict When true, the vertice corresponding to the sel parameter are ignored and not just biased
  */
-BMVert *EDBM_vert_find_nearest(
+BMVert *EDBM_vert_find_nearest_ex(
         ViewContext *vc, float *r_dist,
         const bool use_select_bias, const bool is_strict)
 {
 	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
+		const int dist_px = view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		float distance;
 		unsigned int index;
 		BMVert *eve;
 		
 		if (is_strict) {
 			index = view3d_sample_backbuf_rect(
-			        vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance,
+			        vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &distance,
 			        is_strict, vc->em, findnearestvert__backbufIndextest);
 		}
 		else {
 			index = view3d_sample_backbuf_rect(
-			        vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance,
+			        vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &distance,
 			        0, NULL, NULL);
 		}
 		
@@ -488,6 +489,12 @@ BMVert *EDBM_vert_find_nearest(
 	}
 }
 
+BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist)
+{
+	return EDBM_vert_find_nearest_ex(vc, r_dist, false, false);
+}
+
+
 struct NearestEdgeUserData {
 	ViewContext vc;
 	float mval_fl[2];
@@ -531,13 +538,14 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
+		const int dist_px = view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
 		float distance;
 		unsigned int index;
 		BMEdge *eed;
 		
 		view3d_validate_backbuf(vc);
-		
-		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
+
+		index = view3d_sample_backbuf_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
 		eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
 		
 		if (eed && distance < *r_dist) {
@@ -618,7 +626,10 @@ static void findnearestface__doClosest(void *userData, BMFace *efa, const float 
 	}
 }
 
-BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
+
+BMFace *EDBM_face_find_nearest_ex(
+        ViewContext *vc, float *r_dist,
+        BMFace **r_efa_zbuf)
 {
 	BMesh *bm = vc->em->bm;
 
@@ -631,6 +642,10 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 		index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
 		efa = index ? BM_face_at_index_find_or_table(bm, index - 1) : NULL;
 		
+		if (r_efa_zbuf) {
+			*r_efa_zbuf = efa;
+		}
+
 		if (efa) {
 			struct NearestFaceUserData_ZBuf data;
 
@@ -685,6 +700,11 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 	}
 }
 
+BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
+{
+	return EDBM_face_find_nearest_ex(vc, r_dist, NULL);
+}
+
 
 /* best distance based on screen coords. 
  * use em->selectmode to define how to use 
@@ -695,34 +715,55 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 {
 	BMEditMesh *em = vc->em;
 	const float dist_init = ED_view3d_select_dist_px();
+	/* since edges select lines, we give dots advantage of 20 pix */
+	const float dist_edge_bias = (dist_init / 3.75f);
 	float dist = dist_init;
+	float dist_vert = dist_init;
+	BMFace *efa_zbuf = NULL;
 	
-	*r_eve = NULL;
-	*r_eed = NULL;
-	*r_efa = NULL;
+	BMVert *eve = NULL;
+	BMEdge *eed = NULL;
+	BMFace *efa = NULL;
 	
 	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
 	view3d_validate_backbuf(vc);
-	
-	if (em->selectmode & SCE_SELECT_VERTEX)
-		*r_eve = EDBM_vert_find_nearest(vc, &dist, true, false);
-	if (em->selectmode & SCE_SELECT_FACE)
-		*r_efa = EDBM_face_find_nearest(vc, &dist);
 
-	/* since edges select lines, we give dots advantage of 20 pix */
-	dist -= dist_init / 3.75f;
-	if (em->selectmode & SCE_SELECT_EDGE)
-		*r_eed = EDBM_edge_find_nearest(vc, &dist);
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		eve = EDBM_vert_find_nearest_ex(vc, &dist, true, false);
+		dist_vert = dist;
+	}
+
+	if (em->selectmode & SCE_SELECT_FACE) {
+		efa = EDBM_face_find_nearest_ex(vc, &dist, eve ? &efa_zbuf : NULL);
+	}
+
+	/* distance bias from verts (not faces) */
+	dist = min_ff(dist, dist_vert - dist_edge_bias);
+	if ((dist > 0.0f) && (em->selectmode & SCE_SELECT_EDGE)) {
+		eed = EDBM_edge_find_nearest(vc, &dist);
+	}
 
 	/* return only one of 3 pointers, for frontbuffer redraws */
-	if (*r_eed) {
-		*r_efa = NULL; *r_eve = NULL;
+	if (eed) {
+		efa = NULL; eve = NULL;
 	}
-	else if (*r_efa) {
-		*r_eve = NULL;
+	else if (efa) {
+		eve = NULL;
 	}
-	
-	return (*r_eve || *r_eed || *r_efa);
+
+	/* there may be a face under the cursor, but who's center if too far away
+	 * use this if all else fails, it makes sense to select this */
+	if ((eve || eed || efa) == 0) {
+		if (efa_zbuf) {
+			efa = efa_zbuf;
+		}
+	}
+
+	*r_eve = eve;
+	*r_eed = eed;
+	*r_efa = efa;
+
+	return (eve || eed || efa);
 }
 
 /** \} */
