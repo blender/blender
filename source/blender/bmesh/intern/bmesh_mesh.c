@@ -1379,6 +1379,41 @@ BMFace *BM_face_at_index_find(BMesh *bm, const int index)
 	return BLI_mempool_findelem(bm->fpool, index);
 }
 
+/**
+ * Use lookup table when available, else use slower find functions.
+ *
+ * \note Try to use #BM_mesh_elem_table_ensure instead.
+ */
+BMVert *BM_vert_at_index_find_or_table(BMesh *bm, const int index)
+{
+	if ((bm->elem_table_dirty & BM_VERT) == 0) {
+		return (index < bm->totvert) ? bm->vtable[index] : NULL;
+	}
+	else {
+		return BM_vert_at_index_find(bm, index);
+	}
+}
+
+BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, const int index)
+{
+	if ((bm->elem_table_dirty & BM_EDGE) == 0) {
+		return (index < bm->totedge) ? bm->etable[index] : NULL;
+	}
+	else {
+		return BM_edge_at_index_find(bm, index);
+	}
+}
+
+BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index)
+{
+	if ((bm->elem_table_dirty & BM_FACE) == 0) {
+		return (index < bm->totface) ? bm->ftable[index] : NULL;
+	}
+	else {
+		return BM_face_at_index_find(bm, index);
+	}
+}
+
 
 /**
  * Return the amount of element of type 'type' in a given bmesh.

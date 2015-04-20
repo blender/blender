@@ -350,23 +350,42 @@ bool EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 	
 }
 
+
+/* -------------------------------------------------------------------- */
+
+/** \name Find Nearest Vert/Edge/Face
+ * \{ */
+
+#define FIND_NEAR_THRESHOLD_MIN 3
+
+struct NearestVertUserData {
+	float mval_fl[2];
+	int pass;
+	char hflag_select;
+	bool is_strict;
+	float dist;
+	int index_last;
+	int index_nearest;
+	BMVert *vert_nearest;
+};
+
 static void findnearestvert__doClosest(void *userData, BMVert *eve, const float screen_co[2], int index)
 {
-	struct { float mval_fl[2], pass, select, strict; float dist, lastIndex, closestIndex; BMVert *closest; } *data = userData;
+	struct NearestVertUserData *data = userData;
 
 	if (data->pass == 0) {
-		if (index <= data->lastIndex)
+		if (index <= data->index_last)
 			return;
 	}
 	else {
-		if (index > data->lastIndex)
+		if (index > data->index_last)
 			return;
 	}
 
-	if (data->dist > 3) {
+	if (data->dist > FIND_NEAR_THRESHOLD_MIN) {
 		float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
-		if (BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->select) {
-			if (data->strict == 1) {
+		if (BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->hflag_select) {
+			if (data->is_strict == true) {
 				return;
 			}
 			else {
@@ -376,8 +395,8 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, const float 
 
 		if (dist_test < data->dist) {
 			data->dist = dist_test;
-			data->closest = eve;
-			data->closestIndex = index;
+			data->vert_nearest = eve;
+			data->index_nearest = index;
 		}
 	}
 }
@@ -402,6 +421,8 @@ BMVert *EDBM_vert_find_nearest(
         ViewContext *vc, float *r_dist,
         const bool use_select_bias, const bool is_strict)
 {
+	BMesh *bm = vc->em->bm;
+
 	if (V3D_IS_ZBUF(vc->v3d)) {
 		float distance;
 		unsigned int index;
@@ -418,7 +439,7 @@ BMVert *EDBM_vert_find_nearest(
 			        0, NULL, NULL);
 		}
 		
-		eve = index ? BM_vert_at_index_find(vc->em->bm, index - 1) : NULL;
+		eve = index ? BM_vert_at_index_find_or_table(bm, index - 1) : NULL;
 		
 		if (eve && distance < *r_dist) {
 			*r_dist = distance;
@@ -427,26 +448,26 @@ BMVert *EDBM_vert_find_nearest(
 		else {
 			return NULL;
 		}
-			
 	}
 	else {
-		struct { float mval_fl[2], pass, select, strict; float dist, lastIndex, closestIndex; BMVert *closest; } data;
-		static int lastSelectedIndex = 0;
-		static BMVert *lastSelected = NULL;
-		
-		if (lastSelected && BM_vert_at_index_find(vc->em->bm, lastSelectedIndex) != lastSelected) {
-			lastSelectedIndex = 0;
-			lastSelected = NULL;
+		struct NearestVertUserData data;
+
+		static int prev_select_index = 0;
+		static const BMVert *prev_select_elem = NULL;
+
+		if (prev_select_elem && (prev_select_elem != BM_vert_at_index_find_or_table(bm, prev_select_index))) {
+			prev_select_index = 0;
+			prev_select_elem = NULL;
 		}
 
-		data.lastIndex = lastSelectedIndex;
+		data.index_last = prev_select_index;
 		data.mval_fl[0] = vc->mval[0];
 		data.mval_fl[1] = vc->mval[1];
-		data.select = use_select_bias ? BM_ELEM_SELECT : 0;
+		data.hflag_select = use_select_bias ? BM_ELEM_SELECT : 0;
 		data.dist = *r_dist;
-		data.strict = is_strict;
-		data.closest = NULL;
-		data.closestIndex = 0;
+		data.is_strict = is_strict;
+		data.vert_nearest = NULL;
+		data.index_nearest = 0;
 
 		data.pass = 0;
 
@@ -454,23 +475,30 @@ BMVert *EDBM_vert_find_nearest(
 
 		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
-		if (data.dist > 3) {
+		if (data.dist > FIND_NEAR_THRESHOLD_MIN) {
 			data.pass = 1;
 			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 
 		*r_dist = data.dist;
-		lastSelected = data.closest;
-		lastSelectedIndex = data.closestIndex;
+		prev_select_elem = data.vert_nearest;
+		prev_select_index = data.index_nearest;
 
-		return data.closest;
+		return data.vert_nearest;
 	}
 }
+
+struct NearestEdgeUserData {
+	ViewContext vc;
+	float mval_fl[2];
+	float dist;
+	BMEdge *edge_nearest;
+};
 
 /* note; uses v3d, so needs active 3d window */
 static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int UNUSED(index))
 {
-	struct { ViewContext vc; float mval_fl[2]; float dist; BMEdge *closest; } *data = userData;
+	struct NearestEdgeUserData *data = userData;
 	int distance;
 
 	distance = dist_to_line_segment_v2(data->mval_fl, screen_co_a, screen_co_b);
@@ -481,26 +509,26 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float 
 
 	if (distance < data->dist) {
 		if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
-			float lambda = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
+			float fac = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
 			float vec[3];
 
-			vec[0] = eed->v1->co[0] + lambda * (eed->v2->co[0] - eed->v1->co[0]);
-			vec[1] = eed->v1->co[1] + lambda * (eed->v2->co[1] - eed->v1->co[1]);
-			vec[2] = eed->v1->co[2] + lambda * (eed->v2->co[2] - eed->v1->co[2]);
-
+			CLAMP(fac, 0, 1);
+			interp_v3_v3v3(vec, eed->v1->co, eed->v2->co, fac);
 			if (ED_view3d_clipping_test(data->vc.rv3d, vec, true) == 0) {
 				data->dist = distance;
-				data->closest = eed;
+				data->edge_nearest = eed;
 			}
 		}
 		else {
 			data->dist = distance;
-			data->closest = eed;
+			data->edge_nearest = eed;
 		}
 	}
 }
+
 BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 {
+	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
 		float distance;
@@ -510,7 +538,7 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 		view3d_validate_backbuf(vc);
 		
 		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
-		eed = index ? BM_edge_at_index_find(vc->em->bm, index - 1) : NULL;
+		eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
 		
 		if (eed && distance < *r_dist) {
 			*r_dist = distance;
@@ -521,27 +549,42 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 		}
 	}
 	else {
-		struct { ViewContext vc; float mval_fl[2]; float dist; BMEdge *closest; } data;
+		struct NearestEdgeUserData data;
 
 		data.vc = *vc;
 		data.mval_fl[0] = vc->mval[0];
 		data.mval_fl[1] = vc->mval[1];
 		data.dist = *r_dist;
-		data.closest = NULL;
+		data.edge_nearest = NULL;
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, V3D_PROJ_TEST_CLIP_WIN);
 
 		*r_dist = data.dist;
-		return data.closest;
+		return data.edge_nearest;
 	}
 }
 
-static void findnearestface__getDistance(void *userData, BMFace *efa, const float screen_co[2], int UNUSED(index))
-{
-	struct { float mval_fl[2]; float dist; BMFace *toFace; } *data = userData;
+struct NearestFaceUserData_ZBuf {
+	float mval_fl[2];
+	float dist;
+	const BMFace *face_test;
+};
 
-	if (efa == data->toFace) {
+struct NearestFaceUserData_Closest {
+	float mval_fl[2];
+	int pass;
+	float dist;
+	int index_last;
+	int index_nearest;
+	BMFace *face_nearest;
+};
+
+static void findnearestface__doZBuf(void *userData, BMFace *efa, const float screen_co[2], int UNUSED(index))
+{
+	struct NearestFaceUserData_ZBuf *data = userData;
+
+	if (efa == data->face_test) {
 		const float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
 		if (dist_test < data->dist) {
@@ -549,32 +592,35 @@ static void findnearestface__getDistance(void *userData, BMFace *efa, const floa
 		}
 	}
 }
+
+
 static void findnearestface__doClosest(void *userData, BMFace *efa, const float screen_co[2], int index)
 {
-	struct { float mval_fl[2], pass; float dist, lastIndex, closestIndex; BMFace *closest; } *data = userData;
+	struct NearestFaceUserData_Closest *data = userData;
 
 	if (data->pass == 0) {
-		if (index <= data->lastIndex)
+		if (index <= data->index_last)
 			return;
 	}
 	else {
-		if (index > data->lastIndex)
+		if (index > data->index_last)
 			return;
 	}
 
-	if (data->dist > 3) {
+	if (data->dist > FIND_NEAR_THRESHOLD_MIN) {
 		const float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
 		if (dist_test < data->dist) {
 			data->dist = dist_test;
-			data->closest = efa;
-			data->closestIndex = index;
+			data->face_nearest = efa;
+			data->index_nearest = index;
 		}
 	}
 }
 
 BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 {
+	BMesh *bm = vc->em->bm;
 
 	if (V3D_IS_ZBUF(vc->v3d)) {
 		unsigned int index;
@@ -583,19 +629,19 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 		view3d_validate_backbuf(vc);
 
 		index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
-		efa = index ? BM_face_at_index_find(vc->em->bm, index - 1) : NULL;
+		efa = index ? BM_face_at_index_find_or_table(bm, index - 1) : NULL;
 		
 		if (efa) {
-			struct { float mval_fl[2]; float dist; BMFace *toFace; } data;
+			struct NearestFaceUserData_ZBuf data;
 
 			data.mval_fl[0] = vc->mval[0];
 			data.mval_fl[1] = vc->mval[1];
 			data.dist = FLT_MAX;
-			data.toFace = efa;
+			data.face_test = efa;
 
 			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+			mesh_foreachScreenFace(vc, findnearestface__doZBuf, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 			if ((vc->em->selectmode == SCE_SELECT_FACE) || (data.dist < *r_dist)) {  /* only faces, no dist check */
 				*r_dist = data.dist;
@@ -606,38 +652,39 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 		return NULL;
 	}
 	else {
-		struct { float mval_fl[2], pass; float dist, lastIndex, closestIndex; BMFace *closest; } data;
-		static int lastSelectedIndex = 0;
-		static BMFace *lastSelected = NULL;
+		struct NearestFaceUserData_Closest data;
+		static int prev_select_index = 0;
+		static const BMFace *prev_select_elem = NULL;
 
-		if (lastSelected && BM_face_at_index_find(vc->em->bm, lastSelectedIndex) != lastSelected) {
-			lastSelectedIndex = 0;
-			lastSelected = NULL;
+		if (prev_select_elem && (prev_select_elem != BM_face_at_index_find_or_table(bm, prev_select_index))) {
+			prev_select_index = 0;
+			prev_select_elem = NULL;
 		}
 
-		data.lastIndex = lastSelectedIndex;
+		data.index_last = prev_select_index;
 		data.mval_fl[0] = vc->mval[0];
 		data.mval_fl[1] = vc->mval[1];
 		data.dist = *r_dist;
-		data.closest = NULL;
-		data.closestIndex = 0;
+		data.face_nearest = NULL;
+		data.index_nearest = 0;
 
 		data.pass = 0;
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
-		if (data.dist > 3.0f) {
+		if (data.dist > FIND_NEAR_THRESHOLD_MIN) {
 			data.pass = 1;
 			mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 
 		*r_dist = data.dist;
-		lastSelected = data.closest;
-		lastSelectedIndex = data.closestIndex;
+		prev_select_elem = data.face_nearest;
+		prev_select_index = data.index_nearest;
 
-		return data.closest;
+		return data.face_nearest;
 	}
 }
+
 
 /* best distance based on screen coords. 
  * use em->selectmode to define how to use 
@@ -647,7 +694,8 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
 	BMEditMesh *em = vc->em;
-	float dist = ED_view3d_select_dist_px();
+	const float dist_init = ED_view3d_select_dist_px();
+	float dist = dist_init;
 	
 	*r_eve = NULL;
 	*r_eed = NULL;
@@ -661,7 +709,8 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 	if (em->selectmode & SCE_SELECT_FACE)
 		*r_efa = EDBM_face_find_nearest(vc, &dist);
 
-	dist -= 20; /* since edges select lines, we give dots advantage of 20 pix */
+	/* since edges select lines, we give dots advantage of 20 pix */
+	dist -= dist_init / 3.75f;
 	if (em->selectmode & SCE_SELECT_EDGE)
 		*r_eed = EDBM_edge_find_nearest(vc, &dist);
 
@@ -675,6 +724,9 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 	
 	return (*r_eve || *r_eed || *r_efa);
 }
+
+/** \} */
+
 
 /* ****************  SIMILAR "group" SELECTS. FACE, EDGE AND VERTEX ************** */
 static EnumPropertyItem prop_similar_compare_types[] = {
