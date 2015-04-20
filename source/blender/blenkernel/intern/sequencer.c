@@ -5227,10 +5227,6 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 		        MEM_dupallocN(seq->strip->stripdata);
 	}
 	else if (seq->type >= SEQ_TYPE_EFFECT) {
-		if (seq->seq1 && seq->seq1->tmp) seqn->seq1 = seq->seq1->tmp;
-		if (seq->seq2 && seq->seq2->tmp) seqn->seq2 = seq->seq2->tmp;
-		if (seq->seq3 && seq->seq3->tmp) seqn->seq3 = seq->seq3->tmp;
-
 		if (seq->type & SEQ_TYPE_EFFECT) {
 			struct SeqEffectHandle sh;
 			sh = BKE_sequence_get_effect(seq);
@@ -5255,6 +5251,28 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	return seqn;
 }
 
+static void seq_new_fix_links_recursive(Sequence *seq)
+{
+	SequenceModifierData *smd;
+
+	if (seq->type >= SEQ_TYPE_EFFECT) {
+		if (seq->seq1 && seq->seq1->tmp) seq->seq1 = seq->seq1->tmp;
+		if (seq->seq2 && seq->seq2->tmp) seq->seq2 = seq->seq2->tmp;
+		if (seq->seq3 && seq->seq3->tmp) seq->seq3 = seq->seq3->tmp;
+	}
+	else if (seq->type == SEQ_TYPE_META) {
+		Sequence *seqn;
+		for (seqn = seq->seqbase.first; seqn; seqn = seqn->next) {
+			seq_new_fix_links_recursive(seqn);
+		}
+	}
+
+	for (smd = seq->modifiers.first; smd; smd = smd->next) {
+		if (smd->mask_sequence && smd->mask_sequence->tmp)
+			smd->mask_sequence = smd->mask_sequence->tmp;
+	}
+}
+
 Sequence *BKE_sequence_dupli_recursive(Scene *scene, Scene *scene_to, Sequence *seq, int dupe_flag)
 {
 	Sequence *seqn = seq_dupli(scene, scene_to, seq, dupe_flag);
@@ -5267,6 +5285,9 @@ Sequence *BKE_sequence_dupli_recursive(Scene *scene, Scene *scene_to, Sequence *
 			}
 		}
 	}
+
+	seq_new_fix_links_recursive(seqn);
+
 	return seqn;
 }
 
@@ -5304,6 +5325,11 @@ void BKE_sequence_base_dupli_recursive(
 				}
 			}
 		}
+	}
+
+	/* fix modifier linking */
+	for (seq = nseqbase->first; seq; seq = seq->next) {
+		seq_new_fix_links_recursive(seq);
 	}
 }
 
