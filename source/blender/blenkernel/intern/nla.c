@@ -1649,6 +1649,12 @@ bool BKE_nla_action_stash(AnimData *adt)
 	nlt->flag = (NLATRACK_MUTED | NLATRACK_PROTECTED);
 	strip->flag &= ~(NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_ACTIVE);
 	
+	/* also mark the strip for auto syncing the length, so that the strips accurately
+	 * reflect the length of the action
+	 * XXX: we could do with some extra flags here to prevent repeats/scaling options from working!
+	 */
+	strip->flag |= NLASTRIP_FLAG_SYNC_LENGTH;
+	
 	/* succeeded */
 	return true;
 }
