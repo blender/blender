@@ -1501,6 +1501,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	const bool show_menu_icon = ui_but_draw_menu_icon(but);
 	float alpha = (float)wcol->text[3] / 255.0f;
 	char password_str[UI_MAX_DRAW_STR];
+	uiButExtraIconType extra_icon_type;
 
 	ui_but_text_password_hide(password_str, but, false);
 
@@ -1540,11 +1541,23 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	}
 
 	/* unlink icon for this button type */
-	if ((but->type == UI_BTYPE_SEARCH_MENU) && ui_but_is_search_unlink_visible(but)) {
+	if ((but->type == UI_BTYPE_SEARCH_MENU) &&
+	    ((extra_icon_type = ui_but_icon_extra_get(but)) != UI_BUT_ICONEXTRA_NONE))
+	{
 		rcti temp = *rect;
 
 		temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
-		widget_draw_icon(but, ICON_X, alpha, &temp, false);
+
+		if (extra_icon_type == UI_BUT_ICONEXTRA_UNLINK) {
+			widget_draw_icon(but, ICON_X, alpha, &temp, false);
+		}
+		else if (extra_icon_type == UI_BUT_ICONEXTRA_EYEDROPPER) {
+			widget_draw_icon(but, ICON_EYEDROPPER, alpha, &temp, false);
+		}
+		else {
+			BLI_assert(0);
+		}
+
 		rect->xmax -= ICON_SIZE_FROM_BUTRECT(rect);
 	}
 

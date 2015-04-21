@@ -121,6 +121,14 @@ enum {
 	/* warn: rest of uiBut->flag in UI_interface.h */
 };
 
+/* some buttons display icons only under special conditions
+ * (e.g. 'x' icon in search menu) - used with ui_but_icon_extra_get */
+typedef enum uiButExtraIconType {
+	UI_BUT_ICONEXTRA_NONE = 1,
+	UI_BUT_ICONEXTRA_UNLINK,
+	UI_BUT_ICONEXTRA_EYEDROPPER,
+} uiButExtraIconType;
+
 /* but->pie_dir */
 typedef enum RadialDirection {
 	UI_RADIAL_NONE  = -1,
@@ -456,6 +464,7 @@ extern bool ui_but_string_set(struct bContext *C, uiBut *but, const char *str) A
 extern bool ui_but_string_set_eval_num(struct bContext *C, uiBut *but, const char *str, double *value) ATTR_NONNULL();
 extern int  ui_but_string_get_max_length(uiBut *but);
 extern uiBut *ui_but_drag_multi_edit_get(uiBut *but);
+extern uiButExtraIconType ui_but_icon_extra_get(uiBut *but);
 
 extern void ui_but_default_set(struct bContext *C, const bool all, const bool use_afterfunc);
 
@@ -466,7 +475,6 @@ extern bool ui_but_is_unit(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_compatible(const uiBut *but_a, const uiBut *but_b) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_rna_valid(uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_utf8(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
-extern bool ui_but_is_search_unlink_visible(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
 extern int  ui_but_is_pushed_ex(uiBut *but, double *value) ATTR_WARN_UNUSED_RESULT;
 extern int  ui_but_is_pushed(uiBut *but) ATTR_WARN_UNUSED_RESULT;

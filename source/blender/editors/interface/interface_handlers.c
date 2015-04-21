@@ -3301,9 +3301,11 @@ static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+	uiButExtraIconType extra_icon_type;
+
 	/* unlink icon is on right */
-	if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY) && event->val == KM_PRESS &&
-	    ui_but_is_search_unlink_visible(but))
+	if ((ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, PADENTER, RETKEY)) &&
+	    ((extra_icon_type = ui_but_icon_extra_get(but)) != UI_BUT_ICONEXTRA_NONE))
 	{
 		ARegion *ar = data->region;
 		rcti rect;
@@ -3314,14 +3316,29 @@ static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHa
 		BLI_rcti_rctf_copy(&rect, &but->rect);
 		
 		rect.xmin = rect.xmax - (BLI_rcti_size_y(&rect));
+		/* handle click on unlink/eyedropper icon */
 		if (BLI_rcti_isect_pt(&rect, x, y)) {
-			/* most likely NULL, but let's check, and give it temp zero string */
-			if (data->str == NULL)
-				data->str = MEM_callocN(1, "temp str");
-			data->str[0] = 0;
+			/* doing this on KM_PRESS calls eyedropper after clicking unlink icon */
+			if (event->val == KM_RELEASE) {
+				/* unlink */
+				if (extra_icon_type == UI_BUT_ICONEXTRA_UNLINK) {
+					/* most likely NULL, but let's check, and give it temp zero string */
+					if (data->str == NULL) {
+						data->str = MEM_callocN(1, "temp str");
+					}
+					data->str[0] = 0;
 
-			ui_apply_but_TEX(C, but, data);
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
+					ui_apply_but_TEX(C, but, data);
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
+				/* eyedropper */
+				else if (extra_icon_type == UI_BUT_ICONEXTRA_EYEDROPPER) {
+					WM_operator_name_call(C, "UI_OT_eyedropper_id", WM_OP_INVOKE_DEFAULT, NULL);
+				}
+				else {
+					BLI_assert(0);
+				}
+			}
 
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -6859,14 +6876,6 @@ static bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 		return false;
 
 	return true;
-}
-
-bool ui_but_is_search_unlink_visible(const uiBut *but)
-{
-	BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
-	return ((but->editstr == NULL) &&
-	        (but->drawstr[0] != '\0') &&
-	        (but->flag & UI_BUT_SEARCH_UNLINK));
 }
 
 /* x and y are only used in case event is NULL... */

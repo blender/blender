@@ -456,6 +456,8 @@ static void datadropper_exit(bContext *C, wmOperator *op)
 
 		op->customdata = NULL;
 	}
+
+	WM_event_add_mousemove(C);
 }
 
 static void datadropper_cancel(bContext *C, wmOperator *op)
