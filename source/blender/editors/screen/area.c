@@ -2054,17 +2054,17 @@ BLI_INLINE bool metadata_is_valid(ImBuf *ibuf, char *r_str, short index, int off
 static void metadata_draw_imbuf(ImBuf *ibuf, rcti rect, int fontid, const bool is_top, float factor)
 {
 	char temp_str[MAX_METADATA_STR];
-	int line_width, line_height;
+	int line_width;
 	int ofs_y = 0;
 	short i;
 	int len;
+	const float height = BLF_height_max(fontid);
 
 	if (is_top) {
 		for (i = 0; i < 4; i++) {
 			/* first line */
 			if (i == 0) {
 				bool do_newline = false;
-				float height = 0.0;
 				BLI_snprintf(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[0]);
 				len = strlen(temp_str);
 				if (metadata_is_valid(ibuf, temp_str, 0, len)) {
@@ -2072,19 +2072,16 @@ static void metadata_draw_imbuf(ImBuf *ibuf, rcti rect, int fontid, const bool i
 					             rect.ymax - factor * (1.5f * U.widget_unit - UI_UNIT_Y), 0.0f);
 					BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
 					do_newline = true;
-					height = BLF_height(fontid, temp_str, strlen(temp_str));
 				}
 
 				BLI_snprintf(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[1]);
 				len = strlen(temp_str);
 				if (metadata_is_valid(ibuf, temp_str, 1, len)) {
-					len = strlen(temp_str);
-					line_width = BLF_width(fontid, temp_str, len);
+					line_width = BLF_width(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
 					BLF_position(fontid, rect.xmax - line_width - (0.2f * U.widget_unit),
 					             rect.ymax - factor * (1.5f * U.widget_unit - UI_UNIT_Y), 0.0f);
 					BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
 					do_newline = true;
-					height = max_ff(BLF_height(fontid, temp_str, len), height);
 				}
 
 				if (do_newline)
@@ -2097,7 +2094,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, rcti rect, int fontid, const bool i
 					BLF_position(fontid, rect.xmin + (0.2f * U.widget_unit),
 					             rect.ymax - factor * (1.5f * U.widget_unit - UI_UNIT_Y) - ofs_y, 0.0f);
 					BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
-					ofs_y += (BLF_height(fontid, temp_str, strlen(temp_str)) + (0.2f * U.widget_unit));
+					ofs_y += (height + (0.2f * U.widget_unit));
 				}
 			}
 			else {
@@ -2107,7 +2104,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, rcti rect, int fontid, const bool i
 					BLF_position(fontid, rect.xmax + (0.2f * U.widget_unit),
 					             rect.ymax - factor * (1.5f * U.widget_unit - UI_UNIT_Y) - ofs_y, 0.0f);
 					BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
-					ofs_y += (BLF_height(fontid, temp_str, strlen(temp_str)) + (0.2f * U.widget_unit));
+					ofs_y += (height + (0.2f * U.widget_unit));
 				}
 			}
 		}
@@ -2118,12 +2115,12 @@ static void metadata_draw_imbuf(ImBuf *ibuf, rcti rect, int fontid, const bool i
 			BLI_snprintf(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i]);
 			len = strlen(temp_str);
 			if (metadata_is_valid(ibuf, temp_str, i, len)) {
-				line_height = BLF_height(fontid, temp_str, strlen(temp_str));
+				const int line_height = height;
 				BLF_position(fontid, rect.xmin + (0.2f * U.widget_unit) + ofs_x,
 				             rect.ymin - line_height + factor * (1.5f * U.widget_unit), 0.0f);
 				BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
 	
-				ofs_x += BLF_width(fontid, temp_str, strlen(temp_str)) + UI_UNIT_X;
+				ofs_x += BLF_width(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX) + UI_UNIT_X;
 			}
 		}
 	}

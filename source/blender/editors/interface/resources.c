@@ -570,10 +570,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					break;
 
 				case TH_METADATA_BG:
-					cp =ts->metadatabg;
+					cp = ts->metadatabg;
 					break;
 				case TH_METADATA_TEXT:
-					cp =ts->metadatatext;
+					cp = ts->metadatatext;
 					break;
 
 				case TH_UV_OTHERS:
