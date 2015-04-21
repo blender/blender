@@ -1672,12 +1672,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 					goto cleanup;
 				}
 			}
-			if (1) {
-				Scene *scene = CTX_data_scene(C);
-				if (scene && scene->camera) {
-					BKE_imbuf_stamp_info(scene, scene->camera, ibuf);
-				}
-			}
+			BKE_imbuf_stamp_info(rr, ibuf);
 		}
 
 		/* fancy multiview OpenEXR */

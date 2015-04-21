@@ -115,7 +115,9 @@ void render_result_free(RenderResult *res)
 		MEM_freeN(res->text);
 	if (res->error)
 		MEM_freeN(res->error);
-	
+	if (res->stamp_data)
+		MEM_freeN(res->stamp_data);
+
 	MEM_freeN(res);
 }
 

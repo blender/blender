@@ -478,12 +478,14 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 
 	rr = RE_AcquireResultRead(oglrender->re);
 
+	BKE_render_result_stamp_info(scene, camera, rr);
+
 	BKE_image_path_from_imformat(
 	        name, scene->r.pic, oglrender->bmain->name, scene->r.cfra,
 	        &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, false, NULL);
 
 	/* write images as individual images or stereo */
-	ok = RE_WriteRenderViewsImage(oglrender->reports, rr, scene, camera, false, name);
+	ok = RE_WriteRenderViewsImage(oglrender->reports, rr, scene, false, name);
 
 	RE_ReleaseResultImage(oglrender->re);
 
@@ -805,7 +807,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		ok = RE_WriteRenderViewsImage(op->reports, rr, scene, scene->camera, true, name);
+		ok = RE_WriteRenderViewsImage(op->reports, rr, scene, true, name);
 		if (ok) {
 			printf("Saved: %s", name);
 			BKE_reportf(op->reports, RPT_INFO, "Saved file: %s", name);

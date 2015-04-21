@@ -363,6 +363,7 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
 			rr->layers = re->result->layers;
 			rr->xof = re->disprect.xmin;
 			rr->yof = re->disprect.ymin;
+			rr->stamp_data = re->result->stamp_data;
 		}
 	}
 }
@@ -3026,11 +3027,16 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	scene->r.cfra = frame;
 	
 	if (render_initialize_from_main(re, &scene->r, bmain, scene, srl, camera_override, lay_override, 0, 0)) {
+		Object *camera;
 		MEM_reset_peak_memory();
 
 		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
 		do_render_all_options(re);
+
+		/* save render result stamp if needed */
+		camera = RE_GetCamera(re);
+		BKE_render_result_stamp_info(scene, camera, re->result);
 
 		if (write_still && !G.is_break) {
 			if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
@@ -3082,7 +3088,7 @@ void RE_RenderFreestyleExternal(Render *re)
 }
 #endif
 
-bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scene, struct Object *camera, const bool stamp, char *name)
+bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scene, const bool stamp, char *name)
 {
 	bool is_mono;
 	bool ok = true;
@@ -3125,8 +3131,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 				if (stamp) {
 					/* writes the name of the individual cameras */
-					Object *view_camera = BKE_camera_multiview_render(scene, camera, rv->name);
-					ok = BKE_imbuf_write_stamp(scene, view_camera, ibuf, name, &rd->im_format);
+					ok = BKE_imbuf_write_stamp(scene, rr, ibuf, name, &rd->im_format);
 				}
 				else {
 					ok = BKE_imbuf_write(ibuf, name, &rd->im_format);
@@ -3152,8 +3157,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 					if (stamp) {
 						/* writes the name of the individual cameras */
-						Object *view_camera = BKE_camera_multiview_render(scene, camera, rv->name);
-						ok = BKE_imbuf_write_stamp(scene, view_camera, ibuf, name, &rd->im_format);
+						ok = BKE_imbuf_write_stamp(scene, rr, ibuf, name, &rd->im_format);
 					}
 					else {
 						ok = BKE_imbuf_write(ibuf, name, &rd->im_format);
@@ -3188,7 +3192,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 			ibuf_arr[2] = IMB_stereo3d_ImBuf(&scene->r.im_format, ibuf_arr[0], ibuf_arr[1]);
 
 			if (stamp)
-				ok = BKE_imbuf_write_stamp(scene, camera, ibuf_arr[2], name, &rd->im_format);
+				ok = BKE_imbuf_write_stamp(scene, rr, ibuf_arr[2], name, &rd->im_format);
 			else
 				ok = BKE_imbuf_write(ibuf_arr[2], name, &rd->im_format);
 
@@ -3214,7 +3218,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 				                                    &scene->display_settings, &imf);
 
 				if (stamp)
-					ok = BKE_imbuf_write_stamp(scene, camera, ibuf_arr[2], name, &rd->im_format);
+					ok = BKE_imbuf_write_stamp(scene, rr, ibuf_arr[2], name, &rd->im_format);
 				else
 					ok = BKE_imbuf_write(ibuf_arr[2], name, &imf);
 
@@ -3324,7 +3328,6 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	RenderResult rres;
 	double render_time;
 	bool ok = true;
-	Object *camera = RE_GetCamera(re);
 
 	RE_AcquireResultImageViews(re, &rres);
 
@@ -3341,7 +3344,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 			        &scene->r.im_format, (scene->r.scemode & R_EXTENSION) != 0, true, NULL);
 
 		/* write images as individual images or stereo */
-		ok = RE_WriteRenderViewsImage(re->reports, &rres, scene, camera, true, name);
+		ok = RE_WriteRenderViewsImage(re->reports, &rres, scene, true, name);
 	}
 	
 	RE_ReleaseResultImageViews(re, &rres);
@@ -3469,6 +3472,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	}
 	else {
 		for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
+			Object *camera;
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
@@ -3567,6 +3571,10 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			do_render_all_options(re);
 			totrendered++;
 			
+			/* save render result stamp if needed */
+			camera = RE_GetCamera(re);
+			BKE_render_result_stamp_info(scene, camera, re->result);
+
 			if (re->test_break(re->tbh) == 0) {
 				if (!G.is_break)
 					if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, NULL))
