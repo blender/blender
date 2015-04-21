@@ -221,7 +221,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 			int track_index;
 			MovieTrackingTrack **new_point_tracks;
 
-			new_point_tracks = MEM_mallocN(sizeof(*new_point_tracks) * plane_track->point_tracksnr,
+			new_point_tracks = MEM_mallocN(sizeof(*new_point_tracks) * (plane_track->point_tracksnr - 1),
 			                               "new point tracks array");
 
 			for (i = 0, track_index = 0; i < plane_track->point_tracksnr; i++) {
