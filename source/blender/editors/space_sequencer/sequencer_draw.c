@@ -1037,7 +1037,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	sequencer_display_size(scene, sseq, viewrect);
 
-	if (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0) {
+	if (!draw_backdrop && (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0)) {
 		SequencerScopes *scopes = &sseq->scopes;
 
 		sequencer_check_scopes(scopes, ibuf);
