@@ -569,6 +569,13 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->paint_curve_pivot;
 					break;
 
+				case TH_METADATA_BG:
+					cp =ts->metadatabg;
+					break;
+				case TH_METADATA_TEXT:
+					cp =ts->metadatatext;
+					break;
+
 				case TH_UV_OTHERS:
 					cp = ts->uv_others;
 					break;

@@ -338,6 +338,9 @@ typedef struct ThemeSpace {
 
 	char paint_curve_pivot[4];
 	char paint_curve_handle[4];
+
+	char metadatabg[4];
+	char metadatatext[4];
 } ThemeSpace;
 
 
