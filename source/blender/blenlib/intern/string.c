@@ -231,6 +231,30 @@ size_t BLI_vsnprintf(char *__restrict buffer, size_t maxncpy, const char *__rest
 }
 
 /**
+ * A version of #BLI_vsnprintf that returns ``strlen(buffer)``
+ */
+size_t BLI_vsnprintf_rlen(char *__restrict buffer, size_t maxncpy, const char *__restrict format, va_list arg)
+{
+	size_t n;
+
+	BLI_assert(buffer != NULL);
+	BLI_assert(maxncpy > 0);
+	BLI_assert(format != NULL);
+
+	n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
+
+	if (n != -1 && n < maxncpy) {
+		/* pass */
+	}
+	else {
+		n = maxncpy - 1;
+	}
+	buffer[n] = '\0';
+
+	return n;
+}
+
+/**
  * Portable replacement for #snprintf
  */
 size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
@@ -244,6 +268,25 @@ size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict
 
 	va_start(arg, format);
 	n = BLI_vsnprintf(dst, maxncpy, format, arg);
+	va_end(arg);
+
+	return n;
+}
+
+/**
+ * A version of #BLI_snprintf that returns ``strlen(dst)``
+ */
+size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
+{
+	size_t n;
+	va_list arg;
+
+#ifdef DEBUG_STRSIZE
+	memset(dst, 0xff, sizeof(*dst) * maxncpy);
+#endif
+
+	va_start(arg, format);
+	n = BLI_vsnprintf_rlen(dst, maxncpy, format, arg);
 	va_end(arg);
 
 	return n;

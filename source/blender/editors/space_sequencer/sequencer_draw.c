@@ -425,12 +425,12 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 		size_t numstr_len;
 
 		if (direction == SEQ_LEFTHANDLE) {
-			numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", seq->startdisp);
+			numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", seq->startdisp);
 			x1 = rx1;
 			y1 -= 0.45f;
 		}
 		else {
-			numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", seq->enddisp - 1);
+			numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", seq->enddisp - 1);
 			x1 = x2 - handsize_clamped * 0.75f;
 			y1 = y2 + 0.05f;
 		}

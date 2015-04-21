@@ -4640,7 +4640,7 @@ static size_t sequencer_rna_path_prefix(char str[SEQ_RNAPATH_MAXSTR], const char
 	char name_esc[SEQ_NAME_MAXSTR * 2];
 
 	BLI_strescape(name_esc, name, sizeof(name_esc));
-	return BLI_snprintf(str, SEQ_RNAPATH_MAXSTR, "sequence_editor.sequences_all[\"%s\"]", name_esc);
+	return BLI_snprintf_rlen(str, SEQ_RNAPATH_MAXSTR, "sequence_editor.sequences_all[\"%s\"]", name_esc);
 }
 
 /* XXX - hackish function needed for transforming strips! TODO - have some better solution */

@@ -2765,11 +2765,11 @@ void ui_but_update(uiBut *but)
 					}
 					else {
 						const int prec = ui_but_calc_float_precision(but, value);
-						slen += BLI_snprintf(but->drawstr + slen, sizeof(but->drawstr) - slen, "%.*f", prec, value);
+						slen += BLI_snprintf_rlen(but->drawstr + slen, sizeof(but->drawstr) - slen, "%.*f", prec, value);
 					}
 				}
 				else {
-					slen += BLI_snprintf(but->drawstr + slen, sizeof(but->drawstr) - slen, "%d", (int)value);
+					slen += BLI_snprintf_rlen(but->drawstr + slen, sizeof(but->drawstr) - slen, "%d", (int)value);
 				}
 
 				if (but->rnaprop) {

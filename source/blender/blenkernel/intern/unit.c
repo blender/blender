@@ -370,12 +370,7 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, bUn
 	value_conv = value / unit->scalar;
 
 	/* Convert to a string */
-	{
-		len = BLI_snprintf(str, len_max, "%.*f", prec, value_conv);
-
-		if (len >= len_max)
-			len = len_max;
-	}
+	len = BLI_snprintf_rlen(str, len_max, "%.*f", prec, value_conv);
 
 	/* Add unit prefix and strip zeros */
 

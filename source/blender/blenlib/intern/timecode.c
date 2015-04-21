@@ -113,22 +113,22 @@ size_t BLI_timecode_string_from_time(
 			if (power <= 0) {
 				/* include "frames" in display */
 				if (hours) {
-					rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
+					rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
 				}
 				else if (minutes) {
-					rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d+%02d", neg, minutes, seconds, frames);
+					rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d+%02d", neg, minutes, seconds, frames);
 				}
 				else {
-					rlen = BLI_snprintf(str, maxncpy, "%s%d+%02d", neg, seconds, frames);
+					rlen = BLI_snprintf_rlen(str, maxncpy, "%s%d+%02d", neg, seconds, frames);
 				}
 			}
 			else {
 				/* don't include 'frames' in display */
 				if (hours) {
-					rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
+					rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
 				}
 				else {
-					rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d", neg, minutes, seconds);
+					rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d", neg, minutes, seconds);
 				}
 			}
 			break;
@@ -137,10 +137,10 @@ size_t BLI_timecode_string_from_time(
 		{
 			/* reduced SMPTE format that always shows minutes, seconds, frames. Hours only shown as needed. */
 			if (hours) {
-				rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
 			}
 			else {
-				rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d:%02d", neg, minutes, seconds, frames);
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d", neg, minutes, seconds, frames);
 			}
 			break;
 		}
@@ -156,10 +156,10 @@ size_t BLI_timecode_string_from_time(
 			const int s_pad = ms_dp + 3;
 
 			if (hours) {
-				rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d:%0*.*f", neg, hours, minutes, s_pad, ms_dp, time);
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%0*.*f", neg, hours, minutes, s_pad, ms_dp, time);
 			}
 			else {
-				rlen = BLI_snprintf(str, maxncpy, "%s%02d:%0*.*f", neg, minutes, s_pad,  ms_dp, time);
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%0*.*f", neg, minutes, s_pad,  ms_dp, time);
 			}
 			break;
 		}
@@ -168,10 +168,10 @@ size_t BLI_timecode_string_from_time(
 			/* only show the original seconds display */
 			/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
 			if (power <= 0) {
-				rlen = BLI_snprintf(str, maxncpy, "%.*f", 1 - power, time_seconds);
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - power, time_seconds);
 			}
 			else {
-				rlen = BLI_snprintf(str, maxncpy, "%d", iroundf(time_seconds));
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%d", iroundf(time_seconds));
 			}
 			break;
 		}
@@ -179,7 +179,7 @@ size_t BLI_timecode_string_from_time(
 		default:
 		{
 			/* full SMPTE format */
-			rlen = BLI_snprintf(str, maxncpy, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+			rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
 			break;
 		}
 	}
@@ -208,10 +208,10 @@ size_t BLI_timecode_string_from_time_simple(
 
 	/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
 	if (power <= 0) {
-		rlen = BLI_snprintf(str, maxncpy, "%.*f", 1 - power, time_seconds);
+		rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - power, time_seconds);
 	}
 	else {
-		rlen = BLI_snprintf(str, maxncpy, "%d", iroundf(time_seconds));
+		rlen = BLI_snprintf_rlen(str, maxncpy, "%d", iroundf(time_seconds));
 	}
 
 	return rlen;

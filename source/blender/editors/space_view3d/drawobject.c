@@ -3372,7 +3372,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 						                            unit->system, B_UNIT_LENGTH, do_split, false);
 					}
 					else {
-						numstr_len = BLI_snprintf(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
+						numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
 					}
 
 					view3d_cached_text_draw_add(vmid, numstr, numstr_len, 0, txt_flag, col);
@@ -3449,7 +3449,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 
 						angle = angle_normalized_v3v3(no_a, no_b);
 
-						numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
+						numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
 
 						view3d_cached_text_draw_add(vmid, numstr, numstr_len, 0, txt_flag, col);
 					}
@@ -3474,7 +3474,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 			        3, unit->system, B_UNIT_AREA, do_split, false);                      \
 		}                                                                                \
 		else {                                                                           \
-			numstr_len = BLI_snprintf(numstr, sizeof(numstr), conv_float, area);         \
+			numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, area);    \
 		}                                                                                \
 		view3d_cached_text_draw_add(vmid, numstr, numstr_len, 0, txt_flag, col);         \
 	} (void)0
@@ -3592,7 +3592,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 
 						angle = angle_v3v3v3(v1, v2, v3);
 
-						numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
+						numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
 						interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
 						view3d_cached_text_draw_add(fvec, numstr, numstr_len, 0, txt_flag, col);
 					}
@@ -3623,7 +3623,7 @@ static void draw_em_indices(BMEditMesh *em)
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-				numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", i);
+				numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
 				view3d_cached_text_draw_add(v->co, numstr, numstr_len, 0, txt_flag, col);
 			}
 			i++;
@@ -3635,7 +3635,7 @@ static void draw_em_indices(BMEditMesh *em)
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-				numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", i);
+				numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
 				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
 				view3d_cached_text_draw_add(pos, numstr, numstr_len, 0, txt_flag, col);
 			}
@@ -3649,7 +3649,7 @@ static void draw_em_indices(BMEditMesh *em)
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 				BM_face_calc_center_mean(f, pos);
-				numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", i);
+				numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
 				view3d_cached_text_draw_add(pos, numstr, numstr_len, 0, txt_flag, col);
 			}
 			i++;
@@ -5397,15 +5397,15 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 						if (part->draw & PART_DRAW_NUM) {
 							if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype == PART_PHYS_BOIDS)) {
-								numstr_len = BLI_snprintf(val_pos, sizeof(numstr), "%d:%.2f", a, pa_health);
+								numstr_len = BLI_snprintf_rlen(val_pos, sizeof(numstr), "%d:%.2f", a, pa_health);
 							}
 							else {
-								numstr_len = BLI_snprintf(val_pos, sizeof(numstr), "%d", a);
+								numstr_len = BLI_snprintf_rlen(val_pos, sizeof(numstr), "%d", a);
 							}
 						}
 						else {
 							if (a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype == PART_PHYS_BOIDS)) {
-								numstr_len = BLI_snprintf(val_pos, sizeof(numstr), "%.2f", pa_health);
+								numstr_len = BLI_snprintf_rlen(val_pos, sizeof(numstr), "%.2f", pa_health);
 							}
 						}
 
@@ -5646,7 +5646,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 			for (a = 0, pa = psys->particles; a < totpart; a++, pa++) {
 				float vec_txt[3];
-				numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%i", a);
+				numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%i", a);
 				/* use worldspace because object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
 				view3d_cached_text_draw_add(vec_txt, numstr, numstr_len,
