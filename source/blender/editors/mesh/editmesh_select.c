@@ -823,7 +823,9 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 
 	if ((dist > 0.0f) && (em->selectmode & SCE_SELECT_EDGE)) {
 		eed = EDBM_edge_find_nearest_ex(vc, &dist, true, use_cycle);
-		dist = min_ff(dist + dist_bias, dist_init);
+		if (eed) {
+			dist = min_ff(dist + dist_bias, dist_init);
+		}
 	}
 
 	if ((dist > 0.0f) && em->selectmode & SCE_SELECT_VERTEX) {
