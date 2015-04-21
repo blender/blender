@@ -1360,6 +1360,37 @@ void BKE_tracking_plane_tracks_remove_point_track(MovieTracking *tracking,
 	}
 }
 
+void BKE_tracking_plane_track_replace_point_track(MovieTrackingPlaneTrack *plane_track,
+                                                  MovieTrackingTrack *old_track,
+                                                  MovieTrackingTrack *new_track)
+{
+	int i;
+	for (i = 0; i < plane_track->point_tracksnr; i++) {
+		if (plane_track->point_tracks[i] == old_track) {
+			plane_track->point_tracks[i] = new_track;
+			break;
+		}
+	}
+}
+
+void BKE_tracking_plane_tracks_replace_point_track(MovieTracking *tracking,
+                                                   MovieTrackingTrack *old_track,
+                                                   MovieTrackingTrack *new_track)
+{
+	MovieTrackingPlaneTrack *plane_track;
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = plane_track->next)
+	{
+		if (BKE_tracking_plane_track_has_point_track(plane_track, old_track)) {
+			BKE_tracking_plane_track_replace_point_track(plane_track,
+			                                             old_track,
+			                                             new_track);
+		}
+	}
+}
+
 /*********************** Plane Marker *************************/
 
 MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(MovieTrackingPlaneTrack *plane_track,

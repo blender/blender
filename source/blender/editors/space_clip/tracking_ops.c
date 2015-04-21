@@ -3117,6 +3117,12 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 			if (tracking->stabilization.rot_track == track)
 				tracking->stabilization.rot_track = act_track;
 
+			/* TODO(sergey): Re-evaluate planes with auto-key. */
+			BKE_tracking_plane_tracks_replace_point_track(tracking,
+			                                              track,
+			                                              act_track);
+
+
 			BKE_tracking_track_free(track);
 			BLI_freelinkN(tracksbase, track);
 		}
