@@ -895,6 +895,11 @@ static void postOrtho(const bool ortho)
 	}
 }
 
+BLI_INLINE bool manipulator_rotate_is_visible(const int drawflags)
+{
+	return (drawflags & (MAN_ROT_X | MAN_ROT_Y | MAN_ROT_Z));
+}
+
 static void draw_manipulator_rotate(
         View3D *v3d, RegionView3D *rv3d, const int drawflags, const int combo,
         const bool is_moving, const bool is_picksel)
@@ -908,8 +913,8 @@ static void draw_manipulator_rotate(
 	const int colcode = (is_moving) ? MAN_MOVECOL : MAN_RGB;
 	bool ortho;
 
-	/* when called while moving in mixed mode, do not draw when... */
-	if ((drawflags & MAN_ROT_C) == 0) return;
+	/* skip drawing if all axes are locked */
+	if (manipulator_rotate_is_visible(drawflags) == false) return;
 
 	/* Init stuff */
 	glDisable(GL_DEPTH_TEST);
@@ -1448,8 +1453,8 @@ static void draw_manipulator_rotate_cyl(
 	int axis_order[3] = {2, 0, 1};
 	int i;
 
-	/* when called while moving in mixed mode, do not draw when... */
-	if ((drawflags & MAN_ROT_C) == 0) return;
+	/* skip drawing if all axes are locked */
+	if (manipulator_rotate_is_visible(drawflags) == false) return;
 
 	manipulator_axis_order(rv3d, axis_order);
 
