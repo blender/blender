@@ -580,7 +580,7 @@ static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v)
 	ImageUser *iuser = iuser_v;
 	RenderLayer *rl;
 	RenderPass *rp;
-	RenderPass *prev= NULL;
+	RenderPass *prev = NULL;
 	int layer = iuser->layer;
 
 	if (RE_HasFakeLayer(rr))

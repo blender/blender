@@ -117,7 +117,7 @@ void GPU_render_text(MTFace *tface, int mode,
 		
 		/* color has been set */
 		if (tface->mode & TF_OBCOL)
-			col= NULL;
+			col = NULL;
 		else if (!col)
 			glColor3f(1.0f, 1.0f, 1.0f);
 

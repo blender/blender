@@ -26,7 +26,7 @@ point map_to_tube(vector dir)
 {
 	float u, v;
 	v = (dir[2] + 1.0) * 0.5;
-	float len = sqrt(dir[0]*dir[0] + dir[1]*dir[1]);
+	float len = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
 	if (len > 0.0) {
 		u = (1.0 - (atan2(dir[0] / len, dir[1] / len) / M_PI)) * 0.5;
 	}
@@ -40,8 +40,8 @@ point map_to_sphere(vector dir)
 {
 	float len = length(dir);
 	float v, u;
-	if(len > 0.0) {
-		if(dir[0] == 0.0 && dir[1] == 0.0) {
+	if (len > 0.0) {
+		if (dir[0] == 0.0 && dir[1] == 0.0) {
 			u = 0.0;  /* Othwise domain error. */
 		}
 		else {
