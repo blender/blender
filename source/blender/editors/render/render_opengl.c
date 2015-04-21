@@ -248,6 +248,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	Object *camera = NULL;
 	ImBuf *ibuf;
 	float winmat[4][4];
+	float *rectf = RE_RenderViewGetRectf(rr, oglrender->view_id);
 	int sizex = oglrender->sizex;
 	int sizey = oglrender->sizey;
 	const short view_context = (v3d != NULL);
@@ -271,7 +272,6 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		ibuf = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
 
 		if (ibuf) {
-			float *rectf;
 			ImBuf *linear_ibuf;
 
 			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
@@ -292,7 +292,6 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 				BKE_sequencer_imbuf_from_sequencer_space(scene, linear_ibuf);
 			}
 
-			rectf = RE_RenderViewGetRectf(rr, oglrender->view_id);
 			memcpy(rectf, linear_ibuf->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
 
 			IMB_freeImBuf(linear_ibuf);
@@ -317,10 +316,12 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			gp_rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, gp_rect);
 
+			BLI_assert(rectf != NULL);
+
 			for (i = 0; i < sizex * sizey * 4; i += 4) {
 				float  col_src[4];
 				rgba_uchar_to_float(col_src, &gp_rect[i]);
-				blend_color_mix_float(&rr->rectf[i], &rr->rectf[i], col_src);
+				blend_color_mix_float(&rectf[i], &rectf[i], col_src);
 			}
 			GPU_offscreen_unbind(oglrender->ofs, true);
 
