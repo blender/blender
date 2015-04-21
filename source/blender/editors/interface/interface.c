@@ -1967,10 +1967,18 @@ static bool ui_but_icon_extra_is_visible_search_unlink(const uiBut *but)
 
 static bool ui_but_icon_extra_is_visible_eyedropper(uiBut *but)
 {
-	StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
-	const short idcode = RNA_type_to_ID_code(type);
+	StructRNA *type;
+	short idcode;
 
 	BLI_assert(but->type == UI_BTYPE_SEARCH_MENU && (but->flag & UI_BUT_SEARCH_UNLINK));
+
+	if (but->rnaprop == NULL) {
+		return false;
+	}
+
+	type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
+	idcode = RNA_type_to_ID_code(type);
+
 
 	return ((but->editstr == NULL) &&
 	        (idcode == ID_OB || OB_DATA_SUPPORT_ID(idcode)));
@@ -1978,7 +1986,10 @@ static bool ui_but_icon_extra_is_visible_eyedropper(uiBut *but)
 
 uiButExtraIconType ui_but_icon_extra_get(uiBut *but)
 {
-	if (ui_but_icon_extra_is_visible_search_unlink(but)) {
+	if ((but->flag & UI_BUT_SEARCH_UNLINK) == 0) {
+		/* pass */
+	}
+	else if (ui_but_icon_extra_is_visible_search_unlink(but)) {
 		return UI_BUT_ICONEXTRA_UNLINK;
 	}
 	else if (ui_but_icon_extra_is_visible_eyedropper(but)) {
