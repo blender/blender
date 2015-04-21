@@ -43,7 +43,7 @@ typedef struct View2D {
 	rcti mask;						/* mask - region (in screenspace) within which 'cur' can be viewed */
 	
 	float min[2], max[2];			/* min/max sizes of 'cur' rect (only when keepzoom not set) */
-	float minzoom, maxzoom;			/* self explanatory. allowable zoom factor range (only when keepzoom set) */
+	float minzoom, maxzoom;			/* allowable zoom factor range (only when (keepzoom & V2D_LIMITZOOM)) is set */
 	
 	short scroll;					/* scroll - scrollbars to display (bitflag) */
 	short scroll_ui;				/* scroll_ui - temp settings used for UI drawing of scrollers */
