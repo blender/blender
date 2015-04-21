@@ -2197,7 +2197,7 @@ void ED_region_image_metadata_draw(ARegion *ar, ImBuf *ibuf, float zoomx, float 
 		BLF_clipping(fontid, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 		BLF_enable(fontid, BLF_CLIPPING);
 
-		UI_ThemeColor(TH_TEXT_HI);
+		UI_ThemeColor(TH_METADATA_TEXT);
 		metadata_draw_imbuf(ibuf, rect, fontid, true, zoomy);
 
 		BLF_disable(fontid, BLF_CLIPPING);
@@ -2219,7 +2219,7 @@ void ED_region_image_metadata_draw(ARegion *ar, ImBuf *ibuf, float zoomx, float 
 		BLF_clipping(fontid, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 		BLF_enable(fontid, BLF_CLIPPING);
 
-		UI_ThemeColor(TH_TEXT_HI);
+		UI_ThemeColor(TH_METADATA_TEXT);
 		metadata_draw_imbuf(ibuf, rect, fontid, false, zoomy);
 
 		BLF_disable(fontid, BLF_CLIPPING);

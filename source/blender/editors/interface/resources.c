@@ -2609,6 +2609,15 @@ void init_userdef_do_versions(void)
 			cp[3] = 255;
 		}
 	}
+
+	if (U.versionfile < 274 || (U.versionfile == 274 && U.subversionfile < 5)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			copy_v4_v4_char(btheme->tima.metadatatext, btheme->tima.text_hi);
+			copy_v4_v4_char(btheme->tseq.metadatatext, btheme->tseq.text_hi);
+		}
+	}
+
 		
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
