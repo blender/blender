@@ -1302,6 +1302,64 @@ void BKE_tracking_plane_tracks_deselect_all(ListBase *plane_tracks_base)
 	}
 }
 
+bool BKE_tracking_plane_track_has_point_track(MovieTrackingPlaneTrack *plane_track,
+                                              MovieTrackingTrack *track)
+{
+	int i;
+	for (i = 0; i < plane_track->point_tracksnr; i++) {
+		if (plane_track->point_tracks[i] == track) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool BKE_tracking_plane_track_remove_point_track(MovieTrackingPlaneTrack *plane_track,
+                                                 MovieTrackingTrack *track)
+{
+	int i, track_index;
+	MovieTrackingTrack **new_point_tracks;
+
+	if (plane_track->point_tracksnr <= 4) {
+		return false;
+	}
+
+	new_point_tracks = MEM_mallocN(sizeof(*new_point_tracks) * (plane_track->point_tracksnr - 1),
+	                               "new point tracks array");
+
+	for (i = 0, track_index = 0; i < plane_track->point_tracksnr; i++) {
+		if (plane_track->point_tracks[i] != track) {
+			new_point_tracks[track_index++] = plane_track->point_tracks[i];
+		}
+	}
+
+	MEM_freeN(plane_track->point_tracks);
+	plane_track->point_tracks = new_point_tracks;
+	plane_track->point_tracksnr--;
+
+	return true;
+}
+
+void BKE_tracking_plane_tracks_remove_point_track(MovieTracking *tracking,
+                                                  MovieTrackingTrack *track)
+{
+	MovieTrackingPlaneTrack *plane_track, *next_plane_track;
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
+	for (plane_track = plane_tracks_base->first;
+	     plane_track;
+	     plane_track = next_plane_track)
+	{
+		next_plane_track = plane_track->next;
+		if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
+			if (!BKE_tracking_plane_track_remove_point_track(plane_track, track)) {
+				/* Delete planes with less than 3 point tracks in it. */
+				BKE_tracking_plane_track_free(plane_track);
+				BLI_freelinkN(plane_tracks_base, plane_track);
+			}
+		}
+	}
+}
+
 /*********************** Plane Marker *************************/
 
 MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(MovieTrackingPlaneTrack *plane_track,

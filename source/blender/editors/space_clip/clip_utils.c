@@ -177,9 +177,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingStabilization *stab = &tracking->stabilization;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-	MovieTrackingPlaneTrack *plane_track, *next_plane_track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 	bool has_bundle = false, update_stab = false;
 	char track_name_escaped[MAX_NAME], prefix[MAX_NAME * 2];
 
@@ -197,49 +195,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 		has_bundle = true;
 
 	/* Make sure no plane will use freed track */
-	for (plane_track = plane_tracks_base->first;
-	     plane_track;
-	     plane_track = next_plane_track)
-	{
-		bool found = false;
-		int i;
-
-		next_plane_track = plane_track->next;
-
-		for (i = 0; i < plane_track->point_tracksnr; i++) {
-			if (plane_track->point_tracks[i] == track) {
-				found = true;
-				break;
-			}
-		}
-
-		if (!found) {
-			continue;
-		}
-
-		if (plane_track->point_tracksnr > 4) {
-			int track_index;
-			MovieTrackingTrack **new_point_tracks;
-
-			new_point_tracks = MEM_mallocN(sizeof(*new_point_tracks) * (plane_track->point_tracksnr - 1),
-			                               "new point tracks array");
-
-			for (i = 0, track_index = 0; i < plane_track->point_tracksnr; i++) {
-				if (plane_track->point_tracks[i] != track) {
-					new_point_tracks[track_index++] = plane_track->point_tracks[i];
-				}
-			}
-
-			MEM_freeN(plane_track->point_tracks);
-			plane_track->point_tracks = new_point_tracks;
-			plane_track->point_tracksnr--;
-		}
-		else {
-			/* Delete planes with less than 3 point tracks in it. */
-			BKE_tracking_plane_track_free(plane_track);
-			BLI_freelinkN(plane_tracks_base, plane_track);
-		}
-	}
+	BKE_tracking_plane_tracks_remove_point_track(tracking, track);
 
 	/* Delete f-curves associated with the track (such as weight, i.e.) */
 	BLI_strescape(track_name_escaped, track->name, sizeof(track_name_escaped));
