@@ -1587,13 +1587,11 @@ unsigned int ED_view3d_backbuf_sample_rect(
 				if (*tbuf && *tbuf >= min && *tbuf < max) {
 					/* we got a hit */
 
-					/* get x,y pixel coords from the offset */
-					const float delta[2] = {
-					    ((tbuf - buf->rect) % size) - (size / 2),
-					    ((tbuf - buf->rect) / size) - (size / 2),
-					};
-
-					*r_dist = len_v2(delta);
+					/* get x,y pixel coords from the offset
+					 * (manhatten distance in keeping with other screen-based selection) */
+					*r_dist = (float)(
+					        abs(((tbuf - buf->rect) % size) - (size / 2)) +
+					        abs(((tbuf - buf->rect) / size) - (size / 2)));
 
 					/* indices start at 1 here */
 					index = (*tbuf - min) + 1;
