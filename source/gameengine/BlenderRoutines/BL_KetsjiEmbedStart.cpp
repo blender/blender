@@ -505,7 +505,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				ketsjiengine->InitDome(scene->gm.dome.res, scene->gm.dome.mode, scene->gm.dome.angle, scene->gm.dome.resbuf, scene->gm.dome.tilt, scene->gm.dome.warptext);
 
 			// initialize 3D Audio Settings
-			AUD_Device* device = sound_get_device();
+			AUD_Device* device = BKE_sound_get_device();
 			AUD_Device_setSpeedOfSound(device, scene->audio.speed_of_sound);
 			AUD_Device_setDopplerFactor(device, scene->audio.doppler_factor);
 			AUD_Device_setDistanceModel(device, AUD_DistanceModel(scene->audio.distance_model));
@@ -675,7 +675,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		}
 
 		// stop all remaining playing sounds
-		AUD_Device_stopAll(sound_get_device());
+		AUD_Device_stopAll(BKE_sound_get_device());
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	

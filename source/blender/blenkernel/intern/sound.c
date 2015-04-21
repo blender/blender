@@ -182,7 +182,7 @@ void BKE_sound_init_once(void)
 
 static AUD_Device* sound_device;
 
-void* sound_get_device(void)
+void* BKE_sound_get_device(void)
 {
 	return sound_device;
 }

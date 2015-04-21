@@ -33,7 +33,7 @@
 #include <audaspace/python/PyAPI.h>
 
 extern "C" {
-extern void *sound_get_factory(void *sound);
+extern void *BKE_sound_get_factory(void *sound);
 }
 
 static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
@@ -42,7 +42,7 @@ static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
 
 	if (PyArg_Parse(args, "l:_sound_from_pointer", &lptr)) {
 		if (lptr) {
-			AUD_Sound* sound = sound_get_factory((void *) lptr);
+			AUD_Sound* sound = BKE_sound_get_factory((void *) lptr);
 
 			if (sound) {
 				Sound *obj = (Sound *)Sound_empty();
