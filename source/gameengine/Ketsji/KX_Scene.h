@@ -107,6 +107,7 @@ class KX_Scene : public PyObjectPlus, public SCA_IScene
 	PyObject*	m_attr_dict;
 	PyObject*	m_draw_call_pre;
 	PyObject*	m_draw_call_post;
+	PyObject*	m_draw_setup_call_pre;
 #endif
 
 	struct CullingInfo {
@@ -631,6 +632,8 @@ public:
 	static int			pyattr_set_drawing_callback_pre(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_drawing_callback_post(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_drawing_setup_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_drawing_setup_callback_pre(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_gravity(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_gravity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
@@ -647,6 +650,7 @@ public:
 	
 	PyObject *GetPreDrawCB() { return m_draw_call_pre; }
 	PyObject *GetPostDrawCB() { return m_draw_call_post; }
+	PyObject *GetPreDrawSetupCB() { return m_draw_setup_call_pre; }
 #endif
 
 	/**

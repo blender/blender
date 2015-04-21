@@ -125,6 +125,12 @@ base class --- :class:`PyObjectPlus`
 
       :type: list
 
+   .. attribute:: pre_draw_setup
+
+      A list of callables to be run before the drawing setup (i.e., before the model view and projection matrices are computed).
+
+      :type: list
+
    .. attribute:: gravity
 
       The scene gravity using the world x, y and z axis.
