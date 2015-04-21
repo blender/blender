@@ -1558,7 +1558,6 @@ unsigned int ED_view3d_backbuf_sample_rect(
 	const unsigned int *bufmin, *bufmax, *tbuf;
 	int minx, miny;
 	int a, b, rc, nr, amount, dirvec[4][2];
-	int distance = 0;
 	unsigned int index = 0;
 
 	amount = (size - 1) / 2;
@@ -1583,7 +1582,7 @@ unsigned int ED_view3d_backbuf_sample_rect(
 	for (nr = 1; nr <= size; nr++) {
 		
 		for (a = 0; a < 2; a++) {
-			for (b = 0; b < nr; b++, distance++) {
+			for (b = 0; b < nr; b++) {
 				if (*tbuf && *tbuf >= min && *tbuf < max) {
 					/* we got a hit */
 
@@ -1622,17 +1621,19 @@ static void view3d_stereo_bgpic_setup(Scene *scene, View3D *v3d, Image *ima, Ima
 	if ((ima->flag & IMA_IS_STEREO)) {
 		iuser->flag |= IMA_SHOW_STEREO;
 
-		if ((scene->r.scemode & R_MULTIVIEW) == 0)
+		if ((scene->r.scemode & R_MULTIVIEW) == 0) {
 			iuser->multiview_eye = STEREO_LEFT_ID;
-
-		/* show only left or right camera */
-		else if (v3d->stereo3d_camera != STEREO_3D_ID)
+		}
+		else if (v3d->stereo3d_camera != STEREO_3D_ID) {
+			/* show only left or right camera */
 			iuser->multiview_eye = v3d->stereo3d_camera;
+		}
 
 		BKE_image_multiview_index(ima, iuser);
 	}
-	else
+	else {
 		iuser->flag &= ~IMA_SHOW_STEREO;
+	}
 }
 
 static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,

@@ -421,7 +421,7 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, const float 
  * \param use_select_bias
  * - When true, selected vertice are given a 5 pixel bias to make them further than unselect verts.
  * - When false, unselected vertice are given the bias.
- * \param is_strict When true, the vertice corresponding to the sel parameter are ignored and not just biased
+ * \param use_cycle Cycle over elements within #FIND_NEAR_CYCLE_THRESHOLD_MIN in order of index.
  */
 BMVert *EDBM_vert_find_nearest_ex(
         ViewContext *vc, float *r_dist,
@@ -590,7 +590,7 @@ BMEdge *EDBM_edge_find_nearest_ex(
 	else {
 		struct NearestEdgeUserData data = {{0}};
 		const struct NearestEdgeUserData_Hit *hit;
-		/* interpolate along the edge before doing a boundbox check */
+		/* interpolate along the edge before doing a clipping plane test */
 		const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
 
 		static int prev_select_index = 0;
@@ -787,6 +787,9 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 {
 	return EDBM_face_find_nearest_ex(vc, r_dist, false, false, NULL);
 }
+
+#undef FIND_NEAR_SELECT_BIAS
+#undef FIND_NEAR_CYCLE_THRESHOLD_MIN
 
 
 /* best distance based on screen coords. 
