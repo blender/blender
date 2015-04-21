@@ -1769,6 +1769,70 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
 }
 
+#define GAME_PROPERTY_MOVE_UP    1
+#define GAME_PROPERTY_MOVE_DOWN -1
+
+static int game_property_move(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	bProperty *prop;
+	bProperty *otherprop = NULL;
+	const int index = RNA_int_get(op->ptr, "index");
+	const int dir = RNA_int_get(op->ptr, "direction");
+
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+
+	prop = BLI_findlink(&ob->prop, index);
+	if (dir == GAME_PROPERTY_MOVE_UP) {
+		otherprop = prop->prev;
+	}
+	else if (dir == GAME_PROPERTY_MOVE_DOWN) {
+		otherprop = prop->next;
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (prop && otherprop) {
+		BLI_listbase_swaplinks(&ob->prop, prop, otherprop);
+
+		WM_event_add_notifier(C, NC_LOGIC, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void OBJECT_OT_game_property_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_property_move[] = {
+		{GAME_PROPERTY_MOVE_UP,   "UP",   0, "Up",   ""},
+		{GAME_PROPERTY_MOVE_DOWN, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Move Game Property";
+	ot->description = "Move  game property";
+	ot->idname = "OBJECT_OT_game_property_move";
+
+	/* api callbacks */
+	ot->exec = game_property_move;
+	ot->poll = ED_operator_object_active_editable;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to move", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "direction", direction_property_move, 0, "Direction",
+	             "Direction for moving the property");
+}
+
+#undef GAME_PROPERTY_MOVE_UP
+#undef GAME_PROPERTY_MOVE_DOWN
+
 #define COPY_PROPERTIES_REPLACE 1
 #define COPY_PROPERTIES_MERGE   2
 #define COPY_PROPERTIES_COPY    3

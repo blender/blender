@@ -71,6 +71,13 @@ class LOGIC_PT_properties(Panel):
             row.prop(prop, "type", text="")
             row.prop(prop, "value", text="")
             row.prop(prop, "show_debug", text="", toggle=True, icon='INFO')
+            sub = row.row(align=True)
+            props = sub.operator("object.game_property_move", text="", icon='TRIA_UP')
+            props.index = i
+            props.direction = "UP"
+            props = sub.operator("object.game_property_move", text="", icon='TRIA_DOWN')
+            props.index = i
+            props.direction = "DOWN"
             row.operator("object.game_property_remove", text="", icon='X', emboss=False).index = i
 
 
