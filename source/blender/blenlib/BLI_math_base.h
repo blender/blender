@@ -214,9 +214,6 @@ MINLINE int iroundf(float a);
 MINLINE int divide_round_i(int a, int b);
 MINLINE int mod_i(int i, int n);
 
-MINLINE unsigned int highest_order_bit_i(unsigned int n);
-MINLINE unsigned short highest_order_bit_s(unsigned short n);
-
 double double_round(double x, int ndigits);
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA

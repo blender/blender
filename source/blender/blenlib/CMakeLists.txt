@@ -75,6 +75,7 @@ set(SRC
 	intern/listbase.c
 	intern/math_base.c
 	intern/math_base_inline.c
+	intern/math_bits_inline.c
 	intern/math_color.c
 	intern/math_color_blend_inline.c
 	intern/math_color_inline.c
@@ -209,6 +210,7 @@ endif()
 # no need to compile object files for inline headers.
 set_source_files_properties(
 	intern/math_base_inline.c
+	intern/math_bits_inline.c
 	intern/math_color_blend_inline.c
 	intern/math_color_inline.c
 	intern/math_geom_inline.c

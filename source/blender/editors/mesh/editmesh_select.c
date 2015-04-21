@@ -36,6 +36,7 @@
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
+#include "BLI_math_bits.h"
 #include "BLI_rand.h"
 #include "BLI_array.h"
 
