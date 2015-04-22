@@ -534,19 +534,9 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
 			if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
 				int track;
 				for (track = 0; track < context->num_tracks; ++track) {
-					MovieTrackingTrack *old_track;
-					bool do_update = false;
-					int j;
-
-					old_track = context->options[track].track;
-					for (j = 0; j < plane_track->point_tracksnr; j++) {
-						if (plane_track->point_tracks[j] == old_track) {
-							do_update = true;
-							break;
-						}
-					}
-
-					if (do_update) {
+					if (BKE_tracking_plane_track_has_point_track(plane_track,
+					                                             context->options[track].track))
+					{
 						BKE_tracking_track_plane_from_existing_motion(
 						        plane_track,
 						        context->first_frame);
