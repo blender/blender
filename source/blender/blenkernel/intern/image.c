@@ -3522,6 +3522,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 {
 	Render *re;
 	RenderResult rres;
+	RenderView *rv;
 	float *rectf, *rectz;
 	unsigned int *rect;
 	float dither;
@@ -3570,10 +3571,14 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		*lock_r = re;
 	}
 
+	rv = BLI_findlink(&rres.views, actview);
+	if (rv == NULL)
+		rv = rres.views.first;
+
 	/* this gives active layer, composite or sequence result */
-	rect = (unsigned int *)rres.rect32;
-	rectf = rres.rectf;
-	rectz = rres.rectz;
+	rect = (unsigned int *)rv->rect32;
+	rectf = rv->rectf;
+	rectz = rv->rectz;
 	dither = iuser->scene->r.dither_intensity;
 
 	/* combined layer gets added as first layer */
