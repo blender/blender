@@ -2233,7 +2233,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			}
 		}
 
-		for (nr = 0, rv = re->result->views.first; rv; rv = rv->next, nr++) {
+		for (nr = 0, rv = rectfs->first; rv; rv = rv->next, nr++) {
 			rectf = rv->rectf;
 
 			/* ensure we get either composited result or the active layer */
