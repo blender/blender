@@ -2615,6 +2615,8 @@ static void do_render_seq(Render *re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
+	Object *camera;
+
 	re->current_scene_update(re->suh, re->scene);
 
 	BKE_scene_camera_switch_update(re->scene);
@@ -2648,6 +2650,10 @@ static void do_render_all_options(Render *re)
 	
 	re->stats_draw(re->sdh, &re->i);
 	
+	/* save render result stamp if needed */
+	camera = RE_GetCamera(re);
+	BKE_render_result_stamp_info(re->scene, camera, re->result);
+
 	/* stamp image info here */
 	if ((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
 		renderresult_stampinfo(re);
@@ -3027,16 +3033,11 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	scene->r.cfra = frame;
 	
 	if (render_initialize_from_main(re, &scene->r, bmain, scene, srl, camera_override, lay_override, 0, 0)) {
-		Object *camera;
 		MEM_reset_peak_memory();
 
 		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
 		do_render_all_options(re);
-
-		/* save render result stamp if needed */
-		camera = RE_GetCamera(re);
-		BKE_render_result_stamp_info(scene, camera, re->result);
 
 		if (write_still && !G.is_break) {
 			if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
@@ -3472,7 +3473,6 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	}
 	else {
 		for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
-			Object *camera;
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
@@ -3571,10 +3571,6 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			do_render_all_options(re);
 			totrendered++;
 			
-			/* save render result stamp if needed */
-			camera = RE_GetCamera(re);
-			BKE_render_result_stamp_info(scene, camera, re->result);
-
 			if (re->test_break(re->tbh) == 0) {
 				if (!G.is_break)
 					if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, NULL))
