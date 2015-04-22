@@ -2496,12 +2496,13 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 /* ******************* Rename Operator ***************************** */
 /* Allow renaming some channels by clicking on them */
 
-static void rename_anim_channels(bAnimContext *ac, int channel_index)
+static bool rename_anim_channels(bAnimContext *ac, int channel_index)
 {
 	ListBase anim_data = {NULL, NULL};
 	const bAnimChannelType *acf;
 	bAnimListElem *ale;
 	int filter;
+	bool success = false;
 	
 	/* get the channel that was clicked on */
 	/* filter channels */
@@ -2516,7 +2517,7 @@ static void rename_anim_channels(bAnimContext *ac, int channel_index)
 			printf("Error: animation channel (index = %d) not found in rename_anim_channels()\n", channel_index);
 		
 		ANIM_animdata_freelist(&anim_data);
-		return;
+		return false;
 	}
 	
 	/* check that channel can be renamed */
@@ -2536,6 +2537,7 @@ static void rename_anim_channels(bAnimContext *ac, int channel_index)
 			 */
 			if (ac->ads) {
 				ac->ads->renameIndex = channel_index + 1;
+				success = true;
 			}
 		}
 	}
@@ -2543,22 +2545,18 @@ static void rename_anim_channels(bAnimContext *ac, int channel_index)
 	/* free temp data and tag for refresh */
 	ANIM_animdata_freelist(&anim_data);
 	ED_region_tag_redraw(ac->ar);
+	return success;
 }
 
-static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
 {
-	bAnimContext ac;
 	ARegion *ar;
 	View2D *v2d;
 	int channel_index;
 	float x, y;
 	
-	/* get editor data */
-	if (ANIM_animdata_get_context(C, &ac) == 0)
-		return OPERATOR_CANCELLED;
-		
 	/* get useful pointers from animation context data */
-	ar = ac.ar;
+	ar = ac->ar;
 	v2d = &ar->v2d;
 	
 	/* figure out which channel user clicked in 
@@ -2566,20 +2564,36 @@ static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), const
 	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */
-	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 	
-	if (ac.datatype == ANIMCONT_NLA) {
-		SpaceNla *snla = (SpaceNla *)ac.sl;
+	if (ac->datatype == ANIMCONT_NLA) {
+		SpaceNla *snla = (SpaceNla *)ac->sl;
 		UI_view2d_listview_view_to_cell(v2d, NLACHANNEL_NAMEWIDTH, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);
 	}
 	else {
 		UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
 	}
-	
+
+	return channel_index;
+}
+
+static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	bAnimContext ac;
+	int channel_index;
+
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+
+	channel_index = animchannels_channel_get(&ac, event->mval);
+
 	/* handle click */
-	rename_anim_channels(&ac, channel_index);
-	
-	return OPERATOR_FINISHED;
+	if (rename_anim_channels(&ac, channel_index))
+		return OPERATOR_FINISHED;
+	else
+		/* allow event to be handled by selectall operator */
+		return OPERATOR_PASS_THROUGH;
 }
 
 static void ANIM_OT_channels_rename(wmOperatorType *ot)
@@ -3008,6 +3022,105 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool extend)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	bool success = false;
+	FCurve *fcu;
+	int i;
+
+	/* get the channel that was clicked on */
+	/* filter channels */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+	/* get channel from index */
+	ale = BLI_findlink(&anim_data, channel_index);
+	if (ale == NULL) {
+		/* channel not found */
+		if (G.debug & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in rename_anim_channels()\n", channel_index);
+
+		ANIM_animdata_freelist(&anim_data);
+		return false;
+	}
+
+	fcu = (FCurve *)ale->key_data;
+	success = (fcu != NULL);
+
+	ANIM_animdata_freelist(&anim_data);
+
+	/* F-Curve may not have any keyframes */
+	if (fcu->bezt) {
+		BezTriple *bezt;
+
+		if (!extend) {
+			filter = (ANIMFILTER_DATA_VISIBLE);
+			ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+			for (ale = anim_data.first; ale; ale = ale->next) {
+				FCurve *fcu_inner = (FCurve *)ale->key_data;
+
+				if (fcu_inner) {
+					for (i = 0, bezt = fcu_inner->bezt; i < fcu_inner->totvert; i++, bezt++) {
+						bezt->f2 = bezt->f1 = bezt->f3 = 0;
+					}
+				}
+			}
+
+			ANIM_animdata_freelist(&anim_data);
+		}
+
+		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+			bezt->f2 = bezt->f1 = bezt->f3 = SELECT;
+		}
+	}
+
+	/* free temp data and tag for refresh */
+	ED_region_tag_redraw(ac->ar);
+	return success;
+}
+
+static int animchannels_channel_select_keys_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	bAnimContext ac;
+	int channel_index;
+	bool extend = RNA_boolean_get(op->ptr, "extend");
+
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+
+	channel_index = animchannels_channel_get(&ac, event->mval);
+
+	/* handle click */
+	if (select_anim_channel_keys(&ac, channel_index, extend)) {
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else
+		/* allow event to be handled by selectall operator */
+		return OPERATOR_PASS_THROUGH;
+}
+
+static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Select Channel keyframes";
+	ot->idname = "ANIM_OT_channel_select_keys";
+	ot->description = "Select all keyframes of channel under mouse";
+
+	/* api callbacks */
+	ot->invoke = animchannels_channel_select_keys_invoke;
+	ot->poll = animedit_poll_channels_active;
+
+	prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
 /* ************************************************************************** */
 /* Operator Registration */
 
@@ -3017,8 +3130,9 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_select_border);
 	
 	WM_operatortype_append(ANIM_OT_channels_click);
+	WM_operatortype_append(ANIM_OT_channel_select_keys);
 	WM_operatortype_append(ANIM_OT_channels_rename);
-	
+
 	WM_operatortype_append(ANIM_OT_channels_find);
 	
 	WM_operatortype_append(ANIM_OT_channels_setting_enable);
@@ -3058,7 +3172,9 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	/* rename */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
-	
+	WM_keymap_add_item(keymap, "ANIM_OT_channel_select_keys", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channel_select_keys", LEFTMOUSE, KM_DBL_CLICK, KM_SHIFT, 0)->ptr, "extend", true);
+
 	/* find (i.e. a shortcut for setting the name filter) */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_find", FKEY, KM_PRESS, KM_CTRL, 0);
 	
