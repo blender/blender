@@ -94,7 +94,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
                                    int axis)
 {
 	const float tolerance_sq = mmd->tolerance * mmd->tolerance;
-	const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) != 0;
+	const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0;
 	int tot_vtargetmap = 0;  /* total merge vertices */
 
 	DerivedMesh *result;
