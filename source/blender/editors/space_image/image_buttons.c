@@ -728,12 +728,12 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 	}
 }
 
-static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, short *render_slot)
+static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser,
+                                             int menus_width, short *render_slot)
 {
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiLayout *row;
 	uiBut *but;
-	const float dpi_fac = UI_DPI_FAC;
 	
 	row = uiLayoutRow(layout, true);
 
@@ -750,7 +750,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, Image *image, Ren
 	but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_RIGHT,  0, 0, 0.90f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Next Layer"));
 	UI_but_func_set(but, image_multi_inclay_cb, rr, iuser);
 
-	uiblock_layer_pass_buttons(row, image, rr, iuser, 230 * dpi_fac, render_slot);
+	uiblock_layer_pass_buttons(row, image, rr, iuser, menus_width, render_slot);
 
 	/* decrease, increase arrows */
 	but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_LEFT,   0, 0, 0.85f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Previous Pass"));
@@ -867,10 +867,11 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			else if (ima->type == IMA_TYPE_R_RESULT) {
 				/* browse layer/passes */
 				RenderResult *rr;
+				const float dpi_fac = UI_DPI_FAC;
 
 				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
 				rr = BKE_image_acquire_renderresult(scene, ima);
-				uiblock_layer_pass_arrow_buttons(layout, ima, rr, iuser, &ima->render_slot);
+				uiblock_layer_pass_arrow_buttons(layout, ima, rr, iuser, 230 * dpi_fac, &ima->render_slot);
 				BKE_image_release_renderresult(scene, ima);
 			}
 		}
@@ -903,7 +904,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 			/* multilayer? */
 			if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
-				uiblock_layer_pass_arrow_buttons(layout, ima, ima->rr, iuser, NULL);
+				const float dpi_fac = UI_DPI_FAC;
+				uiblock_layer_pass_arrow_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);
 			}
 			else if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) {
@@ -1211,12 +1213,18 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 	/* render layers and passes */
 	if (ima && iuser) {
-		const float dpi_fac = UI_DPI_FAC;
 		RenderResult *rr;
+		const float dpi_fac = UI_DPI_FAC;
+		const int menus_width = 160 * dpi_fac;
 
 		/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
 		rr = BKE_image_acquire_renderresult(scene, ima);
-		uiblock_layer_pass_buttons(layout, ima, rr, iuser, 160 * dpi_fac, (ima->type == IMA_TYPE_R_RESULT) ? &ima->render_slot : NULL);
+		if (ima->type == IMA_TYPE_R_RESULT) {
+			uiblock_layer_pass_arrow_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
+		}
+		else {
+			uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, NULL);
+		}
 		BKE_image_release_renderresult(scene, ima);
 	}
 }
