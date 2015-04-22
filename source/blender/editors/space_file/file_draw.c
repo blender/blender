@@ -307,10 +307,10 @@ static void file_draw_string(int sx, int sy, const char *string, float width, in
 
 	/* no text clipping needed, UI_fontstyle_draw does it but is a bit too strict (for buttons it works) */
 	rect.xmin = sx;
-	rect.xmax = (int)(sx + ceil(width + 4.0f));
+	rect.xmax = (int)(sx + ceil(width + 5.0f / UI_DPI_FAC));
 	rect.ymin = sy - height;
 	rect.ymax = sy;
-	
+
 	UI_fontstyle_draw(&fs, &rect, fname);
 }
 
