@@ -1654,8 +1654,13 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
+	uiBut *but = UI_context_active_but_get(C);
 	TreeElement *te;
 	float fmval[2];
+
+	if (but) {
+		UI_but_tooltip_timer_remove(C, but);
+	}
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
