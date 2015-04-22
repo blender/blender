@@ -34,6 +34,8 @@
 #include "BPy_StrokeShader.h"
 #include "BPy_Convert.h"
 
+#include <sstream>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -539,7 +541,15 @@ static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyOb
 			PyErr_SetString(PyExc_TypeError, "Operators.create(): 2nd argument must be a list of StrokeShader objects");
 			return NULL;
 		}
-		shaders.push_back(((BPy_StrokeShader *)py_ss)->ss);
+		StrokeShader *shader = ((BPy_StrokeShader *)py_ss)->ss;
+		if (!shader) {
+			stringstream ss;
+			ss << "Operators.create(): item " << (i + 1)
+			   << " of the shaders list is invalid likely due to missing call of StrokeShader.__init__()";
+			PyErr_SetString(PyExc_TypeError, ss.str().c_str());
+			return NULL;
+		}
+		shaders.push_back(shader);
 	}
 	if (Operators::create(*(((BPy_UnaryPredicate1D *)obj1)->up1D), shaders) < 0) {
 		if (!PyErr_Occurred())
