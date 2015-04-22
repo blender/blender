@@ -1634,7 +1634,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	static RNAUpdateCb cb;
 	uiBlock *block;
 	uiBut *but;
-	int icon;
+	int icon, value;
 	EnumPropertyItem *item;
 	int a;
 	bool free;
@@ -1659,7 +1659,9 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 		y = (a / 8) * UI_UNIT_X * 5;
 		
 		icon = item[a].icon;
-		but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, icon, x, y, UI_UNIT_X * 5, UI_UNIT_Y * 5, &cb.ptr, cb.prop, -1, 0, icon, -1, -1, NULL);
+		value = item[a].value;
+		but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, icon, x, y, UI_UNIT_X * 5, UI_UNIT_Y * 5,
+		                         &cb.ptr, cb.prop, -1, 0, value, -1, -1, NULL);
 		UI_but_flag_enable(but, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 	}
 
@@ -1677,16 +1679,22 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	RNAUpdateCb *cb;
+	EnumPropertyItem *items;
 	uiBlock *block;
 	uiBut *but;
 //	rctf rect;  /* UNUSED */
-	int icon;
+	int value, icon = ICON_NONE, tot_items;
+	bool free_items;
 	
 	if (!prop || RNA_property_type(prop) != PROP_ENUM)
 		return;
-	
-	icon = RNA_property_enum_get(ptr, prop);
-	
+
+	block = uiLayoutAbsoluteBlock(layout);
+
+	RNA_property_enum_items(block->evil_C, ptr, prop, &items, &tot_items, &free_items);
+	value = RNA_property_enum_get(ptr, prop);
+	RNA_enum_icon_from_value(items, value, &icon);
+
 	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
 	cb->ptr = *ptr;
 	cb->prop = prop;
@@ -1694,8 +1702,6 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 //	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
 //	rect.ymin = 0; rect.ymax = 10.0f * UI_UNIT_X;
 	
-	block = uiLayoutAbsoluteBlock(layout);
-
 	but = uiDefBlockButN(block, ui_icon_view_menu_cb, MEM_dupallocN(cb), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
 
 	
@@ -1707,6 +1713,9 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	UI_but_funcN_set(but, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);
+	if (free_items) {
+		MEM_freeN(items);
+	}
 }
 
 /********************* Histogram Template ************************/
