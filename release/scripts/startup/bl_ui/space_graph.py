@@ -281,6 +281,7 @@ class GRAPH_MT_key_transform(Menu):
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
 
+
 class GRAPH_MT_delete(Menu):
     bl_label = "Delete"
 

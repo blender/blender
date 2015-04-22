@@ -122,7 +122,6 @@ class PlayRenderedAnim(Operator):
                 if not os.path.exists(file):
                     self.report({'WARNING'}, "File %r not found" % file)
 
-
         cmd = [player_path]
         # extra options, fps controls etc.
         if scene.use_preview_range:

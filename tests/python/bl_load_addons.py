@@ -36,6 +36,7 @@ BLACKLIST_DIRS = (
     ) + tuple(addon_utils.paths()[1:])
 BLACKLIST_ADDONS = set()
 
+
 def _init_addon_blacklist():
 
     # in case we built without cycles

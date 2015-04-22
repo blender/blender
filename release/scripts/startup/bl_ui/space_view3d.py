@@ -935,7 +935,7 @@ class VIEW3D_MT_angle_control(Menu):
         settings = UnifiedPaintPanel.paint_settings(context)
         brush = settings.brush
 
-        sculpt = (context.sculpt_object != None)
+        sculpt = (context.sculpt_object is not None)
 
         tex_slot = brush.texture_slot
 
@@ -3019,7 +3019,6 @@ class VIEW3D_PT_view3d_shading(Panel):
         if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
             if obj and obj.mode == 'EDIT':
                 col.prop(view, "show_occlude_wire")
-
 
         fx_settings = view.fx_settings
 

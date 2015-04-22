@@ -74,8 +74,8 @@ class RenderLayerFreestyleButtonsPanel:
         rd = context.scene.render
         with_freestyle = bpy.app.build_options.freestyle
 
-        return (scene and with_freestyle and rd.use_freestyle
-            and rd.layers.active and(scene.render.engine in cls.COMPAT_ENGINES))
+        return (scene and with_freestyle and rd.use_freestyle and
+                rd.layers.active and(scene.render.engine in cls.COMPAT_ENGINES))
 
 
 class RenderLayerFreestyleEditorButtonsPanel(RenderLayerFreestyleButtonsPanel):

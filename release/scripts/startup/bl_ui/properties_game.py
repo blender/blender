@@ -542,7 +542,7 @@ class SCENE_PT_game_hysteresis(SceneButtonsPanel, Panel):
         row.prop(gs, "scene_hysteresis_percentage", text="")
 
 
-class WorldButtonsPanel():
+class WorldButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"

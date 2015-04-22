@@ -86,7 +86,7 @@ if bpy.app.build_options.freestyle:
     _modules.append("properties_freestyle")
 __import__(name=__name__, fromlist=_modules)
 _namespace = globals()
-_modules_loaded = {name: _namespace[name] for name in _modules if name != 'bpy'}
+_modules_loaded = {name: _namespace[name] for name in _modules if name != "bpy"}
 del _namespace
 
 

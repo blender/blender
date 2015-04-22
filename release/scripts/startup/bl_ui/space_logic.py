@@ -54,11 +54,11 @@ class LOGIC_PT_properties(Panel):
                 row.label("See Text Object")
             else:
                 props = layout.operator("object.game_property_new", text="Add Text Game Property", icon='ZOOMIN')
-                props.name = 'Text'
+                props.name = "Text"
                 props.type = 'STRING'
 
         props = layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
-        props.name = ''
+        props.name = ""
 
         for i, prop in enumerate(game.properties):
 
@@ -74,10 +74,10 @@ class LOGIC_PT_properties(Panel):
             sub = row.row(align=True)
             props = sub.operator("object.game_property_move", text="", icon='TRIA_UP')
             props.index = i
-            props.direction = "UP"
+            props.direction = 'UP'
             props = sub.operator("object.game_property_move", text="", icon='TRIA_DOWN')
             props.index = i
-            props.direction = "DOWN"
+            props.direction = 'DOWN'
             row.operator("object.game_property_remove", text="", icon='X', emboss=False).index = i
 
 

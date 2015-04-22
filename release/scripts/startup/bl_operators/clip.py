@@ -552,8 +552,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         world.light_settings.sample_method = 'ADAPTIVE_QMC'
         world.light_settings.samples = 7
         world.light_settings.threshold = 0.005
-        if hasattr(scene, 'cycles'):
-                world.light_settings.ao_factor = 0.05
+        if hasattr(scene, "cycles"):
+            world.light_settings.ao_factor = 0.05
 
     @staticmethod
     def _findOrCreateCamera(context):
@@ -841,7 +841,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self._offsetNodes(tree)
 
         scene.render.alpha_mode = 'TRANSPARENT'
-        if hasattr(scene, 'cycles'):
+        if hasattr(scene, "cycles"):
             scene.cycles.film_transparent = True
 
     @staticmethod

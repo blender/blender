@@ -179,7 +179,7 @@ BLI_INLINE eSign signum_enum(float a)
  * alternative version of #area_tri_signed_v2
  * needed because of float precision issues
  *
- * \note removes / 2 since its not needed since we only need ths sign.
+ * \note removes / 2 since its not needed since we only need the sign.
  */
 BLI_INLINE float area_tri_signed_v2_alt_2x(const float v1[2], const float v2[2], const float v3[2])
 {
