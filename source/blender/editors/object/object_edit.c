@@ -1784,6 +1784,10 @@ static int game_property_move(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	prop = BLI_findlink(&ob->prop, index);
+	/* invalid index */
+	if (prop == NULL)
+		return OPERATOR_CANCELLED;
+
 	if (dir == GAME_PROPERTY_MOVE_UP) {
 		otherprop = prop->prev;
 	}
@@ -1812,10 +1816,11 @@ void OBJECT_OT_game_property_move(wmOperatorType *ot)
 		{GAME_PROPERTY_MOVE_DOWN, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
+	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name = "Move Game Property";
-	ot->description = "Move  game property";
+	ot->description = "Move game property";
 	ot->idname = "OBJECT_OT_game_property_move";
 
 	/* api callbacks */
@@ -1825,7 +1830,9 @@ void OBJECT_OT_game_property_move(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to move", 0, INT_MAX);
+	/* properties */
+	prop = RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to move", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	RNA_def_enum(ot->srna, "direction", direction_property_move, 0, "Direction",
 	             "Direction for moving the property");
 }
