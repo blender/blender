@@ -1933,7 +1933,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 	uiLayout *layout = op->layout;
 	ImageFormatData *imf = op->customdata;
 	PointerRNA imf_ptr, ptr;
-	const bool is_multiview = RNA_boolean_get(op->ptr, "use_multiview");
+	const bool is_multiview = RNA_boolean_get(op->ptr, "show_multiview");
 
 	/* image template */
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, imf, &imf_ptr);
@@ -1945,7 +1945,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* multiview template */
 	if (is_multiview)
-		uiTemplateImageFormatViews(layout, &imf_ptr, NULL);
+		uiTemplateImageFormatViews(layout, &imf_ptr, op->ptr);
 }
 
 static int image_save_as_poll(bContext *C)
