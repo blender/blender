@@ -36,27 +36,28 @@ void CropBaseOperation::updateArea()
 	SocketReader *inputReference = this->getInputSocketReader(0);
 	float width = inputReference->getWidth();
 	float height = inputReference->getHeight();
+	NodeTwoXYs local_settings = *this->m_settings;
 	
 	if (width > 0.0f && height > 0.0f) {
 		if (this->m_relative) {
-			this->m_settings->x1 = width * this->m_settings->fac_x1;
-			this->m_settings->x2 = width * this->m_settings->fac_x2;
-			this->m_settings->y1 = height * this->m_settings->fac_y1;
-			this->m_settings->y2 = height * this->m_settings->fac_y2;
+			local_settings.x1 = width * local_settings.fac_x1;
+			local_settings.x2 = width * local_settings.fac_x2;
+			local_settings.y1 = height * local_settings.fac_y1;
+			local_settings.y2 = height * local_settings.fac_y2;
 		}
-		if (width <= this->m_settings->x1 + 1)
-			this->m_settings->x1 = width - 1;
-		if (height <= this->m_settings->y1 + 1)
-			this->m_settings->y1 = height - 1;
-		if (width <= this->m_settings->x2 + 1)
-			this->m_settings->x2 = width - 1;
-		if (height <= this->m_settings->y2 + 1)
-			this->m_settings->y2 = height - 1;
+		if (width <= local_settings.x1 + 1)
+			local_settings.x1 = width - 1;
+		if (height <= local_settings.y1 + 1)
+			local_settings.y1 = height - 1;
+		if (width <= local_settings.x2 + 1)
+			local_settings.x2 = width - 1;
+		if (height <= local_settings.y2 + 1)
+			local_settings.y2 = height - 1;
 		
-		this->m_xmax = max(this->m_settings->x1, this->m_settings->x2) + 1;
-		this->m_xmin = min(this->m_settings->x1, this->m_settings->x2);
-		this->m_ymax = max(this->m_settings->y1, this->m_settings->y2) + 1;
-		this->m_ymin = min(this->m_settings->y1, this->m_settings->y2);
+		this->m_xmax = max(local_settings.x1, local_settings.x2) + 1;
+		this->m_xmin = min(local_settings.x1, local_settings.x2);
+		this->m_ymax = max(local_settings.y1, local_settings.y2) + 1;
+		this->m_ymin = min(local_settings.y1, local_settings.y2);
 	}
 	else {
 		this->m_xmax = 0;
