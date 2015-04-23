@@ -561,6 +561,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	GLenum type, format, internalformat;
 	void *pixels = NULL;
 	const float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	int r_width;
 
 	if (!GLEW_VERSION_1_2)
 		return NULL;
@@ -603,12 +604,21 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 		internalformat = GL_INTENSITY;
 	}
 
+	/* 3D textures are quite heavy, test if it's possible to create them first */
+	glTexImage3D(GL_PROXY_TEXTURE_3D, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
+	glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0, GL_TEXTURE_WIDTH, &r_width);
+
+	if (r_width == 0) {
+		fprintf(stderr, "OpenGL cannot handle a 3D texture of this size\n");
+		glBindTexture(tex->target, 0);
+		GPU_texture_free(tex);
+		return NULL;
+	}
+
 #if 0
 	if (fpixels)
 		pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);
 #endif
-
-	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
 
 	GPU_ASSERT_NO_GL_ERRORS("3D glTexImage3D");
 
@@ -616,11 +626,15 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 		if (!GPU_non_power_of_two_support() && (w != tex->w || h != tex->h || depth != tex->depth)) {
 			/* clear first to avoid unitialized pixels */
 			float *zero= MEM_callocN(sizeof(float)*tex->w*tex->h*tex->depth, "zero");
-			glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->depth, format, type, zero);
+			glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
+			glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->depth, GL_INTENSITY, GL_FLOAT, zero);
+			glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
 			MEM_freeN(zero);
 		}
+		else {
+			glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, fpixels);
+		}
 
-		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
 		GPU_ASSERT_NO_GL_ERRORS("3D glTexSubImage3D");
 	}
 
