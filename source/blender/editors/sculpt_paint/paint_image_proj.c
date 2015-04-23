@@ -193,7 +193,7 @@ typedef struct ProjPaintImage {
 	unsigned short **maskRect; /* the mask accumulation must happen on canvas, not on space screen bucket.
 	                            * Here we store the mask rectangle */
 	bool **valid; /* store flag to enforce validation of undo rectangle */
-	int touch;
+	bool touch;
 } ProjPaintImage;
 
 /* Main projection painting struct passed to all projection painting functions */
@@ -725,7 +725,7 @@ static bool project_bucket_point_occluded(
 	int face_index;
 	int isect_ret;
 	float w[3]; /* not needed when clipping */
-	const short do_clip = ps->rv3d ? ps->rv3d->rflag & RV3D_CLIPPING : 0;
+	const bool do_clip = ps->rv3d ? (ps->rv3d->rflag & RV3D_CLIPPING) != 0 : 0;
 
 	/* we could return 0 for 1 face buckets, as long as this function assumes
 	 * that the point its testing is only every originated from an existing face */
@@ -1983,7 +1983,10 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 #define ISECT_ALL4 ((1 << 4) - 1)
 
 /* limit must be a fraction over 1.0f */
-static bool IsectPT2Df_limit(float pt[2], float v1[2], float v2[2], float v3[2], float limit)
+static bool IsectPT2Df_limit(
+        const float pt[2],
+        const float v1[2], const float v2[2], const float v3[2],
+        const float limit)
 {
 	return ((area_tri_v2(pt, v1, v2) +
 	         area_tri_v2(pt, v2, v3) +
@@ -2052,7 +2055,7 @@ static bool line_rect_clip(
 static void project_bucket_clip_face(
         const bool is_ortho,
         const rctf *bucket_bounds,
-        float *v1coSS, float *v2coSS, float *v3coSS,
+        const float *v1coSS, const float *v2coSS, const float *v3coSS,
         const float *uv1co, const float *uv2co, const float *uv3co,
         float bucket_bounds_uv[8][2],
         int *tot, bool cull)
@@ -2200,7 +2203,7 @@ static void project_bucket_clip_face(
 		float cent[2] = {0.0f, 0.0f};
 		/*float up[2] = {0.0f, 1.0f};*/
 		int i;
-		short doubles;
+		bool doubles;
 
 		(*tot) = 0;
 
@@ -2430,7 +2433,8 @@ static bool IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot
 static void project_paint_face_init(
         const ProjPaintState *ps,
         const int thread_index, const int bucket_index, const int face_index, const int image_index,
-        const rctf *bucket_bounds, ImBuf *ibuf, ImBuf **tmpibuf, const short clamp_u, const short clamp_v)
+        const rctf *bucket_bounds, ImBuf *ibuf, ImBuf **tmpibuf,
+        const bool clamp_u, const bool clamp_v)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
 	MemArena *arena = ps->arena_mt[thread_index];
@@ -2456,7 +2460,7 @@ static void project_paint_face_init(
 	float uv[2]; /* Image floating point UV - same as x, y but from 0.0-1.0 */
 
 	bool side;
-	float *v1coSS, *v2coSS, *v3coSS; /* vert co screen-space, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
+	const float *v1coSS, *v2coSS, *v3coSS; /* vert co screen-space, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
 
 	float *vCo[4]; /* vertex screenspace coords */
 
@@ -2545,7 +2549,7 @@ static void project_paint_face_init(
 		        v1coSS, v2coSS, v3coSS,
 		        uv1co, uv2co, uv3co,
 		        uv_clip, &uv_clip_tot,
-		        ps->do_backfacecull || ps->do_occlude);
+		        do_backfacecull || ps->do_occlude);
 
 		/* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
 #if 0
@@ -2911,7 +2915,10 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 		ima = ps->projImages[0].ima;
 
 		for (node = ps->bucketFaces[bucket_index]; node; node = node->next) {
-			project_paint_face_init(ps, thread_index, bucket_index, GET_INT_FROM_POINTER(node->link), 0, bucket_bounds, ibuf, &tmpibuf, ima->tpageflag & IMA_CLAMP_U, ima->tpageflag & IMA_CLAMP_V);
+			project_paint_face_init(
+			        ps, thread_index, bucket_index, GET_INT_FROM_POINTER(node->link), 0,
+			        bucket_bounds, ibuf, &tmpibuf,
+			        (ima->tpageflag & IMA_CLAMP_U) != 0, (ima->tpageflag & IMA_CLAMP_V) != 0);
 		}
 	}
 	else {
@@ -2935,7 +2942,10 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 			}
 			/* context switching done */
 
-			project_paint_face_init(ps, thread_index, bucket_index, face_index, image_index, bucket_bounds, ibuf, &tmpibuf, ima->tpageflag & IMA_CLAMP_U, ima->tpageflag & IMA_CLAMP_V);
+			project_paint_face_init(
+			        ps, thread_index, bucket_index, face_index, image_index,
+			        bucket_bounds, ibuf, &tmpibuf,
+			        (ima->tpageflag & IMA_CLAMP_U) != 0, (ima->tpageflag & IMA_CLAMP_V) != 0);
 		}
 	}
 
@@ -4425,7 +4435,8 @@ static void *do_projectpaint_thread(void *ph_v)
 	const float brush_radius = ps->brush_size;
 	const float brush_radius_sq = brush_radius * brush_radius; /* avoid a square root with every dist comparison */
 
-	short lock_alpha = ELEM(brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : brush->flag & BRUSH_LOCK_ALPHA;
+	const bool lock_alpha = ELEM(brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ?
+	        0 : (brush->flag & BRUSH_LOCK_ALPHA) != 0;
 
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
