@@ -781,24 +781,6 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             layout.menu(cls.__name__, icon='COLLAPSEMENU')
 
 
-class Region(StructRNA):
-    __slots__ = ()
-
-    def callback_add(self, cb, args, draw_mode):
-        """
-        Append a draw function to this region,
-        deprecated, instead use bpy.types.SpaceView3D.draw_handler_add
-        """
-        for area in self.id_data.areas:
-            for region in area.regions:
-                if region == self:
-                    spacetype = type(area.spaces[0])
-                    return spacetype.draw_handler_add(cb, args, self.type,
-                                                      draw_mode)
-
-        return None
-
-
 class NodeTree(bpy_types.ID, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
