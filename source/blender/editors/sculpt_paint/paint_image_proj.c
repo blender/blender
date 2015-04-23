@@ -134,6 +134,8 @@ BLI_INLINE unsigned char f_to_char(const float val)
 //#define PROJ_DEBUG_PRINT_CLIP 1
 #define PROJ_DEBUG_WINCLIP 1
 
+
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 /* projectFaceSeamFlags options */
 //#define PROJ_FACE_IGNORE	(1<<0)	/* When the face is hidden, backfacing or occluded */
 //#define PROJ_FACE_INIT	(1<<1)	/* When we have initialized the faces data */
@@ -151,6 +153,13 @@ BLI_INLINE unsigned char f_to_char(const float val)
 #define PROJ_FACE_WINDING_INIT 1
 #define PROJ_FACE_WINDING_CW 2
 
+/* a slightly scaled down face is used to get fake 3D location for edge pixels in the seams
+ * as this number approaches  1.0f the likelihood increases of float precision errors where
+ * it is occluded by an adjacent face */
+#define PROJ_FACE_SCALE_SEAM    0.99f
+#endif  /* PROJ_DEBUG_NOSEAMBLEED */
+
+
 #define PROJ_SRC_VIEW       1
 #define PROJ_SRC_IMAGE_CAM  2
 #define PROJ_SRC_IMAGE_VIEW 3
@@ -158,12 +167,6 @@ BLI_INLINE unsigned char f_to_char(const float val)
 
 #define PROJ_VIEW_DATA_ID "view_data"
 #define PROJ_VIEW_DATA_SIZE (4 * 4 + 4 * 4 + 3) /* viewmat + winmat + clipsta + clipend + is_ortho */
-
-
-/* a slightly scaled down face is used to get fake 3D location for edge pixels in the seams
- * as this number approaches  1.0f the likelihood increases of float precision errors where
- * it is occluded by an adjacent face */
-#define PROJ_FACE_SCALE_SEAM    0.99f
 
 #define PROJ_BUCKET_NULL        0
 #define PROJ_BUCKET_INIT        (1 << 0)
@@ -476,7 +479,9 @@ static float VecZDepthPersp(
 
 
 /* Return the top-most face index that the screen space coord 'pt' touches (or -1) */
-static int project_paint_PickFace(const ProjPaintState *ps, const float pt[2], float w[3], int *side)
+static int project_paint_PickFace(
+        const ProjPaintState *ps, const float pt[2],
+        float w[3], int *r_side)
 {
 	LinkNode *node;
 	float w_tmp[3];
@@ -533,7 +538,7 @@ static int project_paint_PickFace(const ProjPaintState *ps, const float pt[2], f
 		}
 	}
 
-	*side = best_side;
+	*r_side = best_side;
 	return best_face_index; /* will be -1 or a valid face */
 }
 
@@ -1230,22 +1235,22 @@ static void screen_px_from_persp(
 
 static void project_face_pixel(
         const MTFace *tf_other, ImBuf *ibuf_other, const float w[3],
-        int side, unsigned char rgba_ub[4], float rgba_f[4])
+        bool side, unsigned char rgba_ub[4], float rgba_f[4])
 {
 	const float *uvCo1, *uvCo2, *uvCo3;
 	float uv_other[2], x, y;
 
-	uvCo1 =  (float *)tf_other->uv[0];
+	uvCo1 =  tf_other->uv[0];
 	if (side == 1) {
-		uvCo2 =  (float *)tf_other->uv[2];
-		uvCo3 =  (float *)tf_other->uv[3];
+		uvCo2 = tf_other->uv[2];
+		uvCo3 = tf_other->uv[3];
 	}
 	else {
-		uvCo2 =  (float *)tf_other->uv[1];
-		uvCo3 =  (float *)tf_other->uv[2];
+		uvCo2 =  tf_other->uv[1];
+		uvCo3 =  tf_other->uv[2];
 	}
 
-	interp_v2_v2v2v2(uv_other, uvCo1, uvCo2, uvCo3, (float *)w);
+	interp_v2_v2v2v2(uv_other, uvCo1, uvCo2, uvCo3, w);
 
 	/* use */
 	uvco_to_wrapped_pxco(uv_other, ibuf_other->x, ibuf_other->y, &x, &y);
@@ -1264,7 +1269,7 @@ static void project_face_pixel(
 static float project_paint_uvpixel_mask(
         const ProjPaintState *ps,
         const int face_index,
-        const int side,
+        const bool side,
         const float w[3])
 {
 	float mask;
@@ -1472,7 +1477,7 @@ static ProjPixel *project_paint_uvpixel_init(
         const int face_index,
         const float pixelScreenCo[4],
         const float world_spaceCo[3],
-        const int side,
+        const bool side,
         const float w[3])
 {
 	ProjPixel *projPixel;
@@ -1593,7 +1598,7 @@ static ProjPixel *project_paint_uvpixel_init(
 		}
 		else {
 			float co[2];
-			sub_v2_v2v2(co, projPixel->projCoSS, (float *)ps->cloneOffset);
+			sub_v2_v2v2(co, projPixel->projCoSS, ps->cloneOffset);
 
 			/* no need to initialize the bucket, we're only checking buckets faces and for this
 			 * the faces are already initialized in project_paint_delayed_face_init(...) */
@@ -2406,7 +2411,7 @@ static bool IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 static bool IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
 {
 	int i;
-	int side = (line_point_side_v2(uv[tot - 1], uv[0], pt) > 0.0f);
+	bool side = (line_point_side_v2(uv[tot - 1], uv[0], pt) > 0.0f);
 
 	for (i = 1; i < tot; i++) {
 		if ((line_point_side_v2(uv[i - 1], uv[i], pt) > 0.0f) != side)
@@ -2450,7 +2455,7 @@ static void project_paint_face_init(
 	float mask;
 	float uv[2]; /* Image floating point UV - same as x, y but from 0.0-1.0 */
 
-	int side;
+	bool side;
 	float *v1coSS, *v2coSS, *v3coSS; /* vert co screen-space, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
 
 	float *vCo[4]; /* vertex screenspace coords */
@@ -2853,6 +2858,8 @@ static void project_paint_face_init(
 			}
 		}
 	}
+#else
+	UNUSED_VARS(vCo, threaded);
 #endif // PROJ_DEBUG_NOSEAMBLEED
 }
 
@@ -3236,6 +3243,8 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
 
 		CLAMP(ps->screenMin[1], (float)(-diameter), (float)(ps->winy + diameter));
 		CLAMP(ps->screenMax[1], (float)(-diameter), (float)(ps->winy + diameter));
+#else
+		UNUSED_VARS(diameter);
 #endif
 	}
 	else if (ps->source != PROJ_SRC_VIEW_FILL) { /* re-projection, use bounds */
@@ -4820,7 +4829,8 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 	/* calculate pivot for rotation around seletion if needed */
 	if (U.uiflag & USER_ORBIT_SELECTION) {
 		float w[3];
-		int side, index;
+		int index;
+		int side;
 		
 		index = project_paint_PickFace(ps, pos, w, &side);
 		
