@@ -1589,8 +1589,8 @@ unsigned int ED_view3d_backbuf_sample_rect(
 					/* get x,y pixel coords from the offset
 					 * (manhatten distance in keeping with other screen-based selection) */
 					*r_dist = (float)(
-					        abs(((tbuf - buf->rect) % size) - (size / 2)) +
-					        abs(((tbuf - buf->rect) / size) - (size / 2)));
+					        abs(((int)(tbuf - buf->rect) % size) - (size / 2)) +
+					        abs(((int)(tbuf - buf->rect) / size) - (size / 2)));
 
 					/* indices start at 1 here */
 					index = (*tbuf - min) + 1;

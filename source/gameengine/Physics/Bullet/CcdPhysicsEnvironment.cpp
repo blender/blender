@@ -3672,7 +3672,7 @@ void CcdPhysicsEnvironment::SetupObjectConstraints(KX_GameObject *obj_src, KX_Ga
 			break;
 	}
 
-	for (dof; dof < dof_max; dof++) {
+	for (; dof < dof_max; dof++) {
 		if (dat->flag & dofbit) {
 			phys_env->SetConstraintParam(constraintId, dof, dat->minLimit[dof], dat->maxLimit[dof]);
 		}

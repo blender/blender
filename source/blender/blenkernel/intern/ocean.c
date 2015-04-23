@@ -738,8 +738,8 @@ static void set_height_normalize_factor(struct Ocean *oc)
 
 	for (i = 0; i < oc->_M; ++i) {
 		for (j = 0; j < oc->_N; ++j) {
-			if (max_h < fabsf(oc->_disp_y[i * oc->_N + j])) {
-				max_h = fabsf(oc->_disp_y[i * oc->_N + j]);
+			if (max_h < fabs(oc->_disp_y[i * oc->_N + j])) {
+				max_h = fabs(oc->_disp_y[i * oc->_N + j]);
 			}
 		}
 	}
