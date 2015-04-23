@@ -1903,26 +1903,35 @@ static void write_grid_paint_mask(WriteData *wd, int count, GridPaintMask *grid_
 
 static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data, int partial_type, int partial_count)
 {
-	CustomData data_tmp;
 	int i;
 
-	/* This copy will automatically ignore/remove layers set as NO_COPY (and TEMPORARY). */
-	CustomData_copy(data, &data_tmp, CD_MASK_EVERYTHING, CD_REFERENCE, count);
+	int nofree_buff[128];
+	int *nofree;
 
 	/* write external customdata (not for undo) */
-	if (data_tmp.external && !wd->current)
-		CustomData_external_write(&data_tmp, id, CD_MASK_MESH, count, 0);
+	if (data->external && !wd->current)
+		CustomData_external_write(data, id, CD_MASK_MESH, count, 0);
 
-	for (i = 0; i < data_tmp.totlayer; i++)
-		data_tmp.layers[i].flag &= ~CD_FLAG_NOFREE;
+	if (data->totlayer > ARRAY_SIZE(nofree_buff)) {
+		nofree = MEM_mallocN(sizeof(*nofree) * (size_t)data->totlayer, __func__);
+	}
+	else {
+		nofree = nofree_buff;
+	}
 
-	writestruct_at_address(wd, DATA, "CustomDataLayer", data_tmp.maxlayer, data->layers, data_tmp.layers);
+	for (i = 0; i < data->totlayer; i++) {
+		nofree[i] = (data->layers[i].flag & CD_FLAG_NOFREE);
+		data->layers[i].flag &= ~CD_FLAG_NOFREE;
+	}
+
+	writestruct(wd, DATA, "CustomDataLayer", data->maxlayer, data->layers);
  
-	for (i = 0; i < data_tmp.totlayer; i++)
-		data_tmp.layers[i].flag |= CD_FLAG_NOFREE;
+	for (i = 0; i < data->totlayer; i++) {
+		data->layers[i].flag |= nofree[i];
+	}
 
-	for (i = 0; i < data_tmp.totlayer; i++) {
-		CustomDataLayer *layer= &data_tmp.layers[i];
+	for (i = 0; i < data->totlayer; i++) {
+		CustomDataLayer *layer= &data->layers[i];
 		const char *structname;
 		int structnum, datasize;
 
@@ -1958,10 +1967,12 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 		}
 	}
 
-	if (data_tmp.external)
-		writestruct_at_address(wd, DATA, "CustomDataExternal", 1, data->external, data_tmp.external);
+	if (data->external)
+		writestruct(wd, DATA, "CustomDataExternal", 1, data->external);
 
-	CustomData_free(&data_tmp, count);
+	if (nofree != nofree_buff) {
+		MEM_freeN(nofree);
+	}
 }
 
 static void write_meshes(WriteData *wd, ListBase *idbase)
@@ -1978,23 +1989,30 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 		if (mesh->id.us>0 || wd->current) {
 			/* write LibData */
 			if (!save_for_old_blender) {
-
-#ifdef USE_BMESH_SAVE_WITHOUT_MFACE
 				/* write a copy of the mesh, don't modify in place because it is
 				 * not thread safe for threaded renders that are reading this */
 				Mesh *old_mesh = mesh;
 				Mesh copy_mesh = *mesh;
 				mesh = &copy_mesh;
 
+#ifdef USE_BMESH_SAVE_WITHOUT_MFACE
 				/* cache only - don't write */
 				mesh->mface = NULL;
 				mesh->totface = 0;
 				memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
+
+				/* Bummer! We need to do the copy *before* writing mesh's struct itself,
+				 * because we eliminate NO_COPY & TEMPORARY layers here, which means
+				 * **number of layers (data.totlayer) may be smaller!**
+				 * If we do not do that, we can get crash by buffer-overflow on reading, see T44461. */
+				CustomData_copy(&old_mesh->vdata, &mesh->vdata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totvert);
+				CustomData_copy(&old_mesh->edata, &mesh->edata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totedge);
+				CustomData_copy(&old_mesh->fdata, &mesh->fdata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totface);
+				CustomData_copy(&old_mesh->ldata, &mesh->ldata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totloop);
+				CustomData_copy(&old_mesh->pdata, &mesh->pdata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totpoly);
 
 				writestruct_at_address(wd, ID_ME, "Mesh", 1, old_mesh, mesh);
-#else
-				writestruct(wd, ID_ME, "Mesh", 1, mesh);
-#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 				/* direct data */
 				if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
@@ -2010,11 +2028,14 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
 
-#ifdef USE_BMESH_SAVE_WITHOUT_MFACE
+				CustomData_free(&mesh->vdata, mesh->totvert);
+				CustomData_free(&mesh->edata, mesh->totedge);
+				CustomData_free(&mesh->fdata, mesh->totface);
+				CustomData_free(&mesh->ldata, mesh->totloop);
+				CustomData_free(&mesh->pdata, mesh->totpoly);
+
 				/* restore pointer */
 				mesh = old_mesh;
-#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
-
 			}
 			else {
 
@@ -2041,6 +2062,10 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 
 				BKE_mesh_update_customdata_pointers(mesh, false);
 
+				/* See comment above. Note that loop/poly data are ignored here, and face ones are already handled. */
+				CustomData_copy(&old_mesh->vdata, &mesh->vdata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totvert);
+				CustomData_copy(&old_mesh->edata, &mesh->edata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totedge);
+
 				writestruct_at_address(wd, ID_ME, "Mesh", 1, old_mesh, mesh);
 
 				/* direct data */
@@ -2059,6 +2084,8 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
 #endif
 
+				CustomData_free(&mesh->vdata, mesh->totvert);
+				CustomData_free(&mesh->edata, mesh->totedge);
 				CustomData_free(&mesh->fdata, mesh->totface);
 
 				/* restore pointer */
