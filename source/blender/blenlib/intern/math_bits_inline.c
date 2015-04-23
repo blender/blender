@@ -46,4 +46,14 @@ MINLINE unsigned short highest_order_bit_s(unsigned short n)
 	return (unsigned short)(n - (n >> 1));
 }
 
+#ifndef __GNUC__
+MINLINE int count_bits_i(unsigned int i)
+{
+	/* variable-precision SWAR algorithm. */
+	i = i - ((i >> 1) & 0x55555555);
+	i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+	return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+#endif
+
 #endif /* __MATH_BITS_INLINE_C__ */

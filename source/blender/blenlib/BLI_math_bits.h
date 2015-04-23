@@ -34,6 +34,12 @@ extern "C" {
 MINLINE unsigned int highest_order_bit_i(unsigned int n);
 MINLINE unsigned short highest_order_bit_s(unsigned short n);
 
+#ifdef __GNUC__
+#  define count_bits_i(i) __builtin_popcount(i)
+#else
+MINLINE int count_bits_i(unsigned int n);
+#endif
+
 #if BLI_MATH_DO_INLINE
 #include "intern/math_bits_inline.c"
 #endif
