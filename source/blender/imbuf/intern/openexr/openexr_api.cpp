@@ -1235,9 +1235,15 @@ void IMB_exr_multilayer_convert(void *handle, void *base,
 	ExrLayer *lay;
 	ExrPass *pass;
 
-	/* add views to RenderResult */
-	for (StringVector::const_iterator i = data->multiView->begin(); i != data->multiView->end(); ++i) {
-		addview(base, (*i).c_str());
+	/* RenderResult needs at least one RenderView */
+	if (data->multiView->size() == 0) {
+		addview(base, "");
+	}
+	else {
+		/* add views to RenderResult */
+		for (StringVector::const_iterator i = data->multiView->begin(); i != data->multiView->end(); ++i) {
+			addview(base, (*i).c_str());
+		}
 	}
 
 	if (BLI_listbase_is_empty(&data->layers)) {
