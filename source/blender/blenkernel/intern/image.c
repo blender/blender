@@ -3575,10 +3575,18 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	if (rv == NULL)
 		rv = rres.views.first;
 
-	/* this gives active layer, composite or sequence result */
-	rect = (unsigned int *)rv->rect32;
-	rectf = rv->rectf;
-	rectz = rv->rectz;
+	if (rv != NULL) {
+		/* this gives active layer, composite or sequence result */
+		rect = (unsigned int *)rv->rect32;
+		rectf = rv->rectf;
+		rectz = rv->rectz;
+	}
+	else {
+		/* XXX This should never happen, yet it does - T44498
+	     * I'm waiting to investigate more, but meanwhile this fix
+	     * the immediate issue */
+		rect = NULL;
+	}
 	dither = iuser->scene->r.dither_intensity;
 
 	/* combined layer gets added as first layer */
