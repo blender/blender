@@ -685,7 +685,9 @@ BMEdge *EDBM_edge_find_nearest_ex(
 
 		hit = (data.use_cycle && data.hit_cycle.edge) ? &data.hit_cycle : &data.hit;
 		*r_dist = hit->dist;
-		*r_dist_center = hit->dist_center;
+		if (r_dist_center) {
+			*r_dist_center = hit->dist_center;
+		}
 
 		prev_select_elem = hit->edge;
 		prev_select_index = hit->index;
@@ -844,7 +846,10 @@ BMFace *EDBM_face_find_nearest_ex(
 		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, clip_flag);
 
 		hit = (data.use_cycle && data.hit_cycle.face) ? &data.hit_cycle : &data.hit;
-		*r_dist = *r_dist_center = hit->dist;
+		*r_dist = hit->dist;
+		if (r_dist_center) {
+			*r_dist_center = hit->dist;
+		}
 
 		prev_select_elem = hit->face;
 		prev_select_index = hit->index;
