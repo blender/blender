@@ -272,8 +272,10 @@ typedef struct ProjPaintState {
 	bool  do_mask_normal;           /* mask out pixels based on their normals */
 	bool  do_mask_cavity;           /* mask out pixels based on cavity */
 	bool  do_new_shading_nodes;     /* cache BKE_scene_use_new_shading_nodes value */
-	float normal_angle;             /* what angle to mask at*/
+	float normal_angle;             /* what angle to mask at */
+	float normal_angle__cos;         /* cos(normal_angle), faster to compare */
 	float normal_angle_inner;
+	float normal_angle_inner__cos;
 	float normal_angle_range;       /* difference between normal_angle and normal_angle_inner, for easy access */
 
 	bool do_face_sel;               /* quick access to (me->editflag & ME_EDIT_PAINT_FACE_SEL) */
@@ -1327,7 +1329,7 @@ static float project_paint_uvpixel_mask(
 	/* calculate mask */
 	if (ps->do_mask_normal) {
 		MFace *mf = &ps->dm_mface[face_index];
-		float no[3], angle;
+		float no[3], angle_cos;
 		if (mf->flag & ME_SMOOTH) {
 			const short *no1, *no2, *no3;
 			no1 = ps->dm_mvert[mf->v1].no;
@@ -1368,7 +1370,7 @@ static float project_paint_uvpixel_mask(
 
 		/* now we can use the normal as a mask */
 		if (ps->is_ortho) {
-			angle = angle_normalized_v3v3(ps->viewDir, no);
+			angle_cos = dot_v3v3(ps->viewDir, no);
 		}
 		else {
 			/* Annoying but for the perspective view we need to get the pixels location in 3D space :/ */
@@ -1390,14 +1392,14 @@ static float project_paint_uvpixel_mask(
 			viewDirPersp[2] = (ps->viewPos[2] - (w[0] * co1[2] + w[1] * co2[2] + w[2] * co3[2]));
 			normalize_v3(viewDirPersp);
 
-			angle = angle_normalized_v3v3(viewDirPersp, no);
+			angle_cos = dot_v3v3(viewDirPersp, no);
 		}
 
-		if (angle >= ps->normal_angle) {
+		if (angle_cos <= ps->normal_angle__cos) {
 			return 0.0f; /* outsize the normal limit*/
 		}
-		else if (angle > ps->normal_angle_inner) {
-			mask *= (ps->normal_angle - angle) / ps->normal_angle_range;
+		else if (angle_cos < ps->normal_angle_inner__cos) {
+			mask *= (ps->normal_angle - acosf(angle_cos)) / ps->normal_angle_range;
 		} /* otherwise no mask normal is needed, were within the limit */
 	}
 
@@ -3339,14 +3341,14 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
 			normal_short_to_float_v3(no, mv->no);
 
 			if (ps->is_ortho) {
-				if (angle_normalized_v3v3(ps->viewDir, no) >= ps->normal_angle) { /* 1 vert of this face is towards us */
+				if (dot_v3v3(ps->viewDir, no) <= ps->normal_angle__cos) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
 			else {
 				sub_v3_v3v3(viewDirPersp, ps->viewPos, mv->co);
 				normalize_v3(viewDirPersp);
-				if (angle_normalized_v3v3(viewDirPersp, no) >= ps->normal_angle) { /* 1 vert of this face is towards us */
+				if (dot_v3v3(viewDirPersp, no) <= ps->normal_angle__cos) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
@@ -5000,6 +5002,9 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 
 	if (ps->normal_angle_range <= 0.0f)
 		ps->do_mask_normal = false;  /* no need to do blending */
+
+	ps->normal_angle__cos       = cosf(ps->normal_angle);
+	ps->normal_angle_inner__cos = cosf(ps->normal_angle_inner);
 
 	ps->dither = settings->imapaint.dither;
 	
