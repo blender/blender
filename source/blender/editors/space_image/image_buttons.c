@@ -868,10 +868,16 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				/* browse layer/passes */
 				RenderResult *rr;
 				const float dpi_fac = UI_DPI_FAC;
+				const int menus_width = 230 * dpi_fac;
 
 				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
 				rr = BKE_image_acquire_renderresult(scene, ima);
-				uiblock_layer_pass_arrow_buttons(layout, ima, rr, iuser, 230 * dpi_fac, &ima->render_slot);
+				if (rr) {
+					uiblock_layer_pass_arrow_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
+				}
+				else {
+					uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
+				}
 				BKE_image_release_renderresult(scene, ima);
 			}
 		}
