@@ -1319,18 +1319,59 @@ static BMElem *bm_elem_from_knife_edge(KnifeEdge *kfe)
 	return ele_test;
 }
 
+/* Do edges e1 and e2 go between exactly the same coordinates? */
+static bool coinciding_edges(BMEdge *e1, BMEdge *e2) {
+	float *co11, *co12, *co21, *co22;
+
+	co11 = e1->v1->co;
+	co12 = e1->v2->co;
+	co21 = e2->v1->co;
+	co22 = e2->v2->co;
+	if ((equals_v3v3(co11, co21) && equals_v3v3(co12, co22)) ||
+	    (equals_v3v3(co11, co22) && equals_v3v3(co12, co21)))
+		return true;
+	else
+		return false;
+}
+
+/* Callback used in point_is_visible to exclude hits on the faces that are the same
+ * as or contain the hitting element (which is in user_data).
+ * Also (see T44492) want to exclude hits on faces that butt up to the hitting element
+ * (e.g., when you double an edge by an edge split).
+ */
 static bool bm_ray_cast_cb_elem_not_in_face_check(BMFace *f, void *user_data)
 {
+	bool ans;
+	BMEdge *e, *e2;
+	BMIter iter;
+
 	switch (((BMElem *)user_data)->head.htype) {
 		case BM_FACE:
-			return (BMFace *)user_data != f;
+			ans = (BMFace *)user_data != f;
+			break;
 		case BM_EDGE:
-			return !BM_edge_in_face((BMEdge *)user_data, f);
+			e = (BMEdge *)user_data;
+			ans = !BM_edge_in_face(e, f);
+			if (ans) {
+				/* Is it a boundary edge, coincident with a split edge? */
+				if (BM_edge_face_count(e) == 1) {
+					BM_ITER_ELEM(e2, &iter, f, BM_EDGES_OF_FACE) {
+						if (coinciding_edges(e, e2)) {
+							ans = false;
+							break;
+						}
+					}
+				}
+			}
+			break;
 		case BM_VERT:
-			return !BM_vert_in_face((BMVert *)user_data, f);
+			ans = !BM_vert_in_face((BMVert *)user_data, f);
+			break;
 		default:
-			return true;
+			ans = true;
+			break;
 	}
+	return ans;
 }
 
 
