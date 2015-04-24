@@ -152,6 +152,34 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 }
 
 /**
+ * Action zones are only updated if the mouse is inside of them, but in some cases (currently only fullscreen icon)
+ * it might be needed to update their properties and redraw if the mouse isn't inside.
+ */
+void ED_area_azones_update(ScrArea *sa, const int mouse_xy[2])
+{
+	AZone *az;
+	bool changed = false;
+
+	for (az = sa->actionzones.first; az; az = az->next) {
+		if (az->type == AZONE_FULLSCREEN) {
+			/* only if mouse is not hovering the azone */
+			if (BLI_rcti_isect_pt_v(&az->rect, mouse_xy) == false) {
+				az->alpha = 0.0f;
+				changed = true;
+
+				/* can break since currently only this is handled here */
+				break;
+			}
+		}
+	}
+
+	if (changed) {
+		sa->flag &= ~AREA_FLAG_ACTIONZONES_UPDATE;
+		ED_area_tag_redraw(sa);
+	}
+}
+
+/**
  * \brief Corner widget use for quitting fullscreen.
  */
 static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, float alpha)
@@ -369,6 +397,11 @@ static void region_draw_azone_tria(AZone *az)
 	glDisable(GL_BLEND);
 }
 
+static void area_azone_tag_update(ScrArea *sa)
+{
+	sa->flag |= AREA_FLAG_ACTIONZONES_UPDATE;
+}
+
 static void region_draw_azones(ScrArea *sa, ARegion *ar)
 {
 	AZone *az;
@@ -409,6 +442,10 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 			}
 			else if (az->type == AZONE_FULLSCREEN) {
 				area_draw_azone_fullscreen(az->x1, az->y1, az->x2, az->y2, az->alpha);
+
+				if (az->alpha != 0.0f) {
+					area_azone_tag_update(sa);
+				}
 			}
 		}
 	}

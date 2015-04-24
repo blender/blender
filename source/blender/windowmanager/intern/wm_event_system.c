@@ -2330,6 +2330,11 @@ void wm_event_do_handlers(bContext *C)
 						break;
 					}
 
+					/* update azones if needed - done here because it needs to be independent from redraws */
+					if (sa->flag & AREA_FLAG_ACTIONZONES_UPDATE) {
+						ED_area_azones_update(sa, &event->x);
+					}
+
 					if (wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
 
