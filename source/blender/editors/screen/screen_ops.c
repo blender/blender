@@ -4252,6 +4252,8 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_dupli", EVT_ACTIONZONE_AREA, 0, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_swap", EVT_ACTIONZONE_AREA, 0, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_scale", EVT_ACTIONZONE_REGION, 0, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", EVT_ACTIONZONE_FULLSCREEN, 0, 0, 0);
+	RNA_boolean_set(kmi->ptr, "use_hide_panels", true);
 	/* area move after action zones */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
 	
@@ -4278,8 +4280,6 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", F10KEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "use_hide_panels", true);
-	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", EVT_ACTIONZONE_FULLSCREEN, 0, 0, 0);
 	RNA_boolean_set(kmi->ptr, "use_hide_panels", true);
 
 	WM_keymap_add_item(keymap, "SCREEN_OT_screenshot", F3KEY, KM_PRESS, KM_CTRL, 0);
