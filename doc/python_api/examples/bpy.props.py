@@ -6,7 +6,7 @@ Custom properties can be added to any subclass of an :class:`ID`,
 :class:`Bone` and :class:`PoseBone`.
 
 These properties can be animated, accessed by the user interface and python
-like blenders existing properties.
+like Blender's existing properties.
 """
 
 import bpy

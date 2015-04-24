@@ -3,7 +3,7 @@ PropertyGroup Example
 +++++++++++++++++++++
 
 PropertyGroups can be used for collecting custom settings into one value
-to avoid many indervidual settings mixed in together.
+to avoid many individual settings mixed in together.
 """
 
 import bpy

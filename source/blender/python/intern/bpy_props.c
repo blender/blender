@@ -2965,9 +2965,10 @@ static struct PyMethodDef props_methods[] = {
 static struct PyModuleDef props_module = {
 	PyModuleDef_HEAD_INIT,
 	"bpy.props",
-	"This module defines properties to extend blenders internal data, the result of these functions"
-	" is used to assign properties to classes registered with blender and can't be used directly.\n"
-	".. warning:: All parameters to these functions must be passed as keywords.",
+	"This module defines properties to extend Blender's internal data. The result of these functions"
+	" is used to assign properties to classes registered with Blender and can't be used directly.\n"
+	"\n"
+	".. warning:: All parameters to these functions must be passed as keywords.\n",
 	-1, /* multiple "initialization" just copies the module dict. */
 	props_methods,
 	NULL, NULL, NULL, NULL
