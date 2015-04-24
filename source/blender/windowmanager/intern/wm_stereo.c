@@ -451,11 +451,18 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	wmWindow *win = CTX_wm_window(C);
 	const bool is_fullscreen = WM_window_is_fullscreen(win);
 	char prev_display_mode = win->stereo3d_format->display_mode;
-	Stereo3dData *s3dd = op->customdata;
+	Stereo3dData *s3dd;
 
-	if (G.background || s3dd == NULL)
+	if (G.background)
 		return OPERATOR_CANCELLED;
 
+	if (op->customdata == NULL) {
+		/* no invoke means we need to set the operator properties here */
+		wm_stereo3d_set_init(C, op);
+		wm_stereo3d_set_properties(C, op);
+	}
+
+	s3dd = op->customdata;
 	*win->stereo3d_format = s3dd->stereo3d_format;
 
 	if (prev_display_mode == S3D_DISPLAY_PAGEFLIP &&
@@ -497,9 +504,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (op->customdata) {
-		MEM_freeN(op->customdata);
-	}
+	MEM_freeN(op->customdata);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
