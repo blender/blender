@@ -31,6 +31,21 @@
 
 #include "BLI_strict_flags.h"
 
+int pow_i(int base, int exp)
+{
+	int result = 1;
+	BLI_assert(exp >= 0);
+	while (exp) {
+		if (exp & 1) {
+			result *= base;
+		}
+		exp >>= 1;
+		base *= base;
+	}
+
+	return result;
+}
+
 /* from python 3.1 floatobject.c
  * ndigits must be between 0 and 21 */
 double double_round(double x, int ndigits)

@@ -214,6 +214,7 @@ MINLINE int iroundf(float a);
 MINLINE int divide_round_i(int a, int b);
 MINLINE int mod_i(int i, int n);
 
+int pow_i(int base, int exp);
 double double_round(double x, int ndigits);
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
