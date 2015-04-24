@@ -283,6 +283,7 @@ typedef struct ProjPaintState {
 
 	bool do_face_sel;               /* quick access to (me->editflag & ME_EDIT_PAINT_FACE_SEL) */
 	bool is_ortho;
+	bool is_flip_object;            /* the object is negative scaled */
 	bool do_masking;              /* use masking during painting. Some operations such as airbrush may disable */
 	bool is_texbrush;              /* only to avoid running  */
 	bool is_maskbrush;            /* mask brush is applied before masking */
@@ -1373,6 +1374,10 @@ static float project_paint_uvpixel_mask(
 #endif
 		}
 
+		if (UNLIKELY(ps->is_flip_object)) {
+			negate_v3(no);
+		}
+
 		/* now we can use the normal as a mask */
 		if (ps->is_ortho) {
 			angle_cos = dot_v3v3(ps->viewDir, no);
@@ -2053,7 +2058,7 @@ static bool line_rect_clip(
 
 
 static void project_bucket_clip_face(
-        const bool is_ortho,
+        const bool is_ortho, const bool is_flip_object,
         const rctf *bucket_bounds,
         const float *v1coSS, const float *v2coSS, const float *v3coSS,
         const float *uv1co, const float *uv2co, const float *uv3co,
@@ -2081,7 +2086,8 @@ static void project_bucket_clip_face(
 	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v3coSS) << 2;
 	
 	if (inside_bucket_flag == ISECT_ALL3) {
-		flip = ((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) !=
+		/* is_flip_object is used here because we use the face winding */
+		flip = (((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) != is_flip_object) !=
 		        (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
 
 		/* all screenspace points are inside the bucket bounding box,
@@ -2484,6 +2490,7 @@ static void project_paint_face_init(
 	float uv_clip[8][2];
 	int uv_clip_tot;
 	const bool is_ortho = ps->is_ortho;
+	const bool is_flip_object = ps->is_flip_object;
 	const bool do_backfacecull = ps->do_backfacecull;
 	const bool do_clip = ps->rv3d ? ps->rv3d->rflag & RV3D_CLIPPING : 0;
 
@@ -2545,7 +2552,8 @@ static void project_paint_face_init(
 
 		/* This funtion gives is a concave polyline in UV space from the clipped quad and tri*/
 		project_bucket_clip_face(
-		        is_ortho, bucket_bounds,
+		        is_ortho, is_flip_object,
+		        bucket_bounds,
 		        v1coSS, v2coSS, v3coSS,
 		        uv1co, uv2co, uv3co,
 		        uv_clip, &uv_clip_tot,
@@ -3183,6 +3191,10 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps)
 	mul_m3_v3(mat, ps->viewDir);
 	normalize_v3(ps->viewDir);
 
+	if (UNLIKELY(ps->is_flip_object)) {
+		negate_v3(ps->viewDir);
+	}
+
 	/* viewPos - object relative */
 	copy_v3_v3(ps->viewPos, viewinv[3]);
 	copy_m3_m4(mat, ps->ob->imat);
@@ -3358,6 +3370,9 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
 
 		for (a = 0, mv = ps->dm_mvert; a < ps->dm_totvert; a++, mv++) {
 			normal_short_to_float_v3(no, mv->no);
+			if (UNLIKELY(ps->is_flip_object)) {
+				negate_v3(no);
+			}
 
 			if (ps->is_ortho) {
 				if (dot_v3v3(ps->viewDir, no) <= ps->normal_angle__cos) { /* 1 vert of this face is towards us */
@@ -3649,7 +3664,7 @@ static bool project_paint_backface_cull(
 			}
 		}
 		else {
-			if (line_point_side_v2(coSS->v1, coSS->v2, coSS->v3) < 0.0f) {
+			if ((line_point_side_v2(coSS->v1, coSS->v2, coSS->v3) < 0.0f) != ps->is_flip_object) {
 				return true;
 			}
 
@@ -3813,6 +3828,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		ED_view3d_clipping_local(ps->rv3d, ps->ob->obmat);  /* faster clipping lookups */
 
 	ps->do_face_sel = ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) != 0);
+	ps->is_flip_object = (ps->ob->transflag & OB_NEG_SCALE) != 0;
 
 	/* paint onto the derived mesh */
 	if (!proj_paint_state_dm_init(ps)) {
