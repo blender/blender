@@ -560,8 +560,8 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	GPUTexture *tex;
 	GLenum type, format, internalformat;
 	void *pixels = NULL;
-	const float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	int r_width;
+	bool rescale = false;
 
 	if (!GLEW_VERSION_1_2)
 		return NULL;
@@ -608,12 +608,19 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	glTexImage3D(GL_PROXY_TEXTURE_3D, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
 	glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0, GL_TEXTURE_WIDTH, &r_width);
 
-	if (r_width == 0) {
-		fprintf(stderr, "OpenGL cannot handle a 3D texture of this size\n");
-		glBindTexture(tex->target, 0);
-		GPU_texture_free(tex);
-		return NULL;
+	while (r_width == 0) {
+		rescale = true;
+		tex->w /= 2;
+		tex->h /= 2;
+		tex->depth /= 2;
+		glTexImage3D(GL_PROXY_TEXTURE_3D, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
+		glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0, GL_TEXTURE_WIDTH, &r_width);
 	}
+
+	/* really unlikely to happen but keep this just in case */
+	tex->w = max_ii(tex->w, 1);
+	tex->h = max_ii(tex->h, 1);
+	tex->depth = max_ii(tex->depth, 1);
 
 #if 0
 	if (fpixels)
@@ -622,32 +629,65 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 
 	GPU_ASSERT_NO_GL_ERRORS("3D glTexImage3D");
 
-	if (fpixels) {
-		if (!GPU_non_power_of_two_support() && (w != tex->w || h != tex->h || depth != tex->depth)) {
-			/* clear first to avoid unitialized pixels */
-			float *zero= MEM_callocN(sizeof(float)*tex->w*tex->h*tex->depth, "zero");
-			glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
-			glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->depth, GL_INTENSITY, GL_FLOAT, zero);
-			glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
-			MEM_freeN(zero);
-		}
-		else {
-			glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, fpixels);
+	/* hardcore stuff, 3D texture rescaling - warning, this is gonna hurt your performance a lot, but we need it
+	 * for gooseberry */
+	if (rescale && fpixels) {
+		unsigned int i, j, k;
+		unsigned int xf = w / tex->w, yf = h / tex->h, zf = depth / tex->depth;
+		float *tex3d = MEM_mallocN(channels * sizeof(float)*tex->w*tex->h*tex->depth, "tex3d");
+
+		GPU_print_error_debug("You need to scale a 3D texture, feel the pain!");
+
+		for (k = 0; k < tex->depth; k++) {
+			for (j = 0; j < tex->h; j++) {
+				for (i = 0; i < tex->w; i++) {
+					/* obviously doing nearest filtering here, it's going to be slow in any case, let's not make it worse */
+					float xb = i * xf;
+					float yb = j * yf;
+					float zb = k * zf;
+					unsigned int offset = k * (tex->w * tex->h) + i * tex->h + j;
+					unsigned int offset_orig = (zb) * (w * h) + (xb) * h + (yb);
+
+					if (channels == 4) {
+						tex3d[offset * 4] = fpixels[offset_orig * 4];
+						tex3d[offset * 4 + 1] = fpixels[offset_orig * 4 + 1];
+						tex3d[offset * 4 + 2] = fpixels[offset_orig * 4 + 2];
+						tex3d[offset * 4 + 3] = fpixels[offset_orig * 4 + 3];
+					}
+					else
+						tex3d[offset] = fpixels[offset_orig];
+				}
+			}
 		}
 
-		GPU_ASSERT_NO_GL_ERRORS("3D glTexSubImage3D");
+		glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, tex3d);
+
+		MEM_freeN(tex3d);
+	}
+	else {
+		if (fpixels) {
+			if (!GPU_non_power_of_two_support() && (w != tex->w || h != tex->h || depth != tex->depth)) {
+				/* clear first to avoid unitialized pixels */
+				float *zero= MEM_callocN(sizeof(float)*tex->w*tex->h*tex->depth, "zero");
+				glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
+				glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->depth, GL_INTENSITY, GL_FLOAT, zero);
+				glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
+				MEM_freeN(zero);
+			}
+			else {
+				glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, fpixels);
+			}
+
+			GPU_ASSERT_NO_GL_ERRORS("3D glTexSubImage3D");
+		}
 	}
 
 
-	glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, vfBorderColor);
-	GPU_ASSERT_NO_GL_ERRORS("3D GL_TEXTURE_BORDER_COLOR");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	GPU_ASSERT_NO_GL_ERRORS("3D GL_LINEAR");
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	GPU_ASSERT_NO_GL_ERRORS("3D GL_CLAMP_TO_BORDER");
 
 	if (pixels)
 		MEM_freeN(pixels);
