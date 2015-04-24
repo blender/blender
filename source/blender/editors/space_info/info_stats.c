@@ -56,6 +56,8 @@
 #include "ED_info.h"
 #include "ED_armature.h"
 
+#include "GPU_extensions.h"
+
 #define MAX_INFO_LEN 512
 #define MAX_INFO_NUM_LEN 16
 
@@ -381,6 +383,7 @@ static void stats_string(Scene *scene)
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 	uintptr_t mem_in_use, mmap_in_use;
 	char memstr[MAX_INFO_MEM_LEN];
+	char gpumemstr[MAX_INFO_MEM_LEN] = "";
 	char *s;
 	size_t ofs = 0;
 
@@ -416,11 +419,22 @@ static void stats_string(Scene *scene)
 
 
 	/* get memory statistics */
-	s = memstr;
-	ofs += BLI_snprintf(s + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" | Mem:%.2fM"),
+	ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, IFACE_(" | Mem:%.2fM"),
 	                    (double)((mem_in_use - mmap_in_use) >> 10) / 1024.0);
 	if (mmap_in_use)
-		BLI_snprintf(s + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" (%.2fM)"), (double)((mmap_in_use) >> 10) / 1024.0);
+		BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" (%.2fM)"), (double)((mmap_in_use) >> 10) / 1024.0);
+
+	if (GPU_mem_stats_supported()) {
+		int gpu_free_mem, gpu_tot_memory;
+
+		GPU_mem_stats_get(&gpu_tot_memory, &gpu_free_mem);
+
+		ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, IFACE_(" | Free GPU Mem:%.2fM"), (double)((gpu_free_mem)) / 1024.0);
+
+		if (gpu_tot_memory) {
+			BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_("/%.2fM"), (double)((gpu_tot_memory)) / 1024.0);
+		}
+	}
 
 	s = stats->infostr;
 	ofs = 0;
@@ -447,22 +461,23 @@ static void stats_string(Scene *scene)
 		}
 
 		ofs += BLI_strncpy_rlen(s + ofs, memstr, MAX_INFO_LEN - ofs);
+		ofs += BLI_strncpy_rlen(s + ofs, gpumemstr, MAX_INFO_LEN - ofs);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Bones:%s/%s %s"),
-		                    stats_fmt.totbonesel, stats_fmt.totbone, memstr);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Bones:%s/%s %s%s"),
+		                    stats_fmt.totbonesel, stats_fmt.totbone, memstr, gpumemstr);
 	}
 	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
-		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%s | Tris:%s"), stats_fmt.totvert,
-		                    stats_fmt.tottri);
+		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%s | Tris:%s%s"), stats_fmt.totvert,
+		                    stats_fmt.tottri, gpumemstr);
 	}
 	else {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
-		                    IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s | Lamps:%s/%s%s"),
+		                    IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s | Lamps:%s/%s%s%s"),
 		                    stats_fmt.totvert, stats_fmt.totface,
 		                    stats_fmt.tottri, stats_fmt.totobjsel,
 		                    stats_fmt.totobj, stats_fmt.totlampsel,
-		                    stats_fmt.totlamp, memstr);
+		                    stats_fmt.totlamp, memstr, gpumemstr);
 	}
 
 	if (ob)
