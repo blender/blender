@@ -5819,6 +5819,12 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->lastcursor  = 0;
 		win->modalcursor = 0;
 		win->stereo3d_format = newdataadr(fd, win->stereo3d_format);
+
+		/* multiview always fallback to anaglyph at file opening
+		 * otherwise quadbuffer saved files can break Blender */
+		if (win->stereo3d_format) {
+			win->stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
+		}
 	}
 	
 	BLI_listbase_clear(&wm->timers);
