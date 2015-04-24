@@ -517,7 +517,14 @@ public:
 	 */
 	void ActivateGraphicController(bool recurse);
 
+	/** Set the object's collison group
+	 * \param filter The group bitfield
+	 */
 	void SetUserCollisionGroup(unsigned short filter);
+
+	/** Set the object's collison mask
+	 * \param filter The mask bitfield
+	 */
 	void SetUserCollisionMask(unsigned short mask);
 	unsigned short GetUserCollisionGroup();
 	unsigned short GetUserCollisionMask();

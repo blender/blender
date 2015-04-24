@@ -227,6 +227,8 @@ protected:
 
 		void	RefreshCcdPhysicsController(CcdPhysicsController* ctrl);
 
+		bool	IsActiveCcdPhysicsController(CcdPhysicsController *ctrl);
+
 		void	AddCcdGraphicController(CcdGraphicController* ctrl);
 
 		void	RemoveCcdGraphicController(CcdGraphicController* ctrl);
