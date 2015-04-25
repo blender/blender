@@ -147,14 +147,14 @@ public: \
 \
 	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const \
 	{ \
-		pdf = 0; \
-		return make_float3(0, 0, 0); \
+		pdf = 0.0f; \
+		return make_float3(0.0f, 0.0f, 0.0f); \
 	} \
 \
 	float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float& pdf) const \
 	{ \
-		pdf = 0; \
-		return make_float3(0, 0, 0); \
+		pdf = 0.0f; \
+		return make_float3(0.0f, 0.0f, 0.0f); \
 	} \
 \
 	int sample(const float3 &Ng, \

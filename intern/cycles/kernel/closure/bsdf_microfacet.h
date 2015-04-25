@@ -277,7 +277,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 	float3 N = sc->N;
 
 	if(m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
-		return make_float3(0, 0, 0);
+		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
@@ -356,7 +356,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 		return make_float3(out, out, out);
 	}
 
-	return make_float3(0, 0, 0);
+	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
 ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
@@ -368,13 +368,13 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, con
 	float3 N = sc->N;
 
 	if(!m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
-		return make_float3(0, 0, 0);
+		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
 
 	if(cosNO <= 0 || cosNI >= 0)
-		return make_float3(0, 0, 0); /* vectors on same side -- not possible */
+		return make_float3(0.0f, 0.0f, 0.0f); /* vectors on same side -- not possible */
 
 	/* compute half-vector of the refraction (eq. 16) */
 	float3 ht = -(m_eta * omega_in + I);
@@ -627,7 +627,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc,
 	float3 N = sc->N;
 
 	if(m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
-		return make_float3(0, 0, 0);
+		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
@@ -709,7 +709,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc,
 		return make_float3(out, out, out);
 	}
 
-	return make_float3(0, 0, 0);
+	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
 ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
@@ -721,13 +721,13 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc
 	float3 N = sc->N;
 
 	if(!m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
-		return make_float3(0, 0, 0);
+		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
 
 	if(cosNO <= 0 || cosNI >= 0)
-		return make_float3(0, 0, 0);
+		return make_float3(0.0f, 0.0f, 0.0f);
 
 	/* compute half-vector of the refraction (eq. 16) */
 	float3 ht = -(m_eta * omega_in + I);

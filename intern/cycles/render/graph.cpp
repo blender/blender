@@ -33,7 +33,7 @@ ShaderInput::ShaderInput(ShaderNode *parent_, const char *name_, ShaderSocketTyp
 	name = name_;
 	type = type_;
 	link = NULL;
-	value = make_float3(0, 0, 0);
+	value = make_float3(0.0f, 0.0f, 0.0f);
 	stack_offset = SVM_STACK_INVALID;
 	default_value = NONE;
 	usage = USE_ALL;

@@ -70,7 +70,7 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 	float out = 0.0f;
 
 	if(fmaxf(sc->data0, sc->data1) <= 1e-4f)
-		return make_float3(0, 0, 0);
+		return make_float3(0.0f, 0.0f, 0.0f);
 
 	if(NdotI > 0.0f && NdotO > 0.0f) {
 		NdotI = fmaxf(NdotI, 1e-6f);

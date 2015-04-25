@@ -162,8 +162,8 @@ void Camera::update()
 		     transform_perspective(&rastertocamera, make_float3(0, 0, 0));
 	}
 	else {
-		dx = make_float3(0, 0, 0);
-		dy = make_float3(0, 0, 0);
+		dx = make_float3(0.0f, 0.0f, 0.0f);
+		dy = make_float3(0.0f, 0.0f, 0.0f);
 	}
 
 	dx = transform_direction(&cameratoworld, dx);

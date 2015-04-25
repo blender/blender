@@ -59,7 +59,7 @@ ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc, co
 		float cosHO = fabsf(dot(I, H));
 
 		if(!(fabsf(cosNH) < 1.0f-1e-5f && cosHO > 1e-5f))
-			return make_float3(0, 0, 0);
+			return make_float3(0.0f, 0.0f, 0.0f);
 
 		float cosNHdivHO = cosNH / cosHO;
 		cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
@@ -80,7 +80,7 @@ ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc, co
 		return make_float3(out, out, out);
 	}
 
-	return make_float3(0, 0, 0);
+	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
 ccl_device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
