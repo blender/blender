@@ -1320,8 +1320,9 @@ static BMElem *bm_elem_from_knife_edge(KnifeEdge *kfe)
 }
 
 /* Do edges e1 and e2 go between exactly the same coordinates? */
-static bool coinciding_edges(BMEdge *e1, BMEdge *e2) {
-	float *co11, *co12, *co21, *co22;
+static bool coinciding_edges(BMEdge *e1, BMEdge *e2)
+{
+	const float *co11, *co12, *co21, *co22;
 
 	co11 = e1->v1->co;
 	co12 = e1->v2->co;
@@ -1329,9 +1330,12 @@ static bool coinciding_edges(BMEdge *e1, BMEdge *e2) {
 	co22 = e2->v2->co;
 	if ((equals_v3v3(co11, co21) && equals_v3v3(co12, co22)) ||
 	    (equals_v3v3(co11, co22) && equals_v3v3(co12, co21)))
+	{
 		return true;
-	else
+	}
+	else {
 		return false;
+	}
 }
 
 /* Callback used in point_is_visible to exclude hits on the faces that are the same
@@ -1354,7 +1358,7 @@ static bool bm_ray_cast_cb_elem_not_in_face_check(BMFace *f, void *user_data)
 			ans = !BM_edge_in_face(e, f);
 			if (ans) {
 				/* Is it a boundary edge, coincident with a split edge? */
-				if (BM_edge_face_count(e) == 1) {
+				if (BM_edge_is_boundary(e)) {
 					BM_ITER_ELEM(e2, &iter, f, BM_EDGES_OF_FACE) {
 						if (coinciding_edges(e, e2)) {
 							ans = false;

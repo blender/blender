@@ -144,7 +144,7 @@ struct BMVert *EDBM_vert_find_nearest(
         struct ViewContext *vc, float *r_dist);
 
 struct BMEdge *EDBM_edge_find_nearest_ex(
-        struct ViewContext *vc,float *r_dist,
+        struct ViewContext *vc, float *r_dist,
         float *r_dist_center,
         const bool use_select_bias, const bool use_cycle,
         struct BMEdge **r_eed_zbuf);
