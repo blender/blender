@@ -392,9 +392,10 @@ void ShaderManager::device_update_common(Device *device,
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);
 
-	/* blackbody lookup table */
+	/* lookup tables */
 	KernelTables *ktables = &dscene->data.tables;
 	
+	/* blackbody lookup table */
 	if(has_converter_blackbody && blackbody_table_offset == TABLE_OFFSET_INVALID) {
 		if(blackbody_table.size() == 0) {
 			thread_scoped_lock lock(lookup_table_mutex);
