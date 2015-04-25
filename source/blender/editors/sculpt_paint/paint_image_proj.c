@@ -332,25 +332,27 @@ typedef union pixelStore {
 typedef struct ProjPixel {
 	float projCoSS[2]; /* the floating point screen projection of this pixel */
 	float worldCoSS[3];
+
+	short x_px, y_px;
+
+	unsigned short image_index; /* if anyone wants to paint onto more than 65535 images they can bite me */
+	unsigned char bb_cell_index;
+
+	/* for various reasons we may want to mask out painting onto this pixel */
+	unsigned short mask;
+
 	/* Only used when the airbrush is disabled.
 	 * Store the max mask value to avoid painting over an area with a lower opacity
 	 * with an advantage that we can avoid touching the pixel at all, if the
 	 * new mask value is lower then mask_accum */
 	unsigned short *mask_accum;
 
-	/* for various reasons we may want to mask out painting onto this pixel */
-	unsigned short mask;
-
-	short x_px, y_px;
 	/* horrible hack, store tile valid flag pointer here to re-validate tiles used for anchored and drag-dot strokes */
 	bool *valid;
 
 	PixelPointer origColor;
 	PixelStore newColor;
 	PixelPointer pixel;
-
-	short image_index; /* if anyone wants to paint onto more than 32768 images they can bite me */
-	unsigned char bb_cell_index;
 } ProjPixel;
 
 typedef struct ProjPixelClone {
