@@ -1403,6 +1403,9 @@ static float project_paint_uvpixel_mask(
 			viewDirPersp[1] = (ps->viewPos[1] - (w[0] * co1[1] + w[1] * co2[1] + w[2] * co3[1]));
 			viewDirPersp[2] = (ps->viewPos[2] - (w[0] * co1[2] + w[1] * co2[2] + w[2] * co3[2]));
 			normalize_v3(viewDirPersp);
+			if (UNLIKELY(ps->is_flip_object)) {
+				negate_v3(viewDirPersp);
+			}
 
 			angle_cos = dot_v3v3(viewDirPersp, no);
 		}
@@ -3384,6 +3387,9 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
 			else {
 				sub_v3_v3v3(viewDirPersp, ps->viewPos, mv->co);
 				normalize_v3(viewDirPersp);
+				if (UNLIKELY(ps->is_flip_object)) {
+					negate_v3(viewDirPersp);
+				}
 				if (dot_v3v3(viewDirPersp, no) <= ps->normal_angle__cos) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
