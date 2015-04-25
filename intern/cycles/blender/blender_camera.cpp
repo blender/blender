@@ -148,6 +148,9 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::RenderEngine b_e
 			case 2:
 				bcam->panorama_type = PANORAMA_FISHEYE_EQUISOLID;
 				break;
+			case 3:
+				bcam->panorama_type = PANORAMA_MIRRORBALL;
+				break;
 			case 0:
 			default:
 				bcam->panorama_type = PANORAMA_EQUIRECTANGULAR;

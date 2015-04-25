@@ -66,6 +66,7 @@ enum_panorama_types = (
     ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ideal for fulldomes, ignore the sensor dimensions"),
     ('FISHEYE_EQUISOLID', "Fisheye Equisolid",
                           "Similar to most fisheye modern lens, takes sensor dimensions into consideration"),
+    ('MIRRORBALL', "Mirror Ball", "Uses the mirror ball mapping"),
     )
 
 enum_curve_primitives = (

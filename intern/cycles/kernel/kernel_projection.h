@@ -163,6 +163,10 @@ ccl_device float3 mirrorball_to_direction(float u, float v)
 
 	dir.x = 2.0f*u - 1.0f;
 	dir.z = 2.0f*v - 1.0f;
+
+	if(dir.x*dir.x + dir.z*dir.z > 1.0f)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
 	dir.y = -sqrtf(max(1.0f - dir.x*dir.x - dir.z*dir.z, 0.0f));
 
 	/* reflection */
@@ -191,6 +195,8 @@ ccl_device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
 			return equirectangular_range_to_direction(u, v, kernel_data.cam.equirectangular_range);
+		case PANORAMA_MIRRORBALL:
+			return mirrorball_to_direction(u, v);
 		case PANORAMA_FISHEYE_EQUIDISTANT:
 			return fisheye_to_direction(u, v, kernel_data.cam.fisheye_fov);
 		case PANORAMA_FISHEYE_EQUISOLID:
@@ -205,6 +211,8 @@ ccl_device float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
 			return direction_to_equirectangular_range(dir, kernel_data.cam.equirectangular_range);
+		case PANORAMA_MIRRORBALL:
+			return direction_to_mirrorball(dir);
 		case PANORAMA_FISHEYE_EQUIDISTANT:
 			return direction_to_fisheye(dir, kernel_data.cam.fisheye_fov);
 		case PANORAMA_FISHEYE_EQUISOLID:
