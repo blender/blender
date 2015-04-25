@@ -190,14 +190,16 @@ static bool ghashutil_bmelem_indexcmp(const void *a, const void *b)
 	return (a != b);
 }
 
-static GHash *ghash_bmelem_new_ex(const char *info,
-                                  const unsigned int nentries_reserve)
+static GHash *ghash_bmelem_new_ex(
+        const char *info,
+        const unsigned int nentries_reserve)
 {
 	return BLI_ghash_new_ex(ghashutil_bmelem_indexhash, ghashutil_bmelem_indexcmp, info, nentries_reserve);
 }
 
-static GSet *gset_bmelem_new_ex(const char *info,
-                             const unsigned int nentries_reserve)
+static GSet *gset_bmelem_new_ex(
+        const char *info,
+        const unsigned int nentries_reserve)
 {
 	return BLI_gset_new_ex(ghashutil_bmelem_indexhash, ghashutil_bmelem_indexcmp, info, nentries_reserve);
 }

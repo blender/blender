@@ -52,8 +52,9 @@ typedef struct BMEdgeLoopStore {
 /* -------------------------------------------------------------------- */
 /* BM_mesh_edgeloops_find & Util Functions  */
 
-static int bm_vert_other_tag(BMVert *v, BMVert *v_prev,
-                             BMEdge **r_e)
+static int bm_vert_other_tag(
+        BMVert *v, BMVert *v_prev,
+        BMEdge **r_e)
 {
 	BMIter iter;
 	BMEdge *e, *e_next = NULL;
@@ -125,8 +126,9 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
 /**
  * \return listbase of listbases, each linking to a vertex.
  */
-int BM_mesh_edgeloops_find(BMesh *bm, ListBase *r_eloops,
-                           bool (*test_fn)(BMEdge *, void *user_data), void *user_data)
+int BM_mesh_edgeloops_find(
+        BMesh *bm, ListBase *r_eloops,
+        bool (*test_fn)(BMEdge *, void *user_data), void *user_data)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -183,8 +185,9 @@ struct VertStep {
 	BMVert *v;
 };
 
-static void vs_add(BLI_mempool *vs_pool, ListBase *lb,
-                   BMVert *v, BMEdge *e_prev, const int iter_tot)
+static void vs_add(
+        BLI_mempool *vs_pool, ListBase *lb,
+        BMVert *v, BMEdge *e_prev, const int iter_tot)
 {
 	struct VertStep *vs_new = BLI_mempool_alloc(vs_pool);
 	vs_new->v = v;
@@ -256,9 +259,10 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool, ListBase *lb, const in
 	return (BLI_listbase_is_empty(lb) == false);
 }
 
-bool BM_mesh_edgeloops_find_path(BMesh *bm, ListBase *r_eloops,
-                                 bool (*test_fn)(BMEdge *, void *user_data), void *user_data,
-                                 BMVert *v_src, BMVert *v_dst)
+bool BM_mesh_edgeloops_find_path(
+        BMesh *bm, ListBase *r_eloops,
+        bool (*test_fn)(BMEdge *, void *user_data), void *user_data,
+        BMVert *v_src, BMVert *v_dst)
 {
 	BMIter iter;
 	BMEdge *e;

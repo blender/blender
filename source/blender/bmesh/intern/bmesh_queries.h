@@ -142,8 +142,9 @@ BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v) ATTR_WARN_UNUSED_RESULT AT
 BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 void    BM_edge_ordered_verts(const BMEdge *edge, BMVert **r_v1, BMVert **r_v2) ATTR_NONNULL();
-void    BM_edge_ordered_verts_ex(const BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
-                                 const BMLoop *edge_loop) ATTR_NONNULL();
+void    BM_edge_ordered_verts_ex(
+        const BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
+        const BMLoop *edge_loop) ATTR_NONNULL();
 
 bool BM_vert_is_all_edge_flag_test(const BMVert *v, const char hflag, const bool respect_hide) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool BM_vert_is_all_face_flag_test(const BMVert *v, const char hflag, const bool respect_hide) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -157,12 +158,16 @@ bool BM_face_is_normal_valid(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNU
 
 float BM_mesh_calc_volume(BMesh *bm, bool is_signed) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-int   BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-                               BMElemFilterFunc filter_fn, void *user_data,
-                               const char hflag_test, const char htype_step) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
-int   BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-                               BMElemFilterFunc filter_fn, void *user_data,
-                               const char hflag_test) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
+int   BM_mesh_calc_face_groups(
+        BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
+        BMElemFilterFunc filter_fn, void *user_data,
+        const char hflag_test, const char htype_step)
+        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
+int   BM_mesh_calc_edge_groups(
+        BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
+        BMElemFilterFunc filter_fn, void *user_data,
+        const char hflag_test)
+        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
 
 /* not really any good place  to put this */
 float bmesh_subd_falloff_calc(const int falloff, float val) ATTR_WARN_UNUSED_RESULT;

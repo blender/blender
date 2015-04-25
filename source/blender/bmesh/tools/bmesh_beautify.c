@@ -274,11 +274,12 @@ BLI_INLINE bool edge_in_array(const BMEdge *e, const BMEdge **edge_array, const 
 }
 
 /* recalc an edge in the heap (surrounding geometry has changed) */
-static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GSet **edge_state_arr,
-                                              /* only for testing the edge is in the array */
-                                              const BMEdge **edge_array, const int edge_array_len,
+static void bm_edge_update_beauty_cost_single(
+        BMEdge *e, Heap *eheap, HeapNode **eheap_table, GSet **edge_state_arr,
+        /* only for testing the edge is in the array */
+        const BMEdge **edge_array, const int edge_array_len,
 
-                                              const short flag, const short method)
+        const short flag, const short method)
 {
 	if (edge_in_array(e, edge_array, edge_array_len)) {
 		const int i = BM_elem_index_get(e);
@@ -316,10 +317,11 @@ static void bm_edge_update_beauty_cost_single(BMEdge *e, Heap *eheap, HeapNode *
 }
 
 /* we have rotated an edge, tag other edges and clear this one */
-static void bm_edge_update_beauty_cost(BMEdge *e, Heap *eheap, HeapNode **eheap_table, GSet **edge_state_arr,
-                                       const BMEdge **edge_array, const int edge_array_len,
-                                       /* only for testing the edge is in the array */
-                                       const short flag, const short method)
+static void bm_edge_update_beauty_cost(
+        BMEdge *e, Heap *eheap, HeapNode **eheap_table, GSet **edge_state_arr,
+        const BMEdge **edge_array, const int edge_array_len,
+        /* only for testing the edge is in the array */
+        const short flag, const short method)
 {
 	int i;
 

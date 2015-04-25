@@ -626,8 +626,9 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
 /**
  * counts number of elements with flag enabled/disabled
  */
-static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
-                              const bool respecthide, const bool test_for_enabled)
+static int bm_mesh_flag_count(
+        BMesh *bm, const char htype, const char hflag,
+        const bool respecthide, const bool test_for_enabled)
 {
 	BMElem *ele;
 	BMIter iter;
@@ -1013,8 +1014,9 @@ GHash *BM_select_history_map_create(BMesh *bm)
 	return map;
 }
 
-void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hflag,
-                                     const bool respecthide, const bool overwrite, const char hflag_test)
+void BM_mesh_elem_hflag_disable_test(
+        BMesh *bm, const char htype, const char hflag,
+        const bool respecthide, const bool overwrite, const char hflag_test)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -1084,8 +1086,9 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 	}
 }
 
-void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hflag,
-                                    const bool respecthide, const bool overwrite, const char hflag_test)
+void BM_mesh_elem_hflag_enable_test(
+        BMesh *bm, const char htype, const char hflag,
+        const bool respecthide, const bool overwrite, const char hflag_test)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -1139,15 +1142,17 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hfla
 	}
 }
 
-void BM_mesh_elem_hflag_disable_all(BMesh *bm, const char htype, const char hflag,
-                                    const bool respecthide)
+void BM_mesh_elem_hflag_disable_all(
+        BMesh *bm, const char htype, const char hflag,
+        const bool respecthide)
 {
 	/* call with 0 hflag_test */
 	BM_mesh_elem_hflag_disable_test(bm, htype, hflag, respecthide, false, 0);
 }
 
-void BM_mesh_elem_hflag_enable_all(BMesh *bm, const char htype, const char hflag,
-                                   const bool respecthide)
+void BM_mesh_elem_hflag_enable_all(
+        BMesh *bm, const char htype, const char hflag,
+        const bool respecthide)
 {
 	/* call with 0 hflag_test */
 	BM_mesh_elem_hflag_enable_test(bm, htype, hflag, respecthide, false, 0);

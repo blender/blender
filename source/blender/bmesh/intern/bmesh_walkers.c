@@ -74,10 +74,11 @@ void *BMW_begin(BMWalker *walker, void *start)
  * a given type. The elements visited are filtered
  * by the bitmask 'searchmask'.
  */
-void BMW_init(BMWalker *walker, BMesh *bm, int type,
-              short mask_vert, short mask_edge, short mask_face,
-              BMWFlag flag,
-              int layer)
+void BMW_init(
+        BMWalker *walker, BMesh *bm, int type,
+        short mask_vert, short mask_edge, short mask_face,
+        BMWFlag flag,
+        int layer)
 {
 	memset(walker, 0, sizeof(BMWalker));
 

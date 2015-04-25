@@ -49,8 +49,9 @@ void bmesh_edit_begin(BMesh *bm, const BMOpTypeFlag type_flag);
 void bmesh_edit_end(BMesh *bm, const BMOpTypeFlag type_flag);
 
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag);
-void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,
-                                 const char *msg_a, const char *msg_b);
+void BM_mesh_elem_index_validate(
+        BMesh *bm, const char *location, const char *func,
+        const char *msg_a, const char *msg_b);
 
 #ifndef NDEBUG
 bool BM_mesh_elem_table_check(BMesh *bm);

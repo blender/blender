@@ -37,8 +37,9 @@
 #include "BKE_editmesh.h"
 
 /* Static function for alloc */
-static BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
-                                         BMesh *bm, BMVert **vtable, BMEdge **etable)
+static BMFace *bm_face_create_from_mpoly(
+        MPoly *mp, MLoop *ml,
+        BMesh *bm, BMVert **vtable, BMEdge **etable)
 {
 	BMVert **verts = BLI_array_alloca(verts, mp->totloop);
 	BMEdge **edges = BLI_array_alloca(edges, mp->totloop);

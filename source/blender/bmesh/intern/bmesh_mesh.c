@@ -303,8 +303,9 @@ static void bm_mesh_edges_calc_vectors(BMesh *bm, float (*edgevec)[3], const flo
 	bm->elem_index_dirty &= ~BM_EDGE;
 }
 
-static void bm_mesh_verts_calc_normals(BMesh *bm, const float (*edgevec)[3], const float (*fnos)[3],
-                                       const float (*vcos)[3], float (*vnos)[3])
+static void bm_mesh_verts_calc_normals(
+        BMesh *bm, const float (*edgevec)[3], const float (*fnos)[3],
+        const float (*vcos)[3], float (*vnos)[3])
 {
 	BM_mesh_elem_index_ensure(bm, (vnos) ? (BM_EDGE | BM_VERT) : BM_EDGE);
 
@@ -437,8 +438,9 @@ void BM_verts_calc_normal_vcos(BMesh *bm, const float (*fnos)[3], const float (*
 /**
  * Helpers for #BM_mesh_loop_normals_update and #BM_loops_calc_normals_vnos
  */
-static void bm_mesh_edges_sharp_tag(BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], float split_angle,
-                                    float (*r_lnos)[3])
+static void bm_mesh_edges_sharp_tag(
+        BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], float split_angle,
+        float (*r_lnos)[3])
 {
 	BMIter eiter, viter;
 	BMVert *v;
@@ -1131,8 +1133,9 @@ finally:
  * These functions ensure its correct and are called more often in debug mode.
  */
 
-void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,
-                                 const char *msg_a, const char *msg_b)
+void BM_mesh_elem_index_validate(
+        BMesh *bm, const char *location, const char *func,
+        const char *msg_a, const char *msg_b)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,

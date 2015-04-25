@@ -102,8 +102,9 @@ static float bm_face_calc_poly_normal(const BMFace *f, float n[3])
  * Same as #calc_poly_normal and #bm_face_calc_poly_normal
  * but takes an array of vertex locations.
  */
-static float bm_face_calc_poly_normal_vertex_cos(BMFace *f, float r_no[3],
-                                                float const (*vertexCos)[3])
+static float bm_face_calc_poly_normal_vertex_cos(
+        BMFace *f, float r_no[3],
+        float const (*vertexCos)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
@@ -127,8 +128,9 @@ static float bm_face_calc_poly_normal_vertex_cos(BMFace *f, float r_no[3],
 /**
  * \brief COMPUTE POLY CENTER (BMFace)
  */
-static void bm_face_calc_poly_center_mean_vertex_cos(BMFace *f, float r_cent[3],
-                                                     float const (*vertexCos)[3])
+static void bm_face_calc_poly_center_mean_vertex_cos(
+        BMFace *f, float r_cent[3],
+        float const (*vertexCos)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter  = l_first;
@@ -548,8 +550,9 @@ void BM_face_normal_update(BMFace *f)
 }
 
 /* exact same as 'BM_face_calc_normal' but accepts vertex coords */
-float BM_face_calc_normal_vcos(BMesh *bm, BMFace *f, float r_no[3],
-                               float const (*vertexCos)[3])
+float BM_face_calc_normal_vcos(
+        BMesh *bm, BMFace *f, float r_no[3],
+        float const (*vertexCos)[3])
 {
 	BMLoop *l;
 
@@ -607,8 +610,9 @@ float BM_face_calc_normal_subset(BMLoop *l_first, BMLoop *l_last, float r_no[3])
 }
 
 /* exact same as 'BM_face_calc_normal' but accepts vertex coords */
-void BM_face_calc_center_mean_vcos(BMesh *bm, BMFace *f, float r_cent[3],
-                                   float const (*vertexCos)[3])
+void BM_face_calc_center_mean_vcos(
+        BMesh *bm, BMFace *f, float r_cent[3],
+        float const (*vertexCos)[3])
 {
 	/* must have valid index data */
 	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);

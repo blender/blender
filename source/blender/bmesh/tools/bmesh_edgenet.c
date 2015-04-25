@@ -450,8 +450,9 @@ static LinkNode *bm_edgenet_path_calc_best(
  * \param use_edge_tag  Only fill tagged edges.
  * \param face_oflag  if nonzero, apply all new faces with this bmo flag.
  */
-void BM_mesh_edgenet(BMesh *bm,
-                     const bool use_edge_tag, const bool use_new_face_tag)
+void BM_mesh_edgenet(
+        BMesh *bm,
+        const bool use_edge_tag, const bool use_new_face_tag)
 {
 	VertNetInfo *vnet_info = MEM_callocN(sizeof(*vnet_info) * (size_t)bm->totvert, __func__);
 	BLI_mempool *edge_queue_pool = BLI_mempool_create(sizeof(LinkNode), 0, 512, BLI_MEMPOOL_NOP);

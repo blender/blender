@@ -57,8 +57,9 @@
 /**
  * \brief Main function for creating a new vertex.
  */
-BMVert *BM_vert_create(BMesh *bm, const float co[3],
-                       const BMVert *v_example, const eBMCreateFlag create_flag)
+BMVert *BM_vert_create(
+        BMesh *bm, const float co[3],
+        const BMVert *v_example, const eBMCreateFlag create_flag)
 {
 	BMVert *v = BLI_mempool_alloc(bm->vpool);
 
@@ -141,8 +142,9 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3],
  * \note Duplicate edges are supported by the API however users should _never_ see them.
  * so unless you need a unique edge or know the edge won't exist, you should call with \a no_double = true
  */
-BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2,
-                       const BMEdge *e_example, const eBMCreateFlag create_flag)
+BMEdge *BM_edge_create(
+        BMesh *bm, BMVert *v1, BMVert *v2,
+        const BMEdge *e_example, const eBMCreateFlag create_flag)
 {
 	BMEdge *e;
 
@@ -204,8 +206,9 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2,
 	return e;
 }
 
-static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
-                              const BMLoop *l_example, const eBMCreateFlag create_flag)
+static BMLoop *bm_loop_create(
+        BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
+        const BMLoop *l_example, const eBMCreateFlag create_flag)
 {
 	BMLoop *l = NULL;
 
@@ -254,8 +257,9 @@ static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
 	return l;
 }
 
-static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte,
-                                    const eBMCreateFlag create_flag)
+static BMLoop *bm_face_boundary_add(
+        BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte,
+        const eBMCreateFlag create_flag)
 {
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
@@ -276,8 +280,9 @@ static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge
 	return l;
 }
 
-BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f,
-                     const bool copy_verts, const bool copy_edges)
+BMFace *BM_face_copy(
+        BMesh *bm_dst, BMesh *bm_src, BMFace *f,
+        const bool copy_verts, const bool copy_edges)
 {
 	BMVert **verts = BLI_array_alloca(verts, f->len);
 	BMEdge **edges = BLI_array_alloca(edges, f->len);
@@ -400,8 +405,9 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
  * \param len  Length of the face
  * \param create_flag  Options for creating the face
  */
-BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
-                       const BMFace *f_example, const eBMCreateFlag create_flag)
+BMFace *BM_face_create(
+        BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
+        const BMFace *f_example, const eBMCreateFlag create_flag)
 {
 	BMFace *f = NULL;
 	BMLoop *l, *startl, *lastl;
@@ -474,8 +480,9 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 /**
  * Wrapper for #BM_face_create when you don't have an edge array
  */
-BMFace *BM_face_create_verts(BMesh *bm, BMVert **vert_arr, const int len,
-                             const BMFace *f_example, const eBMCreateFlag create_flag, const bool create_edges)
+BMFace *BM_face_create_verts(
+        BMesh *bm, BMVert **vert_arr, const int len,
+        const BMFace *f_example, const eBMCreateFlag create_flag, const bool create_edges)
 {
 	BMEdge **edge_arr = BLI_array_alloca(edge_arr, len);
 	int i, i_prev = len - 1;
@@ -1327,14 +1334,14 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
  *
  * \return A BMFace pointer
  */
-BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMLoop *l_v1, BMLoop *l_v2,
-                   BMLoop **r_l,
+BMFace *bmesh_sfme(
+        BMesh *bm, BMFace *f, BMLoop *l_v1, BMLoop *l_v2,
+        BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
-                   ListBase *holes,
+        ListBase *holes,
 #endif
-                   BMEdge *e_example,
-                   const bool no_double
-                   )
+        BMEdge *e_example,
+        const bool no_double)
 {
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst, *lst2;
@@ -1673,8 +1680,9 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  * faces with just 2 edges. It is up to the caller to decide what to do with
  * these faces.
  */
-BMEdge *bmesh_jekv(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
-                   const bool do_del, const bool check_edge_double)
+BMEdge *bmesh_jekv(
+        BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
+        const bool do_del, const bool check_edge_double)
 {
 	BMEdge *e_old;
 	BMVert *v_old, *tv;
@@ -2074,8 +2082,9 @@ bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
  *
  * \return Success
  */
-void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
-                         const bool copy_select)
+void bmesh_vert_separate(
+        BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+        const bool copy_select)
 {
 	const int v_edgetot = BM_vert_face_count(v);
 	BMEdge **stack = BLI_array_alloca(stack, v_edgetot);
@@ -2206,8 +2215,9 @@ void bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len
 /**
  * High level function which wraps both #bmesh_vert_separate and #bmesh_edge_separate
  */
-void BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
-                     BMEdge **e_in, int e_in_len)
+void BM_vert_separate(
+        BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
+        BMEdge **e_in, int e_in_len)
 {
 	int i;
 
@@ -2274,8 +2284,9 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target)
  * \note Does nothing if \a l_sep is already the only loop in the
  * edge radial.
  */
-void bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep,
-                         const bool copy_select)
+void bmesh_edge_separate(
+        BMesh *bm, BMEdge *e, BMLoop *l_sep,
+        const bool copy_select)
 {
 	BMEdge *e_new;
 #ifndef NDEBUG

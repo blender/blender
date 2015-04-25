@@ -667,8 +667,9 @@ static bool check_mask(EdgeQueueContext *eq_ctx, BMVert *v)
 	return (BM_ELEM_CD_GET_FLOAT(v, eq_ctx->cd_vert_mask_offset) < 1.0f);
 }
 
-static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
-                              float priority)
+static void edge_queue_insert(
+        EdgeQueueContext *eq_ctx, BMEdge *e,
+        float priority)
 {
 	BMVert **pair;
 
@@ -694,8 +695,9 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e,
 	}
 }
 
-static void long_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
-                                     BMEdge *e)
+static void long_edge_queue_edge_add(
+        EdgeQueueContext *eq_ctx,
+        BMEdge *e)
 {
 #ifdef USE_EDGEQUEUE_TAG
 	if (EDGE_QUEUE_TEST(e) == false)
@@ -765,8 +767,9 @@ static void long_edge_queue_edge_add_recursive(
 }
 #endif  /* USE_EDGEQUEUE_EVEN_SUBDIV */
 
-static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
-                                      BMEdge *e)
+static void short_edge_queue_edge_add(
+        EdgeQueueContext *eq_ctx,
+        BMEdge *e)
 {
 #ifdef USE_EDGEQUEUE_TAG
 	if (EDGE_QUEUE_TEST(e) == false)
@@ -779,8 +782,9 @@ static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx,
 	}
 }
 
-static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
-                                     BMFace *f)
+static void long_edge_queue_face_add(
+        EdgeQueueContext *eq_ctx,
+        BMFace *f)
 {
 	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
 		BMLoop *l_iter;
@@ -805,8 +809,9 @@ static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
 	}
 }
 
-static void short_edge_queue_face_add(EdgeQueueContext *eq_ctx,
-                                      BMFace *f)
+static void short_edge_queue_face_add(
+        EdgeQueueContext *eq_ctx,
+        BMFace *f)
 {
 	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
 		BMLoop *l_iter;
@@ -829,9 +834,10 @@ static void short_edge_queue_face_add(EdgeQueueContext *eq_ctx,
  *
  * The highest priority (lowest number) is given to the longest edge.
  */
-static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
-                                   PBVH *bvh, const float center[3],
-                                   float radius)
+static void long_edge_queue_create(
+        EdgeQueueContext *eq_ctx,
+        PBVH *bvh, const float center[3],
+        float radius)
 {
 	int n;
 
@@ -877,9 +883,10 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
  *
  * The highest priority (lowest number) is given to the shortest edge.
  */
-static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
-                                    PBVH *bvh, const float center[3],
-                                    float radius)
+static void short_edge_queue_create(
+        EdgeQueueContext *eq_ctx,
+        PBVH *bvh, const float center[3],
+        float radius)
 {
 	int n;
 
@@ -920,8 +927,9 @@ static void bm_edges_from_tri(BMesh *bm, BMVert *v_tri[3], BMEdge *e_tri[3])
 	e_tri[2] = BM_edge_create(bm, v_tri[2], v_tri[0], NULL, BM_CREATE_NO_DOUBLE);
 }
 
-static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
-                                  BMEdge *e, BLI_Buffer *edge_loops)
+static void pbvh_bmesh_split_edge(
+        EdgeQueueContext *eq_ctx, PBVH *bvh,
+        BMEdge *e, BLI_Buffer *edge_loops)
 {
 	BMVert *v_new;
 	float co_mid[3], no_mid[3];
@@ -1037,8 +1045,9 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *bvh,
 	BM_edge_kill(bvh->bm, e);
 }
 
-static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *bvh,
-                                            BLI_Buffer *edge_loops)
+static bool pbvh_bmesh_subdivide_long_edges(
+        EdgeQueueContext *eq_ctx, PBVH *bvh,
+        BLI_Buffer *edge_loops)
 {
 	bool any_subdivided = false;
 
@@ -1295,9 +1304,10 @@ static bool pbvh_bmesh_collapse_short_edges(
 
 /************************* Called from pbvh.c *************************/
 
-bool pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
-                            const float ray_normal[3], float *dist,
-                            bool use_original)
+bool pbvh_bmesh_node_raycast(
+        PBVHNode *node, const float ray_start[3],
+        const float ray_normal[3], float *dist,
+        bool use_original)
 {
 	bool hit = false;
 
@@ -1433,8 +1443,9 @@ static void pbvh_bmesh_node_layers_reset(PBVH *bvh)
 
 
 /* Build a PBVH from a BMesh */
-void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log,
-                          const int cd_vert_node_offset, const int cd_face_node_offset)
+void BKE_pbvh_build_bmesh(
+        PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log,
+        const int cd_vert_node_offset, const int cd_face_node_offset)
 {
 	BMIter iter;
 	BMFace *f;
@@ -1474,8 +1485,9 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, bool smooth_shading, BMLog *log,
 }
 
 /* Collapse short edges, subdivide long edges */
-bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
-                                   const float center[3], float radius)
+bool BKE_pbvh_bmesh_update_topology(
+        PBVH *bvh, PBVHTopologyUpdateMode mode,
+        const float center[3], float radius)
 {
 	/* 2 is enough for edge faces - manifold edge */
 	BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);

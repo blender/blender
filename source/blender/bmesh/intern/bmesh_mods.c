@@ -276,10 +276,11 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f_a, BMFace *f_b, BMEdge *e, const
  * if the split is successful (and the original original face will be the
  * other side). NULL if the split fails.
  */
-BMFace *BM_face_split(BMesh *bm, BMFace *f,
-                      BMLoop *l_a, BMLoop *l_b,
-                      BMLoop **r_l, BMEdge *example,
-                      const bool no_double)
+BMFace *BM_face_split(
+        BMesh *bm, BMFace *f,
+        BMLoop *l_a, BMLoop *l_b,
+        BMLoop **r_l, BMEdge *example,
+        const bool no_double)
 {
 	const bool has_mdisp = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	BMFace *f_new, *f_tmp;
@@ -357,10 +358,11 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f,
  * if the split is successful (and the original original face will be the
  * other side). NULL if the split fails.
  */
-BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
-                        BMLoop *l_a, BMLoop *l_b,
-                        float cos[][3], int n,
-                        BMLoop **r_l, BMEdge *example)
+BMFace *BM_face_split_n(
+        BMesh *bm, BMFace *f,
+        BMLoop *l_a, BMLoop *l_b,
+        float cos[][3], int n,
+        BMLoop **r_l, BMEdge *example)
 {
 	BMFace *f_new, *f_tmp;
 	BMLoop *l_dummy;
@@ -991,8 +993,9 @@ bool BM_face_split_edgenet(
  *
  * \returns The New Edge
  */
-BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
-                               const bool do_del, const bool join_faces, const bool kill_degenerate_faces)
+BMEdge *BM_vert_collapse_faces(
+        BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
+        const bool do_del, const bool join_faces, const bool kill_degenerate_faces)
 {
 	BMEdge *e_new = NULL;
 	BMVert *tv = BM_edge_other_vert(e_kill, v_kill);
@@ -1104,8 +1107,9 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float 
  *
  * \return The New Edge
  */
-BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
-                              const bool do_del, const bool kill_degenerate_faces)
+BMEdge *BM_vert_collapse_edge(
+        BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
+        const bool do_del, const bool kill_degenerate_faces)
 {
 	/* nice example implementation but we want loops to have their customdata
 	 * accounted for */
@@ -1354,8 +1358,9 @@ bool BM_face_validate(BMFace *face, FILE *err)
  *
  * \note #BM_edge_rotate_check must have already run.
  */
-void BM_edge_calc_rotate(BMEdge *e, const bool ccw,
-                         BMLoop **r_l1, BMLoop **r_l2)
+void BM_edge_calc_rotate(
+        BMEdge *e, const bool ccw,
+        BMLoop **r_l1, BMLoop **r_l2)
 {
 	BMVert *v1, *v2;
 	BMFace *fa, *fb;
@@ -1517,8 +1522,9 @@ bool BM_edge_rotate_check_degenerate(BMEdge *e, BMLoop *l1, BMLoop *l2)
 	return true;
 }
 
-bool BM_edge_rotate_check_beauty(BMEdge *e,
-                                 BMLoop *l1, BMLoop *l2)
+bool BM_edge_rotate_check_beauty(
+        BMEdge *e,
+        BMLoop *l1, BMLoop *l2)
 {
 	/* Stupid check for now:
 	 * Could compare angles of surrounding edges

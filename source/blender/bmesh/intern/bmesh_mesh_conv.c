@@ -200,8 +200,9 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 }
 
 /* Static function for alloc (duplicate in modifiers_bmesh.c) */
-static BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
-                                         BMesh *bm, BMVert **vtable, BMEdge **etable)
+static BMFace *bm_face_create_from_mpoly(
+        MPoly *mp, MLoop *ml,
+        BMesh *bm, BMVert **vtable, BMEdge **etable)
 {
 	BMVert **verts = BLI_array_alloca(verts, mp->totloop);
 	BMEdge **edges = BLI_array_alloca(edges, mp->totloop);
@@ -221,8 +222,9 @@ static BMFace *bm_face_create_from_mpoly(MPoly *mp, MLoop *ml,
  *
  * \warning This function doesn't calculate face normals.
  */
-void BM_mesh_bm_from_me(BMesh *bm, Mesh *me,
-                        const bool calc_face_normal, const bool set_key, int act_key_nr)
+void BM_mesh_bm_from_me(
+        BMesh *bm, Mesh *me,
+        const bool calc_face_normal, const bool set_key, int act_key_nr)
 {
 	MVert *mvert;
 	MEdge *medge;

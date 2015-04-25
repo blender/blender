@@ -136,8 +136,9 @@ int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, cons
  *
  * Sometimes its convenient to get the iterator as an array.
  */
-int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
-                      void **array, const int len)
+int BMO_iter_as_array(
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
+        void **array, const int len)
 {
 	int i = 0;
 
@@ -169,9 +170,10 @@ int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_nam
  *
  * Caller needs to free the array.
  */
-void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
-                        /* optional args to avoid an alloc (normally stack array) */
-                        void **stack_array, int stack_array_size)
+void *BM_iter_as_arrayN(
+        BMesh *bm, const char itype, void *data, int *r_len,
+        /* optional args to avoid an alloc (normally stack array) */
+        void **stack_array, int stack_array_size)
 {
 	BMIter iter;
 
@@ -212,10 +214,11 @@ void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
 	}
 }
 
-void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
-                         int *r_len,
-                         /* optional args to avoid an alloc (normally stack array) */
-                         void **stack_array, int stack_array_size)
+void *BMO_iter_as_arrayN(
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const char restrictmask,
+        int *r_len,
+        /* optional args to avoid an alloc (normally stack array) */
+        void **stack_array, int stack_array_size)
 {
 	BMOIter iter;
 	BMElem *ele;
@@ -273,8 +276,9 @@ int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, cons
  *
  * Counts how many flagged / unflagged items are found in this element.
  */
-int BMO_iter_elem_count_flag(BMesh *bm, const char itype, void *data,
-                             const short oflag, const bool value)
+int BMO_iter_elem_count_flag(
+        BMesh *bm, const char itype, void *data,
+        const short oflag, const bool value)
 {
 	BMIter iter;
 	BMElemF *ele;

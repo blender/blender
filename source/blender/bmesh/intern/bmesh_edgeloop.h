@@ -32,17 +32,20 @@ struct ListBase;
 struct BMEdgeLoopStore;
 
 /* multiple edgeloops (ListBase) */
-int                 BM_mesh_edgeloops_find(BMesh *bm, struct ListBase *r_lb,
-                                           bool (*test_fn)(BMEdge *, void *user_data), void *user_data);
-bool                BM_mesh_edgeloops_find_path(BMesh *bm, ListBase *r_eloops,
-                                                bool (*test_fn)(BMEdge *, void *user_data), void *user_data,
-                                                BMVert *v_src, BMVert *v_dst);
+int                 BM_mesh_edgeloops_find(
+        BMesh *bm, struct ListBase *r_lb,
+        bool (*test_fn)(BMEdge *, void *user_data), void *user_data);
+bool                BM_mesh_edgeloops_find_path(
+        BMesh *bm, ListBase *r_eloops,
+        bool (*test_fn)(BMEdge *, void *user_data), void *user_data,
+        BMVert *v_src, BMVert *v_dst);
 
 void                BM_mesh_edgeloops_free(struct ListBase *eloops);
 void                BM_mesh_edgeloops_calc_center(BMesh *bm, struct ListBase *eloops);
 void                BM_mesh_edgeloops_calc_normal(BMesh *bm, struct ListBase *eloops);
-void                BM_mesh_edgeloops_calc_normal_aligned(BMesh *bm, struct ListBase *eloops,
-                                                          const float no_align[3]);
+void                BM_mesh_edgeloops_calc_normal_aligned(
+        BMesh *bm, struct ListBase *eloops,
+        const float no_align[3]);
 void                BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const bool use_normals);
 
 
@@ -59,8 +62,9 @@ const float        *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_edges_get(struct BMEdgeLoopStore *el_store, BMEdge **e_arr);
 void                BM_edgeloop_calc_center(BMesh *bm, struct BMEdgeLoopStore *el_store);
 bool                BM_edgeloop_calc_normal(BMesh *bm, struct BMEdgeLoopStore *el_store);
-bool                BM_edgeloop_calc_normal_aligned(BMesh *bm, struct BMEdgeLoopStore *el_store,
-                                                    const float no_align[3]);
+bool                BM_edgeloop_calc_normal_aligned(
+        BMesh *bm, struct BMEdgeLoopStore *el_store,
+        const float no_align[3]);
 void                BM_edgeloop_flip(BMesh *bm, struct BMEdgeLoopStore *el_store);
 void                BM_edgeloop_expand(BMesh *bm, struct BMEdgeLoopStore *el_store, int el_store_len);
 

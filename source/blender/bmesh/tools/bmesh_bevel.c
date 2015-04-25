@@ -244,8 +244,9 @@ static void create_mesh_bmvert(BMesh *bm, VMesh *vm, int i, int j, int k, BMVert
 	BM_elem_flag_disable(nv->v, BM_ELEM_TAG);
 }
 
-static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto,
-                           int ifrom, int jfrom, int kfrom)
+static void copy_mesh_vert(
+        VMesh *vm, int ito, int jto, int kto,
+        int ifrom, int jfrom, int kfrom)
 {
 	NewVert *nvto, *nvfrom;
 
@@ -361,8 +362,9 @@ static BMFace *boundvert_rep_face(BoundVert *v)
  *
  * \note ALL face creation goes through this function, this is important to keep!
  */
-static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
-                               BMFace **face_arr, BMFace *facerep, int mat_nr, bool do_interp)
+static BMFace *bev_create_ngon(
+        BMesh *bm, BMVert **vert_arr, const int totv,
+        BMFace **face_arr, BMFace *facerep, int mat_nr, bool do_interp)
 {
 	BMIter iter;
 	BMLoop *l;
@@ -402,15 +404,17 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv,
 	return f;
 }
 
-static BMFace *bev_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                   BMFace *facerep, int mat_nr, bool do_interp)
+static BMFace *bev_create_quad_tri(
+        BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+        BMFace *facerep, int mat_nr, bool do_interp)
 {
 	BMVert *varr[4] = {v1, v2, v3, v4};
 	return bev_create_ngon(bm, varr, v4 ? 4 : 3, NULL, facerep, mat_nr, do_interp);
 }
 
-static BMFace *bev_create_quad_tri_ex(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                      BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4, int mat_nr)
+static BMFace *bev_create_quad_tri_ex(
+        BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+        BMFace *f1, BMFace *f2, BMFace *f3, BMFace *f4, int mat_nr)
 {
 	BMVert *varr[4] = {v1, v2, v3, v4};
 	BMFace *farr[4] = {f1, f2, f3, f4};
@@ -419,8 +423,9 @@ static BMFace *bev_create_quad_tri_ex(BMesh *bm, BMVert *v1, BMVert *v2, BMVert 
 
 
 /* Is Loop layer layer_index contiguous across shared vertex of l1 and l2? */
-static bool contig_ldata_across_loops(BMesh *bm, BMLoop *l1, BMLoop *l2,
-                                      int layer_index)
+static bool contig_ldata_across_loops(
+        BMesh *bm, BMLoop *l1, BMLoop *l2,
+        int layer_index)
 {
 	const int offset = bm->ldata.layers[layer_index].offset;
 	const int type = bm->ldata.layers[layer_index].type;
@@ -478,7 +483,10 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
 	return true;
 }
 
-/* Like bev_create_quad_tri, but when verts straddle an old edge.
+/**
+ * Like #bev_create_quad_tri, but when verts straddle an old edge.
+ *
+ * <pre>
  *        e
  *        |
  *  v1+---|---+v4
@@ -487,13 +495,16 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
  *  v2+---|---+v3
  *        |
  *    f1  |  f2
+ * </pre>
  *
  * Most CustomData for loops can be interpolated in their respective
  * faces' loops, but for UVs and other 'has_math_cd' layers, only
  * do this if the UVs are continuous across the edge e, otherwise pick
  * one side (f1, arbitrarily), and interpolate them all on that side.
- * For face data, use f1 (arbitrarily) as face representative. */
-static BMFace *bev_create_quad_straddle(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+ * For face data, use f1 (arbitrarily) as face representative.
+ */
+static BMFace *bev_create_quad_straddle(
+        BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
         BMFace *f1, BMFace *f2, int mat_nr, bool is_seam)
 {
 	BMFace *f, *facerep;
@@ -737,8 +748,9 @@ static bool offset_meet_edge(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,  float meetc
  * already, prefer to keep the offset the same on this end.
  * Otherwise, pick a point between the two intersection points on emid that minimizes
  * the sum of squares of errors from desired offset. */
-static void offset_on_edge_between(BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
-                                   BMVert *v, float meetco[3])
+static void offset_on_edge_between(
+        BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
+        BMVert *v, float meetco[3])
 {
 	float d, ang1, ang2, sina1, sina2, lambda;
 	float meet1[3], meet2[3];
@@ -793,8 +805,9 @@ static void offset_on_edge_between(BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, 
  * Viewed from the vertex normal side, the CCW order of the edges is e1, emid, e2.
  * The offset lines may not meet exactly: the lines may be angled so that they can't meet.
  * In that case, pick  the offset_on_edge_between. */
-static void offset_in_two_planes(BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
-                                 BMVert *v,  float meetco[3])
+static void offset_in_two_planes(
+        BevelParams *bp, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
+        BMVert *v,  float meetco[3])
 {
 	float dir1[3], dir2[3], dirmid[3], norm_perp1[3], norm_perp2[3],
 	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3],
@@ -1079,8 +1092,9 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
  * and B has the right side as columns - both extended into homogeneous coords.
  * So M = B*(Ainverse).  Doing Ainverse by hand gives the code below.
  */
-static bool make_unit_square_map(const float va[3], const float vmid[3], const float vb[3],
-                                 float r_mat[4][4])
+static bool make_unit_square_map(
+        const float va[3], const float vmid[3], const float vb[3],
+        float r_mat[4][4])
 {
 	float vo[3], vd[3], vb_vmid[3], va_vmid[3], vddir[3];
 
@@ -1128,8 +1142,9 @@ static bool make_unit_square_map(const float va[3], const float vmid[3], const f
  * and 1/2{va+vb+vc-vd}
  * and Blender matrices have cols at m[i][*].
  */
-static void make_unit_cube_map(const float va[3], const float vb[3], const float vc[3],
-                               const float vd[3], float r_mat[4][4])
+static void make_unit_cube_map(
+        const float va[3], const float vb[3], const float vc[3],
+        const float vd[3], float r_mat[4][4])
 {
 	copy_v3_v3(r_mat[0], va);
 	sub_v3_v3(r_mat[0], vb);
@@ -1861,9 +1876,10 @@ static void vmesh_center(VMesh *vm, float r_cent[3])
 	}
 }
 
-static void avg4(float co[3],
-                 const NewVert *v0, const NewVert *v1,
-                 const NewVert *v2, const NewVert *v3)
+static void avg4(
+        float co[3],
+        const NewVert *v0, const NewVert *v1,
+        const NewVert *v2, const NewVert *v3)
 {
 	add_v3_v3v3(co, v0->co, v1->co);
 	add_v3_v3(co, v2->co);
@@ -3755,10 +3771,11 @@ static float bevel_limit_offset(BMesh *bm, BevelParams *bp)
  *
  * \warning all tagged edges _must_ be manifold.
  */
-void BM_mesh_bevel(BMesh *bm, const float offset, const int offset_type,
-                   const float segments, const float profile,
-                   const bool vertex_only, const bool use_weights, const bool limit_offset,
-                   const struct MDeformVert *dvert, const int vertex_group, const int mat)
+void BM_mesh_bevel(
+        BMesh *bm, const float offset, const int offset_type,
+        const float segments, const float profile,
+        const bool vertex_only, const bool use_weights, const bool limit_offset,
+        const struct MDeformVert *dvert, const int vertex_group, const int mat)
 {
 	BMIter iter;
 	BMVert *v, *v_next;

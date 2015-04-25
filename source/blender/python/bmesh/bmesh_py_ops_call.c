@@ -69,9 +69,10 @@ static int bpy_bm_op_as_py_error(BMesh *bm)
  * \param htype Test \a value matches this type.
  * \param descr Description text.
  */
-static int bpy_slot_from_py_elem_check(BPy_BMElem *value, BMesh *bm, const char htype,
-                                       /* for error messages */
-                                       const char *opname, const char *slot_name, const char *descr)
+static int bpy_slot_from_py_elem_check(
+        BPy_BMElem *value, BMesh *bm, const char htype,
+        /* for error messages */
+        const char *opname, const char *slot_name, const char *descr)
 {
 	if (!BPy_BMElem_Check(value) ||
 	    !(value->ele->head.htype & htype))
@@ -107,10 +108,11 @@ static int bpy_slot_from_py_elem_check(BPy_BMElem *value, BMesh *bm, const char 
  * \param htype_bmo The type(s) supported by the target slot.
  * \param descr Description text.
  */
-static int bpy_slot_from_py_elemseq_check(BPy_BMGeneric *value, BMesh *bm,
-                                          const char htype_py, const char htype_bmo,
-                                          /* for error messages */
-                                          const char *opname, const char *slot_name, const char *descr)
+static int bpy_slot_from_py_elemseq_check(
+        BPy_BMGeneric *value, BMesh *bm,
+        const char htype_py, const char htype_bmo,
+        /* for error messages */
+        const char *opname, const char *slot_name, const char *descr)
 {
 	if (value->bm == NULL) {
 		PyErr_Format(PyExc_TypeError,
@@ -142,9 +144,10 @@ static int bpy_slot_from_py_elemseq_check(BPy_BMGeneric *value, BMesh *bm,
 /**
  * Use for giving py args to an operator.
  */
-static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObject *value,
-                            /* the are just for exception messages */
-                            const char *opname, const char *slot_name)
+static int bpy_slot_from_py(
+        BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObject *value,
+        /* the are just for exception messages */
+        const char *opname, const char *slot_name)
 {
 	switch (slot->slot_type) {
 		case BMO_OP_SLOT_BOOL:

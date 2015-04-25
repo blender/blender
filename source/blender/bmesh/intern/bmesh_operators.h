@@ -130,14 +130,15 @@ extern const BMOpDefine *bmo_opdefines[];
 extern const int         bmo_opdefines_total;
 
 /*------specific operator helper functions-------*/
-void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        const float smooth, const short smooth_falloff, const bool use_smooth_even,
-                        const float fractal, const float along_normal,
-                        const int numcuts,
-                        const int seltype, const int cornertype,
-                        const short use_single_edge, const short use_grid_fill,
-                        const short use_only_quads,
-                        const int seed);
+void BM_mesh_esubdivide(
+        BMesh *bm, const char edge_hflag,
+        const float smooth, const short smooth_falloff, const bool use_smooth_even,
+        const float fractal, const float along_normal,
+        const int numcuts,
+        const int seltype, const int cornertype,
+        const short use_single_edge, const short use_grid_fill,
+        const short use_only_quads,
+        const int seed);
 
 #include "intern/bmesh_operator_api_inline.h"
 

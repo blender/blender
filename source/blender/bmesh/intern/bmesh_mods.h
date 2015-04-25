@@ -35,24 +35,29 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v);
 
 BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const bool do_del);
 
-BMFace *BM_face_split(BMesh *bm, BMFace *f,
-                      BMLoop *l_a, BMLoop *l_b,
-                      BMLoop **r_l,
-                      BMEdge *example, const bool no_double);
+BMFace *BM_face_split(
+        BMesh *bm, BMFace *f,
+        BMLoop *l_a, BMLoop *l_b,
+        BMLoop **r_l,
+        BMEdge *example, const bool no_double);
 
-BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
-                        BMLoop *l_a, BMLoop *l_b,
-                        float cos[][3], int n,
-                        BMLoop **r_l, BMEdge *example);
+BMFace *BM_face_split_n(
+        BMesh *bm, BMFace *f,
+        BMLoop *l_a, BMLoop *l_b,
+        float cos[][3], int n,
+BMLoop **r_l, BMEdge *example);
 
-bool BM_face_split_edgenet(BMesh *bm, BMFace *f,
-                           BMEdge **edge_net, const int edge_net_len,
-                           BMFace ***r_face_arr, int *r_face_arr_len);
+bool BM_face_split_edgenet(
+        BMesh *bm, BMFace *f,
+        BMEdge **edge_net, const int edge_net_len,
+        BMFace ***r_face_arr, int *r_face_arr_len);
 
-BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
-                               const bool do_del, const bool join_faces, const bool kill_degenerate_faces);
-BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
-                              const bool do_del, const bool kill_degenerate_faces);
+BMEdge *BM_vert_collapse_faces(
+        BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
+        const bool do_del, const bool join_faces, const bool kill_degenerate_faces);
+BMEdge *BM_vert_collapse_edge(
+        BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
+        const bool do_del, const bool kill_degenerate_faces);
 
 
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent);
@@ -61,13 +66,16 @@ BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr);
 
 bool    BM_face_validate(BMFace *face, FILE *err);
 
-void    BM_edge_calc_rotate(BMEdge *e, const bool ccw,
-                            BMLoop **r_l1, BMLoop **r_l2);
+void    BM_edge_calc_rotate(
+        BMEdge *e, const bool ccw,
+        BMLoop **r_l1, BMLoop **r_l2);
 bool    BM_edge_rotate_check(BMEdge *e);
-bool    BM_edge_rotate_check_degenerate(BMEdge *e,
-                                        BMLoop *l1, BMLoop *l2);
-bool    BM_edge_rotate_check_beauty(BMEdge *e,
-                                    BMLoop *l1, BMLoop *l2);
+bool    BM_edge_rotate_check_degenerate(
+        BMEdge *e,
+        BMLoop *l1, BMLoop *l2);
+bool    BM_edge_rotate_check_beauty(
+        BMEdge *e,
+        BMLoop *l1, BMLoop *l2);
 BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_flag);
 
 /* flags for BM_edge_rotate */

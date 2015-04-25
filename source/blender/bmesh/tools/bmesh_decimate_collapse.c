@@ -112,18 +112,19 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 }
 
 
-static void bm_decim_calc_target_co(BMEdge *e, float optimize_co[3],
-                                    const Quadric *vquadrics)
+static void bm_decim_calc_target_co(
+        BMEdge *e, float optimize_co[3],
+        const Quadric *vquadrics)
 {
 	/* compute an edge contraction target for edge 'e'
 	 * this is computed by summing it's vertices quadrics and
 	 * optimizing the result. */
 	Quadric q;
 
-	BLI_quadric_add_qu_ququ(&q,
-	                        &vquadrics[BM_elem_index_get(e->v1)],
-	                        &vquadrics[BM_elem_index_get(e->v2)]);
-
+	BLI_quadric_add_qu_ququ(
+	        &q,
+	        &vquadrics[BM_elem_index_get(e->v1)],
+	        &vquadrics[BM_elem_index_get(e->v2)]);
 
 	if (BLI_quadric_optimize(&q, optimize_co, OPTIMIZE_EPS)) {
 		return;  /* all is good */
@@ -183,9 +184,10 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
 	return false;
 }
 
-static void bm_decim_build_edge_cost_single(BMEdge *e,
-                                            const Quadric *vquadrics, const float *vweights,
-                                            Heap *eheap, HeapNode **eheap_table)
+static void bm_decim_build_edge_cost_single(
+        BMEdge *e,
+        const Quadric *vquadrics, const float *vweights,
+        Heap *eheap, HeapNode **eheap_table)
 {
 	const Quadric *q1, *q2;
 	float optimize_co[3];
@@ -258,16 +260,18 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 
 /* use this for degenerate cases - add back to the heap with an invalid cost,
  * this way it may be calculated again if surrounding geometry changes */
-static void bm_decim_invalid_edge_cost_single(BMEdge *e,
-                                              Heap *eheap, HeapNode **eheap_table)
+static void bm_decim_invalid_edge_cost_single(
+        BMEdge *e,
+        Heap *eheap, HeapNode **eheap_table)
 {
 	BLI_assert(eheap_table[BM_elem_index_get(e)] == NULL);
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, COST_INVALID, e);
 }
 
-static void bm_decim_build_edge_cost(BMesh *bm,
-                                     const Quadric *vquadrics, const float *vweights,
-                                     Heap *eheap, HeapNode **eheap_table)
+static void bm_decim_build_edge_cost(
+        BMesh *bm,
+        const Quadric *vquadrics, const float *vweights,
+        Heap *eheap, HeapNode **eheap_table)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -442,8 +446,9 @@ static void bm_decim_triangulate_end(BMesh *bm)
 /**
  * \param v is the target to merge into.
  */
-static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_clear, BMVert *v_other,
-                                             const float customdata_fac)
+static void bm_edge_collapse_loop_customdata(
+        BMesh *bm, BMLoop *l, BMVert *v_clear, BMVert *v_other,
+        const float customdata_fac)
 {
 	/* disable seam check - the seam check would have to be done per layer, its not really that important */
 //#define USE_SEAM
@@ -698,15 +703,16 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
  * \param e_clear_other let caller know what edges we remove besides \a e_clear
  * \param customdata_flag merge factor, scales from 0 - 1 ('v_clear' -> 'v_other')
  */
-static bool bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e_clear_other[2],
+static bool bm_edge_collapse(
+        BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e_clear_other[2],
 #ifdef USE_CUSTOMDATA
-                             const CD_UseFlag customdata_flag,
-                             const float customdata_fac
+        const CD_UseFlag customdata_flag,
+        const float customdata_fac
 #else
-                             const CD_UseFlag UNUSED(customdata_flag),
-                             const float UNUSED(customdata_fac)
+        const CD_UseFlag UNUSED(customdata_flag),
+        const float UNUSED(customdata_fac)
 #endif
-                            )
+        )
 {
 	BMVert *v_other;
 
@@ -847,10 +853,11 @@ static bool bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_
 
 
 /* collapse e the edge, removing e->v2 */
-static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
-                                   Quadric *vquadrics, float *vweights,
-                                   Heap *eheap, HeapNode **eheap_table,
-                                   const CD_UseFlag customdata_flag)
+static void bm_decim_edge_collapse(
+        BMesh *bm, BMEdge *e,
+        Quadric *vquadrics, float *vweights,
+        Heap *eheap, HeapNode **eheap_table,
+        const CD_UseFlag customdata_flag)
 {
 	int e_clear_other[2];
 	BMVert *v_other = e->v1;

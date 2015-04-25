@@ -1184,8 +1184,9 @@ BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e)
  * \note This is in fact quite a simple check, mainly include this function so the intent is more obvious.
  * We know these 2 verts will _always_ make up the loops edge
  */
-void BM_edge_ordered_verts_ex(const BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
-                              const BMLoop *edge_loop)
+void BM_edge_ordered_verts_ex(
+        const BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
+        const BMLoop *edge_loop)
 {
 	BLI_assert(edge_loop->e == edge);
 	(void)edge; /* quiet warning in release build */
@@ -2128,9 +2129,10 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
  *        (having both set is supported too).
  * \return The number of groups found.
  */
-int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-                             BMElemFilterFunc filter_fn, void *user_data,
-                             const char hflag_test, const char htype_step)
+int BM_mesh_calc_face_groups(
+        BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
+        BMElemFilterFunc filter_fn, void *user_data,
+        const char hflag_test, const char htype_step)
 {
 #ifdef DEBUG
 	int group_index_len = 1;
@@ -2285,9 +2287,10 @@ int BM_mesh_calc_face_groups(BMesh *bm, int *r_groups_array, int (**r_group_inde
  * \note Unlike #BM_mesh_calc_face_groups there is no 'htype_step' argument,
  *       since we always walk over verts.
  */
-int BM_mesh_calc_edge_groups(BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-                             BMElemFilterFunc filter_fn, void *user_data,
-                             const char hflag_test)
+int BM_mesh_calc_edge_groups(
+        BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
+        BMElemFilterFunc filter_fn, void *user_data,
+        const char hflag_test)
 {
 #ifdef DEBUG
 	int group_index_len = 1;

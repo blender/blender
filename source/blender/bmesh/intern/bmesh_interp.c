@@ -241,8 +241,9 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, con
  *          y
  * </pre>
  */
-static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3],
-                              float e1[3], float e2[3])
+static int compute_mdisp_quad(
+        BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3],
+        float e1[3], float e2[3])
 {
 	float cent[3], n[3], p[3];
 
@@ -302,9 +303,10 @@ static float quad_coord(const float aa[3], const float bb[3], const float cc[3],
 	return f1;
 }
 
-static int quad_co(float *x, float *y,
-                   const float v1[3], const float v2[3], const float v3[3], const float v4[3],
-                   const float p[3], const float n[3])
+static int quad_co(
+        float *r_x, float *r_y,
+        const float v1[3], const float v2[3], const float v3[3], const float v4[3],
+        const float p[3], const float n[3])
 {
 	float projverts[5][3], n2[3];
 	float dprojverts[4][3], origin[3] = {0.0f, 0.0f, 0.0f};
@@ -340,14 +342,15 @@ static int quad_co(float *x, float *y,
 		return 0;
 	}
 	
-	*y = quad_coord(dprojverts[1], dprojverts[0], dprojverts[2], dprojverts[3], 0, 1);
-	*x = quad_coord(dprojverts[2], dprojverts[1], dprojverts[3], dprojverts[0], 0, 1);
+	*r_y = quad_coord(dprojverts[1], dprojverts[0], dprojverts[2], dprojverts[3], 0, 1);
+	*r_x = quad_coord(dprojverts[2], dprojverts[1], dprojverts[3], dprojverts[0], 0, 1);
 
 	return 1;
 }
 
-static void mdisp_axis_from_quad(float v1[3], float v2[3], float UNUSED(v3[3]), float v4[3],
-                                float axis_x[3], float axis_y[3])
+static void mdisp_axis_from_quad(
+        float v1[3], float v2[3], float UNUSED(v3[3]), float v4[3],
+        float axis_x[3], float axis_y[3])
 {
 	sub_v3_v3v3(axis_x, v4, v1);
 	sub_v3_v3v3(axis_y, v2, v1);
@@ -358,8 +361,9 @@ static void mdisp_axis_from_quad(float v1[3], float v2[3], float UNUSED(v3[3]), 
 
 /* tl is loop to project onto, l is loop whose internal displacement, co, is being
  * projected.  x and y are location in loop's mdisps grid of point co. */
-static bool mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
-                               int res, float axis_x[3], float axis_y[3])
+static bool mdisp_in_mdispquad(
+        BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
+        int res, float axis_x[3], float axis_y[3])
 {
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
@@ -392,8 +396,9 @@ static bool mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, floa
 	return 1;
 }
 
-static float bm_loop_flip_equotion(float mat[2][2], float b[2], const float target_axis_x[3], const float target_axis_y[3],
-                                   const float coord[3], int i, int j)
+static float bm_loop_flip_equotion(
+        float mat[2][2], float b[2], const float target_axis_x[3], const float target_axis_y[3],
+        const float coord[3], int i, int j)
 {
 	mat[0][0] = target_axis_x[i];
 	mat[0][1] = target_axis_y[i];
@@ -405,8 +410,9 @@ static float bm_loop_flip_equotion(float mat[2][2], float b[2], const float targ
 	return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
 }
 
-static void bm_loop_flip_disp(const float source_axis_x[3], const float source_axis_y[3],
-                              const float target_axis_x[3], const float target_axis_y[3], float disp[3])
+static void bm_loop_flip_disp(
+        const float source_axis_x[3], const float source_axis_y[3],
+        const float target_axis_x[3], const float target_axis_y[3], float disp[3])
 {
 	float vx[3], vy[3], coord[3];
 	float n[3], vec[3];

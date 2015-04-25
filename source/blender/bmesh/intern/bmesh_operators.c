@@ -281,9 +281,10 @@ BMOpSlot *BMO_slot_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identif
  * define used.
  * Copies data from one slot to another.
  */
-void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
-                    BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
-                    struct MemArena *arena_dst)
+void _bmo_slot_copy(
+        BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
+        BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
+        struct MemArena *arena_dst)
 {
 	BMOpSlot *slot_src = BMO_slot_get(slot_args_src, slot_name_src);
 	BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
@@ -543,8 +544,9 @@ void BMO_slot_vec_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_nam
  *
  */
 
-static int bmo_mesh_flag_count(BMesh *bm, const char htype, const short oflag,
-                               const bool test_for_enabled)
+static int bmo_mesh_flag_count(
+        BMesh *bm, const char htype, const short oflag,
+        const bool test_for_enabled)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -602,11 +604,12 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 	}
 }
 
-void BMO_mesh_selected_remap(BMesh *bm,
-                             BMOpSlot *slot_vert_map,
-                             BMOpSlot *slot_edge_map,
-                             BMOpSlot *slot_face_map,
-                             const bool check_select)
+void BMO_mesh_selected_remap(
+        BMesh *bm,
+        BMOpSlot *slot_vert_map,
+        BMOpSlot *slot_edge_map,
+        BMOpSlot *slot_face_map,
+        const bool check_select)
 {
 	if (bm->selected.first) {
 		BMEditSelection *ese, *ese_next;
@@ -663,8 +666,9 @@ int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
 /* inserts a key/value mapping into a mapping slot.  note that it copies the
  * value, it doesn't store a reference to it. */
 
-void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
-                         const void *element, const void *data)
+void BMO_slot_map_insert(
+        BMOperator *op, BMOpSlot *slot,
+        const void *element, const void *data)
 {
 	(void) op;  /* Ignored in release builds. */
 
@@ -717,8 +721,9 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
 }
 #endif
 
-void BMO_slot_map_to_flag(BMesh *bm, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                          const char htype, const short oflag)
+void BMO_slot_map_to_flag(
+        BMesh *bm, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const short oflag)
 {
 	GHashIterator gh_iter;
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
@@ -759,8 +764,9 @@ void *BMO_slot_buffer_alloc(BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS]
  *
  * Copies all elements of a certain type into an operator slot.
  */
-void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-                              const char *slot_name, const char htype)
+void BMO_slot_buffer_from_all(
+        BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+        const char *slot_name, const char htype)
 {
 	BMOpSlot *output = BMO_slot_get(slot_args, slot_name);
 	int totelement = 0, i = 0;
@@ -809,9 +815,10 @@ void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_
  * Copies elements of a certain type, which have a certain header flag
  * enabled/disabled into a slot for an operator.
  */
-static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                       const char htype, const char hflag,
-                                       const bool test_for_enabled)
+static void bmo_slot_buffer_from_hflag(
+        BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const char hflag,
+        const bool test_for_enabled)
 {
 	BMOpSlot *output = BMO_slot_get(slot_args, slot_name);
 	int totelement = 0, i = 0;
@@ -872,16 +879,18 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, BMOpSlot slot_
 	}
 }
 
-void BMO_slot_buffer_from_enabled_hflag(BMesh *bm, BMOperator *op,
-                                        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                        const char htype, const char hflag)
+void BMO_slot_buffer_from_enabled_hflag(
+        BMesh *bm, BMOperator *op,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const char hflag)
 {
 	bmo_slot_buffer_from_hflag(bm, op, slot_args, slot_name, htype, hflag, true);
 }
 
-void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op,
-                                         BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                         const char htype, const char hflag)
+void BMO_slot_buffer_from_disabled_hflag(
+        BMesh *bm, BMOperator *op,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const char hflag)
 {
 	bmo_slot_buffer_from_hflag(bm, op, slot_args, slot_name, htype, hflag, false);
 }
@@ -927,9 +936,10 @@ void *BMO_slot_buffer_get_single(BMOpSlot *slot)
 /**
  * Copies the values from another slot to the end of the output slot.
  */
-void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
-                             BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
-                             struct MemArena *arena_dst)
+void _bmo_slot_buffer_append(
+        BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
+        BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
+        struct MemArena *arena_dst)
 {
 	BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
 	BMOpSlot *slot_src  = BMO_slot_get(slot_args_src,  slot_name_src);
@@ -964,10 +974,11 @@ void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const cha
  * Copies elements of a certain type, which have a certain flag set
  * into an output slot for an operator.
  */
-static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op,
-                                      BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                      const char htype, const short oflag,
-                                      const bool test_for_enabled)
+static void bmo_slot_buffer_from_flag(
+        BMesh *bm, BMOperator *op,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const short oflag,
+        const bool test_for_enabled)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	int totelement, i = 0;
@@ -1026,16 +1037,18 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op,
 	}
 }
 
-void BMO_slot_buffer_from_enabled_flag(BMesh *bm, BMOperator *op,
-                                       BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                       const char htype, const short oflag)
+void BMO_slot_buffer_from_enabled_flag(
+        BMesh *bm, BMOperator *op,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const short oflag)
 {
 	bmo_slot_buffer_from_flag(bm, op, slot_args, slot_name, htype, oflag, true);
 }
 
-void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op,
-                                        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                        const char htype, const short oflag)
+void BMO_slot_buffer_from_disabled_flag(
+        BMesh *bm, BMOperator *op,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const short oflag)
 {
 	bmo_slot_buffer_from_flag(bm, op, slot_args, slot_name, htype, oflag, false);
 }
@@ -1046,9 +1059,10 @@ void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op,
  * Header Flags elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_slot_buffer_hflag_enable(BMesh *bm,
-                                  BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                  const char htype, const char hflag, const bool do_flush)
+void BMO_slot_buffer_hflag_enable(
+        BMesh *bm,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const char hflag, const bool do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BMElem **data =  (BMElem **)slot->data.buf;
@@ -1082,9 +1096,10 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm,
  * Removes flags from elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_slot_buffer_hflag_disable(BMesh *bm,
-                                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                   const char htype, const char hflag, const bool do_flush)
+void BMO_slot_buffer_hflag_disable(
+        BMesh *bm,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const char hflag, const bool do_flush)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BMElem **data =  (BMElem **)slot->data.buf;
@@ -1116,9 +1131,10 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm,
  *
  * Flags elements in a slots buffer
  */
-void BMO_slot_buffer_flag_enable(BMesh *bm,
-                                 BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                 const char htype, const short oflag)
+void BMO_slot_buffer_flag_enable(
+        BMesh *bm,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BMHeader **data =  slot->data.p;
@@ -1140,9 +1156,10 @@ void BMO_slot_buffer_flag_enable(BMesh *bm,
  *
  * Removes flags from elements in a slots buffer
  */
-void BMO_slot_buffer_flag_disable(BMesh *bm,
-                                  BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                                  const char htype, const short oflag)
+void BMO_slot_buffer_flag_disable(
+        BMesh *bm,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char htype, const short oflag)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BMHeader **data = (BMHeader **)slot->data.buf;
@@ -1394,9 +1411,10 @@ void *BMO_slot_buffer_get_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char
  * \param restrictmask restricts the iteration to certain element types
  * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
  * over an element buffer (not a mapping). */
-void *BMO_iter_new(BMOIter *iter,
-                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                   const char restrictmask)
+void *BMO_iter_new(
+        BMOIter *iter,
+        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+        const char restrictmask)
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 

@@ -175,9 +175,10 @@ void BB_expand_with_bb(BB *bb, BB *bb2);
 void BBC_update_centroid(BBC *bbc);
 int BB_widest_axis(const BB *bb);
 void pbvh_grow_nodes(PBVH *bvh, int totnode);
-bool ray_face_intersection(const float ray_start[3], const float ray_normal[3],
-                           const float *t0, const float *t1, const float *t2,
-                           const float *t3, float *fdist);
+bool ray_face_intersection(
+        const float ray_start[3], const float ray_normal[3],
+        const float *t0, const float *t1, const float *t2,
+        const float *t3, float *fdist);
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
 /* pbvh_bmesh.c */

@@ -47,8 +47,9 @@
 #define SELECT 1
 
 /* prototypes */
-static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
-                               const BMLoop *source_loop, BMLoop *target_loop);
+static void bm_loop_attrs_copy(
+        BMesh *source_mesh, BMesh *target_mesh,
+        const BMLoop *source_loop, BMLoop *target_loop);
 
 /**
  * \brief Make Quad/Triangle
@@ -64,9 +65,10 @@ static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
  * of the vertices in the vertex array.
  */
 
-BMFace *BM_face_create_quad_tri(BMesh *bm,
-                                BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                const BMFace *f_example, const eBMCreateFlag create_flag)
+BMFace *BM_face_create_quad_tri(
+        BMesh *bm,
+        BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+        const BMFace *f_example, const eBMCreateFlag create_flag)
 {
 	BMVert *vtar[4] = {v1, v2, v3, v4};
 	return BM_face_create_verts(bm, vtar, v4 ? 4 : 3, f_example, create_flag, true);
@@ -81,8 +83,9 @@ BMFace *BM_face_create_quad_tri(BMesh *bm,
  * this is done since the face may not be completely surrounded by faces,
  * this way: a quad with 2 connected quads on either side will still get all 4 loops updated
  */
-void BM_face_copy_shared(BMesh *bm, BMFace *f,
-                         BMElemFilterFunc filter_fn, void *user_data)
+void BM_face_copy_shared(
+        BMesh *bm, BMFace *f,
+        BMElemFilterFunc filter_fn, void *user_data)
 {
 	BMLoop *l_first;
 	BMLoop *l_iter;
@@ -250,9 +253,10 @@ BMFace *BM_face_create_ngon(
  * - Optionally create edges between vertices.
  * - Uses verts so no need to find edges (handy when you only have verts)
  */
-BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len,
-                                  const BMFace *f_example, const eBMCreateFlag create_flag,
-                                  const bool calc_winding, const bool create_edges)
+BMFace *BM_face_create_ngon_verts(
+        BMesh *bm, BMVert **vert_arr, const int len,
+        const BMFace *f_example, const eBMCreateFlag create_flag,
+        const bool calc_winding, const bool create_edges)
 {
 	BMEdge **edge_arr = BLI_array_alloca(edge_arr, len);
 	unsigned int winding[2] = {0, 0};
@@ -331,8 +335,9 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm, BMVert **vert_arr, const int len,
  *
  * \note Since this is a vcloud there is no direction.
  */
-BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
-                                   const BMFace *f_example, const eBMCreateFlag create_flag)
+BMFace *BM_face_create_ngon_vcloud(
+        BMesh *bm, BMVert **vert_arr, int len,
+        const BMFace *f_example, const eBMCreateFlag create_flag)
 {
 	struct SortIntByFloat *vang = BLI_array_alloca(vang, len);
 	BMVert **vert_arr_map = BLI_array_alloca(vert_arr_map, len);
@@ -453,8 +458,9 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int len,
 /*************************************************************/
 
 
-static void bm_vert_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
-                               const BMVert *source_vertex, BMVert *target_vertex)
+static void bm_vert_attrs_copy(
+        BMesh *source_mesh, BMesh *target_mesh,
+        const BMVert *source_vertex, BMVert *target_vertex)
 {
 	if ((source_mesh == target_mesh) && (source_vertex == target_vertex)) {
 		BLI_assert(!"BMVert: source and targer match");
@@ -466,8 +472,9 @@ static void bm_vert_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 	                           source_vertex->head.data, &target_vertex->head.data);
 }
 
-static void bm_edge_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
-                               const BMEdge *source_edge, BMEdge *target_edge)
+static void bm_edge_attrs_copy(
+        BMesh *source_mesh, BMesh *target_mesh,
+        const BMEdge *source_edge, BMEdge *target_edge)
 {
 	if ((source_mesh == target_mesh) && (source_edge == target_edge)) {
 		BLI_assert(!"BMEdge: source and targer match");
@@ -478,8 +485,9 @@ static void bm_edge_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 	                           source_edge->head.data, &target_edge->head.data);
 }
 
-static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
-                               const BMLoop *source_loop, BMLoop *target_loop)
+static void bm_loop_attrs_copy(
+        BMesh *source_mesh, BMesh *target_mesh,
+        const BMLoop *source_loop, BMLoop *target_loop)
 {
 	if ((source_mesh == target_mesh) && (source_loop == target_loop)) {
 		BLI_assert(!"BMLoop: source and targer match");
@@ -490,8 +498,9 @@ static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 	                           source_loop->head.data, &target_loop->head.data);
 }
 
-static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
-                               const BMFace *source_face, BMFace *target_face)
+static void bm_face_attrs_copy(
+        BMesh *source_mesh, BMesh *target_mesh,
+        const BMFace *source_face, BMFace *target_face)
 {
 	if ((source_mesh == target_mesh) && (source_face == target_face)) {
 		BLI_assert(!"BMFace: source and targer match");
@@ -511,8 +520,9 @@ static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
  * Copies attributes, e.g. customdata, header flags, etc, from one element
  * to another of the same type.
  */
-void BM_elem_attrs_copy_ex(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v,
-                           const char hflag_mask)
+void BM_elem_attrs_copy_ex(
+        BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v,
+        const char hflag_mask)
 {
 	const BMHeader *ele_src = ele_src_v;
 	BMHeader *ele_dst = ele_dst_v;
@@ -577,9 +587,10 @@ void BM_elem_select_copy(BMesh *bm_dst, BMesh *UNUSED(bm_src), void *ele_dst_v, 
 }
 
 /* helper function for 'BM_mesh_copy' */
-static BMFace *bm_mesh_copy_new_face(BMesh *bm_new, BMesh *bm_old,
-                                     BMVert **vtable, BMEdge **etable,
-                                     BMFace *f)
+static BMFace *bm_mesh_copy_new_face(
+        BMesh *bm_new, BMesh *bm_old,
+        BMVert **vtable, BMEdge **etable,
+        BMFace *f)
 {
 	BMLoop **loops = BLI_array_alloca(loops, f->len);
 	BMVert **verts = BLI_array_alloca(verts, f->len);

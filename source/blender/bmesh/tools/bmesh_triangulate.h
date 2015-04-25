@@ -30,7 +30,8 @@
 #ifndef __BMESH_TRIANGULATE_H__
 #define __BMESH_TRIANGULATE_H__
 
-void BM_mesh_triangulate(BMesh *bm, const int quad_method, const int ngon_method, const bool tag_only,
-                         BMOperator *op, BMOpSlot *slot_facemap_out);
+void BM_mesh_triangulate(
+        BMesh *bm, const int quad_method, const int ngon_method, const bool tag_only,
+        BMOperator *op, BMOpSlot *slot_facemap_out);
 
 #endif  /* __BMESH_TRIANGULATE_H__ */

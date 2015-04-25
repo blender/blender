@@ -55,8 +55,9 @@ static BMLoop *bm_edge_tag_faceloop(BMEdge *e)
 	return NULL;
 }
 
-static void bm_vert_boundary_tangent(BMVert *v, float r_no[3], float r_no_face[3],
-                                     BMVert **r_va_other, BMVert **r_vb_other)
+static void bm_vert_boundary_tangent(
+        BMVert *v, float r_no[3], float r_no_face[3],
+        BMVert **r_va_other, BMVert **r_vb_other)
 {
 	BMIter iter;
 	BMEdge *e_iter;
