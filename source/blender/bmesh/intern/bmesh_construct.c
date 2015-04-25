@@ -158,16 +158,18 @@ static bool bm_edges_sort_winding(
 	}
 
 	/* find first edge */
+	i = 0;
 	v_iter = v1;
 	e_iter = e_first = v1->e;
 	do {
 		if (BM_ELEM_API_FLAG_TEST(e_iter, _FLAG_MF) &&
 		    (BM_edge_other_vert(e_iter, v_iter) == v2))
 		{
+			i = 1;
 			break;
 		}
 	} while ((e_iter = bmesh_disk_edge_next(e_iter, v_iter)) != e_first);
-	if (e_iter == e_first) {
+	if (i == 0) {
 		goto error;
 	}
 
