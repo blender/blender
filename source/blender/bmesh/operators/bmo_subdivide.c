@@ -253,19 +253,21 @@ static void alter_co(
 /* assumes in the edge is the correct interpolated vertices already */
 /* percent defines the interpolation, rad and flag are for special options */
 /* results in new vertex with correct coordinate, vertex normal and weight group info */
-static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, BMEdge *oedge,
-                                         const SubDParams *params, float percent,
-                                         float percent2,
-                                         BMEdge **out, BMVert *vsta, BMVert *vend)
+static BMVert *bm_subdivide_edge_addvert(
+        BMesh *bm, BMEdge *edge, BMEdge *e_orig,
+        const SubDParams *params,
+        const float factor_edge_split, const float factor_subd,
+        BMVert *v_a, BMVert *v_b,
+        BMEdge **r_edge)
 {
-	BMVert *ev;
+	BMVert *v_new;
 	
-	ev = BM_edge_split(bm, edge, edge->v1, out, percent);
+	v_new = BM_edge_split(bm, edge, edge->v1, r_edge, factor_edge_split);
 
-	BMO_elem_flag_enable(bm, ev, ELE_INNER);
+	BMO_elem_flag_enable(bm, v_new, ELE_INNER);
 
 	/* offset for smooth or sphere or fractal */
-	alter_co(ev, oedge, params, percent2, vsta, vend);
+	alter_co(v_new, e_orig, params, factor_subd, v_a, v_b);
 
 #if 0 //BMESH_TODO
 	/* clip if needed by mirror modifier */
@@ -282,35 +284,40 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	}
 #endif
 	
-	interp_v3_v3v3(ev->no, vsta->no, vend->no, percent2);
-	normalize_v3(ev->no);
+	interp_v3_v3v3(v_new->no, v_a->no, v_b->no, factor_subd);
+	normalize_v3(v_new->no);
 
-	return ev;
+	return v_new;
 }
 
-static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
-                                int curpoint, int totpoint, const SubDParams *params,
-                                BMEdge **newe, BMVert *vsta, BMVert *vend)
+static BMVert *subdivide_edge_num(
+        BMesh *bm, BMEdge *edge, BMEdge *e_orig,
+        int curpoint, int totpoint, const SubDParams *params,
+        BMVert *v_a, BMVert *v_b,
+        BMEdge **r_edge)
 {
-	BMVert *ev;
-	float percent, percent2 = 0.0f;
+	BMVert *v_new;
+	float factor_edge_split, factor_subd;
 
 	if (BMO_elem_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1) {
-		percent = BMO_slot_map_float_get(params->slot_edge_percents, edge);
+		factor_edge_split = BMO_slot_map_float_get(params->slot_edge_percents, edge);
+		factor_subd = 0.0f;
 	}
 	else {
-		percent = 1.0f / (float)(totpoint + 1 - curpoint);
-		percent2 = (float)(curpoint + 1) / (float)(totpoint + 1);
-
+		factor_edge_split = 1.0f / (float)(totpoint + 1 - curpoint);
+		factor_subd = (float)(curpoint + 1) / (float)(totpoint + 1);
 	}
 	
-	ev = bm_subdivide_edge_addvert(bm, edge, oedge, params, percent,
-	                               percent2, newe, vsta, vend);
-	return ev;
+	v_new = bm_subdivide_edge_addvert(
+	        bm, edge, e_orig, params,
+	        factor_edge_split, factor_subd,
+	        v_a, v_b, r_edge);
+	return v_new;
 }
 
-static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *params,
-                                  BMVert *vsta, BMVert *vend)
+static void bm_subdivide_multicut(
+        BMesh *bm, BMEdge *edge, const SubDParams *params,
+        BMVert *v_a, BMVert *v_b)
 {
 	BMEdge *eed = edge, *e_new, e_tmp = *edge;
 	BMVert *v, v1_tmp = *edge->v1, v2_tmp = *edge->v2, *v1 = edge->v1, *v2 = edge->v2;
@@ -320,7 +327,7 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *par
 	e_tmp.v2 = &v2_tmp;
 	
 	for (i = 0; i < numcuts; i++) {
-		v = subdivideedgenum(bm, eed, &e_tmp, i, params->numcuts, params, &e_new, vsta, vend);
+		v = subdivide_edge_num(bm, eed, &e_tmp, i, params->numcuts, params, v_a, v_b, &e_new);
 
 		BMO_elem_flag_enable(bm, v, SUBD_SPLIT | ELE_SPLIT);
 		BMO_elem_flag_enable(bm, eed, SUBD_SPLIT | ELE_SPLIT);
@@ -437,7 +444,7 @@ static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert *
 		e = connect_smallest_face(bm, verts[i], verts[numcuts + (numcuts - i)], &f_new);
 
 		e_tmp = *e;
-		v = bm_subdivide_edge_addvert(bm, e, &e_tmp, params, 0.5f, 0.5f, &e_new, e->v1, e->v2);
+		v = bm_subdivide_edge_addvert(bm, e, &e_tmp, params, 0.5f, 0.5f, e->v1, e->v2, &e_new);
 
 		if (i != numcuts - 1) {
 			connect_smallest_face(bm, v_last, v, &f_new);
@@ -580,8 +587,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		
 		e_tmp = *e;
 		for (a = 0; a < numcuts; a++) {
-			v = subdivideedgenum(bm, e, &e_tmp, a, numcuts, params, &e_new,
-			                     v1, v2);
+			v = subdivide_edge_num(bm, e, &e_tmp, a, numcuts, params, v1, v2, &e_new);
 
 			BMESH_ASSERT(v != NULL);
 
@@ -688,8 +694,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 		e_tmp.v1 = &v1_tmp;
 		e_tmp.v2 = &v2_tmp;
 		for (j = 0; j < i; j++) {
-			v = subdivideedgenum(bm, e, &e_tmp, j, i, params, &e_new,
-			                     verts[a], verts[b]);
+			v = subdivide_edge_num(bm, e, &e_tmp, j, i, params, verts[a], verts[b], &e_new);
 			lines[i + 1][j + 1] = v;
 
 			BMO_elem_flag_enable(bm, e_new, ELE_INNER);
