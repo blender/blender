@@ -799,7 +799,7 @@ static void long_edge_queue_face_add(
 				if (len_sq > eq_ctx->q->limit_len_squared) {
 					long_edge_queue_edge_add_recursive(
 					        eq_ctx, l_iter->radial_next, l_iter,
-					        len_sq, eq_ctx->q->limit_len_squared);
+					        len_sq, eq_ctx->q->limit_len);
 				}
 #else
 				long_edge_queue_edge_add(eq_ctx, l_iter->e);
@@ -1050,11 +1050,6 @@ static bool pbvh_bmesh_subdivide_long_edges(
         BLI_Buffer *edge_loops)
 {
 	bool any_subdivided = false;
-
-#ifdef USE_EDGEQUEUE_TAG_VERIFY
-	pbvh_bmesh_edge_tag_verify(bvh);
-#endif
-
 
 	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
 		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
