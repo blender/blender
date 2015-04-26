@@ -198,7 +198,7 @@ static void alter_co(
 		val = bmesh_subd_falloff_calc(params->smooth_falloff, val);
 
 		if (params->use_smooth_even) {
-			val *= BM_vert_calc_shell_factor(v);
+			val *= shell_v3v3_mid_normalized_to_dist(v_a->no, v_b->no);
 		}
 
 		mul_v3_fl(tvec, params->smooth * val * len);
