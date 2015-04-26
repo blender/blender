@@ -1360,6 +1360,9 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 				case PROP_SHARP:
 					value_layer = value_layer * value_layer;
 					break;
+				case PROP_INVSQUARE:
+					value_layer = value_layer * (2.0f - value_layer);
+					break;
 				case PROP_LIN:
 				default:
 					/* nothing */

@@ -2419,6 +2419,9 @@ float bmesh_subd_falloff_calc(const int falloff, float val)
 			break;
 		case SUBD_FALLOFF_LIN:
 			break;
+		case SUBD_FALLOFF_INVSQUARE:
+			val = val * (2.0f - val);
+			break;
 		default:
 			BLI_assert(0);
 			break;

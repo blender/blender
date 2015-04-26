@@ -133,6 +133,8 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
 			case PROP_SHARP:
 				val = val * val;
 				break;
+			case PROP_INVSQUARE:
+				val = val * (2.0f - val);
 			case PROP_LIN:
 				/* fall-through */
 #ifndef NDEBUG
