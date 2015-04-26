@@ -381,4 +381,303 @@
 #  define CHECK_TYPE_ANY(...) (void)0
 #endif
 
+
+/**
+ * GENERIC_TYPE_ANY: handy macro to reuse a single expression for multiple types, eg:
+ *
+ * \code{.c}
+ * _Generic(value,
+ *     GENERIC_TYPE_ANY(result_a, Foo *, Bar *, Baz *),
+ *     GENERIC_TYPE_ANY(result_b, Spam *, Spaz *, Spot *),
+ *     )
+ * \endcode
+ *
+ * excuse ridiculously long generated args.
+ * \code{.py}
+ * for i in range(63):
+ *     args = [(chr(ord('a') + (c % 26)) + (chr(ord('0') + (c // 26)))) for c in range(i + 1)]
+ *     print("#define _VA_GENERIC_TYPE_ANY%d(r, %s) \\" % (i + 2, ", ".join(args)))
+ *     print("    %s: r " % (": r, ".join(args)))
+ * \endcode
+ */
+#define _VA_GENERIC_TYPE_ANY2(r, a0) \
+	a0: r
+#define _VA_GENERIC_TYPE_ANY3(r, a0, b0) \
+	a0: r, b0: r
+#define _VA_GENERIC_TYPE_ANY4(r, a0, b0, c0) \
+	a0: r, b0: r, c0: r
+#define _VA_GENERIC_TYPE_ANY5(r, a0, b0, c0, d0) \
+	a0: r, b0: r, c0: r, d0: r
+#define _VA_GENERIC_TYPE_ANY6(r, a0, b0, c0, d0, e0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r
+#define _VA_GENERIC_TYPE_ANY7(r, a0, b0, c0, d0, e0, f0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r
+#define _VA_GENERIC_TYPE_ANY8(r, a0, b0, c0, d0, e0, f0, g0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r
+#define _VA_GENERIC_TYPE_ANY9(r, a0, b0, c0, d0, e0, f0, g0, h0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r
+#define _VA_GENERIC_TYPE_ANY10(r, a0, b0, c0, d0, e0, f0, g0, h0, i0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r
+#define _VA_GENERIC_TYPE_ANY11(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r
+#define _VA_GENERIC_TYPE_ANY12(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r
+#define _VA_GENERIC_TYPE_ANY13(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r
+#define _VA_GENERIC_TYPE_ANY14(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r
+#define _VA_GENERIC_TYPE_ANY15(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r
+#define _VA_GENERIC_TYPE_ANY16(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r
+#define _VA_GENERIC_TYPE_ANY17(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r
+#define _VA_GENERIC_TYPE_ANY18(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r
+#define _VA_GENERIC_TYPE_ANY19(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r
+#define _VA_GENERIC_TYPE_ANY20(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r
+#define _VA_GENERIC_TYPE_ANY21(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r
+#define _VA_GENERIC_TYPE_ANY22(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r
+#define _VA_GENERIC_TYPE_ANY23(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r
+#define _VA_GENERIC_TYPE_ANY24(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r
+#define _VA_GENERIC_TYPE_ANY25(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r
+#define _VA_GENERIC_TYPE_ANY26(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r
+#define _VA_GENERIC_TYPE_ANY27(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r
+#define _VA_GENERIC_TYPE_ANY28(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r
+#define _VA_GENERIC_TYPE_ANY29(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r
+#define _VA_GENERIC_TYPE_ANY30(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r
+#define _VA_GENERIC_TYPE_ANY31(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r
+#define _VA_GENERIC_TYPE_ANY32(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r
+#define _VA_GENERIC_TYPE_ANY33(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r
+#define _VA_GENERIC_TYPE_ANY34(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r
+#define _VA_GENERIC_TYPE_ANY35(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r
+#define _VA_GENERIC_TYPE_ANY36(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r
+#define _VA_GENERIC_TYPE_ANY37(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r
+#define _VA_GENERIC_TYPE_ANY38(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r
+#define _VA_GENERIC_TYPE_ANY39(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r
+#define _VA_GENERIC_TYPE_ANY40(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r
+#define _VA_GENERIC_TYPE_ANY41(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r
+#define _VA_GENERIC_TYPE_ANY42(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r
+#define _VA_GENERIC_TYPE_ANY43(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r
+#define _VA_GENERIC_TYPE_ANY44(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r
+#define _VA_GENERIC_TYPE_ANY45(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r
+#define _VA_GENERIC_TYPE_ANY46(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r
+#define _VA_GENERIC_TYPE_ANY47(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r
+#define _VA_GENERIC_TYPE_ANY48(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r
+#define _VA_GENERIC_TYPE_ANY49(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r
+#define _VA_GENERIC_TYPE_ANY50(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r
+#define _VA_GENERIC_TYPE_ANY51(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r
+#define _VA_GENERIC_TYPE_ANY52(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r
+#define _VA_GENERIC_TYPE_ANY53(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r
+#define _VA_GENERIC_TYPE_ANY54(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r
+#define _VA_GENERIC_TYPE_ANY55(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r
+#define _VA_GENERIC_TYPE_ANY56(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r
+#define _VA_GENERIC_TYPE_ANY57(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r
+#define _VA_GENERIC_TYPE_ANY58(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2, e2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r, e2: r
+#define _VA_GENERIC_TYPE_ANY59(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2, e2, f2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r, e2: r, f2: r
+#define _VA_GENERIC_TYPE_ANY60(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2, e2, f2, g2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r, e2: r, f2: r, g2: r
+#define _VA_GENERIC_TYPE_ANY61(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2, e2, f2, g2, h2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r, e2: r, f2: r, g2: r, h2: r
+#define _VA_GENERIC_TYPE_ANY62(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2, e2, f2, g2, h2, i2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r, e2: r, f2: r, g2: r, h2: r, i2: r
+#define _VA_GENERIC_TYPE_ANY63(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2, e2, f2, g2, h2, i2, j2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r, e2: r, f2: r, g2: r, h2: r, i2: r, j2: r
+#define _VA_GENERIC_TYPE_ANY64(r, a0, b0, c0, d0, e0, f0, g0, h0, i0, j0, k0, l0, m0, n0, o0, p0, q0, r0, s0, t0, \
+	u0, v0, w0, x0, y0, z0, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1, o1, p1, q1, r1, s1, t1, u1, v1, \
+	w1, x1, y1, z1, a2, b2, c2, d2, e2, f2, g2, h2, i2, j2, k2) \
+	a0: r, b0: r, c0: r, d0: r, e0: r, f0: r, g0: r, h0: r, i0: r, j0: r, k0: r, l0: r, m0: r, n0: r, o0: r, p0: r, \
+	q0: r, r0: r, s0: r, t0: r, u0: r, v0: r, w0: r, x0: r, y0: r, z0: r, a1: r, b1: r, c1: r, d1: r, e1: r, f1: r, \
+	g1: r, h1: r, i1: r, j1: r, k1: r, l1: r, m1: r, n1: r, o1: r, p1: r, q1: r, r1: r, s1: r, t1: r, u1: r, v1: r, \
+	w1: r, x1: r, y1: r, z1: r, a2: r, b2: r, c2: r, d2: r, e2: r, f2: r, g2: r, h2: r, i2: r, j2: r, k2: r
+
+#  define GENERIC_TYPE_ANY(...) VA_NARGS_CALL_OVERLOAD(_VA_GENERIC_TYPE_ANY, __VA_ARGS__)
+
 #endif  /* __BLI_COMPILER_TYPECHECK_H__ */
