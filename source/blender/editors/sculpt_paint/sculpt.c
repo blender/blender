@@ -4966,6 +4966,9 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 	             sd->symmetrize_direction, 0.00001f);
 	sculpt_dynamic_topology_triangulate(ss->bm);
 
+	/* bisect operator flags edges (keep tags clean for edge queue) */
+	BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);
+
 	/* Finish undo */
 	BM_log_all_added(ss->bm, ss->bm_log);
 	sculpt_undo_push_end();
