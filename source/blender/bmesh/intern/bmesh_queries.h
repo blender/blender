@@ -31,7 +31,7 @@ bool    BM_vert_in_face(BMVert *v, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNU
 int     BM_verts_in_face_count(BMVert **varr, int len, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_verts_in_face(BMVert **varr, int len, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-bool    BM_edge_in_face(BMEdge *e, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    BM_edge_in_face(const BMEdge *e, const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_in_loop(const BMEdge *e, const BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 BLI_INLINE bool    BM_vert_in_edge(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -96,10 +96,10 @@ BLI_INLINE bool BM_loop_is_adjacent(const BMLoop *l_a, const BMLoop *l_b) ATTR_W
 float   BM_loop_point_side_of_loop_test(const BMLoop *l, const float co[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_loop_point_side_of_edge_test(const BMLoop *l, const float co[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-float   BM_loop_calc_face_angle(BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void    BM_loop_calc_face_normal(BMLoop *l, float r_normal[3]) ATTR_NONNULL();
-void    BM_loop_calc_face_direction(BMLoop *l, float r_normal[3]);
-void    BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3]);
+float   BM_loop_calc_face_angle(const BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void    BM_loop_calc_face_normal(const BMLoop *l, float r_normal[3]) ATTR_NONNULL();
+void    BM_loop_calc_face_direction(const BMLoop *l, float r_normal[3]);
+void    BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3]);
 
 float   BM_edge_calc_face_angle_ex(const BMEdge *e, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_edge_calc_face_angle(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -107,11 +107,11 @@ float   BM_edge_calc_face_angle_signed_ex(const BMEdge *e, const float fallback)
 float   BM_edge_calc_face_angle_signed(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void    BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3]) ATTR_NONNULL();
 
-float   BM_vert_calc_edge_angle(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float   BM_vert_calc_edge_angle_ex(BMVert *v, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float   BM_vert_calc_shell_factor(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float   BM_vert_calc_shell_factor_ex(BMVert *v, const float no[3], const char hflag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float   BM_vert_calc_mean_tagged_edge_length(BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_vert_calc_edge_angle(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_vert_calc_edge_angle_ex(const BMVert *v, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_vert_calc_shell_factor(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_vert_calc_shell_factor_ex(const BMVert *v, const float no[3], const char hflag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_vert_calc_mean_tagged_edge_length(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 BMLoop *BM_face_find_shortest_loop(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMLoop *BM_face_find_longest_loop(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

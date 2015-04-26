@@ -501,10 +501,10 @@ bool BM_verts_in_face(BMVert **varr, int len, BMFace *f)
 /**
  * Returns whether or not a given edge is part of a given face.
  */
-bool BM_edge_in_face(BMEdge *e, BMFace *f)
+bool BM_edge_in_face(const BMEdge *e, const BMFace *f)
 {
 	if (e->l) {
-		BMLoop *l_iter, *l_first;
+		const BMLoop *l_iter, *l_first;
 
 		l_iter = l_first = e->l;
 		do {
@@ -1221,7 +1221,7 @@ bool BM_loop_is_convex(const BMLoop *l)
  *
  * \return angle in radians
  */
-float BM_loop_calc_face_angle(BMLoop *l)
+float BM_loop_calc_face_angle(const BMLoop *l)
 {
 	return angle_v3v3v3(l->prev->v->co,
 	                    l->v->co,
@@ -1236,7 +1236,7 @@ float BM_loop_calc_face_angle(BMLoop *l)
  * \param l The loop to calculate the normal at
  * \param r_normal Resulting normal
  */
-void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
+void BM_loop_calc_face_normal(const BMLoop *l, float r_normal[3])
 {
 	if (normal_tri_v3(r_normal,
 	                  l->prev->v->co,
@@ -1258,7 +1258,7 @@ void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
  * \param l The loop to calculate the direction at
  * \param r_dir Resulting direction
  */
-void BM_loop_calc_face_direction(BMLoop *l, float r_dir[3])
+void BM_loop_calc_face_direction(const BMLoop *l, float r_dir[3])
 {
 	float v_prev[3];
 	float v_next[3];
@@ -1282,7 +1282,7 @@ void BM_loop_calc_face_direction(BMLoop *l, float r_dir[3])
  * \param l The loop to calculate the tangent at
  * \param r_tangent Resulting tangent
  */
-void BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3])
+void BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3])
 {
 	float v_prev[3];
 	float v_next[3];
@@ -1394,7 +1394,7 @@ void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_ta
  *
  * \returns the angle in radians
  */
-float BM_vert_calc_edge_angle_ex(BMVert *v, const float fallback)
+float BM_vert_calc_edge_angle_ex(const BMVert *v, const float fallback)
 {
 	BMEdge *e1, *e2;
 
@@ -1416,7 +1416,7 @@ float BM_vert_calc_edge_angle_ex(BMVert *v, const float fallback)
 	}
 }
 
-float BM_vert_calc_edge_angle(BMVert *v)
+float BM_vert_calc_edge_angle(const BMVert *v)
 {
 	return BM_vert_calc_edge_angle_ex(v, DEG2RADF(90.0f));
 }
@@ -1425,14 +1425,14 @@ float BM_vert_calc_edge_angle(BMVert *v)
  * \note this isn't optimal to run on an array of verts,
  * see 'solidify_add_thickness' for a function which runs on an array.
  */
-float BM_vert_calc_shell_factor(BMVert *v)
+float BM_vert_calc_shell_factor(const BMVert *v)
 {
 	BMIter iter;
 	BMLoop *l;
 	float accum_shell = 0.0f;
 	float accum_angle = 0.0f;
 
-	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+	BM_ITER_ELEM (l, &iter, (BMVert *)v, BM_LOOPS_OF_VERT) {
 		const float face_angle = BM_loop_calc_face_angle(l);
 		accum_shell += shell_v3v3_normalized_to_dist(v->no, l->f->no) * face_angle;
 		accum_angle += face_angle;
@@ -1447,15 +1447,15 @@ float BM_vert_calc_shell_factor(BMVert *v)
 }
 /* alternate version of #BM_vert_calc_shell_factor which only
  * uses 'hflag' faces, but falls back to all if none found. */
-float BM_vert_calc_shell_factor_ex(BMVert *v, const float no[3], const char hflag)
+float BM_vert_calc_shell_factor_ex(const BMVert *v, const float no[3], const char hflag)
 {
 	BMIter iter;
-	BMLoop *l;
+	const BMLoop *l;
 	float accum_shell = 0.0f;
 	float accum_angle = 0.0f;
 	int tot_sel = 0, tot = 0;
 
-	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+	BM_ITER_ELEM (l, &iter, (BMVert *)v, BM_LOOPS_OF_VERT) {
 		if (BM_elem_flag_test(l->f, hflag)) {  /* <-- main difference to BM_vert_calc_shell_factor! */
 			const float face_angle = BM_loop_calc_face_angle(l);
 			accum_shell += shell_v3v3_normalized_to_dist(no, l->f->no) * face_angle;
@@ -1484,15 +1484,15 @@ float BM_vert_calc_shell_factor_ex(BMVert *v, const float no[3], const char hfla
  * \note quite an obscure function.
  * used in bmesh operators that have a relative scale options,
  */
-float BM_vert_calc_mean_tagged_edge_length(BMVert *v)
+float BM_vert_calc_mean_tagged_edge_length(const BMVert *v)
 {
 	BMIter iter;
 	BMEdge *e;
 	int tot;
 	float length = 0.0f;
 
-	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
-		BMVert *v_other = BM_edge_other_vert(e, v);
+	BM_ITER_ELEM_INDEX (e, &iter, (BMVert *)v, BM_EDGES_OF_VERT, tot) {
+		const BMVert *v_other = BM_edge_other_vert(e, v);
 		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
 			length += BM_edge_calc_length(e);
 		}

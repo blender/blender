@@ -163,8 +163,10 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace
 	return NULL;
 }
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
-static void alter_co(BMVert *v, BMEdge *UNUSED(origed), const SubDParams *params, float perc,
-                     BMVert *vsta, BMVert *vend)
+static void alter_co(
+        BMVert *v, BMEdge *UNUSED(e_orig),
+        const SubDParams *params, const float perc,
+        const BMVert *vsta, const BMVert *vend)
 {
 	float tvec[3], fac;
 	float *co = BM_ELEM_CD_GET_VOID_P(v, params->shape_info.cd_vert_shape_offset_tmp);
