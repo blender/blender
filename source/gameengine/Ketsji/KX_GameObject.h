@@ -914,7 +914,7 @@ public:
 	 * Change the layer of the object (when it is added in another layer
 	 * than the original layer)
 	 */
-		void
+	virtual void
 	SetLayer(
 		int l
 	);

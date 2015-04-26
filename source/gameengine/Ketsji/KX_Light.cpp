@@ -108,6 +108,7 @@ void KX_LightObject::UpdateScene(KX_Scene *kxscene)
 
 void KX_LightObject::SetLayer(int layer)
 {
+	KX_GameObject::SetLayer(layer);
 	m_lightobj->m_layer = layer;
 }
 

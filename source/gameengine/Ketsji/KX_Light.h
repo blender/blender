@@ -60,7 +60,7 @@ public:
 	RAS_ILightObject*	GetLightData() { return m_lightobj;}
 	
 	void UpdateScene(class KX_Scene *kxscene);
-	void SetLayer(int layer);
+	virtual void SetLayer(int layer);
 
 	virtual int GetGameObjectType() { return OBJ_LIGHT; }
 
