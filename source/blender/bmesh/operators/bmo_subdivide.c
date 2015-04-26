@@ -183,7 +183,7 @@ static void alter_co(
 		float fac, len, val;
 
 		sub_v3_v3v3(dir, v_a->co, v_b->co);
-		len = 0.5f * normalize_v3(dir);
+		len = M_SQRT1_2 * normalize_v3(dir);
 
 		/* cosine angle */
 		fac = dot_v3v3(dir, v_a->no);
