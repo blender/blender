@@ -6253,14 +6253,9 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		char buf[512];
 		PointerRNA ptr_props;
 
-		if (but->rnapoin.data && but->rnaprop) {
-			BLI_snprintf(buf, sizeof(buf), "%s.%s",
-			             RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
-
-			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
-			RNA_string_set(&ptr_props, "doc_id", buf);
-			uiItemFullO(layout, "WM_OT_doc_view_manual", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
-			            ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+		if (UI_but_online_manual_id(but, buf, sizeof(buf))) {
+			uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
+			        ICON_NONE, "WM_OT_doc_view_manual_ui_context");
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
@@ -6274,30 +6269,6 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
 
 			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
-#endif
-		}
-		else if (but->optype) {
-			WM_operator_py_idname(buf, but->optype->idname);
-
-
-			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
-			RNA_string_set(&ptr_props, "doc_id", buf);
-			uiItemFullO(layout, "WM_OT_doc_view_manual", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
-			            ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
-
-			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
-			RNA_string_set(&ptr_props, "doc_id", buf);
-			uiItemFullO(layout, "WM_OT_doc_view", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Online Python Reference"),
-			            ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
-
-			/* XXX inactive option, not for public! */
-#if 0
-			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
-			RNA_string_set(&ptr_props, "doc_id", buf);
-			RNA_string_set(&ptr_props, "doc_new", but->optype->description);
-
-			uiItemFullO(layout, "WM_OT_doc_edit", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Submit Description"),
-			            ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
 #endif
 		}
 	}

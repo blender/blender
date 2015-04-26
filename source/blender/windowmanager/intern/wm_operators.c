@@ -4833,6 +4833,38 @@ static void WM_OT_previews_ensure(wmOperatorType *ot)
 	ot->exec = previews_ensure_exec;
 }
 
+static int doc_view_manual_ui_context_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	PointerRNA ptr_props;
+	char buf[512];
+	short retval = OPERATOR_CANCELLED;
+
+	if (UI_but_online_manual_id_from_active(C, buf, sizeof(buf))) {
+		WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
+		RNA_string_set(&ptr_props, "doc_id", buf);
+
+		retval = WM_operator_name_call_ptr(
+		        C, WM_operatortype_find("WM_OT_doc_view_manual", false),
+		        WM_OP_EXEC_DEFAULT, &ptr_props);
+
+		WM_operator_properties_free(&ptr_props);
+	}
+
+	return retval;
+}
+
+static void WM_OT_doc_view_manual_ui_context(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Online Manual";
+	ot->idname = "WM_OT_doc_view_manual_ui_context";
+	ot->description = "View a context based online manual in a webbrowser";
+
+	/* callbacks */
+	ot->poll = ED_operator_regionactive;
+	ot->exec = doc_view_manual_ui_context_exec;
+}
+
 /* ******************************************************* */
 
 static void operatortype_ghash_free_cb(wmOperatorType *ot)
@@ -4929,6 +4961,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_console_toggle);
 #endif
 	WM_operatortype_append(WM_OT_previews_ensure);
+	WM_operatortype_append(WM_OT_doc_view_manual_ui_context);
 }
 
 /* circleselect-like modal operators */
@@ -5154,6 +5187,8 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "WM_OT_doc_view_manual_ui_context", F1KEY, KM_PRESS, KM_ALT, 0);
 
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
