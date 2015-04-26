@@ -166,9 +166,8 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace
 static void alter_co(
         BMVert *v, BMEdge *UNUSED(e_orig),
         const SubDParams *params, const float perc,
-        const BMVert *vsta, const BMVert *vend)
+        const BMVert *v_a, const BMVert *v_b)
 {
-	float tvec[3], fac;
 	float *co = BM_ELEM_CD_GET_VOID_P(v, params->shape_info.cd_vert_shape_offset_tmp);
 	int i;
 
@@ -180,21 +179,19 @@ static void alter_co(
 	}
 	else if (params->use_smooth) {
 		/* we calculate an offset vector vec1[], to be added to *co */
-		float len, nor[3], nor1[3], nor2[3], val;
+		float dir[3], tvec[3];
+		float fac, len, val;
 
-		sub_v3_v3v3(nor, vsta->co, vend->co);
-		len = 0.5f * normalize_v3(nor);
-
-		copy_v3_v3(nor1, vsta->no);
-		copy_v3_v3(nor2, vend->no);
+		sub_v3_v3v3(dir, v_a->co, v_b->co);
+		len = 0.5f * normalize_v3(dir);
 
 		/* cosine angle */
-		fac = dot_v3v3(nor, nor1);
-		mul_v3_v3fl(tvec, nor1, fac);
+		fac = dot_v3v3(dir, v_a->no);
+		mul_v3_v3fl(tvec, v_a->no, fac);
 
 		/* cosine angle */
-		fac = -dot_v3v3(nor, nor2);
-		madd_v3_v3fl(tvec, nor2, fac);
+		fac = -dot_v3v3(dir, v_b->no);
+		madd_v3_v3fl(tvec, v_b->no, fac);
 
 		/* falloff for multi subdivide */
 		val = fabsf(1.0f - 2.0f * fabsf(0.5f - perc));
@@ -210,12 +207,13 @@ static void alter_co(
 	}
 
 	if (params->use_fractal) {
-		const float len = len_v3v3(vsta->co, vend->co);
-		float normal[3], co2[3], base1[3], base2[3];
+		float normal[3], co2[3], base1[3], base2[3], tvec[3];
+		const float len = len_v3v3(v_a->co, v_b->co);
+		float fac;
 
 		fac = params->fractal * len;
 
-		mid_v3_v3v3(normal, vsta->no, vend->no);
+		mid_v3_v3v3(normal, v_a->no, v_b->no);
 		ortho_basis_v3v3_v3(base1, base2, normal);
 
 		add_v3_v3v3(co2, v->co, params->fractal_ofs);
@@ -236,9 +234,12 @@ static void alter_co(
 	 * this by getting the normals and coords for each shape key and
 	 * re-calculate the smooth value for each but this is quite involved.
 	 * for now its ok to simply apply the difference IMHO - campbell */
-	sub_v3_v3v3(tvec, v->co, co);
 
 	if (params->shape_info.totlayer > 1) {
+		float tvec[3];
+
+		sub_v3_v3v3(tvec, v->co, co);
+
 		/* skip the last layer since its the temp */
 		i = params->shape_info.totlayer - 1;
 		co = BM_ELEM_CD_GET_VOID_P(v, params->shape_info.cd_vert_shape_offset);
