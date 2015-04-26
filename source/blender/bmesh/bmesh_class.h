@@ -256,11 +256,26 @@ enum {
 #define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 #define BM_ALL_NOLOOP (BM_VERT | BM_EDGE | BM_FACE)
 
+/* args for _Generic */
+#define _BM_GENERIC_TYPE_ELEM_NONCONST \
+	void *, BMVert *, BMEdge *, BMLoop *, BMFace *, \
+	BMElem *, BMElemF *, BMHeader *
+
+#define _BM_GENERIC_TYPE_ELEM_CONST \
+	const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, \
+	const BMElem *, const BMElemF *, const BMHeader *
+
+#define BM_CHECK_TYPE_ELEM_CONST(ele) \
+	CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPES_CONST)
+
+#define BM_CHECK_TYPE_ELEM_NONCONST(ele) \
+	CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
+
 #define BM_CHECK_TYPE_ELEM(ele) \
-	CHECK_TYPE_ANY(ele, void *, BMFace *, BMEdge *, BMVert *, BMLoop *, BMElem *, BMElemF *, BMHeader *)
+	CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST, _BM_GENERIC_TYPE_ELEM_CONST)
 
 #define BM_CHECK_TYPE_ELEM_ASSIGN(ele) \
-	(BM_CHECK_TYPE_ELEM(ele), CHECK_TYPE_NONCONST(ele)), ele
+	(BM_CHECK_TYPE_ELEM(ele)), ele
 
 /* BMHeader->hflag (char) */
 enum {
@@ -297,8 +312,17 @@ typedef bool (*BMElemFilterFunc)(BMElem *, void *user_data);
 #define BM_ELEM_CD_GET_INT(ele, offset) \
 	(assert(offset != -1), *((int *)((char *)(ele)->head.data + (offset))))
 
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define BM_ELEM_CD_GET_VOID_P(ele, offset) \
+	(assert(offset != -1), \
+	_Generic(ele, \
+		GENERIC_TYPE_ANY(              POINTER_OFFSET((ele)->head.data, offset), _BM_GENERIC_TYPE_ELEM_NONCONST), \
+		GENERIC_TYPE_ANY((const void *)POINTER_OFFSET((ele)->head.data, offset), _BM_GENERIC_TYPE_ELEM_CONST)) \
+	)
+#else
 #define BM_ELEM_CD_GET_VOID_P(ele, offset) \
 	(assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
+#endif
 
 #define BM_ELEM_CD_SET_FLOAT(ele, offset, f) { CHECK_TYPE_NONCONST(ele); \
 	assert(offset != -1); *((float *)((char *)(ele)->head.data + (offset))) = (f); } (void)0
