@@ -300,7 +300,7 @@ static bool cast_ray_highpoly(
 		mul_v3_m4v3(co_high, highpoly[i].imat, co);
 
 		/* rotates */
-		mul_v3_m4v3(dir_high, highpoly[i].rotmat, dir);
+		mul_v3_mat3_m4v3(dir_high, highpoly[i].imat, dir);
 		normalize_v3(dir_high);
 
 		/* cast ray */

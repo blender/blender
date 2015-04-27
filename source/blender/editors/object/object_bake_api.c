@@ -775,11 +775,7 @@ static int bake(
 			copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
 			invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
 
-			/* rotation */
-			normalize_m4_m4(highpoly[i].rotmat, highpoly[i].imat);
-			zero_v3(highpoly[i].rotmat[3]);
-			if (is_negative_m4(highpoly[i].rotmat))
-				negate_mat3_m4(highpoly[i].rotmat);
+			highpoly[i].is_flip_object = is_negative_m4(highpoly[i].ob->obmat);
 
 			i++;
 		}
