@@ -473,6 +473,7 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 	
 	BLI_listbase_clear(&tan->lines);
 	tan->curl = tan->sell = NULL;
+	tan->compiled = NULL;
 	
 	tan->nlines = ta->nlines;
 
