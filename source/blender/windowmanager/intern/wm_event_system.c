@@ -1337,7 +1337,7 @@ void wm_event_free_handler(wmEventHandler *handler)
 }
 
 /* only set context when area/region is part of screen */
-static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
+static void wm_handler_op_context(bContext *C, wmEventHandler *handler, const wmEvent *event)
 {
 	bScreen *screen = CTX_wm_screen(C);
 	
@@ -1358,10 +1358,27 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
 			}
 			else {
 				ARegion *ar;
+				wmOperator *op = handler->op ? (handler->op->opm ? handler->op->opm : handler->op) : NULL;
 				CTX_wm_area_set(C, sa);
-				for (ar = sa->regionbase.first; ar; ar = ar->next)
-					if (ar == handler->op_region)
-						break;
+
+				if (op && (op->flag & OP_IS_MODAL_CURSOR_REGION)) {
+					ar = BKE_area_find_region_xy(sa, handler->op_region_type, event->x, event->y);
+					if (ar) {
+						handler->op_region = ar;
+					}
+				}
+				else {
+					ar = NULL;
+				}
+
+				if (ar == NULL) {
+					for (ar = sa->regionbase.first; ar; ar = ar->next) {
+						if (ar == handler->op_region) {
+							break;
+						}
+					}
+				}
+
 				/* XXX no warning print here, after full-area and back regions are remade */
 				if (ar)
 					CTX_wm_region_set(C, ar);
@@ -1379,11 +1396,12 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 	/* C is zero on freeing database, modal handlers then already were freed */
 	while ((handler = BLI_pophead(handlers))) {
 		if (handler->op) {
+			wmWindow *win = CTX_wm_window(C);
 			if (handler->op->type->cancel) {
 				ScrArea *area = CTX_wm_area(C);
 				ARegion *region = CTX_wm_region(C);
 				
-				wm_handler_op_context(C, handler);
+				wm_handler_op_context(C, handler, win->eventstate);
 
 				if (handler->op->type->flag & OPTYPE_UNDO)
 					wm->op_undo_depth++;
@@ -1397,7 +1415,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				CTX_wm_region_set(C, region);
 			}
 
-			WM_cursor_grab_disable(CTX_wm_window(C), NULL);
+			WM_cursor_grab_disable(win, NULL);
 			WM_operator_free(handler->op);
 		}
 		else if (handler->ui_remove) {
@@ -1569,7 +1587,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			ARegion *region = CTX_wm_region(C);
 			bool dbl_click_disabled = false;
 
-			wm_handler_op_context(C, handler);
+			wm_handler_op_context(C, handler, event);
 			wm_region_mouse_co(C, event);
 			wm_event_modalkeymap(C, op, event, &dbl_click_disabled);
 			
@@ -1717,7 +1735,7 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 				ED_screen_full_prevspace(C, CTX_wm_area(C));
 			}
 
-			wm_handler_op_context(C, handler);
+			wm_handler_op_context(C, handler, CTX_wm_window(C)->eventstate);
 
 			/* needed for UI_popup_menu_reports */
 
@@ -2534,6 +2552,7 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 	
 	handler->op_area = CTX_wm_area(C);       /* means frozen screen context for modal handlers! */
 	handler->op_region = CTX_wm_region(C);
+	handler->op_region_type = handler->op_region ? handler->op_region->regiontype : -1;
 	
 	BLI_addhead(&win->modalhandlers, handler);
 

@@ -374,6 +374,8 @@ enum {
 	RGN_TYPE_TOOL_PROPS = 6,
 	RGN_TYPE_PREVIEW = 7
 };
+/* use for function args */
+#define RGN_TYPE_ANY -1
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0

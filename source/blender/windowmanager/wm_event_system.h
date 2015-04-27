@@ -56,6 +56,7 @@ typedef struct wmEventHandler {
 	wmOperator *op;                     /* for derived/modal handlers */
 	struct ScrArea *op_area;            /* for derived/modal handlers */
 	struct ARegion *op_region;          /* for derived/modal handlers */
+	short           op_region_type;     /* for derived/modal handlers */
 
 	/* ui handler */
 	wmUIHandlerFunc ui_handle;          /* callback receiving events */

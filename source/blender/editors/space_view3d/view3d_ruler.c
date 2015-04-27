@@ -187,6 +187,7 @@ typedef struct RulerInfo {
 
 	/* wm state */
 	wmWindow *win;
+	ScrArea *sa;
 	ARegion *ar;
 	void *draw_handle_pixel;
 } RulerInfo;
@@ -435,7 +436,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 	UnitSettings *unit = &scene->unit;
 	RulerItem *ruler_item;
 	RulerInfo *ruler_info = arg;
-	RegionView3D *rv3d = ruler_info->ar->regiondata;
+	RegionView3D *rv3d = ar->regiondata;
 //	ARegion *ar = ruler_info->ar;
 	const float cap_size = 4.0f;
 	const float bg_margin = 4.0f * U.pixelsize;
@@ -798,11 +799,13 @@ static int view3d_ruler_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	op->customdata = ruler_info;
 
 	ruler_info->win = win;
-	ruler_info->ar = ar;
+	ruler_info->sa = sa;
 	ruler_info->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ruler_info_draw_pixel,
 	                                                           ruler_info, REGION_DRAW_POST_PIXEL);
 
 	view3d_ruler_header_update(sa);
+
+	op->flag |= OP_IS_MODAL_CURSOR_REGION;
 
 	WM_cursor_modal_set(win, BC_CROSSCURSOR);
 	WM_event_add_modal_handler(C, op);
@@ -829,10 +832,12 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	RegionView3D *rv3d = ar->regiondata;
 
 	/* its possible to change spaces while running the operator [#34894] */
-	if (UNLIKELY(ar != CTX_wm_region(C))) {
+	if (UNLIKELY(sa != ruler_info->sa)) {
 		exit_code = OPERATOR_FINISHED;
 		goto exit;
 	}
+
+	ruler_info->ar = ar;
 
 	switch (event->type) {
 		case LEFTMOUSE:
@@ -1017,6 +1022,13 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			exit_code = OPERATOR_PASS_THROUGH;
 			break;
 
+	}
+
+	if (ruler_info->state == RULER_STATE_DRAG) {
+		op->flag &= ~OP_IS_MODAL_CURSOR_REGION;
+	}
+	else {
+		op->flag |= OP_IS_MODAL_CURSOR_REGION;
 	}
 
 	if (do_draw) {

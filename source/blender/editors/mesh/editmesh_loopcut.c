@@ -553,6 +553,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* add a modal handler for this operator - handles loop selection */
 	if (is_interactive) {
+		op->flag |= OP_IS_MODAL_CURSOR_REGION;
 		WM_event_add_modal_handler(C, op);
 	}
 
@@ -638,6 +639,9 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	RingSelOpData *lcd = op->customdata;
 	bool show_cuts = false;
 	const bool has_numinput = hasNumInput(&lcd->num);
+
+	em_setup_viewcontext(C, &lcd->vc);
+	lcd->ar = lcd->vc.ar;
 
 	view3d_operator_needs_opengl(C);
 

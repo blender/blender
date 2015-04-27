@@ -405,6 +405,23 @@ ARegion *BKE_area_find_region_active_win(ScrArea *sa)
 	return NULL;
 }
 
+ARegion *BKE_area_find_region_xy(ScrArea *sa, const int regiontype, int x, int y)
+{
+	ARegion *ar_found = NULL;
+	if (sa) {
+		ARegion *ar;
+		for (ar = sa->regionbase.first; ar; ar = ar->next) {
+			if ((regiontype == RGN_TYPE_ANY) || (ar->regiontype == regiontype)) {
+				if (BLI_rcti_isect_pt(&ar->winrct, x, y)) {
+					ar_found = ar;
+					break;
+				}
+			}
+		}
+	}
+	return ar_found;
+}
+
 /**
  * \note, ideally we can get the area from the context,
  * there are a few places however where this isn't practical.

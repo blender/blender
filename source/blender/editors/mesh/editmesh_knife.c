@@ -3051,6 +3051,8 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	knifetool_init(C, kcd, only_select, cut_through, true);
 
+	op->flag |= OP_IS_MODAL_CURSOR_REGION;
+
 	/* add a modal handler for this operator - handles loop selection */
 	WM_cursor_modal_set(CTX_wm_window(C), BC_KNIFECURSOR);
 	WM_event_add_modal_handler(C, op);
@@ -3142,6 +3144,9 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		ED_area_headerprint(CTX_wm_area(C), NULL);
 		return OPERATOR_FINISHED;
 	}
+
+	em_setup_viewcontext(C, &kcd->vc);
+	kcd->ar = kcd->vc.ar;
 
 	view3d_operator_needs_opengl(C);
 	ED_view3d_init_mats_rv3d(obedit, kcd->vc.rv3d);  /* needed to initialize clipping */
@@ -3300,6 +3305,13 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				break;
 		}
+	}
+
+	if (kcd->mode == MODE_DRAGGING) {
+		op->flag &= ~OP_IS_MODAL_CURSOR_REGION;
+	}
+	else {
+		op->flag |= OP_IS_MODAL_CURSOR_REGION;
 	}
 
 	if (do_refresh) {

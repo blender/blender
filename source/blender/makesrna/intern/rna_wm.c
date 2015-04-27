@@ -1416,6 +1416,10 @@ static void rna_def_operator_options_runtime(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OP_IS_INVOKE);
 	RNA_def_property_ui_text(prop, "Invoke", "True when invoked (even if only the execute callbacks available)");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "use_cursor_region", PROP_BOOLEAN, PROP_BOOLEAN);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OP_IS_MODAL_CURSOR_REGION);
+	RNA_def_property_ui_text(prop, "Focus Region", "Enable to use the region under the cursor for modal execution");
 }
 
 static void rna_def_operator(BlenderRNA *brna)

@@ -390,10 +390,16 @@ enum {
 
 /* wmOperator flag */
 enum {
-	OP_IS_MODAL_GRAB_CURSOR    = (1 << 0),
 	/* low level flag so exec() operators can tell if they were invoked, use with care.
 	 * typically this shouldn't make any difference, but it rare cases its needed (see smooth-view) */
-	OP_IS_INVOKE       = (1 << 1),
+	OP_IS_INVOKE = (1 << 0),
+
+	/* When the cursor is grabbed */
+	OP_IS_MODAL_GRAB_CURSOR    = (1 << 1),
+
+	/* allow modal operators to have the region under the cursor for their context
+	 * (the regiontype is maintained to prevent errors) */
+	OP_IS_MODAL_CURSOR_REGION = (1 << 2),
 };
 
 #endif /* __DNA_WINDOWMANAGER_TYPES_H__ */
