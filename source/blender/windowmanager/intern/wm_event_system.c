@@ -1085,11 +1085,11 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 
 				if (op->opm) {
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) &&
-					       ((op->opm->flag & OP_GRAB_POINTER) || (op->opm->type->flag & OPTYPE_GRAB_POINTER));
+					       ((op->opm->flag & OP_IS_MODAL_GRAB_CURSOR) || (op->opm->type->flag & OPTYPE_GRAB_CURSOR));
 				}
 				else {
 					wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) &&
-					       ((op->flag & OP_GRAB_POINTER) || (ot->flag & OPTYPE_GRAB_POINTER));
+					       ((op->flag & OP_IS_MODAL_GRAB_CURSOR) || (ot->flag & OPTYPE_GRAB_CURSOR));
 				}
 
 				/* exception, cont. grab in header is annoying */

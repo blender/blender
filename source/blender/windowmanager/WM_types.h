@@ -123,17 +123,22 @@ struct ImBuf;
 /* ************** wmOperatorType ************************ */
 
 /* flag */
-#define OPTYPE_REGISTER		1	/* register operators in stack after finishing */
-#define OPTYPE_UNDO			2	/* do undo push after after */
-#define OPTYPE_BLOCKING		4	/* let blender grab all input from the WM (X11) */
-#define OPTYPE_MACRO		8
-#define OPTYPE_GRAB_POINTER	16	/* grabs the cursor and optionally enables continuous cursor wrapping */
-#define OPTYPE_PRESET		32	/* show preset menu */
-#define OPTYPE_INTERNAL		64	/* some operators are mainly for internal use
-								 * and don't make sense to be accessed from the
-								 * search menu, even if poll() returns true.
-								 * currently only used for the search toolbox */
-#define OPTYPE_LOCK_BYPASS		128	/* Allow operator to run when interface is locked */
+enum {
+	OPTYPE_REGISTER     = (1 << 0),  /* register operators in stack after finishing */
+	OPTYPE_UNDO         = (1 << 1),  /* do undo push after after */
+	OPTYPE_BLOCKING     = (1 << 2),  /* let blender grab all input from the WM (X11) */
+	OPTYPE_MACRO        = (1 << 3),
+	OPTYPE_GRAB_CURSOR  = (1 << 4),  /* grabs the cursor and optionally enables continuous cursor wrapping */
+	OPTYPE_PRESET       = (1 << 5),  /* show preset menu */
+
+	/* some operators are mainly for internal use
+	 * and don't make sense to be accessed from the
+	 * search menu, even if poll() returns true.
+	 * currently only used for the search toolbox */
+	OPTYPE_INTERNAL     = (1 << 6),
+
+	OPTYPE_LOCK_BYPASS  = (1 << 7),  /* Allow operator to run when interface is locked */
+};
 
 /* context to call operator in for WM_operator_name_call */
 /* rna_ui.c contains EnumPropertyItem's of these, keep in sync */

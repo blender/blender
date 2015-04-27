@@ -414,7 +414,7 @@ static EnumPropertyItem operator_flag_items[] = {
 	{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
 	{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
 	{OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
-	{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer",
+	{OPTYPE_GRAB_CURSOR, "GRAB_CURSOR", 0, "Grab Pointer",
 	                      "Use so the operator grabs the mouse focus, enables wrapping when continuous grab "
 	                      "is enabled"},
 	{OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},

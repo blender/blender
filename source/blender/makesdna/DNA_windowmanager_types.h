@@ -390,7 +390,7 @@ enum {
 
 /* wmOperator flag */
 enum {
-	OP_GRAB_POINTER    = (1 << 0),
+	OP_IS_MODAL_GRAB_CURSOR    = (1 << 0),
 	/* low level flag so exec() operators can tell if they were invoked, use with care.
 	 * typically this shouldn't make any difference, but it rare cases its needed (see smooth-view) */
 	OP_IS_INVOKE       = (1 << 1),
