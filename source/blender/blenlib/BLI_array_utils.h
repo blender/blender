@@ -34,6 +34,14 @@ void _bli_array_wrap(void *arr, unsigned int arr_len, size_t arr_stride, int dir
 #define BLI_array_wrap(arr, arr_len, dir) \
 	_bli_array_wrap(arr, arr_len, sizeof(*(arr)), dir)
 
+void _bli_array_permute(
+        void *arr, const unsigned int arr_len, const size_t arr_stride,
+        const unsigned int *index, void *arr_temp);
+#define BLI_array_permute(arr, arr_len, order) \
+	_bli_array_permute(arr, arr_len, sizeof(*(arr)), order, NULL)
+#define BLI_array_permute_ex(arr, arr_len, index, arr_temp) \
+	_bli_array_permute(arr, arr_len, sizeof(*(arr)), order, arr_temp)
+
 int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p);
 #define BLI_array_findindex(arr, arr_len, p) \
 	_bli_array_findindex(arr, arr_len, sizeof(*(arr)), p)

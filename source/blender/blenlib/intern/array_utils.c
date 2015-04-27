@@ -25,6 +25,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_array_utils.h"
 
 #include "BLI_sys_types.h"
@@ -66,6 +68,36 @@ void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int d
 	}
 	else {
 		BLI_assert(0);
+	}
+}
+
+void _bli_array_permute(
+        void *arr_v, const unsigned int arr_len, const size_t arr_stride,
+        const unsigned int *order, void *arr_temp)
+{
+	const size_t len = arr_len * arr_stride;
+	const unsigned int arr_stride_uint = arr_stride;
+	void *arr_orig;
+	unsigned int i;
+
+	if (arr_temp == NULL) {
+		arr_orig = MEM_mallocN(len, __func__);
+	}
+	else {
+		arr_orig = arr_temp;
+	}
+
+	memcpy(arr_orig, arr_v, len);
+
+	for (i = 0; i < arr_len; i++) {
+		BLI_assert(order[i] < arr_len);
+		memcpy(POINTER_OFFSET(arr_v,    arr_stride_uint * i),
+		       POINTER_OFFSET(arr_orig, arr_stride_uint * order[i]),
+		       arr_stride);
+	}
+
+	if (arr_temp == NULL) {
+		MEM_freeN(arr_orig);
 	}
 }
 
