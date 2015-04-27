@@ -239,8 +239,8 @@ static struct GPUTextureState {
 	int curtileYRep, tileYRep;
 	Image *ima, *curima;
 
-	int domipmap, linearmipmap;
-	int texpaint; /* store this so that new images created while texture painting won't be set to mipmapped */
+	bool domipmap, linearmipmap;
+	bool texpaint; /* store this so that new images created while texture painting won't be set to mipmapped */
 
 	int alphablend;
 	float anisotropic;
@@ -281,33 +281,33 @@ static void gpu_generate_mipmap(GLenum target)
 		glDisable(target);
 }
 
-void GPU_set_mipmap(int mipmap)
+void GPU_set_mipmap(bool mipmap)
 {
-	if (GTS.domipmap != (mipmap != 0)) {
+	if (GTS.domipmap != mipmap) {
 		GPU_free_images();
-		GTS.domipmap = mipmap != 0;
+		GTS.domipmap = mipmap;
 	}
 }
 
-void GPU_set_linear_mipmap(int linear)
+void GPU_set_linear_mipmap(bool linear)
 {
-	if (GTS.linearmipmap != (linear != 0)) {
+	if (GTS.linearmipmap != linear) {
 		GPU_free_images();
-		GTS.linearmipmap = linear != 0;
+		GTS.linearmipmap = linear;
 	}
 }
 
-int GPU_get_mipmap(void)
+bool GPU_get_mipmap(void)
 {
 	return GTS.domipmap && !GTS.texpaint;
 }
 
-int GPU_get_linear_mipmap(void)
+bool GPU_get_linear_mipmap(void)
 {
 	return GTS.linearmipmap;
 }
 
-static GLenum gpu_get_mipmap_filter(int mag)
+static GLenum gpu_get_mipmap_filter(bool mag)
 {
 	/* linearmipmap is off by default *when mipmapping is off,
 	 * use unfiltered display */
@@ -931,7 +931,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
  * temporary disabling/enabling mipmapping on all images for quick texture
  * updates with glTexSubImage2D. images that didn't change don't have to be
  * re-uploaded to OpenGL */
-void GPU_paint_set_mipmap(int mipmap)
+void GPU_paint_set_mipmap(bool mipmap)
 {
 	Image *ima;
 	
