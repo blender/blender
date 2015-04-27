@@ -1074,12 +1074,17 @@ void RAS_OpenGLRasterizer::SetMipmapping(MipmapOption val)
 
 RAS_IRasterizer::MipmapOption RAS_OpenGLRasterizer::GetMipmapping()
 {
-	if (GPU_get_linear_mipmap())
-		return RAS_IRasterizer::RAS_MIPMAP_LINEAR;
-	else if (GPU_get_mipmap())
-		return RAS_IRasterizer::RAS_MIPMAP_NEAREST;
-	else
+	if (GPU_get_mipmap()) {
+		if (GPU_get_linear_mipmap()) {
+			return RAS_IRasterizer::RAS_MIPMAP_LINEAR;
+		}
+		else {
+			return RAS_IRasterizer::RAS_MIPMAP_NEAREST;
+		}
+	}
+	else {
 		return RAS_IRasterizer::RAS_MIPMAP_NONE;
+	}
 }
 
 void RAS_OpenGLRasterizer::SetUsingOverrideShader(bool val)

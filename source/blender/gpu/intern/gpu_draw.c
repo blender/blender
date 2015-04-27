@@ -239,8 +239,12 @@ static struct GPUTextureState {
 	int curtileYRep, tileYRep;
 	Image *ima, *curima;
 
-	bool domipmap, linearmipmap;
-	bool texpaint; /* store this so that new images created while texture painting won't be set to mipmapped */
+	/* also controls min/mag filtering */
+	bool domipmap;
+	/* only use when 'domipmap' is set */
+	bool linearmipmap;
+	/* store this so that new images created while texture painting won't be set to mipmapped */
+	bool texpaint;
 
 	int alphablend;
 	float anisotropic;
@@ -292,7 +296,6 @@ void GPU_set_mipmap(bool mipmap)
 void GPU_set_linear_mipmap(bool linear)
 {
 	if (GTS.linearmipmap != linear) {
-		GPU_free_images();
 		GTS.linearmipmap = linear;
 	}
 }
@@ -312,18 +315,23 @@ static GLenum gpu_get_mipmap_filter(bool mag)
 	/* linearmipmap is off by default *when mipmapping is off,
 	 * use unfiltered display */
 	if (mag) {
-		if (GTS.linearmipmap || GTS.domipmap)
+		if (GTS.domipmap)
 			return GL_LINEAR;
 		else
 			return GL_NEAREST;
 	}
 	else {
-		if (GTS.linearmipmap)
-			return GL_LINEAR_MIPMAP_LINEAR;
-		else if (GTS.domipmap)
-			return GL_LINEAR_MIPMAP_NEAREST;
-		else
+		if (GTS.domipmap) {
+			if (GTS.linearmipmap) {
+				return GL_LINEAR_MIPMAP_LINEAR;
+			}
+			else {
+				return GL_LINEAR_MIPMAP_NEAREST;
+			}
+		}
+		else {
 			return GL_NEAREST;
+		}
 	}
 }
 
