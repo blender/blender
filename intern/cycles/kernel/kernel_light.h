@@ -256,8 +256,6 @@ ccl_device float background_portal_pdf(KernelGlobals *kg,
                                        bool *is_possible)
 {
 	float portal_pdf = 0.0f;
-	if(is_possible)
-		*is_possible = false;
 
 	for(int p = 0; p < kernel_data.integrator.num_portals; p++) {
 		if(p == ignore_portal)
@@ -437,7 +435,7 @@ ccl_device float background_light_pdf(KernelGlobals *kg, float3 P, float3 direct
 	float portal_sampling_pdf = kernel_data.integrator.portal_pdf;
 
 	if(portal_sampling_pdf > 0.0f) {
-		bool is_possible;
+		bool is_possible = false;
 		float portal_pdf = background_portal_pdf(kg, P, direction, -1, &is_possible);
 		if(portal_pdf == 0.0f) {
 			if(portal_sampling_pdf == 1.0f) {
