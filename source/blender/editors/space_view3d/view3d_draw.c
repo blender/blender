@@ -3570,7 +3570,7 @@ static bool view3d_stereo3d_active(const bContext *C, Scene *scene, View3D *v3d,
 	if (WM_stereo3d_enabled(win, true) == false)
 		return false;
 
-	if ((v3d->camera == NULL) || rv3d->persp != RV3D_CAMOB)
+	if ((v3d->camera == NULL) || (v3d->camera->type != OB_CAMERA) || rv3d->persp != RV3D_CAMOB)
 		return false;
 
 	if (scene->r.views_format & SCE_VIEWS_FORMAT_MULTIVIEW) {
