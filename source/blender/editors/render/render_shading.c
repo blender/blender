@@ -41,8 +41,9 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 
 #include "BLF_translation.h"
 
@@ -379,6 +380,73 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+static int material_slot_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_context(C);
+
+	unsigned int *slot_remap;
+	int index_pair[2];
+
+	int dir = RNA_enum_get(op->ptr, "direction");
+
+	if (!ob || ob->totcol < 2) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* up */
+	if (dir == 1 && ob->actcol > 1) {
+		index_pair[0] = ob->actcol - 2;
+		index_pair[1] = ob->actcol - 1;
+		ob->actcol--;
+	}
+	/* down */
+	else if (dir == -1 && ob->actcol < ob->totcol) {
+		index_pair[0] = ob->actcol - 1;
+		index_pair[1] = ob->actcol - 0;
+		ob->actcol++;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+
+	slot_remap = MEM_mallocN(sizeof(unsigned int) * ob->totcol, __func__);
+
+	range_vn_u(slot_remap, ob->totcol, 0);
+
+	slot_remap[index_pair[0]] = index_pair[1];
+	slot_remap[index_pair[1]] = index_pair[0];
+
+	BKE_material_remap_object(ob, slot_remap);
+
+	MEM_freeN(slot_remap);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW | ND_DATA, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_material_slot_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem material_slot_move[] = {
+		{1, "UP", 0, "Up", ""},
+		{-1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Move Material";
+	ot->idname = "OBJECT_OT_material_slot_move";
+	ot->description = "Move the active material up/down in the list";
+
+	/* api callbacks */
+	ot->exec = material_slot_move_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "direction", material_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
 }
 
 /********************** new material operator *********************/

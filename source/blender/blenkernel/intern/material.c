@@ -53,6 +53,7 @@
 #include "BLI_listbase.h"		
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_array_utils.h"
 
 #include "BKE_animsys.h"
 #include "BKE_displist.h"
@@ -66,6 +67,8 @@
 #include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_curve.h"
+#include "BKE_editmesh.h"
+#include "BKE_font.h"
 
 #include "GPU_material.h"
 
@@ -921,6 +924,35 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 		id_us_plus((ID *)ma);
 	test_object_materials(G.main, ob->data);
 }
+
+
+void BKE_material_remap_object(Object *ob, const unsigned int *remap)
+{
+	Material ***matar = give_matarar(ob);
+	const short *totcol_p = give_totcolp(ob);
+
+	BLI_array_permute(ob->mat, ob->totcol, remap);
+
+	if (ob->matbits) {
+		BLI_array_permute(ob->matbits, ob->totcol, remap);
+	}
+
+	if(matar) {
+		BLI_array_permute(*matar, *totcol_p, remap);
+	}
+
+	if (ob->type == OB_MESH) {
+		BKE_mesh_material_remap(ob->data, remap, ob->totcol);
+	}
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		BKE_curve_material_remap(ob->data, remap, ob->totcol);
+	}
+	else {
+		/* add support for this object data! */
+		BLI_assert(matar == NULL);
+	}
+}
+
 
 /* XXX - this calls many more update calls per object then are needed, could be optimized */
 void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)

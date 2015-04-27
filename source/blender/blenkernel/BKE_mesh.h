@@ -108,6 +108,7 @@ void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblis
 void BKE_mesh_to_curve(struct Scene *scene, struct Object *ob);
 void BKE_mesh_material_index_remove(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
+void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
 
 const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);

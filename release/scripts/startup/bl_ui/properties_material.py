@@ -123,17 +123,28 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
         ob = context.object
         slot = context.material_slot
         space = context.space_data
+        is_sortable = (len(ob.material_slots) > 1)
 
         if ob:
+            rows = 1
+            if is_sortable:
+                rows = 4
+
             row = layout.row()
 
-            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=1)
+            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
             col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
 
             col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
+
+            if is_sortable:
+                col.separator()
+
+                col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+                col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)

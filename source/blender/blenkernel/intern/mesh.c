@@ -1773,6 +1773,36 @@ void BKE_mesh_material_index_clear(Mesh *me)
 	}
 }
 
+void BKE_mesh_material_remap(Mesh *me, const unsigned int *remap, unsigned int remap_len)
+{
+	const short remap_len_short = (short)remap_len;
+
+#define MAT_NR_REMAP(n) \
+	if (n < remap_len_short) { \
+		BLI_assert(n >= 0 && remap[n] < remap_len_short); \
+		n = remap[n]; \
+	} ((void)0)
+
+	if (me->edit_btmesh) {
+		BMEditMesh *em = me->edit_btmesh;
+		BMIter iter;
+		BMFace *efa;
+
+		BM_ITER_MESH(efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			MAT_NR_REMAP(efa->mat_nr);
+		}
+	}
+	else {
+		int i;
+		for (i = 0; i < me->totpoly; i++) {
+			MAT_NR_REMAP(me->mpoly[i].mat_nr);
+		}
+	}
+
+#undef MAT_NR_REMAP
+
+}
+
 void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth) 
 {
 	Mesh *me = meshOb->data;
