@@ -33,17 +33,20 @@
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
 
+#include "BLI_strict_flags.h"
+
 
 void _bli_array_reverse(void *arr_v, unsigned int arr_len, size_t arr_stride)
 {
-	const unsigned int arr_half_stride = (arr_len / 2) * arr_stride;
+	const unsigned int arr_stride_uint = (unsigned int)arr_stride;
+	const unsigned int arr_half_stride = (arr_len / 2) * arr_stride_uint;
 	unsigned int i, i_end;
 	char *arr = arr_v;
 	char *buf = BLI_array_alloca(buf, arr_stride);
 
-	for (i = 0, i_end = (arr_len - 1) * arr_stride;
+	for (i = 0, i_end = (arr_len - 1) * arr_stride_uint;
 	     i < arr_half_stride;
-	     i += arr_stride, i_end -= arr_stride)
+	     i += arr_stride_uint, i_end -= arr_stride_uint)
 	{
 		memcpy(buf, &arr[i], arr_stride);
 		memcpy(&arr[i], &arr[i_end], arr_stride);
@@ -76,7 +79,7 @@ void _bli_array_permute(
         const unsigned int *order, void *arr_temp)
 {
 	const size_t len = arr_len * arr_stride;
-	const unsigned int arr_stride_uint = arr_stride;
+	const unsigned int arr_stride_uint = (unsigned int)arr_stride;
 	void *arr_orig;
 	unsigned int i;
 
