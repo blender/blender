@@ -3569,26 +3569,26 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	if (from_render) {
 		BLI_lock_thread(LOCK_VIEWER);
 		*lock_r = re;
+		rv = NULL;
+	}
+	else {
+		rv = BLI_findlink(&rres.views, actview);
+		if (rv == NULL)
+			rv = rres.views.first;
 	}
 
-	rv = BLI_findlink(&rres.views, actview);
-	if (rv == NULL)
-		rv = rres.views.first;
-
-	if (rv != NULL) {
-		/* this gives active layer, composite or sequence result */
+	/* this gives active layer, composite or sequence result */
+	if (rv == NULL) {
+		rect = (unsigned int *)rres.rect32;
+		rectf = rres.rectf;
+		rectz = rres.rectz;
+	}
+	else {
 		rect = (unsigned int *)rv->rect32;
 		rectf = rv->rectf;
 		rectz = rv->rectz;
 	}
-	else {
-		/* XXX This should never happen, yet it does - T44498, T44514
-	     * I'm waiting to investigate more, but meanwhile this fix
-	     * the immediate issue */
-		rect = NULL;
-		rectf = NULL;
-		rectz = NULL;
-	}
+
 	dither = iuser->scene->r.dither_intensity;
 
 	/* combined layer gets added as first layer */
