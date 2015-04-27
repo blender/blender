@@ -4858,7 +4858,7 @@ static void WM_OT_doc_view_manual_ui_context(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Online Manual";
 	ot->idname = "WM_OT_doc_view_manual_ui_context";
-	ot->description = "View a context based online manual in a webbrowser";
+	ot->description = "View a context based online manual in a web browser";
 
 	/* callbacks */
 	ot->poll = ED_operator_regionactive;

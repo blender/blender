@@ -474,7 +474,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR,
-			           "Fail to create a window without quadbuffer support, you may experience flickering");
+			           "Failed to create a window without quad-buffer support, you may experience flickering");
 		}
 	}
 	else if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
@@ -493,7 +493,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR,
-			           "Fail to create a window compatible with the time sequential display method");
+			           "Failed to create a window compatible with the time sequential display method");
 			win->stereo3d_format->display_mode = prev_display_mode;
 		}
 	}
