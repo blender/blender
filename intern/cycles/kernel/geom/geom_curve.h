@@ -465,7 +465,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 					continue;
 				}
 				w = -(p_st.x * tg.x + p_st.y * tg.y) / w;
-				w = clamp((float)w, 0.0f, 1.0f);
+				w = saturate(w);
 
 				/* compute u on the curve segment */
 				u = i_st * (1 - w) + i_en * w;
@@ -577,7 +577,7 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 				}
 
 				float w = (zcentre + (tg.z * correction)) * invl;
-				w = clamp((float)w, 0.0f, 1.0f);
+				w = saturate(w);
 				/* compute u on the curve segment */
 				u = i_st * (1 - w) + i_en * w;
 

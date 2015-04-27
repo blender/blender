@@ -97,7 +97,7 @@ ccl_device float svm_math(NodeMath type, float Fac1, float Fac2)
 	else if(type == NODE_MATH_ABSOLUTE)
 		Fac = fabsf(Fac1);
 	else if(type == NODE_MATH_CLAMP)
-		Fac = clamp(Fac1, 0.0f, 1.0f);
+		Fac = saturate(Fac1);
 	else
 		Fac = 0.0f;
 	

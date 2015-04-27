@@ -94,7 +94,7 @@ typedef struct KernelGlobals {
 
 ccl_device float lookup_table_read(KernelGlobals *kg, float x, int offset, int size)
 {
-	x = clamp(x, 0.0f, 1.0f)*(size-1);
+	x = saturate(x)*(size-1);
 
 	int index = min(float_to_int(x), size-1);
 	int nindex = min(index+1, size-1);
@@ -110,7 +110,7 @@ ccl_device float lookup_table_read(KernelGlobals *kg, float x, int offset, int s
 
 ccl_device float lookup_table_read_2D(KernelGlobals *kg, float x, float y, int offset, int xsize, int ysize)
 {
-	y = clamp(y, 0.0f, 1.0f)*(ysize-1);
+	y = saturate(y)*(ysize-1);
 
 	int index = min(float_to_int(y), ysize-1);
 	int nindex = min(index+1, ysize-1);

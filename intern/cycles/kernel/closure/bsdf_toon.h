@@ -40,8 +40,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device int bsdf_diffuse_toon_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_DIFFUSE_TOON_ID;
-	sc->data0 = clamp(sc->data0, 0.0f, 1.0f);
-	sc->data1 = clamp(sc->data1, 0.0f, 1.0f);
+	sc->data0 = saturate(sc->data0);
+	sc->data1 = saturate(sc->data1);
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
@@ -120,8 +120,8 @@ ccl_device int bsdf_diffuse_toon_sample(const ShaderClosure *sc, float3 Ng, floa
 ccl_device int bsdf_glossy_toon_setup(ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_GLOSSY_TOON_ID;
-	sc->data0 = clamp(sc->data0, 0.0f, 1.0f);
-	sc->data1 = clamp(sc->data1, 0.0f, 1.0f);
+	sc->data0 = saturate(sc->data0);
+	sc->data1 = saturate(sc->data1);
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }

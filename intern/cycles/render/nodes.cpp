@@ -3752,7 +3752,7 @@ void MathNode::compile(SVMCompiler& compiler)
 		                                 value1_in->value.x,
 		                                 value2_in->value.x);
 		if(use_clamp) {
-			optimized_value = clamp(optimized_value, 0.0f, 1.0f);
+			optimized_value = saturate(optimized_value);
 		}
 		compiler.add_node(NODE_VALUE_F,
 		                  __float_as_int(optimized_value),

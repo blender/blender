@@ -37,7 +37,7 @@ ccl_device int bsdf_oren_nayar_setup(ShaderClosure *sc)
 
 	sc->type = CLOSURE_BSDF_OREN_NAYAR_ID;
 
-	sigma = clamp(sigma, 0.0f, 1.0f);
+	sigma = saturate(sigma);
 
 	float div = 1.0f / (M_PI_F + ((3.0f * M_PI_F - 4.0f) / 6.0f) * sigma);
 

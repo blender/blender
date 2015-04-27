@@ -187,7 +187,7 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 			else if(type == PASS_MIST) {
 				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
 					float f = *in;
-					pixels[0] = clamp(f*scale_exposure, 0.0f, 1.0f);
+					pixels[0] = saturate(f*scale_exposure);
 				}
 			}
 #ifdef WITH_CYCLES_DEBUG
@@ -298,7 +298,7 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 					pixels[2] = f.z*scale_exposure;
 
 					/* clamp since alpha might be > 1.0 due to russian roulette */
-					pixels[3] = clamp(f.w*scale, 0.0f, 1.0f);
+					pixels[3] = saturate(f.w*scale);
 				}
 			}
 		}

@@ -30,8 +30,8 @@ ccl_device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
 		return flag;
 	}
 	else {
-		sc->data1 = clamp(sc->data1, 0.0f, 1.0f); /* texture blur */
-		sc->T.x = clamp(sc->T.x, 0.0f, 1.0f); /* sharpness */
+		sc->data1 = saturate(sc->data1); /* texture blur */
+		sc->T.x = saturate(sc->T.x); /* sharpness */
 		sc->type = type;
 
 		return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF;
@@ -168,7 +168,7 @@ ccl_device float bssrdf_cubic_quintic_root_find(float xi)
 		if(fabsf(f) < tolerance || f_ == 0.0f)
 			break;
 
-		x = clamp(x - f/f_, 0.0f, 1.0f);
+		x = saturate(x - f/f_);
 	}
 
 	return x;

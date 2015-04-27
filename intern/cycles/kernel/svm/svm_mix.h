@@ -254,16 +254,16 @@ ccl_device float3 svm_mix_clamp(float3 col)
 {
 	float3 outcol = col;
 
-	outcol.x = clamp(col.x, 0.0f, 1.0f);
-	outcol.y = clamp(col.y, 0.0f, 1.0f);
-	outcol.z = clamp(col.z, 0.0f, 1.0f);
+	outcol.x = saturate(col.x);
+	outcol.y = saturate(col.y);
+	outcol.z = saturate(col.z);
 
 	return outcol;
 }
 
 ccl_device float3 svm_mix(NodeMix type, float fac, float3 c1, float3 c2)
 {
-	float t = clamp(fac, 0.0f, 1.0f);
+	float t = saturate(fac);
 
 	switch(type) {
 		case NODE_MIX_BLEND: return svm_mix_blend(t, c1, c2);

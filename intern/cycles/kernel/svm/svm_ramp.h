@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float4 rgb_ramp_lookup(KernelGlobals *kg, int offset, float f, bool interpolate)
 {
-	f = clamp(f, 0.0f, 1.0f)*(RAMP_TABLE_SIZE-1);
+	f = saturate(f)*(RAMP_TABLE_SIZE-1);
 
 	/* clamp int as well in case of NaN */
 	int i = clamp(float_to_int(f), 0, RAMP_TABLE_SIZE-1);

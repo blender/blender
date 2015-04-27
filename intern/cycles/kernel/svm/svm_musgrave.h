@@ -168,7 +168,7 @@ ccl_device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNois
 
 	for(i = 1; i < float_to_int(octaves); i++) {
 		p *= lacunarity;
-		weight = clamp(signal * gain, 0.0f, 1.0f);
+		weight = saturate(signal * gain);
 		signal = offset - fabsf(snoise(p));
 		signal *= signal;
 		signal *= weight;

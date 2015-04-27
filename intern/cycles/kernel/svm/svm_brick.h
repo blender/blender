@@ -47,7 +47,7 @@ ccl_device_noinline float2 svm_brick(float3 p, float mortar_size, float bias,
 	y = p.y - row_height*rownum;
 
 	return make_float2(
-		clamp((brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0f, 1.0f),
+		saturate((brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias)),
 
 		(x < mortar_size || y < mortar_size ||
 		x > (brick_width - mortar_size) ||

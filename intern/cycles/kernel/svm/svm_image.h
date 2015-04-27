@@ -433,17 +433,17 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
 		/* in case of blending, test for mixes between two textures */
 		if(N.z < (1.0f - limit)*(N.y + N.x)) {
 			weight.x = N.x/(N.x + N.y);
-			weight.x = clamp((weight.x - 0.5f*(1.0f - blend))/blend, 0.0f, 1.0f);
+			weight.x = saturate((weight.x - 0.5f*(1.0f - blend))/blend);
 			weight.y = 1.0f - weight.x;
 		}
 		else if(N.x < (1.0f - limit)*(N.y + N.z)) {
 			weight.y = N.y/(N.y + N.z);
-			weight.y = clamp((weight.y - 0.5f*(1.0f - blend))/blend, 0.0f, 1.0f);
+			weight.y = saturate((weight.y - 0.5f*(1.0f - blend))/blend);
 			weight.z = 1.0f - weight.y;
 		}
 		else if(N.y < (1.0f - limit)*(N.x + N.z)) {
 			weight.x = N.x/(N.x + N.z);
-			weight.x = clamp((weight.x - 0.5f*(1.0f - blend))/blend, 0.0f, 1.0f);
+			weight.x = saturate((weight.x - 0.5f*(1.0f - blend))/blend);
 			weight.z = 1.0f - weight.x;
 		}
 		else {
