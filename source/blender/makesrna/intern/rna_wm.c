@@ -511,6 +511,11 @@ static int rna_Operator_has_reports_get(PointerRNA *ptr)
 	return (op->reports && op->reports->list.first);
 }
 
+static PointerRNA rna_Operator_options_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_OperatorOptions, ptr->data);
+}
+
 static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
 	wmOperator *op = (wmOperator *)ptr->data;
@@ -1390,6 +1395,29 @@ static void rna_KeyMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 
 #else /* RNA_RUNTIME */
 
+/**
+ * expose ``Operator.options`` as its own type so we can control each flags use (some are read-only).
+ */
+static void rna_def_operator_options_runtime(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "OperatorOptions", NULL);
+	RNA_def_struct_ui_text(srna, "Operator Options", "Runtime options");
+	RNA_def_struct_sdna(srna, "wmOperator");
+
+	prop = RNA_def_property(srna, "is_grab_cursor", PROP_BOOLEAN, PROP_BOOLEAN);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OP_IS_MODAL_GRAB_CURSOR);
+	RNA_def_property_ui_text(prop, "Grab Cursor", "True when the cursor is grabbed");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "is_invoke", PROP_BOOLEAN, PROP_BOOLEAN);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OP_IS_INVOKE);
+	RNA_def_property_ui_text(prop, "Invoke", "True when invoked (even if only the execute callbacks available)");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
 static void rna_def_operator(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1423,6 +1451,12 @@ static void rna_def_operator(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
+
+	prop = RNA_def_property(srna, "options", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "OperatorOptions");
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_options_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Options", "Runtime options");
 
 	/* Registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
@@ -2169,6 +2203,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 void RNA_def_wm(BlenderRNA *brna)
 {
 	rna_def_operator(brna);
+	rna_def_operator_options_runtime(brna);
 	rna_def_operator_utils(brna);
 	rna_def_operator_filelist_element(brna);
 	rna_def_macro_operator(brna);
