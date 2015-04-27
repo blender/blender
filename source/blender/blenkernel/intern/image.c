@@ -3582,10 +3582,12 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		rectz = rv->rectz;
 	}
 	else {
-		/* XXX This should never happen, yet it does - T44498
+		/* XXX This should never happen, yet it does - T44498, T44514
 	     * I'm waiting to investigate more, but meanwhile this fix
 	     * the immediate issue */
 		rect = NULL;
+		rectf = NULL;
+		rectz = NULL;
 	}
 	dither = iuser->scene->r.dither_intensity;
 
