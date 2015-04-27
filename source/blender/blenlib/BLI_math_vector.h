@@ -314,6 +314,7 @@ double len_squared_vn(const float *array, const int size) ATTR_WARN_UNUSED_RESUL
 float normalize_vn_vn(float *array_tar, const float *array_src, const int size);
 float normalize_vn(float *array_tar, const int size);
 void range_vn_i(int *array_tar, const int size, const int start);
+void range_vn_u(unsigned int *array_tar, const int size, const unsigned int start);
 void range_vn_fl(float *array_tar, const int size, const float start, const float step);
 void negate_vn(float *array_tar, const int size);
 void negate_vn_vn(float *array_tar, const float *array_src, const int size);
