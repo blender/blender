@@ -1209,8 +1209,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 			sd->time = 0.0f;
 			sd->size = hasize;
 
-			copy_v3_v3(vel, state->vel);
-			mul_mat3_m4_v3(re->viewmat, vel);
+			mul_v3_mat3_m4v3(vel, re->viewmat, state->vel);
 			normalize_v3(vel);
 
 			if (part->draw & PART_DRAW_VEL_LENGTH)

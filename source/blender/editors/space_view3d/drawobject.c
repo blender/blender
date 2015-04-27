@@ -8021,9 +8021,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			/* don't show smoke before simulation starts, this could be made an option in the future */
 			if (smd->domain->fluid && CFRA >= smd->domain->point_cache[0]->startframe) {
 				/* get view vector */
-				copy_v3_v3(viewnormal, rv3d->viewinv[2]);
 				invert_m4_m4(ob->imat, ob->obmat);
-				mul_mat3_m4_v3(ob->imat, viewnormal);
+				mul_v3_mat3_m4v3(viewnormal, ob->imat, rv3d->viewinv[2]);
 				normalize_v3(viewnormal);
 
 				/* set dynamic boundaries to draw the volume

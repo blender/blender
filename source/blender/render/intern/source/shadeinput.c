@@ -423,14 +423,11 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 		}
 
 		if (texco & TEXCO_GLOB) {
-			copy_v3_v3(shi->gl, shi->co);
-			mul_m4_v3(R.viewinv, shi->gl);
+			mul_v3_m4v3(shi->gl, R.viewinv, shi->co);
 			
 			if (shi->osatex) {
-				copy_v3_v3(shi->dxgl, shi->dxco);
-				mul_mat3_m4_v3(R.viewinv, shi->dxgl); 
-				copy_v3_v3(shi->dygl, shi->dyco);
-				mul_mat3_m4_v3(R.viewinv, shi->dygl);
+				mul_v3_mat3_m4v3(shi->dxgl, R.viewinv, shi->dxco);
+				mul_v3_mat3_m4v3(shi->dygl, R.viewinv, shi->dyco);
 			}
 		}
 

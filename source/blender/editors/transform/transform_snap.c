@@ -1400,11 +1400,8 @@ static bool snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *ar
 
 	invert_m4_m4(imat, obmat);
 
-	copy_v3_v3(ray_start_local, ray_start);
-	copy_v3_v3(ray_normal_local, ray_normal);
-	
-	mul_m4_v3(imat, ray_start_local);
-	mul_mat3_m4_v3(imat, ray_normal_local);
+	mul_v3_m4v3(ray_start_local, imat, ray_start);
+	mul_v3_mat3_m4v3(ray_normal_local, imat, ray_normal);
 
 	if (arm->edbo) {
 		EditBone *eBone;
@@ -1762,11 +1759,8 @@ static bool snapEmpty(short snap_mode, ARegion *ar, Object *ob, float obmat[4][4
 
 	invert_m4_m4(imat, obmat);
 
-	copy_v3_v3(ray_start_local, ray_start);
-	copy_v3_v3(ray_normal_local, ray_normal);
-
-	mul_m4_v3(imat, ray_start_local);
-	mul_mat3_m4_v3(imat, ray_normal_local);
+	mul_v3_m4v3(ray_start_local, imat, ray_start);
+	mul_v3_mat3_m4v3(ray_normal_local, imat, ray_normal);
 
 	switch (snap_mode) {
 		case SCE_SNAP_MODE_VERTEX:
@@ -2111,12 +2105,8 @@ static bool peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[4][4],
 
 		transpose_m3_m4(timat, imat);
 		
-		copy_v3_v3(ray_start_local, ray_start);
-		copy_v3_v3(ray_normal_local, ray_normal);
-		
-		mul_m4_v3(imat, ray_start_local);
-		mul_mat3_m4_v3(imat, ray_normal_local);
-		
+		mul_v3_m4v3(ray_start_local, imat, ray_start);
+		mul_v3_mat3_m4v3(ray_normal_local, imat, ray_normal);
 		
 		/* If number of vert is more than an arbitrary limit, 
 		 * test against boundbox first

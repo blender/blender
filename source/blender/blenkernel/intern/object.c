@@ -1769,8 +1769,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 		mul_m4_m4m4(ob->obmat, gob->obmat, target->obmat);
 		if (gob->dup_group) { /* should always be true */
 			float tvec[3];
-			copy_v3_v3(tvec, gob->dup_group->dupli_ofs);
-			mul_mat3_m4_v3(ob->obmat, tvec);
+			mul_v3_mat3_m4v3(tvec, ob->obmat, gob->dup_group->dupli_ofs);
 			sub_v3_v3(ob->obmat[3], tvec);
 		}
 		BKE_object_apply_mat4(ob, ob->obmat, false, true);

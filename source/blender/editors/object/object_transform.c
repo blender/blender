@@ -939,8 +939,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				/* convert the offset to parent space */
 				BKE_object_to_mat4(ob, obmat);
-				copy_v3_v3(centn, cent);
-				mul_mat3_m4_v3(obmat, centn); /* omit translation part */
+				mul_v3_mat3_m4v3(centn, obmat, cent); /* omit translation part */
 
 				add_v3_v3(ob->loc, centn);
 
@@ -970,8 +969,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						ob_other->flag |= OB_DONE;
 						DAG_id_tag_update(&ob_other->id, OB_RECALC_OB | OB_RECALC_DATA);
 
-						copy_v3_v3(centn, cent);
-						mul_mat3_m4_v3(ob_other->obmat, centn); /* omit translation part */
+						mul_v3_mat3_m4v3(centn, ob_other->obmat, cent); /* omit translation part */
 						add_v3_v3(ob_other->loc, centn);
 
 						BKE_object_where_is_calc(scene, ob_other);
