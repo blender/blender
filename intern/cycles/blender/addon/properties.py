@@ -694,6 +694,12 @@ class CyclesLampSettings(bpy.types.PropertyGroup):
                             "reduces noise for area lamps and sharp glossy materials",
                 default=False,
                 )
+        cls.is_portal = BoolProperty(
+                name="Is Portal",
+                description="Use this area lamp to guide sampling of the background, "
+                            "note that this will make the lamp invisible",
+                default=False,
+                )
 
     @classmethod
     def unregister(cls):

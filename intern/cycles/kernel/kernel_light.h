@@ -33,156 +33,7 @@ typedef struct LightSample {
 	LightType type;		/* type of light */
 } LightSample;
 
-/* Background Light */
-
-#ifdef __BACKGROUND_MIS__
-
-/* TODO(sergey): In theory it should be all fine to use noinline for all
- * devices, but we're so close to the release so better not screw things
- * up for CPU at least.
- */
-#ifdef __KERNEL_GPU__
-ccl_device_noinline
-#else
-ccl_device
-#endif
-float3 background_light_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
-{
-	/* for the following, the CDF values are actually a pair of floats, with the
-	 * function value as X and the actual CDF as Y.  The last entry's function
-	 * value is the CDF total. */
-	int res = kernel_data.integrator.pdf_background_res;
-	int cdf_count = res + 1;
-
-	/* this is basically std::lower_bound as used by pbrt */
-	int first = 0;
-	int count = res;
-
-	while(count > 0) {
-		int step = count >> 1;
-		int middle = first + step;
-
-		if(kernel_tex_fetch(__light_background_marginal_cdf, middle).y < randv) {
-			first = middle + 1;
-			count -= step + 1;
-		}
-		else
-			count = step;
-	}
-
-	int index_v = max(0, first - 1);
-	kernel_assert(index_v >= 0 && index_v < res);
-
-	float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
-	float2 cdf_next_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v + 1);
-	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res);
-
-	/* importance-sampled V direction */
-	float dv = (randv - cdf_v.y) / (cdf_next_v.y - cdf_v.y);
-	float v = (index_v + dv) / res;
-
-	/* this is basically std::lower_bound as used by pbrt */
-	first = 0;
-	count = res;
-	while(count > 0) {
-		int step = count >> 1;
-		int middle = first + step;
-
-		if(kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + middle).y < randu) {
-			first = middle + 1;
-			count -= step + 1;
-		}
-		else
-			count = step;
-	}
-
-	int index_u = max(0, first - 1);
-	kernel_assert(index_u >= 0 && index_u < res);
-
-	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + index_u);
-	float2 cdf_next_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + index_u + 1);
-	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + res);
-
-	/* importance-sampled U direction */
-	float du = (randu - cdf_u.y) / (cdf_next_u.y - cdf_u.y);
-	float u = (index_u + du) / res;
-
-	/* compute pdf */
-	float denom = cdf_last_u.x * cdf_last_v.x;
-	float sin_theta = sinf(M_PI_F * v);
-
-	if(sin_theta == 0.0f || denom == 0.0f)
-		*pdf = 0.0f;
-	else
-		*pdf = (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);
-
-	*pdf *= kernel_data.integrator.pdf_lights;
-
-	/* compute direction */
-	return -equirectangular_to_direction(u, v);
-}
-
-/* TODO(sergey): Same as above, after the release we should consider using
- * 'noinline' for all devices.
- */
-#ifdef __KERNEL_GPU__
-ccl_device_noinline
-#else
-ccl_device
-#endif
-float background_light_pdf(KernelGlobals *kg, float3 direction)
-{
-	float2 uv = direction_to_equirectangular(direction);
-	int res = kernel_data.integrator.pdf_background_res;
-
-	float sin_theta = sinf(uv.y * M_PI_F);
-
-	if(sin_theta == 0.0f)
-		return 0.0f;
-
-	int index_u = clamp(float_to_int(uv.x * res), 0, res - 1);
-	int index_v = clamp(float_to_int(uv.y * res), 0, res - 1);
-
-	/* pdfs in V direction */
-	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + res);
-	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res);
-
-	float denom = cdf_last_u.x * cdf_last_v.x;
-
-	if(denom == 0.0f)
-		return 0.0f;
-
-	/* pdfs in U direction */
-	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + index_u);
-	float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
-
-	float pdf = (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);
-
-	return pdf * kernel_data.integrator.pdf_lights;
-}
-#endif
-
-/* Regular Light */
-
-ccl_device float3 disk_light_sample(float3 v, float randu, float randv)
-{
-	float3 ru, rv;
-
-	make_orthonormals(v, &ru, &rv);
-	to_unit_disk(&randu, &randv);
-
-	return ru*randu + rv*randv;
-}
-
-ccl_device float3 distant_light_sample(float3 D, float radius, float randu, float randv)
-{
-	return normalize(D + disk_light_sample(D, randu, randv)*radius);
-}
-
-ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, float randu, float randv)
-{
-	return disk_light_sample(normalize(P - center), randu, randv)*radius;
-}
+/* Area light sampling */
 
 /* Uses the following paper:
  *
@@ -200,8 +51,8 @@ ccl_device float area_light_sample(float3 P,
                                    bool sample_coord)
 {
 	/* In our name system we're using P for the center,
-	 * which is o in the paper.
-	 */
+	* which is o in the paper.
+	*/
 
 	float3 corner = *light_p - axisu * 0.5f - axisv * 0.5f;
 	float axisu_len, axisv_len;
@@ -274,6 +125,374 @@ ccl_device float area_light_sample(float3 P,
 		return 0.0f;
 }
 
+/* Background Light */
+
+#ifdef __BACKGROUND_MIS__
+
+/* TODO(sergey): In theory it should be all fine to use noinline for all
+ * devices, but we're so close to the release so better not screw things
+ * up for CPU at least.
+ */
+#ifdef __KERNEL_GPU__
+ccl_device_noinline
+#else
+ccl_device
+#endif
+float3 background_map_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
+{
+	/* for the following, the CDF values are actually a pair of floats, with the
+	 * function value as X and the actual CDF as Y.  The last entry's function
+	 * value is the CDF total. */
+	int res = kernel_data.integrator.pdf_background_res;
+	int cdf_count = res + 1;
+
+	/* this is basically std::lower_bound as used by pbrt */
+	int first = 0;
+	int count = res;
+
+	while(count > 0) {
+		int step = count >> 1;
+		int middle = first + step;
+
+		if(kernel_tex_fetch(__light_background_marginal_cdf, middle).y < randv) {
+			first = middle + 1;
+			count -= step + 1;
+		}
+		else
+			count = step;
+	}
+
+	int index_v = max(0, first - 1);
+	kernel_assert(index_v >= 0 && index_v < res);
+
+	float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
+	float2 cdf_next_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v + 1);
+	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res);
+
+	/* importance-sampled V direction */
+	float dv = (randv - cdf_v.y) / (cdf_next_v.y - cdf_v.y);
+	float v = (index_v + dv) / res;
+
+	/* this is basically std::lower_bound as used by pbrt */
+	first = 0;
+	count = res;
+	while(count > 0) {
+		int step = count >> 1;
+		int middle = first + step;
+
+		if(kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + middle).y < randu) {
+			first = middle + 1;
+			count -= step + 1;
+		}
+		else
+			count = step;
+	}
+
+	int index_u = max(0, first - 1);
+	kernel_assert(index_u >= 0 && index_u < res);
+
+	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + index_u);
+	float2 cdf_next_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + index_u + 1);
+	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + res);
+
+	/* importance-sampled U direction */
+	float du = (randu - cdf_u.y) / (cdf_next_u.y - cdf_u.y);
+	float u = (index_u + du) / res;
+
+	/* compute pdf */
+	float denom = cdf_last_u.x * cdf_last_v.x;
+	float sin_theta = sinf(M_PI_F * v);
+
+	if(sin_theta == 0.0f || denom == 0.0f)
+		*pdf = 0.0f;
+	else
+		*pdf = (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);
+
+	/* compute direction */
+	return equirectangular_to_direction(u, v);
+}
+
+/* TODO(sergey): Same as above, after the release we should consider using
+ * 'noinline' for all devices.
+ */
+#ifdef __KERNEL_GPU__
+ccl_device_noinline
+#else
+ccl_device
+#endif
+float background_map_pdf(KernelGlobals *kg, float3 direction)
+{
+	float2 uv = direction_to_equirectangular(direction);
+	int res = kernel_data.integrator.pdf_background_res;
+
+	float sin_theta = sinf(uv.y * M_PI_F);
+
+	if(sin_theta == 0.0f)
+		return 0.0f;
+
+	int index_u = clamp(float_to_int(uv.x * res), 0, res - 1);
+	int index_v = clamp(float_to_int(uv.y * res), 0, res - 1);
+
+	/* pdfs in V direction */
+	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + res);
+	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res);
+
+	float denom = cdf_last_u.x * cdf_last_v.x;
+
+	if(denom == 0.0f)
+		return 0.0f;
+
+	/* pdfs in U direction */
+	float2 cdf_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * (res + 1) + index_u);
+	float2 cdf_v = kernel_tex_fetch(__light_background_marginal_cdf, index_v);
+
+	return (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);
+}
+
+ccl_device float background_portal_pdf(KernelGlobals *kg,
+                                       float3 P,
+                                       float3 direction,
+                                       int ignore_portal,
+                                       bool *is_possible)
+{
+	float portal_pdf = 0.0f;
+	if(is_possible)
+		*is_possible = false;
+
+	for(int p = 0; p < kernel_data.integrator.num_portals; p++) {
+		if(p == ignore_portal)
+			continue;
+
+		/* TODO(sergey): Consider moving portal data fetch to a
+		 * dedicated function.
+		 */
+		float4 data0 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 0);
+		float4 data3 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 3);
+
+		float3 lightpos = make_float3(data0.y, data0.z, data0.w);
+		float3 dir = make_float3(data3.y, data3.z, data3.w);
+
+		if(dot(dir, P - lightpos) <= 1e-5f) {
+			/* P is on the wrong side or too close. */
+			continue;
+		}
+
+		if(is_possible) {
+			/* There's a portal that could be sampled from this position. */
+			*is_possible = true;
+		}
+
+		float t = -(dot(P, dir) - dot(lightpos, dir)) / dot(direction, dir);
+		if(t <= 1e-5f) {
+			/* Either behind the portal or too close. */
+			continue;
+		}
+
+		float4 data1 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 1);
+		float4 data2 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 2);
+
+		float3 axisu = make_float3(data1.y, data1.z, data1.w);
+		float3 axisv = make_float3(data2.y, data2.z, data2.w);
+
+		float3 hit = P + t*direction;
+		float3 inplane = hit - lightpos;
+		/* Skip if the the ray doesn't pass through portal. */
+		if(fabsf(dot(inplane, axisu) / dot(axisu, axisu)) > 0.5f)
+			continue;
+		if(fabsf(dot(inplane, axisv) / dot(axisv, axisv)) > 0.5f)
+			continue;
+
+		portal_pdf += area_light_sample(P, &lightpos, axisu, axisv, 0.0f, 0.0f, false);
+	}
+
+	return kernel_data.integrator.num_portals? portal_pdf / kernel_data.integrator.num_portals: 0.0f;
+}
+
+ccl_device int background_num_possible_portals(KernelGlobals *kg, float3 P)
+{
+	int num_possible_portals = 0;
+	for(int p = 0; p < kernel_data.integrator.num_portals; p++) {
+		float4 data0 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 0);
+		float4 data3 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 3);
+		float3 lightpos = make_float3(data0.y, data0.z, data0.w);
+		float3 dir = make_float3(data3.y, data3.z, data3.w);
+
+		/* Check whether portal is on the right side. */
+		if(dot(dir, P - lightpos) > 1e-5f)
+			num_possible_portals++;
+	}
+	return num_possible_portals;
+}
+
+ccl_device float3 background_portal_sample(KernelGlobals *kg,
+                                           float3 P,
+                                           float randu,
+                                           float randv,
+                                           int num_possible,
+                                           int *sampled_portal,
+                                           float *pdf)
+{
+	/* Pick a portal, then re-normalize randv. */
+	randv *= num_possible;
+	int portal = (int)randv;
+	randv -= portal;
+
+	/* TODO(sergey): Some smarter way of finding portal to sample
+	 * is welcome.
+	 */
+	for(int p = 0; p < kernel_data.integrator.num_portals; p++) {
+		/* Search for the sampled portal. */
+		float4 data0 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 0);
+		float4 data3 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 3);
+		float3 lightpos = make_float3(data0.y, data0.z, data0.w);
+		float3 dir = make_float3(data3.y, data3.z, data3.w);
+
+		/* Check whether portal is on the right side. */
+		if(dot(dir, P - lightpos) <= 1e-5f)
+			continue;
+
+		if(portal == 0) {
+			/* p is the portal to be sampled. */
+			float4 data1 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 1);
+			float4 data2 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 2);
+			float3 axisu = make_float3(data1.y, data1.z, data1.w);
+			float3 axisv = make_float3(data2.y, data2.z, data2.w);
+
+			float3 lightPoint = lightpos;
+
+			*pdf = area_light_sample(P, &lightPoint,
+			                         axisu, axisv,
+			                         randu, randv,
+			                         true);
+
+			*pdf /= num_possible;
+			*sampled_portal = p;
+			return normalize(lightPoint - P);
+		}
+
+		portal--;
+	}
+
+	return make_float3(0.0f, 0.0f, 0.0f);
+}
+
+ccl_device float3 background_light_sample(KernelGlobals *kg, float3 P, float randu, float randv, float *pdf)
+{
+	/* Probability of sampling portals instead of the map. */
+	float portal_sampling_pdf = kernel_data.integrator.portal_pdf;
+
+	/* Check if there are portals in the scene which we can sample. */
+	if(portal_sampling_pdf > 0.0f) {
+		int num_portals = background_num_possible_portals(kg, P);
+		if(num_portals > 0) {
+			if(portal_sampling_pdf == 1.0f || randu < portal_sampling_pdf) {
+				if(portal_sampling_pdf < 1.0f) {
+					randu /= portal_sampling_pdf;
+				}
+				int portal;
+				float3 D = background_portal_sample(kg, P, randu, randv, num_portals, &portal, pdf);
+				if(num_portals > 1) {
+					/* Ignore the chosen portal, its pdf is already included. */
+					*pdf += background_portal_pdf(kg, P, D, portal, NULL);
+				}
+				/* We could also have sampled the map, so combine with MIS. */
+				if(portal_sampling_pdf < 1.0f) {
+					float cdf_pdf = background_map_pdf(kg, D);
+					*pdf = (portal_sampling_pdf * (*pdf)
+					     + (1.0f - portal_sampling_pdf) * cdf_pdf);
+				}
+				return D;
+			} else {
+				/* Sample map, but with nonzero portal_sampling_pdf for MIS. */
+				randu = (randu - portal_sampling_pdf) / (1.0f - portal_sampling_pdf);
+			}
+		} else {
+			/* We can't sample a portal.
+			 * Check if we can sample the map instead.
+			 */
+			if(portal_sampling_pdf == 1.0f) {
+				/* Use uniform as a fallback if we can't sample the map. */
+				*pdf = 1.0f / M_4PI_F;
+				return sample_uniform_sphere(randu, randv);
+			}
+			else {
+				portal_sampling_pdf = 0.0f;
+			}
+		}
+	}
+
+	float3 D = background_map_sample(kg, randu, randv, pdf);
+	/* Use MIS if portals could be sampled as well. */
+	if(portal_sampling_pdf > 0.0f) {
+		float portal_pdf = background_portal_pdf(kg, P, D, -1, NULL);
+		*pdf = (portal_sampling_pdf * portal_pdf
+		     + (1.0f - portal_sampling_pdf) * (*pdf));
+	}
+	return D;
+}
+
+ccl_device float background_light_pdf(KernelGlobals *kg, float3 P, float3 direction)
+{
+	/* Probability of sampling portals instead of the map. */
+	float portal_sampling_pdf = kernel_data.integrator.portal_pdf;
+
+	if(portal_sampling_pdf > 0.0f) {
+		bool is_possible;
+		float portal_pdf = background_portal_pdf(kg, P, direction, -1, &is_possible);
+		if(portal_pdf == 0.0f) {
+			if(portal_sampling_pdf == 1.0f) {
+				/* If there are no possible portals at this point,
+				 * the fallback sampling would have been used.
+				 * Otherwise, the direction would not be sampled at all => pdf = 0
+				 */
+				return is_possible? 0.0f: kernel_data.integrator.pdf_lights / M_4PI_F;
+			}
+			else {
+				/* We can only sample the map. */
+				return background_map_pdf(kg, direction) * kernel_data.integrator.pdf_lights;
+			}
+		} else {
+			if(portal_sampling_pdf == 1.0f) {
+				/* We can only sample portals. */
+				return portal_pdf * kernel_data.integrator.pdf_lights;
+			}
+			else {
+				/* We can sample both, so combine with MIS. */
+				return (background_map_pdf(kg, direction) * (1.0f - portal_sampling_pdf)
+				      + portal_pdf * portal_sampling_pdf) * kernel_data.integrator.pdf_lights;
+			}
+		}
+	}
+
+	/* No portals in the scene, so must sample the map.
+	 * At least one of them is always possible if we have a LIGHT_BACKGROUND.
+	 */
+	return background_map_pdf(kg, direction) * kernel_data.integrator.pdf_lights;
+}
+#endif
+
+/* Regular Light */
+
+ccl_device float3 disk_light_sample(float3 v, float randu, float randv)
+{
+	float3 ru, rv;
+
+	make_orthonormals(v, &ru, &rv);
+	to_unit_disk(&randu, &randv);
+
+	return ru*randu + rv*randv;
+}
+
+ccl_device float3 distant_light_sample(float3 D, float radius, float randu, float randv)
+{
+	return normalize(D + disk_light_sample(D, randu, randv)*radius);
+}
+
+ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, float randu, float randv)
+{
+	return disk_light_sample(normalize(P - center), randu, randv)*radius;
+}
+
 ccl_device float spot_light_attenuation(float4 data1, float4 data2, LightSample *ls)
 {
 	float3 dir = make_float3(data2.y, data2.z, data2.w);
@@ -344,13 +563,14 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 #ifdef __BACKGROUND_MIS__
 	else if(type == LIGHT_BACKGROUND) {
 		/* infinite area light (e.g. light dome or env light) */
-		float3 D = background_light_sample(kg, randu, randv, &ls->pdf);
+		float3 D = -background_light_sample(kg, P, randu, randv, &ls->pdf);
 
 		ls->P = D;
 		ls->Ng = D;
 		ls->D = -D;
 		ls->t = FLT_MAX;
 		ls->eval_fac = 1.0f;
+		ls->pdf *= kernel_data.integrator.pdf_lights;
 	}
 #endif
 	else {

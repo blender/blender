@@ -743,7 +743,10 @@ class CyclesLamp_PT_preview(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.lamp and CyclesButtonsPanel.poll(context)
+        return context.lamp and \
+               not (context.lamp.type == 'AREA' and
+                    context.lamp.cycles.is_portal) \
+               and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         self.layout.template_preview(context.lamp)
@@ -781,13 +784,21 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 
-        if cscene.progressive == 'BRANCHED_PATH':
-            col.prop(clamp, "samples")
-        col.prop(clamp, "max_bounces")
+        if not (lamp.type == 'AREA' and clamp.is_portal):
+            sub = col.column(align=True)
+            if cscene.progressive == 'BRANCHED_PATH':
+                sub.prop(clamp, "samples")
+            sub.prop(clamp, "max_bounces")
 
         col = split.column()
-        col.prop(clamp, "cast_shadow")
-        col.prop(clamp, "use_multiple_importance_sampling", text="Multiple Importance")
+
+        sub = col.column(align=True)
+        sub.active = not (lamp.type == 'AREA' and clamp.is_portal)
+        sub.prop(clamp, "cast_shadow")
+        sub.prop(clamp, "use_multiple_importance_sampling", text="Multiple Importance")
+
+        if lamp.type == 'AREA':
+            col.prop(clamp, "is_portal", text="Portal")
 
         if lamp.type == 'HEMI':
             layout.label(text="Not supported, interpreted as sun lamp")
@@ -799,7 +810,9 @@ class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.lamp and CyclesButtonsPanel.poll(context)
+        return context.lamp and not (context.lamp.type == 'AREA' and
+                                     context.lamp.cycles.is_portal) and \
+               CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

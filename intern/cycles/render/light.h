@@ -56,6 +56,8 @@ public:
 	bool use_transmission;
 	bool use_scatter;
 
+	bool is_portal;
+
 	int shader;
 	int samples;
 	int max_bounces;
