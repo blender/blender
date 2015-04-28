@@ -43,6 +43,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
+#include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
@@ -196,6 +197,29 @@ typedef struct ProjPaintImage {
 	bool touch;
 } ProjPaintImage;
 
+/**
+ * Handle for stroke (operator customdata)
+ */
+typedef struct ProjStrokeHandle {
+	/* Support for painting from multiple views at once,
+	 * currently used to impliment summetry painting,
+	 * we can assume at least the first is set while painting. */
+	struct ProjPaintState *ps_views[8];
+	int ps_views_tot;
+	int symmetry_flags;
+
+	int orig_brush_size;
+
+	bool need_redraw;
+
+	/* trick to bypass regular paint and allow clone picking */
+	bool is_clone_cursor_pick;
+
+	/* In ProjPaintState, only here for convenience */
+	Scene *scene;
+	Brush *brush;
+} ProjStrokeHandle;
+
 /* Main projection painting struct passed to all projection painting functions */
 typedef struct ProjPaintState {
 	View3D *v3d;
@@ -211,23 +235,13 @@ typedef struct ProjPaintState {
 
 	Brush *brush;
 	short tool, blend, mode;
-	int orig_brush_size;
+
 	float brush_size;
 	Object *ob;
+	/* for symmetry, we need to store modified object matrix */
+	float obmat[4][4];
+	float obmat_imat[4][4];
 	/* end similarities with ImagePaintState */
-
-	DerivedMesh    *dm;
-	int dm_totface;
-	int dm_totedge;
-	int dm_totvert;
-	int dm_release;
-
-	MVert          *dm_mvert;
-	MEdge          *dm_medge;
-	MFace          *dm_mface;
-	MTFace         **dm_mtface;
-	MTFace         **dm_mtface_clone;    /* other UV map, use for cloning between layers */
-	MTFace         *dm_mtface_stencil;
 
 	Image *stencil_ima;
 	Image *canvas_ima;
@@ -239,24 +253,16 @@ typedef struct ProjPaintState {
 	LinkNode **bucketRect;              /* screen sized 2D array, each pixel has a linked list of ProjPixel's */
 	LinkNode **bucketFaces;             /* bucketRect aligned array linkList of faces overlapping each bucket */
 	unsigned char *bucketFlags;         /* store if the bucks have been initialized  */
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-	char *faceSeamFlags;                /* store info about faces, if they are initialized etc*/
-	char *faceWindingFlags;             /* save the winding of the face in uv space, helps as an extra validation step for seam detection */
-	float (*faceSeamUVs)[4][2];         /* expanded UVs for faces to use as seams */
-	LinkNode **vertFaces;               /* Only needed for when seam_bleed_px is enabled, use to find UV seams */
-#endif
+
 	char *vertFlags;                    /* store options per vert, now only store if the vert is pointing away from the view */
 	int buckets_x;                      /* The size of the bucket grid, the grid span's screenMin/screenMax so you can paint outsize the screen or with 2 brushes at once */
 	int buckets_y;
-
-	ProjPaintImage *projImages;
 
 	int pixel_sizeof;           /* result of project_paint_pixel_sizeof(), constant per stroke */
 
 	int image_tot;              /* size of projectImages array */
 
 	float (*screenCoords)[4];   /* verts projected into floating point screen space */
-	float *cavities;            /* cavity amount for vertices */
 	float screenMin[2];         /* 2D bounds for mesh verts on the screen's plane (screenspace) */
 	float screenMax[2];
 	float screen_width;         /* Calculated from screenMin & screenMax */
@@ -308,13 +314,51 @@ typedef struct ProjPaintState {
 	int bucketMax[2];
 	int context_bucket_x, context_bucket_y; /* must lock threads while accessing these */
 
-	/* redraw */
-	bool need_redraw;
-
 	struct CurveMapping *cavity_curve;
 	BlurKernel *blurkernel;
 
+
+
+	/* -------------------------------------------------------------------- */
+	/* Vars shared between multiple views (keep last) */
+	/**
+	 * This data is owned by ``ProjStrokeHandle.ps_views[0]``,
+	 * all other views re-use the data.
+	 */
+
+#define PROJ_PAINT_STATE_SHARED_MEMCPY(ps_dst, ps_src) \
+	MEMCPY_STRUCT_OFS(ps_dst, ps_src, is_shared_user)
+
+#define PROJ_PAINT_STATE_SHARED_CLEAR(ps) \
+	MEMSET_STRUCT_OFS(ps, 0, is_shared_user)
+
+	bool is_shared_user;
+
+	ProjPaintImage *projImages;
+	float *cavities;            /* cavity amount for vertices */
+
+#ifndef PROJ_DEBUG_NOSEAMBLEED
+	char *faceSeamFlags;                /* store info about faces, if they are initialized etc*/
+	char *faceWindingFlags;             /* save the winding of the face in uv space, helps as an extra validation step for seam detection */
+	float (*faceSeamUVs)[4][2];         /* expanded UVs for faces to use as seams */
+	LinkNode **vertFaces;               /* Only needed for when seam_bleed_px is enabled, use to find UV seams */
+#endif
+
 	SpinLock *tile_lock;
+
+	DerivedMesh    *dm;
+	int dm_totface;
+	int dm_totedge;
+	int dm_totvert;
+	int dm_release;
+
+	MVert          *dm_mvert;
+	MEdge          *dm_medge;
+	MFace          *dm_mface;
+	MTFace         *dm_mtface_stencil;
+
+	MTFace         **dm_mtface;
+	MTFace         **dm_mtface_clone;    /* other UV map, use for cloning between layers */
 } ProjPaintState;
 
 typedef union pixelPointer {
@@ -3110,7 +3154,8 @@ static void proj_paint_state_non_cddm_init(ProjPaintState *ps)
 	}
 }
 
-static void proj_paint_state_viewport_init(ProjPaintState *ps)
+static void proj_paint_state_viewport_init(
+        ProjPaintState *ps, const char symmetry_flag)
 {
 	float mat[3][3];
 	float viewmat[4][4];
@@ -3120,7 +3165,19 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps)
 	ps->viewDir[1] = 0.0f;
 	ps->viewDir[2] = 1.0f;
 
-	invert_m4_m4(ps->ob->imat, ps->ob->obmat);
+	copy_m4_m4(ps->obmat, ps->ob->obmat);
+
+	if (symmetry_flag) {
+		int i;
+		for (i = 0; i < 3; i++) {
+			if ((symmetry_flag >> i) & 1) {
+				negate_v3(ps->obmat[i]);
+				ps->is_flip_object = !ps->is_flip_object;
+			}
+		}
+	}
+
+	invert_m4_m4(ps->obmat_imat, ps->obmat);
 
 	if (ELEM(ps->source, PROJ_SRC_VIEW, PROJ_SRC_VIEW_FILL)) {
 		/* normal drawing */
@@ -3130,7 +3187,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps)
 		copy_m4_m4(viewmat, ps->rv3d->viewmat);
 		copy_m4_m4(viewinv, ps->rv3d->viewinv);
 
-		ED_view3d_ob_project_mat_get(ps->rv3d, ps->ob, ps->projectMat);
+		ED_view3d_ob_project_mat_get_from_obmat(ps->rv3d, ps->obmat, ps->projectMat);
 
 		ps->is_ortho = ED_view3d_clip_range_get(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend, true);
 	}
@@ -3183,16 +3240,15 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps)
 		}
 
 		/* same as #ED_view3d_ob_project_mat_get */
-		mul_m4_m4m4(vmat, viewmat, ps->ob->obmat);
+		mul_m4_m4m4(vmat, viewmat, ps->obmat);
 		mul_m4_m4m4(ps->projectMat, winmat, vmat);
 	}
 
 
 	/* viewDir - object relative */
-	invert_m4_m4(ps->ob->imat, ps->ob->obmat);
 	copy_m3_m4(mat, viewinv);
 	mul_m3_v3(mat, ps->viewDir);
-	copy_m3_m4(mat, ps->ob->imat);
+	copy_m3_m4(mat, ps->obmat_imat);
 	mul_m3_v3(mat, ps->viewDir);
 	normalize_v3(ps->viewDir);
 
@@ -3202,9 +3258,9 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps)
 
 	/* viewPos - object relative */
 	copy_v3_v3(ps->viewPos, viewinv[3]);
-	copy_m3_m4(mat, ps->ob->imat);
+	copy_m3_m4(mat, ps->obmat_imat);
 	mul_m3_v3(mat, ps->viewPos);
-	add_v3_v3(ps->viewPos, ps->ob->imat[3]);
+	add_v3_v3(ps->viewPos, ps->obmat_imat[3]);
 }
 
 static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int diameter)
@@ -3351,12 +3407,14 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
 	if (reset_threads)
 		ps->thread_tot = 1;
 
-	if (ps->thread_tot > 1) {
-		ps->tile_lock = MEM_mallocN(sizeof(SpinLock), "projpaint_tile_lock");
-		BLI_spin_init(ps->tile_lock);
-	}
+	if (ps->is_shared_user == false) {
+		if (ps->thread_tot > 1) {
+			ps->tile_lock = MEM_mallocN(sizeof(SpinLock), "projpaint_tile_lock");
+			BLI_spin_init(ps->tile_lock);
+		}
 
-	image_undo_init_locks();
+		image_undo_init_locks();
+	}
 
 	for (a = 0; a < ps->thread_tot; a++) {
 		ps->arena_mt[a] = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "project paint arena");
@@ -3714,7 +3772,8 @@ static void project_paint_prepare_all_faces(
         ProjPaintState *ps, MemArena *arena,
         const ProjPaintFaceLookup *face_lookup,
         ProjPaintLayerClone *layer_clone,
-        MTFace *tf_base)
+        MTFace *tf_base,
+        const bool is_multi_view)
 {
 	/* Image Vars - keep track of images we have used */
 	LinkNode *image_LinkList = NULL;
@@ -3773,20 +3832,21 @@ static void project_paint_prepare_all_faces(
 			ProjPaintFaceCoSS coSS;
 			proj_paint_face_coSS_init(ps, mf, &coSS);
 
-			if (project_paint_flt_max_cull(ps, &coSS)) {
-				continue;
-			}
+			if (is_multi_view == false) {
+				if (project_paint_flt_max_cull(ps, &coSS)) {
+					continue;
+				}
 
 #ifdef PROJ_DEBUG_WINCLIP
-			if (project_paint_winclip(ps, mf, &coSS)) {
-				continue;
-			}
+				if (project_paint_winclip(ps, mf, &coSS)) {
+					continue;
+				}
 
 #endif //PROJ_DEBUG_WINCLIP
 
-
-			if (project_paint_backface_cull(ps, mf, &coSS)) {
-				continue;
+				if (project_paint_backface_cull(ps, mf, &coSS)) {
+					continue;
+				}
 			}
 
 			if (tpage_last != tpage) {
@@ -3811,14 +3871,18 @@ static void project_paint_prepare_all_faces(
 	}
 
 	/* build an array of images we use*/
-	project_paint_build_proj_ima(ps, arena, image_LinkList);
+	if (ps->is_shared_user == false) {
+		project_paint_build_proj_ima(ps, arena, image_LinkList);
+	}
 
 	/* we have built the array, discard the linked list */
 	BLI_linklist_free(image_LinkList, NULL);
 }
 
 /* run once per stroke before projection painting */
-static void project_paint_begin(ProjPaintState *ps)
+static void project_paint_begin(
+        ProjPaintState *ps,
+        const bool is_multi_view, const char symmetry_flag)
 {
 	ProjPaintLayerClone layer_clone;
 	ProjPaintFaceLookup face_lookup;
@@ -3839,8 +3903,10 @@ static void project_paint_begin(ProjPaintState *ps)
 	ps->is_flip_object = (ps->ob->transflag & OB_NEG_SCALE) != 0;
 
 	/* paint onto the derived mesh */
-	if (!proj_paint_state_dm_init(ps)) {
-		return;
+	if (ps->is_shared_user == false) {
+		if (!proj_paint_state_dm_init(ps)) {
+			return;
+		}
 	}
 
 	proj_paint_face_lookup_init(ps, &face_lookup);
@@ -3862,11 +3928,13 @@ static void project_paint_begin(ProjPaintState *ps)
 	}
 
 	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
-	proj_paint_state_non_cddm_init(ps);
+	if (ps->is_shared_user == false) {
+		proj_paint_state_non_cddm_init(ps);
 
-	proj_paint_state_cavity_init(ps);
+		proj_paint_state_cavity_init(ps);
+	}
 
-	proj_paint_state_viewport_init(ps);
+	proj_paint_state_viewport_init(ps, symmetry_flag);
 
 	/* calculate vert screen coords
 	 * run this early so we can calculate the x/y resolution of our bucket rect */
@@ -3895,7 +3963,9 @@ static void project_paint_begin(ProjPaintState *ps)
 
 	ps->bucketFlags = MEM_callocN(sizeof(char) * ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-	proj_paint_state_seam_bleed_init(ps);
+	if (ps->is_shared_user == false) {
+		proj_paint_state_seam_bleed_init(ps);
+	}
 #endif
 
 	proj_paint_state_thread_init(ps, reset_threads);
@@ -3903,7 +3973,7 @@ static void project_paint_begin(ProjPaintState *ps)
 
 	proj_paint_state_vert_flags_init(ps);
 
-	project_paint_prepare_all_faces(ps, arena, &face_lookup, &layer_clone, tf_base);
+	project_paint_prepare_all_faces(ps, arena, &face_lookup, &layer_clone, tf_base, is_multi_view);
 }
 
 static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
@@ -3912,7 +3982,7 @@ static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
 	if (ps->tool == PAINT_TOOL_CLONE) {
 		float projCo[4];
 		copy_v3_v3(projCo, ED_view3d_cursor3d_get(ps->scene, ps->v3d));
-		mul_m4_v3(ps->ob->imat, projCo);
+		mul_m4_v3(ps->obmat_imat, projCo);
 
 		projCo[3] = 1.0f;
 		mul_m4_v4(ps->projectMat, projCo);
@@ -3924,14 +3994,16 @@ static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
 static void project_paint_end(ProjPaintState *ps)
 {
 	int a;
-	ProjPaintImage *projIma;
 
 	image_undo_remove_masks();
 
 	/* dereference used image buffers */
-	for (a = 0, projIma = ps->projImages; a < ps->image_tot; a++, projIma++) {
-		BKE_image_release_ibuf(projIma->ima, projIma->ibuf, NULL);
-		DAG_id_tag_update(&projIma->ima->id, 0);
+	if (ps->is_shared_user == false) {
+		ProjPaintImage *projIma;
+		for (a = 0, projIma = ps->projImages; a < ps->image_tot; a++, projIma++) {
+			BKE_image_release_ibuf(projIma->ima, projIma->ibuf, NULL);
+			DAG_id_tag_update(&projIma->ima->id, 0);
+		}
 	}
 
 	BKE_image_release_ibuf(ps->reproject_image, ps->reproject_ibuf, NULL);
@@ -3940,31 +4012,55 @@ static void project_paint_end(ProjPaintState *ps)
 	MEM_freeN(ps->bucketRect);
 	MEM_freeN(ps->bucketFaces);
 	MEM_freeN(ps->bucketFlags);
-	MEM_freeN(ps->dm_mtface);
-	if (ps->do_layer_clone)
-		MEM_freeN(ps->dm_mtface_clone);
-	if (ps->thread_tot > 1) {
-		BLI_spin_end(ps->tile_lock);
-		MEM_freeN((void *)ps->tile_lock);
-	}
-	image_undo_end_locks();
+
+	if (ps->is_shared_user == false) {
+
+		/* must be set for non-shared */
+		BLI_assert(ps->dm_mtface || ps->is_shared_user);
+		if (ps->dm_mtface)
+			MEM_freeN(ps->dm_mtface);
+
+		if (ps->do_layer_clone)
+			MEM_freeN(ps->dm_mtface_clone);
+		if (ps->thread_tot > 1) {
+			BLI_spin_end(ps->tile_lock);
+			MEM_freeN((void *)ps->tile_lock);
+		}
+
+		image_undo_end_locks();
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-	if (ps->seam_bleed_px > 0.0f) {
-		MEM_freeN(ps->vertFaces);
-		MEM_freeN(ps->faceSeamFlags);
-		MEM_freeN(ps->faceWindingFlags);
-		MEM_freeN(ps->faceSeamUVs);
-	}
+		if (ps->seam_bleed_px > 0.0f) {
+			MEM_freeN(ps->vertFaces);
+			MEM_freeN(ps->faceSeamFlags);
+			MEM_freeN(ps->faceWindingFlags);
+			MEM_freeN(ps->faceSeamUVs);
+		}
 #endif
+
+		if (ps->do_mask_cavity) {
+			MEM_freeN(ps->cavities);
+		}
+
+		/* copy for subsurf/multires, so throw away */
+		if (ps->dm->type != DM_TYPE_CDDM) {
+			if (ps->dm_mvert) MEM_freeN(ps->dm_mvert);
+			if (ps->dm_mface) MEM_freeN(ps->dm_mface);
+			/* looks like these don't need copying */
+#if 0
+			if (ps->dm_mtface) MEM_freeN(ps->dm_mtface);
+			if (ps->dm_mtface_clone) MEM_freeN(ps->dm_mtface_clone);
+			if (ps->dm_mtface_stencil) MEM_freeN(ps->dm_mtface_stencil);
+#endif
+		}
+
+		if (ps->dm_release)
+			ps->dm->release(ps->dm);
+	}
 
 	if (ps->blurkernel) {
 		paint_delete_blur_kernel(ps->blurkernel);
 		MEM_freeN(ps->blurkernel);
-	}
-
-	if (ps->do_mask_cavity) {
-		MEM_freeN(ps->cavities);
 	}
 
 	if (ps->vertFlags) MEM_freeN(ps->vertFlags);
@@ -3972,36 +4068,25 @@ static void project_paint_end(ProjPaintState *ps)
 	for (a = 0; a < ps->thread_tot; a++) {
 		BLI_memarena_free(ps->arena_mt[a]);
 	}
-
-	/* copy for subsurf/multires, so throw away */
-	if (ps->dm->type != DM_TYPE_CDDM) {
-		if (ps->dm_mvert) MEM_freeN(ps->dm_mvert);
-		if (ps->dm_mface) MEM_freeN(ps->dm_mface);
-		/* looks like these don't need copying */
-#if 0
-		if (ps->dm_mtface) MEM_freeN(ps->dm_mtface);
-		if (ps->dm_mtface_clone) MEM_freeN(ps->dm_mtface_clone);
-		if (ps->dm_mtface_stencil) MEM_freeN(ps->dm_mtface_stencil);
-#endif
-	}
-
-	if (ps->dm_release)
-		ps->dm->release(ps->dm);
 }
 
 /* 1 = an undo, -1 is a redo. */
+static void partial_redraw_single_init(ImagePaintPartialRedraw *pr)
+{
+	pr->x1 = 10000000;
+	pr->y1 = 10000000;
+
+	pr->x2 = -1;
+	pr->y2 = -1;
+
+	pr->enabled = 1;
+}
+
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
 {
 	int tot = PROJ_BOUNDBOX_SQUARED;
 	while (tot--) {
-		pr->x1 = 10000000;
-		pr->y1 = 10000000;
-
-		pr->x2 = -1;
-		pr->y2 = -1;
-
-		pr->enabled = 1;
-
+		partial_redraw_single_init(pr);
 		pr++;
 	}
 }
@@ -4045,6 +4130,8 @@ static bool project_image_refresh_tagged(ProjPaintState *ps)
 					imapaint_image_update(NULL, projIma->ima, projIma->ibuf, true);
 					redraw = 1;
 				}
+
+				partial_redraw_single_init(pr);
 			}
 
 			projIma->touch = 0; /* clear for reuse */
@@ -4884,7 +4971,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 			}
 			
 			ups->average_stroke_counter++;
-			mul_m4_v3(ps->ob->obmat, world);
+			mul_m4_v3(ps->obmat, world);
 			add_v3_v3(ups->average_stroke_accum, world);
 			ups->last_stroke_valid = true;
 		}
@@ -4894,33 +4981,21 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 }
 
 
-void paint_proj_stroke(const bContext *C, void *pps, const float prev_pos[2], const float pos[2], const bool eraser, float pressure, float distance, float size)
+static void paint_proj_stroke_ps(
+        const bContext *UNUSED(C), void *ps_handle_p, const float prev_pos[2], const float pos[2],
+        const bool eraser, float pressure, float distance, float size,
+        /* extra view */
+        ProjPaintState *ps
+        )
 {
-	ProjPaintState *ps = pps;
+	ProjStrokeHandle *ps_handle = ps_handle_p;
 	Brush *brush = ps->brush;
 	Scene *scene = ps->scene;
-	int a;
 
 	ps->brush_size = size;
 	ps->blend = brush->blend;
 	if (eraser)
 		ps->blend = IMB_BLEND_ERASE_ALPHA;
-	
-	/* clone gets special treatment here to avoid going through image initialization */
-	if (ps->tool == PAINT_TOOL_CLONE && ps->mode == BRUSH_STROKE_INVERT) {
-		View3D *v3d = ps->v3d;
-		float *cursor = ED_view3d_cursor3d_get(scene, v3d);
-		int mval_i[2] = {(int)pos[0], (int)pos[1]};
-
-		view3d_operator_needs_opengl(C);
-
-		if (!ED_view3d_autodist(scene, ps->ar, v3d, mval_i, cursor, false, NULL))
-			return;
-
-		ED_region_tag_redraw(ps->ar);
-
-		return;
-	}
 
 	/* handle gradient and inverted stroke color here */
 	if (ps->tool == PAINT_TOOL_DRAW) {
@@ -4941,14 +5016,42 @@ void paint_proj_stroke(const bContext *C, void *pps, const float prev_pos[2], co
 		}
 	}
 
-	/* continue adding to existing partial redraw rects until redraw */
-	if (!ps->need_redraw) {
-		for (a = 0; a < ps->image_tot; a++)
-			partial_redraw_array_init(ps->projImages[a].partRedrawRect);
+	if (project_paint_op(ps, prev_pos, pos)) {
+		ps_handle->need_redraw = true;
+		project_image_refresh_tagged(ps);
+	}
+}
+
+
+void paint_proj_stroke(
+        const bContext *C, void *ps_handle_p, const float prev_pos[2], const float pos[2],
+        const bool eraser, float pressure, float distance, float size)
+{
+	int i;
+	ProjStrokeHandle *ps_handle = ps_handle_p;
+
+	/* clone gets special treatment here to avoid going through image initialization */
+	if (ps_handle->is_clone_cursor_pick) {
+		Scene *scene = ps_handle->scene;
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+		float *cursor = ED_view3d_cursor3d_get(scene, v3d);
+		int mval_i[2] = {(int)pos[0], (int)pos[1]};
+
+		view3d_operator_needs_opengl(C);
+
+		if (!ED_view3d_autodist(scene, ar, v3d, mval_i, cursor, false, NULL))
+			return;
+
+		ED_region_tag_redraw(ar);
+
+		return;
 	}
 
-	if (project_paint_op(ps, prev_pos, pos))
-		ps->need_redraw = true;
+	for (i = 0; i < ps_handle->ps_views_tot; i++) {
+		ProjPaintState *ps = ps_handle->ps_views[i];
+		paint_proj_stroke_ps(C, ps_handle_p, prev_pos, pos, eraser, pressure, distance, size, ps);
+	}
 }
 
 
@@ -5058,51 +5161,116 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 
 void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int mode)
 {
-	ProjPaintState *ps = MEM_callocN(sizeof(ProjPaintState), "ProjectionPaintState");
+	ProjStrokeHandle *ps_handle;
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *settings = scene->toolsettings;
+	int i;
+	bool is_multi_view;
+	char symmetry_flag_views[ARRAY_SIZE(ps_handle->ps_views)] = {0};
 
-	project_state_init(C, ob, ps, mode);
+	ps_handle = MEM_callocN(sizeof(ProjStrokeHandle), "ProjStrokeHandle");
+	ps_handle->scene = scene;
+	ps_handle->brush = BKE_paint_brush(&settings->imapaint.paint);
 
-	if (ps->tool == PAINT_TOOL_CLONE && mode == BRUSH_STROKE_INVERT) {
+	/* bypass regular stroke logic */
+	if ((ps_handle->brush->imagepaint_tool == PAINT_TOOL_CLONE) &&
+	    (mode == BRUSH_STROKE_INVERT))
+	{
 		view3d_operator_needs_opengl(C);
-		return ps;
+		ps_handle->is_clone_cursor_pick = true;
+		return ps_handle;
 	}
 
-	paint_brush_init_tex(ps->brush);
+	ps_handle->orig_brush_size = BKE_brush_size_get(scene, ps_handle->brush);
 
-	ps->source = (ps->tool == PAINT_TOOL_FILL) ? PROJ_SRC_VIEW_FILL : PROJ_SRC_VIEW;
+	ps_handle->symmetry_flags = settings->imapaint.paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+	ps_handle->ps_views_tot = 1 + (pow_i(2, count_bits_i(ps_handle->symmetry_flags)) - 1);
+	is_multi_view = (ps_handle->ps_views_tot != 1);
 
-	if (ps->ob == NULL || !(ps->ob->lay & ps->v3d->lay)) {
-		MEM_freeN(ps);
-		return NULL;
+	for (i = 0; i < ps_handle->ps_views_tot; i++) {
+		ProjPaintState *ps = MEM_callocN(sizeof(ProjPaintState), "ProjectionPaintState");
+		ps_handle->ps_views[i] = ps;
 	}
 
-	ps->orig_brush_size = BKE_brush_size_get(ps->scene, ps->brush);
+	if (ps_handle->symmetry_flags) {
+		int index = 0;
+
+		int x = 0;
+		do {
+			int y = 0;
+			do {
+				int z = 0;
+				do {
+					symmetry_flag_views[index++] = (
+					        (x ? PAINT_SYMM_X : 0) |
+					        (y ? PAINT_SYMM_Y : 0) |
+					        (z ? PAINT_SYMM_Z : 0));
+					BLI_assert(index <= ps_handle->ps_views_tot);
+				} while ((z++ == 0) && (ps_handle->symmetry_flags & PAINT_SYMM_Z));
+			} while ((y++ == 0) && (ps_handle->symmetry_flags & PAINT_SYMM_Y));
+		} while ((x++ == 0) && (ps_handle->symmetry_flags & PAINT_SYMM_X));
+		BLI_assert(index == ps_handle->ps_views_tot);
+	}
+
+	for (i = 0; i < ps_handle->ps_views_tot; i++) {
+		ProjPaintState *ps = ps_handle->ps_views[i];
+
+		project_state_init(C, ob, ps, mode);
+
+		if (ps->ob == NULL || !(ps->ob->lay & ps->v3d->lay)) {
+			ps_handle->ps_views_tot = i + 1;
+			goto fail;
+		}
+	}
 
 	/* Don't allow brush size below 2 */
-	if (BKE_brush_size_get(ps->scene, ps->brush) < 2)
-		BKE_brush_size_set(ps->scene, ps->brush, 2 * U.pixelsize);
+	if (BKE_brush_size_get(scene, ps_handle->brush) < 2)
+		BKE_brush_size_set(scene, ps_handle->brush, 2 * U.pixelsize);
 
 	/* allocate and initialize spatial data structures */
-	project_paint_begin(ps);
 
-	if (ps->dm == NULL) {
-		MEM_freeN(ps);
-		return NULL;
-	}
+	for (i = 0; i < ps_handle->ps_views_tot; i++) {
+		ProjPaintState *ps = ps_handle->ps_views[i];
 
-	paint_proj_begin_clone(ps, mouse);
-
-	return ps;
-}
-
-void paint_proj_redraw(const bContext *C, void *pps, bool final)
-{
-	ProjPaintState *ps = pps;
-
-	if (ps->need_redraw) {
+		ps->source = (ps->tool == PAINT_TOOL_FILL) ? PROJ_SRC_VIEW_FILL : PROJ_SRC_VIEW;
 		project_image_refresh_tagged(ps);
 
-		ps->need_redraw = false;
+		/* re-use! */
+		if (i != 0) {
+			ps->is_shared_user = true;
+			PROJ_PAINT_STATE_SHARED_MEMCPY(ps, ps_handle->ps_views[0]);
+		}
+
+		project_paint_begin(ps, is_multi_view, symmetry_flag_views[i]);
+
+		paint_proj_begin_clone(ps, mouse);
+
+		if (ps->dm == NULL) {
+			goto fail;
+			return NULL;
+		}
+	}
+
+	paint_brush_init_tex(ps_handle->brush);
+
+	return ps_handle;
+
+
+fail:
+	for (i = 0; i < ps_handle->ps_views_tot; i++) {
+		ProjPaintState *ps = ps_handle->ps_views[i];
+		MEM_freeN(ps);
+	}
+	MEM_freeN(ps_handle);
+	return NULL;
+}
+
+void paint_proj_redraw(const bContext *C, void *ps_handle_p, bool final)
+{
+	ProjStrokeHandle *ps_handle = ps_handle_p;
+
+	if (ps_handle->need_redraw) {
+		ps_handle->need_redraw = false;
 	}
 	else if (!final) {
 		return;
@@ -5117,19 +5285,34 @@ void paint_proj_redraw(const bContext *C, void *pps, bool final)
 	}
 }
 
-void paint_proj_stroke_done(void *pps)
+void paint_proj_stroke_done(void *ps_handle_p)
 {
-	ProjPaintState *ps = pps;
-	if (ps->tool == PAINT_TOOL_CLONE && ps->mode == BRUSH_STROKE_INVERT) {
-		MEM_freeN(ps);
+	ProjStrokeHandle *ps_handle = ps_handle_p;
+	Scene *scene = ps_handle->scene;
+	int i;
+
+	if (ps_handle->is_clone_cursor_pick) {
+		MEM_freeN(ps_handle);
 		return;
 	}
-	BKE_brush_size_set(ps->scene, ps->brush, ps->orig_brush_size);
 
-	paint_brush_exit_tex(ps->brush);
+	for (i = 1; i < ps_handle->ps_views_tot; i++) {
+		PROJ_PAINT_STATE_SHARED_CLEAR(ps_handle->ps_views[i]);
+	}
 
-	project_paint_end(ps);
-	MEM_freeN(ps);
+	BKE_brush_size_set(scene, ps_handle->brush, ps_handle->orig_brush_size);
+
+	paint_brush_exit_tex(ps_handle->brush);
+
+	for (i = 0; i < ps_handle->ps_views_tot; i++) {
+		ProjPaintState *ps;
+		ps = ps_handle->ps_views[i];
+		project_paint_end(ps);
+		MEM_freeN(ps);
+
+	}
+
+	MEM_freeN(ps_handle);
 }
 /* use project paint to re-apply an image */
 static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
@@ -5209,7 +5392,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	                         ED_image_undo_restore, ED_image_undo_free, NULL);
 
 	/* allocate and initialize spatial data structures */
-	project_paint_begin(&ps);
+	project_paint_begin(&ps, false, 0);
 
 	if (ps.dm == NULL) {
 		BKE_brush_size_set(scene, ps.brush, orig_brush_size);

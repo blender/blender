@@ -605,6 +605,14 @@ void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, Object *ob, float pm
 	mul_m4_m4m4(pmat, (float (*)[4])rv3d->winmat, vmat);
 }
 
+void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d, float obmat[4][4], float pmat[4][4])
+{
+	float vmat[4][4];
+
+	mul_m4_m4m4(vmat, (float (*)[4])rv3d->viewmat, obmat);
+	mul_m4_m4m4(pmat, (float (*)[4])rv3d->winmat, vmat);
+}
+
 /**
  * Uses window coordinates (x,y) and depth component z to find a point in
  * modelspace */

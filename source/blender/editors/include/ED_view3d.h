@@ -219,6 +219,7 @@ void ED_view3d_win_to_vector(const struct ARegion *ar, const float mval[2], floa
 bool ED_view3d_win_to_segment(const struct ARegion *ar, struct View3D *v3d, const float mval[2],
                               float r_ray_start[3], float r_ray_end[3], const bool do_clip);
 void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
+void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d, float obmat[4][4], float pmat[4][4]);
 void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, const float y, const float z);
 
 /* end */

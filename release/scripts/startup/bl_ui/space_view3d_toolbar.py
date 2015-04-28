@@ -1698,6 +1698,25 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
         col.operator("paint.project_image", text="Apply Camera Image")
 
 
+class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
+    bl_category = "Tools"
+    bl_context = "imagepaint"
+    bl_label = "Symmetry"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings
+        ipaint = toolsettings.image_paint
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(ipaint, "use_symmetry_x", text="X", toggle=True)
+        row.prop(ipaint, "use_symmetry_y", text="Y", toggle=True)
+        row.prop(ipaint, "use_symmetry_z", text="Z", toggle=True)
+
+
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
     bl_category = "Options"
     bl_context = "imagepaint"
