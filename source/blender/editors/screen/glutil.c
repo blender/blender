@@ -1015,7 +1015,7 @@ void bglPolygonOffset(float UNUSED(viewdist), float dist)
 			if (depth_fac == 0.0f) {
 				int depthbits;
 				glGetIntegerv(GL_DEPTH_BITS, &depthbits);
-				depth_fac = 1.0f / (float)(depthbits - 1);
+				depth_fac = 1.0f / (float)((1 << depthbits) - 1);
 			}
 			offs = (-1.0 / winmat[10]) * dist * depth_fac;
 #endif
