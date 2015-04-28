@@ -977,6 +977,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		float (*poly_nors_dst)[3] = NULL;
 		float (*loop_nors_dst)[3] = NULL;
 
+		float (*poly_cents_src)[3] = NULL;
+
 		MeshElemMap *vert_to_loop_map_src = NULL;
 		int *vert_to_loop_map_src_buff = NULL;
 		MeshElemMap *vert_to_poly_map_src = NULL;
@@ -1012,6 +1014,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		int *indices_interp = NULL;
 		float *weights_interp = NULL;
 
+		MLoop *ml_src, *ml_dst;
+		MPoly *mp_src, *mp_dst;
 		int tindex, pidx_dst, lidx_dst, plidx_dst, pidx_src, lidx_src, plidx_src;
 
 		IslandResult **islands_res;
@@ -1089,11 +1093,13 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		                              edges_src, num_edges_src, polys_src, num_polys_src, loops_src, num_loops_src);
 		if (use_from_vert) {
 			loop_to_poly_map_src = MEM_mallocN(sizeof(*loop_to_poly_map_src) * (size_t)num_loops_src, __func__);
-			for (pidx_src = 0; pidx_src < num_polys_src; pidx_src++) {
-				MPoly *mp = &polys_src[pidx_src];
-				for (plidx_src = 0, lidx_src = mp->loopstart; plidx_src < mp->totloop; plidx_src++, lidx_src++) {
+			poly_cents_src = MEM_mallocN(sizeof(*poly_cents_src) * (size_t)num_polys_src, __func__);
+			for (pidx_src = 0, mp_src = polys_src; pidx_src < num_polys_src; pidx_src++, mp_src++) {
+				ml_src = &loops_src[mp_src->loopstart];
+				for (plidx_src = 0, lidx_src = mp_src->loopstart; plidx_src < mp_src->totloop; plidx_src++, lidx_src++) {
 					loop_to_poly_map_src[lidx_src] = pidx_src;
 				}
+				BKE_mesh_calc_poly_center(mp_src, ml_src, verts_src, poly_cents_src[pidx_src]);
 			}
 		}
 
@@ -1155,7 +1161,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 					int num_verts_active = 0;
 					BLI_BITMAP_SET_ALL(verts_active, false, (size_t)num_verts_src);
 					for (i = 0; i < isld->count; i++) {
-						MPoly *mp_src = &polys_src[isld->indices[i]];
+						mp_src = &polys_src[isld->indices[i]];
 						for (lidx_src = mp_src->loopstart; lidx_src < mp_src->loopstart + mp_src->totloop; lidx_src++) {
 							BLI_BITMAP_ENABLE(verts_active, loops_src[lidx_src].v);
 							num_verts_active++;
@@ -1199,7 +1205,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 					int num_faces_active = 0;
 					BLI_BITMAP_SET_ALL(faces_active, false, (size_t)num_faces_src);
 					for (i = 0; i < num_faces_src; i++) {
-						MPoly *mp_src = &polys_src[tessface_to_poly_map_src[i]];
+						mp_src = &polys_src[tessface_to_poly_map_src[i]];
 						if (island_store.items_to_islands[mp_src->loopstart] == tindex) {
 							BLI_BITMAP_ENABLE(faces_active, i);
 							num_faces_active++;
@@ -1233,9 +1239,13 @@ void BKE_mesh_remap_calc_loops_from_dm(
 			islands_res[tindex] = MEM_mallocN(sizeof(**islands_res) * islands_res_buff_size, __func__);
 		}
 
-		for (pidx_dst = 0; pidx_dst < numpolys_dst; pidx_dst++) {
-			MPoly *mp_dst = &polys_dst[pidx_dst];
+		for (pidx_dst = 0, mp_dst = polys_dst; pidx_dst < numpolys_dst; pidx_dst++, mp_dst++) {
 			float (*pnor_dst)[3] = &poly_nors_dst[pidx_dst];
+
+			/* Only in use_from_vert case, we may need polys' centers as fallback in case we cannot decide which
+			 * corner to use from normals only. */
+			float pcent_dst[3];
+			bool pcent_dst_valid = false;
 
 			if ((size_t)mp_dst->totloop > islands_res_buff_size) {
 				islands_res_buff_size = (size_t)mp_dst->totloop;
@@ -1246,8 +1256,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 
 			for (tindex = 0; tindex < num_trees; tindex++) {
 				BVHTreeFromMesh *tdata = &treedata[tindex];
-				MLoop *ml_dst = &loops_dst[mp_dst->loopstart];
 
+				ml_dst = &loops_dst[mp_dst->loopstart];
 				for (plidx_dst = 0; plidx_dst < mp_dst->totloop; plidx_dst++, ml_dst++) {
 					if (use_from_vert) {
 						float tmp_co[3];
@@ -1263,6 +1273,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 							float (*nor_dst)[3];
 							float (*nors_src)[3];
 							float best_nor_dot = -2.0f;
+							float best_sqdist_fallback = FLT_MAX;
 							int best_index_src = -1;
 
 							if (mode == MREMAP_MODE_LOOP_NEAREST_LOOPNOR) {
@@ -1279,16 +1290,38 @@ void BKE_mesh_remap_calc_loops_from_dm(
 							for (i = vert_to_refelem_map_src[nearest.index].count; i--;) {
 								const int index_src = vert_to_refelem_map_src[nearest.index].indices[i];
 								const float dot = dot_v3v3(nors_src[index_src], *nor_dst);
-								if (dot > best_nor_dot) {
-									best_nor_dot = dot;
-									best_index_src = index_src;
+
+								if (dot > best_nor_dot - 1e-6f) {
+									/* We need something as fallback decision in case dest normal matches several
+									 * source normals (see T44522), using distance between polys' centers here. */
+									float *pcent_src;
+									float sqdist;
+
+									pidx_src = (mode == MREMAP_MODE_LOOP_NEAREST_LOOPNOR) ?
+									                   loop_to_poly_map_src[index_src] : index_src;
+									mp_src = &polys_src[pidx_src];
+									ml_src = &loops_src[mp_src->loopstart];
+
+									if (!pcent_dst_valid) {
+										BKE_mesh_calc_poly_center(
+										            mp_dst, &loops_dst[mp_dst->loopstart], verts_dst, pcent_dst);
+										pcent_dst_valid = true;
+									}
+									pcent_src = poly_cents_src[pidx_src];
+									sqdist = len_squared_v3v3(pcent_dst, pcent_src);
+
+									if ((dot > best_nor_dot + 1e-6f) || (sqdist < best_sqdist_fallback)) {
+										best_nor_dot = dot;
+										best_sqdist_fallback = sqdist;
+										best_index_src = index_src;
+									}
 								}
 							}
 							if (mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR) {
 								/* Our best_index_src is a poly one for now!
 								 * Have to find its loop matching our closest vertex. */
-								MPoly *mp_src = &polys_src[best_index_src];
-								MLoop *ml_src = &loops_src[mp_src->loopstart];
+								mp_src = &polys_src[best_index_src];
+								ml_src = &loops_src[mp_src->loopstart];
 								for (plidx_src = 0; plidx_src < mp_src->totloop; plidx_src++, ml_src++) {
 									if ((int)ml_src->v == nearest.index) {
 										best_index_src = plidx_src + mp_src->loopstart;
@@ -1488,12 +1521,11 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									if (last_valid_pidx_isld_src != -1) {
 										/* Find a new valid loop in that new poly (nearest one for now).
 										 * Note we could be much more subtle here, again that's for later... */
-										MPoly *mp_src;
-										MLoop *ml_src, *ml_dst = &loops_dst[lidx_dst];
 										int j;
 										float best_dist_sq = FLT_MAX;
 										float tmp_co[3];
 
+										ml_dst = &loops_dst[lidx_dst];
 										copy_v3_v3(tmp_co, verts_dst[ml_dst->v].co);
 
 										/* We do our transform here, since we may do several raycast/nearest queries. */
@@ -1532,10 +1564,10 @@ void BKE_mesh_remap_calc_loops_from_dm(
 						/* Else, we use source poly, indices stored in islands_res are those of polygons. */
 						pidx_src = isld_res->index_src;
 						if (pidx_src >= 0) {
-							MPoly *mp_src = &polys_src[pidx_src];
 							float *hit_co = isld_res->hit_point;
 							int best_loop_index_src;
 
+							mp_src = &polys_src[pidx_src];
 							/* If prev and curr poly are the same, no need to do anything more!!! */
 							if (!ELEM(pidx_src_prev, -1, pidx_src) && isld_steps_src) {
 								int pidx_isld_src, pidx_isld_src_prev;
@@ -1575,11 +1607,11 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									if (last_valid_pidx_isld_src != -1) {
 										/* Find a new valid loop in that new poly (nearest point on poly for now).
 										 * Note we could be much more subtle here, again that's for later... */
-										MLoop *ml_dst = &loops_dst[lidx_dst];
 										float best_dist_sq = FLT_MAX;
 										float tmp_co[3];
 										int j;
 
+										ml_dst = &loops_dst[lidx_dst];
 										copy_v3_v3(tmp_co, verts_dst[ml_dst->v].co);
 
 										/* We do our transform here, since we may do several raycast/nearest queries. */
@@ -1709,6 +1741,9 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		}
 		if (loop_to_poly_map_src) {
 			MEM_freeN(loop_to_poly_map_src);
+		}
+		if (poly_cents_src) {
+			MEM_freeN(poly_cents_src);
 		}
 		if (vcos_interp) {
 			MEM_freeN(vcos_interp);
