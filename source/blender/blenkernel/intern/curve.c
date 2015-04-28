@@ -4422,9 +4422,6 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
 		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			if (nu->mat_nr && nu->mat_nr >= index) {
 				nu->mat_nr--;
-				if (curvetype == OB_CURVE) {
-					nu->charidx--;
-				}
 			}
 		}
 	}
@@ -4446,9 +4443,6 @@ void BKE_curve_material_index_clear(Curve *cu)
 
 		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			nu->mat_nr = 0;
-			if (curvetype == OB_CURVE) {
-				nu->charidx = 0;
-			}
 		}
 	}
 }
@@ -4475,9 +4469,6 @@ int BKE_curve_material_index_validate(Curve *cu)
 		for (nu = cu->nurb.first; nu; nu = nu->next) {
 			if (nu->mat_nr > max_idx) {
 				nu->mat_nr = 0;
-				if (curvetype == OB_CURVE) {
-					nu->charidx = 0;
-				}
 				is_valid = false;
 			}
 		}

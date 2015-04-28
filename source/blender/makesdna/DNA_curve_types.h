@@ -157,6 +157,7 @@ typedef struct Nurb {
 	short tilt_interp;	/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
 	short radius_interp;
 	
+	/* only used for dynamically generated Nurbs created from OB_FONT's */
 	int charidx;
 } Nurb;
 

@@ -203,7 +203,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 			if (nurbs) {
 				for (nu = nurbs->first; nu; nu = nu->next)
 					if (isNurbsel(nu))
-						nu->mat_nr = nu->charidx = ob->actcol - 1;
+						nu->mat_nr = ob->actcol - 1;
 			}
 		}
 		else if (ob->type == OB_FONT) {
