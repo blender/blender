@@ -168,17 +168,6 @@ void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only, con
 		}
 	}
 
-	if (use_verts) {
-		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG) == false) {
-				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
-			}
-			if (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == false) {
-				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
-			}
-		}
-	}
-
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			unsigned int i;

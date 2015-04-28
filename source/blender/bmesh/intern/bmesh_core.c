@@ -2174,9 +2174,7 @@ void bmesh_vert_separate(
 	 * if you are tidying up code - campbell */
 	STACK_INIT(stack, v_edgetot);
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		if (l->v == v) {
-			STACK_PUSH(stack, (BMEdge *)l);
-		}
+		STACK_PUSH(stack, (BMEdge *)l);
 	}
 	while ((l = (BMLoop *)(STACK_POP(stack)))) {
 		if ((i = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&visithash, (uintptr_t)l->e)))) {
