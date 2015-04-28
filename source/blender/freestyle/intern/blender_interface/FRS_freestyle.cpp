@@ -213,7 +213,7 @@ static char *escape_quotes(char *name)
 
 static char * create_lineset_handler(char *layer_name, char *lineset_name)
 {
-	char *fmt = "__import__('parameter_editor').process('%s', '%s')\n";
+	const char *fmt = "__import__('parameter_editor').process('%s', '%s')\n";
 	char *s1 = escape_quotes(layer_name);
 	char *s2 = escape_quotes(lineset_name);
 	char *text = BLI_sprintfN(fmt, s1, s2);

@@ -991,7 +991,7 @@ void bgl_get_mats(bglMats *mats)
 /**
  * \note \a viewdist is only for ortho at the moment.
  */
-void bglPolygonOffset(float viewdist, float dist)
+void bglPolygonOffset(float UNUSED(viewdist), float dist)
 {
 	static float winmat[16], offset = 0.0;
 	
