@@ -991,7 +991,7 @@ void bgl_get_mats(bglMats *mats)
 /**
  * \note \a viewdist is only for ortho at the moment.
  */
-void bglPolygonOffset(float UNUSED(viewdist), float dist)
+void bglPolygonOffset(float viewdist, float dist)
 {
 	static float winmat[16], offset = 0.0;
 	
@@ -1008,7 +1008,7 @@ void bglPolygonOffset(float UNUSED(viewdist), float dist)
 		/* dist is from camera to center point */
 		
 		if (winmat[15] > 0.5f) {
-#if 0
+#if 1
 			offs = 0.00001f * dist * viewdist;  // ortho tweaking
 #else
 			static float depth_fac = 0.0f;
@@ -1018,6 +1018,8 @@ void bglPolygonOffset(float UNUSED(viewdist), float dist)
 				depth_fac = 1.0f / (float)((1 << depthbits) - 1);
 			}
 			offs = (-1.0 / winmat[10]) * dist * depth_fac;
+
+			UNUSED_VARS(viewdist);
 #endif
 		}
 		else {
