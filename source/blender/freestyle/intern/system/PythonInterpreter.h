@@ -51,6 +51,8 @@ extern "C" {
 #include "BKE_text.h"
 
 #include "BPY_extern.h"
+
+#include "bpy_util.h"
 }
 
 namespace Freestyle {
@@ -100,6 +102,26 @@ public:
 		}
 
 		// cleaning up
+		BKE_reports_clear(reports);
+
+		return 0;
+	}
+
+	int interpretString(const string& str, const string& name)
+	{
+		ReportList *reports = CTX_wm_reports(_context);
+
+		BKE_reports_clear(reports);
+
+		if (BPY_string_exec(_context, str.c_str()) != 0) {
+			BPy_errors_to_report(reports);
+			cerr << "\nError executing Python script from PythonInterpreter::interpretString" << endl;
+			cerr << "Name: " << name << endl;
+			cerr << "Errors: " << endl;
+			BKE_reports_print(reports, RPT_ERROR);
+			return 1;
+		}
+
 		BKE_reports_clear(reports);
 
 		return 0;

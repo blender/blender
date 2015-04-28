@@ -211,16 +211,12 @@ static char *escape_quotes(char *name)
 	return s;
 }
 
-static Text *create_lineset_handler(Main *bmain, char *layer_name, char *lineset_name)
+static char * create_lineset_handler(char *layer_name, char *lineset_name)
 {
+	char *fmt = "__import__('parameter_editor').process('%s', '%s')\n";
 	char *s1 = escape_quotes(layer_name);
 	char *s2 = escape_quotes(lineset_name);
-	Text *text = BKE_text_add(bmain, lineset_name);
-	BKE_text_write(text, "import parameter_editor; parameter_editor.process('");
-	BKE_text_write(text, s1);
-	BKE_text_write(text, "', '");
-	BKE_text_write(text, s2);
-	BKE_text_write(text, "')\n");
+	char *text = BLI_sprintfN(fmt, s1, s2);
 	MEM_freeN(s1);
 	MEM_freeN(s2);
 	return text;
@@ -293,7 +289,7 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
 	return true;
 }
 
-static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
+static void prepare(Render *re, SceneRenderLayer *srl)
 {
 	// load mesh
 	re->i.infostr = "Freestyle: Mesh loading";
@@ -369,9 +365,10 @@ static void prepare(Main *bmain, Render *re, SceneRenderLayer *srl)
 					cout << "  " << layer_count+1 << ": " << lineset->name << " - " <<
 					        (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
 				}
-				Text *text = create_lineset_handler(bmain, srl->name, lineset->name);
-				controller->InsertStyleModule(layer_count, lineset->name, text);
+				char *buffer = create_lineset_handler(srl->name, lineset->name);
+				controller->InsertStyleModule(layer_count, lineset->name, buffer);
 				controller->toggleLayer(layer_count, true);
+				MEM_freeN(buffer);
 				if (!(lineset->selection & FREESTYLE_SEL_EDGE_TYPES) || !lineset->edge_types) {
 					++use_ridges_and_valleys;
 					++use_suggestive_contours;
@@ -584,9 +581,7 @@ void FRS_init_stroke_rendering(Render *re)
 
 Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 {
-	Main *freestyle_bmain = re->freestyle_bmain;
 	Render *freestyle_render = NULL;
-	Text *text, *next_text;
 
 	if (!render)
 		return controller->RenderStrokes(re, false);
@@ -607,7 +602,7 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 	//   - add style modules
 	//   - set parameters
 	//   - compute view map
-	prepare(freestyle_bmain, re, srl);
+	prepare(re, srl);
 
 	if (re->test_break(re->tbh)) {
 		controller->CloseFile();
@@ -633,14 +628,6 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 			RE_FreeRenderResult(freestyle_render->result);
 			freestyle_render->result = NULL;
 		}
-	}
-
-	// Free temp main (currently only text blocks are stored there)
-	for (text = (Text *)freestyle_bmain->text.first; text; text = next_text) {
-		next_text = (Text *) text->id.next;
-
-		BKE_text_unlink(freestyle_bmain, text);
-		BKE_libblock_free(freestyle_bmain, text);
 	}
 
 	return freestyle_render;
