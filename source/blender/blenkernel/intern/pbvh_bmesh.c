@@ -29,6 +29,7 @@
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
@@ -1415,27 +1416,210 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 	}
 }
 
-/***************************** Public API *****************************/
+typedef struct FastNodeBuildInfo {
+	int totface; /* number of faces */
+	int start; /* start of faces in array */
+	struct FastNodeBuildInfo *child1;
+	struct FastNodeBuildInfo *child2;
+} FastNodeBuildInfo;
 
-static void pbvh_bmesh_node_layers_reset(PBVH *bvh)
+/* Recursively split the node if it exceeds the leaf_limit. This function is multithreadabe since each invocation applies
+ * to a sub part of the arrays */
+static void pbvh_bmesh_node_limit_ensure_fast(PBVH *bvh, BMFace **nodeinfo, BBC *bbc_array, FastNodeBuildInfo *node, MemArena *arena)
 {
 	BMFace *f;
-	BMVert *v;
-	BMIter iter;
-	BMesh *bm = bvh->bm;
-	int cd_vert_node_offset = bvh->cd_vert_node_offset;
-	int cd_face_node_offset = bvh->cd_face_node_offset;
+	BB cb;
+	BBC *bbc;
+	float mid;
+	int axis, i;
+	int end;
+	FastNodeBuildInfo *child1, *child2;
+	int num_child1, num_child2;
+	BMFace *tmp;
 
-	/* clear the elements of the node information */
-	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
-		BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
+	if (node->totface <= bvh->leaf_limit) {
+		return;
 	}
 
-	BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
-		BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
+	/* Calculate bounding box around primitive centroids */
+	BB_reset(&cb);
+	for (i = 0; i < node->totface; i++) {
+		f = nodeinfo[i + node->start];
+		bbc = &bbc_array[BM_elem_index_get(f)];
+
+		BB_expand(&cb, bbc->bcentroid);
+	}
+
+	/* initialize the children */
+
+	/* Find widest axis and its midpoint */
+	axis = BB_widest_axis(&cb);
+	mid = (cb.bmax[axis] + cb.bmin[axis]) * 0.5f;
+
+	num_child1 = 0, num_child2 = 0;
+
+	/* split vertices along the middle line */
+	end = node->start + node->totface;
+	for (i = node->start; i < end - num_child2; i++) {
+		f = nodeinfo[i];
+		bbc = &bbc_array[BM_elem_index_get(f)];
+
+		if (bbc->bcentroid[axis] > mid) {
+			int i_iter = end - num_child2 - 1;
+			int candidate = -1;
+			/* found a face that should be part of another node, look for a face to substitute with */
+
+			for (;i_iter > i; i_iter--) {
+				BMFace *f_iter = nodeinfo[i_iter];
+				const BBC *bbc_iter = &bbc_array[BM_elem_index_get(f_iter)];
+				if (bbc_iter->bcentroid[axis] <= mid) {
+					candidate = i_iter;
+					break;
+				}
+				else {
+					num_child2++;
+				}
+			}
+
+			if (candidate != -1) {
+				tmp = nodeinfo[i];
+				nodeinfo[i] = nodeinfo[candidate];
+				nodeinfo[candidate] = tmp;
+				/* increase both counts */
+				num_child1++;
+				num_child2++;
+			}
+			else {
+				/* not finding candidate means second half of array part is full of
+				 * second node parts, just increase the number of child nodes for it */
+				num_child2++;
+			}
+		}
+		else {
+			num_child1++;
+		}
+	}
+
+	/* ensure at least one child in each node */
+	if (num_child2 == 0) {
+		num_child2++;
+		num_child1--;
+	}
+	else if (num_child1 == 0) {
+		num_child1++;
+		num_child2--;
+	}
+
+	/* at this point, faces should have been split along the array range sequencially, each sequencial
+	 * part belonging to one node only */
+	BLI_assert((num_child1 + num_child2) == node->totface);
+
+	node->child1 = child1 = BLI_memarena_alloc(arena, sizeof(FastNodeBuildInfo));
+	node->child2 = child2 = BLI_memarena_alloc(arena, sizeof(FastNodeBuildInfo));
+
+	child1->totface = num_child1;
+	child1->start = node->start;
+	child2->totface = num_child2;
+	child2->start = node->start + num_child1;
+	child1->child1 = child1->child2 = child2->child1 = child2->child2 = NULL;
+
+	pbvh_bmesh_node_limit_ensure_fast(bvh, nodeinfo, bbc_array, child1, arena);
+	pbvh_bmesh_node_limit_ensure_fast(bvh, nodeinfo, bbc_array, child2, arena);
+
+	return;
+}
+
+static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *bvh, BMFace **nodeinfo, BBC *bbc_array, FastNodeBuildInfo *node, int node_index)
+{
+	PBVHNode *n = bvh->nodes + node_index;
+	/* two cases, node does not have children or does have children */
+	if (node->child1) {
+		int children_offset = bvh->totnode;
+
+		n->children_offset = children_offset;
+		pbvh_grow_nodes(bvh, bvh->totnode + 2);
+		pbvh_bmesh_create_nodes_fast_recursive(bvh, nodeinfo, bbc_array, node->child1, children_offset);
+		pbvh_bmesh_create_nodes_fast_recursive(bvh, nodeinfo, bbc_array, node->child2, children_offset + 1);
+
+		n = &bvh->nodes[node_index];
+
+		/* Update bounding box */
+		BB_reset(&n->vb);
+		BB_expand_with_bb(&n->vb, &bvh->nodes[n->children_offset].vb);
+		BB_expand_with_bb(&n->vb, &bvh->nodes[n->children_offset + 1].vb);
+		n->orig_vb = n->vb;
+	}
+	else {
+		/* node does not have children so it's a leaf node, populate with faces and tag accordingly
+		 * this is an expensive part but it's not so easily threadable due to vertex node indices */
+		const int cd_vert_node_offset = bvh->cd_vert_node_offset;
+		const int cd_face_node_offset = bvh->cd_face_node_offset;
+
+		bool has_visible = false;
+		int i, end;
+		BMFace *f;
+		BMLoop *l_iter;
+		BMLoop *l_first;
+		BMVert *v;
+		BBC *bbc;
+
+		n->flag = PBVH_Leaf;
+		n->bm_faces = BLI_gset_ptr_new_ex("bm_faces", node->totface);
+
+		/* Create vert hash sets */
+		n->bm_unique_verts = BLI_gset_ptr_new("bm_unique_verts");
+		n->bm_other_verts = BLI_gset_ptr_new("bm_other_verts");
+
+		BB_reset(&n->vb);
+
+		end = node->start + node->totface;
+
+		for (i = node->start; i < end; i++) {
+			f = nodeinfo[i];
+			bbc = &bbc_array[BM_elem_index_get(f)];
+
+			/* Update ownership of faces */
+			BLI_gset_insert(n->bm_faces, f);
+			BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
+
+			/* Update vertices */
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				v = l_iter->v;
+				if (!BLI_gset_haskey(n->bm_unique_verts, v)) {
+					if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
+						BLI_gset_add(n->bm_other_verts, v);
+					}
+					else {
+						BLI_gset_insert(n->bm_unique_verts, v);
+						BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, node_index);
+					}
+				}
+				/* Update node bounding box */
+			} while ((l_iter = l_iter->next) != l_first);
+
+			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN))
+				has_visible = true;
+
+			BB_expand_with_bb(&n->vb, (BB *)bbc);
+		}
+
+		BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] &&
+		        n->vb.bmin[1] <= n->vb.bmax[1] &&
+		        n->vb.bmin[2] <= n->vb.bmax[2]);
+
+		n->orig_vb = n->vb;
+
+		/* Build GPU buffers for new node and update vertex normals */
+		BKE_pbvh_node_mark_rebuild_draw(n);
+
+		BKE_pbvh_node_fully_hidden_set(n, !has_visible);
+		n->flag |= PBVH_UpdateNormals;
 	}
 }
 
+
+/***************************** Public API *****************************/
 
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(
@@ -1444,8 +1628,13 @@ void BKE_pbvh_build_bmesh(
 {
 	BMIter iter;
 	BMFace *f;
-	PBVHNode *n;
-	int node_index = 0;
+	BMVert *v;
+	int i;
+	/* bounding box array of all faces, no need to recalculate every time */
+	BBC *bbc_array;
+	BMFace **nodeinfo;
+	FastNodeBuildInfo rootnode = {0};
+	MemArena *arena;
 
 	bvh->cd_vert_node_offset = cd_vert_node_offset;
 	bvh->cd_face_node_offset = cd_face_node_offset;
@@ -1462,21 +1651,54 @@ void BKE_pbvh_build_bmesh(
 	if (smooth_shading)
 		bvh->flags |= PBVH_DYNTOPO_SMOOTH_SHADING;
 
-	pbvh_bmesh_node_layers_reset(bvh);
+	/* calculate all bounding boxes once for all faces */
+	bbc_array = MEM_mallocN(sizeof(BBC) * bm->totface, "BBC");
+	nodeinfo = MEM_mallocN(sizeof(*nodeinfo) * bm->totface, "nodeinfo");
+	arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "fast PBVH node storage");
 
-	/* Start with all faces in the root node */
-	n = bvh->nodes = MEM_callocN(sizeof(PBVHNode), "PBVHNode");
-	bvh->totnode = 1;
-	n->flag = PBVH_Leaf;
-	n->bm_faces = BLI_gset_ptr_new_ex("bm_faces", bvh->bm->totface);
-	BM_ITER_MESH (f, &iter, bvh->bm, BM_FACES_OF_MESH) {
-		BLI_gset_insert(n->bm_faces, f);
+	BM_ITER_MESH_INDEX(f, &iter, bm, BM_FACES_OF_MESH, i) {
+		BBC *bbc = &bbc_array[i];
+		BMLoop *l_iter;
+		BMLoop *l_first;
+
+		BB_reset((BB *)bbc);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			BB_expand((BB *)bbc, l_iter->v->co);
+		} while ((l_iter = l_iter->next) != l_first);
+		BBC_update_centroid(bbc);
+
+		/* so we can do direct lookups on 'bbc_array' */
+		BM_elem_index_set(f, i);  /* set_dirty! */
+		nodeinfo[i] = f;
+		BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
 	}
 
-	/* Recursively split the node until it is under the limit; if no
-	 * splitting occurs then finalize the existing leaf node */
-	if (!pbvh_bmesh_node_limit_ensure(bvh, node_index))
-		pbvh_bmesh_node_finalize(bvh, 0, cd_vert_node_offset, cd_face_node_offset);
+	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+		BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
+	}
+
+	/* likely this is already dirty */
+	bm->elem_index_dirty |= BM_FACE;
+
+	/* setup root node */
+	rootnode.totface = bm->totface;
+
+	/* start recursion, assign faces to nodes accordingly */
+	pbvh_bmesh_node_limit_ensure_fast(bvh, nodeinfo, bbc_array, &rootnode, arena);
+
+	/* we now have all faces assigned to a node, next we need to assign those to the gsets of the nodes */
+
+	/* Start with all faces in the root node */
+	bvh->nodes = MEM_callocN(sizeof(PBVHNode), "PBVHNode");
+	bvh->totnode = 1;
+
+	/* take root node and visit and populate children recursively */
+	pbvh_bmesh_create_nodes_fast_recursive(bvh, nodeinfo, bbc_array, &rootnode, 0);
+
+	BLI_memarena_free(arena);
+	MEM_freeN(bbc_array);
+	MEM_freeN(nodeinfo);
 }
 
 /* Collapse short edges, subdivide long edges */
