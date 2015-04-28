@@ -1156,6 +1156,12 @@ if(UNIX AND NOT APPLE)
 	# GNU Compiler
 	if(CMAKE_COMPILER_IS_GNUCC)
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+
+		if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "5.0")
+			# GCC5 uses gnu11, until we update, force c89
+			# though some c11 features can still be used.
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu89")
+		endif()
 	# CLang is the same as GCC for now.
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
