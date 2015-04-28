@@ -991,7 +991,7 @@ void bgl_get_mats(bglMats *mats)
 /**
  * \note \a viewdist is only for ortho at the moment.
  */
-void bglPolygonOffset(float viewdist, float dist) 
+void bglPolygonOffset(float viewdist, float dist)
 {
 	static float winmat[16], offset = 0.0;
 	
@@ -1007,7 +1007,16 @@ void bglPolygonOffset(float viewdist, float dist)
 		
 		/* dist is from camera to center point */
 		
-		if (winmat[15] > 0.5f) offs = 0.00001f * dist * viewdist;  // ortho tweaking
+		if (winmat[15] > 0.5f) {
+			int depthbits, i, depthmax = 1;
+			glGetIntegerv(GL_DEPTH_BITS, &depthbits);
+
+			for (i = 1; i < depthbits; i++) {
+				depthmax = (depthmax << 1) + 1;
+			}
+			offs = (-1.0 / winmat[10]) * dist / (double) depthmax;
+			//offs = 0.00001f * dist * viewdist;  // ortho tweaking
+		}
 		else offs = 0.0001f * dist;  // should be clipping value or so...
 		
 		winmat[14] -= offs;
