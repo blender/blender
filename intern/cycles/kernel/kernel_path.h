@@ -364,31 +364,6 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 
 #ifdef __SUBSURFACE__
 
-#ifdef __VOLUME__
-ccl_device void kernel_path_subsurface_update_volume_stack(KernelGlobals *kg,
-                                                           Ray *ray,
-                                                           VolumeStack *stack)
-{
-	kernel_assert(kernel_data.integrator.use_volumes);
-
-	Ray volume_ray = *ray;
-	Intersection isect;
-	int step = 0;
-	while(step < VOLUME_STACK_SIZE &&
-	      scene_intersect_volume(kg, &volume_ray, &isect))
-	{
-		ShaderData sd;
-		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
-		kernel_volume_stack_enter_exit(kg, &sd, stack);
-
-		/* Move ray forward. */
-		volume_ray.P = ray_offset(sd.P, -sd.Ng);
-		volume_ray.t -= sd.ray_length;
-		++step;
-	}
-}
-#endif
-
 ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, Ray *ray, float3 *throughput)
 {
 	float bssrdf_probability;
@@ -433,7 +408,7 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 					volume_ray.D = normalize_len(hit_ray.P - volume_ray.P,
 					                             &volume_ray.t);
 
-					kernel_path_subsurface_update_volume_stack(
+					kernel_volume_stack_update_for_subsurface(
 					    kg,
 					    &volume_ray,
 					    hit_state.volume_stack);
@@ -832,7 +807,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 					volume_ray.D = normalize_len(P - volume_ray.P,
 					                             &volume_ray.t);
 
-					kernel_path_subsurface_update_volume_stack(
+					kernel_volume_stack_update_for_subsurface(
 					    kg,
 					    &volume_ray,
 					    hit_state.volume_stack);

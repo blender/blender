@@ -1097,4 +1097,29 @@ ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd
 	}
 }
 
+#ifdef __SUBSURFACE__
+ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
+                                                          Ray *ray,
+                                                          VolumeStack *stack)
+{
+	kernel_assert(kernel_data.integrator.use_volumes);
+
+	Ray volume_ray = *ray;
+	Intersection isect;
+	int step = 0;
+	while(step < VOLUME_STACK_SIZE &&
+		  scene_intersect_volume(kg, &volume_ray, &isect))
+	{
+		ShaderData sd;
+		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
+		kernel_volume_stack_enter_exit(kg, &sd, stack);
+
+		/* Move ray forward. */
+		volume_ray.P = ray_offset(sd.P, -sd.Ng);
+		volume_ray.t -= sd.ray_length;
+		++step;
+	}
+}
+#endif
+
 CCL_NAMESPACE_END
