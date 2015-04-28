@@ -263,7 +263,9 @@ enum {
 
 #define _BM_GENERIC_TYPE_ELEM_CONST \
 	const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, \
-	const BMElem *, const BMElemF *, const BMHeader *
+	const BMElem *, const BMElemF *, const BMHeader *, \
+	void * const, BMVert * const, BMEdge * const, BMLoop * const, BMFace * const, \
+	BMElem * const, BMElemF * const, BMHeader * const
 
 #define BM_CHECK_TYPE_ELEM_CONST(ele) \
 	CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPES_CONST)
