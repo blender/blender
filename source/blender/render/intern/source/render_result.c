@@ -911,10 +911,16 @@ RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace
 	return rr;
 }
 
+void render_result_view_new(RenderResult *rr, const char *viewname)
+{
+	RenderView *rv = MEM_callocN(sizeof(RenderView), "new render view");
+	BLI_addtail(&rr->views, rv);
+	BLI_strncpy(rv->name, viewname, sizeof(rv->name));
+}
+
 void render_result_views_new(RenderResult *rr, RenderData *rd)
 {
 	SceneRenderView *srv;
-	RenderView *rv;
 
 	/* clear previously existing views - for sequencer */
 	render_result_views_free(rr);
@@ -922,19 +928,15 @@ void render_result_views_new(RenderResult *rr, RenderData *rd)
 	/* check renderdata for amount of views */
 	if ((rd->scemode & R_MULTIVIEW)) {
 		for (srv = rd->views.first; srv; srv = srv->next) {
-			if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) continue;
-
-			rv = MEM_callocN(sizeof(RenderView), "new render view");
-			BLI_addtail(&rr->views, rv);
-
-			BLI_strncpy(rv->name, srv->name, sizeof(rv->name));
+			if (BKE_scene_multiview_is_render_view_active(rd, srv) == false)
+				continue;
+			render_result_view_new(rr, srv->name);
 		}
 	}
 
 	/* we always need at least one view */
 	if (BLI_listbase_count_ex(&rr->views, 1) == 0) {
-		rv = MEM_callocN(sizeof(RenderView), "new render view");
-		BLI_addtail(&rr->views, rv);
+		render_result_view_new(rr, "new render view");
 	}
 }
 

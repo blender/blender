@@ -747,6 +747,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		re->result = MEM_callocN(sizeof(RenderResult), "new render result");
 		re->result->rectx = re->rectx;
 		re->result->recty = re->recty;
+		render_result_view_new(re->result, "new temporary view");
 	}
 	
 	if (re->r.scemode & R_VIEWPORT_PREVIEW)

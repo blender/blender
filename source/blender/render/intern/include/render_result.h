@@ -60,6 +60,7 @@ struct RenderResult *render_result_new_full_sample(struct Render *re,
 
 struct RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
+void render_result_view_new(struct RenderResult *rr, const char *viewname);
 void render_result_views_new(struct RenderResult *rr, struct RenderData *rd);
 
 /* Merge */
