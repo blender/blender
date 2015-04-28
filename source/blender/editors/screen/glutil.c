@@ -1008,16 +1008,22 @@ void bglPolygonOffset(float UNUSED(viewdist), float dist)
 		/* dist is from camera to center point */
 		
 		if (winmat[15] > 0.5f) {
-			int depthbits, i, depthmax = 1;
-			glGetIntegerv(GL_DEPTH_BITS, &depthbits);
-
-			for (i = 1; i < depthbits; i++) {
-				depthmax = (depthmax << 1) + 1;
+#if 0
+			offs = 0.00001f * dist * viewdist;  // ortho tweaking
+#else
+			static float depth_fac = 0.0f;
+			if (depth_fac == 0.0f) {
+				int depthbits;
+				glGetIntegerv(GL_DEPTH_BITS, &depthbits);
+				depth_fac = 1.0f / (float)(depthbits - 1);
 			}
-			offs = (-1.0 / winmat[10]) * dist / (double) depthmax;
-			//offs = 0.00001f * dist * viewdist;  // ortho tweaking
+			offs = (-1.0 / winmat[10]) * dist * depth_fac;
+#endif
 		}
-		else offs = 0.0001f * dist;  // should be clipping value or so...
+		else {
+			/* should be clipping value or so... */
+			offs = 0.0001f * dist;
+		}
 		
 		winmat[14] -= offs;
 		offset += offs;
