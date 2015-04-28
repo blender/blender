@@ -493,14 +493,24 @@ extern "C" {
 #define OFFSETOF_STRUCT(_struct, _member) \
 	((((char *)&((_struct)->_member)) - ((char *)(_struct))) + sizeof((_struct)->_member))
 
-/* memcpy, skipping the first part of a struct,
- * ensures 'struct_dst' isn't const and that the offset can be computed at compile time */
+/**
+ * memcpy helper, skipping the first part of a struct,
+ * ensures 'struct_dst' isn't const and the offset can be computed at compile time.
+ * This isn't inclusive, the value of \a member isn't copied.
+ */
 #define MEMCPY_STRUCT_OFS(struct_dst, struct_src, member)  { \
 	CHECK_TYPE_NONCONST(struct_dst); \
 	((void)(struct_dst == struct_src), \
 	 memcpy((char *)(struct_dst)  + OFFSETOF_STRUCT(struct_dst, member), \
 	        (char *)(struct_src)  + OFFSETOF_STRUCT(struct_dst, member), \
 	        sizeof(*(struct_dst)) - OFFSETOF_STRUCT(struct_dst, member))); \
+} (void)0
+
+#define MEMSET_STRUCT_OFS(struct_var, value, member)  { \
+	CHECK_TYPE_NONCONST(struct_var); \
+	memset((char *)(struct_var)  + OFFSETOF_STRUCT(struct_var, member), \
+	       value, \
+	       sizeof(*(struct_var)) - OFFSETOF_STRUCT(struct_var, member)); \
 } (void)0
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
