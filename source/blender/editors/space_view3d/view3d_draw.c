@@ -472,7 +472,7 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
-static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
+static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool write_depth)
 {
 	float grid, grid_scale;
 	unsigned char col_grid[3];
@@ -484,7 +484,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
 	grid = gridlines * grid_scale;
 
-	glDepthMask(GL_FALSE);
+	if (!write_depth)
+		glDepthMask(GL_FALSE);
 
 	UI_GetThemeColor3ubv(TH_GRID, col_grid);
 
@@ -2726,7 +2727,7 @@ static void view3d_draw_objects(
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
 	/* only draw grids after in solid modes, else it hovers over mesh wires */
-	const bool draw_grids_after = draw_grids && draw_floor && (v3d->drawtype > OB_WIRE);
+	const bool draw_grids_after = draw_grids && draw_floor && (v3d->drawtype > OB_WIRE) && fx;
 	bool do_composite_xray = false;
 	bool xrayclear = true;
 
@@ -2775,8 +2776,8 @@ static void view3d_draw_objects(
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixf(rv3d->viewmat);
 		}
-		else {
-			drawfloor(scene, v3d, grid_unit);
+		else if (!draw_grids_after){
+			drawfloor(scene, v3d, grid_unit, true);
 		}
 	}
 
@@ -2854,7 +2855,7 @@ static void view3d_draw_objects(
 
 	/* perspective floor goes last to use scene depth and avoid writing to depth buffer */
 	if (draw_grids_after) {
-		drawfloor(scene, v3d, grid_unit);
+		drawfloor(scene, v3d, grid_unit, false);
 	}
 
 	/* must be before xray draw which clears the depth buffer */
