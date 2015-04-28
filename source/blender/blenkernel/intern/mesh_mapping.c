@@ -55,7 +55,7 @@
  * but for now this replaces it because its unused. */
 
 UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
-                                       unsigned int totpoly, unsigned int totvert, int selected, float *limit)
+                                       unsigned int totpoly, unsigned int totvert, int selected, float *limit, bool use_winding)
 {
 	UvVertMap *vmap;
 	UvMapVert *buf;
@@ -109,7 +109,10 @@ UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop,
 				buf++;
 			}
 
-			winding[a] = cross_poly_v2((const float (*)[2])tf_uv, (unsigned int)nverts) > 0;
+			if (use_winding)
+				winding[a] = cross_poly_v2((const float (*)[2])tf_uv, (unsigned int)nverts) > 0;
+			else
+				winding[a] = 0;
 		}
 	}
 

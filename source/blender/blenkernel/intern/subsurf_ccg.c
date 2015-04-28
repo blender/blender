@@ -300,7 +300,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
-	vmap = BKE_mesh_uv_vert_map_create(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
+	vmap = BKE_mesh_uv_vert_map_create(mpoly, mloop, mloopuv, totface, totvert, 0, limit, false);
 	if (!vmap)
 		return 0;
 	

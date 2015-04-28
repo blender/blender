@@ -102,7 +102,7 @@ typedef struct MeshElemMap {
 /* mapping */
 UvVertMap *BKE_mesh_uv_vert_map_create(
         struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
-        unsigned int totpoly, unsigned int totvert, int selected, float *limit);
+        unsigned int totpoly, unsigned int totvert, int selected, float *limit, bool use_winding);
 UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
 void       BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 
