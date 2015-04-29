@@ -31,7 +31,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_array.h"
 #include "BLI_alloca.h"
-#include "BLI_smallhash.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_stackdefines.h"
 
 #include "BLF_translation.h"
@@ -2095,126 +2095,131 @@ void bmesh_vert_separate(
         BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
         const bool copy_select)
 {
-	const int v_edgetot = BM_vert_face_count(v);
-	BMEdge **stack = BLI_array_alloca(stack, v_edgetot);
-	STACK_DECLARE(stack);
+	int v_edges_num = 0;
 
-	SmallHash visithash;
-	BMVert **verts = NULL;
-	BMIter eiter, liter;
-	BMLoop *l;
-	BMEdge *e;
-	int i, maxindex;
-	BMLoop *l_new;
+	/* Detailed notes on array use since this is stack memory, we have to be careful */
 
-	BLI_smallhash_init_ex(&visithash, v_edgetot);
+	/* newly created vertices, only use when 'r_vout' is set
+	 * (total size will be number of fans) */
+	BLI_SMALLSTACK_DECLARE(verts_new, BMVert *);
+	/* fill with edges from the face-fan, clearing on completion
+	 * (total size will be max fan edge count) */
+	BLI_SMALLSTACK_DECLARE(edges, BMEdge *);
+	/* temp store edges to walk over when filling 'edges',
+	 * (total size will be max radial edges of any edge) */
+	BLI_SMALLSTACK_DECLARE(edges_search, BMEdge *);
 
-	STACK_INIT(stack, v_edgetot);
+	/* number of resulting verts, include self */
+	int verts_num = 1;
+	/* track the total number of edges handled, so we know when we've found the last fan */
+	int edges_found = 0;
 
-	maxindex = 0;
-	BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-		if (BLI_smallhash_haskey(&visithash, (uintptr_t)e)) {
-			continue;
-		}
+#define EDGE_VISIT _FLAG_WALK
 
+	/* count and flag at once */
+	if (v->e) {
+		BMEdge *e_first, *e_iter;
+		e_iter = e_first = v->e;
+		do {
+			v_edges_num += 1;
+
+			BLI_assert(!BM_ELEM_API_FLAG_TEST(e_iter, EDGE_VISIT));
+			BM_ELEM_API_FLAG_ENABLE(e_iter, EDGE_VISIT);
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+	}
+
+	while (true) {
 		/* Considering only edges and faces incident on vertex v, walk
 		 * the edges & faces and assign an index to each connected set */
-		BLI_smallhash_insert(&visithash, (uintptr_t)e, SET_INT_IN_POINTER(maxindex));
+
+		BMEdge *e = v->e;
+		BM_ELEM_API_FLAG_DISABLE(e, EDGE_VISIT);
+
 		do {
+			BLI_assert(!BM_ELEM_API_FLAG_TEST(e, EDGE_VISIT));
+			BLI_SMALLSTACK_PUSH(edges, e);
+			edges_found += 1;
+
 			if (e->l) {
 				BMLoop *l_iter, *l_first;
 				l_iter = l_first = e->l;
 				do {
-					l_new = (l_iter->v == v) ? l_iter->prev : l_iter->next;
-					BLI_assert(BM_vert_in_edge(l_new->e, v));
-					if (!BLI_smallhash_haskey(&visithash, (uintptr_t)l_new->e)) {
-						BLI_smallhash_insert(&visithash, (uintptr_t)l_new->e, SET_INT_IN_POINTER(maxindex));
-						STACK_PUSH(stack, l_new->e);
+					BMLoop *l_adjacent = (l_iter->v == v) ? l_iter->prev : l_iter->next;
+					BLI_assert(BM_vert_in_edge(l_adjacent->e, v));
+					if (BM_ELEM_API_FLAG_TEST(l_adjacent->e, EDGE_VISIT)) {
+						BM_ELEM_API_FLAG_DISABLE(l_adjacent->e, EDGE_VISIT);
+						BLI_SMALLSTACK_PUSH(edges_search, l_adjacent->e);
 					}
 				} while ((l_iter = l_iter->radial_next) != l_first);
 			}
-		} while ((e = STACK_POP(stack)));
+		} while ((e = BLI_SMALLSTACK_POP(edges_search)));
 
-		maxindex++;
-	}
+		/* now we have all edges connected to 'v->e' */
 
-	/* Make enough verts to split v for each group */
-	if (r_vout != NULL) {
-		verts = MEM_callocN(sizeof(BMVert *) * maxindex, __func__);
-	}
-	else {
-		verts = BLI_array_alloca(verts, maxindex);
-	}
+		BLI_assert(edges_found <= v_edges_num);
 
-	verts[0] = v;
-	for (i = 1; i < maxindex; i++) {
-		verts[i] = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
-		if (copy_select) {
-			BM_elem_select_copy(bm, bm, verts[i], v);
+		if (edges_found == v_edges_num) {
+			/* We're done! The remaining edges in 'edges' form the last fan,
+			 * which can be left as is.
+			 * if 'edges' were alloc'd it'd be freed here. */
+			break;
+		}
+		else {
+			BMVert *v_new;
+
+			v_new = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
+			if (copy_select) {
+				BM_elem_select_copy(bm, bm, v_new, v);
+			}
+
+			while ((e = BLI_SMALLSTACK_POP(edges))) {
+
+				/* swap out loops */
+				if (e->l) {
+					BMLoop *l_iter, *l_first;
+					l_iter = l_first = e->l;
+					do {
+						if (l_iter->v == v) {
+							l_iter->v = v_new;
+						}
+					} while ((l_iter = l_iter->radial_next) != l_first);
+				}
+
+				/* swap out edges */
+				BLI_assert(e->v1 == v || e->v2 == v);
+				bmesh_disk_edge_remove(e, v);
+				bmesh_edge_swapverts(e, v, v_new);
+				bmesh_disk_edge_append(e, v_new);
+			}
+
+			if (r_vout) {
+				BLI_SMALLSTACK_PUSH(verts_new, v_new);
+			}
+			verts_num += 1;
 		}
 	}
 
-	/* Replace v with the new verts in each group */
-#if 0
-	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		/* call first since its faster then a hash lookup */
-		if (l->v != v) {
-			continue;
-		}
-		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e));
-		if (i == 0) {
-			continue;
-		}
+#undef EDGE_VISIT
 
-		/* Loops here should always refer to an edge that has v as an
-		 * endpoint. For each appearance of this vert in a face, there
-		 * will actually be two iterations: one for the loop heading
-		 * towards vertex v, and another for the loop heading out from
-		 * vertex v. Only need to swap the vertex on one of those times,
-		 * on the outgoing loop. */
-
-		/* XXX - because this clobbers the iterator, this *whole* block is commented, see below */
-		l->v = verts[i];
-	}
-#else
-	/* note: this is the same as the commented code above *except* that it doesn't break iterator
-	 * by modifying data it loops over [#30632], this re-uses the 'stack' variable which is a bit
-	 * bad practice but save alloc'ing a new array - note, the comment above is useful, keep it
-	 * if you are tidying up code - campbell */
-	STACK_INIT(stack, v_edgetot);
-	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		STACK_PUSH(stack, (BMEdge *)l);
-	}
-	while ((l = (BMLoop *)(STACK_POP(stack)))) {
-		if ((i = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&visithash, (uintptr_t)l->e)))) {
-			l->v = verts[i];
-		}
-	}
-#endif
-
-	BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-		i = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&visithash, (uintptr_t)e));
-		if (i == 0) {
-			continue;
-		}
-
-		BLI_assert(e->v1 == v || e->v2 == v);
-		bmesh_disk_edge_remove(e, v);
-		bmesh_edge_swapverts(e, v, verts[i]);
-		bmesh_disk_edge_append(e, verts[i]);
-	}
-
-	BLI_smallhash_release(&visithash);
-
-	for (i = 0; i < maxindex; i++) {
-		BM_CHECK_ELEMENT(verts[i]);
-	}
+	/* flags are clean now, handle return values */
 
 	if (r_vout_len != NULL) {
-		*r_vout_len = maxindex;
+		*r_vout_len = verts_num;
 	}
 
 	if (r_vout != NULL) {
+		BMVert **verts;
+		int i;
+
+		verts = MEM_mallocN(sizeof(BMVert *) * verts_num, __func__);
+		verts[0] = v;
+
+		for (i = 1; i < verts_num; i++) {
+			verts[i] = BLI_SMALLSTACK_POP(verts_new);
+			BLI_assert(verts[i] != NULL);
+		}
+		BLI_assert(BLI_SMALLSTACK_POP(verts_new) == NULL);
+
 		*r_vout = verts;
 	}
 }
@@ -2341,25 +2346,38 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 	int len, i;
 	BMVert *v_new = NULL;
 	BMVert *v_sep = l_sep->v;
+	BMEdge *e_iter;
 
 	/* peel the face from the edge radials on both sides of the
 	 * loop vert, disconnecting the face from its fan */
 	bmesh_edge_separate(bm, l_sep->e, l_sep, false);
 	bmesh_edge_separate(bm, l_sep->prev->e, l_sep->prev, false);
 
-	if (bmesh_disk_count(v_sep) == 2) {
-		/* If there are still only two edges out of v_sep, then
-		 * this whole URMV was just a no-op, so exit now. */
+	/* do inline, below */
+#if 0
+	if (BM_vert_edge_count_is_equal(v_sep, 2)) {
 		return v_sep;
 	}
+#endif
 
-	/* Update the disk start, so that v->e points to an edge
-	 * not touching the split loop. This is so that BM_vert_split
-	 * will leave the original v_sep on some *other* fan (not the
-	 * one-face fan that holds the unglue face). */
-	while (v_sep->e == l_sep->e || v_sep->e == l_sep->prev->e) {
-		v_sep->e = bmesh_disk_edge_next(v_sep->e, v_sep);
+	/* Search for an edge unattached to this loop */
+	e_iter = v_sep->e;
+	while (!ELEM(e_iter, l_sep->e, l_sep->prev->e)) {
+		e_iter = bmesh_disk_edge_next(e_iter, v_sep);
+
+		/* We've come back around to the initial edge, all touch this loop.
+		 * If there are still only two edges out of v_sep,
+		 * then this whole URMV was just a no-op, so exit now. */
+		if (e_iter == v_sep->e) {
+			BLI_assert(BM_vert_edge_count_is_equal(v_sep, 2));
+			return v_sep;
+		}
 	}
+
+	/* Update the disk start, so that v->e points to an edge touching the split loop.
+	 * This is so that BM_vert_split will leave the original v_sep on some *other* fan
+	 * (not the one-face fan that holds the unglue face). */
+	v_sep->e = e_iter;
 
 	/* Split all fans connected to the vert, duplicating it for
 	 * each fans. */
