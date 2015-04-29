@@ -115,39 +115,7 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_subsurface.h"
 #endif
 
-/* Record all BVH intersection for shadows */
-
-#if defined(__SHADOW_RECORD_ALL__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all
-#define BVH_FUNCTION_FEATURES 0
-#include "geom_bvh_shadow.h"
-#endif
-
-#if defined(__SHADOW_RECORD_ALL__) && defined(__INSTANCING__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "geom_bvh_shadow.h"
-#endif
-
-#if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
-#include "geom_bvh_shadow.h"
-#endif
-
-#if defined(__SHADOW_RECORD_ALL__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "geom_bvh_shadow.h"
-#endif
-
-#if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
-#include "geom_bvh_shadow.h"
-#endif
-
-/* Camera inside Volume BVH intersection */
+/* Volume BVH traversal */
 
 #if defined(__VOLUME__)
 #define BVH_FUNCTION_NAME bvh_intersect_volume
@@ -179,7 +147,39 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_volume.h"
 #endif
 
-/* Record all BVH intersection for volumes */
+/* Record all intersections - Shadow BVH traversal */
+
+#if defined(__SHADOW_RECORD_ALL__)
+#define BVH_FUNCTION_NAME bvh_intersect_shadow_all
+#define BVH_FUNCTION_FEATURES 0
+#include "geom_bvh_shadow.h"
+#endif
+
+#if defined(__SHADOW_RECORD_ALL__) && defined(__INSTANCING__)
+#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
+#define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#include "geom_bvh_shadow.h"
+#endif
+
+#if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__)
+#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
+#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
+#include "geom_bvh_shadow.h"
+#endif
+
+#if defined(__SHADOW_RECORD_ALL__) && defined(__OBJECT_MOTION__)
+#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
+#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
+#include "geom_bvh_shadow.h"
+#endif
+
+#if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
+#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
+#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
+#include "geom_bvh_shadow.h"
+#endif
+
+/* Record all intersections - Volume BVH traversal  */
 
 #if defined(__VOLUME_RECORD_ALL__)
 #define BVH_FUNCTION_NAME bvh_intersect_volume_all
@@ -447,6 +447,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 #endif
 }
 
+/* ToDo: Move to another file? */
 ccl_device int intersections_compare(const void *a, const void *b)
 {
 	const Intersection *isect_a = (const Intersection*)a;
