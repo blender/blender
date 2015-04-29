@@ -670,7 +670,7 @@ PyDoc_STRVAR(bpy_bm_utils_face_vert_separate_doc,
 "   :type face: :class:`bmesh.types.BMFace`\n"
 "   :arg vert: A vertex in the face to separate.\n"
 "   :type vert: :class:`bmesh.types.BMVert`\n"
-"   :return vert: The newly created vertex or None of failure.\n"
+"   :return vert: The newly created vertex or None on failure.\n"
 "   :rtype vert: :class:`bmesh.types.BMVert`\n"
 "\n"
 "   .. note::\n"
@@ -749,9 +749,9 @@ PyDoc_STRVAR(bpy_bm_utils_loop_separate_doc,
 "\n"
 "   Rip a vertex in a face away and add a new vertex.\n"
 "\n"
-"   :arg loop: The to separate.\n"
-"   :type loop: :class:`bmesh.types.BMFace`\n"
-"   :return vert: The newly created vertex or None of failure.\n"
+"   :arg loop: The loop to separate.\n"
+"   :type loop: :class:`bmesh.types.BMLoop`\n"
+"   :return vert: The newly created vertex or None on failure.\n"
 "   :rtype vert: :class:`bmesh.types.BMVert`\n"
 );
 static PyObject *bpy_bm_utils_loop_separate(PyObject *UNUSED(self), BPy_BMLoop *value)
