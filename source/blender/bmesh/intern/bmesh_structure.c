@@ -40,19 +40,19 @@
  *	MISC utility functions.
  */
 
-bool bmesh_edge_swapverts(BMEdge *e, BMVert *v_orig, BMVert *v_new)
+void bmesh_disk_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 {
-	if (e->v1 == v_orig) {
-		e->v1 = v_new;
+	if (e->v1 == v_src) {
+		e->v1 = v_dst;
 		e->v1_disk_link.next = e->v1_disk_link.prev = NULL;
-		return true;
 	}
-	else if (e->v2 == v_orig) {
-		e->v2 = v_new;
+	else if (e->v2 == v_src) {
+		e->v2 = v_dst;
 		e->v2_disk_link.next = e->v2_disk_link.prev = NULL;
-		return true;
 	}
-	return false;
+	else {
+		BLI_assert(0);
+	}
 }
 
 /**

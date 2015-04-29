@@ -1512,7 +1512,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	bmesh_disk_edge_remove(e, tv);
 
 	/* swap out tv for v_new in e */
-	bmesh_edge_swapverts(e, tv, v_new);
+	bmesh_disk_vert_swap(e, v_new, tv);
 
 	/* add e to v_new's disk cycle */
 	bmesh_disk_edge_append(e, v_new);
@@ -1729,7 +1729,7 @@ BMEdge *bmesh_jekv(
 			/* remove e_old from v_kill's disk cycle */
 			bmesh_disk_edge_remove(e_old, v_kill);
 			/* relink e_old->v_kill to be e_old->tv */
-			bmesh_edge_swapverts(e_old, v_kill, tv);
+			bmesh_disk_vert_swap(e_old, tv, v_kill);
 			/* append e_old to tv's disk cycle */
 			bmesh_disk_edge_append(e_old, tv);
 			/* remove e_kill from tv's disk cycle */
@@ -2066,7 +2066,7 @@ bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 
 		/* disk */
 		bmesh_disk_edge_remove(e, v);
-		bmesh_edge_swapverts(e, v, v_target);
+		bmesh_disk_vert_swap(e, v_target, v);
 		bmesh_disk_edge_append(e, v_target);
 		BLI_assert(e->v1 != e->v2);
 	}
@@ -2188,7 +2188,7 @@ void bmesh_vert_separate(
 				/* swap out edges */
 				BLI_assert(e->v1 == v || e->v2 == v);
 				bmesh_disk_edge_remove(e, v);
-				bmesh_edge_swapverts(e, v, v_new);
+				bmesh_disk_vert_swap(e, v_new, v);
 				bmesh_disk_edge_append(e, v_new);
 			}
 
