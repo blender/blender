@@ -48,7 +48,7 @@ void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* this is where everything happens */
-	BM_mesh_edgesplit(bm, use_verts, true, false);
+	BM_mesh_edgesplit(bm, use_verts, true, true, false);
 
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_INTERNAL_TAG);
 }

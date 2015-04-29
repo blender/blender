@@ -1283,7 +1283,7 @@ bool BM_mesh_intersect(
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
 		}
 
-		BM_mesh_edgesplit(bm, false, true, false);
+		BM_mesh_edgesplit(bm, false, false, true, false);
 	}
 #else
 	(void)use_separate;

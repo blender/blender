@@ -42,7 +42,7 @@
  * un-tag edges not connected to other tagged edges,
  * unless they are on a boundary
  */
-static void bm_edgesplit_validate_seams(BMesh *bm)
+static void bm_edgesplit_validate_seams(BMesh *bm, const bool use_non_manifold)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -72,6 +72,11 @@ static void bm_edgesplit_validate_seams(BMesh *bm)
 			 * the edge its self can't be split */
 			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
+		else if ((use_non_manifold == false) &&
+		         (BM_edge_is_manifold(e) == false))
+		{
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
+		}
 	}
 
 	/* single marked edges unconnected to any other marked edges
@@ -98,7 +103,16 @@ static void bm_edgesplit_validate_seams(BMesh *bm)
 	MEM_freeN(vtouch);
 }
 
-void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only, const bool copy_select)
+/**
+ * \param use_verts  Use flagged verts instead of edges.
+ * \param use_non_manifold  Split non-manifold edges (a little slower, must check for doubles).
+ * \param tag_only  Only split tagged edges.
+ * \param copy_select  Copy selection history.
+ */
+void BM_mesh_edgesplit(
+        BMesh *bm,
+        const bool use_verts, const bool use_non_manifold,
+        const bool tag_only, const bool copy_select)
 {
 	BMIter iter;
 	BMEdge *e;
@@ -142,7 +156,7 @@ void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only, con
 		}
 	}
 
-	bm_edgesplit_validate_seams(bm);
+	bm_edgesplit_validate_seams(bm, use_non_manifold);
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
@@ -202,6 +216,29 @@ void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only, con
 				}
 			}
 		}
+	}
+
+	if (use_non_manifold) {
+		/* if we split non-manifold, double edge may remain */
+		BMEdge *e_next;
+		BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+				BMEdge *e_other;
+				if ((e_other = BM_edge_find_double(e))) {
+					BM_edge_splice(bm, e, e_other);
+				}
+			}
+		}
+	}
+	else {
+#ifndef NDEBUG
+		/* ensure we don't have any double edges! */
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+				BLI_assert(BM_edge_find_double(e) == NULL);
+			}
+		}
+#endif
 	}
 
 	if (use_ese) {
