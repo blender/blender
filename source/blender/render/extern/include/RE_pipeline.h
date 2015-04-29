@@ -354,6 +354,8 @@ bool RE_allow_render_generic_object(struct Object *ob);
 bool RE_HasFakeLayer(RenderResult *res);
 bool RE_RenderResult_is_stereo(RenderResult *res);
 
+struct RenderView *RE_RenderViewGetById(struct RenderResult *res, const int view_id);
+struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *viewname);
 float *RE_RenderViewGetRectf(struct RenderResult *rr, const int view_id);
 float *RE_RenderViewGetRectz(struct RenderResult *rr, const int view_id);
 int   *RE_RenderViewGetRect32(struct RenderResult *rr, const int view_id);

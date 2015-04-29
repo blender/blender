@@ -82,7 +82,7 @@ void CompositorOperation::deinitExecution()
 		RenderResult *rr = RE_AcquireResultWrite(re);
 
 		if (rr) {
-			RenderView *rv = (RenderView *)BLI_findstring(&rr->views, this->m_viewName, offsetof(RenderView, name));
+			RenderView *rv = RE_RenderViewGetByName(rr, this->m_viewName);
 
 			if (rv->rectf != NULL) {
 				MEM_freeN(rv->rectf);

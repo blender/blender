@@ -1507,7 +1507,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd, const int vi
 
 void render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBuf *ibuf, const int view_id)
 {
-	RenderView *rv = BLI_findlink(&rr->views, view_id);
+	RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
 	if (ibuf->rect_float) {
 		if (!rv->rectf)
@@ -1536,7 +1536,7 @@ void render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBu
 
 void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
 {
-	RenderView *rv = BLI_findlink(&rr->views, view_id);
+	RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
 	if (rv->rectf)
 		memset(rv->rectf, 0, 4 * sizeof(float) * rr->rectx * rr->recty);
@@ -1590,6 +1590,18 @@ bool RE_RenderResult_is_stereo(RenderResult *res)
 		return false;
 
 	return true;
+}
+
+RenderView *RE_RenderViewGetById(RenderResult *res, const int view_id)
+{
+	RenderView *rv = BLI_findlink(&res->views, view_id);
+	return rv ? rv : res->views.first;
+}
+
+RenderView *RE_RenderViewGetByName(RenderResult *res, const char *viewname)
+{
+	RenderView *rv = BLI_findstring(&res->views, viewname, offsetof(RenderView, name));
+	return rv ? rv : res->views.first;
 }
 
 void RE_RenderViewSetRectf(RenderResult *res, const int view_id, float *rect)
