@@ -1107,8 +1107,8 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 	Ray volume_ray = *ray;
 	Intersection isect;
 	int step = 0;
-	while(step < VOLUME_STACK_SIZE &&
-		  scene_intersect_volume(kg, &volume_ray, &isect))
+	while(step < 2 * VOLUME_STACK_SIZE &&
+	      scene_intersect_volume(kg, &volume_ray, &isect))
 	{
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
