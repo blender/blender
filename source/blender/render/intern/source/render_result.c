@@ -936,7 +936,7 @@ void render_result_views_new(RenderResult *rr, RenderData *rd)
 
 	/* we always need at least one view */
 	if (BLI_listbase_count_ex(&rr->views, 1) == 0) {
-		render_result_view_new(rr, "new render view");
+		render_result_view_new(rr, "");
 	}
 }
 
