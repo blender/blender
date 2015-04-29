@@ -107,6 +107,7 @@ bool BVH::cache_read(CacheData& key)
 		if(!(value.read(pack.root_index) &&
 		     value.read(pack.SAH) &&
 		     value.read(pack.nodes) &&
+		     value.read(pack.leaf_nodes) &&
 		     value.read(pack.object_node) &&
 		     value.read(pack.tri_woop) &&
 		     value.read(pack.prim_type) &&
@@ -118,6 +119,7 @@ bool BVH::cache_read(CacheData& key)
 			pack.root_index = 0;
 			pack.SAH = 0.0f;
 			pack.nodes.clear();
+			pack.leaf_nodes.clear();
 			pack.object_node.clear();
 			pack.tri_woop.clear();
 			pack.prim_type.clear();
@@ -140,6 +142,7 @@ void BVH::cache_write(CacheData& key)
 	value.add(pack.SAH);
 
 	value.add(pack.nodes);
+	value.add(pack.leaf_nodes);
 	value.add(pack.object_node);
 	value.add(pack.tri_woop);
 	value.add(pack.prim_type);
