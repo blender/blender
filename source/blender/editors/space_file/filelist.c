@@ -1349,7 +1349,7 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float 
 		else if (limg->flags & FILE_TYPE_FTFONT) {
 			source = THB_SOURCE_FONT;
 		}
-		limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, source);
+		limg->img = IMB_thumb_manage(limg->path, THB_LARGE, source);
 		*do_update = true;
 		PIL_sleep_ms(10);
 		limg = limg->next;

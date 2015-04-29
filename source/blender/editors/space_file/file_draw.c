@@ -329,6 +329,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 	float fx, fy;
 	float dx, dy;
 	int xco, yco;
+	float ui_imbx, ui_imby;
 	float scaledx, scaledy;
 	float scale;
 	int ex, ey;
@@ -336,23 +337,26 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 
 	BLI_assert(imb != NULL);
 
-	if ((imb->x * UI_DPI_FAC > layout->prv_w) ||
-	    (imb->y * UI_DPI_FAC > layout->prv_h))
+	ui_imbx = imb->x * UI_DPI_FAC;
+	ui_imby = imb->y * UI_DPI_FAC;
+	/* Unlike thumbnails, icons are not scaled up. */
+	if (((ui_imbx > layout->prv_w) || (ui_imby > layout->prv_h)) ||
+	    (!is_icon && ((ui_imbx < layout->prv_w) || (ui_imby < layout->prv_h))))
 	{
 		if (imb->x > imb->y) {
 			scaledx = (float)layout->prv_w;
-			scaledy =  ( (float)imb->y / (float)imb->x) * layout->prv_w;
+			scaledy = ((float)imb->y / (float)imb->x) * layout->prv_w;
 			scale = scaledx / imb->x;
 		}
 		else {
 			scaledy = (float)layout->prv_h;
-			scaledx =  ( (float)imb->x / (float)imb->y) * layout->prv_h;
+			scaledx = ((float)imb->x / (float)imb->y) * layout->prv_h;
 			scale = scaledy / imb->y;
 		}
 	}
 	else {
-		scaledx = (float)imb->x * UI_DPI_FAC;
-		scaledy = (float)imb->y * UI_DPI_FAC;
+		scaledx = ui_imbx;
+		scaledy = ui_imby;
 		scale = UI_DPI_FAC;
 	}
 

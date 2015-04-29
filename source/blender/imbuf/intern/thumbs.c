@@ -283,7 +283,12 @@ static bool thumbpath_from_uri(const char *uri, char *path, const int path_len, 
 void IMB_thumb_makedirs(void)
 {
 	char tpath[FILE_MAX];
+#if 0  /* UNUSED */
 	if (get_thumb_dir(tpath, THB_NORMAL)) {
+		BLI_dir_create_recursive(tpath);
+	}
+#endif
+	if (get_thumb_dir(tpath, THB_LARGE)) {
 		BLI_dir_create_recursive(tpath);
 	}
 	if (get_thumb_dir(tpath, THB_FAIL)) {

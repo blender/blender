@@ -53,6 +53,10 @@ class FILEBROWSER_HT_header(Header):
         # can be None when save/reload with a file selector open
         if params:
             layout.prop(params, "display_type", expand=True, text="")
+
+            if params.display_type == 'FILE_IMGDISPLAY':
+                layout.prop(params, "thumbnails_size")
+
             layout.prop(params, "sort_method", expand=True, text="")
 
             layout.prop(params, "show_hidden", text="", icon='FILE_HIDDEN')

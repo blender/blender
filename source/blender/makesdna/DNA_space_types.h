@@ -590,6 +590,7 @@ typedef struct FileSelectParams {
 	int active_file;
 	int sel_first;
 	int sel_last;
+	int thumbnails_size;
 
 	/* short */
 	short type; /* XXXXX for now store type here, should be moved to the operator */
