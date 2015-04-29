@@ -1697,14 +1697,11 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	cb->ptr = *ptr;
 	cb->prop = prop;
 
-	but = uiDefBlockButN(block, ui_icon_view_menu_cb, MEM_dupallocN(cb), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
+	but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
 
 	but->icon = icon;
 	UI_but_flag_enable(but, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
-	
-	UI_but_funcN_set(but, rna_update_cb, MEM_dupallocN(cb), NULL);
-	
-	MEM_freeN(cb);
+
 	if (free_items) {
 		MEM_freeN(items);
 	}
