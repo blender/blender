@@ -1989,27 +1989,38 @@ bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
 	BLI_assert(BM_edge_exists(v_a, v_b) == false);
 
 	if (v_a->e && v_b->e) {
-		SmallHash visit;
 		BMEdge *e, *e_first;
 
-		BLI_smallhash_init(&visit);
+#define VERT_VISIT _FLAG_WALK
 
+		/* tag 'v_a' */
 		e = e_first = v_a->e;
 		do {
 			BMVert *v_other = BM_edge_other_vert(e, v_a);
-			BLI_smallhash_insert(&visit, (uintptr_t)v_other, NULL);
+			BLI_assert(!BM_ELEM_API_FLAG_TEST(v_other, VERT_VISIT));
+			BM_ELEM_API_FLAG_ENABLE(v_other, VERT_VISIT);
 		} while ((e = BM_DISK_EDGE_NEXT(e, v_a)) != e_first);
 
+		/* check 'v_b' connects to 'v_a' edges */
 		e = e_first = v_b->e;
 		do {
 			BMVert *v_other = BM_edge_other_vert(e, v_b);
-			if (BLI_smallhash_haskey(&visit, (uintptr_t)v_other)) {
+			if (BM_ELEM_API_FLAG_TEST(v_other, VERT_VISIT)) {
 				is_double = true;
 				break;
 			}
 		} while ((e = BM_DISK_EDGE_NEXT(e, v_b)) != e_first);
 
-		BLI_smallhash_release(&visit);
+		/* cleanup */
+		e = e_first = v_a->e;
+		do {
+			BMVert *v_other = BM_edge_other_vert(e, v_a);
+			BLI_assert(BM_ELEM_API_FLAG_TEST(v_other, VERT_VISIT));
+			BM_ELEM_API_FLAG_DISABLE(v_other, VERT_VISIT);
+		} while ((e = BM_DISK_EDGE_NEXT(e, v_a)) != e_first);
+
+#undef VERT_VISIT
+
 	}
 
 	return is_double;
