@@ -54,6 +54,7 @@
 #include "BLI_memarena.h"
 
 #include "BKE_nla.h"
+#include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"

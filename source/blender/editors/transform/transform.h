@@ -39,9 +39,6 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_smallhash.h"
-#include "BKE_editmesh.h"
-
 /* ************************** Types ***************************** */
 
 struct TransInfo;
@@ -261,7 +258,7 @@ typedef struct EdgeSlideData {
 
 typedef struct TransDataVertSlideVert {
 	/* TransDataGenericSlideVert */
-	BMVert *v;
+	struct BMVert *v;
 	struct LinkNode **cd_loop_groups;
 	float   co_orig_3d[3];
 	/* end generic */
