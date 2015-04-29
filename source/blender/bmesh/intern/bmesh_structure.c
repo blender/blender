@@ -56,6 +56,32 @@ void bmesh_disk_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 }
 
 /**
+ * Handles all connected data, use with care.
+ *
+ * Assumes caller has setup correct state before the swap is done.
+ */
+void bmesh_edge_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
+{
+	/* swap out loops */
+	if (e->l) {
+		BMLoop *l_iter, *l_first;
+		l_iter = l_first = e->l;
+		do {
+			if (l_iter->v == v_src) {
+				l_iter->v = v_dst;
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+
+	/* swap out edges */
+	BLI_assert(e->v1 == v_src || e->v2 == v_src);
+	bmesh_disk_edge_remove(e, v_src);
+	bmesh_disk_vert_swap(e, v_dst, v_src);
+	bmesh_disk_edge_append(e, v_dst);
+	BLI_assert(e->v1 != e->v2);
+}
+
+/**
  * \section bm_cycles BMesh Cycles
  * (this is somewhat outdate, though bits of its API are still used) - joeedh
  *

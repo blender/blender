@@ -2050,24 +2050,7 @@ bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {
-
-		/* loop  */
-		BMLoop *l_first;
-		if ((l_first = e->l)) {
-			BMLoop *l_iter = l_first;
-			do {
-				if (l_iter->v == v) {
-					l_iter->v = v_target;
-				}
-				/* else if (l_iter->prev->v == v) {...}
-				 * (this case will be handled by a different edge) */
-			} while ((l_iter = l_iter->radial_next) != l_first);
-		}
-
-		/* disk */
-		bmesh_disk_edge_remove(e, v);
-		bmesh_disk_vert_swap(e, v_target, v);
-		bmesh_disk_edge_append(e, v_target);
+		bmesh_edge_vert_swap(e, v_target, v);
 		BLI_assert(e->v1 != e->v2);
 	}
 
@@ -2173,23 +2156,7 @@ void bmesh_vert_separate(
 			}
 
 			while ((e = BLI_SMALLSTACK_POP(edges))) {
-
-				/* swap out loops */
-				if (e->l) {
-					BMLoop *l_iter, *l_first;
-					l_iter = l_first = e->l;
-					do {
-						if (l_iter->v == v) {
-							l_iter->v = v_new;
-						}
-					} while ((l_iter = l_iter->radial_next) != l_first);
-				}
-
-				/* swap out edges */
-				BLI_assert(e->v1 == v || e->v2 == v);
-				bmesh_disk_edge_remove(e, v);
-				bmesh_disk_vert_swap(e, v_new, v);
-				bmesh_disk_edge_append(e, v_new);
+				bmesh_edge_vert_swap(e, v_new, v);
 			}
 
 			if (r_vout) {
