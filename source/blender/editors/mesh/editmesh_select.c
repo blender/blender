@@ -559,7 +559,7 @@ static void find_nearest_edge__doClosest(
 		copy_v2_v2(screen_co, screen_co_b);
 	}
 	else {
-		interp_v3_v3v3(screen_co, screen_co_a, screen_co_b, fac);
+		interp_v2_v2v2(screen_co, screen_co_a, screen_co_b, fac);
 	}
 
 	dist_test = dist_test_bias = len_manhattan_v2v2(data->mval_fl, screen_co);
