@@ -670,6 +670,8 @@ def WinPyBundle(target=None, source=None, env=None):
     py_dir += '/release/site-packages'
     # grr, we have to do one by one because the dir exists
     for f in os.listdir(py_dir):
+        if f == '.svn':
+            continue
         fn_src = os.path.join(py_dir, f)
         fn_dst = os.path.join(py_target, f)
 
