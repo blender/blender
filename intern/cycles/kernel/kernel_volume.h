@@ -993,6 +993,48 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 	volume_ray.t = FLT_MAX;
 
 	int stack_index = 0, enclosed_index = 0;
+
+#ifdef __VOLUME_RECORD_ALL__
+	Intersection hits[2*VOLUME_STACK_SIZE];
+	uint num_hits = scene_intersect_volume_all(kg,
+	                                           &volume_ray,
+	                                           hits,
+	                                           2*VOLUME_STACK_SIZE);
+	if(num_hits > 0) {
+		int enclosed_volumes[VOLUME_STACK_SIZE];
+		Intersection *isect = hits;
+
+		qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
+
+		for(uint hit = 0; hit < num_hits; ++hit, ++isect) {
+			ShaderData sd;
+			shader_setup_from_ray(kg, &sd, isect, &volume_ray, 0, 0);
+			if(sd.flag & SD_BACKFACING) {
+				/* If ray exited the volume and never entered to that volume
+				 * it means that camera is inside such a volume.
+				 */
+				bool is_enclosed = false;
+				for(int i = 0; i < enclosed_index; ++i) {
+					if(enclosed_volumes[i] == sd.object) {
+						is_enclosed = true;
+						break;
+					}
+				}
+				if(is_enclosed == false) {
+					stack[stack_index].object = sd.object;
+					stack[stack_index].shader = sd.shader;
+					++stack_index;
+				}
+			}
+			else {
+				/* If ray from camera enters the volume, this volume shouldn't
+				 * be added to the stack on exit.
+				 */
+				enclosed_volumes[enclosed_index++] = sd.object;
+			}
+		}
+	}
+#else
 	int enclosed_volumes[VOLUME_STACK_SIZE];
 	int step = 0;
 
@@ -1035,6 +1077,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 		volume_ray.P = ray_offset(sd.P, -sd.Ng);
 		++step;
 	}
+#endif
 	/* stack_index of 0 means quick checks outside of the kernel gave false
 	 * positive, nothing to worry about, just we've wasted quite a few of
 	 * ticks just to come into conclusion that camera is in the air.
@@ -1105,6 +1148,25 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 	kernel_assert(kernel_data.integrator.use_volumes);
 
 	Ray volume_ray = *ray;
+
+#ifdef __VOLUME_RECORD_ALL__
+	Intersection hits[2*VOLUME_STACK_SIZE];
+	uint num_hits = scene_intersect_volume_all(kg,
+	                                           &volume_ray,
+	                                           hits,
+	                                           2*VOLUME_STACK_SIZE);
+	if(num_hits > 0) {
+		Intersection *isect = hits;
+
+		qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
+
+		for(uint hit = 0; hit < num_hits; ++hit, ++isect) {
+			ShaderData sd;
+			shader_setup_from_ray(kg, &sd, isect, &volume_ray, 0, 0);
+			kernel_volume_stack_enter_exit(kg, &sd, stack);
+		}
+	}
+#else
 	Intersection isect;
 	int step = 0;
 	while(step < 2 * VOLUME_STACK_SIZE &&
@@ -1119,6 +1181,7 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 		volume_ray.t -= sd.ray_length;
 		++step;
 	}
+#endif
 }
 #endif
 

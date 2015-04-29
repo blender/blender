@@ -39,19 +39,6 @@ CCL_NAMESPACE_BEGIN
  * This is CPU only because of qsort, and malloc or high stack space usage to
  * record all these intersections. */
 
-ccl_device_noinline int shadow_intersections_compare(const void *a, const void *b)
-{
-	const Intersection *isect_a = (const Intersection*)a;
-	const Intersection *isect_b = (const Intersection*)b;
-
-	if(isect_a->t < isect_b->t)
-		return -1;
-	else if(isect_a->t > isect_b->t)
-		return 1;
-	else
-		return 0;
-}
-
 #define STACK_MAX_HITS 64
 
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, float3 *shadow)
@@ -95,7 +82,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 			PathState ps = *state;
 #endif
 
-			qsort(hits, num_hits, sizeof(Intersection), shadow_intersections_compare);
+			qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
 
 			for(int hit = 0; hit < num_hits; hit++, isect++) {
 				/* adjust intersection distance for moving ray forward */
