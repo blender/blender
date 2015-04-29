@@ -1641,10 +1641,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 
 	/* arg_litem is malloced, can be freed by parent button */
 	cb = *((RNAUpdateCb *)arg_litem);
-	
-	/* unused */
-	// icon = RNA_property_enum_get(&cb.ptr, cb.prop);
-	
+
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP);
 	
@@ -1682,12 +1679,13 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	EnumPropertyItem *items;
 	uiBlock *block;
 	uiBut *but;
-//	rctf rect;  /* UNUSED */
 	int value, icon = ICON_NONE, tot_items;
 	bool free_items;
-	
-	if (!prop || RNA_property_type(prop) != PROP_ENUM)
+
+	if (!prop || RNA_property_type(prop) != PROP_ENUM) {
+		RNA_warning("property of type Enum not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
 		return;
+	}
 
 	block = uiLayoutAbsoluteBlock(layout);
 
@@ -1698,15 +1696,9 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
 	cb->ptr = *ptr;
 	cb->prop = prop;
-	
-//	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
-//	rect.ymin = 0; rect.ymax = 10.0f * UI_UNIT_X;
-	
+
 	but = uiDefBlockButN(block, ui_icon_view_menu_cb, MEM_dupallocN(cb), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
 
-	
-//	but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, icon, 0, 0, BLI_rctf_size_x(&rect), BLI_rctf_size_y(&rect), ptr, prop, -1, 0, icon, -1, -1, NULL);
-	
 	but->icon = icon;
 	UI_but_flag_enable(but, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 	
