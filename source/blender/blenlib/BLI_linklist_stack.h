@@ -168,6 +168,16 @@
 #define BLI_SMALLSTACK_IS_EMPTY(var) \
 	((_BLI_SMALLSTACK_CAST(var) _##var##_stack) == NULL)
 
+/* fill in a lookup table */
+#define BLI_SMALLSTACK_AS_TABLE(var, data) \
+{ \
+	LinkNode *_##var##_iter; \
+	unsigned int i; \
+	for (_##var##_iter = _##var##_stack, i = 0; _##var##_iter; _##var##_iter = _##var##_iter->next, i++) { \
+		(data)[i] = _BLI_SMALLSTACK_CAST(var) (_##var##_iter->link); \
+	} \
+} ((void)0)
+
 /* loop over stack members last-added-first */
 #define BLI_SMALLSTACK_ITER_BEGIN(var, item) \
 	{ \

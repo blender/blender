@@ -2209,18 +2209,12 @@ void bmesh_vert_separate(
 
 	if (r_vout != NULL) {
 		BMVert **verts;
-		int i;
 
 		verts = MEM_mallocN(sizeof(BMVert *) * verts_num, __func__);
-		verts[0] = v;
-
-		for (i = 1; i < verts_num; i++) {
-			verts[i] = BLI_SMALLSTACK_POP(verts_new);
-			BLI_assert(verts[i] != NULL);
-		}
-		BLI_assert(BLI_SMALLSTACK_POP(verts_new) == NULL);
-
 		*r_vout = verts;
+
+		verts[0] = v;
+		BLI_SMALLSTACK_AS_TABLE(verts_new, &verts[1]);
 	}
 }
 
