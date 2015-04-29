@@ -2776,7 +2776,7 @@ static void view3d_draw_objects(
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixf(rv3d->viewmat);
 		}
-		else if (!draw_grids_after){
+		else if (!draw_grids_after) {
 			drawfloor(scene, v3d, grid_unit, true);
 		}
 	}

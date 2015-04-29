@@ -1612,7 +1612,9 @@ bool BKE_pbvh_node_raycast(
 	return hit;
 }
 
-void BKE_pbvh_raycast_project_ray_root (PBVH *bvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3])
+void BKE_pbvh_raycast_project_ray_root(
+        PBVH *bvh, bool original,
+        float ray_start[3], float ray_end[3], float ray_normal[3])
 {
 	if (bvh->nodes) {
 		float rootmin_start, rootmin_end;

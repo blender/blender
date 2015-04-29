@@ -63,7 +63,7 @@ void gpu_assert_no_gl_errors(const char *file, int line, const char *str);
 
 #ifdef WITH_GPU_DEBUG
 /* inserts a debug marker message for the debug context messaging system */
-void gpu_string_marker     (size_t size, const char *str);
+void gpu_string_marker(size_t size, const char *str);
 
 #  define GPU_STRING_MARKER(size, str) gpu_string_marker((size), (str))
 #else /* WITH_GPU_DEBUG */

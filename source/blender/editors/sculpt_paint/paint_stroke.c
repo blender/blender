@@ -1015,7 +1015,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 	return false;
 }
 
-static void paint_stroke_line_constrain (PaintStroke *stroke, float mouse[2])
+static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
 {
 	if (stroke->constrain_line) {
 		float line[2];

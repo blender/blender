@@ -937,7 +937,7 @@ void BKE_material_remap_object(Object *ob, const unsigned int *remap)
 		BLI_array_permute(ob->matbits, ob->totcol, remap);
 	}
 
-	if(matar) {
+	if (matar) {
 		BLI_array_permute(*matar, *totcol_p, remap);
 	}
 
