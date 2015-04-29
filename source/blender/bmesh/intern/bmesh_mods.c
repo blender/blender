@@ -1650,3 +1650,9 @@ BMVert *BM_face_loop_separate(BMesh *bm, BMLoop *sl)
 {
 	return bmesh_urmv_loop(bm, sl);
 }
+
+BMVert *BM_face_loop_separate_multi(
+        BMesh *bm, BMLoop **larr, int larr_len)
+{
+	return bmesh_urmv_loop_multi(bm, larr, larr_len);
+}

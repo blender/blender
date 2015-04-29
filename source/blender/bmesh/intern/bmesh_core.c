@@ -2360,6 +2360,151 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 }
 
 /**
+ * A version of #bmesh_urmv_loop that disconnects multiple loops at once.
+ *
+ * Handles the task of finding fans boundaris.
+ */
+BMVert *bmesh_urmv_loop_multi(
+        BMesh *bm, BMLoop **larr, int larr_len)
+{
+	BMVert *v_sep = larr[0]->v;
+	BMVert *v_new;
+	int i;
+	bool is_mixed_any = false;
+
+	BLI_SMALLSTACK_DECLARE(edges, BMEdge *);
+
+#define LOOP_VISIT _FLAG_WALK
+#define EDGE_VISIT _FLAG_WALK
+
+	for (i = 0; i < larr_len; i++) {
+		BMLoop *l_sep = larr[i];
+
+		/* all must be from the same vert! */
+		BLI_assert(v_sep == l_sep->v);
+
+		BLI_assert(!BM_ELEM_API_FLAG_TEST(l_sep, LOOP_VISIT));
+		BM_ELEM_API_FLAG_ENABLE(l_sep, LOOP_VISIT);
+
+		/* weak! but it makes it simpler to check for edges to split
+		 * while doing a radial loop (where loops may be adjacent) */
+		BM_ELEM_API_FLAG_ENABLE(l_sep->next, LOOP_VISIT);
+		BM_ELEM_API_FLAG_ENABLE(l_sep->prev, LOOP_VISIT);
+	}
+
+	for (i = 0; i < larr_len; i++) {
+		BMLoop *l_sep = larr[i];
+
+		BMLoop *loop_pair[2] = {l_sep, l_sep->prev};
+		int j;
+		for (j = 0; j < ARRAY_SIZE(loop_pair); j++) {
+			BMEdge *e = loop_pair[j]->e;
+			if (!BM_ELEM_API_FLAG_TEST(e, EDGE_VISIT)) {
+				BMLoop *l_iter, *l_first;
+				bool is_mixed = false;
+
+				BM_ELEM_API_FLAG_ENABLE(e, EDGE_VISIT);
+
+				l_iter = l_first = e->l;
+				do {
+					if (!BM_ELEM_API_FLAG_TEST(l_iter, LOOP_VISIT)) {
+						is_mixed = true;
+						is_mixed_any = true;
+						break;
+					}
+				} while ((l_iter = l_iter->radial_next) != l_first);
+
+				if (is_mixed) {
+					/* ensure the first loop is one we don't own so we can do a quick check below
+					 * on the edge's loop-flag to see if the edge is mixed or not. */
+					e->l = l_iter;
+				}
+				BLI_SMALLSTACK_PUSH(edges, e);
+			}
+		}
+	}
+
+	if (is_mixed_any == false) {
+		/* all loops in 'larr' are the soul owners of their edges.
+		 * nothing to split away from, this is a no-op */
+		v_new = v_sep;
+	}
+	else {
+		BMEdge *e;
+
+		BLI_assert(!BLI_SMALLSTACK_IS_EMPTY(edges));
+
+		v_new = BM_vert_create(bm, v_sep->co, v_sep, BM_CREATE_NOP);
+		while ((e = BLI_SMALLSTACK_POP(edges))) {
+			BMLoop *l_iter, *l_first, *l_next;
+			BMEdge *e_new;
+
+			/* disable so copied edge isn't left dirty (loop edges are cleared last too) */
+			BM_ELEM_API_FLAG_DISABLE(e, EDGE_VISIT);
+
+			if (!BM_ELEM_API_FLAG_TEST(e->l, LOOP_VISIT)) {
+				/* edge has some loops owned by us, some owned by other loops */
+				BMVert *e_new_v_pair[2];
+
+				if (e->v1 == v_sep) {
+					e_new_v_pair[0] = v_new;
+					e_new_v_pair[1] = e->v2;
+				}
+				else {
+					BLI_assert(v_sep == e->v2);
+					e_new_v_pair[0] = e->v1;
+					e_new_v_pair[1] = v_new;
+				}
+
+				e_new = BM_edge_create(bm, UNPACK2(e_new_v_pair), e, BM_CREATE_NOP);
+
+				/* now moved all loops from 'larr' to this newly created edge */
+				l_iter = l_first = e->l;
+				do {
+					l_next = l_iter->radial_next;
+					if (BM_ELEM_API_FLAG_TEST(l_iter, LOOP_VISIT)) {
+						bmesh_radial_loop_remove(l_iter, e);
+						bmesh_radial_append(e_new, l_iter);
+						l_iter->e = e_new;
+					}
+				} while ((l_iter = l_next) != l_first);
+			}
+			else {
+				/* we own the edge entirely, replace the vert */
+				bmesh_disk_edge_remove(e, v_sep);
+				bmesh_disk_vert_swap(e, v_new, v_sep);
+				bmesh_disk_edge_append(e, v_new);
+			}
+
+			/* loop vert is handled last! */
+		}
+	}
+
+	for (i = 0; i < larr_len; i++) {
+		BMLoop *l_sep = larr[i];
+
+		l_sep->v = v_new;
+
+		BLI_assert(BM_ELEM_API_FLAG_TEST(l_sep, LOOP_VISIT));
+		BLI_assert(BM_ELEM_API_FLAG_TEST(l_sep->prev, LOOP_VISIT));
+		BLI_assert(BM_ELEM_API_FLAG_TEST(l_sep->next, LOOP_VISIT));
+		BM_ELEM_API_FLAG_DISABLE(l_sep, LOOP_VISIT);
+		BM_ELEM_API_FLAG_DISABLE(l_sep->prev, LOOP_VISIT);
+		BM_ELEM_API_FLAG_DISABLE(l_sep->next, LOOP_VISIT);
+
+
+		BM_ELEM_API_FLAG_DISABLE(l_sep->prev->e, EDGE_VISIT);
+		BM_ELEM_API_FLAG_DISABLE(l_sep->e, EDGE_VISIT);
+	}
+
+#undef LOOP_VISIT
+#undef EDGE_VISIT
+
+	return v_new;
+}
+
+
+/**
  * \brief Unglue Region Make Vert (URMV)
  *
  * Disconnects f_sep from the vertex fan at \a v_sep
