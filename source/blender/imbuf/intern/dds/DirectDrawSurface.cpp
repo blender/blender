@@ -60,6 +60,7 @@
 #include <PixelFormat.h>
 
 #include <stdio.h> // printf
+#include <stdlib.h>  // malloc
 #include <math.h>  // sqrt
 #include <sys/types.h>
 
@@ -1147,7 +1148,7 @@ void* DirectDrawSurface::readData(uint &rsize)
 	uint size = stream.size - header_size;
 	rsize = size;
 
-	unsigned char *data = new unsigned char[size];
+	unsigned char *data = (unsigned char *)malloc(sizeof(*data) * size);
 
 	stream.seek(header_size);
 	mem_read(stream, data, size);
