@@ -1024,7 +1024,7 @@ void bglPolygonOffset(float viewdist, float dist)
 		}
 		else {
 			/* should be clipping value or so... */
-			offs = 0.0001f * dist;
+			offs = 0.0005f * dist;
 		}
 		
 		winmat[14] -= offs;
