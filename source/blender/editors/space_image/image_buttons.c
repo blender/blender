@@ -312,10 +312,11 @@ static void ui_imageuser_slot_menu(bContext *UNUSED(C), uiLayout *layout, void *
 
 static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
 {
-	if (RE_RenderViewGetRectf(rr, 0)) {
+	RenderView *rv = RE_RenderViewGetById(rr, 0);
+	if (rv->rectf) {
 		return IFACE_("Composite");
 	}
-	else if (RE_RenderViewGetRect32(rr, 0)) {
+	else if (rv->rect32) {
 		return IFACE_("Sequence");
 	}
 	else {

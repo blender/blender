@@ -3554,7 +3554,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	}
 	else if (ima->renders[ima->render_slot]) {
 		rres = *(ima->renders[ima->render_slot]);
-		rres.have_combined = RE_RenderViewGetRectf(&rres, actview) != NULL;
+		rres.have_combined = ((RenderView *)rres.views.first)->rectf != NULL;
 	}
 	else
 		memset(&rres, 0, sizeof(RenderResult));

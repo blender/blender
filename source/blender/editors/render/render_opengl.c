@@ -248,7 +248,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	Object *camera = NULL;
 	ImBuf *ibuf;
 	float winmat[4][4];
-	float *rectf = RE_RenderViewGetRectf(rr, oglrender->view_id);
+	float *rectf = RE_RenderViewGetById(rr, oglrender->view_id)->rectf;
 	int sizex = oglrender->sizex;
 	int sizey = oglrender->sizey;
 	const short view_context = (v3d != NULL);
@@ -446,8 +446,8 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 
 	if (rect) {
 		int profile_to;
-		float *rectf = RE_RenderViewGetRectf(rr, oglrender->view_id);
-		
+		float *rectf = RE_RenderViewGetById(rr, oglrender->view_id)->rectf;
+
 		if (BKE_scene_check_color_management_enabled(scene))
 			profile_to = IB_PROFILE_LINEAR_RGB;
 		else

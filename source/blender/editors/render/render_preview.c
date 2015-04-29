@@ -525,6 +525,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, rcti *newrect)
 {
 	Render *re;
+	RenderView *rv;
 	RenderResult rres;
 	char name[32];
 	int offx = 0;
@@ -549,10 +550,12 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 	/* test if something rendered ok */
 	re = RE_GetRender(name);
 
-	/* material preview only needs monoscopy (view 0) */
-	RE_AcquireResultImage(re, &rres, 0);
+	RE_AcquireResultImageViews(re, &rres);
 
-	if (rres.rectf) {
+	/* material preview only needs monoscopy (view 0) */
+	rv = RE_RenderViewGetById(&rres, 0);
+
+	if (rv->rectf) {
 		
 		if (ABS(rres.rectx - newx) < 2 && ABS(rres.recty - newy) < 2) {
 
@@ -577,7 +580,7 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 		}
 	}
 
-	RE_ReleaseResultImage(re);
+	RE_ReleaseResultImageViews(re, &rres);
 
 	return ok;
 }

@@ -138,6 +138,9 @@ typedef struct RenderResult {
 	int rectx, recty;
 	short crop, sample_nr;
 	
+	/* the following rect32, rectf and rectz buffers are for temporary storage only, for RenderResult structs
+	 * created in #RE_AcquireResultImage - which do not have RenderView */
+
 	/* optional, 32 bits version of picture, used for ogl render and image curves */
 	int *rect32;
 	/* if this exists, a copy of one of layers, or result of composited layers */
@@ -353,14 +356,8 @@ bool RE_allow_render_generic_object(struct Object *ob);
 
 bool RE_HasFakeLayer(RenderResult *res);
 bool RE_RenderResult_is_stereo(RenderResult *res);
-
 struct RenderView *RE_RenderViewGetById(struct RenderResult *res, const int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *viewname);
-float *RE_RenderViewGetRectf(struct RenderResult *rr, const int view_id);
-float *RE_RenderViewGetRectz(struct RenderResult *rr, const int view_id);
-int   *RE_RenderViewGetRect32(struct RenderResult *rr, const int view_id);
-void   RE_RenderViewSetRectf(struct RenderResult *res, const int view_id, float *rect);
-void   RE_RenderViewSetRectz(struct RenderResult *res, const int view_id, float *rect);
 
 #endif /* __RE_PIPELINE_H__ */
 
