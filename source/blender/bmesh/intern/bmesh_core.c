@@ -2130,7 +2130,7 @@ void bmesh_vert_separate(
 
 	while (true) {
 		/* Considering only edges and faces incident on vertex v, walk
-		 * the edges & faces and assign an index to each connected set */
+		 * the edges & collect in the 'edges' list for splitting */
 
 		BMEdge *e = v->e;
 		BM_ELEM_API_FLAG_DISABLE(e, EDGE_VISIT);
