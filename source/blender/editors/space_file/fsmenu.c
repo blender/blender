@@ -565,7 +565,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				
 				pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 				
-				if (pathString == NULL || !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingASCII))
+				if (pathString == NULL || !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8))
 					continue;
 
 				/* Exclude "all my files" as it makes no sense in blender fileselector */
