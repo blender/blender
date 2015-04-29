@@ -140,7 +140,7 @@ else:
 
             retcode = subprocess.call(cur_scons_cmd + scons_options)
             if retcode != 0:
-                print('Error building rules wuth config ' + config)
+                print('Error building rules with config ' + config)
                 sys.exit(retcode)
 
         sys.exit(0)
