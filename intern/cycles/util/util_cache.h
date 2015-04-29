@@ -105,7 +105,7 @@ public:
 			return false;
 		}
 
-		if(!size)
+		if((size == 0) || (size % sizeof(T)) != 0)
 			return false;
 
 		data.resize(size/sizeof(T));
