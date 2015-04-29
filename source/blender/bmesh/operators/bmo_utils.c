@@ -208,7 +208,7 @@ static void bmo_region_extend_expand(
 				BMEdge *e;
 
 				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-					if (!BMO_elem_flag_test(bm, e, SEL_ORIG)) {
+					if (!BMO_elem_flag_test(bm, e, SEL_ORIG) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 						found = true;
 						break;
 					}
@@ -221,7 +221,7 @@ static void bmo_region_extend_expand(
 					BMEdge *e;
 
 					BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-						if (!BMO_elem_flag_test(bm, e, SEL_FLAG)) {
+						if (!BMO_elem_flag_test(bm, e, SEL_FLAG) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 							BMO_elem_flag_enable(bm, e, SEL_FLAG);
 							BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
 						}
@@ -232,7 +232,7 @@ static void bmo_region_extend_expand(
 					BMFace *f;
 
 					BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
-						if (!BMO_elem_flag_test(bm, f, SEL_FLAG)) {
+						if (!BMO_elem_flag_test(bm, f, SEL_FLAG) && !BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 							bmo_face_flag_set_flush(bm, f, SEL_FLAG, true);
 						}
 					}
@@ -243,7 +243,7 @@ static void bmo_region_extend_expand(
 						BMEdge *e;
 						BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 							if (BM_edge_is_wire(e)) {
-								if (!BMO_elem_flag_test(bm, e, SEL_FLAG)) {
+								if (!BMO_elem_flag_test(bm, e, SEL_FLAG) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 									BMO_elem_flag_enable(bm, e, SEL_FLAG);
 									BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
 								}
@@ -267,7 +267,9 @@ static void bmo_region_extend_expand(
 					BMFace *f_other;
 
 					BM_ITER_ELEM (f_other, &fiter, l->e, BM_FACES_OF_EDGE) {
-						if (!BMO_elem_flag_test(bm, f_other, SEL_ORIG | SEL_FLAG)) {
+						if (!BMO_elem_flag_test(bm, f_other, SEL_ORIG | SEL_FLAG) &&
+						    !BM_elem_flag_test(f_other, BM_ELEM_HIDDEN))
+						{
 							BMO_elem_flag_enable(bm, f_other, SEL_FLAG);
 						}
 					}
@@ -277,7 +279,9 @@ static void bmo_region_extend_expand(
 					BMFace *f_other;
 
 					BM_ITER_ELEM (f_other, &fiter, l->v, BM_FACES_OF_VERT) {
-						if (!BMO_elem_flag_test(bm, f_other, SEL_ORIG | SEL_FLAG)) {
+						if (!BMO_elem_flag_test(bm, f_other, SEL_ORIG | SEL_FLAG) &&
+						    !BM_elem_flag_test(f_other, BM_ELEM_HIDDEN))
+						{
 							BMO_elem_flag_enable(bm, f_other, SEL_FLAG);
 						}
 					}
