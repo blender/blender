@@ -228,7 +228,7 @@ bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 
 	if (!BM_vert_in_edge(e, v))
 		return false;
-	if (bmesh_disk_count(v) != len || len == 0)
+	if (bmesh_disk_count_ex(v, len + 1) != len || len == 0)
 		return false;
 
 	e_iter = e;

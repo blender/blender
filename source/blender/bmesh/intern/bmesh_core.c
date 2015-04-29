@@ -1687,7 +1687,7 @@ BMEdge *bmesh_jekv(
 	BMEdge *e_old;
 	BMVert *v_old, *tv;
 	BMLoop *l_kill;
-	int len, radlen = 0, i;
+	int radlen = 0, i;
 	bool halt = false;
 #ifndef NDEBUG
 	bool edok;
@@ -1698,10 +1698,8 @@ BMEdge *bmesh_jekv(
 	if (BM_vert_in_edge(e_kill, v_kill) == 0) {
 		return NULL;
 	}
-
-	len = bmesh_disk_count(v_kill);
 	
-	if (len == 2) {
+	if (bmesh_disk_count_ex(v_kill, 3) == 2) {
 #ifndef NDEBUG
 		int valence1, valence2;
 		BMLoop *l;
