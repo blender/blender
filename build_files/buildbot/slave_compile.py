@@ -116,6 +116,8 @@ else:
 
             if config.find('player') != -1:
                 scons_options.append('BF_BUILDDIR=%s_player' % (build_dir))
+            elif config.find('cuda') != -1:
+                scons_options.append('BF_BUILDDIR=%s_cuda' % (build_dir))
             else:
                 scons_options.append('BF_BUILDDIR=%s' % (build_dir))
 
