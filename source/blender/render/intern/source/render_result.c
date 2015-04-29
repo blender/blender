@@ -486,7 +486,7 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 	const size_t view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
 	const char *typestr = name_from_passtype(passtype, -1);
 	RenderPass *rpass = MEM_callocN(sizeof(RenderPass), typestr);
-	int rectsize = rr->rectx * rr->recty * channels;
+	size_t rectsize = rr->rectx * rr->recty * channels;
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype = passtype;
