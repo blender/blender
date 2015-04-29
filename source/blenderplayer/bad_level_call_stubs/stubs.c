@@ -227,8 +227,6 @@ struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name)
 void RE_init_texture_rng() RET_NONE
 void RE_exit_texture_rng() RET_NONE
 
-float *RE_RenderViewGetRectf(struct RenderResult *rr, int view_id) {STUB_ASSERT(0); return (float *) NULL;}
-float *RE_RenderViewGetRectz(struct RenderResult *rr, int view_id) {STUB_ASSERT(0); return (float *) NULL;}
 bool RE_layers_have_name(struct RenderResult *result) {STUB_ASSERT(0); return 0;}
 void RE_engine_active_view_set(struct RenderEngine *engine, const char *viewname) {STUB_ASSERT(0);}
 void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Object *camera, float *r_modelmat) {STUB_ASSERT(0);}
