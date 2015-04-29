@@ -2303,11 +2303,11 @@ void bmesh_edge_separate(
  */
 BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 {
-	BMVert **vtar;
-	int len, i;
 	BMVert *v_new = NULL;
 	BMVert *v_sep = l_sep->v;
 	BMEdge *e_iter;
+	BMEdge *edges[2];
+	int i;
 
 	/* peel the face from the edge radials on both sides of the
 	 * loop vert, disconnecting the face from its fan */
@@ -2335,49 +2335,26 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 		}
 	}
 
-	/* Update the disk start, so that v->e points to an edge touching the split loop.
-	 * This is so that BM_vert_split will leave the original v_sep on some *other* fan
-	 * (not the one-face fan that holds the unglue face). */
-	v_sep->e = e_iter;
+	v_sep->e = l_sep->e;
 
-	/* Split all fans connected to the vert, duplicating it for
-	 * each fans. */
-	bmesh_vert_separate(bm, v_sep, &vtar, &len, false);
+	v_new = BM_vert_create(bm, v_sep->co, v_sep, BM_CREATE_NOP);
 
-	/* There should have been at least two fans cut apart here,
-	 * otherwise the early exit would have kicked in. */
-	BLI_assert(len >= 2);
+	edges[0] = l_sep->e;
+	edges[1] = l_sep->prev->e;
 
-	v_new = l_sep->v;
-
-	/* Desired result here is that a new vert should always be
-	 * created for the unglue face. This is so we can glue any
-	 * extras back into the original vert. */
-	BLI_assert(v_new != v_sep);
-	BLI_assert(v_sep == vtar[0]);
-
-	/* If there are more than two verts as a result, glue together
-	 * all the verts except the one this URMV intended to create */
-	if (len > 2) {
-		for (i = 0; i < len; i++) {
-			if (vtar[i] == v_new) {
-				break;
-			}
-		}
-
-		if (i != len) {
-			/* Swap the single vert that was needed for the
-			 * unglue into the last array slot */
-			SWAP(BMVert *, vtar[i], vtar[len - 1]);
-
-			/* And then glue the rest back together */
-			for (i = 1; i < len - 1; i++) {
-				BM_vert_splice(bm, vtar[i], vtar[0]);
-			}
-		}
+	for (i = 0; i < ARRAY_SIZE(edges); i++) {
+		BMEdge *e = edges[i];
+		bmesh_edge_vert_swap(e, v_new, v_sep);
 	}
 
-	MEM_freeN(vtar);
+	BLI_assert(v_sep != l_sep->v);
+	BLI_assert(v_sep->e != l_sep->v->e);
+
+	BM_CHECK_ELEMENT(l_sep);
+	BM_CHECK_ELEMENT(v_sep);
+	BM_CHECK_ELEMENT(edges[0]);
+	BM_CHECK_ELEMENT(edges[1]);
+	BM_CHECK_ELEMENT(v_new);
 
 	return v_new;
 }
