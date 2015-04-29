@@ -230,7 +230,8 @@ WITH_BF_FREESTYLE = True
 CC = 'gcc'
 CXX = 'g++'
 
-CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing', '-std=gnu89', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64','-D_LARGEFILE64_SOURCE']
+CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64','-D_LARGEFILE64_SOURCE']
+CFLAGS = ['-std=gnu89']
 CXXFLAGS = []
 
 CPPFLAGS = []
