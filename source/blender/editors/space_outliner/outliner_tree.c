@@ -855,6 +855,11 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		return NULL;
 	}
 
+	if (type == 0) {
+		/* Zero type means real ID, ensure we do not get non-outliner ID types here... */
+		BLI_assert(TREESTORE_ID_TYPE(id));
+	}
+
 	te = MEM_callocN(sizeof(TreeElement), "tree elem");
 	/* add to the visual tree */
 	BLI_addtail(lb, te);

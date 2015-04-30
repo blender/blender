@@ -39,20 +39,24 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_mempool.h"
 
 #include "BLF_translation.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_outliner_treehash.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_material.h"
 #include "BKE_group.h"
 
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_keyframing.h"
 
@@ -1951,4 +1955,36 @@ void OUTLINER_OT_group_link(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
+}
+
+/******** Utils to clear any ref to freed ID... **********/
+
+void ED_outliner_id_unref(SpaceOops *so, const ID *id)
+{
+	/* Some early out checks. */
+	if (!TREESTORE_ID_TYPE(id)) {
+		return;  /* ID type is not used by outilner... */
+	}
+
+	if (so->search_tse.id == id) {
+		so->search_tse.id = NULL;
+	}
+
+	if (so->treestore) {
+		TreeStoreElem *tselem;
+		BLI_mempool_iter iter;
+		bool changed = false;
+
+		BLI_mempool_iternew(so->treestore, &iter);
+		while ((tselem = BLI_mempool_iterstep(&iter))) {
+			if (tselem->id == id) {
+				tselem->id = NULL;
+				changed = true;
+			}
+		}
+		if (so->treehash && changed) {
+			/* rebuild hash table, because it depends on ids too */
+			BKE_outliner_treehash_rebuild_from_treestore(so->treehash, so->treestore);
+		}
+	}
 }

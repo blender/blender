@@ -63,6 +63,7 @@
 
 #include "ED_fileselect.h"
 #include "ED_info.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
@@ -217,6 +218,8 @@ void WM_main_remove_notifier_reference(const void *reference)
 {
 	Main *bmain = G.main;
 	wmWindowManager *wm = bmain->wm.first;
+	bScreen *sc;
+
 	if (wm) {
 		wmNotifier *note, *note_next;
 
@@ -227,6 +230,22 @@ void WM_main_remove_notifier_reference(const void *reference)
 				/* don't remove because this causes problems for #wm_event_do_notifiers
 				 * which may be looping on the data (deleting screens) */
 				wm_notifier_clear(note);
+			}
+		}
+	}
+
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
+		ScrArea *sa;
+
+		for (sa = sc->areabase.first; sa; sa = sa->next) {
+			SpaceLink *sl;
+
+			for (sl = sa->spacedata.first; sl; sl = sl->next) {
+				if (sl->spacetype == SPACE_OUTLINER) {
+					SpaceOops *so = (SpaceOops *)sl;
+
+					ED_outliner_id_unref(so, (ID *)reference);
+				}
 			}
 		}
 	}
