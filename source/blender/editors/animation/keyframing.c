@@ -1865,7 +1865,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 	PropertyRNA *prop = NULL;
 	char *path;
 	short success = 0;
-	int a, index, length;
+	int index;
 	const bool all = RNA_boolean_get(op->ptr, "all");
 
 	/* try to insert keyframe using property retrieved from UI */
@@ -1876,28 +1876,11 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 		
 		if (path) {
 			if (all) {
-				length = RNA_property_array_length(&ptr, prop);
-				
-				if (length) index = 0;
-				else length = 1;
-			}
-			else
-				length = 1;
-			
-			for (a = 0; a < length; a++) {
-				AnimData *adt = BKE_animdata_from_id(ptr.id.data);
-				
-				success += clear_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index + a, 0);
-				
-				/* T44558 - Stop if there's no animdata anymore
-				 * This is needed if only the first item in an array is keyed,
-				 * and we're clearing for the whole array
-				 */
-				if (ELEM(NULL, adt, adt->action)) {
-					break;
-				}
+				/* -1 indicates operating on the entire array (or the property itself otherwise) */
+				index = -1;
 			}
 			
+			success += clear_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index, 0);
 			MEM_freeN(path);
 		}
 		else if (G.debug & G_DEBUG)
