@@ -55,6 +55,16 @@ struct XMLReadState {
 	string base;		/* base path to current file*/
 	float dicing_rate;	/* current dicing rate */
 	Mesh::DisplacementMethod displacement_method;
+
+	XMLReadState()
+	  : scene(NULL),
+	    smooth(false),
+	    shader(0),
+	    dicing_rate(0.0f),
+	    displacement_method(Mesh::DISPLACE_BUMP)
+	{
+		tfm = transform_identity();
+	}
 };
 
 /* Attribute Reading */
