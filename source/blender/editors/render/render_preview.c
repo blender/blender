@@ -550,6 +550,9 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 	/* test if something rendered ok */
 	re = RE_GetRender(name);
 
+	if (re == NULL)
+		return;
+
 	RE_AcquireResultImageViews(re, &rres);
 
 	/* material preview only needs monoscopy (view 0) */
