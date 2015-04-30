@@ -551,7 +551,7 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 	re = RE_GetRender(name);
 
 	if (re == NULL)
-		return;
+		return false;
 
 	RE_AcquireResultImageViews(re, &rres);
 
