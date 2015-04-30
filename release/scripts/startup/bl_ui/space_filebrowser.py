@@ -55,7 +55,7 @@ class FILEBROWSER_HT_header(Header):
             layout.prop(params, "display_type", expand=True, text="")
 
             if params.display_type == 'FILE_IMGDISPLAY':
-                layout.prop(params, "thumbnails_size")
+                layout.prop(params, "thumbnail_size", text="")
 
             layout.prop(params, "sort_method", expand=True, text="")
 

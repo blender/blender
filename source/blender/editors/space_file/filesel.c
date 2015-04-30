@@ -103,7 +103,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		BLI_split_dirfile(G.main->name, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 		sfile->params->filter_glob[0] = '\0';
 		/* set the default thumbnails size */
-		sfile->params->thumbnails_size = 128;
+		sfile->params->thumbnail_size = 128;
 	}
 
 	params = sfile->params;
@@ -529,8 +529,8 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 	layout->textheight = textheight;
 
 	if (params->display == FILE_IMGDISPLAY) {
-		layout->prv_w = ((float)params->thumbnails_size / 20.0f) * UI_UNIT_X;
-		layout->prv_h = ((float)params->thumbnails_size / 20.0f) * UI_UNIT_Y;
+		layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
+		layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
 		layout->tile_border_x = 0.3f * UI_UNIT_X;
 		layout->tile_border_y = 0.3f * UI_UNIT_X;
 		layout->prv_border_x = 0.3f * UI_UNIT_X;
