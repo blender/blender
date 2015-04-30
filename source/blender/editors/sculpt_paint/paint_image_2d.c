@@ -1049,7 +1049,7 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 	for (a = 0; a < tot; a++) {
 		ED_imapaint_dirty_region(s->image, s->canvas,
 		                      region[a].destx, region[a].desty,
-		                      region[a].width, region[a].height);
+		                      region[a].width, region[a].height, true);
 	
 		if (s->do_masking) {
 			/* masking, find original pixels tiles from undo buffer to composite over */
@@ -1329,12 +1329,12 @@ static void paint_2d_fill_add_pixel_float(
         const int x_px, const int y_px, ImBuf *ibuf, BLI_Stack *stack, BLI_bitmap *touched,
         const float color[4], float threshold_sq)
 {
-	int coordinate;
+	size_t coordinate;
 
 	if (x_px >= ibuf->x || x_px < 0 || y_px >= ibuf->y || y_px < 0)
 		return;
 
-	coordinate = y_px * ibuf->x + x_px;
+	coordinate = ((size_t)y_px) * ibuf->x + x_px;
 
 	if (!BLI_BITMAP_TEST(touched, coordinate)) {
 		if (compare_len_squared_v3v3(ibuf->rect_float + 4 * coordinate, color, threshold_sq)) {
@@ -1386,21 +1386,21 @@ void paint_2d_bucket_fill(
 
 	if (!mouse_init || !br) {
 		/* first case, no image UV, fill the whole image */
-		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y);
+		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y, false);
 
 		if (do_float) {
 			for (x_px = 0; x_px < ibuf->x; x_px++) {
 				for (y_px = 0; y_px < ibuf->y; y_px++) {
-					blend_color_mix_float(ibuf->rect_float + 4 * (y_px * ibuf->x + x_px),
-					                      ibuf->rect_float + 4 * (y_px * ibuf->x + x_px), color_f);
+					blend_color_mix_float(ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
+					                      ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px), color_f);
 				}
 			}
 		}
 		else {
 			for (x_px = 0; x_px < ibuf->x; x_px++) {
 				for (y_px = 0; y_px < ibuf->y; y_px++) {
-					blend_color_mix_byte((unsigned char *)(ibuf->rect + y_px * ibuf->x + x_px),
-					                     (unsigned char *)(ibuf->rect + y_px * ibuf->x + x_px), (unsigned char *)&color_b);
+					blend_color_mix_byte((unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+					                     (unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px), (unsigned char *)&color_b);
 				}
 			}
 		}
@@ -1410,7 +1410,7 @@ void paint_2d_bucket_fill(
 		 * value is within the brush fill threshold from the fill color */
 		BLI_Stack *stack;
 		BLI_bitmap *touched;
-		int coordinate;
+		size_t coordinate;
 		int width = ibuf->x;
 		float image_init[2];
 		int minx = ibuf->x, miny = ibuf->y, maxx = 0, maxy = 0;
@@ -1428,12 +1428,12 @@ void paint_2d_bucket_fill(
 		}
 
 		/* change image invalidation method later */
-		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y);
+		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y, false);
 
-		stack = BLI_stack_new(sizeof(int), __func__);
-		touched = BLI_BITMAP_NEW(ibuf->x * ibuf->y, "bucket_fill_bitmap");
+		stack = BLI_stack_new(sizeof(size_t), __func__);
+		touched = BLI_BITMAP_NEW(((size_t)ibuf->x) * ibuf->y, "bucket_fill_bitmap");
 
-		coordinate = (y_px * ibuf->x + x_px);
+		coordinate = (((size_t)y_px) * ibuf->x + x_px);
 
 		if (do_float) {
 			copy_v4_v4(pixel_color, ibuf->rect_float + 4 * coordinate);
@@ -1566,7 +1566,7 @@ void paint_2d_gradient_fill(
 	do_float = (ibuf->rect_float != NULL);
 
 	/* this will be substituted by something else when selection is available */
-	ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y);
+	ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y, false);
 
 	if (do_float) {
 		for (x_px = 0; x_px < ibuf->x; x_px++) {
@@ -1590,8 +1590,8 @@ void paint_2d_gradient_fill(
 				/* convert to premultiplied */
 				mul_v3_fl(color_f, color_f[3]);
 				color_f[3] *= br->alpha;
-				IMB_blend_color_float(ibuf->rect_float + 4 * (y_px * ibuf->x + x_px),
-				                      ibuf->rect_float + 4 * (y_px * ibuf->x + x_px),
+				IMB_blend_color_float(ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
+				                      ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
 				                      color_f, br->blend);
 			}
 		}
@@ -1619,8 +1619,8 @@ void paint_2d_gradient_fill(
 				linearrgb_to_srgb_v3_v3(color_f, color_f);
 				rgba_float_to_uchar((unsigned char *)&color_b, color_f);
 				((unsigned char *)&color_b)[3] *= br->alpha;
-				IMB_blend_color_byte((unsigned char *)(ibuf->rect + y_px * ibuf->x + x_px),
-				                     (unsigned char *)(ibuf->rect + y_px * ibuf->x + x_px),
+				IMB_blend_color_byte((unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+				                     (unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
 				                     (unsigned char *)&color_b, br->blend);
 			}
 		}

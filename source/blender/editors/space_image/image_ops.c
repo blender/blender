@@ -2406,7 +2406,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	const bool b = RNA_boolean_get(op->ptr, "invert_b");
 	const bool a = RNA_boolean_get(op->ptr, "invert_a");
 
-	int i;
+	size_t i;
 
 	if (ibuf == NULL)  /* TODO: this should actually never happen, but does for render-results -> cleanup */
 		return OPERATOR_CANCELLED;
@@ -2417,13 +2417,13 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 		/* not strictly needed, because we only imapaint_dirty_region to invalidate all tiles
 		 * but better do this right in case someone copies this for a tool that uses partial redraw better */
 		ED_imapaint_clear_partial_redraw();
-		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y);
+		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y, false);
 	}
 	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
 	if (ibuf->rect_float) {
 		
 		float *fp = (float *) ibuf->rect_float;
-		for (i = ibuf->x * ibuf->y; i > 0; i--, fp += 4) {
+		for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, fp += 4) {
 			if (r) fp[0] = 1.0f - fp[0];
 			if (g) fp[1] = 1.0f - fp[1];
 			if (b) fp[2] = 1.0f - fp[2];
@@ -2437,7 +2437,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	else if (ibuf->rect) {
 		
 		char *cp = (char *) ibuf->rect;
-		for (i = ibuf->x * ibuf->y; i > 0; i--, cp += 4) {
+		for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, cp += 4) {
 			if (r) cp[0] = 255 - cp[0];
 			if (g) cp[1] = 255 - cp[1];
 			if (b) cp[2] = 255 - cp[2];
