@@ -532,6 +532,7 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 	int newx = BLI_rcti_size_x(rect);
 	int newy = BLI_rcti_size_y(rect);
 	bool ok = false;
+	bool has_rectf = false;
 
 	if (!split || first) sprintf(name, "Preview %p", (void *)sa);
 	else sprintf(name, "SecondPreview %p", (void *)sa);
@@ -551,11 +552,14 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 	re = RE_GetRender(name);
 
 	RE_AcquireResultImageViews(re, &rres);
+	/* TODO(sergey): Is there a cleaner way to do this? */
+	if (!BLI_listbase_is_empty(&rres.views)) {
+		/* material preview only needs monoscopy (view 0) */
+		rv = RE_RenderViewGetById(&rres, 0);
+		has_rectf = rv->rectf != NULL;
+	}
 
-	/* material preview only needs monoscopy (view 0) */
-	rv = RE_RenderViewGetById(&rres, 0);
-
-	if (rv->rectf) {
+	if (has_rectf) {
 		
 		if (ABS(rres.rectx - newx) < 2 && ABS(rres.recty - newy) < 2) {
 
