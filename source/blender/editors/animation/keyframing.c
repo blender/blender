@@ -1884,8 +1884,19 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 			else
 				length = 1;
 			
-			for (a = 0; a < length; a++)
+			for (a = 0; a < length; a++) {
+				AnimData *adt = BKE_animdata_from_id(ptr.id.data);
+				
 				success += clear_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index + a, 0);
+				
+				/* T44558 - Stop if there's no animdata anymore
+				 * This is needed if only the first item in an array is keyed,
+				 * and we're clearing for the whole array
+				 */
+				if (ELEM(NULL, adt, adt->action)) {
+					break;
+				}
+			}
 			
 			MEM_freeN(path);
 		}
