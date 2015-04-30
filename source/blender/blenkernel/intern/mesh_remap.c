@@ -1163,8 +1163,11 @@ void BKE_mesh_remap_calc_loops_from_dm(
 					for (i = 0; i < isld->count; i++) {
 						mp_src = &polys_src[isld->indices[i]];
 						for (lidx_src = mp_src->loopstart; lidx_src < mp_src->loopstart + mp_src->totloop; lidx_src++) {
-							BLI_BITMAP_ENABLE(verts_active, loops_src[lidx_src].v);
-							num_verts_active++;
+							const unsigned int vidx_src = loops_src[lidx_src].v;
+							if (!BLI_BITMAP_TEST(verts_active, vidx_src)) {
+								BLI_BITMAP_ENABLE(verts_active, loops_src[lidx_src].v);
+								num_verts_active++;
+							}
 						}
 					}
 					/* verts 'ownership' is transfered to treedata here, which will handle its freeing. */
@@ -1211,7 +1214,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 							num_faces_active++;
 						}
 					}
-					/* verts 'ownership' is transfered to treedata here, which will handle its freeing. */
+					/* verts and faces 'ownership' is transfered to treedata here, which will handle its freeing. */
 					bvhtree_from_mesh_faces_ex(
 					        &treedata[tindex], verts_src, verts_allocated_src,
 					        faces_src, num_faces_src, faces_allocated_src,
@@ -1291,14 +1294,26 @@ void BKE_mesh_remap_calc_loops_from_dm(
 								const int index_src = vert_to_refelem_map_src[nearest.index].indices[i];
 								const float dot = dot_v3v3(nors_src[index_src], *nor_dst);
 
+								pidx_src = (mode == MREMAP_MODE_LOOP_NEAREST_LOOPNOR) ?
+								               loop_to_poly_map_src[index_src] : index_src;
+								/* WARNING! This is not the *real* lidx_src in case of POLYNOR, we only use it
+								 *          to check we stay on current island (all loops from a given poly are
+								 *          on same island!). */
+								lidx_src = (mode == MREMAP_MODE_LOOP_NEAREST_LOOPNOR) ?
+								               index_src : polys_src[pidx_src].loopstart;
+
+								/* A same vert may be at the boundary of several islands! Hence, we have to ensure
+								 * poly/loop we are currently considering *belongs* to current island! */
+								if (island_store.items_to_islands[lidx_src] != tindex) {
+									continue;
+								}
+
 								if (dot > best_nor_dot - 1e-6f) {
 									/* We need something as fallback decision in case dest normal matches several
 									 * source normals (see T44522), using distance between polys' centers here. */
 									float *pcent_src;
 									float sqdist;
 
-									pidx_src = (mode == MREMAP_MODE_LOOP_NEAREST_LOOPNOR) ?
-									                   loop_to_poly_map_src[index_src] : index_src;
 									mp_src = &polys_src[pidx_src];
 									ml_src = &loops_src[mp_src->loopstart];
 
@@ -1329,7 +1344,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									}
 								}
 							}
-							islands_res[tindex][plidx_dst].factor = hit_dist ? (1.0f / (hit_dist * best_nor_dot)) : 1e18f;
+							best_nor_dot = (best_nor_dot + 1.0f) * 0.5f;
+							islands_res[tindex][plidx_dst].factor = hit_dist ? (1.0f / hit_dist * best_nor_dot) : 1e18f;
 							islands_res[tindex][plidx_dst].hit_dist = hit_dist;
 							islands_res[tindex][plidx_dst].index_src = best_index_src;
 						}

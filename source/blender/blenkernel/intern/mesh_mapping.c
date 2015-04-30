@@ -687,7 +687,6 @@ void BKE_mesh_loop_islands_add(
 	const size_t curr_num_islands = (size_t)island_store->islands_num;
 	int i = item_num;
 
-	island_store->items_to_islands_num = item_num;
 	while (i--) {
 		island_store->items_to_islands[items_indices[i]] = curr_island_idx;
 	}
