@@ -1472,7 +1472,7 @@ ccl_device_inline float2 map_to_tube(const float3 co)
 	len = sqrtf(co.x * co.x + co.y * co.y);
 	if(len > 0.0f) {
 		u = (1.0f - (atan2f(co.x / len, co.y / len) / M_PI_F)) * 0.5f;
-		v = (co.x + 1.0f) * 0.5f;
+		v = (co.z + 1.0f) * 0.5f;
 	}
 	else {
 		u = v = 0.0f;
