@@ -1306,12 +1306,12 @@ static void paint_2d_fill_add_pixel_byte(
         const int x_px, const int y_px, ImBuf *ibuf, BLI_Stack *stack, BLI_bitmap *touched,
         const float color[4], float threshold_sq)
 {
-	int coordinate;
+	size_t coordinate;
 
 	if (x_px >= ibuf->x || x_px < 0 || y_px >= ibuf->y || y_px < 0)
 		return;
 
-	coordinate = y_px * ibuf->x + x_px;
+	coordinate = ((size_t)y_px) * ibuf->x + x_px;
 
 	if (!BLI_BITMAP_TEST(touched, coordinate)) {
 		float color_f[4];
