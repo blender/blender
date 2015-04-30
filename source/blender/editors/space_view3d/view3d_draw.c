@@ -3168,7 +3168,7 @@ void ED_view3d_draw_offscreen(
 	}
 
 	/* setup view matrices before fx or unbinding the offscreen buffers will cause issues */
-	if ((viewname != NULL && viewname[0] != '\0') && (viewmat == NULL))
+	if ((viewname != NULL && viewname[0] != '\0') && (viewmat == NULL) && rv3d->persp == RV3D_CAMOB && v3d->camera)
 		view3d_stereo3d_setup_offscreen(scene, v3d, ar, winmat, viewname);
 	else
 		view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
