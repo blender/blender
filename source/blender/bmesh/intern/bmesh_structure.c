@@ -70,6 +70,12 @@ void bmesh_edge_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 			if (l_iter->v == v_src) {
 				l_iter->v = v_dst;
 			}
+			else if (l_iter->next->v == v_src) {
+				l_iter->next->v = v_dst;
+			}
+			else {
+				BLI_assert(l_iter->prev->v != v_src);
+			}
 		} while ((l_iter = l_iter->radial_next) != l_first);
 	}
 
