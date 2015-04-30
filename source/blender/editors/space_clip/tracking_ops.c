@@ -1879,7 +1879,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* proeprties */
+	/* properties */
 	RNA_def_enum(ot->srna, "action", clear_path_actions, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
 	RNA_def_boolean(ot->srna, "clear_active", 0, "Clear Active", "Clear active track only instead of all selected tracks");
 }
