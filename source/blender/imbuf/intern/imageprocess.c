@@ -343,7 +343,7 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3])
 {
-	int a = x * y;
+	size_t a = ((size_t)x) * y;
 	float *fp = rect_float;
 
 	while (a--) {
@@ -366,7 +366,7 @@ void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[
 
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol[3])
 {
-	int a = x * y;
+	size_t a = ((size_t)x) * y;
 	unsigned char *cp = rect;
 
 	while (a--) {

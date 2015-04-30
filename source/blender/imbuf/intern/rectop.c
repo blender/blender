@@ -322,30 +322,30 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 	do_float = (sbuf && sbuf->rect_float && dbuf->rect_float && obuf->rect_float);
 
 	if (do_char) {
-		drect = dbuf->rect + desty * dbuf->x + destx;
-		orect = obuf->rect + origy * obuf->x + origx;
+		drect = dbuf->rect + ((size_t)desty) * dbuf->x + destx;
+		orect = obuf->rect + ((size_t)origy) * obuf->x + origx;
 	}
 	if (do_float) {
-		drectf = dbuf->rect_float + (desty * dbuf->x + destx) * 4;
-		orectf = obuf->rect_float + (origy * obuf->x + origx) * 4;
+		drectf = dbuf->rect_float + (((size_t)desty) * dbuf->x + destx) * 4;
+		orectf = obuf->rect_float + (((size_t)origy) * obuf->x + origx) * 4;
 	}
 
 	if (dmaskrect)
-		dmaskrect += origy * obuf->x + origx;
+		dmaskrect += ((size_t)origy) * obuf->x + origx;
 
 	destskip = dbuf->x;
 	origskip = obuf->x;
 
 	if (sbuf) {
-		if (do_char) srect = sbuf->rect + srcy * sbuf->x + srcx;
-		if (do_float) srectf = sbuf->rect_float + (srcy * sbuf->x + srcx) * 4;
+		if (do_char) srect = sbuf->rect + ((size_t)srcy) * sbuf->x + srcx;
+		if (do_float) srectf = sbuf->rect_float + (((size_t)srcy) * sbuf->x + srcx) * 4;
 		srcskip = sbuf->x;
 
 		if (cmaskrect)
-			cmaskrect += srcy * sbuf->x + srcx;
+			cmaskrect += ((size_t)srcy) * sbuf->x + srcx;
 
 		if (texmaskrect)
-			texmaskrect += srcy * sbuf->x + srcx;
+			texmaskrect += ((size_t)srcy) * sbuf->x + srcx;
 	}
 	else {
 		srect = drect;

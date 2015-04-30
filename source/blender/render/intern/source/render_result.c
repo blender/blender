@@ -486,7 +486,7 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 	const size_t view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
 	const char *typestr = name_from_passtype(passtype, -1);
 	RenderPass *rpass = MEM_callocN(sizeof(RenderPass), typestr);
-	size_t rectsize = ((size_t)rr->rectx) * ((size_t)rr->recty) * ((size_t)channels);
+	size_t rectsize = ((size_t)rr->rectx) * rr->recty * channels;
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype = passtype;
@@ -944,22 +944,23 @@ void render_result_views_new(RenderResult *rr, RenderData *rd)
 
 static void do_merge_tile(RenderResult *rr, RenderResult *rrpart, float *target, float *tile, int pixsize)
 {
-	int y, ofs, copylen, tilex, tiley;
+	int y, tilex, tiley;
+	size_t ofs, copylen;
 	
 	copylen = tilex = rrpart->rectx;
 	tiley = rrpart->recty;
 	
 	if (rrpart->crop) { /* filters add pixel extra */
-		tile += pixsize * (rrpart->crop + rrpart->crop * tilex);
+		tile += pixsize * (rrpart->crop + ((size_t)rrpart->crop) * tilex);
 		
 		copylen = tilex - 2 * rrpart->crop;
 		tiley -= 2 * rrpart->crop;
 		
-		ofs = (rrpart->tilerect.ymin + rrpart->crop) * rr->rectx + (rrpart->tilerect.xmin + rrpart->crop);
+		ofs = (((size_t)rrpart->tilerect.ymin) + rrpart->crop) * rr->rectx + (rrpart->tilerect.xmin + rrpart->crop);
 		target += pixsize * ofs;
 	}
 	else {
-		ofs = (rrpart->tilerect.ymin * rr->rectx + rrpart->tilerect.xmin);
+		ofs = (((size_t)rrpart->tilerect.ymin) * rr->rectx + rrpart->tilerect.xmin);
 		target += pixsize * ofs;
 	}
 

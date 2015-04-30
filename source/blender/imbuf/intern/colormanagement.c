@@ -1306,8 +1306,8 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	float dither = ibuf->dither;
 	bool is_data = (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) != 0;
 
-	int offset = channels * start_line * ibuf->x;
-	int display_buffer_byte_offset = DISPLAY_BUFFER_CHANNELS * start_line * ibuf->x;
+	size_t offset = ((size_t)channels) * start_line * ibuf->x;
+	size_t display_buffer_byte_offset = ((size_t)DISPLAY_BUFFER_CHANNELS) * start_line * ibuf->x;
 
 	memset(handle, 0, sizeof(DisplayBufferThread));
 
@@ -1344,7 +1344,7 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, 
 	int channels = handle->channels;
 	int width = handle->width;
 
-	int buffer_size = channels * width * height;
+	size_t buffer_size = ((size_t)channels) * width * height;
 
 	bool is_data = handle->is_data;
 	bool is_data_display = handle->cm_processor->is_data_result;
@@ -1357,11 +1357,11 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, 
 
 		float *fp;
 		unsigned char *cp;
-		int i;
+		size_t i;
 
 		/* first convert byte buffer to float, keep in image space */
 		for (i = 0, fp = linear_buffer, cp = byte_buffer;
-		     i < width * height;
+		     i < ((size_t)width) * height;
 		     i++, fp += channels, cp += channels)
 		{
 			if (channels == 3) {
@@ -1440,7 +1440,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	}
 	else {
 		bool is_straight_alpha, predivide;
-		float *linear_buffer = MEM_mallocN(channels * width * height * sizeof(float),
+		float *linear_buffer = MEM_mallocN(((size_t)channels) * width * height * sizeof(float),
 		                                   "color conversion linear buffer");
 
 		display_buffer_apply_get_linear_buffer(handle, height, linear_buffer, &is_straight_alpha);
@@ -1467,14 +1467,14 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 		}
 
 		if (display_buffer) {
-			memcpy(display_buffer, linear_buffer, width * height * channels * sizeof(float));
+			memcpy(display_buffer, linear_buffer, ((size_t)width) * height * channels * sizeof(float));
 
 			if (is_straight_alpha && channels == 4) {
-				int i;
+				size_t i;
 				float *fp;
 
 				for (i = 0, fp = display_buffer;
-				     i < width * height;
+				     i < ((size_t)width) * height;
 				     i++, fp += channels)
 				{
 					straight_to_premul_v4(fp);
@@ -2959,7 +2959,7 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 
 		for (y = 0; y < height; y++) {
 			for (x = 0; x < width; x++) {
-				float *pixel = buffer + channels * (y * width + x);
+				float *pixel = buffer + channels * (((size_t)y) * width + x);
 
 				curve_mapping_apply_pixel(cm_processor->curve_mapping, pixel, channels);
 			}

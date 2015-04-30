@@ -465,10 +465,10 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	if (ibuf2 == NULL) return NULL;
 
 	if (flags & IB_rect)
-		memcpy(ibuf2->rect, ibuf1->rect, x * y * sizeof(int));
+		memcpy(ibuf2->rect, ibuf1->rect, ((size_t)x) * y * sizeof(int));
 	
 	if (flags & IB_rectfloat)
-		memcpy(ibuf2->rect_float, ibuf1->rect_float, ibuf1->channels * x * y * sizeof(float));
+		memcpy(ibuf2->rect_float, ibuf1->rect_float, ((size_t)ibuf1->channels) * x * y * sizeof(float));
 
 	if (ibuf1->encodedbuffer) {
 		ibuf2->encodedbuffersize = ibuf1->encodedbuffersize;
