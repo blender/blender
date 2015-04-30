@@ -1348,6 +1348,19 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
+/* radius internally (expose as a distance value) */
+static float rna_BackgroundImage_size_get(PointerRNA *ptr)
+{
+	BGpic *bgpic = ptr->data;
+	return bgpic->size * 2.0f;
+}
+
+static void rna_BackgroundImage_size_set(PointerRNA *ptr, float value)
+{
+	BGpic *bgpic = ptr->data;
+	bgpic->size = value * 0.5f;
+}
+
 static BGpic *rna_BackgroundImage_new(View3D *v3d)
 {
 	BGpic *bgpic = ED_view3D_background_image_new(v3d);
@@ -2108,15 +2121,16 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Y Offset", "Offset image vertically from the world origin");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	
-	prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "size");
-	RNA_def_property_ui_text(prop, "Size", "Scaling factor for the background image");
+	RNA_def_property_float_funcs(prop, "rna_BackgroundImage_size_get", "rna_BackgroundImage_size_set", NULL);
+	RNA_def_property_ui_text(prop, "Size", "Size of the background image (ortho view only)");
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rotation");
-	RNA_def_property_ui_text(prop, "Rotation", "Rotation for the background image");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation for the background image (ortho view only)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "use_flip_x", PROP_BOOLEAN, PROP_NONE);
