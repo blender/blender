@@ -72,6 +72,7 @@ bool    bmesh_radial_validate(int radlen, BMLoop *l) ATTR_WARN_UNUSED_RESULT ATT
 /* EDGE UTILITIES */
 void    bmesh_disk_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src) ATTR_NONNULL();
 void    bmesh_edge_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src) ATTR_NONNULL();
+void    bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src) ATTR_NONNULL();
 BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

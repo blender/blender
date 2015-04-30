@@ -1508,14 +1508,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	bmesh_disk_edge_remove(e_new, tv);
 	bmesh_disk_edge_remove(e_new, v_new);
 
-	/* remove e from tv's disk cycle */
-	bmesh_disk_edge_remove(e, tv);
-
-	/* swap out tv for v_new in e */
-	bmesh_disk_vert_swap(e, v_new, tv);
-
-	/* add e to v_new's disk cycle */
-	bmesh_disk_edge_append(e, v_new);
+	bmesh_disk_vert_replace(e, v_new, tv);
 
 	/* add e_new to v_new's disk cycle */
 	bmesh_disk_edge_append(e_new, v_new);
@@ -1726,12 +1719,8 @@ BMEdge *bmesh_jekv(
 				e_splice = BM_edge_exists(tv, v_old);
 			}
 
-			/* remove e_old from v_kill's disk cycle */
-			bmesh_disk_edge_remove(e_old, v_kill);
-			/* relink e_old->v_kill to be e_old->tv */
-			bmesh_disk_vert_swap(e_old, tv, v_kill);
-			/* append e_old to tv's disk cycle */
-			bmesh_disk_edge_append(e_old, tv);
+			bmesh_disk_vert_replace(e_old, tv, v_kill);
+
 			/* remove e_kill from tv's disk cycle */
 			bmesh_disk_edge_remove(e_kill, tv);
 
@@ -2471,9 +2460,7 @@ BMVert *bmesh_urmv_loop_multi(
 			}
 			else {
 				/* we own the edge entirely, replace the vert */
-				bmesh_disk_edge_remove(e, v_sep);
-				bmesh_disk_vert_swap(e, v_new, v_sep);
-				bmesh_disk_edge_append(e, v_new);
+				bmesh_disk_vert_replace(e, v_new, v_sep);
 			}
 
 			/* loop vert is handled last! */
