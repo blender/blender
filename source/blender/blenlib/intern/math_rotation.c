@@ -1616,7 +1616,7 @@ void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], const short order
 
 void mat4_to_dquat(DualQuat *dq, float basemat[4][4], float mat[4][4])
 {
-	float *t, *q, dscale[3], scale[3], basequat[4];
+	float *t, *q, dscale[3], scale[3], basequat[4], mat3[3][3];
 	float baseRS[4][4], baseinv[4][4], baseR[4][4], baseRinv[4][4];
 	float R[4][4], S[4][4];
 
@@ -1629,7 +1629,9 @@ void mat4_to_dquat(DualQuat *dq, float basemat[4][4], float mat[4][4])
 	dscale[1] = scale[1] - 1.0f;
 	dscale[2] = scale[2] - 1.0f;
 
-	if ((determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4f) {
+	copy_m3_m4(mat3, mat);
+
+	if (!is_orthonormal_m3(mat3) || (determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4f) {
 		/* extract R and S  */
 		float tmp[4][4];
 
