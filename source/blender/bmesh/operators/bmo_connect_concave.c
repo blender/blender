@@ -79,8 +79,8 @@ static bool bm_face_split_by_concave(
         struct Heap *pf_heap, struct EdgeHash *pf_ehash)
 {
 	const int f_base_len = f_base->len;
-	int faces_array_tot = f_base->len - 3;
-	int edges_array_tot = f_base->len - 3;
+	int faces_array_tot = f_base_len - 3;
+	int edges_array_tot = f_base_len - 3;
 	BMFace  **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
 	BMEdge  **edges_array = BLI_array_alloca(edges_array, edges_array_tot);
 	const int quad_method = 0, ngon_method = 0;  /* beauty */

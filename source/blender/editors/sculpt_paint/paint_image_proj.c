@@ -3886,7 +3886,7 @@ static void project_paint_begin(
 {
 	ProjPaintLayerClone layer_clone;
 	ProjPaintFaceLookup face_lookup;
-	MTFace *tf_base;
+	MTFace *tf_base = NULL;
 
 	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
 

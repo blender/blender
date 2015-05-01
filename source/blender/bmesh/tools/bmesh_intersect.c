@@ -1267,10 +1267,8 @@ bool BM_mesh_intersect(
 			face_edges_split(bm, f, e_ls_base);
 		}
 	}
-#else
-	(void)totface_orig;
 #endif  /* USE_NET */
-
+	(void)totface_orig;
 
 #ifdef USE_SEPARATE
 	if (use_separate) {

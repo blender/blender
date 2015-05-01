@@ -356,6 +356,7 @@ void gpu_assert_no_gl_errors(const char* file, int line, const char* str)
 		GLboolean gl_ok = gpu_report_gl_errors(file, line, str);
 
 		BLI_assert(gl_ok);
+		(void) gl_ok;
 	}
 }
 
