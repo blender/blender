@@ -359,6 +359,7 @@ static BMOpDefine bmo_collapse_def = {
 	"collapse",
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
+	 {"uvs", BMO_OP_SLOT_BOOL}, /* also collapse UVs and such */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */

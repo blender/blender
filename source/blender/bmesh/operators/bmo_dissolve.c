@@ -494,7 +494,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 
 static void bm_mesh_edge_collapse_flagged(BMesh *bm, const int flag, const short oflag)
 {
-	BMO_op_callf(bm, flag, "collapse edges=%fe", oflag);
+	BMO_op_callf(bm, flag, "collapse edges=%fe uvs=%b", oflag, true);
 }
 
 void bmo_dissolve_degenerate_exec(BMesh *bm, BMOperator *op)

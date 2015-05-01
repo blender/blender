@@ -380,8 +380,11 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	float min[3], max[3], center[3];
 	unsigned int i, tot;
 	BMOpSlot *slot_targetmap;
-	
-	BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
+
+	if (BMO_slot_bool_get(op->slots_in, "uvs")) {
+		BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
+	}
+
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
 
