@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_tracking.h"
 
 #include "DNA_object_types.h"
@@ -1030,6 +1031,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 			/* set current area
 			 *	- must verify that region data is 3D-view (and not something else)
 			 */
+			/* CAUTION: If this is the "toolbar", then this will change on the first stroke */
 			p->sa = curarea;
 			p->ar = ar;
 			
@@ -1938,25 +1940,81 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 		}
 		else if (event->val == KM_PRESS) {
-			/* Switch paintmode (temporarily if need be) based on which button was used
-			 * NOTE: This is to make it more convenient to erase strokes when using drawing sessions
-			 */
-			if (event->type == LEFTMOUSE) {
-				/* restore drawmode to default */
-				p->paintmode = RNA_enum_get(op->ptr, "mode");
-			}
-			else if (event->type == RIGHTMOUSE) {
-				/* turn on eraser */
-				p->paintmode = GP_PAINTMODE_ERASER;
-			}
-
-			gpencil_draw_toggle_eraser_cursor(C, p, p->paintmode == GP_PAINTMODE_ERASER);
-
-			/* not painting, so start stroke (this should be mouse-button down) */
-			p = gpencil_stroke_begin(C, op);
+			bool in_bounds = false;
 			
-			if (p->status == GP_STATUS_ERROR) {
+			/* Check if we're outside the bounds of the active region
+			 * NOTE: An exception here is that if launched from the toolbar,
+			 *       whatever region we're now in should become the new region
+			 */
+			if ((p->ar) && (p->ar->regiontype == RGN_TYPE_TOOLS)) {
+				/* Change to whatever region is now under the mouse */
+				ARegion *current_region = BKE_area_find_region_xy(p->sa, RGN_TYPE_ANY, event->x, event->y);
+				
+				printf("found alternative region %p (old was %p) - at %d %d (sa: %d %d -> %d %d)\n",
+					current_region, p->ar, event->x, event->y,
+					p->sa->totrct.xmin, p->sa->totrct.ymin, p->sa->totrct.xmax, p->sa->totrct.ymax);
+				
+				if (current_region) {
+					/* Assume that since we found the cursor in here, it is in bounds
+					 * and that this should be the region that we begin drawing in
+					 */
+					p->ar = current_region;
+					in_bounds = true;
+				}
+				else {
+					/* Out of bounds, or invalid in some other way */
+					p->status = GP_STATUS_ERROR;
+					estate = OPERATOR_CANCELLED;
+					
+					if (G.debug & G_DEBUG)
+						printf("%s: Region under cursor is out of bounds, so cannot be drawn on\n", __func__);
+				}
+			}
+			else if (p->ar) {
+				rcti region_rect;
+				
+				/* Perform bounds check using  */
+				ED_region_visible_rect(p->ar, &region_rect);
+				in_bounds = BLI_rcti_isect_pt_v(&region_rect, event->mval);
+			}
+			else {
+				/* No region */
+				p->status = GP_STATUS_ERROR;
 				estate = OPERATOR_CANCELLED;
+				
+				if (G.debug & G_DEBUG)
+					printf("%s: No active region found in GP Paint session data\n", __func__);
+			}
+			
+			if (in_bounds) {
+				/* Switch paintmode (temporarily if need be) based on which button was used
+				 * NOTE: This is to make it more convenient to erase strokes when using drawing sessions
+				 */
+				if (event->type == LEFTMOUSE) {
+					/* restore drawmode to default */
+					p->paintmode = RNA_enum_get(op->ptr, "mode");
+				}
+				else if (event->type == RIGHTMOUSE) {
+					/* turn on eraser */
+					p->paintmode = GP_PAINTMODE_ERASER;
+				}
+				
+				gpencil_draw_toggle_eraser_cursor(C, p, p->paintmode == GP_PAINTMODE_ERASER);
+				
+				/* not painting, so start stroke (this should be mouse-button down) */
+				p = gpencil_stroke_begin(C, op);
+				
+				if (p->status == GP_STATUS_ERROR) {
+					estate = OPERATOR_CANCELLED;
+				}
+			}
+			else if (p->status != GP_STATUS_ERROR) {
+				/* User clicked outside bounds of window while idling, so exit paintmode 
+				 * NOTE: Don't eter this case if an error occurred while finding the
+				 *       region (as above)
+				 */
+				p->status = GP_STATUS_DONE;
+				estate = OPERATOR_FINISHED;
 			}
 		}
 		else {
