@@ -2940,20 +2940,40 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 		if (glsl) {
 			RegionView3D *rv3d = ar->regiondata;
 			GPUMaterial *gpumat = GPU_material_world(scene, scene->world);
+			bool material_not_bound;
 
 			/* calculate full shader for background */
 			GPU_material_bind(gpumat, 1, 1, 1.0, false, rv3d->viewmat, rv3d->viewinv, rv3d->viewcamtexcofac, (v3d->scenelock != 0));
 			
+			material_not_bound = !GPU_material_bound(gpumat);
+
+			if (material_not_bound) {
+				glMatrixMode(GL_PROJECTION);
+				glPushMatrix();
+				glLoadIdentity();
+				glMatrixMode(GL_MODELVIEW);
+				glPushMatrix();
+				glLoadIdentity();
+				glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+			}
+
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_ALWAYS);
 			glShadeModel(GL_SMOOTH);
-			glBegin(GL_QUADS);
+			glBegin(GL_TRIANGLE_STRIP);
 			glVertex3f(-1.0, -1.0, 1.0);
 			glVertex3f(1.0, -1.0, 1.0);
-			glVertex3f(1.0, 1.0, 1.0);
 			glVertex3f(-1.0, 1.0, 1.0);
+			glVertex3f(1.0, 1.0, 1.0);
 			glEnd();
 			glShadeModel(GL_FLAT);
+
+			if (material_not_bound) {
+				glMatrixMode(GL_PROJECTION);
+				glPopMatrix();
+				glMatrixMode(GL_MODELVIEW);
+				glPopMatrix();
+			}
 
 			GPU_material_unbind(gpumat);
 			

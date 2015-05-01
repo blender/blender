@@ -102,7 +102,6 @@ struct GPUMaterial {
 	/* for binding the material */
 	GPUPass *pass;
 	GPUVertexAttribs attribs;
-	int bound;
 	int builtins;
 	int alpha, obcolalpha;
 	int dynproperty;
@@ -114,6 +113,7 @@ struct GPUMaterial {
 	int cameratexcofacloc;
 
 	ListBase lamps;
+	bool bound;
 };
 
 struct GPULamp {
@@ -400,7 +400,7 @@ void GPU_material_unbind(GPUMaterial *material)
 	}
 }
 
-int GPU_material_bound(GPUMaterial *material)
+bool GPU_material_bound(GPUMaterial *material)
 {
 	return material->bound;
 }
