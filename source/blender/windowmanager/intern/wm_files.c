@@ -951,7 +951,7 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 	/* operator now handles overwrite checks */
 
 	if (G.fileflags & G_AUTOPACK) {
-		packAll(G.main, reports);
+		packAll(G.main, reports, false);
 	}
 
 	/* don't forget not to return without! */

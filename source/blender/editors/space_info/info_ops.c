@@ -134,7 +134,7 @@ static int autopack_toggle_exec(bContext *C, wmOperator *op)
 		G.fileflags &= ~G_AUTOPACK;		
 	}
 	else {
-		packAll(bmain, op->reports);
+		packAll(bmain, op->reports, true);
 		G.fileflags |= G_AUTOPACK;
 	}
 	
@@ -161,7 +161,7 @@ static int pack_all_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	
-	packAll(bmain, op->reports);
+	packAll(bmain, op->reports, true);
 	G.fileflags |= G_AUTOPACK;
 	
 	return OPERATOR_FINISHED;

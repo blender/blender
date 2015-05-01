@@ -224,7 +224,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 }
 
 /* no libraries for now */
-void packAll(Main *bmain, ReportList *reports)
+void packAll(Main *bmain, ReportList *reports, bool verbose)
 {
 	Image *ima;
 	VFont *vfont;
@@ -237,7 +237,7 @@ void packAll(Main *bmain, ReportList *reports)
 				BKE_image_packfiles(reports, ima, ID_BLEND_PATH(bmain, &ima->id));
 				tot ++;
 			}
-			else if (BKE_image_is_animated(ima)) {
+			else if (BKE_image_is_animated(ima) && verbose) {
 				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported",
 				            ima->id.name + 2);
 			}
@@ -258,10 +258,10 @@ void packAll(Main *bmain, ReportList *reports)
 		}
 	}
 	
-	if (tot == 0)
-		BKE_report(reports, RPT_INFO, "No new files have been packed");
-	else
+	if (tot > 0)
 		BKE_reportf(reports, RPT_INFO, "Packed %d files", tot);
+	else if (verbose)
+		BKE_report(reports, RPT_INFO, "No new files have been packed");
 
 
 }

@@ -48,7 +48,7 @@ struct PackedFile *dupPackedFile(const struct PackedFile *pf_src);
 struct PackedFile *newPackedFile(struct ReportList *reports, const char *filename, const char *relabase);
 struct PackedFile *newPackedFileMemory(void *mem, int memlen);
 
-void packAll(struct Main *bmain, struct ReportList *reports);
+void packAll(struct Main *bmain, struct ReportList *reports, bool verbose);
 void packLibraries(struct Main *bmain, struct ReportList *reports);
 
 /* unpack */
