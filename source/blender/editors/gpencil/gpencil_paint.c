@@ -1950,9 +1950,11 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* Change to whatever region is now under the mouse */
 				ARegion *current_region = BKE_area_find_region_xy(p->sa, RGN_TYPE_ANY, event->x, event->y);
 				
-				printf("found alternative region %p (old was %p) - at %d %d (sa: %d %d -> %d %d)\n",
-					current_region, p->ar, event->x, event->y,
-					p->sa->totrct.xmin, p->sa->totrct.ymin, p->sa->totrct.xmax, p->sa->totrct.ymax);
+				if (G.debug & G_DEBUG) {
+					printf("found alternative region %p (old was %p) - at %d %d (sa: %d %d -> %d %d)\n",
+						current_region, p->ar, event->x, event->y,
+						p->sa->totrct.xmin, p->sa->totrct.ymin, p->sa->totrct.xmax, p->sa->totrct.ymax);
+				}
 				
 				if (current_region) {
 					/* Assume that since we found the cursor in here, it is in bounds
