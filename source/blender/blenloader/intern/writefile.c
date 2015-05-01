@@ -2008,7 +2008,9 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 				 * If we do not do that, we can get crash by buffer-overflow on reading, see T44461. */
 				CustomData_copy(&old_mesh->vdata, &mesh->vdata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totvert);
 				CustomData_copy(&old_mesh->edata, &mesh->edata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totedge);
+#ifndef USE_BMESH_SAVE_WITHOUT_MFACE  /* Do not copy org fdata in this case!!! */
 				CustomData_copy(&old_mesh->fdata, &mesh->fdata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totface);
+#endif
 				CustomData_copy(&old_mesh->ldata, &mesh->ldata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totloop);
 				CustomData_copy(&old_mesh->pdata, &mesh->pdata, CD_MASK_EVERYTHING, CD_REFERENCE, mesh->totpoly);
 
@@ -2030,7 +2032,9 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 
 				CustomData_free(&mesh->vdata, mesh->totvert);
 				CustomData_free(&mesh->edata, mesh->totedge);
+#ifndef USE_BMESH_SAVE_WITHOUT_MFACE
 				CustomData_free(&mesh->fdata, mesh->totface);
+#endif
 				CustomData_free(&mesh->ldata, mesh->totloop);
 				CustomData_free(&mesh->pdata, mesh->totpoly);
 
