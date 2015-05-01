@@ -788,12 +788,12 @@ static bool bm_edge_collapse(
 		BM_edge_kill(bm, e_clear);
 
 		v_other->head.hflag |= v_clear->head.hflag;
-		BM_vert_splice(bm, v_clear, v_other);
+		BM_vert_splice(bm, v_other, v_clear);
 
 		e_a_other[1]->head.hflag |= e_a_other[0]->head.hflag;
 		e_b_other[1]->head.hflag |= e_b_other[0]->head.hflag;
-		BM_edge_splice(bm, e_a_other[0], e_a_other[1]);
-		BM_edge_splice(bm, e_b_other[0], e_b_other[1]);
+		BM_edge_splice(bm, e_a_other[1], e_a_other[0]);
+		BM_edge_splice(bm, e_b_other[1], e_b_other[0]);
 
 		// BM_mesh_validate(bm);
 
@@ -837,10 +837,10 @@ static bool bm_edge_collapse(
 		BM_edge_kill(bm, e_clear);
 
 		v_other->head.hflag |= v_clear->head.hflag;
-		BM_vert_splice(bm, v_clear, v_other);
+		BM_vert_splice(bm, v_other, v_clear);
 
 		e_a_other[1]->head.hflag |= e_a_other[0]->head.hflag;
-		BM_edge_splice(bm, e_a_other[0], e_a_other[1]);
+		BM_edge_splice(bm, e_a_other[1], e_a_other[0]);
 
 		// BM_mesh_validate(bm);
 

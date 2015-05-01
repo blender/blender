@@ -715,7 +715,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 				}
 
 				for (i = 2; i < vout_len; i++) {
-					BM_vert_splice(bm, vout[i], vout[1]);
+					BM_vert_splice(bm, vout[1], vout[i]);
 				}
 			}
 

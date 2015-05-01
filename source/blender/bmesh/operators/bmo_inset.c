@@ -974,7 +974,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 								v_glue = v_split;
 							}
 							else {
-								BM_vert_splice(bm, v_split, v_glue);
+								BM_vert_splice(bm, v_glue, v_split);
 							}
 						}
 					}

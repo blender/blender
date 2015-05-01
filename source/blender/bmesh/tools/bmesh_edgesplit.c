@@ -225,7 +225,7 @@ void BM_mesh_edgesplit(
 			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 				BMEdge *e_other;
 				if ((e_other = BM_edge_find_double(e))) {
-					BM_edge_splice(bm, e, e_other);
+					BM_edge_splice(bm, e_other, e);
 				}
 			}
 		}

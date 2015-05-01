@@ -1804,7 +1804,7 @@ BMEdge *bmesh_jekv(
 			if (check_edge_double) {
 				if (e_splice) {
 					/* removes e_splice */
-					BM_edge_splice(bm, e_splice, e_old);
+					BM_edge_splice(bm, e_old, e_splice);
 				}
 			}
 
@@ -2018,7 +2018,8 @@ bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
 /**
  * \brief Splice Vert
  *
- * Merges two verts into one (\a v into \a vtarget).
+ * Merges two verts into one
+ * (\a v_src into \a v_dst, removing \a v_src).
  *
  * \return Success
  *
@@ -2026,28 +2027,28 @@ bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
  * where \a v and \a vtarget are connected by an edge
  * (assert checks for this case).
  */
-bool BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
+bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src)
 {
 	BMEdge *e;
 
 	/* verts already spliced */
-	if (v == v_target) {
+	if (v_src == v_dst) {
 		return false;
 	}
 
-	BLI_assert(BM_vert_pair_share_face_check(v, v_target) == false);
+	BLI_assert(BM_vert_pair_share_face_check(v_src, v_dst) == false);
 
-	/* move all the edges from v's disk to vtarget's disk */
-	while ((e = v->e)) {
-		bmesh_edge_vert_swap(e, v_target, v);
+	/* move all the edges from 'v_src' disk to 'v_dst' */
+	while ((e = v_src->e)) {
+		bmesh_edge_vert_swap(e, v_dst, v_src);
 		BLI_assert(e->v1 != e->v2);
 	}
 
-	BM_CHECK_ELEMENT(v);
-	BM_CHECK_ELEMENT(v_target);
+	BM_CHECK_ELEMENT(v_src);
+	BM_CHECK_ELEMENT(v_dst);
 
-	/* v is unused now, and can be killed */
-	BM_vert_kill(bm, v);
+	/* 'v_src' is unused now, and can be killed */
+	BM_vert_kill(bm, v_src);
 
 	return true;
 }
@@ -2197,16 +2198,17 @@ void BM_vert_separate(
  * \brief Splice Edge
  *
  * Splice two unique edges which share the same two vertices into one edge.
+ *  (\a e_src into \a e_dst, removing e_src).
  *
  * \return Success
  *
  * \note Edges must already have the same vertices.
  */
-bool BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target)
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src)
 {
 	BMLoop *l;
 
-	if (!BM_vert_in_edge(e, e_target->v1) || !BM_vert_in_edge(e, e_target->v2)) {
+	if (!BM_vert_in_edge(e_src, e_dst->v1) || !BM_vert_in_edge(e_src, e_dst->v2)) {
 		/* not the same vertices can't splice */
 
 		/* the caller should really make sure this doesn't happen ever
@@ -2216,21 +2218,21 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target)
 		return false;
 	}
 
-	while (e->l) {
-		l = e->l;
-		BLI_assert(BM_vert_in_edge(e_target, l->v));
-		BLI_assert(BM_vert_in_edge(e_target, l->next->v));
-		bmesh_radial_loop_remove(l, e);
-		bmesh_radial_append(e_target, l);
+	while (e_src->l) {
+		l = e_src->l;
+		BLI_assert(BM_vert_in_edge(e_dst, l->v));
+		BLI_assert(BM_vert_in_edge(e_dst, l->next->v));
+		bmesh_radial_loop_remove(l, e_src);
+		bmesh_radial_append(e_dst, l);
 	}
 
-	BLI_assert(bmesh_radial_length(e->l) == 0);
+	BLI_assert(bmesh_radial_length(e_src->l) == 0);
 
-	BM_CHECK_ELEMENT(e);
-	BM_CHECK_ELEMENT(e_target);
+	BM_CHECK_ELEMENT(e_src);
+	BM_CHECK_ELEMENT(e_dst);
 
 	/* removes from disks too */
-	BM_edge_kill(bm, e);
+	BM_edge_kill(bm, e_src);
 
 	return true;
 }
