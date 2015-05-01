@@ -37,6 +37,7 @@
  *
  * Calls an iterators step function to return the next element.
  */
+ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
 BLI_INLINE void *BM_iter_step(BMIter *iter)
 {
 	return iter->step(iter);
@@ -50,6 +51,7 @@ BLI_INLINE void *BM_iter_step(BMIter *iter)
  * it with the appropriate function pointers based
  * upon its type.
  */
+ATTR_NONNULL(1)
 BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	/* int argtype; */
@@ -169,6 +171,7 @@ BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *da
  * to return the first element of the iterator.
  *
  */
+ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
 BLI_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	if (LIKELY(BM_iter_init(iter, bm, itype, data))) {
