@@ -668,6 +668,8 @@ static void exec_distribute_parent(TaskPool *UNUSED(pool), void *taskdata, int U
 	ParticleSystem *psys= task->ctx->sim.psys;
 	ParticleData *pa;
 	int p;
+
+	BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP * task->begin);
 	
 	pa= psys->particles + task->begin;
 	switch (psys->part->from) {
