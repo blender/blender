@@ -150,7 +150,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		if (!instance_controller_created) {
 			COLLADASW::InstanceGeometry instGeom(mSW);
 			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, this->export_settings->use_object_instantiation)));
-
+			instGeom.setName(translate_id(id_name(ob)));
 			InstanceWriter::add_material_bindings(instGeom.getBindMaterial(), ob, this->export_settings->active_uv_only);
 
 			instGeom.add();
