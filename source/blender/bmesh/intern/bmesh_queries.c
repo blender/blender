@@ -863,7 +863,7 @@ bool BM_vert_is_manifold(const BMVert *v)
 {
 	BMEdge *e_iter, *e_first, *e_prev;
 	BMLoop *l_iter, *l_first;
-	int edge_num = 0, loop_num = 0, loop_num_region = 0, boundary_num = 0;
+	int loop_num = 0, loop_num_region = 0, boundary_num = 0;
 
 	if (v->e == NULL) {
 		/* loose vert */
@@ -901,8 +901,6 @@ bool BM_vert_is_manifold(const BMVert *v)
 				return false;
 			}
 		}
-
-		edge_num += 1;
 	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 
 	e_first = l_first->e;

@@ -570,12 +570,11 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	if (v->e) {
 		/* find closest edge to mouse cursor */
 		BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-			const bool is_boundary = BM_edge_is_boundary(e);
 			/* consider wire as boundary for this purpose,
 			 * otherwise we can't a face away from a wire edge */
-			totboundary_edge += (is_boundary != 0 || BM_edge_is_wire(e));
+			totboundary_edge += (BM_edge_is_boundary(e) || BM_edge_is_wire(e));
 			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-				if (is_boundary == false && BM_edge_is_manifold(e)) {
+				if (BM_edge_is_manifold(e)) {
 					d = edbm_rip_edgedist_squared(ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
 					if ((e2 == NULL) || (d < dist_sq)) {
 						dist_sq = d;
