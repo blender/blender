@@ -861,9 +861,9 @@ bool BM_vert_is_wire(const BMVert *v)
  */
 bool BM_vert_is_manifold(const BMVert *v)
 {
-	BMEdge *e, *e_old;
-	BMLoop *l;
-	int len, count, flag;
+	BMEdge *e_iter, *e_first, *e_prev;
+	BMLoop *l_iter, *l_first;
+	int edge_num = 0, loop_num = 0, loop_num_region = 0, boundary_num = 0;
 
 	if (v->e == NULL) {
 		/* loose vert */
@@ -871,51 +871,52 @@ bool BM_vert_is_manifold(const BMVert *v)
 	}
 
 	/* count edges while looking for non-manifold edges */
-	len = 0;
-	e_old = e = v->e;
+	e_first = e_iter = v->e;
+	l_first = e_iter->l ? e_iter->l : NULL;
 	do {
 		/* loose edge or edge shared by more than two faces,
 		 * edges with 1 face user are OK, otherwise we could
 		 * use BM_edge_is_manifold() here */
-		if (e->l == NULL || (e->l != e->l->radial_next->radial_next)) {
+		if (e_iter->l == NULL || (e_iter->l != e_iter->l->radial_next->radial_next)) {
 			return false;
 		}
-		len++;
-	} while ((e = bmesh_disk_edge_next(e, v)) != e_old);
 
-	count = 1;
-	flag = 1;
-	e = NULL;
-	e_old = v->e;
-	l = e_old->l;
-	while (e != e_old) {
-		l = (l->v == v) ? l->prev : l->next;
-		e = l->e;
-		count++; /* count the edges */
-
-		if (flag && l->radial_next == l) {
-			/* we've hit the edge of an open mesh, reset once */
-			flag = 0;
-			count = 1;
-			e_old = e;
-			e = NULL;
-			l = e_old->l;
+		/* count radial loops */
+		if (e_iter->l->v == v) {
+			loop_num += 1;
 		}
-		else if (l->radial_next == l) {
-			/* break the loop */
-			e = e_old;
+
+		if (!BM_edge_is_boundary(e_iter)) {
+			/* non boundary check opposite loop */
+			if (e_iter->l->radial_next->v == v) {
+				loop_num += 1;
+			}
 		}
 		else {
-			l = l->radial_next;
+			/* start at the boundary */
+			l_first = e_iter->l;
+			boundary_num += 1;
+			/* >2 boundaries cant be manifold */
+			if (boundary_num == 3) {
+				return false;
+			}
 		}
-	}
 
-	if (count < len) {
-		/* vert shared by multiple regions */
-		return false;
-	}
+		edge_num += 1;
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 
-	return true;
+	e_first = l_first->e;
+	l_first = (l_first->v == v) ? l_first : l_first->next;
+	BLI_assert(l_first->v == v);
+
+	l_iter = l_first;
+	e_prev = e_first;
+
+	do {
+		loop_num_region += 1;
+	} while (((l_iter = BM_vert_step_fan_loop(l_iter, &e_prev)) != l_first) && (l_iter != NULL));
+
+	return (loop_num == loop_num_region);
 }
 
 /**
