@@ -877,7 +877,7 @@ bool BM_vert_is_manifold(const BMVert *v)
 		/* loose edge or edge shared by more than two faces,
 		 * edges with 1 face user are OK, otherwise we could
 		 * use BM_edge_is_manifold() here */
-		if (e->l == NULL || bmesh_radial_length(e->l) > 2) {
+		if (e->l == NULL || (e->l != e->l->radial_next->radial_next)) {
 			return false;
 		}
 		len++;

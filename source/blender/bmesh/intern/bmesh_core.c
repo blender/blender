@@ -1053,8 +1053,9 @@ static bool disk_is_flagged(BMVert *v, const char api_flag)
 			return false;
 		}
 		
-		if (bmesh_radial_length(l) == 1)
+		if (BM_edge_is_boundary(l->e)) {
 			return false;
+		}
 		
 		do {
 			if (!BM_ELEM_API_FLAG_TEST(l->f, api_flag))
