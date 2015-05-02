@@ -922,14 +922,9 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFilePath(const char *filepa
 	return LinkBlendFile(bpy_openlib, filepath, group, scene_merge, err_str, options);
 }
 
-static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const char *path, int idcode)
+static void load_datablocks(Main *main_tmp, BlendHandle *bpy_openlib, const char *path, int idcode)
 {
-	Main *main_tmp= NULL; /* created only for linking, then freed */
 	LinkNode *names = NULL;
-	short flag= 0; /* don't need any special options */
-
-	/* here appending/linking starts */
-	main_tmp = BLO_library_append_begin(main_newlib, &bpy_openlib, (char *)path);
 
 	int totnames_dummy;
 	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode, &totnames_dummy);
@@ -942,8 +937,6 @@ static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const c
 		i++;
 	}
 	BLI_linklist_free(names, free);	/* free linklist *and* each node's data */
-	
-	BLO_library_append_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
 }
 
 KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
@@ -981,17 +974,23 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 	main_newlib = BKE_main_new();
 	BKE_reports_init(&reports, RPT_STORE);
 
-	load_datablocks(main_newlib, bpy_openlib, path, idcode);
+	short flag = 0; /* don't need any special options */
+	/* created only for linking, then freed */
+	Main *main_tmp = BLO_library_append_begin(main_newlib, &bpy_openlib, (char *)path);
+
+	load_datablocks(main_tmp, bpy_openlib, path, idcode);
 
 	if (idcode==ID_SCE && options & LIB_LOAD_LOAD_SCRIPTS) {
-		load_datablocks(main_newlib, bpy_openlib, path, ID_TXT);
+		load_datablocks(main_tmp, bpy_openlib, path, ID_TXT);
 	}
 
 	/* now do another round of linking for Scenes so all actions are properly loaded */
 	if (idcode==ID_SCE && options & LIB_LOAD_LOAD_ACTIONS) {
-		load_datablocks(main_newlib, bpy_openlib, path, ID_AC);
+		load_datablocks(main_tmp, bpy_openlib, path, ID_AC);
 	}
-	
+
+	BLO_library_append_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
+
 	BLO_blendhandle_close(bpy_openlib);
 
 	BKE_reports_clear(&reports);
