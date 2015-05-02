@@ -2053,6 +2053,16 @@ bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src)
 	return true;
 }
 
+
+/** \name BM_vert_separate, bmesh_vert_separate and friends
+ * \{ */
+
+/* BM_edge_face_count(e) >= 1 */
+BLI_INLINE bool bm_edge_supports_separate(const BMEdge *e)
+{
+	return (e->l && e->l->radial_next != e->l);
+}
+
 /**
  * \brief Separate Vert
  *
@@ -2176,23 +2186,124 @@ void bmesh_vert_separate(
 }
 
 /**
+ * Utility function for #BM_vert_separate
+ *
+ * Takes a list of edges, which have been split from their original.
+ *
+ * Any edges which failed to split off in #bmesh_vert_separate will be merged back into the original edge.
+ *
+ * \param edges_seperate
+ * A list-of-lists, each list is from a single original edge (the first edge is the original),
+ * Check for duplicates (not just with the first) but between all.
+ * This is O(n2) but radial edges are very rarely >2 and almost never >~10.
+ *
+ * \note typically its best to avoid createing the data in the first place,
+ * but inspecting all loops connectivity is quite involved.
+ *
+ * \note this function looks like it could become slow,
+ * but in common cases its only going to iterate a few times.
+ */
+static void bmesh_vert_separate__cleanup(BMesh *bm, LinkNode *edges_separate)
+{
+	do {
+		LinkNode *n_orig = edges_separate->link;
+		do {
+			BMEdge *e_orig = n_orig->link;
+			LinkNode *n_step = n_orig->next;
+			LinkNode *n_prev = n_orig;
+			do {
+				BMEdge *e = n_step->link;
+				BLI_assert(e != e_orig);
+				if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2)) {
+					BM_edge_splice(bm, e_orig, e);
+					n_prev->next = n_step->next;
+					n_step = n_prev;
+				}
+			} while ((n_prev = n_step),
+			         (n_step = n_step->next));
+
+		} while ((n_orig = n_orig->next) && n_orig->next);
+	} while ((edges_separate = edges_separate->next));
+}
+
+/**
  * High level function which wraps both #bmesh_vert_separate and #bmesh_edge_separate
  */
 void BM_vert_separate(
-        BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
-        BMEdge **e_in, int e_in_len)
+        BMesh *bm, BMVert *v,
+        BMEdge **e_in, int e_in_len,
+        const bool copy_select,
+        BMVert ***r_vout, int *r_vout_len)
 {
+	LinkNode *edges_separate = NULL;
 	int i;
 
 	for (i = 0; i < e_in_len; i++) {
 		BMEdge *e = e_in[i];
-		if (e->l && BM_vert_in_edge(e, v)) {
-			bmesh_edge_separate(bm, e, e->l, false);
+		if (bm_edge_supports_separate(e)) {
+			LinkNode *edges_orig = NULL;
+			do {
+				BMLoop *l_sep = e->l;
+				bmesh_edge_separate(bm, e, l_sep, copy_select);
+				BLI_linklist_prepend_alloca(&edges_orig, l_sep->e);
+				BLI_assert(e != l_sep->e);
+			} while (bm_edge_supports_separate(e));
+			BLI_linklist_prepend_alloca(&edges_orig, e);
+			BLI_linklist_prepend_alloca(&edges_separate, edges_orig);
 		}
 	}
 
-	bmesh_vert_separate(bm, v, r_vout, r_vout_len, false);
+	bmesh_vert_separate(bm, v, r_vout, r_vout_len, copy_select);
+
+	if (edges_separate) {
+		bmesh_vert_separate__cleanup(bm, edges_separate);
+	}
 }
+
+
+/**
+ * A version of #BM_vert_separate which takes a flag.
+ */
+void BM_vert_separate_hflag(
+        BMesh *bm, BMVert *v,
+        const char hflag,
+        const bool copy_select,
+        BMVert ***r_vout, int *r_vout_len)
+{
+	LinkNode *edges_separate = NULL;
+	BMEdge *e_iter, *e_first;
+
+	e_iter = e_first = v->e;
+	do {
+		if (BM_elem_flag_test(e_iter, hflag)) {
+			BMEdge *e = e_iter;
+			if (bm_edge_supports_separate(e)) {
+				LinkNode *edges_orig = NULL;
+				do {
+					BMLoop *l_sep = e->l;
+					bmesh_edge_separate(bm, e, l_sep, copy_select);
+					/* trick to avoid looping over seperated edges */
+					if (edges_separate == NULL && edges_orig == NULL) {
+						e_first = l_sep->e;
+					}
+					BLI_linklist_prepend_alloca(&edges_orig, l_sep->e);
+					BLI_assert(e != l_sep->e);
+				} while (bm_edge_supports_separate(e));
+				BLI_linklist_prepend_alloca(&edges_orig, e);
+				BLI_linklist_prepend_alloca(&edges_separate, edges_orig);
+			}
+		}
+	} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
+
+	bmesh_vert_separate(bm, v, r_vout, r_vout_len, copy_select);
+
+	if (edges_separate) {
+		bmesh_vert_separate__cleanup(bm, edges_separate);
+	}
+}
+
+/** \} */
+
 
 /**
  * \brief Splice Edge
@@ -2261,7 +2372,7 @@ void bmesh_edge_separate(
 	BLI_assert(e->l);
 	
 	if (BM_edge_is_boundary(e)) {
-		/* no cut required */
+		BLI_assert(0); /* no cut required */
 		return;
 	}
 

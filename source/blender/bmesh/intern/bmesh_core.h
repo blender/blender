@@ -77,8 +77,11 @@ bool    bmesh_loop_reverse(BMesh *bm, BMFace *f);
 
 BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del);
 void    BM_vert_separate(
-        BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
-        BMEdge **e_in, int e_in_len);
+        BMesh *bm, BMVert *v, BMEdge **e_in, int e_in_len, const bool copy_select,
+        BMVert ***r_vout, int *r_vout_len);
+void BM_vert_separate_hflag(
+        BMesh *bm, BMVert *v, const char hflag, const bool copy_select,
+        BMVert ***r_vout, int *r_vout_len);
 
 /* EULER API - For modifying structure */
 BMFace *bmesh_sfme(
