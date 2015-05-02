@@ -195,7 +195,7 @@ bool BM_mesh_validate(BMesh *bm)
 
 	ERRMSG("Finished - errors %d", errtot);
 
-	return true;
+	return (errtot == 0);
 }
 
 
