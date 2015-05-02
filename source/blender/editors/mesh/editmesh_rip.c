@@ -941,7 +941,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 		fill_uloop_pairs = edbm_tagged_loop_pairs_to_fill(bm);
 	}
 
-	BM_mesh_edgesplit(em->bm, true, true, true, true);
+	BM_mesh_edgesplit(em->bm, true, true, true);
 
 	/* note: the output of the bmesh operator is ignored, since we built
 	 * the contiguous loop pairs to split already, its possible that some
