@@ -3488,36 +3488,42 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "cell_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cellsize");
 	RNA_def_property_ui_range(prop, 0.1, 1, 1, 2);
+	RNA_def_property_float_default(prop, 0.3f);
 	RNA_def_property_ui_text(prop, "Cell Size", "Rasterized cell size");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "cell_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cellheight");
 	RNA_def_property_ui_range(prop, 0.1, 1, 1, 2);
+	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_ui_text(prop, "Cell Height", "Rasterized cell height");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "agent_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "agentheight");
 	RNA_def_property_ui_range(prop, 0.1, 5, 1, 2);
+	RNA_def_property_float_default(prop, 2.0f);
 	RNA_def_property_ui_text(prop, "Agent Height", "Minimum height where the agent can still walk");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "agent_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "agentradius");
 	RNA_def_property_ui_range(prop, 0.1, 5, 1, 2);
+	RNA_def_property_float_default(prop, 0.6f);
 	RNA_def_property_ui_text(prop, "Agent Radius", "Radius of the agent");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "climb_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "agentmaxclimb");
 	RNA_def_property_ui_range(prop, 0.1, 5, 1, 2);
+	RNA_def_property_float_default(prop, 0.9f);
 	RNA_def_property_ui_text(prop, "Max Climb", "Maximum height between grid cells the agent can climb");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "slope_max", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "agentmaxslope");
 	RNA_def_property_range(prop, 0, M_PI_2);
+	RNA_def_property_float_default(prop, M_PI_4);
 	RNA_def_property_ui_text(prop, "Max Slope", "Maximum walkable slope angle");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -3525,42 +3531,49 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "region_min_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "regionminsize");
 	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
+	RNA_def_property_float_default(prop, 8.0f);
 	RNA_def_property_ui_text(prop, "Min Region Size", "Minimum regions size (smaller regions will be deleted)");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "region_merge_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "regionmergesize");
 	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
+	RNA_def_property_float_default(prop, 20.0f);
 	RNA_def_property_ui_text(prop, "Merged Region Size", "Minimum regions size (smaller regions will be merged)");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "edge_max_len", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "edgemaxlen");
 	RNA_def_property_ui_range(prop, 0, 50, 1, 2);
+	RNA_def_property_float_default(prop, 12.0f);
 	RNA_def_property_ui_text(prop, "Max Edge Length", "Maximum contour edge length");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "edge_max_error", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "edgemaxerror");
 	RNA_def_property_ui_range(prop, 0.1, 3.0, 1, 2);
+	RNA_def_property_float_default(prop, 1.3f);
 	RNA_def_property_ui_text(prop, "Max Edge Error", "Maximum distance error from contour to cells");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "verts_per_poly", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "vertsperpoly");
 	RNA_def_property_ui_range(prop, 3, 12, 1, -1);
+	RNA_def_property_int_default(prop, 6);
 	RNA_def_property_ui_text(prop, "Verts Per Poly", "Max number of vertices per polygon");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "sample_dist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "detailsampledist");
 	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
+	RNA_def_property_float_default(prop, 6.0f);
 	RNA_def_property_ui_text(prop, "Sample Distance", "Detail mesh sample spacing");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "sample_max_error", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "detailsamplemaxerror");
 	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Max Sample Error", "Detail mesh simplification max sample error");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
@@ -3772,12 +3785,14 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "resolution_x", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "xplay");
 	RNA_def_property_range(prop, 4, 10000);
+	RNA_def_property_int_default(prop, 640);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of horizontal pixels in the screen");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop = RNA_def_property(srna, "resolution_y", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "yplay");
 	RNA_def_property_range(prop, 4, 10000);
+	RNA_def_property_int_default(prop, 480);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of vertical pixels in the screen");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -3794,12 +3809,14 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_range(prop, 8, 32);
+	RNA_def_property_int_default(prop, 32);
 	RNA_def_property_ui_text(prop, "Bits", "Display bit depth of full screen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "exit_key", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "exitkey");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_default(prop, ESCKEY);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_GameSettings_exit_key_set", NULL);
 	RNA_def_property_ui_text(prop, "Exit Key", "The key that exits the Game Engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -3814,6 +3831,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "frequency", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "freqplay");
 	RNA_def_property_range(prop, 4, 2000);
+	RNA_def_property_int_default(prop, 60);
 	RNA_def_property_ui_text(prop, "Freq", "Display clock frequency of fullscreen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
@@ -3851,12 +3869,14 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "stereo_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stereomode");
 	RNA_def_property_enum_items(prop, stereo_modes_items);
+	RNA_def_property_enum_default(prop, STEREO_ANAGLYPH);
 	RNA_def_property_ui_text(prop, "Stereo Mode", "Stereographic techniques");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "stereo_eye_separation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "eyeseparation");
 	RNA_def_property_range(prop, 0.01, 5.0);
+	RNA_def_property_float_default(prop, 0.1f);
 	RNA_def_property_ui_text(prop, "Eye Separation",
 	                         "Set the distance between the eyes - the camera focal distance/30 should be fine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -3871,18 +3891,21 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "dome_tessellation", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dome.res");
 	RNA_def_property_ui_range(prop, 1, 8, 1, 1);
+	RNA_def_property_int_default(prop, 4);
 	RNA_def_property_ui_text(prop, "Tessellation", "Tessellation level - check the generated mesh in wireframe mode");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop = RNA_def_property(srna, "dome_buffer_resolution", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dome.resbuf");
 	RNA_def_property_ui_range(prop, 0.1, 1.0, 0.1, 2);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Buffer Resolution", "Buffer Resolution - decrease it to increase speed");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop = RNA_def_property(srna, "dome_angle", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dome.angle");
 	RNA_def_property_ui_range(prop, 90, 250, 1, 1);
+	RNA_def_property_int_default(prop, 180);
 	RNA_def_property_ui_text(prop, "Angle", "Field of View of the Dome - it only works in mode Fisheye and Truncated");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
@@ -3903,6 +3926,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "physics_engine", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "physicsEngine");
 	RNA_def_property_enum_items(prop, physics_engine_items);
+	RNA_def_property_enum_default(prop, WOPHY_BULLET);
 	RNA_def_property_ui_text(prop, "Physics Engine", "Physics engine used for physics simulation in the game engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -3910,6 +3934,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "gravity");
 	RNA_def_property_ui_range(prop, 0.0, 25.0, 1, 2);
 	RNA_def_property_range(prop, 0.0, 10000.0);
+	RNA_def_property_float_default(prop, 9.8f);
 	RNA_def_property_ui_text(prop, "Physics Gravity",
 	                         "Gravitational constant used for physics simulation in the game engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -3917,6 +3942,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "occlusion_culling_resolution", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "occlusionRes");
 	RNA_def_property_range(prop, 128.0, 1024.0);
+	RNA_def_property_int_default(prop, 128);
 	RNA_def_property_ui_text(prop, "Occlusion Resolution",
 	                         "Size of the occlusion buffer, use higher value for better precision (slower)");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -3925,6 +3951,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "ticrate");
 	RNA_def_property_ui_range(prop, 1, 60, 1, 1);
 	RNA_def_property_range(prop, 1, 10000);
+	RNA_def_property_int_default(prop, 60);
 	RNA_def_property_ui_text(prop, "Frames Per Second",
 	                         "Nominal number of game frames per second "
 	                         "(physics fixed timestep = 1/fps, independently of actual frame rate)");
@@ -3934,6 +3961,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "maxlogicstep");
 	RNA_def_property_range(prop, 1, 10000);
 	RNA_def_property_ui_range(prop, 1, 50, 1, 1);
+	RNA_def_property_int_default(prop, 5);
 	RNA_def_property_ui_text(prop, "Max Logic Steps",
 	                         "Maximum number of logic frame per game frame if graphics slows down the game, "
 	                         "higher value allows better synchronization with physics");
@@ -3943,6 +3971,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "maxphystep");
 	RNA_def_property_range(prop, 1, 10000);
 	RNA_def_property_ui_range(prop, 1, 50, 1, 1);
+	RNA_def_property_int_default(prop, 5);
 	RNA_def_property_ui_text(prop, "Max Physics Steps",
 	                         "Maximum number of physics step per game frame if graphics slows down the game, "
 	                         "higher value allows physics to keep up with realtime");
@@ -3952,6 +3981,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "physubstep");
 	RNA_def_property_range(prop, 1, 50);
 	RNA_def_property_ui_range(prop, 1, 5, 1, 1);
+	RNA_def_property_int_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Physics Sub Steps",
 	                         "Number of simulation substep per physic timestep, "
 	                         "higher value give better physics precision");
@@ -3961,6 +3991,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "lineardeactthreshold");
 	RNA_def_property_ui_range(prop, 0.001, 10000.0, 2, 3);
 	RNA_def_property_range(prop, 0.001, 10000.0);
+	RNA_def_property_float_default(prop, 0.8f);
 	RNA_def_property_ui_text(prop, "Deactivation Linear Threshold",
 	                         "Linear velocity that an object must be below before the deactivation timer can start");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -3969,6 +4000,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "angulardeactthreshold");
 	RNA_def_property_ui_range(prop, 0.001, 10000.0, 2, 3);
 	RNA_def_property_range(prop, 0.001, 10000.0);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Deactivation Angular Threshold",
 	                         "Angular velocity that an object must be below before the deactivation timer can start");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -4112,6 +4144,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "level_height", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "levelHeight");
 	RNA_def_property_range(prop, 0.0f, 200.0f);
+	RNA_def_property_float_default(prop, 2.0f);
 	RNA_def_property_ui_text(prop, "Level height",
 	                         "Max difference in heights of obstacles to enable their interaction");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -4140,6 +4173,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "scehysteresis");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_range(prop, 0, 100, 10, 1);
+	RNA_def_property_int_default(prop, 10);
 	RNA_def_property_ui_text(prop, "Hysteresis %",
 	                         "Minimum distance change required to transition to the previous level of detail");
 	RNA_def_property_update(prop, NC_SCENE, NULL);

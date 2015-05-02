@@ -680,7 +680,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->gm.recastData.cellsize = 0.3f;
 	sce->gm.recastData.cellheight = 0.2f;
-	sce->gm.recastData.agentmaxslope = M_PI / 2;
+	sce->gm.recastData.agentmaxslope = M_PI_4;
 	sce->gm.recastData.agentmaxclimb = 0.9f;
 	sce->gm.recastData.agentheight = 2.0f;
 	sce->gm.recastData.agentradius = 0.6f;

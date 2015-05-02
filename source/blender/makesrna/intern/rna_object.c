@@ -1686,6 +1686,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "physics_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "body_type");
 	RNA_def_property_enum_items(prop, body_type_items);
+	RNA_def_property_enum_default(prop, OB_BODY_TYPE_STATIC);
 	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get",
 	                            "rna_GameObjectSettings_physics_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Physics Type", "Select the type of physical representation");
@@ -1705,12 +1706,14 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 10000.0);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Mass", "Mass of the object");
 
 	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE | PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
 	RNA_def_property_range(prop, 0.01f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 1, 3);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
@@ -1721,11 +1724,13 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "damping");
 	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_float_default(prop, 0.04f);
 	RNA_def_property_ui_text(prop, "Damping", "General movement damping");
 
 	prop = RNA_def_property(srna, "rotation_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rdamping");
 	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_float_default(prop, 0.1f);
 	RNA_def_property_ui_text(prop, "Rotation Damping", "General rotation damping");
 
 	prop = RNA_def_property(srna, "velocity_min", PROP_FLOAT, PROP_NONE);
@@ -1742,16 +1747,19 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "step_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "step_height");
 	RNA_def_property_range(prop, 0.01, 1.0);
+	RNA_def_property_float_default(prop, 0.15f);
 	RNA_def_property_ui_text(prop, "Step Height", "Maximum height of steps the character can run over");
 
 	prop = RNA_def_property(srna, "jump_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "jump_speed");
 	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_float_default(prop, 10.0f);
 	RNA_def_property_ui_text(prop, "Jump Force", "Upward velocity applied to the character when jumping");
 
 	prop = RNA_def_property(srna, "fall_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fall_speed");
 	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_float_default(prop, 55.0f);
 	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
 
 	/* Collision Masks */
@@ -1812,6 +1820,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "form_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "formfactor");
 	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_float_default(prop, 0.4f);
 	RNA_def_property_ui_text(prop, "Form Factor", "Form factor scales the inertia tensor");
 
 	prop = RNA_def_property(srna, "use_anisotropic_friction", PROP_BOOLEAN, PROP_NONE);
@@ -1844,6 +1853,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE | PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "margin");
 	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_float_default(prop, 0.04f);
 	RNA_def_property_ui_text(prop, "Collision Margin",
 	                         "Extra margin around object for collision detection, small amount required "
 	                         "for stability");
@@ -1859,6 +1869,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "obstacle_radius", PROP_FLOAT, PROP_NONE | PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "obstacleRad");
 	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Obstacle Radius", "Radius of object representation in obstacle simulation");
 	
 	/* state */
