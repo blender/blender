@@ -51,6 +51,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_library.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
@@ -105,8 +106,9 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 	if (!op->customdata)
 		sound_open_init(C, op);
 
-	if (sound == NULL || sound->playback_handle == NULL) {
+	if (sound->playback_handle == NULL) {
 		if (op->customdata) MEM_freeN(op->customdata);
+		BKE_libblock_free(bmain, sound);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
 	}

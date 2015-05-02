@@ -66,7 +66,7 @@ static int sound_cfra;
 
 bSound *BKE_sound_new_file(struct Main *bmain, const char *filename)
 {
-	bSound *sound = NULL;
+	bSound *sound;
 
 	char str[FILE_MAX];
 	const char *path;
@@ -88,11 +88,6 @@ bSound *BKE_sound_new_file(struct Main *bmain, const char *filename)
 	/* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
 
 	BKE_sound_load(bmain, sound);
-
-	if (!sound->playback_handle) {
-		BKE_libblock_free(bmain, sound);
-		sound = NULL;
-	}
 
 	return sound;
 }
@@ -246,12 +241,6 @@ bSound *BKE_sound_new_buffer(struct Main *bmain, bSound *source)
 
 	sound_load(bmain, sound);
 
-	if (!sound->playback_handle)
-	{
-		BKE_libblock_free(bmain, sound);
-		sound = NULL;
-	}
-
 	return sound;
 }
 
@@ -271,12 +260,6 @@ bSound *BKE_sound_new_limiter(struct Main *bmain, bSound *source, float start, f
 	sound->type = SOUND_TYPE_LIMITER;
 
 	sound_load(bmain, sound);
-
-	if (!sound->playback_handle)
-	{
-		BKE_libblock_free(bmain, sound);
-		sound = NULL;
-	}
 
 	return sound;
 }
