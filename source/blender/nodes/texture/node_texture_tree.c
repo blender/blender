@@ -337,7 +337,7 @@ int ntreeTexExecTree(
 	data.osatex = osatex;
 	data.target = texres;
 	data.do_preview = preview;
-	data.do_manage = (shi) ? shi->do_manage : 0;
+	data.do_manage = (shi) ? shi->do_manage : true;
 	data.thread = thread;
 	data.which_output = which_output;
 	data.cfra = cfra;
