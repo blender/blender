@@ -213,11 +213,13 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
         layout = self.layout
 
         game = context.active_object.game
-        layout.active = game.use_collision_bounds
+        split = layout.split()
+        split.active = game.use_collision_bounds
 
-        layout.prop(game, "collision_bounds_type", text="Bounds")
+        col = split.column()
+        col.prop(game, "collision_bounds_type", text="Bounds")
 
-        row = layout.row()
+        row = col.row()
         row.prop(game, "collision_margin", text="Margin", slider=True)
 
         sub = row.row()
