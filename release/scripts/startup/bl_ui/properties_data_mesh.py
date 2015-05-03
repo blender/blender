@@ -369,8 +369,8 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         me = context.mesh
         col = layout.column()
 
-        col.operator("mesh.customdata_clear_mask", icon='X')
-        col.operator("mesh.customdata_clear_skin", icon='X')
+        col.operator("mesh.customdata_mask_clear", icon='X')
+        col.operator("mesh.customdata_skin_clear", icon='X')
 
         if me.has_custom_normals:
             col.operator("mesh.customdata_custom_splitnormals_clear", icon='X')
