@@ -130,6 +130,7 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 {
 	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose;
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "type");
 	
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -140,6 +141,17 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	if (ELEM(NULL, ob, ob->pose)) 
 		return OPERATOR_CANCELLED;
 	pose = ob->pose;
+
+	/* If group index is set, try to use it! */
+	if (RNA_property_is_set(op->ptr, prop)) {
+		const int num_groups = BLI_listbase_count(&pose->agroups);
+		const int group = RNA_property_int_get(op->ptr, prop);
+
+		/* just use the active group index, and call the exec callback for the calling operator */
+		if (group > 0 && group <= num_groups) {
+			return op->type->exec(C, op);
+		}
+	}
 	
 	/* if there's no active group (or active is invalid), create a new menu to find it */
 	if (pose->active_group <= 0) {
