@@ -1920,6 +1920,7 @@ void BKE_mesh_transform(Mesh *me, float mat[4][4], bool do_keys)
 {
 	int i;
 	MVert *mvert = me->mvert;
+	float (*lnors)[3] = CustomData_get_layer(&me->ldata, CD_NORMAL);
 
 	for (i = 0; i < me->totvert; i++, mvert++)
 		mul_m4_v3(mat, mvert->co);
@@ -1934,7 +1935,17 @@ void BKE_mesh_transform(Mesh *me, float mat[4][4], bool do_keys)
 		}
 	}
 
-	/* don't update normals, caller can do this explicitly */
+	/* don't update normals, caller can do this explicitly.
+	 * We do update loop normals though, those may not be auto-generated (see e.g. STL import script)! */
+	if (lnors) {
+		float m3[3][3];
+
+		copy_m3_m4(m3, mat);
+		normalize_m3(m3);
+		for (i = 0; i < me->totloop; i++, lnors++) {
+			mul_m3_v3(m3, *lnors);
+		}
+	}
 }
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
