@@ -1131,13 +1131,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         self.vertex_weight_mask(layout, ob, md)
 
     def SKIN(self, layout, ob, md):
-        layout.operator("object.skin_armature_create", text="Create Armature")
+        row = layout.row()
+        row.operator("object.skin_armature_create", text="Create Armature")
+        row.operator("mesh.customdata_skin_add")
 
         layout.separator()
 
-        col = layout.column(align=True)
-        col.prop(md, "branch_smoothing")
-        col.prop(md, "use_smooth_shade")
+        row = layout.row(align=True)
+        row.prop(md, "branch_smoothing")
+        row.prop(md, "use_smooth_shade")
 
         split = layout.split()
 

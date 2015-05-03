@@ -804,7 +804,7 @@ void MESH_OT_customdata_clear_mask(wmOperatorType *ot)
 }
 
 /* Clear Skin */
-static int mesh_customdata_clear_skin_poll(bContext *C)
+static bool mesh_customdata_skin_has(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 
@@ -819,6 +819,45 @@ static int mesh_customdata_clear_skin_poll(bContext *C)
 	}
 	return false;
 }
+
+static int mesh_customdata_skin_add_poll(bContext *C)
+{
+	return !mesh_customdata_skin_has(C);
+}
+
+static int mesh_customdata_skin_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_context(C);
+	Mesh *me = ob->data;
+
+	BKE_mesh_ensure_skin_customdata(me);
+
+	DAG_id_tag_update(&me->id, 0);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_customdata_skin_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Skin Data";
+	ot->idname = "MESH_OT_customdata_skin_add";
+	ot->description = "Add a vertex skin layer";
+
+	/* api callbacks */
+	ot->exec = mesh_customdata_skin_add_exec;
+	ot->poll = mesh_customdata_skin_add_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int mesh_customdata_clear_skin_poll(bContext *C)
+{
+	return mesh_customdata_skin_has(C);
+}
+
 static int mesh_customdata_clear_skin_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_MVERT_SKIN);
