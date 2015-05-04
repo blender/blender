@@ -3105,9 +3105,10 @@ void ui_block_cm_to_scene_linear_v3(uiBlock *block, float pixel[3])
  * - \a a2 Number of decimal point values to display. 0 defaults to 3 (0.000)
  *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
-static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
-                         int x, int y, short width, short height,
-                         void *poin, float min, float max, float a1, float a2, const char *tip)
+static uiBut *ui_def_but(
+        uiBlock *block, int type, int retval, const char *str,
+        int x, int y, short width, short height,
+        void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but;
 	int slen;
@@ -3375,10 +3376,11 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
  * When this kind of change won't disrupt branches, best look into making more
  * of our UI functions take prop rather then propname.
  */
-static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str,
-                             int x, int y, short width, short height,
-                             PointerRNA *ptr, PropertyRNA *prop, int index,
-                             float min, float max, float a1, float a2,  const char *tip)
+static uiBut *ui_def_but_rna(
+        uiBlock *block, int type, int retval, const char *str,
+        int x, int y, short width, short height,
+        PointerRNA *ptr, PropertyRNA *prop, int index,
+        float min, float max, float a1, float a2,  const char *tip)
 {
 	const PropertyType proptype = RNA_property_type(prop);
 	uiBut *but;
@@ -4386,9 +4388,10 @@ static void operator_enum_call_cb(struct bContext *UNUSED(C), void *but, void *a
 
 /* Same parameters as for uiDefSearchBut, with additional operator type and properties, used by callback
  * to call again the right op with the right options (properties values). */
-uiBut *uiDefSearchButO_ptr(uiBlock *block, wmOperatorType *ot, IDProperty *properties,
-                           void *arg, int retval, int icon, int maxlen, int x, int y,
-                           short width, short height, float a1, float a2, const char *tip)
+uiBut *uiDefSearchButO_ptr(
+        uiBlock *block, wmOperatorType *ot, IDProperty *properties,
+        void *arg, int retval, int icon, int maxlen, int x, int y,
+        short width, short height, float a1, float a2, const char *tip)
 {
 	uiBut *but;
 

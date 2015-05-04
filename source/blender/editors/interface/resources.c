@@ -1511,8 +1511,9 @@ void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], in
 }
 
 /* get a 3 byte color, blended and shaded between two other char color pointers */
-void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3],
-                                  float fac, int offset)
+void UI_GetColorPtrBlendShade3ubv(
+        const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3],
+        float fac, int offset)
 {
 	int r, g, b;
 

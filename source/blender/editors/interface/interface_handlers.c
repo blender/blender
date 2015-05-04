@@ -52,9 +52,9 @@
 #include "BLI_linklist.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_cursor_utf8.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
-#include "BLI_string_cursor_utf8.h"
 
 #include "BLF_translation.h"
 
@@ -328,8 +328,9 @@ static uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, c
 static uiBut *ui_but_find_mouse_over(ARegion *ar, const wmEvent *event);
 static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
-static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *data,
-                                 const bool mousemove, const bool onfree);
+static void button_activate_exit(
+        bContext *C, uiBut *but, uiHandleButtonData *data,
+        const bool mousemove, const bool onfree);
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *userdata);
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
 
@@ -477,10 +478,9 @@ static float ui_mouse_scale_warp_factor(const bool shift)
 	return shift ? 0.05f : 1.0f;
 }
 
-static void ui_mouse_scale_warp(uiHandleButtonData *data,
-                                const float mx, const float my,
-                                float *r_mx, float *r_my,
-                                const bool shift)
+static void ui_mouse_scale_warp(
+        uiHandleButtonData *data, const float mx, const float my,
+        float *r_mx, float *r_my, const bool shift)
 {
 	const float fac = ui_mouse_scale_warp_factor(shift);
 	
@@ -1063,8 +1063,9 @@ typedef struct uiDragToggleHandle {
 	int  xy_last[2];
 } uiDragToggleHandle;
 
-static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
-                                     const int xy_src[2], const int xy_dst[2])
+static bool ui_drag_toggle_set_xy_xy(
+        bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
+        const int xy_src[2], const int xy_dst[2])
 {
 	/* popups such as layers won't re-evaluate on redraw */
 	const bool do_check = (ar->regiontype == RGN_TYPE_TEMPORARY);
@@ -2183,8 +2184,9 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 /* this is used for both utf8 and ascii, its meant to be used for single keys,
  * notice the buffer is either copied or not, so its not suitable for pasting in
  * - campbell */
-static bool ui_textedit_type_buf(uiBut *but, uiHandleButtonData *data,
-                                 const char *utf8_buf, int utf8_buf_len)
+static bool ui_textedit_type_buf(
+        uiBut *but, uiHandleButtonData *data,
+        const char *utf8_buf, int utf8_buf_len)
 {
 	char *str;
 	int len;
@@ -2228,8 +2230,9 @@ static bool ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char as
 	return ui_textedit_type_buf(but, data, buf, 1);
 }
 
-static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, strCursorJumpDirection direction,
-                             const bool select, strCursorJumpType jump)
+static void ui_textedit_move(
+        uiBut *but, uiHandleButtonData *data, strCursorJumpDirection direction,
+        const bool select, strCursorJumpType jump)
 {
 	const char *str = data->str;
 	const int len = strlen(str);
@@ -3128,9 +3131,13 @@ int ui_but_menu_direction(uiBut *but)
 	return 0;
 }
 
-/* Hack for uiList UI_BTYPE_LISTROW buttons to "give" events to overlaying UI_BTYPE_TEXT buttons (cltr-clic rename feature & co). */
-static uiBut *ui_but_list_row_text_activate(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event,
-                                            uiButtonActivateType activate_type)
+/**
+ * Hack for uiList UI_BTYPE_LISTROW buttons to "give" events to overlaying UI_BTYPE_TEXT buttons
+ * (cltr-clic rename feature & co).
+ */
+static uiBut *ui_but_list_row_text_activate(
+        bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event,
+        uiButtonActivateType activate_type)
 {
 	ARegion *ar = CTX_wm_region(C);
 	uiBut *labelbut = ui_but_find_mouse_over_ex(ar, event->x, event->y, true);
@@ -3472,8 +3479,9 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 }
 
 /* var names match ui_numedit_but_NUM */
-static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, float softmax, float softrange,
-                                    const enum eSnapType snap)
+static float ui_numedit_apply_snapf(
+        uiBut *but, float tempf, float softmin, float softmax, float softrange,
+        const enum eSnapType snap)
 {
 	if (tempf == softmin || tempf == softmax || snap == SNAP_OFF) {
 		/* pass */
@@ -3532,8 +3540,9 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 	return tempf;
 }
 
-static float ui_numedit_apply_snap(int temp, float softmin, float softmax,
-                                   const enum eSnapType snap)
+static float ui_numedit_apply_snap(
+        int temp, float softmin, float softmax,
+        const enum eSnapType snap)
 {
 	if (temp == softmin || temp == softmax)
 		return temp;
@@ -3552,9 +3561,10 @@ static float ui_numedit_apply_snap(int temp, float softmin, float softmax,
 	return temp;
 }
 
-static bool ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data,
-                               int mx,
-                               const enum eSnapType snap, float fac)
+static bool ui_numedit_but_NUM(
+        uiBut *but, uiHandleButtonData *data,
+        int mx,
+        const enum eSnapType snap, float fac)
 {
 	float deler, tempf, softmin, softmax, softrange;
 	int lvalue, temp;
@@ -3888,9 +3898,10 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	return retval;
 }
 
-static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
-                               int mx, const bool is_horizontal,
-                               const bool snap, const bool shift)
+static bool ui_numedit_but_SLI(
+        uiBut *but, uiHandleButtonData *data,
+        int mx, const bool is_horizontal,
+        const bool snap, const bool shift)
 {
 	float deler, f, tempf, softmin, softmax, softrange;
 	int temp, lvalue;
@@ -4376,9 +4387,10 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_UNITVEC(uiBut *but, uiHandleButtonData *data,
-                                  int mx, int my,
-                                  const enum eSnapType snap)
+static bool ui_numedit_but_UNITVEC(
+        uiBut *but, uiHandleButtonData *data,
+        int mx, int my,
+        const enum eSnapType snap)
 {
 	float dx, dy, rad, radsq, mrad, *fp;
 	int mdx, mdy;
@@ -4678,9 +4690,10 @@ static void ui_color_picker_to_rgb_HSVCUBE_v(uiBut *but, const float hsv[3], flo
 		hsv_to_rgb_v(hsv, rgb);
 }
 
-static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
-                                   int mx, int my,
-                                   const enum eSnapType snap, const bool shift)
+static bool ui_numedit_but_HSVCUBE(
+        uiBut *but, uiHandleButtonData *data,
+        int mx, int my,
+        const enum eSnapType snap, const bool shift)
 {
 	ColorPicker *cpicker = but->custom_data;
 	float *hsv = cpicker->color_data;
@@ -4797,9 +4810,10 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
 	return changed;
 }
 
-static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data,
-                                    const wmNDOFMotionData *ndof,
-                                    const enum eSnapType snap, const bool shift)
+static void ui_ndofedit_but_HSVCUBE(
+        uiBut *but, uiHandleButtonData *data,
+        const wmNDOFMotionData *ndof,
+        const enum eSnapType snap, const bool shift)
 {
 	ColorPicker *cpicker = but->custom_data;
 	float *hsv = cpicker->color_data;
@@ -4962,9 +4976,10 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
-                                     float mx, float my,
-                                     const enum eSnapType snap, const bool shift)
+static bool ui_numedit_but_HSVCIRCLE(
+        uiBut *but, uiHandleButtonData *data,
+        float mx, float my,
+        const enum eSnapType snap, const bool shift)
 {
 	rcti rect;
 	bool changed = true;
@@ -5059,9 +5074,10 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
 	return changed;
 }
 
-static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data,
-                                      const wmNDOFMotionData *ndof,
-                                      const enum eSnapType snap, const bool shift)
+static void ui_ndofedit_but_HSVCIRCLE(
+        uiBut *but, uiHandleButtonData *data,
+        const wmNDOFMotionData *ndof,
+        const enum eSnapType snap, const bool shift)
 {
 	ColorPicker *cpicker = but->custom_data;
 	float *hsv = cpicker->color_data;
@@ -5320,7 +5336,8 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_CURVE(uiBlock *block, uiBut *but, uiHandleButtonData *data,
+static bool ui_numedit_but_CURVE(
+        uiBlock *block, uiBut *but, uiHandleButtonData *data,
                                  int evtx, int evty,
                                  bool snap, const bool shift)
 {
@@ -5754,9 +5771,10 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, con
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static bool ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data,
-                                        int mx, int my,
-                                        const bool shift)
+static bool ui_numedit_but_TRACKPREVIEW(
+        bContext *C, uiBut *but, uiHandleButtonData *data,
+        int mx, int my,
+        const bool shift)
 {
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 	bool changed = true;
@@ -7197,8 +7215,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	}
 }
 
-static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *data,
-                                 const bool mousemove, const bool onfree)
+static void button_activate_exit(
+        bContext *C, uiBut *but, uiHandleButtonData *data,
+        const bool mousemove, const bool onfree)
 {
 	uiBlock *block = but->block;
 	uiBut *bt;
@@ -8005,8 +8024,9 @@ static void ui_mouse_motion_towards_reinit(uiPopupBlockHandle *menu, const int x
 	ui_mouse_motion_towards_init_ex(menu, xy, true);
 }
 
-static bool ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *menu, const int xy[2],
-                                          const bool use_wiggle_room)
+static bool ui_mouse_motion_towards_check(
+        uiBlock *block, uiPopupBlockHandle *menu, const int xy[2],
+        const bool use_wiggle_room)
 {
 	float p1[2], p2[2], p3[2], p4[2];
 	float oldp[2] = {menu->towards_xy[0], menu->towards_xy[1]};
@@ -8194,8 +8214,9 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
  *
  * Without this keyboard navigation from menu's wont work.
  */
-static bool ui_menu_pass_event_to_parent_if_nonactive(uiPopupBlockHandle *menu, const uiBut *but,
-                                                      const int level, const int retval)
+static bool ui_menu_pass_event_to_parent_if_nonactive(
+        uiPopupBlockHandle *menu, const uiBut *but,
+        const int level, const int retval)
 {
 	if ((level != 0) && (but == NULL)) {
 		menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
@@ -9414,8 +9435,9 @@ void UI_popup_handlers_remove_all(bContext *C, ListBase *handlers)
 	WM_event_free_ui_handler_all(C, handlers, ui_popup_handler, ui_popup_handler_remove);
 }
 
-bool UI_textbutton_activate_rna(const bContext *C, ARegion *ar,
-                                const void *rna_poin_data, const char *rna_prop_id)
+bool UI_textbutton_activate_rna(
+        const bContext *C, ARegion *ar,
+        const void *rna_poin_data, const char *rna_prop_id)
 {
 	uiBlock *block;
 	uiBut *but = NULL;

@@ -835,8 +835,9 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
-static void widget_draw_icon(const uiBut *but, BIFIconID icon, float alpha, const rcti *rect,
-                             const bool show_menu_icon)
+static void widget_draw_icon(
+        const uiBut *but, BIFIconID icon, float alpha, const rcti *rect,
+        const bool show_menu_icon)
 {
 	float xs = 0.0f, ys = 0.0f;
 	float aspect, height;
@@ -932,8 +933,9 @@ static void ui_text_clip_give_next_off(uiBut *but, const char *str)
  * This func assumes things like kerning handling have already been handled!
  * Return the length of modified (right-clipped + ellipsis) string.
  */
-static void ui_text_clip_right_ex(uiFontStyle *fstyle, char *str, const size_t max_len, const float okwidth,
-                                  const char *sep, const int sep_len, const float sep_strwidth, size_t *r_final_len)
+static void ui_text_clip_right_ex(
+        uiFontStyle *fstyle, char *str, const size_t max_len, const float okwidth,
+        const char *sep, const int sep_len, const float sep_strwidth, size_t *r_final_len)
 {
 	float tmp;
 	int l_end;

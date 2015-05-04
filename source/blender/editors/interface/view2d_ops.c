@@ -620,8 +620,9 @@ static int view_zoom_poll(bContext *C)
 }
  
 /* apply transform to view (i.e. adjust 'cur' rect) */
-static void view_zoomstep_apply_ex(bContext *C, v2dViewZoomData *vzd, const bool use_mousepos,
-                                   const float facx, const float facy)
+static void view_zoomstep_apply_ex(
+        bContext *C, v2dViewZoomData *vzd, const bool use_mousepos,
+        const float facx, const float facy)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
@@ -1406,8 +1407,9 @@ static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
-void UI_view2d_smooth_view(bContext *C, ARegion *ar,
-                           const rctf *cur, const int smooth_viewtx)
+void UI_view2d_smooth_view(
+        bContext *C, ARegion *ar,
+        const rctf *cur, const int smooth_viewtx)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);

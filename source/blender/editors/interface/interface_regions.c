@@ -179,9 +179,10 @@ typedef struct uiTooltipData {
 BLI_STATIC_ASSERT(UI_TIP_LC_MAX == UI_TIP_LC_ALERT + 1, "invalid lc-max");
 BLI_STATIC_ASSERT(sizeof(((uiTooltipData *)NULL)->format[0]) <= sizeof(int), "oversize");
 
-static void rgb_tint(float col[3],
-                     float h, float h_strength,
-                     float v, float v_strength)
+static void rgb_tint(
+        float col[3],
+        float h, float h_strength,
+        float v, float v_strength)
 {
 	float col_hsv_from[3];
 	float col_hsv_to[3];
@@ -1808,9 +1809,10 @@ uiBlock *ui_popup_block_refresh(
 	return block;
 }
 
-uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut *but,
-                                          uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func,
-                                          void *arg)
+uiPopupBlockHandle *ui_popup_block_create(
+        bContext *C, ARegion *butregion, uiBut *but,
+        uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func,
+        void *arg)
 {
 	wmWindow *window = CTX_wm_window(C);
 	static ARegionType type;
@@ -2571,8 +2573,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	return pup->block;
 }
 
-uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut *but,
-                                         uiMenuCreateFunc menu_func, void *arg)
+uiPopupBlockHandle *ui_popup_menu_create(
+        bContext *C, ARegion *butregion, uiBut *but,
+        uiMenuCreateFunc menu_func, void *arg)
 {
 	wmWindow *window = CTX_wm_window(C);
 	uiStyle *style = UI_style_get_dpi();
@@ -2850,8 +2853,9 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
 	return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title, const char *opname,
-                            const char *propname, const wmEvent *event)
+int UI_pie_menu_invoke_from_operator_enum(
+        struct bContext *C, const char *title, const char *opname,
+        const char *propname, const wmEvent *event)
 {
 	uiPieMenu *pie;
 	uiLayout *layout;
@@ -2867,8 +2871,9 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title,
 	return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_rna_enum(struct bContext *C, const char *title, const char *path,
-                    const wmEvent *event)
+int UI_pie_menu_invoke_from_rna_enum(
+        struct bContext *C, const char *title, const char *path,
+        const wmEvent *event)
 {
 	PointerRNA ctx_ptr;
 	PointerRNA r_ptr;

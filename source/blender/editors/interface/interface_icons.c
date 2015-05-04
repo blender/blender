@@ -1037,8 +1037,9 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 }
 
-static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy,
-                              int UNUSED(iw), int ih, float alpha, const float rgb[3])
+static void icon_draw_texture(
+        float x, float y, float w, float h, int ix, int iy,
+        int UNUSED(iw), int ih, float alpha, const float rgb[3])
 {
 	float x1, x2, y1, y2;
 
@@ -1088,8 +1089,9 @@ static int get_draw_size(enum eIconSizes size)
 
 
 
-static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, const float rgb[3],
-                           enum eIconSizes size, int draw_size, const bool UNUSED(nocreate), const bool is_preview)
+static void icon_draw_size(
+        float x, float y, int icon_id, float aspect, float alpha, const float rgb[3],
+        enum eIconSizes size, int draw_size, const bool UNUSED(nocreate), const bool is_preview)
 {
 	bTheme *btheme = UI_GetTheme();
 	Icon *icon = NULL;
@@ -1317,8 +1319,9 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 	return rnaicon;
 }
 
-static void icon_draw_at_size(float x, float y, int icon_id, float aspect, float alpha,
-                              enum eIconSizes size, const bool nocreate)
+static void icon_draw_at_size(
+        float x, float y, int icon_id, float aspect, float alpha,
+        enum eIconSizes size, const bool nocreate)
 {
 	int draw_size = get_draw_size(size);
 	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, nocreate, false);

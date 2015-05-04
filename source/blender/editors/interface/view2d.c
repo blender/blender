@@ -99,11 +99,12 @@ BLI_INLINE void clamp_rctf_to_rcti(rcti *dst, const rctf *src)
 /* XXX still unresolved: scrolls hide/unhide vs region mask handling */
 /* XXX there's V2D_SCROLL_HORIZONTAL_HIDE and V2D_SCROLL_HORIZONTAL_FULLR ... */
 
-/* helper to allow scrollbars to dynamically hide
- *  - returns a copy of the scrollbar settings with the flags to display
- *	  horizontal/vertical scrollbars removed
- *	- input scroll value is the v2d->scroll var
- *	- hide flags are set per region at drawtime
+/**
+ * helper to allow scrollbars to dynamically hide
+ * - returns a copy of the scrollbar settings with the flags to display
+ *   horizontal/vertical scrollbars removed
+ * - input scroll value is the v2d->scroll var
+ * - hide flags are set per region at drawtime
  */
 static int view2d_scroll_mapped(int scroll)
 {
@@ -197,11 +198,12 @@ static void view2d_masks(View2D *v2d, int check_scrollers)
 
 /* Refresh and Validation */
 
-/* Initialize all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
- *	- for some of these presets, it is expected that the region will have defined some
- *    additional settings necessary for the customization of the 2D viewport to its requirements
- *	- this function should only be called from region init() callbacks, where it is expected that
- *	  this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialized. 
+/**
+ * Initialize all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
+ * - for some of these presets, it is expected that the region will have defined some
+ *   additional settings necessary for the customization of the 2D viewport to its requirements
+ * - this function should only be called from region init() callbacks, where it is expected that
+ *   this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialized.
  */
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
@@ -1192,20 +1194,23 @@ static void step_to_grid(float *step, int *power, int unit)
 	}
 }
 
-/* Initialize settings necessary for drawing gridlines in a 2d-view
- *	- Currently, will return pointer to View2DGrid struct that needs to 
- *	  be freed with UI_view2d_grid_free()
- *	- Is used for scrollbar drawing too (for units drawing)
- *	- Units + clamping args will be checked, to make sure they are valid values that can be used
- *	  so it is very possible that we won't return grid at all!
- *	
- *	- xunits,yunits	= V2D_UNIT_*  grid steps in seconds or frames 
- *	- xclamp,yclamp	= V2D_CLAMP_* only show whole-number intervals
- *	- winx			= width of region we're drawing to, note: not used but keeping for completeness.
- *	- winy			= height of region we're drawing into
+/**
+ * Initialize settings necessary for drawing gridlines in a 2d-view
+ *
+ * - Currently, will return pointer to View2DGrid struct that needs to
+ *   be freed with UI_view2d_grid_free()
+ * - Is used for scrollbar drawing too (for units drawing)
+ * - Units + clamping args will be checked, to make sure they are valid values that can be used
+ *   so it is very possible that we won't return grid at all!
+ *
+ * - xunits,yunits	= V2D_UNIT_*  grid steps in seconds or frames
+ * - xclamp,yclamp	= V2D_CLAMP_* only show whole-number intervals
+ * - winx			= width of region we're drawing to, note: not used but keeping for completeness.
+ * - winy			= height of region we're drawing into
  */
-View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d,
-                                short xunits, short xclamp, short yunits, short yclamp, int UNUSED(winx), int winy)
+View2DGrid *UI_view2d_grid_calc(
+        Scene *scene, View2D *v2d,
+        short xunits, short xclamp, short yunits, short yclamp, int UNUSED(winx), int winy)
 {
 
 	View2DGrid *grid;
@@ -1483,9 +1488,11 @@ void UI_view2d_grid_free(View2DGrid *grid)
 /* *********************************************************************** */
 /* Scrollers */
 
-/* View2DScrollers is typedef'd in UI_view2d.h 
- * WARNING: the start of this struct must not change, as view2d_ops.c uses this too. 
- *         For now, we don't need to have a separate (internal) header for structs like this...
+/**
+ * View2DScrollers is typedef'd in UI_view2d.h
+ *
+ * \warning The start of this struct must not change, as view2d_ops.c uses this too.
+ * For now, we don't need to have a separate (internal) header for structs like this...
  */
 struct View2DScrollers {
 	/* focus bubbles */
@@ -1502,8 +1509,9 @@ struct View2DScrollers {
 };
 
 /* Calculate relevant scroller properties */
-View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
-                                          short xunits, short xclamp, short yunits, short yclamp)
+View2DScrollers *UI_view2d_scrollers_calc(
+        const bContext *C, View2D *v2d,
+        short xunits, short xclamp, short yunits, short yclamp)
 {
 	View2DScrollers *scrollers;
 	rcti vert, hor;
@@ -1885,18 +1893,22 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 /* *********************************************************************** */
 /* List View Utilities */
 
-/* Get the view-coordinates of the nominated cell 
- *	- columnwidth, rowheight	= size of each 'cell'
- *	- startx, starty			= coordinates (in 'tot' rect space) that the list starts from
- *							  This should be (0,0) for most views. However, for those where the starting row was offsetted
- *							  (like for Animation Editor channel lists, to make the first entry more visible), these will be 
- *							  the min-coordinates of the first item.
- *	- column, row				= the 2d-coordinates (in 2D-view / 'tot' rect space) the cell exists at
- *	- rect					= coordinates of the cell (passed as single var instead of 4 separate, as it's more useful this way)
+/** Get the view-coordinates of the nominated cell
+ *
+ * \param columnwidth, rowheight: size of each 'cell'
+ * \param startx, starty: coordinates (in 'tot' rect space) that the list starts from.
+ * This should be (0,0) for most views. However, for those where the starting row was offsetted
+ * (like for Animation Editor channel lists, to make the first entry more visible), these will be
+ * the min-coordinates of the first item.
+ * \param column, row: The 2d-coordinates
+ * (in 2D-view / 'tot' rect space) the cell exists at
+ * \param rect:  coordinates of the cell
+ * (passed as single var instead of 4 separate, as it's more useful this way)
  */
-void UI_view2d_listview_cell_to_view(View2D *v2d, float columnwidth, float rowheight,
-                                     float startx, float starty,
-                                     int column, int row, rctf *rect)
+void UI_view2d_listview_cell_to_view(
+        View2D *v2d, float columnwidth, float rowheight,
+        float startx, float starty,
+        int column, int row, rctf *rect)
 {
 	/* sanity checks */
 	if (ELEM(NULL, v2d, rect)) {
@@ -1930,17 +1942,20 @@ void UI_view2d_listview_cell_to_view(View2D *v2d, float columnwidth, float rowhe
 	}
 }
 
-/* Get the 'cell' (row, column) that the given 2D-view coordinates (i.e. in 'tot' rect space) lie in.
- *	- columnwidth, rowheight	= size of each 'cell'
- *	- startx, starty			= coordinates (in 'tot' rect space) that the list starts from
- *							  This should be (0,0) for most views. However, for those where the starting row was offsetted
- *							  (like for Animation Editor channel lists, to make the first entry more visible), these will be 
- *							  the min-coordinates of the first item.
- *	- viewx, viewy			= 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
- *	- column, row				= the 'coordinates' of the relevant 'cell'
+/**
+ * Get the 'cell' (row, column) that the given 2D-view coordinates (i.e. in 'tot' rect space) lie in.
+ *
+ * \param columnwidth, rowheight: size of each 'cell'
+ * \param startx, starty: coordinates (in 'tot' rect space) that the list starts from.
+ * This should be (0,0) for most views. However, for those where the starting row was offsetted
+ * (like for Animation Editor channel lists, to make the first entry more visible), these will be
+ * the min-coordinates of the first item.
+ * \param viewx, viewy: 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
+ * \param column, row: the 'coordinates' of the relevant 'cell'
  */
-void UI_view2d_listview_view_to_cell(View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
-                                     float viewx, float viewy, int *column, int *row)
+void UI_view2d_listview_view_to_cell(
+        View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
+        float viewx, float viewy, int *column, int *row)
 {
 	/* adjust view coordinates to be all positive ints, corrected for the start offset */
 	const int x = (int)(floorf(fabsf(viewx) + 0.5f) - startx);
@@ -1967,13 +1982,16 @@ void UI_view2d_listview_view_to_cell(View2D *v2d, float columnwidth, float rowhe
 		*row = 0;
 }
 
-/* Get the 'extreme' (min/max) column and row indices which are visible within the 'cur' rect 
- *	- columnwidth, rowheight	= size of each 'cell'
- *	- startx, starty			= coordinates that the list starts from, which should be (0,0) for most views
- *	- column/row_min/max		= the starting and ending column/row indices
+/**
+ * Get the 'extreme' (min/max) column and row indices which are visible within the 'cur' rect
+ *
+ * \param columnwidth, rowheight: Size of each 'cell'
+ * \param startx, starty: Coordinates that the list starts from, which should be (0,0) for most views
+ * \param column, row_min, max: The starting and ending column/row indices
  */
-void UI_view2d_listview_visible_cells(View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
-                                      int *column_min, int *column_max, int *row_min, int *row_max)
+void UI_view2d_listview_visible_cells(
+        View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
+        int *column_min, int *column_max, int *row_min, int *row_max)
 {
 	/* using 'cur' rect coordinates, call the cell-getting function to get the cells for this */
 	if (v2d) {
@@ -1999,10 +2017,11 @@ float UI_view2d_region_to_view_y(struct View2D *v2d, float y)
 	return (v2d->cur.ymin + (BLI_rctf_size_y(&v2d->cur) * (y - v2d->mask.ymin) / BLI_rcti_size_y(&v2d->mask)));
 }
 
-/* Convert from screen/region space to 2d-View space 
- *	
- *	- x,y           = coordinates to convert
- *	- viewx,viewy		= resultant coordinates
+/**
+ * Convert from screen/region space to 2d-View space
+ *
+ * \param x, y: coordinates to convert
+ * \param viewx, viewy: resultant coordinates
  */
 void UI_view2d_region_to_view(View2D *v2d, float x, float y, float *r_view_x, float *r_view_y)
 {
@@ -2030,11 +2049,12 @@ float UI_view2d_view_to_region_y(View2D *v2d, float y)
 	return (v2d->mask.ymin + (((y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur)) * BLI_rcti_size_y(&v2d->mask)));
 }
 
-/* Convert from 2d-View space to screen/region space
- *	- Coordinates are clamped to lie within bounds of region
+/**
+ * Convert from 2d-View space to screen/region space
+ * \note Coordinates are clamped to lie within bounds of region
  *
- *	- x,y               = coordinates to convert
- *	- regionx,regiony   = resultant coordinates
+ * \param x, y: Coordinates to convert.
+ * \param regionx, regiony: Resultant coordinates.
  */
 bool UI_view2d_view_to_region_clip(View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
@@ -2057,11 +2077,13 @@ bool UI_view2d_view_to_region_clip(View2D *v2d, float x, float y, int *r_region_
 	}
 }
 
-/* Convert from 2d-view space to screen/region space
- *	- Coordinates are NOT clamped to lie within bounds of region
+/**
+ * Convert from 2d-view space to screen/region space
  *
- *	- x,y               = coordinates to convert
- *	- regionx,regiony   = resultant coordinates
+ * \note Coordinates are NOT clamped to lie within bounds of region.
+ *
+ * \param x, y: Coordinates to convert.
+ * \param regionx, regiony: Resultant coordinates.
  */
 void UI_view2d_view_to_region(View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
@@ -2175,25 +2197,30 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
 }
 
 
-/* Calculate the scale per-axis of the drawing-area
- *	- Is used to inverse correct drawing of icons, etc. that need to follow view 
- *	  but not be affected by scale
+/**
+ * Calculate the scale per-axis of the drawing-area
  *
- *	- x,y	= scale on each axis
+ * Is used to inverse correct drawing of icons, etc. that need to follow view
+ * but not be affected by scale
+ *
+ * \param x, y: scale on each axis
  */
 void UI_view2d_scale_get(View2D *v2d, float *x, float *y) 
 {
 	if (x) *x = BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
 	if (y) *y = BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
-/* Same as UI_view2d_scale_get() - 1.0f / x, y */
+/**
+ * Same as ``UI_view2d_scale_get() - 1.0f / x, y``
+ */
 void UI_view2d_scale_get_inverse(View2D *v2d, float *x, float *y)
 {
 	if (x) *x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 	if (y) *y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 }
 
-/* Simple functions for consistent center offset access.
+/**
+ * Simple functions for consistent center offset access.
  * Used by node editor to shift view center for each individual node tree.
  */
 void UI_view2d_center_get(struct View2D *v2d, float *x, float *y)
@@ -2239,13 +2266,15 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
 	UI_view2d_curRect_validate(v2d);
 }
 
-/* Check if mouse is within scrollers
- *	- Returns appropriate code for match
- *		'h' = in horizontal scroller
- *		'v' = in vertical scroller
- *		0 = not in scroller
- *	
- *	- x,y	= mouse coordinates in screen (not region) space
+/**
+ * Check if mouse is within scrollers
+ *
+ * \param x, y: Mouse coordinates in screen (not region) space.
+ *
+ * \return appropriate code for match.
+ * - 'h' = in horizontal scroller.
+ * - 'v' = in vertical scroller.
+ * - 0 = not in scroller.
  */
 short UI_view2d_mouse_in_scrollers(const bContext *C, View2D *v2d, int x, int y)
 {
@@ -2288,8 +2317,9 @@ typedef struct View2DString {
 static MemArena     *g_v2d_strings_arena = NULL;
 static View2DString *g_v2d_strings = NULL;
 
-void UI_view2d_text_cache_add(View2D *v2d, float x, float y,
-                              const char *str, size_t str_len, const char col[4])
+void UI_view2d_text_cache_add(
+        View2D *v2d, float x, float y,
+        const char *str, size_t str_len, const char col[4])
 {
 	int mval[2];
 	
@@ -2319,8 +2349,9 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y,
 }
 
 /* no clip (yet) */
-void UI_view2d_text_cache_add_rectf(View2D *v2d, const rctf *rect_view,
-                                    const char *str, size_t str_len, const char col[4])
+void UI_view2d_text_cache_add_rectf(
+        View2D *v2d, const rctf *rect_view,
+        const char *str, size_t str_len, const char col[4])
 {
 	rcti rect;
 
