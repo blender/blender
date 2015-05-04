@@ -398,58 +398,6 @@ void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y)
 	}
 }
 
-/* Shorten a string to a given width w. 
- * If front is set, shorten from the front,
- * otherwise shorten from the end. */
-float file_shorten_string(char *string, float w, int front)
-{	
-	char temp[FILE_MAX];
-	short shortened = 0;
-	float sw = 0;
-	float pad = 0;
-
-	if (w <= 0) {
-		*string = '\0';
-		return 0.0;
-	}
-
-	sw = file_string_width(string);
-	if (front == 1) {
-		const char *s = string;
-		BLI_strncpy(temp, "...", 4);
-		pad = file_string_width(temp);
-		while ((*s) && (sw + pad > w)) {
-			s++;
-			sw = file_string_width(s);
-			shortened = 1;
-		}
-		if (shortened) {
-			int slen = strlen(s);
-			BLI_strncpy(temp + 3, s, slen + 1);
-			temp[slen + 4] = '\0';
-			BLI_strncpy(string, temp, slen + 4);
-		}
-	}
-	else {
-		const char *s = string;
-		while (sw > w) {
-			int slen = strlen(string);
-			string[slen - 1] = '\0';
-			sw = file_string_width(s);
-			shortened = 1;
-		}
-
-		if (shortened) {
-			int slen = strlen(string);
-			if (slen > 3) {
-				BLI_strncpy(string + slen - 3, "...", 4);
-			}
-		}
-	}
-	
-	return sw;
-}
-
 float file_string_width(const char *str)
 {
 	uiStyle *style = UI_style_get();
