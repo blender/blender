@@ -865,14 +865,14 @@ static void BKE_library_free(Library *lib)
 
 static void (*free_windowmanager_cb)(bContext *, wmWindowManager *) = NULL;
 
-void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
+void BKE_library_callback_free_window_manager_set(void (*func)(bContext *C, wmWindowManager *) )
 {
 	free_windowmanager_cb = func;
 }
 
 static void (*free_notifier_reference_cb)(const void *) = NULL;
 
-void set_free_notifier_reference_cb(void (*func)(const void *) )
+void BKE_library_callback_free_notifier_reference_set(void (*func)(const void *) )
 {
 	free_notifier_reference_cb = func;
 }
