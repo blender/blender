@@ -325,7 +325,7 @@ static bool data_transfer_exec_is_object_valid(
 static int data_transfer_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob_src = CTX_data_active_object(C);
+	Object *ob_src = ED_object_active_context(C);
 
 	ListBase ctx_objects;
 	CollectionPointerLink *ctx_ob_dst;
@@ -419,7 +419,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 /* Note this context poll is only really partial, it cannot check for all possible invalid cases. */
 static int data_transfer_poll(bContext *C)
 {
-	Object *ob = ED_object_context(C);
+	Object *ob = ED_object_active_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 	return (ob && ob->type == OB_MESH && data);
 }
