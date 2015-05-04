@@ -3729,7 +3729,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 #endif
 
 	/* framebuffer fx needed, we need to draw offscreen first */
-	if (v3d->fx_settings.fx_flag) {
+	if (v3d->fx_settings.fx_flag && v3d->drawtype >= OB_SOLID) {
 		GPUFXSettings fx_settings;
 		BKE_screen_gpu_fx_validate(&v3d->fx_settings);
 		fx_settings = v3d->fx_settings;
@@ -3741,9 +3741,6 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 		else {
 			fx_settings.dof = NULL;
 		}
-
-		if (v3d->drawtype < OB_SOLID)
-			fx_settings.ssao = NULL;
 
 		do_compositing = GPU_fx_compositor_initialize_passes(rv3d->compositor, &ar->winrct, &ar->drawrct, &fx_settings);
 	}
