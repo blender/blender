@@ -210,6 +210,8 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
 
 	rval = IMB_dupImBuf(ibuf);
 
+	IMB_metadata_copy(rval, ibuf);
+
 	IMB_freeImBuf(ibuf);
 
 	return rval;
