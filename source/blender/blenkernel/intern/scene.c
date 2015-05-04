@@ -799,36 +799,6 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 	return NULL;
 }
 
-static void scene_unlink_space_node(SpaceNode *snode, Scene *sce)
-{
-	if (snode->id == &sce->id) {
-		/* nasty DNA logic for SpaceNode:
-		 * ideally should be handled by editor code, but would be bad level call
-		 */
-		bNodeTreePath *path, *path_next;
-		for (path = snode->treepath.first; path; path = path_next) {
-			path_next = path->next;
-			MEM_freeN(path);
-		}
-		BLI_listbase_clear(&snode->treepath);
-		
-		snode->id = NULL;
-		snode->from = NULL;
-		snode->nodetree = NULL;
-		snode->edittree = NULL;
-	}
-}
-
-static void scene_unlink_space_buts(SpaceButs *sbuts, Scene *sce)
-{
-	if (sbuts->pinid == &sce->id) {
-		sbuts->pinid = NULL;
-		sbuts->flag &= ~SB_PIN_CONTEXT;
-	}
-
-	BKE_spacedata_id_unref((SpaceLink *)sbuts, &sce->id);
-}
-
 void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 {
 	Scene *sce1;
@@ -853,24 +823,11 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 	
 	/* all screens */
 	for (screen = bmain->screen.first; screen; screen = screen->id.next) {
-		ScrArea *area;
-		
-		if (screen->scene == sce)
+		if (screen->scene == sce) {
 			screen->scene = newsce;
-		
-		for (area = screen->areabase.first; area; area = area->next) {
-			SpaceLink *space_link;
-			for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
-				switch (space_link->spacetype) {
-					case SPACE_NODE:
-						scene_unlink_space_node((SpaceNode *)space_link, sce);
-						break;
-					case SPACE_BUTS:
-						scene_unlink_space_buts((SpaceButs *)space_link, sce);
-						break;
-				}
-			}
 		}
+
+		/* editors are handled by WM_main_remove_editor_id_reference */
 	}
 
 	BKE_libblock_free(bmain, sce);

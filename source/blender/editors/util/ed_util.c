@@ -62,6 +62,7 @@
 #include "ED_buttons.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_paint.h"
@@ -330,12 +331,16 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
  */
 void ED_spacedata_id_unref(struct SpaceLink *sl, const ID *id)
 {
+
 	switch (sl->spacetype) {
 		case SPACE_OUTLINER:
 			ED_outliner_id_unref((SpaceOops *)sl, id);
 			break;
 		case SPACE_BUTS:
 			ED_buttons_id_unref((SpaceButs *)sl, id);
+			break;
+		case SPACE_NODE:
+			ED_node_id_unref((SpaceNode *)sl, id);
 			break;
 	}
 }

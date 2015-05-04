@@ -246,11 +246,7 @@ void WM_main_remove_editor_id_reference(const ID *id)
 			SpaceLink *sl;
 
 			for (sl = sa->spacedata.first; sl; sl = sl->next) {
-				if (sl->spacetype == SPACE_OUTLINER) {
-					SpaceOops *so = (SpaceOops *)sl;
-
-					ED_outliner_id_unref(so, id);
-				}
+				ED_spacedata_id_unref(sl, id);
 			}
 		}
 	}

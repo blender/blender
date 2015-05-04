@@ -1183,6 +1183,11 @@ ID *buttons_context_id_path(const bContext *C)
 
 void ED_buttons_id_unref(SpaceButs *sbuts, const ID *id)
 {
+	if (sbuts->pinid == id) {
+		sbuts->pinid = NULL;
+		sbuts->flag &= ~SB_PIN_CONTEXT;
+	}
+
 	if (sbuts->path) {
 		ButsContextPath *path = sbuts->path;
 		int i;

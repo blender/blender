@@ -808,25 +808,11 @@ void BKE_object_unlink(Object *ob)
 						}
 					}
 				}
-				else if (sl->spacetype == SPACE_OUTLINER) {
+#if 0
+				else if (ELEM(sl->spacetype, SPACE_OUTLINER, SPACE_BUTS, SPACE_NODE)) {
 					/* now handled by WM_main_remove_editor_id_reference */
 				}
-				else if (sl->spacetype == SPACE_BUTS) {
-					SpaceButs *sbuts = (SpaceButs *)sl;
-
-					if (sbuts->pinid == (ID *)ob) {
-						sbuts->flag &= ~SB_PIN_CONTEXT;
-						sbuts->pinid = NULL;
-					}
-				}
-				else if (sl->spacetype == SPACE_NODE) {
-					SpaceNode *snode = (SpaceNode *)sl;
-
-					if (snode->from == (ID *)ob) {
-						snode->flag &= ~SNODE_PIN;
-						snode->from = NULL;
-					}
-				}
+#endif
 			}
 
 			sa = sa->next;
