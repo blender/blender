@@ -3022,11 +3022,10 @@ class VIEW3D_PT_view3d_shading(Panel):
 
         fx_settings = view.fx_settings
 
-        sub = col.column()
-        sub.active = view.region_3d.view_perspective == 'CAMERA'
-        sub.prop(fx_settings, "use_dof")
-
         if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'}:
+            sub = col.column()
+            sub.active = view.region_3d.view_perspective == 'CAMERA'
+            sub.prop(fx_settings, "use_dof")
             col.prop(fx_settings, "use_ssao", text="Ambient Occlusion")
             if fx_settings.use_ssao:
                 ssao_settings = fx_settings.ssao
