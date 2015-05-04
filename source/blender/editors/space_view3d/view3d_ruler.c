@@ -188,8 +188,8 @@ typedef struct RulerInfo {
 	/* wm state */
 	wmWindow *win;
 	ScrArea *sa;
-	ARegion *ar;
 	void *draw_handle_pixel;
+	ARegion *ar;  /* re-assigned every modal update */
 } RulerInfo;
 
 /* -------------------------------------------------------------------- */
@@ -828,7 +828,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	int exit_code = OPERATOR_RUNNING_MODAL;
 	RulerInfo *ruler_info = op->customdata;
 	ScrArea *sa = CTX_wm_area(C);
-	ARegion *ar = ruler_info->ar;
+	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
 	/* its possible to change spaces while running the operator [#34894] */
