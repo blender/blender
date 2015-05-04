@@ -1783,6 +1783,9 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 	skin_output_connections(&so, skin_nodes, medge, totedge);
 	hull_merge_triangles(&so, smd);
 
+	bmesh_edit_end(so.bm, 0);
+	BMO_pop(so.bm);
+
 	return so.bm;
 }
 
