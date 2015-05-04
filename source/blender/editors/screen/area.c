@@ -2208,7 +2208,7 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, rctf frame, float 
 	glTranslatef(x, y, 0.0f);
 	glScalef(zoomx, zoomy, 1.0f);
 
-	BLF_size(blf_mono_font, style->widgetlabel.points * zoomy * 1.5f, U.dpi);
+	BLF_size(blf_mono_font, style->widgetlabel.points * 1.5f, U.dpi);
 
 	/* *** upper box*** */
 
