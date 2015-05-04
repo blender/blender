@@ -647,10 +647,10 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			snode = new SeparateHSVNode();
 		}
 		else if(string_iequals(node.name(), "combine_xyz")) {
-			snode = new CombineHSVNode();
+			snode = new CombineXYZNode();
 		}
 		else if(string_iequals(node.name(), "separate_xyz")) {
-			snode = new SeparateHSVNode();
+			snode = new SeparateXYZNode();
 		}
 		else if(string_iequals(node.name(), "hsv")) {
 			snode = new HSVNode();
