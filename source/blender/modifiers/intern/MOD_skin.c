@@ -1852,7 +1852,6 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	result = CDDM_from_bmesh(bm, false);
 	BM_mesh_free(bm);
 
-	CDDM_calc_edges(result);
 	result->dirty |= DM_DIRTY_NORMALS;
 
 	skin_set_orig_indices(result);
