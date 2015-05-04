@@ -34,7 +34,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
 #include "BLI_memarena.h"
-#include "BLI_listbase.h"
 #include "BLI_heap.h"
 #include "BLI_edgehash.h"
 

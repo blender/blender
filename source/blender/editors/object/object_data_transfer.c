@@ -29,8 +29,6 @@
  *  \ingroup edobj
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -59,7 +57,6 @@
 #include "ED_object.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "object_intern.h"
 

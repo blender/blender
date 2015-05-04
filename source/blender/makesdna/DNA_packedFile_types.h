@@ -40,8 +40,7 @@ typedef struct PackedFile {
 	void *data;
 } PackedFile;
 
-enum PF_FileStatus
-{
+enum PF_FileStatus {
 	PF_EQUAL = 0,
 	PF_DIFFERS = 1,
 	PF_NOFILE = 2,

@@ -81,7 +81,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = sc->scene;
 	Base *base;
-	unsigned int lay = scene->lay;
 
 #if 0  /* Using the context breaks adding objects in the UI. Need to find out why - campbell */
 	Object *obact = CTX_data_active_object(C);
@@ -119,7 +118,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		int selectable_objects = CTX_data_equals(member, "selectable_objects");
 
 		for (base = scene->base.first; base; base = base->next) {
-			if (base->lay & lay) {
+			if (base->lay & scene->lay) {
 				if ((base->object->restrictflag & OB_RESTRICT_VIEW) == 0 && (base->object->restrictflag & OB_RESTRICT_SELECT) == 0) {
 					if (selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);

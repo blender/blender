@@ -2069,7 +2069,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float fill_co
 
 #define MAX_METADATA_STR    1024
 
-const char *meta_data_list[] =
+static const char *meta_data_list[] =
 {
 	"File",
 	"Strip",

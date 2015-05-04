@@ -671,8 +671,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 	get_imapaint_zoom(C, &zoomx, &zoomy);
 	stroke->zoom_2d = max_ff(zoomx, zoomy);
 
-	if (stroke->stroke_mode == BRUSH_STROKE_INVERT)
-	{
+	if (stroke->stroke_mode == BRUSH_STROKE_INVERT) {
 		if (br->flag & (BRUSH_CURVE)) {
 			RNA_enum_set(op->ptr, "mode", BRUSH_STROKE_NORMAL);
 		}
@@ -1137,8 +1136,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		copy_v2_fl2(mouse, event->mval[0], event->mval[1]);
 		paint_stroke_line_constrain(stroke, mouse);
 		
-		if (stroke->stroke_started && (first_modal || (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))))
-		{
+		if (stroke->stroke_started && (first_modal || (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)))) {
 			if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) || (br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
 				copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
 			}

@@ -29,7 +29,6 @@
 #include <math.h>
 #include <string.h>
 
-#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
