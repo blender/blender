@@ -2088,7 +2088,7 @@ BLI_INLINE bool metadata_is_valid(ImBuf *ibuf, char *r_str, short index, int off
 	return (IMB_metadata_get_field(ibuf, meta_data_list[index], r_str + offset, MAX_METADATA_STR - offset) && r_str[0]);
 }
 
-static void metadata_draw_imbuf(ImBuf *ibuf, rcti rect, int fontid, const bool is_top)
+static void metadata_draw_imbuf(ImBuf *ibuf, rctf rect, int fontid, const bool is_top)
 {
 	char temp_str[MAX_METADATA_STR];
 	int line_width;
@@ -2192,19 +2192,16 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 
 #undef MAX_METADATA_STR
 
-void ED_region_image_metadata_draw(ARegion *ar, ImBuf *ibuf, float zoomx, float zoomy)
+void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, rctf frame, float zoomx, float zoomy)
 {
 	float box_y;
-	rcti rect;
-	int x, y;
+	rctf rect;
 	uiStyle *style = UI_style_get_dpi();
 
 	if (!ibuf->metadata)
 		return;
 
 	/* find window pixel coordinates of origin */
-	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
-
 	glPushMatrix();
 
 	/* offset and zoom using ogl */
@@ -2222,9 +2219,9 @@ void ED_region_image_metadata_draw(ARegion *ar, ImBuf *ibuf, float zoomx, float 
 		UI_ThemeColor(TH_METADATA_BG);
 
 		/* set up rect */
-		BLI_rcti_init(&rect, 0, ibuf->x, ibuf->y, ibuf->y + box_y);
+		BLI_rctf_init(&rect, frame.xmin, frame.xmax, frame.ymax, frame.ymax + box_y);
 		/* draw top box */
-		glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+		glRectf(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 		BLF_clipping(blf_mono_font, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 		BLF_enable(blf_mono_font, BLF_CLIPPING);
@@ -2244,9 +2241,9 @@ void ED_region_image_metadata_draw(ARegion *ar, ImBuf *ibuf, float zoomx, float 
 		UI_ThemeColor(TH_METADATA_BG);
 
 		/* set up box rect */
-		BLI_rcti_init(&rect, 0, ibuf->x, -box_y, 0);
+		BLI_rctf_init(&rect, frame.xmin, frame.xmax, frame.ymin - box_y, frame.ymin);
 		/* draw top box */
-		glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+		glRectf(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 		BLF_clipping(blf_mono_font, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 		BLF_enable(blf_mono_font, BLF_CLIPPING);

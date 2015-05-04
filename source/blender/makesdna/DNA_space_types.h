@@ -534,6 +534,7 @@ typedef enum eSpaceSeq_Flag {
 	SEQ_ALL_WAVEFORMS           = (1 << 7), /* draw all waveforms */
 	SEQ_NO_WAVEFORMS            = (1 << 8), /* draw no waveforms */
 	SEQ_SHOW_SAFE_CENTER        = (1 << 9),
+	SEQ_SHOW_METADATA           = (1 << 10),
 } eSpaceSeq_Flag;
 
 /* sseq->view */

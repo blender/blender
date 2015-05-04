@@ -207,6 +207,7 @@ class SEQUENCER_MT_view(Menu):
         if is_preview:
             if st.display_mode == 'IMAGE':
                 layout.prop(st, "show_safe_areas")
+                layout.prop(st, "show_metadata")
             elif st.display_mode == 'WAVEFORM':
                 layout.prop(st, "show_separate_color")
 

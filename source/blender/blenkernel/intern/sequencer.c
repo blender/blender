@@ -2423,6 +2423,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context, Sequence *seq, floa
 			IMB_rectcpy(i, ibuf, t.xofs, t.yofs, c.left, c.bottom, sx, sy);
 			sequencer_imbuf_assign_spaces(scene, i);
 
+			IMB_metadata_copy(i, ibuf);
 			IMB_freeImBuf(ibuf);
 
 			ibuf = i;
@@ -2474,6 +2475,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context, Sequence *seq, floa
 		ImBuf *ibuf_new = BKE_sequence_modifier_apply_stack(context, seq, ibuf, cfra);
 
 		if (ibuf_new != ibuf) {
+			IMB_metadata_copy(ibuf_new, ibuf);
 			IMB_freeImBuf(ibuf);
 			ibuf = ibuf_new;
 		}
@@ -2496,6 +2498,7 @@ static ImBuf *copy_from_ibuf_still(const SeqRenderData *context, Sequence *seq, 
 
 	if (ibuf) {
 		rval = IMB_dupImBuf(ibuf);
+		IMB_metadata_copy(rval, ibuf);
 		IMB_freeImBuf(ibuf);
 	}
 
@@ -2509,9 +2512,11 @@ static void copy_to_ibuf_still(const SeqRenderData *context, Sequence *seq, floa
 		/* we have to store a copy, since the passed ibuf
 		 * could be preprocessed afterwards (thereby silently
 		 * changing the cached image... */
-		ibuf = IMB_dupImBuf(ibuf);
+		ImBuf *oibuf = ibuf;
+		ibuf = IMB_dupImBuf(oibuf);
 
 		if (ibuf) {
+			IMB_metadata_copy(ibuf, oibuf);
 			sequencer_imbuf_assign_spaces(context->scene, ibuf);
 		}
 
@@ -2721,7 +2726,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context, Sequence *seq
 		BLI_path_abs(name, G.main->name);
 	}
 
-	flag = IB_rect;
+	flag = IB_rect | IB_metadata;
 	if (seq->alpha_mode == SEQ_ALPHA_PREMUL)
 		flag |= IB_alphamode_premul;
 

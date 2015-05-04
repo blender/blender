@@ -848,8 +848,15 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		else
 			draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 		
-		if (sima->flag & SI_DRAW_METADATA)
-			ED_region_image_metadata_draw(ar, ibuf, zoomx, zoomy);
+		if (sima->flag & SI_DRAW_METADATA) {
+			int x, y;
+			rctf frame;
+
+			BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
+			UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+			ED_region_image_metadata_draw(x, y, ibuf, frame, zoomx, zoomy);
+		}
 	}
 
 	ED_space_image_release_buffer(sima, ibuf, lock);
