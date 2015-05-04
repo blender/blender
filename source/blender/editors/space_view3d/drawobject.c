@@ -735,7 +735,11 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 	const float size = ED_view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
 	float verts[CIRCLE_RESOL][3];
 
-	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	/* using gldepthfunc guarantees that it does write z values,
+	 * but not checks for it, so centers remain visible independent order of drawing */
+	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
+	/* write to near buffer always */
+	glDepthRange(0.0, 0.0);
 	glEnable(GL_BLEND);
 	
 	if (special_color) {
@@ -765,9 +769,10 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 	/* finish up */
 	glDisableClientState(GL_VERTEX_ARRAY);
 
+	glDepthRange(0.0, 1.0);
 	glDisable(GL_BLEND);
 
-	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
 }
 
 /* *********** text drawing for object/particles/armature ************* */
