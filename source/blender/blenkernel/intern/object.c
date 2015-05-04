@@ -938,26 +938,6 @@ bool BKE_object_exists_check(Object *obtest)
 
 /* *************************************************** */
 
-void *BKE_object_obdata_add_from_type(Main *bmain, int type)
-{
-	switch (type) {
-		case OB_MESH:      return BKE_mesh_add(bmain, "Mesh");
-		case OB_CURVE:     return BKE_curve_add(bmain, "Curve", OB_CURVE);
-		case OB_SURF:      return BKE_curve_add(bmain, "Surf", OB_SURF);
-		case OB_FONT:      return BKE_curve_add(bmain, "Text", OB_FONT);
-		case OB_MBALL:     return BKE_mball_add(bmain, "Meta");
-		case OB_CAMERA:    return BKE_camera_add(bmain, "Camera");
-		case OB_LAMP:      return BKE_lamp_add(bmain, "Lamp");
-		case OB_LATTICE:   return BKE_lattice_add(bmain, "Lattice");
-		case OB_ARMATURE:  return BKE_armature_add(bmain, "Armature");
-		case OB_SPEAKER:   return BKE_speaker_add(bmain, "Speaker");
-		case OB_EMPTY:     return NULL;
-		default:
-			printf("BKE_object_obdata_add_from_type: Internal error, bad type: %d\n", type);
-			return NULL;
-	}
-}
-
 static const char *get_obdata_defname(int type)
 {
 	switch (type) {
@@ -975,6 +955,30 @@ static const char *get_obdata_defname(int type)
 		default:
 			printf("get_obdata_defname: Internal error, bad type: %d\n", type);
 			return DATA_("Empty");
+	}
+}
+
+void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
+{
+	if (name == NULL) {
+		name = get_obdata_defname(type);
+	}
+
+	switch (type) {
+		case OB_MESH:      return BKE_mesh_add(bmain, name);
+		case OB_CURVE:     return BKE_curve_add(bmain, name, OB_CURVE);
+		case OB_SURF:      return BKE_curve_add(bmain, name, OB_SURF);
+		case OB_FONT:      return BKE_curve_add(bmain, name, OB_FONT);
+		case OB_MBALL:     return BKE_mball_add(bmain, name);
+		case OB_CAMERA:    return BKE_camera_add(bmain, name);
+		case OB_LAMP:      return BKE_lamp_add(bmain, name);
+		case OB_LATTICE:   return BKE_lattice_add(bmain, name);
+		case OB_ARMATURE:  return BKE_armature_add(bmain, name);
+		case OB_SPEAKER:   return BKE_speaker_add(bmain, name);
+		case OB_EMPTY:     return NULL;
+		default:
+			printf("%s: Internal error, bad type: %d\n", __func__, type);
+			return NULL;
 	}
 }
 
@@ -1063,16 +1067,16 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 
 /* general add: to scene, with layer from area and default name */
 /* creates minimum required data, but without vertices etc. */
-Object *BKE_object_add(Main *bmain, Scene *scene, int type)
+Object *BKE_object_add(
+        Main *bmain, Scene *scene,
+        int type, const char *name)
 {
 	Object *ob;
 	Base *base;
-	char name[MAX_ID_NAME];
 
-	BLI_strncpy(name, get_obdata_defname(type), sizeof(name));
 	ob = BKE_object_add_only_object(bmain, type, name);
 
-	ob->data = BKE_object_obdata_add_from_type(bmain, type);
+	ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
 
 	ob->lay = scene->lay;
 	

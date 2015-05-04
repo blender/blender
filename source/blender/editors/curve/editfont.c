@@ -526,7 +526,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
 	int a;
 	float rot[3] = {0.f, 0.f, 0.f};
 	
-	obedit = BKE_object_add(bmain, scene, OB_FONT);
+	obedit = BKE_object_add(bmain, scene, OB_FONT, NULL);
 	base = scene->basact;
 
 	/* seems to assume view align ? TODO - look into this, could be an operator option */

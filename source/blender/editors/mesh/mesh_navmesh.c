@@ -325,7 +325,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 
 	if (createob) {
 		/* create new object */
-		obedit = ED_object_add_type(C, OB_MESH, co, rot, false, lay);
+		obedit = ED_object_add_type(C, OB_MESH, "Navmesh", co, rot, false, lay);
 	}
 	else {
 		obedit = base->object;
@@ -429,7 +429,6 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		obedit->gameflag &= ~OB_COLLISION;
 		obedit->gameflag |= OB_NAVMESH;
 		obedit->body_type = OB_BODY_TYPE_NAVMESH;
-		rename_id((ID *)obedit, "Navmesh");
 	}
 
 	BKE_mesh_ensure_navmesh(obedit->data);

@@ -62,10 +62,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 
 	*was_editmode = false;
 	if (obedit == NULL || obedit->type != OB_MESH) {
-		obedit = ED_object_add_type(C, OB_MESH, loc, rot, false, layer);
-
-		rename_id((ID *)obedit, idname);
-		rename_id((ID *)obedit->data, idname);
+		obedit = ED_object_add_type(C, OB_MESH, idname, loc, rot, false, layer);
 
 		/* create editmode */
 		ED_object_editmode_enter(C, EM_DO_UNDO | EM_IGNORE_LAYER); /* rare cases the active layer is messed up */

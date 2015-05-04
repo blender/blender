@@ -9241,7 +9241,6 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			/* assign the group */
 			ob->dup_group = group;
 			ob->transflag |= OB_DUPLIGROUP;
-			rename_id(&ob->id, group->id.name + 2);
 			copy_v3_v3(ob->loc, scene->cursor);
 		}
 	}

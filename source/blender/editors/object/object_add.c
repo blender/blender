@@ -394,8 +394,11 @@ bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view
 
 /* For object add primitive operators.
  * Do not call undo push in this function (users of this function have to). */
-Object *ED_object_add_type(bContext *C, int type, const float loc[3], const float rot[3],
-                           bool enter_editmode, unsigned int layer)
+Object *ED_object_add_type(
+        bContext *C,
+        int type, const char *name,
+        const float loc[3], const float rot[3],
+        bool enter_editmode, unsigned int layer)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -406,7 +409,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
 
 	/* deselects all, sets scene->basact */
-	ob = BKE_object_add(bmain, scene, type);
+	ob = BKE_object_add(bmain, scene, type, name);
 	BASACT->lay = ob->lay = layer;
 	/* editor level activate, notifiers */
 	ED_base_object_activate(C, BASACT);
@@ -447,7 +450,7 @@ static int object_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	radius = RNA_float_get(op->ptr, "radius");
-	ob = ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode, layer);
+	ob = ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), NULL, loc, rot, enter_editmode, layer);
 
 	if (ob->type == OB_LATTICE) {
 		/* lattice is a special case!
@@ -504,9 +507,9 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 
 	if (type == PFIELD_GUIDE) {
 		Curve *cu;
-		ob = ED_object_add_type(C, OB_CURVE, loc, rot, false, layer);
+		const char *name = CTX_DATA_(BLF_I18NCONTEXT_ID_OBJECT, "CurveGuide");
+		ob = ED_object_add_type(C, OB_CURVE, name, loc, rot, false, layer);
 
-		rename_id(&ob->id, CTX_DATA_(BLF_I18NCONTEXT_ID_OBJECT, "CurveGuide"));
 		cu = ob->data;
 		cu->flag |= CU_PATH | CU_3D;
 		ED_object_editmode_enter(C, 0);
@@ -516,9 +519,9 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 			ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 	else {
-		ob = ED_object_add_type(C, OB_EMPTY, loc, rot, false, layer);
+		const char *name = CTX_DATA_(BLF_I18NCONTEXT_ID_OBJECT, "Field");
+		ob = ED_object_add_type(C, OB_EMPTY, name, loc, rot, false, layer);
 		BKE_object_obdata_size_init(ob, dia);
-		rename_id(&ob->id, CTX_DATA_(BLF_I18NCONTEXT_ID_OBJECT, "Field"));
 		if (ELEM(type, PFIELD_WIND, PFIELD_VORTEX))
 			ob->empty_drawtype = OB_SINGLE_ARROW;
 	}
@@ -569,7 +572,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
-	ob = ED_object_add_type(C, OB_CAMERA, loc, rot, false, layer);
+	ob = ED_object_add_type(C, OB_CAMERA, NULL, loc, rot, false, layer);
 
 	if (v3d) {
 		if (v3d->camera == NULL)
@@ -626,7 +629,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if (obedit == NULL || obedit->type != OB_MBALL) {
-		obedit = ED_object_add_type(C, OB_MBALL, loc, rot, true, layer);
+		obedit = ED_object_add_type(C, OB_MBALL, NULL, loc, rot, true, layer);
 		newob = true;
 	}
 	else {
@@ -685,7 +688,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	if (obedit && obedit->type == OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	obedit = ED_object_add_type(C, OB_FONT, loc, rot, enter_editmode, layer);
+	obedit = ED_object_add_type(C, OB_FONT, NULL, loc, rot, enter_editmode, layer);
 	BKE_object_obdata_size_init(obedit, RNA_float_get(op->ptr, "radius"));
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
@@ -729,7 +732,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if ((obedit == NULL) || (obedit->type != OB_ARMATURE)) {
-		obedit = ED_object_add_type(C, OB_ARMATURE, loc, rot, true, layer);
+		obedit = ED_object_add_type(C, OB_ARMATURE, NULL, loc, rot, true, layer);
 		ED_object_editmode_enter(C, 0);
 		newob = true;
 	}
@@ -786,7 +789,7 @@ static int object_empty_add_exec(bContext *C, wmOperator *op)
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
-	ob = ED_object_add_type(C, OB_EMPTY, loc, rot, false, layer);
+	ob = ED_object_add_type(C, OB_EMPTY, NULL, loc, rot, false, layer);
 
 	BKE_object_empty_draw_type_set(ob, type);
 	BKE_object_obdata_size_init(ob, RNA_float_get(op->ptr, "radius"));
@@ -846,7 +849,7 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
 		if (!ED_object_add_generic_get_opts(C, op, 'Z', NULL, rot, NULL, &layer, NULL))
 			return OPERATOR_CANCELLED;
 
-		ob = ED_object_add_type(C, OB_EMPTY, NULL, rot, false, layer);
+		ob = ED_object_add_type(C, OB_EMPTY, NULL, NULL, rot, false, layer);
 
 		/* add under the mouse */
 		ED_object_location_from_view(C, ob->loc);
@@ -916,13 +919,11 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
-	ob = ED_object_add_type(C, OB_LAMP, loc, rot, false, layer);
+	ob = ED_object_add_type(C, OB_LAMP, get_lamp_defname(type), loc, rot, false, layer);
 	BKE_object_obdata_size_init(ob, RNA_float_get(op->ptr, "radius"));
 
 	la = (Lamp *)ob->data;
 	la->type = type;
-	rename_id(&ob->id, get_lamp_defname(type));
-	rename_id(&la->id, get_lamp_defname(type));
 
 	if (BKE_scene_use_new_shading_nodes(scene)) {
 		ED_node_shader_default(C, &la->id);
@@ -988,8 +989,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	if (group) {
 		Main *bmain = CTX_data_main(C);
 		Scene *scene = CTX_data_scene(C);
-		Object *ob = ED_object_add_type(C, OB_EMPTY, loc, rot, false, layer);
-		rename_id(&ob->id, group->id.name + 2);
+		Object *ob = ED_object_add_type(C, OB_EMPTY, group->id.name + 2, loc, rot, false, layer);
 		ob->dup_group = group;
 		ob->transflag |= OB_DUPLIGROUP;
 		id_lib_extern(&group->id);
@@ -1044,7 +1044,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
-	ob = ED_object_add_type(C, OB_SPEAKER, loc, rot, false, layer);
+	ob = ED_object_add_type(C, OB_SPEAKER, NULL, loc, rot, false, layer);
 
 	/* to make it easier to start using this immediately in NLA, a default sound clip is created
 	 * ready to be moved around to retime the sound and/or make new sound clips

@@ -33,6 +33,8 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
 struct Base;
 struct EvaluationContext;
 struct Scene;
@@ -82,9 +84,18 @@ bool BKE_object_is_in_editmode(struct Object *ob);
 bool BKE_object_is_in_editmode_vgroup(struct Object *ob);
 bool BKE_object_is_in_wpaint_select_vert(struct Object *ob);
 
-struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name);
-struct Object *BKE_object_add(struct Main *bmain, struct Scene *scene, int type);
-void *BKE_object_obdata_add_from_type(struct Main *bmain, int type);
+struct Object *BKE_object_add_only_object(
+        struct Main *bmain,
+        int type, const char *name)
+        ATTR_NONNULL(1) ATTR_RETURNS_NONNULL;
+struct Object *BKE_object_add(
+        struct Main *bmain, struct Scene *scene,
+        int type, const char *name)
+        ATTR_NONNULL(1, 2) ATTR_RETURNS_NONNULL;
+void *BKE_object_obdata_add_from_type(
+        struct Main *bmain,
+        int type, const char *name)
+        ATTR_NONNULL(1);
 
 void BKE_object_lod_add(struct Object *ob);
 void BKE_object_lod_sort(struct Object *ob);

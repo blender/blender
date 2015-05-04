@@ -5474,7 +5474,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	image = BKE_image_add_from_imbuf(ibuf);
+	image = BKE_image_add_from_imbuf(ibuf, "image_view");
 
 	/* Drop reference to ibuf so that the image owns it */
 	IMB_freeImBuf(ibuf);
@@ -5504,8 +5504,6 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		array[2] = is_ortho ? 1.0f : 0.0f;
 
 		IDP_AddToGroup(idgroup, view_data);
-
-		rename_id(&image->id, "image_view");
 	}
 
 	return OPERATOR_FINISHED;

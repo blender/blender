@@ -427,8 +427,7 @@ static void group_instance_cb(bContext *C, Scene *scene, TreeElement *UNUSED(te)
 {
 	Group *group = (Group *)tselem->id;
 
-	Object *ob = ED_object_add_type(C, OB_EMPTY, scene->cursor, NULL, false, scene->layact);
-	rename_id(&ob->id, group->id.name + 2);
+	Object *ob = ED_object_add_type(C, OB_EMPTY, group->id.name + 2, scene->cursor, NULL, false, scene->layact);
 	ob->dup_group = group;
 	ob->transflag |= OB_DUPLIGROUP;
 	id_lib_extern(&group->id);

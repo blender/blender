@@ -488,9 +488,10 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 
 	if (!isSurf) { /* adding curve */
 		if (obedit == NULL || obedit->type != OB_CURVE) {
+			const char *name = get_curve_defname(type);
 			Curve *cu;
 
-			obedit = ED_object_add_type(C, OB_CURVE, loc, rot, true, layer);
+			obedit = ED_object_add_type(C, OB_CURVE, name, loc, rot, true, layer);
 			newob = true;
 
 			cu = (Curve *)obedit->data;
@@ -505,23 +506,12 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	}
 	else { /* adding surface */
 		if (obedit == NULL || obedit->type != OB_SURF) {
-			obedit = ED_object_add_type(C, OB_SURF, loc, rot, true, layer);
+			const char *name = get_surf_defname(type);
+			obedit = ED_object_add_type(C, OB_SURF, name, loc, rot, true, layer);
 			newob = true;
 		}
 		else {
 			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-		}
-	}
-
-	/* rename here, the undo stack checks name for valid undo pushes */
-	if (newob) {
-		if (obedit->type == OB_CURVE) {
-			rename_id((ID *)obedit, get_curve_defname(type));
-			rename_id((ID *)obedit->data, get_curve_defname(type));
-		}
-		else {
-			rename_id((ID *)obedit, get_surf_defname(type));
-			rename_id((ID *)obedit->data, get_surf_defname(type));
 		}
 	}
 

@@ -459,7 +459,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (totvert == 0) return 0;
 
 	/* add new mesh */
-	obn = BKE_object_add(bmain, scene, OB_MESH);
+	obn = BKE_object_add(bmain, scene, OB_MESH, NULL);
 	me = obn->data;
 	
 	me->totvert = totvert;
@@ -1704,7 +1704,7 @@ static Object *modifier_skin_armature_create(Main *bmain, Scene *scene, Object *
 	                     NULL,
 	                     me->totvert);
 	
-	arm_ob = BKE_object_add(bmain, scene, OB_ARMATURE);
+	arm_ob = BKE_object_add(bmain, scene, OB_ARMATURE, NULL);
 	BKE_object_transform_copy(arm_ob, skin_ob);
 	arm = arm_ob->data;
 	arm->layer = 1;

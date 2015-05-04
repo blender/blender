@@ -1662,7 +1662,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		Object *obt;
 		
 		/* add new target object */
-		obt = BKE_object_add(bmain, scene, OB_EMPTY);
+		obt = BKE_object_add(bmain, scene, OB_EMPTY, NULL);
 		
 		/* set layers OK */
 		newbase = BASACT;
