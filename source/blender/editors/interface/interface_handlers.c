@@ -365,7 +365,7 @@ static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
 {
 	const float snap_increment = (snap == SNAP_ON_SMALL) ? 24 : 12;
 	BLI_assert(snap != SNAP_OFF);
-	*r_hue = floorf(0.5f + ((*r_hue) * snap_increment)) / snap_increment;
+	*r_hue = roundf((*r_hue) * snap_increment) / snap_increment;
 }
 
 /* assumes event type is MOUSEPAN */
@@ -3502,14 +3502,14 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 		}
 
 		if (snap == SNAP_ON) {
-			if      (softrange < 2.10f) tempf = 0.1f  * floorf(10.0f * tempf);
-			else if (softrange < 21.0f) tempf = floorf(tempf);
-			else                        tempf = 10.0f * floorf(tempf / 10.0f);
+			if      (softrange < 2.10f) tempf = roundf(tempf * 10.0f) * 0.1f;
+			else if (softrange < 21.0f) tempf = roundf(tempf);
+			else                        tempf = roundf(tempf * 0.1f) * 10.0f;
 		}
 		else if (snap == SNAP_ON_SMALL) {
-			if      (softrange < 2.10f) tempf = 0.01f * floorf(100.0f * tempf);
-			else if (softrange < 21.0f) tempf = 0.1f  * floorf(10.0f * tempf);
-			else                        tempf = floor(tempf);
+			if      (softrange < 2.10f) tempf = roundf(tempf * 100.0f) * 0.01f;
+			else if (softrange < 21.0f) tempf = roundf(tempf * 10.0f)  * 0.1f;
+			else                        tempf = roundf(tempf);
 		}
 		else {
 			BLI_assert(0);
@@ -3660,7 +3660,7 @@ static bool ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data,
 
 
 		if (!is_float) {
-			temp = floorf(tempf + 0.5f);
+			temp = iroundf(tempf);
 
 			temp = ui_numedit_apply_snap(temp, softmin, softmax, snap);
 
@@ -3933,7 +3933,7 @@ static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
 
 
 	tempf = softmin + f * softrange;
-	temp = floorf(tempf + 0.5f);
+	temp = iroundf(tempf);
 
 	if (snap) {
 		if (tempf == softmin || tempf == softmax) {
@@ -3943,14 +3943,14 @@ static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
 
 			if (shift) {
 				if      (tempf == softmin || tempf == softmax) {}
-				else if (softmax - softmin < 2.10f) tempf = 0.01f * floorf(100.0f * tempf);
-				else if (softmax - softmin < 21.0f) tempf = 0.1f  * floorf(10.0f * tempf);
-				else                                tempf = floorf(tempf);
+				else if (softrange < 2.10f) tempf = roundf(tempf * 100.0f) * 0.01f;
+				else if (softrange < 21.0f) tempf = roundf(tempf * 10.0f)  * 0.1f;
+				else                        tempf = roundf(tempf);
 			}
 			else {
-				if      (softmax - softmin < 2.10f) tempf = 0.1f * floorf(10.0f * tempf);
-				else if (softmax - softmin < 21.0f) tempf = floorf(tempf);
-				else                                tempf = 10.0f * floorf(tempf / 10.0f);
+				if      (softrange < 2.10f) tempf = roundf(tempf * 10.0f) * 0.1f;
+				else if (softrange < 21.0f) tempf = roundf(tempf);
+				else                        tempf = roundf(tempf * 0.1f) * 10.0f;
 			}
 		}
 		else {
@@ -3960,7 +3960,7 @@ static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
 	}
 
 	if (!ui_but_is_float(but)) {
-		lvalue = floor(data->value + 0.5);
+		lvalue = round(data->value);
 
 		CLAMP(temp, softmin, softmax);
 
@@ -4434,7 +4434,7 @@ static bool ui_numedit_but_UNITVEC(uiBut *but, uiHandleButtonData *data,
 		 * do this in "angle" space - this gives increments of same size */
 		for (i = 0; i < 3; i++) {
 			angle = asinf(fp[i]);
-			angle_snap = floorf(0.5f + (angle / snap_steps_angle)) * snap_steps_angle;
+			angle_snap = roundf((angle / snap_steps_angle)) * snap_steps_angle;
 			fp[i] = sinf(angle_snap);
 		}
 		normalize_v3(fp);
@@ -5360,8 +5360,8 @@ static bool ui_numedit_but_CURVE(uiBlock *block, uiBut *but, uiHandleButtonData 
 				cmp[a].x += fx;
 				cmp[a].y += fy;
 				if (snap) {
-					cmp[a].x = 0.125f * floorf(0.5f + 8.0f * cmp[a].x);
-					cmp[a].y = 0.125f * floorf(0.5f + 8.0f * cmp[a].y);
+					cmp[a].x = 0.125f * roundf(8.0f * cmp[a].x);
+					cmp[a].y = 0.125f * roundf(8.0f * cmp[a].y);
 				}
 				if (cmp[a].x != origx || cmp[a].y != origy)
 					moved_point = true;
