@@ -3501,6 +3501,16 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 			softrange /= fac;
 		}
 
+		/* workaround, too high snapping values */
+		/* snapping by 10's for float buttons is quite annoying (location, scale...),
+		 * but allow for rotations */
+		if ((softrange > 2100.0f)) {
+			int unit_type = UI_but_unit_type_get(but);
+			if (!ELEM(unit_type, PROP_UNIT_ROTATION)) {
+				softrange = 20.0f;
+			}
+		}
+
 		if (snap == SNAP_ON) {
 			if      (softrange < 2.10f) tempf = roundf(tempf * 10.0f) * 0.1f;
 			else if (softrange < 21.0f) tempf = roundf(tempf);
