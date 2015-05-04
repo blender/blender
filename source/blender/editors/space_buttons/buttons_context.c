@@ -59,6 +59,7 @@
 
 #include "RNA_access.h"
 
+#include "ED_buttons.h"
 #include "ED_armature.h"
 #include "ED_screen.h"
 #include "ED_physics.h"
@@ -1178,4 +1179,29 @@ ID *buttons_context_id_path(const bContext *C)
 	}
 
 	return NULL;
+}
+
+void ED_buttons_id_unref(SpaceButs *sbuts, const ID *id)
+{
+	if (sbuts->path) {
+		ButsContextPath *path = sbuts->path;
+		int i;
+
+		for (i = 0; i < path->len; i++) {
+			if (path->ptr[i].id.data == id) {
+				break;
+			}
+		}
+
+		if (i == path->len) {
+			/* pass */
+		}
+		else if (i == 0) {
+			MEM_SAFE_FREE(sbuts->path);
+		}
+		else {
+			memset(&path->ptr[i], 0, sizeof(path->ptr[i]) * (path->len - i));
+			path->len = i;
+		}
+	}
 }

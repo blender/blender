@@ -38,6 +38,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_packedFile_types.h"
 
@@ -58,9 +59,11 @@
 #include "BKE_paint.h"
 
 #include "ED_armature.h"
+#include "ED_buttons.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_paint.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
@@ -317,4 +320,22 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 	glVertex2fv(mval_src);
 	glEnd();
 	setlinestyle(0);
+}
+
+/**
+ * Use to free ID references within runtime data (stored outside of DNA)
+ *
+ * \note Typically notifiers take care of this,
+ * but there are times we have to free references immediately, see: T44376
+ */
+void ED_spacedata_id_unref(struct SpaceLink *sl, const ID *id)
+{
+	switch (sl->spacetype) {
+		case SPACE_OUTLINER:
+			ED_outliner_id_unref((SpaceOops *)sl, id);
+			break;
+		case SPACE_BUTS:
+			ED_buttons_id_unref((SpaceButs *)sl, id);
+			break;
+	}
 }

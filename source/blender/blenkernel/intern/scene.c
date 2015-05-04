@@ -82,6 +82,7 @@
 #include "BKE_paint.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
 #include "BKE_unit.h"
@@ -823,6 +824,8 @@ static void scene_unlink_space_buts(SpaceButs *sbuts, Scene *sce)
 	if (sbuts->pinid == &sce->id) {
 		sbuts->pinid = NULL;
 	}
+
+	BKE_spacedata_id_unref((SpaceLink *)sbuts, &sce->id);
 }
 
 void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)

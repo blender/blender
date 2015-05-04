@@ -273,6 +273,9 @@ void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
 void BKE_spacedata_draw_locks(int set);
 
+void BKE_spacedata_callback_id_unref_set(void (*func)(struct SpaceLink *sl, const struct ID *));
+void BKE_spacedata_id_unref(struct SpaceLink *sl, const struct ID *id);
+
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void            BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);

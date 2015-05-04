@@ -272,6 +272,19 @@ void BKE_spacedata_draw_locks(int set)
 	}
 }
 
+static void (*spacedata_id_unref_cb)(struct SpaceLink *sl, const struct ID *id) = NULL;
+
+void BKE_spacedata_callback_id_unref_set(void (*func)(struct SpaceLink *sl, const struct ID *))
+{
+	spacedata_id_unref_cb = func;
+}
+
+void BKE_spacedata_id_unref(struct SpaceLink *sl, const struct ID *id)
+{
+	if (spacedata_id_unref_cb) {
+		spacedata_id_unref_cb(sl, id);
+	}
+}
 
 /* not region itself */
 void BKE_area_region_free(SpaceType *st, ARegion *ar)
