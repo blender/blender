@@ -84,6 +84,8 @@ base class --- :class:`SCA_IObject`
 
       :type: boolean
 
+      .. seealso:: :py:meth:`suspendDynamics` and :py:meth:`restoreDynamics` allow you to change the state.
+
    .. attribute:: linearDamping
 
       The object's linear damping, also known as translational damping. Can be set simultaneously with angular damping using the :py:meth:`setDamping` method.
@@ -671,13 +673,19 @@ base class --- :class:`SCA_IObject`
       :arg angular_damping: Angular ("rotational") damping factor.
       :type angular_damping: float ∈ [0, 1]
 
-   .. method:: suspendDynamics()
+   .. method:: suspendDynamics([ghost])
 
       Suspends physics for this object.
 
+      :arg ghost: When set to `True`, collisions with the object will be ignored, similar to the "ghost" checkbox in
+          Blender. When `False` (the default), the object becomes static but still collide with other objects.
+      :type ghost: bool
+
+      .. seealso:: :py:attr:`isSuspendDynamics` allows you to inspect whether the object is in a suspended state.
+
    .. method:: restoreDynamics()
 
-      Resumes physics for this object.
+      Resumes physics for this object. Also reinstates collisions; the object will no longer be a ghost.
 
       .. note::
 

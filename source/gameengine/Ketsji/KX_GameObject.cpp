@@ -1907,7 +1907,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_NOARGS},
 	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
 	{"getAxisVect",(PyCFunction) KX_GameObject::sPyGetAxisVect, METH_O},
-	{"suspendDynamics", (PyCFunction)KX_GameObject::sPySuspendDynamics,METH_NOARGS},
+	{"suspendDynamics", (PyCFunction)KX_GameObject::sPySuspendDynamics, METH_VARARGS},
 	{"restoreDynamics", (PyCFunction)KX_GameObject::sPyRestoreDynamics,METH_NOARGS},
 	{"enableRigidBody", (PyCFunction)KX_GameObject::sPyEnableRigidBody,METH_NOARGS},
 	{"disableRigidBody", (PyCFunction)KX_GameObject::sPyDisableRigidBody,METH_NOARGS},
@@ -3318,10 +3318,16 @@ PyObject *KX_GameObject::PyApplyImpulse(PyObject *args)
 
 
 
-PyObject *KX_GameObject::PySuspendDynamics()
+PyObject *KX_GameObject::PySuspendDynamics(PyObject *args)
 {
+	bool ghost = false;
+
+	if (!PyArg_ParseTuple(args, "|b", &ghost))
+		return NULL;
+
 	if (GetPhysicsController())
-		GetPhysicsController()->SuspendDynamics();
+		GetPhysicsController()->SuspendDynamics(ghost);
+
 	Py_RETURN_NONE;
 }
 

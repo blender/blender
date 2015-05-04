@@ -1005,7 +1005,7 @@ public:
 	KX_PYMETHOD_O(KX_GameObject,SetState);
 	KX_PYMETHOD_VARARGS(KX_GameObject,AlignAxisToVect);
 	KX_PYMETHOD_O(KX_GameObject,GetAxisVect);
-	KX_PYMETHOD_NOARGS(KX_GameObject,SuspendDynamics);
+	KX_PYMETHOD_VARARGS(KX_GameObject,SuspendDynamics);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RestoreDynamics);
 	KX_PYMETHOD_NOARGS(KX_GameObject,EnableRigidBody);
 	KX_PYMETHOD_NOARGS(KX_GameObject,DisableRigidBody);
