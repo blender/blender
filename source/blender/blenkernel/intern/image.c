@@ -3623,6 +3623,15 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 			if (rpass) {
 				channels = rpass->channels;
 				rectf = rpass->rect;
+
+				if (!rectf) {
+					/* Happens when Save Buffers is enabled.
+					 * Use display buffer stored in the render layer.
+					 */
+					rect = (unsigned int *) rl->display_buffer;
+					byte_buffer_in_display_space = true;
+				}
+
 				dither = 0.0f; /* don't dither passes */
 			}
 
