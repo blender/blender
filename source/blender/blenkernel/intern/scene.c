@@ -823,6 +823,7 @@ static void scene_unlink_space_buts(SpaceButs *sbuts, Scene *sce)
 {
 	if (sbuts->pinid == &sce->id) {
 		sbuts->pinid = NULL;
+		sbuts->flag &= ~SB_PIN_CONTEXT;
 	}
 
 	BKE_spacedata_id_unref((SpaceLink *)sbuts, &sce->id);
