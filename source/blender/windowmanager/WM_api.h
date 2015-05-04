@@ -175,6 +175,7 @@ bool        WM_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
 void		WM_main_add_notifier(unsigned int type, void *reference);
 void		WM_main_remove_notifier_reference(const void *reference);
+void		WM_main_remove_editor_id_reference(const struct ID *id);
 
 			/* reports */
 void        WM_report(const struct bContext *C, ReportType type, const char *message);

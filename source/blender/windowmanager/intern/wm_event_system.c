@@ -218,7 +218,6 @@ void WM_main_remove_notifier_reference(const void *reference)
 {
 	Main *bmain = G.main;
 	wmWindowManager *wm = bmain->wm.first;
-	bScreen *sc;
 
 	if (wm) {
 		wmNotifier *note, *note_next;
@@ -233,6 +232,12 @@ void WM_main_remove_notifier_reference(const void *reference)
 			}
 		}
 	}
+}
+
+void WM_main_remove_editor_id_reference(const ID *id)
+{
+	Main *bmain = G.main;
+	bScreen *sc;
 
 	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 		ScrArea *sa;
@@ -244,7 +249,7 @@ void WM_main_remove_notifier_reference(const void *reference)
 				if (sl->spacetype == SPACE_OUTLINER) {
 					SpaceOops *so = (SpaceOops *)sl;
 
-					ED_outliner_id_unref(so, (ID *)reference);
+					ED_outliner_id_unref(so, id);
 				}
 			}
 		}

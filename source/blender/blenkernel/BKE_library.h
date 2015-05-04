@@ -109,6 +109,7 @@ struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_
 
 void BKE_library_callback_free_window_manager_set(void (*func)(struct bContext *, struct wmWindowManager *));
 void BKE_library_callback_free_notifier_reference_set(void (*func)(const void *));
+void BKE_library_callback_free_editor_id_reference_set(void (*func)(const struct ID *));
 
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME N_("Untitled")
