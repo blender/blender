@@ -1254,6 +1254,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	
 	
 	/* when drawing in the camera view, in 2D space, set the subrect */
+	p->subrect = NULL;
 	if (!(p->gpd->flag & GP_DATA_VIEWALIGN)) {
 		if (p->sa->spacetype == SPACE_VIEW3D) {
 			View3D *v3d = p->sa->spacedata.first;
@@ -1779,6 +1780,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	else {
 		/* toolbar invoked - don't start drawing yet... */
 		/* printf("\tGP - hotkey invoked... waiting for click-drag\n"); */
+		op->flag |= OP_IS_MODAL_CURSOR_REGION;
 	}
 	
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
@@ -1816,8 +1818,10 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
 	
-	if (p->status != GP_STATUS_ERROR)
+	if (p->status != GP_STATUS_ERROR) {
 		p->status = GP_STATUS_PAINTING;
+		op->flag &= ~OP_IS_MODAL_CURSOR_REGION;
+	}
 	
 	return op->customdata;
 }
@@ -1833,6 +1837,7 @@ static void gpencil_stroke_end(wmOperator *op)
 	gp_session_cleanup(p);
 	
 	p->status = GP_STATUS_IDLING;
+	op->flag |= OP_IS_MODAL_CURSOR_REGION;
 	
 	p->gpd = NULL;
 	p->gpl = NULL;
@@ -1858,6 +1863,11 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	 * in 3D space.
 	 */
 	
+	if (p->status == GP_STATUS_IDLING) {
+		ARegion *ar = CTX_wm_region(C);
+		p->ar = ar;
+	}
+
 	/* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
 	if (ISKEYBOARD(event->type)) {
 		if (ELEM(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY, ZKEY)) {
@@ -2021,6 +2031,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		else {
 			p->status = GP_STATUS_IDLING;
+			op->flag |= OP_IS_MODAL_CURSOR_REGION;
 		}
 	}
 	
