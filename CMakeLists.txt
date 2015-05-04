@@ -1171,7 +1171,7 @@ if(UNIX AND NOT APPLE)
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-ld=gold")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=gold")
 		else ()
-			message(WARNING "GNU gold linker isn't available, using the default system linker.")
+			message(INFO "GNU gold linker isn't available, using the default system linker.")
 		endif ()
 		unset(LD_VERSION)
 
