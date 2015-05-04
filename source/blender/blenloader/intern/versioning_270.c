@@ -822,5 +822,13 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "short", "simplify_subsurf_render")) {
+			Scene *scene;
+			for (scene = main->scene.first; scene != NULL; scene = scene->id.next) {
+				scene->r.simplify_subsurf_render = scene->r.simplify_subsurf;
+				scene->r.simplify_particles_render = scene->r.simplify_particles;
+			}
+		}
 	}
 }

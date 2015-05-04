@@ -340,13 +340,13 @@ static int multires_get_level(Object *ob, MultiresModifierData *mmd,
                               bool render, bool ignore_simplify)
 {
 	if (render)
-		return (mmd->modifier.scene) ? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->renderlvl) : mmd->renderlvl;
+		return (mmd->modifier.scene) ? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->renderlvl, true) : mmd->renderlvl;
 	else if (ob->mode == OB_MODE_SCULPT)
 		return mmd->sculptlvl;
 	else if (ignore_simplify)
 		return mmd->lvl;
 	else
-		return (mmd->modifier.scene) ? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->lvl) : mmd->lvl;
+		return (mmd->modifier.scene) ? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->lvl, false) : mmd->lvl;
 }
 
 void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)

@@ -5821,6 +5821,17 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
+	prop = RNA_def_property(srna, "simplify_subdivision_render", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "simplify_subsurf_render");
+	RNA_def_property_ui_range(prop, 0, 6, 1, -1);
+	RNA_def_property_ui_text(prop, "Simplify Subdivision", "Global maximum subdivision level during rendering");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop = RNA_def_property(srna, "simplify_child_particles_render", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "simplify_particles_render");
+	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage during rendering");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
 	prop = RNA_def_property(srna, "simplify_shadow_samples", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "simplify_shadowsamples");
 	RNA_def_property_ui_range(prop, 1, 16, 1, -1);

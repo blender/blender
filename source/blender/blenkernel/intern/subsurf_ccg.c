@@ -3828,7 +3828,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	/* note: editmode calculation can only run once per
 	 * modifier stack evaluation (uses freed cache) [#36299] */
 	if (flags & SUBSURF_FOR_EDIT_MODE) {
-		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels) : smd->levels;
+		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels, false) : smd->levels;
 
 		smd->emCache = _getSubSurf(smd->emCache, levels, 3, useSimple | useAging | CCG_CALC_NORMALS);
 		ss_sync_from_derivedmesh(smd->emCache, dm, vertCos, useSimple);
@@ -3840,7 +3840,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	else if (flags & SUBSURF_USE_RENDER_PARAMS) {
 		/* Do not use cache in render mode. */
 		CCGSubSurf *ss;
-		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->renderLevels) : smd->renderLevels;
+		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->renderLevels, true) : smd->renderLevels;
 
 		if (levels == 0)
 			return dm;
@@ -3856,7 +3856,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	}
 	else {
 		int useIncremental = (smd->flags & eSubsurfModifierFlag_Incremental);
-		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels) : smd->levels;
+		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels, false) : smd->levels;
 		CCGSubSurf *ss;
 
 		/* It is quite possible there is a much better place to do this. It

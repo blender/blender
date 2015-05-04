@@ -1939,20 +1939,30 @@ bool BKE_scene_remove_render_view(Scene *scene, SceneRenderView *srv)
 
 /* render simplification */
 
-int get_render_subsurf_level(const RenderData *r, int lvl)
+int get_render_subsurf_level(const RenderData *r, int lvl, bool for_render)
 {
-	if (r->mode & R_SIMPLIFY)
-		return min_ii(r->simplify_subsurf, lvl);
-	else
+	if (r->mode & R_SIMPLIFY)  {
+		if (for_render)
+			return min_ii(r->simplify_subsurf_render, lvl);
+		else
+			return min_ii(r->simplify_subsurf, lvl);
+	}
+	else {
 		return lvl;
+	}
 }
 
-int get_render_child_particle_number(const RenderData *r, int num)
+int get_render_child_particle_number(const RenderData *r, int num, bool for_render)
 {
-	if (r->mode & R_SIMPLIFY)
-		return (int)(r->simplify_particles * num);
-	else
+	if (r->mode & R_SIMPLIFY) {
+		if (for_render)
+			return (int)(r->simplify_particles_render * num);
+		else
+			return (int)(r->simplify_particles * num);
+	}
+	else {
 		return num;
+	}
 }
 
 int get_render_shadow_samples(const RenderData *r, int samples)

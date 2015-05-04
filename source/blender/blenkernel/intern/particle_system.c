@@ -297,7 +297,7 @@ int psys_get_child_number(Scene *scene, ParticleSystem *psys)
 	else
 		nbr= psys->part->child_nbr;
 
-	return get_render_child_particle_number(&scene->r, nbr);
+	return get_render_child_particle_number(&scene->r, nbr, psys->renderdata != NULL);
 }
 
 int psys_get_tot_child(Scene *scene, ParticleSystem *psys)

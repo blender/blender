@@ -657,8 +657,10 @@ typedef struct RenderData {
 	/* render simplify */
 	int simplify_flag;
 	short simplify_subsurf;
-	short simplify_shadowsamples;
+	short simplify_subsurf_render;
+	short simplify_shadowsamples, pad9;
 	float simplify_particles;
+	float simplify_particles_render;
 	float simplify_aosss;
 
 	/* cineon */

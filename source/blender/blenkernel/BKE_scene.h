@@ -127,8 +127,8 @@ struct SceneRenderView *BKE_scene_add_render_view(struct Scene *sce, const char 
 bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *srv);
 
 /* render profile */
-int get_render_subsurf_level(const struct RenderData *r, int level);
-int get_render_child_particle_number(const struct RenderData *r, int num);
+int get_render_subsurf_level(const struct RenderData *r, int level, bool for_render);
+int get_render_child_particle_number(const struct RenderData *r, int num, bool for_render);
 int get_render_shadow_samples(const struct RenderData *r, int samples);
 float get_render_aosss_error(const struct RenderData *r, float error);
 

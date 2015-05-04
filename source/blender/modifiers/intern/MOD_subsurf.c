@@ -88,7 +88,7 @@ static bool isDisabled(ModifierData *md, int useRenderParams)
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	int levels = (useRenderParams) ? smd->renderLevels : smd->levels;
 
-	return get_render_subsurf_level(&md->scene->r, levels) == 0;
+	return get_render_subsurf_level(&md->scene->r, levels, useRenderParams != 0) == 0;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
