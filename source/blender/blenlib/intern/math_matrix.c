@@ -1475,39 +1475,14 @@ float mat4_to_scale(float mat[4][4])
 
 void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])
 {
-	float mat3_n[3][3]; /* mat3 -> normalized, 3x3 */
-	float imat3_n[3][3]; /* mat3 -> normalized & inverted, 3x3 */
-
-	/* rotation & scale are linked, we need to create the mat's
-	 * for these together since they are related. */
-
-	/* so scale doesn't interfere with rotation [#24291] */
-	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
-	normalize_m3_m3(mat3_n, mat3);
-	if (is_negative_m3(mat3)) {
-		negate_m3(mat3_n);
-	}
-
-	/* rotation */
 	/* keep rot as a 3x3 matrix, the caller can convert into a quat or euler */
-	copy_m3_m3(rot, mat3_n);
-
-	/* scale */
-	/* note: mat4_to_size(ob->size, mat) fails for negative scale */
-	invert_m3_m3(imat3_n, mat3_n);
-
-	/* better not edit mat3 */
-#if 0
-	mul_m3_m3m3(mat3, imat3_n, mat3);
-
-	size[0] = mat3[0][0];
-	size[1] = mat3[1][1];
-	size[2] = mat3[2][2];
-#else
-	size[0] = dot_m3_v3_row_x(imat3_n, mat3[0]);
-	size[1] = dot_m3_v3_row_y(imat3_n, mat3[1]);
-	size[2] = dot_m3_v3_row_z(imat3_n, mat3[2]);
-#endif
+	size[0] = normalize_v3_v3(rot[0], mat3[0]);
+	size[1] = normalize_v3_v3(rot[1], mat3[1]);
+	size[2] = normalize_v3_v3(rot[2], mat3[2]);
+	if (UNLIKELY(is_negative_m3(rot))) {
+		negate_m3(rot);
+		negate_v3(size);
+	}
 }
 
 void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[4][4])
