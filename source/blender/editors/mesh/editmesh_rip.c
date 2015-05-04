@@ -532,14 +532,14 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	BMesh *bm = em->bm;
 	BMIter iter, liter;
 	BMLoop *l;
-	BMEdge *e, *e2;
+	BMEdge *e2;
 	BMVert *v;
 	const int totvert_orig = bm->totvert;
 	int i;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist_sq = FLT_MAX;
 	float d;
-	bool is_wire;
+	bool is_wire, is_manifold_region;
 
 	BMEditSelection ese;
 	int totboundary_edge = 0;
@@ -565,17 +565,19 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	}
 
 	is_wire = BM_vert_is_wire(v);
+	is_manifold_region = BM_vert_is_manifold_region(v);
 
 	e2 = NULL;
 
-	if (v->e) {
+	{
+		BMEdge *e;
 		/* find closest edge to mouse cursor */
 		BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 			/* consider wire as boundary for this purpose,
 			 * otherwise we can't a face away from a wire edge */
 			totboundary_edge += (BM_edge_is_boundary(e) || BM_edge_is_wire(e));
 			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-				if (BM_edge_is_manifold(e)) {
+				if ((is_manifold_region == false) || BM_edge_is_manifold(e)) {
 					d = edbm_rip_edgedist_squared(ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
 					if ((e2 == NULL) || (d < dist_sq)) {
 						dist_sq = d;
@@ -584,67 +586,60 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 				}
 			}
 		}
-
-		/* if we are ripping a single vertex from 3 faces,
-		 * then measure the distance to the face corner as well as the edge */
-		if (BM_vert_face_count_is_equal(v, 3) &&
-		    BM_vert_edge_count_is_equal(v, 3))
-		{
-			BMEdge *e_all[3];
-			BMLoop *l_all[3];
-			int i1, i2;
-
-			BM_iter_as_array(bm, BM_EDGES_OF_VERT, v, (void **)e_all, 3);
-			BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)l_all, 3);
-
-			/* not do a loop similar to the one above, but test against loops */
-			for (i1 = 0; i1 < 3; i1++) {
-				/* consider wire as boundary for this purpose,
-				 * otherwise we can't a face away from a wire edge */
-				float l_mid_co[3];
-				l = l_all[i1];
-				edbm_calc_loop_co(l, l_mid_co);
-				d = edbm_rip_edgedist_squared(ar, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
-				if ((e2 == NULL) || (d < dist_sq)) {
-					dist_sq = d;
-
-					/* find the edge that is not in this loop */
-					e2 = NULL;
-					for (i2 = 0; i2 < 3; i2++) {
-						if (!BM_edge_in_loop(e_all[i2], l)) {
-							e2 = e_all[i2];
-							break;
-						}
-					}
-					BLI_assert(e2 != NULL);
-				}
-			}
-		}
 	}
 
-	if (e2) {
+	if (e2 && (is_manifold_region == false)) {
 		/* Try to split off a non-manifold fan (when we have multiple disconnected fans) */
-
-		/* note: we're lazy here and first split then check there are any faces remaining,
-		 * this isn't good practice, however its less hassle then checking for multiple-disconnected regions */
 		BMLoop *l_sep = e2->l->v == v ? e2->l : e2->l->next;
 		BMVert *v_new;
+
 		BLI_assert(l_sep->v == v);
 		v_new = bmesh_urmv_loop_region(bm, l_sep);
-		if (BM_vert_find_first_loop(v)) {
-			BM_vert_select_set(bm, v, false);
-			BM_select_history_remove(bm, v);
+		BLI_assert(BM_vert_find_first_loop(v));
 
-			BM_vert_select_set(bm, v_new, true);
-			if (ese.ele) {
-				BM_select_history_store(bm, v_new);
-			}
+		BM_vert_select_set(bm, v, false);
+		BM_select_history_remove(bm, v);
 
-			return OPERATOR_FINISHED;
+		BM_vert_select_set(bm, v_new, true);
+		if (ese.ele) {
+			BM_select_history_store(bm, v_new);
 		}
-		else {
-			/* rewind */
-			BM_vert_splice(bm, v, v_new);
+		return OPERATOR_FINISHED;
+	}
+
+	/* if we are ripping a single vertex from 3 faces,
+	 * then measure the distance to the face corner as well as the edge */
+	if (BM_vert_face_count_is_equal(v, 3) &&
+	    BM_vert_edge_count_is_equal(v, 3))
+	{
+		BMEdge *e_all[3];
+		BMLoop *l_all[3];
+		int i1, i2;
+
+		BM_iter_as_array(bm, BM_EDGES_OF_VERT, v, (void **)e_all, 3);
+		BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)l_all, 3);
+
+		/* not do a loop similar to the one above, but test against loops */
+		for (i1 = 0; i1 < 3; i1++) {
+			/* consider wire as boundary for this purpose,
+			 * otherwise we can't a face away from a wire edge */
+			float l_mid_co[3];
+			l = l_all[i1];
+			edbm_calc_loop_co(l, l_mid_co);
+			d = edbm_rip_edgedist_squared(ar, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
+			if ((e2 == NULL) || (d < dist_sq)) {
+				dist_sq = d;
+
+				/* find the edge that is not in this loop */
+				e2 = NULL;
+				for (i2 = 0; i2 < 3; i2++) {
+					if (!BM_edge_in_loop(e_all[i2], l)) {
+						e2 = e_all[i2];
+						break;
+					}
+				}
+				BLI_assert(e2 != NULL);
+			}
 		}
 	}
 
@@ -703,6 +698,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 					}
 				}
 				else {
+					BMEdge *e;
 					/* a wire vert, find the best edge */
 					BM_ITER_ELEM (e, &iter, vout[i], BM_EDGES_OF_VERT) {
 						if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {

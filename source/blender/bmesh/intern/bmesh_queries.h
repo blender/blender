@@ -85,12 +85,15 @@ bool    BM_vert_is_wire(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_is_wire(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 bool    BM_vert_is_manifold(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    BM_vert_is_manifold_region(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_is_manifold(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_vert_is_boundary(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_is_boundary(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_is_contiguous(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_edge_is_convex(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+int     BM_loop_region_loops_count_ex(BMLoop *l, int *r_loop_total) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int     BM_loop_region_loops_count(BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 bool    BM_loop_is_convex(const BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool BM_loop_is_adjacent(const BMLoop *l_a, const BMLoop *l_b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_loop_point_side_of_loop_test(const BMLoop *l, const float co[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
