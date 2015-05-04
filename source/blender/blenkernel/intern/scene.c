@@ -75,6 +75,7 @@
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_node.h"
@@ -155,6 +156,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 {
 	Scene *scen;
 	SceneRenderLayer *srl, *new_srl;
+	FreestyleLineSet *lineset;
 	ToolSettings *ts;
 	Base *base, *obase;
 	
@@ -238,6 +240,14 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		new_srl = scen->r.layers.first;
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
 			BKE_freestyle_config_copy(&new_srl->freestyleConfig, &srl->freestyleConfig);
+			if (type == SCE_COPY_FULL) {
+				for (lineset = new_srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+					if (lineset->linestyle) {
+						id_us_plus((ID *)lineset->linestyle);
+						lineset->linestyle = BKE_linestyle_copy(G.main, lineset->linestyle);
+					}
+				}
+			}
 			new_srl = new_srl->next;
 		}
 	}
