@@ -809,16 +809,7 @@ void BKE_object_unlink(Object *ob)
 					}
 				}
 				else if (sl->spacetype == SPACE_OUTLINER) {
-					SpaceOops *so = (SpaceOops *)sl;
-
-					if (so->treestore) {
-						TreeStoreElem *tselem;
-						BLI_mempool_iter iter;
-						BLI_mempool_iternew(so->treestore, &iter);
-						while ((tselem = BLI_mempool_iterstep(&iter))) {
-							if (tselem->id == (ID *)ob) tselem->id = NULL;
-						}
-					}
+					/* now handled by WM_main_remove_editor_id_reference */
 				}
 				else if (sl->spacetype == SPACE_BUTS) {
 					SpaceButs *sbuts = (SpaceButs *)sl;
