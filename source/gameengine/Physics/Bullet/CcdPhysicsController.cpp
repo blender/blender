@@ -1627,7 +1627,7 @@ void    CcdPhysicsController::AddCompoundChild(PHY_IPhysicsController* child)
 	// must update the broadphase cache,
 	GetPhysicsEnvironment()->RefreshCcdPhysicsController(this);
 	// remove the children
-	GetPhysicsEnvironment()->DisableCcdPhysicsController(childCtrl);
+	GetPhysicsEnvironment()->RemoveCcdPhysicsController(childCtrl);
 }
 
 /* Reverse function of the above, it will remove a shape from a compound shape
@@ -1683,7 +1683,7 @@ void    CcdPhysicsController::RemoveCompoundChild(PHY_IPhysicsController* child)
 	// must update the broadphase cache,
 	GetPhysicsEnvironment()->RefreshCcdPhysicsController(this);
 	// reactivate the children
-	GetPhysicsEnvironment()->EnableCcdPhysicsController(childCtrl);
+	GetPhysicsEnvironment()->AddCcdPhysicsController(childCtrl);
 }
 
 PHY_IPhysicsController* CcdPhysicsController::GetReplica()
