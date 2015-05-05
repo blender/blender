@@ -190,7 +190,7 @@ void BM_mesh_decimate_dissolve_ex(
 		/* prepare for cleanup */
 		BM_mesh_elem_index_ensure(bm, BM_VERT);
 		vert_reverse_lookup = MEM_mallocN(sizeof(int) * bm->totvert, __func__);
-		fill_vn_i(vert_reverse_lookup, bm->totvert, -1);
+		copy_vn_i(vert_reverse_lookup, bm->totvert, -1);
 		for (i = 0; i < vinput_len; i++) {
 			BMVert *v = vinput_arr[i];
 			vert_reverse_lookup[BM_elem_index_get(v)] = i;

@@ -391,7 +391,7 @@ static void smooth_verts(
 			        smooth_weights);
 		}
 		else {
-			fill_vn_fl(smooth_weights, (int)numVerts, 1.0f);
+			copy_vn_fl(smooth_weights, (int)numVerts, 1.0f);
 		}
 
 		if (csmd->flag & MOD_CORRECTIVESMOOTH_PIN_BOUNDARY) {

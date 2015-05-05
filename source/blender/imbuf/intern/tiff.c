@@ -454,7 +454,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 				
 				if (bitspersample == 32) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
-						fill_vn_fl(fbuf, ibuf->x, 1.0f);
+						copy_vn_fl(fbuf, ibuf->x, 1.0f);
 					else if (chan >= spp) /* for grayscale, duplicate first channel into G and B */
 						success |= TIFFReadScanline(image, fbuf, row, 0);
 					else
@@ -464,7 +464,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 				}
 				else if (bitspersample == 16) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
-						fill_vn_ushort(sbuf, ibuf->x, 65535);
+						copy_vn_ushort(sbuf, ibuf->x, 65535);
 					else if (chan >= spp) /* for grayscale, duplicate first channel into G and B */
 						success |= TIFFReadScanline(image, fbuf, row, 0);
 					else

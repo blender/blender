@@ -1091,7 +1091,7 @@ static void layerDefault_mcol(void *data, int count)
 
 static void layerDefault_origindex(void *data, int count)
 {
-	fill_vn_i((int *)data, count, ORIGINDEX_NONE);
+	copy_vn_i((int *)data, count, ORIGINDEX_NONE);
 }
 
 static void layerInterp_bweight(
@@ -1542,7 +1542,7 @@ static void CustomData_external_free(CustomData *data)
 void CustomData_reset(CustomData *data)
 {
 	memset(data, 0, sizeof(*data));
-	fill_vn_i(data->typemap, CD_NUMTYPES, -1);
+	copy_vn_i(data->typemap, CD_NUMTYPES, -1);
 }
 
 void CustomData_free(CustomData *data, int totelem)

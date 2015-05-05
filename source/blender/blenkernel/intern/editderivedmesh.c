@@ -1968,7 +1968,7 @@ static void statvis_calc_thickness(
 
 	BLI_assert(min <= max);
 
-	fill_vn_fl(face_dists, em->bm->totface, max);
+	copy_vn_fl(face_dists, em->bm->totface, max);
 
 	if (use_jit) {
 		int j;
@@ -2223,7 +2223,7 @@ static void statvis_calc_sharp(
 
 	(void)vertexCos;  /* TODO */
 
-	fill_vn_fl(vert_angles, em->bm->totvert, -M_PI);
+	copy_vn_fl(vert_angles, em->bm->totvert, -M_PI);
 
 	/* first assign float values to verts */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {

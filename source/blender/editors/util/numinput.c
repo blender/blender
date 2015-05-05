@@ -73,14 +73,14 @@ void initNumInput(NumInput *n)
 {
 	n->idx_max = 0;
 	n->unit_sys = USER_UNIT_NONE;
-	fill_vn_i(n->unit_type, NUM_MAX_ELEMENTS, B_UNIT_NONE);
+	copy_vn_i(n->unit_type, NUM_MAX_ELEMENTS, B_UNIT_NONE);
 	n->unit_use_radians = false;
 
 	n->flag = 0;
-	fill_vn_short(n->val_flag, NUM_MAX_ELEMENTS, 0);
+	copy_vn_short(n->val_flag, NUM_MAX_ELEMENTS, 0);
 	zero_v3(n->val);
-	fill_vn_fl(n->val_org, NUM_MAX_ELEMENTS, 0.0f);
-	fill_vn_fl(n->val_inc, NUM_MAX_ELEMENTS, 1.0f);
+	copy_vn_fl(n->val_org, NUM_MAX_ELEMENTS, 0.0f);
+	copy_vn_fl(n->val_inc, NUM_MAX_ELEMENTS, 1.0f);
 
 	n->idx = 0;
 	n->str[0] = '\0';

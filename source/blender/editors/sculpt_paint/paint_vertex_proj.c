@@ -186,7 +186,7 @@ static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
 
 	/* highly unlikely this will become unavailable once painting starts (perhaps with animated modifiers) */
 	if (LIKELY(dm->foreachMappedVert)) {
-		fill_vn_fl(vp_handle->dists_sq, me->totvert, FLT_MAX);
+		copy_vn_fl(vp_handle->dists_sq, me->totvert, FLT_MAX);
 
 		dm->foreachMappedVert(dm, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, DM_FOREACH_USE_NORMAL);
 	}

@@ -845,7 +845,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 		Object *ob;
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			if (is_zero_v3(ob->dscale)) {
-				fill_vn_fl(ob->dscale, 3, 1.0f);
+				copy_vn_fl(ob->dscale, 3, 1.0f);
 			}
 		}
 	}

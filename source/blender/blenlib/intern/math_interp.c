@@ -112,10 +112,10 @@ BLI_INLINE void bicubic_interpolation(const unsigned char *byte_buffer, const fl
 	/* sample area entirely outside image? */
 	if (ceil(u) < 0 || floor(u) > width - 1 || ceil(v) < 0 || floor(v) > height - 1) {
 		if (float_output) {
-			fill_vn_fl(float_output, components, 0.0f);
+			copy_vn_fl(float_output, components, 0.0f);
 		}
 		if (byte_output) {
-			fill_vn_uchar(byte_output, components, 0);
+			copy_vn_uchar(byte_output, components, 0);
 		}
 		return;
 	}
@@ -281,7 +281,7 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 
 		/* sample area entirely outside image? */
 		if (x2 < 0 || x1 > width - 1 || y2 < 0 || y1 > height - 1) {
-			fill_vn_fl(float_output, components, 0.0f);
+			copy_vn_fl(float_output, components, 0.0f);
 			return;
 		}
 
@@ -323,7 +323,7 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 
 		/* sample area entirely outside image? */
 		if (x2 < 0 || x1 > width - 1 || y2 < 0 || y1 > height - 1) {
-			fill_vn_uchar(byte_output, components, 0);
+			copy_vn_uchar(byte_output, components, 0);
 			return;
 		}
 

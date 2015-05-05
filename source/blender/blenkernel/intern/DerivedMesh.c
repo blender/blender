@@ -295,11 +295,11 @@ void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
 	dm->dirty = 0;
 
 	/* don't use CustomData_reset(...); because we dont want to touch customdata */
-	fill_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
-	fill_vn_i(dm->edgeData.typemap, CD_NUMTYPES, -1);
-	fill_vn_i(dm->faceData.typemap, CD_NUMTYPES, -1);
-	fill_vn_i(dm->loopData.typemap, CD_NUMTYPES, -1);
-	fill_vn_i(dm->polyData.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(dm->edgeData.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(dm->faceData.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(dm->loopData.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(dm->polyData.typemap, CD_NUMTYPES, -1);
 }
 
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
@@ -1276,7 +1276,7 @@ static void calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const d
 		else {
 			weightpaint_color(col, dm_wcinfo, 0.0f);
 		}
-		fill_vn_i((int *)r_wtcol_v, numVerts, *((int *)col));
+		copy_vn_i((int *)r_wtcol_v, numVerts, *((int *)col));
 	}
 }
 

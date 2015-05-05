@@ -1858,7 +1858,7 @@ static PyObject *Matrix_zero(MatrixObject *self)
 	if (BaseMath_Prepare_ForWrite(self) == -1)
 		return NULL;
 
-	fill_vn_fl(self->matrix, self->num_col * self->num_row, 0.0f);
+	copy_vn_fl(self->matrix, self->num_col * self->num_row, 0.0f);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return NULL;

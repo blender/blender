@@ -308,7 +308,7 @@ void dist_ensure_v2_v2fl(float v1[2], const float v2[2], const float dist);
 void axis_sort_v3(const float axis_values[3], int r_axis_order[3]);
 
 /***************************** Array Functions *******************************/
-/* attempted to follow fixed length vertex functions. names could be improved*/
+/* follow fixed length vector function conventions. */
 double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size) ATTR_WARN_UNUSED_RESULT;
 double len_squared_vn(const float *array, const int size) ATTR_WARN_UNUSED_RESULT;
 float normalize_vn_vn(float *array_tar, const float *array_src, const int size);
@@ -329,11 +329,11 @@ void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 void msub_vn_vn(float *array_tar, const float *array_src, const float f, const int size);
 void msub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const float f, const int size);
 void interp_vn_vn(float *array_tar, const float *array_src, const float t, const int size);
-void fill_vn_i(int *array_tar, const int size, const int val);
-void fill_vn_short(short *array_tar, const int size, const short val);
-void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
-void fill_vn_uchar(unsigned char *array_tar, const int size, const unsigned char val);
-void fill_vn_fl(float *array_tar, const int size, const float val);
+void copy_vn_i(int *array_tar, const int size, const int val);
+void copy_vn_short(short *array_tar, const int size, const short val);
+void copy_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
+void copy_vn_uchar(unsigned char *array_tar, const int size, const unsigned char val);
+void copy_vn_fl(float *array_tar, const int size, const float val);
 
 /**************************** Inline Definitions ******************************/
 

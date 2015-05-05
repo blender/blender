@@ -76,7 +76,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 				return NULL;
 			}
 
-			fill_vn_fl(vec, size, 0.0f);
+			copy_vn_fl(vec, size, 0.0f);
 			break;
 		case 1:
 			if ((size = mathutils_array_parse_alloc(&vec, 2, PyTuple_GET_ITEM(args, 0), "mathutils.Vector()")) == -1) {
@@ -142,7 +142,7 @@ static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	fill_vn_fl(vec, size, fill);
+	copy_vn_fl(vec, size, fill);
 
 	return Vector_CreatePyObject_alloc(vec, size, (PyTypeObject *)cls);
 }
@@ -339,7 +339,7 @@ static PyObject *Vector_zero(VectorObject *self)
 	if (BaseMath_Prepare_ForWrite(self) == -1)
 		return NULL;
 
-	fill_vn_fl(self->vec, self->size, 0.0f);
+	copy_vn_fl(self->vec, self->size, 0.0f);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return NULL;
@@ -426,7 +426,7 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 
 	/* If the vector has increased in length, set all new elements to 0.0f */
 	if (size > self->size) {
-		fill_vn_fl(self->vec + self->size, size - self->size, 0.0f);
+		copy_vn_fl(self->vec + self->size, size - self->size, 0.0f);
 	}
 
 	self->size = size;
@@ -465,7 +465,7 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
 		return NULL;
 	}
 
-	fill_vn_fl(vec, size, 0.0f);
+	copy_vn_fl(vec, size, 0.0f);
 	memcpy(vec, self->vec, self->size * sizeof(float));
 
 	return Vector_CreatePyObject_alloc(vec, size, NULL);
@@ -2236,7 +2236,7 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
 		return -1;
 	}
 	if (param == 0.0) {
-		fill_vn_fl(self->vec, self->size, 0.0f);
+		copy_vn_fl(self->vec, self->size, 0.0f);
 		return 0;
 	}
 
@@ -3030,7 +3030,7 @@ PyObject *Vector_CreatePyObject(
 			memcpy(self->vec, vec, size * sizeof(float));
 		}
 		else { /* new empty */
-			fill_vn_fl(self->vec, size, 0.0f);
+			copy_vn_fl(self->vec, size, 0.0f);
 			if (size == 4) {  /* do the homogeneous thing */
 				self->vec[3] = 1.0f;
 			}

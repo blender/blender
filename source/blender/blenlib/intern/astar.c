@@ -229,7 +229,7 @@ bool BLI_astar_graph_solve(
 	r_solution->steps = 0;
 	prev_nodes[node_index_src] = -1;
 	BLI_BITMAP_SET_ALL(done_nodes, false, as_graph->node_num);
-	fill_vn_fl(g_costs, as_graph->node_num, FLT_MAX);
+	copy_vn_fl(g_costs, as_graph->node_num, FLT_MAX);
 	g_costs[node_index_src] = 0.0f;
 	g_steps[node_index_src] = 0;
 

@@ -2120,7 +2120,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		/* mark 1 vertex as being hit */
 		hitv  = BLI_array_alloca(hitv,  hit.efa->len);
 		hituv = BLI_array_alloca(hituv, hit.efa->len);
-		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
+		copy_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
 		hitv[hit.lindex] = BM_elem_index_get(hit.l->v);
 		hituv[hit.lindex] = hit.luv->uv;
@@ -2137,7 +2137,7 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 		/* mark 2 edge vertices as being hit */
 		hitv  = BLI_array_alloca(hitv,  hit.efa->len);
 		hituv = BLI_array_alloca(hituv, hit.efa->len);
-		fill_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
+		copy_vn_i(hitv, hit.efa->len, 0xFFFFFFFF);
 
 		hitv[hit.lindex] = BM_elem_index_get(hit.l->v);
 		hitv[(hit.lindex + 1) % hit.efa->len] = BM_elem_index_get(hit.l->next->v);

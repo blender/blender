@@ -1057,7 +1057,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
 				mul_vn_fl(lf->data_weights, lf->data_len, 1.0f / lwc.weight_accum);
 			}
 			else {
-				fill_vn_fl(lf->data_weights, lf->data_len, 1.0f / (float)lf->data_len);
+				copy_vn_fl(lf->data_weights, lf->data_len, 1.0f / (float)lf->data_len);
 			}
 
 			BLI_linklist_prepend_arena(&groups, lf, lwc.arena);

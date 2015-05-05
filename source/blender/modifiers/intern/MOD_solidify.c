@@ -298,7 +298,7 @@ static DerivedMesh *applyModifier(
 
 		/* save doing 2 loops here... */
 #if 0
-		fill_vn_i(edge_users, numEdges, INVALID_UNUSED);
+		copy_vn_i(edge_users, numEdges, INVALID_UNUSED);
 #endif
 
 		for (eidx = 0, ed = orig_medge; eidx < numEdges; eidx++, ed++) {
@@ -505,7 +505,7 @@ static DerivedMesh *applyModifier(
 			unsigned int i;
 
 			vert_lens = MEM_mallocN(sizeof(float) * numVerts, "vert_lens");
-			fill_vn_fl(vert_lens, (int)numVerts, FLT_MAX);
+			copy_vn_fl(vert_lens, (int)numVerts, FLT_MAX);
 			for (i = 0; i < numEdges; i++) {
 				const float ed_len_sq = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
 				vert_lens[medge[i].v1] = min_ff(vert_lens[medge[i].v1], ed_len_sq);
@@ -672,7 +672,7 @@ static DerivedMesh *applyModifier(
 			float *vert_lens_sq = MEM_mallocN(sizeof(float) * numVerts, "vert_lens");
 			const float offset    = fabsf(smd->offset) * smd->offset_clamp;
 			const float offset_sq = offset * offset;
-			fill_vn_fl(vert_lens_sq, (int)numVerts, FLT_MAX);
+			copy_vn_fl(vert_lens_sq, (int)numVerts, FLT_MAX);
 			for (i = 0; i < numEdges; i++) {
 				const float ed_len = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
 				vert_lens_sq[medge[i].v1] = min_ff(vert_lens_sq[medge[i].v1], ed_len);

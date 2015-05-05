@@ -707,7 +707,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 					BLI_space_transform_apply_normal(space_transform, v2_no);
 				}
 
-				fill_vn_fl(weights, (int)numedges_src, 0.0f);
+				copy_vn_fl(weights, (int)numedges_src, 0.0f);
 
 				/* We adjust our ray-casting grid to ray_radius (the smaller, the more rays are cast),
 				 * with lower/upper bounds. */
@@ -1916,7 +1916,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 					BLI_space_transform_apply_normal(space_transform, tmp_no);
 				}
 
-				fill_vn_fl(weights, (int)numpolys_src, 0.0f);
+				copy_vn_fl(weights, (int)numpolys_src, 0.0f);
 
 				if (UNLIKELY((size_t)mp->totloop > tmp_poly_size)) {
 					tmp_poly_size = (size_t)mp->totloop;
