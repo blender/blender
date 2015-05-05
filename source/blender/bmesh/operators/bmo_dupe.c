@@ -44,9 +44,10 @@
  *
  * Copy an existing vertex from one bmesh to another.
  */
-static BMVert *bmo_vert_copy(BMOperator *op,
-                             BMOpSlot *slot_vertmap_out,
-                             BMesh *bm_dst, BMesh *bm_src, BMVert *v_src, GHash *vhash)
+static BMVert *bmo_vert_copy(
+        BMOperator *op,
+        BMOpSlot *slot_vertmap_out,
+        BMesh *bm_dst, BMesh *bm_src, BMVert *v_src, GHash *vhash)
 {
 	BMVert *v_dst;
 
@@ -72,12 +73,13 @@ static BMVert *bmo_vert_copy(BMOperator *op,
  *
  * Copy an existing edge from one bmesh to another.
  */
-static BMEdge *bmo_edge_copy(BMOperator *op,
-                             BMOpSlot *slot_edgemap_out,
-                             BMOpSlot *slot_boundarymap_out,
-                             BMesh *bm_dst, BMesh *bm_src,
-                             BMEdge *e_src,
-                             GHash *vhash, GHash *ehash)
+static BMEdge *bmo_edge_copy(
+        BMOperator *op,
+        BMOpSlot *slot_edgemap_out,
+        BMOpSlot *slot_boundarymap_out,
+        BMesh *bm_dst, BMesh *bm_src,
+        BMEdge *e_src,
+        GHash *vhash, GHash *ehash)
 {
 	BMEdge *e_dst;
 	BMVert *e_dst_v1, *e_dst_v2;
@@ -131,11 +133,12 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
  *
  * Copy an existing face from one bmesh to another.
  */
-static BMFace *bmo_face_copy(BMOperator *op,
-                             BMOpSlot *slot_facemap_out,
-                             BMesh *bm_dst, BMesh *bm_src,
-                             BMFace *f_src,
-                             GHash *vhash, GHash *ehash)
+static BMFace *bmo_face_copy(
+        BMOperator *op,
+        BMOpSlot *slot_facemap_out,
+        BMesh *bm_dst, BMesh *bm_src,
+        BMFace *f_src,
+        GHash *vhash, GHash *ehash)
 {
 	BMFace *f_dst;
 	BMVert **vtar = BLI_array_alloca(vtar, f_src->len);

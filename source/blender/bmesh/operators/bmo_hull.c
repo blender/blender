@@ -67,8 +67,9 @@ typedef struct HullTriangle {
 
 /*************************** Hull Triangles ***************************/
 
-static void hull_add_triangle(BMesh *bm, GSet *hull_triangles, BLI_mempool *pool,
-                              BMVert *v1, BMVert *v2, BMVert *v3)
+static void hull_add_triangle(
+        BMesh *bm, GSet *hull_triangles, BLI_mempool *pool,
+        BMVert *v1, BMVert *v2, BMVert *v3)
 {
 	HullTriangle *t;
 	int i;
@@ -189,8 +190,9 @@ static LinkData *final_edges_find_link(ListBase *adj, BMVert *v)
 	return NULL;
 }
 
-static int hull_final_edges_lookup(HullFinalEdges *final_edges,
-                                   BMVert *v1, BMVert *v2)
+static int hull_final_edges_lookup(
+        HullFinalEdges *final_edges,
+        BMVert *v1, BMVert *v2)
 {
 	ListBase *adj;
 
@@ -259,8 +261,9 @@ static void hull_final_edges_free(HullFinalEdges *final_edges)
 
 /**************************** Final Output ****************************/
 
-static void hull_remove_overlapping(BMesh *bm, GSet *hull_triangles,
-                                    HullFinalEdges *final_edges)
+static void hull_remove_overlapping(
+        BMesh *bm, GSet *hull_triangles,
+        HullFinalEdges *final_edges)
 {
 	GSetIterator hull_iter;
 
@@ -296,8 +299,9 @@ static void hull_remove_overlapping(BMesh *bm, GSet *hull_triangles,
 	}
 }
 
-static void hull_mark_interior_elements(BMesh *bm, BMOperator *op,
-                                        HullFinalEdges *final_edges)
+static void hull_mark_interior_elements(
+        BMesh *bm, BMOperator *op,
+        HullFinalEdges *final_edges)
 {
 	BMEdge *e;
 	BMFace *f;
@@ -425,8 +429,9 @@ static int hull_input_vert_count(BMOperator *op)
 	return count;
 }
 
-static BMVert **hull_input_verts_copy(BMOperator *op,
-                                      const int num_input_verts)
+static BMVert **hull_input_verts_copy(
+        BMOperator *op,
+        const int num_input_verts)
 {
 	BMOIter oiter;
 	BMVert *v;
@@ -441,8 +446,9 @@ static BMVert **hull_input_verts_copy(BMOperator *op,
 	return input_verts;
 }
 
-static float (*hull_verts_for_bullet(BMVert **input_verts,
-                                     const int num_input_verts))[3]
+static float (*hull_verts_for_bullet(
+        BMVert **input_verts,
+        const int num_input_verts))[3]
 {
 	float (*coords)[3] = MEM_callocN(sizeof(*coords) * num_input_verts, __func__);
 	int i;
@@ -454,9 +460,10 @@ static float (*hull_verts_for_bullet(BMVert **input_verts,
 	return coords;
 }
 
-static BMVert **hull_verts_from_bullet(plConvexHull hull,
-                                       BMVert **input_verts,
-                                       const int num_input_verts)
+static BMVert **hull_verts_from_bullet(
+        plConvexHull hull,
+        BMVert **input_verts,
+        const int num_input_verts)
 {
 	const int num_verts = plConvexHullNumVertices(hull);
 	BMVert **hull_verts = MEM_mallocN(sizeof(*hull_verts) *
@@ -478,9 +485,10 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
 	return hull_verts;
 }
 
-static void hull_from_bullet(BMesh *bm, BMOperator *op,
-                             GSet *hull_triangles,
-                             BLI_mempool *pool)
+static void hull_from_bullet(
+        BMesh *bm, BMOperator *op,
+        GSet *hull_triangles,
+        BLI_mempool *pool)
 {
 	int *fvi = NULL;
 	BLI_array_declare(fvi);

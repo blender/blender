@@ -80,8 +80,9 @@ static unsigned int bm_verts_tag_count(BMesh *bm)
 }
 #endif
 
-static float bezier_handle_calc_length_v3(const float co_a[3], const float no_a[3],
-                                          const float co_b[3], const float no_b[3])
+static float bezier_handle_calc_length_v3(
+        const float co_a[3], const float no_a[3],
+        const float co_b[3], const float no_b[3])
 {
 	const float dot = dot_v3v3(no_a, no_b);
 	/* gives closest approx at a circle with 2 parallel handles */
@@ -538,12 +539,13 @@ static void bm_edgering_pair_store_free(
 /* -------------------------------------------------------------------- */
 /* Interpolation Function */
 
-static void bm_edgering_pair_interpolate(BMesh *bm, LoopPairStore *lpair,
-                                         struct BMEdgeLoopStore *el_store_a,
-                                         struct BMEdgeLoopStore *el_store_b,
-                                         ListBase *eloops_ring,
-                                         const int interp_mode, const int cuts, const float smooth,
-                                         const float *falloff_cache)
+static void bm_edgering_pair_interpolate(
+        BMesh *bm, LoopPairStore *lpair,
+        struct BMEdgeLoopStore *el_store_a,
+        struct BMEdgeLoopStore *el_store_b,
+        ListBase *eloops_ring,
+        const int interp_mode, const int cuts, const float smooth,
+        const float *falloff_cache)
 {
 	const int resolu = cuts + 2;
 	const int dims = 3;
@@ -878,9 +880,10 @@ static bool bm_edgering_pair_order_is_flipped(BMesh *UNUSED(bm),
  * Takes 2 edge loops that share edges,
  * sort their verts and rotates the list so the lined up.
  */
-static void bm_edgering_pair_order(BMesh *bm,
-                                   struct BMEdgeLoopStore *el_store_a,
-                                   struct BMEdgeLoopStore *el_store_b)
+static void bm_edgering_pair_order(
+        BMesh *bm,
+        struct BMEdgeLoopStore *el_store_a,
+        struct BMEdgeLoopStore *el_store_b)
 {
 	ListBase *lb_a = BM_edgeloop_verts_get(el_store_a);
 	ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
@@ -951,11 +954,12 @@ static void bm_edgering_pair_order(BMesh *bm,
  *
  * \note loops are _not_ aligned.
  */
-static void bm_edgering_pair_subdiv(BMesh *bm,
-                                    struct BMEdgeLoopStore *el_store_a,
-                                    struct BMEdgeLoopStore *el_store_b,
-                                    ListBase *eloops_ring,
-                                    const int cuts)
+static void bm_edgering_pair_subdiv(
+        BMesh *bm,
+        struct BMEdgeLoopStore *el_store_a,
+        struct BMEdgeLoopStore *el_store_b,
+        ListBase *eloops_ring,
+        const int cuts)
 {
 	ListBase *lb_a = BM_edgeloop_verts_get(el_store_a);
 	// ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
@@ -1043,11 +1047,12 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
 	bm_edgeloop_vert_tag(el_store_b, false);
 }
 
-static void bm_edgering_pair_ringsubd(BMesh *bm, LoopPairStore *lpair,
-                                      struct BMEdgeLoopStore *el_store_a,
-                                      struct BMEdgeLoopStore *el_store_b,
-                                      const int interp_mode, const int cuts, const float smooth,
-                                      const float *falloff_cache)
+static void bm_edgering_pair_ringsubd(
+        BMesh *bm, LoopPairStore *lpair,
+        struct BMEdgeLoopStore *el_store_a,
+        struct BMEdgeLoopStore *el_store_b,
+        const int interp_mode, const int cuts, const float smooth,
+        const float *falloff_cache)
 {
 	ListBase eloops_ring = {NULL};
 	bm_edgering_pair_order(bm, el_store_a, el_store_b);

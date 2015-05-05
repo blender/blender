@@ -87,8 +87,9 @@ static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BM
 }
 
 /* el_b can have any offset */
-static float bm_edgeloop_offset_length(LinkData *el_a, LinkData *el_b,
-                                       LinkData *el_b_first, const float len_max)
+static float bm_edgeloop_offset_length(
+        LinkData *el_a, LinkData *el_b,
+        LinkData *el_b_first, const float len_max)
 {
 	float len = 0.0f;
 	BLI_assert(el_a->prev == NULL);  /* must be first */
@@ -137,10 +138,11 @@ static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 	return BMO_elem_flag_test((BMesh *)bm_v, e, EDGE_MARK);
 }
 
-static void bridge_loop_pair(BMesh *bm,
-                             struct BMEdgeLoopStore *el_store_a,
-                             struct BMEdgeLoopStore *el_store_b,
-                             const bool use_merge, const float merge_factor, const int twist_offset)
+static void bridge_loop_pair(
+        BMesh *bm,
+        struct BMEdgeLoopStore *el_store_a,
+        struct BMEdgeLoopStore *el_store_b,
+        const bool use_merge, const float merge_factor, const int twist_offset)
 {
 	const float eps = 0.00001f;
 	LinkData *el_a_first, *el_b_first;

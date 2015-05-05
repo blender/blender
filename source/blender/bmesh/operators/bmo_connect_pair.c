@@ -152,8 +152,9 @@ static void min_dist_dir_update(MinDistDir *dist, const float dist_dir[3])
 /** \} */
 
 
-static int state_isect_co_pair(const PathContext *pc,
-                               const float co_a[3], const float co_b[3])
+static int state_isect_co_pair(
+        const PathContext *pc,
+        const float co_a[3], const float co_b[3])
 {
 	const float diff_a = dot_m3_v3_row_x((float (*)[3])pc->matrix, co_a) - pc->axis_sep;
 	const float diff_b = dot_m3_v3_row_x((float (*)[3])pc->matrix, co_b) - pc->axis_sep;
@@ -169,15 +170,17 @@ static int state_isect_co_pair(const PathContext *pc,
 	}
 }
 
-static int state_isect_co_exact(const PathContext *pc,
-                                const float co[3])
+static int state_isect_co_exact(
+        const PathContext *pc,
+        const float co[3])
 {
 	const float diff = dot_m3_v3_row_x((float (*)[3])pc->matrix, co) - pc->axis_sep;
 	return (fabsf(diff) <= CONNECT_EPS);
 }
 
-static float state_calc_co_pair_fac(const PathContext *pc,
-                                    const float co_a[3], const float co_b[3])
+static float state_calc_co_pair_fac(
+        const PathContext *pc,
+        const float co_a[3], const float co_b[3])
 {
 	float diff_a, diff_b, diff_tot;
 
@@ -187,9 +190,10 @@ static float state_calc_co_pair_fac(const PathContext *pc,
 	return (diff_tot > FLT_EPSILON) ? (diff_a / diff_tot) : 0.5f;
 }
 
-static void state_calc_co_pair(const PathContext *pc,
-                               const float co_a[3], const float co_b[3],
-                               float r_co[3])
+static void state_calc_co_pair(
+        const PathContext *pc,
+        const float co_a[3], const float co_b[3],
+        float r_co[3])
 {
 	const float fac = state_calc_co_pair_fac(pc, co_a, co_b);
 	interp_v3_v3v3(r_co, co_a, co_b, fac);
@@ -213,8 +217,9 @@ static bool state_link_find(const PathLinkState *state, BMElem *ele)
 	return false;
 }
 
-static void state_link_add(PathContext *pc, PathLinkState *state,
-                           BMElem *ele, BMElem *ele_from)
+static void state_link_add(
+        PathContext *pc, PathLinkState *state,
+        BMElem *ele, BMElem *ele_from)
 {
 	PathLink *step_new = BLI_mempool_alloc(pc->link_pool);
 	BLI_assert(ele != ele_from);

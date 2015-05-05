@@ -522,8 +522,9 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 
 }
 
-static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
-                                      BMOperator *optarget, BMOpSlot *optarget_slot)
+static void bmesh_find_doubles_common(
+        BMesh *bm, BMOperator *op,
+        BMOperator *optarget, BMOpSlot *optarget_slot)
 {
 	BMVert  **verts;
 	int       verts_len;

@@ -80,8 +80,9 @@ static void bmo_subd_init_shape_info(BMesh *bm, SubDParams *params)
 
 }
 
-typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts,
-                                     const SubDParams *params);
+typedef void (*subd_pattern_fill_fp)(
+        BMesh *bm, BMFace *face, BMVert **verts,
+        const SubDParams *params);
 
 /*
  * note: this is a pattern-based edge subdivider.
@@ -1176,14 +1177,15 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 }
 
 /* editmesh-emulating function */
-void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        const float smooth, const short smooth_falloff, const bool use_smooth_even,
-                        const float fractal, const float along_normal,
-                        const int numcuts,
-                        const int seltype, const int cornertype,
-                        const short use_single_edge, const short use_grid_fill,
-                        const short use_only_quads,
-                        const int seed)
+void BM_mesh_esubdivide(
+        BMesh *bm, const char edge_hflag,
+        const float smooth, const short smooth_falloff, const bool use_smooth_even,
+        const float fractal, const float along_normal,
+        const int numcuts,
+        const int seltype, const int cornertype,
+        const short use_single_edge, const short use_grid_fill,
+        const short use_only_quads,
+        const int seed)
 {
 	BMOperator op;
 	

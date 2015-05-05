@@ -61,8 +61,9 @@ static bool bm_loop_is_face_untag(BMElem *ele, void *UNUSED(user_data))
 /**
  * Copy all attributes from adjacent untagged faces.
  */
-static void bm_face_copy_shared_all(BMesh *bm, BMLoop *l,
-                                    const bool use_normals, const bool use_data)
+static void bm_face_copy_shared_all(
+        BMesh *bm, BMLoop *l,
+        const bool use_normals, const bool use_data)
 {
 	BMLoop *l_other = l->radial_next;
 	BMFace *f = l->f, *f_other;
@@ -90,8 +91,9 @@ static void bm_face_copy_shared_all(BMesh *bm, BMLoop *l,
 /**
  * Flood fill attributes.
  */
-static unsigned int bmesh_face_attribute_fill(BMesh *bm,
-                                              const bool use_normals, const bool use_data)
+static unsigned int bmesh_face_attribute_fill(
+        BMesh *bm,
+        const bool use_normals, const bool use_data)
 {
 	BLI_LINKSTACK_DECLARE(loop_queue_prev, BMLoop *);
 	BLI_LINKSTACK_DECLARE(loop_queue_next, BMLoop *);

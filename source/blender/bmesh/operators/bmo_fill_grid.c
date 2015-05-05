@@ -114,8 +114,9 @@ static void quad_verts_to_barycentric_tri(
 /**
  * Assign a loop pair from 2 verts (which _must_ share an edge)
  */
-static void bm_loop_pair_from_verts(BMVert *v_a, BMVert *v_b,
-                                    BMLoop *l_pair[2])
+static void bm_loop_pair_from_verts(
+        BMVert *v_a, BMVert *v_b,
+        BMLoop *l_pair[2])
 {
 	BMEdge *e = BM_edge_exists(v_a, v_b);
 	if (e->l) {
@@ -185,8 +186,9 @@ static void bm_loop_interp_from_grid_boundary_2(BMesh *bm, BMLoop *l, BMLoop *l_
 /**
  * Avoids calling #barycentric_weights_v2_quad often by caching weights into an array.
  */
-static void barycentric_weights_v2_grid_cache(const unsigned int xtot, const unsigned int ytot,
-                                              float (*weight_table)[4])
+static void barycentric_weights_v2_grid_cache(
+        const unsigned int xtot, const unsigned int ytot,
+        float (*weight_table)[4])
 {
 	float x_step = 1.0f / (float)(xtot - 1);
 	float y_step = 1.0f / (float)(ytot - 1);
@@ -216,9 +218,10 @@ static void barycentric_weights_v2_grid_cache(const unsigned int xtot, const uns
  *
  * \param v_grid  2d array of verts, all boundary verts must be set, we fill in the middle.
  */
-static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const unsigned int xtot, unsigned const int ytot,
-                               const short mat_nr, const bool use_smooth,
-                               const bool use_flip, const bool use_interp_simple)
+static void bm_grid_fill_array(
+        BMesh *bm, BMVert **v_grid, const unsigned int xtot, unsigned const int ytot,
+        const short mat_nr, const bool use_smooth,
+        const bool use_flip, const bool use_interp_simple)
 {
 	const bool use_vert_interp = CustomData_has_interp(&bm->vdata);
 	const bool use_loop_interp = CustomData_has_interp(&bm->ldata);
@@ -485,10 +488,11 @@ static void bm_grid_fill_array(BMesh *bm, BMVert **v_grid, const unsigned int xt
 #undef XY
 }
 
-static void bm_grid_fill(BMesh *bm,
-                         struct BMEdgeLoopStore *estore_a,      struct BMEdgeLoopStore *estore_b,
-                         struct BMEdgeLoopStore *estore_rail_a, struct BMEdgeLoopStore *estore_rail_b,
-                         const short mat_nr, const bool use_smooth, const bool use_interp_simple)
+static void bm_grid_fill(
+        BMesh *bm,
+        struct BMEdgeLoopStore *estore_a,      struct BMEdgeLoopStore *estore_b,
+        struct BMEdgeLoopStore *estore_rail_a, struct BMEdgeLoopStore *estore_rail_b,
+        const short mat_nr, const bool use_smooth, const bool use_interp_simple)
 {
 #define USE_FLIP_DETECT
 
