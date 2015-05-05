@@ -490,7 +490,7 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
 static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, int p) {
 	ParticleThreadContext *ctx= thread->ctx;
 	DerivedMesh *dm= ctx->dm;
-	float *v1, *v2, *v3, *v4, nor[3], co1[3], co2[3];
+	float *v1, *v2, *v3, *v4, nor[3], co[3];
 	float cur_d, min_d, randu, randv;
 	int distr= ctx->distr;
 	int i, intersect, tot;
@@ -530,14 +530,12 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 	/* experimental */
 	tot=dm->getNumTessFaces(dm);
 	
-	psys_interpolate_face(mvert,mface,0,0,pa->fuv,co1,nor,0,0,0,0);
+	psys_interpolate_face(mvert,mface,0,0,pa->fuv,co,nor,0,0,0,0);
 	
 	normalize_v3(nor);
-	mul_v3_fl(nor,-100.0);
+	negate_v3(nor);
 	
-	add_v3_v3v3(co2,co1,nor);
-	
-	min_d=2.0;
+	min_d=FLT_MAX;
 	intersect=0;
 	
 	for (i=0,mface=dm->getTessFaceDataArray(dm,CD_MFACE); i<tot; i++,mface++) {
@@ -547,20 +545,20 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 		v2=mvert[mface->v2].co;
 		v3=mvert[mface->v3].co;
 		
-		if (isect_line_tri_v3(co1, co2, v2, v3, v1, &cur_d, 0)) {
+		if (isect_ray_tri_v3(co, nor, v2, v3, v1, &cur_d, 0)) {
 			if (cur_d<min_d) {
 				min_d=cur_d;
-				pa->foffset=cur_d*50.0f; /* to the middle of volume */
+				pa->foffset=cur_d*0.5f; /* to the middle of volume */
 				intersect=1;
 			}
 		}
 		if (mface->v4) {
 			v4=mvert[mface->v4].co;
 			
-			if (isect_line_tri_v3(co1, co2, v4, v1, v3, &cur_d, 0)) {
+			if (isect_ray_tri_v3(co, nor, v4, v1, v3, &cur_d, 0)) {
 				if (cur_d<min_d) {
 					min_d=cur_d;
-					pa->foffset=cur_d*50.0f; /* to the middle of volume */
+					pa->foffset=cur_d*0.5f; /* to the middle of volume */
 					intersect=1;
 				}
 			}
