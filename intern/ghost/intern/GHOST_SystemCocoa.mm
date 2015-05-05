@@ -73,6 +73,10 @@ static GHOST_TButtonMask convertButton(int button)
 			return GHOST_kButtonMaskButton4;
 		case 4:
 			return GHOST_kButtonMaskButton5;
+		case 5:
+			return GHOST_kButtonMaskButton6;
+		case 6:
+			return GHOST_kButtonMaskButton7;
 		default:
 			return GHOST_kButtonMaskLeft;
 	}
