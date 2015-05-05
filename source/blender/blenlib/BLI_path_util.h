@@ -78,6 +78,11 @@ void        BLI_del_slash(char *string) ATTR_NONNULL();
 const char *BLI_first_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 void        BLI_path_native_slash(char *path) ATTR_NONNULL();
 
+#ifdef _WIN32
+bool BLI_path_binary_extensions_add_win32(char *name, const size_t maxlen);
+#endif
+bool BLI_path_binary_search(char *fullname, const size_t maxlen, const char *name);
+
 void BLI_getlastdir(const char *dir, char *last, const size_t maxlen);
 bool BLI_testextensie(const char *str, const char *ext) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 bool BLI_testextensie_n(const char *str, ...) ATTR_NONNULL(1) ATTR_SENTINEL(0);

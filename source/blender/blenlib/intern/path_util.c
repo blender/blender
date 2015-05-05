@@ -1020,6 +1020,109 @@ bool BLI_path_cwd(char *path)
 	return wasrelative;
 }
 
+#ifdef _WIN32
+/**
+ * Tries appending each of the semicolon-separated extensions in the PATHEXT
+ * environment variable (Windows-only) onto *name in turn until such a file is found.
+ * Returns success/failure.
+ */
+bool BLI_path_binary_extensions_add_win32(char *name, const size_t maxlen)
+{
+	bool retval = false;
+	int type;
+
+	type = BLI_exists(name);
+	if ((type == 0) || S_ISDIR(type)) {
+		char filename[FILE_MAX];
+		char ext[FILE_MAX];
+		const char *extensions = getenv("PATHEXT");
+		if (extensions) {
+			const char *temp;
+			do {
+				strcpy(filename, name);
+				temp = strchr(extensions, ';');
+				if (temp) {
+					strncpy(ext, extensions, temp - extensions);
+					ext[temp - extensions] = 0;
+					extensions = temp + 1;
+					strcat(filename, ext);
+				}
+				else {
+					strcat(filename, extensions);
+				}
+
+				type = BLI_exists(filename);
+				if (type && (!S_ISDIR(type))) {
+					retval = true;
+					BLI_strncpy(name, filename, maxlen);
+					break;
+				}
+			} while (temp);
+		}
+	}
+	else {
+		retval = true;
+	}
+
+	return retval;
+}
+#endif  /* WIN32 */
+
+/**
+ * Search for a binary (executable)
+ */
+bool BLI_path_binary_search(
+        char *fullname, const size_t maxlen,
+        const char *name)
+{
+	const char *path;
+	bool retval = false;
+
+#ifdef _WIN32
+	const char separator = ';';
+#else
+	const char separator = ':';
+#endif
+
+	path = getenv("PATH");
+	if (path) {
+		char filename[FILE_MAX];
+		const char *temp;
+
+		do {
+			temp = strchr(path, separator);
+			if (temp) {
+				strncpy(filename, path, temp - path);
+				filename[temp - path] = 0;
+				path = temp + 1;
+			}
+			else {
+				strncpy(filename, path, sizeof(filename));
+			}
+
+			BLI_path_append(filename, maxlen, name);
+			if (
+#ifdef _WIN32
+			    BLI_path_binary_extensions_add_win32(filename, maxlen)
+#else
+			    BLI_exists(filename)
+#endif
+			    )
+			{
+				BLI_strncpy(fullname, filename, maxlen);
+				retval = true;
+				break;
+			}
+		} while (temp);
+	}
+
+	if (retval == false) {
+		*fullname = '\0';
+	}
+
+	return retval;
+}
+
 /**
  * Copies into *last the part of *dir following the second-last slash.
  */

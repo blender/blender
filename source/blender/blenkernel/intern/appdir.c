@@ -501,54 +501,6 @@ const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, con
 /* Preset paths */
 
 /**
- * Tries appending each of the semicolon-separated extensions in the PATHEXT
- * environment variable (Windows-only) onto *name in turn until such a file is found.
- * Returns success/failure.
- */
-static int add_win32_extension(char *name)
-{
-	int retval = 0;
-	int type;
-
-	type = BLI_exists(name);
-	if ((type == 0) || S_ISDIR(type)) {
-#ifdef _WIN32
-		char filename[FILE_MAX];
-		char ext[FILE_MAX];
-		const char *extensions = getenv("PATHEXT");
-		if (extensions) {
-			char *temp;
-			do {
-				strcpy(filename, name);
-				temp = strstr(extensions, ";");
-				if (temp) {
-					strncpy(ext, extensions, temp - extensions);
-					ext[temp - extensions] = 0;
-					extensions = temp + 1;
-					strcat(filename, ext);
-				}
-				else {
-					strcat(filename, extensions);
-				}
-
-				type = BLI_exists(filename);
-				if (type && (!S_ISDIR(type))) {
-					retval = 1;
-					strcpy(name, filename);
-					break;
-				}
-			} while (temp);
-		}
-#endif
-	}
-	else {
-		retval = 1;
-	}
-
-	return (retval);
-}
-
-/**
  * Checks if name is a fully qualified filename to an executable.
  * If not it searches $PATH for the file. On Windows it also
  * adds the correct extension (.com .exe etc) from
@@ -562,16 +514,8 @@ static int add_win32_extension(char *name)
  */
 static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
-	char filename[FILE_MAX];
-	const char *path = NULL, *temp;
+	const char *path = NULL;
 
-#ifdef _WIN32
-	const char *separator = ";";
-#else
-	const char *separator = ":";
-#endif
-
-	
 #ifdef WITH_BINRELOC
 	/* linux uses binreloc since argv[0] is not reliable, call br_init( NULL ) first */
 	path = br_find_exe(NULL);
@@ -611,34 +555,19 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 			else
 				BLI_join_dirfile(fullname, maxlen, wdir, name);
 
-			add_win32_extension(fullname); /* XXX, doesnt respect length */
+#ifdef _WIN32
+			BLI_path_binary_extensions_add_win32(fullname, maxlen);
+#endif
 		}
 		else if (BLI_last_slash(name)) {
 			// full path
 			BLI_strncpy(fullname, name, maxlen);
-			add_win32_extension(fullname);
+#ifdef _WIN32
+			BLI_path_binary_extensions_add_win32(fullname, maxlen);
+#endif
 		}
 		else {
-			// search for binary in $PATH
-			path = getenv("PATH");
-			if (path) {
-				do {
-					temp = strstr(path, separator);
-					if (temp) {
-						strncpy(filename, path, temp - path);
-						filename[temp - path] = 0;
-						path = temp + 1;
-					}
-					else {
-						strncpy(filename, path, sizeof(filename));
-					}
-					BLI_path_append(fullname, maxlen, name);
-					if (add_win32_extension(filename)) {
-						BLI_strncpy(fullname, filename, maxlen);
-						break;
-					}
-				} while (temp);
-			}
+			BLI_path_binary_search(fullname, maxlen, name);
 		}
 #if defined(DEBUG)
 		if (!STREQ(name, fullname)) {
