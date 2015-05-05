@@ -1026,7 +1026,7 @@ bool BLI_path_cwd(char *path)
  * environment variable (Windows-only) onto *name in turn until such a file is found.
  * Returns success/failure.
  */
-bool BLI_path_binary_extensions_add_win32(char *name, const size_t maxlen)
+bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
 {
 	bool retval = false;
 	int type;
@@ -1071,7 +1071,7 @@ bool BLI_path_binary_extensions_add_win32(char *name, const size_t maxlen)
 /**
  * Search for a binary (executable)
  */
-bool BLI_path_binary_search(
+bool BLI_path_program_search(
         char *fullname, const size_t maxlen,
         const char *name)
 {
@@ -1103,7 +1103,7 @@ bool BLI_path_binary_search(
 			BLI_path_append(filename, maxlen, name);
 			if (
 #ifdef _WIN32
-			    BLI_path_binary_extensions_add_win32(filename, maxlen)
+			    BLI_path_program_extensions_add_win32(filename, maxlen)
 #else
 			    BLI_exists(filename)
 #endif

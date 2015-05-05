@@ -556,18 +556,18 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 				BLI_join_dirfile(fullname, maxlen, wdir, name);
 
 #ifdef _WIN32
-			BLI_path_binary_extensions_add_win32(fullname, maxlen);
+			BLI_path_program_extensions_add_win32(fullname, maxlen);
 #endif
 		}
 		else if (BLI_last_slash(name)) {
 			// full path
 			BLI_strncpy(fullname, name, maxlen);
 #ifdef _WIN32
-			BLI_path_binary_extensions_add_win32(fullname, maxlen);
+			BLI_path_program_extensions_add_win32(fullname, maxlen);
 #endif
 		}
 		else {
-			BLI_path_binary_search(fullname, maxlen, name);
+			BLI_path_program_search(fullname, maxlen, name);
 		}
 #if defined(DEBUG)
 		if (!STREQ(name, fullname)) {
