@@ -63,9 +63,10 @@
  * point and would result in the same distance.
  */
 #define INSET_DEFAULT 0.00001f
-static float edbm_rip_edgedist_squared(ARegion *ar, float mat[4][4],
-                                       const float co1[3], const float co2[3], const float mvalf[2],
-                                       const float inset)
+static float edbm_rip_edgedist_squared(
+        ARegion *ar, float mat[4][4],
+        const float co1[3], const float co2[3], const float mvalf[2],
+        const float inset)
 {
 	float vec1[2], vec2[2], dist_sq;
 
@@ -89,8 +90,9 @@ static float edbm_rip_edgedist_squared(ARegion *ar, float mat[4][4],
 }
 
 #if 0
-static float edbm_rip_linedist(ARegion *ar, float mat[4][4],
-                               const float co1[3], const float co2[3], const float mvalf[2])
+static float edbm_rip_linedist(
+        ARegion *ar, float mat[4][4],
+        const float co1[3], const float co2[3], const float mvalf[2])
 {
 	float vec1[2], vec2[2];
 
@@ -114,9 +116,10 @@ static void edbm_calc_loop_co(BMLoop *l, float l_mid_co[3])
 }
 
 
-static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
-                                        ARegion *ar,
-                                        float projectMat[4][4], const float fmval[2])
+static float edbm_rip_edge_side_measure(
+        BMEdge *e, BMLoop *e_l,
+        ARegion *ar,
+        float projectMat[4][4], const float fmval[2])
 {
 	float cent[3] = {0, 0, 0}, mid[3];
 
@@ -532,7 +535,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	BMesh *bm = em->bm;
 	BMIter iter, liter;
 	BMLoop *l;
-	BMEdge *e2;
+	BMEdge *e_best;
 	BMVert *v;
 	const int totvert_orig = bm->totvert;
 	int i;
@@ -567,7 +570,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	is_wire = BM_vert_is_wire(v);
 	is_manifold_region = BM_vert_is_manifold_region(v);
 
-	e2 = NULL;
+	e_best = NULL;
 
 	{
 		BMEdge *e;
@@ -579,18 +582,18 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 				if ((is_manifold_region == false) || BM_edge_is_manifold(e)) {
 					d = edbm_rip_edgedist_squared(ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
-					if ((e2 == NULL) || (d < dist_sq)) {
+					if ((e_best == NULL) || (d < dist_sq)) {
 						dist_sq = d;
-						e2 = e;
+						e_best = e;
 					}
 				}
 			}
 		}
 	}
 
-	if (e2 && (is_manifold_region == false)) {
+	if (e_best && (is_manifold_region == false)) {
 		/* Try to split off a non-manifold fan (when we have multiple disconnected fans) */
-		BMLoop *l_sep = e2->l->v == v ? e2->l : e2->l->next;
+		BMLoop *l_sep = e_best->l->v == v ? e_best->l : e_best->l->next;
 		BMVert *v_new;
 
 		BLI_assert(l_sep->v == v);
@@ -627,18 +630,18 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			l = l_all[i1];
 			edbm_calc_loop_co(l, l_mid_co);
 			d = edbm_rip_edgedist_squared(ar, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
-			if ((e2 == NULL) || (d < dist_sq)) {
+			if ((e_best == NULL) || (d < dist_sq)) {
 				dist_sq = d;
 
 				/* find the edge that is not in this loop */
-				e2 = NULL;
+				e_best = NULL;
 				for (i2 = 0; i2 < 3; i2++) {
 					if (!BM_edge_in_loop(e_all[i2], l)) {
-						e2 = e_all[i2];
+						e_best = e_all[i2];
 						break;
 					}
 				}
-				BLI_assert(e2 != NULL);
+				BLI_assert(e_best != NULL);
 			}
 		}
 	}
@@ -747,7 +750,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		}
 	}
 
-	if (!e2) {
+	if (!e_best) {
 		BKE_report(op->reports, RPT_ERROR, "Selected vertex has no edge/face pairs attached");
 		return OPERATOR_CANCELLED;
 	}
@@ -762,16 +765,16 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		int larr_len = 0;
 
 		/* rip two adjacent edges */
-		if (BM_edge_is_boundary(e2) || BM_vert_face_count_is_equal(v, 2)) {
+		if (BM_edge_is_boundary(e_best) || BM_vert_face_count_is_equal(v, 2)) {
 			/* Don't run the edge split operator in this case */
 
-			l = BM_edge_vert_share_loop(e2->l, v);
+			l = BM_edge_vert_share_loop(e_best->l, v);
 			larr[larr_len] = l;
 			larr_len++;
 
 			/* only tag for face-fill (we don't call the operator) */
-			if (BM_edge_is_boundary(e2)) {
-				BM_elem_flag_enable(e2, BM_ELEM_TAG);
+			if (BM_edge_is_boundary(e_best)) {
+				BM_elem_flag_enable(e_best, BM_ELEM_TAG);
 			}
 			else {
 				BM_elem_flag_enable(l->e, BM_ELEM_TAG);
@@ -779,10 +782,10 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			}
 		}
 		else {
-			if (BM_edge_is_manifold(e2)) {
+			if (BM_edge_is_manifold(e_best)) {
 				BMLoop *l_iter, *l_first;
 
-				l_iter = l_first = e2->l;
+				l_iter = l_first = e_best->l;
 				do {
 					larr[larr_len] = BM_edge_vert_share_loop(l_iter, v);
 					BM_elem_flag_enable(larr[larr_len]->e, BM_ELEM_TAG);
@@ -876,7 +879,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 	BMesh *bm = em->bm;
 	BMIter iter, eiter;
 	BMLoop *l;
-	BMEdge *e, *e2;
+	BMEdge *e_best;
 	BMVert *v;
 	const int totedge_orig = bm->totedge;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
@@ -890,11 +893,12 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 
 	/* expand edge selection */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		BMEdge *e;
 		bool all_manifold;
 		int totedge_manifold;  /* manifold, visible edges */
 		int i;
 
-		e2 = NULL;
+		e_best = NULL;
 		i = 0;
 		totedge_manifold = 0;
 		all_manifold = true;
@@ -906,7 +910,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 				/* important to check selection rather then tag here
 				 * else we get feedback loop */
 				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-					e2 = e;
+					e_best = e;
 					i++;
 				}
 				totedge_manifold++;
@@ -919,18 +923,18 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 		}
 
 		/* single edge, extend */
-		if (i == 1 && e2->l) {
+		if (i == 1 && e_best->l) {
 			/* note: if the case of 3 edges has one change in loop stepping,
 			 * if this becomes more involved we may be better off splitting
 			 * the 3 edge case into its own else-if branch */
 			if ((totedge_manifold == 4 || totedge_manifold == 3) || (all_manifold == false)) {
-				BMLoop *l_a = e2->l;
+				BMLoop *l_a = e_best->l;
 				BMLoop *l_b = l_a->radial_next;
 
 				/* find the best face to follow, this way the edge won't point away from
 				 * the mouse when there are more than 4 (takes the shortest face fan around) */
-				l = (edbm_rip_edge_side_measure(e2, l_a, ar, projectMat, fmval) <
-				     edbm_rip_edge_side_measure(e2, l_b, ar, projectMat, fmval)) ? l_a : l_b;
+				l = (edbm_rip_edge_side_measure(e_best, l_a, ar, projectMat, fmval) <
+				     edbm_rip_edge_side_measure(e_best, l_b, ar, projectMat, fmval)) ? l_a : l_b;
 
 				l = BM_loop_other_edge_loop(l, v);
 				/* important edge is manifold else we can be attempting to split off a fan that don't budge,
@@ -948,7 +952,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 				}
 			}
 			else {
-				e = BM_vert_other_disk_edge(v, e2);
+				e = BM_vert_other_disk_edge(v, e_best);
 
 				if (e) {
 					BLI_assert(!BM_elem_flag_test(e, BM_ELEM_TAG));
