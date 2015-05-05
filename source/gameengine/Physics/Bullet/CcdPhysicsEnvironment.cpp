@@ -466,6 +466,14 @@ void	CcdPhysicsEnvironment::AddCcdPhysicsController(CcdPhysicsController* ctrl)
 		return;
 	}
 
+	/* In the case of compound child controller (see also RemoveCcdPhysicsController)
+	 * we add the controller to the trigger controlers list : m_triggerControllers
+	 * if it use collision callbacks.
+	 */
+	if (ctrl->Registered()) {
+		m_triggerControllers.insert(ctrl);
+	}
+
 	btRigidBody* body = ctrl->GetRigidBody();
 	btCollisionObject* obj = ctrl->GetCollisionObject();
 
@@ -508,13 +516,19 @@ void	CcdPhysicsEnvironment::AddCcdPhysicsController(CcdPhysicsController* ctrl)
 
 bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctrl)
 {
-	// the controller is still used as sensor
-	if (ctrl->m_registerCount != 0)
-		printf("Warning: removing controller with non-zero m_registerCount: %d\n", ctrl->m_registerCount);
-
 	// if the physics controller is already removed we do nothing
-	if (!m_controllers.erase(ctrl) || !m_triggerControllers.erase(ctrl)) {
+	if (!m_controllers.erase(ctrl)) {
 		return false;
+	}
+
+	/* In the case of compound child controller which use collision callbacks
+	 * we remove it from the m_triggerControllers list but leave m_registerCount
+	 * to know in AddCcdPhysicsController if we have to add it in m_triggerControllers
+	 * and to avoid an useless added in RequestCollisionCallback, indeed we can't register
+	 * more than one time a controller.
+	 */
+	if (ctrl->Registered()) {
+		m_triggerControllers.erase(ctrl);
 	}
 
 	//also remove constraint
@@ -567,6 +581,8 @@ bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctr
 			}
 		}
 	}
+
+	return true;
 }
 
 void	CcdPhysicsEnvironment::UpdateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)

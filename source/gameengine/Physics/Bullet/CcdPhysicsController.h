@@ -515,6 +515,11 @@ protected:
 		return (--m_registerCount == 0) ? true : false;
 	}
 
+	bool Registered() const
+	{
+		return (m_registerCount != 0);
+	}
+
 	void addCcdConstraintRef(btTypedConstraint* c);
 	void removeCcdConstraintRef(btTypedConstraint* c);
 	btTypedConstraint* getCcdConstraintRef(int index);
