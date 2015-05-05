@@ -370,6 +370,9 @@ static bool rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR],
 
 	BLI_join_dirfile(path_src, sizeof(path_src), path_dir, path_file);
 
+	/* so functions can check old value */
+	BLI_strncpy(path_dst, path_src, FILE_MAX);
+
 	if (absbase) {
 		BLI_path_abs(path_src, absbase);
 	}
