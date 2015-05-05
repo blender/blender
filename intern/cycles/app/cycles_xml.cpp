@@ -503,10 +503,6 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_int(&magic->depth, node, "depth");
 			snode = magic;
 		}
-		else if(string_iequals(node.name(), "noise_texture")) {
-			NoiseTextureNode *dist = new NoiseTextureNode();
-			snode = dist;
-		}
 		else if(string_iequals(node.name(), "wave_texture")) {
 			WaveTextureNode *wave = new WaveTextureNode();
 			xml_read_enum(&wave->type, WaveTextureNode::type_enum, node, "type");
