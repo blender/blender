@@ -142,6 +142,8 @@ CCL_NAMESPACE_END
 #include "svm_noise.h"
 #include "svm_texture.h"
 
+#include "svm_math_util.h"
+
 #include "svm_attribute.h"
 #include "svm_gradient.h"
 #include "svm_blackbody.h"
@@ -164,7 +166,6 @@ CCL_NAMESPACE_END
 #include "svm_mapping.h"
 #include "svm_normal.h"
 #include "svm_wave.h"
-#include "svm_math_util.h"
 #include "svm_math.h"
 #include "svm_mix.h"
 #include "svm_ramp.h"

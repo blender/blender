@@ -3652,9 +3652,17 @@ void BlackbodyNode::compile(SVMCompiler& compiler)
 	ShaderInput *temperature_in = input("Temperature");
 	ShaderOutput *color_out = output("Color");
 
-	compiler.stack_assign(temperature_in);
 	compiler.stack_assign(color_out);
-	compiler.add_node(NODE_BLACKBODY, temperature_in->stack_offset, color_out->stack_offset);
+
+	if(temperature_in->link == NULL) {
+		float3 color = svm_math_blackbody_color(temperature_in->value.x);
+		compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
+		compiler.add_node(NODE_VALUE_V, color);
+	}
+	else {
+		compiler.stack_assign(temperature_in);
+		compiler.add_node(NODE_BLACKBODY, temperature_in->stack_offset, color_out->stack_offset);
+	}
 }
 
 void BlackbodyNode::compile(OSLCompiler& compiler)

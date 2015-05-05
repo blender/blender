@@ -36,46 +36,10 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *stack, uint temperature_offset, uint col_offset)
 {
-	/* Output */
-	float3 color_rgb = make_float3(0.0f, 0.0f, 0.0f);
-
 	/* Input */
 	float temperature = stack_load_float(stack, temperature_offset);
 
-	if(temperature < BB_DRAPER) {
-		/* just return very very dim red */
-		color_rgb = make_float3(1.0e-6f,0.0f,0.0f);
-	}
-	else if(temperature <= BB_MAX_TABLE_RANGE) {
-		/* This is the overall size of the table */
-		const int lookuptablesize = 956;
-		const float lookuptablenormalize = 1.0f/956.0f;
-
-		/* reconstruct a proper index for the table lookup, compared to OSL we don't look up two colors
-		just one (the OSL-lerp is also automatically done for us by "lookup_table_read") */
-		float t = powf((temperature - BB_DRAPER) * (1.0f / BB_TABLE_SPACING), (1.0f / BB_TABLE_XPOWER));
-
-		int blackbody_table_offset = kernel_data.tables.blackbody_offset;
-
-		/* Retrieve colors from the lookup table */
-		float lutval = t*lookuptablenormalize;
-		float R = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
-		lutval = (t + 319.0f*1.0f)*lookuptablenormalize;
-		float G = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
-		lutval = (t + 319.0f*2.0f)*lookuptablenormalize;
-		float B = lookup_table_read(kg, lutval, blackbody_table_offset, lookuptablesize);
-
-		R = powf(R, BB_TABLE_YPOWER);
-		G = powf(G, BB_TABLE_YPOWER);
-		B = powf(B, BB_TABLE_YPOWER);
-
-		color_rgb = make_float3(R, G, B);
-	}
-
-	/* Luminance */
-	float l = linear_rgb_to_gray(color_rgb);
-	if(l != 0.0f)
-		color_rgb /= l;
+	float3 color_rgb = svm_math_blackbody_color(temperature);
 
 	if(stack_valid(col_offset))
 		stack_store_float3(stack, col_offset, color_rgb);

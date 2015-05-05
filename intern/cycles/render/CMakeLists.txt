@@ -18,7 +18,6 @@ set(SRC
 	attribute.cpp
 	background.cpp
 	bake.cpp
-	blackbody.cpp
 	buffers.cpp
 	camera.cpp
 	film.cpp
@@ -47,7 +46,6 @@ set(SRC_HEADERS
 	attribute.h
 	bake.h
 	background.h
-	blackbody.h
 	buffers.h
 	camera.h
 	film.h

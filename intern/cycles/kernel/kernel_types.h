@@ -38,12 +38,6 @@ CCL_NAMESPACE_BEGIN
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_HITS				4
 
-#define BB_DRAPER				800.0f
-#define BB_MAX_TABLE_RANGE		12000.0f
-#define BB_TABLE_XPOWER			1.5f
-#define BB_TABLE_YPOWER			5.0f
-#define BB_TABLE_SPACING		2.0f
-
 #define BECKMANN_TABLE_SIZE		256
 
 #define TEX_NUM_FLOAT_IMAGES	5
@@ -989,9 +983,8 @@ typedef struct KernelCurves {
 } KernelCurves;
 
 typedef struct KernelTables {
-	int blackbody_offset;
 	int beckmann_offset;
-	int pad1, pad2;
+	int pad1, pad2, pad3;
 } KernelTables;
 
 typedef struct KernelData {
