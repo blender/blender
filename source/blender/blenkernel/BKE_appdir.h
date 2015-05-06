@@ -38,6 +38,11 @@ void        BKE_appdir_program_path_init(const char *argv0);
 const char *BKE_appdir_program_path(void);
 const char *BKE_appdir_program_dir(void);
 
+/* find python executable */
+bool BKE_appdir_program_python_search(
+        char *fullpath, const size_t fullpath_len,
+        const int version_major, const int version_minor);
+
 /* Initialize path to temporary directory. */
 void        BKE_tempdir_init(char *userdir);
 void        BKE_tempdir_system_init(char *dir);
