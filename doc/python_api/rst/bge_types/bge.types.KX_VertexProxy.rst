@@ -25,6 +25,12 @@ base class --- :class:`SCA_IObject`
 
       :type: Vector((u, v))
 
+   .. attribute:: uvs
+
+      A list of all the texture coordinates of the vertex.
+
+      :type: list of Vector((u, v))
+
    .. attribute:: normal
 
       The normal of the vertex.
@@ -120,18 +126,24 @@ base class --- :class:`SCA_IObject`
 
       :arg pos: the new position for this vertex in local coordinates.
 
-   .. method:: getUV()
+   .. method:: getUV(index=0)
 
       Gets the UV (texture) coordinates of this vertex.
+
+      :arg index: the UV (texture) channel (optional).
+      :type index: integer
 
       :return: this vertexes UV (texture) coordinates.
       :rtype: Vector((u, v))
 
-   .. method:: setUV(uv)
+   .. method:: setUV(uv, index=0)
 
       Sets the UV (texture) coordinates of this vertex.
 
-      :type:  Vector((u, v))
+      :arg uv: the UV (texture) coordinate of this vertex.
+      :type uv: Vector((u, v))
+      :arg index: the UV (texture) channel (optional).
+      :type index: integer
 
    .. method:: getUV2()
 
@@ -140,14 +152,16 @@ base class --- :class:`SCA_IObject`
       :return: this vertexes UV (texture) coordinates.
       :rtype: Vector((u, v))
 
-   .. method:: setUV2(uv, unit)
+      .. deprecated:: use :meth:`getUV`
+
+   .. method:: setUV2(uv)
 
       Sets the 2nd UV (texture) coordinates of this vertex.
 
-      :type:  Vector((u, v))
+      :arg uv: the 2nd (texture) UV coordinate of this vertex.
+      :type uv: Vector((u, v))
 
-      :arg unit: optional argument, FLAT==1, SECOND_UV==2, defaults to SECOND_UV
-      :arg unit:  integer
+      .. deprecated:: use :meth:`setUV`
 
    .. method:: getRGBA()
 

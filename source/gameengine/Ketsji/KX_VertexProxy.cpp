@@ -63,11 +63,11 @@ PyTypeObject KX_VertexProxy::Type = {
 PyMethodDef KX_VertexProxy::Methods[] = {
 	{"getXYZ", (PyCFunction)KX_VertexProxy::sPyGetXYZ,METH_NOARGS},
 	{"setXYZ", (PyCFunction)KX_VertexProxy::sPySetXYZ,METH_O},
-	{"getUV", (PyCFunction)KX_VertexProxy::sPyGetUV1, METH_NOARGS},
-	{"setUV", (PyCFunction)KX_VertexProxy::sPySetUV1, METH_O},
+	{"getUV", (PyCFunction)KX_VertexProxy::sPyGetUV, METH_VARARGS},
+	{"setUV", (PyCFunction)KX_VertexProxy::sPySetUV, METH_VARARGS},
 
 	{"getUV2", (PyCFunction)KX_VertexProxy::sPyGetUV2,METH_NOARGS},
-	{"setUV2", (PyCFunction)KX_VertexProxy::sPySetUV2,METH_VARARGS},
+	{"setUV2", (PyCFunction)KX_VertexProxy::sPySetUV2, METH_O},
 
 	{"getRGBA", (PyCFunction)KX_VertexProxy::sPyGetRGBA,METH_NOARGS},
 	{"setRGBA", (PyCFunction)KX_VertexProxy::sPySetRGBA,METH_O},
@@ -423,7 +423,6 @@ int KX_VertexProxy::pyattr_set_uvs(void *self_v, const struct KX_PYATTRIBUTE_DEF
 			if (PyVecTo(PySequence_GetItem(value, i), vec))
 			{
 				self->m_vertex->SetUV(i, vec);
-				self->m_mesh->SetMeshModified(true);
 			}
 			else
 			{
@@ -559,25 +558,45 @@ PyObject *KX_VertexProxy::PySetRGBA(PyObject *value)
 	return NULL;
 }
 
-
-PyObject *KX_VertexProxy::PyGetUV1()
+PyObject *KX_VertexProxy::PyGetUV(PyObject *args)
 {
-	return PyObjectFrom(MT_Vector2(m_vertex->getUV(0)));
-}
-
-PyObject *KX_VertexProxy::PySetUV1(PyObject *value)
-{
-	MT_Point2 vec;
-	if (!PyVecTo(value, vec))
+	int index = 0;
+	if (!PyArg_ParseTuple(args, "|i:getUV", &index))
 		return NULL;
 
-	m_vertex->SetUV(0, vec);
+	if (index < 0 || index > (RAS_TexVert::MAX_UNIT - 1)) {
+		PyErr_Format(PyExc_TypeError, "vert.getUV(index): KX_VertexProxy, expected an int between 0 and %i", (RAS_TexVert::MAX_UNIT - 1));
+		return NULL;
+	}
+
+	return PyObjectFrom(MT_Vector2(m_vertex->getUV(index)));
+}
+
+PyObject *KX_VertexProxy::PySetUV(PyObject *args)
+{
+	PyObject *pyvect;
+	int index = 0;
+	if (!PyArg_ParseTuple(args, "O|i:setUV", &pyvect, &index))
+		return NULL;
+
+	if (index < 0 || index > (RAS_TexVert::MAX_UNIT - 1)) {
+		PyErr_Format(PyExc_TypeError, "vert.setUV(uv, index): KX_VertexProxy, expected an int between 0 and %i", (RAS_TexVert::MAX_UNIT - 1));
+		return NULL;
+	}
+
+	MT_Point2 vec;
+	if (!PyVecTo(pyvect, vec))
+		return NULL;
+
+	m_vertex->SetUV(index, vec);
 	m_mesh->SetMeshModified(true);
 	Py_RETURN_NONE;
 }
 
 PyObject *KX_VertexProxy::PyGetUV2()
 {
+	ShowDeprecationWarning("getUV2()", "getUV(1)");
+
 	return PyObjectFrom(MT_Vector2(m_vertex->getUV(1)));
 }
 
@@ -586,6 +605,8 @@ PyObject *KX_VertexProxy::PySetUV2(PyObject *args)
 	MT_Point2 vec;
 	if (!PyVecTo(args, vec))
 		return NULL;
+
+	ShowDeprecationWarning("setUV2(uv)", "setUV(uv, 1)");
 
 	m_vertex->SetUV(1, vec);
 	m_mesh->SetMeshModified(true);
