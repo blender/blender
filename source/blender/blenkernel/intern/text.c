@@ -1896,6 +1896,47 @@ static void txt_undo_add_charop(Text *text, int op_start, unsigned int c)
 	text->undo_buf[text->undo_pos + 1] = 0;
 }
 
+/* extends Link */
+struct LinkInt {
+	struct LinkInt *next, *prev;
+	int value;
+};
+
+/* unindentLines points to a ListBase composed of LinkInt elements, listing the numbers
+ * of the lines that should not be indented back. */
+static void txt_undo_add_unindent_op(Text *text, const ListBase *line_index_mask, const int line_index_mask_len)
+{
+	struct LinkInt *idata;
+
+	BLI_assert(BLI_listbase_count(line_index_mask) == line_index_mask_len);
+
+	/* OP byte + UInt32 count + counted UInt32 line numbers + UInt32 count + 12-bytes selection + OP byte */
+	if (!max_undo_test(text, 1 + 4 + (line_index_mask_len * 4) + 4 + 12 + 1)) {
+		return;
+	}
+
+	/* Opening buffer sequence with OP */
+	text->undo_pos++;
+	text->undo_buf[text->undo_pos] = UNDO_UNINDENT;
+	text->undo_pos++;
+	/* Adding number of line numbers to read */
+	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, line_index_mask_len);
+
+	/* Adding linenumbers of lines that shall not be indented if undoing */
+	for (idata = line_index_mask->first; idata; idata = idata->next) {
+		txt_undo_store_uint32(text->undo_buf, &text->undo_pos, idata->value);
+	}
+
+	/* Adding number of line numbers to read again */
+	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, line_index_mask_len);
+	/* Adding current selection */
+	txt_undo_store_cursors(text);
+	/* Closing with OP (same as above) */
+	text->undo_buf[text->undo_pos] = UNDO_UNINDENT;
+	/* Marking as last undo operation */
+	text->undo_buf[text->undo_pos + 1] = 0;
+}
+
 static unsigned short txt_undo_read_uint16(const char *undo_buf, int *undo_pos)
 {
 	unsigned short val;
@@ -2190,7 +2231,6 @@ void txt_do_undo(Text *text)
 			text->undo_pos--;
 			break;
 		case UNDO_INDENT:
-		case UNDO_UNINDENT:
 		case UNDO_COMMENT:
 		case UNDO_UNCOMMENT:
 		case UNDO_DUPLICATE:
@@ -2203,9 +2243,6 @@ void txt_do_undo(Text *text)
 			
 			if (op == UNDO_INDENT) {
 				txt_unindent(text);
-			}
-			else if (op == UNDO_UNINDENT) {
-				txt_indent(text);
 			}
 			else if (op == UNDO_COMMENT) {
 				txt_uncomment(text);
@@ -2225,6 +2262,37 @@ void txt_do_undo(Text *text)
 			
 			text->undo_pos--;
 			break;
+		case UNDO_UNINDENT:
+		{
+			int count;
+			int i;
+			/* Get and restore the cursors */
+			txt_undo_read_cursors(text->undo_buf, &text->undo_pos, &curln, &curc, &selln, &selc);
+			txt_move_to(text, curln, curc, 0);
+			txt_move_to(text, selln, selc, 1);
+
+			/* Un-unindent */
+			txt_indent(text);
+
+			/* Get the count */
+			count = txt_undo_read_uint32(text->undo_buf, &text->undo_pos);
+			/* Iterate! */
+			txt_pop_sel(text);
+
+			for (i = 0; i < count; i++) {
+				txt_move_to(text, txt_undo_read_uint32(text->undo_buf, &text->undo_pos), 0, 0);
+				/* Un-un-unindent */
+				txt_unindent(text);
+			}
+			/* Restore selection */
+			txt_move_to(text, curln, curc, 0);
+			txt_move_to(text, selln, selc, 1);
+			/* Jumo over count */
+			txt_undo_read_uint32(text->undo_buf, &text->undo_pos);
+			/* Jump over closing OP byte */
+			text->undo_pos--;
+			break;
+		}
 		default:
 			//XXX error("Undo buffer error - resetting");
 			text->undo_pos = -1;
@@ -2354,7 +2422,6 @@ void txt_do_redo(Text *text)
 			break;
 			
 		case UNDO_INDENT:
-		case UNDO_UNINDENT:
 		case UNDO_COMMENT:
 		case UNDO_UNCOMMENT:
 		case UNDO_DUPLICATE:
@@ -2369,9 +2436,6 @@ void txt_do_redo(Text *text)
 
 			if (op == UNDO_INDENT) {
 				txt_indent(text);
-			}
-			else if (op == UNDO_UNINDENT) {
-				txt_unindent(text);
 			}
 			else if (op == UNDO_COMMENT) {
 				txt_comment(text);
@@ -2402,6 +2466,26 @@ void txt_do_redo(Text *text)
 			txt_move_to(text, selln, selc, 1);
 
 			break;
+		case UNDO_UNINDENT:
+		{
+			int count;
+			int i;
+
+			text->undo_pos++;
+			/* Scan all the stuff described in txt_undo_add_unindent_op */
+			count = txt_redo_read_uint32(text->undo_buf, &text->undo_pos);
+			for (i = 0; i < count; i++) {
+				txt_redo_read_uint32(text->undo_buf, &text->undo_pos);
+			}
+			/* Count again */
+			txt_redo_read_uint32(text->undo_buf, &text->undo_pos);
+			/* Get the selection and re-unindent */
+			txt_redo_read_cursors(text->undo_buf, &text->undo_pos, &curln, &curc, &selln, &selc);
+			txt_move_to(text, curln, curc, 0);
+			txt_move_to(text, selln, selc, 1);
+			txt_unindent(text);
+			break;
+		}
 		default:
 			//XXX error("Undo buffer error - resetting");
 			text->undo_pos = -1;
@@ -2802,6 +2886,12 @@ void txt_unindent(Text *text)
 	int indentlen = 1;
 	bool unindented_first = false;
 	
+	/* List of lines that are already at indent level 0, to store them later into the undo buffer */
+	ListBase line_index_mask = {NULL, NULL};
+	int line_index_mask_len = 0;
+	int curl_span_init = 0;
+
+
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
 
@@ -2815,6 +2905,10 @@ void txt_unindent(Text *text)
 		indentlen = spaceslen;
 	}
 
+	if (!undoing) {
+		curl_span_init = txt_get_span(text->lines.first, text->curl);
+	}
+
 	while (true) {
 		bool changed = false;
 		if (STREQLEN(text->curl->line, remove, indentlen)) {
@@ -2823,6 +2917,16 @@ void txt_unindent(Text *text)
 			text->curl->len -= indentlen;
 			memmove(text->curl->line, text->curl->line + indentlen, text->curl->len + 1);
 			changed = true;
+		}
+		else {
+			if (!undoing) {
+				/* Create list element for 0 indent line */
+				struct LinkInt *idata = MEM_mallocN(sizeof(struct LinkInt), __func__);
+				idata->value = curl_span_init + num;
+				BLI_assert(idata->value == txt_get_span(text->lines.first, text->curl));
+				BLI_addtail(&line_index_mask, idata);
+				line_index_mask_len += 1;
+			}
 		}
 	
 		txt_make_dirty(text);
@@ -2836,6 +2940,7 @@ void txt_unindent(Text *text)
 		else {
 			text->curl = text->curl->next;
 			num++;
+
 		}
 		
 	}
@@ -2849,8 +2954,10 @@ void txt_unindent(Text *text)
 	}
 	
 	if (!undoing) {
-		txt_undo_add_op(text, UNDO_UNINDENT);
+		txt_undo_add_unindent_op(text, &line_index_mask, line_index_mask_len);
 	}
+
+	BLI_freelistN(&line_index_mask);
 }
 
 void txt_comment(Text *text)
