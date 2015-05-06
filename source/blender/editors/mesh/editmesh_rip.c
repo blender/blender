@@ -607,6 +607,11 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		if (ese.ele) {
 			BM_select_history_store(bm, v_new);
 		}
+
+		if (do_fill) {
+			BM_edge_create(bm, v, v_new, NULL, BM_CREATE_NOP);
+		}
+
 		return OPERATOR_FINISHED;
 	}
 
@@ -719,6 +724,15 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 				}
 			}
 
+			/* vout[0]  == best
+			 * vout[1]  == glue
+			 * vout[2+] == splice with glue (when vout_len > 2)
+			 */
+			if (vi_best != 0) {
+				SWAP(BMVert *, vout[0], vout[vi_best]);
+				vi_best = 0;
+			}
+
 			/* select the vert from the best region */
 			v = vout[vi_best];
 			BM_vert_select_set(bm, v, true);
@@ -729,18 +743,15 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 
 			/* splice all others back together */
 			if (vout_len > 2) {
-
-				/* vout[0]  == best
-				 * vout[1]  == glue
-				 * vout[2+] == splice with glue
-				 */
-				if (vi_best != 0) {
-					SWAP(BMVert *, vout[0], vout[vi_best]);
-					vi_best = 0;
-				}
-
 				for (i = 2; i < vout_len; i++) {
 					BM_vert_splice(bm, vout[1], vout[i]);
+				}
+			}
+
+			if (do_fill) {
+				if (do_fill) {
+					/* match extrude vert-order */
+					BM_edge_create(bm, vout[1], vout[0], NULL, BM_CREATE_NOP);
 				}
 			}
 
