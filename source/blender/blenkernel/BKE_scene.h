@@ -133,6 +133,7 @@ int get_render_shadow_samples(const struct RenderData *r, int samples);
 float get_render_aosss_error(const struct RenderData *r, float error);
 
 bool BKE_scene_use_new_shading_nodes(const struct Scene *scene);
+bool BKE_scene_use_shading_nodes_custom(struct Scene *scene);
 
 bool BKE_scene_uses_blender_internal(const struct Scene *scene);
 bool BKE_scene_uses_blender_game(const struct Scene *scene);

@@ -257,6 +257,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 
 	/* setup dummy engine & engine type to store static properties in */
 	dummyengine.type = &dummyet;
+	dummyet.flag |= RE_USE_SHADING_NODES_CUSTOM;
 	RNA_pointer_create(NULL, &RNA_RenderEngine, &dummyengine, &dummyptr);
 
 	/* validate the python class */
@@ -626,6 +627,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_use_shading_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SHADING_NODES);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop = RNA_def_property(srna, "bl_use_shading_nodes_custom", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SHADING_NODES_CUSTOM);
+	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop = RNA_def_property(srna, "bl_use_exclude_layers", PROP_BOOLEAN, PROP_NONE);
