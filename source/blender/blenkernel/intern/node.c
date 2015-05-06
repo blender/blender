@@ -3082,10 +3082,14 @@ void nodeSynchronizeID(bNode *node, bool copy_to_id)
 		bNodeSocket *sock;
 		Material *ma = (Material *)node->id;
 		int a;
+		short check_flags = SOCK_UNAVAIL;
+
+		if (!copy_to_id)
+			check_flags |= SOCK_HIDDEN;
 		
 		/* hrmf, case in loop isn't super fast, but we don't edit 100s of material at same time either! */
 		for (a = 0, sock = node->inputs.first; sock; sock = sock->next, a++) {
-			if (!nodeSocketIsHidden(sock)) {
+			if (!(sock->flag & check_flags)) {
 				if (copy_to_id) {
 					switch (a) {
 						case MAT_IN_COLOR:
