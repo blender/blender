@@ -559,24 +559,15 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 		 * storing the relevant information here helps avoiding crashes if we undo-repaste */
 		if ((aci->id_type == ID_OB) && (((Object *)aci->id)->type == OB_ARMATURE) && aci->rna_path) {
 			Object *ob = (Object *)aci->id;
-			char *str_start;
-			
-			if ((str_start = strstr(aci->rna_path, "pose.bones["))) {
-				bPoseChannel *pchan;
-				int length = 0;
-				char *str_end;
-				
-				str_start += 12;
-				str_end = strchr(str_start, '\"');
-				length = str_end - str_start;
-				str_start[length] = 0;
-				pchan = BKE_pose_channel_find_name(ob->pose, str_start);
-				str_start[length] = '\"';
-		
-				if (pchan) {
-					aci->is_bone = true;
-				}
+			bPoseChannel *pchan;
+			char *bone_name;
+
+			bone_name = BLI_str_quoted_substrN(aci->rna_path, "pose.bones[");
+			pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+			if (pchan) {
+				aci->is_bone = true;
 			}
+			if (bone_name) MEM_freeN(bone_name);
 		}
 		
 		BLI_addtail(&animcopybuf, aci);
@@ -635,22 +626,22 @@ static void flip_names(tAnimCopybufItem *aci, char **name)
 			char bname_new[MAX_VGROUP_NAME];
 			char *str_iter, *str_end;
 			int length, prefix_l, postfix_l;
-			
+
 			str_start += 12;
 			prefix_l = str_start - aci->rna_path;
-			
+
 			str_end = strchr(str_start, '\"');
-			
+
 			length = str_end - str_start;
 			postfix_l = strlen(str_end);
-			
+
 			/* more ninja stuff, temporary substitute with NULL terminator */
 			str_start[length] = 0;
 			BKE_deform_flip_side_name(bname_new, str_start, false);
 			str_start[length] = '\"';
-			
+
 			str_iter = *name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1), "flipped_path");
-			
+
 			BLI_strncpy(str_iter, aci->rna_path, prefix_l + 1);
 			str_iter += prefix_l;
 			BLI_strncpy(str_iter, bname_new, length + 1);
