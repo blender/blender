@@ -3121,10 +3121,11 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 		BLI_strncpy(filepath, name, sizeof(filepath));
 
 		for (view_id = 0, rv = rr->views.first; rv; rv = rv->next, view_id++) {
-			BKE_scene_multiview_view_filepath_get(&scene->r, filepath, rv->name, name);
+			if (!is_mono) {
+				BKE_scene_multiview_view_filepath_get(&scene->r, filepath, rv->name, name);
+			}
 
 			if (rd->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
-
 				RE_WriteRenderResult(reports, rr, name, &rd->im_format, false, rv->name);
 				printf("Saved: %s\n", name);
 			}
