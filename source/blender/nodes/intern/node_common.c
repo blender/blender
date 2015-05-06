@@ -50,6 +50,10 @@
 #include "node_util.h"
 #include "NOD_common.h"
 
+enum {
+	REFINE_FORWARD  = 1 << 0,
+	REFINE_BACKWARD = 1 << 1,
+};
 
 /**** Group ****/
 
@@ -251,7 +255,7 @@ void register_node_type_reroute(void)
 	nodeRegisterType(ntype);
 }
 
-static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node)
+static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node, int flag)
 {
 	bNodeSocket *input = node->inputs.first;
 	bNodeSocket *output = node->outputs.first;
@@ -275,11 +279,14 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node)
 		if (nodeLinkIsHidden(link))
 			continue;
 		
-		if (tonode == node && fromnode->type == NODE_REROUTE && !fromnode->done)
-			node_reroute_inherit_type_recursive(ntree, fromnode);
-		
-		if (fromnode == node && tonode->type == NODE_REROUTE && !tonode->done)
-			node_reroute_inherit_type_recursive(ntree, tonode);
+		if (flag & REFINE_FORWARD) {
+			if (tonode == node && fromnode->type == NODE_REROUTE && !fromnode->done)
+				node_reroute_inherit_type_recursive(ntree, fromnode, REFINE_FORWARD);
+		}
+		if (flag & REFINE_BACKWARD) {
+			if (fromnode == node && tonode->type == NODE_REROUTE && !tonode->done)
+				node_reroute_inherit_type_recursive(ntree, tonode, REFINE_BACKWARD);
+		}
 	}
 	
 	/* determine socket type from unambiguous input/output connection if possible */
@@ -329,7 +336,7 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
 	
 	for (node = ntree->nodes.first; node; node = node->next)
 		if (node->type == NODE_REROUTE && !node->done)
-			node_reroute_inherit_type_recursive(ntree, node);
+			node_reroute_inherit_type_recursive(ntree, node, REFINE_FORWARD | REFINE_BACKWARD);
 }
 
 static bool node_is_connected_to_output_recursive(bNodeTree *ntree, bNode *node)
