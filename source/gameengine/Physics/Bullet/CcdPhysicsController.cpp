@@ -1576,8 +1576,7 @@ void    CcdPhysicsController::AddCompoundChild(PHY_IPhysicsController* child)
 	const btCollisionShape* childShape = childBody->getCollisionShape();
 	if (!rootShape ||
 		!childShape ||
-		rootShape->getShapeType() != COMPOUND_SHAPE_PROXYTYPE ||
-		childShape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE)
+		rootShape->getShapeType() != COMPOUND_SHAPE_PROXYTYPE)
 		return;
 	btCompoundShape* compoundShape = (btCompoundShape*)rootShape;
 	// compute relative transformation between parent and child
