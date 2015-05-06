@@ -144,6 +144,7 @@ Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh
 {
 	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;
+	Mesh *mesh = (Mesh *)ob->data;
 	DerivedMesh *dm = NULL;
 	if (apply_modifiers) {
 		switch (export_mesh_type) {
@@ -165,14 +166,14 @@ Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh
 
 	tmpmesh = BKE_mesh_add(G.main, "ColladaMesh"); // name is not important here
 	DM_to_mesh(dm, tmpmesh, ob, CD_MASK_MESH, true);
+	tmpmesh->flag = mesh->flag;
 
 	if (triangulate) {
-		bc_triangulate_mesh(tmpmesh);
+		BKE_mesh_tessface_calc(tmpmesh);
 	}
-
-	// XXX Not sure if we need that for ngon_export as well.
-	BKE_mesh_tessface_ensure(tmpmesh);
-
+	else {
+		BKE_mesh_tessface_ensure(tmpmesh);
+	}
 	return tmpmesh;
 }
 
