@@ -784,11 +784,20 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		else {
 			if (BM_edge_is_manifold(e_best)) {
 				BMLoop *l_iter, *l_first;
-
 				l_iter = l_first = e_best->l;
 				do {
 					larr[larr_len] = BM_edge_vert_share_loop(l_iter, v);
-					BM_elem_flag_enable(larr[larr_len]->e, BM_ELEM_TAG);
+
+					if (do_fill) {
+						/* Only needed when filling...
+						 * Also, we never want to tag best edge, that one won't change during split. See T44618. */
+						if (larr[larr_len]->e == e_best) {
+							BM_elem_flag_enable(larr[larr_len]->prev->e, BM_ELEM_TAG);
+						}
+						else {
+							BM_elem_flag_enable(larr[larr_len]->e, BM_ELEM_TAG);
+						}
+					}
 					larr_len++;
 				} while ((l_iter = l_iter->radial_next) != l_first);
 			}
