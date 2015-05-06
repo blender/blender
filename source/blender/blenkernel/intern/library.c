@@ -1415,16 +1415,11 @@ void id_clear_lib_data(Main *bmain, ID *id)
 	/* internal bNodeTree blocks inside ID types below
 	 * also stores id->lib, make sure this stays in sync.
 	 */
-	switch (GS(id->name)) {
-		case ID_SCE:	ntree = ((Scene *)id)->nodetree;		break;
-		case ID_MA:		ntree = ((Material *)id)->nodetree;		break;
-		case ID_LA:		ntree = ((Lamp *)id)->nodetree;			break;
-		case ID_WO:		ntree = ((World *)id)->nodetree;		break;
-		case ID_TE:		ntree = ((Tex *)id)->nodetree;			break;
-		case ID_LS:		ntree = ((FreestyleLineStyle *)id)->nodetree; break;
-	}
-	if (ntree)
+	ntree = ntreeFromID(id);
+
+	if (ntree) {
 		ntree->id.lib = NULL;
+	}
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
