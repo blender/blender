@@ -4379,6 +4379,9 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
 		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, sd->constant_detail / 100.0f);
 	}
+	else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
+		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, ss->cache->radius * sd->detail_percent / 100.0f);
+	}
 	else {
 		BKE_pbvh_bmesh_detail_size_set(
 		        ss->pbvh,
@@ -5072,10 +5075,10 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
 		}
 
-		if (!ts->sculpt->detail_size) {
+		if (!ts->sculpt->detail_size)
 			ts->sculpt->detail_size = 12;
-		}
-
+		if (!ts->sculpt->detail_percent)
+			ts->sculpt->detail_percent = 25;
 		if (ts->sculpt->constant_detail == 0.0f)
 			ts->sculpt->constant_detail = 30.0f;
 
@@ -5307,6 +5310,10 @@ static int sculpt_set_detail_size_exec(bContext *C, wmOperator *UNUSED(op))
 	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
 		set_brush_rc_props(&props_ptr, "sculpt", "constant_detail", NULL, 0);
 		RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.constant_detail");
+	}
+	else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
+		set_brush_rc_props(&props_ptr, "sculpt", "constant_detail", NULL, 0);
+		RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_percent");
 	}
 	else {
 		set_brush_rc_props(&props_ptr, "sculpt", "detail_size", NULL, 0);
