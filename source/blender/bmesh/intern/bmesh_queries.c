@@ -1010,10 +1010,12 @@ int BM_loop_region_loops_count(BMLoop *l)
 bool BM_vert_is_manifold_region(const BMVert *v)
 {
 	BMLoop *l_first = BM_vert_find_first_loop((BMVert *)v);
-	int count, count_total;
-
-	count = BM_loop_region_loops_count_ex(l_first, &count_total);
-	return (count == count_total);
+	if (l_first) {
+		int count, count_total;
+		count = BM_loop_region_loops_count_ex(l_first, &count_total);
+		return (count == count_total);
+	}
+	return true;
 }
 
 /**
