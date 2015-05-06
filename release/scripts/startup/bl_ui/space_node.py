@@ -67,7 +67,7 @@ class NODE_HT_header(Header):
                 if snode_id and not (scene.render.use_shading_nodes == 0 and ob.type == 'LAMP'):
                     layout.prop(snode_id, "use_nodes")
 
-            if snode.shader_type == 'WORLD':
+            if scene.render.use_shading_nodes and snode.shader_type == 'WORLD':
                 row = layout.row()
                 row.enabled = not snode.pin
                 row.template_ID(scene, "world", new="world.new")
