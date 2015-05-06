@@ -146,6 +146,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 	RenderView *rv;
 	SceneRenderView *srv;
 	bool is_multiview;
+	Object *camera;
 	View3D *v3d = oglrender->v3d;
 
 	RenderData *rd = &oglrender->scene->r;
@@ -235,6 +236,10 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 		oglrender->iuser.flag &= ~IMA_SHOW_STEREO;
 	}
 	BLI_unlock_thread(LOCK_DRAW_IMAGE);
+
+	/* will only work for non multiview correctly */
+	camera = BKE_camera_multiview_render(oglrender->scene, v3d->camera, "new opengl render view");
+	BKE_render_result_stamp_info(oglrender->scene, camera, rr);
 
 	RE_ReleaseResult(oglrender->re);
 }
@@ -474,11 +479,8 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 	RenderResult *rr;
 	bool ok;
 	char name[FILE_MAX];
-	Object *camera = RE_GetCamera(oglrender->re);
 
 	rr = RE_AcquireResultRead(oglrender->re);
-
-	BKE_render_result_stamp_info(scene, camera, rr);
 
 	BKE_image_path_from_imformat(
 	        name, scene->r.pic, oglrender->bmain->name, scene->r.cfra,
