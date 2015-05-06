@@ -1737,6 +1737,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 
 	if (ibuf_tmp->x != rectx || ibuf_tmp->y != recty) {
 		ibuf = IMB_dupImBuf(ibuf_tmp);
+		IMB_metadata_copy(ibuf, ibuf_tmp);
 		IMB_freeImBuf(ibuf_tmp);
 		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
 	}
