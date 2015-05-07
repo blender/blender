@@ -4664,7 +4664,14 @@ static void *do_projectpaint_thread(void *ph_v)
 					}
 					
 					if (lock_alpha) {
-						if (is_floatbuf) projPixel->pixel.f_pt[3] = projPixel->origColor.f_pt[3];
+						if (is_floatbuf) {
+							/* slightly more involved case since floats are in premultiplied space we need
+							 * to make sure alpha is consistent, see T44627 */
+							float rgb_straight[4];
+							premul_to_straight_v4_v4(rgb_straight, projPixel->pixel.f_pt);
+							rgb_straight[3] = projPixel->origColor.f_pt[3];
+							straight_to_premul_v4_v4(projPixel->pixel.f_pt, rgb_straight);
+						}
 						else projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
 					}
 
@@ -4833,7 +4840,14 @@ static void *do_projectpaint_thread(void *ph_v)
 						}
 
 						if (lock_alpha) {
-							if (is_floatbuf) projPixel->pixel.f_pt[3] = projPixel->origColor.f_pt[3];
+							if (is_floatbuf) {
+								/* slightly more involved case since floats are in premultiplied space we need
+								 * to make sure alpha is consistent, see T44627 */
+								float rgb_straight[4];
+								premul_to_straight_v4_v4(rgb_straight, projPixel->pixel.f_pt);
+								rgb_straight[3] = projPixel->origColor.f_pt[3];
+								straight_to_premul_v4_v4(projPixel->pixel.f_pt, rgb_straight);
+							}
 							else projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
 						}
 
