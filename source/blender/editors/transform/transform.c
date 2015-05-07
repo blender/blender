@@ -99,8 +99,8 @@ static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg)
 static void doEdgeSlide(TransInfo *t, float perc);
 static void doVertSlide(TransInfo *t, float perc);
 
-static void drawEdgeSlide(const struct bContext *C, TransInfo *t);
-static void drawVertSlide(const struct bContext *C, TransInfo *t);
+static void drawEdgeSlide(TransInfo *t);
+static void drawVertSlide(TransInfo *t);
 static void len_v3_ensure(float v[3], const float length);
 static void postInputRotation(TransInfo *t, float values[3]);
 
@@ -1829,8 +1829,8 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 	drawSnapping(C, t);
 
 	/* edge slide, vert slide */
-	drawEdgeSlide(C, t);
-	drawVertSlide(C, t);
+	drawEdgeSlide(t);
+	drawVertSlide(t);
 }
 
 /* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */
@@ -6265,13 +6265,14 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 	return TREDRAW_NOTHING;
 }
 
-static void drawEdgeSlide(const struct bContext *C, TransInfo *t)
+static void drawEdgeSlide(TransInfo *t)
 {
-	if (t->mode == TFM_EDGE_SLIDE) {
-		EdgeSlideData *sld = (EdgeSlideData *)t->customData;
+	if ((t->mode == TFM_EDGE_SLIDE) && t->customData) {
+		EdgeSlideData *sld = t->customData;
+
 		/* Non-Prop mode */
-		if (sld && sld->is_proportional == false) {
-			View3D *v3d = CTX_wm_view3d(C);
+		if (sld->is_proportional == false) {
+			View3D *v3d = t->view;
 			float co_a[3], co_b[3], co_mark[3];
 			TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 			const float fac = (sld->perc + 1.0f) / 2.0f;
@@ -6825,13 +6826,14 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 	return TREDRAW_NOTHING;
 }
 
-static void drawVertSlide(const struct bContext *C, TransInfo *t)
+static void drawVertSlide(TransInfo *t)
 {
-	if (t->mode == TFM_VERT_SLIDE) {
-		VertSlideData *sld = (VertSlideData *)t->customData;
+	if ((t->mode == TFM_VERT_SLIDE) && t->customData) {
+		VertSlideData *sld = t->customData;
+
 		/* Non-Prop mode */
-		if (sld) {
-			View3D *v3d = CTX_wm_view3d(C);
+		{
+			View3D *v3d = t->view;
 			TransDataVertSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 			TransDataVertSlideVert *sv;
 			const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
