@@ -275,7 +275,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_TEX_BRICK:
 				svm_node_tex_brick(kg, sd, stack, node, &offset);
 				break;
-#endif
+#endif  /* __TEXTURES__ */
 			case NODE_CAMERA:
 				svm_node_camera(kg, sd, stack, node.y, node.z, node.w);
 				break;
@@ -302,9 +302,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_HAIR_INFO:
 				svm_node_hair_info(kg, sd, stack, node.y, node.z);
 				break;
-#endif
+#endif  /* __HAIR__ */
 
-#endif
+#endif  /* __EXTRA_NODES__ */
 			case NODE_CONVERT:
 				svm_node_convert(sd, stack, node.y, node.z, node.w);
 				break;
@@ -342,7 +342,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_HSV:
 				svm_node_hsv(kg, sd, stack, node.y, node.z, node.w, &offset);
 				break;
-#endif
+#endif  /* __EXTRA_NODES__ */
 			case NODE_ATTR:
 				svm_node_attr(kg, sd, stack, node);
 				break;
@@ -353,7 +353,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_ATTR_BUMP_DY:
 				svm_node_attr_bump_dy(kg, sd, stack, node);
 				break;
-#endif
+#endif  /* __EXTRA_NODES__ */
 			case NODE_FRESNEL:
 				svm_node_fresnel(sd, stack, node.y, node.z, node.w);
 				break;
@@ -388,7 +388,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_NORMAL:
 				svm_node_normal(kg, sd, stack, node.y, node.z, node.w, &offset);
 				break;
-#endif
+#endif  /* __EXTRA_NODES__ */
 			case NODE_MAPPING:
 				svm_node_mapping(kg, sd, stack, node.y, node.z, &offset);
 				break;
@@ -420,7 +420,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_LIGHT_FALLOFF:
 				svm_node_light_falloff(sd, stack, node);
 				break;
-#endif
+#endif  /* __EXTRA_NODES__ */
 			case NODE_TANGENT:
 				svm_node_tangent(kg, sd, stack, node);
 				break;
