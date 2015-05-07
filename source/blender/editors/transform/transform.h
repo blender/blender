@@ -253,6 +253,9 @@ typedef struct EdgeSlideData {
 	bool flipped_vtx;
 
 	int curr_sv_index;
+
+	/** when un-clamped - use this index: #TransDataEdgeSlideVert.dir_side */
+	int curr_side_unclamp;
 } EdgeSlideData;
 
 
