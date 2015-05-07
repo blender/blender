@@ -536,7 +536,6 @@ static void update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, 
 void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, const float mouse_pos[2])
 {
 	if ((brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) || (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
-		const float u = 0.5f;
 		const float r = RAKE_THRESHHOLD;
 		float rotation;
 
@@ -546,8 +545,7 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, cons
 		if (len_squared_v2(dpos) >= r * r) {
 			rotation = atan2f(dpos[0], dpos[1]);
 
-			interp_v2_v2v2(ups->last_rake, ups->last_rake,
-			               mouse_pos, u);
+			copy_v2_v2(ups->last_rake, mouse_pos);
 
 			ups->last_rake_angle = rotation;
 
