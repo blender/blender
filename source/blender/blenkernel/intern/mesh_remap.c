@@ -1304,7 +1304,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 
 								/* A same vert may be at the boundary of several islands! Hence, we have to ensure
 								 * poly/loop we are currently considering *belongs* to current island! */
-								if (island_store.items_to_islands[lidx_src] != tindex) {
+								if (use_islands && island_store.items_to_islands[lidx_src] != tindex) {
 									continue;
 								}
 
