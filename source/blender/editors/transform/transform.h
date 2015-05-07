@@ -213,10 +213,10 @@ typedef struct TransDataEdgeSlideVert {
 
 	float edge_len;
 
-	struct BMVert *v_a, *v_b;
+	struct BMVert *v_side[2];
 
 	/* add origvert.co to get the original locations */
-	float dir_a[3], dir_b[3];
+	float dir_side[2][3];
 
 	int loop_nr;
 } TransDataEdgeSlideVert;

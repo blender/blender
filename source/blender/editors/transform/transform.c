@@ -5664,7 +5664,7 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			/* Set length */
-			sv->edge_len = len_v3v3(sv->dir_a, sv->dir_b);
+			sv->edge_len = len_v3v3(sv->dir_side[0], sv->dir_side[1]);
 
 			ED_view3d_project_float_v2_m4(ar, sv->v->co, v_proj, projectMat);
 			dist_sq = len_squared_v2v2(mval, v_proj);
@@ -5892,14 +5892,14 @@ static bool createEdgeSlideVerts(TransInfo *t)
 
 			if (l_a || l_a_prev) {
 				BMLoop *l_tmp = BM_loop_other_edge_loop(l_a ? l_a : l_a_prev, v);
-				sv->v_a = BM_edge_other_vert(l_tmp->e, v);
-				copy_v3_v3(sv->dir_a, vec_a);
+				sv->v_side[0] = BM_edge_other_vert(l_tmp->e, v);
+				copy_v3_v3(sv->dir_side[0], vec_a);
 			}
 
 			if (l_b || l_b_prev) {
 				BMLoop *l_tmp = BM_loop_other_edge_loop(l_b ? l_b : l_b_prev, v);
-				sv->v_b = BM_edge_other_vert(l_tmp->e, v);
-				copy_v3_v3(sv->dir_b, vec_b);
+				sv->v_side[1] = BM_edge_other_vert(l_tmp->e, v);
+				copy_v3_v3(sv->dir_side[1], vec_b);
 			}
 
 			v_prev = v;
@@ -5918,23 +5918,23 @@ static bool createEdgeSlideVerts(TransInfo *t)
 
 				if (l_a) {
 					BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
-					sv->v_a = BM_edge_other_vert(l_tmp->e, v);
+					sv->v_side[0] = BM_edge_other_vert(l_tmp->e, v);
 					if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
-						get_next_loop(v, l_a, e_prev, l_tmp->e, sv->dir_a);
+						get_next_loop(v, l_a, e_prev, l_tmp->e, sv->dir_side[0]);
 					}
 					else {
-						sub_v3_v3v3(sv->dir_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+						sub_v3_v3v3(sv->dir_side[0], BM_edge_other_vert(l_tmp->e, v)->co, v->co);
 					}
 				}
 
 				if (l_b) {
 					BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
-					sv->v_b = BM_edge_other_vert(l_tmp->e, v);
+					sv->v_side[1] = BM_edge_other_vert(l_tmp->e, v);
 					if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
-						get_next_loop(v, l_b, e_prev, l_tmp->e, sv->dir_b);
+						get_next_loop(v, l_b, e_prev, l_tmp->e, sv->dir_side[1]);
 					}
 					else {
-						sub_v3_v3v3(sv->dir_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
+						sub_v3_v3v3(sv->dir_side[1], BM_edge_other_vert(l_tmp->e, v)->co, v->co);
 					}
 				}
 
@@ -6055,19 +6055,19 @@ static bool createEdgeSlideVerts(TransInfo *t)
 					BLI_assert(sv_table[BM_elem_index_get(v)] != -1);
 					j = sv_table[BM_elem_index_get(v)];
 
-					if (sv_array[j].v_b) {
-						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_b->co, sco_b, projectMat);
+					if (sv_array[j].v_side[1]) {
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[1]->co, sco_b, projectMat);
 					}
 					else {
-						add_v3_v3v3(sco_b, v->co, sv_array[j].dir_b);
+						add_v3_v3v3(sco_b, v->co, sv_array[j].dir_side[1]);
 						ED_view3d_project_float_v3_m4(ar, sco_b, sco_b, projectMat);
 					}
 					
-					if (sv_array[j].v_a) {
-						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_a->co, sco_a, projectMat);
+					if (sv_array[j].v_side[0]) {
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[0]->co, sco_a, projectMat);
 					}
 					else {
-						add_v3_v3v3(sco_a, v->co, sv_array[j].dir_a);
+						add_v3_v3v3(sco_a, v->co, sv_array[j].dir_side[0]);
 						ED_view3d_project_float_v3_m4(ar, sco_a, sco_a, projectMat);
 					}
 					
@@ -6108,8 +6108,8 @@ static bool createEdgeSlideVerts(TransInfo *t)
 		/* switch a/b if loop direction is different from global direction */
 		l_nr = sv_array->loop_nr;
 		if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
-			swap_v3_v3(sv_array->dir_a, sv_array->dir_b);
-			SWAP(BMVert *, sv_array->v_a, sv_array->v_b);
+			swap_v3_v3(sv_array->dir_side[0], sv_array->dir_side[1]);
+			SWAP(BMVert *, sv_array->v_side[0], sv_array->v_side[1]);
 		}
 	}
 
@@ -6280,8 +6280,8 @@ static void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 			const int alpha_shade = -30;
 
-			add_v3_v3v3(co_a, curr_sv->v_co_orig, curr_sv->dir_a);
-			add_v3_v3v3(co_b, curr_sv->v_co_orig, curr_sv->dir_b);
+			add_v3_v3v3(co_a, curr_sv->v_co_orig, curr_sv->dir_side[0]);
+			add_v3_v3v3(co_b, curr_sv->v_co_orig, curr_sv->dir_side[1]);
 
 			if (v3d && v3d->zbuf)
 				glDisable(GL_DEPTH_TEST);
@@ -6297,12 +6297,12 @@ static void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 			glLineWidth(line_size);
 			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 			glBegin(GL_LINES);
-			if (curr_sv->v_a) {
-				glVertex3fv(curr_sv->v_a->co);
+			if (curr_sv->v_side[0]) {
+				glVertex3fv(curr_sv->v_side[0]->co);
 				glVertex3fv(curr_sv->v_co_orig);
 			}
-			if (curr_sv->v_b) {
-				glVertex3fv(curr_sv->v_b->co);
+			if (curr_sv->v_side[1]) {
+				glVertex3fv(curr_sv->v_side[1]->co);
 				glVertex3fv(curr_sv->v_co_orig);
 			}
 			bglEnd();
@@ -6312,10 +6312,10 @@ static void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 			glPointSize(ctrl_size);
 			bglBegin(GL_POINTS);
 			if (sld->flipped_vtx) {
-				if (curr_sv->v_b) bglVertex3fv(curr_sv->v_b->co);
+				if (curr_sv->v_side[1]) bglVertex3fv(curr_sv->v_side[1]->co);
 			}
 			else {
-				if (curr_sv->v_a) bglVertex3fv(curr_sv->v_a->co);
+				if (curr_sv->v_side[0]) bglVertex3fv(curr_sv->v_side[0]->co);
 			}
 			bglEnd();
 
@@ -6355,12 +6355,12 @@ static void doEdgeSlide(TransInfo *t, float perc)
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			float vec[3];
 			if (perc > 0.0f) {
-				copy_v3_v3(vec, sv->dir_a);
+				copy_v3_v3(vec, sv->dir_side[0]);
 				mul_v3_fl(vec, perc);
 				add_v3_v3v3(sv->v->co, sv->v_co_orig, vec);
 			}
 			else {
-				copy_v3_v3(vec, sv->dir_b);
+				copy_v3_v3(vec, sv->dir_side[1]);
 				mul_v3_fl(vec, -perc);
 				add_v3_v3v3(sv->v->co, sv->v_co_orig, vec);
 			}
@@ -6372,7 +6372,7 @@ static void doEdgeSlide(TransInfo *t, float perc)
 		 * a/b verts, this could be changed/improved so the distance is still met but the verts are moved along
 		 * their original path (which may not be straight), however how it works now is OK and matches 2.4x - Campbell
 		 *
-		 * \note len_v3v3(curr_sv->dir_a, curr_sv->dir_b)
+		 * \note len_v3v3(curr_sv->dir_side[0], curr_sv->dir_side[1])
 		 * is the same as the distance between the original vert locations, same goes for the lines below.
 		 */
 		TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
@@ -6385,8 +6385,8 @@ static void doEdgeSlide(TransInfo *t, float perc)
 			if (sv->edge_len > FLT_EPSILON) {
 				const float fac = min_ff(sv->edge_len, curr_length_perc) / sv->edge_len;
 
-				add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_a);
-				add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_b);
+				add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
+				add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
 
 				if (sld->flipped_vtx) {
 					interp_line_v3_v3v3v3(sv->v->co, co_b, sv->v_co_orig, co_a, fac);
