@@ -96,6 +96,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -280,6 +281,12 @@ void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
 
 		nmd = modifier_new(md->type);
 		BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
+
+		if (md->type == eModifierType_Multires) {
+			/* Has to be done after mod creation, but *before* we actually copy its settings! */
+			multiresModifier_sync_levels_ex(ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
+		}
+
 		modifier_copyData(md, nmd);
 		BLI_addtail(&ob_dst->modifiers, nmd);
 		modifier_unique_name(&ob_dst->modifiers, nmd);

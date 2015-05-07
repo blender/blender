@@ -882,10 +882,12 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 {
 	Mesh *me = ob->data;
 	MDisps *mdisps;
-	int lvl = mmd->totlvl;
+	const int lvl = mmd->totlvl;
 
 	if ((totlvl > multires_max_levels) || (me->totpoly == 0))
 		return;
+
+	BLI_assert(totlvl > lvl);
 
 	multires_force_update(ob);
 
@@ -893,7 +895,7 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 	if (!mdisps)
 		mdisps = multires_mdisps_initialize_hidden(me, totlvl);
 
-	if (mdisps->disps && !updateblock && totlvl > 1) {
+	if (mdisps->disps && !updateblock && lvl != 0) {
 		/* upsample */
 		DerivedMesh *lowdm, *cddm, *highdm;
 		CCGElem **highGridData, **lowGridData, **subGridData;
@@ -910,6 +912,7 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 
 		/* create multires DM from original mesh at low level */
 		lowdm = multires_dm_create_local(ob, cddm, lvl, lvl, simple, has_mask);
+		BLI_assert(lowdm != cddm);
 		cddm->release(cddm);
 
 		/* copy subsurf grids and replace them with low displaced grids */
@@ -2137,27 +2140,38 @@ void multires_load_old(Object *ob, Mesh *me)
 	me->mr = NULL;
 }
 
-/* If 'ob' and 'to_ob' both have multires modifiers, synchronize them
- * such that 'ob' has the same total number of levels as 'to_ob'. */
-static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
+/* If 'ob_src' and 'ob_dst' both have multires modifiers, synchronize them
+ * such that 'ob_dst' has the same total number of levels as 'ob_src'. */
+void multiresModifier_sync_levels_ex(Object *ob_dst, MultiresModifierData *mmd_src, MultiresModifierData *mmd_dst)
 {
-	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 1);
-	MultiresModifierData *to_mmd = get_multires_modifier(scene, to_ob, 1);
+	if (mmd_src->totlvl == mmd_dst->totlvl) {
+		return;
+	}
 
-	if (!mmd) {
+	if (mmd_src->totlvl > mmd_dst->totlvl) {
+		multires_subdivide(mmd_dst, ob_dst, mmd_src->totlvl, false, mmd_dst->simple);
+	}
+	else {
+		multires_del_higher(mmd_dst, ob_dst, mmd_src->totlvl);
+	}
+}
+
+static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
+{
+	MultiresModifierData *mmd_src = get_multires_modifier(scene, ob_src, true);
+	MultiresModifierData *mmd_dst = get_multires_modifier(scene, ob_dst, true);
+
+	if (!mmd_src) {
 		/* object could have MDISP even when there is no multires modifier
 		 * this could lead to troubles due to i've got no idea how mdisp could be
 		 * upsampled correct without modifier data.
 		 * just remove mdisps if no multires present (nazgul) */
 
-		multires_customdata_delete(ob->data);
+		multires_customdata_delete(ob_src->data);
 	}
 
-	if (mmd && to_mmd) {
-		if (mmd->totlvl > to_mmd->totlvl)
-			multires_del_higher(mmd, ob, to_mmd->totlvl);
-		else
-			multires_subdivide(mmd, ob, to_mmd->totlvl, 0, mmd->simple);
+	if (mmd_src && mmd_dst) {
+		multiresModifier_sync_levels_ex(ob_dst, mmd_src, mmd_dst);
 	}
 }
 
@@ -2276,7 +2290,7 @@ void multiresModifier_scale_disp(Scene *scene, Object *ob)
 void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 {
 	float smat[3][3], tmat[3][3], mat[3][3];
-	multires_sync_levels(scene, ob, to_ob);
+	multires_sync_levels(scene, to_ob, ob);
 
 	/* construct scale matrix for displacement */
 	BKE_object_scale_to_mat3(to_ob, tmat);
