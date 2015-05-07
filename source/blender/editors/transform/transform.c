@@ -5460,7 +5460,7 @@ static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 }
 
 /* interpoaltes along a line made up of 2 segments (used for edge slide) */
-static void interp_line_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float t)
+static void interp_line_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], float t)
 {
 	float t_mid, t_delta;
 
@@ -5468,16 +5468,27 @@ static void interp_line_v3_v3v3v3(float p[3], const float v1[3], const float v2[
 	t_mid = line_point_factor_v3(v2, v1, v3);
 
 	t_delta = t - t_mid;
-	if (fabsf(t_delta) < FLT_EPSILON) {
-		copy_v3_v3(p, v2);
-	}
-	else if (t_delta < 0.0f) {
-		interp_v3_v3v3(p, v1, v2, t / t_mid);
+	if (t_delta < 0.0f) {
+		if (UNLIKELY(fabsf(t_mid) < FLT_EPSILON)) {
+			copy_v3_v3(p, v2);
+		}
+		else {
+			interp_v3_v3v3(p, v1, v2, t / t_mid);
+		}
 	}
 	else {
-		interp_v3_v3v3(p, v2, v3, (t - t_mid) / (1.0f - t_mid));
+		t = t - t_mid;
+		t_mid = 1.0f - t_mid;
+
+		if (UNLIKELY(fabsf(t_mid) < FLT_EPSILON)) {
+			copy_v3_v3(p, v3);
+		}
+		else {
+			interp_v3_v3v3(p, v2, v3, t / t_mid);
+		}
 	}
 }
+
 
 static void len_v3_ensure(float v[3], const float length)
 {
