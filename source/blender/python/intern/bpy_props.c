@@ -68,7 +68,8 @@ static EnumPropertyItem property_flag_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 #define BPY_PROPDEF_OPTIONS_DOC \
-"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE', 'PROPORTIONAL'].\n" \
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE', 'PROPORTIONAL'," \
+                                "'TEXTEDIT_UPDATE'].\n" \
 "   :type options: set\n" \
 
 static EnumPropertyItem property_flag_enum_items[] = {
