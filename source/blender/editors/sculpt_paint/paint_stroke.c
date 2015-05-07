@@ -1004,10 +1004,9 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 			}
 
 			for (j = 0; j < PAINT_CURVE_NUM_SEGMENTS; j++) {
-				float rotation = 0.0f;
 				if (do_rake) {
-					normalize_v2_v2(&tangents[2 * j], &tangents[2 * j]);
-					rotation = atan2f(tangents[2 * j], tangents[2 * j + 1]);
+					float rotation = atan2f(tangents[2 * j], tangents[2 * j + 1]);
+					paint_update_brush_rake_rotation(ups, br, rotation);
 				}
 
 				if (!stroke->stroke_started) {
@@ -1016,13 +1015,11 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 					stroke->stroke_started = stroke->test_start(C, op, stroke->last_mouse_position);
 
 					if (stroke->stroke_started) {
-						paint_update_brush_rake_rotation(ups, br, rotation);
 						paint_brush_stroke_add_step(C, op, data + 2 * j, 1.0);
 						paint_line_strokes_spacing(C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
 					}
 				}
 				else {
-					paint_update_brush_rake_rotation(ups, br, rotation);
 					paint_line_strokes_spacing(C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
 				}
 			}
