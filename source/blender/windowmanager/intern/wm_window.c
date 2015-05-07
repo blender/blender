@@ -107,25 +107,25 @@ static struct WMInitStruct {
 
 /* XXX this one should correctly check for apple top header...
  * done for Cocoa : returns window contents (and not frame) max size*/
-void wm_get_screensize(int *width_r, int *height_r)
+void wm_get_screensize(int *r_width, int *r_height)
 {
 	unsigned int uiwidth;
 	unsigned int uiheight;
 	
 	GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight);
-	*width_r = uiwidth;
-	*height_r = uiheight;
+	*r_width = uiwidth;
+	*r_height = uiheight;
 }
 
 /* size of all screens (desktop), useful since the mouse is bound by this */
-void wm_get_desktopsize(int *width_r, int *height_r)
+void wm_get_desktopsize(int *r_width, int *r_height)
 {
 	unsigned int uiwidth;
 	unsigned int uiheight;
 
 	GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight);
-	*width_r = uiwidth;
-	*height_r = uiheight;
+	*r_width = uiwidth;
+	*r_height = uiheight;
 }
 
 /* keeps offset and size within monitor bounds */
@@ -1404,10 +1404,10 @@ void WM_progress_clear(wmWindow *win)
 
 /* ************************************ */
 
-void wm_window_get_position(wmWindow *win, int *posx_r, int *posy_r) 
+void wm_window_get_position(wmWindow *win, int *r_pos_x, int *r_pos_y)
 {
-	*posx_r = win->posx;
-	*posy_r = win->posy;
+	*r_pos_x = win->posx;
+	*r_pos_y = win->posy;
 }
 
 void wm_window_set_size(wmWindow *win, int width, int height) 

@@ -155,7 +155,7 @@ bool BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
 
 /* same as above, but can be used to retrieve images being rendered in
  * a thread safe way, always call both acquire and release */
-struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **lock_r);
+struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **r_lock);
 void BKE_image_release_ibuf(struct Image *ima, struct ImBuf *ibuf, void *lock);
 
 struct ImagePool *BKE_image_pool_new(void);

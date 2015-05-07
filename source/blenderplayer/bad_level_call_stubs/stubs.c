@@ -414,7 +414,7 @@ short ANIM_validate_keyingset(struct bContext *C, struct ListBase *dsources, str
 int ANIM_add_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag, int type) RET_ZERO
 bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag) RET_ZERO
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock) RET_NONE
-struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r) RET_NULL
+struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock) RET_NULL
 void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy) RET_NONE
 const char *ED_info_stats_string(struct Scene *scene) RET_NULL
 void ED_area_tag_redraw(struct ScrArea *sa) RET_NONE

@@ -160,11 +160,11 @@ static struct WindowStateGlobal {
 	eWS_Qual qual;
 } g_WS = {NULL};
 
-static void playanim_window_get_size(int *width_r, int *height_r)
+static void playanim_window_get_size(int *r_width, int *r_height)
 {
 	GHOST_RectangleHandle bounds = GHOST_GetClientBounds(g_WS.ghost_window);
-	*width_r = GHOST_GetWidthRectangle(bounds);
-	*height_r = GHOST_GetHeightRectangle(bounds);
+	*r_width = GHOST_GetWidthRectangle(bounds);
+	*r_height = GHOST_GetHeightRectangle(bounds);
 	GHOST_DisposeRectangle(bounds);
 }
 

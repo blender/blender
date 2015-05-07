@@ -478,7 +478,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 }
 
 static void unpack_generate_paths(
-        const char *name, ID *id, char *abspath_r, char *relpath_r, size_t abspathlen, size_t relpathlen)
+        const char *name, ID *id, char *r_abspath, char *r_relpath, size_t abspathlen, size_t relpathlen)
 {
 	char tempname[FILE_MAX];
 	char tempdir[FILE_MAXDIR];
@@ -500,19 +500,19 @@ static void unpack_generate_paths(
 
 	switch (GS(id->name)) {
 		case ID_VF:
-			BLI_snprintf(relpath_r, relpathlen, "//fonts/%s", tempname);
+			BLI_snprintf(r_relpath, relpathlen, "//fonts/%s", tempname);
 			break;
 		case ID_SO:
-			BLI_snprintf(relpath_r, relpathlen, "//sounds/%s", tempname);
+			BLI_snprintf(r_relpath, relpathlen, "//sounds/%s", tempname);
 			break;
 		case ID_IM:
-			BLI_snprintf(relpath_r, relpathlen, "//textures/%s", tempname);
+			BLI_snprintf(r_relpath, relpathlen, "//textures/%s", tempname);
 			break;
 	}
 
 	{
-		size_t len = BLI_strncpy_rlen(abspath_r, tempdir, abspathlen);
-		BLI_strncpy(abspath_r + len, tempname, abspathlen - len);
+		size_t len = BLI_strncpy_rlen(r_abspath, tempdir, abspathlen);
+		BLI_strncpy(r_abspath + len, tempname, abspathlen - len);
 	}
 }
 

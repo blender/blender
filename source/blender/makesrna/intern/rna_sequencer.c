@@ -809,7 +809,7 @@ static int colbalance_seq_cmp_cb(Sequence *seq, void *arg_pt)
 	return 1;
 }
 
-static Sequence *sequence_get_by_colorbalance(Editing *ed, StripColorBalance *cb, SequenceModifierData **smd_r)
+static Sequence *sequence_get_by_colorbalance(Editing *ed, StripColorBalance *cb, SequenceModifierData **r_smd)
 {
 	SequenceSearchData data;
 
@@ -820,7 +820,7 @@ static Sequence *sequence_get_by_colorbalance(Editing *ed, StripColorBalance *cb
 	/* irritating we need to search for our sequence! */
 	BKE_sequencer_base_recursive_apply(&ed->seqbase, colbalance_seq_cmp_cb, &data);
 
-	*smd_r = data.smd;
+	*r_smd = data.smd;
 
 	return data.seq;
 }

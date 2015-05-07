@@ -730,7 +730,7 @@ MovieTrackingTrack *BKE_tracking_track_get_named(MovieTracking *tracking, MovieT
 	return NULL;
 }
 
-MovieTrackingTrack *BKE_tracking_track_get_indexed(MovieTracking *tracking, int tracknr, ListBase **tracksbase_r)
+MovieTrackingTrack *BKE_tracking_track_get_indexed(MovieTracking *tracking, int tracknr, ListBase **r_tracksbase)
 {
 	MovieTrackingObject *object;
 	int cur = 1;
@@ -743,7 +743,7 @@ MovieTrackingTrack *BKE_tracking_track_get_indexed(MovieTracking *tracking, int 
 		while (track) {
 			if (track->flag & TRACK_HAS_BUNDLE) {
 				if (cur == tracknr) {
-					*tracksbase_r = tracksbase;
+					*r_tracksbase = tracksbase;
 					return track;
 				}
 
@@ -756,7 +756,7 @@ MovieTrackingTrack *BKE_tracking_track_get_indexed(MovieTracking *tracking, int 
 		object = object->next;
 	}
 
-	*tracksbase_r = NULL;
+	*r_tracksbase = NULL;
 
 	return NULL;
 }

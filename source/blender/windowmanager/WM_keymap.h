@@ -101,7 +101,8 @@ int			WM_keymap_map_type_get(struct wmKeyMapItem *kmi);
 const char *WM_key_event_string(short type);
 int         WM_key_event_operator_id(
         const struct bContext *C, const char *opname, int opcontext,
-        struct IDProperty *properties, const bool is_hotkey, struct wmKeyMap **keymap_r);
+        struct IDProperty *properties, const bool is_hotkey,
+        struct wmKeyMap **r_keymap);
 char       *WM_key_event_operator_string(
         const struct bContext *C, const char *opname, int opcontext,
         struct IDProperty *properties, const bool is_strict, char *str, int len);

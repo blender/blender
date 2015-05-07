@@ -90,7 +90,7 @@ struct MovieTrackingTrack *BKE_tracking_track_get_named(struct MovieTracking *tr
                                                         struct MovieTrackingObject *object,
                                                         const char *name);
 struct MovieTrackingTrack *BKE_tracking_track_get_indexed(struct MovieTracking *tracking, int tracknr,
-                                                          struct ListBase **tracksbase_r);
+                                                          struct ListBase **r_tracksbase);
 
 struct MovieTrackingTrack *BKE_tracking_track_get_active(struct MovieTracking *tracking);
 

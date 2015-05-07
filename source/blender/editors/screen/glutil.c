@@ -841,7 +841,7 @@ void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *r_sc_x
 /**
  * Translate the \a world point from world coordinates into screen space.
  */
-void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int screen_r[2])
+void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int r_screen[2])
 {
 	screen_r[0] = (world[0] - di->world_rect.xmin) * di->wo_to_sc[0];
 	screen_r[1] = (world[1] - di->world_rect.ymin) * di->wo_to_sc[1];

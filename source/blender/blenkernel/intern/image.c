@@ -101,7 +101,7 @@ static SpinLock image_spin;
 
 /* prototypes */
 static size_t image_num_files(struct Image *ima);
-static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r);
+static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock);
 static void image_update_views_format(Image *ima, ImageUser *iuser);
 static void image_add_view(Image *ima, const char *viewname, const char *filepath);
 
@@ -3522,7 +3522,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 /* showing RGBA result itself (from compo/sequence) or
  * like exr, using layers etc */
 /* always returns a single ibuf, also during render progress */
-static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_r)
+static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_lock)
 {
 	Render *re;
 	RenderResult rres;
@@ -3540,7 +3540,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		return NULL;
 
 	/* if we the caller is not going to release the lock, don't give the image */
-	if (!lock_r)
+	if (!r_lock)
 		return NULL;
 
 	re = RE_GetRender(iuser->scene->id.name);
@@ -3569,10 +3569,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		return NULL;
 	}
 
-	/* release is done in BKE_image_release_ibuf using lock_r */
+	/* release is done in BKE_image_release_ibuf using r_lock */
 	if (from_render) {
 		BLI_lock_thread(LOCK_VIEWER);
-		*lock_r = re;
+		*r_lock = re;
 		rv = NULL;
 	}
 	else {
@@ -3855,13 +3855,13 @@ BLI_INLINE bool image_quick_test(Image *ima, ImageUser *iuser)
  *
  * not thread-safe, so callee should worry about thread locks
  */
-static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
+static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 {
 	ImBuf *ibuf = NULL;
 	int frame = 0, index = 0;
 
-	if (lock_r)
-		*lock_r = NULL;
+	if (r_lock)
+		*r_lock = NULL;
 
 	/* quick reject tests */
 	if (!image_quick_test(ima, iuser))
@@ -3910,14 +3910,14 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 			if (ima->type == IMA_TYPE_R_RESULT) {
 				/* always verify entirely, and potentially
 				 * returns pointer to release later */
-				ibuf = image_get_render_result(ima, iuser, lock_r);
+				ibuf = image_get_render_result(ima, iuser, r_lock);
 			}
 			else if (ima->type == IMA_TYPE_COMPOSITE) {
 				/* requires lock/unlock, otherwise don't return image */
-				if (lock_r) {
+				if (r_lock) {
 					/* unlock in BKE_image_release_ibuf */
 					BLI_lock_thread(LOCK_VIEWER);
-					*lock_r = ima;
+					*r_lock = ima;
 
 					/* XXX anim play for viewer nodes not yet supported */
 					frame = 0; // XXX iuser ? iuser->framenr : 0;
@@ -3951,13 +3951,13 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
  *
  * references the result, BKE_image_release_ibuf should be used to de-reference
  */
-ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
+ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 {
 	ImBuf *ibuf;
 
 	BLI_spin_lock(&image_spin);
 
-	ibuf = image_acquire_ibuf(ima, iuser, lock_r);
+	ibuf = image_acquire_ibuf(ima, iuser, r_lock);
 
 	BLI_spin_unlock(&image_spin);
 

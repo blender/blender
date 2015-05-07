@@ -626,8 +626,9 @@ static bool check_prefetch_break(void)
 }
 
 /* read file for specified frame number to the memory */
-static unsigned char *prefetch_read_file_to_memory(MovieClip *clip, int current_frame, short render_size,
-                                                   short render_flag, size_t *size_r)
+static unsigned char *prefetch_read_file_to_memory(
+        MovieClip *clip, int current_frame, short render_size, short render_flag,
+        size_t *r_size)
 {
 	MovieClipUser user = {0};
 	char name[FILE_MAX];
@@ -660,7 +661,7 @@ static unsigned char *prefetch_read_file_to_memory(MovieClip *clip, int current_
 		return NULL;
 	}
 
-	*size_r = size;
+	*r_size = size;
 
 	close(file);
 
@@ -698,8 +699,9 @@ static int prefetch_find_uncached_frame(MovieClip *clip, int from_frame, int end
 }
 
 /* get memory buffer for first uncached frame within prefetch frame range */
-static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip *clip,
-                                                 size_t *size_r, int *current_frame_r)
+static unsigned char *prefetch_thread_next_frame(
+        PrefetchQueue *queue, MovieClip *clip,
+        size_t *r_size, int *r_current_frame)
 {
 	unsigned char *mem = NULL;
 
@@ -728,9 +730,9 @@ static unsigned char *prefetch_thread_next_frame(PrefetchQueue *queue, MovieClip
 			int frames_processed;
 
 			mem = prefetch_read_file_to_memory(clip, current_frame, queue->render_size,
-			                                   queue->render_flag, size_r);
+			                                   queue->render_flag, r_size);
 
-			*current_frame_r = current_frame;
+			*r_current_frame = current_frame;
 
 			queue->current_frame = current_frame;
 

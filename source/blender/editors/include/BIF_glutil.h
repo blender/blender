@@ -181,8 +181,8 @@ typedef struct gla2DDrawInfo gla2DDrawInfo;
 #if 0
 
 gla2DDrawInfo  *glaBegin2DDraw(struct rcti *screen_rect, struct rctf *world_rect);
-void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *sc_x_r, int *sc_y_r);
-void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int screen_r[2]);
+void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *r_sc_x, int *r_sc_y);
+void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int r_screen[2]);
 
 void glaEnd2DDraw(gla2DDrawInfo *di);
 
