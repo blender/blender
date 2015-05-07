@@ -208,7 +208,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		filter_x = filter_y = 0.5f;
 	}
 	else {
-		path_rng_2D(kg, &rng, sample, num_samples, PRNG_FILTER_U, &filter_x, &filter_x);
+		path_rng_2D(kg, &rng, sample, num_samples, PRNG_FILTER_U, &filter_x, &filter_y);
 	}
 
 	/* subpixel u/v offset */
