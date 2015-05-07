@@ -238,8 +238,13 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 	BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 	/* will only work for non multiview correctly */
-	camera = BKE_camera_multiview_render(oglrender->scene, v3d->camera, "new opengl render view");
-	BKE_render_result_stamp_info(oglrender->scene, camera, rr);
+	if (v3d) {
+		camera = BKE_camera_multiview_render(oglrender->scene, v3d->camera, "new opengl render view");
+		BKE_render_result_stamp_info(oglrender->scene, camera, rr);
+	}
+	else {
+		BKE_render_result_stamp_info(oglrender->scene, oglrender->scene->camera, rr);
+	}
 
 	RE_ReleaseResult(oglrender->re);
 }
