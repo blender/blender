@@ -70,6 +70,13 @@ InstallDir $INSTDIR ; $INSTDIR is set inside .onInit
 BrandingText "Blender Foundation | http://www.blender.org"
 ComponentText "This will install Blender [VERSION] on your computer."
 
+VIAddVersionKey "ProductName" "Blender"
+VIAddVersionKey "CompanyName" "http://www.blender.org"
+VIAddVersionKey "FileDescription" "Free open source 3D content creation suite."
+VIAddVersionKey "FileVersion" "[SHORTVERSION].0.0"
+
+VIProductVersion "[SHORTVERSION].0.0"
+
 DirText "Use the field below to specify the folder where you want Blender to be copied to. To specify a different folder, type a new name or use the Browse button to select an existing folder."
 
 SilentUnInstall normal
