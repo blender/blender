@@ -1384,6 +1384,30 @@ void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float
 	}
 }
 
+/* forward differencing method for first derivative of cubic bezier curve */
+void BKE_curve_forward_diff_tangent_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride)
+{
+	float rt0, rt1, rt2, f;
+	int a;
+
+	f = 1.0f / (float)it;
+
+	rt0 = 3.0f * (q1 - q0);
+	rt1 = f * (3.0f * (q3 - q0) + 9.0f * (q1 - q2));
+	rt2 = 6.0f * (q0 + q2)- 12.0f * q1;
+
+	q0 = rt0;
+	q1 = f * (rt1 + rt2);
+	q2 = 2.0f * f * rt1;
+
+	for (a = 0; a <= it; a++) {
+		*p = q0;
+		p = (float *)(((char *)p) + stride);
+		q0 += q1;
+		q1 += q2;
+	}
+}
+
 static void forward_diff_bezier_cotangent(const float p0[3], const float p1[3], const float p2[3], const float p3[3],
                                           float p[3], int it, int stride)
 {

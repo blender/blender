@@ -347,7 +347,8 @@ static bool paint_brush_update(bContext *C,
 		if (!stroke->brush_init) {
 			copy_v2_v2(ups->last_rake, mouse_init);
 		}
-		else {
+		/* curve strokes do their own rake calculation */
+		else if (!(brush->flag & BRUSH_CURVE)) {
 			paint_calculate_rake_rotation(ups, brush, mouse_init);
 		}
 	}
@@ -954,6 +955,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 	Brush *br = stroke->brush;
 
 	if (br->flag & BRUSH_CURVE) {
+		UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 		const Scene *scene = CTX_data_scene(C);
 		const float spacing = paint_space_stroke_spacing(scene, stroke, 1.0f, 1.0f);
 		PaintCurve *pc = br->paint_curve;
@@ -974,29 +976,53 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
 		for (i = 0; i < pc->tot_points - 1; i++, pcp++) {
 			int j;
 			float data[(PAINT_CURVE_NUM_SEGMENTS + 1) * 2];
+			float tangents[(PAINT_CURVE_NUM_SEGMENTS + 1) * 2];
 			PaintCurvePoint *pcp_next = pcp + 1;
+			bool do_rake = false;
 
-			for (j = 0; j < 2; j++)
+			for (j = 0; j < 2; j++) {
 				BKE_curve_forward_diff_bezier(
 				        pcp->bez.vec[1][j],
 				        pcp->bez.vec[2][j],
 				        pcp_next->bez.vec[0][j],
 				        pcp_next->bez.vec[1][j],
 				        data + j, PAINT_CURVE_NUM_SEGMENTS, sizeof(float[2]));
+			}
 
+			if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) ||
+			    (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE))
+			{
+				do_rake = true;
+				for (j = 0; j < 2; j++) {
+					BKE_curve_forward_diff_tangent_bezier(
+					        pcp->bez.vec[1][j],
+					        pcp->bez.vec[2][j],
+					        pcp_next->bez.vec[0][j],
+					        pcp_next->bez.vec[1][j],
+					        tangents + j, PAINT_CURVE_NUM_SEGMENTS, sizeof(float[2]));
+				}
+			}
 
 			for (j = 0; j < PAINT_CURVE_NUM_SEGMENTS; j++) {
+				float rotation = 0.0f;
+				if (do_rake) {
+					normalize_v2_v2(&tangents[2 * j], &tangents[2 * j]);
+					rotation = atan2f(tangents[2 * j], tangents[2 * j + 1]);
+				}
+
 				if (!stroke->stroke_started) {
 					stroke->last_pressure = 1.0;
 					copy_v2_v2(stroke->last_mouse_position, data + 2 * j);
 					stroke->stroke_started = stroke->test_start(C, op, stroke->last_mouse_position);
 
 					if (stroke->stroke_started) {
+						paint_update_brush_rake_rotation(ups, br, rotation);
 						paint_brush_stroke_add_step(C, op, data + 2 * j, 1.0);
 						paint_line_strokes_spacing(C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
 					}
 				}
 				else {
+					paint_update_brush_rake_rotation(ups, br, rotation);
 					paint_line_strokes_spacing(C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
 				}
 			}

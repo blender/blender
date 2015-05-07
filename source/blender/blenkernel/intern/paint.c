@@ -519,7 +519,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,
 /* threshold to move before updating the brush rotation */
 #define RAKE_THRESHHOLD 20
 
-static void update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation)
+void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation)
 {
 	if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE)
 		ups->brush_rotation = rotation;
@@ -527,7 +527,6 @@ static void update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, 
 		ups->brush_rotation = 0.0f;
 
 	if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)
-		/* here, translation contains the mouse coordinates. */
 		ups->brush_rotation_sec = rotation;
 	else
 		ups->brush_rotation_sec = 0.0f;
@@ -549,12 +548,12 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, cons
 
 			ups->last_rake_angle = rotation;
 
-			update_brush_rake_rotation(ups, brush, rotation);
+			paint_update_brush_rake_rotation(ups, brush, rotation);
 		}
 		/* make sure we reset here to the last rotation to avoid accumulating
 		 * values in case a random rotation is also added */
 		else {
-			update_brush_rake_rotation(ups, brush, ups->last_rake_angle);
+			paint_update_brush_rake_rotation(ups, brush, ups->last_rake_angle);
 		}
 	}
 	else {
