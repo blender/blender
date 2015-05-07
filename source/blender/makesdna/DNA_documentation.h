@@ -48,6 +48,24 @@
  *   be badly defined. The reason for this is that it is called with
  *   different types of arguments. It takes a char* at this moment...
  *
+ * - Ignoring structs:
+ *
+ *   Sometimes we need to define structs in DNA which aren't written
+ *   to disk, and can be excluded from blend file DNA string.
+ *   in this case, add two '#' chars directly before the struct. eg.
+ *
+ *   \code{.c}
+ *   #
+ *   #
+ *   typedef struct MyStruct {
+ *       int value;
+ *   } MyStruct;
+ *   \endcode
+ *
+ *   Ignored structs can only be referred to from non-ignored structs
+ *   when referred to as a pointer (where they're usually allocated
+ *   and cleared in ``readfile.c``).
+ *
  * - %Path to the header files
  *
  *   Also because of historical reasons, there is a path prefix to the
