@@ -1251,11 +1251,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					handled = true;
 				}
 				break;
-			case TFM_MODAL_EDGESLIDE_UP:
-			case TFM_MODAL_EDGESLIDE_DOWN:
-				t->redraw |= TREDRAW_HARD;
-				handled = true;
-				break;
 			case TFM_MODAL_AUTOIK_LEN_INC:
 				if (t->flag & T_AUTOIK) {
 					transform_autoik_update(t, 1);
@@ -1270,6 +1265,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					handled = true;
 				}
 				break;
+			/* Those two are only handled in transform's own handler, see T44634! */
+			case TFM_MODAL_EDGESLIDE_UP:
+			case TFM_MODAL_EDGESLIDE_DOWN:
 			default:
 				break;
 		}
@@ -6272,12 +6270,12 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 						case TFM_MODAL_EDGESLIDE_DOWN:
 						{
 							sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
-							break;
+							return TREDRAW_HARD;
 						}
 						case TFM_MODAL_EDGESLIDE_UP:
 						{
 							sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
-							break;
+							return TREDRAW_HARD;
 						}
 					}
 					break;
