@@ -121,9 +121,15 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 					}
 				}
 
-				/* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
 				for (ar = area->regionbase.first; ar; ar = ar->next) {
+					/* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
 					BLI_freelistN(&ar->panels);
+
+					/* simple fix for 3d view properties scrollbar being not set to top */
+					if (ar->regiontype == RGN_TYPE_UI) {
+						ar->v2d.cur.ymax = ar->v2d.tot.ymax;
+						ar->v2d.cur.ymin = ar->v2d.cur.ymax - ar->winy;
+					}
 				}
 			}
 		}
