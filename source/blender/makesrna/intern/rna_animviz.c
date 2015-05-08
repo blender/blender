@@ -252,7 +252,6 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 		{MOTIONPATH_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Frame",
 		 "Display Paths of poses within a fixed number of frames around the current frame"},
 		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range"},
-		{MOTIONPATH_TYPE_SCENE_RANGE, "SCENE", 0, "Scene Range", "Display Paths based on scene start/end frames (preview setting taken into account)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
