@@ -148,6 +148,7 @@ typedef enum eMotionPaths_Types {
 	MOTIONPATH_TYPE_RANGE = 0,
 	/* only show the parts of the paths around the current frame */
 	MOTIONPATH_TYPE_ACFRA = 1,
+	MOTIONPATH_TYPE_SCENE_RANGE = 2,
 } eMotionPath_Types;
 
 /* bAnimVizSettings->path_viewflag */

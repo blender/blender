@@ -95,6 +95,10 @@ void draw_motion_path_instance(Scene *scene,
 		sfra = CFRA - avs->path_bc;
 		efra = CFRA + avs->path_ac;
 	}
+	else if (avs->path_type == MOTIONPATH_TYPE_SCENE_RANGE) {
+		sfra = PSFRA;
+		efra = PEFRA;
+	}
 	else {
 		/* Use the current display range */
 		sfra = avs->path_sf;
