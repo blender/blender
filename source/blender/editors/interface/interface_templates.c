@@ -1651,7 +1651,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	/* arg_litem is malloced, can be freed by parent button */
 	cb = *((RNAUpdateCb *)arg_litem);
 
-	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS_PULLDOWN);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP);
 	
 	
@@ -1672,7 +1672,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	}
 
 	UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
-	UI_block_direction_set(block, UI_DIR_UP);
+	UI_block_direction_set(block, UI_DIR_DOWN);
 
 	if (free) {
 		MEM_freeN(item);
