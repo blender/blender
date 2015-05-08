@@ -2382,7 +2382,6 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 		     * RAS Mesh Update
 		     *
 		     * */
-
 		/* Note!, gameobj can be NULL here */
 
 		/* transverts are only used for deformed RAS_Meshes, the RAS_TexVert data
@@ -2437,7 +2436,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 		m_polygonIndexArray.resize(tot_bt_tris);
 
 
-		for (int p = 0; p < numpolys; p++) {
+		for (int p = 0; p < numpolys;) {
 			RAS_Polygon *poly = meshobj->GetPolygon(p);
 
 			if (poly->IsCollider()) {
@@ -2466,7 +2465,12 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 					*tri_pt++ = vert_remap_array[v_orig];
 				}
 			}
-			m_polygonIndexArray[p] = p; /* dumb counting */
+			m_polygonIndexArray[p] = p;
+			if (poly->VertexCount() == 4) {
+				// if the poly is a quad we transform it in two triangles
+				m_polygonIndexArray[p + 1] = p++;
+			}
+			p++;
 		}
 	}
 
