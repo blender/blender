@@ -730,7 +730,6 @@ static void view_editmove(unsigned short UNUSED(event))
 
 	switch (event) {
 		case WHEELUPMOUSE:
-
 			if (G.qual & LR_SHIFTKEY) {
 				if (G.qual & LR_ALTKEY) {
 					G.qual &= ~LR_SHIFTKEY;
@@ -796,35 +795,38 @@ static void view_editmove(unsigned short UNUSED(event))
 /* ************************************************* */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
-#define TFM_MODAL_CANCEL        1
-#define TFM_MODAL_CONFIRM       2
-#define TFM_MODAL_TRANSLATE     3
-#define TFM_MODAL_ROTATE        4
-#define TFM_MODAL_RESIZE        5
-#define TFM_MODAL_SNAP_INV_ON   6
-#define TFM_MODAL_SNAP_INV_OFF  7
-#define TFM_MODAL_SNAP_TOGGLE   8
-#define TFM_MODAL_AXIS_X        9
-#define TFM_MODAL_AXIS_Y        10
-#define TFM_MODAL_AXIS_Z        11
-#define TFM_MODAL_PLANE_X       12
-#define TFM_MODAL_PLANE_Y       13
-#define TFM_MODAL_PLANE_Z       14
-#define TFM_MODAL_CONS_OFF      15
-#define TFM_MODAL_ADD_SNAP      16
-#define TFM_MODAL_REMOVE_SNAP   17
-/*	18 and 19 used by numinput, defined in transform.h
- * */
-#define TFM_MODAL_PROPSIZE_UP   20
-#define TFM_MODAL_PROPSIZE_DOWN 21
-#define TFM_MODAL_AUTOIK_LEN_INC 22
-#define TFM_MODAL_AUTOIK_LEN_DEC 23
+enum {
+	TFM_MODAL_CANCEL         = 1,
+	TFM_MODAL_CONFIRM        = 2,
+	TFM_MODAL_TRANSLATE      = 3,
+	TFM_MODAL_ROTATE         = 4,
+	TFM_MODAL_RESIZE         = 5,
+	TFM_MODAL_SNAP_INV_ON    = 6,
+	TFM_MODAL_SNAP_INV_OFF   = 7,
+	TFM_MODAL_SNAP_TOGGLE    = 8,
+	TFM_MODAL_AXIS_X         = 9,
+	TFM_MODAL_AXIS_Y         = 10,
+	TFM_MODAL_AXIS_Z         = 11,
+	TFM_MODAL_PLANE_X        = 12,
+	TFM_MODAL_PLANE_Y        = 13,
+	TFM_MODAL_PLANE_Z        = 14,
+	TFM_MODAL_CONS_OFF       = 15,
+	TFM_MODAL_ADD_SNAP       = 16,
+	TFM_MODAL_REMOVE_SNAP    = 17,
 
-#define TFM_MODAL_EDGESLIDE_UP 24
-#define TFM_MODAL_EDGESLIDE_DOWN 25
+/*	18 and 19 used by numinput, defined in transform.h */
+
+	TFM_MODAL_PROPSIZE_UP    = 20,
+	TFM_MODAL_PROPSIZE_DOWN  = 21,
+	TFM_MODAL_AUTOIK_LEN_INC = 22,
+	TFM_MODAL_AUTOIK_LEN_DEC = 23,
+
+	TFM_MODAL_EDGESLIDE_UP   = 24,
+	TFM_MODAL_EDGESLIDE_DOWN = 25,
 
 /* for analog input, like trackpad */
-#define TFM_MODAL_PROPSIZE		26
+	TFM_MODAL_PROPSIZE       = 26,
+};
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
@@ -6244,7 +6246,6 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 					}
 					break;
 				case FKEY:
-				{
 					if (event->val == KM_PRESS) {
 						if (sld->is_proportional == false) {
 							sld->flipped_vtx = !sld->flipped_vtx;
@@ -6253,9 +6254,7 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 						return TREDRAW_HARD;
 					}
 					break;
-				}
 				case CKEY:
-				{
 					/* use like a modifier key */
 					if (event->val == KM_PRESS) {
 						t->flag ^= T_ALT_TRANSFORM;
@@ -6263,28 +6262,19 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 						return TREDRAW_HARD;
 					}
 					break;
-				}
 				case EVT_MODAL_MAP:
-				{
 					switch (event->val) {
 						case TFM_MODAL_EDGESLIDE_DOWN:
-						{
 							sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
 							return TREDRAW_HARD;
-						}
 						case TFM_MODAL_EDGESLIDE_UP:
-						{
 							sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
 							return TREDRAW_HARD;
-						}
 					}
 					break;
-				}
 				case MOUSEMOVE:
-				{
 					calcEdgeSlideCustomPoints(t);
 					break;
-				}
 				default:
 					break;
 			}
@@ -6849,16 +6839,13 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 					}
 					break;
 				case FKEY:
-				{
 					if (event->val == KM_PRESS) {
 						sld->flipped_vtx = !sld->flipped_vtx;
 						calcVertSlideCustomPoints(t);
 						return TREDRAW_HARD;
 					}
 					break;
-				}
 				case CKEY:
-				{
 					/* use like a modifier key */
 					if (event->val == KM_PRESS) {
 						t->flag ^= T_ALT_TRANSFORM;
@@ -6866,23 +6853,17 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 						return TREDRAW_HARD;
 					}
 					break;
-				}
 #if 0
 				case EVT_MODAL_MAP:
-				{
 					switch (event->val) {
 						case TFM_MODAL_EDGESLIDE_DOWN:
-						{
 							sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
 							break;
-						}
 						case TFM_MODAL_EDGESLIDE_UP:
-						{
 							sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
 							break;
-						}
 					}
-				}
+					break;
 #endif
 				case MOUSEMOVE:
 				{
