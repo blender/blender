@@ -273,8 +273,6 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, Ray ray,
 				float bssrdf_u, bssrdf_v;
 				path_state_rng_2D(kg, rng, &state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 				subsurface_scatter_step(kg, &sd, state.flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
-
-				state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
 			}
 		}
 #endif
@@ -392,7 +390,6 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 			PathState hit_state = *state;
 			Ray hit_ray = *ray;
 
-			hit_state.flag |= PATH_RAY_BSSRDF_ANCESTOR;
 			hit_state.rng_offset += PRNG_BOUNCE_NUM;
 			
 			kernel_path_surface_connect_light(kg, rng, &bssrdf_sd[hit], tp, state, L);
@@ -779,8 +776,6 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 		float num_samples_inv = 1.0f/num_samples;
 		RNG bssrdf_rng = cmj_hash(*rng, i);
 
-		state->flag |= PATH_RAY_BSSRDF_ANCESTOR;
-
 		/* do subsurface scatter step with copy of shader data, this will
 		 * replace the BSSRDF with a diffuse BSDF closure */
 		for(int j = 0; j < num_samples; j++) {
@@ -832,8 +827,6 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 					&hit_state, L);
 			}
 		}
-
-		state->flag &= ~PATH_RAY_BSSRDF_ANCESTOR;
 	}
 }
 #endif

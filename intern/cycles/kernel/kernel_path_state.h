@@ -106,7 +106,7 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, PathState *state, int 
 			state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 		}
 		else if(label & LABEL_GLOSSY) {
-			state->flag |= PATH_RAY_GLOSSY|PATH_RAY_GLOSSY_ANCESTOR;
+			state->flag |= PATH_RAY_GLOSSY;
 			state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 		}
 		else {
