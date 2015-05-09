@@ -20,6 +20,7 @@
 #include "buffers.h"
 #include "camera.h"
 #include "device.h"
+#include "graph.h"
 #include "integrator.h"
 #include "scene.h"
 #include "session.h"
@@ -77,6 +78,9 @@ Session::Session(const SessionParams& params_)
 	gpu_need_tonemap = false;
 	pause = false;
 	kernels_loaded = false;
+
+	/* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
+	max_closure_global = 1;
 }
 
 Session::~Session()
@@ -933,6 +937,17 @@ void Session::device_free()
 	/* used from background render only, so no need to
 	 * re-create render/display buffers here
 	 */
+}
+
+int Session::get_max_closure_count()
+{
+	int max_closures = 0;
+	for(int i = 0; i < scene->shaders.size(); i++) {
+		int num_closures = scene->shaders[i]->graph->get_num_closures();
+		max_closures = max(max_closures, num_closures);
+	}
+	max_closure_global = max(max_closure_global, max_closures);
+	return max_closure_global;
 }
 
 CCL_NAMESPACE_END
