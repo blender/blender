@@ -3346,6 +3346,10 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	/* devices are numbered consecutively across platforms */
 	int num_base = 0;
 
+	const bool force_all_platforms =
+		(getenv("CYCLES_OPENCL_TEST") != NULL) ||
+		(getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST")) != NULL;
+
 	for(int platform = 0; platform < num_platforms; platform++, num_base += num_devices) {
 		num_devices = 0;
 		if(clGetDeviceIDs(platform_ids[platform], opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
@@ -3359,6 +3363,17 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		char pname[256];
 		clGetPlatformInfo(platform_ids[platform], CL_PLATFORM_NAME, sizeof(pname), &pname, NULL);
 		string platform_name = pname;
+
+		cl_device_type device_type;
+		clGetDeviceInfo(device_ids[platform], CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+
+		/* TODO(sergey): Make it an utility function to check whitelisted devices. */
+		if(!(force_all_platforms ||
+		     (platform_name == "AMD Accelerated Parallel Processing" &&
+		      device_type == CL_DEVICE_TYPE_GPU)))
+		{
+			continue;
+		}
 
 		/* add devices */
 		for(int num = 0; num < num_devices; num++) {
