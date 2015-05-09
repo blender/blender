@@ -40,6 +40,8 @@
 #include "util_half.h"
 #include "util_types.h"
 
+#define ccl_addr_space
+
 /* On x86_64, versions of glibc < 2.16 have an issue where expf is
  * much slower than the double version.  This was fixed in glibc 2.16.
  */

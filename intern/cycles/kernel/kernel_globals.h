@@ -80,7 +80,7 @@ typedef struct KernelGlobals {} KernelGlobals;
 
 #ifdef __KERNEL_OPENCL__
 
-typedef struct KernelGlobals {
+typedef ccl_addr_space struct KernelGlobals {
 	ccl_constant KernelData *data;
 
 #define KERNEL_TEX(type, ttype, name) \

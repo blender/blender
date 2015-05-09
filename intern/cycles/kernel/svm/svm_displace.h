@@ -25,11 +25,11 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 	uint normal_offset, distance_offset, invert;
 	decode_node_uchar4(node.y, &normal_offset, &distance_offset, &invert, NULL);
 
-	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
+	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): ccl_fetch(sd, N);
 
 	/* get surface tangents from normal */
-	float3 Rx = cross(sd->dP.dy, normal_in);
-	float3 Ry = cross(normal_in, sd->dP.dx);
+	float3 Rx = cross(ccl_fetch(sd, dP).dy, normal_in);
+	float3 Ry = cross(normal_in, ccl_fetch(sd, dP).dx);
 
 	/* get bump values */
 	uint c_offset, x_offset, y_offset, strength_offset;
@@ -40,7 +40,7 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 	float h_y = stack_load_float(stack, y_offset);
 
 	/* compute surface gradient and determinant */
-	float det = dot(sd->dP.dx, Rx);
+	float det = dot(ccl_fetch(sd, dP).dx, Rx);
 	float3 surfgrad = (h_x - h_c)*Rx + (h_y - h_c)*Ry;
 
 	float absdet = fabsf(det);
@@ -65,7 +65,7 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 ccl_device void svm_node_set_displacement(ShaderData *sd, float *stack, uint fac_offset)
 {
 	float d = stack_load_float(stack, fac_offset);
-	sd->P += sd->N*d*0.1f; /* todo: get rid of this factor */
+	ccl_fetch(sd, P) += ccl_fetch(sd, N)*d*0.1f; /* todo: get rid of this factor */
 }
 
 CCL_NAMESPACE_END

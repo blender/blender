@@ -22,12 +22,12 @@ ccl_device void svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
 	uint4 node, NodeAttributeType *type,
 	NodeAttributeType *mesh_type, AttributeElement *elem, int *offset, uint *out_offset)
 {
-	if(sd->object != OBJECT_NONE) {
+	if(ccl_fetch(sd, object) != OBJECT_NONE) {
 		/* find attribute by unique id */
 		uint id = node.y;
-		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
+		uint attr_offset = ccl_fetch(sd, object)*kernel_data.bvh.attributes_map_stride;
 #ifdef __HAIR__
-		attr_offset = (sd->type & PRIMITIVE_ALL_CURVE)? attr_offset + ATTR_PRIM_CURVE: attr_offset;
+		attr_offset = (ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE)? attr_offset + ATTR_PRIM_CURVE: attr_offset;
 #endif
 		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 		

@@ -236,25 +236,25 @@ ccl_device_inline float3 motion_triangle_refine_subsurface(KernelGlobals *kg, Sh
 ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, bool subsurface)
 {
 	/* get shader */
-	sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
+	ccl_fetch(sd, shader) = kernel_tex_fetch(__tri_shader, ccl_fetch(sd, prim));
 
 	/* get motion info */
 	int numsteps, numverts;
-	object_motion_info(kg, sd->object, &numsteps, &numverts, NULL);
+	object_motion_info(kg, ccl_fetch(sd, object), &numsteps, &numverts, NULL);
 
 	/* figure out which steps we need to fetch and their interpolation factor */
 	int maxstep = numsteps*2;
-	int step = min((int)(sd->time*maxstep), maxstep-1);
-	float t = sd->time*maxstep - step;
+	int step = min((int)(ccl_fetch(sd, time)*maxstep), maxstep-1);
+	float t = ccl_fetch(sd, time)*maxstep - step;
 
 	/* find attribute */
 	AttributeElement elem;
-	int offset = find_attribute_motion(kg, sd->object, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
+	int offset = find_attribute_motion(kg, ccl_fetch(sd, object), ATTR_STD_MOTION_VERTEX_POSITION, &elem);
 	kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
 	/* fetch vertex coordinates */
 	float3 verts[3], next_verts[3];
-	float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
+	float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim)));
 
 	motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
 	motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step+1, next_verts);
@@ -268,33 +268,33 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderD
 #ifdef __SUBSURFACE__
 	if(!subsurface)
 #endif
-		sd->P = motion_triangle_refine(kg, sd, isect, ray, verts);
+		ccl_fetch(sd, P) = motion_triangle_refine(kg, sd, isect, ray, verts);
 #ifdef __SUBSURFACE__
 	else
-		sd->P = motion_triangle_refine_subsurface(kg, sd, isect, ray, verts);
+		ccl_fetch(sd, P) = motion_triangle_refine_subsurface(kg, sd, isect, ray, verts);
 #endif
 
 	/* compute face normal */
 	float3 Ng;
-	if(sd->flag & SD_NEGATIVE_SCALE_APPLIED)
+	if(ccl_fetch(sd, flag) & SD_NEGATIVE_SCALE_APPLIED)
 		Ng = normalize(cross(verts[2] - verts[0], verts[1] - verts[0]));
 	else
 		Ng = normalize(cross(verts[1] - verts[0], verts[2] - verts[0]));
 
-	sd->Ng = Ng;
-	sd->N = Ng;
+	ccl_fetch(sd, Ng) = Ng;
+	ccl_fetch(sd, N) = Ng;
 
 	/* compute derivatives of P w.r.t. uv */
 #ifdef __DPDU__
-	sd->dPdu = (verts[0] - verts[2]);
-	sd->dPdv = (verts[1] - verts[2]);
+	ccl_fetch(sd, dPdu) = (verts[0] - verts[2]);
+	ccl_fetch(sd, dPdv) = (verts[1] - verts[2]);
 #endif
 
 	/* compute smooth normal */
-	if(sd->shader & SHADER_SMOOTH_NORMAL) {
+	if(ccl_fetch(sd, shader) & SHADER_SMOOTH_NORMAL) {
 		/* find attribute */
 		AttributeElement elem;
-		int offset = find_attribute_motion(kg, sd->object, ATTR_STD_MOTION_VERTEX_NORMAL, &elem);
+		int offset = find_attribute_motion(kg, ccl_fetch(sd, object), ATTR_STD_MOTION_VERTEX_NORMAL, &elem);
 		kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
 		/* fetch vertex coordinates */
@@ -308,10 +308,10 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderD
 		normals[2] = (1.0f - t)*normals[2] + t*next_normals[2];
 
 		/* interpolate between vertices */
-		float u = sd->u;
-		float v = sd->v;
+		float u = ccl_fetch(sd, u);
+		float v = ccl_fetch(sd, v);
 		float w = 1.0f - u - v;
-		sd->N = (u*normals[0] + v*normals[1] + w*normals[2]);
+		ccl_fetch(sd, N) = (u*normals[0] + v*normals[1] + w*normals[2]);
 	}
 }
 

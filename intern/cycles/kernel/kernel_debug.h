@@ -23,7 +23,7 @@ ccl_device_inline void debug_data_init(DebugData *debug_data)
 
 ccl_device_inline void kernel_write_debug_passes(KernelGlobals *kg,
                                                  ccl_global float *buffer,
-                                                 PathState *state,
+                                                 ccl_addr_space PathState *state,
                                                  DebugData *debug_data,
                                                  int sample)
 {

@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* See "Tracing Ray Differentials", Homan Igehy, 1999. */
 
-ccl_device void differential_transfer(differential3 *dP_, const differential3 dP, float3 D, const differential3 dD, float3 Ng, float t)
+ccl_device void differential_transfer(ccl_addr_space differential3 *dP_, const differential3 dP, float3 D, const differential3 dD, float3 Ng, float t)
 {
 	/* ray differential transfer through homogeneous medium, to
 	 * compute dPdx/dy at a shading point from the incoming ray */
@@ -31,7 +31,7 @@ ccl_device void differential_transfer(differential3 *dP_, const differential3 dP
 	dP_->dy = tmpy - dot(tmpy, Ng)*tmp;
 }
 
-ccl_device void differential_incoming(differential3 *dI, const differential3 dD)
+ccl_device void differential_incoming(ccl_addr_space differential3 *dI, const differential3 dD)
 {
 	/* compute dIdx/dy at a shading point, we just need to negate the
 	 * differential of the ray direction */
@@ -40,7 +40,7 @@ ccl_device void differential_incoming(differential3 *dI, const differential3 dD)
 	dI->dy = -dD.dy;
 }
 
-ccl_device void differential_dudv(differential *du, differential *dv, float3 dPdu, float3 dPdv, differential3 dP, float3 Ng)
+ccl_device void differential_dudv(ccl_addr_space differential *du, ccl_addr_space differential *dv, float3 dPdu, float3 dPdv, differential3 dP, float3 Ng)
 {
 	/* now we have dPdx/dy from the ray differential transfer, and dPdu/dv
 	 * from the primitive, we can compute dudx/dy and dvdx/dy. these are

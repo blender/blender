@@ -392,10 +392,10 @@ ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *sta
 ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	/* get object space normal */
-	float3 N = sd->N;
+	float3 N = ccl_fetch(sd, N);
 
-	N = sd->N;
-	if(sd->object != OBJECT_NONE)
+	N = ccl_fetch(sd, N);
+	if(ccl_fetch(sd, object) != OBJECT_NONE)
 		object_inverse_normal_transform(kg, sd, &N);
 
 	/* project from direction vector to barycentric coordinates in triangles */

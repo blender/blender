@@ -29,13 +29,13 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem)
 {
-	if(sd->object == PRIM_NONE)
+	if(ccl_fetch(sd, object) == PRIM_NONE)
 		return (int)ATTR_STD_NOT_FOUND;
 
 	/* for SVM, find attribute by unique id */
-	uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
+	uint attr_offset = ccl_fetch(sd, object)*kernel_data.bvh.attributes_map_stride;
 #ifdef __HAIR__
-	attr_offset = (sd->type & PRIMITIVE_ALL_CURVE)? attr_offset + ATTR_PRIM_CURVE: attr_offset;
+	attr_offset = (ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE)? attr_offset + ATTR_PRIM_CURVE: attr_offset;
 #endif
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	
@@ -49,7 +49,7 @@ ccl_device_inline int find_attribute(KernelGlobals *kg, const ShaderData *sd, ui
 
 	*elem = (AttributeElement)attr_map.y;
 	
-	if(sd->prim == PRIM_NONE && (AttributeElement)attr_map.y != ATTR_ELEMENT_MESH)
+	if(ccl_fetch(sd, prim) == PRIM_NONE && (AttributeElement)attr_map.y != ATTR_ELEMENT_MESH)
 		return ATTR_STD_NOT_FOUND;
 
 	/* return result */

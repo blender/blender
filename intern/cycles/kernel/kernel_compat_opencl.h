@@ -40,6 +40,12 @@
 #define ccl_local __local
 #define ccl_private __private
 
+#ifdef __SPLIT_KERNEL__
+#define ccl_addr_space __global
+#else
+#define ccl_addr_space
+#endif
+
 /* Selective nodes compilation. */
 #ifndef __NODES_MAX_GROUP__
 #  define __NODES_MAX_GROUP__ NODE_GROUP_LEVEL_MAX

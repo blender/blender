@@ -39,6 +39,30 @@
 CCL_NAMESPACE_BEGIN
 
 #define CL_MEM_PTR(p) ((cl_mem)(uintptr_t)(p))
+#define KERNEL_APPEND_ARG(kernel_name, arg) \
+               opencl_assert(clSetKernelArg(kernel_name, narg++, sizeof(arg), (void*)&arg))
+
+/* Macro declarations used with split kernel */
+
+/* Macro to enable/disable work-stealing */
+#define __WORK_STEALING__
+
+#define SPLIT_KERNEL_LOCAL_SIZE_X 64
+#define SPLIT_KERNEL_LOCAL_SIZE_Y 1
+
+/* This value may be tuned according to the scene we are rendering.
+ *
+ * Modifying PATH_ITER_INC_FACTOR value proportional to number of expected
+ * ray-bounces will improve performance.
+ */
+#define PATH_ITER_INC_FACTOR 8
+
+/* When allocate global memory in chunks. We may not be able to
+ * allocate exactly "CL_DEVICE_MAX_MEM_ALLOC_SIZE" bytes in chunks;
+ * Since some bytes may be needed for aligning chunks of memory;
+ * This is the amount of memory that we dedicate for that purpose.
+ */
+#define DATA_ALLOCATION_MEM_FACTOR 5000000 //5MB
 
 static cl_device_type opencl_device_type()
 {
@@ -94,11 +118,11 @@ static string opencl_kernel_build_options(const string& platform, const string *
 		build_options += "-D__KERNEL_OPENCL_AMD__ ";
 
 	else if(platform == "Intel(R) OpenCL") {
-		build_options += "-D__KERNEL_OPENCL_INTEL_CPU__";
+		build_options += "-D__KERNEL_OPENCL_INTEL_CPU__ ";
 
 		/* options for gdb source level kernel debugging. this segfaults on linux currently */
 		if(opencl_kernel_use_debug() && debug_src)
-			build_options += "-g -s \"" + *debug_src + "\"";
+			build_options += "-g -s \"" + *debug_src + "\" ";
 	}
 
 	if(opencl_kernel_use_debug())
@@ -118,14 +142,18 @@ class OpenCLCache
 	{
 		thread_mutex *mutex;
 		cl_context context;
-		cl_program program;
+		/* cl_program for shader, bake, film_convert kernels (used in OpenCLDeviceBase) */
+		cl_program ocl_dev_base_program;
+		/* cl_program for megakernel (used in OpenCLDeviceMegaKernel) */
+		cl_program ocl_dev_megakernel_program;
 
-		Slot() : mutex(NULL), context(NULL), program(NULL) {}
+		Slot() : mutex(NULL), context(NULL), ocl_dev_base_program(NULL), ocl_dev_megakernel_program(NULL) {}
 
 		Slot(const Slot &rhs)
 			: mutex(rhs.mutex)
 			, context(rhs.context)
-			, program(rhs.program)
+			, ocl_dev_base_program(rhs.ocl_dev_base_program)
+			, ocl_dev_megakernel_program(rhs.ocl_dev_megakernel_program)
 		{
 			/* copy can only happen in map insert, assert that */
 			assert(mutex == NULL);
@@ -236,6 +264,12 @@ class OpenCLCache
 	}
 
 public:
+
+	enum ProgramName {
+		OCL_DEV_BASE_PROGRAM,
+		OCL_DEV_MEGAKERNEL_PROGRAM,
+	};
+
 	/* see get_something comment */
 	static cl_context get_context(cl_platform_id platform, cl_device_id device,
 		thread_scoped_lock &slot_locker)
@@ -254,10 +288,21 @@ public:
 	}
 
 	/* see get_something comment */
-	static cl_program get_program(cl_platform_id platform, cl_device_id device,
+	static cl_program get_program(cl_platform_id platform, cl_device_id device, ProgramName program_name,
 		thread_scoped_lock &slot_locker)
 	{
-		cl_program program = get_something<cl_program>(platform, device, &Slot::program, slot_locker);
+		cl_program program = NULL;
+
+		if(program_name == OCL_DEV_BASE_PROGRAM) {
+			/* Get program related to OpenCLDeviceBase */
+			program = get_something<cl_program>(platform, device, &Slot::ocl_dev_base_program, slot_locker);
+		}
+		else if(program_name == OCL_DEV_MEGAKERNEL_PROGRAM) {
+			/* Get program related to megakernel */
+			program = get_something<cl_program>(platform, device, &Slot::ocl_dev_megakernel_program, slot_locker);
+		} else {
+			assert(!"Invalid program name");
+		}
 
 		if(!program)
 			return NULL;
@@ -284,10 +329,18 @@ public:
 	}
 
 	/* see store_something comment */
-	static void store_program(cl_platform_id platform, cl_device_id device, cl_program program,
+	static void store_program(cl_platform_id platform, cl_device_id device, cl_program program, ProgramName program_name,
 		thread_scoped_lock &slot_locker)
 	{
-		store_something<cl_program>(platform, device, program, &Slot::program, slot_locker);
+		if(program_name == OCL_DEV_BASE_PROGRAM) {
+			store_something<cl_program>(platform, device, program, &Slot::ocl_dev_base_program, slot_locker);
+		}
+		else if(program_name == OCL_DEV_MEGAKERNEL_PROGRAM) {
+			store_something<cl_program>(platform, device, program, &Slot::ocl_dev_megakernel_program, slot_locker);
+		} else {
+			assert(!"Invalid program name\n");
+			return;
+		}
 
 		/* increment reference count in OpenCL.
 		 * The caller is going to release the object when done with it. */
@@ -304,8 +357,10 @@ public:
 		thread_scoped_lock cache_lock(self.cache_lock);
 
 		foreach(CacheMap::value_type &item, self.cache) {
-			if(item.second.program != NULL)
-				clReleaseProgram(item.second.program);
+			if(item.second.ocl_dev_base_program != NULL)
+				clReleaseProgram(item.second.ocl_dev_base_program);
+			if(item.second.ocl_dev_megakernel_program != NULL)
+				clReleaseProgram(item.second.ocl_dev_megakernel_program);
 			if(item.second.context != NULL)
 				clReleaseContext(item.second.context);
 		}
@@ -314,7 +369,7 @@ public:
 	}
 };
 
-class OpenCLDevice : public Device
+class OpenCLDeviceBase : public Device
 {
 public:
 	DedicatedTaskPool task_pool;
@@ -323,7 +378,6 @@ public:
 	cl_platform_id cpPlatform;
 	cl_device_id cdDevice;
 	cl_program cpProgram;
-	cl_kernel ckPathTraceKernel;
 	cl_kernel ckFilmConvertByteKernel;
 	cl_kernel ckFilmConvertHalfFloatKernel;
 	cl_kernel ckShaderKernel;
@@ -385,7 +439,7 @@ public:
 		}
 	}
 
-	OpenCLDevice(DeviceInfo& info, Stats &stats, bool background_)
+	OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool background_)
 	: Device(info, stats, background_)
 	{
 		cpPlatform = NULL;
@@ -393,7 +447,6 @@ public:
 		cxContext = NULL;
 		cqCommandQueue = NULL;
 		cpProgram = NULL;
-		ckPathTraceKernel = NULL;
 		ckFilmConvertByteKernel = NULL;
 		ckFilmConvertHalfFloatKernel = NULL;
 		ckShaderKernel = NULL;
@@ -501,7 +554,7 @@ public:
 		if(opencl_error(ciErr))
 			return;
 
-		fprintf(stderr,"Device init succes\n");
+		fprintf(stderr, "Device init success\n");
 		device_initialized = true;
 	}
 
@@ -547,7 +600,11 @@ public:
 		return true;
 	}
 
-	bool load_binary(const string& kernel_path, const string& clbin, const string *debug_src = NULL)
+	bool load_binary(const string& /*kernel_path*/,
+	                 const string& clbin,
+	                 string custom_kernel_build_options,
+	                 cl_program *program,
+	                 const string *debug_src = NULL)
 	{
 		/* read binary into memory */
 		vector<uint8_t> binary;
@@ -562,7 +619,7 @@ public:
 		size_t size = binary.size();
 		const uint8_t *bytes = &binary[0];
 
-		cpProgram = clCreateProgramWithBinary(cxContext, 1, &cdDevice,
+		*program = clCreateProgramWithBinary(cxContext, 1, &cdDevice,
 			&size, &bytes, &status, &ciErr);
 
 		if(opencl_error(status) || opencl_error(ciErr)) {
@@ -570,16 +627,16 @@ public:
 			return false;
 		}
 
-		if(!build_kernel(kernel_path, debug_src))
+		if(!build_kernel(program, custom_kernel_build_options, debug_src))
 			return false;
 
 		return true;
 	}
 
-	bool save_binary(const string& clbin)
+	bool save_binary(cl_program *program, const string& clbin)
 	{
 		size_t size = 0;
-		clGetProgramInfo(cpProgram, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &size, NULL);
+		clGetProgramInfo(*program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &size, NULL);
 
 		if(!size)
 			return false;
@@ -587,7 +644,7 @@ public:
 		vector<uint8_t> binary(size);
 		uint8_t *bytes = &binary[0];
 
-		clGetProgramInfo(cpProgram, CL_PROGRAM_BINARIES, sizeof(uint8_t*), &bytes, NULL);
+		clGetProgramInfo(*program, CL_PROGRAM_BINARIES, sizeof(uint8_t*), &bytes, NULL);
 
 		if(!path_write_binary(clbin, binary)) {
 			opencl_error(string_printf("OpenCL failed to write cached binary %s.", clbin.c_str()));
@@ -597,20 +654,23 @@ public:
 		return true;
 	}
 
-	bool build_kernel(const string& /*kernel_path*/, const string *debug_src = NULL)
+	bool build_kernel(cl_program *kernel_program,
+	                  string custom_kernel_build_options,
+	                  const string *debug_src = NULL)
 	{
-		string build_options = opencl_kernel_build_options(platform_name, debug_src);
-	
-		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
+		string build_options;
+		build_options = opencl_kernel_build_options(platform_name, debug_src) + custom_kernel_build_options;
+
+		ciErr = clBuildProgram(*kernel_program, 0, NULL, build_options.c_str(), NULL, NULL);
 
 		/* show warnings even if build is successful */
 		size_t ret_val_size = 0;
 
-		clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
+		clGetProgramBuildInfo(*kernel_program, cdDevice, CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
 		if(ret_val_size > 1) {
-			vector<char> build_log(ret_val_size+1);
-			clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, &build_log[0], NULL);
+			vector<char> build_log(ret_val_size + 1);
+			clGetProgramBuildInfo(*kernel_program, cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, &build_log[0], NULL);
 
 			build_log[ret_val_size] = '\0';
 			fprintf(stderr, "OpenCL kernel build output:\n");
@@ -625,12 +685,15 @@ public:
 		return true;
 	}
 
-	bool compile_kernel(const string& kernel_path, const string& kernel_md5, const string *debug_src = NULL)
+	bool compile_kernel(const string& kernel_path,
+	                    string source,
+	                    string custom_kernel_build_options,
+	                    cl_program *kernel_program,
+	                    const string *debug_src = NULL)
 	{
 		/* we compile kernels consisting of many files. unfortunately opencl
 		 * kernel caches do not seem to recognize changes in included files.
 		 * so we force recompile on changes by adding the md5 hash of all files */
-		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
 		source = path_source_replace_includes(source, kernel_path);
 
 		if(debug_src)
@@ -639,7 +702,7 @@ public:
 		size_t source_len = source.size();
 		const char *source_str = source.c_str();
 
-		cpProgram = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);
+		*kernel_program = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);
 
 		if(opencl_error(ciErr))
 			return false;
@@ -647,7 +710,7 @@ public:
 		double starttime = time_dt();
 		printf("Compiling OpenCL kernel ...\n");
 
-		if(!build_kernel(kernel_path, debug_src))
+		if(!build_kernel(kernel_program, custom_kernel_build_options, debug_src))
 			return false;
 
 		printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
@@ -655,7 +718,7 @@ public:
 		return true;
 	}
 
-	string device_md5_hash()
+	string device_md5_hash(string kernel_custom_build_options = "")
 	{
 		MD5Hash md5;
 		char version[256], driver[256], name[256], vendor[256];
@@ -671,12 +734,13 @@ public:
 		md5.append((uint8_t*)driver, strlen(driver));
 
 		string options = opencl_kernel_build_options(platform_name);
+		options += kernel_custom_build_options;
 		md5.append((uint8_t*)options.c_str(), options.size());
 
 		return md5.get_hex();
 	}
 
-	bool load_kernels(bool /*experimental*/)
+	bool load_kernels(const DeviceRequestedFeatures& /*requested_features*/)
 	{
 		/* verify if device was initialized */
 		if(!device_initialized) {
@@ -686,7 +750,7 @@ public:
 
 		/* try to use cached kernel */
 		thread_scoped_lock cache_locker;
-		cpProgram = OpenCLCache::get_program(cpPlatform, cdDevice, cache_locker);
+		cpProgram = OpenCLCache::get_program(cpPlatform, cdDevice, OpenCLCache::OCL_DEV_BASE_PROGRAM, cache_locker);
 
 		if(!cpProgram) {
 			/* verify we have right opencl version */
@@ -712,28 +776,27 @@ public:
 			}
 
 			/* if exists already, try use it */
-			if(path_exists(clbin) && load_binary(kernel_path, clbin, debug_src)) {
+			if(path_exists(clbin) && load_binary(kernel_path, clbin, "", &cpProgram)) {
 				/* kernel loaded from binary */
 			}
 			else {
+
+				string init_kernel_source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
+
 				/* if does not exist or loading binary failed, compile kernel */
-				if(!compile_kernel(kernel_path, kernel_md5, debug_src))
+				if(!compile_kernel(kernel_path, init_kernel_source, "", &cpProgram, debug_src))
 					return false;
 
 				/* save binary for reuse */
-				if(!save_binary(clbin))
+				if(!save_binary(&cpProgram, clbin))
 					return false;
 			}
 
 			/* cache the program */
-			OpenCLCache::store_program(cpPlatform, cdDevice, cpProgram, cache_locker);
+			OpenCLCache::store_program(cpPlatform, cdDevice, cpProgram, OpenCLCache::OCL_DEV_BASE_PROGRAM, cache_locker);
 		}
 
 		/* find kernels */
-		ckPathTraceKernel = clCreateKernel(cpProgram, "kernel_ocl_path_trace", &ciErr);
-		if(opencl_error(ciErr))
-			return false;
-
 		ckFilmConvertByteKernel = clCreateKernel(cpProgram, "kernel_ocl_convert_to_byte", &ciErr);
 		if(opencl_error(ciErr))
 			return false;
@@ -753,7 +816,7 @@ public:
 		return true;
 	}
 
-	~OpenCLDevice()
+	~OpenCLDeviceBase()
 	{
 		task_pool.stop();
 
@@ -766,12 +829,14 @@ public:
 			delete mt->second;
 		}
 
-		if(ckPathTraceKernel)
-			clReleaseKernel(ckPathTraceKernel);  
 		if(ckFilmConvertByteKernel)
 			clReleaseKernel(ckFilmConvertByteKernel);  
 		if(ckFilmConvertHalfFloatKernel)
 			clReleaseKernel(ckFilmConvertHalfFloatKernel);  
+		if(ckShaderKernel)
+			clReleaseKernel(ckShaderKernel);
+		if(ckBakeKernel)
+			clReleaseKernel(ckBakeKernel);
 		if(cpProgram)
 			clReleaseProgram(cpProgram);
 		if(cqCommandQueue)
@@ -913,42 +978,6 @@ public:
 		opencl_assert(clFlush(cqCommandQueue));
 	}
 
-	void path_trace(RenderTile& rtile, int sample)
-	{
-		/* cast arguments to cl types */
-		cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
-		cl_mem d_buffer = CL_MEM_PTR(rtile.buffer);
-		cl_mem d_rng_state = CL_MEM_PTR(rtile.rng_state);
-		cl_int d_x = rtile.x;
-		cl_int d_y = rtile.y;
-		cl_int d_w = rtile.w;
-		cl_int d_h = rtile.h;
-		cl_int d_sample = sample;
-		cl_int d_offset = rtile.offset;
-		cl_int d_stride = rtile.stride;
-
-		/* sample arguments */
-		cl_uint narg = 0;
-
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_data), (void*)&d_data));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_buffer), (void*)&d_buffer));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_rng_state), (void*)&d_rng_state));
-
-#define KERNEL_TEX(type, ttype, name) \
-	set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
-#include "kernel_textures.h"
-
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_sample), (void*)&d_sample));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_x), (void*)&d_x));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_w), (void*)&d_w));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_h), (void*)&d_h));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_offset), (void*)&d_offset));
-		opencl_assert(clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_stride), (void*)&d_stride));
-
-		enqueue_kernel(ckPathTraceKernel, d_w, d_h);
-	}
-
 	void set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const char *name)
 	{
 		cl_mem ptr;
@@ -985,23 +1014,23 @@ public:
 
 		cl_kernel ckFilmConvertKernel = (rgba_byte)? ckFilmConvertByteKernel: ckFilmConvertHalfFloatKernel;
 
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_data), (void*)&d_data));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_rgba), (void*)&d_rgba));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_buffer), (void*)&d_buffer));
+		/* TODO : Make the kernel launch similar to Cuda */
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_data);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_rgba);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_buffer);
 
 #define KERNEL_TEX(type, ttype, name) \
 	set_kernel_arg_mem(ckFilmConvertKernel, &narg, #name);
 #include "kernel_textures.h"
+#undef KERNEL_TEX
 
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_sample_scale), (void*)&d_sample_scale));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_x), (void*)&d_x));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_y), (void*)&d_y));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_w), (void*)&d_w));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_h), (void*)&d_h));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_offset), (void*)&d_offset));
-		opencl_assert(clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_stride), (void*)&d_stride));
-
-
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_sample_scale);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_x);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_y);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_w);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_h);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_offset);
+		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_stride);
 
 		enqueue_kernel(ckFilmConvertKernel, d_w, d_h);
 	}
@@ -1034,19 +1063,21 @@ public:
 
 			cl_int d_sample = sample;
 
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_data), (void*)&d_data));
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_input), (void*)&d_input));
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_output), (void*)&d_output));
+			/* TODO : Make the kernel launch similar to Cuda */
+			KERNEL_APPEND_ARG(kernel, d_data);
+			KERNEL_APPEND_ARG(kernel, d_input);
+			KERNEL_APPEND_ARG(kernel, d_output);
 
 #define KERNEL_TEX(type, ttype, name) \
 		set_kernel_arg_mem(kernel, &narg, #name);
 #include "kernel_textures.h"
+#undef KERNEL_TEX
 
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_eval_type), (void*)&d_shader_eval_type));
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_x), (void*)&d_shader_x));
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_shader_w), (void*)&d_shader_w));
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_offset), (void*)&d_offset));
-			opencl_assert(clSetKernelArg(kernel, narg++, sizeof(d_sample), (void*)&d_sample));
+			KERNEL_APPEND_ARG(kernel, d_shader_eval_type);
+			KERNEL_APPEND_ARG(kernel, d_shader_x);
+			KERNEL_APPEND_ARG(kernel, d_shader_w);
+			KERNEL_APPEND_ARG(kernel, d_offset);
+			KERNEL_APPEND_ARG(kernel, d_sample);
 
 			enqueue_kernel(kernel, task.shader_w, 1);
 
@@ -1054,46 +1085,14 @@ public:
 		}
 	}
 
-	void thread_run(DeviceTask *task)
-	{
-		if(task->type == DeviceTask::FILM_CONVERT) {
-			film_convert(*task, task->buffer, task->rgba_byte, task->rgba_half);
-		}
-		else if(task->type == DeviceTask::SHADER) {
-			shader(*task);
-		}
-		else if(task->type == DeviceTask::PATH_TRACE) {
-			RenderTile tile;
-			
-			/* keep rendering tiles until done */
-			while(task->acquire_tile(this, tile)) {
-				int start_sample = tile.start_sample;
-				int end_sample = tile.start_sample + tile.num_samples;
-
-				for(int sample = start_sample; sample < end_sample; sample++) {
-					if(task->get_cancel()) {
-						if(task->need_finish_queue == false)
-							break;
-					}
-
-					path_trace(tile, sample);
-
-					tile.sample = sample + 1;
-
-					task->update_progress(&tile);
-				}
-
-				task->release_tile(tile);
-			}
-		}
-	}
-
 	class OpenCLDeviceTask : public DeviceTask {
 	public:
-		OpenCLDeviceTask(OpenCLDevice *device, DeviceTask& task)
+		OpenCLDeviceTask(OpenCLDeviceBase *device, DeviceTask& task)
 		: DeviceTask(task)
 		{
-			run = function_bind(&OpenCLDevice::thread_run, device, this);
+			run = function_bind(&OpenCLDeviceBase::thread_run,
+			                    device,
+			                    this);
 		}
 	};
 
@@ -1116,14 +1115,2205 @@ public:
 	{
 		task_pool.cancel();
 	}
+
+	virtual void thread_run(DeviceTask * /*task*/) = 0;
+
+protected:
+	class ArgumentWrapper {
+	public:
+		ArgumentWrapper() : size(0), pointer(NULL) {}
+		template <typename T>
+		ArgumentWrapper(T& argument) : size(sizeof(argument)),
+		                               pointer(&argument) { }
+		size_t size;
+		void *pointer;
+	};
+
+	/* TODO(sergey): In the future we can use variadic templates, once
+	 * C++0x is allowed. Should allow to clean this up a bit.
+	 */
+	int kernel_set_args(cl_kernel kernel,
+	                    int start_argument_index,
+	                    const ArgumentWrapper& arg1 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg2 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg3 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg4 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg5 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg6 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg7 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg8 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg9 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg10 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg11 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg12 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg13 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg14 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg15 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg16 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg17 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg18 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg19 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg20 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg21 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg22 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg23 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg24 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg25 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg26 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg27 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg28 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg29 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg30 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg31 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg32 = ArgumentWrapper(),
+	                    const ArgumentWrapper& arg33 = ArgumentWrapper())
+	{
+		int current_arg_index = 0;
+#define FAKE_VARARG_HANDLE_ARG(arg) \
+		do { \
+			if(arg.pointer != NULL) { \
+				opencl_assert(clSetKernelArg( \
+					kernel, \
+					start_argument_index + current_arg_index, \
+					arg.size, arg.pointer)); \
+				++current_arg_index; \
+			} \
+			else { \
+				return current_arg_index; \
+			} \
+		} while(false)
+		FAKE_VARARG_HANDLE_ARG(arg1);
+		FAKE_VARARG_HANDLE_ARG(arg2);
+		FAKE_VARARG_HANDLE_ARG(arg3);
+		FAKE_VARARG_HANDLE_ARG(arg4);
+		FAKE_VARARG_HANDLE_ARG(arg5);
+		FAKE_VARARG_HANDLE_ARG(arg6);
+		FAKE_VARARG_HANDLE_ARG(arg7);
+		FAKE_VARARG_HANDLE_ARG(arg8);
+		FAKE_VARARG_HANDLE_ARG(arg9);
+		FAKE_VARARG_HANDLE_ARG(arg10);
+		FAKE_VARARG_HANDLE_ARG(arg11);
+		FAKE_VARARG_HANDLE_ARG(arg12);
+		FAKE_VARARG_HANDLE_ARG(arg13);
+		FAKE_VARARG_HANDLE_ARG(arg14);
+		FAKE_VARARG_HANDLE_ARG(arg15);
+		FAKE_VARARG_HANDLE_ARG(arg16);
+		FAKE_VARARG_HANDLE_ARG(arg17);
+		FAKE_VARARG_HANDLE_ARG(arg18);
+		FAKE_VARARG_HANDLE_ARG(arg19);
+		FAKE_VARARG_HANDLE_ARG(arg20);
+		FAKE_VARARG_HANDLE_ARG(arg21);
+		FAKE_VARARG_HANDLE_ARG(arg22);
+		FAKE_VARARG_HANDLE_ARG(arg23);
+		FAKE_VARARG_HANDLE_ARG(arg24);
+		FAKE_VARARG_HANDLE_ARG(arg25);
+		FAKE_VARARG_HANDLE_ARG(arg26);
+		FAKE_VARARG_HANDLE_ARG(arg27);
+		FAKE_VARARG_HANDLE_ARG(arg28);
+		FAKE_VARARG_HANDLE_ARG(arg29);
+		FAKE_VARARG_HANDLE_ARG(arg30);
+		FAKE_VARARG_HANDLE_ARG(arg31);
+		FAKE_VARARG_HANDLE_ARG(arg32);
+		FAKE_VARARG_HANDLE_ARG(arg33);
+#undef FAKE_VARARG_HANDLE_ARG
+		return current_arg_index;
+	}
+
+	inline void release_kernel_safe(cl_kernel kernel)
+	{
+		if(kernel) {
+			clReleaseKernel(kernel);
+		}
+	}
+
+	inline void release_mem_object_safe(cl_mem mem)
+	{
+		if(mem != NULL) {
+			clReleaseMemObject(mem);
+		}
+	}
+
+	inline void release_program_safe(cl_program program)
+	{
+		if(program) {
+			clReleaseProgram(program);
+		}
+	}
 };
+
+class OpenCLDeviceMegaKernel : public OpenCLDeviceBase
+{
+public:
+	cl_kernel ckPathTraceKernel;
+	cl_program path_trace_program;
+
+	OpenCLDeviceMegaKernel(DeviceInfo& info, Stats &stats, bool background_)
+	: OpenCLDeviceBase(info, stats, background_)
+	{
+		ckPathTraceKernel = NULL;
+		path_trace_program = NULL;
+	}
+
+	bool load_kernels(const DeviceRequestedFeatures& requested_features)
+	{
+		/* Get Shader, bake and film convert kernels.
+		 * It'll also do verification of OpenCL actually initialized.
+		 */
+		if(!OpenCLDeviceBase::load_kernels(requested_features)) {
+			return false;
+		}
+
+		/* Try to use cached kernel. */
+		thread_scoped_lock cache_locker;
+		path_trace_program = OpenCLCache::get_program(cpPlatform,
+		                                              cdDevice,
+		                                              OpenCLCache::OCL_DEV_MEGAKERNEL_PROGRAM,
+		                                              cache_locker);
+
+		if(!path_trace_program) {
+			/* Verify we have right opencl version. */
+			if(!opencl_version_check())
+				return false;
+
+			/* Calculate md5 hash to detect changes. */
+			string kernel_path = path_get("kernel");
+			string kernel_md5 = path_files_md5_hash(kernel_path);
+			string custom_kernel_build_options = "-D__COMPILE_ONLY_MEGAKERNEL__ ";
+			string device_md5 = device_md5_hash(custom_kernel_build_options);
+
+			/* Path to cached binary. */
+			string clbin = string_printf("cycles_kernel_%s_%s.clbin",
+			                             device_md5.c_str(),
+			                             kernel_md5.c_str());
+			clbin = path_user_get(path_join("cache", clbin));
+
+			/* Path to preprocessed source for debugging. */
+			string clsrc, *debug_src = NULL;
+			if(opencl_kernel_use_debug()) {
+				clsrc = string_printf("cycles_kernel_%s_%s.cl",
+				                      device_md5.c_str(),
+				                      kernel_md5.c_str());
+				clsrc = path_user_get(path_join("cache", clsrc));
+				debug_src = &clsrc;
+			}
+
+			/* If exists already, try use it. */
+			if(path_exists(clbin) && load_binary(kernel_path,
+			                                     clbin,
+			                                     custom_kernel_build_options,
+			                                     &path_trace_program,
+			                                     debug_src)) {
+				/* Kernel loaded from binary, nothing to do. */
+			}
+			else {
+				string init_kernel_source = "#include \"kernel.cl\" // " +
+				                            kernel_md5 + "\n";
+				/* If does not exist or loading binary failed, compile kernel. */
+				if(!compile_kernel(kernel_path,
+				                   init_kernel_source,
+				                   custom_kernel_build_options,
+				                   &path_trace_program,
+				                   debug_src))
+				{
+					return false;
+				}
+				/* Save binary for reuse. */
+				if(!save_binary(&path_trace_program, clbin)) {
+					return false;
+				}
+			}
+			/* Cache the program. */
+			OpenCLCache::store_program(cpPlatform,
+			                           cdDevice,
+			                           path_trace_program,
+			                           OpenCLCache::OCL_DEV_MEGAKERNEL_PROGRAM,
+			                           cache_locker);
+		}
+
+		/* Find kernels. */
+		ckPathTraceKernel = clCreateKernel(path_trace_program,
+		                                   "kernel_ocl_path_trace",
+		                                   &ciErr);
+		if(opencl_error(ciErr))
+			return false;
+		return true;
+	}
+
+	~OpenCLDeviceMegaKernel()
+	{
+		task_pool.stop();
+		release_kernel_safe(ckPathTraceKernel);
+		release_program_safe(path_trace_program);
+	}
+
+	void path_trace(RenderTile& rtile, int sample)
+	{
+		/* Cast arguments to cl types. */
+		cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
+		cl_mem d_buffer = CL_MEM_PTR(rtile.buffer);
+		cl_mem d_rng_state = CL_MEM_PTR(rtile.rng_state);
+		cl_int d_x = rtile.x;
+		cl_int d_y = rtile.y;
+		cl_int d_w = rtile.w;
+		cl_int d_h = rtile.h;
+		cl_int d_offset = rtile.offset;
+		cl_int d_stride = rtile.stride;
+
+		/* Sample arguments. */
+		cl_int d_sample = sample;
+		cl_uint narg = 0;
+
+		/* TODO : Make the kernel launch similar to Cuda. */
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_data);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_buffer);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_rng_state);
+
+#define KERNEL_TEX(type, ttype, name) \
+		set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
+#include "kernel_textures.h"
+#undef KERNEL_TEX
+
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_sample);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_x);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_y);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_w);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_h);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_offset);
+		KERNEL_APPEND_ARG(ckPathTraceKernel, d_stride);
+
+		enqueue_kernel(ckPathTraceKernel, d_w, d_h);
+	}
+
+	void thread_run(DeviceTask *task)
+	{
+		if(task->type == DeviceTask::FILM_CONVERT) {
+			film_convert(*task, task->buffer, task->rgba_byte, task->rgba_half);
+		}
+		else if(task->type == DeviceTask::SHADER) {
+			shader(*task);
+		}
+		else if(task->type == DeviceTask::PATH_TRACE) {
+			RenderTile tile;
+			/* Keep rendering tiles until done. */
+			while(task->acquire_tile(this, tile)) {
+				int start_sample = tile.start_sample;
+				int end_sample = tile.start_sample + tile.num_samples;
+
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if(task->get_cancel()) {
+						if(task->need_finish_queue == false)
+							break;
+					}
+
+					path_trace(tile, sample);
+
+					tile.sample = sample + 1;
+
+					task->update_progress(&tile);
+				}
+
+				/* Complete kernel execution before release tile */
+				/* This helps in multi-device render;
+				 * The device that reaches the critical-section function
+				 * release_tile waits (stalling other devices from entering
+				 * release_tile) for all kernels to complete. If device1 (a
+				 * slow-render device) reaches release_tile first then it would
+				 * stall device2 (a fast-render device) from proceeding to render
+				 * next tile.
+				 */
+				clFinish(cqCommandQueue);
+
+				task->release_tile(tile);
+			}
+		}
+	}
+};
+
+/* TODO(sergey): This is to keep tile split on OpenCL level working
+ * for now, since withotu this viewport render does not work as it
+ * should.
+ *
+ * Ideally it'll be done on the higher level, but we need to get ready
+ * for merge rather soon, so let's keep split logic private here in
+ * the file.
+ */
+class SplitRenderTile : public RenderTile {
+public:
+	SplitRenderTile()
+		: RenderTile(),
+		  buffer_offset_x(0),
+		  buffer_offset_y(0),
+		  rng_state_offset_x(0),
+		  rng_state_offset_y(0),
+		  buffer_rng_state_stride(0) {}
+
+	explicit SplitRenderTile(RenderTile& tile)
+		: RenderTile(),
+		  buffer_offset_x(0),
+		  buffer_offset_y(0),
+		  rng_state_offset_x(0),
+		  rng_state_offset_y(0),
+		  buffer_rng_state_stride(0)
+	{
+		x = tile.x;
+		y = tile.y;
+		w = tile.w;
+		h = tile.h;
+		start_sample = tile.start_sample;
+		num_samples = tile.num_samples;
+		sample = tile.sample;
+		resolution = tile.resolution;
+		offset = tile.offset;
+		stride = tile.stride;
+		buffer = tile.buffer;
+		rng_state = tile.rng_state;
+		buffers = tile.buffers;
+	}
+
+	/* Split kernel is device global memory constained;
+	 * hence split kernel cant render big tile size's in
+	 * one go. If the user sets a big tile size (big tile size
+	 * is a term relative to the available device global memory),
+	 * we split the tile further and then call path_trace on
+	 * each of those split tiles. The following variables declared,
+	 * assist in achieving that purpose
+	 */
+	int buffer_offset_x;
+	int buffer_offset_y;
+	int rng_state_offset_x;
+	int rng_state_offset_y;
+	int buffer_rng_state_stride;
+};
+
+/* OpenCLDeviceSplitKernel's declaration/definition. */
+class OpenCLDeviceSplitKernel : public OpenCLDeviceBase
+{
+public:
+	/* Kernel declaration. */
+	cl_kernel ckPathTraceKernel_data_init;
+	cl_kernel ckPathTraceKernel_scene_intersect;
+	cl_kernel ckPathTraceKernel_lamp_emission;
+	cl_kernel ckPathTraceKernel_queue_enqueue;
+	cl_kernel ckPathTraceKernel_background_buffer_update;
+	cl_kernel ckPathTraceKernel_shader_lighting;
+	cl_kernel ckPathTraceKernel_holdout_emission_blurring_pathtermination_ao;
+	cl_kernel ckPathTraceKernel_direct_lighting;
+	cl_kernel ckPathTraceKernel_shadow_blocked_direct_lighting;
+	cl_kernel ckPathTraceKernel_setup_next_iteration;
+	cl_kernel ckPathTraceKernel_sum_all_radiance;
+
+	/* cl_program declaration. */
+	cl_program data_init_program;
+	cl_program scene_intersect_program;
+	cl_program lamp_emission_program;
+	cl_program queue_enqueue_program;
+	cl_program background_buffer_update_program;
+	cl_program shader_eval_program;
+	cl_program holdout_emission_blurring_termination_ao_program;
+	cl_program direct_lighting_program;
+	cl_program shadow_blocked_program;
+	cl_program next_iteration_setup_program;
+	cl_program sum_all_radiance_program;
+
+	/* Global memory variables [porting]; These memory is used for
+	 * co-operation between different kernels; Data written by one
+	 * kernel will be avaible to another kernel via this global
+	 * memory.
+	 */
+	cl_mem rng_coop;
+	cl_mem throughput_coop;
+	cl_mem L_transparent_coop;
+	cl_mem PathRadiance_coop;
+	cl_mem Ray_coop;
+	cl_mem PathState_coop;
+	cl_mem Intersection_coop;
+	cl_mem kgbuffer;  /* KernelGlobals buffer. */
+
+	/* Global buffers for ShaderData. */
+	cl_mem sd;             /* ShaderData used in the main path-iteration loop. */
+	cl_mem sd_DL_shadow;   /* ShaderData used in Direct Lighting and
+	                        * shadow_blocked kernel.
+	                        */
+
+	/* Global buffers of each member of ShaderData. */
+	cl_mem P_sd;
+	cl_mem P_sd_DL_shadow;
+	cl_mem N_sd;
+	cl_mem N_sd_DL_shadow;
+	cl_mem Ng_sd;
+	cl_mem Ng_sd_DL_shadow;
+	cl_mem I_sd;
+	cl_mem I_sd_DL_shadow;
+	cl_mem shader_sd;
+	cl_mem shader_sd_DL_shadow;
+	cl_mem flag_sd;
+	cl_mem flag_sd_DL_shadow;
+	cl_mem prim_sd;
+	cl_mem prim_sd_DL_shadow;
+	cl_mem type_sd;
+	cl_mem type_sd_DL_shadow;
+	cl_mem u_sd;
+	cl_mem u_sd_DL_shadow;
+	cl_mem v_sd;
+	cl_mem v_sd_DL_shadow;
+	cl_mem object_sd;
+	cl_mem object_sd_DL_shadow;
+	cl_mem time_sd;
+	cl_mem time_sd_DL_shadow;
+	cl_mem ray_length_sd;
+	cl_mem ray_length_sd_DL_shadow;
+	cl_mem ray_depth_sd;
+	cl_mem ray_depth_sd_DL_shadow;
+	cl_mem transparent_depth_sd;
+	cl_mem transparent_depth_sd_DL_shadow;
+#ifdef __RAY_DIFFERENTIALS__
+	cl_mem dP_sd, dI_sd;
+	cl_mem dP_sd_DL_shadow, dI_sd_DL_shadow;
+	cl_mem du_sd, dv_sd;
+	cl_mem du_sd_DL_shadow, dv_sd_DL_shadow;
+#endif
+#ifdef __DPDU__
+	cl_mem dPdu_sd, dPdv_sd;
+	cl_mem dPdu_sd_DL_shadow, dPdv_sd_DL_shadow;
+#endif
+	cl_mem closure_sd;
+	cl_mem closure_sd_DL_shadow;
+	cl_mem num_closure_sd;
+	cl_mem num_closure_sd_DL_shadow;
+	cl_mem randb_closure_sd;
+	cl_mem randb_closure_sd_DL_shadow;
+	cl_mem ray_P_sd;
+	cl_mem ray_P_sd_DL_shadow;
+	cl_mem ray_dP_sd;
+	cl_mem ray_dP_sd_DL_shadow;
+
+	/* Global memory required for shadow blocked and accum_radiance. */
+	cl_mem BSDFEval_coop;
+	cl_mem ISLamp_coop;
+	cl_mem LightRay_coop;
+	cl_mem AOAlpha_coop;
+	cl_mem AOBSDF_coop;
+	cl_mem AOLightRay_coop;
+	cl_mem Intersection_coop_AO;
+	cl_mem Intersection_coop_DL;
+
+#ifdef WITH_CYCLES_DEBUG
+	/* DebugData memory */
+	cl_mem debugdata_coop;
+#endif
+
+	/* Global state array that tracks ray state. */
+	cl_mem ray_state;
+
+	/* Per sample buffers. */
+	cl_mem per_sample_output_buffers;
+
+	/* Denotes which sample each ray is being processed for. */
+	cl_mem work_array;
+
+	/* Queue */
+	cl_mem Queue_data;  /* Array of size queuesize * num_queues * sizeof(int). */
+	cl_mem Queue_index; /* Array of size num_queues * sizeof(int);
+	                     * Tracks the size of each queue.
+	                     */
+
+	/* Flag to make sceneintersect and lampemission kernel use queues. */
+	cl_mem use_queues_flag;
+
+	/* Required-memory size. */
+	size_t throughput_size;
+	size_t L_transparent_size;
+	size_t rayState_size;
+	size_t hostRayState_size;
+	size_t work_element_size;
+	size_t ISLamp_size;
+
+	/* Sizes of memory required for shadow blocked function. */
+	size_t AOAlpha_size;
+	size_t AOBSDF_size;
+
+	/* Amount of memory in output buffer associated with one pixel/thread. */
+	size_t per_thread_output_buffer_size;
+
+	/* Total allocatable available device memory. */
+	size_t total_allocatable_memory;
+
+	/* host version of ray_state; Used in checking host path-iteration
+	 * termination.
+	 */
+	char *hostRayStateArray;
+
+	/* Number of path-iterations to be done in one shot. */
+	unsigned int PathIteration_times;
+
+#ifdef __WORK_STEALING__
+	/* Work pool with respect to each work group. */
+	cl_mem work_pool_wgs;
+
+	/* Denotes the maximum work groups possible w.r.t. current tile size. */
+	unsigned int max_work_groups;
+#endif
+
+	/* clos_max value for which the kernels have been loaded currently. */
+	int current_clos_max;
+
+	/* Marked True in constructor and marked false at the end of path_trace(). */
+	bool first_tile;
+
+	OpenCLDeviceSplitKernel(DeviceInfo& info, Stats &stats, bool background_)
+	: OpenCLDeviceBase(info, stats, background_)
+	{
+
+		info.use_split_kernel = true;
+		background = background_;
+
+		/* Initialize kernels. */
+		ckPathTraceKernel_data_init = NULL;
+		ckPathTraceKernel_scene_intersect = NULL;
+		ckPathTraceKernel_lamp_emission = NULL;
+		ckPathTraceKernel_background_buffer_update = NULL;
+		ckPathTraceKernel_shader_lighting = NULL;
+		ckPathTraceKernel_holdout_emission_blurring_pathtermination_ao = NULL;
+		ckPathTraceKernel_direct_lighting = NULL;
+		ckPathTraceKernel_shadow_blocked_direct_lighting = NULL;
+		ckPathTraceKernel_setup_next_iteration = NULL;
+		ckPathTraceKernel_sum_all_radiance = NULL;
+		ckPathTraceKernel_queue_enqueue = NULL;
+
+		/* Initialize program. */
+		data_init_program = NULL;
+		scene_intersect_program = NULL;
+		lamp_emission_program = NULL;
+		queue_enqueue_program = NULL;
+		background_buffer_update_program = NULL;
+		shader_eval_program = NULL;
+		holdout_emission_blurring_termination_ao_program = NULL;
+		direct_lighting_program = NULL;
+		shadow_blocked_program = NULL;
+		next_iteration_setup_program = NULL;
+		sum_all_radiance_program = NULL;
+
+		/* Initialize cl_mem variables. */
+		kgbuffer = NULL;
+		sd = NULL;
+		sd_DL_shadow = NULL;
+
+		P_sd = NULL;
+		P_sd_DL_shadow = NULL;
+		N_sd = NULL;
+		N_sd_DL_shadow = NULL;
+		Ng_sd = NULL;
+		Ng_sd_DL_shadow = NULL;
+		I_sd = NULL;
+		I_sd_DL_shadow = NULL;
+		shader_sd = NULL;
+		shader_sd_DL_shadow = NULL;
+		flag_sd = NULL;
+		flag_sd_DL_shadow = NULL;
+		prim_sd = NULL;
+		prim_sd_DL_shadow = NULL;
+		type_sd = NULL;
+		type_sd_DL_shadow = NULL;
+		u_sd = NULL;
+		u_sd_DL_shadow = NULL;
+		v_sd = NULL;
+		v_sd_DL_shadow = NULL;
+		object_sd = NULL;
+		object_sd_DL_shadow = NULL;
+		time_sd = NULL;
+		time_sd_DL_shadow = NULL;
+		ray_length_sd = NULL;
+		ray_length_sd_DL_shadow = NULL;
+		ray_depth_sd = NULL;
+		ray_depth_sd_DL_shadow = NULL;
+		transparent_depth_sd = NULL;
+		transparent_depth_sd_DL_shadow = NULL;
+#ifdef __RAY_DIFFERENTIALS__
+		dP_sd = NULL;
+		dI_sd = NULL;
+		dP_sd_DL_shadow = NULL;
+		dI_sd_DL_shadow = NULL;
+		du_sd = NULL;
+		dv_sd = NULL;
+		du_sd_DL_shadow = NULL;
+		dv_sd_DL_shadow = NULL;
+#endif
+#ifdef __DPDU__
+		dPdu_sd = NULL;
+		dPdv_sd = NULL;
+		dPdu_sd_DL_shadow = NULL;
+		dPdv_sd_DL_shadow = NULL;
+#endif
+		closure_sd = NULL;
+		closure_sd_DL_shadow = NULL;
+		num_closure_sd = NULL;
+		num_closure_sd_DL_shadow = NULL;
+		randb_closure_sd = NULL;
+		randb_closure_sd_DL_shadow = NULL;
+		ray_P_sd = NULL;
+		ray_P_sd_DL_shadow = NULL;
+		ray_dP_sd = NULL;
+		ray_dP_sd_DL_shadow = NULL;
+
+		rng_coop = NULL;
+		throughput_coop = NULL;
+		L_transparent_coop = NULL;
+		PathRadiance_coop = NULL;
+		Ray_coop = NULL;
+		PathState_coop = NULL;
+		Intersection_coop = NULL;
+		ray_state = NULL;
+
+		AOAlpha_coop = NULL;
+		AOBSDF_coop = NULL;
+		AOLightRay_coop = NULL;
+		BSDFEval_coop = NULL;
+		ISLamp_coop = NULL;
+		LightRay_coop = NULL;
+		Intersection_coop_AO = NULL;
+		Intersection_coop_DL = NULL;
+
+#ifdef WITH_CYCLES_DEBUG
+		debugdata_coop = NULL;
+#endif
+
+		work_array = NULL;
+
+		/* Queue. */
+		Queue_data = NULL;
+		Queue_index = NULL;
+		use_queues_flag = NULL;
+
+		per_sample_output_buffers = NULL;
+
+		/* Initialize required memory size. */
+		throughput_size = sizeof(float3);
+		L_transparent_size = sizeof(float);
+		rayState_size = sizeof(char);
+		hostRayState_size = sizeof(char);
+		work_element_size = sizeof(unsigned int);
+		ISLamp_size = sizeof(int);
+
+		/* Initialize sizes of memory required for shadow blocked function. */
+		AOAlpha_size = sizeof(float3);
+		AOBSDF_size = sizeof(float3);
+
+		per_thread_output_buffer_size = 0;
+		hostRayStateArray = NULL;
+		PathIteration_times = PATH_ITER_INC_FACTOR;
+#ifdef __WORK_STEALING__
+		work_pool_wgs = NULL;
+		max_work_groups = 0;
+#endif
+		current_clos_max = -1;
+		first_tile = true;
+
+		/* Get device's maximum memory that can be allocated. */
+		ciErr = clGetDeviceInfo(cdDevice,
+		                        CL_DEVICE_MAX_MEM_ALLOC_SIZE,
+		                        sizeof(size_t),
+		                        &total_allocatable_memory,
+		                        NULL);
+		assert(ciErr == CL_SUCCESS);
+		if(platform_name == "AMD Accelerated Parallel Processing") {
+			/* This value is tweak-able; AMD platform does not seem to
+			 * give maximum performance when all of CL_DEVICE_MAX_MEM_ALLOC_SIZE
+			 * is considered for further computation.
+			 */
+			total_allocatable_memory /= 2;
+		}
+	}
+
+	/* TODO(sergey): Seems really close to load_kernel(),
+	 * could it be de-duplicated?
+	 */
+	bool load_split_kernel(string kernel_path,
+	                       string kernel_init_source,
+	                       string clbin,
+	                       string custom_kernel_build_options,
+	                       cl_program *program)
+	{
+		if(!opencl_version_check())
+			return false;
+
+		clbin = path_user_get(path_join("cache", clbin));
+
+		/* Path to preprocessed source for debugging. */
+		string *debug_src = NULL;
+
+		/* If exists already, try use it. */
+		if(path_exists(clbin) && load_binary(kernel_path,
+		                                     clbin,
+		                                     custom_kernel_build_options,
+		                                     program,
+		                                     debug_src)) {
+			/* Kernel loaded from binary. */
+		}
+		else {
+			/* If does not exist or loading binary failed, compile kernel. */
+			if(!compile_kernel(kernel_path,
+			                   kernel_init_source,
+			                   custom_kernel_build_options,
+			                   program))
+			{
+				return false;
+			}
+			/* Save binary for reuse. */
+			if(!save_binary(program, clbin)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/* Split kernel utility functions. */
+	size_t get_tex_size(const char *tex_name)
+	{
+		cl_mem ptr;
+		size_t ret_size = 0;
+		MemMap::iterator i = mem_map.find(tex_name);
+		if(i != mem_map.end()) {
+			ptr = CL_MEM_PTR(i->second);
+			ciErr = clGetMemObjectInfo(ptr,
+			                           CL_MEM_SIZE,
+			                           sizeof(ret_size),
+			                           &ret_size,
+			                           NULL);
+			assert(ciErr == CL_SUCCESS);
+		}
+		return ret_size;
+	}
+
+	size_t get_shader_closure_size(int max_closure)
+	{
+		return (sizeof(ShaderClosure)* max_closure);
+	}
+
+	size_t get_shader_data_size(size_t shader_closure_size)
+	{
+		/* ShaderData size without accounting for ShaderClosure array. */
+		size_t shader_data_size =
+			sizeof(ShaderData) - (sizeof(ShaderClosure) * MAX_CLOSURE);
+		return (shader_data_size + shader_closure_size);
+	}
+
+	/* Returns size of KernelGlobals structure associated with OpenCL. */
+	size_t get_KernelGlobals_size()
+	{
+		/* Copy dummy KernelGlobals related to OpenCL from kernel_globals.h to
+		 * fetch its size.
+		 */
+		typedef struct KernelGlobals {
+			ccl_constant KernelData *data;
+#define KERNEL_TEX(type, ttype, name) \
+	ccl_global type *name;
+#include "kernel_textures.h"
+#undef KERNEL_TEX
+		} KernelGlobals;
+
+		return sizeof(KernelGlobals);
+	}
+
+	/* Returns size of Structure of arrays implementation of. */
+	size_t get_shaderdata_soa_size()
+	{
+		size_t shader_soa_size = 0;
+
+#define SD_VAR(type, what) \
+		shader_soa_size += sizeof(void *);
+#define SD_CLOSURE_VAR(type, what, max_closure)
+		shader_soa_size += sizeof(void *);
+		#include "kernel_shaderdata_vars.h"
+#undef SD_VAR
+#undef SD_CLOSURE_VAR
+
+		return shader_soa_size;
+	}
+
+	bool load_kernels(const DeviceRequestedFeatures& requested_features)
+	{
+		/* If it is an interactive render; we ceil clos_max value to a multiple
+		 * of 5 in order to limit re-compilations.
+		 */
+		/* TODO(sergey): Decision about this should be done on higher levels. */
+		int max_closure = requested_features.max_closure;
+		if(!background) {
+			assert((max_closure != 0) && "clos_max value is 0" );
+			max_closure = (((max_closure - 1) / 5) + 1) * 5;
+			/* clos_max value shouldn't be greater than MAX_CLOSURE. */
+			max_closure = (max_closure > MAX_CLOSURE) ? MAX_CLOSURE : max_closure;
+			if(current_clos_max == max_closure) {
+				/* Present kernels have been created with the same closure count
+				 * build option.
+				 */
+				return true;
+			}
+		}
+		/* Get Shader, bake and film_convert kernels.
+		 * It'll also do verification of OpenCL actually initialized.
+		 */
+		if(!OpenCLDeviceBase::load_kernels(requested_features)) {
+			return false;
+		}
+
+		string svm_build_options = "";
+		string max_closure_build_option = "";
+		string compute_device_type_build_option = "";
+
+		/* Set svm_build_options. */
+		svm_build_options += " -D__NODES_MAX_GROUP__=" +
+			string_printf("%d", requested_features.max_nodes_group);
+		svm_build_options += " -D__NODES_FEATURES__=" +
+			string_printf("%d", requested_features.nodes_features);
+
+		/* Set max closure build option. */
+		max_closure_build_option += string_printf("-D__MAX_CLOSURE__=%d ",
+		                                          max_closure);
+
+		/* Set compute device build option. */
+		cl_device_type device_type;
+		ciErr = clGetDeviceInfo(cdDevice,
+		                        CL_DEVICE_TYPE,
+		                        sizeof(cl_device_type),
+		                        &device_type,
+		                        NULL);
+		assert(ciErr == CL_SUCCESS);
+		if(device_type == CL_DEVICE_TYPE_GPU) {
+			compute_device_type_build_option = "-D__COMPUTE_DEVICE_GPU__ ";
+		}
+
+		string kernel_path = path_get("kernel");
+		string kernel_md5 = path_files_md5_hash(kernel_path);
+		string device_md5;
+		string custom_kernel_build_options;
+		string kernel_init_source;
+		string clbin;
+
+		string common_custom_build_options = "";
+		common_custom_build_options += "-D__SPLIT_KERNEL__ ";
+		common_custom_build_options += max_closure_build_option;;
+#ifdef __WORK_STEALING__
+		common_custom_build_options += "-D__WORK_STEALING__ ";
+#endif
+
+#define LOAD_KERNEL(program, name) \
+	do { \
+		kernel_init_source = "#include \"kernel_" name ".cl\" // " + \
+		                     kernel_md5 + "\n"; \
+		custom_kernel_build_options = common_custom_build_options; \
+		device_md5 = device_md5_hash(custom_kernel_build_options); \
+		clbin = string_printf("cycles_kernel_%s_%s_" name ".clbin", \
+		                      device_md5.c_str(), kernel_md5.c_str()); \
+		if(!load_split_kernel(kernel_path, kernel_init_source, clbin, \
+		                      custom_kernel_build_options, &program)) \
+		{ \
+			return false; \
+		} \
+	} while(false)
+
+		/* TODO(sergey): If names are unified we can save some more bits of
+		 * code here.
+		 */
+		LOAD_KERNEL(data_init_program, "data_init");
+		LOAD_KERNEL(scene_intersect_program, "scene_intersect");
+		LOAD_KERNEL(lamp_emission_program, "lamp_emission");
+		LOAD_KERNEL(queue_enqueue_program, "queue_enqueue");
+		LOAD_KERNEL(background_buffer_update_program, "background_buffer_update");
+		LOAD_KERNEL(shader_eval_program, "shader_eval");
+		LOAD_KERNEL(holdout_emission_blurring_termination_ao_program,
+		            "holdout_emission_blurring_pathtermination_ao");
+		LOAD_KERNEL(direct_lighting_program, "direct_lighting");
+		LOAD_KERNEL(shadow_blocked_program, "shadow_blocked");
+		LOAD_KERNEL(next_iteration_setup_program, "next_iteration_setup");
+		LOAD_KERNEL(sum_all_radiance_program, "sum_all_radiance");
+
+#undef LOAD_KERNEL
+
+#define GLUE(a, b) a ## b
+#define FIND_KERNEL(kernel, program, function) \
+	do { \
+		GLUE(ckPathTraceKernel_, kernel) = \
+			clCreateKernel(GLUE(program, _program), \
+			               "kernel_ocl_path_trace_"  function, &ciErr); \
+		if(opencl_error(ciErr)) { \
+			return false; \
+		} \
+	} while(false)
+
+		FIND_KERNEL(data_init, data_init, "data_initialization");
+		FIND_KERNEL(scene_intersect, scene_intersect, "scene_intersect");
+		FIND_KERNEL(lamp_emission, lamp_emission, "lamp_emission");
+		FIND_KERNEL(queue_enqueue, queue_enqueue, "queue_enqueue");
+		FIND_KERNEL(background_buffer_update, background_buffer_update, "background_buffer_update");
+		FIND_KERNEL(shader_lighting, shader_eval, "shader_evaluation");
+		FIND_KERNEL(holdout_emission_blurring_pathtermination_ao,
+		            holdout_emission_blurring_termination_ao,
+		            "holdout_emission_blurring_pathtermination_ao");
+		FIND_KERNEL(direct_lighting, direct_lighting, "direct_lighting");
+		FIND_KERNEL(shadow_blocked_direct_lighting, shadow_blocked, "shadow_blocked_direct_lighting");
+		FIND_KERNEL(setup_next_iteration, next_iteration_setup, "setup_next_iteration");
+		FIND_KERNEL(sum_all_radiance, sum_all_radiance, "sum_all_radiance");
+#undef FIND_KERNEL
+#undef GLUE
+
+		current_clos_max = max_closure;
+
+		return true;
+	}
+
+	~OpenCLDeviceSplitKernel()
+	{
+		task_pool.stop();
+
+		/* Release kernels */
+		release_kernel_safe(ckPathTraceKernel_data_init);
+		release_kernel_safe(ckPathTraceKernel_scene_intersect);
+		release_kernel_safe(ckPathTraceKernel_lamp_emission);
+		release_kernel_safe(ckPathTraceKernel_queue_enqueue);
+		release_kernel_safe(ckPathTraceKernel_background_buffer_update);
+		release_kernel_safe(ckPathTraceKernel_shader_lighting);
+		release_kernel_safe(ckPathTraceKernel_holdout_emission_blurring_pathtermination_ao);
+		release_kernel_safe(ckPathTraceKernel_direct_lighting);
+		release_kernel_safe(ckPathTraceKernel_shadow_blocked_direct_lighting);
+		release_kernel_safe(ckPathTraceKernel_setup_next_iteration);
+		release_kernel_safe(ckPathTraceKernel_sum_all_radiance);
+
+		/* Release global memory */
+		release_mem_object_safe(P_sd);
+		release_mem_object_safe(P_sd_DL_shadow);
+		release_mem_object_safe(N_sd);
+		release_mem_object_safe(N_sd_DL_shadow);
+		release_mem_object_safe(Ng_sd);
+		release_mem_object_safe(Ng_sd_DL_shadow);
+		release_mem_object_safe(I_sd);
+		release_mem_object_safe(I_sd_DL_shadow);
+		release_mem_object_safe(shader_sd);
+		release_mem_object_safe(shader_sd_DL_shadow);
+		release_mem_object_safe(flag_sd);
+		release_mem_object_safe(flag_sd_DL_shadow);
+		release_mem_object_safe(prim_sd);
+		release_mem_object_safe(prim_sd_DL_shadow);
+		release_mem_object_safe(type_sd);
+		release_mem_object_safe(type_sd_DL_shadow);
+		release_mem_object_safe(u_sd);
+		release_mem_object_safe(u_sd_DL_shadow);
+		release_mem_object_safe(v_sd);
+		release_mem_object_safe(v_sd_DL_shadow);
+		release_mem_object_safe(object_sd);
+		release_mem_object_safe(object_sd_DL_shadow);
+		release_mem_object_safe(time_sd);
+		release_mem_object_safe(time_sd_DL_shadow);
+		release_mem_object_safe(ray_length_sd);
+		release_mem_object_safe(ray_length_sd_DL_shadow);
+		release_mem_object_safe(ray_depth_sd);
+		release_mem_object_safe(ray_depth_sd_DL_shadow);
+		release_mem_object_safe(transparent_depth_sd);
+		release_mem_object_safe(transparent_depth_sd_DL_shadow);
+#ifdef __RAY_DIFFERENTIALS__
+		release_mem_object_safe(dP_sd);
+		release_mem_object_safe(dP_sd_DL_shadow);
+		release_mem_object_safe(dI_sd);
+		release_mem_object_safe(dI_sd_DL_shadow);
+		release_mem_object_safe(du_sd);
+		release_mem_object_safe(du_sd_DL_shadow);
+		release_mem_object_safe(dv_sd);
+		release_mem_object_safe(dv_sd_DL_shadow);
+#endif
+#ifdef __DPDU__
+		release_mem_object_safe(dPdu_sd);
+		release_mem_object_safe(dPdu_sd_DL_shadow);
+		release_mem_object_safe(dPdv_sd);
+		release_mem_object_safe(dPdv_sd_DL_shadow);
+#endif
+		release_mem_object_safe(closure_sd);
+		release_mem_object_safe(closure_sd_DL_shadow);
+		release_mem_object_safe(num_closure_sd);
+		release_mem_object_safe(num_closure_sd_DL_shadow);
+		release_mem_object_safe(randb_closure_sd);
+		release_mem_object_safe(randb_closure_sd_DL_shadow);
+		release_mem_object_safe(ray_P_sd);
+		release_mem_object_safe(ray_P_sd_DL_shadow);
+		release_mem_object_safe(ray_dP_sd);
+		release_mem_object_safe(ray_dP_sd_DL_shadow);
+		release_mem_object_safe(rng_coop);
+		release_mem_object_safe(throughput_coop);
+		release_mem_object_safe(L_transparent_coop);
+		release_mem_object_safe(PathRadiance_coop);
+		release_mem_object_safe(Ray_coop);
+		release_mem_object_safe(PathState_coop);
+		release_mem_object_safe(Intersection_coop);
+		release_mem_object_safe(kgbuffer);
+		release_mem_object_safe(sd);
+		release_mem_object_safe(sd_DL_shadow);
+		release_mem_object_safe(ray_state);
+		release_mem_object_safe(AOAlpha_coop);
+		release_mem_object_safe(AOBSDF_coop);
+		release_mem_object_safe(AOLightRay_coop);
+		release_mem_object_safe(BSDFEval_coop);
+		release_mem_object_safe(ISLamp_coop);
+		release_mem_object_safe(LightRay_coop);
+		release_mem_object_safe(Intersection_coop_AO);
+		release_mem_object_safe(Intersection_coop_DL);
+#ifdef WITH_CYCLES_DEBUG
+		release_mem_object_safe(debugdata_coop);
+#endif
+		release_mem_object_safe(use_queues_flag);
+		release_mem_object_safe(Queue_data);
+		release_mem_object_safe(Queue_index);
+		release_mem_object_safe(work_array);
+#ifdef __WORK_STEALING__
+		release_mem_object_safe(work_pool_wgs);
+#endif
+		release_mem_object_safe(per_sample_output_buffers);
+
+		/* Release programs */
+		release_program_safe(data_init_program);
+		release_program_safe(scene_intersect_program);
+		release_program_safe(lamp_emission_program);
+		release_program_safe(queue_enqueue_program);
+		release_program_safe(background_buffer_update_program);
+		release_program_safe(shader_eval_program);
+		release_program_safe(holdout_emission_blurring_termination_ao_program);
+		release_program_safe(direct_lighting_program);
+		release_program_safe(shadow_blocked_program);
+		release_program_safe(next_iteration_setup_program);
+		release_program_safe(sum_all_radiance_program);
+
+		if(hostRayStateArray != NULL) {
+			free(hostRayStateArray);
+		}
+	}
+
+	void path_trace(SplitRenderTile& rtile, int2 max_render_feasible_tile_size)
+	{
+		/* cast arguments to cl types */
+		cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
+		cl_mem d_buffer = CL_MEM_PTR(rtile.buffer);
+		cl_mem d_rng_state = CL_MEM_PTR(rtile.rng_state);
+		cl_int d_x = rtile.x;
+		cl_int d_y = rtile.y;
+		cl_int d_w = rtile.w;
+		cl_int d_h = rtile.h;
+		cl_int d_offset = rtile.offset;
+		cl_int d_stride = rtile.stride;
+
+		/* Make sure that set render feasible tile size is a multiple of local
+		 * work size dimensions.
+		 */
+		assert(max_render_feasible_tile_size.x % SPLIT_KERNEL_LOCAL_SIZE_X == 0);
+		assert(max_render_feasible_tile_size.y % SPLIT_KERNEL_LOCAL_SIZE_Y == 0);
+
+		/* ray_state and hostRayStateArray should be of same size. */
+		assert(hostRayState_size == rayState_size);
+		assert(rayState_size == 1);
+
+		size_t global_size[2];
+		size_t local_size[2] = {SPLIT_KERNEL_LOCAL_SIZE_X,
+		                        SPLIT_KERNEL_LOCAL_SIZE_Y};
+
+		/* Set the range of samples to be processed for every ray in
+		 * path-regeneration logic.
+		 */
+		cl_int start_sample = rtile.start_sample;
+		cl_int end_sample = rtile.start_sample + rtile.num_samples;
+		cl_int num_samples = rtile.num_samples;
+
+#ifdef __WORK_STEALING__
+		global_size[0] = (((d_w - 1) / local_size[0]) + 1) * local_size[0];
+		global_size[1] = (((d_h - 1) / local_size[1]) + 1) * local_size[1];
+		unsigned int num_parallel_samples = 1;
+#else
+		global_size[1] = (((d_h - 1) / local_size[1]) + 1) * local_size[1];
+		unsigned int num_threads = max_render_feasible_tile_size.x *
+		                           max_render_feasible_tile_size.y;
+		unsigned int num_tile_columns_possible = num_threads / global_size[1];
+		/* Estimate number of parallel samples that can be
+		 * processed in parallel.
+		 */
+		unsigned int num_parallel_samples = min(num_tile_columns_possible / d_w,
+		                                        rtile.num_samples);
+		/* Wavefront size in AMD is 64.
+		 * TODO(sergey): What about other platforms?
+		 */
+		if(num_parallel_samples >= 64) {
+			/* TODO(sergey): Could use generic round-up here. */
+			num_parallel_samples = (num_parallel_samples / 64) * 64
+		}
+		assert(num_parallel_samples != 0);
+
+		global_size[0] = d_w * num_parallel_samples;
+#endif  /* __WORK_STEALING__ */
+
+		assert(global_size[0] * global_size[1] <=
+		       max_render_feasible_tile_size.x * max_render_feasible_tile_size.y);
+
+		/* Allocate all required global memory once. */
+		if(first_tile) {
+			size_t num_global_elements = max_render_feasible_tile_size.x *
+			                             max_render_feasible_tile_size.y;
+			/* TODO(sergey): This will actually over-allocate if
+			 * particular kernel does not support multiclosure.
+			 */
+			size_t ShaderClosure_size = get_shader_closure_size(current_clos_max);
+
+#ifdef __WORK_STEALING__
+			/* Calculate max groups */
+			size_t max_global_size[2];
+			size_t tile_x = max_render_feasible_tile_size.x;
+			size_t tile_y = max_render_feasible_tile_size.y;
+			max_global_size[0] = (((tile_x - 1) / local_size[0]) + 1) * local_size[0];
+			max_global_size[1] = (((tile_y - 1) / local_size[1]) + 1) * local_size[1];
+			max_work_groups = (max_global_size[0] * max_global_size[1]) /
+			                  (local_size[0] * local_size[1]);
+			/* Allocate work_pool_wgs memory. */
+			work_pool_wgs = mem_alloc(max_work_groups * sizeof(unsigned int));
+#endif  /* __WORK_STEALING__ */
+
+			/* Allocate queue_index memory only once. */
+			Queue_index = mem_alloc(NUM_QUEUES * sizeof(int));
+			use_queues_flag = mem_alloc(sizeof(char));
+			kgbuffer = mem_alloc(get_KernelGlobals_size());
+
+			/* Create global buffers for ShaderData. */
+			sd = mem_alloc(get_shaderdata_soa_size());
+			sd_DL_shadow = mem_alloc(get_shaderdata_soa_size());
+			P_sd = mem_alloc(num_global_elements * sizeof(float3));
+			P_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
+			N_sd = mem_alloc(num_global_elements * sizeof(float3));
+			N_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
+			Ng_sd = mem_alloc(num_global_elements * sizeof(float3));
+			Ng_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
+			I_sd = mem_alloc(num_global_elements * sizeof(float3));
+			I_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
+			shader_sd = mem_alloc(num_global_elements * sizeof(int));
+			shader_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+			flag_sd = mem_alloc(num_global_elements * sizeof(int));
+			flag_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+			prim_sd = mem_alloc(num_global_elements * sizeof(int));
+			prim_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+			type_sd = mem_alloc(num_global_elements * sizeof(int));
+			type_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+			u_sd = mem_alloc(num_global_elements * sizeof(float));
+			u_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
+			v_sd = mem_alloc(num_global_elements * sizeof(float));
+			v_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
+			object_sd = mem_alloc(num_global_elements * sizeof(int));
+			object_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+			time_sd = mem_alloc(num_global_elements * sizeof(float));
+			time_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
+			ray_length_sd = mem_alloc(num_global_elements * sizeof(float));
+			ray_length_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
+			ray_depth_sd = mem_alloc(num_global_elements * sizeof(int));
+			ray_depth_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+			transparent_depth_sd = mem_alloc(num_global_elements * sizeof(int));
+			transparent_depth_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+
+#ifdef __RAY_DIFFERENTIALS__
+			dP_sd = mem_alloc(num_global_elements * sizeof(differential3));
+			dP_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential3));
+			dI_sd = mem_alloc(num_global_elements * sizeof(differential3));
+			dI_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential3));
+			du_sd = mem_alloc(num_global_elements * sizeof(differential));
+			du_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential));
+			dv_sd = mem_alloc(num_global_elements * sizeof(differential));
+			dv_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential));
+#endif
+
+#ifdef __DPDU__
+			dPdu_sd = mem_alloc(num_global_elements * sizeof(float3));
+			dPdu_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
+			dPdv_sd = mem_alloc(num_global_elements * sizeof(float3));
+			dPdv_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
+#endif
+			closure_sd = mem_alloc(num_global_elements * ShaderClosure_size);
+			closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * ShaderClosure_size);
+			num_closure_sd = mem_alloc(num_global_elements * sizeof(int));
+			num_closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
+			randb_closure_sd = mem_alloc(num_global_elements * sizeof(float));
+			randb_closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
+			ray_P_sd = mem_alloc(num_global_elements * sizeof(float3));
+			ray_P_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
+			ray_dP_sd = mem_alloc(num_global_elements * sizeof(differential3));
+			ray_dP_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential3));
+
+			/* Creation of global memory buffers which are shared among
+			 * the kernels.
+			 */
+			rng_coop = mem_alloc(num_global_elements * sizeof(RNG));
+			throughput_coop = mem_alloc(num_global_elements * throughput_size);
+			L_transparent_coop = mem_alloc(num_global_elements * L_transparent_size);
+			PathRadiance_coop = mem_alloc(num_global_elements * sizeof(PathRadiance));
+			Ray_coop = mem_alloc(num_global_elements * sizeof(Ray));
+			PathState_coop = mem_alloc(num_global_elements * sizeof(PathState));
+			Intersection_coop = mem_alloc(num_global_elements * sizeof(Intersection));
+			AOAlpha_coop = mem_alloc(num_global_elements * AOAlpha_size);
+			AOBSDF_coop = mem_alloc(num_global_elements * AOBSDF_size);
+			AOLightRay_coop = mem_alloc(num_global_elements * sizeof(Ray));
+			BSDFEval_coop = mem_alloc(num_global_elements * sizeof(BsdfEval));
+			ISLamp_coop = mem_alloc(num_global_elements * ISLamp_size);
+			LightRay_coop = mem_alloc(num_global_elements * sizeof(Ray));
+			Intersection_coop_AO = mem_alloc(num_global_elements * sizeof(Intersection));
+			Intersection_coop_DL = mem_alloc(num_global_elements * sizeof(Intersection));
+
+#ifdef WITH_CYCLES_DEBUG
+			debugdata_coop = mem_alloc(num_global_elements * sizeof(DebugData));
+#endif
+
+			ray_state = mem_alloc(num_global_elements * rayState_size);
+
+			hostRayStateArray = (char *)calloc(num_global_elements, hostRayState_size);
+			assert(hostRayStateArray != NULL && "Can't create hostRayStateArray memory");
+
+			Queue_data = mem_alloc(num_global_elements * (NUM_QUEUES * sizeof(int)+sizeof(int)));
+			work_array = mem_alloc(num_global_elements * work_element_size);
+			per_sample_output_buffers = mem_alloc(num_global_elements *
+			                                      per_thread_output_buffer_size);
+		}
+
+		cl_int dQueue_size = global_size[0] * global_size[1];
+		cl_int total_num_rays = global_size[0] * global_size[1];
+
+		cl_uint start_arg_index =
+			kernel_set_args(ckPathTraceKernel_data_init,
+			                0,
+			                kgbuffer,
+			                sd,
+			                sd_DL_shadow,
+			                P_sd,
+			                P_sd_DL_shadow,
+			                N_sd,
+			                N_sd_DL_shadow,
+			                Ng_sd,
+			                Ng_sd_DL_shadow,
+			                I_sd,
+			                I_sd_DL_shadow,
+			                shader_sd,
+			                shader_sd_DL_shadow,
+			                flag_sd,
+			                flag_sd_DL_shadow,
+			                prim_sd,
+			                prim_sd_DL_shadow,
+			                type_sd,
+			                type_sd_DL_shadow,
+			                u_sd,
+			                u_sd_DL_shadow,
+			                v_sd,
+			                v_sd_DL_shadow,
+			                object_sd,
+			                object_sd_DL_shadow,
+			                time_sd,
+			                time_sd_DL_shadow,
+			                ray_length_sd,
+			                ray_length_sd_DL_shadow,
+			                ray_depth_sd,
+			                ray_depth_sd_DL_shadow,
+			                transparent_depth_sd,
+			                transparent_depth_sd_DL_shadow);
+
+		start_arg_index +=
+			kernel_set_args(ckPathTraceKernel_data_init,
+#ifdef __RAY_DIFFERENTIALS__
+			                start_arg_index,
+			                dP_sd,
+			                dP_sd_DL_shadow,
+			                dI_sd,
+			                dI_sd_DL_shadow,
+			                du_sd,
+			                du_sd_DL_shadow,
+			                dv_sd,
+			                dv_sd_DL_shadow,
+#endif
+#ifdef __DPDU__
+			                dPdu_sd,
+			                dPdu_sd_DL_shadow,
+			                dPdv_sd,
+			                dPdv_sd_DL_shadow,
+#endif
+			                closure_sd,
+			                closure_sd_DL_shadow,
+			                num_closure_sd,
+			                num_closure_sd_DL_shadow,
+			                randb_closure_sd,
+			                randb_closure_sd_DL_shadow,
+			                ray_P_sd,
+			                ray_P_sd_DL_shadow,
+			                ray_dP_sd,
+			                ray_dP_sd_DL_shadow,
+			                d_data,
+			                per_sample_output_buffers,
+			                d_rng_state,
+			                rng_coop,
+			                throughput_coop,
+			                L_transparent_coop,
+			                PathRadiance_coop,
+			                Ray_coop,
+			                PathState_coop,
+			                ray_state);
+
+/* TODO(segrey): Avoid map lookup here. */
+#define KERNEL_TEX(type, ttype, name) \
+	set_kernel_arg_mem(ckPathTraceKernel_data_init, &start_arg_index, #name);
+#include "kernel_textures.h"
+#undef KERNEL_TEX
+
+		start_arg_index +=
+			kernel_set_args(ckPathTraceKernel_data_init,
+			                start_arg_index,
+			                start_sample,
+			                d_x,
+			                d_y,
+			                d_w,
+			                d_h,
+			                d_offset,
+			                d_stride,
+			                rtile.rng_state_offset_x,
+			                rtile.rng_state_offset_y,
+			                rtile.buffer_rng_state_stride,
+			                Queue_data,
+			                Queue_index,
+			                dQueue_size,
+			                use_queues_flag,
+			                work_array,
+#ifdef __WORK_STEALING__
+			                work_pool_wgs,
+			                num_samples,
+#endif
+#ifdef WITH_CYCLES_DEBUG
+			                debugdata_coop,
+#endif
+			                num_parallel_samples);
+
+		kernel_set_args(ckPathTraceKernel_scene_intersect,
+		                0,
+		                kgbuffer,
+		                d_data,
+		                rng_coop,
+		                Ray_coop,
+		                PathState_coop,
+		                Intersection_coop,
+		                ray_state,
+		                d_w,
+		                d_h,
+		                Queue_data,
+		                Queue_index,
+		                dQueue_size,
+		                use_queues_flag,
+#ifdef WITH_CYCLES_DEBUG
+		                debugdata_coop,
+#endif
+		                num_parallel_samples);
+
+		kernel_set_args(ckPathTraceKernel_lamp_emission,
+		                0,
+		                kgbuffer,
+		                d_data,
+		                sd,
+		                throughput_coop,
+		                PathRadiance_coop,
+		                Ray_coop,
+		                PathState_coop,
+		                Intersection_coop,
+		                ray_state,
+		                d_w,
+		                d_h,
+		                Queue_data,
+		                Queue_index,
+		                dQueue_size,
+		                use_queues_flag,
+		                num_parallel_samples);
+
+		kernel_set_args(ckPathTraceKernel_queue_enqueue,
+		                0,
+		                Queue_data,
+		                Queue_index,
+		                ray_state,
+		                dQueue_size);
+
+		kernel_set_args(ckPathTraceKernel_background_buffer_update,
+		                 0,
+		                 kgbuffer,
+		                 d_data,
+		                 sd,
+		                 per_sample_output_buffers,
+		                 d_rng_state,
+		                 rng_coop,
+		                 throughput_coop,
+		                 PathRadiance_coop,
+		                 Ray_coop,
+		                 PathState_coop,
+		                 L_transparent_coop,
+		                 ray_state,
+		                 d_w,
+		                 d_h,
+		                 d_x,
+		                 d_y,
+		                 d_stride,
+		                 rtile.rng_state_offset_x,
+		                 rtile.rng_state_offset_y,
+		                 rtile.buffer_rng_state_stride,
+		                 work_array,
+		                 Queue_data,
+		                 Queue_index,
+		                 dQueue_size,
+		                 end_sample,
+		                 start_sample,
+#ifdef __WORK_STEALING__
+		                 work_pool_wgs,
+		                 num_samples,
+#endif
+#ifdef WITH_CYCLES_DEBUG
+		                 debugdata_coop,
+#endif
+		                 num_parallel_samples);
+
+		kernel_set_args(ckPathTraceKernel_shader_lighting,
+		                0,
+		                kgbuffer,
+		                d_data,
+		                sd,
+		                rng_coop,
+		                Ray_coop,
+		                PathState_coop,
+		                Intersection_coop,
+		                ray_state,
+		                Queue_data,
+		                Queue_index,
+		                dQueue_size);
+
+		kernel_set_args(ckPathTraceKernel_holdout_emission_blurring_pathtermination_ao,
+		                0,
+		                kgbuffer,
+		                d_data,
+		                sd,
+		                per_sample_output_buffers,
+		                rng_coop,
+		                throughput_coop,
+		                L_transparent_coop,
+		                PathRadiance_coop,
+		                PathState_coop,
+		                Intersection_coop,
+		                AOAlpha_coop,
+		                AOBSDF_coop,
+		                AOLightRay_coop,
+		                d_w,
+		                d_h,
+		                d_x,
+		                d_y,
+		                d_stride,
+		                ray_state,
+		                work_array,
+		                Queue_data,
+		                Queue_index,
+		                dQueue_size,
+#ifdef __WORK_STEALING__
+		                start_sample,
+#endif
+		                num_parallel_samples);
+
+		kernel_set_args(ckPathTraceKernel_direct_lighting,
+		                0,
+		                kgbuffer,
+		                d_data,
+		                sd,
+		                sd_DL_shadow,
+		                rng_coop,
+		                PathState_coop,
+		                ISLamp_coop,
+		                LightRay_coop,
+		                BSDFEval_coop,
+		                ray_state,
+		                Queue_data,
+		                Queue_index,
+		                dQueue_size);
+
+		kernel_set_args(ckPathTraceKernel_shadow_blocked_direct_lighting,
+		                0,
+		                kgbuffer,
+		                d_data,
+		                sd_DL_shadow,
+		                PathState_coop,
+		                LightRay_coop,
+		                AOLightRay_coop,
+		                Intersection_coop_AO,
+		                Intersection_coop_DL,
+		                ray_state,
+		                Queue_data,
+		                Queue_index,
+		                dQueue_size,
+		                total_num_rays);
+
+		kernel_set_args(ckPathTraceKernel_setup_next_iteration,
+		                0,
+		                kgbuffer,
+		                d_data,
+		                sd,
+		                rng_coop,
+		                throughput_coop,
+		                PathRadiance_coop,
+		                Ray_coop,
+		                PathState_coop,
+		                LightRay_coop,
+		                ISLamp_coop,
+		                BSDFEval_coop,
+		                AOLightRay_coop,
+		                AOBSDF_coop,
+		                AOAlpha_coop,
+		                ray_state,
+		                Queue_data,
+		                Queue_index,
+		                dQueue_size,
+		                use_queues_flag);
+
+		kernel_set_args(ckPathTraceKernel_sum_all_radiance,
+		                0,
+		                d_data,
+		                d_buffer,
+		                per_sample_output_buffers,
+		                num_parallel_samples,
+		                d_w,
+		                d_h,
+		                d_stride,
+		                rtile.buffer_offset_x,
+		                rtile.buffer_offset_y,
+		                rtile.buffer_rng_state_stride,
+		                start_sample);
+
+		/* Macro for Enqueuing split kernels. */
+#define GLUE(a, b) a ## b
+#define ENQUEUE_SPLIT_KERNEL(kernelName, globalSize, localSize) \
+		opencl_assert(clEnqueueNDRangeKernel(cqCommandQueue, \
+		                                     GLUE(ckPathTraceKernel_, \
+		                                          kernelName), \
+		                                     2, \
+		                                     NULL, \
+		                                     globalSize, \
+		                                     localSize, \
+		                                     0, \
+		                                     NULL, \
+		                                     NULL))
+
+		/* Enqueue ckPathTraceKernel_data_init kernel. */
+		ENQUEUE_SPLIT_KERNEL(data_init, global_size, local_size);
+		bool activeRaysAvailable = true;
+
+		/* Record number of time host intervention has been made */
+		unsigned int numHostIntervention = 0;
+		unsigned int numNextPathIterTimes = PathIteration_times;
+		while(activeRaysAvailable) {
+			/* Twice the global work size of other kernels for
+			 * ckPathTraceKernel_shadow_blocked_direct_lighting. */
+			size_t global_size_shadow_blocked[2];
+			global_size_shadow_blocked[0] = global_size[0] * 2;
+			global_size_shadow_blocked[1] = global_size[1];
+
+			/* Do path-iteration in host [Enqueue Path-iteration kernels. */
+			for(int PathIter = 0; PathIter < PathIteration_times; PathIter++) {
+				ENQUEUE_SPLIT_KERNEL(scene_intersect, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(lamp_emission, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(queue_enqueue, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(background_buffer_update, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(shader_lighting, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(holdout_emission_blurring_pathtermination_ao, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(direct_lighting, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(shadow_blocked_direct_lighting, global_size_shadow_blocked, local_size);
+				ENQUEUE_SPLIT_KERNEL(setup_next_iteration, global_size, local_size);
+			}
+
+			/* Read ray-state into Host memory to decide if we should exit
+			 * path-iteration in host.
+			 */
+			ciErr = clEnqueueReadBuffer(cqCommandQueue,
+			                            ray_state,
+			                            CL_TRUE,
+			                            0,
+			                            global_size[0] * global_size[1] * sizeof(char),
+			                            hostRayStateArray,
+			                            0,
+			                            NULL,
+			                            NULL);
+			assert(ciErr == CL_SUCCESS);
+
+			activeRaysAvailable = false;
+
+			for(int rayStateIter = 0;
+			    rayStateIter < global_size[0] * global_size[1];
+			    ++rayStateIter)
+			{
+				if(int8_t(hostRayStateArray[rayStateIter]) != RAY_INACTIVE) {
+					/* Not all rays are RAY_INACTIVE. */
+					activeRaysAvailable = true;
+					break;
+				}
+			}
+
+			if(activeRaysAvailable) {
+				numHostIntervention++;
+				PathIteration_times = PATH_ITER_INC_FACTOR;
+				/* Host intervention done before all rays become RAY_INACTIVE;
+				 * Set do more initial iterations for the next tile.
+				 */
+				numNextPathIterTimes += PATH_ITER_INC_FACTOR;
+			}
+		}
+
+		/* Execute SumALLRadiance kernel to accumulate radiance calculated in
+		 * per_sample_output_buffers into RenderTile's output buffer.
+		 */
+		size_t sum_all_radiance_local_size[2] = {16, 16};
+		size_t sum_all_radiance_global_size[2];
+		sum_all_radiance_global_size[0] =
+			(((d_w - 1) / sum_all_radiance_local_size[0]) + 1) *
+			sum_all_radiance_local_size[0];
+		sum_all_radiance_global_size[1] =
+			(((d_h - 1) / sum_all_radiance_local_size[1]) + 1) *
+			sum_all_radiance_local_size[1];
+		ENQUEUE_SPLIT_KERNEL(sum_all_radiance,
+		                     sum_all_radiance_global_size,
+		                     sum_all_radiance_local_size);
+
+#undef ENQUEUE_SPLIT_KERNEL
+#undef GLUE
+
+		if(numHostIntervention == 0) {
+			/* This means that we are executing kernel more than required
+			 * Must avoid this for the next sample/tile.
+			 */
+			PathIteration_times = ((numNextPathIterTimes - PATH_ITER_INC_FACTOR) <= 0) ?
+			PATH_ITER_INC_FACTOR : numNextPathIterTimes - PATH_ITER_INC_FACTOR;
+		}
+		else {
+			/* Number of path-iterations done for this tile is set as
+			 * Initial path-iteration times for the next tile
+			 */
+			PathIteration_times = numNextPathIterTimes;
+		}
+
+		first_tile = false;
+	}
+
+	/* Calculates the amount of memory that has to be always
+	 * allocated in order for the split kernel to function.
+	 * This memory is tile/scene-property invariant (meaning,
+	 * the value returned by this function does not depend
+	 * on the user set tile size or scene properties.
+	 */
+	size_t get_invariable_mem_allocated()
+	{
+		size_t total_invariable_mem_allocated = 0;
+		size_t KernelGlobals_size = 0;
+		size_t ShaderData_SOA_size = 0;
+
+		KernelGlobals_size = get_KernelGlobals_size();
+		ShaderData_SOA_size = get_shaderdata_soa_size();
+
+		total_invariable_mem_allocated += KernelGlobals_size; /* KernelGlobals size */
+		total_invariable_mem_allocated += NUM_QUEUES * sizeof(unsigned int); /* Queue index size */
+		total_invariable_mem_allocated += sizeof(char); /* use_queues_flag size */
+		total_invariable_mem_allocated += ShaderData_SOA_size; /* sd size */
+		total_invariable_mem_allocated += ShaderData_SOA_size; /* sd_DL_shadow size */
+
+		return total_invariable_mem_allocated;
+	}
+
+	/* Calculate the memory that has-to-be/has-been allocated for
+	 * the split kernel to function.
+	 */
+	size_t get_tile_specific_mem_allocated(const int2 tile_size)
+	{
+		size_t tile_specific_mem_allocated = 0;
+
+		/* Get required tile info */
+		unsigned int user_set_tile_w = tile_size.x;
+		unsigned int user_set_tile_h = tile_size.y;
+
+#ifdef __WORK_STEALING__
+		/* Calculate memory to be allocated for work_pools in
+		 * case of work_stealing.
+		 */
+		size_t max_global_size[2];
+		size_t max_num_work_pools = 0;
+		max_global_size[0] =
+			(((user_set_tile_w - 1) / SPLIT_KERNEL_LOCAL_SIZE_X) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_X;
+		max_global_size[1] =
+			(((user_set_tile_h - 1) / SPLIT_KERNEL_LOCAL_SIZE_Y) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_Y;
+		max_num_work_pools =
+			(max_global_size[0] * max_global_size[1]) /
+			(SPLIT_KERNEL_LOCAL_SIZE_X * SPLIT_KERNEL_LOCAL_SIZE_Y);
+		tile_specific_mem_allocated += max_num_work_pools * sizeof(unsigned int);
+#endif
+
+		tile_specific_mem_allocated +=
+			user_set_tile_w * user_set_tile_h * per_thread_output_buffer_size;
+		tile_specific_mem_allocated +=
+			user_set_tile_w * user_set_tile_h * sizeof(RNG);
+
+		return tile_specific_mem_allocated;
+	}
+
+	/* Calculates the texture memories and KernelData (d_data) memory
+	 * that has been allocated.
+	 */
+	size_t get_scene_specific_mem_allocated(cl_mem d_data)
+	{
+		size_t scene_specific_mem_allocated = 0;
+		/* Calculate texture memories. */
+#define KERNEL_TEX(type, ttype, name) \
+	scene_specific_mem_allocated += get_tex_size(#name);
+#include "kernel_textures.h"
+#undef KERNEL_TEX
+		size_t d_data_size;
+		ciErr = clGetMemObjectInfo(d_data,
+		                           CL_MEM_SIZE,
+		                           sizeof(d_data_size),
+		                           &d_data_size,
+		                           NULL);
+		assert(ciErr == CL_SUCCESS && "Can't get d_data mem object info");
+		scene_specific_mem_allocated += d_data_size;
+		return scene_specific_mem_allocated;
+	}
+
+	/* Calculate the memory required for one thread in split kernel. */
+	size_t get_per_thread_memory()
+	{
+		size_t shader_closure_size = 0;
+		size_t shaderdata_volume = 0;
+		shader_closure_size = get_shader_closure_size(current_clos_max);
+		/* TODO(sergey): This will actually over-allocate if
+		 * particular kernel does not support multiclosure.
+		 */
+		shaderdata_volume = get_shader_data_size(shader_closure_size);
+		size_t retval = sizeof(RNG)
+			+ throughput_size + L_transparent_size
+			+ rayState_size + work_element_size
+			+ ISLamp_size + sizeof(PathRadiance) + sizeof(Ray) + sizeof(PathState)
+			+ sizeof(Intersection)    /* Overall isect */
+			+ sizeof(Intersection)    /* Instersection_coop_AO */
+			+ sizeof(Intersection)    /* Intersection coop DL */
+			+ shaderdata_volume       /* Overall ShaderData */
+			+ (shaderdata_volume * 2) /* ShaderData : DL and shadow */
+			+ sizeof(Ray) + sizeof(BsdfEval) + AOAlpha_size + AOBSDF_size + sizeof(Ray)
+			+ (sizeof(int)* NUM_QUEUES)
+			+ per_thread_output_buffer_size;
+		return retval;
+	}
+
+	/* Considers the total memory available in the device and
+	 * and returns the maximum global work size possible.
+	 */
+	size_t get_feasible_global_work_size(int2 tile_size, cl_mem d_data)
+	{
+		/* Calculate invariably allocated memory. */
+		size_t invariable_mem_allocated = get_invariable_mem_allocated();
+		/* Calculate tile specific allocated memory. */
+		size_t tile_specific_mem_allocated =
+			get_tile_specific_mem_allocated(tile_size);
+		/* Calculate scene specific allocated memory. */
+		size_t scene_specific_mem_allocated =
+			get_scene_specific_mem_allocated(d_data);
+		/* Calculate total memory available for the threads in global work size. */
+		size_t available_memory = total_allocatable_memory
+			- invariable_mem_allocated
+			- tile_specific_mem_allocated
+			- scene_specific_mem_allocated
+			- DATA_ALLOCATION_MEM_FACTOR;
+		size_t per_thread_memory_required = get_per_thread_memory();
+		return (available_memory / per_thread_memory_required);
+	}
+
+	/* Checks if the device has enough memory to render the whole tile;
+	 * If not, we should split single tile into multiple tiles of small size
+	 * and process them all.
+	 */
+	bool need_to_split_tile(unsigned int d_w,
+	                        unsigned int d_h,
+	                        int2 max_render_feasible_tile_size)
+	{
+		size_t global_size_estimate[2];
+		/* TODO(sergey): Such round-ups are in quite few places, need to replace
+		 * them with an utility macro.
+		 */
+		global_size_estimate[0] =
+			(((d_w - 1) / SPLIT_KERNEL_LOCAL_SIZE_X) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_X;
+		global_size_estimate[1] =
+			(((d_h - 1) / SPLIT_KERNEL_LOCAL_SIZE_Y) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_Y;
+		if((global_size_estimate[0] * global_size_estimate[1]) >
+		   (max_render_feasible_tile_size.x * max_render_feasible_tile_size.y))
+		{
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	/* Considers the scene properties, global memory available in the device
+	 * and returns a rectanglular tile dimension (approx the maximum)
+	 * that should render on split kernel.
+	 */
+	int2 get_max_render_feasible_tile_size(size_t feasible_global_work_size)
+	{
+		int2 max_render_feasible_tile_size;
+		int square_root_val = (int)sqrt(feasible_global_work_size);
+		max_render_feasible_tile_size.x = square_root_val;
+		max_render_feasible_tile_size.y = square_root_val;
+		/* Ciel round-off max_render_feasible_tile_size. */
+		int2 ceil_render_feasible_tile_size;
+		ceil_render_feasible_tile_size.x =
+			(((max_render_feasible_tile_size.x - 1) / SPLIT_KERNEL_LOCAL_SIZE_X) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_X;
+		ceil_render_feasible_tile_size.y =
+			(((max_render_feasible_tile_size.y - 1) / SPLIT_KERNEL_LOCAL_SIZE_Y) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_Y;
+		if(ceil_render_feasible_tile_size.x * ceil_render_feasible_tile_size.y <=
+		   feasible_global_work_size)
+		{
+			return ceil_render_feasible_tile_size;
+		}
+		/* Floor round-off max_render_feasible_tile_size. */
+		int2 floor_render_feasible_tile_size;
+		floor_render_feasible_tile_size.x =
+			(max_render_feasible_tile_size.x / SPLIT_KERNEL_LOCAL_SIZE_X) *
+			SPLIT_KERNEL_LOCAL_SIZE_X;
+		floor_render_feasible_tile_size.y =
+			(max_render_feasible_tile_size.y / SPLIT_KERNEL_LOCAL_SIZE_Y) *
+			SPLIT_KERNEL_LOCAL_SIZE_Y;
+		return floor_render_feasible_tile_size;
+	}
+
+	/* Try splitting the current tile into multiple smaller
+	 * almost-square-tiles.
+	 */
+	int2 get_split_tile_size(RenderTile rtile,
+	                         int2 max_render_feasible_tile_size)
+	{
+		int2 split_tile_size;
+		int num_global_threads = max_render_feasible_tile_size.x *
+		                         max_render_feasible_tile_size.y;
+		int d_w = rtile.w;
+		int d_h = rtile.h;
+		/* Ceil round off d_w and d_h */
+		d_w = (((d_w - 1) / SPLIT_KERNEL_LOCAL_SIZE_X) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_X;
+		d_h = (((d_h - 1) / SPLIT_KERNEL_LOCAL_SIZE_Y) + 1) *
+			SPLIT_KERNEL_LOCAL_SIZE_Y;
+		while(d_w * d_h > num_global_threads) {
+			/* Halve the longer dimension. */
+			if(d_w >= d_h) {
+				d_w = d_w / 2;
+				d_w = (((d_w - 1) / SPLIT_KERNEL_LOCAL_SIZE_X) + 1) *
+					SPLIT_KERNEL_LOCAL_SIZE_X;
+			}
+			else {
+				d_h = d_h / 2;
+				d_h = (((d_h - 1) / SPLIT_KERNEL_LOCAL_SIZE_Y) + 1) *
+					SPLIT_KERNEL_LOCAL_SIZE_Y;
+			}
+		}
+		split_tile_size.x = d_w;
+		split_tile_size.y = d_h;
+		return split_tile_size;
+	}
+
+	/* Splits existing tile into multiple tiles of tile size split_tile_size. */
+	vector<SplitRenderTile> split_tiles(RenderTile rtile, int2 split_tile_size)
+	{
+		vector<SplitRenderTile> to_path_trace_rtile;
+		int d_w = rtile.w;
+		int d_h = rtile.h;
+		int num_tiles_x = (((d_w - 1) / split_tile_size.x) + 1);
+		int num_tiles_y = (((d_h - 1) / split_tile_size.y) + 1);
+		/* Buffer and rng_state offset calc. */
+		size_t offset_index = rtile.offset + (rtile.x + rtile.y * rtile.stride);
+		size_t offset_x = offset_index % rtile.stride;
+		size_t offset_y = offset_index / rtile.stride;
+		/* Resize to_path_trace_rtile. */
+		to_path_trace_rtile.resize(num_tiles_x * num_tiles_y);
+		for(int tile_iter_y = 0; tile_iter_y < num_tiles_y; tile_iter_y++) {
+			for(int tile_iter_x = 0; tile_iter_x < num_tiles_x; tile_iter_x++) {
+				int rtile_index = tile_iter_y * num_tiles_x + tile_iter_x;
+				to_path_trace_rtile[rtile_index].rng_state_offset_x = offset_x + tile_iter_x * split_tile_size.x;
+				to_path_trace_rtile[rtile_index].rng_state_offset_y = offset_y + tile_iter_y * split_tile_size.y;
+				to_path_trace_rtile[rtile_index].buffer_offset_x = offset_x + tile_iter_x * split_tile_size.x;
+				to_path_trace_rtile[rtile_index].buffer_offset_y = offset_y + tile_iter_y * split_tile_size.y;
+				to_path_trace_rtile[rtile_index].start_sample = rtile.start_sample;
+				to_path_trace_rtile[rtile_index].num_samples = rtile.num_samples;
+				to_path_trace_rtile[rtile_index].sample = rtile.sample;
+				to_path_trace_rtile[rtile_index].resolution = rtile.resolution;
+				to_path_trace_rtile[rtile_index].offset = rtile.offset;
+				to_path_trace_rtile[rtile_index].buffers = rtile.buffers;
+				to_path_trace_rtile[rtile_index].buffer = rtile.buffer;
+				to_path_trace_rtile[rtile_index].rng_state = rtile.rng_state;
+				to_path_trace_rtile[rtile_index].x = rtile.x + (tile_iter_x * split_tile_size.x);
+				to_path_trace_rtile[rtile_index].y = rtile.y + (tile_iter_y * split_tile_size.y);
+				to_path_trace_rtile[rtile_index].buffer_rng_state_stride = rtile.stride;
+				/* Fill width and height of the new render tile. */
+				to_path_trace_rtile[rtile_index].w = (tile_iter_x == (num_tiles_x - 1)) ?
+					(d_w - (tile_iter_x * split_tile_size.x)) /* Border tile */
+					: split_tile_size.x;
+				to_path_trace_rtile[rtile_index].h = (tile_iter_y == (num_tiles_y - 1)) ?
+					(d_h - (tile_iter_y * split_tile_size.y)) /* Border tile */
+					: split_tile_size.y;
+				to_path_trace_rtile[rtile_index].stride = to_path_trace_rtile[rtile_index].w;
+			}
+		}
+		return to_path_trace_rtile;
+	}
+
+	void thread_run(DeviceTask *task)
+	{
+		if(task->type == DeviceTask::FILM_CONVERT) {
+			film_convert(*task, task->buffer, task->rgba_byte, task->rgba_half);
+		}
+		else if(task->type == DeviceTask::SHADER) {
+			shader(*task);
+		}
+		else if(task->type == DeviceTask::PATH_TRACE) {
+			RenderTile tile;
+			bool initialize_data_and_check_render_feasibility = false;
+			bool need_to_split_tiles_further = false;
+			int2 max_render_feasible_tile_size;
+			size_t feasible_global_work_size;
+			const int2 tile_size = task->requested_tile_size;
+			/* Keep rendering tiles until done. */
+			while(task->acquire_tile(this, tile)) {
+				if(!initialize_data_and_check_render_feasibility) {
+					/* Initialize data. */
+					/* Calculate per_thread_output_buffer_size. */
+					size_t output_buffer_size = 0;
+					ciErr = clGetMemObjectInfo((cl_mem)tile.buffer,
+					                           CL_MEM_SIZE,
+					                           sizeof(output_buffer_size),
+					                           &output_buffer_size,
+					                           NULL);
+					assert(ciErr == CL_SUCCESS && "Can't get tile.buffer mem object info");
+					/* This value is different when running on AMD and NV. */
+					if(background) {
+						/* In offline render the number of buffer elements
+						 * associated with tile.buffer is the current tile size.
+						 */
+						per_thread_output_buffer_size =
+							output_buffer_size / (tile.w * tile.h);
+					}
+					else {
+						/* interactive rendering, unlike offline render, the number of buffer elements
+						 * associated with tile.buffer is the entire viewport size.
+						 */
+						per_thread_output_buffer_size =
+							output_buffer_size / (tile.buffers->params.width *
+							                      tile.buffers->params.height);
+					}
+					/* Check render feasibility. */
+					feasible_global_work_size = get_feasible_global_work_size(
+						tile_size,
+						CL_MEM_PTR(const_mem_map["__data"]->device_pointer));
+					max_render_feasible_tile_size =
+						get_max_render_feasible_tile_size(
+							feasible_global_work_size);
+					need_to_split_tiles_further =
+						need_to_split_tile(tile_size.x,
+						                   tile_size.y,
+						                   max_render_feasible_tile_size);
+					initialize_data_and_check_render_feasibility = true;
+				}
+				if(need_to_split_tiles_further) {
+					int2 split_tile_size =
+						get_split_tile_size(tile,
+						                    max_render_feasible_tile_size);
+					vector<SplitRenderTile> to_path_trace_render_tiles =
+						split_tiles(tile, split_tile_size);
+					/* Print message to console */
+					if(background && (to_path_trace_render_tiles.size() > 1)) {
+						fprintf(stderr, "Message : Tiles need to be split "
+						        "further inside path trace (due to insufficient "
+						        "device-global-memory for split kernel to "
+						        "function) \n"
+						        "The current tile of dimensions %dx%d is split "
+						        "into tiles of dimension %dx%d for render \n",
+						        tile.w, tile.h,
+						        split_tile_size.x,
+						        split_tile_size.y);
+					}
+					/* Process all split tiles. */
+					for(int tile_iter = 0;
+					    tile_iter < to_path_trace_render_tiles.size();
+					    ++tile_iter)
+					{
+						path_trace(to_path_trace_render_tiles[tile_iter],
+						           max_render_feasible_tile_size);
+					}
+				}
+				else {
+					/* No splitting required; process the entire tile at once. */
+					/* Render feasible tile size is user-set-tile-size itself. */
+					max_render_feasible_tile_size.x =
+						(((tile_size.x - 1) / SPLIT_KERNEL_LOCAL_SIZE_X) + 1) *
+						SPLIT_KERNEL_LOCAL_SIZE_X;
+					max_render_feasible_tile_size.y =
+						(((tile_size.y - 1) / SPLIT_KERNEL_LOCAL_SIZE_Y) + 1) *
+						SPLIT_KERNEL_LOCAL_SIZE_Y;
+					/* buffer_rng_state_stride is stride itself. */
+					SplitRenderTile split_tile(tile);
+					split_tile.buffer_rng_state_stride = tile.stride;
+					path_trace(split_tile, max_render_feasible_tile_size);
+				}
+				tile.sample = tile.start_sample + tile.num_samples;
+
+				/* Complete kernel execution before release tile. */
+				/* This helps in multi-device render;
+				 * The device that reaches the critical-section function
+				 * release_tile waits (stalling other devices from entering
+				 * release_tile) for all kernels to complete. If device1 (a
+				 * slow-render device) reaches release_tile first then it would
+				 * stall device2 (a fast-render device) from proceeding to render
+				 * next tile.
+				 */
+				clFinish(cqCommandQueue);
+
+				task->release_tile(tile);
+			}
+		}
+	}
+
+protected:
+	cl_mem mem_alloc(size_t bufsize, cl_mem_flags mem_flag = CL_MEM_READ_WRITE)
+	{
+		cl_mem ptr;
+		ptr = clCreateBuffer(cxContext, mem_flag, bufsize, NULL, &ciErr);
+		if(opencl_error(ciErr)) {
+			assert(0);
+		}
+		return ptr;
+	}
+};
+
+/* Returns true in case of successful detection of platform and device type,
+ * else returns false.
+ */
+static bool get_platform_and_devicetype(const DeviceInfo info,
+                                        string &platform_name,
+                                        cl_device_type &device_type)
+{
+	cl_platform_id platform_id;
+	cl_device_id device_id;
+	cl_uint num_platforms;
+	cl_int ciErr;
+
+	/* TODO(sergey): Use some generic error print helper function/ */
+	ciErr = clGetPlatformIDs(0, NULL, &num_platforms);
+	if(ciErr != CL_SUCCESS) {
+		fprintf(stderr, "Can't getPlatformIds. file - %s, line - %d\n", __FILE__, __LINE__);
+		return false;
+	}
+
+	if(num_platforms == 0) {
+		fprintf(stderr, "No OpenCL platforms found. file - %s, line - %d\n", __FILE__, __LINE__);
+		return false;
+	}
+
+	vector<cl_platform_id> platforms(num_platforms, NULL);
+
+	ciErr = clGetPlatformIDs(num_platforms, &platforms[0], NULL);
+	if(ciErr != CL_SUCCESS) {
+		fprintf(stderr, "Can't getPlatformIds. file - %s, line - %d\n", __FILE__, __LINE__);
+		return false;
+	}
+
+	int num_base = 0;
+	int total_devices = 0;
+
+	for(int platform = 0; platform < num_platforms; platform++) {
+		cl_uint num_devices;
+
+		ciErr = clGetDeviceIDs(platforms[platform], opencl_device_type(), 0, NULL, &num_devices);
+		if(ciErr != CL_SUCCESS) {
+			fprintf(stderr, "Can't getDeviceIDs. file - %s, line - %d\n", __FILE__, __LINE__);
+			return false;
+		}
+
+		total_devices += num_devices;
+
+		if(info.num - num_base >= num_devices) {
+			/* num doesn't refer to a device in this platform */
+			num_base += num_devices;
+			continue;
+		}
+
+		/* device is in this platform */
+		platform_id = platforms[platform];
+
+		/* get devices */
+		vector<cl_device_id> device_ids(num_devices, NULL);
+
+		ciErr = clGetDeviceIDs(platform_id, opencl_device_type(), num_devices, &device_ids[0], NULL);
+		if(ciErr != CL_SUCCESS) {
+			fprintf(stderr, "Can't getDeviceIDs. file - %s, line - %d\n", __FILE__, __LINE__);
+			return false;
+		}
+
+		device_id = device_ids[info.num - num_base];
+
+		char name[256];
+		ciErr = clGetPlatformInfo(platform_id, CL_PLATFORM_NAME, sizeof(name), &name, NULL);
+		if(ciErr != CL_SUCCESS) {
+			fprintf(stderr, "Can't getPlatformIDs. file - %s, line - %d \n", __FILE__, __LINE__);
+			return false;
+		}
+		platform_name = name;
+
+		ciErr = clGetDeviceInfo(device_id, CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+		if(ciErr != CL_SUCCESS) {
+			fprintf(stderr, "Can't getDeviceInfo. file - %s, line - %d \n", __FILE__, __LINE__);
+			return false;
+		}
+
+		break;
+	}
+
+	if(total_devices == 0) {
+		fprintf(stderr, "No devices found. file - %s, line - %d \n", __FILE__, __LINE__);
+		return false;
+	}
+
+	return true;
+}
 
 Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 {
-	return new OpenCLDevice(info, stats, background);
+	string platform_name;
+	cl_device_type device_type;
+	if(get_platform_and_devicetype(info, platform_name, device_type)) {
+		const bool force_split_kernel =
+			getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST") != NULL;
+		/* TODO(sergey): Replace string lookups with more enum-like API,
+		 * similar to device/venfdor checks blender's gpu.
+		 */
+		if(force_split_kernel ||
+		   (platform_name == "AMD Accelerated Parallel Processing" &&
+		    device_type == CL_DEVICE_TYPE_GPU))
+		{
+			/* If the device is an AMD GPU, take split kernel path. */
+			VLOG(1) << "Using split kernel";
+			return new OpenCLDeviceSplitKernel(info, stats, background);
+		} else {
+			/* For any other device, take megakernel path. */
+			VLOG(1) << "Using megekernel";
+			return new OpenCLDeviceMegaKernel(info, stats, background);
+		}
+	} else {
+		/* If we can't retrieve platform and device type information for some
+		 * reason, we default to megakernel path.
+		 */
+		VLOG(1) << "Failed to rertieve platform or device, using megakernel";
+		return new OpenCLDeviceMegaKernel(info, stats, background);
+	}
 }
 
-bool device_opencl_init(void) {
+bool device_opencl_init(void)
+{
 	static bool initialized = false;
 	static bool result = false;
 
@@ -1132,13 +3322,7 @@ bool device_opencl_init(void) {
 
 	initialized = true;
 
-	// OpenCL disabled for now, only works with this environment variable set
-	if(!getenv("CYCLES_OPENCL_TEST")) {
-		result = false;
-	}
-	else {
-		result = clewInit() == CLEW_SUCCESS;
-	}
+	result = clewInit() == CLEW_SUCCESS;
 
 	return result;
 }

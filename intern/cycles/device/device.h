@@ -55,6 +55,7 @@ public:
 	bool advanced_shading;
 	bool pack_images;
 	bool extended_images; /* flag for GPU and Multi device */
+	bool use_split_kernel; /* Denotes if the device is going to run cycles using split-kernel */
 	vector<DeviceInfo> multi_devices;
 
 	DeviceInfo()
@@ -66,6 +67,7 @@ public:
 		advanced_shading = true;
 		pack_images = false;
 		extended_images = false;
+		use_split_kernel = false;
 	}
 };
 

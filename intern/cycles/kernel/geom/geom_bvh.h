@@ -447,6 +447,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 #endif
 }
 
+#if defined(__SHADOW_RECORD_ALL__) || defined (__VOLUME_RECORD_ALL__)
 /* ToDo: Move to another file? */
 ccl_device int intersections_compare(const void *a, const void *b)
 {
@@ -460,6 +461,7 @@ ccl_device int intersections_compare(const void *a, const void *b)
 	else
 		return 0;
 }
+#endif
 
 CCL_NAMESPACE_END
 
