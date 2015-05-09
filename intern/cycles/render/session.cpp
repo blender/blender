@@ -859,6 +859,7 @@ void Session::path_trace()
 	task.update_progress_sample = function_bind(&Session::update_progress_sample, this);
 	task.need_finish_queue = params.progressive_refine;
 	task.integrator_branched = scene->integrator->method == Integrator::BRANCHED_PATH;
+	task.requested_tile_size = params.tile_size;
 
 	device->task_add(task);
 }
