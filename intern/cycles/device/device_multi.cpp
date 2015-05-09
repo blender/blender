@@ -89,10 +89,10 @@ public:
 		return error_msg;
 	}
 
-	bool load_kernels(bool experimental)
+	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
 		foreach(SubDevice& sub, devices)
-			if(!sub.device->load_kernels(experimental))
+			if(!sub.device->load_kernels(requested_features))
 				return false;
 
 		return true;

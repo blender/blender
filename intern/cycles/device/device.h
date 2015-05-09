@@ -69,6 +69,22 @@ public:
 	}
 };
 
+class DeviceRequestedFeatures {
+public:
+	/* Use experimental feature set. */
+	bool experimental;
+
+	DeviceRequestedFeatures()
+	{
+		experimental = false;
+	}
+
+	bool modified(const DeviceRequestedFeatures& requested_features)
+	{
+		return !(experimental == requested_features.experimental);
+	}
+};
+
 /* Device */
 
 struct DeviceDrawParams {
@@ -125,7 +141,9 @@ public:
 	virtual void *osl_memory() { return NULL; }
 
 	/* load/compile kernels, must be called before adding tasks */ 
-	virtual bool load_kernels(bool /*experimental*/) { return true; }
+	virtual bool load_kernels(
+	        const DeviceRequestedFeatures& /*requested_features*/)
+	{ return true; }
 
 	/* tasks */
 	virtual int get_split_task_count(DeviceTask& task) = 0;

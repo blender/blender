@@ -593,6 +593,13 @@ void Session::run_cpu()
 		update_progressive_refine(true);
 }
 
+DeviceRequestedFeatures Session::get_requested_device_features()
+{
+	DeviceRequestedFeatures requested_features;
+	requested_features.experimental = params.experimental;
+	return requested_features;
+}
+
 void Session::load_kernels()
 {
 	thread_scoped_lock scene_lock(scene->mutex);
@@ -600,7 +607,7 @@ void Session::load_kernels()
 	if(!kernels_loaded) {
 		progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
-		if(!device->load_kernels(params.experimental)) {
+		if(!device->load_kernels(get_requested_device_features())) {
 			string message = device->error_message();
 			if(message.empty())
 				message = "Failed loading render kernel, see console for errors";

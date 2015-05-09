@@ -309,18 +309,18 @@ public:
 		return cubin;
 	}
 
-	bool load_kernels(bool experimental)
+	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
 		/* check if cuda init succeeded */
 		if(cuContext == 0)
 			return false;
 		
 		/* check if GPU is supported */
-		if(!support_device(experimental))
+		if(!support_device(requested_features.experimental))
 			return false;
 
 		/* get kernel */
-		string cubin = compile_kernel(experimental);
+		string cubin = compile_kernel(requested_features.experimental);
 
 		if(cubin == "")
 			return false;

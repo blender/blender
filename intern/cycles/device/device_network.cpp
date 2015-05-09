@@ -196,7 +196,7 @@ public:
 		}
 	}
 
-	bool load_kernels(bool experimental)
+	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
 		if(error_func.have_error())
 			return false;
@@ -204,7 +204,7 @@ public:
 		thread_scoped_lock lock(rpc_lock);
 
 		RPCSend snd(socket, &error_func, "load_kernels");
-		snd.add(experimental);
+		snd.add(requested_features.experimental);
 		snd.write();
 
 		bool result;
@@ -607,11 +607,11 @@ protected:
 			device->tex_free(mem);
 		}
 		else if(rcv.name == "load_kernels") {
-			bool experimental;
-			rcv.read(experimental);
+			DeviceRequestedFeatures requested_features;
+			rcv.read(requested_features.experimental);
 
 			bool result;
-			result = device->load_kernels(experimental);
+			result = device->load_kernels(requested_features);
 			RPCSend snd(socket, &error_func, "load_kernels");
 			snd.add(result);
 			snd.write();
