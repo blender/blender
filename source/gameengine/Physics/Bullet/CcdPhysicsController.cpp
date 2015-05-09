@@ -2436,7 +2436,9 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 		m_polygonIndexArray.resize(tot_bt_tris);
 
 
-		for (int p = 0; p < numpolys; p++) {
+		int p = 0;
+		int t = 0;
+		while (t < tot_bt_tris) {
 			RAS_Polygon *poly = meshobj->GetPolygon(p);
 
 			if (poly->IsCollider()) {
@@ -2465,12 +2467,17 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 					*tri_pt++ = vert_remap_array[v_orig];
 				}
 			}
-			m_polygonIndexArray[p] = p;
+			// first triangle
+			m_polygonIndexArray[t] = p;
+
+			// if the poly is a quad we transform it in two triangles
 			if (poly->VertexCount() == 4) {
-				p++;
-				// if the poly is a quad we transform it in two triangles
-				m_polygonIndexArray[p] = p;
+				t++;
+				// second triangle
+				m_polygonIndexArray[t] = p;
 			}
+			t++;
+			p++;
 		}
 	}
 
