@@ -540,7 +540,7 @@ ccl_device_inline void object_normal_transform_addrspace(KernelGlobals *kg,
                                                          ccl_addr_space float3 *N)
 {
 	float3 private_N = *N;
-	object_dir_transform(kg, sd, &private_N);
+	object_normal_transform(kg, sd, &private_N);
 	*N = private_N;
 }
 #endif
