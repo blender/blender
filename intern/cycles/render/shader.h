@@ -165,6 +165,9 @@ public:
 	 * have any shader assigned explicitly */
 	static void add_default(Scene *scene);
 
+	/* Selective nodes compilation. */
+	void get_requested_features(Scene *scene, int& max_group, int& features);
+
 protected:
 	ShaderManager();
 

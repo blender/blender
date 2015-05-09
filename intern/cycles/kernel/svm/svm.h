@@ -182,8 +182,10 @@ CCL_NAMESPACE_END
 
 CCL_NAMESPACE_BEGIN
 
-/* Main Interpreter Loop */
+#define NODES_GROUP(group) ((group) <= __NODES_MAX_GROUP__)
+#define NODES_FEATURE(feature) (__NODES_FEATURES__ & (feature) != 0)
 
+/* Main Interpreter Loop */
 ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type, int path_flag)
 {
 	float stack[SVM_STACK_SIZE];
@@ -193,6 +195,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 		uint4 node = read_node(kg, &offset);
 
 		switch(node.x) {
+#if NODES_GROUP(NODE_GROUP_LEVEL_0)
 			case NODE_SHADER_JUMP: {
 				if(type == SHADER_TYPE_SURFACE) offset = node.y;
 				else if(type == SHADER_TYPE_VOLUME) offset = node.z;
@@ -215,9 +218,11 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_CLOSURE_AMBIENT_OCCLUSION:
 				svm_node_closure_ambient_occlusion(sd, stack, node);
 				break;
+#if NODES_FEATURE(NODE_FEATURE_VOLUME)
 			case NODE_CLOSURE_VOLUME:
 				svm_node_closure_volume(kg, sd, stack, node, path_flag);
 				break;
+#endif  /* NODES_FEATURE(NODE_FEATURE_VOLUME) */
 			case NODE_CLOSURE_SET_WEIGHT:
 				svm_node_closure_set_weight(sd, node.y, node.z, node.w);
 				break;
@@ -230,6 +235,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 			case NODE_MIX_CLOSURE:
 				svm_node_mix_closure(sd, stack, node);
 				break;
+#endif  /* NODES_GROUP(NODE_GROUP_LEVEL_0) */
 			case NODE_JUMP_IF_ZERO:
 				if(stack_load_float(stack, node.z) == 0.0f)
 					offset += node.y;
@@ -299,9 +305,11 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 				svm_node_particle_info(kg, sd, stack, node.y, node.z);
 				break;
 #ifdef __HAIR__
+#  if NODES_FEATURE(NODE_FEATURE_HAIR)
 			case NODE_HAIR_INFO:
 				svm_node_hair_info(kg, sd, stack, node.y, node.z);
 				break;
+#  endif  /* NODES_FEATURE(NODE_FEATURE_HAIR) */
 #endif  /* __HAIR__ */
 
 #endif  /* __EXTRA_NODES__ */
@@ -433,6 +441,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 		}
 	}
 }
+
+#undef NODES_GROUP
+#undef NODES_FEATURE
 
 CCL_NAMESPACE_END
 

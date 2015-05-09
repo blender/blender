@@ -28,6 +28,23 @@ CCL_NAMESPACE_BEGIN
 
 /* Nodes */
 
+/* Known frequencies of used nodes, used for selective nodes compilation
+ * in the kernel. Currently only affects split OpenCL kernel.
+ *
+ * Keep as defines so it's easy to check which nodes are to be compiled
+ * from preprocessor.
+ *
+ * Lower the number of group more often the node is used.
+ */
+#define NODE_GROUP_LEVEL_0    0
+#define NODE_GROUP_LEVEL_1    1
+#define NODE_GROUP_LEVEL_2    2
+#define NODE_GROUP_LEVEL_MAX  NODE_GROUP_LEVEL_2
+
+#define NODE_FEATURE_VOLUME     (1 << 0)
+#define NODE_FEATURE_HAIR       (1 << 1)
+#define NODE_FEATURE_ALL        (NODE_FEATURE_VOLUME|NODE_FEATURE_HAIR)
+
 typedef enum NodeType {
 	NODE_END = 0,
 	NODE_CLOSURE_BSDF,

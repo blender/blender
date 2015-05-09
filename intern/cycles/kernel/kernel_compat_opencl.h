@@ -37,6 +37,16 @@
 #define ccl_may_alias
 #define ccl_constant __constant
 #define ccl_global __global
+#define ccl_local __local
+#define ccl_private __private
+
+/* Selective nodes compilation. */
+#ifndef __NODES_MAX_GROUP__
+#  define __NODES_MAX_GROUP__ NODE_GROUP_LEVEL_MAX
+#endif
+#ifndef __NODES_FEATURES__
+#  define __NODES_FEATURES__ NODE_FEATURE_ALL
+#endif
 
 /* no assert in opencl */
 #define kernel_assert(cond)
