@@ -16,17 +16,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Workaround for explicit conversion from constant to private memory
- * pointer when using OpenCL.
- *
- * TODO(sergey): Find a real solution for this.
- */
-#ifdef __KERNEL_OPENCL__
-#  define __motion_as_decoupled_const_ptr(motion) ((motion))
-#else
-#  define __motion_as_decoupled_const_ptr(motion) ((const DecompMotionTransform*)(motion))
-#endif
-
 /* Perspective Camera */
 
 ccl_device float2 camera_sample_aperture(KernelGlobals *kg, float u, float v)
@@ -80,9 +69,16 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion) {
+#ifdef __KERNEL_OPENCL__
+		const MotionTransform tfm = kernel_data.cam.motion;
 		transform_motion_interpolate(&cameratoworld,
-		                             __motion_as_decoupled_const_ptr(&kernel_data.cam.motion),
+		                             ((const DecompMotionTransform*)&tfm),
 		                             ray->time);
+#else
+		transform_motion_interpolate(&cameratoworld,
+		                             ((const DecompMotionTransform*)&kernel_data.cam.motion),
+		                             ray->time);
+#endif
 	}
 #endif
 
@@ -144,9 +140,16 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion) {
+#ifdef __KERNEL_OPENCL__
+		const MotionTransform tfm = kernel_data.cam.motion;
 		transform_motion_interpolate(&cameratoworld,
-		                             __motion_as_decoupled_const_ptr(&kernel_data.cam.motion),
+		                             (const DecompMotionTransform*)&tfm,
 		                             ray->time);
+#else
+		transform_motion_interpolate(&cameratoworld,
+		                             (const DecompMotionTransform*)&kernel_data.cam.motion,
+		                             ray->time);
+#endif
 	}
 #endif
 
@@ -220,10 +223,18 @@ ccl_device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float 
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __CAMERA_MOTION__
-	if(kernel_data.cam.have_motion)
+	if(kernel_data.cam.have_motion) {
+#ifdef __KERNEL_OPENCL__
+		const MotionTransform tfm = kernel_data.cam.motion;
 		transform_motion_interpolate(&cameratoworld,
-		                             __motion_as_decoupled_const_ptr(&kernel_data.cam.motion),
+		                             (const DecompMotionTransform*)&tfm,
 		                             ray->time);
+#else
+		transform_motion_interpolate(&cameratoworld,
+		                             (const DecompMotionTransform*)&kernel_data.cam.motion,
+		                             ray->time);
+#endif
+	}
 #endif
 
 	ray->P = transform_point(&cameratoworld, ray->P);
@@ -329,7 +340,4 @@ ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, 
 	}
 }
 
-#undef __motion_as_decoupled_const_ptr
-
 CCL_NAMESPACE_END
-
