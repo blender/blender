@@ -82,6 +82,7 @@ enum ShaderNodeSpecialType {
 	SHADER_SPECIAL_TYPE_SCRIPT,
 	SHADER_SPECIAL_TYPE_BACKGROUND,
 	SHADER_SPECIAL_TYPE_IMAGE_SLOT,
+	SHADER_SPECIAL_TYPE_CLOSURE,
 };
 
 /* Enum
@@ -252,6 +253,8 @@ public:
 
 	void remove_unneeded_nodes();
 	void finalize(bool do_bump = false, bool do_osl = false);
+
+	int get_num_closures();
 
 	void dump_graph(const char *filename);
 
