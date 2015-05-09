@@ -601,6 +601,18 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 {
 	DeviceRequestedFeatures requested_features;
 	requested_features.experimental = params.experimental;
+	if(!params.background) {
+		requested_features.max_closure = 64;
+		requested_features.max_nodes_group = NODE_GROUP_LEVEL_2;
+		requested_features.nodes_features = NODE_FEATURE_ALL;
+	}
+	else {
+		requested_features.max_closure = get_max_closure_count();
+		scene->shader_manager->get_requested_features(
+		        scene,
+		        requested_features.max_nodes_group,
+		        requested_features.nodes_features);
+	}
 	return requested_features;
 }
 

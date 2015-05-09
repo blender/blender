@@ -205,6 +205,9 @@ public:
 
 		RPCSend snd(socket, &error_func, "load_kernels");
 		snd.add(requested_features.experimental);
+		snd.add(requested_features.max_closure);
+		snd.add(requested_features.max_nodes_group);
+		snd.add(requested_features.nodes_features);
 		snd.write();
 
 		bool result;
@@ -609,6 +612,9 @@ protected:
 		else if(rcv.name == "load_kernels") {
 			DeviceRequestedFeatures requested_features;
 			rcv.read(requested_features.experimental);
+			rcv.read(requested_features.max_closure);
+			rcv.read(requested_features.max_nodes_group);
+			rcv.read(requested_features.nodes_features);
 
 			bool result;
 			result = device->load_kernels(requested_features);

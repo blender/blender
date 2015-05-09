@@ -74,14 +74,37 @@ public:
 	/* Use experimental feature set. */
 	bool experimental;
 
+	/* Maximum number of closures in shader trees. */
+	int max_closure;
+
+	/* Selective nodes compilation. */
+
+	/* Identifier of a node group up to which all the nodes needs to be
+	 * compiled in. Nodes from higher group indices will be ignores.
+	 */
+	int max_nodes_group;
+
+	/* Features bitfield indicating which features from the requested group
+	 * will be compiled in. Nodes which corresponds to features which are not
+	 * in this bitfield will be ignored even if they're in the requested group.
+	 */
+	int nodes_features;
+
 	DeviceRequestedFeatures()
 	{
+		/* TODO(sergey): Find more meaningful defaults. */
 		experimental = false;
+		max_closure = 0;
+		max_nodes_group = 0;
+		nodes_features = 0;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)
 	{
-		return !(experimental == requested_features.experimental);
+		return !(experimental == requested_features.experimental &&
+		         max_closure == requested_features.max_closure &&
+		         max_nodes_group == requested_features.max_nodes_group &&
+		         nodes_features == requested_features.nodes_features);
 	}
 };
 
