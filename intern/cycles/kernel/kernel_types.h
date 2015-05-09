@@ -470,11 +470,27 @@ typedef struct differential {
 /* Ray */
 
 typedef struct Ray {
+/* TODO(sergey): This is only needed because current AMD
+ * compilet has hard time bulding the kernel with this
+ * reshuffle. And at the same time reshuffle will cause
+ * less optimal CPU code in certain places.
+ *
+ * We'll get rid of this nasty eception once AMD compiler
+ * is fixed.
+ */
+#ifndef __KERNEL_OPENCL_AMD__
 	float3 P;		/* origin */
 	float3 D;		/* direction */
 
 	float t;		/* length of the ray */
 	float time;		/* time (for motion blur) */
+#else
+	float t;		/* length of the ray */
+	float time;		/* time (for motion blur) */
+	float3 P;		/* origin */
+	float3 D;		/* direction */
+#endif
+
 #ifdef __RAY_DIFFERENTIALS__
 	differential3 dP;
 	differential3 dD;
