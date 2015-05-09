@@ -34,6 +34,7 @@
 
 #include <OSL/genclosure.h>
 
+#include "kernel_compat_cpu.h"
 #include "osl_closures.h"
 
 #include "kernel_types.h"
