@@ -100,7 +100,7 @@ protected:
 	void Render();
 	void SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);
 	void RenderFrame(KX_Scene* scene, KX_Camera* cam);
-	void SetBackGround(KX_WorldInfo* wi);
+	void setBackgroundFromScene(KX_Scene *scene);
 	void SetWorldSettings(KX_WorldInfo* wi);
 };
 

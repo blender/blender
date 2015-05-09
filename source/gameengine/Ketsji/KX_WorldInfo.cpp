@@ -100,6 +100,11 @@ void KX_WorldInfo::setBackColor(float r, float g, float b)
 	}
 }
 
+const float *KX_WorldInfo::getBackColor(void) const
+{
+	return m_backgroundcolor;
+}
+
 void KX_WorldInfo::setMistType(short type)
 {
 	m_misttype = type;

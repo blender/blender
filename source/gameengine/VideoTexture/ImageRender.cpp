@@ -75,8 +75,8 @@ ImageRender::ImageRender (KX_Scene *scene, KX_Camera * camera) :
     m_mirrorHalfWidth(0.f),
     m_mirrorHalfHeight(0.f)
 {
-	// initialize background color
-	setBackground(0, 0, 255, 255);
+	// initialize background color to scene background color as default
+	setBackgroundFromScene(m_scene);
 	// retrieve rendering objects
 	m_engine = KX_GetActiveEngine();
 	m_rasterizer = m_engine->GetRasterizer();
@@ -98,6 +98,18 @@ void ImageRender::setBackground (int red, int green, int blue, int alpha)
 	m_background[1] = (green < 0) ? 0.f : (green > 255) ? 1.f : float(green)/255.f;
 	m_background[2] = (blue < 0) ? 0.f : (blue > 255) ? 1.f : float(blue)/255.f;
 	m_background[3] = (alpha < 0) ? 0.f : (alpha > 255) ? 1.f : float(alpha)/255.f;
+}
+
+// set background color from scene
+void ImageRender::setBackgroundFromScene (KX_Scene *scene)
+{
+	if (scene) {
+		const float *background_color = scene->GetWorldInfo()->getBackColor();
+		setBackground((int) (background_color[0] * 255.0f), (int) (background_color[1] * 255.0f), (int) (background_color[2] * 255.0f), 255);
+	}
+	else {
+		setBackground(0, 0, 255, 255);
+	}
 }
 
 
@@ -733,7 +745,8 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
 	m_mirrorX = m_mirrorY.cross(m_mirrorZ);
 	m_render = true;
 
-	setBackground(0, 0, 255, 255);
+	// set mirror background color to scene background color as default
+	setBackgroundFromScene(m_scene);
 }
 
 
