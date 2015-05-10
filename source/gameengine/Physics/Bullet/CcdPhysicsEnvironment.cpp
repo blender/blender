@@ -671,6 +671,19 @@ void CcdPhysicsEnvironment::RemoveCcdGraphicController(CcdGraphicController* ctr
 	}
 }
 
+void CcdPhysicsEnvironment::UpdateCcdPhysicsControllerShape(CcdShapeConstructionInfo *shapeInfo)
+{
+	for (std::set<CcdPhysicsController *>::iterator it = m_controllers.begin(); it != m_controllers.end(); ++it) {
+		CcdPhysicsController *ctrl = *it;
+
+		if (ctrl->GetShapeInfo() != shapeInfo)
+			continue;
+
+		ctrl->ReplaceControllerShape(NULL);
+		RefreshCcdPhysicsController(ctrl);
+	}
+}
+
 void	CcdPhysicsEnvironment::BeginFrame()
 {
 
@@ -1156,17 +1169,8 @@ static bool GetHitTriangle(btCollisionShape* shape, CcdShapeConstructionInfo* sh
 	int indexstride;
 	int numfaces;
 	PHY_ScalarType indicestype;
-	btStridingMeshInterface* meshInterface = NULL;
-	btTriangleMeshShape* triangleShape = shapeInfo->GetMeshShape();
+	btStridingMeshInterface* meshInterface = shapeInfo->GetMeshInterface();
 
-	if (triangleShape)
-		meshInterface = triangleShape->getMeshInterface();
-	else
-	{
-		// other possibility is gImpact
-		if (shape->getShapeType() == GIMPACT_SHAPE_PROXYTYPE)
-			meshInterface = (static_cast<btGImpactMeshShape*>(shape))->getMeshInterface();
-	}
 	if (!meshInterface)
 		return false;
 

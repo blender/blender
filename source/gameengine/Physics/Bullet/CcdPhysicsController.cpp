@@ -39,7 +39,6 @@ subject to the following restrictions:
 #include "LinearMath/btConvexHull.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
 
-
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 
 #include "DNA_mesh_types.h"
@@ -599,20 +598,13 @@ void CcdPhysicsController::CreateRigidbody()
 
 static void DeleteBulletShape(btCollisionShape* shape, bool free)
 {
-	if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
-	{
-		// shapes based on meshes use an interface that contains the vertices.
-		btTriangleMeshShape* meshShape = static_cast<btTriangleMeshShape*>(shape);
-		btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
-		if (meshInterface)
-			delete meshInterface;
-	}
-	else if (shape->getShapeType() == GIMPACT_SHAPE_PROXYTYPE)
-	{
-		btGImpactMeshShape* meshShape = static_cast<btGImpactMeshShape*>(shape);
-		btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
-		if (meshInterface)
-			delete meshInterface;
+	if (shape->getShapeType() == SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE) {
+		/* If we use Bullet scaled shape (btScaledBvhTriangleMeshShape) we have to
+		 * free the child of the unscaled shape (btTriangleMeshShape) here.
+		 */
+		btTriangleMeshShape *meshShape = ((btScaledBvhTriangleMeshShape *)shape)->getChildShape();
+		if (meshShape)
+			delete meshShape;
 	}
 	if (free) {
 		delete shape;
@@ -645,48 +637,41 @@ bool CcdPhysicsController::DeleteControllerShape( )
 
 bool CcdPhysicsController::ReplaceControllerShape(btCollisionShape *newShape)
 {
-	
-	/* Note, deleting the previous collision shape must be done already */
-	/* if (m_collisionShape) DeleteControllerShape(); */
+	if (m_collisionShape)
+		DeleteControllerShape();
+
+	// If newShape is NULL it means to create a new Bullet shape.
+	if (!newShape)
+		newShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin, m_cci.m_bGimpact, !m_cci.m_bSoft);
 
 	m_object->setCollisionShape(newShape);
-	m_collisionShape= newShape;
-	m_cci.m_collisionShape= newShape;
-	
-	if (GetSoftBody()) {
+	m_collisionShape = newShape;
+	m_cci.m_collisionShape = newShape;
+
+	btSoftBody *softBody = GetSoftBody();
+	if (softBody) {
+		btSoftRigidDynamicsWorld *world = GetPhysicsEnvironment()->GetDynamicsWorld();
+		// remove the old softBody
+		world->removeSoftBody(softBody);
+
 		// soft body must be recreated
-		m_cci.m_physicsEnv->RemoveCcdPhysicsController(this);
 		delete m_object;
 		m_object = NULL;
 		// force complete reinitialization
 		m_softbodyMappingDone = false;
 		m_prototypeTransformInitialized = false;
 		m_softBodyTransformInitialized = false;
+
 		CreateSoftbody();
 		assert(m_object);
-		// reinsert the new body
-		m_cci.m_physicsEnv->AddCcdPhysicsController(this);
-	}
-	
-	/* Copied from CcdPhysicsEnvironment::addCcdPhysicsController() */
-	
-	/* without this, an object can rest on the old physics mesh
-	 * and not move to account for the physics mesh, even with 'nosleep' */ 
-	btSoftRigidDynamicsWorld* dw= GetPhysicsEnvironment()->GetDynamicsWorld();
-	btCollisionObjectArray &obarr= dw->getCollisionObjectArray();
-	btCollisionObject *ob;
-	btBroadphaseProxy* proxy;
 
-	for (int i= 0; i < obarr.size(); i++) {
-		ob= obarr[i];
-		if (ob->getCollisionShape() == newShape) {
-			proxy = ob->getBroadphaseHandle();
-			
-			if (proxy)
-				dw->getPairCache()->cleanProxyFromPairs(proxy,dw->getDispatcher());
-		}
+		btSoftBody *newSoftBody = GetSoftBody();
+		// set the user
+		newSoftBody->setUserPointer(this);
+		// add the new softbody
+		world->addSoftBody(newSoftBody);
 	}
-	
+
 	return true;
 }
 
@@ -1742,30 +1727,22 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplicaForSensors()
  * 2) from_gameobj - creates the phys mesh from the DerivedMesh where possible, else the RAS_MeshObject
  * 3) this - update the phys mesh from DerivedMesh or RAS_MeshObject
  *
- * Most of the logic behind this is in shapeInfo->UpdateMesh(...)
+ * Most of the logic behind this is in m_shapeInfo->UpdateMesh(...)
  */
 bool CcdPhysicsController::ReinstancePhysicsShape(KX_GameObject *from_gameobj, RAS_MeshObject *from_meshobj)
 {
-	CcdShapeConstructionInfo	*shapeInfo;
-
-	shapeInfo = this->GetShapeInfo();
-
-	if (shapeInfo->m_shapeType != PHY_SHAPE_MESH/* || spc->GetSoftBody()*/)
+	if (m_shapeInfo->m_shapeType != PHY_SHAPE_MESH)
 		return false;
 
-	this->DeleteControllerShape();
-
-	if (from_gameobj==NULL && from_meshobj==NULL)
-		from_gameobj = KX_GameObject::GetClientObject((KX_ClientObjectInfo*)this->GetNewClientInfo());
+	if (!from_gameobj && !from_meshobj)
+		from_gameobj = KX_GameObject::GetClientObject((KX_ClientObjectInfo*)GetNewClientInfo());
 
 	/* updates the arrays used for making the new bullet mesh */
-	shapeInfo->UpdateMesh(from_gameobj, from_meshobj);
+	m_shapeInfo->UpdateMesh(from_gameobj, from_meshobj);
 
 	/* create the new bullet mesh */
-	CcdConstructionInfo& cci = this->GetConstructionInfo();
-	btCollisionShape* bm= shapeInfo->CreateBulletShape(cci.m_margin, cci.m_bGimpact, !cci.m_bSoft);
+	GetPhysicsEnvironment()->UpdateCcdPhysicsControllerShape(m_shapeInfo);
 
-	this->ReplaceControllerShape(bm);
 	return true;
 }
 
@@ -2494,11 +2471,9 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 	}
 #endif
 
-	/* force recreation of the m_unscaledShape.
+	/* force recreation of the m_triangleIndexVertexArray.
 	 * If this has multiple users we cant delete */
-	if (m_unscaledShape) {
-		// don't free now so it can re-allocate under the same location and not break pointers.
-		// DeleteBulletShape(m_unscaledShape);
+	if (m_triangleIndexVertexArray) {
 		m_forceReInstance = true;
 	}
 
@@ -2582,74 +2557,60 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 		// 9 multiplications/additions and one function call for each triangle that passes the mid phase filtering
 		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
 		// and btScaledBvhTriangleMeshShape otherwise.
-		if (useGimpact)
-		{
-				btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(
+		if (useGimpact) {
+			if (!m_triangleIndexVertexArray || m_forceReInstance) {
+				if (m_triangleIndexVertexArray)
+					delete m_triangleIndexVertexArray;
+
+				m_triangleIndexVertexArray = new btTriangleIndexVertexArray(
 						m_polygonIndexArray.size(),
-						&m_triFaceArray[0],
-						3*sizeof(int),
-						m_vertexArray.size()/3,
+						m_triFaceArray.data(),
+						3 * sizeof(int),
+						m_vertexArray.size() / 3,
 						&m_vertexArray[0],
-						3*sizeof(btScalar)
-				);
-				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
-				gimpactShape->setMargin(margin);
-				gimpactShape->updateBound();
-				collisionShape = gimpactShape;
-				
+						3 * sizeof(btScalar));
+				m_forceReInstance = false;
+			}
 
-		} else
-		{
-			if (!m_unscaledShape || m_forceReInstance)
-			{
-			
-				btTriangleIndexVertexArray* indexVertexArrays = 0;
-
+			btGImpactMeshShape *gimpactShape = new btGImpactMeshShape(m_triangleIndexVertexArray);
+			gimpactShape->setMargin(margin);
+			gimpactShape->updateBound();
+			collisionShape = gimpactShape;
+		}
+		else {
+			if (!m_triangleIndexVertexArray || m_forceReInstance) {
 				///enable welding, only for the objects that need it (such as soft bodies)
-				if (0.f != m_weldingThreshold1)
-				{
-					btTriangleMesh* collisionMeshData = new btTriangleMesh(true,false);
+				if (0.0f != m_weldingThreshold1) {
+					btTriangleMesh *collisionMeshData = new btTriangleMesh(true, false);
 					collisionMeshData->m_weldingThreshold = m_weldingThreshold1;
-					bool removeDuplicateVertices=true;
+					bool removeDuplicateVertices = true;
 					// m_vertexArray not in multiple of 3 anymore, use m_triFaceArray
-					for (unsigned int i=0; i<m_triFaceArray.size(); i+=3) {
-						btScalar *bt = &m_vertexArray[3*m_triFaceArray[i]];
+					for (unsigned int i = 0; i < m_triFaceArray.size(); i += 3) {
+						btScalar *bt = &m_vertexArray[3 * m_triFaceArray[i]];
 						btVector3 v1(bt[0], bt[1], bt[2]);
-						bt = &m_vertexArray[3*m_triFaceArray[i+1]];
+						bt = &m_vertexArray[3 * m_triFaceArray[i + 1]];
 						btVector3 v2(bt[0], bt[1], bt[2]);
-						bt = &m_vertexArray[3*m_triFaceArray[i+2]];
+						bt = &m_vertexArray[3 * m_triFaceArray[i + 2]];
 						btVector3 v3(bt[0], bt[1], bt[2]);
 						collisionMeshData->addTriangle(v1, v2, v3, removeDuplicateVertices);
 					}
-					indexVertexArrays = collisionMeshData;
-
-				} else
-				{
-					indexVertexArrays = new btTriangleIndexVertexArray(
+					m_triangleIndexVertexArray = collisionMeshData;
+				}
+				else {
+					m_triangleIndexVertexArray = new btTriangleIndexVertexArray(
 							m_polygonIndexArray.size(),
-							&m_triFaceArray[0],
-							3*sizeof(int),
-							m_vertexArray.size()/3,
+							m_triFaceArray.data(),
+							3 * sizeof(int),
+							m_vertexArray.size() / 3,
 							&m_vertexArray[0],
-							3*sizeof(btScalar));
+							3 * sizeof(btScalar));
 				}
-				
-				// this shape will be shared and not deleted until shapeInfo is deleted
-				
-				// for UpdateMesh, reuse the last memory location so instancing wont crash.
-				if (m_unscaledShape) {
-					DeleteBulletShape(m_unscaledShape, false);
-					m_unscaledShape->~btBvhTriangleMeshShape();
-					m_unscaledShape = new(m_unscaledShape) btBvhTriangleMeshShape( indexVertexArrays, true, useBvh );
-				} else {
-					m_unscaledShape = new btBvhTriangleMeshShape( indexVertexArrays, true, useBvh );
-				}
-				m_forceReInstance= false;
-			} else if (useBvh && m_unscaledShape->getOptimizedBvh() == NULL) {
-				// the existing unscaledShape was not build with Bvh, do it now
-				m_unscaledShape->buildOptimizedBvh();
+
+				m_forceReInstance = false;
 			}
-			collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
+
+			btBvhTriangleMeshShape *unscaledShape = new btBvhTriangleMeshShape(m_triangleIndexVertexArray, true, useBvh);
+			collisionShape = new btScaledBvhTriangleMeshShape(unscaledShape, btVector3(1.0f, 1.0f, 1.0f));
 			collisionShape->setMargin(margin);
 		}
 		break;
@@ -2691,10 +2652,9 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 		(*sit)->Release();
 	}
 	m_shapeArray.clear();
-	if (m_unscaledShape)
-	{
-		DeleteBulletShape(m_unscaledShape, true);
-	}
+
+	if (m_triangleIndexVertexArray)
+		delete m_triangleIndexVertexArray;
 	m_vertexArray.clear();
 	if (m_shapeType == PHY_SHAPE_MESH && m_meshObject != NULL) 
 	{

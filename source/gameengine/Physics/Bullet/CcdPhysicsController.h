@@ -79,7 +79,7 @@ public:
 		m_userData(NULL),
 		m_refCount(1),
 		m_meshObject(NULL),
-		m_unscaledShape(NULL),
+		m_triangleIndexVertexArray(NULL),
 		m_forceReInstance(false),
 		m_weldingThreshold1(0.f),
 		m_shapeProxy(NULL)
@@ -110,10 +110,11 @@ public:
 
 	void AddShape(CcdShapeConstructionInfo* shapeInfo);
 
-	btTriangleMeshShape* GetMeshShape(void)
+	btStridingMeshInterface *GetMeshInterface()
 	{
-		return (m_unscaledShape);
+		return m_triangleIndexVertexArray;
 	}
+
 	CcdShapeConstructionInfo* GetChildShape(int i)
 	{
 		if (i < 0 || i >= (int)m_shapeArray.size())
@@ -195,8 +196,8 @@ protected:
 	int						m_refCount;		// this class is shared between replicas
 											// keep track of users so that we can release it 
 	RAS_MeshObject*	m_meshObject;			// Keep a pointer to the original mesh 
-	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
-											// the actual shape is of type btScaledBvhTriangleMeshShape
+	// The list of vertexes and indexes for the triangle mesh, shared between Bullet shape.
+	btTriangleIndexVertexArray *m_triangleIndexVertexArray;
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 	bool	m_forceReInstance; //use gimpact for concave dynamic/moving collision detection
 	float	m_weldingThreshold1;	//welding closeby vertices together can improve softbody stability etc.
@@ -535,7 +536,15 @@ protected:
 
 		CcdPhysicsController (const CcdConstructionInfo& ci);
 
+		/**
+		* Delete the current Bullet shape used in the rigid body.
+		*/
 		bool DeleteControllerShape();
+
+		/**
+		* Delete the old Bullet shape and set the new Bullet shape : newShape
+		* \param newShape The new Bullet shape to set, if is NULL we create a new Bullet shape
+		*/
 		bool ReplaceControllerShape(btCollisionShape *newShape);
 
 		virtual ~CcdPhysicsController();
