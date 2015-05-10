@@ -3729,9 +3729,10 @@ static size_t image_get_multiview_index(Image *ima, ImageUser *iuser)
 {
 	const bool is_multilayer = BKE_image_is_multilayer(ima);
 	const bool is_backdrop = (ima->source == IMA_SRC_VIEWER) && (ima->type ==  IMA_TYPE_COMPOSITE) && (iuser == NULL);
+	int index = BKE_image_is_animated(ima) ? 0 : IMA_NO_INDEX;
 
 	if (is_multilayer) {
-		return iuser ? iuser->multi_index : IMA_NO_INDEX;
+		return iuser ? iuser->multi_index : index;
 	}
 	else if (is_backdrop) {
 		if ((ima->flag & IMA_IS_STEREO)) {
@@ -3740,16 +3741,15 @@ static size_t image_get_multiview_index(Image *ima, ImageUser *iuser)
 		}
 	}
 	else if ((ima->flag & IMA_IS_MULTIVIEW)) {
-		return iuser ? iuser->multi_index : 0;
+		return iuser ? iuser->multi_index : index;
 	}
 
-	return IMA_NO_INDEX;
+	return index;
 }
 
 static void image_get_frame_and_index(Image *ima, ImageUser *iuser, int *r_frame, int *r_index)
 {
-	int frame = 0, index = 0;
-	index = image_get_multiview_index(ima, iuser);
+	int frame = 0, index = image_get_multiview_index(ima, iuser);
 
 	/* see if we already have an appropriate ibuf, with image source and type */
 	if (ima->source == IMA_SRC_MOVIE) {
@@ -3777,9 +3777,7 @@ static void image_get_frame_and_index(Image *ima, ImageUser *iuser, int *r_frame
 static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *r_frame, int *r_index)
 {
 	ImBuf *ibuf = NULL;
-	int frame = 0, index = 0;
-
-	index = image_get_multiview_index(ima, iuser);
+	int frame = 0, index = image_get_multiview_index(ima, iuser);
 
 	/* see if we already have an appropriate ibuf, with image source and type */
 	if (ima->source == IMA_SRC_MOVIE) {
