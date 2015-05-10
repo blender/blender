@@ -54,12 +54,10 @@ ccl_device_inline void float4_store_half(half *h, float4 f, float scale)
 	for(int i = 0; i < 4; i++) {
 		/* optimized float to half for pixels:
 		 * assumes no negative, no nan, no inf, and sets denormal to 0 */
-		union { uint i; float f; } in;
 		float fscale = f[i] * scale;
-		in.f = (fscale > 0.0f)? ((fscale < 65500.0f)? fscale: 65500.0f): 0.0f;
-		int x = in.i;
+		float x = min(max(fscale, 0.0f), 65504.0f);
 
-		int absolute = x & 0x7FFFFFFF;
+		int absolute = __float_as_uint(in) & 0x7FFFFFFF;
 		int Z = absolute + 0xC8000000;
 		int result = (absolute < 0x38800000)? 0: Z;
 		int rshift = (result >> 13);
@@ -68,20 +66,20 @@ ccl_device_inline void float4_store_half(half *h, float4 f, float scale)
 	}
 #else
 	/* same as above with SSE */
-	const ssef mm_scale = ssef(scale);
-	const ssei mm_38800000 = ssei(0x38800000);
-	const ssei mm_7FFF = ssei(0x7FFF);
-	const ssei mm_7FFFFFFF = ssei(0x7FFFFFFF);
-	const ssei mm_C8000000 = ssei(0xC8000000);
+	ssef fscale = load4f(f) * scale;
+	ssef x = min(max(fscale, 0.0f), 65504.0f);
 
-	ssef mm_fscale = load4f(f) * mm_scale;
-	ssei x = cast(min(max(mm_fscale, ssef(0.0f)), ssef(65500.0f)));
-	ssei absolute = x & mm_7FFFFFFF;
-	ssei Z = absolute + mm_C8000000;
-	ssei result = andnot(absolute < mm_38800000, Z); 
-	ssei rh = (result >> 13) & mm_7FFF;
+#ifdef __KERNEL_AVX2__
+	ssei rpack = _mm_cvtps_ph(x, 0);
+#else
+	ssei absolute = cast(x) & 0x7FFFFFFF;
+	ssei Z = absolute + 0xC8000000;
+	ssei result = andnot(absolute < 0x38800000, Z);
+	ssei rshift = (result >> 13) & 0x7FFF;
+	ssei rpack = _mm_packs_epi32(rshift, rshift);
+#endif
 
-	_mm_storel_pi((__m64*)h, _mm_castsi128_ps(_mm_packs_epi32(rh, rh)));
+	_mm_storel_pi((__m64*)h, _mm_castsi128_ps(rpack));
 #endif
 }
 
