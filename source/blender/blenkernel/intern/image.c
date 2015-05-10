@@ -2427,11 +2427,15 @@ void BKE_image_verify_viewer_views(const RenderData *rd, Image *ima, ImageUser *
 	}
 
 	if (do_reset) {
+		BLI_spin_lock(&image_spin);
+
 		image_free_cached_frames(ima);
 		BKE_image_free_views(ima);
 
 		/* add new views */
 		image_viewer_create_views(rd, ima);
+
+		BLI_spin_unlock(&image_spin);
 	}
 
 	BLI_unlock_thread(LOCK_DRAW_IMAGE);
