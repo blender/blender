@@ -102,28 +102,7 @@
 #ifdef _MSC_VER
 #include <intrin.h>
 #else
-
-#ifdef __KERNEL_SSE2__
-#include <xmmintrin.h> /* SSE 1 */
-#include <emmintrin.h> /* SSE 2 */
-#endif
-
-#ifdef __KERNEL_SSE3__
-#include <pmmintrin.h> /* SSE 3 */
-#endif
-
-#ifdef __KERNEL_SSSE3__
-#include <tmmintrin.h> /* SSSE 3 */
-#endif
-
-#ifdef __KERNEL_SSE41__
-#include <smmintrin.h> /* SSE 4.1 */
-#endif
-
-#ifdef __KERNEL_AVX__
-#include <immintrin.h> /* AVX */
-#endif
-
+#include <x86intrin.h>
 #endif
 
 #else
