@@ -767,6 +767,28 @@ bool BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val)
 }
 
 /**
+ * A version of #BLI_ghash_ensure_p copies the key on insertion.
+ */
+bool BLI_ghash_ensure_p_ex(
+        GHash *gh, const void *key, void ***r_val,
+        GHashKeyCopyFP keycopyfp)
+{
+	const unsigned int hash = ghash_keyhash(gh, key);
+	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
+	GHashEntry *e = (GHashEntry *)ghash_lookup_entry_ex(gh, key, bucket_index);
+	const bool haskey = (e != NULL);
+
+	if (!haskey) {
+		/* keycopyfp(key) is the only difference to BLI_ghash_ensure_p */
+		e = BLI_mempool_alloc(gh->entrypool);
+		ghash_insert_ex_keyonly_entry(gh, keycopyfp(key), bucket_index, (Entry *)e);
+	}
+
+	*r_val = &e->val;
+	return haskey;
+}
+
+/**
  * Remove \a key from \a gh, or return false if the key wasn't found.
  *
  * \param key  The key to remove.

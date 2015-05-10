@@ -44,8 +44,8 @@ typedef unsigned int  (*GHashHashFP)     (const void *key);
 typedef bool          (*GHashCmpFP)      (const void *a, const void *b);
 typedef void          (*GHashKeyFreeFP)  (void *key);
 typedef void          (*GHashValFreeFP)  (void *val);
-typedef void         *(*GHashKeyCopyFP)  (void *key);
-typedef void         *(*GHashValCopyFP)  (void *val);
+typedef void         *(*GHashKeyCopyFP)  (const void *key);
+typedef void         *(*GHashValCopyFP)  (const void *val);
 
 typedef struct GHash GHash;
 
@@ -80,6 +80,7 @@ void  *BLI_ghash_lookup(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
 void  *BLI_ghash_lookup_default(GHash *gh, const void *key, void *val_default) ATTR_WARN_UNUSED_RESULT;
 void **BLI_ghash_lookup_p(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val) ATTR_WARN_UNUSED_RESULT;
+bool   BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_val, GHashKeyCopyFP keycopyfp) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_clear_ex(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
