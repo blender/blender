@@ -22,16 +22,14 @@ Physics Constraints (bge.constraints)
    :type physicsid2: int
 
    :arg constrainttype: the type of the constraint. The constraint types are:
-
+   :type constrainttype: int
    - :class:`POINTTOPOINT_CONSTRAINT`
    - :class:`LINEHINGE_CONSTRAINT`
    - :class:`ANGULAR_CONSTRAINT`
    - :class:`CONETWIST_CONSTRAINT`
    - :class:`VEHICLE_CONSTRAINT`
    - :class:`GENERIC_6DOF_CONSTRAINT`
-
-   :type constrainttype: int
-
+   
    :arg pivot_X: pivot X position
    :type pivot_X: float (optional)
 
@@ -53,9 +51,12 @@ Physics Constraints (bge.constraints)
    :arg flag: 128 to disable collision between linked bodies
    :type flag: int (optional)
 
+   :return: a constraint wrapper.
+   :rtype: :class:`bge.types.KX_ConstraintWrapper`
+
 .. attribute:: error
 
-   Simbolic constant string that indicates error.
+   Symbolic constant string that indicates error.
 
 .. function:: exportBulletFile(filename)
 

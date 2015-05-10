@@ -20,15 +20,15 @@ constraint_type = 2
 physics_id_1 = object_1.getPhysicsId()
 physics_id_2 = object_2.getPhysicsId()
 
-# Use bottom right edge of Object1 for hinge position
+# use bottom right edge of Object1 for hinge position
 edge_position_x = 1.0
 edge_position_y = 0.0
 edge_position_z = -1.0
 
-# use Object1 y axis for angle to point hinge
+# rotate the pivot z axis about 90 degrees
 edge_angle_x = 0.0
-edge_angle_y = 1.0
-edge_angle_z = 0.0
+edge_angle_y = 0.0
+edge_angle_z = 90.0
 
 # create an edge constraint
 constraints.createConstraint(physics_id_1, physics_id_2,
