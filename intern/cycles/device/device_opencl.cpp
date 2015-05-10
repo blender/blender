@@ -3364,21 +3364,21 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		clGetPlatformInfo(platform_ids[platform], CL_PLATFORM_NAME, sizeof(pname), &pname, NULL);
 		string platform_name = pname;
 
-		cl_device_type device_type;
-		clGetDeviceInfo(device_ids[platform], CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
-
-		/* TODO(sergey): Make it an utility function to check whitelisted devices. */
-		if(!(force_all_platforms ||
-		     (platform_name == "AMD Accelerated Parallel Processing" &&
-		      device_type == CL_DEVICE_TYPE_GPU)))
-		{
-			continue;
-		}
-
 		/* add devices */
 		for(int num = 0; num < num_devices; num++) {
 			cl_device_id device_id = device_ids[num];
 			char name[1024] = "\0";
+
+			cl_device_type device_type;
+			clGetDeviceInfo(device_id, CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
+
+			/* TODO(sergey): Make it an utility function to check whitelisted devices. */
+			if(!(force_all_platforms ||
+			     (platform_name == "AMD Accelerated Parallel Processing" &&
+			      device_type == CL_DEVICE_TYPE_GPU)))
+			{
+				continue;
+			}
 
 			if(clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(name), &name, NULL) != CL_SUCCESS)
 				continue;
