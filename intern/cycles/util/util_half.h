@@ -54,10 +54,12 @@ ccl_device_inline void float4_store_half(half *h, float4 f, float scale)
 	for(int i = 0; i < 4; i++) {
 		/* optimized float to half for pixels:
 		 * assumes no negative, no nan, no inf, and sets denormal to 0 */
+		union { uint i; float f; } in;
 		float fscale = f[i] * scale;
-		float x = min(max(fscale, 0.0f), 65504.0f);
+		in.f = (fscale > 0.0f)? ((fscale < 65504.0f)? fscale: 65504.0f): 0.0f;
+		int x = in.i;
 
-		int absolute = __float_as_uint(in) & 0x7FFFFFFF;
+		int absolute = x & 0x7FFFFFFF;
 		int Z = absolute + 0xC8000000;
 		int result = (absolute < 0x38800000)? 0: Z;
 		int rshift = (result >> 13);
