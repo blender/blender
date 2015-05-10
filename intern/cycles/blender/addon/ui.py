@@ -55,8 +55,15 @@ def use_cpu(context):
 
     return (device_type == 'NONE' or cscene.device == 'CPU')
 
+def use_branched_path(context):
+    cscene = context.scene.cycles
+    device_type = context.user_preferences.system.compute_device_type
 
-def draw_samples_info(layout, cscene):
+    return (cscene.progressive == 'BRANCHED_PATH' and device_type != 'OPENCL')
+
+
+def draw_samples_info(layout, context):
+    cscene = context.scene.cycles
     integrator = cscene.progressive
 
     # Calculate sample values
@@ -86,7 +93,7 @@ def draw_samples_info(layout, cscene):
 
     # Draw interface
     # Do not draw for progressive, when Square Samples are disabled
-    if (integrator == 'BRANCHED_PATH') or (cscene.use_square_samples and integrator == 'PATH'):
+    if use_branched_path(context) or (cscene.use_square_samples and integrator == 'PATH'):
         col = layout.column(align=True)
         col.scale_y = 0.6
         col.label("Total Samples:")
@@ -110,6 +117,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         row = layout.row(align=True)
         row.menu("CYCLES_MT_sampling_presets", text=bpy.types.CYCLES_MT_sampling_presets.bl_label)
@@ -117,7 +125,9 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         row.operator("render.cycles_sampling_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
         row = layout.row()
-        row.prop(cscene, "progressive", text="")
+        sub = row.row()
+        sub.active = device_type != 'OPENCL'
+        sub.prop(cscene, "progressive", text="")
         row.prop(cscene, "use_square_samples")
 
         split = layout.split()
@@ -129,7 +139,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "sample_clamp_direct")
         sub.prop(cscene, "sample_clamp_indirect")
 
-        if cscene.progressive == 'PATH':
+        if cscene.progressive == 'PATH' or use_branched_path(context) == False:
             col = split.column()
             sub = col.column(align=True)
             sub.label(text="Samples:")
@@ -163,7 +173,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
                 layout.row().prop(cscene, "use_layer_samples")
                 break
 
-        draw_samples_info(layout, cscene)
+        draw_samples_info(layout, context)
 
 
 class CyclesRender_PT_volume_sampling(CyclesButtonsPanel, Panel):
@@ -786,7 +796,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
 
         if not (lamp.type == 'AREA' and clamp.is_portal):
             sub = col.column(align=True)
-            if cscene.progressive == 'BRANCHED_PATH':
+            if use_branched_path(context):
                 sub.prop(clamp, "samples")
             sub.prop(clamp, "max_bounces")
 
@@ -995,7 +1005,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.active = cworld.sample_as_light
         sub.prop(cworld, "sample_map_resolution")
-        if cscene.progressive == 'BRANCHED_PATH':
+        if use_branched_path(context):
             sub.prop(cworld, "samples")
 
         col = split.column()
