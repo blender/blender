@@ -690,10 +690,11 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
             row.prop(linestyle, "texture_spacing", text="Spacing Along Stroke")
 
             row = layout.row()
-            op = row.operator("wm.properties_context_change",
-                         text="Go to Linestyle Textures Properties",
-                         icon='TEXTURE')
-            op.context = 'TEXTURE'
+            props = row.operator(
+                    "wm.properties_context_change",
+                    text="Go to Linestyle Textures Properties",
+                    icon='TEXTURE')
+            props.context = 'TEXTURE'
 
         elif linestyle.panel == 'MISC':
             pass

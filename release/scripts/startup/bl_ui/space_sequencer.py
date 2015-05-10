@@ -230,12 +230,12 @@ class SEQUENCER_MT_select(Menu):
 
         layout.operator("sequencer.select_active_side", text="Strips to the Left").side = 'LEFT'
         layout.operator("sequencer.select_active_side", text="Strips to the Right").side = 'RIGHT'
-        op = layout.operator("sequencer.select", text="All strips to the Left")
-        op.left_right = 'LEFT'
-        op.linked_time = True
-        op = layout.operator("sequencer.select", text="All strips to the Right")
-        op.left_right = 'RIGHT'
-        op.linked_time = True
+        props = layout.operator("sequencer.select", text="All strips to the Left")
+        props.left_right = 'LEFT'
+        props.linked_time = True
+        props = layout.operator("sequencer.select", text="All strips to the Right")
+        props.left_right = 'RIGHT'
+        props.linked_time = True
 
         layout.separator()
         layout.operator("sequencer.select_handles", text="Surrounding Handles").side = 'BOTH'

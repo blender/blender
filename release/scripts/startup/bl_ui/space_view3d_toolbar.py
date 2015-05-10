@@ -407,9 +407,9 @@ class VIEW3D_PT_tools_shading(View3DPanel, Panel):
         row.operator("mesh.mark_sharp", text="Sharp")
         col.label(text="Vertices:")
         row = col.row(align=True)
-        op = row.operator("mesh.mark_sharp", text="Smooth")
-        op.use_verts = True
-        op.clear = True
+        props = row.operator("mesh.mark_sharp", text="Smooth")
+        props.use_verts = True
+        props.clear = True
         row.operator("mesh.mark_sharp", text="Sharp").use_verts = True
 
         col = layout.column(align=True)
@@ -1607,9 +1607,9 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
 
         col = layout.column()
         col.operator("paint.weight_gradient")
-        prop = col.operator("object.data_transfer", text="Transfer Weights")
-        prop.use_reverse_transfer = True
-        prop.data_type = 'VGROUP_WEIGHTS'
+        props = col.operator("object.data_transfer", text="Transfer Weights")
+        props.use_reverse_transfer = True
+        props.data_type = 'VGROUP_WEIGHTS'
 
 
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
