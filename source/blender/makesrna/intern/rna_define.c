@@ -3411,7 +3411,7 @@ static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 	
 	if (prop->flag & PROP_RUNTIME) {
 		if (cont->prophash)
-			BLI_ghash_remove(cont->prophash, (void *)prop->identifier, NULL, NULL);
+			BLI_ghash_remove(cont->prophash, prop->identifier, NULL, NULL);
 
 		RNA_def_property_free_pointers(prop);
 		rna_freelinkN(&cont->properties, prop);

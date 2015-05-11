@@ -38,7 +38,7 @@ typedef struct bAddonPrefType {
 
 bAddonPrefType *BKE_addon_pref_type_find(const char *idname, bool quiet);
 void            BKE_addon_pref_type_add(bAddonPrefType *apt);
-void            BKE_addon_pref_type_remove(bAddonPrefType *apt);
+void            BKE_addon_pref_type_remove(const bAddonPrefType *apt);
 
 void            BKE_addon_pref_type_init(void);
 void            BKE_addon_pref_type_free(void);

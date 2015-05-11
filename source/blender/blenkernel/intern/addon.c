@@ -62,12 +62,12 @@ bAddonPrefType *BKE_addon_pref_type_find(const char *idname, bool quiet)
 
 void BKE_addon_pref_type_add(bAddonPrefType *apt)
 {
-	BLI_ghash_insert(global_addonpreftype_hash, (void *)apt->idname, apt);
+	BLI_ghash_insert(global_addonpreftype_hash, apt->idname, apt);
 }
 
-void BKE_addon_pref_type_remove(bAddonPrefType *apt)
+void BKE_addon_pref_type_remove(const bAddonPrefType *apt)
 {
-	BLI_ghash_remove(global_addonpreftype_hash, (void *)apt->idname, NULL, MEM_freeN);
+	BLI_ghash_remove(global_addonpreftype_hash, apt->idname, NULL, MEM_freeN);
 }
 
 void BKE_addon_pref_type_init(void)

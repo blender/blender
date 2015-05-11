@@ -525,7 +525,7 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 
 		for (nr = 0; nr < sdna->nr_structs; nr++) {
 			sp = sdna->structs[nr];
-			BLI_ghash_insert(sdna->structs_map, (void *)sdna->types[sp[0]], (void *)(nr + 1));
+			BLI_ghash_insert(sdna->structs_map, sdna->types[sp[0]], SET_INT_IN_POINTER(nr + 1));
 		}
 #endif
 	}

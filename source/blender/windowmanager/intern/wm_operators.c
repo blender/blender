@@ -493,7 +493,7 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
 	if (ot->macro.first)
 		wm_operatortype_free_macro(ot);
 
-	BLI_ghash_remove(global_ops_hash, (void *)ot->idname, NULL, NULL);
+	BLI_ghash_remove(global_ops_hash, ot->idname, NULL, NULL);
 
 	WM_keyconfig_update_operatortype();
 

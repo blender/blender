@@ -228,7 +228,7 @@ uiListType *WM_uilisttype_find(const char *idname, bool quiet)
 
 bool WM_uilisttype_add(uiListType *ult)
 {
-	BLI_ghash_insert(uilisttypes_hash, (void *)ult->idname, ult);
+	BLI_ghash_insert(uilisttypes_hash, ult->idname, ult);
 	return 1;
 }
 
@@ -285,7 +285,7 @@ MenuType *WM_menutype_find(const char *idname, bool quiet)
 
 bool WM_menutype_add(MenuType *mt)
 {
-	BLI_ghash_insert(menutypes_hash, (void *)mt->idname, mt);
+	BLI_ghash_insert(menutypes_hash, mt->idname, mt);
 	return true;
 }
 

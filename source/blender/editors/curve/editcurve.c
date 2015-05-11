@@ -327,17 +327,17 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 	editnurb->keyindex = gh;
 }
 
-static CVKeyIndex *getCVKeyIndex(EditNurb *editnurb, void *cv)
+static CVKeyIndex *getCVKeyIndex(EditNurb *editnurb, const void *cv)
 {
 	return BLI_ghash_lookup(editnurb->keyindex, cv);
 }
 
-static CVKeyIndex *popCVKeyIndex(EditNurb *editnurb, void *cv)
+static CVKeyIndex *popCVKeyIndex(EditNurb *editnurb, const void *cv)
 {
 	return BLI_ghash_popkey(editnurb->keyindex, cv, NULL);
 }
 
-static BezTriple *getKeyIndexOrig_bezt(EditNurb *editnurb, BezTriple *bezt)
+static BezTriple *getKeyIndexOrig_bezt(EditNurb *editnurb, const BezTriple *bezt)
 {
 	CVKeyIndex *index = getCVKeyIndex(editnurb, bezt);
 
@@ -370,7 +370,7 @@ static int getKeyIndexOrig_keyIndex(EditNurb *editnurb, void *cv)
 	return index->key_index;
 }
 
-static void keyIndex_delCV(EditNurb *editnurb, void *cv)
+static void keyIndex_delCV(EditNurb *editnurb, const void *cv)
 {
 	if (!editnurb->keyindex) {
 		return;
@@ -398,7 +398,7 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 	}
 
 	if (nu->bezt) {
-		BezTriple *bezt = nu->bezt;
+		const BezTriple *bezt = nu->bezt;
 		a = nu->pntsu;
 
 		while (a--) {
@@ -407,7 +407,7 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 		}
 	}
 	else {
-		BPoint *bp = nu->bp;
+		const BPoint *bp = nu->bp;
 		a = nu->pntsu * nu->pntsv;
 
 		while (a--) {

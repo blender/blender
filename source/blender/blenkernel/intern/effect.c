@@ -1176,7 +1176,7 @@ void BKE_sim_debug_data_clear_category(const char *category)
 		GHashIterator iter;
 		BLI_ghashIterator_init(&iter, _sim_debug_data->gh);
 		while (!BLI_ghashIterator_done(&iter)) {
-			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
+			const SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 			BLI_ghashIterator_step(&iter); /* removing invalidates the current iterator, so step before removing */
 			
 			if (elem->category_hash == category_hash)

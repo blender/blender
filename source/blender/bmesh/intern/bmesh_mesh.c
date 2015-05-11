@@ -1497,7 +1497,7 @@ void BM_mesh_remap(
 			BMVert *new_vep = verts_pool[*new_idx];
 			*new_vep = *ve;
 /*			printf("mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);*/
-			BLI_ghash_insert(vptr_map, (void *)*vep, (void *)new_vep);
+			BLI_ghash_insert(vptr_map, *vep, new_vep);
 		}
 		bm->elem_index_dirty |= BM_VERT;
 		bm->elem_table_dirty |= BM_VERT;
@@ -1528,7 +1528,7 @@ void BM_mesh_remap(
 		for (i = totedge; i--; new_idx--, ed--, edp--) {
 			BMEdge *new_edp = edges_pool[*new_idx];
 			*new_edp = *ed;
-			BLI_ghash_insert(eptr_map, (void *)*edp, (void *)new_edp);
+			BLI_ghash_insert(eptr_map, *edp, new_edp);
 /*			printf("mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);*/
 		}
 		bm->elem_index_dirty |= BM_EDGE;
@@ -1560,7 +1560,7 @@ void BM_mesh_remap(
 		for (i = totface; i--; new_idx--, fa--, fap--) {
 			BMFace *new_fap = faces_pool[*new_idx];
 			*new_fap = *fa;
-			BLI_ghash_insert(fptr_map, (void *)*fap, (void *)new_fap);
+			BLI_ghash_insert(fptr_map, *fap, new_fap);
 		}
 
 		bm->elem_index_dirty |= BM_FACE | BM_LOOP;

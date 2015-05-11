@@ -303,7 +303,7 @@ bNodeTreeType *ntreeTypeFind(const char *idname)
 
 void ntreeTypeAdd(bNodeTreeType *nt)
 {
-	BLI_ghash_insert(nodetreetypes_hash, (void *)nt->idname, nt);
+	BLI_ghash_insert(nodetreetypes_hash, nt->idname, nt);
 	/* XXX pass Main to register function? */
 	update_typeinfo(G.main, NULL, nt, NULL, NULL, false);
 }
@@ -317,7 +317,7 @@ static void ntree_free_type(void *treetype_v)
 	MEM_freeN(treetype);
 }
 
-void ntreeTypeFreeLink(bNodeTreeType *nt)
+void ntreeTypeFreeLink(const bNodeTreeType *nt)
 {
 	BLI_ghash_remove(nodetreetypes_hash, nt->idname, NULL, ntree_free_type);
 }
@@ -378,7 +378,7 @@ void nodeRegisterType(bNodeType *nt)
 	BLI_assert(nt->idname[0] != '\0');
 	BLI_assert(nt->poll != NULL);
 	
-	BLI_ghash_insert(nodetypes_hash, (void *)nt->idname, nt);
+	BLI_ghash_insert(nodetypes_hash, nt->idname, nt);
 	/* XXX pass Main to register function? */
 	update_typeinfo(G.main, NULL, NULL, nt, NULL, false);
 }
