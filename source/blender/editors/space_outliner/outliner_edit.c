@@ -1984,7 +1984,8 @@ void ED_outliner_id_unref(SpaceOops *so, const ID *id)
 		}
 		if (so->treehash && changed) {
 			/* rebuild hash table, because it depends on ids too */
-			BKE_outliner_treehash_rebuild_from_treestore(so->treehash, so->treestore);
+			/* postpone a full rebuild because this can be called many times on-free */
+			so->storeflag |= SO_TREESTORE_REBUILD;
 		}
 	}
 }

@@ -6051,7 +6051,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 							}
 							if (so->treehash) {
 								/* rebuild hash table, because it depends on ids too */
-								BKE_outliner_treehash_rebuild_from_treestore(so->treehash, so->treestore);
+								so->storeflag |= SO_TREESTORE_REBUILD;
 							}
 						}
 					}
@@ -6405,7 +6405,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 						}
 						if (so->treehash) {
 							/* rebuild hash table, because it depends on ids too */
-							BKE_outliner_treehash_rebuild_from_treestore(so->treehash, so->treestore);
+							so->storeflag |= SO_TREESTORE_REBUILD;
 						}
 					}
 				}

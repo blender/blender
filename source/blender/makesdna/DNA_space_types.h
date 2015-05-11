@@ -290,10 +290,13 @@ typedef enum eSpaceOutliner_Mode {
 
 /* SpaceOops->storeflag */
 typedef enum eSpaceOutliner_StoreFlag {
-	/* rebuild tree */
+	/* cleanup tree */
 	SO_TREESTORE_CLEANUP    = (1 << 0),
 	/* if set, it allows redraws. gets set for some allqueue events */
 	SO_TREESTORE_REDRAW     = (1 << 1),
+	/* rebuild the tree, similar to cleanup,
+	 * but defer a call to BKE_outliner_treehash_rebuild_from_treestore instead */
+	SO_TREESTORE_REBUILD    = (1 << 2),
 } eSpaceOutliner_StoreFlag;
 
 /* outliner search flags (SpaceOops->search_flags) */

@@ -1580,6 +1580,11 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	else
 		soops->search_flags &= ~SO_SEARCH_RECURSIVE;
 
+	if (soops->storeflag & SO_TREESTORE_REBUILD) {
+		soops->storeflag &= ~SO_TREESTORE_REBUILD;
+		BKE_outliner_treehash_rebuild_from_treestore(soops->treehash, soops->treestore);
+	}
+
 	if (soops->tree.first && (soops->storeflag & SO_TREESTORE_REDRAW))
 		return;
 
