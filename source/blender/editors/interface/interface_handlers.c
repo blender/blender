@@ -99,6 +99,9 @@
 /* support dragging multiple number buttons at once */
 #define USE_DRAG_MULTINUM
 
+/* allow dragging/editing all other selected items at once */
+#define USE_ALLSELECT
+
 /* so we can avoid very small mouse-moves from jumping away from keyboard navigation [#34936] */
 #define USE_KEYNAV_LIMIT
 
@@ -158,6 +161,34 @@ typedef enum uiHandleButtonState {
 } uiHandleButtonState;
 
 
+#ifdef USE_ALLSELECT
+typedef struct uiSelectContextElem {
+	PointerRNA ptr;
+	union {
+		bool  val_b;
+		int   val_i;
+		float val_f;
+	};
+} uiSelectContextElem;
+
+typedef struct uiSelectContextStore {
+	uiSelectContextElem *elems;
+	int elems_len;
+	bool do_free;
+	bool is_enabled;
+} uiSelectContextStore;
+
+static bool ui_selectcontext_begin(
+        bContext *C, uiBut *but, struct uiSelectContextStore *selctx_data);
+static void ui_selectcontext_apply(
+        bContext *C, uiBut *but, struct uiSelectContextStore *selctx_data,
+        const double value, const double value_orig);
+
+#define IS_ALLSELECT_EVENT(event) ((event)->alt != 0)
+
+#endif  /* USE_ALLSELECT */
+
+
 #ifdef USE_DRAG_MULTINUM
 
 /* how far to drag before we check for gesture direction (in pixels),
@@ -178,6 +209,10 @@ typedef enum uiHandleButtonState {
 typedef struct uiButMultiState {
 	double origvalue;
 	uiBut *but;
+
+#ifdef USE_ALLSELECT
+	uiSelectContextStore select_others;
+#endif
 } uiButMultiState;
 
 typedef struct uiHandleButtonMulti {
@@ -209,8 +244,6 @@ typedef struct uiHandleButtonMulti {
 } uiHandleButtonMulti;
 
 #endif  /* USE_DRAG_MULTINUM */
-
-
 
 typedef struct uiHandleButtonData {
 	wmWindowManager *wm;
@@ -278,6 +311,10 @@ typedef struct uiHandleButtonData {
 #ifdef USE_DRAG_MULTINUM
 	/* Multi-buttons will be updated in unison with the active button. */
 	uiHandleButtonMulti multi_data;
+#endif
+
+#ifdef USE_ALLSELECT
+	uiSelectContextStore select_others;
 #endif
 
 	/* post activate */
@@ -909,7 +946,26 @@ static void ui_multibut_restore(uiHandleButtonData *data, uiBlock *block)
 
 static void ui_multibut_free(uiHandleButtonData *data, uiBlock *block)
 {
+#ifdef USE_ALLSELECT
+	if (data->multi_data.mbuts) {
+		LinkNode *list = data->multi_data.mbuts;
+		while (list) {
+			LinkNode *next = list->next;
+			uiButMultiState *mbut_state = list->link;
+
+			if (mbut_state->select_others.elems) {
+				MEM_freeN(mbut_state->select_others.elems);
+			}
+
+			MEM_freeN(list->link);
+			MEM_freeN(list);
+			list = next;
+		}
+	}
+#else
 	BLI_linklist_freeN(data->multi_data.mbuts);
+#endif
+
 	data->multi_data.mbuts = NULL;
 
 	if (data->multi_data.bs_mbuts) {
@@ -1015,6 +1071,24 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 				void *active_back;
 
 				ui_but_execute_begin(C, ar, but, &active_back);
+
+#ifdef USE_ALLSELECT
+				if (data->select_others.is_enabled) {
+					/* init once! */
+					if (mbut_state->select_others.elems_len == 0) {
+						ui_selectcontext_begin(C, but, &mbut_state->select_others);
+					}
+					if (mbut_state->select_others.elems_len == 0) {
+						mbut_state->select_others.elems_len = -1;
+					}
+				}
+
+				/* needed so we apply the right deltas */
+				but->active->origvalue = mbut_state->origvalue;
+				but->active->select_others = mbut_state->select_others;
+				but->active->select_others.do_free = false;
+#endif
+
 				BLI_assert(active_back == NULL);
 				/* no need to check 'data->state' here */
 				if (data->str) {
@@ -1223,6 +1297,205 @@ static bool ui_but_is_drag_toggle(const uiBut *but)
 }
 
 #endif  /* USE_DRAG_TOGGLE */
+
+
+#ifdef USE_ALLSELECT
+
+static bool ui_selectcontext_begin(
+        bContext *C, uiBut *but, uiSelectContextStore *selctx_data)
+{
+	PointerRNA ptr, lptr, idptr;
+	PropertyRNA *prop, *lprop;
+	bool success = false;
+	int index;
+
+	char *path = NULL;
+	ListBase lb = {NULL};
+
+	ptr = but->rnapoin;
+	prop = but->rnaprop;
+	index = but->rnaindex;
+
+	/* for now don't support whole colors */
+	if (index == -1)
+		return false;
+
+	/* if there is a valid property that is editable... */
+	if (ptr.data && prop) {
+		CollectionPointerLink *link;
+		bool use_path_from_id;
+		int i;
+
+		/* some facts we want to know */
+		const bool is_array = RNA_property_array_check(prop);
+		const int rna_type = RNA_property_type(prop);
+
+		if (!UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path)) {
+			goto finally;
+		}
+
+		selctx_data->elems_len = BLI_listbase_count(&lb);
+		if (selctx_data->elems_len == 0) {
+			goto finally;
+		}
+
+		selctx_data->elems = MEM_mallocN(sizeof(uiSelectContextElem) * selctx_data->elems_len, __func__);
+
+		for (i = 0, link = lb.first; i < selctx_data->elems_len; i++, link = link->next) {
+			uiSelectContextElem *other = &selctx_data->elems[i];
+			/* TODO,. de-duplicate copy_to_selected_button */
+			if (link->ptr.data != ptr.data) {
+				if (use_path_from_id) {
+					/* Path relative to ID. */
+					lprop = NULL;
+					RNA_id_pointer_create(link->ptr.id.data, &idptr);
+					RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
+				}
+				else if (path) {
+					/* Path relative to elements from list. */
+					lprop = NULL;
+					RNA_path_resolve_property(&link->ptr, path, &lptr, &lprop);
+				}
+				else {
+					lptr = link->ptr;
+					lprop = prop;
+				}
+
+				/* lptr might not be the same as link->ptr! */
+				if ((lptr.data != ptr.data) &&
+				    (lprop == prop) &&
+				    RNA_property_editable(&lptr, lprop))
+				{
+					other->ptr = lptr;
+					if (is_array) {
+						if (rna_type == PROP_FLOAT) {
+							other->val_f = RNA_property_float_get_index(&lptr, lprop, index);
+						}
+						else if (rna_type == PROP_INT) {
+							other->val_i = RNA_property_int_get_index(&lptr, lprop, index);
+						}
+						/* ignored for now */
+#if 0
+						else if (rna_type == PROP_BOOLEAN) {
+							other->val_b = RNA_property_boolean_get_index(&lptr, lprop, index);
+						}
+#endif
+					}
+					else {
+						if (rna_type == PROP_FLOAT) {
+							other->val_f = RNA_property_float_get(&lptr, lprop);
+						}
+						else if (rna_type == PROP_INT) {
+							other->val_i = RNA_property_int_get(&lptr, lprop);
+						}
+						/* ignored for now */
+#if 0
+						else if (rna_type == PROP_BOOLEAN) {
+							other->val_b = RNA_property_boolean_get(&lptr, lprop);
+						}
+						else if (rna_type == PROP_ENUM) {
+							other->val_i = RNA_property_enum_get(&lptr, lprop);
+						}
+#endif
+					}
+
+					continue;
+				}
+			}
+
+			selctx_data->elems_len -= 1;
+			i -= 1;
+		}
+	}
+
+	success = (selctx_data->elems_len != 0);
+
+finally:
+	if (selctx_data->elems_len == 0) {
+		MEM_SAFE_FREE(selctx_data->elems);
+	}
+
+	MEM_SAFE_FREE(path);
+	BLI_freelistN(&lb);
+
+	/* caller can clear */
+	selctx_data->do_free = true;
+
+	return success;
+}
+
+static void ui_selectcontext_apply(
+        bContext *C, uiBut *but, uiSelectContextStore *selctx_data,
+        const double value, const double value_orig)
+{
+	if (selctx_data->elems) {
+		PropertyRNA *prop = but->rnaprop;
+		PropertyRNA *lprop = but->rnaprop;
+		int index = but->rnaindex;
+		int i;
+
+		union {
+			bool  b;
+			int   i;
+			float f;
+		} delta;
+
+		const bool is_array = RNA_property_array_check(prop);
+		const int rna_type = RNA_property_type(prop);
+
+		if (rna_type == PROP_FLOAT) {
+			delta.f = value - value_orig;
+		}
+		else if (rna_type == PROP_INT) {
+			delta.i = (int)value - (int)value_orig;
+		}
+		else if (rna_type == PROP_ENUM) {
+			delta.i = RNA_property_enum_get(&but->rnapoin, prop);  /* not a delta infact */
+		}
+		else if (rna_type == PROP_BOOLEAN) {
+			if (is_array) {
+				delta.b = RNA_property_boolean_get_index(&but->rnapoin, prop, index);  /* not a delta infact */
+			}
+			else {
+				delta.b = RNA_property_boolean_get(&but->rnapoin, prop);  /* not a delta infact */
+			}
+		}
+
+		for (i = 0; i < selctx_data->elems_len; i++) {
+			uiSelectContextElem *other = &selctx_data->elems[i];
+			PointerRNA lptr = other->ptr;
+			if (is_array) {
+				if (rna_type == PROP_FLOAT) {
+					RNA_property_float_set_index(&lptr, lprop, index, other->val_f + delta.f);
+				}
+				else if (rna_type == PROP_INT) {
+					RNA_property_int_set_index(&lptr, lprop, index, other->val_i + delta.i);
+				}
+				else if (rna_type == PROP_BOOLEAN) {
+					RNA_property_boolean_set_index(&lptr, lprop, index, delta.b);
+				}
+			}
+			else {
+				if (rna_type == PROP_FLOAT) {
+					RNA_property_float_set(&lptr, lprop, other->val_f + delta.f);
+				}
+				else if (rna_type == PROP_INT) {
+					RNA_property_int_set(&lptr, lprop, other->val_i + delta.i);
+				}
+				else if (rna_type == PROP_BOOLEAN) {
+					RNA_property_boolean_set(&lptr, lprop, delta.b);
+				}
+				else if (rna_type == PROP_ENUM) {
+					RNA_property_enum_set(&lptr, lprop, delta.i);
+				}
+			}
+
+			RNA_property_update(C, &lptr, prop);
+		}
+	}
+}
+
+#endif  /* USE_ALLSELECT */
 
 
 static bool ui_but_contains_point_px_icon(uiBut *but, ARegion *ar, const wmEvent *event)
@@ -1609,6 +1882,21 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		else if (data->applied_interactive) {
 			return;
 		}
+
+#ifdef USE_ALLSELECT
+		if (data->select_others.elems_len == 0) {
+			wmWindow *win = CTX_wm_window(C);
+			/* may have been enabled before activating */
+			if (data->select_others.is_enabled || IS_ALLSELECT_EVENT(win->eventstate)) {
+				ui_selectcontext_begin(C, but, &data->select_others);
+				data->select_others.is_enabled = true;
+			}
+		}
+		if (data->select_others.elems_len == 0) {
+			/* dont check again */
+			data->select_others.elems_len = -1;
+		}
+#endif
 	}
 
 	/* ensures we are writing actual values */
@@ -1711,6 +1999,10 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 	}
+#endif
+
+#ifdef USE_ALLSELECT
+	ui_selectcontext_apply(C, but, &data->select_others, data->value, data->origvalue);
 #endif
 
 	but->editstr = editstr;
@@ -2524,6 +2816,14 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	}
 #endif
 
+#ifdef USE_ALLSELECT
+	if (is_num_but) {
+		if (IS_ALLSELECT_EVENT(win->eventstate)) {
+			data->select_others.is_enabled = true;
+		}
+	}
+#endif
+
 	/* retrieve string */
 	data->maxlen = ui_but_string_get_max_length(but);
 	data->str = MEM_callocN(sizeof(char) * data->maxlen + 1, "textedit str");
@@ -3101,6 +3401,15 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 		if (but->block->handle)
 			data->menu->popup = but->block->handle->popup;
 	}
+
+#ifdef USE_ALLSELECT
+	{
+		wmWindow *win = CTX_wm_window(C);
+		if (IS_ALLSELECT_EVENT(win->eventstate)) {
+			data->select_others.is_enabled = true;
+		}
+	}
+#endif
 
 	/* this makes adjacent blocks auto open from now on */
 	//if (but->block->auto_open == 0) but->block->auto_open = 1;
@@ -3803,7 +4112,6 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 			fac = 1.0f;
 			if (event->shift) fac /= 10.0f;
-			if (event->alt)   fac /= 20.0f;
 
 			if (ui_numedit_but_NUM(but, data, (ui_but_is_cursor_warp(but) ? screen_mx : mx), snap, fac))
 				ui_numedit_apply(C, block, but, data);
@@ -7288,6 +7596,14 @@ static void button_activate_exit(
 		MEM_freeN(data->str);
 	if (data->origstr)
 		MEM_freeN(data->origstr);
+
+#ifdef USE_ALLSELECT
+	if (data->select_others.do_free) {
+		if (data->select_others.elems) {
+			MEM_freeN(data->select_others.elems);
+		}
+	}
+#endif
 
 	/* redraw (data is but->active!) */
 	ED_region_tag_redraw(data->region);

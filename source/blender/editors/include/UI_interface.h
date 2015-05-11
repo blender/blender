@@ -981,6 +981,10 @@ void ED_button_operatortypes(void);
 void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);
 int UI_drop_color_poll(struct bContext *C, struct wmDrag *drag, const struct wmEvent *event);
 
+bool UI_context_copy_to_selected_list(
+        struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop,
+        struct ListBase *r_lb, bool *r_use_path_from_id, char **r_path);
+
 /* Helpers for Operators */
 uiBut *UI_context_active_but_get(const struct bContext *C);
 void UI_context_active_but_prop_get(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);

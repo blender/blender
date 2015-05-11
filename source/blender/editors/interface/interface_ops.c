@@ -261,7 +261,7 @@ static void UI_OT_unset_property_button(wmOperatorType *ot)
 
 /* Copy To Selected Operator ------------------------ */
 
-static bool copy_to_selected_list(
+bool UI_context_copy_to_selected_list(
         bContext *C, PointerRNA *ptr, PropertyRNA *prop,
         ListBase *r_lb, bool *r_use_path_from_id, char **r_path)
 {
@@ -325,7 +325,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 		CollectionPointerLink *link;
 		ListBase lb;
 
-		if (!copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path))
+		if (!UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path))
 			return success;
 
 		for (link = lb.first; link; link = link->next) {
