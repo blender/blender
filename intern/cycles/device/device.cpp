@@ -58,7 +58,7 @@ void Device::pixels_free(device_memory& mem)
 	mem_free(mem);
 }
 
-void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int width, int height, bool transparent,
+void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dx, int dy, int width, int height, bool transparent,
 	const DeviceDrawParams &draw_params)
 {
 	pixels_copy_from(rgba, y, w, h);
@@ -114,22 +114,22 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 			/* texture coordinate - vertex pair */
 			vp[0] = 0.0f;
 			vp[1] = 0.0f;
-			vp[2] = 0.0f;
+			vp[2] = dx;
 			vp[3] = dy;
 
 			vp[4] = 1.0f;
 			vp[5] = 0.0f;
-			vp[6] = (float)width;
+			vp[6] = (float)width + dx;
 			vp[7] = dy;
 
 			vp[8] = 1.0f;
 			vp[9] = 1.0f;
-			vp[10] = (float)width;
+			vp[10] = (float)width + dx;
 			vp[11] = (float)height + dy;
 
 			vp[12] = 0.0f;
 			vp[13] = 1.0f;
-			vp[14] = 0.0f;
+			vp[14] = dx;
 			vp[15] = (float)height + dy;
 
 			if (vertex_buffer)

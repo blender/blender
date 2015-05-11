@@ -880,7 +880,7 @@ public:
 		}
 	}
 
-	void draw_pixels(device_memory& mem, int y, int w, int h, int dy, int width, int height, bool transparent,
+	void draw_pixels(device_memory& mem, int y, int w, int h, int dx, int dy, int width, int height, bool transparent,
 		const DeviceDrawParams &draw_params)
 	{
 		if(!background) {
@@ -932,22 +932,22 @@ public:
 				/* texture coordinate - vertex pair */
 				vpointer[0] = 0.0f;
 				vpointer[1] = 0.0f;
-				vpointer[2] = 0.0f;
+				vpointer[2] = dx;
 				vpointer[3] = dy;
 
 				vpointer[4] = (float)w/(float)pmem.w;
 				vpointer[5] = 0.0f;
-				vpointer[6] = (float)width;
+				vpointer[6] = (float)width + dx;
 				vpointer[7] = dy;
 
 				vpointer[8] = (float)w/(float)pmem.w;
 				vpointer[9] = (float)h/(float)pmem.h;
-				vpointer[10] = (float)width;
+				vpointer[10] = (float)width + dx;
 				vpointer[11] = (float)height + dy;
 
 				vpointer[12] = 0.0f;
 				vpointer[13] = (float)h/(float)pmem.h;
-				vpointer[14] = 0.0f;
+				vpointer[14] = dx;
 				vpointer[15] = (float)height + dy;
 
 				glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -981,7 +981,7 @@ public:
 			return;
 		}
 
-		Device::draw_pixels(mem, y, w, h, dy, width, height, transparent, draw_params);
+		Device::draw_pixels(mem, y, w, h, dx, dy, width, height, transparent, draw_params);
 	}
 
 	void thread_run(DeviceTask *task)
