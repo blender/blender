@@ -119,13 +119,16 @@ struct DeviceDrawParams {
 
 class Device {
 protected:
-	Device(DeviceInfo& info_, Stats &stats_, bool background) : background(background), info(info_), stats(stats_) {}
+	Device(DeviceInfo& info_, Stats &stats_, bool background) : background(background), vertex_buffer(0), info(info_), stats(stats_) {}
 
 	bool background;
 	string error_msg;
 
+	/* used for real time display */
+	unsigned int vertex_buffer;
+
 public:
-	virtual ~Device() {}
+	virtual ~Device();
 
 	/* info */
 	DeviceInfo info;

@@ -885,6 +885,7 @@ public:
 	{
 		if(!background) {
 			PixelMem pmem = pixel_mem_map[mem.device_pointer];
+			float *vpointer;
 
 			cuda_push_context();
 
@@ -918,18 +919,52 @@ public:
 				draw_params.bind_display_space_shader_cb();
 			}
 
-			glBegin(GL_QUADS);
-			
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2f(0.0f, dy);
-			glTexCoord2f((float)w/(float)pmem.w, 0.0f);
-			glVertex2f((float)width, dy);
-			glTexCoord2f((float)w/(float)pmem.w, (float)h/(float)pmem.h);
-			glVertex2f((float)width, (float)height + dy);
-			glTexCoord2f(0.0f, (float)h/(float)pmem.h);
-			glVertex2f(0.0f, (float)height + dy);
+			if (!vertex_buffer)
+				glGenBuffers(1, &vertex_buffer);
 
-			glEnd();
+			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+			/* invalidate old contents - avoids stalling if buffer is still waiting in queue to be rendered */
+			glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
+
+			vpointer = (float *)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+			if (vpointer) {
+				/* texture coordinate - vertex pair */
+				vpointer[0] = 0.0f;
+				vpointer[1] = 0.0f;
+				vpointer[2] = 0.0f;
+				vpointer[3] = dy;
+
+				vpointer[4] = (float)w/(float)pmem.w;
+				vpointer[5] = 0.0f;
+				vpointer[6] = (float)width;
+				vpointer[7] = dy;
+
+				vpointer[8] = (float)w/(float)pmem.w;
+				vpointer[9] = (float)h/(float)pmem.h;
+				vpointer[10] = (float)width;
+				vpointer[11] = (float)height + dy;
+
+				vpointer[12] = 0.0f;
+				vpointer[13] = (float)h/(float)pmem.h;
+				vpointer[14] = 0.0f;
+				vpointer[15] = (float)height + dy;
+
+				glUnmapBuffer(GL_ARRAY_BUFFER);
+			}
+
+			glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), 0);
+			glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (char *)NULL + 2 * sizeof(float));
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 			if(draw_params.unbind_display_space_shader_cb) {
 				draw_params.unbind_display_space_shader_cb();
