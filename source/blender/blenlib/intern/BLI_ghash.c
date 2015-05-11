@@ -535,7 +535,7 @@ BLI_INLINE bool ghash_insert_safe_keyonly(GHash *gh, void *key, const bool overr
  * Remove the entry and return it, caller must free from gh->entrypool.
  */
 static Entry *ghash_remove_ex(
-        GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
+        GHash *gh, const void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
         const unsigned int bucket_index)
 {
 	Entry *e_prev;
@@ -796,7 +796,7 @@ bool BLI_ghash_ensure_p_ex(
  * \param valfreefp  Optional callback to free the value.
  * \return true if \a key was removed from \a gh.
  */
-bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+bool BLI_ghash_remove(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
@@ -819,7 +819,7 @@ bool BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
  * \param keyfreefp  Optional callback to free the key.
  * \return the value of \a key int \a gh or NULL.
  */
-void *BLI_ghash_popkey(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
+void *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
@@ -1303,7 +1303,7 @@ bool BLI_gset_reinsert(GSet *gs, void *key, GSetKeyFreeFP keyfreefp)
 	return ghash_insert_safe_keyonly((GHash *)gs, key, true, keyfreefp);
 }
 
-bool BLI_gset_remove(GSet *gs, void *key, GSetKeyFreeFP keyfreefp)
+bool BLI_gset_remove(GSet *gs, const void *key, GSetKeyFreeFP keyfreefp)
 {
 	return BLI_ghash_remove((GHash *)gs, key, keyfreefp, NULL);
 }
