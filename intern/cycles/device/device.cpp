@@ -83,23 +83,18 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 			draw_params.bind_display_space_shader_cb();
 		}
 
-		glPushMatrix();
-		glTranslatef(0.0f, (float)dy, 0.0f);
-
 		glBegin(GL_QUADS);
 		
 		glTexCoord2f(0.0f, 0.0f);
-		glVertex2f(0.0f, 0.0f);
+		glVertex2f(0.0f, dy);
 		glTexCoord2f(1.0f, 0.0f);
-		glVertex2f((float)width, 0.0f);
+		glVertex2f((float)width, dy);
 		glTexCoord2f(1.0f, 1.0f);
-		glVertex2f((float)width, (float)height);
+		glVertex2f((float)width, (float)height + dy);
 		glTexCoord2f(0.0f, 1.0f);
-		glVertex2f(0.0f, (float)height);
+		glVertex2f(0.0f, (float)height + dy);
 
 		glEnd();
-
-		glPopMatrix();
 
 		if(draw_params.unbind_display_space_shader_cb) {
 			draw_params.unbind_display_space_shader_cb();
