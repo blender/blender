@@ -717,12 +717,12 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 			int ssao_uniform, ssao_color_uniform, viewvecs_uniform, ssao_sample_params_uniform;
 			int ssao_jitter_uniform, ssao_concentric_tex;
 			float ssao_params[4] = {fx_ssao->distance_max, fx_ssao->factor, fx_ssao->attenuation, 0.0f};
-			float sample_params[4];
+			float sample_params[3];
 
 			sample_params[0] = fx->ssao_sample_count_cache;
 			/* multiplier so we tile the random texture on screen */
-			sample_params[2] = fx->gbuffer_dim[0] / 64.0;
-			sample_params[3] = fx->gbuffer_dim[1] / 64.0;
+			sample_params[1] = fx->gbuffer_dim[0] / 64.0;
+			sample_params[2] = fx->gbuffer_dim[1] / 64.0;
 
 			ssao_params[3] = (passes_left == 1) ? dfdyfac[0] : dfdyfac[1];
 
@@ -740,7 +740,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 			GPU_shader_uniform_vector(ssao_shader, ssao_uniform, 4, 1, ssao_params);
 			GPU_shader_uniform_vector(ssao_shader, ssao_color_uniform, 4, 1, fx_ssao->color);
 			GPU_shader_uniform_vector(ssao_shader, viewvecs_uniform, 4, 3, viewvecs[0]);
-			GPU_shader_uniform_vector(ssao_shader, ssao_sample_params_uniform, 4, 1, sample_params);
+			GPU_shader_uniform_vector(ssao_shader, ssao_sample_params_uniform, 3, 1, sample_params);
 
 			GPU_texture_bind(src, numslots++);
 			GPU_shader_uniform_texture(ssao_shader, color_uniform, src);
