@@ -104,6 +104,8 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 		/* cleanup only after reading file or undo step, and always for
 		 * RNA datablocks view in order to save memory */
 		if (soops->storeflag & SO_TREESTORE_CLEANUP) {
+			soops->storeflag &= ~SO_TREESTORE_CLEANUP;
+
 			BLI_mempool_iternew(ts, &iter);
 			while ((tselem = BLI_mempool_iterstep(&iter))) {
 				if (tselem->id == NULL) unused++;
