@@ -189,6 +189,7 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
 	}
 	prv->h[size] = prv->w[size] = 0;
 	prv->flag[size] |= PRV_CHANGED;
+	prv->flag[size] &= ~PRV_USER_EDITED;
 	prv->changed_timestamp[size] = 0;
 }
 
