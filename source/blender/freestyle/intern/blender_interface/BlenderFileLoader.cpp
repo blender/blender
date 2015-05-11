@@ -64,12 +64,11 @@ NodeGroup *BlenderFileLoader::Load()
 	_viewplane_bottom = _re->viewplane.ymin;
 	_viewplane_top =    _re->viewplane.ymax;
 
-	if ((_re->r.scemode & R_VIEWPORT_PREVIEW) && (_re->r.mode & R_ORTHO)) {
+	if (_re->clipsta < 0.f) {
 		// Adjust clipping start/end and set up a Z offset when the viewport preview
 		// is used with the orthographic view.  In this case, _re->clipsta is negative,
 		// while Freestyle assumes that imported mesh data are in the camera coordinate
 		// system with the view point located at origin [bug #36009].
-		BLI_assert(_re->clipsta < 0.f);
 		_z_near = -0.001f;
 		_z_offset = _re->clipsta + _z_near;
 		_z_far = -_re->clipend + _z_offset;
