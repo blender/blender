@@ -232,7 +232,7 @@ void BKE_lamp_free(Lamp *la)
 	}
 	
 	BKE_previewimg_free(&la->preview);
-	BKE_icon_delete(&la->id);
+	BKE_icon_id_delete(&la->id);
 	la->id.icon_id = 0;
 }
 

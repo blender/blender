@@ -55,6 +55,7 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_thumbs.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -904,10 +905,13 @@ void UI_icons_init(int first_dyn_id)
 static int preview_render_size(enum eIconSizes size)
 {
 	switch (size) {
-		case ICON_SIZE_ICON:    return 32;
-		case ICON_SIZE_PREVIEW: return PREVIEW_DEFAULT_HEIGHT;
+		case ICON_SIZE_ICON:
+			return ICON_RENDER_DEFAULT_HEIGHT;
+		case ICON_SIZE_PREVIEW:
+			return PREVIEW_RENDER_DEFAULT_HEIGHT;
+		default:
+			return 0;
 	}
-	return 0;
 }
 
 /* Create rect for the icon
@@ -923,9 +927,46 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 	else if (!prv_img->rect[size]) {
 		prv_img->w[size] = render_size;
 		prv_img->h[size] = render_size;
-		prv_img->changed[size] = 1;
+		prv_img->flag[size] |= PRV_CHANGED;
 		prv_img->changed_timestamp[size] = 0;
 		prv_img->rect[size] = MEM_callocN(render_size * render_size * sizeof(unsigned int), "prv_rect");
+	}
+}
+
+void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
+{
+	Icon *icon = BKE_icon_get(icon_id);
+
+	if (icon) {
+		DrawInfo *di = (DrawInfo *)icon->drawinfo;
+
+		if (!di) {
+			di = icon_create_drawinfo();
+
+			icon->drawinfo = di;
+			icon->drawinfo_free = UI_icons_free_drawinfo;
+		}
+
+		if (di) {
+			if (di->type == ICON_TYPE_PREVIEW) {
+				PreviewImage *prv = (icon->type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
+
+				if (prv) {
+					const int size = big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON;
+
+					if (!prv->use_deferred || prv->rect[size] || (prv->flag[size] & PRV_USER_EDITED)) {
+						return;
+					}
+
+					icon_create_rect(prv, size);
+
+					/* Always using job (background) version. */
+					ED_preview_icon_job(C, prv, NULL, prv->rect[size], prv->w[size], prv->h[size]);
+
+					prv->flag[size] &= ~PRV_CHANGED;
+				}
+			}
+		}
 	}
 }
 
@@ -937,6 +978,11 @@ static void icon_set_image(
 	if (!prv_img) {
 		if (G.debug & G_DEBUG)
 			printf("%s: no preview image for this ID: %s\n", __func__, id->name);
+		return;
+	}
+
+	if (prv_img->flag[size] & PRV_USER_EDITED) {
+		/* user-edited preview, do not auto-update! */
 		return;
 	}
 
@@ -961,22 +1007,32 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 	
 	if (icon) {
 		DrawInfo *di = (DrawInfo *)icon->drawinfo;
-		if (di && di->data.buffer.image) {
-			ImBuf *bbuf;
-			
-			bbuf = IMB_ibImageFromMemory(di->data.buffer.image->datatoc_rect, di->data.buffer.image->datatoc_size, IB_rect, NULL, "<matcap buffer>");
-			if (bbuf) {
-				PreviewImage *prv = BKE_previewimg_create();
-				
-				prv->rect[0] = bbuf->rect;
+		if (di) {
+			if (di->type == ICON_TYPE_PREVIEW) {
+				PreviewImage *prv = (icon->type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
 
-				prv->w[0] = bbuf->x;
-				prv->h[0] = bbuf->y;
-				
-				bbuf->rect = NULL;
-				IMB_freeImBuf(bbuf);
-				
-				return prv;
+				if (prv) {
+					return BKE_previewimg_copy(prv);
+				}
+			}
+			else if (di->data.buffer.image) {
+				ImBuf *bbuf;
+
+				bbuf = IMB_ibImageFromMemory(di->data.buffer.image->datatoc_rect, di->data.buffer.image->datatoc_size,
+				                             IB_rect, NULL, __func__);
+				if (bbuf) {
+					PreviewImage *prv = BKE_previewimg_create();
+
+					prv->rect[0] = bbuf->rect;
+
+					prv->w[0] = bbuf->x;
+					prv->h[0] = bbuf->y;
+
+					bbuf->rect = NULL;
+					IMB_freeImBuf(bbuf);
+
+					return prv;
+				}
 			}
 		}
 	}
@@ -987,6 +1043,10 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
                            unsigned int *rect, float alpha, const float rgb[3], const bool is_preview)
 {
 	ImBuf *ima = NULL;
+	int draw_w = w;
+	int draw_h = h;
+	int draw_x = x;
+	int draw_y = y;
 
 	/* sanity check */
 	if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {
@@ -1006,21 +1066,34 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 
 	/* rect contains image in 'rendersize', we only scale if needed */
-	if (rw != w && rh != h) {
+	if (rw != w || rh != h) {
+		/* preserve aspect ratio and center */
+		if (rw > rh) {
+			draw_w = w;
+			draw_h = (int)(((float)rh / (float)rw) * (float)w);
+			draw_y += (h - draw_h) / 2;
+		}
+		else if (rw < rh) {
+			draw_w = (int)(((float)rw / (float)rh) * (float)h);
+			draw_h = h;
+			draw_x += (w - draw_w) / 2;
+		}
+		/* if the image is squared, the draw_ initialization values are good */
+
 		/* first allocate imbuf for scaling and copy preview into it */
 		ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
 		memcpy(ima->rect, rect, rw * rh * sizeof(unsigned int));
-		IMB_scaleImBuf(ima, w, h); /* scale it */
+		IMB_scaleImBuf(ima, draw_w, draw_h); /* scale it */
 		rect = ima->rect;
 	}
 
 	/* draw */
 	if (is_preview) {
-		glaDrawPixelsSafe(x, y, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		glaDrawPixelsSafe(draw_x, draw_y, draw_w, draw_h, draw_w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 	}
 	else {
-		glRasterPos2f(x, y);
-		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		glRasterPos2f(draw_x, draw_y);
+		glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 	}
 
 	if (ima)
@@ -1081,10 +1154,13 @@ static void icon_draw_texture(
 static int get_draw_size(enum eIconSizes size)
 {
 	switch (size) {
-		case ICON_SIZE_ICON: return ICON_DEFAULT_HEIGHT;
-		case ICON_SIZE_PREVIEW: return PREVIEW_DEFAULT_HEIGHT;
+		case ICON_SIZE_ICON:
+			return ICON_DEFAULT_HEIGHT;
+		case ICON_SIZE_PREVIEW:
+			return PREVIEW_DEFAULT_HEIGHT;
+		default:
+			return 0;
 	}
-	return 0;
 }
 
 
@@ -1147,9 +1223,12 @@ static void icon_draw_size(
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_PREVIEW) {
-		PreviewImage *pi = BKE_previewimg_get((ID *)icon->obj);
+		PreviewImage *pi = (icon->type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
 
 		if (pi) {
+			/* Do deferred loading/generation if needed. */
+//			BKE_previewimg_ensure(pi, size);
+
 			/* no create icon on this level in code */
 			if (!pi->rect[size]) return;  /* something has gone wrong! */
 			
@@ -1164,17 +1243,17 @@ static void icon_draw_size(
 static void ui_id_preview_image_render_size(
         const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job)
 {
-	if ((pi->changed[size] || !pi->rect[size])) { /* changed only ever set by dynamic icons */
+	if (((pi->flag[size] & PRV_CHANGED) || !pi->rect[size])) { /* changed only ever set by dynamic icons */
 		/* create the rect if necessary */
 		icon_set_image(C, scene, id, pi, size, use_job);
 
-		pi->changed[size] = 0;
+		pi->flag[size] &= ~PRV_CHANGED;
 	}
 }
 
 void UI_id_icon_render(const bContext *C, Scene *scene, ID *id, const bool big, const bool use_job)
 {
-	PreviewImage *pi = BKE_previewimg_get(id);
+	PreviewImage *pi = BKE_previewimg_id_ensure(id);
 
 	if (pi) {
 		if (big)
@@ -1186,7 +1265,7 @@ void UI_id_icon_render(const bContext *C, Scene *scene, ID *id, const bool big, 
 
 static void ui_id_brush_render(const bContext *C, ID *id)
 {
-	PreviewImage *pi = BKE_previewimg_get(id); 
+	PreviewImage *pi = BKE_previewimg_id_ensure(id);
 	enum eIconSizes i;
 	
 	if (!pi)
@@ -1195,9 +1274,9 @@ static void ui_id_brush_render(const bContext *C, ID *id)
 	for (i = 0; i < NUM_ICON_SIZES; i++) {
 		/* check if rect needs to be created; changed
 		 * only set by dynamic icons */
-		if ((pi->changed[i] || !pi->rect[i])) {
+		if (((pi->flag[i] & PRV_CHANGED) || !pi->rect[i])) {
 			icon_set_image(C, NULL, id, pi, i, true);
-			pi->changed[i] = 0;
+			pi->flag[i] &= ~PRV_CHANGED;
 		}
 	}
 }
@@ -1208,7 +1287,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 	Brush *br = (Brush *)id;
 
 	if (br->flag & BRUSH_CUSTOM_ICON) {
-		BKE_icon_getid(id);
+		BKE_icon_id_ensure(id);
 		ui_id_brush_render(C, id);
 	}
 	else {
@@ -1270,7 +1349,7 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
 		case ID_IM: /* fall through */
 		case ID_WO: /* fall through */
 		case ID_LA: /* fall through */
-			iconid = BKE_icon_getid(id);
+			iconid = BKE_icon_id_ensure(id);
 			/* checks if not exists, or changed */
 			UI_id_icon_render(C, NULL, id, big, true);
 			break;

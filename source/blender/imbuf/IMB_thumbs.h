@@ -61,6 +61,8 @@ typedef enum ThumbSource {
 /* don't generate thumbs for images bigger then this (100mb) */
 #define THUMB_SIZE_MAX (100 * 1024 * 1024)
 
+#define PREVIEW_RENDER_DEFAULT_HEIGHT 128
+
 /* create thumbnail for file and returns new imbuf for thumbnail */
 ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, ImBuf *ibuf);
 

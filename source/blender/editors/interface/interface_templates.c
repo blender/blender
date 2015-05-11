@@ -430,8 +430,8 @@ static void template_ID(
 
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
 		                     TIP_(template_id_browse_tip(type)));
-		but->icon = id ? ui_id_icon_get(C, id, true) : RNA_struct_ui_icon(type);
-		UI_but_flag_enable(but, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+		ui_def_but_icon(but, id ? ui_id_icon_get(C, id, true) : RNA_struct_ui_icon(type),
+		                UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 
 		if ((idfrom && idfrom->lib) || !editable)
 			UI_but_flag_enable(but, UI_BUT_DISABLED);
@@ -441,10 +441,9 @@ static void template_ID(
 	else if (flag & UI_ID_BROWSE) {
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
 		                     TIP_(template_id_browse_tip(type)));
-		but->icon = RNA_struct_ui_icon(type);
+		ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
 		/* default dragging of icon for id browse buttons */
 		UI_but_drag_set_id(but, id);
-		UI_but_flag_enable(but, UI_HAS_ICON);
 		UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
 
 		if ((idfrom && idfrom->lib) || !editable)
@@ -1666,9 +1665,9 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 		
 		icon = item[a].icon;
 		value = item[a].value;
-		but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, icon, x, y, UI_UNIT_X * 5, UI_UNIT_Y * 5,
+		but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, ICON_NONE, x, y, UI_UNIT_X * 5, UI_UNIT_Y * 5,
 		                         &cb.ptr, cb.prop, -1, 0, value, -1, -1, NULL);
-		UI_but_flag_enable(but, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+		ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 	}
 
 	UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
@@ -1708,8 +1707,7 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 	but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
 
-	but->icon = icon;
-	UI_but_flag_enable(but, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+	ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 
 	if (free_items) {
 		MEM_freeN(items);

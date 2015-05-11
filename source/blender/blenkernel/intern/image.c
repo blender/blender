@@ -338,7 +338,7 @@ void BKE_image_free(Image *ima)
 
 	image_free_packedfiles(ima);
 
-	BKE_icon_delete(&ima->id);
+	BKE_icon_id_delete(&ima->id);
 	ima->id.icon_id = 0;
 
 	BKE_previewimg_free(&ima->preview);
@@ -3001,7 +3001,7 @@ static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 {
 	/* preview is NULL when it has never been used as an icon before */
 	if (G.background == 0 && ima->preview == NULL)
-		BKE_icon_changed(BKE_icon_getid(&ima->id));
+		BKE_icon_changed(BKE_icon_id_ensure(&ima->id));
 
 	/* fields */
 	if (ima->flag & IMA_FIELDS) {

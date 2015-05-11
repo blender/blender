@@ -38,6 +38,7 @@ __all__ = (
     "unregister_manual_map",
     "make_rna_paths",
     "manual_map",
+    "previews",
     "resource_path",
     "script_path_user",
     "script_path_pref",

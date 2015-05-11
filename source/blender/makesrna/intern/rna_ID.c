@@ -34,6 +34,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_icons.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -406,6 +408,183 @@ static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 	BKE_library_filepath_set(lib, value);
 }
 
+/* ***** ImagePreview ***** */
+
+static void rna_ImagePreview_is_custom_set(PointerRNA *ptr, int value, enum eIconSizes size)
+{
+	ID *id = ptr->id.data;
+	PreviewImage *prv_img = (PreviewImage *)ptr->data;
+
+	if (id != NULL) {
+		BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
+	}
+
+	if ((value && (prv_img->flag[size] & PRV_USER_EDITED)) || (!value && !(prv_img->flag[size] & PRV_USER_EDITED))) {
+		return;
+	}
+
+	if (value)
+		prv_img->flag[size] |= PRV_USER_EDITED;
+	else
+		prv_img->flag[size] &= ~PRV_USER_EDITED;
+
+	prv_img->flag[size] |= PRV_CHANGED;
+
+	BKE_previewimg_clear_single(prv_img, size);
+}
+
+static void rna_ImagePreview_size_get(PointerRNA *ptr, int *values, enum eIconSizes size)
+{
+	ID *id = (ID *)ptr->id.data;
+	PreviewImage *prv_img = (PreviewImage *)ptr->data;
+
+	if (id != NULL) {
+		BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
+	}
+
+	BKE_previewimg_ensure(prv_img, size);
+
+	values[0] = prv_img->w[size];
+	values[1] = prv_img->h[size];
+}
+
+static void rna_ImagePreview_size_set(PointerRNA *ptr, const int *values, enum eIconSizes size)
+{
+	ID *id = (ID *)ptr->id.data;
+	PreviewImage *prv_img = (PreviewImage *)ptr->data;
+
+	if (id != NULL) {
+		BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
+	}
+
+	BKE_previewimg_ensure(prv_img, size);
+
+	if (values[0] && values[1]) {
+		prv_img->rect[size] = MEM_callocN(values[0] * values[1] * sizeof(unsigned int), "prv_rect");
+	}
+
+	prv_img->w[size] = values[0];
+	prv_img->h[size] = values[1];
+
+	prv_img->flag[size] |= (PRV_CHANGED | PRV_USER_EDITED);
+}
+
+static int rna_ImagePreview_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION], enum eIconSizes size)
+{
+	ID *id = ptr->id.data;
+	PreviewImage *prv_img = (PreviewImage *)ptr->data;
+
+	if (id != NULL) {
+		BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
+	}
+
+	BKE_previewimg_ensure(prv_img, size);
+
+	length[0] = prv_img->w[size] * prv_img->h[size];
+
+	return length[0];
+}
+
+static void rna_ImagePreview_pixels_get(PointerRNA *ptr, int *values, enum eIconSizes size)
+{
+	ID *id = ptr->id.data;
+	PreviewImage *prv_img = (PreviewImage *)ptr->data;
+
+	if (id != NULL) {
+		BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
+	}
+
+	BKE_previewimg_ensure(prv_img, size);
+
+	memcpy(values, prv_img->rect[size], prv_img->w[size] * prv_img->h[size] * sizeof(unsigned int));
+}
+
+static void rna_ImagePreview_pixels_set(PointerRNA *ptr, const int *values, enum eIconSizes size)
+{
+	ID *id = ptr->id.data;
+	PreviewImage *prv_img = (PreviewImage *)ptr->data;
+
+	if (id != NULL) {
+		BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
+	}
+
+	memcpy(prv_img->rect[size], values, prv_img->w[size] * prv_img->h[size] * sizeof(unsigned int));
+	prv_img->flag[size] |= PRV_USER_EDITED;
+}
+
+static void rna_ImagePreview_is_image_custom_set(PointerRNA *ptr, int value)
+{
+	rna_ImagePreview_is_custom_set(ptr, value, ICON_SIZE_PREVIEW);
+}
+
+static void rna_ImagePreview_image_size_get(PointerRNA *ptr, int *values)
+{
+	rna_ImagePreview_size_get(ptr, values, ICON_SIZE_PREVIEW);
+}
+
+static void rna_ImagePreview_image_size_set(PointerRNA *ptr, const int *values)
+{
+	rna_ImagePreview_size_set(ptr, values, ICON_SIZE_PREVIEW);
+}
+
+static int rna_ImagePreview_image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	return rna_ImagePreview_pixels_get_length(ptr, length, ICON_SIZE_PREVIEW);
+}
+
+static void rna_ImagePreview_image_pixels_get(PointerRNA *ptr, int *values)
+{
+	rna_ImagePreview_pixels_get(ptr, values, ICON_SIZE_PREVIEW);
+}
+
+static void rna_ImagePreview_image_pixels_set(PointerRNA *ptr, const int *values)
+{
+	rna_ImagePreview_pixels_set(ptr, values, ICON_SIZE_PREVIEW);
+}
+
+static void rna_ImagePreview_is_icon_custom_set(PointerRNA *ptr, int value)
+{
+	rna_ImagePreview_is_custom_set(ptr, value, ICON_SIZE_ICON);
+}
+
+static void rna_ImagePreview_icon_size_get(PointerRNA *ptr, int *values)
+{
+	rna_ImagePreview_size_get(ptr, values, ICON_SIZE_ICON);
+}
+
+static void rna_ImagePreview_icon_size_set(PointerRNA *ptr, const int *values)
+{
+	rna_ImagePreview_size_set(ptr, values, ICON_SIZE_ICON);
+}
+
+static int rna_ImagePreview_icon_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	return rna_ImagePreview_pixels_get_length(ptr, length, ICON_SIZE_ICON);
+}
+
+static void rna_ImagePreview_icon_pixels_get(PointerRNA *ptr, int *values)
+{
+	rna_ImagePreview_pixels_get(ptr, values, ICON_SIZE_ICON);
+}
+
+static void rna_ImagePreview_icon_pixels_set(PointerRNA *ptr, const int *values)
+{
+	rna_ImagePreview_pixels_set(ptr, values, ICON_SIZE_ICON);
+}
+
+static int rna_ImagePreview_icon_id_get(PointerRNA *ptr)
+{
+	/* Using a callback here allows us to only generate icon matching that preview when icon_id is requested. */
+	return BKE_icon_preview_ensure((PreviewImage *)(ptr->data));
+}
+static void rna_ImagePreview_icon_reload(PreviewImage *prv)
+{
+	/* will lazy load on next use, but only in case icon is not user-modified! */
+	if (!(prv->flag[ICON_SIZE_ICON] & PRV_USER_EDITED) && !(prv->flag[ICON_SIZE_PREVIEW] & PRV_USER_EDITED)) {
+		BKE_previewimg_clear(prv);
+	}
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -522,6 +701,62 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	func = RNA_def_function(srna, "clear", "rna_IDMaterials_clear_id");
 	RNA_def_function_ui_description(func, "Remove all materials from the data block");
 	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned");
+}
+
+static void rna_def_image_preview(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ImagePreview", NULL);
+	RNA_def_struct_sdna(srna, "PreviewImage");
+	RNA_def_struct_ui_text(srna, "Image Preview", "Preview image and icon");
+
+	prop = RNA_def_property(srna, "is_image_custom", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag[ICON_SIZE_PREVIEW]", PRV_USER_EDITED);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ImagePreview_is_image_custom_set");
+	RNA_def_property_ui_text(prop, "Custom Image", "True if this preview image has been modified by py script,"
+	                         "and is no more auto-generated by Blender");
+
+	prop = RNA_def_int_vector(srna, "image_size", 2, NULL, 0, 0, "Image Size",
+	                          "Width and height in pixels", 0, 0);
+	RNA_def_property_subtype(prop, PROP_PIXEL);
+	RNA_def_property_int_funcs(prop, "rna_ImagePreview_image_size_get", "rna_ImagePreview_image_size_set", NULL);
+
+	prop = RNA_def_property(srna, "image_pixels", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_multi_array(prop, 1, NULL);
+	RNA_def_property_ui_text(prop, "Image Pixels", "Image pixels, as bytes (always RGBA 32bits)");
+	RNA_def_property_dynamic_array_funcs(prop, "rna_ImagePreview_image_pixels_get_length");
+	RNA_def_property_int_funcs(prop, "rna_ImagePreview_image_pixels_get", "rna_ImagePreview_image_pixels_set", NULL);
+
+
+	prop = RNA_def_property(srna, "is_icon_custom", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag[ICON_SIZE_ICON]", PRV_USER_EDITED);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ImagePreview_is_icon_custom_set");
+	RNA_def_property_ui_text(prop, "Custom Icon", "True if this preview icon has been modified by py script,"
+	                         "and is no more auto-generated by Blender");
+
+	prop = RNA_def_int_vector(srna, "icon_size", 2, NULL, 0, 0, "Icon Size",
+	                          "Width and height in pixels", 0, 0);
+	RNA_def_property_subtype(prop, PROP_PIXEL);
+	RNA_def_property_int_funcs(prop, "rna_ImagePreview_icon_size_get", "rna_ImagePreview_icon_size_set", NULL);
+
+	prop = RNA_def_property(srna, "icon_pixels", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_multi_array(prop, 1, NULL);
+	RNA_def_property_ui_text(prop, "Icon Pixels", "Icon pixels, as bytes (always RGBA 32bits)");
+	RNA_def_property_dynamic_array_funcs(prop, "rna_ImagePreview_icon_pixels_get_length");
+	RNA_def_property_int_funcs(prop, "rna_ImagePreview_icon_pixels_get", "rna_ImagePreview_icon_pixels_set", NULL);
+
+	prop = RNA_def_int(srna, "icon_id", 0, INT_MIN, INT_MAX, "Icon ID",
+	                   "Unique integer identifying this preview as an icon (zero means invalid)", INT_MIN, INT_MAX);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_ImagePreview_icon_id_get", NULL, NULL);
+
+	func = RNA_def_function(srna, "reload", "rna_ImagePreview_icon_reload");
+	RNA_def_function_ui_description(func, "Reload the preview from its source path");
 }
 
 static void rna_def_ID(BlenderRNA *brna)
@@ -651,6 +886,7 @@ void RNA_def_ID(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Any Type", "RNA type used for pointers to any possible data");
 
 	rna_def_ID(brna);
+	rna_def_image_preview(brna);
 	rna_def_ID_properties(brna);
 	rna_def_ID_materials(brna);
 	rna_def_library(brna);

@@ -48,6 +48,7 @@
 #include "bpy_props.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
+#include "bpy_utils_previews.h"
 #include "bpy_utils_units.h"
 
 #include "../generic/py_capi_utils.h"
@@ -330,6 +331,7 @@ void BPy_init_modules(void)
 	PyModule_AddObject(mod, "ops", BPY_operator_module());
 	PyModule_AddObject(mod, "app", BPY_app_struct());
 	PyModule_AddObject(mod, "_utils_units", BPY_utils_units());
+	PyModule_AddObject(mod, "_utils_previews", BPY_utils_previews_module());
 
 	/* bpy context */
 	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);

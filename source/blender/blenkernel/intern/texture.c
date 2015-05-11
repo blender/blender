@@ -567,7 +567,7 @@ void BKE_texture_free(Tex *tex)
 	BKE_animdata_free((struct ID *)tex);
 	
 	BKE_previewimg_free(&tex->preview);
-	BKE_icon_delete((struct ID *)tex);
+	BKE_icon_id_delete((struct ID *)tex);
 	tex->id.icon_id = 0;
 	
 	if (tex->nodetree) {

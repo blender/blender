@@ -45,6 +45,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_string.h"
 
 #include "BKE_icons.h"
 #include "BKE_global.h" /* only for G.background test */
@@ -52,6 +53,10 @@
 #include "BLI_sys_types.h" // for intptr_t support
 
 #include "GPU_extensions.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "IMB_thumbs.h"
 
 /* GLOBALS */
 
@@ -61,6 +66,7 @@ static int gNextIconId = 1;
 
 static int gFirstIconId = 1;
 
+static GHash *gCachedPreviews = NULL;
 
 static void icon_free(void *val)
 {
@@ -105,28 +111,48 @@ void BKE_icons_init(int first_dyn_id)
 	gFirstIconId = first_dyn_id;
 
 	if (!gIcons)
-		gIcons = BLI_ghash_int_new("icons_init gh");
+		gIcons = BLI_ghash_int_new(__func__);
+
+	if (!gCachedPreviews) {
+		gCachedPreviews = BLI_ghash_str_new(__func__);
+	}
 }
 
 void BKE_icons_free(void)
 {
-	if (gIcons)
+	if (gIcons) {
 		BLI_ghash_free(gIcons, NULL, icon_free);
-	gIcons = NULL;
+		gIcons = NULL;
+	}
+
+	if (gCachedPreviews) {
+		BLI_ghash_free(gCachedPreviews, MEM_freeN, BKE_previewimg_freefunc);
+		gCachedPreviews = NULL;
+	}
 }
 
-PreviewImage *BKE_previewimg_create(void)
+static PreviewImage *previewimg_create_ex(size_t deferred_data_size)
 {
 	PreviewImage *prv_img = NULL;
 	int i;
 
-	prv_img = MEM_callocN(sizeof(PreviewImage), "img_prv");
+	prv_img = MEM_mallocN(sizeof(PreviewImage) + deferred_data_size, "img_prv");
+	memset(prv_img, 0, sizeof(*prv_img));  /* leave deferred data dirty */
+
+	if (deferred_data_size) {
+		prv_img->use_deferred = true;
+	}
 
 	for (i = 0; i < NUM_ICON_SIZES; ++i) {
-		prv_img->changed[i] = 1;
+		prv_img->flag[i] |= PRV_CHANGED;
 		prv_img->changed_timestamp[i] = 0;
 	}
 	return prv_img;
+}
+
+PreviewImage *BKE_previewimg_create(void)
+{
+	return previewimg_create_ex(0);
 }
 
 void BKE_previewimg_freefunc(void *link)
@@ -138,7 +164,6 @@ void BKE_previewimg_freefunc(void *link)
 		for (i = 0; i < NUM_ICON_SIZES; ++i) {
 			if (prv->rect[i]) {
 				MEM_freeN(prv->rect[i]);
-				prv->rect[i] = NULL;
 			}
 			if (prv->gputexture[i])
 				GPU_texture_free(prv->gputexture[i]);
@@ -156,6 +181,25 @@ void BKE_previewimg_free(PreviewImage **prv)
 	}
 }
 
+void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
+{
+	MEM_SAFE_FREE(prv->rect[size]);
+	if (prv->gputexture[size]) {
+		GPU_texture_free(prv->gputexture[size]);
+	}
+	prv->h[size] = prv->w[size] = 0;
+	prv->flag[size] |= PRV_CHANGED;
+	prv->changed_timestamp[size] = 0;
+}
+
+void BKE_previewimg_clear(struct PreviewImage *prv)
+{
+	int i;
+	for (i = 0; i < NUM_ICON_SIZES; ++i) {
+		BKE_previewimg_clear_single(prv, i);
+	}
+}
+
 PreviewImage *BKE_previewimg_copy(PreviewImage *prv)
 {
 	PreviewImage *prv_img = NULL;
@@ -167,79 +211,186 @@ PreviewImage *BKE_previewimg_copy(PreviewImage *prv)
 			if (prv->rect[i]) {
 				prv_img->rect[i] = MEM_dupallocN(prv->rect[i]);
 			}
-			else {
-				prv_img->rect[i] = NULL;
-			}
 			prv_img->gputexture[i] = NULL;
 		}
 	}
 	return prv_img;
 }
 
-void BKE_previewimg_free_id(ID *id) 
+PreviewImage **BKE_previewimg_id_get_p(ID *id)
 {
-	if (GS(id->name) == ID_MA) {
-		Material *mat = (Material *)id;
-		BKE_previewimg_free(&mat->preview);
+	switch (GS(id->name)) {
+#define ID_PRV_CASE(id_code, id_struct) case id_code: { return &((id_struct *)id)->preview; }
+		ID_PRV_CASE(ID_MA, Material);
+		ID_PRV_CASE(ID_TE, Tex);
+		ID_PRV_CASE(ID_WO, World);
+		ID_PRV_CASE(ID_LA, Lamp);
+		ID_PRV_CASE(ID_IM, Image);
+		ID_PRV_CASE(ID_BR, Brush);
+#undef ID_PRV_CASE
 	}
-	else if (GS(id->name) == ID_TE) {
-		Tex *tex = (Tex *)id;
-		BKE_previewimg_free(&tex->preview);
-	}
-	else if (GS(id->name) == ID_WO) {
-		World *wo = (World *)id;
-		BKE_previewimg_free(&wo->preview);
-	}
-	else if (GS(id->name) == ID_LA) {
-		Lamp *la  = (Lamp *)id;
-		BKE_previewimg_free(&la->preview);
-	}
-	else if (GS(id->name) == ID_IM) {
-		Image *img  = (Image *)id;
-		BKE_previewimg_free(&img->preview);
-	}
-	else if (GS(id->name) == ID_BR) {
-		Brush *br  = (Brush *)id;
-		BKE_previewimg_free(&br->preview);
+
+	return NULL;
+}
+
+void BKE_previewimg_id_free(ID *id)
+{
+	PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
+	if (prv_p) {
+		BKE_previewimg_free(prv_p);
 	}
 }
 
-PreviewImage *BKE_previewimg_get(ID *id)
+PreviewImage *BKE_previewimg_id_ensure(ID *id)
 {
-	PreviewImage *prv_img = NULL;
+	PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
 
-	if (GS(id->name) == ID_MA) {
-		Material *mat = (Material *)id;
-		if (!mat->preview) mat->preview = BKE_previewimg_create();
-		prv_img = mat->preview;
-	}
-	else if (GS(id->name) == ID_TE) {
-		Tex *tex = (Tex *)id;
-		if (!tex->preview) tex->preview = BKE_previewimg_create();
-		prv_img = tex->preview;
-	}
-	else if (GS(id->name) == ID_WO) {
-		World *wo = (World *)id;
-		if (!wo->preview) wo->preview = BKE_previewimg_create();
-		prv_img = wo->preview;
-	}
-	else if (GS(id->name) == ID_LA) {
-		Lamp *la  = (Lamp *)id;
-		if (!la->preview) la->preview = BKE_previewimg_create();
-		prv_img = la->preview;
-	}
-	else if (GS(id->name) == ID_IM) {
-		Image *img  = (Image *)id;
-		if (!img->preview) img->preview = BKE_previewimg_create();
-		prv_img = img->preview;
-	}
-	else if (GS(id->name) == ID_BR) {
-		Brush *br  = (Brush *)id;
-		if (!br->preview) br->preview = BKE_previewimg_create();
-		prv_img = br->preview;
+	if (prv_p) {
+		if (*prv_p == NULL) {
+			*prv_p = BKE_previewimg_create();
+		}
+		return *prv_p;
 	}
 
-	return prv_img;
+	return NULL;
+}
+
+PreviewImage *BKE_previewimg_cached_get(const char *name)
+{
+	return BLI_ghash_lookup(gCachedPreviews, name);
+}
+
+/**
+ * Generate an empty PreviewImage, if not yet existing.
+ */
+PreviewImage *BKE_previewimg_cached_ensure(const char *name)
+{
+	PreviewImage *prv = NULL;
+	void **prv_p;
+
+	if (!BLI_ghash_ensure_p_ex(gCachedPreviews, name, &prv_p, (GHashKeyCopyFP)BLI_strdup)) {
+		*prv_p = BKE_previewimg_create();
+	}
+	prv = *prv_p;
+	BLI_assert(prv);
+
+	return prv;
+}
+
+/**
+ * Generate a PreviewImage from given file path, using thumbnails management, if not yet existing.
+ */
+PreviewImage *BKE_previewimg_cached_thumbnail_read(
+        const char *name, const char *path, const int source, bool force_update)
+{
+	PreviewImage *prv = NULL;
+	void **prv_p;
+
+	prv_p = BLI_ghash_lookup_p(gCachedPreviews, name);
+
+	if (prv_p) {
+		prv = *prv_p;
+		BLI_assert(prv);
+	}
+
+	if (prv && force_update) {
+		const char *prv_deferred_data = PRV_DEFERRED_DATA(prv);
+		if (((int)prv_deferred_data[0] == source) && STREQ(&prv_deferred_data[1], path)) {
+			/* If same path, no need to re-allocate preview, just clear it up. */
+			BKE_previewimg_clear(prv);
+		}
+		else {
+			BKE_previewimg_free(&prv);
+		}
+	}
+
+	if (!prv) {
+		/* We pack needed data for lazy loading (source type, in a single char, and path). */
+		const size_t deferred_data_size = strlen(path) + 2;
+		char *deferred_data;
+
+		prv = previewimg_create_ex(deferred_data_size);
+		deferred_data = PRV_DEFERRED_DATA(prv);
+		deferred_data[0] = source;
+		memcpy(&deferred_data[1], path, deferred_data_size - 1);
+
+		force_update = true;
+	}
+
+	if (force_update) {
+		if (prv_p) {
+			*prv_p = prv;
+		}
+		else {
+			BLI_ghash_insert(gCachedPreviews, BLI_strdup(name), prv);
+		}
+	}
+
+	return prv;
+}
+
+void BKE_previewimg_cached_release(const char *name)
+{
+	PreviewImage *prv = BLI_ghash_popkey(gCachedPreviews, name, MEM_freeN);
+
+	if (prv) {
+		if (prv->icon_id) {
+			BKE_icon_delete(prv->icon_id);
+		}
+		BKE_previewimg_freefunc(prv);
+	}
+}
+
+/** Handle deferred (lazy) loading/generation of preview image, if needed.
+ * For now, only used with file thumbnails. */
+void BKE_previewimg_ensure(PreviewImage *prv, const int size)
+{
+	if (prv->use_deferred) {
+		const bool do_icon = ((size == ICON_SIZE_ICON) && !prv->rect[ICON_SIZE_ICON]);
+		const bool do_preview = ((size == ICON_SIZE_PREVIEW) && !prv->rect[ICON_SIZE_PREVIEW]);
+
+		if (do_icon || do_preview) {
+			ImBuf *thumb;
+			char *prv_deferred_data = PRV_DEFERRED_DATA(prv);
+			int source =  prv_deferred_data[0];
+			char *path = &prv_deferred_data[1];
+			int icon_w, icon_h;
+
+			thumb = IMB_thumb_manage(path, THB_LARGE, source);
+
+			if (thumb) {
+				/* PreviewImage assumes premultiplied alhpa... */
+				IMB_premultiply_alpha(thumb);
+
+				if (do_preview) {
+					prv->w[ICON_SIZE_PREVIEW] = thumb->x;
+					prv->h[ICON_SIZE_PREVIEW] = thumb->y;
+					prv->rect[ICON_SIZE_PREVIEW] = MEM_dupallocN(thumb->rect);
+					prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED);
+				}
+				if (do_icon) {
+					if (thumb->x > thumb->y) {
+						icon_w = ICON_RENDER_DEFAULT_HEIGHT;
+						icon_h = (thumb->y * icon_w) / thumb->x + 1;
+					}
+					else if (thumb->x < thumb->y) {
+						icon_h = ICON_RENDER_DEFAULT_HEIGHT;
+						icon_w = (thumb->x * icon_h) / thumb->y + 1;
+					}
+					else {
+						icon_w = icon_h = ICON_RENDER_DEFAULT_HEIGHT;
+					}
+
+					IMB_scaleImBuf(thumb, icon_w, icon_h);
+					prv->w[ICON_SIZE_ICON] = icon_w;
+					prv->h[ICON_SIZE_ICON] = icon_h;
+					prv->rect[ICON_SIZE_ICON] = MEM_dupallocN(thumb->rect);
+					prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED);
+				}
+				IMB_freeImBuf(thumb);
+			}
+		}
+	}
 }
 
 void BKE_icon_changed(int id)
@@ -251,20 +402,20 @@ void BKE_icon_changed(int id)
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(id));
 	
 	if (icon) {
-		PreviewImage *prv = BKE_previewimg_get((ID *)icon->obj);
+		PreviewImage *prv = BKE_previewimg_id_ensure((ID *)icon->obj);
 
 		/* all previews changed */
 		if (prv) {
 			int i;
 			for (i = 0; i < NUM_ICON_SIZES; ++i) {
-				prv->changed[i] = 1;
+				prv->flag[i] |= PRV_CHANGED;
 				prv->changed_timestamp[i]++;
 			}
 		}
 	}
 }
 
-int BKE_icon_getid(struct ID *id)
+int BKE_icon_id_ensure(struct ID *id)
 {
 	Icon *new_icon = NULL;
 
@@ -277,11 +428,11 @@ int BKE_icon_getid(struct ID *id)
 	id->icon_id = get_next_free_id();
 
 	if (!id->icon_id) {
-		printf("BKE_icon_getid: Internal error - not enough IDs\n");
+		printf("%s: Internal error - not enough IDs\n", __func__);
 		return 0;
 	}
 
-	new_icon = MEM_callocN(sizeof(Icon), "texicon");
+	new_icon = MEM_mallocN(sizeof(Icon), __func__);
 
 	new_icon->obj = id;
 	new_icon->type = GS(id->name);
@@ -295,6 +446,40 @@ int BKE_icon_getid(struct ID *id)
 	return id->icon_id;
 }
 
+/**
+ * Return icon id of given preview, or create new icon if not found.
+ */
+int BKE_icon_preview_ensure(PreviewImage *preview)
+{
+	Icon *new_icon = NULL;
+
+	if (!preview || G.background)
+		return 0;
+
+	if (preview->icon_id)
+		return preview->icon_id;
+
+	preview->icon_id = get_next_free_id();
+
+	if (!preview->icon_id) {
+		printf("%s: Internal error - not enough IDs\n", __func__);
+		return 0;
+	}
+
+	new_icon = MEM_mallocN(sizeof(Icon), __func__);
+
+	new_icon->obj = preview;
+	new_icon->type = 0;  /* Special, tags as non-ID icon/preview. */
+
+	/* next two lines make sure image gets created */
+	new_icon->drawinfo = NULL;
+	new_icon->drawinfo_free = NULL;
+
+	BLI_ghash_insert(gIcons, SET_INT_IN_POINTER(preview->icon_id), new_icon);
+
+	return preview->icon_id;
+}
+
 Icon *BKE_icon_get(int icon_id)
 {
 	Icon *icon = NULL;
@@ -302,7 +487,7 @@ Icon *BKE_icon_get(int icon_id)
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 	
 	if (!icon) {
-		printf("BKE_icon_get: Internal error, no icon for icon ID: %d\n", icon_id);
+		printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return NULL;
 	}
 
@@ -314,18 +499,39 @@ void BKE_icon_set(int icon_id, struct Icon *icon)
 	void **val_p;
 
 	if (BLI_ghash_ensure_p(gIcons, SET_INT_IN_POINTER(icon_id), &val_p)) {
-		printf("BKE_icon_set: Internal error, icon already set: %d\n", icon_id);
+		printf("%s: Internal error, icon already set: %d\n", __func__, icon_id);
 		return;
 	}
 
 	*val_p = icon;
 }
 
-void BKE_icon_delete(struct ID *id)
+void BKE_icon_id_delete(struct ID *id)
 {
-
 	if (!id->icon_id) return;  /* no icon defined for library object */
 
 	BLI_ghash_remove(gIcons, SET_INT_IN_POINTER(id->icon_id), NULL, icon_free);
 	id->icon_id = 0;
+}
+
+/**
+ * Remove icon and free data.
+ */
+void BKE_icon_delete(int icon_id)
+{
+	Icon *icon;
+
+	if (!icon_id) return;  /* no icon defined for library object */
+
+	icon = BLI_ghash_popkey(gIcons, SET_INT_IN_POINTER(icon_id), NULL);
+
+	if (icon) {
+		if (icon->type) {
+			((ID *)(icon->obj))->icon_id = 0;
+		}
+		else {
+			((PreviewImage *)(icon->obj))->icon_id = 0;
+		}
+		icon_free(icon);
+	}
 }
