@@ -562,7 +562,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	RenderView *rv;
 	SceneRenderLayer *srl;
 	int rectx, recty;
-	int nr, i;
+	int nr;
 	
 	rectx = BLI_rcti_size_x(partrct);
 	recty = BLI_rcti_size_y(partrct);
@@ -728,15 +728,11 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 				if (strcmp(view, viewname) != 0)
 					continue;
 
-			if (rr->do_exr_tile) {
+			if (rr->do_exr_tile)
 				IMB_exr_add_view(rl->exrhandle, view);
 
-				for (i=0; i < 4; i++)
-					IMB_exr_add_channel(rl->exrhandle, rl->name, name_from_passtype(SCE_PASS_COMBINED, i), view, 0, 0, NULL);
-			}
-			else {
-				render_layer_add_pass(rr, rl, 4, SCE_PASS_COMBINED, view);
-			}
+			/* a renderlayer should always have a Combined pass */
+			render_layer_add_pass(rr, rl, 4, SCE_PASS_COMBINED, view);
 		}
 
 		/* note, this has to be in sync with scene.c */
