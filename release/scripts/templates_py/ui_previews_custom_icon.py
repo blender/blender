@@ -31,7 +31,7 @@ class PreviewsExamplePanel(bpy.types.Panel):
         pcoll = preview_collections["main"]
 
         row = layout.row()
-        my_icon = pcoll.get("my_icon")
+        my_icon = pcoll["my_icon"]
         row.operator("render.render", icon_value=my_icon.icon_id)
 
         # my_icon.icon_id can be used in any UI function that accepts

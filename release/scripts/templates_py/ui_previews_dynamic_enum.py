@@ -14,7 +14,7 @@
 # For custom icons, see the template "ui_previews_custom_icon.py".
 #
 # For distributable scripts, it is recommended to place the icons inside the
-# addon directory and access it relative to the py script file for portability:
+# script directory and access it relative to the py script file for portability:
 #
 #    os.path.join(os.path.dirname(__file__), "images")
 
@@ -47,11 +47,9 @@ def enum_previews_from_directory_items(self, context):
 
         for i, name in enumerate(image_paths):
             # generates a thumbnail preview for a file.
-            # Also works with previews for 'MOVIE', 'BLEND' and 'FONT'
             filepath = os.path.join(directory, name)
             thumb = pcoll.load(filepath, filepath, 'IMAGE')
-            # enum item: (identifier, name, description, icon, number)
-            enum_items.append((name, name, name, thumb.icon_id, i))
+            enum_items.append((name, name, "", thumb.icon_id, i))
 
     pcoll.my_previews = enum_items
     pcoll.my_previews_dir = directory
