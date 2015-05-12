@@ -100,12 +100,6 @@ class ImagePreviewCollection(dict):
         return p
     load.__doc__ = _utils_previews.load.__doc__
 
-    def release(self, name):
-        p = self.pop(name, None)
-        if p is not None:
-            _utils_previews.release(self._gen_key(name))
-    release.__doc__ = _utils_previews.release.__doc__
-
     def clear(self):
         """Clear all previews."""
         for name in self.keys():
@@ -118,7 +112,8 @@ class ImagePreviewCollection(dict):
         _uuid_open.remove(self._uuid)
 
     def __delitem__(self, key):
-        return self.release(key)
+        _utils_previews.release(self._gen_key(name))
+        super().__delitem__(key)
 
     def __repr__(self):
         return "<%s id=%s[%d], %s>" % (
