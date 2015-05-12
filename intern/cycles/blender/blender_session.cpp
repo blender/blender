@@ -1020,18 +1020,19 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name, void *buil
 
 	unsigned char *image_pixels;
 	image_pixels = image_get_pixels_for_frame(b_image, frame);
+	size_t num_pixels = ((size_t)width) * height;
 
 	if(image_pixels) {
-		memcpy(pixels, image_pixels, width * height * channels * sizeof(unsigned char));
+		memcpy(pixels, image_pixels, num_pixels * channels * sizeof(unsigned char));
 		MEM_freeN(image_pixels);
 	}
 	else {
 		if(channels == 1) {
-			memset(pixels, 0, width * height * sizeof(unsigned char));
+			memset(pixels, 0, num_pixels * sizeof(unsigned char));
 		}
 		else {
 			unsigned char *cp = pixels;
-			for(int i = 0; i < width * height; i++, cp += channels) {
+			for(size_t i = 0; i < num_pixels; i++, cp += channels) {
 				cp[0] = 255;
 				cp[1] = 0;
 				cp[2] = 255;
@@ -1043,7 +1044,7 @@ bool BlenderSession::builtin_image_pixels(const string &builtin_name, void *buil
 
 	/* premultiply, byte images are always straight for blender */
 	unsigned char *cp = pixels;
-	for(int i = 0; i < width * height; i++, cp += channels) {
+	for(size_t i = 0; i < num_pixels; i++, cp += channels) {
 		cp[0] = (cp[0] * cp[3]) >> 8;
 		cp[1] = (cp[1] * cp[3]) >> 8;
 		cp[2] = (cp[2] * cp[3]) >> 8;
@@ -1072,18 +1073,19 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 
 		float *image_pixels;
 		image_pixels = image_get_float_pixels_for_frame(b_image, frame);
+		size_t num_pixels = ((size_t)width) * height;
 
 		if(image_pixels) {
-			memcpy(pixels, image_pixels, width * height * channels * sizeof(float));
+			memcpy(pixels, image_pixels, num_pixels * channels * sizeof(float));
 			MEM_freeN(image_pixels);
 		}
 		else {
 			if(channels == 1) {
-				memset(pixels, 0, width * height * sizeof(float));
+				memset(pixels, 0, num_pixels * sizeof(float));
 			}
 			else {
 				float *fp = pixels;
-				for(int i = 0; i < width * height; i++, fp += channels) {
+				for(int i = 0; i < num_pixels; i++, fp += channels) {
 					fp[0] = 1.0f;
 					fp[1] = 0.0f;
 					fp[2] = 1.0f;
@@ -1109,11 +1111,12 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		int width = resolution.x * amplify;
 		int height = resolution.y * amplify;
 		int depth = resolution.z * amplify;
+		size_t num_pixels = ((size_t)width) * height * depth;
 
 		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {
 			SmokeDomainSettings_density_grid_get_length(&b_domain.ptr, &length);
 
-			if(length == width*height*depth) {
+			if(length == num_pixels) {
 				SmokeDomainSettings_density_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
@@ -1123,7 +1126,7 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 			 * as 1500..3000 K with the first part faded to zero density */
 			SmokeDomainSettings_flame_grid_get_length(&b_domain.ptr, &length);
 
-			if(length == width*height*depth) {
+			if(length == num_pixels) {
 				SmokeDomainSettings_flame_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
@@ -1132,7 +1135,7 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 			/* the RGB is "premultiplied" by density for better interpolation results */
 			SmokeDomainSettings_color_grid_get_length(&b_domain.ptr, &length);
 
-			if(length == width*height*depth*4) {
+			if(length == num_pixels*4) {
 				SmokeDomainSettings_color_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
