@@ -176,6 +176,11 @@ typedef struct uiSelectContextStore {
 	int elems_len;
 	bool do_free;
 	bool is_enabled;
+	/* When set, simply copy values (don't apply difference).
+	 * Rules are:
+	 * - dragging numbers uses delta.
+	 * - typing in values will assign to all. */
+	bool is_copy;
 } uiSelectContextStore;
 
 static bool ui_selectcontext_begin(
@@ -1433,6 +1438,7 @@ static void ui_selectcontext_apply(
 		PropertyRNA *lprop = but->rnaprop;
 		int index = but->rnaindex;
 		int i;
+		const bool use_delta = (selctx_data->is_copy == false);
 
 		union {
 			bool  b;
@@ -1444,10 +1450,10 @@ static void ui_selectcontext_apply(
 		const int rna_type = RNA_property_type(prop);
 
 		if (rna_type == PROP_FLOAT) {
-			delta.f = value - value_orig;
+			delta.f = use_delta ? (value - value_orig) : value;
 		}
 		else if (rna_type == PROP_INT) {
-			delta.i = (int)value - (int)value_orig;
+			delta.i = use_delta ? ((int)value - (int)value_orig) : (int)value;
 		}
 		else if (rna_type == PROP_ENUM) {
 			delta.i = RNA_property_enum_get(&but->rnapoin, prop);  /* not a delta infact */
@@ -1466,10 +1472,10 @@ static void ui_selectcontext_apply(
 			PointerRNA lptr = other->ptr;
 			if (is_array) {
 				if (rna_type == PROP_FLOAT) {
-					RNA_property_float_set_index(&lptr, lprop, index, other->val_f + delta.f);
+					RNA_property_float_set_index(&lptr, lprop, index, use_delta ? (other->val_f + delta.f) : delta.f);
 				}
 				else if (rna_type == PROP_INT) {
-					RNA_property_int_set_index(&lptr, lprop, index, other->val_i + delta.i);
+					RNA_property_int_set_index(&lptr, lprop, index, use_delta ? (other->val_i + delta.i) : delta.i);
 				}
 				else if (rna_type == PROP_BOOLEAN) {
 					RNA_property_boolean_set_index(&lptr, lprop, index, delta.b);
@@ -1477,10 +1483,10 @@ static void ui_selectcontext_apply(
 			}
 			else {
 				if (rna_type == PROP_FLOAT) {
-					RNA_property_float_set(&lptr, lprop, other->val_f + delta.f);
+					RNA_property_float_set(&lptr, lprop, use_delta ? (other->val_f + delta.f) : delta.f);
 				}
 				else if (rna_type == PROP_INT) {
-					RNA_property_int_set(&lptr, lprop, other->val_i + delta.i);
+					RNA_property_int_set(&lptr, lprop, use_delta ? (other->val_i + delta.i) : delta.i);
 				}
 				else if (rna_type == PROP_BOOLEAN) {
 					RNA_property_boolean_set(&lptr, lprop, delta.b);
@@ -2820,6 +2826,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	if (is_num_but) {
 		if (IS_ALLSELECT_EVENT(win->eventstate)) {
 			data->select_others.is_enabled = true;
+			data->select_others.is_copy = true;
+
 		}
 	}
 #endif
