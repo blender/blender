@@ -33,6 +33,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_text_types.h" /* for UI_OT_reports_to_text */
+#include "DNA_object_types.h" /* for OB_DATA_SUPPORT_ID */
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
@@ -57,6 +58,7 @@
 #include "WM_types.h"
 
 #include "ED_paint.h"
+#include "ED_object.h"
 
 /* only for UI_OT_editsource */
 #include "ED_screen.h"
@@ -284,6 +286,51 @@ bool UI_context_copy_to_selected_list(
 			*r_lb = CTX_data_collection_get(C, "selected_editable_objects");
 			*r_use_path_from_id = true;
 			*r_path = RNA_path_from_ID_to_property(ptr, prop);
+		}
+		else if (OB_DATA_SUPPORT_ID(GS(id->name))) {
+			/* check we're using the active object */
+
+			Object *ob = ED_object_context(C);
+			if (ob && ob->data == id) {
+				const short id_code = GS(id->name);
+				ListBase lb = CTX_data_collection_get(C, "selected_editable_objects");
+				char *path = RNA_path_from_ID_to_property(ptr, prop);
+
+				if (path) {
+					char *path_tmp;
+					path_tmp = path;
+					path = BLI_sprintfN("data%s%s", path[0] == '[' ? "" : ".", path);
+					MEM_freeN(path_tmp);
+				}
+
+				/* de-duplicate obdata */
+				if (!BLI_listbase_is_empty(&lb)) {
+					CollectionPointerLink *link, *link_next;
+
+					for (link = lb.first; link; link = link->next) {
+						Object *ob = link->ptr.id.data;
+						if (ob->data) {
+							ID *id = ob->data;
+							id->flag |= LIB_DOIT;
+						}
+					}
+
+					for (link = lb.first; link; link = link_next) {
+						Object *ob = link->ptr.id.data;
+						ID *id = ob->data;
+						link_next = link->next;
+						if ((id == NULL) || (id->flag & LIB_DOIT) == 0 || (GS(id->name) != id_code)) {
+							BLI_remlink(&lb, link);
+							MEM_freeN(link);
+						}
+						id->flag &= ~LIB_DOIT;
+					}
+				}
+
+				*r_lb = lb;
+				*r_path = path;
+			}
+
 		}
 		else if (GS(id->name) == ID_SCE) {
 			/* Sequencer's ID is scene :/ */
