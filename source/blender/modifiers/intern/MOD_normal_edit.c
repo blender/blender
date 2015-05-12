@@ -80,10 +80,13 @@ static void generate_vert_coordinates(
 	}
 
 	if (ob_center) {
+		float inv_obmat[4][4];
+
 		/* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
 		/* Get ob_center (world) coordinates in ob local coordinates.
 		 * No need to take into accound ob_center's space here, see T44027. */
-		mul_v3_m4v3(diff, ob->obmat, ob_center->obmat[3]);
+		invert_m4_m4(inv_obmat, ob->obmat);
+		mul_v3_m4v3(diff, inv_obmat, ob_center->obmat[3]);
 		negate_v3(diff);
 
 		do_diff = true;
