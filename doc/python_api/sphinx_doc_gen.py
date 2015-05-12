@@ -257,6 +257,7 @@ else:
         "bpy.props",
         "bpy.types",  # supports filtering
         "bpy.utils",
+        "bpy.utils.previews",
         "bpy_extras",
         "gpu",
         "mathutils",
@@ -642,10 +643,17 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
     else:
         func_type = "staticmethod"
 
-    fw(ident + ".. %s:: %s%s\n\n" % (func_type, identifier, arg_str))
-    if py_func.__doc__:
-        write_indented_lines(ident + "   ", fw, py_func.__doc__)
+    doc = py_func.__doc__
+    if (not doc) or (not doc.startswith(".. %s:: " % func_type)):
+        fw(ident + ".. %s:: %s%s\n\n" % (func_type, identifier, arg_str))
+        ident_temp = ident + "   "
+    else:
+        ident_temp = ident
+
+    if doc:
+        write_indented_lines(ident_temp, fw, doc)
         fw("\n")
+    del doc, ident_temp
 
     if is_class:
         write_example_ref(ident + "   ", fw, module_name + "." + type_name + "." + identifier)
@@ -916,7 +924,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
                 fw(value.__doc__)
             else:
                 fw(".. class:: %s\n\n" % type_name)
-                write_indented_lines("   ", fw, value.__doc__, False)
+                write_indented_lines("   ", fw, value.__doc__, True)
         else:
             fw(".. class:: %s\n\n" % type_name)
         fw("\n")
@@ -928,6 +936,11 @@ def pymodule2sphinx(basepath, module_name, module, title):
         for key, descr in descr_items:
             if type(descr) == ClassMethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+        # needed for pure python classes
+        for key, descr in descr_items:
+            if type(descr) == types.FunctionType:
+                pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
 
         for key, descr in descr_items:
             if type(descr) == MethodDescriptorType:
@@ -1608,6 +1621,7 @@ def write_rst_contents(basepath):
 
         # py modules
         "bpy.utils",
+        "bpy.utils.previews",
         "bpy.path",
         "bpy.app",
         "bpy.app.handlers",

@@ -23,13 +23,20 @@ This module contains utility functions to handle custom previews.
 
 It behaves as a high-level 'cached' previews manager.
 
-This allows addons to generate their own previews, and use them as icons in UI widgets
-('icon_value' of UILayout functions).
+This allows scripts to generate their own previews, and use them as icons in UI widgets
+('icon_value' for UILayout functions).
+
+
+Custom Icon Example
+-------------------
+
+.. literalinclude:: ../../../release/scripts/templates_py/ui_previews_custom_icon.py
 """
 
 __all__ = (
     "new",
     "remove",
+    "ImagePreviewCollection",
     )
 
 import _bpy
@@ -42,14 +49,21 @@ _uuid_open = set()
 
 # High-level previews manager.
 # not accessed directly
-class _BPyImagePreviewCollection(dict):
+class ImagePreviewCollection(dict):
     """
-    Dict-like class of previews.
+    Dictionary-like class of previews.
+
+    This is a subclass of Python's built-in dict type,
+    used to store multiple image previews.
+
+    .. note::
+
+        - instance with :mod:`bpy.utils.previews.new`
+        - keys must be ``str`` type.
+        - values will be :class:`bpy.types.ImagePreview`
     """
 
     # Internal notes:
-    # - keys in the dict are stored by name
-    # - values are instances of bpy.types.ImagePreview
     # - Blender's internal 'PreviewImage' struct uses 'self._uuid' prefix.
 
     def __init__(self):
@@ -93,11 +107,13 @@ class _BPyImagePreviewCollection(dict):
     release.__doc__ = _utils_previews.release.__doc__
 
     def clear(self):
+        """Clear all previews."""
         for name in self.keys():
             _utils_previews.release(self._gen_key(name))
         super().clear()
 
     def close(self):
+        """Close the collection and clear all previews."""
         self.clear()
         _uuid_open.remove(self._uuid)
 
@@ -114,24 +130,28 @@ class _BPyImagePreviewCollection(dict):
 
 def new():
     """
-    Return a new preview collection.
+    :return: a new preview collection.
+    :rtype: :class:`ImagePreviewCollection`
     """
 
-    return _BPyImagePreviewCollection()
+    return ImagePreviewCollection()
 
 
-def remove(p):
+def remove(pcoll):
     """
     Remove the specified previews collection.
+
+    :arg pcoll: Preview collection to close.
+    :type pcoll: :class:`ImagePreviewCollection`
     """
-    p.close()
+    pcoll.close()
 
 
 # don't complain about resources on exit (only unregister)
 import atexit
 
 def exit_clear_warning():
-    del _BPyImagePreviewCollection.__del__
+    del ImagePreviewCollection.__del__
 
 atexit.register(exit_clear_warning)
 del atexit, exit_clear_warning
