@@ -2213,11 +2213,13 @@ size_t BKE_scene_multiview_num_views_get(const RenderData *rd)
 		return 1;
 
 	if (rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) {
-		if (BLI_findstring(&rd->views, STEREO_LEFT_NAME, offsetof(SceneRenderView, name))) {
+		srv = BLI_findstring(&rd->views, STEREO_LEFT_NAME, offsetof(SceneRenderView, name));
+		if ((srv && srv->viewflag & SCE_VIEW_DISABLE) == 0) {
 			totviews++;
 		}
 
-		if (BLI_findstring(&rd->views, STEREO_RIGHT_NAME, offsetof(SceneRenderView, name))) {
+		srv = BLI_findstring(&rd->views, STEREO_RIGHT_NAME, offsetof(SceneRenderView, name));
+		if ((srv && srv->viewflag & SCE_VIEW_DISABLE) == 0) {
 			totviews++;
 		}
 	}
