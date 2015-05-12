@@ -185,11 +185,16 @@ typedef struct uiSelectContextStore {
 
 static bool ui_selectcontext_begin(
         bContext *C, uiBut *but, struct uiSelectContextStore *selctx_data);
+static void ui_selectcontext_end(
+        uiBut *but, uiSelectContextStore *selctx_data);
 static void ui_selectcontext_apply(
         bContext *C, uiBut *but, struct uiSelectContextStore *selctx_data,
         const double value, const double value_orig);
 
 #define IS_ALLSELECT_EVENT(event) ((event)->alt != 0)
+
+/* just show a tinted color so users know its activated */
+#define UI_BUT_IS_SELECT_CONTEXT UI_BUT_NODE_ACTIVE
 
 #endif  /* USE_ALLSELECT */
 
@@ -1426,7 +1431,23 @@ finally:
 	/* caller can clear */
 	selctx_data->do_free = true;
 
+	if (success) {
+		but->flag |= UI_BUT_IS_SELECT_CONTEXT;
+	}
+
 	return success;
+}
+
+static void ui_selectcontext_end(
+        uiBut *but, uiSelectContextStore *selctx_data)
+{
+	if (selctx_data->do_free) {
+		if (selctx_data->elems) {
+			MEM_freeN(selctx_data->elems);
+		}
+	}
+
+	but->flag &= ~UI_BUT_IS_SELECT_CONTEXT;
 }
 
 static void ui_selectcontext_apply(
@@ -7606,11 +7627,7 @@ static void button_activate_exit(
 		MEM_freeN(data->origstr);
 
 #ifdef USE_ALLSELECT
-	if (data->select_others.do_free) {
-		if (data->select_others.elems) {
-			MEM_freeN(data->select_others.elems);
-		}
-	}
+	ui_selectcontext_end(but, &data->select_others);
 #endif
 
 	/* redraw (data is but->active!) */
