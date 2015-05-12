@@ -92,6 +92,7 @@ void DAG_exit(void);
  */
 
 void DAG_scene_relations_update(struct Main *bmain, struct Scene *sce);
+void DAG_scene_relations_validate(struct Main *bmain, struct Scene *sce);
 void DAG_relations_tag_update(struct Main *bmain);
 void DAG_scene_relations_rebuild(struct Main *bmain, struct Scene *scene);
 void DAG_scene_free(struct Scene *sce);

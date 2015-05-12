@@ -54,6 +54,7 @@
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -1318,9 +1319,13 @@ bool BKE_pose_copy_result(bPose *to, bPose *from)
 }
 
 /* Tag pose for recalc. Also tag all related data to be recalc. */
-void BKE_pose_tag_recalc(Main *UNUSED(bmain), bPose *pose)
+void BKE_pose_tag_recalc(Main *bmain, bPose *pose)
 {
 	pose->flag |= POSE_RECALC;
+	/* Depsgraph components depends on actual pose state,
+	 * if pose was changed depsgraph is to be updated as well.
+	 */
+	DAG_relations_tag_update(bmain);
 }
 
 /* For the calculation of the effects of an Action at the given frame on an object 

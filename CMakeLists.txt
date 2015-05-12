@@ -449,6 +449,9 @@ endif()
 option(WITH_CPP11 "Build with C++11 standard enabled, for development use only!" OFF)
 mark_as_advanced(WITH_CPP11)
 
+# Dependency graph
+option(WITH_LEGACY_DEPSGRAPH "Build Blender with legacy dependency graph" ON)
+
 # avoid using again
 option_defaults_clear()
 

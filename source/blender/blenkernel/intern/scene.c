@@ -89,6 +89,8 @@
 #include "BKE_unit.h"
 #include "BKE_world.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RE_engine.h"
 
 #include "PIL_time.h"
@@ -193,6 +195,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 
 		scen->ed = NULL;
 		scen->theDag = NULL;
+		scen->depsgraph = NULL;
 		scen->obedit = NULL;
 		scen->stats = NULL;
 		scen->fps_info = NULL;
@@ -431,6 +434,8 @@ void BKE_scene_free(Scene *sce)
 	}
 	
 	DAG_scene_free(sce);
+	if (sce->depsgraph)
+		DEG_graph_free(sce->depsgraph);
 	
 	if (sce->nodetree) {
 		ntreeFreeTree(sce->nodetree);
@@ -1167,6 +1172,7 @@ void BKE_scene_frame_set(struct Scene *scene, double cfra)
 	scene->r.cfra = (int)intpart;
 }
 
+#ifdef WITH_LEGACY_DEPSGRAPH
 /* drivers support/hacks 
  *  - this method is called from scene_update_tagged_recursive(), so gets included in viewport + render
  *	- these are always run since the depsgraph can't handle non-object data
@@ -1267,6 +1273,7 @@ static void scene_depsgraph_hack(EvaluationContext *eval_ctx, Scene *scene, Scen
 		}
 	}
 }
+#endif  /* WITH_LEGACY_DEPSGRAPH */
 
 /* That's like really a bummer, because currently animation data for armatures
  * might want to use pose, and pose might be missing on the object.
@@ -1318,7 +1325,12 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
  * would pollute STDERR with whole bunch of timing information which then
  * could be parsed and nicely visualized.
  */
-#undef DETAILED_ANALYSIS_OUTPUT
+#ifdef WITH_LEGACY_DEPSGRAPH
+#  undef DETAILED_ANALYSIS_OUTPUT
+#else
+/* ALWAYS KEEY DISABLED! */
+#  undef DETAILED_ANALYSIS_OUTPUT
+#endif
 
 /* Mballs evaluation uses BKE_scene_base_iter_next which calls
  * duplilist for all objects in the scene. This leads to conflict
@@ -1330,6 +1342,7 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
  */
 #define MBALL_SINGLETHREAD_HACK
 
+#ifdef WITH_LEGACY_DEPSGRAPH
 typedef struct StatisicsEntry {
 	struct StatisicsEntry *next, *prev;
 	Object *object;
@@ -1619,6 +1632,7 @@ static void scene_update_tagged_recursive(EvaluationContext *eval_ctx, Main *bma
 	BKE_mask_update_scene(bmain, scene);
 	
 }
+#endif  /* WITH_LEGACY_DEPSGRAPH */
 
 static bool check_rendered_viewport_visible(Main *bmain)
 {
@@ -1670,13 +1684,26 @@ static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
 void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *scene)
 {
 	Scene *sce_iter;
-	
+#ifdef WITH_LEGACY_DEPSGRAPH
+	bool use_new_eval = !DEG_depsgraph_use_legacy();
+#endif
+
 	/* keep this first */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	/* (re-)build dependency graph if needed */
-	for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set)
+	for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set) {
 		DAG_scene_relations_update(bmain, sce_iter);
+		/* Uncomment this to check if graph was properly tagged for update. */
+#if 0
+#ifdef WITH_LEGACY_DEPSGRAPH
+		if (use_new_eval)
+#endif
+		{
+			DAG_scene_relations_validate(bmain, sce_iter);
+		}
+#endif
+	}
 
 	/* flush editing data if needed */
 	prepare_mesh_for_viewport_render(bmain, scene);
@@ -1697,7 +1724,17 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	 *
 	 * in the future this should handle updates for all datablocks, not
 	 * only objects and scenes. - brecht */
-	scene_update_tagged_recursive(eval_ctx, bmain, scene, scene);
+#ifdef WITH_LEGACY_DEPSGRAPH
+	if (use_new_eval) {
+		DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph, scene);
+	}
+	else {
+		scene_update_tagged_recursive(eval_ctx, bmain, scene, scene);
+	}
+#else
+	DEG_evaluate_on_refresh(eval_ctx, bmain, scene->depsgraph, scene);
+#endif
+
 	/* update sound system animation (TODO, move to depsgraph) */
 	BKE_sound_update_scene(bmain, scene);
 
@@ -1715,7 +1752,8 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	 * Need to do this so changing material settings from the graph/dopesheet
 	 * will update stuff in the viewport.
 	 */
-	if (DAG_id_type_tagged(bmain, ID_MA)) {
+#ifdef WITH_LEGACY_DEPSGRAPH
+	if (!use_new_eval && DAG_id_type_tagged(bmain, ID_MA)) {
 		Material *material;
 		float ctime = BKE_scene_frame_get(scene);
 
@@ -1730,7 +1768,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	}
 
 	/* Also do the same for node trees. */
-	if (DAG_id_type_tagged(bmain, ID_NT)) {
+	if (!use_new_eval && DAG_id_type_tagged(bmain, ID_NT)) {
 		float ctime = BKE_scene_frame_get(scene);
 
 		FOREACH_NODETREE(bmain, ntree, id)
@@ -1741,9 +1779,12 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 		}
 		FOREACH_NODETREE_END
 	}
+#endif
 
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+
+	/* Inform editors about possible changes. */
 	DAG_ids_check_recalc(bmain, scene, false);
 
 	/* clear recalc flags */
@@ -1763,6 +1804,12 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 #ifdef DETAILED_ANALYSIS_OUTPUT
 	double start_time = PIL_check_seconds_timer();
 #endif
+#ifdef WITH_LEGACY_DEPSGRAPH
+	bool use_new_eval = !DEG_depsgraph_use_legacy();
+#else
+	/* TODO(sergey): Pass to evaluation routines instead of storing layer in the graph? */
+	(void) do_invisible_flush;
+#endif
 
 	/* keep this first */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
@@ -1772,12 +1819,16 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	 * call this at the start so modifiers with textures don't lag 1 frame */
 	BKE_image_update_frame(bmain, sce->r.cfra);
 	
+#ifdef WITH_LEGACY_DEPSGRAPH
 	/* rebuild rigid body worlds before doing the actual frame update
 	 * this needs to be done on start frame but animation playback usually starts one frame later
 	 * we need to do it here to avoid rebuilding the world on every simulation change, which can be very expensive
 	 */
-	scene_rebuild_rbw_recursive(sce, ctime);
-
+	if (!use_new_eval) {
+		scene_rebuild_rbw_recursive(sce, ctime);
+	}
+#endif
+	
 	BKE_sound_set_cfra(sce->r.cfra);
 	
 	/* clear animation overrides */
@@ -1786,14 +1837,18 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	for (sce_iter = sce; sce_iter; sce_iter = sce_iter->set)
 		DAG_scene_relations_update(bmain, sce_iter);
 
-	/* flush recalc flags to dependencies, if we were only changing a frame
-	 * this would not be necessary, but if a user or a script has modified
-	 * some datablock before BKE_scene_update_tagged was called, we need the flush */
-	DAG_ids_flush_tagged(bmain);
+#ifdef WITH_LEGACY_DEPSGRAPH
+	if (!use_new_eval) {
+		/* flush recalc flags to dependencies, if we were only changing a frame
+		 * this would not be necessary, but if a user or a script has modified
+		 * some datablock before BKE_scene_update_tagged was called, we need the flush */
+		DAG_ids_flush_tagged(bmain);
 
-	/* Following 2 functions are recursive
-	 * so don't call within 'scene_update_tagged_recursive' */
-	DAG_scene_update_flags(bmain, sce, lay, true, do_invisible_flush);   // only stuff that moves or needs display still
+		/* Following 2 functions are recursive
+		 * so don't call within 'scene_update_tagged_recursive' */
+		DAG_scene_update_flags(bmain, sce, lay, true, do_invisible_flush);   // only stuff that moves or needs display still
+	}
+#endif
 
 	BKE_mask_evaluate_all_masks(bmain, ctime, true);
 
@@ -1807,8 +1862,12 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy
 	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
 	 */
-	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
-	/*...done with recursive funcs */
+#ifdef WITH_LEGACY_DEPSGRAPH
+	if (!use_new_eval) {
+		BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
+		/*...done with recursive funcs */
+	}
+#endif
 
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
 	 * when trying to find materials with drivers that need evaluating [#32017] 
@@ -1818,19 +1877,38 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 
 	/* run rigidbody sim */
 	/* NOTE: current position is so that rigidbody sim affects other objects, might change in the future */
-	scene_do_rb_simulation_recursive(sce, ctime);
-
+#ifdef WITH_LEGACY_DEPSGRAPH
+	if (!use_new_eval) {
+		scene_do_rb_simulation_recursive(sce, ctime);
+	}
+#endif
+	
 	/* BKE_object_handle_update() on all objects, groups and sets */
-	scene_update_tagged_recursive(eval_ctx, bmain, sce, sce);
+#ifdef WITH_LEGACY_DEPSGRAPH
+	if (use_new_eval) {
+		DEG_evaluate_on_framechange(eval_ctx, bmain, sce->depsgraph, ctime, lay);
+	}
+	else {
+		scene_update_tagged_recursive(eval_ctx, bmain, sce, sce);
+	}
+#else
+	DEG_evaluate_on_framechange(eval_ctx, bmain, sce->depsgraph, ctime, lay);
+#endif
+
 	/* update sound system animation (TODO, move to depsgraph) */
 	BKE_sound_update_scene(bmain, sce);
 
-	scene_depsgraph_hack(eval_ctx, sce, sce);
+#ifdef WITH_LEGACY_DEPSGRAPH
+	if (!use_new_eval) {
+		scene_depsgraph_hack(eval_ctx, sce, sce);
+	}
+#endif
 
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
+	/* Inform editors about possible changes. */
 	DAG_ids_check_recalc(bmain, sce, true);
 
 	/* clear recalc flags */

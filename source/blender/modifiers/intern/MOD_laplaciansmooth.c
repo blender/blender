@@ -716,6 +716,7 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
 	/* freeData */          NULL,
 	/* isDisabled */        is_disabled,
 	/* updateDepgraph */    NULL,
+	/* updateDepsgraph */   NULL,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,

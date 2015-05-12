@@ -524,6 +524,7 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 		bf_blenloader
 		bf_imbuf
 		bf_blenlib
+		bf_depsgraph
 		bf_intern_ghost
 		bf_intern_string
 		bf_avi

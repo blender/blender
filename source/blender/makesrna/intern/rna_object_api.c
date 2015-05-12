@@ -87,6 +87,8 @@ static EnumPropertyItem space_items[] = {
 
 #include "MEM_guardedalloc.h"
 
+#include "DEG_depsgraph.h"
+
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
 static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseChannel *pchan,
                                         float *mat, float *mat_ret, int from, int to)
@@ -191,8 +193,8 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, int settings)
 {
 	bool for_render = (settings == DAG_EVAL_RENDER);
-	EvaluationContext eval_ctx = {0};
-	eval_ctx.mode = settings;
+	EvaluationContext eval_ctx;
+	DEG_evaluation_context_init(&eval_ctx, settings);
 
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis");

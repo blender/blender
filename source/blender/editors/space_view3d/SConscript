@@ -48,6 +48,7 @@ incs = [
     '../../makesrna',
     '../../render/extern/include',
     '../../windowmanager',
+    '../../depsgraph',
     ]
 
 if env['WITH_BF_PYTHON']:

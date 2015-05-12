@@ -31,6 +31,8 @@
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
 
+#include "DEG_depsgraph_build.h"
+
 struct DerivedMesh;
 struct MDeformVert;
 struct ModifierData;

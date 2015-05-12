@@ -38,6 +38,7 @@ incs = [
     '../blenkernel',
     '../blenlib',
     '../imbuf',
+    '../depsgraph',
     '../makesdna',
     '../makesrna',
     '../physics',

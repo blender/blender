@@ -31,6 +31,7 @@ set(INC
 	../blenkernel
 	../blenlib
 	../imbuf
+	../depsgraph
 	../makesdna
 	../makesrna
 	../physics

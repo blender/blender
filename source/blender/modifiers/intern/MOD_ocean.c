@@ -580,6 +580,7 @@ ModifierTypeInfo modifierType_Ocean = {
 	/* freeData */          freeData,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    NULL,
+	/* updateDepsgraph */   NULL,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */	dependsOnNormals,
 	/* foreachObjectLink */ NULL,

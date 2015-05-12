@@ -31,6 +31,7 @@ blender_include_dirs(
 	../blender/blenlib
 	../blender/blenkernel
 	../blender/blenloader
+	../blender/depsgraph
 	../blender/editors/include
 	../blender/makesrna
 	../blender/imbuf

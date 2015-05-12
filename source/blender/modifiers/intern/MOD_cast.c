@@ -121,6 +121,18 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+static void updateDepsgraph(ModifierData *md,
+                            struct Main *UNUSED(bmain),
+                            struct Scene *UNUSED(scene),
+                            Object *UNUSED(ob),
+                            struct DepsNodeHandle *node)
+{
+	CastModifierData *cmd = (CastModifierData *)md;
+	if (cmd->object != NULL) {
+		DEG_add_object_relation(node, cmd->object, DEG_OB_COMP_TRANSFORM, "Cast Modifier");
+	}
+}
+
 static void sphere_do(
         CastModifierData *cmd, Object *ob, DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts)
@@ -500,6 +512,7 @@ ModifierTypeInfo modifierType_Cast = {
 	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
+	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,

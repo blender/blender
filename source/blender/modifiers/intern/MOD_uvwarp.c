@@ -229,6 +229,30 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	uv_warp_deps_object_bone(forest, obNode, umd->object_dst, umd->bone_dst);
 }
 
+static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
+                                         Object *object,
+                                         const char *bonename)
+{
+	if (object != NULL) {
+		if (bonename[0])
+			DEG_add_object_relation(node, object, DEG_OB_COMP_EVAL_POSE, "UVWarp Modifier");
+		else
+			DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "UVWarp Modifier");
+	}
+}
+
+static void updateDepsgraph(ModifierData *md,
+                            struct Main *UNUSED(bmain),
+                            struct Scene *UNUSED(scene),
+                            Object *UNUSED(ob),
+                            struct DepsNodeHandle *node)
+{
+	UVWarpModifierData *umd = (UVWarpModifierData *) md;
+
+	uv_warp_deps_object_bone_new(node, umd->object_src, umd->bone_src);
+	uv_warp_deps_object_bone_new(node, umd->object_dst, umd->bone_dst);
+}
+
 ModifierTypeInfo modifierType_UVWarp = {
 	/* name */              "UVWarp",
 	/* structName */        "UVWarpModifierData",
@@ -249,6 +273,7 @@ ModifierTypeInfo modifierType_UVWarp = {
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
+	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,

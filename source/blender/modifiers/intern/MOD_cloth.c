@@ -140,6 +140,27 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+static void updateDepsgraph(ModifierData *md,
+                            struct Main *UNUSED(bmain),
+                            struct Scene *scene,
+                            Object *ob,
+                            struct DepsNodeHandle *node)
+{
+	ClothModifierData *clmd = (ClothModifierData *)md;
+	if (clmd != NULL) {
+		Base *base;
+		for (base = scene->base.first; base; base = base->next) {
+			Object *ob1 = base->object;
+			if (ob1 != ob) {
+				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
+				if (coll_clmd) {
+					DEG_add_object_relation(node, ob1, DEG_OB_COMP_TRANSFORM, "Cloth Modifier");
+				}
+			}
+		}
+	}
+}
+
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
@@ -251,6 +272,7 @@ ModifierTypeInfo modifierType_Cloth = {
 	/* freeData */          freeData,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,
+	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     dependsOnTime,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,

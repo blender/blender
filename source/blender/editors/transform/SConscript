@@ -50,4 +50,7 @@ defs = env['BF_GL_DEFINITIONS']
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_LEGACY_DEPSGRAPH']:
+    defs.append('WITH_LEGACY_DEPSGRAPH')
+
 env.BlenderLib ( 'bf_editors_transform', sources, incs, defs, libtype=['core'], priority=[40] )

@@ -93,6 +93,8 @@
 #include "BKE_image.h"
 #include "BKE_particle.h"
 
+#include "DEG_depsgraph.h"
+
 #include "IMB_imbuf.h"  /* for IMB_init */
 
 #ifdef WITH_PYTHON
@@ -356,6 +358,10 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 	printf("Other Options:\n");
 	BLI_argsPrintOtherDoc(ba);
+
+	printf("\n");
+	printf("Experimental features:\n");
+	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
 
 	printf("Argument Parsing:\n");
 	printf("\targuments must be separated by white space. eg\n");
@@ -929,6 +935,12 @@ static int set_threads(int argc, const char **argv, void *UNUSED(data))
 	}
 }
 
+static int depsgraph_use_new(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	DEG_depsgraph_switch_to_new();
+	return 0;
+}
+
 static int set_verbosity(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc > 1) {
@@ -1493,6 +1505,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--debug-jobs",  "\n\tEnable time profiling for background jobs.", debug_mode_generic, (void *)G_DEBUG_JOBS);
 	BLI_argsAdd(ba, 1, NULL, "--debug-depsgraph", "\n\tEnable debug messages from dependency graph", debug_mode_generic, (void *)G_DEBUG_DEPSGRAPH);
 	BLI_argsAdd(ba, 1, NULL, "--debug-gpumem", "\n\tEnable GPU memory stats in status bar", debug_mode_generic, (void *)G_DEBUG_GPU_MEM);
+
+	BLI_argsAdd(ba, 1, NULL, "--enable-new-depsgraph", "\n\tUse new dependency graph", depsgraph_use_new, NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", "<verbose>\n\tSet logging verbosity level.", set_verbosity, NULL);
 

@@ -51,7 +51,7 @@
 #include "BKE_pointcache.h"
 
 #include "depsgraph_private.h"
-
+#include "DEG_depsgraph_build.h"
 
 static void initData(ModifierData *md)
 {
@@ -124,6 +124,18 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		dag_add_relation(forest, curNode, obNode,
 		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
 		                 "Particle Instance Modifier");
+	}
+}
+
+static void updateDepsgraph(ModifierData *md,
+                            struct Main *UNUSED(bmain),
+                            struct Scene *UNUSED(scene),
+                            Object *UNUSED(ob),
+                            struct DepsNodeHandle *node)
+{
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
+	if (pimd->ob != NULL) {
+		DEG_add_object_relation(node, pimd->ob, DEG_OB_COMP_TRANSFORM, "Particle Instance Modifier");
 	}
 }
 
@@ -448,6 +460,7 @@ ModifierTypeInfo modifierType_ParticleInstance = {
 	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
+	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,

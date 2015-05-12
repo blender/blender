@@ -61,6 +61,7 @@
 #include "BKE_object.h"
 #include "BKE_editmesh.h"
 
+#include "DEG_depsgraph.h"
 
 enum {
 	MESHCMP_DVERT_WEIGHTMISMATCH = 1,
@@ -2397,8 +2398,8 @@ Mesh *BKE_mesh_new_from_object(
 				 *               only contains for_render flag. As soon as CoW is
 				 *               implemented, this is to be rethinked.
 				 */
-				EvaluationContext eval_ctx = {0};
-				eval_ctx.mode = DAG_EVAL_RENDER;
+				EvaluationContext eval_ctx;
+				DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_RENDER);
 				BKE_displist_make_mball_forRender(&eval_ctx, sce, ob, &disp);
 				BKE_mesh_from_metaball(&disp, tmpmesh);
 				BKE_displist_free(&disp);
