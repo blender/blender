@@ -142,6 +142,11 @@ void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array
 #define PBONE_SELECTABLE(arm, bone) \
 	(PBONE_VISIBLE(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
 
+/* Evaluation helpers */
+
+void BKE_pose_splineik_init_tree(struct Scene *scene, struct Object *ob, float ctime);
+void BKE_splineik_execute_tree(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
+
 #ifdef __cplusplus
 }
 #endif
