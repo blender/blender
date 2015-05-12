@@ -2523,3 +2523,15 @@ Mesh *BKE_mesh_new_from_object(
 	return tmpmesh;
 }
 
+/* **** Depsgraph evaluation **** */
+
+void BKE_mesh_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
+                            Mesh *mesh)
+{
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
+		printf("%s on %s\n", __func__, mesh->id.name);
+	}
+	if (mesh->bb == NULL || (mesh->bb->flag & BOUNDBOX_DIRTY)) {
+		BKE_mesh_texspace_calc(mesh);
+	}
+}

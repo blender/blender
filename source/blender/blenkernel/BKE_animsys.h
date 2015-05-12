@@ -175,6 +175,9 @@ void BKE_animsys_evaluate_animdata(struct Scene *scene, struct ID *id, struct An
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only */
 void BKE_animsys_evaluate_all_animation(struct Main *main, struct Scene *scene, float ctime);
 
+/* TODO(sergey): This is mainly a temp public function. */
+struct FCurve;
+bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap, struct FCurve *fcu);
 
 /* ------------ Specialized API --------------- */
 /* There are a few special tools which require these following functions. They are NOT to be used
@@ -189,6 +192,15 @@ void animsys_evaluate_action(struct PointerRNA *ptr, struct bAction *act, struct
 
 /* Evaluate Action Group */
 void animsys_evaluate_action_group(struct PointerRNA *ptr, struct bAction *act, struct bActionGroup *agrp, struct AnimMapper *remap, float ctime);
+
+/* ************************************* */
+
+/* ------------ Evaluation API --------------- */
+
+struct EvaluationContext;
+
+void BKE_animsys_eval_animdata(struct EvaluationContext *eval_ctx, struct ID *id);
+void BKE_animsys_eval_driver(struct EvaluationContext *eval_ctx, struct ID *id, struct FCurve *fcurve);
 
 /* ************************************* */
 

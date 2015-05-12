@@ -56,6 +56,7 @@ struct Scene;
  */
 typedef struct EvaluationContext {
 	int mode;               /* evaluation mode */
+	float ctime;            /* evaluation time */
 } EvaluationContext;
 
 typedef enum eEvaluationMode {

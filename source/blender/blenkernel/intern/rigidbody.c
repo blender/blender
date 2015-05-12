@@ -54,6 +54,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -61,6 +62,7 @@
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
+#include "BKE_scene.h"
 
 #ifdef WITH_BULLET
 
@@ -1610,3 +1612,51 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
 #endif
 
 #endif  /* WITH_BULLET */
+
+/* -------------------- */
+/* Depsgraph evaluation */
+
+void BKE_rigidbody_rebuild_sim(EvaluationContext *UNUSED(eval_ctx),
+                               Scene *scene)
+{
+	float ctime = BKE_scene_frame_get(scene);
+
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
+		printf("%s at %f\n", __func__, ctime);
+	}
+
+	/* rebuild sim data (i.e. after resetting to start of timeline) */
+	if (BKE_scene_check_rigidbody_active(scene)) {
+		BKE_rigidbody_rebuild_world(scene, ctime);
+	}
+}
+
+void BKE_rigidbody_eval_simulation(EvaluationContext *UNUSED(eval_ctx),
+                                   Scene *scene)
+{
+	float ctime = BKE_scene_frame_get(scene);
+
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
+		printf("%s at %f\n", __func__, ctime);
+	}
+
+	/* evaluate rigidbody sim */
+	if (BKE_scene_check_rigidbody_active(scene)) {
+		BKE_rigidbody_do_simulation(scene, ctime);
+	}
+}
+
+void BKE_rigidbody_object_sync_transforms(EvaluationContext *UNUSED(eval_ctx),
+                                          Scene *scene,
+                                          Object *ob)
+{
+	RigidBodyWorld *rbw = scene->rigidbody_world;
+	float ctime = BKE_scene_frame_get(scene);
+
+	if (G.debug & G_DEBUG_DEPSGRAPH) {
+		printf("%s on %s\n", __func__, ob->id.name);
+	}
+
+	/* read values pushed into RBO from sim/cache... */
+	BKE_rigidbody_sync_transforms(rbw, ob, ctime);
+}

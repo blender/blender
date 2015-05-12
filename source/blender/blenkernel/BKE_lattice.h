@@ -93,4 +93,11 @@ int  BKE_lattice_index_flip(struct Lattice *lt, const int index,
 void BKE_lattice_bitmap_from_flag(struct Lattice *lt, unsigned int *bitmap, const short flag,
                                   const bool clear, const bool respecthide);
 
+/* **** Depsgraph evaluation **** */
+
+struct EvaluationContext;
+
+void BKE_lattice_eval_geometry(struct EvaluationContext *eval_ctx,
+                               struct Lattice *latt);
+
 #endif  /* __BKE_LATTICE_H__ */

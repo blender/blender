@@ -459,4 +459,12 @@ typedef struct ParticleRenderData {
 #define DMCACHE_NOTFOUND    -1
 #define DMCACHE_ISCHILD     -2
 
+/* **** Depsgraph evaluation **** */
+
+struct EvaluationContext;
+
+void BKE_particle_system_eval(struct EvaluationContext *eval_ctx,
+                              struct Object *ob,
+                              struct ParticleSystem *psys);
+
 #endif

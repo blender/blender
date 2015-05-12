@@ -1825,9 +1825,12 @@ void BKE_pose_rebuild(Object *ob, bArmature *arm)
 
 	BKE_pose_update_constraint_flags(ob->pose); /* for IK detection for example */
 
+#ifdef WITH_LEGACY_DEPSGRAPH
 	/* the sorting */
+	/* Sorting for new dependnecy graph is done on the scene graph level. */
 	if (counter > 1)
 		DAG_pose_sort(ob);
+#endif
 
 	ob->pose->flag &= ~POSE_RECALC;
 	ob->pose->flag |= POSE_WAS_REBUILT;
@@ -2214,4 +2217,45 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
 	boundbox_armature(ob, NULL, NULL);
 
 	return ob->bb;
+}
+
+/************** Graph evaluation ********************/
+
+bPoseChannel *BKE_armature_ik_solver_find_root(bPoseChannel *pchan,
+                                               bKinematicConstraint *data)
+{
+	bPoseChannel *rootchan = pchan;
+	if (!(data->flag & CONSTRAINT_IK_TIP)) {
+		/* Exclude tip from chain. */
+		rootchan = rootchan->parent;
+	}
+	if (rootchan != NULL) {
+		int segcount = 0;
+		while (rootchan->parent) {
+			/* Continue up chain, until we reach target number of items. */
+			segcount++;
+			if (segcount == data->rootbone) {
+				break;
+			}
+			rootchan = rootchan->parent;
+		}
+	}
+	return rootchan;
+}
+
+bPoseChannel* BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
+                                                     bSplineIKConstraint *data)
+{
+	bPoseChannel *rootchan = pchan;
+	int segcount = 0;
+	BLI_assert(rootchan != NULL);
+	while (rootchan->parent) {
+		/* Continue up chain, until we reach target number of items. */
+		segcount++;
+		if (segcount == data->chainlen) {
+			break;
+		}
+		rootchan = rootchan->parent;
+	}
+	return rootchan;
 }

@@ -57,6 +57,100 @@
 #include "BKE_material.h"
 #include "BKE_image.h"
 
+#ifdef WITH_LEGACY_DEPSGRAPH
+#  define DEBUG_PRINT if (!DEG_depsgraph_use_legacy() && G.debug & G_DEBUG_DEPSGRAPH) printf
+#else
+#  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#endif
+
+void BKE_object_eval_local_transform(EvaluationContext *UNUSED(eval_ctx),
+                                     Scene *UNUSED(scene),
+                                     Object *ob)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+
+	/* calculate local matrix */
+	BKE_object_to_mat4(ob, ob->obmat);
+}
+
+/* Evaluate parent */
+/* NOTE: based on solve_parenting(), but with the cruft stripped out */
+void BKE_object_eval_parent(EvaluationContext *UNUSED(eval_ctx),
+                            Scene *scene,
+                            Object *ob)
+{
+	Object *par = ob->parent;
+
+	float totmat[4][4];
+	float tmat[4][4];
+	float locmat[4][4];
+
+	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+
+	/* get local matrix (but don't calculate it, as that was done already!) */
+	// XXX: redundant?
+	copy_m4_m4(locmat, ob->obmat);
+
+	/* get parent effect matrix */
+	BKE_object_get_parent_matrix(scene, ob, par, totmat);
+
+	/* total */
+	mul_m4_m4m4(tmat, totmat, ob->parentinv);
+	mul_m4_m4m4(ob->obmat, tmat, locmat);
+
+	/* origin, for help line */
+	if ((ob->partype & PARTYPE) == PARSKEL) {
+		copy_v3_v3(ob->orig, par->obmat[3]);
+	}
+	else {
+		copy_v3_v3(ob->orig, totmat[3]);
+	}
+}
+
+void BKE_object_eval_constraints(EvaluationContext *UNUSED(eval_ctx),
+                                 Scene *scene,
+                                 Object *ob)
+{
+	bConstraintOb *cob;
+	float ctime = BKE_scene_frame_get(scene);
+
+	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+
+	/* evaluate constraints stack */
+	/* TODO: split this into:
+	 * - pre (i.e. BKE_constraints_make_evalob, per-constraint (i.e.
+	 * - inner body of BKE_constraints_solve),
+	 * - post (i.e. BKE_constraints_clear_evalob)
+	 *
+	 * Not sure why, this is from Joshua - sergey
+	 *
+	 */
+	cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+	BKE_constraints_solve(&ob->constraints, cob, ctime);
+	BKE_constraints_clear_evalob(cob);
+}
+
+void BKE_object_eval_done(EvaluationContext *UNUSED(eval_ctx), Object *ob)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+
+	/* Set negative scale flag in object. */
+	if (is_negative_m4(ob->obmat)) ob->transflag |= OB_NEG_SCALE;
+	else ob->transflag &= ~OB_NEG_SCALE;
+}
+
+void BKE_object_eval_modifier(struct EvaluationContext *eval_ctx,
+                              struct Scene *scene,
+                              struct Object *ob,
+                              struct ModifierData *md)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	(void) eval_ctx;  /* Ignored. */
+	(void) scene;  /* Ignored. */
+	(void) ob;  /* Ignored. */
+	(void) md;  /* Ignored. */
+}
+
 void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
                                    Scene *scene,
                                    Object *ob)
@@ -201,4 +295,44 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 	}
 
 	/* quick cache removed */
+}
+
+void BKE_object_eval_uber_transform(EvaluationContext *UNUSED(eval_ctx),
+                                    Scene *UNUSED(scene),
+                                    Object *ob)
+{
+	/* TODO(sergey): Currently it's a duplicate of logic in BKE_object_handle_update_ex(). */
+	// XXX: it's almost redundant now...
+
+	/* Handle proxy copy for target, */
+	if (ob->id.lib && ob->proxy_from) {
+		if (ob->proxy_from->proxy_group) {
+			/* Transform proxy into group space. */
+			Object *obg = ob->proxy_from->proxy_group;
+			invert_m4_m4(obg->imat, obg->obmat);
+			mul_m4_m4m4(ob->obmat, obg->imat, ob->proxy_from->obmat);
+			/* Should always be true. */
+			if (obg->dup_group) {
+				add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
+			}
+		}
+		else
+			copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
+	}
+
+	ob->recalc &= ~(OB_RECALC_OB|OB_RECALC_TIME);
+	if (ob->data == NULL) {
+		ob->recalc &= ~OB_RECALC_DATA;
+	}
+}
+
+void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
+                               Scene *scene,
+                               Object *ob)
+{
+	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	BLI_assert(ob->type != OB_ARMATURE);
+	BKE_object_handle_data_update(eval_ctx, scene, ob);
+
+	ob->recalc &= ~(OB_RECALC_DATA|OB_RECALC_TIME);
 }
