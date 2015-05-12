@@ -72,7 +72,7 @@ struct DepsRelation {
 	DepsNode *to;                 /* B */
 
 	/* relationship attributes */
-	const char* name;             /* label for debugging */
+	const char *name;             /* label for debugging */
 
 	eDepsRelation_Type type;      /* type */
 	int flag;                     /* (eDepsRelation_Flag) */

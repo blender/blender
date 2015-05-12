@@ -168,7 +168,7 @@ struct IDDepsNode : public DepsNode {
 	};
 
 	typedef unordered_map<ComponentIDKey,
-	                      ComponentDepsNode*,
+	                      ComponentDepsNode *,
 	                      component_key_hash> ComponentMap;
 
 	void init(const ID *id, const string &subdata);

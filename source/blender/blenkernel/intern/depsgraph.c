@@ -3235,7 +3235,7 @@ short DAG_get_eval_flags_for_object(Scene *scene, void *object)
 	DagNode *node;
 
 	if (!DEG_depsgraph_use_legacy()) {
-		return DEG_get_eval_flags_for_id(scene->depsgraph, (ID*)object);
+		return DEG_get_eval_flags_for_id(scene->depsgraph, (ID *)object);
 	}
 
 	if (scene->theDag == NULL) {
@@ -3541,7 +3541,7 @@ void DAG_ids_clear_recalc(Main *bmain)
 
 short DAG_get_eval_flags_for_object(Scene *scene, void *object)
 {
-	return DEG_get_eval_flags_for_id(scene->depsgraph, (ID*)object);
+	return DEG_get_eval_flags_for_id(scene->depsgraph, (ID *)object);
 }
 
 void DAG_ids_flush_tagged(Main *bmain)

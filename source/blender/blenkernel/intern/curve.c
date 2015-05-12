@@ -1394,7 +1394,7 @@ void BKE_curve_forward_diff_tangent_bezier(float q0, float q1, float q2, float q
 
 	rt0 = 3.0f * (q1 - q0);
 	rt1 = f * (3.0f * (q3 - q0) + 9.0f * (q1 - q2));
-	rt2 = 6.0f * (q0 + q2)- 12.0f * q1;
+	rt2 = 6.0f * (q0 + q2) - 12.0f * q1;
 
 	q0 = rt0;
 	q1 = f * (rt1 + rt2);

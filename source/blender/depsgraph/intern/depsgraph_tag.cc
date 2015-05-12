@@ -152,7 +152,7 @@ void DEG_id_tag_update(ID *id, short flag)
 
 void DEG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 {
-	if(id == NULL) {
+	if (id == NULL) {
 		/* Ideally should not happen, but old depsgraph allowed this. */
 		return;
 	}
@@ -173,14 +173,14 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 				continue;
 			}
 			if (flag & OB_RECALC_DATA && GS(id->name) == ID_OB) {
-				Object *object = (Object*)id;
+				Object *object = (Object *)id;
 				if (object->data != NULL) {
 					DEG_graph_id_tag_update(bmain,
 					                        graph,
-					                        (ID*)object->data);
+					                        (ID *)object->data);
 				}
 			}
-			if (flag & (OB_RECALC_OB|OB_RECALC_DATA)) {
+			if (flag & (OB_RECALC_OB | OB_RECALC_DATA)) {
 				DEG_graph_id_tag_update(bmain, graph, id);
 			}
 		}
@@ -210,7 +210,7 @@ void DEG_id_type_tag(Main *bmain, short idtype)
 
 /* FIFO queue for tagged nodes that need flushing */
 /* XXX This may get a dedicated implementation later if needed - lukas */
-typedef std::queue<OperationDepsNode*> FlushQueue;
+typedef std::queue<OperationDepsNode *> FlushQueue;
 
 /* Flush updates from tagged nodes outwards until all affected nodes are tagged. */
 void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
@@ -317,9 +317,9 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
  */
 void DEG_ids_flush_tagged(Main *bmain)
 {
-	for (Scene *scene = (Scene*)bmain->scene.first;
+	for (Scene *scene = (Scene *)bmain->scene.first;
 	     scene != NULL;
-	     scene = (Scene*)scene->id.next)
+	     scene = (Scene *)scene->id.next)
 	{
 		/* TODO(sergey): Only visible scenes? */
 		if (scene->depsgraph != NULL) {
@@ -417,9 +417,9 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 
 void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
 {
-	for (Scene *scene = (Scene*)bmain->scene.first;
+	for (Scene *scene = (Scene *)bmain->scene.first;
 	     scene != NULL;
-	     scene = (Scene*)scene->id.next)
+	     scene = (Scene *)scene->id.next)
 	{
 		if (scene->depsgraph != NULL) {
 			DEG_graph_on_visible_update(bmain, scene);
@@ -440,7 +440,7 @@ void DEG_ids_check_recalc(Main *bmain, Scene *scene, bool time)
 	a  = set_listbasepointers(bmain, lbarray);
 	while (a--) {
 		ListBase *lb = lbarray[a];
-		ID *id = (ID*)lb->first;
+		ID *id = (ID *)lb->first;
 
 		/* We tag based on first ID type character to avoid
 		 * looping over all ID's in case there are no tags.

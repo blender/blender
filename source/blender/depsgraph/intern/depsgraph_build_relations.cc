@@ -399,8 +399,8 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 			case OB_LATTICE:
 			{
 				build_obdata_geom(bmain, scene, ob);
+				break;
 			}
-			break;
 
 
 			case OB_ARMATURE: /* Pose */
@@ -446,8 +446,8 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 		{
 			ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
 			add_relation(parent_key, ob_key, DEPSREL_TYPE_STANDARD, "Armature Deform Parent");
+			break;
 		}
-		break;
 
 		case PARVERT1: /* Vertex Parent */
 		case PARVERT3:
@@ -459,15 +459,15 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 
 			ComponentKey transform_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
 			add_relation(transform_key, ob_key, DEPSREL_TYPE_TRANSFORM, "Vertex Parent TFM");
+			break;
 		}
-		break;
 
 		case PARBONE: /* Bone Parent */
 		{
 			ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_BONE, ob->parsubstr);
 			add_relation(parent_key, ob_key, DEPSREL_TYPE_TRANSFORM, "Bone Parent");
+			break;
 		}
-		break;
 
 		default:
 		{
@@ -502,8 +502,8 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 				ComponentKey parent_key(&ob->parent->id, DEPSNODE_TYPE_TRANSFORM);
 				add_relation(parent_key, ob_key, DEPSREL_TYPE_TRANSFORM, "Parent");
 			}
+			break;
 		}
-		break;
 	}
 
 	/* exception case: parent is duplivert */
@@ -696,7 +696,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 		/* prevent driver from occurring before own animation... */
 		if (adt->action || adt->nla_tracks.first) {
 			add_relation(adt_key, driver_key, DEPSREL_TYPE_OPERATION,
-						 "[AnimData Before Drivers]");
+			             "[AnimData Before Drivers]");
 		}
 	}
 }
@@ -1249,7 +1249,7 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *ob,
 		// TODO: the bigggest point here is that we need the curve PATH and not just the general geometry...
 		ComponentKey target_key(&data->tar->id, DEPSNODE_TYPE_GEOMETRY);
 		ComponentKey pose_key(&ob->id, DEPSNODE_TYPE_EVAL_POSE);
-		add_relation(target_key, pose_key, DEPSREL_TYPE_TRANSFORM,"[Curve.Path -> Spline IK] DepsRel");
+		add_relation(target_key, pose_key, DEPSREL_TYPE_TRANSFORM, "[Curve.Path -> Spline IK] DepsRel");
 	}
 
 	pchan->flag |= POSE_DONE;
@@ -1595,8 +1595,8 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				ComponentKey mom_key(&mom->id, DEPSNODE_TYPE_GEOMETRY);
 				add_relation(geom_key, mom_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Metaball Motherball");
 			}
+			break;
 		}
-		break;
 
 		case OB_CURVE:
 		case OB_FONT:
@@ -1619,18 +1619,18 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 					add_relation(textoncurve_key, geom_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Text on Curve");
 				}
 			}
+			break;
 		}
-		break;
 
 		case OB_SURF: /* Nurbs Surface */
 		{
+			break;
 		}
-		break;
 
 		case OB_LATTICE: /* Lattice */
 		{
+			break;
 		}
-		break;
 	}
 
 	/* ShapeKeys */

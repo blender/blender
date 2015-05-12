@@ -2221,8 +2221,9 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
 
 /************** Graph evaluation ********************/
 
-bPoseChannel *BKE_armature_ik_solver_find_root(bPoseChannel *pchan,
-                                               bKinematicConstraint *data)
+bPoseChannel *BKE_armature_ik_solver_find_root(
+        bPoseChannel *pchan,
+        bKinematicConstraint *data)
 {
 	bPoseChannel *rootchan = pchan;
 	if (!(data->flag & CONSTRAINT_IK_TIP)) {
@@ -2243,8 +2244,9 @@ bPoseChannel *BKE_armature_ik_solver_find_root(bPoseChannel *pchan,
 	return rootchan;
 }
 
-bPoseChannel* BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
-                                                     bSplineIKConstraint *data)
+bPoseChannel *BKE_armature_splineik_solver_find_root(
+        bPoseChannel *pchan,
+        bSplineIKConstraint *data)
 {
 	bPoseChannel *rootchan = pchan;
 	int segcount = 0;

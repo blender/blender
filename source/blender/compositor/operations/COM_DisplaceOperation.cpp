@@ -55,7 +55,7 @@ void DisplaceOperation::executePixelSampled(float output[4], float x, float y, P
 	float uv[2], deriv[2][2];
 
 	pixelTransform(xy, uv, deriv);
-	if(is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
+	if (is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
 		this->m_inputColorProgram->readSampled(output, uv[0], uv[1], COM_PS_BILINEAR);
 	}
 	else {

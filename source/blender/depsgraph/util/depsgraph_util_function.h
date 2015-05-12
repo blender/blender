@@ -59,7 +59,7 @@ public:
 	function() {};
 	function(void *) {}
 	operator bool() const { return false; }
-	bool operator== (void*) { return false; }
+	bool operator== (void *) { return false; }
 
 	template<typename T1>
 	void operator() (T1) {

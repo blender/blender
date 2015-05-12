@@ -322,7 +322,7 @@ void BKE_object_eval_uber_transform(EvaluationContext *UNUSED(eval_ctx),
 			copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
 	}
 
-	ob->recalc &= ~(OB_RECALC_OB|OB_RECALC_TIME);
+	ob->recalc &= ~(OB_RECALC_OB | OB_RECALC_TIME);
 	if (ob->data == NULL) {
 		ob->recalc &= ~OB_RECALC_DATA;
 	}
@@ -336,5 +336,5 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 	BLI_assert(ob->type != OB_ARMATURE);
 	BKE_object_handle_data_update(eval_ctx, scene, ob);
 
-	ob->recalc &= ~(OB_RECALC_DATA|OB_RECALC_TIME);
+	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);
 }

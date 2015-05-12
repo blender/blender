@@ -917,14 +917,16 @@ DepsgraphStatsID *DepsgraphDebug::get_id_stats(ID *id, bool create)
 	return id_stats;
 }
 
-DepsgraphStatsComponent *DepsgraphDebug::get_component_stats(DepsgraphStatsID *id_stats,
-                                                             const string &name,
-                                                             bool create)
+DepsgraphStatsComponent *DepsgraphDebug::get_component_stats(
+        DepsgraphStatsID *id_stats,
+        const string &name,
+        bool create)
 {
 	DepsgraphStatsComponent *comp_stats;
 	for (comp_stats = (DepsgraphStatsComponent *)id_stats->components.first;
 	     comp_stats != NULL;
-	     comp_stats = comp_stats->next) {
+	     comp_stats = comp_stats->next)
+	{
 		if (STREQ(comp_stats->name, name.c_str()))
 			break;
 	}
