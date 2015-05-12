@@ -1074,7 +1074,8 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 		case B_CONSTRAINT_CHANGETARGET:
 		{
 			Main *bmain = CTX_data_main(C);
-			if (ob->pose) ob->pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
+			if (ob->pose)
+				BKE_pose_tag_recalc(bmain, ob->pose); /* checks & sorts pose channels */
 			DAG_relations_tag_update(bmain);
 			break;
 		}

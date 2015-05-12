@@ -1317,6 +1317,12 @@ bool BKE_pose_copy_result(bPose *to, bPose *from)
 	return true;
 }
 
+/* Tag pose for recalc. Also tag all related data to be recalc. */
+void BKE_pose_tag_recalc(Main *UNUSED(bmain), bPose *pose)
+{
+	pose->flag |= POSE_RECALC;
+}
+
 /* For the calculation of the effects of an Action at the given frame on an object 
  * This is currently only used for the Action Constraint 
  */

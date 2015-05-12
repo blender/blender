@@ -231,7 +231,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *UNUSED(scene), Pointer
 	Object *ob = ptr->id.data;
 	bPose *pose = ptr->data;
 
-	pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
+	BKE_pose_tag_recalc(bmain, pose);  /* checks & sorts pose channels */
 	DAG_relations_tag_update(bmain);
 	
 	BKE_pose_update_constraint_flags(pose);
@@ -356,7 +356,7 @@ static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Object *ob = ptr->id.data;
 	bPose *pose = ob->pose;
 
-	pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
+	BKE_pose_tag_recalc(bmain, pose);  /* checks & sorts pose channels */
 	rna_Itasc_update(bmain, scene, ptr);
 }
 

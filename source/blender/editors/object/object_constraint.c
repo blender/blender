@@ -1194,9 +1194,9 @@ void ED_object_constraint_update(Object *ob)
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
-static void object_pose_tag_update(Object *ob)
+static void object_pose_tag_update(Main *bmain, Object *ob)
 {
-	ob->pose->flag |= POSE_RECALC;    /* Checks & sort pose channels. */
+	BKE_pose_tag_recalc(bmain, ob->pose);    /* Checks & sort pose channels. */
 	if (ob->proxy && ob->adt) {
 		/* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
 		 * after calling `BKE_pose_rebuild()`, which causes T43872.
@@ -1212,7 +1212,7 @@ void ED_object_constraint_dependency_update(Main *bmain, Object *ob)
 	ED_object_constraint_update(ob);
 
 	if (ob->pose) {
-		object_pose_tag_update(ob);
+		object_pose_tag_update(bmain, ob);
 	}
 	DAG_relations_tag_update(bmain);
 }
@@ -1236,7 +1236,7 @@ void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstr
 	ED_object_constraint_tag_update(ob, con);
 
 	if (ob->pose) {
-		object_pose_tag_update(ob);
+		object_pose_tag_update(bmain, ob);
 	}
 	DAG_relations_tag_update(bmain);
 }
@@ -1484,8 +1484,8 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 			BKE_constraints_copy(&chan->constraints, &pchan->constraints, true);
 			/* update flags (need to add here, not just copy) */
 			chan->constflag |= pchan->constflag;
-			
-			ob->pose->flag |= POSE_RECALC;
+
+			BKE_pose_tag_recalc(bmain, ob->pose);
 			DAG_id_tag_update((ID *)ob, OB_RECALC_DATA);
 		}
 	}
@@ -1796,7 +1796,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	DAG_relations_tag_update(bmain);
 	
 	if ((ob->type == OB_ARMATURE) && (pchan)) {
-		ob->pose->flag |= POSE_RECALC;  /* sort pose channels */
+		BKE_pose_tag_recalc(bmain, ob->pose);  /* sort pose channels */
 		if (BKE_constraints_proxylocked_owner(ob, pchan) && ob->adt) {
 			/* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
 			 * after calling `BKE_pose_rebuild()`, which causes T43872.

@@ -77,6 +77,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
@@ -1950,7 +1951,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			/* btw. armature_rebuild_pose is further only called on leave editmode */
 			if (ob->type == OB_ARMATURE) {
 				if (ob->pose)
-					ob->pose->flag |= POSE_RECALC;
+					BKE_pose_tag_recalc(main, ob->pose);
 
 				/* cannot call stuff now (pointers!), done in setup_app_data */
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
@@ -2074,7 +2075,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 								data->rootbone = -1;
 
 								/* update_pose_etc handles rootbone == -1 */
-								ob->pose->flag |= POSE_RECALC;
+								BKE_pose_tag_recalc(main, ob->pose);
 							}
 						}
 					}

@@ -57,6 +57,7 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -2082,7 +2083,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 			case OB_ARMATURE:
 				DAG_id_tag_update(&obn->id, OB_RECALC_DATA);
 				if (obn->pose)
-					obn->pose->flag |= POSE_RECALC;
+					BKE_pose_tag_recalc(bmain, obn->pose);
 				if (dupflag & USER_DUP_ARM) {
 					ID_NEW_US2(obn->data)
 					else {

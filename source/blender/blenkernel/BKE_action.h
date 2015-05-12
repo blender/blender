@@ -198,6 +198,9 @@ bool BKE_pose_copy_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void BKE_pose_rest(struct bPose *pose);
 
+/* Tag pose for recalc. Also tag all related data to be recalc. */
+void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose);
+
 #ifdef __cplusplus
 };
 #endif

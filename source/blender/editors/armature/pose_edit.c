@@ -436,7 +436,7 @@ static void pose_copy_menu(Scene *scene)
 						pchan->constflag |= pchanact->constflag;
 						
 						if (ob->pose)
-							ob->pose->flag |= POSE_RECALC;
+							BKE_pose_tag_recalc(bmain, ob->pose);
 					}
 					break;
 					case 6: /* Transform Locks */
@@ -550,7 +550,7 @@ static void pose_copy_menu(Scene *scene)
 		BKE_pose_update_constraint_flags(ob->pose); /* we could work out the flags but its simpler to do this */
 		
 		if (ob->pose)
-			ob->pose->flag |= POSE_RECALC;
+			BKE_pose_tag_recalc(bmain, ob->pose);
 	}
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA); // and all its relations

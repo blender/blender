@@ -111,6 +111,7 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
 #include "BKE_cloth.h"
@@ -3009,7 +3010,7 @@ static void lib_link_pose(FileData *fd, Main *bmain, Object *ob, bPose *pose)
 	
 	if (rebuild) {
 		DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-		pose->flag |= POSE_RECALC;
+		BKE_pose_tag_recalc(bmain, pose);
 	}
 }
 
