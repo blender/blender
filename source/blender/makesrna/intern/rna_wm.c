@@ -1501,6 +1501,11 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Options",  "Options for this operator type");
 
+	prop = RNA_def_property(srna, "macros", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "macro", NULL);
+	RNA_def_property_struct_type(prop, "Macro");
+	RNA_def_property_ui_text(prop, "Macros", "");
+
 	RNA_api_operator(srna);
 
 	srna = RNA_def_struct(brna, "OperatorProperties", NULL);
