@@ -55,9 +55,13 @@ void DisplaceOperation::executePixelSampled(float output[4], float x, float y, P
 	float uv[2], deriv[2][2];
 
 	pixelTransform(xy, uv, deriv);
-
-	/* EWA filtering (without nearest it gets blurry with NO distortion) */
-	this->m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1], COM_PS_BILINEAR);
+	if(is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
+		this->m_inputColorProgram->readSampled(output, uv[0], uv[1], COM_PS_BILINEAR);
+	}
+	else {
+		/* EWA filtering (without nearest it gets blurry with NO distortion) */
+		this->m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1], COM_PS_BILINEAR);
+	}
 }
 
 bool DisplaceOperation::read_displacement(float x, float y, float xscale, float yscale, const float origin[2], float &r_u, float &r_v)
