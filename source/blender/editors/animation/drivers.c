@@ -42,6 +42,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -450,7 +451,7 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 	if (success) {
 		/* send updates */
 		UI_context_update_anim_flag(C);
-		
+		DAG_relations_tag_update(CTX_data_main(C));
 		WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL); // XXX
 	}
 	
@@ -504,7 +505,7 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
 	if (success) {
 		/* send updates */
 		UI_context_update_anim_flag(C);
-		
+		DAG_relations_tag_update(CTX_data_main(C));
 		WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
 	}
 	

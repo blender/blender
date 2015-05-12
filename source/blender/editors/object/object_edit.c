@@ -65,6 +65,7 @@
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -318,7 +319,7 @@ void OBJECT_OT_hide_render_set(wmOperatorType *ot)
  * Load EditMode data back into the object,
  * optionally freeing the editmode data.
  */
-static bool ED_object_editmode_load_ex(Object *obedit, const bool freedata)
+static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool freedata)
 {
 	if (obedit == NULL) {
 		return false;
@@ -348,6 +349,11 @@ static bool ED_object_editmode_load_ex(Object *obedit, const bool freedata)
 		ED_armature_from_edit(obedit->data);
 		if (freedata)
 			ED_armature_edit_free(obedit->data);
+		/* TODO(sergey): Pose channels might have been changed, so need
+		 * to inform dependency graph about this. But is it really the
+		 * best place to do this?
+		 */
+		DAG_relations_tag_update(bmain);
 	}
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		load_editNurb(obedit);
@@ -376,7 +382,8 @@ static bool ED_object_editmode_load_ex(Object *obedit, const bool freedata)
 
 bool ED_object_editmode_load(Object *obedit)
 {
-	return ED_object_editmode_load_ex(obedit, false);
+	/* TODO(sergey): use proper main here? */
+	return ED_object_editmode_load_ex(G.main, obedit, false);
 }
 
 void ED_object_editmode_exit(bContext *C, int flag)
@@ -389,7 +396,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
-	if (ED_object_editmode_load_ex(obedit, freedata) == false) {
+	if (ED_object_editmode_load_ex(CTX_data_main(C), obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
 		if (UNLIKELY(scene->basact && (scene->basact->object->mode & OB_MODE_EDIT))) {

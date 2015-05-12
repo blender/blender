@@ -73,8 +73,10 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	
 	/* tag AnimData for refresh so that other views will update in realtime with these changes */
 	adt = BKE_animdata_from_id(id);
-	if (adt)
+	if (adt) {
 		adt->recalc |= ADT_RECALC_ANIM;
+		DAG_id_tag_update(id, OB_RECALC_TIME);
+	}
 
 	/* update data */
 	fcu = (ale->datatype == ALE_FCURVE) ? ale->key_data : NULL;

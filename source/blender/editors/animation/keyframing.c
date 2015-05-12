@@ -152,6 +152,10 @@ bAction *verify_adt_action(ID *id, short add)
 		 * to the wrong places
 		 */
 		adt->action->idroot = GS(id->name);
+
+		/* tag depsgraph to be rebuilt to include time dependency */
+		/* XXX: we probably should have bmain passed down, but that involves altering too many API's */
+		DAG_relations_tag_update(G.main);
 	}
 		
 	/* return the action */

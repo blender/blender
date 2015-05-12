@@ -87,6 +87,13 @@ static void rna_Camera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointer
 	DAG_id_tag_update(&camera->id, 0);
 }
 
+static void rna_Camera_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Camera *camera = (Camera *)ptr->id.data;
+	DAG_relations_tag_update(bmain);
+	DAG_id_tag_update(&camera->id, 0);
+}
+
 #else
 
 static void rna_def_camera_stereo_data(BlenderRNA *brna)
@@ -356,7 +363,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define the depth of field focal point");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dependency_update");
 
 	prop = RNA_def_property(srna, "gpu_dof", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "GPUDOFSettings");

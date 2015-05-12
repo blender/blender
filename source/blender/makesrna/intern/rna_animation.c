@@ -112,6 +112,7 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 	adt = BKE_animdata_from_id(ownerId);
 	if (adt) {
 		adt->recalc |= ADT_RECALC_ANIM;
+		DAG_id_tag_update(ownerId, OB_RECALC_TIME);
 	}
 }
 

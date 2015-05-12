@@ -123,7 +123,14 @@ void ED_node_tag_update_id(ID *id)
 	bNodeTree *ntree = node_tree_from_ID(id);
 	if (id == NULL || ntree == NULL)
 		return;
-	
+
+	/* TODO(sergey): With the new dependency graph it
+	 * should be just enough to ony tag ntree itself,
+	 * all the users of this tree will have update
+	 * flushed from the tree,
+	 */
+	DAG_id_tag_update(&ntree->id, 0);
+
 	if (ntree->type == NTREE_SHADER) {
 		DAG_id_tag_update(id, 0);
 		

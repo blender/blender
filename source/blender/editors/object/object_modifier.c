@@ -152,10 +152,10 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 				ob->pd = object_add_collision_fields(0);
 			
 			ob->pd->deflect = 1;
-			DAG_relations_tag_update(bmain);
 		}
-		else if (type == eModifierType_Surface)
-			DAG_relations_tag_update(bmain);
+		else if (type == eModifierType_Surface) {
+			/* pass */
+		}
 		else if (type == eModifierType_Multires) {
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
@@ -172,6 +172,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DAG_relations_tag_update(bmain);
 
 	return new_md;
 }
@@ -318,6 +319,8 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 	{
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}
+
+	DAG_relations_tag_update(bmain);
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);

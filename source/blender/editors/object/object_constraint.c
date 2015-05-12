@@ -1260,7 +1260,10 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		/* there's no active constraint now, so make sure this is the case */
 		BKE_constraints_active_set(&ob->constraints, NULL);
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
-		
+
+		/* relatiols */
+		DAG_relations_tag_update(CTX_data_main(C));
+
 		/* notifiers */
 		WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 		

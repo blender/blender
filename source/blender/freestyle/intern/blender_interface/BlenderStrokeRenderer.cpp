@@ -127,6 +127,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 
 	// Camera
 	Object *object_camera = BKE_object_add(freestyle_bmain, freestyle_scene, OB_CAMERA, NULL);
+	DAG_relations_tag_update(freestyle_bmain);
 
 	Camera *camera = (Camera *)object_camera->data;
 	camera->type = CAM_ORTHO;
@@ -506,6 +507,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 		// If still no material, create one
 		if (!has_mat) {
 			Material *ma = BKE_material_add(freestyle_bmain, "stroke_material");
+			DAG_relations_tag_update(freestyle_bmain);
 			ma->mode |= MA_VERTEXCOLP;
 			ma->mode |= MA_TRANSP;
 			ma->mode |= MA_SHLESS;
@@ -668,6 +670,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 {
 #if 0
 	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, OB_MESH);
+	DAG_relations_tag_update(freestyle_bmain);
 #else
 	Object *object_mesh = NewMesh();
 #endif
@@ -938,6 +941,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	ob->lay = 1;
 
 	base = BKE_scene_base_add(freestyle_scene, ob);
+	DAG_relations_tag_update(freestyle_bmain);
 #if 0
 	BKE_scene_base_deselect_all(scene);
 	BKE_scene_base_select(scene, base);
