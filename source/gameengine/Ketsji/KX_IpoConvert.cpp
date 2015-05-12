@@ -396,7 +396,7 @@ SG_Controller *BL_CreateMaterialIpo(
 		ipocontr->AddInterpolator(interpolator);
 	}
 
-	if ((sinterp = adtList->GetScalarInterpolator("specularity", 0))) {
+	if ((sinterp = adtList->GetScalarInterpolator("specular_intensity", 0))) {
 		if (!ipocontr) {
 			ipocontr = new KX_MaterialIpoController(matname_hash);
 		}
@@ -404,7 +404,7 @@ SG_Controller *BL_CreateMaterialIpo(
 		ipocontr->AddInterpolator(interpolator);
 	}
 
-	if ((sinterp = adtList->GetScalarInterpolator("diffuse_reflection", 0))) {
+	if ((sinterp = adtList->GetScalarInterpolator("diffuse_intensity", 0))) {
 		if (!ipocontr) {
 			ipocontr = new KX_MaterialIpoController(matname_hash);
 		}

@@ -134,6 +134,15 @@ private:
 	bool			mConstructed;			// if false, don't clean on exit
 	int				mLightLayer;
 
+	struct {
+		float r, g, b, a;
+		float specr, specg, specb;
+		float spec;
+		float ref;
+		float hardness;
+		float emit;
+	} mSavedData;
+
 	void InitTextures();
 
 	void SetBlenderGLSLShader();

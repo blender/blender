@@ -852,10 +852,19 @@ void GPU_pass_update_uniforms(GPUPass *pass)
 		return;
 
 	/* pass dynamic inputs to opengl, others were removed */
-	for (input = inputs->first; input; input = input->next)
-		if (!(input->ima || input->tex || input->prv))
-			GPU_shader_uniform_vector(shader, input->shaderloc, input->type, 1,
-				input->dynamicvec);
+	for (input = inputs->first; input; input = input->next) {
+		if (!(input->ima || input->tex || input->prv)) {
+			if (input->dynamictype == GPU_DYNAMIC_MAT_HARD) {
+				// The hardness is actually a short pointer, so we convert it here
+				float val = (float)(*(short*)input->dynamicvec);
+				GPU_shader_uniform_vector(shader, input->shaderloc, 1, 1, &val);
+			}
+			else {
+				GPU_shader_uniform_vector(shader, input->shaderloc, input->type, 1,
+					input->dynamicvec);
+			}
+		}
+	}
 }
 
 void GPU_pass_unbind(GPUPass *pass)

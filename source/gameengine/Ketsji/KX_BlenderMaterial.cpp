@@ -94,6 +94,21 @@ void KX_BlenderMaterial::Initialize(
 		((data->ras_mode &TEX)),
 		game
 	);
+	Material *ma = data->material;
+
+	// Save material data to restore on exit
+	mSavedData.r = ma->r;
+	mSavedData.g = ma->g;
+	mSavedData.b = ma->b;
+	mSavedData.a = ma->alpha;
+	mSavedData.specr = ma->specr;
+	mSavedData.specg = ma->specg;
+	mSavedData.specb = ma->specb;
+	mSavedData.spec = ma->spec;
+	mSavedData.ref = ma->ref;
+	mSavedData.hardness = ma->har;
+	mSavedData.emit = ma->emit;
+
 	mMaterial = data;
 	mShader = 0;
 	mBlenderShader = 0;
@@ -124,6 +139,20 @@ void KX_BlenderMaterial::Initialize(
 
 KX_BlenderMaterial::~KX_BlenderMaterial()
 {
+	Material *ma = mMaterial->material;
+	// Restore Blender material data
+	ma->r = mSavedData.r;
+	ma->g = mSavedData.g;
+	ma->b = mSavedData.b;
+	ma->alpha = mSavedData.a;
+	ma->specr = mSavedData.specr;
+	ma->specg = mSavedData.specg;
+	ma->specb = mSavedData.specb;
+	ma->spec = mSavedData.spec;
+	ma->ref = mSavedData.ref;
+	ma->har = mSavedData.hardness;
+	ma->emit = mSavedData.emit;
+
 	// cleanup work
 	if (mConstructed)
 		// clean only if material was actually used
@@ -793,17 +822,19 @@ void KX_BlenderMaterial::UpdateIPO(
 	)
 {
 	// only works one deep now
-	mMaterial->speccolor[0]	= (float)(specrgb)[0];
-	mMaterial->speccolor[1]	= (float)(specrgb)[1];
-	mMaterial->speccolor[2]	= (float)(specrgb)[2];
-	mMaterial->matcolor[0]	= (float)(rgba[0]);
-	mMaterial->matcolor[1]	= (float)(rgba[1]);
-	mMaterial->matcolor[2]	= (float)(rgba[2]);
-	mMaterial->alpha		= (float)(alpha);
-	mMaterial->hard			= (float)(hard);
-	mMaterial->emit			= (float)(emit);
-	mMaterial->spec_f		= (float)(spec);
-	mMaterial->ref			= (float)(ref);
+
+	// GLSL							Multitexture				Input
+	mMaterial->material->specr	= mMaterial->speccolor[0]	= (float)(specrgb)[0];
+	mMaterial->material->specg	= mMaterial->speccolor[1]	= (float)(specrgb)[1];
+	mMaterial->material->specb	= mMaterial->speccolor[2]	= (float)(specrgb)[2];
+	mMaterial->material->r		= mMaterial->matcolor[0]	= (float)(rgba[0]);
+	mMaterial->material->g		= mMaterial->matcolor[1]	= (float)(rgba[1]);
+	mMaterial->material->b		= mMaterial->matcolor[2]	= (float)(rgba[2]);
+	mMaterial->material->alpha	= mMaterial->alpha			= (float)(rgba[3]);
+	mMaterial->material->har	= mMaterial->hard			= (float)(hard);
+	mMaterial->material->emit	= mMaterial->emit			= (float)(emit);
+	mMaterial->material->spec	= mMaterial->spec_f			= (float)(spec);
+	mMaterial->material->ref	= mMaterial->ref			= (float)(ref);
 }
 
 void KX_BlenderMaterial::Replace_IScene(SCA_IScene *val)

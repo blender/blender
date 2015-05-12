@@ -32,21 +32,6 @@ bool KX_MaterialIpoController::Update(double currentTime)
 {
 	if (m_modified)
 	{
-		m_rgba[0]=0;
-		m_rgba[1]=0;
-		m_rgba[2]=0;
-		m_rgba[3]=0;
-	
-		m_specrgb[0] =0;
-		m_specrgb[1] =0;
-		m_specrgb[2] =0;
-		m_hard =0;
-		m_spec=0;
-		m_ref=0;
-		m_emit=0;
-		m_alpha = 0;
-
-
 		T_InterpolatorList::iterator i;
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);
