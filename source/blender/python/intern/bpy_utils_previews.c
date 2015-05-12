@@ -82,16 +82,16 @@ static PyObject *bpy_utils_previews_new(PyObject *UNUSED(self), PyObject *args)
 }
 
 PyDoc_STRVAR(bpy_utils_previews_load_doc,
-".. method:: load(name, path, path_type, force_reload)\n"
+".. method:: load(name, filepath, filetype, force_reload=False)\n"
 "\n"
 "   Generate a new preview from given file path, or return existing one matching ``name``.\n"
 "\n"
 "   :arg name: The name (unique id) identifying the preview.\n"
 "   :type name: string\n"
-"   :arg path: The file path to generate the preview from.\n"
-"   :type path: string\n"
-"   :arg path_type: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES "].\n"
-"   :type path_type: string\n"
+"   :arg filepath: The file path to generate the preview from.\n"
+"   :type filepath: string\n"
+"   :arg filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES "].\n"
+"   :type filetype: string\n"
 "   :arg force_reload: If True, force running thumbnail manager even if preview already exists in cache.\n"
 "   :type force_reload: bool\n"
 "   :return: The Preview matching given name, or a new empty one.\n"
@@ -123,7 +123,7 @@ static PyObject *bpy_utils_previews_load(PyObject *UNUSED(self), PyObject *args)
 	}
 	else {
 		PyErr_Format(PyExc_ValueError,
-		             "load: invalid '%' path type, only [" STR_SOURCE_TYPES "] "
+		             "load: invalid '%s' filetype, only [" STR_SOURCE_TYPES "] "
 		             "are supported", path_type_s);
 		return NULL;
 	}

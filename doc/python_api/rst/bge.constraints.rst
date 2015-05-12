@@ -23,12 +23,12 @@ Physics Constraints (bge.constraints)
 
    :arg constrainttype: the type of the constraint. The constraint types are:
    :type constrainttype: int
-   - :class:`POINTTOPOINT_CONSTRAINT`
-   - :class:`LINEHINGE_CONSTRAINT`
-   - :class:`ANGULAR_CONSTRAINT`
-   - :class:`CONETWIST_CONSTRAINT`
-   - :class:`VEHICLE_CONSTRAINT`
-   - :class:`GENERIC_6DOF_CONSTRAINT`
+      - :class:`POINTTOPOINT_CONSTRAINT`
+      - :class:`LINEHINGE_CONSTRAINT`
+      - :class:`ANGULAR_CONSTRAINT`
+      - :class:`CONETWIST_CONSTRAINT`
+      - :class:`VEHICLE_CONSTRAINT`
+      - :class:`GENERIC_6DOF_CONSTRAINT`
    
    :arg pivot_X: pivot X position
    :type pivot_X: float (optional)

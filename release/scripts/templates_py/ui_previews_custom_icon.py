@@ -56,13 +56,7 @@ def register():
     my_icons_dir = os.path.join(os.path.dirname(__file__), "icons")
 
     # load a preview thumbnail of a file and store in the previews collection
-    pcoll.load(
-        # identifier
-        "my_icon",
-        # path to image
-        os.path.join(my_icons_dir, "icon-image.png"),
-        # file type to generate preview from. others are: MOVIE, FONT, BLEND
-        'IMAGE')
+    pcoll.load("my_icon", os.path.join(my_icons_dir, "icon-image.png"), 'IMAGE')
 
     preview_collections["main"] = pcoll
 
