@@ -2052,14 +2052,12 @@ void BKE_object_to_mat4(Object *ob, float mat[4][4])
 	add_v3_v3v3(mat[3], ob->loc, ob->dloc);
 }
 
-static void ob_get_parent_matrix(Scene *scene, Object *ob, Object *par, float parentmat[4][4]);
-
 void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4])
 {
 	if (ob->parent) {
 		float par_imat[4][4];
 
-		ob_get_parent_matrix(NULL, ob, ob->parent, par_imat);
+		BKE_object_get_parent_matrix(NULL, ob, ob->parent, par_imat);
 		invert_m4(par_imat);
 		mul_m4_m4m4(mat, par_imat, ob->obmat);
 	}
@@ -2351,7 +2349,8 @@ static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 	}
 }
 
-static void ob_get_parent_matrix(Scene *scene, Object *ob, Object *par, float parentmat[4][4])
+
+void BKE_object_get_parent_matrix(Scene *scene, Object *ob, Object *par, float parentmat[4][4])
 {
 	float tmat[4][4];
 	float vec[3];
@@ -2408,7 +2407,7 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4
 	
 	if (ob->partype & PARSLOW) copy_m4_m4(slowmat, obmat);
 
-	ob_get_parent_matrix(scene, ob, par, totmat);
+	BKE_object_get_parent_matrix(scene, ob, par, totmat);
 	
 	/* total */
 	mul_m4_m4m4(tmat, totmat, ob->parentinv);
@@ -2566,7 +2565,7 @@ void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, c
 	if (use_parent && ob->parent) {
 		float rmat[4][4], diff_mat[4][4], imat[4][4], parent_mat[4][4];
 
-		ob_get_parent_matrix(NULL, ob, ob->parent, parent_mat);
+		BKE_object_get_parent_matrix(NULL, ob, ob->parent, parent_mat);
 
 		mul_m4_m4m4(diff_mat, parent_mat, ob->parentinv);
 		invert_m4_m4(imat, diff_mat);
