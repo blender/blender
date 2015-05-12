@@ -3,7 +3,7 @@
 #
 # IMPORTANT NOTE: if you run this sample, there will be no icon in the button
 # You need to replace the image path with a real existing one.
-# For distributable addons, it is recommended to place the icons inside the
+# For distributable scripts, it is recommended to place the icons inside the
 # addon folder and access it relative to the py script file for portability
 #
 #

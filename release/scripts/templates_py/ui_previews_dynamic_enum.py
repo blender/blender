@@ -13,7 +13,7 @@
 #
 # For custom icons, see the template "ui_previews_custom_icon.py".
 #
-# For distributable addons, it is recommended to place the icons inside the
+# For distributable scripts, it is recommended to place the icons inside the
 # addon directory and access it relative to the py script file for portability:
 #
 #    os.path.join(os.path.dirname(__file__), "images")
