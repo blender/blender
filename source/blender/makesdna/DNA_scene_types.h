@@ -1402,6 +1402,7 @@ typedef struct Scene {
 	
 	/* none of the dependency graph  vars is mean to be saved */
 	struct Depsgraph *depsgraph;
+	void *pad1;
 	struct  DagForest *theDag;
 	short dagflags;
 	short recalc;				/* recalc = counterpart of ob->recalc */
