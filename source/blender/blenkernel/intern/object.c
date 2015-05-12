@@ -3891,3 +3891,51 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 	*r_tot = tot;
 	return tree;
 }
+
+bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
+{
+	if (modifier_dependsOnTime(md)) {
+		return true;
+	}
+
+	/* Check whether modifier is animated. */
+	/* TODO: this should be handled as part of build_animdata() -- Aligorith */
+	if (ob->adt) {
+		AnimData *adt = ob->adt;
+		FCurve *fcu;
+
+		char pattern[MAX_NAME + 10];
+		/* TODO(sergey): Escape modifier name. */
+		BLI_snprintf(pattern, sizeof(pattern), "modifiers[%s", md->name);
+
+		/* action - check for F-Curves with paths containing 'modifiers[' */
+		if (adt->action) {
+			for (fcu = (FCurve *)adt->action->curves.first;
+			     fcu != NULL;
+			     fcu = (FCurve *)fcu->next)
+			{
+				if (fcu->rna_path && strstr(fcu->rna_path, pattern))
+					return true;
+			}
+		}
+
+		/* This here allows modifier properties to get driven and still update properly
+		 *
+		 * Workaround to get [#26764] (e.g. subsurf levels not updating when animated/driven)
+		 * working, without the updating problems ([#28525] [#28690] [#28774] [#28777]) caused
+		 * by the RNA updates cache introduced in r.38649
+		 */
+		for (fcu = (FCurve *)adt->drivers.first;
+		     fcu != NULL;
+		     fcu = (FCurve *)fcu->next)
+		{
+			if (fcu->rna_path && strstr(fcu->rna_path, pattern))
+				return true;
+		}
+
+		/* XXX: also, should check NLA strips, though for now assume that nobody uses
+		 * that and we can omit that for performance reasons... */
+	}
+
+	return false;
+}

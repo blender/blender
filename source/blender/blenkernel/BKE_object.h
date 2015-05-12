@@ -47,6 +47,7 @@ struct MovieClip;
 struct Main;
 struct RigidBodyWorld;
 struct HookModifierData;
+struct ModifierData;
 
 void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
@@ -231,6 +232,8 @@ struct LinkNode *BKE_object_groups(struct Object *ob);
 void             BKE_object_groups_clear(struct Scene *scene, struct Base *base, struct Object *object);
 
 struct KDTree *BKE_object_as_kdtree(struct Object *ob, int *r_tot);
+
+bool BKE_object_modifier_use_time(struct Object *ob, struct ModifierData *md);
 
 #ifdef __cplusplus
 }
