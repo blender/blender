@@ -25,7 +25,7 @@
 #ifndef __DEPSGRAPH_UTIL_FUNCTION_H__
 #define __DEPSGRAPH_UTIL_FUNCTION_H__
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#if (__cplusplus > 199711L)
 
 #include <functional>
 
