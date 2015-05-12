@@ -45,6 +45,12 @@ class AddPresetBase:
             options={'HIDDEN', 'SKIP_SAVE'},
             )
 
+    # needed for mix-ins
+    order = [
+        "name",
+        "remove_active",
+        ]
+
     @staticmethod
     def as_filename(name):  # could reuse for other presets
         for char in " !@#$%^&*(){}:\";'[]<>,.\\/?":

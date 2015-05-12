@@ -61,6 +61,12 @@ class ExportHelper:
             options={'HIDDEN'},
             )
 
+    # needed for mix-ins
+    order = [
+        "filepath",
+        "check_existing",
+        ]
+
     # subclasses can override with decorator
     # True == use ext, False == no ext, None == do nothing.
     check_extension = True
@@ -109,6 +115,11 @@ class ImportHelper:
             subtype='FILE_PATH',
             )
 
+    # needed for mix-ins
+    order = [
+        "filepath",
+        ]
+
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -153,6 +164,11 @@ def orientation_helper_factory(name, axis_forward='Y', axis_up='Z'):
             default=axis_up,
             update=_update_axis_up,
             )
+
+    members["order"] = [
+        "axis_forward",
+        "axis_up",
+        ]
 
     return type(name, (object,), members)
 

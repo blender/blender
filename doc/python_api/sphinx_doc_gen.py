@@ -633,11 +633,11 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
         func_type = "function"
 
         # ther rest are class methods
-    elif arg_str.startswith("(self, "):
-        arg_str = "(" + arg_str[7:]
+    elif arg_str.startswith("(self, ") or arg_str == "(self)":
+        arg_str = "()" if (arg_str == "(self)") else ("(" + arg_str[7:])
         func_type = "method"
     elif arg_str.startswith("(cls, "):
-        arg_str = "(" + arg_str[6:]
+        arg_str = "()" if (arg_str == "(cls)") else ("(" + arg_str[6:])
         func_type = "classmethod"
     else:
         func_type = "staticmethod"
@@ -923,7 +923,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
         write_example_ref("   ", fw, module_name + "." + type_name)
 
-        descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("__")]
+        descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("_")]
 
         for key, descr in descr_items:
             if type(descr) == ClassMethodDescriptorType:
@@ -1239,6 +1239,7 @@ def pyrna2sphinx(basepath):
             fw("\n\n")
 
         subclass_ids = [s.identifier for s in structs.values() if s.base is struct if not rna_info.rna_id_ignore(s.identifier)]
+        subclass_ids.sort()
         if subclass_ids:
             fw("subclasses --- \n" + ", ".join((":class:`%s`" % s) for s in subclass_ids) + "\n\n")
 
