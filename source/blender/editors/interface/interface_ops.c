@@ -278,6 +278,14 @@ bool UI_context_copy_to_selected_list(
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
 		*r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
 	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_Node)) {
+		*r_lb = CTX_data_collection_get(C, "selected_nodes");
+	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
+		if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node)) != NULL) {
+			*r_lb = CTX_data_collection_get(C, "selected_nodes");
+		}
+	}
 	else if (ptr->id.data) {
 		ID *id = ptr->id.data;
 
