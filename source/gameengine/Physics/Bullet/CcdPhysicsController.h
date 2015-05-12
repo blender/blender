@@ -657,8 +657,12 @@ protected:
 		virtual void CalcXform() {}
 		virtual void SetMargin(float margin) 
 		{
-			if (m_collisionShape)
-				m_collisionShape->setMargin(btScalar(margin));
+			if (m_collisionShape) {
+				m_collisionShape->setMargin(margin);
+				// if the shape use a unscaled shape we have also to set the correct margin in it
+				if (m_collisionShape->getShapeType() == SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE)
+					((btScaledBvhTriangleMeshShape *)m_collisionShape)->getChildShape()->setMargin(margin);
+			}
 		}
 		virtual float GetMargin() const 
 		{
