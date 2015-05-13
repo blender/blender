@@ -39,8 +39,6 @@
 CCL_NAMESPACE_BEGIN
 
 #define CL_MEM_PTR(p) ((cl_mem)(uintptr_t)(p))
-#define KERNEL_APPEND_ARG(kernel_name, arg) \
-               opencl_assert(clSetKernelArg(kernel_name, narg++, sizeof(arg), (void*)&arg))
 
 /* Macro declarations used with split kernel */
 
@@ -1008,29 +1006,30 @@ public:
 		cl_int d_offset = task.offset;
 		cl_int d_stride = task.stride;
 
-		/* sample arguments */
-		cl_uint narg = 0;
-
 
 		cl_kernel ckFilmConvertKernel = (rgba_byte)? ckFilmConvertByteKernel: ckFilmConvertHalfFloatKernel;
 
-		/* TODO : Make the kernel launch similar to Cuda */
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_data);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_rgba);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_buffer);
+		cl_uint start_arg_index =
+			kernel_set_args(ckFilmConvertKernel,
+			                0,
+			                d_data,
+			                d_rgba,
+			                d_buffer);
 
 #define KERNEL_TEX(type, ttype, name) \
-	set_kernel_arg_mem(ckFilmConvertKernel, &narg, #name);
+	set_kernel_arg_mem(ckFilmConvertKernel, &start_arg_index, #name);
 #include "kernel_textures.h"
 #undef KERNEL_TEX
 
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_sample_scale);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_x);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_y);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_w);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_h);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_offset);
-		KERNEL_APPEND_ARG(ckFilmConvertKernel, d_stride);
+		start_arg_index += kernel_set_args(ckFilmConvertKernel,
+		                                   start_arg_index,
+		                                   d_sample_scale,
+		                                   d_x,
+		                                   d_y,
+		                                   d_w,
+		                                   d_h,
+		                                   d_offset,
+		                                   d_stride);
 
 		enqueue_kernel(ckFilmConvertKernel, d_w, d_h);
 	}
@@ -1046,9 +1045,6 @@ public:
 		cl_int d_shader_w = task.shader_w;
 		cl_int d_offset = task.offset;
 
-		/* sample arguments */
-		cl_uint narg = 0;
-
 		cl_kernel kernel;
 
 		if(task.shader_eval_type >= SHADER_EVAL_BAKE)
@@ -1063,21 +1059,25 @@ public:
 
 			cl_int d_sample = sample;
 
-			/* TODO : Make the kernel launch similar to Cuda */
-			KERNEL_APPEND_ARG(kernel, d_data);
-			KERNEL_APPEND_ARG(kernel, d_input);
-			KERNEL_APPEND_ARG(kernel, d_output);
+			cl_uint start_arg_index =
+				kernel_set_args(kernel,
+				                0,
+				                d_data,
+				                d_input,
+				                d_output);
 
 #define KERNEL_TEX(type, ttype, name) \
-		set_kernel_arg_mem(kernel, &narg, #name);
+		set_kernel_arg_mem(kernel, &start_arg_index, #name);
 #include "kernel_textures.h"
 #undef KERNEL_TEX
 
-			KERNEL_APPEND_ARG(kernel, d_shader_eval_type);
-			KERNEL_APPEND_ARG(kernel, d_shader_x);
-			KERNEL_APPEND_ARG(kernel, d_shader_w);
-			KERNEL_APPEND_ARG(kernel, d_offset);
-			KERNEL_APPEND_ARG(kernel, d_sample);
+			start_arg_index += kernel_set_args(kernel,
+			                                   start_arg_index,
+			                                   d_shader_eval_type,
+			                                   d_shader_x,
+			                                   d_shader_w,
+			                                   d_offset,
+			                                   d_sample);
 
 			enqueue_kernel(kernel, task.shader_w, 1);
 
@@ -1361,25 +1361,28 @@ public:
 
 		/* Sample arguments. */
 		cl_int d_sample = sample;
-		cl_uint narg = 0;
 
-		/* TODO : Make the kernel launch similar to Cuda. */
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_data);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_buffer);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_rng_state);
+		cl_uint start_arg_index =
+			kernel_set_args(ckPathTraceKernel,
+			                0,
+			                d_data,
+			                d_buffer,
+			                d_rng_state);
 
 #define KERNEL_TEX(type, ttype, name) \
-		set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
+		set_kernel_arg_mem(ckPathTraceKernel, &start_arg_index, #name);
 #include "kernel_textures.h"
 #undef KERNEL_TEX
 
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_sample);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_x);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_y);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_w);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_h);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_offset);
-		KERNEL_APPEND_ARG(ckPathTraceKernel, d_stride);
+		start_arg_index += kernel_set_args(ckPathTraceKernel,
+		                                   start_arg_index,
+		                                   d_sample,
+		                                   d_x,
+		                                   d_y,
+		                                   d_w,
+		                                   d_h,
+		                                   d_offset,
+		                                   d_stride);
 
 		enqueue_kernel(ckPathTraceKernel, d_w, d_h);
 	}
@@ -2384,8 +2387,8 @@ public:
 
 		start_arg_index +=
 			kernel_set_args(ckPathTraceKernel_data_init,
-#ifdef __RAY_DIFFERENTIALS__
 			                start_arg_index,
+#ifdef __RAY_DIFFERENTIALS__
 			                dP_sd,
 			                dP_sd_DL_shadow,
 			                dI_sd,
