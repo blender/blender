@@ -1694,29 +1694,29 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 	}
 
 	if (sc->flag & SC_SHOW_STABLE) {
+		float translation[2];
+		float aspect = clip->tracking.camera.pixel_aspect;
 		float smat[4][4], ismat[4][4];
 
-		ibuf = ED_space_clip_get_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
-
-		if (ibuf) {
-			float translation[2];
-			float aspect = clip->tracking.camera.pixel_aspect;
-
-			if (width != ibuf->x)
-				mul_v2_v2fl(translation, sc->loc, (float)width / ibuf->x);
-			else
-				copy_v2_v2(translation, sc->loc);
-
-			BKE_tracking_stabilization_data_to_mat4(width, height, aspect,
-			                                        translation, sc->scale, sc->angle, sc->stabmat);
-
-			unit_m4(smat);
-			smat[0][0] = 1.0f / width;
-			smat[1][1] = 1.0f / height;
-			invert_m4_m4(ismat, smat);
-
-			mul_m4_series(sc->unistabmat, smat, sc->stabmat, ismat);
+		if ((sc->flag & SC_MUTE_FOOTAGE) == 0) {
+			ibuf = ED_space_clip_get_stable_buffer(sc, sc->loc,
+			                                       &sc->scale, &sc->angle);
 		}
+
+		if (ibuf != NULL && width != ibuf->x)
+			mul_v2_v2fl(translation, sc->loc, (float)width / ibuf->x);
+		else
+			copy_v2_v2(translation, sc->loc);
+
+		BKE_tracking_stabilization_data_to_mat4(width, height, aspect, translation,
+		                                        sc->scale, sc->angle, sc->stabmat);
+
+		unit_m4(smat);
+		smat[0][0] = 1.0f / width;
+		smat[1][1] = 1.0f / height;
+		invert_m4_m4(ismat, smat);
+
+		mul_m4_series(sc->unistabmat, smat, sc->stabmat, ismat);
 	}
 	else if ((sc->flag & SC_MUTE_FOOTAGE) == 0) {
 		ibuf = ED_space_clip_get_buffer(sc);
