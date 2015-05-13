@@ -200,10 +200,18 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
 					                            toggle_selection_cb);
 				}
 
-				if (userdata.coord == 0)
-					userdata.marker->flag |= MARKER_GRAPH_SEL_X;
-				else
-					userdata.marker->flag |= MARKER_GRAPH_SEL_Y;
+				if (userdata.coord == 0) {
+					if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_X) != 0)
+						userdata.marker->flag &= ~MARKER_GRAPH_SEL_X;
+					else
+						userdata.marker->flag |= MARKER_GRAPH_SEL_X;
+				}
+				else {
+					if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_Y) != 0)
+						userdata.marker->flag &= ~MARKER_GRAPH_SEL_Y;
+					else
+						userdata.marker->flag |= MARKER_GRAPH_SEL_Y;
+				}
 
 				return true;
 			}
