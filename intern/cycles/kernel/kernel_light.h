@@ -355,16 +355,14 @@ ccl_device float3 background_portal_sample(KernelGlobals *kg,
 			float3 axisu = make_float3(data1.y, data1.z, data1.w);
 			float3 axisv = make_float3(data2.y, data2.z, data2.w);
 
-			float3 lightPoint = lightpos;
-
-			*pdf = area_light_sample(P, &lightPoint,
+			*pdf = area_light_sample(P, &lightpos,
 			                         axisu, axisv,
 			                         randu, randv,
 			                         true);
 
 			*pdf /= num_possible;
 			*sampled_portal = p;
-			return normalize(lightPoint - P);
+			return normalize(lightpos - P);
 		}
 
 		portal--;
