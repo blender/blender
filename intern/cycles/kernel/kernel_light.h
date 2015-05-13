@@ -249,6 +249,25 @@ float background_map_pdf(KernelGlobals *kg, float3 direction)
 	return (cdf_u.x * cdf_v.x)/(M_2PI_F * M_PI_F * sin_theta * denom);
 }
 
+ccl_device_inline bool background_portal_data_fetch_and_check_side(KernelGlobals *kg,
+                                                                   float3 P,
+                                                                   int index,
+                                                                   float3 *lightpos,
+                                                                   float3 *dir)
+{
+	float4 data0 = kernel_tex_fetch(__light_data, (index + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 0);
+	float4 data3 = kernel_tex_fetch(__light_data, (index + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 3);
+
+	*lightpos = make_float3(data0.y, data0.z, data0.w);
+	*dir = make_float3(data3.y, data3.z, data3.w);
+
+	/* Check whether portal is on the right side. */
+	if(dot(*dir, P - *lightpos) > 1e-5f)
+		return true;
+
+	return false;
+}
+
 ccl_device float background_portal_pdf(KernelGlobals *kg,
                                        float3 P,
                                        float3 direction,
@@ -261,19 +280,9 @@ ccl_device float background_portal_pdf(KernelGlobals *kg,
 		if(p == ignore_portal)
 			continue;
 
-		/* TODO(sergey): Consider moving portal data fetch to a
-		 * dedicated function.
-		 */
-		float4 data0 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 0);
-		float4 data3 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 3);
-
-		float3 lightpos = make_float3(data0.y, data0.z, data0.w);
-		float3 dir = make_float3(data3.y, data3.z, data3.w);
-
-		if(dot(dir, P - lightpos) <= 1e-5f) {
-			/* P is on the wrong side or too close. */
+		float3 lightpos, dir;
+		if(!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir))
 			continue;
-		}
 
 		if(is_possible) {
 			/* There's a portal that could be sampled from this position. */
@@ -310,13 +319,8 @@ ccl_device int background_num_possible_portals(KernelGlobals *kg, float3 P)
 {
 	int num_possible_portals = 0;
 	for(int p = 0; p < kernel_data.integrator.num_portals; p++) {
-		float4 data0 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 0);
-		float4 data3 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 3);
-		float3 lightpos = make_float3(data0.y, data0.z, data0.w);
-		float3 dir = make_float3(data3.y, data3.z, data3.w);
-
-		/* Check whether portal is on the right side. */
-		if(dot(dir, P - lightpos) > 1e-5f)
+		float3 lightpos, dir;
+		if(background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir))
 			num_possible_portals++;
 	}
 	return num_possible_portals;
@@ -340,13 +344,8 @@ ccl_device float3 background_portal_sample(KernelGlobals *kg,
 	 */
 	for(int p = 0; p < kernel_data.integrator.num_portals; p++) {
 		/* Search for the sampled portal. */
-		float4 data0 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 0);
-		float4 data3 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 3);
-		float3 lightpos = make_float3(data0.y, data0.z, data0.w);
-		float3 dir = make_float3(data3.y, data3.z, data3.w);
-
-		/* Check whether portal is on the right side. */
-		if(dot(dir, P - lightpos) <= 1e-5f)
+		float3 lightpos, dir;
+		if(!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir))
 			continue;
 
 		if(portal == 0) {
