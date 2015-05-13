@@ -1620,18 +1620,6 @@ public:
 	/* Flag to make sceneintersect and lampemission kernel use queues. */
 	cl_mem use_queues_flag;
 
-	/* Required-memory size. */
-	size_t throughput_size;
-	size_t L_transparent_size;
-	size_t rayState_size;
-	size_t hostRayState_size;
-	size_t work_element_size;
-	size_t ISLamp_size;
-
-	/* Sizes of memory required for shadow blocked function. */
-	size_t AOAlpha_size;
-	size_t AOBSDF_size;
-
 	/* Amount of memory in output buffer associated with one pixel/thread. */
 	size_t per_thread_output_buffer_size;
 
@@ -1785,18 +1773,6 @@ public:
 		use_queues_flag = NULL;
 
 		per_sample_output_buffers = NULL;
-
-		/* Initialize required memory size. */
-		throughput_size = sizeof(float3);
-		L_transparent_size = sizeof(float);
-		rayState_size = sizeof(char);
-		hostRayState_size = sizeof(char);
-		work_element_size = sizeof(unsigned int);
-		ISLamp_size = sizeof(int);
-
-		/* Initialize sizes of memory required for shadow blocked function. */
-		AOAlpha_size = sizeof(float3);
-		AOBSDF_size = sizeof(float3);
 
 		per_thread_output_buffer_size = 0;
 		hostRayStateArray = NULL;
@@ -2203,10 +2179,6 @@ public:
 		assert(max_render_feasible_tile_size.x % SPLIT_KERNEL_LOCAL_SIZE_X == 0);
 		assert(max_render_feasible_tile_size.y % SPLIT_KERNEL_LOCAL_SIZE_Y == 0);
 
-		/* ray_state and hostRayStateArray should be of same size. */
-		assert(hostRayState_size == rayState_size);
-		assert(rayState_size == 1);
-
 		size_t global_size[2];
 		size_t local_size[2] = {SPLIT_KERNEL_LOCAL_SIZE_X,
 		                        SPLIT_KERNEL_LOCAL_SIZE_Y};
@@ -2340,17 +2312,17 @@ public:
 			 * the kernels.
 			 */
 			rng_coop = mem_alloc(num_global_elements * sizeof(RNG));
-			throughput_coop = mem_alloc(num_global_elements * throughput_size);
-			L_transparent_coop = mem_alloc(num_global_elements * L_transparent_size);
+			throughput_coop = mem_alloc(num_global_elements * sizeof(float3));
+			L_transparent_coop = mem_alloc(num_global_elements * sizeof(float));
 			PathRadiance_coop = mem_alloc(num_global_elements * sizeof(PathRadiance));
 			Ray_coop = mem_alloc(num_global_elements * sizeof(Ray));
 			PathState_coop = mem_alloc(num_global_elements * sizeof(PathState));
 			Intersection_coop = mem_alloc(num_global_elements * sizeof(Intersection));
-			AOAlpha_coop = mem_alloc(num_global_elements * AOAlpha_size);
-			AOBSDF_coop = mem_alloc(num_global_elements * AOBSDF_size);
+			AOAlpha_coop = mem_alloc(num_global_elements * sizeof(float3));
+			AOBSDF_coop = mem_alloc(num_global_elements * sizeof(float3));
 			AOLightRay_coop = mem_alloc(num_global_elements * sizeof(Ray));
 			BSDFEval_coop = mem_alloc(num_global_elements * sizeof(BsdfEval));
-			ISLamp_coop = mem_alloc(num_global_elements * ISLamp_size);
+			ISLamp_coop = mem_alloc(num_global_elements * sizeof(int));
 			LightRay_coop = mem_alloc(num_global_elements * sizeof(Ray));
 			Intersection_coop_AO = mem_alloc(num_global_elements * sizeof(Intersection));
 			Intersection_coop_DL = mem_alloc(num_global_elements * sizeof(Intersection));
@@ -2359,13 +2331,13 @@ public:
 			debugdata_coop = mem_alloc(num_global_elements * sizeof(DebugData));
 #endif
 
-			ray_state = mem_alloc(num_global_elements * rayState_size);
+			ray_state = mem_alloc(num_global_elements * sizeof(char));
 
-			hostRayStateArray = (char *)calloc(num_global_elements, hostRayState_size);
+			hostRayStateArray = (char *)calloc(num_global_elements, sizeof(char));
 			assert(hostRayStateArray != NULL && "Can't create hostRayStateArray memory");
 
 			Queue_data = mem_alloc(num_global_elements * (NUM_QUEUES * sizeof(int)+sizeof(int)));
-			work_array = mem_alloc(num_global_elements * work_element_size);
+			work_array = mem_alloc(num_global_elements * sizeof(unsigned int));
 			per_sample_output_buffers = mem_alloc(num_global_elements *
 			                                      per_thread_output_buffer_size);
 		}
@@ -2885,16 +2857,22 @@ public:
 		 */
 		shaderdata_volume = get_shader_data_size(shader_closure_size);
 		size_t retval = sizeof(RNG)
-			+ throughput_size + L_transparent_size
-			+ rayState_size + work_element_size
-			+ ISLamp_size + sizeof(PathRadiance) + sizeof(Ray) + sizeof(PathState)
+			+ sizeof(float3)          /* Throughput size */
+			+ sizeof(float)           /* L transparent size */
+			+ sizeof(char)            /* Ray state size */
+			+ sizeof(unsigned int)    /* Work element size */
+			+ sizeof(int)             /* ISLamp_size */
+			+ sizeof(PathRadiance) + sizeof(Ray) + sizeof(PathState)
 			+ sizeof(Intersection)    /* Overall isect */
 			+ sizeof(Intersection)    /* Instersection_coop_AO */
 			+ sizeof(Intersection)    /* Intersection coop DL */
 			+ shaderdata_volume       /* Overall ShaderData */
 			+ (shaderdata_volume * 2) /* ShaderData : DL and shadow */
-			+ sizeof(Ray) + sizeof(BsdfEval) + AOAlpha_size + AOBSDF_size + sizeof(Ray)
-			+ (sizeof(int)* NUM_QUEUES)
+			+ sizeof(Ray) + sizeof(BsdfEval)
+			+ sizeof(float3)          /* AOAlpha size */
+			+ sizeof(float3)          /* AOBSDF size */
+			+ sizeof(Ray)
+			+ (sizeof(int) * NUM_QUEUES)
 			+ per_thread_output_buffer_size;
 		return retval;
 	}
