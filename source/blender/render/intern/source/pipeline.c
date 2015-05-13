@@ -509,7 +509,8 @@ void RE_FreeRender(Render *re)
 	BLI_rw_mutex_end(&re->partsmutex);
 
 	BLI_freelistN(&re->r.layers);
-	
+	BLI_freelistN(&re->r.views);
+
 	/* main dbase can already be invalid now, some database-free code checks it */
 	re->main = NULL;
 	re->scene = NULL;
@@ -656,8 +657,10 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 
 	/* copy render data and render layers for thread safety */
 	BLI_freelistN(&re->r.layers);
+	BLI_freelistN(&re->r.views);
 	re->r = *rd;
 	BLI_duplicatelist(&re->r.layers, &rd->layers);
+	BLI_duplicatelist(&re->r.views, &rd->views);
 
 	if (source) {
 		/* reuse border flags from source renderer */
@@ -866,6 +869,10 @@ void render_update_anim_renderdata(Render *re, RenderData *rd)
 	/* render layers */
 	BLI_freelistN(&re->r.layers);
 	BLI_duplicatelist(&re->r.layers, &rd->layers);
+
+	/* render views */
+	BLI_freelistN(&re->r.views);
+	BLI_duplicatelist(&re->r.views, &rd->views);
 }
 
 void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)

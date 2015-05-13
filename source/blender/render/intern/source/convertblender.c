@@ -5852,9 +5852,11 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 
 	/* renderdata setup and exceptions */
 	BLI_freelistN(&re->r.layers);
+	BLI_freelistN(&re->r.views);
 	re->r = scene->r;
 	BLI_duplicatelist(&re->r.layers, &scene->r.layers);
-	
+	BLI_duplicatelist(&re->r.views, &scene->r.views);
+
 	RE_init_threadcount(re);
 	
 	re->flag |= R_BAKING;

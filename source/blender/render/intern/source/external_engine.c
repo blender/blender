@@ -454,6 +454,7 @@ void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
 	 * but it potentially leaves unfreed memory blocks
 	 * not sure how to fix this yet -- dfelinto */
 	BLI_listbase_clear(&re->r.layers);
+	BLI_listbase_clear(&re->r.views);
 }
 
 bool RE_bake_has_engine(Render *re)
