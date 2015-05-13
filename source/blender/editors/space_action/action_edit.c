@@ -429,7 +429,7 @@ static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 static int actkeys_view_frame_exec(bContext *C, wmOperator *op)
 {
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-	UI_view2d_center_frame(C, smooth_viewtx);
+	ANIM_center_frame(C, smooth_viewtx);
 
 	return OPERATOR_FINISHED;
 }

@@ -3263,7 +3263,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 		                             "Direct conversion of frame numbers to seconds"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
+	static EnumPropertyItem zoom_frame_modes[] = {
+		{ZOOM_FRAME_MODE_KEEP_RANGE, "KEEP_RANGE", 0, "Keep Range", ""},
+		{ZOOM_FRAME_MODE_SECONDS, "SECONDS", 0, "Seconds", ""},
+	    {ZOOM_FRAME_MODE_KEYFRAMES, "KEYFRAMES", 0, "Keyframes", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	PropertyRNA *prop;
 	StructRNA *srna;
 	
@@ -3505,6 +3512,22 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "TimeCode Style",
 	                         "Format of Time Codes displayed when not displaying timing in terms of frames");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "view_frame_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, zoom_frame_modes);
+	RNA_def_property_enum_sdna(prop, NULL, "view_frame_type");
+	RNA_def_property_ui_text(prop, "Zoom To Frame Type", "How zooming to frame focuses around current frame");
+
+	prop = RNA_def_property(srna, "view_frame_keyframes", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, 500);
+	RNA_def_property_ui_text(prop, "Zoom Keyframes",
+	                         "Keyframes around cursor that we zoom around");
+
+	prop = RNA_def_property(srna, "view_frame_seconds", PROP_FLOAT, PROP_TIME);
+	RNA_def_property_range(prop, 0.0, 10000.0);
+	RNA_def_property_ui_text(prop, "Zoom Seconds",
+	                         "Seconds around cursor that we zoom around");
+
 }
 
 static void rna_def_userdef_edit(BlenderRNA *brna)
@@ -3625,7 +3648,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "New Interpolation Type",
 	                         "Interpolation mode used for first keyframe on newly added F-Curves "
 	                         "(subsequent keyframes take interpolation from preceding keyframe)");
-	
+
 	prop = RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
 	RNA_def_property_enum_sdna(prop, NULL, "keyhandles_new");

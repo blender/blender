@@ -200,6 +200,11 @@ class USERPREF_PT_interface(Panel):
         col.label(text="2D Viewports:")
         col.prop(view, "view2d_grid_spacing_min", text="Minimum Grid Spacing")
         col.prop(view, "timecode_style")
+        col.prop(view, "view_frame_type")
+        if (view.view_frame_type == 'SECONDS'):
+            col.prop(view, "view_frame_seconds")
+        elif (view.view_frame_type == 'KEYFRAMES'):
+            col.prop(view, "view_frame_keyframes")
 
         row.separator()
         row.separator()
