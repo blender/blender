@@ -514,31 +514,34 @@ const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, con
  */
 static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
-	const char *path = NULL;
-
 #ifdef WITH_BINRELOC
 	/* linux uses binreloc since argv[0] is not reliable, call br_init( NULL ) first */
-	path = br_find_exe(NULL);
-	if (path) {
-		BLI_strncpy(fullname, path, maxlen);
-		free((void *)path);
-		return;
+	{
+		const char *path = NULL;
+		path = br_find_exe(NULL);
+		if (path) {
+			BLI_strncpy(fullname, path, maxlen);
+			free((void *)path);
+			return;
+		}
 	}
 #endif
 
 #ifdef _WIN32
-	wchar_t *fullname_16 = MEM_mallocN(maxlen * sizeof(wchar_t), "ProgramPath");
-	if (GetModuleFileNameW(0, fullname_16, maxlen)) {
-		conv_utf_16_to_8(fullname_16, fullname, maxlen);
-		if (!BLI_exists(fullname)) {
-			printf("path can't be found: \"%.*s\"\n", (int)maxlen, fullname);
-			MessageBox(NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
+	{
+		wchar_t *fullname_16 = MEM_mallocN(maxlen * sizeof(wchar_t), "ProgramPath");
+		if (GetModuleFileNameW(0, fullname_16, maxlen)) {
+			conv_utf_16_to_8(fullname_16, fullname, maxlen);
+			if (!BLI_exists(fullname)) {
+				printf("path can't be found: \"%.*s\"\n", (int)maxlen, fullname);
+				MessageBox(NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
+			}
+			MEM_freeN(fullname_16);
+			return;
 		}
-		MEM_freeN(fullname_16);
-		return;
-	}
 
-	MEM_freeN(fullname_16);
+		MEM_freeN(fullname_16);
+	}
 #endif
 
 	/* unix and non linux */
