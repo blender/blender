@@ -4373,6 +4373,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval = WM_UI_HANDLER_BREAK;
 			}
+#ifndef USE_ALLSELECT
 			/* alt-click on sides to get "arrows" like in UI_BTYPE_NUM buttons, and match wheel usage above */
 			else if (event->type == LEFTMOUSE && event->alt) {
 				int halfpos = BLI_rctf_cent_x(&but->rect);
@@ -4382,6 +4383,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				else
 					mx = but->rect.xmax;
 			}
+#endif
 			else if (event->type == LEFTMOUSE) {
 				data->dragstartx = mx;
 				data->draglastx = mx;
