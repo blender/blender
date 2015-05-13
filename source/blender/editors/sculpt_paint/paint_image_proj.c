@@ -2841,10 +2841,11 @@ static void project_paint_face_init(
 										{
 											/* Only bother calculating the weights if we intersect */
 											if (ps->do_mask_normal || ps->dm_mtface_clone) {
-#if 1
+												float uv_fac;
+#if 0
 												/* get the UV on the line since we want to copy the pixels from there for bleeding */
 												float uv_close[2];
-												float uv_fac = closest_to_line_v2(uv_close, uv, tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2]);
+												uv_fac = closest_to_line_v2(uv_close, uv, tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2]);
 												if      (uv_fac < 0.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx1]);
 												else if (uv_fac > 1.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx2]);
 
@@ -2854,7 +2855,7 @@ static void project_paint_face_init(
 												else {
 													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv_close, w);
 												}
-#else											/* this is buggy with quads, don't use for now */
+#else
 
 												/* Cheat, we know where we are along the edge so work out the weights from that */
 												uv_fac = fac1 + (uv_fac * (fac2 - fac1));
