@@ -104,6 +104,9 @@ typedef struct Frame {
 		/* Merge to target frame/corner (no merge if frame is null) */
 		struct Frame *frame;
 		int corner;
+		/* checked to avoid chaining.
+		 * (merging when we're already been referenced), see T39775 */
+		unsigned int is_target : 1;
 	} merge[4];
 
 	/* For hull frames, whether each vertex is detached or not */
@@ -363,7 +366,7 @@ static void merge_frame_corners(Frame **frames, int totframe)
 
 				/* Compare with each corner of all other frames... */
 				for (l = 0; l < 4; l++) {
-					if (frames[k]->merge[l].frame)
+					if (frames[k]->merge[l].frame || frames[k]->merge[l].is_target)
 						continue;
 
 					/* Some additional concerns that could be checked
@@ -393,6 +396,7 @@ static void merge_frame_corners(Frame **frames, int totframe)
 
 						frames[k]->merge[l].frame = frames[i];
 						frames[k]->merge[l].corner = j;
+						frames[i]->merge[j].is_target = true;
 
 						/* Can't merge another corner into the same
 						 * frame corner, so move on to frame k+1 */
