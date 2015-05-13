@@ -127,6 +127,7 @@ struct TimeSourceDepsNode : public DepsNode {
 
 /* Root Node. */
 struct RootDepsNode : public DepsNode {
+	RootDepsNode();
 	~RootDepsNode();
 
 	TimeSourceDepsNode *add_time_source(const string &name = "");
