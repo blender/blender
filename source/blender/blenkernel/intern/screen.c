@@ -518,6 +518,23 @@ unsigned int BKE_screen_view3d_layer_active(const struct View3D *v3d, const stru
 	return BKE_screen_view3d_layer_active_ex(v3d, scene, true);
 }
 
+/**
+ * Accumulate all visible layers on this screen.
+ */
+unsigned int BKE_screen_view3d_layer_all(const bScreen *sc)
+{
+	const ScrArea *sa;
+	unsigned int lay = 0;
+	for (sa = sc->areabase.first; sa; sa = sa->next) {
+		if (sa->spacetype == SPACE_VIEW3D) {
+			View3D *v3d = sa->spacedata.first;
+			lay |= v3d->lay;
+		}
+	}
+
+	return lay;
+}
+
 void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
 {
 	int bit;
