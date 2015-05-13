@@ -3101,6 +3101,43 @@ void resolve_quad_uv_v2_deriv(float r_uv[2], float r_deriv[2][2],
 	}
 }
 
+/* a version of resolve_quad_uv_v2 that only calculates the 'u' */
+float resolve_quad_u_v2(
+        const float st[2],
+        const float st0[2], const float st1[2], const float st2[2], const float st3[2])
+{
+	const double signed_area = (st0[0] * st1[1] - st0[1] * st1[0]) + (st1[0] * st2[1] - st1[1] * st2[0]) +
+	                           (st2[0] * st3[1] - st2[1] * st3[0]) + (st3[0] * st0[1] - st3[1] * st0[0]);
+
+	/* X is 2D cross product (determinant)
+	 * A = (p0 - p) X (p0 - p3)*/
+	const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
+
+	/* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */
+	const double b = 0.5 * (double)(((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
+	                                ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
+
+	/* C = (p1-p) X (p1-p2) */
+	const double fC = (st1[0] - st[0]) * (st1[1] - st2[1]) - (st1[1] - st[1]) * (st1[0] - st2[0]);
+	double denom = a - 2 * b + fC;
+
+	if (IS_ZERO(denom) != 0) {
+		const double fDen = a - fC;
+		if (IS_ZERO(fDen) == 0)
+			return (float)(a / fDen);
+		else
+			return 0.0f;
+	}
+	else {
+		const double desc_sq = b * b - a * fC;
+		const double desc = sqrt(desc_sq < 0.0 ? 0.0 : desc_sq);
+		const double s = signed_area > 0 ? (-1.0) : 1.0;
+
+		return (float)(((a - b) + s * desc) / denom);
+	}
+}
+
+
 #undef IS_ZERO
 
 /* reverse of the functions above */

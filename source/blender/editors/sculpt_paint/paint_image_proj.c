@@ -2825,11 +2825,8 @@ static void project_paint_face_init(
 
 										/* Since this is a seam we need to work out where on the line this pixel is */
 										//fac = line_point_factor_v2(uv, uv_seam_quad[0], uv_seam_quad[1]);
-
-										fac = line_point_factor_v2(uv, seam_subsection[0], seam_subsection[1]);
-										if      (fac < 0.0f) { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[0]); }
-										else if (fac > 1.0f) { copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[1]); }
-										else                 { interp_v3_v3v3(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac); }
+										fac = resolve_quad_u_v2(uv, UNPACK4(seam_subsection));
+										interp_v3_v3v3(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac);
 
 										if (!is_ortho) {
 											pixelScreenCo[3] = 1.0f;
