@@ -545,8 +545,6 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 	if(scene->lights.size() == 0)
 		return;
 
-	float4 *light_data = dscene->light_data.resize(scene->lights.size()*LIGHT_SIZE);
-
 	/* remove background light? */
 	if(!(device->info.advanced_shading)) {
 		foreach(Light *light, scene->lights) {
@@ -557,6 +555,7 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 		}
 	}
 
+	float4 *light_data = dscene->light_data.resize(scene->lights.size()*LIGHT_SIZE);
 	int light_index = 0;
 
 	foreach(Light *light, scene->lights) {
