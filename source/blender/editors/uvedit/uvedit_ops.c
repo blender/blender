@@ -4142,7 +4142,7 @@ static void UV_OT_seams_from_islands(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mark_sharp", 0, "Mark Sharp", "Mark boundary edges as sharp");
 }
 
-static int uv_mark_seam_exec(bContext *C, wmOperator *UNUSED(op))
+static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -4152,13 +4152,17 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *UNUSED(op))
 	BMFace *efa;
 	BMLoop *loop;
 	BMIter iter, liter;
+	bool clear = RNA_boolean_get(op->ptr, "clear");
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_edge_select_test(scene, loop, cd_loop_uv_offset)) {
-				BM_elem_flag_enable(loop->e, BM_ELEM_SEAM);
+				if (clear)
+					BM_elem_flag_disable(loop->e, BM_ELEM_SEAM);
+				else
+					BM_elem_flag_enable(loop->e, BM_ELEM_SEAM);
 			}
 		}
 	}
@@ -4177,7 +4181,7 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *UNUSED(op))
 static void UV_OT_mark_seam(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Mark Seams";
+	ot->name = "Mark Seam";
 	ot->description = "Mark selected UV edges as seams";
 	ot->idname = "UV_OT_mark_seam";
 
@@ -4187,6 +4191,8 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = uv_mark_seam_exec;
 	ot->poll = ED_operator_uvedit;
+
+	RNA_def_boolean(ot->srna, "clear", false, "Clear Seams", "Clear instead of marking seams");
 }
 
 
