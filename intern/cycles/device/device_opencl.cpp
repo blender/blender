@@ -1580,6 +1580,10 @@ public:
 	cl_mem dPdu_sd, dPdv_sd;
 	cl_mem dPdu_sd_DL_shadow, dPdv_sd_DL_shadow;
 
+	/* Object motion. */
+	cl_mem ob_tfm_sd, ob_itfm_sd;
+	cl_mem ob_tfm_sd_DL_shadow, ob_itfm_sd_DL_shadow;
+
 	cl_mem closure_sd;
 	cl_mem closure_sd_DL_shadow;
 	cl_mem num_closure_sd;
@@ -1736,6 +1740,12 @@ public:
 		dPdv_sd = NULL;
 		dPdu_sd_DL_shadow = NULL;
 		dPdv_sd_DL_shadow = NULL;
+
+		/* Object motion. */
+		ob_tfm_sd = NULL;
+		ob_itfm_sd = NULL;
+		ob_tfm_sd_DL_shadow = NULL;
+		ob_itfm_sd_DL_shadow = NULL;
 
 		closure_sd = NULL;
 		closure_sd_DL_shadow = NULL;
@@ -2105,6 +2115,13 @@ public:
 		release_mem_object_safe(dPdv_sd);
 		release_mem_object_safe(dPdv_sd_DL_shadow);
 
+		/* Object motion. */
+		release_mem_object_safe(ob_tfm_sd);
+		release_mem_object_safe(ob_itfm_sd);
+
+		release_mem_object_safe(ob_tfm_sd_DL_shadow);
+		release_mem_object_safe(ob_itfm_sd_DL_shadow);
+
 		release_mem_object_safe(closure_sd);
 		release_mem_object_safe(closure_sd_DL_shadow);
 		release_mem_object_safe(num_closure_sd);
@@ -2300,6 +2317,12 @@ public:
 			dPdv_sd = mem_alloc(num_global_elements * sizeof(float3));
 			dPdv_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
 
+			/* Object motion. */
+			ob_tfm_sd = mem_alloc(num_global_elements * sizeof(Transform));
+			ob_tfm_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(Transform));
+			ob_itfm_sd = mem_alloc(num_global_elements * sizeof(float3));
+			ob_itfm_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(Transform));
+
 			closure_sd = mem_alloc(num_global_elements * ShaderClosure_size);
 			closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * ShaderClosure_size);
 			num_closure_sd = mem_alloc(num_global_elements * sizeof(int));
@@ -2385,10 +2408,10 @@ public:
 			                transparent_depth_sd,
 			                transparent_depth_sd_DL_shadow);
 
+		/* Ray differentials. */
 		start_arg_index +=
 			kernel_set_args(ckPathTraceKernel_data_init,
 			                start_arg_index,
-			                /* Ray differentials. */
 			                dP_sd,
 			                dP_sd_DL_shadow,
 			                dI_sd,
@@ -2396,14 +2419,29 @@ public:
 			                du_sd,
 			                du_sd_DL_shadow,
 			                dv_sd,
-			                dv_sd_DL_shadow,
+			                dv_sd_DL_shadow);
 
-			                /* Dp/Du */
+		/* Dp/Du */
+		start_arg_index +=
+			kernel_set_args(ckPathTraceKernel_data_init,
+			                start_arg_index,
 			                dPdu_sd,
 			                dPdu_sd_DL_shadow,
 			                dPdv_sd,
-			                dPdv_sd_DL_shadow,
+			                dPdv_sd_DL_shadow);
 
+		/* Object motion. */
+		start_arg_index +=
+			kernel_set_args(ckPathTraceKernel_data_init,
+			                start_arg_index,
+			                ob_tfm_sd,
+			                ob_tfm_sd_DL_shadow,
+			                ob_itfm_sd,
+			                ob_itfm_sd_DL_shadow);
+
+		start_arg_index +=
+			kernel_set_args(ckPathTraceKernel_data_init,
+			                start_arg_index,
 			                closure_sd,
 			                closure_sd_DL_shadow,
 			                num_closure_sd,

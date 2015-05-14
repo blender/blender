@@ -121,6 +121,13 @@ __kernel void kernel_ocl_path_trace_data_initialization(
 	ccl_global float3 *dPdv_sd,
 	ccl_global float3 *dPdv_sd_DL_shadow,
 
+	/* Object motion. */
+	ccl_global Transform *ob_tfm_sd,
+	ccl_global Transform *ob_tfm_sd_DL_shadow,
+
+	ccl_global Transform *ob_itfm_sd,
+	ccl_global Transform *ob_itfm_sd_DL_shadow,
+
 	ShaderClosure *closure_sd,
 	ShaderClosure *closure_sd_DL_shadow,
 
@@ -247,6 +254,14 @@ __kernel void kernel_ocl_path_trace_data_initialization(
 	sd->dPdv = dPdv_sd;
 	sd_DL_shadow->dPdv = dPdv_sd_DL_shadow;
 #endif
+#endif
+
+#ifdef __OBJECT_MOTION__
+	sd->ob_tfm = ob_tfm_sd;
+	sd_DL_shadow->ob_tfm = ob_tfm_sd_DL_shadow;
+
+	sd->ob_itfm = ob_itfm_sd;
+	sd_DL_shadow->ob_itfm = ob_itfm_sd_DL_shadow;
 #endif
 
 	sd->closure = closure_sd;

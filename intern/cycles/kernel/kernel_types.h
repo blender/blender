@@ -138,21 +138,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_OPENCL_INTEL_CPU__
 #define __CL_USE_NATIVE__
 #define __KERNEL_SHADING__
-/* TODO(sergey): Advanced shading code still requires work
- * for split kernel.
- */
-#  ifndef __SPLIT_KERNEL__
-#    define __KERNEL_ADV_SHADING__
-#  else
-#    define __MULTI_CLOSURE__
-#    define __TRANSPARENT_SHADOWS__
-#    define __PASSES__
-#    define __BACKGROUND_MIS__
-#    define __LAMP_MIS__
-#    define __AO__
-#    define __HAIR__
-#    define __CAMERA_MOTION__
-#  endif
+#define __KERNEL_ADV_SHADING__
 #endif
 
 #endif // __KERNEL_OPENCL__
