@@ -140,6 +140,7 @@ bool KX_ObjectActuator::Update()
 		m_angular_damping_active = false;
 		m_error_accumulator.setValue(0.0,0.0,0.0);
 		m_previous_error.setValue(0.0,0.0,0.0);
+		m_jumping = false;
 		return false; 
 
 	} else if (parent)
@@ -247,10 +248,14 @@ bool KX_ObjectActuator::Update()
 			{
 				parent->ApplyRotation(m_drot,(m_bitLocalFlag.DRot) != 0);
 			}
-			if (m_bitLocalFlag.CharacterJump)
-			{
 
-				character->Jump();
+			if (m_bitLocalFlag.CharacterJump) {
+				if (!m_jumping) {
+					character->Jump();
+					m_jumping = true;
+				}
+				else if (character->OnGround())
+					m_jumping = false;
 			}
 		}
 		else {

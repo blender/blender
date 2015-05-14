@@ -116,7 +116,8 @@ class KX_ObjectActuator : public SCA_IActuator
 	bool m_active_combined_velocity;
 	bool m_linear_damping_active;
 	bool m_angular_damping_active;
-	
+	bool m_jumping;
+
 public:
 	enum KX_OBJECT_ACT_VEC_TYPE {
 		KX_OBJECT_ACT_NODEF = 0,
