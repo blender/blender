@@ -3535,9 +3535,10 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 
 		if (rbody)
 		{
+			rbody->setLinearFactor(ci.m_linearFactor);
+
 			if (isbulletrigidbody)
 			{
-				rbody->setLinearFactor(ci.m_linearFactor);
 				rbody->setAngularFactor(ci.m_angularFactor);
 			}
 
