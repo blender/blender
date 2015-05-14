@@ -1867,7 +1867,7 @@ public:
 
 	size_t get_shader_closure_size(int max_closure)
 	{
-		return (sizeof(ShaderClosure)* max_closure);
+		return (sizeof(ShaderClosure) * max_closure);
 	}
 
 	size_t get_shader_data_size(size_t shader_closure_size)
@@ -1900,10 +1900,8 @@ public:
 	{
 		size_t shader_soa_size = 0;
 
-#define SD_VAR(type, what) \
-		shader_soa_size += sizeof(void *);
-#define SD_CLOSURE_VAR(type, what, max_closure)
-		shader_soa_size += sizeof(void *);
+#define SD_VAR(type, what) shader_soa_size += sizeof(void *);
+#define SD_CLOSURE_VAR(type, what, max_closure) shader_soa_size += sizeof(void *);
 		#include "kernel_shaderdata_vars.h"
 #undef SD_VAR
 #undef SD_CLOSURE_VAR
@@ -2215,7 +2213,7 @@ public:
 		 */
 		if(num_parallel_samples >= 64) {
 			/* TODO(sergey): Could use generic round-up here. */
-			num_parallel_samples = (num_parallel_samples / 64) * 64
+			num_parallel_samples = (num_parallel_samples / 64) * 64;
 		}
 		assert(num_parallel_samples != 0);
 
