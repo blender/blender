@@ -80,6 +80,7 @@ Camera::Camera()
 
 	need_update = true;
 	need_device_update = true;
+	need_flags_update = true;
 	previous_need_motion = -1;
 }
 
@@ -171,6 +172,7 @@ void Camera::update()
 
 	need_update = false;
 	need_device_update = true;
+	need_flags_update = true;
 }
 
 void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
@@ -288,7 +290,7 @@ void Camera::device_update_volume(Device * /*device*/,
                                   DeviceScene *dscene,
                                   Scene *scene)
 {
-	if(!need_device_update) {
+	if(!need_device_update && !need_flags_update) {
 		return;
 	}
 	KernelCamera *kcam = &dscene->data.cam;
@@ -304,6 +306,7 @@ void Camera::device_update_volume(Device * /*device*/,
 		}
 	}
 	need_device_update = false;
+	need_flags_update = false;
 }
 
 void Camera::device_free(Device * /*device*/, DeviceScene * /*dscene*/)

@@ -15,6 +15,7 @@
  */
 
 #include "background.h"
+#include "camera.h"
 #include "device.h"
 #include "graph.h"
 #include "light.h"

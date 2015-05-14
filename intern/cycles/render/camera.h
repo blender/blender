@@ -105,6 +105,7 @@ public:
 	/* update */
 	bool need_update;
 	bool need_device_update;
+	bool need_flags_update;
 	int previous_need_motion;
 
 	/* functions */

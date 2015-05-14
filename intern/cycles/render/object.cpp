@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "camera.h"
 #include "device.h"
 #include "light.h"
 #include "mesh.h"
@@ -192,6 +193,7 @@ void Object::tag_update(Scene *scene)
 		}
 	}
 
+	scene->camera->need_flags_update = true;
 	scene->curve_system_manager->need_update = true;
 	scene->mesh_manager->need_update = true;
 	scene->object_manager->need_update = true;
