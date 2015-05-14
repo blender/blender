@@ -2534,8 +2534,6 @@ static void project_paint_face_init(
 
 	int has_x_isect = 0, has_isect = 0; /* for early loop exit */
 
-	int i1, i2, i3;
-
 	float uv_clip[8][2];
 	int uv_clip_tot;
 	const bool is_ortho = ps->is_ortho;
@@ -2584,6 +2582,8 @@ static void project_paint_face_init(
 	}
 
 	do {
+		int i1, i2, i3;
+
 		if (side == 1) {
 			i1 = 0; i2 = 2; i3 = 3;
 		}
@@ -2778,7 +2778,7 @@ static void project_paint_face_init(
 				{
 					if (len_squared_v2v2(vCoSS[fidx1], vCoSS[fidx2]) > FLT_EPSILON) { /* avoid div by zero */
 						if (mf->v4) {
-							if (fidx1 == 2 || fidx2 == 2) side = 1;
+							if (fidx1 == 3 || fidx2 == 3) side = 1;
 							else side = 0;
 						}
 
@@ -2841,14 +2841,11 @@ static void project_paint_face_init(
 										{
 											/* Only bother calculating the weights if we intersect */
 											if (ps->do_mask_normal || ps->dm_mtface_clone) {
-												float uv_fac;
+												const float uv_fac = fac1 + (fac * (fac2 - fac1));
 #if 0
 												/* get the UV on the line since we want to copy the pixels from there for bleeding */
 												float uv_close[2];
-												uv_fac = closest_to_line_v2(uv_close, uv, tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2]);
-												if      (uv_fac < 0.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx1]);
-												else if (uv_fac > 1.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx2]);
-
+												interp_v2_v2v2(uv_close, tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2], uv_fac);
 												if (side) {
 													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv_close, w);
 												}
@@ -2858,8 +2855,6 @@ static void project_paint_face_init(
 #else
 
 												/* Cheat, we know where we are along the edge so work out the weights from that */
-												uv_fac = fac1 + (uv_fac * (fac2 - fac1));
-
 												w[0] = w[1] = w[2] = 0.0;
 												if (side) {
 													w[fidx1 ? fidx1 - 1 : 0] = 1.0f - uv_fac;
@@ -2874,8 +2869,8 @@ static void project_paint_face_init(
 
 											/* a pity we need to get the worldspace pixel location here */
 											if (do_clip || do_3d_mapping) {
-												if (side) interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
-												else      interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
+												if (side) interp_v3_v3v3v3(wco, vCo[0], vCo[2], vCo[3], w);
+												else      interp_v3_v3v3v3(wco, vCo[0], vCo[1], vCo[2], w);
 
 												if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, true)) {
 													continue; /* Watch out that no code below this needs to run */
