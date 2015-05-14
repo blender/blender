@@ -806,68 +806,74 @@ void KX_GameObject::AddLodMesh(RAS_MeshObject* mesh)
 	m_lodmeshes.push_back(mesh);
 }
 
+
+static float calcHysteresis(KX_Scene *kxscene, LodLevel *lod)
+{
+	float hystvariance = 0.0f;
+
+	if (!kxscene->IsActivedLodHysteresis())
+		return hystvariance;
+			
+	short hysteresis = 0;
+	// if exists, LoD level hysteresis will override scene hysteresis
+	if (lod->next->flags & OB_LOD_USE_HYST)
+		hysteresis = lod->next->obhysteresis;
+	else
+		hysteresis = kxscene->GetLodHysteresisValue();
+
+	return hystvariance = MT_abs(lod->next->distance - lod->distance) * hysteresis / 100;
+}
+
 void KX_GameObject::UpdateLod(MT_Vector3 &cam_pos)
 {
 	// Handle dupligroups
-	if (this->m_pInstanceObjects) {
-		KX_GameObject * instob;
-		int count = this->m_pInstanceObjects->GetCount();
+	if (m_pInstanceObjects) {
+		KX_GameObject *instob;
+		int count = m_pInstanceObjects->GetCount();
 		for (int i = 0; i < count; i++) {
-			instob = (KX_GameObject*)this->m_pInstanceObjects->GetValue(i);
+			instob = (KX_GameObject*)m_pInstanceObjects->GetValue(i);
 			instob->UpdateLod(cam_pos);
 		}
 	}
 
-	if (this->m_lodmeshes.empty()) return;
+	if (m_lodmeshes.empty())
+		return;
 
-	MT_Vector3 delta = this->NodeGetWorldPosition() - cam_pos;
+	MT_Vector3 delta = NodeGetWorldPosition() - cam_pos;
 	float distance2 = delta.length2();
 
 	int level = 0;
-	Object *bob = this->GetBlenderObject();
-	LodLevel *lod = (LodLevel*) bob->lodlevels.first;
-	KX_Scene *kxscene = this->GetScene();
+	float hystvariance = 0.0f;
+	Object *bob = GetBlenderObject();
+	LodLevel *lod = (LodLevel *)bob->lodlevels.first;
+	KX_Scene *kxscene = GetScene();
 
 	for (; lod; lod = lod->next, level++) {
-		if (!lod->source || lod->source->type != OB_MESH) level--;
-		if (!lod->next) break;
-		if (level == (this->m_previousLodLevel) || (level == (this->m_previousLodLevel + 1))) {
-			short hysteresis = 0;
-			if (kxscene->IsActivedLodHysteresis()) {
-				// if exists, LoD level hysteresis will override scene hysteresis
-				if (lod->next->flags & OB_LOD_USE_HYST) {
-					hysteresis = lod->next->obhysteresis;
-				}
-				else {
-					hysteresis = kxscene->GetLodHysteresisValue();
-				}
-			}
-			float hystvariance = MT_abs(lod->next->distance - lod->distance) * hysteresis / 100;
-			if ((lod->next->distance + hystvariance) * (lod->next->distance + hystvariance) > distance2)
+		if (!lod->source || lod->source->type != OB_MESH)
+			level--;
+
+		if (!lod->next)
+			break;
+
+		if (level == m_previousLodLevel || level == (m_previousLodLevel + 1)) {
+			hystvariance = calcHysteresis(kxscene, lod);
+			float newdistance = lod->next->distance + hystvariance;
+			if (newdistance * newdistance > distance2)
 				break;
 		}
-		else if (level == (this->m_previousLodLevel - 1)) {
-			short hysteresis = 0;
-			if (kxscene->IsActivedLodHysteresis()) {
-				// if exists, LoD level hysteresis will override scene hysteresis
-				if (lod->next->flags & OB_LOD_USE_HYST) {
-					hysteresis = lod->next->obhysteresis;
-				}
-				else {
-					hysteresis = kxscene->GetLodHysteresisValue();
-				}
-			}
-			float hystvariance = MT_abs(lod->next->distance - lod->distance) * hysteresis / 100;
-			if ((lod->next->distance - hystvariance) * (lod->next->distance - hystvariance) > distance2)
+		else if (level == (m_previousLodLevel - 1)) {
+			hystvariance = calcHysteresis(kxscene, lod);
+			float newdistance = lod->next->distance - hystvariance;
+			if (newdistance * newdistance > distance2)
 				break;
 		}
 	}
 
-	RAS_MeshObject *mesh = this->m_lodmeshes[level];
-	this->m_currentLodLevel = level;
-	if (mesh != this->m_meshes[0]) {
-		this->m_previousLodLevel = level;
-		this->GetScene()->ReplaceMesh(this, mesh, true, false);
+	RAS_MeshObject *mesh = m_lodmeshes[level];
+	m_currentLodLevel = level;
+	if (mesh != m_meshes[0]) {
+		m_previousLodLevel = level;
+		GetScene()->ReplaceMesh(this, mesh, true, false);
 	}
 }
 
