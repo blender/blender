@@ -32,22 +32,22 @@ ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, 
 		if(dy) *dy = 0.0f;
 #endif
 
-		return kernel_tex_fetch(__attributes_float, offset + sd->prim);
+		return kernel_tex_fetch(__attributes_float, offset + ccl_fetch(sd, prim));
 	}
 	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
-		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+		float4 curvedata = kernel_tex_fetch(__curves, ccl_fetch(sd, prim));
+		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(ccl_fetch(sd, type));
 		int k1 = k0 + 1;
 
 		float f0 = kernel_tex_fetch(__attributes_float, offset + k0);
 		float f1 = kernel_tex_fetch(__attributes_float, offset + k1);
 
 #ifdef __RAY_DIFFERENTIALS__
-		if(dx) *dx = sd->du.dx*(f1 - f0);
+		if(dx) *dx = ccl_fetch(sd, du).dx*(f1 - f0);
 		if(dy) *dy = 0.0f;
 #endif
 
-		return (1.0f - sd->u)*f0 + sd->u*f1;
+		return (1.0f - ccl_fetch(sd, u))*f0 + ccl_fetch(sd, u)*f1;
 	}
 	else {
 #ifdef __RAY_DIFFERENTIALS__
@@ -71,22 +71,22 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd
 		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 
-		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + sd->prim));
+		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + ccl_fetch(sd, prim)));
 	}
 	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
-		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+		float4 curvedata = kernel_tex_fetch(__curves, ccl_fetch(sd, prim));
+		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(ccl_fetch(sd, type));
 		int k1 = k0 + 1;
 
 		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + k0));
 		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + k1));
 
 #ifdef __RAY_DIFFERENTIALS__
-		if(dx) *dx = sd->du.dx*(f1 - f0);
+		if(dx) *dx = ccl_fetch(sd, du).dx*(f1 - f0);
 		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 
-		return (1.0f - sd->u)*f0 + sd->u*f1;
+		return (1.0f - ccl_fetch(sd, u))*f0 + ccl_fetch(sd, u)*f1;
 	}
 	else {
 #ifdef __RAY_DIFFERENTIALS__
@@ -104,22 +104,22 @@ ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 {
 	float r = 0.0f;
 
-	if(sd->type & PRIMITIVE_ALL_CURVE) {
-		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
+		float4 curvedata = kernel_tex_fetch(__curves, ccl_fetch(sd, prim));
+		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(ccl_fetch(sd, type));
 		int k1 = k0 + 1;
 
 		float4 P_curve[2];
 
-		if(sd->type & PRIMITIVE_CURVE) {
+		if(ccl_fetch(sd, type) & PRIMITIVE_CURVE) {
 			P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
 			P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
 		}
 		else {
-			motion_curve_keys(kg, sd->object, sd->prim, sd->time, k0, k1, P_curve);
+			motion_curve_keys(kg, ccl_fetch(sd, object), ccl_fetch(sd, prim), ccl_fetch(sd, time), k0, k1, P_curve);
 		}
 
-		r = (P_curve[1].w - P_curve[0].w) * sd->u + P_curve[0].w;
+		r = (P_curve[1].w - P_curve[0].w) * ccl_fetch(sd, u) + P_curve[0].w;
 	}
 
 	return r*2.0f;
@@ -130,8 +130,8 @@ ccl_device float curve_thickness(KernelGlobals *kg, ShaderData *sd)
 
 ccl_device float3 curve_motion_center_location(KernelGlobals *kg, ShaderData *sd)
 {
-	float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-	int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+	float4 curvedata = kernel_tex_fetch(__curves, ccl_fetch(sd, prim));
+	int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(ccl_fetch(sd, type));
 	int k1 = k0 + 1;
 
 	float4 P_curve[2];
@@ -139,7 +139,7 @@ ccl_device float3 curve_motion_center_location(KernelGlobals *kg, ShaderData *sd
 	P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
 	P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
 
-	return float4_to_float3(P_curve[1]) * sd->u + float4_to_float3(P_curve[0]) * (1.0f - sd->u);
+	return float4_to_float3(P_curve[1]) * ccl_fetch(sd, u) + float4_to_float3(P_curve[0]) * (1.0f - ccl_fetch(sd, u));
 }
 
 /* Curve tangent normal */
@@ -148,14 +148,14 @@ ccl_device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
 {	
 	float3 tgN = make_float3(0.0f,0.0f,0.0f);
 
-	if(sd->type & PRIMITIVE_ALL_CURVE) {
+	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
 
-		tgN = -(-sd->I - sd->dPdu * (dot(sd->dPdu,-sd->I) / len_squared(sd->dPdu)));
+		tgN = -(-ccl_fetch(sd, I) - ccl_fetch(sd, dPdu) * (dot(ccl_fetch(sd, dPdu),-ccl_fetch(sd, I)) / len_squared(ccl_fetch(sd, dPdu))));
 		tgN = normalize(tgN);
 
 		/* need to find suitable scaled gd for corrected normal */
 #if 0
-		tgN = normalize(tgN - gd * sd->dPdu);
+		tgN = normalize(tgN - gd * ccl_fetch(sd, dPdu));
 #endif
 	}
 
@@ -890,7 +890,7 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 
 	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
-		Transform tfm = sd->ob_itfm;
+		Transform tfm = ccl_fetch(sd, ob_itfm);
 #else
 		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
 #endif
@@ -903,7 +903,7 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
 	float4 v00 = kernel_tex_fetch(__curves, prim);
 
-	int k0 = __float_as_int(v00.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+	int k0 = __float_as_int(v00.x) + PRIMITIVE_UNPACK_SEGMENT(ccl_fetch(sd, type));
 	int k1 = k0 + 1;
 
 	float3 tg;
@@ -914,14 +914,14 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 
 		float4 P_curve[4];
 
-		if(sd->type & PRIMITIVE_CURVE) {
+		if(ccl_fetch(sd, type) & PRIMITIVE_CURVE) {
 			P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
 			P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
 			P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
 			P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
 		}
 		else {
-			motion_cardinal_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
+			motion_cardinal_curve_keys(kg, ccl_fetch(sd, object), ccl_fetch(sd, prim), ccl_fetch(sd, time), ka, k0, k1, kb, P_curve);
 		}
 
 		float3 p[4];
@@ -933,43 +933,43 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 		P = P + D*t;
 
 #ifdef __UV__
-		sd->u = isect->u;
-		sd->v = 0.0f;
+		ccl_fetch(sd, u) = isect->u;
+		ccl_fetch(sd, v) = 0.0f;
 #endif
 
 		tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
 
 		if(kernel_data.curve.curveflags & CURVE_KN_RIBBONS) {
-			sd->Ng = normalize(-(D - tg * (dot(tg, D))));
+			ccl_fetch(sd, Ng) = normalize(-(D - tg * (dot(tg, D))));
 		}
 		else {
 			/* direction from inside to surface of curve */
 			float3 p_curr = curvepoint(isect->u, p[0], p[1], p[2], p[3]);	
-			sd->Ng = normalize(P - p_curr);
+			ccl_fetch(sd, Ng) = normalize(P - p_curr);
 
 			/* adjustment for changing radius */
 			float gd = isect->v;
 
 			if(gd != 0.0f) {
-				sd->Ng = sd->Ng - gd * tg;
-				sd->Ng = normalize(sd->Ng);
+				ccl_fetch(sd, Ng) = ccl_fetch(sd, Ng) - gd * tg;
+				ccl_fetch(sd, Ng) = normalize(ccl_fetch(sd, Ng));
 			}
 		}
 
 		/* todo: sometimes the normal is still so that this is detected as
 		 * backfacing even if cull backfaces is enabled */
 
-		sd->N = sd->Ng;
+		ccl_fetch(sd, N) = ccl_fetch(sd, Ng);
 	}
 	else {
 		float4 P_curve[2];
 
-		if(sd->type & PRIMITIVE_CURVE) {
+		if(ccl_fetch(sd, type) & PRIMITIVE_CURVE) {
 			P_curve[0]= kernel_tex_fetch(__curve_keys, k0);
 			P_curve[1]= kernel_tex_fetch(__curve_keys, k1);
 		}
 		else {
-			motion_curve_keys(kg, sd->object, sd->prim, sd->time, k0, k1, P_curve);
+			motion_curve_keys(kg, ccl_fetch(sd, object), ccl_fetch(sd, prim), ccl_fetch(sd, time), k0, k1, P_curve);
 		}
 
 		float l = 1.0f;
@@ -980,39 +980,39 @@ ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, con
 		float3 dif = P - float4_to_float3(P_curve[0]);
 
 #ifdef __UV__
-		sd->u = dot(dif,tg)/l;
-		sd->v = 0.0f;
+		ccl_fetch(sd, u) = dot(dif,tg)/l;
+		ccl_fetch(sd, v) = 0.0f;
 #endif
 
 		if(flag & CURVE_KN_TRUETANGENTGNORMAL) {
-			sd->Ng = -(D - tg * dot(tg, D));
-			sd->Ng = normalize(sd->Ng);
+			ccl_fetch(sd, Ng) = -(D - tg * dot(tg, D));
+			ccl_fetch(sd, Ng) = normalize(ccl_fetch(sd, Ng));
 		}
 		else {
 			float gd = isect->v;
 
 			/* direction from inside to surface of curve */
-			sd->Ng = (dif - tg * sd->u * l) / (P_curve[0].w + sd->u * l * gd);
+			ccl_fetch(sd, Ng) = (dif - tg * ccl_fetch(sd, u) * l) / (P_curve[0].w + ccl_fetch(sd, u) * l * gd);
 
 			/* adjustment for changing radius */
 			if(gd != 0.0f) {
-				sd->Ng = sd->Ng - gd * tg;
-				sd->Ng = normalize(sd->Ng);
+				ccl_fetch(sd, Ng) = ccl_fetch(sd, Ng) - gd * tg;
+				ccl_fetch(sd, Ng) = normalize(ccl_fetch(sd, Ng));
 			}
 		}
 
-		sd->N = sd->Ng;
+		ccl_fetch(sd, N) = ccl_fetch(sd, Ng);
 	}
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
-	sd->dPdu = tg;
-	sd->dPdv = cross(tg, sd->Ng);
+	ccl_fetch(sd, dPdu) = tg;
+	ccl_fetch(sd, dPdv) = cross(tg, ccl_fetch(sd, Ng));
 #endif
 
 	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
-		Transform tfm = sd->ob_tfm;
+		Transform tfm = ccl_fetch(sd, ob_tfm);
 #else
 		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
 #endif

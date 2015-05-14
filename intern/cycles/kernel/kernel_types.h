@@ -109,6 +109,7 @@ CCL_NAMESPACE_BEGIN
 #    define __BACKGROUND_MIS__
 #    define __LAMP_MIS__
 #    define __AO__
+#    define __HAIR__
 #  endif
 #endif
 
@@ -148,6 +149,7 @@ CCL_NAMESPACE_BEGIN
 #    define __BACKGROUND_MIS__
 #    define __LAMP_MIS__
 #    define __AO__
+#    define __HAIR__
 #  endif
 #endif
 
