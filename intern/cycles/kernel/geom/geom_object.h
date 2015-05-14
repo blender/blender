@@ -453,7 +453,7 @@ ccl_device_inline void bvh_instance_pop_factor(KernelGlobals *kg, int object, co
 #ifdef __OBJECT_MOTION__
 /* Transform ray into object space to enter motion blurred object in BVH */
 
-ccl_device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, float *t, Transform *tfm)
+ccl_device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, ccl_addr_space float *t, Transform *tfm)
 {
 	Transform itfm;
 	*tfm = object_fetch_transform_motion_test(kg, object, ray->time, &itfm);
@@ -497,7 +497,7 @@ ccl_device_inline void qbvh_instance_motion_push(KernelGlobals *kg, int object, 
 
 /* Transorm ray to exit motion blurred object in BVH */
 
-ccl_device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, float *t, Transform *tfm)
+ccl_device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, ccl_addr_space float *t, Transform *tfm)
 {
 	if(*t != FLT_MAX)
 		*t *= len(transform_direction(tfm, 1.0f/(*idir)));

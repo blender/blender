@@ -37,13 +37,13 @@ CCL_NAMESPACE_BEGIN
 #ifdef __OBJECT_MOTION__
 ccl_device void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
 {
-	if(sd->flag & SD_OBJECT_MOTION) {
-		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time);
-		sd->ob_itfm = transform_quick_inverse(sd->ob_tfm);
+	if(ccl_fetch(sd, flag) & SD_OBJECT_MOTION) {
+		ccl_fetch(sd, ob_tfm) = object_fetch_transform_motion(kg, ccl_fetch(sd, object), time);
+		ccl_fetch(sd, ob_itfm) = transform_quick_inverse(ccl_fetch(sd, ob_tfm));
 	}
 	else {
-		sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-		sd->ob_itfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+		ccl_fetch(sd, ob_tfm) = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_TRANSFORM);
+		ccl_fetch(sd, ob_itfm) = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_INVERSE_TRANSFORM);
 	}
 }
 #endif

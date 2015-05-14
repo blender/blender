@@ -105,13 +105,14 @@ __kernel void kernel_ocl_path_trace_direct_lighting(
 				float light_u, light_v;
 				path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
-#ifdef __OBJECT_MOTION__
-				light_ray.time = sd->time;
-#endif
 				LightSample ls;
 				light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
 
 				Ray light_ray;
+#ifdef __OBJECT_MOTION__
+				light_ray.time = ccl_fetch(sd, time);
+#endif
+
 				BsdfEval L_light;
 				bool is_lamp;
 				if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce, sd_DL)) {
