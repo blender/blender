@@ -110,6 +110,7 @@ CCL_NAMESPACE_BEGIN
 #    define __LAMP_MIS__
 #    define __AO__
 #    define __HAIR__
+#    define __CAMERA_MOTION__
 #  endif
 #endif
 
@@ -150,6 +151,7 @@ CCL_NAMESPACE_BEGIN
 #    define __LAMP_MIS__
 #    define __AO__
 #    define __HAIR__
+#    define __CAMERA_MOTION__
 #  endif
 #endif
 
