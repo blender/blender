@@ -3850,7 +3850,7 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 #define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * U.pixelsize)
 #define WM_RADIAL_CONTROL_DISPLAY_WIDTH (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
 #define WM_RADIAL_CONTROL_HEADER_LENGTH 180
-#define WM_RADIAL_MAX_STR 6
+#define WM_RADIAL_MAX_STR 10
 
 typedef struct {
 	PropertyType type;
@@ -3896,9 +3896,11 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
 	switch (rc->subtype) {
 		case PROP_NONE:
 		case PROP_DISTANCE:
-		case PROP_PERCENTAGE:
 		case PROP_PIXEL:
 			d[0] = rc->initial_value * U.pixelsize;
+			break;
+		case PROP_PERCENTAGE:
+			d[0] = (100.0f - rc->initial_value) / 100.0f * WM_RADIAL_CONTROL_DISPLAY_WIDTH + WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
 			break;
 		case PROP_FACTOR:
 			d[0] = (1 - rc->initial_value) * WM_RADIAL_CONTROL_DISPLAY_WIDTH + WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
@@ -4005,10 +4007,18 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	switch (rc->subtype) {
 		case PROP_NONE:
 		case PROP_DISTANCE:
-		case PROP_PERCENTAGE:
 		case PROP_PIXEL:
 			r1 = rc->current_value * U.pixelsize;
 			r2 = rc->initial_value * U.pixelsize;
+			tex_radius = r1;
+			alpha = 0.75;
+			break;
+		case PROP_PERCENTAGE:
+			r1 = (100.0f - rc->current_value) / 100.0f * WM_RADIAL_CONTROL_DISPLAY_WIDTH + WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
+			r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
+			rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
+			BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3.1f%%", rc->current_value);
+			strdrawlen = BLI_strlen_utf8(str);
 			tex_radius = r1;
 			alpha = 0.75;
 			break;
@@ -4446,11 +4456,14 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 					switch (rc->subtype) {
 						case PROP_NONE:
 						case PROP_DISTANCE:
-						case PROP_PERCENTAGE:
 						case PROP_PIXEL:
 							new_value = dist;
 							if (snap) new_value = ((int)new_value + 5) / 10 * 10;
 							new_value /= U.pixelsize;
+							break;
+						case PROP_PERCENTAGE:
+							new_value = ((WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH) * 100.0f;
+							if (snap) new_value = ((int)(new_value + 2.5)) / 5 * 5;
 							break;
 						case PROP_FACTOR:
 							new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
