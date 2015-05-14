@@ -1374,7 +1374,7 @@ EOF
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D LLVM_ENABLE_FFI=ON"
     cmake_d="$cmake_d -D LLVM_TARGETS_TO_BUILD=X86"
-    cmake_d="$cmake_d -D -DLLVM_ENABLE_TERMINFO=OFF"
+    cmake_d="$cmake_d -D LLVM_ENABLE_TERMINFO=OFF"
 
     if [ -d $_FFI_INCLUDE_DIR ]; then
       cmake_d="$cmake_d -D FFI_INCLUDE_DIR=$_FFI_INCLUDE_DIR"
