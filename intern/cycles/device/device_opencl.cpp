@@ -1569,16 +1569,17 @@ public:
 	cl_mem ray_depth_sd_DL_shadow;
 	cl_mem transparent_depth_sd;
 	cl_mem transparent_depth_sd_DL_shadow;
-#ifdef __RAY_DIFFERENTIALS__
+
+	/* Ray differentials. */
 	cl_mem dP_sd, dI_sd;
 	cl_mem dP_sd_DL_shadow, dI_sd_DL_shadow;
 	cl_mem du_sd, dv_sd;
 	cl_mem du_sd_DL_shadow, dv_sd_DL_shadow;
-#endif
-#ifdef __DPDU__
+
+	/* Dp/Du */
 	cl_mem dPdu_sd, dPdv_sd;
 	cl_mem dPdu_sd_DL_shadow, dPdv_sd_DL_shadow;
-#endif
+
 	cl_mem closure_sd;
 	cl_mem closure_sd_DL_shadow;
 	cl_mem num_closure_sd;
@@ -1719,7 +1720,8 @@ public:
 		ray_depth_sd_DL_shadow = NULL;
 		transparent_depth_sd = NULL;
 		transparent_depth_sd_DL_shadow = NULL;
-#ifdef __RAY_DIFFERENTIALS__
+
+		/* Ray differentials. */
 		dP_sd = NULL;
 		dI_sd = NULL;
 		dP_sd_DL_shadow = NULL;
@@ -1728,13 +1730,13 @@ public:
 		dv_sd = NULL;
 		du_sd_DL_shadow = NULL;
 		dv_sd_DL_shadow = NULL;
-#endif
-#ifdef __DPDU__
+
+		/* Dp/Du */
 		dPdu_sd = NULL;
 		dPdv_sd = NULL;
 		dPdu_sd_DL_shadow = NULL;
 		dPdv_sd_DL_shadow = NULL;
-#endif
+
 		closure_sd = NULL;
 		closure_sd_DL_shadow = NULL;
 		num_closure_sd = NULL;
@@ -2088,7 +2090,8 @@ public:
 		release_mem_object_safe(ray_depth_sd_DL_shadow);
 		release_mem_object_safe(transparent_depth_sd);
 		release_mem_object_safe(transparent_depth_sd_DL_shadow);
-#ifdef __RAY_DIFFERENTIALS__
+
+		/* Ray differentials. */
 		release_mem_object_safe(dP_sd);
 		release_mem_object_safe(dP_sd_DL_shadow);
 		release_mem_object_safe(dI_sd);
@@ -2097,13 +2100,13 @@ public:
 		release_mem_object_safe(du_sd_DL_shadow);
 		release_mem_object_safe(dv_sd);
 		release_mem_object_safe(dv_sd_DL_shadow);
-#endif
-#ifdef __DPDU__
+
+		/* Dp/Du */
 		release_mem_object_safe(dPdu_sd);
 		release_mem_object_safe(dPdu_sd_DL_shadow);
 		release_mem_object_safe(dPdv_sd);
 		release_mem_object_safe(dPdv_sd_DL_shadow);
-#endif
+
 		release_mem_object_safe(closure_sd);
 		release_mem_object_safe(closure_sd_DL_shadow);
 		release_mem_object_safe(num_closure_sd);
@@ -2283,7 +2286,7 @@ public:
 			transparent_depth_sd = mem_alloc(num_global_elements * sizeof(int));
 			transparent_depth_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
 
-#ifdef __RAY_DIFFERENTIALS__
+			/* Ray differentials. */
 			dP_sd = mem_alloc(num_global_elements * sizeof(differential3));
 			dP_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential3));
 			dI_sd = mem_alloc(num_global_elements * sizeof(differential3));
@@ -2292,14 +2295,13 @@ public:
 			du_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential));
 			dv_sd = mem_alloc(num_global_elements * sizeof(differential));
 			dv_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential));
-#endif
 
-#ifdef __DPDU__
+			/* Dp/Du */
 			dPdu_sd = mem_alloc(num_global_elements * sizeof(float3));
 			dPdu_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
 			dPdv_sd = mem_alloc(num_global_elements * sizeof(float3));
 			dPdv_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-#endif
+
 			closure_sd = mem_alloc(num_global_elements * ShaderClosure_size);
 			closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * ShaderClosure_size);
 			num_closure_sd = mem_alloc(num_global_elements * sizeof(int));
@@ -2388,7 +2390,7 @@ public:
 		start_arg_index +=
 			kernel_set_args(ckPathTraceKernel_data_init,
 			                start_arg_index,
-#ifdef __RAY_DIFFERENTIALS__
+			                /* Ray differentials. */
 			                dP_sd,
 			                dP_sd_DL_shadow,
 			                dI_sd,
@@ -2397,13 +2399,13 @@ public:
 			                du_sd_DL_shadow,
 			                dv_sd,
 			                dv_sd_DL_shadow,
-#endif
-#ifdef __DPDU__
+
+			                /* Dp/Du */
 			                dPdu_sd,
 			                dPdu_sd_DL_shadow,
 			                dPdv_sd,
 			                dPdv_sd_DL_shadow,
-#endif
+
 			                closure_sd,
 			                closure_sd_DL_shadow,
 			                num_closure_sd,
