@@ -1056,8 +1056,6 @@ static void draw_manipulator_rotate(
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 			postOrtho(ortho);
 		}
-
-		if (arcs) glDisable(GL_CLIP_PLANE0);
 	}
 	// donut arcs
 	if (arcs) {

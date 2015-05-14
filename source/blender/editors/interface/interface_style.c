@@ -323,10 +323,14 @@ void UI_fontstyle_draw_simple_backdrop(
 /* XXX: read a style configure */
 uiStyle *UI_style_get(void)
 {
+#if 0
 	uiStyle *style = NULL;
 	/* offset is two struct uiStyle pointers */
-	/* style = BLI_findstring(&U.uistyles, "Unifont Style", sizeof(style) * 2) */;
+	style = BLI_findstring(&U.uistyles, "Unifont Style", sizeof(style) * 2);
 	return (style != NULL) ? style : U.uistyles.first;
+#else
+	return U.uistyles.first;
+#endif
 }
 
 /* for drawing, scaled with DPI setting */

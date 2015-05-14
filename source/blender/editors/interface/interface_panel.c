@@ -1215,7 +1215,6 @@ static void ui_panel_drag_collapse(bContext *C, uiPanelDragCollapseHandle *dragc
 		rect.ymin = rect.ymax;
 		rect.ymax = rect.ymin + PNL_HEADER;
 		if (pa->flag & PNL_CLOSEDX) {
-			rect.xmin = rect.xmin;
 			rect.xmax = rect.xmin + PNL_HEADER;
 		}
 

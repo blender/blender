@@ -1263,16 +1263,22 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
 		ar->winrct = *remainder;
 		
-		if (alignment == RGN_ALIGN_TOP)
-			ar->winrct.ymin = ar->winrct.ymax;
-		else if (alignment == RGN_ALIGN_BOTTOM)
-			ar->winrct.ymax = ar->winrct.ymin;
-		else if (alignment == RGN_ALIGN_RIGHT)
-			ar->winrct.xmin = ar->winrct.xmax;
-		else if (alignment == RGN_ALIGN_LEFT)
-			ar->winrct.xmax = ar->winrct.xmin;
-		else /* prevent winrct to be valid */
-			ar->winrct.xmax = ar->winrct.xmin;
+		switch (alignment) {
+			case RGN_ALIGN_TOP:
+				ar->winrct.ymin = ar->winrct.ymax;
+				break;
+			case RGN_ALIGN_BOTTOM:
+				ar->winrct.ymax = ar->winrct.ymin;
+				break;
+			case RGN_ALIGN_RIGHT:
+				ar->winrct.xmin = ar->winrct.xmax;
+				break;
+			case RGN_ALIGN_LEFT:
+			default:
+				/* prevent winrct to be valid */
+				ar->winrct.xmax = ar->winrct.xmin;
+				break;
+		}
 	}
 
 	/* restore prev-split exception */
@@ -2161,7 +2167,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, rctf rect, int fontid, const bool i
 
 static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 {
-	char str[MAX_METADATA_STR];
+	char str[MAX_METADATA_STR] = "";
 	short i, count = 0;
 	const float height = BLF_height_max(fontid) + 0.1f * U.widget_unit;
 

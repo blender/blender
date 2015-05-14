@@ -1173,7 +1173,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 	CTX_wm_operator_poll_msg_set(C, NULL);
 
 	/* dummie test */
-	if (ot && C) {
+	if (ot) {
 		wmWindow *window = CTX_wm_window(C);
 
 		switch (context) {
@@ -2434,7 +2434,7 @@ void wm_event_do_handlers(bContext *C)
 
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				 * doing it on ghost queue gives errors when mousemoves go over area borders */
-				if (doit && win->screen && win->screen->subwinactive != win->screen->mainwin) {
+				if (doit && win->screen->subwinactive != win->screen->mainwin) {
 					win->eventstate->prevx = event->x;
 					win->eventstate->prevy = event->y;
 					//printf("win->eventstate->prev = %d %d\n", event->x, event->y);

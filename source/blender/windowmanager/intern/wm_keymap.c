@@ -546,7 +546,7 @@ static void wm_keymap_diff(wmKeyMap *diff_km, wmKeyMap *from_km, wmKeyMap *to_km
 		if (to_kmi) {
 			orig_kmi = WM_keymap_item_find_id(orig_km, kmi->id);
 
-			if (!orig_kmi)
+			if (!orig_kmi && addon_km)
 				orig_kmi = wm_keymap_find_item_equals(addon_km, kmi);
 
 			if (orig_kmi) {

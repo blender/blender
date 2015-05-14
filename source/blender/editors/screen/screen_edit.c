@@ -1748,7 +1748,9 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 			newsa = sa;
 		}
 	}
-	
+
+	BLI_assert(newsa);
+
 	if (sa && (sa->spacetype != type)) {
 		newsa->flag |= AREA_FLAG_TEMP_TYPE;
 	}

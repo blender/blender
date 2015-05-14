@@ -1427,7 +1427,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if (down || top) {
 			if (dir1 == UI_DIR_UP   && top == 0)  dir1 = UI_DIR_DOWN;
 			if (dir1 == UI_DIR_DOWN && down == 0) dir1 = UI_DIR_UP;
-			if (dir2 == UI_DIR_UP   && top == 0)  dir2 = UI_DIR_DOWN;
+			/* dir2 is never set to UI_DIR_UP here */
+//			if (dir2 == UI_DIR_UP   && top == 0)  dir2 = UI_DIR_DOWN;
 			if (dir2 == UI_DIR_DOWN && down == 0) dir2 = UI_DIR_UP;
 		}
 

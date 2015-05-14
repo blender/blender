@@ -3055,7 +3055,7 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
 	ANIM_animdata_freelist(&anim_data);
 
 	/* F-Curve may not have any keyframes */
-	if (fcu->bezt) {
+	if (fcu && fcu->bezt) {
 		BezTriple *bezt;
 
 		if (!extend) {
