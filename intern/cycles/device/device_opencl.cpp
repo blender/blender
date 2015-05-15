@@ -2000,6 +2000,9 @@ public:
 #ifdef __WORK_STEALING__
 		common_custom_build_options += "-D__WORK_STEALING__ ";
 #endif
+		if(requested_features.experimental) {
+			common_custom_build_options += "-D__KERNEL_EXPERIMENTAL__ ";
+		}
 
 #define LOAD_KERNEL(program, name) \
 	do { \
