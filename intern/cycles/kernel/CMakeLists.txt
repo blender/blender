@@ -191,7 +191,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
 	macro(CYCLES_CUDA_KERNEL_ADD arch experimental)
 		if(${experimental})
-			set(cuda_extra_flags "-D__KERNEL_CUDA_EXPERIMENTAL__")
+			set(cuda_extra_flags "-D__KERNEL_EXPERIMENTAL__")
 			set(cuda_cubin kernel_experimental_${arch}.cubin)
 		else()
 			set(cuda_extra_flags "")

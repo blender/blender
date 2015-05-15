@@ -87,7 +87,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     last_cubin_file = None
 
     configs = (("kernel_%s.cubin", ''),
-               ("kernel_experimental_%s.cubin", ' -D__KERNEL_CUDA_EXPERIMENTAL__'))
+               ("kernel_experimental_%s.cubin", ' -D__KERNEL_EXPERIMENTAL__'))
 
     # add command for each cuda architecture
     for arch in cuda_archs:

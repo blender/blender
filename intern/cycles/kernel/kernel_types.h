@@ -84,7 +84,7 @@ CCL_NAMESPACE_BEGIN
 #define __VOLUME_SCATTER__
 
 /* Experimental on GPU */
-#ifdef __KERNEL_CUDA_EXPERIMENTAL__
+#ifdef __KERNEL_EXPERIMENTAL__
 #define __SUBSURFACE__
 #define __CMJ__
 #endif

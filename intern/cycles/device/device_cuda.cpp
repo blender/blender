@@ -281,7 +281,7 @@ public:
 			nvcc, major, minor, machine, kernel.c_str(), cubin.c_str(), include.c_str(), cuda_version);
 		
 		if(experimental)
-			command += " -D__KERNEL_CUDA_EXPERIMENTAL__";
+			command += " -D__KERNEL_EXPERIMENTAL__";
 
 		if(getenv("CYCLES_CUDA_EXTRA_CFLAGS")) {
 			command += string(" ") + getenv("CYCLES_CUDA_EXTRA_CFLAGS");
