@@ -1454,7 +1454,7 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 	else {
 		for (edindex = 0; edindex < totedgesel; edindex += 1) {
 			eed = edarray[edindex];
-			walker_select(em, BMW_LOOP, eed, true);
+			walker_select(em, BMW_EDGELOOP, eed, true);
 		}
 		EDBM_selectmode_flush(em);
 	}
@@ -1512,12 +1512,12 @@ static void mouse_mesh_loop_edge(BMEditMesh *em, BMEdge *eed, bool select, bool 
 {
 	bool edge_boundary = false;
 
-	/* cycle between BMW_LOOP / BMW_EDGEBOUNDARY  */
+	/* cycle between BMW_EDGELOOP / BMW_EDGEBOUNDARY  */
 	if (select_cycle && BM_edge_is_boundary(eed)) {
 		int tot[2];
 
 		/* if the loops selected toggle the boundaries */
-		walker_select_count(em, BMW_LOOP, eed, select, false,
+		walker_select_count(em, BMW_EDGELOOP, eed, select, false,
 		                    &tot[0], &tot[1]);
 		if (tot[select] == 0) {
 			edge_boundary = true;
@@ -1539,7 +1539,7 @@ static void mouse_mesh_loop_edge(BMEditMesh *em, BMEdge *eed, bool select, bool 
 		walker_select(em, BMW_EDGEBOUNDARY, eed, select);
 	}
 	else {
-		walker_select(em, BMW_LOOP, eed, select);
+		walker_select(em, BMW_EDGELOOP, eed, select);
 	}
 }
 

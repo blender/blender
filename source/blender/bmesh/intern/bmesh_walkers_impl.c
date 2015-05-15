@@ -543,9 +543,9 @@ static bool bm_edge_is_single(BMEdge *e)
 	        (BM_edge_is_boundary(e->l->next->e) || BM_edge_is_boundary(e->l->prev->e)));
 }
 
-static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
+static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
 {
-	BMwLoopWalker *lwalk = NULL, owalk, *owalk_pt;
+	BMwEdgeLoopWalker *lwalk = NULL, owalk, *owalk_pt;
 	BMEdge *e = data;
 	BMVert *v;
 	const int vert_edge_count[2] = {
@@ -593,7 +593,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 
 	/* rewind */
 	while ((owalk_pt = BMW_current_state(walker))) {
-		owalk = *((BMwLoopWalker *)owalk_pt);
+		owalk = *((BMwEdgeLoopWalker *)owalk_pt);
 		BMW_walk(walker);
 	}
 
@@ -606,16 +606,16 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	BLI_gset_insert(walker->visit_set, owalk.cur);
 }
 
-static void *bmw_LoopWalker_yield(BMWalker *walker)
+static void *bmw_EdgeLoopWalker_yield(BMWalker *walker)
 {
-	BMwLoopWalker *lwalk = BMW_current_state(walker);
+	BMwEdgeLoopWalker *lwalk = BMW_current_state(walker);
 
 	return lwalk->cur;
 }
 
-static void *bmw_LoopWalker_step(BMWalker *walker)
+static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
 {
-	BMwLoopWalker *lwalk, owalk;
+	BMwEdgeLoopWalker *lwalk, owalk;
 	BMEdge *e, *nexte = NULL;
 	BMLoop *l;
 	BMVert *v;
@@ -1278,12 +1278,12 @@ static BMWalker bmw_IslandWalker_Type = {
 	BM_EDGE | BM_FACE, /* valid restrict masks */
 };
 
-static BMWalker bmw_LoopWalker_Type = {
+static BMWalker bmw_EdgeLoopWalker_Type = {
 	BM_EDGE,
-	bmw_LoopWalker_begin,
-	bmw_LoopWalker_step,
-	bmw_LoopWalker_yield,
-	sizeof(BMwLoopWalker),
+	bmw_EdgeLoopWalker_begin,
+	bmw_EdgeLoopWalker_step,
+	bmw_EdgeLoopWalker_yield,
+	sizeof(BMwEdgeLoopWalker),
 	BMW_DEPTH_FIRST,
 	0, /* valid restrict masks */ /* could add flags here but so far none are used */
 };
@@ -1341,7 +1341,7 @@ static BMWalker bmw_ConnectedVertexWalker_Type = {
 BMWalker *bm_walker_types[] = {
 	&bmw_VertShellWalker_Type,          /* BMW_VERT_SHELL */
 	&bmw_FaceShellWalker_Type,          /* BMW_FACE_SHELL */
-	&bmw_LoopWalker_Type,               /* BMW_LOOP */
+	&bmw_EdgeLoopWalker_Type,           /* BMW_EDGELOOP */
 	&bmw_FaceLoopWalker_Type,           /* BMW_FACELOOP */
 	&bmw_EdgeringWalker_Type,           /* BMW_EDGERING */
 	&bmw_EdgeboundaryWalker_Type,       /* BMW_EDGEBOUNDARY */
