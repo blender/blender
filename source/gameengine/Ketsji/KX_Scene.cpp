@@ -823,8 +823,9 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	// the logic must be replicated first because we need
 	// the new logic bricks before relinking
 	vector<KX_GameObject*>::iterator git;
-	for (git = m_logicHierarchicalGameObjects.begin(); git != m_logicHierarchicalGameObjects.end()); ++git) {
+	for (git = m_logicHierarchicalGameObjects.begin(); git != m_logicHierarchicalGameObjects.end(); ++git) {
 		KX_GameObject *gameobj = *git;
+
 		gameobj->ReParentLogic();
 
 		//	relink any pointers as necessary, sort of a temporary solution
