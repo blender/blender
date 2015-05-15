@@ -889,11 +889,9 @@ int UI_icon_get_height(int icon_id)
 
 void UI_icons_init(int first_dyn_id)
 {
-#ifdef WITH_HEADLESS
-	(void)first_dyn_id;
-#else
-	init_iconfile_list(&iconfilelist);
 	BKE_icons_init(first_dyn_id);
+#ifndef WITH_HEADLESS
+	init_iconfile_list(&iconfilelist);
 	init_internal_icons();
 	init_brush_icons();
 	init_matcap_icons();
