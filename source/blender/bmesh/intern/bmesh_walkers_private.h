@@ -45,6 +45,11 @@ typedef struct BMwShellWalker {
 	BMEdge *curedge;
 } BMwShellWalker;
 
+typedef struct BMwLoopShellWalker {
+	BMwGenericWalker header;
+	BMLoop *curloop;
+} BMwLoopShellWalker;
+
 typedef struct BMwIslandboundWalker {
 	BMwGenericWalker header;
 	BMLoop *base;

@@ -223,6 +223,121 @@ static void *bmw_VertShellWalker_step(BMWalker *walker)
 
 /** \} */
 
+/** \name LoopShell Walker
+ * \{
+ *
+ * Starts at any element on the mesh and walks over the 'shell' it belongs
+ * to via visiting connected loops.
+ *
+ * \note this is mainly useful to loop over a shell delimited by edges.
+ */
+static void bmw_LoopShellWalker_visitLoop(BMWalker *walker, BMLoop *l)
+{
+	BMwLoopShellWalker *shellWalk = NULL;
+
+	if (BLI_gset_haskey(walker->visit_set, l)) {
+		return;
+	}
+
+	shellWalk = BMW_state_add(walker);
+	shellWalk->curloop = l;
+	BLI_gset_insert(walker->visit_set, l);
+}
+
+static void bmw_LoopShellWalker_begin(BMWalker *walker, void *data)
+{
+	BMIter iter;
+	BMHeader *h = data;
+
+	if (UNLIKELY(h == NULL)) {
+		return;
+	}
+
+	switch (h->htype) {
+		case BM_LOOP:
+		{
+			/* starting the walk at a vert, add all the edges
+			 * to the worklist */
+			BMLoop *l = (BMLoop *)h;
+			bmw_LoopShellWalker_visitLoop(walker, l);
+			break;
+		}
+
+		case BM_VERT:
+		{
+			BMVert *v = (BMVert *)h;
+			BMLoop *l;
+			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+				bmw_LoopShellWalker_visitLoop(walker, l);
+			}
+			break;
+		}
+		case BM_EDGE:
+		{
+			BMEdge *e = (BMEdge *)h;
+			BMLoop *l;
+			BM_ITER_ELEM (l, &iter, e, BM_LOOPS_OF_EDGE) {
+				bmw_LoopShellWalker_visitLoop(walker, l);
+			}
+			break;
+		}
+		case BM_FACE:
+		{
+			BMFace *f = (BMFace *)h;
+			BMLoop *l = BM_FACE_FIRST_LOOP(f);
+			/* walker will handle other loops within the face */
+			bmw_LoopShellWalker_visitLoop(walker, l);
+			break;
+		}
+		default:
+			BLI_assert(0);
+	}
+}
+
+static void *bmw_LoopShellWalker_yield(BMWalker *walker)
+{
+	BMwLoopShellWalker *shellWalk = BMW_current_state(walker);
+	return shellWalk->curloop;
+}
+
+static void *bmw_LoopShellWalker_step(BMWalker *walker)
+{
+	BMwLoopShellWalker *swalk, owalk;
+	BMLoop *l;
+	int i;
+	BMEdge *e_edj_pair[2];
+
+	BMW_state_remove_r(walker, &owalk);
+	swalk = &owalk;
+
+	l = swalk->curloop;
+	bmw_LoopShellWalker_visitLoop(walker, l->next);
+	bmw_LoopShellWalker_visitLoop(walker, l->prev);
+
+	e_edj_pair[0] = l->e;
+	e_edj_pair[1] = l->prev->e;
+
+	for (i = 0; i < 2; i++) {
+		BMEdge *e = e_edj_pair[i];
+		if (bmw_mask_check_edge(walker, e)) {
+			BMLoop *l_iter, *l_first;
+
+			l_iter = l_first = e->l;
+			do {
+				BMLoop *l_radial = (l_iter->v == l->v) ? l_iter : l_iter->next;
+				BLI_assert(l_radial->v == l->v);
+				if (l != l_radial) {
+					bmw_LoopShellWalker_visitLoop(walker, l_radial);
+				}
+			} while ((l_iter = l_iter->radial_next) != l_first);
+		}
+	}
+
+	return l;
+}
+
+/** \} */
+
 
 /** \name FaceShell Walker
  * \{
@@ -1248,6 +1363,16 @@ static BMWalker bmw_VertShellWalker_Type = {
 	BM_EDGE, /* valid restrict masks */
 };
 
+static BMWalker bmw_LoopShellWalker_Type = {
+	BM_LOOP | BM_VERT | BM_EDGE,
+	bmw_LoopShellWalker_begin,
+	bmw_LoopShellWalker_step,
+	bmw_LoopShellWalker_yield,
+	sizeof(BMwLoopShellWalker),
+	BMW_BREADTH_FIRST,
+	BM_EDGE, /* valid restrict masks */
+};
+
 static BMWalker bmw_FaceShellWalker_Type = {
 	BM_EDGE,
 	bmw_FaceShellWalker_begin,
@@ -1340,6 +1465,7 @@ static BMWalker bmw_ConnectedVertexWalker_Type = {
 
 BMWalker *bm_walker_types[] = {
 	&bmw_VertShellWalker_Type,          /* BMW_VERT_SHELL */
+	&bmw_LoopShellWalker_Type,          /* BMW_LOOP_SHELL */
 	&bmw_FaceShellWalker_Type,          /* BMW_FACE_SHELL */
 	&bmw_EdgeLoopWalker_Type,           /* BMW_EDGELOOP */
 	&bmw_FaceLoopWalker_Type,           /* BMW_FACELOOP */

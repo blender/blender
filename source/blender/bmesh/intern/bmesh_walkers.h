@@ -93,6 +93,11 @@ void  BMW_state_remove(BMWalker *walker);
 void *BMW_walk(BMWalker *walker);
 void  BMW_reset(BMWalker *walker);
 
+#define BMW_ITER(ele, walker, data) \
+	for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMW_begin(walker, (BM_CHECK_TYPE_ELEM(data), data)); \
+	     ele; \
+	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMW_step(walker))
+
 /*
  * example of usage, walking over an island of tool flagged faces:
  *
@@ -109,6 +114,7 @@ void  BMW_reset(BMWalker *walker);
 
 enum {
 	BMW_VERT_SHELL,
+	BMW_LOOP_SHELL,
 	BMW_FACE_SHELL,
 	BMW_EDGELOOP,
 	BMW_FACELOOP,
