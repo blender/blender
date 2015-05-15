@@ -71,6 +71,12 @@
 
 #include "WM_api.h"  /* only for WM_main_playanim */
 
+/* simple limiter to avoid flooding memory */
+#define USE_FRAME_CACHE_LIMIT
+#ifdef USE_FRAME_CACHE_LIMIT
+#  define PLAY_FRAME_CACHE_MAX 30
+#endif
+
 struct PlayState;
 static void playanim_window_zoom(struct PlayState *ps, const float zoom_offset);
 
@@ -223,10 +229,13 @@ typedef struct PlayAnimPict {
 
 static struct ListBase picsbase = {NULL, NULL};
 /* frames in memory - store them here to for easy deallocation later */
-static struct ListBase inmempicsbase = {NULL, NULL};
-static int added_images = 0;
 static bool fromdisk = false;
 static double ptottime = 0.0, swaptime = 0.04;
+
+#ifdef USE_FRAME_CACHE_LIMIT
+static struct ListBase inmempicsbase = {NULL, NULL};
+static int added_images = 0;
+#endif
 
 static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
 {
@@ -1133,16 +1142,20 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 			}
 
 			if (ibuf) {
+#ifdef USE_FRAME_CACHE_LIMIT
 				LinkData *node;
+#endif
 
 #ifdef USE_IMB_CACHE
 				ps.picture->ibuf = ibuf;
 #endif
+
+#ifdef USE_FRAME_CACHE_LIMIT
 				/* really basic memory conservation scheme. Keep frames in a fifo queue */
 				node = inmempicsbase.last;
 
-				while (added_images > 30) {
-					PlayAnimPict *pic = (PlayAnimPict *)node->data;
+				while (added_images > PLAY_FRAME_CACHE_MAX) {
+					PlayAnimPict *pic = node->data;
 
 					if (pic->ibuf != ibuf) {
 						LinkData *node_tmp;
@@ -1160,6 +1173,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 				BLI_addhead(&inmempicsbase, BLI_genericNodeN(ps.picture));
 				added_images++;
+#endif  /* USE_FRAME_CACHE_LIMIT */
 
 				BLI_strncpy(ibuf->name, ps.picture->name, sizeof(ibuf->name));
 
