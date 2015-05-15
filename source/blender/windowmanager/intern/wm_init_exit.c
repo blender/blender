@@ -179,9 +179,11 @@ void WM_init(bContext *C, int argc, const char **argv)
 		GPU_set_linear_mipmap(true);
 		GPU_set_anisotropic(U.anisotropic_filter);
 		GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
-
-		UI_init();
 	}
+
+	/* Note: Currently only inits icons, which we now want in background mode too (scripts could use those in background
+	 *       processing...). In case we do more later, we may need to pass a 'background' flag. */
+	UI_init();
 
 	ED_spacemacros_init();
 
