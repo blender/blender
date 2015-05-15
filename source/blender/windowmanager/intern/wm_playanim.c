@@ -222,6 +222,9 @@ typedef struct PlayAnimPict {
 } PlayAnimPict;
 
 static struct ListBase picsbase = {NULL, NULL};
+/* frames in memory - store them here to for easy deallocation later */
+static struct ListBase inmempicsbase = {NULL, NULL};
+static int added_images = 0;
 static bool fromdisk = false;
 static double ptottime = 0.0, swaptime = 0.04;
 
@@ -1130,10 +1133,33 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 			}
 
 			if (ibuf) {
+				LinkData *node;
 
 #ifdef USE_IMB_CACHE
 				ps.picture->ibuf = ibuf;
 #endif
+				/* really basic memory conservation scheme. Keep frames in a fifo queue */
+				node = inmempicsbase.last;
+
+				while (added_images > 30) {
+					PlayAnimPict *pic = (PlayAnimPict *)node->data;
+
+					if (pic->ibuf != ibuf) {
+						LinkData *node_tmp;
+						IMB_freeImBuf(pic->ibuf);
+						pic->ibuf = NULL;
+						node_tmp = node->prev;
+						BLI_freelinkN(&inmempicsbase, node);
+						added_images--;
+						node = node_tmp;
+					}
+					else {
+						node = node->prev;
+					}
+				}
+
+				BLI_addhead(&inmempicsbase, BLI_genericNodeN(ps.picture));
+				added_images++;
 
 				BLI_strncpy(ibuf->name, ps.picture->name, sizeof(ibuf->name));
 
