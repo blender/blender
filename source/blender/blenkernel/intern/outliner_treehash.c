@@ -102,6 +102,9 @@ static void fill_treehash(void *treehash, BLI_mempool *treestore)
 	TreeStoreElem *tselem;
 	BLI_mempool_iter iter;
 	BLI_mempool_iternew(treestore, &iter);
+
+	BLI_assert(treehash);
+
 	while ((tselem = BLI_mempool_iterstep(&iter))) {
 		BKE_outliner_treehash_add_element(treehash, tselem);
 	}
@@ -121,6 +124,8 @@ static void free_treehash_group(void *key)
 
 void *BKE_outliner_treehash_rebuild_from_treestore(void *treehash, BLI_mempool *treestore)
 {
+	BLI_assert(treehash);
+
 	BLI_ghash_clear_ex(treehash, NULL, free_treehash_group, BLI_mempool_count(treestore));
 	fill_treehash(treehash, treestore);
 	return treehash;
@@ -144,12 +149,19 @@ static TseGroup *BKE_outliner_treehash_lookup_group(GHash *th, short type, short
 	tse_template.type = type;
 	tse_template.nr = type ? nr : 0;  // we're picky! :)
 	tse_template.id = id;
+
+	BLI_assert(th);
+
 	return BLI_ghash_lookup(th, &tse_template);
 }
 
 TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash, short type, short nr, struct ID *id)
 {
-	TseGroup *group = BKE_outliner_treehash_lookup_group(treehash, type, nr, id);
+	TseGroup *group;
+
+	BLI_assert(treehash);
+
+	group = BKE_outliner_treehash_lookup_group(treehash, type, nr, id);
 	if (group) {
 		int i;
 		for (i = 0; i < group->size; i++) {
@@ -163,11 +175,17 @@ TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash, short type, s
 
 TreeStoreElem *BKE_outliner_treehash_lookup_any(void *treehash, short type, short nr, struct ID *id)
 {
-	TseGroup *group = BKE_outliner_treehash_lookup_group(treehash, type, nr, id);
+	TseGroup *group;
+
+	BLI_assert(treehash);
+
+	group = BKE_outliner_treehash_lookup_group(treehash, type, nr, id);
 	return group ? group->elems[0] : NULL;
 }
 
 void BKE_outliner_treehash_free(void *treehash)
 {
+	BLI_assert(treehash);
+
 	BLI_ghash_free(treehash, NULL, free_treehash_group);
 }
