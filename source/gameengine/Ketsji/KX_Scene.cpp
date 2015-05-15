@@ -823,38 +823,29 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	// the logic must be replicated first because we need
 	// the new logic bricks before relinking
 	vector<KX_GameObject*>::iterator git;
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
-		(*git)->ReParentLogic();
-	}
-	
-	//	relink any pointers as necessary, sort of a temporary solution
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
-		// this will also relink the actuator to objects within the hierarchy
-		(*git)->Relink(&m_map_gameobject_to_replica);
-		// add the object in the layer of the parent
-		(*git)->SetLayer(groupobj->GetLayer());
-	}
+	for (git = m_logicHierarchicalGameObjects.begin(); git != m_logicHierarchicalGameObjects.end()); ++git) {
+		KX_GameObject *gameobj = *git;
+		gameobj->ReParentLogic();
 
-	// replicate crosslinks etc. between logic bricks
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
-		ReplicateLogic((*git));
-	}
+		//	relink any pointers as necessary, sort of a temporary solution
+		// this will also relink the actuator to objects within the hierarchy
+		gameobj->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		gameobj->SetLayer(groupobj->GetLayer());
+
+		// replicate crosslinks etc. between logic bricks
+		ReplicateLogic(gameobj);
 	
-	// now look if object in the hierarchy have dupli group and recurse
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
+		// now look if object in the hierarchy have dupli group and recurse
 		/* Replicate all constraints. */
-		if ((*git)->GetPhysicsController()) {
-			(*git)->GetPhysicsController()->ReplicateConstraints((*git), m_logicHierarchicalGameObjects);
-			(*git)->ClearConstraints();
+		if (gameobj->GetPhysicsController()) {
+			gameobj->GetPhysicsController()->ReplicateConstraints(gameobj, m_logicHierarchicalGameObjects);
+			gameobj->ClearConstraints();
 		}
 
-		if ((*git) != groupobj && (*git)->IsDupliGroup())
+		if (gameobj != groupobj && gameobj->IsDupliGroup())
 			// can't instantiate group immediately as it destroys m_logicHierarchicalGameObjects
-			duplilist.push_back((*git));
+			duplilist.push_back(gameobj);
 	}
 
 	for (git = duplilist.begin(); !(git == duplilist.end()); ++git)
