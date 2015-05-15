@@ -1097,6 +1097,16 @@ protected:
 			build_options += "-D__KERNEL_OPENCL_NVIDIA__ "
 			                 "-cl-nv-maxrregcount=32 "
 			                 "-cl-nv-verbose ";
+
+			uint compute_capability_major, compute_capability_minor;
+			clGetDeviceInfo(cdDevice, CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV,
+			                sizeof(cl_uint), &compute_capability_major, NULL);
+			clGetDeviceInfo(cdDevice, CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV,
+			                sizeof(cl_uint), &compute_capability_minor, NULL);
+
+			build_options += string_printf("-D__COMPUTE_CAPABILITY__=%d ",
+			                               compute_capability_major * 100 +
+			                               compute_capability_minor * 10);
 		}
 
 		else if(platform_name == "Apple")
