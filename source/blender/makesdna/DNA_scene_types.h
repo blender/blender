@@ -1394,7 +1394,7 @@ typedef struct Scene {
 	ListBase transform_spaces;
 	
 	void *sound_scene;
-	void *sound_scene_handle;
+	void *playback_handle;
 	void *sound_scrub_handle;
 	void *speaker_handles;
 	
