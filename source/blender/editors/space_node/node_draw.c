@@ -125,7 +125,7 @@ void ED_node_tag_update_id(ID *id)
 		return;
 
 	/* TODO(sergey): With the new dependency graph it
-	 * should be just enough to ony tag ntree itself,
+	 * should be just enough to only tag ntree itself,
 	 * all the users of this tree will have update
 	 * flushed from the tree,
 	 */

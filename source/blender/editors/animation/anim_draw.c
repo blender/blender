@@ -389,7 +389,8 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
 	return 1.0f;
 }
 
-static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prevfra) {
+static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prevfra)
+{
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);

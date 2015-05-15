@@ -1510,8 +1510,8 @@ static void pbvh_bmesh_node_limit_ensure_fast(PBVH *bvh, BMFace **nodeinfo, BBC 
 		num_child2--;
 	}
 
-	/* at this point, faces should have been split along the array range sequencially, each sequencial
-	 * part belonging to one node only */
+	/* at this point, faces should have been split along the array range sequentially,
+	 * each sequential part belonging to one node only */
 	BLI_assert((num_child1 + num_child2) == node->totface);
 
 	node->child1 = child1 = BLI_memarena_alloc(arena, sizeof(FastNodeBuildInfo));

@@ -1104,7 +1104,7 @@ protected:
 			clGetDeviceInfo(cdDevice, CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV,
 			                sizeof(cl_uint), &compute_capability_minor, NULL);
 
-			build_options += string_printf("-D__COMPUTE_CAPABILITY__=%d ",
+			build_options += string_printf("-D__COMPUTE_CAPABILITY__=%u ",
 			                               compute_capability_major * 100 +
 			                               compute_capability_minor * 10);
 		}
@@ -1449,7 +1449,7 @@ public:
 };
 
 /* TODO(sergey): This is to keep tile split on OpenCL level working
- * for now, since withotu this viewport render does not work as it
+ * for now, since without this view-port render does not work as it
  * should.
  *
  * Ideally it'll be done on the higher level, but we need to get ready
@@ -1489,7 +1489,7 @@ public:
 		buffers = tile.buffers;
 	}
 
-	/* Split kernel is device global memory constained;
+	/* Split kernel is device global memory constrained;
 	 * hence split kernel cant render big tile size's in
 	 * one go. If the user sets a big tile size (big tile size
 	 * is a term relative to the available device global memory),
@@ -1536,7 +1536,7 @@ public:
 
 	/* Global memory variables [porting]; These memory is used for
 	 * co-operation between different kernels; Data written by one
-	 * kernel will be avaible to another kernel via this global
+	 * kernel will be available to another kernel via this global
 	 * memory.
 	 */
 	cl_mem rng_coop;

@@ -2633,7 +2633,7 @@ static void bmesh_edge_vert_swap__recursive(BMEdge *e, BMVert *v_dst, BMVert *v_
 
 /**
  * This function assumes l_sep is apart of a larger fan which has already been
- * isolated by calling bmesh_edge_separate to segragate it radially.
+ * isolated by calling bmesh_edge_separate to segregate it radially.
  */
 BMVert *bmesh_urmv_loop_region(BMesh *bm, BMLoop *l_sep)
 {

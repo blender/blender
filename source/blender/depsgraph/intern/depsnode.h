@@ -195,7 +195,7 @@ struct IDDepsNode : public DepsNode {
 	int layers;
 
 	/* Additional flags needed for scene evaluation.
-	 * TODO(sergey): Only needed for until really granual updates
+	 * TODO(sergey): Only needed for until really granular updates
 	 * of all the entities.
 	 */
 	int eval_flags;

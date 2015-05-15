@@ -467,7 +467,7 @@ typedef struct differential {
 
 typedef struct Ray {
 /* TODO(sergey): This is only needed because current AMD
- * compilet has hard time bulding the kernel with this
+ * compiler has hard time building the kernel with this
  * reshuffle. And at the same time reshuffle will cause
  * less optimal CPU code in certain places.
  *
