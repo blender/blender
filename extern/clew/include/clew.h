@@ -2751,6 +2751,30 @@ CLEW_FUN_EXPORT     PFNCLGETGLCONTEXTINFOKHR            __clewGetGLContextInfoKH
 #endif
 #define	clGetGLContextInfoKHR           CLEW_GET_FUN(__clewGetGLContextInfoKHR           )
 
+/* cl_ext */
+
+/******************************************
+ * cl_nv_device_attribute_query extension *
+ ******************************************/
+/* cl_nv_device_attribute_query extension - no extension #define since it has no functions */
+#define CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV       0x4000
+#define CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV       0x4001
+#define CL_DEVICE_REGISTERS_PER_BLOCK_NV            0x4002
+#define CL_DEVICE_WARP_SIZE_NV                      0x4003
+#define CL_DEVICE_GPU_OVERLAP_NV                    0x4004
+#define CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV            0x4005
+#define CL_DEVICE_INTEGRATED_MEMORY_NV              0x4006
+
+/*********************************
+ * cl_amd_device_attribute_query *
+ *********************************/
+#define CL_DEVICE_PROFILING_TIMER_OFFSET_AMD        0x4036
+
+/*********************************
+ * cl_arm_printf extension
+ *********************************/
+#define CL_PRINTF_CALLBACK_ARM                      0x40B0
+#define CL_PRINTF_BUFFERSIZE_ARM                    0x40B1
 
 #define CLEW_SUCCESS                0       //!<    Success error code
 #define CLEW_ERROR_OPEN_FAILED      -1      //!<    Error code for failing to open the dynamic library
