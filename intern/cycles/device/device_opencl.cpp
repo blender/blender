@@ -102,37 +102,6 @@ static bool opencl_kernel_use_advanced_shading(const string& platform)
 	return false;
 }
 
-static string opencl_kernel_build_options(const string& platform, const string *debug_src = NULL)
-{
-	string build_options = " -cl-fast-relaxed-math ";
-
-	if(platform == "NVIDIA CUDA")
-		build_options += "-D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=32 -cl-nv-verbose ";
-
-	else if(platform == "Apple")
-		build_options += "-D__KERNEL_OPENCL_APPLE__ ";
-
-	else if(platform == "AMD Accelerated Parallel Processing")
-		build_options += "-D__KERNEL_OPENCL_AMD__ ";
-
-	else if(platform == "Intel(R) OpenCL") {
-		build_options += "-D__KERNEL_OPENCL_INTEL_CPU__ ";
-
-		/* options for gdb source level kernel debugging. this segfaults on linux currently */
-		if(opencl_kernel_use_debug() && debug_src)
-			build_options += "-g -s \"" + *debug_src + "\" ";
-	}
-
-	if(opencl_kernel_use_debug())
-		build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
-
-#ifdef WITH_CYCLES_DEBUG
-	build_options += "-D__KERNEL_DEBUG__ ";
-#endif
-
-	return build_options;
-}
-
 /* thread safe cache for contexts and programs */
 class OpenCLCache
 {
@@ -657,7 +626,7 @@ public:
 	                  const string *debug_src = NULL)
 	{
 		string build_options;
-		build_options = opencl_kernel_build_options(platform_name, debug_src) + custom_kernel_build_options;
+		build_options = kernel_build_options(debug_src) + custom_kernel_build_options;
 
 		ciErr = clBuildProgram(*kernel_program, 0, NULL, build_options.c_str(), NULL, NULL);
 
@@ -731,7 +700,7 @@ public:
 		md5.append((uint8_t*)name, strlen(name));
 		md5.append((uint8_t*)driver, strlen(driver));
 
-		string options = opencl_kernel_build_options(platform_name);
+		string options = kernel_build_options();
 		options += kernel_custom_build_options;
 		md5.append((uint8_t*)options.c_str(), options.size());
 
@@ -1119,6 +1088,43 @@ public:
 	virtual void thread_run(DeviceTask * /*task*/) = 0;
 
 protected:
+
+	string kernel_build_options(const string *debug_src = NULL)
+	{
+		string build_options = " -cl-fast-relaxed-math ";
+
+		if(platform_name == "NVIDIA CUDA") {
+			build_options += "-D__KERNEL_OPENCL_NVIDIA__ "
+			                 "-cl-nv-maxrregcount=32 "
+			                 "-cl-nv-verbose ";
+		}
+
+		else if(platform_name == "Apple")
+			build_options += "-D__KERNEL_OPENCL_APPLE__ ";
+
+		else if(platform_name == "AMD Accelerated Parallel Processing")
+			build_options += "-D__KERNEL_OPENCL_AMD__ ";
+
+		else if(platform_name == "Intel(R) OpenCL") {
+			build_options += "-D__KERNEL_OPENCL_INTEL_CPU__ ";
+
+			/* Options for gdb source level kernel debugging.
+			 * this segfaults on linux currently.
+			 */
+			if(opencl_kernel_use_debug() && debug_src)
+				build_options += "-g -s \"" + *debug_src + "\" ";
+		}
+
+		if(opencl_kernel_use_debug())
+			build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
+
+#ifdef WITH_CYCLES_DEBUG
+		build_options += "-D__KERNEL_DEBUG__ ";
+#endif
+
+		return build_options;
+	}
+
 	class ArgumentWrapper {
 	public:
 		ArgumentWrapper() : size(0), pointer(NULL) {}
