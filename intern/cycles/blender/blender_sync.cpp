@@ -36,6 +36,7 @@
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_opengl.h"
+#include "util_hash.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -195,6 +196,9 @@ void BlenderSync::sync_integrator()
 	integrator->filter_glossy = get_float(cscene, "blur_glossy");
 
 	integrator->seed = get_int(cscene, "seed");
+	if(get_boolean(cscene, "use_animated_seed"))
+		integrator->seed = hash_int_2d(b_scene.frame_current(), get_int(cscene, "seed"));
+
 	integrator->sampling_pattern = (SamplingPattern)RNA_enum_get(&cscene, "sampling_pattern");
 
 	integrator->layer_flag = render_layer.layer;

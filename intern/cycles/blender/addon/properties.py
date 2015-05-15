@@ -394,6 +394,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=0,
                 )
 
+        cls.use_animated_seed = BoolProperty(
+                name="Use Animated Seed",
+                description="Use different seed values (and hence noise patterns) at different frames",
+                default=False,
+                )
+
         cls.sample_clamp_direct = FloatProperty(
                 name="Clamp Direct",
                 description="If non-zero, the maximum value for a direct sample, "

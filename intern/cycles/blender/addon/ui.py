@@ -135,7 +135,11 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         col = split.column()
         sub = col.column(align=True)
         sub.label("Settings:")
-        sub.prop(cscene, "seed")
+
+        seed_sub = sub.row(align=True)
+        seed_sub.prop(cscene, "seed")
+        seed_sub.prop(cscene, "use_animated_seed", text="", icon="TIME")
+
         sub.prop(cscene, "sample_clamp_direct")
         sub.prop(cscene, "sample_clamp_indirect")
 
