@@ -2335,7 +2335,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 
 /************************ Select Linked Operator *************************/
 
-static void linked_limit_default(bContext *C, wmOperator *op)
+static void select_linked_limit_default(bContext *C, wmOperator *op)
 {
 	if (!RNA_struct_property_is_set(op->ptr, "limit")) {
 		Object *obedit = CTX_data_edit_object(C);
@@ -2345,6 +2345,42 @@ static void linked_limit_default(bContext *C, wmOperator *op)
 		else
 			RNA_boolean_set(op->ptr, "limit", false);
 	}
+}
+
+static void select_linked_limit_begin(BMEditMesh *em)
+{
+	BMesh *bm = em->bm;
+
+	BMIter iter;
+	BMEdge *e;
+
+	/* grr, shouldn't need to alloc BMO flags here */
+	BM_mesh_elem_toolflags_ensure(bm);
+	if (em->selectmode ==  SCE_SELECT_FACE) {
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			const bool is_walk_ok = (
+			        BM_elem_flag_test(e, BM_ELEM_SEAM) == 0);
+
+			BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
+		}
+	}
+	else {
+		/* don't delimit selected edges in vert/edge mode */
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			const bool is_walk_ok = (
+			        BM_elem_flag_test(e, BM_ELEM_SEAM) == 0 ||
+			        BM_elem_flag_test(e, BM_ELEM_SELECT));
+
+			BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
+		}
+	}
+}
+
+static void select_linked_limit_end(BMEditMesh *em)
+{
+	BMesh *bm = em->bm;
+
+	BM_mesh_elem_toolflags_clear(bm);
 }
 
 static int edbm_select_linked_exec(bContext *C, wmOperator *op)
@@ -2357,32 +2393,12 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 	int limit;
 
-	linked_limit_default(C, op);
+	select_linked_limit_default(C, op);
 
 	limit = RNA_boolean_get(op->ptr, "limit");
 
 	if (limit) {
-		BMEdge *e;
-		/* grr, shouldn't need to alloc BMO flags here */
-		BM_mesh_elem_toolflags_ensure(bm);
-		if (em->selectmode ==  SCE_SELECT_FACE) {
-			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-				const bool is_walk_ok = (
-				        BM_elem_flag_test(e, BM_ELEM_SEAM) == 0);
-
-				BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
-			}
-		}
-		else {
-			/* don't delimit selected edges in vert/edge mode */
-			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-				const bool is_walk_ok = (
-				        BM_elem_flag_test(e, BM_ELEM_SEAM) == 0 ||
-				        BM_elem_flag_test(e, BM_ELEM_SELECT));
-
-				BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
-			}
-		}
+		select_linked_limit_begin(em);
 	}
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
@@ -2490,7 +2506,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 	}
 
 	if (limit) {
-		BM_mesh_elem_toolflags_clear(bm);
+		select_linked_limit_end(em);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
@@ -2523,13 +2539,13 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	BMWalker walker;
 	BMEditMesh *em;
 	BMVert *eve;
-	BMEdge *e, *eed;
+	BMEdge *eed;
 	BMFace *efa;
 	const bool sel = !RNA_boolean_get(op->ptr, "deselect");
 
 	int limit;
 
-	linked_limit_default(C, op);
+	select_linked_limit_default(C, op);
 
 	limit = RNA_boolean_get(op->ptr, "limit");
 
@@ -2556,54 +2572,81 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 		return OPERATOR_CANCELLED;
 	}
 	
-	if (em->selectmode == SCE_SELECT_FACE) {
-		BMIter iter;
+	if (limit) {
+		select_linked_limit_begin(em);
+	}
 
-		if (efa == NULL)
-			return OPERATOR_CANCELLED;
+	/* Note: logic closely matches 'edbm_select_linked_exec', keep in sync */
+
+	if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
+
+		BMW_init(&walker, em->bm, limit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_FLAG_TEST_HIDDEN,
+		         BMW_NIL_LAY);
 
 		if (limit) {
-			/* grr, shouldn't need to alloc BMO flags here */
-			BM_mesh_elem_toolflags_ensure(bm);
-			/* hflag no-seam --> bmo-tag */
-			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-				BMO_elem_flag_set(bm, e, BMO_ELE_TAG, !BM_elem_flag_test(e, BM_ELEM_SEAM));
+			BMLoop *l_walk;
+			BMW_ITER (l_walk, &walker, eve) {
+				BM_vert_select_set(em->bm, l_walk->v, sel);
+			}
+		}
+		else {
+			BMEdge *e_walk;
+			BMW_ITER (e_walk, &walker, eve) {
+				BM_edge_select_set(em->bm, e_walk, sel);
 			}
 		}
 
-		/* walk */
+		BMW_end(&walker);
+
+		EDBM_selectmode_flush(em);
+	}
+	else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
+
+		BMW_init(&walker, em->bm, limit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_FLAG_TEST_HIDDEN,
+		         BMW_NIL_LAY);
+
+		if (limit) {
+			BMLoop *l_walk;
+			BMW_ITER (l_walk, &walker, eed) {
+				BM_edge_select_set(em->bm, l_walk->e, sel);
+				BM_edge_select_set(em->bm, l_walk->prev->e, sel);
+			}
+		}
+		else {
+			BMEdge *e_walk;
+			BMW_ITER (e_walk, &walker, eed) {
+				BM_edge_select_set(em->bm, e_walk, sel);
+			}
+		}
+
+		BMW_end(&walker);
+
+		EDBM_selectmode_flush(em);
+	}
+	else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
+
 		BMW_init(&walker, bm, BMW_ISLAND,
 		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		for (efa = BMW_begin(&walker, efa); efa; efa = BMW_step(&walker)) {
-			BM_face_select_set(bm, efa, sel);
+		{
+			BMFace *f_walk;
+			BMW_ITER (f_walk, &walker, efa) {
+				BM_face_select_set(bm, f_walk, sel);
+				BM_elem_flag_disable(f_walk, BM_ELEM_TAG);
+			}
 		}
+
 		BMW_end(&walker);
 	}
-	else {
-		if (efa) {
-			eed = BM_FACE_FIRST_LOOP(efa)->e;
-		}
-		else if (!eed) {
-			if (!eve || !eve->e)
-				return OPERATOR_CANCELLED;
 
-			eed = eve->e;
-		}
-
-		BMW_init(&walker, bm, BMW_VERT_SHELL,
-		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_TEST_HIDDEN,
-		         BMW_NIL_LAY);
-
-		for (e = BMW_begin(&walker, eed->v1); e; e = BMW_step(&walker)) {
-			BM_edge_select_set(bm, e, sel);
-		}
-		BMW_end(&walker);
-
-		EDBM_selectmode_flush(em);
+	if (limit) {
+		select_linked_limit_end(em);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
