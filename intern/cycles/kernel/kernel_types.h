@@ -112,6 +112,9 @@ CCL_NAMESPACE_BEGIN
 #    define __HAIR__
 #    define __CAMERA_MOTION__
 #  endif
+#  ifdef __KERNEL_EXPERIMENTAL__
+#    define __CMJ__
+#  endif
 #endif
 
 #ifdef __KERNEL_OPENCL_APPLE__
@@ -136,9 +139,12 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 #ifdef __KERNEL_OPENCL_INTEL_CPU__
-#define __CL_USE_NATIVE__
-#define __KERNEL_SHADING__
-#define __KERNEL_ADV_SHADING__
+#  define __CL_USE_NATIVE__
+#  define __KERNEL_SHADING__
+#  define __KERNEL_ADV_SHADING__
+#  ifdef __KERNEL_EXPERIMENTAL__
+#    define __CMJ__
+#  endif
 #endif
 
 #endif // __KERNEL_OPENCL__
