@@ -809,13 +809,6 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// we can now add the graphic controller to the physic engine
 		replica->ActivateGraphicController(true);
 
-		// set references for dupli-group
-		// groupobj holds a list of all objects, that belongs to this group
-		groupobj->AddInstanceObjects(replica);
-
-		// every object gets the reference to its dupli-group object
-		replica->SetDupliGroupObject(groupobj);
-
 		// done with replica
 		replica->Release();
 	}
@@ -825,6 +818,14 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	vector<KX_GameObject*>::iterator git;
 	for (git = m_logicHierarchicalGameObjects.begin(); git != m_logicHierarchicalGameObjects.end(); ++git) {
 		KX_GameObject *gameobj = *git;
+
+		if (gameobj->GetBlenderGroupObject() == blgroupobj) {
+			// set references for dupli-group
+			// groupobj holds a list of all objects, that belongs to this group
+			groupobj->AddInstanceObjects(gameobj);
+			// every object gets the reference to its dupli-group object
+			gameobj->SetDupliGroupObject(groupobj);
+		}
 
 		gameobj->ReParentLogic();
 
