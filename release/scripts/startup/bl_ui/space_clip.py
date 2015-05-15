@@ -1147,6 +1147,7 @@ class CLIP_MT_view(Menu):
 
             layout.operator("clip.view_selected")
             layout.operator("clip.view_all")
+            layout.operator("clip.view_all", text="View Fit").fit_view = True
 
             layout.separator()
             layout.operator("clip.view_zoom_in")
