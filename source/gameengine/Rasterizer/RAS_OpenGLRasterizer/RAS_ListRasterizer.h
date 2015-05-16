@@ -35,12 +35,9 @@ public:
 enum RAS_ListSlotFlags	{
 	LIST_CREATE		=1,
 	LIST_MODIFY		=2,
-	LIST_STREAM		=4,
-	LIST_NOCREATE	=8,
-	LIST_BEGIN		=16,
-	LIST_END		=32,
-	LIST_REGEN		=64,
-	LIST_DERIVEDMESH=128,
+	LIST_BEGIN		=4,
+	LIST_END		=8,
+	LIST_DERIVEDMESH=16,
 };
 
 struct DerivedMesh;

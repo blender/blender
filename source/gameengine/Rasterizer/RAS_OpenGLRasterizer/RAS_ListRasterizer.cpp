@@ -79,10 +79,6 @@ void RAS_ListSlot::RemoveList()
 
 void RAS_ListSlot::DrawList()
 {
-	if (m_flag &LIST_STREAM || m_flag& LIST_NOCREATE) {
-		RemoveList();
-		return;
-	}
 	if (m_flag &LIST_MODIFY) {
 		if (m_flag &LIST_CREATE) {
 			if (m_list == 0) {
@@ -115,7 +111,7 @@ void RAS_ListSlot::SetModified(bool mod)
 	if (mod && !(m_flag & LIST_MODIFY)) {
 		spit("Modifying list (" << m_list << ")");
 		m_flag = m_flag &~ LIST_END;
-		m_flag |= LIST_STREAM;
+		m_flag |= LIST_MODIFY;
 	}
 }
 
