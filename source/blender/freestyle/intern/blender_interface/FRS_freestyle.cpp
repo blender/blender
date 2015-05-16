@@ -576,7 +576,7 @@ int FRS_is_freestyle_enabled(SceneRenderLayer *srl)
 	return (!(srl->layflag & SCE_LAY_DISABLE) && srl->layflag & SCE_LAY_FRS && displayed_layer_count(srl) > 0);
 }
 
-void FRS_init_stroke_rendering(Render *re)
+void FRS_init_stroke_renderer(Render *re)
 {
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << endl;
@@ -586,9 +586,13 @@ void FRS_init_stroke_rendering(Render *re)
 	}
 
 	init_view(re);
-	init_camera(re);
 
 	controller->ResetRenderCount();
+}
+
+void FRS_begin_stroke_rendering(Render *re)
+{
+	init_camera(re);
 }
 
 Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
@@ -645,7 +649,7 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 	return freestyle_render;
 }
 
-void FRS_finish_stroke_rendering(Render * /*re*/)
+void FRS_end_stroke_rendering(Render * /*re*/)
 {
 	// clear canvas
 	controller->Clear();
