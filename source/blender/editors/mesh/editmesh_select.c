@@ -53,6 +53,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -2335,19 +2336,55 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 
 /************************ Select Linked Operator *************************/
 
-static void select_linked_limit_default(bContext *C, wmOperator *op)
+static void select_linked_delimit_default(bContext *C, wmOperator *op)
 {
-	if (!RNA_struct_property_is_set(op->ptr, "limit")) {
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "delimit");
+
+	if (!RNA_property_is_set(op->ptr, prop)) {
 		Object *obedit = CTX_data_edit_object(C);
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
-		if (em->selectmode == SCE_SELECT_FACE)
-			RNA_boolean_set(op->ptr, "limit", true);
-		else
-			RNA_boolean_set(op->ptr, "limit", false);
+		if (em->selectmode == SCE_SELECT_FACE) {
+			RNA_property_enum_set(op->ptr, prop, BMO_DELIM_SEAM);
+		}
+		else {
+			RNA_property_enum_set(op->ptr, prop, 0);
+		}
 	}
 }
 
-static void select_linked_limit_begin(BMEditMesh *em)
+
+static bool select_linked_delimit_test(BMEdge *e, int delimit)
+{
+	BLI_assert(delimit);
+
+	if (delimit & BMO_DELIM_SEAM) {
+		if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
+			return true;
+		}
+	}
+
+	if (delimit & BMO_DELIM_NORMAL) {
+		if (!BM_edge_is_contiguous(e)) {
+			return true;
+		}
+	}
+
+	if (delimit & BMO_DELIM_MATERIAL) {
+		if (e->l && e->l->radial_next != e->l) {
+			const short mat_nr = e->l->f->mat_nr;
+			BMLoop *l_iter = e->l->radial_next;
+			do {
+				if (l_iter->f->mat_nr != mat_nr) {
+					return true;
+				}
+			} while ((l_iter = l_iter->radial_next) != e->l);
+		}
+	}
+
+	return false;
+}
+
+static void select_linked_delimit_begin(BMEditMesh *em, const int delimit)
 {
 	BMesh *bm = em->bm;
 
@@ -2359,7 +2396,7 @@ static void select_linked_limit_begin(BMEditMesh *em)
 	if (em->selectmode ==  SCE_SELECT_FACE) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			const bool is_walk_ok = (
-			        BM_elem_flag_test(e, BM_ELEM_SEAM) == 0);
+			        (select_linked_delimit_test(e, delimit) == false));
 
 			BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
 		}
@@ -2368,15 +2405,15 @@ static void select_linked_limit_begin(BMEditMesh *em)
 		/* don't delimit selected edges in vert/edge mode */
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			const bool is_walk_ok = (
-			        BM_elem_flag_test(e, BM_ELEM_SEAM) == 0 ||
-			        BM_elem_flag_test(e, BM_ELEM_SELECT));
+			        BM_elem_flag_test(e, BM_ELEM_SELECT) ||
+			        (select_linked_delimit_test(e, delimit) == false));
 
 			BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
 		}
 	}
 }
 
-static void select_linked_limit_end(BMEditMesh *em)
+static void select_linked_delimit_end(BMEditMesh *em)
 {
 	BMesh *bm = em->bm;
 
@@ -2391,14 +2428,14 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMWalker walker;
 
-	int limit;
+	int delimit;
 
-	select_linked_limit_default(C, op);
+	select_linked_delimit_default(C, op);
 
-	limit = RNA_boolean_get(op->ptr, "limit");
+	delimit = RNA_enum_get(op->ptr, "delimit");
 
-	if (limit) {
-		select_linked_limit_begin(em);
+	if (delimit) {
+		select_linked_delimit_begin(em, delimit);
 	}
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
@@ -2408,12 +2445,12 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			BM_elem_flag_set(v, BM_ELEM_TAG, BM_elem_flag_test(v, BM_ELEM_SELECT));
 		}
 
-		BMW_init(&walker, em->bm, limit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
-		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		if (limit) {
+		if (delimit) {
 			BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 					BMLoop *l_walk;
@@ -2447,12 +2484,12 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
 		}
 
-		BMW_init(&walker, em->bm, limit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
-		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		if (limit) {
+		if (delimit) {
 			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 					BMLoop *l_walk;
@@ -2488,7 +2525,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		}
 
 		BMW_init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
@@ -2505,8 +2542,8 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		BMW_end(&walker);
 	}
 
-	if (limit) {
-		select_linked_limit_end(em);
+	if (delimit) {
+		select_linked_delimit_end(em);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
@@ -2528,7 +2565,8 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+	RNA_def_enum_flag(ot->srna, "delimit", mesh_delimit_mode_items, 0, "Delimit",
+	                  "Delimit selected region");
 }
 
 static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2543,11 +2581,11 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	BMFace *efa;
 	const bool sel = !RNA_boolean_get(op->ptr, "deselect");
 
-	int limit;
+	int delimit;
 
-	select_linked_limit_default(C, op);
+	select_linked_delimit_default(C, op);
 
-	limit = RNA_boolean_get(op->ptr, "limit");
+	delimit = RNA_enum_get(op->ptr, "delimit");
 
 	/* unified_finednearest needs ogl */
 	view3d_operator_needs_opengl(C);
@@ -2572,20 +2610,20 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 		return OPERATOR_CANCELLED;
 	}
 	
-	if (limit) {
-		select_linked_limit_begin(em);
+	if (delimit) {
+		select_linked_delimit_begin(em, delimit);
 	}
 
 	/* Note: logic closely matches 'edbm_select_linked_exec', keep in sync */
 
 	if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
 
-		BMW_init(&walker, em->bm, limit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
-		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		if (limit) {
+		if (delimit) {
 			BMLoop *l_walk;
 			BMW_ITER (l_walk, &walker, eve) {
 				BM_vert_select_set(em->bm, l_walk->v, sel);
@@ -2604,12 +2642,12 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	}
 	else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
 
-		BMW_init(&walker, em->bm, limit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
-		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		if (limit) {
+		if (delimit) {
 			BMLoop *l_walk;
 			BMW_ITER (l_walk, &walker, eed) {
 				BM_edge_select_set(em->bm, l_walk->e, sel);
@@ -2630,7 +2668,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
 
 		BMW_init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, limit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
@@ -2645,8 +2683,8 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 		BMW_end(&walker);
 	}
 
-	if (limit) {
-		select_linked_limit_end(em);
+	if (delimit) {
+		select_linked_delimit_end(em);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
@@ -2669,7 +2707,8 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+	RNA_def_enum_flag(ot->srna, "delimit", mesh_delimit_mode_items, 0, "Delimit",
+	                  "Delimit selected region");
 }
 
 
