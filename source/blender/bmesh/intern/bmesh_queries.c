@@ -38,6 +38,8 @@
 #include "BLI_linklist.h"
 #include "BLI_stackdefines.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
@@ -1035,6 +1037,53 @@ bool BM_edge_is_convex(const BMEdge *e)
 			sub_v3_v3v3(l_dir, l1->next->v->co, l1->v->co);
 			return (dot_v3v3(l_dir, cross) > 0.0f);
 		}
+	}
+	return true;
+}
+
+/**
+ * Returms true when loop customdata is contiguous.
+ */
+bool BM_edge_is_contiguous_loop_cd(
+        const BMEdge *e,
+        const int cd_loop_type, const int cd_loop_offset)
+{
+	BLI_assert(cd_loop_offset != -1);
+
+	if (e->l && e->l->radial_next != e->l) {
+		const BMLoop *l_base_v1 = e->l;
+		const BMLoop *l_base_v2 = e->l->next;
+		const void *l_base_cd_v1 = BM_ELEM_CD_GET_VOID_P(l_base_v1, cd_loop_offset);
+		const void *l_base_cd_v2 = BM_ELEM_CD_GET_VOID_P(l_base_v2, cd_loop_offset);
+		const BMLoop *l_iter = e->l->radial_next;
+		do {
+			const BMLoop *l_iter_v1;
+			const BMLoop *l_iter_v2;
+			const void *l_iter_cd_v1;
+			const void *l_iter_cd_v2;
+
+			if (l_iter->v == l_base_v1->v) {
+				l_iter_v1 = l_iter;
+				l_iter_v2 = l_iter->next;
+			}
+			else {
+				l_iter_v1 = l_iter->next;
+				l_iter_v2 = l_iter;
+			}
+			BLI_assert((l_iter_v1->v == l_base_v1->v) &&
+			           (l_iter_v2->v == l_base_v2->v));
+
+			l_iter_cd_v1 = BM_ELEM_CD_GET_VOID_P(l_iter_v1, cd_loop_offset);
+			l_iter_cd_v2 = BM_ELEM_CD_GET_VOID_P(l_iter_v2, cd_loop_offset);
+
+
+			if ((CustomData_data_equals(cd_loop_type, l_base_cd_v1, l_iter_cd_v1) == 0) ||
+			    (CustomData_data_equals(cd_loop_type, l_base_cd_v2, l_iter_cd_v2) == 0))
+			{
+				return false;
+			}
+
+		} while ((l_iter = l_iter->radial_next) != e->l);
 	}
 	return true;
 }

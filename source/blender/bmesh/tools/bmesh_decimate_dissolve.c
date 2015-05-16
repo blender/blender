@@ -32,6 +32,8 @@
 #include "BLI_math.h"
 #include "BLI_heap.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 #include "bmesh_decimate.h"  /* own include */
 
@@ -59,7 +61,32 @@ static float bm_vert_edge_face_angle(BMVert *v)
 #undef ANGLE_TO_UNIT
 }
 
-static float bm_edge_calc_dissolve_error(const BMEdge *e, const BMO_Delimit delimit)
+struct DelimitData {
+	int cd_loop_type;
+	int cd_loop_size;
+	int cd_loop_offset;
+	int cd_loop_offset_end;
+};
+
+static bool bm_edge_is_contiguous_loop_cd_all(
+        const BMEdge *e, const struct DelimitData *delimit_data)
+{
+	int cd_loop_offset;
+	for (cd_loop_offset = delimit_data->cd_loop_offset;
+	     cd_loop_offset < delimit_data->cd_loop_offset_end;
+	     cd_loop_offset += delimit_data->cd_loop_size)
+	{
+		if (BM_edge_is_contiguous_loop_cd(e, delimit_data->cd_loop_type, cd_loop_offset) == false) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static float bm_edge_calc_dissolve_error(
+        const BMEdge *e, const BMO_Delimit delimit,
+        const struct DelimitData *delimit_data)
 {
 	const bool is_contig = BM_edge_is_contiguous(e);
 	float angle;
@@ -92,6 +119,11 @@ static float bm_edge_calc_dissolve_error(const BMEdge *e, const BMO_Delimit deli
 		goto fail;
 	}
 
+	if ((delimit & BMO_DELIM_UV) &&
+	    (bm_edge_is_contiguous_loop_cd_all(e, delimit_data) == 0)) {
+		goto fail;
+	}
+
 	angle = BM_edge_calc_face_angle(e);
 	if (is_contig == false) {
 		angle = (float)M_PI - angle;
@@ -106,15 +138,29 @@ fail:
 
 void BM_mesh_decimate_dissolve_ex(
         BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
-        const BMO_Delimit delimit,
+        BMO_Delimit delimit,
         BMVert **vinput_arr, const int vinput_len,
         BMEdge **einput_arr, const int einput_len,
         const short oflag_out)
 {
+	struct DelimitData delimit_data = {0};
 	const int eheap_table_len = do_dissolve_boundaries ? einput_len : max_ii(einput_len, vinput_len);
 	void *_heap_table = MEM_mallocN(sizeof(HeapNode *) * eheap_table_len, __func__);
 
 	int i;
+
+	if (delimit & BMO_DELIM_UV) {
+		const int layer_len = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+		if (layer_len == 0) {
+			delimit &= ~BMO_DELIM_UV;
+		}
+		else {
+			delimit_data.cd_loop_type = CD_MLOOPUV;
+			delimit_data.cd_loop_size = CustomData_sizeof(delimit_data.cd_loop_type);
+			delimit_data.cd_loop_offset = CustomData_get_n_offset(&bm->ldata, CD_MLOOPUV, 0);
+			delimit_data.cd_loop_offset_end = delimit_data.cd_loop_size * layer_len;
+		}
+	}
 
 	/* --- first edges --- */
 	if (1) {
@@ -140,7 +186,7 @@ void BM_mesh_decimate_dissolve_ex(
 		/* build heap */
 		for (i = 0; i < einput_len; i++) {
 			BMEdge *e = einput_arr[i];
-			const float cost = bm_edge_calc_dissolve_error(e, delimit);
+			const float cost = bm_edge_calc_dissolve_error(e, delimit, &delimit_data);
 			eheap_table[i] = BLI_heap_insert(eheap, cost, e);
 			BM_elem_index_set(e, i);  /* set dirty */
 		}
@@ -176,7 +222,7 @@ void BM_mesh_decimate_dissolve_ex(
 					do {
 						const int j = BM_elem_index_get(l_iter->e);
 						if (j != -1 && eheap_table[j]) {
-							const float cost = bm_edge_calc_dissolve_error(l_iter->e, delimit);
+							const float cost = bm_edge_calc_dissolve_error(l_iter->e, delimit, &delimit_data);
 							BLI_heap_remove(eheap, eheap_table[j]);
 							eheap_table[j] = BLI_heap_insert(eheap, cost, l_iter->e);
 						}

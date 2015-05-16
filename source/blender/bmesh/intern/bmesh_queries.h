@@ -91,6 +91,10 @@ bool    BM_vert_is_boundary(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNUL
 BLI_INLINE bool    BM_edge_is_boundary(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BLI_INLINE bool    BM_edge_is_contiguous(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_edge_is_convex(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool    BM_edge_is_contiguous_loop_cd(
+        const BMEdge *e,
+        const int cd_loop_type, const int cd_loop_offset)
+        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 int     BM_loop_region_loops_count_ex(BMLoop *l, int *r_loop_total) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 int     BM_loop_region_loops_count(BMLoop *l) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);

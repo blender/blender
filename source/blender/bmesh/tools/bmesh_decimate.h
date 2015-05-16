@@ -34,7 +34,7 @@ void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations);
 
 void BM_mesh_decimate_dissolve_ex(
         BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
-        const BMO_Delimit delimit,
+        BMO_Delimit delimit,
         BMVert **vinput_arr, const int vinput_len,
         BMEdge **einput_arr, const int einput_len,
         const short oflag_out);

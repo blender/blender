@@ -2336,6 +2336,11 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 
 /************************ Select Linked Operator *************************/
 
+struct DelimitData {
+	int cd_loop_type;
+	int cd_loop_offset;
+};
+
 static void select_linked_delimit_default(bContext *C, wmOperator *op)
 {
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "delimit");
@@ -2353,7 +2358,9 @@ static void select_linked_delimit_default(bContext *C, wmOperator *op)
 }
 
 
-static bool select_linked_delimit_test(BMEdge *e, int delimit)
+static bool select_linked_delimit_test(
+        BMEdge *e, int delimit,
+        const struct DelimitData *delimit_data)
 {
 	BLI_assert(delimit);
 
@@ -2387,22 +2394,38 @@ static bool select_linked_delimit_test(BMEdge *e, int delimit)
 		}
 	}
 
+	if (delimit & BMO_DELIM_UV) {
+		if (BM_edge_is_contiguous_loop_cd(e, delimit_data->cd_loop_type, delimit_data->cd_loop_offset) == 0) {
+			return true;
+		}
+	}
+
 	return false;
 }
 
-static void select_linked_delimit_begin(BMEditMesh *em, const int delimit)
+static void select_linked_delimit_begin(BMEditMesh *em, int delimit)
 {
+	struct DelimitData delimit_data = {0};
+
 	BMesh *bm = em->bm;
 
 	BMIter iter;
 	BMEdge *e;
+
+	if (delimit & BMO_DELIM_UV) {
+		delimit_data.cd_loop_type = CD_MLOOPUV;
+		delimit_data.cd_loop_offset = CustomData_get_offset(&bm->ldata, delimit_data.cd_loop_type);
+		if (delimit_data.cd_loop_offset == -1) {
+			delimit &= ~BMO_DELIM_UV;
+		}
+	}
 
 	/* grr, shouldn't need to alloc BMO flags here */
 	BM_mesh_elem_toolflags_ensure(bm);
 	if (em->selectmode ==  SCE_SELECT_FACE) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			const bool is_walk_ok = (
-			        (select_linked_delimit_test(e, delimit) == false));
+			        (select_linked_delimit_test(e, delimit, &delimit_data) == false));
 
 			BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
 		}
@@ -2412,7 +2435,7 @@ static void select_linked_delimit_begin(BMEditMesh *em, const int delimit)
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			const bool is_walk_ok = (
 			        BM_elem_flag_test(e, BM_ELEM_SELECT) ||
-			        (select_linked_delimit_test(e, delimit) == false));
+			        (select_linked_delimit_test(e, delimit, &delimit_data) == false));
 
 			BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
 		}
