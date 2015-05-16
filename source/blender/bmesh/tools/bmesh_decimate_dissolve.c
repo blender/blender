@@ -74,6 +74,12 @@ static float bm_edge_calc_dissolve_error(const BMEdge *e, const BMO_Delimit deli
 		goto fail;
 	}
 
+	if ((delimit & BMO_DELIM_SHARP) &&
+	    (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0))
+	{
+		goto fail;
+	}
+
 	if ((delimit & BMO_DELIM_MATERIAL) &&
 	    (e->l->f->mat_nr != e->l->radial_next->f->mat_nr))
 	{

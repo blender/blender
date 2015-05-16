@@ -2363,6 +2363,12 @@ static bool select_linked_delimit_test(BMEdge *e, int delimit)
 		}
 	}
 
+	if (delimit & BMO_DELIM_SHARP) {
+		if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0) {
+			return true;
+		}
+	}
+
 	if (delimit & BMO_DELIM_NORMAL) {
 		if (!BM_edge_is_contiguous(e)) {
 			return true;

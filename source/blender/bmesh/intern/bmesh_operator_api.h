@@ -302,6 +302,7 @@ typedef enum {
 	BMO_DELIM_NORMAL = 1 << 0,
 	BMO_DELIM_MATERIAL = 1 << 1,
 	BMO_DELIM_SEAM = 1 << 2,
+	BMO_DELIM_SHARP = 1 << 3,
 } BMO_Delimit;
 
 void BMO_op_flag_enable(BMesh *bm, BMOperator *op, const int op_flag);
