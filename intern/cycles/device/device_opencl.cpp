@@ -3327,7 +3327,7 @@ Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 		const bool force_split_kernel =
 			getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST") != NULL;
 		/* TODO(sergey): Replace string lookups with more enum-like API,
-		 * similar to device/venfdor checks blender's gpu.
+		 * similar to device/vendor checks blender's gpu.
 		 */
 		if(force_split_kernel ||
 		   (platform_name == "AMD Accelerated Parallel Processing" &&

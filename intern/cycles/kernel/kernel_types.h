@@ -471,7 +471,7 @@ typedef struct Ray {
  * reshuffle. And at the same time reshuffle will cause
  * less optimal CPU code in certain places.
  *
- * We'll get rid of this nasty eception once AMD compiler
+ * We'll get rid of this nasty exception once AMD compiler
  * is fixed.
  */
 #ifndef __KERNEL_OPENCL_AMD__

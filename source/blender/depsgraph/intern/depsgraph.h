@@ -195,7 +195,7 @@ struct Depsgraph {
 };
 
 /**
- * Helper macros for interating over set of relationship links
+ * Helper macros for iterating over set of relationship links
  * incident on each node.
  *
  * \note it is safe to perform removal operations here...
