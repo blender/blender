@@ -595,7 +595,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const bool ver
 
 	if (error_ret) {
 		if (verbose) {
-			BPy_errors_to_report(CTX_wm_reports(C));
+			BPy_errors_to_report_ex(CTX_wm_reports(C), false, false);
 		}
 		else {
 			PyErr_Clear();

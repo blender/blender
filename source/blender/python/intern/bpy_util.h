@@ -40,7 +40,8 @@ char *BPy_enum_as_string(struct EnumPropertyItem *item);
 
 /* error reporting */
 short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const bool clear);
-short BPy_errors_to_report(struct ReportList *reports);
+bool BPy_errors_to_report_ex(struct ReportList *reports, const bool use_full, const bool use_location);
+bool BPy_errors_to_report(struct ReportList *reports);
 
 /* TODO - find a better solution! */
 struct bContext *BPy_GetContext(void);

@@ -82,10 +82,9 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool 
 }
 
 
-short BPy_errors_to_report(ReportList *reports)
+bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const bool use_location)
 {
 	PyObject *pystring;
-	PyObject *pystring_format = NULL;  /* workaround, see below */
 	const char *cstring;
 
 	const char *filename;
@@ -101,31 +100,49 @@ short BPy_errors_to_report(ReportList *reports)
 		return 1;
 	}
 	
-	pystring = PyC_ExceptionBuffer();
+	if (use_full) {
+		pystring = PyC_ExceptionBuffer();
+	}
+	else {
+		pystring = PyC_ExceptionBuffer_Simple();
+	}
 	
 	if (pystring == NULL) {
 		BKE_report(reports, RPT_ERROR, "Unknown py-exception, could not convert");
 		return 0;
 	}
-	
-	PyC_FileAndNum(&filename, &lineno);
-	if (filename == NULL)
-		filename = "<unknown location>";
-	
+
 	cstring = _PyUnicode_AsString(pystring);
 
+	if (use_location) {
+		PyObject *pystring_format;  /* workaround, see below */
+
+		PyC_FileAndNum(&filename, &lineno);
+		if (filename == NULL) {
+			filename = "<unknown location>";
+		}
+
 #if 0 /* ARG!. workaround for a bug in blenders use of vsnprintf */
-	BKE_reportf(reports, RPT_ERROR, "%s\nlocation: %s:%d\n", cstring, filename, lineno);
+		BKE_reportf(reports, RPT_ERROR, "%s\nlocation: %s:%d\n", cstring, filename, lineno);
 #else
-	pystring_format = PyUnicode_FromFormat(TIP_("%s\nlocation: %s:%d\n"), cstring, filename, lineno);
-	cstring = _PyUnicode_AsString(pystring_format);
-	BKE_report(reports, RPT_ERROR, cstring);
+		pystring_format = PyUnicode_FromFormat(TIP_("%s\nlocation: %s:%d\n"), cstring, filename, lineno);
+		cstring = _PyUnicode_AsString(pystring_format);
+		BKE_report(reports, RPT_ERROR, cstring);
+		Py_DECREF(pystring_format);  /* workaround */
 #endif
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, cstring);
+	}
 
 	/* not exactly needed. just for testing */
 	fprintf(stderr, TIP_("%s\nlocation: %s:%d\n"), cstring, filename, lineno);
 
 	Py_DECREF(pystring);
-	Py_DECREF(pystring_format);  /* workaround */
 	return 1;
+}
+
+bool BPy_errors_to_report(ReportList *reports)
+{
+	return BPy_errors_to_report_ex(reports, true, true);
 }

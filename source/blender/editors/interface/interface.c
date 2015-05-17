@@ -2315,6 +2315,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 		double value;
 
 		if (ui_but_string_set_eval_num(C, but, str, &value) == false) {
+			WM_report_banner_show(C);
 			return false;
 		}
 

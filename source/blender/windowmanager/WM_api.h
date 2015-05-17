@@ -178,6 +178,7 @@ void		WM_main_remove_notifier_reference(const void *reference);
 void		WM_main_remove_editor_id_reference(const struct ID *id);
 
 			/* reports */
+void        WM_report_banner_show(const struct bContext *C);
 void        WM_report(const struct bContext *C, ReportType type, const char *message);
 void        WM_reportf(const struct bContext *C, ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(3, 4);
 

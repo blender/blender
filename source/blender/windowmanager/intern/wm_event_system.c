@@ -587,26 +587,35 @@ void WM_event_print(const wmEvent *event)
 
 #endif /* NDEBUG */
 
+/**
+ * Show the report in the info header.
+ */
+void WM_report_banner_show(const bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	ReportList *wm_reports = CTX_wm_reports(C);
+	ReportTimerInfo *rti;
+
+	/* After adding reports to the global list, reset the report timer. */
+	WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
+
+	/* Records time since last report was added */
+	wm_reports->reporttimer = WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
+
+	rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
+	wm_reports->reporttimer->customdata = rti;
+}
+
 static void wm_add_reports(const bContext *C, ReportList *reports)
 {
 	/* if the caller owns them, handle this */
 	if (reports->list.first && (reports->flag & RPT_OP_HOLD) == 0) {
-
-		wmWindowManager *wm = CTX_wm_manager(C);
 		ReportList *wm_reports = CTX_wm_reports(C);
-		ReportTimerInfo *rti;
 
 		/* add reports to the global list, otherwise they are not seen */
 		BLI_movelisttolist(&wm_reports->list, &reports->list);
-		
-		/* After adding reports to the global list, reset the report timer. */
-		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
-		
-		/* Records time since last report was added */
-		wm_reports->reporttimer = WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
-		
-		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
-		wm_reports->reporttimer->customdata = rti;
+
+		WM_report_banner_show(C);
 	}
 }
 
