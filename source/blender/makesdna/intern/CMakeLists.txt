@@ -74,7 +74,7 @@ set(INC_SYS
 
 set(SRC
 	dna_genfile.c
-	dna.c
+	${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	${SRC_DNA_INC}
 )
 

@@ -155,6 +155,7 @@ set(SRC
 	BLI_listbase.h
 	BLI_math.h
 	BLI_math_base.h
+	BLI_math_bits.h
 	BLI_math_color.h
 	BLI_math_color_blend.h
 	BLI_math_geom.h

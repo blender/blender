@@ -25,8 +25,8 @@
 
 set(INC
 	.
-	./intern
-	./util
+	intern
+	util
 	../blenkernel
 	../blenlib
 	../bmesh
@@ -109,7 +109,9 @@ if(WITH_LEGACY_DEPSGRAPH)
 endif()
 
 if(WITH_BOOST)
-	list(APPEND INC_SYS ${BOOST_INCLUDE_DIR})
+	list(APPEND INC_SYS
+		${BOOST_INCLUDE_DIR}
+	)
 	add_definitions(-DHAVE_BOOST_FUNCTION_BINDINGS)
 endif()
 
