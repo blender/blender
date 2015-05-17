@@ -74,3 +74,6 @@ IGNORE = (
 UTF8_CHECK = True
 
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))))
+
+# doesn't have to exist, just use as reference
+BUILD_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(SOURCE_DIR, "..", "build"))))
