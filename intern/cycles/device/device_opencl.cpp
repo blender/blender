@@ -3338,14 +3338,14 @@ Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 			return new OpenCLDeviceSplitKernel(info, stats, background);
 		} else {
 			/* For any other device, take megakernel path. */
-			VLOG(1) << "Using megekernel";
+			VLOG(1) << "Using mega kernel";
 			return new OpenCLDeviceMegaKernel(info, stats, background);
 		}
 	} else {
 		/* If we can't retrieve platform and device type information for some
 		 * reason, we default to megakernel path.
 		 */
-		VLOG(1) << "Failed to rertieve platform or device, using megakernel";
+		VLOG(1) << "Failed to retrieve platform or device, using mega kernel";
 		return new OpenCLDeviceMegaKernel(info, stats, background);
 	}
 }
