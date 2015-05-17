@@ -2886,52 +2886,41 @@ static int convert_key(GHOST_TKey key)
 
 static void wm_eventemulation(wmEvent *event)
 {
-	/* Store last mmb event value to make emulation work when modifier keys are released first. */
-	static int mmb_emulated = 0; /* this should be in a data structure somwhere */
+	/* Store last mmb/rmb event value to make emulation work when modifier keys
+	 * are released first. This really should be in a data structure somwhere. */
+	static int emulating_event = EVENT_NONE;
 	
-	/* middlemouse emulation */
+	/* middlemouse and rightmouse emulation */
 	if (U.flag & USER_TWOBUTTONMOUSE) {
 		if (event->type == LEFTMOUSE) {
 			
 			if (event->val == KM_PRESS && event->alt) {
 				event->type = MIDDLEMOUSE;
 				event->alt = 0;
-				mmb_emulated = 1;
+				emulating_event = MIDDLEMOUSE;
 			}
+#ifdef __APPLE__
+			else if (event->val == KM_PRESS && event->oskey) {
+				event->type = RIGHTMOUSE;
+				event->oskey = 0;
+				emulating_event = RIGHTMOUSE;
+			}
+#endif
 			else if (event->val == KM_RELEASE) {
 				/* only send middle-mouse release if emulated */
-				if (mmb_emulated) {
+				if (emulating_event == MIDDLEMOUSE) {
 					event->type = MIDDLEMOUSE;
 					event->alt = 0;
 				}
-				mmb_emulated = 0;
-			}
-		}
-		
-	}
-	
-#ifdef __APPLE__
-	
-	/* rightmouse emulation */
-	if (U.flag & USER_TWOBUTTONMOUSE) {
-		if (event->type == LEFTMOUSE) {
-			
-			if (event->val == KM_PRESS && event->oskey) {
-				event->type = RIGHTMOUSE;
-				event->oskey = 0;
-				mmb_emulated = 1;
-			}
-			else if (event->val == KM_RELEASE) {
-				if (mmb_emulated) {
-					event->oskey = RIGHTMOUSE;
-					event->alt = 0;
+				else if (emulating_event == RIGHTMOUSE) {
+					event->type = RIGHTMOUSE;
+					event->oskey = 0;
 				}
-				mmb_emulated = 0;
+				emulating_event = EVENT_NONE;
 			}
 		}
 		
 	}
-#endif
 	
 	/* numpad emulation */
 	if (U.flag & USER_NONUMPAD) {
