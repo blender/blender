@@ -775,6 +775,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 	
 	bGPDstroke *hit_stroke = NULL;
 	bGPDspoint *hit_point = NULL;
+	int hit_distance = radius_squared;
 	
 	/* sanity checks */
 	if (sa == NULL) {
@@ -797,7 +798,6 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 	{
 		bGPDspoint *pt;
 		int i;
-		int hit_index = -1;
 		
 		/* firstly, check for hit-point */
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
@@ -807,18 +807,19 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 		
 			/* do boundbox check first */
 			if (!ELEM(V2D_IS_CLIPPED, x0, x0)) {
-				/* only check if point is inside */
-				if (((x0 - mx) * (x0 - mx) + (y0 - my) * (y0 - my)) <= radius_squared) {				
-					hit_stroke = gps;
-					hit_point  = pt;
-					break;
+				const int pt_distance = ((x0 - mx) * (x0 - mx) + (y0 - my) * (y0 - my));
+				
+				/* check if point is inside */
+				if (pt_distance <= radius_squared) {
+					/* only use this point if it is a better match than the current hit - T44685 */
+					if (pt_distance < hit_distance) {
+						hit_stroke = gps;
+						hit_point  = pt;
+						hit_distance = pt_distance;
+					}
 				}
 			}
 		}
-		
-		/* skip to next stroke if nothing found */
-		if (hit_index == -1) 
-			continue;
 	}
 	CTX_DATA_END;
 	
