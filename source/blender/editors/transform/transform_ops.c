@@ -1119,7 +1119,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_snap");
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", TABKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-			RNA_string_set(kmi->ptr, "data_path", "tool_settings.snap_element");
+			RNA_string_set(kmi->ptr, "data_path", "tool_settings.snap_node_element");
 			break;
 		case SPACE_SEQ:
 			WM_keymap_add_item(keymap, OP_SEQ_SLIDE, GKEY, KM_PRESS, 0, 0);
