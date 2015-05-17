@@ -1034,12 +1034,27 @@ static void xml_read_light(const XMLReadState& state, pugi::xml_node node)
 	xml_read_float(&light->sizev, node, "sizev");
 	xml_read_float3(&light->axisu, node, "axisu");
 	xml_read_float3(&light->axisv, node, "axisv");
-	
+
+	/* Portal? (Area light only) */
+	xml_read_bool(&light->is_portal, node, "is_portal");
+
 	/* Generic */
 	xml_read_float(&light->size, node, "size");
 	xml_read_float3(&light->dir, node, "dir");
 	xml_read_float3(&light->co, node, "P");
 	light->co = transform_point(&state.tfm, light->co);
+
+	/* Settings */
+	xml_read_bool(&light->cast_shadow, node, "cast_shadow");
+	xml_read_bool(&light->use_mis, node, "use_mis");
+	xml_read_int(&light->samples, node, "samples");
+	xml_read_int(&light->max_bounces, node, "max_bounces");
+
+	/* Ray Visibility */
+	xml_read_bool(&light->use_diffuse, node, "use_diffuse");
+	xml_read_bool(&light->use_glossy, node, "use_glossy");
+	xml_read_bool(&light->use_transmission, node, "use_transmission");
+	xml_read_bool(&light->use_scatter, node, "use_scatter");
 
 	state.scene->lights.push_back(light);
 }
