@@ -112,7 +112,7 @@ class ImagePreviewCollection(dict):
         _uuid_open.remove(self._uuid)
 
     def __delitem__(self, key):
-        _utils_previews.release(self._gen_key(name))
+        _utils_previews.release(self._gen_key(key))
         super().__delitem__(key)
 
     def __repr__(self):
@@ -144,6 +144,7 @@ def remove(pcoll):
 
 # don't complain about resources on exit (only unregister)
 import atexit
+
 
 def exit_clear_warning():
     del ImagePreviewCollection.__del__
