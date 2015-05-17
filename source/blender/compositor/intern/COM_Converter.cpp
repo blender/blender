@@ -137,6 +137,10 @@ Node *Converter::convert(bNode *b_node)
 {
 	Node *node = NULL;
 
+	/* ignore undefined nodes with missing or invalid node data */
+	if (!nodeIsRegistered(b_node))
+		return NULL;
+
 	switch (b_node->type) {
 		case CMP_NODE_COMPOSITE:
 			node = new CompositorNode(b_node);
