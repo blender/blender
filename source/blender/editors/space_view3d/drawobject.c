@@ -301,11 +301,12 @@ bool draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const char dt)
 	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
 		return true;
 	
-	if (BKE_scene_use_new_shading_nodes(scene))
+	if (v3d->drawtype == OB_TEXTURE)
+		return (scene->gm.matmode == GAME_MAT_GLSL && !BKE_scene_use_new_shading_nodes(scene));
+	else if (v3d->drawtype == OB_MATERIAL && dt > OB_SOLID)
+		return true;
+	else
 		return false;
-	
-	return ((scene->gm.matmode == GAME_MAT_GLSL && v3d->drawtype == OB_TEXTURE) ||
-	        (v3d->drawtype == OB_MATERIAL)) && (dt > OB_SOLID);
 }
 
 static bool check_alpha_pass(Base *base)
