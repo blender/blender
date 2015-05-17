@@ -1496,6 +1496,15 @@ static int gpencil_draw_init(bContext *C, wmOperator *op)
 
 /* ------------------------------- */
 
+/* ensure that the correct cursor icon is set */
+static void gpencil_draw_cursor_set(tGPsdata *p)
+{
+	if (p->paintmode == GP_PAINTMODE_ERASER)
+		WM_cursor_modal_set(p->win, BC_CROSSCURSOR);  /* XXX need a better cursor */
+	else
+		WM_cursor_modal_set(p->win, BC_PAINTBRUSHCURSOR);
+}
+
 /* update UI indicators of status, including cursor and header prints */
 static void gpencil_draw_status_indicators(tGPsdata *p)
 {
@@ -1736,7 +1745,6 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p = NULL;
-	wmWindow *win = CTX_wm_window(C);
 	
 	if (G.debug & G_DEBUG)
 		printf("GPencil - Starting Drawing\n");
@@ -1762,11 +1770,11 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		gpencil_draw_toggle_eraser_cursor(C, p, true);
 	}
 	
-	/* set cursor */
-	if (p->paintmode == GP_PAINTMODE_ERASER)
-		WM_cursor_modal_set(win, BC_CROSSCURSOR);  /* XXX need a better cursor */
-	else
-		WM_cursor_modal_set(win, BC_PAINTBRUSHCURSOR);
+	/* set cursor 
+	 * NOTE: This may change later (i.e. intentionally via brush toggle,
+	 *       or unintentionally if the user scrolls outside the area)...
+	 */
+	gpencil_draw_cursor_set(p);
 	
 	/* only start drawing immediately if we're allowed to do so... */
 	if (RNA_boolean_get(op->ptr, "wait_for_input") == false) {
@@ -2095,9 +2103,11 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	/* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
 	if (0 == gpencil_area_exists(C, p->sa))
 		estate = OPERATOR_CANCELLED;
-	else
+	else {
 		/* update status indicators - cursor, header, etc. */
 		gpencil_draw_status_indicators(p);
+		gpencil_draw_cursor_set(p); /* cursor may have changed outside our control - T44084 */
+	}
 	
 	/* process last operations before exiting */
 	switch (estate) {
