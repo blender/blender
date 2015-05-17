@@ -311,18 +311,16 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 		BLI_dynstr_append(ds, name);
 	}
 	else if (to == GPU_FLOAT) {
-		if (from == GPU_VEC4)
-			BLI_dynstr_appendf(ds, "dot(%s.rgb, vec3(0.35, 0.45, 0.2))", name);
-		else if (from == GPU_VEC3)
-			BLI_dynstr_appendf(ds, "dot(%s, vec3(0.33))", name);
+		if (from == GPU_VEC4 || from == GPU_VEC3)
+			BLI_dynstr_appendf(ds, "(%s.r + %s.g + %s.b) / 3.0", name, name, name);
 		else if (from == GPU_VEC2)
 			BLI_dynstr_appendf(ds, "%s.r", name);
 	}
 	else if (to == GPU_VEC2) {
 		if (from == GPU_VEC4)
-			BLI_dynstr_appendf(ds, "vec2(dot(%s.rgb, vec3(0.35, 0.45, 0.2)), %s.a)", name, name);
+			BLI_dynstr_appendf(ds, "vec2((%s.r + %s.g + %s.b) / 3.0, %s.a)", name, name, name, name);
 		else if (from == GPU_VEC3)
-			BLI_dynstr_appendf(ds, "vec2(dot(%s.rgb, vec3(0.33)), 1.0)", name);
+			BLI_dynstr_appendf(ds, "vec2((%s.r + %s.g + %s.b) / 3.0, 1.0)", name, name, name);
 		else if (from == GPU_FLOAT)
 			BLI_dynstr_appendf(ds, "vec2(%s, 1.0)", name);
 	}
