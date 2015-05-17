@@ -124,10 +124,12 @@ else:
     directory = 'public_html/download'
 
 try:
+    filename = os.path.join(directory, packagename)
     zf = z.open(package)
-    f = file(os.path.join(directory, packagename), "wb")
+    f = file(filename, "wb")
 
     shutil.copyfileobj(zf, f)
+    os.chmod(filename, 0644)
 
     zf.close()
     z.close()
