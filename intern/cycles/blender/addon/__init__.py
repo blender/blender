@@ -30,8 +30,10 @@ bl_info = {
 
 import bpy
 
-from . import engine
-from . import version_update
+from . import (
+        engine,
+        version_update,
+        )
 
 
 class CyclesRender(bpy.types.RenderEngine):

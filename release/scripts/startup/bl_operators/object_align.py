@@ -340,7 +340,10 @@ def align_objects(context,
     return True
 
 
-from bpy.props import EnumProperty, BoolProperty
+from bpy.props import (
+        EnumProperty,
+        BoolProperty
+        )
 
 
 class AlignObjects(Operator):

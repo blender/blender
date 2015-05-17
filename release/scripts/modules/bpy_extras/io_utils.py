@@ -35,7 +35,11 @@ __all__ = (
     )
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        )
 
 
 def _check_axis_conversion(op):
@@ -368,7 +372,7 @@ def unpack_list(list_of_tuples):
 
 # same as above except that it adds 0 for triangle faces
 def unpack_face_list(list_of_tuples):
-    #allocate the entire list
+    # allocate the entire list
     flat_ls = [0] * (len(list_of_tuples) * 4)
     i = 0
 

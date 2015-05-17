@@ -1,6 +1,6 @@
+"""
 .. _operator-execution_context:
 
-"""
 Execution Context
 -----------------
 

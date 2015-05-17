@@ -128,6 +128,7 @@ class FILEBROWSER_PT_system_folders(Panel):
             row.template_list("FILEBROWSER_UL_dir", "system_folders", space, "system_folders",
                               space, "system_folders_active", item_dyntip_propname="path", rows=1, maxrows=10)
 
+
 class FILEBROWSER_PT_system_bookmarks(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'

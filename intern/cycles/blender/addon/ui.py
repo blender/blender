@@ -18,7 +18,11 @@
 
 import bpy
 
-from bpy.types import Panel, Menu, Operator, UIList
+from bpy.types import (
+        Panel,
+        Menu,
+        Operator,
+        )
 
 
 class CYCLES_MT_sampling_presets(Menu):
@@ -54,6 +58,7 @@ def use_cpu(context):
     device_type = context.user_preferences.system.compute_device_type
 
     return (device_type == 'NONE' or cscene.device == 'CPU')
+
 
 def use_branched_path(context):
     cscene = context.scene.cycles
@@ -442,7 +447,6 @@ class CyclesRender_PT_views(CyclesButtonsPanel, Panel):
         rd = scene.render
         rv = rd.views.active
 
-
         layout.active = rd.use_multiview
         basic_stereo = (rd.views_format == 'STEREO_3D')
 
@@ -518,12 +522,12 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.label("Viewport:")
         subhq = sub.column()
-        subhq.active = hq_support;
+        subhq.active = hq_support
         subhq.prop(dof_options, "use_high_quality")
         sub.prop(dof_options, "fstop")
         if dof_options.use_high_quality and hq_support:
             sub.prop(dof_options, "blades")
- 
+
         col = split.column()
 
         col.label("Aperture:")

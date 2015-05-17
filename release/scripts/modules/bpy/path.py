@@ -226,7 +226,8 @@ def resolve_ncase(path):
         if _os.path.isdir(dirpath):
             try:
                 files = _os.listdir(dirpath)
-            except PermissionError:  # We might not have the permission to list dirpath...
+            except PermissionError:
+                # We might not have the permission to list dirpath...
                 return path, False
         else:
             return path, False

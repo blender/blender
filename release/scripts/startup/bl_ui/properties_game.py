@@ -223,7 +223,7 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
         row.prop(game, "collision_margin", text="Margin", slider=True)
 
         sub = row.row()
-        sub.active = game.physics_type  not in {'SOFT_BODY', 'CHARACTER'}
+        sub.active = game.physics_type not in {'SOFT_BODY', 'CHARACTER'}
         sub.prop(game, "use_collision_compound", text="Compound")
 
         layout.separator()

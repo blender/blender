@@ -31,7 +31,10 @@ __all__ = (
 
 import bpy
 
-from bpy.props import BoolProperty, FloatVectorProperty
+from bpy.props import (
+        BoolProperty,
+        FloatVectorProperty,
+        )
 
 
 def add_object_align_init(context, operator):
@@ -171,7 +174,7 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True, name=
 
         obj_act.select = True
         scene.update()  # apply location
-        #scene.objects.active = obj_new
+        # scene.objects.active = obj_new
 
         bpy.ops.object.join()  # join into the active.
         if obdata:
@@ -287,7 +290,8 @@ def world_to_camera_view(scene, obj, coord):
     Returns the camera space coords for a 3d point.
     (also known as: normalized device coordinates - NDC).
 
-    Where (0, 0) is the bottom left and (1, 1) is the top right of the camera frame.
+    Where (0, 0) is the bottom left and (1, 1)
+       is the top right of the camera frame.
     values outside 0-1 are also supported.
     A negative 'z' value means the point is behind the camera.
 
@@ -300,7 +304,8 @@ def world_to_camera_view(scene, obj, coord):
     :type obj: :class:`bpy.types.Object`
     :arg coord: World space location.
     :type coord: :class:`mathutils.Vector`
-    :return: a vector where X and Y map to the view plane and Z is the depth on the view axis.
+    :return: a vector where X and Y map to the view plane and
+       Z is the depth on the view axis.
     :rtype: :class:`mathutils.Vector`
     """
     from mathutils import Vector

@@ -455,9 +455,11 @@ ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 StaticMethodType = type(staticmethod(lambda: None))
-from types import (MemberDescriptorType,
-                   MethodType,
-                   )
+from types import (
+        MemberDescriptorType,
+        MethodType,
+        FunctionType,
+        )
 
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
@@ -869,7 +871,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
     module_dir_value_type.sort(key=lambda triple: str(triple[2]))
 
     for attribute, value, value_type in module_dir_value_type:
-        if value_type == types.FunctionType:
+        if value_type == FunctionType:
             pyfunc2sphinx("", fw, module_name, None, attribute, value, is_class=False)
         elif value_type in {types.BuiltinMethodType, types.BuiltinFunctionType}:  # both the same at the moment but to be future proof
             # note: can't get args from these, so dump the string as is
@@ -939,7 +941,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
         # needed for pure python classes
         for key, descr in descr_items:
-            if type(descr) == types.FunctionType:
+            if type(descr) == FunctionType:
                 pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
 
         for key, descr in descr_items:
