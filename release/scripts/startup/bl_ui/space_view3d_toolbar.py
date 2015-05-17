@@ -573,6 +573,7 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
         col = layout.column(align=True)
         col.label(text="Modeling:")
         col.operator("curve.extrude", text="Extrude")
+        col.operator("curve.spin")
         col.operator("curve.subdivide")
 
         col = layout.column(align=True)
