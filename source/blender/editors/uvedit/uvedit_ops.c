@@ -53,6 +53,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -80,6 +82,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "uvedit_intern.h"
@@ -4178,6 +4182,23 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int uv_mark_seam_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup = UI_popup_menu_begin(C, IFACE_("Edges"), ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
+
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+	uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Mark Seam"), ICON_NONE, op->type->idname, "clear", false);
+	uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Seam"), ICON_NONE, op->type->idname, "clear", true);
+
+	UI_popup_menu_end(C, pup);
+
+	return OPERATOR_INTERFACE;
+}
+
 static void UV_OT_mark_seam(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -4190,6 +4211,7 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = uv_mark_seam_exec;
+	ot->invoke = uv_mark_seam_invoke;
 	ot->poll = ED_operator_uvedit;
 
 	RNA_def_boolean(ot->srna, "clear", false, "Clear Seams", "Clear instead of marking seams");
