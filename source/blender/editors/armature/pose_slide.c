@@ -43,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_unit.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -53,6 +54,7 @@
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 #include "ED_markers.h"
+#include "ED_numinput.h"
 #include "ED_screen.h"
 
 #include "armature_intern.h"
@@ -98,6 +100,8 @@ typedef struct tPoseSlideOp {
 	int flag;           /* unused for now, but can later get used for storing runtime settings.... */
 	
 	float percentage;   /* 0-1 value for determining the influence of whatever is relevant */
+	
+	NumInput num;       /* numeric input */
 } tPoseSlideOp;
 
 /* Pose Sliding Modes */
@@ -153,6 +157,12 @@ static int pose_slide_init(bContext *C, wmOperator *op, short mode)
 	 * to the caller of this (usually only invoke() will do it, to make things more efficient).
 	 */
 	BLI_dlrbTree_init(&pso->keys);
+	
+	/* initialise numeric input */
+	initNumInput(&pso->num);
+	pso->num.idx_max = 0; /* one axis */
+	pso->num.val_flag[0] |= NUM_NO_NEGATIVE;
+	pso->num.unit_type[0] = B_UNIT_NONE; /* percentages don't have any units... */
 	
 	/* return status is whether we've got all the data we were requested to get */
 	return 1;
@@ -534,7 +544,7 @@ static void pose_slide_reset(tPoseSlideOp *pso)
 /* draw percentage indicator in header */
 static void pose_slide_draw_status(tPoseSlideOp *pso)
 {
-	char status_str[32];
+	char status_str[256];
 	char mode_str[32];
 	
 	switch (pso->mode) {
@@ -554,7 +564,18 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
 			break;
 	}
 	
-	BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", mode_str, (int)(pso->percentage * 100.0f));
+	if (hasNumInput(&pso->num)) {
+		Scene *scene = pso->scene;
+		char str_offs[NUM_STR_REP_LEN];
+		
+		outputNumInput(&pso->num, str_offs, &scene->unit);
+		
+		BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_offs);
+	}
+	else {
+		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", mode_str, (int)(pso->percentage * 100.0f));
+	}
+	
 	ED_area_headerprint(pso->sa, status_str);
 }
 
@@ -639,6 +660,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tPoseSlideOp *pso = op->customdata;
 	wmWindow *win = CTX_wm_window(C);
+	const bool has_numinput = hasNumInput(&pso->num);
 	
 	switch (event->type) {
 		case LEFTMOUSE: /* confirm */
@@ -678,25 +700,54 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			
 		case MOUSEMOVE: /* calculate new position */
 		{
-			/* calculate percentage based on position of mouse (we only use x-axis for now.
-			 * since this is more convenient for users to do), and store new percentage value
-			 */
-			pso->percentage = (event->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
-			RNA_float_set(op->ptr, "percentage", pso->percentage);
-			
-			/* update percentage indicator in header */
-			pose_slide_draw_status(pso);
-			
-			/* reset transforms (to avoid accumulation errors) */
-			pose_slide_reset(pso);
-			
-			/* apply... */
-			pose_slide_apply(C, pso);
+			/* only handle mousemove if not doing numinput */
+			if (has_numinput == false) {
+				/* calculate percentage based on position of mouse (we only use x-axis for now.
+				 * since this is more convenient for users to do), and store new percentage value
+				 */
+				pso->percentage = (event->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
+				RNA_float_set(op->ptr, "percentage", pso->percentage);
+				
+				/* update percentage indicator in header */
+				pose_slide_draw_status(pso);
+				
+				/* reset transforms (to avoid accumulation errors) */
+				pose_slide_reset(pso);
+				
+				/* apply... */
+				pose_slide_apply(C, pso);
+			}
 			break;
 		}
-		default: /* unhandled event (maybe it was some view manip? */
-			/* allow to pass through */
-			return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
+		default:
+			if ((event->val == KM_PRESS) && handleNumInput(C, &pso->num, event)) {
+				float value;
+				
+				/* Grab percentage from numeric input, and store this new value for redo  
+				 * NOTE: users see ints, while internally we use a 0-1 float
+				 */
+				value = pso->percentage * 100.0f;
+				applyNumInput(&pso->num, &value);
+				
+				pso->percentage = value / 100.0f;
+				CLAMP(pso->percentage, 0.0f, 1.0f);
+				RNA_float_set(op->ptr, "percentage", pso->percentage);
+				
+				/* update percentage indicator in header */
+				pose_slide_draw_status(pso);
+				
+				/* reset transforms (to avoid accumulation errors) */
+				pose_slide_reset(pso);
+				
+				/* apply... */
+				pose_slide_apply(C, pso);
+				break;
+			}
+			else {
+				/* unhandled event - maybe it was some view manip? */
+				/* allow to pass through */
+				return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
+			}
 	}
 	
 	/* still running... */
