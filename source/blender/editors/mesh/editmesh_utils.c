@@ -614,7 +614,9 @@ void undo_push_mesh(bContext *C, const char *name)
 /**
  * Return a new UVVertMap from the editmesh
  */
-UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2])
+UvVertMap *BM_uv_vert_map_create(
+        BMesh *bm,
+        const float limit[2], const bool use_select, const bool use_winding)
 {
 	BMVert *ev;
 	BMFace *efa;
@@ -628,7 +630,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 	unsigned int a;
 	int totverts, i, totuv, totfaces;
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-	bool *winding;
+	bool *winding = NULL;
 	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
@@ -654,7 +656,9 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 
 	vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
 	buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
-	winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
+	if (use_winding) {
+		winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
+	}
 
 	if (!vmap->vert || !vmap->buf) {
 		BKE_mesh_uv_vert_map_free(vmap);
@@ -663,7 +667,11 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 	
 	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
 		if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, efa->len);
+			float (*tf_uv)[2];
+
+			if (use_winding) {
+				tf_uv = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, efa->len);
+			}
 
 			BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 				buf->tfindex = i;
@@ -672,14 +680,17 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 				
 				buf->next = vmap->vert[BM_elem_index_get(l->v)];
 				vmap->vert[BM_elem_index_get(l->v)] = buf;
-				
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				copy_v2_v2(tf_uv[i], luv->uv);
-
 				buf++;
+
+				if (use_winding) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					copy_v2_v2(tf_uv[i], luv->uv);
+				}
 			}
 
-			winding[a] = cross_poly_v2((const float (*)[2])tf_uv, efa->len) > 0;
+			if (use_winding) {
+				winding[a] = cross_poly_v2((const float (*)[2])tf_uv, efa->len) > 0;
+			}
 		}
 	}
 	
@@ -717,7 +728,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 				if (fabsf(uvdiff[0]) < limit[0] && fabsf(uvdiff[1]) < limit[1] &&
-				    winding[iterv->f] == winding[v->f])
+				    (!use_winding || winding[iterv->f] == winding[v->f]))
 				{
 					if (lastv) lastv->next = next;
 					else vlist = next;
@@ -737,7 +748,10 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, bool use_select, const float limit[2
 		vmap->vert[a] = newvlist;
 	}
 
-	MEM_freeN(winding);
+	if (use_winding) {
+		MEM_freeN(winding);
+	}
+
 	BLI_buffer_free(&tf_uv_buf);
 
 	return vmap;

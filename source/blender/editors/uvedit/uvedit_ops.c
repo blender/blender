@@ -1028,7 +1028,7 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 
 	/* setup */
 	BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-	vmap = BM_uv_vert_map_create(em->bm, 0, limit);
+	vmap = BM_uv_vert_map_create(em->bm, 0, limit, false);
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 
@@ -1131,7 +1131,7 @@ static void uv_select_linked(Scene *scene, Image *ima, BMEditMesh *em, const flo
 	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
 	BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
-	vmap = BM_uv_vert_map_create(em->bm, !select_faces, limit);
+	vmap = BM_uv_vert_map_create(em->bm, limit, !select_faces, false);
 
 	if (vmap == NULL)
 		return;
@@ -2714,7 +2714,7 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object
 		uvedit_pixel_to_float(sima, limit, 0.05);
 		
 		BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-		vmap = BM_uv_vert_map_create(em->bm, 0, limit);
+		vmap = BM_uv_vert_map_create(em->bm, limit, false, false);
 		if (vmap == NULL) {
 			return;
 		}
@@ -2805,7 +2805,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 		uvedit_pixel_to_float(sima, limit, 0.05);
 
 		BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-		vmap = BM_uv_vert_map_create(em->bm, 0, limit);
+		vmap = BM_uv_vert_map_create(em->bm, limit, false, false);
 		if (vmap == NULL) {
 			return;
 		}
@@ -4037,7 +4037,7 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 
 	/* This code sets editvert->tmp.l to the index. This will be useful later on. */
 	BM_mesh_elem_table_ensure(bm, BM_FACE);
-	vmap = BM_uv_vert_map_create(bm, 0, limit);
+	vmap = BM_uv_vert_map_create(bm, limit, false, false);
 
 	BM_ITER_MESH (editedge, &iter, bm, BM_EDGES_OF_MESH) {
 		/* flags to determine if we uv is separated from first editface match */

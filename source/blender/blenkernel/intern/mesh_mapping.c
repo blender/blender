@@ -54,8 +54,10 @@
 /* this replaces the non bmesh function (in trunk) which takes MTFace's, if we ever need it back we could
  * but for now this replaces it because its unused. */
 
-UvVertMap *BKE_mesh_uv_vert_map_create(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
-                                       unsigned int totpoly, unsigned int totvert, int selected, float *limit, bool use_winding)
+UvVertMap *BKE_mesh_uv_vert_map_create(
+        struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
+        unsigned int totpoly, unsigned int totvert,
+        const float limit[2], const bool selected, const bool use_winding)
 {
 	UvVertMap *vmap;
 	UvMapVert *buf;

@@ -116,7 +116,9 @@ struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace *
 
 void              BM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
-struct UvVertMap *BM_uv_vert_map_create(struct BMesh *bm, bool use_select, const float limit[2]);
+struct UvVertMap *BM_uv_vert_map_create(
+        struct BMesh *bm,
+        const float limit[2], const bool use_select, const bool use_winding);
 
 void EDBM_flag_enable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
