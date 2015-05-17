@@ -95,7 +95,7 @@ static bool opencl_kernel_use_advanced_shading(const string& platform)
 	else if(platform == "Apple")
 		return false;
 	else if(platform == "AMD Accelerated Parallel Processing")
-		return false;
+		return true;
 	else if(platform == "Intel(R) OpenCL")
 		return true;
 
