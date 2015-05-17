@@ -1199,7 +1199,8 @@ static void xml_read_include(const XMLReadState& state, const string& src)
 		XMLReadState substate = state;
 		substate.base = path_dirname(path);
 
-		xml_read_scene(substate, doc);
+		pugi::xml_node cycles = doc.child("cycles");
+		xml_read_scene(substate, cycles);
 	}
 	else {
 		fprintf(stderr, "%s read error: %s\n", src.c_str(), parse_result.description());
