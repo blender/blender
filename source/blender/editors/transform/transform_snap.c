@@ -953,9 +953,9 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 //				last_p = LAST_SNAP_POINT;
 //			}
 //			else
-//			{
+			{
 				last_p = t->tsnap.snapPoint;
-//			}
+			}
 			
 			
 			for (p1 = depth_peels.first; p1; p1 = p1->next) {

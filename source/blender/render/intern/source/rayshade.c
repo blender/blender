@@ -306,22 +306,23 @@ static void makeraytree_single(Render *re)
 	RayObject *raytree;
 	RayFace *face = NULL;
 	VlakPrimitive *vlakprimitive = NULL;
-	int faces = 0, obs = 0, special = 0;
+	int faces = 0, special = 0;
 
-	for (obi=re->instancetable.first; obi; obi=obi->next)
-	if (is_raytraceable(re, obi)) {
-		ObjectRen *obr = obi->obr;
-		obs++;
-		
-		if (has_special_rayobject(re, obi)) {
-			special++;
-		}
-		else {
-			int v;
-			for (v=0;v<obr->totvlak;v++) {
-				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-				if (is_raytraceable_vlr(re, vlr))
-					faces++;
+	for (obi = re->instancetable.first; obi; obi = obi->next) {
+		if (is_raytraceable(re, obi)) {
+			ObjectRen *obr = obi->obr;
+
+			if (has_special_rayobject(re, obi)) {
+				special++;
+			}
+			else {
+				int v;
+				for (v = 0;v < obr->totvlak; v++) {
+					VlakRen *vlr = obr->vlaknodes[v >> 8].vlak + (v&255);
+					if (is_raytraceable_vlr(re, vlr)) {
+						faces++;
+					}
+				}
 			}
 		}
 	}

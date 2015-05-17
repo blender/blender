@@ -120,7 +120,8 @@ static float bm_edge_calc_dissolve_error(
 	}
 
 	if ((delimit & BMO_DELIM_UV) &&
-	    (bm_edge_is_contiguous_loop_cd_all(e, delimit_data) == 0)) {
+	    (bm_edge_is_contiguous_loop_cd_all(e, delimit_data) == 0))
+	{
 		goto fail;
 	}
 

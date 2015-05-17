@@ -106,7 +106,7 @@ static int bm_vert_sortval_cb(const void *v_a_v, const void *v_b_v)
 
 	if      (val_a > val_b) return  1;
 	else if (val_a < val_b) return -1;
-	                        return  0;
+	else                    return  0;
 }
 
 

@@ -332,7 +332,7 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 
 	rng = BLI_rng_new(31415926 + num + seed2);
 	x= 0;
-		num2 = 2 * num;
+	num2 = 2 * num;
 	for (i=0; i<num2; i+=2) {
 	
 		jit[i] = x + amount*rad1*(0.5f - BLI_rng_get_float(rng));
