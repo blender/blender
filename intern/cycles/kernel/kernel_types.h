@@ -96,7 +96,7 @@ CCL_NAMESPACE_BEGIN
 /* keep __KERNEL_ADV_SHADING__ in sync with opencl_kernel_use_advanced_shading! */
 
 #ifdef __KERNEL_OPENCL_NVIDIA__
-#define __KERNEL_SHADING__
+#  define __KERNEL_SHADING__
 /* TODO(sergey): Advanced shading code still requires work
  * for split kernel.
  */
@@ -118,24 +118,24 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 #ifdef __KERNEL_OPENCL_APPLE__
-#define __KERNEL_SHADING__
+#  define __KERNEL_SHADING__
 //#define __KERNEL_ADV_SHADING__
 #endif
 
 #ifdef __KERNEL_OPENCL_AMD__
-#define __CL_USE_NATIVE__
-#define __KERNEL_SHADING__
-//__KERNEL_ADV_SHADING__
-#define __MULTI_CLOSURE__
-//#define __TRANSPARENT_SHADOWS__
-#define __PASSES__
-#define __BACKGROUND_MIS__
-#define __LAMP_MIS__
-#define __AO__
-//#define __CAMERA_MOTION__
+#  define __CL_USE_NATIVE__
+#  define __KERNEL_SHADING__
+#  define __MULTI_CLOSURE__
+#  define __PASSES__
+#  define __BACKGROUND_MIS__
+#  define __LAMP_MIS__
+#  define __AO__
+#  ifdef __KERNEL_EXPERIMENTAL__
+#    define __CAMERA_MOTION__
+#    define __HAIR__
+#  endif
 //#define __OBJECT_MOTION__
-//#define __HAIR__
-//end __KERNEL_ADV_SHADING__
+//#define __TRANSPARENT_SHADOWS__
 #endif
 
 #ifdef __KERNEL_OPENCL_INTEL_CPU__
