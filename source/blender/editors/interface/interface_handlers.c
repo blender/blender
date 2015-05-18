@@ -1911,6 +1911,12 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		}
 
 #ifdef USE_ALLSELECT
+#  ifdef USE_DRAG_MULTINUM
+		if (but->flag & UI_BUT_DRAG_MULTI) {
+			/* pass */
+		}
+		else
+#  endif
 		if (data->select_others.elems_len == 0) {
 			wmWindow *win = CTX_wm_window(C);
 			/* may have been enabled before activating */
