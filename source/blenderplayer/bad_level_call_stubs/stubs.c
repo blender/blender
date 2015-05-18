@@ -95,6 +95,7 @@ struct ScrArea;
 struct SculptSession;
 struct ShadeInput;
 struct ShadeResult;
+struct SpaceButs;
 struct SpaceClip;
 struct SpaceImage;
 struct SpaceNode;
@@ -233,7 +234,7 @@ void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Objec
 float RE_engine_get_camera_shift_x(struct RenderEngine *engine, struct Object *camera) RET_ZERO
 void RE_SetActiveRenderView(struct Render *re, const char *viewname) {STUB_ASSERT(0);}
 
-struct RenderPass *RE_pass_find_by_type(struct RenderLayer *rl, int passtype, const char *viewname) RET_NULL
+struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl, int passtype, const char *viewname) RET_NULL
 bool RE_HasFakeLayer(RenderResult *res) RET_ZERO
 
 /* zbuf.c stub */
