@@ -163,7 +163,7 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dx, int d
 		/* fallback for old graphics cards that don't support GLSL, half float,
 		 * and non-power-of-two textures */
 		glPixelZoom((float)width/(float)w, (float)height/(float)h);
-		glRasterPos2f(0, dy);
+		glRasterPos2f(dx, dy);
 
 		uint8_t *pixels = (uint8_t*)rgba.data_pointer;
 
