@@ -318,8 +318,9 @@ void BKE_object_eval_uber_transform(EvaluationContext *UNUSED(eval_ctx),
 		if (ob->proxy_from->proxy_group) {
 			/* Transform proxy into group space. */
 			Object *obg = ob->proxy_from->proxy_group;
-			invert_m4_m4(obg->imat, obg->obmat);
-			mul_m4_m4m4(ob->obmat, obg->imat, ob->proxy_from->obmat);
+			float imat[4][4];
+			invert_m4_m4(imat, obg->obmat);
+			mul_m4_m4m4(ob->obmat, imat, ob->proxy_from->obmat);
 			/* Should always be true. */
 			if (obg->dup_group) {
 				add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
