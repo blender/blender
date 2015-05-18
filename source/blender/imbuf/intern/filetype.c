@@ -51,17 +51,17 @@
 #include "quicktime_import.h"
 #endif
 
-static int imb_ftype_default(ImFileType *type, ImBuf *ibuf)
+static int imb_ftype_default(const ImFileType *type, ImBuf *ibuf)
 {
 	return (ibuf->ftype & type->filetype);
 }
-static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf)
+static int imb_ftype_iris(const ImFileType *type, ImBuf *ibuf)
 {
 	(void)type;
 	return (ibuf->ftype == IMAGIC);
 }
 
-ImFileType IMB_FILE_TYPES[] = {
+const ImFileType IMB_FILE_TYPES[] = {
 	{NULL, NULL, imb_is_a_jpeg, NULL, imb_ftype_default, imb_load_jpeg, NULL, imb_savejpeg, NULL, 0, JPG, COLOR_ROLE_DEFAULT_BYTE},
 	{NULL, NULL, imb_is_a_png, NULL, imb_ftype_default, imb_loadpng, NULL, imb_savepng, NULL, 0, PNG, COLOR_ROLE_DEFAULT_BYTE},
 	{NULL, NULL, imb_is_a_bmp, NULL, imb_ftype_default, imb_bmp_decode, NULL, imb_savebmp, NULL, 0, BMP, COLOR_ROLE_DEFAULT_BYTE},
@@ -92,11 +92,11 @@ ImFileType IMB_FILE_TYPES[] = {
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0}
 };
 
-ImFileType *IMB_FILE_TYPES_LAST = &IMB_FILE_TYPES[sizeof(IMB_FILE_TYPES) / sizeof(ImFileType) - 1];
+const ImFileType *IMB_FILE_TYPES_LAST = &IMB_FILE_TYPES[sizeof(IMB_FILE_TYPES) / sizeof(ImFileType) - 1];
 
 void imb_filetypes_init(void)
 {
-	ImFileType *type;
+	const ImFileType *type;
 
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
 		if (type->init)
@@ -109,7 +109,7 @@ void imb_filetypes_init(void)
 
 void imb_filetypes_exit(void)
 {
-	ImFileType *type;
+	const ImFileType *type;
 
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
 		if (type->exit)

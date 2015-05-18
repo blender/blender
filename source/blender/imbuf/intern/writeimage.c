@@ -41,14 +41,14 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-static ImBuf *prepare_write_imbuf(ImFileType *type, ImBuf *ibuf)
+static ImBuf *prepare_write_imbuf(const ImFileType *type, ImBuf *ibuf)
 {
 	return IMB_prepare_write_ImBuf((type->flag & IM_FTYPE_FLOAT), ibuf);
 }
 
 short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 {
-	ImFileType *type;
+	const ImFileType *type;
 
 	if (ibuf == NULL) return (false);
 	ibuf->flags = flags;

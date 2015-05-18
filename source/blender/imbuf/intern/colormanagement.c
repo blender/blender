@@ -1948,7 +1948,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, bool save_as_render, boo
 
 	if (do_colormanagement) {
 		bool make_byte = false;
-		ImFileType *type;
+		const ImFileType *type;
 
 		/* for proper check whether byte buffer is required by a format or not
 		 * should be pretty safe since this image buffer is supposed to be used for
@@ -2457,7 +2457,7 @@ const char *IMB_colormanagement_colorspace_get_indexed_name(int index)
 
 void IMB_colormanagment_colorspace_from_ibuf_ftype(ColorManagedColorspaceSettings *colorspace_settings, ImBuf *ibuf)
 {
-	ImFileType *type;
+	const ImFileType *type;
 
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 		if (type->save && type->ftype(type, ibuf)) {

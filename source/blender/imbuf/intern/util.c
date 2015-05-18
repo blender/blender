@@ -186,7 +186,7 @@ int IMB_ispic_type(const char *name)
 #define HEADER_SIZE 64
 
 	unsigned char buf[HEADER_SIZE];
-	ImFileType *type;
+	const ImFileType *type;
 	BLI_stat_t st;
 	int fp;
 
@@ -442,7 +442,7 @@ bool IMB_isanim(const char *filename)
 
 bool IMB_isfloat(ImBuf *ibuf)
 {
-	ImFileType *type;
+	const ImFileType *type;
 
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 		if (type->ftype(type, ibuf)) {
