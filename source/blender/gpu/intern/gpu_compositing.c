@@ -724,7 +724,7 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 			sample_params[1] = fx->gbuffer_dim[0] / 64.0;
 			sample_params[2] = fx->gbuffer_dim[1] / 64.0;
 
-			ssao_params[3] = (passes_left == 1) ? dfdyfac[0] : dfdyfac[1];
+			ssao_params[3] = (passes_left == 1 && !ofs) ? dfdyfac[0] : dfdyfac[1];
 
 			ssao_uniform = GPU_shader_get_uniform(ssao_shader, "ssao_params");
 			ssao_color_uniform = GPU_shader_get_uniform(ssao_shader, "ssao_color");
