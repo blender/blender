@@ -145,8 +145,10 @@ typedef enum {
 	PBVH_Subdivide = 1,
 	PBVH_Collapse = 2,
 } PBVHTopologyUpdateMode;
-bool BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
-                                   const float center[3], float radius);
+bool BKE_pbvh_bmesh_update_topology(
+        PBVH *bvh, PBVHTopologyUpdateMode mode,
+        const float center[3], const float view_normal[3],
+        float radius);
 
 /* Node Access */
 

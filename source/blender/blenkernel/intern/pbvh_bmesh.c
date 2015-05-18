@@ -48,6 +48,9 @@
 #  include "BKE_global.h"
 #endif
 
+/* Support for only operating on front-faces */
+#define USE_EDGEQUEUE_FRONTFACE
+
 /* don't add edges into the queue multiple times */
 #define USE_EDGEQUEUE_TAG
 /**
@@ -598,6 +601,12 @@ typedef struct {
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 	float limit_len;
 #endif
+
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	const float *view_normal;
+	unsigned int use_view_normal : 1;
+#endif
+
 } EdgeQueue;
 
 typedef struct {
@@ -719,6 +728,14 @@ static void long_edge_queue_edge_add_recursive(
 {
 	BLI_assert(len_sq > SQUARE(limit_len));
 
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	if (eq_ctx->q->use_view_normal) {
+		if (dot_v3v3(l_edge->f->no, eq_ctx->q->view_normal) < 0.0f) {
+			return;
+		}
+	}
+#endif
+
 #ifdef USE_EDGEQUEUE_TAG
 	if (EDGE_QUEUE_TEST(l_edge->e) == false)
 #endif
@@ -787,6 +804,14 @@ static void long_edge_queue_face_add(
         EdgeQueueContext *eq_ctx,
         BMFace *f)
 {
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	if (eq_ctx->q->use_view_normal) {
+		if (dot_v3v3(f->no, eq_ctx->q->view_normal) < 0.0f) {
+			return;
+		}
+	}
+#endif
+
 	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
@@ -814,6 +839,14 @@ static void short_edge_queue_face_add(
         EdgeQueueContext *eq_ctx,
         BMFace *f)
 {
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	if (eq_ctx->q->use_view_normal) {
+		if (dot_v3v3(f->no, eq_ctx->q->view_normal) < 0.0f) {
+			return;
+		}
+	}
+#endif
+
 	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
@@ -837,7 +870,7 @@ static void short_edge_queue_face_add(
  */
 static void long_edge_queue_create(
         EdgeQueueContext *eq_ctx,
-        PBVH *bvh, const float center[3],
+        PBVH *bvh, const float center[3], const float view_normal[3],
         float radius)
 {
 	int n;
@@ -848,6 +881,13 @@ static void long_edge_queue_create(
 	eq_ctx->q->limit_len_squared = bvh->bm_max_edge_len * bvh->bm_max_edge_len;
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 	eq_ctx->q->limit_len = bvh->bm_max_edge_len;
+#endif
+
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	eq_ctx->q->view_normal = view_normal;
+	eq_ctx->q->use_view_normal = (view_normal != NULL);
+#else
+	UNUSED_VARS(view_normal);
 #endif
 
 #ifdef USE_EDGEQUEUE_TAG_VERIFY
@@ -886,7 +926,7 @@ static void long_edge_queue_create(
  */
 static void short_edge_queue_create(
         EdgeQueueContext *eq_ctx,
-        PBVH *bvh, const float center[3],
+        PBVH *bvh, const float center[3], const float view_normal[3],
         float radius)
 {
 	int n;
@@ -897,6 +937,13 @@ static void short_edge_queue_create(
 	eq_ctx->q->limit_len_squared = bvh->bm_min_edge_len * bvh->bm_min_edge_len;
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 	eq_ctx->q->limit_len = bvh->bm_min_edge_len;
+#endif
+
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	eq_ctx->q->view_normal = view_normal;
+	eq_ctx->q->use_view_normal = (view_normal != NULL);
+#else
+	UNUSED_VARS(view_normal);
 #endif
 
 	for (n = 0; n < bvh->totnode; n++) {
@@ -1704,7 +1751,8 @@ void BKE_pbvh_build_bmesh(
 /* Collapse short edges, subdivide long edges */
 bool BKE_pbvh_bmesh_update_topology(
         PBVH *bvh, PBVHTopologyUpdateMode mode,
-        const float center[3], float radius)
+        const float center[3], const float view_normal[3],
+        float radius)
 {
 	/* 2 is enough for edge faces - manifold edge */
 	BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);
@@ -1716,12 +1764,16 @@ bool BKE_pbvh_bmesh_update_topology(
 	bool modified = false;
 	int n;
 
+	if (view_normal) {
+		BLI_assert(len_squared_v3(view_normal) != 0.0f);
+	}
+
 	if (mode & PBVH_Collapse) {
 		EdgeQueue q;
 		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 0, 128, BLI_MEMPOOL_NOP);
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset};
 
-		short_edge_queue_create(&eq_ctx, bvh, center, radius);
+		short_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
 		modified |= !BLI_heap_is_empty(q.heap);
 		pbvh_bmesh_collapse_short_edges(&eq_ctx, bvh,
 		                                &deleted_faces);
@@ -1734,7 +1786,7 @@ bool BKE_pbvh_bmesh_update_topology(
 		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 0, 128, BLI_MEMPOOL_NOP);
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset};
 
-		long_edge_queue_create(&eq_ctx, bvh, center, radius);
+		long_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
 		modified |= !BLI_heap_is_empty(q.heap);
 		pbvh_bmesh_subdivide_long_edges(&eq_ctx, bvh, &edge_loops);
 		BLI_heap_free(q.heap, NULL);
