@@ -802,10 +802,12 @@ void BLI_begin_threaded_malloc(void)
 	/* Used for debug only */
 	/* BLI_assert(thread_levels >= 0); */
 
+	BLI_spin_lock(&_malloc_lock);
 	if (thread_levels == 0) {
 		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 	}
 	thread_levels++;
+	BLI_spin_unlock(&_malloc_lock);
 }
 
 void BLI_end_threaded_malloc(void)
@@ -813,8 +815,10 @@ void BLI_end_threaded_malloc(void)
 	/* Used for debug only */
 	/* BLI_assert(thread_levels >= 0); */
 
+	BLI_spin_lock(&_malloc_lock);
 	thread_levels--;
 	if (thread_levels == 0)
 		MEM_set_lock_callback(NULL, NULL);
+	BLI_spin_unlock(&_malloc_lock);
 }
 
