@@ -87,7 +87,7 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
         col = split.column()
         col.prop(scene, "layers", text="Scene")
         col.label(text="")
-        col.prop(rl, "light_override", text="Light")
+        col.prop(rl, "light_override", text="Lights")
         col.prop(rl, "material_override", text="Material")
 
         col = split.column()
