@@ -195,21 +195,8 @@ void RE_FreeRenderResult(RenderResult *res)
 
 float *RE_RenderLayerGetPass(volatile RenderLayer *rl, int passtype, const char *viewname)
 {
-	RenderPass *rpass;
-	float *rect = NULL;
-
-	for (rpass = rl->passes.last; rpass; rpass = rpass->prev) {
-		if (rpass->passtype == passtype) {
-			rect = rpass->rect;
-
-			if (viewname == NULL)
-				break;
-			else if (STREQ(rpass->view, viewname))
-				break;
-		}
-	}
-
-	return rect;
+	RenderPass *rpass = RE_pass_find_by_type(rl, passtype, viewname);
+	return rpass ? rpass->rect : NULL;
 }
 
 RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
@@ -3893,14 +3880,18 @@ bool RE_layers_have_name(struct RenderResult *rr)
 	return false;
 }
 
-RenderPass *RE_pass_find_by_type(RenderLayer *rl, int passtype, const char *viewname)
+RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const char *viewname)
 {
-	RenderPass *rp;
-	for (rp = rl->passes.first; rp; rp = rp->next) {
+	RenderPass *rp = NULL;
+
+	for (rp = rl->passes.last; rp; rp = rp->prev) {
 		if (rp->passtype == passtype) {
-			if (STREQ(rp->view, viewname))
-				return rp;
+
+			if (viewname == NULL)
+				break;
+			else if (STREQ(rp->view, viewname))
+				break;
 		}
 	}
-	return NULL;
+	return rp;
 }
