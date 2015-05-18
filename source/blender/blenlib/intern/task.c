@@ -508,16 +508,14 @@ BLI_INLINE bool parallel_range_next_iter_get(
         int * __restrict iter, int * __restrict count)
 {
 	bool result = false;
+	BLI_spin_lock(&state->lock);
 	if (state->iter < state->stop) {
-		BLI_spin_lock(&state->lock);
-		if (state->iter < state->stop) {
-			*count = min_ii(state->chunk_size, state->stop - state->iter);
-			*iter = state->iter;
-			state->iter += *count;
-			result = true;
-		}
-		BLI_spin_unlock(&state->lock);
+		*count = min_ii(state->chunk_size, state->stop - state->iter);
+		*iter = state->iter;
+		state->iter += *count;
+		result = true;
 	}
+	BLI_spin_unlock(&state->lock);
 	return result;
 }
 
