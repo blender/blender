@@ -767,13 +767,15 @@ static void prefetch_task_func(TaskPool *pool, void *task_data, int UNUSED(threa
 		int flag = IB_rect | IB_alphamode_detect;
 		int result;
 		char *colorspace_name = NULL;
+		const bool use_proxy = (clip->flag & MCLIP_USE_PROXY) &&
+		                       (queue->render_size != MCLIP_PROXY_RENDER_SIZE_FULL);
 
 		user.framenr = current_frame;
 		user.render_size = queue->render_size;
 		user.render_flag = queue->render_flag;
 
 		/* Proxies are stored in the display space. */
-		if (queue->render_flag & MCLIP_USE_PROXY) {
+		if (!use_proxy) {
 			colorspace_name = clip->colorspace_settings.name;
 		}
 
