@@ -46,6 +46,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_easing.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -68,6 +69,8 @@
 
 #define SMALL -1.0e-10
 #define SELECT 1
+
+static ThreadMutex python_driver_lock = BLI_MUTEX_INITIALIZER;
 
 /* ************************** Data-Level Functions ************************* */
 
@@ -1807,7 +1810,9 @@ static float evaluate_driver(ChannelDriver *driver, const float evaltime)
 				/* this evaluates the expression using Python, and returns its result:
 				 *  - on errors it reports, then returns 0.0f
 				 */
+				BLI_mutex_lock(&python_driver_lock);
 				driver->curval = BPY_driver_exec(driver, evaltime);
+				BLI_mutex_unlock(&python_driver_lock);
 			}
 #else /* WITH_PYTHON*/
 			(void)evaltime;
