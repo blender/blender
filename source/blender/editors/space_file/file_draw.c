@@ -295,10 +295,17 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 
 static void file_draw_string(int sx, int sy, const char *string, float width, int height, short align)
 {
-	uiStyle *style = UI_style_get();
-	uiFontStyle fs = style->widgetlabel;
+	uiStyle *style;
+	uiFontStyle fs;
 	rcti rect;
 	char fname[FILE_MAXFILE];
+
+	if (string[0] == '\0') {
+		return;
+	}
+
+	style = UI_style_get();
+	fs = style->widgetlabel;
 
 	fs.align = align;
 
