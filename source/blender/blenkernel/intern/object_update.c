@@ -37,6 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "BKE_global.h"
 #include "BKE_armature.h"
@@ -64,6 +65,8 @@
 #else
 #  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
 #endif
+
+static ThreadMutex material_lock = BLI_MUTEX_INITIALIZER;
 
 void BKE_object_eval_local_transform(EvaluationContext *UNUSED(eval_ctx),
                                      Scene *UNUSED(scene),
@@ -239,12 +242,16 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 	 */
 	if (ob->totcol) {
 		int a;
-		for (a = 1; a <= ob->totcol; a++) {
-			Material *ma = give_current_material(ob, a);
-			if (ma) {
-				/* recursively update drivers for this material */
-				material_drivers_update(scene, ma, ctime);
+		if (ob->totcol != 0) {
+			BLI_mutex_lock(&material_lock);
+			for (a = 1; a <= ob->totcol; a++) {
+				Material *ma = give_current_material(ob, a);
+				if (ma) {
+					/* recursively update drivers for this material */
+					material_drivers_update(scene, ma, ctime);
+				}
 			}
+			BLI_mutex_unlock(&material_lock);
 		}
 	}
 	else if (ob->type == OB_LAMP)
