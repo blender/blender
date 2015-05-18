@@ -48,13 +48,21 @@ void *BKE_bpath_list_backup(struct Main *bmain, const int flag);
 void  BKE_bpath_list_restore(struct Main *bmain, const int flag, void *ls_handle);
 void  BKE_bpath_list_free(void *ls_handle);
 
-#define BKE_BPATH_TRAVERSE_ABS             (1 << 0) /* convert paths to absolute */
-#define BKE_BPATH_TRAVERSE_SKIP_LIBRARY    (1 << 2) /* skip library paths */
-#define BKE_BPATH_TRAVERSE_SKIP_PACKED     (1 << 3) /* skip packed data */
-#define BKE_BPATH_TRAVERSE_SKIP_MULTIFILE  (1 << 4) /* skip paths where a single dir is used with an array of files, eg.
-                                                     * sequence strip images and pointcache. in this case only use the first
-                                                     * file, this is needed for directory manipulation functions which might
-                                                     * otherwise modify the same directory multiple times */
+enum {
+	/* convert paths to absolute */
+	BKE_BPATH_TRAVERSE_ABS = (1 << 0),
+	/* skip library paths */
+	BKE_BPATH_TRAVERSE_SKIP_LIBRARY = (1 << 1),
+	/* skip packed data */
+	BKE_BPATH_TRAVERSE_SKIP_PACKED = (1 << 2),
+	/* skip paths where a single dir is used with an array of files, eg.
+	 * sequence strip images and pointcache. in this case only use the first
+	 * file, this is needed for directory manipulation functions which might
+	 * otherwise modify the same directory multiple times */
+	BKE_BPATH_TRAVERSE_SKIP_MULTIFILE = (1 << 3),
+	/* reload data (when the path is edited) */
+	BKE_BPATH_TRAVERSE_RELOAD_EDITED = (1 << 4),
+};
 
 /* high level funcs */
 

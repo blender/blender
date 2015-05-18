@@ -322,13 +322,14 @@ void BKE_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportLis
                                   const bool find_all)
 {
 	struct BPathFind_Data data = {NULL};
+	const int flag = BKE_BPATH_TRAVERSE_ABS | BKE_BPATH_TRAVERSE_RELOAD_EDITED;
 
 	data.basedir = bmain->name;
 	data.reports = reports;
 	data.searchdir = searchpath;
 	data.find_all = find_all;
 
-	BKE_bpath_traverse_main(bmain, missing_files_find__visit_cb, BKE_BPATH_TRAVERSE_ABS, (void *)&data);
+	BKE_bpath_traverse_main(bmain, missing_files_find__visit_cb, flag, (void *)&data);
 }
 
 /* Run a visitor on a string, replacing the contents of the string as needed. */
@@ -435,9 +436,14 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			if (BKE_image_has_packedfile(ima) == false || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 					if (rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data)) {
-						if (!BKE_image_has_packedfile(ima)) {
-							BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
-							BKE_image_walk_all_users(bmain, ima, bpath_traverse_image_user_cb);
+						if (flag & BKE_BPATH_TRAVERSE_RELOAD_EDITED) {
+							if (!BKE_image_has_packedfile(ima) &&
+							    /* image may have been painted onto (and not saved, T44543) */
+							    !BKE_image_is_dirty(ima))
+							{
+								BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+								BKE_image_walk_all_users(bmain, ima, bpath_traverse_image_user_cb);
+							}
 						}
 					}
 				}
