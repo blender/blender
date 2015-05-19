@@ -843,6 +843,7 @@ def UnixPyBundle(target=None, source=None, env=None):
 
     py_src =    env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
     py_target =    env.subst( dir + '/python/' + target_lib + '/python'+env['BF_PYTHON_VERSION'] )
+    py_target_bin = env.subst(dir + '/python/bin')
     
     # This is a bit weak, but dont install if its been installed before, makes rebuilds quite slow.
     if os.path.exists(py_target):
@@ -861,6 +862,11 @@ def UnixPyBundle(target=None, source=None, env=None):
         os.makedirs(os.path.dirname(py_target)) # the final part is copied
     except:
         pass
+
+    # install the executable
+    run("rm -rf '%s'" % py_target_bin)
+    os.makedirs(py_target_bin)
+    run("cp '%s' '%s'" % (env.subst(env['BF_PYTHON_BINARY']), py_target_bin))
 
     run("cp -R '%s' '%s'" % (py_src, os.path.dirname(py_target)))
     run("rm -rf '%s/distutils'" % py_target)
