@@ -197,7 +197,6 @@ option(WITH_PYTHON        "Enable Embedded Python API  (only disable for develop
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON) 
 mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
 mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a security issue, rather than have them patch it, make a build option.
-set(WITH_PYTHON_SECURITY ON CACHE BOOL "ON" FORCE) # temp force on. 
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 mark_as_advanced(WITH_PYTHON_SAFETY)

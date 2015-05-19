@@ -112,3 +112,9 @@ elseif(UNIX)
 		"tar.bz2")
 endif()
 
+unset(MAJOR_VERSION)
+unset(MINOR_VERSION)
+unset(PATCH_VERSION)
+
+unset(BUILD_REV)
+
