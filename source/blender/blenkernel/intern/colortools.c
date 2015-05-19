@@ -1029,14 +1029,12 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const ColorM
 void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                    const ColorManagedDisplaySettings *display_settings)
 {
-	int x, y, c;
+	int a, y;
 	unsigned int nl, na, nr, ng, nb;
 	double divl, diva, divr, divg, divb;
-	const float *rf = NULL;
-	unsigned char *rc = NULL;
+	unsigned char *display_buffer;
 	unsigned int *bin_lum, *bin_r, *bin_g, *bin_b, *bin_a;
-	int savedlines, saveline;
-	float rgba[4], ycc[3], luma;
+	int savedlines;
 	int ycc_mode = -1;
 	const bool is_float = (ibuf->rect_float != NULL);
 	void *cache_handle = NULL;
@@ -1085,9 +1083,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 
 	/* scan the image */
 	savedlines = 0;
-	for (c = 0; c < 3; c++) {
-		scopes->minmax[c][0] = 25500.0f;
-		scopes->minmax[c][1] = -25500.0f;
+	for (a = 0; a < 3; a++) {
+		scopes->minmax[a][0] = 25500.0f;
+		scopes->minmax[a][1] = -25500.0f;
 	}
 	
 	scopes->waveform_tot = ibuf->x * scopes->sample_lines;
@@ -1106,16 +1104,25 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	scopes->waveform_3 = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 3");
 	scopes->vecscope = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel");
 	
-	if (is_float)
-		rf = ibuf->rect_float;
-	else {
-		rc = (unsigned char *)IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
-	}
-	
-	if (ibuf->rect_float)
+	if (ibuf->rect_float) {
 		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
+	}
+	else {
+		display_buffer = (unsigned char *)IMB_display_buffer_acquire(ibuf,
+		                                                             view_settings,
+		                                                             display_settings,
+		                                                             &cache_handle);
+	}
 
 	for (y = 0; y < ibuf->y; y++) {
+		const float *rf = NULL;
+		unsigned char *rc = NULL;
+		int x, c, saveline;
+		if (is_float)
+			rf = ibuf->rect_float + ((size_t)y) * ibuf->x * ibuf->channels;
+		else {
+			rc = display_buffer + ((size_t)y) * ibuf->x * ibuf->channels;
+		}
 		if (savedlines < scopes->sample_lines && y >= ((savedlines) * ibuf->y) / (scopes->sample_lines + 1)) {
 			saveline = 1;
 		}
@@ -1123,7 +1130,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 			saveline = 0;
 		}
 		for (x = 0; x < ibuf->x; x++) {
-
+			float rgba[4], ycc[3], luma;
 			if (is_float) {
 				copy_v4_v4(rgba, rf);
 				IMB_colormanagement_processor_apply_v4(cm_processor, rgba);
@@ -1185,12 +1192,12 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	
 	/* convert hist data to float (proportional to max count) */
 	nl = na = nr = nb = ng = 0;
-	for (x = 0; x < 256; x++) {
-		if (bin_lum[x] > nl) nl = bin_lum[x];
-		if (bin_r[x]   > nr) nr = bin_r[x];
-		if (bin_g[x]   > ng) ng = bin_g[x];
-		if (bin_b[x]   > nb) nb = bin_b[x];
-		if (bin_a[x]   > na) na = bin_a[x];
+	for (a = 0; a < 256; a++) {
+		if (bin_lum[a] > nl) nl = bin_lum[a];
+		if (bin_r[a]   > nr) nr = bin_r[a];
+		if (bin_g[a]   > ng) ng = bin_g[a];
+		if (bin_b[a]   > nb) nb = bin_b[a];
+		if (bin_a[a]   > na) na = bin_a[a];
 	}
 	divl = nl ? 1.0 / (double)nl : 1.0;
 	diva = na ? 1.0 / (double)na : 1.0;
@@ -1198,12 +1205,12 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	divg = ng ? 1.0 / (double)ng : 1.0;
 	divb = nb ? 1.0 / (double)nb : 1.0;
 	
-	for (x = 0; x < 256; x++) {
-		scopes->hist.data_luma[x] = bin_lum[x] * divl;
-		scopes->hist.data_r[x] = bin_r[x] * divr;
-		scopes->hist.data_g[x] = bin_g[x] * divg;
-		scopes->hist.data_b[x] = bin_b[x] * divb;
-		scopes->hist.data_a[x] = bin_a[x] * diva;
+	for (a = 0; a < 256; a++) {
+		scopes->hist.data_luma[a] = bin_lum[a] * divl;
+		scopes->hist.data_r[a] = bin_r[a] * divr;
+		scopes->hist.data_g[a] = bin_g[a] * divg;
+		scopes->hist.data_b[a] = bin_b[a] * divb;
+		scopes->hist.data_a[a] = bin_a[a] * diva;
 	}
 	MEM_freeN(bin_lum);
 	MEM_freeN(bin_r);
