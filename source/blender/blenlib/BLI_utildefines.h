@@ -628,18 +628,6 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #  define UNUSED_VARS_NDEBUG UNUSED_VARS
 #endif
 
-/*little macro so inline keyword works*/
-#if defined(_MSC_VER)
-#  define BLI_INLINE static __forceinline
-#else
-#  if (defined(__APPLE__) && defined(__ppc__))
-/* static inline __attribute__ here breaks osx ppc gcc42 build */
-#    define BLI_INLINE static __attribute__((always_inline)) __attribute__((__unused__))
-#  else
-#    define BLI_INLINE static inline __attribute__((always_inline)) __attribute__((__unused__))
-#  endif
-#endif
-
 
 /* BLI_assert(), default only to print
  * for aborting need to define WITH_ASSERT_ABORT

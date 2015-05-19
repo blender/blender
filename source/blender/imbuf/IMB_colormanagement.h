@@ -36,8 +36,10 @@
  */
 
 #include "BLI_sys_types.h"
+#include "BLI_compiler_compat.h"
 
 #define BCM_CONFIG_FILE "config.ocio"
+
 
 struct bContext;
 struct ColorManagedColorspaceSettings;
@@ -67,8 +69,8 @@ void IMB_colormanagement_assign_rect_colorspace(struct ImBuf *ibuf, const char *
 const char *IMB_colormanagement_get_float_colorspace(struct ImBuf *ibuf);
 const char *IMB_colormanagement_get_rect_colorspace(struct ImBuf *ibuf);
 
-float IMB_colormanagement_get_luminance(const float rgb[3]);
-unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
+BLI_INLINE float IMB_colormanagement_get_luminance(const float rgb[3]);
+BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
 
 /* ** Color space transformation functions ** */
 void IMB_colormanagement_transform(float *buffer, int width, int height, int channels,
@@ -205,5 +207,7 @@ enum {
 	COLOR_ROLE_DEFAULT_BYTE,
 	COLOR_ROLE_DEFAULT_FLOAT,
 };
+
+#include "intern/colormanagement_inline.c"
 
 #endif  /* __IMB_COLORMANAGEMENT_H__ */
