@@ -64,6 +64,11 @@ BMFace *BM_vert_pair_share_face_by_angle(
         BMLoop **r_l_a, BMLoop **r_l_b,
         const bool allow_adjacent) ATTR_NONNULL();
 
+BMFace *BM_edge_pair_share_face_by_len(
+        BMEdge *e_a, BMEdge *e_b,
+        BMLoop **r_l_a, BMLoop **r_l_b,
+        const bool allow_adjacent) ATTR_NONNULL();
+
 int     BM_vert_edge_count_nonwire(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 #define BM_vert_edge_count_is_equal(v, n) (BM_vert_edge_count_ex(v, (n) + 1) == n)
 #define BM_vert_edge_count_is_over(v, n) (BM_vert_edge_count_ex(v, (n) + 1) == (n) + 1)

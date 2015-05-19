@@ -257,6 +257,36 @@ BMFace *BM_vert_pair_share_face_by_len(
 	return f_cur;
 }
 
+BMFace *BM_edge_pair_share_face_by_len(
+        BMEdge *e_a, BMEdge *e_b,
+        BMLoop **r_l_a, BMLoop **r_l_b,
+        const bool allow_adjacent)
+{
+	BMLoop *l_cur_a = NULL, *l_cur_b = NULL;
+	BMFace *f_cur = NULL;
+
+	if (e_a->l && e_b->l) {
+		BMIter iter;
+		BMLoop *l_a, *l_b;
+
+		BM_ITER_ELEM (l_a, &iter, e_a, BM_LOOPS_OF_EDGE) {
+			if ((f_cur == NULL) || (l_a->f->len < f_cur->len)) {
+				l_b = BM_face_edge_share_loop(l_a->f, e_b);
+				if (l_b && (allow_adjacent || !BM_loop_is_adjacent(l_a, l_b))) {
+					f_cur = l_a->f;
+					l_cur_a = l_a;
+					l_cur_b = l_b;
+				}
+			}
+		}
+	}
+
+	*r_l_a = l_cur_a;
+	*r_l_b = l_cur_b;
+
+	return f_cur;
+}
+
 static float bm_face_calc_split_dot(BMLoop *l_a, BMLoop *l_b)
 {
 	float no[2][3];
