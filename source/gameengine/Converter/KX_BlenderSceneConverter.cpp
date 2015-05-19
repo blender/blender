@@ -903,7 +903,7 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 		*err_str = err_local;
 		return NULL;
 	}
-	
+
 	main_newlib = BKE_main_new();
 	BKE_reports_init(&reports, RPT_STORE);
 
@@ -1218,6 +1218,8 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 		bmat = bl_mat->GetBlenderMaterial();
 
 		if (IS_TAGGED(bmat)) {
+			// Remove the poly material coresponding to this Blender Material.
+			m_polymat_cache[polymit->first].erase(bmat);
 			delete (*polymit).second;
 			*polymit = m_polymaterials.back();
 			m_polymaterials.pop_back();
@@ -1233,6 +1235,8 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 	for (i = 0, matit = m_materials.begin(); i < size; ) {
 		BL_Material *mat = (*matit).second;
 		if (IS_TAGGED(mat->material)) {
+			// Remove the bl material coresponding to this Blender Material.
+			m_mat_cache[matit->first].erase(mat->material);
 			delete (*matit).second;
 			*matit = m_materials.back();
 			m_materials.pop_back();
@@ -1353,6 +1357,16 @@ bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
 			itp++;
 		}
 	}
+
+	MaterialCache::iterator matcacheit = m_mat_cache.find(from);
+	// Merge cached BL_Material map.
+	m_mat_cache[to].insert(matcacheit->second.begin(), matcacheit->second.end());
+	m_mat_cache.erase(matcacheit);
+
+	PolyMaterialCache::iterator polymatcacheit = m_polymat_cache.find(from);
+	// Merge cached RAS_IPolyMaterial map.
+	m_polymat_cache[to].insert(polymatcacheit->second.begin(), polymatcacheit->second.end());
+	m_polymat_cache.erase(polymatcacheit);
 
 	return true;
 }
