@@ -138,6 +138,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	int channels_in_float = ibuf->channels ? ibuf->channels : 4;
 
 	float (*chanel_colormanage_cb)(float);
+	size_t num_bytes;
 
 	/* use the jpeg quality setting for compression */
 	int compression;
@@ -184,11 +185,11 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	}
 
 	/* copy image data */
-
+	num_bytes = ((size_t)ibuf->x) * ibuf->y * bytesperpixel;
 	if (is_16bit)
-		pixels16 = MEM_mallocN(ibuf->x * ibuf->y * bytesperpixel * sizeof(unsigned short), "png 16bit pixels");
+		pixels16 = MEM_mallocN(num_bytes * sizeof(unsigned short), "png 16bit pixels");
 	else
-		pixels = MEM_mallocN(ibuf->x * ibuf->y * bytesperpixel * sizeof(unsigned char), "png 8bit pixels");
+		pixels = MEM_mallocN(num_bytes * sizeof(unsigned char), "png 8bit pixels");
 
 	if (pixels == NULL && pixels16 == NULL) {
 		png_destroy_write_struct(&png_ptr, &info_ptr);
@@ -454,13 +455,13 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	if (is_16bit) {
 		for (i = 0; i < ibuf->y; i++) {
 			row_pointers[ibuf->y - 1 - i] = (png_bytep)
-			                                ((unsigned short *)pixels16 + (i * ibuf->x) * bytesperpixel);
+			                                ((unsigned short *)pixels16 + (((size_t)i) * ibuf->x) * bytesperpixel);
 		}
 	}
 	else {
 		for (i = 0; i < ibuf->y; i++) {
 			row_pointers[ibuf->y - 1 - i] = (png_bytep)
-			                                ((unsigned char *)pixels + (i * ibuf->x) * bytesperpixel * sizeof(unsigned char));
+			                                ((unsigned char *)pixels + (((size_t)i) * ibuf->x) * bytesperpixel * sizeof(unsigned char));
 		}
 	}
 
@@ -682,7 +683,7 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[I
 		else {
 			imb_addrectImBuf(ibuf);
 
-			pixels = MEM_mallocN(ibuf->x * ibuf->y * bytesperpixel * sizeof(unsigned char), "pixels");
+			pixels = MEM_mallocN(((size_t)ibuf->x) * ibuf->y * bytesperpixel * sizeof(unsigned char), "pixels");
 			if (pixels == NULL) {
 				printf("Cannot allocate pixels array\n");
 				longjmp(png_jmpbuf(png_ptr), 1);
@@ -698,7 +699,7 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[I
 			/* set the individual row-pointers to point at the correct offsets */
 			for (i = 0; i < ibuf->y; i++) {
 				row_pointers[ibuf->y - 1 - i] = (png_bytep)
-				                                ((unsigned char *)pixels + (i * ibuf->x) * bytesperpixel * sizeof(unsigned char));
+				                                ((unsigned char *)pixels + (((size_t)i) * ibuf->x) * bytesperpixel * sizeof(unsigned char));
 			}
 
 			png_read_image(png_ptr, row_pointers);
