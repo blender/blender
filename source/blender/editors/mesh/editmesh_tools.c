@@ -1109,28 +1109,111 @@ static bool bm_vert_connect_select_history(BMesh *bm)
 	return false;
 }
 
+/**
+ * Convert an edge selection to a temp vertex selection
+ * (which must be cleared after use as a path to connect).
+ */
+static bool bm_vert_connect_select_history_edge_to_vert_path(BMesh *bm, ListBase *r_selected)
+{
+	ListBase selected_orig = {NULL, NULL};
+	BMEditSelection *ese;
+	int edges_len = 0;
+	bool side = false;
+
+	/* first check all edges are OK */
+	for (ese = bm->selected.first; ese; ese = ese->next) {
+		if (ese->htype == BM_EDGE) {
+			edges_len += 1;
+		}
+		else {
+			return false;
+		}
+	}
+	/* if this is a mixed selection, bail out! */
+	if (bm->totedgesel != edges_len) {
+		return false;
+	}
+
+	SWAP(ListBase, bm->selected, selected_orig);
+
+	/* convert edge selection into 2 ordered loops (where the first edge ends up in the middle) */
+	for (ese = selected_orig.first; ese; ese = ese->next) {
+		BMEdge *e_curr = (BMEdge *)ese->ele;
+		BMEdge *e_prev = ese->prev ? (BMEdge *)ese->prev->ele : NULL;
+		BMLoop *l_curr;
+		BMLoop *l_prev;
+		BMVert *v;
+
+		if (e_prev) {
+			BMFace *f = BM_edge_pair_share_face_by_len(e_curr, e_prev, &l_curr, &l_prev, true);
+			if (f) {
+				if ((e_curr->v1 != l_curr->v) == (e_prev->v1 != l_prev->v)) {
+					side = !side;
+				}
+			}
+			else if (is_quad_flip_v3(e_curr->v1->co, e_curr->v2->co, e_prev->v2->co, e_prev->v1->co)) {
+				side = !side;
+			}
+		}
+
+		v = (&e_curr->v1)[side];
+		if (!bm->selected.last || (BMVert *)((BMEditSelection *)bm->selected.last)->ele != v) {
+			BM_select_history_store_notest(bm, v);
+		}
+
+		v = (&e_curr->v1)[!side];
+		if (!bm->selected.first || (BMVert *)((BMEditSelection *)bm->selected.first)->ele != v) {
+			BM_select_history_store_head_notest(bm, v);
+		}
+
+		e_prev = e_curr;
+	}
+
+	*r_selected = bm->selected;
+	bm->selected = selected_orig;
+
+	return true;
+}
 
 static int edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMesh *bm = em->bm;
 	bool is_pair = (em->bm->totvertsel == 2);
+	ListBase selected_orig = {NULL, NULL};
+	int retval;
 
 	/* when there is only 2 vertices, we can ignore selection order */
 	if (is_pair) {
 		return edbm_vert_connect_exec(C, op);
 	}
 
-	if (bm_vert_connect_select_history(em->bm)) {
+	if (bm->selected.first) {
+		BMEditSelection *ese = bm->selected.first;
+		if (ese->htype == BM_EDGE) {
+			if (bm_vert_connect_select_history_edge_to_vert_path(bm, &selected_orig)) {
+				SWAP(ListBase, bm->selected, selected_orig);
+			}
+		}
+	}
+
+	if (bm_vert_connect_select_history(bm)) {
 		EDBM_selectmode_flush(em);
 		EDBM_update_generic(em, true, true);
-
-		return OPERATOR_FINISHED;
+		retval = OPERATOR_FINISHED;
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "Invalid selection order");
-		return OPERATOR_CANCELLED;
+		retval = OPERATOR_CANCELLED;
 	}
+
+	if (!BLI_listbase_is_empty(&selected_orig)) {
+		BM_select_history_clear(bm);
+		bm->selected = selected_orig;
+	}
+
+	return retval;
 }
 
 void MESH_OT_vert_connect_path(wmOperatorType *ot)
