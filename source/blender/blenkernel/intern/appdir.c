@@ -607,30 +607,42 @@ bool BKE_appdir_program_python_search(
         const int version_major, const int version_minor)
 {
 	const char *basename = "python";
+	char python_ver[16];
+	/* check both possible names */
+	const char *python_names[] = {basename, python_ver};
+	int i;
+
 	bool is_found = false;
+
+	BLI_snprintf(python_ver, sizeof(python_ver), "%s%d.%d", basename, version_major, version_minor);
 
 	{
 		const char *python_bin_dir = BKE_appdir_folder_id(BLENDER_SYSTEM_PYTHON, "bin");
 		if (python_bin_dir) {
-			BLI_join_dirfile(fullpath, fullpath_len, python_bin_dir, basename);
-			if (
+
+			for (i = 0; i < ARRAY_SIZE(python_names); i++) {
+				BLI_join_dirfile(fullpath, fullpath_len, python_bin_dir, python_names[i]);
+
+				if (
 #ifdef _WIN32
-			    BLI_path_program_extensions_add_win32(fullpath, fullpath_len)
+				    BLI_path_program_extensions_add_win32(fullpath, fullpath_len)
 #else
-			    BLI_exists(fullpath)
+				    BLI_exists(fullpath)
 #endif
-			    )
-			{
-				is_found = true;
+				    )
+				{
+					is_found = true;
+				}
 			}
 		}
 	}
 
 	if (is_found == false) {
-		char python_ver[16];
-		BLI_snprintf(python_ver, sizeof(python_ver), "%s%d.%d", basename, version_major, version_minor);
-		if (BLI_path_program_search(fullpath, fullpath_len, python_ver)) {
-			is_found = true;
+		for (i = 0; i < ARRAY_SIZE(python_names); i++) {
+			if (BLI_path_program_search(fullpath, fullpath_len, python_names[i])) {
+				is_found = true;
+				break;
+			}
 		}
 	}
 
