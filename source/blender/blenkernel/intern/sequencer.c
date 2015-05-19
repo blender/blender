@@ -254,15 +254,15 @@ void BKE_sequence_free_anim(Sequence *seq)
 {
 	while (seq->anims.last) {
 		StripAnim *sanim = seq->anims.last;
-		BLI_remlink(&seq->anims, sanim);
 
 		if (sanim->anim) {
 			IMB_free_anim(sanim->anim);
 			sanim->anim = NULL;
 		}
 
-		MEM_freeN(sanim);
+		BLI_freelinkN(&seq->anims, sanim);
 	}
+	BLI_listbase_clear(&seq->anims);
 }
 
 /* cache must be freed before calling this function
