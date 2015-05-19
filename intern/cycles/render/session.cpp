@@ -928,10 +928,14 @@ bool Session::update_progressive_refine(bool cancel)
 			rtile.buffers = buffers;
 			rtile.sample = sample;
 
-			if(write)
-				write_render_tile_cb(rtile);
-			else
-				update_render_tile_cb(rtile);
+			if(write) {
+				if(write_render_tile_cb)
+					write_render_tile_cb(rtile);
+			}
+			else {
+				if(update_render_tile_cb)
+					update_render_tile_cb(rtile);
+			}
 		}
 	}
 
