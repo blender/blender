@@ -930,8 +930,11 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 	if (link->output) {
 		outnode = link->output->node;
 		name = outnode->name;
+		input = outnode->inputs.first;
 
-		if (STREQ(name, "set_value") || STREQ(name, "set_rgb")) {
+		if ((STREQ(name, "set_value") || STREQ(name, "set_rgb")) &&
+		    (input->type == type))
+		{
 			input = MEM_dupallocN(outnode->inputs.first);
 			input->type = type;
 			if (input->link)
