@@ -1973,6 +1973,21 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 						}
 					}
 
+					if (flags & IB_metadata) {
+						const Header & header = file->header(0);
+						Header::ConstIterator iter;
+
+						for (iter = header.begin(); iter != header.end(); iter++) {
+							const StringAttribute *attrib = file->header(0).findTypedAttribute <StringAttribute> (iter.name());
+
+							/* not all attributes are string attributes so we might get some NULLs here */
+							if (attrib) {
+								IMB_metadata_add_field(ibuf, iter.name(), attrib->value().c_str());
+								ibuf->flags |= IB_metadata;
+							}
+						}
+					}
+
 					/* file is no longer needed */
 					delete file;
 				}
