@@ -46,7 +46,9 @@
 
 #include "DNA_userdef_types.h" /* For user settings. */
 
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #ifdef WITH_INTERNATIONAL
 
@@ -152,9 +154,11 @@ const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 		/* We assume if the returned string is the same (memory level) as the msgid, no translation was found,
 		 * and we can try py scripts' ones!
 		 */
+#ifdef WITH_PYTHON
 		if (ret == msgid) {
 			ret = BPY_app_translations_py_pgettext(msgctxt, msgid);
 		}
+#endif
 	}
 
 	return ret;

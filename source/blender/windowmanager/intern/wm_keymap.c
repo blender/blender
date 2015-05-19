@@ -990,10 +990,12 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 										       "this might not be desired!\n", opname);
 										printf("\tkm: '%s', kmi: '%s'\n", keymap->idname, kmi_str);
 #ifndef NDEBUG
+#ifdef WITH_PYTHON
 										printf("OPERATOR\n");
 										IDP_spit(properties);
 										printf("KEYMAP\n");
 										IDP_spit(kmi->ptr->data);
+#endif
 #endif
 										printf("\n");
 									}
@@ -1137,10 +1139,12 @@ static wmKeyMapItem *wm_keymap_item_find(
 					       "this might not be desired!\n", opname);
 					printf("\tkm: '%s', kmi: '%s'\n", km->idname, kmi_str);
 #ifndef NDEBUG
+#ifdef WITH_PYTHON
 					printf("OPERATOR\n");
 					IDP_spit(properties);
 					printf("KEYMAP\n");
 					IDP_spit(kmi->ptr->data);
+#endif
 #endif
 					printf("\n");
 				}

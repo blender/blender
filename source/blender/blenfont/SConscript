@@ -44,7 +44,6 @@ incs = [
     '../imbuf',
     '../makesdna',
     '../makesrna',
-    '../python',
     ]
 
 incs.extend(Split(env['BF_FREETYPE_INC']))
@@ -56,6 +55,10 @@ if sys.platform == 'win32' or env['OURPLATFORM'] == 'linuxcross':
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_PYTHON']:
+    defs.append('WITH_PYTHON')
+    incs.append('../python')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs.append(env['BF_PTHREADS_INC'])

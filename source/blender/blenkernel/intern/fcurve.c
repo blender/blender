@@ -70,7 +70,9 @@
 #define SMALL -1.0e-10
 #define SELECT 1
 
+#ifdef WITH_PYTHON
 static ThreadMutex python_driver_lock = BLI_MUTEX_INITIALIZER;
+#endif
 
 /* ************************** Data-Level Functions ************************* */
 
