@@ -521,8 +521,6 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 	GLenum poly_prev = GL_ZERO;
 	GLenum shade_prev = GL_ZERO;
 
-	(void)setMaterial; /* UNUSED */
-
 	/* currently unused -- each original face is handled separately */
 	(void)compareDrawOptions;
 
@@ -539,6 +537,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 	}
 
 	if (bmdm->vertexCos) {
+		short prev_mat_nr = -1;
+
 		/* add direct access */
 		const float (*vertexCos)[3] = bmdm->vertexCos;
 		const float (*vertexNos)[3];
@@ -569,8 +569,14 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 			               setDrawOptions(userData, BM_elem_index_get(efa)));
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 				const GLenum poly_type = GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
-				if (setMaterial)
-					setMaterial(efa->mat_nr + 1, NULL);
+
+				if (efa->mat_nr != prev_mat_nr) {
+					if (setMaterial) {
+						setMaterial(efa->mat_nr + 1, NULL);
+					}
+					prev_mat_nr = efa->mat_nr;
+				}
+
 				if (draw_option == DM_DRAW_OPTION_STIPPLE) { /* enabled with stipple */
 
 					if (poly_prev != GL_ZERO) glEnd();
@@ -645,6 +651,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 		}
 	}
 	else {
+		short prev_mat_nr = -1;
+
 		BM_mesh_elem_index_ensure(bm, lnors ? BM_FACE | BM_LOOP : BM_FACE);
 
 		for (i = 0; i < tottri; i++) {
@@ -661,8 +669,12 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 				const GLenum poly_type = GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
 
-				if (setMaterial)
-					setMaterial(efa->mat_nr + 1, NULL);
+				if (efa->mat_nr != prev_mat_nr) {
+					if (setMaterial) {
+						setMaterial(efa->mat_nr + 1, NULL);
+					}
+					prev_mat_nr = efa->mat_nr;
+				}
 				
 				if (draw_option == DM_DRAW_OPTION_STIPPLE) { /* enabled with stipple */
 

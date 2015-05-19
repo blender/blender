@@ -793,7 +793,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		else {
 			/* we need to check if the next material changes */
 			int next_actualFace = dm->drawObject->triangle_to_mface[0];
-			int prev_mat_nr = -1;
+			short prev_mat_nr = -1;
 			
 			for (i = 0; i < tottri; i++) {
 				//int actualFace = dm->drawObject->triangle_to_mface[i];
