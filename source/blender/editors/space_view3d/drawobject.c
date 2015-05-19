@@ -4285,7 +4285,9 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 			                                              scene->customdata_mask);
 
 		DM_update_materials(finalDM, ob);
-		DM_update_materials(cageDM, ob);
+		if (cageDM != finalDM) {
+			DM_update_materials(cageDM, ob);
+		}
 
 		if (dt > OB_WIRE) {
 			const bool glsl = draw_glsl_material(scene, ob, v3d, dt);
