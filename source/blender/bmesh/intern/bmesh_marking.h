@@ -95,6 +95,8 @@ void    BM_editselection_plane(BMEditSelection *ese,  float r_plane[3]);
 #define BM_select_history_remove(bm, ele)       _bm_select_history_remove(bm,       &(ele)->head)
 #define BM_select_history_store_notest(bm, ele) _bm_select_history_store_notest(bm, &(ele)->head)
 #define BM_select_history_store(bm, ele)        _bm_select_history_store(bm,        &(ele)->head)
+#define BM_select_history_store_head_notest(bm, ele) _bm_select_history_store_head_notest(bm, &(ele)->head)
+#define BM_select_history_store_head(bm, ele)        _bm_select_history_store_head(bm,        &(ele)->head)
 #define BM_select_history_store_after_notest(bm, ese_ref, ele) _bm_select_history_store_after_notest(bm, ese_ref, &(ele)->head)
 #define BM_select_history_store_after(bm, ese, ese_ref)        _bm_select_history_store_after(bm,        ese_ref, &(ele)->head)
 
@@ -102,6 +104,8 @@ bool _bm_select_history_check(BMesh *bm,  const BMHeader *ele);
 bool _bm_select_history_remove(BMesh *bm,       BMHeader *ele);
 void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele);
 void _bm_select_history_store(BMesh *bm,        BMHeader *ele);
+void _bm_select_history_store_head_notest(BMesh *bm, BMHeader *ele);
+void _bm_select_history_store_head(BMesh *bm,        BMHeader *ele);
 void _bm_select_history_store_after(BMesh *bm,  BMEditSelection *ese_ref, BMHeader *ele);
 void _bm_select_history_store_after_notest(BMesh *bm,  BMEditSelection *ese_ref, BMHeader *ele);
 

@@ -914,6 +914,12 @@ void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele)
 	BLI_addtail(&(bm->selected), ese);
 }
 
+void _bm_select_history_store_head_notest(BMesh *bm, BMHeader *ele)
+{
+	BMEditSelection *ese = bm_select_history_create(ele);
+	BLI_addhead(&(bm->selected), ese);
+}
+
 void _bm_select_history_store(BMesh *bm, BMHeader *ele)
 {
 	if (!BM_select_history_check(bm, (BMElem *)ele)) {
@@ -921,6 +927,12 @@ void _bm_select_history_store(BMesh *bm, BMHeader *ele)
 	}
 }
 
+void _bm_select_history_store_head(BMesh *bm, BMHeader *ele)
+{
+	if (!BM_select_history_check(bm, (BMElem *)ele)) {
+		BM_select_history_store_head_notest(bm, (BMElem *)ele);
+	}
+}
 
 void _bm_select_history_store_after_notest(BMesh *bm, BMEditSelection *ese_ref, BMHeader *ele)
 {
