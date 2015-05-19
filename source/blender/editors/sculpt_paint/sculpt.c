@@ -2747,7 +2747,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 						/* note, the normal from the vertices is ignored,
 						 * causes glitch with planes, see: T44390 */
 						const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrtf(test.dist),
-						                                            NULL, area_no, vd.mask ? *vd.mask : 0.0f);
+						                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2851,7 +2851,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 						 * causes glitch with planes, see: T44390 */
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            ss->cache->radius * test.dist,
-						                                            NULL, area_no, vd.mask ? *vd.mask : 0.0f);
+						                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
