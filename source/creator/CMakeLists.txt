@@ -494,6 +494,12 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_PYTHON)
 		if(WITH_PYTHON_INSTALL)
+
+			install(
+				FILES ${PYTHON_EXECUTABLE}
+				DESTINATION ${TARGETDIR_VER}/python/bin
+			)
+
 			# on some platforms (like openSUSE) Python is linked
 			# to be used from lib64 folder.
 			# determine this from Python's libraries path
