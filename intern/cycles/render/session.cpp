@@ -409,6 +409,11 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 		if(tile_buffers.size() == 0)
 			tile_buffers.resize(tile_manager.state.num_tiles, NULL);
 
+		/* In certain circumstances number of tiles in the tile manager could
+		 * be changed. This is not supported by the progressive refine feature.
+		 */
+		assert(tile_buffers.size() == tile_manager.state.num_tiles);
+
 		tilebuffers = tile_buffers[tile.index];
 		if(tilebuffers == NULL) {
 			tilebuffers = new RenderBuffers(tile_device);
