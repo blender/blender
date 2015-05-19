@@ -232,17 +232,17 @@ PyMethodDef KX_WorldInfo::Methods[] = {
 };
 
 PyAttributeDef KX_WorldInfo::Attributes[] = {
-	KX_PYATTRIBUTE_BOOL_RW("mist_enable", KX_WorldInfo, m_hasmist),
-	KX_PYATTRIBUTE_FLOAT_RW("mist_start", 0.0f, 10000.0f, KX_WorldInfo, m_miststart),
-	KX_PYATTRIBUTE_FLOAT_RW("mist_distance", 0.001f, 10000.0f, KX_WorldInfo, m_mistdistance),
-	KX_PYATTRIBUTE_FLOAT_RW("mist_intensity", 0.0f, 1.0f, KX_WorldInfo, m_mistintensity),
-	KX_PYATTRIBUTE_SHORT_RW("mist_type", 0, 2, true, KX_WorldInfo, m_misttype),
+	KX_PYATTRIBUTE_BOOL_RW("mistEnable", KX_WorldInfo, m_hasmist),
+	KX_PYATTRIBUTE_FLOAT_RW("mistStart", 0.0f, 10000.0f, KX_WorldInfo, m_miststart),
+	KX_PYATTRIBUTE_FLOAT_RW("mistDistance", 0.001f, 10000.0f, KX_WorldInfo, m_mistdistance),
+	KX_PYATTRIBUTE_FLOAT_RW("mistIntensity", 0.0f, 1.0f, KX_WorldInfo, m_mistintensity),
+	KX_PYATTRIBUTE_SHORT_RW("mistType", 0, 2, true, KX_WorldInfo, m_misttype),
 	KX_PYATTRIBUTE_RO_FUNCTION("KX_MIST_QUADRATIC", KX_WorldInfo, pyattr_get_mist_typeconst),
 	KX_PYATTRIBUTE_RO_FUNCTION("KX_MIST_LINEAR", KX_WorldInfo, pyattr_get_mist_typeconst),
 	KX_PYATTRIBUTE_RO_FUNCTION("KX_MIST_INV_QUADRATIC", KX_WorldInfo, pyattr_get_mist_typeconst),
-	KX_PYATTRIBUTE_RW_FUNCTION("mist_color", KX_WorldInfo, pyattr_get_mist_color, pyattr_set_mist_color),
-	KX_PYATTRIBUTE_RW_FUNCTION("background_color", KX_WorldInfo, pyattr_get_back_color, pyattr_set_back_color),
-	KX_PYATTRIBUTE_RW_FUNCTION("ambient_color", KX_WorldInfo, pyattr_get_ambient_color, pyattr_set_ambient_color),
+	KX_PYATTRIBUTE_RW_FUNCTION("mistColor", KX_WorldInfo, pyattr_get_mist_color, pyattr_set_mist_color),
+	KX_PYATTRIBUTE_RW_FUNCTION("backgroundColor", KX_WorldInfo, pyattr_get_back_color, pyattr_set_back_color),
+	KX_PYATTRIBUTE_RW_FUNCTION("ambientColor", KX_WorldInfo, pyattr_get_ambient_color, pyattr_set_ambient_color),
 	{ NULL } /* Sentinel */
 };
 

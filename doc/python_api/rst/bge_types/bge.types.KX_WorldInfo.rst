@@ -16,7 +16,7 @@ base class --- :class:`PyObjectPlus`
 
       sce = bge.logic.getCurrentScene()
 
-      sce.world.mist_color = [1.0, 0.0, 0.0]
+      sce.world.mistColor = [1.0, 0.0, 0.0]
 
 *********
 Constants
@@ -38,49 +38,49 @@ Constants
 Attributes
 **********
 
-   .. attribute:: mist_enable
+   .. attribute:: mistEnable
 
       Return the state of the mist.
 
       :type: bool
 
-   .. attribute:: mist_start
+   .. attribute:: mistStart
 
       The mist start point.
 
       :type: float
 
-   .. attribute:: mist_distance
+   .. attribute:: mistDistance
 
       The mist distance fom the start point to reach 100% mist.
 
       :type: float
 
-   .. attribute:: mist_intensity
+   .. attribute:: mistIntensity
 
       The mist intensity.
 
       :type: float
 
-   .. attribute:: mist_type
+   .. attribute:: mistType
 
       The type of mist - must be KX_MIST_QUADRATIC, KX_MIST_LINEAR or KX_MIST_INV_QUADRATIC
 
-   .. attribute:: mist_color
+   .. attribute:: mistColor
 
       The color of the mist. Black = [0.0, 0.0, 0.0], White = [1.0, 1.0, 1.0].
       Mist and background color sould always set to the same color.
 
       :type: :class:`mathutils.Vector`
 
-   .. attribute:: background_color
+   .. attribute:: backgroundColor
 
       The color of the background. Black = [0.0, 0.0, 0.0], White = [1.0, 1.0, 1.0].
       Mist and background color sould always set to the same color.
 
       :type: :class:`mathutils.Vector`
 
-   .. attribute:: ambient_color
+   .. attribute:: ambientColor
 
       The color of the ambient light. Black = [0.0, 0.0, 0.0], White = [1.0, 1.0, 1.0].
 
