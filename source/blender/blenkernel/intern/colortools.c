@@ -1034,11 +1034,11 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	double divl, diva, divr, divg, divb;
 	unsigned char *display_buffer;
 	unsigned int *bin_lum, *bin_r, *bin_g, *bin_b, *bin_a;
-	int savedlines;
 	int ycc_mode = -1;
 	const bool is_float = (ibuf->rect_float != NULL);
 	void *cache_handle = NULL;
 	struct ColormanageProcessor *cm_processor = NULL;
+	int rows_per_sample_line;
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
 
@@ -1082,7 +1082,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 		scopes->sample_lines = ibuf->y;
 
 	/* scan the image */
-	savedlines = 0;
+	rows_per_sample_line = ibuf->y / scopes->sample_lines;
 	for (a = 0; a < 3; a++) {
 		scopes->minmax[a][0] = 25500.0f;
 		scopes->minmax[a][1] = -25500.0f;
@@ -1117,17 +1117,11 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	for (y = 0; y < ibuf->y; y++) {
 		const float *rf = NULL;
 		unsigned char *rc = NULL;
-		int x, c, saveline;
+		int x, c;
 		if (is_float)
 			rf = ibuf->rect_float + ((size_t)y) * ibuf->x * ibuf->channels;
 		else {
 			rc = display_buffer + ((size_t)y) * ibuf->x * ibuf->channels;
-		}
-		if (savedlines < scopes->sample_lines && y >= ((savedlines) * ibuf->y) / (scopes->sample_lines + 1)) {
-			saveline = 1;
-		}
-		else {
-			saveline = 0;
 		}
 		for (x = 0; x < ibuf->x; x++) {
 			float rgba[4], ycc[3], luma;
@@ -1166,8 +1160,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 			bin_a[get_bin_float(rgba[3])] += 1;
 
 			/* save sample if needed */
-			if (saveline) {
+			if (y % rows_per_sample_line == 0) {
 				const float fx = (float)x / (float)ibuf->x;
+				const int savedlines = y / rows_per_sample_line;
 				const int idx = 2 * (ibuf->x * savedlines + x);
 				save_sample_line(scopes, idx, fx, rgba, ycc);
 			}
@@ -1175,8 +1170,6 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 			rf += ibuf->channels;
 			rc += ibuf->channels;
 		}
-		if (saveline)
-			savedlines += 1;
 	}
 
 	/* test for nicer distribution even - non standard, leave it out for a while */
