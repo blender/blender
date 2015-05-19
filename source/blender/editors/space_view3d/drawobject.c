@@ -3042,7 +3042,7 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 		data.orig_index_mf_to_mpoly = data.orig_index_mp_to_orig = NULL;
 	}
 
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions, &data, 0);
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, NULL, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }
 
 static DMDrawOption draw_dm_creases__setDrawOptions(void *userData, int index)
