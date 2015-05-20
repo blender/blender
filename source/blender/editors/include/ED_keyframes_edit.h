@@ -255,7 +255,7 @@ bool delete_fcurve_keys(struct FCurve *fcu);
 void clear_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);
 
-void clean_fcurve(struct FCurve *fcu, float thresh);
+void clean_fcurve(struct bAnimContext *ac, struct bAnimListElem *ale, float thresh, bool cleardefault);
 void smooth_fcurve(struct FCurve *fcu);
 void sample_fcurve(struct FCurve *fcu);
 

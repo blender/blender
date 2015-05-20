@@ -179,17 +179,22 @@ void duplicate_fcurve_keys(FCurve *fcu)
 /* **************************************************** */
 /* Various Tools */
 
-/* Basic F-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only */
-void clean_fcurve(FCurve *fcu, float thresh)
+/* Basic F-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only
+ * optionally clears up curve if one keyframe with default value remains */
+void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
+	FCurve *fcu = (FCurve *)ale->key_data;
 	BezTriple *old_bezts, *bezt, *beztn;
 	BezTriple *lastb;
 	int totCount, i;
 	
 	/* check if any points  */
-	if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert <= 1))
+	if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert == 0) ||
+	    (!cleardefault && fcu->totvert == 1))
+	{
 		return;
-	
+	}
+
 	/* make a copy of the old BezTriples, and clear F-Curve */
 	old_bezts = fcu->bezt;
 	totCount = fcu->totvert;
@@ -284,6 +289,34 @@ void clean_fcurve(FCurve *fcu, float thresh)
 	/* now free the memory used by the old BezTriples */
 	if (old_bezts)
 		MEM_freeN(old_bezts);
+
+	/* final step, if there is just one key in fcurve, check if it's
+	 * the default value and if is, remove fcurve completely. */
+	if (cleardefault && fcu->totvert == 1) {
+		float default_value = 0.0f;
+		PointerRNA id_ptr, ptr;
+		PropertyRNA *prop;
+		RNA_id_pointer_create(ale->id, &id_ptr);
+
+		/* get property to read from, and get value as appropriate */
+		if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+			if (RNA_property_type(prop) == PROP_FLOAT)
+				default_value = RNA_property_float_get_default_index(&ptr, prop, fcu->array_index);
+		}
+
+		if (fcu->bezt->vec[1][1] == default_value) {
+			clear_fcurve_keys(fcu);
+
+			/* check if curve is really unused and if it is, return signal for deletion */
+			if ((list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0) &&
+			    (fcu->driver == NULL))
+			{
+				AnimData *adt = ale->adt;
+				ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
+				ale->key_data = NULL;
+			}
+		}
+	}
 }
 
 /* ---------------- */

@@ -258,6 +258,7 @@ class GRAPH_MT_key(Menu):
 
         layout.separator()
         layout.operator("graph.clean")
+        layout.operator("graph.clean", text="Clean Channels").channels = True
         layout.operator("graph.smooth")
         layout.operator("graph.sample")
         layout.operator("graph.bake")
@@ -293,6 +294,7 @@ class GRAPH_MT_delete(Menu):
         layout.separator()
 
         layout.operator("graph.clean")
+        layout.operator("graph.clean", text="Clean Channels").channels = True
 
 
 if __name__ == "__main__":  # only for live edit.
