@@ -18,10 +18,6 @@ base class --- :class:`PyObjectPlus`
 
       sce.world.mistColor = [1.0, 0.0, 0.0]
 
-*********
-Constants
-*********
-
    .. data:: KX_MIST_QUADRATIC
 
       Type of quadratic attenuation used to fade mist.
@@ -33,10 +29,6 @@ Constants
    .. data:: KX_MIST_INV_QUADRATIC
 
       Type of inverse quadratic attenuation used to fade mist.
-
-**********
-Attributes
-**********
 
    .. attribute:: mistEnable
 
