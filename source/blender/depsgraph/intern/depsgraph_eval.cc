@@ -325,6 +325,10 @@ void DEG_evaluate_on_refresh_ex(EvaluationContext *eval_ctx,
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &state);
 
+	if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
+		BLI_pool_set_num_threads(task_pool, 1);
+	}
+
 	calculate_pending_parents(graph, layers);
 
 	/* Clear tags. */

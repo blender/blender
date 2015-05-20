@@ -1579,6 +1579,9 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 #endif
 
 	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
+		BLI_pool_set_num_threads(task_pool, 1);
+	}
 
 	DAG_threaded_update_begin(scene, scene_update_object_add_task, task_pool);
 	BLI_task_pool_work_and_wait(task_pool);
