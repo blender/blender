@@ -15,41 +15,43 @@ Physics Constraints (bge.constraints)
 
    Creates a constraint.
 
-   :arg physicsid_1: the physics id of the first object in constraint
-   :type physicsid: int
-
-   :arg physicsid_2: the physics id of the second object in constraint
-   :type physicsid2: int
-
-   :arg constrainttype: the type of the constraint. The constraint types are:
-   :type constrainttype: int
+   Constraints types:
       - :class:`POINTTOPOINT_CONSTRAINT`
       - :class:`LINEHINGE_CONSTRAINT`
       - :class:`ANGULAR_CONSTRAINT`
       - :class:`CONETWIST_CONSTRAINT`
       - :class:`VEHICLE_CONSTRAINT`
-      - :class:`GENERIC_6DOF_CONSTRAINT`
-   
-   :arg pivot_X: pivot X position
-   :type pivot_X: float (optional)
+      - :class:`GENERIC_6DOF_CONSTRAINT` 
 
-   :arg pivot_Y: pivot Y position
-   :type pivot_Y: float (optional)
+   :arg physicsid_1: the physics id of the first object in constraint.
+   :type physicsid_1: int
 
-   :arg pivot_Z: pivot Z position
-   :type pivot_Z: float (optional)
+   :arg physicsid_2: the physics id of the second object in constraint.
+   :type physicsid_2: int
 
-   :arg axis_X: X axis angle in degrees
-   :type axis_X: float (optional)
+   :arg constrainttype: the type of the constraint.
+   :type constrainttype: int
 
-   :arg axis_Y: Y axis angle in degrees
-   :type axis_Y: float (optional)
+   :arg pivot_X: pivot X position (optional).
+   :type pivot_X: float
 
-   :arg axis_Z: Z axis angle in degrees
-   :type axis_Z: float (optional)
+   :arg pivot_Y: pivot Y position (optional).
+   :type pivot_Y: float
 
-   :arg flag: 128 to disable collision between linked bodies
-   :type flag: int (optional)
+   :arg pivot_Z: pivot Z position (optional).
+   :type pivot_Z: float
+
+   :arg axis_X: X axis angle in degrees (optional).
+   :type axis_X: float
+
+   :arg axis_Y: Y axis angle in degrees (optional).
+   :type axis_Y: float
+
+   :arg axis_Z: Z axis angle in degrees (optional).
+   :type axis_Z: float
+
+   :arg flag: 128 to disable collision between linked bodies (optional).
+   :type flag: int
 
    :return: a constraint wrapper.
    :rtype: :class:`bge.types.KX_ConstraintWrapper`
