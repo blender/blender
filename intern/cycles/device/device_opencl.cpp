@@ -1528,7 +1528,7 @@ public:
 	cl_program queue_enqueue_program;
 	cl_program background_buffer_update_program;
 	cl_program shader_eval_program;
-	cl_program holdout_emission_blurring_termination_ao_program;
+	cl_program holdout_emission_blurring_pathtermination_ao_program;
 	cl_program direct_lighting_program;
 	cl_program shadow_blocked_program;
 	cl_program next_iteration_setup_program;
@@ -1699,7 +1699,7 @@ public:
 		queue_enqueue_program = NULL;
 		background_buffer_update_program = NULL;
 		shader_eval_program = NULL;
-		holdout_emission_blurring_termination_ao_program = NULL;
+		holdout_emission_blurring_pathtermination_ao_program = NULL;
 		direct_lighting_program = NULL;
 		shadow_blocked_program = NULL;
 		next_iteration_setup_program = NULL;
@@ -2004,40 +2004,37 @@ public:
 			common_custom_build_options += "-D__KERNEL_EXPERIMENTAL__ ";
 		}
 
-#define LOAD_KERNEL(program, name) \
+#define GLUE(a, b) a ## b
+#define LOAD_KERNEL(name) \
 	do { \
-		kernel_init_source = "#include \"kernel_" name ".cl\" // " + \
+		kernel_init_source = "#include \"kernel_" #name ".cl\" // " + \
 		                     kernel_md5 + "\n"; \
 		custom_kernel_build_options = common_custom_build_options; \
 		device_md5 = device_md5_hash(custom_kernel_build_options); \
-		clbin = string_printf("cycles_kernel_%s_%s_" name ".clbin", \
+		clbin = string_printf("cycles_kernel_%s_%s_" #name ".clbin", \
 		                      device_md5.c_str(), kernel_md5.c_str()); \
 		if(!load_split_kernel(kernel_path, kernel_init_source, clbin, \
-		                      custom_kernel_build_options, &program)) \
+		                      custom_kernel_build_options, \
+		                      &GLUE(name, _program))) \
 		{ \
 			return false; \
 		} \
 	} while(false)
 
-		/* TODO(sergey): If names are unified we can save some more bits of
-		 * code here.
-		 */
-		LOAD_KERNEL(data_init_program, "data_init");
-		LOAD_KERNEL(scene_intersect_program, "scene_intersect");
-		LOAD_KERNEL(lamp_emission_program, "lamp_emission");
-		LOAD_KERNEL(queue_enqueue_program, "queue_enqueue");
-		LOAD_KERNEL(background_buffer_update_program, "background_buffer_update");
-		LOAD_KERNEL(shader_eval_program, "shader_eval");
-		LOAD_KERNEL(holdout_emission_blurring_termination_ao_program,
-		            "holdout_emission_blurring_pathtermination_ao");
-		LOAD_KERNEL(direct_lighting_program, "direct_lighting");
-		LOAD_KERNEL(shadow_blocked_program, "shadow_blocked");
-		LOAD_KERNEL(next_iteration_setup_program, "next_iteration_setup");
-		LOAD_KERNEL(sum_all_radiance_program, "sum_all_radiance");
+		LOAD_KERNEL(data_init);
+		LOAD_KERNEL(scene_intersect);
+		LOAD_KERNEL(lamp_emission);
+		LOAD_KERNEL(queue_enqueue);
+		LOAD_KERNEL(background_buffer_update);
+		LOAD_KERNEL(shader_eval);
+		LOAD_KERNEL(holdout_emission_blurring_pathtermination_ao);
+		LOAD_KERNEL(direct_lighting);
+		LOAD_KERNEL(shadow_blocked);
+		LOAD_KERNEL(next_iteration_setup);
+		LOAD_KERNEL(sum_all_radiance);
 
 #undef LOAD_KERNEL
 
-#define GLUE(a, b) a ## b
 #define FIND_KERNEL(kernel, program, function) \
 	do { \
 		GLUE(ckPathTraceKernel_, kernel) = \
@@ -2055,7 +2052,7 @@ public:
 		FIND_KERNEL(background_buffer_update, background_buffer_update, "background_buffer_update");
 		FIND_KERNEL(shader_lighting, shader_eval, "shader_evaluation");
 		FIND_KERNEL(holdout_emission_blurring_pathtermination_ao,
-		            holdout_emission_blurring_termination_ao,
+		            holdout_emission_blurring_pathtermination_ao,
 		            "holdout_emission_blurring_pathtermination_ao");
 		FIND_KERNEL(direct_lighting, direct_lighting, "direct_lighting");
 		FIND_KERNEL(shadow_blocked_direct_lighting, shadow_blocked, "shadow_blocked_direct_lighting");
@@ -2189,7 +2186,7 @@ public:
 		release_program_safe(queue_enqueue_program);
 		release_program_safe(background_buffer_update_program);
 		release_program_safe(shader_eval_program);
-		release_program_safe(holdout_emission_blurring_termination_ao_program);
+		release_program_safe(holdout_emission_blurring_pathtermination_ao_program);
 		release_program_safe(direct_lighting_program);
 		release_program_safe(shadow_blocked_program);
 		release_program_safe(next_iteration_setup_program);
