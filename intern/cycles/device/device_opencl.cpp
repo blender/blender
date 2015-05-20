@@ -1514,11 +1514,11 @@ public:
 	cl_kernel ckPathTraceKernel_lamp_emission;
 	cl_kernel ckPathTraceKernel_queue_enqueue;
 	cl_kernel ckPathTraceKernel_background_buffer_update;
-	cl_kernel ckPathTraceKernel_shader_lighting;
+	cl_kernel ckPathTraceKernel_shader_eval;
 	cl_kernel ckPathTraceKernel_holdout_emission_blurring_pathtermination_ao;
 	cl_kernel ckPathTraceKernel_direct_lighting;
-	cl_kernel ckPathTraceKernel_shadow_blocked_direct_lighting;
-	cl_kernel ckPathTraceKernel_setup_next_iteration;
+	cl_kernel ckPathTraceKernel_shadow_blocked;
+	cl_kernel ckPathTraceKernel_next_iteration_setup;
 	cl_kernel ckPathTraceKernel_sum_all_radiance;
 
 	/* cl_program declaration. */
@@ -1684,11 +1684,11 @@ public:
 		ckPathTraceKernel_scene_intersect = NULL;
 		ckPathTraceKernel_lamp_emission = NULL;
 		ckPathTraceKernel_background_buffer_update = NULL;
-		ckPathTraceKernel_shader_lighting = NULL;
+		ckPathTraceKernel_shader_eval = NULL;
 		ckPathTraceKernel_holdout_emission_blurring_pathtermination_ao = NULL;
 		ckPathTraceKernel_direct_lighting = NULL;
-		ckPathTraceKernel_shadow_blocked_direct_lighting = NULL;
-		ckPathTraceKernel_setup_next_iteration = NULL;
+		ckPathTraceKernel_shadow_blocked = NULL;
+		ckPathTraceKernel_next_iteration_setup = NULL;
 		ckPathTraceKernel_sum_all_radiance = NULL;
 		ckPathTraceKernel_queue_enqueue = NULL;
 
@@ -2017,6 +2017,7 @@ public:
 		                      custom_kernel_build_options, \
 		                      &GLUE(name, _program))) \
 		{ \
+			fprintf(stderr, "Faled to compile %s\n", #name); \
 			return false; \
 		} \
 	} while(false)
@@ -2035,29 +2036,28 @@ public:
 
 #undef LOAD_KERNEL
 
-#define FIND_KERNEL(kernel, program, function) \
+#define FIND_KERNEL(name) \
 	do { \
-		GLUE(ckPathTraceKernel_, kernel) = \
-			clCreateKernel(GLUE(program, _program), \
-			               "kernel_ocl_path_trace_"  function, &ciErr); \
+		GLUE(ckPathTraceKernel_, name) = \
+			clCreateKernel(GLUE(name, _program), \
+			               "kernel_ocl_path_trace_"  #name, &ciErr); \
 		if(opencl_error(ciErr)) { \
+			fprintf(stderr,"Missing kernel kernel_ocl_path_trace_%s\n", #name); \
 			return false; \
 		} \
 	} while(false)
 
-		FIND_KERNEL(data_init, data_init, "data_initialization");
-		FIND_KERNEL(scene_intersect, scene_intersect, "scene_intersect");
-		FIND_KERNEL(lamp_emission, lamp_emission, "lamp_emission");
-		FIND_KERNEL(queue_enqueue, queue_enqueue, "queue_enqueue");
-		FIND_KERNEL(background_buffer_update, background_buffer_update, "background_buffer_update");
-		FIND_KERNEL(shader_lighting, shader_eval, "shader_evaluation");
-		FIND_KERNEL(holdout_emission_blurring_pathtermination_ao,
-		            holdout_emission_blurring_pathtermination_ao,
-		            "holdout_emission_blurring_pathtermination_ao");
-		FIND_KERNEL(direct_lighting, direct_lighting, "direct_lighting");
-		FIND_KERNEL(shadow_blocked_direct_lighting, shadow_blocked, "shadow_blocked_direct_lighting");
-		FIND_KERNEL(setup_next_iteration, next_iteration_setup, "setup_next_iteration");
-		FIND_KERNEL(sum_all_radiance, sum_all_radiance, "sum_all_radiance");
+		FIND_KERNEL(data_init);
+		FIND_KERNEL(scene_intersect);
+		FIND_KERNEL(lamp_emission);
+		FIND_KERNEL(queue_enqueue);
+		FIND_KERNEL(background_buffer_update);
+		FIND_KERNEL(shader_eval);
+		FIND_KERNEL(holdout_emission_blurring_pathtermination_ao);
+		FIND_KERNEL(direct_lighting);
+		FIND_KERNEL(shadow_blocked);
+		FIND_KERNEL(next_iteration_setup);
+		FIND_KERNEL(sum_all_radiance);
 #undef FIND_KERNEL
 #undef GLUE
 
@@ -2076,11 +2076,11 @@ public:
 		release_kernel_safe(ckPathTraceKernel_lamp_emission);
 		release_kernel_safe(ckPathTraceKernel_queue_enqueue);
 		release_kernel_safe(ckPathTraceKernel_background_buffer_update);
-		release_kernel_safe(ckPathTraceKernel_shader_lighting);
+		release_kernel_safe(ckPathTraceKernel_shader_eval);
 		release_kernel_safe(ckPathTraceKernel_holdout_emission_blurring_pathtermination_ao);
 		release_kernel_safe(ckPathTraceKernel_direct_lighting);
-		release_kernel_safe(ckPathTraceKernel_shadow_blocked_direct_lighting);
-		release_kernel_safe(ckPathTraceKernel_setup_next_iteration);
+		release_kernel_safe(ckPathTraceKernel_shadow_blocked);
+		release_kernel_safe(ckPathTraceKernel_next_iteration_setup);
 		release_kernel_safe(ckPathTraceKernel_sum_all_radiance);
 
 		/* Release global memory */
@@ -2595,7 +2595,7 @@ public:
 #endif
 		                 num_parallel_samples);
 
-		kernel_set_args(ckPathTraceKernel_shader_lighting,
+		kernel_set_args(ckPathTraceKernel_shader_eval,
 		                0,
 		                kgbuffer,
 		                d_data,
@@ -2655,7 +2655,7 @@ public:
 		                Queue_index,
 		                dQueue_size);
 
-		kernel_set_args(ckPathTraceKernel_shadow_blocked_direct_lighting,
+		kernel_set_args(ckPathTraceKernel_shadow_blocked,
 		                0,
 		                kgbuffer,
 		                d_data,
@@ -2671,7 +2671,7 @@ public:
 		                dQueue_size,
 		                total_num_rays);
 
-		kernel_set_args(ckPathTraceKernel_setup_next_iteration,
+		kernel_set_args(ckPathTraceKernel_next_iteration_setup,
 		                0,
 		                kgbuffer,
 		                d_data,
@@ -2741,11 +2741,11 @@ public:
 				ENQUEUE_SPLIT_KERNEL(lamp_emission, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(queue_enqueue, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(background_buffer_update, global_size, local_size);
-				ENQUEUE_SPLIT_KERNEL(shader_lighting, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(shader_eval, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(holdout_emission_blurring_pathtermination_ao, global_size, local_size);
 				ENQUEUE_SPLIT_KERNEL(direct_lighting, global_size, local_size);
-				ENQUEUE_SPLIT_KERNEL(shadow_blocked_direct_lighting, global_size_shadow_blocked, local_size);
-				ENQUEUE_SPLIT_KERNEL(setup_next_iteration, global_size, local_size);
+				ENQUEUE_SPLIT_KERNEL(shadow_blocked, global_size_shadow_blocked, local_size);
+				ENQUEUE_SPLIT_KERNEL(next_iteration_setup, global_size, local_size);
 			}
 
 			/* Read ray-state into Host memory to decide if we should exit

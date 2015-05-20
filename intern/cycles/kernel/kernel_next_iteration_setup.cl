@@ -27,7 +27,7 @@
  *
  * The input and output are as follows,
  *
- * rng_coop ---------------------------------------------|--- kernel_ocl_path_trace_setup_next_iteration -|--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
+ * rng_coop ---------------------------------------------|--- kernel_ocl_path_trace_next_iteration_setup -|--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
  * throughput_coop --------------------------------------|                                                |--- Queue_data (QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS)
  * PathRadiance_coop ------------------------------------|                                                |--- throughput_coop
  * PathState_coop ---------------------------------------|                                                |--- PathRadiance_coop
@@ -61,7 +61,7 @@
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE and more RAY_UPDATE_BUFFER rays
  */
 
-__kernel void kernel_ocl_path_trace_setup_next_iteration(
+__kernel void kernel_ocl_path_trace_next_iteration_setup(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,               /* Required for setting up ray for next iteration */

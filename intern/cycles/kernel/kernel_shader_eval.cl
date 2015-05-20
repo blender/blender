@@ -17,22 +17,22 @@
 #include "kernel_split.h"
 
 /*
- * Note on kernel_ocl_path_trace_shader_evaluation kernel
+ * Note on kernel_ocl_path_trace_shader_eval kernel
  * This kernel is the 5th kernel in the ray tracing logic. This is
  * the 4rd kernel in path iteration. This kernel sets up the ShaderData
  * structure from the values computed by the previous kernels. It also identifies
  * the rays of state RAY_TO_REGENERATE and enqueues them in QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue.
  *
  * The input and output of the kernel is as follows,
- * rng_coop -------------------------------------------|--- kernel_ocl_path_trace_shader_evaluation --|--- shader_data
- * Ray_coop -------------------------------------------|                                              |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * PathState_coop -------------------------------------|                                              |--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * Intersection_coop ----------------------------------|                                              |
- * Queue_data (QUEUE_ACTIVE_AND_REGENERATD_RAYS)-------|                                              |
- * Queue_index(QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)---|                                              |
- * ray_state ------------------------------------------|                                              |
- * kg (globals + data) --------------------------------|                                              |
- * queuesize ------------------------------------------|                                              |
+ * rng_coop -------------------------------------------|--- kernel_ocl_path_trace_shader_eval --|--- shader_data
+ * Ray_coop -------------------------------------------|                                        |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
+ * PathState_coop -------------------------------------|                                        |--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
+ * Intersection_coop ----------------------------------|                                        |
+ * Queue_data (QUEUE_ACTIVE_AND_REGENERATD_RAYS)-------|                                        |
+ * Queue_index(QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)---|                                        |
+ * ray_state ------------------------------------------|                                        |
+ * kg (globals + data) --------------------------------|                                        |
+ * queuesize ------------------------------------------|                                        |
  *
  * Note on Queues :
  * This kernel reads from the QUEUE_ACTIVE_AND_REGENERATED_RAYS queue and processes
@@ -46,7 +46,7 @@
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE rays
  */
 
-__kernel void kernel_ocl_path_trace_shader_evaluation(
+__kernel void kernel_ocl_path_trace_shader_eval(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,               /* Output ShaderData structure to be filled */

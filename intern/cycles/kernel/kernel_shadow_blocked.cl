@@ -47,7 +47,7 @@
  * QUEUE_SHADOW_RAY_CAST_AO_RAYS and QUEUE_SHADOW_RAY_CAST_DL_RAYS will be empty at kernel exit.
  */
 
-__kernel void kernel_ocl_path_trace_shadow_blocked_direct_lighting(
+__kernel void kernel_ocl_path_trace_shadow_blocked(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_shadow,             /* Required for shadow blocked */
