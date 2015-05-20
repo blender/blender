@@ -171,13 +171,15 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
 				cross_v3_v3v3(cross_exist, vec_other, vec_exist);
 				cross_v3_v3v3(cross_optim, vec_other, vec_optim);
 
-				/* normalize isn't really needed, but ensures the value at a unit we can compare against */
-				normalize_v3(cross_exist);
-				normalize_v3(cross_optim);
+				/* avoid normalize */
+				if (dot_v3v3(cross_exist, cross_optim) <=
+				    (len_squared_v3(cross_exist) + len_squared_v3(cross_optim)) * 0.01f)
+				{
+					return true;
+				}
 #else
 				normal_tri_v3(cross_exist, v->co,       co_prev, co_next);
 				normal_tri_v3(cross_optim, optimize_co, co_prev, co_next);
-#endif
 
 				/* use a small value rather then zero so we don't flip a face in multiple steps
 				 * (first making it zero area, then flipping again) */
@@ -185,6 +187,8 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
 					//printf("no flip\n");
 					return true;
 				}
+#endif
+
 			}
 		}
 	}
