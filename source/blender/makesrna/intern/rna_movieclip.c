@@ -196,7 +196,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, clip_tc_items);
 	RNA_def_property_ui_text(prop, "Timecode", "");
-	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
 
 	/* directory */
 	prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
