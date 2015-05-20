@@ -1303,3 +1303,9 @@ void BKE_color_managed_colorspace_settings_copy(ColorManagedColorspaceSettings *
 {
 	BLI_strncpy(colorspace_settings->name, settings->name, sizeof(colorspace_settings->name));
 }
+
+bool BKE_color_managed_colorspace_settings_equals(const ColorManagedColorspaceSettings *settings1,
+                                                  const ColorManagedColorspaceSettings *settings2)
+{
+	return STREQ(settings1->name, settings2->name);
+}

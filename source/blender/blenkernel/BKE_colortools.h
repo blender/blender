@@ -103,5 +103,6 @@ void BKE_color_managed_view_settings_free(struct ColorManagedViewSettings *setti
 void BKE_color_managed_colorspace_settings_init(struct ColorManagedColorspaceSettings *colorspace_settings);
 void BKE_color_managed_colorspace_settings_copy(struct ColorManagedColorspaceSettings *colorspace_settings,
                                                 const struct ColorManagedColorspaceSettings *settings);
-
+bool BKE_color_managed_colorspace_settings_equals(const struct ColorManagedColorspaceSettings *settings1,
+                                                  const struct ColorManagedColorspaceSettings *settings2);
 #endif
