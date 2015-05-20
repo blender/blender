@@ -813,10 +813,12 @@ void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, 
 	filename_stripped = filename;
 
 	if (filename_stripped) {
+		int numlen = 0;
 
 		/* strip numeric extensions */
 		while (*filename_stripped && isdigit(*filename_stripped)) {
 			filename_stripped++;
+			numlen++;
 		}
 
 		/* was the number really an extension? */
@@ -827,7 +829,7 @@ void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, 
 		}
 
 		for (i = 0; i < len; i++, se++) {
-			BLI_snprintf(se->name, sizeof(se->name), "%04d.%s", minframe + i, filename_stripped);
+			BLI_snprintf(se->name, sizeof(se->name), "%0*d.%s", numlen, minframe + i, filename_stripped);
 		}
 
 		MEM_freeN(filename);
