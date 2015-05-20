@@ -1441,9 +1441,8 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 			/* turn off radial brush cursor */
 			gpencil_draw_toggle_eraser_cursor(C, p, false);
 			
-			/* if successful, store the new eraser size to be used again next time */
-			if (p->status == GP_STATUS_DONE)
-				U.gp_eraser = p->radius;
+			/* always store the new eraser size to be used again next time */
+			U.gp_eraser = p->radius;
 		}
 		
 		/* cleanup */
