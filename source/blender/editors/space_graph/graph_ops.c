@@ -87,6 +87,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
 	 * NOTE: sync this part of the code with ANIM_OT_change_frame
 	 */
 	CFRA = RNA_int_get(op->ptr, "frame");
+	FRAMENUMBER_MIN_CLAMP(CFRA);
 	SUBFRA = 0.f;
 	BKE_sound_seek_scene(bmain, scene);
 	
