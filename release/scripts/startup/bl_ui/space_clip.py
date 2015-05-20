@@ -987,7 +987,9 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
         if clip.use_proxy_custom_directory:
             col.prop(clip.proxy, "directory")
 
-        col.operator("clip.rebuild_proxy", text="Build Proxy")
+        col.operator("clip.rebuild_proxy",
+                     text="Build Proxy / Timecode" if clip.source == 'MOVIE' \
+                                                   else "Build Proxy")
 
         if clip.source == 'MOVIE':
             col2 = col.column()
