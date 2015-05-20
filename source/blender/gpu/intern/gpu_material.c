@@ -2305,7 +2305,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 					break;
 				}
 
-				if (uniform->type >= GPU_DYNAMIC_LAMP_FIRST && uniform->type <= GPU_DYNAMIC_LAMP_LAST)
+				if (GPU_DYNAMIC_GROUP_FROM_TYPE(uniform->type) == GPU_DYNAMIC_GROUP_LAMP)
 					uniform->lamp = input->dynamicdata;
 			}
 
