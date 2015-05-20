@@ -377,7 +377,8 @@ static void options_parse(int argc, const char **argv)
 		printf("Devices:\n");
 
 		foreach(DeviceInfo& info, devices) {
-			printf("    %s%s\n",
+			printf("    %-10s%s%s\n",
+				Device::string_from_type(info.type).c_str(),
 				info.description.c_str(),
 				(info.display_device)? " (display)": "");
 		}
