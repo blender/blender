@@ -42,7 +42,7 @@
 
 #define QUADRIC_FLT_TOT (sizeof(Quadric) / sizeof(float))
 
-void BLI_quadric_from_v3_dist(Quadric *q, const float v[3], const float offset)
+void BLI_quadric_from_plane(Quadric *q, const float v[4])
 {
 	q->a2 = v[0] * v[0];
 	q->b2 = v[1] * v[1];
@@ -52,11 +52,11 @@ void BLI_quadric_from_v3_dist(Quadric *q, const float v[3], const float offset)
 	q->ac = v[0] * v[2];
 	q->bc = v[1] * v[2];
 
-	q->ad = v[0] * offset;
-	q->bd = v[1] * offset;
-	q->cd = v[2] * offset;
+	q->ad = v[0] * v[3];
+	q->bd = v[1] * v[3];
+	q->cd = v[2] * v[3];
 
-	q->d2 = offset * offset;
+	q->d2 = v[3] * v[3];
 }
 
 void BLI_quadric_to_tensor_m3(const Quadric *q, float m[3][3])

@@ -38,7 +38,7 @@ typedef struct Quadric {
 } Quadric;
 
 /* conversion */
-void  BLI_quadric_from_v3_dist(Quadric *q, const float v[3], const float offset);
+void  BLI_quadric_from_plane(Quadric *q, const float v[4]);
 void  BLI_quadric_to_tensor_m3(const Quadric *q, float m[3][3]);
 void  BLI_quadric_to_vector_v3(const Quadric *q, float v[3]);
 

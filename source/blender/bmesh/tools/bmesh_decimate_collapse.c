@@ -77,12 +77,15 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 		BMLoop *l_first;
 		BMLoop *l_iter;
 
-		const float *co = BM_FACE_FIRST_LOOP(f)->v->co;
-		const float *no = f->no;
-		const float offset = -dot_v3v3(no, co);
+		float center[3];
+		float plane[4];
 		Quadric q;
 
-		BLI_quadric_from_v3_dist(&q, no, offset);
+		BM_face_calc_center_mean(f, center);
+		copy_v3_v3(plane, f->no);
+		plane[3] = -dot_v3v3(plane, center);
+
+		BLI_quadric_from_plane(&q, plane);
 
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
@@ -94,14 +97,19 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (UNLIKELY(BM_edge_is_boundary(e))) {
 			float edge_vector[3];
-			float edge_cross[3];
+			float edge_plane[4];
 			sub_v3_v3v3(edge_vector, e->v2->co, e->v1->co);
 			f = e->l->f;
-			cross_v3_v3v3(edge_cross, edge_vector, f->no);
+			cross_v3_v3v3(edge_plane, edge_vector, f->no);
 
-			if (normalize_v3(edge_cross) > FLT_EPSILON) {
+			if (normalize_v3(edge_plane) > FLT_EPSILON) {
 				Quadric q;
-				BLI_quadric_from_v3_dist(&q, edge_cross, -dot_v3v3(edge_cross, e->v1->co));
+				float center[3];
+
+				mid_v3_v3v3(center, e->v1->co, e->v2->co);
+				edge_plane[3] = -dot_v3v3(edge_plane, center);
+
+				BLI_quadric_from_plane(&q, edge_plane);
 				BLI_quadric_mul(&q, BOUNDARY_PRESERVE_WEIGHT);
 
 				BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(e->v1)], &q);
