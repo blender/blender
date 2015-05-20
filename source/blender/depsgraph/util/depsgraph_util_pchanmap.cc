@@ -24,6 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/depsgraph/util/depsgraph_util_pchanmap.cc
+ *  \ingroup depsgraph
+ */
+
 #include "depsgraph_util_pchanmap.h"
 
 #include <stdio.h>

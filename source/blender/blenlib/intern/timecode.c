@@ -196,7 +196,6 @@ size_t BLI_timecode_string_from_time(
  * \param power  special setting for #View2D grid drawing,
  *        used to specify how detailed we need to be
  * \param time_seconds  time total time in seconds
- * \param seconds  time in seconds.
  * \return length of \a str
  *
  * \note in some cases this is used to print non-seconds values.

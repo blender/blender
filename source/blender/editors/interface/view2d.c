@@ -1987,7 +1987,7 @@ void UI_view2d_listview_view_to_cell(
  *
  * \param columnwidth, rowheight: Size of each 'cell'
  * \param startx, starty: Coordinates that the list starts from, which should be (0,0) for most views
- * \param column, row_min, max: The starting and ending column/row indices
+ * \param column_min, column_max, row_min, row_max: The starting and ending column/row indices
  */
 void UI_view2d_listview_visible_cells(
         View2D *v2d, float columnwidth, float rowheight, float startx, float starty,
@@ -2021,7 +2021,7 @@ float UI_view2d_region_to_view_y(struct View2D *v2d, float y)
  * Convert from screen/region space to 2d-View space
  *
  * \param x, y: coordinates to convert
- * \param viewx, viewy: resultant coordinates
+ * \param r_view_x, r_view_y: resultant coordinates
  */
 void UI_view2d_region_to_view(View2D *v2d, float x, float y, float *r_view_x, float *r_view_y)
 {
@@ -2054,7 +2054,7 @@ float UI_view2d_view_to_region_y(View2D *v2d, float y)
  * \note Coordinates are clamped to lie within bounds of region
  *
  * \param x, y: Coordinates to convert.
- * \param regionx, regiony: Resultant coordinates.
+ * \param r_region_x, r_region_y: Resultant coordinates.
  */
 bool UI_view2d_view_to_region_clip(View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
@@ -2083,7 +2083,7 @@ bool UI_view2d_view_to_region_clip(View2D *v2d, float x, float y, int *r_region_
  * \note Coordinates are NOT clamped to lie within bounds of region.
  *
  * \param x, y: Coordinates to convert.
- * \param regionx, regiony: Resultant coordinates.
+ * \param r_region_x, r_region_y: Resultant coordinates.
  */
 void UI_view2d_view_to_region(View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {

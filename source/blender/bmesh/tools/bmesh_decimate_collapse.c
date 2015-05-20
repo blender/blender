@@ -444,7 +444,7 @@ static void bm_decim_triangulate_end(BMesh *bm)
 #ifdef USE_CUSTOMDATA
 
 /**
- * \param v is the target to merge into.
+ * \param l: defines the vert to collapse into.
  */
 static void bm_edge_collapse_loop_customdata(
         BMesh *bm, BMLoop *l, BMVert *v_clear, BMVert *v_other,
@@ -456,8 +456,6 @@ static void bm_edge_collapse_loop_customdata(
 	BMLoop *l_clear, *l_other;
 	const bool is_manifold = BM_edge_is_manifold(l->e);
 	int side;
-
-	/* l defines the vert to collapse into  */
 
 	/* first find the loop of 'v_other' thats attached to the face of 'l' */
 	if (l->v == v_clear) {
@@ -700,8 +698,8 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
  *
  * Important - dont add vert/edge/face data on collapsing!
  *
- * \param e_clear_other let caller know what edges we remove besides \a e_clear
- * \param customdata_flag merge factor, scales from 0 - 1 ('v_clear' -> 'v_other')
+ * \param r_e_clear_other: Let caller know what edges we remove besides \a e_clear
+ * \param customdata_flag: Merge factor, scales from 0 - 1 ('v_clear' -> 'v_other')
  */
 static bool bm_edge_collapse(
         BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e_clear_other[2],

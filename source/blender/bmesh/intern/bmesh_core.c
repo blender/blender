@@ -2193,7 +2193,7 @@ void bmesh_vert_separate(
  *
  * Any edges which failed to split off in #bmesh_vert_separate will be merged back into the original edge.
  *
- * \param edges_seperate
+ * \param edges_separate
  * A list-of-lists, each list is from a single original edge (the first edge is the original),
  * Check for duplicates (not just with the first) but between all.
  * This is O(n2) but radial edges are very rarely >2 and almost never >~10.

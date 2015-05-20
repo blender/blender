@@ -43,7 +43,7 @@
 
 
 /**
- * @section MEM_SmartPtr 
+ * \section MEM_SmartPtr
  * This class defines a smart pointer similar to that defined in 
  * the Standard Template Library but without the painful get()
  * semantics to access the internal c style pointer.
@@ -58,8 +58,9 @@
  * should not be shared. This is not reliably enforceable in C++
  * but this class attempts to make the 1-1 relationship clear.
  * 
- * @section Example usage
+ * \section Example usage
  *
+ * \code{.cpp}
  * class foo {
  *		...constructors accessors etc.
  *		int x[1000];
@@ -86,18 +87,21 @@
  *	private :
  *		MEM_SmartPtr<foo> m_foo;
  *	}
+ * \endcode
  *
  * You may also safely construct vectors of MEM_SmartPtrs and 
  * have the vector own stuff you put into it. 
  *
  * e.g.
+ * \code{.cpp}
  * { 
- * std::vector<MEM_SmartPtr<foo> > foo_vector;
- * foo_vector.push_back( new foo());
- * foo_vector.push_back( new foo());
+ *     std::vector<MEM_SmartPtr<foo> > foo_vector;
+ *     foo_vector.push_back( new foo());
+ *     foo_vector.push_back( new foo());
  *
- * foo_vector[0]->bla();
+ *     foo_vector[0]->bla();
  * } // foo_vector out of scope => heap memory freed for both foos
+ * \endcode
  *
  * @warning this class should only be used for objects created
  * on the heap via the new function. It will not behave correctly

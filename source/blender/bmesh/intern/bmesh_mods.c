@@ -270,7 +270,7 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f_a, BMFace *f_b, BMEdge *e, const
  * the split edge to be created (must be differ and not can't be adjacent in the face).
  * \param r_l pointer which will receive the BMLoop for the split edge in the new face
  * \param example Edge used for attributes of splitting edge, if non-NULL
- * \param nodouble Use an existing edge if found
+ * \param no_double: Use an existing edge if found
  *
  * \return Pointer to the newly created face representing one side of the split
  * if the split is successful (and the original original face will be the

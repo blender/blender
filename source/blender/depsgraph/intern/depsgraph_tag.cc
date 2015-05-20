@@ -22,8 +22,12 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_tag.cc
+ *  \ingroup depsgraph
  *
- * Core routines for how the Depsgraph works
+ * Core routines for how the Depsgraph works.
  */
 
 #include <stdio.h>

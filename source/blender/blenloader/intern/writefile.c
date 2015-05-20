@@ -407,7 +407,7 @@ static void mywrite(WriteData *wd, const void *adr, int len)
 
 /**
  * BeGiN initializer for mywrite
- * \param file File descriptor
+ * \param ww: File write wrapper.
  * \param compare Previous memory file (can be NULL).
  * \param current The current memory file (can be NULL).
  * \warning Talks to other functions with global parameters

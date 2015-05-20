@@ -22,6 +22,10 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_query.cc
+ *  \ingroup depsgraph
  *
  * Implementation of Querying and Filtering API's
  */

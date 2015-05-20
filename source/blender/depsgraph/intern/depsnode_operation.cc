@@ -24,6 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/depsgraph/intern/depsnode_operation.cc
+ *  \ingroup depsgraph
+ */
+
 #include "MEM_guardedalloc.h"
 
 extern "C" {

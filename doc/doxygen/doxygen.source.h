@@ -93,36 +93,44 @@
 
 /* ================================ */
 
-/** \defgroup blender blender */
+/** \defgroup blender Blender */
 
-/** \defgroup blf blenfont
+/** \defgroup blf BlenFont
  *  \ingroup blender
  */
 
-/** \defgroup bke blenkernel
+/** \defgroup bke BlenKernel
  *  \ingroup blender
  */
 
-/** \defgroup bli blenlib
+/** \defgroup bli BlenLib
  *  \ingroup blender
  */
 
-/** \defgroup nodes nodes
+/** \defgroup depsgraph Dependency Graph
  *  \ingroup blender
  */
 
-/** \defgroup cmpnodes cmpnodes
+/** \defgroup bph Physics
+ *  \ingroup blender
+ */
+
+/** \defgroup nodes Nodes
+ *  \ingroup blender
+ */
+
+/** \defgroup cmpnodes Nodes (Compositor)
  *  \ingroup nodes
  */
 
-/** \defgroup shdnodes shdnodes
+/** \defgroup shdnodes Nodes (Shader)
  *  \ingroup nodes
  */
 
-/** \defgroup texnodes texnodes
+/** \defgroup texnodes Nodes (Texture)
  *  \ingroup nodes
  */
-/** \defgroup modifiers modifiers
+/** \defgroup modifiers Object Modifiers
  *  \ingroup blender
  */
 
@@ -132,29 +140,29 @@
  *  \ingroup blender
  */
 
-/** \defgroup ikplugin ikplugin
+/** \defgroup ikplugin IK Plugin
  *  \ingroup blender
  */
 
-/** \defgroup DNA sDNA
+/** \defgroup DNA Struct DNA (File Format)
  *  \ingroup blender data
  */
-/** \defgroup RNA RNA
+/** \defgroup RNA RNA (Data API)
  *  \ingroup blender data
  */
 
-/** \defgroup blenloader .blend read and write functions
+/** \defgroup blenloader Blend file IO
  *  \ingroup blender data
  *  \todo check if \ref blo and \ref blenloader groups can be
  *   merged in docs.
  */
 
-/** \defgroup quicktime quicktime
+/** \defgroup quicktime QuickTime
  *  \ingroup blender
 
 /** \defgroup gui GUI */
 
-/** \defgroup wm windowmanager
+/** \defgroup wm Window Manager
  *  \ingroup blender gui
  */
 
@@ -324,7 +332,7 @@
  *  \ingroup externformats
  */
 
-/** \defgroup imbuf IMage Buffer
+/** \defgroup imbuf Image Buffer (ImBuf)
  *  \ingroup blender
  */
 

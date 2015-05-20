@@ -22,6 +22,10 @@
  * Contributor(s): Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph.h
+ *  \ingroup depsgraph
  *
  * Datatypes for internal use in the Depsgraph
  *

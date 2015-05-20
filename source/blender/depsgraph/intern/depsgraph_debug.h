@@ -24,6 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/depsgraph/intern/depsgraph_debug.h
+ *  \ingroup depsgraph
+ */
+
 #ifndef __DEPSGRAPH_DEBUG_H__
 #define __DEPSGRAPH_DEBUG_H__
 

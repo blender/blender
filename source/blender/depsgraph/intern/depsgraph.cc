@@ -22,8 +22,12 @@
  * Contributor(s): Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph.cc
+ *  \ingroup depsgraph
  *
- * Core routines for how the Depsgraph works
+ * Core routines for how the Depsgraph works.
  */
 
 #include <string.h>

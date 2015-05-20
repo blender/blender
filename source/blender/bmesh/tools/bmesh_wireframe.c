@@ -160,7 +160,7 @@ static bool bm_loop_is_radial_boundary(BMLoop *l_first)
 }
 
 /**
- * \param def_nr  -1 for no vertex groups.
+ * \param defgrp_index: Vertex group index, -1 for no vertex groups.
  *
  * \note All edge tags must be cleared.
  * \note Behavior matches MOD_solidify.c

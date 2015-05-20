@@ -20,6 +20,12 @@
  *
  * Contributor(s): Lukas Toenne
  *                 Sergey Sharybin,
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/util/depsgraph_util_transitive.h
+ *  \ingroup depsgraph
  */
 
 #ifndef __DEPSGRAPH_UTIL_TRANSITIVE_H__

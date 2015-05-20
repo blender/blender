@@ -24,6 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/depsgraph/util/depsgraph_util_pchanmap.h
+ *  \ingroup depsgraph
+ */
+
 #ifndef __DEPSGRAPH_UTIL_PCHANMAP_H__
 #define __DEPSGRAPH_UTIL_PCHANMAP_H__
 

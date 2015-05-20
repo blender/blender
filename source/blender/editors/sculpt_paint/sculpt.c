@@ -373,6 +373,9 @@ static void sculpt_project_v3_cache_init(
 	spvc->len_sq_inv_neg = (spvc->is_valid) ? -1.0f / spvc->len_sq : 0.0f;
 }
 
+/**
+ * Calculate the projection.
+ */
 static void sculpt_project_v3(
         const SculptProjectVector *spvc, const float vec[3],
         float r_vec[3])

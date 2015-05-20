@@ -157,10 +157,6 @@ public:
 	    );
 
 	/**
-	 * \section Interface Inherited from GHOST_ISystem
-	 */
-
-	/**
 	 * Retrieves events from the system and stores them in the queue.
 	 * \param waitForEvent Flag to wait for an event (or return immediately).
 	 * \return Indication of the presence of events.
@@ -170,9 +166,6 @@ public:
 	    bool waitForEvent
 	    );
 
-	/**
-	 * \section Interface Inherited from GHOST_System
-	 */
 	GHOST_TSuccess
 	getCursorPosition(
 	    GHOST_TInt32& x,
@@ -206,7 +199,6 @@ public:
 	    ) const;
 
 	/**
-	 * \section Interface Dirty
 	 * Flag a window as dirty. This will
 	 * generate a GHOST window update event on a call to processEvents() 
 	 */

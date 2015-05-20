@@ -448,7 +448,6 @@ static LinkNode *bm_edgenet_path_calc_best(
  *
  * \param bm  The mesh to operate on.
  * \param use_edge_tag  Only fill tagged edges.
- * \param face_oflag  if nonzero, apply all new faces with this bmo flag.
  */
 void BM_mesh_edgenet(
         BMesh *bm,

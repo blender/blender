@@ -96,8 +96,8 @@ int BLI_gsqueue_size(GSQueue *gq)
  * Access the item at the head of the queue
  * without removing it.
  *
- * \param item_r A pointer to an appropriately
- * sized structure (the size passed to BLI_gsqueue_new)
+ * \param r_item: A pointer to an appropriately
+ * sized structure (the size passed to #BLI_gsqueue_new)
  */
 void BLI_gsqueue_peek(GSQueue *gq, void *r_item)
 {
@@ -108,8 +108,8 @@ void BLI_gsqueue_peek(GSQueue *gq, void *r_item)
  * Access the item at the head of the queue
  * and remove it.
  *
- * \param item_r A pointer to an appropriately
- * sized structure (the size passed to BLI_gsqueue_new).
+ * \param r_item: A pointer to an appropriately
+ * sized structure (the size passed to #BLI_gsqueue_new).
  * Can be NULL if desired.
  */
 void BLI_gsqueue_pop(GSQueue *gq, void *r_item)

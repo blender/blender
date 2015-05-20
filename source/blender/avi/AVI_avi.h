@@ -28,18 +28,17 @@
 
 /** \file AVI_avi.h
  *  \ingroup avi
- * \section aviabout AVI module external interface
  *
- * \subsection about About the AVI module
+ * \section avi_about About the AVI module
  *
  * This is external code. It provides avi file import/export and
  * conversions. It has been adapted to make use of Blender memory
  * management functions, and because of this it needs module
  * blenlib. You need to provide this lib when linking with libavi.a .
  *
- * \subsection issues Known issues with AVI
+ * \subsection avi_issues Known issues with AVI
  *
- * - avi uses mallocN, freeN from blenlib. 
+ * - avi uses #MEM_mallocN, #MEM_freeN from blenlib.
  * - Not all functions that are used externally are properly
  *   prototyped.
  *

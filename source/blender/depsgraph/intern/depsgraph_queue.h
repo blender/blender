@@ -22,8 +22,12 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_queue.h
+ *  \ingroup depsgraph
  *
- * Defines for special queue type for use in Depsgraph traversals
+ * Defines for special queue type for use in Depsgraph traversals.
  */
 
 #ifndef __DEPSGRAPH_QUEUE_H__

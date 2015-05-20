@@ -22,10 +22,13 @@
  * Contributor(s): Based on original depsgraph.c code - Blender Foundation (2005-2013)
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_build_nodes.cc
+ *  \ingroup depsgraph
  *
  * Methods for constructing depsgraph's nodes
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -525,7 +528,6 @@ void DepsgraphNodeBuilder::build_pose_constraints(Object *ob, bPoseChannel *pcha
 
 /**
  * Build graph nodes for AnimData block
- * \param scene_node: Scene that ID-block this lives on belongs to
  * \param id: ID-Block which hosts the AnimData
  */
 void DepsgraphNodeBuilder::build_animdata(ID *id)

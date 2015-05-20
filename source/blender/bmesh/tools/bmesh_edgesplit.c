@@ -37,7 +37,6 @@
 
 /**
  * \param use_verts  Use flagged verts instead of edges.
- * \param use_non_manifold  Split non-manifold edges (a little slower, must check for doubles).
  * \param tag_only  Only split tagged edges.
  * \param copy_select  Copy selection history.
  */

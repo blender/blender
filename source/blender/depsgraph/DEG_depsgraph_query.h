@@ -22,8 +22,12 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/DEG_depsgraph_query.h
+ *  \ingroup depsgraph
  *
- * Public API for Querying and Filtering Depsgraph
+ * Public API for Querying and Filtering Depsgraph.
  */
 
 #ifndef __DEG_DEPSGRAPH_QUERY_H__

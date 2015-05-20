@@ -22,6 +22,10 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_intern.h
+ *  \ingroup depsgraph
  *
  * API's for internal use in the Depsgraph
  * - Also, defines for "Node Type Info"

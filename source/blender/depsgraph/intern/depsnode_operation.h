@@ -24,6 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/depsgraph/intern/depsnode_operation.h
+ *  \ingroup depsgraph
+ */
+
 #ifndef __DEPSNODE_OPERATION_H__
 #define __DEPSNODE_OPERATION_H__
 

@@ -454,9 +454,9 @@ void *BLI_edgehash_lookup_default(EdgeHash *eh, unsigned int v0, unsigned int v1
 }
 
 /**
- * Remove \a key from \a eh, or return false if the key wasn't found.
+ * Remove \a key (v0, v1) from \a eh, or return false if the key wasn't found.
  *
- * \param key  The key to remove.
+ * \param v0, v1: The key to remove.
  * \param valfreefp  Optional callback to free the value.
  * \return true if \a key was removed from \a eh.
  */
@@ -480,9 +480,9 @@ bool BLI_edgehash_remove(EdgeHash *eh, unsigned int v0, unsigned int v1, EdgeHas
 /* same as above but return the value,
  * no free value argument since it will be returned */
 /**
- * Remove \a key from \a eh, returning the value or NULL if the key wasn't found.
+ * Remove \a key (v0, v1) from \a eh, returning the value or NULL if the key wasn't found.
  *
- * \param key  The key to remove.
+ * \param v0, v1: The key to remove.
  * \return the value of \a key int \a eh or NULL.
  */
 void *BLI_edgehash_popkey(EdgeHash *eh, unsigned int v0, unsigned int v1)

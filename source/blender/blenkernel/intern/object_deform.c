@@ -163,7 +163,7 @@ MDeformVert *BKE_object_defgroup_data_create(ID *id)
 /**
  * Remove all verts (or only selected ones) from given vgroup. Work in Object and Edit modes.
  *
- * \param allverts If true, remove all vertices, else only selected ones.
+ * \param use_selection: Only operate on selection.
  * \return True if any vertex was removed, false otherwise.
  */
 bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_selection)
@@ -241,7 +241,7 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
 /**
  * Remove all verts (or only selected ones) from all vgroups. Work in Object and Edit modes.
  *
- * \param allverts If true, remove all vertices, else only selected ones.
+ * \param use_selection: Only operate on selection.
  * \return True if any vertex was removed, false otherwise.
  */
 bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)

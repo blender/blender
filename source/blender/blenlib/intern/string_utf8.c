@@ -329,8 +329,8 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t maxlen, size_t *r_len_
 }
 
 /**
- * \param start the string to measure the length.
- * \param maxlen the string length (in bytes)
+ * \param strc: the string to measure the length.
+ * \param maxlen: the string length (in bytes)
  * \return the unicode length (not in bytes!)
  */
 size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen)
@@ -599,14 +599,14 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__re
 /* was g_unichar_to_utf8 */
 /**
  * BLI_str_utf8_from_unicode:
- * @c a Unicode character code
- * \param outbuf output buffer, must have at least 6 bytes of space.
+ * \param c: a Unicode character code
+ * \param outbuf: output buffer, must have at least 6 bytes of space.
  *       If %NULL, the length will be computed and returned
  *       and nothing will be written to outbuf.
  *
  * Converts a single character to UTF-8.
  *
- * Return value: number of bytes written
+ * \return number of bytes written
  **/
 size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf)
 {

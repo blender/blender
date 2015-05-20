@@ -19,6 +19,12 @@
  * All rights reserved.
  *
  * Contributor(s): Sergey Sharybin
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/util/depsgraph_util_cycle.cc
+ *  \ingroup depsgraph
  */
 
 #include <cstdio>

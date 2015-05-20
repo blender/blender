@@ -22,14 +22,15 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
- *
- * Public API for Depsgraph
  */
 
-#ifndef __DEG_DEPSGRAPH_H__
-#define __DEG_DEPSGRAPH_H__
-
-/* Dependency Graph
+/** \file blender/depsgraph/DEG_depsgraph.h
+ *  \ingroup depsgraph
+ *
+ * Public API for Depsgraph
+ *
+ * Dependency Graph
+ * ================
  *
  * The dependency graph tracks relations between various pieces of data in
  * a Blender file, but mainly just those which make up scene data. It is used
@@ -39,6 +40,7 @@
  *
  *
  * Evaluation Engine
+ * =================
  *
  * The evaluation takes the operation-nodes the Depsgraph has tagged for updating, 
  * and schedules them up for being evaluated/executed such that the all dependency
@@ -49,6 +51,9 @@
 /* Forward-defined typedefs for core types
  * - These are used in all depsgraph code and by all callers of Depsgraph API...
  */
+
+#ifndef __DEG_DEPSGRAPH_H__
+#define __DEG_DEPSGRAPH_H__
 
 /* Dependency Graph */
 typedef struct Depsgraph Depsgraph;

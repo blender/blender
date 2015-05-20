@@ -18,8 +18,14 @@
  * The Original Code is Copyright (C) 2015 Blender Foundation.
  * All rights reserved.
  *
- * Contributor(s): Lukas Toenne
+ * Contributor(s): Lukas Toenne,
  *                 Sergey Sharybin,
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/util/depsgraph_util_transitive.cc
+ *  \ingroup depsgraph
  */
 
 extern "C" {

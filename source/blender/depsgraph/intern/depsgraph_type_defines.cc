@@ -22,8 +22,12 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_type_defines.cc
+ *  \ingroup depsgraph
  *
- * Defines and code for core node types
+ * Defines and code for core node types.
  */
 
 extern "C" {

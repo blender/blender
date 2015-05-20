@@ -24,7 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* == OpCodes for OperationDepsNodes ==
+/** \file blender/depsgraph/intern/depsnode_opcodes.h
+ *  \ingroup depsgraph
+ *
+ * \par OpCodes for OperationDepsNodes
+ *
  * This file defines all the "operation codes" (opcodes) used to identify
  * common operation node types. The intention of these defines is to have
  * a fast and reliable way of identifying the relevant nodes within a component

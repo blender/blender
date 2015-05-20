@@ -28,7 +28,7 @@
 #ifndef __EIGEN_UTILS_H__
 #define __EIGEN_UTILS_H__
 
-/** \file eigen_utils.h
+/** \file blender/physics/intern/eigen_utils.h
  *  \ingroup bph
  */
 

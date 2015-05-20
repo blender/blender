@@ -239,7 +239,7 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
  *
  * Intended to be used with #BLI_convexhull_2d
  *
- * \param points  Ordered hull points
+ * \param points_hull  Ordered hull points
  * (result of #BLI_convexhull_2d mapped to a contiguous array).
  *
  * \note we could return the index of the best edge too if its needed.

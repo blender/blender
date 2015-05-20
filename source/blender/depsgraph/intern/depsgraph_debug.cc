@@ -22,6 +22,10 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_debug.cc
+ *  \ingroup depsgraph
  *
  * Implementation of tools for debugging the depsgraph
  */

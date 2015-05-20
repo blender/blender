@@ -38,7 +38,7 @@ extern "C" {
  * @defgroup Node All nodes of the compositor
  * @defgroup Operation All operations of the compositor
  *
- * @mainpage Introduction of the Blender Compositor
+ * @page Introduction of the Blender Compositor
  *
  * @section bcomp Blender compositor
  * This project redesigns the internals of Blender's compositor. The project has been executed in 2011 by At Mind.

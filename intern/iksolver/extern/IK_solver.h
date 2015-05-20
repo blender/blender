@@ -35,10 +35,10 @@
 
  * Copyright (C) 2001 NaN Technologies B.V.
  *
- * @author Laurence, Brecht
- * @mainpage IK - Blender inverse kinematics module.
+ * \author Laurence, Brecht
+ * \page IK - Blender inverse kinematics module.
  *
- * @section about About the IK module
+ * \section about About the IK module
  *
  * This module allows you to create segments and form them into 
  * tree. You can then define a goal points that the end of a given 
@@ -47,7 +47,7 @@
  * to get the as near as possible to the goal. This solver uses an
  * inverse jacobian method to find a solution.
  * 
- * @section issues Known issues with this IK solver.
+ * \section issues Known issues with this IK solver.
  *
  * - There is currently no support for joint constraints in the
  * solver. This is within the realms of possibility - please ask
@@ -60,7 +60,7 @@
  * Other algorithms exist which are more suitable for real-time
  * applications, please ask if this functionality is required.     
  * 
- * @section dependencies Dependencies
+ * \section dependencies Dependencies
  * 
  * This module only depends on Moto.
  */

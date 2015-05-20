@@ -22,6 +22,10 @@
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_types.h
+ *  \ingroup depsgraph
  *
  * Datatypes for internal use in the Depsgraph
  *

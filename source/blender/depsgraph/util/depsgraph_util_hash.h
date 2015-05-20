@@ -20,6 +20,12 @@
  *
  * Original Author: Brecht van Lommel
  * Contributor(s): Lukas Toenne
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/util/depsgraph_util_hash.h
+ *  \ingroup depsgraph
  */
 
 #ifndef __DEPSGRAPH_UTIL_HASH_H__

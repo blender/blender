@@ -30,9 +30,9 @@
  */
 
 /**
- * @file	MEM_RefCountPtr.h
+ * \file	MEM_RefCountPtr.h
  * Declaration of MEM_RefCounted and MEM_RefCountable classes.
- * @author Laurence
+ * \author Laurence
  */
 
 #ifndef __MEM_REFCOUNTPTR_H__
@@ -41,7 +41,7 @@
 #include <stdlib.h> // for NULL !
 
 /**
- * @section MEM_RefCountable
+ * \section MEM_RefCountable
  * This is a base class for reference countable objects.
  * If you want an object to be shared using a reference 
  * counted system derrivce from this class. All subclasses
@@ -50,9 +50,9 @@
  * defining a static New() method that returns a ref counted
  * ptr to a new()ly allocated instance. 
  *
- * @section Example subclass
+ * \section Example subclass
  *
- *
+ * \code{.cpp}
  * class MySharedObject : public MEM_RefCountable {
  *
  * private :
@@ -68,6 +68,7 @@
  *		
  *		// other member functions
  * };
+ * \endcode
  *
  * Alternitively you may first wish to define a fully functional
  * class and then define a reference counting wrapper for this class.
@@ -75,6 +76,8 @@
  * counting.
  *
  * E.g.
+ *
+ * \code{.cpp}
  * class UsefullClass {
  * private :
  *  ...
@@ -108,7 +111,7 @@
  *  // mechanism to handle object lifetime.
  *  ~RcUsefullClass();
  * };
- *
+ * \endcode
  *
  */
 
@@ -168,7 +171,7 @@ public :
 };
 
 /**
- * @section MEM_RefCountPtr
+ * \section MEM_RefCountPtr
  */
 
 template

@@ -22,6 +22,10 @@
  * Contributor(s): Based on original depsgraph.c code - Blender Foundation (2005-2013)
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/intern/depsgraph_build_relations.cc
+ *  \ingroup depsgraph
  *
  * Methods for constructing depsgraph
  */

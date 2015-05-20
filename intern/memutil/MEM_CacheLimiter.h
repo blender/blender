@@ -29,20 +29,22 @@
 #define __MEM_CACHELIMITER_H__
 
 /**
- * @section MEM_CacheLimiter
+ * \section MEM_CacheLimiter
  * This class defines a generic memory cache management system
  * to limit memory usage to a fixed global maximum.
  *
- * Please use the C-API in MEM_CacheLimiterC-Api.h for code written in C.
+ * \note Please use the C-API in MEM_CacheLimiterC-Api.h for code written in C.
  *
  * Usage example:
  *
+ * \code{.cpp}
  * class BigFatImage {
  * public:
  *       ~BigFatImage() { tell_everyone_we_are_gone(this); }
  * };
  *
- * void doit() {
+ * void doit()
+ * {
  *     MEM_Cache<BigFatImage> BigFatImages;
  *
  *     MEM_Cache_Handle<BigFatImage>* h = BigFatImages.insert(new BigFatImage);
@@ -50,11 +52,12 @@
  *     BigFatImages.enforce_limits();
  *     h->ref();
  *
- *     work with image...
+ *     // work with image...
  *
  *     h->unref();
  *
- *     leave image in cache.
+ *     // leave image in cache.
+ * \endcode
  */
 
 #include <list>

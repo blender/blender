@@ -22,6 +22,10 @@
  * Contributor(s): Lukas Toenne
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/depsgraph/DEG_depsgraph_build.h
+ *  \ingroup depsgraph
  *
  * Public API for Depsgraph
  */

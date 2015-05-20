@@ -158,7 +158,8 @@ PyObject *PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject
 
 	PyObjectPlus_Proxy *base = (PyObjectPlus_Proxy *)PyTuple_GET_ITEM(args, 0);
 
-	/* the 'base' PyObject may be subclassed (multiple times even)
+	/**
+	 * the 'base' PyObject may be subclassed (multiple times even)
 	 * we need to find the first C++ defined class to check 'type'
 	 * is a subclass of the base arguments type.
 	 *
@@ -167,12 +168,13 @@ PyObject *PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject
 	 * eg.
 	 *
 	 * # CustomOb is called 'type' in this C code
+	 * \code{.py}
 	 * class CustomOb(GameTypes.KX_GameObject):
 	 *     pass
 	 *
 	 * # this calls py_base_new(...), the type of 'CustomOb' is checked to be a subclass of the 'cont.owner' type
 	 * ob = CustomOb(cont.owner)
-	 *
+	 * \endcode
 	 * */
 	base_type= Py_TYPE(base);
 	while (base_type && !BGE_PROXY_CHECK_TYPE(base_type))

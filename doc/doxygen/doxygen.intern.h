@@ -10,23 +10,11 @@
  *  \ingroup intern
  */
 
-/** \defgroup boolop boolop
- *  \ingroup intern
- */
-
 /** \defgroup ctr container
  *  \ingroup intern
  */
 
-/** \defgroup decimation decimation
- *  \ingroup intern
- */
-
 /** \defgroup elbeem elbeem
- *  \ingroup intern
- */
-
-/** \defgroup bsp bsp
  *  \ingroup intern
  */
 
