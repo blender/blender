@@ -664,10 +664,10 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = doxygen.main \
-                         doxygen.source \
-                         doxygen.intern \
-                         doxygen.extern \
+INPUT                  = doxygen.main.h \
+                         doxygen.source.h \
+                         doxygen.intern.h \
+                         doxygen.extern.h \
                          ../../source \
                          ../../intern \
                          ../../extern/bullet2
