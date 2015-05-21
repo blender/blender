@@ -180,7 +180,6 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
  * potentially transparent, and only in that case start marching. this gives
  * one extra ray cast for the cases were we do want transparency. */
 
-/* The arguments sd_mem and isect_mem are meaningful only for OpenCL split kernel. Other uses can just pass a NULL */
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathState *state, ccl_addr_space Ray *ray_input, float3 *shadow
 #ifdef __SPLIT_KERNEL__
                                       , ShaderData *sd_mem, Intersection *isect_mem

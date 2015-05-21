@@ -71,7 +71,6 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	return eval;
 }
 
-/* The argument sd_DL is meaningful only for split kernel. Other uses can just pass NULL */
 ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd,
 	LightSample *ls, Ray *ray, BsdfEval *eval, bool *is_lamp,
 	int bounce, int transparent_bounce
@@ -192,7 +191,6 @@ ccl_device_noinline float3 indirect_primitive_emission(KernelGlobals *kg, Shader
 
 /* Indirect Lamp Emission */
 
-/* The argument sd is meaningful only for split kernel. Other uses can just pass NULL */
 ccl_device_noinline bool indirect_lamp_emission(KernelGlobals *kg, PathState *state, Ray *ray, float3 *emission
 #ifdef __SPLIT_KERNEL__
                                                 ,ShaderData *sd
