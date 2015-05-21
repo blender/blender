@@ -3416,7 +3416,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 			DeviceInfo info;
 
 			info.type = DEVICE_OPENCL;
-			info.description = string(name);
+			info.description = string_remove_trademark(string(name));
 			info.num = num_base + num;
 			info.id = string_printf("OPENCL_%d", info.num);
 			/* we don't know if it's used for display, but assume it is */

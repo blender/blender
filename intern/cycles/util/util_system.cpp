@@ -16,6 +16,7 @@
 
 #include "util_system.h"
 #include "util_types.h"
+#include "util_string.h"
 
 #ifdef _WIN32
 #if(!defined(FREE_WINDOWS))
@@ -75,14 +76,6 @@ static void __cpuid(int data[4], int selector)
 }
 #endif
 
-static void replace_string(string& haystack, const string& needle, const string& other)
-{
-	size_t i;
-
-	while((i = haystack.find(needle)) != string::npos)
-		haystack.replace(i, needle.length(), other);
-}
-
 string system_cpu_brand_string()
 {
 	char buf[48];
@@ -98,10 +91,7 @@ string system_cpu_brand_string()
 		string brand = buf;
 
 		/* make it a bit more presentable */
-		replace_string(brand, "(TM)", "");
-		replace_string(brand, "(R)", "");
-
-		brand = string_strip(brand);
+		brand = string_remove_trademark(brand);
 
 		return brand;
 	}
