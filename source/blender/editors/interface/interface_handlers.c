@@ -3136,6 +3136,9 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					ui_searchbox_event(C, data->searchbox, but, event);
 					break;
 				}
+				if (event->type == WHEELDOWNMOUSE) {
+					break;
+				}
 				/* fall-through */
 			case ENDKEY:
 				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
@@ -3149,6 +3152,9 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					ui_mouse_motion_keynav_init(&data->searchbox_keynav_state, event);
 #endif
 					ui_searchbox_event(C, data->searchbox, but, event);
+					break;
+				}
+				if (event->type == WHEELUPMOUSE) {
 					break;
 				}
 				/* fall-through */
