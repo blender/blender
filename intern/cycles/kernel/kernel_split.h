@@ -24,10 +24,6 @@
 
 #include "util_atomic.h"
 
-#ifdef __OSL__
-#include "osl_shader.h"
-#endif
-
 #include "kernel_random.h"
 #include "kernel_projection.h"
 #include "kernel_montecarlo.h"
