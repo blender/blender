@@ -1680,13 +1680,14 @@ static ProjPixel *project_paint_uvpixel_init(
 }
 
 static bool line_clip_rect2f(
+        const rctf *cliprect,
         const rctf *rect,
         const float l1[2], const float l2[2],
         float l1_clip[2], float l2_clip[2])
 {
 	/* first account for horizontal, then vertical lines */
 	/* horiz */
-	if (fabsf(l1[1] - l2[1]) < PROJ_GEOM_TOLERANCE) {
+	if (fabsf(l1[1] - l2[1]) < PROJ_PIXEL_TOLERANCE) {
 		/* is the line out of range on its Y axis? */
 		if (l1[1] < rect->ymin || l1[1] > rect->ymax) {
 			return 0;
@@ -1697,7 +1698,7 @@ static bool line_clip_rect2f(
 		}
 
 
-		if (fabsf(l1[0] - l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
+		if (fabsf(l1[0] - l2[0]) < PROJ_PIXEL_TOLERANCE) { /* this is a single point  (or close to)*/
 			if (BLI_rctf_isect_pt_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
@@ -1714,7 +1715,7 @@ static bool line_clip_rect2f(
 		CLAMP(l2_clip[0], rect->xmin, rect->xmax);
 		return 1;
 	}
-	else if (fabsf(l1[0] - l2[0]) < PROJ_GEOM_TOLERANCE) {
+	else if (fabsf(l1[0] - l2[0]) < PROJ_PIXEL_TOLERANCE) {
 		/* is the line out of range on its X axis? */
 		if (l1[0] < rect->xmin || l1[0] > rect->xmax) {
 			return 0;
@@ -1725,7 +1726,7 @@ static bool line_clip_rect2f(
 			return 0;
 		}
 
-		if (fabsf(l1[1] - l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
+		if (fabsf(l1[1] - l2[1]) < PROJ_PIXEL_TOLERANCE) { /* this is a single point  (or close to)*/
 			if (BLI_rctf_isect_pt_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
@@ -1764,7 +1765,7 @@ static bool line_clip_rect2f(
 		if (ok1 && ok2) return 1;
 
 		/* top/bottom */
-		if (line_isect_y(l1, l2, rect->ymin, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
+		if (line_isect_y(l1, l2, rect->ymin, &isect) && (isect >= cliprect->xmin) && (isect <= cliprect->xmax)) {
 			if (l1[1] < l2[1]) { /* line 1 is outside */
 				l1_clip[0] = isect;
 				l1_clip[1] = rect->ymin;
@@ -1779,7 +1780,7 @@ static bool line_clip_rect2f(
 
 		if (ok1 && ok2) return 1;
 
-		if (line_isect_y(l1, l2, rect->ymax, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
+		if (line_isect_y(l1, l2, rect->ymax, &isect) && (isect >= cliprect->xmin) && (isect <= cliprect->xmax)) {
 			if (l1[1] > l2[1]) { /* line 1 is outside */
 				l1_clip[0] = isect;
 				l1_clip[1] = rect->ymax;
@@ -1795,7 +1796,7 @@ static bool line_clip_rect2f(
 		if (ok1 && ok2) return 1;
 
 		/* left/right */
-		if (line_isect_x(l1, l2, rect->xmin, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
+		if (line_isect_x(l1, l2, rect->xmin, &isect) && (isect >= cliprect->ymin) && (isect <= cliprect->ymax)) {
 			if (l1[0] < l2[0]) { /* line 1 is outside */
 				l1_clip[0] = rect->xmin;
 				l1_clip[1] = isect;
@@ -1810,7 +1811,7 @@ static bool line_clip_rect2f(
 
 		if (ok1 && ok2) return 1;
 
-		if (line_isect_x(l1, l2, rect->xmax, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
+		if (line_isect_x(l1, l2, rect->xmax, &isect) && (isect >= cliprect->ymin) && (isect <= cliprect->ymax)) {
 			if (l1[0] > l2[0]) { /* line 1 is outside */
 				l1_clip[0] = rect->xmax;
 				l1_clip[1] = isect;
@@ -2108,6 +2109,7 @@ static bool line_rect_clip(
 
 static void project_bucket_clip_face(
         const bool is_ortho, const bool is_flip_object,
+        const rctf *cliprect,
         const rctf *bucket_bounds,
         const float *v1coSS, const float *v2coSS, const float *v3coSS,
         const float *uv1co, const float *uv2co, const float *uv3co,
@@ -2272,21 +2274,21 @@ static void project_bucket_clip_face(
 		if (inside_bucket_flag & ISECT_3) { copy_v2_v2(isectVCosSS[*tot], v3coSS); (*tot)++; }
 
 		if ((inside_bucket_flag & (ISECT_1 | ISECT_2)) != (ISECT_1 | ISECT_2)) {
-			if (line_clip_rect2f(bucket_bounds, v1coSS, v2coSS, v1_clipSS, v2_clipSS)) {
+			if (line_clip_rect2f(cliprect, bucket_bounds, v1coSS, v2coSS, v1_clipSS, v2_clipSS)) {
 				if ((inside_bucket_flag & ISECT_1) == 0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
 				if ((inside_bucket_flag & ISECT_2) == 0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}
 
 		if ((inside_bucket_flag & (ISECT_2 | ISECT_3)) != (ISECT_2 | ISECT_3)) {
-			if (line_clip_rect2f(bucket_bounds, v2coSS, v3coSS, v1_clipSS, v2_clipSS)) {
+			if (line_clip_rect2f(cliprect, bucket_bounds, v2coSS, v3coSS, v1_clipSS, v2_clipSS)) {
 				if ((inside_bucket_flag & ISECT_2) == 0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
 				if ((inside_bucket_flag & ISECT_3) == 0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}
 
 		if ((inside_bucket_flag & (ISECT_3 | ISECT_1)) != (ISECT_3 | ISECT_1)) {
-			if (line_clip_rect2f(bucket_bounds, v3coSS, v1coSS, v1_clipSS, v2_clipSS)) {
+			if (line_clip_rect2f(cliprect, bucket_bounds, v3coSS, v1coSS, v1_clipSS, v2_clipSS)) {
 				if ((inside_bucket_flag & ISECT_3) == 0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
 				if ((inside_bucket_flag & ISECT_1) == 0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
@@ -2488,7 +2490,7 @@ static bool IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot
 static void project_paint_face_init(
         const ProjPaintState *ps,
         const int thread_index, const int bucket_index, const int face_index, const int image_index,
-        const rctf *bucket_bounds, ImBuf *ibuf, ImBuf **tmpibuf,
+        const rctf *clip_rect, const rctf *bucket_bounds, ImBuf *ibuf, ImBuf **tmpibuf,
         const bool clamp_u, const bool clamp_v)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
@@ -2602,7 +2604,7 @@ static void project_paint_face_init(
 		/* This funtion gives is a concave polyline in UV space from the clipped quad and tri*/
 		project_bucket_clip_face(
 		        is_ortho, is_flip_object,
-		        bucket_bounds,
+		        clip_rect, bucket_bounds,
 		        v1coSS, v2coSS, v3coSS,
 		        uv1co, uv2co, uv3co,
 		        uv_clip, &uv_clip_tot,
@@ -2774,7 +2776,7 @@ static void project_paint_face_init(
 				else        fidx2 = (fidx1 == 2) ? 0 : fidx1 + 1;  /* next fidx in the face (0,1,2) -> (1,2,0) */
 
 				if ((face_seam_flag & (1 << fidx1)) && /* 1<<fidx1 -> PROJ_FACE_SEAM# */
-				    line_clip_rect2f(bucket_bounds, vCoSS[fidx1], vCoSS[fidx2], bucket_clip_edges[0], bucket_clip_edges[1]))
+				    line_clip_rect2f(clip_rect, bucket_bounds, vCoSS[fidx1], vCoSS[fidx2], bucket_clip_edges[0], bucket_clip_edges[1]))
 				{
 					if (len_squared_v2v2(vCoSS[fidx1], vCoSS[fidx2]) > FLT_EPSILON) { /* avoid div by zero */
 						if (mf->v4) {
@@ -2947,7 +2949,7 @@ static void project_bucket_bounds(const ProjPaintState *ps, const int bucket_x, 
 /* Fill this bucket with pixels from the faces that intersect it.
  *
  * have bucket_bounds as an argument so we don't need to give bucket_x/y the rect function needs */
-static void project_bucket_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, const rctf *bucket_bounds)
+static void project_bucket_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, const rctf *clip_rect, const rctf *bucket_bounds)
 {
 	LinkNode *node;
 	int face_index, image_index = 0;
@@ -2964,7 +2966,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 		for (node = ps->bucketFaces[bucket_index]; node; node = node->next) {
 			project_paint_face_init(
 			        ps, thread_index, bucket_index, GET_INT_FROM_POINTER(node->link), 0,
-			        bucket_bounds, ibuf, &tmpibuf,
+			        clip_rect, bucket_bounds, ibuf, &tmpibuf,
 			        (ima->tpageflag & IMA_CLAMP_U) != 0, (ima->tpageflag & IMA_CLAMP_V) != 0);
 		}
 	}
@@ -2991,7 +2993,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 
 			project_paint_face_init(
 			        ps, thread_index, bucket_index, face_index, image_index,
-			        bucket_bounds, ibuf, &tmpibuf,
+			        clip_rect, bucket_bounds, ibuf, &tmpibuf,
 			        (ima->tpageflag & IMA_CLAMP_U) != 0, (ima->tpageflag & IMA_CLAMP_V) != 0);
 		}
 	}
@@ -4563,8 +4565,13 @@ static void *do_projectpaint_thread(void *ph_v)
 
 		/* Check this bucket and its faces are initialized */
 		if (ps->bucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
+			rctf clip_rect = bucket_bounds;
+			clip_rect.xmin -= PROJ_PIXEL_TOLERANCE;
+			clip_rect.xmax += PROJ_PIXEL_TOLERANCE;
+			clip_rect.ymin -= PROJ_PIXEL_TOLERANCE;
+			clip_rect.ymax += PROJ_PIXEL_TOLERANCE;
 			/* No pixels initialized */
-			project_bucket_init(ps, thread_index, bucket_index, &bucket_bounds);
+			project_bucket_init(ps, thread_index, bucket_index, &clip_rect, &bucket_bounds);
 		}
 
 		if (ps->source != PROJ_SRC_VIEW) {
