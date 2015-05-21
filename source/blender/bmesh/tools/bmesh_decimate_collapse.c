@@ -47,6 +47,12 @@
 #define USE_TRIANGULATE
 #define USE_VERT_NORMAL_INTERP  /* has the advantage that flipped faces don't mess up vertex normals */
 
+/* if the cost from #BLI_quadric_evaluate is 'noise', fallback to topology */
+#define USE_TOPOLOGY_FALLBACK
+#ifdef  USE_TOPOLOGY_FALLBACK
+#  define   TOPOLOGY_FALLBACK_EPS  1e-6f
+#endif
+
 /* these checks are for rare cases that we can't avoid since they are valid meshes still */
 #define USE_SAFETY_CHECKS
 
@@ -196,6 +202,19 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
 	return false;
 }
 
+#ifdef USE_TOPOLOGY_FALLBACK
+/**
+ * when the cost is so small that its not useful (flat surfaces),
+ * fallback to using a 'topology' cost.
+ *
+ * This avoids cases where a flat (or near flat) areas get very un-even geometry.
+ */
+static float bm_decim_build_edge_cost_single__topology(BMEdge *e)
+{
+	return fabsf(dot_v3v3(e->v1->no, e->v2->no)) / min_ff(-len_squared_v3v3(e->v1->co, e->v2->co), -FLT_EPSILON);
+}
+#endif  /* USE_TOPOLOGY_FALLBACK */
+
 static void bm_decim_build_edge_cost_single(
         BMEdge *e,
         const Quadric *vquadrics, const float *vweights,
@@ -266,6 +285,19 @@ static void bm_decim_build_edge_cost_single(
 	/* note, 'cost' shouldn't be negative but happens sometimes with small values.
 	 * this can cause faces that make up a flat surface to over-collapse, see [#37121] */
 	cost = fabsf(cost);
+
+#ifdef USE_TOPOLOGY_FALLBACK
+	if (UNLIKELY(cost < TOPOLOGY_FALLBACK_EPS)) {
+		/* subtract existing cost to further differentiate edges from one another
+		 *
+		 * keep topology cost below 0.0 so their values don't interfere with quadric cost,
+		 * (and they get handled first).
+		 * */
+		cost = bm_decim_build_edge_cost_single__topology(e) - cost;
+		BLI_assert(cost <= 0.0f);
+	}
+#endif
+
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
 }
 
