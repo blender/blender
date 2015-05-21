@@ -158,6 +158,8 @@ MINLINE float dot_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESU
 MINLINE float dot_v3v3v3(const float p[3], const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_v4v4(const float a[4], const float b[4]) ATTR_WARN_UNUSED_RESULT;
 
+MINLINE double dot_v3db_v3fl(const double a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
+
 MINLINE float cross_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
@@ -334,6 +336,10 @@ void copy_vn_short(short *array_tar, const int size, const short val);
 void copy_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
 void copy_vn_uchar(unsigned char *array_tar, const int size, const unsigned char val);
 void copy_vn_fl(float *array_tar, const int size, const float val);
+
+void add_vn_vn_d(double *array_tar, const double *array_src, const int size);
+void add_vn_vnvn_d(double *array_tar, const double *array_src_a, const double *array_src_b, const int size);
+void mul_vn_db(double *array_tar, const int size, const double f);
 
 /**************************** Inline Definitions ******************************/
 

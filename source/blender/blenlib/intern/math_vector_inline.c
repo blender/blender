@@ -680,6 +680,11 @@ MINLINE float dot_v4v4(const float a[4], const float b[4])
 	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
 }
 
+MINLINE double dot_v3db_v3fl(const double a[3], const float b[3])
+{
+	return a[0] * (double)b[0] + a[1] * (double)b[1] + a[2] * (double)b[2];
+}
+
 MINLINE float cross_v2v2(const float a[2], const float b[2])
 {
 	return a[0] * b[1] - a[1] * b[0];
