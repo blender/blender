@@ -1028,6 +1028,7 @@ if env['OURPLATFORM']!='darwin':
             source.remove('shaders')
             source.remove('osl')
             source=['intern/cycles/kernel/'+s for s in source]
+            source.append('intern/cycles/util/util_atomic.h')
             source.append('intern/cycles/util/util_color.h')
             source.append('intern/cycles/util/util_half.h')
             source.append('intern/cycles/util/util_math.h')

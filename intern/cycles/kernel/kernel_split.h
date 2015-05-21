@@ -22,28 +22,7 @@
 #include "kernel_types.h"
 #include "kernel_globals.h"
 
-/* atomic_add_float function should be defined prior to its usage in kernel_passes.h */
-#if defined(__SPLIT_KERNEL__) && defined(__WORK_STEALING__)
-/* Utility functions for float atomics */
-/* float atomics impl credits : http://suhorukov.blogspot.in/2011/12/opencl-11-atomic-operations-on-floating.html */
-ccl_device_inline void atomic_add_float(volatile ccl_global float *source, const float operand) {
-	union {
-		unsigned int intVal;
-		float floatVal;
-
-	} newVal;
-	union {
-		unsigned int intVal;
-		float floatVal;
-
-	} prevVal;
-	do {
-		prevVal.floatVal = *source;
-		newVal.floatVal = prevVal.floatVal + operand;
-
-	} while (atomic_cmpxchg((volatile ccl_global unsigned int *)source, prevVal.intVal, newVal.intVal) != prevVal.intVal);
-}
-#endif // __SPLIT_KERNEL__ && __WORK_STEALING__
+#include "util_atomic.h"
 
 #ifdef __OSL__
 #include "osl_shader.h"
