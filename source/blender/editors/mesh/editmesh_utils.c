@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 #include "BLI_alloca.h"
 #include "BLI_buffer.h"
+#include "BLI_kdtree.h"
 #include "BLI_listbase.h"
 
 #include "BKE_DerivedMesh.h"
@@ -1114,9 +1115,10 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 	BMVert *v;
 	int cd_vmirr_offset;
 	int i;
+	const float maxdist_sq = SQUARE(maxdist);
 
 	/* one or the other is used depending if topo is enabled */
-	struct BMBVHTree *tree = NULL;
+	KDTree *tree = NULL;
 	MirrTopoStore_t mesh_topo_store = {NULL, -1, -1, -1};
 
 	BM_mesh_elem_table_ensure(bm, BM_VERT);
@@ -1141,7 +1143,11 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, true);
 	}
 	else {
-		tree = BKE_bmbvh_new_from_editmesh(em, 0, NULL, false);
+		tree = BLI_kdtree_new(bm->totvert);
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			BLI_kdtree_insert(tree, i, v->co);
+		}
+		BLI_kdtree_balance(tree);
 	}
 
 #define VERT_INTPTR(_v, _i) r_index ? &r_index[_i] : BM_ELEM_CD_GET_VOID_P(_v, cd_vmirr_offset);
@@ -1161,10 +1167,19 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 				v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, i);
 			}
 			else {
+				int i_mirr;
 				float co[3];
 				copy_v3_v3(co, v->co);
 				co[axis] *= -1.0f;
-				v_mirr = BKE_bmbvh_find_vert_closest(tree, co, maxdist);
+
+				v_mirr = NULL;
+				i_mirr = BLI_kdtree_find_nearest(tree, co, NULL);
+				if (i_mirr != -1) {
+					BMVert *v_test = BM_vert_at_index(bm, i_mirr);
+					if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
+						v_mirr = v_test;
+					}
+				}
 			}
 
 			if (v_mirr && (use_self || (v_mirr != v))) {
@@ -1186,7 +1201,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
 	}
 	else {
-		BKE_bmbvh_free(tree);
+		BLI_kdtree_free(tree);
 	}
 }
 
