@@ -1961,19 +1961,25 @@ public:
 			return false;
 		}
 
-		string svm_build_options = "";
-		string max_closure_build_option = "";
-		string compute_device_type_build_option = "";
+		string kernel_path = path_get("kernel");
+		string kernel_md5 = path_files_md5_hash(kernel_path);
+		string device_md5;
+		string build_options;
+		string kernel_init_source;
+		string clbin;
 
-		/* Set svm_build_options. */
-		svm_build_options += " -D__NODES_MAX_GROUP__=" +
+		build_options += "-D__SPLIT_KERNEL__";
+#ifdef __WORK_STEALING__
+		build_options += " -D__WORK_STEALING__";
+#endif
+		if(requested_features.experimental) {
+			build_options += " -D__KERNEL_EXPERIMENTAL__";
+		}
+		build_options += " -D__NODES_MAX_GROUP__=" +
 			string_printf("%d", requested_features.max_nodes_group);
-		svm_build_options += " -D__NODES_FEATURES__=" +
+		build_options += " -D__NODES_FEATURES__=" +
 			string_printf("%d", requested_features.nodes_features);
-
-		/* Set max closure build option. */
-		max_closure_build_option += string_printf("-D__MAX_CLOSURE__=%d ",
-		                                          max_closure);
+		build_options += string_printf(" -D__MAX_CLOSURE__=%d", max_closure);
 
 		/* Set compute device build option. */
 		cl_device_type device_type;
@@ -1984,24 +1990,7 @@ public:
 		                        NULL);
 		assert(ciErr == CL_SUCCESS);
 		if(device_type == CL_DEVICE_TYPE_GPU) {
-			compute_device_type_build_option = "-D__COMPUTE_DEVICE_GPU__ ";
-		}
-
-		string kernel_path = path_get("kernel");
-		string kernel_md5 = path_files_md5_hash(kernel_path);
-		string device_md5;
-		string custom_kernel_build_options;
-		string kernel_init_source;
-		string clbin;
-
-		string common_custom_build_options = "";
-		common_custom_build_options += "-D__SPLIT_KERNEL__ ";
-		common_custom_build_options += max_closure_build_option;;
-#ifdef __WORK_STEALING__
-		common_custom_build_options += "-D__WORK_STEALING__ ";
-#endif
-		if(requested_features.experimental) {
-			common_custom_build_options += "-D__KERNEL_EXPERIMENTAL__ ";
+			build_options += " -D__COMPUTE_DEVICE_GPU__";
 		}
 
 #define GLUE(a, b) a ## b
@@ -2009,12 +1998,11 @@ public:
 	do { \
 		kernel_init_source = "#include \"kernel_" #name ".cl\" // " + \
 		                     kernel_md5 + "\n"; \
-		custom_kernel_build_options = common_custom_build_options; \
-		device_md5 = device_md5_hash(custom_kernel_build_options); \
+		device_md5 = device_md5_hash(build_options); \
 		clbin = string_printf("cycles_kernel_%s_%s_" #name ".clbin", \
 		                      device_md5.c_str(), kernel_md5.c_str()); \
 		if(!load_split_kernel(kernel_path, kernel_init_source, clbin, \
-		                      custom_kernel_build_options, \
+		                      build_options, \
 		                      &GLUE(name, _program))) \
 		{ \
 			fprintf(stderr, "Faled to compile %s\n", #name); \
