@@ -32,17 +32,15 @@
  * \note try to follow BLI_math naming convention here.
  */
 
-//#include <string.h>
-
 #include "BLI_math.h"
 #include "BLI_strict_flags.h"
 
 #include "BLI_quadric.h"  /* own include */
 
 
-#define QUADRIC_FLT_TOT (sizeof(Quadric) / sizeof(float))
+#define QUADRIC_FLT_TOT (sizeof(Quadric) / sizeof(double))
 
-void BLI_quadric_from_plane(Quadric *q, const float v[4])
+void BLI_quadric_from_plane(Quadric *q, const double v[4])
 {
 	q->a2 = v[0] * v[0];
 	q->b2 = v[1] * v[1];
@@ -61,24 +59,24 @@ void BLI_quadric_from_plane(Quadric *q, const float v[4])
 
 void BLI_quadric_to_tensor_m3(const Quadric *q, float m[3][3])
 {
-	m[0][0] = q->a2;
-	m[0][1] = q->ab;
-	m[0][2] = q->ac;
+	m[0][0] = (float)q->a2;
+	m[0][1] = (float)q->ab;
+	m[0][2] = (float)q->ac;
 
-	m[1][0] = q->ab;
-	m[1][1] = q->b2;
-	m[1][2] = q->bc;
+	m[1][0] = (float)q->ab;
+	m[1][1] = (float)q->b2;
+	m[1][2] = (float)q->bc;
 
-	m[2][0] = q->ac;
-	m[2][1] = q->bc;
-	m[2][2] = q->c2;
+	m[2][0] = (float)q->ac;
+	m[2][1] = (float)q->bc;
+	m[2][2] = (float)q->c2;
 }
 
 void BLI_quadric_to_vector_v3(const Quadric *q, float v[3])
 {
-	v[0] = q->ad;
-	v[1] = q->bd;
-	v[2] = q->cd;
+	v[0] = (float)q->ad;
+	v[1] = (float)q->bd;
+	v[2] = (float)q->cd;
 }
 
 void BLI_quadric_clear(Quadric *q)
@@ -88,25 +86,26 @@ void BLI_quadric_clear(Quadric *q)
 
 void BLI_quadric_add_qu_qu(Quadric *a, const Quadric *b)
 {
-	add_vn_vn((float *)a, (float *)b, QUADRIC_FLT_TOT);
+	add_vn_vn_d((double *)a, (double *)b, QUADRIC_FLT_TOT);
 }
 
 void BLI_quadric_add_qu_ququ(Quadric *r, const Quadric *a, const Quadric *b)
 {
-	add_vn_vnvn((float *)r, (const float *)a, (const float *)b, QUADRIC_FLT_TOT);
+	add_vn_vnvn_d((double *)r, (const double *)a, (const double *)b, QUADRIC_FLT_TOT);
 }
 
-void BLI_quadric_mul(Quadric *a, const float scalar)
+void BLI_quadric_mul(Quadric *a, const double scalar)
 {
-	mul_vn_fl((float *)a, QUADRIC_FLT_TOT, scalar);
+	mul_vn_db((double *)a, QUADRIC_FLT_TOT, scalar);
 }
 
-float BLI_quadric_evaluate(const Quadric *q, const float v[3])
+double BLI_quadric_evaluate(const Quadric *q, const float v_fl[3])
 {
-	return  (v[0] * v[0] * q->a2 + 2.0f * v[0] * v[1] * q->ab + 2.0f * v[0] * v[2] * q->ac + 2.0f * v[0] * q->ad +
-	         v[1] * v[1] * q->b2 + 2.0f * v[1] * v[2] * q->bc + 2.0f * v[1] * q->bd +
-	         v[2] * v[2] * q->c2 + 2.0f * v[2] * q->cd +
-	         q->d2);
+	const double v[3] = {UNPACK3(v_fl)};
+	return ((q->a2 * v[0] * v[0]) + (q->ab * 2 * v[0] * v[1]) + (q->ac * 2 * v[0] * v[2]) + (q->ad * 2 * v[0]) +
+	        (q->b2 * v[1] * v[1]) + (q->bc * 2 * v[1] * v[2]) + (q->bd * 2 * v[1]) +
+	        (q->c2 * v[2] * v[2]) + (q->cd * 2 * v[2]) +
+	        (q->d2));
 }
 
 bool BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon)
