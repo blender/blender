@@ -16,13 +16,13 @@
 
 /* CUDA kernel entry points */
 
-#include "kernel_compat_cuda.h"
-#include "kernel_math.h"
-#include "kernel_types.h"
-#include "kernel_globals.h"
-#include "kernel_film.h"
-#include "kernel_path.h"
-#include "kernel_bake.h"
+#include "../../kernel_compat_cuda.h"
+#include "../../kernel_math.h"
+#include "../../kernel_types.h"
+#include "../../kernel_globals.h"
+#include "../../kernel_film.h"
+#include "../../kernel_path.h"
+#include "../../kernel_bake.h"
 
 /* device data taken from CUDA occupancy calculator */
 

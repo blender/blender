@@ -34,12 +34,8 @@ cycles.Depends('../../source/blender/makesrna/intern/RNA_blender_cpp.h', 'makesr
 
 sources = cycles.Glob('bvh/*.cpp') + cycles.Glob('device/*.cpp') + cycles.Glob('kernel/*.cpp') + cycles.Glob('render/*.cpp') + cycles.Glob('subd/*.cpp') + cycles.Glob('util/*.cpp') + cycles.Glob('blender/*.cpp')
 
+sources.append(path.join('kernel', 'kernels', 'cpu', 'kernel.cpp'))
 sources.remove(path.join('util', 'util_view.cpp'))
-sources.remove(path.join('kernel', 'kernel_sse2.cpp'))
-sources.remove(path.join('kernel', 'kernel_sse3.cpp'))
-sources.remove(path.join('kernel', 'kernel_sse41.cpp'))
-sources.remove(path.join('kernel', 'kernel_avx.cpp'))
-sources.remove(path.join('kernel', 'kernel_avx2.cpp'))
 
 incs = [] 
 defs = []
@@ -146,7 +142,7 @@ for kernel_type in kernel_flags.keys():
     defs.append('WITH_KERNEL_' + kernel_type.upper())
 
 for kernel_type in kernel_flags.keys():
-    kernel_source = path.join('kernel', 'kernel_' + kernel_type + '.cpp')
+    kernel_source = path.join('kernel', 'kernels', 'cpu', 'kernel_' + kernel_type + '.cpp')
     kernel_cxxflags = Split(env['CXXFLAGS'])
     kernel_cxxflags.append(kernel_flags[kernel_type].split())
     kernel_defs = defs[:]

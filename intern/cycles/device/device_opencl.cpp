@@ -748,7 +748,7 @@ public:
 			}
 			else {
 
-				string init_kernel_source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
+				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " + kernel_md5 + "\n";
 
 				/* if does not exist or loading binary failed, compile kernel */
 				if(!compile_kernel(kernel_path, init_kernel_source, "", &cpProgram, debug_src))
@@ -1322,7 +1322,7 @@ public:
 				/* Kernel loaded from binary, nothing to do. */
 			}
 			else {
-				string init_kernel_source = "#include \"kernel.cl\" // " +
+				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " +
 				                            kernel_md5 + "\n";
 				/* If does not exist or loading binary failed, compile kernel. */
 				if(!compile_kernel(kernel_path,
@@ -1996,7 +1996,7 @@ public:
 #define GLUE(a, b) a ## b
 #define LOAD_KERNEL(name) \
 	do { \
-		kernel_init_source = "#include \"kernel_" #name ".cl\" // " + \
+		kernel_init_source = "#include \"kernels/opencl/kernel_" #name ".cl\" // " + \
 		                     kernel_md5 + "\n"; \
 		device_md5 = device_md5_hash(build_options); \
 		clbin = string_printf("cycles_kernel_%s_%s_" #name ".clbin", \

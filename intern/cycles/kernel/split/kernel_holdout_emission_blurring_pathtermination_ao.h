@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "kernel_split.h"
+#include "kernel_split_common.h"
 
 /*
- * Note on kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao kernel.
+ * Note on kernel_holdout_emission_blurring_pathtermination_ao kernel.
  * This is the sixth kernel in the ray tracing logic. This is the fifth
  * of the path iteration kernels. This kernel takes care of the logic to process
  * "material of type holdout", indirect primitive emission, bsdf blurring,
@@ -31,27 +31,27 @@
  *
  * The input and output are as follows,
  *
- * rng_coop ---------------------------------------------|--- kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao ---|--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * throughput_coop --------------------------------------|                                                                          |--- PathState_coop
- * PathRadiance_coop ------------------------------------|                                                                          |--- throughput_coop
- * Intersection_coop ------------------------------------|                                                                          |--- L_transparent_coop
- * PathState_coop ---------------------------------------|                                                                          |--- per_sample_output_buffers
- * L_transparent_coop -----------------------------------|                                                                          |--- PathRadiance_coop
- * shader_data ------------------------------------------|                                                                          |--- ShaderData
- * ray_state --------------------------------------------|                                                                          |--- ray_state
- * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) -------|                                                                          |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
- * Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ---|                                                                          |--- AOAlpha_coop
- * kg (globals + data) ----------------------------------|                                                                          |--- AOBSDF_coop
- * parallel_samples -------------------------------------|                                                                          |--- AOLightRay_coop
- * per_sample_output_buffers ----------------------------|                                                                          |
- * sw ---------------------------------------------------|                                                                          |
- * sh ---------------------------------------------------|                                                                          |
- * sx ---------------------------------------------------|                                                                          |
- * sy ---------------------------------------------------|                                                                          |
- * stride -----------------------------------------------|                                                                          |
- * work_array -------------------------------------------|                                                                          |
- * queuesize --------------------------------------------|                                                                          |
- * start_sample -----------------------------------------|                                                                          |
+ * rng_coop ---------------------------------------------|--- kernel_holdout_emission_blurring_pathtermination_ao ---|--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
+ * throughput_coop --------------------------------------|                                                           |--- PathState_coop
+ * PathRadiance_coop ------------------------------------|                                                           |--- throughput_coop
+ * Intersection_coop ------------------------------------|                                                           |--- L_transparent_coop
+ * PathState_coop ---------------------------------------|                                                           |--- per_sample_output_buffers
+ * L_transparent_coop -----------------------------------|                                                           |--- PathRadiance_coop
+ * shader_data ------------------------------------------|                                                           |--- ShaderData
+ * ray_state --------------------------------------------|                                                           |--- ray_state
+ * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) -------|                                                           |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
+ * Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ---|                                                           |--- AOAlpha_coop
+ * kg (globals + data) ----------------------------------|                                                           |--- AOBSDF_coop
+ * parallel_samples -------------------------------------|                                                           |--- AOLightRay_coop
+ * per_sample_output_buffers ----------------------------|                                                           |
+ * sw ---------------------------------------------------|                                                           |
+ * sh ---------------------------------------------------|                                                           |
+ * sx ---------------------------------------------------|                                                           |
+ * sy ---------------------------------------------------|                                                           |
+ * stride -----------------------------------------------|                                                           |
+ * work_array -------------------------------------------|                                                           |
+ * queuesize --------------------------------------------|                                                           |
+ * start_sample -----------------------------------------|                                                           |
  *
  * Note on Queues :
  * This kernel fetches rays from the queue QUEUE_ACTIVE_AND_REGENERATED_RAYS and processes only
@@ -72,7 +72,7 @@
  * QUEUE_SHADOW_RAY_CAST_AO_RAYS will be filled with rays marked with flag RAY_SHADOW_RAY_CAST_AO
  */
 
-__kernel void kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao(
+ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,               /* Required throughout the kernel except probabilistic path termination and AO */

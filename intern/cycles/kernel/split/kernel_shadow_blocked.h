@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-#include "kernel_split.h"
+#include "kernel_split_common.h"
 
 /*
- * Note on kernel_ocl_path_trace_shadow_blocked kernel.
+ * Note on kernel_shadow_blocked kernel.
  * This is the ninth kernel in the ray tracing logic. This is the eighth
  * of the path iteration kernels. This kernel takes care of "shadow ray cast"
  * logic of the direct lighting and AO  part of ray tracing.
  *
  * The input and output are as follows,
  *
- * PathState_coop ----------------------------------|--- kernel_ocl_path_trace_shadow_blocked --|
- * LightRay_dl_coop --------------------------------|                                           |--- LightRay_dl_coop
- * LightRay_ao_coop --------------------------------|                                           |--- LightRay_ao_coop
- * ray_state ---------------------------------------|                                           |--- ray_state
- * Queue_data(QUEUE_SHADOW_RAY_CAST_AO_RAYS &       |                                           |--- Queue_data (QUEUE_SHADOW_RAY_CAST_AO_RAYS & QUEUE_SHADOW_RAY_CAST_AO_RAYS)
-	      QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                                           |
+ * PathState_coop ----------------------------------|--- kernel_shadow_blocked --|
+ * LightRay_dl_coop --------------------------------|                            |--- LightRay_dl_coop
+ * LightRay_ao_coop --------------------------------|                            |--- LightRay_ao_coop
+ * ray_state ---------------------------------------|                            |--- ray_state
+ * Queue_data(QUEUE_SHADOW_RAY_CAST_AO_RAYS &       |                            |--- Queue_data (QUEUE_SHADOW_RAY_CAST_AO_RAYS & QUEUE_SHADOW_RAY_CAST_AO_RAYS)
+	      QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                            |
  * Queue_index(QUEUE_SHADOW_RAY_CAST_AO_RAYS&
-	      QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                                           |
- * kg (globals + data) -----------------------------|                                           |
- * queuesize ---------------------------------------|                                           |
+	      QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                            |
+ * kg (globals + data) -----------------------------|                            |
+ * queuesize ---------------------------------------|                            |
  *
  * Note on shader_shadow : shader_shadow is neither input nor output to this kernel. shader_shadow is filled and consumed in this kernel itself.
  * Note on queues :
@@ -47,7 +47,7 @@
  * QUEUE_SHADOW_RAY_CAST_AO_RAYS and QUEUE_SHADOW_RAY_CAST_DL_RAYS will be empty at kernel exit.
  */
 
-__kernel void kernel_ocl_path_trace_shadow_blocked(
+ccl_device void kernel_shadow_blocked(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_shadow,             /* Required for shadow blocked */

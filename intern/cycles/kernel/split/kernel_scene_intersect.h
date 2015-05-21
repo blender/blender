@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "kernel_split.h"
+#include "kernel_split_common.h"
 
 /*
- * Note on kernel_ocl_path_trace_scene_intersect kernel.
+ * Note on kernel_scene_intersect kernel.
  * This is the second kernel in the ray tracing logic. This is the first
  * of the path iteration kernels. This kernel takes care of scene_intersect function.
  *
@@ -27,20 +27,20 @@
  *
  * The input and output are as follows,
  *
- * Ray_coop ---------------------------------------|--------- kernel_ocl_path_trace_scene_intersect----------|--- PathState
- * PathState_coop ---------------------------------|                                                         |--- Intersection
- * ray_state --------------------------------------|                                                         |--- ray_state
- * use_queues_flag --------------------------------|                                                         |
- * parallel_samples -------------------------------|                                                         |
- * QueueData(QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                                                         |
- * kg (data + globals) ----------------------------|                                                         |
- * rng_coop ---------------------------------------|                                                         |
- * sw ---------------------------------------------|                                                         |
- * sh ---------------------------------------------|                                                         |
- * queuesize --------------------------------------|                                                         |
+ * Ray_coop ---------------------------------------|--------- kernel_scene_intersect----------|--- PathState
+ * PathState_coop ---------------------------------|                                          |--- Intersection
+ * ray_state --------------------------------------|                                          |--- ray_state
+ * use_queues_flag --------------------------------|                                          |
+ * parallel_samples -------------------------------|                                          |
+ * QueueData(QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                                          |
+ * kg (data + globals) ----------------------------|                                          |
+ * rng_coop ---------------------------------------|                                          |
+ * sw ---------------------------------------------|                                          |
+ * sh ---------------------------------------------|                                          |
+ * queuesize --------------------------------------|                                          |
  *
  * Note on Queues :
- * Ideally we would want kernel_ocl_path_trace_scene_intersect to work on queues.
+ * Ideally we would want kernel_scene_intersect to work on queues.
  * But during the very first time, the queues wil be empty and hence we perform a direct mapping
  * between ray-index and thread-index; From the next time onward, the queue will be filled and
  * we may start operating on queues.
@@ -63,7 +63,7 @@
  * QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS - no change
  */
 
-__kernel void kernel_ocl_path_trace_scene_intersect(
+ccl_device void kernel_scene_intersect(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global uint *rng_coop,

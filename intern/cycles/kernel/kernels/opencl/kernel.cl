@@ -16,14 +16,14 @@
 
 /* OpenCL kernel entry points - unfinished */
 
-#include "kernel_compat_opencl.h"
-#include "kernel_math.h"
-#include "kernel_types.h"
-#include "kernel_globals.h"
+#include "../../kernel_compat_opencl.h"
+#include "../../kernel_math.h"
+#include "../../kernel_types.h"
+#include "../../kernel_globals.h"
 
-#include "kernel_film.h"
-#include "kernel_path.h"
-#include "kernel_bake.h"
+#include "../../kernel_film.h"
+#include "../../kernel_path.h"
+#include "../../kernel_bake.h"
 
 #ifdef __COMPILE_ONLY_MEGAKERNEL__
 
@@ -34,7 +34,7 @@ __kernel void kernel_ocl_path_trace(
 
 #define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name,
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int sample,
 	int sx, int sy, int sw, int sh, int offset, int stride)
@@ -45,7 +45,7 @@ __kernel void kernel_ocl_path_trace(
 
 #define KERNEL_TEX(type, ttype, name) \
 	kg->name = name;
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int x = sx + get_global_id(0);
 	int y = sy + get_global_id(1);
@@ -63,7 +63,7 @@ __kernel void kernel_ocl_shader(
 
 #define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name,
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int type, int sx, int sw, int offset, int sample)
 {
@@ -73,7 +73,7 @@ __kernel void kernel_ocl_shader(
 
 #define KERNEL_TEX(type, ttype, name) \
 	kg->name = name;
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int x = sx + get_global_id(0);
 
@@ -88,7 +88,7 @@ __kernel void kernel_ocl_bake(
 
 #define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name,
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int type, int sx, int sw, int offset, int sample)
 {
@@ -98,7 +98,7 @@ __kernel void kernel_ocl_bake(
 
 #define KERNEL_TEX(type, ttype, name) \
 	kg->name = name;
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int x = sx + get_global_id(0);
 
@@ -124,7 +124,7 @@ __kernel void kernel_ocl_convert_to_byte(
 
 #define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name,
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	float sample_scale,
 	int sx, int sy, int sw, int sh, int offset, int stride)
@@ -135,7 +135,7 @@ __kernel void kernel_ocl_convert_to_byte(
 
 #define KERNEL_TEX(type, ttype, name) \
 	kg->name = name;
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int x = sx + get_global_id(0);
 	int y = sy + get_global_id(1);
@@ -151,7 +151,7 @@ __kernel void kernel_ocl_convert_to_half_float(
 
 #define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name,
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	float sample_scale,
 	int sx, int sy, int sw, int sh, int offset, int stride)
@@ -162,7 +162,7 @@ __kernel void kernel_ocl_convert_to_half_float(
 
 #define KERNEL_TEX(type, ttype, name) \
 	kg->name = name;
-#include "kernel_textures.h"
+#include "../../kernel_textures.h"
 
 	int x = sx + get_global_id(0);
 	int y = sy + get_global_id(1);

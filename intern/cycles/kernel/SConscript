@@ -57,8 +57,9 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     build_dir = os.path.join(root_build_dir, 'intern/cycles/kernel')
 
     # source directories and files
+    kernel_file_rel = os.path.join("kernels", "cuda", "kernel.cu")
     source_dir = Dir('.').srcnode().path
-    kernel_file = os.path.join(source_dir, "kernel.cu")
+    kernel_file = os.path.join(source_dir, kernel_file_rel)
     util_dir = os.path.join(source_dir, "../util")
     svm_dir = os.path.join(source_dir, "../svm")
     geom_dir = os.path.join(source_dir, "../geom")
@@ -83,7 +84,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
         nvcc_flags += " -D__KERNEL_DEBUG__"
 
     # dependencies
-    dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h') + kernel.Glob('geom/*.h') + kernel.Glob('closure/*.h')
+    dependencies = [kernel_file_rel] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h') + kernel.Glob('geom/*.h') + kernel.Glob('closure/*.h')
     last_cubin_file = None
 
     configs = (("kernel_%s.cubin", ''),
@@ -105,7 +106,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
             else:
                 command = "\"%s\" -arch=%s %s \"%s\" -o \"%s\"" % (nvcc, arch, current_flags, kernel_file, cubin_file)
 
-            kernel.Command(cubin_file, 'kernel.cu', command)
+            kernel.Command(cubin_file, kernel_file_rel, command)
             kernel.Depends(cubin_file, dependencies)
 
             kernel_binaries.append(cubin_file)

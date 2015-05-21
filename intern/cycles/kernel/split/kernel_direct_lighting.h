@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "kernel_split.h"
+#include "kernel_split_common.h"
 
 /*
- * Note on kernel_ocl_path_trace_direct_lighting kernel.
+ * Note on kernel_direct_lighting kernel.
  * This is the eighth kernel in the ray tracing logic. This is the seventh
  * of the path iteration kernels. This kernel takes care of direct lighting
  * logic. However, the "shadow ray cast" part of direct lighting is handled
@@ -29,13 +29,13 @@
  *
  * The input and output are as follows,
  *
- * rng_coop -----------------------------------------|--- kernel_ocl_path_trace_direct_lighting --|--- BSDFEval_coop
- * PathState_coop -----------------------------------|                                            |--- ISLamp_coop
- * shader_data --------------------------------------|                                            |--- LightRay_coop
- * ray_state ----------------------------------------|                                            |--- ray_state
- * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                                            |
- * kg (globals + data) ------------------------------|                                            |
- * queuesize ----------------------------------------|                                            |
+ * rng_coop -----------------------------------------|--- kernel_direct_lighting --|--- BSDFEval_coop
+ * PathState_coop -----------------------------------|                             |--- ISLamp_coop
+ * shader_data --------------------------------------|                             |--- LightRay_coop
+ * ray_state ----------------------------------------|                             |--- ray_state
+ * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                             |
+ * kg (globals + data) ------------------------------|                             |
+ * queuesize ----------------------------------------|                             |
  *
  * note on shader_DL : shader_DL is neither input nor output to this kernel; shader_DL is filled and consumed in this kernel itself.
  * Note on Queues :
@@ -49,7 +49,7 @@
  * QUEUE_SHADOW_RAY_CAST_DL_RAYS queue will be filled with rays for which a shadow_blocked function must be executed, after this
  * kernel call. Before this kernel call the QUEUE_SHADOW_RAY_CAST_DL_RAYS will be empty.
  */
-__kernel void kernel_ocl_path_trace_direct_lighting(
+ccl_device void kernel_direct_lighting(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,           /* Required for direct lighting */
