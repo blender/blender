@@ -1154,10 +1154,10 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 				/* really basic memory conservation scheme. Keep frames in a fifo queue */
 				node = inmempicsbase.last;
 
-				while (added_images > PLAY_FRAME_CACHE_MAX) {
+				while (node && added_images > PLAY_FRAME_CACHE_MAX) {
 					PlayAnimPict *pic = node->data;
 
-					if (pic->ibuf != ibuf) {
+					if (pic->ibuf && pic->ibuf != ibuf) {
 						LinkData *node_tmp;
 						IMB_freeImBuf(pic->ibuf);
 						pic->ibuf = NULL;
@@ -1281,6 +1281,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
 	BLI_freelistN(&picsbase);
+
+	BLI_freelistN(&inmempicsbase);
+	added_images = 0;
 #if 0 // XXX25
 	free_blender();
 #else
