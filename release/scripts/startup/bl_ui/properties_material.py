@@ -884,6 +884,7 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel, Panel):
             row.prop(mat, "transparency_method", expand=True)
 
         layout.prop(mat, "alpha")
+        layout.prop(mat, "specular_alpha", text="Specular")
 
 
 class VolumeButtonsPanel:
