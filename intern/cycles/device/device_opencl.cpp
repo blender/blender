@@ -1838,15 +1838,13 @@ public:
 	                       string kernel_init_source,
 	                       string clbin,
 	                       string custom_kernel_build_options,
-	                       cl_program *program)
+	                       cl_program *program,
+	                       const string *debug_src = NULL)
 	{
 		if(!opencl_version_check())
 			return false;
 
 		clbin = path_user_get(path_join("cache", clbin));
-
-		/* Path to preprocessed source for debugging. */
-		string *debug_src = NULL;
 
 		/* If exists already, try use it. */
 		if(path_exists(clbin) && load_binary(kernel_path,
@@ -1861,7 +1859,8 @@ public:
 			if(!compile_kernel(kernel_path,
 			                   kernel_init_source,
 			                   custom_kernel_build_options,
-			                   program))
+			                   program,
+			                   debug_src))
 			{
 				return false;
 			}
@@ -1967,6 +1966,7 @@ public:
 		string build_options;
 		string kernel_init_source;
 		string clbin;
+		string clsrc, *debug_src = NULL;
 
 		build_options += "-D__SPLIT_KERNEL__";
 #ifdef __WORK_STEALING__
@@ -2001,9 +2001,16 @@ public:
 		device_md5 = device_md5_hash(build_options); \
 		clbin = string_printf("cycles_kernel_%s_%s_" #name ".clbin", \
 		                      device_md5.c_str(), kernel_md5.c_str()); \
+		if(opencl_kernel_use_debug()) { \
+			clsrc = string_printf("cycles_kernel_%s_%s_" #name ".cl", \
+			                      device_md5.c_str(), kernel_md5.c_str()); \
+			clsrc = path_user_get(path_join("cache", clsrc)); \
+			debug_src = &clsrc; \
+		} \
 		if(!load_split_kernel(kernel_path, kernel_init_source, clbin, \
 		                      build_options, \
-		                      &GLUE(name, _program))) \
+		                      &GLUE(name, _program), \
+		                      debug_src)) \
 		{ \
 			fprintf(stderr, "Faled to compile %s\n", #name); \
 			return false; \
