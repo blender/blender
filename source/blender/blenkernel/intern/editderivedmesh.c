@@ -997,7 +997,7 @@ static void emDM_drawMappedFacesTex(DerivedMesh *dm,
  * ... because the material may use layer names to select different UV's
  * see: [#34378]
  */
-static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const BMLoop *loop, const int index_in_face)
+static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const BMLoop *loop, const int index_in_face, const int face_index)
 {
 	BMVert *eve = loop->v;
 	int i;
@@ -1040,7 +1040,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 		glVertexAttrib4ubvARB(attribs->mcol[i].gl_index, col);
 	}
 	if (attribs->tottang) {
-		int index = i * 4 + index_in_face;
+		int index = face_index * 4 + index_in_face;
 		const float *tang = (attribs->tang.array) ? attribs->tang.array[index] : zero;
 		glVertexAttrib4fvARB(attribs->tang.gl_index, tang);
 	}
@@ -1112,14 +1112,14 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				if (vertexCos) {
 					glNormal3fv(polyNos[BM_elem_index_get(efa)]);
 					for (fi = 0; fi < 3; fi++) {
-						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 						glVertex3fv(vertexCos[BM_elem_index_get(ltri[fi]->v)]);
 					}
 				}
 				else {
 					glNormal3fv(efa->no);
 					for (fi = 0; fi < 3; fi++) {
-						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 						glVertex3fv(ltri[fi]->v->co);
 					}
 				}
@@ -1128,7 +1128,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				if (vertexCos) {
 					for (fi = 0; fi < 3; fi++) {
 						const int j = BM_elem_index_get(ltri[fi]->v);
-						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 						if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[fi])]);
 						else glNormal3fv(vertexNos[j]);
 						glVertex3fv(vertexCos[j]);
@@ -1136,7 +1136,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				}
 				else {
 					for (fi = 0; fi < 3; fi++) {
-						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+						emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 						if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[fi])]);
 						else glNormal3fv(ltri[fi]->v->no);
 						glVertex3fv(ltri[fi]->v->co);
@@ -1216,14 +1216,14 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 			if (vertexCos) {
 				glNormal3fv(polyNos[BM_elem_index_get(efa)]);
 				for (fi = 0; fi < 3; fi++) {
-					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 					glVertex3fv(vertexCos[BM_elem_index_get(ltri[fi]->v)]);
 				}
 			}
 			else {
 				glNormal3fv(efa->no);
 				for (fi = 0; fi < 3; fi++) {
-					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 					glVertex3fv(ltri[fi]->v->co);
 				}
 			}
@@ -1232,7 +1232,7 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 			if (vertexCos) {
 				for (fi = 0; fi < 3; fi++) {
 					const int j = BM_elem_index_get(ltri[fi]->v);
-					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[fi])]);
 					else glNormal3fv(vertexNos[j]);
 					glVertex3fv(vertexCos[j]);
@@ -1240,7 +1240,7 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 			}
 			else {
 				for (fi = 0; fi < 3; fi++) {
-					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi);
+					emdm_pass_attrib_vertex_glsl(&attribs, ltri[fi], fi, i);
 					if (lnors) glNormal3fv(lnors[BM_elem_index_get(ltri[fi])]);
 					else glNormal3fv(ltri[fi]->v->no);
 					glVertex3fv(ltri[fi]->v->co);
