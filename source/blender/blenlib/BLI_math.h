@@ -30,18 +30,30 @@
  *  \ingroup bli
  *  \section mathabbrev Abbreviations
  *
- *  - fl = float
- *  - db = double
- *  - v2 = vec2 = vector 2
- *  - v3 = vec3 = vector 3
- *  - v4 = vec4 = vector 4
- *  - qt = quat = quaternion
- *  - dq = dquat = dual quaternion
- *  - m2 = mat2 = matrix 2x2
- *  - m3 = mat3 = matrix 3x3
- *  - m4 = mat4 = matrix 4x4
- *  - eul = euler rotation
- *  - eulO = euler with order
+ *  - ``fl`` = float
+ *  - ``db`` = double
+ *  - ``v2`` = vec2 = vector 2
+ *  - ``v3`` = vec3 = vector 3
+ *  - ``v4`` = vec4 = vector 4
+ *  - ``vn`` = vec4 = vector N dimensions, *passed as an arg, after the vector*.
+ *  - ``qt`` = quat = quaternion
+ *  - ``dq`` = dquat = dual quaternion
+ *  - ``m2`` = mat2 = matrix 2x2
+ *  - ``m3`` = mat3 = matrix 3x3
+ *  - ``m4`` = mat4 = matrix 4x4
+ *  - ``eul`` = euler rotation
+ *  - ``eulO`` = euler with order
+ *
+ * \subsection mathabbrev_all Function Type Abbreviations
+ *
+ * For non float versions of functions (which typically operate on floats),
+ * use single suffix abbreviations.
+ *
+ * - ``_d`` = double
+ * - ``_i`` = int
+ * - ``_u`` = unsigned int
+ * - ``_char`` = char
+ * - ``_uchar`` = unsigned char
  *
  *  \section mathvarnames Variable Names
  *
@@ -61,4 +73,3 @@
 #include "BLI_math_interp.h"
 
 #endif /* __BLI_MATH_H__ */
-
