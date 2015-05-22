@@ -39,6 +39,8 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
+#define USE_EDGE_REGION_FLAGS
+
 enum {
 	EXT_INPUT   = 1,
 	EXT_KEEP    = 2,
@@ -287,6 +289,39 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EXT_KEEP);
 }
 
+#ifdef USE_EDGE_REGION_FLAGS
+/**
+ * When create an edge for an extruded face region
+ * check surrounding edge flags before creating a new edge.
+ */
+static bool bm_extrude_region_edge_flag(const BMVert *v, char r_e_hflag[2])
+{
+	BMEdge *e_iter;
+	const char hflag_enable  = BM_ELEM_SEAM;
+	const char hflag_disable = BM_ELEM_SMOOTH;
+	bool ok = false;
+
+	r_e_hflag[0] = 0x0;
+	r_e_hflag[1] = 0xff;
+
+	/* clear flags on both disks */
+	e_iter = v->e;
+	do {
+		if (e_iter->l && !BM_edge_is_boundary(e_iter)) {
+			r_e_hflag[0] |= e_iter->head.hflag;
+			r_e_hflag[1] &= e_iter->head.hflag;
+			ok = true;
+		}
+	} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != v->e);
+
+	if (ok) {
+		r_e_hflag[0] &= hflag_enable;
+		r_e_hflag[1]  = hflag_disable & ~r_e_hflag[1];
+	}
+	return ok;
+}
+#endif  /* USE_EDGE_REGION_FLAGS */
+
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator dupeop, delop;
@@ -413,6 +448,9 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	slot_edges_exclude = BMO_slot_get(op->slots_in, "edges_exclude");
 	for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundary_map.out", 0); e; e = BMO_iter_step(&siter)) {
 		BMVert *f_verts[4];
+#ifdef USE_EDGE_REGION_FLAGS
+		BMEdge *f_edges[4];
+#endif
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
 		if (BM_edge_is_wire(e) && BMO_slot_map_contains(slot_edges_exclude, e)) {
@@ -465,8 +503,38 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			f_verts[3] = e_new->v2;
 		}
 
-		/* not sure what to do about example face, pass NULL for now */
+#ifdef USE_EDGE_REGION_FLAGS
+		/* handle new edges */
+		f_edges[0] = e;
+		f_edges[2] = e_new;
+
+		f_edges[1] = BM_edge_exists(f_verts[1], f_verts[2]);
+		if (f_edges[1] == NULL) {
+			char e_hflag[2];
+			bool e_hflag_ok = bm_extrude_region_edge_flag(f_verts[2], e_hflag);
+			f_edges[1] = BM_edge_create(bm, f_verts[1], f_verts[2], NULL, BM_CREATE_NOP);
+			if (e_hflag_ok) {
+				BM_elem_flag_enable(f_edges[1], e_hflag[0]);
+				BM_elem_flag_disable(f_edges[1], e_hflag[1]);
+			}
+		}
+
+		f_edges[3] = BM_edge_exists(f_verts[3], f_verts[0]);
+		if (f_edges[3] == NULL) {
+			char e_hflag[2];
+			bool e_hflag_ok = bm_extrude_region_edge_flag(f_verts[3], e_hflag);
+			f_edges[3] = BM_edge_create(bm, f_verts[3], f_verts[0], NULL, BM_CREATE_NOP);
+			if (e_hflag_ok) {
+				BM_elem_flag_enable(f_edges[3], e_hflag[0]);
+				BM_elem_flag_disable(f_edges[3], e_hflag[1]);
+			}
+		}
+
+		f = BM_face_create(bm, f_verts, f_edges, 4, NULL, BM_CREATE_NOP);
+#else
 		f = BM_face_create_verts(bm, f_verts, 4, NULL, BM_CREATE_NOP, true);
+#endif
+
 		bm_extrude_copy_face_loop_attributes(bm, f);
 	}
 
