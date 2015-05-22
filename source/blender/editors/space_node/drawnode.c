@@ -864,14 +864,15 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
 
 	if (!(ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER))) {
 		uiLayout *row = uiLayoutRow(layout, true);
+		const bool is_packed = BKE_image_has_packedfile(ima);
 
-		if (ima->packedfile)
+		if (is_packed)
 			uiItemO(row, "", ICON_PACKAGE, "image.unpack");
 		else
 			uiItemO(row, "", ICON_UGLYPACKAGE, "image.pack");
 
 		row = uiLayoutRow(row, true);
-		uiLayoutSetEnabled(row, ima->packedfile == NULL);
+		uiLayoutSetEnabled(row, !is_packed);
 		uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
 		uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 	}

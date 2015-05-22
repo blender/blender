@@ -229,6 +229,7 @@ void BKE_image_all_free_anim_ibufs(int except_frame);
 
 void BKE_image_memorypack(struct Image *ima);
 void BKE_image_packfiles(struct ReportList *reports, struct Image *ima, const char *basepath);
+void BKE_image_packfiles_from_mem(struct ReportList *reports, struct Image *ima, char *data, const size_t data_len);
 
 /* prints memory statistics for images */
 void BKE_image_print_memlist(void);

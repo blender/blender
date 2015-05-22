@@ -117,9 +117,14 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
 		BLI_strncpy(filename, image->name, sizeof(filename));
 		BLI_path_abs(filename, ID_BLEND_PATH(bmain, &image->id));
 
-		if (image->packedfile) {
-			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {
-				BKE_reportf(reports, RPT_ERROR, "Image '%s' could not save packed file to '%s'", image->id.name + 2, image->name);
+		if (BKE_image_has_packedfile(image)) {
+			ImagePackedFile *imapf;
+
+			for (imapf = image->packedfiles.first; imapf; imapf = imapf->next) {
+				if (writePackedFile(reports, imapf->filepath, imapf->packedfile, 0) != RET_OK) {
+					BKE_reportf(reports, RPT_ERROR, "Image '%s' could not save packed file to '%s'",
+					            image->id.name + 2, imapf->filepath);
+				}
 			}
 		}
 		else if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
@@ -154,17 +159,14 @@ static void rna_Image_pack(
 		BKE_report(reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
 	}
 	else {
-		if (image->packedfile) {
-			freePackedFile(image->packedfile);
-			image->packedfile = NULL;
-		}
+		BKE_image_free_packedfiles(image);
 		if (as_png) {
 			BKE_image_memorypack(image);
 		}
 		else if (data) {
 			char *data_dup = MEM_mallocN(sizeof(*data_dup) * (size_t)data_len, __func__);
 			memcpy(data_dup, data, (size_t)data_len);
-			image->packedfile = newPackedFileMemory(data_dup, data_len);
+			BKE_image_packfiles_from_mem(reports, image, data_dup, (size_t)data_len);
 		}
 		else {
 			BKE_image_packfiles(reports, image, ID_BLEND_PATH(bmain, &image->id));
@@ -177,7 +179,7 @@ static void rna_Image_pack(
 
 static void rna_Image_unpack(Image *image, ReportList *reports, int method)
 {
-	if (!image->packedfile) {
+	if (!BKE_image_has_packedfile(image)) {
 		BKE_report(reports, RPT_ERROR, "Image not packed");
 	}
 	else if (BKE_image_is_animated(image)) {
