@@ -47,7 +47,8 @@
 /* assumes edges are validated before reaching this poin */
 static float measure_facepair(
         const float v1[3], const float v2[3],
-        const float v3[3], const float v4[3], float limit)
+        const float v3[3], const float v4[3],
+        const float limit)
 {
 	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make */
 	/* Note: this is more complicated than it needs to be and should be cleaned up.. */
@@ -199,7 +200,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	const bool do_tf    = do_uv;  /* texture face, make make its own option eventually */
 	const bool do_vcol  = BMO_slot_bool_get(op->slots_in, "cmp_vcols");
 	const bool do_mat   = BMO_slot_bool_get(op->slots_in, "cmp_materials");
-	const float limit   = BMO_slot_float_get(op->slots_in, "limit");
+	float limit;
 
 	BMIter iter;
 	BMOIter siter;
@@ -209,6 +210,11 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	struct SortPointerByFloat *jedges;
 	unsigned i, totedge;
 	unsigned int totedge_tag = 0;
+
+	limit = BMO_slot_float_get(op->slots_in, "limit");
+	if (limit == DEG2RADF(180.0f)) {
+		limit = FLT_MAX;
+	}
 
 	/* flag all edges of all input face */
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
@@ -304,40 +310,6 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 			f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
 			if (f_new) {
 				BMO_elem_flag_enable(bm, f_new, FACE_OUT);
-			}
-		}
-	}
-
-	/* join 2-tri islands */
-	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
-		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
-			BMLoop *l_a, *l_b;
-			BMFace *f_a, *f_b;
-
-			/* ok, this edge wasn't merged, check if it's
-			 * in a 2-tri-pair island, and if so merge */
-			l_a = e->l;
-			l_b = e->l->radial_next;
-
-			f_a = l_a->f;
-			f_b = l_b->f;
-			
-			/* check the other 2 edges in both tris are untagged */
-			if ((f_a->len == 3 && f_b->len == 3) &&
-			    (BMO_elem_flag_test(bm, l_a->next->e, EDGE_MARK) == false) &&
-			    (BMO_elem_flag_test(bm, l_a->prev->e, EDGE_MARK) == false) &&
-			    (BMO_elem_flag_test(bm, l_b->next->e, EDGE_MARK) == false) &&
-			    (BMO_elem_flag_test(bm, l_b->prev->e, EDGE_MARK) == false) &&
-			    /* check for faces that use same verts, this is supported but raises an error
-			     * and cancels the operation when performed from editmode, since this is only
-			     * two triangles we only need to compare a single vertex */
-			    (LIKELY(l_a->prev->v != l_b->prev->v)))
-			{
-				BMFace *f_new;
-				f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
-				if (f_new) {
-					BMO_elem_flag_enable(bm, f_new, FACE_OUT);
-				}
 			}
 		}
 	}

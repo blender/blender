@@ -3760,7 +3760,20 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	int dosharp, douvs, dovcols, domaterials;
-	const float limit = RNA_float_get(op->ptr, "limit");
+	float limit;
+	PropertyRNA *prop;
+
+	/* When joining exactly 2 faces, no limit.
+	 * this is useful for one off joins while editing. */
+	prop = RNA_struct_find_property(op->ptr, "limit");
+	if ((em->bm->totfacesel == 2) &&
+	    (RNA_property_is_set(op->ptr, prop) == false))
+	{
+		limit = DEG2RADF(180.0f);
+	}
+	else {
+		limit = RNA_property_float_get(op->ptr, prop);
+	}
 
 	dosharp = RNA_boolean_get(op->ptr, "sharp");
 	douvs = RNA_boolean_get(op->ptr, "uvs");
