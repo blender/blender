@@ -1030,6 +1030,7 @@ if env['OURPLATFORM']!='darwin':
             if '__pycache__' in source: source.remove('__pycache__')
             source.remove('kernel.cpp')
             source.remove('CMakeLists.txt')
+            source.remove('SConscript')
             source.remove('svm')
             source.remove('closure')
             source.remove('geom')
