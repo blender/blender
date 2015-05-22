@@ -29,7 +29,13 @@
  * \note This isn't fully complete,
  * possible there are other useful functions to add here.
  *
- * \note try to follow BLI_math naming convention here.
+ * \note follow BLI_math naming convention here.
+ *
+ * \note this uses doubles for internal calculations,
+ * even though input/output are floats in some cases.
+ *
+ * This is done because the cases quadrics are useful
+ * often need high precision, see T44780.
  */
 
 #include "BLI_math.h"
