@@ -1518,7 +1518,27 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 	 * and offset the text label to accommodate it */
 
-	if (but->flag & UI_HAS_ICON || show_menu_icon) {
+	/* Big previews with optional text label below */
+	if (but->flag & UI_BUT_ICON_PREVIEW && ui_block_is_menu(but->block)) {
+		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
+		const float icon_size = 0.8f * BLI_rcti_size_y(rect);
+		float text_size;
+
+		if(but->drawstr[0] != '\0')
+			text_size = 0.2f * BLI_rcti_size_y(rect);
+		else
+			text_size = 0.0f;
+
+		/* draw icon in rect above the space reserved for the label */
+		rect->ymin += text_size;
+		widget_draw_icon(but, icon, alpha, rect, show_menu_icon);
+
+		/* offset rect to draw label in*/
+		rect->ymin -= text_size;
+		rect->ymax -= icon_size;
+	}
+	/* Icons on the left with optional text label on the right */
+	else if (but->flag & UI_HAS_ICON || show_menu_icon) {
 		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
 		const float icon_size = ICON_SIZE_FROM_BUTRECT(rect);
 

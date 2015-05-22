@@ -471,7 +471,7 @@ void uiLayoutSetEnabled(uiLayout *layout, bool enabled) RET_NONE
 void uiLayoutSetAlignment(uiLayout *layout, char alignment) RET_NONE
 void uiLayoutSetScaleX(struct uiLayout *layout, float scale) RET_NONE
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale) RET_NONE
-void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
+void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, int show_labels) RET_NONE
 void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base) RET_NONE
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges, int calc_tessface) RET_NONE
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE

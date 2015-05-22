@@ -1636,11 +1636,16 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 
 /********************* Icon viewer Template ************************/
+typedef struct IconViewMenuArgs {
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int show_labels;
+} IconViewMenuArgs;
 
 /* ID Search browse menu, open */
 static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 {
-	static RNAUpdateCb cb;
+	static IconViewMenuArgs args;
 	uiBlock *block;
 	uiBut *but;
 	int icon, value;
@@ -1649,25 +1654,36 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	bool free;
 
 	/* arg_litem is malloced, can be freed by parent button */
-	cb = *((RNAUpdateCb *)arg_litem);
+	args = *((IconViewMenuArgs *) arg_litem);
 
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS_PULLDOWN);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP);
-	
-	
-	RNA_property_enum_items(C, &cb.ptr, cb.prop, &item, NULL, &free);
-	
+
+	RNA_property_enum_items(C, &args.ptr, args.prop, &item, NULL, &free);
+
 	for (a = 0; item[a].identifier; a++) {
 		int x, y;
-		
 		/* XXX hardcoded size to 5 x unit */
-		x = (a % 8) * UI_UNIT_X * 5;
-		y = (a / 8) * UI_UNIT_X * 5;
-		
+		int w = UI_UNIT_X * 5;
+		int h = UI_UNIT_Y * 5;
+
+		if(args.show_labels) {
+			h += (int)(1.25f * UI_UNIT_Y);
+		}
+
+		x = (a % 8) * w;
+		y = (a / 8) * h;
+
 		icon = item[a].icon;
 		value = item[a].value;
-		but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, ICON_NONE, x, y, UI_UNIT_X * 5, UI_UNIT_Y * 5,
-		                         &cb.ptr, cb.prop, -1, 0, value, -1, -1, NULL);
+		if(args.show_labels) {
+			but = uiDefIconTextButR_prop(block, UI_BTYPE_ROW, 0, icon, item[a].name, x, y, w, h,
+		                             &args.ptr, args.prop, -1, 0, value, -1, -1, NULL);
+		}
+		else {
+			but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, icon, x, y, w, h,
+			                         &args.ptr, args.prop, -1, 0, value, -1, -1, NULL);
+		}
 		ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 	}
 
@@ -1681,10 +1697,10 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	return block;
 }
 
-void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
+void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname, int show_labels)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-	RNAUpdateCb *cb;
+	IconViewMenuArgs *cb_args;
 	EnumPropertyItem *items;
 	uiBlock *block;
 	uiBut *but;
@@ -1702,11 +1718,12 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	value = RNA_property_enum_get(ptr, prop);
 	RNA_enum_icon_from_value(items, value, &icon);
 
-	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
-	cb->ptr = *ptr;
-	cb->prop = prop;
+	cb_args = MEM_callocN(sizeof(IconViewMenuArgs), __func__);
+	cb_args->ptr = *ptr;
+	cb_args->prop = prop;
+	cb_args->show_labels = show_labels;
 
-	but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
+	but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb_args, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
 
 	ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 

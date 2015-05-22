@@ -719,11 +719,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A color ramp widget");
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "expand", false, "", "Expand button to show more detail");
-	
+
 	func = RNA_def_function(srna, "template_icon_view", "uiTemplateIconView");
 	RNA_def_function_ui_description(func, "Enum. Large widget showing Icon previews");
 	api_ui_item_rna_common(func);
-	
+	RNA_def_boolean(func, "show_labels", false, "", "Show enum label in preview buttons");
+
 	func = RNA_def_function(srna, "template_histogram", "uiTemplateHistogram");
 	RNA_def_function_ui_description(func, "Item. A histogramm widget to analyze imaga data");
 	api_ui_item_rna_common(func);
