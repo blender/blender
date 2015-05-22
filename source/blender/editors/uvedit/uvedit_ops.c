@@ -1032,7 +1032,7 @@ static int uv_select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestH
 
 	/* setup */
 	BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-	vmap = BM_uv_vert_map_create(em->bm, 0, limit, false);
+	vmap = BM_uv_vert_map_create(em->bm, limit, false, false);
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 
