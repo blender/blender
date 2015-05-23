@@ -74,6 +74,7 @@ extern "C"
 #include "BKE_report.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
+#include "BKE_material.h"
 #include "BKE_text.h"
 #include "BKE_sound.h"
 
@@ -518,6 +519,9 @@ int main(int argc, char** argv)
 	U.use_gpu_mipmap = 1;
 
 	BKE_sound_init_once();
+
+	// Initialize a default material for meshes without materials.
+	init_def_material();
 
 	BKE_library_callback_free_window_manager_set(wm_free);
 
