@@ -233,7 +233,7 @@ public:
 	                        unsigned int *context) const;
 
 	/**
-	 * Returns unsinged char from CUT_BUFFER0
+	 * Returns unsigned char from CUT_BUFFER0
 	 * \param selection		Get selection, X11 only feature
 	 * \return				Returns the Clipboard indicated by Flag
 	 */

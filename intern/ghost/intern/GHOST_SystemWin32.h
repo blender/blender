@@ -182,7 +182,7 @@ public:
 	GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
 
 	/**
-	 * Returns unsinged char from CUT_BUFFER0
+	 * Returns unsigned char from CUT_BUFFER0
 	 * \param selection		Used by X11 only
 	 * \return				Returns the Clipboard
 	 */

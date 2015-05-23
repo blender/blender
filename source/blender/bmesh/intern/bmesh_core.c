@@ -2198,7 +2198,7 @@ void bmesh_vert_separate(
  * Check for duplicates (not just with the first) but between all.
  * This is O(n2) but radial edges are very rarely >2 and almost never >~10.
  *
- * \note typically its best to avoid createing the data in the first place,
+ * \note typically its best to avoid creating the data in the first place,
  * but inspecting all loops connectivity is quite involved.
  *
  * \note this function looks like it could become slow,

@@ -293,7 +293,7 @@ bool id_make_local(ID *id, bool test)
 
 /**
  * Invokes the appropriate copy method for the block and returns the result in
- * newid, unless test. Returns true iff the block can be copied.
+ * newid, unless test. Returns true if the block can be copied.
  */
 bool id_copy(ID *id, ID **newid, bool test)
 {

@@ -1414,7 +1414,7 @@ static size_t animfilter_nla_controls(ListBase *anim_data, bDopeSheet *ads, Anim
 		items += tmp_items;
 	}
 	
-	/* return the numebr of items added ot the list */
+	/* return the numebr of items added to the list */
 	return items;
 }
 

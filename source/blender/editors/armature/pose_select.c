@@ -62,7 +62,7 @@
 
 #include "armature_intern.h"
 
-/* utility macros fro storing a temp int in the bone (selection flag) */
+/* utility macros for storing a temp int in the bone (selection flag) */
 #define PBONE_PREV_FLAG_GET(pchan) ((void)0, (GET_INT_FROM_POINTER((pchan)->temp)))
 #define PBONE_PREV_FLAG_SET(pchan, val) ((pchan)->temp = SET_INT_IN_POINTER(val))
 

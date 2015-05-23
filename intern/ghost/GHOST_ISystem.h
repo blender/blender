@@ -396,7 +396,7 @@ public:
 
 	/**
 	 * Returns the selection buffer
-	 * \return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
+	 * \return "unsigned char" from X11 XA_CUT_BUFFER0 buffer
 	 *
 	 */
 	virtual GHOST_TUns8 *getClipboard(bool selection) const = 0;

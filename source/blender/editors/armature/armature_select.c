@@ -54,7 +54,7 @@
 
 #include "armature_intern.h"
 
-/* utility macros fro storing a temp int in the bone (selection flag) */
+/* utility macros for storing a temp int in the bone (selection flag) */
 #define EBONE_PREV_FLAG_GET(ebone) ((void)0, (ebone)->temp.i)
 #define EBONE_PREV_FLAG_SET(ebone, val) ((ebone)->temp.i = val)
 

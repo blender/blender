@@ -2896,7 +2896,7 @@ static int convert_key(GHOST_TKey key)
 static void wm_eventemulation(wmEvent *event)
 {
 	/* Store last mmb/rmb event value to make emulation work when modifier keys
-	 * are released first. This really should be in a data structure somwhere. */
+	 * are released first. This really should be in a data structure somewhere. */
 	static int emulating_event = EVENT_NONE;
 	
 	/* middlemouse and rightmouse emulation */

@@ -208,7 +208,7 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
 
 /**
  * Sorts the elements of listbase into the order defined by cmp
- * (which should return 1 iff its first arg should come after its second arg).
+ * (which should return 1 if its first arg should come after its second arg).
  * This uses insertion sort, so NOT ok for large list.
  */
 void BLI_listbase_sort(ListBase *listbase, int (*cmp)(const void *, const void *))

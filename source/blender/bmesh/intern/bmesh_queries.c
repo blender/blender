@@ -1072,7 +1072,7 @@ bool BM_edge_is_convex(const BMEdge *e)
 }
 
 /**
- * Returms true when loop customdata is contiguous.
+ * \return true when loop customdata is contiguous.
  */
 bool BM_edge_is_contiguous_loop_cd(
         const BMEdge *e,
