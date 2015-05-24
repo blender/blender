@@ -1224,15 +1224,12 @@ static void icon_draw_size(
 		PreviewImage *pi = (icon->type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
 
 		if (pi) {
-			/* Do deferred loading/generation if needed. */
-//			BKE_previewimg_ensure(pi, size);
-
 			/* no create icon on this level in code */
 			if (!pi->rect[size]) return;  /* something has gone wrong! */
 			
 			/* preview images use premul alpha ... */
-			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-			icon_draw_rect(x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], 1.0f, NULL, is_preview);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			icon_draw_rect(x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, rgb, is_preview);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
