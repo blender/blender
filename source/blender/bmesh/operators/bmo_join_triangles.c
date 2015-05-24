@@ -286,7 +286,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		f_b = e->l->radial_next->f;
 
 		/* check if another edge already claimed this face */
-		if ((BMO_elem_flag_test(bm, f_a, FACE_MARK) == false) ||
+		if ((BMO_elem_flag_test(bm, f_a, FACE_MARK) == false) &&
 		    (BMO_elem_flag_test(bm, f_b, FACE_MARK) == false))
 		{
 			BMO_elem_flag_enable(bm, f_a, FACE_MARK);
