@@ -129,6 +129,7 @@ class IMAGE_MT_select(Menu):
 
         layout.operator("uv.select_border").pinned = False
         layout.operator("uv.select_border", text="Border Select Pinned").pinned = True
+        layout.operator("uv.circle_select")
 
         layout.separator()
 
