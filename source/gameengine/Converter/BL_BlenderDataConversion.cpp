@@ -1065,8 +1065,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 		else
 			ma = mesh->mat ? mesh->mat[mface->mat_nr]:NULL;
 
-		/* ckeck for texface since texface _only_ is used as a fallback */
-		if (ma == NULL && tface == NULL) {
+		// Check for blender material
+		if (ma == NULL) {
 			ma= &defmaterial;
 		}
 
