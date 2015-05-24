@@ -1785,7 +1785,7 @@ static int game_property_move(bContext *C, wmOperator *op)
 	bProperty *prop;
 	bProperty *otherprop = NULL;
 	const int index = RNA_int_get(op->ptr, "index");
-	const int dir = RNA_int_get(op->ptr, "direction");
+	const int dir = RNA_enum_get(op->ptr, "direction");
 
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
