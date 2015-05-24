@@ -1521,13 +1521,18 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	/* Big previews with optional text label below */
 	if (but->flag & UI_BUT_ICON_PREVIEW && ui_block_is_menu(but->block)) {
 		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
-		const float icon_size = 0.8f * BLI_rcti_size_y(rect);
-		float text_size;
+		const int icon_size_i = BLI_rcti_size_y(rect);
+		float icon_size, text_size;
 
-		if(but->drawstr[0] != '\0')
-			text_size = 0.2f * BLI_rcti_size_y(rect);
-		else
+		/* This is a bit britle, but avoids adding an 'UI_BUT_HAS_LABEL' flag to but... */
+		if(icon_size_i > (float)BLI_rcti_size_x(rect)) {
+			icon_size = 0.8f * (float)icon_size_i;
+			text_size = 0.2f * (float)icon_size_i;
+		}
+		else {
+			icon_size = (float)icon_size_i;
 			text_size = 0.0f;
+		}
 
 		/* draw icon in rect above the space reserved for the label */
 		rect->ymin += text_size;
