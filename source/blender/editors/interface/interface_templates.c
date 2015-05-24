@@ -1663,13 +1663,9 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 
 	for (a = 0; item[a].identifier; a++) {
 		int x, y;
-		/* XXX hardcoded size to 5 x unit */
-		int w = UI_UNIT_X * 5;
-		int h = UI_UNIT_Y * 5;
-
-		if (args.show_labels) {
-			h += (int)(1.25f * UI_UNIT_Y);
-		}
+		/* XXX hardcoded size to 5 units */
+		const int w = UI_UNIT_X * 5;
+		const int h = args.show_labels ? (int)(6.25f * UI_UNIT_Y) : UI_UNIT_Y * 5;
 
 		x = (a % 8) * w;
 		y = (a / 8) * h;
