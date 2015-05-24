@@ -1675,8 +1675,6 @@ public:
 	OpenCLDeviceSplitKernel(DeviceInfo& info, Stats &stats, bool background_)
 	: OpenCLDeviceBase(info, stats, background_)
 	{
-
-		info.use_split_kernel = true;
 		background = background_;
 
 		/* Initialize kernels. */
@@ -3327,6 +3325,7 @@ Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 		{
 			/* If the device is an AMD GPU, take split kernel path. */
 			VLOG(1) << "Using split kernel";
+			info.use_split_kernel = true;
 			return new OpenCLDeviceSplitKernel(info, stats, background);
 		} else {
 			/* For any other device, take megakernel path. */
