@@ -1667,7 +1667,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 		int w = UI_UNIT_X * 5;
 		int h = UI_UNIT_Y * 5;
 
-		if(args.show_labels) {
+		if (args.show_labels) {
 			h += (int)(1.25f * UI_UNIT_Y);
 		}
 
@@ -1676,13 +1676,15 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 
 		icon = item[a].icon;
 		value = item[a].value;
-		if(args.show_labels) {
-			but = uiDefIconTextButR_prop(block, UI_BTYPE_ROW, 0, icon, item[a].name, x, y, w, h,
-		                             &args.ptr, args.prop, -1, 0, value, -1, -1, NULL);
+		if (args.show_labels) {
+			but = uiDefIconTextButR_prop(
+			        block, UI_BTYPE_ROW, 0, icon, item[a].name, x, y, w, h,
+			        &args.ptr, args.prop, -1, 0, value, -1, -1, NULL);
 		}
 		else {
-			but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, icon, x, y, w, h,
-			                         &args.ptr, args.prop, -1, 0, value, -1, -1, NULL);
+			but = uiDefIconButR_prop(
+			        block, UI_BTYPE_ROW, 0, icon, x, y, w, h,
+			        &args.ptr, args.prop, -1, 0, value, -1, -1, NULL);
 		}
 		ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 	}

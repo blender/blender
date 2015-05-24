@@ -4669,7 +4669,9 @@ static void *do_projectpaint_thread(void *ph_v)
 							rgb_straight[3] = projPixel->origColor.f_pt[3];
 							straight_to_premul_v4_v4(projPixel->pixel.f_pt, rgb_straight);
 						}
-						else projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
+						else {
+							projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
+						}
 					}
 
 					last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
@@ -4844,7 +4846,9 @@ static void *do_projectpaint_thread(void *ph_v)
 									rgb_straight[3] = projPixel->origColor.f_pt[3];
 									straight_to_premul_v4_v4(projPixel->pixel.f_pt, rgb_straight);
 								}
-								else projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
+								else {
+									projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
+								}
 							}
 						}
 

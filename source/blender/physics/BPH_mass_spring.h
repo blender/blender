@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/physics/intern/BPH_mass_spring.h
+/** \file blender/physics/BPH_mass_spring.h
  *  \ingroup bph
  */
 
