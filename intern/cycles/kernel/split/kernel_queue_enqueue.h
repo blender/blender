@@ -52,7 +52,7 @@
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE, RAY_UPDATE_BUFFER, RAY_HIT_BACKGROUND rays.
  */
 
-ccl_device void kernel_queue_enqueue(
+__kernel void kernel_queue_enqueue(
 	ccl_global int *Queue_data,   /* Queue memory */
 	ccl_global int *Queue_index,  /* Tracks the number of elements in each queue */
 	ccl_global char *ray_state,   /* Denotes the state of each ray */

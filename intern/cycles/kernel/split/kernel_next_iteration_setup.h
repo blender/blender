@@ -61,7 +61,7 @@
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE and more RAY_UPDATE_BUFFER rays
  */
 
-ccl_device void kernel_next_iteration_setup(
+__kernel void kernel_next_iteration_setup(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,               /* Required for setting up ray for next iteration */

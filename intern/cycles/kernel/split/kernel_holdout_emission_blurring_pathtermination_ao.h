@@ -72,7 +72,7 @@
  * QUEUE_SHADOW_RAY_CAST_AO_RAYS will be filled with rays marked with flag RAY_SHADOW_RAY_CAST_AO
  */
 
-ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
+__kernel void kernel_holdout_emission_blurring_pathtermination_ao(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,               /* Required throughout the kernel except probabilistic path termination and AO */

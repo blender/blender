@@ -46,7 +46,7 @@
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE rays
  */
 
-ccl_device void kernel_shader_eval(
+__kernel void kernel_shader_eval(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,               /* Output ShaderData structure to be filled */

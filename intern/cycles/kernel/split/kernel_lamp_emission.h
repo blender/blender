@@ -40,7 +40,7 @@
  *
  * note : shader_data is neither input nor output. Its just filled and consumed in the same, kernel_lamp_emission, kernel.
  */
-ccl_device void kernel_lamp_emission(
+__kernel void kernel_lamp_emission(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,               /* Required for lamp emission */

@@ -51,7 +51,7 @@
  * All slots in queues are initialized to queue empty slot;
  * The number of elements in the queues is initialized to 0;
  */
-ccl_device void kernel_data_init(
+__kernel void kernel_data_init(
 	ccl_global char *globals,
 	ccl_global char *shader_data_sd,                  /* Arguments related to ShaderData */
 	ccl_global char *shader_data_sd_DL_shadow,     /* Arguments related to ShaderData */

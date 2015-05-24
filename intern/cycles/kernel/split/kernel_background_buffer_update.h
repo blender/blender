@@ -70,7 +70,7 @@
  * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and RAY_REGENERATED rays
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty
  */
-ccl_device void kernel_background_buffer_update(
+__kernel void kernel_background_buffer_update(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,

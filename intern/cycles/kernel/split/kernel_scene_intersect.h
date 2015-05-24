@@ -63,7 +63,7 @@
  * QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS - no change
  */
 
-ccl_device void kernel_scene_intersect(
+__kernel void kernel_scene_intersect(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global uint *rng_coop,

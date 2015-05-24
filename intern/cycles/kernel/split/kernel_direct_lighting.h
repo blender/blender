@@ -49,7 +49,7 @@
  * QUEUE_SHADOW_RAY_CAST_DL_RAYS queue will be filled with rays for which a shadow_blocked function must be executed, after this
  * kernel call. Before this kernel call the QUEUE_SHADOW_RAY_CAST_DL_RAYS will be empty.
  */
-ccl_device void kernel_direct_lighting(
+__kernel void kernel_direct_lighting(
 	ccl_global char *globals,
 	ccl_constant KernelData *data,
 	ccl_global char *shader_data,           /* Required for direct lighting */
