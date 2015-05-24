@@ -72,7 +72,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 		MEM_freeN(tfluidmd->fss);
 	
 	tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
-	if (tfluidmd->fss->meshVelocities != NULL) {
+	if (tfluidmd->fss && (tfluidmd->fss->meshVelocities != NULL)) {
 		tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
 	}
 }
