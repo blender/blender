@@ -807,7 +807,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 #define PREVIEW_PAD 4
 
-static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), const rcti *rect)
+static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
 {
 	int w, h, size;
 
@@ -823,7 +823,7 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), const rcti 
 		int x = rect->xmin + w / 2 - size / 2;
 		int y = rect->ymin + h / 2 - size / 2;
 
-		UI_icon_draw_preview_aspect_size(x, y, icon, 1.0f, size);
+		UI_icon_draw_preview_aspect_size(x, y, icon, 1.0f, alpha, size);
 	}
 }
 

@@ -1433,8 +1433,8 @@ void UI_icon_draw_preview_aspect(float x, float y, int icon_id, float aspect)
 	icon_draw_at_size(x, y, icon_id, aspect, 1.0f, ICON_SIZE_PREVIEW, 0);
 }
 
-void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspect, int size)
+void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspect, float alpha, int size)
 {
-	icon_draw_size(x, y, icon_id, aspect, 1.0f, NULL, ICON_SIZE_PREVIEW, size, false, true);
+	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, ICON_SIZE_PREVIEW, size, false, true);
 }
 
