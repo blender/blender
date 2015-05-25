@@ -1179,6 +1179,11 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", path);
 
+	if (!BLI_is_file(path)) {
+		BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", path);
+		return OPERATOR_CANCELLED;
+	}
+
 	scene = ac.scene;    /* current scene */
 
 	/* store necessary data for the baking steps */
