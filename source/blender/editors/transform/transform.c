@@ -104,6 +104,8 @@ static void drawVertSlide(TransInfo *t);
 static void len_v3_ensure(float v[3], const float length);
 static void postInputRotation(TransInfo *t, float values[3]);
 
+static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around);
+
 
 /* Transform Callbacks */
 static void initBend(TransInfo *t);
@@ -2978,6 +2980,13 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 		add_v3_v3(vec, pivot);
 
 		mul_m3_v3(td->smtx, vec);
+
+		/* rotation */
+		if ((t->flag & T_POINTS) == 0) {
+			ElementRotation(t, td, mat, V3D_LOCAL);
+		}
+
+		/* location */
 		copy_v3_v3(td->loc, vec);
 	}
 	
