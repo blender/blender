@@ -115,7 +115,8 @@ RNAPathKey::RNAPathKey(ID *id, const string &path) :
 	PointerRNA id_ptr;
 	RNA_id_pointer_create(id, &id_ptr);
 	/* try to resolve path... */
-	if (!RNA_path_resolve(&id_ptr, path.c_str(), &this->ptr, &this->prop)) {
+	int index;
+	if (!RNA_path_resolve_full(&id_ptr, path.c_str(), &this->ptr, &this->prop, &index)) {
 		this->ptr = PointerRNA_NULL;
 		this->prop = NULL;
 	}
