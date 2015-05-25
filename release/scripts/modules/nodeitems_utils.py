@@ -37,7 +37,7 @@ class NodeCategory:
         else:
             def items_gen(context):
                 for item in items:
-                    if item.poll is None or item.poll(context):
+                    if item.poll is None or context is None or item.poll(context):
                         yield item
             self.items = items_gen
 
@@ -136,7 +136,7 @@ def register_node_categories(identifier, cat_list):
 def node_categories_iter(context):
     for cat_type in _node_categories.values():
         for cat in cat_type[0]:
-            if cat.poll and cat.poll(context):
+            if cat.poll and ((context is None) or cat.poll(context)):
                 yield cat
 
 

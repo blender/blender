@@ -1481,15 +1481,26 @@ static EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *
 	EnumPropertyItem *eitems = NULL;
 	int err = 0;
 
-	bpy_context_set(C, &gilstate);
+	if (C) {
+		bpy_context_set(C, &gilstate);
+	}
+	else {
+		gilstate = PyGILState_Ensure();
+	}
 
 	args = PyTuple_New(2);
 	self = pyrna_struct_as_instance(ptr);
 	PyTuple_SET_ITEM(args, 0, self);
 
 	/* now get the context */
-	PyTuple_SET_ITEM(args, 1, (PyObject *)bpy_context_module);
-	Py_INCREF(bpy_context_module);
+	if (C) {
+		PyTuple_SET_ITEM(args, 1, (PyObject *)bpy_context_module);
+		Py_INCREF(bpy_context_module);
+	}
+	else {
+		PyTuple_SET_ITEM(args, 1, Py_None);
+		Py_INCREF(Py_None);
+	}
 
 	items = PyObject_CallObject(py_func, args);
 
@@ -1530,8 +1541,13 @@ static EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *
 		eitems = DummyRNA_NULL_items;
 	}
 
+	if (C) {
+		bpy_context_clear(C, &gilstate);
+	}
+	else {
+		PyGILState_Release(gilstate);
+	}
 
-	bpy_context_clear(C, &gilstate);
 	return eitems;
 }
 
@@ -2618,7 +2634,7 @@ PyDoc_STRVAR(BPy_EnumProperty_doc,
 "      Note the item is optional.\n"
 "      For dynamic values a callback can be passed which returns a list in\n"
 "      the same format as the static list.\n"
-"      This function must take 2 arguments (self, context)\n"
+"      This function must take 2 arguments (self, context), **context may be None**.\n"
 "      WARNING: There is a known bug with using a callback,\n"
 "      Python must keep a reference to the strings returned or Blender will crash.\n"
 "   :type items: sequence of string tuples or a function\n"
