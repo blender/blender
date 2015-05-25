@@ -108,7 +108,7 @@ extern "C" {
 
 /* **** General purpose functions ****  */
 
-RNAPathKey::RNAPathKey(ID *id, const string &path) :
+RNAPathKey::RNAPathKey(ID *id, const char *path) :
     id(id)
 {
 	/* create ID pointer for root of path lookup */
@@ -116,7 +116,7 @@ RNAPathKey::RNAPathKey(ID *id, const string &path) :
 	RNA_id_pointer_create(id, &id_ptr);
 	/* try to resolve path... */
 	int index;
-	if (!RNA_path_resolve_full(&id_ptr, path.c_str(), &this->ptr, &this->prop, &index)) {
+	if (!RNA_path_resolve_full(&id_ptr, path, &this->ptr, &this->prop, &index)) {
 		this->ptr = PointerRNA_NULL;
 		this->prop = NULL;
 	}

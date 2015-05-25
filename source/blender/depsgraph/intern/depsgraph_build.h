@@ -220,7 +220,7 @@ struct OperationKey
 struct RNAPathKey
 {
 	// Note: see depsgraph_build.cpp for implementation
-	RNAPathKey(ID *id, const string &path);
+	RNAPathKey(ID *id, const char *path);
 
 	RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop) :
 	    id(id), ptr(ptr), prop(prop)
