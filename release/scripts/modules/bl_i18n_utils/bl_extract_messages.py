@@ -576,8 +576,9 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     #print(func_translate_args)
 
     # Break recursive nodes look up on some kind of nodes.
-    # E.g. we don’t want to get strings inside subscripts (blah["foo"])!
-    stopper_nodes = {ast.Subscript}
+    # E.g. we don't want to get strings inside subscripts (blah["foo"])!
+    #      we don't want to get strings from comparisons (foo.type == 'BAR').
+    stopper_nodes = {ast.Subscript, ast.Compare}
     # Consider strings separate: ("a" if test else "b")
     separate_nodes = {ast.IfExp}
 
