@@ -1536,7 +1536,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 		/* draw icon in rect above the space reserved for the label */
 		rect->ymin += text_size;
-		widget_draw_icon(but, icon, alpha, rect, show_menu_icon);
+		glEnable(GL_BLEND);
+		widget_draw_preview(icon, alpha, rect);
+		glDisable(GL_BLEND);
 
 		/* offset rect to draw label in*/
 		rect->ymin -= text_size;
