@@ -4112,15 +4112,20 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 
 void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
 {
-	rcti trect = *rect, bg_rect;
+	rcti trect = *rect;
+	const float text_size = 0.2f * BLI_rcti_size_y(rect);
 	float font_dims[2] = {0.0f, 0.0f};
 	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
 	
+	/* drawing button background */
 	wt->state(wt, state);
 	wt->draw(&wt->wcol, rect, 0, 0);
 	
+	/* draw icon in rect above the space reserved for the label */
+	rect->ymin += text_size;
 	glEnable(GL_BLEND);
 	widget_draw_preview(iconid, 1.0f, rect);
+	glDisable(GL_BLEND);
 	
 	BLF_width_and_height(fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
 
@@ -4131,19 +4136,6 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 	trect.ymax = trect.ymin + font_dims[1];
 	if (trect.xmax > rect->xmax - PREVIEW_PAD)
 		trect.xmax = rect->xmax - PREVIEW_PAD;
-
-	bg_rect = trect;
-	bg_rect.xmin = rect->xmin + PREVIEW_PAD;
-	bg_rect.ymin = rect->ymin + PREVIEW_PAD;
-	bg_rect.xmax = rect->xmax - PREVIEW_PAD;
-	bg_rect.ymax += PREVIEW_PAD / 2;
-	
-	if (bg_rect.xmax > rect->xmax - PREVIEW_PAD)
-		bg_rect.xmax = rect->xmax - PREVIEW_PAD;
-
-	glColor4ubv((unsigned char *)wt->wcol_theme->inner_sel);
-	glRecti(bg_rect.xmin, bg_rect.ymin, bg_rect.xmax, bg_rect.ymax);
-	glDisable(GL_BLEND);
 
 	{
 		char drawstr[UI_MAX_DRAW_STR];
