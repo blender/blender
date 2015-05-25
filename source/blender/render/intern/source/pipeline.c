@@ -3887,7 +3887,7 @@ RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const c
 	for (rp = rl->passes.last; rp; rp = rp->prev) {
 		if (rp->passtype == passtype) {
 
-			if (viewname == NULL)
+			if (viewname == NULL || viewname[0] == '\0')
 				break;
 			else if (STREQ(rp->view, viewname))
 				break;
