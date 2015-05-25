@@ -10,7 +10,8 @@ class ModalTimerOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type in {'RIGHTMOUSE', 'ESC'}:
-            return self.cancel(context)
+            self.cancel(context)
+            return {'CANCELLED'}
 
         if event.type == 'TIMER':
             # change theme color, silly!
