@@ -64,23 +64,23 @@ typedef struct TransformModeItem {
 
 static const float VecOne[3] = {1, 1, 1};
 
-static char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
-static char OP_ROTATION[] = "TRANSFORM_OT_rotate";
-static char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
-static char OP_RESIZE[] = "TRANSFORM_OT_resize";
-static char OP_SKIN_RESIZE[] = "TRANSFORM_OT_skin_resize";
-static char OP_SHEAR[] = "TRANSFORM_OT_shear";
-static char OP_BEND[] = "TRANSFORM_OT_bend";
-static char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
-static char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
-static char OP_TILT[] = "TRANSFORM_OT_tilt";
-static char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
-static char OP_MIRROR[] = "TRANSFORM_OT_mirror";
-static char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
-static char OP_VERT_SLIDE[] = "TRANSFORM_OT_vert_slide";
-static char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
-static char OP_EDGE_BWEIGHT[] = "TRANSFORM_OT_edge_bevelweight";
-static char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
+static const char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
+static const char OP_ROTATION[] = "TRANSFORM_OT_rotate";
+static const char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
+static const char OP_RESIZE[] = "TRANSFORM_OT_resize";
+static const char OP_SKIN_RESIZE[] = "TRANSFORM_OT_skin_resize";
+static const char OP_SHEAR[] = "TRANSFORM_OT_shear";
+static const char OP_BEND[] = "TRANSFORM_OT_bend";
+static const char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
+static const char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
+static const char OP_TILT[] = "TRANSFORM_OT_tilt";
+static const char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
+static const char OP_MIRROR[] = "TRANSFORM_OT_mirror";
+static const char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
+static const char OP_VERT_SLIDE[] = "TRANSFORM_OT_vert_slide";
+static const char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
+static const char OP_EDGE_BWEIGHT[] = "TRANSFORM_OT_edge_bevelweight";
+static const char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
 
 static void TRANSFORM_OT_translate(struct wmOperatorType *ot);
 static void TRANSFORM_OT_rotate(struct wmOperatorType *ot);
