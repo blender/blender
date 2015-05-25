@@ -2024,6 +2024,18 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 		RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
 	}
+
+	{
+		const char *prop_id = NULL;
+		if (t->mode == TFM_SHRINKFATTEN) {
+			prop_id = "use_even_offset";
+		}
+
+		if (prop_id && (prop = RNA_struct_find_property(op->ptr, prop_id))) {
+
+			RNA_property_boolean_set(op->ptr, prop, (t->flag & T_ALT_TRANSFORM) != 0);
+		}
+	}
 }
 
 /* note: caller needs to free 't' on a 0 return */

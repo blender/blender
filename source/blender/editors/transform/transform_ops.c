@@ -791,6 +791,8 @@ static void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
 
+	RNA_def_boolean(ot->srna, "use_even_offset", true, "Offset Even", "Scale the offset to give more even thickness");
+
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
 
