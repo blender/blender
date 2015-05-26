@@ -733,9 +733,14 @@ def find_node(material, nodetype):
     if material and material.node_tree:
         ntree = material.node_tree
 
+        active_output_node = None
         for node in ntree.nodes:
             if getattr(node, "type", None) == nodetype:
-                return node
+                if getattr(node, "is_active_output", True):
+                    return node
+                if not active_output_node:
+                    active_output_node = node
+        return active_output_node
 
     return None
 
