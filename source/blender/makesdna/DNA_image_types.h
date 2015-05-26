@@ -115,7 +115,7 @@ typedef struct Image {
 	unsigned int bindcode;	/* only for current image... */
 	unsigned int *repbind;	/* for repeat of parts of images */
 	
-	struct PackedFile *packedfile; /* deprecated */
+	struct PackedFile *packedfile DNA_DEPRECATED; /* deprecated */
 	struct ListBase packedfiles;
 	struct PreviewImage *preview;
 
