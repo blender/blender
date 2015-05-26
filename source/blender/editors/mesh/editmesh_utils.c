@@ -1071,26 +1071,19 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
 }
 
 /**
- * [note: I've decided to use ideasman's code for non-editmode stuff, but since
- *  it has a big "not for editmode!" disclaimer, I'm going to keep what I have here
- *  - joeedh]
+ * Mirror editing API, usage:
  *
- * x-mirror editing api.  usage:
+ * \code{.c}
+ * EDBM_verts_mirror_cache_begin(em, ...);
  *
- *  EDBM_verts_mirror_cache_begin(em);
- *  ...
- *  ...
- *  BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
- *     mirrorv = EDBM_verts_mirror_get(em, v);
- *  }
- *  ...
- *  ...
- *  EDBM_verts_mirror_cache_end(em);
+ * BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+ *     v_mirror = EDBM_verts_mirror_get(em, v);
+ *     e_mirror = EDBM_verts_mirror_get_edge(em, e);
+ *     f_mirror = EDBM_verts_mirror_get_face(em, f);
+ * }
  *
- * \param use_self  Allow a vertex to reference its self.
- * \param use_select  Only cache selected verts.
- *
- * \note why do we only allow x axis mirror editing?
+ * EDBM_verts_mirror_cache_end(em);
+ * \endcode
  */
 
 /* BM_SEARCH_MAXDIST is too big, copied from 2.6x MOC_THRESH, should become a
