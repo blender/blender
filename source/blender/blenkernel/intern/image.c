@@ -1017,7 +1017,12 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
 		ImagePackedFile *imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image packed file");
 		BLI_addtail(&ima->packedfiles, imapf);
 		imapf->packedfile = newPackedFile(reports, ima->name, basepath);
-		BLI_strncpy(imapf->filepath, ima->name, sizeof(imapf->filepath));
+		if (imapf->packedfile) {
+			BLI_strncpy(imapf->filepath, ima->name, sizeof(imapf->filepath));
+		}
+		else {
+			BLI_freelinkN(&ima->packedfiles, imapf);
+		}
 	}
 	else {
 		ImageView *iv;
@@ -1026,7 +1031,12 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
 			BLI_addtail(&ima->packedfiles, imapf);
 
 			imapf->packedfile = newPackedFile(reports, iv->filepath, basepath);
-			BLI_strncpy(imapf->filepath, iv->filepath, sizeof(imapf->filepath));
+			if (imapf->packedfile) {
+				BLI_strncpy(imapf->filepath, iv->filepath, sizeof(imapf->filepath));
+			}
+			else {
+				BLI_freelinkN(&ima->packedfiles, imapf);
+			}
 		}
 	}
 }
