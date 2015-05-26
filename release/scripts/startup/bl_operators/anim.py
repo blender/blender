@@ -210,6 +210,12 @@ class BakeAction(Operator):
             description="Bake animation onto the object then clear parents (objects only)",
             default=False,
             )
+    use_current_action = BoolProperty(
+            name="Overwrite Current Action",
+            description="Bake animation into current action, instead of creating a new one "
+                        "(useful for baking only part of bones in an armature)",
+            default=False,
+            )
     bake_types = EnumProperty(
             name="Bake Data",
             description="Which data's transformations to bake",
@@ -224,6 +230,12 @@ class BakeAction(Operator):
 
         from bpy_extras import anim_utils
 
+        action = None
+        if self.use_current_action:
+            obj = bpy.context.object
+            if obj.animation_data:
+                action = obj.animation_data.action
+
         action = anim_utils.bake_action(self.frame_start,
                                         self.frame_end,
                                         frame_step=self.step,
@@ -234,6 +246,7 @@ class BakeAction(Operator):
                                         do_constraint_clear=self.clear_constraints,
                                         do_parents_clear=self.clear_parents,
                                         do_clean=True,
+                                        action=action,
                                         )
 
         if action is None:
