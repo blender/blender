@@ -48,12 +48,14 @@
 extern "C" {
 #endif
 
+struct StampData;
+
 void *IMB_exr_get_handle(void);
 void *IMB_exr_get_handle_name(const char *name);
 void    IMB_exr_add_channel(void *handle, const char *layname, const char *passname, const char *view, int xstride, int ystride, float *rect);
 
 int     IMB_exr_begin_read(void *handle, const char *filename, int *width, int *height);
-int     IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress);
+int     IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress, struct StampData *stamp);
 void    IMB_exrtile_begin_write(void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley);
 
 void    IMB_exr_set_channel(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect);

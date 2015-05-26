@@ -2089,6 +2089,24 @@ void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
 	if (stamp_data->rendertime[0]) IMB_metadata_change_field(ibuf, "RenderTime", stamp_data->rendertime);
 }
 
+void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback)
+{
+	if (!callback || !stamp_data) return;
+
+	if (stamp_data->file[0])       callback(data, "File",       stamp_data->file);
+	if (stamp_data->note[0])       callback(data, "Note",       stamp_data->note);
+	if (stamp_data->date[0])       callback(data, "Date",       stamp_data->date);
+	if (stamp_data->marker[0])     callback(data, "Marker",     stamp_data->marker);
+	if (stamp_data->time[0])       callback(data, "Time",       stamp_data->time);
+	if (stamp_data->frame[0])      callback(data, "Frame",      stamp_data->frame);
+	if (stamp_data->camera[0])     callback(data, "Camera",     stamp_data->camera);
+	if (stamp_data->cameralens[0]) callback(data, "Lens",       stamp_data->cameralens);
+	if (stamp_data->scene[0])      callback(data, "Scene",      stamp_data->scene);
+	if (stamp_data->strip[0])      callback(data, "Strip",      stamp_data->strip);
+	if (stamp_data->rendertime[0]) callback(data, "RenderTime", stamp_data->rendertime);
+}
+
+
 bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
 	int tot;

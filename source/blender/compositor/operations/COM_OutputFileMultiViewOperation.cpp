@@ -81,7 +81,7 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
 
 		/* prepare the file with all the channels */
 
-		if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_format->exr_codec) == 0) {
+		if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_format->exr_codec, NULL) == 0) {
 			printf("Error Writing Singlelayer Multiview Openexr\n");
 			IMB_exr_close(exrhandle);
 		}
@@ -168,7 +168,7 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
 		BLI_make_existing_file(filename);
 
 		/* prepare the file with all the channels for the header */
-		if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec) == 0) {
+		if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, NULL) == 0) {
 			printf("Error Writing Multilayer Multiview Openexr\n");
 			IMB_exr_close(exrhandle);
 		}

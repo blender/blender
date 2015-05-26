@@ -1110,7 +1110,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 
 	BLI_make_existing_file(filename);
 
-	if (IMB_exr_begin_write(exrhandle, filename, width, height, compress)) {
+	if (IMB_exr_begin_write(exrhandle, filename, width, height, compress, rr->stamp_data)) {
 		IMB_exr_write_channels(exrhandle);
 		success = true;
 	}

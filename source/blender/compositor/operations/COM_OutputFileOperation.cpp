@@ -288,7 +288,7 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		}
 		
 		/* when the filename has no permissions, this can fail */
-		if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec)) {
+		if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, NULL)) {
 			IMB_exr_write_channels(exrhandle);
 		}
 		else {

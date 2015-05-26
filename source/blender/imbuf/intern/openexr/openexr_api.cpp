@@ -63,6 +63,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "BLI_threads.h"
 
 #include "BKE_idprop.h"
+#include "BKE_image.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -362,6 +363,13 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 	if (ibuf->ppm[0] > 0.0)
 		addXDensity(*header, ibuf->ppm[0] / 39.3700787); /* 1 meter = 39.3700787 inches */
 }
+
+static void openexr_header_metadata_callback(void *data, const char *propname, const char *prop)
+{
+	Header *header = (Header *)data;
+	header->insert(propname, StringAttribute(prop));
+}
+
 
 static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags, const size_t totviews,
                                   const char * (*getview)(void *base, size_t view_id),
@@ -821,7 +829,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *passname
 }
 
 /* used for output files (from RenderResult) (single and multilayer, single and multiview) */
-int IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress)
+int IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress, struct StampData *stamp)
 {
 	ExrHandle *data = (ExrHandle *)handle;
 	Header header(width, height);
@@ -836,7 +844,7 @@ int IMB_exr_begin_write(void *handle, const char *filename, int width, int heigh
 		header.channels().insert(echan->name, Channel(Imf::FLOAT));
 
 	openexr_header_compression(&header, compress);
-	// openexr_header_metadata(&header, ibuf); // no imbuf. cant write
+	BKE_stamp_info_callback(&header, stamp, openexr_header_metadata_callback);
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 
 	imb_exr_type_by_channels(header.channels(), *data->multiView, &is_singlelayer, &is_multilayer, &is_multiview);
@@ -1888,6 +1896,22 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 			ibuf->ftype = OPENEXR;
 
 			if (!(flags & IB_test)) {
+
+				if (flags & IB_metadata) {
+					const Header & header = file->header(0);
+					Header::ConstIterator iter;
+
+					for (iter = header.begin(); iter != header.end(); iter++) {
+						const StringAttribute *attrib = file->header(0).findTypedAttribute <StringAttribute> (iter.name());
+
+						/* not all attributes are string attributes so we might get some NULLs here */
+						if (attrib) {
+							IMB_metadata_add_field(ibuf, iter.name(), attrib->value().c_str());
+							ibuf->flags |= IB_metadata;
+						}
+					}
+				}
+
 				if (is_multi && ((flags & IB_thumbnail) == 0)) { /* only enters with IB_multilayer flag set */
 					/* constructs channels for reading, allocates memory in channels */
 					ExrHandle *handle = imb_exr_begin_read_mem(*file, width, height);
@@ -1969,21 +1993,6 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 							for (a = 0; a < (size_t) ibuf->x * ibuf->y; ++a) {
 								float *color = ibuf->rect_float + a * 4;
 								color[1] = color[2] = color[0];
-							}
-						}
-					}
-
-					if (flags & IB_metadata) {
-						const Header & header = file->header(0);
-						Header::ConstIterator iter;
-
-						for (iter = header.begin(); iter != header.end(); iter++) {
-							const StringAttribute *attrib = file->header(0).findTypedAttribute <StringAttribute> (iter.name());
-
-							/* not all attributes are string attributes so we might get some NULLs here */
-							if (attrib) {
-								IMB_metadata_add_field(ibuf, iter.name(), attrib->value().c_str());
-								ibuf->flags |= IB_metadata;
 							}
 						}
 					}
