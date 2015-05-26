@@ -42,164 +42,219 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-#define FACE_OUT (1 << 0)
-
 /* assumes edges are validated before reaching this poin */
-static float measure_facepair(
+static float quad_calc_error(
         const float v1[3], const float v2[3],
-        const float v3[3], const float v4[3],
-        const float limit)
+        const float v3[3], const float v4[3])
 {
 	/* gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make */
 	/* Note: this is more complicated than it needs to be and should be cleaned up.. */
-	float n1[3], n2[3], measure = 0.0f, angle1, angle2, diff;
-	float edgeVec1[3], edgeVec2[3], edgeVec3[3], edgeVec4[3];
-	float minarea, maxarea, areaA, areaB;
+	float error = 0.0f;
 
-	/* First Test: Normal difference */
-	normal_tri_v3(n1, v1, v2, v3);
-	normal_tri_v3(n2, v1, v3, v4);
-	angle1 = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
+	/* Normal difference */
+	{
+		float n1[3], n2[3];
+		float angle_a, angle_b;
+		float diff;
 
-	normal_tri_v3(n1, v2, v3, v4);
-	normal_tri_v3(n2, v4, v1, v2);
-	angle2 = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
+		normal_tri_v3(n1, v1, v2, v3);
+		normal_tri_v3(n2, v1, v3, v4);
+		angle_a = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
 
-	measure += (angle1 + angle2) * 0.5f;
-	if (measure > limit) {
-		return measure;
+		normal_tri_v3(n1, v2, v3, v4);
+		normal_tri_v3(n2, v4, v1, v2);
+		angle_b = (compare_v3v3(n1, n2, FLT_EPSILON)) ? 0.0f : angle_normalized_v3v3(n1, n2);
+
+		diff = (angle_a + angle_b) / (float)(M_PI * 2);
+
+		error += diff;
 	}
 
-	/* Second test: Colinearity */
-	sub_v3_v3v3(edgeVec1, v1, v2);
-	sub_v3_v3v3(edgeVec2, v2, v3);
-	sub_v3_v3v3(edgeVec3, v3, v4);
-	sub_v3_v3v3(edgeVec4, v4, v1);
+	/* Colinearity */
+	{
+		float edge_vecs[4][3];
+		float diff;
 
-	normalize_v3(edgeVec1);
-	normalize_v3(edgeVec2);
-	normalize_v3(edgeVec3);
-	normalize_v3(edgeVec4);
+		sub_v3_v3v3(edge_vecs[0], v1, v2);
+		sub_v3_v3v3(edge_vecs[1], v2, v3);
+		sub_v3_v3v3(edge_vecs[2], v3, v4);
+		sub_v3_v3v3(edge_vecs[3], v4, v1);
 
-	/* a completely skinny face is 'pi' after halving */
-	diff = 0.25f * (fabsf(angle_normalized_v3v3(edgeVec1, edgeVec2) - (float)M_PI_2) +
-	                fabsf(angle_normalized_v3v3(edgeVec2, edgeVec3) - (float)M_PI_2) +
-	                fabsf(angle_normalized_v3v3(edgeVec3, edgeVec4) - (float)M_PI_2) +
-	                fabsf(angle_normalized_v3v3(edgeVec4, edgeVec1) - (float)M_PI_2));
+		normalize_v3(edge_vecs[0]);
+		normalize_v3(edge_vecs[1]);
+		normalize_v3(edge_vecs[2]);
+		normalize_v3(edge_vecs[3]);
 
-	if (!diff) {
-		return 0.0;
+		/* a completely skinny face is 'pi' after halving */
+		diff = (fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - (float)M_PI_2) +
+		        fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - (float)M_PI_2) +
+		        fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - (float)M_PI_2) +
+		        fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - (float)M_PI_2)) / (float)(M_PI * 2);
+
+		error += diff;
 	}
 
-	measure +=  diff;
-	if (measure > limit) {
-		return measure;
+	/* Concavity */
+	{
+		float area_min, area_max, area_a, area_b;
+		float diff;
+
+		area_a = area_tri_v3(v1, v2, v3) + area_tri_v3(v1, v3, v4);
+		area_b = area_tri_v3(v2, v3, v4) + area_tri_v3(v4, v1, v2);
+
+		area_min = min_ff(area_a, area_b);
+		area_max = max_ff(area_a, area_b);
+
+		diff = area_max ? (1.0 - (area_min / area_max)) : 1.0f;
+
+		error += diff;
 	}
 
-	/* Third test: Concavity */
-	areaA = area_tri_v3(v1, v2, v3) + area_tri_v3(v1, v3, v4);
-	areaB = area_tri_v3(v2, v3, v4) + area_tri_v3(v4, v1, v2);
-
-	if (areaA <= areaB) minarea = areaA;
-	else minarea = areaB;
-
-	if (areaA >= areaB) maxarea = areaA;
-	else maxarea = areaB;
-
-	if (!maxarea) measure += 1;
-	else measure += (1 - (minarea / maxarea));
-
-	return measure;
+	return error;
 }
 
-#define T2QUV_LIMIT 0.005f
-#define T2QCOL_LIMIT 3
-
-static bool bm_edge_faces_cmp(BMesh *bm, BMEdge *e, const bool do_uv, const bool do_tf, const bool do_vcol)
+static void bm_edge_to_quad_verts(const BMEdge *e, const BMVert *r_v_quad[4])
 {
-	/* first get loops */
-	BMLoop *l[4];
+	BLI_assert(e->l->f->len == 3 && e->l->radial_next->f->len == 3);
+	BLI_assert(BM_edge_is_manifold(e));
+	r_v_quad[0] = e->l->v;
+	r_v_quad[1] = e->l->prev->v;
+	r_v_quad[2] = e->l->next->v;
+	r_v_quad[3] = e->l->radial_next->prev->v;
+}
 
-	l[0] = e->l;
-	l[2] = e->l->radial_next;
-	
-	/* match up loops on each side of an edge corresponding to each vert */
-	if (l[0]->v == l[2]->v) {
-		l[1] = l[0]->next;
-		l[3] = l[1]->next;
-	}
-	else {
-		l[1] = l[0]->next;
+/* cache customdata delimiters */
+struct DelimitData_CD {
+	int cd_type;
+	int cd_size;
+	int cd_offset;
+	int cd_offset_end;
+};
 
-		l[3] = l[2];
-		l[2] = l[3]->next;
-	}
+struct DelimitData {
+	unsigned int do_seam : 1;
+	unsigned int do_sharp : 1;
+	unsigned int do_mat : 1;
+	unsigned int do_angle : 1;
 
-	/* Test UV's */
-	if (do_uv) {
-		const MLoopUV *luv[4] = {
-		    CustomData_bmesh_get(&bm->ldata, l[0]->head.data, CD_MLOOPUV),
-		    CustomData_bmesh_get(&bm->ldata, l[1]->head.data, CD_MLOOPUV),
-		    CustomData_bmesh_get(&bm->ldata, l[2]->head.data, CD_MLOOPUV),
-		    CustomData_bmesh_get(&bm->ldata, l[3]->head.data, CD_MLOOPUV),
-		};
+	float angle;
+	float angle__cos;
 
-		/* do UV */
-		if (luv[0] && (!compare_v2v2(luv[0]->uv, luv[2]->uv, T2QUV_LIMIT) ||
-		               !compare_v2v2(luv[1]->uv, luv[3]->uv, T2QUV_LIMIT)))
-		{
+	struct DelimitData_CD cdata[4];
+	int cdata_len;
+};
+
+static bool bm_edge_is_contiguous_loop_cd_all(
+        const BMEdge *e, const struct DelimitData_CD *delimit_data)
+{
+	int cd_offset;
+	for (cd_offset = delimit_data->cd_offset;
+	     cd_offset < delimit_data->cd_offset_end;
+	     cd_offset += delimit_data->cd_size)
+	{
+		if (BM_edge_is_contiguous_loop_cd(e, delimit_data->cd_type, cd_offset) == false) {
 			return false;
-		}
-	}
-
-	if (do_tf) {
-		const MTexPoly *tp[2] = {
-		    CustomData_bmesh_get(&bm->pdata, l[0]->f->head.data, CD_MTEXPOLY),
-		    CustomData_bmesh_get(&bm->pdata, l[1]->f->head.data, CD_MTEXPOLY),
-		};
-
-		if (tp[0] && (tp[0]->tpage != tp[1]->tpage)) {
-			return false;
-		}
-	}
-
-	/* Test Vertex Colors */
-	if (do_vcol) {
-		const MLoopCol *lcol[4] = {
-		    CustomData_bmesh_get(&bm->ldata, l[0]->head.data, CD_MLOOPCOL),
-			CustomData_bmesh_get(&bm->ldata, l[1]->head.data, CD_MLOOPCOL),
-			CustomData_bmesh_get(&bm->ldata, l[2]->head.data, CD_MLOOPCOL),
-			CustomData_bmesh_get(&bm->ldata, l[3]->head.data, CD_MLOOPCOL),
-		};
-
-		if (lcol[0]) {
-			if (!compare_rgb_uchar((unsigned char *)&lcol[0]->r, (unsigned char *)&lcol[2]->r, T2QCOL_LIMIT) ||
-			    !compare_rgb_uchar((unsigned char *)&lcol[1]->r, (unsigned char *)&lcol[3]->r, T2QCOL_LIMIT))
-			{
-				return false;
-			}
 		}
 	}
 
 	return true;
 }
 
+static bool bm_edge_delimit_cdata(
+        CustomData *ldata, CustomDataType type,
+        struct DelimitData_CD *r_delim_cd)
+{
+	const int layer_len = CustomData_number_of_layers(ldata, type);
+	r_delim_cd->cd_type = type;
+	r_delim_cd->cd_size = CustomData_sizeof(r_delim_cd->cd_type);
+	r_delim_cd->cd_offset = CustomData_get_n_offset(ldata, type, 0);
+	r_delim_cd->cd_offset_end = r_delim_cd->cd_size * layer_len;
+	return (r_delim_cd->cd_offset != -1);
+}
 
-#define EDGE_MARK	1
-#define EDGE_CHOSEN	2
+static float bm_edge_is_delimit(
+        const BMEdge *e,
+        const struct DelimitData *delimit_data)
+{
+	BMFace *f_a = e->l->f, *f_b = e->l->radial_next->f;
+#if 0
+	const bool is_contig = BM_edge_is_contiguous(e);
+	float angle;
+#endif
 
-#define FACE_MARK	1
-#define FACE_INPUT	2
+	if ((delimit_data->do_seam) &&
+	    (BM_elem_flag_test(e, BM_ELEM_SEAM)))
+	{
+		goto fail;
+	}
+
+	if ((delimit_data->do_sharp) &&
+	    (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0))
+	{
+		goto fail;
+	}
+
+	if ((delimit_data->do_mat) &&
+	    (f_a->mat_nr != f_b->mat_nr))
+	{
+		goto fail;
+	}
+
+	if (delimit_data->do_angle) {
+		if (dot_v3v3(f_a->no, f_b->no) < delimit_data->angle__cos) {
+			goto fail;
+		}
+		else {
+			const BMVert *verts[4];
+			float edge_vecs[4][3];
+
+			bm_edge_to_quad_verts(e, verts);
+
+			sub_v3_v3v3(edge_vecs[0], verts[0]->co, verts[1]->co);
+			sub_v3_v3v3(edge_vecs[1], verts[1]->co, verts[2]->co);
+			sub_v3_v3v3(edge_vecs[2], verts[2]->co, verts[3]->co);
+			sub_v3_v3v3(edge_vecs[3], verts[3]->co, verts[0]->co);
+
+			normalize_v3(edge_vecs[0]);
+			normalize_v3(edge_vecs[1]);
+			normalize_v3(edge_vecs[2]);
+			normalize_v3(edge_vecs[3]);
+
+			if ((fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - (float)M_PI_2) > delimit_data->angle) ||
+			    (fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - (float)M_PI_2) > delimit_data->angle) ||
+			    (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - (float)M_PI_2) > delimit_data->angle) ||
+			    (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - (float)M_PI_2) > delimit_data->angle))
+			{
+				goto fail;
+			}
+		}
+	}
+
+	if (delimit_data->cdata_len) {
+		int i;
+		for (i = 0; i < delimit_data->cdata_len; i++) {
+			if (!bm_edge_is_contiguous_loop_cd_all(e, &delimit_data->cdata[i])) {
+				goto fail;
+			}
+		}
+	}
+
+	return false;
+
+fail:
+	return true;
+}
 
 
+#define EDGE_MARK	(1 << 0)
+#define EDGE_CHOSEN	(1 << 1)
+
+#define FACE_OUT (1 << 0)
+#define FACE_MARK	(1 << 1)
+#define FACE_INPUT	(1 << 2)
 
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 {
-	const bool do_sharp = BMO_slot_bool_get(op->slots_in, "cmp_sharp");
-	const bool do_uv    = BMO_slot_bool_get(op->slots_in, "cmp_uvs");
-	const bool do_tf    = do_uv;  /* texture face, make make its own option eventually */
-	const bool do_vcol  = BMO_slot_bool_get(op->slots_in, "cmp_vcols");
-	const bool do_mat   = BMO_slot_bool_get(op->slots_in, "cmp_materials");
 	float limit;
 
 	BMIter iter;
@@ -211,9 +266,33 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	unsigned i, totedge;
 	unsigned int totedge_tag = 0;
 
+	struct DelimitData delimit_data = {0};
+
+	delimit_data.do_seam = BMO_slot_bool_get(op->slots_in, "cmp_seam");
+	delimit_data.do_sharp = BMO_slot_bool_get(op->slots_in, "cmp_sharp");
+	delimit_data.do_mat = BMO_slot_bool_get(op->slots_in, "cmp_materials");
+
 	limit = BMO_slot_float_get(op->slots_in, "limit");
-	if (limit == DEG2RADF(180.0f)) {
-		limit = FLT_MAX;
+	if (limit < DEG2RADF(180.0f)) {
+		delimit_data.angle = limit;
+		delimit_data.angle__cos = cosf(limit);
+		delimit_data.do_angle = true;
+	}
+	else {
+		delimit_data.do_angle = false;
+	}
+
+	if (BMO_slot_bool_get(op->slots_in, "cmp_uvs") &&
+	    bm_edge_delimit_cdata(&bm->ldata, CD_MLOOPUV, &delimit_data.cdata[delimit_data.cdata_len]))
+	{
+		delimit_data.cdata_len += 1;
+	}
+
+	delimit_data.cdata[delimit_data.cdata_len].cd_offset = -1;
+	if (BMO_slot_bool_get(op->slots_in, "cmp_vcols") &&
+	    bm_edge_delimit_cdata(&bm->ldata, CD_MLOOPCOL, &delimit_data.cdata[delimit_data.cdata_len]))
+	{
+		delimit_data.cdata_len += 1;
 	}
 
 	/* flag all edges of all input face */
@@ -227,10 +306,13 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMFace *f_a, *f_b;
 		if (BM_edge_face_pair(e, &f_a, &f_b) &&
-		    (BMO_elem_flag_test(bm, f_a, FACE_INPUT) && BMO_elem_flag_test(bm, f_b, FACE_INPUT)))
+		    (BMO_elem_flag_test(bm, f_a, FACE_INPUT) &&
+		     BMO_elem_flag_test(bm, f_b, FACE_INPUT)))
 		{
-			BMO_elem_flag_enable(bm, e, EDGE_MARK);
-			totedge_tag++;
+			if (!bm_edge_is_delimit(e, &delimit_data)) {
+				BMO_elem_flag_enable(bm, e, EDGE_MARK);
+				totedge_tag++;
+			}
 		}
 	}
 
@@ -243,36 +325,19 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		BMVert *v1, *v2, *v3, *v4;
-		BMFace *f_a, *f_b;
-		float measure;
+		const BMVert *verts[4];
+		float error;
 
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		f_a = e->l->f;
-		f_b = e->l->radial_next->f;
+		bm_edge_to_quad_verts(e, verts);
 
-		if (do_sharp && !BM_elem_flag_test(e, BM_ELEM_SMOOTH))
-			continue;
+		error = quad_calc_error(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co);
 
-		if (do_mat && f_a->mat_nr != f_b->mat_nr)
-			continue;
-
-		if ((do_uv || do_tf || do_vcol) && (bm_edge_faces_cmp(bm, e, do_uv, do_tf, do_vcol) == false))
-			continue;
-
-		v1 = e->l->v;
-		v2 = e->l->prev->v;
-		v3 = e->l->next->v;
-		v4 = e->l->radial_next->prev->v;
-
-		measure = measure_facepair(v1->co, v2->co, v3->co, v4->co, limit);
-		if (measure < limit) {
-			jedges[i].data = e;
-			jedges[i].sort_value = measure;
-			i++;
-		}
+		jedges[i].data = e;
+		jedges[i].sort_value = error;
+		i++;
 	}
 
 	totedge = i;

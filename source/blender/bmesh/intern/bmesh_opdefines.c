@@ -493,6 +493,7 @@ static BMOpDefine bmo_join_triangles_def = {
 	"join_triangles",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input geometry. */
+	 {"cmp_seam", BMO_OP_SLOT_BOOL},
 	 {"cmp_sharp", BMO_OP_SLOT_BOOL},
 	 {"cmp_uvs", BMO_OP_SLOT_BOOL},
 	 {"cmp_vcols", BMO_OP_SLOT_BOOL},

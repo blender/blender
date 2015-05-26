@@ -3759,7 +3759,7 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	int dosharp, douvs, dovcols, domaterials;
+	bool do_seam, do_sharp, do_uvs, do_vcols, do_materials;
 	float limit;
 	PropertyRNA *prop;
 
@@ -3775,16 +3775,17 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 		limit = RNA_property_float_get(op->ptr, prop);
 	}
 
-	dosharp = RNA_boolean_get(op->ptr, "sharp");
-	douvs = RNA_boolean_get(op->ptr, "uvs");
-	dovcols = RNA_boolean_get(op->ptr, "vcols");
-	domaterials = RNA_boolean_get(op->ptr, "materials");
+	do_seam = RNA_boolean_get(op->ptr, "seam");
+	do_sharp = RNA_boolean_get(op->ptr, "sharp");
+	do_uvs = RNA_boolean_get(op->ptr, "uvs");
+	do_vcols = RNA_boolean_get(op->ptr, "vcols");
+	do_materials = RNA_boolean_get(op->ptr, "materials");
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op,
 	        "faces.out", true,
-	        "join_triangles faces=%hf limit=%f cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
-	        BM_ELEM_SELECT, limit, dosharp, douvs, dovcols, domaterials))
+	        "join_triangles faces=%hf limit=%f cmp_seam=%b cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
+	        BM_ELEM_SELECT, limit, do_seam, do_sharp, do_uvs, do_vcols, do_materials))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3804,6 +3805,7 @@ static void join_triangle_props(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
 	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
+	RNA_def_boolean(ot->srna, "seam", 0, "Compare Seam", "");
 	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
 	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
 }
