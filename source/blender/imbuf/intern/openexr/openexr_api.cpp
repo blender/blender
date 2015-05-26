@@ -829,7 +829,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *passname
 }
 
 /* used for output files (from RenderResult) (single and multilayer, single and multiview) */
-int IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress, struct StampData *stamp)
+int IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress, const StampData *stamp)
 {
 	ExrHandle *data = (ExrHandle *)handle;
 	Header header(width, height);

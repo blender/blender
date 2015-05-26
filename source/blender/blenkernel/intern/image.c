@@ -2099,7 +2099,7 @@ void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
 	if (stamp_data->rendertime[0]) IMB_metadata_change_field(ibuf, "RenderTime", stamp_data->rendertime);
 }
 
-void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback)
+void BKE_stamp_info_callback(void *data, const struct StampData *stamp_data, StampCallback callback)
 {
 	if (!callback || !stamp_data) return;
 

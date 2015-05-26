@@ -38,7 +38,7 @@ void    IMB_exr_add_channel         (void * /*handle*/, const char * /*layname*/
                                      int /*xstride*/, int /*ystride*/, float * /*rect*/) { }
 
 int     IMB_exr_begin_read          (void * /*handle*/, const char * /*filename*/, int * /*width*/, int * /*height*/) { return 0;}
-int     IMB_exr_begin_write         (void * /*handle*/, const char * /*filename*/, int /*width*/, int /*height*/, int /*compress*/) { return 0;}
+int     IMB_exr_begin_write         (void * /*handle*/, const char * /*filename*/, int /*width*/, int /*height*/, int /*compress*/, const struct StampData * /*stamp*/) { return 0;}
 void    IMB_exrtile_begin_write     (void * /*handle*/, const char * /*filename*/, int /*mipmap*/, int /*width*/, int /*height*/, int /*tilex*/, int /*tiley*/) { }
 
 void    IMB_exr_set_channel         (void * /*handle*/, const char * /*layname*/, const char * /*passname*/, int /*xstride*/, int /*ystride*/, float * /*rect*/) { }

@@ -64,7 +64,7 @@ typedef void (StampCallback)(void *data, const char *propname, const char *propv
 
 void    BKE_render_result_stamp_info(struct Scene *scene, struct Object *camera, struct RenderResult *rr);
 void    BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
-void    BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback);
+void    BKE_stamp_info_callback(void *data, const struct StampData *stamp_data, StampCallback callback);
 void    BKE_image_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
 bool    BKE_imbuf_alpha_test(struct ImBuf *ibuf);
 int     BKE_imbuf_write_stamp(struct Scene *scene, struct RenderResult *rr, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
