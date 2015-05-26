@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef  _KERNEL_SPLIT_H_
-#define  _KERNEL_SPLIT_H_
+#ifndef  __KERNEL_SPLIT_H__
+#define  __KERNEL_SPLIT_H__
 
 #include "kernel_compat_opencl.h"
 #include "kernel_math.h"
@@ -59,4 +59,4 @@
 #include "kernel_queues.h"
 #include "kernel_work_stealing.h"
 
-#endif
+#endif  /* __KERNEL_SPLIT_H__ */

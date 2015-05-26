@@ -81,14 +81,16 @@ ccl_device char kernel_next_iteration_setup(
 {
 	char enqueue_flag = 0;
 
-	/* Load kernel globals structure and ShaderData structure */
+	/* Load kernel globals structure and ShaderData structure. */
 	KernelGlobals *kg = (KernelGlobals *)globals;
 	ShaderData *sd = (ShaderData *)shader_data;
 	PathRadiance *L = 0x0;
 	ccl_global PathState *state = 0x0;
 
-	/* Path radiance update for AO/Direct_lighting's shadow blocked */
-	if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL) || IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO)) {
+	/* Path radiance update for AO/Direct_lighting's shadow blocked. */
+	if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL) ||
+	   IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO))
+	 {
 		state = &PathState_coop[ray_index];
 		L = &PathRadiance_coop[ray_index];
 		float3 _throughput = throughput_coop[ray_index];
@@ -97,7 +99,12 @@ ccl_device char kernel_next_iteration_setup(
 			float3 shadow = LightRay_ao_coop[ray_index].P;
 			char update_path_radiance = LightRay_ao_coop[ray_index].t;
 			if(update_path_radiance) {
-				path_radiance_accum_ao(L, _throughput, AOAlpha_coop[ray_index], AOBSDF_coop[ray_index], shadow, state->bounce);
+				path_radiance_accum_ao(L,
+				                       _throughput,
+				                       AOAlpha_coop[ray_index],
+				                       AOBSDF_coop[ray_index],
+				                       shadow,
+				                       state->bounce);
 			}
 			REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO);
 		}
@@ -107,7 +114,13 @@ ccl_device char kernel_next_iteration_setup(
 			char update_path_radiance = LightRay_dl_coop[ray_index].t;
 			if(update_path_radiance) {
 				BsdfEval L_light = BSDFEval_coop[ray_index];
-				path_radiance_accum_light(L, _throughput, &L_light, shadow, 1.0f, state->bounce, ISLamp_coop[ray_index]);
+				path_radiance_accum_light(L,
+				                          _throughput,
+				                          &L_light,
+				                          shadow,
+				                          1.0f,
+				                          state->bounce,
+				                          ISLamp_coop[ray_index]);
 			}
 			REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL);
 		}

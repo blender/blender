@@ -48,8 +48,10 @@ ccl_device void kernel_sum_all_radiance(
 
 		for(sample_iterator = 0; sample_iterator < parallel_samples; sample_iterator++) {
 			for(pass_stride_iterator = 0; pass_stride_iterator < num_floats; pass_stride_iterator++) {
-				*(buffer + pass_stride_iterator) = (start_sample == 0 && sample_iterator == 0) ? *(per_sample_output_buffer + pass_stride_iterator)
-				: *(buffer + pass_stride_iterator) + *(per_sample_output_buffer + pass_stride_iterator);
+				*(buffer + pass_stride_iterator) =
+				        (start_sample == 0 && sample_iterator == 0)
+				                ? *(per_sample_output_buffer + pass_stride_iterator)
+				                : *(buffer + pass_stride_iterator) + *(per_sample_output_buffer + pass_stride_iterator);
 			}
 			per_sample_output_buffer += sample_stride;
 		}

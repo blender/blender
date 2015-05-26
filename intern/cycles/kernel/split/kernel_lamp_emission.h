@@ -56,7 +56,9 @@ ccl_device void kernel_lamp_emission(
         int parallel_samples,                  /* Number of samples to be processed in parallel */
         int ray_index)
 {
-	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE) || IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
+	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE) ||
+	   IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND))
+	{
 		KernelGlobals *kg = (KernelGlobals *)globals;
 		ShaderData *sd = (ShaderData *)shader_data;
 		PathRadiance *L = &PathRadiance_coop[ray_index];
@@ -84,7 +86,8 @@ ccl_device void kernel_lamp_emission(
 				path_radiance_accum_emission(L, throughput, emission, state.bounce);
 			}
 		}
-#endif
+#endif  /* __LAMP_MIS__ */
+
 		/* __VOLUME__ feature is disabled */
 #if 0
 #ifdef __VOLUME__
@@ -149,7 +152,7 @@ ccl_device void kernel_lamp_emission(
 				}
 			}
 			else
-#endif
+#endif  /* __VOLUME_DECOUPLED__ */
 			{
 				/* integrate along volume segment with distance sampling */
 				ShaderData volume_sd;
@@ -167,10 +170,10 @@ ccl_device void kernel_lamp_emission(
 					else
 						break;
 				}
-#endif
+#endif  /* __VOLUME_SCATTER__ */
 			}
 		}
-#endif
+#endif  /* __VOLUME__ */
 #endif
 	}
 }

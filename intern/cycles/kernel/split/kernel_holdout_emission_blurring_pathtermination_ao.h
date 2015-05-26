@@ -121,21 +121,30 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 #ifdef __WORK_STEALING__
 		my_work = work_array[ray_index];
 		sample = get_my_sample(my_work, sw, sh, parallel_samples, ray_index) + start_sample;
-		get_pixel_tile_position(&pixel_x, &pixel_y, &tile_x, &tile_y, my_work, sw, sh, sx, sy, parallel_samples, ray_index);
+		get_pixel_tile_position(&pixel_x, &pixel_y,
+		                        &tile_x, &tile_y,
+		                        my_work,
+		                        sw, sh, sx, sy,
+		                        parallel_samples,
+		                        ray_index);
 		my_sample_tile = 0;
-#else // __WORK_STEALING__
+#else  /* __WORK_STEALING__ */
 		sample = work_array[ray_index];
-		/* buffer's stride is "stride"; Find x and y using ray_index */
+		/* Buffer's stride is "stride"; Find x and y using ray_index. */
 		int tile_index = ray_index / parallel_samples;
 		tile_x = tile_index % sw;
 		tile_y = tile_index / sw;
 		my_sample_tile = ray_index - (tile_index * parallel_samples);
-#endif // __WORK_STEALING__
-		per_sample_output_buffers += (((tile_x + (tile_y * stride)) * parallel_samples) + my_sample_tile) * kernel_data.film.pass_stride;
+#endif  /* __WORK_STEALING__ */
+		per_sample_output_buffers +=
+		    (((tile_x + (tile_y * stride)) * parallel_samples) + my_sample_tile) *
+		    kernel_data.film.pass_stride;
 
 		/* holdout */
 #ifdef __HOLDOUT__
-		if((ccl_fetch(sd, flag) & (SD_HOLDOUT|SD_HOLDOUT_MASK)) && (state->flag & PATH_RAY_CAMERA)) {
+		if((ccl_fetch(sd, flag) & (SD_HOLDOUT|SD_HOLDOUT_MASK)) &&
+		   (state->flag & PATH_RAY_CAMERA))
+		{
 			if(kernel_data.background.transparent) {
 				float3 holdout_weight;
 
@@ -153,20 +162,24 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 				*enqueue_flag = 1;
 			}
 		}
-#endif
+#endif  /* __HOLDOUT__ */
 	}
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-
 		PathRadiance *L = &PathRadiance_coop[ray_index];
-		/* holdout mask objects do not write data passes */
-		kernel_write_data_passes(kg, per_sample_output_buffers, L, sd, sample, state, throughput);
-
-		/* blurring of bsdf after bounces, for rays that have a small likelihood
-		 * of following this particular path (diffuse, rough glossy) */
+		/* Holdout mask objects do not write data passes. */
+		kernel_write_data_passes(kg,
+		                         per_sample_output_buffers,
+		                         L,
+		                         sd,
+		                         sample,
+		                         state,
+		                         throughput);
+		/* Blurring of bsdf after bounces, for rays that have a small likelihood
+		 * of following this particular path (diffuse, rough glossy.
+		 */
 		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
 			float blur_pdf = kernel_data.integrator.filter_glossy*state->min_ray_pdf;
-
 			if(blur_pdf < 1.0f) {
 				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
 				shader_bsdf_blur(kg, sd, blur_roughness);
@@ -176,15 +189,21 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 #ifdef __EMISSION__
 		/* emission */
 		if(ccl_fetch(sd, flag) & SD_EMISSION) {
-			/* todo: is isect.t wrong here for transparent surfaces? */
-			float3 emission = indirect_primitive_emission(kg, sd, Intersection_coop[ray_index].t, state->flag, state->ray_pdf);
+			/* TODO(sergey): is isect.t wrong here for transparent surfaces? */
+			float3 emission = indirect_primitive_emission(
+			        kg,
+			        sd,
+			        Intersection_coop[ray_index].t,
+			        state->flag,
+			        state->ray_pdf);
 			path_radiance_accum_emission(L, throughput, emission, state->bounce);
 		}
-#endif
+#endif  /* __EMISSION__ */
 
-		/* path termination. this is a strange place to put the termination, it's
+		/* Path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
-		 * shader evaluations, only need emission if we are going to terminate */
+		 * shader evaluations, only need emission if we are going to terminate.
+		 */
 		float probability = path_state_terminate_probability(kg, state, throughput);
 
 		if(probability == 0.0f) {
@@ -195,7 +214,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 			if(probability != 1.0f) {
 				float terminate = path_state_rng_1D_for_decision(kg, rng, state, PRNG_TERMINATE);
-
 				if(terminate >= probability) {
 					ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 					*enqueue_flag = 1;
@@ -209,7 +227,9 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 #ifdef __AO__
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion || (ccl_fetch(sd, flag) & SD_AO)) {
+		if(kernel_data.integrator.use_ambient_occlusion ||
+		   (ccl_fetch(sd, flag) & SD_AO))
+		{
 			/* todo: solve correlation */
 			float bsdf_u, bsdf_v;
 			path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
@@ -240,5 +260,5 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 			}
 		}
 	}
-#endif
+#endif  /* __AO__ */
 }

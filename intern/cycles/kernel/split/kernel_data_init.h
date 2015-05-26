@@ -287,9 +287,9 @@ ccl_device void kernel_data_init(
 		work_pool_wgs[group_index] = 0;
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
-#endif // __WORK_STEALING__
+#endif  /* __WORK_STEALING__ */
 
-	/* Initialize queue data and queue index */
+	/* Initialize queue data and queue index. */
 	if(thread_index < queuesize) {
 		/* Initialize active ray queue */
 		Queue_data[QUEUE_ACTIVE_AND_REGENERATED_RAYS * queuesize + thread_index] = QUEUE_EMPTY_SLOT;
@@ -319,7 +319,9 @@ ccl_device void kernel_data_init(
 
 		int ray_index = x + y * (sw * parallel_samples);
 
-		/* This is the first assignment to ray_state; So we dont use ASSIGN_RAY_STATE macro */
+		/* This is the first assignment to ray_state;
+		 * So we dont use ASSIGN_RAY_STATE macro.
+		 */
 		ray_state[ray_index] = RAY_ACTIVE;
 
 		unsigned int my_sample;
@@ -331,58 +333,76 @@ ccl_device void kernel_data_init(
 
 #ifdef __WORK_STEALING__
 		unsigned int my_work = 0;
-		/* get work */
+		/* Get work. */
 		get_next_work(work_pool_wgs, &my_work, sw, sh, num_samples, parallel_samples, ray_index);
-		/* Get the sample associated with the work */
+		/* Get the sample associated with the work. */
 		my_sample = get_my_sample(my_work, sw, sh, parallel_samples, ray_index) + start_sample;
 
 		my_sample_tile = 0;
 
-		/* Get pixel and tile position associated with the work */
-		get_pixel_tile_position(&pixel_x, &pixel_y, &tile_x, &tile_y, my_work, sw, sh, sx, sy, parallel_samples, ray_index);
+		/* Get pixel and tile position associated with the work. */
+		get_pixel_tile_position(&pixel_x, &pixel_y,
+		                        &tile_x, &tile_y,
+		                        my_work,
+		                        sw, sh, sx, sy,
+		                        parallel_samples,
+		                        ray_index);
 		work_array[ray_index] = my_work;
-#else // __WORK_STEALING__
-
+#else  /* __WORK_STEALING__ */
 		unsigned int tile_index = ray_index / parallel_samples;
 		tile_x = tile_index % sw;
 		tile_y = tile_index / sw;
 		my_sample_tile = ray_index - (tile_index * parallel_samples);
 		my_sample = my_sample_tile + start_sample;
 
-		/* Initialize work array */
+		/* Initialize work array. */
 		work_array[ray_index] = my_sample ;
 
-		/* Calculate pixel position of this ray */
+		/* Calculate pixel position of this ray. */
 		pixel_x = sx + tile_x;
 		pixel_y = sy + tile_y;
-#endif // __WORK_STEALING__
+#endif  /* __WORK_STEALING__ */
 
 		rng_state += (rng_state_offset_x + tile_x) + (rng_state_offset_y + tile_y) * rng_state_stride;
 
-		/* Initialise per_sample_output_buffers to all zeros */
+		/* Initialise per_sample_output_buffers to all zeros. */
 		per_sample_output_buffers += (((tile_x + (tile_y * stride)) * parallel_samples) + (my_sample_tile)) * kernel_data.film.pass_stride;
 		int per_sample_output_buffers_iterator = 0;
-		for(per_sample_output_buffers_iterator = 0; per_sample_output_buffers_iterator < kernel_data.film.pass_stride; per_sample_output_buffers_iterator++) {
+		for(per_sample_output_buffers_iterator = 0;
+		    per_sample_output_buffers_iterator < kernel_data.film.pass_stride;
+		    per_sample_output_buffers_iterator++)
+		{
 			per_sample_output_buffers[per_sample_output_buffers_iterator] = 0.0f;
 		}
 
-		/* initialize random numbers and ray */
-		kernel_path_trace_setup(kg, rng_state, my_sample, pixel_x, pixel_y, &rng_coop[ray_index], &Ray_coop[ray_index]);
+		/* Initialize random numbers and ray. */
+		kernel_path_trace_setup(kg,
+		                        rng_state,
+		                        my_sample,
+		                        pixel_x, pixel_y,
+		                        &rng_coop[ray_index],
+		                        &Ray_coop[ray_index]);
 
 		if(Ray_coop[ray_index].t != 0.0f) {
-			/* Initialize throuput, L_transparent, Ray, PathState; These rays proceed with path-iteration*/
+			/* Initialize throuput, L_transparent, Ray, PathState;
+			 * These rays proceed with path-iteration.
+			 */
 			throughput_coop[ray_index] = make_float3(1.0f, 1.0f, 1.0f);
 			L_transparent_coop[ray_index] = 0.0f;
 			path_radiance_init(&PathRadiance_coop[ray_index], kernel_data.film.use_light_pass);
-			path_state_init(kg, &PathState_coop[ray_index], &rng_coop[ray_index], my_sample, &Ray_coop[ray_index]);
+			path_state_init(kg,
+			                &PathState_coop[ray_index],
+			                &rng_coop[ray_index],
+			                my_sample,
+			                &Ray_coop[ray_index]);
 #ifdef __KERNEL_DEBUG__
 			debug_data_init(&debugdata_coop[ray_index]);
 #endif
 		} else {
-			/*These rays do not participate in path-iteration */
+			/* These rays do not participate in path-iteration. */
 
 			float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			/* accumulate result in output buffer */
+			/* Accumulate result in output buffer. */
 			kernel_write_pass_float4(per_sample_output_buffers, my_sample, L_rad);
 			path_rng_end(kg, rng_state, rng_coop[ray_index]);
 
@@ -390,7 +410,7 @@ ccl_device void kernel_data_init(
 		}
 	}
 
-	/* Mark rest of the ray-state indices as RAY_INACTIVE */
+	/* Mark rest of the ray-state indices as RAY_INACTIVE. */
 	if(thread_index < (get_global_size(0) * get_global_size(1)) - (sh * (sw * parallel_samples))) {
 		/* First assignment, hence we dont use ASSIGN_RAY_STATE macro */
 		ray_state[((sw * parallel_samples) * sh) + thread_index] = RAY_INACTIVE;

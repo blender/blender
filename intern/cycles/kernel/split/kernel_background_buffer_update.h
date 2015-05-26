@@ -130,18 +130,24 @@ ccl_device char kernel_background_buffer_update(
 #ifdef __WORK_STEALING__
 	my_work = work_array[ray_index];
 	sample = get_my_sample(my_work, sw, sh, parallel_samples, ray_index) + start_sample;
-	get_pixel_tile_position(&pixel_x, &pixel_y, &tile_x, &tile_y, my_work, sw, sh, sx, sy, parallel_samples, ray_index);
+	get_pixel_tile_position(&pixel_x, &pixel_y,
+	                        &tile_x, &tile_y,
+	                        my_work,
+	                        sw, sh, sx, sy,
+	                        parallel_samples,
+	                        ray_index);
 	my_sample_tile = 0;
 	initial_per_sample_output_buffers = per_sample_output_buffers;
 	initial_rng = rng_state;
-#else // __WORK_STEALING__
+#else  /* __WORK_STEALING__ */
 	sample = work_array[ray_index];
 	int tile_index = ray_index / parallel_samples;
 	/* buffer and rng_state's stride is "stride". Find x and y using ray_index */
 	tile_x = tile_index % sw;
 	tile_y = tile_index / sw;
 	my_sample_tile = ray_index - (tile_index * parallel_samples);
-#endif
+#endif  /* __WORK_STEALING__ */
+
 	rng_state += (rng_state_offset_x + tile_x) + (rng_state_offset_y + tile_y) * rng_state_stride;
 	per_sample_output_buffers += (((tile_x + (tile_y * stride)) * parallel_samples) + my_sample_tile) * kernel_data.film.pass_stride;
 
@@ -189,11 +195,12 @@ ccl_device char kernel_background_buffer_update(
 			/* If work is invalid, this means no more work is available and the thread may exit */
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_INACTIVE);
 		}
-#else
+#else  /* __WORK_STEALING__ */
 		if((sample + parallel_samples) >= end_sample) {
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_INACTIVE);
 		}
-#endif
+#endif  /* __WORK_STEALING__ */
+
 		if(IS_STATE(ray_state, ray_index, RAY_TO_REGENERATE)) {
 #ifdef __WORK_STEALING__
 			work_array[ray_index] = my_work;
@@ -208,20 +215,22 @@ ccl_device char kernel_background_buffer_update(
 			/* Remap per_sample_output_buffers according to the current work */
 			per_sample_output_buffers = initial_per_sample_output_buffers
 				+ (((tile_x + (tile_y * stride)) * parallel_samples) + my_sample_tile) * kernel_data.film.pass_stride;
-#else
+#else  /* __WORK_STEALING__ */
 			work_array[ray_index] = sample + parallel_samples;
 			sample = work_array[ray_index];
 
 			/* Get ray position from ray index */
 			pixel_x = sx + ((ray_index / parallel_samples) % sw);
 			pixel_y = sy + ((ray_index / parallel_samples) / sw);
-#endif
+#endif  /* __WORK_STEALING__ */
 
-			/* initialize random numbers and ray */
+			/* Initialize random numbers and ray. */
 			kernel_path_trace_setup(kg, rng_state, sample, pixel_x, pixel_y, rng, ray);
 
 			if(ray->t != 0.0f) {
-				/* Initialize throughput, L_transparent, Ray, PathState; These rays proceed with path-iteration*/
+				/* Initialize throughput, L_transparent, Ray, PathState;
+				 * These rays proceed with path-iteration.
+				 */
 				*throughput = make_float3(1.0f, 1.0f, 1.0f);
 				*L_transparent = 0.0f;
 				path_radiance_init(L, kernel_data.film.use_light_pass);
@@ -232,9 +241,9 @@ ccl_device char kernel_background_buffer_update(
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
 				enqueue_flag = 1;
 			} else {
-				/*These rays do not participate in path-iteration */
+				/* These rays do not participate in path-iteration. */
 				float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-				/* accumulate result in output buffer */
+				/* Accumulate result in output buffer. */
 				kernel_write_pass_float4(per_sample_output_buffers, sample, L_rad);
 				path_rng_end(kg, rng_state, *rng);
 

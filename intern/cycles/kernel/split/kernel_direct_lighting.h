@@ -63,7 +63,7 @@ ccl_device char kernel_direct_lighting(
 {
 	char enqueue_flag = 0;
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-		/* Load kernel globals structure and ShaderData structure */
+		/* Load kernel globals structure and ShaderData structure. */
 		KernelGlobals *kg = (KernelGlobals *)globals;
 		ShaderData *sd = (ShaderData *)shader_data;
 		ShaderData *sd_DL  = (ShaderData *)shader_DL;
@@ -72,15 +72,22 @@ ccl_device char kernel_direct_lighting(
 
 		/* direct lighting */
 #ifdef __EMISSION__
-		if((kernel_data.integrator.use_direct_light && (ccl_fetch(sd, flag) & SD_BSDF_HAS_EVAL))) {
-			/* sample illumination from lights to find path contribution */
+		if((kernel_data.integrator.use_direct_light &&
+		    (ccl_fetch(sd, flag) & SD_BSDF_HAS_EVAL)))
+		{
+			/* Sample illumination from lights to find path contribution. */
 			ccl_global RNG* rng = &rng_coop[ray_index];
 			float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
 			float light_u, light_v;
 			path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 			LightSample ls;
-			light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
+			light_sample(kg,
+			             light_t, light_u, light_v,
+			             ccl_fetch(sd, time),
+			             ccl_fetch(sd, P),
+			             state->bounce,
+			             &ls);
 
 			Ray light_ray;
 #ifdef __OBJECT_MOTION__
@@ -89,17 +96,21 @@ ccl_device char kernel_direct_lighting(
 
 			BsdfEval L_light;
 			bool is_lamp;
-			if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce, sd_DL)) {
-				/* write intermediate data to global memory to access from the next kernel */
+			if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp,
+			                   state->bounce, state->transparent_bounce, sd_DL))
+			{
+				/* Write intermediate data to global memory to access from
+				 * the next kernel.
+				 */
 				LightRay_coop[ray_index] = light_ray;
 				BSDFEval_coop[ray_index] = L_light;
 				ISLamp_coop[ray_index] = is_lamp;
-				/// mark ray state for next shadow kernel
+				/* Mark ray state for next shadow kernel. */
 				ADD_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL);
 				enqueue_flag = 1;
 			}
 		}
-#endif
+#endif  /* __EMISSION__ */
 	}
 	return enqueue_flag;
 }
