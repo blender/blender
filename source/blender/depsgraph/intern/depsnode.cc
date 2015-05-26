@@ -118,7 +118,7 @@ void TimeSourceDepsNode::tag_update(Depsgraph *graph)
 
 /* Root Node ============================================== */
 
-RootDepsNode::RootDepsNode() : time_source(NULL)
+RootDepsNode::RootDepsNode() : time_source(NULL), scene(NULL)
 {
 }
 
