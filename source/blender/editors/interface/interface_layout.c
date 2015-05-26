@@ -2148,7 +2148,7 @@ static RadialDirection ui_get_radialbut_vec(float vec[2], short itemnum)
 {
 	RadialDirection dir;
 
-	if (itemnum < 8) {
+	if (itemnum >= 8) {
 		itemnum %= 8;
 		printf("Warning: Pie menus with more than 8 items are currently unsupported\n");
 	}
