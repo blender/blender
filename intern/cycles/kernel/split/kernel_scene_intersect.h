@@ -16,8 +16,7 @@
 
 #include "kernel_split_common.h"
 
-/*
- * Note on kernel_scene_intersect kernel.
+/* Note on kernel_scene_intersect kernel.
  * This is the second kernel in the ray tracing logic. This is the first
  * of the path iteration kernels. This kernel takes care of scene_intersect function.
  *
@@ -63,51 +62,23 @@
  * QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS - no change
  */
 
-__kernel void kernel_scene_intersect(
-	ccl_global char *globals,
-	ccl_constant KernelData *data,
-	ccl_global uint *rng_coop,
-	ccl_global Ray *Ray_coop,                   /* Required for scene_intersect */
-	ccl_global PathState *PathState_coop,       /* Required for scene_intersect */
-	Intersection *Intersection_coop,            /* Required for scene_intersect */
-	ccl_global char *ray_state,                 /* Denotes the state of each ray */
-	int sw, int sh,
-	ccl_global int *Queue_data,                 /* Memory for queues */
-	ccl_global int *Queue_index,                /* Tracks the number of elements in queues */
-	int queuesize,                              /* Size (capacity) of queues */
-	ccl_global char *use_queues_flag,           /* used to decide if this kernel should use queues to fetch ray index */
+ccl_device void kernel_scene_intersect(
+        ccl_global char *globals,
+        ccl_constant KernelData *data,
+        ccl_global uint *rng_coop,
+        ccl_global Ray *Ray_coop,              /* Required for scene_intersect */
+        ccl_global PathState *PathState_coop,  /* Required for scene_intersect */
+        Intersection *Intersection_coop,       /* Required for scene_intersect */
+        ccl_global char *ray_state,            /* Denotes the state of each ray */
+        int sw, int sh,
+        ccl_global char *use_queues_flag,      /* used to decide if this kernel should use
+                                                * queues to fetch ray index */
 #ifdef __KERNEL_DEBUG__
-	DebugData *debugdata_coop,
+        DebugData *debugdata_coop,
 #endif
-	int parallel_samples                        /* Number of samples to be processed in parallel */
-	)
+        int parallel_samples,                  /* Number of samples to be processed in parallel */
+        int ray_index)
 {
-	int x = get_global_id(0);
-	int y = get_global_id(1);
-
-	/* Fetch use_queues_flag */
-	ccl_local char local_use_queues_flag;
-	if(get_local_id(0) == 0 && get_local_id(1) == 0) {
-		local_use_queues_flag = use_queues_flag[0];
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-
-	int ray_index;
-	if(local_use_queues_flag) {
-		int thread_index = get_global_id(1) * get_global_size(0) + get_global_id(0);
-		ray_index = get_ray_index(thread_index, QUEUE_ACTIVE_AND_REGENERATED_RAYS, Queue_data, queuesize, 0);
-
-		if(ray_index == QUEUE_EMPTY_SLOT) {
-			return;
-		}
-	} else {
-		if(x < (sw * parallel_samples) && y < sh){
-			ray_index = x + y * (sw * parallel_samples);
-		} else {
-			return;
-		}
-	}
-
 	/* All regenerated rays become active here */
 	if(IS_STATE(ray_state, ray_index, RAY_REGENERATED))
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_ACTIVE);

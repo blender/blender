@@ -16,8 +16,7 @@
 
 #include "kernel_split_common.h"
 
-/*
- * Note on kernel_setup_next_iteration kernel.
+/* Note on kernel_setup_next_iteration kernel.
  * This is the tenth kernel in the ray tracing logic. This is the ninth
  * of the path iteration kernels. This kernel takes care of setting up
  * Ray for the next iteration of path-iteration and accumulating radiance
@@ -60,117 +59,74 @@
  * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE, RAY_REGENERATED and more RAY_UPDATE_BUFFER rays.
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE and more RAY_UPDATE_BUFFER rays
  */
-
-__kernel void kernel_next_iteration_setup(
-	ccl_global char *globals,
-	ccl_constant KernelData *data,
-	ccl_global char *shader_data,               /* Required for setting up ray for next iteration */
-	ccl_global uint *rng_coop,                  /* Required for setting up ray for next iteration */
-	ccl_global float3 *throughput_coop,         /* Required for setting up ray for next iteration */
-	PathRadiance *PathRadiance_coop, /* Required for setting up ray for next iteration */
-	ccl_global Ray *Ray_coop,                   /* Required for setting up ray for next iteration */
-	ccl_global PathState *PathState_coop,       /* Required for setting up ray for next iteration */
-	ccl_global Ray *LightRay_dl_coop,           /* Required for radiance update - direct lighting */
-	ccl_global int *ISLamp_coop,                /* Required for radiance update - direct lighting */
-	ccl_global BsdfEval *BSDFEval_coop,         /* Required for radiance update - direct lighting */
-	ccl_global Ray *LightRay_ao_coop,           /* Required for radiance update - AO */
-	ccl_global float3 *AOBSDF_coop,             /* Required for radiance update - AO */
-	ccl_global float3 *AOAlpha_coop,            /* Required for radiance update - AO */
-	ccl_global char *ray_state,                 /* Denotes the state of each ray */
-	ccl_global int *Queue_data,                 /* Queue memory */
-	ccl_global int *Queue_index,                /* Tracks the number of elements in each queue */
-	int queuesize,                              /* Size (capacity) of each queue */
-	ccl_global char *use_queues_flag            /* flag to decide if scene_intersect kernel should use queues to fetch ray index */
-	)
+ccl_device char kernel_next_iteration_setup(
+        ccl_global char *globals,
+        ccl_constant KernelData *data,
+        ccl_global char *shader_data,         /* Required for setting up ray for next iteration */
+        ccl_global uint *rng_coop,            /* Required for setting up ray for next iteration */
+        ccl_global float3 *throughput_coop,   /* Required for setting up ray for next iteration */
+        PathRadiance *PathRadiance_coop,      /* Required for setting up ray for next iteration */
+        ccl_global Ray *Ray_coop,             /* Required for setting up ray for next iteration */
+        ccl_global PathState *PathState_coop, /* Required for setting up ray for next iteration */
+        ccl_global Ray *LightRay_dl_coop,     /* Required for radiance update - direct lighting */
+        ccl_global int *ISLamp_coop,          /* Required for radiance update - direct lighting */
+        ccl_global BsdfEval *BSDFEval_coop,   /* Required for radiance update - direct lighting */
+        ccl_global Ray *LightRay_ao_coop,     /* Required for radiance update - AO */
+        ccl_global float3 *AOBSDF_coop,       /* Required for radiance update - AO */
+        ccl_global float3 *AOAlpha_coop,      /* Required for radiance update - AO */
+        ccl_global char *ray_state,           /* Denotes the state of each ray */
+        ccl_global char *use_queues_flag,     /* flag to decide if scene_intersect kernel should
+                                               * use queues to fetch ray index */
+        int ray_index)
 {
-
-	ccl_local unsigned int local_queue_atomics;
-	if(get_local_id(0) == 0 && get_local_id(1) == 0) {
-		local_queue_atomics = 0;
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-
-	if(get_global_id(0) == 0 && get_global_id(1) == 0) {
-		/* If we are here, then it means that scene-intersect kernel
-		* has already been executed atleast once. From the next time,
-		* scene-intersect kernel may operate on queues to fetch ray index
-		*/
-		use_queues_flag[0] = 1;
-
-		/* Mark queue indices of QUEUE_SHADOW_RAY_CAST_AO_RAYS and QUEUE_SHADOW_RAY_CAST_DL_RAYS
-		 * queues that were made empty during the previous kernel
-		 */
-		Queue_index[QUEUE_SHADOW_RAY_CAST_AO_RAYS] = 0;
-		Queue_index[QUEUE_SHADOW_RAY_CAST_DL_RAYS] = 0;
-	}
-
 	char enqueue_flag = 0;
-	int ray_index = get_global_id(1) * get_global_size(0) + get_global_id(0);
-	ray_index = get_ray_index(ray_index, QUEUE_ACTIVE_AND_REGENERATED_RAYS, Queue_data, queuesize, 0);
 
-#ifdef __COMPUTE_DEVICE_GPU__
-	/* If we are executing on a GPU device, we exit all threads that are not required
-	 * If we are executing on a CPU device, then we need to keep all threads active
-	 * since we have barrier() calls later in the kernel. CPU devices,
-	 * expect all threads to execute barrier statement.
-	 */
-	if(ray_index == QUEUE_EMPTY_SLOT)
-		return;
-#endif
+	/* Load kernel globals structure and ShaderData structure */
+	KernelGlobals *kg = (KernelGlobals *)globals;
+	ShaderData *sd = (ShaderData *)shader_data;
+	PathRadiance *L = 0x0;
+	ccl_global PathState *state = 0x0;
 
-#ifndef __COMPUTE_DEVICE_GPU__
-	if(ray_index != QUEUE_EMPTY_SLOT) {
-#endif
-		/* Load kernel globals structure and ShaderData structure */
-		KernelGlobals *kg = (KernelGlobals *)globals;
-		ShaderData *sd = (ShaderData *)shader_data;
-		PathRadiance *L = 0x0;
-		ccl_global PathState *state = 0x0;
+	/* Path radiance update for AO/Direct_lighting's shadow blocked */
+	if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL) || IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO)) {
+		state = &PathState_coop[ray_index];
+		L = &PathRadiance_coop[ray_index];
+		float3 _throughput = throughput_coop[ray_index];
 
-		/* Path radiance update for AO/Direct_lighting's shadow blocked */
-		if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL) || IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO)) {
-			state = &PathState_coop[ray_index];
-			L = &PathRadiance_coop[ray_index];
-			float3 _throughput = throughput_coop[ray_index];
-
-			if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO)) {
-				float3 shadow = LightRay_ao_coop[ray_index].P;
-				char update_path_radiance = LightRay_ao_coop[ray_index].t;
-				if(update_path_radiance) {
-					path_radiance_accum_ao(L, _throughput, AOAlpha_coop[ray_index], AOBSDF_coop[ray_index], shadow, state->bounce);
-				}
-				REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO);
+		if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO)) {
+			float3 shadow = LightRay_ao_coop[ray_index].P;
+			char update_path_radiance = LightRay_ao_coop[ray_index].t;
+			if(update_path_radiance) {
+				path_radiance_accum_ao(L, _throughput, AOAlpha_coop[ray_index], AOBSDF_coop[ray_index], shadow, state->bounce);
 			}
-
-			if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL)) {
-				float3 shadow = LightRay_dl_coop[ray_index].P;
-				char update_path_radiance = LightRay_dl_coop[ray_index].t;
-				if(update_path_radiance) {
-					BsdfEval L_light = BSDFEval_coop[ray_index];
-					path_radiance_accum_light(L, _throughput, &L_light, shadow, 1.0f, state->bounce, ISLamp_coop[ray_index]);
-				}
-				REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL);
-			}
+			REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO);
 		}
 
-		if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-
-			ccl_global float3 *throughput = &throughput_coop[ray_index];
-			ccl_global Ray *ray = &Ray_coop[ray_index];
-			ccl_global RNG* rng = &rng_coop[ray_index];
-			state = &PathState_coop[ray_index];
-			L = &PathRadiance_coop[ray_index];
-
-			/* compute direct lighting and next bounce */
-			if(!kernel_path_surface_bounce(kg, rng, sd, throughput, state, L, ray)) {
-				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-				enqueue_flag = 1;
+		if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL)) {
+			float3 shadow = LightRay_dl_coop[ray_index].P;
+			char update_path_radiance = LightRay_dl_coop[ray_index].t;
+			if(update_path_radiance) {
+				BsdfEval L_light = BSDFEval_coop[ray_index];
+				path_radiance_accum_light(L, _throughput, &L_light, shadow, 1.0f, state->bounce, ISLamp_coop[ray_index]);
 			}
+			REMOVE_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL);
 		}
-#ifndef __COMPUTE_DEVICE_GPU__
 	}
-#endif
 
-	/* Enqueue RAY_UPDATE_BUFFER rays */
-	enqueue_ray_index_local(ray_index, QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS, enqueue_flag, queuesize, &local_queue_atomics, Queue_data, Queue_index);
+	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
+
+		ccl_global float3 *throughput = &throughput_coop[ray_index];
+		ccl_global Ray *ray = &Ray_coop[ray_index];
+		ccl_global RNG* rng = &rng_coop[ray_index];
+		state = &PathState_coop[ray_index];
+		L = &PathRadiance_coop[ray_index];
+
+		/* compute direct lighting and next bounce */
+		if(!kernel_path_surface_bounce(kg, rng, sd, throughput, state, L, ray)) {
+			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+			enqueue_flag = 1;
+		}
+	}
+
+	return enqueue_flag;
 }

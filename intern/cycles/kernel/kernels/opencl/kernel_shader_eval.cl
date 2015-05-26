@@ -29,6 +29,34 @@ __kernel void kernel_ocl_path_trace_shader_eval(
         ccl_global int *Queue_index,           /* Tracks the number of elements in each queue */
         int queuesize)                         /* Size (capacity) of each queue */
 {
+	/* Enqeueue RAY_TO_REGENERATE rays into QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue. */
+	ccl_local unsigned int local_queue_atomics;
+	if(get_local_id(0) == 0 && get_local_id(1) == 0) {
+		local_queue_atomics = 0;
+	}
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	int ray_index = get_global_id(1) * get_global_size(0) + get_global_id(0);
+	ray_index = get_ray_index(ray_index,
+	                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+	                          Queue_data,
+	                          queuesize,
+	                          0);
+
+	if(ray_index == QUEUE_EMPTY_SLOT) {
+		return;
+	}
+
+	char enqueue_flag = (IS_STATE(ray_state, ray_index, RAY_TO_REGENERATE)) ? 1 : 0;
+	enqueue_ray_index_local(ray_index,
+	                        QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
+	                        enqueue_flag,
+	                        queuesize,
+	                        &local_queue_atomics,
+	                        Queue_data,
+	                        Queue_index);
+
+	/* Continue on with shader evaluation. */
 	kernel_shader_eval(globals,
 	                   data,
 	                   shader_data,
@@ -37,7 +65,5 @@ __kernel void kernel_ocl_path_trace_shader_eval(
 	                   PathState_coop,
 	                   Intersection_coop,
 	                   ray_state,
-	                   Queue_data,
-	                   Queue_index,
-	                   queuesize);
+	                   ray_index);
 }

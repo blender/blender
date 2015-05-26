@@ -48,34 +48,81 @@ __kernel void kernel_ocl_path_trace_background_buffer_update(
 #endif
         int parallel_samples)                  /* Number of samples to be processed in parallel */
 {
-	kernel_background_buffer_update(globals,
-	                                data,
-	                                shader_data,
-	                                per_sample_output_buffers,
-	                                rng_state,
-	                                rng_coop,
-	                                throughput_coop,
-	                                PathRadiance_coop,
-	                                Ray_coop,
-	                                PathState_coop,
-	                                L_transparent_coop,
-	                                ray_state,
-	                                sw, sh, sx, sy, stride,
-	                                rng_state_offset_x,
-	                                rng_state_offset_y,
-	                                rng_state_stride,
-	                                work_array,
-	                                Queue_data,
-	                                Queue_index,
-	                                queuesize,
-	                                end_sample,
-	                                start_sample,
+	ccl_local unsigned int local_queue_atomics;
+	if(get_local_id(0) == 0 && get_local_id(1) == 0) {
+		local_queue_atomics = 0;
+	}
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	int ray_index = get_global_id(1) * get_global_size(0) + get_global_id(0);
+	if(ray_index == 0) {
+		/* We will empty this queue in this kernel. */
+		Queue_index[QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS] = 0;
+	}
+	char enqueue_flag = 0;
+	ray_index = get_ray_index(ray_index,
+	                          QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
+	                          Queue_data,
+	                          queuesize,
+	                          1);
+
+#ifdef __COMPUTE_DEVICE_GPU__
+	/* If we are executing on a GPU device, we exit all threads that are not
+	 * required.
+	 *
+	 * If we are executing on a CPU device, then we need to keep all threads
+	 * active since we have barrier() calls later in the kernel. CPU devices,
+	 * expect all threads to execute barrier statement.
+	 */
+	if(ray_index == QUEUE_EMPTY_SLOT) {
+		return;
+	}
+#endif
+
+#ifndef __COMPUTE_DEVICE_GPU__
+	if(ray_index != QUEUE_EMPTY_SLOT) {
+#endif
+		enqueue_flag =
+			kernel_background_buffer_update(globals,
+			                                data,
+			                                shader_data,
+			                                per_sample_output_buffers,
+			                                rng_state,
+			                                rng_coop,
+			                                throughput_coop,
+			                                PathRadiance_coop,
+			                                Ray_coop,
+			                                PathState_coop,
+			                                L_transparent_coop,
+			                                ray_state,
+			                                sw, sh, sx, sy, stride,
+			                                rng_state_offset_x,
+			                                rng_state_offset_y,
+			                                rng_state_stride,
+			                                work_array,
+			                                end_sample,
+			                                start_sample,
 #ifdef __WORK_STEALING__
-	                                work_pool_wgs,
-	                                num_samples,
+			                                work_pool_wgs,
+			                                num_samples,
 #endif
 #ifdef __KERNEL_DEBUG__
-	                                debugdata_coop,
+			                                debugdata_coop,
 #endif
-	                                parallel_samples);
+			                                parallel_samples,
+			                                ray_index);
+#ifndef __COMPUTE_DEVICE_GPU__
+	}
+#endif
+
+	/* Enqueue RAY_REGENERATED rays into QUEUE_ACTIVE_AND_REGENERATED_RAYS;
+	 * These rays will be made active during next SceneIntersectkernel.
+	 */
+	enqueue_ray_index_local(ray_index,
+	                        QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+	                        enqueue_flag,
+	                        queuesize,
+	                        &local_queue_atomics,
+	                        Queue_data,
+	                        Queue_index);
 }

@@ -41,27 +41,84 @@ __kernel void kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao
 #endif
         int parallel_samples)                  /* Number of samples to be processed in parallel */
 {
-	kernel_holdout_emission_blurring_pathtermination_ao(globals,
-	                                                    data,
-	                                                    shader_data,
-	                                                    per_sample_output_buffers,
-	                                                    rng_coop,
-	                                                    throughput_coop,
-	                                                    L_transparent_coop,
-	                                                    PathRadiance_coop,
-	                                                    PathState_coop,
-	                                                    Intersection_coop,
-	                                                    AOAlpha_coop,
-	                                                    AOBSDF_coop,
-	                                                    AOLightRay_coop,
-	                                                    sw, sh, sx, sy, stride,
-	                                                    ray_state,
-	                                                    work_array,
-	                                                    Queue_data,
-	                                                    Queue_index,
-	                                                    queuesize,
-#ifdef __WORK_STEALING__
-	                                                    start_sample,
+	ccl_local unsigned int local_queue_atomics_bg;
+	ccl_local unsigned int local_queue_atomics_ao;
+	if(get_local_id(0) == 0 && get_local_id(1) == 0) {
+		local_queue_atomics_bg = 0;
+		local_queue_atomics_ao = 0;
+	}
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	char enqueue_flag = 0;
+	char enqueue_flag_AO_SHADOW_RAY_CAST = 0;
+	int ray_index = get_global_id(1) * get_global_size(0) + get_global_id(0);
+	ray_index = get_ray_index(ray_index,
+	                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+	                          Queue_data,
+	                          queuesize,
+	                          0);
+
+#ifdef __COMPUTE_DEVICE_GPU__
+	/* If we are executing on a GPU device, we exit all threads that are not
+	 * required.
+	 *
+	 * If we are executing on a CPU device, then we need to keep all threads
+	 * active since we have barrier() calls later in the kernel. CPU devices,
+	 * expect all threads to execute barrier statement.
+	 */
+	if(ray_index == QUEUE_EMPTY_SLOT) {
+		return;
+	}
+#endif  /* __COMPUTE_DEVICE_GPU__ */
+
+#ifndef __COMPUTE_DEVICE_GPU__
+	if(ray_index != QUEUE_EMPTY_SLOT) {
 #endif
-	                                                    parallel_samples);
+		kernel_holdout_emission_blurring_pathtermination_ao(
+		        globals,
+		        data,
+		        shader_data,
+		        per_sample_output_buffers,
+		        rng_coop,
+		        throughput_coop,
+		        L_transparent_coop,
+		        PathRadiance_coop,
+		        PathState_coop,
+		        Intersection_coop,
+		        AOAlpha_coop,
+		        AOBSDF_coop,
+		        AOLightRay_coop,
+		        sw, sh, sx, sy, stride,
+		        ray_state,
+		        work_array,
+#ifdef __WORK_STEALING__
+		        start_sample,
+#endif
+		        parallel_samples,
+		        ray_index,
+		        &enqueue_flag,
+		        &enqueue_flag_AO_SHADOW_RAY_CAST);
+#ifndef __COMPUTE_DEVICE_GPU__
+	}
+#endif
+
+	/* Enqueue RAY_UPDATE_BUFFER rays. */
+	enqueue_ray_index_local(ray_index,
+	                        QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
+	                        enqueue_flag,
+	                        queuesize,
+	                        &local_queue_atomics_bg,
+	                        Queue_data,
+	                        Queue_index);
+
+#ifdef __AO__
+	/* Enqueue to-shadow-ray-cast rays. */
+	enqueue_ray_index_local(ray_index,
+	                        QUEUE_SHADOW_RAY_CAST_AO_RAYS,
+	                        enqueue_flag_AO_SHADOW_RAY_CAST,
+	                        queuesize,
+	                        &local_queue_atomics_ao,
+	                        Queue_data,
+	                        Queue_index);
+#endif
 }
