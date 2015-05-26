@@ -182,8 +182,15 @@ void        WM_report_banner_show(const struct bContext *C);
 void        WM_report(const struct bContext *C, ReportType type, const char *message);
 void        WM_reportf(const struct bContext *C, ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(3, 4);
 
-void		wm_event_add(struct wmWindow *win, const struct wmEvent *event_to_add);
-void		wm_event_init_from_window(struct wmWindow *win, struct wmEvent *event);
+void wm_event_add_ex(
+        struct wmWindow *win, const struct wmEvent *event_to_add,
+        const struct wmEvent *event_to_add_after)
+        ATTR_NONNULL(1, 2);
+void wm_event_add(
+        struct wmWindow *win, const struct wmEvent *event_to_add)
+        ATTR_NONNULL(1, 2);
+
+void wm_event_init_from_window(struct wmWindow *win, struct wmEvent *event);
 
 
 			/* at maximum, every timestep seconds it triggers event_type events */
