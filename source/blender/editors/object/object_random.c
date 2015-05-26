@@ -124,12 +124,12 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_vertex_random(struct wmOperatorType *ot)
+void TRANSFORM_OT_vertex_random(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Randomize";
 	ot->description = "Randomize vertices";
-	ot->idname = "OBJECT_OT_vertex_random";
+	ot->idname = "TRANSFORM_OT_vertex_random";
 
 	/* api callbacks */
 	ot->exec = object_rand_verts_exec;

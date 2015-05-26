@@ -275,14 +275,14 @@ static int object_warp_verts_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_vertex_warp(struct wmOperatorType *ot)
+void TRANSFORM_OT_vertex_warp(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name = "Warp";
 	ot->description = "Warp vertices around the cursor";
-	ot->idname = "OBJECT_OT_vertex_warp";
+	ot->idname = "TRANSFORM_OT_vertex_warp";
 
 	/* api callbacks */
 	ot->exec = object_warp_verts_exec;
