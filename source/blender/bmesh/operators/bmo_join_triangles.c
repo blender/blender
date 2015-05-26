@@ -135,10 +135,13 @@ struct DelimitData {
 	unsigned int do_seam : 1;
 	unsigned int do_sharp : 1;
 	unsigned int do_mat : 1;
-	unsigned int do_angle : 1;
+	unsigned int do_angle_face : 1;
+	unsigned int do_angle_shape : 1;
 
-	float angle;
-	float angle__cos;
+	float angle_face;
+	float angle_face__cos;
+
+	float angle_shape;
 
 	struct DelimitData_CD cdata[4];
 	int cdata_len;
@@ -200,15 +203,22 @@ static float bm_edge_is_delimit(
 		goto fail;
 	}
 
-	if (delimit_data->do_angle) {
-		if (dot_v3v3(f_a->no, f_b->no) < delimit_data->angle__cos) {
+	if (delimit_data->do_angle_face) {
+		if (dot_v3v3(f_a->no, f_b->no) < delimit_data->angle_face__cos) {
+			goto fail;
+		}
+	}
+
+	if (delimit_data->do_angle_shape) {
+		const BMVert *verts[4];
+		bm_edge_to_quad_verts(e, verts);
+
+		/* if we're checking the shape at all, a flipped face is out of the question */
+		if (is_quad_flip_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co)) {
 			goto fail;
 		}
 		else {
-			const BMVert *verts[4];
 			float edge_vecs[4][3];
-
-			bm_edge_to_quad_verts(e, verts);
 
 			sub_v3_v3v3(edge_vecs[0], verts[0]->co, verts[1]->co);
 			sub_v3_v3v3(edge_vecs[1], verts[1]->co, verts[2]->co);
@@ -220,10 +230,10 @@ static float bm_edge_is_delimit(
 			normalize_v3(edge_vecs[2]);
 			normalize_v3(edge_vecs[3]);
 
-			if ((fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - (float)M_PI_2) > delimit_data->angle) ||
-			    (fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - (float)M_PI_2) > delimit_data->angle) ||
-			    (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - (float)M_PI_2) > delimit_data->angle) ||
-			    (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - (float)M_PI_2) > delimit_data->angle))
+			if ((fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - (float)M_PI_2) > delimit_data->angle_shape) ||
+			    (fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - (float)M_PI_2) > delimit_data->angle_shape) ||
+			    (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - (float)M_PI_2) > delimit_data->angle_shape) ||
+			    (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - (float)M_PI_2) > delimit_data->angle_shape))
 			{
 				goto fail;
 			}
@@ -255,7 +265,7 @@ fail:
 
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 {
-	float limit;
+	float angle_face, angle_shape;
 
 	BMIter iter;
 	BMOIter siter;
@@ -272,14 +282,23 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	delimit_data.do_sharp = BMO_slot_bool_get(op->slots_in, "cmp_sharp");
 	delimit_data.do_mat = BMO_slot_bool_get(op->slots_in, "cmp_materials");
 
-	limit = BMO_slot_float_get(op->slots_in, "limit");
-	if (limit < DEG2RADF(180.0f)) {
-		delimit_data.angle = limit;
-		delimit_data.angle__cos = cosf(limit);
-		delimit_data.do_angle = true;
+	angle_face = BMO_slot_float_get(op->slots_in, "angle_face_threshold");
+	if (angle_face < DEG2RADF(180.0f)) {
+		delimit_data.angle_face = angle_face;
+		delimit_data.angle_face__cos = cosf(angle_face);
+		delimit_data.do_angle_face = true;
 	}
 	else {
-		delimit_data.do_angle = false;
+		delimit_data.do_angle_face = false;
+	}
+
+	angle_shape = BMO_slot_float_get(op->slots_in, "angle_shape_threshold");
+	if (angle_shape < DEG2RADF(180.0f)) {
+		delimit_data.angle_shape = angle_shape;
+		delimit_data.do_angle_shape = true;
+	}
+	else {
+		delimit_data.do_angle_shape = false;
 	}
 
 	if (BMO_slot_bool_get(op->slots_in, "cmp_uvs") &&

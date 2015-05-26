@@ -3760,19 +3760,29 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	bool do_seam, do_sharp, do_uvs, do_vcols, do_materials;
-	float limit;
+	float angle_face_threshold, angle_shape_threshold;
 	PropertyRNA *prop;
 
 	/* When joining exactly 2 faces, no limit.
 	 * this is useful for one off joins while editing. */
-	prop = RNA_struct_find_property(op->ptr, "limit");
+	prop = RNA_struct_find_property(op->ptr, "face_threshold");
 	if ((em->bm->totfacesel == 2) &&
 	    (RNA_property_is_set(op->ptr, prop) == false))
 	{
-		limit = DEG2RADF(180.0f);
+		angle_face_threshold = DEG2RADF(180.0f);
 	}
 	else {
-		limit = RNA_property_float_get(op->ptr, prop);
+		angle_face_threshold = RNA_property_float_get(op->ptr, prop);
+	}
+
+	prop = RNA_struct_find_property(op->ptr, "shape_threshold");
+	if ((em->bm->totfacesel == 2) &&
+	    (RNA_property_is_set(op->ptr, prop) == false))
+	{
+		angle_shape_threshold = DEG2RADF(180.0f);
+	}
+	else {
+		angle_shape_threshold = RNA_property_float_get(op->ptr, prop);
 	}
 
 	do_seam = RNA_boolean_get(op->ptr, "seam");
@@ -3784,8 +3794,10 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_call_and_selectf(
 	        em, op,
 	        "faces.out", true,
-	        "join_triangles faces=%hf limit=%f cmp_seam=%b cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
-	        BM_ELEM_SELECT, limit, do_seam, do_sharp, do_uvs, do_vcols, do_materials))
+	        "join_triangles faces=%hf angle_face_threshold=%f angle_shape_threshold=%f "
+	        "cmp_seam=%b cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
+	        BM_ELEM_SELECT, angle_face_threshold, angle_shape_threshold,
+	        do_seam, do_sharp, do_uvs, do_vcols, do_materials))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3799,8 +3811,14 @@ static void join_triangle_props(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
+	prop = RNA_def_float_rotation(
+	        ot->srna, "face_threshold", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	        "Max Face Angle", "Face angle limit", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
+
+	prop = RNA_def_float_rotation(
+	        ot->srna, "shape_threshold", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	        "Max Shape Angle", "Shape angle limit", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
 
 	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
