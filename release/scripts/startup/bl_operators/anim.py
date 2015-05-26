@@ -232,7 +232,7 @@ class BakeAction(Operator):
 
         action = None
         if self.use_current_action:
-            obj = bpy.context.object
+            obj = context.object
             if obj.animation_data:
                 action = obj.animation_data.action
 
