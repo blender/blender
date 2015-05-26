@@ -41,7 +41,7 @@
  *
  * Note on Queues :
  * Ideally we would want kernel_scene_intersect to work on queues.
- * But during the very first time, the queues wil be empty and hence we perform a direct mapping
+ * But during the very first time, the queues will be empty and hence we perform a direct mapping
  * between ray-index and thread-index; From the next time onward, the queue will be filled and
  * we may start operating on queues.
  *
