@@ -1525,7 +1525,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		float icon_size, text_size;
 
 		/* This is a bit britle, but avoids adding an 'UI_BUT_HAS_LABEL' flag to but... */
-		if(icon_size_i > BLI_rcti_size_x(rect)) {
+		if (icon_size_i > BLI_rcti_size_x(rect)) {
 			icon_size = 0.8f * (float)icon_size_i;
 			text_size = 0.2f * (float)icon_size_i;
 		}
