@@ -1538,6 +1538,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
 	ot->description = "Separate selected points from connected unselected points into a new object";
 	
 	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
 	ot->exec = separate_exec;
 	ot->poll = ED_operator_editsurfcurve;
 	

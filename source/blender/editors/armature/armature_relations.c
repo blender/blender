@@ -660,6 +660,7 @@ void ARMATURE_OT_separate(wmOperatorType *ot)
 	ot->description = "Isolate selected bones into a separate armature";
 	
 	/* callbacks */
+	ot->invoke = WM_operator_confirm;
 	ot->exec = separate_armature_exec;
 	ot->poll = ED_operator_editarmature;
 	
