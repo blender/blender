@@ -162,6 +162,11 @@ typedef enum uiHandleButtonState {
 
 
 #ifdef USE_ALLSELECT
+
+/* Unfortunately theres no good way handle more generally:
+ * (propagate single clicks on layer buttons to other objects) */
+#define USE_ALLSELECT_LAYER_HACK
+
 typedef struct uiSelectContextElem {
 	PointerRNA ptr;
 	union {
@@ -1487,6 +1492,39 @@ static void ui_selectcontext_apply(
 				delta.b = RNA_property_boolean_get(&but->rnapoin, prop);  /* not a delta infact */
 			}
 		}
+
+#ifdef USE_ALLSELECT_LAYER_HACK
+		/* make up for not having 'handle_layer_buttons' */
+		{
+			PropertySubType subtype = RNA_property_subtype(prop);
+
+			if ((rna_type == PROP_BOOLEAN) &&
+			    ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER) &&
+			    is_array &&
+			    /* could check for 'handle_layer_buttons' */
+			    but->func)
+			{
+				wmWindow *win = CTX_wm_window(C);
+				if (!win->eventstate->shift) {
+					const int len = RNA_property_array_length(&but->rnapoin, prop);
+					int *tmparray = MEM_callocN(sizeof(int) * len, __func__);
+
+					tmparray[index] = true;
+
+					for (i = 0; i < selctx_data->elems_len; i++) {
+						uiSelectContextElem *other = &selctx_data->elems[i];
+						PointerRNA lptr = other->ptr;
+						RNA_property_boolean_set_array(&lptr, lprop, tmparray);
+						RNA_property_update(C, &lptr, lprop);
+					}
+
+					MEM_freeN(tmparray);
+
+					return;
+				}
+			}
+		}
+#endif
 
 		for (i = 0; i < selctx_data->elems_len; i++) {
 			uiSelectContextElem *other = &selctx_data->elems[i];
