@@ -2329,7 +2329,7 @@ public:
 			/* Object motion. */
 			ob_tfm_sd = mem_alloc(num_global_elements * sizeof(Transform));
 			ob_tfm_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(Transform));
-			ob_itfm_sd = mem_alloc(num_global_elements * sizeof(float3));
+			ob_itfm_sd = mem_alloc(num_global_elements * sizeof(Transform));
 			ob_itfm_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(Transform));
 
 			closure_sd = mem_alloc(num_global_elements * ShaderClosure_size);
