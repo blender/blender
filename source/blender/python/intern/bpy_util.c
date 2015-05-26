@@ -87,9 +87,6 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
 	PyObject *pystring;
 	const char *cstring;
 
-	const char *filename;
-	int lineno;
-
 	if (!PyErr_Occurred())
 		return 1;
 	
@@ -115,6 +112,9 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
 	cstring = _PyUnicode_AsString(pystring);
 
 	if (use_location) {
+		const char *filename;
+		int lineno;
+
 		PyObject *pystring_format;  /* workaround, see below */
 
 		PyC_FileAndNum(&filename, &lineno);
@@ -130,13 +130,14 @@ bool BPy_errors_to_report_ex(ReportList *reports, const bool use_full, const boo
 		BKE_report(reports, RPT_ERROR, cstring);
 		Py_DECREF(pystring_format);  /* workaround */
 #endif
+
+		/* not exactly needed. just for testing */
+		fprintf(stderr, TIP_("%s\nlocation: %s:%d\n"), cstring, filename, lineno);
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, cstring);
 	}
 
-	/* not exactly needed. just for testing */
-	fprintf(stderr, TIP_("%s\nlocation: %s:%d\n"), cstring, filename, lineno);
 
 	Py_DECREF(pystring);
 	return 1;
