@@ -8023,7 +8023,8 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				uiBut *but_other = ui_but_find_mouse_over(ar, event);
 				bool exit = false;
 
-				if ((!ui_block_is_menu(block) || ui_block_is_pie_menu(but->block)) &&
+				/* always deactivate button for pie menus, else moving to blank space will leave activated */
+				if ((!ui_block_is_menu(block) || ui_block_is_pie_menu(block)) &&
 				    !ui_but_contains_point_px(ar, but, event->x, event->y))
 				{
 					exit = true;
