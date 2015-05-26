@@ -179,6 +179,9 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 			std::cout << "not found"; handled = false;
 			break;
 	}
+
+	std::cout.flush();
+
 	return handled;
 }
 
