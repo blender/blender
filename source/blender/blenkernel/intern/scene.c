@@ -1735,7 +1735,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 		scene_update_tagged_recursive(eval_ctx, bmain, scene, scene);
 	}
 #else
-	DEG_evaluate_on_refresh(eval_ctx, bmain, scene->depsgraph, scene);
+	DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph, scene);
 #endif
 
 	/* update sound system animation (TODO, move to depsgraph) */
