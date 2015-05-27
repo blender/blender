@@ -5186,11 +5186,16 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Merge adjacent triangles */
 	if (RNA_boolean_get(op->ptr, "join_triangles")) {
-		if (!EDBM_op_call_and_selectf(em, op,
-		                              "faces.out", true,
-		                              "join_triangles faces=%S limit=%f",
-		                              &bmop, "geom.out",
-		                              RNA_float_get(op->ptr, "limit")))
+		float angle_face_threshold = RNA_float_get(op->ptr, "face_threshold");
+		float angle_shape_threshold = RNA_float_get(op->ptr, "shape_threshold");
+
+		if (!EDBM_op_call_and_selectf(
+		        em, op,
+		        "faces.out", true,
+		        "join_triangles faces=%S "
+		        "angle_face_threshold=%f angle_shape_threshold=%f",
+		        &bmop, "geom.out",
+		        angle_face_threshold, angle_shape_threshold))
 		{
 			EDBM_op_finish(em, &bmop, op, true);
 			return OPERATOR_CANCELLED;
