@@ -365,7 +365,10 @@ bool UI_context_copy_to_selected_list(
 						/* avoid prepending 'data' to the path */
 						RNA_id_pointer_create(id_data, &link->ptr);
 					}
-					id_data->flag &= ~LIB_DOIT;
+
+					if (id_data) {
+						id_data->flag &= ~LIB_DOIT;
+					}
 				}
 			}
 
