@@ -641,6 +641,9 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	
 	ED_armature_to_edit(obedit->data);
 	
+	/* parents tips remain selected when connected children are removed. */
+	ED_armature_deselect_all(obedit);
+
 	BKE_report(op->reports, RPT_INFO, "Separated bones");
 
 	/* note, notifier might evolve */
