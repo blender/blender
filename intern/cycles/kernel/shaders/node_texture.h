@@ -14,32 +14,6 @@
  * limitations under the License.
  */
 
-/* Voronoi Distances */
-
-float voronoi_distance(string distance_metric, vector d, float e)
-{
-#if 0
-	if (distance_metric == "Distance Squared")
-#endif
-		return dot(d, d);
-#if 0
-	if (distance_metric == "Actual Distance")
-		return length(d);
-	if (distance_metric == "Manhattan")
-		return fabs(d[0]) + fabs(d[1]) + fabs(d[2]);
-	if (distance_metric == "Chebychev")
-		return max(fabs(d[0]), max(fabs(d[1]), fabs(d[2])));
-	if (distance_metric == "Minkovsky 1/2")
-		return sqrt(fabs(d[0])) + sqrt(fabs(d[1])) + sqrt(fabs(d[1]));
-	if (distance_metric == "Minkovsky 4")
-		return sqrt(sqrt(dot(d * d, d * d)));
-	if (distance_metric == "Minkovsky")
-		return pow(pow(fabs(d[0]), e) + pow(fabs(d[1]), e) + pow(fabs(d[2]), e), 1.0 / e);
-	
-	return 0.0;
-#endif
-}
-
 /* Voronoi / Worley like */
 
 color cellnoise_color(point p)
@@ -51,7 +25,7 @@ color cellnoise_color(point p)
 	return color(r, g, b);
 }
 
-void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
+void voronoi(point p, float e, float da[4], point pa[4])
 {
 	/* returns distances in da and point coords in pa */
 	int xx, yy, zz, xi, yi, zi;
@@ -71,7 +45,7 @@ void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
 				point ip = point(xx, yy, zz);
 				point vp = (point)cellnoise_color(ip);
 				point pd = p - (vp + ip);
-				float d = voronoi_distance(distance_metric, pd, e);
+				float d = dot(pd, pd);
 
 				vp += point(xx, yy, zz);
 
@@ -111,46 +85,6 @@ void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
 	}
 }
 
-float voronoi_Fn(point p, int n)
-{
-	float da[4];
-	point pa[4];
-
-	voronoi(p, "Distance Squared", 0, da, pa);
-
-	return da[n];
-}
-
-float voronoi_FnFn(point p, int n1, int n2)
-{
-	float da[4];
-	point pa[4];
-
-	voronoi(p, "Distance Squared", 0, da, pa);
-
-	return da[n2] - da[n1];
-}
-
-float voronoi_F1(point p) { return voronoi_Fn(p, 0); }
-float voronoi_F2(point p) { return voronoi_Fn(p, 1); }
-float voronoi_F3(point p) { return voronoi_Fn(p, 2); }
-float voronoi_F4(point p) { return voronoi_Fn(p, 3); }
-float voronoi_F1F2(point p) { return voronoi_FnFn(p, 0, 1); }
-
-float voronoi_Cr(point p)
-{
-	/* crackle type pattern, just a scale/clamp of F2-F1 */
-	float t = 10.0 * voronoi_F1F2(p);
-	return (t > 1.0) ? 1.0 : t;
-}
-
-float voronoi_F1S(point p) { return 2.0 * voronoi_F1(p) - 1.0; }
-float voronoi_F2S(point p) { return 2.0 * voronoi_F2(p) - 1.0; }
-float voronoi_F3S(point p) { return 2.0 * voronoi_F3(p) - 1.0; }
-float voronoi_F4S(point p) { return 2.0 * voronoi_F4(p) - 1.0; }
-float voronoi_F1F2S(point p) { return 2.0 * voronoi_F1F2(p) - 1.0; }
-float voronoi_CrS(point p) { return 2.0 * voronoi_Cr(p) - 1.0; }
-
 /* Noise Bases */
 
 float safe_noise(point p, string type)
@@ -176,6 +110,7 @@ float noise_basis(point p, string basis)
 {
 	if (basis == "Perlin")
 		return safe_noise(p, "unsigned");
+#if 0
 	if (basis == "Voronoi F1")
 		return voronoi_F1S(p);
 	if (basis == "Voronoi F2")
@@ -188,6 +123,7 @@ float noise_basis(point p, string basis)
 		return voronoi_F1F2S(p);
 	if (basis == "Voronoi Crackle")
 		return voronoi_CrS(p);
+#endif
 	if (basis == "Cell Noise")
 		return cellnoise(p);
 	

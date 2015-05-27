@@ -37,7 +37,7 @@ shader node_voronoi_texture(
 	float da[4];
 	point pa[4];
 
-	voronoi(p * Scale, "Distance Squared", 1.0, da, pa);
+	voronoi(p * Scale, 1.0, da, pa);
 
 	/* Colored output */
 	if (Coloring == "Intensity") {
