@@ -28,7 +28,7 @@ ccl_device_noinline float svm_wave(NodeWaveType type, float3 p, float detail, fl
 		n = len(p) * 20.0f;
 	
 	if(distortion != 0.0f)
-		n += distortion * noise_turbulence(p*dscale, NODE_NOISE_PERLIN, detail, 0);
+		n += distortion * noise_turbulence(p*dscale, detail, 0);
 
 	return 0.5f + 0.5f * sinf(n);
 }

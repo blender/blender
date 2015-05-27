@@ -20,23 +20,22 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void svm_noise(float3 p, float detail, float distortion, float *fac, float3 *color)
 {
-	NodeNoiseBasis basis = NODE_NOISE_PERLIN;
 	int hard = 0;
 
 	if(distortion != 0.0f) {
 		float3 r, offset = make_float3(13.5f, 13.5f, 13.5f);
 
-		r.x = noise_basis(p + offset, basis) * distortion;
-		r.y = noise_basis(p, basis) * distortion;
-		r.z = noise_basis(p - offset, basis) * distortion;
+		r.x = noise(p + offset) * distortion;
+		r.y = noise(p) * distortion;
+		r.z = noise(p - offset) * distortion;
 
 		p += r;
 	}
 
-	*fac = noise_turbulence(p, basis, detail, hard);
+	*fac = noise_turbulence(p, detail, hard);
 	*color = make_float3(*fac,
-		noise_turbulence(make_float3(p.y, p.x, p.z), basis, detail, hard),
-		noise_turbulence(make_float3(p.y, p.z, p.x), basis, detail, hard));
+		noise_turbulence(make_float3(p.y, p.x, p.z), detail, hard),
+		noise_turbulence(make_float3(p.y, p.z, p.x), detail, hard));
 }
 
 ccl_device void svm_node_tex_noise(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)

@@ -19,23 +19,23 @@
 
 /* Noise */
 
-float noise(point p, string basis, float distortion, float detail, float fac, color Color)
+float noise(point p, float distortion, float detail, float fac, color Color)
 {
 	point r;
 	int hard = 0;
 
 	if (distortion != 0.0) {
-		r[0] = noise_basis(p + point(13.5), basis) * distortion;
-		r[1] = noise_basis(p, basis) * distortion;
-		r[2] = noise_basis(p - point(13.5), basis) * distortion;
+		r[0] = safe_noise(p + point(13.5), "unsigned") * distortion;
+		r[1] = safe_noise(p, "unsigned") * distortion;
+		r[2] = safe_noise(p - point(13.5), "unsigned") * distortion;
 		
 		p += r;
 	}
 
-	fac = noise_turbulence(p, basis, detail, hard);
+	fac = noise_turbulence(p, detail, hard);
 	
-	Color = color(fac, noise_turbulence(point(p[1], p[0], p[2]), basis, detail, hard),
-		noise_turbulence(point(p[1], p[2], p[0]), basis, detail, hard));
+	Color = color(fac, noise_turbulence(point(p[1], p[0], p[2]), detail, hard),
+		noise_turbulence(point(p[1], p[2], p[0]), detail, hard));
 
 	return fac;
 }
@@ -55,7 +55,6 @@ shader node_noise_texture(
 	if (use_mapping)
 		p = transform(mapping, p);
 
-	string Basis = "Perlin";
-	Fac = noise(p * Scale, Basis, Distortion, Detail, Fac, Color);
+	Fac = noise(p * Scale, Distortion, Detail, Fac, Color);
 }
 

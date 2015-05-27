@@ -16,48 +16,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Noise Bases */
-
-ccl_device float noise_basis(float3 p, NodeNoiseBasis basis)
-{
-	/* Only Perlin enabled for now, others break CUDA compile by making kernel
-	 * too big, with compile using > 4GB, due to everything being inlined. */
-
-#if 0
-	if(basis == NODE_NOISE_PERLIN)
-#endif
-		return noise(p);
-#if 0
-	if(basis == NODE_NOISE_VORONOI_F1)
-		return voronoi_F1S(p);
-	if(basis == NODE_NOISE_VORONOI_F2)
-		return voronoi_F2S(p);
-	if(basis == NODE_NOISE_VORONOI_F3)
-		return voronoi_F3S(p);
-	if(basis == NODE_NOISE_VORONOI_F4)
-		return voronoi_F4S(p);
-	if(basis == NODE_NOISE_VORONOI_F2_F1)
-		return voronoi_F1F2S(p);
-	if(basis == NODE_NOISE_VORONOI_CRACKLE)
-		return voronoi_CrS(p);
-	if(basis == NODE_NOISE_CELL_NOISE)
-		return cellnoise(p);
-	
-	return 0.0f;
-#endif
-}
-
-/* Soft/Hard Noise */
-
-ccl_device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
-{
-	float t = noise_basis(p, basis);
-	return (hard)? fabsf(2.0f*t - 1.0f): t;
-}
-
 /* Turbulence */
 
-ccl_device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float octaves, int hard)
+ccl_device_noinline float noise_turbulence(float3 p, float octaves, int hard)
 {
 	float fscale = 1.0f;
 	float amp = 1.0f;
@@ -68,7 +29,7 @@ ccl_device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float
 	n = float_to_int(octaves);
 
 	for(i = 0; i <= n; i++) {
-		float t = noise_basis(fscale*p, basis);
+		float t = noise(fscale*p);
 
 		if(hard)
 			t = fabsf(2.0f*t - 1.0f);
@@ -81,7 +42,7 @@ ccl_device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float
 	float rmd = octaves - floorf(octaves);
 
 	if(rmd != 0.0f) {
-		float t = noise_basis(fscale*p, basis);
+		float t = noise(fscale*p);
 
 		if(hard)
 			t = fabsf(2.0f*t - 1.0f);

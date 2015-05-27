@@ -106,41 +106,9 @@ float safe_noise(point p, string type)
 	return f;
 }
 
-float noise_basis(point p, string basis)
-{
-	if (basis == "Perlin")
-		return safe_noise(p, "unsigned");
-#if 0
-	if (basis == "Voronoi F1")
-		return voronoi_F1S(p);
-	if (basis == "Voronoi F2")
-		return voronoi_F2S(p);
-	if (basis == "Voronoi F3")
-		return voronoi_F3S(p);
-	if (basis == "Voronoi F4")
-		return voronoi_F4S(p);
-	if (basis == "Voronoi F2-F1")
-		return voronoi_F1F2S(p);
-	if (basis == "Voronoi Crackle")
-		return voronoi_CrS(p);
-#endif
-	if (basis == "Cell Noise")
-		return cellnoise(p);
-	
-	return 0.0;
-}
-
-/* Soft/Hard Noise */
-
-float noise_basis_hard(point p, string basis, int hard)
-{
-	float t = noise_basis(p, basis);
-	return (hard) ? fabs(2.0 * t - 1.0) : t;
-}
-
 /* Turbulence */
 
-float noise_turbulence(point p, string basis, float details, int hard)
+float noise_turbulence(point p, float details, int hard)
 {
 	float fscale = 1.0;
 	float amp = 1.0;
@@ -151,7 +119,7 @@ float noise_turbulence(point p, string basis, float details, int hard)
 	n = (int)octaves;
 
 	for (i = 0; i <= n; i++) {
-		float t = noise_basis(fscale * p, basis);
+		float t = safe_noise(fscale * p, "unsigned");
 
 		if (hard)
 			t = fabs(2.0 * t - 1.0);
@@ -164,7 +132,7 @@ float noise_turbulence(point p, string basis, float details, int hard)
 	float rmd = octaves - floor(octaves);
 
 	if (rmd != 0.0) {
-		float t = noise_basis(fscale * p, basis);
+		float t = safe_noise(fscale * p, "unsigned");
 
 		if (hard)
 			t = fabs(2.0 * t - 1.0);

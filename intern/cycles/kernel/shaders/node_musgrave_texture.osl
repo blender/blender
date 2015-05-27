@@ -26,7 +26,7 @@
  * from "Texturing and Modelling: A procedural approach"
  */
 
-float noise_musgrave_fBm(point p, string basis, float H, float lacunarity, float octaves)
+float noise_musgrave_fBm(point p, float H, float lacunarity, float octaves)
 {
 	float rmd;
 	float value = 0.0;
@@ -54,7 +54,7 @@ float noise_musgrave_fBm(point p, string basis, float H, float lacunarity, float
  * octaves: number of frequencies in the fBm
  */
 
-float noise_musgrave_multi_fractal(point p, string basis, float H, float lacunarity, float octaves)
+float noise_musgrave_multi_fractal(point p, float H, float lacunarity, float octaves)
 {
 	float rmd;
 	float value = 1.0;
@@ -83,7 +83,7 @@ float noise_musgrave_multi_fractal(point p, string basis, float H, float lacunar
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacunarity, float octaves, float offset)
+float noise_musgrave_hetero_terrain(point p, float H, float lacunarity, float octaves, float offset)
 {
 	float value, increment, rmd;
 	float pwHL = pow(lacunarity, -H);
@@ -118,8 +118,8 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
-                                          float lacunarity, float octaves, float offset, float gain)
+float noise_musgrave_hybrid_multi_fractal(point p, float H, float lacunarity,
+                                          float octaves, float offset, float gain)
 {
 	float result, signal, weight, rmd;
 	float pwHL = pow(lacunarity, -H);
@@ -156,8 +156,8 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_ridged_multi_fractal(point p, string basis, float H,
-                                          float lacunarity, float octaves, float offset, float gain)
+float noise_musgrave_ridged_multi_fractal(point p, float H, float lacunarity,
+                                          float octaves, float offset, float gain)
 {
 	float result, signal, weight;
 	float pwHL = pow(lacunarity, -H);
@@ -201,7 +201,6 @@ shader node_musgrave_texture(
 	float dimension = max(Dimension, 1e-5);
 	float octaves = clamp(Detail, 0.0, 16.0);
 	float lacunarity = max(Lacunarity, 1e-5);
-	string Basis = "Perlin";
 	float intensity = 1.0;
 
 	point p = Vector;
@@ -212,15 +211,15 @@ shader node_musgrave_texture(
 	p = p * Scale;
 
 	if (Type == "Multifractal")
-		Fac = intensity * noise_musgrave_multi_fractal(p, Basis, dimension, lacunarity, octaves);
+		Fac = intensity * noise_musgrave_multi_fractal(p, dimension, lacunarity, octaves);
 	else if (Type == "fBM")
-		Fac = intensity * noise_musgrave_fBm(p, Basis, dimension, lacunarity, octaves);
+		Fac = intensity * noise_musgrave_fBm(p, dimension, lacunarity, octaves);
 	else if (Type == "Hybrid Multifractal")
-		Fac = intensity * noise_musgrave_hybrid_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+		Fac = intensity * noise_musgrave_hybrid_multi_fractal(p, dimension, lacunarity, octaves, Offset, Gain);
 	else if (Type == "Ridged Multifractal")
-		Fac = intensity * noise_musgrave_ridged_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+		Fac = intensity * noise_musgrave_ridged_multi_fractal(p, dimension, lacunarity, octaves, Offset, Gain);
 	else if (Type == "Hetero Terrain")
-		Fac = intensity * noise_musgrave_hetero_terrain(p, Basis, dimension, lacunarity, octaves, Offset);
+		Fac = intensity * noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, Offset);
 	
 	Color = color(Fac, Fac, Fac);
 }
