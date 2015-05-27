@@ -169,11 +169,9 @@ Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh
 	tmpmesh->flag = mesh->flag;
 
 	if (triangulate) {
-		BKE_mesh_tessface_calc(tmpmesh);
+		bc_triangulate_mesh(tmpmesh);
 	}
-	else {
-		BKE_mesh_tessface_ensure(tmpmesh);
-	}
+	BKE_mesh_tessface_ensure(tmpmesh);
 	return tmpmesh;
 }
 
