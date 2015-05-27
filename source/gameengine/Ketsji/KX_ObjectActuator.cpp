@@ -75,7 +75,8 @@ KX_ObjectActuator(
 	m_reference(refobj),
 	m_active_combined_velocity (false),
 	m_linear_damping_active(false),
-	m_angular_damping_active(false)
+	m_angular_damping_active(false),
+	m_jumping(false)
 {
 	if (m_bitLocalFlag.ServoControl)
 	{
