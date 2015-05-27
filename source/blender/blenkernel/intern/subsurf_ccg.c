@@ -2800,7 +2800,6 @@ static void ccgDM_release(DerivedMesh *dm)
 		if (ccgdm->reverseFaceMap) MEM_freeN(ccgdm->reverseFaceMap);
 		if (ccgdm->gridFaces) MEM_freeN(ccgdm->gridFaces);
 		if (ccgdm->gridData) MEM_freeN(ccgdm->gridData);
-		if (ccgdm->gridAdjacency) MEM_freeN(ccgdm->gridAdjacency);
 		if (ccgdm->gridOffset) MEM_freeN(ccgdm->gridOffset);
 		if (ccgdm->gridFlagMats) MEM_freeN(ccgdm->gridFlagMats);
 		if (ccgdm->gridHidden) {
@@ -3111,46 +3110,11 @@ static int ccgDM_getGridSize(DerivedMesh *dm)
 	return ccgSubSurf_getGridSize(ccgdm->ss);
 }
 
-static int ccgdm_adjacent_grid(int *gridOffset, CCGFace *f, int S, int offset)
-{
-	CCGFace *adjf;
-	CCGEdge *e;
-	int i, j = 0, numFaces, fIndex, numEdges = 0;
-
-	e = ccgSubSurf_getFaceEdge(f, S);
-	numFaces = ccgSubSurf_getEdgeNumFaces(e);
-
-	if (numFaces != 2)
-		return -1;
-
-	for (i = 0; i < numFaces; i++) {
-		adjf = ccgSubSurf_getEdgeFace(e, i);
-
-		if (adjf != f) {
-			numEdges = ccgSubSurf_getFaceNumVerts(adjf);
-			for (j = 0; j < numEdges; j++)
-				if (ccgSubSurf_getFaceEdge(adjf, j) == e)
-					break;
-
-			if (j != numEdges)
-				break;
-		}
-	}
-
-	if (numEdges == 0)
-		return -1;
-	
-	fIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(adjf));
-
-	return gridOffset[fIndex] + (j + offset) % numEdges;
-}
-
 static void ccgdm_create_grids(DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGElem **gridData;
-	DMGridAdjacency *gridAdjacency, *adj;
 	DMFlagMat *gridFlagMats;
 	CCGFace **gridFaces;
 	int *gridOffset;
@@ -3176,7 +3140,6 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 
 	/* compute grid data */
 	gridData = MEM_mallocN(sizeof(CCGElem *) * numGrids, "ccgdm.gridData");
-	gridAdjacency = MEM_mallocN(sizeof(DMGridAdjacency) * numGrids, "ccgdm.gridAdjacency");
 	gridFaces = MEM_mallocN(sizeof(CCGFace *) * numGrids, "ccgdm.gridFaces");
 	gridFlagMats = MEM_mallocN(sizeof(DMFlagMat) * numGrids, "ccgdm.gridFlagMats");
 
@@ -3187,29 +3150,14 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 		int numVerts = ccgSubSurf_getFaceNumVerts(f);
 
 		for (S = 0; S < numVerts; S++, gIndex++) {
-			int prevS = (S - 1 + numVerts) % numVerts;
-			int nextS = (S + 1 + numVerts) % numVerts;
-
 			gridData[gIndex] = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 			gridFaces[gIndex] = f;
 			gridFlagMats[gIndex] = ccgdm->faceFlags[index];
-
-			adj = &gridAdjacency[gIndex];
-
-			adj->index[0] = gIndex - S + nextS;
-			adj->rotation[0] = 3;
-			adj->index[1] = ccgdm_adjacent_grid(gridOffset, f, prevS, 0);
-			adj->rotation[1] = 1;
-			adj->index[2] = ccgdm_adjacent_grid(gridOffset, f, S, 1);
-			adj->rotation[2] = 3;
-			adj->index[3] = gIndex - S + prevS;
-			adj->rotation[3] = 1;
 		}
 	}
 
 	ccgdm->gridData = gridData;
 	ccgdm->gridFaces = gridFaces;
-	ccgdm->gridAdjacency = gridAdjacency;
 	ccgdm->gridOffset = gridOffset;
 	ccgdm->gridFlagMats = gridFlagMats;
 }
@@ -3220,14 +3168,6 @@ static CCGElem **ccgDM_getGridData(DerivedMesh *dm)
 
 	ccgdm_create_grids(dm);
 	return ccgdm->gridData;
-}
-
-static DMGridAdjacency *ccgDM_getGridAdjacency(DerivedMesh *dm)
-{
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-
-	ccgdm_create_grids(dm);
-	return ccgdm->gridAdjacency;
 }
 
 static int *ccgDM_getGridOffset(DerivedMesh *dm)
@@ -3312,7 +3252,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 			 * when the ccgdm gets remade, the assumption is that the topology
 			 * does not change. */
 			ccgdm_create_grids(dm);
-			BKE_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, ccgdm->gridAdjacency, (void **)ccgdm->gridFaces,
+			BKE_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, (void **)ccgdm->gridFaces,
 			                      ccgdm->gridFlagMats, ccgdm->gridHidden);
 		}
 
@@ -3331,7 +3271,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		numGrids = ccgDM_getNumGrids(dm);
 
 		ob->sculpt->pbvh = ccgdm->pbvh = BKE_pbvh_new();
-		BKE_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
+		BKE_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData,
 		                     numGrids, &key, (void **) ccgdm->gridFaces, ccgdm->gridFlagMats, ccgdm->gridHidden);
 	}
 	else if (ob->type == OB_MESH) {
@@ -3459,7 +3399,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getNumGrids = ccgDM_getNumGrids;
 	ccgdm->dm.getGridSize = ccgDM_getGridSize;
 	ccgdm->dm.getGridData = ccgDM_getGridData;
-	ccgdm->dm.getGridAdjacency = ccgDM_getGridAdjacency;
 	ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
 	ccgdm->dm.getGridKey = ccgDM_getGridKey;
 	ccgdm->dm.getGridFlagMats = ccgDM_getGridFlagMats;

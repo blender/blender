@@ -114,11 +114,6 @@ typedef struct DMCoNo {
 	float no[3];
 } DMCoNo;
 
-typedef struct DMGridAdjacency {
-	int index[4];
-	int rotation[4];
-} DMGridAdjacency;
-
 /* keep in sync with MFace/MPoly types */
 typedef struct DMFlagMat {
 	short mat_nr;
@@ -289,7 +284,6 @@ struct DerivedMesh {
 	int (*getNumGrids)(DerivedMesh *dm);
 	int (*getGridSize)(DerivedMesh *dm);
 	struct CCGElem **(*getGridData)(DerivedMesh * dm);
-	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh * dm);
 	int *(*getGridOffset)(DerivedMesh * dm);
 	void (*getGridKey)(DerivedMesh *dm, struct CCGKey *key);
 	DMFlagMat *(*getGridFlagMats)(DerivedMesh * dm);

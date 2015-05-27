@@ -581,7 +581,7 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,
 	grid_hidden = BKE_pbvh_grid_hidden(pbvh);
 
 	BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid,
-	                        NULL, NULL, NULL, NULL);
+	                        NULL, NULL, NULL);
 			
 	unode->grid_hidden = MEM_mapallocN(sizeof(*unode->grid_hidden) * totgrid,
 	                                   "unode->grid_hidden");
@@ -610,7 +610,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 	if (node) {
 		BKE_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
 		BKE_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid,
-		                        &maxgrid, &gridsize, NULL, NULL);
+		                        &maxgrid, &gridsize, NULL);
 
 		unode->totvert = totvert;
 	}
@@ -842,7 +842,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 	if (unode->grids) {
 		int totgrid, *grids;
 		BKE_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid,
-		                        NULL, NULL, NULL, NULL);
+		                        NULL, NULL, NULL);
 		memcpy(unode->grids, grids, sizeof(int) * totgrid);
 	}
 	else {

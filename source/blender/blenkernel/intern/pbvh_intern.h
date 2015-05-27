@@ -139,7 +139,6 @@ struct PBVH {
 	/* Grid Data */
 	CCGKey gridkey;
 	CCGElem **grids;
-	DMGridAdjacency *gridadj;
 	void **gridfaces;
 	const DMFlagMat *grid_flag_mats;
 	int totgrid;

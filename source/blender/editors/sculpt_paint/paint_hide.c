@@ -150,7 +150,7 @@ static void partialvis_update_grids(Object *ob,
 	/* get PBVH data */
 	BKE_pbvh_node_get_grids(pbvh, node,
 	                        &grid_indices, &totgrid, NULL, NULL,
-	                        &grids, NULL);
+	                        &grids);
 	grid_hidden = BKE_pbvh_grid_hidden(pbvh);
 	BKE_pbvh_get_grid_key(pbvh, &key);
 	

@@ -570,7 +570,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 }
 
 /* Do a full rebuild with on Grids data structure */
-void BKE_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
+void BKE_pbvh_build_grids(PBVH *bvh, CCGElem **grids,
                           int totgrid, CCGKey *key, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap **grid_hidden)
 {
 	BBC *prim_bbc = NULL;
@@ -580,7 +580,6 @@ void BKE_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
 
 	bvh->type = PBVH_GRIDS;
 	bvh->grids = grids;
-	bvh->gridadj = gridadj;
 	bvh->gridfaces = gridfaces;
 	bvh->grid_flag_mats = flagmats;
 	bvh->totgrid = totgrid;
@@ -1383,7 +1382,7 @@ void BKE_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 	}
 }
 
-void BKE_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, CCGElem ***griddata, DMGridAdjacency **gridadj)
+void BKE_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, CCGElem ***griddata)
 {
 	switch (bvh->type) {
 		case PBVH_GRIDS:
@@ -1392,7 +1391,6 @@ void BKE_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int 
 			if (maxgrid) *maxgrid = bvh->totgrid;
 			if (gridsize) *gridsize = bvh->gridkey.grid_size;
 			if (griddata) *griddata = bvh->grids;
-			if (gridadj) *gridadj = bvh->gridadj;
 			break;
 		case PBVH_FACES:
 		case PBVH_BMESH:
@@ -1401,7 +1399,6 @@ void BKE_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int 
 			if (maxgrid) *maxgrid = 0;
 			if (gridsize) *gridsize = 0;
 			if (griddata) *griddata = NULL;
-			if (gridadj) *gridadj = NULL;
 			break;
 	}
 }
@@ -1787,13 +1784,12 @@ void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 		pbvh_draw_BB(bvh);
 }
 
-void BKE_pbvh_grids_update(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj, void **gridfaces,
+void BKE_pbvh_grids_update(PBVH *bvh, CCGElem **grids, void **gridfaces,
                            DMFlagMat *flagmats, BLI_bitmap **grid_hidden)
 {
 	int a;
 
 	bvh->grids = grids;
-	bvh->gridadj = gridadj;
 	bvh->gridfaces = gridfaces;
 
 	if (flagmats != bvh->grid_flag_mats || bvh->grid_hidden != grid_hidden) {
@@ -1972,7 +1968,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	vi->fno = NULL;
 	vi->mvert = NULL;
 	
-	BKE_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL);
+	BKE_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids);
 	BKE_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);
 	BKE_pbvh_node_get_verts(bvh, node, &vert_indices, &verts);
 	vi->key = &bvh->gridkey;

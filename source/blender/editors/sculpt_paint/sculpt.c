@@ -1764,7 +1764,6 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	SculptBrushTest test;
 	CCGElem **griddata, *data;
 	CCGKey key;
-	DMGridAdjacency *gridadj, *adj;
 	float (*tmpgrid_co)[3], (*tmprow_co)[3];
 	float *tmpgrid_mask, *tmprow_mask;
 	int v1, v2, v3, v4;
@@ -1777,7 +1776,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	CLAMP(bstrength, 0.0f, 1.0f);
 
 	BKE_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
-	                        NULL, &gridsize, &griddata, &gridadj);
+	                        NULL, &gridsize, &griddata);
 	BKE_pbvh_get_grid_key(ss->pbvh, &key);
 
 	grid_hidden = BKE_pbvh_grid_hidden(ss->pbvh);
@@ -1796,7 +1795,6 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 		int gi = grid_indices[i];
 		const BLI_bitmap *gh = grid_hidden[gi];
 		data = griddata[gi];
-		adj = &gridadj[gi];
 
 		if (smooth_mask)
 			memset(tmpgrid_mask, 0, sizeof(float) * gridsize * gridsize);
@@ -1861,18 +1859,6 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 					if (BLI_BITMAP_TEST(gh, y * gridsize + x))
 						continue;
 				}
-
-				if (x == 0 && adj->index[0] == -1)
-					continue;
-
-				if (x == gridsize - 1 && adj->index[2] == -1)
-					continue;
-
-				if (y == 0 && adj->index[3] == -1)
-					continue;
-
-				if (y == gridsize - 1 && adj->index[1] == -1)
-					continue;
 
 				index = x + y * gridsize;
 				co = CCG_elem_offset_co(&key, data, index);
@@ -3701,7 +3687,7 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BKE_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
-		                        &gridsize, NULL, NULL);
+		                        &gridsize, NULL);
 
 		array_mem_size = cache->num_threads * sizeof(void *);
 

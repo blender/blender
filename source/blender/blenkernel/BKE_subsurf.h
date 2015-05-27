@@ -49,7 +49,6 @@ struct CCGFace;
 struct CCGVert;
 struct EdgeHash;
 struct PBVH;
-struct DMGridAdjacency;
 
 /**************************** External *****************************/
 
@@ -118,7 +117,6 @@ typedef struct CCGDerivedMesh {
 	int *pmap_mem;
 
 	struct CCGElem **gridData;
-	struct DMGridAdjacency *gridAdjacency;
 	int *gridOffset;
 	struct CCGFace **gridFaces;
 	struct DMFlagMat *gridFlagMats;
