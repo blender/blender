@@ -310,7 +310,7 @@ static void file_draw_string(int sx, int sy, const char *string, float width, in
 	fs.align = align;
 
 	BLI_strncpy(fname, string, FILE_MAXFILE);
-	UI_text_clip_middle_ex(&fs, fname, width + 1.0f, UI_DPI_ICON_SIZE, sizeof(fname), NULL);
+	UI_text_clip_middle_ex(&fs, fname, width, UI_DPI_ICON_SIZE, sizeof(fname), NULL);
 
 	/* no text clipping needed, UI_fontstyle_draw does it but is a bit too strict (for buttons it works) */
 	rect.xmin = sx;

@@ -401,8 +401,20 @@ void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y)
 float file_string_width(const char *str)
 {
 	uiStyle *style = UI_style_get();
+	float width;
+
 	UI_fontstyle_set(&style->widget);
-	return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+	if (style->widget.kerning == 1) {  /* for BLF_width */
+		BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
+	}
+
+	width = BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+
+	if (style->widget.kerning == 1) {
+		BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
+	}
+
+	return width;
 }
 
 float file_font_pointsize(void)
