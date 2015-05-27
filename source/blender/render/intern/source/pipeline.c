@@ -3178,10 +3178,10 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 					if (stamp) {
 						/* writes the name of the individual cameras */
-						ok = BKE_imbuf_write_stamp(scene, rr, ibuf, name, &rd->im_format);
+						ok = BKE_imbuf_write_stamp(scene, rr, ibuf, name, &imf);
 					}
 					else {
-						ok = BKE_imbuf_write(ibuf, name, &rd->im_format);
+						ok = BKE_imbuf_write(ibuf, name, &imf);
 					}
 					printf("Saved: %s\n", name);
 				}
