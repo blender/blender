@@ -998,6 +998,11 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 {
+	TimeSourceKey time_src_key;
+	OperationKey obdata_ubereval_key(&ob->id,
+	                                 DEPSNODE_TYPE_GEOMETRY,
+	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
+
 	/* particle systems */
 	for (ParticleSystem *psys = (ParticleSystem *)ob->particlesystem.first; psys; psys = psys->next) {
 		ParticleSettings *part = psys->part;
@@ -1011,6 +1016,22 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
 		if (!psys_check_enabled(ob, psys))
 			continue;
+
+		/* TODO(sergey): Are all particle systems depends on time?
+		 * Hair without dynamics i.e.
+		 */
+		add_relation(time_src_key, psys_key,
+		             DEPSREL_TYPE_TIME,
+		             "TimeSrc -> PSys");
+
+		/* TODO(sergey): Currently particle update is just a placeholder,
+		 * hook it to the ubereval node so particle system is getting updated
+		 * on playback.
+		 */
+		add_relation(psys_key,
+		             obdata_ubereval_key,
+		             DEPSREL_TYPE_OPERATION,
+		             "PSys -> UberEval");
 
 #if 0
 		if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
