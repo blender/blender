@@ -701,6 +701,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					}
 					else {
 						swaptime /= 1.1;
+						swaptime = MAX2(ps->fstep / 60.0, swaptime);
 					}
 					break;
 				}
@@ -713,6 +714,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					}
 					else {
 						swaptime *= 1.1;
+						swaptime = MIN2(ps->fstep / 5.0, swaptime);
 					}
 					break;
 				}
