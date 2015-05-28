@@ -132,7 +132,8 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
 	unsigned int i;
 	unsigned int len = strlen(encodedIn);
 	DecodeState_e state = STATE_SEARCH;
-	int j, asciiCharacter;
+	int j;
+	unsigned int asciiCharacter;
 	char tempNumBuf[3] = {0};
 	bool bothDigits = true;
 
