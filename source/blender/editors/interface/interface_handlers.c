@@ -1932,11 +1932,9 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 		if (data->str) MEM_freeN(data->str);
 		data->str = data->origstr;
-		data->origstr = NULL;
 		data->value = data->origvalue;
-		data->origvalue = 0.0;
 		copy_v3_v3(data->vec, data->origvec);
-		data->origvec[0] = data->origvec[1] = data->origvec[2] = 0.0f;
+		/* postpone clearing origdata */
 	}
 	else {
 		/* we avoid applying interactive edits a second time
@@ -2075,6 +2073,12 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 #ifdef USE_ALLSELECT
 	ui_selectcontext_apply(C, but, &data->select_others, data->value, data->origvalue);
 #endif
+
+	if (data->cancel) {
+		data->origstr = NULL;
+		data->origvalue = 0.0;
+		zero_v3(data->origvec);
+	}
 
 	but->editstr = editstr;
 	but->editval = editval;
