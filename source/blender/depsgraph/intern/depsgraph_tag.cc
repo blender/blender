@@ -70,21 +70,23 @@ extern "C" {
  */
 #define DEPSGRAPH_USE_LEGACY_TAGGING
 
+namespace {
+
 /* Data-Based Tagging ------------------------------- */
 
-static void lib_id_recalc_tag(Main *bmain, ID *id)
+void lib_id_recalc_tag(Main *bmain, ID *id)
 {
 	id->flag |= LIB_ID_RECALC;
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
-static void lib_id_recalc_data_tag(Main *bmain, ID *id)
+void lib_id_recalc_data_tag(Main *bmain, ID *id)
 {
 	id->flag |= LIB_ID_RECALC_DATA;
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
-static void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
+void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 {
 	if (flag) {
 		/* This bit of code ensures legacy object->recalc flags
@@ -117,7 +119,7 @@ static void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 }
 
 #ifdef DEPSGRAPH_USE_LEGACY_TAGGING
-static void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, short flag)
+void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, short flag)
 {
 	if (flag) {
 		Object *object;
@@ -142,6 +144,8 @@ static void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, short flag)
 	}
 }
 #endif
+
+}  /* namespace */
 
 /* Tag all nodes in ID-block for update.
  * This is a crude measure, but is most convenient for old code.
