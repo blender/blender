@@ -676,8 +676,7 @@ class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
         col = split.column()
         if musgrave_type in {'HETERO_TERRAIN', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
             col.prop(tex, "offset")
-        if musgrave_type in {'MULTIFRACTAL', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
-            col.prop(tex, "noise_intensity", text="Intensity")
+        col.prop(tex, "noise_intensity", text="Intensity")
         if musgrave_type in {'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
             col.prop(tex, "gain")
 
