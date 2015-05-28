@@ -2287,7 +2287,7 @@ install_RPM() {
   OGG_DEV="libogg-devel"
   THEORA_DEV="libtheora-devel"
 
-  _packages="gcc gcc-c++ make scons libtiff-devel freetype-devel libjpeg-devel\
+  _packages="gcc gcc-c++ make scons libtiff-devel libjpeg-devel\
              libpng-devel libX11-devel libXi-devel wget ncurses-devel \
              readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
@@ -2301,7 +2301,7 @@ install_RPM() {
   if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
     OPENEXR_DEV="openexr-devel"
 
-    _packages="$_packages libsqlite3x-devel fftw-devel SDL-devel"
+    _packages="$_packages freetype-devel libsqlite3x-devel fftw-devel SDL-devel"
 
     if $WITH_ALL; then
       _packages="$_packages jack-audio-connection-kit-devel"
@@ -2339,7 +2339,7 @@ install_RPM() {
   elif [ $RPM = "SUSE" ]; then
     OPENEXR_DEV="libopenexr-devel"
 
-    _packages="$_packages cmake sqlite3-devel fftw3-devel libSDL-devel"
+    _packages="$_packages cmake freetype2-devel sqlite3-devel fftw3-devel libSDL-devel"
 
     PRINT ""
     install_packages_RPM $_packages
