@@ -327,8 +327,6 @@ private:
 	/** A pointer to the typed system class. */
 	GHOST_SystemX11 *m_system;
 
-	bool m_valid_setup;
-
 	/** Used to concatenate calls to invalidate() on this window. */
 	bool m_invalid_window;
 
@@ -355,6 +353,8 @@ private:
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	XIC m_xic;
 #endif
+
+	bool m_valid_setup;
 
 	void icccmSetState(int state);
 	int icccmGetState() const;

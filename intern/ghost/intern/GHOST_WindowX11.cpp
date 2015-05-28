@@ -291,11 +291,17 @@ GHOST_WindowX11(
       m_visualInfo(NULL),
       m_normal_state(GHOST_kWindowStateNormal),
       m_system(system),
-      m_valid_setup(false),
       m_invalid_window(false),
       m_empty_cursor(None),
       m_custom_cursor(None),
-      m_visible_cursor(None)
+      m_visible_cursor(None),
+#ifdef WITH_XDND
+      m_dropTarget(NULL),
+#endif
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+      m_xic(NULL),
+#endif
+      m_valid_setup(false)
 {
 	if (type == GHOST_kDrawingContextTypeOpenGL) {
 		m_visualInfo = x11_visualinfo_from_glx(m_display, stereoVisual, &m_wantNumOfAASamples);
@@ -306,10 +312,10 @@ GHOST_WindowX11(
 		m_visualInfo = XGetVisualInfo(m_display, 0, &tmp, &n);
 	}
 
-	/* exit if this is the first window */
+	/* caller needs to check 'getValid()' */
 	if (m_visualInfo == NULL) {
-		fprintf(stderr, "initial window could not find the GLX extension, exit!\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "initial window could not find the GLX extension\n");
+		return;
 	}
 
 	unsigned int xattributes_valuemask = 0;
@@ -485,11 +491,6 @@ GHOST_WindowX11(
 			XSetWMProtocols(m_display, m_window, atoms, natom);
 		}
 	}
-
-#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-	m_xic = NULL;
-#endif
-
 
 	/* Set the window hints */
 	{
@@ -1216,15 +1217,6 @@ validate()
 GHOST_WindowX11::
 ~GHOST_WindowX11()
 {
-	static Atom Primary_atom, Clipboard_atom;
-	Window p_owner, c_owner;
-	/*Change the owner of the Atoms to None if we are the owner*/
-	Primary_atom = XInternAtom(m_display, "PRIMARY", False);
-	Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
-	
-	p_owner = XGetSelectionOwner(m_display, Primary_atom);
-	c_owner = XGetSelectionOwner(m_display, Clipboard_atom);
-	
 	std::map<unsigned int, Cursor>::iterator it = m_standard_cursors.begin();
 	for (; it != m_standard_cursors.end(); ++it) {
 		XFreeCursor(m_display, it->second);
@@ -1237,11 +1229,23 @@ GHOST_WindowX11::
 		XFreeCursor(m_display, m_custom_cursor);
 	}
 
-	if (p_owner == m_window) {
-		XSetSelectionOwner(m_display, Primary_atom, None, CurrentTime);
-	}
-	if (c_owner == m_window) {
-		XSetSelectionOwner(m_display, Clipboard_atom, None, CurrentTime);
+	if (m_valid_setup) {
+		static Atom Primary_atom, Clipboard_atom;
+		Window p_owner, c_owner;
+		/*Change the owner of the Atoms to None if we are the owner*/
+		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+		Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
+
+
+		p_owner = XGetSelectionOwner(m_display, Primary_atom);
+		c_owner = XGetSelectionOwner(m_display, Clipboard_atom);
+
+		if (p_owner == m_window) {
+			XSetSelectionOwner(m_display, Primary_atom, None, CurrentTime);
+		}
+		if (c_owner == m_window) {
+			XSetSelectionOwner(m_display, Clipboard_atom, None, CurrentTime);
+		}
 	}
 	
 	if (m_visualInfo) {
@@ -1260,7 +1264,9 @@ GHOST_WindowX11::
 
 	releaseNativeHandles();
 
-	XDestroyWindow(m_display, m_window);
+	if (m_valid_setup) {
+		XDestroyWindow(m_display, m_window);
+	}
 }
 
 
