@@ -334,7 +334,7 @@ PyObject *BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_P
 		}
 		switch (attr_order) {
 		case BCA_IKWEIGHT:
-			return PyFloat_FromDouble((ikconstraint)?ikconstraint->weight : 0.0f);
+			return PyFloat_FromDouble(ikconstraint->weight);
 		case BCA_IKTYPE:
 			return PyLong_FromLong(ikconstraint->type);
 		case BCA_IKFLAG:
