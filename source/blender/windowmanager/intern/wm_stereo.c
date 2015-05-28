@@ -452,6 +452,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	const bool is_fullscreen = WM_window_is_fullscreen(win);
 	char prev_display_mode = win->stereo3d_format->display_mode;
 	Stereo3dData *s3dd;
+	bool ok = true;
 
 	if (G.background)
 		return OPERATOR_CANCELLED;
@@ -475,6 +476,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 		else {
 			BKE_report(op->reports, RPT_ERROR,
 			           "Failed to create a window without quad-buffer support, you may experience flickering");
+			ok = false;
 		}
 	}
 	else if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
@@ -489,12 +491,14 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 				wm_window_close(C, wm, win_new);
 				win->stereo3d_format->display_mode = prev_display_mode;
 				BKE_report(op->reports, RPT_ERROR, "Quad-buffer not supported by the system");
+				ok = false;
 			}
 		}
 		else {
+			win->stereo3d_format->display_mode = prev_display_mode;
 			BKE_report(op->reports, RPT_ERROR,
 			           "Failed to create a window compatible with the time sequential display method");
-			win->stereo3d_format->display_mode = prev_display_mode;
+			ok = false;
 		}
 	}
 
@@ -506,8 +510,15 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 
 	MEM_freeN(op->customdata);
 
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
-	return OPERATOR_FINISHED;
+	if (ok) {
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		/* without this, the popup won't be freed freed properly T44688 */
+		CTX_wm_window_set(C, win);
+		return OPERATOR_CANCELLED;
+	}
 }
 
 int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
