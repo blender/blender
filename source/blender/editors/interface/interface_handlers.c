@@ -387,7 +387,7 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *userd
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
 
 #ifdef USE_DRAG_MULTINUM
-static void ui_multibut_restore(uiHandleButtonData *data, uiBlock *block);
+static void ui_multibut_restore(bContext *C, uiHandleButtonData *data, uiBlock *block);
 static uiButMultiState *ui_multibut_lookup(uiHandleButtonData *data, const uiBut *but);
 #endif
 
@@ -945,7 +945,7 @@ static uiButMultiState *ui_multibut_lookup(uiHandleButtonData *data, const uiBut
 	return NULL;
 }
 
-static void ui_multibut_restore(uiHandleButtonData *data, uiBlock *block)
+static void ui_multibut_restore(bContext *C, uiHandleButtonData *data, uiBlock *block)
 {
 	uiBut *but;
 
@@ -954,6 +954,16 @@ static void ui_multibut_restore(uiHandleButtonData *data, uiBlock *block)
 			uiButMultiState *mbut_state = ui_multibut_lookup(data, but);
 			if (mbut_state) {
 				ui_but_value_set(but, mbut_state->origvalue);
+
+#ifdef USE_ALLSELECT
+				if (mbut_state->select_others.elems_len > 0) {
+					ui_selectcontext_apply(
+					        C, but, &mbut_state->select_others,
+					        mbut_state->origvalue, mbut_state->origvalue);
+				}
+#else
+				UNUSED_VARS(C);
+#endif
 			}
 		}
 	}
@@ -2061,7 +2071,7 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	if (data->multi_data.has_mbuts) {
 		if (data->multi_data.init == BUTTON_MULTI_INIT_ENABLE) {
 			if (data->cancel) {
-				ui_multibut_restore(data, block);
+				ui_multibut_restore(C, data, block);
 			}
 			else {
 				ui_multibut_states_apply(C, data, block);
