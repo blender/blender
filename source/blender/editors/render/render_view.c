@@ -245,6 +245,11 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceImage *sima = sa->spacedata.first;
 
+	/* ensure image editor fullscreen and area fullscreen states are in sync */
+	if ((sima->flag & SI_FULLWINDOW) && !sa->full) {
+		sima->flag &= ~SI_FULLWINDOW;
+	}
+
 	/* test if we have a temp screen in front */
 	if (win->screen->temp) {
 		wm_window_lower(win);
@@ -258,8 +263,9 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 			sima->flag &= ~SI_FULLWINDOW;
 			ED_screen_full_prevspace(C, sa);
 		}
-		else
+		else {
 			ED_area_prevspace(C, sa);
+		}
 
 		return OPERATOR_FINISHED;
 	}
