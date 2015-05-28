@@ -1113,13 +1113,28 @@ static bool find_next_pano_slice(Render *re, int *slice, int *minx, rctf *viewpl
 	return found;
 }
 
-static RenderPart *find_next_part(Render *re, int minx)
+typedef struct SortRenderPart {
+	RenderPart *pa;
+	long long int dist;
+} SortRenderPart;
+
+static int sort_render_part(const void *pa1, const void *pa2) {
+	const SortRenderPart *rpa1 = pa1;
+	const SortRenderPart *rpa2 = pa2;
+
+	if (rpa1->dist > rpa2->dist) return 1;
+	else if (rpa1->dist < rpa2->dist) return -1;
+
+	return 0;
+}
+
+static int sort_and_queue_parts(Render *re, int minx, ThreadQueue *workqueue)
 {
-	RenderPart *pa, *best = NULL;
+	RenderPart *pa;
 
 	/* long long int's needed because of overflow [#24414] */
 	long long int centx = re->winx / 2, centy = re->winy / 2, tot = 1;
-	long long int mindist = (long long int)re->winx * (long long int)re->winy;
+	int totsort = 0;
 	
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
@@ -1128,31 +1143,48 @@ static RenderPart *find_next_part(Render *re, int minx)
 			centy += BLI_rcti_cent_y(&pa->disprect);
 			tot++;
 		}
+		else if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
+			if (!(re->r.mode & R_PANORAMA) || pa->disprect.xmin == minx) {
+				totsort++;
+			}
+		}
 	}
 	centx /= tot;
 	centy /= tot;
 	
-	/* closest of the non-rendering parts */
-	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
-			long long int distx = centx - BLI_rcti_cent_x(&pa->disprect);
-			long long int disty = centy - BLI_rcti_cent_y(&pa->disprect);
-			distx = (long long int)sqrt(distx * distx + disty * disty);
-			if (distx < mindist) {
-				if (re->r.mode & R_PANORAMA) {
-					if (pa->disprect.xmin == minx) {
-						best = pa;
-						mindist = distx;
-					}
-				}
-				else {
-					best = pa;
-					mindist = distx;
+	if (totsort > 0) {
+		SortRenderPart *sortlist = MEM_mallocN(sizeof(*sortlist) * totsort, "renderpartsort");
+		long int i = 0;
+
+		/* prepare the list */
+		for (pa = re->parts.first; pa; pa = pa->next) {
+			if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
+				if (!(re->r.mode & R_PANORAMA) || pa->disprect.xmin == minx) {
+					long long int distx = centx - BLI_rcti_cent_x(&pa->disprect);
+					long long int disty = centy - BLI_rcti_cent_y(&pa->disprect);
+					sortlist[i].dist = (long long int)sqrt(distx * distx + disty * disty);
+					sortlist[i].pa = pa;
+					i++;
 				}
 			}
 		}
+
+		/* Now sort it */
+		qsort(sortlist, totsort, sizeof(*sortlist), sort_render_part);
+
+		/* Finally flush it to the workqueue */
+		for (i = 0; i < totsort; i++) {
+			pa = sortlist[i].pa;
+			pa->nr = i + 1; /* for nicest part, and for stats */
+			BLI_thread_queue_push(workqueue, pa);
+		}
+
+		MEM_freeN(sortlist);
+
+		return totsort;
 	}
-	return best;
+
+	return 0;
 }
 
 static void print_part_stats(Render *re, RenderPart *pa)
@@ -1264,11 +1296,7 @@ static void threaded_tile_processor(Render *re)
 	/* for panorama we loop over slices */
 	while (find_next_pano_slice(re, &slice, &minx, &viewplane)) {
 		/* gather parts into queue */
-		while ((pa = find_next_part(re, minx))) {
-			pa->nr = totpart + 1; /* for nicest part, and for stats */
-			totpart++;
-			BLI_thread_queue_push(workqueue, pa);
-		}
+		totpart = sort_and_queue_parts(re, minx, workqueue);
 		
 		BLI_thread_queue_nowait(workqueue);
 		
