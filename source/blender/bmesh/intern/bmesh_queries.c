@@ -1964,8 +1964,8 @@ bool BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
 			if (/* non-boundary edge */
 			    BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG) == false &&
 			    /* ...using boundary verts */
-			    BM_elem_flag_test(e->v1, BM_ELEM_INTERNAL_TAG) == true &&
-			    BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG) == true)
+			    BM_elem_flag_test(e->v1, BM_ELEM_INTERNAL_TAG) &&
+			    BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG))
 			{
 				int tot_face_tag = 0;
 				BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
