@@ -846,36 +846,6 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		m_cci.m_physicsEnv->AddCcdPhysicsController(this);
 
 
-/*	SM_Object* dynaparent=0;
-	SumoPhysicsController* sumoparentctrl = (SumoPhysicsController* )parentctrl;
-	
-	if (sumoparentctrl)
-	{
-		dynaparent = sumoparentctrl->GetSumoObject();
-	}
-	
-	SM_Object* orgsumoobject = m_sumoObj;
-	
-	
-	m_sumoObj	=	new SM_Object(
-		orgsumoobject->getShapeHandle(), 
-		orgsumoobject->getMaterialProps(),
-		orgsumoobject->getShapeProps(),
-		dynaparent);
-	
-	m_sumoObj->setRigidBody(orgsumoobject->isRigidBody());
-	
-	m_sumoObj->setMargin(orgsumoobject->getMargin());
-	m_sumoObj->setPosition(orgsumoobject->getPosition());
-	m_sumoObj->setOrientation(orgsumoobject->getOrientation());
-	//if it is a dyna, register for a callback
-	m_sumoObj->registerCallback(*this);
-	
-	m_sumoScene->add(* (m_sumoObj));
-	*/
-
-
-
 }
 
 void	CcdPhysicsController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *env)
