@@ -166,8 +166,8 @@ static BMFace *bm_edgenet_face_from_path(
 {
 	BMFace *f;
 	LinkNode *v_lnk;
-	unsigned int i;
-	unsigned int i_prev;
+	int i;
+	bool ok;
 
 	BMVert **vert_arr = BLI_array_alloca(vert_arr, path_len);
 	BMEdge **edge_arr = BLI_array_alloca(edge_arr, path_len);
@@ -176,11 +176,9 @@ static BMFace *bm_edgenet_face_from_path(
 		vert_arr[i] = v_lnk->link;
 	}
 
-	i_prev = path_len - 1;
-	for (i = 0; i < path_len; i++) {
-		edge_arr[i_prev] = BM_edge_exists(vert_arr[i], vert_arr[i_prev]);
-		i_prev = i;
-	}
+	ok = BM_edges_from_verts(edge_arr, vert_arr, i);
+	BLI_assert(ok);
+	UNUSED_VARS_NDEBUG(ok);
 
 	/* no need for this, we do overlap checks before allowing the path to be used */
 #if 0

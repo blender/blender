@@ -485,21 +485,13 @@ BMFace *BM_face_create_verts(
         const BMFace *f_example, const eBMCreateFlag create_flag, const bool create_edges)
 {
 	BMEdge **edge_arr = BLI_array_alloca(edge_arr, len);
-	int i, i_prev = len - 1;
 
 	if (create_edges) {
-		for (i = 0; i < len; i++) {
-			edge_arr[i_prev] = BM_edge_create(bm, vert_arr[i_prev], vert_arr[i], NULL, BM_CREATE_NO_DOUBLE);
-			i_prev = i;
-		}
+		BM_edges_from_verts_ensure(bm, edge_arr, vert_arr, len);
 	}
 	else {
-		for (i = 0; i < len; i++) {
-			edge_arr[i_prev] = BM_edge_exists(vert_arr[i_prev], vert_arr[i]);
-			if (edge_arr[i_prev] == NULL) {
-				return NULL;
-			}
-			i_prev = i;
+		if (BM_edges_from_verts(edge_arr, vert_arr, len) == false) {
+			return NULL;
 		}
 	}
 

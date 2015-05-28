@@ -29,6 +29,9 @@
 
 struct BMAllocTemplate;
 
+bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, const int len);
+void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr, const int len);
+
 BMFace *BM_face_create_quad_tri(
         BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
         const BMFace *f_example, const eBMCreateFlag create_flag);
