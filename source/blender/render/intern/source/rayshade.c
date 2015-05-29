@@ -795,7 +795,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 					traceray(origshi, origshr, depth-1, shi.co, shi.view, tracol, shi.obi, shi.vlr, 0);
 				
 				f= shr.alpha; f1= 1.0f-f;
-				nf= d * shi.mat->filter;
+				nf= (shi.mat->mode & MA_RAYTRANSP) ? d * shi.mat->filter : 0.0f;
 				fr= 1.0f+ nf*(shi.r-1.0f);
 				fg= 1.0f+ nf*(shi.g-1.0f);
 				fb= 1.0f+ nf*(shi.b-1.0f);
@@ -1629,9 +1629,9 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 
 		shade_ray(is, &shi, &shr);
 		if (shi.mat->material_type == MA_TYPE_SURFACE) {
-			const float d= (traflag & RAY_TRA) ?
-			            shade_by_transmission(is, &shi, &shr) :
-			            1.0f;
+			const float d = (shi.mat->mode & MA_RAYTRANSP) ?
+			                ((traflag & RAY_TRA) ? shade_by_transmission(is, &shi, &shr) : 1.0f) :
+			                0.0f;
 			/* mix colors based on shadfac (rgb + amount of light factor) */
 			addAlphaLight(col, shr.diff, shr.alpha, d*shi.mat->filter);
 		}
