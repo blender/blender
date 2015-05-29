@@ -467,6 +467,7 @@ void bilinear_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float 
 
 void bicubic_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 void nearest_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+void nearest_interpolation_color_wrap(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 void bilinear_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 

@@ -487,12 +487,15 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 							if (u < 0.0f) u += 1.0f;
 							if (v < 0.0f) v += 1.0f;
 							
-							u = u * ibuf->x - 0.5f;
-							v = v * ibuf->y - 0.5f;
+							u = u * ibuf->x;
+							v = v * ibuf->y;
 							
 							if (ibuf->rect_float) {
 								float rgba_f[4];
-								bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+								if (U.gameflags & USER_DISABLE_MIPMAP)
+									nearest_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+								else
+									bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
 								straight_to_premul_v4(rgba_f);
 								if (use_palette) {
 									linearrgb_to_srgb_v3_v3(color->rgb, rgba_f);
@@ -504,7 +507,10 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 							}
 							else {
 								unsigned char rgba[4];
-								bilinear_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+								if (U.gameflags & USER_DISABLE_MIPMAP)
+									nearest_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+								else
+									bilinear_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
 								if (use_palette) {
 									rgb_uchar_to_float(color->rgb, rgba);
 								}
