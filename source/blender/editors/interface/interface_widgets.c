@@ -100,7 +100,7 @@ typedef struct uiWidgetBase {
 	float inner_v[WIDGET_SIZE_MAX][2];
 	float inner_uv[WIDGET_SIZE_MAX][2];
 	
-	bool inner, outline, emboss, shadedir;
+	bool draw_inner, draw_outline, draw_emboss, draw_shadedir;
 	
 	uiWidgetTrias tria1;
 	uiWidgetTrias tria2;
@@ -237,10 +237,10 @@ static void widget_init(uiWidgetBase *wtb)
 	wtb->tria1.tot = 0;
 	wtb->tria2.tot = 0;
 
-	wtb->inner = 1;
-	wtb->outline = 1;
-	wtb->emboss = 1;
-	wtb->shadedir = 1;
+	wtb->draw_inner = true;
+	wtb->draw_outline = true;
+	wtb->draw_emboss = true;
+	wtb->draw_shadedir = true;
 }
 
 /* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
@@ -647,7 +647,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	glEnable(GL_BLEND);
 
 	/* backdrop non AA */
-	if (wtb->inner) {
+	if (wtb->draw_inner) {
 		if (wcol->shaded == 0) {
 			if (wcol->alpha_check) {
 				float inner_v_half[WIDGET_SIZE_MAX][2];
@@ -713,7 +713,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			
 			glShadeModel(GL_SMOOTH);
 			for (a = 0; a < wtb->totvert; a++, col_pt += 4) {
-				round_box_shade_col4_r(col_pt, col1, col2, wtb->inner_uv[a][wtb->shadedir]);
+				round_box_shade_col4_r(col_pt, col1, col2, wtb->inner_uv[a][wtb->draw_shadedir ? 1 : 0]);
 			}
 
 			glEnableClientState(GL_VERTEX_ARRAY);
@@ -729,7 +729,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	}
 	
 	/* for each AA step */
-	if (wtb->outline) {
+	if (wtb->draw_outline) {
 		float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
 		float triangle_strip_emboss[WIDGET_SIZE_MAX * 2][2]; /* only for emboss */
 
@@ -740,7 +740,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 		widget_verts_to_triangle_strip(wtb, wtb->totvert, triangle_strip);
 
-		if (wtb->emboss) {
+		if (wtb->draw_emboss) {
 			widget_verts_to_triangle_strip_open(wtb, wtb->halfwayvert, triangle_strip_emboss);
 		}
 
@@ -758,7 +758,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, wtb->totvert * 2 + 2);
 
 			/* emboss bottom shadow */
-			if (wtb->emboss) {
+			if (wtb->draw_emboss) {
 				UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss);
 
 				if (emboss[3]) {
@@ -2224,7 +2224,7 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	widget_softshadow(rect, roundboxalign, 0.25f * U.widget_unit);
 	
 	round_box_edges(&wtb, roundboxalign, rect, 0.25f * U.widget_unit);
-	wtb.emboss = 0;
+	wtb.draw_emboss = false;
 	widgetbase_draw(&wtb, wcol);
 	
 	glDisable(GL_BLEND);
@@ -2762,7 +2762,7 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
 	else
 		rad = 0.5f * BLI_rcti_size_x(rect);
 	
-	wtb.shadedir = (horizontal) ? 1 : 0;
+	wtb.draw_shadedir = (horizontal) ? true : false;
 	
 	/* draw back part, colors swapped and shading inverted */
 	if (horizontal)
@@ -2791,11 +2791,11 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
 		}
 
 		/* draw */
-		wtb.emboss = 0; /* only emboss once */
+		wtb.draw_emboss = false; /* only emboss once */
 		
 		/* exception for progress bar */
 		if (state & UI_SCROLL_NO_OUTLINE) {
-			SWAP(bool, outline, wtb.outline);
+			SWAP(bool, outline, wtb.draw_outline);
 		}
 		
 		round_box_edges(&wtb, UI_CNR_ALL, slider, rad);
@@ -2818,7 +2818,7 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
 		widgetbase_draw(&wtb, wcol);
 		
 		if (state & UI_SCROLL_NO_OUTLINE) {
-			SWAP(bool, outline, wtb.outline);
+			SWAP(bool, outline, wtb.draw_outline);
 		}
 	}
 }
@@ -2945,7 +2945,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	toffs = offs * 0.75f;
 	round_box_edges(&wtb, roundboxalign, rect, offs);
 
-	wtb.outline = 0;
+	wtb.draw_outline = false;
 	widgetbase_draw(&wtb, wcol);
 	
 	/* draw left/right parts only when not in text editing */
@@ -2970,7 +2970,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		/* left part of slider, always rounded */
 		rect1.xmax = rect1.xmin + ceil(offs + U.pixelsize);
 		round_box_edges(&wtb1, roundboxalign & ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT), &rect1, offs);
-		wtb1.outline = 0;
+		wtb1.draw_outline = false;
 		widgetbase_draw(&wtb1, wcol);
 		
 		/* right part of slider, interpolate roundness */
@@ -2995,8 +2995,8 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	}
 	
 	/* outline */
-	wtb.outline = 1;
-	wtb.inner = 0;
+	wtb.draw_outline = true;
+	wtb.draw_inner = false;
 	widgetbase_draw(&wtb, wcol);
 
 	/* add space at either side of the button so text aligns with numbuttons (which have arrow icons) */
@@ -3088,7 +3088,7 @@ static void widget_icon_has_anim(uiBut *but, uiWidgetColors *wcol, rcti *rect, i
 		float rad;
 		
 		widget_init(&wtb);
-		wtb.outline = 0;
+		wtb.draw_outline = false;
 		
 		/* rounded */
 		rad = 0.5f * BLI_rcti_size_y(rect);
@@ -3203,7 +3203,7 @@ static void widget_menu_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(sta
 	widget_init(&wtb);
 	
 	/* not rounded, no outline */
-	wtb.outline = 0;
+	wtb.draw_outline = false;
 	round_box_edges(&wtb, 0, rect, 0.0f);
 	
 	widgetbase_draw(&wtb, wcol);
@@ -3217,7 +3217,7 @@ static void widget_menu_radial_itembut(uiBut *but, uiWidgetColors *wcol, rcti *r
 
 	widget_init(&wtb);
 
-	wtb.emboss = 0;
+	wtb.draw_emboss = false;
 
 	rad = 0.5f * BLI_rcti_size_y(rect);
 	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
@@ -3240,7 +3240,7 @@ static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(sta
 	widget_init(&wtb);
 	
 	/* rounded, but no outline */
-	wtb.outline = 0;
+	wtb.draw_outline = false;
 	rad = 0.2f * U.widget_unit;
 	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 	
@@ -3393,8 +3393,8 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	
 	/* outline */
 	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
-	wtb.outline = 1;
-	wtb.inner = 0;
+	wtb.draw_outline = true;
+	wtb.draw_inner = false;
 	widgetbase_draw(&wtb, &wt->wcol);
 }
 
