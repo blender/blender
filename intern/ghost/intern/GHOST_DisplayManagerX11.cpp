@@ -90,6 +90,7 @@ getNumDisplaySettings(
 	numSettings = 1;
 #endif
 
+	(void) display;
 	return GHOST_kSuccess;
 }
 
@@ -115,6 +116,8 @@ getDisplaySetting(
 
 	if (dpy == NULL)
 		return GHOST_kFailure;
+
+	(void) display;
 
 #ifdef WITH_X11_XF86VMODE
 	int majorVersion, minorVersion;
