@@ -300,17 +300,14 @@ static void *bmw_LoopShellWalker_yield(BMWalker *walker)
 	return shellWalk->curloop;
 }
 
-static void *bmw_LoopShellWalker_step(BMWalker *walker)
+static void bmw_LoopShellWalker_step_impl(BMWalker *walker, BMLoop *l)
 {
-	BMwLoopShellWalker *swalk, owalk;
-	BMLoop *l;
-	int i;
 	BMEdge *e_edj_pair[2];
+	int i;
 
-	BMW_state_remove_r(walker, &owalk);
-	swalk = &owalk;
+	/* seems paranoid, but one caller also walks edges */
+	BLI_assert(l->head.htype == BM_LOOP);
 
-	l = swalk->curloop;
 	bmw_LoopShellWalker_visitLoop(walker, l->next);
 	bmw_LoopShellWalker_visitLoop(walker, l->prev);
 
@@ -332,8 +329,156 @@ static void *bmw_LoopShellWalker_step(BMWalker *walker)
 			} while ((l_iter = l_iter->radial_next) != l_first);
 		}
 	}
+}
+
+static void *bmw_LoopShellWalker_step(BMWalker *walker)
+{
+	BMwLoopShellWalker *swalk, owalk;
+	BMLoop *l;
+
+	BMW_state_remove_r(walker, &owalk);
+	swalk = &owalk;
+
+	l = swalk->curloop;
+	bmw_LoopShellWalker_step_impl(walker, l);
 
 	return l;
+}
+
+/** \} */
+
+/** \name LoopShell & 'Wire' Walker
+ * \{
+ *
+ * Piggyback ontop of #BMwLoopShellWalker, but also walk over wire edges
+ * This isn't elegant but users expect it when selecting linked,
+ * so we can support delimiters _and_ walking over wire edges.
+ *
+ * Details:
+ * - can yield edges (as well as loops)
+ * - only step over wire edges.
+ * - verts and edges are stored in `visit_set_alt`.
+ */
+
+static void bmw_LoopShellWalker_visitEdgeWire(BMWalker *walker, BMEdge *e)
+{
+	BMwLoopShellWireWalker *shellWalk = NULL;
+
+	BLI_assert(BM_edge_is_wire(e));
+
+	if (BLI_gset_haskey(walker->visit_set_alt, e)) {
+		return;
+	}
+
+	shellWalk = BMW_state_add(walker);
+	shellWalk->curelem = (BMElem *)e;
+	BLI_gset_insert(walker->visit_set_alt, e);
+}
+
+static void bmw_LoopShellWireWalker_visitVert(BMWalker *walker, BMVert *v, const BMEdge *e_from)
+{
+	BMEdge *e;
+
+	BLI_assert(v->head.htype == BM_VERT);
+
+	if (BLI_gset_haskey(walker->visit_set_alt, v)) {
+		return;
+	}
+
+	e = v->e;
+	do {
+		if (BM_edge_is_wire(e) && (e != e_from)) {
+			BMVert *v_other;
+			BMIter iter;
+			BMLoop *l;
+
+			bmw_LoopShellWalker_visitEdgeWire(walker, e);
+
+			/* check if we step onto a non-wire vertex */
+			v_other = BM_edge_other_vert(e, v);
+			BM_ITER_ELEM (l, &iter, v_other, BM_LOOPS_OF_VERT) {
+				bmw_LoopShellWalker_visitLoop(walker, l);
+			}
+		}
+	} while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+	BLI_gset_insert(walker->visit_set_alt, v);
+}
+
+static void bmw_LoopShellWireWalker_begin(BMWalker *walker, void *data)
+{
+	BMHeader *h = data;
+
+	if (UNLIKELY(h == NULL)) {
+		return;
+	}
+
+	bmw_LoopShellWalker_begin(walker, data);
+
+	switch (h->htype) {
+		case BM_LOOP:
+		{
+			BMLoop *l = (BMLoop *)h;
+			bmw_LoopShellWireWalker_visitVert(walker, l->v, NULL);
+			break;
+		}
+
+		case BM_VERT:
+		{
+			BMVert *v = (BMVert *)h;
+			bmw_LoopShellWireWalker_visitVert(walker, v, NULL);
+			break;
+		}
+		case BM_EDGE:
+		{
+			BMEdge *e = (BMEdge *)h;
+			if (BM_edge_is_wire(e)) {
+				bmw_LoopShellWalker_visitEdgeWire(walker, e);
+			}
+			break;
+		}
+		case BM_FACE:
+		{
+			/* wire verts will be walked over */
+			break;
+		}
+		default:
+			BLI_assert(0);
+	}
+}
+
+static void *bmw_LoopShellWireWalker_yield(BMWalker *walker)
+{
+	BMwLoopShellWireWalker *shellWalk = BMW_current_state(walker);
+	return shellWalk->curelem;
+}
+
+static void *bmw_LoopShellWireWalker_step(BMWalker *walker)
+{
+	BMwLoopShellWireWalker *swalk, owalk;
+
+	BMW_state_remove_r(walker, &owalk);
+	swalk = &owalk;
+
+	if (swalk->curelem->head.htype == BM_LOOP) {
+		BMLoop *l = (BMLoop *)swalk->curelem;
+
+		bmw_LoopShellWalker_step_impl(walker, l);
+
+		bmw_LoopShellWireWalker_visitVert(walker, l->v, NULL);
+
+		return l;
+	}
+	else {
+		BMEdge *e = (BMEdge *)swalk->curelem;
+
+		BLI_assert(e->head.htype == BM_EDGE);
+
+		bmw_LoopShellWireWalker_visitVert(walker, e->v1, e);
+		bmw_LoopShellWireWalker_visitVert(walker, e->v2, e);
+
+		return e;
+	}
 }
 
 /** \} */
@@ -1364,11 +1509,21 @@ static BMWalker bmw_VertShellWalker_Type = {
 };
 
 static BMWalker bmw_LoopShellWalker_Type = {
-	BM_LOOP | BM_VERT | BM_EDGE,
+	BM_FACE | BM_LOOP | BM_EDGE | BM_VERT,
 	bmw_LoopShellWalker_begin,
 	bmw_LoopShellWalker_step,
 	bmw_LoopShellWalker_yield,
 	sizeof(BMwLoopShellWalker),
+	BMW_BREADTH_FIRST,
+	BM_EDGE, /* valid restrict masks */
+};
+
+static BMWalker bmw_LoopShellWireWalker_Type = {
+	BM_FACE | BM_LOOP | BM_EDGE | BM_VERT,
+	bmw_LoopShellWireWalker_begin,
+	bmw_LoopShellWireWalker_step,
+	bmw_LoopShellWireWalker_yield,
+	sizeof(BMwLoopShellWireWalker),
 	BMW_BREADTH_FIRST,
 	BM_EDGE, /* valid restrict masks */
 };
@@ -1466,6 +1621,7 @@ static BMWalker bmw_ConnectedVertexWalker_Type = {
 BMWalker *bm_walker_types[] = {
 	&bmw_VertShellWalker_Type,          /* BMW_VERT_SHELL */
 	&bmw_LoopShellWalker_Type,          /* BMW_LOOP_SHELL */
+    &bmw_LoopShellWireWalker_Type,      /* BMW_LOOP_SHELL_WIRE */
 	&bmw_FaceShellWalker_Type,          /* BMW_FACE_SHELL */
 	&bmw_EdgeLoopWalker_Type,           /* BMW_EDGELOOP */
 	&bmw_FaceLoopWalker_Type,           /* BMW_FACELOOP */

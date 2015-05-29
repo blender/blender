@@ -2451,7 +2451,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			BM_elem_flag_set(v, BM_ELEM_TAG, BM_elem_flag_test(v, BM_ELEM_SELECT));
 		}
 
-		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
 		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
@@ -2459,10 +2459,20 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		if (delimit) {
 			BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-					BMLoop *l_walk;
-					BMW_ITER (l_walk, &walker, v) {
-						BM_vert_select_set(em->bm, l_walk->v, true);
-						BM_elem_flag_disable(l_walk->v, BM_ELEM_TAG);
+					BMElem *ele_walk;
+					BMW_ITER (ele_walk, &walker, v) {
+						if (ele_walk->head.htype == BM_LOOP) {
+							BMVert *v_step = ((BMLoop *)ele_walk)->v;
+							BM_vert_select_set(em->bm, v_step, true);
+							BM_elem_flag_disable(v_step, BM_ELEM_TAG);
+						}
+						else {
+							BMEdge *e_step = (BMEdge *)ele_walk;
+							BLI_assert(ele_walk->head.htype == BM_EDGE);
+							BM_edge_select_set(em->bm, e_step, true);
+							BM_elem_flag_disable(e_step->v1, BM_ELEM_TAG);
+							BM_elem_flag_disable(e_step->v2, BM_ELEM_TAG);
+						}
 					}
 				}
 			}
@@ -2490,7 +2500,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
 		}
 
-		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
 		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
@@ -2498,11 +2508,20 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		if (delimit) {
 			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-					BMLoop *l_walk;
-					BMW_ITER (l_walk, &walker, e) {
-						BM_edge_select_set(em->bm, l_walk->e, true);
-						BM_edge_select_set(em->bm, l_walk->prev->e, true);
-						BM_elem_flag_disable(l_walk->e, BM_ELEM_TAG);
+					BMElem *ele_walk;
+					BMW_ITER (ele_walk, &walker, e) {
+						if (ele_walk->head.htype == BM_LOOP) {
+							BMLoop *l_step = (BMLoop *)ele_walk;
+							BM_edge_select_set(em->bm, l_step->e, true);
+							BM_edge_select_set(em->bm, l_step->prev->e, true);
+							BM_elem_flag_disable(l_step->e, BM_ELEM_TAG);
+						}
+						else {
+							BMEdge *e_step = (BMEdge *)ele_walk;
+							BLI_assert(ele_walk->head.htype == BM_EDGE);
+							BM_edge_select_set(em->bm, e_step, true);
+							BM_elem_flag_disable(e_step, BM_ELEM_TAG);
+						}
 					}
 				}
 			}
@@ -2593,15 +2612,23 @@ static void edbm_select_linked_pick_ex(
 
 	if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
 
-		BMW_init(&walker, bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		BMW_init(&walker, bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
 		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		if (delimit) {
-			BMLoop *l_walk;
-			BMW_ITER (l_walk, &walker, eve) {
-				BM_vert_select_set(bm, l_walk->v, sel);
+			BMElem *ele_walk;
+			BMW_ITER (ele_walk, &walker, eve) {
+				if (ele_walk->head.htype == BM_LOOP) {
+					BMVert *v_step = ((BMLoop *)ele_walk)->v;
+					BM_vert_select_set(bm, v_step, sel);
+				}
+				else {
+					BMEdge *e_step = (BMEdge *)ele_walk;
+					BLI_assert(ele_walk->head.htype == BM_EDGE);
+					BM_edge_select_set(bm, e_step, sel);
+				}
 			}
 		}
 		else {
@@ -2617,16 +2644,23 @@ static void edbm_select_linked_pick_ex(
 	}
 	else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
 
-		BMW_init(&walker, bm, delimit ? BMW_LOOP_SHELL : BMW_VERT_SHELL,
+		BMW_init(&walker, bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
 		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
 		if (delimit) {
-			BMLoop *l_walk;
-			BMW_ITER (l_walk, &walker, eed) {
-				BM_edge_select_set(bm, l_walk->e, sel);
-				BM_edge_select_set(bm, l_walk->prev->e, sel);
+			BMElem *ele_walk;
+			BMW_ITER (ele_walk, &walker, eed) {
+				if (ele_walk->head.htype == BM_LOOP) {
+					BMEdge *e_step = ((BMLoop *)ele_walk)->e;
+					BM_edge_select_set(bm, e_step, sel);
+				}
+				else {
+					BMEdge *e_step = (BMEdge *)ele_walk;
+					BLI_assert(ele_walk->head.htype == BM_EDGE);
+					BM_edge_select_set(bm, e_step, sel);
+				}
 			}
 		}
 		else {
