@@ -1602,7 +1602,7 @@ static void processor_transform_init_handle(void *handle_v, int start_line, int 
 	int width = init_data->width;
 	bool predivide = init_data->predivide;
 
-	int offset = channels * start_line * width;
+	size_t offset = ((size_t)channels) * start_line * width;
 
 	memset(handle, 0, sizeof(ProcessorTransformThread));
 
@@ -1990,7 +1990,7 @@ void IMB_colormanagement_buffer_make_display_space(float *buffer, unsigned char 
                                                    const ColorManagedDisplaySettings *display_settings)
 {
 	ColormanageProcessor *cm_processor;
-	size_t float_buffer_size = width * height * channels * sizeof(float);
+	size_t float_buffer_size = ((size_t)width) * height * channels * sizeof(float);
 	float *display_buffer_float = MEM_mallocN(float_buffer_size, "byte_buffer_make_display_space");
 
 	memcpy(display_buffer_float, buffer, float_buffer_size);
@@ -2083,7 +2083,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		return display_buffer;
 	}
 
-	buffer_size = DISPLAY_BUFFER_CHANNELS * ibuf->x * ibuf->y * sizeof(char);
+	buffer_size = DISPLAY_BUFFER_CHANNELS * ((size_t)ibuf->x) * ibuf->y * sizeof(char);
 	display_buffer = MEM_callocN(buffer_size, "imbuf display buffer");
 
 	colormanage_display_buffer_process(ibuf, display_buffer, applied_view_settings, display_settings);
