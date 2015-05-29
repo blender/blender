@@ -1045,14 +1045,8 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 				ui_searchbox_butrect(&rect, data, a);
 				
 				/* widget itself */
-				if (data->preview) {
-					ui_draw_preview_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
-					                     (a == data->active) ? UI_ACTIVE : 0);
-				}
-				else {
-					ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
-					                  (a == data->active) ? UI_ACTIVE : 0, data->use_sep);
-				}
+				ui_draw_preview_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a],
+				                     (a == data->active) ? UI_ACTIVE : 0);
 			}
 			
 			/* indicate more */
