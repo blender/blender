@@ -64,7 +64,7 @@ def _gen_check_ctxt(settings):
 
 
 def _diff_check_ctxt(check_ctxt, minus_check_ctxt):
-    """Returns check_ctxt - minus_check_ctxt"""
+    """Removes minus_check_ctxt from check_ctxt"""
     for key in check_ctxt:
         if isinstance(check_ctxt[key], set):
             for warning in minus_check_ctxt[key]:
@@ -898,7 +898,7 @@ def dump_addon_messages(module_name, do_checks, settings):
             del msgs[key]
 
     if check_ctxt:
-        check_ctxt = _diff_check_ctxt(check_ctxt, minus_check_ctxt)
+        _diff_check_ctxt(check_ctxt, minus_check_ctxt)
 
     # and we are done with those!
     del minus_pot
