@@ -530,7 +530,7 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 
 	// write <source> for each layer
 	// each <source> will get id like meshName + "map-channel-1"
-	int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+	int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) -1;
 	for (int a = 0; a < num_layers; a++) {
 
 		if (!this->export_settings->active_uv_only || a == active_uv_index) {
