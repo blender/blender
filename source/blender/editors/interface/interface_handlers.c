@@ -1942,6 +1942,7 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 		if (data->str) MEM_freeN(data->str);
 		data->str = data->origstr;
+		data->origstr = NULL;
 		data->value = data->origvalue;
 		copy_v3_v3(data->vec, data->origvec);
 		/* postpone clearing origdata */
@@ -2085,7 +2086,6 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 #endif
 
 	if (data->cancel) {
-		data->origstr = NULL;
 		data->origvalue = 0.0;
 		zero_v3(data->origvec);
 	}
