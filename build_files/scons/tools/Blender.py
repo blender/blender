@@ -630,7 +630,7 @@ def WinPyBundle(target=None, source=None, env=None):
         py_tar+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.tar.gz'
 
     py_target = env.subst(env['BF_INSTALLDIR']).lstrip("#")
-    py_target = os.path.join(py_target, VERSION, 'python', 'lib')
+    py_target = os.path.join(py_target, VERSION, 'python')
     def printexception(func,path,ex):
         if os.path.exists(path): #do not report if path does not exist. eg on a fresh build.
             print str(func) + ' failed on ' + str(path)
