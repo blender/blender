@@ -2203,8 +2203,6 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 		MFace *mf;
 		MVert *mv;
 
-		int flen;
-
 		if (CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MTFace *tface = (MTFace *)dm->getTessFaceDataArray(dm, CD_MTFACE);
 			MTFace *tf;
@@ -2214,6 +2212,8 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 
 			for (mf = mface, tf = tface, i = 0; i < numpolys; mf++, tf++, i++) {
 				if (tf->mode & TF_DYNAMIC) {
+					int flen;
+
 					if (mf->v4) {
 						tot_bt_tris += 2;
 						flen = 4;
@@ -2255,12 +2255,10 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject *gameobj, class RA
 						fv_pt = quad_verts;
 						*poly_index_pt++ = origi;
 						*poly_index_pt++ = origi;
-						flen = 4;
 					}
 					else {
 						fv_pt = tri_verts;
 						*poly_index_pt++ = origi;
-						flen = 3;
 					}
 
 					for (; *fv_pt > -1; fv_pt++) {
