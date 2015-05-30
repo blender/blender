@@ -171,6 +171,7 @@ extern "C" {
 	/* Convex Hull */
 	PL_DECLARE_HANDLE(plConvexHull);
 	plConvexHull plConvexHullCompute(float (*coords)[3], int count);
+	void plConvexHullDelete(plConvexHull hull);
 	int plConvexHullNumVertices(plConvexHull hull);
 	int plConvexHullNumFaces(plConvexHull hull);
 	void plConvexHullGetVertex(plConvexHull hull, int n, float coords[3], int *original_index);

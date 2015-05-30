@@ -537,6 +537,9 @@ static void hull_from_bullet(
 	}
 
 	BLI_array_free(fvi);
+
+	plConvexHullDelete(hull);
+
 	MEM_freeN(hull_verts);
 	MEM_freeN(coords);
 	MEM_freeN(input_verts);

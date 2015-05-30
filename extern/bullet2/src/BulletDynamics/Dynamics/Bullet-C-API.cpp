@@ -413,6 +413,12 @@ plConvexHull plConvexHullCompute(float (*coords)[3], int count)
 	return reinterpret_cast<plConvexHull>(computer);
 }
 
+void plConvexHullDelete(plConvexHull hull)
+{
+	btConvexHullComputer *computer(reinterpret_cast< btConvexHullComputer* >(hull));
+	delete computer;
+}
+
 int plConvexHullNumVertices(plConvexHull hull)
 {
 	btConvexHullComputer *computer(reinterpret_cast< btConvexHullComputer* >(hull));
