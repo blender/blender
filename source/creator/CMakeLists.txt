@@ -650,9 +650,9 @@ elseif(WIN32)
 
 				execute_process(
 					COMMAND \${CMAKE_COMMAND} -E make_directory
-					        \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python/lib\"
+					        \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python\"
 					COMMAND \${CMAKE_COMMAND} -E
-					        chdir \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python/lib\"
+					        chdir \"\${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}/python\"
 					        \${CMAKE_COMMAND} -E
 					        tar xzfv \"\${PYTHON_ZIP}\"
 				)
