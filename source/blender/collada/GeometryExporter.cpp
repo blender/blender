@@ -530,10 +530,10 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 
 	// write <source> for each layer
 	// each <source> will get id like meshName + "map-channel-1"
-	int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) -1;
+	int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
 	for (int a = 0; a < num_layers; a++) {
-
-		if (!this->export_settings->active_uv_only || a == active_uv_index) {
+		int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, a);
+		if (!this->export_settings->active_uv_only || layer_index == active_uv_index) {
 			MLoopUV *mloops = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, a);
 			
 			COLLADASW::FloatSourceF source(mSW);
