@@ -187,7 +187,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	/* preview thumbnails */
 	if (template.prv_rows > 0 && template.prv_cols > 0) {
 		int w = 4 * U.widget_unit * template.prv_cols;
-		int h = ((int)(5.25f * U.widget_unit)) * template.prv_rows;
+		int h = 5 * U.widget_unit * template.prv_rows;
 		
 		/* fake button, it holds space for search items */
 		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, NULL, 0, 0, 0, 0, NULL);
@@ -1668,7 +1668,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 		int x, y;
 		/* XXX hardcoded size to 5 units */
 		const int w = UI_UNIT_X * 5;
-		const int h = args.show_labels ? (int)(6.25f * UI_UNIT_Y) : UI_UNIT_Y * 5;
+		const int h = args.show_labels ? 6 * UI_UNIT_Y : UI_UNIT_Y * 5;
 
 		x = (a % 8) * w;
 		y = (a / 8) * h;
