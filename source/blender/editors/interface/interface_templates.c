@@ -187,10 +187,10 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	/* preview thumbnails */
 	if (template.prv_rows > 0 && template.prv_cols > 0) {
 		int w = 4 * U.widget_unit * template.prv_cols;
-		int h = 4 * U.widget_unit * template.prv_rows + U.widget_unit;
+		int h = 4 * U.widget_unit * template.prv_rows;
 		
 		/* fake button, it holds space for search items */
-		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 15, w, h, NULL, 0, 0, 0, 0, NULL);
+		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, NULL, 0, 0, 0, 0, NULL);
 		
 		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
 		                     template.prv_rows, template.prv_cols, "");

@@ -70,8 +70,9 @@
 
 #include "interface_intern.h"
 
-#define MENU_TOP            8
+#define MENU_TOP			(int)(8 * UI_DPI_FAC)
 #define MENU_PADDING		(int)(0.2f * UI_UNIT_Y)
+#define MENU_BORDER			(int)(0.3f * U.widget_unit)
 
 static int rna_property_enum_step(const bContext *C, PointerRNA *ptr, PropertyRNA *prop, int direction)
 {
@@ -827,8 +828,8 @@ static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr
 {
 	/* thumbnail preview */
 	if (data->preview) {
-		int butw =  BLI_rcti_size_x(&data->bbox)                 / data->prv_cols;
-		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_TOP) / data->prv_rows;
+		int butw = (BLI_rcti_size_x(&data->bbox) - 2 * MENU_BORDER) / data->prv_cols;
+		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_BORDER) / data->prv_rows;
 		int row, col;
 		
 		*r_rect = data->bbox;
@@ -836,10 +837,10 @@ static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr
 		col = itemnr % data->prv_cols;
 		row = itemnr / data->prv_cols;
 		
-		r_rect->xmin += col * butw;
+		r_rect->xmin += MENU_BORDER + (col * butw);
 		r_rect->xmax = r_rect->xmin + butw;
 		
-		r_rect->ymax = data->bbox.ymax - MENU_TOP - (row * buth);
+		r_rect->ymax -= MENU_BORDER + (row * buth);
 		r_rect->ymin = r_rect->ymax - buth;
 	}
 	/* list view */
@@ -1159,25 +1160,27 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* compute position */
 	if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
-		const int margin = UI_POPUP_MARGIN;
+		const int margin_x = UI_POPUP_MARGIN;
+		const int margin_y = MENU_TOP;
+		const int search_but_h = BLI_rctf_size_y(&but->rect) + 10;
 		/* this case is search menu inside other menu */
 		/* we copy region size */
 
 		ar->winrct = butregion->winrct;
 		
 		/* widget rect, in region coords */
-		data->bbox.xmin = margin;
-		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - margin;
+		data->bbox.xmin = margin_x;
+		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - margin_x;
 		/* Do not use shadow width for height, gives insane margin with big shadows, and issue T41548 with small ones */
-		data->bbox.ymin = 8 * UI_DPI_FAC;
-		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - 8 * UI_DPI_FAC;
+		data->bbox.ymin = margin_y;
+		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - margin_y;
 		
 		/* check if button is lower half */
 		if (but->rect.ymax < BLI_rctf_cent_y(&but->block->rect)) {
-			data->bbox.ymin += BLI_rctf_size_y(&but->rect);
+			data->bbox.ymin += search_but_h;
 		}
 		else {
-			data->bbox.ymax -= BLI_rctf_size_y(&but->rect);
+			data->bbox.ymax -= search_but_h;
 		}
 	}
 	else {
