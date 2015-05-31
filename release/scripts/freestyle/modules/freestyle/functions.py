@@ -189,11 +189,13 @@ class CurveMaterialF0D(UnaryFunction0DMaterial):
     priority is used to pick one of the two materials at material
     boundaries.
 
-    Note: expects instances of CurvePoint to be iterated over
+    Notes: expects instances of CurvePoint to be iterated over
+           can return None if no fedge can be found
     """
     def __call__(self, inter):
         fe = inter.object.fedge
-        assert(fe is not None), "CurveMaterialF0D: fe is None"
+        if fe is None:
+            return None
         if fe.is_smooth:
             return fe.material
         else:

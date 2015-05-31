@@ -22,24 +22,29 @@ writing.
 """
 
 __all__ = (
-    "ContextFunctions",
     "bound",
-    "bounding_box",
+    "BoundingBox",
+    "ContextFunctions",
     "find_matching_vertex",
-    "getCurrentScene",
     "get_chain_length",
+    "get_object_name",
+    "get_strokes",
     "get_test_stroke",
+    "getCurrentScene",
     "integrate",
+    "is_poly_clockwise",
     "iter_distance_along_stroke",
     "iter_distance_from_camera",
     "iter_distance_from_object",
     "iter_material_value",
     "iter_t2d_along_stroke",
+    "material_from_fedge",
     "pairwise",
     "phase_to_direction",
     "rgb_to_bw",
     "stroke_curvature",
     "stroke_normal",
+    "StrokeCollector",
     "tripplewise",
     )
 
@@ -55,6 +60,7 @@ from _freestyle import (
 from freestyle.types import (
     Interface0DIterator,
     Stroke,
+    StrokeShader,
     StrokeVertexIterator,
     )
 
@@ -79,12 +85,38 @@ def bound(lower, x, higher):
     return (lower if x <= lower else higher if x >= higher else x)
 
 
-def bounding_box(stroke):
-    """
-    Returns the maximum and minimum coordinates (the bounding box) of the stroke's vertices
-    """
-    x, y = zip(*(svert.point for svert in stroke))
-    return (Vector((min(x), min(y))), Vector((max(x), max(y))))
+def get_strokes():
+    """Get all strokes that are currently available"""
+    return tuple(map(Operators().get_stroke_from_index, range(Operators().get_strokes_size())))
+
+
+def is_poly_clockwise(stroke):
+    """True if the stroke is orientated in a clockwise way, False otherwise"""
+    v = sum((v2.point.x - v1.point.x) * (v1.point.y + v2.point.y) for v1, v2 in pairwise(stroke))
+    v1, v2 = stroke[0], stroke[-1]
+    if (v1.point - v2.point).length > 1e-3:
+        v += (v2.point.x - v1.point.x) * (v1.point.y + v2.point.y)
+    return v > 0
+
+
+def get_object_name(stroke):
+    """Returns the name of the object that this stroke is drawn on."""
+    fedge = stroke[0].fedge
+    if fedge is None:
+        return None
+    return fedge.viewedge.viewshape.name
+
+
+def material_from_fedge(fe):
+    "get the diffuse rgba color from an FEdge"
+    if fe is None:
+        return None
+    if fe.is_smooth:
+        material = fe.material
+    else:
+        right, left = fe.material_right, fe.material_left
+        material = right if (right.priority > left.priority) else left
+    return material
 
 # -- General helper functions -- #
 
@@ -105,6 +137,54 @@ def phase_to_direction(length):
 # A named tuple primitive used for storing data that has an upper and
 # lower bound (e.g., thickness, range and certain values)
 BoundedProperty = namedtuple("BoundedProperty", ["min", "max", "delta"])
+
+
+class BoundingBox:
+    """Object representing a bounding box consisting out of 2 2D vectors"""
+
+    __slots__ = (
+        "minimum",
+        "maximum",
+        "size",
+        "corners",
+        )
+
+    def __init__(self, minimum: Vector, maximum: Vector):
+        self.minimum = minimum
+        self.maximum = maximum
+        if len(minimum) != len(maximum):
+            raise TypeError("Expected two vectors of size 2, got", minimum, maximum)
+        self.size = len(minimum)
+        self.corners = (minimum, maximum)
+
+    def __repr__(self):
+        return "BoundingBox(%r, %r)" % (self.minimum, self.maximum)
+
+    @classmethod
+    def from_sequence(cls, sequence):
+        """BoundingBox from sequence of 2D or 3D Vector objects"""
+        x, y = zip(*sequence)
+        mini = Vector((min(x), min(y)))
+        maxi = Vector((max(x), max(y)))
+        return cls(mini, maxi)
+
+    def inside(self, other):
+        """True if self inside other, False otherwise"""
+        if self.size != other.size:
+            raise TypeError("Expected two BoundingBox of the same size, got", self, other)
+        return (self.minimum.x >= other.minimum.x and self.minimum.y >= other.minimum.y and
+                self.maximum.x <= other.maximum.x and self.maximum.y <= other.maximum.y)
+
+
+class StrokeCollector(StrokeShader):
+    "Collects and Stores stroke objects"
+    def __init__(self):
+        StrokeShader.__init__(self)
+        self.strokes = []
+
+    def shade(self, stroke):
+        self.strokes.append(stroke)
+
 
 # -- helper functions for chaining -- #
 
@@ -146,6 +226,7 @@ def get_chain_length(ve, orientation):
 def find_matching_vertex(id, it):
     """Finds the matching vertex, or returns None."""
     return next((ve for ve in it if ve.id == id), None)
+
 
 # -- helper functions for iterating -- #
 
@@ -210,7 +291,7 @@ def iter_distance_from_object(stroke, location, range_min, range_max, normfac):
 
 
 def iter_material_value(stroke, func, attribute):
-    "Yields a specific material attribute from the vertex' underlying material."
+    """Yields a specific material attribute from the vertex' underlying material."""
     it = Interface0DIterator(stroke)
     for svert in it:
         material = func(it)
@@ -252,8 +333,9 @@ def iter_material_value(stroke, func, attribute):
             raise ValueError("unexpected material attribute: " + attribute)
         yield (svert, value)
 
+
 def iter_distance_along_stroke(stroke):
-    "Yields the absolute distance along the stroke up to the current vertex."
+    """Yields the absolute distance along the stroke up to the current vertex."""
     distance = 0.0
     # the positions need to be copied, because they are changed in the calling function
     points = tuple(svert.point.copy() for svert in stroke)
@@ -295,6 +377,7 @@ def stroke_curvature(it):
 
         yield abs(K)
 
+
 def stroke_normal(stroke):
     """
     Compute the 2D normal at the stroke vertex pointed by the iterator
@@ -304,7 +387,7 @@ def stroke_normal(stroke):
 
     The returned normals are dynamic: they update when the
     vertex position (and therefore the vertex normal) changes.
-    for use in geometry modifiers it is advised to 
+    for use in geometry modifiers it is advised to
     cast this generator function to a tuple or list
     """
     n = len(stroke) - 1
@@ -323,12 +406,13 @@ def stroke_normal(stroke):
             n2 = Vector((e2[1], -e2[0])).normalized()
             yield (n1 + n2).normalized()
 
+
 def get_test_stroke():
     """Returns a static stroke object for testing """
     from freestyle.types import Stroke, Interface0DIterator, StrokeVertexIterator, SVertex, Id, StrokeVertex
     # points for our fake stroke
     points = (Vector((1.0, 5.0, 3.0)), Vector((1.0, 2.0, 9.0)),
-              Vector((6.0, 2.0, 3.0)), Vector((7.0, 2.0, 3.0)), 
+              Vector((6.0, 2.0, 3.0)), Vector((7.0, 2.0, 3.0)),
               Vector((2.0, 6.0, 3.0)), Vector((2.0, 8.0, 3.0)))
     ids = (Id(0, 0), Id(1, 1), Id(2, 2), Id(3, 3), Id(4, 4), Id(5, 5))
 

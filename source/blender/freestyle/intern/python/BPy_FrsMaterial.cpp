@@ -30,6 +30,9 @@
 extern "C" {
 #endif
 
+#include "BLI_hash_mm2a.h"
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
@@ -478,6 +481,48 @@ static PyGetSetDef BPy_FrsMaterial_getseters[] = {
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
+static PyObject *BPy_FrsMaterial_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+{
+	const BPy_FrsMaterial *matA = NULL, *matB = NULL;
+	bool result = 0;
+
+	if (!BPy_FrsMaterial_Check(objectA) || !BPy_FrsMaterial_Check(objectB)) {
+		if (comparison_type == Py_NE) {
+			Py_RETURN_TRUE;
+		}
+		else {
+			Py_RETURN_FALSE;
+		}
+	}
+
+	matA = (BPy_FrsMaterial *)objectA;
+	matB = (BPy_FrsMaterial *)objectB;
+
+	switch (comparison_type) {
+		case Py_NE:
+			result = (*matA->m) != (*matB->m);
+			break;
+		case Py_EQ:
+			result = (*matA->m) == (*matB->m);
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "Material does not support this comparison type");
+			return NULL;
+	}
+
+	if (result == true) {
+		Py_RETURN_TRUE;
+	}
+	else {
+		Py_RETURN_FALSE;
+	}
+}
+
+
+static Py_hash_t FrsMaterial_hash(PyObject *self)
+{
+	return (Py_uhash_t)BLI_hash_mm2((const unsigned char *)self, sizeof(*self), 0);
+}
 /*-----------------------BPy_FrsMaterial type definition ------------------------------*/
 
 PyTypeObject FrsMaterial_Type = {
@@ -494,7 +539,7 @@ PyTypeObject FrsMaterial_Type = {
 	0,                              /* tp_as_number */
 	0,                              /* tp_as_sequence */
 	0,                              /* tp_as_mapping */
-	0,                              /* tp_hash  */
+	(hashfunc)FrsMaterial_hash,     /* tp_hash  */
 	0,                              /* tp_call */
 	0,                              /* tp_str */
 	0,                              /* tp_getattro */
@@ -504,7 +549,7 @@ PyTypeObject FrsMaterial_Type = {
 	FrsMaterial_doc,                /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
-	0,                              /* tp_richcompare */
+	(richcmpfunc)BPy_FrsMaterial_richcmpr, /* tp_richcompare */
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */

@@ -138,7 +138,7 @@ from freestyle.predicates import (
 
 from freestyle.utils import (
     bound,
-    bounding_box,
+    BoundingBox,
     phase_to_direction,
     )
 
@@ -865,7 +865,7 @@ class pyBluePrintCirclesShader(StrokeShader):
 
     def shade(self, stroke):
         # get minimum and maximum coordinates
-        p_min, p_max = bounding_box(stroke)
+        p_min, p_max = BoundingBox.from_sequence(svert.point for svert in stroke).corners
 
         stroke.resample(32 * self.__turns)
         sv_nb = len(stroke) // self.__turns
@@ -917,7 +917,7 @@ class pyBluePrintEllipsesShader(StrokeShader):
         self.__random_radius = random_radius
 
     def shade(self, stroke):
-        p_min, p_max = bounding_box(stroke)
+        p_min, p_max = BoundingBox.from_sequence(svert.point for svert in stroke).corners
 
         stroke.resample(32 * self.__turns)
         sv_nb = len(stroke) // self.__turns
@@ -964,7 +964,7 @@ class pyBluePrintSquaresShader(StrokeShader):
             return
 
         # get minimum and maximum coordinates
-        p_min, p_max = bounding_box(stroke)
+        p_min, p_max = BoundingBox.from_sequence(svert.point for svert in stroke).corners
 
         stroke.resample(32 * self.__turns)
         num_segments = len(stroke) // self.__turns
