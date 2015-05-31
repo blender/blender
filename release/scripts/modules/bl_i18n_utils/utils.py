@@ -162,13 +162,18 @@ def get_po_files_from_dir(root_dir, langs=set()):
         yield uid, po_file
 
 
-def enable_addons(addons={}, support={}, disable=False, check_only=False):
+def enable_addons(addons=None, support=None, disable=False, check_only=False):
     """
     Enable (or disable) addons based either on a set of names, or a set of 'support' types.
     Returns the list of all affected addons (as fake modules)!
     If "check_only" is set, no addon will be enabled nor disabled.
     """
     import addon_utils
+
+    if addons is None:
+        addons = {}
+    if support is None:
+        support = {}
 
     userpref = bpy.context.user_preferences
     used_ext = {ext.module for ext in userpref.addons}
@@ -212,13 +217,13 @@ class I18nMessage:
     __slots__ = ("msgctxt_lines", "msgid_lines", "msgstr_lines", "comment_lines", "is_fuzzy", "is_commented",
                  "settings")
 
-    def __init__(self, msgctxt_lines=[], msgid_lines=[], msgstr_lines=[], comment_lines=[],
+    def __init__(self, msgctxt_lines=None, msgid_lines=None, msgstr_lines=None, comment_lines=None,
                  is_commented=False, is_fuzzy=False, settings=settings):
         self.settings = settings
-        self.msgctxt_lines = msgctxt_lines
-        self.msgid_lines = msgid_lines
-        self.msgstr_lines = msgstr_lines
-        self.comment_lines = comment_lines
+        self.msgctxt_lines = msgctxt_lines or []
+        self.msgid_lines = msgid_lines or []
+        self.msgstr_lines = msgstr_lines or []
+        self.comment_lines = comment_lines or []
         self.is_fuzzy = is_fuzzy
         self.is_commented = is_commented
 

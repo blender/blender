@@ -416,19 +416,21 @@ def reset_all(reload_scripts=False):
                 disable(mod_name)
 
 
-def module_bl_info(mod, info_basis={"name": "",
-                                    "author": "",
-                                    "version": (),
-                                    "blender": (),
-                                    "location": "",
-                                    "description": "",
-                                    "wiki_url": "",
-                                    "support": 'COMMUNITY',
-                                    "category": "",
-                                    "warning": "",
-                                    "show_expanded": False,
-                                    }
-                   ):
+def module_bl_info(mod, info_basis=None):
+    if info_basis is None:
+        info_basis = {
+            "name": "",
+            "author": "",
+            "version": (),
+            "blender": (),
+            "location": "",
+            "description": "",
+            "wiki_url": "",
+            "support": 'COMMUNITY',
+            "category": "",
+            "warning": "",
+            "show_expanded": False,
+            }
 
     addon_info = getattr(mod, "bl_info", {})
 
