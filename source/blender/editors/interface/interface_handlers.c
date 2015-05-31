@@ -198,7 +198,7 @@ static void ui_selectcontext_apply(
 
 #define IS_ALLSELECT_EVENT(event) ((event)->alt != 0)
 
-/* just show a tinted color so users know its activated */
+/** just show a tinted color so users know its activated */
 #define UI_BUT_IS_SELECT_CONTEXT UI_BUT_NODE_ACTIVE
 
 #endif  /* USE_ALLSELECT */
@@ -206,15 +206,18 @@ static void ui_selectcontext_apply(
 
 #ifdef USE_DRAG_MULTINUM
 
-/* how far to drag before we check for gesture direction (in pixels),
+/**
+ * how far to drag before we check for gesture direction (in pixels),
  * note: half the height of a button is about right... */
 #define DRAG_MULTINUM_THRESHOLD_DRAG_X (UI_UNIT_Y / 4)
 
-/* how far to drag horizontally before we stop checking which buttons the gesture spans (in pixels),
+/**
+ * how far to drag horizontally before we stop checking which buttons the gesture spans (in pixels),
  * locking down the buttons so we can drag freely without worrying about vertical movement. */
 #define DRAG_MULTINUM_THRESHOLD_DRAG_Y (UI_UNIT_Y / 4)
 
-/* how strict to be when detecting a vertical gesture, [0.5 == sloppy], [0.9 == strict], (unsigned dot-product)
+/**
+ * how strict to be when detecting a vertical gesture, [0.5 == sloppy], [0.9 == strict], (unsigned dot-product)
  * note: we should be quite strict here, since doing a vertical gesture by accident should be avoided,
  * however with some care a user should be able to do a vertical movement without *missing*. */
 #define DRAG_MULTINUM_THRESHOLD_VERTICAL (0.75f)
@@ -2350,15 +2353,17 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 }
 
-/* ************************ password text ******************************
+/**
+ * Password Text
+ * =============
  *
  * Functions to convert password strings that should not be displayed
- * to asterisk representation (e.g. mysecretpasswd -> *************)
+ * to asterisk representation (e.g. 'mysecretpasswd' -> '*************')
  *
  * It converts every UTF-8 character to an asterisk, and also remaps
  * the cursor position and selection start/end.
  *
- * Note: remaping is used, because password could contain UTF-8 characters.
+ * \note: remaping is used, because password could contain UTF-8 characters.
  *
  */
 
@@ -2558,7 +2563,8 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 	ui_but_update(but);
 }
 
-/* this is used for both utf8 and ascii, its meant to be used for single keys,
+/**
+ * This is used for both utf8 and ascii, its meant to be used for single keys,
  * notice the buffer is either copied or not, so its not suitable for pasting in
  * - campbell */
 static bool ui_textedit_type_buf(
@@ -8397,13 +8403,14 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 
 /* ************************* menu handling *******************************/
 
-/* function used to prevent loosing the open menu when using nested pulldowns,
+/**
+ * Function used to prevent loosing the open menu when using nested pulldowns,
  * when moving mouse towards the pulldown menu over other buttons that could
  * steal the highlight from the current button, only checks:
  *
  * - while mouse moves in triangular area defined old mouse position and
- *   left/right side of new menu
- * - only for 1 second
+ *   left/right side of new menu.
+ * - only for 1 second.
  */
 
 static void ui_mouse_motion_towards_init_ex(uiPopupBlockHandle *menu, const int xy[2], const bool force)

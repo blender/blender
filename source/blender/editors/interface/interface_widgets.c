@@ -65,9 +65,9 @@
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
 /* ************** widget base functions ************** */
-/*
+/**
  * - in: roundbox codes for corner types and radius
- * - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
+ * - return: array of `[size][2][x, y]` points, the edges of the roundbox, + UV coords
  *
  * - draw black box with alpha 0 on exact button boundbox
  * - for every AA step:
@@ -107,7 +107,7 @@ typedef struct uiWidgetBase {
 	
 } uiWidgetBase;
 
-/* uiWidgetType: for time being only for visual appearance,
+/** uiWidgetType: for time being only for visual appearance,
  * later, a handling callback can be added too 
  */
 typedef struct uiWidgetType {
@@ -929,7 +929,8 @@ static void ui_text_clip_give_next_off(uiBut *but, const char *str)
 	but->ofs += bytes;
 }
 
-/* Helper.
+/**
+ * Helper.
  * This func assumes things like kerning handling have already been handled!
  * Return the length of modified (right-clipped + ellipsis) string.
  */
@@ -1626,17 +1627,6 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 /* *********************** widget types ************************************* */
 
-
-/* uiWidgetStateColors
- *     char inner_anim[4];
- *     char inner_anim_sel[4];
- *     char inner_key[4];
- *     char inner_key_sel[4];
- *     char inner_driven[4];
- *     char inner_driven_sel[4];
- *     float blend;
- */
-
 static struct uiWidgetStateColors wcol_state_colors = {
 	{115, 190, 76, 255},
 	{90, 166, 51, 255},
@@ -1646,18 +1636,6 @@ static struct uiWidgetStateColors wcol_state_colors = {
 	{153, 0, 230, 255},
 	0.5f, 0.0f
 };
-
-/* uiWidgetColors
- *     char outline[3];
- *     char inner[4];
- *     char inner_sel[4];
- *     char item[3];
- *     char text[3];
- *     char text_sel[3];
- *     
- *     short shaded;
- *     float shadetop, shadedown;
- */
 
 static struct uiWidgetColors wcol_num = {
 	{25, 25, 25, 255},

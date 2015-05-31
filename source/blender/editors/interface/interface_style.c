@@ -64,7 +64,7 @@
 
 /* style + theme + layout-engine = UI */
 
-/* 
+/**
  * This is a complete set of layout rules, the 'state' of the Layout 
  * Engine. Multiple styles are possible, defined via C or Python. Styles 
  * get a name, and will typically get activated per region type, like 

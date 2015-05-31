@@ -210,8 +210,9 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 }
 
 
-/* XXX Disabled paneltab handling for now. Old 2.4x feature, *DO NOT* confuse it with new tool tabs in 2.70. ;)
- *     See also T41704.
+/**
+ * XXX Disabled paneltab handling for now. Old 2.4x feature, *DO NOT* confuse it with new tool tabs in 2.70. ;)
+ * See also T41704.
  */
 /* #define UI_USE_PANELTAB */
 
@@ -737,11 +738,13 @@ typedef struct PanelSort {
 	Panel *pa, *orig;
 } PanelSort;
 
-/* note about sorting;
+/**
+ * \note about sorting;
  * the sortorder has a lower value for new panels being added.
  * however, that only works to insert a single panel, when more new panels get
  * added the coordinates of existing panels and the previously stored to-be-inserted
- * panels do not match for sorting */
+ * panels do not match for sorting
+ */
 
 static int find_leftmost_panel(const void *a1, const void *a2)
 {

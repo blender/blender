@@ -2729,7 +2729,8 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 	return (uiLayout *)ui_layout_box(layout, UI_BTYPE_ROUNDBOX);
 }
 
-/* Check all buttons defined in this layout, and set any button flagged as UI_BUT_LIST_ITEM as active/selected.
+/**
+ * Check all buttons defined in this layout, and set any button flagged as UI_BUT_LIST_ITEM as active/selected.
  * Needed to handle correctly text colors of active (selected) list item.
  */
 void ui_layout_list_set_labels_active(uiLayout *layout)

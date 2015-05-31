@@ -379,12 +379,11 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 
 
 /* -------------------------------------------------------------------- */
-/* Data Dropper
- *
- * note: datadropper is only internal name to avoid confusion in this file
- */
+/* Data Dropper */
 
 /** \name Eyedropper (ID data-blocks)
+ *
+ * \note: datadropper is only internal name to avoid confusion in this file.
  * \{ */
 
 typedef struct DataDropper {
@@ -653,12 +652,11 @@ void UI_OT_eyedropper_id(wmOperatorType *ot)
 
 
 /* -------------------------------------------------------------------- */
-/* Depth Dropper
- *
- * note: depthdropper is only internal name to avoid confusion in this file
- */
+/* Depth Dropper */
 
 /** \name Eyedropper (Depth)
+ *
+ * \note: depthdropper is only internal name to avoid confusion in this file.
  * \{ */
 
 typedef struct DepthDropper {

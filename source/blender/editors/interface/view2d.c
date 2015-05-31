@@ -363,8 +363,9 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 	
 }
 
-/* Ensure View2D rects remain in a viable configuration 
- *	- cur is not allowed to be: larger than max, smaller than min, or outside of tot
+/**
+ * Ensure View2D rects remain in a viable configuration
+ * 'cur' is not allowed to be: larger than max, smaller than min, or outside of 'tot'
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
 static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_scrollers)
@@ -844,7 +845,8 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 }
 
 
-/* Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot) 
+/**
+ * Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot)
  * This does not take into account if zooming the view on an axis will improve the view (if allowed)
  */
 void UI_view2d_curRect_reset(View2D *v2d)
@@ -1100,8 +1102,10 @@ void UI_view2d_view_ortho(View2D *v2d)
 	glLoadIdentity();
 }
 
-/* Set view matrices to only use one axis of 'cur' only
- *	- xaxis     = if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
+/**
+ * Set view matrices to only use one axis of 'cur' only
+ *
+ * \param xaxis: if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
  */
 void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, const bool xaxis)
 {

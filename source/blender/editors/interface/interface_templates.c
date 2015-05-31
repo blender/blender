@@ -362,7 +362,8 @@ static const char *template_id_browse_tip(StructRNA *type)
 	return N_("Browse ID data to be linked");
 }
 
-/* Return a type-based i18n context, needed e.g. by "New" button.
+/**
+ * \return a type-based i18n context, needed e.g. by "New" button.
  * In most languages, this adjective takes different form based on gender of type name...
  */
 #ifdef WITH_INTERNATIONAL
@@ -687,7 +688,8 @@ void uiTemplateIDPreview(
 
 /************************ ID Chooser Template ***************************/
 
-/* This is for selecting the type of ID-block to use, and then from the relevant type choosing the block to use 
+/**
+ * This is for selecting the type of ID-block to use, and then from the relevant type choosing the block to use
  *
  * - propname: property identifier for property that ID-pointer gets stored to
  * - proptypename: property identifier for property used to determine the type of ID-pointer that can be used
@@ -747,7 +749,8 @@ void uiTemplateAnyID(
 
 /* ---------- */
 
-/* This is creating/editing RNA-Paths 
+/**
+ * This is creating/editing RNA-Paths
  *
  * - ptr: struct which holds the path property
  * - propname: property identifier for property that path gets stored to
@@ -2478,10 +2481,10 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 	/* see view3d_header.c */
 }
 
-/* TODO:
- * - for now, grouping of layers is determined by dividing up the length of
- *   the array of layer bitflags */
-
+/**
+ * \todo for now, grouping of layers is determined by dividing up the length of
+ * the array of layer bitflags
+ */
 void uiTemplateLayers(
         uiLayout *layout, PointerRNA *ptr, const char *propname,
         PointerRNA *used_ptr, const char *used_propname, int active_layer)
@@ -2622,10 +2625,11 @@ void uiTemplateGameStates(
 
 
 /************************* List Template **************************/
-static void uilist_draw_item_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout,
-                                     struct PointerRNA *UNUSED(dataptr), struct PointerRNA *itemptr, int icon,
-                                     struct PointerRNA *UNUSED(active_dataptr), const char *UNUSED(active_propname),
-                                     int UNUSED(index), int UNUSED(flt_flag))
+static void uilist_draw_item_default(
+        struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout,
+        struct PointerRNA *UNUSED(dataptr), struct PointerRNA *itemptr, int icon,
+        struct PointerRNA *UNUSED(active_dataptr), const char *UNUSED(active_propname),
+        int UNUSED(index), int UNUSED(flt_flag))
 {
 	PropertyRNA *nameprop = RNA_struct_name_property(itemptr->type);
 

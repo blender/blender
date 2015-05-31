@@ -824,8 +824,9 @@ static void ui_theme_space_init_handles_color(ThemeSpace *theme_space)
 	rgba_char_args_set(theme_space->act_spline, 0xdb, 0x25, 0x12, 255);
 }
 
-/* initialize default theme
- * Note: when you add new colors, created & saved themes need initialized
+/**
+ * initialize default theme
+ * \note: when you add new colors, created & saved themes need initialized
  * use function below, init_userdef_do_versions()
  */
 void ui_theme_init_default(void)

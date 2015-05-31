@@ -83,11 +83,11 @@
 
 #define B_NOP -1
 
-/* 
- * a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt
+/**
+ * a full doc with API notes can be found in 'blender/doc/guides/interface_API.txt'
  * 
- * uiBlahBlah()		external function
- * ui_blah_blah()	internal function
+ * `uiBlahBlah()`	external function.
+ * `ui_blah_blah()`	internal function.
  */
 
 static void ui_but_free(const bContext *C, uiBut *but);
@@ -1100,13 +1100,16 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 	return found;
 }
 
-/* this goes in a seemingly weird pattern:
+/**
+ * This goes in a seemingly weird pattern:
  *
+ * <pre>
  *     4
  *  5     6
  * 1       2
  *  7     8
  *     3
+ * </pre>
  *
  * but it's actually quite logical. It's designed to be 'upwards compatible'
  * for muscle memory so that the menu item locations are fixed and don't move
@@ -3098,13 +3101,13 @@ void ui_block_cm_to_scene_linear_v3(uiBlock *block, float pixel[3])
 /**
  * \brief ui_def_but is the function that draws many button types
  *
- * \param x,y The lower left hand corner of the button (X axis)
- * \param width,height The size of the button.
+ * \param x, y: The lower left hand corner of the button (X axis)
+ * \param width, height: The size of the button.
  *
  * for float buttons:
- * - \a a1 Click Step (how much to change the value each click)
- * - \a a2 Number of decimal point values to display. 0 defaults to 3 (0.000)
- *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
+ * \param a1: Click Step (how much to change the value each click)
+ * \param a2: Number of decimal point values to display. 0 defaults to 3 (0.000)
+ * 1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
 static uiBut *ui_def_but(
         uiBlock *block, int type, int retval, const char *str,
@@ -4321,8 +4324,11 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
 }
 
 
-/* arg is user value, searchfunc and handlefunc both get it as arg */
-/* if active set, button opens with this item visible and selected */
+/**
+ * \param sfunc, bfunc: both get it as \a arg.
+ * \param arg: user value,
+ * \param  active: when set, button opens with this item visible and selected.
+ */
 void UI_but_func_search_set(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc, void *active)
 {
 	but->search_func = sfunc;
@@ -4391,8 +4397,10 @@ static void operator_enum_call_cb(struct bContext *UNUSED(C), void *but, void *a
 	}
 }
 
-/* Same parameters as for uiDefSearchBut, with additional operator type and properties, used by callback
- * to call again the right op with the right options (properties values). */
+/**
+ * Same parameters as for uiDefSearchBut, with additional operator type and properties, used by callback
+ * to call again the right op with the right options (properties values).
+ */
 uiBut *uiDefSearchButO_ptr(
         uiBlock *block, wmOperatorType *ot, IDProperty *properties,
         void *arg, int retval, int icon, int maxlen, int x, int y,
@@ -4415,7 +4423,8 @@ uiBut *uiDefSearchButO_ptr(
 	return but;
 }
 
-/* push a new event onto event queue to activate the given button 
+/**
+ * push a new event onto event queue to activate the given button
  * (usually a text-field) upon entering a popup
  */
 void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
