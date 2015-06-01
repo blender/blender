@@ -1629,10 +1629,11 @@ static bool ui_but_drag_init(bContext *C, uiBut *but, uiHandleButtonData *data, 
 			ar_prev = CTX_wm_region(C);
 			CTX_wm_region_set(C, data->region);
 
-			WM_event_add_ui_handler(C, &data->window->modalhandlers,
-			                        ui_handler_region_drag_toggle,
-			                        ui_handler_region_drag_toggle_remove,
-			                        drag_info, false);
+			WM_event_add_ui_handler(
+			        C, &data->window->modalhandlers,
+			        ui_handler_region_drag_toggle,
+			        ui_handler_region_drag_toggle_remove,
+			        drag_info, WM_HANDLER_BLOCKING);
 
 			CTX_wm_region_set(C, ar_prev);
 		}
@@ -7519,7 +7520,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	if (!(but->block->handle && but->block->handle->popup)) {
 		if (button_modal_state(state)) {
 			if (!button_modal_state(data->state))
-				WM_event_add_ui_handler(C, &data->window->modalhandlers, ui_handler_region_menu, NULL, data, false);
+				WM_event_add_ui_handler(C, &data->window->modalhandlers, ui_handler_region_menu, NULL, data, 0);
 		}
 		else {
 			if (button_modal_state(data->state)) {
@@ -9835,12 +9836,12 @@ static void ui_popup_handler_remove(bContext *C, void *userdata)
 void UI_region_handlers_add(ListBase *handlers)
 {
 	WM_event_remove_ui_handler(handlers, ui_region_handler, ui_region_handler_remove, NULL, false);
-	WM_event_add_ui_handler(NULL, handlers, ui_region_handler, ui_region_handler_remove, NULL, false);
+	WM_event_add_ui_handler(NULL, handlers, ui_region_handler, ui_region_handler_remove, NULL, 0);
 }
 
-void UI_popup_handlers_add(bContext *C, ListBase *handlers, uiPopupBlockHandle *popup, const bool accept_dbl_click)
+void UI_popup_handlers_add(bContext *C, ListBase *handlers, uiPopupBlockHandle *popup, const char flag)
 {
-	WM_event_add_ui_handler(C, handlers, ui_popup_handler, ui_popup_handler_remove, popup, accept_dbl_click);
+	WM_event_add_ui_handler(C, handlers, ui_popup_handler, ui_popup_handler_remove, popup, flag);
 }
 
 void UI_popup_handlers_remove(ListBase *handlers, uiPopupBlockHandle *popup)

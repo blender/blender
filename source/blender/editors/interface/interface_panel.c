@@ -1294,7 +1294,7 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
 	        C, &win->modalhandlers,
 	        ui_panel_drag_collapse_handler,
 	        ui_panel_drag_collapse_handler_remove,
-	        dragcol_data, false);
+	        dragcol_data, 0);
 }
 
 /* this function is supposed to call general window drawing too */
@@ -2107,7 +2107,7 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 			data = MEM_callocN(sizeof(uiHandlePanelData), "uiHandlePanelData");
 			pa->activedata = data;
 
-			WM_event_add_ui_handler(C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa, false);
+			WM_event_add_ui_handler(C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa, 0);
 		}
 
 		if (ELEM(state, PANEL_STATE_ANIMATION, PANEL_STATE_DRAG))

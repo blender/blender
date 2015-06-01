@@ -746,7 +746,7 @@ void                       UI_panel_category_draw_all(struct ARegion *ar, const 
  * as screen/ if ED_KEYMAP_UI is set, or internally in popup functions. */
 
 void UI_region_handlers_add(struct ListBase *handlers);
-void UI_popup_handlers_add(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *popup, const bool accept_dbl_click);
+void UI_popup_handlers_add(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *popup, const char flag);
 void UI_popup_handlers_remove(struct ListBase *handlers, uiPopupBlockHandle *popup);
 void UI_popup_handlers_remove_all(struct bContext *C, struct ListBase *handlers);
 

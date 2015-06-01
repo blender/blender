@@ -45,8 +45,8 @@ struct ARegion;
 typedef struct wmEventHandler {
 	struct wmEventHandler *next, *prev;
 
-	int type;                           /* WM_HANDLER_DEFAULT, ... */
-	int flag;                           /* WM_HANDLER_BLOCKING, ... */
+	char type;                          /* WM_HANDLER_DEFAULT, ... */
+	char flag;                          /* WM_HANDLER_BLOCKING, ... */
 
 	/* keymap handler */
 	wmKeyMap *keymap;                   /* pointer to builtin/custom keymaps */
@@ -75,13 +75,6 @@ typedef struct wmEventHandler {
 enum {
 	WM_HANDLER_DEFAULT,
 	WM_HANDLER_FILESELECT
-};
-
-/* handler flag */
-enum {
-	WM_HANDLER_BLOCKING             = (1 << 0),  /* after this handler all others are ignored */
-	WM_HANDLER_DO_FREE              = (1 << 1),  /* handler tagged to be freed in wm_handlers_do() */
-	WM_HANDLER_ACCEPT_DBL_CLICK     = (1 << 2),  /* handler accepts double key press events */
 };
 
 /* wm_event_system.c */

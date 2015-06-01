@@ -2677,7 +2677,7 @@ void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 wmEventHandler *WM_event_add_ui_handler(
         const bContext *C, ListBase *handlers,
         wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove,
-        void *userdata, const bool accept_dbl_click)
+        void *userdata, const char flag)
 {
 	wmEventHandler *handler = MEM_callocN(sizeof(wmEventHandler), "event ui handler");
 	handler->ui_handle = ui_handle;
@@ -2694,9 +2694,8 @@ wmEventHandler *WM_event_add_ui_handler(
 		handler->ui_menu    = NULL;
 	}
 
-	if (accept_dbl_click) {
-		handler->flag |= WM_HANDLER_ACCEPT_DBL_CLICK;
-	}
+	BLI_assert((flag & WM_HANDLER_DO_FREE) == 0);
+	handler->flag = flag;
 	
 	BLI_addhead(handlers, handler);
 	

@@ -2617,7 +2617,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
 	if (!but) {
 		handle->popup = true;
 
-		UI_popup_handlers_add(C, &window->modalhandlers, handle, false);
+		UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
 		WM_event_add_mousemove(C);
 	}
 	
@@ -2679,7 +2679,7 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 	menu = ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_POPUP, pup);
 	menu->popup = true;
 	
-	UI_popup_handlers_add(C, &window->modalhandlers, menu, false);
+	UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
 	WM_event_add_mousemove(C);
 	
 	MEM_freeN(pup);
@@ -2805,7 +2805,9 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
 	menu->popup = true;
 	menu->towardstime = PIL_check_seconds_timer();
 
-	UI_popup_handlers_add(C, &window->modalhandlers, menu, true);
+	UI_popup_handlers_add(
+	        C, &window->modalhandlers,
+	        menu, WM_HANDLER_ACCEPT_DBL_CLICK);
 	WM_event_add_mousemove(C);
 
 	MEM_freeN(pie);
@@ -2997,7 +2999,7 @@ void UI_popup_block_invoke_ex(bContext *C, uiBlockCreateFunc func, void *arg, co
 	handle->optype = (opname) ? WM_operatortype_find(opname, 0) : NULL;
 	handle->opcontext = opcontext;
 	
-	UI_popup_handlers_add(C, &window->modalhandlers, handle, false);
+	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
 	WM_event_add_mousemove(C);
 }
 
@@ -3020,7 +3022,7 @@ void UI_popup_block_ex(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc po
 	handle->cancel_func = cancel_func;
 	// handle->opcontext = opcontext;
 	
-	UI_popup_handlers_add(C, &window->modalhandlers, handle, false);
+	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
 	WM_event_add_mousemove(C);
 }
 
@@ -3039,7 +3041,7 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
 	handle->cancel_func = confirm_cancel_operator;
 	handle->opcontext = opcontext;
 	
-	UI_popup_handlers_add(C, &window->modalhandlers, handle);
+	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
 	WM_event_add_mousemove(C);
 }
 #endif
