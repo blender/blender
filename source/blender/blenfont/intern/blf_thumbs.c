@@ -90,6 +90,10 @@ void BLF_thumb_preview(
 	font_size_curr = font_size;
 
 	for (i = 0; i < draw_str_lines; i++) {
+		const char *draw_str_i18n = BLF_translate_do(BLF_I18NCONTEXT_DEFAULT, draw_str[i]);
+		const size_t draw_str_i18n_len = strlen(draw_str_i18n);
+		int draw_str_i18n_nbr = 0;
+
 		blf_font_size(font, (unsigned int)MAX2(font_size_min, font_size_curr), dpi);
 
 		/* decrease font size each time */
@@ -98,7 +102,19 @@ void BLF_thumb_preview(
 
 		font->pos[1] -= font->glyph_cache->ascender * 1.1f;
 
-		blf_font_buffer(font, BLF_translate_do(BLF_I18NCONTEXT_DEFAULT, draw_str[i]));
+		/* We fallback to default english strings in case not enough chars are available in current font for given
+		 * translated string (useful in non-latin i18n context, like chinese, since many fonts will then show
+		 * nothing but ugly 'missing char' in their preview).
+		 * Does not handle all cases, but much better than nothing.
+		 */
+		if (blf_font_count_missing_chars(
+		        font, draw_str_i18n, draw_str_i18n_len, &draw_str_i18n_nbr) > (draw_str_i18n_nbr / 2))
+		{
+			blf_font_buffer(font, draw_str[i]);
+		}
+		else {
+			blf_font_buffer(font, draw_str_i18n);
+		}
 	}
 
 	blf_font_free(font);

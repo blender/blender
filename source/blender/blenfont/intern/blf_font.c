@@ -667,6 +667,28 @@ float blf_font_fixed_width(FontBLF *font)
 	return g->advance;
 }
 
+int blf_font_count_missing_chars(FontBLF *font, const char *str, const size_t len, int *r_tot_chars)
+{
+	int missing = 0;
+	size_t i = 0;
+
+	*r_tot_chars = 0;
+	while (i < len) {
+		unsigned int c;
+
+		if ((c = str[i]) < 0x80) {
+			i++;
+		}
+		else if ((c = BLI_str_utf8_as_unicode_step(str, &i)) != BLI_UTF8_ERR) {
+			if (FT_Get_Char_Index((font)->face, c) == 0) {
+				missing++;
+			}
+		}
+		(*r_tot_chars)++;
+	}
+	return missing;
+}
+
 void blf_font_free(FontBLF *font)
 {
 	GlyphCacheBLF *gc;

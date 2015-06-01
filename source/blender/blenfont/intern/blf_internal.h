@@ -62,6 +62,9 @@ void blf_font_width_and_height(struct FontBLF *font, const char *str, size_t len
 float blf_font_width(struct FontBLF *font, const char *str, size_t len);
 float blf_font_height(struct FontBLF *font, const char *str, size_t len);
 float blf_font_fixed_width(struct FontBLF *font);
+
+int blf_font_count_missing_chars(struct FontBLF *font, const char *str, const size_t len, int *r_tot_chars);
+
 void blf_font_free(struct FontBLF *font);
 
 struct GlyphCacheBLF *blf_glyph_cache_find(struct FontBLF *font, unsigned int size, unsigned int dpi);
