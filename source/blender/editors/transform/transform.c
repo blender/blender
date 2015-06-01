@@ -6624,6 +6624,10 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
 	/* first get the direction of the original mouse position */
 	sub_v2_v2v2(dir, imval_fl, mval_fl);
 	ED_view3d_win_to_delta(t->ar, dir, dir, t->zfac);
+
+	invert_m4_m4(t->obedit->imat, t->obedit->obmat);
+	mul_mat3_m4_v3(t->obedit->imat, dir);
+
 	normalize_v3(dir);
 
 	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
@@ -6979,6 +6983,10 @@ static void drawVertSlide(TransInfo *t)
 				mval_ofs[1] = t->mval[1] - t->imval[1];
 
 				ED_view3d_win_to_delta(t->ar, mval_ofs, co_dest_3d, zfac);
+
+				invert_m4_m4(t->obedit->imat, t->obedit->obmat);
+				mul_mat3_m4_v3(t->obedit->imat, co_dest_3d);
+
 				add_v3_v3(co_dest_3d, curr_sv->co_orig_3d);
 
 				glLineWidth(1);
