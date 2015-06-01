@@ -566,10 +566,9 @@ void WM_event_print(const wmEvent *event)
 		RNA_enum_identifier(event_type_items, event->type, &type_id);
 		RNA_enum_identifier(event_value_items, event->val, &val_id);
 
-		printf("wmEvent  type:%d / %s, val:%d / %s, \n"
-		       "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, \n"
-		       "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', "
-		       "         keymap_idname:%s, pointer:%p\n",
+		printf("wmEvent  type:%d / %s, val:%d / %s,\n"
+		       "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d,\n"
+		       "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', keymap_idname:%s, pointer:%p\n",
 		       event->type, type_id, event->val, val_id,
 		       event->shift, event->ctrl, event->alt, event->oskey, event->keymodifier,
 		       event->x, event->y, event->ascii,
@@ -579,16 +578,18 @@ void WM_event_print(const wmEvent *event)
 		if (ISNDOF(event->type)) {
 			const wmNDOFMotionData *ndof = event->customdata;
 			if (event->type == NDOF_MOTION) {
-				printf("   ndof: rot: (%.4f %.4f %.4f),\n"
-				       "          tx: (%.4f %.4f %.4f),\n"
-				       "          dt: %.4f, progress: %d\n",
-				       UNPACK3(ndof->rvec),
-				       UNPACK3(ndof->tvec),
-				       ndof->dt, ndof->progress);
+				printf("   ndof: rot: (%.4f %.4f %.4f), tx: (%.4f %.4f %.4f), dt: %.4f, progress: %d\n",
+				       UNPACK3(ndof->rvec), UNPACK3(ndof->tvec), ndof->dt, ndof->progress);
 			}
 			else {
 				/* ndof buttons printed already */
 			}
+		}
+
+		if (event->tablet_data) {
+			const wmTabletData *wmtab = event->tablet_data;
+			printf(" tablet: active: %d, pressure %.4f, tilt: (%.4f %.4f)\n",
+			       wmtab->Active, wmtab->Pressure, wmtab->Xtilt, wmtab->Ytilt);
 		}
 	}
 	else {
