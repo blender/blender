@@ -897,7 +897,7 @@ static void add_nodes(Scene *scene,
 				output_map[b_output->ptr.data] = proxy->outputs[0];
 			}
 			
-			if (b_group_ntree) {
+			if(b_group_ntree) {
 				add_nodes(scene,
 				          b_engine,
 				          b_data,

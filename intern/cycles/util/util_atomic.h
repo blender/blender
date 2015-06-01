@@ -53,9 +53,9 @@ ccl_device_inline void atomic_add_float(volatile ccl_global float *source,
 	do {
 		prev_value.float_value = *source;
 		new_value.float_value = prev_value.float_value + operand;
-	} while (atomic_cmpxchg((volatile ccl_global unsigned int *)source,
-	                        prev_value.int_value,
-	                        new_value.int_value) != prev_value.int_value);
+	} while(atomic_cmpxchg((volatile ccl_global unsigned int *)source,
+	                       prev_value.int_value,
+	                       new_value.int_value) != prev_value.int_value);
 }
 
 #endif  /* __KERNEL_OPENCL__ */
