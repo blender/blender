@@ -415,7 +415,9 @@ public:
 
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 	bool has_spatial_varying() { return true; }
-	virtual int get_feature() { return NODE_FEATURE_HAIR; }
+	virtual int get_feature() {
+		return ShaderNode::get_feature() | NODE_FEATURE_HAIR;
+	}
 };
 
 class ValueNode : public ShaderNode {
