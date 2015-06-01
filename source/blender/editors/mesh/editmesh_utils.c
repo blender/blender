@@ -777,18 +777,11 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 	/* vars from original func */
 	UvElementMap *element_map;
 	UvElement *buf;
-	UvElement *islandbuf;
-	/* island number for faces */
-	int *island_number;
 	bool *winding;
 	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
 	MLoopUV *luv;
-	int totverts, totfaces, i, totuv, j, nislands = 0, islandbufsize = 0;
-
-	unsigned int *map;
-	BMFace **stack;
-	int stacksize = 0;
+	int totverts, totfaces, i, totuv, j;
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
@@ -798,9 +791,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 	totverts = bm->totvert;
 	totuv = 0;
 
-	island_number = MEM_mallocN(sizeof(*stack) * totfaces, "uv_island_number_face");
-	winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
-
 	/* generate UvElement array */
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
@@ -809,26 +799,20 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 	}
 
 	if (totuv == 0) {
-		MEM_freeN(island_number);
 		return NULL;
 	}
+
 	element_map = (UvElementMap *)MEM_callocN(sizeof(*element_map), "UvElementMap");
-	if (!element_map) {
-		MEM_freeN(island_number);
-		return NULL;
-	}
 	element_map->totalUVs = totuv;
 	element_map->vert = (UvElement **)MEM_callocN(sizeof(*element_map->vert) * totverts, "UvElementVerts");
 	buf = element_map->buf = (UvElement *)MEM_callocN(sizeof(*element_map->buf) * totuv, "UvElement");
 
-	if (!element_map->vert || !element_map->buf) {
-		BM_uv_element_map_free(element_map);
-		MEM_freeN(island_number);
-		return NULL;
-	}
+	winding = MEM_mallocN(sizeof(*winding) * totfaces, "winding");
 
 	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, j) {
-		island_number[j] = INVALID_ISLAND;
+
+		winding[j] = false;
+
 		if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, efa->len);
 
@@ -900,11 +884,24 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 		element_map->vert[i] = newvlist;
 	}
 
+	MEM_freeN(winding);
+
 	if (do_islands) {
+		unsigned int *map;
+		BMFace **stack;
+		int stacksize = 0;
+		UvElement *islandbuf;
+		/* island number for faces */
+		int *island_number = NULL;
+
+		int nislands = 0, islandbufsize = 0;
+
 		/* map holds the map from current vmap->buf to the new, sorted map */
 		map = MEM_mallocN(sizeof(*map) * totuv, "uvelement_remap");
 		stack = MEM_mallocN(sizeof(*stack) * bm->totface, "uv_island_face_stack");
 		islandbuf = MEM_callocN(sizeof(*islandbuf) * totuv, "uvelement_island_buffer");
+		island_number = MEM_mallocN(sizeof(*island_number) * totfaces, "uv_island_number_face");
+		copy_vn_i(island_number, totfaces, INVALID_ISLAND);
 
 		/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
 		for (i = 0; i < totuv; i++) {
@@ -953,6 +950,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 			}
 		}
 
+		MEM_freeN(island_number);
+
 		/* remap */
 		for (i = 0; i < bm->totvert; i++) {
 			/* important since we may do selection only. Some of these may be NULL */
@@ -961,14 +960,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 		}
 
 		element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands, "UvElementMap_island_indices");
-		if (!element_map->islandIndices) {
-			MEM_freeN(islandbuf);
-			MEM_freeN(stack);
-			MEM_freeN(map);
-			BM_uv_element_map_free(element_map);
-			MEM_freeN(island_number);
-		}
-
 		j = 0;
 		for (i = 0; i < totuv; i++) {
 			UvElement *element = element_map->buf[i].next;
@@ -991,8 +982,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm, const bool selected, const boo
 		MEM_freeN(map);
 	}
 
-	MEM_freeN(island_number);
-	MEM_freeN(winding);
 	BLI_buffer_free(&tf_uv_buf);
 
 	return element_map;
