@@ -481,24 +481,39 @@ void ShaderManager::add_default(Scene *scene)
 	}
 }
 
-void ShaderManager::get_requested_features(Scene *scene, int& max_group, int& features)
+/* NOTE: Expects max_group and features to be initialized in the callee. */
+void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
+                                                 int& max_group,
+                                                 int& features)
+{
+	foreach(ShaderNode *node, graph->nodes) {
+		max_group = min(max_group, node->get_group());
+		features |= node->get_feature();
+		if(node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
+			BsdfNode *bsdf_node = static_cast<BsdfNode*>(node);
+			if(CLOSURE_IS_VOLUME(bsdf_node->closure)) {
+				features |= NODE_FEATURE_VOLUME;
+			}
+		}
+	}
+}
+
+void ShaderManager::get_requested_features(Scene *scene,
+                                           int& max_group,
+                                           int& features)
 {
 	max_group = NODE_GROUP_LEVEL_0;
 	features = 0;
 	for(int i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];
 		/* Gather requested features from all the nodes from the graph nodes. */
-		foreach(ShaderNode *node, shader->graph->nodes) {
-			max_group = min(max_group, node->get_group());
-			features |= node->get_feature();
-			if(node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
-				BsdfNode *bsdf_node = static_cast<BsdfNode*>(node);
-				if(CLOSURE_IS_VOLUME(bsdf_node->closure)) {
-					features |= NODE_FEATURE_VOLUME;
-				}
-			}
-		}
+		get_requested_graph_features(shader->graph, max_group, features);
 		/* Gather requested features from the graph itself. */
+		if(shader->graph_bump) {
+			get_requested_graph_features(shader->graph_bump,
+			                             max_group,
+			                             features);
+		}
 		ShaderNode *output_node = shader->graph->output();
 		if(output_node->input("Displacement")->link != NULL) {
 			features |= NODE_FEATURE_BUMP;

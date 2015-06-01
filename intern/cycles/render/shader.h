@@ -166,7 +166,9 @@ public:
 	static void add_default(Scene *scene);
 
 	/* Selective nodes compilation. */
-	void get_requested_features(Scene *scene, int& max_group, int& features);
+	void get_requested_features(Scene *scene,
+	                            int& max_group,
+	                            int& features);
 
 protected:
 	ShaderManager();
@@ -178,6 +180,10 @@ protected:
 	static vector<float> beckmann_table;
 
 	size_t beckmann_table_offset;
+
+	void get_requested_graph_features(ShaderGraph *graph,
+	                                  int& max_group,
+	                                  int& features);
 };
 
 CCL_NAMESPACE_END
