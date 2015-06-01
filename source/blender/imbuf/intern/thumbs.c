@@ -200,6 +200,17 @@ static void escape_uri_string(const char *string, char *escaped_string, int esca
 
 /** ----- end of adapted code from glib --- */
 
+static bool thumbhash_from_path(const char *UNUSED(path), ThumbSource source, char *r_hash)
+{
+	switch (source) {
+		case THB_SOURCE_FONT:
+			return IMB_thumb_load_font_get_hash(r_hash);
+		default:
+			r_hash[0] = '\0';
+			return false;
+	}
+}
+
 static int uri_from_filename(const char *path, char *uri)
 {
 	char orig_uri[URI_MAX];
@@ -298,7 +309,8 @@ void IMB_thumb_makedirs(void)
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
 static ImBuf *thumb_create_ex(
-        const char *file_path, const char *uri, const char *thumb, ThumbSize size, ThumbSource source, ImBuf *img)
+        const char *file_path, const char *uri, const char *thumb, const bool use_hash, const char *hash,
+        ThumbSize size, ThumbSource source, ImBuf *img)
 {
 	char desc[URI_MAX + 22];
 	char tpath[FILE_MAX];
@@ -420,6 +432,9 @@ static ImBuf *thumb_create_ex(
 		IMB_metadata_change_field(img, "Software", "Blender");
 		IMB_metadata_change_field(img, "Thumb::URI", uri);
 		IMB_metadata_change_field(img, "Thumb::MTime", mtime);
+		if (use_hash) {
+			IMB_metadata_change_field(img, "X-Blender::Hash", hash);
+		}
 		if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
 			IMB_metadata_change_field(img, "Thumb::Image::Width", cwidth);
 			IMB_metadata_change_field(img, "Thumb::Image::Height", cheight);
@@ -447,7 +462,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 	uri_from_filename(path, uri);
 	thumbname_from_uri(uri, thumb_name, sizeof(thumb_name));
 
-	return thumb_create_ex(path, uri, thumb_name, size, source, img);
+	return thumb_create_ex(path, uri, thumb_name, false, THUMB_DEFAULT_HASH, size, source, img);
 }
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
@@ -495,15 +510,10 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 	char uri[URI_MAX];
 	const char *file_path;
 	const char *path;
-	char path_buff[FILE_MAX];
 	BLI_stat_t st;
 	ImBuf *img = NULL;
 
 	path = file_path = org_path;
-	if (source == THB_SOURCE_FONT) {
-		BLI_snprintf(path_buff, sizeof(path_buff), "%s.%s", org_path, IMB_thumb_load_font_get_language());
-		path = path_buff;
-	}
 
 	if (BLI_stat(file_path, &st) == -1) {
 		return NULL;
@@ -532,24 +542,38 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 			img = IMB_loadiffname(thumb_path, IB_rect | IB_metadata, NULL);
 			if (img) {
 				char mtime[40];
-				if (!IMB_metadata_get_field(img, "Thumb::MTime", mtime, 40)) {
+
+				if (!IMB_metadata_get_field(img, "Thumb::MTime", mtime, sizeof(mtime))) {
 					/* illegal thumb, forget it! */
 					IMB_freeImBuf(img);
 					img = NULL;
 				}
 				else {
 					time_t t = atol(mtime);
-					if (st.st_mtime != t) {
+					char thumb_hash[33];
+					char thumb_hash_curr[33];
+
+					const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
+
+					if (use_hash) {
+						if (!IMB_metadata_get_field(img, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr))) {
+							thumb_hash_curr[0] = '\0';
+						}
+					}
+
+					if (st.st_mtime != t ||
+					    (use_hash && (thumb_hash_curr[0] == '\0' || !STREQ(thumb_hash, thumb_hash_curr)))) {
 						/* recreate all thumbs */
 						IMB_freeImBuf(img);
 						img = NULL;
 						IMB_thumb_delete(path, THB_NORMAL);
 						IMB_thumb_delete(path, THB_LARGE);
 						IMB_thumb_delete(path, THB_FAIL);
-						img = thumb_create_ex(file_path, uri, thumb_name, size, source, NULL);
+						img = thumb_create_ex(file_path, uri, thumb_name, use_hash, thumb_hash, size, source, NULL);
 						if (!img) {
 							/* thumb creation failed, write fail thumb */
-							img = thumb_create_ex(file_path, uri, thumb_name, THB_FAIL, source, NULL);
+							img = thumb_create_ex(
+							          file_path, uri, thumb_name, use_hash, thumb_hash, THB_FAIL, source, NULL);
 							if (img) {
 								/* we don't need failed thumb anymore */
 								IMB_freeImBuf(img);
@@ -560,10 +584,14 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 				}
 			}
 			else {
-				img = thumb_create_ex(file_path, uri, thumb_name, size, source, NULL);
+				char thumb_hash[33];
+
+				const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
+
+				img = thumb_create_ex(file_path, uri, thumb_name, use_hash, thumb_hash, size, source, NULL);
 				if (!img) {
 					/* thumb creation failed, write fail thumb */
-					img = thumb_create_ex(file_path, uri, thumb_name, THB_FAIL, source, NULL);
+					img = thumb_create_ex(file_path, uri, thumb_name, use_hash, thumb_hash, THB_FAIL, source, NULL);
 					if (img) {
 						/* we don't need failed thumb anymore */
 						IMB_freeImBuf(img);

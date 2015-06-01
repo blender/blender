@@ -25,6 +25,9 @@
  */
 
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
+#include "BLI_fileops.h"
+#include "BLI_hash_md5.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -36,18 +39,18 @@
 #include "../../blenfont/BLF_api.h"
 #include "../../blenfont/BLF_translation.h"  /* 'N_' macro and BLF_lang_get()... */
 
+static const char *thumb_str[] = {
+    N_("AaBbCc"),
+
+    N_("The quick"),
+    N_("brown fox"),
+    N_("jumps over"),
+    N_("the lazy dog"),
+};
 
 struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y)
 {
 	const int font_size = y / 4;
-	const char *thumb_str[] = {
-	    N_("AaBbCc"),
-
-	    N_("The quick"),
-	    N_("brown fox"),
-	    N_("jumps over"),
-	    N_("the lazy dog"),
-	};
 
 	struct ImBuf *ibuf;
 	float font_color[4];
@@ -72,7 +75,26 @@ struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned
 	return ibuf;
 }
 
-const char *IMB_thumb_load_font_get_language(void)
+bool IMB_thumb_load_font_get_hash(char *r_hash)
 {
-	return BLF_lang_get();
+	char buf[1024];
+	char *str = buf;
+	size_t len = 0;
+
+	int draw_str_lines = ARRAY_SIZE(thumb_str);
+	int i;
+
+	unsigned char digest[16];
+
+	len += BLI_strncpy_rlen(str + len, THUMB_DEFAULT_HASH, sizeof(buf) - len);
+
+	for (i = 0; (i < draw_str_lines) && (len < sizeof(buf)); i++) {
+		len += BLI_strncpy_rlen(str + len, BLF_translate_do(BLF_I18NCONTEXT_DEFAULT, thumb_str[i]), sizeof(buf) - len);
+	}
+
+	BLI_hash_md5_buffer(str, len, digest);
+	r_hash[0] = '\0';
+	BLI_hash_md5_to_hexdigest(digest, r_hash);
+
+	return true;
 }

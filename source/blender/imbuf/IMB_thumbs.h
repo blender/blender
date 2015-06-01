@@ -63,6 +63,11 @@ typedef enum ThumbSource {
 
 #define PREVIEW_RENDER_DEFAULT_HEIGHT 128
 
+/* Note this can also be used as versionning system,
+ * to force refreshing all thumbnails if e.g. we change some thumb generating code or so.
+ * Only used by fonts so far. */
+#define THUMB_DEFAULT_HASH  "00000000000000000000000000000000"
+
 /* create thumbnail for file and returns new imbuf for thumbnail */
 ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, ImBuf *ibuf);
 
@@ -84,7 +89,7 @@ void   IMB_thumb_overlay_blend(unsigned int *thumb, int width, int height, float
 
 /* special function for previewing fonts */
 ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y);
-const char *IMB_thumb_load_font_get_language(void);
+bool IMB_thumb_load_font_get_hash(char *r_hash);
 
 #ifdef __cplusplus
 }
