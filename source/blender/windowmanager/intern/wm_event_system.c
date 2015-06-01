@@ -618,6 +618,11 @@ void WM_report_banner_show(const bContext *C)
 	wm_reports->reporttimer->customdata = rti;
 }
 
+bool WM_event_is_absolute(const wmEvent *event)
+{
+	return (event->tablet_data != NULL);
+}
+
 static void wm_add_reports(const bContext *C, ReportList *reports)
 {
 	/* if the caller owns them, handle this */

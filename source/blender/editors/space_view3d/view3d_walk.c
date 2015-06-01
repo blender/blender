@@ -26,8 +26,6 @@
 
 /* defines VIEW3D_OT_navigate - walk modal operator */
 
-//#define NDOF_WALK_DEBUG
-//#define NDOF_WALK_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesnt thrash - campbell */
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
@@ -57,6 +55,11 @@
 #include "UI_resources.h"
 
 #include "view3d_intern.h"  /* own include */
+
+//#define NDOF_WALK_DEBUG
+//#define NDOF_WALK_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesnt thrash - campbell */
+
+#define USE_TABLET_SUPPORT
 
 /* prototypes */
 static float getVelocityZeroTime(const float gravity, const float velocity);
@@ -275,6 +278,14 @@ typedef struct WalkInfo {
 
 	/* mouse reverse */
 	bool is_reversed;
+
+#ifdef USE_TABLET_SUPPORT
+	/* check if we had a cursor event before */
+	bool is_cursor_first;
+
+	/* tablet devices (we can't relocate the cursor) */
+	bool is_cursor_absolute;
+#endif
 
 	/* gravity system */
 	eWalkGravityState gravity_state;
@@ -519,6 +530,12 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 
 	walk->is_reversed = ((U.walk_navigation.flag & USER_WALK_MOUSE_REVERSE) != 0);
 
+#ifdef USE_TABLET_SUPPORT
+	walk->is_cursor_first = true;
+
+	walk->is_cursor_absolute = false;
+#endif
+
 	walk->active_directions = 0;
 
 #ifdef NDOF_WALK_DRAW_TOOMUCH
@@ -586,10 +603,16 @@ static int walkEnd(bContext *C, WalkInfo *walk)
 	/* restore the cursor */
 	WM_cursor_modal_restore(win);
 
-	/* center the mouse */
-	WM_cursor_warp(win,
-	               walk->ar->winrct.xmin + walk->center_mval[0],
-	               walk->ar->winrct.ymin + walk->center_mval[1]);
+#ifdef USE_TABLET_SUPPORT
+	if (walk->is_cursor_absolute == false)
+#endif
+	{
+		/* center the mouse */
+		WM_cursor_warp(
+		        win,
+		        walk->ar->winrct.xmin + walk->center_mval[0],
+		        walk->ar->winrct.ymin + walk->center_mval[1]);
+	}
 
 	if (walk->state == WALK_CONFIRM) {
 		MEM_freeN(walk);
@@ -617,6 +640,27 @@ static void walkEvent(bContext *C, wmOperator *UNUSED(op), WalkInfo *walk, const
 	}
 	else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 
+#ifdef USE_TABLET_SUPPORT
+		if (walk->is_cursor_first) {
+			/* wait until we get the 'warp' event */
+			if ((walk->center_mval[0] == event->mval[0]) &&
+			    (walk->center_mval[1] == event->mval[1]))
+			{
+				walk->is_cursor_first = false;
+			}
+			return;
+		}
+
+		if ((walk->is_cursor_absolute == false) && WM_event_is_absolute(event)) {
+			walk->is_cursor_absolute = true;
+			copy_v2_v2_int(walk->prev_mval, event->mval);
+			copy_v2_v2_int(walk->center_mval, event->mval);
+			/* without this we can't turn 180d */
+			CLAMP_MIN(walk->mouse_speed, 4.0f);
+		}
+#endif  /* USE_TABLET_SUPPORT */
+
+
 		walk->moffset[0] += event->mval[0] - walk->prev_mval[0];
 		walk->moffset[1] += event->mval[1] - walk->prev_mval[1];
 
@@ -627,6 +671,12 @@ static void walkEvent(bContext *C, wmOperator *UNUSED(op), WalkInfo *walk, const
 		{
 			walk->redraw = true;
 
+#ifdef USE_TABLET_SUPPORT
+			if (walk->is_cursor_absolute) {
+				/* pass */
+			}
+			else
+#endif
 			if (wm_event_is_last_mousemove(event)) {
 				wmWindow *win = CTX_wm_window(C);
 
