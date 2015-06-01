@@ -43,7 +43,12 @@ CCL_NAMESPACE_BEGIN
 
 #define NODE_FEATURE_VOLUME     (1 << 0)
 #define NODE_FEATURE_HAIR       (1 << 1)
-#define NODE_FEATURE_ALL        (NODE_FEATURE_VOLUME|NODE_FEATURE_HAIR)
+#define NODE_FEATURE_BUMP       (1 << 2)
+/* TODO(sergey): Consider using something like ((uint)(-1)).
+ * Need to ceck carefully operand types around usage of this
+ * define first.
+ */
+#define NODE_FEATURE_ALL        (NODE_FEATURE_VOLUME|NODE_FEATURE_HAIR|NODE_FEATURE_BUMP)
 
 typedef enum NodeType {
 	NODE_END = 0,

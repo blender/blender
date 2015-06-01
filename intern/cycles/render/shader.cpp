@@ -487,6 +487,7 @@ void ShaderManager::get_requested_features(Scene *scene, int& max_group, int& fe
 	features = 0;
 	for(int i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];
+		/* Gather requested features from all the nodes from the graph nodes. */
 		foreach(ShaderNode *node, shader->graph->nodes) {
 			max_group = min(max_group, node->get_group());
 			features |= node->get_feature();
@@ -496,6 +497,11 @@ void ShaderManager::get_requested_features(Scene *scene, int& max_group, int& fe
 					features |= NODE_FEATURE_VOLUME;
 				}
 			}
+		}
+		/* Gather requested features from the graph itself. */
+		ShaderNode *output_node = shader->graph->output();
+		if(output_node->input("Displacement")->link != NULL) {
+			features |= NODE_FEATURE_BUMP;
 		}
 	}
 }

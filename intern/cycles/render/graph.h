@@ -225,7 +225,7 @@ public:
 	 * so it's possible to disable huge nodes inside of the required
 	 * nodes group.
 	 */
-	virtual int get_feature() { return 0; }
+	virtual int get_feature() { return bump == SHADER_BUMP_NONE ? 0 : NODE_FEATURE_BUMP; }
 };
 
 
