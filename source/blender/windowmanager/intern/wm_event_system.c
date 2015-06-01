@@ -1141,7 +1141,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 				}
 
 				if (wrap) {
-					rcti *winrect = NULL;
+					const rcti *winrect = NULL;
 					ARegion *ar = CTX_wm_region(C);
 					ScrArea *sa = CTX_wm_area(C);
 
@@ -1150,7 +1150,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 					{
 						winrect = &ar->winrct;
 					}
-					else if (sa) {
+					else if (sa && BLI_rcti_isect_pt_v(&sa->totrct, &event->x)) {
 						winrect = &sa->totrct;
 					}
 
