@@ -454,6 +454,25 @@ static ImBuf *thumb_create_ex(
 	return img;
 }
 
+static ImBuf *thumb_create_or_fail(
+        const char *file_path, const char *uri, const char *thumb, const bool use_hash, const char *hash,
+        ThumbSize size, ThumbSource source)
+{
+	ImBuf *img = thumb_create_ex(file_path, uri, thumb, use_hash, hash, size, source, NULL);
+
+	if (!img) {
+		/* thumb creation failed, write fail thumb */
+		img = thumb_create_ex(file_path, uri, thumb, use_hash, hash, THB_FAIL, source, NULL);
+		if (img) {
+			/* we don't need failed thumb anymore */
+			IMB_freeImBuf(img);
+			img = NULL;
+		}
+	}
+
+	return img;
+}
+
 ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, ImBuf *img)
 {
 	char uri[URI_MAX] = "";
@@ -541,63 +560,46 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 		else {
 			img = IMB_loadiffname(thumb_path, IB_rect | IB_metadata, NULL);
 			if (img) {
-				char mtime[40];
+				bool regenerate = false;
 
-				if (!IMB_metadata_get_field(img, "Thumb::MTime", mtime, sizeof(mtime))) {
-					/* illegal thumb, forget it! */
-					IMB_freeImBuf(img);
-					img = NULL;
+				char mtime[40];
+				char thumb_hash[33];
+				char thumb_hash_curr[33];
+
+				const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
+
+				if (IMB_metadata_get_field(img, "Thumb::MTime", mtime, sizeof(mtime))) {
+					regenerate = (st.st_mtime != atol(mtime));
 				}
 				else {
-					time_t t = atol(mtime);
-					char thumb_hash[33];
-					char thumb_hash_curr[33];
+					/* illegal thumb, regenerate it! */
+					regenerate = true;
+				}
 
-					const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
-
-					if (use_hash) {
-						if (!IMB_metadata_get_field(img, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr))) {
-							thumb_hash_curr[0] = '\0';
-						}
+				if (use_hash && !regenerate) {
+					if (IMB_metadata_get_field(img, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr))) {
+						regenerate = !STREQ(thumb_hash, thumb_hash_curr);
 					}
-
-					if (st.st_mtime != t ||
-					    (use_hash && (thumb_hash_curr[0] == '\0' || !STREQ(thumb_hash, thumb_hash_curr)))) {
-						/* recreate all thumbs */
-						IMB_freeImBuf(img);
-						img = NULL;
-						IMB_thumb_delete(path, THB_NORMAL);
-						IMB_thumb_delete(path, THB_LARGE);
-						IMB_thumb_delete(path, THB_FAIL);
-						img = thumb_create_ex(file_path, uri, thumb_name, use_hash, thumb_hash, size, source, NULL);
-						if (!img) {
-							/* thumb creation failed, write fail thumb */
-							img = thumb_create_ex(
-							          file_path, uri, thumb_name, use_hash, thumb_hash, THB_FAIL, source, NULL);
-							if (img) {
-								/* we don't need failed thumb anymore */
-								IMB_freeImBuf(img);
-								img = NULL;
-							}
-						}
+					else {
+						regenerate = true;
 					}
+				}
+
+				if (regenerate) {
+					/* recreate all thumbs */
+					IMB_freeImBuf(img);
+					img = NULL;
+					IMB_thumb_delete(path, THB_NORMAL);
+					IMB_thumb_delete(path, THB_LARGE);
+					IMB_thumb_delete(path, THB_FAIL);
+					img = thumb_create_or_fail(file_path, uri, thumb_name, use_hash, thumb_hash, size, source);
 				}
 			}
 			else {
 				char thumb_hash[33];
-
 				const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
 
-				img = thumb_create_ex(file_path, uri, thumb_name, use_hash, thumb_hash, size, source, NULL);
-				if (!img) {
-					/* thumb creation failed, write fail thumb */
-					img = thumb_create_ex(file_path, uri, thumb_name, use_hash, thumb_hash, THB_FAIL, source, NULL);
-					if (img) {
-						/* we don't need failed thumb anymore */
-						IMB_freeImBuf(img);
-						img = NULL;
-					}
-				}
+				img = thumb_create_or_fail(file_path, uri, thumb_name, use_hash, thumb_hash, size, source);
 			}
 		}
 	}
