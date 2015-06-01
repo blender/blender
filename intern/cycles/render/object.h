@@ -77,7 +77,11 @@ public:
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress);
-	void device_update_flags(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+	void device_update_flags(Device *device,
+	                         DeviceScene *dscene,
+	                         Scene *scene,
+	                         Progress& progress,
+	                         bool bounds_valid = true);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void tag_update(Scene *scene);

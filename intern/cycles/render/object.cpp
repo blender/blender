@@ -410,7 +410,8 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 void ObjectManager::device_update_flags(Device *device,
                                         DeviceScene *dscene,
                                         Scene *scene,
-                                        Progress& /*progress*/)
+                                        Progress& /*progress*/,
+                                        bool bounds_valid)
 {
 	if(!need_update && !need_flags_update)
 		return;
@@ -425,9 +426,13 @@ void ObjectManager::device_update_flags(Device *device,
 	uint *object_flag = dscene->object_flag.get_data();
 
 	vector<Object *> volume_objects;
+	bool has_volume_objects = false;
 	foreach(Object *object, scene->objects) {
 		if(object->mesh->has_volume) {
-			volume_objects.push_back(object);
+			if(bounds_valid) {
+				volume_objects.push_back(object);
+			}
+			has_volume_objects = true;
 		}
 	}
 
@@ -440,14 +445,22 @@ void ObjectManager::device_update_flags(Device *device,
 			object_flag[object_index] &= ~SD_OBJECT_HAS_VOLUME;
 		}
 
-		foreach(Object *volume_object, volume_objects) {
-			if(object == volume_object) {
-				continue;
+		if(bounds_valid) {
+			foreach(Object *volume_object, volume_objects) {
+				if(object == volume_object) {
+					continue;
+				}
+				if(object->bounds.intersects(volume_object->bounds)) {
+					object_flag[object_index] |= SD_OBJECT_INTERSECTS_VOLUME;
+					break;
+				}
 			}
-			if(object->bounds.intersects(volume_object->bounds)) {
-				object_flag[object_index] |= SD_OBJECT_INTERSECTS_VOLUME;
-				break;
-			}
+		}
+		else if(has_volume_objects) {
+			/* Not really valid, but can't make more reliable in the case
+			 * of bounds not being up to date.
+			 */
+			object_flag[object_index] |= SD_OBJECT_INTERSECTS_VOLUME;
 		}
 		++object_index;
 	}
