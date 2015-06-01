@@ -608,7 +608,7 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	requested_features.experimental = params.experimental;
 	if(!params.background) {
 		requested_features.max_closure = 64;
-		requested_features.max_nodes_group = NODE_GROUP_LEVEL_2;
+		requested_features.max_nodes_group = NODE_GROUP_LEVEL_MAX;
 		requested_features.nodes_features = NODE_FEATURE_ALL;
 	}
 	else {
