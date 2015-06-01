@@ -448,7 +448,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 #  endif  /* __EXTRA_NODES__ */
 #endif  /* NODES_GROUP(NODE_GROUP_LEVEL_3) */
 			case NODE_END:
+				return;
 			default:
+				kernel_assert(!"Unknown node type was passed to the SVM machine");
 				return;
 		}
 	}
