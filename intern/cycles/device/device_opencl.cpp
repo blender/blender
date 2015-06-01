@@ -676,6 +676,10 @@ public:
 
 		double starttime = time_dt();
 		printf("Compiling OpenCL kernel ...\n");
+		/* TODO(sergey): Report which kernel is being compiled
+		 * as well (megakernel or which of split kernels etc..).
+		 */
+		printf("Build flags: %s\n", custom_kernel_build_options.c_str());
 
 		if(!build_kernel(kernel_program, custom_kernel_build_options, debug_src))
 			return false;
