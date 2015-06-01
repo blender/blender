@@ -640,8 +640,11 @@ public:
 			clGetProgramBuildInfo(*kernel_program, cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, &build_log[0], NULL);
 
 			build_log[ret_val_size] = '\0';
-			fprintf(stderr, "OpenCL kernel build output:\n");
-			fprintf(stderr, "%s\n", &build_log[0]);
+			/* Skip meaningless empty output from the NVidia compiler. */
+			if(!(ret_val_size == 2 && build_log[0] == '\n')) {
+				fprintf(stderr, "OpenCL kernel build output:\n");
+				fprintf(stderr, "%s\n", &build_log[0]);
+			}
 		}
 
 		if(ciErr != CL_SUCCESS) {
