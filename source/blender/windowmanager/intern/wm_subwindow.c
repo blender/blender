@@ -54,11 +54,12 @@
 #include "WM_api.h"
 #include "wm_subwindow.h"
 
-/* wmSubWindow stored in wmWindow... but not exposed outside this C file */
-/* it seems a bit redundant (area regions can store it too, but we keep it
- * because we can store all kind of future opengl fanciness here */
-
-/* we use indices and array because:
+/**
+ * \note #wmSubWindow stored in #wmWindow but not exposed outside this C file,
+ * it seems a bit redundant (area regions can store it too, but we keep it
+ * because we can store all kind of future opengl fanciness here.
+ *
+ * We use indices and array because:
  * - index has safety, no pointers from this C file hanging around
  * - fast lookups of indices with array, list would give overhead
  * - old code used it this way...

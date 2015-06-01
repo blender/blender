@@ -577,12 +577,13 @@ void WM_operator_bl_idname(char *to, const char *from)
 		to[0] = 0;
 }
 
-/* Print a string representation of the operator, with the args that it runs so python can run it again.
+/**
+ * Print a string representation of the operator, with the args that it runs so python can run it again.
  *
  * When calling from an existing wmOperator, better to use simple version:
- *     WM_operator_pystring(C, op);
+ * `WM_operator_pystring(C, op);`
  *
- * Note: both op and opptr may be NULL (op is only used for macro operators).
+ * \note Both \a op and \a opptr may be `NULL` (\a op is only used for macro operators).
  */
 char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, const bool macro_args,
                               wmOperatorType *ot, PointerRNA *opptr)
@@ -1722,18 +1723,20 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op,
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* Same as WM_operator_props_popup but don't use operator redo.
- * just wraps WM_operator_props_dialog_popup.
+/**
+ * Same as #WM_operator_props_popup but don't use operator redo.
+ * just wraps #WM_operator_props_dialog_popup.
  */
 int WM_operator_props_popup_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return wm_operator_props_popup_ex(C, op, false, false);
 }
 
-/* Same as WM_operator_props_popup but call the operator first,
+/**
+ * Same as #WM_operator_props_popup but call the operator first,
  * This way - the button values correspond to the result of the operator.
- * Without this, first access to a button will make the result jump,
- * see [#32452] */
+ * Without this, first access to a button will make the result jump, see T32452.
+ */
 int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	return wm_operator_props_popup_ex(C, op, true, true);
@@ -3166,9 +3169,10 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
 
 /* **************** Border gesture *************** */
 
-/* Border gesture has two types:
- * 1) WM_GESTURE_CROSS_RECT: starts a cross, on mouse click it changes to border
- * 2) WM_GESTURE_RECT: starts immediate as a border, on mouse click or release it ends
+/**
+ * Border gesture has two types:
+ * -# #WM_GESTURE_CROSS_RECT: starts a cross, on mouse click it changes to border.
+ * -# #WM_GESTURE_RECT: starts immediate as a border, on mouse click or release it ends.
  *
  * It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
  */
@@ -4107,12 +4111,15 @@ typedef enum {
 	RC_PROP_REQUIRE_BOOL = 4,
 } RCPropFlags;
 
-/* attempt to retrieve the rna pointer/property from an rna path;
- * returns 0 for failure, 1 for success, and also 1 if property is not
- * set */
-static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
-                                   const char *name, PointerRNA *r_ptr,
-                                   PropertyRNA **r_prop, int req_length, RCPropFlags flags)
+/**
+ * Attempt to retrieve the rna pointer/property from an rna path.
+ *
+ * \return 0 for failure, 1 for success, and also 1 if property is not set.
+ */
+static int radial_control_get_path(
+        PointerRNA *ctx_ptr, wmOperator *op,
+        const char *name, PointerRNA *r_ptr,
+        PropertyRNA **r_prop, int req_length, RCPropFlags flags)
 {
 	PropertyRNA *unused_prop;
 	int len;

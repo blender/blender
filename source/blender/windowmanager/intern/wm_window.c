@@ -1117,10 +1117,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 }
 
 
-/* This timer system only gives maximum 1 timer event per redraw cycle,
+/**
+ * This timer system only gives maximum 1 timer event per redraw cycle,
  * to prevent queues to get overloaded.
- * Timer handlers should check for delta to decide if they just
- * update, or follow real time.
+ * Timer handlers should check for delta to decide if they just update, or follow real time.
  * Timer handlers can also set duration to match frames passed
  */
 static int wm_window_timer(const bContext *C)

@@ -313,21 +313,22 @@ void WM_cursor_time(wmWindow *win, int nr)
 }
 
 
-/* ******************************************************************
- * Custom Cursor Description:
+/**
+ * Custom Cursor Description
+ * =========================
  *
  * Each bit represents a pixel, so 1 byte = 8 pixels,
  * the bytes go Left to Right. Top to bottom
  * the bits in a byte go right to left
  * (ie;  0x01, 0x80  represents a line of 16 pix with the first and last pix set.)
  *
- * A 0 in the bitmap = bg_color, a 1 fg_color
- * a 0 in the mask   = transparent pix.
+ * - A 0 in the bitmap = bg_color, a 1 fg_color
+ * - a 0 in the mask   = transparent pix.
  *
  * Until 32x32 cursors are supported on all platforms, the size of the
  * small cursors MUST be 16x16.
  *
- * Large cursors have a MAXSIZE of 32x32.
+ * Large cursors have a maximum size of 32x32.
  *
  * Other than that, the specified size of the cursors is just a guideline,
  * However, the char array that defines the BM and MASK must be byte aligned.
@@ -335,18 +336,20 @@ void WM_cursor_time(wmWindow *win, int nr)
  * (3 bytes = 17 bits rounded up to nearest whole byte).  Pad extra bits
  * in mask with 0's.
  *
- * Setting big_bm = NULL disables the large version of the cursor.
+ * Setting `big_bm = NULL` disables the large version of the cursor.
  *
- * *******************************************************************
+ * ----
  *
  * There is a nice Python GUI utility that can be used for drawing cursors in
  * this format in the Blender source distribution, in
- * blender/source/tools/MakeCursor.py . Start it with $ python MakeCursor.py
- * It will copy its output to the console when you press 'Do it'.
+ * `./source/tools/utils/make_cursor_gui.py` .
  *
+ * Start it with the command `python3 make_cursor_gui.py`
+ * It will copy its output to the console when you press 'Do it'.
  */
 
-/* Because defining a cursor mixes declarations and executable code
+/**
+ * Because defining a cursor mixes declarations and executable code
  * each cursor needs it's own scoping block or it would be split up
  * over several hundred lines of code.  To enforce/document this better
  * I define 2 pretty brain-dead macros so it's obvious what the extra "[]"

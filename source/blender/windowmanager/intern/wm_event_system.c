@@ -702,7 +702,8 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
 	wm_add_reports(C, op->reports);
 }
 
-/* this function is mainly to check that the rules for freeing
+/**
+ * This function is mainly to check that the rules for freeing
  * an operator are kept in sync.
  */
 static bool wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
@@ -821,23 +822,29 @@ int WM_operator_call(bContext *C, wmOperator *op)
 	return WM_operator_call_ex(C, op, false);
 }
 
-/* this is intended to be used when an invoke operator wants to call exec on its self
+/**
+ * This is intended to be used when an invoke operator wants to call exec on its self
  * and is basically like running op->type->exec() directly, no poll checks no freeing,
- * since we assume whoever called invoke will take care of that */
+ * since we assume whoever called invoke will take care of that
+ */
 int WM_operator_call_notest(bContext *C, wmOperator *op)
 {
 	return wm_operator_exec_notest(C, op);
 }
 
-/* do this operator again, put here so it can share above code */
+/**
+ * Execute this operator again, put here so it can share above code
+ */
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
 	return wm_operator_exec(C, op, true, true);
 }
-/* true if WM_operator_repeat can run
+/**
+ * \return true if #WM_operator_repeat can run
  * simple check for now but may become more involved.
- * To be sure the operator can run call WM_operator_poll(C, op->type) also, since this call
- * checks if WM_operator_repeat() can run at all, not that it WILL run at any time. */
+ * To be sure the operator can run call `WM_operator_poll(C, op->type)` also, since this call
+ * checks if WM_operator_repeat() can run at all, not that it WILL run at any time.
+ */
 bool WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 {
 	if (op->type->exec != NULL) {
@@ -1043,8 +1050,9 @@ bool WM_operator_last_properties_store(wmOperator *UNUSED(op))
 
 #endif
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
-                              PointerRNA *properties, ReportList *reports, const bool poll_only)
+static int wm_operator_invoke(
+        bContext *C, wmOperatorType *ot, wmEvent *event,
+        PointerRNA *properties, ReportList *reports, const bool poll_only)
 {
 	int retval = OPERATOR_PASS_THROUGH;
 
@@ -1179,12 +1187,15 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 	return retval;
 }
 
-/* WM_operator_name_call is the main accessor function
+/**
+ * #WM_operator_name_call is the main accessor function
  * this is for python to access since its done the operator lookup
  * 
- * invokes operator in context */
-static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports,
-                                     const short context, const bool poll_only)
+ * invokes operator in context
+ */
+static int wm_operator_call_internal(
+        bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports,
+        const short context, const bool poll_only)
 {
 	wmEvent *event;
 	
@@ -1324,13 +1335,16 @@ int WM_operator_name_call(bContext *C, const char *opstring, short context, Poin
 	return 0;
 }
 
-/* Similar to WM_operator_name_call called with WM_OP_EXEC_DEFAULT context.
- * - wmOperatorType is used instead of operator name since python already has the operator type
- * - poll() must be called by python before this runs.
- * - reports can be passed to this function (so python can report them as exceptions)
+/**
+ * Similar to #WM_operator_name_call called with #WM_OP_EXEC_DEFAULT context.
+ *
+ * - #wmOperatorType is used instead of operator name since python already has the operator type.
+ * - `poll()` must be called by python before this runs.
+ * - reports can be passed to this function (so python can report them as exceptions).
  */
-int WM_operator_call_py(bContext *C, wmOperatorType *ot, short context,
-                        PointerRNA *properties, ReportList *reports, const bool is_undo)
+int WM_operator_call_py(
+        bContext *C, wmOperatorType *ot, short context,
+        PointerRNA *properties, ReportList *reports, const bool is_undo)
 {
 	int retval = OPERATOR_CANCELLED;
 
@@ -1573,7 +1587,8 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 	}
 }
 
-/* Check whether operator is allowed to run in case interface is locked,
+/**
+ * Check whether operator is allowed to run in case interface is locked,
  * If interface is unlocked, will always return truth.
  */
 static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
@@ -2511,11 +2526,12 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
 /* operator is supposed to have a filled "path" property */
 /* optional property: filetype (XXX enum?) */
 
-/* Idea is to keep a handler alive on window queue, owning the operator.
+/**
+ * The idea here is to keep a handler alive on window queue, owning the operator.
  * The filewindow can send event to make it execute, thus ensuring
  * executing happens outside of lower level queues, with UI refreshed.
- * Should also allow multiwin solutions */
-
+ * Should also allow multiwin solutions
+ */
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
 	wmEventHandler *handler, *handlernext;
