@@ -183,7 +183,7 @@ CCL_NAMESPACE_END
 CCL_NAMESPACE_BEGIN
 
 #define NODES_GROUP(group) ((group) <= __NODES_MAX_GROUP__)
-#define NODES_FEATURE(feature) (__NODES_FEATURES__ & (feature) != 0)
+#define NODES_FEATURE(feature) ((__NODES_FEATURES__ & (feature)) != 0)
 
 /* Main Interpreter Loop */
 ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type, int path_flag)

@@ -487,7 +487,7 @@ void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
                                                  int& features)
 {
 	foreach(ShaderNode *node, graph->nodes) {
-		max_group = min(max_group, node->get_group());
+		max_group = max(max_group, node->get_group());
 		features |= node->get_feature();
 		if(node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
 			BsdfNode *bsdf_node = static_cast<BsdfNode*>(node);
