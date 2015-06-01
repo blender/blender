@@ -1996,7 +1996,7 @@ static void direct_link_script(FileData *UNUSED(fd), Script *script)
 static PackedFile *direct_link_packedfile(FileData *fd, PackedFile *oldpf)
 {
 	PackedFile *pf = newpackedadr(fd, oldpf);
-	
+
 	if (pf) {
 		pf->data = newpackedadr(fd, pf->data);
 	}
@@ -3439,12 +3439,17 @@ static void direct_link_image(FileData *fd, Image *ima)
 	link_list(fd, &(ima->views));
 	link_list(fd, &(ima->packedfiles));
 
-	for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
-		imapf->packedfile = direct_link_packedfile(fd, imapf->packedfile);
+	if (ima->packedfiles.first) {
+		for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
+			imapf->packedfile = direct_link_packedfile(fd, imapf->packedfile);
+		}
+		ima->packedfile = NULL;
+	}
+	else {
+		ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	}
 
 	ima->anims.first = ima->anims.last = NULL;
-	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
 	ima->stereo3d_format = newdataadr(fd, ima->stereo3d_format);
 	ima->ok = 1;
