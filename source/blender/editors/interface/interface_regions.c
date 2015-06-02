@@ -3051,11 +3051,14 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
 
 void UI_popup_block_close(bContext *C, uiBlock *block)
 {
-	if (block->handle) {
-		wmWindow *win = CTX_wm_window(C);
+	wmWindow *win = CTX_wm_window(C);
 
-		/* if loading new .blend while popup is open, window will be NULL */
-		if (win) {
+	/* check window before 'block->handle' incase the
+	 * popup execution closed the window and freed the block. see T44688. */
+
+	/* if loading new .blend while popup is open, window will be NULL */
+	if (win) {
+		if (block->handle) {
 			UI_popup_handlers_remove(&win->modalhandlers, block->handle);
 			ui_popup_block_free(C, block->handle);
 		}
