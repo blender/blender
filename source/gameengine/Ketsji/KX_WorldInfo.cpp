@@ -418,7 +418,9 @@ PyObject *KX_WorldInfo::pyattr_get_mist_typeconst(void *self_v, const KX_PYATTRI
 PyObject *KX_WorldInfo::pyattr_get_mist_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return Vector_CreatePyObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_world_vector_cb_index, MATHUTILS_VEC_CB_MIST_COLOR);
+	return Vector_CreatePyObject_cb(
+	        BGE_PROXY_FROM_REF_BORROW(self_v), 3,
+	        mathutils_world_vector_cb_index, MATHUTILS_VEC_CB_MIST_COLOR);
 #else
 	KX_WorldInfo *self = static_cast<KX_WorldInfo*>(self_v);
 	return PyObjectFrom(MT_Vector3(self->m_mistcolor));
@@ -442,7 +444,9 @@ PyObject *KX_WorldInfo::pyattr_get_back_color(void *self_v, const KX_PYATTRIBUTE
 {
 
 #ifdef USE_MATHUTILS
-	return Vector_CreatePyObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_world_vector_cb_index, MATHUTILS_VEC_CB_BACK_COLOR);
+	return Vector_CreatePyObject_cb(
+	        BGE_PROXY_FROM_REF_BORROW(self_v), 3,
+	        mathutils_world_vector_cb_index, MATHUTILS_VEC_CB_BACK_COLOR);
 #else
 	KX_WorldInfo *self = static_cast<KX_WorldInfo*>(self_v);
 	return PyObjectFrom(MT_Vector3(self->m_backgroundcolor));
@@ -465,7 +469,9 @@ int KX_WorldInfo::pyattr_set_back_color(void *self_v, const KX_PYATTRIBUTE_DEF *
 PyObject *KX_WorldInfo::pyattr_get_ambient_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return Vector_CreatePyObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_world_vector_cb_index, MATHUTILS_VEC_CB_AMBIENT_COLOR);
+	return Vector_CreatePyObject_cb(
+	        BGE_PROXY_FROM_REF_BORROW(self_v), 3,
+	        mathutils_world_vector_cb_index, MATHUTILS_VEC_CB_AMBIENT_COLOR);
 #else
 	KX_WorldInfo *self = static_cast<KX_WorldInfo*>(self_v);
 	return PyObjectFrom(MT_Vector3(self->m_ambientcolor));

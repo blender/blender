@@ -111,6 +111,8 @@ typedef struct PyObjectPlus_Proxy {
 
 /* Opposite of BGE_PROXY_REF */
 #define BGE_PROXY_FROM_REF(_self) (((PyObjectPlus *)_self)->GetProxy())
+/* Same as 'BGE_PROXY_REF' but doesn't incref. */
+#define BGE_PROXY_FROM_REF_BORROW(_self) _bge_proxy_from_ref_borrow((void *)_self)
 
 
 // This must be the first line of each 
@@ -631,6 +633,17 @@ public:
 
 #ifdef WITH_PYTHON
 PyObject *PyUnicode_From_STR_String(const STR_String& str);
+
+inline PyObject *_bge_proxy_from_ref_borrow(void *self_v)
+{
+	PyObject *self_proxy = BGE_PROXY_FROM_REF(self_v);
+	/* this is typically _very_ bad practice,
+	 * however we know the proxy is owned by 'self_v' */
+	self_proxy->ob_refcnt--;
+	return self_proxy;
+}
+
 #endif
+
 
 #endif  /* __PYOBJECTPLUS_H__ */
