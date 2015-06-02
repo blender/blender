@@ -264,8 +264,6 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 
 		if (ELEM(md->type,
 		         eModifierType_Hook,
-		         eModifierType_Softbody,
-		         eModifierType_ParticleInstance,
 		         eModifierType_Collision))
 		{
 			continue;
@@ -273,10 +271,15 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 
 		if (!BKE_object_support_modifier_type_check(ob_dst, md->type))
 			continue;
-		
-		if (md->type == eModifierType_Skin) {
-			/* ensure skin-node customdata exists */
-			BKE_mesh_ensure_skin_customdata(ob_dst->data);
+
+		switch (md->type) {
+			case eModifierType_Softbody:
+				BKE_object_copy_softbody(ob_dst, ob_src);
+				break;
+			case eModifierType_Skin:
+				/* ensure skin-node customdata exists */
+				BKE_mesh_ensure_skin_customdata(ob_dst->data);
+				break;
 		}
 
 		nmd = modifier_new(md->type);
@@ -293,7 +296,6 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 	}
 
 	BKE_object_copy_particlesystems(ob_dst, ob_src);
-	BKE_object_copy_softbody(ob_dst, ob_src);
 
 	/* TODO: smoke?, cloth? */
 }
@@ -1379,6 +1381,7 @@ void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src)
 void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src)
 {
 	if (ob_src->soft) {
+		ob_dst->softflag = ob_src->softflag;
 		ob_dst->soft = copy_softbody(ob_src->soft, false);
 	}
 }
