@@ -1034,22 +1034,20 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
 	type = BLI_exists(name);
 	if ((type == 0) || S_ISDIR(type)) {
 		char filename[FILE_MAX];
-		char ext[FILE_MAX];
-		const char *extensions = getenv("PATHEXT");
-		if (extensions) {
-			const char *temp;
+		const char *ext = getenv("PATHEXT");
+		if (ext) {
+			const int name_len = strlen(name);
+			const char *ext_next;
+			/* null terminated in the loop */
+			memcpy(filename, name, name_len);
 			do {
-				strcpy(filename, name);
-				temp = strchr(extensions, ';');
-				if (temp) {
-					strncpy(ext, extensions, temp - extensions);
-					ext[temp - extensions] = 0;
-					extensions = temp + 1;
-					strcat(filename, ext);
-				}
-				else {
-					strcat(filename, extensions);
-				}
+				int ext_len;
+
+				ext_next = strchr(ext, ';');
+				ext_len = ext_next ? ((ext_next++) - ext) : strlen(ext);
+
+				memcpy(filename + name_len, ext, ext_len);
+				filename[name_len + ext_len] = '\0';
 
 				type = BLI_exists(filename);
 				if (type && (!S_ISDIR(type))) {
@@ -1057,7 +1055,7 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
 					BLI_strncpy(name, filename, maxlen);
 					break;
 				}
-			} while (temp);
+			} while ((ext = ext_next));
 		}
 	}
 	else {
