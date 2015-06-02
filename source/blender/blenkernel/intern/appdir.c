@@ -632,6 +632,7 @@ bool BKE_appdir_program_python_search(
 				    )
 				{
 					is_found = true;
+					break;
 				}
 			}
 		}
