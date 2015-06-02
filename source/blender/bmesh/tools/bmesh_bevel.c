@@ -57,6 +57,9 @@
 /* happens far too often, uncomment for development */
 // #define BEVEL_ASSERT_PROJECT
 
+/* will likely remove the code enabled by this soon, when sure that it is not needed */
+// #define PRE_275_ALGORITHM
+
 /* for testing */
 // #pragma GCC diagnostic error "-Wpadded"
 
@@ -187,7 +190,7 @@ typedef struct BevelParams {
 	bool limit_offset;      /* should offsets be limited by collisions? */
 	const struct MDeformVert *dvert; /* vertex group array, maybe set if vertex_only */
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
-	int mat_nr;            /* if >= 0, material number for bevel; else material comes from adjacent faces */
+	int mat_nr;             /* if >= 0, material number for bevel; else material comes from adjacent faces */
 } BevelParams;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -484,8 +487,7 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
 }
 
 /**
- * Like #bev_create_quad_tri, but when verts straddle an old edge.
- *
+ * Like bev_create_quad_tri, but when verts straddle an old edge.
  * <pre>
  *        e
  *        |
@@ -593,10 +595,42 @@ static bool is_outside_edge(EdgeHalf *e, const float co[3], BMVert **ret_closer_
 	}
 }
 
+/* co should be approximately on the plane between e1 and e2, which share common vert v
+ * and common face f (which cannot be NULL).
+ * Is it between those edges, sweeping CCW? */
+static bool point_between_edges(float co[3], BMVert *v, BMFace *f, EdgeHalf *e1, EdgeHalf *e2)
+{
+	BMVert *v1, *v2;
+	float dir1[3], dir2[3], dirco[3], no[3];
+	float ang11, ang1co;
+
+	v1 = BM_edge_other_vert(e1->e, v);
+	v2 = BM_edge_other_vert(e2->e, v);
+	sub_v3_v3v3(dir1, v->co, v1->co);
+	sub_v3_v3v3(dir2, v->co, v2->co);
+	sub_v3_v3v3(dirco, v->co, co);
+	normalize_v3(dir1);
+	normalize_v3(dir2);
+	normalize_v3(dirco);
+	ang11 = angle_normalized_v3v3(dir1, dir2);
+	ang1co = angle_normalized_v3v3(dir1, dirco);
+	/* angles are in [0,pi]. need to compare cross product with normal to see if they are reflex */
+	cross_v3_v3v3(no, dir1, dir2);
+	if (dot_v3v3(no, f->no) < 0.0f)
+		ang11 = (float)(M_PI * 2.0) - ang11;
+	cross_v3_v3v3(no, dir1, dirco);
+	if (dot_v3v3(no, f->no) < 0.0f)
+		ang1co = (float)(M_PI * 2.0) - ang1co;
+	return (ang11 - ang1co > -BEVEL_EPSILON_BIG);
+}
+
 /*
  * Calculate the meeting point between the offset edges for e1 and e2, putting answer in meetco.
  * e1 and e2 share vertex v and face f (may be NULL) and viewed from the normal side of
  * the bevel vertex,  e1 precedes e2 in CCW order.
+ * Except: if edges_between is true, there are edges between e1 and e2 in CCW order so they
+ * don't share a common face. We want the meeting point to be on an existing face so it
+ * should be dropped onto one of the intermediate faces, if possible.
  * Offset edge is on right of both edges, where e1 enters v and e2 leave it.
  * When offsets are equal, the new point is on the edge bisector, with length offset/sin(angle/2),
  * but if the offsets are not equal (allowing for this, as bevel modifier has edge weights that may
@@ -605,15 +639,26 @@ static bool is_outside_edge(EdgeHalf *e, const float co[3], BMVert **ret_closer_
  * record the change in offset_l (or offset_r); later we can tell that a change has happened because
  * the offset will differ from its original value in offset_l_spec (or offset_r_spec).
  */
-static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float meetco[3])
+static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool edges_between, float meetco[3])
 {
-	float dir1[3], dir2[3], norm_v[3], norm_perp1[3], norm_perp2[3],
-	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], ang, d;
+	float dir1[3], dir2[3], dir1n[3], dir2p[3], norm_v[3], norm_v1[3], norm_v2[3],
+		norm_perp1[3], norm_perp2[3], off1a[3], off1b[3], off2a[3], off2b[3],
+		isect2[3], dropco[3], plane[4], ang, d;
 	BMVert *closer_v;
+	EdgeHalf *e, *e1next, *e2prev;
+	BMFace *ff;
+	int isect_kind;
 
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
 	sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, v)->co, v->co);
+
+	if (edges_between) {
+		e1next = e1->next;
+		e2prev = e2->prev;
+		sub_v3_v3v3(dir1n, BM_edge_other_vert(e1next->e, v)->co, v->co);
+		sub_v3_v3v3(dir2p, v->co, BM_edge_other_vert(e2prev->e, v)->co);
+	}
 
 	ang = angle_v3v3(dir1, dir2);
 	if (ang < BEVEL_EPSILON_BIG) {
@@ -654,14 +699,31 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 		 * If e1-v-e2 is a reflex angle (viewed from vertex normal side), need to flip.
 		 * Use f->no to figure out which side to look at angle from, as even if
 		 * f is non-planar, will be more accurate than vertex normal */
-		cross_v3_v3v3(norm_v, dir2, dir1);
-		normalize_v3(norm_v);
-		if (dot_v3v3(norm_v, f ? f->no : v->no) < 0.0f)
-			negate_v3(norm_v);
+		if (!edges_between) {
+			cross_v3_v3v3(norm_v1, dir2, dir1);
+			normalize_v3(norm_v1);
+			if (dot_v3v3(norm_v1, f ? f->no : v->no) < 0.0f)
+				negate_v3(norm_v1);
+			copy_v3_v3(norm_v2, norm_v1);
+		}
+		else {
+			/* separate faces; get face norms at corners for each separately */
+			cross_v3_v3v3(norm_v1, dir1n, dir1);
+			normalize_v3(norm_v1);
+			f = e1->fnext;
+			if (dot_v3v3(norm_v1, f ? f->no : v->no) < 0.0f)
+				negate_v3(norm_v1);
+			cross_v3_v3v3(norm_v2, dir2, dir2p);
+			normalize_v3(norm_v2);
+			f = e2->fprev;
+			if (dot_v3v3(norm_v2, f ? f->no : v->no) < 0.0f)
+				negate_v3(norm_v2);
+		}
+
 
 		/* get vectors perp to each edge, perp to norm_v, and pointing into face */
-		cross_v3_v3v3(norm_perp1, dir1, norm_v);
-		cross_v3_v3v3(norm_perp2, dir2, norm_v);
+		cross_v3_v3v3(norm_perp1, dir1, norm_v1);
+		cross_v3_v3v3(norm_perp2, dir2, norm_v2);
 		normalize_v3(norm_perp1);
 		normalize_v3(norm_perp2);
 
@@ -673,11 +735,10 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 		madd_v3_v3fl(off2a, norm_perp2, e2->offset_l);
 		add_v3_v3v3(off2b, off2a, dir2);
 
-		/* intersect the lines; by construction they should be on the same plane and not parallel */
-		if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
-#ifdef BEVEL_ASSERT_PROJECT
-			BLI_assert(!"offset_meet failure");
-#endif
+		/* intersect the lines */
+		isect_kind = isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
+		if (isect_kind == 0) {
+			/* lines are colinear: we already tested for this, but this used a different epsilon */
 			copy_v3_v3(meetco, off1a);  /* just to do something */
 			d = dist_to_line_v3(meetco, v->co, BM_edge_other_vert(e2->e, v)->co);
 			if (fabsf(d - e2->offset_l) > BEVEL_EPSILON)
@@ -696,6 +757,26 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, float 
 			if (e2->offset_l == 0.0f && is_outside_edge(e2, meetco, &closer_v)) {
 				copy_v3_v3(meetco, closer_v->co);
 				e1->offset_r = len_v3v3(meetco, v->co);
+			}
+			if (edges_between && e1->offset_r > 0.0 && e2->offset_l > 0.0) {
+				/* Try to drop meetco to a face between e1 and e2 */
+				if (isect_kind == 2) {
+					/* lines didn't meet in 3d: get average of meetco and isect2 */
+					mid_v3_v3v3(meetco, meetco, isect2);
+				}
+				for (e = e1; e != e2; e = e->next) {
+					ff = e->fnext;
+					if (!ff)
+						continue;
+					plane_from_point_normal_v3(plane, v->co, ff->no);
+					closest_to_plane_v3(dropco, plane, meetco);
+					if (point_between_edges(dropco, v, ff, e, e->next)) {
+						copy_v3_v3(meetco, dropco);
+						break;
+					}
+				}
+				e1->offset_r = dist_to_line_v3(meetco, v->co, BM_edge_other_vert(e1->e, v)->co);
+				e2->offset_l = dist_to_line_v3(meetco, v->co, BM_edge_other_vert(e2->e, v)->co);
 			}
 		}
 	}
@@ -799,6 +880,7 @@ static void offset_on_edge_between(
 		e2->offset_l = d;
 }
 
+#ifdef PRE_275_ALGORITHM
 /* Calculate the best place for a meeting point for the offsets from edges e1 and e2
  * when there is an in-between edge emid, and we prefer to have a point that may not
  * be on emid if that does a better job of keeping offsets at the user spec.
@@ -874,6 +956,7 @@ static void offset_in_two_planes(
 		/* else iret == 1 and the lines are coplanar so meetco has the intersection */
 	}
 }
+#endif
 
 /* Offset by e->offset in plane with normal plane_no, on left if left==true,
  * else on right.  If no is NULL, choose an arbitrary plane different
@@ -1425,6 +1508,323 @@ static void set_bound_vert_seams(BevVert *bv)
 	} while ((v = v->next) != bv->vmesh->boundstart);
 }
 
+#ifndef PRE_275_ALGORITHM
+/* Is e between two planes where angle between is 180? */
+static bool eh_on_plane(EdgeHalf *e)
+{
+	float dot;
+
+	if (e->fprev && e->fnext) {
+		dot = dot_v3v3(e->fprev->no, e->fnext->no);
+		if (fabsf(dot) <= BEVEL_EPSILON ||
+			fabsf(dot - 1.0f) <= BEVEL_EPSILON)
+			return true;
+	}
+	return false;
+}
+
+/* Calculate the profiles for all the BoundVerts of VMesh vm */
+static void calculate_vm_profiles(BevelParams *bp, BevVert *bv, VMesh *vm)
+{
+	BoundVert *v;
+
+	v = vm->boundstart;
+	do {
+		set_profile_params(bp, bv, v);
+		calculate_profile(bp, v);
+	} while ((v = v->next) != vm->boundstart);
+}
+
+/* Implements build_boundary for vertex-only case */
+static void build_boundary_vertex_only(BevelParams *bp, BevVert *bv, bool construct)
+{
+	VMesh *vm = bv->vmesh;
+	EdgeHalf *efirst, *e;
+	BoundVert *v;
+	float co[3];
+
+	BLI_assert(bp->vertex_only);
+
+	e = efirst = &bv->edges[0];
+	do {
+		slide_dist(e, bv->v, e->offset_l, co);
+		if (construct) {
+			v = add_new_bound_vert(bp->mem_arena, vm, co);
+			v->efirst = v->elast = e;
+			e->leftv = v;
+		}
+		else {
+			adjust_bound_vert(e->leftv, co);
+		}
+	} while ((e = e->next) != efirst);
+
+	calculate_vm_profiles(bp, bv, vm);
+
+	if (construct) {
+		set_bound_vert_seams(bv);
+		if (vm->count == 2)
+			vm->mesh_kind = M_NONE;
+		else if (bp->seg == 1)
+			vm->mesh_kind = M_POLY;
+		else
+			vm->mesh_kind = M_ADJ;
+	}
+}
+
+/* Special case of build_boundary when a single edge is beveled.
+  * The 'width adjust' part of build_boundary has been done already, and
+ * efirst is the first beveled edge at vertex bv. */
+static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf *efirst, bool construct)
+{
+	MemArena *mem_arena = bp->mem_arena;
+	VMesh *vm = bv->vmesh;
+	BoundVert *v;
+	EdgeHalf *e;
+	const float *no;
+	float co[3], d;
+
+	e = efirst;
+	if (bv->edgecount == 2) {
+		/* only 2 edges in, so terminate the edge with an artificial vertex on the unbeveled edge */
+		no = e->fprev ? e->fprev->no : (e->fnext ? e->fnext->no : NULL);
+		offset_in_plane(e, no, true, co);
+		if (construct) {
+			v = add_new_bound_vert(mem_arena, vm, co);
+			v->efirst = v->elast = v->ebev = e;
+			e->leftv = v;
+		}
+		else {
+			adjust_bound_vert(e->leftv, co);
+		}
+		no = e->fnext ? e->fnext->no : (e->fprev ? e->fprev->no : NULL);
+		offset_in_plane(e, no, false, co);
+		if (construct) {
+			v = add_new_bound_vert(mem_arena, vm, co);
+			v->efirst = v->elast = e;
+			e->rightv = v;
+		}
+		else {
+			adjust_bound_vert(e->rightv, co);
+		}
+		/* make artifical extra point along unbeveled edge, and form triangle */
+		slide_dist(e->next, bv->v, e->offset_l, co);
+		if (construct) {
+			v = add_new_bound_vert(mem_arena, vm, co);
+			v->efirst = v->elast = e->next;
+			e->next->leftv = e->next->rightv = v;
+			/* could use M_POLY too, but tri-fan looks nicer)*/
+			vm->mesh_kind = M_TRI_FAN;
+			set_bound_vert_seams(bv);
+		}
+		else {
+			adjust_bound_vert(e->next->leftv, co);
+		}
+	}
+	else {
+		/* More than 2 edges in. Put on-edge verts on all the other edges
+		 * and join with the beveled edge to make a poly or adj mesh,
+		 * Because e->prev has offset 0, offset_meet will put co on that edge */
+		/* TODO: should do something else if angle between e and e->prev > 180 */
+		offset_meet(e->prev, e, bv->v, e->fprev, false, co);
+		if (construct) {
+			v = add_new_bound_vert(mem_arena, vm, co);
+			v->efirst = e->prev;
+			v->elast = v->ebev = e;
+			e->leftv = v;
+			e->prev->leftv = v;
+		}
+		else {
+			adjust_bound_vert(e->leftv, co);
+		}
+		e = e->next;
+		offset_meet(e->prev, e, bv->v, e->fprev, false, co);
+		if (construct) {
+			v = add_new_bound_vert(mem_arena, vm, co);
+			v->efirst = e->prev;
+			v->elast = e;
+			e->leftv = v;
+			e->prev->rightv = v;
+		}
+		else {
+			adjust_bound_vert(e->leftv, co);
+		}
+		d = len_v3v3(bv->v->co, co);
+		for (e = e->next; e->next != efirst; e = e->next) {
+			slide_dist(e, bv->v, d, co);
+			if (construct) {
+				v = add_new_bound_vert(mem_arena, vm, co);
+				v->efirst = v->elast = e;
+				e->leftv = v;
+			}
+			else {
+				adjust_bound_vert(e->leftv, co);
+			}
+		}
+	}
+	calculate_vm_profiles(bp, bv, vm);
+
+	if (bv->edgecount >= 3) {
+		/* special case: snap profile to plane of adjacent two edges */
+		v = vm->boundstart;
+		BLI_assert(v->ebev != NULL);
+		move_profile_plane(v, v->efirst, v->next->elast);
+		calculate_profile(bp, v);
+	}
+
+	if (construct) {
+		set_bound_vert_seams(bv);
+
+		if (vm->count == 2 && bv->edgecount == 3) {
+			vm->mesh_kind = M_NONE;
+		}
+		else if (vm->count == 3) {
+			vm->mesh_kind = M_TRI_FAN;
+		}
+		else {
+			vm->mesh_kind = M_POLY;
+		}
+	}
+}
+
+/* Make a circular list of BoundVerts for bv, each of which has the coordinates
+ * of a vertex on the boundary of the beveled vertex bv->v.
+ * This may adjust some EdgeHalf widths, and there might have to be
+ * a subsequent pass to make the widths as consistent as possible.
+ * The first time through, construct will be true and we are making the BoundVerts
+ * and setting up the BoundVert and EdgeHalf pointers appropriately.
+ * For a width consistency path, we just recalculate the coordinates of the
+ * BoundVerts. If the other ends have been (re)built already, then we
+ * copy the offsets from there to match, else we use the ideal (user-specified)
+ * widths.
+ * Also, if construct, decide on the mesh pattern that will be used inside the boundary.
+ * Doesn't make the actual BMVerts */
+static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
+{
+	MemArena *mem_arena = bp->mem_arena;
+	EdgeHalf *efirst, *e, *e2, *e3, *enip, *eip, *eother;
+	BoundVert *v;
+	BevVert *bvother;
+	VMesh *vm;
+	float co[3];
+	int nip, nnip;
+
+	/* Current bevel does nothing if only one edge into a vertex */
+	if (bv->edgecount <= 1)
+		return;
+
+	if (bp->vertex_only) {
+		build_boundary_vertex_only(bp, bv, construct);
+		return;
+	}
+
+	vm = bv->vmesh;
+
+	/* Find a beveled edge to be efirst. Then for each edge, try matching widths to other end. */
+	e = efirst = next_bev(bv, NULL);
+	BLI_assert(e->is_bev);
+	do {
+		eother = find_other_end_edge_half(bp, e, &bvother);
+		if (eother && bvother->visited && bp->offset_type != BEVEL_AMT_PERCENT) {
+			/* try to keep bevel even by matching other end offsets */
+			e->offset_l = eother->offset_r;
+			e->offset_r = eother->offset_l;
+		}
+		else {
+			/* reset to user spec */
+			e->offset_l = e->offset_l_spec;
+			e->offset_r = e->offset_r_spec;
+		}
+	} while ((e = e->next) != efirst);
+
+	if (bv->selcount == 1) {
+		/* special case: only one beveled edge in */
+		build_boundary_terminal_edge(bp, bv, efirst, construct);
+		return;
+	}
+
+	/* Here: there is more than one beveled edge.
+	 * We make BoundVerts to connect the sides of the beveled edges.
+	 * Non-beveled edges in between will just join to the appropriate juncture point. */
+	e = efirst;
+	do {
+		BLI_assert(e->is_bev);
+		/* Make the BoundVert for the right side of e; other side will be made
+		* when the beveled edge to the left of e is handled.
+		* Analyze edges until next beveled edge.
+		* They are either "in plane" (preceding and subsequent faces are coplanar)
+		* or not. The "non-in-plane" edges effect silhouette and we prefer to slide
+		* along one of those if possible. */
+		nip = nnip = 0;        /* counts of in-plane / not-in-plane */
+		enip = eip = NULL;     /* representatives of each */
+		for (e2 = e->next; !e2->is_bev; e2 = e2->next) {
+			if (eh_on_plane(e2)) {
+				nip++;
+				eip = e2;
+			}
+			else {
+				nnip++;
+				enip = e2;
+			}
+		}
+		if (nip == 0 && nnip == 0) {
+			offset_meet(e, e2, bv->v, e->fnext, false, co);
+		}
+		else if (nnip > 0) {
+			if (nnip == 1) {
+				offset_on_edge_between(bp, e, e2, enip, bv->v, co);
+			}
+			else {
+				offset_meet(e, e2, bv->v, NULL, true, co);
+			}
+		}
+		else {
+			/* nip > 0 and nnip == 0 */
+			if (nip == 1) {
+				offset_on_edge_between(bp, e, e2, eip, bv->v, co);
+			}
+			else {
+				offset_meet(e, e2, bv->v, NULL, true, co);
+			}
+		}
+		if (construct) {
+			v = add_new_bound_vert(mem_arena, vm, co);
+			v->efirst = e;
+			v->elast = e2;
+			v->ebev = e2;
+			e->rightv = v;
+			e2->leftv = v;
+			for (e3 = e->next; e3 != e2; e3 = e3->next) {
+				e3->leftv = e3->rightv = v;
+			}
+		}
+		else {
+			adjust_bound_vert(e->rightv, co);
+		}
+		e = e2;
+	} while (e != efirst);
+
+	calculate_vm_profiles(bp, bv, vm);
+
+	if (construct) {
+		set_bound_vert_seams(bv);
+
+		if (vm->count == 2) {
+			vm->mesh_kind = M_NONE;
+		}
+		else if (efirst->seg == 1) {
+			vm->mesh_kind = M_POLY;
+		}
+		else {
+			vm->mesh_kind = M_ADJ;
+		}
+	}
+}
+#endif
+
+#ifdef PRE_275_ALGORITHM
+/* This code was used prior to just before the 2.75 Blender release.
+ * It treated multiple non-beveled edges between beveled ones differently */
+ 
 /* Make a circular list of BoundVerts for bv, each of which has the coordinates
  * of a vertex on the boundary of the beveled vertex bv->v.
  * This may adjust some EdgeHalf widths, and there might have to be
@@ -1519,7 +1919,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 			/* handle only left side of beveled edge e here: next iteration should do right side */
 			if (e->prev->is_bev) {
 				BLI_assert(e->prev != e);  /* see: wire edge special case */
-				offset_meet(e->prev, e, bv->v, e->fprev, co);
+				offset_meet(e->prev, e, bv->v, e->fprev, false, co);
 				if (construct) {
 					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev;
@@ -1556,7 +1956,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 				}
 				else {
 					/* neither e->prev nor e->prev->prev are beveled: make on-edge on e->prev */
-					offset_meet(e->prev, e, bv->v, e->fprev, co);
+					offset_meet(e->prev, e, bv->v, e->fprev, false, co);
 					if (construct) {
 						v = add_new_bound_vert(mem_arena, vm, co);
 						v->efirst = e->prev;
@@ -1580,7 +1980,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 			}
 			else if (e->prev->is_bev) {
 				/* on-edge meet between e->prev and e */
-				offset_meet(e->prev, e, bv->v, e->fprev, co);
+				offset_meet(e->prev, e, bv->v, e->fprev, false, co);
 				if (construct) {
 					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev;
@@ -1657,6 +2057,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		}
 	}
 }
+#endif
 
 /* Do a global pass to try to make offsets as even as possible.
  * Consider this graph:
