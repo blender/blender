@@ -651,6 +651,10 @@ class BumpNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BumpNode)
 	bool has_spatial_varying() { return true; }
+	virtual int get_feature() {
+		/* TODO(sergey): Check for incoming links. */
+		return NODE_FEATURE_BUMP;
+	}
 
 	bool invert;
 };
