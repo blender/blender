@@ -24,6 +24,7 @@
  *  \ingroup edinterface
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
