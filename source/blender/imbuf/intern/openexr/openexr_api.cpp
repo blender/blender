@@ -1345,6 +1345,7 @@ void IMB_exr_close(void *handle)
 	delete data->ofile;
 	delete data->mpofile;
 	delete data->ofile_stream;
+	delete data->multiView;
 
 	data->ifile = NULL;
 	data->ifile_stream = NULL;
