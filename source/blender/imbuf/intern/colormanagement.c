@@ -1357,11 +1357,12 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle, 
 
 		float *fp;
 		unsigned char *cp;
+		const size_t i_last = ((size_t)width) * height;
 		size_t i;
 
 		/* first convert byte buffer to float, keep in image space */
 		for (i = 0, fp = linear_buffer, cp = byte_buffer;
-		     i < ((size_t)width) * height;
+		     i != i_last;
 		     i++, fp += channels, cp += channels)
 		{
 			if (channels == 3) {
@@ -1470,11 +1471,12 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 			memcpy(display_buffer, linear_buffer, ((size_t)width) * height * channels * sizeof(float));
 
 			if (is_straight_alpha && channels == 4) {
+				const size_t i_last = ((size_t)width) * height;
 				size_t i;
 				float *fp;
 
 				for (i = 0, fp = display_buffer;
-				     i < ((size_t)width) * height;
+				     i != i_last;
 				     i++, fp += channels)
 				{
 					straight_to_premul_v4(fp);
@@ -1787,8 +1789,10 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 	if (processor) {
 		OCIO_PackedImageDesc *img;
 
-		img = OCIO_createOCIO_PackedImageDesc(buffer, width, height, channels, sizeof(float),
-		                                      channels * sizeof(float), channels * sizeof(float) * width);
+		img = OCIO_createOCIO_PackedImageDesc(
+		        buffer, width, height, channels, sizeof(float),
+		        (size_t)channels * sizeof(float),
+		        (size_t)channels * sizeof(float) * width);
 
 		if (predivide)
 			OCIO_processorApply_predivide(processor, img);
@@ -2015,7 +2019,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
                                           const ColorManagedDisplaySettings *display_settings, void **cache_handle)
 {
 	unsigned char *display_buffer;
-	int buffer_size;
+	size_t buffer_size;
 	ColormanageCacheViewSettings cache_view_settings;
 	ColormanageCacheDisplaySettings cache_display_settings;
 	ColorManagedViewSettings default_view_settings;
@@ -2113,8 +2117,8 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *li
 	float *buffer;
 	ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
-	buffer = MEM_callocN(channels * width * height * sizeof(float), "display transform temp buffer");
-	memcpy(buffer, linear_buffer, channels * width * height * sizeof(float));
+	buffer = MEM_mallocN((size_t)channels * width * height * sizeof(float), "display transform temp buffer");
+	memcpy(buffer, linear_buffer, (size_t)channels * width * height * sizeof(float));
 
 	IMB_colormanagement_processor_apply(cm_processor, buffer, width, height, channels, predivide);
 
@@ -2658,14 +2662,14 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 		if (!cm_processor)
 			channels = 4;
 
-		display_buffer_float = MEM_callocN(channels * width * height * sizeof(float), "display buffer for dither");
+		display_buffer_float = MEM_callocN((size_t)channels * width * height * sizeof(float), "display buffer for dither");
 	}
 
 	if (cm_processor) {
 		for (y = ymin; y < ymax; y++) {
 			for (x = xmin; x < xmax; x++) {
-				int display_index = (y * display_stride + x) * 4;
-				int linear_index = ((y - linear_offset_y) * linear_stride + (x - linear_offset_x)) * channels;
+				size_t display_index = ((size_t)y * display_stride + x) * 4;
+				size_t linear_index = ((size_t)(y - linear_offset_y) * linear_stride + (x - linear_offset_x)) * channels;
 				float pixel[4];
 
 				if (linear_buffer) {
@@ -2694,7 +2698,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 				}
 
 				if (display_buffer_float) {
-					int index = ((y - ymin) * width + (x - xmin)) * channels;
+					size_t index = ((size_t)(y - ymin) * width + (x - xmin)) * channels;
 
 					if (channels == 4) {
 						copy_v4_v4(display_buffer_float + index, pixel);
@@ -2737,8 +2741,8 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 			int i;
 
 			for (i = ymin; i < ymax; i++) {
-				int byte_offset = (linear_stride * i + xmin) * 4;
-				int display_offset = (display_stride * i + xmin) * 4;
+				size_t byte_offset = ((size_t)linear_stride * i + xmin) * 4;
+				size_t display_offset = ((size_t)display_stride * i + xmin) * 4;
 
 				memcpy(display_buffer + display_offset, byte_buffer + byte_offset, 4 * sizeof(char) * width);
 			}
@@ -2746,7 +2750,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 	}
 
 	if (display_buffer_float) {
-		int display_index = (ymin * display_stride + xmin) * channels;
+		size_t display_index = ((size_t)ymin * display_stride + xmin) * channels;
 
 		IMB_buffer_byte_from_float(display_buffer + display_index, display_buffer_float, channels, dither,
 		                           IB_PROFILE_SRGB, IB_PROFILE_SRGB, true, width, height, display_stride, width);
@@ -2833,8 +2837,8 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 	if (copy_display_to_byte_buffer && (unsigned char *) ibuf->rect != display_buffer) {
 		int y;
 		for (y = ymin; y < ymax; y++) {
-			int index = y * buffer_width * 4;
-			memcpy((unsigned char *)ibuf->rect + index, display_buffer + index, (xmax - xmin) * 4);
+			size_t index = (size_t)y * buffer_width * 4;
+			memcpy((unsigned char *)ibuf->rect + index, display_buffer + index, (size_t)(xmax - xmin) * 4);
 		}
 	}
 }
@@ -2970,8 +2974,10 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 		OCIO_PackedImageDesc *img;
 
 		/* apply OCIO processor */
-		img = OCIO_createOCIO_PackedImageDesc(buffer, width, height, channels, sizeof(float),
-		                                      channels * sizeof(float), channels * sizeof(float) * width);
+		img = OCIO_createOCIO_PackedImageDesc(
+		        buffer, width, height, channels, sizeof(float),
+		        (size_t)channels * sizeof(float),
+		        (size_t)channels * sizeof(float) * width);
 
 		if (predivide)
 			OCIO_processorApply_predivide(cm_processor->processor, img);
