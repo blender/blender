@@ -3093,7 +3093,7 @@ static PointCache *ptcache_copy(PointCache *cache, bool copy_data)
 }
 
 /* returns first point cache */
-PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old, bool copy_data)
+PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, const ListBase *ptcaches_old, bool copy_data)
 {
 	PointCache *cache = ptcaches_old->first;
 

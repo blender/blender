@@ -248,7 +248,7 @@ bool BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 	return true;
 }
 
-void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
+void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src)
 {
 	ModifierData *md;
 	BKE_object_free_modifiers(ob_dst);
@@ -1207,7 +1207,7 @@ struct Object *BKE_object_lod_matob_get(Object *ob, Scene *scene)
 #endif  /* WITH_GAMEENGINE */
 
 
-SoftBody *copy_softbody(SoftBody *sb, bool copy_caches)
+SoftBody *copy_softbody(const SoftBody *sb, bool copy_caches)
 {
 	SoftBody *sbn;
 	
@@ -1331,24 +1331,24 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys)
 	return psysn;
 }
 
-void BKE_object_copy_particlesystems(Object *obn, Object *ob)
+void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src)
 {
 	ParticleSystem *psys, *npsys;
 	ModifierData *md;
 
-	if (obn->type != OB_MESH) {
+	if (ob_dst->type != OB_MESH) {
 		/* currently only mesh objects can have soft body */
 		return;
 	}
 
-	BLI_listbase_clear(&obn->particlesystem);
-	for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+	BLI_listbase_clear(&ob_dst->particlesystem);
+	for (psys = ob_src->particlesystem.first; psys; psys = psys->next) {
 		npsys = BKE_object_copy_particlesystem(psys);
 
-		BLI_addtail(&obn->particlesystem, npsys);
+		BLI_addtail(&ob_dst->particlesystem, npsys);
 
 		/* need to update particle modifiers too */
-		for (md = obn->modifiers.first; md; md = md->next) {
+		for (md = ob_dst->modifiers.first; md; md = md->next) {
 			if (md->type == eModifierType_ParticleSystem) {
 				ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 				if (psmd->psys == psys)
@@ -1376,10 +1376,11 @@ void BKE_object_copy_particlesystems(Object *obn, Object *ob)
 	}
 }
 
-void BKE_object_copy_softbody(Object *obn, Object *ob)
+void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src)
 {
-	if (ob->soft)
-		obn->soft = copy_softbody(ob->soft, false);
+	if (ob_src->soft) {
+		ob_dst->soft = copy_softbody(ob_src->soft, false);
+	}
 }
 
 static void copy_object_pose(Object *obn, Object *ob)

@@ -53,11 +53,11 @@ void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
 
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
-struct SoftBody *copy_softbody(struct SoftBody *sb, bool copy_caches);
+struct SoftBody *copy_softbody(const struct SoftBody *sb, bool copy_caches);
 struct BulletSoftBody *copy_bulletsoftbody(struct BulletSoftBody *sb);
 struct ParticleSystem *BKE_object_copy_particlesystem(struct ParticleSystem *psys);
-void BKE_object_copy_particlesystems(struct Object *obn, struct Object *ob);
-void BKE_object_copy_softbody(struct Object *obn, struct Object *ob);
+void BKE_object_copy_particlesystems(struct Object *ob_dst, const struct Object *ob_src);
+void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_particlesystems(struct Object *ob);
 void BKE_object_free_softbody(struct Object *ob);
 void BKE_object_free_bulletsoftbody(struct Object *ob);
@@ -73,7 +73,7 @@ void BKE_object_modifier_hook_reset(struct Object *ob, struct HookModifierData *
 
 bool BKE_object_support_modifier_type_check(struct Object *ob, int modifier_type);
 
-void BKE_object_link_modifiers(struct Object *ob, struct Object *from);
+void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_modifiers(struct Object *ob);
 
 void BKE_object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
