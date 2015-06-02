@@ -214,8 +214,22 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 	}
 	else if (!node_from) {
 		node_from = nodeAddStaticNode(C, ntree, type);
-		node_from->locx = node_to->locx - (node_from->typeinfo->width + 50);
-		node_from->locy = node_to->locy;
+		if (node_prev != NULL) {
+			/* If we're replacing existing node, use it's location. */
+			node_from->locx = node_prev->locx;
+			node_from->locy = node_prev->locy;
+			node_from->offsetx = node_prev->offsetx;
+			node_from->offsety = node_prev->offsety;
+		}
+		else {
+			/* Avoid exact intersection of nodes.
+			 * TODO(sergey): Still not ideal, but better than nothing.
+			 */
+			int index = BLI_findindex(&node_to->inputs, sock_to);
+			BLI_assert(index != -1);
+			node_from->locx = node_to->locx - (node_from->typeinfo->width + 50);
+			node_from->locy = node_to->locy - (node_from->typeinfo->height * index);
+		}
 		
 		node_link_item_apply(node_from, item);
 	}
