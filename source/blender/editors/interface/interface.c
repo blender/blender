@@ -4457,7 +4457,19 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 
 		if (type == BUT_GET_LABEL) {
 			if (but->str) {
-				tmp = BLI_strdup(but->str);
+				const char *str_sep;
+				size_t str_len;
+
+				if ((but->flag & UI_BUT_HAS_SEP_CHAR) &&
+				    (str_sep = strrchr(but->str, UI_SEP_CHAR)))
+				{
+					str_len = (str_sep - but->str);
+				}
+				else {
+					str_len = strlen(but->str);
+				}
+
+				tmp = BLI_strdupn(but->str, str_len);
 			}
 			else {
 				type = BUT_GET_RNA_LABEL;  /* Fail-safe solution... */
