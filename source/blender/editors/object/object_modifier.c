@@ -248,7 +248,7 @@ static bool object_has_modifier_cb(Object *ob, void *data)
 bool ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 {
 	ModifierData *md;
-	int totlevel = *((int *)totlevel_v);
+	int totlevel = *((char *)totlevel_v);
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Multires) {
