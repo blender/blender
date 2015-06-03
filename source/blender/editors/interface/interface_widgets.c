@@ -1608,9 +1608,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	else if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) {
 		ui_text_clip_right_label(fstyle, but, rect);
 	}
-	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == UI_BTYPE_BUT)) {
+	else if (but->flag & UI_BUT_HAS_SEP_CHAR) {
 		/* Clip middle, but protect in all case right part containing the shortcut, if any. */
-		ui_text_clip_middle_protect_right(fstyle, but, rect, "|");
+		ui_text_clip_middle_protect_right(fstyle, but, rect, UI_SEP_CHAR_S);
 	}
 	else {
 		ui_text_clip_middle(fstyle, but, rect);
