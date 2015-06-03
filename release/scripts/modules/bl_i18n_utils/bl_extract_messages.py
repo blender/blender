@@ -925,18 +925,18 @@ def main():
         return
 
     import sys
-    back_argv = sys.argv
-    # Get rid of Blender args!
-    sys.argv = sys.argv[sys.argv.index("--") + 1:]
-
     import argparse
+
+    # Get rid of Blender args!
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+
     parser = argparse.ArgumentParser(description="Process UI messages from inside Blender.")
     parser.add_argument('-c', '--no_checks', default=True, action="store_false", help="No checks over UI messages.")
     parser.add_argument('-m', '--no_messages', default=True, action="store_false", help="No export of UI messages.")
     parser.add_argument('-o', '--output', default=None, help="Output POT file path.")
     parser.add_argument('-s', '--settings', default=None,
                         help="Override (some) default settings. Either a JSon file name, or a JSon string.")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     settings = settings_i18n.I18nSettings()
     settings.from_json(args.settings)
@@ -945,8 +945,6 @@ def main():
         settings.FILE_NAME_POT = args.output
 
     dump_messages(do_messages=args.no_messages, do_checks=args.no_checks, settings=settings)
-
-    sys.argv = back_argv
 
 
 if __name__ == "__main__":
