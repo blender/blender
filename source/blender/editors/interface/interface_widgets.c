@@ -970,7 +970,7 @@ static void ui_text_clip_right_ex(
  */
 float UI_text_clip_middle_ex(
         uiFontStyle *fstyle, char *str, float okwidth, const float minwidth,
-        const size_t max_len, const char *rpart_sep)
+        const size_t max_len, const char rpart_sep)
 {
 	float strwidth;
 
@@ -1003,7 +1003,7 @@ float UI_text_clip_middle_ex(
 		size_t final_lpart_len;
 
 		if (rpart_sep) {
-			rpart = strstr(str, rpart_sep);
+			rpart = strrchr(str, rpart_sep);
 
 			if (rpart) {
 				rpart_len = strlen(rpart);
@@ -1085,14 +1085,14 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
 	const float minwidth = (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
 
 	but->ofs = 0;
-	but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, NULL);
+	but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, '\0');
 }
 
 /**
  * Like ui_text_clip_middle(), but protect/preserve at all cost the right part of the string after sep.
  * Useful for strings with shortcuts (like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
  */
-static void ui_text_clip_middle_protect_right(uiFontStyle *fstyle, uiBut *but, const rcti *rect, const char *rsep)
+static void ui_text_clip_middle_protect_right(uiFontStyle *fstyle, uiBut *but, const rcti *rect, const char rsep)
 {
 	/* No margin for labels! */
 	const int border = ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_MENU) ? 0 : (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
@@ -1610,7 +1610,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	}
 	else if (but->flag & UI_BUT_HAS_SEP_CHAR) {
 		/* Clip middle, but protect in all case right part containing the shortcut, if any. */
-		ui_text_clip_middle_protect_right(fstyle, but, rect, UI_SEP_CHAR_S);
+		ui_text_clip_middle_protect_right(fstyle, but, rect, UI_SEP_CHAR);
 	}
 	else {
 		ui_text_clip_middle(fstyle, but, rect);
@@ -4077,7 +4077,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 		const float minwidth = (float)(UI_DPI_ICON_SIZE);
 
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
-		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, NULL);
+		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
 		glColor4ubv((unsigned char *)wt->wcol.text);
 		UI_fontstyle_draw(fstyle, rect, drawstr);
@@ -4144,7 +4144,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		const float minwidth = (float)(UI_DPI_ICON_SIZE);
 
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
-		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, NULL);
+		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
 		glColor4ubv((unsigned char *)wt->wcol.text);
 		UI_fontstyle_draw(fstyle, &trect, drawstr);

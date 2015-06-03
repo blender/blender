@@ -322,7 +322,7 @@ void UI_draw_widget_scroll(struct uiWidgetColors *wcol, const struct rcti *rect,
 /* Shortening string helper. */
 float UI_text_clip_middle_ex(
         struct uiFontStyle *fstyle, char *str, float okwidth, const float minwidth,
-        const size_t max_len, const char *rpart_sep);
+        const size_t max_len, const char rpart_sep);
 
 /* Callbacks
  *
