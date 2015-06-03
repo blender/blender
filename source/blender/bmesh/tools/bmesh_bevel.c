@@ -821,6 +821,17 @@ static bool offset_meet_edge(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,  float meetc
 	return true;
 }
 
+/* Return true if it will look good to put the meeting point where offset_on_edge_between
+ * would put it. This means that neither side sees a reflex angle */
+static bool good_offset_on_edge_between(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid, BMVert *v)
+{
+	float ang;
+	float meet[3];
+
+	return offset_meet_edge(e1, emid, v, meet, &ang) &&
+	       offset_meet_edge(emid, e2, v, meet, &ang);
+}
+
 /* Calculate the best place for a meeting point for the offsets from edges e1 and e2
  * on the in-between edge emid.  Viewed from the vertex normal side, the CCW
  * order of these edges is e1, emid, e2.
@@ -1770,7 +1781,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 			offset_meet(e, e2, bv->v, e->fnext, false, co);
 		}
 		else if (nnip > 0) {
-			if (nnip == 1) {
+			if (nnip == 1 && good_offset_on_edge_between(e, e2, enip, bv->v)) {
 				offset_on_edge_between(bp, e, e2, enip, bv->v, co);
 			}
 			else {
@@ -1779,7 +1790,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		}
 		else {
 			/* nip > 0 and nnip == 0 */
-			if (nip == 1) {
+			if (nip == 1 && good_offset_on_edge_between(e, e2, eip, bv->v)) {
 				offset_on_edge_between(bp, e, e2, eip, bv->v, co);
 			}
 			else {
