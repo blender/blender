@@ -216,6 +216,41 @@ void BLI_stack_discard(BLI_Stack *stack)
 	}
 }
 
+/**
+ * Discards all elements without freeing.
+ */
+void BLI_stack_clear(BLI_Stack *stack)
+{
+#ifdef USE_TOTELEM
+	if (UNLIKELY(stack->totelem == 0)) {
+		return;
+	}
+	stack->totelem = 0;
+#else
+	if (UNLIKELY(stack->chunk_curr == NULL)) {
+		return;
+	}
+#endif
+
+	stack->chunk_index = stack->chunk_elem_max - 1;
+
+	if (stack->chunk_free) {
+		if (stack->chunk_curr) {
+			/* move all used chunks into tail of free list */
+			struct StackChunk *chunk_free_last = stack->chunk_free;
+			while (chunk_free_last->next) {
+				chunk_free_last = chunk_free_last->next;
+			}
+			chunk_free_last->next = stack->chunk_curr;
+			stack->chunk_curr = NULL;
+		}
+	}
+	else {
+		stack->chunk_free = stack->chunk_curr;
+		stack->chunk_curr = NULL;
+	}
+}
+
 size_t BLI_stack_count(const BLI_Stack *stack)
 {
 #ifdef USE_TOTELEM

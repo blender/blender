@@ -48,6 +48,7 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst) ATTR_NONNULL();
 
 void *BLI_stack_peek(BLI_Stack *stack) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BLI_stack_discard(BLI_Stack *stack) ATTR_NONNULL();
+void  BLI_stack_clear(BLI_Stack *stack) ATTR_NONNULL();
 
 size_t BLI_stack_count(const BLI_Stack *stack) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
