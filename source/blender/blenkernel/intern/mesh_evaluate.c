@@ -372,6 +372,10 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space, const float lnor[3],
 		/* If vec_ref or vec_other are too much aligned with lnor, we can't build lnor space,
 		 * tag it as invalid and abort. */
 		lnor_space->ref_alpha = lnor_space->ref_beta = 0.0f;
+
+		if (edge_vectors) {
+			BLI_stack_clear(edge_vectors);
+		}
 		return;
 	}
 
