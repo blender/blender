@@ -955,21 +955,30 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 	}
 }
 
+static bool ommit_cursor_drawing(Paint *paint, PaintMode mode, Brush *brush)
+{
+	if (paint->flags & PAINT_SHOW_BRUSH) {
+		if (ELEM(mode, PAINT_TEXTURE_2D, PAINT_TEXTURE_PROJECTIVE) && brush->imagepaint_tool == PAINT_TOOL_FILL)
+			return true;
+	}
+	return false;
+}
+
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
 	Scene *scene = CTX_data_scene(C);
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *brush = BKE_paint_brush(paint);
+	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 	ViewContext vc;
-	PaintMode mode;
 	float final_radius;
 	float translation[2];
 	float outline_alpha, *outline_col;
 	float zoomx, zoomy;
-	
+
 	/* check that brush drawing is enabled */
-	if (!(paint->flags & PAINT_SHOW_BRUSH))
+	if (ommit_cursor_drawing(paint, mode, brush))
 		return;
 
 	/* can't use stroke vc here because this will be called during
@@ -978,7 +987,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	get_imapaint_zoom(C, &zoomx, &zoomy);
 	zoomx = max_ff(zoomx, zoomy);
-	mode = BKE_paintmode_get_active_from_context(C);
 
 	/* skip everything and draw brush here */
 	if (brush->flag & BRUSH_CURVE) {
