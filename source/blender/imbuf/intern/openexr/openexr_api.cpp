@@ -1856,6 +1856,7 @@ static bool imb_exr_is_multi(MultiPartInputFile& file)
 struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
+	Mem_IStream *membuf = NULL;
 	MultiPartInputFile *file = NULL;
 
 	if (imb_is_a_openexr(mem) == 0) return(NULL);
@@ -1864,8 +1865,9 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 
 	try
 	{
-		Mem_IStream *membuf = new Mem_IStream(mem, size);
 		bool is_multi;
+
+		membuf = new Mem_IStream(mem, size);
 		file = new MultiPartInputFile(*membuf);
 
 		Box2i dw = file->header(0).dataWindow();
@@ -1999,6 +2001,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 					}
 
 					/* file is no longer needed */
+					delete membuf;
 					delete file;
 				}
 			}
@@ -2013,6 +2016,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 		std::cerr << exc.what() << std::endl;
 		if (ibuf) IMB_freeImBuf(ibuf);
 		delete file;
+		delete membuf;
 
 		return (0);
 	}
