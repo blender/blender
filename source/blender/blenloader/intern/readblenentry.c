@@ -176,26 +176,38 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 					prv = BLO_library_read_struct(fd, bhead, "PreviewImage");
 					if (prv) {
 						memcpy(new_prv, prv, sizeof(PreviewImage));
-						if (prv->rect[0]) {
+						if (prv->rect[0] && prv->w[0] && prv->h[0]) {
 							unsigned int *rect = NULL;
-							new_prv->rect[0] = MEM_callocN(new_prv->w[0] * new_prv->h[0] * sizeof(unsigned int), "prvrect");
+							size_t len = new_prv->w[0] * new_prv->h[0] * sizeof(unsigned int);
+							new_prv->rect[0] = MEM_callocN(len, __func__);
 							bhead = blo_nextbhead(fd, bhead);
 							rect = (unsigned int *)(bhead + 1);
-							memcpy(new_prv->rect[0], rect, bhead->len);
+							BLI_assert(len == bhead->len);
+							memcpy(new_prv->rect[0], rect, len);
 						}
 						else {
+							/* This should not be needed, but can happen in 'broken' .blend files,
+							 * better handle this gracefully than crashing. */
+							BLI_assert(prv->rect[0] == NULL && prv->w[0] == 0 && prv->h[0] == 0);
 							new_prv->rect[0] = NULL;
+							new_prv->w[0] = new_prv->h[0] = 0;
 						}
 						
-						if (prv->rect[1]) {
+						if (prv->rect[1] && prv->w[1] && prv->h[1]) {
 							unsigned int *rect = NULL;
-							new_prv->rect[1] = MEM_callocN(new_prv->w[1] * new_prv->h[1] * sizeof(unsigned int), "prvrect");
+							size_t len = new_prv->w[1] * new_prv->h[1] * sizeof(unsigned int);
+							new_prv->rect[1] = MEM_callocN(len, __func__);
 							bhead = blo_nextbhead(fd, bhead);
 							rect = (unsigned int *)(bhead + 1);
-							memcpy(new_prv->rect[1], rect, bhead->len);
+							BLI_assert(len == bhead->len);
+							memcpy(new_prv->rect[1], rect, len);
 						}
 						else {
+							/* This should not be needed, but can happen in 'broken' .blend files,
+							 * better handle this gracefully than crashing. */
+							BLI_assert(prv->rect[1] == NULL && prv->w[1] == 0 && prv->h[1] == 0);
 							new_prv->rect[1] = NULL;
+							new_prv->w[1] = new_prv->h[1] = 0;
 						}
 						MEM_freeN(prv);
 					}
