@@ -11,6 +11,14 @@ extern "C" {
 
 #define SIZE 1024
 
+/* number of items per chunk. use a small value to expose bugs */
+#define STACK_CHUNK_SIZE 8
+
+/* Ensure block size is set to #STACK_NEW_EX_ARGS */
+#define BLI_stack_new(esize, descr) \
+	BLI_stack_new_ex(esize, descr, esize * STACK_CHUNK_SIZE)
+
+
 TEST(stack, Empty)
 {
 	BLI_Stack *stack;
@@ -110,18 +118,60 @@ TEST(stack, Peek)
 	EXPECT_EQ(BLI_stack_is_empty(stack), true);
 }
 
+/* Check that clearing the stack leaves in it a correct state. */
+TEST(stack, Clear)
+{
+	const int tot_rerun = 4;
+	int rerun;
+
+	/* based on range test */
+	int tot = SIZE;
+	BLI_Stack *stack;
+	int in, out;
+
+	/* use a small chunk size to ensure we test */
+	stack = BLI_stack_new(sizeof(in), __func__);
+
+	for (rerun = 0; rerun < tot_rerun; rerun++) {
+		for (in = 0; in < tot; in++) {
+			BLI_stack_push(stack, (void *)&in);
+		}
+
+		BLI_stack_clear(stack);
+		EXPECT_EQ(BLI_stack_is_empty(stack), true);
+
+		/* and again, this time check its valid */
+		for (in = 0; in < tot; in++) {
+			BLI_stack_push(stack, (void *)&in);
+		}
+
+		for (in = tot - 1; in >= 0; in--) {
+			EXPECT_EQ(BLI_stack_is_empty(stack), false);
+			BLI_stack_pop(stack, (void *)&out);
+			EXPECT_EQ(in, out);
+		}
+
+		EXPECT_EQ(BLI_stack_is_empty(stack), true);
+
+		/* without this, we wont test case when mixed free/used */
+		tot /= 2;
+	}
+
+	BLI_stack_free(stack);
+}
+
 
 TEST(stack, Reuse)
 {
 	const int sizes[] = {3, 11, 81, 400, 999, 12, 1, 9721, 7, 99, 5, 0};
 	int sizes_test[ARRAY_SIZE(sizes)];
 	const int *s;
-	int in, out, i;
+	int out, i;
 	int sum, sum_test;
 
 	BLI_Stack *stack;
 
-	stack = BLI_stack_new(sizeof(in), __func__);
+	stack = BLI_stack_new(sizeof(i), __func__);
 
 	/* add a bunch of numbers, ensure we get same sum out */
 	sum = 0;
