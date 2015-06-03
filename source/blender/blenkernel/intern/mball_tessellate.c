@@ -1233,14 +1233,9 @@ static void init_meta(EvaluationContext *eval_ctx, PROCESS *process, Scene *scen
 						copy_v3_v3(new_ml->bb->vec[6], tempmax);
 
 						/* add new_ml to mainb[] */
-						if (process->totelem == process->mem) {
-							MetaElem **newelem;
+						if (UNLIKELY(process->totelem == process->mem)) {
 							process->mem = process->mem * 2 + 10;
-							newelem = MEM_mallocN(sizeof(MetaElem *) * process->mem, "metaballs");
-
-							memcpy(newelem, process->mainb, sizeof(MetaElem *) * process->totelem);
-							if (process->mainb) MEM_freeN(process->mainb);
-							process->mainb = newelem;
+							process->mainb = MEM_reallocN(process->mainb, sizeof(MetaElem *) * process->mem);
 						}
 						process->mainb[process->totelem++] = new_ml;
 					}
