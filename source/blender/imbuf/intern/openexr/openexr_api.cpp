@@ -638,7 +638,7 @@ typedef struct ExrHandle {
 	struct ExrHandle *next, *prev;
 	char name[FILE_MAX];
 
-	IFileStream *ifile_stream;
+	IStream *ifile_stream;
 	MultiPartInputFile *ifile;
 
 	OFileStream *ofile_stream;
@@ -1496,7 +1496,7 @@ static ExrPass *imb_exr_get_pass(ListBase *lb, char *passname)
 }
 
 /* creates channels, makes a hierarchy and assigns memory to channels */
-static ExrHandle *imb_exr_begin_read_mem(MultiPartInputFile& file, int width, int height)
+static ExrHandle *imb_exr_begin_read_mem(IStream &file_stream, MultiPartInputFile &file, int width, int height)
 {
 	ExrLayer *lay;
 	ExrPass *pass;
@@ -1505,7 +1505,9 @@ static ExrHandle *imb_exr_begin_read_mem(MultiPartInputFile& file, int width, in
 	int a;
 	char layname[EXR_TOT_MAXNAME], passname[EXR_TOT_MAXNAME];
 
+	data->ifile_stream = &file_stream;
 	data->ifile = &file;
+
 	data->width = width;
 	data->height = height;
 
@@ -1917,7 +1919,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 
 				if (is_multi && ((flags & IB_thumbnail) == 0)) { /* only enters with IB_multilayer flag set */
 					/* constructs channels for reading, allocates memory in channels */
-					ExrHandle *handle = imb_exr_begin_read_mem(*file, width, height);
+					ExrHandle *handle = imb_exr_begin_read_mem(*membuf, *file, width, height);
 					if (handle) {
 						IMB_exr_read_channels(handle);
 						ibuf->userdata = handle;         /* potential danger, the caller has to check for this! */
