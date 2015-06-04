@@ -132,6 +132,8 @@ bool BLI_parent_dir(char *path) ATTR_NONNULL();
 bool BLI_path_abs(char *path, const char *basepath)  ATTR_NONNULL();
 bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
 bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL();
+bool BLI_path_frame_get(char *path, int *r_frame, int *numdigits) ATTR_NONNULL();
+void BLI_path_frame_strip(char *path, bool setsharp, char *ext) ATTR_NONNULL();
 bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL();
 bool BLI_path_cwd(char *path) ATTR_NONNULL();
 void BLI_path_rel(char *file, const char *relfile) ATTR_NONNULL();

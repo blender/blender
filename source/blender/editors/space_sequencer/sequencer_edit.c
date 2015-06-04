@@ -3695,7 +3695,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	Sequence *seq = BKE_sequencer_active_get(scene);
 	const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 	const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-	int minframe;
+	int minframe, numdigits;
 
 	if (seq->type == SEQ_TYPE_IMAGE) {
 		char directory[FILE_MAX];
@@ -3704,7 +3704,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
 		/* need to find min/max frame for placeholders */
 		if (use_placeholders) {
-			len = sequencer_image_seq_get_minmax_frame(op, seq->sfra, &minframe);
+			len = sequencer_image_seq_get_minmax_frame(op, seq->sfra, &minframe, &numdigits);
 		}
 		else {
 			len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
@@ -3727,7 +3727,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		seq->strip->stripdata = se = MEM_callocN(len * sizeof(StripElem), "stripelem");
 
 		if (use_placeholders) {
-			sequencer_image_seq_reserve_frames(op, se, len, minframe);
+			sequencer_image_seq_reserve_frames(op, se, len, minframe, numdigits);
 		}
 		else {
 			RNA_BEGIN (op->ptr, itemptr, "files")

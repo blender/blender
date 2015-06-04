@@ -752,33 +752,20 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "cache", false, "Cache", "Cache the sound in memory");
 }
 
-int sequencer_image_seq_get_minmax_frame(wmOperator *op, int sfra, int *r_minframe)
+int sequencer_image_seq_get_minmax_frame(wmOperator *op, int sfra, int *r_minframe, int *r_numdigits)
 {
 	int minframe = INT32_MAX, maxframe = INT32_MIN;
+	int numdigits = 0;
 
 	RNA_BEGIN (op->ptr, itemptr, "files")
 	{
-		char *filename = NULL, *filename_stripped;
+		char *filename;
 		int frame;
 		/* just get the first filename */
 		filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
 
 		if (filename) {
-			bool is_numeric;
-
-			filename_stripped = filename;
-
-			/* strip numeric extensions */
-			while (*filename_stripped && isdigit(*filename_stripped)) {
-				filename_stripped++;
-			}
-
-			is_numeric = (filename_stripped != filename && *filename_stripped == '.');
-
-			if (is_numeric) {
-				/* was the number really an extension? */
-				*filename_stripped = 0;
-				frame = atoi(filename);
+			if (BLI_path_frame_get(filename, &frame, &numdigits)) {
 				minframe = min_ii(minframe, frame);
 				maxframe = max_ii(maxframe, frame);
 			}
@@ -794,14 +781,15 @@ int sequencer_image_seq_get_minmax_frame(wmOperator *op, int sfra, int *r_minfra
 	}
 
 	*r_minframe = minframe;
+	*r_numdigits = numdigits;
 
 	return maxframe - minframe + 1;
 }
 
-void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, int minframe)
+void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, int minframe, int numdigits)
 {
 	int i;
-	char *filename = NULL, *filename_stripped;
+	char *filename = NULL;
 	RNA_BEGIN (op->ptr, itemptr, "files")
 	{
 		/* just get the first filename */
@@ -810,26 +798,16 @@ void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, 
 	}
 	RNA_END;
 
-	filename_stripped = filename;
-
-	if (filename_stripped) {
-		int numlen = 0;
-
-		/* strip numeric extensions */
-		while (*filename_stripped && isdigit(*filename_stripped)) {
-			filename_stripped++;
-			numlen++;
-		}
-
-		/* was the number really an extension? */
-		if (*filename_stripped == '.')
-			filename_stripped++;
-		else {
-			filename_stripped = filename;
-		}
+	if (filename) {
+		char ext[PATH_MAX];
+		char filename_stripped[PATH_MAX];
+		/* strip the frame from filename and substitute with # */
+		BLI_path_frame_strip(filename, true, ext);
 
 		for (i = 0; i < len; i++, se++) {
-			BLI_snprintf(se->name, sizeof(se->name), "%0*d.%s", numlen, minframe + i, filename_stripped);
+			BLI_strncpy(filename_stripped, filename, sizeof(filename_stripped));
+			BLI_path_frame(filename_stripped, minframe + i, numdigits);
+			BLI_snprintf(se->name, sizeof(se->name), "%s%s", filename_stripped, ext);
 		}
 
 		MEM_freeN(filename);
@@ -840,7 +818,7 @@ void sequencer_image_seq_reserve_frames(wmOperator *op, StripElem *se, int len, 
 /* add image operator */
 static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
-	int minframe;
+	int minframe, numdigits;
 	/* cant use the generic function for this */
 	Scene *scene = CTX_data_scene(C); /* only for sound */
 	Editing *ed = BKE_sequencer_editing_get(scene, true);
@@ -855,7 +833,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 	/* images are unique in how they handle this - 1 per strip elem */
 	if (use_placeholders) {
-		seq_load.len = sequencer_image_seq_get_minmax_frame(op, seq_load.start_frame, &minframe);
+		seq_load.len = sequencer_image_seq_get_minmax_frame(op, seq_load.start_frame, &minframe, &numdigits);
 	}
 	else {
 		seq_load.len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
@@ -873,7 +851,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	se = strip->stripdata;
 
 	if (use_placeholders) {
-		sequencer_image_seq_reserve_frames(op, se, seq_load.len, minframe);
+		sequencer_image_seq_reserve_frames(op, se, seq_load.len, minframe, numdigits);
 	}
 	else {
 		RNA_BEGIN (op->ptr, itemptr, "files")

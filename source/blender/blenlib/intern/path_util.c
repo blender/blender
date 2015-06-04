@@ -859,6 +859,111 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits)
 }
 
 /**
+ * Get the frame from a filename formatted by blender's frame scheme
+ */
+bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
+{
+	if (path && *path) {
+		char *file = (char *)BLI_last_slash(path);
+		char *c;
+		int len, numdigits;
+
+		numdigits = *r_numdigits = 0;
+
+		if (file == NULL)
+			file = path;
+
+		/* first get the extension part */
+		len = strlen(file);
+
+		c = file + len;
+
+		/* isolate extension */
+		while (--c != file) {
+			if (*c == '.') {
+				c--;
+				break;
+			}
+		}
+
+		/* find start of number */
+		while (c != (file - 1) && isdigit(*c)) {
+			c--;
+			numdigits++;
+		}
+
+		if (numdigits) {
+			char prevchar;
+
+			c++;
+			prevchar = c[numdigits];
+			c[numdigits] = 0;
+
+			/* was the number really an extension? */
+			*r_frame = atoi(c);
+			c[numdigits] = prevchar;
+
+			*r_numdigits = numdigits;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void BLI_path_frame_strip(char *path, bool setsharp, char *ext)
+{
+	if (path && *path) {
+		char *file = (char *)BLI_last_slash(path);
+		char *c, *suffix;
+		int len;
+		int numdigits = 0;
+
+		if (file == NULL)
+			file = path;
+
+		/* first get the extension part */
+		len = strlen(file);
+
+		c = file + len;
+
+		/* isolate extension */
+		while (--c != file) {
+			if (*c == '.') {
+				c--;
+				break;
+			}
+		}
+
+		suffix = c + 1;
+
+		/* find start of number */
+		while (c != (file - 1) && isdigit(*c)) {
+			c--;
+			numdigits++;
+		}
+
+		c++;
+
+		if(numdigits) {
+			/* replace the number with the suffix and terminate the string */
+			while (numdigits--) {
+				if (ext) *ext++ = *suffix;
+
+				if (setsharp) *c++ = '#';
+				else *c++ = *suffix;
+
+				suffix++;
+			}
+			*c = 0;
+			if (ext) *ext = 0;
+		}
+	}
+}
+
+
+/**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */
 bool BLI_path_frame_check_chars(const char *path)
