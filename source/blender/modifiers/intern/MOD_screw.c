@@ -158,9 +158,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	};
 	const int quad_ord_ofs[4] = {
 	    do_flip ? 2 : 0,
-	    do_flip ? 1 : 1,
+	    1,
 	    do_flip ? 0 : 2,
-	    do_flip ? 3 : 3,
+	    3,
 	};
 
 	unsigned int maxVerts = 0, maxEdges = 0, maxPolys = 0;
