@@ -251,6 +251,7 @@ static void bm_decim_build_edge_cost_single(
 		}
 	}
 	else {
+		goto clear;
 	}
 
 	if (vweights) {
