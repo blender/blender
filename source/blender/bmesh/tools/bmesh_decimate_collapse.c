@@ -238,8 +238,7 @@ static void bm_decim_build_edge_cost_single(
 		}
 		else {
 			/* only collapse tri's */
-			eheap_table[BM_elem_index_get(e)] = NULL;
-			return;
+			goto clear;
 		}
 	}
 	else if (BM_edge_is_manifold(e)) {
@@ -248,13 +247,10 @@ static void bm_decim_build_edge_cost_single(
 		}
 		else {
 			/* only collapse tri's */
-			eheap_table[BM_elem_index_get(e)] = NULL;
-			return;
+			goto clear;
 		}
 	}
 	else {
-		eheap_table[BM_elem_index_get(e)] = NULL;
-		return;
 	}
 
 	if (vweights) {
@@ -262,8 +258,7 @@ static void bm_decim_build_edge_cost_single(
 		    (vweights[BM_elem_index_get(e->v2)] >= BM_MESH_DECIM_WEIGHT_MAX))
 		{
 			/* skip collapsing this edge */
-			eheap_table[BM_elem_index_get(e)] = NULL;
-			return;
+			goto clear;
 		}
 	}
 	/* end sanity check */
@@ -302,6 +297,10 @@ static void bm_decim_build_edge_cost_single(
 #endif
 
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
+	return;
+
+clear:
+	eheap_table[BM_elem_index_get(e)] = NULL;
 }
 
 
@@ -906,7 +905,8 @@ static void bm_decim_edge_collapse(
 {
 	int e_clear_other[2];
 	BMVert *v_other = e->v1;
-	int v_clear_index = BM_elem_index_get(e->v2);  /* the vert is removed so only store the index */
+	const int v_other_index = BM_elem_index_get(e->v1);
+	const int v_clear_index = BM_elem_index_get(e->v2);  /* the vert is removed so only store the index */
 	float optimize_co[3];
 	float customdata_fac;
 
@@ -949,7 +949,7 @@ static void bm_decim_edge_collapse(
 		int i;
 
 		if (vweights) {
-			vweights[BM_elem_index_get(v_other)] += vweights[v_clear_index];
+			vweights[v_other_index] += vweights[v_clear_index];
 		}
 
 		e = NULL;  /* paranoid safety check */
@@ -966,7 +966,7 @@ static void bm_decim_edge_collapse(
 		}
 
 		/* update vertex quadric, add kept vertex from killed vertex */
-		BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(v_other)], &vquadrics[v_clear_index]);
+		BLI_quadric_add_qu_qu(&vquadrics[v_other_index], &vquadrics[v_clear_index]);
 
 		/* update connected normals */
 
