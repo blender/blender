@@ -1200,7 +1200,7 @@ static float brush_strength(const Sculpt *sd, const StrokeCache *cache, const fl
 	/* Primary strength input; square it to make lower values more sensitive */
 	const float root_alpha = BKE_brush_alpha_get(scene, brush);
 	float alpha        = root_alpha * root_alpha;
-	float dir          = brush->flag & BRUSH_DIR_IN ? -1 : 1;
+	float dir          = (brush->flag & BRUSH_DIR_IN) ? -1 : 1;
 	float pressure     = BKE_brush_use_alpha_pressure(scene, brush) ? cache->pressure : 1;
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;

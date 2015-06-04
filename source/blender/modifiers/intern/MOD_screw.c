@@ -148,7 +148,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	unsigned int i, j;
 	unsigned int i1, i2;
 	unsigned int step_tot = use_render_params ? ltmd->render_steps : ltmd->steps;
-	const bool do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
+	const bool do_flip = (ltmd->flag & MOD_SCREW_NORMAL_FLIP) != 0;
 
 	const int quad_ord[4] = {
 	    do_flip ? 3 : 0,

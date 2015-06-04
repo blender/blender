@@ -1610,7 +1610,7 @@ void rename_id(ID *id, const char *name)
 void name_uiprefix_id(char *name, const ID *id)
 {
 	name[0] = id->lib ? 'L' : ' ';
-	name[1] = id->flag & LIB_FAKEUSER ? 'F' : (id->us == 0) ? '0' : ' ';
+	name[1] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
 	name[2] = ' ';
 
 	strcpy(name + 3, id->name + 2);

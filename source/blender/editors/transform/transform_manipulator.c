@@ -512,7 +512,7 @@ static int calc_manipulator_stats(const bContext *C)
 
 				for (k = 0, ek = point->keys; k < point->totkey; k++, ek++) {
 					if (ek->flag & PEK_SELECT) {
-						calc_tw_center(scene, ek->flag & PEK_USE_WCO ? ek->world_co : ek->co);
+						calc_tw_center(scene, (ek->flag & PEK_USE_WCO) ? ek->world_co : ek->co);
 						totsel++;
 					}
 				}

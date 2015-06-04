@@ -5778,7 +5778,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	PTCacheEditPoint *point;
 	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
-	int i, k, totpoint = edit->totpoint, timed = pset->flag & PE_FADE_TIME ? pset->fade_frames : 0;
+	int i, k, totpoint = edit->totpoint, timed = (pset->flag & PE_FADE_TIME) ? pset->fade_frames : 0;
 	int totkeys = 1;
 	float sel_col[3];
 	float nosel_col[3];
@@ -5918,7 +5918,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 						glColor3fv(nosel_col);
 					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
 					glBegin(GL_POINTS);
-					glVertex3fv(key->flag & PEK_USE_WCO ? key->world_co : key->co);
+					glVertex3fv((key->flag & PEK_USE_WCO) ? key->world_co : key->co);
 					glEnd();
 				}
 			}

@@ -197,7 +197,7 @@ static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 
 	//There must be a faster way than rotating all the 8 vertexs of the BB
 	for (i = 0; i < 8; i++) {
-		for (j = 0; j < 3; j++) t[j] = i & (1 << j) ? M[j] : m[j];
+		for (j = 0; j < 3; j++) t[j] = (i & (1 << j)) ? M[j] : m[j];
 		mul_m4_v3(obj->target2global, t);
 		DO_MINMAX(t, min, max);
 	}

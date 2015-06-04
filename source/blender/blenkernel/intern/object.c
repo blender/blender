@@ -2116,7 +2116,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	}
 	
 	/* vec: 4 items! */
-	if (where_on_path(par, ctime, vec, dir, cu->flag & CU_FOLLOW ? quat : NULL, &radius, NULL)) {
+	if (where_on_path(par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : NULL, &radius, NULL)) {
 
 		if (cu->flag & CU_FOLLOW) {
 #if 0

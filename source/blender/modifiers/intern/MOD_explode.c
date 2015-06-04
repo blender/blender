@@ -771,7 +771,7 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 
 	for (i = 0; i < curdupface; i++) {
 		mf = CDDM_get_tessface(splitdm, i);
-		test_index_face(mf, &splitdm->faceData, i, (mf->flag & ME_FACE_SEL ? 4 : 3));
+		test_index_face(mf, &splitdm->faceData, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
 	}
 
 	BLI_edgehash_free(edgehash, NULL);

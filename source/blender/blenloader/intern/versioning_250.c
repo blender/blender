@@ -766,7 +766,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 					bSoundActuator *sAct = (bSoundActuator*) act->data;
 					if (sAct->sound) {
 						sound = blo_do_versions_newlibadr(fd, lib, sAct->sound);
-						sAct->flag = sound->flags & SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
+						sAct->flag = (sound->flags & SOUND_FLAGS_3D) ? ACT_SND_3D_SOUND : 0;
 						sAct->pitch = sound->pitch;
 						sAct->volume = sound->volume;
 						sAct->sound3D.reference_distance = sound->distance;
