@@ -568,7 +568,7 @@ ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags, char colors
 	else ibuf = IMB_allocImBuf(tga.xsize, tga.ysize, (tga.pixsize + 0x7) & ~0x7, IB_rect);
 
 	if (ibuf == NULL) return NULL;
-	ibuf->ftype = TGA;
+	ibuf->ftype = (tga.imgtyp < 4) ? RAWTGA : TGA;
 	mem = mem + 18 + tga.numid;
 	
 	cp[0] = 0xff;
