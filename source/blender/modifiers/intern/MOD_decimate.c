@@ -61,6 +61,7 @@ static void initData(ModifierData *md)
 
 	dmd->percent = 1.0;
 	dmd->angle   = DEG2RADF(5.0f);
+	dmd->defgrp_factor = 1.0;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -78,7 +79,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (dmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if (dmd->defgrp_name[0] && (dmd->defgrp_factor > 0.0f)) {
+		dataMask |= CD_MASK_MDEFORMVERT;
+	}
 
 	return dataMask;
 }
@@ -130,7 +133,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if (dmd->mode == MOD_DECIM_MODE_COLLAPSE) {
-		if (dmd->defgrp_name[0]) {
+		if (dmd->defgrp_name[0] && (dmd->defgrp_factor > 0.0f)) {
 			MDeformVert *dvert;
 			int defgrp_index;
 
@@ -144,14 +147,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 				if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
 					for (i = 0; i < vert_tot; i++) {
-						const float f = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
-						vweights[i] = f > BM_MESH_DECIM_WEIGHT_EPS ? (1.0f / f) : BM_MESH_DECIM_WEIGHT_MAX;
+						vweights[i] = (1.0f - defvert_find_weight(&dvert[i], defgrp_index)) * dmd->defgrp_factor;
 					}
 				}
 				else {
 					for (i = 0; i < vert_tot; i++) {
-						const float f = defvert_find_weight(&dvert[i], defgrp_index);
-						vweights[i] = f > BM_MESH_DECIM_WEIGHT_EPS ? (1.0f / f) : BM_MESH_DECIM_WEIGHT_MAX;
+						vweights[i] = (defvert_find_weight(&dvert[i], defgrp_index)) * dmd->defgrp_factor;
 					}
 				}
 			}

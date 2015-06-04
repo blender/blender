@@ -212,10 +212,15 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
  *
  * This avoids cases where a flat (or near flat) areas get very un-even geometry.
  */
-static float bm_decim_build_edge_cost_single__topology(BMEdge *e)
+static float bm_decim_build_edge_cost_single_squared__topology(BMEdge *e)
 {
 	return fabsf(dot_v3v3(e->v1->no, e->v2->no)) / min_ff(-len_squared_v3v3(e->v1->co, e->v2->co), -FLT_EPSILON);
 }
+static float bm_decim_build_edge_cost_single__topology(BMEdge *e)
+{
+	return fabsf(dot_v3v3(e->v1->no, e->v2->no)) / min_ff(-len_v3v3(e->v1->co, e->v2->co), -FLT_EPSILON);
+}
+
 #endif  /* USE_TOPOLOGY_FALLBACK */
 
 static void bm_decim_build_edge_cost_single(
@@ -253,15 +258,6 @@ static void bm_decim_build_edge_cost_single(
 	else {
 		goto clear;
 	}
-
-	if (vweights) {
-		if ((vweights[BM_elem_index_get(e->v1)] >= BM_MESH_DECIM_WEIGHT_MAX) &&
-		    (vweights[BM_elem_index_get(e->v2)] >= BM_MESH_DECIM_WEIGHT_MAX))
-		{
-			/* skip collapsing this edge */
-			goto clear;
-		}
-	}
 	/* end sanity check */
 
 
@@ -270,20 +266,20 @@ static void bm_decim_build_edge_cost_single(
 	q1 = &vquadrics[BM_elem_index_get(e->v1)];
 	q2 = &vquadrics[BM_elem_index_get(e->v2)];
 
-	if (vweights == NULL) {
-		cost = (BLI_quadric_evaluate(q1, optimize_co) +
-		        BLI_quadric_evaluate(q2, optimize_co));
-	}
-	else {
-		/* add 1.0 so planar edges are still weighted against */
-		cost = (((BLI_quadric_evaluate(q1, optimize_co) + 1.0f) * vweights[BM_elem_index_get(e->v1)]) +
-		        ((BLI_quadric_evaluate(q2, optimize_co) + 1.0f) * vweights[BM_elem_index_get(e->v2)]));
-	}
+	cost = (BLI_quadric_evaluate(q1, optimize_co) +
+	        BLI_quadric_evaluate(q2, optimize_co));
+
+
 	// print("COST %.12f\n");
 
 	/* note, 'cost' shouldn't be negative but happens sometimes with small values.
 	 * this can cause faces that make up a flat surface to over-collapse, see [#37121] */
 	cost = fabsf(cost);
+
+	/* edge weights can be 2 max, ((2 * 2) ^ 2) == 16x max,
+	 * a high weight means being inserted into the heap ahead of 16x better edges.
+	 * but thats fine since its the purpose of weighting. */
+#define VWEIGHT_SCALE 2
 
 #ifdef USE_TOPOLOGY_FALLBACK
 	if (UNLIKELY(cost < TOPOLOGY_FALLBACK_EPS)) {
@@ -292,10 +288,35 @@ static void bm_decim_build_edge_cost_single(
 		 * keep topology cost below 0.0 so their values don't interfere with quadric cost,
 		 * (and they get handled first).
 		 * */
-		cost = bm_decim_build_edge_cost_single__topology(e) - cost;
-		BLI_assert(cost <= 0.0f);
+		if (vweights == NULL) {
+			cost = bm_decim_build_edge_cost_single_squared__topology(e) - cost;
+		}
+		else {
+			/* with weights we need to use the real length so we can scale them properly */
+			float e_weight = (vweights[BM_elem_index_get(e->v1)] +
+			                  vweights[BM_elem_index_get(e->v2)]);
+			cost = bm_decim_build_edge_cost_single__topology(e) - cost;
+			/* note, this is rather arbitrary max weight is 2 here,
+			 * allow for skipping edges 4x the length, based on weights */
+			if (e_weight) {
+				e_weight *= VWEIGHT_SCALE;
+				cost *= 1.0f + SQUARE(e_weight);
+			}
+
+			BLI_assert(cost <= 0.0f);
+		}
 	}
+	else
 #endif
+	if (vweights) {
+		float e_weight = 2.0f - (vweights[BM_elem_index_get(e->v1)] +
+		                         vweights[BM_elem_index_get(e->v2)]);
+		if (e_weight) {
+			e_weight *= VWEIGHT_SCALE;
+			cost += (BM_edge_calc_length(e) * SQUARE(e_weight));
+		}
+	}
+#undef VWEIGHT_SCALE
 
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
 	return;
@@ -950,7 +971,9 @@ static void bm_decim_edge_collapse(
 		int i;
 
 		if (vweights) {
-			vweights[v_other_index] += vweights[v_clear_index];
+			float v_other_weight = interpf(vweights[v_other_index], vweights[v_clear_index], customdata_fac);
+			CLAMP(v_other_weight, 0.0f, 1.0f);
+			vweights[v_other_index] = v_other_weight;
 		}
 
 		e = NULL;  /* paranoid safety check */

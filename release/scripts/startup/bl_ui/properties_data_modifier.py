@@ -262,24 +262,37 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "decimate_type", expand=True)
 
         if decimate_type == 'COLLAPSE':
+            has_vgroup = bool(md.vertex_group)
             layout.prop(md, "ratio")
 
             split = layout.split()
-            row = split.row(align=True)
+
+            col = split.column()
+            row = col.row(align=True)
             row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
             row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
-            split.prop(md, "use_collapse_triangulate")
+            layout_info = col
+
+            col = split.column()
+            row = col.row()
+            row.active = has_vgroup
+            row.prop(md, "vertex_group_factor")
+
+            col.prop(md, "use_collapse_triangulate")
+
         elif decimate_type == 'UNSUBDIV':
             layout.prop(md, "iterations")
+            layout_info = layout
         else:  # decimate_type == 'DISSOLVE':
             layout.prop(md, "angle_limit")
             layout.prop(md, "use_dissolve_boundaries")
             layout.label("Delimit:")
             row = layout.row()
             row.prop(md, "delimit")
+            layout_info = layout
 
-        layout.label(text=iface_("Face Count: %d") % md.face_count, translate=False)
+        layout_info.label(text=iface_("Faces: %d") % md.face_count, translate=False)
 
     def DISPLACE(self, layout, ob, md):
         has_texture = (md.texture is not None)

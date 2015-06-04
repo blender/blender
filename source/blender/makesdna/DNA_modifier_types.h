@@ -431,10 +431,11 @@ typedef struct DecimateModifierData {
 	float angle;    /* (mode == MOD_DECIM_MODE_DISSOLVE) */
 
 	char defgrp_name[64];  /* MAX_VGROUP_NAME */
+	float defgrp_factor;
 	short flag, mode;
 
 	/* runtime only */
-	int face_count, pad2;
+	int face_count;
 } DecimateModifierData;
 
 enum {

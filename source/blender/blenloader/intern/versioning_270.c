@@ -830,5 +830,19 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				scene->r.simplify_particles_render = scene->r.simplify_particles;
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "DecimateModifierData", "float", "defgrp_factor")) {
+			Object *ob;
+
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Decimate) {
+						DecimateModifierData *dmd = (DecimateModifierData *)md;
+						dmd->defgrp_factor = 1.0f;
+					}
+				}
+			}
+		}
 	}
 }
