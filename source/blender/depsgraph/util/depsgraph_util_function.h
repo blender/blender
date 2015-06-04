@@ -109,4 +109,4 @@ void *function_bind(T func,
 
 #endif
 
-#endif  /* __DEPSGRAPH_UTIL_SET_H__ */
+#endif  /* __DEPSGRAPH_UTIL_FUNCTION_H__ */
