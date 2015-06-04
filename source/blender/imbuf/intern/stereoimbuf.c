@@ -620,7 +620,7 @@ static void imb_stereo3d_squeeze_rectf(float *rectf, Stereo3dFormat *s3d, const 
 	        width, height, width, width);
 
 	IMB_scaleImBuf_threaded(ibuf, x, y);
-	rectf = MEM_dupallocN(ibuf->rect_float);
+	memcpy(rectf, ibuf->rect_float, x * y * sizeof(float[4]));
 	IMB_freeImBuf(ibuf);
 }
 
@@ -645,7 +645,7 @@ static void imb_stereo3d_squeeze_rect(int *rect, Stereo3dFormat *s3d, const size
 	        width, height, width, width);
 
 	IMB_scaleImBuf_threaded(ibuf, x, y);
-	rect = MEM_dupallocN(ibuf->rect);
+	memcpy(rect, ibuf->rect, x * y * sizeof(unsigned int));
 	IMB_freeImBuf(ibuf);
 }
 
