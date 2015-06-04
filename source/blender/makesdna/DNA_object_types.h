@@ -191,7 +191,8 @@ typedef struct Object {
 	/* dupli-frame settings */
 	int dupon, dupoff, dupsta, dupend;
 
-	int pad;
+	/* did last modifier stack generation need mapping support? */
+	int lastNeedMapping;
 
 	/* during realtime */
 
