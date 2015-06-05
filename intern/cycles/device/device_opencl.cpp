@@ -1977,6 +1977,10 @@ public:
 #ifdef __WORK_STEALING__
 		build_options += " -D__WORK_STEALING__";
 #endif
+
+		/* TODO(sergey): Make it a separate function to convert requested
+		 * features to build flags in order to make code a bit cleaner.
+		 */
 		if(requested_features.experimental) {
 			build_options += " -D__KERNEL_EXPERIMENTAL__";
 		}
@@ -1985,6 +1989,15 @@ public:
 		build_options += " -D__NODES_FEATURES__=" +
 			string_printf("%d", requested_features.nodes_features);
 		build_options += string_printf(" -D__MAX_CLOSURE__=%d", max_closure);
+		if(!requested_features.use_hair) {
+			build_options += " -D__NO_HAIR__";
+		}
+		if(!requested_features.use_object_motion) {
+			build_options += " -D__NO_OBJECT_MOTION__";
+		}
+		if(!requested_features.use_camera_motion) {
+			build_options += " -D__NO_CAMERA_MOTION__";
+		}
 
 		/* Set compute device build option. */
 		cl_device_type device_type;

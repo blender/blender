@@ -22,6 +22,8 @@
 #include "device.h"
 #include "graph.h"
 #include "integrator.h"
+#include "mesh.h"
+#include "object.h"
 #include "scene.h"
 #include "session.h"
 #include "bake.h"
@@ -604,6 +606,7 @@ void Session::run_cpu()
 
 DeviceRequestedFeatures Session::get_requested_device_features()
 {
+	/* TODO(sergey): Consider moving this to the Scene level. */
 	DeviceRequestedFeatures requested_features;
 	requested_features.experimental = params.experimental;
 	if(!params.background) {
@@ -618,6 +621,22 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 		        requested_features.max_nodes_group,
 		        requested_features.nodes_features);
 	}
+
+	/* This features are not being tweaked as often as shaders,
+	 * so could be done selective magic for the viewport as well.
+	 */
+	requested_features.use_hair = false;
+	requested_features.use_object_motion = false;
+	requested_features.use_camera_motion = scene->camera->use_motion;
+	foreach(Object *object, scene->objects) {
+		Mesh *mesh = object->mesh;
+		if(mesh->curves.size() > 0) {
+			requested_features.use_hair = true;
+		}
+		requested_features.use_object_motion |= object->use_motion | mesh->use_motion_blur;
+		requested_features.use_camera_motion |= mesh->use_motion_blur;
+	}
+
 	return requested_features;
 }
 

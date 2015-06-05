@@ -92,6 +92,11 @@ public:
 	 */
 	int nodes_features;
 
+	/* BVH/sampling kernel features. */
+	bool use_hair;
+	bool use_object_motion;
+	bool use_camera_motion;
+
 	DeviceRequestedFeatures()
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
@@ -99,6 +104,9 @@ public:
 		max_closure = 0;
 		max_nodes_group = 0;
 		nodes_features = 0;
+		use_hair = false;
+		use_object_motion = false;
+		use_camera_motion = false;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)

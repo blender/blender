@@ -172,6 +172,17 @@ CCL_NAMESPACE_BEGIN
 #  define __KERNEL_DEBUG__
 #endif
 
+/* Scene-based selective featrues compilation/ */
+#ifdef __NO_CAMERA_MOTION__
+#  undef __CAMERA_MOTION__
+#endif
+#ifdef __NO_OBJECT_MOTION__
+#  undef __OBJECT_MOTION__
+#endif
+#ifdef __NO_HAIR__
+#  undef __HAIR__
+#endif
+
 /* Random Numbers */
 
 typedef uint RNG;
