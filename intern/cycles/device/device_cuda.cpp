@@ -1163,7 +1163,7 @@ string device_cuda_capabilities(void)
 		if(result != CUDA_ERROR_NO_DEVICE) {
 			return string("Error initializing CUDA: ") + cuewErrorString(result);
 		}
-		return "No CUDA device found";
+		return "No CUDA device found\n";
 	}
 
 	int count;

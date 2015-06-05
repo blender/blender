@@ -327,13 +327,10 @@ string Device::device_capabilities()
 #endif
 
 #ifdef WITH_OPENCL
-	/* TODO(sergey): Needs proper usable implementation. */
-	/*
 	if(device_opencl_init()) {
 		capabilities += "\nOpenCL device capabilities:\n";
 		capabilities += device_opencl_capabilities();
 	}
-	*/
 #endif
 
 	return capabilities;

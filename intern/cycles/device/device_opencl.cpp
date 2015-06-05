@@ -3437,8 +3437,77 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 
 string device_opencl_capabilities(void)
 {
-	/* TODO(sergey): Not implemented yet. */
-	return "";
+	string result = "";
+	string error_msg = "";  /* Only used by opencl_assert(), but in the future
+	                         * it could also be nicely reported to the console.
+	                         */
+	cl_uint num_platforms = 0;
+	opencl_assert(clGetPlatformIDs(0, NULL, &num_platforms));
+	if(num_platforms == 0) {
+		return "No OpenCL platforms found\n";
+	}
+	result += string_printf("Number of platforms: %d\n", num_platforms);
+
+	vector<cl_platform_id> platform_ids;
+	platform_ids.resize(num_platforms);
+	opencl_assert(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL));
+
+#define APPEND_STRING_INFO(func, id, name, what) \
+	do { \
+		char data[1024] = "\0"; \
+		opencl_assert(func(id, what, sizeof(data), &data, NULL)); \
+		result += string_printf("%s: %s\n", name, data); \
+	} while(false)
+#define APPEND_PLATFORM_STRING_INFO(id, name, what) \
+	APPEND_STRING_INFO(clGetPlatformInfo, id, "\tPlatform " name, what)
+#define APPEND_DEVICE_STRING_INFO(id, name, what) \
+	APPEND_STRING_INFO(clGetDeviceInfo, id, "\t\t\tDevice " name, what)
+
+	vector<cl_device_id> device_ids;
+	for (cl_uint platform = 0; platform < num_platforms; ++platform) {
+		cl_platform_id platform_id = platform_ids[platform];
+
+		result += string_printf("Platform #%d\n", platform);
+
+		APPEND_PLATFORM_STRING_INFO(platform_id, "Name", CL_PLATFORM_NAME);
+		APPEND_PLATFORM_STRING_INFO(platform_id, "Vendor", CL_PLATFORM_VENDOR);
+		APPEND_PLATFORM_STRING_INFO(platform_id, "Version", CL_PLATFORM_VERSION);
+		APPEND_PLATFORM_STRING_INFO(platform_id, "Profile", CL_PLATFORM_PROFILE);
+		APPEND_PLATFORM_STRING_INFO(platform_id, "Extensions", CL_PLATFORM_EXTENSIONS);
+
+		cl_uint num_devices = 0;
+		opencl_assert(clGetDeviceIDs(platform_ids[platform],
+		                             CL_DEVICE_TYPE_ALL,
+		                             0,
+		                             NULL,
+		                             &num_devices));
+		result += string_printf("\tNumber of devices: %d\n", num_devices);
+
+		device_ids.resize(num_devices);
+		opencl_assert(clGetDeviceIDs(platform_ids[platform],
+		                             CL_DEVICE_TYPE_ALL,
+		                             num_devices,
+		                             &device_ids[0],
+		                             NULL));
+		for (cl_uint device = 0; device < num_devices; ++device) {
+			cl_device_id device_id = device_ids[device];
+
+			result += string_printf("\t\tDevice: #%d\n", device);
+
+			APPEND_DEVICE_STRING_INFO(device_id, "Name", CL_DEVICE_NAME);
+			APPEND_DEVICE_STRING_INFO(device_id, "Vendor", CL_DEVICE_VENDOR);
+			APPEND_DEVICE_STRING_INFO(device_id, "OpenCL C Version", CL_DEVICE_OPENCL_C_VERSION);
+			APPEND_DEVICE_STRING_INFO(device_id, "Profile", CL_DEVICE_PROFILE);
+			APPEND_DEVICE_STRING_INFO(device_id, "Version", CL_DEVICE_VERSION);
+			APPEND_DEVICE_STRING_INFO(device_id, "Extensions", CL_DEVICE_EXTENSIONS);
+		}
+	}
+
+#undef APPEND_STRING_INFO
+#undef APPEND_PLATFORM_STRING_INFO
+#undef APPEND_DEVICE_STRING_INFO
+
+	return result;
 }
 
 CCL_NAMESPACE_END
