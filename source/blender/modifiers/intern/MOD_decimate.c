@@ -147,12 +147,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 				if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
 					for (i = 0; i < vert_tot; i++) {
-						vweights[i] = (1.0f - defvert_find_weight(&dvert[i], defgrp_index)) * dmd->defgrp_factor;
+						vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
 					}
 				}
 				else {
 					for (i = 0; i < vert_tot; i++) {
-						vweights[i] = (defvert_find_weight(&dvert[i], defgrp_index)) * dmd->defgrp_factor;
+						vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
 					}
 				}
 			}
@@ -165,7 +165,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		case MOD_DECIM_MODE_COLLAPSE:
 		{
 			const bool do_triangulate = (dmd->flag & MOD_DECIM_FLAG_TRIANGULATE) != 0;
-			BM_mesh_decimate_collapse(bm, dmd->percent, vweights, do_triangulate);
+			BM_mesh_decimate_collapse(bm, dmd->percent, vweights, dmd->defgrp_factor, do_triangulate);
 			break;
 		}
 		case MOD_DECIM_MODE_UNSUBDIV:

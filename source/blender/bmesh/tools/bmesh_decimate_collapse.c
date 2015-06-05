@@ -225,7 +225,8 @@ static float bm_decim_build_edge_cost_single__topology(BMEdge *e)
 
 static void bm_decim_build_edge_cost_single(
         BMEdge *e,
-        const Quadric *vquadrics, const float *vweights,
+        const Quadric *vquadrics,
+        const float *vweights, const float vweight_factor,
         Heap *eheap, HeapNode **eheap_table)
 {
 	const Quadric *q1, *q2;
@@ -270,16 +271,9 @@ static void bm_decim_build_edge_cost_single(
 	        BLI_quadric_evaluate(q2, optimize_co));
 
 
-	// print("COST %.12f\n");
-
 	/* note, 'cost' shouldn't be negative but happens sometimes with small values.
 	 * this can cause faces that make up a flat surface to over-collapse, see [#37121] */
 	cost = fabsf(cost);
-
-	/* edge weights can be 2 max, ((2 * 2) ^ 2) == 16x max,
-	 * a high weight means being inserted into the heap ahead of 16x better edges.
-	 * but thats fine since its the purpose of weighting. */
-#define VWEIGHT_SCALE 2
 
 #ifdef USE_TOPOLOGY_FALLBACK
 	if (UNLIKELY(cost < TOPOLOGY_FALLBACK_EPS)) {
@@ -293,14 +287,13 @@ static void bm_decim_build_edge_cost_single(
 		}
 		else {
 			/* with weights we need to use the real length so we can scale them properly */
-			float e_weight = (vweights[BM_elem_index_get(e->v1)] +
-			                  vweights[BM_elem_index_get(e->v2)]);
+			const float e_weight = (vweights[BM_elem_index_get(e->v1)] +
+			                        vweights[BM_elem_index_get(e->v2)]);
 			cost = bm_decim_build_edge_cost_single__topology(e) - cost;
 			/* note, this is rather arbitrary max weight is 2 here,
 			 * allow for skipping edges 4x the length, based on weights */
 			if (e_weight) {
-				e_weight *= VWEIGHT_SCALE;
-				cost *= 1.0f + SQUARE(e_weight);
+				cost *= 1.0f + (e_weight * vweight_factor);
 			}
 
 			BLI_assert(cost <= 0.0f);
@@ -309,14 +302,12 @@ static void bm_decim_build_edge_cost_single(
 	else
 #endif
 	if (vweights) {
-		float e_weight = 2.0f - (vweights[BM_elem_index_get(e->v1)] +
-		                         vweights[BM_elem_index_get(e->v2)]);
+		const float e_weight = 2.0f - (vweights[BM_elem_index_get(e->v1)] +
+		                               vweights[BM_elem_index_get(e->v2)]);
 		if (e_weight) {
-			e_weight *= VWEIGHT_SCALE;
-			cost += (BM_edge_calc_length(e) * SQUARE(e_weight));
+			cost += (BM_edge_calc_length(e) * ((e_weight * vweight_factor)));
 		}
 	}
-#undef VWEIGHT_SCALE
 
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
 	return;
@@ -338,7 +329,8 @@ static void bm_decim_invalid_edge_cost_single(
 
 static void bm_decim_build_edge_cost(
         BMesh *bm,
-        const Quadric *vquadrics, const float *vweights,
+        const Quadric *vquadrics,
+        const float *vweights, const float vweight_factor,
         Heap *eheap, HeapNode **eheap_table)
 {
 	BMIter iter;
@@ -347,7 +339,7 @@ static void bm_decim_build_edge_cost(
 
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		eheap_table[i] = NULL;  /* keep sanity check happy */
-		bm_decim_build_edge_cost_single(e, vquadrics, vweights, eheap, eheap_table);
+		bm_decim_build_edge_cost_single(e, vquadrics, vweights, vweight_factor, eheap, eheap_table);
 	}
 }
 
@@ -921,7 +913,8 @@ static bool bm_edge_collapse(
 /* collapse e the edge, removing e->v2 */
 static void bm_decim_edge_collapse(
         BMesh *bm, BMEdge *e,
-        Quadric *vquadrics, float *vweights,
+        Quadric *vquadrics,
+        float *vweights, const float vweight_factor,
         Heap *eheap, HeapNode **eheap_table,
         const CD_UseFlag customdata_flag)
 {
@@ -1011,7 +1004,7 @@ static void bm_decim_edge_collapse(
 			e_iter = e_first = v_other->e;
 			do {
 				BLI_assert(BM_edge_find_double(e_iter) == NULL);
-				bm_decim_build_edge_cost_single(e_iter, vquadrics, vweights, eheap, eheap_table);
+				bm_decim_build_edge_cost_single(e_iter, vquadrics, vweights, vweight_factor, eheap, eheap_table);
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v_other)) != e_first);
 		}
 
@@ -1033,7 +1026,7 @@ static void bm_decim_edge_collapse(
 
 					BLI_assert(BM_vert_in_edge(e_outer, l->v) == false);
 
-					bm_decim_build_edge_cost_single(e_outer, vquadrics, vweights, eheap, eheap_table);
+					bm_decim_build_edge_cost_single(e_outer, vquadrics, vweights, vweight_factor, eheap, eheap_table);
 				}
 			}
 		}
@@ -1057,7 +1050,11 @@ static void bm_decim_edge_collapse(
  * \param vweights Optional array of vertex  aligned weights [0 - 1],
  *        a vertex group is the usual source for this.
  */
-void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, const bool do_triangulate)
+void BM_mesh_decimate_collapse(
+        BMesh *bm,
+        const float factor,
+        float *vweights, float vweight_factor,
+        const bool do_triangulate)
 {
 	Heap *eheap;             /* edge heap */
 	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */
@@ -1085,7 +1082,7 @@ void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, c
 	/* build initial edge collapse cost data */
 	bm_decim_build_quadrics(bm, vquadrics);
 
-	bm_decim_build_edge_cost(bm, vquadrics, vweights, eheap, eheap_table);
+	bm_decim_build_edge_cost(bm, vquadrics, vweights, vweight_factor, eheap, eheap_table);
 
 	face_tot_target = bm->totface * factor;
 	bm->elem_index_dirty |= BM_ALL;
@@ -1107,13 +1104,11 @@ void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, c
 		BMEdge *e = BLI_heap_popmin(eheap);
 		BLI_assert(BM_elem_index_get(e) < tot_edge_orig);  /* handy to detect corruptions elsewhere */
 
-		// printf("COST %.10f\n", value);
-
 		/* under normal conditions wont be accessed again,
 		 * but NULL just incase so we don't use freed node */
 		eheap_table[BM_elem_index_get(e)] = NULL;
 
-		bm_decim_edge_collapse(bm, e, vquadrics, vweights, eheap, eheap_table, customdata_flag);
+		bm_decim_edge_collapse(bm, e, vquadrics, vweights, vweight_factor, eheap, eheap_table, customdata_flag);
 	}
 
 

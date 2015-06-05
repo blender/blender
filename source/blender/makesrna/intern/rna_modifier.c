@@ -1507,10 +1507,10 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Triangulate", "Keep triangulated faces resulting from decimation (collapse only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "vertex_group_factor", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "vertex_group_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "defgrp_factor");
-	RNA_def_property_range(prop, 0, 1.0f);
-	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_range(prop, 0, 10, 1, 4);
 	RNA_def_property_ui_text(prop, "Factor", "Vertex group strength");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	/* end collapse-only option */
