@@ -995,7 +995,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	meshobj->m_sharedvertex_map.resize(totvert);
 
 	Material* ma = 0;
-	bool collider = true;
 	MT_Point2 uvs[4][RAS_TexVert::MAX_UNIT];
 	unsigned int rgb[4] = {0};
 
@@ -1071,23 +1070,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 		}
 
 		{
-			bool visible = true;
-			bool twoside = false;
 
 			RAS_MaterialBucket* bucket = material_from_mesh(ma, mface, tface, mcol, layers, lightlayer, rgb, uvs, tfaceName, scene, converter);
 
 			// set render flags
-			if (ma)
-			{
-				visible = ((ma->game.flag & GEMAT_INVISIBLE)==0);
-				twoside = ((ma->game.flag  & GEMAT_BACKCULL)==0);
-				collider = ((ma->game.flag & GEMAT_NOPHYSICS)==0);
-			}
-			else {
-				visible = true;
-				twoside = false;
-				collider = true;
-			}
+			bool visible = ((ma->game.flag & GEMAT_INVISIBLE)==0);
+			bool twoside = ((ma->game.flag  & GEMAT_BACKCULL)==0);
+			bool collider = ((ma->game.flag & GEMAT_NOPHYSICS)==0);
 
 			/* mark face as flat, so vertices are split */
 			bool flat = (mface->flag & ME_SMOOTH) == 0;
