@@ -356,7 +356,7 @@ static PyObject *gPyLoadGlobalDict(PyObject *)
 {
 	char marshal_path[512];
 	char *marshal_buffer = NULL;
-	size_t marshal_length;
+	int marshal_length;
 	FILE *fp = NULL;
 	int result;
 
@@ -367,7 +367,12 @@ static PyObject *gPyLoadGlobalDict(PyObject *)
 	if (fp) {
 		// obtain file size:
 		fseek (fp, 0, SEEK_END);
-		marshal_length = (size_t)ftell(fp);
+		marshal_length = ftell(fp);
+		if (marshal_length == -1) {
+			printf("Warning: could not read position of '%s'\n", marshal_path);
+			fclose(fp);
+			Py_RETURN_NONE;
+		}
 		rewind(fp);
 
 		marshal_buffer = (char*)malloc (sizeof(char)*marshal_length);

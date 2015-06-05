@@ -178,6 +178,11 @@ bool KX_GameActuator::Update()
 					// obtain file size:
 					fseek (fp , 0 , SEEK_END);
 					marshal_length = ftell(fp);
+					if (marshal_length == -1) {
+						printf("warning: could not read position of '%s'\n", mashal_path);
+						fclose(fp);
+						break;
+					}
 					rewind(fp);
 					
 					marshal_buffer = (char*) malloc (sizeof(char)*marshal_length);
