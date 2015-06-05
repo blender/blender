@@ -330,7 +330,7 @@ static void text_from_buf(Text *text, const unsigned char *buffer, const int len
 	text->curc = text->selc = 0;
 }
 
-int BKE_text_reload(Text *text)
+bool BKE_text_reload(Text *text)
 {
 	FILE *fp;
 	int len;
@@ -339,13 +339,24 @@ int BKE_text_reload(Text *text)
 	char str[FILE_MAX];
 	BLI_stat_t st;
 
-	if (!text->name) return 0;
-	
+	if (!text->name) {
+		return false;
+	}
+
 	BLI_strncpy(str, text->name, FILE_MAX);
 	BLI_path_abs(str, G.main->name);
 	
 	fp = BLI_fopen(str, "r");
-	if (fp == NULL) return 0;
+	if (fp == NULL) {
+		return false;
+	}
+	fseek(fp, 0L, SEEK_END);
+	len = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+	if (UNLIKELY(len == -1)) {
+		fclose(fp);
+		return false;
+	}
 
 	/* free memory: */
 
@@ -362,11 +373,6 @@ int BKE_text_reload(Text *text)
 	/* clear undo buffer */
 	MEM_freeN(text->undo_buf);
 	init_undo_text(text);
-
-	fseek(fp, 0L, SEEK_END);
-	len = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
-
 
 	buffer = MEM_mallocN(len, "text_buffer");
 	/* under windows fread can return less than len bytes because
@@ -385,7 +391,7 @@ int BKE_text_reload(Text *text)
 	text_from_buf(text, buffer, len);
 
 	MEM_freeN(buffer);
-	return 1;
+	return true;
 }
 
 Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const bool is_internal)
@@ -402,8 +408,18 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 		BLI_path_abs(str, relpath);
 	
 	fp = BLI_fopen(str, "r");
-	if (fp == NULL) return NULL;
-	
+	if (fp == NULL) {
+		return NULL;
+	}
+
+	fseek(fp, 0L, SEEK_END);
+	len = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+	if (UNLIKELY(len == -1)) {
+		fclose(fp);
+		return NULL;
+	}
+
 	ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(str));
 	ta->id.us = 1;
 
@@ -423,10 +439,6 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 
 	/* clear undo buffer */
 	init_undo_text(ta);
-
-	fseek(fp, 0L, SEEK_END);
-	len = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
 	
 	buffer = MEM_mallocN(len, "text_buffer");
 	/* under windows fread can return less than len bytes because

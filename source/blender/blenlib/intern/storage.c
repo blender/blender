@@ -296,6 +296,11 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 	size = (size_t)ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
+	if (UNLIKELY(size == (size_t)-1)) {
+		fclose(fp);
+		return NULL;
+	}
+
 	buf = MEM_mallocN(size, "file_as_lines");
 	if (buf) {
 		size_t i, last = 0;

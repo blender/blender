@@ -539,6 +539,11 @@ static void *read_file_data(char *filename, int *r_len)
 	*r_len = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);
 
+	if (*r_len == -1) {
+		fclose(fp);
+		return NULL;
+	}
+
 	data = MEM_mallocN(*r_len, "read_file_data");
 	if (!data) {
 		*r_len = -1;
