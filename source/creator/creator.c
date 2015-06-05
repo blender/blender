@@ -942,6 +942,7 @@ static int set_threads(int argc, const char **argv, void *UNUSED(data))
 
 static int depsgraph_use_new(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
+	printf("Using new dependency graph.\n");
 	DEG_depsgraph_switch_to_new();
 	return 0;
 }
