@@ -3634,6 +3634,20 @@ bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 	return NULL;
 }
 
+bScreen *ED_screen_animation_no_scrub(const wmWindowManager *wm)
+{
+	wmWindow *win;
+
+	for (win = wm->windows.first; win; win = win->next) {
+		if (win->screen->animtimer) {
+			return win->screen;
+		}
+	}
+
+	return NULL;
+}
+
+
 /* toggle operator */
 int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
