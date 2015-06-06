@@ -1674,7 +1674,7 @@ public:
 #endif
 
 	/* clos_max value for which the kernels have been loaded currently. */
-	int current_clos_max;
+	int current_max_closure;
 
 	/* Marked True in constructor and marked false at the end of path_trace(). */
 	bool first_tile;
@@ -1817,7 +1817,7 @@ public:
 		work_pool_wgs = NULL;
 		max_work_groups = 0;
 #endif
-		current_clos_max = -1;
+		current_max_closure = -1;
 		first_tile = true;
 
 		/* Get device's maximum memory that can be allocated. */
@@ -1941,23 +1941,6 @@ public:
 
 	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
-		/* If it is an interactive render; we ceil clos_max value to a multiple
-		 * of 5 in order to limit re-compilations.
-		 */
-		/* TODO(sergey): Decision about this should be done on higher levels. */
-		int max_closure = requested_features.max_closure;
-		if(!background) {
-			assert((max_closure != 0) && "clos_max value is 0" );
-			max_closure = (((max_closure - 1) / 5) + 1) * 5;
-			/* clos_max value shouldn't be greater than MAX_CLOSURE. */
-			max_closure = (max_closure > MAX_CLOSURE) ? MAX_CLOSURE : max_closure;
-			if(current_clos_max == max_closure) {
-				/* Present kernels have been created with the same closure count
-				 * build option.
-				 */
-				return true;
-			}
-		}
 		/* Get Shader, bake and film_convert kernels.
 		 * It'll also do verification of OpenCL actually initialized.
 		 */
@@ -1988,7 +1971,8 @@ public:
 			string_printf("%d", requested_features.max_nodes_group);
 		build_options += " -D__NODES_FEATURES__=" +
 			string_printf("%d", requested_features.nodes_features);
-		build_options += string_printf(" -D__MAX_CLOSURE__=%d", max_closure);
+		build_options += string_printf(" -D__MAX_CLOSURE__=%d",
+		                               requested_features.max_closure);
 		if(!requested_features.use_hair) {
 			build_options += " -D__NO_HAIR__";
 		}
@@ -2074,7 +2058,7 @@ public:
 #undef FIND_KERNEL
 #undef GLUE
 
-		current_clos_max = max_closure;
+		current_max_closure = requested_features.max_closure;
 
 		return true;
 	}
@@ -2276,7 +2260,7 @@ public:
 			/* TODO(sergey): This will actually over-allocate if
 			 * particular kernel does not support multiclosure.
 			 */
-			size_t ShaderClosure_size = get_shader_closure_size(current_clos_max);
+			size_t ShaderClosure_size = get_shader_closure_size(current_max_closure);
 
 #ifdef __WORK_STEALING__
 			/* Calculate max groups */
@@ -2921,7 +2905,7 @@ public:
 	{
 		size_t shader_closure_size = 0;
 		size_t shaderdata_volume = 0;
-		shader_closure_size = get_shader_closure_size(current_clos_max);
+		shader_closure_size = get_shader_closure_size(current_max_closure);
 		/* TODO(sergey): This will actually over-allocate if
 		 * particular kernel does not support multiclosure.
 		 */
