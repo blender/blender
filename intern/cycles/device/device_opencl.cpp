@@ -1262,6 +1262,31 @@ protected:
 			clReleaseProgram(program);
 		}
 	}
+
+	string build_options_from_requested_features(
+	        const DeviceRequestedFeatures& requested_features)
+	{
+		string build_options = "";
+		if(requested_features.experimental) {
+			build_options += " -D__KERNEL_EXPERIMENTAL__";
+		}
+		build_options += " -D__NODES_MAX_GROUP__=" +
+			string_printf("%d", requested_features.max_nodes_group);
+		build_options += " -D__NODES_FEATURES__=" +
+			string_printf("%d", requested_features.nodes_features);
+		build_options += string_printf(" -D__MAX_CLOSURE__=%d",
+		                               requested_features.max_closure);
+		if(!requested_features.use_hair) {
+			build_options += " -D__NO_HAIR__";
+		}
+		if(!requested_features.use_object_motion) {
+			build_options += " -D__NO_OBJECT_MOTION__";
+		}
+		if(!requested_features.use_camera_motion) {
+			build_options += " -D__NO_CAMERA_MOTION__";
+		}
+		return build_options;
+	}
 };
 
 class OpenCLDeviceMegaKernel : public OpenCLDeviceBase
@@ -1951,37 +1976,15 @@ public:
 		string kernel_path = path_get("kernel");
 		string kernel_md5 = path_files_md5_hash(kernel_path);
 		string device_md5;
-		string build_options;
 		string kernel_init_source;
 		string clbin;
 		string clsrc, *debug_src = NULL;
 
-		build_options += "-D__SPLIT_KERNEL__";
+		string build_options = "-D__SPLIT_KERNEL__";
 #ifdef __WORK_STEALING__
 		build_options += " -D__WORK_STEALING__";
 #endif
-
-		/* TODO(sergey): Make it a separate function to convert requested
-		 * features to build flags in order to make code a bit cleaner.
-		 */
-		if(requested_features.experimental) {
-			build_options += " -D__KERNEL_EXPERIMENTAL__";
-		}
-		build_options += " -D__NODES_MAX_GROUP__=" +
-			string_printf("%d", requested_features.max_nodes_group);
-		build_options += " -D__NODES_FEATURES__=" +
-			string_printf("%d", requested_features.nodes_features);
-		build_options += string_printf(" -D__MAX_CLOSURE__=%d",
-		                               requested_features.max_closure);
-		if(!requested_features.use_hair) {
-			build_options += " -D__NO_HAIR__";
-		}
-		if(!requested_features.use_object_motion) {
-			build_options += " -D__NO_OBJECT_MOTION__";
-		}
-		if(!requested_features.use_camera_motion) {
-			build_options += " -D__NO_CAMERA_MOTION__";
-		}
+		build_options += build_options_from_requested_features(requested_features);
 
 		/* Set compute device build option. */
 		cl_device_type device_type;
