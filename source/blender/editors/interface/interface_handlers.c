@@ -7909,7 +7909,7 @@ void UI_context_update_anim_flag(const bContext *C)
 
 /************** handle activating a button *************/
 
-static uiBut *uit_but_find_open_event(ARegion *ar, const wmEvent *event)
+static uiBut *ui_but_find_open_event(ARegion *ar, const wmEvent *event)
 {
 	uiBlock *block;
 	uiBut *but;
@@ -7940,7 +7940,7 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *ar)
 		}
 	}
 	else if (event->type == EVT_BUT_OPEN) {
-		but = uit_but_find_open_event(ar, event);
+		but = ui_but_find_open_event(ar, event);
 		if (but) {
 			button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
 			ui_do_button(C, but->block, but, event);
