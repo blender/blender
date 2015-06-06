@@ -801,7 +801,7 @@ static bool offset_meet_edge(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,  float meetc
 
 	/* find angle from dir1 to dir2 as viewed from vertex normal side */
 	ang = angle_normalized_v3v3(dir1, dir2);
-	if (fabs(ang) < BEVEL_GOOD_ANGLE) {
+	if (fabsf(ang) < BEVEL_GOOD_ANGLE) {
 		if (r_angle)
 			*r_angle = 0.0f;
 		return false;
@@ -812,7 +812,7 @@ static bool offset_meet_edge(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,  float meetc
 	if (r_angle)
 		*r_angle = ang;
 
-	if (fabs(ang - (float)M_PI) < BEVEL_GOOD_ANGLE)
+	if (fabsf(ang - (float)M_PI) < BEVEL_GOOD_ANGLE)
 		return false;
 
 	sinang = sinf(ang);
@@ -1532,8 +1532,10 @@ static bool eh_on_plane(EdgeHalf *e)
 	if (e->fprev && e->fnext) {
 		dot = dot_v3v3(e->fprev->no, e->fnext->no);
 		if (fabsf(dot) <= BEVEL_EPSILON ||
-			fabsf(dot - 1.0f) <= BEVEL_EPSILON)
+		    fabsf(dot - 1.0f) <= BEVEL_EPSILON)
+		{
 			return true;
+		}
 	}
 	return false;
 }

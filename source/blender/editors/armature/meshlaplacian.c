@@ -1719,7 +1719,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 	/* sanity check */
 	for (b = 0; b < mdb->size3; b++)
 		if (mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR)
-			if (fabs(mdb->totalphi[b] - 1.0f) > 1e-4)
+			if (fabsf(mdb->totalphi[b] - 1.0f) > 1e-4f)
 				printf("totalphi deficiency [%s|%d] %d: %.10f\n",
 				       (mdb->tag[b] == MESHDEFORM_TAG_INTERIOR) ? "interior" : "boundary", mdb->semibound[b], mdb->varidx[b], mdb->totalphi[b]);
 #endif

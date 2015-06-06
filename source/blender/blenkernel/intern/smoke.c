@@ -267,7 +267,7 @@ static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *
 	}
 	/* apply object scale */
 	for (i = 0; i < 3; i++) {
-		size[i] = fabs(size[i] * ob->size[i]);
+		size[i] = fabsf(size[i] * ob->size[i]);
 	}
 	copy_v3_v3(sds->global_size, size);
 	copy_v3_v3(sds->dp0, min);

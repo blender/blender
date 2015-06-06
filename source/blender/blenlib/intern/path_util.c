@@ -946,7 +946,7 @@ void BLI_path_frame_strip(char *path, bool setsharp, char *ext)
 
 		c++;
 
-		if(numdigits) {
+		if (numdigits) {
 			/* replace the number with the suffix and terminate the string */
 			while (numdigits--) {
 				if (ext) *ext++ = *suffix;
@@ -1161,8 +1161,8 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
 					memcpy(filename_ext, ext, ext_len);
 					filename_ext[ext_len] = '\0';
 
-					 type = BLI_exists(filename);
-					 if (type && (!S_ISDIR(type))) {
+					type = BLI_exists(filename);
+					if (type && (!S_ISDIR(type))) {
 						retval = true;
 						BLI_strncpy(name, filename, maxlen);
 						break;
