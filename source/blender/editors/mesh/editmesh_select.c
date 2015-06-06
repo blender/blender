@@ -3680,7 +3680,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 	else {
 		BMVert *v;
 		BMIter iter;
-		const float limit =  CTX_data_tool_settings(C)->doublimit; // XXX
+		const float limit = RNA_float_get(op->ptr, "threshold");
 		float value = v_act->co[axis];
 
 		if (mode == 0)
@@ -3745,6 +3745,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	/* properties */
 	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
 	RNA_def_enum(ot->srna, "axis", axis_items_xyz, 0, "Axis", "Select the axis to compare each vertex on");
+	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Threshold", "", 0.00001, 10.0);
 }
 
 
