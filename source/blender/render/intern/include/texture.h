@@ -56,6 +56,11 @@
 		_hsv[1] *= tex->saturation;                                           \
 		hsv_to_rgb(_hsv[0], _hsv[1], _hsv[2],                                 \
 		           &texres->tr, &texres->tg, &texres->tb);                    \
+		if ((tex->saturation > 1.0f) && !(tex->flag & TEX_NO_CLAMP)) {        \
+			if (texres->tr < 0.0f) texres->tr= 0.0f;                          \
+			if (texres->tg < 0.0f) texres->tg= 0.0f;                          \
+			if (texres->tb < 0.0f) texres->tb= 0.0f;                          \
+		}                                                                     \
 	}                                                                         \
 
 struct HaloRen;

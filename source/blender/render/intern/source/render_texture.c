@@ -2431,7 +2431,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 
 					BKE_image_pool_release_ibuf(ima, ibuf, re->pool);
 				}
-				
+
 				if (mtex->mapto & MAP_COL) {
 					float colfac= mtex->colfac*stencilTin;
 					texture_rgb_blend(&shi->r, tcol, &shi->r, texres.tin, colfac, mtex->blendtype);
