@@ -161,6 +161,7 @@ typedef struct ShaderPreview {
 	unsigned int *pr_rect;
 	int pr_method;
 
+	Main *bmain;
 	Main *pr_main;
 } ShaderPreview;
 
@@ -171,6 +172,7 @@ typedef struct IconPreviewSize {
 } IconPreviewSize;
 
 typedef struct IconPreview {
+	Main *bmain;
 	Scene *scene;
 	void *owner;
 	ID *id;
@@ -261,12 +263,14 @@ static Scene *preview_get_scene(Main *pr_main)
 
 /* call this with a pointer to initialize preview scene */
 /* call this with NULL to restore assigned ID pointers in preview scene */
-static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPreview *sp)
+static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_type, ShaderPreview *sp)
 {
 	Scene *sce;
 	Base *base;
 	Main *pr_main = sp->pr_main;
-	
+
+	memcpy(pr_main->name, bmain->name, sizeof(pr_main->name));
+
 	sce = preview_get_scene(pr_main);
 	if (sce) {
 		
@@ -712,7 +716,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	}
 	
 	/* get the stuff from the builtin preview dbase */
-	sce = preview_prepare_scene(sp->scene, id, idtype, sp);
+	sce = preview_prepare_scene(sp->bmain, sp->scene, id, idtype, sp);
 	if (sce == NULL) return;
 	
 	if (!split || first) sprintf(name, "Preview %p", sp->owner);
@@ -767,7 +771,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	}
 
 	/* unassign the pointers, reset vars */
-	preview_prepare_scene(sp->scene, NULL, GS(id->name), sp);
+	preview_prepare_scene(sp->bmain, sp->scene, NULL, GS(id->name), sp);
 	
 	/* XXX bad exception, end-exec is not being called in render, because it uses local main */
 //	if (idtype == ID_TE) {
@@ -1075,6 +1079,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_method = is_render ? PR_ICON_RENDER : PR_ICON_DEFERRED;
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
+		sp->bmain = ip->bmain;
 
 		if (is_render) {
 			BLI_assert(ip->id);
@@ -1135,12 +1140,13 @@ static void icon_preview_free(void *customdata)
 	MEM_freeN(ip);
 }
 
-void ED_preview_icon_render(Scene *scene, ID *id, unsigned int *rect, int sizex, int sizey)
+void ED_preview_icon_render(Main *bmain, Scene *scene, ID *id, unsigned int *rect, int sizex, int sizey)
 {
 	IconPreview ip = {NULL};
 	short stop = false, update = false;
 	float progress = 0.0f;
 
+	ip.bmain = bmain;
 	ip.scene = scene;
 	ip.owner = id;
 	ip.id = id;
@@ -1171,6 +1177,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 		BLI_movelisttolist(&ip->sizes, &old_ip->sizes);
 
 	/* customdata for preview thread */
+	ip->bmain = CTX_data_main(C);
 	ip->scene = CTX_data_scene(C);
 	ip->owner = owner;
 	ip->id = id;
@@ -1212,6 +1219,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->id = id;
 	sp->parent = parent;
 	sp->slot = slot;
+	sp->bmain = CTX_data_main(C);
 
 	/* hardcoded preview .blend for cycles/internal, this should be solved
 	 * once with custom preview .blend path for external engines */
