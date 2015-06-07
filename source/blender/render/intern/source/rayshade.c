@@ -174,10 +174,11 @@ void freeraytree(Render *re)
 	
 #ifdef RE_RAYCOUNTER
 	{
+		const int num_threads = re->r.threads;
 		RayCounter sum;
 		memset(&sum, 0, sizeof(sum));
 		int i;
-		for (i=0; i<BLENDER_MAX_THREADS; i++)
+		for (i=0; i<num_threads; i++)
 			RE_RC_MERGE(&sum, re_rc_counter+i);
 		RE_RC_INFO(&sum);
 	}
@@ -1186,7 +1187,9 @@ static void QMC_sampleHemiCosine(float vec[3], QMCSampler *qsa, int thread, int 
 /* called from convertBlenderScene.c */
 void init_render_qmcsampler(Render *re)
 {
-	re->qmcsamplers= MEM_callocN(sizeof(ListBase)*BLENDER_MAX_THREADS, "QMCListBase");
+	const int num_threads = re->r.threads;
+	re->qmcsamplers= MEM_callocN(sizeof(ListBase)*num_threads, "QMCListBase");
+	re->num_qmc_samplers = num_threads;
 }
 
 static QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
@@ -1220,7 +1223,7 @@ void free_render_qmcsampler(Render *re)
 	if (re->qmcsamplers) {
 		QMCSampler *qsa, *next;
 		int a;
-		for (a=0; a<BLENDER_MAX_THREADS; a++) {
+		for (a = 0; a < re->num_qmc_samplers; a++) {
 			for (qsa=re->qmcsamplers[a].first; qsa; qsa=next) {
 				next= qsa->next;
 				QMC_freeSampler(qsa);
@@ -1695,9 +1698,10 @@ static void DS_energy(float *sphere, int tot, float vec[3])
 /* called from convertBlenderScene.c */
 /* creates an equally distributed spherical sample pattern */
 /* and allocates threadsafe memory */
-void init_ao_sphere(World *wrld)
+void init_ao_sphere(Render *re, World *wrld)
 {
 	/* fixed random */
+	const int num_threads = re->r.threads;
 	RNG *rng;
 	float *fp;
 	int a, tot, iter= 16;
@@ -1721,7 +1725,7 @@ void init_ao_sphere(World *wrld)
 	}
 	
 	/* tables */
-	wrld->aotables= MEM_mallocN(BLENDER_MAX_THREADS*3*tot*sizeof(float), "AO tables");
+	wrld->aotables= MEM_mallocN(num_threads*3*tot*sizeof(float), "AO tables");
 
 	BLI_rng_free(rng);
 }

@@ -115,6 +115,8 @@ typedef struct OcclusionTree {
 	int doindirect;
 
 	OcclusionCache *cache;
+
+	int num_threads;
 } OcclusionTree;
 
 typedef struct OcclusionThread {
@@ -641,6 +643,7 @@ static void occ_build_sh_normalize(OccNode *node)
 
 static OcclusionTree *occ_tree_build(Render *re)
 {
+	const int num_threads = re->r.threads;
 	OcclusionTree *tree;
 	ObjectInstanceRen *obi;
 	ObjectRen *obr;
@@ -679,7 +682,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	BLI_memarena_use_calloc(tree->arena);
 
 	if (re->wrld.aomode & WO_AOCACHE)
-		tree->cache = MEM_callocN(sizeof(OcclusionCache) * BLENDER_MAX_THREADS, "OcclusionCache");
+		tree->cache = MEM_callocN(sizeof(OcclusionCache) * num_threads, "OcclusionCache");
 
 	tree->face = MEM_callocN(sizeof(OccFace) * totface, "OcclusionFace");
 	tree->co = MEM_callocN(sizeof(float) * 3 * totface, "OcclusionCo");
@@ -730,8 +733,10 @@ static OcclusionTree *occ_tree_build(Render *re)
 	if (!(re->test_break(re->tbh)))
 		occ_build_sh_normalize(tree->root);
 
-	for (a = 0; a < BLENDER_MAX_THREADS; a++)
+	for (a = 0; a < num_threads; a++)
 		tree->stack[a] = MEM_callocN(sizeof(OccNode) * TOTCHILD * (tree->maxdepth + 1), "OccStack");
+
+	tree->num_threads = num_threads;
 
 	return tree;
 }
@@ -742,7 +747,7 @@ static void occ_free_tree(OcclusionTree *tree)
 
 	if (tree) {
 		if (tree->arena) BLI_memarena_free(tree->arena);
-		for (a = 0; a < BLENDER_MAX_THREADS; a++)
+		for (a = 0; a < tree->num_threads; a++)
 			if (tree->stack[a])
 				MEM_freeN(tree->stack[a]);
 		if (tree->occlusion) MEM_freeN(tree->occlusion);

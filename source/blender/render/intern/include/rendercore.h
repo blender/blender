@@ -90,7 +90,7 @@ extern void ray_shadow(ShadeInput *shi, LampRen *lar, float shadfac[4]);
 extern void ray_trace(ShadeInput *shi, ShadeResult *);
 extern void ray_ao(ShadeInput *shi, float ao[3], float env[3]);
 extern void init_jitter_plane(LampRen *lar);
-extern void init_ao_sphere(struct World *wrld);
+extern void init_ao_sphere(Render *re, struct World *wrld);
 extern void init_render_qmcsampler(Render *re);
 extern void free_render_qmcsampler(Render *re);
 

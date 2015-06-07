@@ -42,7 +42,7 @@ extern "C" {
 #endif
 
 /* for tables, button in UI, etc */
-#define BLENDER_MAX_THREADS     64
+#define BLENDER_MAX_THREADS     1024
 
 struct ListBase;
 struct TaskScheduler;
