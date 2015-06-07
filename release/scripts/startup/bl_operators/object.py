@@ -644,6 +644,9 @@ class MakeDupliFace(Operator):
             ob_new.use_dupli_faces_scale = True
             ob_new.dupli_faces_scale = 1.0 / SCALE_FAC
 
+            ob_inst.select = True
+            ob_new.select = True
+
     def execute(self, context):
         self._main(context)
         return {'FINISHED'}
