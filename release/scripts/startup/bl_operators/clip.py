@@ -225,7 +225,8 @@ class CLIP_OT_track_to_empty(Operator):
     bl_label = "Link Empty to Track"
     bl_options = {'UNDO', 'REGISTER'}
 
-    def _link_track(self, context, clip, tracking_object, track):
+    @staticmethod
+    def _link_track(context, clip, tracking_object, track):
         sc = context.space_data
         constraint = None
         ob = None
@@ -331,7 +332,8 @@ class CLIP_OT_delete_proxy(Operator):
 
         return wm.invoke_confirm(self, event)
 
-    def _rmproxy(self, abspath):
+    @staticmethod
+    def _rmproxy(abspath):
         import shutil
 
         if not os.path.exists(abspath):

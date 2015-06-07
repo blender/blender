@@ -86,19 +86,25 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
 
 
 class SceneKeyingSetsPanel:
-    def draw_keyframing_settings(self, context, layout, ks, ksp):
-        self.draw_keyframing_setting(context, layout, ks, ksp, "Needed",
-                                     "use_insertkey_override_needed", "use_insertkey_needed",
-                                     userpref_fallback="use_keyframe_insert_needed")
 
-        self.draw_keyframing_setting(context, layout, ks, ksp, "Visual",
-                                     "use_insertkey_override_visual", "use_insertkey_visual",
-                                     userpref_fallback="use_visual_keying")
+    @staticmethod
+    def draw_keyframing_settings(context, layout, ks, ksp):
+        SceneKeyingSetsPanel._draw_keyframing_setting(
+                context, layout, ks, ksp, "Needed",
+                "use_insertkey_override_needed", "use_insertkey_needed",
+                userpref_fallback="use_keyframe_insert_needed")
 
-        self.draw_keyframing_setting(context, layout, ks, ksp, "XYZ to RGB",
-                                     "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb")
+        SceneKeyingSetsPanel._draw_keyframing_setting(
+                context, layout, ks, ksp, "Visual",
+                "use_insertkey_override_visual", "use_insertkey_visual",
+                userpref_fallback="use_visual_keying")
 
-    def draw_keyframing_setting(self, context, layout, ks, ksp, label, toggle_prop, prop, userpref_fallback=None):
+        SceneKeyingSetsPanel._draw_keyframing_setting(
+                context, layout, ks, ksp, "XYZ to RGB",
+                "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb")
+
+    @staticmethod
+    def _draw_keyframing_setting(context, layout, ks, ksp, label, toggle_prop, prop, userpref_fallback=None):
         if ksp:
             item = ksp
 

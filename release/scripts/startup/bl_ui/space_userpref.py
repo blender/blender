@@ -1046,7 +1046,8 @@ class USERPREF_PT_input(Panel):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
 
-    def draw_input_prefs(self, inputs, layout):
+    @staticmethod
+    def draw_input_prefs(inputs, layout):
         import sys
 
         # General settings

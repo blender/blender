@@ -126,7 +126,8 @@ class RENDERLAYER_PT_layer_passes(RenderLayerButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def draw_pass_type_buttons(self, box, rl, pass_type):
+    @staticmethod
+    def draw_pass_type_buttons(box, rl, pass_type):
         # property names
         use_pass_type = "use_pass_" + pass_type
         exclude_pass_type = "exclude_" + pass_type

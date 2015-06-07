@@ -579,7 +579,8 @@ class MakeDupliFace(Operator):
     bl_label = "Make Dupli-Face"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def _main(self, context):
+    @staticmethod
+    def _main(context):
         from mathutils import Vector
 
         SCALE_FAC = 0.01

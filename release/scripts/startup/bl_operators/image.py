@@ -33,7 +33,8 @@ class EditExternally(Operator):
             subtype='FILE_PATH',
             )
 
-    def _editor_guess(self, context):
+    @staticmethod
+    def _editor_guess(context):
         import sys
 
         image_editor = context.user_preferences.filepaths.image_editor

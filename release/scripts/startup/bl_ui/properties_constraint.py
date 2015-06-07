@@ -38,7 +38,8 @@ class ConstraintButtonsPanel:
             if con.type not in {'RIGID_BODY_JOINT', 'NULL'}:
                 box.prop(con, "influence")
 
-    def space_template(self, layout, con, target=True, owner=True):
+    @staticmethod
+    def space_template(layout, con, target=True, owner=True):
         if target or owner:
 
             split = layout.split(percentage=0.2)
@@ -55,7 +56,8 @@ class ConstraintButtonsPanel:
             if owner:
                 row.prop(con, "owner_space", text="")
 
-    def target_template(self, layout, con, subtargets=True):
+    @staticmethod
+    def target_template(layout, con, subtargets=True):
         layout.prop(con, "target")  # XXX limiting settings for only 'curves' or some type of object
 
         if con.target and subtargets:
@@ -69,6 +71,7 @@ class ConstraintButtonsPanel:
             elif con.target.type in {'MESH', 'LATTICE'}:
                 layout.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
+    @staticmethod
     def ik_template(self, layout, con):
         # only used for iTaSC
         layout.prop(con, "pole_target")
