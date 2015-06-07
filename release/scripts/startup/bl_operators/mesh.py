@@ -75,7 +75,6 @@ class MeshMirrorUV(Operator):
                 double_warn += co in mirror_lt
                 mirror_lt[co] = i
 
-        #for i, v in enumerate(mesh.vertices):
         vmap = {}
         for mirror_a, mirror_b in ((mirror_gt, mirror_lt),
                                    (mirror_lt, mirror_gt)):

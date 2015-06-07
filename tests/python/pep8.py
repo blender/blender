@@ -117,7 +117,18 @@ def main():
 
     # these are very picky and often hard to follow
     # while keeping common script formatting.
-    ignore = "E122", "E123", "E124", "E125", "E126", "E127", "E128"
+    ignore = (
+        "E122",
+        "E123",
+        "E124",
+        "E125",
+        "E126",
+        "E127",
+        "E128",
+        # "imports not at top of file."
+        # prefer to load as needed (lazy load addons etc).
+        "E402",
+        )
 
     for f, pep8_type in files:
 

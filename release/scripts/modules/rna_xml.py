@@ -32,7 +32,7 @@ def build_property_typemap(skip_classes, skip_typemap):
         if issubclass(cls, skip_classes):
             continue
 
-        ## to support skip-save we cant get all props
+        # # to support skip-save we cant get all props
         # properties = cls.bl_rna.properties.keys()
         properties = []
         for prop_id, prop in cls.bl_rna.properties.items():

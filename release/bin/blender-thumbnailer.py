@@ -170,7 +170,7 @@ def write_png(buf, width, height):
         png_pack(b'IEND', b'')])
 
 
-if __name__ == '__main__':
+def main():
     import sys
 
     if len(sys.argv) < 3:
@@ -186,3 +186,7 @@ if __name__ == '__main__':
             f = open(file_out, "wb")
             f.write(write_png(buf, width, height))
             f.close()
+
+
+if __name__ == '__main__':
+    main()

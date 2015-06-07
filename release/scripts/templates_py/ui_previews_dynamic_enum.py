@@ -44,7 +44,7 @@ def enum_previews_from_directory_items(self, context):
     if directory and os.path.exists(directory):
         # Scan the directory for png files
         image_paths = []
-        for fn in  os.listdir(directory):
+        for fn in os.listdir(directory):
             if fn.lower().endswith(".png"):
                 image_paths.append(fn)
 

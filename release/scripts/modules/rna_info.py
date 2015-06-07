@@ -696,7 +696,7 @@ def BuildRNAInfo():
     return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoOperatorRNA.global_lookup, InfoPropertyRNA.global_lookup
 
 
-if __name__ == "__main__":
+def main():
     import rna_info
     struct = rna_info.BuildRNAInfo()[0]
     data = []
@@ -724,3 +724,7 @@ if __name__ == "__main__":
     else:
         text = bpy.data.texts.new(name="api.py")
         text.from_string(data)
+
+
+if __name__ == "__main__":
+    main()
