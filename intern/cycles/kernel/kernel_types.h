@@ -116,11 +116,9 @@ CCL_NAMESPACE_BEGIN
 #  define __BACKGROUND_MIS__
 #  define __LAMP_MIS__
 #  define __AO__
-#  ifdef __KERNEL_EXPERIMENTAL__
-#    define __CAMERA_MOTION__
-#    define __OBJECT_MOTION__
-#    define __HAIR__
-#  endif
+#  define __CAMERA_MOTION__
+#  define __OBJECT_MOTION__
+#  define __HAIR__
 //#define __TRANSPARENT_SHADOWS__
 #endif
 
