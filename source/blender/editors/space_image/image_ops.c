@@ -720,6 +720,9 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 	ot->exec = image_view_all_exec;
 	ot->poll = space_image_main_area_poll;
 
+	/* flags */
+	ot->flag = OPTYPE_LOCK_BYPASS;
+
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
