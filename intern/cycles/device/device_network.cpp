@@ -19,6 +19,7 @@
 #include "device_network.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 
 #if defined(WITH_NETWORK)
 
