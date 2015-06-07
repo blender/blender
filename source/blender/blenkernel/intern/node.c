@@ -1980,7 +1980,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		/* Make full copy.
 		 * Note: previews are not copied here.
 		 */
-		ltree = ntreeCopyTree_internal(ntree, NULL, false, false, false);
+		ltree = ntreeCopyTree_internal(ntree, G.main, false, false, false);
 		ltree->flag |= NTREE_IS_LOCALIZED;
 		
 		for (node = ltree->nodes.first; node; node = node->next) {
