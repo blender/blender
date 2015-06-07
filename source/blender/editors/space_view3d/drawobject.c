@@ -8000,14 +8000,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		/* only draw domains */
 		if (smd->domain) {
 			SmokeDomainSettings *sds = smd->domain;
-			float p0[3], p1[3], viewnormal[3];
-			BoundBox bb;
+			float viewnormal[3];
 
 			glLoadMatrixf(rv3d->viewmat);
 			glMultMatrixf(ob->obmat);
 
 			/* draw adaptive domain bounds */
-			if (sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) {
+			if ((sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) && !render_override) {
+				float p0[3], p1[3];
+				BoundBox bb;
 				/* draw domain max bounds */
 				VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
 				VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
@@ -8023,6 +8024,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 			/* don't show smoke before simulation starts, this could be made an option in the future */
 			if (smd->domain->fluid && CFRA >= smd->domain->point_cache[0]->startframe) {
+				float p0[3], p1[3];
+
 				/* get view vector */
 				invert_m4_m4(ob->imat, ob->obmat);
 				mul_v3_mat3_m4v3(viewnormal, ob->imat, rv3d->viewinv[2]);
