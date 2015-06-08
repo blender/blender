@@ -401,7 +401,7 @@ void UI_popup_block_invoke_ex(struct bContext *C, uiBlockCreateFunc func, void *
 void UI_popup_block_ex(struct bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg);
 /* void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext); */ /* UNUSED */
 
-void UI_popup_block_close(struct bContext *C, uiBlock *block);
+void UI_popup_block_close(struct bContext *C, struct wmWindow *win, uiBlock *block);
 
 /* Blocks
  *
