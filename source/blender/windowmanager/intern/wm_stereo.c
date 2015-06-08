@@ -481,21 +481,25 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (win_src->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
+		/* ED_screen_duplicate() can't handle other cases yet T44688 */
+		if (win_src->screen->state != SCREENNORMAL) {
+			BKE_report(op->reports, RPT_ERROR,
+			           "Failed to switch to Time Sequential mode when in fullscreen");
+			ok = false;
+		}
 		/* pageflip requires a new window to be created with the proper OS flags */
-		if ((win_dst = wm_window_copy_test(C, win_src))) {
+		else if ((win_dst = wm_window_copy_test(C, win_src))) {
 			if (wm_stereo3d_quadbuffer_supported()) {
 				BKE_report(op->reports, RPT_INFO, "Quad-buffer window successfully created");
 			}
 			else {
 				wm_window_close(C, wm, win_dst);
 				win_dst = NULL;
-				win_src->stereo3d_format->display_mode = prev_display_mode;
 				BKE_report(op->reports, RPT_ERROR, "Quad-buffer not supported by the system");
 				ok = false;
 			}
 		}
 		else {
-			win_src->stereo3d_format->display_mode = prev_display_mode;
 			BKE_report(op->reports, RPT_ERROR,
 			           "Failed to create a window compatible with the time sequential display method");
 			ok = false;
@@ -521,6 +525,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	else {
 		/* without this, the popup won't be freed freed properly T44688 */
 		CTX_wm_window_set(C, win_src);
+		win_src->stereo3d_format->display_mode = prev_display_mode;
 		return OPERATOR_CANCELLED;
 	}
 }
