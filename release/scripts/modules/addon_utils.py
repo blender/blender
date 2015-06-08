@@ -80,39 +80,37 @@ def modules_refresh(module_cache=addons_fake_modules):
             print("Error opening file %r: %s" % (mod_path, e))
             return None
 
-        if speedy:
-            lines = []
-            line_iter = iter(file_mod)
-            l = ""
-            while not l.startswith("bl_info"):
-                try:
-                    l = line_iter.readline()
-                except UnicodeDecodeError as e:
-                    if not error_encoding:
-                        error_encoding = True
-                        print("Error reading file as UTF-8:", mod_path, e)
-                    file_mod.close()
-                    return None
+        with file_mod:
+            if speedy:
+                lines = []
+                line_iter = iter(file_mod)
+                l = ""
+                while not l.startswith("bl_info"):
+                    try:
+                        l = line_iter.readline()
+                    except UnicodeDecodeError as e:
+                        if not error_encoding:
+                            error_encoding = True
+                            print("Error reading file as UTF-8:", mod_path, e)
+                        return None
 
-                if len(l) == 0:
-                    break
-            while l.rstrip():
-                lines.append(l)
-                try:
-                    l = line_iter.readline()
-                except UnicodeDecodeError as e:
-                    if not error_encoding:
-                        error_encoding = True
-                        print("Error reading file as UTF-8:", mod_path, e)
-                    file_mod.close()
-                    return None
+                    if len(l) == 0:
+                        break
+                while l.rstrip():
+                    lines.append(l)
+                    try:
+                        l = line_iter.readline()
+                    except UnicodeDecodeError as e:
+                        if not error_encoding:
+                            error_encoding = True
+                            print("Error reading file as UTF-8:", mod_path, e)
+                        return None
 
-            data = "".join(lines)
+                data = "".join(lines)
 
-        else:
-            data = file_mod.read()
-
-        file_mod.close()
+            else:
+                data = file_mod.read()
+        del file_mod
 
         try:
             ast_data = ast.parse(data, filename=mod_path)
