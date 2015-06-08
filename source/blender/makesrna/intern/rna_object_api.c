@@ -229,7 +229,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 {
 	KeyBlock *kb = NULL;
 
-	if ((kb = BKE_object_insert_shape_key(ob, name, from_mix))) {
+	if ((kb = BKE_object_shapekey_insert(ob, name, from_mix))) {
 		PointerRNA keyptr;
 
 		RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
@@ -241,6 +241,29 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' does not support shapes", ob->id.name + 2);
 		return PointerRNA_NULL;
 	}
+}
+
+static void rna_Object_shape_key_remove(
+        Object *ob, Main *bmain, ReportList *reports,
+        PointerRNA *kb_ptr)
+{
+	KeyBlock *kb = kb_ptr->data;
+	Key *key = BKE_key_from_object(ob);
+
+	if ((key == NULL) || BLI_findindex(&key->block, kb) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "ShapeKey not found");
+		return;
+	}
+
+	if (!BKE_object_shapekey_remove(bmain, ob, kb)) {
+		BKE_reportf(reports, RPT_ERROR, "Could not remove ShapeKey");
+		return;
+	}
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+
+	RNA_POINTER_INVALIDATE(kb_ptr);
 }
 
 static int rna_Object_is_visible(Object *ob, Scene *sce)
@@ -557,13 +580,20 @@ void RNA_api_object(StructRNA *srna)
 
 	/* Shape key */
 	func = RNA_def_function(srna, "shape_key_add", "rna_Object_shape_key_add");
-	RNA_def_function_ui_description(func, "Add shape key to an object");
+	RNA_def_function_ui_description(func, "Add shape key to this object");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keyblock"); /* optional */
 	RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes");
 	parm = RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock");
 	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "shape_key_remove", "rna_Object_shape_key_remove");
+	RNA_def_function_ui_description(func, "Remove a Shape Key from this object");
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "key", "ShapeKey", "", "Keyblock to be removed");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	/* Ray Cast */
 	func = RNA_def_function(srna, "ray_cast", "rna_Object_ray_cast");

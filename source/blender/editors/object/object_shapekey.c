@@ -77,7 +77,7 @@
 static void ED_object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
 {
 	KeyBlock *kb;
-	if ((kb = BKE_object_insert_shape_key(ob, NULL, from_mix))) {
+	if ((kb = BKE_object_shapekey_insert(ob, NULL, from_mix))) {
 		Key *key = BKE_key_from_object(ob);
 		/* for absolute shape keys, new keys may not be added last */
 		ob->shapenr = BLI_findindex(&key->block, kb) + 1;
@@ -88,89 +88,21 @@ static void ED_object_shape_key_add(bContext *C, Object *ob, const bool from_mix
 
 /*********************** remove shape key ***********************/
 
-static bool ED_object_shape_key_remove_all(Main *bmain, Object *ob)
+static bool object_shapekey_remove(Main *bmain, Object *ob)
 {
-	Key *key;
+	KeyBlock *kb;
+	Key *key = BKE_key_from_object(ob);
 
-	key = BKE_key_from_object(ob);
-	if (key == NULL)
+	if (key == NULL) {
 		return false;
-
-	switch (GS(key->from->name)) {
-		case ID_ME: ((Mesh *)key->from)->key    = NULL; break;
-		case ID_CU: ((Curve *)key->from)->key   = NULL; break;
-		case ID_LT: ((Lattice *)key->from)->key = NULL; break;
 	}
-
-	BKE_libblock_free_us(bmain, key);
-
-	return true;
-}
-
-static bool ED_object_shape_key_remove(Main *bmain, Object *ob)
-{
-	KeyBlock *kb, *rkb;
-	Key *key;
-
-	key = BKE_key_from_object(ob);
-	if (key == NULL)
-		return false;
 
 	kb = BLI_findlink(&key->block, ob->shapenr - 1);
-
 	if (kb) {
-		for (rkb = key->block.first; rkb; rkb = rkb->next) {
-			if (rkb->relative == ob->shapenr - 1) {
-				/* remap to the 'Basis' */
-				rkb->relative = 0;
-			}
-			else if (rkb->relative >= ob->shapenr) {
-				/* Fix positional shift of the keys when kb is deleted from the list */
-				rkb->relative -= 1;
-			}
-		}
-
-		BLI_remlink(&key->block, kb);
-		key->totkey--;
-		if (key->refkey == kb) {
-			key->refkey = key->block.first;
-
-			if (key->refkey) {
-				/* apply new basis key on original data */
-				switch (ob->type) {
-					case OB_MESH:
-						BKE_keyblock_convert_to_mesh(key->refkey, ob->data);
-						break;
-					case OB_CURVE:
-					case OB_SURF:
-						BKE_keyblock_convert_to_curve(key->refkey, ob->data, BKE_curve_nurbs_get(ob->data));
-						break;
-					case OB_LATTICE:
-						BKE_keyblock_convert_to_lattice(key->refkey, ob->data);
-						break;
-				}
-			}
-		}
-			
-		if (kb->data) MEM_freeN(kb->data);
-		MEM_freeN(kb);
-
-		if (ob->shapenr > 1) {
-			ob->shapenr--;
-		}
-	}
-	
-	if (key->totkey == 0) {
-		switch (GS(key->from->name)) {
-			case ID_ME: ((Mesh *)key->from)->key    = NULL; break;
-			case ID_CU: ((Curve *)key->from)->key   = NULL; break;
-			case ID_LT: ((Lattice *)key->from)->key = NULL; break;
-		}
-
-		BKE_libblock_free_us(bmain, key);
+		return BKE_object_shapekey_remove(bmain, ob, kb);
 	}
 
-	return true;
+	return false;
 }
 
 static bool object_shape_key_mirror(bContext *C, Object *ob,
@@ -361,10 +293,10 @@ static int shape_key_remove_exec(bContext *C, wmOperator *op)
 	bool changed = false;
 
 	if (RNA_boolean_get(op->ptr, "all")) {
-		changed = ED_object_shape_key_remove_all(bmain, ob);
+		changed = BKE_object_shapekey_free(bmain, ob);
 	}
 	else {
-		changed = ED_object_shape_key_remove(bmain, ob);
+		changed = object_shapekey_remove(bmain, ob);
 	}
 
 	if (changed) {
