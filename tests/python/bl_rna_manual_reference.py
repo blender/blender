@@ -18,8 +18,8 @@
 
 # <pep8 compliant>
 
-# Use for validating our wiki interlinking.
-#  ./blender.bin --background -noaudio --python tests/python/bl_rna_wiki_reference.py
+# Use for validating our manual interlinking.
+#  ./blender.bin --background -noaudio --python tests/python/bl_rna_manual_reference.py
 #
 # 1) test_data()              -- ensure the data we have is correct format
 # 2) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path
@@ -31,10 +31,10 @@ import bpy
 
 
 def test_data():
-    import rna_wiki_reference
+    import rna_manual_reference
 
-    assert(isinstance(rna_wiki_reference.url_manual_mapping, tuple))
-    for i, value in enumerate(rna_wiki_reference.url_manual_mapping):
+    assert(isinstance(rna_manual_reference.url_manual_mapping, tuple))
+    for i, value in enumerate(rna_manual_reference.url_manual_mapping):
         try:
             assert(len(value) == 2)
             assert(isinstance(value[0], str))
@@ -94,7 +94,7 @@ def test_language_coverage():
 def test_urls():
     import os
     import sys
-    import rna_wiki_reference
+    import rna_manual_reference
 
     import urllib.error
     from urllib.request import urlopen
@@ -102,9 +102,9 @@ def test_urls():
     # avoid URL lookups if possible
     LOCAL_PREFIX = os.environ.get("LOCAL_PREFIX")
     if LOCAL_PREFIX is None:
-        prefix = rna_wiki_reference.url_manual_prefix
+        prefix = rna_manual_reference.url_manual_prefix
 
-    urls = {suffix for (rna_id, suffix) in rna_wiki_reference.url_manual_mapping}
+    urls = {suffix for (rna_id, suffix) in rna_manual_reference.url_manual_mapping}
 
     urls_len = "%d" % len(urls)
     print("")

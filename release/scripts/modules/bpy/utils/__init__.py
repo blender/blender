@@ -641,10 +641,10 @@ def unregister_module(module, verbose=False):
 # we start with the built-in default mapping
 def _blender_default_map():
     import sys
-    import rna_wiki_reference as ref_mod
+    import rna_manual_reference as ref_mod
     ret = (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
     # avoid storing in memory
-    del sys.modules["rna_wiki_reference"]
+    del sys.modules["rna_manual_reference"]
     return ret
 
 # hooks for doc lookups
