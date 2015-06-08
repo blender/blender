@@ -74,7 +74,12 @@ def modules_refresh(module_cache=addons_fake_modules):
             print("fake_module", mod_path, mod_name)
         import ast
         ModuleType = type(ast)
-        file_mod = open(mod_path, "r", encoding='UTF-8')
+        try:
+            file_mod = open(mod_path, "r", encoding='UTF-8')
+        except OSError as e:
+            print("Error opening file %r: %s" % (mod_path, e))
+            return None
+
         if speedy:
             lines = []
             line_iter = iter(file_mod)
