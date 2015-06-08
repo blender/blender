@@ -197,7 +197,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my)
 
 				/* we already had a fullscreen here -> mark new space as a stacked fullscreen */
 				if (sa->full) {
-					sa->flag |= AREA_FLAG_STACKED_FULLSCREEN;
+					sa->flag |= (AREA_FLAG_STACKED_FULLSCREEN | AREA_FLAG_TEMP_TYPE);
 				}
 			}
 			else {
