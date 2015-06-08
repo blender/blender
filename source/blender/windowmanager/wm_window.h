@@ -42,6 +42,8 @@ void wm_get_screensize(int *r_width, int *r_height);
 void wm_get_desktopsize(int *r_width, int *r_height);
 
 wmWindow	*wm_window_new			(bContext *C);
+wmWindow	*wm_window_copy			(bContext *C, wmWindow *win_src);
+wmWindow	*wm_window_copy_test	(bContext *C, wmWindow *win_src);
 void		wm_window_free			(bContext *C, wmWindowManager *wm, wmWindow *win);
 void		wm_window_close			(bContext *C, wmWindowManager *wm, wmWindow *win);
 
@@ -63,8 +65,6 @@ bool		wm_window_get_swap_interval(wmWindow *win, int *intervalOut);
 float		wm_window_pixelsize(wmWindow *win);
 
 void		wm_get_cursor_position	(wmWindow *win, int *x, int *y);
-
-wmWindow	*wm_window_copy			(bContext *C, wmWindow *winorig);
 
 void		wm_window_testbreak		(void);
 
