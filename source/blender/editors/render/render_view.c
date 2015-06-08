@@ -261,7 +261,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (sima->flag & SI_FULLWINDOW) {
 			sima->flag &= ~SI_FULLWINDOW;
-			ED_screen_full_prevspace(C, sa);
+			ED_screen_full_prevspace(C, sa, false);
 		}
 		else {
 			ED_area_prevspace(C, sa);
@@ -326,7 +326,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 
 					if (sima->flag & SI_FULLWINDOW) {
 						sima->flag &= ~SI_FULLWINDOW;
-						ED_screen_full_prevspace(C, sa);
+						ED_screen_full_prevspace(C, sa, false);
 					}
 					else if (sima->next) {
 						/* workaround for case of double prevspace, render window

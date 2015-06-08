@@ -109,7 +109,7 @@ void    ED_screen_animation_timer(struct bContext *C, int redraws, int refresh, 
 void    ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int refresh);
 void    ED_screen_restore_temp_type(struct bContext *C, ScrArea *sa);
 ScrArea *ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
-void    ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
+void    ED_screen_full_prevspace(struct bContext *C, ScrArea *sa, const bool was_prev_temp);
 void    ED_screen_full_restore(struct bContext *C, ScrArea *sa);
 struct ScrArea *ED_screen_state_toggle(struct bContext *C, struct wmWindow *win, struct ScrArea *sa, const short state);
 void    ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);

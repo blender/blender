@@ -1793,7 +1793,11 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 			BLI_remlink(handlers, handler);
 
 			if (val != EVT_FILESELECT_EXTERNAL_CANCEL) {
-				ED_screen_full_prevspace(C, CTX_wm_area(C));
+				ScrArea *sa = CTX_wm_area(C);
+				const SpaceLink *sl = sa->spacedata.first;
+				const bool was_prev_temp = (sl->next && sl->next->spacetype == SPACE_IMAGE);
+
+				ED_screen_full_prevspace(C, sa, was_prev_temp);
 			}
 
 			wm_handler_op_context(C, handler, CTX_wm_window(C)->eventstate);
