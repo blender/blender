@@ -264,7 +264,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 
 	invert_m4_m4(imat, obedit->obmat);
 	mul_m4_v3(imat, plane_co);
-	mul_mat3_m4_v3(imat, plane_no);
+	mul_transposed_mat3_m4_v3(obedit->obmat, plane_no);
 
 	EDBM_op_init(em, &bmop, op,
 	             "bisect_plane geom=%hvef plane_co=%v plane_no=%v dist=%f clear_inner=%b clear_outer=%b",
