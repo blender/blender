@@ -4368,8 +4368,10 @@ void BKE_curve_transform_ex(Curve *cu, float mat[4][4], const bool do_keys, cons
 		}
 		else {
 			i = nu->pntsu * nu->pntsv;
-			for (bp = nu->bp; i--; bp++)
+			for (bp = nu->bp; i--; bp++) {
 				mul_m4_v3(mat, bp->vec);
+				bp->radius *= unit_scale;
+			}
 		}
 	}
 
