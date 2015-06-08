@@ -4665,7 +4665,7 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 		}
 	}
 
-	if (v3d && v3d->localvd)
+	if (v3d->localvd)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	else
 		WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
@@ -4675,7 +4675,7 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 {
 	ED_view3d_cursor3d_update(C, event->mval);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)
