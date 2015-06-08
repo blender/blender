@@ -3394,9 +3394,11 @@ static ImBuf *load_image_single(
 		flag |= imbuf_alpha_flags_for_image(ima);
 
 		imapf = BLI_findlink(&ima->packedfiles, view_id);
-		ibuf = IMB_ibImageFromMemory(
-		       (unsigned char *)imapf->packedfile->data, imapf->packedfile->size, flag,
-		       ima->colorspace_settings.name, "<packed data>");
+		if (imapf->packedfile) {
+			ibuf = IMB_ibImageFromMemory(
+			       (unsigned char *)imapf->packedfile->data, imapf->packedfile->size, flag,
+			       ima->colorspace_settings.name, "<packed data>");
+		}
 	}
 	else {
 		ImageUser iuser_t;
