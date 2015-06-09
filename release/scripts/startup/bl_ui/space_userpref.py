@@ -113,11 +113,11 @@ class USERPREF_MT_splash(Menu):
         row.label("")
         row = split.row()
         row.label("Interaction:")
-        # XXX, no redraws
-        # text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
-        # if not text:
-        #     text = "Blender (default)"
-        row.menu("USERPREF_MT_appconfigs", text="Preset")
+
+        text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        if not text:
+            text = "Blender (default)"
+        row.menu("USERPREF_MT_appconfigs", text=text)
 
 
 # only for addons
