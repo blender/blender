@@ -547,6 +547,7 @@ static RenderPass *render_layer_add_debug_pass(RenderResult *rr,
 	BLI_strncpy(rpass->name,
 	            debug_pass_type_name_get(debug_type),
 	            sizeof(rpass->name));
+	BLI_strncpy(rpass->internal_name, rpass->name, sizeof(rpass->internal_name));
 	return rpass;
 }
 #endif
