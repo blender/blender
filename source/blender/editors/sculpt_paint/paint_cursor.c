@@ -958,10 +958,12 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 static bool ommit_cursor_drawing(Paint *paint, PaintMode mode, Brush *brush)
 {
 	if (paint->flags & PAINT_SHOW_BRUSH) {
-		if (ELEM(mode, PAINT_TEXTURE_2D, PAINT_TEXTURE_PROJECTIVE) && brush->imagepaint_tool == PAINT_TOOL_FILL)
+		if (ELEM(mode, PAINT_TEXTURE_2D, PAINT_TEXTURE_PROJECTIVE) && brush->imagepaint_tool == PAINT_TOOL_FILL) {
 			return true;
+		}
+		return false;
 	}
-	return false;
+	return true;
 }
 
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
