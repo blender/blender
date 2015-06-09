@@ -351,7 +351,7 @@ void BKE_object_free_caches(Object *object)
 		     psys = psys->next)
 		{
 			psys_free_path_cache(psys, psys->edit);
-			update_flag |= PSYS_RECALC;
+			update_flag |= PSYS_RECALC_REDO;
 		}
 	}
 
