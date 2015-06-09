@@ -97,6 +97,7 @@ void BUTTONS_OT_toolbox(wmOperatorType *ot)
 typedef struct FileBrowseOp {
 	PointerRNA ptr;
 	PropertyRNA *prop;
+	bool is_undo;
 } FileBrowseOp;
 
 static int file_browse_exec(bContext *C, wmOperator *op)
@@ -142,6 +143,10 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	RNA_property_update(C, &fbo->ptr, fbo->prop);
 	MEM_freeN(str);
 
+	if (fbo->is_undo) {
+		const char *undostr = RNA_property_identifier(fbo->prop);
+		ED_undo_push(C, undostr);
+	}
 
 	/* special, annoying exception, filesel on redo panel [#26618] */
 	{
@@ -168,6 +173,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
+	bool is_undo;
 	FileBrowseOp *fbo;
 	char *str;
 
@@ -176,7 +182,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	UI_context_active_but_prop_get_filebrowser(C, &ptr, &prop);
+	UI_context_active_but_prop_get_filebrowser(C, &ptr, &prop, &is_undo);
 
 	if (!prop)
 		return OPERATOR_CANCELLED;
@@ -210,6 +216,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		fbo = MEM_callocN(sizeof(FileBrowseOp), "FileBrowseOp");
 		fbo->ptr = ptr;
 		fbo->prop = prop;
+		fbo->is_undo = is_undo;
 		op->customdata = fbo;
 
 		RNA_string_set(op->ptr, path_prop, str);
@@ -241,7 +248,8 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	ot->exec = file_browse_exec;
 	ot->cancel = file_browse_cancel;
 
-	ot->flag |= OPTYPE_UNDO;
+	/* conditional undo based on button flag */
+	ot->flag = 0;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE,
@@ -261,7 +269,8 @@ void BUTTONS_OT_directory_browse(wmOperatorType *ot)
 	ot->exec = file_browse_exec;
 	ot->cancel = file_browse_cancel;
 
-	ot->flag |= OPTYPE_UNDO;
+	/* conditional undo based on button flag */
+	ot->flag = 0;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE,

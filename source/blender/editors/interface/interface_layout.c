@@ -683,14 +683,17 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	return but;
 }
 
-void UI_context_active_but_prop_get_filebrowser(const bContext *C, PointerRNA *ptr, PropertyRNA **prop)
+void UI_context_active_but_prop_get_filebrowser(
+        const bContext *C,
+        PointerRNA *r_ptr, PropertyRNA **r_prop, bool *r_is_undo)
 {
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	uiBut *but, *prevbut;
 
-	memset(ptr, 0, sizeof(*ptr));
-	*prop = NULL;
+	memset(r_ptr, 0, sizeof(*r_ptr));
+	*r_prop = NULL;
+	*r_is_undo = false;
 
 	if (!ar)
 		return;
@@ -702,8 +705,9 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C, PointerRNA *p
 			/* find the button before the active one */
 			if ((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.data) {
 				if (RNA_property_type(prevbut->rnaprop) == PROP_STRING) {
-					*ptr = prevbut->rnapoin;
-					*prop = prevbut->rnaprop;
+					*r_ptr = prevbut->rnapoin;
+					*r_prop = prevbut->rnaprop;
+					*r_is_undo = (prevbut->flag & UI_BUT_UNDO) != 0;
 					return;
 				}
 			}
