@@ -36,6 +36,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_report.h"
@@ -435,7 +437,8 @@ static int datadropper_init(bContext *C, wmOperator *op)
 	type = RNA_property_pointer_type(&ddr->ptr, ddr->prop);
 	ddr->idcode = RNA_type_to_ID_code(type);
 	BLI_assert(ddr->idcode != 0);
-	ddr->idcode_name = BKE_idcode_to_name(ddr->idcode);
+	/* Note we can translate here (instead of on draw time), because this struct has very short lifetime. */
+	ddr->idcode_name = TIP_(BKE_idcode_to_name(ddr->idcode));
 
 	return true;
 }

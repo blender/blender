@@ -34,6 +34,7 @@
 
 const char *BKE_idcode_to_name(int code);
 const char *BKE_idcode_to_name_plural(int code);
+const char *BKE_idcode_to_translation_context(int code);
 int         BKE_idcode_from_name(const char *name);
 bool        BKE_idcode_is_linkable(int code);
 bool        BKE_idcode_is_valid(int code);

@@ -370,35 +370,7 @@ static const char *template_id_browse_tip(StructRNA *type)
 static const char *template_id_context(StructRNA *type)
 {
 	if (type) {
-		switch (RNA_type_to_ID_code(type)) {
-			case ID_SCE: return BLF_I18NCONTEXT_ID_SCENE;
-			case ID_OB:  return BLF_I18NCONTEXT_ID_OBJECT;
-			case ID_ME:  return BLF_I18NCONTEXT_ID_MESH;
-			case ID_CU:  return BLF_I18NCONTEXT_ID_CURVE;
-			case ID_MB:  return BLF_I18NCONTEXT_ID_METABALL;
-			case ID_MA:  return BLF_I18NCONTEXT_ID_MATERIAL;
-			case ID_TE:  return BLF_I18NCONTEXT_ID_TEXTURE;
-			case ID_IM:  return BLF_I18NCONTEXT_ID_IMAGE;
-			case ID_LS:  return BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE;
-			case ID_LT:  return BLF_I18NCONTEXT_ID_LATTICE;
-			case ID_LA:  return BLF_I18NCONTEXT_ID_LAMP;
-			case ID_CA:  return BLF_I18NCONTEXT_ID_CAMERA;
-			case ID_WO:  return BLF_I18NCONTEXT_ID_WORLD;
-			case ID_SCR: return BLF_I18NCONTEXT_ID_SCREEN;
-			case ID_TXT: return BLF_I18NCONTEXT_ID_TEXT;
-			case ID_SPK: return BLF_I18NCONTEXT_ID_SPEAKER;
-			case ID_SO:  return BLF_I18NCONTEXT_ID_SOUND;
-			case ID_AR:  return BLF_I18NCONTEXT_ID_ARMATURE;
-			case ID_AC:  return BLF_I18NCONTEXT_ID_ACTION;
-			case ID_NT:  return BLF_I18NCONTEXT_ID_NODETREE;
-			case ID_BR:  return BLF_I18NCONTEXT_ID_BRUSH;
-			case ID_PA:  return BLF_I18NCONTEXT_ID_PARTICLESETTINGS;
-			case ID_GD:  return BLF_I18NCONTEXT_ID_GPENCIL;
-			case ID_MC:  return BLF_I18NCONTEXT_ID_MOVIECLIP;
-			case ID_MSK: return BLF_I18NCONTEXT_ID_MASK;
-			case ID_PAL: return BLF_I18NCONTEXT_ID_PALETTE;
-			case ID_PC:  return BLF_I18NCONTEXT_ID_PAINTCURVE;
-		}
+		return BKE_idcode_to_translation_context(RNA_type_to_ID_code(type));
 	}
 	return BLF_I18NCONTEXT_DEFAULT;
 }
