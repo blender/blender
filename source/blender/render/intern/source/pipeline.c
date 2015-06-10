@@ -2958,7 +2958,7 @@ bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *
 
 #  ifdef FREESTYLR_SAVEBUFFERS_WORKAROUND
 		if ((scene->r.scemode & R_MULTIVIEW) != 0 && (scene->r.scemode & R_EXR_TILE_FILE) != 0) {
-			BKE_report(reports, RPT_ERROR, "Multiview combined with Save Buffers not supported in Freestyle");
+			BKE_report(reports, RPT_ERROR, "Multi-View combined with Save Buffers not supported in Freestyle");
 			return false;
 		}
 #  endif
