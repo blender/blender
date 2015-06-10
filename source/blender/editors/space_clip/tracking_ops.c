@@ -1426,7 +1426,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	}
 
 	clip = ED_space_clip_get_clip(sc);
-	BLI_assert(clip);
+	BLI_assert(clip != NULL);
 	framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	if (WM_jobs_test(CTX_wm_manager(C), sa, WM_JOB_TYPE_ANY)) {
