@@ -135,12 +135,16 @@ void ViewerOperation::initImage()
 		BKE_image_verify_viewer_views(this->m_rd, ima, this->m_imageUser);
 	}
 
+	BLI_lock_thread(LOCK_DRAW_IMAGE);
+
 	/* local changes to the original ImageUser */
 	iuser.multi_index = BKE_scene_multiview_view_id_get(this->m_rd, this->m_viewName);
 	ibuf = BKE_image_acquire_ibuf(ima, &iuser, &lock);
 
-	if (!ibuf) return;
-	BLI_lock_thread(LOCK_DRAW_IMAGE);
+	if (!ibuf) {
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
+		return;
+	}
 	if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
 
 		imb_freerectImBuf(ibuf);
@@ -159,7 +163,6 @@ void ViewerOperation::initImage()
 	if (m_doDepthBuffer) {
 		addzbuffloatImBuf(ibuf);
 	}
-	BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
@@ -172,6 +175,8 @@ void ViewerOperation::initImage()
 	}
 
 	BKE_image_release_ibuf(this->m_image, this->m_ibuf, lock);
+
+	BLI_unlock_thread(LOCK_DRAW_IMAGE);
 }
 
 void ViewerOperation::updateImage(rcti *rect)
