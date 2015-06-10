@@ -3371,9 +3371,7 @@ static void edbm_mesh_knife_face_point(BMFace *f, float r_cent[3])
 		const float *p3 = loops[index[j][2]]->v->co;
 		float area;
 
-		float cross[3];
-		cross_v3_v3v3(cross, p2, p3);
-		area = fabsf(dot_v3v3(p1, cross));
+		area = area_squared_tri_v3(p1, p2, p3);
 		if (area > area_best) {
 			j_best = j;
 			area_best = area;
