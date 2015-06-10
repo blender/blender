@@ -679,6 +679,19 @@ elseif(WIN32)
 				install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages/numpy
 						DESTINATION ${BLENDER_VERSION}/python/lib/site-packages)
 			endif()
+
+
+			# TODO(sergey): For unti we've got better way to deal with python binary
+			install(
+				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
+				DESTINATION ${BLENDER_VERSION}/python/bin
+				CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+			)
+			install(
+				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+				DESTINATION ${BLENDER_VERSION}/python/bin
+				CONFIGURATIONS Debug
+			)
 		endif()
 
 		unset(_PYTHON_VERSION_NO_DOTS)

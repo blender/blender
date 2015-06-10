@@ -1300,6 +1300,15 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
+    # TODO(sergey): For unti we've got better way to deal with python binary
+    if env['WITH_BF_PYTHON']:
+        py_target = os.path.join(env['BF_INSTALLDIR'], VERSION, 'python', 'bin')
+        if env['BF_DEBUG']:
+            allinstall += env.Install(dir=py_target, source = ['${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll'])
+        else:
+            allinstall += env.Install(dir=py_target, source = ['${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}.dll'])
+
+
 if env['OURPLATFORM'] == 'win64-mingw':
     dllsources = []
 
