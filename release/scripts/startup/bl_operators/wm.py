@@ -2108,15 +2108,9 @@ class WM_OT_addon_expand(Operator):
 
         module_name = self.module
 
-        # unlikely to fail, module should have already been imported
-        try:
-            # mod = __import__(module_name)
-            mod = addon_utils.addons_fake_modules.get(module_name)
-        except:
-            import traceback
-            traceback.print_exc()
-            return {'CANCELLED'}
+        mod = addon_utils.addons_fake_modules.get(module_name)
+        if mod is not None:
+            info = addon_utils.module_bl_info(mod)
+            info["show_expanded"] = not info["show_expanded"]
 
-        info = addon_utils.module_bl_info(mod)
-        info["show_expanded"] = not info["show_expanded"]
         return {'FINISHED'}
