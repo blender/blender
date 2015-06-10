@@ -231,10 +231,14 @@ static void rna_uiItemL(uiLayout *layout, const char *name, const char *text_ctx
 }
 
 static void rna_uiItemM(uiLayout *layout, bContext *C, const char *menuname, const char *name, const char *text_ctxt,
-                        int translate, int icon)
+                        int translate, int icon, int icon_value)
 {
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, NULL, translate);
+
+	if (icon_value && !icon) {
+		icon = icon_value;
+	}
 
 	uiItemM(layout, C, menuname, name, icon);
 }
@@ -525,9 +529,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	            "The index of this button, when set a single member of an array can be accessed, "
 	            "when set to -1 all array members are used", -2, INT_MAX); /* RNA_NO_INDEX == -1 */
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(parm, "Icon Value",
-	                         "Override automatic icon of the item "
-	                         "(use it e.g. with custom material icons returned by icon()...)");
+	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
 
 	func = RNA_def_function(srna, "props_enum", "uiItemsEnumR");
 	api_ui_item_rna_common(func);
@@ -554,9 +556,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_op_common(func);
 	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(parm, "Icon Value",
-	                         "Override automatic icon of the item "
-	                         "(use it e.g. with custom material icons returned by icon()...)");
+	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "",
 	                       "Operator properties to fill in, return when 'properties' is set to true");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
@@ -621,15 +621,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. Display text and/or icon in the layout");
 	api_ui_item_common(func);
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(parm, "Icon Value",
-	                         "Override automatic icon of the item "
-	                         "(use it e.g. with custom material icons returned by icon()...)");
+	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
 
 	func = RNA_def_function(srna, "menu", "rna_uiItemM");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_string(func, "menu", NULL, 0, "", "Identifier of the menu");
 	api_ui_item_common(func);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
 
 	func = RNA_def_function(srna, "separator", "uiItemS");
 	RNA_def_function_ui_description(func, "Item. Inserts empty space into the layout between items");
