@@ -1426,6 +1426,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	}
 
 	clip = ED_space_clip_get_clip(sc);
+	BLI_assert(clip);
 	framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	if (WM_jobs_test(CTX_wm_manager(C), sa, WM_JOB_TYPE_ANY)) {
@@ -1504,6 +1505,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	ot->exec = track_markers_exec;
 	ot->invoke = track_markers_invoke;
 	ot->modal = track_markers_modal;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
