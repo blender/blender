@@ -557,7 +557,7 @@ static float paint_stroke_integrate_overlap(Brush *br, float factor)
 	g = 1.0f / m;
 	max = 0;
 	for (i = 0; i < m; i++) {
-		float overlap = paint_stroke_overlapped_curve(br, i * g, spacing);
+		float overlap = fabs(paint_stroke_overlapped_curve(br, i * g, spacing));
 
 		if (overlap > max)
 			max = overlap;
