@@ -3,7 +3,7 @@
 #ifndef __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__
 #define __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__
 
-const char *words10k =
+const char words10k[] =
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor ultrices purus tincidunt mollis. Vestibulum "
 "tincidunt imperdiet molestie. Vivamus posuere, risus ut mollis rutrum, lacus nulla mollis velit, consectetur auctor "
 "erat est in odio. Proin quis lobortis ex. Ut id quam lacus. Morbi ultrices orci quis sem suscipit tincidunt. Nullam "
