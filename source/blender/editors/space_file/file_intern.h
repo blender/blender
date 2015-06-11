@@ -59,8 +59,17 @@ bool file_draw_check_exists(SpaceFile *sfile);
 /* file_ops.h */
 struct wmOperatorType;
 struct wmOperator;
+
+typedef enum WalkSelectDirection {
+	FILE_SELECT_WALK_UP,
+	FILE_SELECT_WALK_DOWN,
+	FILE_SELECT_WALK_LEFT,
+	FILE_SELECT_WALK_RIGHT,
+} WalkSelectDirections;
+
 void FILE_OT_highlight(struct wmOperatorType *ot);
 void FILE_OT_select(struct wmOperatorType *ot);
+void FILE_OT_select_walk(struct wmOperatorType *ot);
 void FILE_OT_select_all_toggle(struct wmOperatorType *ot);
 void FILE_OT_select_border(struct wmOperatorType *ot);
 void FILE_OT_select_bookmark(struct wmOperatorType *ot);
@@ -110,6 +119,9 @@ int autocomplete_file(struct bContext *C, char *str, void *arg_v);
 
 /* file_panels.c */
 void file_panels_register(struct ARegionType *art);
+
+/* file_utils.c */
+void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, rcti *r_bounds);
 
 #endif /* __FILE_INTERN_H__ */
 

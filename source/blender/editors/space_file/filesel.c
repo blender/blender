@@ -697,7 +697,7 @@ void ED_fileselect_clear(struct wmWindowManager *wm, struct SpaceFile *sfile)
 		filelist_free(sfile->files);
 	}
 
-	sfile->params->active_file = -1;
+	sfile->params->highlight_file = -1;
 	WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 

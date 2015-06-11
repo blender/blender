@@ -212,7 +212,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	if (!sfile->files) {
 		sfile->files = filelist_new(params->type);
 		filelist_setdir(sfile->files, params->dir);
-		params->active_file = -1; /* added this so it opens nicer (ton) */
+		params->highlight_file = -1; /* added this so it opens nicer (ton) */
 	}
 	filelist_setsorting(sfile->files, params->sort);
 	filelist_setfilter_options(sfile->files, params->flag & FILE_HIDE_DOT,
@@ -377,7 +377,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 	
 	/* on first read, find active file */
-	if (params->active_file == -1) {
+	if (params->highlight_file == -1) {
 		wmEvent *event = CTX_wm_window(C)->eventstate;
 		file_highlight_set(sfile, ar, event->x, event->y);
 	}
@@ -397,6 +397,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 static void file_operatortypes(void)
 {
 	WM_operatortype_append(FILE_OT_select);
+	WM_operatortype_append(FILE_OT_select_walk);
 	WM_operatortype_append(FILE_OT_select_all_toggle);
 	WM_operatortype_append(FILE_OT_select_border);
 	WM_operatortype_append(FILE_OT_select_bookmark);
@@ -461,6 +462,49 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", true);
 	RNA_boolean_set(kmi->ptr, "fill", true);
 	RNA_boolean_set(kmi->ptr, "open", false);
+
+
+	/* arrow keys navigation (walk selecting) */
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", UPARROWKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_UP);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", UPARROWKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_UP);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", UPARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_UP);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	RNA_boolean_set(kmi->ptr, "fill", true);
+
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", DOWNARROWKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_DOWN);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_DOWN);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", DOWNARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_DOWN);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	RNA_boolean_set(kmi->ptr, "fill", true);
+
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", LEFTARROWKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_LEFT);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_LEFT);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", LEFTARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_LEFT);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	RNA_boolean_set(kmi->ptr, "fill", true);
+
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", RIGHTARROWKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_RIGHT);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_RIGHT);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select_walk", RIGHTARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "direction", FILE_SELECT_WALK_RIGHT);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	RNA_boolean_set(kmi->ptr, "fill", true);
+
 
 	/* front and back mouse folder navigation */
 	WM_keymap_add_item(keymap, "FILE_OT_previous", BUTTON4MOUSE, KM_CLICK, 0, 0);

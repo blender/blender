@@ -591,7 +591,8 @@ typedef struct FileSelectParams {
 
 	char filter_search[64];  /* text items' name must match to be shown. */
 
-	int active_file;
+	int active_file;    /* active file used for keyboard navigation */
+	int highlight_file; /* file under cursor */
 	int sel_first;
 	int sel_last;
 	unsigned short thumbnail_size;

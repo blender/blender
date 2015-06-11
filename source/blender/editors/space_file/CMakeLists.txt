@@ -42,6 +42,7 @@ set(SRC
 	file_draw.c
 	file_ops.c
 	file_panels.c
+	file_utils.c
 	filelist.c
 	filesel.c
 	fsmenu.c

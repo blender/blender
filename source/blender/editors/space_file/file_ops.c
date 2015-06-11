@@ -176,7 +176,8 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 	    (selected_idx < numfiles) &&
 	    (file = filelist_file(sfile->files, selected_idx)))
 	{
-		params->active_file = selected_idx;
+		params->highlight_file = selected_idx;
+		sfile->params->active_file = selected_idx;
 
 		if (S_ISDIR(file->type)) {
 			const bool is_parent_dir = FILENAME_IS_PARENT(file->relname);
@@ -242,6 +243,53 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	return retval;
 }
 
+/**
+ * \warning: loops over all files so better use cautiously
+ */
+static bool file_is_any_selected(struct FileList *files)
+{
+	const int numfiles = filelist_numfiles(files);
+	int i;
+
+	for (i = 0; i < numfiles; ++i) {
+		if (filelist_is_selected(files, i, CHECK_ALL)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static int file_border_select_find_last_selected(
+        SpaceFile *sfile, ARegion *ar, const FileSelection *sel,
+        const int mouse_xy[2])
+{
+	FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
+	rcti bounds_first, bounds_last;
+	int dist_first, dist_last;
+
+	file_tile_boundbox(ar, layout, sel->first, &bounds_first);
+	file_tile_boundbox(ar, layout, sel->last, &bounds_last);
+
+	/* are first and last in the same column (horizontal layout)/row (vertical layout)? */
+	if ((layout->flag & FILE_LAYOUT_HOR && bounds_first.xmin == bounds_last.xmin) ||
+	    (layout->flag & FILE_LAYOUT_VER && bounds_first.ymin != bounds_last.ymin))
+	{
+		/* use vertical distance */
+		const int my_loc = mouse_xy[1] - ar->winrct.ymin;
+		dist_first = BLI_rcti_length_y(&bounds_first, my_loc);
+		dist_last = BLI_rcti_length_y(&bounds_last, my_loc);
+	}
+	else {
+		/* use horizontal distance */
+		const int mx_loc = mouse_xy[0] - ar->winrct.xmin;
+		dist_first = BLI_rcti_length_x(&bounds_first, mx_loc);
+		dist_last = BLI_rcti_length_x(&bounds_last, mx_loc);
+	}
+
+	return dist_first < dist_last ? sel->first : sel->last;
+}
+
 static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -276,17 +324,17 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 					file->selflag &= ~FILE_SEL_HIGHLIGHTED;
 				}
 
-				/* active_file gets highlighted as well - make sure it is no readonly file */
+				/* make sure highlight_file is no readonly file */
 				if (sel.last == idx) {
-					params->active_file = idx;
+					params->highlight_file = idx;
 				}
 			}
 		}
 		params->sel_first = sel.first; params->sel_last = sel.last;
-
+		params->active_file = file_border_select_find_last_selected(sfile, ar, &sel, &event->x);
 	}
 	else {
-		params->active_file = -1;
+		params->highlight_file = -1;
 		params->sel_first = params->sel_last = -1;
 		file_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
@@ -361,7 +409,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	if (sfile && sfile->params) {
-		int idx = sfile->params->active_file;
+		int idx = sfile->params->highlight_file;
 
 		if (idx >= 0) {
 			struct direntry *file = filelist_file(sfile->files, idx);
@@ -409,35 +457,240 @@ void FILE_OT_select(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/**
+ * \returns true if selection has changed
+ */
+static bool file_walk_select_selection_set(
+        bContext *C, SpaceFile *sfile,
+        const int direction, const int numfiles,
+        const int active_old, const int active_new, const int other_site,
+        const bool has_selection, const bool extend, const bool fill)
+{
+	FileSelectParams *params = sfile->params;
+	struct FileList *files = sfile->files;
+	const int last_sel = params->active_file; /* store old value */
+	int active = active_old; /* could use active_old instead, just for readability */
+	bool deselect = false;
+
+	if (has_selection) {
+		if (extend &&
+		    filelist_is_selected(files, active_old, FILE_SEL_SELECTED) &&
+		    filelist_is_selected(files, active_new, FILE_SEL_SELECTED))
+		{
+				/* conditions for deselecting: initial file is selected, new file is
+				 * selected and either other_side isn't selected/found or we use fill */
+				deselect = (fill || other_site == -1 || !filelist_is_selected(files, other_site, FILE_SEL_SELECTED));
+
+				/* don't change active here since we either want to deselect active or we want to
+				 * walk through a block of selected files without selecting/deselecting anything */
+				params->active_file = active_new;
+				/* but we want to change active if we use fill (needed to get correct selection bounds) */
+				if (deselect && fill) active = active_new;
+		}
+		else {
+			/* regular selection change */
+			params->active_file = active = active_new;
+		}
+	}
+	else {
+		/* select last file */
+		if (ELEM(direction, FILE_SELECT_WALK_UP, FILE_SELECT_WALK_LEFT)) {
+			params->active_file = active = numfiles - 1;
+		}
+		/* select first file */
+		else if (ELEM(direction, FILE_SELECT_WALK_DOWN, FILE_SELECT_WALK_RIGHT)) {
+			params->active_file = active = 1;
+		}
+		else {
+			BLI_assert(0);
+		}
+	}
+
+	if (!params || active < 0) return false;
+
+	/* highlight the active walker file for extended selection for better visual feedback */
+	if (extend) {
+		params->highlight_file = params->active_file;
+	}
+	else {
+		/* deselect all first */
+		file_deselect_all(sfile, FILE_SEL_SELECTED);
+
+		/* highlight file under mouse pos */
+		params->highlight_file = -1;
+		WM_event_add_mousemove(C);
+	}
+
+	/* do the actual selection */
+	if (fill) {
+		FileSelection sel = { MIN2(active, last_sel), MAX2(active, last_sel) };
+
+		/* fill selection between last and first selected file */
+		filelist_select(sfile->files, &sel, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD,
+		                FILE_SEL_SELECTED, CHECK_ALL);
+		/* entire sel is cleared here, so select active again */
+		if (deselect) {
+			filelist_select_file(sfile->files, active, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
+		}
+	}
+	else {
+		filelist_select_file(sfile->files, active, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD,
+		                     FILE_SEL_SELECTED, CHECK_ALL);
+	}
+
+	BLI_assert(IN_RANGE(active, 0, numfiles));
+
+	/* selection changed */
+	return true;
+}
+
+/**
+ * \returns true if selection has changed
+ */
+static bool file_walk_select_do(
+        bContext *C, SpaceFile *sfile,
+        FileSelectParams *params, const int direction,
+        const bool extend, const bool fill)
+{
+	const int numfiles = filelist_numfiles(sfile->files);
+	const bool has_selection = file_is_any_selected(sfile->files);
+	const int active_old = params->active_file;
+	int active_new = -1;
+	int other_site = -1; /* file on the other site of active_old */
+
+
+	/* *** get all needed files for handling selection *** */
+
+	if (has_selection) {
+		ARegion *ar = CTX_wm_region(C);
+		FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
+		const int idx_shift = (layout->flag & FILE_LAYOUT_HOR) ? layout->rows : layout->columns;
+
+		if ((layout->flag & FILE_LAYOUT_HOR && direction == FILE_SELECT_WALK_UP) ||
+		    (layout->flag & FILE_LAYOUT_VER && direction == FILE_SELECT_WALK_LEFT))
+		{
+			active_new = active_old - 1;
+			other_site = active_old + 1;
+		}
+		else if ((layout->flag & FILE_LAYOUT_HOR && direction == FILE_SELECT_WALK_DOWN) ||
+		         (layout->flag & FILE_LAYOUT_VER && direction == FILE_SELECT_WALK_RIGHT))
+		{
+			active_new = active_old + 1;
+			other_site = active_old - 1;
+		}
+		else if ((layout->flag & FILE_LAYOUT_HOR && direction == FILE_SELECT_WALK_LEFT) ||
+		         (layout->flag & FILE_LAYOUT_VER && direction == FILE_SELECT_WALK_UP))
+		{
+			active_new = active_old - idx_shift;
+			other_site = active_old + idx_shift;
+		}
+		else if ((layout->flag & FILE_LAYOUT_HOR && direction == FILE_SELECT_WALK_RIGHT) ||
+		         (layout->flag & FILE_LAYOUT_VER && direction == FILE_SELECT_WALK_DOWN))
+		{
+
+			active_new = active_old + idx_shift;
+			other_site = active_old - idx_shift;
+		}
+		else {
+			BLI_assert(0);
+		}
+
+		if (!IN_RANGE(active_new, 0, numfiles)) {
+			/* extend to invalid file -> abort */
+			if (extend) return false;
+			/* select initial file */
+			else active_new = active_old;
+		}
+		if (!IN_RANGE(other_site, 0, numfiles)) {
+			other_site = -1;
+		}
+	}
+
+	return file_walk_select_selection_set(C, sfile, direction, numfiles, active_old, active_new, other_site,
+	                                      has_selection, extend, fill);
+}
+
+static int file_walk_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
+	FileSelectParams *params = sfile->params;
+	const int direction = RNA_enum_get(op->ptr, "direction");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const bool fill = RNA_boolean_get(op->ptr, "fill");
+
+	if (file_walk_select_do(C, sfile, params, direction, extend, fill)) {
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void FILE_OT_select_walk(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{FILE_SELECT_WALK_UP,    "UP",    0, "Prev",  ""},
+		{FILE_SELECT_WALK_DOWN,  "DOWN",  0, "Next",  ""},
+		{FILE_SELECT_WALK_LEFT,  "LEFT",  0, "Left",  ""},
+		{FILE_SELECT_WALK_RIGHT, "RIGHT", 0, "Right", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Walk Select/Deselect File";
+	ot->description = "Select/Deselect files by walking through them";
+	ot->idname = "FILE_OT_select_walk";
+
+	/* api callbacks */
+	ot->invoke = file_walk_select_invoke;
+	ot->poll = ED_operator_file_active;
+
+	/* properties */
+	prop = RNA_def_enum(ot->srna, "direction", direction_items, 0, "Walk Direction",
+	                    "Select/Deselect file in this direction");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "extend", false, "Extend",
+	                       "Extend selection instead of deselecting everything first");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "fill", false, "Fill", "Select everything beginning with the last selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
 static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelection sel;
-	int numfiles = filelist_numfiles(sfile->files);
-	int i;
-	bool is_selected = false;
+	const int numfiles = filelist_numfiles(sfile->files);
+	const bool has_selection = file_is_any_selected(sfile->files);
 
 	sel.first = 0; 
 	sel.last = numfiles - 1;
 
-	/* Is any file selected ? */
-	for (i = 0; i < numfiles; ++i) {
-		if (filelist_is_selected(sfile->files, i, CHECK_ALL)) {
-			is_selected = true;
-			break;
-		}
-	}
 	/* select all only if previously no file was selected */
-	if (is_selected) {
+	if (has_selection) {
 		filelist_select(sfile->files, &sel, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
 	}
 	else {
 		const FileCheckType check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_FILES;
+		int i;
+
 		filelist_select(sfile->files, &sel, FILE_SEL_ADD, FILE_SEL_SELECTED, check_type);
+
+		/* set active_file to first selected */
+		for (i = 0; i < numfiles; i++) {
+			if (filelist_is_selected(sfile->files, i, check_type)) {
+				sfile->params->active_file = i;
+				break;
+			}
+		}
 	}
+
 	file_draw_check(C);
+	WM_event_add_mousemove(C);
 	ED_area_tag_redraw(sa);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -748,28 +1001,28 @@ int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	numfiles = filelist_numfiles(sfile->files);
 	params = ED_fileselect_get_params(sfile);
 
-	origfile = params->active_file;
+	origfile = params->highlight_file;
 
 	mx -= ar->winrct.xmin;
 	my -= ar->winrct.ymin;
 
 	if (BLI_rcti_isect_pt(&ar->v2d.mask, mx, my)) {
 		float fx, fy;
-		int active_file;
+		int highlight_file;
 
 		UI_view2d_region_to_view(v2d, mx, my, &fx, &fy);
 
-		active_file = ED_fileselect_layout_offset(sfile->layout, (int)(v2d->tot.xmin + fx), (int)(v2d->tot.ymax - fy));
+		highlight_file = ED_fileselect_layout_offset(sfile->layout, (int)(v2d->tot.xmin + fx), (int)(v2d->tot.ymax - fy));
 
-		if ((active_file >= 0) && (active_file < numfiles))
-			params->active_file = active_file;
+		if ((highlight_file >= 0) && (highlight_file < numfiles))
+			params->highlight_file = highlight_file;
 		else
-			params->active_file = -1;
+			params->highlight_file = -1;
 	}
 	else
-		params->active_file = -1;
+		params->highlight_file = -1;
 
-	return (params->active_file != origfile);
+	return (params->highlight_file != origfile);
 }
 
 static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
@@ -1669,7 +1922,7 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
 	
 	if (sfile->params) {
-		int idx = sfile->params->active_file;
+		int idx = sfile->params->highlight_file;
 		int numfiles = filelist_numfiles(sfile->files);
 		if ( (0 <= idx) && (idx < numfiles) ) {
 			struct direntry *file = filelist_file(sfile->files, idx);
@@ -1690,7 +1943,7 @@ static int file_rename_poll(bContext *C)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile && sfile->params) {
-		int idx = sfile->params->active_file;
+		int idx = sfile->params->highlight_file;
 
 		if (idx >= 0) {
 			struct direntry *file = filelist_file(sfile->files, idx);
@@ -1699,7 +1952,7 @@ static int file_rename_poll(bContext *C)
 			}
 		}
 
-		if (sfile->params->active_file < 0) {
+		if (sfile->params->highlight_file < 0) {
 			poll = 0;
 		}
 		else {
