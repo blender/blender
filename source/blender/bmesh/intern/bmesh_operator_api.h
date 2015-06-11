@@ -501,6 +501,11 @@ bool  BMO_iter_map_value_bool(BMOIter *iter);
 	     ele; \
 	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter))
 
+#define BMO_ITER_INDEX(ele, iter, slot_args, slot_name, restrict_flag, i_)   \
+	for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_new(iter, slot_args, slot_name, restrict_flag), i_ = 0; \
+	     ele; \
+	     BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BMO_iter_step(iter), i_++)
+
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 
 int BMO_opcode_from_opname(const char *opname);
