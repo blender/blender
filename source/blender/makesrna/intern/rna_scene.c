@@ -5873,6 +5873,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "BakeSettings");
 	RNA_def_property_ui_text(prop, "Bake Data", "");
 
+	/* Debugging settings. */
+#ifdef WITH_CYCLES_DEBUG
+	prop = RNA_def_property(srna, "debug_pass_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, render_pass_debug_type_items);
+	RNA_def_property_ui_text(prop, "Debug Pass Type", "Type of the debug pass to use");
+#endif
+
 	/* Nestled Data  */
 	/* *** Non-Animated *** */
 	RNA_define_animate_sdna(false);

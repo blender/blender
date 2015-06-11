@@ -431,6 +431,9 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_emit", text="Emission")
         col.prop(rl, "use_pass_environment")
 
+        if hasattr(rd, "debug_pass_type"):
+            layout.prop(rd, "debug_pass_type")
+
 
 class CyclesRender_PT_views(CyclesButtonsPanel, Panel):
     bl_label = "Views"

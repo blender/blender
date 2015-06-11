@@ -689,7 +689,13 @@ typedef struct RenderData {
 	struct BakeData bake;
 
 	int preview_start_resolution;
-	int pad;
+
+	/* Type of the debug pass to use.
+	 * Only used when built with debug passes support.
+	 */
+	short debug_pass_type;
+
+	short pad;
 
 	/* MultiView */
 	ListBase views;
