@@ -3934,6 +3934,8 @@ BumpNode::BumpNode()
 {
 	invert = false;
 
+	special_type = SHADER_SPECIAL_TYPE_BUMP;
+
 	/* this input is used by the user, but after graph transform it is no longer
 	 * used and moved to sampler center/x/y instead */
 	add_input("Height", SHADER_SOCKET_FLOAT);

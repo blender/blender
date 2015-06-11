@@ -419,6 +419,21 @@ void ShaderGraph::remove_unneeded_nodes()
 				}
 			}
 		}
+		else if(node->special_type == SHADER_SPECIAL_TYPE_BUMP) {
+			BumpNode *bump = static_cast<BumpNode*>(node);
+
+			if(bump->outputs[0]->links.size()) {
+				/* Height input not connected */
+				/* ToDo: Strength zero? */
+				if(!bump->inputs[0]->link) {
+					vector<ShaderInput*> inputs = bump->outputs[0]->links;
+
+					relink(bump->inputs, inputs, NULL);
+					removed[bump->id] = true;
+					any_node_removed = true;
+				}
+			}
+		}
 		else if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
 			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
 
@@ -560,7 +575,7 @@ void ShaderGraph::clean()
 		else
 			delete node;
 	}
-	
+
 	nodes = newnodes;
 }
 
