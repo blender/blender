@@ -38,6 +38,8 @@
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 
+#include "BLI_strict_flags.h"
+
 int BLI_linklist_length(LinkNode *list)
 {
 	int len;
@@ -307,4 +309,41 @@ void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdat
 {
 	for (; list; list = list->next)
 		applyfunc(list->link, userdata);
+}
+
+/* -------------------------------------------------------------------- */
+/* Sort */
+#define SORT_IMPL_LINKTYPE LinkNode
+#define SORT_IMPL_LINKTYPE_DATA link
+
+/* regular call */
+#define SORT_IMPL_FUNC linklist_sort_fn
+#include "list_sort_impl.h"
+#undef SORT_IMPL_FUNC
+
+/* reentrant call */
+#define SORT_IMPL_USE_THUNK
+#define SORT_IMPL_FUNC linklist_sort_fn_r
+#include "list_sort_impl.h"
+#undef SORT_IMPL_FUNC
+#undef SORT_IMPL_USE_THUNK
+
+#undef SORT_IMPL_LINKTYPE
+#undef SORT_IMPL_LINKTYPE_DATA
+
+
+LinkNode *BLI_linklist_sort(LinkNode *list, int (*cmp)(const void *, const void *))
+{
+	if (list && list->next) {
+		list = linklist_sort_fn(list, cmp);
+	}
+	return list;
+}
+
+LinkNode *BLI_linklist_sort_r(LinkNode *list, int (*cmp)(void *, const void *, const void *), void *thunk)
+{
+	if (list && list->next) {
+		list = linklist_sort_fn_r(list, cmp, thunk);
+	}
+	return list;
 }

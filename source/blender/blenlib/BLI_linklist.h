@@ -74,6 +74,8 @@ void    BLI_linklist_free(struct LinkNode *list, LinkNodeFreeFP freefunc);
 void    BLI_linklist_freeN(struct LinkNode *list);
 void    BLI_linklist_free_pool(LinkNode *list, LinkNodeFreeFP freefunc, struct BLI_mempool *mempool);
 void    BLI_linklist_apply(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
+struct LinkNode *BLI_linklist_sort(LinkNode *list, int (*cmp)(const void *, const void *));
+struct LinkNode *BLI_linklist_sort_r(LinkNode *list, int (*cmp)(void *, const void *, const void *), void *thunk);
 
 #define BLI_linklist_prepend_alloca(listp, ptr) \
 	BLI_linklist_prepend_nlink(listp, ptr, alloca(sizeof(LinkNode)))

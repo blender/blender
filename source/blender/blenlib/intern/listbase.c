@@ -42,6 +42,8 @@
 
 #include "BLI_listbase.h"
 
+#include "BLI_strict_flags.h"
+
 /* implementation */
 
 /**
@@ -205,6 +207,35 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
 	MEM_freeN(link);
 }
 
+/**
+ * Assigns all #Link.prev pointers from #Link.next
+ */
+static void listbase_double_from_single(Link *iter, ListBase *listbase)
+{
+	Link *prev = NULL;
+	listbase->first = iter;
+	do {
+		iter->prev = prev;
+		prev = iter;
+	} while ((iter = iter->next));
+	listbase->last = prev;
+}
+
+#define SORT_IMPL_LINKTYPE Link
+
+/* regular call */
+#define SORT_IMPL_FUNC listbase_sort_fn
+#include "list_sort_impl.h"
+#undef SORT_IMPL_FUNC
+
+/* reentrant call */
+#define SORT_IMPL_USE_THUNK
+#define SORT_IMPL_FUNC listbase_sort_fn_r
+#include "list_sort_impl.h"
+#undef SORT_IMPL_FUNC
+#undef SORT_IMPL_USE_THUNK
+
+#undef SORT_IMPL_LINKTYPE
 
 /**
  * Sorts the elements of listbase into the order defined by cmp
@@ -213,45 +244,19 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
  */
 void BLI_listbase_sort(ListBase *listbase, int (*cmp)(const void *, const void *))
 {
-	Link *current = NULL;
-	Link *previous = NULL;
-	Link *next = NULL;
-
 	if (listbase->first != listbase->last) {
-		for (previous = listbase->first, current = previous->next; current; current = next) {
-			next = current->next;
-			previous = current->prev;
-			
-			BLI_remlink(listbase, current);
-			
-			while (previous && cmp(previous, current) == 1) {
-				previous = previous->prev;
-			}
-			
-			BLI_insertlinkafter(listbase, previous, current);
-		}
+		Link *head = listbase->first;
+		head = listbase_sort_fn(head, cmp);
+		listbase_double_from_single(head, listbase);
 	}
 }
 
 void BLI_listbase_sort_r(ListBase *listbase, int (*cmp)(void *, const void *, const void *), void *thunk)
 {
-	Link *current = NULL;
-	Link *previous = NULL;
-	Link *next = NULL;
-
 	if (listbase->first != listbase->last) {
-		for (previous = listbase->first, current = previous->next; current; current = next) {
-			next = current->next;
-			previous = current->prev;
-
-			BLI_remlink(listbase, current);
-
-			while (previous && cmp(thunk, previous, current) == 1) {
-				previous = previous->prev;
-			}
-
-			BLI_insertlinkafter(listbase, previous, current);
-		}
+		Link *head = listbase->first;
+		head = listbase_sort_fn_r(head, cmp, thunk);
+		listbase_double_from_single(head, listbase);
 	}
 }
 

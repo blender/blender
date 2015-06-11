@@ -72,6 +72,7 @@ set(SRC
 	intern/hash_mm2a.c
 	intern/jitter.c
 	intern/lasso.c
+	intern/list_sort_impl.h
 	intern/listbase.c
 	intern/math_base.c
 	intern/math_base_inline.c
