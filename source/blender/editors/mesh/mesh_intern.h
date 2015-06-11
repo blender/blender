@@ -173,6 +173,7 @@ void MESH_OT_vert_connect(struct wmOperatorType *ot);
 void MESH_OT_vert_connect_path(struct wmOperatorType *ot);
 void MESH_OT_vert_connect_concave(struct wmOperatorType *ot);
 void MESH_OT_vert_connect_nonplanar(struct wmOperatorType *ot);
+void MESH_OT_face_make_planar(struct wmOperatorType *ot);
 void MESH_OT_edge_split(struct wmOperatorType *ot);
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
 void MESH_OT_wireframe(struct wmOperatorType *ot);

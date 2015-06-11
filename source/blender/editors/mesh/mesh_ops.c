@@ -167,6 +167,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_vert_connect_path);
 	WM_operatortype_append(MESH_OT_vert_connect_concave);
 	WM_operatortype_append(MESH_OT_vert_connect_nonplanar);
+	WM_operatortype_append(MESH_OT_face_make_planar);
 	WM_operatortype_append(MESH_OT_knife_tool);
 	WM_operatortype_append(MESH_OT_knife_project);
 

@@ -1309,6 +1309,44 @@ void MESH_OT_vert_connect_nonplanar(wmOperatorType *ot)
 	RNA_def_property_float_default(prop, DEG2RADF(5.0f));
 }
 
+static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const int repeat = RNA_int_get(op->ptr, "repeat");
+	const float fac = RNA_float_get(op->ptr, "factor");
+
+	if (!EDBM_op_callf(
+	        em, op, "planar_faces faces=%hf iterations=%i factor=%f",
+	        BM_ELEM_SELECT, repeat, fac))
+	{
+		return OPERATOR_CANCELLED;
+	}
+
+	EDBM_update_generic(em, true, true);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_face_make_planar(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Make Planar Faces";
+	ot->idname = "MESH_OT_face_make_planar";
+	ot->description = "Flatten selected faces";
+
+	/* api callbacks */
+	ot->exec = edbm_face_make_planar_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_float(ot->srna, "factor", 0.5f, -10.0f, 10.0f, "Factor", "", 0.0f, 1.0f);
+	RNA_def_int(ot->srna, "repeat", 1, 1, 200,
+	            "Number of iterations to flatten faces", "", 1, 200);
+}
+
 
 static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 {
