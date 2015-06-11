@@ -95,10 +95,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 		do {
 			/* Traverse internal nodes. */
 			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
-#if defined(__KERNEL_DEBUG__)
-				isect->num_traversal_steps++;
-#endif
-
 				ssef dist;
 				int traverseChild = qbvh_node_intersect(kg,
 				                                        tnear,
