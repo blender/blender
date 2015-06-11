@@ -85,6 +85,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_image.h"
+#include "ED_mask.h"
 #include "ED_paint.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -754,8 +755,15 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	height = height * aspy;
 
 	/* get bounds */
-	if (!ED_uvedit_minmax(scene, ima, obedit, min, max))
-		return OPERATOR_CANCELLED;
+	if (ED_space_image_show_uvedit(sima, obedit)) {
+		if (!ED_uvedit_minmax(scene, ima, obedit, min, max))
+			return OPERATOR_CANCELLED;
+	}
+	else if (ED_space_image_check_show_maskedit(scene, sima)) {
+		if (!ED_mask_selected_minmax(C, min, max)) {
+			return OPERATOR_CANCELLED;
+		}
+	}
 
 	/* adjust offset and zoom */
 	sima->xof = (int)(((min[0] + max[0]) * 0.5f - 0.5f) * width);
@@ -775,7 +783,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int image_view_selected_poll(bContext *C)
 {
-	return (space_image_main_area_poll(C) && ED_operator_uvedit(C));
+	return (space_image_main_area_poll(C) && (ED_operator_uvedit(C) || ED_operator_mask(C)));
 }
 
 void IMAGE_OT_view_selected(wmOperatorType *ot)

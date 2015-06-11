@@ -52,6 +52,7 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_context.h"
 #include "BKE_tracking.h"
@@ -64,6 +65,7 @@
 
 #include "ED_screen.h"
 #include "ED_clip.h"
+#include "ED_mask.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -330,7 +332,7 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 	}
 }
 
-static bool selected_boundbox(SpaceClip *sc, float min[2], float max[2])
+static bool selected_tracking_boundbox(SpaceClip *sc, float min[2], float max[2])
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTrackingTrack *track;
@@ -378,6 +380,29 @@ static bool selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	return ok;
 }
 
+static bool selected_boundbox(const bContext *C, float min[2], float max[2])
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	if (sc->mode == SC_MODE_TRACKING) {
+		return selected_tracking_boundbox(sc, min, max);
+	}
+	else {
+		if (ED_mask_selected_minmax(C, min, max)) {
+			MovieClip *clip = ED_space_clip_get_clip(sc);
+			int width, height;
+			ED_space_clip_get_size(sc, &width, &height);
+			BKE_mask_coord_to_movieclip(clip, &sc->user, min, min);
+			BKE_mask_coord_to_movieclip(clip, &sc->user, max, max);
+			min[0] *= width;
+			min[1] *= height;
+			max[0] *= width;
+			max[1] *= height;
+			return true;
+		}
+		return false;
+	}
+}
+
 bool ED_clip_view_selection(const bContext *C, ARegion *ar, bool fit)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -389,7 +414,7 @@ bool ED_clip_view_selection(const bContext *C, ARegion *ar, bool fit)
 	if ((frame_width == 0) || (frame_height == 0) || (sc->clip == NULL))
 		return false;
 
-	if (!selected_boundbox(sc, min, max))
+	if (!selected_boundbox(C, min, max))
 		return false;
 
 	/* center view */
