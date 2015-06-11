@@ -297,6 +297,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 	BLI_argsPrintArgDoc(ba, "--python");
 	BLI_argsPrintArgDoc(ba, "--python-text");
+	BLI_argsPrintArgDoc(ba, "--python-expr");
 	BLI_argsPrintArgDoc(ba, "--python-console");
 	BLI_argsPrintArgDoc(ba, "--addons");
 
@@ -1283,6 +1284,27 @@ static int run_python_text(int argc, const char **argv, void *data)
 #endif /* WITH_PYTHON */
 }
 
+static int run_python_expr(int argc, const char **argv, void *data)
+{
+#ifdef WITH_PYTHON
+	bContext *C = data;
+
+	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
+	if (argc > 1) {
+		BPY_CTX_SETUP(BPY_string_exec_ex(C, argv[1], false));
+		return 1;
+	}
+	else {
+		printf("\nError: you must specify a Python expression after '%s'.\n", argv[0]);
+		return 0;
+	}
+#else
+	UNUSED_VARS(argc, argv, data);
+	printf("This blender was built without python support\n");
+	return 0;
+#endif /* WITH_PYTHON */
+}
+
 static int run_python_console(int UNUSED(argc), const char **argv, void *data)
 {
 #ifdef WITH_PYTHON
@@ -1549,6 +1571,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-j", "--frame-jump", "<frames>\n\tSet number of frames to step forward after each rendered frame", set_skip_frame, C);
 	BLI_argsAdd(ba, 4, "-P", "--python", "<filename>\n\tRun the given Python script file", run_python_file, C);
 	BLI_argsAdd(ba, 4, NULL, "--python-text", "<name>\n\tRun the given Python script text block", run_python_text, C);
+	BLI_argsAdd(ba, 4, NULL, "--python-expr", "<expression>\n\tRun the given expression as a Python script", run_python_expr, C);
 	BLI_argsAdd(ba, 4, NULL, "--python-console", "\n\tRun blender with an interactive console", run_python_console, C);
 	BLI_argsAdd(ba, 4, NULL, "--addons", "\n\tComma separated list of addons (no spaces)", set_addons, C);
 
