@@ -119,7 +119,9 @@ CCL_NAMESPACE_BEGIN
 #  define __CAMERA_MOTION__
 #  define __OBJECT_MOTION__
 #  define __HAIR__
-//#define __TRANSPARENT_SHADOWS__
+#  ifdef __KERNEL_EXPERIMENTAL__
+#    define __TRANSPARENT_SHADOWS__
+#  endif
 #endif
 
 #ifdef __KERNEL_OPENCL_INTEL_CPU__
