@@ -107,18 +107,9 @@ ccl_device int volume_absorption_setup(ShaderClosure *sc)
 
 ccl_device float3 volume_phase_eval(const ShaderData *sd, const ShaderClosure *sc, float3 omega_in, float *pdf)
 {
-	float3 eval;
+	kernel_assert(sc->type == CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID);
 
-	switch(sc->type) {
-		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
-			eval = volume_henyey_greenstein_eval_phase(sc, sd->I, omega_in, pdf);
-			break;
-		default:
-			eval = make_float3(0.0f, 0.0f, 0.0f);
-			break;
-	}
-
-	return eval;
+	return volume_henyey_greenstein_eval_phase(sc, sd->I, omega_in, pdf);
 }
 
 ccl_device int volume_phase_sample(const ShaderData *sd, const ShaderClosure *sc, float randu,
