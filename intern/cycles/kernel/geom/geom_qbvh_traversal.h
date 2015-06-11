@@ -80,6 +80,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 #if defined(__KERNEL_DEBUG__)
 	isect->num_traversal_steps = 0;
+	isect->num_traversed_instances = 0;
 #endif
 
 	ssef tnear(0.0f), tfar(ray->t);
@@ -377,6 +378,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					traversalStack[stackPtr].dist = -FLT_MAX;
 
 					nodeAddr = kernel_tex_fetch(__object_node, object);
+
+#if defined(__KERNEL_DEBUG__)
+					isect->num_traversed_instances++;
+#endif
 				}
 			}
 #endif  /* FEATURE(BVH_INSTANCING) */

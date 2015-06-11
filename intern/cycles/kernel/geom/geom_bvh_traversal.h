@@ -76,6 +76,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 #if defined(__KERNEL_DEBUG__)
 	isect->num_traversal_steps = 0;
+	isect->num_traversed_instances = 0;
 #endif
 
 #if defined(__KERNEL_SSE2__)
@@ -362,6 +363,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
 
 					nodeAddr = kernel_tex_fetch(__object_node, object);
+
+#if defined(__KERNEL_DEBUG__)
+					isect->num_traversed_instances++;
+#endif
 				}
 			}
 #endif  /* FEATURE(BVH_INSTANCING) */

@@ -531,6 +531,8 @@ static const char *debug_pass_type_name_get(int debug_type)
 	switch (debug_type) {
 		case RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS:
 			return "BVH Traversal Steps";
+		case RENDER_PASS_DEBUG_BVH_TRAVERSED_INSTANCES:
+			return "BVH Traversed Instances";
 		case RENDER_PASS_DEBUG_RAY_BOUNCES:
 			return "Ray Bounces";
 	}

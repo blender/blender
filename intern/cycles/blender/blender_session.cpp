@@ -271,6 +271,8 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 		{
 			if(b_pass.debug_type() == BL::RenderPass::debug_type_BVH_TRAVERSAL_STEPS)
 				return PASS_BVH_TRAVERSAL_STEPS;
+			if(b_pass.debug_type() == BL::RenderPass::debug_type_BVH_TRAVERSED_INSTANCES)
+				return PASS_BVH_TRAVERSED_INSTANCES;
 			if(b_pass.debug_type() == BL::RenderPass::debug_type_RAY_BOUNCES)
 				return PASS_RAY_BOUNCES;
 			break;

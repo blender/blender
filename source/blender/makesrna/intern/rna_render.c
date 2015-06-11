@@ -79,6 +79,7 @@ EnumPropertyItem render_pass_type_items[] = {
 
 EnumPropertyItem render_pass_debug_type_items[] = {
 	{RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS, "BVH_TRAVERSAL_STEPS", 0, "BVH Traversal Steps", ""},
+	{RENDER_PASS_DEBUG_BVH_TRAVERSED_INSTANCES, "BVH_TRAVERSED_INSTANCES", 0, "BVH Traversed Instances", ""},
 	{RENDER_PASS_DEBUG_RAY_BOUNCES, "RAY_BOUNCES", 0, "Ray Steps", ""},
 	{0, NULL, 0, NULL, NULL}
 };
