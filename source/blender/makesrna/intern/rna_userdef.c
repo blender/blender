@@ -3459,8 +3459,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_text(prop, "Smooth View", "Time to animate the view in milliseconds, zero to disable");
 
-	prop = RNA_def_property(srna, "rotation_angle", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "pad_rot_angle");
+	prop = RNA_def_property(srna, "rotation_angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pad_rot_angle");
 	RNA_def_property_range(prop, 0, 90);
 	RNA_def_property_ui_text(prop, "Rotation Angle", "Rotation step for numerical pad keys (2 4 6 8)");
 

@@ -3954,7 +3954,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 	char view_opposite;
 	PropertyRNA *prop_angle = RNA_struct_find_property(op->ptr, "angle");
 	float angle = RNA_property_is_set(op->ptr, prop_angle) ?
-	              RNA_property_float_get(op->ptr, prop_angle) : DEG2RADF((float)U.pad_rot_angle);
+	              RNA_property_float_get(op->ptr, prop_angle) : DEG2RADF(U.pad_rot_angle);
 
 	/* no NULL check is needed, poll checks */
 	v3d = CTX_wm_view3d(C);
@@ -4183,7 +4183,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 	rv3d = ar->regiondata;
 	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
 		int type = RNA_enum_get(op->ptr, "type");
-		float angle = (type == 0) ? RNA_float_get(op->ptr, "angle") : DEG2RADF((float)U.pad_rot_angle);
+		float angle = (type == 0) ? RNA_float_get(op->ptr, "angle") : DEG2RADF(U.pad_rot_angle);
 		float mousevec[3];
 		float quat_new[4];
 

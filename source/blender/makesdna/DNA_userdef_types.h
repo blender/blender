@@ -490,8 +490,10 @@ typedef struct UserDef {
 	short dragthreshold;
 	int memcachelimit;
 	int prefetchframes;
+	float pad_rot_angle; /* control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use */
+	float pad3;
 	short frameserverport;
-	short pad_rot_angle;	/* control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use */
+	short pad4;
 	short obcenter_dia;
 	short rvisize;			/* rotating view icon size */
 	short rvibright;		/* rotating view icon brightness */
