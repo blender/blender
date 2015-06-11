@@ -485,7 +485,9 @@ static bool file_walk_select_selection_set(
 				 * walk through a block of selected files without selecting/deselecting anything */
 				params->active_file = active_new;
 				/* but we want to change active if we use fill (needed to get correct selection bounds) */
-				if (deselect && fill) active = active_new;
+				if (deselect && fill) {
+					active = active_new;
+				}
 		}
 		else {
 			/* regular selection change */
@@ -506,7 +508,9 @@ static bool file_walk_select_selection_set(
 		}
 	}
 
-	if (!params || active < 0) return false;
+	if (!params || active < 0) {
+		return false;
+	}
 
 	/* highlight the active walker file for extended selection for better visual feedback */
 	if (extend) {
@@ -526,16 +530,16 @@ static bool file_walk_select_selection_set(
 		FileSelection sel = { MIN2(active, last_sel), MAX2(active, last_sel) };
 
 		/* fill selection between last and first selected file */
-		filelist_select(sfile->files, &sel, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD,
-		                FILE_SEL_SELECTED, CHECK_ALL);
+		filelist_select(
+		            files, &sel, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 		/* entire sel is cleared here, so select active again */
 		if (deselect) {
-			filelist_select_file(sfile->files, active, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
+			filelist_select_file(files, active, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 		}
 	}
 	else {
-		filelist_select_file(sfile->files, active, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD,
-		                     FILE_SEL_SELECTED, CHECK_ALL);
+		filelist_select_file(
+		            files, active, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 	}
 
 	BLI_assert(IN_RANGE(active, 0, numfiles));
@@ -552,8 +556,9 @@ static bool file_walk_select_do(
         FileSelectParams *params, const int direction,
         const bool extend, const bool fill)
 {
-	const int numfiles = filelist_numfiles(sfile->files);
-	const bool has_selection = file_is_any_selected(sfile->files);
+	struct FileList *files = sfile->files;
+	const int numfiles = filelist_numfiles(files);
+	const bool has_selection = file_is_any_selected(files);
 	const int active_old = params->active_file;
 	int active_new = -1;
 	int other_site = -1; /* file on the other site of active_old */
@@ -596,18 +601,22 @@ static bool file_walk_select_do(
 		}
 
 		if (!IN_RANGE(active_new, 0, numfiles)) {
-			/* extend to invalid file -> abort */
-			if (extend) return false;
-			/* select initial file */
-			else active_new = active_old;
+			if (extend) {
+				/* extend to invalid file -> abort */
+				return false;
+			}
+			else {
+				/* select initial file */
+				active_new = active_old;
+			}
 		}
 		if (!IN_RANGE(other_site, 0, numfiles)) {
 			other_site = -1;
 		}
 	}
 
-	return file_walk_select_selection_set(C, sfile, direction, numfiles, active_old, active_new, other_site,
-	                                      has_selection, extend, fill);
+	return file_walk_select_selection_set(
+	            C, sfile, direction, numfiles, active_old, active_new, other_site, has_selection, extend, fill);
 }
 
 static int file_walk_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
