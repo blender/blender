@@ -1609,7 +1609,7 @@ void BKE_object_make_local(Object *ob)
 
 	if (ob->id.lib == NULL) return;
 	
-	ob->proxy = ob->proxy_from = NULL;
+	ob->proxy = ob->proxy_from  = ob->proxy_group = NULL;
 	
 	if (ob->id.us == 1) {
 		id_clear_lib_data(bmain, &ob->id);
