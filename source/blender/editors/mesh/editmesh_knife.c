@@ -2828,7 +2828,7 @@ static void knife_make_cuts(KnifeTool_OpData *kcd)
 	for (lst = BLI_smallhash_iternew(ehash, &hiter, (uintptr_t *)&e); lst;
 	     lst = BLI_smallhash_iternext(&hiter, (uintptr_t *)&e))
 	{
-		BLI_listbase_sort_r(lst, e->v1->co, sort_verts_by_dist_cb);
+		BLI_listbase_sort_r(lst, sort_verts_by_dist_cb, e->v1->co);
 
 		for (ref = lst->first; ref; ref = ref->next) {
 			kfv = ref->ref;

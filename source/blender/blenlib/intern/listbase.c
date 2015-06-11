@@ -233,7 +233,7 @@ void BLI_listbase_sort(ListBase *listbase, int (*cmp)(const void *, const void *
 	}
 }
 
-void BLI_listbase_sort_r(ListBase *listbase, void *thunk, int (*cmp)(void *, const void *, const void *))
+void BLI_listbase_sort_r(ListBase *listbase, int (*cmp)(void *, const void *, const void *), void *thunk)
 {
 	Link *current = NULL;
 	Link *previous = NULL;
