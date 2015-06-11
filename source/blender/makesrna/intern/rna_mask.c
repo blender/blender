@@ -213,10 +213,13 @@ static void rna_MaskLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Mask *mask = (Mask *)ptr->id.data;
 	MaskLayer *masklay = (MaskLayer *)ptr->data;
+	char oldname[sizeof(masklay->name)], newname[sizeof(masklay->name)];
 
-	BLI_strncpy(masklay->name, value, sizeof(masklay->name));
+	/* need to be on the stack */
+	BLI_strncpy(oldname, masklay->name, sizeof(masklay->name));
+	BLI_strncpy_utf8(newname, value, sizeof(masklay->name));
 
-	BKE_mask_layer_unique_name(mask, masklay);
+	BKE_mask_layer_rename(mask, masklay, oldname, newname);
 }
 
 static PointerRNA rna_MaskLayer_active_spline_get(PointerRNA *ptr)

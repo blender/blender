@@ -79,6 +79,7 @@ struct MaskSpline *BKE_mask_spline_copy(struct MaskSpline *spline);
 void BKE_mask_point_free(struct MaskSplinePoint *point);
 
 void BKE_mask_layer_unique_name(struct Mask *mask, struct MaskLayer *masklay);
+void BKE_mask_layer_rename(struct Mask *mask, struct MaskLayer *masklay, char *oldname, char *newname);
 
 struct MaskLayer *BKE_mask_layer_copy(struct MaskLayer *layer);
 void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, struct ListBase *masklayers);
