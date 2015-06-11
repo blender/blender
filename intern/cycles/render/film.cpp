@@ -151,6 +151,10 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			pass.components = 1;
 			pass.exposure = false;
 			break;
+		case PASS_RAY_BOUNCES:
+			pass.components = 1;
+			pass.exposure = false;
+			break;
 #endif
 	}
 
@@ -398,6 +402,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 #ifdef WITH_CYCLES_DEBUG
 			case PASS_BVH_TRAVERSAL_STEPS:
 				kfilm->pass_bvh_traversal_steps = kfilm->pass_stride;
+				break;
+			case PASS_RAY_BOUNCES:
+				kfilm->pass_ray_bounces = kfilm->pass_stride;
 				break;
 #endif
 

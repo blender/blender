@@ -124,6 +124,7 @@ ccl_device void kernel_scene_intersect(
 	if(state.flag & PATH_RAY_CAMERA) {
 		debug_data->num_bvh_traversal_steps += isect->num_traversal_steps;
 	}
+	debug_data->num_ray_bounces++;
 #endif
 
 	if(!hit) {

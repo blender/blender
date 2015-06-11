@@ -99,6 +99,7 @@ typedef struct RenderPass {
 
 enum {
 	RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS = 0,
+	RENDER_PASS_DEBUG_RAY_BOUNCES = 1,
 };
 
 /* a renderlayer is a full image, but with all passes and samples */

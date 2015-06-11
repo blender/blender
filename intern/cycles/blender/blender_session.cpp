@@ -271,6 +271,8 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 		{
 			if(b_pass.debug_type() == BL::RenderPass::debug_type_BVH_TRAVERSAL_STEPS)
 				return PASS_BVH_TRAVERSAL_STEPS;
+			if(b_pass.debug_type() == BL::RenderPass::debug_type_RAY_BOUNCES)
+				return PASS_RAY_BOUNCES;
 			break;
 		}
 #endif
@@ -439,6 +441,7 @@ void BlenderSession::render()
 		Pass::add(PASS_COMBINED, passes);
 #ifdef WITH_CYCLES_DEBUG
 		Pass::add(PASS_BVH_TRAVERSAL_STEPS, passes);
+		/* Pass::add(PASS_RAY_BOUNCES, passes); */
 #endif
 
 		if(session_params.device.advanced_shading) {
