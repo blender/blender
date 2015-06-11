@@ -50,6 +50,7 @@ incs = [
     '../render/intern/include',
     '../windowmanager',
     '../../../intern/guardedalloc',
+    '../../../intern/atomic',
 
     # data files
     env['DATA_HEADERS'],

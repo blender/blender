@@ -41,6 +41,7 @@ set(INC
 	../render/intern/include
 	../../../extern/clew/include
 	../../../intern/guardedalloc
+	../../../intern/atomic
 )
 
 set(INC_SYS

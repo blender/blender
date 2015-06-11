@@ -44,6 +44,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "atomic_ops.h"
+
 ExecutionGroup::ExecutionGroup()
 {
 	this->m_isOutput = false;
@@ -382,7 +384,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 	if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED)
 		this->m_chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
 	
-	this->m_chunksFinished++;
+	atomic_add_u(&this->m_chunksFinished, 0);
 	if (memoryBuffers) {
 		for (unsigned int index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {
 			MemoryBuffer *buffer = memoryBuffers[index];
