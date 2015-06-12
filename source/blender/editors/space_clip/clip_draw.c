@@ -43,6 +43,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_math_base.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_image.h"
@@ -285,6 +286,7 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	int filter = GL_LINEAR;
 	int x, y;
+	rctf frame;
 
 	/* find window pixel coordinates of origin */
 	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
@@ -308,9 +310,13 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 	glPixelZoom(zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 
 	glaDrawImBuf_glsl_ctx(C, ibuf, x, y, filter);
-
 	/* reset zoom */
 	glPixelZoom(1.0f, 1.0f);
+
+	BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
+
+	if (sc->flag & SC_SHOW_METADATA)
+		ED_region_image_metadata_draw(x, y, ibuf, frame, zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 
 	if (ibuf->planes == 32)
 		glDisable(GL_BLEND);

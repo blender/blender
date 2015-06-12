@@ -222,7 +222,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 		colorspace = clip->colorspace_settings.name;
 	}
 
-	loadflag = IB_rect | IB_multilayer | IB_alphamode_detect;
+	loadflag = IB_rect | IB_multilayer | IB_alphamode_detect | IB_metadata;
 
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, loadflag, colorspace);

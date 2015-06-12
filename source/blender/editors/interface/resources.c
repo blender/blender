@@ -2620,7 +2620,13 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-		
+	if (U.versionfile < 275 || (U.versionfile == 275 && U.subversionfile < 1)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			copy_v4_v4_char(btheme->tclip.metadatatext, btheme->tseq.text_hi);
+		}
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

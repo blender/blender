@@ -1156,6 +1156,8 @@ class CLIP_MT_view(Menu):
             layout.operator("clip.view_zoom_out")
 
             layout.separator()
+            layout.prop(sc, "show_metadata")
+            layout.separator()
 
             ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 

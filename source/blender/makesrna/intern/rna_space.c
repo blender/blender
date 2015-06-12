@@ -4410,6 +4410,11 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SC_HIDE_DISABLED);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
+	prop = RNA_def_property(srna, "show_metadata", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", 	SC_SHOW_METADATA);
+	RNA_def_property_ui_text(prop, "Show Metadata", "Show metadata of clip");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
 	/* scopes */
 	prop = RNA_def_property(srna, "scopes", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "scopes");

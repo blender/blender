@@ -1165,6 +1165,7 @@ typedef enum eSpaceClip_Flag {
 	SC_SHOW_GRAPH_SEL_ONLY      = (1 << 19),
 	SC_SHOW_GRAPH_HIDDEN        = (1 << 20),
 	SC_SHOW_GRAPH_TRACKS_ERROR  = (1 << 21),
+	SC_SHOW_METADATA            = (1 << 22),
 } eSpaceClip_Flag;
 
 /* SpaceClip->mode */
