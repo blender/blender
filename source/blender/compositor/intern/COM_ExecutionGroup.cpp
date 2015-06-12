@@ -25,6 +25,8 @@
 #include <sstream>
 #include <stdlib.h>
 
+#include "atomic_ops.h"
+
 #include "COM_ExecutionGroup.h"
 #include "COM_defines.h"
 #include "COM_ExecutionSystem.h"
@@ -43,8 +45,6 @@
 #include "PIL_time.h"
 #include "WM_api.h"
 #include "WM_types.h"
-
-#include "atomic_ops.h"
 
 ExecutionGroup::ExecutionGroup()
 {
