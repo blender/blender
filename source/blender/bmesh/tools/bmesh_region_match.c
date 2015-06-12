@@ -511,7 +511,7 @@ static void bm_uuidwalk_pass_add(
 
 	UUIDFaceStep *fstep;
 
-	BLI_assert(faces_pass_len == (unsigned int)BLI_linklist_length(faces_pass));
+	BLI_assert(faces_pass_len == (unsigned int)BLI_linklist_count(faces_pass));
 
 	/* rehash faces now all their verts have been added */
 	bm_uuidwalk_rehash_facelinks(uuidwalk, faces_pass, faces_pass_len, true);

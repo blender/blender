@@ -1104,7 +1104,7 @@ static void filelist_from_library(struct FileList *filelist)
 		previews = NULL;
 		nprevs = 0;
 		names = BLO_blendhandle_get_linkable_groups(filelist->libfiledata);
-		nnames = BLI_linklist_length(names);
+		nnames = BLI_linklist_count(names);
 	}
 
 	filelist->numfiles = nnames + 1;

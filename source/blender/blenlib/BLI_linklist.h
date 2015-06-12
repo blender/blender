@@ -35,47 +35,59 @@
  * 
  */
 
+#include "BLI_compiler_attrs.h"
+
 struct MemArena;
 struct BLI_mempool;
 
 typedef void (*LinkNodeFreeFP)(void *link);
 typedef void (*LinkNodeApplyFP)(void *link, void *userdata);
 
-struct LinkNode;
 typedef struct LinkNode {
 	struct LinkNode *next;
 	void *link;
 } LinkNode;
 
-int     BLI_linklist_length(struct LinkNode *list);
-int     BLI_linklist_index(struct LinkNode *list, void *ptr);
+/**
+ * Use for append (single linked list, storing the last element).
+ *
+ * \note list manipulation functions don't operate on this struct.
+ * This is only to be used while appending.
+ */
+typedef struct LinkNodePair {
+	LinkNode *list, *last_node;
+} LinkNodePair;
 
-struct LinkNode *BLI_linklist_find(struct LinkNode *list, int index);
+int       BLI_linklist_count(LinkNode *list) ATTR_WARN_UNUSED_RESULT;
+int       BLI_linklist_index(LinkNode *list, void *ptr)  ATTR_WARN_UNUSED_RESULT;
 
-void    BLI_linklist_reverse(struct LinkNode **listp);
+LinkNode *BLI_linklist_find(LinkNode *list, int index) ATTR_WARN_UNUSED_RESULT;
 
-void    BLI_linklist_move_item(struct LinkNode **listp, int curr_index, int new_index);
+void      BLI_linklist_reverse(LinkNode **listp) ATTR_NONNULL(1);
 
-void    BLI_linklist_prepend_nlink(struct LinkNode **listp, void *ptr, struct LinkNode *nlink);
-void    BLI_linklist_prepend(struct LinkNode **listp, void *ptr);
-void    BLI_linklist_prepend_arena(struct LinkNode **listp, void *ptr, struct MemArena *ma);
-void    BLI_linklist_prepend_pool(struct LinkNode **listp, void *ptr, struct BLI_mempool *mempool);
+void      BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index) ATTR_NONNULL(1);
 
-void    BLI_linklist_append_nlink(LinkNode **listp, void *ptr, LinkNode *nlink);
-void    BLI_linklist_append(struct LinkNode **listp, void *ptr);
-void    BLI_linklist_append_arena(LinkNode **listp, void *ptr, struct MemArena *ma);
-void    BLI_linklist_append_pool(LinkNode **listp, void *ptr, struct BLI_mempool *mempool);
+void      BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink) ATTR_NONNULL(1, 3);
+void      BLI_linklist_prepend(LinkNode **listp, void *ptr) ATTR_NONNULL(1);
+void      BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, struct MemArena *ma) ATTR_NONNULL(1, 3);
+void      BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, struct BLI_mempool *mempool) ATTR_NONNULL(1, 3);
 
-void   *BLI_linklist_pop(struct LinkNode **listp);
-void   *BLI_linklist_pop_pool(struct LinkNode **listp, struct BLI_mempool *mempool);
-void    BLI_linklist_insert_after(struct LinkNode **listp, void *ptr);
+/* use LinkNodePair to avoid full search */
+void      BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nlink) ATTR_NONNULL(1, 3);
+void      BLI_linklist_append(LinkNodePair *list_pair, void *ptr) ATTR_NONNULL(1);
+void      BLI_linklist_append_arena(LinkNodePair *list_pair, void *ptr, struct MemArena *ma) ATTR_NONNULL(1, 3);
+void      BLI_linklist_append_pool(LinkNodePair *list_pair, void *ptr, struct BLI_mempool *mempool) ATTR_NONNULL(1, 3);
 
-void    BLI_linklist_free(struct LinkNode *list, LinkNodeFreeFP freefunc);
-void    BLI_linklist_freeN(struct LinkNode *list);
-void    BLI_linklist_free_pool(LinkNode *list, LinkNodeFreeFP freefunc, struct BLI_mempool *mempool);
-void    BLI_linklist_apply(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
-struct LinkNode *BLI_linklist_sort(LinkNode *list, int (*cmp)(const void *, const void *));
-struct LinkNode *BLI_linklist_sort_r(LinkNode *list, int (*cmp)(void *, const void *, const void *), void *thunk);
+void     *BLI_linklist_pop(LinkNode **listp) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void     *BLI_linklist_pop_pool(LinkNode **listp, struct BLI_mempool *mempool) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
+void      BLI_linklist_insert_after(LinkNode **listp, void *ptr) ATTR_NONNULL(1);
+
+void      BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc);
+void      BLI_linklist_freeN(LinkNode *list);
+void      BLI_linklist_free_pool(LinkNode *list, LinkNodeFreeFP freefunc, struct BLI_mempool *mempool);
+void      BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
+LinkNode *BLI_linklist_sort(LinkNode *list, int (*cmp)(const void *, const void *)) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
+LinkNode *BLI_linklist_sort_r(LinkNode *list, int (*cmp)(void *, const void *, const void *), void *thunk) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 
 #define BLI_linklist_prepend_alloca(listp, ptr) \
 	BLI_linklist_prepend_nlink(listp, ptr, alloca(sizeof(LinkNode)))

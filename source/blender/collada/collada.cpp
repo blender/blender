@@ -116,7 +116,7 @@ int collada_export(Scene *sce,
 
 	eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
 	export_settings.export_set = BKE_object_relational_superset(sce, objectSet, (eObRelationTypes)includeFilter);
-	int export_count = BLI_linklist_length(export_settings.export_set);
+	int export_count = BLI_linklist_count(export_settings.export_set);
 
 	if (export_count==0)
 	{

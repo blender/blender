@@ -286,7 +286,7 @@ bool BLI_is_file(const char *path)
 LinkNode *BLI_file_read_as_lines(const char *name)
 {
 	FILE *fp = BLI_fopen(name, "r");
-	LinkNode *lines = NULL;
+	LinkNodePair lines = {NULL, NULL};
 	char *buf;
 	size_t size;
 
@@ -315,7 +315,7 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 			if (i == size || buf[i] == '\n') {
 				char *line = BLI_strdupn(&buf[last], i - last);
 
-				BLI_linklist_prepend(&lines, line);
+				BLI_linklist_append(&lines, line);
 				/* faster to build singly-linked list in reverse order */
 				/* alternatively, could process buffer in reverse order so
 				 * list ends up right way round to start with */
@@ -328,9 +328,7 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 	
 	fclose(fp);
 
-	/* get them the right way round */
-	BLI_linklist_reverse(&lines);
-	return lines;
+	return lines.list;
 }
 
 /*

@@ -30,6 +30,7 @@
  *  \ingroup bli
  */
 
+#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,7 +41,7 @@
 
 #include "BLI_strict_flags.h"
 
-int BLI_linklist_length(LinkNode *list)
+int BLI_linklist_count(LinkNode *list)
 {
 	int len;
 
@@ -190,40 +191,39 @@ void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool
 /**
  * A version of append that takes the allocated link.
  */
-void BLI_linklist_append_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
+void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nlink)
 {
-	LinkNode *node = *listp;
-	
 	nlink->link = ptr;
 	nlink->next = NULL;
 	
-	if (node == NULL) {
-		*listp = nlink;
+	if (list_pair->list) {
+		BLI_assert((list_pair->last_node != NULL) && (list_pair->last_node->next == NULL));
+		list_pair->last_node->next = nlink;
 	}
 	else {
-		while (node->next != NULL) {
-			node = node->next;   
-		}
-		node->next = nlink;
+		BLI_assert(list_pair->last_node == NULL);
+		list_pair->list = nlink;
 	}
+
+	list_pair->last_node = nlink;
 }
 
-void BLI_linklist_append(LinkNode **listp, void *ptr)
+void BLI_linklist_append(LinkNodePair *list_pair, void *ptr)
 {
 	LinkNode *nlink = MEM_mallocN(sizeof(*nlink), __func__);
-	BLI_linklist_append_nlink(listp, ptr, nlink);
+	BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 
-void BLI_linklist_append_arena(LinkNode **listp, void *ptr, MemArena *ma)
+void BLI_linklist_append_arena(LinkNodePair *list_pair, void *ptr, MemArena *ma)
 {
 	LinkNode *nlink = BLI_memarena_alloc(ma, sizeof(*nlink));
-	BLI_linklist_append_nlink(listp, ptr, nlink);
+	BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 
-void BLI_linklist_append_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool)
+void BLI_linklist_append_pool(LinkNodePair *list_pair, void *ptr, BLI_mempool *mempool)
 {
 	LinkNode *nlink = BLI_mempool_alloc(mempool);
-	BLI_linklist_append_nlink(listp, ptr, nlink);
+	BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 
 void *BLI_linklist_pop(struct LinkNode **listp)

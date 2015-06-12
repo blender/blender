@@ -997,19 +997,19 @@ int cloth_add_spring(ClothModifierData *clmd, unsigned int indexA, unsigned int 
 	return 0;
 }
 
-static void cloth_free_edgelist(LinkNode **edgelist, unsigned int numverts)
+static void cloth_free_edgelist(LinkNodePair *edgelist, unsigned int numverts)
 {
 	if (edgelist) {
 		unsigned int i;
 		for (i = 0; i < numverts; i++) {
-			BLI_linklist_free(edgelist[i], NULL);
+			BLI_linklist_free(edgelist[i].list, NULL);
 		}
 
 		MEM_freeN(edgelist);
 	}
 }
 
-static void cloth_free_errorsprings(Cloth *cloth,  LinkNode **edgelist)
+static void cloth_free_errorsprings(Cloth *cloth, LinkNodePair *edgelist)
 {
 	if ( cloth->springs != NULL ) {
 		LinkNode *search = cloth->springs;
@@ -1260,7 +1260,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	MEdge *medge = dm->getEdgeArray (dm);
 	MFace *mface = dm->getTessFaceArray (dm);
 	int index2 = 0; // our second vertex index
-	LinkNode **edgelist = NULL;
+	LinkNodePair *edgelist;
 	EdgeSet *edgeset = NULL;
 	LinkNode *search = NULL, *search2 = NULL;
 	
@@ -1276,7 +1276,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	cloth->springs = NULL;
 	cloth->edgeset = NULL;
 
-	edgelist = MEM_callocN ( sizeof (LinkNode *) * numverts, "cloth_edgelist_alloc" );
+	edgelist = MEM_callocN(sizeof(*edgelist) * numverts, "cloth_edgelist_alloc" );
 	
 	if (!edgelist)
 		return 0;
@@ -1347,8 +1347,9 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
 		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
 
-		BLI_linklist_append ( &edgelist[spring->ij], spring );
-		BLI_linklist_append ( &edgelist[spring->kl], spring );
+		BLI_linklist_append(&edgelist[spring->ij], spring);
+		BLI_linklist_append(&edgelist[spring->kl], spring);
+
 		shear_springs++;
 
 		BLI_linklist_prepend ( &cloth->springs, spring );
@@ -1371,8 +1372,9 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
 		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
 
-		BLI_linklist_append ( &edgelist[spring->ij], spring );
-		BLI_linklist_append ( &edgelist[spring->kl], spring );
+		BLI_linklist_append(&edgelist[spring->ij], spring);
+		BLI_linklist_append(&edgelist[spring->kl], spring);
+
 		shear_springs++;
 
 		BLI_linklist_prepend ( &cloth->springs, spring );
@@ -1389,7 +1391,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				break;
 
 			tspring2 = search2->link;
-			search = edgelist[tspring2->kl];
+			search = edgelist[tspring2->kl].list;
 			while ( search ) {
 				tspring = search->link;
 				index2 = ( ( tspring->ij==tspring2->kl ) ? ( tspring->kl ) : ( tspring->ij ) );
