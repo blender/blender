@@ -2279,10 +2279,10 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.separator()
 
-        op = layout.operator("mesh.mark_sharp", text="Shade Smooth")
-        op.use_verts = True
-        op.clear = True
-        layout.operator("mesh.mark_sharp", text="Shade Sharp").use_verts = True
+        layout.operator("mesh.mark_sharp", text="Mark Sharp Edges").use_verts = True
+        props = layout.operator("mesh.mark_sharp", text="Clear Sharp Edges")
+        props.use_verts = True
+        props.clear = True
 
         layout.separator()
 
