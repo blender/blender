@@ -185,6 +185,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					if(traverseChild == 0) {
 						if(d1 < d0) {
 							nodeAddr = c1;
+							nodeDist = d1;
 							++stackPtr;
 							kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 							traversalStack[stackPtr].addr = c0;
@@ -193,6 +194,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						}
 						else {
 							nodeAddr = c0;
+							nodeDist = d0;
 							++stackPtr;
 							kernel_assert(stackPtr < BVH_QSTACK_SIZE);
 							traversalStack[stackPtr].addr = c1;
