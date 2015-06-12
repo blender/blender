@@ -1108,7 +1108,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if ((ibuf == NULL) ||
 	    (ibuf->rect == NULL && ibuf->rect_float == NULL))
 	{
-		/* gpencil can also be drawn if no imbuf is invalid */
+		/* gpencil can also be drawn without a valid imbuf */
 		if (draw_gpencil && is_imbuf) {
 			sequencer_display_size(scene, sseq, viewrect);
 
