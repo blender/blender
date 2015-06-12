@@ -215,34 +215,6 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 	return retval;
 }
 
-
-static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, bool fill, bool do_diropen)
-{
-	SpaceFile *sfile = CTX_wm_space_file(C);
-	FileSelect retval = FILE_SELECT_NOTHING;
-	FileSelection sel = file_selection_get(C, rect, fill); /* get the selection */
-	const FileCheckType check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_ALL;
-	
-	/* flag the files as selected in the filelist */
-	filelist_select(sfile->files, &sel, select, FILE_SEL_SELECTED, check_type);
-	
-	/* Don't act on multiple selected files */
-	if (sel.first != sel.last) select = 0;
-
-	/* Do we have a valid selection and are we actually selecting */
-	if ((sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE))) {
-		/* Check last selection, if selected, act on the file or dir */
-		if (filelist_is_selected(sfile->files, sel.last, check_type)) {
-			retval = file_select_do(C, sel.last, do_diropen);
-		}
-	}
-
-	/* update operator for name change event */
-	file_draw_check(C);
-	
-	return retval;
-}
-
 /**
  * \warning: loops over all files so better use cautiously
  */
@@ -258,6 +230,38 @@ static bool file_is_any_selected(struct FileList *files)
 	}
 
 	return false;
+}
+
+
+static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, bool fill, bool do_diropen)
+{
+	SpaceFile *sfile = CTX_wm_space_file(C);
+	FileSelect retval = FILE_SELECT_NOTHING;
+	FileSelection sel = file_selection_get(C, rect, fill); /* get the selection */
+	const FileCheckType check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_ALL;
+	
+	/* flag the files as selected in the filelist */
+	filelist_select(sfile->files, &sel, select, FILE_SEL_SELECTED, check_type);
+	
+	/* Don't act on multiple selected files */
+	if (sel.first != sel.last) select = 0;
+
+	/* Do we have a valid selection and are we actually selecting */
+	if ((sel.last >= 0) && (select != FILE_SEL_REMOVE)) {
+		/* Check last selection, if selected, act on the file or dir */
+		if (filelist_is_selected(sfile->files, sel.last, check_type)) {
+			retval = file_select_do(C, sel.last, do_diropen);
+		}
+	}
+
+	if (select != FILE_SEL_ADD && !file_is_any_selected(sfile->files)) {
+		sfile->params->active_file = -1;
+	}
+
+	/* update operator for name change event */
+	file_draw_check(C);
+	
+	return retval;
 }
 
 static int file_border_select_find_last_selected(
@@ -680,6 +684,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	/* select all only if previously no file was selected */
 	if (has_selection) {
 		filelist_select(sfile->files, &sel, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
+		sfile->params->active_file = -1;
 	}
 	else {
 		const FileCheckType check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_FILES;
