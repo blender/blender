@@ -261,7 +261,9 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	if(motion) {
 		object = object_map.find(key);
 
-		if(object && (scene->need_motion() == Scene::MOTION_PASS || object_use_motion(b_ob))) {
+		if(object && (scene->need_motion() == Scene::MOTION_PASS ||
+		              object_use_motion(b_parent, b_ob)))
+		{
 			/* object transformation */
 			if(tfm != object->tfm) {
 				VLOG(1) << "Object " << b_ob.name() << " motion detected.";
@@ -342,8 +344,8 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 
 			mesh->use_motion_blur = false;
 
-			if(object_use_motion(b_ob)) {
-				if(object_use_deform_motion(b_ob)) {
+			if(object_use_motion(b_parent, b_ob)) {
+				if(object_use_deform_motion(b_parent, b_ob)) {
 					mesh->motion_steps = object_motion_steps(b_ob);
 					mesh->use_motion_blur = true;
 				}

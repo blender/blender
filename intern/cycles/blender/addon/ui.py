@@ -647,7 +647,13 @@ class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return CyclesButtonsPanel.poll(context) and ob and ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META'}
+        if CyclesButtonsPanel.poll(context) and ob:
+            if ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META'}:
+                return True
+            if ob.dupli_type == 'GROUP' and ob.dupli_group:
+                return True
+            # TODO(sergey): More duplicator types here?
+        return False
 
     def draw_header(self, context):
         layout = self.layout
@@ -690,8 +696,8 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         ob = context.object
         return (CyclesButtonsPanel.poll(context) and
-                ob and ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LAMP'} or
-                ob and ob.dupli_type == 'GROUP' and ob.dupli_group)
+                ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LAMP'}) or
+                        (ob.dupli_type == 'GROUP' and ob.dupli_group)))
 
     def draw(self, context):
         layout = self.layout
