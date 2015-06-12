@@ -2098,8 +2098,23 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	glDisable(GL_CULL_FACE);
 
 	/* camera frame */
-	if (!is_stereo3d_cameras)
-		drawcamera_frame(vec, GL_LINE_LOOP);
+	if (!is_stereo3d_cameras) {
+		/* make sure selection uses the same matrix for camera as the one used while viewing */
+		if ((G.f & G_PICKSEL) && is_view && (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D)) {
+			float obmat[4][4];
+			bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
+
+			glPushMatrix();
+			glLoadMatrixf(rv3d->viewmat);
+			BKE_camera_multiview_model_matrix(&scene->r, ob, is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME, obmat);
+			glMultMatrixf(obmat);
+
+			drawcamera_frame(vec, GL_LINE_LOOP);
+			glPopMatrix();
+		}
+		else
+			drawcamera_frame(vec, GL_LINE_LOOP);
+	}
 
 	if (is_view)
 		return;
