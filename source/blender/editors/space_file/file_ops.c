@@ -476,6 +476,8 @@ static bool file_walk_select_selection_set(
 	int active = active_old; /* could use active_old instead, just for readability */
 	bool deselect = false;
 
+	BLI_assert(params);
+
 	if (has_selection) {
 		if (extend &&
 		    filelist_is_selected(files, active_old, FILE_SEL_SELECTED) &&
@@ -512,7 +514,7 @@ static bool file_walk_select_selection_set(
 		}
 	}
 
-	if (!params || active < 0) {
+	if (active < 0) {
 		return false;
 	}
 
