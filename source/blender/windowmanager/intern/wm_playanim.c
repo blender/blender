@@ -240,7 +240,9 @@ static struct ListBase picsbase = {NULL, NULL};
 /* frames in memory - store them here to for easy deallocation later */
 static bool fromdisk = false;
 static double ptottime = 0.0, swaptime = 0.04;
+#ifdef WITH_AUDASPACE
 static double fps_movie;
+#endif
 
 #ifdef USE_FRAME_CACHE_LIMIT
 static struct ListBase inmempicsbase = {NULL, NULL};
