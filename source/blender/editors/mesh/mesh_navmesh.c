@@ -84,7 +84,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs,
 	for (oblink = obs; oblink; oblink = oblink->next) {
 		ob = (Object *) oblink->link;
 		dm = mesh_create_derived_no_virtual(scene, ob, NULL, CD_MASK_MESH);
-		BLI_linklist_append(&dms, (void *)dm);
+		BLI_linklist_prepend(&dms, dm);
 
 		nverts += dm->getNumVerts(dm);
 		nfaces = dm->getNumTessFaces(dm);
@@ -451,7 +451,7 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 				}
 			}
 			else {
-				BLI_linklist_append(&obs, (void *)base->object);
+				BLI_linklist_prepend(&obs, base->object);
 			}
 		}
 	}
