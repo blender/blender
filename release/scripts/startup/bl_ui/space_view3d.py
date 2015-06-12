@@ -2789,6 +2789,20 @@ class VIEW3D_MT_edit_armature_roll(Menu):
 
         layout.operator("transform.transform", text="Set Roll").mode = 'BONE_ROLL'
 
+
+class VIEW3D_MT_edit_armature_delete(Menu):
+    bl_label = "Delete"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("armature.delete", text="Delete Bones")
+
+        layout.separator()
+
+        layout.operator("armature.dissolve", text="Dissolve")
+
+
 # ********** Panel **********
 
 

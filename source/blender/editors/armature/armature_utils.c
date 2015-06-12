@@ -276,23 +276,29 @@ EditBone *ED_armature_bone_get_mirrored(const ListBase *edbo, EditBone *ebo)
 
 /* helper function for tools to work on mirrored parts.
  * it leaves mirrored bones selected then too, which is a good indication of what happened */
-void armature_select_mirrored(bArmature *arm)
+void armature_select_mirrored_ex(bArmature *arm, const int flag)
 {
+	BLI_assert((flag & ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) == 0);
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
 		EditBone *curBone, *ebone_mirr;
 		
 		for (curBone = arm->edbo->first; curBone; curBone = curBone->next) {
 			if (arm->layer & curBone->layer) {
-				if (curBone->flag & BONE_SELECTED) {
+				if (curBone->flag & flag) {
 					ebone_mirr = ED_armature_bone_get_mirrored(arm->edbo, curBone);
 					if (ebone_mirr)
-						ebone_mirr->flag |= BONE_SELECTED;
+						ebone_mirr->flag |= (curBone->flag & flag);
 				}
 			}
 		}
 	}
 	
+}
+
+void armature_select_mirrored(bArmature *arm)
+{
+	armature_select_mirrored_ex(arm, BONE_SELECTED);
 }
 
 void armature_tag_select_mirrored(bArmature *arm)

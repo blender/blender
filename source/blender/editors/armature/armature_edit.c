@@ -42,6 +42,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_ghash.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -1233,13 +1234,21 @@ void ARMATURE_OT_split(wmOperatorType *ot)
 
 /* ********************************* Delete ******************************* */
 
+static bool armature_delete_ebone_cb(const char *bone_name, void *arm_p)
+{
+	bArmature *arm = arm_p;
+	EditBone *ebone;
+
+	ebone = ED_armature_bone_find_name(arm->edbo, bone_name);
+	return (ebone && (ebone->flag & BONE_SELECTED) && (arm->layer & ebone->layer));
+}
+
 /* previously delete_armature */
 /* only editmode! */
 static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bArmature *arm;
 	EditBone *curBone, *ebone_next;
-	bConstraint *con;
 	Object *obedit = CTX_data_edit_object(C); // XXX get from context
 	bool changed = false;
 	arm = obedit->data;
@@ -1250,48 +1259,8 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	armature_select_mirrored(arm);
 	
-	/*  First erase any associated pose channel */
-	if (obedit->pose) {
-		bPoseChannel *pchan, *pchan_next;
-		for (pchan = obedit->pose->chanbase.first; pchan; pchan = pchan_next) {
-			pchan_next = pchan->next;
-			curBone = ED_armature_bone_find_name(arm->edbo, pchan->name);
-			
-			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-				BKE_pose_channel_free(pchan);
-				BKE_pose_channels_hash_free(obedit->pose);
-				BLI_freelinkN(&obedit->pose->chanbase, pchan);
-			}
-			else {
-				for (con = pchan->constraints.first; con; con = con->next) {
-					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-					ListBase targets = {NULL, NULL};
-					bConstraintTarget *ct;
-					
-					if (cti && cti->get_constraint_targets) {
-						cti->get_constraint_targets(con, &targets);
-						
-						for (ct = targets.first; ct; ct = ct->next) {
-							if (ct->tar == obedit) {
-								if (ct->subtarget[0]) {
-									curBone = ED_armature_bone_find_name(arm->edbo, ct->subtarget);
-									if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-										con->flag |= CONSTRAINT_DISABLE;
-										ct->subtarget[0] = 0;
-									}
-								}
-							}
-						}
-						
-						if (cti->flush_constraint_targets)
-							cti->flush_constraint_targets(con, &targets, 0);
-					}
-				}
-			}
-		}
-	}
-	
-	
+	BKE_pose_channels_remove(obedit, armature_delete_ebone_cb, arm);
+
 	for (curBone = arm->edbo->first; curBone; curBone = ebone_next) {
 		ebone_next = curBone->next;
 		if (arm->layer & curBone->layer) {
@@ -1328,6 +1297,170 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+static bool armature_dissolve_ebone_cb(const char *bone_name, void *arm_p)
+{
+	bArmature *arm = arm_p;
+	EditBone *ebone;
+
+	ebone = ED_armature_bone_find_name(arm->edbo, bone_name);
+	return (ebone && (ebone->flag & BONE_DONE));
+}
+
+static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bArmature *arm;
+	EditBone *ebone, *ebone_next;
+	Object *obedit = CTX_data_edit_object(C);
+	bool changed = false;
+
+	/* store for mirror */
+	GHash *ebone_flag_orig = NULL;
+	int ebone_num = 0;
+
+	arm = obedit->data;
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		ebone->temp.p = NULL;
+		ebone->flag &= ~BONE_DONE;
+		ebone_num++;
+	}
+
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		GHashIterator gh_iter;
+
+		ebone_flag_orig = BLI_ghash_ptr_new_ex(__func__, ebone_num);
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			union { int flag; void *p; } val = {0};
+			val.flag = ebone->flag;
+			BLI_ghash_insert(ebone_flag_orig, ebone, val.p);
+		}
+
+		armature_select_mirrored_ex(arm, BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+
+		GHASH_ITER (gh_iter, ebone_flag_orig) {
+			union { int flag; void *p; } *val_p = (void *)BLI_ghashIterator_getValue_p(&gh_iter);
+			ebone = BLI_ghashIterator_getKey(&gh_iter);
+			val_p->flag = ebone->flag & ~val_p->flag;
+		}
+	}
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (ebone->parent && ebone->flag & BONE_CONNECTED) {
+			if (ebone->parent->temp.ebone == ebone->parent) {
+				/* ignore */
+			}
+			else if (ebone->parent->temp.ebone) {
+				/* set ignored */
+				ebone->parent->temp.ebone = ebone->parent;
+			}
+			else {
+				/* set child */
+				ebone->parent->temp.ebone = ebone;
+			}
+		}
+	}
+
+	/* cleanup multiple used bones */
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (ebone->temp.ebone == ebone) {
+			ebone->temp.ebone = NULL;
+		}
+	}
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		/* break connections for unseen bones */
+		if (((arm->layer & ebone->layer) &&
+		     ((ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED)))) == 0)
+		{
+			ebone->temp.ebone = NULL;
+		}
+
+		if (((arm->layer & ebone->layer) &&
+		    ((ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED)))) == 0)
+		{
+			if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+				ebone->parent->temp.ebone = NULL;
+			}
+
+		}
+	}
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+
+		if (ebone->parent &&
+		    (ebone->parent->temp.ebone == ebone))
+		{
+			ebone->flag |= BONE_DONE;
+		}
+	}
+
+	BKE_pose_channels_remove(obedit, armature_dissolve_ebone_cb, arm);
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone_next) {
+		ebone_next = ebone->next;
+
+		if (ebone->flag & BONE_DONE) {
+			copy_v3_v3(ebone->parent->tail, ebone->tail);
+			ebone->parent->rad_tail = ebone->rad_tail;
+
+			ED_armature_edit_bone_remove(arm, ebone);
+			changed = true;
+		}
+	}
+
+	if (changed) {
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (ebone->parent &&
+			    ebone->parent->temp.ebone &&
+			    (ebone->flag & BONE_CONNECTED) == 0)
+			{
+				ebone->flag |= BONE_CONNECTED;
+				ebone->rad_head = ebone->parent->rad_head;
+			}
+		}
+
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				union { int flag; void *p; } *val_p = (void *)BLI_ghash_lookup_p(ebone_flag_orig, ebone);
+				if (val_p && val_p->flag) {
+					ebone->flag &= ~val_p->flag;
+				}
+			}
+		}
+	}
+
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		BLI_ghash_free(ebone_flag_orig, NULL, NULL);
+	}
+
+	if (!changed) {
+		return OPERATOR_CANCELLED;
+	}
+
+	ED_armature_sync_selection(arm->edbo);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_dissolve(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Dissolve Selected Bone(s)";
+	ot->idname = "ARMATURE_OT_dissolve";
+	ot->description = "Dissolve selected bones from the armature";
+
+	/* api callbacks */
+	ot->exec = armature_dissolve_selected_exec;
+	ot->poll = ED_operator_editarmature;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
 
 /* ********************************* Show/Hide ******************************* */
 
