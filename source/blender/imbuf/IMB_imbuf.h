@@ -279,7 +279,7 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc);
  * and frs_sec and frs_sec_base untouched if none available!)
  */
 bool IMB_anim_get_fps(struct anim *anim,
-                      short *frs_sec, float *frs_sec_base);
+                      short *frs_sec, float *frs_sec_base, bool no_av_base);
 
 /**
  *

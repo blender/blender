@@ -79,6 +79,13 @@ set(SRC
 	wm_window.h
 )
 
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)

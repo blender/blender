@@ -1006,7 +1006,7 @@ static AviMovie *alloc_proxy_output_avi(
 	                          * but sane defaults help anyways...*/
 	float frs_sec_base = 1.0;
 
-	IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base);
+	IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base, false);
 	
 	x = width;
 	y = height;

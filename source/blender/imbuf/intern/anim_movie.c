@@ -1427,11 +1427,13 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc)
 }
 
 bool IMB_anim_get_fps(struct anim *anim,
-                     short *frs_sec, float *frs_sec_base)
+                     short *frs_sec, float *frs_sec_base, bool no_av_base)
 {
 	if (anim->frs_sec) {
 		*frs_sec = anim->frs_sec;
 		*frs_sec_base = anim->frs_sec_base;
+		if (no_av_base)
+			*frs_sec_base /= AV_TIME_BASE;
 		return true;
 	}
 	return false;

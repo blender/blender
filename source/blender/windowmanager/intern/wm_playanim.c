@@ -71,6 +71,14 @@
 
 #include "WM_api.h"  /* only for WM_main_playanim */
 
+#ifdef WITH_AUDASPACE
+#include "AUD_C-API.h"
+
+AUD_Sound *source = NULL;
+AUD_Handle *playback_handle = NULL;
+AUD_Handle *scrub_handle = NULL;
+#endif
+
 /* simple limiter to avoid flooding memory */
 #define USE_FRAME_CACHE_LIMIT
 #ifdef USE_FRAME_CACHE_LIMIT
@@ -96,6 +104,7 @@ typedef struct PlayState {
 	bool  turbo;
 	bool  pingpong;
 	bool  noskip;
+	bool  indicator;
 	bool  sstep;
 	bool  wait2;
 	bool  stopped;
@@ -231,6 +240,7 @@ static struct ListBase picsbase = {NULL, NULL};
 /* frames in memory - store them here to for easy deallocation later */
 static bool fromdisk = false;
 static double ptottime = 0.0, swaptime = 0.04;
+static double fps_movie;
 
 #ifdef USE_FRAME_CACHE_LIMIT
 static struct ListBase inmempicsbase = {NULL, NULL};
@@ -332,6 +342,30 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		BLF_aspect(fontid, fsizex_inv, fsizey_inv, 1.0f);
 		BLF_position(fontid, 10.0f * fsizex_inv, 10.0f * fsizey_inv, 0.0f);
 		BLF_draw(fontid, str, sizeof(str));
+	}
+
+	if (ps->indicator) {
+		float fac = ps->picture->frame / (double)(((PlayAnimPict *)picsbase.last)->frame - ((PlayAnimPict *)picsbase.first)->frame);
+
+		fac = 2.0f * fac - 1.0f;
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+
+		glBegin(GL_LINES);
+		glVertex2f(fac, -1.0f);
+		glVertex2f(fac, 1.0f);
+		glEnd();
+
+		glPopMatrix();
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
 	}
 
 	GHOST_SwapWindowBuffers(g_WS.ghost_window);
@@ -441,6 +475,7 @@ static void build_pict_list_ex(PlayState *ps, const char *first, int totframes, 
 
 			picture->mem = mem;
 			picture->name = strdup(filepath);
+			picture->frame = count; /* not exact but should work for positioning */
 			close(file);
 			BLI_addtail(&picsbase, picture);
 			count++;
@@ -488,6 +523,76 @@ static void build_pict_list(PlayState *ps, const char *first, int totframes, int
 	ps->loading = false;
 }
 
+static void update_sound_fps(void)
+{
+#ifdef WITH_AUDASPACE
+	if (playback_handle) {
+		/* swaptime stores the 1.0/fps ratio */
+		double speed = 1.0 / (swaptime * fps_movie);
+
+		AUD_setSoundPitch(playback_handle, speed);
+	}
+#endif
+}
+
+static void change_frame(PlayState *ps, int cx)
+{
+	int sizex, sizey;
+	int i;
+
+	playanim_window_get_size(&sizex, &sizey);
+	ps->picture = picsbase.first;
+	/* TODO - store in ps direct? */
+	i = 0;
+	while (ps->picture) {
+		i++;
+		ps->picture = ps->picture->next;
+	}
+	i = (i * cx) / sizex;
+
+#ifdef WITH_AUDASPACE
+	if (scrub_handle) {
+		AUD_stop(scrub_handle);
+		scrub_handle = NULL;
+	}
+
+	if (playback_handle) {
+		AUD_Status status = AUD_getStatus(playback_handle);
+		if (status != AUD_STATUS_PLAYING) {
+			AUD_stop(playback_handle);
+			playback_handle = AUD_play(source, 1);
+			if (playback_handle) {
+				AUD_seek(playback_handle, i / fps_movie);
+				scrub_handle = AUD_pauseAfter(playback_handle, 1 / fps_movie);
+			}
+			update_sound_fps();
+		}
+		else {
+			AUD_seek(playback_handle, i / fps_movie);
+			scrub_handle = AUD_pauseAfter(playback_handle, 1 / fps_movie);
+		}
+	}
+	else if (source) {
+		playback_handle = AUD_play(source, 1);
+		if (playback_handle) {
+			AUD_seek(playback_handle, i / fps_movie);
+			scrub_handle = AUD_pauseAfter(playback_handle, 1 / fps_movie);
+		}
+		update_sound_fps();
+	}
+#endif
+
+	ps->picture = picsbase.first;
+	for (; i > 0; i--) {
+		if (ps->picture->next == NULL) break;
+		ps->picture = ps->picture->next;
+	}
+
+	ps->sstep = true;
+	ps->wait2 = false;
+	ps->next_frame = 0;
+}
+
 static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 {
 	PlayState *ps = (PlayState *)ps_void;
@@ -500,7 +605,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
 	/* convert ghost event into value keyboard or mouse */
 	val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
-
 
 	/* first check if we're busy loading files */
 	if (ps->loading) {
@@ -547,6 +651,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyA:
 					if (val) ps->noskip = !ps->noskip;
 					break;
+				case GHOST_kKeyI:
+					if (val) ps->indicator = !ps->indicator;
+					break;
 				case GHOST_kKeyP:
 					if (val) ps->pingpong = !ps->pingpong;
 					break;
@@ -560,42 +667,70 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				}
 				case GHOST_kKey1:
 				case GHOST_kKeyNumpad1:
-					if (val) swaptime = ps->fstep / 60.0;
+					if (val) {
+						swaptime = ps->fstep / 60.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey2:
 				case GHOST_kKeyNumpad2:
-					if (val) swaptime = ps->fstep / 50.0;
+					if (val) {
+						swaptime = ps->fstep / 50.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey3:
 				case GHOST_kKeyNumpad3:
-					if (val) swaptime = ps->fstep / 30.0;
+					if (val) {
+						swaptime = ps->fstep / 30.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey4:
 				case GHOST_kKeyNumpad4:
-					if (g_WS.qual & WS_QUAL_SHIFT)
+					if (g_WS.qual & WS_QUAL_SHIFT) {
 						swaptime = ps->fstep / 24.0;
-					else
+						update_sound_fps();
+					}
+					else {
 						swaptime = ps->fstep / 25.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey5:
 				case GHOST_kKeyNumpad5:
-					if (val) swaptime = ps->fstep / 20.0;
+					if (val) {
+						swaptime = ps->fstep / 20.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey6:
 				case GHOST_kKeyNumpad6:
-					if (val) swaptime = ps->fstep / 15.0;
+					if (val) {
+						swaptime = ps->fstep / 15.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey7:
 				case GHOST_kKeyNumpad7:
-					if (val) swaptime = ps->fstep / 12.0;
+					if (val) {
+						swaptime = ps->fstep / 12.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey8:
 				case GHOST_kKeyNumpad8:
-					if (val) swaptime = ps->fstep / 10.0;
+					if (val) {
+						swaptime = ps->fstep / 10.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKey9:
 				case GHOST_kKeyNumpad9:
-					if (val) swaptime = ps->fstep / 6.0;
+					if (val) {
+						swaptime = ps->fstep / 6.0;
+						update_sound_fps();
+					}
 					break;
 				case GHOST_kKeyLeftArrow:
 					if (val) {
@@ -658,6 +793,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						}
 						else {
 							swaptime = ps->fstep / 5.0;
+							update_sound_fps();
 						}
 					}
 					break;
@@ -674,10 +810,63 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						}
 					}
 					break;
+
+				case GHOST_kKeySpace:
+					if (val) {
+						if (ps->wait2 || ps->sstep) {
+							ps->wait2 = ps->sstep = false;
+#ifdef WITH_AUDASPACE
+							{
+								PlayAnimPict *picture = picsbase.first;
+								/* TODO - store in ps direct? */
+								int i = 0;
+
+								while (picture && picture != ps->picture) {
+									i++;
+									picture = picture->next;
+								}
+								if (playback_handle)
+									AUD_stop(playback_handle);
+								playback_handle = AUD_play(source, 1);
+								if (playback_handle)
+									AUD_seek(playback_handle, i / fps_movie);
+								update_sound_fps();
+							}
+#endif
+						}
+						else {
+							ps->sstep = true;
+							ps->wait2 = true;
+#ifdef WITH_AUDASPACE
+							if (playback_handle) {
+								AUD_stop(playback_handle);
+								playback_handle = NULL;
+							}
+#endif
+						}
+					}
+					break;
 				case GHOST_kKeyEnter:
 				case GHOST_kKeyNumpadEnter:
 					if (val) {
 						ps->wait2 = ps->sstep = false;
+#ifdef WITH_AUDASPACE
+						{
+							PlayAnimPict *picture = picsbase.first;
+							/* TODO - store in ps direct? */
+							int i = 0;
+							while (picture && picture != ps->picture) {
+								i++;
+								picture = picture->next;
+							}
+							if (playback_handle)
+								AUD_stop(playback_handle);
+							playback_handle = AUD_play(source, 1);
+							if (playback_handle)
+								AUD_seek(playback_handle, i / fps_movie);
+							update_sound_fps();
+						}
+#endif
 					}
 					break;
 				case GHOST_kKeyPeriod:
@@ -689,6 +878,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						else {
 							ps->sstep = true;
 							ps->wait2 = !ps->wait2;
+#ifdef WITH_AUDASPACE
+							if (playback_handle) {
+								AUD_stop(playback_handle);
+								playback_handle = NULL;
+							}
+#endif
 						}
 					}
 					break;
@@ -700,8 +895,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						playanim_window_zoom(ps, 1.0f);
 					}
 					else {
-						swaptime /= 1.1;
-						swaptime = MAX2(ps->fstep / 60.0, swaptime);
+						if (swaptime > ps->fstep / 60.0) {
+							swaptime /= 1.1;
+							update_sound_fps();
+						}
 					}
 					break;
 				}
@@ -713,8 +910,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						playanim_window_zoom(ps, -1.0f);
 					}
 					else {
-						swaptime *= 1.1;
-						swaptime = MIN2(ps->fstep / 5.0, swaptime);
+						if (swaptime < ps->fstep / 5.0) {
+							swaptime *= 1.1;
+							update_sound_fps();
+						}
 					}
 					break;
 				}
@@ -740,8 +939,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 			
 			if (bd->button == GHOST_kButtonMaskLeft) {
 				if (type == GHOST_kEventButtonDown) {
-					if (inside_window)
+					if (inside_window) {
 						g_WS.qual |= WS_QUAL_LMOUSE;
+						change_frame(ps, cx);
+					}
 				}
 				else
 					g_WS.qual &= ~WS_QUAL_LMOUSE;
@@ -767,31 +968,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 		case GHOST_kEventCursorMove:
 		{
 			if (g_WS.qual & WS_QUAL_LMOUSE) {
-				int sizex, sizey;
-				int i;
-
 				GHOST_TEventCursorData *cd = GHOST_GetEventData(evt);
 				int cx, cy;
 
 				GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &cx, &cy);
 
-				playanim_window_get_size(&sizex, &sizey);
-				ps->picture = picsbase.first;
-				/* TODO - store in ps direct? */
-				i = 0;
-				while (ps->picture) {
-					i++;
-					ps->picture = ps->picture->next;
-				}
-				i = (i * cx) / sizex;
-				ps->picture = picsbase.first;
-				for (; i > 0; i--) {
-					if (ps->picture->next == NULL) break;
-					ps->picture = ps->picture->next;
-				}
-				ps->sstep = true;
-				ps->wait2 = false;
-				ps->next_frame = 0;
+				change_frame(ps, cx);
 			}
 			break;
 		}
@@ -913,6 +1095,18 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	
 	PlayState ps = {0};
 
+#ifdef WITH_AUDASPACE
+	AUD_DeviceSpecs specs;
+
+	specs.rate = AUD_RATE_44100;
+	specs.format = AUD_FORMAT_S16;
+	specs.channels = AUD_CHANNELS_STEREO;
+
+	if (!AUD_init(AUD_OPENAL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE))
+		AUD_init(AUD_NULL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE);
+
+#endif
+
 	/* ps.doubleb   = true;*/ /* UNUSED */
 	ps.go        = true;
 	ps.direction = true;
@@ -926,6 +1120,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	ps.stopped   = false;
 	ps.loading   = false;
 	ps.picture   = NULL;
+	ps.indicator = false;
 	ps.dropped_file[0] = 0;
 	ps.zoom      = 1.0f;
 	/* resetmap = false */
@@ -1083,6 +1278,23 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep, ps.fontid);
 
+#ifdef WITH_AUDASPACE
+	source = AUD_load(filepath);
+	{
+		struct anim *anim_movie = ((struct PlayAnimPict *)picsbase.first)->anim;
+		if (anim_movie) {
+			short frs_sec = 25;
+			float frs_sec_base = 1.0;
+
+			IMB_anim_get_fps(anim_movie, &frs_sec, &frs_sec_base, true);
+
+			fps_movie = (double) frs_sec / (double) frs_sec_base;
+			/* enforce same fps for movie as sound */
+			swaptime = ps.fstep / fps_movie;
+		}
+	}
+#endif
+
 	for (i = 2; i < argc; i++) {
 		BLI_strncpy(filepath, argv[i], sizeof(filepath));
 		build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep, ps.fontid);
@@ -1121,6 +1333,13 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 			}
 		}
 		if (ptottime > 0.0) ptottime = 0.0;
+
+#ifdef WITH_AUDASPACE
+		if (playback_handle)
+			AUD_stop(playback_handle);
+		playback_handle = AUD_play(source, 1);
+		update_sound_fps();
+#endif
 
 		while (ps.picture) {
 			int hasevent;
@@ -1283,9 +1502,18 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
 	BLI_freelistN(&picsbase);
-
 	BLI_freelistN(&inmempicsbase);
 	added_images = 0;
+
+#ifdef WITH_AUDASPACE
+	if (playback_handle)
+		AUD_stop(playback_handle);
+	if (scrub_handle)
+		AUD_stop(scrub_handle);
+	AUD_unload(source);
+	AUD_exit();
+#endif
+
 #if 0 // XXX25
 	free_blender();
 #else
