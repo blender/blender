@@ -2279,6 +2279,13 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.separator()
 
+        op = layout.operator("mesh.mark_sharp", text="Shade Smooth")
+        op.use_verts = True
+        op.clear = True
+        layout.operator("mesh.mark_sharp", text="Shade Sharp").use_verts = True
+
+        layout.separator()
+
         layout.operator("mesh.bevel").vertex_only = True
         layout.operator("mesh.convex_hull")
         layout.operator("mesh.vertices_smooth")
@@ -2301,8 +2308,6 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-
         with_freestyle = bpy.app.build_options.freestyle
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -2323,16 +2328,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        if not toolsettings.mesh_select_mode[0]:
-            # edge mode
-            layout.operator("mesh.mark_sharp")
-            layout.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
-        else:
-            # vert mode
-            layout.operator("mesh.mark_sharp").use_verts = True
-            props = layout.operator("mesh.mark_sharp", text="Clear Sharp")
-            props.use_verts = True
-            props.clear = True
+        layout.operator("mesh.mark_sharp")
+        layout.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
 
         layout.separator()
 
