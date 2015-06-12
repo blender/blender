@@ -1036,8 +1036,6 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 {
 #ifdef _OPENMP
 	const int num_threads = BLI_system_thread_count();
-#else
-	const int num_threads = 1;
 #endif
 	int a, y;
 	unsigned int nl, na, nr, ng, nb;
