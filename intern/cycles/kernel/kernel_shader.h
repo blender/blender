@@ -480,6 +480,7 @@ ccl_device void shader_merge_closures(ShaderData *sd)
 			}
 
 			sd->num_closure--;
+			kernel_assert(sd->num_closure >= 0);
 			j--;
 		}
 	}
