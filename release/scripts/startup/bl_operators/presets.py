@@ -53,9 +53,20 @@ class AddPresetBase:
 
     @staticmethod
     def as_filename(name):  # could reuse for other presets
-        for char in " !@#$%^&*(){}:\";'[]<>,.\\/?":
-            name = name.replace(char, '_')
-        return name.lower().strip()
+
+        # lazy init maketrans
+        def maketrans_init():
+            cls = AddPresetBase
+            attr = "_as_filename_trans"
+
+            trans = getattr(cls, attr, None)
+            if trans is None:
+                trans = str.maketrans({char: "_" for char in " !@#$%^&*(){}:\";'[]<>,.\\/?"})
+                setattr(cls, attr, trans)
+            return trans
+
+        trans = maketrans_init()
+        return name.lower().strip().translate(trans)
 
     def execute(self, context):
         import os
