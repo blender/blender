@@ -831,7 +831,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 static void node_shader_buts_tex_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
-	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
+	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0, 0);
 }
 
 static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -1259,7 +1259,7 @@ static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRN
 
 	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
 	uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
-	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
+	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0, 1);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -2787,7 +2787,7 @@ static void node_texture_buts_image_ex(uiLayout *layout, bContext *C, PointerRNA
 	PointerRNA iuserptr;
 
 	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
-	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0);
+	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0, 0);
 }
 
 static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

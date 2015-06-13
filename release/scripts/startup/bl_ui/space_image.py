@@ -574,7 +574,7 @@ class IMAGE_PT_image_properties(Panel):
         sima = context.space_data
         iuser = sima.image_user
 
-        layout.template_image(sima, "image", iuser)
+        layout.template_image(sima, "image", iuser, multiview=True)
 
 
 class IMAGE_PT_game_properties(Panel):
