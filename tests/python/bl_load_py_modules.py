@@ -68,7 +68,7 @@ def load_addons():
 
     # first disable all
     for mod_name in list(addons.keys()):
-        addon_utils.disable(mod_name)
+        addon_utils.disable(mod_name, default_set=True)
 
     assert(bool(addons) is False)
 

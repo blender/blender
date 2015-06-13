@@ -161,7 +161,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # modification time changes. This `won't` work for packages so...
         # its not perfect.
         for module_name in [ext.module for ext in _user_preferences.addons]:
-            _addon_utils.disable(module_name, default_set=False)
+            _addon_utils.disable(module_name)
 
     def register_module_call(mod):
         register = getattr(mod, "register", None)
