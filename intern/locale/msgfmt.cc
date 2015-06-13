@@ -316,6 +316,10 @@ void make(const char *input_file_name,
     // Skip empty lines.
     l = trim(l);
     if (l.empty()) {
+      if (section == SECTION_STR) {
+        msgctxt = msgid = msgstr = "";
+        section = SECTION_NONE;
+      }
       continue;
     }
     l = unescape(l);
