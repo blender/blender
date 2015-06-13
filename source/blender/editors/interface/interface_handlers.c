@@ -6532,7 +6532,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			}
 		}
 		
-		if (but->flag & UI_BUT_ANIMATED) {
+		if ((but->flag & UI_BUT_ANIMATED) && (but->rnapoin.type != &RNA_NlaStrip)) {
 			if (is_array_component) {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Keyframes"),
 				               ICON_NONE, "ANIM_OT_keyframe_clear_button", "all", 1);
