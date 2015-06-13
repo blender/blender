@@ -981,13 +981,13 @@ class I18nMessages:
     def write(self, kind, dest):
         self.writers[kind](self, dest)
 
-    def write_messages_to_po(self, fname):
+    def write_messages_to_po(self, fname, compact=False):
         """
         Write messages in fname po file.
         """
         default_context = self.settings.DEFAULT_CONTEXT
 
-        def _write(self, f):
+        def _write(self, f, compact):
             _msgctxt = self.settings.PO_MSGCTXT
             _msgid = self.settings.PO_MSGID
             _msgstr = self.settings.PO_MSGSTR
@@ -996,9 +996,12 @@ class I18nMessages:
             self.escape()
 
             for num, msg in enumerate(self.msgs.values()):
-                f.write("\n".join(msg.comment_lines))
+                if compact and (msg.is_commented or msg.is_fuzzy or not msg.msgstr_lines):
+                    continue
+                if not compact:
+                    f.write("\n".join(msg.comment_lines))
                 # Only mark as fuzzy if msgstr is not empty!
-                if msg.is_fuzzy and msg.msgstr:
+                if msg.is_fuzzy and msg.msgstr_lines:
                     f.write("\n" + self.settings.PO_COMMENT_FUZZY)
                 _p = _comm if msg.is_commented else ""
                 chunks = []
@@ -1035,10 +1038,10 @@ class I18nMessages:
         self.normalize(max_len=0)  # No wrapping for now...
         if isinstance(fname, str):
             with open(fname, 'w', encoding="utf-8") as f:
-                _write(self, f)
+                _write(self, f, compact)
         # Else assume fname is already a file(like) object!
         else:
-            _write(self, fname)
+            _write(self, fname, compact)
 
     def write_messages_to_mo(self, fname):
         """
@@ -1117,6 +1120,7 @@ class I18nMessages:
 
     writers = {
         "PO": write_messages_to_po,
+        "PO_COMPACT": lambda s, fn: s.write_messages_to_po(fn, True),
         "MO": write_messages_to_mo,
     }
 

@@ -95,3 +95,5 @@ def gen_menu_file(stats, settings):
                 data_lines.append("# {} #{}:{}:{}".format(FLAG_MESSAGES[flag], uid_num, label, uid))
     with open(os.path.join(settings.TRUNK_MO_DIR, settings.LANGUAGES_FILE), 'w') as f:
         f.write("\n".join(data_lines))
+    with open(os.path.join(settings.GIT_I18N_ROOT, settings.LANGUAGES_FILE), 'w') as f:
+        f.write("\n".join(data_lines))
