@@ -3236,6 +3236,7 @@ class VIEW3D_PT_background_image(Panel):
         layout = self.layout
 
         view = context.space_data
+        use_multiview = context.scene.render.use_multiview
 
         col = layout.column()
         col.operator("view3d.background_image_add", text="Add Image")
@@ -3272,6 +3273,19 @@ class VIEW3D_PT_background_image(Panel):
                     if bg.image is not None:
                         box.template_image(bg, "image", bg.image_user, compact=True)
                         has_bg = True
+
+                        if use_multiview and bg.view_axis in {'CAMERA','ALL'}:
+                            box.prop(bg.image, "use_multiview")
+
+                            column = box.column()
+                            column.active = bg.image.use_multiview
+
+                            column.label(text="Views Format:")
+                            column.row().prop(bg.image, "views_format", expand=True)
+
+                            sub = column.box()
+                            sub.active = bg.image.views_format == 'STEREO_3D'
+                            sub.template_image_stereo_3d(bg.image.stereo_3d_format)
 
                 elif bg.source == 'MOVIE_CLIP':
                     box.prop(bg, "use_camera_clip")
