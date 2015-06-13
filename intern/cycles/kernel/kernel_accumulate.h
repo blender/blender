@@ -341,12 +341,12 @@ ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L)
 
 ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadiance *L)
 {
-	float3 L_sum, L_direct, L_indirect;
-	float clamp_direct = kernel_data.integrator.sample_clamp_direct;
-	float clamp_indirect = kernel_data.integrator.sample_clamp_indirect;
-
+	float3 L_sum;
 	/* Light Passes are used */
 #ifdef __PASSES__
+	float3 L_direct, L_indirect;
+	float clamp_direct = kernel_data.integrator.sample_clamp_direct;
+	float clamp_indirect = kernel_data.integrator.sample_clamp_indirect;
 	if(L->use_light_pass) {
 		path_radiance_sum_indirect(L);
 
