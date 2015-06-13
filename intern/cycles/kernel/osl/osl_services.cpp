@@ -20,6 +20,7 @@
  */
 #if defined(__GNUC__) && defined(NDEBUG)
 #  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#  pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 
 #include <string.h>
