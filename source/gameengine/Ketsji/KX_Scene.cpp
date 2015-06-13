@@ -35,6 +35,8 @@
 #  pragma warning (disable:4786)
 #endif
 
+#include <stdio.h>
+
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
 #include "MT_assert.h"
@@ -43,7 +45,6 @@
 #include "KX_FontObject.h"
 #include "RAS_IPolygonMaterial.h"
 #include "ListValue.h"
-#include "KX_PythonCallBack.h"
 #include "SCA_LogicManager.h"
 #include "SCA_TimeEventManager.h"
 //#include "SCA_AlwaysEventManager.h"
@@ -95,12 +96,14 @@
 #include "KX_ObstacleSimulation.h"
 
 #ifdef WITH_BULLET
-#include "KX_SoftBodyDeformer.h"
+#  include "KX_SoftBodyDeformer.h"
+#endif
+
+#ifdef WITH_PYTHON
+#  include "KX_PythonCallBack.h"
 #endif
 
 #include "KX_Light.h"
-
-#include <stdio.h>
 
 #include "BLI_task.h"
 

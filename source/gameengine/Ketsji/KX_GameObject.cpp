@@ -69,10 +69,13 @@
 #include "BL_ActionManager.h"
 #include "BL_Action.h"
 
-#include "KX_PythonCallBack.h"
 #include "PyObjectPlus.h" /* python stuff */
 #include "BLI_utildefines.h"
-#include "python_utildefines.h"
+
+#ifdef WITH_PYTHON
+#  include "KX_PythonCallBack.h"
+#  include "python_utildefines.h"
+#endif
 
 // This file defines relationships between parents and children
 // in the game engine.

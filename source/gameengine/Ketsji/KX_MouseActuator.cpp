@@ -337,7 +337,7 @@ void KX_MouseActuator::setMousePosition(float fx, float fy)
 	m_canvas->SetMousePosition(x, y);
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -536,4 +536,4 @@ PyObject* KX_MouseActuator::PyReset()
 	Py_RETURN_NONE;
 }
 
-#endif
+#endif  /* WITH_PYTHON */

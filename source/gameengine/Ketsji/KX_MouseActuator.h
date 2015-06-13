@@ -104,6 +104,9 @@ public:
 	virtual void getMousePosition(float*);
 	virtual void setMousePosition(float, float);
 
+
+#ifdef WITH_PYTHON
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -122,6 +125,8 @@ public:
 
 	static PyObject*	pyattr_get_angle(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_angle(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+#endif  /* WITH_PYTHON */
+
 };
 
 #endif //__KX_MOUSEACTUATOR_DOC

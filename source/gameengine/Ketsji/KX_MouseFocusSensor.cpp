@@ -36,6 +36,8 @@
 #  pragma warning(disable:4786)
 #endif
 
+#include <stdio.h>
+
 #include "MT_Point3.h"
 #include "RAS_FramingManager.h"
 #include "RAS_ICanvas.h"
