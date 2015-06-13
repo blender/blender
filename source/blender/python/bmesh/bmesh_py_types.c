@@ -79,6 +79,8 @@ PyC_FlagSet bpy_bm_htype_all_flags[] = {
 	{0, NULL}
 };
 
+#define BPY_BM_HFLAG_ALL_STR "('SELECT', 'HIDE', 'SEAM', 'SMOOTH', 'TAG')"
+
 PyC_FlagSet bpy_bm_hflag_all_flags[] = {
 	{BM_ELEM_SELECT,  "SELECT"},
 	{BM_ELEM_HIDDEN,  "HIDE"},
@@ -1128,7 +1130,7 @@ PyDoc_STRVAR(bpy_bmesh_transform_doc,
 "\n"
 "   :arg matrix: transform matrix.\n"
 "   :type matrix: 4x4 :class:`mathutils.Matrix`\n"
-"   :arg filter: set of values in ('SELECT', 'HIDE', 'SEAM', 'SMOOTH', 'TAG').\n"
+"   :arg filter: set of values in " BPY_BM_HFLAG_ALL_STR ".\n"
 "   :type filter: set\n"
 );
 static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject *kw)
