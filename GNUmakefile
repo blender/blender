@@ -81,18 +81,20 @@ endif
 
 # -----------------------------------------------------------------------------
 # Get the number of cores for threaded build
-NPROCS:=1
-ifeq ($(OS), Linux)
-	NPROCS:=$(shell nproc)
-endif
-ifeq ($(OS), Darwin)
-	NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f3)
-endif
-ifeq ($(OS), FreeBSD)
-	NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f2 )
-endif
-ifeq ($(OS), NetBSD)
-	NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f2 )
+ifndef NPROCS
+	NPROCS:=1
+	ifeq ($(OS), Linux)
+		NPROCS:=$(shell nproc)
+	endif
+	ifeq ($(OS), Darwin)
+		NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f3)
+	endif
+	ifeq ($(OS), FreeBSD)
+		NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f2 )
+	endif
+	ifeq ($(OS), NetBSD)
+		NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f2 )
+	endif
 endif
 
 
