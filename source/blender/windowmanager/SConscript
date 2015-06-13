@@ -32,6 +32,7 @@ sources = env.Glob('intern/*.c')
 
 incs = [
     '.',
+    '#/intern/audaspace/intern',
     '#/intern/ghost',
     '#/intern/guardedalloc',
     '#/intern/memutil',
