@@ -285,15 +285,17 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #endif
 
 			/* refraction */
-			sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure));
-			sc->weight = weight;
-			sc->sample_weight = sample_weight;
+			if(ccl_fetch(sd, num_closure) < MAX_CLOSURE) {
+				sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure));
+				sc->weight = weight;
+				sc->sample_weight = sample_weight;
 
-			sc = svm_node_closure_get_bsdf(sd, mix_weight*(1.0f - fresnel));
+				sc = svm_node_closure_get_bsdf(sd, mix_weight*(1.0f - fresnel));
 
-			if(sc) {
-				sc->N = N;
-				svm_node_glass_setup(sd, sc, type, eta, roughness, true);
+				if(sc) {
+					sc->N = N;
+					svm_node_glass_setup(sd, sc, type, eta, roughness, true);
+				}
 			}
 
 			break;
