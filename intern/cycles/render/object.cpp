@@ -494,6 +494,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 	bool apply_to_motion = need_motion != Scene::MOTION_PASS;
 #else
 	bool motion_blur = false;
+	bool apply_to_motion = false;
 #endif
 	int i = 0;
 	bool have_instancing = false;
