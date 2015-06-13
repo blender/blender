@@ -659,6 +659,8 @@ if(WITH_CYCLES)
 	if(WITH_CYCLES_OSL)
 		set(WITH_LLVM ON CACHE BOOL "" FORCE)
 	endif()
+else()
+	set(WITH_CYCLES_OSL OFF)
 endif()
 
 # auto enable openimageio linking dependencies
