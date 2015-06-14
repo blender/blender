@@ -219,7 +219,8 @@ def check(module_name):
     loaded_default = module_name in _user_preferences.addons
 
     mod = sys.modules.get(module_name)
-    loaded_state = mod and getattr(mod, "__addon_enabled__", Ellipsis)
+    loaded_state = ((mod is not None) and
+                    getattr(mod, "__addon_enabled__", Ellipsis))
 
     if loaded_state is Ellipsis:
         print("Warning: addon-module %r found module "
