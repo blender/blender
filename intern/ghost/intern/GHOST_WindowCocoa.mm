@@ -1328,6 +1328,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 	return GHOST_kSuccess;
 }
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
 static void postNotification()
 {
 	NSUserNotification *notification = [[NSUserNotification alloc] init];
@@ -1337,7 +1338,8 @@ static void postNotification()
 	[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
 	[notification release];
 }
-	
+#endif
+
 GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 {
 	if (!m_progressBarVisible) return GHOST_kFailure;
@@ -1355,11 +1357,12 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	// With OSX 10.8 and later, we can use notifications to inform the user when the progress reached 100%
 	// Atm. just fire this when the progressbar ends, the behavior is controlled in the NotificationCenter
 	// If Blender is not frontmost window, a message pops up with sound, in any case an entry in notifications
-	
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
 	if ([NSUserNotificationCenter respondsToSelector:@selector(defaultUserNotificationCenter)]) {
 		postNotification();
 	}
-	
+#endif
+
 	[dockIcon release];
 	
 	[pool drain];
