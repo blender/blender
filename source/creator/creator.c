@@ -1325,11 +1325,18 @@ static int set_addons(int argc, const char **argv, void *data)
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
 #ifdef WITH_PYTHON
-		const int slen = strlen(argv[1]) + 128;
+		const char script_str[] =
+		        "from addon_utils import check, enable\n"
+		        "for m in '%s'.split(','):\n"
+		        "    if check(m)[1] is False:\n"
+		        "        enable(m, persistent=True)";
+		const int slen = strlen(argv[1]) + (sizeof(script_str) - 2);
 		char *str = malloc(slen);
 		bContext *C = data;
-		BLI_snprintf(str, slen, "[__import__('addon_utils').enable(i, default_set=False) for i in '%s'.split(',')]", argv[1]);
-		BPY_CTX_SETUP(BPY_string_exec(C, str));
+		BLI_snprintf(str, slen, script_str, argv[1]);
+
+		BLI_assert(strlen(str) + 1 == slen);
+		BPY_CTX_SETUP(BPY_string_exec_ex(C, str, false));
 		free(str);
 #else
 		UNUSED_VARS(argv, data);
