@@ -278,6 +278,20 @@ def enable(module_name, default_set=False, persistent=False, handle_error=None):
     mod = sys.modules.get(module_name)
     # chances of the file _not_ existing are low, but it could be removed
     if mod and os.path.exists(mod.__file__):
+
+        if getattr(mod, "__addon_enabled__", False):
+            # This is an unlikely situation,
+            # re-register if the module is enabled.
+            # Note: the UI doesn't allow this to happen,
+            # in most cases the caller should 'check()' first.
+            try:
+                mod.unregister()
+            except:
+                print("Exception in module unregister(): %r" %
+                      getattr(mod, "__file__", module_name))
+                handle_error()
+                return None
+
         mod.__addon_enabled__ = False
         mtime_orig = getattr(mod, "__time__", 0)
         mtime_new = os.path.getmtime(mod.__file__)
