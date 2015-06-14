@@ -5668,7 +5668,164 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 	return NULL;
 }
 
-static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const float mval[2])
+/**
+ * Calculate screenspace `mval_start` / `mval_end`, optionally slide direction.
+ */
+static void calcEdgeSlide_mval_range(
+        TransInfo *t, EdgeSlideData *sld, const int *sv_table, const int loop_nr,
+        const float mval[2], const bool use_btree_disp, const bool use_calc_direction)
+{
+	TransDataEdgeSlideVert *sv_array = sld->sv;
+	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
+	BMesh *bm = em->bm;
+	ARegion *ar = t->ar;
+	View3D *v3d = NULL;
+	RegionView3D *rv3d = NULL;
+	float projectMat[4][4];
+	BMBVHTree *btree;
+
+	float mval_start[2], mval_end[2];
+	float mval_dir[3], dist_best_sq, (*loop_dir)[3], *loop_maxdist;
+	BMIter iter;
+	BMEdge *e;
+
+	if (t->spacetype == SPACE_VIEW3D) {
+		/* background mode support */
+		v3d = t->sa ? t->sa->spacedata.first : NULL;
+		rv3d = t->ar ? t->ar->regiondata : NULL;
+	}
+
+	if (!rv3d) {
+		/* ok, let's try to survive this */
+		unit_m4(projectMat);
+	}
+	else {
+		ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
+	}
+
+	if (use_btree_disp) {
+		btree = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, NULL, false);
+	}
+	else {
+		btree = NULL;
+	}
+
+	/* find mouse vectors, the global one, and one per loop in case we have
+	 * multiple loops selected, in case they are oriented different */
+	zero_v3(mval_dir);
+	dist_best_sq = -1.0f;
+
+	loop_dir = MEM_callocN(sizeof(float[3]) * loop_nr, "sv loop_dir");
+	loop_maxdist = MEM_mallocN(sizeof(float) * loop_nr, "sv loop_maxdist");
+	copy_vn_fl(loop_maxdist, loop_nr, -1.0f);
+
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+			int i;
+
+			/* search cross edges for visible edge to the mouse cursor,
+			 * then use the shared vertex to calculate screen vector*/
+			for (i = 0; i < 2; i++) {
+				BMIter iter_other;
+				BMEdge *e_other;
+
+				BMVert *v = i ? e->v1 : e->v2;
+				BM_ITER_ELEM (e_other, &iter_other, v, BM_EDGES_OF_VERT) {
+					/* screen-space coords */
+					float sco_a[3], sco_b[3];
+					float dist_sq;
+					int j, l_nr;
+
+					if (BM_elem_flag_test(e_other, BM_ELEM_SELECT))
+						continue;
+
+					/* This test is only relevant if object is not wire-drawn! See [#32068]. */
+					if (use_btree_disp && !BMBVH_EdgeVisible(btree, e_other, ar, v3d, t->obedit)) {
+						continue;
+					}
+
+					BLI_assert(sv_table[BM_elem_index_get(v)] != -1);
+					j = sv_table[BM_elem_index_get(v)];
+
+					if (sv_array[j].v_side[1]) {
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[1]->co, sco_b, projectMat);
+					}
+					else {
+						add_v3_v3v3(sco_b, v->co, sv_array[j].dir_side[1]);
+						ED_view3d_project_float_v3_m4(ar, sco_b, sco_b, projectMat);
+					}
+
+					if (sv_array[j].v_side[0]) {
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[0]->co, sco_a, projectMat);
+					}
+					else {
+						add_v3_v3v3(sco_a, v->co, sv_array[j].dir_side[0]);
+						ED_view3d_project_float_v3_m4(ar, sco_a, sco_a, projectMat);
+					}
+
+					/* global direction */
+					dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
+					if ((dist_best_sq == -1.0f) ||
+					    /* intentionally use 2d size on 3d vector */
+					    (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
+					{
+						dist_best_sq = dist_sq;
+						sub_v3_v3v3(mval_dir, sco_b, sco_a);
+					}
+
+					/* per loop direction */
+					l_nr = sv_array[j].loop_nr;
+					if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
+						loop_maxdist[l_nr] = dist_sq;
+						sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
+					}
+				}
+			}
+		}
+	}
+
+	if (use_calc_direction) {
+		int i;
+		sv_array = sld->sv;
+		for (i = 0; i < sld->totsv; i++, sv_array++) {
+			/* switch a/b if loop direction is different from global direction */
+			int l_nr = sv_array->loop_nr;
+			if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
+				swap_v3_v3(sv_array->dir_side[0], sv_array->dir_side[1]);
+				SWAP(BMVert *, sv_array->v_side[0], sv_array->v_side[1]);
+			}
+		}
+	}
+
+	/* possible all of the edge loops are pointing directly at the view */
+	if (UNLIKELY(len_squared_v2(mval_dir) < 0.1f)) {
+		mval_dir[0] = 0.0f;
+		mval_dir[1] = 100.0f;
+	}
+
+	/* zero out start */
+	zero_v2(mval_start);
+
+	/* dir holds a vector along edge loop */
+	copy_v2_v2(mval_end, mval_dir);
+	mul_v2_fl(mval_end, 0.5f);
+
+	sld->mval_start[0] = t->mval[0] + mval_start[0];
+	sld->mval_start[1] = t->mval[1] + mval_start[1];
+
+	sld->mval_end[0] = t->mval[0] + mval_end[0];
+	sld->mval_end[1] = t->mval[1] + mval_end[1];
+
+	if (btree) {
+		BKE_bmbvh_free(btree);
+	}
+
+	MEM_freeN(loop_dir);
+	MEM_freeN(loop_maxdist);
+}
+
+static void calcEdgeSlide_non_proportional(
+        TransInfo *t, EdgeSlideData *sld, const float mval[2])
 {
 	TransDataEdgeSlideVert *sv = sld->sv;
 
@@ -5722,38 +5879,19 @@ static bool createEdgeSlideVerts(TransInfo *t)
 	BMVert *v;
 	TransDataEdgeSlideVert *sv_array;
 	int sv_tot;
-	BMBVHTree *btree;
 	int *sv_table;  /* BMVert -> sv_array index */
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
+	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
+	int numsel, i, j, loop_nr;
+	bool use_btree_disp = false;
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
-	ARegion *ar = t->ar;
-	float projectMat[4][4];
-	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
-	float mval_start[2], mval_end[2];
-	float mval_dir[3], dist_best_sq, (*loop_dir)[3], *loop_maxdist;
-	int numsel, i, j, loop_nr, l_nr;
-	int use_btree_disp;
-
-	if (t->spacetype == SPACE_VIEW3D) {
-		/* background mode support */
-		v3d = t->sa ? t->sa->spacedata.first : NULL;
-		rv3d = t->ar ? t->ar->regiondata : NULL;
-	}
 
 	slide_origdata_init_flag(t, &sld->orig_data);
 
 	sld->is_proportional = true;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = false;
-
-	if (!rv3d) {
-		/* ok, let's try to survive this */
-		unit_m4(projectMat);
-	}
-	else {
-		ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
-	}
 
 	/*ensure valid selection*/
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -6039,142 +6177,36 @@ static bool createEdgeSlideVerts(TransInfo *t)
 #undef EDGESLIDE_VERT_IS_INNER
 	}
 
-	/* use for visibility checks */
-	use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
-
-	if (use_btree_disp) {
-		btree = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, NULL, false);
-	}
-	else {
-		btree = NULL;
-	}
-
-
 	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
 
 	sld->sv = sv_array;
 	sld->totsv = sv_tot;
-	
-	/* find mouse vectors, the global one, and one per loop in case we have
-	 * multiple loops selected, in case they are oriented different */
-	zero_v3(mval_dir);
-	dist_best_sq = -1.0f;
 
-	loop_dir = MEM_callocN(sizeof(float) * 3 * loop_nr, "sv loop_dir");
-	loop_maxdist = MEM_mallocN(sizeof(float) * loop_nr, "sv loop_maxdist");
-	copy_vn_fl(loop_maxdist, loop_nr, -1.0f);
-
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-			BMIter iter2;
-			BMEdge *e2;
-			float dist_sq;
-
-			/* search cross edges for visible edge to the mouse cursor,
-			 * then use the shared vertex to calculate screen vector*/
-			for (i = 0; i < 2; i++) {
-				v = i ? e->v1 : e->v2;
-				BM_ITER_ELEM (e2, &iter2, v, BM_EDGES_OF_VERT) {
-					/* screen-space coords */
-					float sco_a[3], sco_b[3];
-
-					if (BM_elem_flag_test(e2, BM_ELEM_SELECT))
-						continue;
-
-					/* This test is only relevant if object is not wire-drawn! See [#32068]. */
-					if (use_btree_disp && !BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit)) {
-						continue;
-					}
-
-					BLI_assert(sv_table[BM_elem_index_get(v)] != -1);
-					j = sv_table[BM_elem_index_get(v)];
-
-					if (sv_array[j].v_side[1]) {
-						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[1]->co, sco_b, projectMat);
-					}
-					else {
-						add_v3_v3v3(sco_b, v->co, sv_array[j].dir_side[1]);
-						ED_view3d_project_float_v3_m4(ar, sco_b, sco_b, projectMat);
-					}
-					
-					if (sv_array[j].v_side[0]) {
-						ED_view3d_project_float_v3_m4(ar, sv_array[j].v_side[0]->co, sco_a, projectMat);
-					}
-					else {
-						add_v3_v3v3(sco_a, v->co, sv_array[j].dir_side[0]);
-						ED_view3d_project_float_v3_m4(ar, sco_a, sco_a, projectMat);
-					}
-					
-					/* global direction */
-					dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
-					if ((dist_best_sq == -1.0f) ||
-					    /* intentionally use 2d size on 3d vector */
-					    (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
-					{
-						dist_best_sq = dist_sq;
-						sub_v3_v3v3(mval_dir, sco_b, sco_a);
-					}
-
-					/* per loop direction */
-					l_nr = sv_array[j].loop_nr;
-					if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
-						loop_maxdist[l_nr] = dist_sq;
-						sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
-					}
-				}
-			}
-		}
+	/* use for visibility checks */
+	if (t->spacetype == SPACE_VIEW3D) {
+		v3d = t->sa ? t->sa->spacedata.first : NULL;
+		rv3d = t->ar ? t->ar->regiondata : NULL;
+		use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
 	}
 
-	/* possible all of the edge loops are pointing directly at the view */
-	if (UNLIKELY(len_squared_v2(mval_dir) < 0.1f)) {
-		mval_dir[0] = 0.0f;
-		mval_dir[1] = 100.0f;
-	}
+	calcEdgeSlide_mval_range(t, sld, sv_table, loop_nr, mval, use_btree_disp, true);
 
+	/* create copies of faces for customdata projection */
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 	slide_origdata_init_data(t, &sld->orig_data);
 	slide_origdata_create_data(t, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
-	/*create copies of faces for customdata projection*/
-	sv_array = sld->sv;
-	for (i = 0; i < sld->totsv; i++, sv_array++) {
-		/* switch a/b if loop direction is different from global direction */
-		l_nr = sv_array->loop_nr;
-		if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
-			swap_v3_v3(sv_array->dir_side[0], sv_array->dir_side[1]);
-			SWAP(BMVert *, sv_array->v_side[0], sv_array->v_side[1]);
-		}
+	if (rv3d) {
+		calcEdgeSlide_non_proportional(t, sld, mval);
 	}
 
-	if (rv3d)
-		calcNonProportionalEdgeSlide(t, sld, mval);
-
 	sld->em = em;
-
-	/*zero out start*/
-	zero_v2(mval_start);
-
-	/*dir holds a vector along edge loop*/
-	copy_v2_v2(mval_end, mval_dir);
-	mul_v2_fl(mval_end, 0.5f);
-	
-	sld->mval_start[0] = t->mval[0] + mval_start[0];
-	sld->mval_start[1] = t->mval[1] + mval_start[1];
-
-	sld->mval_end[0] = t->mval[0] + mval_end[0];
-	sld->mval_end[1] = t->mval[1] + mval_end[1];
 	
 	sld->perc = 0.0f;
 	
 	t->customData = sld;
 	
 	MEM_freeN(sv_table);
-	if (btree) {
-		BKE_bmbvh_free(btree);
-	}
-	MEM_freeN(loop_dir);
-	MEM_freeN(loop_maxdist);
 
 	return true;
 }
