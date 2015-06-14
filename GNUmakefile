@@ -212,6 +212,7 @@ help: FORCE
 	@echo "  * BUILD_CMAKE_ARGS    - arguments passed to CMake."
 	@echo "  * BUILD_DIR           - override default build path."
 	@echo "  * PYTHON              - use this for the Python command (used for checking tools)."
+	@echo "  * NPROCS              - number of processes to use building (auto-detect when omitted)."
 	@echo ""
 	@echo "Documentation Targets (not associated with building blender)"
 	@echo "  * doc_py   - generate sphinx python api docs"
