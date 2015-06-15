@@ -425,6 +425,13 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 				build_camera(ob);
 				break;
 		}
+
+		Key *key =BKE_key_from_object(ob);
+		if (key != NULL) {
+			ComponentKey geometry_key((ID*)ob->data, DEPSNODE_TYPE_GEOMETRY);
+			ComponentKey key_key(&key->id, DEPSNODE_TYPE_GEOMETRY);
+			add_relation(key_key, geometry_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Shapekeys");
+		}
 	}
 
 	/* particle systems */
@@ -810,6 +817,10 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			/* assume that driver affects a transform... */
 			OperationKey local_transform_key(id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
 			add_relation(driver_key, local_transform_key, DEPSREL_TYPE_OPERATION, "[Driver -> Transform]");
+		}
+		else if (GS(id->name) == ID_KE) {
+			ComponentKey geometry_key(id, DEPSNODE_TYPE_GEOMETRY);
+			add_relation(driver_key, geometry_key, DEPSREL_TYPE_GEOMETRY_EVAL, "[Driver -> Shapekey Geometry]");
 		}
 	}
 

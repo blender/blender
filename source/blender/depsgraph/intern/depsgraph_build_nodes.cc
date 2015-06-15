@@ -897,6 +897,9 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *ob)
 void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 {
 	build_animdata(&key->id);
+
+	add_operation_node(&key->id, DEPSNODE_TYPE_GEOMETRY, DEPSOP_TYPE_EXEC, NULL,
+	                   DEG_OPCODE_PLACEHOLDER, "Shapekey Eval");
 }
 
 /* ObData Geometry Evaluation */
