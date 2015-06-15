@@ -207,3 +207,56 @@ void SEQUENCER_OT_strip_modifier_move(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", "Name", MAX_NAME, "Name", "Name of modifier to remove");
 	RNA_def_enum(ot->srna, "direction", direction_items, SEQ_MODIFIER_MOVE_UP, "Type", "");
 }
+
+static int strip_modifier_copy_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = scene->ed;
+	Sequence *seq = BKE_sequencer_active_get(scene);
+	Sequence *seq_iter;
+
+	if (!seq || !seq->modifiers.first)
+		return OPERATOR_CANCELLED;
+
+	SEQP_BEGIN(ed, seq_iter)
+	{
+		if (seq_iter == seq)
+			continue;
+
+		if (seq_iter->modifiers.first) {
+			SequenceModifierData *smd_tmp, *smd = seq_iter->modifiers.first;
+
+			while(smd) {
+				smd_tmp = smd->next;
+				BLI_remlink(&seq_iter->modifiers, smd);
+				BKE_sequence_modifier_free(smd);
+				smd = smd_tmp;
+			}
+			BLI_listbase_clear(&seq_iter->modifiers);
+		}
+
+		BKE_sequence_modifier_list_copy(seq_iter, seq);
+	}
+	SEQ_END
+
+	BKE_sequence_invalidate_cache(scene, seq);
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy to Selected Strips";
+	ot->idname = "SEQUENCER_OT_strip_modifier_copy";
+	ot->description = "Copy modifiers of the active strip to all selected strips";
+
+	/* api callbacks */
+	ot->exec = strip_modifier_copy_exec;
+	ot->poll = strip_modifier_active_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
