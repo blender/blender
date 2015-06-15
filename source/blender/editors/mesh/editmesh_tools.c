@@ -5220,7 +5220,7 @@ void MESH_OT_offset_edge_loops(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Offset Edge Loop";
 	ot->idname = "MESH_OT_offset_edge_loops";
-	ot->description = "Creates offset edge loop from the current selection";
+	ot->description = "Create offset edge loop from the current selection";
 
 	/* api callbacks */
 	ot->exec = edbm_offset_edgeloop_exec;

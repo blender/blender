@@ -187,6 +187,7 @@ class SpellChecker:
         "unhide",
         "unindent",
         "unkeyed",
+        "unmute",
         "unpremultiply",
         "unprojected",
         "unreacted",
