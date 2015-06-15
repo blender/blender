@@ -1135,7 +1135,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 #endif
 		const float *rf = NULL;
 		const unsigned char *rc = NULL;
-		const bool do_sample_line = (y % rows_per_sample_line) == 0;
+		const int savedlines = y / rows_per_sample_line;
+		const bool do_sample_line = (savedlines < scopes->sample_lines) && (y % rows_per_sample_line) == 0;
 		float min[3] = { FLT_MAX,  FLT_MAX,  FLT_MAX},
 		      max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 		int x, c;
@@ -1183,7 +1184,6 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 			/* save sample if needed */
 			if (do_sample_line) {
 				const float fx = (float)x / (float)ibuf->x;
-				const int savedlines = y / rows_per_sample_line;
 				const int idx = 2 * (ibuf->x * savedlines + x);
 				save_sample_line(scopes, idx, fx, rgba, ycc);
 			}
