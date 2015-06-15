@@ -264,6 +264,7 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 	ED_object_shape_key_add(C, ob, from_mix);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DAG_relations_tag_update(CTX_data_main(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -301,6 +302,7 @@ static int shape_key_remove_exec(bContext *C, wmOperator *op)
 
 	if (changed) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DAG_relations_tag_update(CTX_data_main(C));
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 		return OPERATOR_FINISHED;
