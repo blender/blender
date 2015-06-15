@@ -48,6 +48,7 @@ extern bool gUseVisibilityTemp;
 
 #ifdef WITH_PYTHON
 PyMODINIT_FUNC initBGE(void);
+PyMODINIT_FUNC initApplicationPythonBinding(void);
 PyMODINIT_FUNC initGameLogicPythonBinding(void);
 PyMODINIT_FUNC initGameKeysPythonBinding(void);
 PyMODINIT_FUNC initRasterizerPythonBinding(void);

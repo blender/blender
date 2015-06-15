@@ -138,6 +138,7 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_appdir.h"
+#include "BKE_blender.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
 #include "MEM_guardedalloc.h"
@@ -2027,6 +2028,11 @@ PyMODINIT_FUNC initBGE(void)
 	/* skip "bge." */
 #define SUBMOD (mod_full + 4)
 
+	mod_full = "bge.app";
+	PyModule_AddObject(mod, SUBMOD, (submodule = initApplicationPythonBinding()));
+	PyDict_SetItemString(sys_modules, mod_full, submodule);
+	Py_INCREF(submodule);
+
 	mod_full = "bge.constraints";
 	PyModule_AddObject(mod, SUBMOD, (submodule = initConstraintPythonBinding()));
 	PyDict_SetItemString(sys_modules, mod_full, submodule);
@@ -2549,6 +2555,77 @@ PyMODINIT_FUNC initGameKeysPythonBinding()
 
 	return m;
 }
+
+
+
+/* ------------------------------------------------------------------------- */
+/* Application: application values that remain unchanged during runtime       */
+/* ------------------------------------------------------------------------- */
+
+PyDoc_STRVAR(Application_module_documentation,
+	"This module contains application values that remain unchanged during runtime."
+	);
+
+static struct PyModuleDef Application_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"bge.app",  /* m_name */
+	Application_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	NULL,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+
+PyMODINIT_FUNC initApplicationPythonBinding()
+{
+	PyObject *m;
+	PyObject *d;
+
+	m = PyModule_Create(&Application_module_def);
+	
+	// Add some symbolic constants to the module
+	d = PyModule_GetDict(m);
+
+	PyDict_SetItemString(d, "version", Py_BuildValue("(iii)",
+		BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION));
+	PyDict_SetItemString(d, "version_string", PyUnicode_FromFormat("%d.%02d (sub %d)",
+		BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION));
+	PyDict_SetItemString(d, "version_char", PyUnicode_FromString(
+		STRINGIFY(BLENDER_VERSION_CHAR)));
+
+	PyDict_SetItemString(d, "has_texture_ffmpeg",
+#ifdef WITH_FFMPEG
+		Py_True
+#else
+		Py_False
+#endif
+	);
+	PyDict_SetItemString(d, "has_joystick",
+#ifdef WITH_SDL
+		Py_True
+#else
+		Py_False
+#endif
+	);
+	PyDict_SetItemString(d, "has_physics",
+#ifdef WITH_BULLET
+		Py_True
+#else
+		Py_False
+#endif
+	);
+
+	// Check for errors
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		PyErr_Clear();
+	}
+
+	return m;
+}
+
 
 // utility function for loading and saving the globalDict
 int saveGamePythonConfig( char **marshal_buffer)
