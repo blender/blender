@@ -4285,7 +4285,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 			float value, min, max, step, precision;
 
 			value = RNA_property_float_get(&rc->ptr, rc->prop);
-			RNA_property_float_ui_range(&rc->ptr, rc->prop, &min, &min, &step, &precision);
+			RNA_property_float_ui_range(&rc->ptr, rc->prop, &min, &max, &step, &precision);
 
 			rc->initial_value = value;
 			rc->min_value = min_ff(value, min);
