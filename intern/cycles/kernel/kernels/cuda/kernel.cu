@@ -22,6 +22,7 @@
 #include "../../kernel_globals.h"
 #include "../../kernel_film.h"
 #include "../../kernel_path.h"
+#include "../../kernel_path_branched.h"
 #include "../../kernel_bake.h"
 
 /* device data taken from CUDA occupancy calculator */

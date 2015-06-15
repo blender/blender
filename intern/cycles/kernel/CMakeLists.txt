@@ -47,6 +47,7 @@ set(SRC_HEADERS
 	kernel_montecarlo.h
 	kernel_passes.h
 	kernel_path.h
+	kernel_path_branched.h
 	kernel_path_common.h
 	kernel_path_state.h
 	kernel_path_surface.h
