@@ -56,7 +56,7 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg, ShaderData *sd, PathR
 }
 
 
-/* branched path tracing: bounce off surface and integrate indirect light */
+/* bounce off surface and integrate indirect light */
 ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGlobals *kg,
 	RNG *rng, ShaderData *sd, float3 throughput, float num_samples_adjust,
 	PathState *state, PathRadiance *L)
@@ -161,7 +161,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				}
 #endif
 
-#if defined(__EMISSION__) && defined(__BRANCHED_PATH__)
+#ifdef __EMISSION__
 				/* direct light */
 				if(kernel_data.integrator.use_direct_light) {
 					bool all = kernel_data.integrator.sample_all_lights_direct;
