@@ -5181,6 +5181,57 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
 }
 
+static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMOperator bmop;
+
+	EDBM_op_init(
+	        em, &bmop, op,
+	        "offset_edgeloops edges=%he",
+	        BM_ELEM_SELECT);
+
+	BMO_op_exec(em->bm, &bmop);
+
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+
+	/* If in face-only select mode, switch to edge select mode so that
+	 * an edge-only selection is not inconsistent state */
+	if (em->selectmode == SCE_SELECT_FACE) {
+		em->selectmode = SCE_SELECT_EDGE;
+		EDBM_selectmode_set(em);
+		EDBM_selectmode_to_scene(C);
+	}
+
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
+
+	if (!EDBM_op_finish(em, &bmop, op, true)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(em, true, true);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_offset_edge_loops(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Offset Edge Loop";
+	ot->idname = "MESH_OT_offset_edge_loops";
+	ot->description = "Creates offset edge loop from the current selection";
+
+	/* api callbacks */
+	ot->exec = edbm_offset_edgeloop_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* Keep internal, since this is only meant to be accessed via 'MESH_OT_offset_edge_loops_slide' */
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
 #ifdef WITH_BULLET
 static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 {

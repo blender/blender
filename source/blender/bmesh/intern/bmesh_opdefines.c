@@ -1866,6 +1866,26 @@ static BMOpDefine bmo_inset_region_def = {
 };
 
 /*
+ * Edgeloop Offset.
+ *
+ * Creates edge loops based on simple edge-outset method.
+ */
+static BMOpDefine bmo_offset_edgeloops_def = {
+	"offset_edgeloops",
+	/* slots_in */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input faces */
+	 {{'\0'}},
+	},
+	/* slots_out */
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* output faces */
+	 {{'\0'}},
+	},
+	bmo_offset_edgeloops_exec,
+	(BMO_OPTYPE_FLAG_NORMALS_CALC |
+	 BMO_OPTYPE_FLAG_SELECT_FLUSH),
+};
+
+/*
  * Wire Frame.
  *
  * Makes a wire-frame copy of faces.
@@ -2021,6 +2041,7 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_duplicate_def,
 	&bmo_holes_fill_def,
 	&bmo_face_attribute_fill_def,
+	&bmo_offset_edgeloops_def,
 	&bmo_edgeloop_fill_def,
 	&bmo_edgenet_fill_def,
 	&bmo_edgenet_prepare_def,
