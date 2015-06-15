@@ -44,6 +44,19 @@
 #include "BLI_utildefines.h"
 #include "utfconv.h"
 
+/* keep local to this file */
+struct __dirstream {
+	HANDLE handle;
+	WIN32_FIND_DATAW data;
+	char path[MAX_PATH];
+	long dd_loc;
+	long dd_size;
+	char dd_buf[4096];
+	void *dd_direct;
+
+	struct dirent direntry;
+};
+
 /* Note: MinGW (FREE_WINDOWS) has opendir() and _wopendir(), and only the
  * latter accepts a path name of wchar_t type.  Rather than messing up with
  * extra #ifdef's here and there, Blender's own implementations of opendir()
