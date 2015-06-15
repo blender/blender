@@ -40,7 +40,7 @@
 #  define _STACK_SIZETEST(stack, off) (void)(stack), (void)(off)
 #  define _STACK_SWAP_TOTALLOC(stack_a, stack_b) (void)(stack_a), (void)(stack_b)
 #endif
-#define _STACK_BOUNDSTEST(stack, index) ((void)stack, BLI_assert(index >= 0 && index < _##stack##_index))
+#define _STACK_BOUNDSTEST(stack, index) ((void)stack, BLI_assert((unsigned int)index < _##stack##_index))
 
 
 #define STACK_SIZE(stack)           ((void)stack, (_##stack##_index))
