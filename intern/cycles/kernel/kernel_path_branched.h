@@ -197,6 +197,10 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 	debug_data_init(&debug_data);
 #endif
 
+	/* Main Loop
+	 * Here we only handle transparency intersections from the camera ray.
+	 * Indirect bounces are handled in kernel_branched_path_surface_indirect_light().
+	 */
 	for(;;) {
 		/* intersect scene */
 		Intersection isect;
@@ -207,7 +211,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 		uint lcg_state = 0;
 
 		if(kernel_data.bvh.have_curves) {
-			if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {	
+			if(kernel_data.cam.resolution == 1) {
 				float3 pixdiff = ray.dD.dx + ray.dD.dy;
 				/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
 				difl = kernel_data.curve.minimum_width * len(pixdiff) * 0.5f;
@@ -223,11 +227,8 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #endif
 
 #ifdef __KERNEL_DEBUG__
-		if(state.flag & PATH_RAY_CAMERA) {
-			debug_data.num_bvh_traversal_steps += isect.num_traversal_steps;
-			debug_data.num_bvh_traversed_instances += isect.num_traversed_instances;
-		}
-		debug_data.num_ray_bounces++;
+		debug_data.num_bvh_traversal_steps += isect.num_traversal_steps;
+		debug_data.num_bvh_traversed_instances += isect.num_traversed_instances;
 #endif
 
 #ifdef __VOLUME__
@@ -464,7 +465,10 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 				break;
 		}
 
-		path_state_next(kg, &state, LABEL_TRANSPARENT);
+		/* Update Path State */
+		state.flag |= PATH_RAY_TRANSPARENT;
+		state.transparent_bounce++;
+
 		ray.P = ray_offset(sd.P, -sd.Ng);
 		ray.t -= sd.ray_length; /* clipping works through transparent */
 
