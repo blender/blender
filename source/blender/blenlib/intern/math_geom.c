@@ -2337,7 +2337,7 @@ void axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 	transpose_m3(r_mat);
 
 	BLI_assert(!is_negative_m3(r_mat));
-	BLI_assert(fabsf(dot_m3_v3_row_z(r_mat, normal) - 1.0f) < BLI_ASSERT_UNIT_EPSILON);
+	BLI_assert((fabsf(dot_m3_v3_row_z(r_mat, normal) - 1.0f) < BLI_ASSERT_UNIT_EPSILON) || is_zero_v3(normal));
 }
 
 /****************************** Interpolation ********************************/
