@@ -55,9 +55,9 @@ public:
 	virtual ~ImageRender (void);
 
 	/// get background color
-	int getBackground (int idx) { return (idx < 0 || idx > 3) ? 0 : int(m_background[idx]*255.f); }
+	float getBackground (int idx);
 	/// set background color
-	void setBackground (int red, int green, int blue, int alpha);
+	void setBackground (float red, float green, float blue, float alpha);
 
 	/// clipping distance
 	float getClip (void) { return m_clip; }

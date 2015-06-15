@@ -218,6 +218,8 @@ When the texture object is deleted, the new texture is deleted and the old textu
 
       background color
 
+      :type: int or float list [r, g, b, a] in [0.0, 255.0]
+
    .. attribute:: capsize
 
       size of render area
@@ -314,6 +316,8 @@ When the texture object is deleted, the new texture is deleted and the old textu
    .. attribute:: background
 
       background color
+
+      :type: int or float list [r, g, b, a] in [0.0, 255.0]
 
    .. attribute:: capsize
 

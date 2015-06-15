@@ -90,14 +90,19 @@ ImageRender::~ImageRender (void)
 		m_camera->Release();
 }
 
+// get background color
+float ImageRender::getBackground (int idx)
+{
+	return (idx < 0 || idx > 3) ? 0.0f : m_background[idx] * 255.0f;
+}
 
 // set background color
-void ImageRender::setBackground (int red, int green, int blue, int alpha)
+void ImageRender::setBackground (float red, float green, float blue, float alpha)
 {
-	m_background[0] = (red < 0) ? 0.f : (red > 255) ? 1.f : float(red)/255.f;
-	m_background[1] = (green < 0) ? 0.f : (green > 255) ? 1.f : float(green)/255.f;
-	m_background[2] = (blue < 0) ? 0.f : (blue > 255) ? 1.f : float(blue)/255.f;
-	m_background[3] = (alpha < 0) ? 0.f : (alpha > 255) ? 1.f : float(alpha)/255.f;
+	m_background[0] = (red < 0.0f) ? 0.0f : (red > 255.0f) ? 1.0f : red / 255.0f;
+	m_background[1] = (green < 0.0f) ? 0.0f : (green > 255.0f) ? 1.0f : green / 255.0f;
+	m_background[2] = (blue < 0.0f) ? 0.0f : (blue > 255.0f) ? 1.0f : blue / 255.0f;
+	m_background[3] = (alpha < 0.0f) ? 0.0f : (alpha > 255.0f) ? 1.0f : alpha / 255.0f;
 }
 
 // set background color from scene
@@ -105,10 +110,12 @@ void ImageRender::setBackgroundFromScene (KX_Scene *scene)
 {
 	if (scene) {
 		const float *background_color = scene->GetWorldInfo()->getBackColor();
-		setBackground((int) (background_color[0] * 255.0f), (int) (background_color[1] * 255.0f), (int) (background_color[2] * 255.0f), 255);
+		copy_v3_v3(m_background, background_color);
+		m_background[3] = 1.0f;
 	}
 	else {
-		setBackground(0, 0, 255, 255);
+		const float blue_color[] = {0.0f, 0.0f, 1.0f, 1.0f};
+		copy_v4_v4(m_background, blue_color);
 	}
 }
 
@@ -360,7 +367,7 @@ static int ImageRender_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 // get background color
 static PyObject *getBackground (PyImage *self, void *closure)
 {
-	return Py_BuildValue("[BBBB]",
+	return Py_BuildValue("[ffff]",
 	                     getImageRender(self)->getBackground(0),
 	                     getImageRender(self)->getBackground(1),
 	                     getImageRender(self)->getBackground(2),
@@ -372,20 +379,20 @@ static int setBackground(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 4
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 3)))
-	{
-		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 4 integer between 0 and 255");
+		|| (!PyFloat_Check(PySequence_Fast_GET_ITEM(value, 0)) && !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0)))
+		|| (!PyFloat_Check(PySequence_Fast_GET_ITEM(value, 1)) && !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
+		|| (!PyFloat_Check(PySequence_Fast_GET_ITEM(value, 2)) && !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2)))
+		|| (!PyFloat_Check(PySequence_Fast_GET_ITEM(value, 3)) && !PyLong_Check(PySequence_Fast_GET_ITEM(value, 3)))) {
+
+		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 4 floats or ints between 0.0 and 255.0");
 		return -1;
 	}
 	// set background color
 	getImageRender(self)->setBackground(
-	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
-	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2))),
-	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 3))));
+	        PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0)),
+	        PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1)),
+	        PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 2)),
+	        PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 3)));
 	// success
 	return 0;
 }
