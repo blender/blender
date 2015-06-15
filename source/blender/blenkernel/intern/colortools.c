@@ -1087,6 +1087,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 
 	/* convert to number of lines with logarithmic scale */
 	scopes->sample_lines = (scopes->accuracy * 0.01f) * (scopes->accuracy * 0.01f) * ibuf->y;
+	CLAMP_MIN(scopes->sample_lines, 1);
 	
 	if (scopes->sample_full)
 		scopes->sample_lines = ibuf->y;
