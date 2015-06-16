@@ -5417,7 +5417,7 @@ static void slide_origdata_interp_data_vert(
 				co_next = slide_origdata_orig_vert_co(sod, l_next->v);
 			}
 
-			if (co_prev_ok && co_next_ok && (area_tri_v3(co_prev, sv->co_orig_3d, co_next) > eps)) {
+			if (co_prev_ok && co_next_ok && (area_squared_tri_v3(co_prev, sv->co_orig_3d, co_next) > eps)) {
 				const float dist = dist_signed_squared_to_corner_v3v3v3(
 				        sv->v->co, co_prev, sv->co_orig_3d, co_next, f_copy->no);
 				loop_weights[j] = (dist >= 0.0f) ? 1.0f : ((dist <= -eps) ? 0.0f : (1.0f + (dist / eps)));
