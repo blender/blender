@@ -29,26 +29,26 @@ Physics Constraints (bge.constraints)
    :arg physicsid_2: the physics id of the second object in constraint.
    :type physicsid_2: int
 
-   :arg constrainttype: the type of the constraint.
-   :type constrainttype: int
+   :arg constraint_type: the type of the constraint.
+   :type constraint_type: int
 
-   :arg pivot_X: pivot X position (optional).
-   :type pivot_X: float
+   :arg pivot_x: pivot X position (optional).
+   :type pivot_x: float
 
-   :arg pivot_Y: pivot Y position (optional).
-   :type pivot_Y: float
+   :arg pivot_y: pivot Y position (optional).
+   :type pivot_y: float
 
-   :arg pivot_Z: pivot Z position (optional).
-   :type pivot_Z: float
+   :arg pivot_z: pivot Z position (optional).
+   :type pivot_z: float
 
-   :arg axis_X: X axis angle in degrees (optional).
-   :type axis_X: float
+   :arg axis_x: X axis angle in degrees (optional).
+   :type axis_x: float
 
-   :arg axis_Y: Y axis angle in degrees (optional).
-   :type axis_Y: float
+   :arg axis_y: Y axis angle in degrees (optional).
+   :type axis_y: float
 
-   :arg axis_Z: Z axis angle in degrees (optional).
-   :type axis_Z: float
+   :arg axis_z: Z axis angle in degrees (optional).
+   :type axis_z: float
 
    :arg flag: 128 to disable collision between linked bodies (optional).
    :type flag: int
