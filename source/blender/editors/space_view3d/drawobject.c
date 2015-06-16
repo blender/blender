@@ -5593,22 +5593,22 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						UI_ThemeColorShadeAlpha(TH_WIRE, 0, -100);
 					glEnable(GL_BLEND);
 					glBegin(GL_LINES);
-					for (i = 1; i < res[0]-1; ++i) {
-						float f = interpf(b[0], a[0], (float)i / (float)(res[0]-1));
+					for (i = 1; i < res[0] - 1; ++i) {
+						float f = interpf(b[0], a[0], (float)i / (float)(res[0] - 1));
 						glVertex3f(f, a[1], a[2]); glVertex3f(f, b[1], a[2]);
 						glVertex3f(f, b[1], a[2]); glVertex3f(f, b[1], b[2]);
 						glVertex3f(f, b[1], b[2]); glVertex3f(f, a[1], b[2]);
 						glVertex3f(f, a[1], b[2]); glVertex3f(f, a[1], a[2]);
 					}
-					for (i = 1; i < res[1]-1; ++i) {
-						float f = interpf(b[1], a[1], (float)i / (float)(res[1]-1));
+					for (i = 1; i < res[1] - 1; ++i) {
+						float f = interpf(b[1], a[1], (float)i / (float)(res[1] - 1));
 						glVertex3f(a[0], f, a[2]); glVertex3f(b[0], f, a[2]);
 						glVertex3f(b[0], f, a[2]); glVertex3f(b[0], f, b[2]);
 						glVertex3f(b[0], f, b[2]); glVertex3f(a[0], f, b[2]);
 						glVertex3f(a[0], f, b[2]); glVertex3f(a[0], f, a[2]);
 					}
-					for (i = 1; i < res[2]-1; ++i) {
-						float f = interpf(b[2], a[2], (float)i / (float)(res[2]-1));
+					for (i = 1; i < res[2] - 1; ++i) {
+						float f = interpf(b[2], a[2], (float)i / (float)(res[2] - 1));
 						glVertex3f(a[0], a[1], f); glVertex3f(b[0], a[1], f);
 						glVertex3f(b[0], a[1], f); glVertex3f(b[0], b[1], f);
 						glVertex3f(b[0], b[1], f); glVertex3f(a[0], b[1], f);

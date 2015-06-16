@@ -517,7 +517,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj
 			dl = dl->next;
 		}
 
-		/* XXX (obedit && obedit->actcol) ? (obedit->actcol-1) : 0)) { */
+		/* XXX (obedit && obedit->actcol) ? (obedit->actcol - 1) : 0)) { */
 		if (totvert && (tot = BLI_scanfill_calc_ex(&sf_ctx,
 		                                           scanfill_flag,
 		                                           normal_proj)))

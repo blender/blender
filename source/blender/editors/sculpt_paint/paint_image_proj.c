@@ -830,11 +830,11 @@ static int line_isect_y(const float p1[2], const float p2[2], const float y_leve
 	}
 
 	if (p1[1] > y_level && p2[1] < y_level) {
-		*x_isect = (p2[0] * (p1[1] - y_level) + p1[0] * (y_level - p2[1])) / y_diff;  /*(p1[1]-p2[1]);*/
+		*x_isect = (p2[0] * (p1[1] - y_level) + p1[0] * (y_level - p2[1])) / y_diff;  /* (p1[1] - p2[1]); */
 		return ISECT_TRUE;
 	}
 	else if (p1[1] < y_level && p2[1] > y_level) {
-		*x_isect = (p2[0] * (y_level - p1[1]) + p1[0] * (p2[1] - y_level)) / y_diff;  /*(p2[1]-p1[1]);*/
+		*x_isect = (p2[0] * (y_level - p1[1]) + p1[0] * (p2[1] - y_level)) / y_diff;  /* (p2[1] - p1[1]); */
 		return ISECT_TRUE;
 	}
 	else {
@@ -863,11 +863,11 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
 	}
 
 	if (p1[0] > x_level && p2[0] < x_level) {
-		*y_isect = (p2[1] * (p1[0] - x_level) + p1[1] * (x_level - p2[0])) / x_diff; /*(p1[0]-p2[0]);*/
+		*y_isect = (p2[1] * (p1[0] - x_level) + p1[1] * (x_level - p2[0])) / x_diff;  /* (p1[0] - p2[0]); */
 		return ISECT_TRUE;
 	}
 	else if (p1[0] < x_level && p2[0] > x_level) {
-		*y_isect = (p2[1] * (x_level - p1[0]) + p1[1] * (p2[0] - x_level)) / x_diff; /*(p2[0]-p1[0]);*/
+		*y_isect = (p2[1] * (x_level - p1[0]) + p1[1] * (p2[0] - x_level)) / x_diff;  /* (p2[0] - p1[0]); */
 		return ISECT_TRUE;
 	}
 	else {

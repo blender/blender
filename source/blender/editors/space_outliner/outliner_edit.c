@@ -789,7 +789,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	else {
 		/* pop up panel - no previous, or user didn't want search after previous */
 		name[0] = '\0';
-// XXX		if (sbutton(name, 0, sizeof(name)-1, "Find: ") && name[0]) {
+// XXX		if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) {
 //			te = outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
 //		}
 //		else return; /* XXX RETURN! XXX */

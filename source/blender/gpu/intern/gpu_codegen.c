@@ -118,7 +118,7 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 		if (ELEM(*str, ' ', '(', ')', ',', '\t', '\n', '\r'))
 			break;
 		else {
-			if (token && len < max-1) {
+			if (token && len < max - 1) {
 				*token = *str;
 				token++;
 				len++;
@@ -238,7 +238,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 			BLI_dynstr_appendf(ds, " param%d", a);
 #  endif
 
-			if (a != function->totparam-1)
+			if (a != function->totparam - 1)
 				BLI_dynstr_append(ds, ", ");
 		}
 		BLI_dynstr_append(ds, ");\n");
