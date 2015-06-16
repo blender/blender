@@ -44,11 +44,14 @@
 #include "BLI_utildefines.h"
 #include "utfconv.h"
 
+#define PATH_SUFFIX     "\\*"
+#define PATH_SUFFIX_LEN 2
+
 /* keep local to this file */
 struct __dirstream {
 	HANDLE handle;
 	WIN32_FIND_DATAW data;
-	char path[MAX_PATH];
+	char path[MAX_PATH + PATH_SUFFIX_LEN];
 	long dd_loc;
 	long dd_size;
 	char dd_buf[4096];
@@ -67,25 +70,25 @@ struct __dirstream {
 DIR *opendir(const char *path)
 {
 	wchar_t *path_16 = alloc_utf16_from_8(path, 0);
+	int path_len;
+	DIR *newd = NULL;
 
-	if (GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) {
-		DIR *newd = MEM_mallocN(sizeof(DIR), "opendir");
-
+	if ((GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) &&
+	    ((path_len = strlen(path)) < (sizeof(newd->path) - PATH_SUFFIX_LEN)))
+	{
+		newd = MEM_mallocN(sizeof(DIR), "opendir");
 		newd->handle = INVALID_HANDLE_VALUE;
-		sprintf(newd->path, "%s\\*", path);
-		
+		memcpy(newd->path, path, path_len);
+		memcpy(newd->path + path_len, PATH_SUFFIX, PATH_SUFFIX_LEN + 1);
+
 		newd->direntry.d_ino = 0;
 		newd->direntry.d_off = 0;
 		newd->direntry.d_reclen = 0;
 		newd->direntry.d_name = NULL;
-		
-		free(path_16);
-		return newd;
 	}
-	else {
-		free(path_16);
-		return NULL;
-	}
+
+	free(path_16);
+	return newd;
 }
 
 static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
