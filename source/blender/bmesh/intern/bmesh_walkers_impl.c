@@ -426,7 +426,9 @@ static void bmw_LoopShellWireWalker_begin(BMWalker *walker, void *data)
 		case BM_VERT:
 		{
 			BMVert *v = (BMVert *)h;
-			bmw_LoopShellWireWalker_visitVert(walker, v, NULL);
+			if (v->e) {
+				bmw_LoopShellWireWalker_visitVert(walker, v, NULL);
+			}
 			break;
 		}
 		case BM_EDGE:
