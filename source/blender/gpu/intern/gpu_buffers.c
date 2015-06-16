@@ -942,15 +942,31 @@ static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray_, int *UNUSED(in
 {
 	MEdge *medge;
 	unsigned int *varray = (unsigned int *)varray_;
-	int i, totedge;
+	int i, totedge, iloose, inorm;
 
 	medge = dm->getEdgeArray(dm);
 	totedge = dm->getNumEdges(dm);
 
+	inorm = 0;
+	iloose = totedge - 1;
+
 	for (i = 0; i < totedge; i++, medge++) {
-		varray[i * 2] = dm->drawObject->vert_points[medge->v1].point_index;
-		varray[i * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
+		if (medge->flag & ME_LOOSEEDGE) {
+			varray[iloose * 2] = dm->drawObject->vert_points[medge->v1].point_index;
+			varray[iloose * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
+			iloose--;
+		}
+		else {
+			varray[inorm * 2] = dm->drawObject->vert_points[medge->v1].point_index;
+			varray[inorm * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
+			inorm++;
+		}
 	}
+
+	iloose++;
+	dm->drawObject->tot_loose_edge = totedge - iloose;
+	dm->drawObject->loose_edge_offset = iloose;
+
 }
 
 static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(mat_orig_to_new), void *UNUSED(user))

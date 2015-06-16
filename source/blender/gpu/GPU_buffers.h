@@ -113,6 +113,9 @@ typedef struct GPUDrawObject {
 	/* caches of the original DerivedMesh values */
 	int totvert;
 	int totedge;
+
+	int loose_edge_offset;
+	int tot_loose_edge;
 } GPUDrawObject;
 
 /* used for GLSL materials */

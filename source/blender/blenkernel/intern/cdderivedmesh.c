@@ -432,33 +432,8 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
 {
-	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MEdge *medge = cddm->medge;
-	int i;
-	
-	int prevstart = 0;
-	int prevdraw = 1;
-	int draw = 1;
-	
 	GPU_edge_setup(dm);
-	for (i = 0; i < dm->numEdgeData; i++, medge++) {
-		if (medge->flag & ME_LOOSEEDGE) {
-			draw = 1;
-		}
-		else {
-			draw = 0;
-		}
-		if (prevdraw != draw) {
-			if (prevdraw > 0 && (i - prevstart) > 0) {
-				GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
-			}
-			prevstart = i;
-		}
-		prevdraw = draw;
-	}
-	if (prevdraw > 0 && (i - prevstart) > 0) {
-		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
-	}
+	GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, dm->drawObject->loose_edge_offset * 2, dm->drawObject->tot_loose_edge * 2);
 	GPU_buffer_unbind();
 }
 
