@@ -61,6 +61,9 @@
 #  define USE_KDTREE
 #endif
 
+/* disable in production, it can fail on near zero area ngons */
+// #define USE_STRICT_ASSERT
+
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
@@ -797,6 +800,7 @@ static void polyfill_prepare(
 	}
 	else {
 		/* chech we're passing in correcty args */
+#ifdef USE_STRICT_ASSERT
 #ifndef NDEBUG
 		if (coords_sign == 1) {
 			BLI_assert(cross_poly_v2(coords, coords_tot) >= 0.0f);
@@ -804,6 +808,7 @@ static void polyfill_prepare(
 		else {
 			BLI_assert(cross_poly_v2(coords, coords_tot) <= 0.0f);
 		}
+#endif
 #endif
 	}
 
