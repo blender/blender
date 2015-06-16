@@ -940,33 +940,62 @@ static void GPU_buffer_copy_mcol(DerivedMesh *dm, float *varray_, int *index, in
 
 static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray_, int *UNUSED(index), int *UNUSED(mat_orig_to_new), void *UNUSED(user))
 {
-	MEdge *medge;
+	MEdge *medge, *medge_base;
 	unsigned int *varray = (unsigned int *)varray_;
-	int i, totedge, iloose, inorm;
+	int i, totedge, iloose, inorm, iloosehidden, inormhidden;
+	int tot_loose_hidden = 0, tot_loose = 0;
+	int tot_hidden = 0, tot = 0;
 
-	medge = dm->getEdgeArray(dm);
+	medge_base = medge = dm->getEdgeArray(dm);
 	totedge = dm->getNumEdges(dm);
 
-	inorm = 0;
-	iloose = totedge - 1;
-
 	for (i = 0; i < totedge; i++, medge++) {
-		if (medge->flag & ME_LOOSEEDGE) {
-			varray[iloose * 2] = dm->drawObject->vert_points[medge->v1].point_index;
-			varray[iloose * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
-			iloose--;
+		if (medge->flag & ME_EDGEDRAW) {
+			if (medge->flag & ME_LOOSEEDGE) tot_loose++;
+			else tot++;
 		}
 		else {
-			varray[inorm * 2] = dm->drawObject->vert_points[medge->v1].point_index;
-			varray[inorm * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
-			inorm++;
+			if (medge->flag & ME_LOOSEEDGE) tot_loose_hidden++;
+			else tot_hidden++;
 		}
 	}
 
-	iloose++;
-	dm->drawObject->tot_loose_edge = totedge - iloose;
-	dm->drawObject->loose_edge_offset = iloose;
+	inorm = 0;
+	inormhidden = tot;
+	iloose = tot + tot_hidden;
+	iloosehidden = iloose + tot_loose;
 
+	medge = medge_base;
+	for (i = 0; i < totedge; i++, medge++) {
+		if (medge->flag & ME_EDGEDRAW) {
+			if (medge->flag & ME_LOOSEEDGE) {
+				varray[iloose * 2] = dm->drawObject->vert_points[medge->v1].point_index;
+				varray[iloose * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
+				iloose++;
+			}
+			else {
+				varray[inorm * 2] = dm->drawObject->vert_points[medge->v1].point_index;
+				varray[inorm * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
+				inorm++;
+			}
+		}
+		else {
+			if (medge->flag & ME_LOOSEEDGE) {
+				varray[iloosehidden * 2] = dm->drawObject->vert_points[medge->v1].point_index;
+				varray[iloosehidden * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
+				iloosehidden++;
+			}
+			else {
+				varray[inormhidden * 2] = dm->drawObject->vert_points[medge->v1].point_index;
+				varray[inormhidden * 2 + 1] = dm->drawObject->vert_points[medge->v2].point_index;
+				inormhidden++;
+			}
+		}
+	}
+
+	dm->drawObject->tot_loose_edge_drawn = tot_loose;
+	dm->drawObject->loose_edge_offset = tot + tot_hidden;
+	dm->drawObject->tot_edge_drawn = tot;
 }
 
 static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(mat_orig_to_new), void *UNUSED(user))

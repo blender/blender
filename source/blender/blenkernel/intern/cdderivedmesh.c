@@ -392,11 +392,6 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MEdge *medge = cddm->medge;
-	int i;
-	int prevstart = 0;
-	int prevdraw = 1;
-	bool draw = true;
 	
 	if (cddm->pbvh && cddm->pbvh_draw &&
 	    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH)
@@ -407,25 +402,15 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 	}
 	
 	GPU_edge_setup(dm);
-	for (i = 0; i < dm->numEdgeData; i++, medge++) {
-		if ((drawAllEdges || (medge->flag & ME_EDGEDRAW)) &&
-		        (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
-		{
-			draw = true;
-		}
-		else {
-			draw = false;
-		}
-		if (prevdraw != draw) {
-			if (prevdraw > 0 && (i - prevstart) > 0) {
-				GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
-			}
-			prevstart = i;
-		}
-		prevdraw = draw;
+	if (drawAllEdges && drawLooseEdges) {
+		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, 0, dm->drawObject->totedge * 2);
 	}
-	if (prevdraw > 0 && (i - prevstart) > 0) {
-		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, prevstart * 2, (i - prevstart) * 2);
+	else if (drawAllEdges) {
+		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, 0, dm->drawObject->loose_edge_offset * 2);
+	}
+	else {
+		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, 0, dm->drawObject->tot_edge_drawn * 2);
+		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, dm->drawObject->loose_edge_offset * 2, dm->drawObject->tot_loose_edge_drawn * 2);
 	}
 	GPU_buffer_unbind();
 }
@@ -433,7 +418,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
 {
 	GPU_edge_setup(dm);
-	GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, dm->drawObject->loose_edge_offset * 2, dm->drawObject->tot_loose_edge * 2);
+	GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, dm->drawObject->loose_edge_offset * 2, (dm->drawObject->totedge - dm->drawObject->loose_edge_offset) * 2);
 	GPU_buffer_unbind();
 }
 

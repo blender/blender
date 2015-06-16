@@ -115,7 +115,8 @@ typedef struct GPUDrawObject {
 	int totedge;
 
 	int loose_edge_offset;
-	int tot_loose_edge;
+	int tot_loose_edge_drawn;
+	int tot_edge_drawn;
 } GPUDrawObject;
 
 /* used for GLSL materials */
