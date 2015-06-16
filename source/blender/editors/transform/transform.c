@@ -2923,6 +2923,8 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 		values.scale = values.scale / data->warp_init_dist;
 	}
 
+	copy_v2_v2(t->values, values.vector);
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN * 2];
@@ -2940,8 +2942,6 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 		             WM_bool_as_string(is_clamp));
 	}
 	
-	copy_v2_v2(t->values, values.vector);
-
 	values.angle *= -1.0f;
 	values.scale *= data->warp_init_dist;
 	
@@ -3098,6 +3098,8 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	
 	applyNumInput(&t->num, &value);
 	
+	t->values[0] = value;
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -3111,8 +3113,6 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Shear: %.3f %s (Press X or Y to set shear axis)"), value, t->proptext);
 	}
 	
-	t->values[0] = value;
-
 	unit_m3(smat);
 	
 	// Custom data signals shear direction
@@ -3375,7 +3375,7 @@ static void applyResize(TransInfo *t, const int mval[2])
 		ratio = t->values[0];
 	}
 	
-	size[0] = size[1] = size[2] = ratio;
+	copy_v3_fl(size, ratio);
 	
 	snapGridIncrement(t, size);
 	
@@ -3481,12 +3481,10 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td;
 	float size[3], mat[3][3];
-	float ratio;
 	int i;
 	char str[MAX_INFO_LEN];
 	
-	ratio = t->values[0];
-	size[0] = size[1] = size[2] = ratio;
+	copy_v3_fl(size, t->values[0]);
 	
 	snapGridIncrement(t, size);
 	
@@ -3591,10 +3589,7 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 	
 	applyNumInput(&t->num, &ratio);
 	
-	if (ratio < 0)
-		ratio = 0.0f;
-	else if (ratio > 1)
-		ratio = 1.0f;
+	CLAMP(ratio, 0.0f, 1.0f);
 	
 	t->values[0] = ratio;
 
@@ -3963,6 +3958,8 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 		final = angle_wrap_rad(final);
 	}
 
+	t->values[0] = final;
+
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
 		
@@ -3979,8 +3976,6 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 
-	t->values[0] = final;
-	
 	applyRotationValue(t, final, t->axis);
 	
 	recalcData(t);
@@ -4052,7 +4047,9 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 	char str[MAX_INFO_LEN];
 	size_t ofs = 0;
 	float axis1[3], axis2[3];
+#if 0  /* UNUSED */
 	float mat[3][3], totmat[3][3], smat[3][3];
+#endif
 	float phi[2];
 
 	copy_v3_v3(axis1, t->persinv[0]);
@@ -4060,12 +4057,13 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 	normalize_v3(axis1);
 	normalize_v3(axis2);
 
-	phi[0] = t->values[0];
-	phi[1] = t->values[1];
+	copy_v2_v2(phi, t->values);
 
 	snapGridIncrement(t, phi);
 
 	applyNumInput(&t->num, phi);
+
+	copy_v2_v2(t->values, phi);
 
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN * 2];
@@ -4084,6 +4082,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
 	}
 
+#if 0  /* UNUSED */
 	axis_angle_normalized_to_mat3(smat, axis1, phi[0]);
 	axis_angle_normalized_to_mat3(totmat, axis2, phi[1]);
 
@@ -4091,6 +4090,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
 	// TRANSFORM_FIX_ME
 	//copy_m3_m3(t->mat, mat);	// used in manipulator
+#endif
 
 	applyTrackballValue(t, axis1, axis2, phi);
 
@@ -4416,6 +4416,8 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	applyNumInput(&t->num, &distance);
 
+	t->values[0] = -distance;
+
 	/* header print for NumInput */
 	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Shrink/Fatten:"), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
@@ -4442,9 +4444,6 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" or Alt) Even Thickness %s"),
 	             WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
 	/* done with header string */
-
-
-	t->values[0] = -distance;
 
 	for (i = 0; i < t->total; i++, td++) {
 		float tdistance;  /* temp dist */
@@ -4511,6 +4510,8 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
 	snapGridIncrement(t, &final);
 
 	applyNumInput(&t->num, &final);
+
+	t->values[0] = final;
 
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -4589,6 +4590,8 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	applyNumInput(&t->num, &ratio);
 
+	t->values[0] = ratio;
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -4666,6 +4669,8 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	snapGridIncrement(t, &ratio);
 
 	applyNumInput(&t->num, &ratio);
+
+	t->values[0] = ratio;
 
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
@@ -4765,6 +4770,8 @@ static void applyGPShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 	applyNumInput(&t->num, &ratio);
 
+	t->values[0] = ratio;
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -4837,6 +4844,8 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 
 	applyNumInput(&t->num, &distance);
 
+	t->values[0] = distance;
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -4849,8 +4858,6 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 		/* default header print */
 		BLI_snprintf(str, MAX_INFO_LEN, IFACE_("Push/Pull: %.4f%s %s"), distance, t->con.text, t->proptext);
 	}
-
-	t->values[0] = distance;
 
 	if (t->con.applyRot && t->con.mode & CON_APPLY) {
 		t->con.applyRot(t, NULL, axis, NULL);
@@ -4924,11 +4931,13 @@ static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 
 	weight = t->values[0];
 
-	if (weight > 1.0f) weight = 1.0f;
+	CLAMP_MAX(weight, 1.0f);
 
 	snapGridIncrement(t, &weight);
 
 	applyNumInput(&t->num, &weight);
+
+	t->values[0] = weight;
 
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
@@ -5002,11 +5011,13 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 
 	crease = t->values[0];
 
-	if (crease > 1.0f) crease = 1.0f;
+	CLAMP_MAX(crease, 1.0f);
 
 	snapGridIncrement(t, &crease);
 
 	applyNumInput(&t->num, &crease);
+
+	t->values[0] = crease;
 
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
@@ -5141,7 +5152,7 @@ static void applyBoneSize(TransInfo *t, const int mval[2])
 		ratio = t->values[0];
 	}
 	
-	size[0] = size[1] = size[2] = ratio;
+	copy_v3_fl(size, ratio);
 	
 	snapGridIncrement(t, size);
 	
@@ -5149,6 +5160,8 @@ static void applyBoneSize(TransInfo *t, const int mval[2])
 		constraintNumInput(t, size);
 	}
 	
+	copy_v3_v3(t->values, size);
+
 	size_to_mat3(mat, size);
 	
 	if (t->con.applySize) {
@@ -5215,6 +5228,8 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 	
 	applyNumInput(&t->num, &ratio);
 	
+	t->values[0] = ratio;
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -6787,6 +6802,8 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	applyNumInput(&t->num, &final);
 
+	t->values[0] = final;
+
 	/* header string */
 	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Edge Slide: "), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
@@ -6803,8 +6820,6 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
 	/* done with header string */
-
-	t->values[0] = final;
 
 	/* do stuff here */
 	doEdgeSlide(t, final);
@@ -7347,6 +7362,8 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	applyNumInput(&t->num, &final);
 
+	t->values[0] = final;
+
 	/* header string */
 	ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Vert Slide: "), MAX_INFO_LEN - ofs);
 	if (hasNumInput(&t->num)) {
@@ -7414,6 +7431,8 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 	snapGridIncrement(t, &final);
 
 	applyNumInput(&t->num, &final);
+
+	t->values[0] = final;
 
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -8173,7 +8192,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
 
 	/* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
 	// XXX Need to be able to repeat this
-	t->values[0] = cval[0];
+	/* t->values[0] = cval[0]; */  /* UNUSED (reset again later). */
 
 	/* handle numeric-input stuff */
 	t->vec[0] = 2.0f * (cval[0] - sval[0]) / (maxx - minx);
