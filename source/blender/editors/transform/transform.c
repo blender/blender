@@ -7706,7 +7706,7 @@ static void initSeqSlide(TransInfo *t)
 	t->num.idx_max = t->idx_max;
 
 	t->snap[0] = 0.0f;
-	t->snap[1] = floor(t->scene->r.frs_sec / t->scene->r.frs_sec_base);
+	t->snap[1] = floorf(t->scene->r.frs_sec / t->scene->r.frs_sec_base);
 	t->snap[2] = 10.0f;
 
 	copy_v3_fl(t->num.val_inc, t->snap[1]);
@@ -7773,8 +7773,8 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
 		applyNumInput(&t->num, t->values);
 	}
 
-	t->values[0] = floor(t->values[0] + 0.5f);
-	t->values[1] = floor(t->values[1] + 0.5f);
+	t->values[0] = floorf(t->values[0] + 0.5f);
+	t->values[1] = floorf(t->values[1] + 0.5f);
 
 	headerSeqSlide(t, t->values, str);
 	applySeqSlideValue(t, t->values);
@@ -8013,7 +8013,7 @@ static void applyTimeTranslateValue(TransInfo *t)
 				deltax = (float)(floor(((double)deltax / secf) + 0.5) * secf);
 			}
 			else if (autosnap == SACTSNAP_STEP) {
-				deltax = (float)(floor(deltax + 0.5f));
+				deltax = floorf(deltax + 0.5f);
 			}
 
 			val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
@@ -8027,7 +8027,7 @@ static void applyTimeTranslateValue(TransInfo *t)
 				val = (float)(floor(((double)deltax / secf) + 0.5) * secf);
 			}
 			else if (autosnap == SACTSNAP_STEP) {
-				val = (float)(floor(val + 0.5f));
+				val = floorf(val + 0.5f);
 			}
 
 			*(td->val) = td->ival + val;
@@ -8293,7 +8293,7 @@ static void applyTimeScaleValue(TransInfo *t)
 			fac = (float)(floor((double)fac / secf + 0.5) * secf);
 		}
 		else if (autosnap == SACTSNAP_STEP) {
-			fac = (float)(floor(fac + 0.5f));
+			fac = floorf(fac + 0.5f);
 		}
 
 		/* check if any need to apply nla-mapping */
