@@ -247,8 +247,13 @@ option(WITH_HEADLESS      "Build without graphical support (renderfarm, server m
 mark_as_advanced(WITH_HEADLESS)
 
 option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
-option(WITH_EXTERNAL_AUDASPACE "Build with external audaspace library installed on the system (only enable if you know what you're doing!)" OFF)
+option(WITH_SYSTEM_AUDASPACE "Build with external audaspace library installed on the system (only enable if you know what you're doing!)" OFF)
 mark_as_advanced(WITH_AUDASPACE)
+mark_as_advanced(WITH_SYSTEM_AUDASPACE)
+
+if(NOT WITH_AUDASPACE)
+	set(WITH_SYSTEM_AUDASPACE OFF)
+endif()
 
 option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
 
@@ -707,6 +712,29 @@ if(HAVE_STDBOOL_H)
 	add_definitions(-DHAVE_STDBOOL_H)
 endif()
 
+if(WITH_AUDASPACE)
+	if(WITH_SYSTEM_AUDASPACE)
+		add_definitions("-DAUD_DEVICE_H=<AUD_Device.h>")
+		add_definitions("-DAUD_SPECIAL_H=<AUD_Special.h>")
+		add_definitions("-DAUD_SOUND_H=<AUD_Sound.h>")
+		add_definitions("-DAUD_HANDLE_H=<AUD_Handle.h>")
+		add_definitions("-DAUD_SEQUENCE_H=<AUD_Sequence.h>")
+		add_definitions("-DAUD_TYPES_H=<AUD_Types.h>")
+		add_definitions("-DAUD_PYTHON_H=<python/PyAPI.h>")
+		set(AUDASPACE_DEFINITIONS -DWITH_AUDASPACE -DWITH_SYSTEM_AUDASPACE)
+	else()
+		add_definitions("-DAUD_DEVICE_H=<AUD_C-API.h>")
+		add_definitions("-DAUD_SPECIAL_H=<AUD_C-API.h>")
+		add_definitions("-DAUD_SOUND_H=<AUD_C-API.h>")
+		add_definitions("-DAUD_HANDLE_H=<AUD_C-API.h>")
+		add_definitions("-DAUD_SEQUENCE_H=<AUD_C-API.h>")
+		add_definitions("-DAUD_TYPES_H=<AUD_Space.h>")
+		set(AUDASPACE_C_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/intern/audaspace/intern")
+		set(AUDASPACE_PY_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/intern/audaspace/intern")
+		set(AUDASPACE_DEFINITIONS -DWITH_AUDASPACE)
+	endif()
+endif()
+
 #-----------------------------------------------------------------------------
 # Check for valid directories
 # ... a partial checkout may cause this.
@@ -884,9 +912,9 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	# Audio IO
-	if(WITH_EXTERNAL_AUDASPACE)
+	if(WITH_SYSTEM_AUDASPACE)
 		find_package_wrapper(Audaspace)
-		if(NOT AUDASPACE_FOUND OR NOT CAUDASPACE_FOUND)
+		if(NOT AUDASPACE_FOUND OR NOT AUDASPACE_C_FOUND)
 			message(FATAL_ERROR "Audaspace external library not found!")
 		endif()
 	endif()
@@ -1548,6 +1576,16 @@ elseif(WIN32)
 			set(SDL_INCLUDE_DIR ${SDL}/include)
 			set(SDL_LIBRARY SDL2)
 			set(SDL_LIBPATH ${SDL}/lib)
+		endif()
+
+		# Audio IO
+		if(WITH_SYSTEM_AUDASPACE)
+			set(AUDASPACE_INCLUDE_DIRS ${LIBDIR}/audaspace/include/audaspace)
+			set(AUDASPACE_LIBRARIES ${LIBDIR}/audaspace/lib/audaspace.lib)
+			set(AUDASPACE_C_INCLUDE_DIRS ${LIBDIR}/audaspace/include/audaspace)
+			set(AUDASPACE_C_LIBRARIES ${LIBDIR}/audaspace/lib/audaspace-c.lib)
+			set(AUDASPACE_PY_INCLUDE_DIRS ${LIBDIR}/audaspace/include/audaspace)
+			set(AUDASPACE_PY_LIBRARIES ${LIBDIR}/audaspace/lib/audaspace-py.lib)
 		endif()
 
 		# used in many places so include globally, like OpenGL

@@ -37,14 +37,14 @@
 #include "KX_SoundActuator.h"
 
 #ifdef WITH_AUDASPACE
-#  ifdef WITH_EXTERNAL_AUDASPACE
+#  ifdef WITH_SYSTEM_AUDASPACE
 typedef float sample_t;
-#    include <audaspace/AUD_Sound.h>
-#    include <audaspace/AUD_Special.h>
-#    include <audaspace/AUD_Device.h>
-#    include <audaspace/AUD_Handle.h>
-#    include <audaspace/python/PyAPI.h>
+#    include AUD_PYTHON_H
 #  endif
+#  include AUD_SOUND_H
+#  include AUD_SPECIAL_H
+#  include AUD_DEVICE_H
+#  include AUD_HANDLE_H
 #endif
 
 #include "KX_GameObject.h"

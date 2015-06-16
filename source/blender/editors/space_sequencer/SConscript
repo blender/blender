@@ -33,7 +33,6 @@ incs = [
     '#/intern/guardedalloc',
     env['BF_GLEW_INC'],
     '#/intern/glew-mx',
-    '#/intern/audaspace/intern',
     '../include',
     '../../blenfont',
     '../../blenkernel',
@@ -46,6 +45,10 @@ incs = [
     ]
 
 defs = env['BF_GL_DEFINITIONS']
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs.append(env['BF_AUDASPACE_C_INC'])
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs.append(env['BF_PTHREADS_INC'])

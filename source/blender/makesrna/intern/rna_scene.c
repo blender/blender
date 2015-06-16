@@ -58,13 +58,7 @@
 
 #ifdef WITH_QUICKTIME
 #  include "quicktime_export.h"
-#  ifdef WITH_AUDASPACE
-#    ifdef WITH_EXTERNAL_AUDASPACE
-#      include <audaspace/AUD_Types.h>
-#    else
-#      include "AUD_Space.h"
-#    endif
-#  endif
+#  include AUD_TYPES_H
 #endif
 
 #ifdef WITH_FFMPEG

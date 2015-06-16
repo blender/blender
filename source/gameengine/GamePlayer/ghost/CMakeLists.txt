@@ -85,14 +85,11 @@ if(WITH_INTERNATIONAL)
 endif()
 
 if(WITH_AUDASPACE)
-	add_definitions(-DWITH_AUDASPACE)
+	add_definitions(${AUDASPACE_DEFINITIONS})
 
-	if(WITH_EXTERNAL_AUDASPACE)
-		add_definitions(-DWITH_EXTERNAL_AUDASPACE)
-		list(APPEND INC_SYS ${CAUDASPACE_INCLUDE_DIRS})
-	else()
-		list(APPEND INC ../../../../intern/audaspace/intern)
-	endif()
+	list(APPEND INC_SYS
+		${AUDASPACE_C_INCLUDE_DIRS}
+	)
 endif()
 
 if(WITH_SDL AND WITH_SDL_DYNLOAD)

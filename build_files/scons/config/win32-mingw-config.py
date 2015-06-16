@@ -23,6 +23,8 @@ BF_FFMPEG_LIBPATH = LIBDIR + '/ffmpeg/lib'
 BF_FFMPEG_INC =  LIBDIR + '/ffmpeg/include'
 BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-55.dll ${BF_FFMPEG_LIBPATH}/avcodec-55.dll ${BF_FFMPEG_LIBPATH}/avdevice-55.dll ${BF_FFMPEG_LIBPATH}/avutil-52.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll'
 
+WITH_BF_AUDASPACE = True
+
 WITH_BF_JACK = False
 BF_JACK = LIBDIR + '/jack'
 BF_JACK_INC = '${BF_JACK}/include'

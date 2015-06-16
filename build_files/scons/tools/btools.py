@@ -107,6 +107,7 @@ def print_arguments(args, bc):
 def validate_arguments(args, bc):
     opts_list = [
             'WITH_BF_FREESTYLE', 'WITH_BF_PYTHON', 'WITH_BF_PYTHON_SAFETY', 'WITH_BF_PYTHON_SECURITY', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LIBPATH_ARCH', 'WITH_BF_STATICPYTHON', 'WITH_OSX_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL', 'BF_PYTHON_ABI_FLAGS',
+            'WITH_BF_AUDASPACE', 'BF_AUDASPACE_C_INC', 'BF_AUDASPACE_PY_INC', 'BF_AUDASPACE_DEF',
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH', 'WITH_BF_SDL_DYNLOAD',
             'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH', 'WITH_BF_JACK_DYNLOAD',
@@ -297,6 +298,11 @@ def read_opts(env, cfg, args):
         ('BF_OPENAL_LIB_STATIC', 'Path to OpenAL static library', ''),
         ('BF_OPENAL_LIBPATH', 'Path to OpenAL library', ''),
         (BoolVariable('WITH_BF_STATICOPENAL', 'Staticly link to openal', False)),
+
+        (BoolVariable('WITH_BF_AUDASPACE', 'Build with audaspace if true', True)),
+        ('BF_AUDASPACE_C_INC', 'audaspace-c include path', ''),
+        ('BF_AUDASPACE_PY_INC', 'audaspace-py include path', ''),
+        ('BF_AUDASPACE_DEF', 'audaspace defines', ''),
 
         (BoolVariable('WITH_BF_SDL', 'Use SDL if true', False)),
         ('BF_SDL', 'SDL base path', ''),

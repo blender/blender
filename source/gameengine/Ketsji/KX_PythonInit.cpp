@@ -61,7 +61,7 @@ extern "C" {
 
 	#  include "marshal.h" /* python header for loading/saving dicts */
 }
-#include "AUD_PyInit.h"
+#include "../../../../intern/audaspace/intern/AUD_PyInit.h"
 
 #endif  /* WITH_PYTHON */
 

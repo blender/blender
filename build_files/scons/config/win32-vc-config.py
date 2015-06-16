@@ -42,6 +42,8 @@ BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
+WITH_BF_AUDASPACE = True
+
 WITH_BF_JACK = False
 BF_JACK = LIBDIR + '/jack'
 BF_JACK_INC = '${BF_JACK}/include ${BF_FFMPEG}/include/msvc'

@@ -39,7 +39,6 @@ incs = [
     '#source/blender',
     env['BF_GLEW_INC'],
     '#/intern/glew-mx',
-    '#intern/audaspace/intern',
     '#intern/ghost/include',
     '#intern/moto/include',
     '#source/blender/blenfont',
@@ -66,6 +65,10 @@ incs = [
     '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
     ]
 incs = ' '.join(incs)
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs += ' ' + env['BF_AUDASPACE_C_INC']
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')

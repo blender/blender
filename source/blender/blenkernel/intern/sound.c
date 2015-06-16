@@ -48,14 +48,12 @@
 #include "DNA_speaker_types.h"
 
 #ifdef WITH_AUDASPACE
-#  ifdef WITH_EXTERNAL_AUDASPACE
-#    include <audaspace/AUD_Sound.h>
-#    include <audaspace/AUD_Sequence.h>
-#    include <audaspace/AUD_Handle.h>
-#    include <audaspace/AUD_Special.h>
-#    include "AUD_Set.h"
-#  else
-#    include "AUD_C-API.h"
+#  include AUD_SOUND_H
+#  include AUD_SEQUENCE_H
+#  include AUD_HANDLE_H
+#  include AUD_SPECIAL_H
+#  ifdef WITH_SYSTEM_AUDASPACE
+#    include "../../../intern/audaspace/intern/AUD_Set.h"
 #  endif
 #endif
 
@@ -845,7 +843,7 @@ float BKE_sound_get_length(bSound *sound)
 
 bool BKE_sound_is_jack_supported(void)
 {
-#ifdef WITH_EXTERNAL_AUDASPACE
+#ifdef WITH_SYSTEM_AUDASPACE
 	return 1;
 #else
 	return (bool)AUD_isJackSupported();

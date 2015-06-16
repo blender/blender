@@ -102,11 +102,7 @@ typedef void * wmUIHandlerRemoveFunc;
 }
 
 #ifdef WITH_AUDASPACE
-#  ifdef WITH_EXTERNAL_AUDASPACE
-#    include <audaspace/AUD_Device.h>
-#  else
-#    include "AUD_C-API.h"
-#  endif
+#  include AUD_DEVICE_H
 #endif
 
 static BlendFileData *load_game_data(char *filename)

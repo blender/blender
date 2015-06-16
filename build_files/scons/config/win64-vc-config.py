@@ -55,6 +55,8 @@ BF_SDL_INC = '${BF_SDL}/include'
 BF_SDL_LIB = 'SDL2.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
+WITH_BF_AUDASPACE = True
+
 WITH_BF_JACK = False
 
 BF_PTHREADS = LIBDIR + '/pthreads'

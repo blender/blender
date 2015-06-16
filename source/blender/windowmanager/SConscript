@@ -32,7 +32,6 @@ sources = env.Glob('intern/*.c')
 
 incs = [
     '.',
-    '#/intern/audaspace/intern',
     '#/intern/ghost',
     '#/intern/guardedalloc',
     '#/intern/memutil',
@@ -73,6 +72,10 @@ if env['BF_BUILDINFO']:
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'win64-mingw'):
     if env['WITH_BF_IME']:
         defs.append('WITH_INPUT_IME')
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs += ' ' + env['BF_AUDASPACE_C_INC']
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')

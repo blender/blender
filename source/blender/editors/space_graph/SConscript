@@ -33,7 +33,6 @@ incs = [
     '#/intern/guardedalloc',
     env['BF_GLEW_INC'],
     '#/intern/glew-mx',
-    '#/intern/audaspace/intern',
     '../include',
     '../../blenfont',
     '../../blenkernel',
@@ -46,6 +45,10 @@ incs = [
     ]
 
 defs = env['BF_GL_DEFINITIONS']
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs.append(env['BF_AUDASPACE_C_INC'])
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')

@@ -35,7 +35,6 @@ incs = [
     '#/intern/memutil',
     env['BF_GLEW_INC'],
     '#/intern/glew-mx',
-    '#/intern/audaspace/intern',
     '#/intern/cycles/blender',
     '../blenfont',
     '../blenkernel',

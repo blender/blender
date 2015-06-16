@@ -72,7 +72,10 @@
 #include "WM_api.h"  /* only for WM_main_playanim */
 
 #ifdef WITH_AUDASPACE
-#include "AUD_C-API.h"
+#  include AUD_DEVICE_H
+#  include AUD_HANDLE_H
+#  include AUD_SOUND_H
+#  include AUD_SPECIAL_H
 
 AUD_Sound *source = NULL;
 AUD_Handle *playback_handle = NULL;
@@ -1107,8 +1110,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	AUD_initOnce();
 
-	if (!(audio_device = AUD_init("OpenAL", specs, AUD_DEFAULT_BUFFER_SIZE, "Blender")))
-		audio_device = AUD_init("Null", specs, AUD_DEFAULT_BUFFER_SIZE, "Blender");
+	if (!(audio_device = AUD_init("OpenAL", specs, 1024, "Blender")))
+		audio_device = AUD_init("Null", specs, 0, "Blender");
 
 #endif
 

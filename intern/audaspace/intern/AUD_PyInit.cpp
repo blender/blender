@@ -28,9 +28,9 @@
 
 #include "AUD_PyInit.h"
 
-#include <audaspace/AUD_Sound.h>
-#include <audaspace/python/PySound.h>
-#include <audaspace/python/PyAPI.h>
+#include <AUD_Sound.h>
+#include <python/PySound.h>
+#include <python/PyAPI.h>
 
 extern "C" {
 extern void *BKE_sound_get_factory(void *sound);

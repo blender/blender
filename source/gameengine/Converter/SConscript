@@ -37,7 +37,6 @@ incs = [
     '#intern/guardedalloc',
     '#intern/string',
     '#source/blender',
-    '#intern/audaspace/intern',
     '#intern/moto/include',
     '#source/blender/blenkernel',
     '#source/blender/blenlib',
@@ -78,6 +77,10 @@ if env['BF_DEBUG']:
 if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']
     defs.append('WITH_PYTHON')
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs += ' ' + env['BF_AUDASPACE_C_INC']
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')

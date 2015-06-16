@@ -794,6 +794,16 @@ elseif(WIN32)
 			DESTINATION "."
 		)
 	endif()
+	
+	if(WITH_SYSTEM_AUDASPACE)
+		install(
+			FILES
+				${LIBDIR}/audaspace/lib/audaspace.dll
+				${LIBDIR}/audaspace/lib/audaspace-c.dll
+				${LIBDIR}/audaspace/lib/audaspace-py.dll
+			DESTINATION "."
+		)
+	endif()
 
 	if(NOT CMAKE_CL_64)
 		install(

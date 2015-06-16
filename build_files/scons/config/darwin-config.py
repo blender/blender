@@ -52,6 +52,8 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+WITH_BF_AUDASPACE = True
+
 # we use simply jack framework
 WITH_BF_JACK = True
 BF_JACK = '/Library/Frameworks/Jackmp.framework'

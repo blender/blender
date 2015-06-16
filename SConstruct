@@ -540,12 +540,24 @@ else:
     env['CPPFLAGS'].append('-D__LITTLE_ENDIAN__')
 
 # TODO, make optional (as with CMake)
-env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CPPFLAGS'].append('-DWITH_AVI')
 env['CPPFLAGS'].append('-DWITH_OPENNL')
 
 if env['OURPLATFORM'] not in ('win32-vc', 'win64-vc'):
     env['CPPFLAGS'].append('-DHAVE_STDBOOL_H')
+
+# Audaspace
+
+if env['WITH_BF_AUDASPACE']:
+    env['BF_AUDASPACE_C_INC'] = '#intern/audaspace/intern'
+    env['BF_AUDASPACE_PY_INC'] = '#intern/audaspace/intern'
+    env['BF_AUDASPACE_DEF'] = ['WITH_AUDASPACE']
+    env['BF_AUDASPACE_DEF'].append('AUD_DEVICE_H="<AUD_C-API.h>"')
+    env['BF_AUDASPACE_DEF'].append('AUD_SPECIAL_H="<AUD_C-API.h>"')
+    env['BF_AUDASPACE_DEF'].append('AUD_SOUND_H="<AUD_C-API.h>"')
+    env['BF_AUDASPACE_DEF'].append('AUD_HANDLE_H="<AUD_C-API.h>"')
+    env['BF_AUDASPACE_DEF'].append('AUD_SEQUENCE_H="<AUD_C-API.h>"')
+    env['BF_AUDASPACE_DEF'].append('AUD_TYPES_H="<AUD_Space.h>"')
 
 # OpenGL
 

@@ -48,7 +48,6 @@ incs = [
     env['BF_GLEW_INC'],
     '#/intern/ghost',
     '#/intern/glew-mx',
-    '#/intern/audaspace/intern',
     '#/intern/elbeem/extern',
     '#/intern/iksolver/extern',
     '#/intern/smoke/extern',
@@ -120,6 +119,10 @@ if env['WITH_BF_CINEON']:
 
 if env['WITH_BF_HDR']:
     defs.append('WITH_HDR')
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs += ' ' + env['BF_AUDASPACE_C_INC']
 
 if env['WITH_BF_JACK']:
     defs.append('WITH_JACK')

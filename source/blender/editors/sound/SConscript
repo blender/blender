@@ -31,7 +31,6 @@ sources = env.Glob('*.c')
 
 incs = [
     '#/intern/guardedalloc',
-    '#/intern/audaspace/intern',
     '../include',
     '../../blenkernel',
     '../../blenlib',
@@ -43,6 +42,10 @@ incs = [
 incs = ' '.join(incs)
 
 defs = []
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs += ' ' + env['BF_AUDASPACE_C_INC']
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')

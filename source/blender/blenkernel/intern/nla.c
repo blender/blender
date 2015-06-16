@@ -59,11 +59,7 @@
 #include "BKE_library.h"
 
 #ifdef WITH_AUDASPACE
-#  ifdef WITH_EXTERNAL_AUDASPACE
-#    include <audaspace/AUD_Special.h>
-#  else
-#    include "AUD_C-API.h"
-#  endif
+#  include AUD_SPECIAL_H
 #endif
 
 #include "RNA_access.h"

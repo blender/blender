@@ -26,6 +26,8 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+WITH_BF_AUDASPACE = True
+
 WITH_BF_JACK = False
 BF_JACK = '/usr'
 BF_JACK_INC = '${BF_JACK}/include/jack'
