@@ -369,7 +369,7 @@ void DEG_evaluate_on_refresh(EvaluationContext *eval_ctx,
 {
 	/* Update time on primary timesource. */
 	TimeSourceDepsNode *tsrc = graph->find_time_source();
-	tsrc->cfra = BKE_scene_frame_get(scene);;
+	tsrc->cfra = BKE_scene_frame_get(scene);
 
 	DEG_evaluate_on_refresh_ex(eval_ctx, graph, graph->layers);
 }

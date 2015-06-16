@@ -409,7 +409,7 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
 	     mask_layer = mask_layer->next)
 	{
 		MaskSpline *spline;
-		if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW|MASK_RESTRICT_SELECT)) {
+		if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 		for (spline = mask_layer->splines.first;

@@ -859,7 +859,7 @@ static void cloth_collision_solve_extra(Object *ob, ClothModifierData *clmd, Lis
 	Implicit_Data *id = cloth->implicit;
 	ClothVertex *verts = cloth->verts;
 	int numverts = cloth->numverts;
-	const float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;;
+	const float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 	
 	bool do_extra_solve;
 	int i;

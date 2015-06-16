@@ -1928,7 +1928,7 @@ char *rna_GPUDOF_path(PointerRNA *ptr)
 		}
 	}
 
-	return BLI_strdup("");;
+	return BLI_strdup("");
 }
 
 static void rna_GPUFXSettings_fx_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

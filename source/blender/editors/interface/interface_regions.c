@@ -1637,7 +1637,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
 }
 
 /**
- * Called for creatign new popups and refreshing existing ones.
+ * Called for creating new popups and refreshing existing ones.
  */
 uiBlock *ui_popup_block_refresh(
         bContext *C, uiPopupBlockHandle *handle,

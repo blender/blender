@@ -395,7 +395,7 @@ static Image *imapaint_face_image(Object *ob, Mesh *me, int face_index)
 {
 	Image *ima;
 	MPoly *mp = me->mpoly + face_index;
-	Material *ma = give_current_material(ob, mp->mat_nr + 1);;
+	Material *ma = give_current_material(ob, mp->mat_nr + 1);
 	ima = ma && ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 
 	return ima;

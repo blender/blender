@@ -426,9 +426,9 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 				break;
 		}
 
-		Key *key =BKE_key_from_object(ob);
+		Key *key = BKE_key_from_object(ob);
 		if (key != NULL) {
-			ComponentKey geometry_key((ID*)ob->data, DEPSNODE_TYPE_GEOMETRY);
+			ComponentKey geometry_key((ID *)ob->data, DEPSNODE_TYPE_GEOMETRY);
 			ComponentKey key_key(&key->id, DEPSNODE_TYPE_GEOMETRY);
 			add_relation(key_key, geometry_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Shapekeys");
 		}

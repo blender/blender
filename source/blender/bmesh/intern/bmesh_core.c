@@ -2457,7 +2457,7 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 /**
  * A version of #bmesh_urmv_loop that disconnects multiple loops at once.
  *
- * Handles the task of finding fans boundaris.
+ * Handles the task of finding fans boundaries.
  */
 BMVert *bmesh_urmv_loop_multi(
         BMesh *bm, BMLoop **larr, int larr_len)

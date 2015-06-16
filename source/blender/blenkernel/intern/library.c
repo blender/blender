@@ -1423,7 +1423,7 @@ void id_clear_lib_data(Main *bmain, ID *id)
 	}
 
 	if (GS(id->name) == ID_OB) {
-		Object *object = (Object*)id;
+		Object *object = (Object *)id;
 		if (object->proxy_from != NULL) {
 			object->proxy_from->proxy = NULL;
 			object->proxy_from->proxy_group = NULL;

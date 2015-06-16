@@ -226,7 +226,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *UNUSED(op))
 		if (seq_iter->modifiers.first) {
 			SequenceModifierData *smd_tmp, *smd = seq_iter->modifiers.first;
 
-			while(smd) {
+			while (smd) {
 				smd_tmp = smd->next;
 				BLI_remlink(&seq_iter->modifiers, smd);
 				BKE_sequence_modifier_free(smd);

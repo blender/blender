@@ -64,7 +64,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, r
 	this->m_num_channels = determine_num_channels(memoryProxy->getDataType());
 	this->m_buffer = (float *)MEM_mallocN_aligned(sizeof(float) * determineBufferSize() * this->m_num_channels, 16, "COM_MemoryBuffer");
 	this->m_state = COM_MB_ALLOCATED;
-	this->m_datatype = memoryProxy->getDataType();;
+	this->m_datatype = memoryProxy->getDataType();
 }
 
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)

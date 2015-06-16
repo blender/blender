@@ -535,7 +535,7 @@ PyObject *BaseMathObject_freeze(BaseMathObject *self)
 
 	self->flag |= BASE_MATH_FLAG_IS_FROZEN;
 
-	return Py_INCREF_RET((PyObject *)self);;
+	return Py_INCREF_RET((PyObject *)self);
 }
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg)

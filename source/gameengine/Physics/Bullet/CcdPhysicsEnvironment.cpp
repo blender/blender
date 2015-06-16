@@ -3072,7 +3072,7 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 {
 	Object* blenderobject = gameobj->GetBlenderObject();
 
-	bool isbulletdyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;;
+	bool isbulletdyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
 	bool isbulletsensor = (blenderobject->gameflag & OB_SENSOR) != 0;
 	bool isbulletchar = (blenderobject->gameflag & OB_CHARACTER) != 0;
 	bool isbulletsoftbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;

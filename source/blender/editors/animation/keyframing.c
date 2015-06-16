@@ -1814,8 +1814,8 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 			
 			if (BKE_fcurve_is_protected(fcu)) {
 				BKE_reportf(op->reports, RPT_WARNING,
-							"Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'",
-							strip->name, BKE_idcode_to_name(GS(id->name)), id->name + 2);
+				            "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'",
+				            strip->name, BKE_idcode_to_name(GS(id->name)), id->name + 2);
 			}
 			else {
 				/* remove the keyframe directly
