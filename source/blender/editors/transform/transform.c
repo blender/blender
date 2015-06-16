@@ -5395,11 +5395,36 @@ static void slide_origdata_interp_data_vert(
 
 		/* weight the loop */
 		if (do_loop_weight) {
-			const float *v_prev = slide_origdata_orig_vert_co(sod, l->prev->v);
-			const float *v_next = slide_origdata_orig_vert_co(sod, l->next->v);
-			const float dist = dist_signed_squared_to_corner_v3v3v3(sv->v->co, v_prev, sv->co_orig_3d, v_next, f_copy->no);
 			const float eps = 0.00001f;
-			loop_weights[j] = (dist >= 0.0f) ? 1.0f : ((dist <= -eps) ? 0.0f : (1.0f + (dist / eps)));
+			const BMLoop *l_prev = l->prev;
+			const BMLoop *l_next = l->next;
+			const float *co_prev = slide_origdata_orig_vert_co(sod, l_prev->v);
+			const float *co_next = slide_origdata_orig_vert_co(sod, l_next->v);
+			bool co_prev_ok;
+			bool co_next_ok;
+
+			/* In the unlikely case that we're next to a zero length edge - walk around the to the next.
+			 * Since we only need to check if the vertex is in this corner,
+			 * its not important _which_ loop - as long as its not overlapping 'sv->co_orig_3d', see: T45096. */
+			while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(sv->co_orig_3d, co_prev) > eps)) == false) &&
+			                ((l_prev = l_prev->prev) != l->next)))
+			{
+				co_prev = slide_origdata_orig_vert_co(sod, l_prev->v);
+			}
+			while (UNLIKELY(((co_next_ok = (len_squared_v3v3(sv->co_orig_3d, co_next) > eps)) == false) &&
+			                ((l_next = l_next->next) != l->prev)))
+			{
+				co_next = slide_origdata_orig_vert_co(sod, l_next->v);
+			}
+
+			if (co_prev_ok && co_next_ok && (area_tri_v3(co_prev, sv->co_orig_3d, co_next) > eps)) {
+				const float dist = dist_signed_squared_to_corner_v3v3v3(
+				        sv->v->co, co_prev, sv->co_orig_3d, co_next, f_copy->no);
+				loop_weights[j] = (dist >= 0.0f) ? 1.0f : ((dist <= -eps) ? 0.0f : (1.0f + (dist / eps)));
+			}
+			else {
+				loop_weights[j] = 0.0f;
+			}
 		}
 	}
 
