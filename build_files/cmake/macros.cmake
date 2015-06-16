@@ -104,21 +104,31 @@ macro(file_list_suffix
 endmacro()
 
 
-macro(target_link_libraries_optimized TARGET LIBS)
+function(target_link_libraries_optimized
+	TARGET
+	LIBS
+	)
+
 	foreach(_LIB ${LIBS})
 		target_link_libraries(${TARGET} optimized "${_LIB}")
 	endforeach()
-	unset(_LIB)
-endmacro()
+endfunction()
 
-macro(target_link_libraries_debug TARGET LIBS)
+function(target_link_libraries_debug
+	TARGET
+	LIBS
+	)
+
 	foreach(_LIB ${LIBS})
 		target_link_libraries(${TARGET} debug "${_LIB}")
 	endforeach()
-	unset(_LIB)
-endmacro()
+endfunction()
 
-macro(target_link_libraries_decoupled target libraries_var)
+function(target_link_libraries_decoupled
+	target
+	libraries_var
+	)
+
 	if(NOT MSVC)
 		target_link_libraries(${target} ${${libraries_var}})
 	else()
@@ -127,14 +137,15 @@ macro(target_link_libraries_decoupled target libraries_var)
 		file_list_suffix(_libraries_debug "${${libraries_var}}" "_d")
 		target_link_libraries_debug(${target} "${_libraries_debug}")
 		target_link_libraries_optimized(${target} "${${libraries_var}}")
-		unset(_libraries_debug)
 	endif()
-endmacro()
+endfunction()
 
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
-macro(blender_include_dirs
-	includes)
+function(blender_include_dirs
+	includes
+	)
+
 	set(_ALL_INCS "")
 	foreach(_INC ${ARGV})
 		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
@@ -145,13 +156,12 @@ macro(blender_include_dirs
 		##endif()
 	endforeach()
 	include_directories(${_ALL_INCS})
-	unset(_INC)
-	unset(_ABS_INC)
-	unset(_ALL_INCS)
-endmacro()
+endfunction()
 
-macro(blender_include_dirs_sys
-	includes)
+function(blender_include_dirs_sys
+	includes
+	)
+
 	set(_ALL_INCS "")
 	foreach(_INC ${ARGV})
 		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
@@ -161,13 +171,11 @@ macro(blender_include_dirs_sys
 		##endif()
 	endforeach()
 	include_directories(SYSTEM ${_ALL_INCS})
-	unset(_INC)
-	unset(_ABS_INC)
-	unset(_ALL_INCS)
-endmacro()
+endfunction()
 
-macro(blender_source_group
-	sources)
+function(blender_source_group
+	sources
+	)
 
 	# Group by location on disk
 	source_group("Source Files" FILES CMakeLists.txt)
@@ -177,23 +185,23 @@ macro(blender_source_group
 		if((${_SRC_EXT} MATCHES ".h") OR
 		   (${_SRC_EXT} MATCHES ".hpp") OR
 		   (${_SRC_EXT} MATCHES ".hh"))
-			source_group("Header Files" FILES ${_SRC})
-		else()
-			source_group("Source Files" FILES ${_SRC})
-		endif()
-	endforeach()
 
-	unset(_SRC)
-	unset(_SRC_EXT)
-endmacro()
+			set(GROUP_ID "Header Files")
+		else()
+			set(GROUP_ID "Source Files")
+		endif()
+		source_group("${GROUP_ID}" FILES ${_SRC})
+	endforeach()
+endfunction()
 
 
 # only MSVC uses SOURCE_GROUP
-macro(blender_add_lib_nolist
+function(blender_add_lib_nolist
 	name
 	sources
 	includes
-	includes_sys)
+	includes_sys
+	)
 
 	# message(STATUS "Configuring library ${name}")
 
@@ -213,22 +221,24 @@ macro(blender_add_lib_nolist
 	# Not for system includes because they can resolve to the same path
 	# list_assert_duplicates("${includes_sys}")
 
-endmacro()
+endfunction()
 
 
-macro(blender_add_lib
+function(blender_add_lib
 	name
 	sources
 	includes
-	includes_sys)
+	includes_sys
+	)
 
 	blender_add_lib_nolist(${name} "${sources}" "${includes}" "${includes_sys}")
 
 	set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
-endmacro()
+endfunction()
 
 
-macro(SETUP_LIBDIRS)
+function(SETUP_LIBDIRS)
+
 	link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
 	if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
@@ -288,10 +298,11 @@ macro(SETUP_LIBDIRS)
 	if(WIN32 AND NOT UNIX)
 		link_directories(${PTHREADS_LIBPATH})
 	endif()
-endmacro()
+endfunction()
 
-macro(setup_liblinks
-	target)
+function(setup_liblinks
+	target
+	)
 
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
@@ -302,10 +313,12 @@ macro(setup_liblinks
 	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 	set(CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 
-	target_link_libraries(${target}
-			${PNG_LIBRARIES}
-			${ZLIB_LIBRARIES}
-			${FREETYPE_LIBRARY})
+	target_link_libraries(
+		${target}
+		${PNG_LIBRARIES}
+		${ZLIB_LIBRARIES}
+		${FREETYPE_LIBRARY}
+	)
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
 	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
@@ -402,11 +415,13 @@ macro(setup_liblinks
 				unset(EXPAT_LIB_DEBUG)
 			endif()
 		else()
-			target_link_libraries(${target}
-					${OPENCOLLADA_LIBRARIES}
-					${PCRE_LIBRARIES}
-					${XML2_LIBRARIES}
-					${EXPAT_LIB})
+			target_link_libraries(
+				${target}
+				${OPENCOLLADA_LIBRARIES}
+				${PCRE_LIBRARIES}
+				${XML2_LIBRARIES}
+				${EXPAT_LIB}
+			)
 		endif()
 	endif()
 	if(WITH_MEM_JEMALLOC)
@@ -436,9 +451,11 @@ macro(setup_liblinks
 			${BLENDER_GL_LIBRARIES})
 
 	target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
-endmacro()
+endfunction()
 
-macro(SETUP_BLENDER_SORTED_LIBS)
+
+function(SETUP_BLENDER_SORTED_LIBS)
+
 	get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
 
 	list(APPEND BLENDER_LINK_LIBS
@@ -674,14 +691,12 @@ macro(SETUP_BLENDER_SORTED_LIBS)
 		message(STATUS "Blender Skipping: (${REM_MSG})")
 	endif()
 
-	unset(SEARCHLIB)
-	unset(SORTLIB)
-	unset(REMLIB)
-	unset(REM_MSG)
+
+	set(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} PARENT_SCOPE)
 
 	# for top-level tests
 	set_property(GLOBAL PROPERTY BLENDER_SORTED_LIBS_PROP ${BLENDER_SORTED_LIBS})
-endmacro()
+endfunction()
 
 macro(TEST_SSE_SUPPORT
 	_sse_flags
@@ -1004,37 +1019,39 @@ macro(remove_strict_flags_file
 endmacro()
 
 
-macro(ADD_CHECK_C_COMPILER_FLAG
+function(ADD_CHECK_C_COMPILER_FLAG
 	_CFLAGS
 	_CACHE_VAR
-	_FLAG)
+	_FLAG
+	)
 
 	include(CheckCCompilerFlag)
 
 	CHECK_C_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
 	if(${_CACHE_VAR})
 		# message(STATUS "Using CFLAG: ${_FLAG}")
-		set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}")
+		set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}" PARENT_SCOPE)
 	else()
 		message(STATUS "Unsupported CFLAG: ${_FLAG}")
 	endif()
-endmacro()
+endfunction()
 
-macro(ADD_CHECK_CXX_COMPILER_FLAG
+function(ADD_CHECK_CXX_COMPILER_FLAG
 	_CXXFLAGS
 	_CACHE_VAR
-	_FLAG)
+	_FLAG
+	)
 
 	include(CheckCXXCompilerFlag)
 
 	CHECK_CXX_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
 	if(${_CACHE_VAR})
 		# message(STATUS "Using CXXFLAG: ${_FLAG}")
-		set(${_CXXFLAGS} "${${_CXXFLAGS}} ${_FLAG}")
+		set(${_CXXFLAGS} "${${_CXXFLAGS}} ${_FLAG}" PARENT_SCOPE)
 	else()
 		message(STATUS "Unsupported CXXFLAG: ${_FLAG}")
 	endif()
-endmacro()
+endfunction()
 
 function(get_blender_version)
 	# extracts header vars and defines them in the parent scope:
@@ -1184,7 +1201,7 @@ endmacro()
 # pair of macros to allow libraries to be specify files to install, but to
 # only install them at the end so the directories don't get cleared with
 # the files in them. used by cycles to install addon.
-macro(delayed_install
+function(delayed_install
 	base
 	files
 	destination)
@@ -1197,8 +1214,7 @@ macro(delayed_install
 		endif()
 		set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_DESTINATIONS ${destination})
 	endforeach()
-	unset(f)
-endmacro()
+endfunction()
 
 # note this is a function instead of a macro so that ${BUILD_TYPE} in targetdir
 # does not get expanded in calling but is preserved
@@ -1217,16 +1233,17 @@ function(delayed_do_install
 			list(GET destinations ${i} d)
 			install(FILES ${f} DESTINATION ${targetdir}/${d})
 		endforeach()
-		unset(f)
 	endif()
 endfunction()
 
 
-macro(data_to_c
-      file_from file_to
-      list_to_add)
+function(data_to_c
+	file_from file_to
+	list_to_add
+	)
 
 	list(APPEND ${list_to_add} ${file_to})
+	set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
 
 	get_filename_component(_file_to_path ${file_to} PATH)
 
@@ -1237,21 +1254,21 @@ macro(data_to_c
 		DEPENDS ${file_from} datatoc)
 
 	set_source_files_properties(${file_to} PROPERTIES GENERATED TRUE)
-
-	unset(_file_to_path)
-endmacro()
+endfunction()
 
 
 # same as above but generates the var name and output automatic.
-macro(data_to_c_simple
-      file_from
-      list_to_add)
+function(data_to_c_simple
+	file_from
+	list_to_add
+	)
 
 	# remove ../'s
 	get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}   REALPATH)
 	get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c REALPATH)
 
 	list(APPEND ${list_to_add} ${_file_to})
+	set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
 
 	get_filename_component(_file_to_path ${_file_to} PATH)
 
@@ -1262,17 +1279,13 @@ macro(data_to_c_simple
 		DEPENDS ${_file_from} datatoc)
 
 	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
-
-	unset(_file_from)
-	unset(_file_to)
-	unset(_file_to_path)
-endmacro()
+endfunction()
 
 # macro for converting pixmap directory to a png and then a c file
-macro(data_to_c_simple_icons
-      path_from
-      list_to_add
-      )
+function(data_to_c_simple_icons
+	path_from
+	list_to_add
+	)
 
 	# Conversion steps
 	#  path_from  ->  _file_from  ->  _file_to
@@ -1284,6 +1297,7 @@ macro(data_to_c_simple_icons
 	get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${path_from}.png.c REALPATH)
 
 	list(APPEND ${list_to_add} ${_file_to})
+	set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
 
 	get_filename_component(_file_to_path ${_file_to} PATH)
 
@@ -1305,27 +1319,22 @@ macro(data_to_c_simple_icons
 		)
 
 	set_source_files_properties(${_file_from} ${_file_to} PROPERTIES GENERATED TRUE)
-
-	unset(_path_from_abs)
-	unset(_file_from)
-	unset(_file_to)
-	unset(_file_to_path)
-	unset(_icon_files)
-
-endmacro()
+endfunction()
 
 # XXX Not used for now...
-macro(svg_to_png
-      file_from
-      file_to
-      dpi
-      list_to_add)
+function(svg_to_png
+	file_from
+	file_to
+	dpi
+	list_to_add
+	)
 
 	# remove ../'s
 	get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from} REALPATH)
 	get_filename_component(_file_to   ${CMAKE_CURRENT_SOURCE_DIR}/${file_to}   REALPATH)
 
 	list(APPEND ${list_to_add} ${_file_to})
+	set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
 
 	find_program(INKSCAPE_EXE inkscape)
 	mark_as_advanced(INKSCAPE_EXE)
@@ -1348,15 +1357,12 @@ macro(svg_to_png
 	else()
 		message(WARNING "Inkscape not found, could not re-generate ${_file_to} from ${_file_from}!")
 	endif()
+endfunction()
 
-	unset(_file_from)
-	unset(_file_to)
-
-endmacro()
-
-macro(msgfmt_simple
-      file_from
-      list_to_add)
+function(msgfmt_simple
+	file_from
+	list_to_add
+	)
 
 	# remove ../'s
 	get_filename_component(_file_from_we ${file_from} NAME_WE)
@@ -1365,6 +1371,7 @@ macro(msgfmt_simple
 	get_filename_component(_file_to ${CMAKE_CURRENT_BINARY_DIR}/${_file_from_we}.mo REALPATH)
 
 	list(APPEND ${list_to_add} ${_file_to})
+	set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
 
 	get_filename_component(_file_to_path ${_file_to} PATH)
 
@@ -1375,15 +1382,11 @@ macro(msgfmt_simple
 		DEPENDS msgfmt ${_file_from})
 
 	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
+endfunction()
 
-	unset(_file_from_we)
-	unset(_file_from)
-	unset(_file_to)
-	unset(_file_to_path)
-endmacro()
-
-macro(find_python_package
-      package)
+function(find_python_package
+	package
+	)
 
 	string(TOUPPER ${package} _upper_package)
 
@@ -1421,25 +1424,17 @@ macro(find_python_package
 			                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/dist-packages/${package}', "
 			                "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/dist-packages/${package}', "
 			                "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing python")
-			set(WITH_PYTHON_INSTALL_${_upper_package} OFF)
+			set(WITH_PYTHON_INSTALL_${_upper_package} OFF PARENT_SCOPE)
 		else()
 			message(STATUS "${package} found at '${PYTHON_${_upper_package}_PATH}'")
 		endif()
-
-		unset(_PY_VER_SPLIT)
-		unset(_PY_VER_MAJOR)
 	  endif()
-
-	  unset(_upper_package)
-endmacro()
+endfunction()
 
 # like Python's 'print(dir())'
-macro(print_all_vars)
+function(print_all_vars)
 	get_cmake_property(_vars VARIABLES)
 	foreach(_var ${_vars})
 		message("${_var}=${${_var}}")
 	endforeach()
-	unset(_vars)
-	unset(_var)
-endmacro()
-
+endfunction()
