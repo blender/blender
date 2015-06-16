@@ -1173,13 +1173,20 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 	 *	  since it may be as of yet unkeyed
 	 *  - if starting before the starting frame, don't touch the key, as it may have had some valid
 	 *	  values
+	 *  - if only doing selected keyframes, start from the first one
 	 */
-	match = binarysearch_bezt_index(fcu->bezt, startFrame, fcu->totvert, &keyExists);
-	
-	if (fcu->bezt[match].vec[1][0] < startFrame)
-		i = match + 1;
-	else
-		i = match;
+	if (mode != POSE_PROPAGATE_SELECTED_KEYS) {
+		match = binarysearch_bezt_index(fcu->bezt, startFrame, fcu->totvert, &keyExists);
+		
+		if (fcu->bezt[match].vec[1][0] < startFrame)
+			i = match + 1;
+		else
+			i = match;
+	}
+	else {
+		/* selected - start from first keyframe */
+		i = 0;
+	}
 	
 	for (bezt = &fcu->bezt[i]; i < fcu->totvert; i++, bezt++) {
 		/* additional termination conditions based on the operator 'mode' property go here... */
