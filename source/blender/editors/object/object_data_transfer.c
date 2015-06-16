@@ -531,7 +531,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 
 	/* Mapping options and filtering. */
 	RNA_def_boolean(ot->srna, "use_object_transform", true, "Object Transform",
-	                "Evaluate source and destination meshes in their respective object spaces");
+	                "Evaluate source and destination meshes in global space");
 	RNA_def_boolean(ot->srna, "use_max_distance", false, "Only Neighbor Geometry",
 	                "Source elements must be closer than given distance from destination one");
 	prop = RNA_def_float(ot->srna, "max_distance", 1.0f, 0.0f, FLT_MAX, "Max Distance",
