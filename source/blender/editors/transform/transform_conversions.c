@@ -629,10 +629,10 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	mul_m3_m3m3(td->axismtx, omat, pmat);
 	normalize_m3(td->axismtx);
 
-	if (t->mode == TFM_BONESIZE) {
+	if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
 		bArmature *arm = t->poseobj->data;
 
-		if (arm->drawtype == ARM_ENVELOPE) {
+		if ((t->mode == TFM_BONE_ENVELOPE_DIST) || (arm->drawtype == ARM_ENVELOPE)) {
 			td->loc = NULL;
 			td->val = &bone->dist;
 			td->ival = bone->dist;
@@ -719,7 +719,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 
 	/* make sure no bone can be transformed when a parent is transformed */
 	/* since pchans are depsgraph sorted, the parents are in beginning of list */
-	if (mode != TFM_BONESIZE) {
+	if (!ELEM(mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			bone = pchan->bone;
 			if (bone->flag & BONE_TRANSFORM)
@@ -1126,7 +1126,7 @@ static void createTransArmatureVerts(TransInfo *t)
 		oldtot = t->total;
 
 		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
-			if (t->mode == TFM_BONESIZE) {
+			if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
@@ -1204,9 +1204,9 @@ static void createTransArmatureVerts(TransInfo *t)
 				}
 
 			}
-			else if (t->mode == TFM_BONESIZE) {
+			else if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
 				if (ebo->flag & BONE_SELECTED) {
-					if (arm->drawtype == ARM_ENVELOPE) {
+					if ((t->mode == TFM_BONE_ENVELOPE_DIST) || (arm->drawtype == ARM_ENVELOPE)) {
 						td->loc = NULL;
 						td->val = &ebo->dist;
 						td->ival = ebo->dist;

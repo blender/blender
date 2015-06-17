@@ -2220,14 +2220,21 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		case TFM_BONESIZE:
 		{   /* used for both B-Bone width (bonesize) as for deform-dist (envelope) */
 			bArmature *arm = t->poseobj->data;
-			if (arm->drawtype == ARM_ENVELOPE)
+			if (arm->drawtype == ARM_ENVELOPE) {
 				initBoneEnvelope(t);
-			else
+				t->mode = TFM_BONE_ENVELOPE_DIST;
+			}
+			else {
 				initBoneSize(t);
+			}
 			break;
 		}
 		case TFM_BONE_ENVELOPE:
 			initBoneEnvelope(t);
+			break;
+		case TFM_BONE_ENVELOPE_DIST:
+			initBoneEnvelope(t);
+			t->mode = TFM_BONE_ENVELOPE_DIST;
 			break;
 		case TFM_EDGE_SLIDE:
 		{
