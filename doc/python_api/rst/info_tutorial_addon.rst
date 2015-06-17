@@ -208,6 +208,7 @@ The objects should move as before.
 
 *Keep this addon open in Blender for the next step - Installing.*
 
+
 Install The Addon
 -----------------
 
@@ -221,10 +222,11 @@ restrictions that apply to Python modules and end with a ``.py`` extension.
 
 Once the file is on disk, you can install it as you would for an addon downloaded online.
 
-Open the user **File -> User Preferences**, Select the **Addon** section, press **Install Addon...** and select the file. 
+Open the user :menuselection:`File -> User Preferences`,
+Select the *Addon* section, press *Install Addon...* and select the file. 
 
-Now the addon will be listed and you can enable it by pressing the check-box, if you want it to be enabled on restart,
-press **Save as Default**.
+Now the addon will be listed and you can enable it by pressing the check-box,
+if you want it to be enabled on restart, press *Save as Default*.
 
 .. note::
 
@@ -238,7 +240,7 @@ press **Save as Default**.
       print(addon_utils.paths())
 
    More is written on this topic here:
-   `Directory Layout <http://wiki.blender.org/index.php/Doc:2.6/Manual/Introduction/Installing_Blender/DirectoryLayout>`_
+   `Directory Layout <https://www.blender.org/manual/getting_started/installing_blender/directorylayout.html>`_
 
 
 Your Second Addon
