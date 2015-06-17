@@ -32,6 +32,7 @@
 #include "util_color.h"
 #include "util_foreach.h"
 #include "util_function.h"
+#include "util_logging.h"
 #include "util_progress.h"
 #include "util_time.h"
 
@@ -501,6 +502,11 @@ void BlenderSession::render()
 		if(session->progress.get_cancel())
 			break;
 	}
+
+	double total_time, render_time;
+	session->progress.get_time(total_time, render_time);
+	VLOG(1) << "Total render time: " << total_time;
+	VLOG(1) << "Render time (without synchronization): " << render_time;
 
 	/* clear callback */
 	session->write_render_tile_cb = function_null;

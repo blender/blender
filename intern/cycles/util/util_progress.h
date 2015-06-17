@@ -173,6 +173,12 @@ public:
 		tile_time_ = tile_time;
 	}
 
+	void get_time(double& total_time_, double& render_time_)
+	{
+		total_time_ = (total_time > 0.0)? total_time: 0.0;
+		render_time_ = (render_time > 0.0)? render_time: 0.0;
+	}
+
 	void reset_sample()
 	{
 		thread_scoped_lock lock(progress_mutex);
