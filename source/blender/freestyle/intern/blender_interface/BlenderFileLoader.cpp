@@ -536,8 +536,12 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		else {
 			RE_vlakren_get_normal(_re, obi, vlr, facenormal);
 #ifndef NDEBUG
+			/* test if normals are inverted in rendering [T39669] */
 			float tnor[3];
-			normal_tri_v3(tnor, v3, v2, v1);  /* normals are inverted in rendering */
+			if (vlr->v4)
+				normal_quad_v3(tnor, v4, v3, v2, v1);
+			else
+				normal_tri_v3(tnor, v3, v2, v1);
 			BLI_assert(dot_v3v3(tnor, facenormal) > 0.0f);
 #endif
 			copy_v3_v3(n1, facenormal);
