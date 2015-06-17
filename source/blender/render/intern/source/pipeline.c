@@ -2520,6 +2520,8 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				/* in case it was never initialized */
 				R.sdh = re->sdh;
 				R.stats_draw = re->stats_draw;
+				R.i.starttime = re->i.starttime;
+				R.i.cfra = re->i.cfra;
 				
 				if (update_newframe)
 					BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene, re->lay);
