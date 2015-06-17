@@ -73,7 +73,6 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELEASE         NDEBU
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_MINSIZEREL      NDEBUG)
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  NDEBUG)
 
-
 #-----------------------------------------------------------------------------
 # Set policy
 
@@ -452,6 +451,7 @@ mark_as_advanced(WITH_CPP11)
 
 # Dependency graph
 option(WITH_LEGACY_DEPSGRAPH "Build Blender with legacy dependency graph" ON)
+mark_as_advanced(WITH_LEGACY_DEPSGRAPH)
 
 # avoid using again
 option_defaults_clear()
