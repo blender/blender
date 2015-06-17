@@ -3370,6 +3370,9 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	vector<cl_platform_id> platform_ids;
 	cl_uint num_platforms = 0;
 
+	/* Number of the devices we didn't use from the platform. */
+	cl_uint num_skip_devices = 0;
+
 	/* get devices */
 	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS || num_platforms == 0)
 		return;
@@ -3386,8 +3389,11 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		(getenv("CYCLES_OPENCL_TEST") != NULL) ||
 		(getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST")) != NULL;
 
-	for(int platform = 0; platform < num_platforms; platform++, num_base += num_devices) {
-		num_devices = 0;
+	for(int platform = 0;
+	    platform < num_platforms;
+	    platform++, num_base += num_devices - num_skip_devices)
+	{
+		num_devices = num_skip_devices = 0;
 		if(clGetDeviceIDs(platform_ids[platform], opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
 			continue;
 
@@ -3401,6 +3407,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		string platform_name = pname;
 
 		/* add devices */
+		int num_skip_devices = 0;
 		for(int num = 0; num < num_devices; num++) {
 			cl_device_id device_id = device_ids[num];
 			char name[1024] = "\0";
@@ -3413,6 +3420,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 			     (platform_name == "AMD Accelerated Parallel Processing" &&
 			      device_type == CL_DEVICE_TYPE_GPU)))
 			{
+				++num_skip_devices;
 				continue;
 			}
 
