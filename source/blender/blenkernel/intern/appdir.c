@@ -32,11 +32,10 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
+#include "BKE_blender.h"  /* BLENDER_VERSION */
 #include "BKE_appdir.h"  /* own include */
 
 #include "GHOST_Path-api.h"
-
-#include "../blenkernel/BKE_blender.h"  /* BLENDER_VERSION, bad level include (no function call) */
 
 #include "MEM_guardedalloc.h"
 

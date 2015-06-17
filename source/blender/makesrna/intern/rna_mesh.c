@@ -75,7 +75,6 @@ EnumPropertyItem mesh_delimit_mode_items[] = {
 #include "ED_mesh.h" /* XXX Bad level call */
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "rna_mesh_utils.h"
 

@@ -50,7 +50,7 @@
 #include "UI_view2d.h"
 
 #include "info_intern.h"
-#include "../space_info/textview.h"
+#include "textview.h"
 
 /* complicates things a bit, so leaving in old simple code */
 #define USE_INFO_NEWLINE

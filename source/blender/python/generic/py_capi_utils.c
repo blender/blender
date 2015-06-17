@@ -37,7 +37,7 @@
 
 #include "py_capi_utils.h"
 
-#include "../generic/python_utildefines.h"
+#include "python_utildefines.h"
 
 /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
 #include "BLI_string_utf8.h"

@@ -41,7 +41,7 @@
 #include "py_capi_utils.h"
 #endif
 
-#include "../generic/python_utildefines.h"
+#include "python_utildefines.h"
 
 
 /*********************** ID Property Main Wrapper Stuff ***************/

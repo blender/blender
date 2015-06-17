@@ -46,7 +46,6 @@
 #include "BKE_paint.h"
 #include "BKE_editmesh.h"
 #include "BKE_group.h" /* needed for BKE_group_object_exists() */
-#include "BKE_object.h" /* Needed for BKE_object_matrix_local_get() */
 #include "BKE_object_deform.h"
 
 #include "RNA_access.h"
@@ -202,7 +201,6 @@ EnumPropertyItem object_axis_unsigned_items[] = {
 #include "BKE_scene.h"
 #include "BKE_deform.h"
 
-#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_curve.h"

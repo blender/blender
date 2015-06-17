@@ -75,7 +75,6 @@ EnumPropertyItem sequence_modifier_type_items[] = {
 #include "BKE_idprop.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "IMB_imbuf.h"
 

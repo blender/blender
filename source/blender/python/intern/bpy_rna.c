@@ -53,10 +53,6 @@
 #include "bpy_intern_string.h"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-#  include "MEM_guardedalloc.h"
-#endif
-
-#ifdef USE_PYRNA_INVALIDATE_WEAKREF
 #  include "BLI_ghash.h"
 #endif
 

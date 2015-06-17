@@ -33,7 +33,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "../generic/python_utildefines.h"
+#include "python_utildefines.h"
 
 
 PyDoc_STRVAR(py_blf_position_doc,

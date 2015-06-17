@@ -30,7 +30,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -39,7 +38,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 
@@ -48,7 +46,6 @@
 #include "BKE_node.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
-#include "BKE_idprop.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

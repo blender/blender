@@ -56,7 +56,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
 
-#include "BIF_gl.h"
 #include "GPU_draw.h"
 #include "GPU_debug.h"
 

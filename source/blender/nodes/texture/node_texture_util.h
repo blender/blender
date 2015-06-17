@@ -67,8 +67,6 @@
 #include "node_util.h"
 #include "NOD_texture.h"
 
-#include "NOD_texture.h"
-
 #include "BLF_translation.h"
 
 #include "IMB_imbuf_types.h"

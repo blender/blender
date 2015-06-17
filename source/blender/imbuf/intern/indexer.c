@@ -41,7 +41,6 @@
 #include "IMB_anim.h"
 #include "imbuf.h"
 
-#include "MEM_guardedalloc.h"
 #include "BKE_global.h"
 
 #ifdef WITH_AVI

@@ -109,8 +109,6 @@ EnumPropertyItem color_sets_items[] = {
 #include "ED_object.h"
 #include "ED_armature.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "WM_api.h"
 
 #include "RNA_access.h"

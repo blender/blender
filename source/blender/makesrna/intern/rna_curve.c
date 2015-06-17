@@ -46,9 +46,6 @@
 
 #include "WM_types.h"
 
-#include "BKE_curve.h"
-#include "ED_curve.h"
-
 #ifndef RNA_RUNTIME
 static EnumPropertyItem beztriple_handle_type_items[] = {
 	{HD_FREE, "FREE", 0, "Free", ""},
@@ -123,8 +120,6 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 #endif
 
 #ifdef RNA_RUNTIME
-
-#include "BLI_math.h"
 
 #include "DNA_object_types.h"
 

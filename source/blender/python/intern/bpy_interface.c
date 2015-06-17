@@ -788,7 +788,6 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 }
 
 #ifdef WITH_PYTHON_MODULE
-#include "BLI_fileops.h"
 /* TODO, reloading the module isn't functional at the moment. */
 
 static void bpy_module_free(void *mod);

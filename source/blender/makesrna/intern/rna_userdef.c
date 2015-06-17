@@ -87,7 +87,6 @@ EnumPropertyItem navigation_mode_items[] = {
 #include "DNA_screen_types.h"
 
 #include "BKE_blender.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -104,8 +103,6 @@ EnumPropertyItem navigation_mode_items[] = {
 #include "UI_interface.h"
 
 #include "CCL_api.h"
-
-#include "BKE_addon.h"
 
 #ifdef WITH_SDL_DYNLOAD
 #  include "sdlew.h"

@@ -99,13 +99,8 @@
 #endif //WITH_FFMPEG
 
 #ifdef WITH_REDCODE
-#ifdef _WIN32 /* on windows we use the ones in extern instead */
-#include "libredcode/format.h"
-#include "libredcode/codec.h"
-#else
-#include "libredcode/format.h"
-#include "libredcode/codec.h"
-#endif
+#  include "libredcode/format.h"
+#  include "libredcode/codec.h"
 #endif
 
 #include "IMB_colormanagement.h"
