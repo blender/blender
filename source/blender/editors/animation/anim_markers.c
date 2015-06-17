@@ -499,7 +499,7 @@ static int ed_markers_poll_selected_markers(bContext *C)
 	return ED_markers_get_first_selected(markers) != NULL;
 }
 
-static int ed_markers_poll_selected_no_locked_markers(bContext *C)
+static int ed_markers_poll_markers_exist(bContext *C)
 {
 	ListBase *markers = ED_context_get_markers(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -516,19 +516,6 @@ static int ed_markers_poll_selected_no_locked_markers(bContext *C)
 }
 
 
-/* special poll() which checks if there are any markers at all first */
-static int ed_markers_poll_markers_exist(bContext *C)
-{
-	ListBase *markers = ED_context_get_markers(C);
-	
-	/* first things first: markers can only exist in timeline views */
-	if (ED_operator_animview_active(C) == 0)
-		return 0;
-		
-	/* list of markers must exist, as well as some markers in it! */
-	return (markers && markers->first);
-}
- 
 /* ------------------------ */ 
 
 /**
@@ -958,7 +945,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->exec = ed_marker_move_exec;
 	ot->invoke = ed_marker_move_invoke_wrapper;
 	ot->modal = ed_marker_move_modal;
-	ot->poll = ed_markers_poll_selected_no_locked_markers;
+	ot->poll = ed_markers_poll_markers_exist;
 	ot->cancel = ed_marker_move_cancel;
 	
 	/* flags */
@@ -1051,7 +1038,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 	ot->exec = ed_marker_duplicate_exec;
 	ot->invoke = ed_marker_duplicate_invoke_wrapper;
 	ot->modal = ed_marker_move_modal;
-	ot->poll = ed_markers_poll_selected_no_locked_markers;
+	ot->poll = ed_markers_poll_markers_exist;
 	ot->cancel = ed_marker_move_cancel;
 	
 	/* flags */
@@ -1381,7 +1368,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = ed_marker_delete_invoke_wrapper;
 	ot->exec = ed_marker_delete_exec;
-	ot->poll = ed_markers_poll_selected_no_locked_markers;
+	ot->poll = ed_markers_poll_markers_exist;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1429,7 +1416,7 @@ static void MARKER_OT_rename(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = ed_marker_rename_invoke_wrapper;
 	ot->exec = ed_marker_rename_exec;
-	ot->poll = ed_markers_poll_selected_no_locked_markers;
+	ot->poll = ed_markers_poll_markers_exist;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1543,7 +1530,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = ed_marker_camera_bind_exec;
 	ot->invoke = ed_markers_opwrap_invoke;
-	ot->poll = ed_markers_poll_selected_no_locked_markers;
+	ot->poll = ed_markers_poll_markers_exist;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
