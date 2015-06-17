@@ -193,6 +193,9 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 			fprintf(stdout, IFACE_("Sce: %s Ve:%d Fa:%d La:%d"), rs->scene_name, rs->totvert, rs->totface, rs->totlamp);
 	}
 
+	/* Flush stdout to be sure python callbacks are printing stuff after blender. */
+	fflush(stdout);
+
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	fputc('\n', stdout);
@@ -3436,7 +3439,10 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	
 	BLI_timestr(re->i.lastframetime, name, sizeof(name));
 	printf(" Time: %s", name);
-	
+
+	/* Flush stdout to be sure python callbacks are printing stuff after blender. */
+	fflush(stdout);
+
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	BLI_timestr(re->i.lastframetime - render_time, name, sizeof(name));
