@@ -220,22 +220,24 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 	SEQP_BEGIN(ed, seq_iter)
 	{
-		if (seq_iter == seq)
-			continue;
+		if (seq_iter->flag & SELECT) {
+			if (seq_iter == seq)
+				continue;
 
-		if (seq_iter->modifiers.first) {
-			SequenceModifierData *smd_tmp, *smd = seq_iter->modifiers.first;
+			if (seq_iter->modifiers.first) {
+				SequenceModifierData *smd_tmp, *smd = seq_iter->modifiers.first;
 
-			while (smd) {
-				smd_tmp = smd->next;
-				BLI_remlink(&seq_iter->modifiers, smd);
-				BKE_sequence_modifier_free(smd);
-				smd = smd_tmp;
+				while (smd) {
+					smd_tmp = smd->next;
+					BLI_remlink(&seq_iter->modifiers, smd);
+					BKE_sequence_modifier_free(smd);
+					smd = smd_tmp;
+				}
+				BLI_listbase_clear(&seq_iter->modifiers);
 			}
-			BLI_listbase_clear(&seq_iter->modifiers);
-		}
 
-		BKE_sequence_modifier_list_copy(seq_iter, seq);
+			BKE_sequence_modifier_list_copy(seq_iter, seq);
+		}
 	}
 	SEQ_END
 
