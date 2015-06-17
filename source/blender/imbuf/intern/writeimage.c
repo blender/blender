@@ -33,6 +33,10 @@
 
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "BLI_utildefines.h"
+#include "BLI_path_util.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -49,6 +53,8 @@ static ImBuf *prepare_write_imbuf(const ImFileType *type, ImBuf *ibuf)
 short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 {
 	const ImFileType *type;
+
+	BLI_assert(!BLI_path_is_rel(name));
 
 	if (ibuf == NULL) return (false);
 	ibuf->flags = flags;

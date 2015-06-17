@@ -209,6 +209,8 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
 	int file, a;
 	char filepath_tx[IB_FILENAME_SIZE];
 
+	BLI_assert(!BLI_path_is_rel(filepath));
+
 	imb_cache_filename(filepath_tx, filepath, flags);
 
 	file = BLI_open(filepath_tx, O_BINARY | O_RDONLY, 0);
@@ -236,6 +238,8 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 	int file;
 	char filepath_tx[IB_FILENAME_SIZE];
 	char colorspace[IM_MAX_SPACE] = "\0";
+
+	BLI_assert(!BLI_path_is_rel(filepath));
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 

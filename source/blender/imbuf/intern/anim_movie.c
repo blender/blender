@@ -271,6 +271,8 @@ struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex, char
 {
 	struct anim *anim;
 
+	BLI_assert(!BLI_path_is_rel(name));
+
 	anim = (struct anim *)MEM_callocN(sizeof(struct anim), "anim struct");
 	if (anim != NULL) {
 		if (colorspace) {

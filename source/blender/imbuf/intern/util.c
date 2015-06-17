@@ -190,7 +190,9 @@ int IMB_ispic_type(const char *name)
 	BLI_stat_t st;
 	int fp;
 
-	if (UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
+	BLI_assert(!BLI_path_is_rel(name));
+
+	if (UTIL_DEBUG) printf("%s: loading %s\n", __func__, name);
 	
 	if (BLI_stat(name, &st) == -1)
 		return false;
@@ -389,7 +391,9 @@ int imb_get_anim_type(const char *name)
 	int type;
 	BLI_stat_t st;
 
-	if (UTIL_DEBUG) printf("in getanimtype: %s\n", name);
+	BLI_assert(!BLI_path_is_rel(name));
+
+	if (UTIL_DEBUG) printf("%s: %s\n", __func__, name);
 
 #ifndef _WIN32
 #   ifdef WITH_QUICKTIME
@@ -434,7 +438,7 @@ int imb_get_anim_type(const char *name)
 bool IMB_isanim(const char *filename)
 {
 	int type;
-	
+
 	type = imb_get_anim_type(filename);
 	
 	return (type && type != ANIM_SEQUENCE);
