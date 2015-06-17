@@ -707,6 +707,7 @@ int RE_engine_render(Render *re, int do_all)
 
 	if (re->result->do_exr_tile) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		render_result_save_empty_result_tiles(re);
 		render_result_exr_file_end(re);
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}

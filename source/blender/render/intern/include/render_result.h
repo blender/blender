@@ -79,6 +79,7 @@ void render_result_single_layer_end(struct Render *re);
 
 /* EXR Tile File Render */
 
+void render_result_save_empty_result_tiles(struct Render *re);
 void render_result_exr_file_begin(struct Render *re);
 void render_result_exr_file_end(struct Render *re);
 
