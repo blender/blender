@@ -121,7 +121,7 @@ Here are some more complex examples:
    bpy.context.scene.render.layers["RenderLayer"].samples
 
    # access to the current weight paint brush size
-   bpy.context.tool_settings.weight_paint.brush.size  
+   bpy.context.tool_settings.weight_paint.brush.size
 
    # check if the window is fullscreen
    bpy.context.window.screen.show_fullscreen
@@ -141,15 +141,16 @@ When starting out scripting you will often run into the problem where you're not
 
 There are a few ways to do this.
 
-- Use the Python console's auto-complete to inspect properties. *This can be hit-and-miss but has the advantage
+- Use the Python console's auto-complete to inspect properties.
+  *This can be hit-and-miss but has the advantage
   that you can easily see the values of properties and assign them to interactively see the results.*
+- Copy the Data-Path from the user interface.
+  *Explained further in :ref:`Copy Data Path <info_data_path_copy>`*
+- Using the documentation to follow references.
+  *Explained further in :ref:`Indirect Data Access <info_data_path_indirect>`*
 
-- Copy the Data-Path from the user interface. *Explained further in :ref:`Copy Data Path <info_data_path_copy>`*
 
-- Using the documentation to follow references. *Explained further in :ref:`Indirect Data Access <info_data_path_indirect>`*
-
-
-.. _info_data_path_copy
+.. _info_data_path_copy:
 
 Copy Data Path
 --------------
@@ -172,7 +173,8 @@ you won't be doing collection look-ups on every access and typically you'll want
 then access each :class:`bpy.types.ID` instance by name.
 
 
-Type in the ID path into a Python console :mod:`bpy.context.active_object`. Include the trailing dot and don't hit "enter", yet. 
+Type in the ID path into a Python console :mod:`bpy.context.active_object`.
+Include the trailing dot and don't hit "enter", yet.
 
 Now right-click on the button and select **Copy Data Path**, then paste the result into the console.
 
@@ -191,7 +193,7 @@ Hit "enter" and you'll get the current value of 1. Now try changing the value to
 You can see the value update in the Subdivision-Surface modifier's UI as well as the cube.
 
 
-.. _info_data_path_indirect
+.. _info_data_path_indirect:
 
 Indirect Data Access
 --------------------
@@ -201,32 +203,24 @@ For this example we'll go over something more involved, showing the steps to acc
 Lets say we want to access the texture of a brush via Python, to adjust its ``contrast`` for example.
 
 - Start in the default scene and enable 'Sculpt' mode from the 3D-View header.
-
 - From the toolbar expand the **Texture** panel and add a new texture.
-
   *Notice the texture button its self doesn't have very useful links (you can check the tool-tips).*
-
 - The contrast setting isn't exposed in the sculpt toolbar, so view the texture in the properties panel...
 
   - In the properties button select the Texture context.
-
   - Select the Brush icon to show the brush texture.
-
-  - Expand the **Colors** panel to locate the **Contrast** button.
-
-- Right click on the contrast button and select **Online Python Reference** This takes you to ``bpy.types.Texture.contrast``
-
-- Now we can see that ``contrast`` is a property of texture, so next we'll check on how to access the texture from the brush.
-
+  - Expand the *Colors* panel to locate the *Contrast* button.
+- Right click on the contrast button and select **Online Python Reference**
+  This takes you to ``bpy.types.Texture.contrast``
+- Now we can see that ``contrast`` is a property of texture,
+  so next we'll check on how to access the texture from the brush.
 - Check on the **References** at the bottom of the page, sometimes there are many references, and it may take
   some guess work to find the right one, but in this case its obviously ``Brush.texture``.
 
   *Now we know that the texture can be accessed from* ``bpy.data.brushes["BrushName"].texture``
   *but normally you won't want to access the brush by name, so we'll see now to access the active brush instead.*
-
 - So the next step is to check on where brushes are accessed from via the **References**.
   In this case there is simply ``bpy.context.brush`` which is all we need.
-  
 
 Now you can use the Python console to form the nested properties needed to access brush textures contrast,
 logically we now know.
@@ -282,7 +276,8 @@ are interested to check on the source code.
 
 .. note::
 
-   Not all operators can be called usefully from Python, for more on this see :ref:`using operators <using_operators>`.
+   Not all operators can be called usefully from Python,
+   for more on this see :ref:`using operators <using_operators>`.
 
 
 Info View
@@ -294,7 +289,8 @@ This is located above the file-menu which can be dragged down to display its con
 Select the **Script** screen that comes default with Blender to see its output.
 You can perform some actions and see them show up - delete a vertex for example.
 
-Each entry can be selected (Right-Mouse-Button), then copied :kbd:`Control-C`, usually to paste in the text editor or python console.
+Each entry can be selected (Right-Mouse-Button),
+then copied :kbd:`Control-C`, usually to paste in the text editor or python console.
 
 .. note::
 
