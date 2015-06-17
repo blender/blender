@@ -134,9 +134,9 @@ function(target_link_libraries_decoupled
 	else()
 		# For MSVC we link to different libraries depending whether
 		# release or debug target is being built.
-		file_list_suffix(_libraries_debug "${${libraries_var}}" "_d")
-		target_link_libraries_debug(${target} "${_libraries_debug}")
-		target_link_libraries_optimized(${target} "${${libraries_var}}")
+		file_list_suffix(_libraries_debug "${${${libraries_var}}}" "_d")
+		target_link_libraries_debug(${target} "${${_libraries_debug}}")
+		target_link_libraries_optimized(${target} "${${${libraries_var}}}")
 	endif()
 endfunction()
 
