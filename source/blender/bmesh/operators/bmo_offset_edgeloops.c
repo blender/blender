@@ -41,7 +41,13 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-#define ELE_NEW		1
+#define USE_CAP_OPTION
+
+#define ELE_NEW			(1 << 0)
+
+#ifdef USE_CAP_OPTION
+#define ELE_VERT_ENDPOINT	(1 << 1)
+#endif
 
 /* set for debugging */
 #define OFFSET 0.0f
@@ -79,6 +85,11 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 	BMVert **verts;
 	STACK_DECLARE(verts);
 	int i;
+
+#ifdef USE_CAP_OPTION
+	bool use_cap_endpoint = BMO_slot_bool_get(op->slots_in,  "use_cap_endpoint");
+	int v_edges_max = 0;
+#endif
 
 	BMOIter oiter;
 
@@ -138,6 +149,8 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 
 	/* main loop */
 	for (i = 0; i < STACK_SIZE(verts); i++) {
+		int v_edges_num = 0;
+		int v_edges_num_untag = 0;
 		BMVert *v = verts[i];
 		BMIter iter;
 		BMEdge *e;
@@ -155,7 +168,21 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 				v_other = BM_edge_other_vert(e, v);
 				BM_edge_split(bm, e, v_other, NULL, 1.0f - OFFSET);
 			}
+			else {
+				v_edges_num_untag += 1;
+			}
+
+			v_edges_num += 1;
 		}
+
+#ifdef USE_CAP_OPTION
+		if (v_edges_num_untag == 1) {
+			BMO_elem_flag_enable(bm, v, ELE_VERT_ENDPOINT);
+		}
+
+		CLAMP_MIN(v_edges_max, v_edges_num);
+#endif
+
 	}
 
 
@@ -172,11 +199,16 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 				if ((BM_elem_index_get(l->next->v) == -1) &&
 				    (BM_elem_index_get(l->prev->v) == -1))
 				{
-					BMLoop *l_new;
-					BM_face_split(bm, l->f, l->prev, l->next, &l_new, NULL, true);
-					BLI_assert(f_cmp == l->f);
-					BLI_assert(f_cmp != l_new->f);
-					BMO_elem_flag_enable(bm, l_new->e, ELE_NEW);
+#ifdef USE_CAP_OPTION
+					if (use_cap_endpoint || (BMO_elem_flag_test(bm, v, ELE_VERT_ENDPOINT) == 0))
+#endif
+					{
+						BMLoop *l_new;
+						BM_face_split(bm, l->f, l->prev, l->next, &l_new, NULL, true);
+						BLI_assert(f_cmp == l->f);
+						BLI_assert(f_cmp != l_new->f);
+						BMO_elem_flag_enable(bm, l_new->e, ELE_NEW);
+					}
 				}
 				else if (l->f->len > 4) {
 					if (BM_elem_flag_test(l->e,       BM_ELEM_TAG) !=
@@ -216,6 +248,39 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
+
+#ifdef USE_CAP_OPTION
+	if (use_cap_endpoint == false) {
+		BMVert **varr = BLI_array_alloca(varr, v_edges_max);
+		STACK_DECLARE(varr);
+		BMVert *v;
+
+		for (i = 0; i < STACK_SIZE(verts); i++) {
+			BMIter iter;
+			BMEdge *e;
+
+			v = verts[i];
+
+			STACK_INIT(varr, v_edges_max);
+
+			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+				BMVert *v_other;
+				v_other = BM_edge_other_vert(e, v);
+				if (BM_elem_index_get(v_other) == -1) {
+					if (BM_vert_is_edge_pair(v_other)) {
+						/* defer bmesh_jekv to avoid looping over data we're removing */
+						v_other->e = e;
+						STACK_PUSH(varr, v_other);
+					}
+				}
+			}
+
+			while ((v = STACK_POP(varr))) {
+				bmesh_jekv(bm, v->e, v, true, false);
+			}
+		}
+	}
+#endif
 
 	MEM_freeN(verts);
 

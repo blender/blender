@@ -1874,6 +1874,7 @@ static BMOpDefine bmo_offset_edgeloops_def = {
 	"offset_edgeloops",
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input faces */
+	 {"use_cap_endpoint", BMO_OP_SLOT_BOOL},
 	 {{'\0'}},
 	},
 	/* slots_out */

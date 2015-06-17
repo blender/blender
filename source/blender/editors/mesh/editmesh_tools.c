@@ -5186,11 +5186,12 @@ static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMOperator bmop;
+	const bool use_cap_endpoint = RNA_boolean_get(op->ptr, "use_cap_endpoint");
 
 	EDBM_op_init(
 	        em, &bmop, op,
-	        "offset_edgeloops edges=%he",
-	        BM_ELEM_SELECT);
+	        "offset_edgeloops edges=%he use_cap_endpoint=%b",
+	        BM_ELEM_SELECT, use_cap_endpoint);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -5230,6 +5231,8 @@ void MESH_OT_offset_edge_loops(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+	RNA_def_boolean(ot->srna, "use_cap_endpoint", false, "Cap Endpoint", "Extend loop around end-points");
 }
 
 #ifdef WITH_BULLET
