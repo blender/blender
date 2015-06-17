@@ -1016,6 +1016,7 @@ static void image_sequence_get_frames(PointerRNA *ptr, ListBase *frames, char *p
 			}
 			else {
 				/* different file base name found, is ignored */
+				MEM_freeN(filename);
 				MEM_freeN(frame);
 				break;
 			}
