@@ -579,7 +579,7 @@ static DMDrawOption draw_tface__set_draw(MTFace *tface, const bool UNUSED(has_mc
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
 
-	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return 0;
+	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return DM_DRAW_OPTION_SKIP;
 
 	if (tface || Gtexdraw.is_texpaint)
 		set_draw_settings_cached(0, tface, ma, Gtexdraw);
