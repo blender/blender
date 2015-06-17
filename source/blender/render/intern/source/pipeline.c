@@ -1400,7 +1400,13 @@ static void threaded_tile_processor(Render *re)
 
 	BLI_thread_queue_free(donequeue);
 	BLI_thread_queue_free(workqueue);
-	
+
+	if (re->result->do_exr_tile) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		render_result_save_empty_result_tiles(re);
+		BLI_rw_mutex_unlock(&re->resultmutex);
+	}
+
 	/* unset threadsafety */
 	g_break = 0;
 	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);

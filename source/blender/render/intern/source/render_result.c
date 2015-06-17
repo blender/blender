@@ -1244,7 +1244,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 	BLI_unlock_thread(LOCK_IMAGE);
 }
 
-static void save_empty_result_tiles(Render *re)
+void render_result_save_empty_result_tiles(Render *re)
 {
 	RenderPart *pa;
 	RenderResult *rr;
@@ -1287,8 +1287,6 @@ void render_result_exr_file_end(Render *re)
 	RenderResult *rr;
 	RenderLayer *rl;
 
-	save_empty_result_tiles(re);
-	
 	for (rr = re->result; rr; rr = rr->next) {
 		for (rl = rr->layers.first; rl; rl = rl->next) {
 			IMB_exr_close(rl->exrhandle);
