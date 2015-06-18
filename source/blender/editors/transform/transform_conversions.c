@@ -2740,12 +2740,12 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	/* count */
 	if (is_prop_connected) {
 		/* create element map with island information */
-		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			elementmap = BM_uv_element_map_create(em->bm, false, true);
+		const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
+		elementmap = BM_uv_element_map_create(em->bm, use_facesel, true);
+		if (elementmap == NULL) {
+			return;
 		}
-		else {
-			elementmap = BM_uv_element_map_create(em->bm, true, true);
-		}
+
 		island_enabled = BLI_BITMAP_NEW(elementmap->totalIslands, "TransIslandData(UV Editing)");
 	}
 
