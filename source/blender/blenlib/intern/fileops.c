@@ -657,21 +657,29 @@ static int delete_single_file(const char *from, const char *UNUSED(to))
 
 FILE *BLI_fopen(const char *filename, const char *mode)
 {
+	BLI_assert(!BLI_path_is_rel(filename));
+
 	return fopen(filename, mode);
 }
 
 void *BLI_gzopen(const char *filename, const char *mode)
 {
+	BLI_assert(!BLI_path_is_rel(filename));
+
 	return gzopen(filename, mode);
 }
 
 int BLI_open(const char *filename, int oflag, int pmode)
 {
+	BLI_assert(!BLI_path_is_rel(filename));
+
 	return open(filename, oflag, pmode);
 }
 
 int   BLI_access(const char *filename, int mode)
 {
+	BLI_assert(!BLI_path_is_rel(filename));
+
 	return access(filename, mode);
 }
 
@@ -682,6 +690,8 @@ int   BLI_access(const char *filename, int mode)
  */
 int BLI_delete(const char *file, bool dir, bool recursive)
 {
+	BLI_assert(!BLI_path_is_rel(file));
+
 	if (recursive) {
 		return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
 	}
