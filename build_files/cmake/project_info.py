@@ -130,7 +130,7 @@ def is_project_file(filename):
 
 
 def cmake_advanced_info():
-    """ Extracr includes and defines from cmake.
+    """ Extract includes and defines from cmake.
     """
 
     make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
