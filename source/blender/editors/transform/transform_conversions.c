@@ -2778,6 +2778,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	/* note: in prop mode we need at least 1 selected */
 	if (countsel == 0) {
 		if (is_prop_connected) {
+			BM_uv_element_map_free(elementmap);
 			MEM_freeN(island_enabled);
 		}
 		return;
