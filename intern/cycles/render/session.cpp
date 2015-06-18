@@ -825,16 +825,21 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	string status, substatus;
 
 	if(!params.progressive) {
-		bool is_gpu = params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL;
-		bool is_multidevice = params.device.multi_devices.size() > 1;
-		bool is_cpu = params.device.type == DEVICE_CPU;
+		const int progress_sample = progress.get_sample(), num_samples = tile_manager.num_samples;
+		const bool is_gpu = params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL;
+		const bool is_multidevice = params.device.multi_devices.size() > 1;
+		const bool is_cpu = params.device.type == DEVICE_CPU;
+		const bool is_last_tile = (num_samples * num_tiles - progress_sample) < num_samples;
 
 		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
 
-		if(((is_gpu && !is_multidevice) || (is_cpu && num_tiles == 1)) && !device->info.use_split_kernel) {
+		if((is_gpu && !is_multidevice && !device->info.use_split_kernel) ||
+		   (is_cpu && (num_tiles == 1 || is_last_tile)))
+		{
 			/* When using split-kernel (OpenCL) each thread in a tile will be working on a different
 			 * sample. Can't display sample number when device uses split-kernel
 			 */
+
 			/* when rendering on GPU multithreading happens within single tile, as in
 			 * tiles are handling sequentially and in this case we could display
 			 * currently rendering sample number
@@ -842,17 +847,21 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			 * also display the info on CPU, when using 1 tile only
 			 */
 
-			int sample = progress.get_sample(), num_samples = tile_manager.num_samples;
-
+			int status_sample = progress_sample;
 			if(tile > 1) {
 				/* sample counter is global for all tiles, subtract samples
 				 * from already finished tiles to get sample counter for
 				 * current tile only
 				 */
-				sample -= (tile - 1) * num_samples;
+				if(is_cpu && is_last_tile && num_tiles > 1) {
+					status_sample = num_samples - (num_samples * num_tiles - progress_sample);
+				}
+				else {
+					status_sample -= (tile - 1) * num_samples;
+				}
 			}
 
-			substatus += string_printf(", Sample %d/%d", sample, num_samples);
+			substatus += string_printf(", Sample %d/%d", status_sample, num_samples);
 		}
 	}
 	else if(tile_manager.num_samples == USHRT_MAX)
