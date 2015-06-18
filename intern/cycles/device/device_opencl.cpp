@@ -534,36 +534,67 @@ public:
 		fprintf(stderr, "OpenCL error (%s): %s\n", name, err_info);
 	}
 
+	static bool opencl_platform_version_check(cl_platform_id platform,
+	                                          string *error = NULL)
+	{
+		const int req_major = 1, req_minor = 1;
+		int major, minor;
+		char version[256];
+		clGetPlatformInfo(platform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
+		if(sscanf(version, "OpenCL %d.%d", &major, &minor) < 2) {
+			if(error != NULL) {
+				*error = string_printf("OpenCL: failed to parse platform version string (%s).", version);
+			}
+			return false;
+		}
+		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
+			if(error != NULL) {
+				*error = string_printf("OpenCL: platform version 1.1 or later required, found %d.%d", major, minor);
+			}
+			return false;
+		}
+		if(error != NULL) {
+			*error = "";
+		}
+		return true;
+	}
+
+	static bool opencl_device_version_check(cl_device_id device,
+	                                        string *error = NULL)
+	{
+		const int req_major = 1, req_minor = 1;
+		int major, minor;
+		char version[256];
+		clGetDeviceInfo(device, CL_DEVICE_OPENCL_C_VERSION, sizeof(version), &version, NULL);
+		if(sscanf(version, "OpenCL C %d.%d", &major, &minor) < 2) {
+			if(error != NULL) {
+				*error = string_printf("OpenCL: failed to parse OpenCL C version string (%s).", version);
+			}
+			return false;
+		}
+		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
+			if(error != NULL) {
+				*error = string_printf("OpenCL: C version 1.1 or later required, found %d.%d", major, minor);
+			}
+			return false;
+		}
+		if(error != NULL) {
+			*error = "";
+		}
+		return true;
+	}
+
 	bool opencl_version_check()
 	{
-		char version[256];
-
-		int major, minor, req_major = 1, req_minor = 1;
-
-		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
-
-		if(sscanf(version, "OpenCL %d.%d", &major, &minor) < 2) {
-			opencl_error(string_printf("OpenCL: failed to parse platform version string (%s).", version));
+		string error;
+		if(!opencl_platform_version_check(cpPlatform, &error)) {
+			opencl_error(error);
 			return false;
 		}
-
-		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
-			opencl_error(string_printf("OpenCL: platform version 1.1 or later required, found %d.%d", major, minor));
+		if(!opencl_device_version_check(cdDevice, &error)) {
+			opencl_error(error);
 			return false;
 		}
-
-		clGetDeviceInfo(cdDevice, CL_DEVICE_OPENCL_C_VERSION, sizeof(version), &version, NULL);
-
-		if(sscanf(version, "OpenCL C %d.%d", &major, &minor) < 2) {
-			opencl_error(string_printf("OpenCL: failed to parse OpenCL C version string (%s).", version));
-			return false;
-		}
-
-		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
-			opencl_error(string_printf("OpenCL: C version 1.1 or later required, found %d.%d", major, minor));
-			return false;
-		}
-
 		return true;
 	}
 
@@ -3370,8 +3401,8 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	vector<cl_platform_id> platform_ids;
 	cl_uint num_platforms = 0;
 
-	/* Number of the devices we didn't use from the platform. */
-	cl_uint num_skip_devices = 0;
+	/* Number of the devices added to the device info list. */
+	cl_uint num_added_devices = 0;
 
 	/* get devices */
 	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS || num_platforms == 0)
@@ -3391,26 +3422,34 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 
 	for(int platform = 0;
 	    platform < num_platforms;
-	    platform++, num_base += num_devices - num_skip_devices)
+	    platform++, num_base += num_added_devices)
 	{
-		num_devices = num_skip_devices = 0;
-		if(clGetDeviceIDs(platform_ids[platform], opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
+		cl_platform_id platform_id = platform_ids[platform];
+		num_devices = num_added_devices = 0;
+		if(clGetDeviceIDs(platform_id, opencl_device_type(), 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
 			continue;
 
 		device_ids.resize(num_devices);
 
-		if(clGetDeviceIDs(platform_ids[platform], opencl_device_type(), num_devices, &device_ids[0], NULL) != CL_SUCCESS)
+		if(clGetDeviceIDs(platform_id, opencl_device_type(), num_devices, &device_ids[0], NULL) != CL_SUCCESS)
 			continue;
 
+		if(!OpenCLDeviceBase::opencl_platform_version_check(platform_ids[platform])) {
+			continue;
+		}
+
 		char pname[256];
-		clGetPlatformInfo(platform_ids[platform], CL_PLATFORM_NAME, sizeof(pname), &pname, NULL);
+		clGetPlatformInfo(platform_id, CL_PLATFORM_NAME, sizeof(pname), &pname, NULL);
 		string platform_name = pname;
 
 		/* add devices */
-		int num_skip_devices = 0;
 		for(int num = 0; num < num_devices; num++) {
 			cl_device_id device_id = device_ids[num];
 			char name[1024] = "\0";
+
+			if(!OpenCLDeviceBase::opencl_device_version_check(device_id)) {
+				continue;
+			}
 
 			cl_device_type device_type;
 			clGetDeviceInfo(device_id, CL_DEVICE_TYPE, sizeof(cl_device_type), &device_type, NULL);
@@ -3420,7 +3459,6 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 			     (platform_name == "AMD Accelerated Parallel Processing" &&
 			      device_type == CL_DEVICE_TYPE_GPU)))
 			{
-				++num_skip_devices;
 				continue;
 			}
 
@@ -3431,7 +3469,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 
 			info.type = DEVICE_OPENCL;
 			info.description = string_remove_trademark(string(name));
-			info.num = num_base + num;
+			info.num = num_base + num_added_devices;
 			info.id = string_printf("OPENCL_%d", info.num);
 			/* we don't know if it's used for display, but assume it is */
 			info.display_device = true;
@@ -3439,6 +3477,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 			info.pack_images = true;
 
 			devices.push_back(info);
+			++num_added_devices;
 		}
 	}
 }
