@@ -2677,18 +2677,14 @@ void flushTransSeq(TransInfo *t)
 
 /* ********************* UV ****************** */
 
-static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, float *uv, int selected)
+static void UVsToTransData(const float aspect[2], TransData *td, TransData2D *td2d, float *uv, bool selected)
 {
-	float aspx, aspy;
-
-	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
-
 	/* uv coords are scaled by aspects. this is needed for rotations and
 	 * proportional editing to be consistent with the stretched uv coords
 	 * that are displayed. this also means that for display and numinput,
 	 * and when the uv coords are flushed, these are converted each time */
-	td2d->loc[0] = uv[0] * aspx;
-	td2d->loc[1] = uv[1] * aspy;
+	td2d->loc[0] = uv[0] * aspect[0];
+	td2d->loc[1] = uv[1] * aspect[1];
 	td2d->loc[2] = 0.0f;
 	td2d->loc2d = uv;
 
@@ -2721,7 +2717,6 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMFace *efa;
@@ -2730,12 +2725,15 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	UvElementMap *elementmap = NULL;
 	BLI_bitmap *island_enabled = NULL;
 	int count = 0, countsel = 0, count_rejected = 0;
+	float aspect[2];
 	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 	const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+	const int cd_poly_tex_offset = CustomData_get_offset(&em->bm->pdata, CD_MTEXPOLY);
 
-	if (!ED_space_image_show_uvedit(sima, t->obedit)) return;
+	if (!ED_space_image_show_uvedit(sima, t->obedit))
+		return;
 
 	/* count */
 	if (is_prop_connected) {
@@ -2750,7 +2748,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	}
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 		if (!uvedit_face_visible_test(scene, ima, efa, tf)) {
 			BM_elem_flag_disable(efa, BM_ELEM_TAG);
@@ -2796,12 +2794,15 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td = t->data;
 	td2d = t->data2d;
 
+	ED_space_image_get_uv_aspect(sima, &aspect[0], &aspect[1]);
+
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 			continue;
 
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (!is_prop_edit && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
+			const bool selected = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+			if (!is_prop_edit && !selected)
 				continue;
 
 			if (is_prop_connected) {
@@ -2813,7 +2814,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 			}
 			
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_select_test(scene, l, cd_loop_uv_offset));
+			UVsToTransData(aspect, td++, td2d++, luv->uv, selected);
 		}
 	}
 
