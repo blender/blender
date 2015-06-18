@@ -1405,6 +1405,14 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		}
 		else {
 			/* failed to load file, stop processing arguments */
+			if (G.background) {
+				/* Set is_break if running in the background mode so
+				 * blender will return non-zero exit code which then
+				 * could be used in automated script to control how
+				 * good or bad things are.
+				 */
+				G.is_break = true;
+			}
 			return -1;
 		}
 
