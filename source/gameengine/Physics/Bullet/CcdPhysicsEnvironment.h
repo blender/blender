@@ -52,6 +52,7 @@ class btBroadphaseInterface;
 struct btDbvtBroadphase;
 class btOverlappingPairCache;
 class btIDebugDraw;
+class btDynamicsWorld;
 class PHY_IVehicle;
 class CcdOverlapFilterCallBack;
 class CcdShapeConstructionInfo;
@@ -128,6 +129,14 @@ protected:
 		virtual void		EndFrame() {}
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		ProceedDeltaTime(double curTime,float timeStep,float interval);
+
+		/**
+		 * Called by Bullet for every physical simulation (sub)tick.
+		 * Our constructor registers this callback to Bullet, which stores a pointer to 'this' in
+		 * the btDynamicsWorld::getWorldUserInfo() pointer.
+		 */
+		static void StaticSimulationSubtickCallback(btDynamicsWorld *world, btScalar timeStep);
+		void SimulationSubtickCallback(btScalar timeStep);
 
 		virtual void		DebugDrawWorld();
 //		virtual bool		proceedDeltaTimeOneStep(float timeStep);

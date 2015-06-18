@@ -579,6 +579,13 @@ protected:
 		 * SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
 		 */
 		virtual bool		SynchronizeMotionStates(float time);
+
+		/**
+		 * Called for every physics simulation step. Use this method for
+		 * things like limiting linear and angular velocity.
+		 */
+		void SimulationTick(float timestep);
+
 		/**
 		 * WriteMotionStateToDynamics ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
 		 */
