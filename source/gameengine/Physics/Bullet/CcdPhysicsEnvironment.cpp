@@ -466,14 +466,6 @@ void	CcdPhysicsEnvironment::AddCcdPhysicsController(CcdPhysicsController* ctrl)
 		return;
 	}
 
-	/* In the case of compound child controller (see also RemoveCcdPhysicsController)
-	 * we add the controller to the trigger controlers list : m_triggerControllers
-	 * if it use collision callbacks.
-	 */
-	if (ctrl->Registered()) {
-		m_triggerControllers.insert(ctrl);
-	}
-
 	btRigidBody* body = ctrl->GetRigidBody();
 	btCollisionObject* obj = ctrl->GetCollisionObject();
 
@@ -519,16 +511,6 @@ bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctr
 	// if the physics controller is already removed we do nothing
 	if (!m_controllers.erase(ctrl)) {
 		return false;
-	}
-
-	/* In the case of compound child controller which use collision callbacks
-	 * we remove it from the m_triggerControllers list but leave m_registerCount
-	 * to know in AddCcdPhysicsController if we have to add it in m_triggerControllers
-	 * and to avoid an useless added in RequestCollisionCallback, indeed we can't register
-	 * more than one time a controller.
-	 */
-	if (ctrl->Registered()) {
-		m_triggerControllers.erase(ctrl);
 	}
 
 	//also remove constraint
@@ -2199,10 +2181,7 @@ void CcdPhysicsEnvironment::AddSensor(PHY_IPhysicsController* ctrl)
 bool CcdPhysicsEnvironment::RemoveCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	CcdPhysicsController* ccdCtrl = (CcdPhysicsController*)ctrl;
-	if (!ccdCtrl->Unregister())
-		return false;
-	m_triggerControllers.erase(ccdCtrl);
-	return true;
+	return ccdCtrl->Unregister();
 }
 
 
@@ -2246,11 +2225,7 @@ void CcdPhysicsEnvironment::AddTouchCallback(int response_class, PHY_ResponseCal
 bool CcdPhysicsEnvironment::RequestCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
-
-	if (!ccdCtrl->Register())
-		return false;
-	m_triggerControllers.insert(ccdCtrl);
-	return true;
+	return !ccdCtrl->Register();
 }
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
@@ -2289,16 +2264,17 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 		//m_internalOwner is set in 'addPhysicsController'
 		CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(rb0->getUserPointer());
 		CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(rb1->getUserPointer());
+		bool usecallback = false;
 
-		std::set<CcdPhysicsController*>::const_iterator iter = m_triggerControllers.find(ctrl0);
-		if (iter == m_triggerControllers.end())
-		{
-			iter = m_triggerControllers.find(ctrl1);
+		// Test if one of the controller is registered and use collision callback.
+		if (ctrl0->Registered())
+			usecallback = true;
+		else if (ctrl1->Registered()) {
 			colliding_ctrl0 = false;
+			usecallback = true;
 		}
 
-		if (iter != m_triggerControllers.end())
-		{
+		if (usecallback) {
 			static PHY_CollData coll_data;
 			const btManifoldPoint &cp = manifold->getContactPoint(0);
 

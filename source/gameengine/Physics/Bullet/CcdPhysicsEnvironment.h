@@ -291,7 +291,6 @@ protected:
 		
 
 		std::set<CcdPhysicsController*> m_controllers;
-		std::set<CcdPhysicsController*> m_triggerControllers;
 
 		PHY_ResponseCallback	m_triggerCallbacks[PHY_NUM_RESPONSE];
 		void*			m_triggerCallbacksUserPtrs[PHY_NUM_RESPONSE];
