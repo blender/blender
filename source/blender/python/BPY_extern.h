@@ -86,6 +86,7 @@ void	BPY_driver_reset(void);
 float	BPY_driver_exec(struct ChannelDriver *driver, const float evaltime);
 
 int		BPY_button_exec(struct bContext *C, const char *expr, double *value, const bool verbose);
+int		BPY_string_exec_ex(struct bContext *C, const char *expr, bool use_eval);
 int		BPY_string_exec(struct bContext *C, const char *expr);
 
 void	BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
