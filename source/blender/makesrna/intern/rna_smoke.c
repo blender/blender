@@ -264,7 +264,6 @@ static void rna_SmokeModifier_color_grid_get(PointerRNA *ptr, float *values)
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
 #else
 	(void)ptr;
-	memset(values, 0, 4 * sizeof(float));
 #endif
 }
 
