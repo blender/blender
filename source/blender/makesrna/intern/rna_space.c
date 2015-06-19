@@ -913,6 +913,8 @@ static EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext *UNUSED(C), P
 		{V3D_CENTER, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},
 		{V3D_CENTROID, "MEDIAN", ICON_ROTATECENTER, "Median Point", ""},
 		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
+		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION,
+		            "Individual Origins", "Pivot around each object's own origin"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
