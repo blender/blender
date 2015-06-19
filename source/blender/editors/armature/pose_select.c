@@ -821,7 +821,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 			break;
 		
 		default:
-			printf("pose_select_grouped() - Unknown selection type %d\n", type);
+			printf("pose_select_grouped() - Unknown selection type %u\n", type);
 			break;
 	}
 	

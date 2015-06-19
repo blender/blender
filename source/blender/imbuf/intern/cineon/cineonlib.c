@@ -307,7 +307,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 			printf("  Transfer characteristics: %d\n", cineon->element[i].transfer);
 			printf("  Packing: %d\n", cineon->element[i].packing);
 			printf("  Descriptor: %d\n", cineon->element[i].descriptor);
-			printf("  Data offset: %u\n", cineon->element[i].dataOffset);
+			printf("  Data offset: %d\n", cineon->element[i].dataOffset);
 			printf("  Reference low data: %u\n", cineon->element[i].refLowData);
 			printf("  Reference low quantity: %f\n", cineon->element[i].refLowQuantity);
 			printf("  Reference high data: %u\n", cineon->element[i].refHighData);

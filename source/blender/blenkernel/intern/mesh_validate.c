@@ -500,13 +500,13 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 			if (mp->loopstart < 0 || mp->totloop < 3) {
 				/* Invalid loop data. */
-				PRINT_ERR("\tPoly %u is invalid (loopstart: %u, totloop: %u)\n",
+				PRINT_ERR("\tPoly %u is invalid (loopstart: %d, totloop: %d)\n",
 				          sp->index, mp->loopstart, mp->totloop);
 				sp->invalid = true;
 			}
 			else if (mp->loopstart + mp->totloop > totloop) {
 				/* Invalid loop data. */
-				PRINT_ERR("\tPoly %u uses loops out of range (loopstart: %u, loopend: %u, max nbr of loops: %u)\n",
+				PRINT_ERR("\tPoly %u uses loops out of range (loopstart: %d, loopend: %d, max nbr of loops: %u)\n",
 				          sp->index, mp->loopstart, mp->loopstart + mp->totloop - 1, totloop - 1);
 				sp->invalid = true;
 			}
@@ -552,7 +552,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 					v2 = mloops[sp->loopstart + (j + 1) % mp->totloop].v;
 					if (!BLI_edgehash_haskey(edge_hash, v1, v2)) {
 						/* Edge not existing. */
-						PRINT_ERR("\tPoly %u needs missing edge (%u, %u)\n", sp->index, v1, v2);
+						PRINT_ERR("\tPoly %u needs missing edge (%d, %d)\n", sp->index, v1, v2);
 						if (do_fixes)
 							recalc_flag.edges = true;
 						else
@@ -564,7 +564,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 						if (do_fixes) {
 							int prev_e = ml->e;
 							ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, v1, v2));
-							PRINT_ERR("\tLoop %u has invalid edge reference (%u), fixed using edge %u\n",
+							PRINT_ERR("\tLoop %u has invalid edge reference (%d), fixed using edge %u\n",
 							          sp->loopstart + j, prev_e, ml->e);
 						}
 						else {
@@ -580,7 +580,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 							if (do_fixes) {
 								int prev_e = ml->e;
 								ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, v1, v2));
-								PRINT_ERR("\tPoly %u has invalid edge reference (%u), fixed using edge %u\n",
+								PRINT_ERR("\tPoly %u has invalid edge reference (%d), fixed using edge %u\n",
 								          sp->index, prev_e, ml->e);
 							}
 							else {
@@ -602,7 +602,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 						if (*v != *prev_v) {
 							int dlt = v - prev_v;
 							if (dlt > 1) {
-								PRINT_ERR("\tPoly %u is invalid, it multi-uses vertex %u (%u times)\n",
+								PRINT_ERR("\tPoly %u is invalid, it multi-uses vertex %d (%d times)\n",
 								          sp->index, *prev_v, dlt);
 								sp->invalid = true;
 							}
@@ -610,7 +610,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 						}
 					}
 					if (v - prev_v > 1) { /* Don't forget final verts! */
-						PRINT_ERR("\tPoly %u is invalid, it multi-uses vertex %u (%u times)\n",
+						PRINT_ERR("\tPoly %u is invalid, it multi-uses vertex %d (%d times)\n",
 						          sp->index, *prev_v, (int)(v - prev_v));
 						sp->invalid = true;
 					}
@@ -689,10 +689,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 			}
 			if ((p1_nv == p2_nv) && (memcmp(p1_v, p2_v, p1_nv * sizeof(*p1_v)) == 0)) {
 				if (do_verbose) {
-					PRINT_ERR("\tPolys %u and %u use same vertices (%u",
+					PRINT_ERR("\tPolys %u and %u use same vertices (%d",
 					          prev_sp->index, sp->index, *p1_v);
 					for (j = 1; j < p1_nv; j++)
-						PRINT_ERR(", %u", p1_v[j]);
+						PRINT_ERR(", %d", p1_v[j]);
 					PRINT_ERR("), considering poly %u as invalid.\n", sp->index);
 				}
 				else {
@@ -741,7 +741,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 				}
 				/* Multi-used loops. */
 				else if (prev_end > sp->loopstart) {
-					PRINT_ERR("\tPolys %u and %u share loops from %u to %u, considering poly %u as invalid.\n",
+					PRINT_ERR("\tPolys %u and %u share loops from %d to %d, considering poly %u as invalid.\n",
 					          prev_sp->index, sp->index, sp->loopstart, prev_end, sp->index);
 					if (do_fixes) {
 						REMOVE_POLY_TAG((&mpolys[sp->index]));
@@ -846,7 +846,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 			int tot_elem = 0;
 
 			if (msel->index < 0) {
-				PRINT_ERR("\tMesh select element %d type %d index is negative, "
+				PRINT_ERR("\tMesh select element %u type %d index is negative, "
 				          "resetting selection stack.\n", i, msel->type);
 				free_flag.mselect = do_fixes;
 				break;
@@ -865,7 +865,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 			}
 
 			if (msel->index > tot_elem) {
-				PRINT_ERR("\tMesh select element %d type %d index %d is larger than data array size %d, "
+				PRINT_ERR("\tMesh select element %u type %d index %d is larger than data array size %d, "
 				          "resetting selection stack.\n", i, msel->type, msel->index, tot_elem);
 
 				free_flag.mselect = do_fixes;

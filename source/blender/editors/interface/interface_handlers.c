@@ -9002,7 +9002,7 @@ static int ui_handle_menu_event(
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
 								}
 								else {
-									printf("%s: error, but->menu_key type: %d\n", __func__, but->type);
+									printf("%s: error, but->menu_key type: %u\n", __func__, but->type);
 								}
 
 								break;

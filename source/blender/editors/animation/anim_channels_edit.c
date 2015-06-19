@@ -874,7 +874,7 @@ static void rearrange_animchannel_add_to_islands(ListBase *islands, ListBase *sr
 			break;
 		}
 		default:
-			printf("rearrange_animchannel_add_to_islands(): don't know how to handle channels of type %d\n", type);
+			printf("rearrange_animchannel_add_to_islands(): don't know how to handle channels of type %u\n", type);
 			return;
 	}
 	

@@ -2922,7 +2922,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_F
 			/* unhandled */
 			default:
 			{
-				printf("ANIM_animdata_filter() - Invalid datatype argument %d\n", datatype);
+				printf("ANIM_animdata_filter() - Invalid datatype argument %u\n", datatype);
 				break;
 			}
 		}

@@ -1953,7 +1953,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 	}
 
 	if (retval == NULL)
-		printf("Unable to create a GPUShader for builtin shader: %d\n", shader);
+		printf("Unable to create a GPUShader for builtin shader: %u\n", shader);
 
 	return retval;
 }
@@ -1976,7 +1976,7 @@ GPUProgram *GPU_shader_get_builtin_program(GPUBuiltinProgram program)
 	}
 
 	if (retval == NULL)
-		printf("Unable to create a GPUProgram for builtin program: %d\n", program);
+		printf("Unable to create a GPUProgram for builtin program: %u\n", program);
 
 	return retval;
 }

@@ -623,7 +623,7 @@ static int logImageElementGetData8(LogImageFile *logImage, LogImageElement logEl
 	for (y = 0; y < logImage->height; y++) {
 		/* 8 bits are 32-bits padded so we need to seek at each row */
 		if (logimage_fseek(logImage, logElement.dataOffset + y * rowLength, SEEK_SET) != 0) {
-			if (verbose) printf("DPX/Cineon: Couldn't seek at %d\n", logElement.dataOffset + y * rowLength);
+			if (verbose) printf("DPX/Cineon: Couldn't seek at %d\n", logElement.dataOffset + y * (int)rowLength);
 			return 1;
 		}
 

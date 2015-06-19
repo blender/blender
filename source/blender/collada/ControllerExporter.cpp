@@ -284,7 +284,8 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 		}
 
 		if (oob_counter > 0) {
-			fprintf(stderr, "Ignored %d Vertex weights which use index to non existing VGroup %ld.\n", oob_counter, joint_index_by_def_index.size());
+			fprintf(stderr, "Ignored %d Vertex weights which use index to non existing VGroup %lu.\n",
+			        oob_counter, joint_index_by_def_index.size());
 		}
 	}
 

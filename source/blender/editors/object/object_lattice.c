@@ -713,7 +713,7 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 			break;
 			
 		default:
-			printf("lattice_flip(): Unknown flipping axis (%d)\n", axis);
+			printf("lattice_flip(): Unknown flipping axis (%u)\n", axis);
 			return OPERATOR_CANCELLED;
 	}
 	

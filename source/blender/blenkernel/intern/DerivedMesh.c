@@ -412,7 +412,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 			/* printf("info %s: polys -> ngons calculated\n", __func__); */
 		}
 		else {
-			printf("warning %s: could not create tessfaces from %d polygons, dm->type=%d\n",
+			printf("warning %s: could not create tessfaces from %d polygons, dm->type=%u\n",
 			       __func__, numPolys, dm->type);
 		}
 	}
