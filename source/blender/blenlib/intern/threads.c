@@ -777,6 +777,17 @@ int BLI_thread_queue_size(ThreadQueue *queue)
 	return size;
 }
 
+bool BLI_thread_queue_is_empty(ThreadQueue *queue)
+{
+	bool is_empty;
+
+	pthread_mutex_lock(&queue->mutex);
+	is_empty = BLI_gsqueue_is_empty(queue->queue);
+	pthread_mutex_unlock(&queue->mutex);
+
+	return is_empty;
+}
+
 void BLI_thread_queue_nowait(ThreadQueue *queue)
 {
 	pthread_mutex_lock(&queue->mutex);
