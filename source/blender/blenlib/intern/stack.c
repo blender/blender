@@ -208,6 +208,23 @@ void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n)
 	}
 }
 
+/**
+ * A version of #BLI_stack_pop_n which which fills in an array (in the reverse order).
+ *
+ * \note The first item in the array will be first item added to the stack.
+ */
+void BLI_stack_pop_n_reverse(BLI_Stack *stack, void *dst, unsigned int n)
+{
+	BLI_assert(n <= BLI_stack_count(stack));
+
+	dst = (void *)((char *)dst + (stack->elem_size * n));
+
+	while (n--) {
+		dst = (void *)((char *)dst - stack->elem_size);
+		BLI_stack_pop(stack, dst);
+	}
+}
+
 void *BLI_stack_peek(BLI_Stack *stack)
 {
 	BLI_assert(BLI_stack_is_empty(stack) == false);

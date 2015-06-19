@@ -44,6 +44,7 @@ void *BLI_stack_push_r(BLI_Stack *stack) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BLI_stack_push(BLI_Stack *stack, const void *src) ATTR_NONNULL();
 
 void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n) ATTR_NONNULL();
+void BLI_stack_pop_n_reverse(BLI_Stack *stack, void *dst, unsigned int n) ATTR_NONNULL();
 void BLI_stack_pop(BLI_Stack *stack, void *dst) ATTR_NONNULL();
 
 void *BLI_stack_peek(BLI_Stack *stack) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
