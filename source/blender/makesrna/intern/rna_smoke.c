@@ -165,6 +165,31 @@ static int rna_SmokeModifier_color_grid_get_length(PointerRNA *ptr, int length[R
 	return length[0];
 }
 
+static int rna_SmokeModifier_velocity_grid_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+#ifdef WITH_SMOKE
+	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
+	float *vx = NULL;
+	float *vy = NULL;
+	float *vz = NULL;
+	int size = 0;
+
+	/* Velocity data is always low-resolution. */
+	if (sds->fluid) {
+		size = 3 * sds->res[0] * sds->res[1] * sds->res[2];
+		vx = smoke_get_velocity_x(sds->fluid);
+		vy = smoke_get_velocity_y(sds->fluid);
+		vz = smoke_get_velocity_z(sds->fluid);
+	}
+
+	length[0] = (vx && vy && vz) ? size : 0;
+#else
+	(void)ptr;
+	length[0] = 0;
+#endif
+	return length[0];
+}
+
 static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
 {
 #ifdef WITH_SMOKE
@@ -186,6 +211,33 @@ static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
 #else
 	(void)ptr;
 	(void)values;
+#endif
+}
+
+static void rna_SmokeModifier_velocity_grid_get(PointerRNA *ptr, float *values)
+{
+#ifdef WITH_SMOKE
+	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
+	int length[RNA_MAX_ARRAY_DIMENSION];
+	int size = rna_SmokeModifier_velocity_grid_get_length(ptr, length);
+	float *vx, *vy, *vz;
+	int i;
+
+	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
+
+	vx = smoke_get_velocity_x(sds->fluid);
+	vy = smoke_get_velocity_y(sds->fluid);
+	vz = smoke_get_velocity_z(sds->fluid);
+
+	for (i=0; i<size; i+=3) {
+		*(values++) = *(vx++);
+		*(values++) = *(vy++);
+		*(values++) = *(vz++);
+	}
+
+	BLI_rw_mutex_unlock(sds->fluid_mutex);
+#else
+	(void)ptr;
 #endif
 }
 
@@ -452,6 +504,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_dynamic_array_funcs(prop, "rna_SmokeModifier_grid_get_length");
 	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_density_grid_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Density Grid", "Smoke density grid");
+
+	prop = RNA_def_property(srna, "velocity_grid", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 32);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_SmokeModifier_velocity_grid_get_length");
+	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_velocity_grid_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Velocity Grid", "Smoke velocity grid");
 
 	prop = RNA_def_property(srna, "flame_grid", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_array(prop, 32);
