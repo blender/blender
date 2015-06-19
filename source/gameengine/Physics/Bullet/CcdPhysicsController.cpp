@@ -893,12 +893,6 @@ void	CcdPhysicsController::SetCenterOfMassTransform(btTransform& xform)
 			{
 				m_object->setInterpolationWorldTransform(xform);
 			}
-			if (body)
-			{
-				body->setInterpolationLinearVelocity(body->getLinearVelocity());
-				body->setInterpolationAngularVelocity(body->getAngularVelocity());
-				body->updateInertiaTensor();
-			}
 			m_object->setWorldTransform(xform);
 		}
 	}
