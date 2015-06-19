@@ -288,7 +288,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	from[1] += fac * fp1[1];
 	from[2] += fac * fp1[2];
 	
-	/* alleen alstie ervoor ligt: cross testen en loodrechte bijtellen */
+	/* only for it lies: cross test and perpendicular bites up */
 	if (inp < 0.0f) {
 		if (fp1[0] * fp2[1] - fp1[1] * fp2[0] > 0.0f) {
 			from[0] -= fac * fp1[1];
@@ -300,7 +300,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 		}
 	}
 
-	/* CONSTRAINT 5: minimum / maximum afstand */
+	/* CONSTRAINT 5: minimum / maximum distance */
 
 	rc[0] = (lookat[0]-from[0]);
 	rc[1] = (lookat[1]-from[1]);
@@ -323,7 +323,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	}
 
 
-	/* CONSTRAINT 7: track to schaduw */
+	/* CONSTRAINT 7: track to floor below actor */
 	rc[0] = (lookat[0]-from[0]);
 	rc[1] = (lookat[1]-from[1]);
 	rc[2] = (lookat[2]-from[2]);
