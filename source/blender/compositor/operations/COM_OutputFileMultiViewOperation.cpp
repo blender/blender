@@ -74,7 +74,7 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
 				continue;
 
 			IMB_exr_add_view(exrhandle, srv->name);
-			add_exr_channels(exrhandle, NULL, this->m_datatype, srv->name, width, NULL);
+			add_exr_channels(exrhandle, NULL, this->m_datatype, srv->name, width, false, NULL);
 		}
 
 		BLI_make_existing_file(filename);
@@ -108,7 +108,8 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinitExecution()
 		        (this->m_rd->scemode & R_EXTENSION) != 0, true, NULL);
 
 		exrhandle = this->get_handle(filename);
-		add_exr_channels(exrhandle, NULL, this->m_datatype, this->m_viewName, width, this->m_outputBuffer);
+		add_exr_channels(exrhandle, NULL, this->m_datatype, this->m_viewName, width,
+		                 this->m_format->depth == R_IMF_CHAN_DEPTH_16, this->m_outputBuffer);
 
 		/* memory can only be freed after we write all views to the file */
 		this->m_outputBuffer = NULL;
@@ -130,8 +131,9 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinitExecution()
 /************************************  OpenEXR Multilayer Multiview *****************************************/
 
 OutputOpenExrMultiLayerMultiViewOperation::OutputOpenExrMultiLayerMultiViewOperation(
-        const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec, const char *viewName)
-    : OutputOpenExrMultiLayerOperation(rd, tree, path, exr_codec, viewName)
+        const RenderData *rd, const bNodeTree *tree, const char *path,
+        char exr_codec, bool exr_half_float, const char *viewName)
+    : OutputOpenExrMultiLayerOperation(rd, tree, path, exr_codec, exr_half_float, viewName)
 {
 }
 
@@ -162,7 +164,8 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
 			IMB_exr_add_view(exrhandle, srv->name);
 
 			for (unsigned int i = 0; i < this->m_layers.size(); ++i)
-				add_exr_channels(exrhandle, this->m_layers[i].name, this->m_layers[i].datatype, srv->name, width, NULL);
+				add_exr_channels(exrhandle, this->m_layers[i].name, this->m_layers[i].datatype,
+				                 srv->name, width, this->m_exr_half_float, NULL);
 		}
 
 		BLI_make_existing_file(filename);
@@ -197,7 +200,8 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinitExecution()
 		exrhandle = this->get_handle(filename);
 
 		for (unsigned int i = 0; i < this->m_layers.size(); ++i)
-			add_exr_channels(exrhandle, this->m_layers[i].name, this->m_layers[i].datatype, this->m_viewName, width, this->m_layers[i].outputBuffer);
+			add_exr_channels(exrhandle, this->m_layers[i].name, this->m_layers[i].datatype, this->m_viewName,
+			                 width, this->m_exr_half_float, this->m_layers[i].outputBuffer);
 
 		for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
 			/* memory can only be freed after we write all views to the file */
@@ -269,7 +273,8 @@ void OutputStereoOperation::deinitExecution()
 		float *buf = this->m_outputBuffer;
 
 		/* populate single EXR channel with view data */
-		IMB_exr_add_channel(exrhandle, NULL, this->m_name, this->m_viewName, 1, this->m_channels * width * height, buf);
+		IMB_exr_add_channel(exrhandle, NULL, this->m_name, this->m_viewName, 1, this->m_channels * width * height, buf,
+		                    this->m_format->depth == R_IMF_CHAN_DEPTH_16);
 
 		this->m_imageInput = NULL;
 		this->m_outputBuffer = NULL;

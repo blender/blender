@@ -40,23 +40,24 @@ extern "C" {
 #  include "IMB_imbuf_types.h"
 }
 
-void add_exr_channels(void *exrhandle, const char *layerName, const DataType datatype, const char *viewName, const size_t width, float *buf)
+void add_exr_channels(void *exrhandle, const char *layerName, const DataType datatype,
+                      const char *viewName, const size_t width, bool use_half_float, float *buf)
 {
 	/* create channels */
 	switch (datatype) {
 		case COM_DT_VALUE:
-			IMB_exr_add_channel(exrhandle, layerName, "V", viewName, 1, width, buf ? buf : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "V", viewName, 1, width, buf ? buf : NULL, use_half_float);
 			break;
 		case COM_DT_VECTOR:
-			IMB_exr_add_channel(exrhandle, layerName, "X", viewName, 3, 3 * width, buf ? buf : NULL);
-			IMB_exr_add_channel(exrhandle, layerName, "Y", viewName, 3, 3 * width, buf ? buf + 1 : NULL);
-			IMB_exr_add_channel(exrhandle, layerName, "Z", viewName, 3, 3 * width, buf ? buf + 2 : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "X", viewName, 3, 3 * width, buf ? buf : NULL, use_half_float);
+			IMB_exr_add_channel(exrhandle, layerName, "Y", viewName, 3, 3 * width, buf ? buf + 1 : NULL, use_half_float);
+			IMB_exr_add_channel(exrhandle, layerName, "Z", viewName, 3, 3 * width, buf ? buf + 2 : NULL, use_half_float);
 			break;
 		case COM_DT_COLOR:
-			IMB_exr_add_channel(exrhandle, layerName, "R", viewName, 4, 4 * width, buf ? buf : NULL);
-			IMB_exr_add_channel(exrhandle, layerName, "G", viewName, 4, 4 * width, buf ? buf + 1 : NULL);
-			IMB_exr_add_channel(exrhandle, layerName, "B", viewName, 4, 4 * width, buf ? buf + 2 : NULL);
-			IMB_exr_add_channel(exrhandle, layerName, "A", viewName, 4, 4 * width, buf ? buf + 3 : NULL);
+			IMB_exr_add_channel(exrhandle, layerName, "R", viewName, 4, 4 * width, buf ? buf : NULL, use_half_float);
+			IMB_exr_add_channel(exrhandle, layerName, "G", viewName, 4, 4 * width, buf ? buf + 1 : NULL, use_half_float);
+			IMB_exr_add_channel(exrhandle, layerName, "B", viewName, 4, 4 * width, buf ? buf + 2 : NULL, use_half_float);
+			IMB_exr_add_channel(exrhandle, layerName, "A", viewName, 4, 4 * width, buf ? buf + 3 : NULL, use_half_float);
 			break;
 		default:
 			break;
@@ -227,13 +228,15 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bo
 }
 
 OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(
-        const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec, const char *viewName)
+        const RenderData *rd, const bNodeTree *tree, const char *path,
+        char exr_codec, bool exr_half_float, const char *viewName)
 {
 	this->m_rd = rd;
 	this->m_tree = tree;
 	
 	BLI_strncpy(this->m_path, path, sizeof(this->m_path));
 	this->m_exr_codec = exr_codec;
+	this->m_exr_half_float = exr_half_float;
 	this->m_viewName = viewName;
 }
 
@@ -284,7 +287,8 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 			if (!layer.imageInput)
 				continue; /* skip unconnected sockets */
 			
-			add_exr_channels(exrhandle, this->m_layers[i].name, this->m_layers[i].datatype, "", width, this->m_layers[i].outputBuffer);
+			add_exr_channels(exrhandle, this->m_layers[i].name, this->m_layers[i].datatype, "", width,
+			                 this->m_exr_half_float, this->m_layers[i].outputBuffer);
 		}
 		
 		/* when the filename has no permissions, this can fail */

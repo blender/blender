@@ -85,11 +85,13 @@ protected:
 	
 	char m_path[FILE_MAX];
 	char m_exr_codec;
+	bool m_exr_half_float;
 	LayerList m_layers;
 	const char *m_viewName;
 	
 public:
-	OutputOpenExrMultiLayerOperation(const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec, const char *viewName);
+	OutputOpenExrMultiLayerOperation(const RenderData *rd, const bNodeTree *tree, const char *path,
+	                                 char exr_codec, bool exr_half_float, const char *viewName);
 	
 	void add_layer(const char *name, DataType datatype, bool use_layer);
 	
@@ -102,7 +104,8 @@ public:
 	bool isFileOutputOperation() const { return true; }
 };
 
-void add_exr_channels(void *exrhandle, const char *layerName, const DataType datatype, const char *viewName, const size_t width, float *buf);
+void add_exr_channels(void *exrhandle, const char *layerName, const DataType datatype, const char *viewName,
+                      const size_t width, bool use_half_float, float *buf);
 void free_exr_channels(void *exrhandle, const RenderData *rd, const char *layerName, const DataType datatype);
 int get_datatype_size(DataType datatype);
 

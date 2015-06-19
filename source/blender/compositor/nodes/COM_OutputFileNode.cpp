@@ -47,18 +47,21 @@ void OutputFileNode::convertToOperations(NodeConverter &converter, const Composi
 		 */
 		return;
 	}
-	
+
 	if (storage->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
+		const bool use_half_float = (storage->format.depth == R_IMF_CHAN_DEPTH_16);
 		/* single output operation for the multilayer file */
 		OutputOpenExrMultiLayerOperation *outputOperation;
 
 		if (is_multiview && storage->format.views_format == R_IMF_VIEWS_MULTIVIEW) {
 			outputOperation = new OutputOpenExrMultiLayerMultiViewOperation(
-			        context.getRenderData(), context.getbNodeTree(), storage->base_path, storage->format.exr_codec, context.getViewName());
+			        context.getRenderData(), context.getbNodeTree(), storage->base_path,
+			        storage->format.exr_codec, use_half_float, context.getViewName());
 		}
 		else {
 			outputOperation = new OutputOpenExrMultiLayerOperation(
-		          context.getRenderData(), context.getbNodeTree(), storage->base_path, storage->format.exr_codec, context.getViewName());
+		          context.getRenderData(), context.getbNodeTree(), storage->base_path,
+		          storage->format.exr_codec, use_half_float, context.getViewName());
 		}
 		converter.addOperation(outputOperation);
 
