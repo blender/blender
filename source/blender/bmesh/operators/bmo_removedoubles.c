@@ -29,9 +29,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 #include "BLI_alloca.h"
 #include "BLI_stackdefines.h"
+#include "BLI_stack.h"
 
 #include "BKE_customdata.h"
 
@@ -198,7 +198,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				BMO_elem_flag_enable(bm, e, EDGE_COL);
 			}
 			else if (!BM_edge_exists(v1, v2)) {
-				BM_edge_create(bm, v1, v2, e, BM_CREATE_NO_DOUBLE);
+				BM_edge_create(bm, v1, v2, e, BM_CREATE_NOP);
 			}
 
 			BMO_elem_flag_enable(bm, e, ELE_DEL);
@@ -261,7 +261,7 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter;
 	BMVert *v, *vert_snap;
-	BMLoop *l, *firstl = NULL;
+	BMLoop *l, *l_first = NULL;
 	float fac;
 	int i, tot;
 
@@ -273,33 +273,35 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 
 	fac = 1.0f / tot;
 	BM_ITER_ELEM (l, &iter, vert_snap, BM_LOOPS_OF_VERT) {
-		if (!firstl) {
-			firstl = l;
+		if (l_first == NULL) {
+			l_first = l;
 		}
 		
 		for (i = 0; i < bm->ldata.totlayer; i++) {
 			if (CustomData_layer_has_math(&bm->ldata, i)) {
-				int type = bm->ldata.layers[i].type;
+				const int type = bm->ldata.layers[i].type;
+				const int offset = bm->ldata.layers[i].offset;
 				void *e1, *e2;
 
-				e1 = CustomData_bmesh_get_layer_n(&bm->ldata, firstl->head.data, i);
-				e2 = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
+				e1 = BM_ELEM_CD_GET_VOID_P(l_first, offset);
+				e2 = BM_ELEM_CD_GET_VOID_P(l,       offset);
 				
 				CustomData_data_multiply(type, e2, fac);
 
-				if (l != firstl)
+				if (l != l_first) {
 					CustomData_data_add(type, e1, e2);
+				}
 			}
 		}
 	}
 
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-			if (l == firstl) {
+			if (l == l_first) {
 				continue;
 			}
 
-			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, firstl->head.data, &l->head.data);
+			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_first->head.data, &l->head.data);
 		}
 	}
 }
@@ -311,19 +313,20 @@ void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 	BMLoop *l /* , *firstl = NULL */;
 	CDBlockBytes min, max;
-	void *block;
-	int i, type;
+	int i;
 
 	for (i = 0; i < bm->ldata.totlayer; i++) {
+		const int type = bm->ldata.layers[i].type;
+		const int offset = bm->ldata.layers[i].offset;
+
 		if (!CustomData_layer_has_math(&bm->ldata, i))
 			continue;
 		
-		type = bm->ldata.layers[i].type;
 		CustomData_data_initminmax(type, &min, &max);
 
 		BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-				block = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
+				void *block = BM_ELEM_CD_GET_VOID_P(l, offset);
 				CustomData_data_dominmax(type, block, &min, &max);
 			}
 		}
@@ -334,7 +337,7 @@ void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op)
 
 		BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 			BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-				block = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
+				void *block = BM_ELEM_CD_GET_VOID_P(l, offset);
 				CustomData_data_copy_value(type, &min, block);
 			}
 		}
@@ -375,10 +378,8 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BMOperator weldop;
 	BMWalker walker;
 	BMIter iter;
-	BMEdge *e, **edges = NULL;
-	BLI_array_declare(edges);
-	float min[3], max[3], center[3];
-	unsigned int i, tot;
+	BMEdge *e;
+	BLI_Stack *edge_stack;
 	BMOpSlot *slot_targetmap;
 
 	if (BMO_slot_bool_get(op->slots_in, "uvs")) {
@@ -395,18 +396,20 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	         BMW_FLAG_NOP, /* no need to use BMW_FLAG_TEST_HIDDEN, already marked data */
 	         BMW_NIL_LAY);
 
+	edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
+
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		float min[3], max[3], center[3];
 		BMVert *v_tar;
 
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		BLI_array_empty(edges);
+		BLI_assert(BLI_stack_is_empty(edge_stack));
 
 		INIT_MINMAX(min, max);
-		for (e = BMW_begin(&walker, e->v1), tot = 0; e; e = BMW_step(&walker), tot++) {
-			BLI_array_grow_one(edges);
-			edges[tot] = e;
+		for (e = BMW_begin(&walker, e->v1); e; e = BMW_step(&walker)) {
+			BLI_stack_push(edge_stack, &e);
 
 			minmax_v3v3_v3(min, max, e->v1->co);
 			minmax_v3v3_v3(min, max, e->v2->co);
@@ -416,79 +419,90 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 			BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
 		}
 
-		mid_v3_v3v3(center, min, max);
+		if (!BLI_stack_is_empty(edge_stack)) {
 
-		/* snap edges to a point.  for initial testing purposes anyway */
-		v_tar = edges[0]->v1;
+			mid_v3_v3v3(center, min, max);
 
-		for (i = 0; i < tot; i++) {
-			unsigned int j;
+			/* snap edges to a point.  for initial testing purposes anyway */
+			e = *(BMEdge **)BLI_stack_peek(edge_stack);
+			v_tar = e->v1;
 
-			for (j = 0; j < 2; j++) {
-				BMVert *v_src = *((&edges[i]->v1) + j);
+			while (!BLI_stack_is_empty(edge_stack)) {
+				unsigned int j;
+				BLI_stack_pop(edge_stack, &e);
 
-				copy_v3_v3(v_src->co, center);
-				if ((v_src != v_tar) && !BM_elem_flag_test(v_src, BM_ELEM_TAG)) {
-					BM_elem_flag_enable(v_src, BM_ELEM_TAG);
-					BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_src, v_tar);
-				}
-			}
-		}
-	}
-	
-	BMO_op_exec(bm, &weldop);
-	BMO_op_finish(bm, &weldop);
+				for (j = 0; j < 2; j++) {
+					BMVert *v_src = *((&e->v1) + j);
 
-	BMW_end(&walker);
-	BLI_array_free(edges);
-}
-
-/* uv collapse function */
-static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short oflag)
-{
-	BMIter iter, liter;
-	BMFace *f;
-	BMLoop *l, *l2;
-	BMWalker walker;
-	void **blocks = NULL;
-	BLI_array_declare(blocks);
-	CDBlockBytes min, max;
-	int i, tot, type = bm->ldata.layers[layer].type;
-
-	BMW_init(&walker, bm, BMW_LOOPDATA_ISLAND,
-	         BMW_MASK_NOP, oflag, BMW_MASK_NOP,
-	         BMW_FLAG_NOP, /* no need to use BMW_FLAG_TEST_HIDDEN, already marked data */
-	         layer);
-
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			if (BMO_elem_flag_test(bm, l->e, oflag)) {
-				/* walk */
-				BLI_array_empty(blocks);
-
-				CustomData_data_initminmax(type, &min, &max);
-				for (l2 = BMW_begin(&walker, l), tot = 0; l2; l2 = BMW_step(&walker), tot++) {
-					BLI_array_grow_one(blocks);
-					blocks[tot] = CustomData_bmesh_get_layer_n(&bm->ldata, l2->head.data, layer);
-					CustomData_data_dominmax(type, blocks[tot], &min, &max);
-				}
-
-				if (tot) {
-					CustomData_data_multiply(type, &min, 0.5f);
-					CustomData_data_multiply(type, &max, 0.5f);
-					CustomData_data_add(type, &min, &max);
-
-					/* snap CD (uv, vcol) points to their centroid */
-					for (i = 0; i < tot; i++) {
-						CustomData_data_copy_value(type, &min, blocks[i]);
+					copy_v3_v3(v_src->co, center);
+					if ((v_src != v_tar) && !BM_elem_flag_test(v_src, BM_ELEM_TAG)) {
+						BM_elem_flag_enable(v_src, BM_ELEM_TAG);
+						BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_src, v_tar);
 					}
 				}
 			}
 		}
 	}
 
+	BLI_stack_free(edge_stack);
+
+	BMO_op_exec(bm, &weldop);
+	BMO_op_finish(bm, &weldop);
+
 	BMW_end(&walker);
-	BLI_array_free(blocks);
+}
+
+/* uv collapse function */
+static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short oflag)
+{
+	const int type = bm->ldata.layers[layer].type;
+	const int offset = bm->ldata.layers[layer].offset;
+	BMIter iter, liter;
+	BMFace *f;
+	BMLoop *l, *l2;
+	BMWalker walker;
+	BLI_Stack *block_stack;
+	CDBlockBytes min, max;
+
+	BMW_init(&walker, bm, BMW_LOOPDATA_ISLAND,
+	         BMW_MASK_NOP, oflag, BMW_MASK_NOP,
+	         BMW_FLAG_NOP, /* no need to use BMW_FLAG_TEST_HIDDEN, already marked data */
+	         layer);
+
+	block_stack = BLI_stack_new(sizeof(void *), __func__);
+
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+			if (BMO_elem_flag_test(bm, l->e, oflag)) {
+				/* walk */
+				BLI_assert(BLI_stack_is_empty(block_stack));
+
+				CustomData_data_initminmax(type, &min, &max);
+				for (l2 = BMW_begin(&walker, l); l2; l2 = BMW_step(&walker)) {
+					void *block = BM_ELEM_CD_GET_VOID_P(l2, offset);
+					CustomData_data_dominmax(type, block, &min, &max);
+					BLI_stack_push(block_stack, &block);
+				}
+
+				if (!BLI_stack_is_empty(block_stack)) {
+					CustomData_data_multiply(type, &min, 0.5f);
+					CustomData_data_multiply(type, &max, 0.5f);
+					CustomData_data_add(type, &min, &max);
+
+					/* snap CD (uv, vcol) points to their centroid */
+					while (!BLI_stack_is_empty(block_stack)) {
+						void *block;
+						BLI_stack_pop(block_stack, &block);
+						CustomData_data_copy_value(type, &min, block);
+					}
+				}
+			}
+		}
+	}
+
+	BLI_stack_free(block_stack);
+
+	BMW_end(&walker);
 }
 
 void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
