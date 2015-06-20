@@ -583,7 +583,8 @@ PyObject *CListValue::Pyappend(PyObject *value)
 		return NULL;
 
 	if (!BGE_PROXY_PYOWNS(m_proxy)) {
-		PyErr_SetString(PyExc_TypeError, "CList.append(i): this CValueList is used internally for the game engine and can't be modified");
+		PyErr_SetString(PyExc_TypeError,
+		                "CList.append(i): internal values can't be modified");
 		return NULL;
 	}
 
@@ -594,6 +595,12 @@ PyObject *CListValue::Pyappend(PyObject *value)
 
 PyObject *CListValue::Pyreverse()
 {
+	if (!BGE_PROXY_PYOWNS(m_proxy)) {
+		PyErr_SetString(PyExc_TypeError,
+		                "CList.reverse(): internal values can't be modified");
+		return NULL;
+	}
+
 	std::reverse(m_pValueArray.begin(),m_pValueArray.end());
 	Py_RETURN_NONE;
 }
