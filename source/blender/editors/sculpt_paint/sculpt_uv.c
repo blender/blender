@@ -620,10 +620,10 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 		}
 		else {
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
-				data->elementMap = BM_uv_element_map_create(bm, false, false, true);
+				data->elementMap = BM_uv_element_map_create(bm, false, true, false);
 			}
 			else {
-				data->elementMap = BM_uv_element_map_create(bm, true, false, true);
+				data->elementMap = BM_uv_element_map_create(bm, true, true, false);
 			}
 		}
 
