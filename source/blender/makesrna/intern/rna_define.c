@@ -533,7 +533,7 @@ BlenderRNA *RNA_create(void)
 	brna = MEM_callocN(sizeof(BlenderRNA), "BlenderRNA");
 
 	DefRNA.sdna = DNA_sdna_from_data(DNAstr,  DNAlen, false);
-	DefRNA.structs.first = DefRNA.structs.last = NULL;
+	BLI_listbase_clear(&DefRNA.structs);
 	DefRNA.error = 0;
 	DefRNA.preprocess = 1;
 
@@ -720,8 +720,8 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 		 * use MEM_dupallocN, data structs may not be alloced but builtin */
 		memcpy(srna, srnafrom, sizeof(StructRNA));
 		srna->cont.prophash = NULL;
-		srna->cont.properties.first = srna->cont.properties.last = NULL;
-		srna->functions.first = srna->functions.last = NULL;
+		BLI_listbase_clear(&srna->cont.properties);
+		BLI_listbase_clear(&srna->functions);
 		srna->py_type = NULL;
 
 		if (DefRNA.preprocess) {

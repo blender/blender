@@ -2546,7 +2546,8 @@ void BKE_curve_bevelList_free(ListBase *bev)
 		}
 		MEM_freeN(bl);
 	}
-	bev->first = bev->last = NULL;
+
+	BLI_listbase_clear(bev);
 }
 
 void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)

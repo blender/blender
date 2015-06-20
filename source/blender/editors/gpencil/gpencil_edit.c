@@ -247,7 +247,7 @@ void ED_gpencil_strokes_copybuf_free(void)
 		BLI_freelinkN(&gp_strokes_copypastebuf, gps);
 	}
 	
-	gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
+	BLI_listbase_clear(&gp_strokes_copypastebuf);
 }
 
 /* --------------------- */

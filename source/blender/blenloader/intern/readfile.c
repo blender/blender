@@ -3449,7 +3449,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 		ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	}
 
-	ima->anims.first = ima->anims.last = NULL;
+	BLI_listbase_clear(&ima->anims);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
 	ima->stereo3d_format = newdataadr(fd, ima->stereo3d_format);
 	ima->ok = 1;
@@ -5408,7 +5408,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 						seq->scene_sound = BKE_sound_add_scene_sound_defaults(sce, seq);
 					}
 				}
-				seq->anims.first = seq->anims.last = NULL;
+				BLI_listbase_clear(&seq->anims);
 
 				lib_link_sequence_modifiers(fd, sce, &seq->modifiers);
 			}
