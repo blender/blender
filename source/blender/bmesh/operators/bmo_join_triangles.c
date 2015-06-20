@@ -257,10 +257,8 @@ fail:
 
 
 #define EDGE_MARK	(1 << 0)
-#define EDGE_CHOSEN	(1 << 1)
 
 #define FACE_OUT (1 << 0)
-#define FACE_MARK	(1 << 1)
 #define FACE_INPUT	(1 << 2)
 
 void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
@@ -270,7 +268,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMOIter siter;
 	BMFace *f;
-	BMEdge *e, *e_next;
+	BMEdge *e;
 	/* data: edge-to-join, sort_value: error weight */
 	struct SortPointerByFloat *jedges;
 	unsigned i, totedge;
@@ -370,33 +368,16 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		f_b = e->l->radial_next->f;
 
 		/* check if another edge already claimed this face */
-		if ((BMO_elem_flag_test(bm, f_a, FACE_MARK) == false) &&
-		    (BMO_elem_flag_test(bm, f_b, FACE_MARK) == false))
-		{
-			BMO_elem_flag_enable(bm, f_a, FACE_MARK);
-			BMO_elem_flag_enable(bm, f_b, FACE_MARK);
-			BMO_elem_flag_enable(bm, e, EDGE_CHOSEN);
-		}
-	}
-
-	MEM_freeN(jedges);
-
-	/* join best weighted */
-	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
-		BMFace *f_new;
-		BMFace *f_a, *f_b;
-
-		if (!BMO_elem_flag_test(bm, e, EDGE_CHOSEN))
-			continue;
-
-		BM_edge_face_pair(e, &f_a, &f_b); /* checked above */
-		if ((f_a->len == 3 && f_b->len == 3)) {
+		if ((f_a->len == 3) && (f_b->len == 3)) {
+			BMFace *f_new;
 			f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
 			if (f_new) {
 				BMO_elem_flag_enable(bm, f_new, FACE_OUT);
 			}
 		}
 	}
+
+	MEM_freeN(jedges);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 }
