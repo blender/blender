@@ -32,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array.h"
+#include "BLI_stack.h"
 #include "BLI_string.h"
 #include "BLI_math.h"
 
@@ -224,7 +224,8 @@ static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, con
 	BMEdge *eed, *eed_last;
 	BMVert *v[2][2] = {{NULL}}, *v_last;
 	float (*edges)[2][3] = NULL;
-	BLI_array_declare(edges);
+	BLI_Stack *edge_stack;
+
 	int i, tot = 0;
 
 	BMW_init(&walker, bm, BMW_EDGERING,
@@ -232,10 +233,24 @@ static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, con
 	         BMW_FLAG_TEST_HIDDEN,
 	         BMW_NIL_LAY);
 
+
+	edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
+
+	eed_last = NULL;
+	for (eed = eed_start = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
+		BLI_stack_push(edge_stack, &eed);
+		eed_last = eed;
+	}
+
+	edges = MEM_mallocN(
+	        (sizeof(*edges) * (BLI_stack_count(edge_stack) + (eed_last != eed_start))) * previewlines, __func__);
+
 	v_last   = NULL;
 	eed_last = NULL;
 
-	for (eed = eed_start = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
+	while (!BLI_stack_is_empty(edge_stack)) {
+		BLI_stack_pop(edge_stack, &eed);
+
 		if (eed_last) {
 			if (v_last) {
 				v[1][0] = v[0][0];
@@ -249,8 +264,6 @@ static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, con
 
 			edgering_find_order(eed_last, eed, v_last, v);
 			v_last = v[0][0];
-
-			BLI_array_grow_items(edges, previewlines);
 
 			for (i = 1; i <= previewlines; i++) {
 				const float fac = (i / ((float)previewlines + 1));
@@ -279,8 +292,6 @@ static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, con
 
 		edgering_find_order(eed_last, eed_start, v_last, v);
 
-		BLI_array_grow_items(edges, previewlines);
-
 		for (i = 1; i <= previewlines; i++) {
 			const float fac = (i / ((float)previewlines + 1));
 			float v_cos[2][2][3];
@@ -296,6 +307,8 @@ static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, con
 			tot++;
 		}
 	}
+
+	BLI_stack_free(edge_stack);
 
 	BMW_end(&walker);
 	lcd->edges = edges;
