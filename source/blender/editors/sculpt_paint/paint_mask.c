@@ -290,7 +290,7 @@ typedef struct LassoMaskData {
 static bool is_effected_lasso(LassoMaskData *data, float co[3])
 {
 	float scr_co_f[2];
-	short scr_co_s[2];
+	int   scr_co_s[2];
 	float co_final[3];
 
 	flip_v3_v3(co_final, co, data->symmpass);
@@ -301,8 +301,13 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
 	scr_co_s[1] = scr_co_f[1];
 
 	/* clip against screen, because lasso is limited to screen only */
-	if (scr_co_s[0] < data->rect.xmin || scr_co_s[1] < data->rect.ymin || scr_co_s[0] >= data->rect.xmax || scr_co_s[1] >= data->rect.ymax)
+	if ((scr_co_s[0] < data->rect.xmin) ||
+	    (scr_co_s[1] < data->rect.ymin) ||
+	    (scr_co_s[0] >= data->rect.xmax) ||
+	    (scr_co_s[1] >= data->rect.ymax))
+	{
 		return false;
+	}
 
 	scr_co_s[0] -= data->rect.xmin;
 	scr_co_s[1] -= data->rect.ymin;
