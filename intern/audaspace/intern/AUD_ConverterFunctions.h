@@ -33,16 +33,7 @@
 #include "AUD_Space.h"
 
 #include <cstring>
-#ifdef _MSC_VER
-#if (_MSC_VER <= 1500)
-   typedef short             int16_t;
-   typedef int               int32_t;
-#else
-#	include <stdint.h>
-#endif
-#else
 #include <stdint.h>
-#endif
 
 typedef void (*AUD_convert_f)(data_t* target, data_t* source, int length);
 
