@@ -209,8 +209,7 @@ static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
 #else
-	(void)ptr;
-	(void)values;
+	UNUSED_VARS(ptr, values);
 #endif
 }
 
@@ -237,7 +236,7 @@ static void rna_SmokeModifier_velocity_grid_get(PointerRNA *ptr, float *values)
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
 #else
-	(void)ptr;
+	UNUSED_VARS(ptr, values);
 #endif
 }
 
@@ -263,7 +262,7 @@ static void rna_SmokeModifier_color_grid_get(PointerRNA *ptr, float *values)
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
 #else
-	(void)ptr;
+	UNUSED_VARS(ptr, values);
 #endif
 }
 
@@ -289,8 +288,7 @@ static void rna_SmokeModifier_flame_grid_get(PointerRNA *ptr, float *values)
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
 #else
-	(void)ptr;
-	(void)values;
+	UNUSED_VARS(ptr, values);
 #endif
 }
 
