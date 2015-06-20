@@ -612,18 +612,18 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 		if (do_island_optimization) {
 			/* We will need island information */
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
-				data->elementMap = BM_uv_element_map_create(bm, false, true);
+				data->elementMap = BM_uv_element_map_create(bm, false, true, true);
 			}
 			else {
-				data->elementMap = BM_uv_element_map_create(bm, true, true);
+				data->elementMap = BM_uv_element_map_create(bm, true, true, true);
 			}
 		}
 		else {
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
-				data->elementMap = BM_uv_element_map_create(bm, false, false);
+				data->elementMap = BM_uv_element_map_create(bm, false, false, true);
 			}
 			else {
-				data->elementMap = BM_uv_element_map_create(bm, true, false);
+				data->elementMap = BM_uv_element_map_create(bm, true, false, true);
 			}
 		}
 

@@ -1649,10 +1649,10 @@ static int stitch_init(bContext *C, wmOperator *op)
 
 	/* in uv synch selection, all uv's are visible */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		state->element_map = BM_uv_element_map_create(state->em->bm, false, true);
+		state->element_map = BM_uv_element_map_create(state->em->bm, false, true, true);
 	}
 	else {
-		state->element_map = BM_uv_element_map_create(state->em->bm, true, true);
+		state->element_map = BM_uv_element_map_create(state->em->bm, true, true, true);
 	}
 	if (!state->element_map) {
 		state_delete(state);
