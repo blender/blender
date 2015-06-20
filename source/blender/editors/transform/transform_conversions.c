@@ -2777,9 +2777,12 @@ static void createTransUVs(bContext *C, TransInfo *t)
 					}
 
 					if (is_island_center) {
-						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-						add_v2_v2(island_center[element->island].co, luv->uv);
-						island_center[element->island].co_num++;
+						if (element->flag == false) {
+							MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+							add_v2_v2(island_center[element->island].co, luv->uv);
+							island_center[element->island].co_num++;
+							element->flag = true;
+						}
 					}
 				}
 			}
