@@ -57,7 +57,7 @@ ccl_device_noinline
 ccl_device_inline
 #    endif  /* __CUDA_ARCH__ > 500 */
 #  else  /* (defined(i386) || defined(_M_IX86)) */
-#    if defined(__KERNEL_EXPERIMENTAL__) && (__CUDA_ARCH__ == 500)
+#    if defined(__KERNEL_EXPERIMENTAL__) && (__CUDA_ARCH__ > 500)
 ccl_device_noinline
 #    else
 ccl_device_inline
