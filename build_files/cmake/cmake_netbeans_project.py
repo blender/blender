@@ -40,6 +40,7 @@ from project_info import (
         # is_py,
         cmake_advanced_info,
         cmake_compiler_defines,
+        cmake_cache_var,
         project_name_get,
         )
 
@@ -70,6 +71,10 @@ def create_nb_project_main():
         else:
             # be tricky, get the project name from git if we can!
             PROJECT_NAME = project_name_get()
+
+
+        make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
+        make_exe_basename = os.path.basename(make_exe)
 
         # --------------- NB spesific
         defines = [("%s=%s" % cdef) if cdef[1] else cdef[0] for cdef in defines]
@@ -194,9 +199,18 @@ def create_nb_project_main():
 
         f.write('        <makeTool>\n')
         f.write('          <buildCommandWorkingDir>.</buildCommandWorkingDir>\n')
-        f.write('          <buildCommand>${MAKE} -f Makefile</buildCommand>\n')
-        f.write('          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>\n')
+
+        if make_exe_basename == "ninja":
+            build_cmd = "ninja"
+            clean_cmd = "ninja -t clean"
+        else:
+            build_cmd = "${MAKE} -f Makefile"
+            clean_cmd = "${MAKE} -f Makefile clean"
+
+        f.write('          <buildCommand>%s</buildCommand>\n' % build_cmd)
+        f.write('          <cleanCommand>%s</cleanCommand>\n' % clean_cmd)
         f.write('          <executablePath>./bin/blender</executablePath>\n')
+        del build_cmd, clean_cmd
 
         def write_toolinfo():
             f.write('            <incDir>\n')
