@@ -303,6 +303,8 @@ typedef struct ScreenshotJob {
 	const short *stop;
 	const short *do_update;
 	ReportList reports;
+
+	bMovieHandle *movie_handle;
 	void *movie_ctx;
 } ScreenshotJob;
 
@@ -314,8 +316,11 @@ static void screenshot_freejob(void *sjv)
 	if (sj->dumprect)
 		MEM_freeN(sj->dumprect);
 
-	if (sj->movie_ctx)
-		MEM_freeN(sj->movie_ctx);
+	if (sj->movie_handle) {
+		bMovieHandle *mh = sj->movie_handle;
+		mh->end_movie(sj->movie_ctx);
+		mh->context_free(sj->movie_ctx);
+	}
 
 	MEM_freeN(sj);
 }
@@ -350,6 +355,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	if (BKE_imtype_is_movie(rd.im_format.imtype)) {
 		mh = BKE_movie_handle_get(sj->scene->r.im_format.imtype);
 		sj->movie_ctx = mh->context_create();
+		sj->movie_handle = mh;
 
 		if (!mh->start_movie(sj->movie_ctx, sj->scene, &rd, sj->dumpsx, sj->dumpsy, &sj->reports, false, "")) {
 			printf("screencast job stopped\n");
@@ -418,6 +424,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	if (mh) {
 		mh->end_movie(sj->movie_ctx);
 		mh->context_free(sj->movie_ctx);
+		sj->movie_handle = NULL;
 	}
 
 	BKE_report(&sj->reports, RPT_INFO, "Screencast job stopped");
