@@ -465,6 +465,23 @@ void RAS_MeshObject::RemoveFromBuckets(void *clientobj)
 	}
 }
 
+void RAS_MeshObject::EndConversion()
+{
+#if 0
+	m_sharedvertex_map.clear(); // SharedVertex
+	vector<vector<SharedVertex> >	shared_null(0);
+	shared_null.swap( m_sharedvertex_map ); /* really free the memory */
+#endif
+
+	for (std::list<RAS_MeshMaterial>::iterator it = m_materials.begin();
+		 it != m_materials.end();
+		 ++it)
+	{
+		RAS_MeshSlot *ms = it->m_baseslot;
+		ms->UpdateDisplayArraysOffset();
+	}
+}
+
 //void RAS_MeshObject::Transform(const MT_Transform& trans)
 //{
 	//m_trans.translate(MT_Vector3(0,0,1));//.operator *=(trans);

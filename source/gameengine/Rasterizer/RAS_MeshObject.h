@@ -132,13 +132,7 @@ public:
 	virtual void		AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer);
 
 	void				RemoveFromBuckets(void *clientobj);
-	void				EndConversion() {
-#if 0
-		m_sharedvertex_map.clear(); // SharedVertex
-		vector<vector<SharedVertex> >	shared_null(0);
-		shared_null.swap( m_sharedvertex_map ); /* really free the memory */
-#endif
-	}
+	void				EndConversion();
 
 	/* colors */
 	void				DebugColor(unsigned int abgr);

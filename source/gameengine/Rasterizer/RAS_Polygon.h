@@ -72,8 +72,8 @@ public:
 	RAS_TexVert*		GetVertex(int i);
 
 	void				SetVertexOffset(int i, unsigned short offset);
-	int					GetVertexOffset(int i);
-	
+	unsigned int		GetVertexOffsetAbsolute(unsigned short i);
+
 	// each bit is for a visible edge, starting with bit 1 for the first edge, bit 2 for second etc.
 	// - Not used yet!
 /*	int					GetEdgeCode();

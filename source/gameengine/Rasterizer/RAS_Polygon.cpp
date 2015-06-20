@@ -62,9 +62,9 @@ RAS_TexVert *RAS_Polygon::GetVertex(int i)
 	return &m_darray->m_vertex[m_offset[i]];
 }
 
-int RAS_Polygon::GetVertexOffset(int i)
+unsigned int RAS_Polygon::GetVertexOffsetAbsolute(unsigned short i)
 {
-	return m_offset[i];
+	return m_offset[i] + m_darray->m_offset;
 }
 
 /*

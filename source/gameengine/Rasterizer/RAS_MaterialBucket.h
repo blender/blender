@@ -80,6 +80,13 @@ public:
 class RAS_DisplayArray
 {
 public:
+	/** The offset relation to the previous RAS_DisplayArray.
+	 * For the user vertex are one big list but in C++ source
+	 * it's two different lists if we use quads and triangles.
+	 * So to fix that we add an offset.
+	 * This value is set in UpdateDisplayArraysOffset().
+	 */
+	unsigned int m_offset;
 	vector<RAS_TexVert> m_vertex;
 	vector<unsigned short> m_index;
 	/* LINE currently isn't used */
@@ -164,6 +171,9 @@ public:
 	void AddPolygon(int numverts);
 	int AddVertex(const RAS_TexVert& tv);
 	void AddPolygonVertex(int offset);
+
+	/// Update offset of each display array
+	void UpdateDisplayArraysOffset();
 
 	/* optimization */
 	bool Split(bool force=false);

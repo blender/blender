@@ -287,6 +287,16 @@ void RAS_MeshSlot::AddPolygonVertex(int offset)
 		m_endindex++;
 }
 
+void RAS_MeshSlot::UpdateDisplayArraysOffset()
+{
+	unsigned int offset = 0;
+	for (unsigned short i = 0; i < m_displayArrays.size(); ++i) {
+		RAS_DisplayArray *darray = m_displayArrays[i];
+		darray->m_offset = offset;
+		offset += darray->m_vertex.size();
+	}
+}
+
 void RAS_MeshSlot::SetDeformer(RAS_Deformer* deformer)
 {
 	if (deformer && m_pDeformer != deformer) {
