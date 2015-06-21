@@ -50,6 +50,7 @@
 #endif
 
 #undef HAVE_MALLOC_STATS
+#define USE_MALLOC_USABLE_SIZE  /* internal, when we have malloc_usable_size() */
 
 #if defined(__linux__) || (defined(__FreeBSD_kernel__) && !defined(__FreeBSD__)) || defined(__GLIBC__)
 #  include <malloc.h>
@@ -63,7 +64,8 @@
 #  include <malloc.h>
 #  define malloc_usable_size _msize
 #else
-#  error "We don't know how to use malloc_usable_size on your platform"
+#  pragma message "We don't know how to use malloc_usable_size on your platform"
+#  undef USE_MALLOC_USABLE_SIZE
 #endif
 
 /* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
