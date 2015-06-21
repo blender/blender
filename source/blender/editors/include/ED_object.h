@@ -131,6 +131,10 @@ float ED_object_new_primitive_matrix(
         struct bContext *C, struct Object *editob,
         const float loc[3], const float rot[3], float primmat[4][4]);
 
+
+/* Avoid allowing too much insane values even by typing (typos can hang/crash Blender otherwise). */
+#define OBJECT_ADD_SIZE_MAXF 1.0e12f
+
 void ED_object_add_unit_props(struct wmOperatorType *ot);
 void ED_object_add_generic_props(struct wmOperatorType *ot, bool do_editmode);
 bool ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, const char view_align_axis,
