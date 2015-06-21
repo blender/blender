@@ -335,11 +335,11 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 
-	prop = RNA_def_float_vector(ot->srna, "plane_co", 3, NULL, -FLT_MAX, FLT_MAX,
-	                            "Plane Point", "A point on the plane", -FLT_MAX, FLT_MAX);
+	prop = RNA_def_float_vector(ot->srna, "plane_co", 3, NULL, -1e12f, 1e12f,
+	                            "Plane Point", "A point on the plane", -1e4f, 1e4f);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_float_vector(ot->srna, "plane_no", 3, NULL, -FLT_MAX, FLT_MAX,
-	                            "Plane Normal", "The direction the plane points", -FLT_MAX, FLT_MAX);
+	prop = RNA_def_float_vector(ot->srna, "plane_no", 3, NULL, -1.0f, 1.0f,
+	                            "Plane Normal", "The direction the plane points", -1.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill in the cut");
