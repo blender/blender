@@ -1342,9 +1342,8 @@ void MESH_OT_face_make_planar(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_float(ot->srna, "factor", 0.5f, -10.0f, 10.0f, "Factor", "", 0.0f, 1.0f);
-	RNA_def_int(ot->srna, "repeat", 1, 1, 200,
-	            "Number of iterations to flatten faces", "", 1, 200);
+	RNA_def_float(ot->srna, "factor", 1.0f, -10.0f, 10.0f, "Factor", "", 0.0f, 1.0f);
+	RNA_def_int(ot->srna, "repeat", 1, 1, 200, "Iterations", "", 1, 200);
 }
 
 
