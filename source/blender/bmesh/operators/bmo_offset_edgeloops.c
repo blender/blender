@@ -208,6 +208,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 						BM_face_split(bm, l->f, l->prev, l->next, &l_new, NULL, true);
 						BLI_assert(f_cmp == l->f);
 						BLI_assert(f_cmp != l_new->f);
+						UNUSED_VARS_NDEBUG(f_cmp);
 						BMO_elem_flag_enable(bm, l_new->e, ELE_NEW);
 					}
 				}

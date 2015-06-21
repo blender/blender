@@ -2440,6 +2440,7 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene, const char *name, char *r
 	/* begin of extension */
 	index_act = BLI_str_rpartition(name, delims, rext, &suf_act);
 	BLI_assert(index_act > 0);
+	UNUSED_VARS_NDEBUG(index_act);
 
 	for (srv = scene->r.views.first; srv; srv = srv->next) {
 		if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
