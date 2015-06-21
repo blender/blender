@@ -711,10 +711,12 @@ void MEM_guarded_printmemlist_stats(void)
 		totpb++;
 		pb++;
 
+#ifdef USE_MALLOC_USABLE_SIZE
 		if (!membl->mmap && membl->alignment == 0) {
 			mem_in_use_slop += (sizeof(MemHead) + sizeof(MemTail) +
 			                    malloc_usable_size((void *)membl)) - membl->len;
 		}
+#endif
 
 		if (membl->next)
 			membl = MEMNEXT(membl->next);
