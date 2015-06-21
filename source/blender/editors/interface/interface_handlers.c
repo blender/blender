@@ -1062,6 +1062,7 @@ static void ui_multibut_states_create(uiBut *but_active, uiHandleButtonData *dat
 	uiBut *but;
 
 	BLI_assert(data->multi_data.init == BUTTON_MULTI_INIT_SETUP);
+	BLI_assert(data->multi_data.has_mbuts);
 
 	data->multi_data.bs_mbuts = UI_butstore_create(but_active->block);
 
@@ -7032,8 +7033,13 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 					     /* just to be sure, check we're dragging more hoz then virt */
 					     abs(event->prevx - event->x) > abs(event->prevy - event->y)))
 					{
-						ui_multibut_states_create(but, data);
-						data->multi_data.init = BUTTON_MULTI_INIT_ENABLE;
+						if (data->multi_data.has_mbuts) {
+							ui_multibut_states_create(but, data);
+							data->multi_data.init = BUTTON_MULTI_INIT_ENABLE;
+						}
+						else {
+							data->multi_data.init = BUTTON_MULTI_INIT_DISABLE;
+						}
 					}
 				}
 
