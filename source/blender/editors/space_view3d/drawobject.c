@@ -2053,12 +2053,13 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	float vec[4][3], asp[2], shift[2], scale[3];
 	int i;
 	float drawsize;
-	const bool is_view = (rv3d->persp == RV3D_CAMOB && ob == v3d->camera);
 	MovieClip *clip = BKE_object_movieclip_get(scene, base->object, false);
 
+	const bool is_view = (rv3d->persp == RV3D_CAMOB && ob == v3d->camera);
+	const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 	const bool is_stereo3d = drawcamera_is_stereo3d(scene, v3d, ob);
 	const bool is_stereo3d_cameras = (ob == scene->camera) &&
-	                                 (scene->r.scemode & R_MULTIVIEW) &&
+	                                 is_multiview &&
 	                                 (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D) &&
 	                                 (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS);
 
@@ -2100,7 +2101,9 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	/* camera frame */
 	if (!is_stereo3d_cameras) {
 		/* make sure selection uses the same matrix for camera as the one used while viewing */
-		if ((G.f & G_PICKSEL) && is_view && (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D)) {
+		if ((G.f & G_PICKSEL) && is_view && is_multiview &&
+		    (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D))
+		{
 			float obmat[4][4];
 			bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
 
@@ -2112,8 +2115,9 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			drawcamera_frame(vec, GL_LINE_LOOP);
 			glPopMatrix();
 		}
-		else
+		else {
 			drawcamera_frame(vec, GL_LINE_LOOP);
+		}
 	}
 
 	if (is_view)
