@@ -272,6 +272,9 @@ public:
 	void SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideClipping(float near, float far);
 	void SetCameraOverrideLens(float lens);
+
+	// Update animations for object in this scene
+	void UpdateAnimations(KX_Scene *scene);
 	
 	/**
 	 * Sets display of all frames.

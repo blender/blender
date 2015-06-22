@@ -51,6 +51,9 @@ private:
 	class KX_GameObject* m_obj;
 	BL_ActionMap 		 m_layers;
 
+	// The last update time to avoid double animation update.
+	float m_prevUpdate;
+
 	/**
 	 * Check if an action exists
 	 */

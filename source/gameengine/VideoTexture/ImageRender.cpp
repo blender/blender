@@ -297,7 +297,10 @@ void ImageRender::Render()
         // TODO: implement an explicit function in rasterizer to restore the left buffer.
         m_rasterizer->SetEye(RAS_IRasterizer::RAS_STEREO_LEFTEYE);
     }
+
 	m_scene->CalculateVisibleMeshes(m_rasterizer,m_camera);
+
+	m_engine->UpdateAnimations(m_scene);
 
 	m_scene->RenderBuckets(camtrans, m_rasterizer);
 

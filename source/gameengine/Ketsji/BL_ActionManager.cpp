@@ -28,7 +28,8 @@
 #include "BL_ActionManager.h"
 
 BL_ActionManager::BL_ActionManager(class KX_GameObject *obj):
-	m_obj(obj)
+	m_obj(obj),
+	m_prevUpdate(-1.0f)
 {
 }
 
@@ -131,6 +132,10 @@ bool BL_ActionManager::IsActionDone(short layer)
 
 void BL_ActionManager::Update(float curtime)
 {
+	if (m_prevUpdate == curtime)
+		return;
+	m_prevUpdate = curtime;
+
 	BL_ActionMap::iterator it;
 	for (it = m_layers.begin(); it != m_layers.end(); )
 	{
