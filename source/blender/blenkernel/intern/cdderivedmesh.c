@@ -420,9 +420,14 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
 {
-	GPU_edge_setup(dm);
-	GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, dm->drawObject->loose_edge_offset * 2, (dm->drawObject->totedge - dm->drawObject->loose_edge_offset) * 2);
-	GPU_buffer_unbind();
+	const int start = (dm->drawObject->loose_edge_offset * 2);
+	const int count = (dm->drawObject->totedge - dm->drawObject->loose_edge_offset) * 2;
+
+	if (count) {
+		GPU_edge_setup(dm);
+		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, start, count);
+		GPU_buffer_unbind();
+	}
 }
 
 static void cdDM_drawFacesSolid(DerivedMesh *dm,
