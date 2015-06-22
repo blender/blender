@@ -1484,16 +1484,18 @@ static void ui_selectcontext_apply(
 			bool  b;
 			int   i;
 			float f;
-		} delta;
+		} delta, min, max;
 
 		const bool is_array = RNA_property_array_check(prop);
 		const int rna_type = RNA_property_type(prop);
 
 		if (rna_type == PROP_FLOAT) {
 			delta.f = use_delta ? (value - value_orig) : value;
+			RNA_property_float_range(&but->rnapoin, prop, &min.f, &max.f);
 		}
 		else if (rna_type == PROP_INT) {
 			delta.i = use_delta ? ((int)value - (int)value_orig) : (int)value;
+			RNA_property_int_range(&but->rnapoin, prop, &min.i, &max.i);
 		}
 		else if (rna_type == PROP_ENUM) {
 			delta.i = RNA_property_enum_get(&but->rnapoin, prop);  /* not a delta infact */
@@ -1543,30 +1545,40 @@ static void ui_selectcontext_apply(
 		for (i = 0; i < selctx_data->elems_len; i++) {
 			uiSelectContextElem *other = &selctx_data->elems[i];
 			PointerRNA lptr = other->ptr;
-			if (is_array) {
-				if (rna_type == PROP_FLOAT) {
-					RNA_property_float_set_index(&lptr, lprop, index, use_delta ? (other->val_f + delta.f) : delta.f);
+
+			if (rna_type == PROP_FLOAT) {
+				float other_value = use_delta ? (other->val_f + delta.f) : delta.f;
+				CLAMP(other_value, min.f, max.f);
+				if (is_array) {
+					RNA_property_float_set_index(&lptr, lprop, index, other_value);
 				}
-				else if (rna_type == PROP_INT) {
-					RNA_property_int_set_index(&lptr, lprop, index, use_delta ? (other->val_i + delta.i) : delta.i);
-				}
-				else if (rna_type == PROP_BOOLEAN) {
-					RNA_property_boolean_set_index(&lptr, lprop, index, delta.b);
+				else {
+					RNA_property_float_set(&lptr, lprop, other_value);
 				}
 			}
-			else {
-				if (rna_type == PROP_FLOAT) {
-					RNA_property_float_set(&lptr, lprop, use_delta ? (other->val_f + delta.f) : delta.f);
+			else if (rna_type == PROP_INT) {
+				int other_value = use_delta ? (other->val_i + delta.i) : delta.i;
+				CLAMP(other_value, min.i, max.i);
+				if (is_array) {
+					RNA_property_int_set_index(&lptr, lprop, index, other_value);
 				}
-				else if (rna_type == PROP_INT) {
-					RNA_property_int_set(&lptr, lprop, use_delta ? (other->val_i + delta.i) : delta.i);
+				else {
+					RNA_property_int_set(&lptr, lprop, other_value);
 				}
-				else if (rna_type == PROP_BOOLEAN) {
+			}
+			else if (rna_type == PROP_BOOLEAN) {
+				const bool other_value = delta.b;
+				if (is_array) {
+					RNA_property_boolean_set_index(&lptr, lprop, index, other_value);
+				}
+				else {
 					RNA_property_boolean_set(&lptr, lprop, delta.b);
 				}
-				else if (rna_type == PROP_ENUM) {
-					RNA_property_enum_set(&lptr, lprop, delta.i);
-				}
+			}
+			else if (rna_type == PROP_ENUM) {
+				const int other_value = delta.i;
+				BLI_assert(!is_array);
+				RNA_property_enum_set(&lptr, lprop, other_value);
 			}
 
 			RNA_property_update(C, &lptr, prop);
