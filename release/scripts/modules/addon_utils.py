@@ -360,7 +360,7 @@ def enable(module_name, default_set=False, persistent=False, handle_error=None):
     return mod
 
 
-def disable(module_name, default_set=True, handle_error=None):
+def disable(module_name, default_set=False, handle_error=None):
     """
     Disables an addon by name.
 
