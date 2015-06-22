@@ -1261,8 +1261,8 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 		size = BLI_rcti_size_x(rect) / 200.f;
 	else
 		size = BLI_rcti_size_y(rect) / 200.f;
-	
-	glScalef(size, size, size);
+
+	glScalef(size, size, MIN2(size, 1.0f));
 
 	if (displist == 0) {
 		GLUquadricObj *qobj;
