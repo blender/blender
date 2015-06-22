@@ -2058,10 +2058,14 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	const bool is_view = (rv3d->persp == RV3D_CAMOB && ob == v3d->camera);
 	const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 	const bool is_stereo3d = drawcamera_is_stereo3d(scene, v3d, ob);
+	const bool is_stereo3d_view = (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D);
 	const bool is_stereo3d_cameras = (ob == scene->camera) &&
 	                                 is_multiview &&
-	                                 (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D) &&
+	                                 is_stereo3d_view &&
 	                                 (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS);
+	const bool is_selection_camera_stereo = (G.f & G_PICKSEL) &&
+	                                        is_view && is_multiview &&
+	                                        is_stereo3d_view;
 
 	/* draw data for movie clip set as active for scene */
 	if (clip) {
@@ -2088,9 +2092,17 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 
 	cam = ob->data;
 
-	scale[0] = 1.0f / len_v3(ob->obmat[0]);
-	scale[1] = 1.0f / len_v3(ob->obmat[1]);
-	scale[2] = 1.0f / len_v3(ob->obmat[2]);
+	/* BKE_camera_multiview_model_matrix already accounts for scale, don't do it here */
+	if (is_selection_camera_stereo) {
+		scale[0] = 1.0f;
+		scale[1] = 1.0f;
+		scale[2] = 1.0f;
+	}
+	else {
+		scale[0] = 1.0f / len_v3(ob->obmat[0]);
+		scale[1] = 1.0f / len_v3(ob->obmat[1]);
+		scale[2] = 1.0f / len_v3(ob->obmat[2]);
+	}
 
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                         asp, shift, &drawsize, vec);
@@ -2101,9 +2113,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	/* camera frame */
 	if (!is_stereo3d_cameras) {
 		/* make sure selection uses the same matrix for camera as the one used while viewing */
-		if ((G.f & G_PICKSEL) && is_view && is_multiview &&
-		    (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D))
-		{
+		if (is_selection_camera_stereo) {
 			float obmat[4][4];
 			bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
 
