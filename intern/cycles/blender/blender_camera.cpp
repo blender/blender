@@ -207,19 +207,34 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::RenderEngine b_e
 	}
 }
 
-static Transform blender_camera_matrix(const Transform& tfm, CameraType type)
+static Transform blender_camera_matrix(const Transform& tfm,
+                                       const CameraType type,
+                                       const PanoramaType panorama_type)
 {
 	Transform result;
 
 	if(type == CAMERA_PANORAMA) {
-		/* make it so environment camera needs to be pointed in the direction
-		 * of the positive x-axis to match an environment texture, this way
-		 * it is looking at the center of the texture */
-		result = tfm *
-			make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
-			                0.0f,  0.0f, 1.0f, 0.0f,
-			               -1.0f,  0.0f, 0.0f, 0.0f,
-			                0.0f,  0.0f, 0.0f, 1.0f);
+		if(panorama_type == PANORAMA_MIRRORBALL) {
+			/* Mirror ball camera is looking into the negative Y direction
+			 * which matches texture mirror ball mapping.
+			 */
+			result = tfm *
+				make_transform(1.0f, 0.0f, 0.0f, 0.0f,
+				               0.0f, 0.0f, 1.0f, 0.0f,
+				               0.0f, 1.0f, 0.0f, 0.0f,
+				               0.0f, 0.0f, 0.0f, 1.0f);
+		}
+		else {
+			/* Make it so environment camera needs to be pointed in the direction
+			 * of the positive x-axis to match an environment texture, this way
+			 * it is looking at the center of the texture
+			 */
+			result = tfm *
+				make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
+				                0.0f,  0.0f, 1.0f, 0.0f,
+				               -1.0f,  0.0f, 0.0f, 0.0f,
+				                0.0f,  0.0f, 0.0f, 1.0f);
+		}
 	}
 	else {
 		/* note the blender camera points along the negative z-axis */
@@ -365,7 +380,9 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->bladesrotation = bcam->aperturerotation;
 
 	/* transform */
-	cam->matrix = blender_camera_matrix(bcam->matrix, bcam->type);
+	cam->matrix = blender_camera_matrix(bcam->matrix,
+	                                    bcam->type,
+	                                    bcam->panorama_type);
 	cam->motion.pre = cam->matrix;
 	cam->motion.post = cam->matrix;
 	cam->use_motion = false;
@@ -424,7 +441,7 @@ void BlenderSync::sync_camera_motion(BL::Object b_ob, float motion_time)
 	BL::Array<float, 16> b_ob_matrix;
 	b_engine.camera_model_matrix(b_ob, b_ob_matrix);
 	Transform tfm = get_transform(b_ob_matrix);
-	tfm = blender_camera_matrix(tfm, cam->type);
+	tfm = blender_camera_matrix(tfm, cam->type, cam->panorama_type);
 
 	if(tfm != cam->matrix) {
 		VLOG(1) << "Camera " << b_ob.name() << " motion detected.";
