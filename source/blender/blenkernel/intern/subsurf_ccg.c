@@ -2225,7 +2225,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	MCol *mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
+	int colType = CD_TEXTURE_MCOL;
+	MCol *mcol = dm->getTessFaceDataArray(dm, colType);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	MTFace *tf_stencil_base = NULL;
 	MTFace *tf_stencil = NULL;
@@ -2243,11 +2244,14 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
 
-	if (!mcol)
-		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
-
-	if (!mcol)
-		mcol = dm->getTessFaceDataArray(dm, CD_TEXTURE_MCOL);
+	if (!mcol) {
+		colType = CD_PREVIEW_MCOL;
+		mcol = dm->getTessFaceDataArray(dm, colType);
+	}
+	if (!mcol) {
+		colType = CD_MCOL;
+		mcol = dm->getTessFaceDataArray(dm, colType);
+	}
 
 	totface = ccgSubSurf_getNumFaces(ss);
 
