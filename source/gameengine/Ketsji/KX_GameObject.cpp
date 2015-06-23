@@ -1965,6 +1965,8 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("isSuspendDynamics",		KX_GameObject, pyattr_get_is_suspend_dynamics),
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMin",		KX_GameObject, pyattr_get_lin_vel_min, pyattr_set_lin_vel_min),
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMax",		KX_GameObject, pyattr_get_lin_vel_max, pyattr_set_lin_vel_max),
+	KX_PYATTRIBUTE_RW_FUNCTION("angularVelocityMin", KX_GameObject, pyattr_get_ang_vel_min, pyattr_set_ang_vel_min),
+	KX_PYATTRIBUTE_RW_FUNCTION("angularVelocityMax", KX_GameObject, pyattr_get_ang_vel_max, pyattr_set_ang_vel_max),
 	KX_PYATTRIBUTE_RW_FUNCTION("visible",	KX_GameObject, pyattr_get_visible,	pyattr_set_visible),
 	KX_PYATTRIBUTE_RW_FUNCTION("record_animation",	KX_GameObject, pyattr_get_record_animation,	pyattr_set_record_animation),
 	KX_PYATTRIBUTE_BOOL_RW    ("occlusion", KX_GameObject, m_bOccluder),
@@ -2483,6 +2485,54 @@ int KX_GameObject::pyattr_set_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF
 
 	if (spc)
 		spc->SetLinVelocityMax(val);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_GameObject::pyattr_get_ang_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject *self = static_cast<KX_GameObject*>(self_v);
+	PHY_IPhysicsController *spc = self->GetPhysicsController();
+	return PyFloat_FromDouble(spc ? spc->GetAngularVelocityMin() : 0.0f);
+}
+
+int KX_GameObject::pyattr_set_ang_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject *self = static_cast<KX_GameObject*>(self_v);
+	PHY_IPhysicsController *spc = self->GetPhysicsController();
+	MT_Scalar val = PyFloat_AsDouble(value);
+	if (val < 0.0f) { /* also accounts for non float */
+		PyErr_SetString(PyExc_AttributeError,
+		                "gameOb.angularVelocityMin = float: KX_GameObject, expected a nonnegative float");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	if (spc)
+		spc->SetAngularVelocityMin(val);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_GameObject::pyattr_get_ang_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject *self = static_cast<KX_GameObject*>(self_v);
+	PHY_IPhysicsController *spc = self->GetPhysicsController();
+	return PyFloat_FromDouble(spc ? spc->GetAngularVelocityMax() : 0.0f);
+}
+
+int KX_GameObject::pyattr_set_ang_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject *self = static_cast<KX_GameObject*>(self_v);
+	PHY_IPhysicsController *spc = self->GetPhysicsController();
+	MT_Scalar val = PyFloat_AsDouble(value);
+	if (val < 0.0f) { /* also accounts for non float */
+		PyErr_SetString(PyExc_AttributeError,
+		                "gameOb.angularVelocityMax = float: KX_GameObject, expected a nonnegative float");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	if (spc)
+		spc->SetAngularVelocityMax(val);
 
 	return PY_SET_ATTR_SUCCESS;
 }

@@ -1200,7 +1200,9 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 //	velocity clamping XXX
 	shapeProps->m_clamp_vel_min = blenderobject->min_vel;
 	shapeProps->m_clamp_vel_max = blenderobject->max_vel;
-	
+	shapeProps->m_clamp_angvel_min = blenderobject->min_angvel;
+	shapeProps->m_clamp_angvel_max = blenderobject->max_angvel;
+
 //  Character physics properties
 	shapeProps->m_step_height = blenderobject->step_height;
 	shapeProps->m_jump_speed = blenderobject->jump_speed;

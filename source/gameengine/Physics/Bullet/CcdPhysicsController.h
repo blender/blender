@@ -236,6 +236,8 @@ struct CcdConstructionInfo
 		m_mass(0.f),
 		m_clamp_vel_min(-1.f),
 		m_clamp_vel_max(-1.f),
+	    m_clamp_angvel_min(0.0f),
+	    m_clamp_angvel_max(0.0f),
 		m_restitution(0.1f),
 		m_friction(0.5f),
 		m_linearDamping(0.1f),
@@ -302,6 +304,8 @@ struct CcdConstructionInfo
 	btScalar	m_mass;
 	btScalar	m_clamp_vel_min;  
 	btScalar	m_clamp_vel_max;  
+	btScalar	m_clamp_angvel_min;  // Minimum angular velocity, in radians/sec.
+	btScalar	m_clamp_angvel_max;  // Maximum angular velocity, in radians/sec.
 	btScalar	m_restitution;
 	btScalar	m_friction;
 	btScalar	m_linearDamping;
@@ -706,6 +710,23 @@ protected:
 		virtual float GetLinVelocityMax() const 
 		{
 			return m_cci.m_clamp_vel_max;
+		}
+
+		virtual void SetAngularVelocityMin(float val)
+		{
+			m_cci.m_clamp_angvel_min = val;
+		}
+		virtual float GetAngularVelocityMin() const
+		{
+			return m_cci.m_clamp_angvel_min;
+		}
+		virtual void SetAngularVelocityMax(float val)
+		{
+			m_cci.m_clamp_angvel_max = val;
+		}
+		virtual float GetAngularVelocityMax() const
+		{
+			return m_cci.m_clamp_angvel_max;
 		}
 
 		bool	WantsSleeping();

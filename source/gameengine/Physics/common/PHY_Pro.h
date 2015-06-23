@@ -43,6 +43,8 @@ struct PHY_ShapeProps {
 	MT_Scalar  m_friction_scaling[3];   // Scaling for anisotropic friction. Component in range [0, 1]   
 	MT_Scalar  m_clamp_vel_min;			// Clamp the minimum velocity, this ensures an object moves at a minimum speed unless its stationary
 	MT_Scalar  m_clamp_vel_max;			// Clamp max velocity
+	MT_Scalar  m_clamp_angvel_min;		// Clamp the minimum angular velocity.
+	MT_Scalar  m_clamp_angvel_max;		// Clamp the maximum angular velocity.
 	bool       m_do_anisotropic;        // Should I do anisotropic friction? 
 	bool       m_do_fh;                 // Should the object have a linear Fh spring?
 	bool       m_do_rot_fh;             // Should the object have an angular Fh spring?

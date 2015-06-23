@@ -139,6 +139,29 @@ base class --- :class:`SCA_IObject`
 
          A value of 0.0 disables this option (rather then setting it stationary).
 
+   .. attribute:: angularVelocityMin
+
+      Enforces the object keeps rotating at a minimum velocity. A value of 0.0 disables this.
+
+      :type: non-negative float
+
+      .. note::
+
+         Applies to dynamic and rigid body objects only.
+         While objects are stationary the minimum velocity will not be applied.
+
+
+   .. attribute:: angularVelocityMax
+
+      Clamp the maximum angular velocity to prevent objects rotating beyond a set speed.
+      A value of 0.0 disables clamping; it does not stop rotation.
+
+      :type: non-negative float
+
+      .. note::
+
+         Applies to dynamic and rigid body objects only.
+
    .. attribute:: localInertia
 
       the object's inertia vector in local coordinates. Read only.

@@ -713,6 +713,17 @@ void CcdPhysicsController::SimulationTick(float timestep)
 		else if (m_cci.m_clamp_vel_min > 0.0f && !btFuzzyZero(len) && len < m_cci.m_clamp_vel_min)
 			body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_min / len));
 	}
+
+	// Clamp angular velocity
+	if (m_cci.m_clamp_angvel_max > 0.0f || m_cci.m_clamp_angvel_min > 0.0f) {
+		const btVector3 &angvel = body->getAngularVelocity();
+		btScalar len = angvel.length();
+
+		if (m_cci.m_clamp_angvel_max > 0.0f && len > m_cci.m_clamp_angvel_max)
+			body->setAngularVelocity(angvel * (m_cci.m_clamp_angvel_max / len));
+		else if (m_cci.m_clamp_angvel_min > 0.0f && !btFuzzyZero(len) && len < m_cci.m_clamp_angvel_min)
+			body->setAngularVelocity(angvel * (m_cci.m_clamp_angvel_min / len));
+	}
 }
 
 

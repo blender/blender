@@ -3111,6 +3111,8 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 	ci.m_mass = isbulletdyna ? shapeprops->m_mass : 0.f;
 	ci.m_clamp_vel_min = shapeprops->m_clamp_vel_min;
 	ci.m_clamp_vel_max = shapeprops->m_clamp_vel_max;
+	ci.m_clamp_angvel_min = shapeprops->m_clamp_angvel_min;
+	ci.m_clamp_angvel_max = shapeprops->m_clamp_angvel_max;
 	ci.m_stepHeight = isbulletchar ? shapeprops->m_step_height : 0.f;
 	ci.m_jumpSpeed = isbulletchar ? shapeprops->m_jump_speed : 0.f;
 	ci.m_fallSpeed = isbulletchar ? shapeprops->m_fall_speed : 0.f;
