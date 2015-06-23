@@ -5324,12 +5324,22 @@ static void slide_origdata_create_data_vert(
 	loop_weights = BLI_array_alloca(loop_weights, l_num);
 	for (j = 0; j < l_num; j++) {
 		BMLoop *l = BM_iter_step(&liter);
+		BMLoop *l_prev, *l_next;
 		void **val_p;
 		if (!BLI_ghash_ensure_p(sod->origfaces, l->f, &val_p)) {
 			BMFace *f_copy = BM_face_copy(sod->bm_origfaces, bm, l->f, true, true);
 			*val_p = f_copy;
 		}
-		loop_weights[j] = BM_loop_calc_face_angle(l);
+
+		if ((l_prev = BM_loop_find_prev_nodouble(l, l->next, FLT_EPSILON)) &&
+		    (l_next = BM_loop_find_next_nodouble(l, l_prev,  FLT_EPSILON)))
+		{
+			loop_weights[j] = angle_v3v3v3(l_prev->v->co, l->v->co, l_next->v->co);
+		}
+		else {
+			loop_weights[j] = 0.0f;
+		}
+
 	}
 
 	/* store cd_loop_groups */
