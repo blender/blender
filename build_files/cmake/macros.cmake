@@ -918,19 +918,22 @@ endmacro()
 
 # utility macro
 macro(remove_cc_flag
-	flag)
+	_flag)
 
-	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
-	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+	foreach(flag ${ARGV})
+		string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+		string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+		string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+		string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
+		string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 
-	string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-	string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-	string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-	string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL}")
-	string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+		string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+		string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+		string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+		string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL}")
+		string(REGEX REPLACE ${flag} "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+	endforeach()
+	unset(flag)
 
 endmacro()
 
@@ -944,28 +947,32 @@ endmacro()
 macro(remove_strict_flags)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
-		remove_cc_flag("-Wstrict-prototypes")
-		remove_cc_flag("-Wmissing-prototypes")
-		remove_cc_flag("-Wunused-parameter")
-		remove_cc_flag("-Wunused-macros")
-		remove_cc_flag("-Wwrite-strings")
-		remove_cc_flag("-Wredundant-decls")
-		remove_cc_flag("-Wundef")
-		remove_cc_flag("-Wshadow")
-		remove_cc_flag("-Wdouble-promotion")
-		remove_cc_flag("-Wold-style-definition")
-		remove_cc_flag("-Werror=[^ ]+")
-		remove_cc_flag("-Werror")
+		remove_cc_flag(
+			"-Wstrict-prototypes"
+			"-Wmissing-prototypes"
+			"-Wunused-parameter"
+			"-Wunused-macros"
+			"-Wwrite-strings"
+			"-Wredundant-decls"
+			"-Wundef"
+			"-Wshadow"
+			"-Wdouble-promotion"
+			"-Wold-style-definition"
+			"-Werror=[^ ]+"
+			"-Werror"
+		)
 
 		# negate flags implied by '-Wall'
 		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
 	endif()
 
 	if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-		remove_cc_flag("-Wunused-parameter")
-		remove_cc_flag("-Wunused-variable")
-		remove_cc_flag("-Werror=[^ ]+")
-		remove_cc_flag("-Werror")
+		remove_cc_flag(
+			"-Wunused-parameter"
+			"-Wunused-variable"
+			"-Werror=[^ ]+"
+			"-Werror"
+		)
 
 		# negate flags implied by '-Wall'
 		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
@@ -979,11 +986,15 @@ endmacro()
 
 macro(remove_extra_strict_flags)
 	if(CMAKE_COMPILER_IS_GNUCC)
-		remove_cc_flag("-Wunused-parameter")
+		remove_cc_flag(
+			"-Wunused-parameter"
+		)
 	endif()
 
 	if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-		remove_cc_flag("-Wunused-parameter")
+		remove_cc_flag(
+			"-Wunused-parameter"
+		)
 	endif()
 
 	if(MSVC)
