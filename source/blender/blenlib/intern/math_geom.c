@@ -719,8 +719,26 @@ int isect_seg_seg_v2_point(const float v0[2], const float v1[2], const float v2[
 		    (v >= -eps && v <= 1.0f + eps))
 		{
 			/* intersection */
-			madd_v2_v2v2fl(r_vi, v0, s10, u);
-			return 1;
+			float vi_test[2];
+			float s_vi_v2[2];
+
+			madd_v2_v2v2fl(vi_test, v0, s10, u);
+
+			/* When 'd' approaches zero, float precision lets non-overlapping co-linear segments
+			 * detect as an intersection. So re-calculate 'v' to ensure the point overlaps both.
+			 * see T45123 */
+
+			/* inline since we have most vars already */
+#if 0
+			v = line_point_factor_v2(ix_test, v2, v3);
+#else
+			sub_v2_v2v2(s_vi_v2, vi_test, v2);
+			v = (dot_v2v2(s32, s_vi_v2) / dot_v2v2(s32, s32));
+#endif
+			if (v >= -eps && v <= 1.0f + eps) {
+				copy_v2_v2(r_vi, vi_test);
+				return 1;
+			}
 		}
 
 		/* out of segment intersection */
